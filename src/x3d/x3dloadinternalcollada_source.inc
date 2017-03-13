@@ -111,7 +111,7 @@ begin
   Result := Floats.Count >= MinCount;
   if not Result then
   begin
-    WritelnWarning('Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
+    WritelnWarning('Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are available',
       [MinCount, Floats.Count]));
     { force Count smaller, also force other params to common values }
     Stride := Max(Stride, 1);
@@ -166,7 +166,7 @@ begin
   Result := Floats.Count >= MinCount;
   if not Result then
   begin
-    WritelnWarning('Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are avilable',
+    WritelnWarning('Collada', Format('<accessor> count requires at least %d float values in <float_array>, but only %d are available',
       [MinCount, Floats.Count]));
     { force Count smaller, also force other params to common values }
     Stride := Max(Stride, 1);

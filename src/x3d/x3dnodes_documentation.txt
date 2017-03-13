@@ -24,3 +24,7 @@ Orientation in which 3D @link(Scale) is performed.
 
 # TTransformNode.Translation
 Translate (move) the children.
+
+# TAbstractShapeNode.Render
+Is the shape visible.
+See https://castle-engine.sourceforge.io/x3d_implementation_shape_extensions.php#section_ext_shape_render

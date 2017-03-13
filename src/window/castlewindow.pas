@@ -4912,7 +4912,7 @@ procedure TCastleApplication.HandleException(Sender: TObject);
       except
         on E: TObject do
         begin
-          WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occured in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
+          WritelnWarning('Exception', 'Exception ' + E.ClassName + ' occurred in the error handler itself. This means we cannot report the exception by a nice dialog box. The *original* exception report follows.');
           ExceptProc(OriginalObj, OriginalAddr, OriginalFrameCount, OriginalFrame);
           WritelnWarning('Exception', 'And below is a report about the exception within exception handler.');
           ExceptProc(SysUtils.ExceptObject, SysUtils.ExceptAddr, SysUtils.ExceptFrameCount, SysUtils.ExceptFrames);

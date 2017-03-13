@@ -485,7 +485,7 @@ begin
     if IdCompare(Header.ID, 'data') then
     begin
       if Data <> nil then
-        raise EInvalidWAV.Create('WAV file must not contain mulitple data chunks');
+        raise EInvalidWAV.Create('WAV file must not contain multiple data chunks');
       { calculate FDataSize and FData (and FData^) }
       FDataSize := Header.Len;
       FData := GetMem(DataSize);

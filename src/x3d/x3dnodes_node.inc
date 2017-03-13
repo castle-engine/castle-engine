@@ -1980,7 +1980,7 @@ var
                 and is different than current ContainerField. }
               FieldIndex := IndexOfField(Child.DefaultContainerField);
               if FieldIndex >= 0 then
-                WritelnWarning('VRML/X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeded');
+                WritelnWarning('VRML/X3D', 'X3D XML: containerField indicated unknown field name ("' + ContainerField + '" by node "' + Child.X3DType + '" inside node "' + X3DType + '"), using the default containerField value "' + Child.DefaultContainerField + '" succeeded');
             end;
 
             if FieldIndex >= 0 then
