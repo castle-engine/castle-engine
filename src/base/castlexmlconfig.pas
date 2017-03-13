@@ -949,7 +949,7 @@ begin
     { create child if necessary }
     if NewResult = nil then
     begin
-      NewResult := Doc.CreateElement(PathComponent);
+      NewResult := Doc.CreateElement(UTF8Decode(PathComponent));
       Result.AppendChild(NewResult);
     end;
     Result := NewResult;
@@ -959,7 +959,7 @@ end;
 function TCastleConfig.PathChildren(const APath: string;
   const ChildName: string): TDOMNodeList;
 begin
-  Result := PathElement(APath, true).GetElementsByTagName(ChildName);
+  Result := PathElement(APath, true).GetElementsByTagName(UTF8Decode(ChildName));
 end;
 
 function TCastleConfig.PathChildrenIterator(const APath: string;
@@ -988,7 +988,7 @@ begin
   E := PathElement(APath, false);
   if E = nil then
     Result := DefaultValue else
-    Result := E.TextContent;
+    Result := UTF8Encode(E.TextContent);
   { convert all to Unix-line endings }
   StringReplaceAllVar(Result, #13, '', false);
   { in case we're not on Unix, convert to current line endings }

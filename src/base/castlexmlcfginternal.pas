@@ -188,7 +188,7 @@ begin
     SetLength(NodeName, EndPos - StartPos);
     Move(APath[StartPos], NodeName[1], EndPos - StartPos);
     StartPos := EndPos + 1;
-    Child := Node.FindNode(Escape(NodeName));
+    Child := Node.FindNode(UTF8decode(Escape(NodeName)));
     if not Assigned(Child) then
       exit;
     Node := Child;
@@ -197,9 +197,9 @@ begin
     exit;
   SetLength(NodeName, PathLen - StartPos + 1);
   Move(APath[StartPos], NodeName[1], Length(NodeName));
-  Attr := Node.Attributes.GetNamedItem(Escape(NodeName));
+  Attr := Node.Attributes.GetNamedItem(UTF8Decode(Escape(NodeName)));
   if Assigned(Attr) then
-    Result := Attr.NodeValue;
+    Result := UTF8Encode(Attr.NodeValue);
 end;
 
 function TXMLConfig.GetValue(const APath: String; ADefault: Integer): Integer;
@@ -247,10 +247,10 @@ begin
     Move(APath[StartPos], NodeName[1], EndPos - StartPos);
     StartPos := EndPos + 1;
     NodeName := Escape(NodeName);
-    Child := Node.FindNode(NodeName);
+    Child := Node.FindNode(UTF8Decode(NodeName));
     if not Assigned(Child) then
     begin
-      Child := Doc.CreateElement(NodeName);
+      Child := Doc.CreateElement(UTF8Decode(NodeName));
       Node.AppendChild(Child);
     end;
     Node := Child;
@@ -261,10 +261,10 @@ begin
   SetLength(NodeName, PathLen - StartPos + 1);
   Move(APath[StartPos], NodeName[1], Length(NodeName));
   NodeName := Escape(NodeName);
-  if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) or
-    (TDOMElement(Node)[NodeName] <> AValue) then
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(UTF8Decode(NodeName)))) or
+    (TDOMElement(Node)[UTF8decode(NodeName)] <> UTF8Decode(AValue)) then
   begin
-    TDOMElement(Node)[NodeName] := AValue;
+    TDOMElement(Node)[UTF8decode(NodeName)] := UTF8Decode(AValue);
     FModified := True;
   end;
 end;
@@ -332,9 +332,9 @@ begin
   while (StartPos > 0) and (APath[StartPos] <> '/') do
    Dec(StartPos);
   NodeName := Escape(Copy(APath, StartPos+1, Length(APath) - StartPos));
-  if (not Assigned(TDOMElement(Node).GetAttributeNode(NodeName))) then
+  if (not Assigned(TDOMElement(Node).GetAttributeNode(UTF8Decode(NodeName)))) then
     exit;
-  TDOMElement(Node).RemoveAttribute(NodeName);
+  TDOMElement(Node).RemoveAttribute(UTF8Decode(NodeName));
   FModified := True;
 end;
 
@@ -366,7 +366,7 @@ begin
       break;
     SetLength(NodePath, EndPos - StartPos);
     Move(APath[StartPos], NodePath[1], Length(NodePath));
-    Result := Result.FindNode(Escape(NodePath));
+    Result := Result.FindNode(UTF8Decode(Escape(NodePath)));
     StartPos := EndPos + 1;
     if StartPos > PathLen then
       exit;

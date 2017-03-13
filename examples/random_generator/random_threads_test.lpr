@@ -13,9 +13,15 @@ type
 
 
 procedure TRandomThread.execute;
+var ThreadName, SeedName, TickName: string;
 begin
  rnd := TCastleRandom.create;
- writeLnLog('Thread'+inttostr(id),'seed: '+inttostr(rnd.Random32bit));
+ TickName := inttostr(GetTickCount64);
+ ThreadName := inttostr(id);
+ while length(ThreadName)<3 do ThreadName:='0'+ThreadName;
+ SeedName := inttostr(rnd.Random32bit);
+ while length(SeedName)<10 do SeedName:='0'+SeedName;
+ writeLnLog('Thread'+ThreadName,'at tick '+TickName+' seed: '+SeedName);
  freeandnil(rnd);
 end;
 
@@ -31,8 +37,9 @@ begin
     rnd_thread[i].id := i;
     rnd_thread[i].FreeOnTerminate := true;
     rnd_thread[i].Priority := tpLower;
-    rnd_thread[i].Start;
   end;
+  for i:= 0 to n_threads do
+    rnd_thread[i].Start;
   sleep(1000);
 end.
 

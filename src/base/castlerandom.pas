@@ -26,7 +26,10 @@ type
     Implementation of XorShift algorithm for random numbers generation.
     In some cases it works 2 to 3 times faster than native
     FPC random function. It also allows for multiple
-    repeatable random seeds to support parallel pseudo-random sequences. }
+    repeatable random seeds to support parallel pseudo-random sequences.
+    The algorithm should not be used for cryptographic purposes, because
+    it's speed-oriented (with quality ok for game, but not cryptographic use),
+    and might subject to change in future. }
   TCastleRandom = class(TObject)
   public
     { Create and initialize (seed) the random generator.
@@ -129,15 +132,17 @@ begin
    different for different threads, therefore no 2 threads can be initialized
    with equal seed even if they are absolutely simultaneous}
   c64 := QWORD(@(c64));
+
+  while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
+
+  wait_for_seed := true;     //prevents another randomization to start until this one is finished
+
   xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
   {I've made it 6 times, because sometimes values returned by
    xorshift algorithm are not too different,
    but we want them really independent for random seed initialization.
    So, multiple xorshift64 will take this "little" difference and eventually
    transform it into truly unpredictable number in 1..high(QWORD) range}
-  while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
-
-  wait_for_seed := true;     //prevents another randomization to start until this one is finished
 
   b64 := c64;   //and use our another random seed based on current thread memory allocation
   {can this actually damage randomness in case of randomization happens only once
@@ -167,7 +172,14 @@ begin
      which we obviously don't want to.}
 
     {so let's start by getting tick count as SysUtils does}
+    {$PUSH}{$WARN 5066 OFF}
+    {Yes, we are using a deprecated function, it's ok here,
+     because its goal is not convenient time measurement
+     but getting a semi-random number as fine as possible.
+     We're using CastleTimeUtils.GetTickCount64 due to better Android support.
+     Some day we might switch to SysUtils.GetTickCount64 implementation}
     c64 := gettickcount64;
+    {$POP}
     {just to make sure it's not zero. It's not really important here.}
     if c64 = 0 then c64 := 2903758934725;
 
@@ -224,9 +236,12 @@ function TCastleRandom.GetRandomSeed: longint;
 begin
   {$IFDEF USE_DEV_URANDOM}
     { guarantees initialization with absolutely random number provided by
-      native *nix algorithm. }
+      native *nix algorithm.
+      Yes, /dev/URandom is not as good as /dev/Random in cryptographic understanding
+      but is faster and perfectly enough for a game-oriented random initalization }
     result := DEV_URANDOM;
   {$ELSE}
+    { Castle's own random initialization algorithm. Thread-safe and 64-bit quality }
     result := Get_Randomseed;
   {$ENDIF}
 end;

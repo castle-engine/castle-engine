@@ -1873,17 +1873,17 @@ var
          (Attr.Name = SAttrDEF) then
         Continue;
 
-      Index := IndexOfField(Attr.Name);
+      Index := IndexOfField(UTF8Encode(Attr.Name));
       if Index >= 0 then
       begin
-        Fields[Index].ParseXMLAttribute(Attr.Value, Reader);
+        Fields[Index].ParseXMLAttribute(UTF8Encode(Attr.Value), Reader);
         { Note that saving PositionInParent from XML attributes order
           isn't really useful, as FPC DOM unit already sorted
           Element.Attributes (TDOMNamedNodeMap) by name. }
         Fields[Index].PositionInParent := Position;
         Inc(Position);
       end else
-        WritelnWarning('VRML/X3D', 'Unknown X3D field name (unhandled X3D XML attribute) "' + Attr.Name + '" in node "' + X3DType + '"');
+        WritelnWarning('VRML/X3D', 'Unknown X3D field name (unhandled X3D XML attribute) "' + UTF8Encode(Attr.Name) + '" in node "' + X3DType + '"');
     end;
   end;
 

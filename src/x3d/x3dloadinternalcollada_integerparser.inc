@@ -36,7 +36,7 @@ type
 constructor TIntegersParser.Create(const PElement: TDOMElement);
 begin
   inherited Create;
-  Content := PElement.TextData;
+  Content := UTF8Encode(PElement.TextData);
   SeekPos := 1;
 end;
 

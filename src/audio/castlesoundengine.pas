@@ -1780,7 +1780,7 @@ begin
           'Each child of sounds/index.xml root node must be the <sound> element');
 
         S := TSoundInfo.Create;
-        S.Name := I.Current.GetAttribute('name');
+        S.Name := UTF8Encode(I.Current.GetAttribute('name'));
 
         { init to default values }
         S.URL := CombineURI(RepositoryURLAbsolute, S.Name + '.wav');
