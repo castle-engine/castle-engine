@@ -297,16 +297,10 @@ cleanmore: clean
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/ \
-	       tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/giftiz/GiftizSDKLibrary/ \
-	       tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/heyzap/AudienceNetwork/ \
-	       tools/build-tool/data/android/integrated-components/heyzap/unity-ads/ \
-	       tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/startapp/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/game_analytics/jni/*/*.so
+	rm -Rf tools/build-tool/data/android/integrated-components/giftiz/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
 
 cleanall: cleanmore
 
