@@ -1,23 +1,30 @@
-X3DTextureCoordinateNode : X3DGeometricPropertyNode { 
+X3DTextureCoordinateNode : X3DGeometricPropertyNode {
 }
 
-X3DTextureNode : X3DAppearanceChildNode { 
+X3DTextureNode : X3DAppearanceChildNode {
+  # EXTENSIONS:
+  MFNode     []            effects          []          # [Effect]
 }
 
 X3DTexture2DNode : X3DTextureNode {
   SFBool []       repeatS           TRUE
   SFBool []       repeatT           TRUE
   SFNode []       textureProperties NULL [TextureProperties]
+
+  # EXTENSIONS:
+  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # this is implemented specially in Pascal.
+  # SFString   []            alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"]
 }
 
-X3DTextureTransformNode : X3DAppearanceChildNode { 
+X3DTextureTransformNode : X3DAppearanceChildNode {
 }
 
-ImageTexture : X3DTexture2DNode, X3DUrlObject { 
+ImageTexture : X3DTexture2DNode, X3DUrlObject {
   MFString [in,out] url               []   [URI]
 }
 
-MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject { 
+MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
   SFString [in,out] description       ""
   SFBool   [in,out] loop              FALSE
   SFTime   [in,out] pauseTime         0     (-Inf,Inf)
@@ -34,7 +41,7 @@ MovieTexture : X3DTexture2DNode, X3DSoundSourceNode, X3DUrlObject {
 
 MultiTexture : X3DTextureNode {
   SFFloat  [in,out] alpha    1     [0,1]
-  SFColor  [in,out] color    1 1 1 [0,1] 
+  SFColor  [in,out] color    1 1 1 [0,1]
   MFString [in,out] function []
   MFString [in,out] mode     []
   MFString [in,out] source   []
@@ -45,15 +52,15 @@ MultiTextureCoordinate : X3DTextureCoordinateNode {
   MFNode [in,out] texCoord NULL [X3DTextureCoordinateNode]
 }
 
-MultiTextureTransform : X3DTextureTransformNode { 
+MultiTextureTransform : X3DTextureTransformNode {
   MFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
 }
 
-PixelTexture : X3DTexture2DNode { 
+PixelTexture : X3DTexture2DNode {
   SFImage [in,out] image             0 0 0
 }
 
-TextureCoordinate : X3DTextureCoordinateNode { 
+TextureCoordinate : X3DTextureCoordinateNode {
   MFVec2f [in,out] point    []   (-Inf,Inf)
 }
 
@@ -76,10 +83,9 @@ TextureProperties : X3DNode {
   SFBool      []       generateMipMaps     FALSE
 }
 
-TextureTransform : X3DTextureTransformNode { 
+TextureTransform : X3DTextureTransformNode {
   SFVec2f [in,out] center      0 0  (-Inf,Inf)
   SFFloat [in,out] rotation    0    (-Inf,Inf)
   SFVec2f [in,out] scale       1 1  (-Inf,Inf)
   SFVec2f [in,out] translation 0 0  (-Inf,Inf)
 }
-

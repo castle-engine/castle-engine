@@ -1,4 +1,4 @@
-X3DBackgroundNode : X3DBindableNode { 
+X3DBackgroundNode : X3DBindableNode {
   MFFloat [in,out] groundAngle   []      [0,Pi/2]
   MFColor [in,out] groundColor   []      [0,1]
   MFFloat [in,out] skyAngle      []      [0,Pi]
@@ -10,6 +10,11 @@ X3DFogObject {
   SFColor  [in,out] color           1 1 1    [0,1]
   SFString [in,out] fogType         "LINEAR" ["LINEAR"|"EXPONENTIAL"]
   SFFloat  [in,out] visibilityRange 0        [0,-Inf)
+
+  # EXTENSIONS:
+  SFBool   [in,out]      volumetric                    FALSE
+  SFVec3f  [in,out]      volumetricDirection           0 -1 0    # any non-zero vector
+  SFFloat  [in,out]      volumetricVisibilityStart     0
 }
 
 Background : X3DBackgroundNode {

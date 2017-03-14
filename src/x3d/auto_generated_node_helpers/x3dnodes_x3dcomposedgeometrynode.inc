@@ -25,11 +25,52 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
+    function GetColorPerVertex: boolean;
+    procedure SetColorPerVertex(const Value: boolean);
+    function GetNormalPerVertex: boolean;
+    procedure SetNormalPerVertex(const Value: boolean);
+  public
+    property Ccw: boolean read GetCcw write SetCcw;
+    property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
+    property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractComposedGeometryNode ----------------------------------------------- }
+
+function TAbstractComposedGeometryNode.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TAbstractComposedGeometryNode.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetColorPerVertex: boolean;
+begin
+  Result := FdColorPerVertex.Value;
+end;
+
+procedure TAbstractComposedGeometryNode.SetColorPerVertex(const Value: boolean);
+begin
+  FdColorPerVertex.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetNormalPerVertex: boolean;
+begin
+  Result := FdNormalPerVertex.Value;
+end;
+
+procedure TAbstractComposedGeometryNode.SetNormalPerVertex(const Value: boolean);
+begin
+  FdNormalPerVertex.Send(Value);
+end;
 
 {$endif read_implementation}

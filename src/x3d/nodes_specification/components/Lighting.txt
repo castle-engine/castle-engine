@@ -22,20 +22,30 @@ DirectionalLight : X3DLightNode {
   # NOTE: global by default is FALSE
 
   # EXTENSIONS:
-  # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, bottom, right, top; must be left < right and bottom < top
-  # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec3f    [in,out]      projectionLocation    0 0 0          # affected by node's transformation
+  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # this is implemented specially in TAbstractDirectionalLightNode
+  # SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, bottom, right, top; must be left < right and bottom < top
+
+  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # this is implemented specially in TAbstractDirectionalLightNode
+  # SFVec3f    [in,out]      projectionLocation    0 0 0          # affected by node's transformation
 }
 
 PointLight : X3DLightNode {
-  # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec3f [in,out] attenuation      1 0 0 [0,Inf)
   # NOTE: global by default is TRUE
-  # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFVec3f [in,out] location         0 0 0 (-Inf,Inf)
-  # Commented out, for CGE this is special in TAbstractDirectionalLightNode
-  ### SFFloat [in,out] radius           100   [0,Inf)
+
+  # EXTENSIONS:
+  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # this is implemented specially
+  # SFVec3f [in,out] attenuation      1 0 0 [0,Inf)
+
+  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # this is implemented specially
+  # SFVec3f [in,out] location         0 0 0 (-Inf,Inf)
+
+  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # this is implemented specially
+  # SFFloat [in,out] radius           100   [0,Inf)
 }
 
 SpotLight : X3DLightNode {
@@ -47,6 +57,6 @@ SpotLight : X3DLightNode {
   SFVec3f [in,out] location         0 0 0    (-Inf,Inf)
   SFFloat [in,out] radius           100      [0,Inf)
 
-  # Castle Game Engine extensions
+  # EXTENSIONS:
   SFFloat    [in,out]      projectionAngle       0
 }

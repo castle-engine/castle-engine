@@ -1,0 +1,174 @@
+# -*- mode: shell-script -*-
+#
+# Specification of Castle Game Engine X3D extensions.
+# See https://castle-engine.sourceforge.io/x3d_extensions.php .
+# This file is in the format understood by
+# our ../generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal.lpr
+# and by White Dune scripts.
+#
+# Note that we only list here *new* X3D nodes.
+# Extensions (new fields) to existing nodes must be listed in other txt files
+# (otherwse generate_x3d_nodes_helpers would not be able to handle them).
+# ----------------------------------------------------------------------------
+
+# "KambiAppearance" is just a synonym for "Appearance" now.
+#
+# Now we just add all new fields to the standard "Appearance" node.
+# Reasons: we describe in shadow_maps_x3d paper
+# our propositions for Appearance (without introducing KambiAppearance,
+# as (in the future) these should not be specific to our engine),
+# also InstantReality already has Appearance.blendMode.
+#
+# You can however use KambiAppearance in your models, this allows you
+# to declare KambiAppearance by EXTERNPROTO and fallback on standard
+# Appearance.
+KambiAppearance : Appearance {
+}
+
+GeneratedShadowMap : X3DTextureNode {
+  SFString   [in,out]      update           "NONE"                # ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+  SFInt32    []            size             128
+  SFNode     []            light            NULL                  # [X3DLightNode]
+  SFFloat    [in,out]      scale            4.0
+  SFFloat    [in,out]      bias             4.0
+  SFString   []            compareMode      "COMPARE_R_LEQUAL"    # ["COMPARE_R_LEQUAL"|"COMPARE_R_GEQUAL"|"NONE"]
+}
+
+Text3D : X3DGeometryNode {
+  MFString   [in,out]      string      []
+  SFNode     [in,out]      fontStyle   NULL
+  MFFloat    [in,out]      length      []
+  SFFloat    [in,out]      maxExtent   0
+  SFFloat    [in,out]      depth       0.1         # must be >= 0
+  SFBool     [in,out]      solid       TRUE
+}
+
+KambiInline : Inline {
+  MFString   [in,out]      replaceNames  []
+  MFNode     [in,out]      replaceNodes  []          # any VRML/X3D node is valid on this list
+}
+
+KambiNavigationInfo : NavigationInfo {
+  SFBool     []            timeOriginAtLoad    FALSE
+  SFNode []            octreeRendering            NULL    # only KambiOctreeProperties node
+  SFNode []            octreeDynamicCollisions    NULL    # only KambiOctreeProperties node
+  SFNode []            octreeVisibleTriangles     NULL    # only KambiOctreeProperties node
+  SFNode []            octreeStaticCollisions     NULL    # only KambiOctreeProperties node
+  SFFloat    [in,out]      headBobbing             0.02   # [0, 1)
+  SFFloat    [in,out]      headBobbingTime         0.5    # > 0
+  SFNode     [in,out]      headlightNode           NULL   # [X3DLightNode]
+}
+
+KambiHeadLight : X3DChildNode {
+  SFFloat    [in,out]      ambientIntensity      0           # [0.0, 1.0]
+  SFVec3f    [in,out]      attenuation           1 0 0       # [0, infinity)
+  SFColor    [in,out]      color                 1 1 1       # [0, 1]
+  SFFloat    [in,out]      intensity             1           # [0, 1]
+  SFBool     [in,out]      spot                  FALSE
+  SFFloat    [in,out]      spotDropOffRate       0
+  SFFloat    [in,out]      spotCutOffAngle       0.785398
+}
+
+KambiOctreeProperties : X3DNode {
+  SFInt32 []            maxDepth              -1      # must be >= -1
+  SFInt32 []            leafCapacity          -1      # must be >= -1
+}
+
+Teapot : X3DGeometryNode {
+  SFVec3f    []            size        3 3 3
+  SFBool     []            solid       TRUE
+  SFBool     []            manifold    FALSE
+  SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
+}
+
+RenderedTexture : X3DTextureNode {
+  MFInt32    [in,out]      dimensions            128 128 4 1 1
+  SFString   [in,out]      update                "NONE"           # ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"]
+  SFNode     [in,out]      viewpoint             NULL             # [X3DViewpointNode] (VRML 1.0 camera nodes also allowed)
+  SFNode     []            textureProperties     NULL             # [TextureProperties]
+  SFBool     []            repeatS               TRUE
+  SFBool     []            repeatT               TRUE
+  SFBool     []            repeatR               TRUE
+  MFBool     [in,out]      depthMap              []
+}
+
+Logger : X3DChildNode {
+  SFInt32    [in,out]      level       1
+  SFString   []            logFile     ""
+  SFBool     [in,out]      enabled     TRUE
+  XFAny      [in]          write
+}
+
+MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
+  SFNode [in,out] metadata NULL [X3DMetadataObject]
+  MFNode [in,out] texCoord NULL [TextureCoordinateGenerator, ProjectedTextureCoordinate]
+}
+
+ProjectedTextureCoordinate : X3DTextureCoordinateNode {
+  SFNode     [in,out]      projector   NULL        # [SpotLight, DirectionalLight, X3DViewpointNode]
+}
+
+# See https://castle-engine.sourceforge.io/x3d_extensions_screen_effects.php
+ScreenEffect : X3DChildNode {
+  SFBool     [in,out]      enabled     TRUE
+  SFBool     [in,out]      needsDepth  FALSE
+  MFNode     [in,out]      shaders     []        # [X3DShaderNode]
+}
+
+# See https://castle-engine.sourceforge.io/x3d_implementation_interpolation.php
+ColorSetInterpolator : X3DInterpolatorNode {
+  MFColor  [in,out]  keyValue           []
+  MFColor  [out]     value_changed
+}
+
+VectorInterpolator : X3DInterpolatorNode {
+  MFFloat  [in,out]  keyValue           []
+  MFFloat  [out]     value_changed
+}
+
+# See https://castle-engine.sourceforge.io/compositing_shaders.php
+Effect : X3DChildNode {
+  SFString   []            language    ""      # ["CG"|"GLSL"|"HLSL"] ; allowed values like ComposedShader.language
+  SFBool     [in,out]      enabled     TRUE
+  MFNode     []            parts       []      # [EffectPart]
+
+  # And any number of uniform variables, just like for ComposedShader node:
+  fieldType []       fieldName
+  fieldType [in]     fieldName
+  fieldType [out]    fieldName
+  fieldType [in,out] fieldName
+}
+
+# See https://castle-engine.sourceforge.io/compositing_shaders.php
+EffectPart : X3DNode, X3DUrlObject {
+  # for XML encoding, default containerField: parts
+  MFString []       url      []         # (may be changed to [in,out] one day)
+  SFString []       type     "VERTEX"   # ["VERTEX"|"FRAGMENT"]
+}
+
+# See https://castle-engine.sourceforge.io/compositing_shaders.php
+ShaderTexture : X3DTextureNode {
+  MFNode   []       effects         []          # [Effect]; defined in X3DTextureNode
+  SFString []       defaultTexCoord "BOUNDS2D"  # ["BOUNDS2D"|"BOUNDS3D"]
+}
+
+# See https://castle-engine.sourceforge.io/x3d_extensions.php#section_ext_blending
+BlendMode {
+  SFString   [in,out]      srcFactor   "src_alpha"  # [none, zero, one, dst_color, src_color, one_minus_dst_color, one_minus_src_color, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha, src_alpha_saturate, constant_color, one_minus_constant_color, constant_alpha, one_minus_constant_alpha]
+  SFString   [in,out]      destFactor  "one_minus_src_alpha"  # [none, zero, one, dst_color, src_color, one_minus_dst_color, one_minus_src_color, src_alpha, one_minus_src_alpha, dst_alpha, one_minus_dst_alpha, src_alpha_saturate, constant_color, one_minus_constant_color, constant_alpha, one_minus_constant_alpha]
+  SFColor    [in,out]      color       1 1 1
+  SFFloat    [in,out]      colorTransparency  0
+}
+
+# See https://castle-engine.sourceforge.io/x3d_implementation_eventutilities_extensions.php
+Toggler  : X3DChildNode {
+  SFBool     [in,out]      status      FALSE
+  SFBool     [in,out]      notStatus   TRUE
+  XFAny      [in]          toggle                  # the type/value send here is ignored
+  XFAny      [in]          set                     # the type/value send here is ignored
+  XFAny      [in]          reset                   # the type/value send here is ignored
+  SFBool     [out]         changed                 # always sends TRUE
+  SFBool     [out]         on                      # always sends TRUE
+  SFBool     [out]         off                     # always sends TRUE
+  SFBool     [in,out]      enabled     TRUE
+}
