@@ -89,11 +89,16 @@ var
   Config: TCastleConfig;
   Y: Integer;
 begin
-  FontContainer := TFontContainer.Create;
-  { use custom font by default in all TCastleLabel }
-  UIFont := FontContainer.MyFont;
-  { use custom font by default when rendering X3D text }
-  TFontStyleNode.OnFont := @FontContainer.GetFont;
+  try
+    FontContainer := TFontContainer.Create;
+    { use custom font by default in all TCastleLabel }
+    UIFont := FontContainer.MyFont;
+    { use custom font by default when rendering X3D text }
+    TFontStyleNode.OnFont := @FontContainer.GetFont;
+  except
+    on E: EFreeTypeLibraryNotFound do
+      Window.MessageOK('Cannot load font from a TTF file, FreeType library not available', mtWarning);
+  end;
 
   Y := 100;
 
