@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f test_local_characters_standalone.lpr ]; then cd ../../../; fi
+if [ -f test_local_characters.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/fonts/test_local_characters/test_local_characters_standalone.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/fonts/test_local_characters/test_local_characters.lpr

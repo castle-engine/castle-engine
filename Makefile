@@ -150,7 +150,7 @@ EXAMPLES_BASE_NAMES := \
   examples/joystick/joystick_demo \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
-  examples/fonts/test_local_characters/test_local_characters_standalone \
+  examples/fonts/test_local_characters/test_local_characters \
   examples/fonts/html_text \
   examples/tiled/tiled_demo_standalone \
   examples/window/window_events \

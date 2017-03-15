@@ -5,7 +5,7 @@
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-program test_local_characters_standalone;
+program test_local_characters;
 uses CastleWindow, Game;
 begin
   Window.OpenAndRun;
