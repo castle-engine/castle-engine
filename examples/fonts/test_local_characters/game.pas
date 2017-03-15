@@ -97,7 +97,7 @@ begin
     TFontStyleNode.OnFont := @FontContainer.GetFont;
   except
     on E: EFreeTypeLibraryNotFound do
-      Window.MessageOK('Cannot load font from a TTF file, FreeType library not available', mtWarning);
+      Window.MessageOK(E.Message, mtWarning);
   end;
 
   Y := 100;
