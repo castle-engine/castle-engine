@@ -47,16 +47,8 @@ type
   PXStandardColormap_Array = ^TXStandardColormap_Array;
 
 const
-  {$define XBOOL_IS_INT}
-  {$ifdef VER2_2} {$undef XBOOL_IS_INT} {$endif}
-  {$ifdef VER2_0} {$undef XBOOL_IS_INT} {$endif}
-
-  { In FPC <= 2.2.1 (current fixes_2_2 branch, 2008-04-14), this was Boolean.
-    In FPC 2.3.1 (current trunk), this is an integer, so XBOOL_IS_INT is needed. }
-
-  { }
-  XBool_true = {$ifdef XBOOL_IS_INT} 1 {$else} true {$endif};
-  XBool_false = {$ifdef XBOOL_IS_INT} 0 {$else} false {$endif};
+  XBool_true = 1;
+  XBool_false = 0;
 
 type
   EXlibError = class(Exception);
