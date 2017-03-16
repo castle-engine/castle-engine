@@ -306,6 +306,8 @@ begin
 end;
 
 begin
+  LoadAnimatedGifs := true;
+
   Window := TCastleWindowCustom.Create(Application);
 
   try
