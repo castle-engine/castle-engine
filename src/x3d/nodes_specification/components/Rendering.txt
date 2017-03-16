@@ -1,7 +1,7 @@
-X3DColorNode : X3DGeometricPropertyNode { 
+X3DColorNode : X3DGeometricPropertyNode {
 }
 
-X3DComposedGeometryNode : X3DGeometryNode { 
+X3DComposedGeometryNode : X3DGeometryNode {
   MFNode [in,out] attrib          []   [X3DVertexAttributeNode]
   SFNode [in,out] color           NULL [X3DColorNode]
   SFNode [in,out] coord           NULL [X3DCoordinateNode]
@@ -12,34 +12,37 @@ X3DComposedGeometryNode : X3DGeometryNode {
   SFBool []       colorPerVertex  TRUE
   SFBool []       normalPerVertex TRUE
   SFBool []       solid           TRUE
+
+  # EXTENSIONS:
+  MFVec3f    [in,out]      radianceTransfer  []
 }
 
 X3DCoordinateNode : X3DGeometricPropertyNode {
 }
 
-X3DGeometricPropertyNode : X3DNode { 
+X3DGeometricPropertyNode : X3DNode {
 }
 
-X3DGeometryNode : X3DNode { 
+X3DGeometryNode : X3DNode {
 }
 
-X3DNormalNode : X3DGeometricPropertyNode { 
+X3DNormalNode : X3DGeometricPropertyNode {
 }
 
-ClipPlane : X3DChildNode { 
+ClipPlane : X3DChildNode {
   SFBool  [in,out] enabled  TRUE
   SFVec4f [in,out] plane    0 1 0 0 [0,1]
 }
 
-Color : X3DColorNode { 
+Color : X3DColorNode {
   MFColor [in,out] color    [] [0,1]
 }
 
-ColorRGBA : X3DColorNode { 
+ColorRGBA : X3DColorNode {
   MFColorRGBA [in,out] color    [] [0,1]
 }
 
-Coordinate : X3DCoordinateNode { 
+Coordinate : X3DCoordinateNode {
   MFVec3f [in,out] point    [] (-Inf,Inf)
 }
 
@@ -78,11 +81,11 @@ LineSet : X3DGeometryNode {
   MFInt32 [in,out] vertexCount    []   [2,Inf)
 }
 
-Normal : X3DNormalNode { 
+Normal : X3DNormalNode {
   MFVec3f [in,out] vector   []   [-1,1]
 }
 
-PointSet : X3DGeometryNode { 
+PointSet : X3DGeometryNode {
   MFNode [in,out] attrib   []   [X3DVertexAttributeNode]
   SFNode [in,out] color    NULL [X3DColorNode]
   SFNode [in,out] coord    NULL [X3DCoordinateNode]

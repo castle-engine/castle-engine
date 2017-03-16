@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<strings>
+  <element>Chinese: 你好世界, Greek: Γεια σου κόσμε!, Russian: Здравствуй, мир!</element>
+
+  <element_with_multiline_content>
+Chinese: 你好世界,
+Greek: Γεια σου κόσμε!,
+Russian: Здравствуй, мир!
+</element_with_multiline_content>
+
+  <attribute value="Chinese: 你好世界, Greek: Γεια σου κόσμε!, Russian: Здравствуй, мир!"
+             value_with_multiline_content="Chinese: 你好世界,\nGreek: Γεια σου κόσμε!,\nRussian: Здравствуй, мир!"
+  />
+</strings>

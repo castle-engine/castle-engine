@@ -97,6 +97,10 @@ examples/fonts/font_draw_over_image
 examples/fonts/font_draw_over_image.exe
 examples/fonts/font_draw_over_image_output.png
 examples/fps_game/fps_game
+examples/fonts/test_local_characters/test_local_characters_standalone
+examples/fonts/test_local_characters/test_local_characters_standalone.exe
+examples/fonts/test_local_characters/test_local_characters
+examples/fonts/test_local_characters/test_local_characters.exe
 examples/images_videos/dds_decompose
 examples/images_videos/drawing_modes_test
 examples/images_videos/drawing_modes_test.exe

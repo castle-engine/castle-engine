@@ -115,7 +115,8 @@ uninstall:
 .PHONY: strip-precompiled-libraries
 strip-precompiled-libraries:
 	rm -Rf tools/build-tool/data/external_libraries/ \
-	       tools/build-tool/data/android/integrated-components/sound/
+	       tools/build-tool/data/android/integrated-components/sound/ \
+	       tools/build-tool/data/android/integrated-components/ogg_vorbis/
 
 # examples and tools -----------------------------------------------------------
 
@@ -149,6 +150,7 @@ EXAMPLES_BASE_NAMES := \
   examples/joystick/joystick_demo \
   examples/fonts/test_font_break \
   examples/fonts/font_from_texture \
+  examples/fonts/test_local_characters/test_local_characters \
   examples/fonts/html_text \
   examples/tiled/tiled_demo_standalone \
   examples/window/window_events \
@@ -297,16 +299,10 @@ cleanmore: clean
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-components/google_play_services/google-play-services_lib/ \
-	       tools/build-tool/data/android/integrated-components/google_play_services/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/giftiz/GiftizSDKLibrary/ \
-	       tools/build-tool/data/android/integrated-components/chartboost/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/heyzap/AudienceNetwork/ \
-	       tools/build-tool/data/android/integrated-components/heyzap/unity-ads/ \
-	       tools/build-tool/data/android/integrated-components/heyzap/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/startapp/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/game_analytics/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/game_analytics/jni/*/*.so
+	rm -Rf tools/build-tool/data/android/integrated-components/giftiz/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
 
 cleanall: cleanmore
 

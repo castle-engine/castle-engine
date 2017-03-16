@@ -37,6 +37,8 @@ uses SysUtils, Process,
   CastleUtils, CastleStringUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   ToolUtils;
 
+(* Not useful anymore. May become useful again some day.
+
 type
   TFPCVersion = object
     Major, Minor, Release: Integer;
@@ -79,6 +81,7 @@ begin
 
   Writeln(Format('FPC version: %d.%d.%d', [Result.Major, Result.Minor, Result.Release]));
 end;
+*)
 
 type
   TCleanDirectoryHelper = class
@@ -253,20 +256,6 @@ begin
     FpcOptions.Add('-Sh');
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
     FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
-    if FPCVersion.Major >= 3 then
-    begin
-      { do not show
-          Warning: Implicit string type conversion from "AnsiString" to "WideString"
-          Warning: Implicit string type conversion from "AnsiString" to "UnicodeString"
-        As we normally use AnsiString, and we deal with XML units
-        (using WideString / UnicodeString), this is normal situation for us. }
-      FpcOptions.Add('-vm4105'); // not available in FPC 2.6.4
-      { do not show
-          Warning: Implicit string type conversion with potential data loss from "WideString" to "AnsiString"
-        As we normally use AnsiString, and we deal with XML units
-        (using WideString / UnicodeString), this is normal situation for us. }
-      FpcOptions.Add('-vm4104'); // not available in FPC 2.6.4
-    end;
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 

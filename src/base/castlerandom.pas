@@ -176,8 +176,10 @@ begin
     {Yes, we are using a deprecated function, it's ok here,
      because its goal is not convenient time measurement
      but getting a semi-random number as fine as possible.
-     We're using CastleTimeUtils.GetTickCount64 due to better Android support.
-     Some day we might switch to SysUtils.GetTickCount64 implementation}
+     We're using CastleTimeUtils.GetTickCount64,
+     as SysUtils.GetTickCount64 is not available in FPC 2.6.4.
+     We will switch to SysUtils.GetTickCount64 implementation when the engine will
+     no longer need to support FPC 2.6.4. }
     c64 := gettickcount64;
     {$POP}
     {just to make sure it's not zero. It's not really important here.}

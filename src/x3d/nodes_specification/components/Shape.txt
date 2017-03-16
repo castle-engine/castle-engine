@@ -28,6 +28,15 @@ Appearance : X3DAppearanceNode {
   MFNode [in,out] shaders          []   [X3DShaderNode]
   SFNode [in,out] texture          NULL [X3DTextureNode]
   SFNode [in,out] textureTransform NULL [X3DTextureTransformNode]
+
+  # EXTENSIONS:
+  MFNode     []            receiveShadows  []          # [X3DLightNode] list
+  SFBool     [in,out]      shadowCaster     TRUE
+  SFNode     [in,out]      normalMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed
+  SFNode     [in,out]      heightMap        NULL        # only texture nodes (ImageTexture, MovieTexture, PixelTexture) allowed
+  SFFloat    [in,out]      heightMapScale   0.01        # must be > 0, meaningful only if heightMap specified
+  SFNode     [in,out]      blendMode        NULL        # [BlendMode]
+  MFNode     []            effects          []          # [Effect]
 }
 
 FillProperties : X3DAppearanceChildNode {

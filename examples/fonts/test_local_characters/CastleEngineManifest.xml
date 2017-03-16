@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="test_local_characters"
+  caption="CGE Local Characters"
+  qualified_name="io.sourceforge.castleengine.test.local.characters"
+  standalone_source="test_local_characters.lpr"
+  android_source="test_local_characters_android.lpr"
+  author="Michalis Kamburelis">
+  <version value="1.0" code="1" />
+</project>

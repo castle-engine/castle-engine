@@ -25,11 +25,78 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetBeginCap: boolean;
+    procedure SetBeginCap(const Value: boolean);
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
+    function GetConvex: boolean;
+    procedure SetConvex(const Value: boolean);
+    function GetCreaseAngle: Single;
+    procedure SetCreaseAngle(const Value: Single);
+    function GetEndCap: boolean;
+    procedure SetEndCap(const Value: boolean);
+  public
+    property BeginCap: boolean read GetBeginCap write SetBeginCap;
+    property Ccw: boolean read GetCcw write SetCcw;
+    property Convex: boolean read GetConvex write SetConvex;
+    property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+    property EndCap: boolean read GetEndCap write SetEndCap;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TExtrusionNode ----------------------------------------------- }
+
+function TExtrusionNode.GetBeginCap: boolean;
+begin
+  Result := FdBeginCap.Value;
+end;
+
+procedure TExtrusionNode.SetBeginCap(const Value: boolean);
+begin
+  FdBeginCap.Send(Value);
+end;
+
+function TExtrusionNode.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TExtrusionNode.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
+end;
+
+function TExtrusionNode.GetConvex: boolean;
+begin
+  Result := FdConvex.Value;
+end;
+
+procedure TExtrusionNode.SetConvex(const Value: boolean);
+begin
+  FdConvex.Send(Value);
+end;
+
+function TExtrusionNode.GetCreaseAngle: Single;
+begin
+  Result := FdCreaseAngle.Value;
+end;
+
+procedure TExtrusionNode.SetCreaseAngle(const Value: Single);
+begin
+  FdCreaseAngle.Send(Value);
+end;
+
+function TExtrusionNode.GetEndCap: boolean;
+begin
+  Result := FdEndCap.Value;
+end;
+
+procedure TExtrusionNode.SetEndCap(const Value: boolean);
+begin
+  FdEndCap.Send(Value);
+end;
 
 {$endif read_implementation}

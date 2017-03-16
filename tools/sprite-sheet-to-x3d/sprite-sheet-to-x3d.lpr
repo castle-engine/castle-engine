@@ -113,36 +113,35 @@ end;
 
 procedure ParamHandle;
 begin
-  case Parameters.High of
-    0:
-      begin
-        Writeln(
-            'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
-            '    Support file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
-            '    Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
-            '    - XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
-            '    - YYY: Frame number.'+ LineEnding +
-            'Usage: sprite-sheet-to-x3d <spritesheet> <output>'
-        );
-        Halt;
-      end;
+  if (Parameters.High = 0) or (Parameters[1] = '--help') then
+  begin
+    Writeln(
+      'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
+      LineEnding +
+      'Usage: sprite-sheet-to-x3d <spritesheet> <output>' + LineEnding +
+      LineEnding +
+      'Supported input file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
+      'Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
+      '- XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
+      '- YYY: Frame number.'
+    );
+    Halt;
+  end else
+  begin
+    SSFullPath := Parameters[1];
+    if not FileExists(SSFullPath) then
+    begin
+      Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
+      Halt;
+    end;
+    SSPath := ExtractFilePath(SSFullPath);
+    SSExt := ExtractFileExt(SSFullPath);
+    SSName := StringReplace(
+        StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
+    if Parameters.High = 2 then
+      SSOutput := Parameters[2]
     else
-      begin
-        SSFullPath := Parameters[1];
-        if not FileExists(SSFullPath) then
-        begin
-          Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
-          Halt;
-        end;
-        SSPath := ExtractFilePath(SSFullPath);
-        SSExt := ExtractFileExt(SSFullPath);
-        SSName := StringReplace(
-            StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
-        if Parameters.High = 2 then
-          SSOutput := Parameters[2]
-        else
-          SSOutput := SSPath + SSName + '.x3dv';
-      end;
+      SSOutput := SSPath + SSName + '.x3dv';
   end;
 end;
 

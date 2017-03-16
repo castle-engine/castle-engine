@@ -65,6 +65,9 @@ Extrusion : X3DGeometryNode {
   MFVec2f    []       scale            1 1                       (0,Inf)
   SFBool     []       solid            TRUE
   MFVec3f    []       spine            [0 0 0 0 1 0]             (-Inf,Inf)
+
+  # EXTENSIONS:
+  SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
 }
 
 IndexedFaceSet : X3DComposedGeometryNode {
