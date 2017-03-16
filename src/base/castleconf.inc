@@ -74,10 +74,11 @@
   {$define SUPPORTS_INLINE}
 {$endif}
 
-{$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
-{$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
-{$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
-{$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see http://castle-engine.sourceforge.net/engine.php#section_fpc_ver} {$endif}
+{$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
+{$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
+{$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
+{$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
+{$ifdef VER2_6_2} {$fatal FPC 2.6.2 is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
 
 { These should be set on the command-line always.
   NOT setting them here forces the user to use correct compilation method
