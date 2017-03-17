@@ -92,6 +92,7 @@ type
     procedure TestOrthoViewpointFieldOfView;
     procedure TestFontStyle;
     procedure TestWeakLinkUnusedWarning;
+    procedure TestKeepExisting;
   end;
 
 implementation
@@ -2024,6 +2025,24 @@ begin
   finally
     ApplicationProperties.OnWarning.Remove(@WeakLinkUnusedWarning);
   end;
+end;
+
+procedure TTestX3DNodes.TestKeepExisting;
+var
+  Texture: TImageTextureNode;
+  TextureProperties: TTexturePropertiesNode;
+begin
+  TextureProperties := TTexturePropertiesNode.Create;
+  TextureProperties.AnisotropicDegree := 8;
+  TextureProperties.KeepExisting := 1;
+
+  Texture := TImageTextureNode.Create;
+  Texture.FdTextureProperties.Value := TextureProperties;
+  FreeAndNil(Texture);
+
+  { This *will* cause SIGSEGV without KeepExisting := 1 above.
+    But it will work fine with KeepExisting := 1 above. }
+  FreeAndNil(TextureProperties);
 end;
 
 initialization
