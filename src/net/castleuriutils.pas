@@ -645,6 +645,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.htm' then Result := 'text/html' else
     if Ext = '.html' then Result := 'text/html' else
     if Ext = '.shtml' then Result := 'text/html' else
+    if Ext = '.css' then Result := 'text/css' else
+    if Ext = '.php' then Result := 'text/php' else
     // Plain text
     if Ext = '.txt' then Result := 'text/plain' else
     if Ext = '.pas' then Result := 'text/plain' else
@@ -679,6 +681,7 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.eps' then Result := 'application/postscript' else
     if Ext = '.ps' then Result := 'application/postscript' else
     if Ext = '.pdf' then Result := 'application/pdf' else
+    if Ext = '.csv' then Result := 'application/csv' else
     // Documents - old MS Office
     if Ext = '.xls' then Result := 'application/vnd.ms-excel' else
     if Ext = '.doc' then Result := 'application/msword' else
@@ -698,6 +701,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     // Compressed archives
     if Ext = '.zip' then Result := 'application/zip' else
     if Ext = '.tar' then Result := 'application/x-tar' else
+    if Ext = '.rar' then Result := 'application/x-rar-compressed' else
+    if Ext = '.gz' then begin Result := 'application/gzip'; Gzipped := true; end else
     // Various
     if Ext = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else

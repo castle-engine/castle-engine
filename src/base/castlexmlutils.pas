@@ -541,11 +541,11 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
-function URLReadXML(const URL: String; const Options: TStreamOptions = []): TXMLDocument;
+function URLReadXML(const URL: String): TXMLDocument;
 function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TSaveStreamOptions = []);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
 { @groupEnd }
 
@@ -1154,22 +1154,31 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const Options: TStreamOptions = []);
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
 var
   Stream: TStream;
+  StreamOptions: TStreamOptions;
+  Gzipped: boolean;
 begin
   Doc := nil; // clean "out" param at start, just like ReadXMLFile
-  Stream := Download(URL, Options);
+
+  //guess gzipped based on file extension
+  StreamOptions := [];
+  URIMimeType(URL, Gzipped);
+  if Gzipped then
+    Include(StreamOptions, soGzip);
+
+  Stream := Download(URL, StreamOptions);
   try
     ReadXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
 end;
 
-function URLReadXML(const URL: String; const Options: TStreamOptions = []): TXMLDocument;
+function URLReadXML(const URL: String): TXMLDocument;
 begin
   try
     // URLReadXML and ReadXMLFile nil the parameter when there's no need to free it
-    URLReadXML(Result, URL, Options);
+    URLReadXML(Result, URL);     //this one will automatically take care of gzipping
   except FreeAndNil(Result); raise; end;
 end;
 
@@ -1195,11 +1204,19 @@ begin
   finally FreeAndNil(Stream) end;
 end;
 
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const Options: TSaveStreamOptions = []);
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
 var
   Stream: TStream;
+  StreamOptions: TSaveStreamOptions;
+  gzipped: boolean;
 begin
-  Stream := URLSaveStream(URL, Options);
+  //guess gzipped based on file extension
+  StreamOptions := [];
+  URIMimeType(URL, Gzipped);
+  if Gzipped then
+    Include(StreamOptions, ssoGzip);
+
+  Stream := URLSaveStream(URL, StreamOptions);
   try
     WriteXMLFile(Doc, Stream);
   finally FreeAndNil(Stream) end;
