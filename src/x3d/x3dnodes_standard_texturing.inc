@@ -1392,15 +1392,15 @@ end;
 procedure TTexturePropertiesNode.SetMinificationFilter(const Value: TAutoMinificationFilter);
 const
   Names: array [TAutoMinificationFilter] of string = (
-    'DEFAULT',
-    'FASTEST',
-    'NICEST',
     'NEAREST_PIXEL',
     'AVG_PIXEL',
     'NEAREST_PIXEL_NEAREST_MIPMAP',
     'NEAREST_PIXEL_AVG_MIPMAP',
     'AVG_PIXEL_NEAREST_MIPMAP',
-    'AVG_PIXEL_AVG_MIPMAP'
+    'AVG_PIXEL_AVG_MIPMAP',
+    'DEFAULT',
+    'FASTEST',
+    'NICEST'
   );
 begin
   FdMinificationFilter.Send(Names[Value]);
@@ -1440,11 +1440,11 @@ end;
 procedure TTexturePropertiesNode.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
 const
   Names: array [TAutoMagnificationFilter] of string = (
+    'NEAREST_PIXEL',
+    'AVG_PIXEL',
     'DEFAULT',
     'FASTEST',
-    'NICEST',
-    'NEAREST_PIXEL',
-    'AVG_PIXEL'
+    'NICEST'
   );
 begin
   FdMagnificationFilter.Send(Names[Value]);

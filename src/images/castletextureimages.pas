@@ -151,36 +151,36 @@ type
   { Texture minification filter (what happens when many texture pixels
     are squeezed in one screen pixel). }
   TAutoMinificationFilter = (
+    minNearest,
+    minLinear,
+    minNearestMipmapNearest,
+    minNearestMipmapLinear,
+    minLinearMipmapNearest,
+    minLinearMipmapLinear,
+
     { Interpretation of this filter depends on current
       @link(Scene.Attributes.MagnificationFilter TRenderingAttributes.MagnificationFilter). }
     minDefault,
     { Alias for minNearest. }
     minFastest,
     { Alias for minLinearMipmapLinear. }
-    minNicest,
-
-    minNearest,
-    minLinear,
-    minNearestMipmapNearest,
-    minNearestMipmapLinear,
-    minLinearMipmapNearest,
-    minLinearMipmapLinear
+    minNicest
   );
   TMinificationFilter = minNearest..minLinearMipmapLinear;
 
   { Texture magnification filter (what happens when a single texture pixel
     in stretched over many screen pixels). }
   TAutoMagnificationFilter = (
+    magNearest,
+    magLinear,
+
     { Interpretation of this filter depends on current
       @link(Scene.Attributes.MagnificationFilter TRenderingAttributes.MagnificationFilter). }
     magDefault,
     { Alias for magnNearest. }
     magFastest,
     { Alias for magLinear. }
-    magNicest,
-
-    magNearest,
-    magLinear
+    magNicest
   );
   TMagnificationFilter = magNearest..magLinear;
 

@@ -2038,7 +2038,9 @@ begin
   TextureProperties := TTexturePropertiesNode.Create;
   TextureProperties.AnisotropicDegree := 8;
   TextureProperties.MinificationFilter := minFastest;
+  AssertTrue(TextureProperties.MinificationFilter = minFastest);
   TextureProperties.MagnificationFilter := magNicest;
+  AssertTrue(TextureProperties.MagnificationFilter = magNicest);
   TextureProperties.KeepExisting := 1;
 
   Texture := TImageTextureNode.Create;
