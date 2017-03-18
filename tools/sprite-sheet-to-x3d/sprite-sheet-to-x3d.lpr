@@ -20,7 +20,8 @@
 uses
   Classes, SysUtils, strutils, DOM, XMLRead, RegExpr, FGL,
   CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
-  CastleVectors, CastleUtils, CastleClassUtils, X3DNodes;
+  CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
+  CastleTextureImages;
 
 type
   TMeta = record
@@ -221,9 +222,9 @@ begin
     Tex.FdUrl.Send(Meta.Name);
     Tex.RepeatS := false;
     Tex.RepeatT := false;
-    Tex.FdTextureProperties.Send(TTexturePropertiesNode.Create);
-    Tex.TextureProperties.FdMinificationFilter.Send('NEAREST_PIXEL');
-    Tex.TextureProperties.FdMagnificationFilter.Send('NEAREST_PIXEL');
+    Tex.TextureProperties := TTexturePropertiesNode.Create;
+    Tex.TextureProperties.MinificationFilter := minNearest;
+    Tex.TextureProperties.MagnificationFilter := magNearest;
     Shape.Texture := Tex;
 
     Tri := TTriangleSetNode.Create;
@@ -246,7 +247,7 @@ begin
          Vector2Single(0, 1)]);
     Tri.FdCoord.Value := Coord;
     Tri.FdTexCoord.Value := TexCoord;
-    Shape.FdGeometry.Value := Tri;
+    Shape.Geometry := Tri;
 
     SetLength(CoordArray, 6);
     SetLength(TexCoordArray, 6);
