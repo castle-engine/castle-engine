@@ -253,7 +253,7 @@ begin
     DisplayApplicationName + ' version ' + Version + '.' + NL +
     NL +
     'Developed using Castle Game Engine.' + NL +
-    'See http://castle-engine.sourceforge.io/ for latest versions' +
+    'See https://castle-engine.sourceforge.io/ for latest versions' +
     Iff(WrapLines, NL, '') +
     'of this program, sources and documentation.' + NL +
     NL +
