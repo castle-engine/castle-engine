@@ -531,6 +531,8 @@ type
   private
     procedure FreeResources_UnloadTextureData(Node: TX3DNode);
     procedure FreeResources_UnloadTexture3DData(Node: TX3DNode);
+    procedure FontChanged_TextNode(Node: TX3DNode);
+    procedure FontChanged_AsciiTextNode_1(Node: TX3DNode);
   private
     FOnGeometryChanged: TSceneGeometryChanged;
     FOnViewpointsChanged: TSceneNotification;
@@ -1837,6 +1839,13 @@ type
       delay, but this property hides it from you, it is changed
       immediately by the PlayAnimation call. }
     property CurrentAnimation: TTimeSensorNode read FCurrentAnimation;
+
+    { Force recalculating the text shapes when font changed.
+      For now, we don't detect font changes (when TFontStyleNode.OnFont
+      returns something different) ourselves.
+      This calls @link(TTextNode.FontChanged) and @link(TAsciiTextNode_1.FontChanged)
+      on all appropriate nodes. }
+    procedure FontChanged;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -7054,6 +7063,30 @@ begin
     Result := TimeNode.CycleInterval;
   end else
     Result := 0;
+end;
+
+procedure TCastleSceneCore.FontChanged_TextNode(Node: TX3DNode);
+begin
+  (Node as TTextNode).FontChanged;
+end;
+
+procedure TCastleSceneCore.FontChanged_AsciiTextNode_1(Node: TX3DNode);
+begin
+  (Node as TAsciiTextNode_1).FontChanged;
+end;
+
+procedure TCastleSceneCore.FontChanged;
+begin
+  if RootNode <> nil then
+  begin
+    GLContextClose; // force TGLRenderer.Prepare on shapes
+    { Free and recalculate all proxy nodes...
+      TODO: this could be done much more efficiently,
+      we only need to free proxies on text nodes. }
+    ChangedAll;
+    RootNode.EnumerateNodes(TTextNode, @FontChanged_TextNode, false);
+    RootNode.EnumerateNodes(TAsciiTextNode_1, @FontChanged_AsciiTextNode_1, false);
+  end;
 end;
 
 end.

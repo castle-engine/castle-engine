@@ -1068,8 +1068,11 @@ end;
 
 procedure TTextureFont.Load(const Data: TTextureFontData; const OwnsData: boolean);
 begin
+  GLContextClose;
+
   if FOwnsFont then
-    FreeAndNil(FFont) else
+    FreeAndNil(FFont)
+  else
     FFont := nil;
 
   FOwnsFont := OwnsData;
@@ -1317,6 +1320,7 @@ end;
 procedure TSimpleTextureFont.Load(AImage: TCastleImage;
   const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
 begin
+  GLContextClose;
   FreeAndNil(Image);
 
   Image := AImage;

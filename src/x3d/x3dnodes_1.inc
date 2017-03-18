@@ -72,6 +72,11 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
 
+    { Force recalculating the shape when font changed.
+      For now, we don't detect font changes (when TFontStyleNode.OnFont
+      returns something different) outselves. }
+    procedure FontChanged;
+
     function Justify: TX3DFontJustify;
   end;
 
@@ -889,6 +894,11 @@ begin
     a child of another node. But for safety... }
   FreeIfUnusedAndNil(FFontTextureNode);
   inherited;
+end;
+
+procedure TAsciiTextNode_1.FontChanged;
+begin
+  FreeIfUnusedAndNil(FFontTextureNode);
 end;
 
 class function TAsciiTextNode_1.ClassX3DType: string;

@@ -188,6 +188,11 @@
     function SolidField: TSFBool; override;
     function FontTextureNode: TAbstractTexture2DNode; override;
 
+    { Force recalculating the shape when font changed.
+      For now, we don't detect font changes (when TFontStyleNode.OnFont
+      returns something different) outselves. }
+    procedure FontChanged;
+
     {$I auto_generated_node_helpers/x3dnodes_text.inc}
   end;
 
@@ -519,6 +524,11 @@ begin
     a child of another node. But for safety... }
   FreeIfUnusedAndNil(FFontTextureNode);
   inherited;
+end;
+
+procedure TTextNode.FontChanged;
+begin
+  FreeIfUnusedAndNil(FFontTextureNode);
 end;
 
 class function TTextNode.ClassX3DType: string;
@@ -978,7 +988,8 @@ begin
   if FFontTextureNode = nil then
   begin
     if FontStyle <> nil then
-      Blending := FontStyle.Blending else
+      Blending := FontStyle.Blending
+    else
       Blending := TFontStyleNode.DefaultBlending;
     FFontTextureNode := CreateFontTextureNode(Font, Blending);
   end;
