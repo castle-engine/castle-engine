@@ -90,14 +90,16 @@ DATADIR=$(DATAROOTDIR)
 
 .PHONY: install
 install:
+	install -d $(BINDIR)
 	install tools/texture-font-to-pascal/texture-font-to-pascal $(BINDIR)
 	install tools/image-to-pascal/image-to-pascal $(BINDIR)
 	install tools/castle-curves/castle-curves $(BINDIR)
 	install tools/build-tool/castle-engine $(BINDIR)
 	install tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d $(BINDIR)
 #	cp -R tools/build-tool/data $(DATADIR)/castle-engine
+	install -d  $(DATADIR)
 	cd tools/build-tool/data/ && \
-	  $(FIND) . -type f -exec install -D '{}' $(DATADIR)/castle-engine/'{}' ';'
+	  $(FIND) . -type f -exec install --mode 644 -D '{}' $(DATADIR)/castle-engine/'{}' ';'
 
 .PHONY: uninstall
 uninstall:
