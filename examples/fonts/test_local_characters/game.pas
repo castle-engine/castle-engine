@@ -26,8 +26,8 @@ var
 implementation
 
 uses SysUtils, Classes, DOM,
-  CastleScene, CastleControls, CastleLog, CastleSceneCore,
-  CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig,
+  CastleScene, CastleControls, CastleLog, CastleSceneCore, CastleClassUtils,
+  CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors,
   Font_DejaVuSans, Font_DroidSansFallback;
@@ -158,6 +158,8 @@ var
   ButtonExternalFont, ButtonExternalFontChinese: TCastleButton;
   ButtonEmbeddedFont, ButtonEmbeddedFontChinese: TCastleButton;
   Doc: TXMLDocument;
+  TextReader: TTextReader;
+  StringList: TStringList;
 begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
@@ -172,16 +174,16 @@ begin
   Window.SceneManager.MainScene := Scene;
 
   Window.SceneManager.FullSize := false;
-  Window.SceneManager.Anchor(hpMiddle);
+  Window.SceneManager.Anchor(hpRight, -10);
   Window.SceneManager.Anchor(vpTop, -10);
-  Window.SceneManager.Width := 1400;
-  Window.SceneManager.Height := 400;
+  Window.SceneManager.Width := 800;
+  Window.SceneManager.Height := 300;
   Window.SceneManager.BackgroundColor := Gray;
   Window.SceneManager.RequiredCamera.SetView(
     Vector3Single(2, -2, 10),
     Vector3Single(0.5, 0, -1),
     Vector3Single(0, 1, 0)
-  );
+  ); // rotate camera, just to show it's 3D :)
 
   Y := 10;
 
@@ -255,6 +257,33 @@ begin
     Window.Controls.InsertFront(TestLabel);
     Y += TestLabel.CalculatedHeight + 10;
   finally FreeAndNil(Doc) end;
+
+  TextReader := TTextReader.Create(ApplicationData('example_text.txt'));
+  try
+    TestLabel := TCastleLabel.Create(Application);
+    TestLabel.Caption := 'Strings from txt (TTextReader):' + NL +
+      TextReader.Readln + NL +
+      TextReader.Readln + NL +
+      TextReader.Readln + NL +
+      TextReader.Readln;
+    TestLabel.Bottom := Y;
+    TestLabel.Left := 100;
+    TestLabel.Color := LightBlue;
+    Window.Controls.InsertFront(TestLabel);
+    Y += TestLabel.CalculatedHeight + 10;
+  finally FreeAndNil(TextReader) end;
+
+  StringList := TStringList.Create;
+  try
+    StringList.LoadFromFile(URIToFilenameSafe(ApplicationData('example_text.txt')));
+    TestLabel := TCastleLabel.Create(Application);
+    TestLabel.Caption := 'Strings from txt (TStringList):' + NL + StringList.Text;
+    TestLabel.Bottom := Y;
+    TestLabel.Left := 100;
+    TestLabel.Color := Olive;
+    Window.Controls.InsertFront(TestLabel);
+    Y += TestLabel.CalculatedHeight + 10;
+  finally FreeAndNil(StringList) end;
 end;
 
 function MyGetApplicationName: string;
