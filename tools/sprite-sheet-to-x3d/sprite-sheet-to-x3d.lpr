@@ -18,10 +18,10 @@
 {$APPTYPE CONSOLE}
 
 uses
-  Classes, SysUtils, strutils, DOM, XMLRead, RegExpr, FGL,
+  Classes, SysUtils, strutils, DOM, RegExpr, FGL,
   CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
   CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
-  CastleTextureImages;
+  CastleTextureImages, CastleXMLUtils;
 
 type
   TMeta = record

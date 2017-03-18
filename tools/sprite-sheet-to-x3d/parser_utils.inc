@@ -1,11 +1,3 @@
-function ReadInteger(const ANode: TDOMNode; const AVal: integer): integer;
-begin
-  if ANode = nil then
-    Result := AVal
-  else
-    Result := StrToInt(ANode.NodeValue);
-end;
-
 procedure CalculateAnchor(const OX, OY, OW, OH,
     X, Y, W, H: integer; out AX, AY: single);
 var
