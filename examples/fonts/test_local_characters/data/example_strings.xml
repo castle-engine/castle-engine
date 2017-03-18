@@ -9,7 +9,8 @@ Russian: Здравствуй, мир!
 Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!
 </element_with_multiline_content>
 
-  <attribute value="Chinese: 你好世界, Greek: Γεια σου κόσμε!, Russian: Здравствуй, мир!, Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
-             value_with_multiline_content="Chinese: 你好世界,\nGreek: Γεια σου κόσμε!,\nRussian: Здравствуй, мир!\nPolish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
+  <element_with_attributes
+    value="Chinese: 你好世界, Greek: Γεια σου κόσμε!, Russian: Здравствуй, мир!, Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
+    value_with_multiline_content="Chinese: 你好世界,&#xA;Greek: Γεια σου κόσμε!,&#xA;Russian: Здравствуй, мир!&#xA;Polish: Witaj świecie! Oraz: źrebię ćma koń wężyk dąb!"
   />
 </strings>

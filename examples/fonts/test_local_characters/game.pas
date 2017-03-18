@@ -25,7 +25,8 @@ var
 
 implementation
 
-uses SysUtils, Classes, CastleScene, CastleControls, CastleLog, CastleSceneCore,
+uses SysUtils, Classes, DOM,
+  CastleScene, CastleControls, CastleLog, CastleSceneCore,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
   X3DNodes, CastleUIControls, CastleColors, CastleVectors,
@@ -156,6 +157,7 @@ var
   Y: Integer;
   ButtonExternalFont, ButtonExternalFontChinese: TCastleButton;
   ButtonEmbeddedFont, ButtonEmbeddedFontChinese: TCastleButton;
+  Doc: TXMLDocument;
 begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
@@ -192,7 +194,7 @@ begin
   Y += ButtonExternalFont.CalculatedHeight + 10;
 
   ButtonExternalFontChinese := TCastleButton.Create(Application);
-  ButtonExternalFontChinese.Caption := 'Switch to external font (with Chinese chars)';
+  ButtonExternalFontChinese.Caption := 'Switch to external font (only Chinese chars)';
   ButtonExternalFontChinese.OnClick := @FontContainer.ButtonExternalFontChineseClick;
   ButtonExternalFontChinese.Left := 10;
   ButtonExternalFontChinese.Bottom := Y;
@@ -208,7 +210,7 @@ begin
   Y += ButtonEmbeddedFont.CalculatedHeight + 10;
 
   ButtonEmbeddedFontChinese := TCastleButton.Create(Application);
-  ButtonEmbeddedFontChinese.Caption := 'Switch to embedded font (with Chinese chars)';
+  ButtonEmbeddedFontChinese.Caption := 'Switch to embedded font (only Chinese chars)';
   ButtonEmbeddedFontChinese.OnClick := @FontContainer.ButtonEmbeddedFontChineseClick;
   ButtonEmbeddedFontChinese.Left := 10;
   ButtonEmbeddedFontChinese.Bottom := Y;
@@ -224,19 +226,35 @@ begin
   TestLabel.Bottom := Y;
   TestLabel.Left := 100;
   Window.Controls.InsertFront(TestLabel);
-  Y += 200;
+  Y += TestLabel.CalculatedHeight + 10;
 
   Config := TCastleConfig.Create(application);
   try
     Config.Load(ApplicationData('example_config.xml'));
 
     TestLabel := TCastleLabel.Create(Application);
-    TestLabel.Caption := Config.GetStringNonEmpty('value');
+    TestLabel.Caption := 'String from TCastleConfig:' + NL + Config.GetStringNonEmpty('value');
     TestLabel.Bottom := Y;
     TestLabel.Left := 100;
+    TestLabel.Color := Green;
     Window.Controls.InsertFront(TestLabel);
-    Y += 200;
+    Y += TestLabel.CalculatedHeight + 10;
   finally FreeAndNil(Config) end;
+
+  Doc := URLReadXML(ApplicationData('example_strings.xml'));
+  try
+    TestLabel := TCastleLabel.Create(Application);
+    TestLabel.Caption := 'Strings from XML:' + NL +
+      Doc.DocumentElement.ChildElement('element').TextData + NL +
+      Doc.DocumentElement.ChildElement('element_with_multiline_content').TextData + NL +
+      Doc.DocumentElement.ChildElement('element_with_attributes').AttributeString('value') + NL +
+      Doc.DocumentElement.ChildElement('element_with_attributes').AttributeString('value_with_multiline_content');
+    TestLabel.Bottom := Y;
+    TestLabel.Left := 100;
+    TestLabel.Color := Yellow;
+    Window.Controls.InsertFront(TestLabel);
+    Y += TestLabel.CalculatedHeight + 10;
+  finally FreeAndNil(Doc) end;
 end;
 
 function MyGetApplicationName: string;
