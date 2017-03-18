@@ -22,10 +22,6 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dtexturecoordinatenode.inc}
   end;
 
-  { A texture node does not have a textureProperties field,
-    and you try to set it by @link(TAbstractTexture2DNode.TextureProperties). }
-  ENoTexturePropertiesField = class(EX3DError);
-
   { Base for all nodes which specify sources for texture images. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
   private
@@ -153,10 +149,6 @@
     procedure SetRepeatT(const Value: boolean); virtual; abstract;
 
     function AlphaChannelData: TAlphaChannel; override;
-
-    { The textureProperties X3D field, used to implement @link(TextureProperties)
-      properties. }
-    function TexturePropertiesField: TSFNode; virtual;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -238,9 +230,10 @@
       user), it's cutted. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
 
-    { Texture properties (how the texture behaves when sampled and so on).
-      If there is no textureProperties field, this returns @nil,
-      and raises ENoTexturePropertiesField when trying to set. }
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
+
+    { Texture properties (how the texture behaves when sampled, and such). }
     property TextureProperties: TTexturePropertiesNode
       read GetTextureProperties write SetTextureProperties;
   end;
@@ -252,7 +245,6 @@
     function GetRepeatT: boolean; override;
     procedure SetRepeatS(const Value: boolean); override;
     procedure SetRepeatT(const Value: boolean); override;
-    function TexturePropertiesField: TSFNode; override;
   public
     procedure CreateNode; override;
 
@@ -261,9 +253,6 @@
 
     private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
-
-    private FFdTextureProperties: TSFNode;
-    public property FdTextureProperties: TSFNode read FFdTextureProperties;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
@@ -664,6 +653,11 @@ begin
 
   UsedCache := nil;
   FIsTextureLoaded := false;
+
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.Exposed := false;
+   FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
+  AddField(FFdTextureProperties);
 end;
 
 destructor TAbstractTexture2DNode.Destroy;
@@ -773,26 +767,17 @@ begin
   WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [X3DType]));
 end;
 
-function TAbstractTexture2DNode.TexturePropertiesField: TSFNode;
-begin
-  Result := nil;
-end;
-
 function TAbstractTexture2DNode.GetTextureProperties: TTexturePropertiesNode;
 begin
-  if (TexturePropertiesField <> nil) and
-     (TexturePropertiesField.Value is TTexturePropertiesNode) then
-    Result := TTexturePropertiesNode(TexturePropertiesField.Value)
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
   else
     Result := nil;
 end;
 
 procedure TAbstractTexture2DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
 begin
-  if TexturePropertiesField <> nil then
-    TexturePropertiesField.Send(Value)
-  else
-    raise ENotCoordinateBasedNode.CreateFmt('No textureProperties for node %s', [X3DType]);
+  FdTextureProperties.Send(Value);
 end;
 
 function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannel;
@@ -815,11 +800,6 @@ begin
    FdRepeatT.Exposed := false;
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatT);
-
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
-   FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  AddField(FFdTextureProperties);
 end;
 
 function TAbstractX3DTexture2DNode.GetRepeatS: boolean;
@@ -840,11 +820,6 @@ end;
 procedure TAbstractX3DTexture2DNode.SetRepeatT(const Value: boolean);
 begin
   FdRepeatT.Send(Value);
-end;
-
-function TAbstractX3DTexture2DNode.TexturePropertiesField: TSFNode;
-begin
-  Result := FdTextureProperties;
 end;
 
 procedure TAbstractTextureTransformNode.CreateNode;
