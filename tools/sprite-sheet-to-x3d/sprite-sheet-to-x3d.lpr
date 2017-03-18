@@ -327,20 +327,37 @@ const
     'Usage:' + NL +
     '  sprite-sheet-to-x3d [OPTIONS]... <spritesheet> <output>' + NL +
     NL +
-    'Supported input file formats: Starling (.xml), Cocos2D (.plist).'+ NL +
-    NL +
-    'Please make sure frame keys follow XXX_YYY naming convention:'+ NL +
-    NL +
-    '- XXX: Frame name, start with a letter, will be used as animation name.'+ NL +
-    NL +
-    '- YYY: Frame number.' + NL +
-    NL+
     'Available options are:' + NL +
     HelpOptionHelp + NL +
     VersionOptionHelp + NL +
     '  --fps=<single>        How many frames per second does the animation have.' + NL+
     '                        Determines the animations duration' + NL+
-    '                        (TimeSensor.cycleInterval values in the X3D output).'
+    '                        (TimeSensor.cycleInterval values in the X3D output).' + NL+
+    NL +
+    'Supported input file formats: ' + NL+
+    NL +
+    '- Starling (.xml). Fully supported.' + NL +
+    NL +
+    '- Cocos2D (.plist). Covered most of the important stuff.' + NL+
+    '  Rare features (like rotate, polygon sprites) are not supported,' + NL+
+    '  but they can be added easily, please submit a request!' + NL+
+    NL +
+    'Notes:' + NL+
+    NL +
+    'Animation frames must be named "XXX_YYY", where:' + NL+
+    NL +
+    '- XXX: Frame name, start with a letter, will be used as animation name.'+ NL +
+    NL +
+    '- YYY: Frame number.' + NL +
+    NL +
+    'For example: slime_01.png, slime_02.png...' + NL+
+    NL +
+    'By default anchor will be placed at the center of the sprite if the tool' + NL+
+    'didn''t found it in spritesheet.' + NL +
+    NL +
+    'Developed using Castle Game Engine.' + NL +
+    'See http://castle-engine.sourceforge.io/ for latest versions' + NL +
+    'of this program, sources and documentation.'
   ;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;

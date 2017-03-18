@@ -252,12 +252,10 @@ begin
   Result :=
     DisplayApplicationName + ' version ' + Version + '.' + NL +
     NL +
-    'Author:' + NL +
-    '  Michalis Kamburelis <michalis.kambi@gmail.com>' + NL +
-    NL +
+    'Developed using Castle Game Engine.' + NL +
     'See http://castle-engine.sourceforge.io/ for latest versions' +
     Iff(WrapLines, NL, '') +
-    'of this program, with sources and documentation.' + NL +
+    'of this program, sources and documentation.' + NL +
     NL +
     'Compiled with ' + SCompilerDescription + '.';
 end;
