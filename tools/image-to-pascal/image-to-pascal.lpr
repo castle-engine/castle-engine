@@ -51,8 +51,9 @@ var
   OutputDirectory: string = '';
 
 const
-  Options: array[0..2]of TOption = (
+  Options: array [0..3] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0 ; Long: 'no-show-progress'; Argument: oaNone),
     (Short: 'o'; Long: 'output'; Argument: oaRequired)
   );
@@ -62,28 +63,33 @@ procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
 begin
   case OptionNum of
     0: begin
-        Writeln(
-          'image-to-pascal: Convert image files into Pascal source code,' +NL+
-          'useful together with Castle Game Engine image units.' +NL+
-          nl+
-          'Call like' +NL+
-          '  image-to-pascal [OPTIONS...] UnitName image_name1.png...' +NL+
-          nl+
-          'Available options are:' +NL+
-          HelpOptionHelp +NL+
-          '  --no-show-progress    Do not show progress on stderr.' +NL+
-          '  -o / --output DIRECTORY' +NL+
-          '                        Place output unit files inside this dir.' +NL+
-          '  @alpha=strip          Strip the alpha channel from the following' +NL+
-          '                        images.' +NL+
-          '  @alpha=keep           Keep the alpha channel on the following' +NL+
-          '                        images (the default). As a result,' +NL+
-          '                        alpha channel will be stored in source files.'
-         );
-        Halt;
+         Writeln(
+           'image-to-pascal: Convert image files into Pascal source code,' +NL+
+           'useful together with Castle Game Engine image units.' +NL+
+           nl+
+           'Usage:' +NL+
+           '  image-to-pascal [OPTIONS...] UnitName image_name1.png...' +NL+
+           nl+
+           'Available options are:' +NL+
+           HelpOptionHelp +NL+
+           '  --no-show-progress    Do not show progress on stderr.' +NL+
+           '  -o / --output DIRECTORY' +NL+
+           '                        Place output unit files inside this dir.' +NL+
+           '  @alpha=strip          Strip the alpha channel from the following' +NL+
+           '                        images.' +NL+
+           '  @alpha=keep           Keep the alpha channel on the following' +NL+
+           '                        images (the default). As a result,' +NL+
+           '                        alpha channel will be stored in source files.'
+          );
+         Halt;
        end;
-    1: ShowProgress := false;
-    2: OutputDirectory := Argument + '/';
+    1: begin
+         // include ApplicationName in version, good for help2man
+         Writeln(ApplicationName + ' ' + CastleEngineVersion);
+         Halt;
+       end;
+    2: ShowProgress := false;
+    3: OutputDirectory := Argument + '/';
     else raise EInternalError.Create('OptionProc -- unknown arg');
   end;
 end;

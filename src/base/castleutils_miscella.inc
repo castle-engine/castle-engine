@@ -250,12 +250,16 @@ function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
   const Version: string; WrapLines: boolean): string;
 begin
   Result :=
-    DisplayApplicationName + ' version ' + Version + '.' +nl+
-    'Author: Michalis Kamburelis, aka Kambi <michalis.kambi@gmail.com>' +nl+
-    'See http://castle-engine.sourceforge.net/ for latest versions' +
-    Iff(WrapLines, nl + ' ', '') +
-    ' of this program, sources, documentation etc.' +nl+
-    'Compiled with ' + SCompilerDescription +'.';
+    DisplayApplicationName + ' version ' + Version + '.' + NL +
+    NL +
+    'Author:' + NL +
+    '  Michalis Kamburelis <michalis.kambi@gmail.com>' + NL +
+    NL +
+    'See http://castle-engine.sourceforge.io/ for latest versions' +
+    Iff(WrapLines, NL, '') +
+    'of this program, with sources and documentation.' + NL +
+    NL +
+    'Compiled with ' + SCompilerDescription + '.';
 end;
 
 procedure OSCheck(TrueValue: boolean);

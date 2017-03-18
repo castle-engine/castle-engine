@@ -119,13 +119,23 @@ begin
     Writeln(
       'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
       LineEnding +
-      'Usage: sprite-sheet-to-x3d <spritesheet> <output>' + LineEnding +
+      'Usage:' + LineEnding +
+      '  sprite-sheet-to-x3d <spritesheet> <output>' + LineEnding +
       LineEnding +
       'Supported input file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
+      LineEnding +
       'Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
+      LineEnding +
       '- XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
+      LineEnding +
       '- YYY: Frame number.'
     );
+    Halt;
+  end else
+  if Parameters[1] = '--version' then
+  begin
+    // include ApplicationName in version, good for help2man
+    Writeln(ApplicationName + ' ' + CastleEngineVersion);
     Halt;
   end else
   begin

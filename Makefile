@@ -285,6 +285,7 @@ clean: cleanexamples
 	  examples/portable_game_skeleton/my_fantastic_game \
 	  examples/portable_game_skeleton/my_fantastic_game.exe \
 	  examples/fonts/font_draw_over_image_output.png
+	$(MAKE) -C doc/man/man1/ clean
 # fpmake binary, and units/ produced by fpmake compilation
 	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation
