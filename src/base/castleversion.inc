@@ -1,4 +1,4 @@
-'6.1 (unstable)'
+'6.0.2'
 
 { In normal programs, you should get the engine version as
   the CastleEngineVersion constant (from CastleUtils unit),
