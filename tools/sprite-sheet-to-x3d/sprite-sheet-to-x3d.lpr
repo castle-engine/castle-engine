@@ -48,6 +48,8 @@ var
   SSName,
   SSOutput: string;
   Animations: TAnimations;
+  FramesPerSecond: Single = 4.0;
+  RepeatFirstFrame: boolean = false;
   Meta: TMeta;
 
 destructor TAnimations.Destroy;
@@ -112,50 +114,6 @@ begin
   end;
 end;
 
-procedure ParamHandle;
-begin
-  if (Parameters.High = 0) or (Parameters[1] = '--help') then
-  begin
-    Writeln(
-      'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
-      LineEnding +
-      'Usage:' + LineEnding +
-      '  sprite-sheet-to-x3d <spritesheet> <output>' + LineEnding +
-      LineEnding +
-      'Supported input file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
-      LineEnding +
-      'Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
-      LineEnding +
-      '- XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
-      LineEnding +
-      '- YYY: Frame number.'
-    );
-    Halt;
-  end else
-  if Parameters[1] = '--version' then
-  begin
-    // include ApplicationName in version, good for help2man
-    Writeln(ApplicationName + ' ' + CastleEngineVersion);
-    Halt;
-  end else
-  begin
-    SSFullPath := Parameters[1];
-    if not FileExists(SSFullPath) then
-    begin
-      Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
-      Halt;
-    end;
-    SSPath := ExtractFilePath(SSFullPath);
-    SSExt := ExtractFileExt(SSFullPath);
-    SSName := StringReplace(
-        StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
-    if Parameters.High = 2 then
-      SSOutput := Parameters[2]
-    else
-      SSOutput := SSPath + SSName + '.x3dv';
-  end;
-end;
-
 {$I parser_utils.inc}
 {$I starling_parser.inc}
 {$I cocos2d_parser.inc}
@@ -204,7 +162,8 @@ begin
   for j := 0 to Animations.Count-1 do
   begin
     List := Animations.Data[j];
-    List.Add(List[0]);
+    if RepeatFirstFrame then
+      List.Add(List[0]);
     { Convert sprite texture coordinates to X3D format. }
     for i := 0 to List.Count-1 do
     begin
@@ -269,7 +228,10 @@ begin
     begin
       List := Animations.Data[j];
       TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
-      TimeSensor.FdCycleInterval.Send(2);
+      TimeSensor.CycleInterval := List.Count / FramesPerSecond;
+      Writeln('Generating animation ' + Animations.Keys[j] +
+        ', frames: ', List.Count,
+        ', duration: ', TimeSensor.CycleInterval:1:2);
       CoordInterp :=
           TCoordinateInterpolatorNode.Create(Animations.Keys[j] + '_Coord');
       TexCoordInterp :=
@@ -350,6 +312,84 @@ begin
   finally
     FreeAndNil(Root);
   end;
+end;
+
+const
+  Options: array [0..3] of TOption = (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
+    (Short:  #0; Long: 'fps'; Argument: oaRequired),
+    (Short:  #0; Long: 'repeat-first-frame'; Argument: oaNone)
+  );
+
+  HelpText =
+    'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + NL +
+    NL +
+    'Usage:' + NL +
+    '  sprite-sheet-to-x3d [OPTIONS]... <spritesheet> <output>' + NL +
+    NL +
+    'Supported input file formats: Starling (.xml), Cocos2D (.plist).'+ NL +
+    NL +
+    'Please make sure frame keys follow XXX_YYY naming convention:'+ NL +
+    NL +
+    '- XXX: Frame name, start with a letter, will be used as animation name.'+ NL +
+    NL +
+    '- YYY: Frame number.' + NL +
+    NL+
+    'Available options are:' + NL +
+    HelpOptionHelp + NL +
+    VersionOptionHelp + NL +
+    '  --fps=<single>        How many frames per second does the animation have.' + NL+
+    '                        Determines the animations duration' + NL+
+    '                        (TimeSensor.cycleInterval values in the X3D output).' + NL +
+    '  --repeat-first-frame  Repeat the first animation frame as the last.' + NL +
+    '                        This makes the animation duration longer (by 1 frame).' + NL
+  ;
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0:begin
+        Writeln(HelpText);
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in version, good for help2man
+        Writeln(ApplicationName + ' ' + CastleEngineVersion);
+        Halt;
+      end;
+    2:FramesPerSecond := StrToFloat(Argument);
+    3:RepeatFirstFrame := true;
+    else raise EInternalError.Create('OptionProc');
+  end;
+end;
+
+procedure ParamHandle;
+begin
+  if Parameters.High = 0 then
+  begin
+    Writeln(HelpText);
+    Halt;
+  end;
+
+  Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHighAtLeast(1);
+
+  SSFullPath := Parameters[1];
+  if not FileExists(SSFullPath) then
+  begin
+    Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
+    Halt;
+  end;
+  SSPath := ExtractFilePath(SSFullPath);
+  SSExt := ExtractFileExt(SSFullPath);
+  SSName := StringReplace(
+      StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
+  if Parameters.High = 2 then
+    SSOutput := Parameters[2]
+  else
+    SSOutput := SSPath + SSName + '.x3dv';
 end;
 
 begin
