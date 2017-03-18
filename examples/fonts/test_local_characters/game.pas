@@ -29,7 +29,7 @@ uses SysUtils, Classes, DOM,
   CastleScene, CastleControls, CastleLog, CastleSceneCore, CastleClassUtils,
   CastleFilesUtils, CastleUtils, CastleXMLUtils, CastleConfig, CastleURIUtils,
   CastleTextureFontData, CastleFonts, CastleUnicode, CastleStringUtils,
-  X3DNodes, CastleUIControls, CastleColors, CastleVectors,
+  X3DNodes, CastleUIControls, CastleColors, CastleVectors, CastleDownload,
   Font_DejaVuSans, Font_DroidSansFallback;
 
 { TFontContainer ------------------------------------------------------------- }
@@ -160,6 +160,7 @@ var
   Doc: TXMLDocument;
   TextReader: TTextReader;
   StringList: TStringList;
+  StringListStream: TStream;
 begin
   FontContainer := TFontContainer.Create;
   FontContainer.ButtonEmbeddedFontClick(nil);
@@ -275,7 +276,14 @@ begin
 
   StringList := TStringList.Create;
   try
+    { On desktops, you could also load like this:
     StringList.LoadFromFile(URIToFilenameSafe(ApplicationData('example_text.txt')));
+      But it will fail on Android, where the ApplicationData('example_text.txt')
+      is an URL inside "assets:/", it doesn't map to the filename. }
+    StringListStream := Download(ApplicationData('example_text.txt'));
+    try
+      StringList.LoadFromStream(StringListStream);
+    finally FreeAndNil(StringListStream) end;
     TestLabel := TCastleLabel.Create(Application);
     TestLabel.Caption := 'Strings from txt (TStringList):' + NL + StringList.Text;
     TestLabel.Bottom := Y;
