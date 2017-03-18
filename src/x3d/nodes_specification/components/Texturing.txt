@@ -81,6 +81,9 @@ TextureProperties : X3DNode {
   SFString    [in,out] textureCompression  "FASTEST" [see Table 18.10]
   SFFloat     [in,out] texturePriority     0         [0,1]
   SFBool      []       generateMipMaps     FALSE
+
+  # EXTENSIONS:
+  SFBool     []            guiTexture  FALSE
 }
 
 TextureTransform : X3DTextureTransformNode {

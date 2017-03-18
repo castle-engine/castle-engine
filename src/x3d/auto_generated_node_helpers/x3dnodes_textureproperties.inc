@@ -48,6 +48,8 @@
     procedure SetTexturePriority(const Value: Single);
     function GetGenerateMipMaps: boolean;
     procedure SetGenerateMipMaps(const Value: boolean);
+    function GetGuiTexture: boolean;
+    procedure SetGuiTexture(const Value: boolean);
   public
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
@@ -60,6 +62,7 @@
     property TextureCompression: string read GetTextureCompression write SetTextureCompression;
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
     property GenerateMipMaps: boolean read GetGenerateMipMaps write SetGenerateMipMaps;
+    property GuiTexture: boolean read GetGuiTexture write SetGuiTexture;
 
 {$endif read_interface}
 
@@ -175,6 +178,16 @@ end;
 procedure TTexturePropertiesNode.SetGenerateMipMaps(const Value: boolean);
 begin
   FdGenerateMipMaps.Send(Value);
+end;
+
+function TTexturePropertiesNode.GetGuiTexture: boolean;
+begin
+  Result := FdGuiTexture.Value;
+end;
+
+procedure TTexturePropertiesNode.SetGuiTexture(const Value: boolean);
+begin
+  FdGuiTexture.Send(Value);
 end;
 
 {$endif read_implementation}

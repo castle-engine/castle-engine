@@ -514,8 +514,8 @@ begin { HandleTextureProperties }
   begin
     Filter.Minification := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
     Filter.Magnification := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
-    Anisotropy := TextureProperties.FdAnisotropicDegree.Value;
-    GUITexture := TextureProperties.FdGUITexture.Value;
+    Anisotropy := TextureProperties.AnisotropicDegree;
+    GUITexture := TextureProperties.GUITexture;
   end else
   begin
     Filter := Renderer.Attributes.TextureFilter;
