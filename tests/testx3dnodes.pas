@@ -56,9 +56,8 @@ type
       All non-geometry nodes should not have chGeometry on any field. }
     procedure TestGeometryNodesChanges;
 
-    { All VRML 1 state nodes (except Coordinate)
-      should have Changes = [chVisibleVRML1State] (and possibly more,
-      like chUseBlending) }
+    { Almost all VRML 1 state nodes should have Changes = [chVisibleVRML1State]
+      (and possibly more, like chUseBlending). }
     procedure TestVisibleVRML1StateChanges;
 
     { All Color nodes should have Changes = [chColorNode] }
@@ -1028,11 +1027,14 @@ begin
          (VRML1StateNode <> vsCoordinate3) then
       begin
         for J := 0 to N.FieldsCount - 1 do
+          { some fields are allowed exception }
           if (N.Fields[J].X3DName <> 'metadata') and
-             (N.Fields[J].X3DName <> 'effects') then
+             (N.Fields[J].X3DName <> 'effects') and
+             (N.Fields[J].X3DName <> 'textureProperties') then
           try
-            AssertTrue((chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
-                   (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
+            AssertTrue(
+              (chVisibleVRML1State in N.Fields[J].ExecuteChanges) or
+              (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
           except
             Writeln('Failed on ', N.ClassName, ', field ', N.Fields[J].X3DName);
             raise;
@@ -1040,8 +1042,8 @@ begin
       end else
       begin
         for J := 0 to N.FieldsCount - 1 do
-          { alphaChannel field is allowed exception }
-          if N.Fields[J].X3DName <> 'alphaChannel' then
+          { some fields are allowed exception }
+          if (N.Fields[J].X3DName <> 'alphaChannel') then
           try
             AssertTrue(not (chVisibleVRML1State in N.Fields[J].ExecuteChanges));
             AssertTrue(not (chGeometryVRML1State in N.Fields[J].ExecuteChanges));
