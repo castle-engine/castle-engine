@@ -85,7 +85,7 @@ type
       Changing font, like @link(UIFont) or @link(UIFontSmall) or @link(CustomFont)
       or any property that may affect the font is automatically applied.
 
-      But there are exceptions: right now, if you call @link(Load TTextureFont.Load)
+      But there are exceptions: right now, if you call @link(TTextureFont.Load Load)
       on a font, it's measurements will change but some controls using it will
       not recalculate sizes automatically. In this case, call this method. }
     procedure FontChanged; virtual;

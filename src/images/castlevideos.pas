@@ -384,7 +384,7 @@ var
 
     TODO: When the TFPReaderGif from FPC will support reading all GIF frames,
     then this variable will be ignored, and we will always read all GIF frames
-    inside @link(TVideo), @link(TVideo2D), @link(TVideo3D),
+    inside @link(TVideo), @link(TGLVideo2D), @link(TGLVideo3D),
     and ffmpeg will not be necessary to read GIF animations.
 
     Use @link(TCastleImage) if you want to always load GIF as static image

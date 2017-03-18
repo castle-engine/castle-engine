@@ -159,7 +159,7 @@ type
     minLinearMipmapLinear,
 
     { Interpretation of this filter depends on current
-      @link(Scene.Attributes.MagnificationFilter TRenderingAttributes.MagnificationFilter). }
+      @link(TRenderingAttributes.MagnificationFilter Scene.Attributes.MagnificationFilter). }
     minDefault,
     { Alias for minNearest. }
     minFastest,
@@ -175,7 +175,7 @@ type
     magLinear,
 
     { Interpretation of this filter depends on current
-      @link(Scene.Attributes.MagnificationFilter TRenderingAttributes.MagnificationFilter). }
+      @link(TRenderingAttributes.MagnificationFilter Scene.Attributes.MagnificationFilter). }
     magDefault,
     { Alias for magnNearest. }
     magFastest,
