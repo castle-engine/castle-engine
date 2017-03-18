@@ -200,12 +200,6 @@
 {$define HAS_FP_HTTP_CLIENT}
 {$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 
-{ FreeType ------------------------------------------------------------------- }
-
-{$define HAS_FREE_TYPE}
-{$ifdef ANDROID} {$undef HAS_FREE_TYPE} {$endif}
-{$ifdef iOS} {$undef HAS_FREE_TYPE} {$endif}
-
 { Embedded stuff ------------------------------------------------------------- }
 
 { If defined, the compiled code will have embedded all the variations
