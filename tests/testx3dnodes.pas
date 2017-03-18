@@ -96,8 +96,9 @@ type
 
 implementation
 
-uses CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils, X3DFields,
-  CastleTimeUtils, FGL, CastleDownload, X3DLoad, CastleApplicationProperties;
+uses CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
+  X3DFields, CastleTimeUtils, FGL, CastleDownload, X3DLoad,
+  CastleApplicationProperties, CastleTextureImages;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -2036,6 +2037,8 @@ var
 begin
   TextureProperties := TTexturePropertiesNode.Create;
   TextureProperties.AnisotropicDegree := 8;
+  TextureProperties.MinificationFilter := minFastest;
+  TextureProperties.MagnificationFilter := magNicest;
   TextureProperties.KeepExisting := 1;
 
   Texture := TImageTextureNode.Create;
