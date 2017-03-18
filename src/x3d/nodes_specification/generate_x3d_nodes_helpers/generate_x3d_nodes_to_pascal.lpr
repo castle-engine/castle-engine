@@ -206,6 +206,8 @@ begin
                 ((X3DFieldName = 'position') and (X3DNodeType = 'OrthoViewpoint')) or
                 ((X3DFieldName = 'position') and (X3DNodeType = 'GeoViewpoint')) or
                 ((X3DFieldName = 'orientation') and (X3DNodeType = 'X3DViewpointNode')) or
+                ((X3DFieldName = 'magnificationFilter') and (X3DNodeType = 'TextureProperties')) or
+                ((X3DFieldName = 'minificationFilter') and (X3DNodeType = 'TextureProperties')) or
                 (X3DFieldName = 'linetype')
                 // TODO: bboxCenter and bboxSize should also be removed from here someday,
                 // we should convert them manually to BBox: TBox3D to support our TBox3D type.

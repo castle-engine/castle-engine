@@ -11,19 +11,8 @@
     { Calculate things from TextureProperties node.
       If TextureProperties = @nil, they are taken from defaults
       (possibly in Attributes). }
-    procedure HandleTexturePropertiesCore(
-      TextureProperties: TTexturePropertiesNode;
-      out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
-
-    { Calculate things from TextureProperties node.
-      If TextureProperties = @nil or not of TTexturePropertiesNode class,
-      they are taken from defaults (possibly in Attributes).
-
-      This is useful when interpreting VRML/X3D files,
-      as you have no guarantee user didn't place there some disallowed node
-      in "textureProperties" field. }
     procedure HandleTextureProperties(
-      TextureProperties: TX3DNode;
+      TextureProperties: TTexturePropertiesNode;
       out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 
     { Decide if this class can handle given texture Node. }
@@ -441,79 +430,39 @@ begin
   inherited;
 end;
 
-procedure TGLTextureNode.HandleTexturePropertiesCore(
+procedure TGLTextureNode.HandleTextureProperties(
   TextureProperties: TTexturePropertiesNode;
   out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
 
-  function StrToMinFilter(S: string): TMinificationFilter;
+  { Convert TAutoMinificationFilter to TMinificationFilter,
+    resolving the "default"/"fastest"/"nicest" aliases to specific values. }
+  function FinalMinificationFilter(const FilterAuto: TAutoMinificationFilter): TMinificationFilter;
   begin
-    S := UpperCase(S);
-
-    if S = 'AVG_PIXEL' then Result := minLinear else
-    if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := minLinearMipmapLinear else
-    if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := minLinearMipmapNearest else
-    if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := minNearestMipmapLinear else
-    if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := minNearestMipmapNearest else
-    if S = 'NEAREST_PIXEL' then Result := minNearest else
-
-    if S = 'DEFAULT' then Result := Renderer.Attributes.MinificationFilter else
-
-    if S = 'FASTEST' then Result := minNearest else
-    if S = 'NICEST' then Result := minLinearMipmapLinear else
-
-    if S = 'NEAREST' then
-    begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
-      Result := minNearest;
-    end else
-
-    if S = 'LINEAR' then
-    begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
-      Result := minLinear;
-    end else
-
-    begin
-      Result := Renderer.Attributes.MinificationFilter;
-      WritelnWarning('VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
+    case FilterAuto of
+      minDefault: Result := Renderer.Attributes.MinificationFilter;
+      minFastest: Result := minNearest;
+      minNicest : Result := minLinearMipmapLinear;
+      else        Result := FilterAuto;
     end;
   end;
 
-  function StrToMagFilter(S: string): TMagnificationFilter;
+  { Convert TAutoMagnificationFilter to TMagnificationFilter,
+    resolving the "default"/"fastest"/"nicest" aliases to specific values. }
+  function FinalMagnificationFilter(const FilterAuto: TAutoMagnificationFilter): TMagnificationFilter;
   begin
-    S := UpperCase(S);
-
-    if S = 'AVG_PIXEL' then Result := magLinear else
-    if S = 'NEAREST_PIXEL' then Result := magNearest else
-
-    if S = 'DEFAULT' then Result := Renderer.Attributes.MagnificationFilter else
-
-    if S = 'FASTEST' then Result := magNearest else
-    if S = 'NICEST' then Result := magLinear else
-
-    if S = 'NEAREST' then
-    begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
-      Result := magNearest;
-    end else
-
-    if S = 'LINEAR' then
-    begin
-      WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
-      Result := magLinear;
-    end else
-
-    begin
-      Result := Renderer.Attributes.MagnificationFilter;
-      WritelnWarning('VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
+    case FilterAuto of
+      magDefault: Result := Renderer.Attributes.MagnificationFilter;
+      magFastest: Result := magNearest;
+      magNicest : Result := magLinear;
+      else        Result := FilterAuto;
     end;
   end;
 
-begin { HandleTextureProperties }
+begin
   if TextureProperties <> nil then
   begin
-    Filter.Minification := StrToMinFilter(TextureProperties.FdMinificationFilter.Value);
-    Filter.Magnification := StrToMagFilter(TextureProperties.FdMagnificationFilter.Value);
+    Filter.Minification := FinalMinificationFilter(TextureProperties.MinificationFilter);
+    Filter.Magnification := FinalMagnificationFilter(TextureProperties.MagnificationFilter);
     Anisotropy := TextureProperties.AnisotropicDegree;
     GUITexture := TextureProperties.GUITexture;
   end else
@@ -522,17 +471,6 @@ begin { HandleTextureProperties }
     Anisotropy := 1;
     GUITexture := false;
   end;
-end { HandleTextureProperties };
-
-procedure TGLTextureNode.HandleTextureProperties(
-  TextureProperties: TX3DNode;
-  out Filter: TTextureFilter; out Anisotropy: TGLfloat; out GUITexture: boolean);
-begin
-  if (TextureProperties = nil) or
-     not (TextureProperties is TTexturePropertiesNode) then
-    HandleTexturePropertiesCore(nil, Filter, Anisotropy, GUITexture) else
-    HandleTexturePropertiesCore(TTexturePropertiesNode(TextureProperties),
-      Filter, Anisotropy, GUITexture);
 end;
 
 class function TGLTextureNode.ClassForTextureNode(
@@ -1025,7 +963,7 @@ var
 begin
   { HandledNode already made sure IsTextureImage = @true }
 
-  HandleTexturePropertiesCore(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
   TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
@@ -1102,7 +1040,7 @@ var
 begin
   { HandledNode already made sure IsTextureVideo = @true }
 
-  HandleTexturePropertiesCore(TextureNode.TextureProperties,
+  HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
   TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
@@ -1196,7 +1134,7 @@ var
   GUITexture: boolean;
   Sizing: TTextureSizing;
 begin
-  HandleTextureProperties(TextureNode.FdTextureProperties.Value,
+  HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
@@ -1587,7 +1525,7 @@ begin
     Exit;
   end;
 
-  HandleTextureProperties(TextureNode.FdTextureProperties.Value,
+  HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
   try
@@ -1653,7 +1591,7 @@ begin
 
   try
 
-    HandleTextureProperties(TextureNode.FdTextureProperties.Value,
+    HandleTextureProperties(TextureNode.TextureProperties,
       Filter, Anisotropy, GUITexture);
 
     { TODO: this is a quick and dirty method:
@@ -1705,7 +1643,7 @@ begin
     Exit;
   end;
 
-  HandleTextureProperties(TextureNode.FdTextureProperties.Value,
+  HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
   { calculate Filter, Anisotropy, NeedsMipmaps }
@@ -1845,7 +1783,7 @@ begin
     Setting TextureLoaded already did necessary WritelnWarnings. }
   if TextureNode.TextureImage = nil then Exit;
 
-  HandleTextureProperties(TextureNode.FdTextureProperties.Value,
+  HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
   { calculate TextureWrap }

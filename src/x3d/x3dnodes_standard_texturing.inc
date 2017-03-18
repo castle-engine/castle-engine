@@ -232,7 +232,6 @@
 
     private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-
     { Texture properties (how the texture behaves when sampled, and such). }
     property TextureProperties: TTexturePropertiesNode
       read GetTextureProperties write SetTextureProperties;
@@ -512,6 +511,11 @@
 
   { Adjust the texture application properties. }
   TTexturePropertiesNode = class(TAbstractNode)
+  strict private
+    function GetMinificationFilter: TAutoMinificationFilter;
+    procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
+    function GetMagnificationFilter: TAutoMagnificationFilter;
+    procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -552,6 +556,12 @@
 
     private FFdGUITexture: TSFBool;
     public property FdGUITexture: TSFBool read FFdGUITexture;
+
+    property MagnificationFilter: TAutoMagnificationFilter
+      read GetMagnificationFilter write SetMagnificationFilter;
+
+    property MinificationFilter: TAutoMinificationFilter
+      read GetMinificationFilter write SetMinificationFilter;
 
     {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
   end;
@@ -1342,6 +1352,102 @@ class function TTexturePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
+end;
+
+function TTexturePropertiesNode.GetMinificationFilter: TAutoMinificationFilter;
+var
+  S: string;
+begin
+  S := UpperCase(FdMinificationFilter.Value);
+
+  if S = 'AVG_PIXEL' then Result := minLinear else
+  if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := minLinearMipmapLinear else
+  if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := minLinearMipmapNearest else
+  if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := minNearestMipmapLinear else
+  if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := minNearestMipmapNearest else
+  if S = 'NEAREST_PIXEL' then Result := minNearest else
+
+  if S = 'DEFAULT' then Result := minDefault else
+  if S = 'FASTEST' then Result := minFastest else
+  if S = 'NICEST' then Result := minNicest else
+
+  if S = 'NEAREST' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
+    Result := minNearest;
+  end else
+
+  if S = 'LINEAR' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
+    Result := minLinear;
+  end else
+
+  begin
+    Result := minDefault;
+    WritelnWarning('VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
+  end;
+end;
+
+procedure TTexturePropertiesNode.SetMinificationFilter(const Value: TAutoMinificationFilter);
+const
+  Names: array [TAutoMinificationFilter] of string = (
+    'DEFAULT',
+    'FASTEST',
+    'NICEST',
+    'NEAREST_PIXEL',
+    'AVG_PIXEL',
+    'NEAREST_PIXEL_NEAREST_MIPMAP',
+    'NEAREST_PIXEL_AVG_MIPMAP',
+    'AVG_PIXEL_NEAREST_MIPMAP',
+    'AVG_PIXEL_AVG_MIPMAP'
+  );
+begin
+  FdMinificationFilter.Send(Names[Value]);
+end;
+
+function TTexturePropertiesNode.GetMagnificationFilter: TAutoMagnificationFilter;
+var
+  S: string;
+begin
+  S := UpperCase(FdMagnificationFilter.Value);
+
+  if S = 'AVG_PIXEL' then Result := magLinear else
+  if S = 'NEAREST_PIXEL' then Result := magNearest else
+
+  if S = 'DEFAULT' then Result := magDefault else
+  if S = 'FASTEST' then Result := magFastest else
+  if S = 'NICEST' then Result := magNicest else
+
+  if S = 'NEAREST' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
+    Result := magNearest;
+  end else
+
+  if S = 'LINEAR' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
+    Result := magLinear;
+  end else
+
+  begin
+    Result := magDefault;
+    WritelnWarning('VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
+  end;
+end;
+
+procedure TTexturePropertiesNode.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
+const
+  Names: array [TAutoMagnificationFilter] of string = (
+    'DEFAULT',
+    'FASTEST',
+    'NICEST',
+    'NEAREST_PIXEL',
+    'AVG_PIXEL'
+  );
+begin
+  FdMagnificationFilter.Send(Names[Value]);
 end;
 
 procedure TTextureTransformNode.CreateNode;
