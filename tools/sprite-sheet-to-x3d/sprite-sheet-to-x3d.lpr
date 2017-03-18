@@ -49,7 +49,6 @@ var
   SSOutput: string;
   Animations: TAnimations;
   FramesPerSecond: Single = 4.0;
-  RepeatFirstFrame: boolean = false;
   Meta: TMeta;
 
 destructor TAnimations.Destroy;
@@ -162,8 +161,6 @@ begin
   for j := 0 to Animations.Count-1 do
   begin
     List := Animations.Data[j];
-    if RepeatFirstFrame then
-      List.Add(List[0]);
     { Convert sprite texture coordinates to X3D format. }
     for i := 0 to List.Count-1 do
     begin
@@ -242,7 +239,7 @@ begin
       { Generate list of keys. }
       for i := 0 to List.Count-1 do
       begin
-        Key := 1/(List.Count - 1) * i;
+        Key := I / List.Count;
         CoordInterp.FdKey.Items.Add(Key);
         TexCoordInterp.FdKey.Items.Add(Key);
         if i > 0 then
@@ -251,6 +248,11 @@ begin
           TexCoordInterp.FdKey.Items.Add(Key);
         end;
       end;
+      { This way, we have keys like
+        0 0.333 0.333 0.666 0.666 1
+        That is, all keys are repeated, except 0 and 1. }
+      CoordInterp.FdKey.Items.Add(1.0);
+      TexCoordInterp.FdKey.Items.Add(1.0);
       { Generate list of coord/texcoord key values. }
       for i := 0 to List.Count-1 do
       begin
@@ -275,11 +277,9 @@ begin
         TexCoordArray[5] := Vector2Single(Frame.X1, Frame.Y2);
         CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
         TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
-        if i < List.Count-1 then
-        begin
-          CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
-          TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
-        end;
+        { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
+        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
       end;
       { Create routes. }
       R1 := TX3DRoute.Create;
@@ -315,11 +315,10 @@ begin
 end;
 
 const
-  Options: array [0..3] of TOption = (
+  Options: array [0..2] of TOption = (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
-    (Short:  #0; Long: 'fps'; Argument: oaRequired),
-    (Short:  #0; Long: 'repeat-first-frame'; Argument: oaNone)
+    (Short:  #0; Long: 'fps'; Argument: oaRequired)
   );
 
   HelpText =
@@ -341,9 +340,7 @@ const
     VersionOptionHelp + NL +
     '  --fps=<single>        How many frames per second does the animation have.' + NL+
     '                        Determines the animations duration' + NL+
-    '                        (TimeSensor.cycleInterval values in the X3D output).' + NL +
-    '  --repeat-first-frame  Repeat the first animation frame as the last.' + NL +
-    '                        This makes the animation duration longer (by 1 frame).' + NL
+    '                        (TimeSensor.cycleInterval values in the X3D output).'
   ;
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -360,7 +357,6 @@ begin
         Halt;
       end;
     2:FramesPerSecond := StrToFloat(Argument);
-    3:RepeatFirstFrame := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
