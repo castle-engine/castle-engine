@@ -172,7 +172,7 @@ var
     begin
       if SourceAttribs[I].NodeType <> ATTRIBUTE_NODE then
         raise ECannotMergeManifest.Create('Attribute node does not have NodeType = ATTRIBUTE_NODE: ' +
-          SourceAttribs[I].NodeName);
+          UTF8Encode(SourceAttribs[I].NodeName));
       // if Verbose then
       //   Writeln('Appending attribute ', SourceAttribs[I].NodeName);
       DestinationApplication.SetAttribute(
@@ -208,9 +208,9 @@ var
 
   procedure MergeSupportsScreens(const SourceElement: TDOMElement);
   begin
-    if DestinationXml.DocumentElement.ChildElement(SourceElement.TagName, false) <> nil then
+    if DestinationXml.DocumentElement.ChildElement(UTF8Encode(SourceElement.TagName), false) <> nil then
       raise ECannotMergeManifest.Create(
-        'Cannot merge AndroidManifest.xml, only one <' + SourceElement.TagName + '> is allowed');
+        'Cannot merge AndroidManifest.xml, only one <' + UTF8Encode(SourceElement.TagName) + '> is allowed');
     DestinationXml.DocumentElement.AppendChild(SourceElement.CloneNode(true, DestinationXml));
   end;
 
@@ -239,7 +239,7 @@ begin
             MergeUsesPermission(I.Current) else
           if I.Current.TagName = 'supports-screens' then
             MergeSupportsScreens(I.Current) else
-            raise ECannotMergeManifest.Create('Cannot merge AndroidManifest.xml element <' + I.Current.TagName + '>');
+            raise ECannotMergeManifest.Create('Cannot merge AndroidManifest.xml element <' + UTF8Encode(I.Current.TagName) + '>');
         end;
       finally FreeAndNil(I) end;
 

@@ -22,8 +22,7 @@ interface
 
 uses SysUtils, Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
   CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
-  CastleRectangles, CastleApplicationProperties
-  {$ifdef HAS_FREE_TYPE} , CastleInternalFreeType {$endif};
+  CastleRectangles, CastleApplicationProperties;
 
 type
   { Abstract class for 2D font. }
@@ -403,7 +402,6 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    {$ifdef HAS_FREE_TYPE}
     { Create by reading a FreeType font file, like ttf.
 
       Providing charaters list as @nil means that we only create glyphs
@@ -420,7 +418,6 @@ type
     constructor Create(const URL: string;
       const ASize: Integer; const AnAntiAliased: boolean;
       const ACharacters: TSetOfChars); deprecated;
-    {$endif}
 
     { Create from a ready TTextureFontData instance.
       @param(Data TTextureFontData instance containing loaded image
@@ -542,10 +539,7 @@ type
     @link(TTextureFont.Create TTextureFont.Create(URL, ...)) or
     @link(TTextureFont.Load TTextureFont.Load(URL, ...)) when
     the freetype library cannot be found, and thus font files cannot be read. }
-  EFreeTypeLibraryNotFound =
-    {$ifdef HAS_FREE_TYPE} CastleInternalFreeType.EFreeTypeLibraryNotFound
-    {$else} class(Exception)
-    {$endif};
+  EFreeTypeLibraryNotFound = CastleTextureFontData.EFreeTypeLibraryNotFound;
 
 implementation
 
@@ -1028,7 +1022,6 @@ begin
   inherited;
 end;
 
-{$ifdef HAS_FREE_TYPE}
 constructor TTextureFont.Create(const URL: string;
   const ASize: Integer; const AnAntiAliased: boolean;
   const ACharacters: TUnicodeCharList);
@@ -1058,7 +1051,6 @@ begin
     Create(URL, ASize, AnAntiAliased, Chars);
   finally FreeAndNil(Chars) end;
 end;
-{$endif}
 
 constructor TTextureFont.Create(const Data: TTextureFontData; const OwnsData: boolean);
 begin
@@ -1068,8 +1060,11 @@ end;
 
 procedure TTextureFont.Load(const Data: TTextureFontData; const OwnsData: boolean);
 begin
+  GLContextClose;
+
   if FOwnsFont then
-    FreeAndNil(FFont) else
+    FreeAndNil(FFont)
+  else
     FFont := nil;
 
   FOwnsFont := OwnsData;
@@ -1317,6 +1312,7 @@ end;
 procedure TSimpleTextureFont.Load(AImage: TCastleImage;
   const AImageCols, AImageRows, ACharMargin, ACharDisplayMargin: Integer);
 begin
+  GLContextClose;
   FreeAndNil(Image);
 
   Image := AImage;

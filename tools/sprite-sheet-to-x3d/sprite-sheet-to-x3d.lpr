@@ -18,9 +18,10 @@
 {$APPTYPE CONSOLE}
 
 uses
-  Classes, SysUtils, strutils, DOM, XMLRead, RegExpr, FGL,
+  Classes, SysUtils, strutils, DOM, RegExpr, FGL,
   CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
-  CastleVectors, CastleUtils, CastleClassUtils, X3DNodes;
+  CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
+  CastleTextureImages, CastleXMLUtils;
 
 type
   TMeta = record
@@ -47,6 +48,7 @@ var
   SSName,
   SSOutput: string;
   Animations: TAnimations;
+  FramesPerSecond: Single = 4.0;
   Meta: TMeta;
 
 destructor TAnimations.Destroy;
@@ -111,40 +113,6 @@ begin
   end;
 end;
 
-procedure ParamHandle;
-begin
-  if (Parameters.High = 0) or (Parameters[1] = '--help') then
-  begin
-    Writeln(
-      'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + LineEnding +
-      LineEnding +
-      'Usage: sprite-sheet-to-x3d <spritesheet> <output>' + LineEnding +
-      LineEnding +
-      'Supported input file formats: Starling (.xml), Cocos2D (.plist).'+ LineEnding +
-      'Please make sure frame keys follow XXX_YYY naming convention:'+ LineEnding +
-      '- XXX: Frame name, start with a letter, will be used as animation name.'+ LineEnding +
-      '- YYY: Frame number.'
-    );
-    Halt;
-  end else
-  begin
-    SSFullPath := Parameters[1];
-    if not FileExists(SSFullPath) then
-    begin
-      Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
-      Halt;
-    end;
-    SSPath := ExtractFilePath(SSFullPath);
-    SSExt := ExtractFileExt(SSFullPath);
-    SSName := StringReplace(
-        StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
-    if Parameters.High = 2 then
-      SSOutput := Parameters[2]
-    else
-      SSOutput := SSPath + SSName + '.x3dv';
-  end;
-end;
-
 {$I parser_utils.inc}
 {$I starling_parser.inc}
 {$I cocos2d_parser.inc}
@@ -193,7 +161,6 @@ begin
   for j := 0 to Animations.Count-1 do
   begin
     List := Animations.Data[j];
-    List.Add(List[0]);
     { Convert sprite texture coordinates to X3D format. }
     for i := 0 to List.Count-1 do
     begin
@@ -221,9 +188,9 @@ begin
     Tex.FdUrl.Send(Meta.Name);
     Tex.RepeatS := false;
     Tex.RepeatT := false;
-    Tex.FdTextureProperties.Send(TTexturePropertiesNode.Create);
-    Tex.TextureProperties.FdMinificationFilter.Send('NEAREST_PIXEL');
-    Tex.TextureProperties.FdMagnificationFilter.Send('NEAREST_PIXEL');
+    Tex.TextureProperties := TTexturePropertiesNode.Create;
+    Tex.TextureProperties.MinificationFilter := minNearest;
+    Tex.TextureProperties.MagnificationFilter := magNearest;
     Shape.Texture := Tex;
 
     Tri := TTriangleSetNode.Create;
@@ -246,7 +213,7 @@ begin
          Vector2Single(0, 1)]);
     Tri.FdCoord.Value := Coord;
     Tri.FdTexCoord.Value := TexCoord;
-    Shape.FdGeometry.Value := Tri;
+    Shape.Geometry := Tri;
 
     SetLength(CoordArray, 6);
     SetLength(TexCoordArray, 6);
@@ -258,7 +225,10 @@ begin
     begin
       List := Animations.Data[j];
       TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
-      TimeSensor.FdCycleInterval.Send(2);
+      TimeSensor.CycleInterval := List.Count / FramesPerSecond;
+      Writeln('Generating animation ' + Animations.Keys[j] +
+        ', frames: ', List.Count,
+        ', duration: ', TimeSensor.CycleInterval:1:2);
       CoordInterp :=
           TCoordinateInterpolatorNode.Create(Animations.Keys[j] + '_Coord');
       TexCoordInterp :=
@@ -269,7 +239,7 @@ begin
       { Generate list of keys. }
       for i := 0 to List.Count-1 do
       begin
-        Key := 1/(List.Count - 1) * i;
+        Key := I / List.Count;
         CoordInterp.FdKey.Items.Add(Key);
         TexCoordInterp.FdKey.Items.Add(Key);
         if i > 0 then
@@ -278,6 +248,11 @@ begin
           TexCoordInterp.FdKey.Items.Add(Key);
         end;
       end;
+      { This way, we have keys like
+        0 0.333 0.333 0.666 0.666 1
+        That is, all keys are repeated, except 0 and 1. }
+      CoordInterp.FdKey.Items.Add(1.0);
+      TexCoordInterp.FdKey.Items.Add(1.0);
       { Generate list of coord/texcoord key values. }
       for i := 0 to List.Count-1 do
       begin
@@ -302,11 +277,9 @@ begin
         TexCoordArray[5] := Vector2Single(Frame.X1, Frame.Y2);
         CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
         TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
-        if i < List.Count-1 then
-        begin
-          CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
-          TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
-        end;
+        { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
+        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
       end;
       { Create routes. }
       R1 := TX3DRoute.Create;
@@ -339,6 +312,97 @@ begin
   finally
     FreeAndNil(Root);
   end;
+end;
+
+const
+  Options: array [0..2] of TOption = (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
+    (Short:  #0; Long: 'fps'; Argument: oaRequired)
+  );
+
+  HelpText =
+    'sprite-sheet-to-x3d: Convert spritesheet files into X3D files.' + NL +
+    NL +
+    'Usage:' + NL +
+    '  sprite-sheet-to-x3d [OPTIONS]... <spritesheet> <output>' + NL +
+    NL +
+    'Available options are:' + NL +
+    HelpOptionHelp + NL +
+    VersionOptionHelp + NL +
+    '  --fps=<single>        How many frames per second does the animation have.' + NL+
+    '                        Determines the animations duration' + NL+
+    '                        (TimeSensor.cycleInterval values in the X3D output).' + NL+
+    NL +
+    'Supported input file formats: ' + NL+
+    NL +
+    '- Starling (.xml). Fully supported.' + NL +
+    NL +
+    '- Cocos2D (.plist). Covered most of the important stuff.' + NL+
+    '  Rare features (like rotate, polygon sprites) are not supported,' + NL+
+    '  but they can be added easily, please submit a request!' + NL+
+    NL +
+    'Notes:' + NL+
+    NL +
+    'Animation frames must be named "XXX_YYY", where:' + NL+
+    NL +
+    '- XXX: Frame name, start with a letter, will be used as animation name.'+ NL +
+    NL +
+    '- YYY: Frame number.' + NL +
+    NL +
+    'For example: slime_01.png, slime_02.png...' + NL+
+    NL +
+    'By default anchor will be placed at the center of the sprite if the tool' + NL+
+    'didn''t found it in spritesheet.' + NL +
+    NL +
+    'Developed using Castle Game Engine.' + NL +
+    'See http://castle-engine.sourceforge.io/ for latest versions' + NL +
+    'of this program, sources and documentation.'
+  ;
+
+procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+begin
+  case OptionNum of
+    0:begin
+        Writeln(HelpText);
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in version, good for help2man
+        Writeln(ApplicationName + ' ' + CastleEngineVersion);
+        Halt;
+      end;
+    2:FramesPerSecond := StrToFloat(Argument);
+    else raise EInternalError.Create('OptionProc');
+  end;
+end;
+
+procedure ParamHandle;
+begin
+  if Parameters.High = 0 then
+  begin
+    Writeln(HelpText);
+    Halt;
+  end;
+
+  Parameters.Parse(Options, @OptionProc, nil);
+  Parameters.CheckHighAtLeast(1);
+
+  SSFullPath := Parameters[1];
+  if not FileExists(SSFullPath) then
+  begin
+    Writeln(ErrOutput, 'sprite-sheet-to-x3d: Error: File does not exist.');
+    Halt;
+  end;
+  SSPath := ExtractFilePath(SSFullPath);
+  SSExt := ExtractFileExt(SSFullPath);
+  SSName := StringReplace(
+      StringReplace(SSFullPath, SSPath, '', []), SSExt, '', []);
+  if Parameters.High = 2 then
+    SSOutput := Parameters[2]
+  else
+    SSOutput := SSPath + SSName + '.x3dv';
 end;
 
 begin

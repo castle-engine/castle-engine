@@ -4,11 +4,16 @@ buildscript {
        jcenter()
     }
     dependencies {
-        // Use latest gradle version, as created by default for new Android Studio projects,
-        // and as mentioned on
-        // http://tools.android.com/tech-docs/new-build-system/version-compatibility
-        // https://developer.android.com/studio/releases/gradle-plugin.html
-        classpath 'com.android.tools.build:gradle:2.1.3'
+        // This declares the "Android Gradle plugin" version
+        // (not Gradle version, which is visible in gradle/wrapper/gradle-wrapper.properties).
+        //
+        // We use the latest "Android Gradle plugin" version that works with Gradle
+        // in current Debian testing / unstable
+        // (https://packages.debian.org/search?keywords=gradle).
+        // This allows to replace our Gradle wrapper
+        // with the Gradle from Debian package, if needed.
+        // See https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle
+        classpath 'com.android.tools.build:gradle:2.2.3'
     }
 }
 

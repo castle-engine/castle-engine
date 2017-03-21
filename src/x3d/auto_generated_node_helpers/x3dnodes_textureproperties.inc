@@ -38,16 +38,14 @@
     procedure SetBoundaryModeT(const Value: string);
     function GetBoundaryModeR: string;
     procedure SetBoundaryModeR(const Value: string);
-    function GetMagnificationFilter: string;
-    procedure SetMagnificationFilter(const Value: string);
-    function GetMinificationFilter: string;
-    procedure SetMinificationFilter(const Value: string);
     function GetTextureCompression: string;
     procedure SetTextureCompression(const Value: string);
     function GetTexturePriority: Single;
     procedure SetTexturePriority(const Value: Single);
     function GetGenerateMipMaps: boolean;
     procedure SetGenerateMipMaps(const Value: boolean);
+    function GetGuiTexture: boolean;
+    procedure SetGuiTexture(const Value: boolean);
   public
     property AnisotropicDegree: Single read GetAnisotropicDegree write SetAnisotropicDegree;
     property BorderColor: TCastleColor read GetBorderColor write SetBorderColor;
@@ -55,11 +53,10 @@
     property BoundaryModeS: string read GetBoundaryModeS write SetBoundaryModeS;
     property BoundaryModeT: string read GetBoundaryModeT write SetBoundaryModeT;
     property BoundaryModeR: string read GetBoundaryModeR write SetBoundaryModeR;
-    property MagnificationFilter: string read GetMagnificationFilter write SetMagnificationFilter;
-    property MinificationFilter: string read GetMinificationFilter write SetMinificationFilter;
     property TextureCompression: string read GetTextureCompression write SetTextureCompression;
     property TexturePriority: Single read GetTexturePriority write SetTexturePriority;
     property GenerateMipMaps: boolean read GetGenerateMipMaps write SetGenerateMipMaps;
+    property GuiTexture: boolean read GetGuiTexture write SetGuiTexture;
 
 {$endif read_interface}
 
@@ -127,26 +124,6 @@ begin
   FdBoundaryModeR.Send(Value);
 end;
 
-function TTexturePropertiesNode.GetMagnificationFilter: string;
-begin
-  Result := FdMagnificationFilter.Value;
-end;
-
-procedure TTexturePropertiesNode.SetMagnificationFilter(const Value: string);
-begin
-  FdMagnificationFilter.Send(Value);
-end;
-
-function TTexturePropertiesNode.GetMinificationFilter: string;
-begin
-  Result := FdMinificationFilter.Value;
-end;
-
-procedure TTexturePropertiesNode.SetMinificationFilter(const Value: string);
-begin
-  FdMinificationFilter.Send(Value);
-end;
-
 function TTexturePropertiesNode.GetTextureCompression: string;
 begin
   Result := FdTextureCompression.Value;
@@ -175,6 +152,16 @@ end;
 procedure TTexturePropertiesNode.SetGenerateMipMaps(const Value: boolean);
 begin
   FdGenerateMipMaps.Send(Value);
+end;
+
+function TTexturePropertiesNode.GetGuiTexture: boolean;
+begin
+  Result := FdGuiTexture.Value;
+end;
+
+procedure TTexturePropertiesNode.SetGuiTexture(const Value: boolean);
+begin
+  FdGuiTexture.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -102,8 +102,9 @@
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
-  protected
-    function AlphaChannelData: TAlphaChannel; override;
+
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   protected
     FTextureUsedFullUrl: string;
 
@@ -146,6 +147,8 @@
     function GetRepeatT: boolean; virtual; abstract;
     procedure SetRepeatS(const Value: boolean); virtual; abstract;
     procedure SetRepeatT(const Value: boolean); virtual; abstract;
+
+    function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -227,9 +230,11 @@
       user), it's cutted. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
 
-    { Returns TextureProperties node, if this node has some "textureProperties"
-      field and it specifies TextureProperties node. Otherwise returns @nil. }
-    function TextureProperties: TTexturePropertiesNode; virtual;
+    private FFdTextureProperties: TSFNode;
+    public property FdTextureProperties: TSFNode read FFdTextureProperties;
+    { Texture properties (how the texture behaves when sampled, and such). }
+    property TextureProperties: TTexturePropertiesNode
+      read GetTextureProperties write SetTextureProperties;
   end;
 
   { X3D texture that is 2D and can be loaded (from file or some other stream). }
@@ -247,11 +252,6 @@
 
     private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
-
-    private FFdTextureProperties: TSFNode;
-    public property FdTextureProperties: TSFNode read FFdTextureProperties;
-
-    function TextureProperties: TTexturePropertiesNode; override;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
@@ -511,6 +511,11 @@
 
   { Adjust the texture application properties. }
   TTexturePropertiesNode = class(TAbstractNode)
+  strict private
+    function GetMinificationFilter: TAutoMinificationFilter;
+    procedure SetMinificationFilter(const Value: TAutoMinificationFilter);
+    function GetMagnificationFilter: TAutoMagnificationFilter;
+    procedure SetMagnificationFilter(const Value: TAutoMagnificationFilter);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -551,6 +556,12 @@
 
     private FFdGUITexture: TSFBool;
     public property FdGUITexture: TSFBool read FFdGUITexture;
+
+    property MagnificationFilter: TAutoMagnificationFilter
+      read GetMagnificationFilter write SetMagnificationFilter;
+
+    property MinificationFilter: TAutoMinificationFilter
+      read GetMinificationFilter write SetMinificationFilter;
 
     {$I auto_generated_node_helpers/x3dnodes_textureproperties.inc}
   end;
@@ -652,6 +663,11 @@ begin
 
   UsedCache := nil;
   FIsTextureLoaded := false;
+
+  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
+   FdTextureProperties.Exposed := false;
+   FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
+  AddField(FFdTextureProperties);
 end;
 
 destructor TAbstractTexture2DNode.Destroy;
@@ -761,9 +777,17 @@ begin
   WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [X3DType]));
 end;
 
-function TAbstractTexture2DNode.TextureProperties: TTexturePropertiesNode;
+function TAbstractTexture2DNode.GetTextureProperties: TTexturePropertiesNode;
 begin
-  Result := nil;
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractTexture2DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
 end;
 
 function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannel;
@@ -786,11 +810,6 @@ begin
    FdRepeatT.Exposed := false;
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatT);
-
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
-   FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
-  AddField(FFdTextureProperties);
 end;
 
 function TAbstractX3DTexture2DNode.GetRepeatS: boolean;
@@ -811,14 +830,6 @@ end;
 procedure TAbstractX3DTexture2DNode.SetRepeatT(const Value: boolean);
 begin
   FdRepeatT.Send(Value);
-end;
-
-function TAbstractX3DTexture2DNode.TextureProperties: TTexturePropertiesNode;
-begin
-  if (FdTextureProperties.Value <> nil) and
-     (FdTextureProperties.Value is TTexturePropertiesNode) then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value) else
-    Result := nil;
 end;
 
 procedure TAbstractTextureTransformNode.CreateNode;
@@ -1341,6 +1352,102 @@ class function TTexturePropertiesNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     (URN = URNX3DNodes + ClassX3DType);
+end;
+
+function TTexturePropertiesNode.GetMinificationFilter: TAutoMinificationFilter;
+var
+  S: string;
+begin
+  S := UpperCase(FdMinificationFilter.Value);
+
+  if S = 'AVG_PIXEL' then Result := minLinear else
+  if S = 'AVG_PIXEL_AVG_MIPMAP' then Result := minLinearMipmapLinear else
+  if S = 'AVG_PIXEL_NEAREST_MIPMAP' then Result := minLinearMipmapNearest else
+  if S = 'NEAREST_PIXEL_AVG_MIPMAP' then Result := minNearestMipmapLinear else
+  if S = 'NEAREST_PIXEL_NEAREST_MIPMAP' then Result := minNearestMipmapNearest else
+  if S = 'NEAREST_PIXEL' then Result := minNearest else
+
+  if S = 'DEFAULT' then Result := minDefault else
+  if S = 'FASTEST' then Result := minFastest else
+  if S = 'NICEST' then Result := minNicest else
+
+  if S = 'NEAREST' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
+    Result := minNearest;
+  end else
+
+  if S = 'LINEAR' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture minification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
+    Result := minLinear;
+  end else
+
+  begin
+    Result := minDefault;
+    WritelnWarning('VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
+  end;
+end;
+
+procedure TTexturePropertiesNode.SetMinificationFilter(const Value: TAutoMinificationFilter);
+const
+  Names: array [TAutoMinificationFilter] of string = (
+    'NEAREST_PIXEL',
+    'AVG_PIXEL',
+    'NEAREST_PIXEL_NEAREST_MIPMAP',
+    'NEAREST_PIXEL_AVG_MIPMAP',
+    'AVG_PIXEL_NEAREST_MIPMAP',
+    'AVG_PIXEL_AVG_MIPMAP',
+    'DEFAULT',
+    'FASTEST',
+    'NICEST'
+  );
+begin
+  FdMinificationFilter.Send(Names[Value]);
+end;
+
+function TTexturePropertiesNode.GetMagnificationFilter: TAutoMagnificationFilter;
+var
+  S: string;
+begin
+  S := UpperCase(FdMagnificationFilter.Value);
+
+  if S = 'AVG_PIXEL' then Result := magLinear else
+  if S = 'NEAREST_PIXEL' then Result := magNearest else
+
+  if S = 'DEFAULT' then Result := magDefault else
+  if S = 'FASTEST' then Result := magFastest else
+  if S = 'NICEST' then Result := magNicest else
+
+  if S = 'NEAREST' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "NEAREST_PIXEL"', [S]));
+    Result := magNearest;
+  end else
+
+  if S = 'LINEAR' then
+  begin
+    WritelnWarning('VRML/X3D', Format('"%s" is not allowed texture magnification, this is an InstantReality extension, please fix to "AVG_PIXEL"', [S]));
+    Result := magLinear;
+  end else
+
+  begin
+    Result := magDefault;
+    WritelnWarning('VRML/X3D', Format('Unknown texture minification filter "%s"', [S]));
+  end;
+end;
+
+procedure TTexturePropertiesNode.SetMagnificationFilter(const Value: TAutoMagnificationFilter);
+const
+  Names: array [TAutoMagnificationFilter] of string = (
+    'NEAREST_PIXEL',
+    'AVG_PIXEL',
+    'DEFAULT',
+    'FASTEST',
+    'NICEST'
+  );
+begin
+  FdMagnificationFilter.Send(Names[Value]);
 end;
 
 procedure TTextureTransformNode.CreateNode;

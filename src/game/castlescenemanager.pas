@@ -1148,9 +1148,10 @@ var
 
 implementation
 
-uses CastleRenderingCamera, CastleGLUtils, CastleProgress,
-  CastleLog, CastleStringUtils, CastleSoundEngine, Math,
-  CastleGLVersion, CastleShapes;
+uses Math,
+  CastleRenderingCamera, CastleGLUtils, CastleProgress, CastleLog,
+  CastleStringUtils, CastleSoundEngine, CastleGLVersion, CastleShapes,
+  CastleTextureImages;
 
 procedure Register;
 begin

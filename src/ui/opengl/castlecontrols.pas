@@ -50,8 +50,6 @@ type
     procedure SetOutlineColor(const Value: TCastleColor);
     procedure SetOutlineHighQuality(const Value: boolean);
   protected
-    { Called when Font or it's size changed. }
-    procedure FontChanged; virtual;
     procedure UIScaleChanged; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -80,6 +78,17 @@ type
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;
+
+    { Force considering font changed (font instance, or glyphs, or sizes changed).
+
+      @italic(Usually, you don't need to call this explicitly from the outside.)
+      Changing font, like @link(UIFont) or @link(UIFontSmall) or @link(CustomFont)
+      or any property that may affect the font is automatically applied.
+
+      But there are exceptions: right now, if you call @link(TTextureFont.Load Load)
+      on a font, it's measurements will change but some controls using it will
+      not recalculate sizes automatically. In this case, call this method. }
+    procedure FontChanged; virtual;
 
     { Outline color, used only if Outline <> 0. Default is black.
       @seealso Outline }
@@ -215,7 +224,6 @@ type
     procedure SetHtml(const Value: boolean);
     function GetTextToRender: TRichText;
   protected
-    procedure FontChanged; override;
     procedure SetPressed(const Value: boolean); virtual;
     procedure UIScaleChanged; override;
   public
@@ -235,6 +243,7 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
     function Rect: TRectangle; override;
+    procedure FontChanged; override;
 
     { Called when user clicks the button. In this class, simply calls
       OnClick callback. }

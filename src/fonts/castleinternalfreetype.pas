@@ -448,8 +448,8 @@ begin
   result := FList.count-1;
   while (result >= 0) and
         ( ({$ifdef CaseSense}CompareText{$else}CompareStr{$endif}
-              (TMgrFont(FList[anIndex]).Filename, afilename) <> 0) or
-          (anIndex <> TMgrFont(FList[anIndex]).font^.face_index)
+              (TMgrFont(FList[Result]).Filename, afilename) <> 0) or
+          (anIndex <> TMgrFont(FList[Result]).font^.face_index)
         ) do
     dec (result);
 end;

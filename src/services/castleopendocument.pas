@@ -218,18 +218,8 @@ begin
   // run
   BrowserProcess := TProcess.Create(nil);
   try
-    { Only FPC >= 2.6.0 has TProcess.Parameters, TProcess.Executable }
-    {$define USE_PROCESS_PARAMETERS}
-    {$ifdef VER2_2} {$undef USE_PROCESS_PARAMETERS} {$endif}
-    {$ifdef VER2_4} {$undef USE_PROCESS_PARAMETERS} {$endif}
-
-    {$ifdef USE_PROCESS_PARAMETERS}
     BrowserProcess.Executable := ProgramFilename;
     BrowserProcess.Parameters.Add(Parameter);
-    {$else}
-    BrowserProcess.CommandLine := AnsiQuotedStr(ProgramFilename, '"') +
-                            ' ' + AnsiQuotedStr(Parameter, '"');
-    {$endif}
 
     if Log then
       WritelnLog('Executing', 'Executable: "' + ProgramFilename +

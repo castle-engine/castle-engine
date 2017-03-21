@@ -56,66 +56,66 @@ begin
   case OptionNum of
     0:begin
         Writeln(
-          'castle-engine: Build and package tool for Castle Game Engine programs.' +NL+
+          'castle-engine: Build and package Castle Game Engine programs.' +NL+
           NL+
           'Call with the current directory set to your project, like this:' +NL+
           '  castle-engine [OPTIONS]... COMMAND' +NL+
           NL+
-          'Possible COMMANDs:' +NL+
+          'Possible commands:' +NL+
+          NL+
+          'create-manifest:' +NL+
+          '    Creates simple CastleEngineManifest.xml with guessed values.' +NL+
+          NL+
+          'compile:' +NL+
+          '    Compile project.' +NL+
+          NL+
+          'package:' +NL+
+          '    Package the application into the best archive format for given' +NL+
+          '    operating system (OS) / processor (CPU).' +NL+
+          '    By default uses current OS / CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
+          '    You can also use --cpu or --os options to affect it.' +NL+
+          NL+
+          'install:' +NL+
+          '    Install the application created by previous "package" call.' +NL+
+          '    Useful when OS is "android", it installs' +NL+
+          '    the apk package created by previous "package" call' +NL+
+          '    for Android. Useful for quick testing of your app on a device' +NL+
+          '    connected through USB.' +NL+
+          '    Useful also for installing compiled web browser plugin.' +NL+
+          NL+
+          'run:' +NL+
+          '    Run the application. ' +NL+
+          '    On some platforms, it requires installing the application first' +NL+
+          '    (e.g. on Android, where we install and run on a device' +NL+
+          '    connected through USB). So run the "install" command before.' +NL+
+          '    On other platforms (e.g. standalone Windows, Linux, Mac OS X...),' +NL+
+          '    it simply runs the last compiled application.' +NL+
+          '    So just "compile" the application first.' +NL+
+          NL+
+          'package-source:' +NL+
+          '    Package the source code of the application.' +NL+
           NL +
-          '- "create-manifest" :' +NL+
-          '  Creates simple CastleEngineManifest.xml with guessed values.' +NL+
+          'clean:' +NL+
+          '    Clean leftover files from compilation and packaging.' +NL+
+          '    Does not remove final packaging output.' +NL+
           NL+
-          '- "compile" :' +NL+
-          '  Compile project.' +NL+
+          'simple-compile:' +NL+
+          '    Compile the Object Pascal file (unit/program/library) given' +NL+
+          '    as a parameter. This does not handle the Castle Game Engine projects' +NL+
+          '    defined by CastleEngineManifest.xml files.' +NL+
+          '    It merely calls "fpc" with proper command-line options for' +NL+
+          '    units/programs/libraries using our engine.' +NL+
+          '    Use this instead of "compile" only if there''s some good reason' +NL+
+          '    you don''t want to use CastleEngineManifest.xml to your project.' +NL+
           NL+
-          '- "package" :' +NL+
-          '  Package the application into the best archive format for given' +NL+
-          '  operating system (OS) / processor (CPU).' +NL+
-          '  By default uses current OS / CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
-          '  You can also use --cpu or --os options to affect it.' +NL+
+          'auto-compress-textures:' +NL+
+          '    Create GPU-compressed versions of textures,' +NL+
+          '    for the textures mentioned in <auto_compressed_textures>' +NL+
+          '    inside the file data/material_properties.xml.' +NL+
           NL+
-          '- "install" :' +NL+
-          '  Install the application created by previous "package" call.' +NL+
-          '  Useful when OS is "android", it installs' +NL+
-          '  the apk package created by previous "package" call' +NL+
-          '  for Android. Useful for quick testing of your app on a device' +NL+
-          '  connected through USB.' +NL+
-          '  Useful also for installing compiled web browser plugin.' +NL+
-          NL+
-          '- "run" :' +NL+
-          '  Run the application. ' +NL+
-          '  On some platforms, it requires installing the application first' +NL+
-          '  (e.g. on Android, where we install and run on a device' +NL+
-          '  connected through USB). So run the "install" command before.' +NL+
-          '  On other platforms (e.g. standalone Windows, Linux, Mac OS X...),' +NL+
-          '  it simply runs the last compiled application.' +NL+
-          '  So just "compile" the application first.' +NL+
-          NL+
-          '- "package-source" :' +NL+
-          '  Package the source code of the application.' +NL+
-          NL +
-          '- "clean" :' +NL+
-          '  Clean leftover files from compilation and packaging.' +NL+
-          '  Does not remove final packaging output.' +NL+
-          NL+
-          '- "simple-compile" :' +NL+
-          '  Compile the Object Pascal file (unit/program/library) given' +NL+
-          '  as a parameter. This does not handle the Castle Game Engine projects' +NL+
-          '  defined by CastleEngineManifest.xml files.' +NL+
-          '  It merely calls "fpc" with proper command-line options for' +NL+
-          '  units/programs/libraries using our engine.' +NL+
-          '  Use this instead of "compile" only if there''s some good reason' +NL+
-          '  you don''t want to use CastleEngineManifest.xml to your project.' +NL+
-          NL+
-          '- "auto-compress-textures" :' +NL+
-          '  Create GPU-compressed versions of textures,' +NL+
-          '  for the textures mentioned in <auto_compressed_textures>' +NL+
-          '  inside the file data/material_properties.xml.' +NL+
-          NL+
-          '- "auto-compress-clean" :' +NL+
-          '  Clear "auto_compressed" subdirectories, that should contain only' +NL+
-          '  the output created by "auto-compress-textures" target.' +NL+
+          'auto-compress-clean:' +NL+
+          '    Clear "auto_compressed" subdirectories, that should contain only' +NL+
+          '    the output created by "auto-compress-textures" target.' +NL+
           NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
@@ -135,11 +135,15 @@ begin
           OSOptionHelp +
           CPUOptionHelp +
           NL+
+          'Full documentation on' + NL +
+          'https://github.com/castle-engine/castle-engine/wiki/Build-Tool' + NL +
+          NL+
           SCastleEngineProgramHelpSuffix(ApplicationName, Version, true));
         Halt;
       end;
     1:begin
-        Writeln(Version);
+        // include ApplicationName in version, good for help2man
+        Writeln(ApplicationName + ' ' + Version);
         Halt;
       end;
     2:OS := StringToOS(Argument);

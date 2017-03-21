@@ -63,8 +63,9 @@ unit CastleGLImages;
 interface
 
 uses SysUtils, FGL, CastleGL,
-  CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
-  CastleVideos, CastleCompositeImage, CastleRectangles, CastleGLShaders, CastleColors;
+  CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils, CastleTextureImages,
+  CastleVideos, CastleCompositeImage, CastleRectangles, CastleGLShaders,
+  CastleColors;
 
 const
   PixelsImageClasses: array [0..3] of TEncodedImageClass = (
@@ -132,7 +133,7 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 implementation
 
 uses Math,
-  CastleUtils, CastleLog, CastleGLVersion, CastleTextureImages,
+  CastleUtils, CastleLog, CastleGLVersion,
   CastleApplicationProperties, CastleStringUtils, CastleURIUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;

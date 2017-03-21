@@ -766,23 +766,27 @@ procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 begin
   case OptionNum of
-    0: begin
-         InfoWrite(
-           'castle-curves: create and edit curves for Castle Game Engine.' + NL +
-           nl+
-           'Available options are:' +nl+
-           HelpOptionHelp +nl+
-           VersionOptionHelp +nl+
-           nl+
-           TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) +nl+
-           nl+
-           SCastleEngineProgramHelpSuffix('castle-curves', Version, true));
-         Halt;
-       end;
-    1: begin
-         WritelnStr(Version);
-         Halt;
-       end;
+    0:begin
+        InfoWrite(
+          'castle-curves: create and edit curves for Castle Game Engine.' + NL +
+          NL+
+          'Available options are:' + NL +
+          HelpOptionHelp + NL +
+          VersionOptionHelp + NL +
+          NL +
+          TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) + NL +
+          NL +
+          'Full documentation on' + NL +
+          'https://github.com/castle-engine/castle-engine/wiki/Curves-tool' + NL +
+          NL +
+          SCastleEngineProgramHelpSuffix('castle-curves', Version, true));
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in version, good for help2man
+        WritelnStr(ApplicationName + ' ' + Version);
+        Halt;
+      end;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

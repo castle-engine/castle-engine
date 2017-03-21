@@ -18,19 +18,8 @@
 {$ifdef read_interface}
 
 type
-  { Texture minification filter (what happens when many texture pixels
-    are squeezed in one screen pixel). }
-  TMinificationFilter = (
-    minNearest,
-    minLinear,
-    minNearestMipmapNearest,
-    minNearestMipmapLinear,
-    minLinearMipmapNearest,
-    minLinearMipmapLinear);
-
-  { Texture magnification filter (what happens when a single texture pixel
-    in stretched over many screen pixels). }
-  TMagnificationFilter = (magNearest, magLinear);
+  TMinificationFilter = CastleTextureImages.TMinificationFilter;
+  TMagnificationFilter = CastleTextureImages.TMagnificationFilter;
 
   TTextureFilter = object
   public
@@ -53,6 +42,16 @@ function TextureFilter(const Minification: TMinificationFilter;
     glTexParameteri(Target, GL_TEXTURE_MAG_FILTER, ...);
   #) }
 procedure SetTextureFilter(const Target: TGLenum; const Filter: TTextureFilter);
+
+const
+  minNearest              = CastleTextureImages.minNearest;
+  minLinear               = CastleTextureImages.minLinear;
+  minNearestMipmapNearest = CastleTextureImages.minNearestMipmapNearest;
+  minNearestMipmapLinear  = CastleTextureImages.minNearestMipmapLinear;
+  minLinearMipmapNearest  = CastleTextureImages.minLinearMipmapNearest;
+  minLinearMipmapLinear   = CastleTextureImages.minLinearMipmapLinear;
+  magNearest              = CastleTextureImages.magNearest;
+  magLinear               = CastleTextureImages.magLinear;
 
 {$endif read_interface}
 

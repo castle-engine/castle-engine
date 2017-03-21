@@ -378,10 +378,6 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
     MaybeRelease;
   end;
 
-{ FPC <= 2.2.4 doesn't define WM_MOUSEHWHEEL in rtl/win/wininc/messages.inc }
-{$ifdef VER2_0} const WM_MOUSEHWHEEL= $020E; {$endif}
-{$ifdef VER2_2} const WM_MOUSEHWHEEL= $020E; {$endif}
-
 var
   DoEnableUpdatesFromWindowProc, DoDisableUpdatesFromWindowProc: boolean;
 begin

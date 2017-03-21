@@ -31,9 +31,10 @@ var
   DebugFontImage: boolean = false;
 
 const
-  Options: array [0..7] of TOption =
+  Options: array [0..8] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone),
     (Short: #0; Long: 'size'; Argument: oaRequired),
     (Short: #0; Long: 'no-anti-alias'; Argument: oaNone),
     (Short: #0; Long: 'sample-text'; Argument: oaRequired),
@@ -53,7 +54,7 @@ begin
            'to a Pascal source file, based on types' +NL+
            'in Castle Game Engine CastleTextureFontData unit.' +NL+
            NL+
-           'Call like this:' +NL+
+           'Usage:' +NL+
            '  texture-font-to-pascal [options...] MyFontFile.ttf' +NL+
            NL+
            'Available options:' +NL+
@@ -70,16 +71,21 @@ begin
            '  --debug-log           See the log, showing e.g. the font image size.' +NL+
            '  --debug-font-image    Write to disk font images as png.' +NL+
            NL+
-           SCastleEngineProgramHelpSuffix('texture-font-to-pascal', '1.0.0', true));
+           SCastleEngineProgramHelpSuffix('texture-font-to-pascal', CastleEngineVersion, true));
          Halt;
        end;
-    1: Size := StrToInt(Argument);
-    2: AntiAliasing := false;
-    3: SampleText := Argument;
-    4: ParamUnitName := Argument;
-    5: InitializeLog;
-    6: DebugFontImage := true;
-    7: OnlySampleText := true;
+    1: begin
+         // include ApplicationName in version, good for help2man
+         Writeln(ApplicationName + ' ' + CastleEngineVersion);
+         Halt;
+       end;
+    2: Size := StrToInt(Argument);
+    3: AntiAliasing := false;
+    4: SampleText := Argument;
+    5: ParamUnitName := Argument;
+    6: InitializeLog;
+    7: DebugFontImage := true;
+    8: OnlySampleText := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
