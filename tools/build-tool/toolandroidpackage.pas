@@ -322,7 +322,7 @@ var
     end;
   end;
 
-  { Run "gradlew" to actually build the final apk. }
+  { Run Gradle to actually build the final apk. }
   procedure RunGradle(const PackageMode: TCompilationMode);
   var
     Args: TCastleStringList;
@@ -342,8 +342,16 @@ var
       {$ifdef MSWINDOWS}
       RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
-      Args.Insert(0, './gradlew');
-      RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+      if FileExists(AndroidProjectPath + 'gradlew') then
+      begin
+        Args.Insert(0, './gradlew');
+        RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+      end else
+      begin
+        Writeln('Local Gradle wrapper ("gradlew") not found, so we will call the Gradle on $PATH.');
+        Writeln('Make sure you have installed Gradle (e.g. from the Debian "gradle" package), in a version compatible with the Android Gradle plugin (see https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle ).');
+        RunCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
+      end;
       {$endif}
     finally FreeAndNil(Args) end;
   end;
