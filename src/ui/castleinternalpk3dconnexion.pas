@@ -586,9 +586,9 @@ begin
       try
          s := FKeyboard.GetKeyLabel(iKey) + '=' + FKeyboard.GetKeyName(iKey);
       except
-         on E: Exception do s := E.Message;
+         on E: Exception do s := UTF8Decode(E.Message);
       end;
-      List.Add(s);
+      List.Add(UTF8Encode(s));
    end;
 end;
 
@@ -609,9 +609,9 @@ begin
       try
          s := FKeyboard.GetKeyLabel(iKey);
       except
-         on E: Exception do s := 'FKeyboard.GetKeyLabel: ' + E.Message;
+         on E: Exception do s := UTF8Decode('FKeyboard.GetKeyLabel: ' + E.Message);
       end;
-      List.Add(s);
+      List.Add(UTF8Encode(s));
    end;
 end;
 
@@ -632,9 +632,9 @@ begin
       try
          s := FKeyboard.GetKeyName(iKey);
       except
-         on E: Exception do s := 'FKeyboard.GetKeyLabel: ' + E.Message;
+         on E: Exception do s := UTF8Decode('FKeyboard.GetKeyLabel: ' + E.Message);
       end;
-      List.Add(s);
+      List.Add(UTF8Encode(s));
    end;
 end;
 
