@@ -865,7 +865,7 @@ end;
 
 class function CoAngleAxis.CreateRemote(const MachineName: string): IAngleAxis;
 begin
-  Result := CreateRemoteComObject(MachineName, CLASS_AngleAxis) as IAngleAxis;
+  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_AngleAxis) as IAngleAxis;
 end;
 
 procedure TAngleAxis.InitServerData;
@@ -1038,7 +1038,7 @@ end;
 
 class function CoVector3D.CreateRemote(const MachineName: string): IVector3D;
 begin
-  Result := CreateRemoteComObject(MachineName, CLASS_Vector3D) as IVector3D;
+  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Vector3D) as IVector3D;
 end;
 
 procedure TVector3D.InitServerData;
@@ -1211,7 +1211,7 @@ end;
 
 class function CoSensor.CreateRemote(const MachineName: string): ISensor;
 begin
-  Result := CreateRemoteComObject(MachineName, CLASS_Sensor) as ISensor;
+  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Sensor) as ISensor;
 end;
 
 procedure TSensor.InitServerData;
@@ -1356,7 +1356,7 @@ end;
 
 class function CoKeyboard.CreateRemote(const MachineName: string): IKeyboard;
 begin
-  Result := CreateRemoteComObject(MachineName, CLASS_Keyboard) as IKeyboard;
+  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Keyboard) as IKeyboard;
 end;
 
 procedure TKeyboard.InitServerData;
@@ -1513,7 +1513,7 @@ end;
 
 class function CoDevice.CreateRemote(const MachineName: string): ISimpleDevice;
 begin
-  Result := CreateRemoteComObject(MachineName, CLASS_Device) as ISimpleDevice;
+  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_Device) as ISimpleDevice;
 end;
 
 procedure TDevice.InitServerData;
@@ -1673,7 +1673,7 @@ end;
 
 class function CoTDxInfo.CreateRemote(const MachineName: string): ITDxInfo;
 begin
-  Result := CreateRemoteComObject(MachineName, CLASS_TDxInfo) as ITDxInfo;
+  Result := CreateRemoteComObject(UTF8Decode(MachineName), CLASS_TDxInfo) as ITDxInfo;
 end;
 
 procedure TTDxInfo.InitServerData;
