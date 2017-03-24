@@ -1675,7 +1675,7 @@ type
       do when parsed VRML route. It looks for given node name
       (in Names.Nodes, then Names.Imported),
       then it looks for field/event within this node,
-      and if everything is successfull --- sets route properties.
+      and if everything is successful --- sets route properties.
 
       If something goes wrong, WritelnWarning is generated
       and route ending is left unset.

@@ -179,7 +179,7 @@ type
     procedure Purchase(const AProduct: TInAppProduct);
 
     { Initiate a consumption of a consumable item.
-      You should listen on a "successfull consumption" (override
+      You should listen on a "successful consumption" (override
       @link(SuccessfullyConsumed)
       method and/or watch @link(TInAppProduct.SuccessfullyConsumed))
       until you actually act on the consumption (increase player gold or such). }

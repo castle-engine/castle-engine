@@ -200,7 +200,7 @@
 
       Note that IsTextureLoaded is set to @true, even if actual loading
       failed. You still have to check afterwards IsTextureImage and
-      IsTextureVideo to know if loading was actually successfull.
+      IsTextureVideo to know if loading was actually successful.
       This is deliberate --- it means that each call to TextureImage etc.
       will not unnecessarily read the disk (or even connect to internet)
       when the file does not exist. Also, the loading errors reported
