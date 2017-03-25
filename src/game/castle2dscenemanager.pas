@@ -88,10 +88,31 @@ type
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
+
     { Where is the (0,0) world point with respect to the viewport.
+
       If @false, the (0,0) is in the left-bottom corner, which matches
       the typical 2D drawing coordinates used throughout our engine.
-      If @true, the (0,0) is in the middle of the viewport. }
+      In other words, if the camera is at position (0,0,whatever),
+      then the (0,0) position in 2D is in the left-bottom corner of the scene manager
+      rectangle.
+
+      If @true, the (0,0) is in the middle of the viewport.
+      In other words, if the camera is at position (0,0,whatever),
+      then the (0,0) position is in the center of the scene manager
+      rectangle.
+
+      Both values of @name make sense,
+      it depends on the game type and how you prefer to think in 2D coordinates.
+      And how do you want the result to behave when aspect ratio changes:
+
+      @unorderedList(
+        @item(With ProjectionOriginCenter = @true, things will stay "glued"
+          to the center.)
+        @item(With ProjectionOriginCenter = @false, things will stay "glued"
+          to the left-bottom corner.)
+      )
+    }
     property ProjectionOriginCenter: boolean
       read FProjectionOriginCenter write FProjectionOriginCenter default false;
 
