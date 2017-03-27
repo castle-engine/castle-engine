@@ -27,29 +27,45 @@ type
   { Scene manager best suited for 2D worlds.
 
     Features:
+
     @unorderedList(
-      @item(By default creates a camera positioned at (0, 0, 500),
-        looking along the -Z direction, with "up" vector in +Y.
-        This is nice when your world is (mostly) flat and positioned on the Z = 0 plane.)
+      @item(The default @bold(camera position, direction, up) is suitable
+        for 2D worlds that span horizontally in X,
+        span vertically in Y,
+        and are more-or-less flat around the Z = 0 plane.
 
-      @item(The camera TUniversalCamera.NavigationType is ntNone,
-        which means that no automatic way to move camera in the world is possible,
-        you want to program your own movement for 2D.)
+        More precisely, the camera is positioned at the point
+        @code((0, 0, DefaultCameraZ)),
+        and looks along the -Z direction, with "up" vector in +Y.
+      )
 
-      @item(Sets 2D projection. By default (see CalculateProjection)
-        our visible X range is [0..window width in pixels],
-        visible Y is [0..window height in pixels].
+      @item(The @bold(camera does not give the user any automatic way
+        to move in the world). Because you typically want to
+        code from scratch all your own movement for 2D.
 
-        Such projection is set regardless of the viewpoints defined in MainScene
-        (this is unlike ancestor TCastleSceneManager,
+        More precisely, the TUniversalCamera.NavigationType is ntNone
+        by default.
+      )
+
+      @item(Sets @bold(2D projection). By default
+        our visible X range is @code([0..scene manager width in pixels]),
+        visible Y is @code([0..scene manager height in pixels]).
+        See the @link(ProjectionOriginCenter) for other options.
+
+        Such projection is set regardless of the X3D viewpoint nodes
+        present in the MainScene.
+        This is in contrast to the ancestor TCastleSceneManager,
         that sets projection using a flexible
-        algorithm that takes into account VRML/X3D viewpoints in MainScene).
+        algorithm that takes into account X3D viewpoint nodes,
+        @link(TViewpointNode), in @link(TCastleSceneManager.MainScene).
       )
 
       @item(Sets Transparent = @true by default, which means that
-        background underneath will be visible. Useful for 2D games
-        where you usually have an image or another background underneath,
-        like TCastleImage or TCastleSimpleBackground.)
+        @bold(background underneath the scene manager is visible).
+        Useful for 2D games where you often have an image or
+        another background underneath,
+        like TCastleImage or TCastleSimpleBackground.
+      )
     ) }
   T2DSceneManager = class(TCastleSceneManager)
   private
@@ -73,8 +89,8 @@ type
       are used to determine the world visible in our viewport.
       If one of them is zero, the other is automatically adjusted to
       follow aspect ratio of viewport size.
-      If both of them are zero, projection is automatically calculated just as if
-      ProjectionAutoSize was @true.
+      If both of them are zero, projection is automatically calculated just as
+      if ProjectionAutoSize was @true.
 
       In all cases, CurrentProjectionWidth and CurrentProjectionHeight
       can be checked to see actual projection dimensions. }
@@ -88,10 +104,31 @@ type
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
+
     { Where is the (0,0) world point with respect to the viewport.
+
       If @false, the (0,0) is in the left-bottom corner, which matches
       the typical 2D drawing coordinates used throughout our engine.
-      If @true, the (0,0) is in the middle of the viewport. }
+      In other words, if the camera is at position (0,0,whatever),
+      then the (0,0) position in 2D is in the left-bottom corner of the scene manager
+      rectangle.
+
+      If @true, the (0,0) is in the middle of the viewport.
+      In other words, if the camera is at position (0,0,whatever),
+      then the (0,0) position is in the center of the scene manager
+      rectangle.
+
+      Both values of @name make sense,
+      it depends on the game type and how you prefer to think in 2D coordinates.
+      And how do you want the result to behave when aspect ratio changes:
+
+      @unorderedList(
+        @item(With ProjectionOriginCenter = @true, things will stay "glued"
+          to the center.)
+        @item(With ProjectionOriginCenter = @false, things will stay "glued"
+          to the left-bottom corner.)
+      )
+    }
     property ProjectionOriginCenter: boolean
       read FProjectionOriginCenter write FProjectionOriginCenter default false;
 

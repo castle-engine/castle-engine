@@ -32,6 +32,8 @@ implementation
 uses CastleVectors, CastleControls;
 
 procedure TTestCastleControls.TestFloatSliderRoundAndClamp;
+const
+  EqualityEpsilon = 0.001;
 var
   F: TCastleFloatSlider;
 begin
@@ -40,53 +42,53 @@ begin
     F.Min := 10;
     F.Max := 20;
     F.MultipleOf := 0;
-    AssertFloatsEqual(12, F.RoundAndClamp(12));
-    AssertFloatsEqual(11, F.RoundAndClamp(11));
-    AssertFloatsEqual(10.1, F.RoundAndClamp(10.1));
-    AssertFloatsEqual(10.9, F.RoundAndClamp(10.9));
-    AssertFloatsEqual(10, F.RoundAndClamp(10));
-    AssertFloatsEqual(20, F.RoundAndClamp(20));
-    AssertFloatsEqual(10, F.RoundAndClamp(5));
-    AssertFloatsEqual(20, F.RoundAndClamp(25));
+    AssertFloatsEqual(12, F.RoundAndClamp(12), EqualityEpsilon);
+    AssertFloatsEqual(11, F.RoundAndClamp(11), EqualityEpsilon);
+    AssertFloatsEqual(10.1, F.RoundAndClamp(10.1), EqualityEpsilon);
+    AssertFloatsEqual(10.9, F.RoundAndClamp(10.9), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(10), EqualityEpsilon);
+    AssertFloatsEqual(20, F.RoundAndClamp(20), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(5), EqualityEpsilon);
+    AssertFloatsEqual(20, F.RoundAndClamp(25), EqualityEpsilon);
 
     F.Min := 10;
     F.Max := 20;
     F.MultipleOf := 3;
-    AssertFloatsEqual(12, F.RoundAndClamp(12));
-    AssertFloatsEqual(12, F.RoundAndClamp(11));
-    AssertFloatsEqual(10, F.RoundAndClamp(10.1));
-    AssertFloatsEqual(12, F.RoundAndClamp(10.9));
-    AssertFloatsEqual(10, F.RoundAndClamp(10));
-    AssertFloatsEqual(20, F.RoundAndClamp(20));
-    AssertFloatsEqual(15, F.RoundAndClamp(14));
-    AssertFloatsEqual(10, F.RoundAndClamp(5));
-    AssertFloatsEqual(20, F.RoundAndClamp(25));
+    AssertFloatsEqual(12, F.RoundAndClamp(12), EqualityEpsilon);
+    AssertFloatsEqual(12, F.RoundAndClamp(11), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(10.1), EqualityEpsilon);
+    AssertFloatsEqual(12, F.RoundAndClamp(10.9), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(10), EqualityEpsilon);
+    AssertFloatsEqual(20, F.RoundAndClamp(20), EqualityEpsilon);
+    AssertFloatsEqual(15, F.RoundAndClamp(14), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(5), EqualityEpsilon);
+    AssertFloatsEqual(20, F.RoundAndClamp(25), EqualityEpsilon);
 
     F.Min := 10;
     F.Max := 20;
     F.MultipleOf := -3;
-    AssertFloatsEqual(12, F.RoundAndClamp(12));
-    AssertFloatsEqual(12, F.RoundAndClamp(11));
-    AssertFloatsEqual(10, F.RoundAndClamp(10.1));
-    AssertFloatsEqual(12, F.RoundAndClamp(10.9));
-    AssertFloatsEqual(10, F.RoundAndClamp(10));
-    AssertFloatsEqual(20, F.RoundAndClamp(20));
-    AssertFloatsEqual(15, F.RoundAndClamp(14));
-    AssertFloatsEqual(10, F.RoundAndClamp(5));
-    AssertFloatsEqual(20, F.RoundAndClamp(25));
+    AssertFloatsEqual(12, F.RoundAndClamp(12), EqualityEpsilon);
+    AssertFloatsEqual(12, F.RoundAndClamp(11), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(10.1), EqualityEpsilon);
+    AssertFloatsEqual(12, F.RoundAndClamp(10.9), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(10), EqualityEpsilon);
+    AssertFloatsEqual(20, F.RoundAndClamp(20), EqualityEpsilon);
+    AssertFloatsEqual(15, F.RoundAndClamp(14), EqualityEpsilon);
+    AssertFloatsEqual(10, F.RoundAndClamp(5), EqualityEpsilon);
+    AssertFloatsEqual(20, F.RoundAndClamp(25), EqualityEpsilon);
 
     F.Min := -20;
     F.Max := -10;
     F.MultipleOf := 3;
-    AssertFloatsEqual(-12, F.RoundAndClamp(-12));
-    AssertFloatsEqual(-12, F.RoundAndClamp(-11));
-    AssertFloatsEqual(-10, F.RoundAndClamp(-10.1));
-    AssertFloatsEqual(-12, F.RoundAndClamp(-10.9));
-    AssertFloatsEqual(-10, F.RoundAndClamp(-10));
-    AssertFloatsEqual(-20, F.RoundAndClamp(-20));
-    AssertFloatsEqual(-15, F.RoundAndClamp(-14));
-    AssertFloatsEqual(-10, F.RoundAndClamp(-5));
-    AssertFloatsEqual(-20, F.RoundAndClamp(-25));
+    AssertFloatsEqual(-12, F.RoundAndClamp(-12), EqualityEpsilon);
+    AssertFloatsEqual(-12, F.RoundAndClamp(-11), EqualityEpsilon);
+    AssertFloatsEqual(-10, F.RoundAndClamp(-10.1), EqualityEpsilon);
+    AssertFloatsEqual(-12, F.RoundAndClamp(-10.9), EqualityEpsilon);
+    AssertFloatsEqual(-10, F.RoundAndClamp(-10), EqualityEpsilon);
+    AssertFloatsEqual(-20, F.RoundAndClamp(-20), EqualityEpsilon);
+    AssertFloatsEqual(-15, F.RoundAndClamp(-14), EqualityEpsilon);
+    AssertFloatsEqual(-10, F.RoundAndClamp(-5), EqualityEpsilon);
+    AssertFloatsEqual(-20, F.RoundAndClamp(-25), EqualityEpsilon);
   finally FreeAndNil(F) end;
 end;
 

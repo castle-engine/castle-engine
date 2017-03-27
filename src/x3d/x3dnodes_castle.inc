@@ -546,7 +546,7 @@ begin
      (FdreplaceNodes.Count <> ReplaceCount) then
     WritelnWarning('VRML/X3D', 'replaceNames and replaceNodes for KambiInline node should have the same number of items');
 
-  { After successfull loading, there's always exactly one child. }
+  { After successful loading, there's always exactly one child. }
   Assert(VRML1ChildrenCount = 1);
 
   { First, a special case when Children[0] node has the required name.

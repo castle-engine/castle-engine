@@ -52,7 +52,7 @@ private
   XCursors: array [TMouseCursor] of TCursor;
   FXDisplay: PDisplay;
 
-  { uzywamy tego aby wylapac quit message. Inicjowane w SetXDisplayName }
+  { Used to capture "quit window" message. Initialized in InitializeXDisplay. }
   WMDeleteWindow: TAtom;
   { Arrays for fast conversion between X keysyms (cut off to least significant
     byte) to our TKey values. The most significant byte of X keysym determines
@@ -65,33 +65,29 @@ private
   { Seek on OpenWindows window with WindowXID = seekWindowXID.
     Returns nil if not found. }
   function FindWindowXID(seekWindowXID: TWindow): TCastleWindowCustom;
-  {$ifndef CASTLE_ENGINE_PLUGIN}
-  procedure SetXDisplayName(const Value: string);
-  {$endif}
 
-  { Check XDisplay. Call this once you're sure that XDisplay is set to
-    value desired by user now.
+  { Initialize and check X display.
+    Call this once you're sure that XDisplayName is set to
+    a value desired by user (so, after processing --display command-line
+    option), and only when you're sure you need to connect to the X server
+    (to open a window, or query Application.ScreenWidth / ScreenHeight).
 
-    And since we know now that XDisplay is OK, we initialize some
-    things: XScreen, check for glX extension, get WM_DELETE_WINDOW
-    (we do it actually only if this was run for the 1st time).
-    These things actually have be done only once, after XDisplay selection.
-    But note that this can't be called in SetXDisplayName automatically.
+    This initializes and checks some things determined by the X display:
 
-    So you should call this when you know that last SetXDisplayName was
-    called --- good choice is before initializing your window. }
+    @unorderedList(
+      @item initializes XScreen,
+      @item checks for glX extension,
+      @item gets WM_DELETE_WINDOW.
+    ) }
   procedure InitializeXDisplay;
 
 public
   function HandleXEvent(Event: TXEvent): boolean;
 
   {$ifndef CASTLE_ENGINE_PLUGIN}
-  { XDisplayName used by all Window.Open calls.
-    We assume that once we open some window, this will stay constant,
-    so don't change it later!
-    When this set, it's immediately processed by XDisplayName, so it may change by itself.
-    By default this is XDisplayName(''). }
-  property XDisplayName: string read FXDisplayName write SetXDisplayName;
+  { X display name used to communicate with X server (to open windows,
+    query screen size and so on). }
+  property XDisplayName: string read FXDisplayName write FXDisplayName;
   {$endif}
   property XDisplay: PDisplay read FXDisplay;
   property XScreen: Integer read FXScreen;
@@ -193,7 +189,7 @@ begin
       byc resized (wiec nie potrzeba nam sizeHints zeby to powiedziec...)
       wiec ok.
 
-      Podobnie, w fullscreen nie realizujemy wmDeleteWindow ktore zapewnia
+      Podobnie, w fullscreen nie realizujemy WMDeleteWindow ktore zapewnia
       realizacje uslugi OnCloseQuery. ALE w fullscreen user nie moze
       powiedziec window-managerowi ze chce zamknac to okno skoro window
       manager niemal nie wie o istnieniu naszego okna (grabbed klawisze,
@@ -204,7 +200,7 @@ begin
   end else
   begin
     { only set window title and handle wm_delete_events if in windowed mode }
-    XSetWMProtocols(Application.XDisplay, windowXID, @Application.wmDeleteWindow, 1);
+    XSetWMProtocols(Application.XDisplay, windowXID, @Application.WMDeleteWindow, 1);
 
     { ready sizeHints structure }
     sizeHints.x := CorrectLeft;
@@ -382,6 +378,11 @@ end;
 procedure TCastleWindowCustom.CreateBackend;
 begin
   windowXID := None;
+
+  { We don't do here anything depending on X server,
+    and thus this doesn't require calling Application.InitializeXDisplay.
+    This way, merely calling TCastleWindowCustom.Create
+    doesn't require X server runnning. }
 end;
 
 procedure TCastleWindowCustom.SetCaption(const Part: TCaptionPart; const Value: string);
@@ -595,7 +596,7 @@ begin
     MotionNotify: X_MotionNotify(event.xmotion); { XPointerMovedEvent }
     ConfigureNotify: X_ConfigureNotify(event.xconfigure); { XConfigureEvent }
     ClientMessage : { XClientMessageEvent - no corresponding XXxxEvent mask }
-      if (event.xclient.data.l[0] = Integer(Application.wmDeleteWindow)) then
+      if (event.xclient.data.l[0] = Integer(Application.WMDeleteWindow)) then
        DoCloseQuery;
     ReparentNotify : parentwinXID := event.xreparent.parent;
     FocusOut: X_FocusOut(event.xfocus);
@@ -620,29 +621,6 @@ begin
   result := nil;
 end;
 
-{$ifndef CASTLE_ENGINE_PLUGIN}
-procedure TCastleApplication.SetXDisplayName(const Value: string);
-begin
-  if XDisplay <> nil then XCloseDisplay(XDisplay);
-
-  FXDisplayName := Xlib.XDisplayName(PCharOrNil(Value));
-
-  FXDisplay := XOpenDisplay(PCharOrNil(Value));
-
-  { Tests: Writeln('Setting XDisplayName to "', Value, '" success: ', FXDisplay <> nil); }
-
-  { I used to check this, if XDisplay = nil then raise ECheckFailed....;
-    but actually that's bad: at the beginning we call SetXDisplayName('')
-    to set to default display, and that doesn't have to succeed since
-    a default display may
-    not be available (e.g. you run from a Linux console, or on Mac OS X
-    not from X11 xterm) --- then you have to specify display name, the default
-    display name '' will not be OK.
-
-    So the check for XDisplay = nil will be done at window initialization. }
-end;
-{$endif}
-
 function TCastleApplication.KeySymToKey(KSym: TKeySym): TKey;
 begin
   result := K_None;
@@ -660,27 +638,42 @@ const
   AltXDisplayName = ':0';
 {$endif}
 begin
-  if XDisplay = nil then
+  if not InitializeXDisplayDone then
   begin
-    {$ifdef CASTLE_ENGINE_PLUGIN}
-    raise Exception.Create('Plugin caller did not set X display');
-    {$else}
+    {$ifndef CASTLE_ENGINE_PLUGIN}
+    { process FXDisplayName by Xlib.XDisplayName, to make it look nicer }
+    FXDisplayName := Xlib.XDisplayName(PCharOrNil(FXDisplayName));
+    FXDisplay := XOpenDisplay(PCharOrNil(FXDisplayName));
+
+    if XDisplay = nil then
+    begin
       {$ifdef DARWIN}
       Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on Mac OS X.',
         [XDisplayName, AltXDisplayName]));
-      XDisplayName := AltXDisplayName;
+
+      FXDisplayName := Xlib.XDisplayName(PCharOrNil(AltXDisplayName));
+      FXDisplay := XOpenDisplay(PCharOrNil(FXDisplayName));
+
       if XDisplay = nil then
       {$endif}
         raise Exception.CreateFmt('XOpenDisplay could not open display "%s"', [XDisplayName]);
-    {$endif}
-  end;
+    end;
 
-  if not InitializeXDisplayDone then
-  begin
-    // TODO: ok for plugin to just get XDefaultScreen?
+    {$else}
+
+    { For a plugin,
+     - FXDisplay is unknown until NPP_New. It is set in NPP_SetWindow.
+       It must be set before this.
+     - FXDisplayName identifier is undefined, since it's never known. }
+
+    raise Exception.Create('Plugin caller did not set X display');
+
+    {$endif}
+
+    // TODO: Is it OK for a plugin to just get XDefaultScreen below?
     FXScreen := XDefaultScreen(XDisplay);
     ContextApplicationCheck;
-    wmDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
+    WMDeleteWindow := XInternAtom(XDisplay, 'WM_DELETE_WINDOW', XBool_True);
     InitializeXDisplayDone := true;
   end;
 end;
@@ -696,11 +689,6 @@ const
 var
   b: byte;
 begin
-  { for a plugin, this is unknown until NPP_New }
-  {$ifndef CASTLE_ENGINE_PLUGIN}
-  SetXDisplayName(''); { zainicjuj XDisplayName }
-  {$endif}
-
   { See ~/sources/fpc/trunk/packages/x11/src/keysym.pp }
 
   { initialize KeySym*ToKey }

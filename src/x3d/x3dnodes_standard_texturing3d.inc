@@ -54,7 +54,7 @@
     { Load and unload 3D texture.
 
       When loading, we will try to set TextureImage and TextureComposite.
-      If loading is successfull, TextureImage will be always set to non-nil
+      If loading is successful, TextureImage will be always set to non-nil
       (TextureComposite will be set to non-nil only if image came from some
       composite (DDS, KTX...) image).
       If loading failed, both TextureImage and TextureComposite will be @nil.

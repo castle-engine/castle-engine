@@ -519,7 +519,7 @@ begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to
     do this, code using SetMousePosition should not depend that
-    it was always successfull). }
+    it was always successful). }
   if not Closed then
     FMousePosition := Value;
 end;

@@ -261,7 +261,7 @@ type
     property AttackShoot: boolean read FAttackShoot write FAttackShoot
       default DefaultAttackShoot;
 
-    { Sound on successfull hit by an immediate attack (short-range/shoot). }
+    { Sound on successful hit by an immediate attack (short-range/shoot). }
     property AttackSoundHit: TSoundType read FAttackSoundHit write FAttackSoundHit;
 
     { Creature resource name to be created (like 'Arrow') when firing a missile.

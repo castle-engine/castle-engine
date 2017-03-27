@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Android project componets and their configurations. }
+{ Android project components and their configurations. }
 unit ToolAndroidComponents;
 
 interface

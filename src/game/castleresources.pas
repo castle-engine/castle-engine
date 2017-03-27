@@ -170,7 +170,7 @@ type
     constructor Create(const AName: string); virtual;
     destructor Destroy; override;
 
-    { Are we in a (fully) prepared state. That is after a (fully successfull)
+    { Are we in a (fully) prepared state. That is after a (fully successful)
       @link(Prepare) call and before @link(Release).
       Note that this is slightly different than checking @code(UsageCount <> 0):
       in some situations, UsageCount may be non-zero while the preparation

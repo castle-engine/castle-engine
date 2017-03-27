@@ -322,7 +322,7 @@ var
     end;
   end;
 
-  { Run "gradlew" to actually build the final apk. }
+  { Run Gradle to actually build the final apk. }
   procedure RunGradle(const PackageMode: TCompilationMode);
   var
     Args: TCastleStringList;
@@ -342,8 +342,16 @@ var
       {$ifdef MSWINDOWS}
       RunCommandSimple(AndroidProjectPath, AndroidProjectPath + 'gradlew.bat', Args.ToArray);
       {$else}
-      Args.Insert(0, './gradlew');
-      RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+      if FileExists(AndroidProjectPath + 'gradlew') then
+      begin
+        Args.Insert(0, './gradlew');
+        RunCommandSimple(AndroidProjectPath, 'bash', Args.ToArray);
+      end else
+      begin
+        Writeln('Local Gradle wrapper ("gradlew") not found, so we will call the Gradle on $PATH.');
+        Writeln('Make sure you have installed Gradle (e.g. from the Debian "gradle" package), in a version compatible with the Android Gradle plugin (see https://developer.android.com/studio/releases/gradle-plugin.html#updating-gradle ).');
+        RunCommandSimple(AndroidProjectPath, 'gradle', Args.ToArray);
+      end;
       {$endif}
     finally FreeAndNil(Args) end;
   end;
@@ -398,7 +406,7 @@ begin
   Writeln('Reinstalling application identified as "' + QualifiedName + '".');
   Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + QualifiedName + '"');
   RunCommandSimple('adb', ['install', '-r', ApkName]);
-  Writeln('Install successfull.');
+  Writeln('Install successful.');
 end;
 
 procedure RunAndroidPackage(const Project: TCastleProject);
@@ -411,7 +419,7 @@ begin
   RunCommandSimple('adb', ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
-  Writeln('Run successfull.');
+  Writeln('Run successful.');
   if (FindExe('bash') <> '') and
      (FindExe('grep') <> '') then
   begin

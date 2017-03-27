@@ -110,15 +110,23 @@ uninstall:
 	       $(BINDIR)/sprite-sheet-to-x3d
 	rm -Rf $(DATADIR)/castle-engine
 
-# Strip libraries that cannot be distributed in Debian package of CGE for now,
-# because they (possibly) cannot be recompiled by Debian software right now
-# (or maybe they can, but noone had time to try it yet, and wrap in a script).
-# This concerns some Windows and Android libs.
+# Strip libraries that cannot be distributed in Debian package of CGE.
+# - Some of them (some bundled Windows, Android libs) cannot be recompiled
+#   automatically and easily for now (although they are open-source),
+#   and are not of sufficient interest to the Debian users.
+# - Some (Gradle) should be better used by depending on
+#   the appropriate Debian package.
 .PHONY: strip-precompiled-libraries
 strip-precompiled-libraries:
 	rm -Rf tools/build-tool/data/external_libraries/ \
 	       tools/build-tool/data/android/integrated-components/sound/ \
-	       tools/build-tool/data/android/integrated-components/ogg_vorbis/
+	       tools/build-tool/data/android/integrated-components/ogg_vorbis/ \
+	       tools/build-tool/data/android/base/gradle/ \
+	       tools/build-tool/data/android/base/gradlew \
+	       tools/build-tool/data/android/base/gradlew.bat \
+	       tools/build-tool/data/android/integrated/gradle/ \
+	       tools/build-tool/data/android/integrated/gradlew \
+	       tools/build-tool/data/android/integrated/gradlew.bat
 
 # examples and tools -----------------------------------------------------------
 

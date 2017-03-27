@@ -174,7 +174,7 @@
   protected
     { Determines should texture mode be suited for RGB and grayscale texture.
       Default false, you should set this in descendant
-      (latest possibility is to set this is a successfull Enable call,
+      (latest possibility is to set this is a successful Enable call,
       but usually you want to do it in a Prepare call).
       You can set it by SetTextureRGBFromImage. }
     TextureRGB: boolean;
