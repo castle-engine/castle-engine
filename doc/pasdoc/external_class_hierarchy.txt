@@ -71,6 +71,7 @@ EStringListError=Exception
 EThread=Exception
 EThreadDestroyCalled=EThread
 EVariantError=Exception
+EX3DError=Exception
 TAbstractObjectReader=TObject
 TBinaryObjectReader=TAbstractObjectReader
 TAbstractObjectWriter=TObject

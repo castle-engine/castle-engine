@@ -37,6 +37,9 @@ type
     events and such) when given item cannot be found. }
   EX3DNotFound = class(Exception);
 
+  { Any error related to VRML/X3D. }
+  EX3DError = CastleInternalX3DLexer.EX3DError;
+
   TX3DEvent = class;
 
   { Writer of VRML/X3D to stream. }
