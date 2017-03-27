@@ -89,7 +89,10 @@ type
     vtEnd);
   TX3DTokens = set of TX3DToken;
 
-  EX3DGzipCompressed = class(Exception);
+  { Any error related to VRML/X3D. }
+  EX3DError = class(Exception);
+
+  EX3DGzipCompressed = class(EX3DError);
 
 const
   TokenNumbers : TX3DTokens = [vtFloat, vtInteger];
@@ -312,9 +315,6 @@ type
     procedure CheckTokenIs(const Toks: TX3DTokens; const ToksDescription: string); overload;
     procedure CheckTokenIsKeyword(const Keyword: TX3DKeyword);
   end;
-
-  { Any error related to VRML/X3D. }
-  EX3DError = class(Exception);
 
   { Error when reading VRML/X3D classic encoding. }
   EX3DClassicReadError = class(EX3DError)
