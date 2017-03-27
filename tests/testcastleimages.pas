@@ -17,8 +17,8 @@ unit TestCastleImages;
 
 interface
 
-uses
-  fpcunit, testutils, testregistry, CastleBaseTestCase;
+uses fpcunit, testutils, testregistry,
+  CastleBaseTestCase;
 
 type
   TTestImages = class(TCastleBaseTestCase)
@@ -30,11 +30,13 @@ type
     procedure TestRGBEToRGBTranslating;
     procedure TestResize;
     //procedure TestMimeTypesAndExtsCount;
+    procedure TestLoadSavePreserveAlpha;
   end;
 
 implementation
 
-uses SysUtils, CastleVectors, CastleImages;
+uses SysUtils,
+  CastleVectors, CastleImages, CastleFilesUtils;
 
 procedure TTestImages.TestLoadImage;
 const ImagesPath = 'data/images/';
@@ -256,6 +258,45 @@ begin
   end;
 end;
 *)
+
+procedure TTestImages.TestLoadSavePreserveAlpha;
+
+  procedure TestImage(const URL: string);
+  var
+    Img, Img2: TRGBAlphaImage;
+    TempImageFileName: string;
+  begin
+    try
+      TempImageFileName := GetTempFileNamePrefix + 'load_save_test.png';
+      try
+        Img := LoadImage(URL, [TRGBAlphaImage]) as TRGBAlphaImage;
+        try
+          SaveImage(Img, TempImageFileName);
+
+          { load TempImageFileName, check does Img equal Img2 }
+          Img2 := LoadImage(TempImageFileName, [TRGBAlphaImage]) as TRGBAlphaImage;
+          try
+            AssertImagesEqual(Img, Img2);
+          finally FreeAndNil(Img2) end;
+        finally FreeAndNil(Img) end;
+      finally CheckDeleteFile(TempImageFileName, true) end;
+    except
+      { enhance EAssertionFailedError message with image URL }
+      on E: EAssertionFailedError do
+      begin
+        E.Message := 'In image ' + URL + ': ' + E.Message;
+        raise;
+      end;
+    end;
+  end;
+
+begin
+  TestImage(ApplicationData('images/load-save-alpha-test/1.png'));
+  TestImage(ApplicationData('images/load-save-alpha-test/2.png'));
+  TestImage(ApplicationData('images/load-save-alpha-test/3.png'));
+  TestImage(ApplicationData('images/load-save-alpha-test/4.png'));
+  TestImage(ApplicationData('images/load-save-alpha-test/5.png'));
+end;
 
 initialization
  RegisterTest(TTestImages);
