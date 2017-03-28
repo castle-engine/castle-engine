@@ -31,11 +31,26 @@ const
   DefaultRotation: TVector4Single = (0, 0, 1, 0);
 
 type
-  EX3DFieldAssign = class(Exception);
+  { For PasDoc: below is a trick to convince PasDoc that EX3DError is a class.
+
+    Otherwise, PasDoc doesn't understand it, and places EX3DError in
+    the "Class Hierarchy" (since it's an ancestor of some other classes....)
+    but in the incorrect place (not descending from Exception, despite
+    external_class_hierarchy.txt.)
+    That's because original EX3DError is in unparsed by PasDoc (internal)
+    CastleInternalX3DLexer unit. }
+  { Any error related to VRML/X3D. }
+  {$ifdef PASDOC}
+  EX3DError = class(Exception);
+  {$else}
+  EX3DError = CastleInternalX3DLexer.EX3DError;
+  {$endif}
+
+  EX3DFieldAssign = class(EX3DError);
   EX3DFieldAssignInvalidClass = class(EX3DFieldAssign);
   { Raised by various X3D methods searching for X3D items (nodes, fields,
     events and such) when given item cannot be found. }
-  EX3DNotFound = class(Exception);
+  EX3DNotFound = class(EX3DError);
 
   TX3DEvent = class;
 
@@ -1044,7 +1059,7 @@ type
 
   TX3DSingleFieldList = specialize TFPGObjectList<TX3DSingleField>;
 
-  EX3DMultFieldDifferentCount = class(Exception);
+  EX3DMultFieldDifferentCount = class(EX3DError);
 
   TX3DMultField = class(TX3DField)
   protected

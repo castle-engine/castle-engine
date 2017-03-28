@@ -20,7 +20,8 @@ unit CastleBaseTestCase;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, CastleVectors, CastleBoxes;
+  Classes, SysUtils, fpcunit, testutils, CastleVectors, CastleBoxes,
+  CastleImages;
 
 type
   TCastleBaseTestCase = class(TTestCase)
@@ -44,6 +45,7 @@ type
     procedure AssertFloatsEqual(const Expected, Actual: Double; const EqualityEpsilon: Double);
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const EqualityEpsilon: Double);
     procedure AssertFilenamesEqual(const Expected, Actual: string);
+    procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage);
   end;
 
 implementation
@@ -180,6 +182,24 @@ end;
 procedure TCastleBaseTestCase.AssertFilenamesEqual(const Expected, Actual: string);
 begin
   AssertTrue(ComparisonMsg(Expected, Actual), AnsiCompareFileName(Expected, Actual) = 0);
+end;
+
+procedure TCastleBaseTestCase.AssertImagesEqual(const Expected, Actual: TRGBAlphaImage);
+var
+  ExpectedPtr, ActualPtr: PVector4Byte;
+  I: Integer;
+begin
+  AssertEquals(Expected.Width, Actual.Width);
+  AssertEquals(Expected.Height, Actual.Height);
+  AssertEquals(Expected.Depth, Actual.Depth);
+  ExpectedPtr := Expected.AlphaPixels;
+  ActualPtr := Actual.AlphaPixels;
+  for I := 1 to Actual.Width * Actual.Height * Actual.Depth do
+  begin
+    AssertVectorsEqual(ExpectedPtr^, ActualPtr^);
+    Inc(ExpectedPtr);
+    Inc(ActualPtr);
+  end;
 end;
 
 end.

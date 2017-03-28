@@ -71,6 +71,7 @@ EStringListError=Exception
 EThread=Exception
 EThreadDestroyCalled=EThread
 EVariantError=Exception
+EX3DError=Exception
 TAbstractObjectReader=TObject
 TBinaryObjectReader=TAbstractObjectReader
 TAbstractObjectWriter=TObject
@@ -170,5 +171,17 @@ TCustomOpenGLControl=TWinControl
 TWinControl=TControl
 TControl=TLCLComponent
 TLCLComponent=TComponent
-
+TCustomApplication=TComponent
 TXMLConfig=TComponent
+TCommonDialog=TLCLComponent
+TFileDialog=TCommonDialog
+TOpenDialog=TFileDialog
+TPreviewFileDialog=TOpenDialog
+TOpenPictureDialog=TPreviewFileDialog
+TSaveDialog=TOpenDialog
+TSavePictureDialog=TOpenPictureDialog
+
+TOctree=TObject
+TOctreeNode=TObject
+TX3DShaderProgramBase=TGLSLProgram
+TX3DShaderProgram=TX3DShaderProgramBase
