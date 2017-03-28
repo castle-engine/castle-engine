@@ -54,7 +54,8 @@ var
   ZFar: Single;
 begin
   if MakeZFarInfinity then
-    ZFar := ZFarInfinity else
+    ZFar := ZFarInfinity
+  else
     ZFar := Random * 100 + 100;
   Result.Init(
     PerspectiveProjMatrixDeg(
