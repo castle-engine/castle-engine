@@ -28,6 +28,11 @@
 {$ifdef OLD_IINTERFACE_METHODS} {$define IINTERFACE_STDCALL} {$endif}
 {$ifdef WINDOWS}                {$define IINTERFACE_STDCALL} {$endif}
 
+{ TODO: We should switch to use CORBA interfaces, instead of COM,
+  and then this unit, and classes inside, should not be needed anymore.
+  See http://michalis.ii.uni.wroc.pl/~michalis/modern_pascal_introduction/modern_pascal_introduction.html
+  about interfaces. }
+
 { Utilities for interfaces. }
 unit CastleInterfaces;
 
@@ -46,7 +51,7 @@ type
 
     See e.g. thread
     [http://lists.freepascal.org/lists/fpc-devel/2007-November/012060.html]. }
-  TNonRefCountedInterfacedObject = class(IInterface)
+  TNonRefCountedInterfacedObject = class(TObject, IInterface)
   protected
     function _AddRef: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
     function _Release: Integer; {$ifdef IINTERFACE_STDCALL} stdcall {$else} cdecl {$endif};
