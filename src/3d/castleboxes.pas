@@ -495,7 +495,7 @@ type
 
     { Compare two bounding boxes based
       on their Z coordinates, suitable for depth sorting in 2D.
-      Follows the algorithm documented at @link(TBlendingSort.bs3D).
+      Follows the algorithm documented at @link(TBlendingSort.bs2D).
       Returns -1 if A < B, 1 if A > B, 0 if A = B.
 
       Using this with a typical sorting function will result

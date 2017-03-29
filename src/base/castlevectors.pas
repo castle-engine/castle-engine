@@ -1780,12 +1780,17 @@ function ModelViewToNormalMatrix(const M: TMatrix4Single): TMatrix3Single;
 function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix4Single;
 
 const
-  { Special value that you can pass to FrustumProjMatrix and
-    PerspectiveProjMatrix as ZFar, with intention to set far plane at infinity.
+  { Special value that you can pass to various perspective-projection functions
+    with the intention to set far plane at infinity.
+    These functions include
+    like @link(FrustumProjMatrix), @link(PerspectiveProjMatrixDeg),
+    @link(PerspectiveProjMatrixRad), @link(PerspectiveProjection).
+    You can pass ZFarInfinity as their @code(ZFar) parameter value.
 
-    If would be "cooler" to define ZFarInfinity as Math.Infinity,
+    @italic(Implementation note:)
+    It would be "cooler" to define this constant as Math.Infinity,
     but operating on Math.Infinity requires unnecessary turning
-    off of compiler checks. The point was only to have some special ZFar
+    off of some compiler checks. The point was only to have some special ZFar
     value, so 0 is as good as Infinity. }
   ZFarInfinity = 0.0;
 
