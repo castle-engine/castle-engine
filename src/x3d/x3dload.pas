@@ -87,7 +87,7 @@ const
     for TFileFilterList.AddFiltersFromString and TCastleWindowCustom.FileDialog. }
   Load3D_FileFilters =
   'All Files|*|' +
-  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json|' +
+  '*All 3D models|*.wrl;*.wrl.gz;*.wrz;*.x3d;*.x3dz;*.x3d.gz;*.x3dv;*.x3dvz;*.x3dv.gz;*.kanim;*.castle-anim-frames;*.dae;*.iv;*.3ds;*.md3;*.obj;*.geo;*.json;*.stl|' +
   'VRML (*.wrl, *.wrl.gz, *.wrz)|*.wrl;*.wrl.gz;*.wrz|' +
   { TODO:
     and X3D binary (*.x3db;*.x3db.gz)
@@ -101,7 +101,8 @@ const
   'Quake 3 engine models (*.md3)|*.md3|' +
   'Wavefront (*.obj)|*.obj|' +
   'Videoscape (*.geo)|*.geo|' +
-  'Spine animation (*.json)|*.json';
+  'Spine animation (*.json)|*.json|' +
+  'Standard Triangle Language (*.stl)|*.stl';
 
 { Load various model formats as animation expressed by VRML/X3D sequence.
 
@@ -147,7 +148,7 @@ implementation
 
 uses CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine,
+  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
   CastleInternalNodeInterpolator;
 
 function Load3D(const URL: string;
@@ -217,6 +218,13 @@ begin
 
     if MimeType = 'application/x-md3' then
       Result := LoadMD3(URL) else
+
+    if (MimeType = 'application/x-stl') or
+       { try also other STL mime types }
+       (MimeType = 'application/wavefront-stl') or
+       (MimeType = 'application/vnd.ms-pki.stl') or
+       (MimeType = 'application/x-navistyle') then
+      Result := LoadSTL(URL) else
 
     if NilOnUnrecognizedFormat then
       Result := nil else
