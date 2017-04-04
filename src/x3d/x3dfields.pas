@@ -5027,7 +5027,7 @@ begin
     Value := AttributeValue;
 end;
 
-procedure TSFString.Send(const AValue: AnsiString);
+procedure TSFString.Send(const AValue: string);
 var
   FieldValue: TX3DField;
 begin

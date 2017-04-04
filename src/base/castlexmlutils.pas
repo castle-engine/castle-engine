@@ -346,7 +346,7 @@ type
 
       If there are no text data nodes, e.g. if the element is empty,
       it returns empty string without raising any error. }
-    function TextData: AnsiString;
+    function TextData: string;
   end;
 
   { Iterate over all children elements of given XML element.
@@ -508,7 +508,7 @@ function DOMGetChildElement(const Element: TDOMElement;
   const ChildName: string; RaiseOnError: boolean): TDOMElement;
   deprecated 'use TDOMElement helper called ChildElement';
 
-function DOMGetTextData(const Element: TDOMElement): AnsiString;
+function DOMGetTextData(const Element: TDOMElement): string;
   deprecated 'use TDOMElement helper called TextData';
 
 { Gets a child of Element named ChildName, and gets text data within
@@ -898,7 +898,7 @@ begin
     raise EDOMChildElementError.CreateFmt('Child "%s" not found', [ChildName])
 end;
 
-function TDOMElementHelper.TextData: AnsiString;
+function TDOMElementHelper.TextData: string;
 
 {
   It concatenates all text data nodes that are direct children
@@ -1084,7 +1084,7 @@ begin
   Result := Element.ChildElement(ChildName, RaiseOnError);
 end;
 
-function DOMGetTextData(const Element: TDOMElement): AnsiString;
+function DOMGetTextData(const Element: TDOMElement): string;
 begin
   Result := Element.TextData;
 end;

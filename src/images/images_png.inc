@@ -72,7 +72,7 @@ function PngTextCompressionToStr(PngTextCompression: longint): string; forward;
 
 var
   { Call InitializePNG to set these variables }
-  fSO_VER_STRING: AnsiString;
+  fSO_VER_STRING: string;
   fSO_VER_MAJOR, fSO_VER_MINOR, fSO_VER_RELEASE: integer;
 
 procedure Check_SO_VER;
