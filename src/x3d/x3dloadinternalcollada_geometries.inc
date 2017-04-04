@@ -196,7 +196,7 @@ var
     Child := Child.ChildElement('double_sided', false);
     if Child = nil then Exit;
 
-    Result := StrToIntDef(UTF8Encode(Child.TextData), 0) <> 0;
+    Result := StrToIntDef(Child.TextData, 0) <> 0;
   end;
 
   { Read <source> within <mesh>. }
@@ -227,7 +227,7 @@ var
         FloatArrayId := '';
 
       Source.Floats.Count := FloatArrayCount;
-      FloatArrayContents := UTF8Encode(FloatArray.TextData);
+      FloatArrayContents := FloatArray.TextData;
 
       SeekPos := 1;
       for I := 0 to FloatArrayCount - 1 do

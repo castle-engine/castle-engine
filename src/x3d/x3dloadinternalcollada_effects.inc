@@ -80,7 +80,7 @@ begin
     { I simply drop 4th color component, I don't know what's the use of this
       (alpha is exposed by effect/materials parameter transparency, so color
       alpha is supposed to mean something else ?). }
-    Result := Vector3SingleCut(Vector4SingleFromStr(UTF8Encode(Child.TextData)));
+    Result := Vector3SingleCut(Vector4SingleFromStr(Child.TextData));
   end else
   begin
     Child := Element.ChildElement('texture', false);
@@ -109,7 +109,7 @@ begin
   FloatElement := Element.ChildElement('float', false);
   if FloatElement <> nil then
   begin
-    Result := StrToFloat(UTF8Encode(FloatElement.TextData));
+    Result := StrToFloat(FloatElement.TextData);
   end else
     { We don't support anything else than <float> here, just use
       default 1 eventually. }

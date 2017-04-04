@@ -30,7 +30,7 @@ var
   Row, Col: Integer;
   Token, Content: string;
 begin
-  Content := UTF8encode(MatrixElement.TextData);
+  Content := MatrixElement.TextData;
 
   SeekPos := 1;
 
@@ -76,7 +76,7 @@ var
 var
   Eye, Center, Up: TVector3Single;
 begin
-  Content := UTF8Encode(MatrixElement.TextData);
+  Content := MatrixElement.TextData;
 
   SeekPos := 1;
 

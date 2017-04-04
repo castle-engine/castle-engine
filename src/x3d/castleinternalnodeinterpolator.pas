@@ -786,22 +786,22 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
       begin
         Attr := Element.Attributes.Item[I] as TDOMAttr;
         if Attr.Name = 'name' then
-          Result.Name := UTF8Encode(Attr.Value)
+          Result.Name := Attr.NodeValue8
         else
         if Attr.Name = 'scenes_per_time' then
-          Result.ScenesPerTime := StrToInt(UTF8Encode(Attr.Value))
+          Result.ScenesPerTime := StrToInt(Attr.NodeValue8)
         else
         if Attr.Name = 'optimization' then
           { ignore, for backward compatibility }
         else
         if Attr.Name = 'equality_epsilon' then
-          Result.EqualityEpsilon := StrToFloat(UTF8Encode(Attr.Value))
+          Result.EqualityEpsilon := StrToFloat(Attr.NodeValue8)
         else
         if Attr.Name = 'loop' then
-          Result.Loop := StrToBool(UTF8Encode(Attr.Value))
+          Result.Loop := StrToBool(Attr.NodeValue8)
         else
         if Attr.Name = 'backwards' then
-          Result.Backwards := StrToBool(UTF8Encode(Attr.Value))
+          Result.Backwards := StrToBool(Attr.NodeValue8)
         else
           raise Exception.CreateFmt('Unknown attribute of <animation> element: "%s"',
             [Attr.Name]);

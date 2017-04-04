@@ -149,7 +149,7 @@ function ParseXMLNode(Element: TDOMElement;
     FieldIndex: Integer;
     PositionInParent: Integer;
   begin
-    X3DType := UTF8Encode(Element.TagName);
+    X3DType := Element.TagName8;
 
     if X3DType = 'ProtoInstance' then
     begin

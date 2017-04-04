@@ -27,7 +27,31 @@ type
 
   TXMLElementIterator = class;
 
+  TDOMNodeHelper = class helper for TDOMNode
+  private
+    function GetNodeValue8: string;
+    procedure SetNodeValue8(const S: string);
+  public
+    { Node name (attribute, element or such name).
+      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the NodeName
+      from FPC DOM unit that is a WideString (DOMString). }
+    function NodeName8: string;
+
+    { Node value (like an attribute value).
+      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the NodeValue
+      from FPC DOM unit that is a WideString (DOMString). }
+    property NodeValue8: string read GetNodeValue8 write SetNodeValue8;
+  end;
+
+  TDOMCharacterDataHelper = class helper for TDOMCharacterData
+    { String data.
+      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the Data
+      from FPC DOM unit that is a WideString (DOMString). }
+    function Data8: string;
+  end;
+
   TDOMElementHelper = class helper for TDOMElement
+  public
 
     { ------------------------------------------------------------------------
       Get an optional attribute to a "var" parameter, returns if found. }
@@ -347,6 +371,11 @@ type
       If there are no text data nodes, e.g. if the element is empty,
       it returns empty string without raising any error. }
     function TextData: string;
+
+    { Tag name (element name).
+      Expressed as an 8-bit string (in UTF-8 encoding), contrary to the TagName
+      from FPC DOM unit that is a WideString (DOMString). }
+    function TagName8: string;
   end;
 
   { Iterate over all children elements of given XML element.
@@ -553,6 +582,30 @@ implementation
 
 uses Classes, XMLRead, XMLWrite, BlowFish,
   CastleURIUtils, CastleClassUtils;
+
+{ TDOMNodeHelper ------------------------------------------------------------- }
+
+function TDOMNodeHelper.NodeName8: string;
+begin
+  Result := UTF8Encode(NodeName);
+end;
+
+function TDOMNodeHelper.GetNodeValue8: string;
+begin
+  Result := UTF8Encode(NodeValue);
+end;
+
+procedure TDOMNodeHelper.SetNodeValue8(const S: string);
+begin
+  NodeValue := UTF8Decode(S);
+end;
+
+{ TDOMCharacterDataHelper ---------------------------------------------------- }
+
+function TDOMCharacterDataHelper.Data8: string;
+begin
+  Result := UTF8Encode(Data);
+end;
 
 { ----------------------------------------------------------------------------
   TDOMElementHelper:
@@ -944,6 +997,11 @@ begin
   Result := TXMLElementFilteringIterator.Create(Self, ChildName);
 end;
 
+function TDOMElementHelper.TagName8: string;
+begin
+  Result := UTF8Encode(TagName);
+end;
+
 { TXMLElementIterator -------------------------------------------------------- }
 
 constructor TXMLElementIterator.Create(ParentElement: TDOMElement);
@@ -1116,7 +1174,7 @@ end;
 function DOMGetTextChild(const Element: TDOMElement;
   const ChildName: string): string;
 begin
-  Result := UTF8Encode(Element.ChildElement(ChildName).TextData);
+  Result := Element.ChildElement(ChildName).TextData;
 end;
 
 procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
