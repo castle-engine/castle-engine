@@ -199,7 +199,7 @@ begin
   Move(APath[StartPos], NodeName[1], Length(NodeName));
   Attr := Node.Attributes.GetNamedItem(UTF8Decode(Escape(NodeName)));
   if Assigned(Attr) then
-    Result := UTF8Encode(Attr.NodeValue);
+    Result := Attr.NodeValue8;
 end;
 
 function TXMLConfig.GetValue(const APath: String; ADefault: Integer): Integer;

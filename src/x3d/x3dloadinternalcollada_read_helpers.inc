@@ -32,7 +32,8 @@ var
 begin
   Child := Element.ChildElement(ChildTagName, false);
   if Child <> nil then
-    Result := UTF8Encode(Child.TextData) else
+    Result := Child.TextData
+  else
     Result := '';
 end;
 
@@ -51,7 +52,7 @@ begin
   Result := Child <> nil;
   if Result then
   try
-    Value := StrToFloat(UTF8Encode(Child.TextData));
+    Value := StrToFloat(Child.TextData);
   except on EConvertError do Result := false; end;
 end;
 
@@ -81,7 +82,7 @@ begin
   Result := Child <> nil;
   if Result then
   try
-    Value := Vector3SingleFromStr(UTF8Encode(Child.TextData));
+    Value := Vector3SingleFromStr(Child.TextData);
   except on EConvertError do Result := false; end;
 end;
 

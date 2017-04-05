@@ -804,6 +804,20 @@ begin
   end;
 end;
 
+{$ifndef CASTLE_WINDOW_USE_XF86VMODE}
+function TCastleApplication.ScreenWidth: integer;
+begin
+  InitializeXDisplay;
+  Result := XDisplayWidth(XDisplay, XScreen);
+end;
+
+function TCastleApplication.ScreenHeight: integer;
+begin
+  InitializeXDisplay;
+  Result := XDisplayHeight(XDisplay, XScreen);
+end;
+{$endif}
+
 { TCastleClipboard ----------------------------------------------------------- }
 
 function TCastleClipboard.GetAsText: string;

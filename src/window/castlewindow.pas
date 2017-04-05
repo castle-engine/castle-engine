@@ -448,8 +448,12 @@ unit CastleWindow;
   {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}
-  {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
-  {$define CASTLE_WINDOW_USE_XF86VMODE}
+  { Disable using XF86VMODE on 32-bit Mac OS X, because it seems that XQuarts
+    provides only a 64-bit version of XF86VMODE library. }
+  {$if not(defined(CPU386) and defined(DARWIN))}
+    {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
+    {$define CASTLE_WINDOW_USE_XF86VMODE}
+  {$endif}
 {$endif}
 {$ifdef CASTLE_WINDOW_GTK_ANY}
   {$ifdef UNIX}
