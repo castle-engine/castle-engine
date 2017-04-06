@@ -267,7 +267,8 @@ begin
   { use FindExe to use our fixed PathFileSearch that does not accidentaly find
     "ant" directory as "ant" executable }
   if IsPathAbsolute(ExeName) then
-    AbsoluteExeName := ExeName else
+    AbsoluteExeName := ExeName
+  else
   begin
     AbsoluteExeName := FindExe(ExeName);
     if AbsoluteExeName = '' then
