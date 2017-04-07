@@ -79,6 +79,17 @@ begin
     if not FileExists(Result) then
       Result := '';
   end;
+  { try to find in $ANDROID_HOME }
+  if Result = '' then
+  begin
+    Env := GetEnvironmentVariable('ANDROID_HOME');
+    if Env <> '' then
+    begin
+      Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
+      if not FileExists(Result) then
+        Result := '';
+    end;
+  end;
   { try to find on $PATH }
   if Result = '' then
     Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
