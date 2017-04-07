@@ -435,8 +435,9 @@ type
            GBitMask: LongWord;
            BBitMask: LongWord;
            ABitMask: LongWord; );
-      1: ( { Alternative FourCC view, as LongWord }
-           FourCCLW: LongWord; )
+      1: ( { Alternative FourCC view, as LongWord, always in little endian memory
+             order (process with LEtoN to compare with ints). }
+           FourCCIntLE: LongWord; )
 
   end;
   PDDSPixelFormat = ^TDDSPixelFormat;
@@ -745,6 +746,29 @@ var
     Check(Magic = 'DDS ', 'DDS file beginning (magic number) invalid, maybe this is not really a DDS file');
 
     Stream.ReadBuffer(Header, SizeOf(Header));
+
+    { We could do this code *always*, not only on big-endian machines.
+      But it does nothing on little-endian machines, so it's a waste of time
+      there, so only do it in -dDEBUG mode. }
+    {$if defined(ENDIAN_BIG) or defined(DEBUG)}
+    Header.Size                    := LEToN(Header.Size                   );
+    Header.Flags                   := LEToN(Header.Flags                  );
+    Header.Height                  := LEToN(Header.Height                 );
+    Header.Width                   := LEToN(Header.Width                  );
+    Header.PitchOrLinearSize       := LEToN(Header.PitchOrLinearSize      );
+    Header.Depth                   := LEToN(Header.Depth                  );
+    Header.MipMapCount             := LEToN(Header.MipMapCount            );
+    Header.PixelFormat.Size        := LEToN(Header.PixelFormat.Size       );
+    Header.PixelFormat.Flags       := LEToN(Header.PixelFormat.Flags      );
+    Header.PixelFormat.RGBBitCount := LEToN(Header.PixelFormat.RGBBitCount);
+    Header.PixelFormat.RBitMask    := LEToN(Header.PixelFormat.RBitMask   );
+    Header.PixelFormat.GBitMask    := LEToN(Header.PixelFormat.GBitMask   );
+    Header.PixelFormat.BBitMask    := LEToN(Header.PixelFormat.BBitMask   );
+    Header.PixelFormat.ABitMask    := LEToN(Header.PixelFormat.ABitMask   );
+    Header.Caps1                   := LEToN(Header.Caps1                  );
+    Header.Caps2                   := LEToN(Header.Caps2                  );
+    {$endif}
+
     Assert(SizeOf(Header) = 124); { this is actually constant, as it's part of file format spec... }
     Check(Header.Size = SizeOf(Header), 'DDS header size incorrect');
     Check(Header.Flags and DDSD_CAPS <> 0, 'Missing DDSD_CAPS');
@@ -819,7 +843,20 @@ var
   begin
     if (Header.PixelFormat.Flags and DDPF_FOURCC <> 0) and
        (Header.PixelFormat.FourCC = 'DX10') then
-      Stream.ReadBuffer(HeaderDxt10, SizeOf(HeaderDxt10)) else
+    begin
+      Stream.ReadBuffer(HeaderDxt10, SizeOf(HeaderDxt10));
+
+      { We could do this code *always*, not only on big-endian machines.
+        But it does nothing on little-endian machines, so it's a waste of time
+        there, so only do it in -dDEBUG mode. }
+      {$if defined(ENDIAN_BIG) or defined(DEBUG)}
+      HeaderDxt10.DxgiFormat        := LEToN(HeaderDxt10.DxgiFormat       );
+      HeaderDxt10.ResourceDimension := LEToN(HeaderDxt10.ResourceDimension);
+      HeaderDxt10.MiscFlag          := LEToN(HeaderDxt10.MiscFlag         );
+      HeaderDxt10.ArraySize         := LEToN(HeaderDxt10.ArraySize        );
+      HeaderDxt10.MiscFlags2        := LEToN(HeaderDxt10.MiscFlags2       );
+      {$endif}
+    end else
       FillChar(HeaderDxt10, SizeOf(HeaderDxt10), #0);
   end;
 
@@ -1278,12 +1315,12 @@ var
               raise EInvalidDDS.CreateFmt('Unknown texture format in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TCompositeImage.AutomaticCompression and TCompositeImage.AutomaticCompressionType in the engine to override this.',
                 [HeaderDxt10.DxgiFormat]);
           end else
-          if (Header.PixelFormat.FourCCLW = D3DFMT_R16F) or
-             (Header.PixelFormat.FourCCLW = D3DFMT_G16R16F) or
-             (Header.PixelFormat.FourCCLW = D3DFMT_A16B16G16R16F) or
-             (Header.PixelFormat.FourCCLW = D3DFMT_R32F) or
-             (Header.PixelFormat.FourCCLW = D3DFMT_G32R32F) or
-             (Header.PixelFormat.FourCCLW = D3DFMT_A32B32G32R32F) then
+          if (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_R16F) or
+             (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_G16R16F) or
+             (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_A16B16G16R16F) or
+             (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_R32F) or
+             (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_G32R32F) or
+             (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_A32B32G32R32F) then
             raise EInvalidDDS.Create('Unsupported texture compression for DDS: FourCC indicates float texture, not supported yet') else
             raise EInvalidDDS.CreateFmt('Unsupported texture compression for DDS: FourCC is "%s%s%s%s"',
               [ SReadableForm(Header.PixelFormat.FourCC[0]),
@@ -1563,6 +1600,28 @@ procedure TCompositeImage.SaveToStream(Stream: TStream);
     end else
       raise Exception.CreateFmt('Unable to save image class %s to DDS image',
         [Images[0].ClassName]);
+
+    { We could do this code *always*, not only on big-endian machines.
+      But it does nothing on little-endian machines, so it's a waste of time
+      there, so only do it in -dDEBUG mode. }
+    {$if defined(ENDIAN_BIG) or defined(DEBUG)}
+    Header.Size                    := NToLE(Header.Size                   );
+    Header.Flags                   := NToLE(Header.Flags                  );
+    Header.Height                  := NToLE(Header.Height                 );
+    Header.Width                   := NToLE(Header.Width                  );
+    Header.PitchOrLinearSize       := NToLE(Header.PitchOrLinearSize      );
+    Header.Depth                   := NToLE(Header.Depth                  );
+    Header.MipMapCount             := NToLE(Header.MipMapCount            );
+    Header.PixelFormat.Size        := NToLE(Header.PixelFormat.Size       );
+    Header.PixelFormat.Flags       := NToLE(Header.PixelFormat.Flags      );
+    Header.PixelFormat.RGBBitCount := NToLE(Header.PixelFormat.RGBBitCount);
+    Header.PixelFormat.RBitMask    := NToLE(Header.PixelFormat.RBitMask   );
+    Header.PixelFormat.GBitMask    := NToLE(Header.PixelFormat.GBitMask   );
+    Header.PixelFormat.BBitMask    := NToLE(Header.PixelFormat.BBitMask   );
+    Header.PixelFormat.ABitMask    := NToLE(Header.PixelFormat.ABitMask   );
+    Header.Caps1                   := NToLE(Header.Caps1                  );
+    Header.Caps2                   := NToLE(Header.Caps2                  );
+    {$endif}
 
     Stream.WriteBuffer(Header, SizeOf(Header));
   end;
