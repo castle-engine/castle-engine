@@ -108,7 +108,7 @@ const
   DefaultCPU: TCPU =
     {$ifdef CPUi386} i386 {$endif}
     {$ifdef CPUm68k} m68k {$endif}
-    {$ifdef CPUpowerpc} powerpc {$endif}
+    {$ifdef CPUpowerpc32} powerpc {$endif}
     {$ifdef CPUsparc} sparc {$endif}
     {$ifdef CPUx86_64} x86_64 {$endif}
     {$ifdef CPUarm} arm {$endif}
