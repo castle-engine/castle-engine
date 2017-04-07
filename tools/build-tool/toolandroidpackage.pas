@@ -48,23 +48,21 @@ begin
     Result := AnsiUpperCase(Result[1]) + SEnding(Result, 2);
 end;
 
-{ Try to find "android" tool executable, exception if not found. }
-(*
-function AndroidExe: string;
+{ Try to find ExeName executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function FinishExeSearch(const ExeName, BundleName, EnvVarName: string;
+  const Required: boolean): string;
 begin
-  { try to find in $ANDROID_HOME }
-  Result := AddExeExtension(InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
-    'tools' + PathDelim + 'android');
   { try to find on $PATH }
-  if not FileExists(Result) then
-    Result := FindExe('android');
-  if Result = '' then
-    raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
+  Result := FindExe(ExeName);
+  { fail if still not found }
+  if Required and (Result = '') then
+    raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
 end;
-*)
 
-{ Try to find "ndk-build" tool executable, exception if not found. }
-function NdkBuildExe: string;
+{ Try to find "ndk-build" tool executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function NdkBuildExe(const Required: boolean = true): string;
 const
   ExeName = 'ndk-build';
   BundleName = 'NDK';
@@ -81,20 +79,33 @@ begin
     if not FileExists(Result) then
       Result := '';
   end;
-  // TODO: generalize, also for adb
   { try to find on $PATH }
   if Result = '' then
-    Result := FindExe(ExeName);
-  { fail if still not found }
-  if Result = '' then
-    raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
 end;
 
-{ Try to find "adb" tool executable, exception if not found. }
-function AdbExe: string;
+{ Try to find "adb" tool executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function AdbExe(const Required: boolean = true): string;
+const
+  ExeName = 'adb';
+  BundleName = 'SDK';
+  EnvVarName = 'ANDROID_HOME';
+var
+  Env: string;
 begin
-  // TODO
-  Result := 'adb';
+  Result := '';
+  { try to find in $ANDROID_HOME }
+  Env := GetEnvironmentVariable(EnvVarName);
+  if Env <> '' then
+  begin
+    Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
+    if not FileExists(Result) then
+      Result := '';
+  end;
+  { try to find on $PATH }
+  if Result = '' then
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
 end;
 
 procedure CreateAndroidPackage(const Project: TCastleProject;
@@ -450,7 +461,8 @@ var
   ActivityName: string;
 begin
   if Project.AndroidProjectType = apBase then
-    ActivityName := 'android.app.NativeActivity' else
+    ActivityName := 'android.app.NativeActivity'
+  else
     ActivityName := 'net.sourceforge.castleengine.MainActivity';
   RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
