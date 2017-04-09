@@ -80,20 +80,49 @@ type
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
+
+    { Access the list contents directly through a pointer.
+
+      This is useful if you have a list of records and you would like to set their fields.
+      This will not work correctly:
+
+      @longCode(#
+      type
+        TMyRecord = record MyField: Integer; end;
+        TMyRecordList = specialize TGenericStructList<TMyRecord>;
+      var
+        MyList: TMyRecordList;
+      begin
+        // ...
+        MyList[I].MyField := 123;
+      #)
+
+      (It will not work OK because you would modify only a temporary record
+      returned by the @code(MyList[I]) getter.)
+      Instead, setting by
+
+      @longCode(#
+        MyList.List^[I].MyField := 123;
+      #)
+
+      will work OK. Or you can use
+
+      @longCode(#
+        MyList.L[I].MyField := 123;
+      #)
+
+      @seealso L }
     property List: PTypeList read GetList;
 
-    { Pointer to items. Exactly like @link(List), but this points to a single item,
-      which means you can access particular item by @code(L[I]) instead of
-      @code(List^[I]) in FPC objfpc mode.
+    { Access the list contents directly through a pointer to T structure.
 
-      This is just trivial shortcut,  but we use direct access a @italic(lot)
-      for structures. Reasons: using Items[] default
-      property means copying the structures, which is
-      @orderedList(
-        @item(very dangerous (you can trivially easy modify a temporary result))
-        @item(slow (important for us, since these are used for vector arrays that
-         are crucial for renderer and various processing).)
-      ) }
+      This is exactly the same pointer as @link(List), but the type is different:
+      this points to a single item.
+      This is useful if you have a list of records and you would like to set their fields.
+      This allows to use @code(L[I]) instead of @code(List^[I]) (only in FPC ObjFpc mode).
+
+      See the @link(List) description for a more detailed explanation and example.
+      @seealso List }
     function L: PT;
 
     { Increase Count and return pointer to new item.

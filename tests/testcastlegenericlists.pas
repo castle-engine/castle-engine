@@ -22,12 +22,50 @@ uses fpcunit, testutils, testregistry;
 type
   TTestGenericLists = class(TTestCase)
   published
+    procedure TestList;
     procedure TestMap;
   end;
 
 implementation
 
 uses SysUtils, Classes, CastleGenericLists;
+
+procedure TTestGenericLists.TestList;
+type
+  TMyRecord = record S: string; Int: Integer; end;
+  TMyRecordList = specialize TGenericStructList<TMyRecord>;
+var
+  L: TMyRecordList;
+  R: TMyRecord;
+begin
+  L := TMyRecordList.Create;
+  try
+    R.S := 'blah';
+    R.Int := 234;
+    L.Add(R);
+
+    R.S := 'foo';
+    R.Int := 666;
+    L.Add(R);
+
+    AssertEquals(2, L.Count);
+    AssertEquals('foo', L[1].S);
+    AssertEquals(666, L[1].Int);
+    AssertEquals('blah', L[0].S);
+    AssertEquals(234, L[0].Int);
+
+    // This should not even compile
+    // L[1].Int := 44;
+
+    L.List^[1].Int := 44;
+    AssertEquals(44, L[1].Int);
+    AssertEquals('foo', L[1].S); // L[1].S unchaned
+
+    L.L[1].Int := 789;
+    AssertEquals(789, L[1].Int);
+    AssertEquals('foo', L[1].S); // L[1].S unchaned
+  finally FreeAndNil(L) end;
+end;
 
 type
   TObjectToStringMap = specialize TGenericStructMap<TObject, string>;
