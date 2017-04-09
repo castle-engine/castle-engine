@@ -30,10 +30,13 @@ implementation
 
 uses SysUtils, Classes, CastleGenericLists;
 
-procedure TTestGenericLists.TestList;
+{ Do not put these as local types inside TestList, it makes FPC 2.6.4
+  fail with Access Violation. (Works OK with FPC 3.0.2.) }
 type
   TMyRecord = record S: string; Int: Integer; end;
   TMyRecordList = specialize TGenericStructList<TMyRecord>;
+
+procedure TTestGenericLists.TestList;
 var
   L: TMyRecordList;
   R: TMyRecord;
