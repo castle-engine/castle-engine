@@ -9,9 +9,10 @@ COMPILE_SIM=1
 COMPILE_ARM=1
 EXECUTABLE_NAME="cge_library.a"
 FPC_MAIN_FILE="src/library/castleengine.lpr"
-#FPC_SIM_COMPILER="fpc -Pi386 -V3.0.1"  #this selects x64 - probably bug in FPC setup script
-FPC_SIM_COMPILER="/usr/local/lib/fpc/3.0.1/ppc386"
-FPC_SIM64_COMPILER="fpc -Px86_64 -V3.0.1"
+# The -V3.0.3 parameters are necessary if you got FPC from the
+# fpc-3.0.3.intel-macosx.cross.ios.dmg (official "FPC for iOS" installation).
+FPC_SIM_COMPILER="fpc -Pi386 -V3.0.3"
+FPC_SIM64_COMPILER="fpc -Px86_64 -V3.0.3"
 FPC_ARM_COMPILER="fpc -Parm"
 FPC_ARM64_COMPILER="fpc -Paarch64"
 FPC_COMMON="-Cn -WP5.1 ${CASTLE_FPC_OPTIONS:-} @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY"
