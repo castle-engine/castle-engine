@@ -113,7 +113,10 @@ if [ $OUTPUT_LIBRARIES_COUNT -eq 0 ]; then
   echo 'Nothing generated (you turned off generating output for both iPhoneSimulator and a real device)'
   exit 1
 else
+  echo "----------------------------------------------------------------------"
   echo "Combining together into a single library:"
   run_logging libtool -static "${OUTPUT_LIBRARIES[@]}" -o "$PROJECT_DIR/$EXECUTABLE_NAME"
   mv $EXECUTABLE_NAME "${LIBRARY_PATH}"
+  echo "----------------------------------------------------------------------"
+  echo "Done, output inside ${LIBRARY_PATH}"
 fi
