@@ -118,5 +118,5 @@ else
   run_logging libtool -static "${OUTPUT_LIBRARIES[@]}" -o "$PROJECT_DIR/$EXECUTABLE_NAME"
   mv $EXECUTABLE_NAME "${LIBRARY_PATH}"
   echo "----------------------------------------------------------------------"
-  echo "Done, output inside ${LIBRARY_PATH}"
+  echo "Done, output inside ${LIBRARY_PATH}${EXECUTABLE_NAME}"
 fi
