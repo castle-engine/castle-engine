@@ -42,10 +42,11 @@ run_libtool ()
   echo libtool -static -o "${OUTPUT_LIB}" -filelist compile_ios_filelist.tmp
   if [ ! -e "${OUTPUT_LIB}" ]; then
     echo "Error: Output ${OUTPUT_LIB} not found"
+    exit 1
   fi
   rm -f compile_ios_filelist.tmp
 
-  OUTPUT_LIBRARIES[$OUTPUT_LIBRARIES_COUNT]="$SIM_LIB"
+  OUTPUT_LIBRARIES[$OUTPUT_LIBRARIES_COUNT]="${OUTPUT_LIB}"
   OUTPUT_LIBRARIES_COUNT=$(( $OUTPUT_LIBRARIES_COUNT + 1 ))
 }
 
