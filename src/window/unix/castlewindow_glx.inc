@@ -18,7 +18,7 @@
   with OpenGL context). }
 
 {$ifdef read_interface_uses}
-CastleInternalGlx,
+Glx,
 {$endif}
 
 {$ifdef read_window_interface}

@@ -292,7 +292,6 @@ begin
     if Xlib then
     begin
       P.SourcePath.Add('src' + PathDelim + 'window' + PathDelim + 'unix');
-      P.Targets.AddUnit('castleinternalglx.pas');
       P.Targets.AddUnit('castleinternalxlib.pas');
     end;
 
