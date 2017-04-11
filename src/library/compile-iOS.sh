@@ -114,6 +114,6 @@ if [ $OUTPUT_LIBRARIES_COUNT -eq 0 ]; then
   exit 1
 else
   echo "echo COMBINING TOGETHER"
-  libtool -static "${OUTPUT_LIBRARIES[@]}" -o "$PROJECT_DIR/$EXECUTABLE_NAME"
+  run_logging libtool -static "${OUTPUT_LIBRARIES[@]}" -o "$PROJECT_DIR/$EXECUTABLE_NAME"
   mv $EXECUTABLE_NAME "${LIBRARY_PATH}"
 fi
