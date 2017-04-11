@@ -24,6 +24,7 @@ FPC_ARM64_COMPILER="fpc -Paarch64"
 
 run_logging ()
 {
+  echo "----------------------------------------------------------------------"
   echo "Running: " "$@"
   "$@"
 }
@@ -39,7 +40,7 @@ run_libtool ()
 
   LINK_RES="${LINK_RES_DIR}"/link.res
   grep '\.o$' "${LINK_RES}" > compile_ios_filelist.tmp
-  echo libtool -static -o "${OUTPUT_LIB}" -filelist compile_ios_filelist.tmp
+  run_logging libtool -static -o "${OUTPUT_LIB}" -filelist compile_ios_filelist.tmp
   if [ ! -e "${OUTPUT_LIB}" ]; then
     echo "Error: Output ${OUTPUT_LIB} not found"
     exit 1
