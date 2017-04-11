@@ -62,6 +62,7 @@ run_libtool ()
 run_build ()
 {
   local OUTPUT_DIR="$1"
+  shift 1
 
   mkdir -p "${OUTPUT_DIR}"
   # Note: $FPC_CONFIG must be specified before $FPC_COMMON,
