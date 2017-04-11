@@ -82,13 +82,13 @@ OUTPUT_LIBRARIES_COUNT=0
 # compile for iPhone simulator
 if [ $COMPILE_SIM -eq 1 ]; then
   mkdir -p $OUTPUT_SIM
-  OUT_FILES="-FU'$OUTPUT_SIM' -o'$SIM_LIB'"
+  OUT_FILES="-FU$OUTPUT_SIM -o$SIM_LIB"
   run_logging $FPC_SIM_COMPILER -Tiphonesim $FPC_COMMON $FPC_CONFIG $OUT_FILES "${FPC_MAIN_FILE}"
   run_libtool "$OUTPUT_SIM" "$SIM_LIB"
 
   # 64 bit
   mkdir -p $OUTPUT_SIM64
-  OUT_FILES="-FU'$OUTPUT_SIM64' -o'$SIM64_LIB'"
+  OUT_FILES="-FU$OUTPUT_SIM64 -o$SIM64_LIB"
   run_logging $FPC_SIM64_COMPILER -Tiphonesim $FPC_COMMON $FPC_CONFIG $OUT_FILES "${FPC_MAIN_FILE}"
   run_libtool "$OUTPUT_SIM64" "$SIM64_LIB"
 fi
@@ -96,13 +96,13 @@ fi
 # compile for a physical device
 if [ $COMPILE_ARM -eq 1 ]; then
   mkdir -p $OUTPUT_ARM
-  OUT_FILES="-FU'$OUTPUT_ARM' -o'$ARM_LIB'"
+  OUT_FILES="-FU$OUTPUT_ARM -o$ARM_LIB"
   run_logging $FPC_ARM_COMPILER -Cparmv7 -Cfvfpv3 $FPC_COMMON $FPC_CONFIG $OUT_FILES "${FPC_MAIN_FILE}"
   run_libtool "$OUTPUT_ARM" "$ARM_LIB"
 
   # 64 bit
   mkdir -p $OUTPUT_ARM64
-  OUT_FILES="-FU'$OUTPUT_ARM64' -o'$ARM64_LIB'"
+  OUT_FILES="-FU$OUTPUT_ARM64 -o$ARM64_LIB"
   run_logging $FPC_ARM64_COMPILER -dCPUARM64 $FPC_COMMON $FPC_CONFIG $OUT_FILES "${FPC_MAIN_FILE}"
   run_libtool "$OUTPUT_ARM64" "$ARM64_LIB"
 fi
