@@ -1,0 +1,162 @@
+- In general, we follow the standard Lazarus and Delphi coding conventions,
+  used throughout most modern Object Pascal code.
+
+  See
+  http://edn.embarcadero.com/article/10280 - Object Pascal Style Guide
+  http://kodu.ut.ee/~jellen/delphi/cs.html - Delphi Language Coding Standards Document
+
+  In particular:
+  - Indent by 2 spaces.
+  - Use CamelCase for everything,
+    - including constants, so MyConstant instead of MY_CONSTANT,
+    - and local variables, even "I" instead of "i".
+  - Put "begin" on a separate line.
+    I.e. do not mimic C "K & R" style
+    (https://en.wikipedia.org/wiki/Indent_style#K.26R) in Pascal:
+    ~~~~
+    // DON'T WRITE THIS:
+    for I := 1 to 10 do begin
+      Writeln(I);
+    end;
+    ~~~~
+    Instead, the "begin" should usually be indented the same as "end".
+    ~~~~
+    // THIS IS OK:
+    for I := 1 to 10 do
+    begin
+      Writeln(I);
+    end;
+    ~~~~
+    To avoid verbosity, it's OK to omit begin/end for statements:
+    ~~~~
+    // THIS IS EVEN BETTER:
+    for I := 1 to 10 do
+      Writeln(I);
+    ~~~~
+  - Never use tabs (convert to spaces).
+  - Never leave trailing whitespace at the end of lines (in the long run,
+    it causes unnecessary diffs when someone removes it).
+
+- File extensions:
+
+  *.pas files are units,
+  *.inc are files to be included in other Pascal source files using $Include.
+  *.lpr are main program files.
+
+  Do not use *.pp (not familiar to people from Delphi).
+  Do not use *.dpr (tied to Delphi, and we're for Lazarus).
+
+- The engine is, in general, not thread-safe.
+  You cannot call our functions from different threads.
+
+  Reasons:
+  - We use some global caches, and securing access to them from multiple
+    threads would cost us speed (and make code more complex).
+  - OpenGL must be operated from a single thread anyway.
+
+  There are some things that in practice can be safely used from multiple
+  threads now (some image and file loading, some OpenAL operations),
+  but please don't depend on it. Unless something is clearly documented
+  as "thread-safe", DO NOT assume it.
+
+- All the engine functions are "reentrant", which means that they are safe
+  to be called recursively, even through your own callbacks.
+  E.g. the TFileProc callback passed to EnumFiles can call EnumFiles inside
+  it's own implementation.
+
+- Some naming conventions:
+
+  - If some procedure modifies it's 1st parameter then I usually
+    end it's name with "Var" ("to variable").
+
+    Often you will be able to see the same operation coming in two
+    flavours:
+
+    ~~~~
+    function DoSomething(const X: <type>, ...):<type>;
+    procedure DoSomethingVar(var X: <type>,...);
+    ~~~~
+
+    The 1st (functional-like) version is more flexible,
+    but the 2nd version may be faster (especially if <type> is large,
+    or requires time-consuming initialization).
+
+    See e.g. CastleVectors and CastleImages units.
+
+    Although I must admit that often I don't keep this convention,
+    especially when <type> is some object class.
+    Well, you very seldom should write functions that take an object
+    reference and modify it somehow. After all, usually you should
+    rather make new constructors and destructors for this class
+    in such cases.
+
+  - If somewhere I use parameters like V: ^<type> and Stride: Integer
+    then it means that these parameters define a table of <type> values.
+    Address of 1st item is V, address of i-th is (V + i * Stride).
+    This is a convention used by OpenGL's vertex array routines.
+
+    Stride may be negative. Stride may also be 0, then it means
+    that Stride = SizeOf(<type>).
+
+- Compilation symbols used:
+
+  Standard FPC and Delphi ones: MSWINDOWS, UNIX, LINUX,
+  CPUI386, CPUX86_64, FPC to differentiate between compiler versions,
+  and many more.
+
+  See castleconf.inc.
+
+  We also use DEBUG symbol.
+  Also castle-fpc.cfg adds some checks when -dDEBUG.
+  The build tool when compiled in debug mode (--mode=debug) also defines
+  DEBUG, and adds some checks.
+  You can use DEBUG in your own code to add additional things.
+  There's also the RELEASE symbol, but usually we don't check for
+  it's existence -- if DEBUG then we're in debug mode,
+  else we're in release mode.
+  So there's no need to check for RELEASE symbol.
+
+- Exceptions' messages:
+  - Never start them with 'Error: ' or 'Error - ' or anything else
+    that just says "we have an error". Reason: you're raising an Exception,
+    this already says that this is some kind of error.
+  - Don't end the Message with '!' character. Yes, I know that some
+    exceptions mean that something really horrible happened,
+    but screaming about this will not help -- let's keep cold blood :)
+  - Don't end the Message with '.' character.
+  - Usually Message should be a single sentence.
+  - Message should not contain any line-breaks. Reason: this doesn't
+    look good when displayed in some situations. Especially when
+    one Message is embedded as part of the Message of other exception.
+    But, if Message really must express line-breaks: they should be
+    always expressed as CastleUtils.nl constant.
+  - Message must not contain any general program information like
+    ProgramName, ExeName etc. (The exception to this rule is when
+    such information is really related to the error that happened,
+    may help to explain this error etc.)
+    In normal situation, the code that finally catched and outputs
+    this exception should show such information.
+
+- Callbacks: "of object" or not?
+
+  ObjectPascal is a hybrid OOP language and it has
+  global function pointers and method pointers.
+  They are incompatible, since the method pointer is actually two pointers
+  (the class instance, and the code address).
+  When designing a function that takes a callback, you're faced with a problem:
+  define "a pointer to a method" or "a pointer to a global function/procedure"?
+
+  In the past, I often chose to use "a pointer to a global function/procedure".
+  With a generic "Data: Pointer" parameter, to allow passing user data.
+  This is easier to use when you don't have a class instance
+  (and you don't want to create a dummy class just for this),
+  and it's always allows to add overridden version with "of object" callback
+  (passing object instance as the Data);
+
+  Nowadays, I usually define "of object" callbacks,
+  assuming that all non-trivial code is usually in some class,
+  and the "of object" is more natural to be used in OOP.
+
+Michalis Kamburelis (aka Kambi)
+<michalis.kambi@gmail.com>
+http://castle-engine.sourceforge.net/

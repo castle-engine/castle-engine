@@ -819,8 +819,8 @@ type
       since it's really really slow).
 
       @groupBegin }
-    procedure AlphaBleed(const ProgressTitle: string); virtual;
-    function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; virtual;
+    procedure AlphaBleed(const ProgressTitle: string = ''); virtual;
+    function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; virtual;
     { @groupEnd }
   end;
 
@@ -1207,8 +1207,8 @@ type
     procedure PremultiplyAlpha;
     property PremultipliedAlpha: boolean read FPremultipliedAlpha;
 
-    procedure AlphaBleed(const ProgressTitle: string); override;
-    function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; override;
+    procedure AlphaBleed(const ProgressTitle: string = ''); override;
+    function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1380,8 +1380,8 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
     // TODO: this should be implemented, just like for TRGBAlphaImage
-    //procedure AlphaBleed(const ProgressTitle: string); override;
-    //function MakeAlphaBleed(const ProgressTitle: string): TCastleImage; override;
+    //procedure AlphaBleed(const ProgressTitle: string = ''); override;
+    //function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }

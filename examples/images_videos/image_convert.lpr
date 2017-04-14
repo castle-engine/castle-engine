@@ -17,7 +17,8 @@
 
 program image_convert;
 
-uses SysUtils, CastleUtils, CastleImages, CastleParameters;
+uses SysUtils, CastleUtils, CastleImages, CastleParameters,
+  CastleProgress, CastleProgressConsole;
 
 var
   { required params }
@@ -31,16 +32,18 @@ var
   WasParam_GrayScale: boolean = false;
   Param_ConvertToChannel: Integer = -1; { -1 means "don't convert" }
   Param_StripToChannel: Integer = -1; { -1 means "don't convert" }
+  WasParam_AlphaBleed: boolean = false;
 
 const
-  Options: array[0..5] of TOption =
+  Options: array [0..6] of TOption =
   (
     (Short:'h'; Long:'help'; Argument: oaNone),
     (Short:'s'; Long:'scale'; Argument: oaRequired),
     (Short:'g'; Long:'gamma'; Argument: oaRequired),
     (Short:#0 ; Long:'grayscale'; Argument: oaNone),
     (Short:#0 ; Long:'convert-to-channel'; Argument: oaRequired),
-    (Short:#0 ; Long:'strip-to-channel'; Argument: oaRequired)
+    (Short:#0 ; Long:'strip-to-channel'; Argument: oaRequired),
+    (Short:#0 ; Long:'alpha-bleed'; Argument: oaNone)
   );
 
   procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -94,6 +97,7 @@ const
       3: WasParam_GrayScale := true;
       4: Param_ConvertToChannel := StrToInt(Argument);
       5: Param_StripToChannel := StrToInt(Argument);
+      6: WasParam_AlphaBleed := true;
       else raise EInternalError.Create('option not impl');
     end;
   end;
@@ -115,6 +119,8 @@ begin
   InputImageName := Parameters[1];
   OutputImageName := Parameters[2];
 
+  Progress.UserInterface := ProgressConsoleInterface;
+
   { do work }
   Img := LoadImage(InputImageName, [], ResizeX, ResizeY);
   try
@@ -135,6 +141,8 @@ begin
       Img.ConvertToChannelRGB(Param_ConvertToChannel);
     if Param_StripToChannel <> -1 then
       Img.StripToChannelRGB(Param_StripToChannel);
+    if WasParam_AlphaBleed then
+      Img.AlphaBleed('Alpha Bleeding');
 
     SaveImage(Img, OutputImageName);
   finally Img.Free end;

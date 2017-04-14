@@ -1,0 +1,61 @@
+We use PasDoc http://pasdoc.sourceforge.net/ for API documentation.
+Michalis, an author of this engine, is also a PasDoc developer,
+so suggestions about PasDoc improvements are also welcome :)
+
+We use @section and @groupBegin / @groupEnd tags in our documentation,
+although they are not yet implemented in PasDoc.
+I plan to implement them one day, see
+http://pasdoc.sipsolutions.net/MichalisKamburelis
+
+We use PasDoc with --auto-abstract option. This is very handy,
+and it forces us (in a "good way") to write really good 1st sentence
+of every documentation comment. Do's and dont's:
+
+- Do not start a sentence with "This..", in particular "This function does
+  the job of calculating the sensor." or "This returns the calculated sensor
+  value." or "This causes sensor value to be calculated."
+  or things like that. Usually, the clumsy "This..." part of the sentence
+  can be simply removed. Your sentence should simply describe what the
+  function / class etc. does, as shortly as possible.
+
+  This problem comes usually from a need to use a verb in the 1st documentation
+  sentence. Well, there's no need for it. If you have a function
+  named "SensorValue" (although "Sensor" seems even better), then user
+  already knows that the "sensor value" is calculated by this function.
+  The documentation string can be just "Calculate the sensor value.",
+  "The sensor value.", or simply nothing, as the function name already
+  says everything.
+
+- Write the documentations like orders, not like description.
+  E.g. "Do calculation.", not "Does calculation.".
+
+- Do not start the 1st (or, preferably, any other) sentence with
+  the name of the item you're just documenting. If you document
+  method FooBar, do not write "FooBar does something cool."
+  or "FooBar is the collision tag.".
+  User reading the description already knows the name of item,
+  so just write "Do something cool." or "The collision tag.".
+
+- Using "I.e.", especially at the beginning of the sentence, looks
+  clumsy and often should be removed, this forces the sentence to be simpler.
+  If you *really* have to, start the sentence with "That is".
+
+- Do not write "Will be called...". Just "Called..." is OK.
+
+- *Always* make a unit description, for every unit. They are handy
+  at PasDoc's unit list.
+
+- Often, we have a unit with only a single / a few classes.
+  In such cases it's best to place most of the documentation at the class,
+  not at the unit description --- since the class is the actual item being
+  described.
+
+  Unit's description should then contain a very short description of the class,
+  in plural form, and a link to the class. Like
+    { Scene manager (TKamSceneManager) and viewport (TKamViewport) classes. }
+  or
+   { OpenGL bitmap fonts (TGLBitmapFont). }
+
+- Do not start every documentation string with "Simple..." or "Trivial...".
+  We have a lot of simple and trivial wrappers over something else,
+  and it gets tiresome when every comments mentions this :)

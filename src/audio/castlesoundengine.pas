@@ -1254,8 +1254,8 @@ begin
           So the natural workaround below follows. For OpenAL implementations
           that immediately load the buffer, this will not cause any delay. }
 
-        { We have to do CheckAL first, to catch evantual errors.
-          Otherwise the loop would hang. }
+        { We have to do CheckAL first, to catch eventual errors.
+          Otherwise the loop could hang. }
         CheckAL('PlaySound');
         while Buffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
           Sleep(10);

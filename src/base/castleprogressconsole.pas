@@ -51,8 +51,8 @@ type
   { }
   TProgressConsoleInterface = class(TProgressUserInterface)
   private
-    { will grow from 0 to ConsoleWidth }
-    KropeczkiWritten: Integer;
+    { This will grow from 0 to ConsoleWidth. }
+    DotsWritten: Integer;
   public
     procedure Init(Progress: TProgress); override;
     procedure Update(Progress: TProgress); override;
@@ -62,7 +62,7 @@ type
 var
   { Assign this to Progress.UserInterface to use console progress bar.
     This instance is created in initialization, freed in finalization. }
-  ProgressConsoleInterface :TProgressConsoleInterface;
+  ProgressConsoleInterface: TProgressConsoleInterface;
 
 implementation
 
@@ -85,47 +85,49 @@ begin System.Write(ErrOutput, s); end;
 procedure Writeln(const s: string);
 begin System.Writeln(ErrOutput, s); end;
 
-{ realizacja procedur progressa  ------------------------------------------------}
+{ TProgressConsoleInterface -------------------------------------------------- }
 
 procedure TProgressConsoleInterface.Init(Progress: TProgress);
-var LeftSpace, RightSpace: integer;
+var
+  LeftSpace, RightSpace: integer;
 begin
- if Length(Progress.Title) > ConsoleWidth-2 then
- begin
-  Writeln(Progress.Title);
-  Writeln('[' +StringOfChar(' ', ConsoleWidth-2) +']');
- end else
- begin
-  { poniewaz Length(Progress.Title) > ConsoleWidth-2 to
-    2 <= ConsoleWidth-Length(Progress.Title) wiec
-    0 <= (ConsoleWidth-Length(Progress.Title)) div 2 - 1. }
-  LeftSpace:=(ConsoleWidth-Length(Progress.Title)) div 2 - 1;
-  RightSpace := ConsoleWidth - LeftSpace - Length(Progress.Title) - 2;
-  Writeln('[' +StringOfChar(' ', LeftSpace) +Progress.Title +
-    StringOfChar(' ', RightSpace) +']');
- end;
+  if Length(Progress.Title) > ConsoleWidth-2 then
+  begin
+    Writeln(Progress.Title);
+    Writeln('[' +StringOfChar(' ', ConsoleWidth-2) +']');
+  end else
+  begin
+    { since Length(Progress.Title) > ConsoleWidth-2 then
+      2 <= ConsoleWidth-Length(Progress.Title) so
+      0 <= (ConsoleWidth-Length(Progress.Title)) div 2 - 1. }
+    LeftSpace := (ConsoleWidth-Length(Progress.Title)) div 2 - 1;
+    RightSpace := ConsoleWidth - LeftSpace - Length(Progress.Title) - 2;
+    Writeln('[' +StringOfChar(' ', LeftSpace) +Progress.Title +
+      StringOfChar(' ', RightSpace) +']');
+  end;
 
- KropeczkiWritten := 0;
+  DotsWritten := 0;
 end;
 
 procedure TProgressConsoleInterface.Update(Progress: TProgress);
-var KropeczkiNow: integer;
+var
+  DotsNow: integer;
 begin
- KropeczkiNow := Progress.Position*ConsoleWidth div Progress.Max;
- if KropeczkiNow > KropeczkiWritten then
- begin
-  Write(StringOfChar('.', KropeczkiNow-KropeczkiWritten));
-  KropeczkiWritten := KropeczkiNow;
- end;
+  DotsNow := Progress.Position * ConsoleWidth div Progress.Max;
+  if DotsNow > DotsWritten then
+  begin
+    Write(StringOfChar('.', DotsNow - DotsWritten));
+    DotsWritten := DotsNow;
+  end;
 end;
 
 procedure TProgressConsoleInterface.Fini(Progress: TProgress);
 begin
- Writeln('');
+  Writeln('');
 end;
 
 initialization
- ProgressConsoleInterface := TProgressConsoleInterface.Create;
+  ProgressConsoleInterface := TProgressConsoleInterface.Create;
 finalization
- FreeAndNil(ProgressConsoleInterface);
+  FreeAndNil(ProgressConsoleInterface);
 end.

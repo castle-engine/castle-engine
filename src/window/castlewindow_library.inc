@@ -355,7 +355,7 @@ procedure TCastleWindow.NavigationInfoChanged;
 var
   NavValue: integer;
 begin
-  // send into to parent app (to update navigation buttons state)
+  // send info to parent app (to update navigation buttons state)
   if Assigned(LibraryCallbackProc) then
   begin
     case NavigationType of

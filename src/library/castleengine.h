@@ -36,7 +36,7 @@ enum ECgeOpenFlag
     ecgeofLog        = 2,   // enable logging to stderr
 };
 
-enum ECgeVariable   // used for quering engine parameters in CGE_Set/GetVariable
+enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariable
 {
     ecgevarWalkHeadBobbing = 0,   // walking effect (int, 1 = on, 0 = off)
     ecgevarEffectSSAO      = 1,   // screen space ambient occlusion (int, 1 or 0)

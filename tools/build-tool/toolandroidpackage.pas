@@ -48,6 +48,77 @@ begin
     Result := AnsiUpperCase(Result[1]) + SEnding(Result, 2);
 end;
 
+{ Try to find ExeName executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function FinishExeSearch(const ExeName, BundleName, EnvVarName: string;
+  const Required: boolean): string;
+begin
+  { try to find on $PATH }
+  Result := FindExe(ExeName);
+  { fail if still not found }
+  if Required and (Result = '') then
+    raise Exception.Create('Cannot find "' + ExeName + '" executable on $PATH, or within $' + EnvVarName + '. Install Android ' + BundleName + ' and make sure that "' + ExeName + '" executable is on $PATH, or that $' + EnvVarName + ' environment variable is set correctly.');
+end;
+
+{ Try to find "ndk-build" tool executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function NdkBuildExe(const Required: boolean = true): string;
+const
+  ExeName = 'ndk-build';
+  BundleName = 'NDK';
+  EnvVarName = 'ANDROID_NDK_HOME';
+var
+  Env: string;
+begin
+  Result := '';
+  { try to find in $ANDROID_NDK_HOME }
+  Env := GetEnvironmentVariable(EnvVarName);
+  if Env <> '' then
+  begin
+    Result := AddExeExtension(InclPathDelim(Env) + ExeName);
+    if not FileExists(Result) then
+      Result := '';
+  end;
+  { try to find in $ANDROID_HOME }
+  if Result = '' then
+  begin
+    Env := GetEnvironmentVariable('ANDROID_HOME');
+    if Env <> '' then
+    begin
+      Result := AddExeExtension(InclPathDelim(Env) + 'ndk-bundle' + PathDelim + ExeName);
+      if not FileExists(Result) then
+        Result := '';
+    end;
+  end;
+  { try to find on $PATH }
+  if Result = '' then
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+end;
+
+{ Try to find "adb" tool executable.
+  If not found -> exception (if Required) or return '' (if not Required). }
+function AdbExe(const Required: boolean = true): string;
+const
+  ExeName = 'adb';
+  BundleName = 'SDK';
+  EnvVarName = 'ANDROID_HOME';
+var
+  Env: string;
+begin
+  Result := '';
+  { try to find in $ANDROID_HOME }
+  Env := GetEnvironmentVariable(EnvVarName);
+  if Env <> '' then
+  begin
+    Result := AddExeExtension(InclPathDelim(Env) + 'platform-tools' + PathDelim + ExeName);
+    if not FileExists(Result) then
+      Result := '';
+  end;
+  { try to find on $PATH }
+  if Result = '' then
+    Result := FinishExeSearch(ExeName, BundleName, EnvVarName, Required);
+end;
+
 procedure CreateAndroidPackage(const Project: TCastleProject;
   const OS: TOS; const CPU: TCPU; const SuggestedPackageMode: TCompilationMode;
   const Files: TCastleStringList);
@@ -141,19 +212,6 @@ var
     end;
   end;
 
-  { Try to find "android" tool executable, exception if not found. }
-  function AndroidExe: string;
-  begin
-    { try to find in $ANDROID_HOME }
-    Result := AddExeExtension(InclPathDelim(GetEnvironmentVariable('ANDROID_HOME')) +
-      'tools' + PathDelim + 'android');
-    { try to find on $PATH }
-    if not FileExists(Result) then
-      Result := FindExe('android');
-    if Result = '' then
-      raise Exception.Create('Cannot find "android" executable on $PATH, or within $ANDROID_HOME. Install Android SDK and make sure that "android" executable is on $PATH, or that $ANDROID_HOME environment variable is set correctly.');
-  end;
-
   procedure GenerateIcons;
   var
     Icon: TCastleImage;
@@ -230,7 +288,7 @@ var
       what ndk-build does: it copies them from jni/ to another directory. }
 
     RunCommandSimple(AndroidProjectPath + 'app' + PathDelim + 'src' + PathDelim + 'main',
-      'ndk-build', ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
+      NdkBuildExe, ['--silent', 'NDK_LIBS_OUT=./jniLibs']);
   end;
 
 var
@@ -405,7 +463,7 @@ begin
 
   Writeln('Reinstalling application identified as "' + QualifiedName + '".');
   Writeln('If this fails, an often cause is that a previous development version of the application, signed with a different key, remains on the device. In this case uninstall it first (note that it will clear your UserConfig data, unless you use -k) by "adb uninstall ' + QualifiedName + '"');
-  RunCommandSimple('adb', ['install', '-r', ApkName]);
+  RunCommandSimple(AdbExe, ['install', '-r', ApkName]);
   Writeln('Install successful.');
 end;
 
@@ -414,9 +472,10 @@ var
   ActivityName: string;
 begin
   if Project.AndroidProjectType = apBase then
-    ActivityName := 'android.app.NativeActivity' else
+    ActivityName := 'android.app.NativeActivity'
+  else
     ActivityName := 'net.sourceforge.castleengine.MainActivity';
-  RunCommandSimple('adb', ['shell', 'am', 'start',
+  RunCommandSimple(AdbExe, ['shell', 'am', 'start',
     '-a', 'android.intent.action.MAIN',
     '-n', Project.QualifiedName + '/' + ActivityName ]);
   Writeln('Run successful.');
@@ -426,7 +485,7 @@ begin
     Writeln('Running "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Just break this process with Ctrl+C to stop.');
     { run through ExecuteProcess, because we don't want to capture output,
       we want to immediately pass it to user }
-    ExecuteProcess(FindExe('bash'), ['-c', 'adb logcat | grep --text "' + Project.Name + '"']);
+    ExecuteProcess(FindExe('bash'), ['-c', '"' + AdbExe + '" logcat | grep --text "' + Project.Name + '"']);
   end else
     Writeln('Run "adb logcat | grep ' + Project.Name + '" (we are assuming that your ApplicationName is ''' + Project.Name + ''') to see log output from your application. Install "bash" and "grep" on $PATH (on Windows, you may want to install MinGW or Cygwin) to run it automatically here.');
 end;
