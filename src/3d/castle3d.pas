@@ -1654,6 +1654,9 @@ type
     property Up: TVector3Single read GetUp write SetUp;
     { @groupEnd }
 
+    { Get at once vectors: position, direction, up. }
+    procedure GetView(out APos, ADir, AUp: TVector3Single);
+
     { Set at once vectors: position, direction, up.
 
       ADir and AUp given here do not have to be normalized
@@ -4241,6 +4244,11 @@ procedure T3DOrient.UpPrefer(const AUp: TVector3Single);
 begin
   Camera.UpPrefer(AUp);
   VisibleChangeHere([vcVisibleGeometry]);
+end;
+
+procedure T3DOrient.GetView(out APos, ADir, AUp: TVector3Single);
+begin
+  Camera.GetView(APos, ADir, AUp);
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single;
