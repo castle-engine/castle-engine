@@ -307,9 +307,10 @@ begin
   begin
     if LogTimePrefix <> ltNone then WriteLogRaw(LogTimePrefixStr + NL);
     WriteLogRaw(
-        '-------------------- ' + Category + ' begin' + NL +
-        Trim(Message) + NL +
-        '-------------------- ' + Category + ' end' + NL)
+      '-------------------- ' + Category + ' begin' + NL +
+      // trim newlines at the end of Message
+      TrimRight(Message) + NL +
+      '-------------------- ' + Category + ' end' + NL)
   end;
 end;
 
