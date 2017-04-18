@@ -160,11 +160,24 @@ type
 
     { For a given position (in world coordinates), return the smooth
       normal vector at this point. It is an interpolated normal
-      from our per-vertex normals in @link(Normal) field.
-      Like them, it is a normal vector in local coordinates.
+      from our per-vertex normals in the @link(Normal) field,
+      thus is supports also the case when you have smooth shading
+      (normals change throughout the triangle).
+
+      Like the @link(Normal) field, the returned vector is
+      a normal vector in the local coordinates.
+      Use @link(INormalWorldSpace) to get a normal vector in scene
+      coordinates.
 
       This assumes that Position actally lies within the triangle. }
     function INormal(const Point: TVector3Single): TVector3Single;
+
+    { For a given position (in world coordinates), return the smooth
+      normal vector at this point, with the resulting normal vector
+      in world coordinates.
+
+      @seealso INormal }
+    function INormalWorldSpace(const Point: TVector3Single): TVector3Single;
     {$endif}
   end;
   PTriangle = ^TTriangle;
@@ -909,6 +922,11 @@ begin
   Result := Normal[0] * B[0] +
             Normal[1] * B[1] +
             Normal[2] * B[2];
+end;
+
+function TTriangle.INormalWorldSpace(const Point: TVector3Single): TVector3Single;
+begin
+  Result := MatrixMultDirection(State.Transform, INormal(Point));
 end;
 
 {$else}
