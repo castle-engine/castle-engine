@@ -3118,7 +3118,8 @@ begin
   Dir := ADir;
   Up := AUp;
   if AdjustUp then
-    MakeVectorsOrthoOnTheirPlane(Up, Dir) else
+    MakeVectorsOrthoOnTheirPlane(Up, Dir)
+  else
     MakeVectorsOrthoOnTheirPlane(Dir, Up);
 
   FRotations := CamDirUp2OrientQuat(Dir, Up).Conjugate;
