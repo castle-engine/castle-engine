@@ -966,9 +966,8 @@ type
       Overloaded version without ProposedNewPos doesn't do wall-sliding,
       and only answers if exactly this move is allowed.
 
-      If this 3D object allows to use sphere as the bounding volume (see @link(Sphere)),
-      then this sphere must be centered around OldPos, not some other point.
-      That is, we assume that @link(Sphere) returns Center that is equal to OldPos.
+      If this 3D object allows to use sphere as the bounding volume,
+      if will be used (see @link(Sphere)).
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
