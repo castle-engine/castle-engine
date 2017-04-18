@@ -471,7 +471,7 @@ type
   TItemOnWorld = class(T3DOrient)
   private
     FItem: TInventoryItem;
-    Rotation, LifeTime: Single;
+    ItemRotation, LifeTime: Single;
   protected
     function GetChild: T3D; override;
   public
@@ -1149,10 +1149,10 @@ begin
     transformation (things taken into account in T3DOrient) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  Rotation += RotationSpeed * SecondsPassed;
+  ItemRotation += RotationSpeed * SecondsPassed;
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := Normalized(AnyOrthogonalVector(U));
-  SetView(RotatePointAroundAxisRad(Rotation, DirectionZero, U), U);
+  SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
 
   if AutoPick and
      (World.Player <> nil) and

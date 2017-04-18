@@ -1472,6 +1472,14 @@ type
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
 
+    { Translation (move) the children. Zero by default.
+      @seealso T3DTransform.Translation }
+    property Translation: TVector3Single read GetTranslation;
+
+    { Rotation in 3D, around a specified axis.
+      @seealso T3DTransform.Rotation }
+    property Rotation: TVector4Single read GetRotation;
+
     { Unconditionally move this 3D object by given vector.
       You usually don't want to use this directly, instead use @link(Move)
       method to move checking collisions (and with optional wall sliding). }
@@ -1483,7 +1491,7 @@ type
 
       Checks move possibility by MoveAllowed, using @link(Middle) point.
       Actual move is done using @link(Translate). }
-    function Move(const Translation: TVector3Single;
+    function Move(const ATranslation: TVector3Single;
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
   end;
@@ -4055,7 +4063,7 @@ begin
   Result := inherited BoundingBox;
 end;
 
-function T3DCustomTransform.Move(const Translation: TVector3Single;
+function T3DCustomTransform.Move(const ATranslation: TVector3Single;
   const BecauseOfGravity, EnableWallSliding: boolean): boolean;
 var
   OldMiddle, ProposedNewMiddle, NewMiddle: TVector3Single;
@@ -4064,11 +4072,11 @@ begin
 
   if EnableWallSliding then
   begin
-    ProposedNewMiddle := OldMiddle + Translation;
+    ProposedNewMiddle := OldMiddle + ATranslation;
     Result := MoveAllowed(OldMiddle, ProposedNewMiddle, NewMiddle, BecauseOfGravity);
   end else
   begin
-    NewMiddle := OldMiddle + Translation;
+    NewMiddle := OldMiddle + ATranslation;
     Result := MoveAllowed(OldMiddle, NewMiddle, BecauseOfGravity);
   end;
 
@@ -4390,7 +4398,7 @@ procedure T3DMoving.BeforeTimeIncrease(
 var
   CurrentBox, NewBox, Box: TBox3D;
   I: Integer;
-  Translation: TVector3Single;
+  MoveTranslation: TVector3Single;
   CurrentTranslation, NewTranslation: TVector3Single;
   SphereRadius: Single;
   Item: T3D;
@@ -4401,14 +4409,14 @@ begin
     NewTranslation := GetTranslationFromTime(NewAnimationTime);
 
     { It often happens that T3DMoving doesn't move at all,
-      and then Translation doesn't change at all
+      and then MoveTranslation doesn't change at all
       (even when compared precisely, without usual epsilon used to compare
       floats). So the check below may be worth the time, we expect
       it will avoid doing actual work. }
 
     if not VectorsPerfectlyEqual(CurrentTranslation, NewTranslation) then
     begin
-      Translation := NewTranslation - CurrentTranslation;
+      MoveTranslation := NewTranslation - CurrentTranslation;
 
       { TODO: it may be sensible to add a pushing method when we compare
         other object's bounding box (never a sphere, and be sure to use
@@ -4436,7 +4444,7 @@ begin
             Box := Item.BoundingBox;
             if Box.Collision(NewBox) or
                Box.Collision(CurrentBox) then
-              T3DCustomTransform(Item).Translate(Translation);
+              T3DCustomTransform(Item).Translate(MoveTranslation);
           end;
         end;
       end else
@@ -4450,13 +4458,13 @@ begin
               if SphereCollisionAssumeTranslation(NewTranslation,
                 Item.Middle, SphereRadius,
                 @World.CollisionIgnoreItem) then
-                T3DCustomTransform(Item).Translate(Translation);
+                T3DCustomTransform(Item).Translate(MoveTranslation);
             end else
             begin
               if BoxCollisionAssumeTranslation(NewTranslation,
                 Item.BoundingBox,
                 @World.CollisionIgnoreItem) then
-                T3DCustomTransform(Item).Translate(Translation);
+                T3DCustomTransform(Item).Translate(MoveTranslation);
             end;
         end;
       end;

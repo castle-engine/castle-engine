@@ -758,18 +758,45 @@ type
     FShape: TShapeNode;
     FGeometry: TLineSetNode;
     FCoord: TCoordinateNode;
-    FTransform, FOuterTransform: TTransformNode;
+    FTransform: TTransformNode;
     procedure SetRender(const Value: boolean);
     procedure SetPosition(const Value: TVector3Single);
-    procedure SetOuterRotation(const Value: TVector4Single);
-    procedure SetScaleFactor(const Value: Single);
+    procedure SetScaleFromBox(const Value: TBox3D);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
-    property Root: TTransformNode read FOuterTransform;
+    property Root: TTransformNode read FTransform;
     property Render: boolean {read GetRender} {} write SetRender;
     property Position: TVector3Single {read GetPosition} {} write SetPosition;
-    property OuterRotation: TVector4Single {read GetPosition} {} write SetOuterRotation;
-    property ScaleFactor: Single {read GetScale} {} write SetScaleFactor;
+    property ScaleFromBox: TBox3D {read GetScale} {} write SetScaleFromBox;
+  end;
+
+  { A scene that can be added as T3DCustomTransform child to visualize
+    it's parameters (bounding volumes and such).
+
+    After constructing it, you must always @link(Attach) it to some
+    parent @link(T3DCustomTransform) instance.
+    It will insert this scene as a child of indicated parent,
+    and also it will follow the parent parameters then (updating
+    itself in every Update, looking at parent properties). }
+  TDebug3DCustomTransform = class(TCastleScene)
+  strict private
+    FBoxTransform: TTransformNode;
+    FBoxShape: TShapeNode;
+    FBox: TBoxNode;
+    FSphereTransform: TTransformNode;
+    FSphereShape: TShapeNode;
+    FSphere: TSphereNode;
+    FMiddleAxis: TDebugAxis;
+    FOuterTransform: TTransformNode;
+    FTransform: TTransformNode;
+    FParent: T3DCustomTransform;
+    procedure UpdateParent;
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Attach(const AParent: T3DCustomTransform);
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    { Add things that are expressed in world-space under this transform. }
+    property RootTransform: TTransformNode read FTransform;
   end;
 
   { Base creature, using any TCreatureResource. }
@@ -786,14 +813,7 @@ type
     FDebugCaptionsText: TTextNode;
     FDebugCaptionsFontStyle: TFontStyleNode;
 
-    FDebug3D: TCastleScene;
-    FDebug3DBoxTransform: TTransformNode;
-    FDebug3DBoxShape: TShapeNode;
-    FDebug3DBox: TBoxNode;
-    FDebug3DSphereTransform: TTransformNode;
-    FDebug3DSphereShape: TShapeNode;
-    FDebug3DSphere: TSphereNode;
-    FDebug3DMiddleAxis: TDebugAxis;
+    FDebug3D: TDebug3DCustomTransform;
 
     procedure SoundRelease(Sender: TSound);
   protected
@@ -1021,9 +1041,6 @@ begin
 
   FTransform := TTransformNode.Create;
   FTransform.FdChildren.Add(FShape);
-
-  FOuterTransform := TTransformNode.Create;
-  FOuterTransform.FdChildren.Add(FTransform);
 end;
 
 procedure TDebugAxis.SetRender(const Value: boolean);
@@ -1036,14 +1053,120 @@ begin
   FTransform.Translation := Value;
 end;
 
-procedure TDebugAxis.SetOuterRotation(const Value: TVector4Single);
+procedure TDebugAxis.SetScaleFromBox(const Value: TBox3D);
+var
+  ScaleFactor: Single;
 begin
-  FOuterTransform.Rotation := Value;
+  ScaleFactor := Value.AverageSize(true, 1) / 2;
+  FTransform.Scale := Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor);
 end;
 
-procedure TDebugAxis.SetScaleFactor(const Value: Single);
+{ TDebug3DCustomTransform ---------------------------------------------------- }
+
+constructor TDebug3DCustomTransform.Create(AOwner: TComponent);
+var
+  Root: TX3DRootNode;
 begin
-  FTransform.Scale := Vector3Single(Value, Value, Value);
+  inherited;
+
+  FBox := TBoxNode.Create;
+
+  FBoxShape := TShapeNode.Create;
+  FBoxShape.Geometry := FBox;
+  FBoxShape.Shading := shWireframe;
+
+  FBoxShape.Material := TMaterialNode.Create;
+  FBoxShape.Material.ForcePureEmissive;
+  FBoxShape.Material.EmissiveColor := GrayRGB;
+
+  FBoxTransform := TTransformNode.Create;
+  FBoxTransform.FdChildren.Add(FBoxShape);
+
+  FSphere := TSphereNode.Create;
+  FSphere.Slices := 10;
+  FSphere.Stacks := 10;
+
+  FSphereShape := TShapeNode.Create;
+  FSphereShape.Geometry := FSphere;
+  FSphereShape.Shading := shWireframe;
+
+  FSphereShape.Material := TMaterialNode.Create;
+  FSphereShape.Material.ForcePureEmissive;
+  FSphereShape.Material.EmissiveColor := GrayRGB;
+
+  FSphereTransform := TTransformNode.Create;
+  FSphereTransform.FdChildren.Add(FSphereShape);
+
+  FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
+
+  FTransform := TTransformNode.Create;
+  FTransform.FdChildren.Add(FBoxTransform);
+  FTransform.FdChildren.Add(FSphereTransform);
+  FTransform.FdChildren.Add(FMiddleAxis.Root);
+
+  FOuterTransform := TTransformNode.Create;
+  FOuterTransform.FdChildren.Add(FTransform);
+
+  Root := TX3DRootNode.Create;
+  Root.FdChildren.Add(FOuterTransform);
+
+  Load(Root, true);
+  Collides := false;
+  Pickable := false;
+  CastShadowVolumes := false;
+  ExcludeFromStatistics := true;
+  InternalExcludeFromParentBoundingVolume := true;
+end;
+
+procedure TDebug3DCustomTransform.Attach(const AParent: T3DCustomTransform);
+begin
+  FParent := AParent;
+  FParent.Add(Self);
+
+  { call Update explicitly for the 1st time, to initialize everything now }
+  UpdateParent;
+end;
+
+procedure TDebug3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+begin
+  inherited;
+  if FParent <> nil then // do not update if not attached to parent
+    UpdateParent;
+end;
+
+procedure TDebug3DCustomTransform.UpdateParent;
+var
+  BBox: TBox3D;
+  R: Single;
+begin
+  { resign when FParent.World unset, then Middle and PreferredHeight
+    cannot be calculated yet }
+  if FParent.World = nil then Exit;
+
+  // update FOuterTransform, FTransform to cancel parent's transformation
+  FOuterTransform.Rotation := RotationNegate(FParent.Rotation);
+  FTransform.Translation := -FParent.Translation;
+
+  // show FParent.BoundingBox
+  BBox := FParent.BoundingBox;
+  FBoxShape.Render := not BBox.IsEmpty;
+  if FBoxShape.Render then
+  begin
+    FBox.Size := BBox.Size;
+    FBoxTransform.Translation := BBox.Center;
+  end;
+
+  // show FParent.Sphere
+  FSphereShape.Render := FParent.Sphere(R);
+  if FSphereShape.Render then
+  begin
+    FSphereTransform.Translation := FParent.Middle;
+    FSphere.Radius := R;
+  end;
+
+  // show FParent.Middle
+  FMiddleAxis.Position := FParent.Middle;
+  FMiddleAxis.ScaleFromBox := BBox;
 end;
 
 { TCreatureResource -------------------------------------------------------------- }
@@ -1520,95 +1643,16 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
   end;
 
   procedure UpdateDebug3D;
-  var
-    Root: TX3DRootNode;
-    BBox: TBox3D;
-    R: Single;
   begin
     if RenderDebug3D and (FDebug3D = nil) then
     begin
       { create FDebug3D on demand }
-
-      FDebug3DBox := TBoxNode.Create;
-
-      FDebug3DBoxShape := TShapeNode.Create;
-      FDebug3DBoxShape.Geometry := FDebug3DBox;
-      FDebug3DBoxShape.Shading := shWireframe;
-
-      FDebug3DBoxShape.Material := TMaterialNode.Create;
-      FDebug3DBoxShape.Material.ForcePureEmissive;
-      FDebug3DBoxShape.Material.EmissiveColor := GrayRGB;
-
-      FDebug3DBoxTransform := TTransformNode.Create;
-      FDebug3DBoxTransform.FdChildren.Add(FDebug3DBoxShape);
-
-      FDebug3DSphere := TSphereNode.Create;
-      FDebug3DSphere.Slices := 10;
-      FDebug3DSphere.Stacks := 10;
-
-      FDebug3DSphereShape := TShapeNode.Create;
-      FDebug3DSphereShape.Geometry := FDebug3DSphere;
-      FDebug3DSphereShape.Shading := shWireframe;
-
-      FDebug3DSphereShape.Material := TMaterialNode.Create;
-      FDebug3DSphereShape.Material.ForcePureEmissive;
-      FDebug3DSphereShape.Material.EmissiveColor := GrayRGB;
-
-      FDebug3DSphereTransform := TTransformNode.Create;
-      FDebug3DSphereTransform.FdChildren.Add(FDebug3DSphereShape);
-
-      FDebug3DMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
-
-      Root := TX3DRootNode.Create;
-      Root.FdChildren.Add(FDebug3DBoxTransform);
-      Root.FdChildren.Add(FDebug3DSphereTransform);
-      Root.FdChildren.Add(FDebug3DMiddleAxis.Root);
-
-      FDebug3D := TCastleScene.Create(Self);
-      FDebug3D.Load(Root, true);
-      FDebug3D.Collides := false;
-      FDebug3D.Pickable := false;
-      FDebug3D.CastShadowVolumes := false;
-      FDebug3D.ExcludeFromStatistics := true;
-      FDebug3D.InternalExcludeFromParentBoundingVolume := true;
-
-      Add(FDebug3D);
+      FDebug3D := TDebug3DCustomTransform.Create(Self);
+      FDebug3D.Attach(Self);
     end;
 
     if FDebug3D <> nil then
       FDebug3D.Exists := RenderDebug3D;
-
-    if RenderDebug3D then
-    begin
-      if GetChild <> nil then
-        BBox := GetChild.BoundingBox
-      else
-        BBox := TBox3D.Empty;
-      FDebug3DBoxShape.Render := not BBox.IsEmpty;
-      if FDebug3DBoxShape.Render then
-      begin
-        FDebug3DBox.Size := BBox.Size;
-        FDebug3DBoxTransform.Translation := BBox.Center;
-      end;
-
-      FDebug3DSphereShape.Render := Sphere(R);
-      if FDebug3DSphereShape.Render then
-      begin
-        { Move the sphere center to be at Middle.
-          Subtract GetTranslation, because FDebug3D scene is already
-          at GetTranslation. }
-        FDebug3DSphereTransform.Translation := Middle - GetTranslation;
-        FDebug3DSphere.Radius := R;
-      end;
-
-      { Move FDebug3DMiddleAxisTransform to be at Middle.
-        Subtract GetTranslation, because FDebug3D scene is already
-        at GetTranslation. }
-      FDebug3DMiddleAxis.Position := Middle - GetTranslation;
-      // not needed to visualize Middle
-      //FDebug3DMiddleAxis.OuterRotation := RotationNegate(GetRotation);
-      FDebug3DMiddleAxis.ScaleFactor := GetChild.BoundingBox.AverageSize(true, 1);
-    end;
   end;
 
   procedure UpdateDebugCaptions;
@@ -2432,26 +2476,24 @@ var
       if FDebug3DAlternativeTargetAxis = nil then
       begin
         FDebug3DAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
-        FDebug3D.RootNode.FdChildren.Add(FDebug3DAlternativeTargetAxis.Root);
+        FDebug3D.RootTransform.FdChildren.Add(FDebug3DAlternativeTargetAxis.Root);
         FDebug3D.ChangedAll;
       end;
 
       FDebug3DAlternativeTargetAxis.Render := HasAlternativeTarget;
-      FDebug3DAlternativeTargetAxis.ScaleFactor := BoundingBox.AverageSize(true, 1);
-      FDebug3DAlternativeTargetAxis.Position := AlternativeTarget - GetTranslation;
-      FDebug3DAlternativeTargetAxis.OuterRotation := RotationNegate(GetRotation);
+      FDebug3DAlternativeTargetAxis.ScaleFromBox := BoundingBox;
+      FDebug3DAlternativeTargetAxis.Position := AlternativeTarget;
 
       if FDebug3DLastSensedEnemyAxis = nil then
       begin
         FDebug3DLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
-        FDebug3D.RootNode.FdChildren.Add(FDebug3DLastSensedEnemyAxis.Root);
+        FDebug3D.RootTransform.FdChildren.Add(FDebug3DLastSensedEnemyAxis.Root);
         FDebug3D.ChangedAll;
       end;
 
       FDebug3DLastSensedEnemyAxis.Render := HasLastSensedEnemy;
-      FDebug3DLastSensedEnemyAxis.ScaleFactor := BoundingBox.AverageSize(true, 1);
-      FDebug3DLastSensedEnemyAxis.Position := LastSensedEnemy - GetTranslation;
-      FDebug3DLastSensedEnemyAxis.OuterRotation := RotationNegate(GetRotation);
+      FDebug3DLastSensedEnemyAxis.ScaleFromBox := BoundingBox;
+      FDebug3DLastSensedEnemyAxis.Position := LastSensedEnemy;
     end;
   end;
 
