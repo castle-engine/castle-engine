@@ -76,19 +76,33 @@ type
     { Position, in local coordinate system of this 3D object,
       of the picked 3D point.
 
-      If the ray hit empty space, this is undefined.
-      Note that only MainScene is informed about pointing device events
-      when the ray hit empty space. }
+      If the ray hit empty space (@link(Item) field is @nil),
+      then this is undefined.
+      Note that only @link(TCastleSceneManager.MainScene) is informed about pointing
+      device events when the ray hit empty space, so this is an unusual case.
+    }
     Point: TVector3Single;
 
     { Triangle that was hit. This triangle is always a part of @link(Item).
 
-      If the ray hit empty space, this is @nil.
-      Note that only TCastleSceneManager.MainScene is informed about pointing
+      If the ray hit empty space (@link(Item) field is @nil),
+      then this is @nil.
+      Note that only @link(TCastleSceneManager.MainScene) is informed about pointing
       device events when the ray hit empty space, so this is an unusual case.
 
       May also be @nil if RayCollision implementation for the 3D object
-      simply left it @nil. Right now, only TCastleScene sets this field. }
+      simply left it @nil. For example,
+
+      @unorderedList(
+        @item(If the collision occured with a TCastleSceneCore with
+          @link(TCastleSceneCore.Spatial) that includes a collidable
+          structure (ssDynamicCollisions or ssStaticCollisions),
+          then this triangle is set.)
+
+        @item(If the collision occured merely with a T3D bounding box,
+          the triangle is left as @nil.)
+      )
+    }
     Triangle: P3DTriangle;
 
     { Ray used to cause the collision,
@@ -285,7 +299,8 @@ type
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
-    FExcludeFromGlobalLights, FExcludeFromStatistics: boolean;
+    FExcludeFromGlobalLights, FExcludeFromStatistics,
+      FInternalExcludeFromParentBoundingVolume: boolean;
     FWorld: T3DWorld;
     procedure SetCursor(const Value: TMouseCursor);
   protected
@@ -977,6 +992,20 @@ type
       In case of scenes that are children of TCastlePrecalculatedAnimation,
       their Shared methods all point to the 1st animation scene. }
     function Shared: T3D; virtual;
+
+    { Is this object's bounding volume (@link(BoundingBox))
+      included in parent bounding volume.
+      This should be always @true for non-debug scenes.
+      Violating this may cause rendering artifacts, things could
+      disappear when they should not.
+      Using this is reasonable only if you attach a debug geometry
+      to your scene, and you don't want to enlarge your bounding volume
+      (e.g. because this debug geometry visualizes something determined
+      by the bounding volume, and it would create a "feedback loop"
+      if the visualization itself would enlarge the bounding box). }
+    property InternalExcludeFromParentBoundingVolume: boolean
+      read FInternalExcludeFromParentBoundingVolume
+      write FInternalExcludeFromParentBoundingVolume;
   published
     { If this 3D object is rendered as part of TCastleSceneManager,
       and TCastleSceneManager.UseGlobalLights is @true, then this property allows
@@ -1260,19 +1289,12 @@ type
       and the TransformMatricesMult will automatically work correctly already.
 
       More complicated descendants may override TransformMatricesMult,
-      and then GetCenter, GetRotation etc. methods can be ignored
-      (if your TransformMatricesMult will not use it, then GetCenter, GetRotation
-      will not be used at all and there's no point in overriding them).
-      You still need to override
-
-      @unorderedList(
-        @item OnlyTranslation
-        @item(GetTranslation (it's used by default Middle implementation,
-          and it's also used in case OnlyTranslation returns @true),)
-        @item(And make sure AverageScale is correct
-          (if you want it to be <> 1, that is: if your transformation
-          may make some scale, then you need to override GetScale).)
-      )
+      thus directly affecting the transformation.
+      They should @italic(still) also override other methods to make sure
+      that they return correct results (OnlyTranslation, GetTranslation,
+      GetRotation, GetScale and friends...).
+      They are seldom used (outside of the default TransformMatricesMult
+      implementation), but are used.
 
       @groupBegin }
     function GetTranslation: TVector3Single; virtual;
@@ -1293,7 +1315,7 @@ type
 
     { Transformation matrix.
       You can override this to derive transformation using anything,
-      not necessarily GetTranslation / GetCenter etc. methods.
+      not necessarily from GetTranslation / GetCenter etc. methods.
 
       This method must produce matrices that preserve points as points
       and directions as directions in homegeneous space.
@@ -1620,9 +1642,8 @@ type
   protected
     procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
     function OnlyTranslation: boolean; override;
-    { T3DOrient overrides GetTranslation to return Position, this will be used
-      by T3DCustomTransform.Middle. }
     function GetTranslation: TVector3Single; override;
+    function GetRotation: TVector4Single; override;
   public
     { Default value of T3DOrient.Orientation, for new instances of T3DOrient
       (creatures, items, player etc.). }
@@ -2781,10 +2802,12 @@ begin
   Result := EmptyBox3D;
   if GetExists then
   begin
-    if GetChild <> nil then
+    if (GetChild <> nil) and
+       (not GetChild.InternalExcludeFromParentBoundingVolume) then
       Result.Add(GetChild.BoundingBox);
     for I := 0 to List.Count - 1 do
-      Result.Add(List[I].BoundingBox);
+      if not List[I].InternalExcludeFromParentBoundingVolume then
+        Result.Add(List[I].BoundingBox);
   end;
 end;
 
@@ -4274,6 +4297,15 @@ end;
 function T3DOrient.GetTranslation: TVector3Single;
 begin
   Result := Camera.Position;
+end;
+
+function T3DOrient.GetRotation: TVector4Single;
+var
+  APos, ADir, AUp: TVector3Single;
+begin
+  Camera.GetView(APos, ADir, AUp);
+  { TODO: Is this correct also for TOrientationType <> otUpYDirectionMinusZ? }
+  Result := CamDirUp2Orient(ADir, AUp);
 end;
 
 { T3DMoving --------------------------------------------------------- }

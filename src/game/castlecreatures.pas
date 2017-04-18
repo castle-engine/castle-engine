@@ -752,6 +752,26 @@ type
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
+  { 3D axis, as an X3D node, to easily visualize debug things. }
+  TDebugAxis = class(TComponent)
+  strict private
+    FShape: TShapeNode;
+    FGeometry: TLineSetNode;
+    FCoord: TCoordinateNode;
+    FTransform, FOuterTransform: TTransformNode;
+    procedure SetRender(const Value: boolean);
+    procedure SetPosition(const Value: TVector3Single);
+    procedure SetOuterRotation(const Value: TVector4Single);
+    procedure SetScaleFactor(const Value: Single);
+  public
+    constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
+    property Root: TTransformNode read FOuterTransform;
+    property Render: boolean {read GetRender} {} write SetRender;
+    property Position: TVector3Single {read GetPosition} {} write SetPosition;
+    property OuterRotation: TVector4Single {read GetPosition} {} write SetOuterRotation;
+    property ScaleFactor: Single {read GetScale} {} write SetScaleFactor;
+  end;
+
   { Base creature, using any TCreatureResource. }
   TCreature = class(T3DAlive)
   private
@@ -773,6 +793,7 @@ type
     FDebug3DSphereTransform: TTransformNode;
     FDebug3DSphereShape: TShapeNode;
     FDebug3DSphere: TSphereNode;
+    FDebug3DMiddleAxis: TDebugAxis;
 
     procedure SoundRelease(Sender: TSound);
   protected
@@ -798,9 +819,6 @@ type
     function GetExists: boolean; override;
 
     property Resource: TCreatureResource read FResource;
-
-    procedure Render(const Frustum: TFrustum;
-      const Params: TRenderParams); override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
@@ -875,6 +893,9 @@ type
     WaypointsSaved_End: TSector;
     WaypointsSaved: TWaypointList;
     MiddleForceBoxTime: Single;
+
+    FDebug3DAlternativeTargetAxis: TDebugAxis;
+    FDebug3DLastSensedEnemyAxis: TDebugAxis;
   protected
     { Last known information about enemy. }
     HasLastSensedEnemy: boolean;
@@ -929,7 +950,6 @@ type
     property State: TCreatureState read FState default csIdle;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
       const AKnockbackDistance: Single; const Attacker: T3DAlive); override;
@@ -975,6 +995,56 @@ uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils,
 
 var
   DisableCreatures: Cardinal;
+
+{ TDebugAxis ----------------------------------------------------------------- }
+
+constructor TDebugAxis.Create(const AOwner: TComponent; const Color: TCastleColorRGB);
+begin
+  inherited Create(AOwner);
+
+  FCoord := TCoordinateNode.Create;
+  FCoord.FdPoint.Items.AddArray([
+    Vector3Single(-1,  0,  0), Vector3Single(1, 0, 0),
+    Vector3Single( 0, -1,  0), Vector3Single(0, 1, 0),
+    Vector3Single( 0,  0, -1), Vector3Single(0, 0, 1)
+  ]);
+
+  FGeometry := TLineSetNode.Create;
+  FGeometry.FdVertexCount.Items.AddArray([2, 2, 2]);
+  FGeometry.FdCoord.Value := FCoord;
+
+  FShape := TShapeNode.Create;
+  FShape.Geometry := FGeometry;
+  FShape.Material := TMaterialNode.Create;
+  FShape.Material.ForcePureEmissive;
+  FShape.Material.EmissiveColor := Color;
+
+  FTransform := TTransformNode.Create;
+  FTransform.FdChildren.Add(FShape);
+
+  FOuterTransform := TTransformNode.Create;
+  FOuterTransform.FdChildren.Add(FTransform);
+end;
+
+procedure TDebugAxis.SetRender(const Value: boolean);
+begin
+  FShape.Render := Value;
+end;
+
+procedure TDebugAxis.SetPosition(const Value: TVector3Single);
+begin
+  FTransform.Translation := Value;
+end;
+
+procedure TDebugAxis.SetOuterRotation(const Value: TVector4Single);
+begin
+  FOuterTransform.Rotation := Value;
+end;
+
+procedure TDebugAxis.SetScaleFactor(const Value: Single);
+begin
+  FTransform.Scale := Vector3Single(Value, Value, Value);
+end;
 
 { TCreatureResource -------------------------------------------------------------- }
 
@@ -1413,37 +1483,6 @@ begin
   Result := Lerp(A, Position, Middle);
 end;
 
-procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
-
-  {$ifndef OpenGLES} // TODO-es
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
-  procedure DebugBoundingVolumes;
-  begin
-    glColorv(Yellow);
-    glDrawAxisWire(Middle, GetChild.BoundingBox.AverageSize(true, 0));
-  end;
-  {$warnings on}
-  {$endif}
-
-begin
-  inherited;
-
-  {$ifndef OpenGLES} // TODO-es
-  if (RenderDebugCaptions or RenderDebug3D) and
-     GetExists and Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
-     (not Params.Transparent) and Params.ShadowVolumesReceivers then
-  begin
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glEnable(GL_DEPTH_TEST);
-      if RenderDebug3D then
-        DebugBoundingVolumes;
-    glPopAttrib;
-  end;
-  {$endif}
-end;
-
 procedure TCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 begin
   Lines.Add(Format('%s [%s / %s]',
@@ -1518,14 +1557,20 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebug3DSphereTransform := TTransformNode.Create;
       FDebug3DSphereTransform.FdChildren.Add(FDebug3DSphereShape);
 
+      FDebug3DMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
+
       Root := TX3DRootNode.Create;
       Root.FdChildren.Add(FDebug3DBoxTransform);
       Root.FdChildren.Add(FDebug3DSphereTransform);
+      Root.FdChildren.Add(FDebug3DMiddleAxis.Root);
 
       FDebug3D := TCastleScene.Create(Self);
       FDebug3D.Load(Root, true);
       FDebug3D.Collides := false;
       FDebug3D.Pickable := false;
+      FDebug3D.CastShadowVolumes := false;
+      FDebug3D.ExcludeFromStatistics := true;
+      FDebug3D.InternalExcludeFromParentBoundingVolume := true;
 
       Add(FDebug3D);
     end;
@@ -1549,10 +1594,20 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebug3DSphereShape.Render := Sphere(R);
       if FDebug3DSphereShape.Render then
       begin
-        { move the sphere center to be at Middle }
+        { Move the sphere center to be at Middle.
+          Subtract GetTranslation, because FDebug3D scene is already
+          at GetTranslation. }
         FDebug3DSphereTransform.Translation := Middle - GetTranslation;
         FDebug3DSphere.Radius := R;
       end;
+
+      { Move FDebug3DMiddleAxisTransform to be at Middle.
+        Subtract GetTranslation, because FDebug3D scene is already
+        at GetTranslation. }
+      FDebug3DMiddleAxis.Position := Middle - GetTranslation;
+      // not needed to visualize Middle
+      //FDebug3DMiddleAxis.OuterRotation := RotationNegate(GetRotation);
+      FDebug3DMiddleAxis.ScaleFactor := GetChild.BoundingBox.AverageSize(true, 1);
     end;
   end;
 
@@ -1585,6 +1640,9 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptions.Load(Root, true);
       FDebugCaptions.Collides := false;
       FDebugCaptions.Pickable := false;
+      FDebugCaptions.CastShadowVolumes := false;
+      FDebugCaptions.ExcludeFromStatistics := true;
+      FDebugCaptions.InternalExcludeFromParentBoundingVolume := true;
 
       Add(FDebugCaptions);
     end;
@@ -2367,6 +2425,36 @@ var
       RemoveMe := rtRemoveAndFree;
   end;
 
+  procedure UpdateDebug3D;
+  begin
+    if RenderDebug3D then
+    begin
+      if FDebug3DAlternativeTargetAxis = nil then
+      begin
+        FDebug3DAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
+        FDebug3D.RootNode.FdChildren.Add(FDebug3DAlternativeTargetAxis.Root);
+        FDebug3D.ChangedAll;
+      end;
+
+      FDebug3DAlternativeTargetAxis.Render := HasAlternativeTarget;
+      FDebug3DAlternativeTargetAxis.ScaleFactor := BoundingBox.AverageSize(true, 1);
+      FDebug3DAlternativeTargetAxis.Position := AlternativeTarget - GetTranslation;
+      FDebug3DAlternativeTargetAxis.OuterRotation := RotationNegate(GetRotation);
+
+      if FDebug3DLastSensedEnemyAxis = nil then
+      begin
+        FDebug3DLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
+        FDebug3D.RootNode.FdChildren.Add(FDebug3DLastSensedEnemyAxis.Root);
+        FDebug3D.ChangedAll;
+      end;
+
+      FDebug3DLastSensedEnemyAxis.Render := HasLastSensedEnemy;
+      FDebug3DLastSensedEnemyAxis.ScaleFactor := BoundingBox.AverageSize(true, 1);
+      FDebug3DLastSensedEnemyAxis.Position := LastSensedEnemy - GetTranslation;
+      FDebug3DLastSensedEnemyAxis.OuterRotation := RotationNegate(GetRotation);
+    end;
+  end;
+
 var
   E: T3DOrient;
 begin
@@ -2427,6 +2515,8 @@ begin
     to initial value, which is GravityUp. }
   if not Gravity then
     UpPrefer(World.GravityUp);
+
+  UpdateDebug3D;
 end;
 
 function TWalkAttackCreature.GetChild: T3D;
@@ -2575,37 +2665,6 @@ begin
     LastSensedEnemy := Attacker.Middle;
     LastSensedEnemySector := Attacker.Sector;
   end;
-end;
-
-procedure TWalkAttackCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
-{$ifndef OpenGLES} // TODO-es
-var
-  AxisSize: Single;
-{$endif}
-begin
-  inherited;
-
-  {$ifndef OpenGLES} // TODO-es
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
-  if RenderDebug3D and GetExists and
-     (not Params.Transparent) and Params.ShadowVolumesReceivers then
-  begin
-    AxisSize := BoundingBox.AverageSize(true, 0);
-    if HasAlternativeTarget then
-    begin
-      glColorv(Blue);
-      glDrawAxisWire(AlternativeTarget, AxisSize);
-    end;
-
-    if HasLastSensedEnemy then
-    begin
-      glColorv(Red);
-      glDrawAxisWire(LastSensedEnemy, AxisSize);
-    end;
-  end;
-  {$warnings on}
-  {$endif}
 end;
 
 { TMissileCreature ----------------------------------------------------------- }
