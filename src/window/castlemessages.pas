@@ -88,10 +88,6 @@
 
 unit CastleMessages;
 
-{ TODO:
-  - blinking cursor for MessageInput[Query] woul be useful
-}
-
 {$I castleconf.inc}
 
 interface
