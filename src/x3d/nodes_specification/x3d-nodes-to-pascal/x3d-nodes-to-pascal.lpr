@@ -51,6 +51,8 @@ begin
            'Available options:' +NL+
            '  -h / --help           Print this help message and exit' +NL+
            '  -v / --version        Print the version and exit' +NL+
+           '  --verbose             Be verbose' +NL+
+           '  --output=helper|template  Choose the output type' +NL+
            NL+
            SCastleEngineProgramHelpSuffix('x3d-nodes-to-pascal', CastleEngineVersion, true));
          Halt;
