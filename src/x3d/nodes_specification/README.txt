@@ -2,10 +2,8 @@ The components/ subdirectory contains X3D nodes specification
 in a simple text format (more-or-less pasted from X3D specifications).
 
 They are parsed by the x3d-nodes-to-pascal program, that can generate node
-"helper" methods, placed in the ../auto_generated_node_helpers/ directory.
-
-In the past, these files were used to automatically generate parts of
-the X3DNodes unit, using the program in old_x3d_nodes_spec_to_pascal.
+"helper" methods, placed in the ../auto_generated_node_helpers/ directory,
+or the templates (useful to automatically generate parts of the X3DNodes unit).
 
 ------------------------------------------------------------------------------
 Historical notes how the initial files in components/ were created:
