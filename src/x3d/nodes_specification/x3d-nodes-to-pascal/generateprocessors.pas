@@ -781,7 +781,9 @@ end;
 
 procedure TTemplateProcessor.NodeEnd(const Node: TX3DNodeInformation);
 begin
-  OutputInterface +='  end;' + NL + NL;
+  OutputInterface += NL +
+    '    {$I auto_generated_node_helpers/x3dnodes_' + LowerCase(Node.X3DType) + '.inc}' + NL +
+    '  end;' + NL + NL;
 
   if not Node.IsInterface then
   begin

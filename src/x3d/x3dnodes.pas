@@ -2356,6 +2356,7 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
@@ -2574,7 +2575,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmenttexturenode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dfogobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
@@ -2587,7 +2587,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dmetadataobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
@@ -2598,7 +2597,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dpickableobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
@@ -2618,7 +2616,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3durlobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}

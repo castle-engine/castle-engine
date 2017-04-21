@@ -119,11 +119,6 @@ type
   ['{2D631FBF-683B-4259-A98D-74589893447C}']
     property FdName: TSFString { read GetFdname }; { }
     property FdReference: TSFString { read GetFdreference }; { }
-
-    // We insert x3dnodes_x3dmetadataobject.inc to the interface,
-    // as we don't have a relevant class right now.
-    // Since x3dnodes_x3dmetadataobject.inc is empty for now, this is OK.
-    {$I auto_generated_node_helpers/x3dnodes_x3dmetadataobject.inc}
   end;
 
   { Base interface type for all sensors.

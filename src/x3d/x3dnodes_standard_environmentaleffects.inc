@@ -88,8 +88,6 @@
     property TransformScale: Single read GetTransformScale;
 
     function FogType: TFogType;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dfogobject.inc}
   end;
 
   { 3D background of a scene, comprised of sky and ground colors (gradients)

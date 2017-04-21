@@ -19,8 +19,6 @@
   ['{700E1CE8-97BD-44D2-A60F-D8639F4E72EC}']
     property FdObjectType: TMFString { read GetFdobjectType }; { }
     property FdPickable: TSFBool { read GetFdpickable }; { }
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dpickableobject.inc}
   end;
 
   TAbstractPickSensorNode = class(TAbstractSensorNode)
