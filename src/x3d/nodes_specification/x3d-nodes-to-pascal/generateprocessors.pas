@@ -105,6 +105,8 @@ var
 
 implementation
 
+uses DateUtils;
+
 procedure WritelnVerbose(const S: string);
 begin
   if Verbose then
@@ -187,7 +189,13 @@ end;
 
 function TX3DFieldInformation.PascalClass: string;
 begin
-  Result := 'T' + X3DType;
+  if AccessType in [atInputOnly, atOutputOnly] then
+    Result := 'T' + X3DType + 'Event'
+  else
+  if IsEnumString then
+    Result := 'TSFStringEnum'
+  else
+    Result := 'T' + X3DType;
 end;
 
 function TX3DFieldInformation.PascalHelperType: string;
@@ -294,6 +302,10 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
 
       In case of problems, the unparsed field's value will be in Field.Comment.  }
 
+    // skip whitespace, to make following test for '[' useful
+    while SCharIs(Line, SeekPos, WhiteSpaces) do
+      Inc(SeekPos);
+
     if SCharIs(Line, SeekPos, '[') then
     begin
       Field.DefaultValue := '[';
@@ -344,18 +356,31 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
     begin
       Field.DefaultValue := 'Matrix4Single(';
 
-      for I := 1 to 3 do
+      if NextTokenOnce(Line, SeekPos, WhiteSpaces) = 'identity' then
       begin
+        if Field.X3DType = 'SFMatrix4f' then
+          Field.DefaultValue := 'IdentityMatrix4Single'
+        else
+        if Field.X3DType = 'SFMatrix4d' then
+          Field.DefaultValue := 'IdentityMatrix4Double';
+
+        // just to advance SeekPos
+        NextToken(Line, SeekPos, WhiteSpaces);
+      end else
+      begin
+        for I := 1 to 3 do
+        begin
+          Field.DefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '),' + NL;
+        end;
+
         Field.DefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
         Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
         Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
-        Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '),' + NL;
+        Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '));';
       end;
-
-      Field.DefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
-      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
-      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
-      Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '));';
     end else
     begin
     if (Field.X3DType = 'SFRotation') or
@@ -375,6 +400,10 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
     StringReplaceAllVar(Field.DefaultValue, 'TRUE', 'true', false);
 
     Field.Comment := Trim(SEnding(Line, SeekPos));
+
+    // cut off initial '# ' from Field.Comment
+    if SCharIs(Field.Comment, 1, '#') then
+      Field.Comment := Trim(SEnding(Field.Comment, 2));
   end;
 
 var
@@ -539,7 +568,7 @@ procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
     StringToFile(OutputFileName,
       '{ -*- buffer-read-only: t -*-' + NL +
       '' + NL +
-      '  Copyright 2015-2017 Michalis Kamburelis.' + NL +
+      '  Copyright 2015-' + IntToStr(YearOf(Now)) + ' Michalis Kamburelis.' + NL +
       '' + NL +
       '  This file is part of "Castle Game Engine".' + NL +
       '' + NL +
@@ -612,6 +641,7 @@ procedure TTemplateProcessor.NodeBegin(const Node: TX3DNodeInformation);
 var
   I: Integer;
 begin
+  OutputInterface += '  { TODO: place at least one short sentence describing the node class. }' + NL;
   OutputInterface += '  ' + Node.PascalType + ' = ';
   if Node.IsInterface then
     OutputInterface += 'interface'
@@ -641,7 +671,7 @@ begin
   begin
     OutputInterface +=
       '  public' + NL +
-      '    constructor Create(const AX3DName: string; const ABaseUrl: string); override;' + NL;
+      '    procedure CreateNode; override;' + NL;
 
     if not IsAbstract then
       OutputInterface +=
@@ -649,8 +679,9 @@ begin
         '    class function URNMatching(const URN: string): boolean; override;' + NL;
 
     OutputImplementation +=
-      'constructor ' + Node.PascalType + '.Create(const AX3DName: string;' + NL +
-      '  const ABaseUrl: string);' + NL +
+      '{ ' + Node.PascalType + ' ----------------------------------------------------- }' + NL +
+      NL+
+      'procedure ' + Node.PascalType + '.CreateNode;' + NL +
       'begin' + NL +
       '  inherited;' + NL;
 
@@ -669,8 +700,10 @@ procedure TTemplateProcessor.NodeField(const Node: TX3DNodeInformation;
   const Field: TX3DFieldInformation);
 var
   EventInOrOut: string;
-  NodeFieldAllowedChildren, FieldExposedLine: string;
+  NodeFieldAllowedChildren, FieldConfigure: string;
 begin
+  FieldConfigure := '';
+
   if Field.AccessType in [atInputOnly, atOutputOnly] then
   begin
     if Field.AccessType = atInputOnly then
@@ -679,34 +712,34 @@ begin
       EventInOrOut := 'out';
     if IsInterface then
       OutputInterface +=
-        '    { Event: ' + Field.X3DType + ', ' + EventInOrOut + ' } { }' + NL +
-        '    property ' + Field.PascalNamePrefixed + ': TX3DEvent { read Get' + Field.PascalNamePrefixed + ' };' + NL else
+        '    { Event ' + EventInOrOut + ' } { }' + NL +
+        '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL else
     begin
       OutputInterface +=
         NL +
-        '    { Event: ' + Field.X3DType + ', ' + EventInOrOut + ' } { }' + NL +
-        '    private F' + Field.PascalNamePrefixed + ': TX3DEvent;' + NL +
-        '    public property ' + Field.PascalNamePrefixed + ': TX3DEvent read F' + Field.PascalNamePrefixed + ';' + NL;
+        '    { Event ' + EventInOrOut + ' } { }' + NL +
+        '    private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       OutputImplementation +=
         NL +
-        '  F' + Field.PascalNamePrefixed + ' := TX3DEvent.Create(''' + Field.X3DName + ''', ' + Field.PascalClass + ', ' + LowerCase(BoolToStr(Field.AccessType = atInputOnly, true)) + ');' + NL +
+        '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(''' + Field.X3DName + ''', ' + Field.PascalClass + ', ' + LowerCase(BoolToStr(Field.AccessType = atInputOnly, true)) + ');' + NL +
         '  AddEvent(F' + Field.PascalNamePrefixed + ');' + NL;
     end;
   end else
   begin
     if IsInterface then
       OutputInterface +=
-        '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' { read Get' + Field.PascalNamePrefixed + ' }; { }' + NL else
+        '    property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL else
     begin
       OutputInterface +=
         NL +
         '    private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
+      FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry]; // TODO: adjust if necessary' + NL;
       if Field.AccessType = atInitializeOnly then
-        FieldExposedLine := '  F' + Field.PascalNamePrefixed + '.Exposed := false;' + NL else
-        FieldExposedLine := '';
+        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.Exposed := false;' + NL;
 
       if Field.IsNode then
       begin
@@ -714,25 +747,29 @@ begin
           for MFNode, X3D specification switches them in many places
           --- too many to fix them, it's easier to just ignore
           the difference here. }
-        Assert( (Field.DefaultValue = 'NULL') or
-                (Field.DefaultValue = '[]') );
+        if (Field.DefaultValue <> 'NULL') and
+           (Field.DefaultValue <> '[]') then
+          raise EInvalidSpecificationFile.Create('Invalid default SFNode / MFNode value: ' + Field.DefaultValue);
 
-        Assert(Field.Comment <> '');
-        Assert(Field.Comment[1] = '[');
-        Assert(Field.Comment[Length(Field.Comment)] = ']');
+        if not
+          ((Field.Comment <> '') and
+           (Field.Comment[1] = '[') and
+           (Field.Comment[Length(Field.Comment)] = ']')) then
+          raise EInvalidSpecificationFile.Create('Invalid SFNode / MFNode comment, should describe allowed classes in [xxx]: ' + Field.Comment);
+
         NodeFieldAllowedChildren := Copy(Field.Comment, 2, Length(Field.Comment) - 2);
 
         OutputImplementation +=
           NL +
           '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', [' + NodeFieldAllowedChildren + ']);' + NL +
-          FieldExposedLine +
+          FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL;
       end else
       begin
         OutputImplementation +=
           NL +
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(''' + Field.X3DName + ''', ' + Field.DefaultValue + ');' + NL +
-          FieldExposedLine +
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');' + NL +
+          FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL;
         if Field.Comment <> '' then
           OutputImplementation +=
@@ -768,14 +805,34 @@ begin
 end;
 
 procedure TTemplateProcessor.ComponentEnd(const ComponentName: string);
+var
+  CopyrightYears: string;
 begin
+  CopyrightYears := IntToStr(YearOf(Now)) + '-' + IntToStr(YearOf(Now));
   Writeln(
+    '{' + NL +
+    '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
+    '' + NL +
+    '  This file is part of "Castle Game Engine".' + NL +
+    '' + NL +
+    '  "Castle Game Engine" is free software; see the file COPYING.txt,' + NL +
+    '  included in this distribution, for details about the copyright.' + NL +
+    '' + NL +
+    '  "Castle Game Engine" is distributed in the hope that it will be useful,' + NL +
+    '  but WITHOUT ANY WARRANTY; without even the implied warranty of' + NL +
+    '  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.' + NL +
+    '' + NL +
+    '  ----------------------------------------------------------------------------' + NL +
+    '}' + NL +
+    NL +
     '{$ifdef read_interface}' + NL +
-    OutputInterface + NL +
+    OutputInterface +
     '{$endif read_interface}' + NL +
     NL +
-    '{$ifdef read_implementation}' + NL +
-    OutputImplementation + NL +
+    '{$ifdef read_implementation}' + NL + NL +
+    OutputImplementation +
+    '{ registration ----------------------------------------------------------------- }' + NL +
+    NL +
     'procedure Register' + ComponentName + 'Nodes;' + NL +
     'begin' + NL +
     '  NodesManager.RegisterNodeClasses([' + NL +
