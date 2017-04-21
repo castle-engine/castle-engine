@@ -9,7 +9,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="generate_x3d_nodes_to_pascal"/>
+      <Title Value="x3d-nodes-to-pascal"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -37,16 +37,16 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="generate_x3d_nodes_to_pascal.lpr"/>
+        <Filename Value="x3d-nodes-to-pascal.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="generate_x3d_nodes_to_pascal"/>
+        <UnitName Value="x3d-nodes-to-pascal"/>
       </Unit0>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="generate_x3d_nodes_to_pascal"/>
+      <Filename Value="x3d-nodes-to-pascal"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>

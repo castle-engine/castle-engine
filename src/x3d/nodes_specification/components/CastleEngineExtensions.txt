@@ -3,12 +3,12 @@
 # Specification of Castle Game Engine X3D extensions.
 # See https://castle-engine.sourceforge.io/x3d_extensions.php .
 # This file is in the format understood by
-# our ../generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal.lpr
+# our ../x3d-nodes-to-pascal/x3d-nodes-to-pascal.lpr
 # and by White Dune scripts.
 #
 # Note that we only list here *new* X3D nodes.
 # Extensions (new fields) to existing nodes must be listed in other txt files
-# (otherwse generate_x3d_nodes_helpers would not be able to handle them).
+# (otherwse x3d-nodes-to-pascal would not be able to handle them).
 # ----------------------------------------------------------------------------
 
 # "KambiAppearance" is just a synonym for "Appearance" now.

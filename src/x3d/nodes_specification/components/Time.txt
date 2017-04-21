@@ -17,6 +17,6 @@ TimeSensor : X3DTimeDependentNode, X3DSensorNode {
   # "enabled" inherited from X3DSensorNode.
   # Needs to be mentioned here, as everything inherited from non-1st ancestor
   # (from interface, not class, in Object Pascal implementation)
-  # needs to be mentioned, to be correctly processed by generate_x3d_nodes_to_pascal.lpr.
+  # needs to be mentioned, to be correctly processed by x3d-nodes-to-pascal.lpr.
   SFBool [in,out] enabled  TRUE
 }

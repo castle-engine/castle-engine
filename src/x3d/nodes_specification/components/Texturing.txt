@@ -12,7 +12,7 @@ X3DTexture2DNode : X3DTextureNode {
   SFNode []       textureProperties NULL [TextureProperties]
 
   # EXTENSIONS:
-  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in Pascal.
   # SFString   []            alphaChannel  "AUTO"      # ["AUTO"|"NONE"|"TEST"|"BLENDING"]
 }
