@@ -762,7 +762,7 @@ const
   var
     Intersection: TVector3Single;
     IntersectNode: PTriangle;
-    MaterialInfo: TX3DMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
+    MaterialInfo: TMaterialInfo; { = IntersectNode.MaterialInfo }
     IntersectNormalInRayDir: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;

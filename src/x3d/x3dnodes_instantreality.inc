@@ -300,6 +300,26 @@
   { Advanced material that can be heavily configured using textures
     (specular maps, normal maps and much more). }
   TCommonSurfaceShaderNode = class(TAbstractShaderNode)
+  strict private
+    type
+      TCommonSurfaceShaderInfo = class(TMaterialInfo)
+      private
+        FNode: TCommonSurfaceShaderNode;
+      public
+        constructor Create(Node: TCommonSurfaceShaderNode);
+
+        function DiffuseColor: TVector3Single; override;
+        function Mirror: Single; override;
+        function Transparency: Single; override;
+
+        function ReflSpecular: TVector3Single; override;
+        function ReflDiffuse: TVector3Single; override;
+        function TransSpecular: TVector3Single; override;
+        function TransDiffuse: TVector3Single; override;
+
+        function ReflSpecularExp: Single; override;
+        function TransSpecularExp: Single; override;
+      end;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -520,8 +540,8 @@
       This is just 1 - @link(AlphaFactor). }
     function Transparency: Single;
 
-    { A TX3DMaterialInfoAbstract instance describing this material. }
-    function MaterialInfo: TX3DMaterialInfoAbstract;
+    { A TMaterialInfo instance describing this material. }
+    function MaterialInfo: TMaterialInfo;
 
     {$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
   end;
@@ -1183,73 +1203,53 @@ end;
 
 { TCommonSurfaceShaderInfo --------------------------------------------------- }
 
-type
-  TCommonSurfaceShaderInfo = class(TX3DMaterialInfoAbstract)
-  private
-    FNode: TCommonSurfaceShaderNode;
-  public
-    constructor Create(Node: TCommonSurfaceShaderNode);
-
-    function DiffuseColor: TVector3Single; override;
-    function Mirror: Single; override;
-    function Transparency: Single; override;
-
-    function ReflSpecular: TVector3Single; override;
-    function ReflDiffuse: TVector3Single; override;
-    function TransSpecular: TVector3Single; override;
-    function TransDiffuse: TVector3Single; override;
-
-    function ReflSpecularExp: Single; override;
-    function TransSpecularExp: Single; override;
-  end;
-
-constructor TCommonSurfaceShaderInfo.Create(Node: TCommonSurfaceShaderNode);
+constructor TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Create(Node: TCommonSurfaceShaderNode);
 begin
   inherited Create;
   FNode := Node;
 end;
 
-function TCommonSurfaceShaderInfo.DiffuseColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.DiffuseColor: TVector3Single;
 begin
   Result := FNode.DiffuseFactor;
 end;
 
-function TCommonSurfaceShaderInfo.Mirror: Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Mirror: Single;
 begin
   Result := VectorAverage(FNode.ReflectionFactor);
 end;
 
-function TCommonSurfaceShaderInfo.Transparency: Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Transparency: Single;
 begin
   Result := FNode.Transparency;
 end;
 
-function TCommonSurfaceShaderInfo.ReflSpecular: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflSpecular: TVector3Single;
 begin
   CalculateReflSpecular(Result);
 end;
 
-function TCommonSurfaceShaderInfo.ReflDiffuse: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflDiffuse: TVector3Single;
 begin
   CalculateReflDiffuse(Result);
 end;
 
-function TCommonSurfaceShaderInfo.TransSpecular: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransSpecular: TVector3Single;
 begin
   CalculateTransSpecular(Result);
 end;
 
-function TCommonSurfaceShaderInfo.TransDiffuse: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransDiffuse: TVector3Single;
 begin
   CalculateTransDiffuse(Result);
 end;
 
-function TCommonSurfaceShaderInfo.ReflSpecularExp: Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflSpecularExp: Single;
 begin
   Result := 1000000;
 end;
 
-function TCommonSurfaceShaderInfo.TransSpecularExp: Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransSpecularExp: Single;
 begin
   Result := 1000000;
 end;
@@ -1565,7 +1565,7 @@ begin
   Result := 1 - FdAlphaFactor.Value;
 end;
 
-function TCommonSurfaceShaderNode.MaterialInfo: TX3DMaterialInfoAbstract;
+function TCommonSurfaceShaderNode.MaterialInfo: TMaterialInfo;
 begin
   Result := TCommonSurfaceShaderInfo.Create(Self);
 end;

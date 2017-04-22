@@ -324,9 +324,29 @@
       override;
   end;
 
-  TX3DMaterialInfo_1 = class;
-
   TMaterialNode_1 = class(TAbstractChildNode)
+  strict private
+    type
+      TMaterialInfo_1 = class(TMaterialInfo)
+      private
+        FNode: TMaterialNode_1;
+        FIndex: Integer;
+      public
+        constructor Create(Node: TMaterialNode_1; const Index: Integer);
+
+        function DiffuseColor: TVector3Single; override;
+        function Mirror: Single; override;
+        function Transparency: Single; override;
+
+        function ReflSpecular: TVector3Single; override;
+        function ReflDiffuse: TVector3Single; override;
+        function TransSpecular: TVector3Single; override;
+        function TransDiffuse: TVector3Single; override;
+
+        function ReflSpecularExp: Single; override;
+        function TransSpecularExp: Single; override;
+      end;
+  public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
@@ -421,27 +441,7 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function MaterialInfo(const Index: Integer): TX3DMaterialInfo_1;
-  end;
-
-  TX3DMaterialInfo_1 = class(TX3DMaterialInfoAbstract)
-  private
-    FNode: TMaterialNode_1;
-    FIndex: Integer;
-  public
-    constructor Create(Node: TMaterialNode_1; const Index: Integer);
-
-    function DiffuseColor: TVector3Single; override;
-    function Mirror: Single; override;
-    function Transparency: Single; override;
-
-    function ReflSpecular: TVector3Single; override;
-    function ReflDiffuse: TVector3Single; override;
-    function TransSpecular: TVector3Single; override;
-    function TransDiffuse: TVector3Single; override;
-
-    function ReflSpecularExp: Single; override;
-    function TransSpecularExp: Single; override;
+    function MaterialInfo(const Index: Integer): TMaterialInfo;
   end;
 
   TMaterialBindingNode_1 = class(TAbstractChildNode)
@@ -1602,34 +1602,36 @@ begin
   Result := Version.Major <= 1;
 end;
 
-function TMaterialNode_1.MaterialInfo(const Index: Integer): TX3DMaterialInfo_1;
+function TMaterialNode_1.MaterialInfo(const Index: Integer): TMaterialInfo;
 begin
-  Result := TX3DMaterialInfo_1.Create(Self, Index);
+  Result := TMaterialInfo_1.Create(Self, Index);
 end;
 
-constructor TX3DMaterialInfo_1.Create(Node: TMaterialNode_1; const Index: Integer);
+{ TMaterialInfo_1 --------------------------------------------------------- }
+
+constructor TMaterialNode_1.TMaterialInfo_1.Create(Node: TMaterialNode_1; const Index: Integer);
 begin
   inherited Create;
   FNode := Node;
   FIndex := Index;
 end;
 
-function TX3DMaterialInfo_1.DiffuseColor: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.DiffuseColor: TVector3Single;
 begin
   Result := FNode.DiffuseColor3Single(FIndex);
 end;
 
-function TX3DMaterialInfo_1.Mirror: Single;
+function TMaterialNode_1.TMaterialInfo_1.Mirror: Single;
 begin
   Result := FNode.Mirror(FIndex);
 end;
 
-function TX3DMaterialInfo_1.Transparency: Single;
+function TMaterialNode_1.TMaterialInfo_1.Transparency: Single;
 begin
   Result := FNode.Transparency(FIndex);
 end;
 
-function TX3DMaterialInfo_1.ReflSpecular: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflSpecular: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1639,7 +1641,7 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TX3DMaterialInfo_1.ReflDiffuse: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflDiffuse: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1649,7 +1651,7 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TX3DMaterialInfo_1.TransSpecular: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.TransSpecular: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1659,7 +1661,7 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TX3DMaterialInfo_1.TransDiffuse: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.TransDiffuse: TVector3Single;
 var
   A: TVector3SingleList;
 begin
@@ -1669,15 +1671,17 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TX3DMaterialInfo_1.ReflSpecularExp: Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflSpecularExp: Single;
 begin
   Result := FNode.ReflSpecularExp(FIndex);
 end;
 
-function TX3DMaterialInfo_1.TransSpecularExp: Single;
+function TMaterialNode_1.TMaterialInfo_1.TransSpecularExp: Single;
 begin
   Result := FNode.TransSpecularExp(FIndex);
 end;
+
+{ TMaterialBindingNode_1 ----------------------------------------------------- }
 
 procedure TMaterialBindingNode_1.CreateNode;
 begin

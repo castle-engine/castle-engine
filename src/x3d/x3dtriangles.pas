@@ -116,17 +116,18 @@ type
 
     { X3D material node of this triangle. May be @nil in case material is not set,
       or in VRML 1.0. }
-    function MaterialNode: TMaterialNode;
+    function Material: TMaterialNode;
+
+    function MaterialNode: TMaterialNode; deprecated 'use Material';
 
     { Create material information instance for material of this triangle.
-      See TX3DMaterialInfoAbstract for usage description.
+      See TMaterialInfo for usage description.
+      Returns @nil when no node determines material properties
+      (which indicates white unlit look).
 
-      Returns @nil when no Material node is defined, this can happen
-      only for VRML >= 2.0.
-
-      Returned TX3DMaterialInfoAbstract is valid only as long as the Material
-      node (for VRML 1.0 or 2.0) on which it was based. }
-    function MaterialInfo: TX3DMaterialInfoAbstract;
+      Returned TMaterialInfo is valid only as long as the underlying
+      Material or CommonSurfaceShader node exists. }
+    function MaterialInfo: TMaterialInfo;
 
     { Return transparency of this triangle's material.
       Equivalent to MaterialInfo.Transparency, although a little faster. }
@@ -832,7 +833,7 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TTriangle.MaterialNode: TMaterialNode;
+function TTriangle.Material: TMaterialNode;
 var
   S: TAbstractShapeNode;
 begin
@@ -843,7 +844,12 @@ begin
     Result := nil;
 end;
 
-function TTriangle.MaterialInfo: TX3DMaterialInfoAbstract;
+function TTriangle.MaterialNode: TMaterialNode;
+begin
+  Result := Material;
+end;
+
+function TTriangle.MaterialInfo: TMaterialInfo;
 var
   M2: TMaterialNode;
   SurfaceShader: TCommonSurfaceShaderNode;
