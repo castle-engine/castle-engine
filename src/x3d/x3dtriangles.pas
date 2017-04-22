@@ -120,13 +120,14 @@ type
 
     function MaterialNode: TMaterialNode; deprecated 'use Material';
 
-    { Create material information instance for material of this triangle.
+    { Material information for the material of this triangle.
       See TMaterialInfo for usage description.
       Returns @nil when no node determines material properties
       (which indicates white unlit look).
 
       Returned TMaterialInfo is valid only as long as the underlying
-      Material or CommonSurfaceShader node exists. }
+      Material or CommonSurfaceShader node exists.
+      Do not free it yourself, it will be automatically freed. }
     function MaterialInfo: TMaterialInfo;
 
     { Return transparency of this triangle's material.
@@ -868,7 +869,7 @@ begin
         Result := nil;
     end;
   end else
-    Result := State.LastNodes.Material.MaterialInfo(0);
+    Result := State.LastNodes.Material.MaterialInfo;
 end;
 
 function TTriangle.Transparency: Single;

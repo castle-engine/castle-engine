@@ -320,8 +320,11 @@
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
       end;
+    var
+      FMaterialInfo: TMaterialInfo;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -540,7 +543,10 @@
       This is just 1 - @link(AlphaFactor). }
     function Transparency: Single;
 
-    { A TMaterialInfo instance describing this material. }
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
     function MaterialInfo: TMaterialInfo;
 
     {$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
@@ -1544,6 +1550,12 @@ begin
   DefaultContainerField := 'shaders';
 end;
 
+destructor TCommonSurfaceShaderNode.Destroy;
+begin
+  FreeAndNil(FMaterialInfo);
+  inherited;
+end;
+
 class function TCommonSurfaceShaderNode.ClassX3DType: string;
 begin
   Result := 'CommonSurfaceShader';
@@ -1567,7 +1579,9 @@ end;
 
 function TCommonSurfaceShaderNode.MaterialInfo: TMaterialInfo;
 begin
-  Result := TCommonSurfaceShaderInfo.Create(Self);
+  if FMaterialInfo = nil then
+    FMaterialInfo := TCommonSurfaceShaderInfo.Create(Self);
+  Result := FMaterialInfo;
 end;
 
 { registration ----------------------------------------------------------------- }

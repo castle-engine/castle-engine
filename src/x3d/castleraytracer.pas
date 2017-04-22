@@ -1060,36 +1060,33 @@ const
     end;
 
     MaterialInfo := IntersectNode^.MaterialInfo;
-    try
 
-      { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
-        do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
-        jakas specjalna optymalizacje.
+    { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
+      do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
+      jakas specjalna optymalizacje.
 
-        We use below EmissiveColor(), not MaterialInfo.EmissiveColor,
-        because this is done even when MaterialInfo is nil. }
-      Result := EmissiveColor(IntersectNode^);
+      We use below EmissiveColor(), not MaterialInfo.EmissiveColor,
+      because this is done even when MaterialInfo is nil. }
+    Result := EmissiveColor(IntersectNode^);
 
-      if MaterialInfo <> nil then
+    if MaterialInfo <> nil then
+    begin
+      { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
+        Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
+          jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
+          na wiele promieni w punkcie rekursji.
+        Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
+          nie rozgaleziamy sie na wiele promieni. }
+      if MinDepth = Depth then
       begin
-        { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
-          Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
-            jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
-            na wiele promieni w punkcie rekursji.
-          Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
-            nie rozgaleziamy sie na wiele promieni. }
-        if MinDepth = Depth then
-        begin
-          NonEmissiveColor := ZeroVector3Single;
-          for i := 0 to NonPrimarySamplesCount-1 do
-            NonEmissiveColor += TraceNonEmissivePart;
-          NonEmissiveColor *= 1 / NonPrimarySamplesCount;
-          Result += NonEmissiveColor;
-        end else
-          Result += TraceNonEmissivePart;
-      end;
-
-    finally FreeAndNil(MaterialInfo) end;
+        NonEmissiveColor := ZeroVector3Single;
+        for i := 0 to NonPrimarySamplesCount-1 do
+          NonEmissiveColor += TraceNonEmissivePart;
+        NonEmissiveColor *= 1 / NonPrimarySamplesCount;
+        Result += NonEmissiveColor;
+      end else
+        Result += TraceNonEmissivePart;
+    end;
   end;
 
 var

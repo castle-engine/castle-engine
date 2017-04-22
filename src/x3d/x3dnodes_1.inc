@@ -346,8 +346,11 @@
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
       end;
+    var
+      FMaterialInfo: TMaterialInfo_1;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
 
     private FFdAmbientColor: TMFColor;
@@ -441,7 +444,11 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function MaterialInfo(const Index: Integer): TMaterialInfo;
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
+    function MaterialInfo: TMaterialInfo;
   end;
 
   TMaterialBindingNode_1 = class(TAbstractChildNode)
@@ -1453,6 +1460,12 @@ begin
   AddField(FFdFogImmune);
 end;
 
+destructor TMaterialNode_1.Destroy;
+begin
+  FreeAndNil(FMaterialInfo);
+  inherited;
+end;
+
 class function TMaterialNode_1.ClassX3DType: string;
 begin
   result := 'Material';
@@ -1602,9 +1615,14 @@ begin
   Result := Version.Major <= 1;
 end;
 
-function TMaterialNode_1.MaterialInfo(const Index: Integer): TMaterialInfo;
+function TMaterialNode_1.MaterialInfo: TMaterialInfo;
 begin
-  Result := TMaterialInfo_1.Create(Self, Index);
+  if FMaterialInfo = nil then
+    { Using different Index than 0 below turned out not to be useful.
+      And it prevents easily caching FMaterialInfo (we would need an array).
+      So we always pass Index = 0 now. }
+    FMaterialInfo := TMaterialInfo_1.Create(Self, 0);
+  Result := FMaterialInfo;
 end;
 
 { TMaterialInfo_1 --------------------------------------------------------- }

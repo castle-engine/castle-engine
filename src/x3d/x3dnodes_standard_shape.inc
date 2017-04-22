@@ -374,8 +374,11 @@
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
       end;
+    var
+      FMaterialInfo: TX3DMaterialInfo;
   public
     procedure CreateNode; override;
+    destructor Destroy; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
@@ -423,8 +426,10 @@
       value of shininess field. }
     function ShininessExp: Single;
 
-    { Create material information based on this node.
-      Returned TMaterialInfo is valid only as long as this node instance. }
+    { Material information based on this node.
+      It is automatically updated when properties of this material change.
+      Do not free it yourself, it will be automatically freed when
+      this node is freed. }
     function MaterialInfo: TMaterialInfo;
 
     { Only the emissiveColor is not black (zero),
@@ -1173,6 +1178,12 @@ begin
   AddField(FFdTransSpecularExp);
 end;
 
+destructor TMaterialNode.Destroy;
+begin
+  FreeAndNil(FMaterialInfo);
+  inherited;
+end;
+
 class function TMaterialNode.ClassX3DType: string;
 begin
   Result := 'Material';
@@ -1202,7 +1213,9 @@ end;
 
 function TMaterialNode.MaterialInfo: TMaterialInfo;
 begin
-  Result := TX3DMaterialInfo.Create(Self);
+  if FMaterialInfo = nil then
+    FMaterialInfo := TX3DMaterialInfo.Create(Self);
+  Result := FMaterialInfo;
 end;
 
 function TMaterialNode.PureEmissive: boolean;
