@@ -308,7 +308,11 @@
       public
         constructor Create(Node: TCommonSurfaceShaderNode);
 
+        function AmbientColor: TVector3Single; override;
         function DiffuseColor: TVector3Single; override;
+        function SpecularColor: TVector3Single; override;
+        function EmissiveColor: TVector3Single; override;
+        function Shininess: Single; override;
         function Mirror: Single; override;
         function Transparency: Single; override;
 
@@ -1215,9 +1219,29 @@ begin
   FNode := Node;
 end;
 
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.AmbientColor: TVector3Single;
+begin
+  Result := FNode.AmbientFactor;
+end;
+
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.DiffuseColor: TVector3Single;
 begin
   Result := FNode.DiffuseFactor;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SpecularColor: TVector3Single;
+begin
+  Result := FNode.SpecularFactor;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.EmissiveColor: TVector3Single;
+begin
+  Result := FNode.EmissiveFactor;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Shininess: Single;
+begin
+  Result := FNode.ShininessFactor;
 end;
 
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Mirror: Single;

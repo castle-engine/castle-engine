@@ -183,16 +183,16 @@ uses SysUtils, FGL, Classes, XMLRead, DOM,
 {$define read_interface}
 
 const
-  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2);
-  DefaultMaterialAmbientIntensity = 0.2;
-  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
-  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0);
-  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0);
-  DefaultMaterialShininess = 0.2;
-  DefaultMaterialTransparency = 0.0;
-  DefaultMaterialMirror = 0.0;
-  DefaultMaterialReflSpecularExp = 1000000;
-  DefaultMaterialTransSpecularExp = 1000000;
+  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2) deprecated 'use TMaterialInfo.DefaultAmbientColor';
+  DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TMaterialInfo.DefaultAmbientIntensity';
+  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
+  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultSpecularColor';
+  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
+  DefaultMaterialShininess = 0.2 deprecated 'use TMaterialInfo.DefaultShininess';
+  DefaultMaterialTransparency = 0.0 deprecated 'use TMaterialInfo.DefaultTransparency';
+  DefaultMaterialMirror = 0.0 deprecated 'use TMaterialInfo.DefaultMirror';
+  DefaultMaterialReflSpecularExp = 1000000 deprecated 'use TMaterialInfo.DefaultReflSpecularExp';
+  DefaultMaterialTransSpecularExp = 1000000 deprecated 'use TMaterialInfo.DefaultTransSpecularExp';
 
 { -----------------------------------------------------------------------------
   Looong "type" declaration below, with many class definitions depending
@@ -365,6 +365,7 @@ type
   end;
 
   TPointingDeviceSensorList = class;
+  TMaterialInfo = class;
 
   { Current state (transformation and such) when traversing VRML/X3D graph.
 
@@ -606,19 +607,15 @@ type
 
     function AddClipPlane: PClipPlane;
 
-    { Calculate emission color of given shape.
+    { Material information at this state.
+      See TMaterialInfo for usage description.
+      Returns @nil when no node determines material properties
+      (which indicates white unlit look).
 
-      This can be used by software renderers (ray-tracers etc.)
-      to calculate pixel color following VRML/X3D specifications.
-      Emission should be added to
-      TLightInstance.Contribution (for each light),
-      and resulting color should be processed by TFogNode.ApplyFog.
-
-      When LightingCalculationOn = @false we actually take diffuseColor
-      instead of emissiveColor. This is useful if you want to force
-      the scene completely unlit, usually diffuseColor is more useful for this
-      (since emissiveColor is often black on everything). }
-    function Emission(LightingCalculationOn: boolean): TVector3Single;
+      Returned TMaterialInfo is valid only as long as the underlying
+      Material or CommonSurfaceShader node exists.
+      Do not free it yourself, it will be automatically freed. }
+    function MaterialInfo: TMaterialInfo;
   end;
 
   { Stack of TX3DGraphTraverseState.
@@ -2957,35 +2954,26 @@ begin
     end;
 end;
 
-function TX3DGraphTraverseState.Emission(LightingCalculationOn: boolean): TVector3Single;
+function TX3DGraphTraverseState.MaterialInfo: TMaterialInfo;
 var
-  M1: TMaterialNode_1;
   M2: TMaterialNode;
-  // TODO: use CommonSurfaceShader as an alternative
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
   if ShapeNode <> nil then
   begin
-    M2 := ShapeNode.Material;
-    if M2 <> nil then
+    SurfaceShader := ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+      Result := SurfaceShader.MaterialInfo
+    else
     begin
-      if LightingCalculationOn then
-        Result := M2.FdEmissiveColor.Value else
-        Result := M2.FdDiffuseColor.Value;
-    end else
-    begin
-      if LightingCalculationOn then
-        { Default VRML 2.0 Material.emissiveColor }
-        Result := ZeroVector3Single else
-        { Default VRML 2.0 Material.diffuseColor }
-        Result := Vector3Single(0.8, 0.8, 0.8);
+      M2 := ShapeNode.Material;
+      if M2 <> nil then
+        Result := M2.MaterialInfo
+      else
+        Result := nil;
     end;
   end else
-  begin
-    M1 := LastNodes.Material;
-    if LightingCalculationOn then
-      Result := M1.EmissiveColor3Single(0) else
-      Result := M1.DiffuseColor3Single(0);
-  end;
+    Result := LastNodes.Material.MaterialInfo;
 end;
 
 { TX3DGraphTraverseStateStack --------------------------------------------- }

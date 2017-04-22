@@ -1509,7 +1509,7 @@ function TShape.Blending: boolean;
     i: Integer;
   begin
     if Node.FdTransparency.Items.Count = 0 then
-      result := DefaultMaterialTransparency > SingleEqualityEpsilon else
+      result := TMaterialInfo.DefaultTransparency > SingleEqualityEpsilon else
     begin
       for i := 0 to Node.FdTransparency.Items.Count-1 do
         if Node.FdTransparency.Items.L[i] <= SingleEqualityEpsilon then

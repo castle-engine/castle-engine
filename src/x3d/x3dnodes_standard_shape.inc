@@ -336,7 +336,38 @@
     procedure CalculateTransDiffuse(out V: TVector3Single);
     { @groupEnd }
   public
+    const
+      { Default material parameters.
+
+        They luckily match between all the material-like nodes:
+        @unorderedList(
+          @itemSpacing Compact
+          @item X3D and VRML 2.0: TMaterialNode
+          @item VRML 1.0: TMaterialNode_1
+          @item CommonSurfaceShader: TCommonSurfaceShaderNode
+        )
+
+        The AmbientColor is an exception, the effective ambientColor for X3D is
+        @code(ambientIntensity * diffuseColor = (0.2 * 0.8, 0.2 * 0.8, 0.2 * 0.8)).
+      }
+      DefaultAmbientColor: TVector3Single = (0.2, 0.2, 0.2);
+      DefaultAmbientIntensity = 0.2;
+      DefaultDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
+      DefaultSpecularColor: TVector3Single = (0, 0, 0);
+      DefaultEmissiveColor: TVector3Single = (0, 0, 0);
+      DefaultShininess = 0.2;
+      DefaultShininessExp = DefaultShininess * 128;
+      DefaultTransparency = 0.0;
+      DefaultMirror = 0.0;
+      DefaultReflSpecularExp = 1000000;
+      DefaultTransSpecularExp = 1000000;
+
+    function AmbientColor: TVector3Single; virtual; abstract;
     function DiffuseColor: TVector3Single; virtual; abstract;
+    function SpecularColor: TVector3Single; virtual; abstract;
+    function EmissiveColor: TVector3Single; virtual; abstract;
+    function Shininess: Single; virtual; abstract;
+    function ShininessExp: Single;
     function Mirror: Single; virtual; abstract;
     function Transparency: Single; virtual; abstract;
 
@@ -362,7 +393,11 @@
       public
         constructor Create(Node: TMaterialNode);
 
+        function AmbientColor: TVector3Single; override;
         function DiffuseColor: TVector3Single; override;
+        function SpecularColor: TVector3Single; override;
+        function EmissiveColor: TVector3Single; override;
+        function Shininess: Single; override;
         function Mirror: Single; override;
         function Transparency: Single; override;
 
@@ -1115,32 +1150,32 @@ procedure TMaterialNode.CreateNode;
 begin
   inherited;
 
-  FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', DefaultMaterialAmbientIntensity);
+  FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', TMaterialInfo.DefaultAmbientIntensity);
    FdAmbientIntensity.ChangesAlways := [chMaterial2];
   AddField(FFdAmbientIntensity);
   { X3D specification comment: [0,1] }
 
-  FFdDiffuseColor := TSFColor.Create(Self, 'diffuseColor', DefaultMaterialDiffuseColor);
+  FFdDiffuseColor := TSFColor.Create(Self, 'diffuseColor', TMaterialInfo.DefaultDiffuseColor);
    FdDiffuseColor.ChangesAlways := [chMaterial2];
   AddField(FFdDiffuseColor);
   { X3D specification comment: [0,1] }
 
-  FFdEmissiveColor := TSFColor.Create(Self, 'emissiveColor', DefaultMaterialEmissiveColor);
+  FFdEmissiveColor := TSFColor.Create(Self, 'emissiveColor', TMaterialInfo.DefaultEmissiveColor);
    FdEmissiveColor.ChangesAlways := [chMaterial2];
   AddField(FFdEmissiveColor);
   { X3D specification comment: [0,1] }
 
-  FFdShininess := TSFFloat.Create(Self, 'shininess', DefaultMaterialShininess);
+  FFdShininess := TSFFloat.Create(Self, 'shininess', TMaterialInfo.DefaultShininess);
    FdShininess.ChangesAlways := [chMaterial2];
   AddField(FFdShininess);
   { X3D specification comment: [0,1] }
 
-  FFdSpecularColor := TSFColor.Create(Self, 'specularColor', DefaultMaterialSpecularColor);
+  FFdSpecularColor := TSFColor.Create(Self, 'specularColor', TMaterialInfo.DefaultSpecularColor);
    FdSpecularColor.ChangesAlways := [chMaterial2];
   AddField(FFdSpecularColor);
   { X3D specification comment: [0,1] }
 
-  FFdTransparency := TSFFloat.Create(Self, 'transparency', DefaultMaterialTransparency);
+  FFdTransparency := TSFFloat.Create(Self, 'transparency', TMaterialInfo.DefaultTransparency);
    FdTransparency.ChangesAlways := [chMaterial2, chUseBlending];
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
@@ -1149,7 +1184,7 @@ begin
    FdFogImmune.ChangesAlways := [chMaterial2];
   AddField(FFdFogImmune);
 
-  FFdMirror := TSFFloat.Create(Self, 'mirror', DefaultMaterialMirror);
+  FFdMirror := TSFFloat.Create(Self, 'mirror', TMaterialInfo.DefaultMirror);
    FdMirror.ChangesAlways := [chMaterial2];
   AddField(FFdMirror);
 
@@ -1169,11 +1204,11 @@ begin
    FdTransDiffuse.ChangesAlways := [chMaterial2];
   AddField(FFdTransDiffuse);
 
-  FFdReflSpecularExp := TSFFloat.Create(Self, 'reflSpecularExp', DefaultMaterialReflSpecularExp);
+  FFdReflSpecularExp := TSFFloat.Create(Self, 'reflSpecularExp', TMaterialInfo.DefaultReflSpecularExp);
    FdReflSpecularExp.ChangesAlways := [chMaterial2];
   AddField(FFdReflSpecularExp);
 
-  FFdTransSpecularExp := TSFFloat.Create(Self, 'transSpecularExp', DefaultMaterialTransSpecularExp);
+  FFdTransSpecularExp := TSFFloat.Create(Self, 'transSpecularExp', TMaterialInfo.DefaultTransSpecularExp);
    FdTransSpecularExp.ChangesAlways := [chMaterial2];
   AddField(FFdTransSpecularExp);
 end;
@@ -1259,6 +1294,11 @@ begin
   V := VectorScale(DiffuseColor, Transparency);
 end;
 
+function TMaterialInfo.ShininessExp: Single;
+begin
+  Result := Clamped(Shininess * 128.0, 0.0, 128.0);
+end;
+
 { TMaterialNode.TX3DMaterialInfo -------------------------------------------------------- }
 
 constructor TMaterialNode.TX3DMaterialInfo.Create(Node: TMaterialNode);
@@ -1267,9 +1307,29 @@ begin
   FNode := Node;
 end;
 
+function TMaterialNode.TX3DMaterialInfo.AmbientColor: TVector3Single;
+begin
+  Result := FNode.FdDiffuseColor.Value * FNode.FdAmbientIntensity.Value;
+end;
+
 function TMaterialNode.TX3DMaterialInfo.DiffuseColor: TVector3Single;
 begin
   Result := FNode.FdDiffuseColor.Value;
+end;
+
+function TMaterialNode.TX3DMaterialInfo.SpecularColor: TVector3Single;
+begin
+  Result := FNode.FdSpecularColor.Value;
+end;
+
+function TMaterialNode.TX3DMaterialInfo.EmissiveColor: TVector3Single;
+begin
+  Result := FNode.FdEmissiveColor.Value;
+end;
+
+function TMaterialNode.TX3DMaterialInfo.Shininess: Single;
+begin
+  Result := FNode.FdShininess.Value;
 end;
 
 function TMaterialNode.TX3DMaterialInfo.Mirror: Single;

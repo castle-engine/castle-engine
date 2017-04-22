@@ -398,41 +398,59 @@ var
         -RayDirection, IntersectNode, true);
     end;
 
+    { Calculate emission color of given shape.
+
+      This can be used by software renderers (ray-tracers etc.)
+      to calculate pixel color following VRML/X3D specifications.
+      Emission should be added to
+      TLightInstance.Contribution (for each light),
+      and resulting color should be processed by TFogNode.ApplyFog.
+
+      When LightingCalculationOn = @false we actually take diffuseColor
+      instead of emissiveColor. This is useful if you want to force
+      the scene completely unlit, usually diffuseColor is more useful for this
+      (since emissiveColor is often black on everything). }
+    function Emission(const M: TMaterialInfo;
+      const LightingCalculationOn: boolean): TVector3Single;
+    begin
+      if M <> nil then
+      begin
+        if LightingCalculationOn then
+          Result := M.EmissiveColor
+        else
+          Result := M.DiffuseColor;
+      end else
+      begin
+        if LightingCalculationOn then
+          { Default VRML 2.0 Material.emissiveColor }
+          Result := ZeroVector3Single
+        else
+          { Default VRML 2.0 Material.diffuseColor }
+          Result := Vector3Single(0.8, 0.8, 0.8);
+      end;
+    end;
+
   var
     i: integer;
-    M1: TMaterialNode_1;
-    M2: TMaterialNode;
-    // TODO: use CommonSurfaceShader as an alternative
     Lights: TLightInstancesList;
+    MaterialInfo: TMaterialInfo;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
 
-    { calculate material properties, taking into account VRML 1.0 and 2.0
-      material. }
-    if IntersectNode^.State.ShapeNode <> nil then
+    MaterialInfo := IntersectNode^.MaterialInfo;
+    if MaterialInfo <> nil then
     begin
-      { VRML 2.0 }
-      M2 := IntersectNode^.State.ShapeNode.Material;
-      if M2 <> nil then
-      begin
-        MaterialMirror := M2.FdMirror.Value;
-        MaterialTransparency := M2.FdTransparency.Value;
-      end else
-      begin
-        MaterialMirror := DefaultMaterialMirror;
-        MaterialTransparency := DefaultMaterialTransparency;
-      end;
+      MaterialMirror := MaterialInfo.Mirror;
+      MaterialTransparency := MaterialInfo.Transparency;
     end else
     begin
-      { VRML 1.0 }
-      M1 := IntersectNode^.State.LastNodes.Material;
-      MaterialMirror := M1.Mirror(0);
-      MaterialTransparency := M1.Transparency(0);
+      MaterialMirror := TMaterialInfo.DefaultMirror;
+      MaterialTransparency := TMaterialInfo.DefaultTransparency;
     end;
 
-    Result := IntersectNode^.State.Emission(InitialDepth <> 0);
+    Result := Emission(IntersectNode^.State.MaterialInfo, InitialDepth <> 0);
     with IntersectNode^ do
     begin
       if Depth > 0 then
@@ -587,21 +605,13 @@ end;
 
   function EmissiveColor(const Item: TTriangle): TVector3Single;
   var
-    M: TMaterialNode;
-    // TODO: use CommonSurfaceShader as an alternative
+    M: TMaterialInfo;
   begin
-    if Item.State.ShapeNode <> nil then
-    begin
-      { VRML >= 2.0 }
-      M := Item.State.ShapeNode.Material;
-      if M <> nil then
-        Result := M.FdEmissiveColor.Value else
-        Result := ZeroVector3Single;
-    end else
-    begin
-      { VRML 1.0 }
-      Result := Item.State.LastNodes.Material.EmissiveColor3Single(0);
-    end;
+    M := Item.MaterialInfo;
+    if M <> nil then
+      Result := M.EmissiveColor
+    else
+      Result := TMaterialInfo.DefaultEmissiveColor;
   end;
 
   function IsLightSource(const Item: TTriangle): boolean;
