@@ -322,7 +322,7 @@ type
       to multiply / accumulate values outside of the (0, 1) range
       during calculations. OpenGL also clamps only at the end. }
     function Contribution(
-      const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
+      const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
       State: TX3DGraphTraverseState;
       const CamPosition: TVector3Single): TVector3Single;
 
@@ -2620,7 +2620,7 @@ resourcestring
 { TLightInstance ------------------------------------------------------------- }
 
 function TLightInstance.Contribution(
-  const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
+  const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
   State: TX3DGraphTraverseState;
   const CamPosition: TVector3Single): TVector3Single;
 {$I x3dnodes_lightcontribution.inc}

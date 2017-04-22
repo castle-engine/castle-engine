@@ -435,10 +435,13 @@ var
     i: integer;
     Lights: TLightInstancesList;
     MaterialInfo: TMaterialInfo;
+    IntersectNormal: TVector3Single;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBGColor);
+
+    IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
 
     MaterialInfo := IntersectNode^.MaterialInfo;
     if MaterialInfo <> nil then
@@ -461,7 +464,7 @@ var
           for i := 0 to Lights.Count - 1 do
             if LightNotBlocked(Lights.L[i]) then
               Result += Lights.L[i].Contribution(Intersection,
-                IntersectNode^.World.Plane, IntersectNode^.State, CamPosition);
+                IntersectNormal, IntersectNode^.State, CamPosition);
 
         { Add BaseLights contribution, just like other lights.
 
@@ -497,7 +500,7 @@ var
           if (Depth = InitialDepth) or
              LightNotBlocked(BaseLights.L[I]) then
             Result += BaseLights.L[I].Contribution(Intersection,
-              IntersectNode^.World.Plane, IntersectNode^.State, CamPosition);
+              IntersectNormal, IntersectNode^.State, CamPosition);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)
@@ -774,7 +777,7 @@ const
     Intersection: TVector3Single;
     IntersectNode: PTriangle;
     MaterialInfo: TMaterialInfo; { = IntersectNode.MaterialInfo }
-    IntersectNormalInRayDir: TVector3Single;
+    IntersectNormal: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;
 
@@ -819,7 +822,7 @@ const
           result += PolePowierzchni(LightItem) * LightEmission * BRDF *
             GeometryFunction
         jest mniej wiecej rownowazne
-          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormalInRayDir)
+          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormal)
             * solid-angle-swiatla
         (taka jest rola PolePowierzchni(LightItem) i czesci GeometryFunction -
         one po prostu licza solid angle; no, de facto pewne bardzo dobre przyblizenie
@@ -865,11 +868,11 @@ const
 
           { calculate LigtDirNorm (nieznormalizowane).
             Jezeli LigtDirNorm wychodzi z innej strony
-            IntersectionNode.TriangleNormPlane niz IntersectNormalInRayDir
+            IntersectionNode.TriangleNormPlane niz IntersectNormal
             to znaczy ze swiatlo jest po przeciwnej stronie plane - wiec
             swiatlo nie oswietla naszego pixela. }
           LightDirNorm := SampleLightPoint - Intersection;
-          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRayDir,
+          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormal,
             IntersectNode^.World.Plane) then Continue;
 
           { sprawdz IsLightShadowed, czyli zrob shadow ray }
@@ -889,7 +892,7 @@ const
 
           { Wymnoz DirectColor
             1) przez GeometryFunction czyli
-                 cos(LightDirNorm, IntersectNormalInRayDir)
+                 cos(LightDirNorm, IntersectNormal)
                    * cos(-LightDirNorm, LightSource.World.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
                Cosinusy naturalnie licz uzywajac dot product.
@@ -916,7 +919,7 @@ const
               przenioslem mnozenie przez LightEmissionArea na sam koniec tej
               funkcji.}
           DirectColor *=
-            (LightDirNorm ** IntersectNormalInRayDir) *
+            (LightDirNorm ** IntersectNormal) *
             (NegatedLightDirNorm **
               PlaneDirInDirection(LightSource^.World.Plane,
                 NegatedLightDirNorm)) *
@@ -1008,9 +1011,9 @@ const
           mala wartosc). }
         if Weights[ck] > SingleEqualityEpsilon then
         begin
-          { calculate IntersectNormalInRayDir - Normal at intersection in direction RayOrigin }
-          IntersectNormalInRayDir := PlaneDirNotInDirection(
-            IntersectNode^.World.Plane, RayDirection);
+          IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
+          { choose normal at Intersection pointing in the direction of RayOrigin }
+          IntersectNormal := PlaneDirNotInDirection(IntersectNormal, RayDirection);
 
           { calculate TracedDir i PdfValue samplujac odpowiednio polsfere
            (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
@@ -1018,12 +1021,12 @@ const
           case ck of
             ckTD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
-                    -IntersectNormalInRayDir);
+                    -IntersectNormal);
             ckTS: if not TryCalculateTransmittedSpecularRayDirection(
                     TracedDir, PdfValue) then Exit;
             ckRD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
-                    IntersectNormalInRayDir);
+                    IntersectNormal);
             ckRS: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
