@@ -902,6 +902,11 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   var
     Tex: TAbstractTextureNode;
   begin
+    { TODO: when CommonSurfaceShader is used,
+      and CommonSurfaceShader.diffuseTexture and multiDiffuseAlphaTexture are empty,
+      but something else (like normalTexture) is not empty,
+      we should also make sure to have some tex coords. }
+
     Tex := State.Texture;
     Result := (
       (Tex <> nil) and
