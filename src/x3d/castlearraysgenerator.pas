@@ -1563,7 +1563,8 @@ var
 begin
   M := State.LastNodes.Material;
   if M.PureEmissive then
-    Result := M.EmissiveColor4Single(MaterialIndex) else
+    Result := M.EmissiveColor4Single(MaterialIndex)
+  else
     Result := M.DiffuseColor4Single(MaterialIndex);
 end;
 
