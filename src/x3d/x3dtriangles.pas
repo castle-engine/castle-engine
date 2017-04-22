@@ -174,6 +174,9 @@ type
       This assumes that Position actally lies within the triangle. }
     function INormal(const Point: TVector3Single): TVector3Single;
 
+    { Like INormal, but not necessarily normalized. }
+    function INormalCore(const Point: TVector3Single): TVector3Single;
+
     { For a given position (in world coordinates), return the smooth
       normal vector at this point, with the resulting normal vector
       in world coordinates.
@@ -909,7 +912,7 @@ begin
   Move(V, Result, SizeOf(TVector2Single));
 end;
 
-function TTriangle.INormal(const Point: TVector3Single): TVector3Single;
+function TTriangle.INormalCore(const Point: TVector3Single): TVector3Single;
 var
   B: TVector3Single;
 begin
@@ -919,9 +922,14 @@ begin
             Normal[2] * B[2];
 end;
 
+function TTriangle.INormal(const Point: TVector3Single): TVector3Single;
+begin
+  Result := Normalized(INormalCore(Point));
+end;
+
 function TTriangle.INormalWorldSpace(const Point: TVector3Single): TVector3Single;
 begin
-  Result := MatrixMultDirection(State.Transform, INormal(Point));
+  Result := Normalized(MatrixMultDirection(State.Transform, INormalCore(Point)));
 end;
 
 {$else}
