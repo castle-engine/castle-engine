@@ -2321,10 +2321,21 @@ var
   Texture: TAbstractTextureNode;
   FontTexture: TAbstractTexture2DNode;
   State: TX3DGraphTraverseState;
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
   State := Shape.State;
 
   GLTextureNodes.Prepare(State, State.Texture, Self);
+
+  if State.ShapeNode <> nil then
+  begin
+    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+    begin
+      if SurfaceShader.DiffuseTexture <> nil then
+        GLTextureNodes.Prepare(State, SurfaceShader.DiffuseTexture, Self);
+    end;
+  end;
 
   FontTexture := Shape.OriginalGeometry.FontTextureNode;
   if FontTexture <> nil then
@@ -2965,7 +2976,9 @@ begin
           like identity transform, *not* applied to 1st texture unit).
 
           By the way, we don't do any texture transform if Texture = nil,
-          since then no texture is used anyway. }
+          since then no texture is used anyway.
+
+          TODO: what to do with CommonSurfaceShader ? }
         if (State.Texture <> nil) and
            (not (State.Texture is TMultiTextureNode)) then
         begin
@@ -3282,6 +3295,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
     TexturesAlphaChannel: TAlphaChannel;
+    SurfaceShader: TCommonSurfaceShaderNode;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3291,7 +3305,17 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.Texture;
+    if Shape.Node <> nil then
+      SurfaceShader := Shape.Node.CommonSurfaceShader
+    else
+      SurfaceShader := nil;
+    { This simple implementation of CommonSurfaceShader.DiffuseTexture
+      is OK for now: the diffuse texture simply replaces
+      the default Appearance.texture list. }
+    if SurfaceShader <> nil then
+      TextureNode := SurfaceShader.DiffuseTexture
+    else
+      TextureNode := Shape.State.Texture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));

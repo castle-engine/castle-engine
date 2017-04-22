@@ -326,6 +326,10 @@
       end;
     var
       FMaterialInfo: TMaterialInfo;
+    function GetDiffuseTexture: TAbstractTextureNode;
+    procedure SetDiffuseTexture(const Value: TAbstractTextureNode);
+    function GetNormalTexture: TAbstractTextureNode;
+    procedure SetNormalTexture(const Value: TAbstractTextureNode);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -376,6 +380,9 @@
 
     private FFdDiffuseTexture: TSFNode;
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
+    { The texture controlling the diffuse color,
+      multiplied by @link(DiffuseFactor). }
+    property DiffuseTexture: TAbstractTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     private FFdDiffuseDisplacementTexture: TSFNode;
     public property FdDiffuseDisplacementTexture: TSFNode read FFdDiffuseDisplacementTexture;
@@ -460,6 +467,8 @@
 
     private FFdNormalTexture: TSFNode;
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
+    { Normalmap for bump mapping (the texture controlling the normals). }
+    property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
 
     private FFdReflectionFactor: TSFVec3f;
     public property FdReflectionFactor: TSFVec3f read FFdReflectionFactor;
@@ -1606,6 +1615,32 @@ begin
   if FMaterialInfo = nil then
     FMaterialInfo := TCommonSurfaceShaderInfo.Create(Self);
   Result := FMaterialInfo;
+end;
+
+function TCommonSurfaceShaderNode.GetDiffuseTexture: TAbstractTextureNode;
+begin
+  if FdDiffuseTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdDiffuseTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCommonSurfaceShaderNode.SetDiffuseTexture(const Value: TAbstractTextureNode);
+begin
+  FdDiffuseTexture.Send(Value);
+end;
+
+function TCommonSurfaceShaderNode.GetNormalTexture: TAbstractTextureNode;
+begin
+  if FdNormalTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdNormalTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCommonSurfaceShaderNode.SetNormalTexture(const Value: TAbstractTextureNode);
+begin
+  FdNormalTexture.Send(Value);
 end;
 
 { registration ----------------------------------------------------------------- }

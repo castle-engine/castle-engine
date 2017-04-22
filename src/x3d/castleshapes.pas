@@ -1561,6 +1561,7 @@ begin
     Note that State.Texture may be TMultiTextureNode --- that's Ok,
     it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
+  // TODO: take into account CommonSurfaceShader texture affecting alpha too
   Tex := State.Texture;
   if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
     Result := true;
