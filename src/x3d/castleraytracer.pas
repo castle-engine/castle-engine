@@ -237,7 +237,7 @@ uses SysUtils, CastleSphereSampling, CastleTimeUtils, CastleColors;
 function TryTransmittedRayDirection(
   out TransmittedRayDirection: TVector3Single;
   const NormRayDirection: TVector3Single;
-  const PlaneNormal: TVector4Single;
+  const PlaneNormal: TVector3Single;
   const EtaFrom, EtaTo: Single): boolean;
 { Written based on Foley, page 627 }
 var
@@ -272,7 +272,7 @@ end;
   Arguments NormRayDirection and PlaneNormal like for TryTransmittedRayDirection. }
 function ReflectedRayDirection(
   const NormRayDirection: TVector3Single;
-  const PlaneNormal: TVector4Single): TVector3Single;
+  const PlaneNormal: TVector3Single): TVector3Single;
 var
   Normal, NormNegatedRayDirection: TVector3Single;
 begin
@@ -323,6 +323,7 @@ var
     TVector3Single;
   var
     Intersection: TVector3Single;
+    IntersectNormal: TVector3Single;
     IntersectNode: PTriangle;
     MaterialTransparency: Single;
     MaterialReflectionColor: TVector3Single;
@@ -350,7 +351,7 @@ var
 
         if TryTransmittedRayDirection(
           TransmittedRayVec, Normalized(RayDirection),
-          IntersectNode^.World.Plane, EtaFrom, EtaTo) then
+          IntersectNormal, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
             Depth - 1, IntersectNode, true);
@@ -367,7 +368,7 @@ var
       if not PerfectlyZeroVector(MaterialReflectionColor) then
       begin
         ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
-          IntersectNode^.World.Plane);
+          IntersectNormal);
         ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
         Result := Result + ReflColor * MaterialReflectionColor;
@@ -395,7 +396,7 @@ var
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
       Result := Octree.LightNotBlocked(Light,
-        Intersection, IntersectNode^.World.Normal,
+        Intersection, IntersectNormal,
         -RayDirection, IntersectNode, true);
     end;
 
@@ -435,7 +436,6 @@ var
     i: integer;
     Lights: TLightInstancesList;
     MaterialInfo: TMaterialInfo;
-    IntersectNormal: TVector3Single;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
@@ -796,7 +796,7 @@ const
 
         Result := TryTransmittedRayDirection(TransmittedRayDirection,
           Normalized(RayDirection),
-          IntersectNode^.World.Plane, EtaFrom, EtaTo);
+          IntersectNormal, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
             RandomHemispherePointCosThetaExp(
@@ -873,7 +873,7 @@ const
             swiatlo nie oswietla naszego pixela. }
           LightDirNorm := SampleLightPoint - Intersection;
           if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormal,
-            IntersectNode^.World.Plane) then Continue;
+            IntersectNormal) then Continue;
 
           { sprawdz IsLightShadowed, czyli zrob shadow ray }
           if IsLightShadowed(IntersectNode, Intersection,
@@ -1032,7 +1032,7 @@ const
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
                     ReflectedRayDirection(Normalized(RayDirection),
-                      IntersectNode^.World.Plane));
+                      IntersectNormal));
           end;
 
           { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
