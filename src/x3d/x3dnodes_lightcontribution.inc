@@ -39,6 +39,7 @@ var Spot: Single;
     {$ifndef CAMERA_INDEP}
     M1: TMaterialNode_1;
     M2: TMaterialNode;
+    // TODO: use CommonSurfaceShader as an alternative
 
     { srednia z wektora do cameraa i LightDirNorm, potrzebna do liczenia
       odbicia Specular }

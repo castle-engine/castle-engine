@@ -846,13 +846,21 @@ end;
 function TTriangle.MaterialInfo: TX3DMaterialInfoAbstract;
 var
   M2: TMaterialNode;
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
   if State.ShapeNode <> nil then
   begin
-    M2 := State.ShapeNode.Material;
-    if M2 <> nil then
-      Result := M2.MaterialInfo else
-      Result := nil;
+    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+      Result := SurfaceShader.MaterialInfo
+    else
+    begin
+      M2 := State.ShapeNode.Material;
+      if M2 <> nil then
+        Result := M2.MaterialInfo
+      else
+        Result := nil;
+    end;
   end else
     Result := State.LastNodes.Material.MaterialInfo(0);
 end;
@@ -860,13 +868,21 @@ end;
 function TTriangle.Transparency: Single;
 var
   M2: TMaterialNode;
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
   if State.ShapeNode <> nil then
   begin
-    M2 := State.ShapeNode.Material;
-    if M2 <> nil then
-      Result := M2.FdTransparency.Value else
-      Result := 0;
+    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+      Result := SurfaceShader.Transparency
+    else
+    begin
+      M2 := State.ShapeNode.Material;
+      if M2 <> nil then
+        Result := M2.FdTransparency.Value
+      else
+        Result := 0;
+    end;
   end else
     Result := State.LastNodes.Material.Transparency(0);
 end;

@@ -238,6 +238,8 @@ begin
       Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
     end else
     begin
+      // TODO: use CommonSurfaceShader as an alternative
+
       Material := State.ShapeNode.Material;
       if Material <> nil then
         Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
@@ -1127,6 +1129,8 @@ begin
       Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity)
     end else
     begin
+      // TODO: use CommonSurfaceShader as an alternative
+
       Material := State.ShapeNode.Material;
       if Material <> nil then
         Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else

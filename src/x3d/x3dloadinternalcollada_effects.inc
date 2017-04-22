@@ -125,6 +125,8 @@ var
   Appearance: TAppearanceNode;
   Mat: TMaterialNode;
 
+  // TODO: use CommonSurfaceShader as an alternative
+
   { Map of <surface> names to images (references from Images list) }
   Surfaces: TStringTextureNodeMap;
   { Map of <sampler2D> names to images (references from Images list) }

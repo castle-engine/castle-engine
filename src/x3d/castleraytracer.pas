@@ -402,6 +402,7 @@ var
     i: integer;
     M1: TMaterialNode_1;
     M2: TMaterialNode;
+    // TODO: use CommonSurfaceShader as an alternative
     Lights: TLightInstancesList;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
@@ -587,6 +588,7 @@ end;
   function EmissiveColor(const Item: TTriangle): TVector3Single;
   var
     M: TMaterialNode;
+    // TODO: use CommonSurfaceShader as an alternative
   begin
     if Item.State.ShapeNode <> nil then
     begin

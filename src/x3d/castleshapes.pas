@@ -1519,13 +1519,21 @@ function TShape.Blending: boolean;
   end;
 
 var
+  SurfaceShader: TCommonSurfaceShaderNode;
   M: TMaterialNode;
   Tex: TAbstractTextureNode;
 begin
   if State.ShapeNode <> nil then
   begin
-    M := State.ShapeNode.Material;
-    Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+    begin
+      Result := SurfaceShader.Transparency > SingleEqualityEpsilon;
+    end else
+    begin
+      M := State.ShapeNode.Material;
+      Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+    end;
   end else
     { For VRML 1.0, there may be multiple materials on a node.
       Some of them may be transparent, some not --- we arbitrarily

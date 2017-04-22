@@ -2961,6 +2961,7 @@ function TX3DGraphTraverseState.Emission(LightingCalculationOn: boolean): TVecto
 var
   M1: TMaterialNode_1;
   M2: TMaterialNode;
+  // TODO: use CommonSurfaceShader as an alternative
 begin
   if ShapeNode <> nil then
   begin

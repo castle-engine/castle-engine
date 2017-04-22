@@ -37,6 +37,7 @@
   TMaterialNode = class;
   TComposedShaderNode = class;
   TLinePropertiesNode = class;
+  TCommonSurfaceShaderNode = class;
 
   TShading = (shDefault, shPhong, shWireframe);
 
@@ -137,6 +138,10 @@
 
     private FFdOctreeTriangles: TSFNode;
     public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
+
+    { Find a suitable CommonSurfaceShader to be used when rendering this shape,
+      or @nil. }
+    function CommonSurfaceShader: TCommonSurfaceShaderNode;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshapenode.inc}
   end;
@@ -430,10 +435,10 @@
       in FdReflSpecular field.
 
       @groupBegin }
-    procedure CalculateReflSpecular(var V: TVector3Single);
-    procedure CalculateReflDiffuse(var V: TVector3Single);
-    procedure CalculateTransSpecular(var V: TVector3Single);
-    procedure CalculateTransDiffuse(var V: TVector3Single);
+    procedure CalculateReflSpecular(out V: TVector3Single);
+    procedure CalculateReflDiffuse(out V: TVector3Single);
+    procedure CalculateTransSpecular(out V: TVector3Single);
+    procedure CalculateTransDiffuse(out V: TVector3Single);
     { @groupEnd }
   public
     function DiffuseColor: TVector3Single; virtual; abstract;
@@ -676,6 +681,24 @@ begin
     Result := App.Material
   else
     Result := nil;
+end;
+
+function TAbstractShapeNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
+var
+  App: TAppearanceNode;
+  I: Integer;
+  Shader: TX3DNode;
+begin
+  Result := nil;
+
+  App := Appearance;
+  if App <> nil then
+    for I := 0 to App.FdShaders.Count - 1 do
+    begin
+      Shader := App.FdShaders[I];
+      if Shader is TCommonSurfaceShaderNode then
+        Exit(TCommonSurfaceShaderNode(Shader));
+    end;
 end;
 
 procedure TAbstractShapeNode.SetMaterial(const Value: TMaterialNode);
@@ -1207,26 +1230,26 @@ end;
 
 { TX3DMaterialInfoAbstract ---------------------------------------------------------- }
 
-procedure TX3DMaterialInfoAbstract.CalculateReflSpecular(var V: TVector3Single);
+procedure TX3DMaterialInfoAbstract.CalculateReflSpecular(out V: TVector3Single);
 begin
   V[0] := Mirror;
   V[1] := V[0];
   V[2] := V[0];
 end;
 
-procedure TX3DMaterialInfoAbstract.CalculateReflDiffuse(var V: TVector3Single);
+procedure TX3DMaterialInfoAbstract.CalculateReflDiffuse(out V: TVector3Single);
 begin
   V := DiffuseColor;
 end;
 
-procedure TX3DMaterialInfoAbstract.CalculateTransSpecular(var V: TVector3Single);
+procedure TX3DMaterialInfoAbstract.CalculateTransSpecular(out V: TVector3Single);
 begin
   V[0] := Transparency;
   V[1] := V[0];
   V[2] := V[0];
 end;
 
-procedure TX3DMaterialInfoAbstract.CalculateTransDiffuse(var V: TVector3Single);
+procedure TX3DMaterialInfoAbstract.CalculateTransDiffuse(out V: TVector3Single);
 begin
   V := VectorScale(DiffuseColor, Transparency);
 end;
