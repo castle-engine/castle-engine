@@ -26,7 +26,7 @@ CommonSurfaceShader :  X3DShaderNode {
 
   # Added in X3DOM
   SFString        [in,out]     displacementAxis                 "y"
-  SFFloat         [in,out]     displacementFactor               0
+  SFFloat         [in,out]     displacementFactor               255.0
   SFInt32         [in,out]     displacementTextureId            -1
   SFInt32         [in,out]     displacementTextureCoordinatesId 0
   SFNode          [in,out]     displacementTexture              NULL # [X3DTextureNode]

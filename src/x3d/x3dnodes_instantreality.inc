@@ -1367,7 +1367,7 @@ begin
    FdDisplacementAxis.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDisplacementAxis);
 
-  FFdDisplacementFactor := TSFFloat.Create(Self, 'displacementFactor', 0);
+  FFdDisplacementFactor := TSFFloat.Create(Self, 'displacementFactor', 255.0);
    FdDisplacementFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDisplacementFactor);
 
