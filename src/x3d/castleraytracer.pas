@@ -324,7 +324,8 @@ var
   var
     Intersection: TVector3Single;
     IntersectNode: PTriangle;
-    MaterialMirror, MaterialTransparency: Single;
+    MaterialTransparency: Single;
+    MaterialReflectionColor: TVector3Single;
 
     procedure ModifyColorByTransmittedRay;
     var
@@ -363,13 +364,13 @@ var
     var
       ReflRayDirection, ReflColor: TVector3Single;
     begin
-      if MaterialMirror > 0 then
+      if not PerfectlyZeroVector(MaterialReflectionColor) then
       begin
         ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
           IntersectNode^.World.Plane);
         ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
-        Result := Result * (1 - MaterialMirror) + ReflColor * MaterialMirror;
+        Result := Result + ReflColor * MaterialReflectionColor;
       end;
     end;
 
@@ -442,11 +443,11 @@ var
     MaterialInfo := IntersectNode^.MaterialInfo;
     if MaterialInfo <> nil then
     begin
-      MaterialMirror := MaterialInfo.Mirror;
+      MaterialReflectionColor := MaterialInfo.ReflectionColor;
       MaterialTransparency := MaterialInfo.Transparency;
     end else
     begin
-      MaterialMirror := TMaterialInfo.DefaultMirror;
+      MaterialReflectionColor := TMaterialInfo.DefaultReflectionColor;
       MaterialTransparency := TMaterialInfo.DefaultTransparency;
     end;
 

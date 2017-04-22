@@ -358,7 +358,8 @@
       DefaultShininess = 0.2;
       DefaultShininessExp = DefaultShininess * 128;
       DefaultTransparency = 0.0;
-      DefaultMirror = 0.0;
+      DefaultReflectionColor: TVector3Single = (0, 0, 0);
+      DefaultTransmissionColor: TVector3Single = (0, 0, 0);
       DefaultReflSpecularExp = 1000000;
       DefaultTransSpecularExp = 1000000;
 
@@ -368,7 +369,8 @@
     function EmissiveColor: TVector3Single; virtual; abstract;
     function Shininess: Single; virtual; abstract;
     function ShininessExp: Single;
-    function Mirror: Single; virtual; abstract;
+    function ReflectionColor: TVector3Single; virtual; abstract;
+    function TransmissionColor: TVector3Single; virtual;
     function Transparency: Single; virtual; abstract;
 
     function ReflSpecular: TVector3Single; virtual; abstract;
@@ -398,7 +400,7 @@
         function SpecularColor: TVector3Single; override;
         function EmissiveColor: TVector3Single; override;
         function Shininess: Single; override;
-        function Mirror: Single; override;
+        function ReflectionColor: TVector3Single; override;
         function Transparency: Single; override;
 
         function ReflSpecular: TVector3Single; override;
@@ -1184,7 +1186,7 @@ begin
    FdFogImmune.ChangesAlways := [chMaterial2];
   AddField(FFdFogImmune);
 
-  FFdMirror := TSFFloat.Create(Self, 'mirror', TMaterialInfo.DefaultMirror);
+  FFdMirror := TSFFloat.Create(Self, 'mirror', 0.0);
    FdMirror.ChangesAlways := [chMaterial2];
   AddField(FFdMirror);
 
@@ -1272,9 +1274,7 @@ end;
 
 procedure TMaterialInfo.CalculateReflSpecular(out V: TVector3Single);
 begin
-  V[0] := Mirror;
-  V[1] := V[0];
-  V[2] := V[0];
+  V := ReflectionColor;
 end;
 
 procedure TMaterialInfo.CalculateReflDiffuse(out V: TVector3Single);
@@ -1284,19 +1284,23 @@ end;
 
 procedure TMaterialInfo.CalculateTransSpecular(out V: TVector3Single);
 begin
-  V[0] := Transparency;
-  V[1] := V[0];
-  V[2] := V[0];
+  V := TransmissionColor;
 end;
 
 procedure TMaterialInfo.CalculateTransDiffuse(out V: TVector3Single);
 begin
-  V := VectorScale(DiffuseColor, Transparency);
+  V := DiffuseColor * TransmissionColor;
 end;
 
 function TMaterialInfo.ShininessExp: Single;
 begin
   Result := Clamped(Shininess * 128.0, 0.0, 128.0);
+end;
+
+function TMaterialInfo.TransmissionColor: TVector3Single;
+begin
+  { default TransmisionColor implementation }
+  Result := Vector3Single(Transparency, Transparency, Transparency);
 end;
 
 { TMaterialNode.TX3DMaterialInfo -------------------------------------------------------- }
@@ -1332,9 +1336,13 @@ begin
   Result := FNode.FdShininess.Value;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.Mirror: Single;
+function TMaterialNode.TX3DMaterialInfo.ReflectionColor: TVector3Single;
 begin
-  Result := FNode.FdMirror.Value;
+  Result := Vector3Single(
+    FNode.FdMirror.Value,
+    FNode.FdMirror.Value,
+    FNode.FdMirror.Value
+  );
 end;
 
 function TMaterialNode.TX3DMaterialInfo.Transparency: Single;

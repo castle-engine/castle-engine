@@ -339,7 +339,7 @@
         function SpecularColor: TVector3Single; override;
         function EmissiveColor: TVector3Single; override;
         function Shininess: Single; override;
-        function Mirror: Single; override;
+        function ReflectionColor: TVector3Single; override;
         function Transparency: Single; override;
 
         function ReflSpecular: TVector3Single; override;
@@ -1431,7 +1431,7 @@ begin
    FdTransparency.ChangesAlways := [chVisibleVRML1State, chUseBlending];
   AddField(FFdTransparency);
 
-  FFdMirror := TMFFloat.Create(Self, 'mirror', [TMaterialInfo.DefaultMirror]);
+  FFdMirror := TMFFloat.Create(Self, 'mirror', [0.0]);
    FdMirror.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdMirror);
 
@@ -1549,7 +1549,7 @@ end;}
 
   {$define MATERIAL_FUNCTION_NAME := Mirror}
   {$define MATERIAL_FUNCTION_FIELD := FdMirror}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultMirror}
+  {$define MATERIAL_FUNCTION_DEFAULT := 0.0}
   MATERIAL_FUNCTION_SINGLE
 
   {$define MATERIAL_FUNCTION_NAME := ReflSpecularExp}
@@ -1664,9 +1664,13 @@ begin
   Result := FNode.Shininess(FIndex);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.Mirror: Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflectionColor: TVector3Single;
 begin
-  Result := FNode.Mirror(FIndex);
+  Result := Vector3Single(
+    FNode.Mirror(FIndex),
+    FNode.Mirror(FIndex),
+    FNode.Mirror(FIndex)
+  );
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.Transparency: Single;

@@ -313,7 +313,8 @@
         function SpecularColor: TVector3Single; override;
         function EmissiveColor: TVector3Single; override;
         function Shininess: Single; override;
-        function Mirror: Single; override;
+        function ReflectionColor: TVector3Single; override;
+        function TransmissionColor: TVector3Single; override;
         function Transparency: Single; override;
 
         function ReflSpecular: TVector3Single; override;
@@ -1259,9 +1260,14 @@ begin
   Result := FNode.ShininessFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Mirror: Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflectionColor: TVector3Single;
 begin
-  Result := VectorAverage(FNode.ReflectionFactor);
+  Result := FNode.ReflectionFactor;
+end;
+
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransmissionColor: TVector3Single;
+begin
+  Result := FNode.TransmissionFactor;
 end;
 
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Transparency: Single;
