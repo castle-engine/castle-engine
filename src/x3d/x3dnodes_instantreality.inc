@@ -328,6 +328,8 @@
       FMaterialInfo: TMaterialInfo;
     function GetDiffuseTexture: TAbstractTextureNode;
     procedure SetDiffuseTexture(const Value: TAbstractTextureNode);
+    function GetMultiDiffuseAlphaTexture: TAbstractTextureNode;
+    procedure SetMultiDiffuseAlphaTexture(const Value: TAbstractTextureNode);
     function GetNormalTexture: TAbstractTextureNode;
     procedure SetNormalTexture(const Value: TAbstractTextureNode);
   public
@@ -434,6 +436,10 @@
 
     private FFdMultiDiffuseAlphaTexture: TSFNode;
     public property FdMultiDiffuseAlphaTexture: TSFNode read FFdMultiDiffuseAlphaTexture;
+    { The texture controlling the diffuse (rgb) and alpha (alpha channel).
+      Diffuse color is multiplied by @link(DiffuseFactor),
+      alpha is (or rather: should be) multiplied by @link(AlphaFactor). }
+    property MultiDiffuseAlphaTexture: TAbstractTextureNode read GetMultiDiffuseAlphaTexture write SetMultiDiffuseAlphaTexture;
 
     private FFdMultiEmmisiveAmbientIntensityTexture: TSFNode;
     public property FdMultiEmmisiveAmbientIntensityTexture: TSFNode read FFdMultiEmmisiveAmbientIntensityTexture;
@@ -1628,6 +1634,19 @@ end;
 procedure TCommonSurfaceShaderNode.SetDiffuseTexture(const Value: TAbstractTextureNode);
 begin
   FdDiffuseTexture.Send(Value);
+end;
+
+function TCommonSurfaceShaderNode.GetMultiDiffuseAlphaTexture: TAbstractTextureNode;
+begin
+  if FdMultiDiffuseAlphaTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdMultiDiffuseAlphaTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCommonSurfaceShaderNode.SetMultiDiffuseAlphaTexture(const Value: TAbstractTextureNode);
+begin
+  FdMultiDiffuseAlphaTexture.Send(Value);
 end;
 
 function TCommonSurfaceShaderNode.GetNormalTexture: TAbstractTextureNode;

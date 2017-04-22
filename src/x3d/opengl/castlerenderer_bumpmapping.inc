@@ -8,7 +8,7 @@
     SurfaceShader: TCommonSurfaceShaderNode;
     Appearance: TAppearanceNode;
     function NormalTexture: TAbstractTexture2DNode;
-    function HeightMapScale: Single;
+    function DisplacementFactor: Single;
   public
     constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
 
@@ -80,10 +80,10 @@ begin
     Result := nil;
 end;
 
-function TBumpMappingRenderer.HeightMapScale: Single;
+function TBumpMappingRenderer.DisplacementFactor: Single;
 begin
   if SurfaceShader <> nil then
-    Result := DefaultHeightMapScale
+    Result := SurfaceShader.DisplacementFactor / 255.0
   else
     Result := Appearance.FdHeightMapScale.Value;
 end;
@@ -122,7 +122,7 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
     If Node is nil,or it's corresponding GLNode (TGLTextureNode) is not initialized
     or invalid type, or OpenGL texture was not prepared for whatever reason
     --- returns 0. }
-  function GLTexture(Node: TAbstractTexture2DNode; out HeightMapInAlpha: boolean): TGLuint;
+  function GLTexture(Node: TAbstractTexture2DNode; out DisplacementTextureInAlpha: boolean): TGLuint;
   var
     GLNode: TGLTextureNode;
   begin
@@ -138,7 +138,7 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
         if GLNode is TGLMovieTextureNode then
           Result := TGLMovieTextureNode(GLNode).GLName;
 
-        HeightMapInAlpha := TAbstractTextureNode(Node).AlphaChannelFinal <> acNone;
+        DisplacementTextureInAlpha := TAbstractTextureNode(Node).AlphaChannelFinal <> acNone;
       end;
     end;
   end;
@@ -147,7 +147,7 @@ var
   Tex: TAbstractTexture2DNode;
   TexNormalMap: TGLuint;
   { Does NormalMap have alpha channel. }
-  HeightMapInAlpha: boolean;
+  DisplacementTextureInAlpha: boolean;
 begin
   Result := false;
 
@@ -155,7 +155,7 @@ begin
      (Renderer.BumpMapping <> bmNone) then
   begin
     Tex := NormalTexture;
-    TexNormalMap := GLTexture(Tex, HeightMapInAlpha);
+    TexNormalMap := GLTexture(Tex, DisplacementTextureInAlpha);
     if TexNormalMap <> 0 then
     begin
       Result := true;
@@ -164,7 +164,7 @@ begin
       Renderer.ActiveTexture(BoundTextureUnits);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);
       Shader.EnableBumpMapping(Renderer.BumpMapping, BoundTextureUnits,
-        HeightMapInAlpha, HeightMapScale);
+        DisplacementTextureInAlpha, DisplacementFactor);
       Inc(BoundTextureUnits);
     end;
   end;

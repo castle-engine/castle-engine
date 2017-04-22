@@ -140,9 +140,15 @@ type
       This looks into all shapes (not only active, so e.g. it looks into all
       Switch/LOD children, not only the chosen one).
 
-      This looks into the Appearance.texture field (and if it's MultiTexture,
-      looks into it's children). Also it looks into shaders textures.
-      Also, for VRML 1.0, looks into LastNodes.Texture2.
+      This looks into the
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item(Appearance.texture field (and if it's MultiTexture,
+          looks into it's children))
+        @item Into shaders textures (GLSL shaders, CommonSurfaceShader...).
+        @item For VRML 1.0, it also looks into LastNodes.Texture2.
+      )
 
       If Enumerate callbacks returns non-nil for some texture, returns it immediately,
       and stops further processing. }
@@ -1773,8 +1779,7 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
 
   function HandleSingleTextureNode(Tex: TX3DNode): Pointer;
   begin
-    if (Tex <> nil) and
-       (Tex is TAbstractTextureNode) then
+    if Tex is TAbstractTextureNode then
       Result := Enumerate(Self, TAbstractTextureNode(Tex)) else
       Result := nil;
   end;
@@ -1785,8 +1790,7 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
   begin
     Result := nil;
 
-    if (Tex <> nil) and
-       (Tex is TMultiTextureNode) then
+    if Tex is TMultiTextureNode then
     begin
       Result := Enumerate(Self, TMultiTextureNode(Tex));
       if Result <> nil then Exit;
@@ -1830,8 +1834,45 @@ function TShape.EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): P
     end;
   end;
 
+  function HandleCommonSurfaceShader(SurfaceShader: TCommonSurfaceShaderNode): Pointer;
+  begin
+    Result := HandleTextureNode(SurfaceShader.FdAlphaTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdAmbientTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdDiffuseTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdDiffuseDisplacementTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdDisplacementTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdEmissiveTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdEnvironmentTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdMultiDiffuseAlphaTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdMultiEmmisiveAmbientIntensityTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdMultiSpecularShininessTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdMultiVisibilityTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdNormalTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdReflectionTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdShininessTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdSpecularTexture.Value);
+    if Result <> nil then Exit;
+    Result := HandleTextureNode(SurfaceShader.FdTransmissionTexture.Value);
+    if Result <> nil then Exit;
+  end;
+
 var
   ComposedShader: TComposedShaderNode;
+  SurfaceShader: TCommonSurfaceShaderNode;
   I: Integer;
   App: TAppearanceNode;
 begin
@@ -1853,6 +1894,13 @@ begin
         Result := HandleShaderFields(ComposedShader.InterfaceDeclarations);
         if Result <> nil then Exit;
       end;
+    end;
+
+    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+    begin
+      HandleCommonSurfaceShader(SurfaceShader);
+      if Result <> nil then Exit;
     end;
 
     for I := 0 to App.FdEffects.Count - 1 do

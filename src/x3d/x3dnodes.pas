@@ -2902,10 +2902,27 @@ begin
 end;
 
 function TX3DGraphTraverseState.Texture: TAbstractTextureNode;
+var
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
+  Result := nil;
   if ShapeNode = nil then
-    Result := LastNodes.Texture2 else
-    Result := ShapeNode.Texture;
+    Result := LastNodes.Texture2
+  else
+  begin
+    SurfaceShader := ShapeNode.CommonSurfaceShader;
+    { This simple implementation of CommonSurfaceShader.DiffuseTexture
+      is OK for now: the diffuse texture simply replaces
+      the default Appearance.texture list. }
+    if SurfaceShader <> nil then
+    begin
+      if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+        Exit(SurfaceShader.MultiDiffuseAlphaTexture);
+      if SurfaceShader.DiffuseTexture <> nil then
+        Exit(SurfaceShader.DiffuseTexture);
+    end else
+      Result := ShapeNode.Texture;
+  end;
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;

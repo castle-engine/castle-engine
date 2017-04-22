@@ -50,16 +50,11 @@
     @item(
       When you want to release resources, you should call TGLRenderer.Unprepare on
       nodes that you want to change or free. This should be used
-      with nodes that were passed as Last*/Active* in some State for TGLRenderer.Prepare.
+      with nodes that were passed as Last*/Active*
+      in some State for TGLRenderer.Prepare.
 
-      Note: before engine 2.0.0 release, it was allowed to free some VRML nodes
-      @italic(before) unpreparing them. This was depending on the fact that
-      during unprepare we will not actually dereference pointers
-      (not look at nodes contents etc.). This is forbidden since 2010-03-25,
-      as it causes some difficult problems (like TGLRendererShaderProgram.Destroy
-      really needs to access some VRML nodes), and was inherently unclean
-      and unsafe (it's not a nice programming practice to have a pointers
-      that may be invalid).
+      Note that you cannot free the nodes before unpreparing them.
+      The node instance must remain valid while it's prepared.
     )
 
     @item(
@@ -2321,21 +2316,12 @@ var
   Texture: TAbstractTextureNode;
   FontTexture: TAbstractTexture2DNode;
   State: TX3DGraphTraverseState;
-  SurfaceShader: TCommonSurfaceShaderNode;
 begin
   State := Shape.State;
 
-  GLTextureNodes.Prepare(State, State.Texture, Self);
+  // TODO: why not use TShape.EnumerateTextures here?
 
-  if State.ShapeNode <> nil then
-  begin
-    SurfaceShader := State.ShapeNode.CommonSurfaceShader;
-    if SurfaceShader <> nil then
-    begin
-      if SurfaceShader.DiffuseTexture <> nil then
-        GLTextureNodes.Prepare(State, SurfaceShader.DiffuseTexture, Self);
-    end;
-  end;
+  GLTextureNodes.Prepare(State, State.Texture, Self);
 
   FontTexture := Shape.OriginalGeometry.FontTextureNode;
   if FontTexture <> nil then
@@ -3295,7 +3281,6 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
     FontTextureNode: TAbstractTexture2DNode;
     GLFontTextureNode: TGLTextureNode;
     TexturesAlphaChannel: TAlphaChannel;
-    SurfaceShader: TCommonSurfaceShaderNode;
   begin
     TexCoordsNeeded := 0;
     BoundTextureUnits := 0;
@@ -3305,17 +3290,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    if Shape.Node <> nil then
-      SurfaceShader := Shape.Node.CommonSurfaceShader
-    else
-      SurfaceShader := nil;
-    { This simple implementation of CommonSurfaceShader.DiffuseTexture
-      is OK for now: the diffuse texture simply replaces
-      the default Appearance.texture list. }
-    if SurfaceShader <> nil then
-      TextureNode := SurfaceShader.DiffuseTexture
-    else
-      TextureNode := Shape.State.Texture;
+    TextureNode := Shape.State.Texture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
