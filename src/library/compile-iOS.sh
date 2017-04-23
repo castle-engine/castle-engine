@@ -6,10 +6,10 @@ set -e
 
 # Configurable variables -----------------------------------------------------
 
-# Whether to compiler a version for iPhoneSimulator
+# Whether to compile a version for iPhoneSimulator
 COMPILE_SIM=1
 
-# Whether to compiler a version for a real device (32-bit arm7 or arm64)
+# Whether to compile a version for a real device (32-bit arm7 or arm64)
 COMPILE_ARM=1
 
 # Commands to use to run FPC cross-compilers for the appropriate targets.
