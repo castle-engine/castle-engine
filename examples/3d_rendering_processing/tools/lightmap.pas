@@ -97,7 +97,7 @@ begin
   if Octree.LightNotBlocked(Lights.List^[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
    VectorAddVar(result, Lights.List^[i].ContributionCameraIndependent(
-     Point, PointPlaneNormal, WhiteRGB));
+     Point, PointPlaneNormal, { TODO } WhiteRGB, { TODO } WhiteRGB));
 end;
 
 procedure TriangleLightMapVar(const Image: TCastleImage;

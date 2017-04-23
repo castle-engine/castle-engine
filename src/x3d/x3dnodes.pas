@@ -324,7 +324,8 @@ type
     function Contribution(
       const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
       State: TX3DGraphTraverseState;
-      const CamPosition: TVector3Single): TVector3Single;
+      const CamPosition: TVector3Single;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
 
     { Light contribution, without knowing the camera or full material.
       We have a 3D vertex, we know it lies on a plane with given normal,
@@ -334,7 +335,8 @@ type
 
       The specular lighting part must be simply ignored in this case.  }
     function ContributionCameraIndependent(
-      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
+      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
   end;
   PLightInstance = ^TLightInstance;
 
@@ -2622,12 +2624,13 @@ resourcestring
 function TLightInstance.Contribution(
   const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
   State: TX3DGraphTraverseState;
-  const CamPosition: TVector3Single): TVector3Single;
+  const CamPosition: TVector3Single;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
 {$I x3dnodes_lightcontribution.inc}
 
 function TLightInstance.ContributionCameraIndependent(
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
-  :TVector3Single;
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
 {$define CAMERA_INDEP}
 {$I x3dnodes_lightcontribution.inc}
 {$undef CAMERA_INDEP}

@@ -40,7 +40,7 @@ var
   {$ifndef CAMERA_INDEP}
   M: TMaterialInfo;
 
-  { srednia z wektora do cameraa i LightDirNorm, potrzebna do liczenia
+  { srednia z wektora do camera i LightDirNorm, potrzebna do liczenia
     odbicia Specular }
   CameraAndLightHalfway: TVector3Single;
 
@@ -166,7 +166,7 @@ begin
  {$endif}
 
  { Factors += diffuse factor }
- Factors += MaterialDiffuseColor *
+ Factors += MaterialDiffuseColor * DiffuseTextureColor *
    (Node.FdIntensity.Value * (Normal ** LightDirNorm));
 
  {$ifndef CAMERA_INDEP}

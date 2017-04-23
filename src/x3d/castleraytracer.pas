@@ -225,7 +225,8 @@ type
 
 implementation
 
-uses SysUtils, CastleSphereSampling, CastleTimeUtils, CastleColors;
+uses SysUtils, Math,
+  CastleSphereSampling, CastleTimeUtils, CastleColors, CastleTextureImages;
 
 { RayDirection calculations ----------------------------------------------------- }
 
@@ -284,6 +285,163 @@ begin
     Calculation is just like in Foley (page 601, section (14.16)). }
   Result := (Normal * 2 * (Normal ** NormNegatedRayDirection))
     - NormNegatedRayDirection;
+end;
+
+function GetDiffuseTexture(const Texture: TAbstractTextureNode;
+  const TexCoord: TVector4Single): TCastleColorRGB;
+
+  function DivUnsignedModulo(const Dividend: Integer; const Divisor: Integer): Integer;
+  var
+    DivResult: Smallint;
+    DivRemainder: Word;
+  begin
+    DivUnsignedMod(Dividend, Divisor, DivResult, DivRemainder);
+    Result := DivRemainder;
+  end;
+
+var
+  RepeatCoord: array [0..2] of boolean;
+
+  function SampleNearest(const Image: TCastleImage; const Pixel: TVector3Single): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: TVector3Integer;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 2 do
+    begin
+      PixelInt[I] := Round(Pixel[I] - 0.5);
+      if RepeatCoord[I] then
+        PixelInt[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
+      else
+        PixelInt[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
+    end;
+    Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
+  end;
+
+  // This works OK, but is not needed now (as it ~2 times slower than SampleLinear2D).
+  {
+  function SampleLinear(const Image: TCastleImage; Pixel: TVector3Single): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: array [boolean, 0..2] of Integer;
+    PixelFrac: TVector3Single;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 2 do
+    begin
+      if RepeatCoord[I] then
+        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
+      else
+        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+    end;
+
+    for I := 0 to 2 do
+    begin
+      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
+      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
+      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+    end;
+
+    Result :=
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[false][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[false][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]);
+  end;
+  }
+
+  function SampleLinear2D(const Image: TCastleImage; Pixel: TVector3Single): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: array [boolean, 0..1] of Integer;
+    PixelFrac: TVector2Single;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 1 do
+    begin
+      if RepeatCoord[I] then
+        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
+      else
+        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+    end;
+
+    for I := 0 to 1 do
+    begin
+      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
+      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
+      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+    end;
+
+    Result :=
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], 0] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], 0] * (    PixelFrac[0]) * (1 - PixelFrac[1]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], 0] * (1 - PixelFrac[0]) * (    PixelFrac[1]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], 0] * (    PixelFrac[0]) * (    PixelFrac[1]);
+  end;
+
+var
+  Texture2D: TAbstractTexture2DNode;
+  EncodedImage: TEncodedImage;
+  Image: TCastleImage;
+  TexCoord3D: TVector3Single;
+  Pixel: TVector3Single;
+  Color: TCastleColor;
+  Bilinear: boolean;
+begin
+  Result := WhiteRGB;
+  if Texture is TAbstractTexture2DNode { also makes sure Texture <> nil } then
+  begin
+    Texture2D := TAbstractTexture2DNode(Texture);
+    if Texture2D.IsTextureImage then
+    begin
+      EncodedImage := TAbstractTexture2DNode(Texture).TextureImage;
+      if (EncodedImage is TCastleImage) and
+         (not EncodedImage.IsEmpty) and
+         (not Zero(TexCoord[3])) then
+      begin
+        Image := TCastleImage(EncodedImage);
+        TexCoord3D := Vector3SinglePoint(TexCoord);
+        Pixel[0] := TexCoord3D[0] * Image.Width;
+        Pixel[1] := TexCoord3D[1] * Image.Height;
+        Pixel[2] := TexCoord3D[2] * Image.Depth;
+        if IsNan(TexCoord[0]) then
+        begin
+          // TODO: bug on demo-models/bump_mapping/bump_mapping_leaf_test.wrl
+          {
+          Writeln(VectorToRawStr(Pixel));
+          Writeln(VectorToRawStr(TexCoord3D));
+          Writeln(VectorToRawStr(TexCoord));
+          Writeln(Image.Width, ' ', Image.Height, ' ', Image.Depth);
+          }
+          Exit;
+        end;
+
+        RepeatCoord[0] := Texture2D.RepeatS;
+        RepeatCoord[1] := Texture2D.RepeatT;
+        RepeatCoord[2] := false { Texture2D.RepeatR };
+
+        Bilinear := not (
+          (Texture2D.TextureProperties <> nil) and
+          // TODO: we should look either at MagnificationFilter or MinificationFilter
+          (Texture2D.TextureProperties.MagnificationFilter = magNearest)
+        );
+        if Bilinear then
+          Color := SampleLinear2D(Image, Pixel)
+        else
+          Color := SampleNearest(Image, Pixel);
+
+        Result := Vector3SingleCut(Color);
+      end;
+    end;
+  end;
 end;
 
 { TRayTracer ----------------------------------------------------------------- }
@@ -436,6 +594,7 @@ var
     i: integer;
     Lights: TLightInstancesList;
     MaterialInfo: TMaterialInfo;
+    DiffuseTextureColor: TCastleColorRGB;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
@@ -454,6 +613,10 @@ var
       MaterialTransparency := TMaterialInfo.DefaultTransparency;
     end;
 
+    DiffuseTextureColor := GetDiffuseTexture(
+      IntersectNode^.State.Texture,
+      IntersectNode^.ITexCoord(Intersection));
+
     Result := Emission(IntersectNode^.State.MaterialInfo, InitialDepth <> 0);
     with IntersectNode^ do
     begin
@@ -464,7 +627,7 @@ var
           for i := 0 to Lights.Count - 1 do
             if LightNotBlocked(Lights.L[i]) then
               Result += Lights.L[i].Contribution(Intersection,
-                IntersectNormal, IntersectNode^.State, CamPosition);
+                IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Add BaseLights contribution, just like other lights.
 
@@ -500,7 +663,7 @@ var
           if (Depth = InitialDepth) or
              LightNotBlocked(BaseLights.L[I]) then
             Result += BaseLights.L[I].Contribution(Intersection,
-              IntersectNormal, IntersectNode^.State, CamPosition);
+              IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)
