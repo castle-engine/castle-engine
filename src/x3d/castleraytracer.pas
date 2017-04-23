@@ -390,6 +390,7 @@ var
   end;
 
 var
+  SingleTexture: TX3DNode;
   Texture2D: TAbstractTexture2DNode;
   EncodedImage: TEncodedImage;
   Image: TCastleImage;
@@ -399,12 +400,22 @@ var
   Bilinear: boolean;
 begin
   Result := WhiteRGB;
-  if Texture is TAbstractTexture2DNode { also makes sure Texture <> nil } then
+
+  SingleTexture := nil;
+  if Texture is TMultiTextureNode { also makes sure Texture <> nil } then
   begin
-    Texture2D := TAbstractTexture2DNode(Texture);
+    if TMultiTextureNode(Texture).FdTexture.Count > 0 then
+      SingleTexture := TMultiTextureNode(Texture).FdTexture[0];
+  end else
+    SingleTexture := Texture;
+
+  if SingleTexture is TAbstractTexture2DNode { also makes sure SingleTexture <> nil } then
+  begin
+    // TODO: 3D textures could be handled easily too!
+    Texture2D := TAbstractTexture2DNode(SingleTexture);
     if Texture2D.IsTextureImage then
     begin
-      EncodedImage := TAbstractTexture2DNode(Texture).TextureImage;
+      EncodedImage := Texture2D.TextureImage;
       if (EncodedImage is TCastleImage) and
          (not EncodedImage.IsEmpty) and
          (not Zero(TexCoord[3])) then
