@@ -159,6 +159,8 @@ packages/castle_components.pas
 packages/castle_window.pas
 packages/lib/
 src/library/libcastleengine.so
+src/library/libcastleengine.dylib
+src/library/ios-output/
 src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal
 src/x3d/nodes_specification/old_x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal

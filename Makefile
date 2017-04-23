@@ -278,8 +278,7 @@ clean: cleanexamples
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
-	                   -iname '*.log' -or \
-			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
+	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
 	$(FIND) . -type d -name lib -exec rm -Rf '{}' ';' -prune
@@ -299,6 +298,10 @@ clean: cleanexamples
 	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation
 	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
+	rm -Rf src/library/ios-output/\
+	       src/library/libcastleengine.dylib \
+	       src/library/castleengine.dll \
+	       src/library/libcastleengine.so
 # clean every project with CastleEngineManifest.xml
 	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
 
