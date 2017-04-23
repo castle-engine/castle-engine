@@ -375,6 +375,8 @@ var
 
     for I := 0 to 1 do
     begin
+      // TODO: this is not correct in case RepeatCoord[I],
+      // it will not filter 100% nicely on the border pixels
       PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
       PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
       PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
