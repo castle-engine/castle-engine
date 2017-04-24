@@ -78,7 +78,11 @@ type
     { Camera projection properties. }
     Projection: TProjection;
 
+    { Default background color, if scene doesn't have Background node with skyColor. }
     SceneBGColor: TVector3Single;
+
+    { Scene Background node. }
+    Background: TAbstractBackgroundNode;
 
     { Callback notified (if assigned) about writing each image pixel.
       This way you can display somewhere, or store to file, partially
@@ -94,7 +98,7 @@ type
       Remember that pixels not done yet have the same content as they
       had when you @link(Execute) method started. In other words,
       if you set PixelsMadeNotifier <> nil, then often it's
-      desirable to initialize Image content (e.g. to all SceneBGColor)
+      desirable to initialize Image content with some color (e.g. black)
       before calling @link(Execute). Otherwise at the time of @link(Execute)
       call, the pixels not done yet will have undefined colors. }
     PixelsMadeNotifier: TPixelsMadeNotifierFunc;
@@ -285,6 +289,17 @@ begin
     Calculation is just like in Foley (page 601, section (14.16)). }
   Result := (Normal * 2 * (Normal ** NormNegatedRayDirection))
     - NormNegatedRayDirection;
+end;
+
+function GetSceneBackgroundColor(const Background: TAbstractBackgroundNode;
+  const Default: TCastleColorRGB): TCastleColorRGB;
+begin
+  if (Background <> nil) and
+     (Background is TBackgroundNode) and
+     (TBackgroundNode(Background).FdSkyColor.Count <> 0) then
+    Result := TBackgroundNode(Background).FdSkyColor.Items[0]
+  else
+    Result := Default;
 end;
 
 function GetDiffuseTexture(const Texture: TAbstractTextureNode;
@@ -485,13 +500,13 @@ end;
 procedure TClassicRayTracer.Execute;
 var
   FogType: TFogTypeOrNone;
+  SceneBackgroundColor: TCastleColorRGB;
 
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
   function Trace(const RayOrigin, RayDirection: TVector3Single; const Depth: Cardinal;
-    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean):
-    TVector3Single;
+    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean): TCastleColorRGB;
   var
     Intersection: TVector3Single;
     IntersectNormal: TVector3Single;
@@ -535,14 +550,27 @@ var
     procedure ModifyColorByReflectedRay;
     var
       ReflRayDirection, ReflColor: TVector3Single;
+      MaterialReflection: Single;
     begin
-      if not PerfectlyZeroVector(MaterialReflectionColor) then
+      MaterialReflection := Max(
+        MaterialReflectionColor[0],
+        MaterialReflectionColor[1],
+        MaterialReflectionColor[2]
+      );
+      if MaterialReflection > 0 then
       begin
         ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
           IntersectNormal);
         ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
-        Result := Result + ReflColor * MaterialReflectionColor;
+        Result :=
+          { Scale down original result, by "1 - MaterialReflection".
+            Note: scaling down by "1 - MaterialReflectionColor" would be bad,
+            makes the material look like the inversion of MaterialReflectionColor.
+            E.g. for MaterialReflectionColor = blue, it will make the surface
+            somewhat yellowish. }
+          Result * (1 - MaterialReflection) +
+          ReflColor * MaterialReflectionColor;
       end;
     end;
 
@@ -611,7 +639,7 @@ var
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
-    if IntersectNode = nil then Exit(SceneBGColor);
+    if IntersectNode = nil then Exit(SceneBackgroundColor);
 
     IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
 
@@ -720,6 +748,8 @@ var
   SFCurve: TSpaceFillingCurve;
 begin
   FogType := FogNode.FogTypeOrNone;
+
+  SceneBackgroundColor := GetSceneBackgroundColor(Background, SceneBGColor);
 
   RaysWindow := nil;
   SFCurve := nil;
@@ -864,6 +894,8 @@ var
     The idea of "shadow cache" comes from RGK, crystalized in "Graphic Gems II". }
   ShadowCache: TFPList;
   {$endif}
+
+  SceneBackgroundColor: TCastleColorRGB;
 
   { TODO: comments below are in Polish. }
 
@@ -1241,7 +1273,7 @@ const
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
-    if IntersectNode = nil then Exit(SceneBGColor);
+    if IntersectNode = nil then Exit(SceneBackgroundColor);
 
     if TraceOnlyIndirect and IsLightSource(IntersectNode^) then
     begin
@@ -1320,6 +1352,8 @@ var
   PixCoord: TVector2Cardinal;
   SFCurve: TSpaceFillingCurve;
 begin
+  SceneBackgroundColor := GetSceneBackgroundColor(Background, SceneBGColor);
+
   { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
     pozwolic zeby na poczatku tej procedury wykonac kilka testow, nawet gdy
     kompilujemy sie w wersji RELEASE) }
