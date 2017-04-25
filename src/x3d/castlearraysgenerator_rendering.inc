@@ -222,7 +222,7 @@ end;
 
 procedure TPointSetGenerator.GenerateCoordinateBegin;
 var
-  Material: TMaterialNode;
+  M: TMaterialInfo;
 begin
   inherited;
 
@@ -232,17 +232,11 @@ begin
   if Arrays.Color = nil then
   begin
     Arrays.HasDefaultColor := true;
-    if State.ShapeNode = nil then
-    begin
-      WritelnWarning('VRML/X3D', 'PointSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
+    M := State.MaterialInfo;
+    if M <> nil then
+      Arrays.DefaultColor := Vector4Single(M.EmissiveColor, MaterialOpacity)
+    else
       Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
-    end else
-    begin
-      Material := State.ShapeNode.Material;
-      if Material <> nil then
-        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
-        Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
-    end;
   end;
 end;
 
@@ -1106,7 +1100,7 @@ end;
 
 procedure TLineSetGenerator.GenerateCoordinateBegin;
 var
-  Material: TMaterialNode;
+  M: TMaterialInfo;
 begin
   inherited;
 
@@ -1121,16 +1115,10 @@ begin
   if Color = nil then
   begin
     Arrays.HasDefaultColor := true;
-    if State.ShapeNode = nil then
-    begin
-      WritelnWarning('VRML/X3D', 'LineSet in VRML >= 2.0 must be specified only inside Shape.geometry (but it''s not)');
-      Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity)
-    end else
-    begin
-      Material := State.ShapeNode.Material;
-      if Material <> nil then
-        Arrays.DefaultColor := Vector4Single(Material.FdEmissiveColor.Value, MaterialOpacity) else
-        Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity)
-    end;
+    M := State.MaterialInfo;
+    if M <> nil then
+      Arrays.DefaultColor := Vector4Single(M.EmissiveColor, MaterialOpacity)
+    else
+      Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
   end;
 end;

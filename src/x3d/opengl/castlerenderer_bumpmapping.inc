@@ -1,17 +1,18 @@
 {$ifdef read_interface}
 
-  { Rendering with bump mapping. It's associated with Appearance node
-    defining heightMap, normalMap and other bump mapping properties. }
+  { Rendering with bump mapping.
+    It's associated with an Appearance node (for our Appearance.normalMap extension)
+    or CommonSurfaceShader node. }
   TBumpMappingRenderer = class(TResourceRenderer)
   private
-    class function IsImageTexture(ANode: TX3DNode): boolean;
+    SurfaceShader: TCommonSurfaceShaderNode;
+    Appearance: TAppearanceNode;
+    function NormalTexture: TAbstractTexture2DNode;
+    function DisplacementFactor: Single;
   public
-    { ANode must be TAppearanceNode }
     constructor Create(ARenderer: TGLRenderer; ANode: TX3DNode); override;
 
-    function Node: TAppearanceNode;
-
-    { Prepare normalMap, heightMap (if exist) for rendering. }
+    { Prepare normalMap for rendering. }
     procedure Prepare(State: TX3DGraphTraverseState);
 
     { Release things initialized by Prepare. }
@@ -27,12 +28,8 @@
     function GetItems(const Index: Integer): TBumpMappingRenderer;
   public
     { Looks for item with given Node.
-      Returns -1 if not found. }
-    function NodeIndex(ANode: TAppearanceNode): Integer;
-
-    { Looks for item with given Node.
       Returns @nil if not found. }
-    function Node(ANode: TAppearanceNode): TBumpMappingRenderer;
+    function Node(ANode: TX3DNode): TBumpMappingRenderer;
 
     property Items[Index: Integer]: TBumpMappingRenderer read GetItems; default;
 
@@ -59,23 +56,41 @@
 
 constructor TBumpMappingRenderer.Create(ARenderer: TGLRenderer; ANode: TX3DNode);
 begin
-  Assert(ANode is TAppearanceNode, 'TBumpMappingRenderer.Create acceps as Node only TAppearanceNode');
   inherited;
+  if ANode is TCommonSurfaceShaderNode then
+    SurfaceShader := TCommonSurfaceShaderNode(ANode)
+  else
+  if ANode is TAppearanceNode then
+    Appearance := TAppearanceNode(ANode)
+  else
+    raise Exception.Create('Invalid node for TBumpMappingRenderer.Create');
 end;
 
-function TBumpMappingRenderer.Node: TAppearanceNode;
+function TBumpMappingRenderer.NormalTexture: TAbstractTexture2DNode;
+var
+  PotentialResult: TX3DNode;
 begin
-  Result := TAppearanceNode(inherited Node);
+  if SurfaceShader <> nil then
+    PotentialResult := SurfaceShader.FdNormalTexture.Value
+  else
+    PotentialResult := Appearance.FdNormalMap.Value;
+  if PotentialResult is TAbstractTexture2DNode then
+    Result := TAbstractTexture2DNode(PotentialResult)
+  else
+    Result := nil;
 end;
 
-class function TBumpMappingRenderer.IsImageTexture(ANode: TX3DNode): boolean;
+function TBumpMappingRenderer.DisplacementFactor: Single;
 begin
-  Result :=
-    (ANode <> nil) and
-    (ANode is TAbstractTexture2DNode);
+  if SurfaceShader <> nil then
+    Result := SurfaceShader.DisplacementFactor / 255.0
+  else
+    Result := Appearance.FdHeightMapScale.Value;
 end;
 
 procedure TBumpMappingRenderer.Prepare(State: TX3DGraphTraverseState);
+var
+  Tex: TAbstractTexture2DNode;
 begin
   { don't bother loading textures for bump mapping if not enabled }
   if Renderer.BumpMapping = bmNone then Exit;
@@ -86,38 +101,33 @@ begin
     Unprepare method in TGLRenderer (that may in turn be called
     by anything in the scene). Our references would then be invalid. }
 
-  if IsImageTexture(Node.FdNormalMap.Value) then
-    Renderer.GLTextureNodes.Prepare(State, TAbstractTexture2DNode(Node.FdNormalMap.Value), Renderer);
-
-{ FdHeightMap not used now }
-{ if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Prepare(State, TAbstractTexture2DNode(Node.FdHeightMap.Value), Renderer); }
+  Tex := NormalTexture;
+  if Tex <> nil then
+    Renderer.GLTextureNodes.Prepare(State, Tex, Renderer);
 end;
 
 procedure TBumpMappingRenderer.Unprepare;
+var
+  Tex: TAbstractTexture2DNode;
 begin
-  if IsImageTexture(Node.FdNormalMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TAbstractTexture2DNode(Node.FdNormalMap.Value));
-
-{ FdHeightMap not used now }
-{ if IsImageTexture(Node.FdHeightMap.Value) then
-    Renderer.GLTextureNodes.Unprepare(TAbstractTexture2DNode(Node.FdHeightMap.Value)); }
+  Tex := NormalTexture;
+  if Tex <> nil then
+    Renderer.GLTextureNodes.Unprepare(Tex);
 end;
 
 function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
   Shader: TShader): boolean;
 
   { Return OpenGL texture initialized for texture node Node.
-    If Node is nil or invalid type,
-    or it's corresponding GLNode (TGLTextureNode) is not initialized or
-    invalid type, or OpenGL texture was not prepared for whatever reason
+    If Node is nil,or it's corresponding GLNode (TGLTextureNode) is not initialized
+    or invalid type, or OpenGL texture was not prepared for whatever reason
     --- returns 0. }
-  function GLTexture(Node: TX3DNode; out HeightMapInAlpha: boolean): TGLuint;
+  function GLTexture(Node: TAbstractTexture2DNode; out DisplacementTextureInAlpha: boolean): TGLuint;
   var
     GLNode: TGLTextureNode;
   begin
     Result := 0;
-    if IsImageTexture(Node) then
+    if Node <> nil then
     begin
       GLNode := Renderer.GLTextureNodes.TextureNode(TAbstractTexture2DNode(Node));
       if GLNode <> nil then
@@ -128,22 +138,24 @@ function TBumpMappingRenderer.Enable(var BoundTextureUnits: Cardinal;
         if GLNode is TGLMovieTextureNode then
           Result := TGLMovieTextureNode(GLNode).GLName;
 
-        HeightMapInAlpha := TAbstractTextureNode(Node).AlphaChannelFinal <> acNone;
+        DisplacementTextureInAlpha := TAbstractTextureNode(Node).AlphaChannelFinal <> acNone;
       end;
     end;
   end;
 
 var
+  Tex: TAbstractTexture2DNode;
   TexNormalMap: TGLuint;
-  { Has NormalMap alpha channel. }
-  HeightMapInAlpha: boolean;
+  { Does NormalMap have alpha channel. }
+  DisplacementTextureInAlpha: boolean;
 begin
   Result := false;
 
   if Renderer.ShapeBumpMappingAllowed and
      (Renderer.BumpMapping <> bmNone) then
   begin
-    TexNormalMap := GLTexture(Node.FdNormalMap.Value, HeightMapInAlpha);
+    Tex := NormalTexture;
+    TexNormalMap := GLTexture(Tex, DisplacementTextureInAlpha);
     if TexNormalMap <> 0 then
     begin
       Result := true;
@@ -152,7 +164,7 @@ begin
       Renderer.ActiveTexture(BoundTextureUnits);
       glBindTexture(GL_TEXTURE_2D, TexNormalMap);
       Shader.EnableBumpMapping(Renderer.BumpMapping, BoundTextureUnits,
-        HeightMapInAlpha, Node.FdHeightMapScale.Value);
+        DisplacementTextureInAlpha, DisplacementFactor);
       Inc(BoundTextureUnits);
     end;
   end;
@@ -160,12 +172,7 @@ end;
 
 { TBumpMappingRendererList -------------------------------------------------- }
 
-function TBumpMappingRendererList.NodeIndex(ANode: TAppearanceNode): Integer;
-begin
-  Result := inherited NodeIndex(ANode);
-end;
-
-function TBumpMappingRendererList.Node(ANode: TAppearanceNode): TBumpMappingRenderer;
+function TBumpMappingRendererList.Node(ANode: TX3DNode): TBumpMappingRenderer;
 begin
   Result := TBumpMappingRenderer(inherited Node(ANode));
 end;
@@ -177,14 +184,11 @@ end;
 
 procedure TBumpMappingRendererList.Prepare(State: TX3DGraphTraverseState;
   ARenderer: TGLRenderer);
-var
-  ANode: TAppearanceNode;
-  BumpMappingRenderer: TBumpMappingRenderer;
-begin
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+
+  procedure PrepareForNode(const ANode: TX3DNode);
+  var
+    BumpMappingRenderer: TBumpMappingRenderer;
   begin
-    ANode := State.ShapeNode.Appearance;
     if Node(ANode) = nil then
     begin
       BumpMappingRenderer := TBumpMappingRenderer.Create(ARenderer, ANode);
@@ -192,26 +196,48 @@ begin
       Add(BumpMappingRenderer);
     end;
   end;
+
+var
+  ShaderSurface: TCommonSurfaceShaderNode;
+begin
+  if State.ShapeNode <> nil then
+  begin
+    ShaderSurface := State.ShapeNode.CommonSurfaceShader;
+    if (ShaderSurface <> nil) and
+       (ShaderSurface.NormalTexture <> nil) then
+      PrepareForNode(ShaderSurface)
+    else
+    if State.ShapeNode.Appearance <> nil then
+      PrepareForNode(State.ShapeNode.Appearance);
+  end;
 end;
 
 function TBumpMappingRendererList.Enable(State: TX3DGraphTraverseState;
   var BoundTextureUnits: Cardinal;
   Shader: TShader): TBumpMappingRenderer;
-var
-  ANode: TAppearanceNode;
-begin
-  Result := nil;
 
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
+  procedure EnableForNode(const ANode: TX3DNode);
   begin
-    ANode := State.ShapeNode.Appearance;
     Result := Node(ANode);
     if Result <> nil then
     begin
       if not Result.Enable(BoundTextureUnits, Shader) then
         Result := nil;
     end;
+  end;
+
+var
+  ShaderSurface: TCommonSurfaceShaderNode;
+begin
+  if State.ShapeNode <> nil then
+  begin
+    ShaderSurface := State.ShapeNode.CommonSurfaceShader;
+    if (ShaderSurface <> nil) and
+       (ShaderSurface.NormalTexture <> nil) then
+      EnableForNode(ShaderSurface)
+    else
+    if State.ShapeNode.Appearance <> nil then
+      EnableForNode(State.ShapeNode.Appearance);
   end;
 end;
 

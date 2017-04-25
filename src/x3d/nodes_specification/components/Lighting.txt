@@ -22,11 +22,11 @@ DirectionalLight : X3DLightNode {
   # NOTE: global by default is FALSE
 
   # EXTENSIONS:
-  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in TAbstractDirectionalLightNode
   # SFVec4f    [in,out]      projectionRectangle   -10 10 -10 10  # left, bottom, right, top; must be left < right and bottom < top
 
-  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially in TAbstractDirectionalLightNode
   # SFVec3f    [in,out]      projectionLocation    0 0 0          # affected by node's transformation
 }
@@ -35,15 +35,15 @@ PointLight : X3DLightNode {
   # NOTE: global by default is TRUE
 
   # EXTENSIONS:
-  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
   # SFVec3f [in,out] attenuation      1 0 0 [0,Inf)
 
-  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
   # SFVec3f [in,out] location         0 0 0 (-Inf,Inf)
 
-  # Commented out to not be seen by generate_x3d_nodes_to_pascal,
+  # Commented out to not be seen by x3d-nodes-to-pascal,
   # this is implemented specially
   # SFFloat [in,out] radius           100   [0,Inf)
 }

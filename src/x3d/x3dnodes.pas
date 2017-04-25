@@ -183,16 +183,16 @@ uses SysUtils, FGL, Classes, XMLRead, DOM,
 {$define read_interface}
 
 const
-  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2);
-  DefaultMaterialAmbientIntensity = 0.2;
-  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
-  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0);
-  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0);
-  DefaultMaterialShininess = 0.2;
-  DefaultMaterialTransparency = 0.0;
-  DefaultMaterialMirror = 0.0;
-  DefaultMaterialReflSpecularExp = 1000000;
-  DefaultMaterialTransSpecularExp = 1000000;
+  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2) deprecated 'use TMaterialInfo.DefaultAmbientColor';
+  DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TMaterialInfo.DefaultAmbientIntensity';
+  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
+  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultSpecularColor';
+  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
+  DefaultMaterialShininess = 0.2 deprecated 'use TMaterialInfo.DefaultShininess';
+  DefaultMaterialTransparency = 0.0 deprecated 'use TMaterialInfo.DefaultTransparency';
+  DefaultMaterialMirror = 0.0 deprecated 'use TMaterialInfo.DefaultMirror';
+  DefaultMaterialReflSpecularExp = 1000000 deprecated 'use TMaterialInfo.DefaultReflSpecularExp';
+  DefaultMaterialTransSpecularExp = 1000000 deprecated 'use TMaterialInfo.DefaultTransSpecularExp';
 
 { -----------------------------------------------------------------------------
   Looong "type" declaration below, with many class definitions depending
@@ -322,9 +322,10 @@ type
       to multiply / accumulate values outside of the (0, 1) range
       during calculations. OpenGL also clamps only at the end. }
     function Contribution(
-      const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
+      const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
       State: TX3DGraphTraverseState;
-      const CamPosition: TVector3Single): TVector3Single;
+      const CamPosition: TVector3Single;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
 
     { Light contribution, without knowing the camera or full material.
       We have a 3D vertex, we know it lies on a plane with given normal,
@@ -334,7 +335,8 @@ type
 
       The specular lighting part must be simply ignored in this case.  }
     function ContributionCameraIndependent(
-      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single): TVector3Single;
+      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
   end;
   PLightInstance = ^TLightInstance;
 
@@ -365,6 +367,7 @@ type
   end;
 
   TPointingDeviceSensorList = class;
+  TMaterialInfo = class;
 
   { Current state (transformation and such) when traversing VRML/X3D graph.
 
@@ -606,19 +609,15 @@ type
 
     function AddClipPlane: PClipPlane;
 
-    { Calculate emission color of given shape.
+    { Material information at this state.
+      See TMaterialInfo for usage description.
+      Returns @nil when no node determines material properties
+      (which indicates white unlit look).
 
-      This can be used by software renderers (ray-tracers etc.)
-      to calculate pixel color following VRML/X3D specifications.
-      Emission should be added to
-      TLightInstance.Contribution (for each light),
-      and resulting color should be processed by TFogNode.ApplyFog.
-
-      When LightingCalculationOn = @false we actually take diffuseColor
-      instead of emissiveColor. This is useful if you want to force
-      the scene completely unlit, usually diffuseColor is more useful for this
-      (since emissiveColor is often black on everything). }
-    function Emission(LightingCalculationOn: boolean): TVector3Single;
+      Returned TMaterialInfo is valid only as long as the underlying
+      Material or CommonSurfaceShader node exists.
+      Do not free it yourself, it will be automatically freed. }
+    function MaterialInfo: TMaterialInfo;
   end;
 
   { Stack of TX3DGraphTraverseState.
@@ -2356,6 +2355,7 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_colorinterpolator.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
 {$I auto_generated_node_helpers/x3dnodes_colorsetinterpolator.inc}
+{$I auto_generated_node_helpers/x3dnodes_commonsurfaceshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedcubemaptexture.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
 {$I auto_generated_node_helpers/x3dnodes_composedtexture3d.inc}
@@ -2574,7 +2574,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3ddragsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3denvironmenttexturenode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dfogobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dfontstylenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
@@ -2587,7 +2586,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dlayoutnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dmaterialnode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dmetadataobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dnetworksensornode.inc}
@@ -2598,7 +2596,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3dpickableobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dpointingdevicesensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
@@ -2618,7 +2615,6 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dtimedependentnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dtriggernode.inc}
-{$I auto_generated_node_helpers/x3dnodes_x3durlobject.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
@@ -2626,14 +2622,15 @@ resourcestring
 { TLightInstance ------------------------------------------------------------- }
 
 function TLightInstance.Contribution(
-  const Point: TVector3Single; const PointPlaneNormal: TVector4Single;
+  const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
   State: TX3DGraphTraverseState;
-  const CamPosition: TVector3Single): TVector3Single;
+  const CamPosition: TVector3Single;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
 {$I x3dnodes_lightcontribution.inc}
 
 function TLightInstance.ContributionCameraIndependent(
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single)
-  :TVector3Single;
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
 {$define CAMERA_INDEP}
 {$I x3dnodes_lightcontribution.inc}
 {$undef CAMERA_INDEP}
@@ -2908,10 +2905,27 @@ begin
 end;
 
 function TX3DGraphTraverseState.Texture: TAbstractTextureNode;
+var
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
+  Result := nil;
   if ShapeNode = nil then
-    Result := LastNodes.Texture2 else
-    Result := ShapeNode.Texture;
+    Result := LastNodes.Texture2
+  else
+  begin
+    SurfaceShader := ShapeNode.CommonSurfaceShader;
+    { This simple implementation of CommonSurfaceShader.DiffuseTexture
+      is OK for now: the diffuse texture simply replaces
+      the default Appearance.texture list. }
+    if SurfaceShader <> nil then
+    begin
+      if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+        Exit(SurfaceShader.MultiDiffuseAlphaTexture);
+      if SurfaceShader.DiffuseTexture <> nil then
+        Exit(SurfaceShader.DiffuseTexture);
+    end else
+      Result := ShapeNode.Texture;
+  end;
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;
@@ -2960,34 +2974,26 @@ begin
     end;
 end;
 
-function TX3DGraphTraverseState.Emission(LightingCalculationOn: boolean): TVector3Single;
+function TX3DGraphTraverseState.MaterialInfo: TMaterialInfo;
 var
-  M1: TMaterialNode_1;
   M2: TMaterialNode;
+  SurfaceShader: TCommonSurfaceShaderNode;
 begin
   if ShapeNode <> nil then
   begin
-    M2 := ShapeNode.Material;
-    if M2 <> nil then
+    SurfaceShader := ShapeNode.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+      Result := SurfaceShader.MaterialInfo
+    else
     begin
-      if LightingCalculationOn then
-        Result := M2.FdEmissiveColor.Value else
-        Result := M2.FdDiffuseColor.Value;
-    end else
-    begin
-      if LightingCalculationOn then
-        { Default VRML 2.0 Material.emissiveColor }
-        Result := ZeroVector3Single else
-        { Default VRML 2.0 Material.diffuseColor }
-        Result := Vector3Single(0.8, 0.8, 0.8);
+      M2 := ShapeNode.Material;
+      if M2 <> nil then
+        Result := M2.MaterialInfo
+      else
+        Result := nil;
     end;
   end else
-  begin
-    M1 := LastNodes.Material;
-    if LightingCalculationOn then
-      Result := M1.EmissiveColor3Single(0) else
-      Result := M1.DiffuseColor3Single(0);
-  end;
+    Result := LastNodes.Material.MaterialInfo;
 end;
 
 { TX3DGraphTraverseStateStack --------------------------------------------- }

@@ -78,7 +78,11 @@ type
     { Camera projection properties. }
     Projection: TProjection;
 
+    { Default background color, if scene doesn't have Background node with skyColor. }
     SceneBGColor: TVector3Single;
+
+    { Scene Background node. }
+    Background: TAbstractBackgroundNode;
 
     { Callback notified (if assigned) about writing each image pixel.
       This way you can display somewhere, or store to file, partially
@@ -94,7 +98,7 @@ type
       Remember that pixels not done yet have the same content as they
       had when you @link(Execute) method started. In other words,
       if you set PixelsMadeNotifier <> nil, then often it's
-      desirable to initialize Image content (e.g. to all SceneBGColor)
+      desirable to initialize Image content with some color (e.g. black)
       before calling @link(Execute). Otherwise at the time of @link(Execute)
       call, the pixels not done yet will have undefined colors. }
     PixelsMadeNotifier: TPixelsMadeNotifierFunc;
@@ -225,7 +229,8 @@ type
 
 implementation
 
-uses SysUtils, CastleSphereSampling, CastleTimeUtils, CastleColors;
+uses SysUtils, Math,
+  CastleSphereSampling, CastleTimeUtils, CastleColors, CastleTextureImages;
 
 { RayDirection calculations ----------------------------------------------------- }
 
@@ -237,7 +242,7 @@ uses SysUtils, CastleSphereSampling, CastleTimeUtils, CastleColors;
 function TryTransmittedRayDirection(
   out TransmittedRayDirection: TVector3Single;
   const NormRayDirection: TVector3Single;
-  const PlaneNormal: TVector4Single;
+  const PlaneNormal: TVector3Single;
   const EtaFrom, EtaTo: Single): boolean;
 { Written based on Foley, page 627 }
 var
@@ -272,7 +277,7 @@ end;
   Arguments NormRayDirection and PlaneNormal like for TryTransmittedRayDirection. }
 function ReflectedRayDirection(
   const NormRayDirection: TVector3Single;
-  const PlaneNormal: TVector4Single): TVector3Single;
+  const PlaneNormal: TVector3Single): TVector3Single;
 var
   Normal, NormNegatedRayDirection: TVector3Single;
 begin
@@ -284,6 +289,187 @@ begin
     Calculation is just like in Foley (page 601, section (14.16)). }
   Result := (Normal * 2 * (Normal ** NormNegatedRayDirection))
     - NormNegatedRayDirection;
+end;
+
+function GetSceneBackgroundColor(const Background: TAbstractBackgroundNode;
+  const Default: TCastleColorRGB): TCastleColorRGB;
+begin
+  if (Background <> nil) and
+     (Background is TBackgroundNode) and
+     (TBackgroundNode(Background).FdSkyColor.Count <> 0) then
+    Result := TBackgroundNode(Background).FdSkyColor.Items[0]
+  else
+    Result := Default;
+end;
+
+function GetDiffuseTexture(const Texture: TAbstractTextureNode;
+  const TexCoord: TVector4Single): TCastleColorRGB;
+
+  function DivUnsignedModulo(const Dividend: Integer; const Divisor: Integer): Integer;
+  var
+    DivResult: Smallint;
+    DivRemainder: Word;
+  begin
+    DivUnsignedMod(Dividend, Divisor, DivResult, DivRemainder);
+    Result := DivRemainder;
+  end;
+
+var
+  RepeatCoord: array [0..2] of boolean;
+
+  function SampleNearest(const Image: TCastleImage; const Pixel: TVector3Single): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: TVector3Integer;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 2 do
+    begin
+      PixelInt[I] := Round(Pixel[I] - 0.5);
+      if RepeatCoord[I] then
+        PixelInt[I] := DivUnsignedModulo(PixelInt[I], Dimensions[I])
+      else
+        PixelInt[I] := Clamped(PixelInt[I], 0, Dimensions[I] - 1);
+    end;
+    Result := Image.Colors[PixelInt[0], PixelInt[1], PixelInt[2]];
+  end;
+
+  // This works OK, but is not needed now (as it ~2 times slower than SampleLinear2D).
+  {
+  function SampleLinear(const Image: TCastleImage; Pixel: TVector3Single): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: array [boolean, 0..2] of Integer;
+    PixelFrac: TVector3Single;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 2 do
+    begin
+      if RepeatCoord[I] then
+        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
+      else
+        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+    end;
+
+    for I := 0 to 2 do
+    begin
+      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
+      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
+      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+    end;
+
+    Result :=
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[false][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], PixelInt[ true][2]] * (1 - PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[false][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (1 - PixelFrac[1]) * (    PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[false][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (1 - PixelFrac[2]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], PixelInt[ true][2]] * (    PixelFrac[0]) * (    PixelFrac[1]) * (    PixelFrac[2]);
+  end;
+  }
+
+  function SampleLinear2D(const Image: TCastleImage; Pixel: TVector3Single): TCastleColor;
+  var
+    I: Integer;
+    Dimensions: TVector3Cardinal;
+    PixelInt: array [boolean, 0..1] of Integer;
+    PixelFrac: TVector2Single;
+  begin
+    Dimensions := Image.Dimensions;
+    for I := 0 to 1 do
+    begin
+      if RepeatCoord[I] then
+        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
+      else
+        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+    end;
+
+    for I := 0 to 1 do
+    begin
+      // TODO: this is not correct in case RepeatCoord[I],
+      // it will not filter 100% nicely on the border pixels
+      PixelInt[false][I] := Clamped(Floor(Pixel[I]), 0, Dimensions[I] - 1);
+      PixelInt[true ][I] := Min(PixelInt[false][I] + 1, Dimensions[I] - 1);
+      PixelFrac[I] := Clamped(Pixel[I] - PixelInt[false][I], 0.0, 1.0);
+    end;
+
+    Result :=
+      Image.Colors[PixelInt[false][0], PixelInt[false][1], 0] * (1 - PixelFrac[0]) * (1 - PixelFrac[1]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[false][1], 0] * (    PixelFrac[0]) * (1 - PixelFrac[1]) +
+      Image.Colors[PixelInt[false][0], PixelInt[ true][1], 0] * (1 - PixelFrac[0]) * (    PixelFrac[1]) +
+      Image.Colors[PixelInt[ true][0], PixelInt[ true][1], 0] * (    PixelFrac[0]) * (    PixelFrac[1]);
+  end;
+
+var
+  SingleTexture: TX3DNode;
+  Texture2D: TAbstractTexture2DNode;
+  EncodedImage: TEncodedImage;
+  Image: TCastleImage;
+  TexCoord3D: TVector3Single;
+  Pixel: TVector3Single;
+  Color: TCastleColor;
+  Bilinear: boolean;
+begin
+  Result := WhiteRGB;
+
+  SingleTexture := nil;
+  if Texture is TMultiTextureNode { also makes sure Texture <> nil } then
+  begin
+    if TMultiTextureNode(Texture).FdTexture.Count > 0 then
+      SingleTexture := TMultiTextureNode(Texture).FdTexture[0];
+  end else
+    SingleTexture := Texture;
+
+  if SingleTexture is TAbstractTexture2DNode { also makes sure SingleTexture <> nil } then
+  begin
+    // TODO: 3D textures could be handled easily too!
+    Texture2D := TAbstractTexture2DNode(SingleTexture);
+    if Texture2D.IsTextureImage then
+    begin
+      EncodedImage := Texture2D.TextureImage;
+      if (EncodedImage is TCastleImage) and
+         (not EncodedImage.IsEmpty) and
+         (not Zero(TexCoord[3])) then
+      begin
+        Image := TCastleImage(EncodedImage);
+        TexCoord3D := Vector3SinglePoint(TexCoord);
+        Pixel[0] := TexCoord3D[0] * Image.Width;
+        Pixel[1] := TexCoord3D[1] * Image.Height;
+        Pixel[2] := TexCoord3D[2] * Image.Depth;
+        if IsNan(TexCoord[0]) then
+        begin
+          // TODO: bug on demo-models/bump_mapping/bump_mapping_leaf_test.wrl
+          {
+          Writeln(VectorToRawStr(Pixel));
+          Writeln(VectorToRawStr(TexCoord3D));
+          Writeln(VectorToRawStr(TexCoord));
+          Writeln(Image.Width, ' ', Image.Height, ' ', Image.Depth);
+          }
+          Exit;
+        end;
+
+        RepeatCoord[0] := Texture2D.RepeatS;
+        RepeatCoord[1] := Texture2D.RepeatT;
+        RepeatCoord[2] := false { Texture2D.RepeatR };
+
+        Bilinear := not (
+          (Texture2D.TextureProperties <> nil) and
+          // TODO: we should look either at MagnificationFilter or MinificationFilter
+          (Texture2D.TextureProperties.MagnificationFilter = magNearest)
+        );
+        if Bilinear then
+          Color := SampleLinear2D(Image, Pixel)
+        else
+          Color := SampleNearest(Image, Pixel);
+
+        Result := Vector3SingleCut(Color);
+      end;
+    end;
+  end;
 end;
 
 { TRayTracer ----------------------------------------------------------------- }
@@ -314,17 +500,19 @@ end;
 procedure TClassicRayTracer.Execute;
 var
   FogType: TFogTypeOrNone;
+  SceneBackgroundColor: TCastleColorRGB;
 
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
   function Trace(const RayOrigin, RayDirection: TVector3Single; const Depth: Cardinal;
-    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean):
-    TVector3Single;
+    const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean): TCastleColorRGB;
   var
     Intersection: TVector3Single;
+    IntersectNormal: TVector3Single;
     IntersectNode: PTriangle;
-    MaterialMirror, MaterialTransparency: Single;
+    MaterialTransparency: Single;
+    MaterialReflectionColor: TVector3Single;
 
     procedure ModifyColorByTransmittedRay;
     var
@@ -349,7 +537,7 @@ var
 
         if TryTransmittedRayDirection(
           TransmittedRayVec, Normalized(RayDirection),
-          IntersectNode^.World.Plane, EtaFrom, EtaTo) then
+          IntersectNormal, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
             Depth - 1, IntersectNode, true);
@@ -362,14 +550,27 @@ var
     procedure ModifyColorByReflectedRay;
     var
       ReflRayDirection, ReflColor: TVector3Single;
+      MaterialReflection: Single;
     begin
-      if MaterialMirror > 0 then
+      MaterialReflection := Max(
+        MaterialReflectionColor[0],
+        MaterialReflectionColor[1],
+        MaterialReflectionColor[2]
+      );
+      if MaterialReflection > 0 then
       begin
         ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
-          IntersectNode^.World.Plane);
+          IntersectNormal);
         ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
-        Result := Result * (1 - MaterialMirror) + ReflColor * MaterialMirror;
+        Result :=
+          { Scale down original result, by "1 - MaterialReflection".
+            Note: scaling down by "1 - MaterialReflectionColor" would be bad,
+            makes the material look like the inversion of MaterialReflectionColor.
+            E.g. for MaterialReflectionColor = blue, it will make the surface
+            somewhat yellowish. }
+          Result * (1 - MaterialReflection) +
+          ReflColor * MaterialReflectionColor;
       end;
     end;
 
@@ -394,44 +595,70 @@ var
         In such case the light shines on IntersectNode, but from the opposite
         side, so we will not add it here. }
       Result := Octree.LightNotBlocked(Light,
-        Intersection, IntersectNode^.World.Normal,
+        Intersection, IntersectNormal,
         -RayDirection, IntersectNode, true);
+    end;
+
+    { Calculate emission color of given shape.
+
+      This can be used by software renderers (ray-tracers etc.)
+      to calculate pixel color following VRML/X3D specifications.
+      Emission should be added to
+      TLightInstance.Contribution (for each light),
+      and resulting color should be processed by TFogNode.ApplyFog.
+
+      When LightingCalculationOn = @false we actually take diffuseColor
+      instead of emissiveColor. This is useful if you want to force
+      the scene completely unlit, usually diffuseColor is more useful for this
+      (since emissiveColor is often black on everything). }
+    function Emission(const M: TMaterialInfo;
+      const LightingCalculationOn: boolean): TVector3Single;
+    begin
+      if M <> nil then
+      begin
+        if LightingCalculationOn then
+          Result := M.EmissiveColor
+        else
+          Result := M.DiffuseColor;
+      end else
+      begin
+        if LightingCalculationOn then
+          { Default VRML 2.0 Material.emissiveColor }
+          Result := ZeroVector3Single
+        else
+          { Default VRML 2.0 Material.diffuseColor }
+          Result := Vector3Single(0.8, 0.8, 0.8);
+      end;
     end;
 
   var
     i: integer;
-    M1: TMaterialNode_1;
-    M2: TMaterialNode;
     Lights: TLightInstancesList;
+    MaterialInfo: TMaterialInfo;
+    DiffuseTextureColor: TCastleColorRGB;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
-    if IntersectNode = nil then Exit(SceneBGColor);
+    if IntersectNode = nil then Exit(SceneBackgroundColor);
 
-    { calculate material properties, taking into account VRML 1.0 and 2.0
-      material. }
-    if IntersectNode^.State.ShapeNode <> nil then
+    IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
+
+    MaterialInfo := IntersectNode^.MaterialInfo;
+    if MaterialInfo <> nil then
     begin
-      { VRML 2.0 }
-      M2 := IntersectNode^.State.ShapeNode.Material;
-      if M2 <> nil then
-      begin
-        MaterialMirror := M2.FdMirror.Value;
-        MaterialTransparency := M2.FdTransparency.Value;
-      end else
-      begin
-        MaterialMirror := DefaultMaterialMirror;
-        MaterialTransparency := DefaultMaterialTransparency;
-      end;
+      MaterialReflectionColor := MaterialInfo.ReflectionColor;
+      MaterialTransparency := MaterialInfo.Transparency;
     end else
     begin
-      { VRML 1.0 }
-      M1 := IntersectNode^.State.LastNodes.Material;
-      MaterialMirror := M1.Mirror(0);
-      MaterialTransparency := M1.Transparency(0);
+      MaterialReflectionColor := TMaterialInfo.DefaultReflectionColor;
+      MaterialTransparency := TMaterialInfo.DefaultTransparency;
     end;
 
-    Result := IntersectNode^.State.Emission(InitialDepth <> 0);
+    DiffuseTextureColor := GetDiffuseTexture(
+      IntersectNode^.State.Texture,
+      IntersectNode^.ITexCoord(Intersection));
+
+    Result := Emission(IntersectNode^.State.MaterialInfo, InitialDepth <> 0);
     with IntersectNode^ do
     begin
       if Depth > 0 then
@@ -441,7 +668,7 @@ var
           for i := 0 to Lights.Count - 1 do
             if LightNotBlocked(Lights.L[i]) then
               Result += Lights.L[i].Contribution(Intersection,
-                IntersectNode^.World.Plane, IntersectNode^.State, CamPosition);
+                IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Add BaseLights contribution, just like other lights.
 
@@ -477,7 +704,7 @@ var
           if (Depth = InitialDepth) or
              LightNotBlocked(BaseLights.L[I]) then
             Result += BaseLights.L[I].Contribution(Intersection,
-              IntersectNode^.World.Plane, IntersectNode^.State, CamPosition);
+              IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.
           Note that the order of calls (first reflected or first transmitted ?)
@@ -521,6 +748,8 @@ var
   SFCurve: TSpaceFillingCurve;
 begin
   FogType := FogNode.FogTypeOrNone;
+
+  SceneBackgroundColor := GetSceneBackgroundColor(Background, SceneBGColor);
 
   RaysWindow := nil;
   SFCurve := nil;
@@ -586,20 +815,13 @@ end;
 
   function EmissiveColor(const Item: TTriangle): TVector3Single;
   var
-    M: TMaterialNode;
+    M: TMaterialInfo;
   begin
-    if Item.State.ShapeNode <> nil then
-    begin
-      { VRML >= 2.0 }
-      M := Item.State.ShapeNode.Material;
-      if M <> nil then
-        Result := M.FdEmissiveColor.Value else
-        Result := ZeroVector3Single;
-    end else
-    begin
-      { VRML 1.0 }
-      Result := Item.State.LastNodes.Material.EmissiveColor3Single(0);
-    end;
+    M := Item.MaterialInfo;
+    if M <> nil then
+      Result := M.EmissiveColor
+    else
+      Result := TMaterialInfo.DefaultEmissiveColor;
   end;
 
   function IsLightSource(const Item: TTriangle): boolean;
@@ -672,6 +894,8 @@ var
     The idea of "shadow cache" comes from RGK, crystalized in "Graphic Gems II". }
   ShadowCache: TFPList;
   {$endif}
+
+  SceneBackgroundColor: TCastleColorRGB;
 
   { TODO: comments below are in Polish. }
 
@@ -760,8 +984,8 @@ const
   var
     Intersection: TVector3Single;
     IntersectNode: PTriangle;
-    MaterialInfo: TX3DMaterialInfoAbstract; { = IntersectNode.MaterialInfo }
-    IntersectNormalInRayDir: TVector3Single;
+    MaterialInfo: TMaterialInfo; { = IntersectNode.MaterialInfo }
+    IntersectNormal: TVector3Single;
 
     function TraceNonEmissivePart: TVector3Single;
 
@@ -780,7 +1004,7 @@ const
 
         Result := TryTransmittedRayDirection(TransmittedRayDirection,
           Normalized(RayDirection),
-          IntersectNode^.World.Plane, EtaFrom, EtaTo);
+          IntersectNormal, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
             RandomHemispherePointCosThetaExp(
@@ -806,7 +1030,7 @@ const
           result += PolePowierzchni(LightItem) * LightEmission * BRDF *
             GeometryFunction
         jest mniej wiecej rownowazne
-          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormalInRayDir)
+          result += LightEmission * BRDF * cos(LightDirNorm, IntersectNormal)
             * solid-angle-swiatla
         (taka jest rola PolePowierzchni(LightItem) i czesci GeometryFunction -
         one po prostu licza solid angle; no, de facto pewne bardzo dobre przyblizenie
@@ -852,12 +1076,12 @@ const
 
           { calculate LigtDirNorm (nieznormalizowane).
             Jezeli LigtDirNorm wychodzi z innej strony
-            IntersectionNode.TriangleNormPlane niz IntersectNormalInRayDir
+            IntersectionNode.TriangleNormPlane niz IntersectNormal
             to znaczy ze swiatlo jest po przeciwnej stronie plane - wiec
             swiatlo nie oswietla naszego pixela. }
           LightDirNorm := SampleLightPoint - Intersection;
-          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormalInRayDir,
-            IntersectNode^.World.Plane) then Continue;
+          if not VectorsSamePlaneDirections(LightDirNorm, IntersectNormal,
+            IntersectNormal) then Continue;
 
           { sprawdz IsLightShadowed, czyli zrob shadow ray }
           if IsLightShadowed(IntersectNode, Intersection,
@@ -876,7 +1100,7 @@ const
 
           { Wymnoz DirectColor
             1) przez GeometryFunction czyli
-                 cos(LightDirNorm, IntersectNormalInRayDir)
+                 cos(LightDirNorm, IntersectNormal)
                    * cos(-LightDirNorm, LightSource.World.Normal) /
                    PointsDistanceSqr(SampleLightPoint, Intersection).
                Cosinusy naturalnie licz uzywajac dot product.
@@ -903,7 +1127,7 @@ const
               przenioslem mnozenie przez LightEmissionArea na sam koniec tej
               funkcji.}
           DirectColor *=
-            (LightDirNorm ** IntersectNormalInRayDir) *
+            (LightDirNorm ** IntersectNormal) *
             (NegatedLightDirNorm **
               PlaneDirInDirection(LightSource^.World.Plane,
                 NegatedLightDirNorm)) *
@@ -995,9 +1219,9 @@ const
           mala wartosc). }
         if Weights[ck] > SingleEqualityEpsilon then
         begin
-          { calculate IntersectNormalInRayDir - Normal at intersection in direction RayOrigin }
-          IntersectNormalInRayDir := PlaneDirNotInDirection(
-            IntersectNode^.World.Plane, RayDirection);
+          IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
+          { choose normal at Intersection pointing in the direction of RayOrigin }
+          IntersectNormal := PlaneDirNotInDirection(IntersectNormal, RayDirection);
 
           { calculate TracedDir i PdfValue samplujac odpowiednio polsfere
            (na podstawie ck). W przypadku TS moze wystapic calk. odbicie wewn.
@@ -1005,18 +1229,18 @@ const
           case ck of
             ckTD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
-                    -IntersectNormalInRayDir);
+                    -IntersectNormal);
             ckTS: if not TryCalculateTransmittedSpecularRayDirection(
                     TracedDir, PdfValue) then Exit;
             ckRD: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosTheta(PdfValue),
-                    IntersectNormalInRayDir);
+                    IntersectNormal);
             ckRS: TracedDir := PhiThetaToXYZ(
                     RandomHemispherePointCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
                     ReflectedRayDirection(Normalized(RayDirection),
-                      IntersectNode^.World.Plane));
+                      IntersectNormal));
           end;
 
           { wywolaj rekurencyjnie Trace(), a wiec idz sciezka dalej }
@@ -1049,7 +1273,7 @@ const
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
-    if IntersectNode = nil then Exit(SceneBGColor);
+    if IntersectNode = nil then Exit(SceneBackgroundColor);
 
     if TraceOnlyIndirect and IsLightSource(IntersectNode^) then
     begin
@@ -1058,36 +1282,33 @@ const
     end;
 
     MaterialInfo := IntersectNode^.MaterialInfo;
-    try
 
-      { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
-        do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
-        jakas specjalna optymalizacje.
+    { de facto jezeli TraceOnlyIndirect to ponizsza linijka na pewno dodaje
+      do result (0, 0, 0). Ale nie widze w tej chwili jak z tego wyciagnac
+      jakas specjalna optymalizacje.
 
-        We use below EmissiveColor(), not MaterialInfo.EmissiveColor,
-        because this is done even when MaterialInfo is nil. }
-      Result := EmissiveColor(IntersectNode^);
+      We use below EmissiveColor(), not MaterialInfo.EmissiveColor,
+      because this is done even when MaterialInfo is nil. }
+    Result := EmissiveColor(IntersectNode^);
 
-      if MaterialInfo <> nil then
+    if MaterialInfo <> nil then
+    begin
+      { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
+        Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
+          jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
+          na wiele promieni w punkcie rekursji.
+        Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
+          nie rozgaleziamy sie na wiele promieni. }
+      if MinDepth = Depth then
       begin
-        { jezeli MinDepth = Depth to znaczy ze nasz Trace zwraca kolor dla primary ray.
-          Wiec rozgaleziamy sie tutaj na NonPrimarySamplesCount, czyli dzialamy
-            jakbysmy byly stochastycznym ray tracerem ktory rozgalezia sie
-            na wiele promieni w punkcie rekursji.
-          Wpp. idziemy sciezka czyli dzialamy jakbysmy byly path tracerem czyli
-            nie rozgaleziamy sie na wiele promieni. }
-        if MinDepth = Depth then
-        begin
-          NonEmissiveColor := ZeroVector3Single;
-          for i := 0 to NonPrimarySamplesCount-1 do
-            NonEmissiveColor += TraceNonEmissivePart;
-          NonEmissiveColor *= 1 / NonPrimarySamplesCount;
-          Result += NonEmissiveColor;
-        end else
-          Result += TraceNonEmissivePart;
-      end;
-
-    finally FreeAndNil(MaterialInfo) end;
+        NonEmissiveColor := ZeroVector3Single;
+        for i := 0 to NonPrimarySamplesCount-1 do
+          NonEmissiveColor += TraceNonEmissivePart;
+        NonEmissiveColor *= 1 / NonPrimarySamplesCount;
+        Result += NonEmissiveColor;
+      end else
+        Result += TraceNonEmissivePart;
+    end;
   end;
 
 var
@@ -1131,6 +1352,8 @@ var
   PixCoord: TVector2Cardinal;
   SFCurve: TSpaceFillingCurve;
 begin
+  SceneBackgroundColor := GetSceneBackgroundColor(Background, SceneBGColor);
+
   { check parameters (path tracing i tak trwa bardzo dlugo wiec mozemy sobie
     pozwolic zeby na poczatku tej procedury wykonac kilka testow, nawet gdy
     kompilujemy sie w wersji RELEASE) }

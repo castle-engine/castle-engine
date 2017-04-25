@@ -23,6 +23,14 @@ unit ToolArchitectures;
 interface
 
 type
+  { Target of the compilation, which may include many OS/CPU combinations. }
+  TTarget = (
+    { Target a specific chosen OS/CPU. }
+    targetCustom,
+    { Target all relevant iOS combinations of OS/CPU. }
+    targetIOS
+  );
+
   { Processor architectures supported by FPC. Copied from FPMkUnit. }
   TCpu=(cpuNone,
     i386,m68k,powerpc,sparc,x86_64,arm,powerpc64,avr,armeb,
@@ -99,8 +107,12 @@ Const
     { wii }     ( false, false, false, true , false, false, false, false, false, false, false, false, false, false, false)
   );
 
+function TargetToString(const Target: TTarget): String;
 Function CPUToString(CPU: TCPU) : String;
 Function OSToString(OS: TOS) : String;
+function PlatformToString(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+
+function StringToTarget(const S : String): TTarget;
 Function StringToCPU(const S : String) : TCPU;
 Function StringToOS(const S : String) : TOS;
 
@@ -160,6 +172,7 @@ const
     {$ifdef wii} wii {$endif}
   ;
 
+function TargetOptionHelp: string;
 function OSOptionHelp: string;
 function CPUOptionHelp: string;
 
@@ -173,6 +186,7 @@ uses TypInfo, SysUtils,
   CastleUtils;
 
 ResourceString
+  SErrInvalidTarget     = 'Invalid target name "%s"';
   SErrInvalidCPU        = 'Invalid CPU name "%s"';
   SErrInvalidOS         = 'Invalid OS name "%s"';
 
@@ -204,6 +218,50 @@ begin
   if (I=-1) then
     Raise Exception.CreateFmt(SErrInvalidOS,[S]);
   Result:=TOS(I);
+end;
+
+const
+  TargetNames: array [TTarget] of string = ('custom', 'ios');
+
+function TargetToString(const Target : TTarget): string;
+begin
+  Result := TargetNames[Target];
+end;
+
+function StringToTarget(const S : String): TTarget;
+var
+  SLower: string;
+begin
+  SLower := LowerCase(S);
+  for Result := Low(Result) to High(Result) do
+    if SLower = TargetNames[Result] then
+      Exit;
+  raise Exception.CreateFmt(SErrInvalidTarget,[S]);
+end;
+
+function PlatformToString(const Target: TTarget;
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean): String;
+begin
+  if Target = targetCustom then
+    Result := Format('OS / CPU "%s / %s"', [OSToString(OS), CPUToString(CPU)])
+  else
+    Result := Format('target "%s"', [TargetToString(Target)]);
+  if Plugin then
+    Result += ' (as a plugin)';
+end;
+
+function TargetOptionHelp: string;
+begin
+  Result :=
+    '  --target=custom|iOS' + NL+
+    '           The target system for which we build/package.' + NL +
+    '           - "custom" (default):' +NL+
+    '             Build for a single OS and CPU combination, determined by' +NL+
+    '             the --os and --cpu options. These options, in turn, by default' +NL+
+    '             indicate the current (host) OS/CPU.' +NL+
+    '           - "iOS":' +NL+
+    '             Build for all the platforms necessary for iOS applications.' +NL+
+    '             This includes both 32-bit and 64-bit iOS devices and iPhoneSimulator.' +NL;
 end;
 
 function CPUOptionHelp: string;

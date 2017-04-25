@@ -50,16 +50,11 @@
     @item(
       When you want to release resources, you should call TGLRenderer.Unprepare on
       nodes that you want to change or free. This should be used
-      with nodes that were passed as Last*/Active* in some State for TGLRenderer.Prepare.
+      with nodes that were passed as Last*/Active*
+      in some State for TGLRenderer.Prepare.
 
-      Note: before engine 2.0.0 release, it was allowed to free some VRML nodes
-      @italic(before) unpreparing them. This was depending on the fact that
-      during unprepare we will not actually dereference pointers
-      (not look at nodes contents etc.). This is forbidden since 2010-03-25,
-      as it causes some difficult problems (like TGLRendererShaderProgram.Destroy
-      really needs to access some VRML nodes), and was inherently unclean
-      and unsafe (it's not a nice programming practice to have a pointers
-      that may be invalid).
+      Note that you cannot free the nodes before unpreparing them.
+      The node instance must remain valid while it's prepared.
     )
 
     @item(
@@ -2324,6 +2319,8 @@ var
 begin
   State := Shape.State;
 
+  // TODO: why not use TShape.EnumerateTextures here?
+
   GLTextureNodes.Prepare(State, State.Texture, Self);
 
   FontTexture := Shape.OriginalGeometry.FontTextureNode;
@@ -2965,7 +2962,9 @@ begin
           like identity transform, *not* applied to 1st texture unit).
 
           By the way, we don't do any texture transform if Texture = nil,
-          since then no texture is used anyway. }
+          since then no texture is used anyway.
+
+          TODO: what to do with CommonSurfaceShader ? }
         if (State.Texture <> nil) and
            (not (State.Texture is TMultiTextureNode)) then
         begin

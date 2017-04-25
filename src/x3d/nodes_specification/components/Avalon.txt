@@ -1,3 +1,0 @@
-MatrixTransform : X3DGroupingNode {
-  SFMatrix4f [in,out] matrix identity
-}

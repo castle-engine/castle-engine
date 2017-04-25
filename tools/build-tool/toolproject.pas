@@ -41,7 +41,7 @@ type
     FIcons: TIconFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
-    FStandaloneSource, FAndroidSource, FPluginSource: string;
+    FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -75,10 +75,10 @@ type
     { }
 
     procedure DoCreateManifest;
-    procedure DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-    procedure DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-    procedure DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
-    procedure DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
+    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoPackage(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+    procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
     procedure DoPackageSource;
     procedure DoClean;
     procedure DoAutoGenerateTextures;
@@ -101,6 +101,7 @@ type
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
     property AndroidSource: string read FAndroidSource;
+    property IOSSource: string read FIOSSource;
     property PluginSource: string read FPluginSource;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
@@ -143,7 +144,7 @@ implementation
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
-  ToolTextureGeneration;
+  ToolTextureGeneration, ToolIOS;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
@@ -302,6 +303,7 @@ constructor TCastleProject.Create(const APath: string);
         FExecutableName := Doc.DocumentElement.AttributeStringDef('executable_name', FName);
         FStandaloneSource := Doc.DocumentElement.AttributeStringDef('standalone_source', '');
         FAndroidSource := Doc.DocumentElement.AttributeStringDef('android_source', '');
+        FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
         FScreenOrientation := StringToScreenOrientation(
@@ -534,13 +536,20 @@ begin
   Writeln('Created manifest ' + ManifestFile);
 end;
 
-procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+procedure TCastleProject.DoCompile(const Target: TTarget;
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
 
   function InsertLibPrefix(const S: string): string;
   begin
     Result := {$ifdef UNIX} ExtractFilePath(S) + 'lib' + ExtractFileName(S)
               {$else} S
               {$endif};
+  end;
+
+  procedure CheckIOSSource;
+  begin
+    if IOSSource = '' then
+      raise Exception.Create('ios_source property for project not defined, cannot compile iOS version');
   end;
 
   procedure CheckAnroidSource;
@@ -571,6 +580,8 @@ procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin:
   var
     AndroidSourceContents: string;
   begin
+    if AndroidSource = '' then
+      raise Exception.Create('android_source property for project not defined, cannot compile Android version');
     AndroidSourceContents := FileToString(AndroidSource);
     if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
       InvalidAndroidSource;
@@ -582,15 +593,21 @@ procedure TCastleProject.DoCompile(const OS: TOS; const CPU: TCPU; const Plugin:
 var
   SourceExe, DestExe, MainSource: string;
 begin
-  Writeln(Format('Compiling project "%s" for OS / CPU "%s / %s" in mode "%s"%s.',
-    [Name, OSToString(OS), CPUToString(CPU), ModeToString(Mode),
-     Iff(Plugin, ' (as a plugin)', '')]));
+  Writeln(Format('Compiling project "%s" for %s in mode "%s".',
+    [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
+
+  if Target = targetIOS then
+  begin
+    CheckIOSSource;
+    CompileIOS(Plugin, Mode, Path, IOSSource, SearchPaths);
+    DestExe := InsertLibPrefix(ChangeFileExt(IOSSource, LibraryExtensionOS(OS)));
+    LinkIOSLibrary(Path, DestExe);
+    Exit;
+  end;
 
   case OS of
     Android:
       begin
-        if AndroidSource = '' then
-          raise Exception.Create('android_source property for project not defined, cannot compile Android version');
         CheckAnroidSource;
         Compile(OS, CPU, Plugin, Mode, Path, AndroidSource, SearchPaths);
         Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
@@ -707,7 +724,8 @@ begin
     raise Exception.Create('Cannot find dependency library in "' + Result + '". ' + SErrDataDir);
 end;
 
-procedure TCastleProject.DoPackage(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+procedure TCastleProject.DoPackage(const Target: TTarget;
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode);
 var
   Pack: TPackageDirectory;
@@ -723,12 +741,18 @@ var
   PackageFileName, ExecutableNameExt: string;
   UnixPermissionsMatter: boolean;
 begin
-  Writeln(Format('Packaging project "%s" for OS / CPU "%s / %s"%s.',
-    [Name, OSToString(OS), CPUToString(CPU),
-     Iff(Plugin, ' (as a plugin)', '')]));
+  Writeln(Format('Packaging project "%s" for %s.',
+    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
 
   if Plugin then
     raise Exception.Create('The "package" command is not useful to package plugins for now');
+
+  { for iOS, the packaging process is special }
+  if Target = targetIOS then
+  begin
+    PackageIOS(Self);
+    Exit;
+  end;
 
   { for Android, the packaging process is special }
   if OS = Android then
@@ -828,7 +852,8 @@ begin
   finally FreeAndNil(Pack) end;
 end;
 
-procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin: boolean);
+procedure TCastleProject.DoInstall(const Target: TTarget;
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean);
 
   {$ifdef UNIX}
   procedure InstallUnixPlugin;
@@ -856,37 +881,47 @@ procedure TCastleProject.DoInstall(const OS: TOS; const CPU: TCPU; const Plugin:
   {$endif}
 
 begin
-  Writeln(Format('Installing project "%s" for OS / CPU "%s / %s"%s.',
-    [Name, OSToString(OS), CPUToString(CPU),
-     Iff(Plugin, ' (as a plugin)', '')]));
+  Writeln(Format('Installing project "%s" for %s.',
+    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
 
+  if Target = targetIOS then
+    InstallIOS(Self)
+  else
   if OS = Android then
-    InstallAndroidPackage(Name, QualifiedName) else
+    InstallAndroidPackage(Name, QualifiedName)
+  else
   if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, Path,
-      PluginCompiledFile(OS, CPU), Version, Author) else
+      PluginCompiledFile(OS, CPU), Version, Author)
+  else
   {$ifdef UNIX}
   if Plugin and (OS in AllUnixOSes) then
-    InstallUnixPlugin else
+    InstallUnixPlugin
+  else
   {$endif}
-    raise Exception.Create('The "install" command is not useful for this OS / CPU right now. Install the application manually.');
+    raise Exception.Create('The "install" command is not useful for this target / OS / CPU right now. Install the application manually.');
 end;
 
-procedure TCastleProject.DoRun(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
+procedure TCastleProject.DoRun(const Target: TTarget;
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Params: TCastleStringList);
 var
   ExeName: string;
   ProcessStatus: Integer;
 begin
-  Writeln(Format('Running project "%s" for OS / CPU "%s / %s"%s.',
-    [Name, OSToString(OS), CPUToString(CPU),
-     Iff(Plugin, ' (as a plugin)', '')]));
+  Writeln(Format('Running project "%s" for %s.',
+    [Name, PlatformToString(Target, OS, CPU, Plugin)]));
 
+  if Plugin then
+    raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
+
+  if Target = targetIOS then
+    RunIOS(Self)
+  else
   if OS = Android then
-    RunAndroidPackage(Self) else
+    RunAndroidPackage(Self)
+  else
   begin
-    if Plugin then
-      raise Exception.Create('The "run" command cannot be used for runninig "plugin" type application right now.');
     ExeName := Path + ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
     Writeln('Running ' + ExeName);
     { run through ExecuteProcess, because we don't want to capture output,

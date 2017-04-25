@@ -200,8 +200,7 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/cars_demo \
   examples/3d_rendering_processing/render_3d_to_texture_and_use_as_quad \
   src/x3d/teapot/teapot_3d_to_pascal \
-  src/x3d/nodes_specification/x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal \
-  src/x3d/nodes_specification/generate_x3d_nodes_helpers/generate_x3d_nodes_to_pascal \
+  src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal \
   examples/fixed_camera_game/rift \
   examples/isometric_game/sandbox \
   examples/3d_sound_game/lets_take_a_walk \
@@ -279,8 +278,7 @@ clean: cleanexamples
 			   -iname '*.libimp*.a' -or \
 			   -iname '*.apk' -or \
 	                   -iname '*.dcu' -or -iname '*.dpu' -or \
-	                   -iname '*.log' -or \
-			   -iname 'castleengine.dll' -or -iname 'libcastleengine.so' ')' \
+	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
 	$(FIND) . -type d -name lib -exec rm -Rf '{}' ';' -prune
@@ -300,6 +298,10 @@ clean: cleanexamples
 	rm -Rf fpmake fpmake.exe units/ *.fpm
 # lazarus produces lib/ subdirectories during compilation
 	$(FIND) examples/ -type d -name lib -prune -exec rm -Rf '{}' ';'
+	rm -Rf src/library/ios-output/\
+	       src/library/libcastleengine.dylib \
+	       src/library/castleengine.dll \
+	       src/library/libcastleengine.so
 # clean every project with CastleEngineManifest.xml
 	$(FIND) . -iname CastleEngineManifest.xml -execdir castle-engine clean ';'
 

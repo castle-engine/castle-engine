@@ -26,30 +26,29 @@
   )
 }
 
-var Spot: Single;
-    Attenuat: Single;
+var
+  Spot: Single;
+  Attenuat: Single;
 
-    Factors: TVector3Single;
-    { kierunek od Point do zrodla swiatla, normalized }
-    LightDirNorm: TVector3Single;
-    { wektor normalny do powierzchni (skierowany w strone Light) }
-    Normal: TVector3Single;
-    PosLightNode: TAbstractPositionalLightNode;
+  Factors: TVector3Single;
+  { kierunek od Point do zrodla swiatla, normalized }
+  LightDirNorm: TVector3Single;
+  { wektor normalny do powierzchni (skierowany w strone Light) }
+  Normal: TVector3Single;
+  PosLightNode: TAbstractPositionalLightNode;
 
-    {$ifndef CAMERA_INDEP}
-    M1: TMaterialNode_1;
-    M2: TMaterialNode;
+  {$ifndef CAMERA_INDEP}
+  M: TMaterialInfo;
 
-    { srednia z wektora do cameraa i LightDirNorm, potrzebna do liczenia
-      odbicia Specular }
-    CameraAndLightHalfway: TVector3Single;
+  { srednia z wektora do camera i LightDirNorm, potrzebna do liczenia
+    odbicia Specular }
+  CameraAndLightHalfway: TVector3Single;
 
-    MaterialAmbientIntensity: Single;
-    MaterialAmbientColor: TVector3Single;
-    MaterialDiffuseColor: TVector3Single;
-    MaterialSpecularColor: TVector3Single;
-    MaterialShininessExp: Single;
-    {$endif}
+  MaterialAmbientColor: TVector3Single;
+  MaterialDiffuseColor: TVector3Single;
+  MaterialSpecularColor: TVector3Single;
+  MaterialShininessExp: Single;
+  {$endif}
 
   function CalculateSpot_1(SpotLight: TSpotLightNode_1): Single;
   var
@@ -88,32 +87,19 @@ var Spot: Single;
 begin
  { wyciagnij ze struktur kilka zmiennych ktorych bedziemy intensywnie uzywac }
  {$ifndef CAMERA_INDEP}
- M1 := nil;
- M2 := nil;
- if State.ShapeNode <> nil then
+ M := State.MaterialInfo;
+ if M <> nil then
  begin
-   M2 := State.ShapeNode.Material;
-   if M2 <> nil then
-   begin
-     MaterialAmbientIntensity := M2.FdAmbientIntensity.Value;
-     MaterialDiffuseColor := M2.FdDiffuseColor.Value;
-     MaterialSpecularColor := M2.FdSpecularColor.Value;
-     MaterialShininessExp := M2.ShininessExp;
-   end else
-   begin
-     { Default VRML 2.0 lighting properties. }
-     MaterialAmbientIntensity := DefaultMaterialAmbientIntensity;
-     MaterialDiffuseColor := DefaultMaterialDiffuseColor;
-     MaterialSpecularColor := DefaultMaterialSpecularColor;
-     MaterialShininessExp := DefaultMaterialShininess * 128.0;
-   end;
+   MaterialAmbientColor := M.AmbientColor;
+   MaterialDiffuseColor := M.DiffuseColor;
+   MaterialSpecularColor := M.SpecularColor;
+   MaterialShininessExp := M.ShininessExp;
  end else
  begin
-   M1 := State.LastNodes.Material;
-   MaterialAmbientColor := M1.AmbientColor3Single(0);
-   MaterialDiffuseColor := M1.DiffuseColor3Single(0);
-   MaterialSpecularColor := M1.SpecularColor3Single(0);
-   MaterialShininessExp := M1.ShininessExp(0);
+   MaterialAmbientColor := TMaterialInfo.DefaultAmbientColor;
+   MaterialDiffuseColor := TMaterialInfo.DefaultDiffuseColor;
+   MaterialSpecularColor := TMaterialInfo.DefaultSpecularColor;
+   MaterialShininessExp := TMaterialInfo.DefaultShininessExp;
  end;
  {$endif}
 
@@ -169,32 +155,18 @@ begin
 
  Result := Node.FdColor.Value * (Attenuat * Spot);
 
- { Now we calculate "ambient_i" part of equation.
-
-   Note special things for VRML 1.0:
-   - when light.ambientIntensity < 0 then we assume we have to
-     be compatible to our initial VRML 1.0 behavior and
-     ambient factor is just zero.
-   - when light.ambientIntensity >= 0 but this is still VRML 1.0 material
-     then instead of material.ambientIntensity we take
-     material.ambientColor. Default material.ambientIntensity
-     in VRML 2.0 is 0.2 and default material.ambientColor in VRML 1.0
-     is (0.2, 0.2, 0.2), so results should match for VRML 1.0 and 2.0
-     for default situations. }
+ { Factors := ambient factor }
  {$ifdef CAMERA_INDEP}
  Factors := ZeroVector3Single;
  {$else}
  if Node.FdAmbientIntensity.Value < 0 then
-   Factors := ZeroVector3Single else
- if M1 <> nil then
-   Factors := (MaterialDiffuseColor * MaterialAmbientColor) *
-     Node.FdAmbientIntensity.Value else
-   Factors := MaterialDiffuseColor *
-     (Node.FdAmbientIntensity.Value * MaterialAmbientIntensity);
+   Factors := ZeroVector3Single
+ else
+   Factors := MaterialAmbientColor * Node.FdAmbientIntensity.Value;
  {$endif}
 
  { Factors += diffuse factor }
- Factors += MaterialDiffuseColor *
+ Factors += MaterialDiffuseColor * DiffuseTextureColor *
    (Node.FdIntensity.Value * (Normal ** LightDirNorm));
 
  {$ifndef CAMERA_INDEP}

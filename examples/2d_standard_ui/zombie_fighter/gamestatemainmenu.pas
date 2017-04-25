@@ -47,14 +47,16 @@ begin
   inherited;
 
   SimpleBackground := TCastleSimpleBackground.Create(FreeAtStop);
-  SimpleBackground.Color := Black;
+  SimpleBackground.Color := LightBlue;
   InsertFront(SimpleBackground);
 
   Menu := TCastleOnScreenMenu.Create(FreeAtStop);
-  Menu.DrawFocusedBorder := false;
-  Menu.FontSize := 100;
+  Menu.FontSize := 30;
   Menu.Add('New game', @NewGameClick);
   Menu.Add('Quit', @QuitClick);
+  Menu.DrawFocusedBorder := false;
+  Menu.DrawBackgroundRectangle := false;
+  Menu.CaptureAllEvents := true;
   Menu.Anchor(hpMiddle);
   Menu.Anchor(vpMiddle);
   InsertFront(Menu);

@@ -19,7 +19,8 @@ var
 
 procedure RenderMaterialsBegin;
 
-  { Apply material (both VRML 1.0 and 2.0).
+  { Apply material (works for all types of materials - VRML 1.0,
+    X3D and VRML 2.0, or CommonSurfaceShader).
     Assumes MaterialAndShapeLit is already calculated.
     This sets full glMaterial and glColor. }
   procedure RenderMaterial(
@@ -124,7 +125,11 @@ procedure RenderMaterialsBegin;
     end else
     if Material <> nil then
     begin
-      { in this case we know that Material.PureEmissive = true,
+      Assert(Material.PureEmissive);
+      //Assert(not MaterialLit);
+      Assert(not MaterialAndShapeLit);
+      Assert(not Lighting);
+      { In this case we know that Material.PureEmissive = true,
         so this can be rendered like unlit material with color = emissiveColor. }
       RenderMaterial(
         WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
@@ -143,14 +148,29 @@ procedure RenderMaterialsBegin;
     end;
   end;
 
+  { Sets current OpenGL material and color properties from CommonSurfaceShader. }
+  procedure Material_CommonSurfaceShader(const SurfaceShader: TCommonSurfaceShaderNode);
+  begin
+    RenderMaterial(
+      SurfaceShader.AmbientFactor,
+      SurfaceShader.DiffuseFactor,
+      SurfaceShader.SpecularFactor,
+      SurfaceShader.EmissiveFactor,
+      WhiteRGB,
+      SurfaceShader.ShininessFactorExp,
+      SurfaceShader.AlphaFactor);
+  end;
+
 var
   M1: TMaterialNode_1;
   M2: TMaterialNode;
+  SurfaceShader: TCommonSurfaceShaderNode;
   MaterialLit: boolean;
 begin
-  { calculate material parameters: M1, M2, MaterialLit }
+  { calculate material parameters: M1, M2, SurfaceShader, MaterialLit }
   M1 := nil;
   M2 := nil;
+  SurfaceShader := nil;
   if Shape.Geometry is TAbstractGeometryNode_1 then
   begin
     { VRML 1.0 }
@@ -163,11 +183,18 @@ begin
   begin
     { VRML >= 2.0 }
     if Shape.Node <> nil then
-      M2 := Shape.Node.Material else
+    begin
+      SurfaceShader := Shape.Node.CommonSurfaceShader;
+      M2 := Shape.Node.Material;
+    end else
       WritelnWarning('VRML/X3D', 'VRML node "' + Shape.Geometry.X3DType +
         '" can be specified only in a "geometry" field of "Shape" node');
-    { VRML 2.0 spec says that when Material is not assigned, shape is unlit. }
-    MaterialLit := (M2 <> nil) and not M2.PureEmissive;
+    { VRML 2.0 spec says that when Material is not assigned, shape is unlit.
+      If the CommonSurfaceShader is present, we also treat it as lit
+      (this way CommonSurfaceShader works regardless if the underlying
+      implementation uses shaders).  }
+    MaterialLit := (SurfaceShader <> nil) or
+      ((M2 <> nil) and not M2.PureEmissive);
   end;
 
   { calculate MaterialAndShapeLit (like Lighting, but ignores things
@@ -182,8 +209,12 @@ begin
   if Lighting then
     Shader.EnableLighting;
 
-  { set material. At the end, since this uses MaterialAndShapeLit, M1, M2. }
+  { set material. At the end, since this uses MaterialAndShapeLit, M1, M2, SurfaceShader. }
   if M1 <> nil then
-    Material_1(M1) else
+    Material_1(M1)
+  else
+  if SurfaceShader <> nil then
+    Material_CommonSurfaceShader(SurfaceShader)
+  else
     Material_2(M2);
 end;

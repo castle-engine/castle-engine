@@ -27,6 +27,7 @@ uses
   { Test units below. Their order determines default tests order. }
 
   { Testing (mainly) things inside FPC standard library, not CGE }
+  TestCompiler,
   TestSysUtils,
   TestFGL,
   TestOldFPCBugs,

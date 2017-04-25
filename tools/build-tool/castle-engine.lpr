@@ -26,9 +26,10 @@ uses SysUtils,
   CastleUtils, CastleParameters, CastleFindFiles, CastleLog,
   CastleFilesUtils, CastleURIUtils, CastleStringUtils,
   CastleApplicationProperties,
-  ToolArchitectures, ToolProject, ToolCompile, ToolUtils;
+  ToolArchitectures, ToolProject, ToolCompile, ToolUtils, ToolIOS;
 
 var
+  Target: TTarget;
   OS: TOS;
   CPU: TCPU;
   Plugin: boolean = false;
@@ -37,10 +38,11 @@ var
 
 const
   Version = CastleEngineVersion;
-  Options: array [0..8] of TOption =
+  Options: array [0..9] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
+    (Short: #0 ; Long: 'target'; Argument: oaRequired),
     (Short: #0 ; Long: 'os'; Argument: oaRequired),
     (Short: #0 ; Long: 'cpu'; Argument: oaRequired),
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
@@ -132,6 +134,7 @@ begin
           '                        e.g. temporary Android package or Windows rc/manifest files.' +NL+
           '                        Useful if you want to use them as basis for your customizations.' +NL+
           '  --plugin              Compile/package/install a browser plugin.' +NL+
+          TargetOptionHelp +
           OSOptionHelp +
           CPUOptionHelp +
           NL+
@@ -146,13 +149,14 @@ begin
         Writeln(ApplicationName + ' ' + Version);
         Halt;
       end;
-    2:OS := StringToOS(Argument);
-    3:CPU := StringToCPU(Argument);
-    4:Verbose := true;
-    5:Mode := StringToMode(Argument);
-    6:AssumeCompiled := true;
-    7:LeaveTemp := true;
-    8:Plugin := true;
+    2:Target := StringToTarget(Argument);
+    3:OS := StringToOS(Argument);
+    4:CPU := StringToCPU(Argument);
+    5:Verbose := true;
+    6:Mode := StringToMode(Argument);
+    7:AssumeCompiled := true;
+    8:LeaveTemp := true;
+    9:Plugin := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -229,7 +233,11 @@ begin
     { use GetCurrentDir as WorkingDir,
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
-    Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil);
+    case Target of
+      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil);
+      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil);
+      else raise EInternalError.Create('Operation not implemented for this target');
+    end;
   end else
   begin
     if Command <> 'run' then
@@ -239,18 +247,18 @@ begin
       if Command = 'create-manifest' then
         Project.DoCreateManifest else
       if Command = 'compile' then
-        Project.DoCompile(OS, CPU, Plugin, Mode) else
+        Project.DoCompile(Target, OS, CPU, Plugin, Mode) else
       if Command = 'package' then
       begin
         if not AssumeCompiled then
         begin
           Project.DoClean;
-          Project.DoCompile(OS, CPU, Plugin, Mode);
+          Project.DoCompile(Target, OS, CPU, Plugin, Mode);
         end;
-        Project.DoPackage(OS, CPU, Plugin, Mode);
+        Project.DoPackage(Target, OS, CPU, Plugin, Mode);
       end else
       if Command = 'install' then
-        Project.DoInstall(OS, CPU, Plugin) else
+        Project.DoInstall(Target, OS, CPU, Plugin) else
       if Command = 'run' then
       begin
         RestOfParameters := TCastleStringList.Create;
@@ -258,7 +266,7 @@ begin
           RestOfParameters.Text := Parameters.Text;
           RestOfParameters.Delete(0); // remove our own name
           RestOfParameters.Delete(0); // remove "run"
-          Project.DoRun(OS, CPU, Plugin, RestOfParameters);
+          Project.DoRun(Target, OS, CPU, Plugin, RestOfParameters);
         finally FreeAndNil(RestOfParameters) end;
       end else
       if Command = 'package-source' then

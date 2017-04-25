@@ -23,13 +23,20 @@ uses Classes, ToolArchitectures;
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
 
-{ Compile with FPC and proper command-line option given file. }
+{ Compile with FPC and proper command-line option given file.
+  SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths: TStrings);
 
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
+
+var
+  { The -V3.0.3 parameter is necessary if you got FPC
+    from the fpc-3.0.3.intel-macosx.cross.ios.dmg
+    (official "FPC for iOS" installation). }
+  FPCVersionForIPhoneSimulator: string = '3.0.3';
 
 implementation
 
@@ -146,6 +153,55 @@ var
         FpcOptions.Add('-Fu' + SearchPaths[I]);
         FpcOptions.Add('-Fi' + SearchPaths[I]);
       end;
+  end;
+
+  procedure AddIOSOptions;
+  const
+    SimulatorSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk';
+    DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
+  var
+    CompilationResultPath: string;
+    IOS: boolean;
+  begin
+    IOS := false;
+
+    if OS = iphonesim then
+    begin
+      IOS := true;
+      if FPCVersionForIPhoneSimulator <> '' then
+        FpcOptions.Add('-V' + FPCVersionForIPhoneSimulator);
+      FpcOptions.Add('-XR' + SimulatorSdk);
+    end;
+
+    if (OS = darwin) and (CPU = arm) then
+    begin
+      IOS := true;
+      FpcOptions.Add('-Cparmv7');
+      FpcOptions.Add('-Cfvfpv3');
+      FpcOptions.Add('-XR' + DeviceSdk);
+    end;
+
+    if (OS = darwin) and (CPU = aarch64) then
+    begin
+      IOS := true;
+      // -dCPUARM64 is checked by castleconf.inc
+      FpcOptions.Add('-dCPUARM64');
+      FpcOptions.Add('-XR' + DeviceSdk);
+    end;
+
+    // options for all platforms
+    if IOS then
+    begin
+      FpcOptions.Add('-Cn');
+      FpcOptions.Add('-WP5.1');
+      FpcOptions.Add('-dCASTLE_WINDOW_LIBRARY');
+
+      CompilationResultPath := InclPathDelim(WorkingDirectory) +
+        'castle-engine-output/compilation/' + CPUToString(CPU) + '-' + OSToString(OS);
+      ForceDirectories(CompilationResultPath);
+      FpcOptions.Add('-FU' + CompilationResultPath);
+      FpcOptions.Add('-o' + InclPathDelim(CompilationResultPath) + 'libiospartial.a');
+    end;
   end;
 
 var
@@ -361,6 +417,8 @@ begin
     end;
 
     FpcOptions.Add(CompileFile);
+
+    AddIOSOptions;
 
     Writeln('FPC executing...');
     FpcExe := FindExe('fpc');

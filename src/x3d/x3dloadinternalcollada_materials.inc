@@ -92,6 +92,8 @@ var
       and one reference to it (to Materials list). }
     Materials[MatId] := Effect;
 
+    // TODO: generate CommonSurfaceShader as an alternative?
+
     ShaderElement := MatElement.ChildElement('shader', false);
     if ShaderElement <> nil then
     begin

@@ -158,10 +158,10 @@ begin
   begin
     Triangle := SceneManager.TriangleHit;
     if (Triangle <> nil) and
-       ( (Triangle^.MaterialNode.X3DName = 'MA_female_zombie_material') or
-         (Triangle^.MaterialNode.X3DName = 'MA_male_zombie_material')) then
+       ( (Triangle^.Material.X3DName = 'MA_female_zombie_material') or
+         (Triangle^.Material.X3DName = 'MA_male_zombie_material')) then
     begin
-      StateAskDialog.Male := Triangle^.MaterialNode.X3DName = 'MA_male_zombie_material';
+      StateAskDialog.Male := Triangle^.Material.X3DName = 'MA_male_zombie_material';
       TUIState.Push(StateAskDialog);
     end;
   end;

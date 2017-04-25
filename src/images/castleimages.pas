@@ -152,6 +152,8 @@ type
     { Size of image contents in bytes. }
     function Size: Cardinal; virtual; abstract;
 
+    function Dimensions: TVector3Cardinal;
+
     { Is an image empty.
 
       @true means that RawPixels = @nil,
@@ -1760,6 +1762,13 @@ destructor TEncodedImage.Destroy;
 begin
   FreeMemNiling(FRawPixels);
   inherited;
+end;
+
+function TEncodedImage.Dimensions: TVector3Cardinal;
+begin
+  Result[0] := Width;
+  Result[1] := Height;
+  Result[2] := Depth;
 end;
 
 function TEncodedImage.IsEmpty: boolean;

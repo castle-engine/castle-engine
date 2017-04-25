@@ -116,17 +116,19 @@ type
 
     { X3D material node of this triangle. May be @nil in case material is not set,
       or in VRML 1.0. }
-    function MaterialNode: TMaterialNode;
+    function Material: TMaterialNode;
 
-    { Create material information instance for material of this triangle.
-      See TX3DMaterialInfoAbstract for usage description.
+    function MaterialNode: TMaterialNode; deprecated 'use Material';
 
-      Returns @nil when no Material node is defined, this can happen
-      only for VRML >= 2.0.
+    { Material information for the material of this triangle.
+      See TMaterialInfo for usage description.
+      Returns @nil when no node determines material properties
+      (which indicates white unlit look).
 
-      Returned TX3DMaterialInfoAbstract is valid only as long as the Material
-      node (for VRML 1.0 or 2.0) on which it was based. }
-    function MaterialInfo: TX3DMaterialInfoAbstract;
+      Returned TMaterialInfo is valid only as long as the underlying
+      Material or CommonSurfaceShader node exists.
+      Do not free it yourself, it will be automatically freed. }
+    function MaterialInfo: TMaterialInfo;
 
     { Return transparency of this triangle's material.
       Equivalent to MaterialInfo.Transparency, although a little faster. }
@@ -160,11 +162,27 @@ type
 
     { For a given position (in world coordinates), return the smooth
       normal vector at this point. It is an interpolated normal
-      from our per-vertex normals in @link(Normal) field.
-      Like them, it is a normal vector in local coordinates.
+      from our per-vertex normals in the @link(Normal) field,
+      thus is supports also the case when you have smooth shading
+      (normals change throughout the triangle).
+
+      Like the @link(Normal) field, the returned vector is
+      a normal vector in the local coordinates.
+      Use @link(INormalWorldSpace) to get a normal vector in scene
+      coordinates.
 
       This assumes that Position actally lies within the triangle. }
     function INormal(const Point: TVector3Single): TVector3Single;
+
+    { Like INormal, but not necessarily normalized. }
+    function INormalCore(const Point: TVector3Single): TVector3Single;
+
+    { For a given position (in world coordinates), return the smooth
+      normal vector at this point, with the resulting normal vector
+      in world coordinates.
+
+      @seealso INormal }
+    function INormalWorldSpace(const Point: TVector3Single): TVector3Single;
     {$endif}
   end;
   PTriangle = ^TTriangle;
@@ -819,7 +837,7 @@ begin
   Result := State.ShapeNode;
 end;
 
-function TTriangle.MaterialNode: TMaterialNode;
+function TTriangle.Material: TMaterialNode;
 var
   S: TAbstractShapeNode;
 begin
@@ -830,32 +848,25 @@ begin
     Result := nil;
 end;
 
-function TTriangle.MaterialInfo: TX3DMaterialInfoAbstract;
-var
-  M2: TMaterialNode;
+function TTriangle.MaterialNode: TMaterialNode;
 begin
-  if State.ShapeNode <> nil then
-  begin
-    M2 := State.ShapeNode.Material;
-    if M2 <> nil then
-      Result := M2.MaterialInfo else
-      Result := nil;
-  end else
-    Result := State.LastNodes.Material.MaterialInfo(0);
+  Result := Material;
+end;
+
+function TTriangle.MaterialInfo: TMaterialInfo;
+begin
+  Result := State.MaterialInfo;
 end;
 
 function TTriangle.Transparency: Single;
 var
-  M2: TMaterialNode;
+  M: TMaterialInfo;
 begin
-  if State.ShapeNode <> nil then
-  begin
-    M2 := State.ShapeNode.Material;
-    if M2 <> nil then
-      Result := M2.FdTransparency.Value else
-      Result := 0;
-  end else
-    Result := State.LastNodes.Material.Transparency(0);
+  M := MaterialInfo;
+  if M <> nil then
+    Result := M.Transparency
+  else
+    Result := 0;
 end;
 
 function TTriangle.IsTransparent: boolean;
@@ -901,7 +912,7 @@ begin
   Move(V, Result, SizeOf(TVector2Single));
 end;
 
-function TTriangle.INormal(const Point: TVector3Single): TVector3Single;
+function TTriangle.INormalCore(const Point: TVector3Single): TVector3Single;
 var
   B: TVector3Single;
 begin
@@ -909,6 +920,16 @@ begin
   Result := Normal[0] * B[0] +
             Normal[1] * B[1] +
             Normal[2] * B[2];
+end;
+
+function TTriangle.INormal(const Point: TVector3Single): TVector3Single;
+begin
+  Result := Normalized(INormalCore(Point));
+end;
+
+function TTriangle.INormalWorldSpace(const Point: TVector3Single): TVector3Single;
+begin
+  Result := Normalized(MatrixMultDirection(State.Transform, INormalCore(Point)));
 end;
 
 {$else}

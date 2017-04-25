@@ -1059,6 +1059,10 @@ function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3Single; co
 function RotatePointAroundAxisRad(Angle: Double; const Point: TVector3Double; const Axis: TVector3Double): TVector3Double; overload;
 { @groupEnd }
 
+{ Negate a rotation expressed as axis-angle (3 components for axis, 1 for angle).
+  This simply negates the 4th vector component. }
+function RotationNegate(const Rotation: TVector4Single): TVector4Single;
+
 { Rotate point in 2D, in a counter-clockwise fashion.
   AngleRad is in radians. }
 function RotatePoint2D(const Point: TVector2Single; const AngleRad: Single): TVector2Single;
@@ -3324,6 +3328,12 @@ begin
   C := AngleCos;
   Result[0] := Point[0] * C - Point[1] * S;
   Result[1] := Point[0] * S + Point[1] * C;
+end;
+
+function RotationNegate(const Rotation: TVector4Single): TVector4Single;
+begin
+  Result := Rotation;
+  Result[3] := -Result[3];
 end;
 
 function RotationMatrixRad(const AngleRad: Single;
