@@ -1127,24 +1127,17 @@ var
   end;
 
   function TexCoordsNeeded: Cardinal;
+  var
+    Tex: TAbstractTextureNode;
   begin
-    if G is TAbstractGeometryNode_1 then
-    begin
-      { We don't want to actually load the texture here,
-        so only check is filename/image set. }
-      if (S.LastNodes.Texture2.FdFilename.Value <> '') or
-         ((S.LastNodes.Texture2.FdImage.Value <> nil) and
-          (not S.LastNodes.Texture2.FdImage.Value.IsEmpty)) then
-        Result := 1 else
-        Result := 0;
-    end else
-    if (S.ShapeNode <> nil) and { for correct VRML >= 2, Shape should be assigned, but secure from buggy models }
-       (S.ShapeNode.Texture <> nil) then
-    begin
-      if S.ShapeNode.Texture is TMultiTextureNode then
-        Result := TMultiTextureNode(S.ShapeNode.Texture).FdTexture.Count else
-        Result := 1;
-    end else
+    Tex := S.Texture;
+
+    if Tex is TMultiTextureNode then
+      Result := TMultiTextureNode(Tex).FdTexture.Count
+    else
+    if Tex <> nil then
+      Result := 1
+    else
       Result := 0;
 
     if OriginalGeometry.FontTextureNode <> nil then
