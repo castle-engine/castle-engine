@@ -2956,8 +2956,8 @@ begin
           since then no texture is used anyway.
 
           TODO: what to do with CommonSurfaceShader ? }
-        if (State.Texture <> nil) and
-           (not (State.Texture is TMultiTextureNode)) then
+        if (State.DiffuseAlphaTexture <> nil) and
+           (not (State.DiffuseAlphaTexture is TMultiTextureNode)) then
         begin
           if FirstTexUnit < GLFeatures.MaxTextureUnits then
           begin
@@ -3281,7 +3281,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.Texture;
+    TextureNode := Shape.State.DiffuseAlphaTexture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
     { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));

@@ -1130,7 +1130,7 @@ var
   var
     Tex: TAbstractTextureNode;
   begin
-    Tex := S.Texture;
+    Tex := S.DiffuseAlphaTexture;
 
     if Tex is TMultiTextureNode then
       Result := TMultiTextureNode(Tex).FdTexture.Count
@@ -1560,8 +1560,7 @@ begin
     Note that State.Texture may be TMultiTextureNode --- that's Ok,
     it has AlphaChannel = atFullRange
     if any child has atFullRange. So it automatically works Ok too. }
-  // TODO: take into account CommonSurfaceShader texture affecting alpha too
-  Tex := State.Texture;
+  Tex := State.DiffuseAlphaTexture;
   if (Tex <> nil) and (Tex.AlphaChannelFinal = acBlending) then
     Result := true;
 
@@ -2236,12 +2235,12 @@ begin
 
   if Node <> nil then
   begin
-    { VRML 2.0/X3D version: refer to TAppearanceNode }
+    { VRML 2.0/X3D version: refer to TAppearanceNode.MaterialProperty }
     if Node.Appearance <> nil then
       Result := Node.Appearance.MaterialProperty;
   end else
   begin
-    { VRML 1.0 version: do it directly here }
+    { VRML 1.0 version: calculate it directly here }
     TextureUrl := State.LastNodes.Texture2.FdFileName.Value;
     if TextureUrl <> '' then
       Result := MaterialProperties.FindTextureBaseName(

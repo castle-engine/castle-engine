@@ -655,7 +655,7 @@ var
     end;
 
     DiffuseTextureColor := GetDiffuseTexture(
-      IntersectNode^.State.Texture,
+      IntersectNode^.State.DiffuseAlphaTexture,
       IntersectNode^.ITexCoord(Intersection));
 
     Result := Emission(IntersectNode^.State.MaterialInfo, InitialDepth <> 0);

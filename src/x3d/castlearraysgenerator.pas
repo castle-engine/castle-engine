@@ -905,9 +905,12 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     { TODO: when CommonSurfaceShader is used,
       and CommonSurfaceShader.diffuseTexture and multiDiffuseAlphaTexture are empty,
       but something else (like normalTexture) is not empty,
-      we should also make sure to have some tex coords. }
+      we should also make sure to have some tex coords.
 
-    Tex := State.Texture;
+      But this TODO should be solved by assigning TexCoordsNeeded outside
+      of this function? }
+
+    Tex := State.DiffuseAlphaTexture;
     Result := (
       (Tex <> nil) and
       ( ( (TexUnit = 0) and IsSingleTexture3D(Tex) )

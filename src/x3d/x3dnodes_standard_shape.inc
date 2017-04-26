@@ -270,6 +270,15 @@
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
 
+    { Find a suitable CommonSurfaceShader to be used when rendering this shape,
+      or @nil. }
+    function CommonSurfaceShader: TCommonSurfaceShaderNode;
+
+    { Returns an effective diffuse (and alpha) texture node
+      that should be used for this appearance, or @nil.
+      This texture may come from @link(Texture) or from @link(CommonSurfaceShader). }
+    function DiffuseAlphaTexture: TAbstractTextureNode;
+
     function MaterialProperty: TMaterialProperty;
 
     {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
@@ -734,19 +743,12 @@ end;
 function TAbstractShapeNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
 var
   App: TAppearanceNode;
-  I: Integer;
-  Shader: TX3DNode;
 begin
-  Result := nil;
-
   App := Appearance;
   if App <> nil then
-    for I := 0 to App.FdShaders.Count - 1 do
-    begin
-      Shader := App.FdShaders[I];
-      if Shader is TCommonSurfaceShaderNode then
-        Exit(TCommonSurfaceShaderNode(Shader));
-    end;
+    Result := App.CommonSurfaceShader
+  else
+    Result := nil;
 end;
 
 procedure TAbstractShapeNode.SetMaterial(const Value: TMaterialNode);
@@ -1040,6 +1042,35 @@ begin
   FdLineProperties.Send(Value);
 end;
 
+function TAppearanceNode.CommonSurfaceShader: TCommonSurfaceShaderNode;
+var
+  I: Integer;
+  Shader: TX3DNode;
+begin
+  Result := nil;
+  for I := 0 to FdShaders.Count - 1 do
+  begin
+    Shader := FdShaders[I];
+    if Shader is TCommonSurfaceShaderNode then
+      Exit(TCommonSurfaceShaderNode(Shader));
+  end;
+end;
+
+function TAppearanceNode.DiffuseAlphaTexture: TAbstractTextureNode;
+var
+  SurfaceShader: TCommonSurfaceShaderNode;
+begin
+  SurfaceShader := CommonSurfaceShader;
+  if SurfaceShader <> nil then
+  begin
+    if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
+      Exit(SurfaceShader.MultiDiffuseAlphaTexture);
+    if SurfaceShader.DiffuseTexture <> nil then
+      Exit(SurfaceShader.DiffuseTexture);
+  end else
+    Result := Texture;
+end;
+
 function TAppearanceNode.MaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
@@ -1056,17 +1087,16 @@ function TAppearanceNode.MaterialProperty: TMaterialProperty;
     end;
   end;
 
+var
+  Tex: TAbstractTextureNode;
 begin
   Result := nil;
 
-  if (Texture <> nil) and
-     (Texture is TImageTextureNode) then
-    Result := TryUrl(TImageTextureNode(Texture).FdUrl);
-
-  if (Texture <> nil) and
-     (Texture is TMovieTextureNode) then
-    Result := TryUrl(TMovieTextureNode(Texture).FdUrl);
-
+  Tex := DiffuseAlphaTexture;
+  if Tex is TImageTextureNode then
+    Result := TryUrl(TImageTextureNode(Tex).FdUrl);
+  if Tex is TMovieTextureNode then
+    Result := TryUrl(TMovieTextureNode(Tex).FdUrl);
 end;
 
 procedure TAppearanceNode.ParseAfter(Reader: TX3DReaderNames);
