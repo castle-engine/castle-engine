@@ -172,6 +172,8 @@
     procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetLineProperties: TLinePropertiesNode;
     procedure SetLineProperties(const Value: TLinePropertiesNode);
+    function GetNormalMap: TAbstractTexture2DNode;
+    procedure SetNormalMap(const Value: TAbstractTexture2DNode);
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
@@ -231,6 +233,18 @@
       X3D field, checking class types along the way and setting the value
       through X3D events if necessary. }
     property Texture: TAbstractTextureNode read GetTexture write SetTexture;
+
+    { The normal map of this appearance.
+
+      See https://castle-engine.sourceforge.io/x3d_implementation_texturing_extensions.php#section_ext_bump_mapping .
+      This is a deprecated method of using bump mapping, a better method is to
+      use CommonSurfaceShader:
+      https://castle-engine.sourceforge.io/x3d_implementation_texturing_extensions.php#section_ext_common_surface_shader .
+
+      This is a comfortable property for getting and setting the appropriate
+      X3D field, checking class types along the way and setting the value
+      through X3D events if necessary. }
+    property NormalMap: TAbstractTexture2DNode read GetNormalMap write SetNormalMap;
 
     { The material of this appearance.
       This only sets the simple, one-sided material node.
@@ -972,6 +986,19 @@ end;
 procedure TAppearanceNode.SetTexture(const Value: TAbstractTextureNode);
 begin
   FdTexture.Send(Value);
+end;
+
+function TAppearanceNode.GetNormalMap: TAbstractTexture2DNode;
+begin
+  if FdNormalMap.Value is TAbstractTexture2DNode then
+    Result := TAbstractTexture2DNode(FdNormalMap.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetNormalMap(const Value: TAbstractTexture2DNode);
+begin
+  FdNormalMap.Send(Value);
 end;
 
 function TAppearanceNode.GetMaterial: TMaterialNode;

@@ -156,14 +156,6 @@
     function Enable(ANode: TAbstractTextureNode;
       const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean;
-
-    { Prepare / unprepare all textures inside Node.InterfaceDeclarations
-      SFNode / MFNode fields. }
-    procedure PrepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
-      const State: TX3DGraphTraverseState;
-      const Renderer: TGLRenderer);
-    procedure UnprepareInterfaceDeclarationsTextures(const ANode: TX3DNode;
-      const Renderer: TGLRenderer);
   end;
 
   { Common class for all single (not multi-texture) texture nodes.
@@ -583,83 +575,6 @@ begin
   Result := GLTextureNode <> nil;
   if Result then
     Result := GLTextureNode.Enable(TextureUnit, Shader, Env);
-end;
-
-procedure TGLTextureNodes.PrepareInterfaceDeclarationsTextures(
-  const ANode: TX3DNode;
-  const State: TX3DGraphTraverseState; const Renderer: TGLRenderer);
-
-  { If TextureNode <> @nil and is a texture node, prepare it. }
-  procedure PrepareTexture(TextureNode: TX3DNode);
-  begin
-    if (TextureNode <> nil) and
-       (TextureNode is TAbstractTextureNode) then
-      Prepare(State, TAbstractTextureNode(TextureNode), Renderer);
-  end;
-
-var
-  I, J: Integer;
-  UniformField: TX3DField;
-  IDecls: TX3DInterfaceDeclarationList;
-begin
-  IDecls := ANode.InterfaceDeclarations;
-  if IDecls = nil then Exit; { ignore nodes without interface declararations }
-
-  for I := 0 to IDecls.Count - 1 do
-  begin
-    UniformField := IDecls.Items[I].Field;
-
-    if UniformField <> nil then
-    begin
-      if UniformField is TSFNode then
-      begin
-        PrepareTexture(TSFNode(UniformField).Value);
-      end else
-      if UniformField is TMFNode then
-      begin
-        for J := 0 to TMFNode(UniformField).Count - 1 do
-          PrepareTexture(TMFNode(UniformField)[J]);
-      end;
-    end;
-  end;
-end;
-
-procedure TGLTextureNodes.UnprepareInterfaceDeclarationsTextures(
-  const ANode: TX3DNode; const Renderer: TGLRenderer);
-
-  { If TextureNode <> @nil and is a texture node, prepare it. }
-  procedure UnprepareTexture(TextureNode: TX3DNode);
-  begin
-    if (TextureNode <> nil) and
-       (TextureNode is TAbstractTextureNode) then
-      Renderer.GLTextureNodes.Unprepare(TAbstractTextureNode(TextureNode));
-  end;
-
-var
-  I, J: Integer;
-  UniformField: TX3DField;
-  IDecls: TX3DInterfaceDeclarationList;
-begin
-  IDecls := ANode.InterfaceDeclarations;
-  if IDecls = nil then Exit; { ignore nodes without interface declararations }
-
-  for I := 0 to IDecls.Count - 1 do
-  begin
-    UniformField := IDecls.Items[I].Field;
-
-    if UniformField <> nil then
-    begin
-      if UniformField is TSFNode then
-      begin
-        UnprepareTexture(TSFNode(UniformField).Value);
-      end else
-      if UniformField is TMFNode then
-      begin
-        for J := 0 to TMFNode(UniformField).Count - 1 do
-          UnprepareTexture(TMFNode(UniformField)[J]);
-      end;
-    end;
-  end;
 end;
 
 { TGLSingleTextureNode ------------------------------------------------------- }
