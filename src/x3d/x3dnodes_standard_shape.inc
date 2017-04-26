@@ -1060,6 +1060,7 @@ function TAppearanceNode.DiffuseAlphaTexture: TAbstractTextureNode;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
+  Result := nil;
   SurfaceShader := CommonSurfaceShader;
   if SurfaceShader <> nil then
   begin
