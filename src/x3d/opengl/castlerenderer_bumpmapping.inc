@@ -50,6 +50,9 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
       begin
         ShapeBumpMappingUsed := true;
 
+        if ABoundTextureUnits = 0 then
+          Shader.EnableTextureCoordinatesForSpecialTextures;
+
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping, ABoundTextureUnits,

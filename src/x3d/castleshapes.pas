@@ -1129,6 +1129,7 @@ var
   function TexCoordsNeeded: Cardinal;
   var
     Tex: TAbstractTextureNode;
+    SurfaceShader: TCommonSurfaceShaderNode;
   begin
     Tex := S.DiffuseAlphaTexture;
 
@@ -1139,6 +1140,23 @@ var
       Result := 1
     else
       Result := 0;
+
+    { we need at least 1 texture coordinate if some special texture
+      (not necessarily diffuse texture) is used }
+    if (S.ShapeNode <> nil) and
+       (S.ShapeNode.Appearance <> nil) then
+    begin
+      // CommonSurfaceShader can only be non-nil if Appearance is non-nil
+      SurfaceShader := S.ShapeNode.CommonSurfaceShader;
+      if SurfaceShader <> nil then
+      begin
+        if (SurfaceShader.NormalTexture <> nil) { TODO: or
+           (SurfaceShader.SpecularTexture <> nil) } then
+          MaxVar(Result, 1);
+      end else
+      if S.ShapeNode.Appearance.NormalMap <> nil then
+        MaxVar(Result, 1);
+    end;
 
     if OriginalGeometry.FontTextureNode <> nil then
       Inc(Result);

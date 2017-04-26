@@ -3283,7 +3283,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 
     TextureNode := Shape.State.DiffuseAlphaTexture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
-    { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
+    { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
@@ -3299,8 +3299,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if ( (GLTextureNode <> nil) or (GLFontTextureNode <> nil) ) and
-       Attributes.EnableTextures and
+    if Attributes.EnableTextures and
        NodeTextured(Shape.Geometry) then
     begin
       { This works also for TextureNode being TMultiTextureNode,
@@ -3318,13 +3317,12 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
-      { If there is any texture, and we have room for one more texture,
+      { If there is a normal map texture, and we have room for one more texture,
         try enabling bump mapping. Note that we don't increase
         TexCoordsNeeded for this, as bump mapping uses the existing
         texture coord. }
-      if (TexCoordsNeeded > 0) and
-         (TexCoordsNeeded < GLFeatures.MaxTextureUnits) then
-        BumpMappingEnable(Shape.State, BoundTextureUnits, Shader);
+      if TexCoordsNeeded < GLFeatures.MaxTextureUnits then
+        BumpMappingEnable(Shape.State, TexCoordsNeeded, Shader);
     end;
 
     { Set alpha test enabled state for OpenGL (shader and fixed-function).

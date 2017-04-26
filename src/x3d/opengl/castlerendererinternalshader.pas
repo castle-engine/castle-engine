@@ -453,6 +453,11 @@ type
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
       const NormalMapTextureUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
+    { Add texture coordinates, unused (for now) by any particular texture.
+      This is used when we want to use some non-diffuse texture
+      (like normal map or specular map), but there is no "default diffuse texture"
+      from which we would like to take texture coordinates. }
+    procedure EnableTextureCoordinatesForSpecialTextures;
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
@@ -2864,6 +2869,12 @@ begin
     '  discard;' + NL;
 
   FCodeHash.AddInteger(2011);
+end;
+
+procedure TShader.EnableTextureCoordinatesForSpecialTextures;
+begin
+  // TODO
+  WritelnLog('EnableTextureCoordinatesForSpecialTextures');
 end;
 
 procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
