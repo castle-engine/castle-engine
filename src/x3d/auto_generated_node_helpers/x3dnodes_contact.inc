@@ -27,6 +27,10 @@
 {$ifdef read_interface}
 
   private
+    function GetBody1: TRigidBodyNode;
+    procedure SetBody1(const Value: TRigidBodyNode);
+    function GetBody2: TRigidBodyNode;
+    procedure SetBody2(const Value: TRigidBodyNode);
     function GetBounce: Single;
     procedure SetBounce(const Value: Single);
     function GetContactNormal: TVector3Single;
@@ -37,6 +41,10 @@
     procedure SetFrictionCoefficients(const Value: TVector2Single);
     function GetFrictionDirection: TVector3Single;
     procedure SetFrictionDirection(const Value: TVector3Single);
+    function GetGeometry1: TAbstractNBodyCollidableNode;
+    procedure SetGeometry1(const Value: TAbstractNBodyCollidableNode);
+    function GetGeometry2: TAbstractNBodyCollidableNode;
+    procedure SetGeometry2(const Value: TAbstractNBodyCollidableNode);
     function GetMinbounceSpeed: Single;
     procedure SetMinbounceSpeed(const Value: Single);
     function GetPosition: TVector3Single;
@@ -50,11 +58,15 @@
     function GetSurfaceSpeed: TVector2Single;
     procedure SetSurfaceSpeed(const Value: TVector2Single);
   public
+    property Body1: TRigidBodyNode read GetBody1 write SetBody1;
+    property Body2: TRigidBodyNode read GetBody2 write SetBody2;
     property Bounce: Single read GetBounce write SetBounce;
     property ContactNormal: TVector3Single read GetContactNormal write SetContactNormal;
     property Depth: Single read GetDepth write SetDepth;
     property FrictionCoefficients: TVector2Single read GetFrictionCoefficients write SetFrictionCoefficients;
     property FrictionDirection: TVector3Single read GetFrictionDirection write SetFrictionDirection;
+    property Geometry1: TAbstractNBodyCollidableNode read GetGeometry1 write SetGeometry1;
+    property Geometry2: TAbstractNBodyCollidableNode read GetGeometry2 write SetGeometry2;
     property MinbounceSpeed: Single read GetMinbounceSpeed write SetMinbounceSpeed;
     property Position: TVector3Single read GetPosition write SetPosition;
     property SlipCoefficients: TVector2Single read GetSlipCoefficients write SetSlipCoefficients;
@@ -67,6 +79,32 @@
 {$ifdef read_implementation}
 
 { TContactNode ----------------------------------------------- }
+
+function TContactNode.GetBody1: TRigidBodyNode;
+begin
+  if FdBody1.Value is TRigidBodyNode then
+    Result := TRigidBodyNode(FdBody1.Value)
+  else
+    Result := nil;
+end;
+
+procedure TContactNode.SetBody1(const Value: TRigidBodyNode);
+begin
+  FdBody1.Send(Value);
+end;
+
+function TContactNode.GetBody2: TRigidBodyNode;
+begin
+  if FdBody2.Value is TRigidBodyNode then
+    Result := TRigidBodyNode(FdBody2.Value)
+  else
+    Result := nil;
+end;
+
+procedure TContactNode.SetBody2(const Value: TRigidBodyNode);
+begin
+  FdBody2.Send(Value);
+end;
 
 function TContactNode.GetBounce: Single;
 begin
@@ -116,6 +154,32 @@ end;
 procedure TContactNode.SetFrictionDirection(const Value: TVector3Single);
 begin
   FdFrictionDirection.Send(Value);
+end;
+
+function TContactNode.GetGeometry1: TAbstractNBodyCollidableNode;
+begin
+  if FdGeometry1.Value is TAbstractNBodyCollidableNode then
+    Result := TAbstractNBodyCollidableNode(FdGeometry1.Value)
+  else
+    Result := nil;
+end;
+
+procedure TContactNode.SetGeometry1(const Value: TAbstractNBodyCollidableNode);
+begin
+  FdGeometry1.Send(Value);
+end;
+
+function TContactNode.GetGeometry2: TAbstractNBodyCollidableNode;
+begin
+  if FdGeometry2.Value is TAbstractNBodyCollidableNode then
+    Result := TAbstractNBodyCollidableNode(FdGeometry2.Value)
+  else
+    Result := nil;
+end;
+
+procedure TContactNode.SetGeometry2(const Value: TAbstractNBodyCollidableNode);
+begin
+  FdGeometry2.Send(Value);
 end;
 
 function TContactNode.GetMinbounceSpeed: Single;

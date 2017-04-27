@@ -327,12 +327,6 @@
       end;
     var
       FMaterialInfo: TMaterialInfo;
-    function GetDiffuseTexture: TAbstractTextureNode;
-    procedure SetDiffuseTexture(const Value: TAbstractTextureNode);
-    function GetMultiDiffuseAlphaTexture: TAbstractTextureNode;
-    procedure SetMultiDiffuseAlphaTexture(const Value: TAbstractTextureNode);
-    function GetNormalTexture: TAbstractTextureNode;
-    procedure SetNormalTexture(const Value: TAbstractTextureNode);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -383,9 +377,6 @@
 
     private FFdDiffuseTexture: TSFNode;
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
-    { The texture controlling the diffuse color,
-      multiplied by @link(DiffuseFactor). }
-    property DiffuseTexture: TAbstractTextureNode read GetDiffuseTexture write SetDiffuseTexture;
 
     private FFdDiffuseDisplacementTexture: TSFNode;
     public property FdDiffuseDisplacementTexture: TSFNode read FFdDiffuseDisplacementTexture;
@@ -437,10 +428,6 @@
 
     private FFdMultiDiffuseAlphaTexture: TSFNode;
     public property FdMultiDiffuseAlphaTexture: TSFNode read FFdMultiDiffuseAlphaTexture;
-    { The texture controlling the diffuse (rgb) and alpha (alpha channel).
-      Diffuse color is multiplied by @link(DiffuseFactor),
-      alpha is (or rather: should be) multiplied by @link(AlphaFactor). }
-    property MultiDiffuseAlphaTexture: TAbstractTextureNode read GetMultiDiffuseAlphaTexture write SetMultiDiffuseAlphaTexture;
 
     private FFdMultiEmmisiveAmbientIntensityTexture: TSFNode;
     public property FdMultiEmmisiveAmbientIntensityTexture: TSFNode read FFdMultiEmmisiveAmbientIntensityTexture;
@@ -474,8 +461,6 @@
 
     private FFdNormalTexture: TSFNode;
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
-    { Normalmap for bump mapping (the texture controlling the normals). }
-    property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
 
     private FFdReflectionFactor: TSFVec3f;
     public property FdReflectionFactor: TSFVec3f read FFdReflectionFactor;
@@ -1627,45 +1612,6 @@ begin
   if FMaterialInfo = nil then
     FMaterialInfo := TCommonSurfaceShaderInfo.Create(Self);
   Result := FMaterialInfo;
-end;
-
-function TCommonSurfaceShaderNode.GetDiffuseTexture: TAbstractTextureNode;
-begin
-  if FdDiffuseTexture.Value is TAbstractTextureNode then
-    Result := TAbstractTextureNode(FdDiffuseTexture.Value)
-  else
-    Result := nil;
-end;
-
-procedure TCommonSurfaceShaderNode.SetDiffuseTexture(const Value: TAbstractTextureNode);
-begin
-  FdDiffuseTexture.Send(Value);
-end;
-
-function TCommonSurfaceShaderNode.GetMultiDiffuseAlphaTexture: TAbstractTextureNode;
-begin
-  if FdMultiDiffuseAlphaTexture.Value is TAbstractTextureNode then
-    Result := TAbstractTextureNode(FdMultiDiffuseAlphaTexture.Value)
-  else
-    Result := nil;
-end;
-
-procedure TCommonSurfaceShaderNode.SetMultiDiffuseAlphaTexture(const Value: TAbstractTextureNode);
-begin
-  FdMultiDiffuseAlphaTexture.Send(Value);
-end;
-
-function TCommonSurfaceShaderNode.GetNormalTexture: TAbstractTextureNode;
-begin
-  if FdNormalTexture.Value is TAbstractTextureNode then
-    Result := TAbstractTextureNode(FdNormalTexture.Value)
-  else
-    Result := nil;
-end;
-
-procedure TCommonSurfaceShaderNode.SetNormalTexture(const Value: TAbstractTextureNode);
-begin
-  FdNormalTexture.Send(Value);
 end;
 
 { registration ----------------------------------------------------------------- }

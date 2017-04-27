@@ -26,11 +26,45 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetBody1: TRigidBodyNode;
+    procedure SetBody1(const Value: TRigidBodyNode);
+    function GetBody2: TRigidBodyNode;
+    procedure SetBody2(const Value: TRigidBodyNode);
+  public
+    property Body1: TRigidBodyNode read GetBody1 write SetBody1;
+    property Body2: TRigidBodyNode read GetBody2 write SetBody2;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractRigidJointNode ----------------------------------------------- }
+
+function TAbstractRigidJointNode.GetBody1: TRigidBodyNode;
+begin
+  if FdBody1.Value is TRigidBodyNode then
+    Result := TRigidBodyNode(FdBody1.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractRigidJointNode.SetBody1(const Value: TRigidBodyNode);
+begin
+  FdBody1.Send(Value);
+end;
+
+function TAbstractRigidJointNode.GetBody2: TRigidBodyNode;
+begin
+  if FdBody2.Value is TRigidBodyNode then
+    Result := TRigidBodyNode(FdBody2.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractRigidJointNode.SetBody2(const Value: TRigidBodyNode);
+begin
+  FdBody2.Send(Value);
+end;
 
 {$endif read_implementation}

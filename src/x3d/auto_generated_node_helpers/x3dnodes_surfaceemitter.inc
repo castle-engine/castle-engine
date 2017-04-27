@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetSurface: TAbstractGeometryNode;
+    procedure SetSurface(const Value: TAbstractGeometryNode);
+  public
+    property Surface: TAbstractGeometryNode read GetSurface write SetSurface;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TSurfaceEmitterNode ----------------------------------------------- }
+
+function TSurfaceEmitterNode.GetSurface: TAbstractGeometryNode;
+begin
+  if FdSurface.Value is TAbstractGeometryNode then
+    Result := TAbstractGeometryNode(FdSurface.Value)
+  else
+    Result := nil;
+end;
+
+procedure TSurfaceEmitterNode.SetSurface(const Value: TAbstractGeometryNode);
+begin
+  FdSurface.Send(Value);
+end;
 
 {$endif read_implementation}

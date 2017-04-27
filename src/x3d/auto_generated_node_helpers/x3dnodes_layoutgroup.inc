@@ -26,11 +26,45 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetLayout: TAbstractLayoutNode;
+    procedure SetLayout(const Value: TAbstractLayoutNode);
+    function GetViewport: TAbstractViewportNode;
+    procedure SetViewport(const Value: TAbstractViewportNode);
+  public
+    property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
+    property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLayoutGroupNode ----------------------------------------------- }
+
+function TLayoutGroupNode.GetLayout: TAbstractLayoutNode;
+begin
+  if FdLayout.Value is TAbstractLayoutNode then
+    Result := TAbstractLayoutNode(FdLayout.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLayoutGroupNode.SetLayout(const Value: TAbstractLayoutNode);
+begin
+  FdLayout.Send(Value);
+end;
+
+function TLayoutGroupNode.GetViewport: TAbstractViewportNode;
+begin
+  if FdViewport.Value is TAbstractViewportNode then
+    Result := TAbstractViewportNode(FdViewport.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLayoutGroupNode.SetViewport(const Value: TAbstractViewportNode);
+begin
+  FdViewport.Send(Value);
+end;
 
 {$endif read_implementation}

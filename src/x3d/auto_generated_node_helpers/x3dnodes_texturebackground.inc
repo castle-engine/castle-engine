@@ -26,11 +26,109 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetBackTexture: TAbstractTextureNode;
+    procedure SetBackTexture(const Value: TAbstractTextureNode);
+    function GetBottomTexture: TAbstractTextureNode;
+    procedure SetBottomTexture(const Value: TAbstractTextureNode);
+    function GetFrontTexture: TAbstractTextureNode;
+    procedure SetFrontTexture(const Value: TAbstractTextureNode);
+    function GetLeftTexture: TAbstractTextureNode;
+    procedure SetLeftTexture(const Value: TAbstractTextureNode);
+    function GetRightTexture: TAbstractTextureNode;
+    procedure SetRightTexture(const Value: TAbstractTextureNode);
+    function GetTopTexture: TAbstractTextureNode;
+    procedure SetTopTexture(const Value: TAbstractTextureNode);
+  public
+    property BackTexture: TAbstractTextureNode read GetBackTexture write SetBackTexture;
+    property BottomTexture: TAbstractTextureNode read GetBottomTexture write SetBottomTexture;
+    property FrontTexture: TAbstractTextureNode read GetFrontTexture write SetFrontTexture;
+    property LeftTexture: TAbstractTextureNode read GetLeftTexture write SetLeftTexture;
+    property RightTexture: TAbstractTextureNode read GetRightTexture write SetRightTexture;
+    property TopTexture: TAbstractTextureNode read GetTopTexture write SetTopTexture;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTextureBackgroundNode ----------------------------------------------- }
+
+function TTextureBackgroundNode.GetBackTexture: TAbstractTextureNode;
+begin
+  if FdBackTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdBackTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureBackgroundNode.SetBackTexture(const Value: TAbstractTextureNode);
+begin
+  FdBackTexture.Send(Value);
+end;
+
+function TTextureBackgroundNode.GetBottomTexture: TAbstractTextureNode;
+begin
+  if FdBottomTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdBottomTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureBackgroundNode.SetBottomTexture(const Value: TAbstractTextureNode);
+begin
+  FdBottomTexture.Send(Value);
+end;
+
+function TTextureBackgroundNode.GetFrontTexture: TAbstractTextureNode;
+begin
+  if FdFrontTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdFrontTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureBackgroundNode.SetFrontTexture(const Value: TAbstractTextureNode);
+begin
+  FdFrontTexture.Send(Value);
+end;
+
+function TTextureBackgroundNode.GetLeftTexture: TAbstractTextureNode;
+begin
+  if FdLeftTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdLeftTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureBackgroundNode.SetLeftTexture(const Value: TAbstractTextureNode);
+begin
+  FdLeftTexture.Send(Value);
+end;
+
+function TTextureBackgroundNode.GetRightTexture: TAbstractTextureNode;
+begin
+  if FdRightTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdRightTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureBackgroundNode.SetRightTexture(const Value: TAbstractTextureNode);
+begin
+  FdRightTexture.Send(Value);
+end;
+
+function TTextureBackgroundNode.GetTopTexture: TAbstractTextureNode;
+begin
+  if FdTopTexture.Value is TAbstractTextureNode then
+    Result := TAbstractTextureNode(FdTopTexture.Value)
+  else
+    Result := nil;
+end;
+
+procedure TTextureBackgroundNode.SetTopTexture(const Value: TAbstractTextureNode);
+begin
+  FdTopTexture.Send(Value);
+end;
 
 {$endif read_implementation}

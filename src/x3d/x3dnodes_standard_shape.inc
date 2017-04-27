@@ -14,6 +14,8 @@
 }
 
 {$ifdef read_interface}
+  TKambiOctreePropertiesNode = class;
+
   { Base node type for the child nodes of @link(TAbstractAppearanceNode). }
   TAbstractAppearanceChildNode = class(TAbstractNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dappearancechildnode.inc}
@@ -156,6 +158,8 @@
     function GLSLShader(Index: Integer): TComposedShaderNode;
   end;
 
+  TFillPropertiesNode = class;
+
   { Visual properties of geometry.
 
     Note that the geometry is unlit (pure white, regardless of lighting)
@@ -168,10 +172,6 @@
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetMaterial: TMaterialNode;
     procedure SetMaterial(const Value: TMaterialNode);
-    function GetTextureTransform: TAbstractTextureTransformNode;
-    procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
-    function GetLineProperties: TLinePropertiesNode;
-    procedure SetLineProperties(const Value: TLinePropertiesNode);
     function GetNormalMap: TAbstractTexture2DNode;
     procedure SetNormalMap(const Value: TAbstractTexture2DNode);
   protected
@@ -253,22 +253,6 @@
       X3D field, checking class types along the way and setting the value
       through X3D events if necessary. }
     property Material: TMaterialNode read GetMaterial write SetMaterial;
-
-    { Texture transformation of this apperance.
-
-      This is a comfortable property for getting and setting the appropriate
-      X3D field, checking class types along the way and setting the value
-      through X3D events if necessary. }
-    property TextureTransform: TAbstractTextureTransformNode
-      read GetTextureTransform write SetTextureTransform;
-
-    { Line properties of this appearance.
-
-      This is a comfortable property for getting and setting the appropriate
-      X3D field, checking class types along the way and setting the value
-      through X3D events if necessary. }
-    property LineProperties: TLinePropertiesNode
-      read GetLineProperties write SetLineProperties;
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
       or @nil. }
@@ -1014,32 +998,6 @@ end;
 procedure TAppearanceNode.SetMaterial(const Value: TMaterialNode);
 begin
   FdMaterial.Send(Value);
-end;
-
-function TAppearanceNode.GetTextureTransform: TAbstractTextureTransformNode;
-begin
-  if FdTextureTransform.Value is TAbstractTextureTransformNode then
-    Result := TAbstractTextureTransformNode(FdTextureTransform.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
-begin
-  FdTextureTransform.Send(Value);
-end;
-
-function TAppearanceNode.GetLineProperties: TLinePropertiesNode;
-begin
-  if FdLineProperties.Value is TLinePropertiesNode then
-    Result := TLinePropertiesNode(FdLineProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAppearanceNode.SetLineProperties(const Value: TLinePropertiesNode);
-begin
-  FdLineProperties.Send(Value);
 end;
 
 function TAppearanceNode.CommonSurfaceShader: TCommonSurfaceShaderNode;

@@ -448,14 +448,16 @@
     private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
+    { Access the coordinate node, and inside this node access it's points list. }
     function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
     function TexCoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
-    function FogCoord: TMFFloat; override;
     function Attrib: TMFNode; override;
+
+    function FogCoord: TMFFloat; override;
 
     { Returns normal vectors that are specified explicitly.
       The vectors are taken from the Normal node inside our FdNormal field.
@@ -1196,9 +1198,9 @@ function TAbstractComposedGeometryNode.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
-  if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TCoordinateNode) then
-    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
+  if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint
+  else
     ACoord := nil;
 end;
 
@@ -1443,9 +1445,9 @@ function TIndexedLineSetNode.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
-  if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TCoordinateNode) then
-    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
+  if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint
+  else
     ACoord := nil;
 end;
 
@@ -1647,9 +1649,9 @@ function TLineSetNode.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
-  if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TCoordinateNode) then
-    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
+  if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint
+  else
     ACoord := nil;
 end;
 
@@ -1770,9 +1772,9 @@ function TPointSetNode.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
-  if (FdCoord.Value <> nil) and
-     (FdCoord.Value is TCoordinateNode) then
-    ACoord := TCoordinateNode(FdCoord.Value).FdPoint else
+  if FdCoord.Value is TCoordinateNode then // also checks that FdCoord.Value <> nil
+    ACoord := TCoordinateNode(FdCoord.Value).FdPoint
+  else
     ACoord := nil;
 end;
 

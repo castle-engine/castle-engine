@@ -139,8 +139,6 @@
     opVisibleTriangles,
     opStaticCollisions);
 
-  TKambiOctreePropertiesNode = class;
-
   { Navigation information with some Castle Game Engine extensions.
     See http://castle-engine.sourceforge.net/x3d_implementation_navigation_extensions.php . }
   TKambiNavigationInfoNode = class(TNavigationInfoNode)
@@ -204,8 +202,6 @@
   TGeneratedShadowMapNode = class(TAbstractTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
-    function GetLight: TAbstractLightNode;
-    procedure SetLight(const Value: TAbstractLightNode);
   public
     const
       DefaultSize = 128;
@@ -238,8 +234,6 @@
 
     private FFdCompareMode: TSFstring;
     public property FdCompareMode: TSFString read FFdCompareMode;
-
-    property Light: TAbstractLightNode read GetLight write SetLight;
 
     {$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
   end;
@@ -733,19 +727,6 @@ end;
 class function TGeneratedShadowMapNode.URNMatching(const URN: string): boolean;
 begin
   Result := URNMatchingCastle(URN, ClassX3DType);
-end;
-
-function TGeneratedShadowMapNode.GetLight: TAbstractLightNode;
-begin
-  if FdLight.Value is TAbstractLightNode then
-    Result := TAbstractLightNode(FdLight.Value)
-  else
-    Result := nil;
-end;
-
-procedure TGeneratedShadowMapNode.SetLight(const Value: TAbstractLightNode);
-begin
-  FdLight.Send(Value);
 end;
 
 procedure TProjectedTextureCoordinateNode.CreateNode;

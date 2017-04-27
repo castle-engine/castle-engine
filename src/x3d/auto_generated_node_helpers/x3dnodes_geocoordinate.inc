@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
+  public
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TGeoCoordinateNode ----------------------------------------------- }
+
+function TGeoCoordinateNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoCoordinateNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
+end;
 
 {$endif read_implementation}

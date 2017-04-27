@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetShape: TShapeNode;
+    procedure SetShape(const Value: TShapeNode);
+  public
+    property Shape: TShapeNode read GetShape write SetShape;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TCollidableShapeNode ----------------------------------------------- }
+
+function TCollidableShapeNode.GetShape: TShapeNode;
+begin
+  if FdShape.Value is TShapeNode then
+    Result := TShapeNode(FdShape.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCollidableShapeNode.SetShape(const Value: TShapeNode);
+begin
+  FdShape.Send(Value);
+end;
 
 {$endif read_implementation}

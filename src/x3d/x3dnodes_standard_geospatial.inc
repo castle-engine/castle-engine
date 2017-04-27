@@ -33,6 +33,8 @@
 }
 
 {$ifdef read_interface}
+  TGeoOriginNode = class;
+
   { }
   TGeoCoordinateNode = class(TAbstractCoordinateNode)
   public

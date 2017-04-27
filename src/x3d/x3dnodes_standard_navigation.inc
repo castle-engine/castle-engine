@@ -160,8 +160,6 @@
     function DirectEnumerateActiveForTraverse(
       Func: TEnumerateChildrenFunction;
       StateStack: TX3DGraphTraverseStateStack): Pointer; override;
-    function GetProxy: TX3DNode;
-    procedure SetProxy(const Value: TX3DNode);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -180,9 +178,6 @@
 
     private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
-
-    { When non-nil, this will be used for collisions, instead of children. }
-    property Proxy: TX3DNode read GetProxy write SetProxy;
 
     { Setup this Collision node to show VisibleNode, but collide as
       a Box. This sets VisibleNode as the only child of this collision node,
@@ -871,16 +866,6 @@ begin
 
   FdChildren.Clear;
   FdChildren.Add(VisibleNode);
-end;
-
-function TCollisionNode.GetProxy: TX3DNode;
-begin
-  Result := FdProxy.Value;
-end;
-
-procedure TCollisionNode.SetProxy(const Value: TX3DNode);
-begin
-  FdProxy.Send(Value);
 end;
 
 { TAbstractLODNode ----------------------------------------------------------- }

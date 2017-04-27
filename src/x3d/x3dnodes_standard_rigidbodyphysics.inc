@@ -14,6 +14,8 @@
 }
 
 {$ifdef read_interface}
+  TRigidBodyNode = class;
+
   { }
   TAbstractNBodyCollidableNode = class(TAbstractChildNode, IAbstractBoundedObject)
   public

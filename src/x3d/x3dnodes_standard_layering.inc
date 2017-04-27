@@ -14,6 +14,8 @@
 }
 
 {$ifdef read_interface}
+  TAbstractViewportNode = class;
+
   { }
   TAbstractLayerNode = class(TAbstractNode)
   public

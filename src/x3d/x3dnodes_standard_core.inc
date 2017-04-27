@@ -22,11 +22,18 @@ type
     property FdMetadata: TSFNode;
   end;
 
+  { Basis for all metadata nodes. }
+  IAbstractMetadataNode = interface(IX3DNode)
+  ['{2D631FBF-683B-4259-A98D-74589893447C}']
+    property FdName: TSFString { read GetFdname }; { }
+    property FdReference: TSFString { read GetFdreference }; { }
+  end;
+
   { Base X3D node that can have some metadata.
 
     Almost all X3D nodes inherit from this, with the only exception being
     the X3DMetadataObject (expressed only as an interface in Pascal,
-    @link(IAbstractMetadataObject)).
+    @link(IAbstractMetadataNode)).
     This means that you cannot have metadata inside a metadata. }
   TAbstractNode = class(TX3DNode, IAbstractNode)
   public
@@ -114,13 +121,6 @@ type
     {$I auto_generated_node_helpers/x3dnodes_x3dinfonode.inc}
   end;
 
-  { Basis for all metadata nodes. }
-  IAbstractMetadataObject = interface(IX3DNode)
-  ['{2D631FBF-683B-4259-A98D-74589893447C}']
-    property FdName: TSFString { read GetFdname }; { }
-    property FdReference: TSFString { read GetFdreference }; { }
-  end;
-
   { Base interface type for all sensors.
     All sensors implement this
     (and most, but not all, sensors descend also from @link(TAbstractSensorNode).) }
@@ -148,7 +148,7 @@ type
   end;
 
   { A metadata (extra, custom information at a node) with a boolean type. }
-  TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataObject)
+  TMetadataBooleanNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -168,7 +168,7 @@ type
 
   { A metadata (extra, custom information at a node) with
     a double-precision floating point number type. }
-  TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataObject)
+  TMetadataDoubleNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -188,7 +188,7 @@ type
 
   { A metadata (extra, custom information at a node) with
     a single-precision floating point number type. }
-  TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataObject)
+  TMetadataFloatNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -207,7 +207,7 @@ type
   end;
 
   { A metadata (extra, custom information at a node) with an integer type. }
-  TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataObject)
+  TMetadataIntegerNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -227,7 +227,7 @@ type
 
   { A metadata (extra, custom information at a node) set,
     to reference of collection of other metadata nodes. }
-  TMetadataSetNode = class(TAbstractNode, IAbstractMetadataObject)
+  TMetadataSetNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -246,7 +246,7 @@ type
   end;
 
   { A metadata (extra, custom information at a node) with a string type. }
-  TMetadataStringNode = class(TAbstractNode, IAbstractMetadataObject)
+  TMetadataStringNode = class(TAbstractNode, IAbstractMetadataNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -290,7 +290,7 @@ procedure TAbstractNode.CreateNode;
 begin
   inherited;
 
-  FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractMetadataObject);
+  FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractMetadataNode);
   AddField(FFdMetadata);
 end;
 
@@ -460,7 +460,7 @@ begin
   FFdReference := TSFString.Create(Self, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFNode.Create(Self, 'value', IAbstractMetadataObject);
+  FFdValue := TMFNode.Create(Self, 'value', IAbstractMetadataNode);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
