@@ -1150,11 +1150,14 @@ var
       SurfaceShader := S.ShapeNode.CommonSurfaceShader;
       if SurfaceShader <> nil then
       begin
-        if (SurfaceShader.NormalTexture <> nil) or
-           (SurfaceShader.AmbientTexture <> nil) or
-           (SurfaceShader.SpecularTexture <> nil) or
-           (SurfaceShader.ShininessTexture <> nil) then
-          MaxVar(Result, 1);
+        if SurfaceShader.NormalTexture <> nil then
+          MaxVar(Result, SurfaceShader.NormalTextureCoordinatesId + 1);
+        if SurfaceShader.AmbientTexture <> nil then
+          MaxVar(Result, SurfaceShader.AmbientTextureCoordinatesId + 1);
+        if SurfaceShader.SpecularTexture <> nil then
+          MaxVar(Result, SurfaceShader.SpecularTextureCoordinatesId + 1);
+        if SurfaceShader.ShininessTexture <> nil then
+          MaxVar(Result, SurfaceShader.ShininessTextureCoordinatesId + 1);
       end else
       if S.ShapeNode.Appearance.NormalMap <> nil then
         MaxVar(Result, 1);

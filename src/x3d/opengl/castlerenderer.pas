@@ -3320,14 +3320,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
       { If there is special texture like a normalmap,
         and we have room for one more texture, enable it. }
       if BoundTextureUnits < GLFeatures.MaxTextureUnits then
-      begin
-        { Note that we usually don't need to increase TexCoordsNeeded here,
-          (only BoundTextureUnits is increased later),
-          as these textures use existing texture coords.
-          But we need TexCoordNeeded >= 1. }
-        MaxVar(TexCoordsNeeded, 1);
-        BumpMappingEnable(Shape.State, BoundTextureUnits, Shader);
-      end;
+        BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
 
       // TODO:
       // if BoundTextureUnits < GLFeatures.MaxTextureUnits then

@@ -3,13 +3,13 @@
 private
   { If this State indicates a normal map, use it for bump mapping. }
   procedure BumpMappingEnable(State: TX3DGraphTraverseState;
-    var ABoundTextureUnits: Cardinal; Shader: TShader);
+    var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
-  var ABoundTextureUnits: Cardinal; Shader: TShader);
+  var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
   { Return OpenGL texture initialized for given texture node.
     If Node is nil, or it's corresponding OpenGL resource is not initialized
@@ -32,10 +32,8 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
   end;
 
   procedure Enable(const NormalTexture: TAbstractTextureNode;
+    const NormalTextureCoordinatesId: Integer;
     const DisplacementFactor: Single);
-  const
-    { TODO: take it from CommonSurfaceShader }
-    NormalMapTextureCoordinatesUnit = 0;
   var
     GLNormalTexture: TGLTextureId;
     { Does NormalTexture have alpha channel. }
@@ -51,9 +49,14 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping, ABoundTextureUnits,
-          NormalMapTextureCoordinatesUnit,
-          DisplacementTextureInAlpha, DisplacementFactor);
+          NormalTextureCoordinatesId, DisplacementTextureInAlpha, DisplacementFactor);
         Inc(ABoundTextureUnits);
+
+        { There is no need to increase the TexCoordNeeded unconditionally.
+          If the NormalTextureCoordinatesId = 0 and
+          TexCoordNeeded = 1 then we're already satisfied, as then the normalmap
+          will use the existing texture coordinates from e.g. diffuse texture. }
+        MaxVar(ATexCoordsNeeded, NormalTextureCoordinatesId + 1);
       end;
     end;
   end;
@@ -67,12 +70,15 @@ begin
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
-      Enable(SurfaceShader.NormalTexture, SurfaceShader.DisplacementFactor / 255.0)
+      Enable(
+        SurfaceShader.NormalTexture,
+        SurfaceShader.NormalTextureCoordinatesId,
+        SurfaceShader.DisplacementFactor / 255.0);
     end else
     if State.ShapeNode.Appearance <> nil then
     begin
       Appearance := State.ShapeNode.Appearance;
-      Enable(Appearance.NormalMap, Appearance.HeightMapScale);
+      Enable(Appearance.NormalMap, 0, Appearance.HeightMapScale);
     end;
   end;
 end;
