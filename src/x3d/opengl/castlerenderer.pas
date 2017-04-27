@@ -3317,12 +3317,26 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
-      { If there is a normal map texture, and we have room for one more texture,
-        try enabling bump mapping. Note that we don't increase
-        TexCoordsNeeded for this, as bump mapping uses the existing
-        texture coord. }
-      if TexCoordsNeeded < GLFeatures.MaxTextureUnits then
-        BumpMappingEnable(Shape.State, TexCoordsNeeded, Shader);
+      { If there is special texture like a normalmap,
+        and we have room for one more texture, enable it. }
+      if BoundTextureUnits < GLFeatures.MaxTextureUnits then
+      begin
+        { Note that we usually don't need to increase TexCoordsNeeded here,
+          (only BoundTextureUnits is increased later),
+          as these textures use existing texture coords.
+          But we need TexCoordNeeded >= 1. }
+        MaxVar(TexCoordsNeeded, 1);
+        BumpMappingEnable(Shape.State, BoundTextureUnits, Shader);
+      end;
+
+      // TODO:
+      // if BoundTextureUnits < GLFeatures.MaxTextureUnits then
+      //   SurfaceTextureEnable(Shape.State,
+
+      //      (SurfaceShader.AmbientTexture <> nil) or
+      //      (SurfaceShader.SpecularTexture <> nil) or
+      //      (SurfaceShader.ShininessTexture <> nil) then
+
     end;
 
     { Set alpha test enabled state for OpenGL (shader and fixed-function).

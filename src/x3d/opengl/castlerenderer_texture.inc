@@ -202,13 +202,22 @@
       var TextureSlotsUsed: Cardinal; Shader: TShader); override;
   end;
 
+  { Handler for 2D textures that have a corresponding OpenGL resource. }
+  TGL2DTextureNode = class(TGLSingleTextureNode)
+  public
+    { OpenGL texture identifier.
+      It may be 0 if the texture was initialized successfully. }
+    function GLName: TGLTextureId; virtual; abstract;
+  end;
+
   { Handler for TAbstractTexture2DNode with image (not a video). }
-  TGLImageTextureNode = class(TGLSingleTextureNode)
+  TGLImageTextureNode = class(TGL2DTextureNode)
+  strict private
+    FGLName: TGLuint;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
-    GLName: TGLuint;
     NormalMap, HeightMap: TGLuint;
     HeightMapScale: Single;
 
@@ -218,16 +227,15 @@
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function GLName: TGLTextureId; override;
   end;
 
-  TGLMovieTextureNode = class(TGLSingleTextureNode)
+  TGLMovieTextureNode = class(TGL2DTextureNode)
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
     GLVideo: TGLVideo3D;
-
-    function GLName: TGLTextureId;
 
     function TextureNode: TMovieTextureNode;
 
@@ -235,17 +243,17 @@
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function GLName: TGLTextureId; override;
   end;
 
-  TGLRenderedTextureNode = class(TGLSingleTextureNode)
-  private
+  TGLRenderedTextureNode = class(TGL2DTextureNode)
+  strict private
+    FGLName: TGLuint;
     RenderToTexture: TGLRenderToTexture;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
-    GLName: TGLuint;
-
     { The actual decided image size and mipmap status. }
     Width, Height: Cardinal;
     NeedsMipmaps: boolean;
@@ -257,6 +265,7 @@
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function GLName: TGLTextureId; override;
 
     procedure Update(
       const Render: TRenderFromViewFunction;
@@ -341,18 +350,17 @@
       Shader: TShader; const Env: TTextureEnv): boolean; override;
   end;
 
-  TGLGeneratedShadowMap = class(TGLSingleTextureNode)
-  private
+  TGLGeneratedShadowMap = class(TGL2DTextureNode)
+  strict private
     RenderToTexture: TGLRenderToTexture;
     { VarianceShadowMaps calculated at the PrepareCore time. }
     VarianceShadowMaps: boolean;
     NeedsMipmaps: boolean;
+    FGLName: TGLuint;
   protected
     class function IsClassForTextureNode(ANode: TAbstractTextureNode): boolean; override;
     procedure PrepareCore(State: TX3DGraphTraverseState); override;
   public
-    GLName: TGLuint;
-
     { The right size of the texture,
       that satisfies all OpenGL sizes requirements. }
     Size: Cardinal;
@@ -367,6 +375,7 @@
     function Bind(const TextureUnit: Cardinal): boolean; override;
     function Enable(const TextureUnit: Cardinal;
       Shader: TShader; const Env: TTextureEnv): boolean; override;
+    function GLName: TGLTextureId; override;
 
     procedure Update(
       const Render: TRenderFromViewFunction;
@@ -886,7 +895,7 @@ begin
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
-  GLName := Renderer.Cache.TextureImage_IncReference(
+  FGLName := Renderer.Cache.TextureImage_IncReference(
     TextureNode.TextureImage,
     TextureNode.TextureUsedFullUrl,
     TextureNode,
@@ -899,20 +908,20 @@ end;
 
 procedure TGLImageTextureNode.Unprepare;
 begin
-  if GLName <> 0 then
+  if FGLName <> 0 then
   begin
-    Renderer.Cache.TextureImage_DecReference(GLName);
-    GLName := 0;
+    Renderer.Cache.TextureImage_DecReference(FGLName);
+    FGLName := 0;
   end;
 end;
 
 function TGLImageTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := GLName <> 0;
+  Result := FGLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  glBindTexture(GL_TEXTURE_2D, GLName);
+  glBindTexture(GL_TEXTURE_2D, FGLName);
 end;
 
 function TGLImageTextureNode.Enable(const TextureUnit: Cardinal;
@@ -922,6 +931,11 @@ begin
   if not Result then Exit;
 
   Shader.EnableTexture(TextureUnit, tt2D, TextureNode, Env);
+end;
+
+function TGLImageTextureNode.GLName: TGLTextureId;
+begin
+  Result := FGLName;
 end;
 
 { TGLMovieTextureNode -------------------------------------------------------- }
@@ -1105,7 +1119,7 @@ begin
       Exit;
     end;
 
-    GLName := Renderer.Cache.TextureDepth_IncReference(
+    FGLName := Renderer.Cache.TextureDepth_IncReference(
       TextureNode, TextureWrap, nil, Width, Height, false);
   end else
   begin
@@ -1119,7 +1133,7 @@ begin
         updated. }
       InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
 
-      GLName := Renderer.Cache.TextureImage_IncReference(
+      FGLName := Renderer.Cache.TextureImage_IncReference(
         InitialImage,
         '',
         TextureNode,
@@ -1139,7 +1153,7 @@ begin
   end;
 
   RenderToTexture := TGLRenderToTexture.Create(Width, Height);
-  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.SetTexture(FGLName, GL_TEXTURE_2D);
   if DepthMap then
     RenderToTexture.Buffer := tbDepth else
     RenderToTexture.Buffer := tbColor;
@@ -1159,22 +1173,22 @@ procedure TGLRenderedTextureNode.Unprepare;
 begin
   FreeAndNil(RenderToTexture);
 
-  if GLName <> 0 then
+  if FGLName <> 0 then
   begin
     if DepthMap then
-      Renderer.Cache.TextureDepth_DecReference(GLName) else
-      Renderer.Cache.TextureImage_DecReference(GLName);
-    GLName := 0;
+      Renderer.Cache.TextureDepth_DecReference(FGLName) else
+      Renderer.Cache.TextureImage_DecReference(FGLName);
+    FGLName := 0;
   end;
 end;
 
 function TGLRenderedTextureNode.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := GLName <> 0;
+  Result := FGLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  glBindTexture(GL_TEXTURE_2D, GLName);
+  glBindTexture(GL_TEXTURE_2D, FGLName);
 end;
 
 function TGLRenderedTextureNode.Enable(const TextureUnit: Cardinal;
@@ -1327,7 +1341,7 @@ var
   CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4Single;
   Pos, Dir, Up: TVector3Single;
 begin
-  if GLName = 0 then Exit;
+  if FGLName = 0 then Exit;
 
   { calculate Viewpoint }
   if (TextureNode.FdViewpoint.Value <> nil) and
@@ -1372,6 +1386,11 @@ begin
   TextureNode.EventRendering.Send(false);
 
   NeedsRestoreViewport := true;
+end;
+
+function TGLRenderedTextureNode.GLName: TGLTextureId;
+begin
+  Result := FGLName;
 end;
 
 { TGLCubeMapTextureNode ------------------------------------------------------ }
@@ -1809,7 +1828,7 @@ begin
 
   if VarianceShadowMaps then
   begin
-    GLName := Renderer.Cache.TextureFloat_IncReference(
+    FGLName := Renderer.Cache.TextureFloat_IncReference(
       TextureNode, Filter, TextureWrap, Size, Size, true);
   end else
   begin
@@ -1819,13 +1838,13 @@ begin
       Exit;
     end;
 
-    GLName := Renderer.Cache.TextureDepth_IncReference(
+    FGLName := Renderer.Cache.TextureDepth_IncReference(
       TextureNode, TextureWrap, TextureNode.FdCompareMode, Size, Size,
       VisualizeDepthMap);
   end;
 
   RenderToTexture := TGLRenderToTexture.Create(Size, Size);
-  RenderToTexture.SetTexture(GLName, GL_TEXTURE_2D);
+  RenderToTexture.SetTexture(FGLName, GL_TEXTURE_2D);
   if VarianceShadowMaps then
     RenderToTexture.Buffer := tbColor else
     RenderToTexture.Buffer := tbDepth;
@@ -1837,22 +1856,22 @@ procedure TGLGeneratedShadowMap.Unprepare;
 begin
   FreeAndNil(RenderToTexture);
 
-  if GLName <> 0 then
+  if FGLName <> 0 then
   begin
     if VarianceShadowMaps then
-      Renderer.Cache.TextureFloat_DecReference(GLName) else
-      Renderer.Cache.TextureDepth_DecReference(GLName);
-    GLName := 0;
+      Renderer.Cache.TextureFloat_DecReference(FGLName) else
+      Renderer.Cache.TextureDepth_DecReference(FGLName);
+    FGLName := 0;
   end;
 end;
 
 function TGLGeneratedShadowMap.Bind(const TextureUnit: Cardinal): boolean;
 begin
-  Result := GLName <> 0;
+  Result := FGLName <> 0;
   if not Result then Exit;
 
   Renderer.ActiveTexture(TextureUnit);
-  glBindTexture(GL_TEXTURE_2D, GLName);
+  glBindTexture(GL_TEXTURE_2D, FGLName);
 end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
@@ -1874,7 +1893,7 @@ var
   NewProjectionMatrix, SavedProjectionMatrix: TMatrix4Single;
   SavedDepthRange: TDepthRange;
 begin
-  if GLName = 0 then Exit;
+  if FGLName = 0 then Exit;
 
   { Render view for shadow map }
   NewProjectionMatrix := Light.ProjectionMatrix;
@@ -1929,6 +1948,11 @@ begin
     RenderToTexture.GenerateMipmap;
 
   NeedsRestoreViewport := true;
+end;
+
+function TGLGeneratedShadowMap.GLName: TGLTextureId;
+begin
+  Result := FGLName;
 end;
 
 { TGLShaderTexture ------------------------------------------------------ }

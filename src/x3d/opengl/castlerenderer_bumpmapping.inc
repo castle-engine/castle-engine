@@ -15,7 +15,7 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
     If Node is nil, or it's corresponding OpenGL resource is not initialized
     for whatever reason --- returns 0. }
   function GLTexture(Node: TAbstractTextureNode;
-    out DisplacementTextureInAlpha: boolean): TGLuint;
+    out DisplacementTextureInAlpha: boolean): TGLTextureId;
   var
     GLNode: TGLTextureNode;
   begin
@@ -23,14 +23,9 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
     if Node <> nil then
     begin
       GLNode := GLTextureNodes.TextureNode(Node);
-      if GLNode <> nil then
+      if GLNode is TGL2DTextureNode then // also checks is GLNode <> nil
       begin
-        if GLNode is TGLImageTextureNode then
-          Result := TGLImageTextureNode(GLNode).GLName
-        else
-        if GLNode is TGLMovieTextureNode then
-          Result := TGLMovieTextureNode(GLNode).GLName;
-
+        Result := TGL2DTextureNode(GLNode).GLName;
         DisplacementTextureInAlpha := Node.AlphaChannelFinal <> acNone;
       end;
     end;
@@ -42,7 +37,7 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
     { TODO: take it from CommonSurfaceShader }
     NormalMapTextureCoordinatesUnit = 0;
   var
-    GLNormalTexture: TGLuint;
+    GLNormalTexture: TGLTextureId;
     { Does NormalTexture have alpha channel. }
     DisplacementTextureInAlpha: boolean;
   begin

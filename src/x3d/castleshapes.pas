@@ -1150,8 +1150,10 @@ var
       SurfaceShader := S.ShapeNode.CommonSurfaceShader;
       if SurfaceShader <> nil then
       begin
-        if (SurfaceShader.NormalTexture <> nil) { TODO: or
-           (SurfaceShader.SpecularTexture <> nil) } then
+        if (SurfaceShader.NormalTexture <> nil) or
+           (SurfaceShader.AmbientTexture <> nil) or
+           (SurfaceShader.SpecularTexture <> nil) or
+           (SurfaceShader.ShininessTexture <> nil) then
           MaxVar(Result, 1);
       end else
       if S.ShapeNode.Appearance.NormalMap <> nil then
