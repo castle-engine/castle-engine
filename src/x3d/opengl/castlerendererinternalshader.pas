@@ -2142,7 +2142,7 @@ var
 
       { Steep parallax bump mapping }
       '/* At smaller view angles, much more iterations needed, otherwise ugly' +NL+
-      '   aliasing arifacts quickly appear. */' +NL+
+      '   aliasing artifacts quickly appear. */' +NL+
       'float num_steps = mix(30.0, 10.0, v_to_eye.z);' +NL+
       'float step = 1.0 / num_steps;' +NL+
 

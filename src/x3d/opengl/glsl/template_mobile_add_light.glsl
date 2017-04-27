@@ -53,7 +53,7 @@ uniform float castle_LightSource<Light>Radius;
 void PLUG_add_light_contribution(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
-  const in float material_shininess)
+  in float material_shininess)
 {
   vec3 light_dir;
 
@@ -107,6 +107,7 @@ void PLUG_add_light_contribution(inout vec4 color,
   vec4 light_color =
 #ifdef LIGHT_HAS_AMBIENT
   castle_SideLightProduct<Light>Ambient;
+  /* PLUG: material_light_ambient (light_color) */
 #else
   vec4(0.0);
 #endif
@@ -131,10 +132,14 @@ void PLUG_add_light_contribution(inout vec4 color,
      - normalize(camera position - vertex_eye)
        (and camera position == zero in camera space). */
   vec3 halfVector = normalize(light_dir - normalize(vec3(vertex_eye)));
-  if (diffuse_factor != 0.0)
-    light_color += castle_SideLightProduct<Light>Specular *
+  if (diffuse_factor != 0.0) {
+    vec4 specular_color = castle_SideLightProduct<Light>Specular;
+    /* PLUG: material_light_specular (specular_color) */
+    /* PLUG: material_shininess (material_shininess) */
+    light_color += specular_color *
       pow(max(dot(halfVector, normal_eye),
         0.0), material_shininess);
+  }
 #endif
 
   color += light_color * scale;

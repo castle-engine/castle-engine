@@ -94,6 +94,7 @@ void PLUG_add_light_contribution_side(inout vec4 color,
   vec4 light_color =
 #ifdef LIGHT_HAS_AMBIENT
   gl_SideLightProduct[<Light>].ambient;
+  /* PLUG: material_light_ambient (light_color) */
 #else
   vec4(0.0);
 #endif
@@ -106,10 +107,15 @@ void PLUG_add_light_contribution_side(inout vec4 color,
 
 #ifdef LIGHT_HAS_SPECULAR
   /* add specular term */
-  if (diffuse_factor != 0.0)
-    light_color += gl_SideLightProduct[<Light>].specular *
+  if (diffuse_factor != 0.0) {
+    vec4 specular_color = gl_SideLightProduct[<Light>].specular;
+    float material_shininess = material.shininess;
+    /* PLUG: material_light_specular (specular_color) */
+    /* PLUG: material_shininess (material_shininess) */
+    light_color += specular_color *
       pow(max(dot(vec3(gl_LightSource[<Light>].halfVector), normal_eye),
-        0.0), material.shininess);
+        0.0), material_shininess);
+  }
 #endif
 
   color += light_color * scale;
