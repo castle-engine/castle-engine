@@ -206,9 +206,28 @@ type
     function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
   end;
 
-  TTextureShader = class
+  { Setup the necessary shader things to pass texture coordinates. }
+  TTextureCoordinateShader = class
   private
     TextureUnit: Cardinal;
+    HasMatrixTransform: boolean;
+
+    { Name of texture coordinate varying vec4 vector. }
+    class function CoordName(const TexUnit: Cardinal): string;
+    { Name of texture matrix mat4 uniform. }
+    class function MatrixName(const TexUnit: Cardinal): string;
+  public
+    { Update Hash for this texture shader. }
+    procedure Prepare(var Hash: TShaderCodeHash); virtual;
+    procedure Enable(var TextureApply, TextureColorDeclare,
+      TextureCoordInitialize, TextureCoordMatrix,
+      TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
+      GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
+  end;
+
+  { Setup the necessary shader things to query a texture using texture coordinates. }
+  TTextureShader = class(TTextureCoordinateShader)
+  private
     TextureType: TTextureType;
     Node: TAbstractTextureNode;
     Env: TTextureEnv;
@@ -216,7 +235,6 @@ type
     ShadowLight: TAbstractLightNode;
     ShadowVisualizeDepth: boolean;
     Shader: TShader;
-    HasMatrix: boolean;
 
     { Uniform to set for this texture. May be empty. }
     UniformName: string;
@@ -226,20 +244,16 @@ type
     class function TextureEnvMix(const AEnv: TTextureEnv;
       const FragmentColor, CurrentTexture: string;
       const ATextureUnit: Cardinal): string;
-    { Name of texture coordinate varying vec4 vector. }
-    class function CoordName(const TexUnit: Cardinal): string;
-    { Name of texture matrix mat4 uniform. }
-    class function MatrixName(const TexUnit: Cardinal): string;
   public
-    { Update Hash for this light shader. }
-    procedure Prepare(var Hash: TShaderCodeHash);
+    { Update Hash for this texture shader. }
+    procedure Prepare(var Hash: TShaderCodeHash); override;
     procedure Enable(var TextureApply, TextureColorDeclare,
       TextureCoordInitialize, TextureCoordMatrix,
       TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-      GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+      GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
   end;
 
-  TTextureShaders = specialize TFPGObjectList<TTextureShader>;
+  TTextureCoordinateShaderList = specialize TFPGObjectList<TTextureCoordinateShader>;
 
   TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
@@ -296,13 +310,14 @@ type
     Source: TShaderSource;
     PlugIdentifiers: Cardinal;
     LightShaders: TLightShaders;
-    TextureShaders: TTextureShaders;
+    TextureShaders: TTextureCoordinateShaderList;
     FCodeHash: TShaderCodeHash;
     CodeHashFinalized: boolean;
     SelectedNode: TComposedShaderNode;
     WarnMissingPlugs: boolean;
     FShapeRequiresShaders: boolean;
     FBumpMapping: TBumpMapping;
+    FNormalMapTextureCoordinatesUnit: Cardinal;
     FNormalMapTextureUnit: Cardinal;
     FHeightMapInAlpha: boolean;
     FHeightMapScale: Single;
@@ -451,13 +466,8 @@ type
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
-      const NormalMapTextureUnit: Cardinal;
+      const NormalMapTextureUnit, NormalMapTextureCoordinatesUnit: Cardinal;
       const HeightMapInAlpha: boolean; const HeightMapScale: Single);
-    { Add texture coordinates, unused (for now) by any particular texture.
-      This is used when we want to use some non-diffuse texture
-      (like normal map or specular map), but there is no "default diffuse texture"
-      from which we would like to take texture coordinates. }
-    procedure EnableTextureCoordinatesForSpecialTextures;
     { Enable light source. Remember to set MaterialXxx before calling this. }
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
@@ -1257,26 +1267,74 @@ begin
     BindUniforms(Nodes[I], EnableDisable);
 end;
 
-{ TTextureShader ------------------------------------------------------------- }
+{ TTextureCoordinateShader --------------------------------------------------- }
 
-class function TTextureShader.CoordName(const TexUnit: Cardinal): string;
+class function TTextureCoordinateShader.CoordName(const TexUnit: Cardinal): string;
 begin
   Result := Format(
     {$ifndef OpenGLES} 'gl_TexCoord[%d]' {$else} 'castle_TexCoord%d' {$endif},
     [TexUnit]);
 end;
 
-class function TTextureShader.MatrixName(const TexUnit: Cardinal): string;
+class function TTextureCoordinateShader.MatrixName(const TexUnit: Cardinal): string;
 begin
   Result := Format(
     {$ifndef OpenGLES} 'gl_TextureMatrix[%d]' {$else} 'castle_TextureMatrix%d' {$endif},
     [TexUnit]);
 end;
 
+procedure TTextureCoordinateShader.Prepare(var Hash: TShaderCodeHash);
+var
+  IntHash: LongWord;
+begin
+{$include norqcheckbegin.inc}
+  IntHash :=
+    1 +
+    971 * Ord(HasMatrixTransform);
+  Hash.AddInteger(977 * (TextureUnit + 1) * IntHash);
+{$include norqcheckend.inc}
+end;
+
+procedure TTextureCoordinateShader.Enable(var TextureApply, TextureColorDeclare,
+  TextureCoordInitialize, TextureCoordMatrix,
+  TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
+  GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+var
+  TexCoordName, TexMatrixName: string;
+begin
+  TexCoordName := CoordName(TextureUnit);
+  TexMatrixName := MatrixName(TextureUnit);
+
+  {$ifndef OpenGLES}
+  TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
+    [TexCoordName, TextureUnit]);
+  {$else}
+  TextureCoordInitialize += Format('%s = castle_MultiTexCoord%d;' + NL,
+    [TexCoordName, TextureUnit]);
+  TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
+  TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
+  {$endif}
+
+  if HasMatrixTransform then
+    TextureCoordMatrix += Format('%s = %s * %0:s;' + NL,
+      [TexCoordName, TexMatrixName]);
+
+  GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
+  GeometryVertexZero += Format('%s  = vec4(0.0);' + NL, [TexCoordName]);
+  { NVidia will warn here "... might be used before being initialized".
+    Which is of course true --- but we depend that author will always call
+    geometryVertexZero() before geometryVertexAdd(). }
+  GeometryVertexAdd  += Format('%s += gl_in[index].%0:s * scale;' + NL, [TexCoordName]);
+end;
+
+{ TTextureShader ------------------------------------------------------------- }
+
 procedure TTextureShader.Prepare(var Hash: TShaderCodeHash);
 var
   IntHash: LongWord;
 begin
+  inherited;
+
 {$include norqcheckbegin.inc}
   IntHash :=
     1 +
@@ -1364,11 +1422,13 @@ const
   SamplerFromTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
 var
-  TextureSampleCall, TexCoordName, TexMatrixName: string;
+  TextureSampleCall, TexCoordName: string;
   ShadowLightShader: TLightShader;
   Code: TShaderSource;
   SamplerType: string;
 begin
+  inherited;
+
   if TextureType <> ttShader then
   begin
     UniformName := Format('castle_texture_%d', [TextureUnit]);
@@ -1377,29 +1437,6 @@ begin
     UniformName := '';
 
   TexCoordName := CoordName(TextureUnit);
-  TexMatrixName := MatrixName(TextureUnit);
-
-  {$ifndef OpenGLES}
-  TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
-    [TexCoordName, TextureUnit]);
-  {$else}
-  TextureCoordInitialize += Format('%s = castle_MultiTexCoord%d;' + NL,
-    [TexCoordName, TextureUnit]);
-  TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
-  TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
-  {$endif}
-
-  if HasMatrix and
-    not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow)) then
-    TextureCoordMatrix += Format('%s = %s * %0:s;' + NL,
-      [TexCoordName, TexMatrixName]);
-
-  GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
-  GeometryVertexZero += Format('%s  = vec4(0.0);' + NL, [TexCoordName]);
-  { NVidia will warn here "... might be used before being initialized".
-    Which is of course true --- but we depend that author will always call
-    geometryVertexZero() before geometryVertexAdd(). }
-  GeometryVertexAdd  += Format('%s += gl_in[index].%0:s * scale;' + NL, [TexCoordName]);
 
   if (TextureType = tt2DShadow) and
       ShadowVisualizeDepth then
@@ -1578,7 +1615,7 @@ begin
   Source[stGeometry].Add(DefaultGeometryShader);
 
   LightShaders := TLightShaders.Create;
-  TextureShaders := TTextureShaders.Create;
+  TextureShaders := TTextureCoordinateShaderList.Create;
   UniformsNodes := TX3DNodeList.Create(false);
   DynamicUniforms := TDynamicUniformList.Create(true);
   {$ifdef OpenGLES} TextureMatrix := TCardinalList.Create; {$endif}
@@ -1623,6 +1660,7 @@ begin
   FShapeRequiresShaders := false;
   FBumpMapping := Low(TBumpMapping);
   FNormalMapTextureUnit := 0;
+  FNormalMapTextureCoordinatesUnit := 0;
   FHeightMapInAlpha := false;
   FHeightMapScale := 0;
   FFogEnabled := false;
@@ -1905,6 +1943,31 @@ var
     TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
     GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
   TextureUniformsSet: boolean;
+
+  procedure RequireTexCoordForSpecialTextures;
+  var
+    TexCoordShader: TTextureCoordinateShader;
+    TextureUnit: Cardinal;
+  begin
+    if (FBumpMapping <> bmNone) and (TextureShaders.Count = 0) then
+    begin
+      TextureUnit := FNormalMapTextureCoordinatesUnit;
+
+      TexCoordShader := TTextureCoordinateShader.Create;
+      TexCoordShader.HasMatrixTransform :=
+        {$ifdef OpenGLES} TextureMatrix.IndexOf(TextureUnit) <> -1 {$else} true {$endif};
+      TexCoordShader.TextureUnit := TextureUnit;
+      TextureShaders.Add(TexCoordShader);
+
+      { Note that we don't call
+
+          TextureShader.Prepare(FCodeHash);
+
+        to change the hash at this point. It is not needed (the fact that
+        we use bump mapping was already recorded in the hash), and changing hash
+        at this point could have bad consequences. }
+    end;
+  end;
 
   procedure EnableTextures;
   var
@@ -2239,12 +2302,13 @@ var
       NL+
       'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
       '{' +NL+
-      '  /* Read normal from the texture, this is the very idea of bump mapping.' +NL+
-      '     Unpack normals, they are in texture in [0..1] range and I want in [-1..1].' +NL+
-      '     Our normal map is always indexed using gl_TexCoord[0] (this way' +NL+
-      '     we depend on already correct gl_TexCoord[0], multiplied by TextureTransform' +NL+
-      '     and such). */' +NL+
-      '  vec3 normal_tangent = texture2D(castle_normal_map, gl_TexCoord[0].st).xyz * 2.0 - vec3(1.0);' +NL+
+      { Read normal from the texture, this is the very idea of bump mapping.
+        Unpack normals, they are in texture in [0..1] range and I want in [-1..1].
+        Our normal map is always indexed using gl_TexCoord[NormalMapTextureCoordinatesUnit]
+        (this way we depend on already correct gl_TexCoord[NormalMapTextureCoordinatesUnit],
+        multiplied by TextureTransform and such). }
+      '  vec3 normal_tangent = texture2D(castle_normal_map, gl_TexCoord[' +
+         IntToStr(FNormalMapTextureCoordinatesUnit) + '].st).xyz * 2.0 - vec3(1.0);' +NL+
 
       '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
       '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
@@ -2427,9 +2491,10 @@ var
     if TextureUniformsSet then
     begin
       for I := 0 to TextureShaders.Count - 1 do
-        if TextureShaders[I].UniformName <> '' then
-          AProgram.SetUniform(TextureShaders[I].UniformName,
-                              TextureShaders[I].UniformValue);
+        if (TextureShaders[I] is TTextureShader) and
+           (TTextureShader(TextureShaders[I]).UniformName <> '') then
+          AProgram.SetUniform(TTextureShader(TextureShaders[I]).UniformName,
+                              TTextureShader(TextureShaders[I]).UniformValue);
     end;
 
     if BumpMappingUniformName1 <> '' then
@@ -2454,6 +2519,7 @@ var
   I: Integer;
   GeometryInputSize, LogStr, LogStrPart: string;
 begin
+  RequireTexCoordForSpecialTextures;
   EnableTextures;
   EnableInternalEffects;
   EnableLights;
@@ -2634,8 +2700,9 @@ begin
   { Enable for shader pipeline }
 
   TextureShader := TTextureShader.Create;
-  TextureShader.HasMatrix :=
-    {$ifdef OpenGLES} TextureMatrix.IndexOf(TextureUnit) <> -1 {$else} true {$endif};
+  TextureShader.HasMatrixTransform :=
+    {$ifdef OpenGLES} (TextureMatrix.IndexOf(TextureUnit) <> -1) {$else} true {$endif}
+    and not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow));
   TextureShader.TextureUnit := TextureUnit;
   TextureShader.TextureType := TextureType;
   TextureShader.Node := Node;
@@ -2871,28 +2938,25 @@ begin
   FCodeHash.AddInteger(2011);
 end;
 
-procedure TShader.EnableTextureCoordinatesForSpecialTextures;
-begin
-  // TODO
-  WritelnLog('EnableTextureCoordinatesForSpecialTextures');
-end;
-
 procedure TShader.EnableBumpMapping(const BumpMapping: TBumpMapping;
-  const NormalMapTextureUnit: Cardinal;
+  const NormalMapTextureUnit, NormalMapTextureCoordinatesUnit: Cardinal;
   const HeightMapInAlpha: boolean; const HeightMapScale: Single);
 begin
   FBumpMapping := BumpMapping;
   FNormalMapTextureUnit := NormalMapTextureUnit;
+  FNormalMapTextureCoordinatesUnit := NormalMapTextureCoordinatesUnit;
   FHeightMapInAlpha := HeightMapInAlpha;
   FHeightMapScale := HeightMapScale;
 
   if FBumpMapping <> bmNone then
   begin
     ShapeRequiresShaders := true;
-    FCodeHash.AddInteger(47 * (
-      Ord(FBumpMapping) +
-      FNormalMapTextureUnit +
-      Ord(FHeightMapInAlpha)));
+    FCodeHash.AddInteger(
+      47 * Ord(FBumpMapping) +
+      373 * FNormalMapTextureUnit +
+      379 * FNormalMapTextureCoordinatesUnit +
+      383 * Ord(FHeightMapInAlpha)
+    );
     FCodeHash.AddFloat(FHeightMapScale);
   end;
 end;

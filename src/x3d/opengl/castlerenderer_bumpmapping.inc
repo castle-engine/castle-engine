@@ -38,6 +38,9 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
 
   procedure Enable(const NormalTexture: TAbstractTextureNode;
     const DisplacementFactor: Single);
+  const
+    { TODO: take it from CommonSurfaceShader }
+    NormalMapTextureCoordinatesUnit = 0;
   var
     GLNormalTexture: TGLuint;
     { Does NormalTexture have alpha channel. }
@@ -50,12 +53,10 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
       begin
         ShapeBumpMappingUsed := true;
 
-        if ABoundTextureUnits = 0 then
-          Shader.EnableTextureCoordinatesForSpecialTextures;
-
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping, ABoundTextureUnits,
+          NormalMapTextureCoordinatesUnit,
           DisplacementTextureInAlpha, DisplacementFactor);
         Inc(ABoundTextureUnits);
       end;
