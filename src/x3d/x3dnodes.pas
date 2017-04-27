@@ -2254,15 +2254,15 @@ resourcestring
   end;
 }
 
-{$I x3dnodes_extrusion.inc}
-{$I x3dnodes_elevationgrid.inc}
+{$I x3dnodes_utils_extrusion.inc}
+{$I x3dnodes_utils_elevationgrid.inc}
+{$I x3dnodes_utils_cone_cylinder.inc}
+{$I x3dnodes_utils_sphere.inc}
+{$I x3dnodes_utils_box.inc}
 {$I x3dnodes_boundingboxes.inc}
 {$I x3dnodes_verticesandtrianglescounting.inc}
 {$I x3dnodes_coordpolygons.inc}
 {$I x3dnodes_eventsengine.inc}
-{$I x3dnodes_cone_cylinder.inc}
-{$I x3dnodes_sphere.inc}
-{$I x3dnodes_box.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_load.inc}
 {$I x3dnodes_encoding_classic.inc}
