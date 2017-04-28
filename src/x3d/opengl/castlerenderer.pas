@@ -937,7 +937,7 @@ type
     property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
     property LineType: TLineType read FLineType write SetLineType;
 
-    {$I castlerenderer_bumpmapping.inc}
+    {$I castlerenderer_surfacetextures.inc}
   private
     { ----------------------------------------------------------------- }
 
@@ -1136,7 +1136,7 @@ uses Math, CastleStringUtils, CastleGLVersion, CastleLog,
 {$I castlerenderer_meshrenderer.inc}
 {$I castlerenderer_resource.inc}
 {$I castlerenderer_texture.inc}
-{$I castlerenderer_bumpmapping.inc}
+{$I castlerenderer_surfacetextures.inc}
 {$I castlerenderer_glsl.inc}
 
 { TGLRendererContextCache -------------------------------------------- }
@@ -3317,19 +3317,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
-      { If there is special texture like a normalmap,
-        and we have room for one more texture, enable it. }
-      if BoundTextureUnits < GLFeatures.MaxTextureUnits then
-        BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
-
-      // TODO:
-      // if BoundTextureUnits < GLFeatures.MaxTextureUnits then
-      //   SurfaceTextureEnable(Shape.State,
-
-      //      (SurfaceShader.AmbientTexture <> nil) or
-      //      (SurfaceShader.SpecularTexture <> nil) or
-      //      (SurfaceShader.ShininessTexture <> nil) then
-
+      { If there is special texture like a normalmap, enable it. }
+      BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
+      SurfaceTexturesEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
     end;
 
     { Set alpha test enabled state for OpenGL (shader and fixed-function).
