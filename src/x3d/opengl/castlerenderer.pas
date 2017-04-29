@@ -864,6 +864,7 @@ type
       global BumpMapping, and by the texture information for current
       shape (whether user provided normal map, height map etc.) }
     ShapeBumpMappingUsed: boolean;
+    ShapeBumpMappingTextureCoordinatesId: Cardinal;
 
     { How many texture units are used.
 
@@ -3405,6 +3406,7 @@ begin
         Generator.FogVolumetricDirection := FogVolumetricDirection;
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
+        Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
         Generator.OnVertexColor := Attributes.OnVertexColor;
         Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
         Shape.Cache.Arrays := Generator.GenerateArrays;

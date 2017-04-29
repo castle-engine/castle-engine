@@ -203,6 +203,7 @@ type
     FogVolumetricDirection: TVector3Single;
     FogVolumetricVisibilityStart: Single;
     ShapeBumpMappingUsed: boolean;
+    ShapeBumpMappingTextureCoordinatesId: Cardinal;
     OnRadianceTransfer: TRadianceTransferFunction;
     OnVertexColor: TVertexColorFunction;
     { Do we need TGeometryArrays.Faces }
@@ -2330,9 +2331,9 @@ begin
 
     HasTangentVectors :=
       { calculate TriangleTexCoord }
-      GetTextureCoord(TriangleIndex1, 0, TriangleTexCoord[0]) and
-      GetTextureCoord(TriangleIndex2, 0, TriangleTexCoord[1]) and
-      GetTextureCoord(TriangleIndex3, 0, TriangleTexCoord[2]) and
+      GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord[0]) and
+      GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord[1]) and
+      GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord[2]) and
       { calculate STangent, TTangent }
       CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
       CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and

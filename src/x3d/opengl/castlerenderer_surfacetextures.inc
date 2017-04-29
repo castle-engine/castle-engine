@@ -66,7 +66,7 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
   var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
   procedure Enable(const NormalTexture: TAbstractTextureNode;
-    const NormalTextureCoordinatesId: Integer;
+    NormalTextureCoordinatesId: Integer;
     const DisplacementFactor: Single);
   var
     GLNormalTexture: TGLTextureId;
@@ -80,7 +80,11 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
       GLNormalTexture := GLTexture2D(NormalTexture, DisplacementTextureInAlpha);
       if GLNormalTexture <> 0 then
       begin
+        // fix NormalTextureCoordinatesId if needed
+        NormalTextureCoordinatesId := Max(0, NormalTextureCoordinatesId);
+
         ShapeBumpMappingUsed := true;
+        ShapeBumpMappingTextureCoordinatesId := NormalTextureCoordinatesId;
 
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
