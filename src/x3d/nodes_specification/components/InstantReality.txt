@@ -58,6 +58,9 @@ CommonSurfaceShader :  X3DShaderNode {
   SFVec3f         []           normalBias                       -1 -1 -1
   SFNode          [in,out]     normalTexture                    NULL # [X3DTextureNode]
 
+  # Added in Castle Game Engine
+  SFFloat         [in,out]     normalTextureParallaxHeight      0
+
   SFVec3f         [in,out]     reflectionFactor                 0 0 0
   SFInt32         [in,out]     reflectionTextureId              -1
   SFInt32         [in,out]     reflectionTextureCoordinatesId   0

@@ -67,17 +67,17 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
 
   procedure Enable(const NormalTexture: TAbstractTextureNode;
     NormalTextureCoordinatesId: Integer;
-    const DisplacementFactor: Single);
+    const ParallaxHeight: Single);
   var
     GLNormalTexture: TGLTextureId;
     { Does NormalTexture have alpha channel. }
-    DisplacementTextureInAlpha: boolean;
+    HasAlpha: boolean;
   begin
     if ShapeBumpMappingAllowed and
        (BumpMapping <> bmNone) and
        (ABoundTextureUnits < GLFeatures.MaxTextureUnits) then
     begin
-      GLNormalTexture := GLTexture2D(NormalTexture, DisplacementTextureInAlpha);
+      GLNormalTexture := GLTexture2D(NormalTexture, HasAlpha);
       if GLNormalTexture <> 0 then
       begin
         // fix NormalTextureCoordinatesId if needed
@@ -89,7 +89,7 @@ procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;
         ActiveTexture(ABoundTextureUnits);
         glBindTexture(GL_TEXTURE_2D, GLNormalTexture);
         Shader.EnableBumpMapping(BumpMapping, ABoundTextureUnits,
-          NormalTextureCoordinatesId, DisplacementTextureInAlpha, DisplacementFactor);
+          NormalTextureCoordinatesId, HasAlpha, ParallaxHeight);
         Inc(ABoundTextureUnits);
 
         { There is no need to increase the TexCoordNeeded unconditionally.
@@ -113,7 +113,7 @@ begin
       Enable(
         SurfaceShader.NormalTexture,
         SurfaceShader.NormalTextureCoordinatesId,
-        SurfaceShader.DisplacementFactor / 255.0);
+        SurfaceShader.NormalTextureParallaxHeight);
     end else
     if State.ShapeNode.Appearance <> nil then
     begin

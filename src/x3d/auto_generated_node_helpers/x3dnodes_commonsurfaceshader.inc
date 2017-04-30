@@ -109,6 +109,8 @@
     procedure SetNormalBias(const Value: TVector3Single);
     function GetNormalTexture: TAbstractTextureNode;
     procedure SetNormalTexture(const Value: TAbstractTextureNode);
+    function GetNormalTextureParallaxHeight: Single;
+    procedure SetNormalTextureParallaxHeight(const Value: Single);
     function GetReflectionFactor: TVector3Single;
     procedure SetReflectionFactor(const Value: TVector3Single);
     function GetReflectionTextureId: Integer;
@@ -201,6 +203,7 @@
     property NormalScale: TVector3Single read GetNormalScale write SetNormalScale;
     property NormalBias: TVector3Single read GetNormalBias write SetNormalBias;
     property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
+    property NormalTextureParallaxHeight: Single read GetNormalTextureParallaxHeight write SetNormalTextureParallaxHeight;
     property ReflectionFactor: TVector3Single read GetReflectionFactor write SetReflectionFactor;
     property ReflectionTextureId: Integer read GetReflectionTextureId write SetReflectionTextureId;
     property ReflectionTextureCoordinatesId: Integer read GetReflectionTextureCoordinatesId write SetReflectionTextureCoordinatesId;
@@ -677,6 +680,16 @@ end;
 procedure TCommonSurfaceShaderNode.SetNormalTexture(const Value: TAbstractTextureNode);
 begin
   FdNormalTexture.Send(Value);
+end;
+
+function TCommonSurfaceShaderNode.GetNormalTextureParallaxHeight: Single;
+begin
+  Result := FdNormalTextureParallaxHeight.Value;
+end;
+
+procedure TCommonSurfaceShaderNode.SetNormalTextureParallaxHeight(const Value: Single);
+begin
+  FdNormalTextureParallaxHeight.Send(Value);
 end;
 
 function TCommonSurfaceShaderNode.GetReflectionFactor: TVector3Single;

@@ -323,7 +323,7 @@ type
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
       DefaultShaders = srWhenRequired;
-      DefaultBumpMapping = bmBasic;
+      DefaultBumpMapping = bmSteepParallaxShadowing;
 
     constructor Create; virtual;
 

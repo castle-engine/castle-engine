@@ -462,6 +462,9 @@
     private FFdNormalTexture: TSFNode;
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
 
+    private FFdNormalTextureParallaxHeight: TSFFloat;
+    public property FdNormalTextureParallaxHeight: TSFFloat read FFdNormalTextureParallaxHeight;
+
     private FFdReflectionFactor: TSFVec3f;
     public property FdReflectionFactor: TSFVec3f read FFdReflectionFactor;
 
@@ -1471,6 +1474,10 @@ begin
   FFdNormalTexture := TSFNode.Create(Self, 'normalTexture', [TAbstractTextureNode]);
    FdNormalTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdNormalTexture);
+
+  FFdNormalTextureParallaxHeight := TSFFloat.Create(Self, 'normalTextureParallaxHeight', 0);
+   FdNormalTextureParallaxHeight.ChangesAlways := [chVisibleNonGeometry];
+  AddField(FFdNormalTextureParallaxHeight);
 
   FFdReflectionFactor := TSFVec3f.Create(Self, 'reflectionFactor', Vector3Single(0, 0, 0));
    FdReflectionFactor.ChangesAlways := [chVisibleNonGeometry];
