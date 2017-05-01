@@ -303,14 +303,12 @@ begin
       FOutputPath := InclPathDelim(WorkingDirectory)
     else
       FOutputPath := InclPathDelim(OutputPathBase);
-
-    FOutputPath += 'castle-engine-output';
-    if CreateIfNecessary then
-      ForceDirectories(FOutputPath);
-    FOutputPath += PathDelim;
+    FOutputPath += 'castle-engine-output' + PathDelim;
 
     if CreateIfNecessary then
     begin
+      CheckForceDirectories(FOutputPath);
+
       OutputNote := FOutputPath + 'DO-NOT-COMMIT-THIS-DIRECTORY.txt';
       if not FileExists(OutputNote) then
         CheckCopyFile(URIToFilenameSafe(ApplicationData(

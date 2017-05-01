@@ -414,7 +414,7 @@ begin
 
     CompilationResultPath := OutputPath(WorkingDirectory) +
       'compilation/' + CPUToString(CPU) + '-' + OSToString(OS);
-    ForceDirectories(CompilationResultPath);
+    CheckForceDirectories(CompilationResultPath);
     FpcOptions.Add('-FU' + CompilationResultPath);
 
     AddIOSOptions;
