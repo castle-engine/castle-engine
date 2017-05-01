@@ -49,18 +49,22 @@ var
   IcoPath, OutputRc, OutputManifest: string;
   WindresOutput, WindresExe, RcFilename, ManifestFilename, ResName: string;
   WindresStatus: Integer;
+  OutputResourcesPath: string;
 begin
+  OutputResourcesPath := OutputPath(Path) + 'windows' + PathDelim;
+  CheckForceDirectories(OutputResourcesPath);
+
   OutputRc := ReplaceMacros(RcTemplate[Plugin]);
 
   IcoPath := Icons.FindExtension(['.ico']);
   if IcoPath <> '' then
-    OutputRc := 'MainIcon ICON "' + IcoPath + '"' + NL + OutputRc else
+    OutputRc := 'MainIcon ICON "' + CombinePaths(Path, IcoPath) + '"' + NL + OutputRc else
     WritelnWarning('Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');
 
-  RcFilename := InclPathDelim(Path) + RcName[Plugin];
+  RcFilename := OutputResourcesPath + RcName[Plugin];
   StringToFile(RcFilename, OutputRc);
 
-  ManifestFilename := InclPathDelim(Path) + 'automatic-windows.manifest';
+  ManifestFilename := OutputResourcesPath + 'automatic-windows.manifest';
   OutputManifest := ReplaceMacros(ManifestTemplate);
   StringToFile(ManifestFilename, OutputManifest);
 
@@ -80,17 +84,18 @@ begin
     raise Exception.Create('Cannot find "windres" executable on $PATH. On Windows, it should be installed along with FPC (Free Pascal Compiler), so just make sure FPC is installed and available on $PATH. On Linux, "windres" is usually available as part of MinGW, so install the package named like "mingw*-binutils".');
 
   ResName := ChangeFileExt(RcName[Plugin], '.res');
-  RunCommandIndirPassthrough(Path, WindresExe,
+  RunCommandIndirPassthrough(OutputResourcesPath, WindresExe,
     ['-i', RcName[Plugin], '-o', ResName],
     WindresOutput, WindresStatus);
   if WindresStatus <> 0 then
     raise Exception.Create('windres failed, cannot create Windows resource');
 
+  CheckRenameFile(
+    OutputResourcesPath + ResName,
+    InclPathDelim(Path) + ResName);
+
   Writeln('Generated ' + ResName + ', make sure you include it in your .lpr source file like this:');
   Writeln('  {$ifdef MSWINDOWS} {$R ' + ResName + '} {$endif MSWINDOWS}');
-
-  CheckDeleteFile(RcFilename);
-  CheckDeleteFile(ManifestFilename);
 end;
 
 end.

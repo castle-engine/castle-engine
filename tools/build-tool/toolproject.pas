@@ -1088,11 +1088,12 @@ begin
   DeleteFilesRecursive('*.rst'); // resource strings
   DeleteFilesRecursive('*.rsj'); // resource strings
 
-  { our own trash. Note that we do not remove .res file, it can be committed,
-    otherwise compilation without using castle-engine tool will not be easily possible. }
-  TryDeleteFile('plugin-automatic-windows-resources.rc');
-  TryDeleteFile('automatic-windows-resources.rc');
-  TryDeleteFile('automatic-windows.manifest');
+  { Note that we do not remove
+      automatic-windows-resources.res
+      plugin-automatic-windows-resources.res
+    They can be committed,
+    otherwise compilation without using castle-engine tool
+    will not be easily possible. }
 
   Writeln('Deleted ', DeletedFiles, ' files');
 end;
