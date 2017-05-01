@@ -193,7 +193,6 @@ var
     begin
       FpcOptions.Add('-Cn');
       FpcOptions.Add('-WP5.1');
-      FpcOptions.Add('-dCASTLE_WINDOW_LIBRARY');
       FpcOptions.Add('-o' + InclPathDelim(CompilationResultPath) + 'libiospartial.a');
     end;
   end;
