@@ -1045,7 +1045,7 @@ var
   CPU: TCPU;
   OutputP: string;
 begin
-  { delete OutputPath first, this also removed many files
+  { delete OutputPath first, this also removes many files
     (but RemoveNonEmptyDir does not count them) }
   OutputP := OutputPath(Path, false);
   if DirectoryExists(OutputP) then
