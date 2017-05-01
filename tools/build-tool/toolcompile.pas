@@ -156,9 +156,11 @@ var
   end;
 
   procedure AddIOSOptions;
+  {$ifdef DARWIN}
   const
     SimulatorSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk';
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
+  {$endif}
   var
     IOS: boolean;
   begin
@@ -169,7 +171,9 @@ var
       IOS := true;
       if FPCVersionForIPhoneSimulator <> '' then
         FpcOptions.Add('-V' + FPCVersionForIPhoneSimulator);
+      {$ifdef DARWIN}
       FpcOptions.Add('-XR' + SimulatorSdk);
+      {$endif}
     end;
 
     if (OS = darwin) and (CPU = arm) then
@@ -177,7 +181,9 @@ var
       IOS := true;
       FpcOptions.Add('-Cparmv7');
       FpcOptions.Add('-Cfvfpv3');
+      {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
+      {$endif}
     end;
 
     if (OS = darwin) and (CPU = aarch64) then
@@ -185,7 +191,9 @@ var
       IOS := true;
       // -dCPUARM64 is checked by castleconf.inc
       FpcOptions.Add('-dCPUARM64');
+      {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
+      {$endif}
     end;
 
     // options for all iOS platforms
