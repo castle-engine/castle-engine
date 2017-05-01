@@ -41,21 +41,42 @@ procedure CompileIOS(const Plugin: boolean;
   const SearchPaths: TStrings);
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
+  var
+    CompilationOutput, LinkRes, OutputLibrary: string;
+    LinkResContents, ObjectFiles: TCastleStringList;
+    I: Integer;
   begin
     Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile, SearchPaths);
 
-    (*
-    local LINK_RES="${DIR}/link.res"
-    local OUTPUT_LIB="${DIR}/${EXECUTABLE_NAME}"
+    CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
+    LinkRes := CompilationOutput + 'link.res';
+    if not FileExists(LinkRes) then
+    begin
+      if Verbose then
+        Writeln('link.res not found inside "', LinkRes, '", probably what we compiled was only a unit, not a library');
+    end else
+    begin
+      OutputLibrary := CompilationOutput + 'lib_cge_project.a';
 
-    grep '\.o$' "${LINK_RES}" > compile_ios_filelist.tmp
-    run_logging libtool -static -o "${OUTPUT_LIB}" -filelist compile_ios_filelist.tmp
-    if [ ! -e "${OUTPUT_LIB}" ]; then
-      echo "Error: Output ${OUTPUT_LIB} not found"
-      exit 1
-    fi
-    rm -f compile_ios_filelist.tmp
-    *)
+      { grep '\.o$' link.res > lib_cge_project_object_files.txt }
+      LinkResContents := TCastleStringList.Create;
+      try
+        LinkResContents.LoadFromFile(LinkRes);
+
+        ObjectFiles := TCastleStringList.Create;
+        try
+          for I := 0 to LinkResContents.Count - 1 do
+            if IsSuffix('.o', LinkResContents[I]) then
+              ObjectFiles.Add(LinkResContents[I]);
+          ObjectFiles.SaveToFile(CompilationOutput + 'lib_cge_project_object_files.txt');
+        finally FreeAndNil(ObjectFiles) end;
+      finally FreeAndNil(LinkResContents) end;
+
+      RunCommandSimple('libtool', ['-static', '-o', OutputLibrary, '-filelist',
+        CompilationOutput + 'lib_cge_project_object_files.txt']);
+      if not FileExists(OutputLibrary) then
+        raise Exception.CreateFmt('Creating library "%s" failed', [OutputLibrary]);
+    end;
   end;
 
 begin
@@ -67,8 +88,12 @@ end;
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 begin
-  // TODO: libtool -static "${OUTPUT_LIBRARIES[@]}" -o "./$EXECUTABLE_NAME"
-  // TODO
+  RunCommandSimple('libtool', ['-static', '-o', OutputFile,
+    CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory),
+    CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory),
+    CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory),
+    CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory)
+  ]);
 end;
 
 procedure PackageIOS(const Project: TCastleProject);

@@ -29,6 +29,11 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths: TStrings);
 
+{ Output path, where temporary things like units (and iOS stuff)
+  are placed. }
+function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
+  const WorkingDirectory: string): string;
+
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
 
@@ -131,7 +136,7 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths: TStrings);
 var
-  CastleEnginePath, CastleEngineSrc, CompilationResultPath: string;
+  CastleEnginePath, CastleEngineSrc: string;
   FpcOptions: TCastleStringList;
 
   procedure AddEnginePath(Path: string);
@@ -201,7 +206,9 @@ var
     begin
       FpcOptions.Add('-Cn');
       FpcOptions.Add('-WP5.1');
-      FpcOptions.Add('-o' + InclPathDelim(CompilationResultPath) + 'libiospartial.a');
+      { TODO: this option is probably useless for now, since we pass -Cn
+        and later create the library manually. }
+      FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'lib_cge_project_unused.a');
     end;
   end;
 
@@ -418,11 +425,7 @@ begin
     end;
 
     FpcOptions.Add(CompileFile);
-
-    CompilationResultPath := OutputPath(WorkingDirectory) +
-      'compilation/' + CPUToString(CPU) + '-' + OSToString(OS);
-    CheckForceDirectories(CompilationResultPath);
-    FpcOptions.Add('-FU' + CompilationResultPath);
+    FpcOptions.Add('-FU' + CompilationOutputPath(OS, CPU, WorkingDirectory));
 
     AddIOSOptions;
 
@@ -456,7 +459,13 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-{ globals -------------------------------------------------------------------- }
+function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
+  const WorkingDirectory: string): string;
+begin
+  Result := OutputPath(WorkingDirectory) + 'compilation' + PathDelim +
+    CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
+  CheckForceDirectories(Result);
+end;
 
 const
   CompilationModeNames: array [TCompilationMode] of string =
