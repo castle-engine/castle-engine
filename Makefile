@@ -281,7 +281,9 @@ clean: cleanexamples
 	                   -iname '*.log' ')' \
 	     -print \
 	     | xargs rm -f
-	$(FIND) . -type d -name lib -exec rm -Rf '{}' ';' -prune
+	$(FIND) . -type d '(' -name 'lib' -or \
+	                      -name 'castle-engine-output' ')' \
+	     -exec rm -Rf '{}' ';' -prune
 	rm -Rf packages/castle_base.pas \
 	  packages/castle_window.pas \
 	  packages/castle_components.pas \

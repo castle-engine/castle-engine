@@ -89,11 +89,8 @@ begin
   Writeln('Generated ' + ResName + ', make sure you include it in your .lpr source file like this:');
   Writeln('  {$ifdef MSWINDOWS} {$R ' + ResName + '} {$endif MSWINDOWS}');
 
-  if not LeaveTemp then
-  begin
-    CheckDeleteFile(RcFilename);
-    CheckDeleteFile(ManifestFilename);
-  end;
+  CheckDeleteFile(RcFilename);
+  CheckDeleteFile(ManifestFilename);
 end;
 
 end.

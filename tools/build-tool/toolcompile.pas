@@ -131,7 +131,7 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths: TStrings);
 var
-  CastleEnginePath, CastleEngineSrc: string;
+  CastleEnginePath, CastleEngineSrc, CompilationResultPath: string;
   FpcOptions: TCastleStringList;
 
   procedure AddEnginePath(Path: string);
@@ -160,7 +160,6 @@ var
     SimulatorSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk';
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
   var
-    CompilationResultPath: string;
     IOS: boolean;
   begin
     IOS := false;
@@ -189,17 +188,12 @@ var
       FpcOptions.Add('-XR' + DeviceSdk);
     end;
 
-    // options for all platforms
+    // options for all iOS platforms
     if IOS then
     begin
       FpcOptions.Add('-Cn');
       FpcOptions.Add('-WP5.1');
       FpcOptions.Add('-dCASTLE_WINDOW_LIBRARY');
-
-      CompilationResultPath := InclPathDelim(WorkingDirectory) +
-        'castle-engine-output/compilation/' + CPUToString(CPU) + '-' + OSToString(OS);
-      ForceDirectories(CompilationResultPath);
-      FpcOptions.Add('-FU' + CompilationResultPath);
       FpcOptions.Add('-o' + InclPathDelim(CompilationResultPath) + 'libiospartial.a');
     end;
   end;
@@ -417,6 +411,11 @@ begin
     end;
 
     FpcOptions.Add(CompileFile);
+
+    CompilationResultPath := OutputPath(WorkingDirectory) +
+      'compilation/' + CPUToString(CPU) + '-' + OSToString(OS);
+    ForceDirectories(CompilationResultPath);
+    FpcOptions.Add('-FU' + CompilationResultPath);
 
     AddIOSOptions;
 

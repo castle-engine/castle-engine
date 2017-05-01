@@ -1043,7 +1043,17 @@ procedure TCastleProject.DoClean;
 var
   OS: TOS;
   CPU: TCPU;
+  OutputP: string;
 begin
+  { delete OutputPath first, this also removed many files
+    (but RemoveNonEmptyDir does not count them) }
+  OutputP := OutputPath(Path, false);
+  if DirectoryExists(OutputP) then
+  begin
+    RemoveNonEmptyDir(OutputP);
+    Writeln('Deleted ', OutputP);
+  end;
+
   DeletedFiles := 0;
 
   if StandaloneSource <> '' then

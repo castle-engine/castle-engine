@@ -81,8 +81,15 @@ procedure RunCommandSimple(
 var
   { Trivial verbosity global setting. }
   Verbose: boolean = false;
-  { Leave created temporary files. }
-  LeaveTemp: boolean = false;
+
+  { Output path base directory. Empty to use working project directory. }
+  OutputPathBase: string = '';
+
+{ Calculate the final location of output files (including the castle-engine-output
+  subdir part), as an absolute path ending with path delimiter.
+  Makes sure the dir exists, if CreateIfNecessary. }
+function OutputPath(const WorkingDirectory: string;
+  const CreateIfNecessary: boolean = true): string;
 
 type
   TReplaceMacros = function (const Source: string): string of object;
@@ -281,6 +288,37 @@ begin
   if ProcessStatus <> 0 then
     raise Exception.CreateFmt('"%s" (on $PATH as "%s") call failed with exit status %d',
       [ExeName, AbsoluteExeName, ProcessStatus]);
+end;
+
+var
+  FOutputPath: string;
+
+function OutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
+var
+  OutputNote: string;
+begin
+  if FOutputPath = '' then
+  begin
+    if OutputPathBase = '' then
+      FOutputPath := InclPathDelim(WorkingDirectory)
+    else
+      FOutputPath := InclPathDelim(OutputPathBase);
+
+    FOutputPath += 'castle-engine-output';
+    if CreateIfNecessary then
+      ForceDirectories(FOutputPath);
+    FOutputPath += PathDelim;
+
+    if CreateIfNecessary then
+    begin
+      OutputNote := FOutputPath + 'DO-NOT-COMMIT-THIS-DIRECTORY.txt';
+      if not FileExists(OutputNote) then
+        CheckCopyFile(URIToFilenameSafe(ApplicationData(
+          'template-castle-engine-output-warning.txt')), OutputNote);
+    end;
+  end;
+
+  Result := FOutputPath;
 end;
 
 function CreateTemporaryDir: string;

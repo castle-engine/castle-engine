@@ -418,7 +418,11 @@ var
   ApkName: string;
   PackageMode: TCompilationMode;
 begin
-  AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
+  { calculate clean AndroidProjectPath }
+  AndroidProjectPath := OutputPath(Project.Path) + 'android' + PathDelim;
+  if DirectoryExists(AndroidProjectPath) then
+    RemoveNonEmptyDir(AndroidProjectPath);
+
   PackageMode := SuggestedPackageMode;
 
   CalculateSigningProperties(PackageMode);
@@ -437,9 +441,6 @@ begin
     Project.Path + ApkName);
 
   Writeln('Build ' + ApkName);
-
-  if not LeaveTemp then
-    RemoveNonEmptyDir(AndroidProjectPath, true);
 end;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);

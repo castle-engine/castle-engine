@@ -130,9 +130,6 @@ begin
           '                        before "package". Instead assume that compiled' +NL+
           '                        executable for given OS/CPU/mode' +NL+
           '                        is already present in the package directory.' +NL+
-          '  --leave-temp          Do not remove temporary files,' +NL+
-          '                        e.g. temporary Android package or Windows rc/manifest files.' +NL+
-          '                        Useful if you want to use them as basis for your customizations.' +NL+
           '  --plugin              Compile/package/install a browser plugin.' +NL+
           TargetOptionHelp +
           OSOptionHelp +
@@ -155,8 +152,7 @@ begin
     5:Verbose := true;
     6:Mode := StringToMode(Argument);
     7:AssumeCompiled := true;
-    8:LeaveTemp := true;
-    9:Plugin := true;
+    8:Plugin := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
