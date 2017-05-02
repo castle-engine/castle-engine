@@ -4,6 +4,10 @@ X3DTextureCoordinateNode : X3DGeometricPropertyNode {
 X3DTextureNode : X3DAppearanceChildNode {
   # EXTENSIONS:
   MFNode     []            effects          []          # [Effect]
+
+  # X3DOM EXTENSIONS (https://doc.x3dom.org/author/Texturing/X3DTextureNode.html):
+  # (note: X3DOM spec doesn't say if it's inputOutput or initializeOnly, below is just a guess)
+  SFString   []   crossOrigin  ""
 }
 
 X3DTexture2DNode : X3DTextureNode {

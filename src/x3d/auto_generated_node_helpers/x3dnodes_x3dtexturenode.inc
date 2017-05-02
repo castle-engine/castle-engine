@@ -26,11 +26,26 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetCrossOrigin: string;
+    procedure SetCrossOrigin(const Value: string);
+  public
+    property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractTextureNode ----------------------------------------------- }
+
+function TAbstractTextureNode.GetCrossOrigin: string;
+begin
+  Result := FdCrossOrigin.Value;
+end;
+
+procedure TAbstractTextureNode.SetCrossOrigin(const Value: string);
+begin
+  FdCrossOrigin.Send(Value);
+end;
 
 {$endif read_implementation}

@@ -52,6 +52,9 @@
     private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
+    private FFdCrossOrigin: TSFString;
+    public property FdCrossOrigin: TSFString read FFdCrossOrigin;
+
     { Alpha channel of the loaded texture data.
       Looks at loaded texture data, and at alphaChannel field
       (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
@@ -616,6 +619,11 @@ begin
    FdEffects.Exposed := false;
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
+
+  FFdCrossOrigin := TSFString.Create(Self, 'crossOrigin', '');
+   FdCrossOrigin.ChangesAlways := [];
+   FdCrossOrigin.Exposed := false;
+  AddField(FFdCrossOrigin);
 
   FFdAlphaChannel := TSFStringEnum.Create(Self, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.Exposed := false;
