@@ -36,6 +36,9 @@ implementation
 
 uses SysUtils;
 
+const
+  IOSPartialLibraryName = 'lib_cge_project.a';
+
 procedure CompileIOS(const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths: TStrings);
@@ -56,7 +59,7 @@ procedure CompileIOS(const Plugin: boolean;
         Writeln('link.res not found inside "', LinkRes, '", probably what we compiled was only a unit, not a library');
     end else
     begin
-      OutputLibrary := CompilationOutput + 'lib_cge_project.a';
+      OutputLibrary := CompilationOutput + IOSPartialLibraryName;
 
       { grep '\.o$' link.res > lib_cge_project_object_files.txt }
       LinkResContents := TCastleStringList.Create;
@@ -89,10 +92,10 @@ end;
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 begin
   RunCommandSimple('libtool', ['-static', '-o', OutputFile,
-    CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory),
-    CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory),
-    CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory),
-    CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory)
+    CompilationOutputPath(iphonesim, i386   , CompilationWorkingDirectory) + IOSPartialLibraryName,
+    CompilationOutputPath(iphonesim, x86_64 , CompilationWorkingDirectory) + IOSPartialLibraryName,
+    CompilationOutputPath(darwin   , arm    , CompilationWorkingDirectory) + IOSPartialLibraryName,
+    CompilationOutputPath(darwin   , aarch64, CompilationWorkingDirectory) + IOSPartialLibraryName
   ]);
 end;
 
