@@ -178,7 +178,7 @@ function CPUOptionHelp: string;
 
 function ExeExtensionOS(const OS: TOS): string;
 
-function LibraryExtensionOS(const OS: TOS): string;
+function LibraryExtensionOS(const OS: TOS; const Static: boolean = false): string;
 
 implementation
 
@@ -293,8 +293,11 @@ begin
     Result := '';
 end;
 
-function LibraryExtensionOS(const OS: TOS): string;
+function LibraryExtensionOS(const OS: TOS; const Static: boolean): string;
 begin
+  if Static then
+    // Correct for Unix, not sure about Windows. This is used only for iOS now.
+    Result :=  '.a' else
   if OS in AllWindowsOSes then
     Result :=  '.dll' else
   if OS in [Darwin,iphonesim] then

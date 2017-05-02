@@ -600,7 +600,7 @@ begin
   begin
     CheckIOSSource;
     CompileIOS(Plugin, Mode, Path, IOSSource, SearchPaths);
-    DestExe := InsertLibPrefix(ChangeFileExt(IOSSource, LibraryExtensionOS(OS)));
+    DestExe := InsertLibPrefix(ChangeFileExt(IOSSource, LibraryExtensionOS(OS, true)));
     LinkIOSLibrary(Path, DestExe);
     Exit;
   end;
