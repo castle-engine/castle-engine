@@ -34,19 +34,19 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    
+
     if (!self.context) {
         NSLog(@"Failed to create ES context");
     }
-    
+
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
-    
+
     self.view.multipleTouchEnabled = YES;
     for (int i = 0; i < MAX_TOUCHES; i++) m_arrTouches[i] = nil;
-    
+
     [self setupGL];
 }
 
@@ -54,7 +54,7 @@
 - (void)dealloc
 {
     [self tearDownGL];
-    
+
     if ([EAGLContext currentContext] == self.context) {
         [EAGLContext setCurrentContext:nil];
     }
@@ -64,18 +64,18 @@
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    
+
     if ([self isViewLoaded] && ([[self view] window] == nil)) {
         self.view = nil;
-        
+
         [self tearDownGL];
-        
+
         if ([EAGLContext currentContext] == self.context) {
             [EAGLContext setCurrentContext:nil];
         }
         self.context = nil;
     }
-    
+
     // Dispose of any resources that can be recreated.
 }
 
@@ -88,10 +88,10 @@
         m_fScale = [UIScreen mainScreen].scale; // check retina
     else
         m_fScale = 1.0;
-    
-    CGEA_Open();
-    CGEA_SetUserInterface(false, 115 * m_fScale);   // TODO: we had to send "desktop", otherwise touch controls does not work (as they want to be automatic?)
-    
+
+    CGEApp_Open();
+    CGEApp_SetDpi(115 * m_fScale);
+
     [self update];
 }
 
@@ -99,8 +99,8 @@
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
-    
-    CGEA_Close();
+
+    CGEApp_Close();
 }
 
 #pragma mark - GLKView and GLKViewController delegate methods
@@ -110,26 +110,26 @@
     // set and update the geometry
     int nViewSizeX = self.view.bounds.size.width;
     int nViewSizeY = self.view.bounds.size.height;
-    
-    CGEA_Resize(nViewSizeX*m_fScale, nViewSizeY*m_fScale);
-    
+
+    CGEApp_Resize(nViewSizeX*m_fScale, nViewSizeY*m_fScale);
+
     // send accumulated touch positions (sending them right away jams the engine)
     for (NSInteger i = 0; i < MAX_TOUCHES; i++)
     {
         if (m_arrTouches[i] == nil) continue;
-        
+
         CGPoint pt = [m_arrTouches[i] locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEA_Motion(pt.x, pt.y, (int)i);
+        CGEApp_Motion(pt.x, pt.y, (int)i);
     }
-    
-    CGEA_Update();
+
+    CGEApp_Update();
 }
 
 //-----------------------------------------------------------------
 - (void)glkView:(GLKView *)view drawInRect:(CGRect)rect
 {
-    CGEA_Render();
+    CGEApp_Render();
 }
 
 #pragma mark - gestures
@@ -156,7 +156,7 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx != -1) continue; // we already have it (should not happen)
-        
+
         for (NSInteger i = 0; i < MAX_TOUCHES; i++)
         {
             if (m_arrTouches[i]==nil)    // find empty place
@@ -167,12 +167,12 @@
             }
         }
         if (nFingerIdx==-1) continue;   // array full, should not happen
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEA_TouchDown(pt.x, pt.y, (int)nFingerIdx);
+        CGEApp_TouchDown(pt.x, pt.y, true, (int)nFingerIdx);
     }
-    
+
     [super touchesBegan:touches withEvent:event];
 }
 
@@ -183,12 +183,12 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
-        
+
         m_arrTouches[nFingerIdx] = nil;
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEA_TouchUp(pt.x, pt.y, (int)nFingerIdx);
+        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
 
     [super touchesEnded:touches withEvent:event];
@@ -201,14 +201,14 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
-        
+
         m_arrTouches[nFingerIdx] = nil;
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEA_TouchUp(pt.x, pt.y, (int)nFingerIdx);
+        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
     }
-    
+
     [super touchesCancelled:touches withEvent:event];
 }
 
@@ -221,12 +221,12 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEA_Motion(pt.x, pt.y, nFingerIdx);
+        CGEApp_Motion(pt.x, pt.y, nFingerIdx);
     }*/
-    
+
     [super touchesMoved:touches withEvent:event];
 }
 

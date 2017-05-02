@@ -32,27 +32,32 @@ CTypes,
 
 {$ifdef read_window_interface}
 public
-  LibraryCallbackProc: TLibraryCallbackProc;
-
-  { External library code must notify our window instance about various events
-    by calling these methods. }
-  procedure LibraryKeyDown(const Key: TKey; const CharKey: char);
-  procedure LibraryKeyUp(const Key: TKey);
-  procedure LibraryMotion(const Position: TVector2Single;
-    const FingerIndex: TFingerIndex);
-  procedure LibraryMouseDown(const Position: TVector2Single;
-    const Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
-  procedure LibraryMouseUp(const Position: TVector2Single;
-    const Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
+  { Only the library in src/library/castleengine.lpr uses this,
+    to notify our window instance about various events. }
   procedure LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
-  procedure LibraryResize(const AWidth, AHeight: Integer);
-  procedure LibraryRender;
 {$endif read_window_interface}
 
 {$ifdef read_application_interface}
-public
-  procedure LibraryUpdate;
+private
+  procedure WarningToCallback(Sender: TObject; const Category, S: string);
 {$endif read_application_interface}
+
+{$ifdef read_global_interface}
+
+procedure CGEApp_Open; cdecl;
+procedure CGEApp_Close; cdecl;
+procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
+procedure CGEApp_Render; cdecl;
+procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
+procedure CGEApp_Update; cdecl;
+procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
+procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
+procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
+
+{$endif read_global_interface}
 
 {$ifdef read_implementation}
 
@@ -75,6 +80,9 @@ const
   ecgecursorHand      = 2;
   ecgecursorText      = 3;
   ecgecursorNone      = 4;
+
+var
+  LibraryCallbackProc: TLibraryCallbackProc;
 
 { TCastleWindowCustom ---------------------------------------------------------- }
 
@@ -163,59 +171,9 @@ end;
 
 { LibraryXxx methods --------------------------------------------------------- }
 
-procedure TCastleWindowCustom.LibraryKeyDown(const Key: TKey; const CharKey: char);
-begin
-  DoKeyDown(Key, CharKey);
-end;
-
-procedure TCastleWindowCustom.LibraryKeyUp(const Key: TKey);
-begin
-  DoKeyUp(Key);
-end;
-
-procedure TCastleWindowCustom.LibraryMotion(
-  const Position: TVector2Single; const FingerIndex: TFingerIndex);
-begin
-  { TODO: using MousePressed as Pressed is only OK without multi-touch. }
-  DoMotion(InputMotion(FTouches.FingerIndexPosition[FingerIndex], Position, MousePressed, FingerIndex));
-end;
-
-procedure TCastleWindowCustom.LibraryMouseDown(
-  const Position: TVector2Single; const Button: CastleKeysMouse.TMouseButton;
-  const FingerIndex: TFingerIndex);
-begin
-  DoMouseDown(Position, Button, FingerIndex);
-end;
-
-procedure TCastleWindowCustom.LibraryMouseUp(
-  const Position: TVector2Single; const Button: CastleKeysMouse.TMouseButton;
-  const FingerIndex: TFingerIndex);
-begin
-  DoMouseUp(Position, Button, FingerIndex);
-end;
-
 procedure TCastleWindowCustom.LibraryMouseWheel(const Scroll: Single; const Vertical: boolean);
 begin
   DoMouseWheel(Scroll, Vertical);
-end;
-
-procedure TCastleWindowCustom.LibraryResize(const AWidth, AHeight: Integer);
-begin
-  DoResize(AWidth, AHeight, false);
-end;
-
-procedure TCastleWindowCustom.LibraryRender;
-begin
-  DoRender;
-end;
-
-{ This method is handled at TCastleApplication, this way we handle
-  also Application.OnUpdate and Application.OnTimer. }
-procedure TCastleApplication.LibraryUpdate;
-begin
-  DoApplicationUpdate;
-  FOpenWindows.DoUpdate;
-  MaybeDoTimer;
 end;
 
 { TCastleWindowCustom menu ----------------------------------------------------
@@ -336,6 +294,23 @@ begin
   Result := 'Library (Using Existing OpenGL Context)';
 end;
 
+procedure TCastleApplication.WarningToCallback(Sender: TObject; const Category, S: string);
+var
+  sMsg: string;
+  szBuffer: PChar;
+  nBufSize: cardinal;
+begin
+  if Assigned(LibraryCallbackProc) then
+  begin
+    sMsg := Category + ': ' + S;
+    nBufSize := Length(sMsg);
+    szBuffer := StrAlloc(nBufSize+1);
+    StrPLCopy(szBuffer, sMsg, nBufSize);
+    LibraryCallbackProc(4 {ecgelibWarning}, 0, 0, pcchar(szBuffer));
+    StrDispose(szBuffer);
+  end;
+end;
+
 { TCastleClipboard ----------------------------------------------------------- }
 
 function TCastleClipboard.GetAsText: string;
@@ -366,6 +341,134 @@ begin
       ntNone     : NavValue := 4;
     end;
     LibraryCallbackProc(ecgelibNavigationTypeChanged, NavValue, 0, nil);
+  end;
+end;
+
+{$define read_implementation}
+
+procedure CGEApp_Open; cdecl;
+begin
+  try
+    ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
+    Application.MainWindow.Open;
+  except
+    on E: TObject do WritelnLog('CGEApp_Open', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Close; cdecl;
+begin
+  try
+    Application.MainWindow.Close;
+    ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
+  except
+    on E: TObject do WritelnLog('CGEApp_Close', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
+begin
+  try
+    Application.MainWindow.DoResize(uiViewWidth, uiViewHeight, false);
+  except
+    on E: TObject do WritelnLog('CGEApp_Resize', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Render; cdecl;
+begin
+  try
+    Application.MainWindow.DoRender;
+  except
+    on E: TObject do WritelnLog('CGEApp_Render', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
+begin
+  try
+    LibraryCallbackProc := aProc;
+  except
+    on E: TObject do WritelnLog('CGEApp_SetLibraryCallbackProc', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Update; cdecl;
+begin
+  try
+    Application.DoApplicationUpdate;
+    Application.FOpenWindows.DoUpdate;
+    Application.MaybeDoTimer;
+  except
+    on E: TObject do WritelnLog('CGEApp_Update', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+var
+  MyButton: TMouseButton;
+begin
+  try
+    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    Application.MainWindow.DoMouseDown(Vector2Single(X, Y), MyButton, FingerIndex);
+  except
+    on E: TObject do WritelnLog('CGEApp_MouseDown', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
+var
+  W: TCastleWindowCustom;
+begin
+  try
+    { TODO: using MousePressed as Pressed is only OK without multi-touch. }
+    W := Application.MainWindow;
+    W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
+      Vector2Single(X, Y), W.MousePressed, FingerIndex));
+  except
+    on E: TObject do WritelnLog('CGEApp_Motion', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+var
+  MyButton: TMouseButton;
+begin
+  try
+    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
+    Application.MainWindow.DoMouseUp(Vector2Single(X, Y), MyButton, FingerIndex);
+  except
+    on E: TObject do WritelnLog('CGEApp_TouchUp', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
+begin
+  try
+    if TKey(eKey)<>K_None then
+      // TODO: calculate sensible char
+      Application.MainWindow.DoKeyDown(TKey(eKey), #0);
+  except
+    on E: TObject do WritelnLog('CGEApp_KeyDown', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
+begin
+  try
+    if TKey(eKey)<>K_None then
+      Application.MainWindow.DoKeyUp(TKey(eKey));
+  except
+    on E: TObject do WritelnLog('CGEApp_KeyUp', ExceptMessage(E));
+  end;
+end;
+
+procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
+begin
+  try
+    Application.MainWindow.Dpi := nDpi;
+  except
+    on E: TObject do WritelnLog('CGEApp_Dpi', ExceptMessage(E));
   end;
 end;
 
