@@ -601,6 +601,8 @@ begin
     CheckIOSSource;
     CompileIOS(Plugin, Mode, Path, IOSSource, SearchPaths);
     DestExe := InsertLibPrefix(ChangeFileExt(IOSSource, LibraryExtensionOS(OS, true)));
+    { make absolute, in case current dir <> project root dir }
+    DestExe := ExpandFileName(DestExe);
     LinkIOSLibrary(Path, DestExe);
     Exit;
   end;
