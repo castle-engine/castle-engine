@@ -170,7 +170,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEApp_TouchDown(pt.x, pt.y, true, (int)nFingerIdx);
+        CGEApp_MouseDown(pt.x, pt.y, true, (int)nFingerIdx);
     }
 
     [super touchesBegan:touches withEvent:event];
