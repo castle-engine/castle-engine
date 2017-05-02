@@ -112,6 +112,7 @@ if (( $# == 0 )); then
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
+              '(' -iwholename '*/x3d/nodes_specification/*' ')' -or \
               '(' -iwholename '*fonts/castleoutlinefont_*.pas' ')' -or \
               '(' -iwholename '*fonts/castlebitmapfont_*.pas' ')' \
             ')' \
