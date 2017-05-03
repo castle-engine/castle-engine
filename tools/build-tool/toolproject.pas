@@ -1166,6 +1166,7 @@ begin
 
   Macros := TStringStringMap.Create;
   try
+    Macros.Add('DOLLAR'          , '$');
     Macros.Add('VERSION_MAJOR'   , IntToStr(VersionComponents[0]));
     Macros.Add('VERSION_MINOR'   , IntToStr(VersionComponents[1]));
     Macros.Add('VERSION_RELEASE' , IntToStr(VersionComponents[2]));
