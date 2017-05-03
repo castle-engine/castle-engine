@@ -133,7 +133,7 @@ type
       and assumes that Files are (and will be) URLs relative to @link(Path). }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
 
-    function IOSLibraryFileName: string;
+    function IOSLibraryFile: string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -603,7 +603,7 @@ begin
   begin
     CheckIOSSource;
     CompileIOS(Plugin, Mode, Path, IOSSource, SearchPaths);
-    LinkIOSLibrary(Path, IOSLibraryFileName);
+    LinkIOSLibrary(Path, IOSLibraryFile);
     Exit;
   end;
 
@@ -1023,6 +1023,13 @@ begin
   Result += 'lib' + ChangeFileExt(ExtractFileName(AndroidSource), '.so');
 end;
 
+function TCastleProject.IOSLibraryFile: string;
+begin
+  Result := InsertLibPrefix(ChangeFileExt(IOSSource, '.a'));
+  { make absolute, in case current dir <> project root dir }
+  Result := Path + Result;
+end;
+
 procedure TCastleProject.DoClean;
 
   procedure TryDeleteFile(FileName: string);
@@ -1274,13 +1281,6 @@ begin
     Contents := ReplaceMacros(Contents);
     StringToFile(FilenameToURISafe(DestinationFileName), Contents);
   end;
-end;
-
-function TCastleProject.IOSLibraryFileName: string;
-begin
-  Result := InsertLibPrefix(ChangeFileExt(IOSSource, '.a'));
-  { make absolute, in case current dir <> project root dir }
-  Result := Path + Result;
 end;
 
 { globals -------------------------------------------------------------------- }

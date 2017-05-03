@@ -174,7 +174,7 @@ var
 
   procedure GenerateLibrary;
   begin
-    SmartCopyFile(Project.IOSLibraryFileName,
+    SmartCopyFile(Project.IOSLibraryFile,
       XCodeProject + 'cge_project_name' + PathDelim + 'libcge_ios_project.a');
   end;
 
