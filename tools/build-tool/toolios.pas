@@ -151,7 +151,7 @@ var
     end;
   end;
 
-  procedure GenerateAssets;
+  procedure GenerateData;
   var
     I: Integer;
     FileFrom, FileTo: string;
@@ -172,6 +172,12 @@ var
     finally FreeAndNil(Files) end;
   end;
 
+  procedure GenerateLibrary;
+  begin
+    SmartCopyFile(Project.IOSLibraryFileName,
+      XCodeProject + 'cge_project_name' + PathDelim + 'libcge_ios_project.a');
+  end;
+
 begin
   XCodeProject := OutputPath(Project.Path) + 'ios' + PathDelim;
   if DirectoryExists(XCodeProject) then
@@ -179,6 +185,8 @@ begin
 
   GenerateFromTemplates;
   GenerateIcons;
+  GenerateData;
+  GenerateLibrary;
 
   Writeln('XCode project has been created in:');
   Writeln('  ', XCodeProject);

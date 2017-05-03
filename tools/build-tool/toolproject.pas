@@ -132,6 +132,8 @@ type
       Otherwise, takes more files,
       and assumes that Files are (and will be) URLs relative to @link(Path). }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
+
+    function IOSLibraryFileName: string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -149,6 +151,13 @@ uses StrUtils, DOM, Process,
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
+
+function InsertLibPrefix(const S: string): string;
+begin
+  Result := {$ifdef UNIX} ExtractFilePath(S) + 'lib' + ExtractFileName(S)
+            {$else} S
+            {$endif};
+end;
 
 { TCastleProject ------------------------------------------------------------- }
 
@@ -540,13 +549,6 @@ end;
 procedure TCastleProject.DoCompile(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
 
-  function InsertLibPrefix(const S: string): string;
-  begin
-    Result := {$ifdef UNIX} ExtractFilePath(S) + 'lib' + ExtractFileName(S)
-              {$else} S
-              {$endif};
-  end;
-
   procedure CheckIOSSource;
   begin
     if IOSSource = '' then
@@ -601,10 +603,7 @@ begin
   begin
     CheckIOSSource;
     CompileIOS(Plugin, Mode, Path, IOSSource, SearchPaths);
-    DestExe := InsertLibPrefix(ChangeFileExt(IOSSource, LibraryExtensionOS(OS, true)));
-    { make absolute, in case current dir <> project root dir }
-    DestExe := Path + DestExe;
-    LinkIOSLibrary(Path, DestExe);
+    LinkIOSLibrary(Path, IOSLibraryFileName);
     Exit;
   end;
 
@@ -1275,6 +1274,13 @@ begin
     Contents := ReplaceMacros(Contents);
     StringToFile(FilenameToURISafe(DestinationFileName), Contents);
   end;
+end;
+
+function TCastleProject.IOSLibraryFileName: string;
+begin
+  Result := InsertLibPrefix(ChangeFileExt(IOSSource, '.a'));
+  { make absolute, in case current dir <> project root dir }
+  Result := Path + Result;
 end;
 
 { globals -------------------------------------------------------------------- }
