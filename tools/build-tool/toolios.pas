@@ -34,7 +34,9 @@ procedure RunIOS(const Project: TCastleProject);
 
 implementation
 
-uses SysUtils;
+uses SysUtils,
+  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils,
+  ToolEmbeddedImages;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -100,15 +102,94 @@ begin
 end;
 
 procedure PackageIOS(const Project: TCastleProject);
+var
+  XCodeProject: string;
+
+  { Generate simple text stuff for Android project from templates. }
+  procedure GenerateFromTemplates;
+  begin
+    Project.ExtractTemplate('ios/xcode_project/', XCodeProject);
+  end;
+
+  procedure GenerateIcons;
+  var
+    Icon: TCastleImage;
+
+    procedure SaveResized(const Size: Integer);
+    var
+      R: TCastleImage;
+    begin
+      R := Icon.MakeResized(Size, Size, riLanczos);
+      try
+        SaveImage(R, FilenameToURISafe(XCodeProject +
+          'cge_project_name' + PathDelim +
+          'Images.xcassets' + PathDelim +
+          'AppIcon.appiconset' + PathDelim +
+          'icon-' + IntToStr(Size) + '.png'));
+      finally FreeAndNil(R) end;
+    end;
+
+  begin
+    Icon := Project.Icons.FindReadable;
+    if Icon = nil then
+    begin
+      WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
+      Icon := DefaultIcon;
+    end;
+    try
+      SaveResized(57);
+      SaveResized(72);
+      SaveResized(76);
+      SaveResized(114);
+      SaveResized(120);
+      SaveResized(144);
+      SaveResized(152);
+    finally
+      if Icon = DefaultIcon then
+        Icon := nil else
+        FreeAndNil(Icon);
+    end;
+  end;
+
+  procedure GenerateAssets;
+  var
+    I: Integer;
+    FileFrom, FileTo: string;
+    Files: TCastleStringList;
+  begin
+    Files := TCastleStringList.Create;
+    try
+      Project.PackageFiles(Files, true);
+      for I := 0 to Files.Count - 1 do
+      begin
+        FileFrom := Project.DataPath + Files[I];
+        FileTo := XCodeProject + 'cge_project_name' + PathDelim +
+          'data' + PathDelim + Files[I];
+        SmartCopyFile(FileFrom, FileTo);
+        if Verbose then
+          Writeln('Package file: ' + Files[I]);
+      end;
+    finally FreeAndNil(Files) end;
+  end;
+
 begin
-  // TODO
-  raise Exception.Create('The "run" command is not implemented for iOS right now');
+  XCodeProject := OutputPath(Project.Path) + 'ios' + PathDelim;
+  if DirectoryExists(XCodeProject) then
+    RemoveNonEmptyDir(XCodeProject);
+
+  GenerateFromTemplates;
+  GenerateIcons;
+
+  Writeln('XCode project has been created in:');
+  Writeln('  ', XCodeProject);
+  Writeln('You can open it now on Mac OS X with XCode and compile, run and publish.');
+  Writeln('The generated project should compile and work out-of-the-box.');
 end;
 
 procedure InstallIOS(const Project: TCastleProject);
 begin
   // TODO
-  raise Exception.Create('The "run" command is not implemented for iOS right now');
+  raise Exception.Create('The "install" command is not implemented for iOS right now');
 end;
 
 procedure RunIOS(const Project: TCastleProject);

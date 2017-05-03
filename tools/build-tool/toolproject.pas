@@ -58,13 +58,6 @@ type
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU): string;
     function SourcePackageName: string;
-    { Add platform-independent files that should be included in package,
-      remove files that should be excluded.
-      If OnlyData, then only takes stuff inside DataPath,
-      and assumes that Files are (and will be) URLs relative to DataPath.
-      Otherwise, takes more files,
-      and assumes that Files are (and will be) URLs relative to @link(Path). }
-    procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
   public
     constructor Create;
@@ -131,6 +124,14 @@ type
       Relative to @link(Path) if Subdir = true, otherwise this is only
       a name without any directory part. }
     function AndroidLibraryFile(const Subdir: boolean): string;
+
+    { Add platform-independent files that should be included in package,
+      remove files that should be excluded.
+      If OnlyData, then only takes stuff inside DataPath,
+      and assumes that Files are (and will be) URLs relative to DataPath.
+      Otherwise, takes more files,
+      and assumes that Files are (and will be) URLs relative to @link(Path). }
+    procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
   end;
 
 function DependencyToString(const D: TDependency): string;
