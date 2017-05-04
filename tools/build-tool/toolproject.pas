@@ -1248,6 +1248,8 @@ begin
     Exit;
   end;
 
+  StringReplaceAllVar(DestinationRelativeFileName, 'cge_project_name', Name);
+
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
   if FileExists(DestinationFileName) then
   begin
