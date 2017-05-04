@@ -105,27 +105,31 @@ procedure PackageIOS(const Project: TCastleProject);
 var
   XCodeProject: string;
 
-  { Generate simple text stuff for Android project from templates. }
+  { Generate files for Android project from templates. }
   procedure GenerateFromTemplates;
   begin
     Project.ExtractTemplate('ios/xcode_project/', XCodeProject);
   end;
 
+  { Generate icons, in various sizes, from the base icon. }
   procedure GenerateIcons;
   var
     Icon: TCastleImage;
 
     procedure SaveResized(const Size: Integer);
     var
+      OutputFile: string;
       R: TCastleImage;
     begin
       R := Icon.MakeResized(Size, Size, riLanczos);
       try
-        SaveImage(R, FilenameToURISafe(XCodeProject +
-          'cge_project_name' + PathDelim +
+        OutputFile := Project.Name + PathDelim +
           'Images.xcassets' + PathDelim +
           'AppIcon.appiconset' + PathDelim +
-          'icon-' + IntToStr(Size) + '.png'));
+          'icon-' + IntToStr(Size) + '.png';
+        SaveImage(R, FilenameToURISafe(XCodeProject + OutputFile));
+        if Verbose then
+          Writeln('Packaging generated icon file: ' + OutputFile);
       finally FreeAndNil(R) end;
     end;
 
@@ -151,6 +155,7 @@ var
     end;
   end;
 
+  { Copy project data into XCode project. }
   procedure GenerateData;
   var
     I: Integer;
@@ -163,19 +168,24 @@ var
       for I := 0 to Files.Count - 1 do
       begin
         FileFrom := Project.DataPath + Files[I];
-        FileTo := XCodeProject + 'cge_project_name' + PathDelim +
+        FileTo := XCodeProject + Project.Name + PathDelim +
           'data' + PathDelim + Files[I];
         SmartCopyFile(FileFrom, FileTo);
         if Verbose then
-          Writeln('Package file: ' + Files[I]);
+          Writeln('Packaging data file: ' + Files[I]);
       end;
     finally FreeAndNil(Files) end;
   end;
 
+  { Copy compiled library into XCode project. }
   procedure GenerateLibrary;
+  var
+    OutputFile: string;
   begin
-    SmartCopyFile(Project.IOSLibraryFile,
-      XCodeProject + 'cge_project_name' + PathDelim + 'libcge_ios_project.a');
+    OutputFile := Project.Name + PathDelim + 'libcge_ios_project.a';
+    SmartCopyFile(Project.IOSLibraryFile, XCodeProject + OutputFile);
+    if Verbose then
+      Writeln('Packaging library file: ' + OutputFile);
   end;
 
 begin

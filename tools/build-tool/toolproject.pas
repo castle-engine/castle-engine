@@ -106,8 +106,10 @@ type
     property SearchPaths: TStringList read FSearchPaths;
     property AndroidComponents: TAndroidComponentList read FAndroidComponents;
 
-    { Path to the external library. This checks existence of appropriate
-      files along the way, and raises exception in case of trouble. }
+    { Path to the external library in data/external_libraries/ .
+      Right now, these host various Windows-specific DLL files.
+      This checks existence of appropriate files along the way,
+      and raises exception in case of trouble. }
     function ExternalLibraryPath(const OS: TOS; const CPU: TCPU; const LibraryName: string): string;
 
     function ReplaceMacros(const Source: string): string;

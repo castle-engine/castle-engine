@@ -166,7 +166,7 @@ var
   end;
 }
 
-  { Generate simple text stuff for Android project from templates. }
+  { Generate files for Android project from templates. }
   procedure GenerateFromTemplates;
   var
     DestinationPath: string;
@@ -260,7 +260,7 @@ var
                 'assets' + PathDelim + Files[I];
       PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
-        Writeln('Package file: ' + Files[I]);
+        Writeln('Packaging data file: ' + Files[I]);
     end;
   end;
 
