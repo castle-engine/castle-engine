@@ -1188,8 +1188,7 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
 
-    { Android specific stuff }
-
+    // Android specific stuff
     Macros.Add('ANDROID_LIBRARY_NAME'                , ChangeFileExt(ExtractFileName(AndroidSource), ''));
     Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
     Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
@@ -1204,6 +1203,9 @@ begin
           UpperCase(AndroidComponents[I].Name) + '.' +
           UpperCase(AndroidComponents[I].Parameters.Keys[J]),
           AndroidComponents[I].Parameters.Data[J]);
+
+    // iOS specific stuff }
+    Macros.Add('IOS_LIBRARY_BASE_NAME', ExtractFileName(IOSLibraryFile));
 
     // add CamelCase() replacements, add ${} around
     for I := 0 to Macros.Count - 1 do
