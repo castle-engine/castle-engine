@@ -182,7 +182,7 @@ var
   var
     OutputFile: string;
   begin
-    OutputFile := Project.Name + PathDelim + 'libcge_ios_project.a';
+    OutputFile := 'libcge_ios_project.a';
     SmartCopyFile(Project.IOSLibraryFile, XCodeProject + OutputFile);
     if Verbose then
       Writeln('Packaging library file: ' + OutputFile);
