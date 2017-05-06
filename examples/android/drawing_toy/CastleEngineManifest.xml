@@ -3,7 +3,7 @@
   caption="Drawing Toy"
   qualified_name="net.sourceforge.castleengine.drawingtoy"
   standalone_source="drawing_toy_standalone.lpr"
-  android_source="drawing_toy.lpr">
+  game_units="Game">
   <package>
     <include path="README.txt" />
   </package>

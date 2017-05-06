@@ -3,7 +3,7 @@
   caption="Castle Game Engine Android Test"
   qualified_name="net.sourceforge.castleengine.androiddemo"
   standalone_source="androiddemo_standalone.lpr"
-  android_source="androiddemo.lpr">
+  game_units="Game">
   <version value="1.0" code="1" />
   <package>
     <include path="README.txt" />
