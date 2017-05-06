@@ -16,3 +16,7 @@ android:
 	castle-engine --mode=$(MODE) package --os=android --cpu=arm
 	castle-engine install --os=android --cpu=arm
 	castle-engine run --os=android --cpu=arm
+
+.PHONY: ios
+ios:
+	castle-engine --mode=$(MODE) package --target=iOS

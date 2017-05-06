@@ -14,7 +14,7 @@
 }
 
 { Simple 3D application. This unit implements the application logic,
-  actually independent from Android. }
+  actually independent from the target (mobile, desktop...). }
 unit Game;
 
 interface
@@ -334,8 +334,8 @@ begin
 end;
 
 function MyGetApplicationName: string;
-begin
-  Result := 'androiddemo';
+beginr
+  Result := 'simple_3d_demo';
 end;
 
 initialization

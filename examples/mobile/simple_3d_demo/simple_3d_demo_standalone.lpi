@@ -25,7 +25,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="androiddemo_standalone.lpr"/>
+        <Filename Value="simple_3d_demo_standalone.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>

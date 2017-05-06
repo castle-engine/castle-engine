@@ -210,7 +210,7 @@ EXAMPLES_BASE_NAMES := \
   examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
   examples/2d_standard_ui/timer_test/timer_test \
   examples/2d_standard_ui/zombie_fighter/zombie_fighter \
-  examples/android/android_demo/androiddemo_standalone \
+  examples/mobile/simple_3d_demo/simple_3d_demo_standalone \
   tools/build-tool/castle-engine \
   tools/image-to-pascal/image-to-pascal \
   tools/texture-font-to-pascal/texture-font-to-pascal \
@@ -290,8 +290,8 @@ clean: cleanexamples
 	  packages/alternative_castle_window_based_on_lcl.pas \
 	  tests/test_castle_game_engine \
 	  tests/test_castle_game_engine.exe \
-	  examples/android/drawing_toy/drawing_toy \
-	  examples/android/drawing_toy/drawing_toy.exe \
+	  examples/mobile/drawing_toy/drawing_toy \
+	  examples/mobile/drawing_toy/drawing_toy.exe \
 	  examples/portable_game_skeleton/my_fantastic_game \
 	  examples/portable_game_skeleton/my_fantastic_game.exe \
 	  examples/fonts/font_draw_over_image_output.png

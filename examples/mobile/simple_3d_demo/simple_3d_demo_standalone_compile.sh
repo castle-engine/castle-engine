@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f androiddemo_standalone.lpr ]; then cd ../../../; fi
+if [ -f simple_3d_demo_standalone.lpr ]; then cd ../../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/android/android_demo/androiddemo_standalone.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/mobile/simple_3d_demo/simple_3d_demo_standalone.lpr

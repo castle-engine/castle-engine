@@ -18,7 +18,7 @@
 { Main program for a standalone version of the game.
   This allows you to compile the same game game (in Game unit)
   as a normal, standalone executable for normal OSes (Linux, Windows, MacOSX...). }
-program AndroidDemo_Standalone;
+program simple_3d_demo_standalone;
 uses CastleWindow, Game;
 begin
   Window.OpenAndRun;
