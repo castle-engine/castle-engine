@@ -1037,6 +1037,8 @@ begin
         TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_integrated.lpr'))
       else
         TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_base.lpr'));
+      if FGameUnits = '' then
+        raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an Android project. Alternatively, you can specify android_source="..." in the CastleEngineManifest.xml, to explicitly indicate the Android library source code.');
       ExtractTemplateFile(TemplateFile, AbsoluteResult, 'android/library_template.lpr');
     end;
     if not IsPrefix(Path, AbsoluteResult, true) then
@@ -1079,6 +1081,8 @@ begin
     if CreateIfNecessary then
     begin
       TemplateFile := URIToFilenameSafe(ApplicationData('ios/library_template.lpr'));
+      if FGameUnits = '' then
+        raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an iOS project. Alternatively, you can specify ios_source="..." in the CastleEngineManifest.xml, to explicitly indicate the iOS library source code.');
       ExtractTemplateFile(TemplateFile, AbsoluteResult, 'ios/library_template.lpr');
     end;
     if not IsPrefix(Path, AbsoluteResult, true) then
