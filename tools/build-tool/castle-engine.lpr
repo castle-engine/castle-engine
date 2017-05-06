@@ -38,7 +38,7 @@ var
 
 const
   Version = CastleEngineVersion;
-  Options: array [0..9] of TOption =
+  Options: array [0..8] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -48,7 +48,6 @@ const
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
     (Short: #0 ; Long: 'mode'; Argument: oaRequired),
     (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
-    (Short: #0 ; Long: 'leave-temp'; Argument: oaNone),
     (Short: #0 ; Long: 'plugin'; Argument: oaNone)
   );
 
