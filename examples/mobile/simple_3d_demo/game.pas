@@ -334,7 +334,7 @@ begin
 end;
 
 function MyGetApplicationName: string;
-beginr
+begin
   Result := 'simple_3d_demo';
 end;
 
