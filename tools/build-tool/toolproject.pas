@@ -1207,10 +1207,24 @@ function TCastleProject.ReplaceMacros(const Source: string): string;
 const
   AndroidScreenOrientation: array [TScreenOrientation] of string =
   ('unspecified', 'sensorLandscape', 'sensorPortrait');
+
   AndroidScreenOrientationFeature: array [TScreenOrientation] of string =
   ('',
    '<uses-feature android:name="android.hardware.screen.landscape"/>',
    '<uses-feature android:name="android.hardware.screen.portrait"/>');
+
+  IOSScreenOrientation: array [TScreenOrientation] of string =
+  (CharTab + CharTab + '<string>UIInterfaceOrientationPortrait</string>' + NL +
+   CharTab + CharTab + '<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
+   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+
+   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+
+   CharTab + CharTab + '<string>UIInterfaceOrientationPortrait</string>' + NL +
+   CharTab + CharTab + '<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
+  );
 
   function AndroidActivityLoadLibraries: string;
   begin
@@ -1290,7 +1304,8 @@ begin
           AndroidComponents[I].Parameters.Data[J]);
 
     // iOS specific stuff }
-    Macros.Add('IOS_LIBRARY_BASE_NAME', ExtractFileName(IOSLibraryFile));
+    Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
+    Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
 
     // add CamelCase() replacements, add ${} around
     for I := 0 to Macros.Count - 1 do
