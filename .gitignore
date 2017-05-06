@@ -29,6 +29,7 @@ examples/2d_dragon_spine_android_game/castle_spine
 examples/2d_dragon_spine_android_game/castle_spine.exe
 examples/2d_dragon_spine_android_game/castle_spine.log
 examples/2d_dragon_spine_android_game/code/lib/
+examples/2d_dragon_spine_android_game/code/libcastle_spine_android.so
 examples/3d_rendering_processing/animate_3d_model_by_code
 examples/3d_rendering_processing/animate_3d_model_by_code_2
 examples/3d_rendering_processing/build_3d_object_by_code

@@ -208,7 +208,7 @@ var
       FpcOptions.Add('-WP5.1');
       { TODO: this option is probably useless for now, since we pass -Cn
         and later create the library manually. }
-      FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'lib_cge_project_unused.a');
+      FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'libcge_ios_project_unused.a');
     end;
   end;
 

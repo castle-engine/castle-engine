@@ -189,7 +189,8 @@ var
   end;
 
 begin
-  XCodeProject := OutputPath(Project.Path) + 'ios' + PathDelim;
+  XCodeProject := OutputPath(Project.Path) +
+    'ios' + PathDelim + 'xcode_project' + PathDelim;
   if DirectoryExists(XCodeProject) then
     RemoveNonEmptyDir(XCodeProject);
 

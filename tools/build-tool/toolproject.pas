@@ -42,6 +42,7 @@ type
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
+    FGameUnits: string;
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
@@ -59,6 +60,30 @@ type
     function PackageName(const OS: TOS; const CPU: TCPU): string;
     function SourcePackageName: string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+
+    { Extract a single file using the template system.
+      SourceFileName and DestinationFileName should be absolute filenames
+      of source and destination files.
+      DestinationRelativeFileName should be a relative version of DestinationFileName,
+      relative to the template root.
+
+      This is used internally by ExtractTemplateFoundFile, which is in turn used
+      by ExtractTemplate that can extract a whole template directory.
+
+      It can also be used directly to expand a single file. }
+    procedure ExtractTemplateFile(const SourceFileName, DestinationFileName, DestinationRelativeFileName: string);
+
+    { Android source specified in CastleEngineManifest.xml.
+      Most code should use AndroidSourceFile instead, that can optionally
+      auto-create Android source file. }
+    property AndroidSource: string read FAndroidSource;
+    function AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+
+    { iOS source specified in CastleEngineManifest.xml.
+      Most code should use IOSSourceFile instead, that can optionally
+      auto-create iOS source file. }
+    property IOSSource: string read FIOSSource;
+    function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
   public
     constructor Create;
     constructor Create(const APath: string);
@@ -93,8 +118,6 @@ type
     property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
     property StandaloneSource: string read FStandaloneSource;
-    property AndroidSource: string read FAndroidSource;
-    property IOSSource: string read FIOSSource;
     property PluginSource: string read FPluginSource;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
@@ -122,10 +145,9 @@ type
     procedure ExtractTemplate(const TemplatePath, DestinationPath: string);
 
     { Output Android library resulting from compilation.
-      Use only if AndroidSource <> ''.
-      Relative to @link(Path) if Subdir = true, otherwise this is only
-      a name without any directory part. }
-    function AndroidLibraryFile(const Subdir: boolean): string;
+      Relative to @link(Path) if AbsolutePath = @false,
+      otherwise a complete absolute path. }
+    function AndroidLibraryFile(const AbsolutePath: boolean = true): string;
 
     { Add platform-independent files that should be included in package,
       remove files that should be excluded.
@@ -135,7 +157,10 @@ type
       and assumes that Files are (and will be) URLs relative to @link(Path). }
     procedure PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
 
-    function IOSLibraryFile: string;
+    { Output iOS library resulting from compilation.
+      Relative to @link(Path) if AbsolutePath = @false,
+      otherwise a complete absolute path. }
+    function IOSLibraryFile(const AbsolutePath: boolean = true): string;
   end;
 
 function DependencyToString(const D: TDependency): string;
@@ -318,6 +343,7 @@ constructor TCastleProject.Create(const APath: string);
         FIOSSource := Doc.DocumentElement.AttributeStringDef('ios_source', '');
         FPluginSource := Doc.DocumentElement.AttributeStringDef('plugin_source', '');
         FAuthor := Doc.DocumentElement.AttributeStringDef('author', '');
+        FGameUnits := Doc.DocumentElement.AttributeStringDef('game_units', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
 
@@ -550,51 +576,6 @@ end;
 
 procedure TCastleProject.DoCompile(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
-
-  procedure CheckIOSSource;
-  begin
-    if IOSSource = '' then
-      raise Exception.Create('ios_source property for project not defined, cannot compile iOS version');
-  end;
-
-  procedure CheckAnroidSource;
-
-    procedure InvalidAndroidSource;
-    var
-      SError: string;
-    begin
-      SError := 'The android source library in "' + AndroidSource + '" must export the necessary JNI functions for our integration to work. By scannig the source, it seems it does not. Change the source code to this:' +NL+
-        '---------------------------------------------------------------------' +NL+
-        'library ' + ChangeFileExt(ExtractFileName(AndroidSource), '') + ';' +NL;
-      if AndroidProjectType = apIntegrated then
-        SError +=
-          'uses CastleAndroidNativeAppGlue, Game, CastleMessaging;' +NL+
-          'exports' +NL+
-          '  Java_net_sourceforge_castleengine_MainActivity_jniMessage,' +NL+
-          '  ANativeActivity_onCreate;' +NL+
-          'end.' +NL else
-        SError +=
-          'uses CastleAndroidNativeAppGlue, Game;' +NL+
-          'exports ANativeActivity_onCreate;' +NL+
-          'end.' +NL;
-      SError +=
-        '---------------------------------------------------------------------';
-      raise Exception.Create(SError);
-    end;
-
-  var
-    AndroidSourceContents: string;
-  begin
-    if AndroidSource = '' then
-      raise Exception.Create('android_source property for project not defined, cannot compile Android version');
-    AndroidSourceContents := FileToString(AndroidSource);
-    if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
-      InvalidAndroidSource;
-    if (AndroidProjectType = apIntegrated) and
-       (Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0) then
-      InvalidAndroidSource;
-  end;
-
 var
   SourceExe, DestExe, MainSource: string;
 begin
@@ -603,18 +584,17 @@ begin
 
   if Target = targetIOS then
   begin
-    CheckIOSSource;
-    CompileIOS(Plugin, Mode, Path, IOSSource, SearchPaths);
+    CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths);
     LinkIOSLibrary(Path, IOSLibraryFile);
+    Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
     Exit;
   end;
 
   case OS of
     Android:
       begin
-        CheckAnroidSource;
-        Compile(OS, CPU, Plugin, Mode, Path, AndroidSource, SearchPaths);
-        Writeln('Compiled library for Android in ', AndroidLibraryFile(true));
+        Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true), SearchPaths);
+        Writeln('Compiled library for Android in ', AndroidLibraryFile(false));
       end;
     else
       begin
@@ -761,8 +741,6 @@ begin
   { for Android, the packaging process is special }
   if OS = Android then
   begin
-    if AndroidSource = '' then
-      raise Exception.Create('Cannot create Android package, because Android library source (android_source) is not set in CastleEngineManifest.xml');
     Files := TCastleStringList.Create;
     try
       PackageFiles(Files, true);
@@ -1017,26 +995,119 @@ begin
   Inc(DeletedFiles);
 end;
 
-function TCastleProject.AndroidLibraryFile(const Subdir: boolean): string;
+function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+
+  procedure InvalidAndroidSource(const FinalAndroidSource: string);
+  var
+    SError: string;
+  begin
+    SError := 'The android source library in "' + FinalAndroidSource + '" must export the necessary JNI functions for our integration to work. By scannig the source, it seems it does not. Change the source code to this:' +NL+
+      '---------------------------------------------------------------------' +NL+
+      'library ' + ChangeFileExt(ExtractFileName(FinalAndroidSource), '') + ';' +NL;
+    if AndroidProjectType = apIntegrated then
+      SError +=
+        'uses CastleAndroidNativeAppGlue, Game, CastleMessaging;' +NL+
+        'exports' +NL+
+        '  Java_net_sourceforge_castleengine_MainActivity_jniMessage,' +NL+
+        '  ANativeActivity_onCreate;' +NL+
+        'end.' +NL else
+      SError +=
+        'uses CastleAndroidNativeAppGlue, Game;' +NL+
+        'exports ANativeActivity_onCreate;' +NL+
+        'end.' +NL;
+    SError +=
+      '---------------------------------------------------------------------';
+    raise Exception.Create(SError);
+  end;
+
+var
+  AndroidSourceContents, TemplateFile, RelativeResult, AbsoluteResult: string;
 begin
-  Result := '';
-  if Subdir then
-    Result += ExtractFilePath(AndroidSource);
-  Result += 'lib' + ChangeFileExt(ExtractFileName(AndroidSource), '.so');
+  { calculate RelativeResult, AbsoluteResult }
+  if AndroidSource <> '' then
+  begin
+    RelativeResult := AndroidSource;
+    AbsoluteResult := Path + RelativeResult;
+  end else
+  begin
+    AbsoluteResult := OutputPath(Path, CreateIfNecessary) + 'android' + PathDelim + Name + '_android.lpr';
+    if CreateIfNecessary then
+    begin
+      if AndroidProjectType = apIntegrated then
+        TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_integrated.lpr'))
+      else
+        TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_base.lpr'));
+      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'android/library_template.lpr');
+    end;
+    if not IsPrefix(Path, AbsoluteResult, true) then
+      raise EInternalError.CreateFmt('Something is wrong with the temporary Android source location "%s", it is not within the project "%s"',
+        [AbsoluteResult, Path]);
+    RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
+  end;
+
+  // for speed, do not check correctness if CreateIfNecessary = false
+  if CreateIfNecessary then
+  begin
+    { check Android lpr file correctness.
+      For now, do it even if we generated Android project from our own template
+      (when AndroidSource = ''), to check our own work. }
+    AndroidSourceContents := FileToString(AbsoluteResult);
+    if Pos('ANativeActivity_onCreate', AndroidSourceContents) = 0 then
+      InvalidAndroidSource(AbsoluteResult);
+    if (AndroidProjectType = apIntegrated) and
+       (Pos('Java_net_sourceforge_castleengine_MainActivity_jniMessage', AndroidSourceContents) = 0) then
+      InvalidAndroidSource(AbsoluteResult);
+  end;
+
+  if AbsolutePath then
+    Result := AbsoluteResult
+  else
+    Result := RelativeResult;
 end;
 
-function TCastleProject.IOSLibraryFile: string;
+function TCastleProject.IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+var
+  TemplateFile, RelativeResult, AbsoluteResult: string;
 begin
-  Result := InsertLibPrefix(ChangeFileExt(IOSSource, '.a'));
-  { make absolute, in case current dir <> project root dir }
-  Result := Path + Result;
+  if IOSSource <> '' then
+  begin
+    RelativeResult := IOSSource;
+    AbsoluteResult := Path + RelativeResult;
+  end else
+  begin
+    AbsoluteResult := OutputPath(Path) + 'ios' + PathDelim + Name + '_ios.lpr';
+    if CreateIfNecessary then
+    begin
+      TemplateFile := URIToFilenameSafe(ApplicationData('ios/library_template.lpr'));
+      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'ios/library_template.lpr');
+    end;
+    if not IsPrefix(Path, AbsoluteResult, true) then
+      raise EInternalError.CreateFmt('Something is wrong with the temporary iOS source location "%s", it is not within the project "%s"',
+        [AbsoluteResult, Path]);
+    RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
+  end;
+
+  if AbsolutePath then
+    Result := AbsoluteResult
+  else
+    Result := RelativeResult;
+end;
+
+function TCastleProject.AndroidLibraryFile(const AbsolutePath: boolean = true): string;
+begin
+  Result := InsertLibPrefix(ChangeFileExt(AndroidSourceFile(AbsolutePath, false), '.so'));
+end;
+
+function TCastleProject.IOSLibraryFile(const AbsolutePath: boolean): string;
+begin
+  Result := InsertLibPrefix(ChangeFileExt(IOSSourceFile(AbsolutePath, false), '.a'));
 end;
 
 procedure TCastleProject.DoClean;
 
-  procedure TryDeleteFile(FileName: string);
+  { Delete a file, given as absolute FileName. }
+  procedure TryDeleteAbsoluteFile(FileName: string);
   begin
-    FileName := Path + FileName;
     if FileExists(FileName) then
     begin
       if Verbose then
@@ -1044,6 +1115,12 @@ procedure TCastleProject.DoClean;
       CheckDeleteFile(FileName);
       Inc(DeletedFiles);
     end;
+  end;
+
+  { Delete a file, given as FileName relative to project root. }
+  procedure TryDeleteFile(FileName: string);
+  begin
+    TryDeleteAbsoluteFile(Path + FileName);
   end;
 
   procedure DeleteFilesRecursive(const Mask: string);
@@ -1073,7 +1150,9 @@ begin
     TryDeleteFile(ChangeFileExt(ExecutableName, '.exe'));
   end;
   if AndroidSource <> '' then
-    TryDeleteFile(AndroidLibraryFile(true));
+    TryDeleteAbsoluteFile(AndroidLibraryFile);
+  if IOSSource <> '' then
+    TryDeleteAbsoluteFile(IOSLibraryFile);
 
   { packages created by DoPackage? Or not, it's safer to not remove them. }
   {
@@ -1156,7 +1235,7 @@ const
 var
   Macros: TStringStringMap;
   I, J: Integer;
-  P, NonEmptyAuthor: string;
+  P, NonEmptyAuthor, AndroidLibraryName: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
 begin
@@ -1187,9 +1266,11 @@ begin
     Macros.Add('CAPTION'         , Caption);
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
+    Macros.Add('GAME_UNITS'      , FGameUnits);
 
     // Android specific stuff
-    Macros.Add('ANDROID_LIBRARY_NAME'                , ChangeFileExt(ExtractFileName(AndroidSource), ''));
+    AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
+    Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
     Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
     Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
     Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
@@ -1237,9 +1318,7 @@ end;
 
 procedure TCastleProject.ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 var
-  DestinationRelativeFileName, DestinationRelativeFileNameSlashes,
-    DestinationFileName, Contents, Ext: string;
-  BinaryFile: boolean;
+  DestinationRelativeFileName, DestinationFileName: string;
 begin
   DestinationRelativeFileName := PrefixRemove(InclPathDelim(ExtractTemplateDir),
     FileInfo.AbsoluteName, true);
@@ -1255,35 +1334,44 @@ begin
   StringReplaceAllVar(DestinationRelativeFileName, 'cge_project_name', Name);
 
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
+
+  ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName, DestinationRelativeFileName);
+end;
+
+procedure TCastleProject.ExtractTemplateFile(const SourceFileName, DestinationFileName, DestinationRelativeFileName: string);
+var
+  DestinationRelativeFileNameSlashes, Contents, Ext: string;
+  BinaryFile: boolean;
+begin
   if FileExists(DestinationFileName) then
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
-      MergeAndroidManifest(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+      MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
-      MergeAndroidMainActivity(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+      MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/jni/Android.mk') or
        SameText(DestinationRelativeFileNameSlashes, 'app/src/main/custom-proguard-project.txt') then
-      MergeAppend(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+      MergeAppend(SourceFileName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'app/build.gradle') then
-      MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'build.gradle') then
-      MergeBuildGradle(FileInfo.AbsoluteName, DestinationFileName, @ReplaceMacros) else
+      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
     if Verbose then
       Writeln('Not overwriting custom ' + DestinationRelativeFileName);
     Exit;
   end;
 
-  Ext := ExtractFileExt(FileInfo.AbsoluteName);
+  Ext := ExtractFileExt(SourceFileName);
   BinaryFile := SameText(Ext, '.so') or SameText(Ext, '.jar');
   CheckForceDirectories(ExtractFilePath(DestinationFileName));
   if BinaryFile then
   begin
-    CheckCopyFile(FileInfo.AbsoluteName, DestinationFileName);
+    CheckCopyFile(SourceFileName, DestinationFileName);
   end else
   begin
-    Contents := FileToString(FileInfo.URL);
+    Contents := FileToString(FilenameToURISafe(SourceFileName));
     Contents := ReplaceMacros(Contents);
     StringToFile(FilenameToURISafe(DestinationFileName), Contents);
   end;

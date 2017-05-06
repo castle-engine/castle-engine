@@ -266,10 +266,10 @@ var
 
   procedure GenerateLibrary;
   begin
-    PackageSmartCopyFile(Project.Path + Project.AndroidLibraryFile(true),
+    PackageSmartCopyFile(Project.AndroidLibraryFile,
       'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
       { Place precompiled libs in jni/ , ndk-build will find them there. }
-      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
+      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + ExtractFileName(Project.AndroidLibraryFile));
   end;
 
   { Run "ndk-build", this moves our .so to the final location in jniLibs,
@@ -419,7 +419,8 @@ var
   PackageMode: TCompilationMode;
 begin
   { calculate clean AndroidProjectPath }
-  AndroidProjectPath := OutputPath(Project.Path) + 'android' + PathDelim;
+  AndroidProjectPath := OutputPath(Project.Path) +
+    'android' + PathDelim + 'project' + PathDelim;
   if DirectoryExists(AndroidProjectPath) then
     RemoveNonEmptyDir(AndroidProjectPath);
 
