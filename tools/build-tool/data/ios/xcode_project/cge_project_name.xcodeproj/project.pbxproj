@@ -292,7 +292,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "${QUALIFIED_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = ${QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
@@ -312,7 +312,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "${QUALIFIED_NAME}";
+				PRODUCT_BUNDLE_IDENTIFIER = ${QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
