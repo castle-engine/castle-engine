@@ -89,7 +89,7 @@ begin
 
     Crosshair := TCrosshairManager.Create;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -105,7 +105,7 @@ begin
     CGEApp_Close;
     FreeAndNil(Window);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -117,7 +117,7 @@ begin
     sText := GLInformationString;
     StrPLCopy(szBuffer, sText, nBufSize-1);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -127,7 +127,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_Resize(uiViewWidth, uiViewHeight);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -137,7 +137,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_Render;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -176,7 +176,7 @@ begin
       end;
     finally FreeAndNil(Restore2D) end;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -192,7 +192,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_Update;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -202,7 +202,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_MouseDown(X, Y, bLeftBtn, FingerIndex);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -212,7 +212,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_Motion(X, Y, FingerIndex);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -222,7 +222,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -235,7 +235,7 @@ begin
     // undefined, and also --- pinch is not really a mouse wheel)
     Window.LibraryMouseWheel(zDelta/120, bVertical);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -245,7 +245,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_KeyDown(eKey);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -255,7 +255,7 @@ begin
     if not CGE_VerifyWindow then exit;
     CGEApp_KeyUp(eKey);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -268,7 +268,7 @@ begin
     Window.MainScene.ProcessEvents := true;
     Window.SceneManager.Items.VisibleChangeNotification(Window.SceneManager.CameraToChanges);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -301,7 +301,7 @@ begin
     sName := Window.MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -312,7 +312,7 @@ begin
 
     Window.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -324,7 +324,7 @@ begin
     Window.MainScene.AddViewpointFromCamera(
       Window.SceneManager.Camera, StrPas(PChar(szName)));
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -340,7 +340,7 @@ begin
     pfYMin^ := BBox.Data[0, 1]; pfYMax^ := BBox.Data[1, 1];
     pfZMin^ := BBox.Data[0, 2]; pfZMax^ := BBox.Data[1, 2];
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -358,7 +358,7 @@ begin
     pfUpX^ := Up[0]; pfUpY^ := Up[1]; pfUpZ^ := Up[2];
     pfGravX^ := GravityUp[0]; pfGravY^ := GravityUp[1]; pfGravZ^ := GravityUp[2];
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -380,7 +380,7 @@ begin
     else
       Window.SceneManager.Camera.SetView(Pos, Dir, Up, GravityUp);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -423,7 +423,7 @@ begin
     end;
     Window.NavigationType := aNavType;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -455,7 +455,7 @@ begin
   try
     Window.TouchInterface := cgehelper_TouchInterfaceFromConst(eMode);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -465,7 +465,7 @@ begin
     Window.AutomaticTouchInterface := bAutomaticTouchInterface;
     Window.Dpi := nDpi;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -478,7 +478,7 @@ begin
     Window.MainScene.IncreaseTime(fTimeS);
     Window.SceneManager.Camera.Update(fTimeS, bHandleControls);
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -543,7 +543,7 @@ begin
 
     end;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -600,7 +600,7 @@ begin
       else Result := -1; // unsupported variable
     end;
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
@@ -642,7 +642,7 @@ begin
     end;
 
   except
-    on E: TObject do WritelnLog('Window', ExceptMessage(E));
+    on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
 end;
 
