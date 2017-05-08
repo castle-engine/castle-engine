@@ -23,8 +23,8 @@
 {
     CGFloat m_fScale;
     UITouch* m_arrTouches[MAX_TOUCHES];
-    int oldViewWidth;
-    int oldViewHeight;
+    int m_oldViewWidth;
+    int m_oldViewHeight;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -92,10 +92,10 @@
     else
         m_fScale = 1.0;
 
-    self.oldViewWidth  = self.view.bounds.size.width;
-    self.oldViewHeight = self.view.bounds.size.height;
+    m_oldViewWidth  = self.view.bounds.size.width;
+    m_oldViewHeight = self.view.bounds.size.height;
 
-    CGEApp_Open(self.oldViewWidth, self.oldViewHeight);
+    CGEApp_Open(m_oldViewWidth, m_oldViewHeight);
     CGEApp_SetDpi(115 * m_fScale);
 
     [self update];
@@ -116,11 +116,11 @@
     // update the viewport size, if changed
     int newViewWidth  = self.view.bounds.size.width;
     int newViewHeight = self.view.bounds.size.height;
-    if (self.oldViewWidth  != newViewWidth ||
-        self.oldViewHeight != newViewHeight)
+    if (m_oldViewWidth  != newViewWidth ||
+        m_oldViewHeight != newViewHeight)
     {
-	self.oldViewWidth  = newViewWidth;
-	self.oldViewHeight = newViewHeight;
+	m_oldViewWidth  = newViewWidth;
+	m_oldViewHeight = newViewHeight;
 	CGEApp_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
     }
 

@@ -36,8 +36,8 @@
 
     int m_nViewpointCount, m_nCurrentViewpoint;
 
-    int oldViewWidth;
-    int oldViewHeight;
+    int m_oldViewWidth;
+    int m_oldViewHeight;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -146,10 +146,10 @@
         self.fileToOpen = [sBundlePath stringByAppendingPathComponent:@"sampledata/castle_with_lights_and_camera.wrl"];
     }
 
-    self.oldViewWidth  = self.view.bounds.size.width;
-    self.oldViewHeight = self.view.bounds.size.height;
+    m_oldViewWidth  = self.view.bounds.size.width;
+    m_oldViewHeight = self.view.bounds.size.height;
 
-    CGE_Open(ecgeofLog, self.oldViewWidth, self.oldViewHeight);
+    CGE_Open(ecgeofLog, m_oldViewWidth, m_oldViewHeight);
     CGE_SetUserInterface(true, 115 * m_fScale);
 
     Options *opt = [Options sharedOptions];
@@ -189,11 +189,11 @@
     // update the viewport size, if changed
     int newViewWidth  = self.view.bounds.size.width;
     int newViewHeight = self.view.bounds.size.height;
-    if (self.oldViewWidth  != newViewWidth ||
-        self.oldViewHeight != newViewHeight)
+    if (m_oldViewWidth  != newViewWidth ||
+        m_oldViewHeight != newViewHeight)
     {
-	self.oldViewWidth  = newViewWidth;
-	self.oldViewHeight = newViewHeight;
+	m_oldViewWidth  = newViewWidth;
+	m_oldViewHeight = newViewHeight;
 	CGE_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
     }
 
