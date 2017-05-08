@@ -95,7 +95,7 @@
     m_oldViewWidth  = self.view.bounds.size.width;
     m_oldViewHeight = self.view.bounds.size.height;
 
-    CGEApp_Open(m_oldViewWidth, m_oldViewHeight);
+    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale);
     CGEApp_SetDpi(115 * m_fScale);
 
     [self update];

@@ -149,7 +149,7 @@
     m_oldViewWidth  = self.view.bounds.size.width;
     m_oldViewHeight = self.view.bounds.size.height;
 
-    CGE_Open(ecgeofLog, m_oldViewWidth, m_oldViewHeight);
+    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale);
     CGE_SetUserInterface(true, 115 * m_fScale);
 
     Options *opt = [Options sharedOptions];
