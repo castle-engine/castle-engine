@@ -109,7 +109,7 @@ var
       //WritelnLog('Spine', BaseUrl + ' available skins: 1 (' + CurrentSkin.Name + ').');
     end else
     begin
-      S := Format(BaseUrl + ' available skins: %d', [Skins.Count]) + NL;
+      S := Format('%s available skins: %d', [BaseUrl, Skins.Count]) + NL;
       for I := 0 to Skins.Count - 1 do
         S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
       S += Format('Using skin: %s', [CurrentSkin.Name]);
