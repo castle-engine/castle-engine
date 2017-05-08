@@ -69,14 +69,15 @@ begin
           NL+
           'compile:' +NL+
           '    Compile project.' +NL+
+          '    By default compiles for the current OS / current CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
+          '    You can use --os / --cpu options to compile to some other OS / CPU.' +NL+
+          '    You can use --target to compile for a special collection of OS/CPU' +NL+
+          '    platforms (like "iOS").' +NL+
           NL+
           'package:' +NL+
           '    Package the application into the best archive format for given' +NL+
           '    operating system (OS) / processor (CPU) / target.' +NL+
-          '    By default uses current OS / current CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
-          '    You can use --os / --cpu options to compile to some other OS / CPU.' +NL+
-          '    You can use --target to compile for a special collection of OS/CPU' +NL+
-          '    platforms (like "iOS").' +NL+
+          '    The OS, CPU and "target" can be changed just like at "compile".' +NL+
           NL+
           'install:' +NL+
           '    Install the application created by previous "package" call.' +NL+
