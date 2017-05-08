@@ -715,11 +715,15 @@ end;
 
 function TCastleApplication.ScreenWidth: integer;
 begin
+  if FScreenWidth = 0 then
+    WritelnWarning('Window', 'Application.ScreenWidth is queried before window is open, returns zero');
   Result := FScreenWidth;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
 begin
+  if FScreenHeight = 0 then
+    WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
   Result := FScreenHeight;
 end;
 

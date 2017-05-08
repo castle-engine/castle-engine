@@ -39,6 +39,7 @@ public
 
 {$ifdef read_application_interface}
 private
+  FScreenWidth, FScreenHeight: Integer;
   procedure WarningToCallback(Sender: TObject; const Category, S: string);
 {$endif read_application_interface}
 
@@ -277,16 +278,16 @@ end;
 
 function TCastleApplication.ScreenWidth: integer;
 begin
-  if OpenWindowsCount <> 0 then
-    Result := OpenWindows[0].Width else
-    Result := 200; // dummy fallback
+  if FScreenWidth = 0 then
+    WritelnWarning('Window', 'Application.ScreenWidth is queried before window is open, returns zero');
+  Result := FScreenWidth;
 end;
 
 function TCastleApplication.ScreenHeight: integer;
 begin
-  if OpenWindowsCount <> 0 then
-    Result := OpenWindows[0].Height else
-    Result := 200; // dummy fallback
+  if FScreenHeight = 0 then
+    WritelnWarning('Window', 'Application.ScreenHeight is queried before window is open, returns zero');
+  Result := FScreenHeight;
 end;
 
 function TCastleApplication.BackendName: string;
@@ -349,10 +350,20 @@ end;
 procedure CGEApp_Open; cdecl;
 begin
   try
+    // TODO
+    // WritelnLog('Library received CGEApp_Open (window size: %d %d)', [Width, Height]);
+    // Application.FScreenWidth := Width;
+    // Application.FScreenHeight := Height;
+    // //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
+    // Window.FLeft := 0;
+    // Window.FTop := 0;
+    // Window.FWidth := Width;
+    // Window.FHeight := Height;
+
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
     Application.MainWindow.Open;
   except
-    on E: TObject do WritelnLog('CGEApp_Open', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Open', ExceptMessage(E));
   end;
 end;
 
@@ -362,16 +373,18 @@ begin
     Application.MainWindow.Close;
     ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
   except
-    on E: TObject do WritelnLog('CGEApp_Close', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Close', ExceptMessage(E));
   end;
 end;
 
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
+    Application.FScreenWidth  := uiViewWidth;
+    Application.FScreenHeight := uiViewHeight;
     Application.MainWindow.DoResize(uiViewWidth, uiViewHeight, false);
   except
-    on E: TObject do WritelnLog('CGEApp_Resize', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Resize', ExceptMessage(E));
   end;
 end;
 
@@ -380,7 +393,7 @@ begin
   try
     Application.MainWindow.DoRender;
   except
-    on E: TObject do WritelnLog('CGEApp_Render', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Render', ExceptMessage(E));
   end;
 end;
 
@@ -389,7 +402,7 @@ begin
   try
     LibraryCallbackProc := aProc;
   except
-    on E: TObject do WritelnLog('CGEApp_SetLibraryCallbackProc', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_SetLibraryCallbackProc', ExceptMessage(E));
   end;
 end;
 
@@ -400,7 +413,7 @@ begin
     Application.FOpenWindows.DoUpdate;
     Application.MaybeDoTimer;
   except
-    on E: TObject do WritelnLog('CGEApp_Update', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Update', ExceptMessage(E));
   end;
 end;
 
@@ -412,7 +425,7 @@ begin
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Application.MainWindow.DoMouseDown(Vector2Single(X, Y), MyButton, FingerIndex);
   except
-    on E: TObject do WritelnLog('CGEApp_MouseDown', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
   end;
 end;
 
@@ -426,7 +439,7 @@ begin
     W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
       Vector2Single(X, Y), W.MousePressed, FingerIndex));
   except
-    on E: TObject do WritelnLog('CGEApp_Motion', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Motion', ExceptMessage(E));
   end;
 end;
 
@@ -438,7 +451,7 @@ begin
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Application.MainWindow.DoMouseUp(Vector2Single(X, Y), MyButton, FingerIndex);
   except
-    on E: TObject do WritelnLog('CGEApp_TouchUp', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_TouchUp', ExceptMessage(E));
   end;
 end;
 
@@ -449,7 +462,7 @@ begin
       // TODO: calculate sensible char
       Application.MainWindow.DoKeyDown(TKey(eKey), #0);
   except
-    on E: TObject do WritelnLog('CGEApp_KeyDown', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_KeyDown', ExceptMessage(E));
   end;
 end;
 
@@ -459,7 +472,7 @@ begin
     if TKey(eKey)<>K_None then
       Application.MainWindow.DoKeyUp(TKey(eKey));
   except
-    on E: TObject do WritelnLog('CGEApp_KeyUp', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_KeyUp', ExceptMessage(E));
   end;
 end;
 
@@ -468,7 +481,7 @@ begin
   try
     Application.MainWindow.Dpi := nDpi;
   except
-    on E: TObject do WritelnLog('CGEApp_Dpi', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_Dpi', ExceptMessage(E));
   end;
 end;
 
