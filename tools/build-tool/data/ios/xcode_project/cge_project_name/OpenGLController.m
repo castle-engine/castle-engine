@@ -23,6 +23,8 @@
 {
     CGFloat m_fScale;
     UITouch* m_arrTouches[MAX_TOUCHES];
+    int oldViewWidth;
+    int oldViewHeight;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -90,7 +92,10 @@
     else
         m_fScale = 1.0;
 
-    CGEApp_Open();
+    self.oldViewWidth  = self.view.bounds.size.width;
+    self.oldViewHeight = self.view.bounds.size.height;
+
+    CGEApp_Open(self.oldViewWidth, self.oldViewHeight);
     CGEApp_SetDpi(115 * m_fScale);
 
     [self update];
@@ -108,11 +113,16 @@
 //-----------------------------------------------------------------
 - (void)update
 {
-    // set and update the geometry
-    int nViewSizeX = self.view.bounds.size.width;
-    int nViewSizeY = self.view.bounds.size.height;
-
-    CGEApp_Resize(nViewSizeX*m_fScale, nViewSizeY*m_fScale);
+    // update the viewport size, if changed
+    int newViewWidth  = self.view.bounds.size.width;
+    int newViewHeight = self.view.bounds.size.height;
+    if (self.oldViewWidth  != newViewWidth ||
+        self.oldViewHeight != newViewHeight)
+    {
+	self.oldViewWidth  = newViewWidth;
+	self.oldViewHeight = newViewHeight;
+	CGEApp_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
+    }
 
     // send accumulated touch positions (sending them right away jams the engine)
     for (NSInteger i = 0; i < MAX_TOUCHES; i++)

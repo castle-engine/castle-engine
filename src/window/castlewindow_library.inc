@@ -45,7 +45,7 @@ private
 
 {$ifdef read_global_interface}
 
-procedure CGEApp_Open; cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32); cdecl;
 procedure CGEApp_Close; cdecl;
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
@@ -347,18 +347,30 @@ end;
 
 {$define read_implementation}
 
-procedure CGEApp_Open; cdecl;
+procedure CheckMainWindow;
+begin
+  if Application.MainWindow = nil then
+    raise Exception.Create('Application.MainWindow not set. One of the game units *must* set Application.MainWindow value in the "initialization" section');
+end;
+
+procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32); cdecl;
 begin
   try
-    // TODO
-    // WritelnLog('Library received CGEApp_Open (window size: %d %d)', [Width, Height]);
-    // Application.FScreenWidth := Width;
-    // Application.FScreenHeight := Height;
-    // //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
-    // Window.FLeft := 0;
-    // Window.FTop := 0;
-    // Window.FWidth := Width;
-    // Window.FHeight := Height;
+    CheckMainWindow;
+
+    { We have to set window sizes, and Application.Screen* sizes,
+      before calling MainWindow.Open. That's because EventOpen may already
+      look at these values.
+      Yes, other CastleWindow backends also make sure that these are set early. }
+
+    WritelnLog('Library received CGEApp_Open (window size: %d %d)', [InitialWidth, InitialHeight]);
+    Application.FScreenWidth := InitialWidth;
+    Application.FScreenHeight := InitialHeight;
+    //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?
+    Application.MainWindow.FLeft := 0;
+    Application.MainWindow.FTop := 0;
+    Application.MainWindow.FWidth := InitialWidth;
+    Application.MainWindow.FHeight := InitialHeight;
 
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
     Application.MainWindow.Open;
@@ -370,6 +382,7 @@ end;
 procedure CGEApp_Close; cdecl;
 begin
   try
+    CheckMainWindow;
     Application.MainWindow.Close;
     ApplicationProperties.OnWarning.Remove(@Application.WarningToCallback);
   except
@@ -380,6 +393,7 @@ end;
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
+    CheckMainWindow;
     Application.FScreenWidth  := uiViewWidth;
     Application.FScreenHeight := uiViewHeight;
     Application.MainWindow.DoResize(uiViewWidth, uiViewHeight, false);
@@ -391,6 +405,7 @@ end;
 procedure CGEApp_Render; cdecl;
 begin
   try
+    CheckMainWindow;
     Application.MainWindow.DoRender;
   except
     on E: TObject do WritelnWarning('CGEApp_Render', ExceptMessage(E));
@@ -422,6 +437,7 @@ var
   MyButton: TMouseButton;
 begin
   try
+    CheckMainWindow;
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Application.MainWindow.DoMouseDown(Vector2Single(X, Y), MyButton, FingerIndex);
   except
@@ -434,6 +450,7 @@ var
   W: TCastleWindowCustom;
 begin
   try
+    CheckMainWindow;
     { TODO: using MousePressed as Pressed is only OK without multi-touch. }
     W := Application.MainWindow;
     W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
@@ -448,6 +465,7 @@ var
   MyButton: TMouseButton;
 begin
   try
+    CheckMainWindow;
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
     Application.MainWindow.DoMouseUp(Vector2Single(X, Y), MyButton, FingerIndex);
   except
@@ -458,6 +476,7 @@ end;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 begin
   try
+    CheckMainWindow;
     if TKey(eKey)<>K_None then
       // TODO: calculate sensible char
       Application.MainWindow.DoKeyDown(TKey(eKey), #0);
@@ -469,6 +488,7 @@ end;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 begin
   try
+    CheckMainWindow;
     if TKey(eKey)<>K_None then
       Application.MainWindow.DoKeyUp(TKey(eKey));
   except
@@ -479,6 +499,7 @@ end;
 procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
 begin
   try
+    CheckMainWindow;
     Application.MainWindow.Dpi := nDpi;
   except
     on E: TObject do WritelnWarning('CGEApp_Dpi', ExceptMessage(E));

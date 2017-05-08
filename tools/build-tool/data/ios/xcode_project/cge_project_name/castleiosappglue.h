@@ -166,11 +166,11 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
 typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 //-----------------------------------------------------------------------------
-extern void CGEApp_Open();     // init the library, this function must be called first (required).
+extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight);     // init the library, this function must be called first (required).
 extern void CGEApp_Close();
 extern void CGEApp_SetDpi(int nDpi);
 
-extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size (required)
+extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
 extern void CGEApp_Render();                                                  // paints the 3d scene into the context
 extern void CGEApp_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);     // set callback function
 extern void CGEApp_Update();                                                  // let the 3d engine perform the animations, etc
