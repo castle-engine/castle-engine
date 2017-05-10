@@ -29,8 +29,11 @@
   private
     function GetGeoCoords: TVector3Double;
     procedure SetGeoCoords(const Value: TVector3Double);
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
 {$endif read_interface}
 
@@ -46,6 +49,19 @@ end;
 procedure TGeoLocationNode.SetGeoCoords(const Value: TVector3Double);
 begin
   FdGeoCoords.Send(Value);
+end;
+
+function TGeoLocationNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoLocationNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -96,6 +96,7 @@
 '  vec4 light_color =' + LineEnding +
 '#ifdef LIGHT_HAS_AMBIENT' + LineEnding +
 '  gl_SideLightProduct[<Light>].ambient;' + LineEnding +
+'  /* PLUG: material_light_ambient (light_color) */' + LineEnding +
 '#else' + LineEnding +
 '  vec4(0.0);' + LineEnding +
 '#endif' + LineEnding +
@@ -108,10 +109,15 @@
 '' + LineEnding +
 '#ifdef LIGHT_HAS_SPECULAR' + LineEnding +
 '  /* add specular term */' + LineEnding +
-'  if (diffuse_factor != 0.0)' + LineEnding +
-'    light_color += gl_SideLightProduct[<Light>].specular *' + LineEnding +
+'  if (diffuse_factor != 0.0) {' + LineEnding +
+'    vec4 specular_color = gl_SideLightProduct[<Light>].specular;' + LineEnding +
+'    float material_shininess = material.shininess;' + LineEnding +
+'    /* PLUG: material_light_specular (specular_color) */' + LineEnding +
+'    /* PLUG: material_shininess (material_shininess) */' + LineEnding +
+'    light_color += specular_color *' + LineEnding +
 '      pow(max(dot(vec3(gl_LightSource[<Light>].halfVector), normal_eye),' + LineEnding +
-'        0.0), material.shininess);' + LineEnding +
+'        0.0), material_shininess);' + LineEnding +
+'  }' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '  color += light_color * scale;' + LineEnding +

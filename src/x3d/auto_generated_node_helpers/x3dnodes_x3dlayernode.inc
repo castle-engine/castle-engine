@@ -29,8 +29,11 @@
   private
     function GetIsPickable: boolean;
     procedure SetIsPickable(const Value: boolean);
+    function GetViewport: TAbstractViewportNode;
+    procedure SetViewport(const Value: TAbstractViewportNode);
   public
     property IsPickable: boolean read GetIsPickable write SetIsPickable;
+    property Viewport: TAbstractViewportNode read GetViewport write SetViewport;
 
 {$endif read_interface}
 
@@ -46,6 +49,19 @@ end;
 procedure TAbstractLayerNode.SetIsPickable(const Value: boolean);
 begin
   FdIsPickable.Send(Value);
+end;
+
+function TAbstractLayerNode.GetViewport: TAbstractViewportNode;
+begin
+  if FdViewport.Value is TAbstractViewportNode then
+    Result := TAbstractViewportNode(FdViewport.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractLayerNode.SetViewport(const Value: TAbstractViewportNode);
+begin
+  FdViewport.Send(Value);
 end;
 
 {$endif read_implementation}

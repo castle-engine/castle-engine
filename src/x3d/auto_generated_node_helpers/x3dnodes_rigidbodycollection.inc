@@ -51,6 +51,8 @@
     procedure SetMaxCorrectionSpeed(const Value: Single);
     function GetPreferAccuracy: boolean;
     procedure SetPreferAccuracy(const Value: boolean);
+    function GetCollider: TCollisionCollectionNode;
+    procedure SetCollider(const Value: TCollisionCollectionNode);
   public
     property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
@@ -64,6 +66,7 @@
     property Iterations: Integer read GetIterations write SetIterations;
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
     property PreferAccuracy: boolean read GetPreferAccuracy write SetPreferAccuracy;
+    property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
 {$endif read_interface}
 
@@ -189,6 +192,19 @@ end;
 procedure TRigidBodyCollectionNode.SetPreferAccuracy(const Value: boolean);
 begin
   FdPreferAccuracy.Send(Value);
+end;
+
+function TRigidBodyCollectionNode.GetCollider: TCollisionCollectionNode;
+begin
+  if FdCollider.Value is TCollisionCollectionNode then
+    Result := TCollisionCollectionNode(FdCollider.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRigidBodyCollectionNode.SetCollider(const Value: TCollisionCollectionNode);
+begin
+  FdCollider.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -503,17 +503,11 @@ type
     function Equals(SecondValue: TX3DGraphTraverseState;
       const IgnoreTransform: boolean): boolean; {$ifdef TOBJECT_HAS_EQUALS} reintroduce; {$endif}
 
-    { Returns texture node that should be used for nodes within this State.
+    { Diffuse (and alpha) texture that should be used for nodes within this State.
       Regardless of VRML/X3D version. May return multi-texture
       (TMultiTextureNode), or normal 2D texture (TAbstractTexture2DNode),
-      or some other TAbstractTextureNode descendant (cube map, 3d texture).
-
-      Details:
-      If ShapeNode <> nil, this returns texture node taken from
-      ShapeNode.Texture (note that it may be nil, if Apperance
-      of Appearance.Texture node is NULL in VRML).
-      Otherwise it returns texture from LastNodes.Texture2. }
-    function Texture: TAbstractTextureNode;
+      or some other TAbstractTextureNode descendant (cube map, 3d texture). }
+    function DiffuseAlphaTexture: TAbstractTextureNode;
 
     { Returns BlendMode for this state, or @nil if not present. }
     function BlendMode: TBlendModeNode;
@@ -2260,15 +2254,15 @@ resourcestring
   end;
 }
 
-{$I x3dnodes_extrusion.inc}
-{$I x3dnodes_elevationgrid.inc}
+{$I x3dnodes_utils_extrusion.inc}
+{$I x3dnodes_utils_elevationgrid.inc}
+{$I x3dnodes_utils_cone_cylinder.inc}
+{$I x3dnodes_utils_sphere.inc}
+{$I x3dnodes_utils_box.inc}
 {$I x3dnodes_boundingboxes.inc}
 {$I x3dnodes_verticesandtrianglescounting.inc}
 {$I x3dnodes_coordpolygons.inc}
 {$I x3dnodes_eventsengine.inc}
-{$I x3dnodes_cone_cylinder.inc}
-{$I x3dnodes_sphere.inc}
-{$I x3dnodes_box.inc}
 {$I x3dnodes_save.inc}
 {$I x3dnodes_load.inc}
 {$I x3dnodes_encoding_classic.inc}
@@ -2904,28 +2898,14 @@ begin
   end;
 end;
 
-function TX3DGraphTraverseState.Texture: TAbstractTextureNode;
-var
-  SurfaceShader: TCommonSurfaceShaderNode;
+function TX3DGraphTraverseState.DiffuseAlphaTexture: TAbstractTextureNode;
 begin
   Result := nil;
   if ShapeNode = nil then
     Result := LastNodes.Texture2
   else
-  begin
-    SurfaceShader := ShapeNode.CommonSurfaceShader;
-    { This simple implementation of CommonSurfaceShader.DiffuseTexture
-      is OK for now: the diffuse texture simply replaces
-      the default Appearance.texture list. }
-    if SurfaceShader <> nil then
-    begin
-      if SurfaceShader.MultiDiffuseAlphaTexture <> nil then
-        Exit(SurfaceShader.MultiDiffuseAlphaTexture);
-      if SurfaceShader.DiffuseTexture <> nil then
-        Exit(SurfaceShader.DiffuseTexture);
-    end else
-      Result := ShapeNode.Texture;
-  end;
+  if ShapeNode.Appearance <> nil then
+    Result := ShapeNode.Appearance.DiffuseAlphaTexture;
 end;
 
 function TX3DGraphTraverseState.BlendMode: TBlendModeNode;

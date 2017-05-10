@@ -29,6 +29,11 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
   const SearchPaths: TStrings);
 
+{ Output path, where temporary things like units (and iOS stuff)
+  are placed. }
+function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
+  const WorkingDirectory: string): string;
+
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
 
@@ -156,11 +161,12 @@ var
   end;
 
   procedure AddIOSOptions;
+  {$ifdef DARWIN}
   const
     SimulatorSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk';
     DeviceSdk = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk';
+  {$endif}
   var
-    CompilationResultPath: string;
     IOS: boolean;
   begin
     IOS := false;
@@ -170,7 +176,9 @@ var
       IOS := true;
       if FPCVersionForIPhoneSimulator <> '' then
         FpcOptions.Add('-V' + FPCVersionForIPhoneSimulator);
+      {$ifdef DARWIN}
       FpcOptions.Add('-XR' + SimulatorSdk);
+      {$endif}
     end;
 
     if (OS = darwin) and (CPU = arm) then
@@ -178,7 +186,9 @@ var
       IOS := true;
       FpcOptions.Add('-Cparmv7');
       FpcOptions.Add('-Cfvfpv3');
+      {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
+      {$endif}
     end;
 
     if (OS = darwin) and (CPU = aarch64) then
@@ -186,21 +196,19 @@ var
       IOS := true;
       // -dCPUARM64 is checked by castleconf.inc
       FpcOptions.Add('-dCPUARM64');
+      {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
+      {$endif}
     end;
 
-    // options for all platforms
+    // options for all iOS platforms
     if IOS then
     begin
       FpcOptions.Add('-Cn');
       FpcOptions.Add('-WP5.1');
-      FpcOptions.Add('-dCASTLE_WINDOW_LIBRARY');
-
-      CompilationResultPath := InclPathDelim(WorkingDirectory) +
-        'castle-engine-output/compilation/' + CPUToString(CPU) + '-' + OSToString(OS);
-      ForceDirectories(CompilationResultPath);
-      FpcOptions.Add('-FU' + CompilationResultPath);
-      FpcOptions.Add('-o' + InclPathDelim(CompilationResultPath) + 'libiospartial.a');
+      { TODO: this option is probably useless for now, since we pass -Cn
+        and later create the library manually. }
+      FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'libcge_ios_project_unused.a');
     end;
   end;
 
@@ -417,6 +425,7 @@ begin
     end;
 
     FpcOptions.Add(CompileFile);
+    FpcOptions.Add('-FU' + CompilationOutputPath(OS, CPU, WorkingDirectory));
 
     AddIOSOptions;
 
@@ -450,7 +459,13 @@ begin
   finally FreeAndNil(FpcOptions) end;
 end;
 
-{ globals -------------------------------------------------------------------- }
+function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
+  const WorkingDirectory: string): string;
+begin
+  Result := OutputPath(WorkingDirectory) + 'compilation' + PathDelim +
+    CPUToString(CPU) + '-' + OSToString(OS) + PathDelim;
+  CheckForceDirectories(Result);
+end;
 
 const
   CompilationModeNames: array [TCompilationMode] of string =

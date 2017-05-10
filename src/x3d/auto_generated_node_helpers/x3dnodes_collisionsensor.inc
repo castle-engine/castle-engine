@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetCollider: TCollisionCollectionNode;
+    procedure SetCollider(const Value: TCollisionCollectionNode);
+  public
+    property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TCollisionSensorNode ----------------------------------------------- }
+
+function TCollisionSensorNode.GetCollider: TCollisionCollectionNode;
+begin
+  if FdCollider.Value is TCollisionCollectionNode then
+    Result := TCollisionCollectionNode(FdCollider.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCollisionSensorNode.SetCollider(const Value: TCollisionCollectionNode);
+begin
+  FdCollider.Send(Value);
+end;
 
 {$endif read_implementation}

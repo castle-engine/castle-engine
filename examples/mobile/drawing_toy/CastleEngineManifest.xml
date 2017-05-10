@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="drawing_toy"
+  caption="Drawing Toy"
+  qualified_name="net.sourceforge.castleengine.drawingtoy"
+  standalone_source="drawing_toy_standalone.lpr"
+  game_units="Game">
+  <package>
+    <include path="README.txt" />
+  </package>
+</project>

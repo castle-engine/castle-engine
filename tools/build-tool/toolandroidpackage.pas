@@ -166,7 +166,7 @@ var
   end;
 }
 
-  { Generate simple text stuff for Android project from templates. }
+  { Generate files for Android project from templates. }
   procedure GenerateFromTemplates;
   var
     DestinationPath: string;
@@ -260,16 +260,16 @@ var
                 'assets' + PathDelim + Files[I];
       PackageSmartCopyFile(FileFrom, FileTo);
       if Verbose then
-        Writeln('Package file: ' + Files[I]);
+        Writeln('Packaging data file: ' + Files[I]);
     end;
   end;
 
   procedure GenerateLibrary;
   begin
-    PackageSmartCopyFile(Project.Path + Project.AndroidLibraryFile(true),
+    PackageSmartCopyFile(Project.AndroidLibraryFile,
       'app' + PathDelim + 'src' + PathDelim + 'main' + PathDelim +
       { Place precompiled libs in jni/ , ndk-build will find them there. }
-      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + Project.AndroidLibraryFile(false));
+      'jni' + PathDelim + 'armeabi-v7a' + PathDelim + ExtractFileName(Project.AndroidLibraryFile));
   end;
 
   { Run "ndk-build", this moves our .so to the final location in jniLibs,
@@ -418,7 +418,12 @@ var
   ApkName: string;
   PackageMode: TCompilationMode;
 begin
-  AndroidProjectPath := InclPathDelim(CreateTemporaryDir);
+  { calculate clean AndroidProjectPath }
+  AndroidProjectPath := OutputPath(Project.Path) +
+    'android' + PathDelim + 'project' + PathDelim;
+  if DirectoryExists(AndroidProjectPath) then
+    RemoveNonEmptyDir(AndroidProjectPath);
+
   PackageMode := SuggestedPackageMode;
 
   CalculateSigningProperties(PackageMode);
@@ -437,9 +442,6 @@ begin
     Project.Path + ApkName);
 
   Writeln('Build ' + ApkName);
-
-  if not LeaveTemp then
-    RemoveNonEmptyDir(AndroidProjectPath, true);
 end;
 
 procedure InstallAndroidPackage(const Name, QualifiedName: string);

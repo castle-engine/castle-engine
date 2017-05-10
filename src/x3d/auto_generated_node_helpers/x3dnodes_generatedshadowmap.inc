@@ -29,12 +29,15 @@
   private
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
+    function GetLight: TAbstractLightNode;
+    procedure SetLight(const Value: TAbstractLightNode);
     function GetScale: Single;
     procedure SetScale(const Value: Single);
     function GetBias: Single;
     procedure SetBias(const Value: Single);
   public
     property Size: Integer read GetSize write SetSize;
+    property Light: TAbstractLightNode read GetLight write SetLight;
     property Scale: Single read GetScale write SetScale;
     property Bias: Single read GetBias write SetBias;
 
@@ -52,6 +55,19 @@ end;
 procedure TGeneratedShadowMapNode.SetSize(const Value: Integer);
 begin
   FdSize.Send(Value);
+end;
+
+function TGeneratedShadowMapNode.GetLight: TAbstractLightNode;
+begin
+  if FdLight.Value is TAbstractLightNode then
+    Result := TAbstractLightNode(FdLight.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeneratedShadowMapNode.SetLight(const Value: TAbstractLightNode);
+begin
+  FdLight.Send(Value);
 end;
 
 function TGeneratedShadowMapNode.GetScale: Single;

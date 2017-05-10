@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetLayout: TAbstractLayoutNode;
+    procedure SetLayout(const Value: TAbstractLayoutNode);
+  public
+    property Layout: TAbstractLayoutNode read GetLayout write SetLayout;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLayoutLayerNode ----------------------------------------------- }
+
+function TLayoutLayerNode.GetLayout: TAbstractLayoutNode;
+begin
+  if FdLayout.Value is TAbstractLayoutNode then
+    Result := TAbstractLayoutNode(FdLayout.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLayoutLayerNode.SetLayout(const Value: TAbstractLayoutNode);
+begin
+  FdLayout.Send(Value);
+end;
 
 {$endif read_implementation}

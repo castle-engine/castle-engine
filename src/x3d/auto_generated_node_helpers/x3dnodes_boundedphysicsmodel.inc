@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetGeometry: TAbstractGeometryNode;
+    procedure SetGeometry(const Value: TAbstractGeometryNode);
+  public
+    property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TBoundedPhysicsModelNode ----------------------------------------------- }
+
+function TBoundedPhysicsModelNode.GetGeometry: TAbstractGeometryNode;
+begin
+  if FdGeometry.Value is TAbstractGeometryNode then
+    Result := TAbstractGeometryNode(FdGeometry.Value)
+  else
+    Result := nil;
+end;
+
+procedure TBoundedPhysicsModelNode.SetGeometry(const Value: TAbstractGeometryNode);
+begin
+  FdGeometry.Send(Value);
+end;
 
 {$endif read_implementation}

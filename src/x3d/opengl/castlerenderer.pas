@@ -323,7 +323,7 @@ type
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
       DefaultShaders = srWhenRequired;
-      DefaultBumpMapping = bmBasic;
+      DefaultBumpMapping = bmSteepParallaxShadowing;
 
     constructor Create; virtual;
 
@@ -802,7 +802,6 @@ type
 
   {$I castlerenderer_resource.inc}
   {$I castlerenderer_texture.inc}
-  {$I castlerenderer_bumpmapping.inc}
   {$I castlerenderer_glsl.inc}
 
   { Shape that can be rendered. }
@@ -843,7 +842,6 @@ type
       uninitialized values) in UnprepareAll. }
 
     GLTextureNodes: TGLTextureNodes;
-    BumpMappingRenderers: TBumpMappingRendererList;
     ScreenEffectPrograms: TGLSLProgramList;
 
     { ------------------------------------------------------------------------ }
@@ -866,6 +864,7 @@ type
       global BumpMapping, and by the texture information for current
       shape (whether user provided normal map, height map etc.) }
     ShapeBumpMappingUsed: boolean;
+    ShapeBumpMappingTextureCoordinatesId: Cardinal;
 
     { How many texture units are used.
 
@@ -899,6 +898,8 @@ type
     FFixedFunctionLighting: boolean;
     FFixedFunctionAlphaTest: boolean;
     FLineType: TLineType;
+
+    function PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 
     {$ifndef OpenGLES}
     { Call glPushMatrix, assuming that current matrix mode is GL_TEXTURE
@@ -936,6 +937,8 @@ type
     { Change GL_ALPHA_TEST enabled by this property. }
     property FixedFunctionAlphaTest: boolean read FFixedFunctionAlphaTest write SetFixedFunctionAlphaTest;
     property LineType: TLineType read FLineType write SetLineType;
+
+    {$I castlerenderer_surfacetextures.inc}
   private
     { ----------------------------------------------------------------- }
 
@@ -1030,9 +1033,6 @@ type
       (to prepare state for following RenderShape calls) and at RenderEnd
       (to leave *somewhat* defined state afterwards). }
     procedure RenderCleanState(const Beginning: boolean);
-
-    procedure PrepareIDecls(Nodes: TMFNode; State: TX3DGraphTraverseState);
-    procedure PrepareIDecls(Nodes: TX3DNodeList; State: TX3DGraphTraverseState);
   public
     { If > 0, RenderShape will not actually render, only prepare
       per-shape resources for fast rendering (arrays and vbos). }
@@ -1137,7 +1137,7 @@ uses Math, CastleStringUtils, CastleGLVersion, CastleLog,
 {$I castlerenderer_meshrenderer.inc}
 {$I castlerenderer_resource.inc}
 {$I castlerenderer_texture.inc}
-{$I castlerenderer_bumpmapping.inc}
+{$I castlerenderer_surfacetextures.inc}
 {$I castlerenderer_glsl.inc}
 
 { TGLRendererContextCache -------------------------------------------- }
@@ -2117,7 +2117,6 @@ begin
   FAttributes := AttributesClass.Create;
 
   GLTextureNodes := TGLTextureNodes.Create(false);
-  BumpMappingRenderers := TBumpMappingRendererList.Create(false);
   ScreenEffectPrograms := TGLSLProgramList.Create;
   TextureTransformUnitsUsedMore := TLongIntList.Create;
 
@@ -2133,7 +2132,6 @@ begin
 
   FreeAndNil(TextureTransformUnitsUsedMore);
   FreeAndNil(GLTextureNodes);
-  FreeAndNil(BumpMappingRenderers);
   FreeAndNil(ScreenEffectPrograms);
   FreeAndNil(FAttributes);
   FreeAndNil(PreparedShader);
@@ -2294,69 +2292,64 @@ end;
 
 { Prepare/Unprepare[All] ------------------------------------------------------- }
 
-procedure TGLRenderer.PrepareIDecls(Nodes: TMFNode;
-  State: TX3DGraphTraverseState);
+function TGLRenderer.PrepareTexture(Shape: TShape; Texture: TAbstractTextureNode): Pointer;
 begin
-  PrepareIDecls(Nodes.Items, State);
-end;
-
-procedure TGLRenderer.PrepareIDecls(Nodes: TX3DNodeList;
-  State: TX3DGraphTraverseState);
-var
-  I: Integer;
-begin
-  for I := 0 to Nodes.Count - 1 do
-    GLTextureNodes.PrepareInterfaceDeclarationsTextures(Nodes[I], State, Self);
+  GLTextureNodes.Prepare(Shape.State, Texture, Self);
+  Result := nil;
 end;
 
 procedure TGLRenderer.Prepare(Shape: TX3DRendererShape);
-var
-  I: Integer;
-  Lights: TLightInstancesList;
-  Texture: TAbstractTextureNode;
-  FontTexture: TAbstractTexture2DNode;
-  State: TX3DGraphTraverseState;
 begin
-  State := Shape.State;
-
-  // TODO: why not use TShape.EnumerateTextures here?
-
-  GLTextureNodes.Prepare(State, State.Texture, Self);
-
-  FontTexture := Shape.OriginalGeometry.FontTextureNode;
-  if FontTexture <> nil then
-    GLTextureNodes.Prepare(State, FontTexture, Self);
-
-  BumpMappingRenderers.Prepare(State, Self);
-
-  if (State.ShapeNode <> nil) and
-     (State.ShapeNode.Appearance <> nil) then
-  begin
-    PrepareIDecls(State.ShapeNode.Appearance.FdEffects, State);
-    PrepareIDecls(State.ShapeNode.Appearance.FdShaders, State);
-  end;
-
-  if State.Effects <> nil then
-    PrepareIDecls(State.Effects, State);
-
-  Lights := State.Lights;
-  if Lights <> nil then
-    for I := 0 to Lights.Count - 1 do
-      PrepareIDecls(Lights.L[I].Node.FdEffects, State);
-
-  Texture := State.Texture;
-  if Texture <> nil then
-  begin
-    PrepareIDecls(Texture.FdEffects, State);
-    if Texture is TMultiTextureNode then
-      for I := 0 to TMultiTextureNode(Texture).FdTexture.Count - 1 do
-        if TMultiTextureNode(Texture).FdTexture[I] is TAbstractTextureNode then
-          PrepareIDecls(TAbstractTextureNode(TMultiTextureNode(Texture).
-            FdTexture[I]).FdEffects, State);
-  end;
+  Shape.EnumerateTextures(@PrepareTexture);
 end;
 
 procedure TGLRenderer.PrepareScreenEffect(Node: TScreenEffectNode);
+
+  procedure PrepareIDecls(const IDecls: TX3DInterfaceDeclarationList;
+    State: TX3DGraphTraverseState);
+
+    { If TextureNode <> @nil and is a texture node, prepare it. }
+    procedure PrepareTexture(TextureNode: TX3DNode);
+    begin
+      if (TextureNode <> nil) and
+         (TextureNode is TAbstractTextureNode) then
+        GLTextureNodes.Prepare(State, TAbstractTextureNode(TextureNode), Self);
+    end;
+
+  var
+    I, J: Integer;
+    UniformField: TX3DField;
+  begin
+    if IDecls = nil then Exit; { ignore nodes without interface declararations }
+
+    for I := 0 to IDecls.Count - 1 do
+    begin
+      UniformField := IDecls.Items[I].Field;
+
+      if UniformField <> nil then
+      begin
+        if UniformField is TSFNode then
+        begin
+          PrepareTexture(TSFNode(UniformField).Value);
+        end else
+        if UniformField is TMFNode then
+        begin
+          for J := 0 to TMFNode(UniformField).Count - 1 do
+            PrepareTexture(TMFNode(UniformField)[J]);
+        end;
+      end;
+    end;
+  end;
+
+  { Prepare all textures within X3D "interface declarations" of the given Nodes. }
+  procedure PrepareIDeclsList(Nodes: TX3DNodeList; State: TX3DGraphTraverseState);
+  var
+    I: Integer;
+  begin
+    for I := 0 to Nodes.Count - 1 do
+      PrepareIDecls(Nodes[I].InterfaceDeclarations, State);
+  end;
+
 var
   Shader: TShader;
   ShaderProgram: TX3DGLSLProgram;
@@ -2369,7 +2362,7 @@ begin
     if Node.FdEnabled.Value then
     begin
       { make sure that textures inside shaders are prepared }
-      PrepareIDecls(Node.FdShaders, Node.StateForShaderPrepare);
+      PrepareIDeclsList(Node.FdShaders.Items, Node.StateForShaderPrepare);
 
       Shader := TShader.Create;
       try
@@ -2408,7 +2401,6 @@ end;
 procedure TGLRenderer.UnprepareAll;
 begin
   GLTextureNodes.UnprepareAll;
-  BumpMappingRenderers.UnprepareAll;
   ScreenEffectPrograms.Count := 0; { this will free programs inside }
 end;
 
@@ -2965,8 +2957,8 @@ begin
           since then no texture is used anyway.
 
           TODO: what to do with CommonSurfaceShader ? }
-        if (State.Texture <> nil) and
-           (not (State.Texture is TMultiTextureNode)) then
+        if (State.DiffuseAlphaTexture <> nil) and
+           (not (State.DiffuseAlphaTexture is TMultiTextureNode)) then
         begin
           if FirstTexUnit < GLFeatures.MaxTextureUnits then
           begin
@@ -3290,9 +3282,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
 
     AlphaTest := false;
 
-    TextureNode := Shape.State.Texture;
+    TextureNode := Shape.State.DiffuseAlphaTexture;
     GLTextureNode := GLTextureNodes.TextureNode(TextureNode);
-    { assert we never have non-nil GLFontTextureNode and nil FontTextureNode }
+    { assert we never have non-nil GLTextureNode and nil TextureNode }
     Assert((GLTextureNode = nil) or (TextureNode <> nil));
 
     FontTextureNode := Shape.OriginalGeometry.FontTextureNode;
@@ -3308,8 +3300,7 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         later when shader actually binds texture uniform values). }
       TexCoordsNeeded := UsedGLSLTexCoordsNeeded;
     end else
-    if ( (GLTextureNode <> nil) or (GLFontTextureNode <> nil) ) and
-       Attributes.EnableTextures and
+    if Attributes.EnableTextures and
        NodeTextured(Shape.Geometry) then
     begin
       { This works also for TextureNode being TMultiTextureNode,
@@ -3327,13 +3318,9 @@ procedure TGLRenderer.RenderShapeTextures(Shape: TX3DRendererShape;
         GLTextureNode.EnableAll(GLFeatures.MaxTextureUnits, TexCoordsNeeded, Shader);
       BoundTextureUnits := TexCoordsNeeded;
 
-      { If there is any texture, and we have room for one more texture,
-        try enabling bump mapping. Note that we don't increase
-        TexCoordsNeeded for this, as bump mapping uses the existing
-        texture coord. }
-      if (TexCoordsNeeded > 0) and
-         (TexCoordsNeeded < GLFeatures.MaxTextureUnits) then
-        BumpMappingRenderers.Enable(Shape.State, BoundTextureUnits, Shader);
+      { If there is special texture like a normalmap, enable it. }
+      BumpMappingEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
+      SurfaceTexturesEnable(Shape.State, BoundTextureUnits, TexCoordsNeeded, Shader);
     end;
 
     { Set alpha test enabled state for OpenGL (shader and fixed-function).
@@ -3419,6 +3406,7 @@ begin
         Generator.FogVolumetricDirection := FogVolumetricDirection;
         Generator.FogVolumetricVisibilityStart := FogVolumetricVisibilityStart;
         Generator.ShapeBumpMappingUsed := ShapeBumpMappingUsed;
+        Generator.ShapeBumpMappingTextureCoordinatesId := ShapeBumpMappingTextureCoordinatesId;
         Generator.OnVertexColor := Attributes.OnVertexColor;
         Generator.OnRadianceTransfer := Attributes.OnRadianceTransfer;
         Shape.Cache.Arrays := Generator.GenerateArrays;

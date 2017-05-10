@@ -42,8 +42,6 @@
     procedure SetProjectionSceneLocation(const Value: TVector3Single);
     function  GetProjectionSceneDirection: TVector3Single;
     procedure SetProjectionSceneDirection(const Value: TVector3Single);
-    function GetDefaultShadowMap: TGeneratedShadowMapNode;
-    procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -93,8 +91,6 @@
 
     private FFdDefaultShadowMap: TSFNode;
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
-    property DefaultShadowMap: TGeneratedShadowMapNode
-      read GetDefaultShadowMap write SetDefaultShadowMap;
 
     private FFdShadows: TSFBool;
     public property FdShadows: TSFBool read FFdShadows;
@@ -637,19 +633,6 @@ begin
   if FdGlobal.Value then
     Result := lsGlobal else
     Result := lsLocal;
-end;
-
-function TAbstractLightNode.GetDefaultShadowMap: TGeneratedShadowMapNode;
-begin
-  if FdDefaultShadowMap.Value is TGeneratedShadowMapNode then
-    Result := TGeneratedShadowMapNode(FdDefaultShadowMap.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractLightNode.SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
-begin
-  FdDefaultShadowMap.Send(Value);
 end;
 
 procedure TAbstractDirectionalLightNode.CreateNode;

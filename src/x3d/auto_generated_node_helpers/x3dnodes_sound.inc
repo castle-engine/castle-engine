@@ -43,6 +43,8 @@
     procedure SetMinFront(const Value: Single);
     function GetPriority: Single;
     procedure SetPriority(const Value: Single);
+    function GetSource: TAbstractSoundSourceNode;
+    procedure SetSource(const Value: TAbstractSoundSourceNode);
     function GetSpatialize: boolean;
     procedure SetSpatialize(const Value: boolean);
   public
@@ -54,6 +56,7 @@
     property MinBack: Single read GetMinBack write SetMinBack;
     property MinFront: Single read GetMinFront write SetMinFront;
     property Priority: Single read GetPriority write SetPriority;
+    property Source: TAbstractSoundSourceNode read GetSource write SetSource;
     property Spatialize: boolean read GetSpatialize write SetSpatialize;
 
 {$endif read_interface}
@@ -140,6 +143,19 @@ end;
 procedure TSoundNode.SetPriority(const Value: Single);
 begin
   FdPriority.Send(Value);
+end;
+
+function TSoundNode.GetSource: TAbstractSoundSourceNode;
+begin
+  if FdSource.Value is TAbstractSoundSourceNode then
+    Result := TAbstractSoundSourceNode(FdSource.Value)
+  else
+    Result := nil;
+end;
+
+procedure TSoundNode.SetSource(const Value: TAbstractSoundSourceNode);
+begin
+  FdSource.Send(Value);
 end;
 
 function TSoundNode.GetSpatialize: boolean;

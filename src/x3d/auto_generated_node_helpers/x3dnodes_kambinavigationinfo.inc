@@ -29,14 +29,29 @@
   private
     function GetTimeOriginAtLoad: boolean;
     procedure SetTimeOriginAtLoad(const Value: boolean);
+    function GetOctreeRendering: TKambiOctreePropertiesNode;
+    procedure SetOctreeRendering(const Value: TKambiOctreePropertiesNode);
+    function GetOctreeDynamicCollisions: TKambiOctreePropertiesNode;
+    procedure SetOctreeDynamicCollisions(const Value: TKambiOctreePropertiesNode);
+    function GetOctreeVisibleTriangles: TKambiOctreePropertiesNode;
+    procedure SetOctreeVisibleTriangles(const Value: TKambiOctreePropertiesNode);
+    function GetOctreeStaticCollisions: TKambiOctreePropertiesNode;
+    procedure SetOctreeStaticCollisions(const Value: TKambiOctreePropertiesNode);
     function GetHeadBobbing: Single;
     procedure SetHeadBobbing(const Value: Single);
     function GetHeadBobbingTime: Single;
     procedure SetHeadBobbingTime(const Value: Single);
+    function GetHeadlightNode: TAbstractLightNode;
+    procedure SetHeadlightNode(const Value: TAbstractLightNode);
   public
     property TimeOriginAtLoad: boolean read GetTimeOriginAtLoad write SetTimeOriginAtLoad;
+    property OctreeRendering: TKambiOctreePropertiesNode read GetOctreeRendering write SetOctreeRendering;
+    property OctreeDynamicCollisions: TKambiOctreePropertiesNode read GetOctreeDynamicCollisions write SetOctreeDynamicCollisions;
+    property OctreeVisibleTriangles: TKambiOctreePropertiesNode read GetOctreeVisibleTriangles write SetOctreeVisibleTriangles;
+    property OctreeStaticCollisions: TKambiOctreePropertiesNode read GetOctreeStaticCollisions write SetOctreeStaticCollisions;
     property HeadBobbing: Single read GetHeadBobbing write SetHeadBobbing;
     property HeadBobbingTime: Single read GetHeadBobbingTime write SetHeadBobbingTime;
+    property HeadlightNode: TAbstractLightNode read GetHeadlightNode write SetHeadlightNode;
 
 {$endif read_interface}
 
@@ -52,6 +67,58 @@ end;
 procedure TKambiNavigationInfoNode.SetTimeOriginAtLoad(const Value: boolean);
 begin
   FdTimeOriginAtLoad.Send(Value);
+end;
+
+function TKambiNavigationInfoNode.GetOctreeRendering: TKambiOctreePropertiesNode;
+begin
+  if FdOctreeRendering.Value is TKambiOctreePropertiesNode then
+    Result := TKambiOctreePropertiesNode(FdOctreeRendering.Value)
+  else
+    Result := nil;
+end;
+
+procedure TKambiNavigationInfoNode.SetOctreeRendering(const Value: TKambiOctreePropertiesNode);
+begin
+  FdOctreeRendering.Send(Value);
+end;
+
+function TKambiNavigationInfoNode.GetOctreeDynamicCollisions: TKambiOctreePropertiesNode;
+begin
+  if FdOctreeDynamicCollisions.Value is TKambiOctreePropertiesNode then
+    Result := TKambiOctreePropertiesNode(FdOctreeDynamicCollisions.Value)
+  else
+    Result := nil;
+end;
+
+procedure TKambiNavigationInfoNode.SetOctreeDynamicCollisions(const Value: TKambiOctreePropertiesNode);
+begin
+  FdOctreeDynamicCollisions.Send(Value);
+end;
+
+function TKambiNavigationInfoNode.GetOctreeVisibleTriangles: TKambiOctreePropertiesNode;
+begin
+  if FdOctreeVisibleTriangles.Value is TKambiOctreePropertiesNode then
+    Result := TKambiOctreePropertiesNode(FdOctreeVisibleTriangles.Value)
+  else
+    Result := nil;
+end;
+
+procedure TKambiNavigationInfoNode.SetOctreeVisibleTriangles(const Value: TKambiOctreePropertiesNode);
+begin
+  FdOctreeVisibleTriangles.Send(Value);
+end;
+
+function TKambiNavigationInfoNode.GetOctreeStaticCollisions: TKambiOctreePropertiesNode;
+begin
+  if FdOctreeStaticCollisions.Value is TKambiOctreePropertiesNode then
+    Result := TKambiOctreePropertiesNode(FdOctreeStaticCollisions.Value)
+  else
+    Result := nil;
+end;
+
+procedure TKambiNavigationInfoNode.SetOctreeStaticCollisions(const Value: TKambiOctreePropertiesNode);
+begin
+  FdOctreeStaticCollisions.Send(Value);
 end;
 
 function TKambiNavigationInfoNode.GetHeadBobbing: Single;
@@ -72,6 +139,19 @@ end;
 procedure TKambiNavigationInfoNode.SetHeadBobbingTime(const Value: Single);
 begin
   FdHeadBobbingTime.Send(Value);
+end;
+
+function TKambiNavigationInfoNode.GetHeadlightNode: TAbstractLightNode;
+begin
+  if FdHeadlightNode.Value is TAbstractLightNode then
+    Result := TAbstractLightNode(FdHeadlightNode.Value)
+  else
+    Result := nil;
+end;
+
+procedure TKambiNavigationInfoNode.SetHeadlightNode(const Value: TAbstractLightNode);
+begin
+  FdHeadlightNode.Send(Value);
 end;
 
 {$endif read_implementation}

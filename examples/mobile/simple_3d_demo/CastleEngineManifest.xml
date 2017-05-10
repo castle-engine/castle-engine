@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="simple_3d_demo"
+  caption="Castle Game Engine 3D Test"
+  qualified_name="net.sourceforge.castleengine.simple3ddemo"
+  standalone_source="simple_3d_demo_standalone.lpr"
+  game_units="Game">
+  <version value="1.0" code="1" />
+  <package>
+    <include path="README.txt" />
+  </package>
+  <android project_type="integrated" /> <!-- necessary for sound to work -->
+</project>

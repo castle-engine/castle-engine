@@ -22,8 +22,7 @@
   gives you a nice Lazarus component readily integrated with the engine,
   CastleWindow gives you a window (without LCL dependency) integrated with
   engine. Countless other engine units give you useful things
-  (like CastleScene, CastleSceneManager, CastleVectors... see engine tutorial
-  and documentation).
+  (like CastleScene, CastleSceneManager, CastleVectors... see the engine manual).
 
   Using the engine units directly gives you a complete object-oriented API
   in ObjectPascal to do everything :) The C library API (exposed in
@@ -45,7 +44,7 @@
     Or you can explicitly list the directory with libcastleengine.so,
     by doing this (in your shell, or even in your ~/.bashrc or similar file):
 
-    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":<path-to-cge>/castle_game_engine/src/library/
+    export LD_LIBRARY_PATH="$LD_LIBRARY_PATH":"$CASTLE_ENGINE_PATH"/src/library/
 }
 unit cge_dynlib_tester_form;
 
@@ -123,11 +122,10 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Open(0);
-  CGE_Resize(OpenGLControl1.Width, OpenGLControl1.Height);
+  CGE_Open(0, OpenGLControl1.Width, OpenGLControl1.Height);
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   CGE_SetUserInterface(true, 96);
-  sFile := '../../../../demo_models/navigation/type_walk.wrl';
+  sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';
   //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);
 
@@ -197,7 +195,7 @@ var
   sFile: string;
   csFile: array[0..260] of char;
 begin
-  sFile := ExtractFilePath(Application.ExeName) + 'scr.jpg';
+  sFile := ExtractFilePath(Application.ExeName) + 'cge_test_screenshot.png';
   StrPCopy(csFile, sFile);
   CGE_SaveScreenshotToFile(@csFile[0]);
 end;

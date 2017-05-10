@@ -39,6 +39,12 @@
     procedure SetParticleLifetime(const Value: Single);
     function GetParticleSize: TVector2Single;
     procedure SetParticleSize(const Value: TVector2Single);
+    function GetColorRamp: TAbstractColorNode;
+    procedure SetColorRamp(const Value: TAbstractColorNode);
+    function GetEmitter: TAbstractParticleEmitterNode;
+    procedure SetEmitter(const Value: TAbstractParticleEmitterNode);
+    function GetTexCoordRamp: TTextureCoordinateNode;
+    procedure SetTexCoordRamp(const Value: TTextureCoordinateNode);
   public
     property CreateParticles: boolean read GetCreateParticles write SetCreateParticles;
     property Enabled: boolean read GetEnabled write SetEnabled;
@@ -46,6 +52,9 @@
     property MaxParticles: Integer read GetMaxParticles write SetMaxParticles;
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
     property ParticleSize: TVector2Single read GetParticleSize write SetParticleSize;
+    property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
+    property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
+    property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
 
 {$endif read_interface}
 
@@ -111,6 +120,45 @@ end;
 procedure TParticleSystemNode.SetParticleSize(const Value: TVector2Single);
 begin
   FdParticleSize.Send(Value);
+end;
+
+function TParticleSystemNode.GetColorRamp: TAbstractColorNode;
+begin
+  if FdColorRamp.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColorRamp.Value)
+  else
+    Result := nil;
+end;
+
+procedure TParticleSystemNode.SetColorRamp(const Value: TAbstractColorNode);
+begin
+  FdColorRamp.Send(Value);
+end;
+
+function TParticleSystemNode.GetEmitter: TAbstractParticleEmitterNode;
+begin
+  if FdEmitter.Value is TAbstractParticleEmitterNode then
+    Result := TAbstractParticleEmitterNode(FdEmitter.Value)
+  else
+    Result := nil;
+end;
+
+procedure TParticleSystemNode.SetEmitter(const Value: TAbstractParticleEmitterNode);
+begin
+  FdEmitter.Send(Value);
+end;
+
+function TParticleSystemNode.GetTexCoordRamp: TTextureCoordinateNode;
+begin
+  if FdTexCoordRamp.Value is TTextureCoordinateNode then
+    Result := TTextureCoordinateNode(FdTexCoordRamp.Value)
+  else
+    Result := nil;
+end;
+
+procedure TParticleSystemNode.SetTexCoordRamp(const Value: TTextureCoordinateNode);
+begin
+  FdTexCoordRamp.Send(Value);
 end;
 
 {$endif read_implementation}

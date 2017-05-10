@@ -49,6 +49,8 @@
     procedure SetProjectionFar(const Value: Single);
     function GetUp: TVector3Single;
     procedure SetUp(const Value: TVector3Single);
+    function GetDefaultShadowMap: TGeneratedShadowMapNode;
+    procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   public
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
     property Color: TCastleColorRGB read GetColor write SetColor;
@@ -61,6 +63,7 @@
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
     property Up: TVector3Single read GetUp write SetUp;
+    property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
 
 {$endif read_interface}
 
@@ -176,6 +179,19 @@ end;
 procedure TAbstractLightNode.SetUp(const Value: TVector3Single);
 begin
   FdUp.Send(Value);
+end;
+
+function TAbstractLightNode.GetDefaultShadowMap: TGeneratedShadowMapNode;
+begin
+  if FdDefaultShadowMap.Value is TGeneratedShadowMapNode then
+    Result := TGeneratedShadowMapNode(FdDefaultShadowMap.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractLightNode.SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
+begin
+  FdDefaultShadowMap.Send(Value);
 end;
 
 {$endif read_implementation}

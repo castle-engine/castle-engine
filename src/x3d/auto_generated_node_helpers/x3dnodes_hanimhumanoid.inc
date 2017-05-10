@@ -37,6 +37,8 @@
     procedure SetScale(const Value: TVector3Single);
     function GetScaleOrientation: TVector4Single;
     procedure SetScaleOrientation(const Value: TVector4Single);
+    function GetSkinNormal: TAbstractNormalNode;
+    procedure SetSkinNormal(const Value: TAbstractNormalNode);
     function GetTranslation: TVector3Single;
     procedure SetTranslation(const Value: TVector3Single);
     function GetVersion: string;
@@ -51,6 +53,7 @@
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
+    property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
     property Translation: TVector3Single read GetTranslation write SetTranslation;
     property Version: string read GetVersion write SetVersion;
     property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
@@ -110,6 +113,19 @@ end;
 procedure THAnimHumanoidNode.SetScaleOrientation(const Value: TVector4Single);
 begin
   FdScaleOrientation.Send(Value);
+end;
+
+function THAnimHumanoidNode.GetSkinNormal: TAbstractNormalNode;
+begin
+  if FdSkinNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdSkinNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure THAnimHumanoidNode.SetSkinNormal(const Value: TAbstractNormalNode);
+begin
+  FdSkinNormal.Send(Value);
 end;
 
 function THAnimHumanoidNode.GetTranslation: TVector3Single;

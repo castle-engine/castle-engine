@@ -27,9 +27,12 @@
 {$ifdef read_interface}
 
   private
+    function GetViewpoint: TAbstractX3DViewpointNode;
+    procedure SetViewpoint(const Value: TAbstractX3DViewpointNode);
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
   public
+    property Viewpoint: TAbstractX3DViewpointNode read GetViewpoint write SetViewpoint;
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
 
 {$endif read_interface}
@@ -37,6 +40,19 @@
 {$ifdef read_implementation}
 
 { TRenderedTextureNode ----------------------------------------------- }
+
+function TRenderedTextureNode.GetViewpoint: TAbstractX3DViewpointNode;
+begin
+  if FdViewpoint.Value is TAbstractX3DViewpointNode then
+    Result := TAbstractX3DViewpointNode(FdViewpoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetViewpoint(const Value: TAbstractX3DViewpointNode);
+begin
+  FdViewpoint.Send(Value);
+end;
 
 function TRenderedTextureNode.GetRepeatR: boolean;
 begin

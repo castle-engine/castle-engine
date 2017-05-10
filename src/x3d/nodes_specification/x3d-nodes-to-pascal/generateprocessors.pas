@@ -44,7 +44,9 @@ type
     function IsAbstract: boolean;
   end;
 
-  TX3DNodeInformationList = class(specialize TFPGObjectList<TX3DNodeInformation>);
+  TX3DNodeInformationList = class(specialize TFPGObjectList<TX3DNodeInformation>)
+    function PascalTypesList: string;
+  end;
 
   TX3DFieldInformation = class
     X3DType: string;
@@ -52,6 +54,9 @@ type
     X3DAccessType: string;
     IsEnumString: boolean;
     DefaultValue, Comment: string;
+    AllowedChildrenNodes: TX3DNodeInformationList;
+    constructor Create;
+    destructor Destroy; override;
     function AccessType: TX3DAccessType;
     function PascalClass: string;
     { The type for a helper property, which can be something simple
@@ -158,12 +163,43 @@ begin
   Result := Result + 'Node';
 
   if ForceAsInterface or IsInterface then
+  begin
+    // to avoid IAbstractMetadataObjectNode
+    if IsSuffix('ObjectNode', Result) then
+      Result := SuffixRemove('ObjectNode', Result, true) + 'Node';
     Result := 'I' + Result
-  else
+  end else
     Result := 'T' + Result;
 end;
 
+{ TX3DNodeInformationList ---------------------------------------------------- }
+
+function TX3DNodeInformationList.PascalTypesList: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  if Count <> 0 then
+  begin
+    for I := 0 to Count - 2 do
+      Result += Items[I].PascalType + ', ';
+    Result += Items[Count - 1].PascalType;
+  end;
+end;
+
 { TX3DFieldInformation ------------------------------------------------------- }
+
+constructor TX3DFieldInformation.Create;
+begin
+  inherited;
+  AllowedChildrenNodes := TX3DNodeInformationList.Create;
+end;
+
+destructor TX3DFieldInformation.Destroy;
+begin
+  FreeAndNil(AllowedChildrenNodes);
+  inherited;
+end;
 
 function TX3DFieldInformation.AccessType: TX3DAccessType;
 begin
@@ -259,6 +295,9 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
   procedure ParseField(const Field: TX3DFieldInformation; const Line: string);
   var
     SeekPos, I: Integer;
+    AllowedChildrenNodesSplitted: TCastleStringList;
+    AllowedChildrenNodesStr: string;
+    AllowedChildren: TX3DNodeInformation;
   begin
     SeekPos := 1;
 
@@ -404,6 +443,40 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
     // cut off initial '# ' from Field.Comment
     if SCharIs(Field.Comment, 1, '#') then
       Field.Comment := Trim(SEnding(Field.Comment, 2));
+
+    if Field.IsNode and
+       (Field.AccessType in [atInitializeOnly, atInputOutput]) then
+    begin
+      { Although NULL is sensible only for SFNode and [] is sensible only
+        for MFNode, X3D specification switches them in many places
+        --- too many to fix them, it's easier to just ignore
+        the difference here. }
+      if (Field.DefaultValue <> 'NULL') and
+         (Field.DefaultValue <> '[]') then
+        raise EInvalidSpecificationFile.Create('Invalid default SFNode / MFNode value: ' + Field.DefaultValue + NL + 'At line: ' + Line);
+
+      { in case of SFNode / MFNode, convert the Field.Comment into
+        Field.NodeAllowedChildren }
+      if IsPrefix('[', Field.Comment) then
+      begin
+        I := Pos(']', Field.Comment);
+        if I = 0 then
+          raise EInvalidSpecificationFile.Create('Invalid SFNode / MFNode comment, does not have a matching "]": ' + Field.Comment);
+
+        AllowedChildrenNodesStr := CopyPos(Field.Comment, 2, I - 1);
+        Field.Comment := Trim(SEnding(Field.Comment, I + 1));
+
+        AllowedChildrenNodesSplitted := CreateTokens(AllowedChildrenNodesStr, WhiteSpaces + [',', '|']);
+        try
+          for I := 0 to AllowedChildrenNodesSplitted.Count - 1 do
+          begin
+            AllowedChildren := TX3DNodeInformation.Create;
+            AllowedChildren.X3DType := AllowedChildrenNodesSplitted[I];
+            Field.AllowedChildrenNodes.Add(AllowedChildren);
+          end;
+        finally FreeAndNil(AllowedChildrenNodesSplitted) end;
+      end;
+    end;
   end;
 
 var
@@ -500,6 +573,8 @@ end;
 
 procedure THelperProcessor.NodeField(const Node: TX3DNodeInformation;
   const Field: TX3DFieldInformation);
+var
+  AllowedPascalClass: string;
 begin
   if Field.IsEnumString then
     Exit;
@@ -507,13 +582,35 @@ begin
      (Field.X3DName = 'repeatS') or
      (Field.X3DName = 'repeatT') or
      (Field.X3DName = 'cycleInterval') or
-     ((Field.X3DName = 'position') and (Node.X3DType = 'Viewpoint')) or
-     ((Field.X3DName = 'position') and (Node.X3DType = 'OrthoViewpoint')) or
-     ((Field.X3DName = 'position') and (Node.X3DType = 'GeoViewpoint')) or
-     ((Field.X3DName = 'orientation') and (Node.X3DType = 'X3DViewpointNode')) or
-     ((Field.X3DName = 'magnificationFilter') and (Node.X3DType = 'TextureProperties')) or
-     ((Field.X3DName = 'minificationFilter') and (Node.X3DType = 'TextureProperties')) or
-     (Field.X3DName = 'linetype')
+     (Field.X3DName = 'linetype') or
+
+     ( (Field.X3DType = 'SFNode') and
+       ( (Field.X3DName = 'coord') or
+         (Field.X3DName = 'fogCoord') or
+         (Field.X3DName = 'texCoord') or
+         (Field.X3DName = 'attrib') or
+         (Field.X3DName = 'color') or
+         (Field.X3DName = 'normal') or
+         (Field.X3DName = 'textureProperties') or
+         (Field.X3DName = 'controlPoint')
+       )
+     ) or
+
+     (Node.X3DType + '.' + Field.X3DName = 'Viewpoint.position') or
+     (Node.X3DType + '.' + Field.X3DName = 'OrthoViewpoint.position') or
+     (Node.X3DType + '.' + Field.X3DName = 'GeoViewpoint.position') or
+     (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.orientation') or
+     (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.magnificationFilter') or
+     (Node.X3DType + '.' + Field.X3DName = 'TextureProperties.minificationFilter') or
+     (Node.X3DType + '.' + Field.X3DName = 'X3DShapeNode.appearance') or
+     (Node.X3DType + '.' + Field.X3DName = 'X3DShapeNode.geometry') or
+     (Node.X3DType + '.' + Field.X3DName = 'Appearance.material') or
+     (Node.X3DType + '.' + Field.X3DName = 'Appearance.texture') or
+     (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or
+     (Node.X3DType + '.' + Field.X3DName = 'HAnimHumanoid.skinCoord') or
+
+     false // keep this line, to allow easily rearranging lines above
+
      // TODO: bboxCenter and bboxSize should also be removed from here someday,
      // we should convert them manually to BBox: TBox3D to support our TBox3D type.
      then
@@ -535,25 +632,58 @@ begin
     WritelnVerbose('Only fields (inputOutput or initializeOnly) are supported now: ' + Field.X3DName);
     Exit;
   end;
-  if Field.PascalHelperType = '' then
-    Exit;
 
-  OutputPrivateInterface +=
-    '    function Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
-    '    procedure Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL;
-  OutputPublicInterface +=
-    '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
-  OutputImplementation +=
-    'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
-    'begin' + NL +
-    '  Result := ' + Field.PascalNamePrefixed + '.Value;' + NL +
-    'end;' + NL +
-    NL +
-    'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
-    'begin' + NL +
-    '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
-    'end;' + NL +
-    NL;
+  if Field.IsNode then
+  begin
+    { All the conditions below may be eventually removed.
+      We're just not ready for it yet, the generated code is not ready for them. }
+    if (Field.AllowedChildrenNodes.Count = 1) and
+       (not Field.AllowedChildrenNodes[0].IsInterface) and
+       (Field.X3DType = 'SFNode') then
+    begin
+      AllowedPascalClass := Field.AllowedChildrenNodes[0].PascalType;
+      OutputPrivateInterface +=
+        '    function Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
+        '    procedure Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL;
+      OutputPublicInterface +=
+        '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
+      OutputImplementation +=
+        'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
+        'begin' + NL +
+        '  if ' + Field.PascalNamePrefixed + '.Value is ' + AllowedPascalClass + ' then' + NL +
+        '    Result := ' + AllowedPascalClass + '(' + Field.PascalNamePrefixed + '.Value)' + NL +
+        '  else' + NL +
+        '    Result := nil;' + NL +
+        'end;' + NL +
+        NL +
+        'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
+        'begin' + NL +
+        '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
+        'end;' + NL +
+        NL;
+    end;
+  end else
+  begin
+    if Field.PascalHelperType = '' then
+      Exit;
+
+    OutputPrivateInterface +=
+      '    function Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
+      '    procedure Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL;
+    OutputPublicInterface +=
+      '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
+    OutputImplementation +=
+      'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
+      'begin' + NL +
+      '  Result := ' + Field.PascalNamePrefixed + '.Value;' + NL +
+      'end;' + NL +
+      NL +
+      'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
+      'begin' + NL +
+      '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
+      'end;' + NL +
+      NL;
+  end;
 end;
 
 procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
@@ -700,7 +830,7 @@ procedure TTemplateProcessor.NodeField(const Node: TX3DNodeInformation;
   const Field: TX3DFieldInformation);
 var
   EventInOrOut: string;
-  NodeFieldAllowedChildren, FieldConfigure: string;
+  FieldConfigure: string;
 begin
   FieldConfigure := '';
 
@@ -743,25 +873,9 @@ begin
 
       if Field.IsNode then
       begin
-        { Although NULL is sensible only for SFNode and [] is sensible only
-          for MFNode, X3D specification switches them in many places
-          --- too many to fix them, it's easier to just ignore
-          the difference here. }
-        if (Field.DefaultValue <> 'NULL') and
-           (Field.DefaultValue <> '[]') then
-          raise EInvalidSpecificationFile.Create('Invalid default SFNode / MFNode value: ' + Field.DefaultValue);
-
-        if not
-          ((Field.Comment <> '') and
-           (Field.Comment[1] = '[') and
-           (Field.Comment[Length(Field.Comment)] = ']')) then
-          raise EInvalidSpecificationFile.Create('Invalid SFNode / MFNode comment, should describe allowed classes in [xxx]: ' + Field.Comment);
-
-        NodeFieldAllowedChildren := Copy(Field.Comment, 2, Length(Field.Comment) - 2);
-
         OutputImplementation +=
           NL +
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', [' + NodeFieldAllowedChildren + ']);' + NL +
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', [' + Field.AllowedChildrenNodes.PascalTypesList + ']);' + NL +
           FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL;
       end else

@@ -29,8 +29,11 @@
   private
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
+    function GetProxy: TAbstractChildNode;
+    procedure SetProxy(const Value: TAbstractChildNode);
   public
     property Enabled: boolean read GetEnabled write SetEnabled;
+    property Proxy: TAbstractChildNode read GetProxy write SetProxy;
 
 {$endif read_interface}
 
@@ -46,6 +49,19 @@ end;
 procedure TCollisionNode.SetEnabled(const Value: boolean);
 begin
   FdEnabled.Send(Value);
+end;
+
+function TCollisionNode.GetProxy: TAbstractChildNode;
+begin
+  if FdProxy.Value is TAbstractChildNode then
+    Result := TAbstractChildNode(FdProxy.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCollisionNode.SetProxy(const Value: TAbstractChildNode);
+begin
+  FdProxy.Send(Value);
 end;
 
 {$endif read_implementation}

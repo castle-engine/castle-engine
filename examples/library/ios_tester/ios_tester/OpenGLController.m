@@ -27,15 +27,17 @@
     bool m_bIsPanning;
     CGPoint m_ptPanningMousePos;
     CGFloat m_fScale;
-    
+
     UITouch* m_arrTouches[MAX_TOUCHES];
-    
+
     UISegmentedControl *m_segmNavigation;
     UIBarButtonItem *m_btnViewpointPrev;
     UIBarButtonItem *m_btnViewpointNext;
-    
+
     int m_nViewpointCount, m_nCurrentViewpoint;
-    
+
+    int m_oldViewWidth;
+    int m_oldViewHeight;
 }
 
 @property (strong, nonatomic) EAGLContext *context;
@@ -48,19 +50,19 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    
+
     m_nViewpointCount = 0;
     m_bIsPanning = false;
-    
+
     self.context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES2];
-    
+
     if (!self.context) {
         NSLog(@"Failed to create ES context");
     }
-    
+
     GLKView *view = (GLKView *)self.view;
     view.context = self.context;
-    
+
     // setup recognizers
 #ifdef USE_GESTURE_RECOGNIZERS
     [self.view addGestureRecognizer:[[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(OnTouchGesture:)]];
@@ -70,7 +72,7 @@
     self.view.multipleTouchEnabled = YES;
     for (int i = 0; i < MAX_TOUCHES; i++) m_arrTouches[i] = nil;
 #endif
-    
+
     // create toolbar controls
     m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine", @"Turntable"]];
     m_segmNavigation.segmentedControlStyle = UISegmentedControlStyleBar;
@@ -78,9 +80,9 @@
     [m_segmNavigation addTarget:self
                          action:@selector(OnNavigationSegmentChanged:)
                forControlEvents:UIControlEventValueChanged];
-    
+
     UIBarButtonItem *itemSegm = [[UIBarButtonItem alloc] initWithCustomView:m_segmNavigation];
-    
+
     m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPrev:)];
     m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointNext:)];
     UIBarButtonItem *btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPopup:)];
@@ -90,12 +92,12 @@
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
     [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
-    
+
     UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open File" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnOpenFile:)];
-    
+
     self.navigationItem.leftBarButtonItem = btnOpenFile;
     self.navigationItem.rightBarButtonItems = @[btnBarInfo, btnOptions, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
-    
+
     [self setupGL];
 }
 
@@ -103,7 +105,7 @@
 - (void)dealloc
 {
     [self tearDownGL];
-    
+
     if ([EAGLContext currentContext] == self.context) {
         [EAGLContext setCurrentContext:nil];
     }
@@ -113,18 +115,18 @@
 - (void)didReceiveMemoryWarning
 {
     [super didReceiveMemoryWarning];
-    
+
     if ([self isViewLoaded] && ([[self view] window] == nil)) {
         self.view = nil;
-        
+
         [self tearDownGL];
-        
+
         if ([EAGLContext currentContext] == self.context) {
             [EAGLContext setCurrentContext:nil];
         }
         self.context = nil;
     }
-    
+
     // Dispose of any resources that can be recreated.
 }
 
@@ -137,19 +139,22 @@
         m_fScale = [UIScreen mainScreen].scale; // check retina
     else
         m_fScale = 1.0;
-    
+
     if (self.fileToOpen == nil)
     {
         NSString *sBundlePath = [[NSBundle mainBundle] bundlePath];
         self.fileToOpen = [sBundlePath stringByAppendingPathComponent:@"sampledata/castle_with_lights_and_camera.wrl"];
     }
 
-    CGE_Open(ecgeofLog);
+    m_oldViewWidth  = self.view.bounds.size.width;
+    m_oldViewHeight = self.view.bounds.size.height;
+
+    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale);
     CGE_SetUserInterface(true, 115 * m_fScale);
-    
+
     Options *opt = [Options sharedOptions];
     CGE_SetVariableInt(ecgevarWalkTouchCtl, opt.walkTwoControls ? ecgetciCtlWalkCtlRotate : ecgetciCtlWalkDragRotate);
-    
+
     [self LoadSceneFile];
 
     [self update];
@@ -159,7 +164,7 @@
 - (void)LoadSceneFile
 {
     CGE_LoadSceneFromFile([self.fileToOpen fileSystemRepresentation]);
-    
+
     Options *opt = [Options sharedOptions];
     CGE_SetVariableInt(ecgevarWalkHeadBobbing, opt.walkHeadBobbing ? 1 : 0);
     CGE_SetVariableInt(ecgevarEffectSSAO, opt.ssao ? 1 : 0);
@@ -173,7 +178,7 @@
 - (void)tearDownGL
 {
     [EAGLContext setCurrentContext:self.context];
-    
+
     CGE_Close();
 }
 
@@ -181,12 +186,17 @@
 //-----------------------------------------------------------------
 - (void)update
 {
-    // set and update the geometry
-    int nViewSizeX = self.view.bounds.size.width;
-    int nViewSizeY = self.view.bounds.size.height;
-    
-    CGE_Resize(nViewSizeX*m_fScale, nViewSizeY*m_fScale);
-    
+    // update the viewport size, if changed
+    int newViewWidth  = self.view.bounds.size.width;
+    int newViewHeight = self.view.bounds.size.height;
+    if (m_oldViewWidth  != newViewWidth ||
+        m_oldViewHeight != newViewHeight)
+    {
+	m_oldViewWidth  = newViewWidth;
+	m_oldViewHeight = newViewHeight;
+	CGE_Resize(newViewWidth * m_fScale, newViewHeight * m_fScale);
+    }
+
     // send accumulated touch positions (sending them right away jams the engine)
 #ifdef USE_GESTURE_RECOGNIZERS
     if (m_bIsPanning)
@@ -195,14 +205,14 @@
     for (NSInteger i = 0; i < MAX_TOUCHES; i++)
     {
         if (m_arrTouches[i] == nil) continue;
-        
+
         CGPoint pt = [m_arrTouches[i] locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGE_Motion(pt.x, pt.y, i);
     }
 
 #endif
-    
+
     CGE_Update();
 }
 
@@ -225,11 +235,11 @@
 - (IBAction)OnPanGesture:(UIPanGestureRecognizer *)sender
 {
     // simulate sending PC mouse messages to the engine
-    
+
     CGPoint pt = [sender locationInView:sender.view];
     [self RecalcTouchPosForCGE:&pt];
     m_ptPanningMousePos = pt;
-    
+
     if (sender.state == UIGestureRecognizerStateBegan)
     {
         m_bIsPanning = true;
@@ -264,16 +274,16 @@
 {
     if (sender.state != UIGestureRecognizerStateChanged)
         return;
-    
+
     float fZDelta = 0;
     CGFloat fRecScale = sender.scale;
     if (fRecScale > 1.0f)
         fZDelta = (fRecScale - 1.0f) * 80;
     else if (fRecScale < 1.0f)
         fZDelta = (1.0/fRecScale - 1.0f) * -80;
-    
+
     sender.scale = 1.0;
-    
+
     CGE_MouseWheel(fZDelta*20, true);
 }
 
@@ -293,7 +303,7 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx != -1) continue; // we already have it (should not happen)
-        
+
         for (NSInteger i = 0; i < MAX_TOUCHES; i++)
         {
             if (m_arrTouches[i]==nil)    // find empty place
@@ -304,12 +314,12 @@
             }
         }
         if (nFingerIdx==-1) continue;   // array full, should not happen
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGE_MouseDown(pt.x, pt.y, true, nFingerIdx);
     }
-    
+
     [super touchesBegan:touches withEvent:event];
 }
 
@@ -320,9 +330,9 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
-        
+
         m_arrTouches[nFingerIdx] = nil;
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGE_MouseUp(pt.x, pt.y, true, nFingerIdx);
@@ -338,14 +348,14 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
-        
+
         m_arrTouches[nFingerIdx] = nil;
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGE_MouseUp(pt.x, pt.y, true, nFingerIdx);
     }
-    
+
     [super touchesCancelled:touches withEvent:event];
 }
 
@@ -358,12 +368,12 @@
     {
         NSInteger nFingerIdx = [self IndexOfTouch:touch];
         if (nFingerIdx == -1) continue;
-        
+
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
         CGE_Motion(pt.x, pt.y, nFingerIdx);
     }*/
-    
+
     [super touchesMoved:touches withEvent:event];
 }
 #endif  // not USE_GESTURE_RECOGNIZERS
@@ -381,7 +391,7 @@
 {
     m_btnViewpointPrev.enabled = (m_nCurrentViewpoint > 0);
     m_btnViewpointNext.enabled = (m_nCurrentViewpoint < m_nViewpointCount-1);
-    
+
     enum ECgeNavigationType eNav = CGE_GetNavigationType();
     int nSegment;
     switch (eNav) {
@@ -435,12 +445,12 @@
 - (void)OnBtnViewpointPopup:(id)sender
 {
     if (m_currentPopover!=nil) return;
-    
+
     // show popover
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     m_viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"ViewpointsPopover"];
     m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_viewpointsController];
-    
+
     // fill with viewpoint names
     NSMutableArray *arrViewpoints = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
     for (int i = 0; i < m_nViewpointCount; i++)
@@ -455,7 +465,7 @@
     m_viewpointsController.arrayViewpoints = arrViewpoints;
     m_viewpointsController.selectedViewpoint = m_nCurrentViewpoint;
     m_viewpointsController.popover = m_currentPopover;
-    
+
     [m_currentPopover setDelegate:self];
     [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
 }
@@ -466,21 +476,21 @@
     if (popoverController!=m_currentPopover)
         return;
     m_currentPopover = nil;
-    
+
     if (m_viewpointsController!=nil)    // viewpoint selected
     {
         m_nCurrentViewpoint = m_viewpointsController.selectedViewpoint;
         CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
         [self updateViewpointButtons];
-        
+
         m_viewpointsController = nil;
     }
-    
+
     if (m_fileOpenController!=nil)      // scene file selected
     {
         NSString *sFile = m_fileOpenController.selectedFile;
         m_fileOpenController = nil;
-        
+
         if (sFile!=nil && sFile.length > 0)
         {
             self.fileToOpen = sFile;
@@ -493,14 +503,14 @@
 - (void)OnBtnOpenFile:(id)sender
 {
     if (m_currentPopover!=nil) return;
-    
+
     // show popover
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     m_fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
     m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_fileOpenController];
-    
+
     m_fileOpenController.popover = m_currentPopover;
-    
+
     [m_currentPopover setDelegate:self];
     [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
 }
@@ -509,11 +519,11 @@
 - (void)OnBtnOptions:(id)sender
 {
     if (m_currentPopover!=nil) return;
-    
+
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     UIViewController *viewctl = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
     m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:viewctl];
-    
+
     [m_currentPopover setDelegate:self];
     [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
 }
@@ -526,15 +536,15 @@
     szInfo[0] = 0;
     CGE_GetOpenGLInformation(szInfo, nInfoTextMax);
     free(szInfo);
-    
+
     NSString *sInfo = [NSString stringWithUTF8String:szInfo];
-    
+
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     UINavigationController *pNavCtl = [storyboard instantiateViewControllerWithIdentifier:@"OpenGLInfoNav"];
     ViewInfoController *infoCtl = (ViewInfoController*)[pNavCtl topViewController];
     infoCtl.infoText = sInfo;
     pNavCtl.modalPresentationStyle = UIModalPresentationFormSheet;
-    
+
     [self presentViewController:pNavCtl animated:YES completion:nil];
 }
 

@@ -73,7 +73,10 @@ type
       return it, so there could be a chance that some field are left with
       [] by accident. This checks all the fields with Changes = [],
       they *must* be added to ConfirmedEmptyChanges function. }
-    procedure TestEmptyChanges;
+    { Later: maintaining a list of exceptions to this test was not efficient.
+      And we default we generate non-empty ChangesAlways, so it's not easy
+      to make this mistake anymore. }
+    // procedure TestEmptyChanges;
 
     { Try calling GetInternalTimeDependentHandler
       on every IAbstractTimeDependentNode, and use the handler.
@@ -1031,6 +1034,7 @@ begin
           { some fields are allowed exception }
           if (N.Fields[J].X3DName <> 'metadata') and
              (N.Fields[J].X3DName <> 'effects') and
+             (N.Fields[J].X3DName <> 'crossOrigin') and
              (N.Fields[J].X3DName <> 'textureProperties') then
           try
             AssertTrue(
@@ -1126,6 +1130,7 @@ begin
   end;
 end;
 
+(*
 procedure TTestX3DNodes.TestEmptyChanges;
 
   { Confirmed fiels that may have Changes = []. }
@@ -1313,6 +1318,7 @@ begin
     finally FreeAndNil(N) end;
   end;
 end;
+*)
 
 procedure TTestX3DNodes.TestInternalTimeDependentHandlerAvailable;
 

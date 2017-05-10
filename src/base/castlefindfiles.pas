@@ -318,7 +318,7 @@ function FindFiles_Recursive(const Path, Mask: string; const FindDirectories: bo
     LocalPath := InclPathDelim(LocalPath);
     {$warnings off}
     SearchError := FindFirst(LocalPath + '*',
-      faDirectory { potential flags on directory: } or faSysFile or faArchive,
+      faDirectory { potential flags on directory: } or faSysFile or faArchive or faReadOnly or faHidden,
       FileRec);
     {$warnings on}
     try

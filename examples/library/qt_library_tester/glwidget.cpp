@@ -111,7 +111,7 @@ int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2,
 
 void GLWidget::initializeGL()
 {
-    CGE_Open(ecgeofLog);
+    CGE_Open(ecgeofLog, 1000, 1000); // TODO - get the correct sizes here
     CGE_SetUserInterface(false, logicalDpiY());
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;

@@ -27,9 +27,15 @@
 {$ifdef read_interface}
 
   private
+    function GetProfileCurve: TAbstractNurbsControlCurveNode;
+    procedure SetProfileCurve(const Value: TAbstractNurbsControlCurveNode);
+    function GetTrajectoryCurve: TAbstractNurbsControlCurveNode;
+    procedure SetTrajectoryCurve(const Value: TAbstractNurbsControlCurveNode);
     function GetCcw: boolean;
     procedure SetCcw(const Value: boolean);
   public
+    property ProfileCurve: TAbstractNurbsControlCurveNode read GetProfileCurve write SetProfileCurve;
+    property TrajectoryCurve: TAbstractNurbsControlCurveNode read GetTrajectoryCurve write SetTrajectoryCurve;
     property Ccw: boolean read GetCcw write SetCcw;
 
 {$endif read_interface}
@@ -37,6 +43,32 @@
 {$ifdef read_implementation}
 
 { TNurbsSwungSurfaceNode ----------------------------------------------- }
+
+function TNurbsSwungSurfaceNode.GetProfileCurve: TAbstractNurbsControlCurveNode;
+begin
+  if FdProfileCurve.Value is TAbstractNurbsControlCurveNode then
+    Result := TAbstractNurbsControlCurveNode(FdProfileCurve.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsSwungSurfaceNode.SetProfileCurve(const Value: TAbstractNurbsControlCurveNode);
+begin
+  FdProfileCurve.Send(Value);
+end;
+
+function TNurbsSwungSurfaceNode.GetTrajectoryCurve: TAbstractNurbsControlCurveNode;
+begin
+  if FdTrajectoryCurve.Value is TAbstractNurbsControlCurveNode then
+    Result := TAbstractNurbsControlCurveNode(FdTrajectoryCurve.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsSwungSurfaceNode.SetTrajectoryCurve(const Value: TAbstractNurbsControlCurveNode);
+begin
+  FdTrajectoryCurve.Send(Value);
+end;
 
 function TNurbsSwungSurfaceNode.GetCcw: boolean;
 begin

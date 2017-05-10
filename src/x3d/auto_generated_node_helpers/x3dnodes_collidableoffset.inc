@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetCollidable: TAbstractNBodyCollidableNode;
+    procedure SetCollidable(const Value: TAbstractNBodyCollidableNode);
+  public
+    property Collidable: TAbstractNBodyCollidableNode read GetCollidable write SetCollidable;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TCollidableOffsetNode ----------------------------------------------- }
+
+function TCollidableOffsetNode.GetCollidable: TAbstractNBodyCollidableNode;
+begin
+  if FdCollidable.Value is TAbstractNBodyCollidableNode then
+    Result := TAbstractNBodyCollidableNode(FdCollidable.Value)
+  else
+    Result := nil;
+end;
+
+procedure TCollidableOffsetNode.SetCollidable(const Value: TAbstractNBodyCollidableNode);
+begin
+  FdCollidable.Send(Value);
+end;
 
 {$endif read_implementation}

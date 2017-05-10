@@ -38,7 +38,7 @@ var
 
 const
   Version = CastleEngineVersion;
-  Options: array [0..9] of TOption =
+  Options: array [0..8] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -48,7 +48,6 @@ const
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
     (Short: #0 ; Long: 'mode'; Argument: oaRequired),
     (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
-    (Short: #0 ; Long: 'leave-temp'; Argument: oaNone),
     (Short: #0 ; Long: 'plugin'; Argument: oaNone)
   );
 
@@ -70,12 +69,15 @@ begin
           NL+
           'compile:' +NL+
           '    Compile project.' +NL+
+          '    By default compiles for the current OS / current CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
+          '    You can use --os / --cpu options to compile to some other OS / CPU.' +NL+
+          '    You can use --target to compile for a special collection of OS/CPU' +NL+
+          '    platforms (like "iOS").' +NL+
           NL+
           'package:' +NL+
           '    Package the application into the best archive format for given' +NL+
-          '    operating system (OS) / processor (CPU).' +NL+
-          '    By default uses current OS / CPU (' + OSToString(DefaultOS) + ' / ' + CPUToString(DefaultCPU) + ').' +NL+
-          '    You can also use --cpu or --os options to affect it.' +NL+
+          '    operating system (OS) / processor (CPU) / target.' +NL+
+          '    The OS, CPU and "target" can be changed just like at "compile".' +NL+
           NL+
           'install:' +NL+
           '    Install the application created by previous "package" call.' +NL+
@@ -130,9 +132,6 @@ begin
           '                        before "package". Instead assume that compiled' +NL+
           '                        executable for given OS/CPU/mode' +NL+
           '                        is already present in the package directory.' +NL+
-          '  --leave-temp          Do not remove temporary files,' +NL+
-          '                        e.g. temporary Android package or Windows rc/manifest files.' +NL+
-          '                        Useful if you want to use them as basis for your customizations.' +NL+
           '  --plugin              Compile/package/install a browser plugin.' +NL+
           TargetOptionHelp +
           OSOptionHelp +
@@ -155,8 +154,7 @@ begin
     5:Verbose := true;
     6:Mode := StringToMode(Argument);
     7:AssumeCompiled := true;
-    8:LeaveTemp := true;
-    9:Plugin := true;
+    8:Plugin := true;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

@@ -27,19 +27,70 @@
 {$ifdef read_interface}
 
   private
+    function GetFillProperties: TFillPropertiesNode;
+    procedure SetFillProperties(const Value: TFillPropertiesNode);
+    function GetLineProperties: TLinePropertiesNode;
+    procedure SetLineProperties(const Value: TLinePropertiesNode);
+    function GetTextureTransform: TAbstractTextureTransformNode;
+    procedure SetTextureTransform(const Value: TAbstractTextureTransformNode);
     function GetShadowCaster: boolean;
     procedure SetShadowCaster(const Value: boolean);
     function GetHeightMapScale: Single;
     procedure SetHeightMapScale(const Value: Single);
+    function GetBlendMode: TBlendModeNode;
+    procedure SetBlendMode(const Value: TBlendModeNode);
   public
+    property FillProperties: TFillPropertiesNode read GetFillProperties write SetFillProperties;
+    property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
+    property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
     property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
+    property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAppearanceNode ----------------------------------------------- }
+
+function TAppearanceNode.GetFillProperties: TFillPropertiesNode;
+begin
+  if FdFillProperties.Value is TFillPropertiesNode then
+    Result := TFillPropertiesNode(FdFillProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetFillProperties(const Value: TFillPropertiesNode);
+begin
+  FdFillProperties.Send(Value);
+end;
+
+function TAppearanceNode.GetLineProperties: TLinePropertiesNode;
+begin
+  if FdLineProperties.Value is TLinePropertiesNode then
+    Result := TLinePropertiesNode(FdLineProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetLineProperties(const Value: TLinePropertiesNode);
+begin
+  FdLineProperties.Send(Value);
+end;
+
+function TAppearanceNode.GetTextureTransform: TAbstractTextureTransformNode;
+begin
+  if FdTextureTransform.Value is TAbstractTextureTransformNode then
+    Result := TAbstractTextureTransformNode(FdTextureTransform.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
+begin
+  FdTextureTransform.Send(Value);
+end;
 
 function TAppearanceNode.GetShadowCaster: boolean;
 begin
@@ -59,6 +110,19 @@ end;
 procedure TAppearanceNode.SetHeightMapScale(const Value: Single);
 begin
   FdHeightMapScale.Send(Value);
+end;
+
+function TAppearanceNode.GetBlendMode: TBlendModeNode;
+begin
+  if FdBlendMode.Value is TBlendModeNode then
+    Result := TBlendModeNode(FdBlendMode.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAppearanceNode.SetBlendMode(const Value: TBlendModeNode);
+begin
+  FdBlendMode.Send(Value);
 end;
 
 {$endif read_implementation}

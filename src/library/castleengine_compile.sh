@@ -14,6 +14,8 @@ make --quiet clean
 
 fpc -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr "$@"
 
-# Avoid other programs to be accidentally compiled
+# Clean units to avoid other programs to be accidentally compiled
 # with CastleWindow with LIBRARY backend, or -fPIC.
-make --quiet clean
+# Note: do not just run "make clean", it would remove also
+# the library we just compiled.
+find . -type f '(' -iname '*.o' -or -iname '*.ppu' ')' -exec rm -f '{}' ';'

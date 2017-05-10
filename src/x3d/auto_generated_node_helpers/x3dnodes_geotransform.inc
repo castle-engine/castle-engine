@@ -37,12 +37,15 @@
     procedure SetScaleOrientation(const Value: TVector4Single);
     function GetTranslation: TVector3Single;
     procedure SetTranslation(const Value: TVector3Single);
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
     property Rotation: TVector4Single read GetRotation write SetRotation;
     property Scale: TVector3Single read GetScale write SetScale;
     property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
     property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
 {$endif read_interface}
 
@@ -98,6 +101,19 @@ end;
 procedure TGeoTransformNode.SetTranslation(const Value: TVector3Single);
 begin
   FdTranslation.Send(Value);
+end;
+
+function TGeoTransformNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoTransformNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
 end;
 
 {$endif read_implementation}

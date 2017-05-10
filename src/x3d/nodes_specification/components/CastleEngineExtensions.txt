@@ -45,15 +45,15 @@ Text3D : X3DGeometryNode {
 
 KambiInline : Inline {
   MFString   [in,out]      replaceNames  []
-  MFNode     [in,out]      replaceNodes  []          # any VRML/X3D node is valid on this list
+  MFNode     [in,out]      replaceNodes  []          # [X3DNode]
 }
 
 KambiNavigationInfo : NavigationInfo {
   SFBool     []            timeOriginAtLoad    FALSE
-  SFNode []            octreeRendering            NULL    # only KambiOctreeProperties node
-  SFNode []            octreeDynamicCollisions    NULL    # only KambiOctreeProperties node
-  SFNode []            octreeVisibleTriangles     NULL    # only KambiOctreeProperties node
-  SFNode []            octreeStaticCollisions     NULL    # only KambiOctreeProperties node
+  SFNode []            octreeRendering            NULL    # [KambiOctreeProperties]
+  SFNode []            octreeDynamicCollisions    NULL    # [KambiOctreeProperties]
+  SFNode []            octreeVisibleTriangles     NULL    # [KambiOctreeProperties]
+  SFNode []            octreeStaticCollisions     NULL    # [KambiOctreeProperties]
   SFFloat    [in,out]      headBobbing             0.02   # [0, 1)
   SFFloat    [in,out]      headBobbingTime         0.5    # > 0
   SFNode     [in,out]      headlightNode           NULL   # [X3DLightNode]
@@ -100,7 +100,6 @@ Logger : X3DChildNode {
 }
 
 MultiGeneratedTextureCoordinate : X3DTextureCoordinateNode {
-  SFNode [in,out] metadata NULL [X3DMetadataObject]
   MFNode [in,out] texCoord NULL [TextureCoordinateGenerator, ProjectedTextureCoordinate]
 }
 

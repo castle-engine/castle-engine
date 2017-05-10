@@ -29,6 +29,8 @@
   private
     function GetCenter: TVector3Double;
     procedure SetCenter(const Value: TVector3Double);
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
     function GetRange: Single;
     procedure SetRange(const Value: Single);
     function GetBboxCenter: TVector3Single;
@@ -37,6 +39,7 @@
     procedure SetBboxSize(const Value: TVector3Single);
   public
     property Center: TVector3Double read GetCenter write SetCenter;
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     property Range: Single read GetRange write SetRange;
     property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
     property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
@@ -55,6 +58,19 @@ end;
 procedure TGeoLODNode.SetCenter(const Value: TVector3Double);
 begin
   FdCenter.Send(Value);
+end;
+
+function TGeoLODNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoLODNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
 end;
 
 function TGeoLODNode.GetRange: Single;

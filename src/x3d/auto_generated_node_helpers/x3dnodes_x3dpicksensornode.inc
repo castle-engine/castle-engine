@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  private
+    function GetPickingGeometry: TAbstractGeometryNode;
+    procedure SetPickingGeometry(const Value: TAbstractGeometryNode);
+  public
+    property PickingGeometry: TAbstractGeometryNode read GetPickingGeometry write SetPickingGeometry;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractPickSensorNode ----------------------------------------------- }
+
+function TAbstractPickSensorNode.GetPickingGeometry: TAbstractGeometryNode;
+begin
+  if FdPickingGeometry.Value is TAbstractGeometryNode then
+    Result := TAbstractGeometryNode(FdPickingGeometry.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractPickSensorNode.SetPickingGeometry(const Value: TAbstractGeometryNode);
+begin
+  FdPickingGeometry.Send(Value);
+end;
 
 {$endif read_implementation}

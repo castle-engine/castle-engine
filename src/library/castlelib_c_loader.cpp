@@ -37,7 +37,7 @@
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
-typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags);
+typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight);
 typedef void (__cdecl *PFNRD_CGE_Close)();
 typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
@@ -171,10 +171,10 @@ void CGE_LoadLibrary()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Open(unsigned uiFlags)
+void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight)
 {
 	if (pfrd_CGE_Open!=NULL)
-		(*pfrd_CGE_Open)(uiFlags);
+		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight);
 }
 
 //-----------------------------------------------------------------------------

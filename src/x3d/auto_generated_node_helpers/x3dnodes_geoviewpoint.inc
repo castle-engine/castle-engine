@@ -31,11 +31,14 @@
     procedure SetFieldOfView(const Value: Single);
     function GetHeadlight: boolean;
     procedure SetHeadlight(const Value: boolean);
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
     function GetSpeedFactor: Single;
     procedure SetSpeedFactor(const Value: Single);
   public
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
     property Headlight: boolean read GetHeadlight write SetHeadlight;
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;
 
 {$endif read_interface}
@@ -62,6 +65,19 @@ end;
 procedure TGeoViewpointNode.SetHeadlight(const Value: boolean);
 begin
   FdHeadlight.Send(Value);
+end;
+
+function TGeoViewpointNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoViewpointNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
 end;
 
 function TGeoViewpointNode.GetSpeedFactor: Single;

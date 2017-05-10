@@ -15,7 +15,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
 
   # EXTENSIONS:
   SFString [in,out]    shading            "DEFAULT" # ["DEFAULT"|"PHONG"|"WIREFRAME"]
-  SFNode  []           octreeTriangles    NULL    # only KambiOctreeProperties node
+  SFNode  []           octreeTriangles    NULL      # [KambiOctreeProperties]
   # InstantReality extension, http://doc.instantreality.org/documentation/nodetype/Shape/
   SFBool  [in,out]     render             TRUE
 

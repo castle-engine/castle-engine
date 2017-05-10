@@ -82,7 +82,7 @@ const
 type
   TLibraryCallbackProc = function (eCode, iParam1, iParam2: cInt32; szParam: pcchar):cInt32; cdecl;
 
-procedure CGE_Open(flags: cUInt32); cdecl; external 'castleengine';
+procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight: cUInt32); cdecl; external 'castleengine';
 procedure CGE_Close(); cdecl; external 'castleengine';
 procedure CGE_GetOpenGLInformation(szBuffer: pchar; nBufSize: cInt32); cdecl; external 'castleengine';
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl; external 'castleengine';
@@ -117,7 +117,7 @@ function CGE_GetVariableInt(eVar: cInt32): cInt32; cdecl; external 'castleengine
 
 procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
                                 fVal1, fVal2, fVal3, fVal4: cFloat); cdecl; external 'castleengine';
-                                
+
 procedure CGE_IncreaseSceneTime(fTimeS: cFloat); cdecl; external 'castleengine';
 
 implementation

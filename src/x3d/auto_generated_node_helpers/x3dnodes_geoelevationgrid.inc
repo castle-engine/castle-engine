@@ -37,6 +37,8 @@
     procedure SetCreaseAngle(const Value: Double);
     function GetGeoGridOrigin: TVector3Double;
     procedure SetGeoGridOrigin(const Value: TVector3Double);
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
     function GetNormalPerVertex: boolean;
     procedure SetNormalPerVertex(const Value: boolean);
     function GetXDimension: Integer;
@@ -53,6 +55,7 @@
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
     property GeoGridOrigin: TVector3Double read GetGeoGridOrigin write SetGeoGridOrigin;
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
     property XDimension: Integer read GetXDimension write SetXDimension;
     property XSpacing: Double read GetXSpacing write SetXSpacing;
@@ -113,6 +116,19 @@ end;
 procedure TGeoElevationGridNode.SetGeoGridOrigin(const Value: TVector3Double);
 begin
   FdGeoGridOrigin.Send(Value);
+end;
+
+function TGeoElevationGridNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoElevationGridNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
 end;
 
 function TGeoElevationGridNode.GetNormalPerVertex: boolean;

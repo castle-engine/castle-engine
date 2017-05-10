@@ -1,7 +1,7 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <PathDelim Value="\"/>
     <General>
       <SessionStorage Value="InIDEConfig"/>
@@ -14,9 +14,6 @@
     <i18n>
       <EnableI18N LFM="False"/>
     </i18n>
-    <VersionInfo>
-      <StringTable ProductVersion=""/>
-    </VersionInfo>
     <BuildModes Count="1">
       <Item1 Name="Default" Default="True"/>
     </BuildModes>
@@ -42,7 +39,6 @@
       <Unit0>
         <Filename Value="cge_dynlib_tester.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cge_dynlib_tester"/>
       </Unit0>
       <Unit1>
         <Filename Value="cge_dynlib_tester_form.pas"/>
@@ -50,7 +46,6 @@
         <ComponentName Value="Form1"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="cge_dynlib_tester_form"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -81,14 +76,10 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerMessages>
-        <MsgFileName Value=""/>
-      </CompilerMessages>
       <ConfigFile>
         <CustomConfigFile Value="True"/>
         <ConfigFilePath Value="..\..\..\castle-fpc.cfg"/>
       </ConfigFile>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>

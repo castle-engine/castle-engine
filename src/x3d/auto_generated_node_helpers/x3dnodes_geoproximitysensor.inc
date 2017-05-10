@@ -29,8 +29,11 @@
   private
     function GetGeoCenter: TVector3Double;
     procedure SetGeoCenter(const Value: TVector3Double);
+    function GetGeoOrigin: TGeoOriginNode;
+    procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
+    property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
 {$endif read_interface}
 
@@ -46,6 +49,19 @@ end;
 procedure TGeoProximitySensorNode.SetGeoCenter(const Value: TVector3Double);
 begin
   FdGeoCenter.Send(Value);
+end;
+
+function TGeoProximitySensorNode.GetGeoOrigin: TGeoOriginNode;
+begin
+  if FdGeoOrigin.Value is TGeoOriginNode then
+    Result := TGeoOriginNode(FdGeoOrigin.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoProximitySensorNode.SetGeoOrigin(const Value: TGeoOriginNode);
+begin
+  FdGeoOrigin.Send(Value);
 end;
 
 {$endif read_implementation}
