@@ -676,7 +676,7 @@ var
   N, F: Single;
   R: TVector4Single;
 begin
-  { If author didn't provide and X3DShadowMaps unit didn't calculate
+  { If author didn't provide and CastleInternalShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
   N := FdProjectionNear.Value;
@@ -1036,7 +1036,7 @@ function TSpotLightNode.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
-  { If author didn't provide and X3DShadowMaps unit didn't calculate
+  { If author didn't provide and CastleInternalShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
   if FdprojectionAngle.Value <= 0 then

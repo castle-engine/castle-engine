@@ -29,7 +29,7 @@ uses
   CastleShapes, CastleInternalTriangleOctree, CastleProgress, CastleInternalOctree,
   CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
-  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists,
+  CastleRenderingCamera, Castle3D, CastleInternalShadowMaps, FGL, CastleGenericLists,
   CastleRays;
 
 type

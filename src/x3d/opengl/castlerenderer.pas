@@ -203,7 +203,7 @@ uses Classes, SysUtils, FGL, CastleGL,
   CastleVideos, X3DTime, CastleShapes,
   CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  X3DShadowMaps, CastleRendererInternalTextureEnv;
+  CastleRendererInternalTextureEnv;
 
 {$define read_interface}
 

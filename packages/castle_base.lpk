@@ -1446,8 +1446,8 @@
         <Type Value="Include"/>
       </Item350>
       <Item351>
-        <Filename Value="../src/x3d/x3dshadowmaps.pas"/>
-        <UnitName Value="X3DShadowMaps"/>
+        <Filename Value="../src/x3d/castleinternalshadowmaps.pas"/>
+        <UnitName Value="CastleInternalShadowMaps"/>
       </Item351>
       <Item352>
         <Filename Value="../src/x3d/x3dtime.pas"/>

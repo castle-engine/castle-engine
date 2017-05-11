@@ -299,6 +299,7 @@ begin
     P.Targets.AddUnit('castlearraysgenerator.pas');
     P.Targets.AddUnit('castleinternalnodeinterpolator.pas');
     P.Targets.AddUnit('castleinternalnormals.pas');
+    P.Targets.AddUnit('castleinternalshadowmaps.pas');
     P.Targets.AddUnit('castleinternalshapeoctree.pas');
     P.Targets.AddUnit('castleinternaltriangleoctree.pas');
     P.Targets.AddUnit('castlematerialproperties.pas');
@@ -320,7 +321,6 @@ begin
     P.Targets.AddUnit('x3dloadinternalspine.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('x3dnodes.pas');
-    P.Targets.AddUnit('x3dshadowmaps.pas');
     P.Targets.AddUnit('x3dtime.pas');
     P.Targets.AddUnit('x3dtriangles.pas');
     P.Targets.AddUnit('x3dcastlescript.pas');

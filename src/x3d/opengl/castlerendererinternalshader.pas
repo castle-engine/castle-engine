@@ -20,9 +20,10 @@ unit CastleRendererInternalShader;
 
 interface
 
-uses CastleVectors, CastleGLShaders, FGL, CastleGenericLists,
-  X3DShadowMaps, X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererInternalTextureEnv, CastleStringUtils, CastleShaders;
+uses FGL, CastleVectors, CastleGLShaders, CastleGenericLists,
+  X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleShaders,
+  CastleShapes;
 
 type
   TSurfaceTexture = (stAmbient, stSpecular, stShininess);
