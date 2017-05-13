@@ -3,13 +3,25 @@
 
 MODE:=debug
 
-.PHONY: standalone
-standalone:
-	castle-engine --mode=$(MODE) compile $(CASTLE_ENGINE_TOOL_OPTIONS)
+.PHONY: compile
+compile:
+	castle-engine --mode=$(MODE)  compile $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean
 clean:
 	castle-engine clean
+
+.PHONY: win32
+win32:
+	castle-engine --mode=$(MODE) package --os=win32 --cpu=i386
+
+.PHONY: linux
+linux:
+	castle-engine --mode=$(MODE) package --os=linux --cpu=i386
+
+.PHONY: src
+src:
+	castle-engine --mode=$(MODE) package-source
 
 .PHONY: android
 android:

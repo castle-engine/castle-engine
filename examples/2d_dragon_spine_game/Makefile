@@ -1,28 +1,34 @@
 # This Makefile uses castle-engine build tool for most operations.
 # See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
-.PHONY: standalone
-standalone:
-	castle-engine compile $(CASTLE_ENGINE_TOOL_OPTIONS)
+MODE:=debug
+
+.PHONY: compile
+compile:
+	castle-engine --mode=$(MODE)  compile $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean
 clean:
 	castle-engine clean
 
-.PHONY: release-win32
-release-win32:
-	castle-engine package --os=win32 --cpu=i386
+.PHONY: win32
+win32:
+	castle-engine --mode=$(MODE) package --os=win32 --cpu=i386
 
-.PHONY: release-linux
-release-linux:
-	castle-engine package --os=linux --cpu=i386
+.PHONY: linux
+linux:
+	castle-engine --mode=$(MODE) package --os=linux --cpu=i386
 
-.PHONY: release-src
-release-src:
-	castle-engine package-source
+.PHONY: src
+src:
+	castle-engine --mode=$(MODE) package-source
 
-.PHONY: release-android
-release-android:
-	castle-engine package --os=android --cpu=arm
+.PHONY: android
+android:
+	castle-engine --mode=$(MODE) package --os=android --cpu=arm
 	castle-engine install --os=android --cpu=arm
 	castle-engine run --os=android --cpu=arm
+
+.PHONY: ios
+ios:
+	castle-engine --mode=$(MODE) package --target=iOS
