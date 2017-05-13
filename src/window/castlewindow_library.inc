@@ -45,7 +45,7 @@ private
 
 {$ifdef read_global_interface}
 
-procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 procedure CGEApp_Close; cdecl;
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
@@ -353,10 +353,13 @@ begin
     raise Exception.Create('Application.MainWindow not set. One of the game units *must* set Application.MainWindow value in the "initialization" section');
 end;
 
-procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 begin
   try
     CheckMainWindow;
+
+    // use given ApplicationConfigDirectory
+    ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(ApplicationConfigDirectory));
 
     { We have to set window sizes, and Application.Screen* sizes,
       before calling MainWindow.Open. That's because EventOpen may already
@@ -364,6 +367,7 @@ begin
       Yes, other CastleWindow backends also make sure that these are set early. }
 
     WritelnLog('Library received CGEApp_Open (window size: %d %d)', [InitialWidth, InitialHeight]);
+    WritelnLog('Library set application config directory to URL: %s', [ApplicationConfigOverride]);
     Application.FScreenWidth := InitialWidth;
     Application.FScreenHeight := InitialHeight;
     //Window.FullScreen := true; // TODO: setting fullscreen should work like that 4 lines below. Also, should be default?

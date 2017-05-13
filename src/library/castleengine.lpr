@@ -70,7 +70,7 @@ begin
     WarningWrite('CGE scene not initialized (CGE_LoadSceneFromFile not called)');
 end;
 
-procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight: cUInt32); cdecl;
+procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 begin
   try
     if (flags and 1 {ecgeofSaveMemory}) > 0 then
@@ -85,7 +85,7 @@ begin
     Window := TCastleWindowTouch.Create(nil);
     Application.MainWindow := Window;
 
-    CGEApp_Open(InitialWidth, InitialHeight);
+    CGEApp_Open(InitialWidth, InitialHeight, ApplicationConfigDirectory);
 
     Crosshair := TCrosshairManager.Create;
   except
