@@ -148,6 +148,7 @@ var
       SaveResized(120);
       SaveResized(144);
       SaveResized(152);
+      SaveResized(167);
     finally
       if Icon = DefaultIcon then
         Icon := nil else
