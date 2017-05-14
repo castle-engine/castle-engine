@@ -82,9 +82,19 @@ type
 { OpenGL error checking ------------------------------------------------------ }
 
 type
-  { OpenGL error. Usually indicates a bug in your code (or shader code,
+  { OpenGL error.
+    Usually OpenGL error indicates a bug in our code (or shader code,
     depending on TUniformNotFoundAction and TUniformTypeMismatchAction;
     by default, they do not cause errors).
+    Except the @link(EOpenGLOutOfMemoryError), which may happen regardless
+    of what we do, and depends on the device. }
+  EOpenGLError = class(Exception)
+  public
+    ErrorCode: TGLenum;
+    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
+  end;
+
+  { GPU memory is not sufficient.
 
     When programming for platforms with limited GPU memory (Android, iOS...)
     you should prepare to handle EOpenGLOutOfMemoryError (corresponding to
@@ -94,12 +104,6 @@ type
     Alternatively, you can leave GLOutOfMemoryError = @false,
     and then EOpenGLOutOfMemoryError will not happen, but you risk all kinds
     of rendering artifacts. }
-  EOpenGLError = class(Exception)
-  public
-    ErrorCode: TGLenum;
-    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
-  end;
-
   EOpenGLOutOfMemoryError = class(EOpenGLError)
   end;
 
