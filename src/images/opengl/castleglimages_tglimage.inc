@@ -1287,6 +1287,18 @@ const
     Something minimally > 0.5 is necessary. }
   Epsilon = 0.51;
 begin
+  { TODO: Workaround for iOS.
+    It *seems* to be an FPC 3.0.3 on iOS bug (that happens only with -dRELEASE settings),
+    causes Draw3x3 with corners = 0 to do nothing.
+    No glGetError also. }
+  {$ifdef IOS}
+  if (CornerTop = 0) and
+     (CornerRight = 0) and
+     (CornerBottom = 0) and
+     (CornerLeft = 0) then
+    Draw(X, Y, DrawWidth, DrawHeight);
+  {$endif}
+
   DrawCornerTop    := CornerTop    * ScaleCorners;
   DrawCornerRight  := CornerRight  * ScaleCorners;
   DrawCornerBottom := CornerBottom * ScaleCorners;
