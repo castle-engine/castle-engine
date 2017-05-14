@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <project name="show_various_ui_controls"
   caption="Castle Game Engine 2D Demo"
-  qualified_name="net.sourceforge.castleengine.show_various_ui_controls"
+  qualified_name="net.sourceforge.castleengine.show.various.ui.controls"
   standalone_source="show_various_ui_controls.lpr"
   game_units="Game"
   author="Michalis Kamburelis">

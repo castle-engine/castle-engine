@@ -233,9 +233,16 @@ constructor TCastleProject.Create(const APath: string);
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
     AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+
     { qualified_name is also a Java package name for Android, so it
-      cannot contain dash character. }
-    QualifiedNameAllowedChars = AlphaNum + ['_','.'];
+      cannot contain dash character.
+
+      As for underscore:
+      On Android, using _ is allowed,
+      but on iOS it is not (it fails at signing),
+      possibly because _ inside URLs is (in general) not allowed:
+      http://stackoverflow.com/questions/2180465/can-domain-name-subdomains-have-an-underscore-in-it }
+    QualifiedNameAllowedChars = AlphaNum + ['.'];
 
     function DefaultQualifiedName: string;
     begin
