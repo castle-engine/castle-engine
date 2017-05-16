@@ -23,7 +23,7 @@ interface
 uses Classes, FGL, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontData,
   CastleKeysMouse, CastleImages, CastleUtils, CastleGLImages, CastleRectangles,
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
-  CastleURIUtils, CastleLog;
+  CastleURIUtils, CastleLog, CastleStringUtils;
 
 
 type
@@ -66,7 +66,10 @@ type
       some Android devices, as we cannot load assets before activity is started).
       So you can only assign images already available in code ---
       use image-to-pascal tool to convert any image to a Pascal code for this purpose. }
-    tiLoading);
+    tiLoading,
+
+    { TCastleEdit frame. }
+    tiEdit);
 
   {$define read_interface}
   {$I castlecontrols_uicontrolfont.inc}
@@ -85,6 +88,7 @@ type
   {$I castlecontrols_sliders.inc}
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_timer.inc}
+  {$I castlecontrols_edit.inc}
   // Add more UI controls include files here.
 
   // Keep the following (theme and uifont) at the end, as they end the "type" clause.
@@ -98,7 +102,7 @@ implementation
 
 uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
   CastleTextureFont_DejaVuSans_10,
-  CastleApplicationProperties, CastleStringUtils;
+  CastleApplicationProperties;
 
 {$define read_implementation}
 {$I castlecontrols_uifont.inc} //< Keep this on top, to allow uicontrolfont.inc to access internals
@@ -118,6 +122,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_sliders.inc}
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_timer.inc}
+{$I castlecontrols_edit.inc}
 {$I castlecontrols_theme.inc}
 {$undef read_implementation}
 

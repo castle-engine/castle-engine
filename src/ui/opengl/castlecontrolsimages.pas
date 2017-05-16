@@ -102,6 +102,9 @@ var
 var
   ErrorBackground: TGrayscaleImage;
 
+var
+  Edit: TGrayscaleImage;
+
 implementation
 
 uses SysUtils;
@@ -207,6 +210,9 @@ initialization
   ErrorBackground := TGrayscaleImage.Create(ErrorBackgroundWidth, ErrorBackgroundHeight, ErrorBackgroundDepth);
   Move(ErrorBackgroundPixels, ErrorBackground.RawPixels^, SizeOf(ErrorBackgroundPixels));
   ErrorBackground.URL := 'embedded-image:/ErrorBackground';
+  Edit := TGrayscaleImage.Create(EditWidth, EditHeight, EditDepth);
+  Move(EditPixels, Edit.RawPixels^, SizeOf(EditPixels));
+  Edit.URL := 'embedded-image:/Edit';
 finalization
   FreeAndNil(Panel);
   FreeAndNil(WindowDarkTransparent);
@@ -239,4 +245,5 @@ finalization
   FreeAndNil(ScrollbarFrame);
   FreeAndNil(SliderPosition);
   FreeAndNil(ErrorBackground);
+  FreeAndNil(Edit);
 end.

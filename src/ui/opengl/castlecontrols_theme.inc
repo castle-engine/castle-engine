@@ -200,6 +200,8 @@ begin
   FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
   FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
+  FImages[tiEdit] := Edit;
+  FCorners[tiEdit] := Vector4Integer(2, 2, 2, 2);
 
   ApplicationProperties.OnGLContextCloseObject.Add(@GLContextClose);
 end;

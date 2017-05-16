@@ -25,6 +25,8 @@ examples/2d_standard_ui/show_various_ui_controls/libshow_various_ui_controls_and
 examples/2d_standard_ui/timer_test/timer_test
 examples/2d_standard_ui/timer_test/timer_test.exe
 examples/2d_standard_ui/zombie_fighter/zombie_fighter
+examples/2d_standard_ui/edit_test/edit_test
+examples/2d_standard_ui/edit_test/edit_test.exe
 examples/2d_dragon_spine_game/castle_spine
 examples/2d_dragon_spine_game/castle_spine.exe
 examples/2d_dragon_spine_game/castle_spine.log

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project name="edit_test"
+  caption="Edit Test"
+  qualified_name="io.castleengine.edit.test"
+  standalone_source="edit_test.lpr"
+  game_units="Game"
+  author="Michalis Kamburelis">
+</project>

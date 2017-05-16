@@ -575,6 +575,8 @@ begin
 end;
 
 function TCastleInputDialog.Press(const Event: TInputPressRelease): boolean;
+{ TODO: copy of TCastleEdit.Press here,
+  we should instead reuse TCastleEdit! }
 begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
@@ -624,7 +626,9 @@ begin
     end;
   end else
   if Event.IsKey(CtrlV) then
-    InputText := Clipboard.AsText else
+  begin
+    InputText := SDeleteChars(Clipboard.AsText, AllChars - answerAllowedChars);
+  end else
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
      (Event.KeyCharacter in answerAllowedChars) and

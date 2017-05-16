@@ -101,7 +101,7 @@
 
     { Inside the label rectangle, padding between rect borders and text.
       Total horizontal padding is the sum @code(PaddingHorizontal + Padding),
-      total verical padding is the sum @code(PaddingVertical + Padding).
+      total vertical padding is the sum @code(PaddingVertical + Padding).
       @groupBegin }
     property PaddingHorizontal: Integer
       read FPaddingHorizontal write FPaddingHorizontal default 0;

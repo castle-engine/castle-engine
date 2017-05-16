@@ -16,7 +16,7 @@ clean:
   FrameThickWhite.png FrameThickYellow.png \
   ProgressBar.png ProgressFill.png \
   TouchCtlInner.png TouchCtlOuter.png TouchCtlFlyInner.png TouchCtlFlyOuter.png \
-  Crosshair1.png Crosshair2.png ErrorBackground.png Loading.png
+  Crosshair1.png Crosshair2.png ErrorBackground.png Loading.png Edit.png
 	image-to-pascal --output .. CastleControlsImages \
 	  Panel.png WindowDarkTransparent.png Slider.png \
 	  Tooltip.png TooltipRounded.png \
@@ -28,4 +28,4 @@ clean:
 	  @alpha=strip \
 	  PanelSeparator.png WindowDark.png WindowGray.png \
 	  ScrollbarFrame.png \
-	  SliderPosition.png ErrorBackground.png
+	  SliderPosition.png ErrorBackground.png Edit.png
