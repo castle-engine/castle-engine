@@ -40,7 +40,7 @@
     { For demo_models/vrml_1/flat_triangles_octree_test.wrl,
       this really needs some tolerance. And SingleEqualityEpsilon
       was too small. }
-    function Box3DPointInsideTolerant(
+    function Box3DContainsTolerant(
       const pt: TVector3Single; const box: TBox3D): boolean;
     begin
       if box.IsEmpty then exit(false);
@@ -181,7 +181,7 @@
            TrySimplePlaneRayIntersection(PlaneIntersect, PlaneIntersectionDistance,
              i, MiddlePoint[i], FirstBoxIntr, RayDirection)
            {$endif}
-             and Box.PointInside(PlaneIntersect);
+             and Box.Contains(PlaneIntersect);
        end;
 
        if Exists then Inc(ExistingPlaneIntersectsCount);
@@ -299,7 +299,7 @@
       nie jest najblizszym z mozliwych) }
     if (result <> nil) and
        ((not ReturnClosestIntersection) or
-        Box3DPointInsideTolerant(Intersection, SubNode.Box)) then
+        Box3DContainsTolerant(Intersection, SubNode.Box)) then
      Exit;
    end;
   end;

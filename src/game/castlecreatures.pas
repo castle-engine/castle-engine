@@ -2127,7 +2127,7 @@ var
         SetState(csWalk) else
       if Gravity and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
-         BoundingBox.PointInside2D(LastSensedEnemy, World.GravityCoordinate) then
+         BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
       begin
         { Then the enemy (or it's last known position) is right above or below us.
           Since we can't fly, we can't get there. Standing in place

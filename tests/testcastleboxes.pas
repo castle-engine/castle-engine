@@ -778,12 +778,12 @@ const
   Box: TBox3D = (Data: ((1, 2, 3), (4, 5, 6)) );
   Box2: TBox3D = (Data: ((1, 2, 3), (2, 5, 13)) );
 begin
-  AssertTrue(Box.PointInside2D(Vector3Single(2, 3, 10), 2));
-  AssertTrue(not Box.PointInside2D(Vector3Single(2, 3, 10), 0));
-  AssertTrue(not Box.PointInside2D(Vector3Single(2, 3, 10), 1));
+  AssertTrue(Box.Contains2D(Vector3Single(2, 3, 10), 2));
+  AssertTrue(not Box.Contains2D(Vector3Single(2, 3, 10), 0));
+  AssertTrue(not Box.Contains2D(Vector3Single(2, 3, 10), 1));
   try
-    Box.PointInside2D(Vector3Single(2, 3, 10), 3);
-    Fail('Above PointInside2D with IgnoreIndex = 3 should raise exception');
+    Box.Contains2D(Vector3Single(2, 3, 10), 3);
+    Fail('Above Contains2D with IgnoreIndex = 3 should raise exception');
   except end;
 
   AssertFloatsEqual(Sqrt(Sqr(5) + Sqr(6)), Box.Radius2D(0), 0.01);

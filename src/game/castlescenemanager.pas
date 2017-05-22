@@ -1030,7 +1030,7 @@ type
 
           @longCode(#
             { Allow movement everywhere, but limit gravity to a box. }
-            Allowed := (not BecauseOfGravity) or MyGravityBox.PointInside(NewPos);
+            Allowed := (not BecauseOfGravity) or MyGravityBox.Contains(NewPos);
           #)
         )
       ) *)
@@ -3339,9 +3339,9 @@ begin
     { Don't let objects/camera fall outside of the box because of gravity,
       as then they would fall into infinity. }
     if BecauseOfGravity then
-      Result := Items.BoundingBox.PointInside(NewPosition);
+      Result := Items.BoundingBox.Contains(NewPosition);
   end else
-    Result := MoveLimit.PointInside(NewPosition);
+    Result := MoveLimit.Contains(NewPosition);
 
   if Assigned(OnMoveAllowed) then
     OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);

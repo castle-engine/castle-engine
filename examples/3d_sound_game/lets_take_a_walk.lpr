@@ -169,7 +169,7 @@ type
 class procedure TDummy.CameraChanged(Camera: TObject);
 { Update stuff based on whether camera position is inside mute area. }
 
-  function PointInsideCylinder(const P: TVector3Single;
+  function CylinderContains(const P: TVector3Single;
     const MiddleX, MiddleY, Radius, MinZ, MaxZ: Single): boolean;
   begin
     Result :=
@@ -180,7 +180,7 @@ class procedure TDummy.CameraChanged(Camera: TObject);
 var
   InMuteArea: boolean;
 begin
-  InMuteArea := PointInsideCylinder(SceneManager.Camera.Position, 2, 0, 0.38, 0, 1.045640);
+  InMuteArea := CylinderContains(SceneManager.Camera.Position, 2, 0, 0.38, 0, 1.045640);
 
   MuteImage.Exists := InMuteArea;
 

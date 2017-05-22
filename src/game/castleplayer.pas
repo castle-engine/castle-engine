@@ -846,9 +846,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     NewSwimming := psNo;
     if World <> nil then
     begin
-      if World.Water.PointInside(Position) then
+      if World.Water.Contains(Position) then
         NewSwimming := psUnderWater else
-      if World.Water.PointInside(Position - World.GravityUp * Camera.PreferredHeight) then
+      if World.Water.Contains(Position - World.GravityUp * Camera.PreferredHeight) then
         NewSwimming := psAboveWater;
     end;
     Swimming := NewSwimming;

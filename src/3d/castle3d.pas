@@ -2420,7 +2420,7 @@ end;
 function T3D.PointCollision2D(const Point: TVector2Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  Result := GetCollides and BoundingBox.PointInside2D(Point);
+  Result := GetCollides and BoundingBox.Contains2D(Point);
 end;
 
 function T3D.BoxCollision(const Box: TBox3D;

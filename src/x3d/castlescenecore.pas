@@ -780,9 +780,11 @@ type
 
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
+  public
     function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+  protected
     function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;
