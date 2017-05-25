@@ -1285,13 +1285,15 @@ var
     ProjectionType: TProjectionType;
   begin
     if Viewpoint <> nil then
-      ProjectionType := Viewpoint.ProjectionType else
+      ProjectionType := Viewpoint.ProjectionType
+    else
       ProjectionType := ptPerspective;
 
     case ProjectionType of
       ptPerspective: DoPerspective;
       ptOrthographic: DoOrthographic;
-      else EInternalError.Create('TGLRenderedTextureNode.Update-ProjectionType?');
+      ptFrustum: raise EInternalError.Create('TGLRenderedTextureNode.Update: X3D Viewpoint node should not be able to specify ptFrustum projection');
+      else raise EInternalError.Create('TGLRenderedTextureNode.Update-ProjectionType?');
     end;
   end;
 

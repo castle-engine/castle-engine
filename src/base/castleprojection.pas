@@ -22,7 +22,7 @@ uses CastleVectors, CastleRectangles;
 
 type
   { Projection type, used by @link(TProjection.ProjectionType). }
-  TProjectionType = (ptOrthographic, ptPerspective);
+  TProjectionType = (ptOrthographic, ptPerspective, ptFrustum);
 
   { Projection determines how does the 3D world map onto 2D.
     To change the currently displayed projection,
@@ -34,9 +34,9 @@ type
       angles of view (horizontal and vertical), in degrees. }
     PerspectiveAngles: TVector2Single;
 
-    { If ProjectionType is ptOrthographic, this property specifies
+    { If ProjectionType is ptOrthographic or ptFrustum, this property specifies
       dimensions of the visible window. }
-    OrthoDimensions: TFloatRectangle;
+    Dimensions: TFloatRectangle;
 
     { Near clipping distance.
       Everything closer to this distance is clipped (invisible). }
@@ -101,8 +101,8 @@ const
 function OrthoProjMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 function OrthoProjMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
-function Ortho2dProjMatrix(const Dimensions: TFloatRectangle): TMatrix4Single;
-function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function Ortho2dProjMatrix(const Dimensions: TFloatRectangle): TMatrix4Single; deprecated 'just use OrthoProjMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single; deprecated 'just use OrthoProjMatrix, the 2D optimization is not really worth the maintenance';
 
 function FrustumProjMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 function FrustumProjMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
@@ -171,7 +171,10 @@ begin
   Dimensions.Width  := Right - Left;
   Dimensions.Bottom := Bottom;
   Dimensions.Height := Top - Bottom;
+  {$warnings off}
+  // consciously using deprecated function in another deprecated function
   Result := Ortho2dProjMatrix(Dimensions);
+  {$warnings on}
 end;
 
 function Ortho2dProjMatrix(const Dimensions: TFloatRectangle): TMatrix4Single;

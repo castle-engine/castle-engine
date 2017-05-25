@@ -531,7 +531,7 @@ begin
     itKey        : Result := IsKey(Event.Key, Event.KeyCharacter);
     itMouseButton: Result := IsMouseButton(Event.MouseButton);
     itMouseWheel : Result := IsMouseWheel(Event.MouseWheel);
-    else EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
+    else raise EInternalError.Create('TInputShortcut.IsEvent: Event.EventType?');
   end;
 end;
 

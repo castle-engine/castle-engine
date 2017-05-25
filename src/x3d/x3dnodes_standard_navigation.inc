@@ -1097,24 +1097,24 @@ end;
 
 function TOrthoViewpointNode.ProjectionMatrix: TMatrix4Single;
 var
-  OrthoDimensions: TFloatRectangle;
+  Dimensions: TFloatRectangle;
 begin
-  { default OrthoDimensions, for OrthoViewpoint }
-  OrthoDimensions.Left   := -1;
-  OrthoDimensions.Bottom := -1;
-  OrthoDimensions.Width  :=  2;
-  OrthoDimensions.Height :=  2;
+  { default Dimensions, for OrthoViewpoint }
+  Dimensions.Left   := -1;
+  Dimensions.Bottom := -1;
+  Dimensions.Width  :=  2;
+  Dimensions.Height :=  2;
 
-  if FdFieldOfView.Items.Count > 0 then OrthoDimensions.Left   := FdFieldOfView.Items[0];
-  if FdFieldOfView.Items.Count > 1 then OrthoDimensions.Bottom := FdFieldOfView.Items[1];
-  if FdFieldOfView.Items.Count > 2 then OrthoDimensions.Width  := FdFieldOfView.Items[2] - OrthoDimensions.Left;
-  if FdFieldOfView.Items.Count > 3 then OrthoDimensions.Height := FdFieldOfView.Items[3] - OrthoDimensions.Bottom;
+  if FdFieldOfView.Items.Count > 0 then Dimensions.Left   := FdFieldOfView.Items[0];
+  if FdFieldOfView.Items.Count > 1 then Dimensions.Bottom := FdFieldOfView.Items[1];
+  if FdFieldOfView.Items.Count > 2 then Dimensions.Width  := FdFieldOfView.Items[2] - Dimensions.Left;
+  if FdFieldOfView.Items.Count > 3 then Dimensions.Height := FdFieldOfView.Items[3] - Dimensions.Bottom;
 
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window,
     by calling AspectFieldOfView. }
 
-  Result := OrthoProjMatrix(OrthoDimensions,
+  Result := OrthoProjMatrix(Dimensions,
     1, 100); { TODO: near, far projection testing values }
 end;
 

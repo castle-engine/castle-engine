@@ -90,10 +90,10 @@ type
 
   TOrthographicRaysWindow = class(TRaysWindow)
   private
-    OrthoDimensions: TFloatRectangle;
+    Dimensions: TFloatRectangle;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const AOrthoDimensions: TFloatRectangle);
+      const ADimensions: TFloatRectangle);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
@@ -149,7 +149,9 @@ begin
         ACamPosition, ACamDirection, ACamUp, Projection.PerspectiveAngles);
     ptOrthographic:
       Result := TOrthographicRaysWindow.Create(
-        ACamPosition, ACamDirection, ACamUp, Projection.OrthoDimensions);
+        ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
+    ptFrustum:
+      raise EInternalError.Create('TRaysWindow for ptFrustum projection not implemented, use ptPerspective');
     else raise EInternalError.Create('TRaysWindow.CreateDescendant:ProjectionType?');
   end;
 end;
@@ -198,10 +200,10 @@ end;
 
 constructor TOrthographicRaysWindow.Create(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const AOrthoDimensions: TFloatRectangle);
+  const ADimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
-  OrthoDimensions := AOrthoDimensions;
+  Dimensions := ADimensions;
 end;
 
 procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
@@ -210,9 +212,9 @@ procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
 begin
   RayOrigin := CamPosition;
   RayOrigin += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
-    OrthoDimensions.Left, OrthoDimensions.Right));
+    Dimensions.Left, Dimensions.Right));
   RayOrigin += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
-    OrthoDimensions.Bottom, OrthoDimensions.Top));
+    Dimensions.Bottom, Dimensions.Top));
 
   { CamDirection must already be normalized, so RayDirection is normalized too }
   RayDirection := CamDirection;

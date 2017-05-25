@@ -284,6 +284,7 @@ property ProjectionMatrix: TMatrix4Single
 function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
 function OrthoProjection(const Dimensions: TFloatRectangle;
   const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4Single;
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 { @groupEnd }
 
 var
@@ -693,6 +694,12 @@ end;
 function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 begin
   Result := OrthoProjMatrix(Dimensions, ZNear, ZFar);
+  ProjectionMatrix := Result;
+end;
+
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+begin
+  Result := FrustumProjMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 

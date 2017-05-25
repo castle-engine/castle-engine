@@ -188,8 +188,8 @@ var
   ControlWidth, ControlHeight: Integer;
 begin
   Result.ProjectionType := ptOrthographic;
-  Result.OrthoDimensions.Left := 0;
-  Result.OrthoDimensions.Bottom := 0;
+  Result.Dimensions.Left := 0;
+  Result.Dimensions.Bottom := 0;
 
   ControlWidth := CalculatedWidth;
   ControlHeight := CalculatedHeight;
@@ -215,12 +215,12 @@ begin
     FCurrentProjectionHeight := ProjectionHeight;
   end;
 
-  Result.OrthoDimensions.Width  := FCurrentProjectionWidth;
-  Result.OrthoDimensions.Height := FCurrentProjectionHeight;
+  Result.Dimensions.Width  := FCurrentProjectionWidth;
+  Result.Dimensions.Height := FCurrentProjectionHeight;
   if FProjectionOriginCenter then
   begin
-    Result.OrthoDimensions.Left   := -Result.OrthoDimensions.Width / 2;
-    Result.OrthoDimensions.Bottom := -Result.OrthoDimensions.Height / 2;
+    Result.Dimensions.Left   := -Result.Dimensions.Width / 2;
+    Result.Dimensions.Bottom := -Result.Dimensions.Height / 2;
   end;
   Result.ProjectionNear := -ProjectionSpan;
   Result.ProjectionFar := ProjectionSpan;

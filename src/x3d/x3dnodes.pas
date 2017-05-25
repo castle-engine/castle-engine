@@ -1991,7 +1991,7 @@ procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
 
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
-  ('Orthographic', 'Perspective');
+  ('Orthographic', 'Perspective', 'Frustum');
 
 const
   { Constants for @link(TAsciiTextNode_1.FdJustification).Value.
