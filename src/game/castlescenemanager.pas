@@ -1593,12 +1593,7 @@ begin
         FProjection.ProjectionFar);
     ptOrthographic:
       Camera.ProjectionMatrix := OrthoProjection(
-        { Beware: order of OrthoViewpoint.fieldOfView and OrthoDimensions
-          is different than typical OpenGL and our OrthoProjection params. }
-        FProjection.OrthoDimensions[0],
-        FProjection.OrthoDimensions[2],
-        FProjection.OrthoDimensions[1],
-        FProjection.OrthoDimensions[3],
+        FProjection.OrthoDimensions,
         FProjection.ProjectionNear,
         FProjection.ProjectionFarFinite);
     else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
@@ -1640,34 +1635,34 @@ var
     MaxSize := Box.MaxSize(false, { any dummy value } 1.0);
 
     { default Result.OrthoDimensions, when not OrthoViewpoint }
-    Result.OrthoDimensions[0] := -MaxSize / 2;
-    Result.OrthoDimensions[1] := -MaxSize / 2;
-    Result.OrthoDimensions[2] :=  MaxSize / 2;
-    Result.OrthoDimensions[3] :=  MaxSize / 2;
+    Result.OrthoDimensions.Left   := -MaxSize / 2;
+    Result.OrthoDimensions.Bottom := -MaxSize / 2;
+    Result.OrthoDimensions.Width  :=  MaxSize;
+    Result.OrthoDimensions.Height :=  MaxSize;
 
     { update OrthoDimensions using OrthoViewpoint.fieldOfView }
     if (ViewpointNode <> nil) and
        (ViewpointNode is TOrthoViewpointNode) then
     begin
       { default OrthoDimensions, for OrthoViewpoint }
-      Result.OrthoDimensions[0] := -1;
-      Result.OrthoDimensions[1] := -1;
-      Result.OrthoDimensions[2] :=  1;
-      Result.OrthoDimensions[3] :=  1;
+      Result.OrthoDimensions.Left   := -1;
+      Result.OrthoDimensions.Bottom := -1;
+      Result.OrthoDimensions.Width  :=  2;
+      Result.OrthoDimensions.Height :=  2;
 
       FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
-      if FieldOfView.Count > 0 then Result.OrthoDimensions[0] := FieldOfView.Items[0];
-      if FieldOfView.Count > 1 then Result.OrthoDimensions[1] := FieldOfView.Items[1];
-      if FieldOfView.Count > 2 then Result.OrthoDimensions[2] := FieldOfView.Items[2];
-      if FieldOfView.Count > 3 then Result.OrthoDimensions[3] := FieldOfView.Items[3];
+      if FieldOfView.Count > 0 then Result.OrthoDimensions.Left   := FieldOfView.Items[0];
+      if FieldOfView.Count > 1 then Result.OrthoDimensions.Bottom := FieldOfView.Items[1];
+      if FieldOfView.Count > 2 then Result.OrthoDimensions.Width  := FieldOfView.Items[2] - Result.OrthoDimensions.Left;
+      if FieldOfView.Count > 3 then Result.OrthoDimensions.Height := FieldOfView.Items[3] - Result.OrthoDimensions.Bottom;
     end else
     if (ViewpointNode <> nil) and
        (ViewpointNode is TOrthographicCameraNode_1) then
     begin
-      Result.OrthoDimensions[0] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.OrthoDimensions[1] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.OrthoDimensions[2] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.OrthoDimensions[3] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions.Left   := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions.Bottom := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.OrthoDimensions.Width  :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
+      Result.OrthoDimensions.Height :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
     end;
 
     TOrthoViewpointNode.AspectFieldOfView(Result.OrthoDimensions,
@@ -2286,7 +2281,7 @@ begin
       end;
       {$endif}
 
-      OrthoProjection(0, SR.Width, 0, SR.Height);
+      OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
 
       RenderWithScreenEffectsCore;
 

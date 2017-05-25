@@ -37,7 +37,7 @@ type
 
 implementation
 
-uses Math, CastleUtils, CastleTimeUtils;
+uses Math, CastleUtils, CastleTimeUtils, CastleProjection;
 
 function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
 

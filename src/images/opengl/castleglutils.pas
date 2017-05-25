@@ -25,10 +25,12 @@ uses SysUtils, Math, Matrix,
   { Because of FPC 2.6.4 bugs (not present in FPC >= 3.0.0) we cannot use here
     the FGL unit. It breaks compilation of Lazarus packages, as compiling
     castle_window.lpk then accidentally wants to recompile CastleGLShaders too.
-    In consequence, we use TFPObjectList instead of generic TFPGObjectList for scissor stuff.
+    In consequence, we use TFPObjectList instead of generic TFPGObjectList
+    for scissor stuff.
     This will be remedied once we drop FPC 2.6.4 compatibility. }
   Contnrs,
-  CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles, CastleColors;
+  CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles,
+  CastleColors, CastleProjection;
 
 {$define read_interface}
 
@@ -279,9 +281,9 @@ property ProjectionMatrix: TMatrix4Single
   Useful e.g. for z-fail shadow volumes.
 
   @groupBegin }
-function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
-function OrthoProjection(const left, right, bottom, top: Single;
-  const zNear: Single = -1; const zFar: Single = 1): TMatrix4Single;
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjection(const Dimensions: TFloatRectangle;
+  const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4Single;
 { @groupEnd }
 
 var
@@ -682,15 +684,15 @@ begin
   {$endif}
 end;
 
-function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar);
+  Result := PerspectiveProjMatrixDeg(fovy, aspect, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 
-function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
+function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
+  Result := OrthoProjMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 

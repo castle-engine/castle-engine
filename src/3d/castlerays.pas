@@ -23,7 +23,7 @@ unit CastleRays;
 
 interface
 
-uses CastleVectors, CastleProjection;
+uses CastleVectors, CastleProjection, CastleRectangles;
 
 type
   { Calculate primary rays for given camera settings and screen size. }
@@ -90,10 +90,10 @@ type
 
   TOrthographicRaysWindow = class(TRaysWindow)
   private
-    OrthoDimensions: TVector4Single;
+    OrthoDimensions: TFloatRectangle;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const AOrthoDimensions: TVector4Single);
+      const AOrthoDimensions: TFloatRectangle);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
@@ -198,7 +198,7 @@ end;
 
 constructor TOrthographicRaysWindow.Create(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const AOrthoDimensions: TVector4Single);
+  const AOrthoDimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
   OrthoDimensions := AOrthoDimensions;
@@ -210,9 +210,9 @@ procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
 begin
   RayOrigin := CamPosition;
   RayOrigin += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
-    OrthoDimensions[0], OrthoDimensions[2]));
+    OrthoDimensions.Left, OrthoDimensions.Right));
   RayOrigin += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
-    OrthoDimensions[1], OrthoDimensions[3]));
+    OrthoDimensions.Bottom, OrthoDimensions.Top));
 
   { CamDirection must already be normalized, so RayDirection is normalized too }
   RayDirection := CamDirection;

@@ -92,8 +92,8 @@ type
       This is equivalent to 1-parameter Init
       with Matrix = ModelviewMatrix * ProjectionMatrix.
       This way you can get from OpenGL your two matrices (modelview
-      and projection) (or you can calculate them using routines in this
-      unit like @link(FrustumProjMatrix)), then pass them to this routine
+      and projection) (or you can calculate them using routines
+      like @link(FrustumProjMatrix)), then pass them to this routine
       and you get your current viewing frustum. }
     constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
   public

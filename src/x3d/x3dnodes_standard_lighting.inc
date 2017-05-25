@@ -675,6 +675,7 @@ function TAbstractDirectionalLightNode.ProjectionMatrix: TMatrix4Single;
 var
   N, F: Single;
   R: TVector4Single;
+  Dimensions: TFloatRectangle;
 begin
   { If author didn't provide and CastleInternalShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
@@ -688,9 +689,12 @@ begin
   R := FdProjectionRectangle.Value;
   if PerfectlyZeroVector(R) then R := FallbackProjectionRectangle;
 
-  { Beware: order of projectionRectangle
-    is different than typical OpenGL and our OrthoProjMatrix params. }
-  Result := OrthoProjMatrix(R[0], R[2], R[1], R[3], N, F);
+  Dimensions.Left   := R[0];
+  Dimensions.Bottom := R[1];
+  Dimensions.Width  := R[2] - Dimensions.Left;
+  Dimensions.Height := R[3] - Dimensions.Bottom;
+
+  Result := OrthoProjMatrix(Dimensions, N, F);
 end;
 
 function TAbstractDirectionalLightNode.ModelviewMatrix: TMatrix4Single;

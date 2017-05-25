@@ -1249,43 +1249,36 @@ var
     procedure DoOrthographic;
     var
       FieldOfView: TSingleList;
-      FinalFieldOfView: TVector4Single;
+      FinalFieldOfView: TFloatRectangle;
     begin
       { default VRML/X3D fov }
-      FinalFieldOfView[0] := -1;
-      FinalFieldOfView[1] := -1;
-      FinalFieldOfView[2] :=  1;
-      FinalFieldOfView[3] :=  1;
+      FinalFieldOfView.Left   := -1;
+      FinalFieldOfView.Bottom := -1;
+      FinalFieldOfView.Width  :=  2;
+      FinalFieldOfView.Height :=  2;
 
       { update left / right / bottom / top using OrthoViewpoint.fieldOfView }
       if (Viewpoint <> nil) and
          (Viewpoint is TOrthoViewpointNode) then
       begin
         FieldOfView := TOrthoViewpointNode(Viewpoint).FdFieldOfView.Items;
-        if FieldOfView.Count > 0 then FinalFieldOfView[0] := FieldOfView.Items[0];
-        if FieldOfView.Count > 1 then FinalFieldOfView[1] := FieldOfView.Items[1];
-        if FieldOfView.Count > 2 then FinalFieldOfView[2] := FieldOfView.Items[2];
-        if FieldOfView.Count > 3 then FinalFieldOfView[3] := FieldOfView.Items[3];
+        if FieldOfView.Count > 0 then FinalFieldOfView.Left   := FieldOfView.Items[0];
+        if FieldOfView.Count > 1 then FinalFieldOfView.Bottom := FieldOfView.Items[1];
+        if FieldOfView.Count > 2 then FinalFieldOfView.Width  := FieldOfView.Items[2] - FinalFieldOfView.Left;
+        if FieldOfView.Count > 3 then FinalFieldOfView.Height := FieldOfView.Items[3] - FinalFieldOfView.Bottom;
       end else
       if (Viewpoint <> nil) and
          (Viewpoint is TOrthographicCameraNode_1) then
       begin
-        FinalFieldOfView[0] := -TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[1] := -TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[2] :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
-        FinalFieldOfView[3] :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView.Left   := -TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView.Bottom := -TOrthographicCameraNode_1(Viewpoint).FdHeight.Value / 2;
+        FinalFieldOfView.Width  :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value;
+        FinalFieldOfView.Height :=  TOrthographicCameraNode_1(Viewpoint).FdHeight.Value;
       end;
 
       TOrthoViewpointNode.AspectFieldOfView(FinalFieldOfView, Width / Height);
 
-      Result := OrthoProjMatrix(
-        { Beware: order of OrthoViewpoint.fieldOfView (and FinalFieldOfView)
-          is different than typical OpenGL and our OrthoProjMatrix. }
-        FinalFieldOfView[0],
-        FinalFieldOfView[2],
-        FinalFieldOfView[1],
-        FinalFieldOfView[3],
-        ProjectionNear, ProjectionFar);
+      Result := OrthoProjMatrix(FinalFieldOfView, ProjectionNear, ProjectionFar);
     end;
 
   var

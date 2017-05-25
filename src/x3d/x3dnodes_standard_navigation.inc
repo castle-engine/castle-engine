@@ -369,7 +369,7 @@
       extents. Depending on your window aspect ratio, you may need to make
       one extent (vertical or horizontal) larger to adjust. }
     class procedure AspectFieldOfView(
-      var AFieldOfView: TVector4Single;
+      var AFieldOfView: TFloatRectangle;
       const WindowWidthToHeight: Single);
 
     {$I auto_generated_node_helpers/x3dnodes_orthoviewpoint.inc}
@@ -1097,30 +1097,24 @@ end;
 
 function TOrthoViewpointNode.ProjectionMatrix: TMatrix4Single;
 var
-  OrthoDimensions: TVector4Single;
+  OrthoDimensions: TFloatRectangle;
 begin
   { default OrthoDimensions, for OrthoViewpoint }
-  OrthoDimensions[0] := -1;
-  OrthoDimensions[1] := -1;
-  OrthoDimensions[2] :=  1;
-  OrthoDimensions[3] :=  1;
+  OrthoDimensions.Left   := -1;
+  OrthoDimensions.Bottom := -1;
+  OrthoDimensions.Width  :=  2;
+  OrthoDimensions.Height :=  2;
 
-  if FdFieldOfView.Items.Count > 0 then OrthoDimensions[0] := FdFieldOfView.Items[0];
-  if FdFieldOfView.Items.Count > 1 then OrthoDimensions[1] := FdFieldOfView.Items[1];
-  if FdFieldOfView.Items.Count > 2 then OrthoDimensions[2] := FdFieldOfView.Items[2];
-  if FdFieldOfView.Items.Count > 3 then OrthoDimensions[3] := FdFieldOfView.Items[3];
+  if FdFieldOfView.Items.Count > 0 then OrthoDimensions.Left   := FdFieldOfView.Items[0];
+  if FdFieldOfView.Items.Count > 1 then OrthoDimensions.Bottom := FdFieldOfView.Items[1];
+  if FdFieldOfView.Items.Count > 2 then OrthoDimensions.Width  := FdFieldOfView.Items[2] - OrthoDimensions.Left;
+  if FdFieldOfView.Items.Count > 3 then OrthoDimensions.Height := FdFieldOfView.Items[3] - OrthoDimensions.Bottom;
 
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window,
     by calling AspectFieldOfView. }
 
-  Result := OrthoProjMatrix(
-    { Beware: order of OrthoViewpoint.fieldOfView and OrthoDimensions
-      is different than typical OpenGL and our OrthoProjMatrix params. }
-    OrthoDimensions[0],
-    OrthoDimensions[2],
-    OrthoDimensions[1],
-    OrthoDimensions[3],
+  Result := OrthoProjMatrix(OrthoDimensions,
     1, 100); { TODO: near, far projection testing values }
 end;
 
@@ -1149,7 +1143,7 @@ begin
 end;
 
 class procedure TOrthoViewpointNode.AspectFieldOfView(
-  var AFieldOfView: TVector4Single; const WindowWidthToHeight: Single);
+  var AFieldOfView: TFloatRectangle; const WindowWidthToHeight: Single);
 
   { Scale the extent. Since AspectFieldOfView should only make AFieldOfView
     larger (because OrthoViewpoint.fieldOfView gives the minimal extents),
@@ -1174,18 +1168,17 @@ class procedure TOrthoViewpointNode.AspectFieldOfView(
 
 var
   FOVAspect: Single;
+  Min, Max: Single;
 begin
-  if FloatsEqual(AFieldOfView[2], AFieldOfView[0]) or
-     FloatsEqual(AFieldOfView[3], AFieldOfView[1]) then
+  if (AFieldOfView.Width <= 0) or
+     (AFieldOfView.Height <= 0) then
   begin
     if Log then
       WritelnLog('OrthoViewpoint', 'OrthoViewpoint.fieldOfView extent (max-min) is zero');
     Exit;
   end;
 
-  FOVAspect :=
-    (AFieldOfView[2] - AFieldOfView[0]) /
-    (AFieldOfView[3] - AFieldOfView[1]);
+  FOVAspect := AFieldOfView.Width / AFieldOfView.Height;
 
   { The idea is to change FieldOfView, such that at the end the above
     equation would calculate FOVAspect as equal to WindowWidthToHeight.
@@ -1196,11 +1189,19 @@ begin
 
   if FOVAspect > WindowWidthToHeight then
   begin
-    ScaleExtent(FOVAspect / WindowWidthToHeight, AFieldOfView[1], AFieldOfView[3]);
+    Min := AFieldOfView.Bottom;
+    Max := AFieldOfView.Top;
+    ScaleExtent(FOVAspect / WindowWidthToHeight, Min, Max);
+    AFieldOfView.Bottom := Min;
+    AFieldOfView.Height := Max - Min;
   end else
   if FOVAspect < WindowWidthToHeight then
   begin
-    ScaleExtent(WindowWidthToHeight / FOVAspect, AFieldOfView[0], AFieldOfView[2]);
+    Min := AFieldOfView.Left;
+    Max := AFieldOfView.Right;
+    ScaleExtent(WindowWidthToHeight / FOVAspect, Min, Max);
+    AFieldOfView.Left := Min;
+    AFieldOfView.Width := Max - Min;
   end;
 end;
 
