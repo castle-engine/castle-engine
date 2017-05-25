@@ -26,7 +26,7 @@ uses SysUtils, Classes, FGL,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
-  CastleRays, CastleScreenEffects;
+  CastleProjection, CastleScreenEffects;
 
 type
   TCastleAbstractViewport = class;

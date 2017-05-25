@@ -34,7 +34,8 @@ unit CastleRayTracer;
 
 interface
 
-uses CastleVectors, CastleImages, CastleRays, CastleUtils, Classes,
+uses Classes,
+  CastleVectors, CastleImages, CastleRays, CastleProjection, CastleUtils,
   X3DTriangles, X3DNodes, CastleSpaceFillingCurves, CastleTriangles;
 
 type

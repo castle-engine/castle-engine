@@ -1129,8 +1129,9 @@ var
 
 implementation
 
-uses Math, CastleStringUtils, CastleGLVersion, CastleLog,
-  CastleRenderingCamera, X3DCameraUtils, CastleRays, CastleColors, CastleRectangles;
+uses Math,
+  CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
+  X3DCameraUtils, CastleProjection, CastleColors, CastleRectangles;
 
 {$define read_implementation}
 

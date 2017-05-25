@@ -24,13 +24,12 @@ unit CastleSceneCore;
 interface
 
 uses
-  SysUtils, Classes, CastleVectors, CastleBoxes, CastleTriangles,
-  X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
-  CastleShapes, CastleInternalTriangleOctree, CastleProgress, CastleInternalOctree,
-  CastleInternalShapeOctree,
-  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
-  CastleRenderingCamera, Castle3D, CastleInternalShadowMaps, FGL, CastleGenericLists,
-  CastleRays;
+  SysUtils, Classes, FGL, Contnrs,
+  CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
+  CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
+  CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
+  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
+  Castle3D, CastleInternalShadowMaps, CastleGenericLists, CastleProjection;
 
 type
   { Internal helper type for TCastleSceneCore.

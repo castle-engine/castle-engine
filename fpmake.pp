@@ -97,6 +97,7 @@ begin
     P.Targets.AddUnit('castlegeometryarrays.pas');
     P.Targets.AddUnit('castlenurbs.pas');
     P.Targets.AddUnit('castlequaternions.pas');
+    P.Targets.AddUnit('castleprojection.pas');
     P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castleshaders.pas');

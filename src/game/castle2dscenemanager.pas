@@ -21,7 +21,7 @@ unit Castle2DSceneManager;
 interface
 
 uses Classes,
-  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleRays;
+  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleProjection;
 
 type
   { Scene manager best suited for 2D worlds.

@@ -34,7 +34,7 @@ implementation
 uses Math, SysUtils,
   CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
   CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
-  CastleRays, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
+  CastleProjection, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
   CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,
   RiftSceneManager, CastleKeysMouse,
   RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame;
