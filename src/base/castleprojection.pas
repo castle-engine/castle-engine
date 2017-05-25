@@ -121,7 +121,7 @@ function PerspectiveProjMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): T
 implementation
 
 uses Math,
-  CastleUtils;
+  CastleUtils, CastleLog;
 
 { global routines ------------------------------------------------------------ }
 
@@ -249,7 +249,18 @@ function PerspectiveProjMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): T
   glu by SGI in Mesa3d sources. }
 var
   Depth, ZNear2, Cotangent: Single;
+  // R: TFloatRectangle;
+  // W, H: Single;
 begin
+  { You can express PerspectiveProjMatrixRad using FrustumProjMatrix.
+    Adapted from https://stackoverflow.com/a/12943456 }
+  // H := Tan(FovyRad / 2) * ZNear;
+  // W := H * Aspect;
+  // R := FloatRectangle(-W, -H, 2 * W, 2 * H);
+  // Result := FrustumProjMatrix(R, ZNear, ZFar);
+  // WritelnLog('Converted PerspectiveProjMatrixRad to a FrustumProjMatrix with rectangle %s',
+  //   [R.ToString]);
+
   ZNear2 := ZNear * 2;
   Cotangent := CastleCoTan(FovyRad / 2);
 
