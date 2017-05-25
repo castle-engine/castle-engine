@@ -31,7 +31,14 @@ type
     ProjectionType: TProjectionType;
 
     { If ProjectionType is ptPerspective, this property specifies
-      angles of view (horizontal and vertical), in degrees. }
+      angles of view (horizontal and vertical), in degrees.
+
+      Note that when overriding the @link(TCastleAbstractViewport.CalculateProjection),
+      you are expected to provide both angles calculated, even though some routines
+      for now will only use the vertical angle (and automatically adjust the other
+      to the aspect ratio).
+      Use the AdjustViewAngleDegToAspectRatio to calculate the angles as necessary.
+    }
     PerspectiveAngles: TVector2Single;
 
     { If ProjectionType is ptOrthographic or ptFrustum, this property specifies
