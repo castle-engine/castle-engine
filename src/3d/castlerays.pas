@@ -88,6 +88,18 @@ type
       out RayOrigin, RayDirection: TVector3Single); override;
   end;
 
+  TFrustumRaysWindow = class(TRaysWindow)
+  private
+    Dimensions: TFloatRectangle;
+  public
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+      const ADimensions: TFloatRectangle);
+
+    procedure PrimaryRay(const x, y: Single;
+      const ScreenWidth, ScreenHeight: Integer;
+      out RayOrigin, RayDirection: TVector3Single); override;
+  end;
+
   TOrthographicRaysWindow = class(TRaysWindow)
   private
     Dimensions: TFloatRectangle;
@@ -151,7 +163,8 @@ begin
       Result := TOrthographicRaysWindow.Create(
         ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
     ptFrustum:
-      raise EInternalError.Create('TRaysWindow for ptFrustum projection not implemented, use ptPerspective');
+      Result := TFrustumRaysWindow.Create(
+        ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
     else raise EInternalError.Create('TRaysWindow.CreateDescendant:ProjectionType?');
   end;
 end;
@@ -188,6 +201,38 @@ begin
     right through the middle of the pixel area. }
   RayDirection[0] := MapRange(x+0.5, 0, ScreenWidth , -WindowWidth /2, WindowWidth /2);
   RayDirection[1] := MapRange(y+0.5, 0, ScreenHeight, -WindowHeight/2, WindowHeight/2);
+  RayDirection[2] := -1;
+
+  { Transform ray to take camera settings into acount. }
+  RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
+
+  NormalizeVar(RayDirection);
+end;
+
+{ TFrustumRaysWindow ---------------------------------------------------- }
+
+constructor TFrustumRaysWindow.Create(
+  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const ADimensions: TFloatRectangle);
+begin
+  inherited Create(ACamPosition, ACamDirection, ACamUp);
+  Dimensions := ADimensions;
+end;
+
+procedure TFrustumRaysWindow.PrimaryRay(const X, Y: Single;
+  const ScreenWidth, ScreenHeight: Integer;
+  out RayOrigin, RayDirection: TVector3Single);
+begin
+  { this is quite similar to TPerspectiveRaysWindow }
+
+  RayOrigin := CamPosition;
+
+  { Direction of ray, ignoring current camera settings
+    (assume camera position = zero, direction = -Z, up = +Y).
+    Integer X, Y values should result in a ray that goes
+    right through the middle of the pixel area. }
+  RayDirection[0] := MapRange(X + 0.5, 0, ScreenWidth , Dimensions.Left, Dimensions.Right);
+  RayDirection[1] := MapRange(Y + 0.5, 0, ScreenHeight, Dimensions.Bottom, Dimensions.Top);
   RayDirection[2] := -1;
 
   { Transform ray to take camera settings into acount. }
