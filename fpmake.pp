@@ -97,7 +97,6 @@ begin
     P.Targets.AddUnit('castlegeometryarrays.pas');
     P.Targets.AddUnit('castlenurbs.pas');
     P.Targets.AddUnit('castlequaternions.pas');
-    P.Targets.AddUnit('castleprojection.pas');
     P.Targets.AddUnit('castlerays.pas');
     P.Targets.AddUnit('castlesectors.pas');
     P.Targets.AddUnit('castleshaders.pas');
@@ -140,6 +139,7 @@ begin
     P.Targets.AddUnit('castleparameters.pas');
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castleprogressconsole.pas');
+    P.Targets.AddUnit('castleprojection.pas');
     P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
