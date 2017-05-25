@@ -106,7 +106,6 @@ end;
 
 procedure Resize(Container: TUIContainer);
 begin
-  OrthoProjection(0, Window.Width, 0, Window.Height);
 end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
