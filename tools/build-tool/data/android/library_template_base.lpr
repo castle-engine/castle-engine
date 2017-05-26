@@ -16,7 +16,7 @@
 
 { Library to run the game on Android. }
 
-library ${NAME};
+library ${NAME_PASCAL};
 
 uses CastleAndroidNativeAppGlue, ${GAME_UNITS};
 
