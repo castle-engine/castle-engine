@@ -1600,7 +1600,7 @@ begin
       Camera.ProjectionMatrix := FrustumProjection(
         FProjection.Dimensions,
         FProjection.ProjectionNear,
-        FProjection.ProjectionFarFinite);
+        FProjection.ProjectionFar);
     else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
   end;
 
