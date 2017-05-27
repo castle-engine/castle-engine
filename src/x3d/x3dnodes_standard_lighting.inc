@@ -694,7 +694,7 @@ begin
   Dimensions.Width  := R[2] - Dimensions.Left;
   Dimensions.Height := R[3] - Dimensions.Bottom;
 
-  Result := OrthoProjMatrix(Dimensions, N, F);
+  Result := OrthoProjectionMatrix(Dimensions, N, F);
 end;
 
 function TAbstractDirectionalLightNode.ModelviewMatrix: TMatrix4Single;
@@ -1053,7 +1053,7 @@ begin
   F := FdProjectionFar.Value;
   if F = 0 then F := FallbackProjectionFar;
 
-  Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
+  Result := PerspectiveProjectionMatrixRad(Angle, 1, N, F);
 end;
 
 function TSpotLightNode.ModelviewMatrix: TMatrix4Single;

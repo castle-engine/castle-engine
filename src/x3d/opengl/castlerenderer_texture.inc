@@ -1242,7 +1242,7 @@ var
       AngleOfViewY := AdjustViewAngleDegToAspectRatio(
         AngleOfViewX, Height / Width);
 
-      Result := PerspectiveProjMatrixDeg(AngleOfViewY, Width / Height,
+      Result := PerspectiveProjectionMatrixDeg(AngleOfViewY, Width / Height,
         ProjectionNear, ProjectionFar);
     end;
 
@@ -1278,7 +1278,7 @@ var
 
       TOrthoViewpointNode.AspectFieldOfView(FinalFieldOfView, Width / Height);
 
-      Result := OrthoProjMatrix(FinalFieldOfView, ProjectionNear, ProjectionFar);
+      Result := OrthoProjectionMatrix(FinalFieldOfView, ProjectionNear, ProjectionFar);
     end;
 
   var

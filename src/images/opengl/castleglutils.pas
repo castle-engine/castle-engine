@@ -274,7 +274,7 @@ procedure SetProjectionMatrix(const Value: TMatrix4Single);
 property ProjectionMatrix: TMatrix4Single
   read GetProjectionMatrix write SetProjectionMatrix;
 
-{ Set ProjectionMatrix to perspective or orthogonal.
+{ Set ProjectionMatrix to given value.
 
   For PerspectiveProjection, ZFar may have special ZFarInfinity value
   to create a perspective projection with far plane set at infinity.
@@ -687,19 +687,19 @@ end;
 
 function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := PerspectiveProjMatrixDeg(fovy, aspect, ZNear, ZFar);
+  Result := PerspectiveProjectionMatrixDeg(fovy, aspect, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 
 function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := OrthoProjMatrix(Dimensions, ZNear, ZFar);
+  Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 
 function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := FrustumProjMatrix(Dimensions, ZNear, ZFar);
+  Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 

@@ -1571,6 +1571,8 @@ end;
 procedure TCastleAbstractViewport.ApplyProjection;
 var
   Viewport: TRectangle;
+  AspectRatio: Single;
+  M: TMatrix4Single;
 begin
   RequiredCamera; // create Camera if necessary
 
@@ -1582,27 +1584,14 @@ begin
 
   FProjection := CalculateProjection;
 
-  { Apply new FProjection values }
+  { take into account Distort* properties }
+  AspectRatio := DistortViewAspect * Viewport.Width / Viewport.Height;
+  FProjection.PerspectiveAngles[1] := DistortFieldOfViewY * FProjection.PerspectiveAngles[1];
 
-  case FProjection.ProjectionType of
-    ptPerspective:
-      Camera.ProjectionMatrix := PerspectiveProjection(
-        DistortFieldOfViewY * FProjection.PerspectiveAngles[1],
-        DistortViewAspect * Viewport.Width / Viewport.Height,
-        FProjection.ProjectionNear,
-        FProjection.ProjectionFar);
-    ptOrthographic:
-      Camera.ProjectionMatrix := OrthoProjection(
-        FProjection.Dimensions,
-        FProjection.ProjectionNear,
-        FProjection.ProjectionFarFinite);
-    ptFrustum:
-      Camera.ProjectionMatrix := FrustumProjection(
-        FProjection.Dimensions,
-        FProjection.ProjectionNear,
-        FProjection.ProjectionFar);
-    else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
-  end;
+  { Apply new FProjection values }
+  M := FProjection.Matrix(AspectRatio);
+  Camera.ProjectionMatrix := M;
+  ProjectionMatrix := M;
 
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }

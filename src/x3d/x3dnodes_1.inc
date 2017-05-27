@@ -2395,7 +2395,7 @@ begin
   F := FdProjectionFar.Value;
   if F = 0 then F := FallbackProjectionFar;
 
-  Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
+  Result := PerspectiveProjectionMatrixRad(Angle, 1, N, F);
 end;
 
 function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;

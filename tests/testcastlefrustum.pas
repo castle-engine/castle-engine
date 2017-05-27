@@ -58,7 +58,7 @@ begin
   else
     ZFar := Random * 100 + 100;
   Result.Init(
-    PerspectiveProjMatrixDeg(
+    PerspectiveProjectionMatrixDeg(
       Random * 30 + 60,
       Random * 0.5 + 0.7,
       Random * 5 + 1,
@@ -112,7 +112,7 @@ var
 begin
  { Calculate testing frustum }
  Frustum.Init(
-   PerspectiveProjMatrixDeg(60, 1, 10, 100),
+   PerspectiveProjectionMatrixDeg(60, 1, 10, 100),
    LookDirMatrix(
      Vector3Single(10, 10, 10) { eye position },
      Vector3Single(1, 0, 0) { look direction },
@@ -150,7 +150,7 @@ var
   Frustum: TFrustum;
 begin
   Frustum.Init(
-    PerspectiveProjMatrixDeg(60, 1, 10, ZFarInfinity),
+    PerspectiveProjectionMatrixDeg(60, 1, 10, ZFarInfinity),
     LookDirMatrix(
       Vector3Single(10, 10, 10) { eye position },
       Vector3Single(1, 0, 0) { look direction },

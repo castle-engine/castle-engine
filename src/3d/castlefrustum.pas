@@ -26,7 +26,7 @@ type
   { Order of planes of TFrustum.
 
     (This order is the same as the order of params to
-    procedure FrustumProjMatrix and OpenGL's glFrustum routine.
+    procedure FrustumProjectionMatrix and OpenGL's glFrustum routine.
     Article [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf]
     has swapped bottom and top positions). }
   TFrustumPlane = (fpLeft, fpRight, fpBottom, fpTop, fpNear, fpFar);
@@ -93,7 +93,7 @@ type
       with Matrix = ModelviewMatrix * ProjectionMatrix.
       This way you can get from OpenGL your two matrices (modelview
       and projection) (or you can calculate them using routines
-      like @link(FrustumProjMatrix)), then pass them to this routine
+      like @link(FrustumProjectionMatrix)), then pass them to this routine
       and you get your current viewing frustum. }
     constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
   public

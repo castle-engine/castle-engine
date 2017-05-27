@@ -60,6 +60,9 @@ type
       It should be calculated just like ProjectionFar,
       except it's never changed to be ZFarInfinity. }
     ProjectionFarFinite: Single;
+
+    { Projection matrix, adjusted to given viewport aspect ratio (width/height). }
+    function Matrix(const AspectRatio: Single): TMatrix4Single;
   end;
 
 { Calculate second viewing angle for perspective projection.
@@ -85,8 +88,8 @@ const
   { Special value that you can pass to various perspective-projection functions
     with the intention to set far plane at infinity.
     These functions include
-    like @link(FrustumProjMatrix), @link(PerspectiveProjMatrixDeg),
-    @link(PerspectiveProjMatrixRad), @link(PerspectiveProjection).
+    like @link(FrustumProjectionMatrix), @link(PerspectiveProjectionMatrixDeg),
+    @link(PerspectiveProjectionMatrixRad), @link(PerspectiveProjection).
     You can pass ZFarInfinity as their @code(ZFar) parameter value.
 
     @italic(Implementation note:)
@@ -100,28 +103,53 @@ const
   That are equivalent to OpenGL glOrtho, glFrustum, gluPerspective.
 
   The frustum and pespective generation
-  (routines FrustumProjMatrix, PerspectiveProjMatrixDeg, PerspectiveProjMatrixRad)
+  (routines FrustumProjectionMatrix, PerspectiveProjectionMatrixDeg, PerspectiveProjectionMatrixRad)
   accept also a special value ZFarInfinity as the ZFar parameter.
   Then you get perspective projection matrix withour far clipping plane,
   which is very useful for the z-fail shadow volumes technique.
   @groupBegin }
-function OrthoProjMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
-function OrthoProjMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
-function Ortho2dProjMatrix(const Dimensions: TFloatRectangle): TMatrix4Single; deprecated 'just use OrthoProjMatrix, the 2D optimization is not really worth the maintenance';
-function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single; deprecated 'just use OrthoProjMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4Single; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2DProjectionMatrix(const left, right, bottom, top: Single): TMatrix4Single; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
 
-function FrustumProjMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
-function FrustumProjMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function FrustumProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
-function PerspectiveProjMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Single): TMatrix4Single;
-function PerspectiveProjMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4Single;
 { @groupEnd }
 
 implementation
 
 uses Math,
   CastleUtils, CastleLog;
+
+{ TProjection ---------------------------------------------------------------- }
+
+function TProjection.Matrix(const AspectRatio: Single): TMatrix4Single;
+begin
+  case ProjectionType of
+    ptPerspective:
+      Result := PerspectiveProjectionMatrixDeg(
+        PerspectiveAngles[1],
+        AspectRatio,
+        ProjectionNear,
+        ProjectionFar);
+    ptOrthographic:
+      Result := OrthoProjectionMatrix(
+        Dimensions,
+        ProjectionNear,
+        ProjectionFarFinite);
+    ptFrustum:
+      Result := FrustumProjectionMatrix(
+        Dimensions,
+        ProjectionNear,
+        ProjectionFar);
+    else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
+  end;
+end;
 
 { global routines ------------------------------------------------------------ }
 
@@ -143,7 +171,7 @@ begin
     SecondToFirstRatio));
 end;
 
-function OrthoProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -151,10 +179,10 @@ begin
   Dimensions.Width := Right - Left;
   Dimensions.Bottom := Bottom;
   Dimensions.Height := Top - Bottom;
-  Result := OrthoProjMatrix(Dimensions, ZNear, ZFar);
+  Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
 end;
 
-function OrthoProjMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 var
   Depth: Single;
 begin
@@ -170,7 +198,7 @@ begin
   Result[3, 3] := 1;
 end;
 
-function Ortho2dProjMatrix(const Left, Right, Bottom, Top: Single): TMatrix4Single;
+function Ortho2DProjectionMatrix(const Left, Right, Bottom, Top: Single): TMatrix4Single;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -180,13 +208,13 @@ begin
   Dimensions.Height := Top - Bottom;
   {$warnings off}
   // consciously using deprecated function in another deprecated function
-  Result := Ortho2dProjMatrix(Dimensions);
+  Result := Ortho2DProjectionMatrix(Dimensions);
   {$warnings on}
 end;
 
-function Ortho2dProjMatrix(const Dimensions: TFloatRectangle): TMatrix4Single;
+function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4Single;
 begin
-  { simple version: Result := OrthoProjMatrix(Dimensions, -1, 1); }
+  { simple version: Result := OrthoProjectionMatrix(Dimensions, -1, 1); }
   { optimized version below: }
 
   Result := ZeroMatrix4Single;
@@ -198,7 +226,7 @@ begin
   Result[3, 3] := 1;
 end;
 
-function FrustumProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
+function FrustumProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -206,10 +234,10 @@ begin
   Dimensions.Width := Right - Left;
   Dimensions.Bottom := Bottom;
   Dimensions.Height := Top - Bottom;
-  Result := FrustumProjMatrix(Dimensions, ZNear, ZFar);
+  Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
 end;
 
-function FrustumProjMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 
 { This is based on "OpenGL Programming Guide",
   Appendix G "... and Transformation Matrices".
@@ -239,12 +267,12 @@ begin
   Result[2, 3] := -1;
 end;
 
-function PerspectiveProjMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := PerspectiveProjMatrixRad(DegToRad(FovyDeg), Aspect, ZNear, ZFar);
+  Result := PerspectiveProjectionMatrixRad(DegToRad(FovyDeg), Aspect, ZNear, ZFar);
 end;
 
-function PerspectiveProjMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): TMatrix4Single;
 { Based on various sources, e.g. sample implementation of
   glu by SGI in Mesa3d sources. }
 var
@@ -252,13 +280,13 @@ var
   // R: TFloatRectangle;
   // W, H: Single;
 begin
-  { You can express PerspectiveProjMatrixRad using FrustumProjMatrix.
+  { You can express PerspectiveProjectionMatrixRad using FrustumProjectionMatrix.
     Adapted from https://stackoverflow.com/a/12943456 }
   // H := Tan(FovyRad / 2) * ZNear;
   // W := H * Aspect;
   // R := FloatRectangle(-W, -H, 2 * W, 2 * H);
-  // Result := FrustumProjMatrix(R, ZNear, ZFar);
-  // WritelnLog('Converted PerspectiveProjMatrixRad to a FrustumProjMatrix with rectangle %s',
+  // Result := FrustumProjectionMatrix(R, ZNear, ZFar);
+  // WritelnLog('Converted PerspectiveProjectionMatrixRad to a FrustumProjectionMatrix with rectangle %s',
   //   [R.ToString]);
 
   ZNear2 := ZNear * 2;

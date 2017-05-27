@@ -1114,7 +1114,7 @@ begin
     fieldOfView and aspect ratio of current window,
     by calling AspectFieldOfView. }
 
-  Result := OrthoProjMatrix(Dimensions,
+  Result := OrthoProjectionMatrix(Dimensions,
     1, 100); { TODO: near, far projection testing values }
 end;
 
@@ -1283,7 +1283,7 @@ function TViewpointNode.ProjectionMatrix: TMatrix4Single;
 begin
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window? }
-  Result := PerspectiveProjMatrixRad(
+  Result := PerspectiveProjectionMatrixRad(
     FdFieldOfView.Value, 1,
     1, 100); { TODO: near, far projection testing values }
 end;
