@@ -44,16 +44,19 @@ type
     on 3D level (TItemResource.BaseAnimation) and the same image in 2D inventory
     (TItemResource.Image). }
   TItemResource = class(T3DResource)
-  private
+  strict private
     FBaseAnimation: T3DResourceAnimation;
     FCaption: string;
     FImageURL: string;
     FImage: TEncodedImage;
     FGLImage: TGLImage;
-    FBoundingBoxRotated: TBox3D;
+  private
+    { The largest possible bounding box of the 3D item,
+      taking into account that actual item 3D model will be rotated when
+      placed on world. You usually want to add current item position to this. }
+    function BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
       const DoProgress: boolean); override;
     { Which TInventoryItem descendant to create when constructing item
       of this resource by CreateItem. }
@@ -88,11 +91,6 @@ type
 
     { Resource to draw @link(Image). }
     function GLImage: TGLImage;
-
-    { The largest possible bounding box of the 3D item,
-      taking into account that actual item 3D model will be rotated when
-      placed on world. You usually want to add current item position to this. }
-    property BoundingBoxRotated: TBox3D read FBoundingBoxRotated;
 
     { Create item. This is how you should create new TInventoryItem instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items.
@@ -631,18 +629,9 @@ begin
 end;
 
 procedure TItemResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
   const DoProgress: boolean);
-var
-  B: TBox3D;
 begin
   inherited;
-  B := FBaseAnimation.BoundingBox;
-  FBoundingBoxRotated :=
-    B.Transform(RotationMatrixDeg(45         , GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
-    B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
   { prepare GLImage now }
   GLImage;
 end;
@@ -679,6 +668,18 @@ end;
 function TItemResource.AlwaysPrepared: boolean;
 begin
   Result := true;
+end;
+
+function TItemResource.BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
+var
+  B: TBox3D;
+begin
+  B := FBaseAnimation.BoundingBox;
+  Result :=
+    B.Transform(RotationMatrixDeg(45         , GravityUp)) +
+    B.Transform(RotationMatrixDeg(45 + 90    , GravityUp)) +
+    B.Transform(RotationMatrixDeg(45 + 90 * 2, GravityUp)) +
+    B.Transform(RotationMatrixDeg(45 + 90 * 3, GravityUp));
 end;
 
 { TItemWeaponResource ------------------------------------------------------------ }
@@ -1117,7 +1118,7 @@ begin
   if RenderDebug3D and GetExists and
     (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin
-    BoxRotated := Item.Resource.BoundingBoxRotated.Translate(Position);
+    BoxRotated := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Position);
     if Frustum.Box3DCollisionPossibleSimple(BoxRotated) then
     begin
       glPushAttrib(GL_ENABLE_BIT);
@@ -1213,7 +1214,7 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
     ItemBoxRadius: Single;
     ItemBoxMiddle: TVector3Single;
   begin
-    ItemBox := DroppedItemResource.BoundingBoxRotated;
+    ItemBox := DroppedItemResource.BoundingBoxRotated(World.GravityUp);
     ItemBoxMiddle := ItemBox.Center;
     { Box3DRadius calculates radius around (0, 0, 0) and we want
       radius around ItemBoxMiddle }
