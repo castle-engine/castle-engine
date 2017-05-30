@@ -25,10 +25,12 @@ uses SysUtils, Math, Matrix,
   { Because of FPC 2.6.4 bugs (not present in FPC >= 3.0.0) we cannot use here
     the FGL unit. It breaks compilation of Lazarus packages, as compiling
     castle_window.lpk then accidentally wants to recompile CastleGLShaders too.
-    In consequence, we use TFPObjectList instead of generic TFPGObjectList for scissor stuff.
+    In consequence, we use TFPObjectList instead of generic TFPGObjectList
+    for scissor stuff.
     This will be remedied once we drop FPC 2.6.4 compatibility. }
   Contnrs,
-  CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles, CastleColors;
+  CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles,
+  CastleColors, CastleProjection;
 
 {$define read_interface}
 
@@ -82,9 +84,19 @@ type
 { OpenGL error checking ------------------------------------------------------ }
 
 type
-  { OpenGL error. Usually indicates a bug in your code (or shader code,
+  { OpenGL error.
+    Usually OpenGL error indicates a bug in our code (or shader code,
     depending on TUniformNotFoundAction and TUniformTypeMismatchAction;
     by default, they do not cause errors).
+    Except the @link(EOpenGLOutOfMemoryError), which may happen regardless
+    of what we do, and depends on the device. }
+  EOpenGLError = class(Exception)
+  public
+    ErrorCode: TGLenum;
+    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
+  end;
+
+  { GPU memory is not sufficient.
 
     When programming for platforms with limited GPU memory (Android, iOS...)
     you should prepare to handle EOpenGLOutOfMemoryError (corresponding to
@@ -94,12 +106,6 @@ type
     Alternatively, you can leave GLOutOfMemoryError = @false,
     and then EOpenGLOutOfMemoryError will not happen, but you risk all kinds
     of rendering artifacts. }
-  EOpenGLError = class(Exception)
-  public
-    ErrorCode: TGLenum;
-    constructor Create(const AErrorCode: TGLenum; const AdditionalComment: string = '');
-  end;
-
   EOpenGLOutOfMemoryError = class(EOpenGLError)
   end;
 
@@ -268,16 +274,17 @@ procedure SetProjectionMatrix(const Value: TMatrix4Single);
 property ProjectionMatrix: TMatrix4Single
   read GetProjectionMatrix write SetProjectionMatrix;
 
-{ Set ProjectionMatrix to perspective or orthogonal.
+{ Set ProjectionMatrix to given value.
 
   For PerspectiveProjection, ZFar may have special ZFarInfinity value
   to create a perspective projection with far plane set at infinity.
   Useful e.g. for z-fail shadow volumes.
 
   @groupBegin }
-function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
-function OrthoProjection(const left, right, bottom, top: Single;
-  const zNear: Single = -1; const zFar: Single = 1): TMatrix4Single;
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjection(const Dimensions: TFloatRectangle;
+  const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4Single;
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 { @groupEnd }
 
 var
@@ -678,15 +685,21 @@ begin
   {$endif}
 end;
 
-function PerspectiveProjection(const fovy, aspect, zNear, zFar: Single): TMatrix4Single;
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := PerspectiveProjMatrixDeg(fovy, aspect, zNear, zFar);
+  Result := PerspectiveProjectionMatrixDeg(fovy, aspect, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 
-function OrthoProjection(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
+function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
 begin
-  Result := OrthoProjMatrix(left, right, bottom, top, zNear, zFar);
+  Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
+  ProjectionMatrix := Result;
+end;
+
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+begin
+  Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 

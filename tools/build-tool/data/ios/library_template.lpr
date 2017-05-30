@@ -15,7 +15,7 @@
 }
 
 { Library to run the game on iOS. }
-library ${NAME};
+library ${NAME_PASCAL};
 
 uses Math, CastleWindow, ${GAME_UNITS};
 

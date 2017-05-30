@@ -2382,7 +2382,7 @@ function TSpotLightNode_1.ProjectionMatrix: TMatrix4Single;
 var
   Angle, N, F: Single;
 begin
-  { If author didn't provide and X3DShadowMaps unit didn't calculate
+  { If author didn't provide and CastleInternalShadowMaps unit didn't calculate
     values for some fields, then use FallbackProjection* defaults here. }
 
   { Implementation just like for TSpotLightNode,
@@ -2395,7 +2395,7 @@ begin
   F := FdProjectionFar.Value;
   if F = 0 then F := FallbackProjectionFar;
 
-  Result := PerspectiveProjMatrixRad(Angle, 1, N, F);
+  Result := PerspectiveProjectionMatrixRad(Angle, 1, N, F);
 end;
 
 function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;

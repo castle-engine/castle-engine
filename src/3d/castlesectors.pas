@@ -64,7 +64,7 @@ type
     property Boxes: TBox3DList read FBoxes;
 
     { Is Point inside the sector. }
-    function PointInside(const Point: TVector3Single): boolean;
+    function Contains(const Point: TVector3Single): boolean;
 
     { Does the box collide (at least partially) with sector. }
     function Collision(const Box: TBox3D): boolean;
@@ -102,7 +102,7 @@ type
       @raises EWaypointNotInitialized When some waypoint is nil. }
     procedure LinkToWaypoints(Waypoints: TWaypointList);
 
-    { Returns sector with given point (using IsPointInside of each sector).
+    { Returns sector with given point (using @link(TSector.Contains) of each sector).
       Returns nil if no such sector. }
     function SectorWithPoint(const Point: TVector3Single): TSector;
 
@@ -171,12 +171,12 @@ begin
   inherited;
 end;
 
-function TSector.PointInside(const Point: TVector3Single): boolean;
+function TSector.Contains(const Point: TVector3Single): boolean;
 var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.L[I].PointInside(Point) then
+    if Boxes.L[I].Contains(Point) then
       Exit(true);
   Result := false;
 end;
@@ -245,7 +245,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Result := Items[I];
-    if Result.PointInside(Point) then
+    if Result.Contains(Point) then
       Exit;
   end;
   Result := nil;

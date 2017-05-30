@@ -26,7 +26,7 @@ uses SysUtils, Classes, FGL,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors, CastleGL,
-  CastleRays, CastleScreenEffects;
+  CastleProjection, CastleScreenEffects;
 
 type
   TCastleAbstractViewport = class;
@@ -1030,7 +1030,7 @@ type
 
           @longCode(#
             { Allow movement everywhere, but limit gravity to a box. }
-            Allowed := (not BecauseOfGravity) or MyGravityBox.PointInside(NewPos);
+            Allowed := (not BecauseOfGravity) or MyGravityBox.Contains(NewPos);
           #)
         )
       ) *)
@@ -1571,6 +1571,8 @@ end;
 procedure TCastleAbstractViewport.ApplyProjection;
 var
   Viewport: TRectangle;
+  AspectRatio: Single;
+  M: TMatrix4Single;
 begin
   RequiredCamera; // create Camera if necessary
 
@@ -1582,27 +1584,14 @@ begin
 
   FProjection := CalculateProjection;
 
-  { Apply new FProjection values }
+  { take into account Distort* properties }
+  AspectRatio := DistortViewAspect * Viewport.Width / Viewport.Height;
+  FProjection.PerspectiveAngles[1] := DistortFieldOfViewY * FProjection.PerspectiveAngles[1];
 
-  case FProjection.ProjectionType of
-    ptPerspective:
-      Camera.ProjectionMatrix := PerspectiveProjection(
-        DistortFieldOfViewY * FProjection.PerspectiveAngles[1],
-        DistortViewAspect * Viewport.Width / Viewport.Height,
-        FProjection.ProjectionNear,
-        FProjection.ProjectionFar);
-    ptOrthographic:
-      Camera.ProjectionMatrix := OrthoProjection(
-        { Beware: order of OrthoViewpoint.fieldOfView and OrthoDimensions
-          is different than typical OpenGL and our OrthoProjection params. }
-        FProjection.OrthoDimensions[0],
-        FProjection.OrthoDimensions[2],
-        FProjection.OrthoDimensions[1],
-        FProjection.OrthoDimensions[3],
-        FProjection.ProjectionNear,
-        FProjection.ProjectionFarFinite);
-    else raise EInternalError.Create('TCastleAbstractViewport.ApplyProjection:ProjectionType?');
-  end;
+  { Apply new FProjection values }
+  M := FProjection.Matrix(AspectRatio);
+  Camera.ProjectionMatrix := M;
+  ProjectionMatrix := M;
 
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
@@ -1639,38 +1628,38 @@ var
   begin
     MaxSize := Box.MaxSize(false, { any dummy value } 1.0);
 
-    { default Result.OrthoDimensions, when not OrthoViewpoint }
-    Result.OrthoDimensions[0] := -MaxSize / 2;
-    Result.OrthoDimensions[1] := -MaxSize / 2;
-    Result.OrthoDimensions[2] :=  MaxSize / 2;
-    Result.OrthoDimensions[3] :=  MaxSize / 2;
+    { default Result.Dimensions, when not OrthoViewpoint }
+    Result.Dimensions.Left   := -MaxSize / 2;
+    Result.Dimensions.Bottom := -MaxSize / 2;
+    Result.Dimensions.Width  :=  MaxSize;
+    Result.Dimensions.Height :=  MaxSize;
 
-    { update OrthoDimensions using OrthoViewpoint.fieldOfView }
+    { update Dimensions using OrthoViewpoint.fieldOfView }
     if (ViewpointNode <> nil) and
        (ViewpointNode is TOrthoViewpointNode) then
     begin
-      { default OrthoDimensions, for OrthoViewpoint }
-      Result.OrthoDimensions[0] := -1;
-      Result.OrthoDimensions[1] := -1;
-      Result.OrthoDimensions[2] :=  1;
-      Result.OrthoDimensions[3] :=  1;
+      { default Dimensions, for OrthoViewpoint }
+      Result.Dimensions.Left   := -1;
+      Result.Dimensions.Bottom := -1;
+      Result.Dimensions.Width  :=  2;
+      Result.Dimensions.Height :=  2;
 
       FieldOfView := TOrthoViewpointNode(ViewpointNode).FdFieldOfView.Items;
-      if FieldOfView.Count > 0 then Result.OrthoDimensions[0] := FieldOfView.Items[0];
-      if FieldOfView.Count > 1 then Result.OrthoDimensions[1] := FieldOfView.Items[1];
-      if FieldOfView.Count > 2 then Result.OrthoDimensions[2] := FieldOfView.Items[2];
-      if FieldOfView.Count > 3 then Result.OrthoDimensions[3] := FieldOfView.Items[3];
+      if FieldOfView.Count > 0 then Result.Dimensions.Left   := FieldOfView.Items[0];
+      if FieldOfView.Count > 1 then Result.Dimensions.Bottom := FieldOfView.Items[1];
+      if FieldOfView.Count > 2 then Result.Dimensions.Width  := FieldOfView.Items[2] - Result.Dimensions.Left;
+      if FieldOfView.Count > 3 then Result.Dimensions.Height := FieldOfView.Items[3] - Result.Dimensions.Bottom;
     end else
     if (ViewpointNode <> nil) and
        (ViewpointNode is TOrthographicCameraNode_1) then
     begin
-      Result.OrthoDimensions[0] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.OrthoDimensions[1] := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.OrthoDimensions[2] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
-      Result.OrthoDimensions[3] :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.Dimensions.Left   := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.Dimensions.Bottom := -TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value / 2;
+      Result.Dimensions.Width  :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
+      Result.Dimensions.Height :=  TOrthographicCameraNode_1(ViewpointNode).FdHeight.Value;
     end;
 
-    TOrthoViewpointNode.AspectFieldOfView(Result.OrthoDimensions,
+    TOrthoViewpointNode.AspectFieldOfView(Result.Dimensions,
       Viewport.Width / Viewport.Height);
   end;
 
@@ -1727,7 +1716,8 @@ begin
     in Examine mode will be some day implemented (VRML/X3D spec require this). }
 
   if ViewpointNode <> nil then
-    ProjectionType := ViewpointNode.ProjectionType else
+    ProjectionType := ViewpointNode.ProjectionType
+  else
     ProjectionType := ptPerspective;
 
   { update ProjectionFarFinite.
@@ -1739,7 +1729,8 @@ begin
   case ProjectionType of
     ptPerspective: DoPerspective;
     ptOrthographic: DoOrthographic;
-    else EInternalError.Create('TCastleAbstractViewport.Projection-ProjectionType?');
+    ptFrustum: raise EInternalError.Create('TCastleAbstractViewport.CalculateProjection: X3D Viewpoint node should not be able to specify ptFrustum projection');
+    else raise EInternalError.Create('TCastleAbstractViewport.Projection-ProjectionType?');
   end;
 end;
 
@@ -1917,7 +1908,7 @@ begin
       glLoadMatrix(RenderingCamera.RotationMatrix);
       {$endif}
 
-      { The background rendering doesn't like custom OrthoDimensions.
+      { The background rendering doesn't like custom Dimensions.
         They could make the background sky box very small, such that it
         doesn't fill the screen. See e.g. x3d/empty_with_background_ortho.x3dv
         testcase. So temporary set good perspective projection. }
@@ -2286,7 +2277,7 @@ begin
       end;
       {$endif}
 
-      OrthoProjection(0, SR.Width, 0, SR.Height);
+      OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
 
       RenderWithScreenEffectsCore;
 
@@ -3339,9 +3330,9 @@ begin
     { Don't let objects/camera fall outside of the box because of gravity,
       as then they would fall into infinity. }
     if BecauseOfGravity then
-      Result := Items.BoundingBox.PointInside(NewPosition);
+      Result := Items.BoundingBox.Contains(NewPosition);
   end else
-    Result := MoveLimit.PointInside(NewPosition);
+    Result := MoveLimit.Contains(NewPosition);
 
   if Assigned(OnMoveAllowed) then
     OnMoveAllowed(Self, Result, OldPosition, NewPosition, BecauseOfGravity);

@@ -97,6 +97,19 @@ type
   private
     function GetRight: Integer;
     function GetTop: Integer;
+    {
+    // The setters for Right and Top are deliberately commented out.
+    // They are a little tricky, as they would actually set Width / Height.
+    // - So setting "Left := 10; Right := 20;" works as expected,
+    //   but setting "Right := 20; Left := 10;"... does not (it depends
+    //   on previous rectangle value).
+    // - Also, they would be necessarily inconsistent between int TRectangle
+    //   and float TFloatRectangle, since int TRectangle does not allow
+    //   negative Width / Height.
+    // So it's probably less error-prone to leave them commented out.
+    procedure SetRight(const Value: Integer);
+    procedure SetTop(const Value: Integer);
+    }
     function GetLeftBottom: TVector2Integer;
     procedure SetLeftBottom(const Value: TVector2Integer);
   public
@@ -112,10 +125,17 @@ type
     function Contains(const Point: TVector2Single): boolean;
     function Contains(const Point: TVector2Integer): boolean;
 
-    { Right and Top pixels are 1 pixel *outside* of the rectangle.
+    { Right and top coordinates of the rectangle.
+      @code(Right) is simply the @code(Left + Width),
+      @code(Top) is simply the @code(Bottom + Height).
+
+      If you use this for drawing, note that the pixel
+      with coordinates @code((Right, Top)) is actually *outside*
+      of the rectangle (by 1 pixel). That's because the rectangle starts at
+      pixel @code((Left, Bottom)) and spans the @code((Width, Height)) pixels.
       @groupBegin }
-    property Right: Integer read GetRight;
-    property Top: Integer read GetTop;
+    property Right: Integer read GetRight {write SetRight} { };
+    property Top: Integer read GetTop {write SetTop} { };
     { @groupEnd }
 
     { Return rectangle with given width and height centered
@@ -264,11 +284,16 @@ type
     and different from it's integer counterpart @link(TRectangle).)
     In case of float bounding box (@link(TBox3D)) or float rectangle
     (@name), having a zero size makes sense, and it still is something non-empty
-    (a single 2D or 3D point has zero size, but also has position). }
+    (a single 2D or 3D point has zero size, but it also still has a position). }
   TFloatRectangle = object
   private
     function GetRight: Single;
     function GetTop: Single;
+    {
+    // Commented out -- see TRectangle comments.
+    procedure SetRight(const Value: Single);
+    procedure SetTop(const Value: Single);
+    }
   public
     Left, Bottom: Single;
     Width, Height: Single;
@@ -281,10 +306,21 @@ type
     function Contains(const X, Y: Single): boolean;
     function Contains(const Point: TVector2Single): boolean;
 
-    { Right and Top pixels are 1 pixel *outside* of the rectangle.
+    { Right and top coordinates of the rectangle.
+      @code(Right) is simply the @code(Left + Width),
+      @code(Top) is simply the @code(Bottom + Height).
+
+      Note: If you use this for drawing,
+      and the values of Left, Bottom, Width, Height
+      are actually integers (or close to integers),
+      then the pixel with @code((Round(Right), Round(Top)))
+      coordinates is actually *outside* of the rectangle (by 1 pixel).
+      That's because the rectangle starts at the pixel
+      @code((Round(Left), Round(Bottom))) and
+      spans the @code((Round(Width), Round(Height))) pixels.
       @groupBegin }
-    property Right: Single read GetRight;
-    property Top: Single read GetTop;
+    property Right: Single read GetRight {write SetRight} { };
+    property Top: Single read GetTop {write SetTop} { };
     { @groupEnd }
 
     function Middle: TVector2Single; deprecated 'use Center';
@@ -448,6 +484,24 @@ function TRectangle.GetTop: Integer;
 begin
   Result := Bottom + Height;
 end;
+
+{
+procedure TRectangle.SetRight(const Value: Integer);
+begin
+  if Value <= Left then
+    Width := 0
+  else
+    Width := Value - Left;
+end;
+
+procedure TRectangle.SetTop(const Value: Integer);
+begin
+  if Value <= Bottom then
+    Height := 0
+  else
+    Height := Value - Bottom;
+end;
+}
 
 function TRectangle.RemoveLeft(W: Cardinal): TRectangle;
 begin
@@ -856,6 +910,18 @@ function TFloatRectangle.GetTop: Single;
 begin
   Result := Bottom + Height;
 end;
+
+{
+procedure TFloatRectangle.SetRight(const Value: Single);
+begin
+  Width := Value - Left;
+end;
+
+procedure TFloatRectangle.SetTop(const Value: Single);
+begin
+  Height := Value - Bottom;
+end;
+}
 
 function TFloatRectangle.ToString: string;
 begin

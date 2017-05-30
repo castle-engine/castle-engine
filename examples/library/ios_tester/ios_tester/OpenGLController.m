@@ -149,7 +149,14 @@
     m_oldViewWidth  = self.view.bounds.size.width;
     m_oldViewHeight = self.view.bounds.size.height;
 
-    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale);
+    // Get a directory where we can write files,
+    // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
+    NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
+    NSString *libraryDirectory = [paths objectAtIndex:0];
+    // see http://stackoverflow.com/questions/2996657/converting-an-nsstring-to-char
+    char *libraryDirectoryAsChar = strdup([libraryDirectory cStringUsingEncoding:[NSString defaultCStringEncoding]]);
+
+    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, libraryDirectoryAsChar);
     CGE_SetUserInterface(true, 115 * m_fScale);
 
     Options *opt = [Options sharedOptions];

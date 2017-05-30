@@ -61,6 +61,9 @@ type
     function SourcePackageName: string;
     procedure ExtractTemplateFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
 
+    { Convert Name to a valid Pascal identifier. }
+    function NamePascal: string;
+
     { Extract a single file using the template system.
       SourceFileName and DestinationFileName should be absolute filenames
       of source and destination files.
@@ -233,9 +236,16 @@ constructor TCastleProject.Create(const APath: string);
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
     AlphaNum = ['a'..'z','A'..'Z','0'..'9'];
+
     { qualified_name is also a Java package name for Android, so it
-      cannot contain dash character. }
-    QualifiedNameAllowedChars = AlphaNum + ['_','.'];
+      cannot contain dash character.
+
+      As for underscore:
+      On Android, using _ is allowed,
+      but on iOS it is not (it fails at signing),
+      possibly because _ inside URLs is (in general) not allowed:
+      http://stackoverflow.com/questions/2180465/can-domain-name-subdomains-have-an-underscore-in-it }
+    QualifiedNameAllowedChars = AlphaNum + ['.'];
 
     function DefaultQualifiedName: string;
     begin
@@ -995,6 +1005,11 @@ begin
   Inc(DeletedFiles);
 end;
 
+function TCastleProject.NamePascal: string;
+begin
+  Result := SReplaceChars(Name, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
+end;
+
 function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
   procedure InvalidAndroidSource(const FinalAndroidSource: string);
@@ -1030,7 +1045,7 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    AbsoluteResult := OutputPath(Path, CreateIfNecessary) + 'android' + PathDelim + Name + '_android.lpr';
+    AbsoluteResult := OutputPath(Path, CreateIfNecessary) + 'android' + PathDelim + NamePascal + '_android.lpr';
     if CreateIfNecessary then
     begin
       if AndroidProjectType = apIntegrated then
@@ -1077,7 +1092,7 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    AbsoluteResult := OutputPath(Path) + 'ios' + PathDelim + Name + '_ios.lpr';
+    AbsoluteResult := OutputPath(Path) + 'ios' + PathDelim + NamePascal + '_ios.lpr';
     if CreateIfNecessary then
     begin
       TemplateFile := URIToFilenameSafe(ApplicationData('ios/library_template.lpr'));
@@ -1280,6 +1295,7 @@ begin
     Macros.Add('VERSION'         , Version);
     Macros.Add('VERSION_CODE'    , IntToStr(FVersionCode));
     Macros.Add('NAME'            , Name);
+    Macros.Add('NAME_PASCAL'     , NamePascal);
     Macros.Add('QUALIFIED_NAME'  , QualifiedName);
     Macros.Add('CAPTION'         , Caption);
     Macros.Add('AUTHOR'          , NonEmptyAuthor);

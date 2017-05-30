@@ -786,7 +786,7 @@ procedure TCastleFont.PrintStrings(const X0, Y0: Integer;
       hpLeft  : Result := X0;
       hpMiddle: Result := X0 - TextWidth(S) div 2;
       hpRight : Result := X0 - TextWidth(S);
-      else EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
+      else raise EInternalError.Create('TCastleFont.PrintStrings: TextHorizontalAlignment unknown');
     end;
   end;
 

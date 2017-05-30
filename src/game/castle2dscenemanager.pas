@@ -21,7 +21,7 @@ unit Castle2DSceneManager;
 interface
 
 uses Classes,
-  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleRays;
+  CastleScene, CastleSceneManager, CastleUIControls, CastleCameras, CastleProjection;
 
 type
   { Scene manager best suited for 2D worlds.
@@ -188,8 +188,8 @@ var
   ControlWidth, ControlHeight: Integer;
 begin
   Result.ProjectionType := ptOrthographic;
-  Result.OrthoDimensions[0] := 0;
-  Result.OrthoDimensions[1] := 0;
+  Result.Dimensions.Left := 0;
+  Result.Dimensions.Bottom := 0;
 
   ControlWidth := CalculatedWidth;
   ControlHeight := CalculatedHeight;
@@ -215,14 +215,12 @@ begin
     FCurrentProjectionHeight := ProjectionHeight;
   end;
 
-  Result.OrthoDimensions[2] := FCurrentProjectionWidth;
-  Result.OrthoDimensions[3] := FCurrentProjectionHeight;
+  Result.Dimensions.Width  := FCurrentProjectionWidth;
+  Result.Dimensions.Height := FCurrentProjectionHeight;
   if FProjectionOriginCenter then
   begin
-    Result.OrthoDimensions[2] := Result.OrthoDimensions[2] / 2;
-    Result.OrthoDimensions[3] := Result.OrthoDimensions[3] / 2;
-    Result.OrthoDimensions[0] := -Result.OrthoDimensions[2]; // already divided by /2
-    Result.OrthoDimensions[1] := -Result.OrthoDimensions[3]; // already divided by /2
+    Result.Dimensions.Left   := -Result.Dimensions.Width / 2;
+    Result.Dimensions.Bottom := -Result.Dimensions.Height / 2;
   end;
   Result.ProjectionNear := -ProjectionSpan;
   Result.ProjectionFar := ProjectionSpan;

@@ -166,7 +166,7 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
 typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 //-----------------------------------------------------------------------------
-extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight);     // init the library, this function must be called first (required).
+extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
 extern void CGEApp_Close();
 extern void CGEApp_SetDpi(int nDpi);
 

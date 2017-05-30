@@ -28,6 +28,7 @@ type
     procedure TestScaleEmpty;
     procedure TestCollidesDisc;
     procedure TestAdd;
+    // procedure TestRightTop;
   end;
 
 implementation
@@ -206,6 +207,36 @@ begin
   AssertFloatsEqual(20, R.Width);
   AssertFloatsEqual(90, R.Height);
 end;
+
+{
+procedure TTestRectangles.TestRightTop;
+var
+  RInt: TRectangle;
+  R: TFloatRectangle;
+begin
+  RInt.Left := 10;
+  RInt.Bottom := 50;
+  RInt.Right := 100;
+  RInt.Top := 1000;
+  AssertEquals(90, RInt.Width);
+  AssertEquals(950, RInt.Height);
+  AssertEquals(10, RInt.Left);
+  AssertEquals(50, RInt.Bottom);
+  AssertEquals(100, RInt.Right);
+  AssertEquals(1000, RInt.Top);
+
+  R.Left := 10;
+  R.Bottom := 50;
+  R.Right := 100;
+  R.Top := 1000;
+  AssertFloatsEqual(90, R.Width);
+  AssertFloatsEqual(950, R.Height);
+  AssertFloatsEqual(10, R.Left);
+  AssertFloatsEqual(50, R.Bottom);
+  AssertFloatsEqual(100, R.Right);
+  AssertFloatsEqual(1000, R.Top);
+end;
+}
 
 initialization
   RegisterTest(TTestRectangles);

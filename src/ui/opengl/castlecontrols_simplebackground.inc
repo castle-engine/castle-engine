@@ -1,0 +1,67 @@
+{
+  Copyright 2010-2017 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{$ifdef read_interface}
+
+  { Fill the whole window with a simple color.
+    This is very fast, but it unconditionally clears the whole window,
+    and there is no blending (if your @link(Color) has some alpha, it is
+    just copied to the color buffer). To clear the rectangle with a color,
+    with optional blending, use @link(TCastleRectangleControl) instead.
+
+    Note that @link(TCastleSceneManager) clears the background under itself
+    by default. See TCastleSceneManager.Transparent,
+    TCastleSceneManager.BackgroundColor .
+    So if you use @link(TCastleSceneManager) that fills the whole screen,
+    then there's no need to use this control. }
+  TCastleSimpleBackground = class(TUIControl)
+  strict private
+    FColor: TCastleColor;
+    procedure SetColor(const Value: TCastleColor);
+  public
+    constructor Create(AOwner: TComponent); override;
+    procedure Render; override;
+    { Background color. By default, this is black color with opaque alpha. }
+    property Color: TCastleColor read FColor write SetColor;
+  end;
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
+
+{ TCastleSimpleBackground ---------------------------------------------------- }
+
+constructor TCastleSimpleBackground.Create(AOwner: TComponent);
+begin
+  inherited;
+  FColor := Black;
+end;
+
+procedure TCastleSimpleBackground.SetColor(const Value: TCastleColor);
+begin
+  if not VectorsPerfectlyEqual(FColor, Value) then
+  begin
+    FColor := Value;
+    VisibleChange;
+  end;
+end;
+
+procedure TCastleSimpleBackground.Render;
+begin
+  inherited;
+  RenderContext.Clear([cbColor], Color);
+end;
+
+{$endif read_implementation}

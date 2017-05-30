@@ -203,24 +203,31 @@ type
       that it doesn't make Box empty. }
     procedure ExpandMe(const AExpand: TVector3Single); overload;
 
-    function Expand(const AExpand: Single): TBox3D; overload;
-    function Expand(const AExpand: TVector3Single): TBox3D; overload;
+    function Grow(const AExpand: Single): TBox3D; overload;
+    function Grow(const AExpand: TVector3Single): TBox3D; overload;
+
+    function Expand(const AExpand: Single): TBox3D; overload; deprecated 'use Grow, consistent with TRectangle.Grow';
+    function Expand(const AExpand: TVector3Single): TBox3D; overload; deprecated 'use Grow, consistent with TRectangle.Grow';
 
     { Check is the point inside the box.
       Always false if Box is empty (obviously, no point is inside an empty box).
 
       @groupBegin }
-    function PointInside(const Point: TVector3Single): boolean; overload;
-    function PointInside(const Point: TVector3Double): boolean; overload;
+    function Contains(const Point: TVector3Single): boolean; overload;
+    function Contains(const Point: TVector3Double): boolean; overload;
+    function PointInside(const Point: TVector3Single): boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
+    function PointInside(const Point: TVector3Double): boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
     { @groupEnd }
 
     { Is the 2D point inside the 2D projection of the box, ignores the Z coord of box. }
-    function PointInside2D(const Point: TVector2Single): boolean;
+    function Contains2D(const Point: TVector2Single): boolean;
+    function PointInside2D(const Point: TVector2Single): boolean; deprecated 'use Contains2d method';
 
     { Is the 2D point inside the 2D projection of the box.
       2D projection (of point and box) is obtained by rejecting
       the IgnoreIndex coordinate (must be 0, 1 or 2). }
-    function PointInside2D(const Point: TVector3Single; const IgnoreIndex: Integer): boolean;
+    function Contains2D(const Point: TVector3Single; const IgnoreIndex: Integer): boolean;
+    function PointInside2D(const Point: TVector3Single; const IgnoreIndex: Integer): boolean; deprecated 'use Contains2d method';
 
     { Sum two TBox3D values. This calculates the smallest box that encloses
       both Box1 and Box2. You can also use + operator. }
@@ -776,8 +783,10 @@ begin
  Data[1, 2] += AExpand[2];
 end;
 
-function TBox3D.Expand(const AExpand: Single): TBox3D;
+function TBox3D.Grow(const AExpand: Single): TBox3D;
 begin
+  if IsEmpty then Exit(Empty);
+
   Result.Data[0, 0] := Data[0, 0] - AExpand;
   Result.Data[0, 1] := Data[0, 1] - AExpand;
   Result.Data[0, 2] := Data[0, 2] - AExpand;
@@ -787,8 +796,10 @@ begin
   Result.Data[1, 2] := Data[1, 2] + AExpand;
 end;
 
-function TBox3D.Expand(const AExpand: TVector3Single): TBox3D;
+function TBox3D.Grow(const AExpand: TVector3Single): TBox3D;
 begin
+  if IsEmpty then Exit(Empty);
+
   Result.Data[0, 0] := Data[0, 0] - AExpand[0];
   Result.Data[0, 1] := Data[0, 1] - AExpand[1];
   Result.Data[0, 2] := Data[0, 2] - AExpand[2];
@@ -798,32 +809,52 @@ begin
   Result.Data[1, 2] := Data[1, 2] + AExpand[2];
 end;
 
-function TBox3D.PointInside(const Point: TVector3Single): boolean;
+function TBox3D.Expand(const AExpand: Single): TBox3D;
+begin
+  Result := Grow(AExpand);
+end;
+
+function TBox3D.Expand(const AExpand: TVector3Single): TBox3D;
+begin
+  Result := Grow(AExpand);
+end;
+
+function TBox3D.Contains(const Point: TVector3Single): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
     (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
     (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]) and
     (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
+end;
+
+function TBox3D.Contains(const Point: TVector3Double): boolean;
+begin
+  if IsEmpty then Exit(false);
+  Result :=
+    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
+    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]) and
+    (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
+end;
+
+function TBox3D.PointInside(const Point: TVector3Single): boolean;
+begin
+  Result := Contains(Point);
 end;
 
 function TBox3D.PointInside(const Point: TVector3Double): boolean;
 begin
-  if IsEmpty then Exit(false);
-  Result :=
-    (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
-    (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]) and
-    (Data[0, 2] <= Point[2]) and (Point[2] <=  Data[1, 2]);
+  Result := Contains(Point);
 end;
 
-{ Separated from PointInside2D, to not slowdown it by implicit
+{ Separated from Contains2D, to not slowdown it by implicit
   try/finally section because we use string. }
-procedure PointInside2D_InvalidIgnoreIndex;
+procedure Contains2D_InvalidIgnoreIndex;
 begin
-  raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.PointInside2D');
+  raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.Contains2D');
 end;
 
-function TBox3D.PointInside2D(const Point: TVector2Single): boolean;
+function TBox3D.Contains2D(const Point: TVector2Single): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
@@ -831,7 +862,7 @@ begin
     (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
 end;
 
-function TBox3D.PointInside2D(const Point: TVector3Single;
+function TBox3D.Contains2D(const Point: TVector3Single;
   const IgnoreIndex: Integer): boolean;
 begin
   if IsEmpty then Exit(false);
@@ -845,8 +876,19 @@ begin
     2: Result :=
          (Data[0, 0] <= Point[0]) and (Point[0] <=  Data[1, 0]) and
          (Data[0, 1] <= Point[1]) and (Point[1] <=  Data[1, 1]);
-    else PointInside2D_InvalidIgnoreIndex;
+    else Contains2D_InvalidIgnoreIndex;
   end;
+end;
+
+function TBox3D.PointInside2D(const Point: TVector2Single): boolean;
+begin
+  Result := Contains2D(Point);
+end;
+
+function TBox3D.PointInside2D(const Point: TVector3Single;
+  const IgnoreIndex: Integer): boolean;
+begin
+  Result := Contains2D(Point, IgnoreIndex);
 end;
 
 procedure TBox3D.Add(const box2: TBox3D);
@@ -1144,7 +1186,7 @@ function TBox3D.TryRayEntrance(
   out Entrance: TVector3Single; out EntranceDistance: Single;
   const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
-  if PointInside(RayOrigin) then
+  if Contains(RayOrigin) then
   begin
     Entrance := RayOrigin;
     EntranceDistance := 0;
@@ -1157,7 +1199,7 @@ function TBox3D.TryRayEntrance(
   out Entrance: TVector3Single;
   const RayOrigin, RayDirection: TVector3Single): boolean;
 begin
-  if PointInside(RayOrigin) then
+  if Contains(RayOrigin) then
   begin
     Entrance := RayOrigin;
     result := true;
@@ -1737,7 +1779,7 @@ begin
     end;
   end;
 
-  if PointInside(P) then
+  if Contains(P) then
     MinDistance := 0;
 
   { Because of floating point inaccuracy, MinDistance may be larger

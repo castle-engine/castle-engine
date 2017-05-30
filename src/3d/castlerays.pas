@@ -23,65 +23,9 @@ unit CastleRays;
 
 interface
 
-uses CastleVectors;
-
-{ Calculate second viewing angle for perspective projection.
-  Given one viewing angle of the camera (FirstViewAngleDeg) and
-  aspect ratio of your window sizes (SecondToFirstRatio),
-  calculate second viewing angle of the camera.
-
-  The intention is that when projecting camera view (with given view angles)
-  on a screen with given aspect ratio), the image will not be distorted
-  (squeezed horizontally or vertically).
-
-  For the "Deg" version both angles (given and returned) are in degress,
-  for the "Rad" version both angles and in radians.
-
-  @groupBegin }
-function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg,
-  SecondToFirstRatio: Single): Single;
-function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad,
-  SecondToFirstRatio: Single): Single;
-{ @groupEnd }
+uses CastleVectors, CastleProjection, CastleRectangles;
 
 type
-  TProjectionType = (ptOrthographic, ptPerspective);
-
-  { Projection parameters.
-    This is calculated when calling @link(TCastleAbstractViewport.Projection). }
-  TProjection = object
-    { Perspective / orthogonal projection properties.
-
-      When ProjectionType = ptPerspective, then PerspectiveAngles
-      specify angles of view (horizontal and vertical), in degrees.
-      When ProjectionType = ptOrthographic, then OrthoDimensions
-      specify dimensions of ortho window (in the order: -X, -Y, +X, +Y,
-      just like X3D OrthoViewpoint.fieldOfView).
-
-      @groupBegin }
-    ProjectionType: TProjectionType;
-    PerspectiveAngles: TVector2Single;
-    OrthoDimensions: TVector4Single;
-    { @groupEnd }
-
-    { Projection near/far values.
-
-      Note that ProjectionFar may be ZFarInfinity, which means that no far
-      clipping plane is used. For example, shadow volumes require this.
-
-      If you really need to know "what would be projection far,
-      if it could not be infinite" look at ProjectionFarFinite.
-      ProjectionFarFinite is calculated just like ProjectionFar
-      (looking at scene size, NavigationInfo.visibilityLimit and such),
-      except it's never changed to be ZFarInfinity.
-
-      @groupBegin }
-    ProjectionNear: Single;
-    ProjectionFar : Single;
-    ProjectionFarFinite: Single;
-    { @groupEnd }
-  end;
-
   { Calculate primary rays for given camera settings and screen size. }
   TRaysWindow = class
   private
@@ -144,12 +88,24 @@ type
       out RayOrigin, RayDirection: TVector3Single); override;
   end;
 
-  TOrthographicRaysWindow = class(TRaysWindow)
+  TFrustumRaysWindow = class(TRaysWindow)
   private
-    OrthoDimensions: TVector4Single;
+    Dimensions: TFloatRectangle;
   public
     constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const AOrthoDimensions: TVector4Single);
+      const ADimensions: TFloatRectangle);
+
+    procedure PrimaryRay(const x, y: Single;
+      const ScreenWidth, ScreenHeight: Integer;
+      out RayOrigin, RayDirection: TVector3Single); override;
+  end;
+
+  TOrthographicRaysWindow = class(TRaysWindow)
+  private
+    Dimensions: TFloatRectangle;
+  public
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+      const ADimensions: TFloatRectangle);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
@@ -172,26 +128,6 @@ procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Intege
 implementation
 
 uses Math, CastleUtils;
-
-{ AdjustViewAngle*ToAspectRatio ---------------------------------------- }
-
-function AdjustViewAngleRadToAspectRatio(const FirstViewAngleRad, SecondToFirstRatio: Single): Single;
-begin
-  { Ratio on window sizes is the ratio of angle tangeses.
-    For two angles (a, b), and window sizes (x, y) we have
-      Tan(a/2) = (x/2)/d
-      Tan(b/2) = (y/2)/d
-    where D is the distance to projection plane. So
-      Tan(a/2) / Tan(b/2) = x/y }
-
-  Result := ArcTan( Tan(FirstViewAngleRad/2) * SecondToFirstRatio) * 2;
-end;
-
-function AdjustViewAngleDegToAspectRatio(const FirstViewAngleDeg, SecondToFirstRatio: Single): Single;
-begin
-  Result := RadToDeg( AdjustViewAngleRadToAspectRatio( DegToRad(FirstViewAngleDeg),
-    SecondToFirstRatio));
-end;
 
 { TRaysWindow ------------------------------------------------------------ }
 
@@ -225,7 +161,10 @@ begin
         ACamPosition, ACamDirection, ACamUp, Projection.PerspectiveAngles);
     ptOrthographic:
       Result := TOrthographicRaysWindow.Create(
-        ACamPosition, ACamDirection, ACamUp, Projection.OrthoDimensions);
+        ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
+    ptFrustum:
+      Result := TFrustumRaysWindow.Create(
+        ACamPosition, ACamDirection, ACamUp, Projection.Dimensions);
     else raise EInternalError.Create('TRaysWindow.CreateDescendant:ProjectionType?');
   end;
 end;
@@ -270,14 +209,46 @@ begin
   NormalizeVar(RayDirection);
 end;
 
+{ TFrustumRaysWindow ---------------------------------------------------- }
+
+constructor TFrustumRaysWindow.Create(
+  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const ADimensions: TFloatRectangle);
+begin
+  inherited Create(ACamPosition, ACamDirection, ACamUp);
+  Dimensions := ADimensions;
+end;
+
+procedure TFrustumRaysWindow.PrimaryRay(const X, Y: Single;
+  const ScreenWidth, ScreenHeight: Integer;
+  out RayOrigin, RayDirection: TVector3Single);
+begin
+  { this is quite similar to TPerspectiveRaysWindow }
+
+  RayOrigin := CamPosition;
+
+  { Direction of ray, ignoring current camera settings
+    (assume camera position = zero, direction = -Z, up = +Y).
+    Integer X, Y values should result in a ray that goes
+    right through the middle of the pixel area. }
+  RayDirection[0] := MapRange(X + 0.5, 0, ScreenWidth , Dimensions.Left, Dimensions.Right);
+  RayDirection[1] := MapRange(Y + 0.5, 0, ScreenHeight, Dimensions.Bottom, Dimensions.Top);
+  RayDirection[2] := -1;
+
+  { Transform ray to take camera settings into acount. }
+  RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
+
+  NormalizeVar(RayDirection);
+end;
+
 { TOrthographicRaysWindow ---------------------------------------------------- }
 
 constructor TOrthographicRaysWindow.Create(
   const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const AOrthoDimensions: TVector4Single);
+  const ADimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
-  OrthoDimensions := AOrthoDimensions;
+  Dimensions := ADimensions;
 end;
 
 procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
@@ -286,9 +257,9 @@ procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
 begin
   RayOrigin := CamPosition;
   RayOrigin += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
-    OrthoDimensions[0], OrthoDimensions[2]));
+    Dimensions.Left, Dimensions.Right));
   RayOrigin += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
-    OrthoDimensions[1], OrthoDimensions[3]));
+    Dimensions.Bottom, Dimensions.Top));
 
   { CamDirection must already be normalized, so RayDirection is normalized too }
   RayDirection := CamDirection;

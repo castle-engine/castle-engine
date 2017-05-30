@@ -34,10 +34,11 @@ implementation
 uses Math, SysUtils,
   CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
   CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
-  CastleRays, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
+  CastleProjection, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
   CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,
-  RiftSceneManager, CastleKeysMouse,
-  RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow, RiftGame;
+  CastleKeysMouse,
+  RiftSceneManager, RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow,
+  RiftGame;
 
 type
   TDebugDisplay = (
@@ -106,7 +107,7 @@ begin
      (DebugDisplay <> ddOnly3D) then
   begin
     SavedProjectionMatrix := ProjectionMatrix;
-      OrthoProjection(0, Window.Width, 0, Window.Height); // need 2D projection
+      OrthoProjection(FloatRectangle(Window.Rect)); // need 2D projection
       {$ifndef OpenGLES}
       { TGLImage.Draw will reset modelview matrix
         (that should keep camera matrix, in non-OpenGLES renderer now),

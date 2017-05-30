@@ -910,7 +910,7 @@ begin
     be after loading MainScene (because initial camera looks at MainScene
     contents).
     It will show it's own progress bar. }
-  Info.LevelResources.Prepare(BaseLights, GravityUp);
+  Info.LevelResources.Prepare(BaseLights);
   LevelResourcesPrepared := true;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);

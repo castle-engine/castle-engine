@@ -173,12 +173,13 @@ unit X3DNodes;
 interface
 
 uses SysUtils, FGL, Classes, XMLRead, DOM,
-  CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
+  CastleVectors, CastleRectangles,
+  CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleGenericLists, CastleShaders, CastleRays;
+  CastleTextureFontData, CastleGenericLists, CastleShaders, CastleProjection;
 
 {$define read_interface}
 
@@ -1990,7 +1991,7 @@ procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
 
 const
   ProjectionTypeToStr: array [TProjectionType] of string =
-  ('Orthographic', 'Perspective');
+  ('Orthographic', 'Perspective', 'Frustum');
 
 const
   { Constants for @link(TAsciiTextNode_1.FdJustification).Value.

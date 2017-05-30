@@ -30,7 +30,7 @@ type
 implementation
 
 uses X3DNodes, CastleSceneCore, CastleScene, CastleBoxes, CastleVectors,
-  CastleRays;
+  CastleRays, CastleProjection;
 
 procedure TTestScene.TestScene;
 

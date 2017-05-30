@@ -861,11 +861,11 @@ begin
         coordinates that would be placed inside ExtraTexCoordNode.
         So we don't use ExtraTexCoordNode then.
 
-        Note: don't worry about X3DShadowMaps processing here.
-        X3DShadowMaps processing happens on the resulting geometry node,
+        Note: don't worry about CastleInternalShadowMaps processing here.
+        CastleInternalShadowMaps processing happens on the resulting geometry node,
         it *does not* modify source FdTexCoord field. So shadow maps
         will work on both textured and untextured text,
-        because X3DShadowMaps processing will actually cut off ExtraTexCoordNode
+        because CastleInternalShadowMaps processing will actually cut off ExtraTexCoordNode
         in case they are unused (because text is not textured),
         before adding ProjectedTextureCoordinate. }
       ExtraTexCoordNode := nil;

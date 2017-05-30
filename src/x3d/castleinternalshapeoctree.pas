@@ -596,7 +596,7 @@ begin
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
-    Box3DPointInsideTolerant(Intersection, SubNode.Box) test.
+    Box3DContainsTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
     Result^.UpdateWorld;
@@ -734,7 +734,7 @@ begin
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
-    Box3DPointInsideTolerant(Intersection, SubNode.Box) test.
+    Box3DContainsTolerant(Intersection, SubNode.Box) test.
     So Intersection must be transformed back already in CommonSegmentLeaf. }
   if Result <> nil then
     Result^.UpdateWorld;

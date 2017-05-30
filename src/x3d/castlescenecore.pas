@@ -24,13 +24,12 @@ unit CastleSceneCore;
 interface
 
 uses
-  SysUtils, Classes, CastleVectors, CastleBoxes, CastleTriangles,
-  X3DFields, X3DNodes, CastleClassUtils, CastleUtils,
-  CastleShapes, CastleInternalTriangleOctree, CastleProgress, CastleInternalOctree,
-  CastleInternalShapeOctree,
-  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, Contnrs,
-  CastleRenderingCamera, Castle3D, X3DShadowMaps, FGL, CastleGenericLists,
-  CastleRays;
+  SysUtils, Classes, FGL, Contnrs,
+  CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
+  CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
+  CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
+  CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
+  Castle3D, CastleInternalShadowMaps, CastleGenericLists, CastleProjection;
 
 type
   { Internal helper type for TCastleSceneCore.
@@ -780,9 +779,11 @@ type
 
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
+  public
     function HeightCollision(const Position, GravityUp: TVector3Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+  protected
     function MoveCollision(
       const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
       const IsRadius: boolean; const Radius: Single;

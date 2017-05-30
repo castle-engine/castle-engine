@@ -75,7 +75,7 @@ type
     FKnockBackDistance: Single;
     FKnockBackSpeed: Single;
 
-    RadiusConfigured: Single;
+    FRadiusOverride: Single;
 
     FAttackDamageConst: Single;
     FAttackDamageRandom: Single;
@@ -88,15 +88,13 @@ type
     FFallSound: TSoundType;
 
     FMiddleHeight: Single;
-
-    { Calculated @link(Radius) suitable for this creature.
-      This is set by our @link(Prepare) using RadiusCalculate method. }
-    RadiusCalculated: Single;
   protected
+    { Sphere radius for collision detection for alive creatures.
+      Must be something <> 0 for collision detection to work.
+      Defining it in the creature resource.xml file
+      (as radius="xxx" attribute on the root <resource> element)
+      overrides the results of this function. }
     function RadiusCalculate(const GravityUp: TVector3Single): Single; virtual;
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
-      const DoProgress: boolean); override;
 
     { Can the "up" vector be skewed, that is: not equal to gravity up vector.
       This is used when creating creature in CreateCreature.
@@ -142,35 +140,6 @@ type
       in this case, make sure that the values (explicitly set or automatically
       calculated) are suitable for both flying and non-flying states. }
     property Flying: boolean read FFlying write FFlying default DefaultFlying;
-
-    { Sphere radius for collision detection for alive creatures.
-      Must be something <> 0 for collision detection.
-
-      You can define it in the creature resource.xml file,
-      by setting radius="xxx" attribute on the root <resource> element.
-
-      If it's not defined (or zero) in resource.xml file,
-      then we use automatically calculated radius using RadiusCalculate,
-      that is adjusted to the bounding box of the animation.
-
-      Note that this radius is not used at all when creature is dead,
-      as dead creatures usually have wildly
-      different boxes (tall humanoid creature probably has a flat bounding
-      box when it's dead lying on the ground), so trying to use (the same)
-      radius would only cause problems.
-      Using sphere collision is also not necessary for dead creatures.
-      See T3D.Sphere for more discussion about when the sphere is a useful
-      bounding volume.
-
-      The sphere center is the Middle point ("eye position") of the given creature.
-      If the creature may be affected by gravity then
-      make sure radius is < than PreferredHeight of the creature,
-      see T3D.PreferredHeight, otherwise creature may get stuck into ground.
-      In short, if you use the default implementations,
-      PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
-      bounding box height). Your radius must be smaller
-      for all possible bounding box heights when the creature is not dead. }
-    function Radius: Single;
 
     property SoundSuddenPain: TSoundType
       read FSoundSuddenPain write FSoundSuddenPain;
@@ -278,7 +247,9 @@ type
       Game developers can use the RenderDebug3D variable to easily
       visualize the bounding sphere (and other things) around resources.
       The bounding sphere is centered around the point derived from MiddleHeight
-      setting and with given (or automatically calculated) @link(Radius). }
+      setting and with given creature radius
+      (given in resource.xml, or automatically calculated by
+      @link(TCreatureResource.RadiusCalculate)). }
     property MiddleHeight: Single
       read FMiddleHeight write FMiddleHeight
       default T3DCustomTransform.DefaultMiddleHeight;
@@ -295,6 +266,43 @@ type
       The default is the sound named 'creature_fall'. }
     property FallSound: TSoundType
       read FFallSound write FFallSound;
+
+    { Radius used for resolving (some) collisions with the alive creature.
+      This can be read from the @code(resource.xml) file.
+      When zero, the radius is automatically calculated looking at the
+      3D model bounding box, and taking into account gravity direction,
+      see @link(TCreature.RadiusCalculate). }
+    property RadiusOverride: Single
+      read FRadiusOverride write FRadiusOverride;
+
+    { Sphere radius for collision detection for alive creatures.
+      Must be something <> 0 for collision detection to work.
+
+      You can define it in the creature resource.xml file,
+      by setting radius="xxx" attribute on the root <resource> element.
+
+      If it's not defined (or zero) in resource.xml file,
+      then we use automatically calculated radius using RadiusCalculate,
+      that is adjusted to the bounding box of the animation.
+
+      Note that this radius is not used at all when creature is dead,
+      as dead creatures usually have wildly
+      different boxes (tall humanoid creature probably has a flat bounding
+      box when it's dead lying on the ground), so trying to use (the same)
+      radius would only cause problems.
+      Using sphere collision is also not necessary for dead creatures.
+      See T3D.Sphere for more discussion about when the sphere is a useful
+      bounding volume.
+
+      The sphere center is the Middle point ("eye position") of the given creature.
+      If the creature may be affected by gravity then
+      make sure radius is < than PreferredHeight of the creature,
+      see T3D.PreferredHeight, otherwise creature may get stuck into ground.
+      In short, if you use the default implementations,
+      PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
+      bounding box height). Your radius must be smaller
+      for all possible bounding box heights when the creature is not dead. }
+    function Radius(const GravityUp: TVector3Single): Single;
   end;
 
   { Creature with smart walking and attacking intelligence.
@@ -815,6 +823,10 @@ type
 
     FDebug3D: TDebug3DCustomTransform;
 
+    { Calculated @link(Radius) suitable for this creature.
+      This is cached result of @link(TCreatureResource.Radius). }
+    FRadius: Single;
+
     procedure SoundRelease(Sender: TSound);
   protected
     procedure SetLife(const Value: Single); override;
@@ -876,7 +888,12 @@ type
       sphere advantages (stairs climbing), and using sphere with dead
       creatures would unnecessarily force the sphere radius to be small
       and Middle to be high. }
-    function Sphere(out Radius: Single): boolean; override;
+    function Sphere(out ARadius: Single): boolean; override;
+
+    { Sphere radius for collision detection for alive creatures.
+      Must be something <> 0 for collision detection to work.
+      @seealso TCreatureResource.Radius }
+    function Radius: Single;
 
     property CollidesWithMoving default true;
   end;
@@ -1204,7 +1221,7 @@ begin
     DefaultSoundDieTiedToCreature);
   DefaultMaxLife := ResourceConfig.GetFloat('default_max_life',
     DefaultDefaultMaxLife);
-  RadiusConfigured := ResourceConfig.GetFloat('radius', 0.0);
+  FRadiusOverride := ResourceConfig.GetFloat('radius', 0.0);
   AttackDamageConst := ResourceConfig.GetFloat('attack/damage/const',
     DefaultAttackDamageConst);
   AttackDamageRandom := ResourceConfig.GetFloat('attack/damage/random',
@@ -1230,53 +1247,11 @@ begin
   Result := true;
 end;
 
-function TCreatureResource.Radius: Single;
-begin
-  if RadiusConfigured <> 0 then
-    Result := RadiusConfigured else
-    Result := RadiusCalculated;
-end;
-
-function TCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
-var
-  GC: Integer;
-  Box: TBox3D;
-  MaxRadiusForGravity: Single;
-begin
-  { calculate default RadiusCalculated.
-    Descendants can override this to provide better radius calculation
-    (or define radius in resource.xml file), so it's Ok to make here
-    some assumptions that should suit usual cases, but not necessarily
-    all possible cases --- e.g. our MaxRadiusForGravity calculation assumes you
-    let default T3DCustomTransform.PreferredHeight algorithm to work. }
-
-  if Animations.Count = 0 then
-    Box := EmptyBox3D else
-    Box := Animations[0].BoundingBox;
-
-  GC := MaxAbsVectorCoord(GravityUp);
-
-  if Box.IsEmpty then
-    Result := 0 else
-  if Flying then
-    { For Flying creatures, larger Radius (that *really* surrounds whole
-      model from middle) is better. Also, MaxRadiusForGravity doesn't concern
-      us then. }
-    Result := Box.MaxSize / 2 else
-  begin
-    { Maximum radius value that allows gravity to work,
-      assuming default T3D.PreferredHeight implementation,
-      and assuming that Box is the smallest possible bounding box of our creature. }
-    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1, GC];
-    Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);
-  end;
-end;
-
 function TCreatureResource.CreateCreature(World: T3DWorld;
   const APosition, ADirection: TVector3Single;
   const MaxLife: Single): TCreature;
 begin
-  { This is only needed if you forgot to add creature to <resources>.
+  { This is only needed if you did not add creature to <resources>.
 
     Note: we experimented with moving this to TCreature.PrepareResource,
     call Resource.Prepare from there. But it just doesn't fully work:
@@ -1285,7 +1260,7 @@ begin
     For example, on missiles like thrown web we do Sound3d that uses LerpLegsMiddle.
     Also TCreature.Idle (which definitely needs Resource) may get called before
     PrepareResource. IOW, PrepareResource is just too late. }
-  Prepare(World.BaseLights, World.GravityUp);
+  Prepare(World.BaseLights);
 
   Result := CreatureClass.Create(World { owner }, MaxLife);
   { set properties that in practice must have other-than-default values
@@ -1327,12 +1302,51 @@ begin
   CreateCreature(World, APosition, CreatureDirection, MaxLife);
 end;
 
-procedure TCreatureResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
-  const DoProgress: boolean);
+function TCreatureResource.Radius(const GravityUp: TVector3Single): Single;
 begin
-  inherited;
-  RadiusCalculated := RadiusCalculate(GravityUp);
+  if RadiusOverride <> 0 then
+    Result := RadiusOverride
+  else
+    Result := RadiusCalculate(GravityUp);
+end;
+
+function TCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
+var
+  GC: Integer;
+  Box: TBox3D;
+  MaxRadiusForGravity: Single;
+begin
+  { calculate radius.
+    Descendants can override this to provide better radius calculation,
+    and user can always override this in resource.xml (in which case,
+    RadiusCalculate is never called).
+
+    So it's Ok to make here some assumptions that should suit usual cases,
+    but not necessarily all possible cases ---
+    e.g. our MaxRadiusForGravity calculation assumes you
+    let default T3DCustomTransform.PreferredHeight algorithm to work. }
+
+  if Animations.Count = 0 then
+    Box := EmptyBox3D
+  else
+    Box := Animations[0].BoundingBox;
+
+  GC := MaxAbsVectorCoord(GravityUp);
+
+  if Box.IsEmpty then
+    Result := 0 else
+  if Flying then
+    { For Flying creatures, larger Radius (that *really* surrounds whole
+      model from middle) is better. Also, MaxRadiusForGravity doesn't concern
+      us then. }
+    Result := Box.MaxSize / 2 else
+  begin
+    { Maximum radius value that allows gravity to work,
+      assuming default T3D.PreferredHeight implementation,
+      and assuming that Box is the smallest possible bounding box of our creature. }
+    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1, GC];
+    Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);
+  end;
 end;
 
 { TWalkAttackCreatureResource ------------------------------------------------ }
@@ -1436,21 +1450,6 @@ begin
   FRemoveDead := DefaultRemoveDead;
 end;
 
-function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
-var
-  Box: TBox3D;
-begin
-  Box := FlyAnimation.BoundingBox;
-
-  { Use MinSize for missile, since smaller radius for missiles
-    forces player to aim more precisely. Smaller radius may also allow some
-    partial collisions to go undetected, but that's not a problem as the
-    collisions imperfections are not noticeable for fast moving missiles. }
-  if not Box.IsEmpty then
-    Result := Box.MinSize / 2 else
-    Result := inherited;
-end;
-
 function TMissileCreatureResource.CreatureClass: TCreatureClass;
 begin
   Result := TMissileCreature;
@@ -1504,6 +1503,22 @@ begin
     for missiles. See T3DCustomTransform.MiddleHeight. }
 
   Result.Gravity := false;
+end;
+
+function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
+var
+  Box: TBox3D;
+begin
+  Box := FlyAnimation.BoundingBox;
+
+  { Use MinSize for missile, since smaller radius for missiles
+    forces player to aim more precisely. Smaller radius may also allow some
+    partial collisions to go undetected, but that's not a problem as the
+    collisions imperfections are not noticeable for fast moving missiles. }
+  if not Box.IsEmpty then
+    Result := Box.MinSize / 2
+  else
+    Result := inherited;
 end;
 
 { TStillCreatureResource ---------------------------------------------------- }
@@ -1761,10 +1776,17 @@ begin
       Resource.AttackKnockbackDistance, Self);
 end;
 
-function TCreature.Sphere(out Radius: Single): boolean;
+function TCreature.Sphere(out ARadius: Single): boolean;
 begin
   Result := GetExists and (not Dead);
-  Radius := Resource.Radius;
+  ARadius := Radius;
+end;
+
+function TCreature.Radius: Single;
+begin
+  if FRadius = 0 then
+    FRadius := Resource.Radius(World.GravityUp);
+  Result := FRadius;
 end;
 
 { TWalkAttackCreature -------------------------------------------------------- }
@@ -2127,7 +2149,7 @@ var
         SetState(csWalk) else
       if Gravity and
          (AngleRadBetweenDirectionToEnemy < 0.01) and
-         BoundingBox.PointInside2D(LastSensedEnemy, World.GravityCoordinate) then
+         BoundingBox.Contains2D(LastSensedEnemy, World.GravityCoordinate) then
       begin
         { Then the enemy (or it's last known position) is right above or below us.
           Since we can't fly, we can't get there. Standing in place
@@ -2795,7 +2817,7 @@ begin
         begin
           C := TCreature(World[I]);
           if (C <> Self) and C.GetCollides and
-            C.BoundingBox.SphereSimpleCollision(Middle, Resource.Radius) then
+            C.BoundingBox.SphereSimpleCollision(Middle, Radius) then
           begin
             HitCreature(C);
             { TODO: projectiles shouldn't do here "break". }

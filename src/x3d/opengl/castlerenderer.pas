@@ -203,7 +203,7 @@ uses Classes, SysUtils, FGL, CastleGL,
   CastleVideos, X3DTime, CastleShapes,
   CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
-  X3DShadowMaps, CastleRendererInternalTextureEnv;
+  CastleRendererInternalTextureEnv;
 
 {$define read_interface}
 
@@ -960,7 +960,7 @@ type
 
     FCache: TGLRendererContextCache;
 
-    { Lights shining on all shapes. Set in each RenderBegin. }
+    { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
     BaseLights: TLightInstancesList;
 
     { Rendering pass. Set in each RenderBegin. }
@@ -1129,8 +1129,9 @@ var
 
 implementation
 
-uses Math, CastleStringUtils, CastleGLVersion, CastleLog,
-  CastleRenderingCamera, X3DCameraUtils, CastleRays, CastleColors, CastleRectangles;
+uses Math,
+  CastleStringUtils, CastleGLVersion, CastleLog, CastleRenderingCamera,
+  X3DCameraUtils, CastleProjection, CastleColors, CastleRectangles;
 
 {$define read_implementation}
 

@@ -1783,33 +1783,12 @@ function ModelViewToNormalMatrix(const M: TMatrix4Single): TMatrix3Single;
   This is useful for calculating rotation matrix. }
 function VectorMultTransposedSameVector(const v: TVector3Single): TMatrix4Single;
 
-const
-  { Special value that you can pass to various perspective-projection functions
-    with the intention to set far plane at infinity.
-    These functions include
-    like @link(FrustumProjMatrix), @link(PerspectiveProjMatrixDeg),
-    @link(PerspectiveProjMatrixRad), @link(PerspectiveProjection).
-    You can pass ZFarInfinity as their @code(ZFar) parameter value.
-
-    @italic(Implementation note:)
-    It would be "cooler" to define this constant as Math.Infinity,
-    but operating on Math.Infinity requires unnecessary turning
-    off of some compiler checks. The point was only to have some special ZFar
-    value, so 0 is as good as Infinity. }
-  ZFarInfinity = 0.0;
-
 { Functions to create common 4x4 matrices used in 3D graphics.
 
   These functions generate the same matrices that are made by corresponding
   OpenGL (gl or glu) functions. So rotations will be generated in the same
   fashion, etc. For exact specification of what matrices they create see
-  OpenGL specification for routines glTranslate, glScale, glRotate,
-  glOrtho, glFrustum, gluPerspective.
-
-  For frustum and pespective projection matrices, we have a special bonus
-  here: you can pass as ZFar the special value ZFarInfinity.
-  Then you get perspective projection matrix withour far clipping plane,
-  which is very useful for z-fail shadow volumes technique.
+  OpenGL specification for routines glTranslate, glScale, glRotate.
 
   Functions named Matrices below generate both normal and inverted matrices.
   For example, function RotationMatrices returns two matrices that you
@@ -1859,12 +1838,6 @@ procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3Single
   out Matrix, InvertedMatrix: TMatrix4Single);
 procedure RotationMatricesRad(const AxisAngle: TVector4Single;
   out Matrix, InvertedMatrix: TMatrix4Single);
-
-function OrthoProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
-function Ortho2dProjMatrix(const left, right, bottom, top: Single): TMatrix4Single;
-function FrustumProjMatrix(const left, right, bottom, top, zNear, zFar: Single): TMatrix4Single;
-function PerspectiveProjMatrixDeg(const fovyDeg, aspect, zNear, zFar: Single): TMatrix4Single;
-function PerspectiveProjMatrixRad(const fovyRad, aspect, zNear, zFar: Single): TMatrix4Single;
 { @groupEnd }
 
 { Multiply matrix M by translation matrix.
@@ -3460,107 +3433,6 @@ function RotationMatrixRad(const AngleRad: Single;
   const AxisX, AxisY, AxisZ: Single): TMatrix4Single;
 begin
   result := RotationMatrixRad(AngleRad, Vector3Single(AxisX, AxisY, AxisZ));
-end;
-
-function OrthoProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
-var
-  Width, Height, Depth: Single;
-begin
-  Width := Right - Left;
-  Height := Top - Bottom;
-  Depth := ZFar - ZNear;
-
-  result := ZeroMatrix4Single;
-  result[0, 0] := 2 / Width;
-  result[1, 1] := 2 / Height;
-  result[2, 2] := - 2 / Depth; { tutaj - bo nasze Z-y sa ujemne w glab ekranu }
-  result[3, 0] := - (Right + Left) / Width;
-  result[3, 1] := - (Top + Bottom) / Height;
-  result[3, 2] := - (ZFar + ZNear) / Depth;
-  result[3, 3] := 1;
-end;
-
-function Ortho2dProjMatrix(const Left, Right, Bottom, Top: Single): TMatrix4Single;
-var
-  Width, Height: Single;
-begin
-  {wersja prosta : result := OrthoProjMatrix(Left, Right, Bottom, Top, -1, 1);}
-  {wersja zoptymalizowana :}
-  Width := Right - Left;
-  Height := Top - Bottom;
-  {Depth := ZFar - ZNear = (1 - (-1)) = 2}
-
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := 2 / Width;
-  Result[1, 1] := 2 / Height;
-  Result[2, 2] := {-2 / Depth = -2 / 2} -1;
-  Result[3, 0] := - (Right + Left) / Width;
-  Result[3, 1] := - (Top + Bottom) / Height;
-  Result[3, 2] := {- (ZFar + ZNear) / Depth = 0 / 2} 0;
-  Result[3, 3] := 1;
-end;
-
-function FrustumProjMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
-
-{ This is of course based on "OpenGL Programming Guide",
-  Appendix G "... and Transformation Matrices".
-  ZFarInfinity version based on various sources, pretty much every
-  article about shadow volumes mentions z-fail and this trick. }
-
-var
-  Width, Height, Depth, ZNear2: Single;
-begin
-  Width := Right - Left;
-  Height := Top - Bottom;
-  ZNear2 := ZNear * 2;
-
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := ZNear2         / Width;
-  Result[2, 0] := (Right + Left) / Width;
-  Result[1, 1] := ZNear2         / Height;
-  Result[2, 1] := (Top + Bottom) / Height;
-  if ZFar <> ZFarInfinity then
-  begin
-    Depth := ZFar - ZNear;
-    Result[2, 2] := - (ZFar + ZNear) / Depth;
-    Result[3, 2] := - ZNear2 * ZFar  / Depth;
-  end else
-  begin
-    Result[2, 2] := -1;
-    Result[3, 2] := -ZNear2;
-  end;
-  Result[2, 3] := -1;
-end;
-
-function PerspectiveProjMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4Single;
-begin
-  Result := PerspectiveProjMatrixRad(DegToRad(FovyDeg), Aspect, ZNear, ZFar);
-end;
-
-function PerspectiveProjMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): TMatrix4Single;
-{ Based on various sources, e.g. sample implementation of
-  glu by SGI in Mesa3d sources. }
-var
-  Depth, ZNear2, Cotangent: Single;
-begin
-  ZNear2 := ZNear * 2;
-  Cotangent := CastleCoTan(FovyRad / 2);
-
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := Cotangent / Aspect;
-  Result[1, 1] := Cotangent;
-  if ZFar <> ZFarInfinity then
-  begin
-    Depth := ZFar - ZNear;
-    Result[2, 2] := - (ZFar + ZNear) / Depth;
-    Result[3, 2] := - ZNear2 * ZFar  / Depth;
-  end else
-  begin
-    Result[2, 2] := -1;
-    Result[3, 2] := -ZNear2;
-  end;
-
-  Result[2, 3] := -1;
 end;
 
 { kod dla MatrixDet* przerobiony z vect.c z mgflib }

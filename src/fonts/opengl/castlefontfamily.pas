@@ -1134,7 +1134,7 @@ procedure TRichText.Print(const X0, Y0: Integer; const Color: TCastleColor;
       hpLeft  : Result := X0;
       hpMiddle: Result := X0 - Items[Line].KnownWidth div 2;
       hpRight : Result := X0 - Items[Line].KnownWidth;
-      else EInternalError.Create('TRichText.Print: TextHorizontalAlignment unknown');
+      else raise EInternalError.Create('TRichText.Print: TextHorizontalAlignment unknown');
     end;
   end;
 

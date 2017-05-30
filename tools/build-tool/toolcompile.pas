@@ -205,7 +205,13 @@ var
     if IOS then
     begin
       FpcOptions.Add('-Cn');
-      FpcOptions.Add('-WP5.1');
+      { This corresponds to the iOS version used when compiling FPC 3.0.3 RTL
+        from the latest official FPC release for iOS.
+        With -WP5.1, I got a lot of warnings that FPC RTL was for iOS 7.0.
+        Also, I got an error:
+        clang: error: -fembed-bitcode is not supported on versions of iOS prior to 6.0
+      }
+      FpcOptions.Add('-WP7.0');
       { TODO: this option is probably useless for now, since we pass -Cn
         and later create the library manually. }
       FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'libcge_ios_project_unused.a');

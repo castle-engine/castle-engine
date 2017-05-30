@@ -155,7 +155,6 @@ type
       In this class, PrepareCoreSteps returns 0.
       @groupBegin }
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
       const DoProgress: boolean); virtual;
     function PrepareCoreSteps: Cardinal; virtual;
     procedure ReleaseCore; virtual;
@@ -196,8 +195,7 @@ type
     { Release and then immediately prepare again this resource.
       Call only when UsageCount <> 0, that is when resource is prepared.
       Shows nice progress bar, using @link(Progress). }
-    procedure RedoPrepare(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single);
+    procedure RedoPrepare(const BaseLights: TAbstractLightInstancesList);
 
     { How many times this resource is used. Used by Prepare and Release:
       actual allocation / deallocation happens when this raises from zero
@@ -217,9 +215,28 @@ type
 
       Show nice progress bar, using @link(Progress).
 
+      @param(BaseLights
+        Base lights include a headlight, or global lights that shine on all
+        3D scenes (see @link(TCastleSceneManager.UseGlobalLights)).
+
+        You can usually take them from @link(TCastleAbstractViewport.BaseLights),
+        usually by a simple @code(SceneManager.BaseLights) call
+        (as the scene manager, @link(TCastleSceneManager), is a descedant
+        of @link(TCastleAbstractViewport)).
+
+        It is not necessary to define this parameter (you can pass @nil).
+        And all the lighting is dynamic, so of course you can always
+        turn on / off things like a headlight during the game.
+        However, passing here the appropriate lights will mean that the shaders
+        are immediately prepared for the current lighting.
+
+        See @link(T3D.PrepareResources) for more comments.)
+
       @groupBegin }
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single);
+      deprecated 'use Prepare overload without the GravityUp parameter';
+    procedure Prepare(const BaseLights: TAbstractLightInstancesList = nil);
     procedure Release;
     { @groupEnd }
 
@@ -359,7 +376,6 @@ type
     { Prepare / release all resources on list.
       @groupBegin }
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single;
       const ResourcesName: string = 'resources');
     procedure Release;
     { @groupEnd }
@@ -543,7 +559,7 @@ begin
 end;
 
 procedure T3DResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single; const DoProgress: boolean);
+  const DoProgress: boolean);
 var
   I: Integer;
 begin
@@ -589,8 +605,7 @@ begin
     Animations[I].LoadFromFile(ResourceConfig);
 end;
 
-procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single);
+procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList);
 var
   DoProgress: boolean;
 begin
@@ -607,7 +622,7 @@ begin
       So we should call Progress.Init before we make outselves unprepared. }
     FPrepared := false;
     ReleaseCore;
-    PrepareCore(BaseLights, GravityUp, DoProgress);
+    PrepareCore(BaseLights, DoProgress);
     FPrepared := true;
   finally
     if DoProgress then Progress.Fini;
@@ -616,13 +631,18 @@ end;
 
 procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;
   const GravityUp: TVector3Single);
+begin
+  Prepare(BaseLights);
+end;
+
+procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList);
 var
   List: T3DResourceList;
 begin
   List := T3DResourceList.Create(false);
   try
     List.Add(Self);
-    List.Prepare(BaseLights, GravityUp);
+    List.Prepare(BaseLights);
   finally FreeAndNil(List) end;
 end;
 
@@ -771,7 +791,6 @@ begin
 end;
 
 procedure T3DResourceList.Prepare(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single;
   const ResourcesName: string);
 var
   I: Integer;
@@ -815,7 +834,7 @@ begin
             WritelnLog('Resources', Format(
               'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
-          Resource.PrepareCore(BaseLights, GravityUp, DoProgress);
+          Resource.PrepareCore(BaseLights, DoProgress);
           Resource.FPrepared := true;
         end;
       end;

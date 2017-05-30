@@ -3036,7 +3036,7 @@ procedure TCastleWindowCustom.OpenCore;
     glViewport(WindowRect);
     Viewport2DSize[0] := WindowRect.Width;
     Viewport2DSize[1] := WindowRect.Height;
-    OrthoProjection(0, WindowRect.Width, 0, WindowRect.Height);
+    OrthoProjection(FloatRectangle(WindowRect));
 
     { Not only is RenderContext.Clear faster than DrawRectangle(WindowRect,...).
       In this case, it is also more reliable: in case of Android immersive
@@ -4969,7 +4969,7 @@ end;
 procedure Resize2D(Container: TUIContainer);
 begin
   glViewport(Container.Rect);
-  OrthoProjection(0, Container.Width, 0, Container.Height);
+  OrthoProjection(FloatRectangle(Container.Rect));
 end;
 
 function KeyString(const CharKey: char; const Key: TKey;
