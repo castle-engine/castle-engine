@@ -215,11 +215,28 @@ type
 
       Show nice progress bar, using @link(Progress).
 
+      @param(BaseLights
+        Base lights include a headlight, or global lights that shine on all
+        3D scenes (see @link(TCastleSceneManager.UseGlobalLights)).
+
+        You can usually take them from @link(TCastleAbstractViewport.BaseLights),
+        usually by a simple @code(SceneManager.BaseLights) call
+        (as the scene manager, @link(TCastleSceneManager), is a descedant
+        of @link(TCastleAbstractViewport)).
+
+        It is not necessary to define this parameter (you can pass @nil).
+        And all the lighting is dynamic, so of course you can always
+        turn on / off things like a headlight during the game.
+        However, passing here the appropriate lights will mean that the shaders
+        are immediately prepared for the current lighting.
+
+        See @link(T3D.PrepareResources) for more comments.)
+
       @groupBegin }
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
       const GravityUp: TVector3Single);
       deprecated 'use Prepare overload without the GravityUp parameter';
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList);
+    procedure Prepare(const BaseLights: TAbstractLightInstancesList = nil);
     procedure Release;
     { @groupEnd }
 

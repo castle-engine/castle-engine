@@ -608,6 +608,11 @@ type
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
 
+      It is usually simpler to call @link(TCastleSceneManager.PrepareResources)
+      then this method. Calling @code(SceneManager.PrepareResources(MyScene))
+      will automatically call @code(MyScene.PrepareResources(...)) underneath,
+      with proper parameters.
+
       This requires OpenGL to be initailized for most 3D objects.
       If not, some parts of preparations will be aborted.
 
@@ -642,10 +647,22 @@ type
         Reason: octree preparations have a separate mechanism
         that may want to show progress.)
 
-      @param(BaseLights Used if Options contains prRender.
-        A list of base lights (always TLightInstancesList, although
-        cannot be declated as such) used for rendering.
-        May be @nil (equivalent to empty).) }
+      @param(BaseLights
+        Lights added to the scene when rendering it.
+        They may include a headlight, or global lights that shine on all
+        3D scenes (see @link(TCastleSceneManager.UseGlobalLights)).
+        These do not include the lights defined @italic(within) this scene.
+        It is a list of base lights (always TLightInstancesList, although
+        it cannot be declated as such here).
+
+        It is used only if Options contains prRender.
+
+        It is not necessary to define this parameter (you can pass @nil).
+        And all the lighting is dynamic, so of course you can always
+        turn on / off things like a headlight during the game.
+        However, passing here the appropriate lights will mean that the shaders
+        are immediately prepared for the current lighting.
+      ) }
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;

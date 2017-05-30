@@ -276,8 +276,11 @@ begin
   LightsEnabled := 0;
   if LightsEnabled >= GLFeatures.MaxLights then Exit;
 
-  AddList(Lights1);
-  if LightsEnabled >= GLFeatures.MaxLights then Exit;
+  if Lights1 <> nil then
+  begin
+    AddList(Lights1);
+    if LightsEnabled >= GLFeatures.MaxLights then Exit;
+  end;
 
   if Lights2 <> nil then
   begin

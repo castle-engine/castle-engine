@@ -960,7 +960,7 @@ type
 
     FCache: TGLRendererContextCache;
 
-    { Lights shining on all shapes. Set in each RenderBegin. }
+    { Lights shining on all shapes, may be @nil. Set in each RenderBegin. }
     BaseLights: TLightInstancesList;
 
     { Rendering pass. Set in each RenderBegin. }
