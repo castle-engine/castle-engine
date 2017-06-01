@@ -15,7 +15,7 @@
 }
 
 { Program to run the game on desktop (standalone) platforms. }
-program ${NAME_PASCAL};
+program ${NAME_PASCAL}_standalone;
 
 {$apptype GUI}
 
@@ -23,8 +23,9 @@ program ${NAME_PASCAL};
   automatically created by "castle-engine compile". }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleUtils, CastleParameters, CastleSoundEngine, CastleLog,
-  CastleWindow, ${GAME_UNITS};
+uses SysUtils,
+  CastleUtils, CastleParameters, CastleSoundEngine, CastleLog, CastleWindow,
+  ${GAME_UNITS};
 
 const
   Version = '${VERSION}';
@@ -40,9 +41,9 @@ begin
   case OptionNum of
     0:begin
         InfoWrite(
-          ApplicationName +
+          ApplicationName + NL+
           NL+
-          'Available options are:' + NL +
+          'Available command-line options:' + NL +
           HelpOptionHelp + NL +
           VersionOptionHelp + NL +
           SoundEngine.ParseParametersHelp + NL+
@@ -54,7 +55,7 @@ begin
       end;
     1:begin
         // include ApplicationName in version, good for help2man
-        WritelnStr(ApplicationName + ' ' + Version);
+        Writeln(ApplicationName + ' ' + Version);
         Halt;
       end;
     else raise EInternalError.Create('OptionProc');
@@ -62,8 +63,14 @@ begin
 end;
 
 begin
-  InitializeLog(Version);
   SoundEngine.ParseParameters;
   Window.ParseParameters;
+  Parameters.Parse(Options, @OptionProc, nil);
+
+  { Activate log only now on desktops,
+    to make --version and --help command-line parameters
+    work without any extra output. }
+  InitializeLog(Version);
+
   Window.OpenAndRun;
 end.

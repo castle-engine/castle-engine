@@ -121,6 +121,10 @@ begin
           '    Clear "auto_compressed" subdirectories, that should contain only' +NL+
           '    the output created by "auto-compress-textures" target.' +NL+
           NL+
+          'generate-program:' +NL+
+          '    Generate lpr and lpi files to edit and run this project in Lazarus.' +NL+
+          '    Depends on game_units being defined in the CastleEngineManifest.xml.' +NL+
+          NL+
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
@@ -278,6 +282,8 @@ begin
         Project.DoAutoGenerateTextures else
       if Command = 'auto-generate-clean' then
         Project.DoAutoGenerateClean else
+      if Command = 'generate-program' then
+        Project.DoGenerateProgram else
         raise EInvalidParams.CreateFmt('Invalid COMMAND to perform: "%s". Use --help to get usage information', [Command]);
     finally FreeAndNil(Project) end;
   end;

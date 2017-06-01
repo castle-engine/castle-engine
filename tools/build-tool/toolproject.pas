@@ -74,7 +74,9 @@ type
       by ExtractTemplate that can extract a whole template directory.
 
       It can also be used directly to expand a single file. }
-    procedure ExtractTemplateFile(const SourceFileName, DestinationFileName, DestinationRelativeFileName: string);
+    procedure ExtractTemplateFile(
+      const SourceFileName, DestinationFileName, DestinationRelativeFileName: string;
+      const OverrideExisting: boolean);
 
     { Android source specified in CastleEngineManifest.xml.
       Most code should use AndroidSourceFile instead, that can optionally
@@ -104,6 +106,7 @@ type
     procedure DoClean;
     procedure DoAutoGenerateTextures;
     procedure DoAutoGenerateClean;
+    procedure DoGenerateProgram;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -1054,7 +1057,7 @@ begin
         TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_base.lpr'));
       if FGameUnits = '' then
         raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an Android project. Alternatively, you can specify android_source="..." in the CastleEngineManifest.xml, to explicitly indicate the Android library source code.');
-      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'android/library_template.lpr');
+      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'android/library_template.lpr', true);
     end;
     if not IsPrefix(Path, AbsoluteResult, true) then
       raise EInternalError.CreateFmt('Something is wrong with the temporary Android source location "%s", it is not within the project "%s"',
@@ -1098,7 +1101,7 @@ begin
       TemplateFile := URIToFilenameSafe(ApplicationData('ios/library_template.lpr'));
       if FGameUnits = '' then
         raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an iOS project. Alternatively, you can specify ios_source="..." in the CastleEngineManifest.xml, to explicitly indicate the iOS library source code.');
-      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'ios/library_template.lpr');
+      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'ios/library_template.lpr', true);
     end;
     if not IsPrefix(Path, AbsoluteResult, true) then
       raise EInternalError.CreateFmt('Something is wrong with the temporary iOS source location "%s", it is not within the project "%s"',
@@ -1215,6 +1218,27 @@ end;
 procedure TCastleProject.DoAutoGenerateClean;
 begin
   AutoGenerateClean(Self);
+end;
+
+procedure TCastleProject.DoGenerateProgram;
+
+  procedure Generate(const Ext: string);
+  var
+    TemplateRelativePath, TemplateFile, TargetFile: string;
+  begin
+    TemplateRelativePath := 'standalone/program_template.' + Ext;
+    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativePath));
+    TargetFile := Path + NamePascal + '_standalone.' + Ext;
+    ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
+    if Verbose then
+      Writeln('Generated ', TargetFile);
+  end;
+
+begin
+  if FGameUnits = '' then
+    raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create a standalone project');
+  Generate('lpr');
+  Generate('lpi');
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
@@ -1370,15 +1394,18 @@ begin
 
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
 
-  ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName, DestinationRelativeFileName);
+  ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName,
+    DestinationRelativeFileName, false);
 end;
 
-procedure TCastleProject.ExtractTemplateFile(const SourceFileName, DestinationFileName, DestinationRelativeFileName: string);
+procedure TCastleProject.ExtractTemplateFile(
+  const SourceFileName, DestinationFileName, DestinationRelativeFileName: string;
+  const OverrideExisting: boolean);
 var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  if FileExists(DestinationFileName) then
+  if (not OverrideExisting) and FileExists(DestinationFileName) then
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
