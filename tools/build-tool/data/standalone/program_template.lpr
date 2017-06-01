@@ -20,7 +20,8 @@ program ${NAME_PASCAL}_standalone;
 {$apptype GUI}
 
 { This adds icons and version info for Windows,
-  automatically created by "castle-engine compile". }
+  automatically created by "castle-engine compile".
+  Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
 uses CastleLog, CastleWindow, ${GAME_UNITS};
