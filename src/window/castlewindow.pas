@@ -3992,11 +3992,11 @@ class function TCastleWindowCustom.ParseParametersHelp(
 const
   HelpForParam: array[TWindowParseOption] of string =
   ('  --geometry WIDTHxHEIGHT<sign>XOFF<sign>YOFF' +nl+
-   '                        Set initial window size and/or position' +nl+
-   '  --fullscreen          Set initial window size to cover whole screen',
+   '                        Set initial window size and/or position.' +nl+
+   '  --fullscreen          Set initial window size to cover whole screen.',
    '  --fullscreen-custom WIDTHxHEIGHT' +nl+
    '                        Try to resize the screen to WIDTHxHEIGHT and' +nl+
-   '                        then set initial window size to cover whole screen',
+   '                        then set initial window size to cover whole screen.',
    '  --display DISPLAY-NAME' +nl+
    '                        Use given X display name.',
    ''

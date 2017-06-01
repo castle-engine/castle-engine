@@ -249,9 +249,11 @@ end;
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
   const Version: string; WrapLines: boolean): string;
 begin
-  Result :=
-    DisplayApplicationName + ' version ' + Version + '.' + NL +
-    NL +
+  if Version <> '' then
+    Result := DisplayApplicationName + ' version ' + Version + '.' + NL + NL
+  else
+    Result := '';
+  Result := Result +
     'Developed using Castle Game Engine.' + NL +
     'See https://castle-engine.sourceforge.io/ for latest versions' +
     Iff(WrapLines, NL, '') +

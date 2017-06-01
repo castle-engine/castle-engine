@@ -1492,7 +1492,7 @@ begin
     '  --audio-device DEVICE-NAME' +nl+
     '                        Choose specific OpenAL audio device.' +nl+
     DevicesHelp +
-    '  --no-sound            Turn off sound';
+    '  --no-sound            Turn off sound.';
 end;
 
 procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
