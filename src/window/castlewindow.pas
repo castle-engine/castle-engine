@@ -503,7 +503,7 @@ uses {$define read_interface_uses}
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,
-  CastleCameras, CastleInternalPk3DConnexion,
+  CastleCameras, CastleInternalPk3DConnexion, CastleParameters, CastleSoundEngine,
   { Castle Game Engine units depending on VRML/X3D stuff }
   X3DNodes, CastleScene, CastleSceneManager, CastleLevels;
 
@@ -2434,6 +2434,7 @@ type
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
     LastMaybeDoTimerTime: TTimerResult;
+    FVersion: string;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2777,6 +2778,18 @@ type
     destructor Destroy; override;
 
     procedure HandleException(Sender: TObject); override;
+
+    { Handle standard command-line parameters of Castle Game Engine programs.
+      Handles:
+      @unorderedList(
+        @item(@code(-h / --help))
+        @item(@code(-v / --version), using @link(Version))
+        @item(All the parameters handled by @link(TCastleWindowCustom.ParseParameters).
+          Requires @link(MainWindow) to be set.)
+        @item(All the parameters handled by @link(TCastleSoundEngine.ParseParameters).)
+      )
+    }
+    procedure ParseStandardParameters;
   published
     { Limit the number of (real) frames per second, to not hog the CPU.
       Set to zero to not limit.
@@ -2796,6 +2809,10 @@ type
       When LimitFPS is used for this purpose ("desired number of FPS"),
       it is also capped (by MaxDesiredFPS = 100.0). }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
+
+    { The version of your application.
+      It may be used e.g. by @link(ParseStandardParameters). }
+    property Version: string read FVersion write FVersion;
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
@@ -2854,7 +2871,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 
 implementation
 
-uses CastleParameters, CastleLog, CastleGLVersion, CastleURIUtils,
+uses CastleLog, CastleGLVersion, CastleURIUtils,
   CastleControls, CastleApplicationProperties,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
@@ -4962,6 +4979,54 @@ end;
 procedure TCastleApplication.DoRun;
 begin
   ProcessMessage(true, true);
+end;
+
+// TODO: why this doesn't work as static TCastleApplication.OptionProc ?
+procedure ApplicationOptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  App: TCastleApplication;
+  HelpString: string;
+begin
+  App := TCastleApplication(Data);
+
+  case OptionNum of
+    0:begin
+        HelpString :=
+          ApplicationName + NL+
+          NL+
+          'Available command-line options:' + NL +
+          HelpOptionHelp + NL +
+          VersionOptionHelp + NL +
+          SoundEngine.ParseParametersHelp + NL+
+          NL;
+        if App.MainWindow <> nil then
+          HelpString += TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) + NL + NL;
+        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName, App.Version, true);
+        InfoWrite(HelpString);
+        Halt;
+      end;
+    1:begin
+        // include ApplicationName in --version output, this is good for help2man
+        Writeln(ApplicationName + ' ' + App.Version);
+        Halt;
+      end;
+    else raise EInternalError.Create('OptionProc');
+  end;
+end;
+
+procedure TCastleApplication.ParseStandardParameters;
+const
+  Options: array [0..1] of TOption =
+  (
+    (Short: 'h'; Long: 'help'; Argument: oaNone),
+    (Short: 'v'; Long: 'version'; Argument: oaNone)
+  );
+begin
+  SoundEngine.ParseParameters;
+  if MainWindow <> nil then
+    MainWindow.ParseParameters;
+  Parameters.Parse(Options, @ApplicationOptionProc, Self);
 end;
 
 { global --------------------------------------------------------------------- }

@@ -23,54 +23,16 @@ program ${NAME_PASCAL}_standalone;
   automatically created by "castle-engine compile". }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses SysUtils,
-  CastleUtils, CastleParameters, CastleSoundEngine, CastleLog, CastleWindow,
-  ${GAME_UNITS};
-
-const
-  Version = '${VERSION}';
-  Options: array [0..1] of TOption =
-  (
-    (Short: 'h'; Long: 'help'; Argument: oaNone),
-    (Short: 'v'; Long: 'version'; Argument: oaNone)
-  );
-
-procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
-  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
-begin
-  case OptionNum of
-    0:begin
-        InfoWrite(
-          ApplicationName + NL+
-          NL+
-          'Available command-line options:' + NL +
-          HelpOptionHelp + NL +
-          VersionOptionHelp + NL +
-          SoundEngine.ParseParametersHelp + NL+
-          NL +
-          TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) + NL +
-          NL+
-          SCastleEngineProgramHelpSuffix(ApplicationName, Version, true));
-        Halt;
-      end;
-    1:begin
-        // include ApplicationName in version, good for help2man
-        Writeln(ApplicationName + ' ' + Version);
-        Halt;
-      end;
-    else raise EInternalError.Create('OptionProc');
-  end;
-end;
+uses CastleLog, CastleWindow, ${GAME_UNITS};
 
 begin
-  SoundEngine.ParseParameters;
-  Window.ParseParameters;
-  Parameters.Parse(Options, @OptionProc, nil);
+  Application.Version := '${VERSION}';
+  Application.ParseStandardParameters;
 
-  { Activate log only now on desktops,
-    to make --version and --help command-line parameters
-    work without any extra output. }
-  InitializeLog(Version);
+  { On standalone, activate log only after parsing command-line options.
+    This allows to handle --version and --help command-line parameters
+    without any extra output on Unix. }
+  InitializeLog(Application.Version);
 
-  Window.OpenAndRun;
+  Application.MainWindow.OpenAndRun;
 end.
