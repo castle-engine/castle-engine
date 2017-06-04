@@ -434,6 +434,7 @@ type
     { Nodes that affect how following nodes are rendered,
       mostly for VRML 1.0 state. }
     property VRML1State: TVRML1State read FVRML1State;
+    property LastNodes: TVRML1State read FVRML1State; deprecated 'use VRML1State';
   public
     { Lights active in this state.
 
