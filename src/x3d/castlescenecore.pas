@@ -999,8 +999,8 @@ type
       reported to scene by calling this method. This includes changes
       to the inactive graph part (e.g. in inactive Switch child),
       because our shapes have to track it also.
-      Changes to TShape.State.LastNodes (these nodes may come
-      from StateDefaultNodes) should also be reported here.
+      Changes to TShape.State.VRML1State (these nodes may come
+      from VRML1DefaultState) should also be reported here.
       In fact, you can even notify this scene about changes to fields
       that don't belong to our RootNode --- nothing bad will happen.
       We always try to intelligently
@@ -3868,12 +3868,12 @@ var
     if ANode.VRML1StateNode(VRML1StateNode) then
     begin
       { ANode is part of VRML 1.0 state, so it affects Shapes where
-        it's present on State.LastNodes list. }
+        it's present on State.VRML1State list. }
       SI := TShapeTreeIterator.Create(Shapes, false);
       try
         while SI.GetNext do
-          if (SI.Current.State.LastNodes.Nodes[VRML1StateNode] = ANode) or
-             (SI.Current.OriginalState.LastNodes.Nodes[VRML1StateNode] = ANode) then
+          if (SI.Current.State.VRML1State.Nodes[VRML1StateNode] = ANode) or
+             (SI.Current.OriginalState.VRML1State.Nodes[VRML1StateNode] = ANode) then
             SI.Current.Changed(false, Changes);
       finally FreeAndNil(SI) end;
       VisibleChangeHere([vcVisibleGeometry, vcVisibleNonGeometry]);
@@ -4354,7 +4354,7 @@ begin
        our VRML/X3D graph...
 
     2. Also, there are nodes that affect our graph but are outside
-       of it: StateDefaultNodes, and also all the nodes created
+       of it: VRML1DefaultState, and also all the nodes created
        by Proxy methods (geometry and new state nodes).
   }
 

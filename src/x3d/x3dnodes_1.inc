@@ -946,15 +946,15 @@ begin
 
     CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
     CoordNode.FdPoint.Items.Clear;
-    State.LastNodes.SetOwnNode(vsCoordinate3, CoordNode);
+    State.VRML1State.SetOwnNode(vsCoordinate3, CoordNode);
 
     TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
     TexCoordNode.FdPoint.Items.Clear;
-    State.LastNodes.SetOwnNode(vsTextureCoordinate2, TexCoordNode);
+    State.VRML1State.SetOwnNode(vsTextureCoordinate2, TexCoordNode);
 
     TextProxy(Self,
-      State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify, fjFirst,
-      FdString.Items, State.LastNodes.FontStyle.Font,
+      State.VRML1State.FontStyle.FdSize.Value, FdSpacing.Value, Justify, fjFirst,
+      FdString.Items, State.VRML1State.FontStyle.Font,
       false, nil, nil, nil,
       CoordNode.FdPoint, TexCoordNode.FdPoint, nil);
 
@@ -976,8 +976,8 @@ begin
 
   if FFontTextureNode = nil then
     FFontTextureNode := CreateFontTextureNode(
-      State.LastNodes.FontStyle.Font,
-      State.LastNodes.FontStyle.Blending);
+      State.VRML1State.FontStyle.Font,
+      State.VRML1State.FontStyle.Blending);
 end;
 
 function TAsciiTextNode_1.ProxyUsesOverTriangulate: boolean;
@@ -1098,7 +1098,7 @@ function TAbstractIndexedNode_1.Coord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
-  ACoord := State.LastNodes.Coordinate3.FdPoint;
+  ACoord := State.VRML1State.Coordinate3.FdPoint;
 end;
 
 function TAbstractIndexedNode_1.CoordIndex: TMFLong;
@@ -1124,7 +1124,7 @@ function TIndexedFaceSetNode_1.TexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
-  ATexCoord := State.LastNodes.TextureCoordinate2;
+  ATexCoord := State.VRML1State.TextureCoordinate2;
 end;
 
 class function TIndexedLineSetNode_1.ClassX3DType: string;
@@ -1136,7 +1136,7 @@ function TIndexedLineSetNode_1.TexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
-  ATexCoord := State.LastNodes.TextureCoordinate2;
+  ATexCoord := State.VRML1State.TextureCoordinate2;
 end;
 
 function TIndexedLineSetNode_1.Lit(State: TX3DGraphTraverseState): boolean;
@@ -1146,7 +1146,7 @@ begin
     answering "false" when NorImplementationFromVRML1Binding sets "niNone". }
 
   { for _INDEXED normal binding, check normalIndex non-empty }
-  case State.LastNodes.NormalBinding.FdValue.Value of
+  case State.VRML1State.NormalBinding.FdValue.Value of
     BIND_DEFAULT,
     BIND_PER_VERTEX_INDEXED,
     BIND_PER_PART_INDEXED,
@@ -1158,7 +1158,7 @@ begin
   end;
 
   { check Normal.vector non-empty }
-  if State.LastNodes.Normal.FdVector.Count = 0 then
+  if State.VRML1State.Normal.FdVector.Count = 0 then
     Result := false;
 end;
 
@@ -1224,7 +1224,7 @@ var
 begin
   Result := true;
 
-  FullCoord := State.LastNodes.Coordinate3.FdPoint;
+  FullCoord := State.VRML1State.Coordinate3.FdPoint;
   CalculateRange(FullCoord.Count, StartIndex, NumPoints);
 
   if (StartIndex = 0) and (NumPoints = FullCoord.Count) then

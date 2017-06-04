@@ -235,10 +235,10 @@ function TAsciiTextNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   Result := Text_LocalBoundingBox(State,
-    State.LastNodes.FontStyle.FdSize.Value,
+    State.VRML1State.FontStyle.FdSize.Value,
     FdSpacing.Value,
     Justify, fjFirst,
-    State.LastNodes.FontStyle.Font,
+    State.VRML1State.FontStyle.Font,
     FdString.Items);
 end;
 

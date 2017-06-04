@@ -580,8 +580,7 @@
 
         AfterTraverse;
 
-        Add Self to State.LastNodes (for VRML 1.0 state nodes, see
-          TraverseStateLastNodesClasses);
+        Add Self to State.VRML1State (for VRML 1.0 state nodes);
       )
 
       Note: setting TraverseIntoChildren to false means that some
@@ -760,7 +759,7 @@
     procedure SaveToStream(Writer: TX3DWriter); override;
 
     { Do the nodes of (exactly) this class should be included
-      in VRML 1.0 state (see TX3DGraphTraverseState.LastNodes). }
+      in VRML 1.0 state (see TX3DGraphTraverseState.VRML1State). }
     class function VRML1StateNode(out StateNode: TVRML1StateNode): boolean;
 
     { Some nodes are present only in specific VRML/X3D version.
@@ -1522,7 +1521,7 @@ type
     finally Child.AfterTraverse(StateStack) end;
 
     if Child.VRML1StateNode(StateNode) then
-      StateStack.Top.LastNodes.Nodes[StateNode] := Child;
+      StateStack.Top.VRML1State.Nodes[StateNode] := Child;
   end;
 
 function TX3DNode.TraverseInternal(StateStack: TX3DGraphTraverseStateStack;
@@ -2767,7 +2766,7 @@ begin
   { We're in "class function", so Self = reference to our class.
     So simple comparison "Self = ..." is what we want. }
   for SN := Low(SN) to High(SN) do
-    if TraverseStateLastNodesClasses[SN] = Self then
+    if VRML1StateClasses[SN] = Self then
     begin
       StateNode := SN;
       Result := true;

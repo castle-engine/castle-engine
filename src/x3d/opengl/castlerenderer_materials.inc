@@ -174,7 +174,7 @@ begin
   if Shape.Geometry is TAbstractGeometryNode_1 then
   begin
     { VRML 1.0 }
-    M1 := Shape.State.LastNodes.Material;
+    M1 := Shape.State.VRML1State.Material;
     { VRML 1.0 specification states that this is a special case
       and we should treat EmissiveColor as precalculated color,
       and turn lighting off to improve speed. }

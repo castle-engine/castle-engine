@@ -170,7 +170,7 @@ type
         @item(Appearance.texture field (and if it's MultiTexture,
           looks into it's children))
         @item Into shaders textures (GLSL shaders, CommonSurfaceShader...).
-        @item For VRML 1.0, it also looks into LastNodes.Texture2.
+        @item For VRML 1.0, it also looks into VRML1State.Texture2.
       )
 
       If Enumerate callbacks returns non-nil for some texture, returns it immediately,
@@ -1142,7 +1142,7 @@ var
   function MaterialOpacity: Single;
   begin
     if G is TAbstractGeometryNode_1 then
-      Result := S.LastNodes.Material.Opacity(0) else
+      Result := S.VRML1State.Material.Opacity(0) else
     if (S.ShapeNode <> nil) and
        (S.ShapeNode.Material <> nil) then
       Result := S.ShapeNode.Material.Opacity else
@@ -1597,7 +1597,7 @@ begin
       for each separate triangle. Or to sort every separate triangle.
       This would obviously get very very slow for models with lots
       of triangles.  }
-    Result := AllMaterialsTransparent(State.LastNodes.Material);
+    Result := AllMaterialsTransparent(State.VRML1State.Material);
 
   if Geometry.ColorRGBA <> nil then
     Result := true;
@@ -1937,7 +1937,7 @@ var
   App: TAppearanceNode;
   Lights: TLightInstancesList;
 begin
-  Result := HandleTextureNode(State.LastNodes.Texture2);
+  Result := HandleTextureNode(State.VRML1State.Texture2);
   if Result <> nil then Exit;
 
   if (State.ShapeNode <> nil) and
@@ -2287,7 +2287,7 @@ begin
   end else
   begin
     { VRML 1.0 version: calculate it directly here }
-    TextureUrl := State.LastNodes.Texture2.FdFileName.Value;
+    TextureUrl := State.VRML1State.Texture2.FdFileName.Value;
     if TextureUrl <> '' then
       Result := MaterialProperties.FindTextureBaseName(
         DeleteURIExt(ExtractURIName(TextureUrl)));
