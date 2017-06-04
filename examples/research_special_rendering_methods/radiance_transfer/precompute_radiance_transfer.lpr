@@ -163,21 +163,13 @@ end;
 
 function DiffuseColor(State: TX3DGraphTraverseState): TVector3Single;
 var
-  M1: TMaterialNode_1;
-  M2: TMaterialNode;
+  MaterialInfo: TMaterialInfo;
 begin
-  if State.ShapeNode <> nil then
-  begin
-    M2 := State.ShapeNode.Material;
-    if M2 <> nil then
-      Result := M2.FdDiffuseColor.Value else
-      { Default VRML 2.0 lighting properties. }
-      Result := DefaultMaterialDiffuseColor;
-  end else
-  begin
-    M1 := State.LastNodes.Material;
-    Result := M1.DiffuseColor3Single(0);
-  end;
+  MaterialInfo := State.MaterialInfo;
+  if MaterialInfo <> nil then
+    Result := MaterialInfo.DiffuseColor
+  else
+    Result := TMaterialInfo.DefaultDiffuseColor;
 end;
 
 const
