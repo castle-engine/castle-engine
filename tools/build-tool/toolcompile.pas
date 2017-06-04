@@ -443,7 +443,8 @@ begin
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then
     begin
-      if Pos('Fatal: Internal error', FpcOutput) <> 0 then
+      if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
+         (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
         Writeln('-------------------------------------------------------------');
         Writeln('It seems FPC crashed with a compiler error (Internal error). If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help FPC developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the FPC or Castle Game Engine mailing list.');
