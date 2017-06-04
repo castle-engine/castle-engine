@@ -244,24 +244,73 @@ type
     vsTextureCoordinate2
   );
 
-  { Nodes that will be saved inside TX3DGraphTraverseState.LastNodes.
-    These are nodes that affect how following nodes are rendered,
-    mostly for VRML 1.0 "state". }
+  { Nodes that are saved during VRML/X3D traversing.
+    Used for @link(TX3DGraphTraverseState.LastNodes).
+    These nodes affect some following nodes in the graph,
+    mostly for VRML 1.0.
+
+    They are never @nil after a @link(TX3DNode.Traverse) operation.
+    the traversing code always takes care to initialize
+    them to default nodes at the beginning.
+
+    For all nodes enumerated here: it's guaranteed
+    they don't affect the state (@link(TX3DGraphTraverseState)) during traversing
+    (that is, they don't do anything special in
+    TX3DNode.BeforeTraverse / TX3DNode.MiddleTraverse / TX3DNode.AfterTraverse).
+    So it's guaranteed that changing some field's value of a node
+    within TTraverseStateLastNodes affects @italic(only)
+    the shapes that have given node inside State.LastNodes.
+    TCastleSceneCore.InternalChangedField depends on that. }
   TTraverseStateLastNodes = record
-    case Integer of
-      0: ( Nodes: array [TVRML1StateNode] of TX3DNode; );
-      1: ( Coordinate3: TCoordinate3Node_1;
-           ShapeHints: TShapeHintsNode_1;
-           FontStyle: TFontStyleNode_1;
-           Material: TMaterialNode_1;
-           MaterialBinding: TMaterialBindingNode_1;
-           Normal: TNormalNode;
-           NormalBinding: TNormalBindingNode_1;
-           Texture2: TTexture2Node_1;
-           TextureCoordinate2: TTextureCoordinate2Node_1;
-           { additions here must be synchronized with additions to
-             TVRML1StateNode }
-         );
+  strict private
+    function GetNode(const StateNode: TVRML1StateNode): TX3DNode;
+    procedure SetNode(const StateNode: TVRML1StateNode; const Node: TX3DNode);
+  public
+    Owned: array [TVRML1StateNode] of boolean;
+
+    Coordinate3: TCoordinate3Node_1;
+    ShapeHints: TShapeHintsNode_1;
+    FontStyle: TFontStyleNode_1;
+    Material: TMaterialNode_1;
+    MaterialBinding: TMaterialBindingNode_1;
+    Normal: TNormalNode;
+    NormalBinding: TNormalBindingNode_1;
+    Texture2: TTexture2Node_1;
+    TextureCoordinate2: TTextureCoordinate2Node_1;
+    { Additions here must be synchronized with additions to TVRML1StateNode }
+
+    { Last nodes that occured when visiting this VRML 1.0 graph,
+      indexed by TVRML1StateNode. }
+    property Nodes [StateNode: TVRML1StateNode]: TX3DNode read GetNode write SetNode;
+
+    { Create and assign all @link(Nodes). All nodes become @link(Owned). }
+    procedure CreateNodes;
+
+    { Free and nil all @link(Nodes) that are @link(Owned). }
+    procedure FreeAndNilNodes;
+
+    { Assign from NewLastNodes.
+
+      During doing this, old FLastNodes are freed if they were owned.
+      New nodes are not owned.
+
+      This takes care of checking for each TVRML1StateNode
+      if the old node is equal to new one. If yes, then the node
+      if not freed (regardless of "owned" status), and the "owned"
+      status is left as-is (not chaned to false).
+      This way calling something like @code(MyLastNodes.Assign(MyLastNodes))
+      is a valid and harmless operation. }
+    procedure Assign(const NewLastNodes: TTraverseStateLastNodes);
+
+    { Set the node, and make it owned by this class.
+      Contrast this with @code(Nodes[StateNode] := Node) that makes
+      the node @italic(not) owned. This is just a shortcut for
+      @longCode(#
+        Nodes[StateNode] := Node;
+        Owned[StateNode] := true;
+      #)
+    }
+    procedure SetOwnNode(const StateNode: TVRML1StateNode; const Node: TX3DNode);
   end;
 
   { Light source instance in the scene. References VRML/X3D
@@ -379,49 +428,11 @@ type
   TX3DGraphTraverseState = class
   private
     FLastNodes: TTraverseStateLastNodes;
-    FOwnedLastNodes: array [TVRML1StateNode] of boolean;
     procedure CommonCreate;
-
-    { Sets FLastNodes to NewLastNodes.
-
-      During doing this, old FLastNodes are freed if they were owned.
-      New nodes are not owned.
-
-      This takes care of checking for each TVRML1StateNode
-      if the old node is equal to new one. If yes, then the node
-      if not freed (regardless of "owned" status), and the "owned"
-      status is left as-is (not chaned to false).
-      This way calling thing like @code(AssignLastNodes(FLastNodes)),
-      is a valid harmless operation. }
-    procedure AssignLastNodes(const NewLastNodes: TTraverseStateLastNodes);
   public
-    { Nodes that are saved during VRML/X3D traversing.
-      These nodes affect some following nodes in the graph,
-      mostly for VRML 1.0.
-
-      They are never @nil (traversing code must always take care to initialize
-      them to default nodes at the beginning).
-
-      Note that TX3DGraphTraverseState instance doesn't have to own
-      these nodes (doesn't free them, and doesn't track of when they are
-      freed). E.g. nodes' TX3DNode.ParentsCount doesn't take into account
-      that they are owned by this state.
-      Although for some tricks (but not during normal VRML/X3D traversing)
-      some nodes are owned, by using SetLastNodes with OwnNode = @true.
-
-      For nodes that are within TraverseStateLastNodesClasses
-      (and thus are stored inside LastNodes): it's guaranteed
-      they don't affect the state (of this class) during traversing
-      (that is, they don't do anything special in
-      TX3DNode.BeforeTraverse / TX3DNode.MiddleTraverse / TX3DNode.AfterTraverse).
-      So it's guaranteed that changing some field's value of a node
-      within TraverseStateLastNodesClasses affects @italic(only)
-      the shapes that have given node inside State.LastNodes.
-      TCastleSceneCore.InternalChangedField depends on that. }
+    { Nodes that affect how following nodes are rendered,
+      mostly for VRML 1.0 state. }
     property LastNodes: TTraverseStateLastNodes read FLastNodes;
-
-    procedure SetLastNodes(const StateNode: TVRML1StateNode;
-      const Node: TX3DNode; const OwnNode: boolean);
   public
     { Lights active in this state.
 
@@ -1602,7 +1613,8 @@ type
 
 { TX3DRoute ----------------------------------------------------------------- }
 
-  { }
+  { Route makes a connection between two X3D events,
+    making the @italic(destination) event occur when the @italic(source) event happened. }
   TX3DRoute = class(TX3DFileItem)
   private
     FSourceNode: TX3DNode;
@@ -1978,12 +1990,6 @@ var
 {$I x3dnodes_encoding_classic.inc}
 {$I x3dnodes_encoding_xml.inc}
 {$I x3dnodes_save.inc}
-
-{ Create and assign all State.Nodes. }
-procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
-
-{ Free and nil all State.Nodes. }
-procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
 
 { Free all unused VRML/X3D nodes on the list, then free and @nil the list
   itself. }
@@ -2614,6 +2620,95 @@ resourcestring
 {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
 {$I auto_generated_node_helpers/x3dnodes_x3dviewportnode.inc}
 
+{ TTraverseStateLastNodes ---------------------------------------------------- }
+
+function TTraverseStateLastNodes.GetNode(const StateNode: TVRML1StateNode): TX3DNode;
+begin
+  case StateNode of
+    vsCoordinate3       : Result := Coordinate3       ;
+    vsShapeHints        : Result := ShapeHints        ;
+    vsFontStyle         : Result := FontStyle         ;
+    vsMaterial          : Result := Material          ;
+    vsMaterialBinding   : Result := MaterialBinding   ;
+    vsNormal            : Result := Normal            ;
+    vsNormalBinding     : Result := NormalBinding     ;
+    vsTexture2          : Result := Texture2          ;
+    vsTextureCoordinate2: Result := TextureCoordinate2;
+    else raise EInternalError.Create('TTraverseStateLastNodes.GetNode: StateNode?');
+  end;
+end;
+
+procedure TTraverseStateLastNodes.SetNode(
+  const StateNode: TVRML1StateNode; const Node: TX3DNode);
+
+  procedure SetNodeCore(
+    const StateNode: TVRML1StateNode; const Node: TX3DNode);
+  begin
+    case StateNode of
+      vsCoordinate3       : TX3DNode(Coordinate3       ) := Node;
+      vsShapeHints        : TX3DNode(ShapeHints        ) := Node;
+      vsFontStyle         : TX3DNode(FontStyle         ) := Node;
+      vsMaterial          : TX3DNode(Material          ) := Node;
+      vsMaterialBinding   : TX3DNode(MaterialBinding   ) := Node;
+      vsNormal            : TX3DNode(Normal            ) := Node;
+      vsNormalBinding     : TX3DNode(NormalBinding     ) := Node;
+      vsTexture2          : TX3DNode(Texture2          ) := Node;
+      vsTextureCoordinate2: TX3DNode(TextureCoordinate2) := Node;
+      else raise EInternalError.Create('TTraverseStateLastNodes.SetNode: StateNode?');
+    end;
+  end;
+
+begin
+  if Nodes[StateNode] <> Node then
+  begin
+    Assert((Node = nil) or (Node is TraverseStateLastNodesClasses[StateNode]));
+
+    if Owned[StateNode] then
+      Nodes[StateNode].Free;
+    SetNodeCore(StateNode, Node);
+    Owned[StateNode] := false;
+  end;
+end;
+
+procedure TTraverseStateLastNodes.CreateNodes;
+var
+  SN: TVRML1StateNode;
+begin
+  for SN := Low(SN) to High(SN) do
+  begin
+    Nodes[SN] := TraverseStateLastNodesClasses[SN].Create;
+    Owned[SN] := true;
+  end;
+end;
+
+procedure TTraverseStateLastNodes.FreeAndNilNodes;
+var
+  SN: TVRML1StateNode;
+begin
+  for SN := Low(SN) to High(SN) do
+  begin
+    if Owned[SN] then
+      Nodes[SN].Free;
+    Nodes[SN] := nil;
+  end;
+end;
+
+procedure TTraverseStateLastNodes.Assign(
+  const NewLastNodes: TTraverseStateLastNodes);
+var
+  SN: TVRML1StateNode;
+begin
+  for SN := Low(SN) to High(SN) do
+    Nodes[SN] := NewLastNodes.Nodes[SN];
+end;
+
+procedure TTraverseStateLastNodes.SetOwnNode(const StateNode: TVRML1StateNode;
+  const Node: TX3DNode);
+begin
+  Nodes[StateNode] := Node;
+  Owned[StateNode] := true;
+end;
+
 { TLightInstance ------------------------------------------------------------- }
 
 function TLightInstance.Contribution(
@@ -2760,18 +2855,12 @@ begin
   HumanoidInvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
-  AssignLastNodes(StateDefaultNodes);
+  FLastNodes.Assign(StateDefaultNodes);
 end;
 
 destructor TX3DGraphTraverseState.Destroy;
-var
-  SN: TVRML1StateNode;
 begin
-  for SN := Low(SN) to High(SN) do
-  begin
-    if FOwnedLastNodes[SN] then FLastNodes.Nodes[SN].Free;
-    FLastNodes.Nodes[SN] := nil;
-  end;
+  FLastNodes.FreeAndNilNodes;
 
   FreeAndNil(Lights);
   FreeAndNil(PointingDeviceSensors);
@@ -2791,7 +2880,7 @@ begin
   HumanoidInvertedTransform := IdentityMatrix4Single;
 
   TextureTransform := IdentityMatrix4Single;
-  AssignLastNodes(StateDefaultNodes);
+  FLastNodes.Assign(StateDefaultNodes);
   ShapeNode := nil;
   InsideInline := 0;
   InsidePrototype := 0;
@@ -2824,7 +2913,7 @@ begin
   AssignTransform(Source);
 
   TextureTransform := Source.TextureTransform;
-  AssignLastNodes(Source.FLastNodes);
+  FLastNodes.Assign(Source.FLastNodes);
   ShapeNode := Source.ShapeNode;
   InsideInline := Source.InsideInline;
   InsidePrototype := Source.InsidePrototype;
@@ -2924,35 +3013,6 @@ begin
         Result := TBlendModeNode(Node);
     end;
   end;
-end;
-
-procedure TX3DGraphTraverseState.SetLastNodes(const StateNode: TVRML1StateNode;
-  const Node: TX3DNode; const OwnNode: boolean);
-begin
-  if FLastNodes.Nodes[StateNode] <> Node then
-  begin
-    Assert(Node is TraverseStateLastNodesClasses[StateNode]);
-
-    if FOwnedLastNodes[StateNode] then
-      FreeAndNil(FLastNodes.Nodes[StateNode]);
-
-    FLastNodes.Nodes[StateNode] := Node;
-    FOwnedLastNodes[StateNode] := OwnNode;
-  end;
-end;
-
-procedure TX3DGraphTraverseState.AssignLastNodes(
-  const NewLastNodes: TTraverseStateLastNodes);
-var
-  SN: TVRML1StateNode;
-begin
-  for SN := Low(SN) to High(SN) do
-    if FLastNodes.Nodes[SN] <> NewLastNodes.Nodes[SN] then
-    begin
-      if FOwnedLastNodes[SN] then FreeAndNil(FLastNodes.Nodes[SN]);
-      FOwnedLastNodes[SN] := false;
-      FLastNodes.Nodes[SN] := NewLastNodes.Nodes[SN];
-    end;
 end;
 
 function TX3DGraphTraverseState.MaterialInfo: TMaterialInfo;
@@ -6303,22 +6363,6 @@ end;
 
 { global procedures ---------------------------------------------------------- }
 
-procedure TraverseState_CreateNodes(var StateNodes: TTraverseStateLastNodes);
-var
-  SN: TVRML1StateNode;
-begin
-  for SN := Low(SN) to High(SN) do
-    StateNodes.Nodes[SN] := TraverseStateLastNodesClasses[SN].Create;
-end;
-
-procedure TraverseState_FreeAndNilNodes(var StateNodes: TTraverseStateLastNodes);
-var
-  SN: TVRML1StateNode;
-begin
-  for SN := Low(SN) to High(SN) do
-    FreeAndNil(StateNodes.Nodes[SN]);
-end;
-
 function KeyRange(Key: TSingleList;
   const Fraction: Single; out T: Single): Integer;
 var
@@ -6406,7 +6450,7 @@ end;
 
 procedure X3DNodesFinalization;
 begin
-  TraverseState_FreeAndNilNodes(StateDefaultNodes);
+  StateDefaultNodes.FreeAndNilNodes;
   FreeAndNil(TraverseSingleStack);
   FreeAndNil(X3DCache);
 
@@ -6470,7 +6514,7 @@ initialization
   RegisterParticleSystemsNodes;
 
   X3DCache := TX3DNodesCache.Create;
-  TraverseState_CreateNodes(StateDefaultNodes);
+  StateDefaultNodes.CreateNodes;
   TraverseSingleStack := TX3DGraphTraverseStateStack.Create;
 
   CurrentlyLoading := TCastleStringList.Create;

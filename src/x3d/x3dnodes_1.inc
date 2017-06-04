@@ -946,11 +946,11 @@ begin
 
     CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
     CoordNode.FdPoint.Items.Clear;
-    State.SetLastNodes(vsCoordinate3, CoordNode, true);
+    State.LastNodes.SetOwnNode(vsCoordinate3, CoordNode);
 
     TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
     TexCoordNode.FdPoint.Items.Clear;
-    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
+    State.LastNodes.SetOwnNode(vsTextureCoordinate2, TexCoordNode);
 
     TextProxy(Self,
       State.LastNodes.FontStyle.FdSize.Value, FdSpacing.Value, Justify, fjFirst,

@@ -1522,7 +1522,7 @@ type
     finally Child.AfterTraverse(StateStack) end;
 
     if Child.VRML1StateNode(StateNode) then
-      StateStack.Top.SetLastNodes(StateNode, Child, false);
+      StateStack.Top.LastNodes.Nodes[StateNode] :=  Child;
   end;
 
 function TX3DNode.TraverseInternal(StateStack: TX3DGraphTraverseStateStack;

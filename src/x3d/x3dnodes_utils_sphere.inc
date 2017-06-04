@@ -355,19 +355,19 @@ begin
     State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
-    State.SetLastNodes(vsCoordinate3, CoordNode, true);
+    State.LastNodes.SetOwnNode(vsCoordinate3, CoordNode);
 
     NormalNode := TNormalNode.Create('', BaseUrl);
-    State.SetLastNodes(vsNormal, NormalNode, true);
+    State.LastNodes.SetOwnNode(vsNormal, NormalNode);
 
     NormalBinding := TNormalBindingNode_1.Create('', BaseUrl);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
-    State.SetLastNodes(vsNormalBinding, NormalBinding, true);
+    State.LastNodes.SetOwnNode(vsNormalBinding, NormalBinding);
 
     TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
-    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
+    State.LastNodes.SetOwnNode(vsTextureCoordinate2, TexCoordNode);
 
     ShapeHints := TShapeHintsNode_1.Create('', BaseUrl);
     { For VRML 1.0, Sphere is never solid. }
@@ -375,12 +375,12 @@ begin
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
     { Smooth everything. Not really needed, we use explicit normal node now. }
     ShapeHints.FdCreaseAngle.Value := 4;
-    State.SetLastNodes(vsShapeHints, ShapeHints, true);
+    State.LastNodes.SetOwnNode(vsShapeHints, ShapeHints);
 
     { calculate MaterialBinding. Sphere has always only 1 material. }
     MaterialBinding := TMaterialBindingNode_1.Create('', BaseUrl);
     MaterialBinding.FdValue.Value := BIND_OVERALL;
-    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
+    State.LastNodes.SetOwnNode(vsMaterialBinding, MaterialBinding);
 
     Sphere_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
