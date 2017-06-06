@@ -1059,26 +1059,8 @@ end;
 function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
   procedure InvalidAndroidSource(const FinalAndroidSource: string);
-  var
-    SError: string;
   begin
-    SError := 'The android source library in "' + FinalAndroidSource + '" must export the necessary JNI functions for our integration to work. By scannig the source, it seems it does not. Change the source code to this:' +NL+
-      '---------------------------------------------------------------------' +NL+
-      'library ' + ChangeFileExt(ExtractFileName(FinalAndroidSource), '') + ';' +NL;
-    if AndroidProjectType = apIntegrated then
-      SError +=
-        'uses CastleAndroidNativeAppGlue, Game, CastleMessaging;' +NL+
-        'exports' +NL+
-        '  Java_net_sourceforge_castleengine_MainActivity_jniMessage,' +NL+
-        '  ANativeActivity_onCreate;' +NL+
-        'end.' +NL else
-      SError +=
-        'uses CastleAndroidNativeAppGlue, Game;' +NL+
-        'exports ANativeActivity_onCreate;' +NL+
-        'end.' +NL;
-    SError +=
-      '---------------------------------------------------------------------';
-    raise Exception.Create(SError);
+    raise Exception.Create('The android source library in "' + FinalAndroidSource + '" must export the necessary JNI functions for our integration to work. See the examples in "castle-engine/tools/build-tool/data/android/library_template_xxx.lpr".' + NL + 'It''s simplest to fix this error by removing the "android_source" from CastleEngineManifest.xml, and using only the "game_units" attribute in CastleEngineManifest.xml. Then the correct Android code will be auto-generated for you.');
   end;
 
 var

@@ -52,27 +52,10 @@ type
       @item(In your main Android library lpr file, you need to export
         the JNI function @code(Java_net_sourceforge_castleengine_MainActivity_jniMessage)
         defined in this unit.
-        So change your xxx_android.lpr file from
 
-        @longCode(#
-          library xxx;
-          uses CastleAndroidNativeAppGlue, Game;
-          exports
-            ANativeActivity_onCreate;
-          end.
-        #)
-
-        to this:
-
-        @longCode(#
-          library xxx;
-          uses CastleAndroidNativeAppGlue, Game, CastleMessaging;
-          exports
-            Java_net_sourceforge_castleengine_MainActivity_jniMessage,
-            ANativeActivity_onCreate;
-          end.
-        #)
-
+        It's simplest to just define the @code(game_units) attribute
+        in @code(CastleEngineManifest.xml), and the build tool automatically
+        generate a proper Android library code.
       )
     )
 
