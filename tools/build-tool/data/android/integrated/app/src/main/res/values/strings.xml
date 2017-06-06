@@ -3,7 +3,7 @@
     <!-- Application name.
 
         Use translatable="false" to avoid errors "MissingTranslation" when
-        combining with other components with translated resources (like giftiz).
+        combining with other services with translated resources (like giftiz).
     -->
     <string name="app_name" translatable="false">${CAPTION}</string>
 </resources>

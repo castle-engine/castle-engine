@@ -15,28 +15,28 @@ public class MainActivity extends NativeActivity
 {
     private static final String TAG = "${NAME}.castleengine.MainActivity";
 
-    private ComponentMessaging messaging;
-    private List<ComponentAbstract> components = new ArrayList<ComponentAbstract>();
+    private ServiceMessaging messaging;
+    private List<ServiceAbstract> services = new ArrayList<ServiceAbstract>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "Custom castleengine.MainActivity created");
 
-        components.add(messaging = new ComponentMessaging(this));
-        components.add(new ComponentMiscellaneous(this));
+        services.add(messaging = new ServiceMessaging(this));
+        services.add(new ServiceMiscellaneous(this));
 
-        /* ANDROID-COMPONENTS-INITIALIZATION */
+        /* ANDROID-SERVICES-INITIALIZATION */
 
-        for (ComponentAbstract component : components) {
-            component.onCreate();
+        for (ServiceAbstract service : services) {
+            service.onCreate();
         }
     }
 
     @Override
     public void onDestroy() {
-        for (ComponentAbstract component : components) {
-            component.onDestroy();
+        for (ServiceAbstract service : services) {
+            service.onDestroy();
         }
         super.onDestroy();
     }
@@ -44,8 +44,8 @@ public class MainActivity extends NativeActivity
     @SuppressLint("NewApi") @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        for (ComponentAbstract component : components) {
-            component.onWindowFocusChanged(hasFocus);
+        for (ServiceAbstract service : services) {
+            service.onWindowFocusChanged(hasFocus);
         }
     }
 
@@ -53,8 +53,8 @@ public class MainActivity extends NativeActivity
     protected void onStart() {
         super.onStart();
         Log.i(TAG, "onStart");
-        for (ComponentAbstract component : components) {
-            component.onStart();
+        for (ServiceAbstract service : services) {
+            service.onStart();
         }
     }
 
@@ -62,8 +62,8 @@ public class MainActivity extends NativeActivity
     protected void onStop() {
         super.onStop();
         Log.i(TAG, "onStop");
-        for (ComponentAbstract component : components) {
-            component.onStop();
+        for (ServiceAbstract service : services) {
+            service.onStop();
         }
     }
 
@@ -71,8 +71,8 @@ public class MainActivity extends NativeActivity
     protected void onActivityResult(int requestCode, int resultCode, Intent intent)
     {
         super.onActivityResult(requestCode, resultCode, intent);
-        for (ComponentAbstract component : components) {
-            component.onActivityResult(requestCode, resultCode, intent);
+        for (ServiceAbstract service : services) {
+            service.onActivityResult(requestCode, resultCode, intent);
         }
     }
 
@@ -80,8 +80,8 @@ public class MainActivity extends NativeActivity
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume");
-        for (ComponentAbstract component : components) {
-            component.onResume();
+        for (ServiceAbstract service : services) {
+            service.onResume();
         }
     }
 
@@ -89,8 +89,8 @@ public class MainActivity extends NativeActivity
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause");
-        for (ComponentAbstract component : components) {
-            component.onPause();
+        for (ServiceAbstract service : services) {
+            service.onPause();
         }
     }
 
@@ -98,19 +98,19 @@ public class MainActivity extends NativeActivity
     public void onBackPressed()
     {
         Log.i(TAG, "onBackPressed");
-        for (ComponentAbstract component : components) {
-            if (component.onBackPressed()) {
+        for (ServiceAbstract service : services) {
+            if (service.onBackPressed()) {
                 return;
             }
         }
-        // No component says that it's processed?
+        // No service says that it's processed?
         // Let default activity handler.
         super.onBackPressed();
     }
 
     /**
      * Send a message to native code.
-     * Components (except ComponentMessaging) may call this
+     * Services (except ServiceMessaging) may call this
      * to send message to native code.
      */
     public void messageSend(String[] s)
@@ -120,23 +120,23 @@ public class MainActivity extends NativeActivity
 
     /**
      * Process a message from the native code.
-     * Called only by ComponentMessaging.
+     * Called only by ServiceMessaging.
      */
     public boolean messageReceived(String[] parts)
     {
         boolean result = false;
         boolean r;
 
-        // Call messageReceived of all components.
+        // Call messageReceived of all services.
         //
-        // Do not stop on 1st success, our analytics components depend on it.
+        // Do not stop on 1st success, our analytics services depend on it.
         // We pass all analytics-xxx messages to all analytics
-        // components (google analytics and game analytics).
+        // services (google analytics and game analytics).
         // Only the ones initialized (by xxx-initialize) will actually
         // do something with it.
 
-        for (ComponentAbstract component : components) {
-            r = component.messageReceived(parts);
+        for (ServiceAbstract service : services) {
+            r = service.messageReceived(parts);
             result = result || r;
         }
 
@@ -146,8 +146,8 @@ public class MainActivity extends NativeActivity
     public void onPurchase(AvailableProduct product, String purchaseData, String signature)
     {
         Log.i(TAG, "purchase " + product.id);
-        for (ComponentAbstract component : components) {
-            component.onPurchase(product, purchaseData, signature);
+        for (ServiceAbstract service : services) {
+            service.onPurchase(product, purchaseData, signature);
         }
     }
 

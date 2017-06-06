@@ -11,9 +11,9 @@ import android.util.Log;
  * Simple communication between Java and native code using text messages,
  * for Castle Game Engine.
  */
-public class ComponentMessaging extends ComponentAbstract
+public class ServiceMessaging extends ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ComponentMessaging";
+    private static final String TAG = "${NAME}.castleengine.ServiceMessaging";
 
     public String getName()
     {
@@ -28,7 +28,7 @@ public class ComponentMessaging extends ComponentAbstract
      */
     private final boolean debug = false;
 
-    public ComponentMessaging(MainActivity activity)
+    public ServiceMessaging(MainActivity activity)
     {
         super(activity);
     }

@@ -104,7 +104,7 @@ type
     To include the necessary integration code in your Android project,
     declare your Android project type as "integrated" with
     the "google_in_app_purchases" component inside CastleEngineManifest.xml.
-    See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .
+    See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
 
     @bold(You have to create the products to purchase, and their prices in various
     currencies, in the Google Developer Console.) The names of products
@@ -251,7 +251,7 @@ end;
 
 procedure TInAppPurchases.ReinitializeJavaActivity(Sender: TObject);
 begin
-  { in case Java activity got killed and is created again, reinitialize components }
+  { in case Java activity got killed and is created again, reinitialize services }
   if FLastAvailableProducts <> '' then
     Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
 end;

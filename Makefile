@@ -119,8 +119,8 @@ uninstall:
 .PHONY: strip-precompiled-libraries
 strip-precompiled-libraries:
 	rm -Rf tools/build-tool/data/external_libraries/ \
-	       tools/build-tool/data/android/integrated-components/sound/ \
-	       tools/build-tool/data/android/integrated-components/ogg_vorbis/ \
+	       tools/build-tool/data/android/integrated-services/sound/ \
+	       tools/build-tool/data/android/integrated-services/ogg_vorbis/ \
 	       tools/build-tool/data/android/base/gradle/ \
 	       tools/build-tool/data/android/base/gradlew \
 	       tools/build-tool/data/android/base/gradlew.bat \
@@ -315,10 +315,10 @@ cleanmore: clean
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-components/giftiz/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
+	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 
 cleanall: cleanmore
 

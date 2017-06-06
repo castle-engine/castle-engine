@@ -12,9 +12,9 @@ import android.widget.Toast;
  * Integration of various Android small stuff with
  * Castle Game Engine.
  */
-public class ComponentMiscellaneous extends ComponentAbstract
+public class ServiceMiscellaneous extends ServiceAbstract
 {
-    public ComponentMiscellaneous(MainActivity activity)
+    public ServiceMiscellaneous(MainActivity activity)
     {
         super(activity);
     }

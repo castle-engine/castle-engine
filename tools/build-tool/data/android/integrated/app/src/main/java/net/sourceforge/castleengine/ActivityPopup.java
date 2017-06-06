@@ -23,12 +23,12 @@ public class ActivityPopup implements View.OnLayoutChangeListener
 
     private View parentView;
     private PopupWindow popup;
-    private ComponentAbstract component;
+    private ServiceAbstract service;
 
-    public ActivityPopup(ComponentAbstract aComponent, int gravity, View childView)
+    public ActivityPopup(ServiceAbstract aService, int gravity, View childView)
     {
-        component = aComponent;
-        Activity activity = component.getActivity();
+        service = aService;
+        Activity activity = service.getActivity();
 
         // Inspired by http://www.dynadream.com/ddweb/index.php/Special_Blog?id=20
         popup = new PopupWindow(activity);
@@ -122,7 +122,7 @@ public class ActivityPopup implements View.OnLayoutChangeListener
 
     private void sendBannerSize(int screenLeft, int screenBottom, int width, int height)
     {
-        component.messageSend(new String[]{"ads-" + component.getName() + "-banner-size",
+        service.messageSend(new String[]{"ads-" + service.getName() + "-banner-size",
             Integer.toString(screenLeft),
             Integer.toString(screenBottom),
             Integer.toString(width),

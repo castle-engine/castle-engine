@@ -2,7 +2,7 @@
 package net.sourceforge.castleengine;
 
 /* Information about the product available for purchase.
-   Used by in-app purchases and analytics components.
+   Used by in-app purchases and analytics services.
 */
 public class AvailableProduct
 {

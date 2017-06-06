@@ -8,15 +8,15 @@ import android.content.Intent;
 import android.app.Activity;
 
 /**
- * Abstract component of MainActivity.
+ * Abstract service of MainActivity.
  */
-public abstract class ComponentAbstract
+public abstract class ServiceAbstract
 {
-    private static final String TAG = "${NAME}.castleengine.ComponentAbstract";
+    private static final String TAG = "${NAME}.castleengine.ServiceAbstract";
 
     private MainActivity mActivity;
 
-    public ComponentAbstract(MainActivity activity)
+    public ServiceAbstract(MainActivity activity)
     {
         mActivity = activity;
     }
@@ -79,7 +79,7 @@ public abstract class ComponentAbstract
     }
 
     /**
-     * Called only by MainActivity to allow this component to process this message.
+     * Called only by MainActivity to allow this service to process this message.
      * Return is it processed.
      */
     public boolean messageReceived(String[] parts)

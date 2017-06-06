@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidComponents;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidServices;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -50,7 +50,7 @@ type
     FAndroidBuildToolsVersion: string;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
-    FAndroidComponents: TAndroidComponentList;
+    FAndroidServices: TAndroidServiceList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -149,7 +149,7 @@ type
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
     property Icons: TIconFileNames read FIcons;
     property SearchPaths: TStringList read FSearchPaths;
-    property AndroidComponents: TAndroidComponentList read FAndroidComponents;
+    property AndroidServices: TAndroidServiceList read FAndroidServices;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -300,9 +300,9 @@ constructor TCastleProject.Create(const APath: string);
               [Name, Value, SReadableForm(Value[I])]);
       end;
 
-      procedure CheckQualifiedNameComponents(const QualifiedName: string);
+      procedure CheckQualifiedNameServices(const QualifiedName: string);
       var
-        Components: TStringList;
+        Services: TStringList;
         I: Integer;
       begin
         if (QualifiedName <> '') and
@@ -310,16 +310,16 @@ constructor TCastleProject.Create(const APath: string);
             (QualifiedName[Length(QualifiedName)] = '.')) then
           raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
 
-        Components := SplitString(QualifiedName, '.');
+        Services := SplitString(QualifiedName, '.');
         try
-          for I := 0 to Components.Count - 1 do
+          for I := 0 to Services.Count - 1 do
           begin
-            if Components[I] = '' then
-              raise Exception.CreateFmt('qualified_name must contain a number of non-empty components separated with dots: "%s"', [QualifiedName]);
-            if Components[I][1] in ['0'..'9'] then
-              raise Exception.CreateFmt('qualified_name components must not start with a digit: "%s"', [QualifiedName]);
+            if Services[I] = '' then
+              raise Exception.CreateFmt('qualified_name must contain a number of non-empty services separated with dots: "%s"', [QualifiedName]);
+            if Services[I][1] in ['0'..'9'] then
+              raise Exception.CreateFmt('qualified_name services must not start with a digit: "%s"', [QualifiedName]);
           end;
-        finally FreeAndNil(Components) end;
+        finally FreeAndNil(Services) end;
       end;
 
     begin
@@ -329,7 +329,7 @@ constructor TCastleProject.Create(const APath: string);
       { non-filename stuff: allow also dots }
       CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
       CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
-      CheckQualifiedNameComponents(QualifiedName);
+      CheckQualifiedNameServices(QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
@@ -457,7 +457,13 @@ constructor TCastleProject.Create(const APath: string);
 
           ChildElement := Element.ChildElement('components', false);
           if ChildElement <> nil then
-            FAndroidComponents.ReadCastleEngineManifest(ChildElement);
+          begin
+            FAndroidServices.ReadCastleEngineManifest(ChildElement);
+            WritelnWarning('Android', 'The name <components> is deprecated, use <services> now to refer to Android services');
+          end;
+          ChildElement := Element.ChildElement('services', false);
+          if ChildElement <> nil then
+            FAndroidServices.ReadCastleEngineManifest(ChildElement);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -545,7 +551,7 @@ begin
   FIcons := TIconFileNames.Create;
   FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
-  FAndroidComponents := TAndroidComponentList.Create(true);
+  FAndroidServices := TAndroidServiceList.Create(true);
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -564,7 +570,7 @@ begin
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
   FreeAndNil(FSearchPaths);
-  FreeAndNil(FAndroidComponents);
+  FreeAndNil(FAndroidServices);
   inherited;
 end;
 
@@ -1400,12 +1406,12 @@ begin
     Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
     Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
     Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
-    for I := 0 to AndroidComponents.Count - 1 do
-      for J := 0 to AndroidComponents[I].Parameters.Count - 1 do
+    for I := 0 to AndroidServices.Count - 1 do
+      for J := 0 to AndroidServices[I].Parameters.Count - 1 do
         Macros.Add('ANDROID.' +
-          UpperCase(AndroidComponents[I].Name) + '.' +
-          UpperCase(AndroidComponents[I].Parameters.Keys[J]),
-          AndroidComponents[I].Parameters.Data[J]);
+          UpperCase(AndroidServices[I].Name) + '.' +
+          UpperCase(AndroidServices[I].Parameters.Keys[J]),
+          AndroidServices[I].Parameters.Data[J]);
 
     // iOS specific stuff }
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
