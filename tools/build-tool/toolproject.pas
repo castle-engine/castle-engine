@@ -640,7 +640,7 @@ begin
         end;
 
         if OS in AllWindowsOSes then
-          GenerateWindowsResources(@ReplaceMacros, Path, Icons, CPU, Plugin);
+          GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
 
         Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths);
 

@@ -21,20 +21,18 @@ unit ToolWindowsResources;
 interface
 
 uses CastleUtils, CastleStringUtils,
-  ToolUtils, ToolArchitectures;
+  ToolProject, ToolUtils, ToolArchitectures;
 
-procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
-  const Path: string; const Icons: TIconFileNames; const CPU: TCpu;
-  const Plugin: boolean);
+procedure GenerateWindowsResources(const Project: TCastleProject; const ExePath: string;
+  const CPU: TCpu; const Plugin: boolean);
 
 implementation
 
 uses SysUtils,
   CastleURIUtils, CastleLog, CastleFilesUtils;
 
-procedure GenerateWindowsResources(const ReplaceMacros: TReplaceMacros;
-  const Path: string; const Icons: TIconFileNames; const CPU: TCpu;
-  const Plugin: boolean);
+procedure GenerateWindowsResources(const Project: TCastleProject; const ExePath: string;
+  const CPU: TCpu; const Plugin: boolean);
 const
   RcTemplate: array [boolean { plugin? }] of string = (
     {$I templates/windows/automatic-windows-resources.rc.inc},
@@ -51,21 +49,21 @@ var
   WindresStatus: Integer;
   OutputResourcesPath: string;
 begin
-  OutputResourcesPath := OutputPath(Path) + 'windows' + PathDelim;
+  OutputResourcesPath := OutputPath(Project.Path) + 'windows' + PathDelim;
   CheckForceDirectories(OutputResourcesPath);
 
-  OutputRc := ReplaceMacros(RcTemplate[Plugin]);
+  OutputRc := Project.ReplaceMacros(RcTemplate[Plugin]);
 
-  IcoPath := Icons.FindExtension(['.ico']);
+  IcoPath := Project.Icons.FindExtension(['.ico']);
   if IcoPath <> '' then
-    OutputRc := 'MainIcon ICON "' + CombinePaths(Path, IcoPath) + '"' + NL + OutputRc else
+    OutputRc := 'MainIcon ICON "' + CombinePaths(Project.Path, IcoPath) + '"' + NL + OutputRc else
     WritelnWarning('Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');
 
   RcFilename := OutputResourcesPath + RcName[Plugin];
   StringToFile(RcFilename, OutputRc);
 
   ManifestFilename := OutputResourcesPath + 'automatic-windows.manifest';
-  OutputManifest := ReplaceMacros(ManifestTemplate);
+  OutputManifest := Project.ReplaceMacros(ManifestTemplate);
   StringToFile(ManifestFilename, OutputManifest);
 
   WindresExe := FindExe('windres');
@@ -92,7 +90,7 @@ begin
 
   CheckRenameFile(
     OutputResourcesPath + ResName,
-    InclPathDelim(Path) + ResName);
+    ExePath + ResName);
 
   Writeln('Generated ' + ResName + ', make sure you include it in your .lpr source file like this:');
   Writeln('  {$ifdef MSWINDOWS} {$R ' + ResName + '} {$endif MSWINDOWS}');
