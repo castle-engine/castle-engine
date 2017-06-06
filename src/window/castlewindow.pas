@@ -2634,12 +2634,11 @@ type
 
     { Main window used for various purposes.
       On targets when only one TCastleWindowCustom instance makes sense
-      (like Android), set this to the reference of that window.
+      (like Android or iOS or web plugin), set this to the reference of that window.
       It is also used by TWindowProgressInterface to display progress bar. }
     property MainWindow: TCastleWindowCustom read FMainWindow write SetMainWindow;
 
     { User agent string, when running inside a browser, right now only meaningful when using NPAPI plugin. }
-    // TODO: should not be writeable from outside
     property UserAgent: string read FUserAgent;
 
     { Default window class to create when environment requires it,
