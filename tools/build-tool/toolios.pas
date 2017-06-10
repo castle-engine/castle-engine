@@ -141,10 +141,7 @@ var
       Icon := DefaultIcon;
     end;
     try
-      SaveResized(20);
-      SaveResized(40);
       SaveResized(57);
-      SaveResized(60);
       SaveResized(72);
       SaveResized(76);
       SaveResized(114);
