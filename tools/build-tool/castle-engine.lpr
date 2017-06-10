@@ -49,7 +49,7 @@ const
     (Short: #0 ; Long: 'mode'; Argument: oaRequired),
     (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
     (Short: #0 ; Long: 'plugin'; Argument: oaNone),
-    (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaNone)
+    (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
