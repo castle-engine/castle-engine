@@ -38,7 +38,7 @@ var
 
 const
   Version = CastleEngineVersion;
-  Options: array [0..8] of TOption =
+  Options: array [0..9] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -48,7 +48,8 @@ const
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
     (Short: #0 ; Long: 'mode'; Argument: oaRequired),
     (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
-    (Short: #0 ; Long: 'plugin'; Argument: oaNone)
+    (Short: #0 ; Long: 'plugin'; Argument: oaNone),
+    (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaNone)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -137,6 +138,14 @@ begin
           '                        executable for given OS/CPU/mode' +NL+
           '                        is already present in the package directory.' +NL+
           '  --plugin              Compile/package/install a browser plugin.' +NL+
+          '  --fpc-version-iphone-simulator VERSION' +NL+
+          '                        When compiling for iPhone Simulator, we pass' +NL+
+          '                        -V<VERSION> to the "fpc" command-line.' +NL+
+          '                        This is necessary if you use the official "FPC for iOS"' +NL+
+          '                        package (see the "Getting Started - iOS.rtf" inside' +NL+
+          '                        the "FPC for iOS" dmg for explanation).' +NL+
+          '                        By default it is "' + DefaultFPCVersionForIPhoneSimulator + '".' +NL+
+          '                        You can set this is empty to avoid passing any -V<VERSION>.' +NL+
           TargetOptionHelp +
           OSOptionHelp +
           CPUOptionHelp +
@@ -159,6 +168,7 @@ begin
     6:Mode := StringToMode(Argument);
     7:AssumeCompiled := true;
     8:Plugin := true;
+    9:FPCVersionForIPhoneSimulator := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;

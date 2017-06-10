@@ -127,9 +127,12 @@ procedure WriteLogMultiline(const Category: string; const Message: string); depr
   or @link(TCastleWindowCustom.MessageOK)).
   Or by raising an exception, if you want to be strict about warnings. }
 procedure WritelnWarning(const Category: string; const Message: string);
+procedure WritelnWarning(const Message: string);
 
 { A shortcut for @code(WritelnWarning(Category, Format(MessageBase, Args))). }
 procedure WritelnWarning(const Category: string; const MessageBase: string;
+  const Args: array of const);
+procedure WritelnWarning(const MessageBase: string;
   const Args: array of const);
 
 var
@@ -320,10 +323,21 @@ begin
   ApplicationProperties._Warning(Category, Message);
 end;
 
+procedure WritelnWarning(const Message: string);
+begin
+  WritelnWarning(ApplicationName, Message);
+end;
+
 procedure WritelnWarning(const Category: string; const MessageBase: string;
   const Args: array of const);
 begin
   WritelnWarning(Category, Format(MessageBase, Args));
+end;
+
+procedure WritelnWarning(const MessageBase: string;
+  const Args: array of const);
+begin
+  WritelnWarning(ApplicationName, MessageBase, Args);
 end;
 
 finalization
