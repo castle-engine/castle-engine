@@ -139,7 +139,10 @@ var
     begin
       WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
       { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
-        transparency on iOS icon (it's replaced by an ugly blackness). }
+        transparency on iOS icon (it's replaced by an ugly blackness).
+        See
+        https://stackoverflow.com/questions/959864/is-is-possible-to-use-transparency-in-an-iphone-app-icon
+        https://stackoverflow.com/questions/22858501/ios-app-icon-with-transparent-background-showing-black-background-on-device }
       Icon := DefaultIconSquare;
     end;
     try
