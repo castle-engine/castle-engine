@@ -12,6 +12,9 @@ uses CastleImages;
 var
   DefaultIcon: TRGBAlphaImage;
 
+var
+  DefaultIconSquare: TRGBImage;
+
 implementation
 
 uses SysUtils;
@@ -27,6 +30,10 @@ initialization
   DefaultIcon := TRGBAlphaImage.Create(DefaultIconWidth, DefaultIconHeight, DefaultIconDepth);
   Move(DefaultIconPixels, DefaultIcon.RawPixels^, SizeOf(DefaultIconPixels));
   DefaultIcon.URL := 'embedded-image:/DefaultIcon';
+  DefaultIconSquare := TRGBImage.Create(DefaultIconSquareWidth, DefaultIconSquareHeight, DefaultIconSquareDepth);
+  Move(DefaultIconSquarePixels, DefaultIconSquare.RawPixels^, SizeOf(DefaultIconSquarePixels));
+  DefaultIconSquare.URL := 'embedded-image:/DefaultIconSquare';
 finalization
   FreeAndNil(DefaultIcon);
+  FreeAndNil(DefaultIconSquare);
 end.

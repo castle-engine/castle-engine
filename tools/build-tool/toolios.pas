@@ -138,7 +138,9 @@ var
     if Icon = nil then
     begin
       WritelnWarning('Icon', 'No icon in a format readable by our engine (for example, png or jpg) is specified in CastleEngineManifest.xml. Using default icon.');
-      Icon := DefaultIcon;
+      { Use DefaultIconSquare, not DefaultIcon for iOS, since we cannot have
+        transparency on iOS icon (it's replaced by an ugly blackness). }
+      Icon := DefaultIconSquare;
     end;
     try
       SaveResized(57);
@@ -150,7 +152,7 @@ var
       SaveResized(152);
       SaveResized(167);
     finally
-      if Icon = DefaultIcon then
+      if Icon = DefaultIconSquare then
         Icon := nil else
         FreeAndNil(Icon);
     end;
