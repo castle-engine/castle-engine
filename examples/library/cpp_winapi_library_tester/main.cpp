@@ -365,9 +365,12 @@ bool Init()
     try
     {
         InitGL();
+	
+	char[1000] applicationConfigDirectory;
+	int bytes = GetModuleFileName(NULL, applicationConfigDirectory, 1000);
 
         CGE_LoadLibrary();
-        CGE_Open(0, g_windowWidth, g_windowHeight);
+        CGE_Open(0, g_windowWidth, g_windowHeight, applicationConfigDirectory);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
         CGE_SetUserInterface(true, 96);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
