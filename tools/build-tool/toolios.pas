@@ -178,8 +178,8 @@ var
 
       for I := 0 to LaunchImages.Count - 1 do
         if (Result = nil) or
-           ((LaunchImages[I].Width / LaunchImages[I].Height - Width / Height) <
-            (         Result.Width /          Result.Height - Width / Height)) then
+           (Abs(LaunchImages[I].Width / LaunchImages[I].Height - Width / Height) <
+            Abs(         Result.Width /          Result.Height - Width / Height)) then
         begin
           ResultIndex := I;
           Result := LaunchImages[ResultIndex];
