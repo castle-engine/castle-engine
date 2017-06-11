@@ -111,7 +111,10 @@ int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2,
 
 void GLWidget::initializeGL()
 {
-    CGE_Open(ecgeofLog, 1000, 1000); // TODO - get the correct sizes here
+    // Get config dir, see https://stackoverflow.com/questions/4369661/qt-how-to-save-a-configuration-file-on-multiple-platforms
+    QString configDir = QDesktopServices::storageLocation(QDesktopServices::DataLocation);
+    // TODO - get the correct sizes here
+    CGE_Open(ecgeofLog, 1000, 1000, configDir.toUtf8());
     CGE_SetUserInterface(false, logicalDpiY());
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;

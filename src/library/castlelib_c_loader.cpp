@@ -37,7 +37,7 @@
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
-typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight);
+typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);
 typedef void (__cdecl *PFNRD_CGE_Close)();
 typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
@@ -62,9 +62,9 @@ typedef void (__cdecl *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szNa
 typedef void (__cdecl *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnimated);
 typedef void (__cdecl *PFNRD_CGE_AddViewpointFromCurrentView)(const char *szName);
 typedef void (__cdecl *PFNRD_CGE_GetBoundingBox)(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYMax, float *pfZMin, float *pfZMax);
-typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                                                 float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
-typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                                    float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
 
 typedef int (__cdecl *PFNRD_CGE_GetNavigationType)();
@@ -171,10 +171,10 @@ void CGE_LoadLibrary()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight)
+void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory)
 {
 	if (pfrd_CGE_Open!=NULL)
-		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight);
+		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight, applicationConfigDirectory);
 }
 
 //-----------------------------------------------------------------------------
@@ -313,7 +313,7 @@ void CGE_GetBoundingBox(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYM
 }
 
 //-----------------------------------------------------------------------------
-void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                        float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ)
 {
 	if (pfrd_CGE_GetViewCoords!=NULL)
@@ -321,7 +321,7 @@ void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDir
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                           float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated)
 {
 	if (pfrd_CGE_MoveViewToCoords!=NULL)
