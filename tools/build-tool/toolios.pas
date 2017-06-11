@@ -161,6 +161,90 @@ var
     end;
   end;
 
+  { Generate launch images, in various sizes,
+    from the most suitable launch images specified. }
+  procedure GenerateLaunchImages;
+  var
+    LaunchImages: TCastleImageList;
+
+    function FindBestMatching(const Width, Height: Integer;
+      const DefaultImage: TCastleImage): TCastleImage;
+    var
+      I: Integer;
+      ResultIndex: Integer;
+    begin
+      ResultIndex := -1;
+      Result := nil;
+
+      for I := 0 to LaunchImages.Count - 1 do
+        if (Result = nil) or
+           ((LaunchImages[I].Width / LaunchImages[I].Height - Width / Height) <
+            (         Result.Width /          Result.Height - Width / Height)) then
+        begin
+          ResultIndex := I;
+          Result := LaunchImages[ResultIndex];
+        end;
+
+      if Result = nil then
+      begin
+        Result := DefaultImage;
+        if Verbose then
+          Writeln('iOS lauch image: No custom launch image, using the default for size ', Width, ' x ', Height);
+      end else
+      begin
+        if Verbose then
+          Writeln('iOS lauch image: Using the (resized) launch image "' + Project.LaunchImages[ResultIndex] + '" as it has the best aspect ratio for size ', Width, ' x ', Height);
+      end;
+    end;
+
+    procedure SaveResized(const Width, Height: Integer;
+      const DefaultImage: TCastleImage);
+    var
+      OutputFile: string;
+      ImageSource, R: TCastleImage;
+    begin
+      ImageSource := FindBestMatching(Width, Height, DefaultImage);
+      R := ImageSource.MakeResized(Width, Height, riLanczos);
+      try
+        OutputFile := Project.Name + PathDelim +
+          'Images.xcassets' + PathDelim +
+          'LaunchImage.launchimage' + PathDelim +
+          'launch-image-' + IntToStr(Width) + 'x' + IntToStr(Height) + '.png';
+        SaveImage(R, FilenameToURISafe(XCodeProject + OutputFile));
+        // it's already reported by FindBestMatching
+        // if Verbose then
+        //   Writeln('Packaging generated launch icon file: ' + OutputFile);
+      finally FreeAndNil(R) end;
+    end;
+
+  var
+    I: Integer;
+    Default640x1136, Default1536x2048, Default2048x1536: TCastleImage;
+  begin
+    Default640x1136 := nil;
+    Default1536x2048 := nil;
+    Default2048x1536 := nil;
+    LaunchImages := TCastleImageList.Create(true);
+    try
+      Default640x1136 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage640x1136.png'));
+      Default1536x2048 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage1536x2048.png'));
+      Default2048x1536 := LoadImage(ApplicationData('default_launch_images/DefaultLaunchImage2048x1536.png'));
+
+      for I := 0 to Project.LaunchImages.Count - 1 do
+        LaunchImages.Add(LoadImage(Project.LaunchImages[I]));
+      // iPhone Portrait
+      SaveResized(640, 1136, Default640x1136);
+      // iPad Landscape
+      SaveResized(1024, 768, Default2048x1536);
+      // iPad Landscape x2
+      SaveResized(1024 * 2, 768 * 2, Default2048x1536);
+      // iPad Portrait
+      SaveResized(768, 1024, Default1536x2048);
+      // iPad Portrait x2
+      SaveResized(768 * 2, 1024 * 2, Default1536x2048);
+    finally FreeAndNil(LaunchImages) end;
+  end;
+
   { Copy project data into XCode project. }
   procedure GenerateData;
   var
@@ -202,6 +286,7 @@ begin
 
   GenerateFromTemplates;
   GenerateIcons;
+  GenerateLaunchImages;
   GenerateData;
   GenerateLibrary;
 
