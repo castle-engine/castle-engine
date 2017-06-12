@@ -50,7 +50,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMouse_Look, SIGNAL(triggered()), this, SLOT(MenuMouseLookClick()));
     connect(ui->actionMultiSampling, SIGNAL(triggered()), this, SLOT(MenuAntiAliasingClick()));
     connect(ui->actionOpenGL_Information, SIGNAL(triggered()), this, SLOT(MenuOpenGLInfoClick()));
-    connect(ui->actionShow_Log, SIGNAL(triggered()), this, SLOT(MenuShowLogClick()));
+    connect(ui->actionShow_Warnings, SIGNAL(triggered()), this, SLOT(MenuShowWarningClick()));
 
     ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
 
@@ -193,13 +193,13 @@ void MainWindow::MenuMouseLookClick()
 void MainWindow::AddNewWarning(QString const& sWarning)
 {
     if (m_pConsoleWnd==NULL)
-        MenuShowLogClick();
+        MenuShowWarningClick();
     QPlainTextEdit *pEdit = qobject_cast<QPlainTextEdit*>(m_pConsoleWnd->layout()->itemAt(0)->widget());
     if (pEdit!=NULL)
         pEdit->appendPlainText(sWarning);
 }
 
-void MainWindow::MenuShowLogClick()
+void MainWindow::MenuShowWarningClick()
 {
     if (m_pConsoleWnd==NULL)
     {

@@ -56,7 +56,7 @@ private slots:
     void MenuAntiAliasingClick();
     void MenuWalkingEffectClick();
     void MenuMouseLookClick();
-    void MenuShowLogClick();
+    void MenuShowWarningClick();
     void MenuOpenGLInfoClick();
 };
 
