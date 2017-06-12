@@ -54,7 +54,8 @@ MainWindow::MainWindow(QWidget *parent) :
 
     ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
 
-    m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
+    // Use this to load some default scene
+    //m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
 }
 
 MainWindow::~MainWindow()
