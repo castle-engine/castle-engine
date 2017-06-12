@@ -18,7 +18,6 @@
 
 #include "glwidget.h"
 #include "mainwindow.h"
-#include "../../../src/library/castleengine.h"
 
 GLWidget *g_pThis = NULL;
 
@@ -63,7 +62,7 @@ QSize GLWidget::sizeHint() const
     return QSize(400, 400);
 }
 
-int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
+int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
 {
     if (g_pThis == NULL || !g_pThis->m_bAfterInit) return 0;
 
