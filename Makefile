@@ -32,6 +32,7 @@
 #     - Delphi backup files (*.~???)
 #     - pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 #     - closed-source libs you may have left in tools/build-tool/data
+#     - QtCreator *.pro.user
 #     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
@@ -312,6 +313,7 @@ cleanmore: clean
 	$(FIND) . -type f '(' -iname '*~' -or \
 	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
+	                   -iname '*.pro.user' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean
