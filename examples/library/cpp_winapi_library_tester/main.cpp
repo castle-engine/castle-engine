@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -366,11 +366,14 @@ bool Init()
     {
         InitGL();
 	
-	char[1000] applicationConfigDirectory;
+	char applicationConfigDirectory[1000];
 	int bytes = GetModuleFileName(NULL, applicationConfigDirectory, 1000);
 
         CGE_LoadLibrary();
-        CGE_Open(0, g_windowWidth, g_windowHeight, applicationConfigDirectory);
+        // Note: the log output is in
+        // c:/Users/<username>/AppData/Local/cpp_winapi_library_tester/cpp_winapi_library_tester.log
+        // See https://castle-engine.sourceforge.io/manual_log.php
+        CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, applicationConfigDirectory);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
         CGE_SetUserInterface(true, 96);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
