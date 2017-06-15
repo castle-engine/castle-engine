@@ -19,6 +19,10 @@ unit CastleControl;
 
 {$I castleconf.inc}
 
+{ Define this for new Lazarus that has TCustomOpenGLControl.RenderAtDesignTime
+  (see issue TODO). }
+{ $define HAS_RENDER_AT_DESIGN_TIME}
+
 interface
 
 uses
@@ -233,6 +237,9 @@ type
     property DepthBits;
     property StencilBits;
     property AUXBuffers;
+    {$ifdef HAS_RENDER_AT_DESIGN_TIME}
+    property RenderAtDesignTime;
+    {$endif}
     property OnChangeBounds;
     property OnConstrainedResize;
     property OnDblClick;
