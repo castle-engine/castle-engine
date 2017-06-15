@@ -122,7 +122,8 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Open(0, OpenGLControl1.Width, OpenGLControl1.Height);
+  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height,
+    PCChar(PChar(GetAppConfigDir(false))));
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
   CGE_SetUserInterface(true, 96);
   sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';

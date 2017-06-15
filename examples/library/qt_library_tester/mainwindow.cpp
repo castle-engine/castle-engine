@@ -50,11 +50,12 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(ui->actionMouse_Look, SIGNAL(triggered()), this, SLOT(MenuMouseLookClick()));
     connect(ui->actionMultiSampling, SIGNAL(triggered()), this, SLOT(MenuAntiAliasingClick()));
     connect(ui->actionOpenGL_Information, SIGNAL(triggered()), this, SLOT(MenuOpenGLInfoClick()));
-    connect(ui->actionShow_Log, SIGNAL(triggered()), this, SLOT(MenuShowLogClick()));
+    connect(ui->actionShow_Warnings, SIGNAL(triggered()), this, SLOT(MenuShowWarningClick()));
 
     ui->actionMultiSampling->setChecked(m_pGlWidget->format().samples()>1);
 
-    m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
+    // Use this to load some default scene
+    //m_pGlWidget->OpenScene("../../../../demo_models/navigation/type_walk.wrl");
 }
 
 MainWindow::~MainWindow()
@@ -64,7 +65,8 @@ MainWindow::~MainWindow()
 
 void MainWindow::OnFileOpenClick()
 {
-    QString sFile = QFileDialog::getOpenFileName(this, tr("Open Scene"), ".", tr("3D scenes") + " (*.wrl *.x3d)");
+    QString sFile = QFileDialog::getOpenFileName(this, tr("Open Scene"), ".", tr("3D scenes") +
+        " (*.wrl *.wrl.gz *.wrz *.x3d *.x3dz *.x3d.gz *.x3dv *.x3dvz *.x3dv.gz *.kanim *.castle-anim-frames *.dae *.iv *.3ds *.md3 *.obj *.geo *.json *.stl)");
     if (!sFile.isEmpty())
         m_pGlWidget->OpenScene(sFile);
 }
@@ -191,13 +193,13 @@ void MainWindow::MenuMouseLookClick()
 void MainWindow::AddNewWarning(QString const& sWarning)
 {
     if (m_pConsoleWnd==NULL)
-        MenuShowLogClick();
+        MenuShowWarningClick();
     QPlainTextEdit *pEdit = qobject_cast<QPlainTextEdit*>(m_pConsoleWnd->layout()->itemAt(0)->widget());
     if (pEdit!=NULL)
         pEdit->appendPlainText(sWarning);
 }
 
-void MainWindow::MenuShowLogClick()
+void MainWindow::MenuShowWarningClick()
 {
     if (m_pConsoleWnd==NULL)
     {

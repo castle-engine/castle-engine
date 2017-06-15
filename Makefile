@@ -32,6 +32,7 @@
 #     - Delphi backup files (*.~???)
 #     - pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 #     - closed-source libs you may have left in tools/build-tool/data
+#     - QtCreator *.pro.user
 #     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
@@ -228,7 +229,7 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/lazarus/two_controls/two_controls \
   tests/test_castle_game_engine \
   src/library/castleengine \
-  examples/library/lcl_dynlib_tester/cge_dynlib_tester \
+  examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
@@ -312,6 +313,7 @@ cleanmore: clean
 	$(FIND) . -type f '(' -iname '*~' -or \
 	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
+	                   -iname '*.pro.user' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
 	$(MAKE) -C doc/pasdoc/ clean

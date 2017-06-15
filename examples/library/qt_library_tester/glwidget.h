@@ -1,7 +1,9 @@
 #ifndef GLWIDGET_H
 #define GLWIDGET_H
 
-#include <QGLWidget>
+#include <QtOpenGL/QGLWidget>
+
+#include "../../../src/library/castleengine.h"
 
 class GLWidget : public QGLWidget
 {
@@ -19,7 +21,7 @@ public:
     static int QKeyToCgeKey(int qKey);
 
 protected:
-    static int __cdecl OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
+    static int CDECL OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
 
 private:
     bool m_bAfterInit;

@@ -38,7 +38,7 @@ type
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
-    FIcons: TIconFileNames;
+    FIcons, FLaunchImages: TImageFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
@@ -147,7 +147,8 @@ type
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
-    property Icons: TIconFileNames read FIcons;
+    property Icons: TImageFileNames read FIcons;
+    property LaunchImages: TImageFileNames read FLaunchImages;
     property SearchPaths: TStringList read FSearchPaths;
     property AndroidServices: TAndroidServiceList read FAndroidServices;
 
@@ -282,6 +283,7 @@ constructor TCastleProject.Create(const APath: string);
       FStandaloneSource := FName + '.lpr';
       FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+      LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
       FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
@@ -358,6 +360,7 @@ constructor TCastleProject.Create(const APath: string);
         Writeln('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
       Icons.BaseUrl := ManifestURL;
+      LaunchImages.BaseUrl := ManifestURL;
 
       try
         URLReadXML(Doc, ManifestURL);
@@ -430,6 +433,19 @@ constructor TCastleProject.Create(const APath: string);
             begin
               ChildElement := ChildElements.Current;
               Icons.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
+        end;
+
+        Element := Doc.DocumentElement.ChildElement('launch_images', false);
+        if Element <> nil then
+        begin
+          ChildElements := Element.ChildrenIterator('image');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              LaunchImages.Add(ChildElement.AttributeString('path'));
             end;
           finally FreeAndNil(ChildElements) end;
         end;
@@ -548,7 +564,8 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
-  FIcons := TIconFileNames.Create;
+  FIcons := TImageFileNames.Create;
+  FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
   FAndroidServices := TAndroidServiceList.Create(true);
@@ -569,6 +586,7 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
+  FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
   FreeAndNil(FAndroidServices);
   inherited;
