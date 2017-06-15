@@ -20,7 +20,7 @@ unit CastleControl;
 {$I castleconf.inc}
 
 { Define this for new Lazarus that has TCustomOpenGLControl.RenderAtDesignTime
-  (see issue TODO). }
+  (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
 { $define HAS_RENDER_AT_DESIGN_TIME}
 
 interface
