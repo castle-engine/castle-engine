@@ -2785,7 +2785,7 @@ type
         @item(@code(-v / --version), using @link(Version))
         @item(All the parameters handled by @link(TCastleWindowCustom.ParseParameters).
           Requires @link(MainWindow) to be set.)
-        @item(All the parameters handled by @link(TCastleSoundEngine.ParseParameters).)
+        @item(All the parameters handled by @link(TSoundEngine.ParseParameters).)
       )
     }
     procedure ParseStandardParameters;

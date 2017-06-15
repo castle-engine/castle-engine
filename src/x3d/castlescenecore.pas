@@ -3964,7 +3964,7 @@ var
 
     { Change light instance on GlobalLights list, if any.
       This way other 3D scenes, using our lights by
-      TCastleAbstractViewport.UseGlobalLights feature,
+      @link(TCastleAbstractViewport.UseGlobalLights) feature,
       also have updated light location/direction.
       See https://sourceforge.net/p/castle-engine/discussion/general/thread/0bbaaf38/
       for a testcase. }
