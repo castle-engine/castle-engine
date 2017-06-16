@@ -316,6 +316,8 @@ cleanmore: clean
 	                   -iname '*.pro.user' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
+	$(FIND) . -type d '(' -iname 'backup' \
+			')' -exec rm -Rf '{}' ';' -prune
 	$(MAKE) -C doc/pasdoc/ clean
 	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
