@@ -223,6 +223,7 @@ EXAMPLES_BASE_NAMES := \
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
+  examples/audio/audio_player_scrubber/audio_player_scrubber \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
