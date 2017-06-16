@@ -149,19 +149,21 @@ end;
 procedure TMainForm.ButtonPlayClick(Sender: TObject);
 var
   InitialVolume: Single;
+  Parameters: TSoundParameters;
 begin
   if Sound <> nil then
     Sound.Release;
   InitialVolume := TrackVolume.Position / 1000;
-  Sound := SoundEngine.PlaySound(SoundBuffer, false, CheckBoxLoop.Checked, 0,
-    InitialVolume, 0, 1,
-    ZeroVector3Single, 1,
-    SoundEngine.DefaultReferenceDistance,
-    SoundEngine.DefaultDefaultMaxDistance,
-    TrackOffset.Position);
+  Parameters := TSoundParameters.Create;
+  try
+    Parameters.Buffer := SoundBuffer;
+    Parameters.Looping := CheckBoxLoop.Checked;
+    Parameters.Gain := InitialVolume;
+    Parameters.Offset := TrackOffset.Position;
+    Sound := SoundEngine.PlaySound(Parameters);
+  finally FreeAndNil(Parameters) end;
   if Sound <> nil then
     Sound.OnRelease := @SoundRelease;
 end;
 
 end.
-

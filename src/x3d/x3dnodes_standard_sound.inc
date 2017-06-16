@@ -274,6 +274,7 @@ procedure TAudioClipNode.UpdatePlaying;
 
 var
   SoundNode: TSoundNode;
+  Parameters: TSoundParameters;
 begin
   if IsActive and not IsPaused then
   begin
@@ -284,19 +285,22 @@ begin
       SoundNode := GetSoundNode;
       if (Buffer <> 0) and (SoundNode <> nil) then
       begin
-        Sound := SoundEngine.PlaySound(Buffer,
-          SoundNode.Spatialize,
-          Loop,
-          Clamped(Round(SoundNode.Priority * 1000), 0, 1000),
-          SoundNode.Intensity, 0, 1,
-          MatrixMultPoint(SoundNode.FTransform, SoundNode.Location),
-          SafePitch,
+        Parameters := TSoundParameters.Create;
+        try
+          Parameters.Buffer := Buffer;
+          Parameters.Spatial := SoundNode.Spatialize;
+          Parameters.Looping := Loop;
+          Parameters.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
+          Parameters.Gain := SoundNode.Intensity;
+          Parameters.Position := MatrixMultPoint(SoundNode.FTransform, SoundNode.Location);
+          Parameters.Pitch := SafePitch;
           { We pass min/maxFront as OpenAL reference distance/max distance,
             as their meanings match for distance model = dmLinearDistanceClamped. }
-          SoundNode.FTransformScale * SoundNode.MinFront,
-          SoundNode.FTransformScale * SoundNode.MaxFront,
-          { TODO: passing offset = 0 now }
-          0);
+          Parameters.ReferenceDistance := SoundNode.FTransformScale * SoundNode.MinFront;
+          Parameters.MaxDistance       := SoundNode.FTransformScale * SoundNode.MaxFront;
+          // TODO: we could set here Parameters.Offset to not always start playing from start
+          Sound := SoundEngine.PlaySound(Parameters);
+        finally FreeAndNil(Parameters) end;
         if Sound <> nil then
           Sound.OnRelease := @SoundRelease;
       end;

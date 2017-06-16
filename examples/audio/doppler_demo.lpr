@@ -76,6 +76,7 @@ end;
 
 var
   Buffer: TSoundBuffer;
+  Parameters: TSoundParameters;
 begin
   Window := TCastleWindowCustom.Create(Application);
 
@@ -89,8 +90,14 @@ begin
 
     SoundPosition := Vector3Single(200, 300, 0);
     PreviousSoundPosition := SoundPosition;
-    Sound := SoundEngine.PlaySound(Buffer, true, true, 0, 1, 0, 1,
-      SoundPosition * ALDistanceScaling);
+    Parameters := TSoundParameters.Create;
+    try
+      Parameters.Buffer := Buffer;
+      Parameters.Spatial := true;
+      Parameters.Looping := true;
+      Parameters.Position := SoundPosition * ALDistanceScaling;
+      Sound := SoundEngine.PlaySound(Parameters);
+    finally FreeAndNil(Parameters) end;
 
     ListenerPosition := Vector3Single(300, 300, 0);
     SoundEngine.UpdateListener(ListenerPosition * ALDistanceScaling,
