@@ -1,3 +1,19 @@
+{
+  Copyright 2017-2017 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Main form. }
 unit FormMain;
 
 {$mode objfpc}{$H+}
@@ -9,9 +25,6 @@ uses
   ComCtrls, ExtCtrls, CastleSoundEngine, CastleDialogs, CastleTimeUtils;
 
 type
-
-  { TMainForm }
-
   TMainForm = class(TForm)
     ButtonSoundEngineInformation: TButton;
     ButtonPlay: TButton;
@@ -53,8 +66,6 @@ uses CastleUtils, CastleVectors,
   FormSoundEngineInfo;
 
 {$R *.lfm}
-
-{ TMainForm }
 
 procedure TMainForm.ButtonSoundEngineInformationClick(Sender: TObject);
 begin
