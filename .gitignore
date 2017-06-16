@@ -115,6 +115,9 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/audio/audio_player_scrubber/audio_player_scrubber
+examples/audio/audio_player_scrubber/audio_player_scrubber.res
+examples/audio/audio_player_scrubber/lib/
 examples/plugin/cge_3d_viewer/cge_3d_viewer
 examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 examples/portable_game_skeleton/my_fantastic_game
