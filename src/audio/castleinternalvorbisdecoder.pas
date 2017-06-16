@@ -165,7 +165,8 @@ begin
     OggInfo := ov_info(@OggFile, -1);
 
     if OggInfo^.channels = 1 then
-      DataFormat := AL_FORMAT_MONO16 else
+      DataFormat := AL_FORMAT_MONO16
+    else
       DataFormat := AL_FORMAT_STEREO16;
 
     Frequency := OggInfo^.rate;
