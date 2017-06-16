@@ -294,7 +294,9 @@ begin
           { We pass min/maxFront as OpenAL reference distance/max distance,
             as their meanings match for distance model = dmLinearDistanceClamped. }
           SoundNode.FTransformScale * SoundNode.MinFront,
-          SoundNode.FTransformScale * SoundNode.MaxFront);
+          SoundNode.FTransformScale * SoundNode.MaxFront,
+          { TODO: passing offset = 0 now }
+          0);
         if Sound <> nil then
           Sound.OnRelease := @SoundRelease;
       end;

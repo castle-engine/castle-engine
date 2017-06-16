@@ -71,7 +71,7 @@ type
     explicitly, then at destructor we'll do it automatically. }
   TSoundEngine = class(TSoundAllocator)
   private
-    FSoundInitializationReport: string;
+    FInformation: string;
     FDevice: string;
     FALActive: boolean;
     FALMajorVersion, FALMinorVersion: Integer;
@@ -131,15 +131,18 @@ type
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
 
+    { Is the OpenAL version at least @code(AMajor.AMinor). }
+    function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
+
     { Initialize OpenAL library, and output device and context.
-      Sets ALInitialized, ALActive, SoundInitializationReport, EFXSupported,
+      Sets ALInitialized, ALActive, @link(Information), EFXSupported,
       ALMajorVersion, ALMinorVersion.
       You can set @link(Device) before calling this.
 
       Note that we continue (without any exception) if the initialization
       failed for any reason (maybe OpenAL library is not available,
       or no sound output device is available).
-      You can check things like ALActive and SoundInitializationReport,
+      You can check things like ALActive and @link(Information),
       but generally this class
       will hide from you the fact that sound is not initialized. }
     procedure ALContextOpen; override;
@@ -164,7 +167,10 @@ type
       Meaningful only when ALActive, that is it's initialized by ALContextOpen. }
     property EFXSupported: boolean read FEFXSupported;
 
-    property SoundInitializationReport: string read FSoundInitializationReport;
+    property SoundInitializationReport: string read FInformation;
+      deprecated 'use Information';
+
+    property Information: string read FInformation;
 
     { Wrapper for alcGetString. }
     function GetContextString(Enum: TALCenum): string;
@@ -233,7 +239,8 @@ type
       const Position: TVector3Single;
       const Pitch: Single;
       const ReferenceDistance: Single;
-      const MaxDistance: Single): TSound;
+      const MaxDistance: Single;
+      const Offset: Single): TSound;
 
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
@@ -1057,15 +1064,15 @@ begin
   Assert(not ALInitialized, 'OpenAL context initialization was already attempted');
 
   if not Enabled then
-    FSoundInitializationReport :=
+    FInformation :=
       'OpenAL initialization aborted: sound is disabled (by --no-sound command-line option, or menu item or such)' else
   begin
     BeginAL(ALActivationErrorMessage);
     if not ALActive then
-      FSoundInitializationReport :=
+      FInformation :=
         'OpenAL initialization failed:' +NL+ ALActivationErrorMessage else
     begin
-      FSoundInitializationReport :=
+      FInformation :=
         'OpenAL initialized successfully' +NL+ ALInformation;
 
       try
@@ -1082,7 +1089,7 @@ begin
 
   FALInitialized := true;
   if Log then
-    WritelnLogMultiline('Sound', SoundInitializationReport);
+    WritelnLogMultiline('Sound', Information);
 
   OnOpenClose.ExecuteAll(Self);
 end;
@@ -1179,7 +1186,7 @@ function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
   const Position: TVector3Single;
-  const Pitch, ReferenceDistance, MaxDistance: Single): TSound;
+  const Pitch, ReferenceDistance, MaxDistance, Offset: Single): TSound;
 
 const
   { For now, just always use CheckBufferLoaded. It doesn't seem to cause
@@ -1199,6 +1206,7 @@ begin
       Result.MinGain := MinGain;
       Result.MaxGain := MaxGain;
       Result.Pitch := Pitch;
+      Result.Offset := Offset;
 
       if Spatial then
       begin
@@ -1275,14 +1283,14 @@ begin
   Result := PlaySound(Buffer, Spatial, Looping, Importance,
     Gain, MinGain, MaxGain, Position, Pitch,
     { use default values for next parameters }
-    DefaultReferenceDistance, DefaultMaxDistance);
+    DefaultReferenceDistance, DefaultMaxDistance, 0);
 end;
 
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer): TSound;
 begin
   Result := PlaySound(Buffer, false, false, 0,
     1, 0, 1, ZeroVector3Single, 1,
-    DefaultReferenceDistance, DefaultMaxDistance);
+    DefaultReferenceDistance, DefaultMaxDistance, 0);
 end;
 
 function TSoundEngine.LoadBuffer(const URL: string;
@@ -1362,15 +1370,14 @@ begin
   end;
 end;
 
+function TSoundEngine.ALVersionAtLeast(const AMajor, AMinor: Integer): boolean;
+begin
+  Result :=
+      (AMajor < FALMajorVersion) or
+    ( (AMajor = FALMajorVersion) and (AMinor <= FALMinorVersion) );
+end;
+
 procedure TSoundEngine.UpdateDistanceModel;
-
-  function AtLeast(AMajor, AMinor: Integer): boolean;
-  begin
-    Result :=
-        (AMajor < FALMajorVersion) or
-      ( (AMajor = FALMajorVersion) and (AMinor <= FALMinorVersion) );
-  end;
-
 const
   ALDistanceModelConsts: array [TSoundDistanceModel] of TALenum =
   ( AL_NONE,
@@ -1380,7 +1387,7 @@ const
 var
   Is11: boolean;
 begin
-  Is11 := AtLeast(1, 1);
+  Is11 := ALVersionAtLeast(1, 1);
   if (not Is11) and (DistanceModel in [dmLinearDistance, dmExponentDistance]) then
     alDistanceModel(AL_INVERSE_DISTANCE) else
   if (not Is11) and (DistanceModel in [dmLinearDistanceClamped, dmExponentDistanceClamped]) then
