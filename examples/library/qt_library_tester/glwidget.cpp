@@ -18,7 +18,6 @@
 
 #include "glwidget.h"
 #include "mainwindow.h"
-#include "../../../src/library/castleengine.h"
 
 GLWidget *g_pThis = NULL;
 
@@ -63,7 +62,7 @@ QSize GLWidget::sizeHint() const
     return QSize(400, 400);
 }
 
-int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
+int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam)
 {
     if (g_pThis == NULL || !g_pThis->m_bAfterInit) return 0;
 
@@ -111,7 +110,9 @@ int __cdecl GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2,
 
 void GLWidget::initializeGL()
 {
-    CGE_Open(ecgeofLog, 1000, 1000); // TODO - get the correct sizes here
+    // Get config dir, see https://stackoverflow.com/questions/4369661/qt-how-to-save-a-configuration-file-on-multiple-platforms
+    QString configDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
+    CGE_Open(ecgeofLog, width(), height(), configDir.toUtf8());
     CGE_SetUserInterface(false, logicalDpiY());
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;

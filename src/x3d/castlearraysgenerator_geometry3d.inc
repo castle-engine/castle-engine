@@ -288,10 +288,10 @@ begin
   TexCoordIndex := ANode.FdTextureCoordIndex;
 
   MaterialIndex := ANode.FdMaterialIndex;
-  MaterialBinding := State.LastNodes.MaterialBinding.FdValue.Value;
+  MaterialBinding := State.VRML1State.MaterialBinding.FdValue.Value;
   UpdateMat1Implementation;
 
-  SH := State.LastNodes.ShapeHints;
+  SH := State.VRML1State.ShapeHints;
 
   { W tym miejscu uznajemy VERTORDER_UNKNOWN_ORDERING za COUNTERCLOCKWISE
     (a autorzy VRMLi w ogole nie powinni podawac normali jesli
@@ -305,10 +305,10 @@ begin
   FaceConvex := SH.FdFaceType.Value = FACETYPE_CONVEX;
 
   NormalIndex := ANode.FdNormalIndex;
-  Normals := State.LastNodes.Normal.FdVector.Items;
+  Normals := State.VRML1State.Normal.FdVector.Items;
   NormalsCcw := VRML1FrontFaceCcw;
   NorImplementation := NorImplementationFromVRML1Binding(
-    State.LastNodes.NormalBinding.FdValue.Value);
+    State.VRML1State.NormalBinding.FdValue.Value);
   if NorImplementation = niNone then
     AutoGenerateNormals(SH.FdCreaseAngle.Value);
 

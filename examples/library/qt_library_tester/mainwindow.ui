@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>636</width>
-     <height>21</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -41,7 +41,7 @@
      <string>Help</string>
     </property>
     <addaction name="actionOpenGL_Information"/>
-    <addaction name="actionShow_Log"/>
+    <addaction name="actionShow_Warnings"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -136,9 +136,9 @@
     <string>OpenGL Information</string>
    </property>
   </action>
-  <action name="actionShow_Log">
+  <action name="actionShow_Warnings">
    <property name="text">
-    <string>Show Log</string>
+    <string>Show Warnings</string>
    </property>
   </action>
   <action name="actionSSAO">

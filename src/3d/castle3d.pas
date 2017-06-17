@@ -650,7 +650,7 @@ type
       @param(BaseLights
         Lights added to the scene when rendering it.
         They may include a headlight, or global lights that shine on all
-        3D scenes (see @link(TCastleSceneManager.UseGlobalLights)).
+        3D scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
         These do not include the lights defined @italic(within) this scene.
         It is a list of base lights (always TLightInstancesList, although
         it cannot be declated as such here).
@@ -1024,8 +1024,9 @@ type
       write FInternalExcludeFromParentBoundingVolume;
   published
     { If this 3D object is rendered as part of TCastleSceneManager,
-      and TCastleSceneManager.UseGlobalLights is @true, then this property allows
-      to make an exception for this 3D object: even though TCastleSceneManager.UseGlobalLights is @true,
+      and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
+      to make an exception for this 3D object: even though
+      @link(TCastleAbstractViewport.UseGlobalLights) is @true,
       do not use global lights @italic(for this 3D object).
 
       Note that this is not applied recursively. Instead, it is checked at each T3D instance

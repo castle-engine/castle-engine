@@ -157,7 +157,7 @@ type
     chCoordinate,
 
     { Something visible in VRML 1.0 state node (that may be present
-      in TX3DGraphTraverseState.LastNodes) changed, but not geometry.
+      in TX3DGraphTraverseState.VRML1State) changed, but not geometry.
       Excluding Coordinate node change (this one should go through chCoordinate
       only).
 

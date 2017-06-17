@@ -44,9 +44,9 @@ type
         in your app.)
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
-        the appropriate components (game_analytycs and/or google_analytics)
+        the appropriate services (game_analytycs and/or google_analytics)
         inside CastleEngineManifest.xml .
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .)
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .)
     )
   }
   TAnalytics = class(TComponent)
@@ -136,7 +136,7 @@ end;
 
 procedure TAnalytics.ReinitializeJavaActivity(Sender: TObject);
 begin
-  { in case Java activity got killed and is created again, reinitialize components }
+  { in case Java activity got killed and is created again, reinitialize services }
   if FLastGoogleAnalyticsPropertyId <> '' then
     InitializeGoogleAnalytics(FLastGoogleAnalyticsPropertyId);
   if (FLastGameAnalyticsGameKey <> '') and

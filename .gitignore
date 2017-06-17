@@ -12,6 +12,8 @@
 *.log
 *.lps
 *.exe
+*.pro.user
+backup
 # Don't ignore - commit these files, to allow compiling these examples with shell scripts / lpi too.
 # automatic-windows-resources.res
 doc/man/man1/*.1
@@ -114,6 +116,9 @@ examples/lazarus/two_controls/lib/
 examples/lazarus/two_controls/two_controls
 examples/lazarus/two_controls/two_controls.lps
 examples/lazarus/two_controls/two_controls.res
+examples/audio/audio_player_scrubber/audio_player_scrubber
+examples/audio/audio_player_scrubber/audio_player_scrubber.res
+examples/audio/audio_player_scrubber/lib/
 examples/plugin/cge_3d_viewer/cge_3d_viewer
 examples/plugin/cge_3d_viewer/npcge_3d_viewer.linux-i386.so
 examples/portable_game_skeleton/my_fantastic_game
@@ -162,13 +167,13 @@ tests/test_castle_game_engine
 tests/test_castle_game_engine.exe
 tools/build-tool/castle-engine
 tools/build-tool/castle-engine.exe
-tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar
-tools/build-tool/data/android/integrated-components/game_analytics/app/libs/*.jar
-tools/build-tool/data/android/integrated-components/giftiz/app/libs/
-tools/build-tool/data/android/integrated-components/giftiz/app/src/main/res/
-tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar
-tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.aar
-tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
+tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
+tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
+tools/build-tool/data/android/integrated-services/giftiz/app/libs/
+tools/build-tool/data/android/integrated-services/giftiz/app/src/main/res/
+tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar
+tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar
+tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 tools/castle-curves/castle-curves
 tools/castle-curves/castle-curves.exe
 tools/castle-engine

@@ -271,7 +271,7 @@ type
       This can be read from the @code(resource.xml) file.
       When zero, the radius is automatically calculated looking at the
       3D model bounding box, and taking into account gravity direction,
-      see @link(TCreature.RadiusCalculate). }
+      see @link(TCreatureResource.RadiusCalculate). }
     property RadiusOverride: Single
       read FRadiusOverride write FRadiusOverride;
 

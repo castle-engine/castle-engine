@@ -1562,7 +1562,7 @@ function TAbstractMaterial1Generator.GetMaterial1Color(
 var
   M: TMaterialNode_1;
 begin
-  M := State.LastNodes.Material;
+  M := State.VRML1State.Material;
   if M.PureEmissive then
     Result := M.EmissiveColor4Single(MaterialIndex)
   else
@@ -1779,7 +1779,7 @@ begin
   end;
 
   { If no normals are provided (for VRML 1.0, this means that last Normal
-    node was empty, or it's the default empty node from DefaultLastNodes scen)
+    node was empty, or it's the default empty node from VRML1DefaultState)
     then generate normals. }
   if Normals.Count = 0 then
     Result := niNone;

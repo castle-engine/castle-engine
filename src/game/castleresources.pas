@@ -217,7 +217,7 @@ type
 
       @param(BaseLights
         Base lights include a headlight, or global lights that shine on all
-        3D scenes (see @link(TCastleSceneManager.UseGlobalLights)).
+        3D scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
 
         You can usually take them from @link(TCastleAbstractViewport.BaseLights),
         usually by a simple @code(SceneManager.BaseLights) call

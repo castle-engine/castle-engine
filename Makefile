@@ -32,6 +32,7 @@
 #     - Delphi backup files (*.~???)
 #     - pasdoc generated documentation in doc/pasdoc/ and doc/reference/
 #     - closed-source libs you may have left in tools/build-tool/data
+#     - QtCreator *.pro.user
 #     This is a useful step when packing the release of CGE.
 #
 #   cleanall --
@@ -119,8 +120,8 @@ uninstall:
 .PHONY: strip-precompiled-libraries
 strip-precompiled-libraries:
 	rm -Rf tools/build-tool/data/external_libraries/ \
-	       tools/build-tool/data/android/integrated-components/sound/ \
-	       tools/build-tool/data/android/integrated-components/ogg_vorbis/ \
+	       tools/build-tool/data/android/integrated-services/sound/ \
+	       tools/build-tool/data/android/integrated-services/ogg_vorbis/ \
 	       tools/build-tool/data/android/base/gradle/ \
 	       tools/build-tool/data/android/base/gradlew \
 	       tools/build-tool/data/android/base/gradlew.bat \
@@ -222,13 +223,14 @@ EXAMPLES_BASE_NAMES := \
 
 EXAMPLES_LAZARUS_BASE_NAMES := \
   examples/audio/test_al_source_allocator \
+  examples/audio/audio_player_scrubber/audio_player_scrubber \
   examples/lazarus/model_3d_viewer/model_3d_viewer \
   examples/lazarus/model_3d_with_2d_controls/model_3d_with_2d_controls \
   examples/lazarus/load_model_and_camera_manually/load_model_and_camera_manually \
   examples/lazarus/two_controls/two_controls \
   tests/test_castle_game_engine \
   src/library/castleengine \
-  examples/library/lcl_dynlib_tester/cge_dynlib_tester \
+  examples/library/lazarus_library_tester/cge_dynlib_tester \
   examples/random_generator/graphics_random_test
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
@@ -312,13 +314,16 @@ cleanmore: clean
 	$(FIND) . -type f '(' -iname '*~' -or \
 	                   -iname '*.bak' -or \
 	                   -iname '*.~???' -or \
+	                   -iname '*.pro.user' -or \
 			   -iname '*.blend1' \
 			')' -exec rm -f '{}' ';'
+	$(FIND) . -type d '(' -iname 'backup' \
+			')' -exec rm -Rf '{}' ';' -prune
 	$(MAKE) -C doc/pasdoc/ clean
-	rm -Rf tools/build-tool/data/android/integrated-components/giftiz/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/chartboost/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/heyzap/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-components/startapp/app/libs/*.jar
+	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
+	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
 
 cleanall: cleanmore
 

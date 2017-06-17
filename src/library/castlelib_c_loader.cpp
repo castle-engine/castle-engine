@@ -37,47 +37,47 @@
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
-typedef void (__cdecl *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight);
-typedef void (__cdecl *PFNRD_CGE_Close)();
-typedef void (__cdecl *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
+typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);
+typedef void (CDECL *PFNRD_CGE_Close)();
+typedef void (CDECL *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
-typedef void (__cdecl *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
-typedef void (__cdecl *PFNRD_CGE_Render)();
-typedef void (__cdecl *PFNRD_CGE_SaveScreenshotToFile)(const char *szFile);
-typedef void (__cdecl *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
-typedef void (__cdecl *PFNRD_CGE_Update)();
+typedef void (CDECL *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
+typedef void (CDECL *PFNRD_CGE_Render)();
+typedef void (CDECL *PFNRD_CGE_SaveScreenshotToFile)(const char *szFile);
+typedef void (CDECL *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
+typedef void (CDECL *PFNRD_CGE_Update)();
 
-typedef void (__cdecl *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn, int nFingerIdx);
-typedef void (__cdecl *PFNRD_CGE_Motion)(int x, int y, int nFingerIdx);
-typedef void (__cdecl *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx);
-typedef void (__cdecl *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
+typedef void (CDECL *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn, int nFingerIdx);
+typedef void (CDECL *PFNRD_CGE_Motion)(int x, int y, int nFingerIdx);
+typedef void (CDECL *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx);
+typedef void (CDECL *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
 
-typedef void (__cdecl *PFNRD_CGE_KeyDown)(int eKey);
-typedef void (__cdecl *PFNRD_CGE_KeyUp)(int eKey);
+typedef void (CDECL *PFNRD_CGE_KeyDown)(int eKey);
+typedef void (CDECL *PFNRD_CGE_KeyUp)(int eKey);
 
-typedef void (__cdecl *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
+typedef void (CDECL *PFNRD_CGE_LoadSceneFromFile)(const char *szFile);
 
-typedef int (__cdecl *PFNRD_CGE_GetViewpointsCount)();
-typedef void (__cdecl *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
-typedef void (__cdecl *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnimated);
-typedef void (__cdecl *PFNRD_CGE_AddViewpointFromCurrentView)(const char *szName);
-typedef void (__cdecl *PFNRD_CGE_GetBoundingBox)(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYMax, float *pfZMin, float *pfZMax);
-typedef void (__cdecl *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+typedef int (CDECL *PFNRD_CGE_GetViewpointsCount)();
+typedef void (CDECL *PFNRD_CGE_GetViewpointName)(int iViewpointIdx, char *szName, int nBufSize);
+typedef void (CDECL *PFNRD_CGE_MoveToViewpoint)(int iViewpointIdx, bool bAnimated);
+typedef void (CDECL *PFNRD_CGE_AddViewpointFromCurrentView)(const char *szName);
+typedef void (CDECL *PFNRD_CGE_GetBoundingBox)(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYMax, float *pfZMin, float *pfZMax);
+typedef void (CDECL *PFNRD_CGE_GetViewCoords)(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                                                 float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ);
-typedef void (__cdecl *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+typedef void (CDECL *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                                    float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
 
-typedef int (__cdecl *PFNRD_CGE_GetNavigationType)();
-typedef void (__cdecl *PFNRD_CGE_SetNavigationType)(int eNewType);
-typedef void (__cdecl *PFNRD_CGE_SetTouchInterface)(int eMode);
-typedef void (__cdecl *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface, int nDpi);
+typedef int (CDECL *PFNRD_CGE_GetNavigationType)();
+typedef void (CDECL *PFNRD_CGE_SetNavigationType)(int eNewType);
+typedef void (CDECL *PFNRD_CGE_SetTouchInterface)(int eMode);
+typedef void (CDECL *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface, int nDpi);
 
-typedef void (__cdecl *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
-typedef int (__cdecl *PFNRD_CGE_GetVariableInt)(int eVar);
-typedef void (__cdecl *PFNRD_CGE_SetNodeFieldValue)(const char *szNodeName, const char *szFieldName,
+typedef void (CDECL *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
+typedef int (CDECL *PFNRD_CGE_GetVariableInt)(int eVar);
+typedef void (CDECL *PFNRD_CGE_SetNodeFieldValue)(const char *szNodeName, const char *szFieldName,
                                                     float fVal1, float fVal2, float fVal3, float fVal4);
 
-typedef void (__cdecl *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
+typedef void (CDECL *PFNRD_CGE_IncreaseSceneTime)(float fTimeS);
 
 
 PFNRD_CGE_Open pfrd_CGE_Open = NULL;
@@ -171,10 +171,10 @@ void CGE_LoadLibrary()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight)
+void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory)
 {
 	if (pfrd_CGE_Open!=NULL)
-		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight);
+		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight, applicationConfigDirectory);
 }
 
 //-----------------------------------------------------------------------------
@@ -313,7 +313,7 @@ void CGE_GetBoundingBox(float *pfXMin, float *pfXMax, float *pfYMin, float *pfYM
 }
 
 //-----------------------------------------------------------------------------
-void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ, 
+void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDirX, float *pfDirY, float *pfDirZ,
                        float *pfUpX, float *pfUpY, float *pfUpZ, float *pfGravX, float *pfGravY, float *pfGravZ)
 {
 	if (pfrd_CGE_GetViewCoords!=NULL)
@@ -321,7 +321,7 @@ void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float *pfDir
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ, 
+void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                           float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated)
 {
 	if (pfrd_CGE_MoveViewToCoords!=NULL)

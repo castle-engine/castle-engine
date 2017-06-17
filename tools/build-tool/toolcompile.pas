@@ -37,11 +37,14 @@ function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
 
+const
+  DefaultFPCVersionForIPhoneSimulator = '3.0.3';
+
 var
   { The -V3.0.3 parameter is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FPCVersionForIPhoneSimulator: string = '3.0.3';
+  FPCVersionForIPhoneSimulator: string = DefaultFPCVersionForIPhoneSimulator;
 
 implementation
 
@@ -94,6 +97,47 @@ begin
   Writeln(Format('FPC version: %d.%d.%d', [Result.Major, Result.Minor, Result.Release]));
 end;
 *)
+
+type
+  TFPCVersionForIPhoneSimulatorChecked = class
+  strict private
+    class var
+      IsCached: boolean;
+      CachedValue: string;
+  public
+    { Return FPCVersionForIPhoneSimulator, but the 1st time this is run,
+      we check and optionally change the returned value to something better. }
+    class function Value: string; static;
+  end;
+
+class function TFPCVersionForIPhoneSimulatorChecked.Value: string; static;
+var
+  FpcOutput, FpcExe: string;
+  FpcExitStatus: Integer;
+begin
+  if not IsCached then
+  begin
+    CachedValue := FPCVersionForIPhoneSimulator;
+    IsCached := true;
+
+    if CachedValue <> '' then
+    begin
+      FpcExe := FindExe('fpc');
+      if FpcExe = '' then
+        raise Exception.Create('Cannot find "fpc" program on $PATH. Make sure it is installed, and available on $PATH');
+      MyRunCommandIndir(GetCurrentDir, FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
+      if FpcExitStatus <> 0 then
+      begin
+        WritelnWarning('Failed to execute FPC with "-V' + CachedValue + '" option, indicating that --fpc-version-iphone-simulator value is invalid.' + NL +
+          '  We will continue assuming that --fpc-version-iphone-simulator is empty (using normal FPC version to compile for iPhone Simulator).' + NL +
+          '  Call with the correct --fpc-version-iphone-simulator on the command-line to get rid of this warning.');
+        CachedValue := '';
+      end;
+    end;
+  end;
+
+  Result := CachedValue;
+end;
 
 type
   TCleanDirectoryHelper = class
@@ -174,8 +218,8 @@ var
     if OS = iphonesim then
     begin
       IOS := true;
-      if FPCVersionForIPhoneSimulator <> '' then
-        FpcOptions.Add('-V' + FPCVersionForIPhoneSimulator);
+      if TFPCVersionForIPhoneSimulatorChecked.Value <> '' then
+        FpcOptions.Add('-V' + TFPCVersionForIPhoneSimulatorChecked.Value);
       {$ifdef DARWIN}
       FpcOptions.Add('-XR' + SimulatorSdk);
       {$endif}
@@ -443,7 +487,8 @@ begin
     RunCommandIndirPassthrough(WorkingDirectory, FpcExe, FpcOptions.ToArray, FpcOutput, FpcExitStatus);
     if FpcExitStatus <> 0 then
     begin
-      if Pos('Fatal: Internal error', FpcOutput) <> 0 then
+      if (Pos('Fatal: Internal error', FpcOutput) <> 0) or
+         (Pos('Error: Compilation raised exception internally', FpcOutput) <> 0) then
       begin
         Writeln('-------------------------------------------------------------');
         Writeln('It seems FPC crashed with a compiler error (Internal error). If you can reproduce this problem, please report it to http://bugs.freepascal.org/ ! We want to help FPC developers to fix this problem, and the only way to do it is to report it. If you need help creating a good bugreport, speak up on the FPC or Castle Game Engine mailing list.');

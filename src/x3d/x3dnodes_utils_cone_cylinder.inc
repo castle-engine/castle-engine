@@ -548,19 +548,19 @@ begin
     State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
-    State.SetLastNodes(vsCoordinate3, CoordNode, true);
+    State.VRML1State.SetOwnNode(vsCoordinate3, CoordNode);
 
     NormalNode := TNormalNode.Create('', BaseUrl);
-    State.SetLastNodes(vsNormal, NormalNode, true);
+    State.VRML1State.SetOwnNode(vsNormal, NormalNode);
 
     NormalBinding := TNormalBindingNode_1.Create('', BaseUrl);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
-    State.SetLastNodes(vsNormalBinding, NormalBinding, true);
+    State.VRML1State.SetOwnNode(vsNormalBinding, NormalBinding);
 
     TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
-    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
+    State.VRML1State.SetOwnNode(vsTextureCoordinate2, TexCoordNode);
 
     ShapeHints := TShapeHintsNode_1.Create('', BaseUrl);
     { For VRML 1.0, Cylinder is never solid. }
@@ -568,11 +568,11 @@ begin
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
     { Smooth everything. Not really needed, we use explicit normal node now. }
     ShapeHints.FdCreaseAngle.Value := 4;
-    State.SetLastNodes(vsShapeHints, ShapeHints, true);
+    State.VRML1State.SetOwnNode(vsShapeHints, ShapeHints);
 
     { calculate MaterialBinding node and MaterialIndex }
     MaterialBinding := TMaterialBindingNode_1.Create('', BaseUrl);
-    if State.LastNodes.MaterialBinding.FdValue.Value in
+    if State.VRML1State.MaterialBinding.FdValue.Value in
       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     begin
       MaterialIndex := IFS.FdMaterialIndex.Items;
@@ -582,7 +582,7 @@ begin
       MaterialIndex := nil;
       MaterialBinding.FdValue.Value := BIND_OVERALL;
     end;
-    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
+    State.VRML1State.SetOwnNode(vsMaterialBinding, MaterialBinding);
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
@@ -619,19 +619,19 @@ begin
     State := TX3DGraphTraverseState.CreateCopy(State);
 
     CoordNode := TCoordinate3Node_1.Create('', BaseUrl);
-    State.SetLastNodes(vsCoordinate3, CoordNode, true);
+    State.VRML1State.SetOwnNode(vsCoordinate3, CoordNode);
 
     NormalNode := TNormalNode.Create('', BaseUrl);
-    State.SetLastNodes(vsNormal, NormalNode, true);
+    State.VRML1State.SetOwnNode(vsNormal, NormalNode);
 
     NormalBinding := TNormalBindingNode_1.Create('', BaseUrl);
     { NormalBinding.value = PER_VERTEX means we use niPerVertexCoordIndexed,
       so coordIndex chooses the normal. }
     NormalBinding.FdValue.Value := BIND_PER_VERTEX;
-    State.SetLastNodes(vsNormalBinding, NormalBinding, true);
+    State.VRML1State.SetOwnNode(vsNormalBinding, NormalBinding);
 
     TexCoordNode := TTextureCoordinate2Node_1.Create('', BaseUrl);
-    State.SetLastNodes(vsTextureCoordinate2, TexCoordNode, true);
+    State.VRML1State.SetOwnNode(vsTextureCoordinate2, TexCoordNode);
 
     ShapeHints := TShapeHintsNode_1.Create('', BaseUrl);
     { For VRML 1.0, Cone is never solid. }
@@ -639,11 +639,11 @@ begin
     ShapeHints.FdvertexOrdering.Value := VERTORDER_COUNTERCLOCKWISE;
     { Smooth everything. Not really needed, we use explicit normal node now. }
     ShapeHints.FdCreaseAngle.Value := 4;
-    State.SetLastNodes(vsShapeHints, ShapeHints, true);
+    State.VRML1State.SetOwnNode(vsShapeHints, ShapeHints);
 
     { calculate MaterialBinding node and MaterialIndex }
     MaterialBinding := TMaterialBindingNode_1.Create('', BaseUrl);
-    if State.LastNodes.MaterialBinding.FdValue.Value in
+    if State.VRML1State.MaterialBinding.FdValue.Value in
       [BIND_PER_PART, BIND_PER_PART_INDEXED] then
     begin
       MaterialIndex := IFS.FdMaterialIndex.Items;
@@ -653,7 +653,7 @@ begin
       MaterialIndex := nil;
       MaterialBinding.FdValue.Value := BIND_OVERALL;
     end;
-    State.SetLastNodes(vsMaterialBinding, MaterialBinding, true);
+    State.VRML1State.SetOwnNode(vsMaterialBinding, MaterialBinding);
 
     CylinderCone_Proxy(IFS.FdCoordIndex.Items,
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,

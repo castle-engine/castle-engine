@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidComponents;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidServices;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -38,7 +38,7 @@ type
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
-    FIcons: TIconFileNames;
+    FIcons, FLaunchImages: TImageFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
     FStandaloneSource, FAndroidSource, FIOSSource, FPluginSource: string;
@@ -50,10 +50,9 @@ type
     FAndroidBuildToolsVersion: string;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
-    FAndroidComponents: TAndroidComponentList;
+    FAndroidServices: TAndroidServiceList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
-    function PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
     procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -74,7 +73,15 @@ type
       by ExtractTemplate that can extract a whole template directory.
 
       It can also be used directly to expand a single file. }
-    procedure ExtractTemplateFile(const SourceFileName, DestinationFileName, DestinationRelativeFileName: string);
+    procedure ExtractTemplateFile(
+      const SourceFileName, DestinationFileName, DestinationRelativeFileName: string;
+      const OverrideExisting: boolean);
+
+    { Generate a program/library file from template. }
+    procedure GeneratedSourceFile(
+      const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+      const CreateIfNecessary: boolean;
+      out RelativeResult, AbsoluteResult: string);
 
     { Android source specified in CastleEngineManifest.xml.
       Most code should use AndroidSourceFile instead, that can optionally
@@ -87,6 +94,19 @@ type
       auto-create iOS source file. }
     property IOSSource: string read FIOSSource;
     function IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+
+    { Standalone source specified in CastleEngineManifest.xml.
+      Most code should use StandaloneSourceFile instead, that can optionally
+      auto-create the source file. }
+    property StandaloneSource: string read FStandaloneSource;
+    function StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+
+    { Plugin source specified in CastleEngineManifest.xml.
+      Most code should use PluginSourceFile instead, that can optionally
+      auto-create the source file. }
+    property PluginSource: string read FPluginSource;
+    function PluginSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+    function PluginLibraryFile(const OS: TOS; const CPU: TCPU): string;
   public
     constructor Create;
     constructor Create(const APath: string);
@@ -104,6 +124,7 @@ type
     procedure DoClean;
     procedure DoAutoGenerateTextures;
     procedure DoAutoGenerateClean;
+    procedure DoGenerateProgram;
 
     { Detailed information about the project, read-only and useful for
       various project operations. }
@@ -120,17 +141,16 @@ type
     property Caption: string read FCaption;
     property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
-    property StandaloneSource: string read FStandaloneSource;
-    property PluginSource: string read FPluginSource;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
     property AndroidBuildToolsVersion: string read FAndroidBuildToolsVersion;
     property AndroidMinSdkVersion: Cardinal read FAndroidMinSdkVersion;
     property AndroidTargetSdkVersion: Cardinal read FAndroidTargetSdkVersion;
     property AndroidProjectType: TAndroidProjectType read FAndroidProjectType;
-    property Icons: TIconFileNames read FIcons;
+    property Icons: TImageFileNames read FIcons;
+    property LaunchImages: TImageFileNames read FLaunchImages;
     property SearchPaths: TStringList read FSearchPaths;
-    property AndroidComponents: TAndroidComponentList read FAndroidComponents;
+    property AndroidServices: TAndroidServiceList read FAndroidServices;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -263,6 +283,7 @@ constructor TCastleProject.Create(const APath: string);
       FStandaloneSource := FName + '.lpr';
       FVersionCode := DefautVersionCode;
       Icons.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
+      LaunchImages.BaseUrl := FilenameToURISafe(InclPathDelim(GetCurrentDir));
       FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
       FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
@@ -281,9 +302,9 @@ constructor TCastleProject.Create(const APath: string);
               [Name, Value, SReadableForm(Value[I])]);
       end;
 
-      procedure CheckQualifiedNameComponents(const QualifiedName: string);
+      procedure CheckQualifiedNameServices(const QualifiedName: string);
       var
-        Components: TStringList;
+        Services: TStringList;
         I: Integer;
       begin
         if (QualifiedName <> '') and
@@ -291,16 +312,16 @@ constructor TCastleProject.Create(const APath: string);
             (QualifiedName[Length(QualifiedName)] = '.')) then
           raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
 
-        Components := SplitString(QualifiedName, '.');
+        Services := SplitString(QualifiedName, '.');
         try
-          for I := 0 to Components.Count - 1 do
+          for I := 0 to Services.Count - 1 do
           begin
-            if Components[I] = '' then
-              raise Exception.CreateFmt('qualified_name must contain a number of non-empty components separated with dots: "%s"', [QualifiedName]);
-            if Components[I][1] in ['0'..'9'] then
-              raise Exception.CreateFmt('qualified_name components must not start with a digit: "%s"', [QualifiedName]);
+            if Services[I] = '' then
+              raise Exception.CreateFmt('qualified_name must contain a number of non-empty services separated with dots: "%s"', [QualifiedName]);
+            if Services[I][1] in ['0'..'9'] then
+              raise Exception.CreateFmt('qualified_name services must not start with a digit: "%s"', [QualifiedName]);
           end;
-        finally FreeAndNil(Components) end;
+        finally FreeAndNil(Services) end;
       end;
 
     begin
@@ -310,7 +331,7 @@ constructor TCastleProject.Create(const APath: string);
       { non-filename stuff: allow also dots }
       CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
       CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
-      CheckQualifiedNameComponents(QualifiedName);
+      CheckQualifiedNameServices(QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
@@ -339,6 +360,7 @@ constructor TCastleProject.Create(const APath: string);
         Writeln('Manifest file found: ' + ManifestFile);
       ManifestURL := FilenameToURISafe(ManifestFile);
       Icons.BaseUrl := ManifestURL;
+      LaunchImages.BaseUrl := ManifestURL;
 
       try
         URLReadXML(Doc, ManifestURL);
@@ -415,6 +437,19 @@ constructor TCastleProject.Create(const APath: string);
           finally FreeAndNil(ChildElements) end;
         end;
 
+        Element := Doc.DocumentElement.ChildElement('launch_images', false);
+        if Element <> nil then
+        begin
+          ChildElements := Element.ChildrenIterator('image');
+          try
+            while ChildElements.GetNext do
+            begin
+              ChildElement := ChildElements.Current;
+              LaunchImages.Add(ChildElement.AttributeString('path'));
+            end;
+          finally FreeAndNil(ChildElements) end;
+        end;
+
         FAndroidCompileSdkVersion := DefaultAndroidCompileSdkVersion;
         FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
         FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
@@ -438,7 +473,13 @@ constructor TCastleProject.Create(const APath: string);
 
           ChildElement := Element.ChildElement('components', false);
           if ChildElement <> nil then
-            FAndroidComponents.ReadCastleEngineManifest(ChildElement);
+          begin
+            FAndroidServices.ReadCastleEngineManifest(ChildElement);
+            WritelnWarning('Android', 'The name <components> is deprecated, use <services> now to refer to Android services');
+          end;
+          ChildElement := Element.ChildElement('services', false);
+          if ChildElement <> nil then
+            FAndroidServices.ReadCastleEngineManifest(ChildElement);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -523,10 +564,11 @@ begin
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
   FDependencies := [];
-  FIcons := TIconFileNames.Create;
+  FIcons := TImageFileNames.Create;
+  FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
-  FAndroidComponents := TAndroidComponentList.Create(true);
+  FAndroidServices := TAndroidServiceList.Create(true);
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -544,8 +586,9 @@ begin
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
   FreeAndNil(FIcons);
+  FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
-  FreeAndNil(FAndroidComponents);
+  FreeAndNil(FAndroidServices);
   inherited;
 end;
 
@@ -610,34 +653,33 @@ begin
       begin
         if Plugin then
         begin
-          MainSource := PluginSource;
+          MainSource := PluginSourceFile(false, true);
           if MainSource = '' then
             raise Exception.Create('plugin_source property for project not defined, cannot compile plugin version');
         end else
         begin
-          MainSource := StandaloneSource;
+          MainSource := StandaloneSourceFile(false, true);
           if MainSource = '' then
             raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
         end;
 
         if OS in AllWindowsOSes then
-          GenerateWindowsResources(@ReplaceMacros, Path, Icons, CPU, Plugin);
+          GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
 
         Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths);
 
         if Plugin then
         begin
-          SourceExe := InsertLibPrefix(ChangeFileExt(PluginSource, LibraryExtensionOS(OS)));
-          { "np" prefix is safest for plugin library files. }
-          DestExe := PluginCompiledFile(OS, CPU);
+          SourceExe := InsertLibPrefix(ChangeFileExt(MainSource, LibraryExtensionOS(OS)));
+          DestExe := PluginLibraryFile(OS, CPU);
         end else
         begin
-          SourceExe := ChangeFileExt(StandaloneSource, ExeExtensionOS(OS));
+          SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
           DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
         end;
         if not SameFileName(SourceExe, DestExe) then
         begin
-          { move exe to top-level (in case StandaloneSource is in subdirectory
+          { move exe to top-level (in case MainSource is in subdirectory
             like code/) and eventually rename to follow ExecutableName }
           Writeln('Moving ', SourceExe, ' to ', DestExe);
           CheckRenameFile(Path + SourceExe, Path + DestExe);
@@ -646,8 +688,9 @@ begin
   end;
 end;
 
-function TCastleProject.PluginCompiledFile(const OS: TOS; const CPU: TCPU): string;
+function TCastleProject.PluginLibraryFile(const OS: TOS; const CPU: TCPU): string;
 begin
+  { "np" prefix is safest for plugin library files. }
   Result := ExtractFilePath(ExecutableName) + 'np' +
     DeleteFileExt(ExtractFileName(ExecutableName)) + '.' +
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
@@ -854,7 +897,7 @@ procedure TCastleProject.DoInstall(const Target: TTarget;
   var
     PluginFile, Source, Target: string;
   begin
-    PluginFile := PluginCompiledFile(OS, CPU);
+    PluginFile := PluginLibraryFile(OS, CPU);
     Source := InclPathDelim(Path) + PluginFile;
     Target := TargetPathSystemWide + PluginFile;
     try
@@ -884,7 +927,7 @@ begin
   else
   if Plugin and (OS in AllWindowsOSes) then
     InstallWindowsPluginRegistry(Name, QualifiedName, Path,
-      PluginCompiledFile(OS, CPU), Version, Author)
+      PluginLibraryFile(OS, CPU), Version, Author)
   else
   {$ifdef UNIX}
   if Plugin and (OS in AllUnixOSes) then
@@ -1010,33 +1053,36 @@ begin
   Result := SReplaceChars(Name, AllChars - ['a'..'z', 'A'..'Z', '0'..'9'], '_');
 end;
 
+procedure TCastleProject.GeneratedSourceFile(
+  const TemplateRelativeURL, TargetRelativePath, ErrorMessageMissingGameUnits: string;
+  const CreateIfNecessary: boolean;
+  out RelativeResult, AbsoluteResult: string);
+var
+  TemplateFile: string;
+begin
+  AbsoluteResult := OutputPath(Path, CreateIfNecessary) + TargetRelativePath;
+  if CreateIfNecessary then
+  begin
+    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativeURL));
+    if FGameUnits = '' then
+      raise Exception.Create(ErrorMessageMissingGameUnits);
+    ExtractTemplateFile(TemplateFile, AbsoluteResult, TemplateRelativeURL, true);
+  end;
+  if not IsPrefix(Path, AbsoluteResult, true) then
+    raise EInternalError.CreateFmt('Something is wrong with the temporary source location "%s", it is not within the project "%s"',
+      [AbsoluteResult, Path]);
+  RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
+end;
+
 function TCastleProject.AndroidSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 
   procedure InvalidAndroidSource(const FinalAndroidSource: string);
-  var
-    SError: string;
   begin
-    SError := 'The android source library in "' + FinalAndroidSource + '" must export the necessary JNI functions for our integration to work. By scannig the source, it seems it does not. Change the source code to this:' +NL+
-      '---------------------------------------------------------------------' +NL+
-      'library ' + ChangeFileExt(ExtractFileName(FinalAndroidSource), '') + ';' +NL;
-    if AndroidProjectType = apIntegrated then
-      SError +=
-        'uses CastleAndroidNativeAppGlue, Game, CastleMessaging;' +NL+
-        'exports' +NL+
-        '  Java_net_sourceforge_castleengine_MainActivity_jniMessage,' +NL+
-        '  ANativeActivity_onCreate;' +NL+
-        'end.' +NL else
-      SError +=
-        'uses CastleAndroidNativeAppGlue, Game;' +NL+
-        'exports ANativeActivity_onCreate;' +NL+
-        'end.' +NL;
-    SError +=
-      '---------------------------------------------------------------------';
-    raise Exception.Create(SError);
+    raise Exception.Create('The android source library in "' + FinalAndroidSource + '" must export the necessary JNI functions for our integration to work. See the examples in "castle-engine/tools/build-tool/data/android/library_template_xxx.lpr".' + NL + 'It''s simplest to fix this error by removing the "android_source" from CastleEngineManifest.xml, and using only the "game_units" attribute in CastleEngineManifest.xml. Then the correct Android code will be auto-generated for you.');
   end;
 
 var
-  AndroidSourceContents, TemplateFile, RelativeResult, AbsoluteResult: string;
+  AndroidSourceContents, RelativeResult, AbsoluteResult, TemplateRelativeURL: string;
 begin
   { calculate RelativeResult, AbsoluteResult }
   if AndroidSource <> '' then
@@ -1045,21 +1091,14 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    AbsoluteResult := OutputPath(Path, CreateIfNecessary) + 'android' + PathDelim + NamePascal + '_android.lpr';
-    if CreateIfNecessary then
-    begin
-      if AndroidProjectType = apIntegrated then
-        TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_integrated.lpr'))
-      else
-        TemplateFile := URIToFilenameSafe(ApplicationData('android/library_template_base.lpr'));
-      if FGameUnits = '' then
-        raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an Android project. Alternatively, you can specify android_source="..." in the CastleEngineManifest.xml, to explicitly indicate the Android library source code.');
-      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'android/library_template.lpr');
-    end;
-    if not IsPrefix(Path, AbsoluteResult, true) then
-      raise EInternalError.CreateFmt('Something is wrong with the temporary Android source location "%s", it is not within the project "%s"',
-        [AbsoluteResult, Path]);
-    RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
+    if AndroidProjectType = apIntegrated then
+      TemplateRelativeURL := 'android/library_template_integrated.lpr'
+    else
+      TemplateRelativeURL := 'android/library_template_base.lpr';
+    GeneratedSourceFile(TemplateRelativeURL,
+      'android' + PathDelim + NamePascal + '_android.lpr',
+      'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an Android project. Alternatively, you can specify android_source="..." in the CastleEngineManifest.xml, to explicitly indicate the Android library source code.',
+      CreateIfNecessary, RelativeResult, AbsoluteResult);
   end;
 
   // for speed, do not check correctness if CreateIfNecessary = false
@@ -1084,7 +1123,7 @@ end;
 
 function TCastleProject.IOSSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
 var
-  TemplateFile, RelativeResult, AbsoluteResult: string;
+  RelativeResult, AbsoluteResult: string;
 begin
   if IOSSource <> '' then
   begin
@@ -1092,18 +1131,54 @@ begin
     AbsoluteResult := Path + RelativeResult;
   end else
   begin
-    AbsoluteResult := OutputPath(Path) + 'ios' + PathDelim + NamePascal + '_ios.lpr';
-    if CreateIfNecessary then
-    begin
-      TemplateFile := URIToFilenameSafe(ApplicationData('ios/library_template.lpr'));
-      if FGameUnits = '' then
-        raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an iOS project. Alternatively, you can specify ios_source="..." in the CastleEngineManifest.xml, to explicitly indicate the iOS library source code.');
-      ExtractTemplateFile(TemplateFile, AbsoluteResult, 'ios/library_template.lpr');
-    end;
-    if not IsPrefix(Path, AbsoluteResult, true) then
-      raise EInternalError.CreateFmt('Something is wrong with the temporary iOS source location "%s", it is not within the project "%s"',
-        [AbsoluteResult, Path]);
-    RelativeResult := PrefixRemove(Path, AbsoluteResult, true);
+    GeneratedSourceFile('ios/library_template.lpr',
+      'ios' + PathDelim + NamePascal + '_ios.lpr',
+      'You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create an iOS project. Alternatively, you can specify ios_source="..." in the CastleEngineManifest.xml, to explicitly indicate the iOS library source code.',
+      CreateIfNecessary, RelativeResult, AbsoluteResult);
+  end;
+
+  if AbsolutePath then
+    Result := AbsoluteResult
+  else
+    Result := RelativeResult;
+end;
+
+function TCastleProject.StandaloneSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+var
+  RelativeResult, AbsoluteResult: string;
+begin
+  if StandaloneSource <> '' then
+  begin
+    RelativeResult := StandaloneSource;
+    AbsoluteResult := Path + RelativeResult;
+  end else
+  begin
+    GeneratedSourceFile('standalone/program_template.lpr',
+      'standalone' + PathDelim + NamePascal + '_standalone.lpr',
+      'You must specify game_units or standalone_source in the CastleEngineManifest.xml to compile for the standalone platform',
+      CreateIfNecessary, RelativeResult, AbsoluteResult);
+  end;
+
+  if AbsolutePath then
+    Result := AbsoluteResult
+  else
+    Result := RelativeResult;
+end;
+
+function TCastleProject.PluginSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
+var
+  RelativeResult, AbsoluteResult: string;
+begin
+  if PluginSource <> '' then
+  begin
+    RelativeResult := PluginSource;
+    AbsoluteResult := Path + RelativeResult;
+  end else
+  begin
+    GeneratedSourceFile('plugin/library_template.lpr',
+      'plugin' + PathDelim + NamePascal + '_plugin.lpr',
+      'You must specify game_units or plugin_source in the CastleEngineManifest.xml to compile a plugin',
+      CreateIfNecessary, RelativeResult, AbsoluteResult);
   end;
 
   if AbsolutePath then
@@ -1163,11 +1238,9 @@ begin
 
   DeletedFiles := 0;
 
-  if StandaloneSource <> '' then
-  begin
-    TryDeleteFile(ChangeFileExt(ExecutableName, ''));
-    TryDeleteFile(ChangeFileExt(ExecutableName, '.exe'));
-  end;
+  TryDeleteFile(ChangeFileExt(ExecutableName, ''));
+  TryDeleteFile(ChangeFileExt(ExecutableName, '.exe'));
+
   if AndroidSource <> '' then
     TryDeleteAbsoluteFile(AndroidLibraryFile);
   if IOSSource <> '' then
@@ -1186,7 +1259,7 @@ begin
     for OS in TOS do
       for CPU in TCPU do
         if OSCPUSupported[OS, CPU] then
-          TryDeleteFile(PluginCompiledFile(OS, CPU));
+          TryDeleteFile(PluginLibraryFile(OS, CPU));
 
   { compilation and editor backups }
   DeleteFilesRecursive('*~'); // editor backup, e.g. Emacs
@@ -1215,6 +1288,27 @@ end;
 procedure TCastleProject.DoAutoGenerateClean;
 begin
   AutoGenerateClean(Self);
+end;
+
+procedure TCastleProject.DoGenerateProgram;
+
+  procedure Generate(const Ext: string);
+  var
+    TemplateRelativePath, TemplateFile, TargetFile: string;
+  begin
+    TemplateRelativePath := 'standalone/program_template.' + Ext;
+    TemplateFile := URIToFilenameSafe(ApplicationData(TemplateRelativePath));
+    TargetFile := Path + NamePascal + '_standalone.' + Ext;
+    ExtractTemplateFile(TemplateFile, TargetFile, TemplateRelativePath, true);
+    if Verbose then
+      Writeln('Generated ', TargetFile);
+  end;
+
+begin
+  if FGameUnits = '' then
+    raise Exception.Create('You must specify game_units="..." in the CastleEngineManifest.xml to enable build tool to create a standalone project');
+  Generate('lpr');
+  Generate('lpi');
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
@@ -1312,12 +1406,12 @@ begin
     Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
     Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
     Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
-    for I := 0 to AndroidComponents.Count - 1 do
-      for J := 0 to AndroidComponents[I].Parameters.Count - 1 do
+    for I := 0 to AndroidServices.Count - 1 do
+      for J := 0 to AndroidServices[I].Parameters.Count - 1 do
         Macros.Add('ANDROID.' +
-          UpperCase(AndroidComponents[I].Name) + '.' +
-          UpperCase(AndroidComponents[I].Parameters.Keys[J]),
-          AndroidComponents[I].Parameters.Data[J]);
+          UpperCase(AndroidServices[I].Name) + '.' +
+          UpperCase(AndroidServices[I].Parameters.Keys[J]),
+          AndroidServices[I].Parameters.Data[J]);
 
     // iOS specific stuff }
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
@@ -1370,15 +1464,18 @@ begin
 
   DestinationFileName := ExtractTemplateDestinationPath + DestinationRelativeFileName;
 
-  ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName, DestinationRelativeFileName);
+  ExtractTemplateFile(FileInfo.AbsoluteName, DestinationFileName,
+    DestinationRelativeFileName, false);
 end;
 
-procedure TCastleProject.ExtractTemplateFile(const SourceFileName, DestinationFileName, DestinationRelativeFileName: string);
+procedure TCastleProject.ExtractTemplateFile(
+  const SourceFileName, DestinationFileName, DestinationRelativeFileName: string;
+  const OverrideExisting: boolean);
 var
   DestinationRelativeFileNameSlashes, Contents, Ext: string;
   BinaryFile: boolean;
 begin
-  if FileExists(DestinationFileName) then
+  if (not OverrideExisting) and FileExists(DestinationFileName) then
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);

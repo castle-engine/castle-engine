@@ -128,7 +128,7 @@ var
   { Some utility procedures PackageXxx below.
     They work just like Xxx, but target filename should not contain
     prefix AndroidProjectPath. They avoid overwriting stuff
-    already existing (in case multiple components
+    already existing (in case multiple services
     contain the same path inside), but warn about it. }
 
   procedure PackageCheckForceDirectories(const Dirs: string);
@@ -142,7 +142,7 @@ var
     if not FileExists(AndroidProjectPath + FileName) then
       SaveImage(Image, FilenameToURISafe(AndroidProjectPath + FileName))
     else
-      WritelnWarning('Android', 'Android package file specified by multiple components: ' + FileName);
+      WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileName);
   end;
 
   procedure PackageSmartCopyFile(const FileFrom, FileTo: string);
@@ -151,7 +151,7 @@ var
     if not FileExists(AndroidProjectPath + FileTo) then
       SmartCopyFile(FileFrom, AndroidProjectPath + FileTo)
     else
-      WritelnWarning('Android', 'Android package file specified by multiple components: ' + FileTo);
+      WritelnWarning('Android', 'Android package file specified by multiple services: ' + FileTo);
   end;
 
 {
@@ -162,7 +162,7 @@ var
       PackageCheckForceDirectories(ExtractFilePath(FileTo));
       StringToFile(FileTo, Contents);
     end else
-      WritelnWarning('Android package file specified by multiple components: ' + FileTo);
+      WritelnWarning('Android package file specified by multiple services: ' + FileTo);
   end;
 }
 
@@ -171,11 +171,11 @@ var
   var
     DestinationPath: string;
 
-    procedure ExtractComponent(const ComponentName: string);
+    procedure ExtractService(const ServiceName: string);
     var
       TemplatePath: string;
     begin
-      TemplatePath := 'android/integrated-components/' + ComponentName;
+      TemplatePath := 'android/integrated-services/' + ServiceName;
       Project.ExtractTemplate(TemplatePath, DestinationPath);
     end;
 
@@ -198,17 +198,17 @@ var
 
     if Project.AndroidProjectType = apIntegrated then
     begin
-      { add declared components }
-      for I := 0 to Project.AndroidComponents.Count - 1 do
-        ExtractComponent(Project.AndroidComponents[I].Name);
+      { add declared services }
+      for I := 0 to Project.AndroidServices.Count - 1 do
+        ExtractService(Project.AndroidServices[I].Name);
 
-      { add automatic components }
+      { add automatic services }
       if (depSound in Project.Dependencies) and
-         not Project.AndroidComponents.HasComponent('sound') then
-        ExtractComponent('sound');
+         not Project.AndroidServices.HasService('sound') then
+        ExtractService('sound');
       if (depOggVorbis in Project.Dependencies) and
-         not Project.AndroidComponents.HasComponent('ogg_vorbis') then
-        ExtractComponent('ogg_vorbis');
+         not Project.AndroidServices.HasService('ogg_vorbis') then
+        ExtractService('ogg_vorbis');
     end;
   end;
 

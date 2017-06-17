@@ -56,7 +56,7 @@ function TIndexedTriangleMeshNode_1.TexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
-  ATexCoord := State.LastNodes.TextureCoordinate2;
+  ATexCoord := State.VRML1State.TextureCoordinate2;
 end;
 
 procedure TRotationXYZNode.CreateNode;

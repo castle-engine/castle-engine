@@ -26,6 +26,19 @@
 #ifndef CGE_LIBRARY_INCLUDED
 #define CGE_LIBRARY_INCLUDED
 
+#ifdef __GNUC__
+#  ifdef __i386
+#    define CDECL __attribute__ ((__cdecl__))
+#  else
+// On other platforms (like x86_64), cdecl is ignored
+// https://mail.python.org/pipermail/expat-bugs/2004-January/001792.html
+// https://groups.google.com/forum/#!topic/comp.os.linux.development.apps/7Dd7ge9OgKI
+#    define CDECL
+#  endif
+#else
+#  define CDECL __cdecl
+#endif
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -197,7 +210,7 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Period      = 190,
 };
 
-typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
+typedef int (CDECL *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 
 //-----------------------------------------------------------------------------

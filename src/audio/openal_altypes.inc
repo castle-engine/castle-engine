@@ -82,7 +82,9 @@ const
    * Indicate the type of AL_SOURCE.
    * Sources can be spatialized
    }
-  AL_SOURCE_TYPE = $0200;
+  // TODO: constant conflict between OpenAL 1.1 and sample implementation (1.0),
+  // sample implementation is below.
+  //AL_SOURCE_TYPE = $0200;
 
   {* Indicate Source has relative coordinates. }
   AL_SOURCE_RELATIVE = $0202;
@@ -141,7 +143,9 @@ const
    * Range:   [AL_TRUE, AL_FALSE]
    * Default: FALSE.
    }
-  AL_STREAMING = $1008;
+  // TODO: constant conflict between OpenAL 1.1 and sample implementation (1.0),
+  // sample implementation is below.
+  //AL_STREAMING = $1008;
 
   {*
    * Indicate the buffer to provide sound samples.
@@ -260,6 +264,45 @@ const
    * Range:  0.0 - +inf
    }
   AL_MAX_DISTANCE = $1023;
+
+  {** Source buffer position, in seconds.
+
+    Probably only since OpenAL 1.1. *}
+  AL_SEC_OFFSET = $1024;
+
+  {** Source buffer position, in sample frames.
+
+    Probably only since OpenAL 1.1. *}
+  AL_SAMPLE_OFFSET = $1025;
+
+  {** Source buffer position, in bytes.
+
+    Probably only since OpenAL 1.1. *}
+  AL_BYTE_OFFSET = $1026;
+
+  {**
+   * Source type (query only).
+   * Type:  ALint
+   * Range: [AL_STATIC, AL_STREAMING, AL_UNDETERMINED]
+   *
+   * A Source is Static if a Buffer has been attached using AL_BUFFER.
+   *
+   * A Source is Streaming if one or more Buffers have been attached using
+   * alSourceQueueBuffers.
+   *
+   * A Source is Undetermined when it has the NULL buffer attached using
+   * AL_BUFFER.
+   *}
+  // TODO: constant conflict between OpenAL 1.1 and sample implementation,
+  // 1.1 is below?
+  //AL_SOURCE_TYPE = $1027;
+
+  {** Source type value. *}
+  AL_STATIC       = $1028;
+  // TODO: constant conflict between OpenAL 1.1 and sample implementation,
+  // 1.1 is below?
+  //AL_STREAMING    = $1029;
+  AL_UNDETERMINED = $1030;
 
   {*
    * Sound samples: frequency, in units of Hertz [Hz].
@@ -459,4 +502,3 @@ const
   { Ogg Vorbis format.
     See http://icculus.org/alextreg/index.php?operation=op_showext&extname=AL_EXT_vorbis }
   AL_FORMAT_VORBIS_EXT = $10003;
-

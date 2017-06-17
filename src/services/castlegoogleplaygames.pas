@@ -52,7 +52,7 @@ type
       @item(To include the necessary integration code in your Android project,
         declare your Android project type as "integrated" with
         the "google_play_games" component inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Components-Integrated-with-Castle-Game-Engine .)
+        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .)
     ) }
   TGooglePlayGames = class(TComponent)
   private
@@ -278,7 +278,7 @@ end;
 
 procedure TGooglePlayGames.ReinitializeJavaActivity(Sender: TObject);
 begin
-  { in case Java activity got killed and is created again, reinitialize components }
+  { in case Java activity got killed and is created again, reinitialize services }
   if FInitialized then
   begin
     FSignedIn := false;

@@ -97,7 +97,7 @@ type
 function CreateTemporaryDir: string;
 
 type
-  TIconFileNames = class(TCastleStringList)
+  TImageFileNames = class(TCastleStringList)
   private
     FBaseUrl: string;
   public
@@ -328,9 +328,9 @@ begin
     Writeln('Created temporary dir for package: ' + Result);
 end;
 
-{ TIconFileNames ------------------------------------------------------------- }
+{ TImageFileNames ------------------------------------------------------------- }
 
-function TIconFileNames.FindExtension(const Extensions: array of string): string;
+function TImageFileNames.FindExtension(const Extensions: array of string): string;
 var
   I: Integer;
 begin
@@ -340,7 +340,7 @@ begin
       Exit(Strings[I]);
 end;
 
-function TIconFileNames.FindReadable: TCastleImage;
+function TImageFileNames.FindReadable: TCastleImage;
 var
   I: Integer;
   MimeType, URL: string;
