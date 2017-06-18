@@ -35,7 +35,7 @@
     <Description Value="Castle Game Engine - base package. Components and units not dependent on CastleWindow or Lazarus LCL. You can install this package in Lazarus, it's required by all other programs and packages that are part of Castle Game Engine."/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
-    <Version Major="6" Minor="1"/>
+    <Version Major="6" Minor="2"/>
     <Files Count="643">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
