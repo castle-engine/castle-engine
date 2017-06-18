@@ -320,6 +320,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternal3ds.pas');
     P.Targets.AddUnit('x3dloadinternalspine.pas');
+    P.Targets.AddUnit('x3dloadinternalstl.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('x3dnodes.pas');
     P.Targets.AddUnit('x3dtime.pas');
