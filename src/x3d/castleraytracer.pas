@@ -17,6 +17,7 @@
 unit CastleRayTracer;
 
 {$I castleconf.inc}
+{$I octreeconf.inc}
 
 { TODO:
   - for classic raytracer do shadow cache
@@ -642,7 +643,12 @@ var
       TriangleToIgnore, IgnoreMarginAtStart, nil);
     if IntersectNode = nil then Exit(SceneBackgroundColor);
 
-    IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
+    IntersectNormal :=
+      {$ifdef CONSERVE_TRIANGLE_MEMORY}
+      Vector3SingleCut(IntersectNode^.World.Plane)
+      {$else}
+      IntersectNode^.INormalWorldSpace(Intersection)
+      {$endif};
 
     MaterialInfo := IntersectNode^.MaterialInfo;
     if MaterialInfo <> nil then
@@ -655,9 +661,14 @@ var
       MaterialTransparency := TMaterialInfo.DefaultTransparency;
     end;
 
-    DiffuseTextureColor := GetDiffuseTexture(
-      IntersectNode^.State.DiffuseAlphaTexture,
-      IntersectNode^.ITexCoord(Intersection));
+    DiffuseTextureColor :=
+      {$ifdef CONSERVE_TRIANGLE_MEMORY}
+      WhiteRGB
+      {$else}
+      GetDiffuseTexture(
+        IntersectNode^.State.DiffuseAlphaTexture,
+        IntersectNode^.ITexCoord(Intersection))
+      {$endif};
 
     Result := Emission(IntersectNode^.State.MaterialInfo, InitialDepth <> 0);
     with IntersectNode^ do
@@ -1220,7 +1231,12 @@ const
           mala wartosc). }
         if Weights[ck] > SingleEqualityEpsilon then
         begin
-          IntersectNormal := IntersectNode^.INormalWorldSpace(Intersection);
+          IntersectNormal :=
+            {$ifdef CONSERVE_TRIANGLE_MEMORY}
+            Vector3SingleCut(IntersectNode^.World.Plane)
+            {$else}
+            IntersectNode^.INormalWorldSpace(Intersection)
+            {$endif};
           { choose normal at Intersection pointing in the direction of RayOrigin }
           IntersectNormal := PlaneDirNotInDirection(IntersectNormal, RayDirection);
 
