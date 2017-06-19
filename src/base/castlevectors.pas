@@ -700,11 +700,13 @@ type
 
   @groupBegin }
 function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean; overload;
-function TryMatrixInverse(const M: TMatrix2Double; out MInverse: TMatrix2Double): boolean; overload;
 function TryMatrixInverse(const M: TMatrix3Single; out MInverse: TMatrix3Single): boolean; overload;
-function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double): boolean; overload;
 function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean; overload;
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+function TryMatrixInverse(const M: TMatrix2Double; out MInverse: TMatrix2Double): boolean; overload;
+function TryMatrixInverse(const M: TMatrix3Double; out MInverse: TMatrix3Double): boolean; overload;
 function TryMatrixInverse(const M: TMatrix4Double; out MInverse: TMatrix4Double): boolean; overload;
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 { @groupEnd }
 
 { Convert ModelView matrix to a Normal matrix, just like 3D graphic libraries do.
@@ -749,6 +751,7 @@ function MatrixDet2x2(const a, b, c, d: Single): Single;
 {$I castlevectors_integer.inc}
 {$I castlevectors_cardinal.inc}
 {$I castlevectors_single.inc}
+{$I castlevectors_double.inc}
 
 {$define TScalar := Single}
 {$define TVector2 := TVector2Single}
@@ -773,6 +776,7 @@ function MatrixDet2x2(const a, b, c, d: Single): Single;
 {$define Vector3 := Vector3Single}
 {$I castlevectors_generic_float.inc}
 
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
 {$define TScalar := Double}
 {$define TVector2 := TVector2Double}
 {$define TVector3 := TVector3Double}
@@ -795,6 +799,7 @@ function MatrixDet2x2(const a, b, c, d: Single): Single;
 {$define TVector4_ := TVector4_Double}
 {$define Vector3 := Vector3Double}
 {$I castlevectors_generic_float.inc}
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 {$undef read_interface}
 
@@ -819,6 +824,7 @@ end;
 {$I castlevectors_integer.inc}
 {$I castlevectors_cardinal.inc}
 {$I castlevectors_single.inc}
+{$I castlevectors_double.inc}
 
 {$define TScalar := Single}
 {$define TVector2 := TVector2Single}
@@ -843,6 +849,7 @@ end;
 {$define Vector3 := Vector3Single}
 {$I castlevectors_generic_float.inc}
 
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
 {$define TScalar := Double}
 {$define TVector2 := TVector2Double}
 {$define TVector3 := TVector3Double}
@@ -865,6 +872,7 @@ end;
 {$define TVector4_ := TVector4_Double}
 {$define Vector3 := Vector3Double}
 {$I castlevectors_generic_float.inc}
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 { TVector3SingleList ----------------------------------------------------- }
 
@@ -2101,6 +2109,11 @@ begin
   result := a * d - b * c;
 end;
 
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+
+{ When CASTLE_HAS_DOUBLE_PRECISION is not defined, use slower implementations
+  of TryMatrixInverse, that convert to Double precision. }
+
 function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
 var
   D: Double;
@@ -2175,6 +2188,41 @@ begin
   if Result then
     MInverse := MatrixInverse(M, D);
 end;
+{$else}
+
+{ When CASTLE_HAS_DOUBLE_PRECISION is not defined, use simpler implementations
+  of TryMatrixInverse, that stay within Single precision. }
+
+function TryMatrixInverse(const M: TMatrix2Single; out MInverse: TMatrix2Single): boolean;
+var
+  D: Single;
+begin
+  D := MatrixDeterminant(M);
+  Result := not Zero(D);
+  if Result then
+    MInverse := MatrixInverse(M, D);
+end;
+
+function TryMatrixInverse(const M: TMatrix3Single; out MInverse: TMatrix3Single): boolean;
+var
+  D: Single;
+begin
+  D := MatrixDeterminant(M);
+  Result := not Zero(D);
+  if Result then
+    MInverse := MatrixInverse(M, D);
+end;
+
+function TryMatrixInverse(const M: TMatrix4Single; out MInverse: TMatrix4Single): boolean;
+var
+  D: Single;
+begin
+  D := MatrixDeterminant(M);
+  Result := not Zero(D);
+  if Result then
+    MInverse := MatrixInverse(M, D);
+end;
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 function ModelViewToNormalMatrix(const M: TMatrix4Single): TMatrix3Single;
 var

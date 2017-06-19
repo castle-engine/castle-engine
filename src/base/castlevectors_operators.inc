@@ -144,20 +144,12 @@ operator - (const m1:Tmatrix3_double_data) : Tmatrix3_double_data;
 operator - (const m1:Tmatrix4_single_data) : Tmatrix4_single_data;
 operator - (const m1:Tmatrix4_double_data) : Tmatrix4_double_data;
 
-operator * (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
-operator * (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator * (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
-operator * (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator * (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
-operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
+{ Note: matrix * matrix and matrix * vector multiplication
+  is inside castlevectors_generic_float.inc.
 
-{Matrix/vector operations}
-operator * (const m:Tmatrix2_single_data;const v:Tvector2_single_data) : Tvector2_single_data;
-operator * (const m:Tmatrix2_double_data;const v:Tvector2_double_data) : Tvector2_double_data;
-operator * (const m:Tmatrix3_single_data;const v:Tvector3_single_data) : Tvector3_single_data;
-operator * (const m:Tmatrix3_double_data;const v:Tvector3_double_data) : Tvector3_double_data;
-operator * (const m:Tmatrix4_single_data;const v:Tvector4_single_data) : Tvector4_single_data;
-operator * (const m:Tmatrix4_double_data;const v:Tvector4_double_data) : Tvector4_double_data;
+  We do not use matrix multiplication code from FPC Matrix unit here,
+  as their matrices are transposed compared to ours.
+  Instead we use our own code, adjusted from MatrixMult implementation. }
 
 {Matrix/scalar operations}
 operator * (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;

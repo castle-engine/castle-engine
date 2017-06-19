@@ -213,4 +213,14 @@
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
+{ Double precision ----------------------------------------------------------- }
+
+{ Define this to have an additional version of many float routines
+  in CastleVectors, CastleTriangles unit,
+  working on vectors, matrices and triangles with Double precision.
+
+  TODO: X3DFields, and units on top of it, will not compile with
+  CASTLE_HAS_DOUBLE_PRECISION defined now. }
+{$define CASTLE_HAS_DOUBLE_PRECISION}
+
 {$endif not CASTLE_CONF_INCLUDED}

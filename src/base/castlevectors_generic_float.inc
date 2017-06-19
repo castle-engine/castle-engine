@@ -773,9 +773,17 @@ function MatrixMultVector(const m: TMatrix2; const v: TVector2): TVector2; overl
 function MatrixMultVector(const m: TMatrix3; const v: TVector3): TVector3; overload;
 function MatrixMultVector(const m: TMatrix4; const v: TVector4): TVector4; overload;
 
+operator * (const m: Tmatrix2; const v: Tvector2): Tvector2;
+operator * (const m: Tmatrix3; const v: Tvector3): Tvector3;
+operator * (const m: Tmatrix4; const v: Tvector4): Tvector4;
+
 function MatrixMult(const m1, m2: TMatrix2): TMatrix2; overload;
 function MatrixMult(const m1, m2: TMatrix3): TMatrix3; overload;
 function MatrixMult(const m1, m2: TMatrix4): TMatrix4; overload;
+
+operator * (const m1, m2: TMatrix2): TMatrix2;
+operator * (const m1, m2: TMatrix3): TMatrix3;
+operator * (const m1, m2: TMatrix4): TMatrix4;
 
 function MatrixRow(const m: TMatrix2; const Row: Integer): TVector2; overload;
 function MatrixRow(const m: TMatrix3; const Row: Integer): TVector3; overload;
@@ -3042,6 +3050,21 @@ begin
   Result[1] := M[0, 1] * V[0] + M[1, 1] * V[1];
 end;
 
+operator * (const m: Tmatrix2; const v: Tvector2): Tvector2;
+begin
+  Result := MatrixMultVector(M, V);
+end;
+
+operator * (const m: Tmatrix3; const v: Tvector3): Tvector3;
+begin
+  Result := MatrixMultVector(M, V);
+end;
+
+operator * (const m: Tmatrix4; const v: Tvector4): Tvector4;
+begin
+  Result := MatrixMultVector(M, V);
+end;
+
 function MatrixMult(const m1, m2: TMatrix4): TMatrix4;
 {var i, j, k: integer;}
 begin
@@ -3092,6 +3115,21 @@ begin
   Result[1, 0] := m1[0, 0] * m2[1, 0] + m1[1, 0] * m2[1, 1];
   Result[0, 1] := m1[0, 1] * m2[0, 0] + m1[1, 1] * m2[0, 1];
   Result[1, 1] := m1[0, 1] * m2[1, 0] + m1[1, 1] * m2[1, 1];
+end;
+
+operator * (const m1, m2: TMatrix2): TMatrix2;
+begin
+  Result := MatrixMult(M1, M2);
+end;
+
+operator * (const m1, m2: TMatrix3): TMatrix3;
+begin
+  Result := MatrixMult(M1, M2);
+end;
+
+operator * (const m1, m2: TMatrix4): TMatrix4;
+begin
+  Result := MatrixMult(M1, M2);
 end;
 
 { matrix transforms for 3D graphics  ----------------------------------------- }

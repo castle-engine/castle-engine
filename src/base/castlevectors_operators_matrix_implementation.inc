@@ -110,29 +110,6 @@ begin
 {$endif}
 end;
 
-{ We do not use matrix multiplication code from FPC Matrix unit here,
-  as their matrices are transposed compared to ours.
-  Instead we use our own code, adjusted from MatrixMult implementation. }
-operator * (const m1,m2:objectname) : objectname;
-begin
-  { Note that we don't use the implementation of this from FPC Matrix unit,
-    as our matrices are transposed. Also, our MatrixMultVector is already
-    implemented. }
-  Result := MatrixMult(M1, M2);
-end;
-
-{*****************************************************************************
-                           Vector/matrix operations
-*****************************************************************************}
-
-operator * (const m:objectname;const v:vectorcompanion) : vectorcompanion;
-begin
-  { Note that we don't use the implementation of this from FPC Matrix unit,
-    as our matrices are transposed. Also, our MatrixMultVector is already
-    implemented. }
-  Result := MatrixMultVector(M, V);
-end;
-
 {*****************************************************************************
                            Matrix/scalar operations
 *****************************************************************************}
@@ -209,4 +186,3 @@ begin
   result[3,3]:=m[3,3]/x;
 {$endif}
 end;
-

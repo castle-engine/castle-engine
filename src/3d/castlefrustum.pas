@@ -140,7 +140,9 @@ type
       @groupBegin
     }
     procedure CalculatePoints(out FrustumPoints: TFrustumPointsSingle); overload;
+    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     procedure CalculatePoints(out FrustumPoints: TFrustumPointsDouble); overload;
+    {$endif CASTLE_HAS_DOUBLE_PRECISION}
     { @groupEnd }
 
     { Checks for collision between frustum and sphere.
@@ -366,6 +368,7 @@ begin
   end;
 end;
 
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
 var
   Camera: TVector3Double;
@@ -408,6 +411,7 @@ begin
     FrustumPoints[7].W := 0;
   end;
 end;
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 function TFrustum.SphereCollisionPossible(
   const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
