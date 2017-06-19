@@ -13,10 +13,989 @@
   ----------------------------------------------------------------------------
 }
 
-{ Implementation of CastleVectors for both floating-point types
-  (Single and Double). This is included two times within castlevectors.pas
-  implementation, with macros like TVector3 and TScalar
-  defined for appropriate floating-point types. }
+{ Interface and implementation of CastleVectors for a one floating-point precision,
+  like Single or Double.
+
+  Before including this file, define types like TScalar and TVector3 to something like
+  - Single and TVector3Single, or
+  - Double and TVector3Double.
+
+  This file will define (and implement) many vector, matrix and geometric functions
+  using these types. }
+
+{$ifdef read_interface}
+
+{ Subtract two vectors.
+
+  Versions *Var place result back into the 1st vector,
+  like "-=" operator. Are @italic(very very slightly) faster.
+
+  @groupBegin }
+function VectorSubtract(const V1, V2: TVector2): TVector2; overload;
+function VectorSubtract(const V1, V2: TVector3): TVector3; overload;
+function VectorSubtract(const V1, V2: TVector4): TVector4; overload;
+procedure VectorSubtractVar(var v1: TVector2; const v2: TVector2); overload;
+procedure VectorSubtractVar(var v1: TVector3; const v2: TVector3); overload;
+procedure VectorSubtractVar(var v1: TVector4; const v2: TVector4); overload;
+{ @groupEnd }
+
+{ Add two vectors.
+
+  Versions *Var place result back into the 1st vector,
+  like "+=" operator. Are @italic(very very slightly) faster.
+
+  @groupBegin }
+function VectorAdd(const V1, V2: TVector2): TVector2; overload;
+function VectorAdd(const V1, V2: TVector3): TVector3; overload;
+function VectorAdd(const V1, V2: TVector4): TVector4; overload;
+procedure VectorAddVar(var v1: TVector2; const v2: TVector2); overload;
+procedure VectorAddVar(var v1: TVector3; const v2: TVector3); overload;
+procedure VectorAddVar(var v1: TVector4; const v2: TVector4); overload;
+{ @groupEnd }
+
+{ Scale vector (aka multiply by scalar).
+
+  Versions *Var scale place result back into the 1st vector,
+  like "*=" operator. Are @italic(very very slightly) faster.
+
+  @groupBegin }
+function VectorScale(const v1: TVector2; const Scalar: TScalar): TVector2; overload;
+function VectorScale(const v1: TVector3; const Scalar: TScalar): TVector3; overload;
+function VectorScale(const v1: TVector4; const Scalar: TScalar): TVector4; overload;
+procedure VectorScaleVar(var v1: TVector2; const Scalar: TScalar); overload;
+procedure VectorScaleVar(var v1: TVector3; const Scalar: TScalar); overload;
+procedure VectorScaleVar(var v1: TVector4; const Scalar: TScalar); overload;
+{ @groupEnd }
+
+{ Negate vector (return -V).
+
+  Versions *Var scale place result back into the 1st vector.
+  Are @italic(very very slightly) faster.
+
+  @groupBegin }
+function VectorNegate(const v: TVector2): TVector2; overload;
+function VectorNegate(const v: TVector3): TVector3; overload;
+function VectorNegate(const v: TVector4): TVector4; overload;
+procedure VectorNegateVar(var v: TVector2); overload;
+procedure VectorNegateVar(var v: TVector3); overload;
+procedure VectorNegateVar(var v: TVector4); overload;
+{ @groupEnd }
+
+{ Scale vector such that it has given length (VecLen).
+  Given VecLen may be negative, then we'll additionally negate the vector.
+  @groupBegin }
+function VectorAdjustToLength(const v: TVector2; VecLen: TScalar): TVector2; overload;
+function VectorAdjustToLength(const v: TVector3; VecLen: TScalar): TVector3; overload;
+procedure VectorAdjustToLengthVar(var v: TVector2; VecLen: TScalar); overload;
+procedure VectorAdjustToLengthVar(var v: TVector3; VecLen: TScalar); overload;
+{ @groupEnd }
+
+{ @groupEnd }
+
+{ Vector length.
+  @groupBegin }
+function VectorLen(const v: TVector2): TScalar; overload;
+function VectorLen(const v: TVector3): TScalar; overload;
+function VectorLen(const v: TVector4): TScalar; overload;
+{ @groupEnd }
+
+{ Vector length squared.
+
+  This is slightly faster than calculating actual vector length,
+  as it avoids doing expensive Sqrt. In many cases, you can
+  operate on such squared vector length, and thus you gain some speed.
+  For example, to check if vector is longer than 10,
+  check @code(VectorLenSqr(V) > 100) instead of @code(VectorLen(V) > 10).
+
+  Also note that when you have a vector with discrete values
+  (like TVector3Byte), VectorLenSqr returns a precide integer
+  value, while VectorLen must return floating-point value. }
+function VectorLenSqr(const v: TVector2): TScalar; overload;
+function VectorLenSqr(const v: TVector3): TScalar; overload;
+function VectorLenSqr(const v: TVector4): TScalar; overload;
+
+{ Vector cross product.
+
+  This is a vector orthogonal to both given vectors.
+  Generally there are two such vectors, this function returns
+  the one following right-hand rule. More precisely, V1, V2 and
+  VectorProduct(V1, V2) are in the same relation as basic X, Y, Z
+  axes. Reverse the order of arguments to get negated result.
+
+  If you use this to calculate a normal vector of a triangle
+  (P0, P1, P2): note that @code(VectorProduct(P1 - P0, P1 - P2))
+  points out from CCW triangle side in right-handed coordinate system.
+
+  When V1 and V2 are parallel (that is, when V1 = V2 multiplied by some scalar),
+  and this includes the case when one of them is zero,
+  then result is a zero vector.
+
+  See http://en.wikipedia.org/wiki/Cross_product
+  @groupBegin }
+function VectorProduct(const V1, V2: TVector3): TVector3; overload;
+{ @groupEnd }
+
+{ Dot product (aka scalar product) of two vectors.
+
+  Overloaded versions that take as one argument 3-component vector and
+  as the second argument 4-component vector: they simply behave like
+  the missing 4th component would be equal 1.0. This is useful when
+  V1 is a 3D point and V2 is something like plane equation.
+
+  @groupBegin }
+function VectorDotProduct(const V1, V2: TVector2): TScalar; overload;
+function VectorDotProduct(const V1, V2: TVector3): TScalar; overload;
+function VectorDotProduct(const V1, V2: TVector4): TScalar; overload;
+function VectorDotProduct(const v1: TVector3; const v2: TVector4): TScalar; overload;
+{ @groupEnd }
+
+{ Multiply two vectors component-wise.
+  That is, Result[I] := V1[I] * V2[I] for each I.
+
+  @groupBegin }
+function VectorMultiplyComponents(const V1, V2: TVector3): TVector3; overload;
+procedure VectorMultiplyComponentsVar(var v1: TVector3; const v2: TVector3); overload;
+{ @groupEnd }
+
+{ Change each vector component into Power(component, Exp).
+  @raises(EInvalidArgument When some component is < 0 and Exp <> 0.
+    Version VectorPowerComponentsVar leaves the V in undefined state
+    in case of such exception.) }
+function VectorPowerComponents(const v: TVector3; const Exp: TScalar): TVector3; overload;
+procedure VectorPowerComponentsVar(var v: TVector3; const Exp: TScalar); overload;
+
+{ Cosinus of angle between two vectors.
+
+  CosAngleBetweenNormals is a little faster, but must receive
+  normalized (length 1) vectors. This avoids expensive Sqrt
+  inside CosAngleBetweenVectors.
+
+  @raises EVectorInvalidOp If V1 or V2 is zero.
+  @groupBegin }
+function CosAngleBetweenVectors(const V1, V2: TVector3): TScalar; overload;
+function CosAngleBetweenNormals(const V1, V2: TVector3): TScalar; overload;
+{ @groupEnd }
+
+{ Angle between two vectors, in radians.
+  Returns always positive angle, between 0 and Pi.
+
+  AngleRadBetweenNormals is a little faster, but must receive
+  normalized (length 1) vectors. This avoids expensive Sqrt.
+  See also CosAngleBetweenVectors and CosAngleBetweenNormals
+  to avoid expensive ArcCos.
+
+  @raises EVectorInvalidOp If V1 or V2 is zero.
+  @groupBegin }
+function AngleRadBetweenVectors(const V1, V2: TVector3): TScalar; overload;
+function AngleRadBetweenNormals(const V1, V2: TVector3): TScalar; overload;
+{ @groupEnd }
+
+{ Signed angle between two vectors, in radians.
+  As opposed to AngleRadBetweenNormals, this returns a signed angle,
+  between -Pi and Pi. This is guaranteed to be such angle that rotating
+  V1 around vector cross product (V1 x V2) will produce V2.
+  As you see, the order or arguments is important (just like it's important
+  for vector cross).
+
+  Overloaded versions with Cross argument assume the rotation is done around
+  given Cross vector, which @italic(must) be a cross product or it's negation
+  (in other words, it must be orthogonal to both vectors).
+
+  @raises EVectorInvalidOp If V1 or V2 is zero.
+  @groupBegin }
+function RotationAngleRadBetweenVectors(const V1, V2: TVector3): TScalar; overload;
+function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): TScalar; overload;
+{ @groupEnd }
+
+{ Rotate point Point around the Axis by given Angle.
+  Axis cannot be zero.
+
+  Note that this is equivalent to constructing a rotation matrix
+  and then using it, like
+
+  @longCode(#
+    M := RotationMatrixDeg(Angle, Axis);
+    Result := MatrixMultPoint(M, Point);
+  #)
+
+  Except this will be a little faster. So rotations are done in the
+  same direction as RotationMatrixDeg, and as OpenGL.
+  @groupBegin }
+function RotatePointAroundAxisDeg(Angle: TScalar; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+function RotatePointAroundAxisRad(Angle: TScalar; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+{ @groupEnd }
+
+{ Which coordinate (0, 1, 2, and eventually 3 for 4D versions) is the largest.
+  When the vector components are equal, the first one "wins", for example
+  if V[0] = V[1] (and are larger than other vector component) we return 0.
+  MaxAbsVectorCoord compares the absolute value of components.
+  @groupBegin }
+function MaxVectorCoord(const v: TVector2): integer; overload;
+function MaxVectorCoord(const v: TVector3): integer; overload;
+function MaxVectorCoord(const v: TVector4): integer; overload;
+function MaxAbsVectorCoord(const v: TVector2): integer; overload;
+function MaxAbsVectorCoord(const v: TVector3): integer; overload;
+{ @groupEnd }
+
+function VectorAbs(const V: TVector2): TVector2;
+function VectorAbs(const V: TVector3): TVector3;
+function VectorAbs(const V: TVector4): TVector4;
+
+function MinVectorCoord(const v: TVector3): integer; overload;
+
+procedure SortAbsVectorCoord(const v: TVector3; out Max, Middle, Min: Integer); overload;
+
+{ Vector orthogonal to plane and pointing in the given direction.
+
+  Given a plane equation (or just the first 3 components of this equation),
+  we have vector orthogonal to the plane (just the first 3 components of plane
+  equation). This returns either this vector, or it's negation.
+  It chooses the one that points in the same 3D half-space as given Direction.
+
+  When given Direction is paralell to Plane, returns original
+  plane direction, not it's negation.
+
+  This really simply returns the first 3 components of plane equation.
+  possibly negated. So e.g. if the plane direction was normalized, result
+  is normalized too.
+
+  PlaneDirNotInDirection chooses the direction opposite to given Direction
+  parameter. So it's like @code(PlaneDirInDirection(Plane, -Direction)).
+
+  @groupBegin }
+function PlaneDirInDirection(const Plane: TVector4; const Direction: TVector3): TVector3; overload;
+function PlaneDirInDirection(const PlaneDir, Direction: TVector3): TVector3; overload;
+function PlaneDirNotInDirection(const Plane: TVector4; const Direction: TVector3): TVector3; overload;
+function PlaneDirNotInDirection(const PlaneDir, Direction: TVector3): TVector3; overload;
+{ @groupEnd }
+
+{ Endianess utility functions for vectors  ----------------------------------- }
+
+function SwapEndian(const V: TVector2): TVector2; overload;
+function SwapEndian(const V: TVector3): TVector3; overload;
+function SwapEndian(const V: TVector4): TVector4; overload;
+
+function LEtoN(const V: TVector2): TVector2; overload;
+function LEtoN(const V: TVector3): TVector3; overload;
+function LEtoN(const V: TVector4): TVector4; overload;
+
+function BEtoN(const V: TVector2): TVector2; overload;
+function BEtoN(const V: TVector3): TVector3; overload;
+function BEtoN(const V: TVector4): TVector4; overload;
+
+function NtoLE(const V: TVector2): TVector2; overload;
+function NtoLE(const V: TVector3): TVector3; overload;
+function NtoLE(const V: TVector4): TVector4; overload;
+
+function NtoBE(const V: TVector2): TVector2; overload;
+function NtoBE(const V: TVector3): TVector3; overload;
+function NtoBE(const V: TVector4): TVector4; overload;
+
+{ Simple vectors operations  ------------------------------------------------- }
+
+{ }
+procedure SwapValues(var V1, V2: TVector2); overload;
+procedure SwapValues(var V1, V2: TVector3); overload;
+procedure SwapValues(var V1, V2: TVector4); overload;
+
+function VectorAverage(const V: TVector3): TScalar; overload;
+
+{ Overload := operator to allow conversion between
+  Matrix unit objects and this unit's arrays easy. }
+operator := (const V: TVector2_): TVector2;
+operator := (const V: TVector3_): TVector3;
+operator := (const V: TVector4_): TVector4;
+operator := (const V: TVector2): TVector2_;
+operator := (const V: TVector3): TVector3_;
+operator := (const V: TVector4): TVector4_;
+
+{ Linear interpolation between two vector values.
+  Returns (1-A) * V1 + A * V2 (well, calculated a little differently for speed).
+  So A = 0 gives V1, A = 1 gives V2, and values between and around are
+  interpolated.
+
+  @groupBegin }
+function Lerp(const A: TScalar; const V1, V2: TVector2): TVector2; overload;
+function Lerp(const A: TScalar; const V1, V2: TVector3): TVector3; overload;
+function Lerp(const A: TScalar; const V1, V2: TVector4): TVector4; overload;
+function Lerp(const A: TScalar; const M1, M2: TMatrix3): TMatrix3; overload;
+function Lerp(const A: TScalar; const M1, M2: TMatrix4): TMatrix4; overload;
+{ @groupEnd }
+
+function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector3_): TVector3_; overload;
+function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector4_): TVector4_; overload;
+
+procedure NormalizeVar(var v: TVector2); overload;
+procedure NormalizeVar(var v: TVector3); overload;
+
+function Normalized(const v: TVector2): TVector2; overload;
+function Normalized(const v: TVector3): TVector3; overload;
+
+function Vector_Get_Normalized(const V: TVector3_): TVector3_; overload;
+
+procedure Vector_Normalize(var V: TVector3_); overload;
+
+{ This normalizes Plane by scaling all @italic(four) coordinates of Plane
+  so that length of plane vector (taken from 1st @italic(three) coordinates)
+  is one.
+
+  Also, contrary to normal NormalizeVar on 3-component vectors,
+  this will fail with some awful error (like floating point overflow)
+  in case length of plane vector is zero. That's because we know
+  that plane vector @italic(must) be always non-zero. }
+procedure NormalizePlaneVar(var v: TVector4); overload;
+
+function ZeroVector(const v: TVector2): boolean; overload;
+function ZeroVector(const v: TVector3): boolean; overload;
+function ZeroVector(const v: TVector4): boolean; overload;
+
+function ZeroVector(const v: TVector2; const EqualityEpsilon: TScalar): boolean; overload;
+function ZeroVector(const v: TVector3; const EqualityEpsilon: TScalar): boolean; overload;
+function ZeroVector(const v: TVector4; const EqualityEpsilon: TScalar): boolean; overload;
+
+function PerfectlyZeroVector(const v: TVector2): boolean; overload;
+function PerfectlyZeroVector(const v: TVector3): boolean; overload;
+function PerfectlyZeroVector(const v: TVector4): boolean; overload;
+
+{ Intersection of two 3D planes.
+  @raises EPlanesParallel If planes are parallel.
+  @groupBegin }
+procedure TwoPlanesIntersectionLine(const Plane0, Plane1: TVector4;
+  out Line0, LineVector: TVector3); overload;
+{ @groupEnd }
+
+{ Intersection of two 2D lines.
+  2D lines are expressed here as a vector of three values (A,B,C),
+  such that Ax+By+C=0 is true for points on the line.
+  @raises ELinesParallel if lines parallel
+  @groupBegin }
+function Lines2DIntersection(const Line0, Line1: TVector3): TVector2; overload;
+{ @groupEnd }
+
+{ Intersection of three 3D planes, results in a single 3D point.
+  If the intersection is not a single 3D point, result is undefined,
+  so don't try to use this.
+  @groupBegin }
+function ThreePlanesIntersectionPoint(
+  const Plane0, Plane1, Plane2: TVector4): TVector3; overload;
+{ @groupEnd }
+
+{ Move a plane by a specifed vector.
+  The first three plane numbers (plane normal vector) don't change
+  (so, in particular, if you used the plane to define the half-space,
+  the half-space gets moved as it should).
+
+  PlaneAntiMove work like PlaneMove, but they translate by negated Move
+  So it's like PlaneAntiMove(Plane, V) := PlaneMove(Plane, -V),
+  but (very slightly) faster.
+
+  This works Ok with invalid planes (1st three components = 0),
+  that is after the move the plane remains invalid (1st three components
+  remain = 0).
+
+  @groupBegin }
+function PlaneMove(const Plane: TVector4;
+  const Move: TVector3): TVector4; overload;
+
+procedure PlaneMoveVar(var Plane: TVector4; const Move: TVector3); overload;
+
+function PlaneAntiMove(const Plane: TVector4;
+  const Move: TVector3): TVector4; overload;
+{ @groupEnd }
+
+{ Check if both directions indicate the same side of given 3D plane.
+  If one direction is parallel to the plane, also returns @true.
+  You can specify only the first 3 components of plane equation (PlaneDir),
+  since the 4th component would be ignored anyway.
+  @groupBegin }
+function VectorsSamePlaneDirections(const V1, V2: TVector3; const Plane: TVector4): boolean; overload;
+function VectorsSamePlaneDirections(const V1, V2: TVector3; const PlaneDir: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Check if both points are on the same side of given 3D plane.
+  If one of the points is exactly on the plane, also returns @true.
+  @groupBegin }
+function PointsSamePlaneSides(const p1, p2: TVector3; const Plane: TVector4): boolean; overload;
+{ @groupEnd }
+
+function PointsDistance(const V1, V2: TVector2): TScalar; overload;
+function PointsDistance(const V1, V2: TVector3): TScalar; overload;
+function PointsDistanceSqr(const V1, V2: TVector2): TScalar; overload;
+function PointsDistanceSqr(const V1, V2: TVector3): TScalar; overload;
+
+{ Distance between points projected on the 2D plane.
+  Projection is done by rejecting IgnoreIndex coordinate (must be 0, 1 or 2).
+  @groupBegin }
+function PointsDistance2DSqr(const V1, V2: TVector3; const IgnoreIndex: Integer): TScalar; overload;
+{ @groupEnd }
+
+{ Compare two vectors, with epsilon to tolerate slightly different floats.
+  Uses SingleEqualityEpsilon or DoubleEqualityEpsilon (depending on the parameters),
+  just like FloatsEqual.
+
+  Note that the case when EqualityEpsilon (or TScalarEqualityEpsilon
+  or DoubleEqualityEpsilon) is exactly 0 is optimized here,
+  just like VectorsPerfectlyEqual.
+
+  @seealso VectorsPerfectlyEqual
+
+  @groupBegin }
+function VectorsEqual(const V1, V2: TVector2): boolean; overload;
+function VectorsEqual(const V1, V2: TVector2; const EqualityEpsilon: TScalar): boolean; overload;
+function VectorsEqual(const V1, V2: TVector3): boolean; overload;
+function VectorsEqual(const V1, V2: TVector3; const EqualityEpsilon: TScalar): boolean; overload;
+function VectorsEqual(const V1, V2: TVector4): boolean; overload;
+function VectorsEqual(const V1, V2: TVector4; const EqualityEpsilon: TScalar): boolean; overload;
+{ @groupEnd }
+
+{ Compare two vectors using perfect comparison, that is using the "=" operator
+  to compare floats.
+  @seealso VectorsEqual
+  @groupBegin }
+function VectorsPerfectlyEqual(const V1, V2: TVector2): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector3): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+function VectorsPerfectlyEqual(const V1, V2: TVector4): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
+{ @groupEnd }
+
+function MatricesEqual(const M1, M2: TMatrix3; const EqualityEpsilon: TScalar): boolean; overload;
+function MatricesEqual(const M1, M2: TMatrix4; const EqualityEpsilon: TScalar): boolean; overload;
+
+function MatricesPerfectlyEqual(const M1, M2: TMatrix3): boolean; overload;
+function MatricesPerfectlyEqual(const M1, M2: TMatrix4): boolean; overload;
+
+function VectorsPerp(const V1, V2: TVector3): boolean; overload;
+
+{ Are the two vectors parallel (one is a scaled version of another).
+  In particular, if one of the vectors is zero, then this is @true.
+  @groupBegin }
+function VectorsParallel(const V1, V2: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Adjust the V1 vector to force given angle between V1 and V2.
+  Vector V1 will be adjusted, such that it has the same length
+  and the 3D plane defined by V1, V2 and (0, 0, 0) is the same.
+
+  When vectors are parallel (this includes the case when one of them is zero),
+  we set V1 to ResultWhenParallel.
+
+  We make it such that V1 rotated around axis VectorProduct(V1, V2) by given
+  angle will result in V2. Note that this means that
+  @code(MakeVectorsAngleRadOnTheirPlane(V1, V2, Angle, ...))
+  results in the same (not reversed) relation between vectors as
+  @code(MakeVectorsAngleRadOnTheirPlane(V2, V1, Angle, ...)).
+  That's because you change the arguments order, but also VectorProduct
+  sign changes.
+  @groupBegin }
+procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
+  const v2: TVector3; const AngleRad: TScalar;
+  const ResultWhenParallel: TVector3); overload;
+{ @groupEnd }
+
+{ Adjust the V1 vector to force V1 and V2 to be orthogonal.
+  When vectors are parallel, we set V1 to be AnyOrthogonalVector(V2). }
+procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3;
+  const v2: TVector3); overload;
+
+{ Return, deterministically, some vector orthogonal to V.
+  When V is non-zero, then the result is non-zero.
+  @groupBegin }
+function AnyOrthogonalVector(const v: TVector2): TVector2; overload;
+function AnyOrthogonalVector(const v: TVector3): TVector3; overload;
+{ @groupEnd }
+
+function IsLineParallelToPlane(const lineVector: TVector3; const plane: TVector4): boolean; overload;
+
+function IsLineParallelToSimplePlane(const lineVector: TVector3;
+  const PlaneConstCoord: integer): boolean; overload;
+
+{ Assuming that Vector1 and Vector2 are parallel,
+  check do they point in the same direction.
+
+  This assumes that both vectors are non-zero.
+  If one of the vectors is zero, the result is undefined --- false or true.
+  (but the function will surely not raise some floating point error etc.) }
+function AreParallelVectorsSameDirection(
+  const Vector1, Vector2: TVector3): boolean; overload;
+
+{ Orthogonally project a point on a plane, that is find a closest
+  point to Point lying on a Plane.
+  @groupBegin }
+function PointOnPlaneClosestToPoint(const plane: TVector4; const point: TVector3): TVector3; overload;
+{ @groupEnd }
+
+function PointToPlaneDistanceSqr(const Point: TVector3;
+  const Plane: TVector4): TScalar; overload;
+
+{ Distance from a point to a plane (with already normalized direction).
+
+  Note: distance of the plane from origin point (0,0,0) may be simply
+  obtained by Abs(Plane[3]) when Plane is Normalized.
+  @groupBegin }
+function PointToNormalizedPlaneDistance(const Point: TVector3;
+  const Plane: TVector4): TScalar; overload;
+{ @groupEnd }
+
+{ Distance from a point to a plane.
+
+  Note that calculating this costs you one Sqrt
+  (contrary to PointToPlaneDistanceSqr or
+  PointToNormalizedPlaneDistance).
+
+  @groupBegin }
+function PointToPlaneDistance(const Point: TVector3;
+  const Plane: TVector4): TScalar; overload;
+{ @groupEnd }
+
+function PointToSimplePlaneDistance(const point: TVector3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar): TScalar; overload;
+
+function PointOnLineClosestToPoint(const line0, lineVector, point: TVector2): TVector2; overload;
+function PointOnLineClosestToPoint(const line0, lineVector, point: TVector3): TVector3; overload;
+
+function PointToLineDistanceSqr(const point, line0, lineVector: TVector3): TScalar; overload;
+
+{ Plane and line intersection.
+
+  Returns @false and doesn't modify Intersection or T when
+  the line is parallel to the plane (this includes the case when
+  the line @italic(lies on a plane), so theoretically the whole
+  line is an intersection).
+
+  Otherwise, returns @true, and calculates 3D intersection point,
+  or calculates T such that @code(3D intersection = Line0 + LineVector * T).
+  @groupBegin }
+function TryPlaneLineIntersection(out intersection: TVector3;
+  const plane: TVector4; const line0, lineVector: TVector3): boolean; overload;
+function TryPlaneLineIntersection(out t: TScalar;
+  const plane: TVector4; const line0, lineVector: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Plane and ray intersection.
+
+  Returns @false and doesn't modify Intersection or T when
+  the ray is parallel to the plane (this includes the case when
+  the ray @italic(lies on a plane). Also returns @false when the ray would
+  have to point in the opposite direction to hit the plane.
+
+  Otherwise, returns @true, and calculates 3D intersection point,
+  or calculates T such that @code(3D intersection = RayOrigin + RayDirection * T).
+  @groupBegin }
+function TrySimplePlaneRayIntersection(out Intersection: TVector3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+function TrySimplePlaneRayIntersection(out Intersection: TVector3; out T: TScalar;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+function TrySimplePlaneRayIntersection(out T: TScalar;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+
+function TryPlaneRayIntersection(out Intersection: TVector3;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean; overload;
+function TryPlaneRayIntersection(out Intersection: TVector3; out T: TScalar;
+  const Plane: TVector4; const RayOrigin, RayDirection: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Plane and line segment intersection.
+
+  Returns @false and doesn't modify Intersection or T when
+  the segment is parallel to the plane (this includes the case when
+  the segment @italic(lies on a plane). Also returns @false when the segment
+  would have to be longer to hit the plane.
+
+  Otherwise, returns @true, and calculates 3D intersection point,
+  or calculates T such that @code(3D intersection = RayOrigin + RayDirection * T).
+  @groupBegin }
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const Segment0, SegmentVector: TVector3): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3; var T: TScalar;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const Segment0, SegmentVector: TVector3): boolean; overload;
+function TrySimplePlaneSegmentDirIntersection(var T: TScalar;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const Segment0, SegmentVector: TVector3): boolean; overload;
+
+function TrySimplePlaneSegmentIntersection(
+  out Intersection: TVector3;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const Pos1, Pos2: TVector3): boolean; overload;
+function TrySimplePlaneSegmentIntersection(
+  out Intersection: TVector3; out T: TScalar;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const Pos1, Pos2: TVector3): boolean; overload;
+function TrySimplePlaneSegmentIntersection(
+  out T: TScalar;
+  const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
+  const Pos1, Pos2: TVector3): boolean; overload;
+
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean; overload;
+function TryPlaneSegmentDirIntersection(out Intersection: TVector3; out T: TScalar;
+  const Plane: TVector4; const Segment0, SegmentVector: TVector3): boolean; overload;
+{ @groupEnd }
+
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector2): boolean; overload;
+function IsPointOnSegmentLineWithinSegment(const intersection, pos1, pos2: TVector3): boolean; overload;
+
+{ Line passing through two @italic(different) points.
+  When the points are equal, undefined.
+  @groupBegin }
+function LineOfTwoDifferentPoints2d(const p1, p2: TVector2): TVector3; overload;
+{ @groupEnd }
+
+function PointToSegmentDistanceSqr(const point, pos1, pos2: TVector3): TScalar; overload;
+
+{ Transform plane by a matrix.
+
+  @raises(ETransformedResultInvalid Raised when matrix
+  will transform some point to a direction, or direction to point,
+  in homogeneous coordinates.)
+
+  @groupBegin }
+function PlaneTransform(const Plane: TVector4; const Matrix: TMatrix4): TVector4;
+{ @groupEnd }
+
+function IsTunnelSphereCollision(const Tunnel1, Tunnel2: TVector3;
+  const TunnelRadius: TScalar; const SphereCenter: TVector3;
+  const SphereRadius: TScalar): boolean; overload;
+
+function IsSpheresCollision(const Sphere1Center: TVector3; const Sphere1Radius: TScalar;
+  const Sphere2Center: TVector3; const Sphere2Radius: TScalar): boolean; overload;
+
+function IsSegmentSphereCollision(const pos1, pos2, SphereCenter: TVector3;
+  const SphereRadius: TScalar): boolean; overload;
+
+function TrySphereRayIntersection(out Intersection: TVector3;
+  const SphereCenter: TVector3; const SphereRadius: TScalar;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+
+{ Intersection between an (infinitely tall) cylinder and a ray.
+  @groupBegin }
+function TryCylinderRayIntersection(out Intersection: TVector3;
+  const CylinderAxisOrigin, CylinderAxis: TVector3;
+  const CylinderRadius: TScalar;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Convert to string using a nice (human-readable) format.
+  These functions (named "ToNiceStr") use by default a nice (readable by humans)
+  float representation, which is by default just a decimal representation
+  with 2 digits after the dot, like "123.45".
+
+  This representation is actually configurable using global FloatNiceFormat.
+
+  These functions (named "ToNiceStr") also sometimes add some decoration (like
+  "[ ]" characters around matrix rows) to make the result look nice
+  and readable.
+
+  Overloaded versions that take a LineIndent parameter (may) output a multiline-string.
+  In such case, the last line is @italic(never) terminated with newline
+  character(s).
+
+  @groupBegin }
+function FloatToNiceStr(f: TScalar): string; overload;
+function VectorToNiceStr(const v: array of TScalar): string; overload;
+function MatrixToNiceStr(const v: TMatrix4; const LineIndent: string): string; overload;
+{ @groupEnd }
+
+{ Convert to string using the most precise (not always easily readable by humans) format.
+  These functions (called "ToRawStr") format floats using the most precise format,
+  often using the exponential (scientific) notation if needed.
+
+  They are suitable for storing the floating-point value in a file,
+  with a best precision possible.
+
+  Also, these functions (called "ToRawStr") do not add any decoration when outputting
+  vectors / matrices. They simply spit a sequence of floating-point values
+  separated by spaces.
+
+  @groupBegin }
+function FloatToRawStr(f: TScalar): string; overload;
+function VectorToRawStr(const v: array of TScalar): string; overload;
+function MatrixToRawStr(const v: TMatrix4; const LineIndent: string): string; overload;
+{ @groupEnd }
+
+{ Matrix operations ---------------------------------------------------------- }
+
+{ }
+function MatrixAdd(const m1, m2: TMatrix3): TMatrix3; overload;
+function MatrixAdd(const m1, m2: TMatrix4): TMatrix4; overload;
+
+procedure MatrixAddVar(var m1: TMatrix3; const m2: TMatrix3); overload;
+procedure MatrixAddVar(var m1: TMatrix4; const m2: TMatrix4); overload;
+
+function MatrixSubtract(const m1, m2: TMatrix3): TMatrix3; overload;
+function MatrixSubtract(const m1, m2: TMatrix4): TMatrix4; overload;
+
+procedure MatrixSubtractVar(var m1: TMatrix3; const m2: TMatrix3); overload;
+procedure MatrixSubtractVar(var m1: TMatrix4; const m2: TMatrix4); overload;
+
+function MatrixNegate(const m1: TMatrix3): TMatrix3; overload;
+function MatrixNegate(const m1: TMatrix4): TMatrix4; overload;
+
+function MatrixMultScalar(const m: TMatrix3; const s: TScalar): TMatrix3; overload;
+function MatrixMultScalar(const m: TMatrix4; const s: TScalar): TMatrix4; overload;
+
+{ Transform a 3D or 2D point with 4x4 matrix.
+
+  This works by temporarily converting point to 4-component vector
+  (4th component is 1). After multiplying matrix * vector we divide
+  by 4th component. So this works Ok for all matrices,
+  even with last row different than identity (0, 0, 0, 1).
+  E.g. this works for projection matrices too.
+
+  @raises(ETransformedResultInvalid This is raised when matrix
+  will transform point to a direction (vector with 4th component
+  equal zero). In this case we just cannot interpret the result as a point.)
+
+  @groupBegin }
+function MatrixMultPoint(const m: TMatrix4; const pt: TVector3): TVector3; overload;
+function MatrixMultPoint(const m: TMatrix4; const pt: TVector2): TVector2; overload;
+{ @groupEnd }
+
+{ Transform a 3D or 2D direction with 4x4 matrix.
+
+  This works by temporarily converting direction to 4-component vector
+  (4th component is 0). After multiplying matrix * vector we check
+  is the 4th component still 0 (eventually raising ETransformedResultInvalid).
+
+  @raises(ETransformedResultInvalid This is raised when matrix
+  will transform direction to a point (vector with 4th component
+  nonzero). In this case we just cannot interpret the result as a direction.)
+
+  @groupBegin }
+function MatrixMultDirection(const m: TMatrix4; const Dir: TVector3): TVector3; overload;
+function MatrixMultDirection(const m: TMatrix4; const Dir: TVector2): TVector2; overload;
+{ @groupEnd }
+
+function MatrixMultVector(const m: TMatrix2; const v: TVector2): TVector2; overload;
+function MatrixMultVector(const m: TMatrix3; const v: TVector3): TVector3; overload;
+function MatrixMultVector(const m: TMatrix4; const v: TVector4): TVector4; overload;
+
+function MatrixMult(const m1, m2: TMatrix2): TMatrix2; overload;
+function MatrixMult(const m1, m2: TMatrix3): TMatrix3; overload;
+function MatrixMult(const m1, m2: TMatrix4): TMatrix4; overload;
+
+function MatrixRow(const m: TMatrix2; const Row: Integer): TVector2; overload;
+function MatrixRow(const m: TMatrix3; const Row: Integer): TVector3; overload;
+function MatrixRow(const m: TMatrix4; const Row: Integer): TVector4; overload;
+
+function MatrixDeterminant(const M: TMatrix2): TScalar; overload;
+function MatrixDeterminant(const M: TMatrix3): TScalar; overload;
+function MatrixDeterminant(const M: TMatrix4): TScalar; overload;
+
+{ Inverse the matrix.
+
+  They do division by Determinant internally, so will raise exception
+  from this float division if the matrix is not reversible.
+
+  @groupBegin }
+function MatrixInverse(const M: TMatrix2; const Determinant: TScalar): TMatrix2; overload;
+function MatrixInverse(const M: TMatrix3; const Determinant: TScalar): TMatrix3; overload;
+function MatrixInverse(const M: TMatrix4; const Determinant: TScalar): TMatrix4; overload;
+{ @groupEnd }
+
+{ Transpose the matrix.
+  @groupBegin }
+procedure MatrixTransposeVar(var M: TMatrix3); overload;
+
+function MatrixTranspose(const M: TMatrix3): TMatrix3; overload;
+function MatrixTranspose(const M: TMatrix4): TMatrix4; overload;
+{ @groupEnd }
+
+{ Functions to create common 4x4 matrices used in 3D graphics.
+
+  These functions generate the same matrices that are made by corresponding
+  OpenGL (gl or glu) functions. So rotations will be generated in the same
+  fashion, etc. For exact specification of what matrices they create see
+  OpenGL specification for routines glTranslate, glScale, glRotate.
+
+  Functions named Matrices below generate both normal and inverted matrices.
+  For example, function RotationMatrices returns two matrices that you
+  could calculate separately by
+
+  @longCode(#
+          Matrix: = RotationMatrix( Angle, Axis);
+  InvertedMatrix: = RotationMatrix(-Angle, Axis);
+  #)
+
+  This is useful sometimes, and generating them both at the same time
+  allows for some speedup (for example, calling RotationMatrix twice will
+  calculate sincos of Angle twice).
+
+  Note that inverse of scaling matrix will not exist if the
+  ScaleFactor has one of the components zero !
+  Depending on InvertedMatrixIdentityIfNotExists, this will
+  (if @false) raise division by zero exception or (if @true) cause
+  the matrix to be set to identity.
+
+  Note that rotation matrix (both normal and inverse) is always defined,
+  for Axis = zero both normal and inverse matrices are set to identity.
+
+  @groupBegin }
+function TranslationMatrix(const X, Y, Z: TScalar): TMatrix4Single; overload;
+function TranslationMatrix(const Transl: TVector3): TMatrix4Single; overload;
+
+procedure TranslationMatrices(const X, Y, Z: TScalar; out Matrix, InvertedMatrix: TMatrix4Single); overload;
+procedure TranslationMatrices(const Transl: TVector3; out Matrix, InvertedMatrix: TMatrix4Single); overload;
+
+{ Multiply matrix M by translation matrix.
+
+  This is equivalent to M := MatrixMult(M, TranslationMatrix(Transl)),
+  but it works much faster since TranslationMatrix is a very simple matrix
+  and multiplication by it may be much optimized.
+
+  An additional speedup comes from the fact that the result is placed
+  back in M (so on places where M doesn't change (and there's a lot
+  of them for multiplication with translation matrix) there's no useless
+  copying).
+
+  MultMatricesTranslation is analogous to calculating both
+  TranslationMatrix(Transl) and it's inverse, and then
+
+  @longCode(#
+    M := MatrixMult(M, translation);
+    MInvert := MatrixMult(inverted translation, MInvert);
+  #)
+
+  The idea is that if M represented some translation, and MInvert it's
+  inverse, then after MultMatricesTranslation this will still hold.
+
+  @groupBegin }
+procedure MultMatrixTranslation(var M: TMatrix4; const Transl: TVector3); overload;
+procedure MultMatricesTranslation(var M, MInvert: TMatrix4; const Transl: TVector3); overload;
+{ @groupEnd }
+
+{ Transform coordinates to / from a coordinate system.
+  Stuff multiplied by this matrix is supplied in other coordinate system.
+
+  The "new" coordinate system (you specify it explicitly for
+  TransformToCoordsMatrix) is the coordinate system in which your 3D stuff
+  is defined. That is, when you supply the points (that will later be
+  multiplied by TransformToCoordsMatrix) you think in the "new" coordinate
+  system. The "old" coordinate system
+  (you specify it explicitly for TransformFromCoordsMatrix)
+  is the coordinate system of stuff @italic(after)
+  it's multiplied by this matrix.
+
+  This may get confusing, so to be more precise:
+
+  @unorderedList(
+
+    @item(
+      TransformToCoordsMatrix says how the new coords system looks
+      from the point of view of the old coords system.
+      A stuff lying at (0, 0, 0) in new coord system will be seen
+      at NewOrigin after the transformation (in the old coordinate system).
+      Similarly, direction (0, 1, 0) will be seen as NewY after
+      the transformation.)
+
+    @item(
+      TransformFromCoordsMatrix is the inverse: how the old system
+      is seen from the new one. If before the transformation you are
+      at OldOrigin, then after the transformation you are at (0, 0, 0).
+      This is natural way to implement LookAtMatrix, LookDirMatrix.)
+  )
+
+  The lengths of directions (New or Old X, Y, Z vectors) are meaningful.
+  These vectors correspond to unit vectors (1, 0, 0), (0, 1, 0) and (0, 0, 1)
+  in the other coordinate system. Supplying here non-normalized vectors
+  will result in scaling.
+
+  You can use the "NoScale" versions to have the vectors automatically
+  normalized, thus you waste a little time (on normalizing) but you
+  avoid the scaling.
+
+  Overloaded versions without OldOrigin / NewOrigin parameters
+  work like the old/new origin is zero. IOW, the origin of the coordinate
+  system doesn't change in this case.
+
+  @groupBegin }
+function TransformToCoordsMatrix(const
+  NewX, NewY, NewZ: TVector3): TMatrix4Single; overload;
+function TransformToCoordsMatrix(const NewOrigin,
+  NewX, NewY, NewZ: TVector3): TMatrix4Single; overload;
+function TransformToCoordsNoScaleMatrix(const NewOrigin,
+  NewX, NewY, NewZ: TVector3): TMatrix4Single; overload;
+
+function TransformFromCoordsMatrix(const
+  OldX, OldY, OldZ: TVector3): TMatrix4Single; overload;
+function TransformFromCoordsMatrix(const OldOrigin,
+  OldX, OldY, OldZ: TVector3): TMatrix4Single; overload;
+function TransformFromCoordsNoScaleMatrix(const OldOrigin,
+  OldX, OldY, OldZ: TVector3): TMatrix4Single; overload;
+{ @groupEnd }
+
+{ Calculate matrix to convert to given coordinate system
+  (like TransformToCoordsMatrix) and it's inverse
+  (like TransformFromCoordsMatrix).
+
+  @groupBegin }
+procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3;
+  out ToCoords, FromCoords: TMatrix4Single); overload;
+{ @groupEnd }
+
+{ Transform vector into new coordinate space.
+
+  Equivalent to @code(MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
+  NewX, NewY, NewZ))). So the origin of new coordinate system is at the same
+  place. You should pass NewX, NewY, NewZ vectors normalized if you want to
+  preserve vector length.
+  @groupBegin }
+function TransformToCoords(const V, NewX, NewY, NewZ: TVector3): TVector3;
+{ @groupEnd }
+
+{ Camera matrix to look at the specified point (or along the specified direction).
+  Work according to right-handed coordinate system.
+
+  When applied to the scene, they transform it, such that a camera standing
+  at (0, 0, 0) (with dir (0, 0, -1) and up vector (0, 1, 0)),
+  was seeing the same view as if it was standing at Eye
+  (with given Dir and Up vectors).
+
+  For LookAtMatrix, looking direction is implicitly given as @code(Center - Eye).
+  Just like gluLookAt.
+
+  @unorderedList(
+    @item(For the overloaded LookDirMatrix version with Side parameter,
+      we assume that Dir, Side and Up are already normalized
+      and orthogonal to each other.)
+
+    @item(For the overloaded version without the Side parameter,
+      Dir and Up do not have to normalized.
+      We'll normalize them if needed, so their lengths do not affect the result
+      (just as the distance between Center and Eye points for LookAtMatrix).
+
+      Also, Dir and Up do not have to be perfectly orthogonal
+      (we will eventually adjust Up internally to make it orthogonal to Up).
+
+      You still must make sure that Dir and Up are not parallel.)
+  )
+
+  @groupBegin }
+function LookAtMatrix(const Eye, Center, Up: TVector3): TMatrix4Single; overload;
+function LookDirMatrix(const Eye, Dir, Up: TVector3): TMatrix4Single; overload;
+function LookDirMatrix(const Eye, Dir, Side, Up: TVector3): TMatrix4Single; overload;
+{ @groupEnd }
+
+{ Calculate LookDirMatrix (or it's inverse), fast.
+
+  Has some assumptions that make it run fast:
+  @unorderedList(
+    @item(It assumes camera position is zero.)
+    @item(It assumes that Dir and Up are already normalized and orthogonal.)
+  )
+
+  @groupBegin
+}
+function FastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
+function InverseFastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
+{ @groupEnd }
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
 
 {$define VECTOR_OP_FUNCS:=
 function VectorOpFuncName(const V1, V2: TVector2): TVector2;
@@ -415,6 +1394,21 @@ end;
 operator := (const V: TVector4): TVector4_;
 begin
   Result.Data := V;
+end;
+
+function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector3_): TVector3_;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+end;
+
+function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector4_): TVector4_;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+  Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
 end;
 
 procedure NormalizeVar(var V: TVector2);
@@ -1773,7 +2767,7 @@ begin
     Intersection := RayOrigin + RayDirection * T;
 end;
 
-(* pare funkcji *ToStr -------------------------------------------------------- *)
+(* converting to string -------------------------------------------------------- *)
 
 function FloatToNiceStr(f: TScalar): string;
 begin
@@ -2533,3 +3527,5 @@ begin
   Result[3, 2] := M[2, 3];
   Result[3, 3] := M[3, 3];
 end;
+
+{$endif read_implementation}

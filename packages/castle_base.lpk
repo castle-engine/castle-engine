@@ -310,7 +310,7 @@
         <UnitName Value="CastleVectors"/>
       </Item68>
       <Item69>
-        <Filename Value="../src/base/castlevectors_dualimplementation.inc"/>
+        <Filename Value="../src/base/castlevectors_generic_float.inc"/>
         <Type Value="Include"/>
       </Item69>
       <Item70>
