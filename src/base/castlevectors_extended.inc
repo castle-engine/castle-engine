@@ -26,6 +26,12 @@ function Zero(const f1: Extended): boolean; overload;
 function Zero(const f1, EqEpsilon: Extended): boolean; overload;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 
+{ Convert string to vector. Each component is simply parsed by StrToFloat,
+  and components must be separated by whitespace (see @link(WhiteSpaces) constant).
+  @raises(EConvertError In case of problems during conversion (invalid float
+    or unexpected string end or expected but missed string end).) }
+function Vector3ExtendedFromStr(const S: string): TVector3Extended;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -59,5 +65,8 @@ begin
     Result := Abs(f1) < EqEpsilon
 end;
 {$endif not EXTENDED_EQUALS_DOUBLE}
+
+function Vector3ExtendedFromStr(const s: string): TVector3Extended;
+{$I castlevectors_vector3fromstr.inc}
 
 {$endif read_implementation}
