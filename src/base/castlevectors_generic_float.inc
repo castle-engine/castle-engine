@@ -946,7 +946,7 @@ procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3;
 
 { Transform vector into new coordinate space.
 
-  Equivalent to @code(MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Single,
+  Equivalent to @code(MatrixMultPoint(TransformToCoordsMatrix(ZeroVector3Xxx,
   NewX, NewY, NewZ))). So the origin of new coordinate system is at the same
   place. You should pass NewX, NewY, NewZ vectors normalized if you want to
   preserve vector length.
@@ -1000,6 +1000,40 @@ function LookDirMatrix(const Eye, Dir, Side, Up: TVector3): TMatrix4Single; over
 function FastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
 function InverseFastLookDirMatrix(const Direction, Up: TVector3): TMatrix4Single;
 { @groupEnd }
+
+{ Convert ModelView matrix to a Normal matrix, just like 3D graphic libraries do.
+  See e.g. http://www.lighthouse3d.com/tutorials/glsl-tutorial/the-normal-matrix/
+  for explanation why this is necessary, and how it's done. }
+function ModelViewToNormalMatrix(const M: TMatrix4): TMatrix3;
+
+{ Multiply vector by a transposition of the same vector.
+  For 3d vectors, this results in a 3x3 matrix.
+  To put this inside a 4x4 matrix,
+  we fill the last row and column just like for an identity matrix.
+
+  This is useful for calculating rotation matrix. }
+function VectorMultTransposedSameVector(const v: TVector3): TMatrix4;
+
+function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
+
+procedure ScalingMatrices(const ScaleFactor: TVector3;
+  InvertedMatrixIdentityIfNotExists: boolean;
+  out Matrix, InvertedMatrix: TMatrix4);
+
+function RotationMatrixRad(const AngleRad: TScalar; const Axis: TVector3): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: TScalar; const Axis: TVector3): TMatrix4; overload;
+function RotationMatrixRad(const AngleRad: TScalar; const AxisX, AxisY, AxisZ: TScalar): TMatrix4; overload;
+function RotationMatrixDeg(const AngleDeg: TScalar; const AxisX, AxisY, AxisZ: TScalar): TMatrix4; overload;
+
+procedure RotationMatricesRad(const AngleRad: TScalar; const Axis: TVector3;
+  out Matrix, InvertedMatrix: TMatrix4);
+procedure RotationMatricesRad(const AxisAngle: TVector4;
+  out Matrix, InvertedMatrix: TMatrix4);
+{ @groupEnd }
+
+function MatrixDet4x4(const mat: TMatrix4): TScalar;
+function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TScalar): TScalar;
+function MatrixDet2x2(const a, b, c, d: TScalar): TScalar;
 
 {$endif read_interface}
 
@@ -3564,6 +3598,248 @@ begin
   Result[3, 1] := M[1, 3];
   Result[3, 2] := M[2, 3];
   Result[3, 3] := M[3, 3];
+end;
+
+function ModelViewToNormalMatrix(const M: TMatrix4): TMatrix3;
+var
+  D: TScalar;
+  M3: TMatrix3;
+begin
+  Move(M[0], M3[0], SizeOf(TVector3));
+  Move(M[1], M3[1], SizeOf(TVector3));
+  Move(M[2], M3[2], SizeOf(TVector3));
+  D := MatrixDeterminant(M3);
+  if Zero(D) then
+    { modelview not invertible, nothing good to do but we have to continue
+      without errors, since this can happen with arbitrary 3D scenes. }
+    Result := M3 else
+  begin
+    Result := MatrixInverse(M3, D);
+    MatrixTransposeVar(Result);
+  end;
+end;
+
+function VectorMultTransposedSameVector(const v: TVector3): TMatrix4;
+begin
+  (* Naive version:
+
+  for i := 0 to 2 do { i = column, j = row }
+    for j := 0 to 2 do
+      result[i, j] := v[i]*v[j];
+
+  Expanded and optimized version below. *)
+
+  result[0, 0] := sqr(v[0]);
+  result[1, 1] := sqr(v[1]);
+  result[2, 2] := sqr(v[2]);
+
+  result[0, 1] := v[0]*v[1]; result[1, 0] := result[0, 1];
+  result[0, 2] := v[0]*v[2]; result[2, 0] := result[0, 2];
+  result[1, 2] := v[1]*v[2]; result[2, 1] := result[1, 2];
+
+  { Fill the last row and column like an identity matrix }
+  Result[3, 0] := 0;
+  Result[3, 1] := 0;
+  Result[3, 2] := 0;
+
+  Result[0, 3] := 0;
+  Result[1, 3] := 0;
+  Result[2, 3] := 0;
+
+  Result[3, 3] := 1;
+end;
+
+function ScalingMatrix(const ScaleFactor: TVector3): TMatrix4;
+begin
+  result := IdentityMatrix4;
+  result[0, 0] := ScaleFactor[0];
+  result[1, 1] := ScaleFactor[1];
+  result[2, 2] := ScaleFactor[2];
+end;
+
+procedure ScalingMatrices(const ScaleFactor: TVector3;
+  InvertedMatrixIdentityIfNotExists: boolean;
+  out Matrix, InvertedMatrix: TMatrix4);
+begin
+  Matrix := IdentityMatrix4;
+  Matrix[0, 0] := ScaleFactor[0];
+  Matrix[1, 1] := ScaleFactor[1];
+  Matrix[2, 2] := ScaleFactor[2];
+
+  InvertedMatrix := IdentityMatrix4;
+  if not
+    (InvertedMatrixIdentityIfNotExists and
+      ( Zero(ScaleFactor[0]) or
+        Zero(ScaleFactor[1]) or
+        Zero(ScaleFactor[2]) )) then
+  begin
+    InvertedMatrix[0, 0] := 1 / ScaleFactor[0];
+    InvertedMatrix[1, 1] := 1 / ScaleFactor[1];
+    InvertedMatrix[2, 2] := 1 / ScaleFactor[2];
+  end;
+end;
+
+function RotationMatrixRad(const AngleRad: TScalar;
+  const Axis: TVector3): TMatrix4;
+var
+  NormAxis: TVector3;
+  AngleSin, AngleCos: Float;
+  S, C: TScalar;
+begin
+  NormAxis := Normalized(Axis);
+
+  SinCos(AngleRad, AngleSin, AngleCos);
+  { convert Float to TScalar once }
+  S := AngleSin;
+  C := AngleCos;
+
+  Result := VectorMultTransposedSameVector(NormAxis);
+
+  { We do not touch the last column and row of Result in the following code,
+    treating Result like a 3x3 matrix. The last column and row are already Ok. }
+
+  { Expanded Result := Result + (IdentityMatrix3 - Result) * AngleCos; }
+  Result[0, 0] += (1 - Result[0, 0]) * C;
+  Result[1, 0] +=    - Result[1, 0]  * C;
+  Result[2, 0] +=    - Result[2, 0]  * C;
+
+  Result[0, 1] +=    - Result[0, 1]  * C;
+  Result[1, 1] += (1 - Result[1, 1]) * C;
+  Result[2, 1] +=    - Result[2, 1]  * C;
+
+  Result[0, 2] +=    - Result[0, 2]  * C;
+  Result[1, 2] +=    - Result[1, 2]  * C;
+  Result[2, 2] += (1 - Result[2, 2]) * C;
+
+  NormAxis[0] *= S;
+  NormAxis[1] *= S;
+  NormAxis[2] *= S;
+
+  { Add M3 (from OpenGL matrix equations) }
+  Result[1, 0] += -NormAxis[2];
+  Result[2, 0] +=  NormAxis[1];
+
+  Result[0, 1] +=  NormAxis[2];
+  Result[2, 1] += -NormAxis[0];
+
+  Result[0, 2] += -NormAxis[1];
+  Result[1, 2] +=  NormAxis[0];
+end;
+
+procedure RotationMatricesRad(const AxisAngle: TVector4;
+  out Matrix, InvertedMatrix: TMatrix4);
+var
+  Axis: TVector3 absolute AxisAngle;
+begin
+  RotationMatricesRad(AxisAngle[3], Axis, Matrix, InvertedMatrix);
+end;
+
+procedure RotationMatricesRad(const AngleRad: TScalar;
+  const Axis: TVector3;
+  out Matrix, InvertedMatrix: TMatrix4);
+var
+  NormAxis: TVector3;
+  V: TScalar;
+  AngleSin, AngleCos: Float;
+  S, C: TScalar;
+begin
+  NormAxis := Normalized(Axis);
+
+  SinCos(AngleRad, AngleSin, AngleCos);
+  { convert Float to TScalar once }
+  S := AngleSin;
+  C := AngleCos;
+
+  Matrix := VectorMultTransposedSameVector(NormAxis);
+
+  { We do not touch the last column and row of Matrix in the following code,
+    treating Matrix like a 3x3 matrix. The last column and row are already Ok. }
+
+  { Expanded Matrix := Matrix + (IdentityMatrix3 - Matrix) * AngleCos; }
+  Matrix[0, 0] += (1 - Matrix[0, 0]) * C;
+  Matrix[1, 0] +=    - Matrix[1, 0]  * C;
+  Matrix[2, 0] +=    - Matrix[2, 0]  * C;
+
+  Matrix[0, 1] +=    - Matrix[0, 1]  * C;
+  Matrix[1, 1] += (1 - Matrix[1, 1]) * C;
+  Matrix[2, 1] +=    - Matrix[2, 1]  * C;
+
+  Matrix[0, 2] +=    - Matrix[0, 2]  * C;
+  Matrix[1, 2] +=    - Matrix[1, 2]  * C;
+  Matrix[2, 2] += (1 - Matrix[2, 2]) * C;
+
+  { Up to this point, calculated Matrix is also good for InvertedMatrix }
+  InvertedMatrix := Matrix;
+
+  NormAxis[0] *= S;
+  NormAxis[1] *= S;
+  NormAxis[2] *= S;
+
+  { Now add M3 to Matrix, and subtract M3 from InvertedMatrix.
+    That's because for the inverted rotation, AngleSin is negated,
+    so the M3 should be subtracted. }
+  V := -NormAxis[2]; Matrix[1, 0] += V; InvertedMatrix[1, 0] -= V;
+  V :=  NormAxis[1]; Matrix[2, 0] += V; InvertedMatrix[2, 0] -= V;
+
+  V :=  NormAxis[2]; Matrix[0, 1] += V; InvertedMatrix[0, 1] -= V;
+  V := -NormAxis[0]; Matrix[2, 1] += V; InvertedMatrix[2, 1] -= V;
+
+  V := -NormAxis[1]; Matrix[0, 2] += V; InvertedMatrix[0, 2] -= V;
+  V :=  NormAxis[0]; Matrix[1, 2] += V; InvertedMatrix[1, 2] -= V;
+end;
+
+function RotationMatrixDeg(const AngleDeg: TScalar; const Axis: TVector3): TMatrix4;
+begin
+  result := RotationMatrixRad(DegToRad(AngleDeg), Axis);
+end;
+
+function RotationMatrixDeg(const AngleDeg: TScalar;
+  const AxisX, AxisY, AxisZ: TScalar): TMatrix4;
+begin
+  result := RotationMatrixRad(DegToRad(AngleDeg), Vector3(AxisX, AxisY, AxisZ));
+end;
+
+function RotationMatrixRad(const AngleRad: TScalar;
+  const AxisX, AxisY, AxisZ: TScalar): TMatrix4;
+begin
+  result := RotationMatrixRad(AngleRad, Vector3(AxisX, AxisY, AxisZ));
+end;
+
+{ kod dla MatrixDet* przerobiony z vect.c z mgflib }
+
+function MatrixDet4x4(const mat: TMatrix4): TScalar;
+var
+  a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4: TScalar;
+begin
+  a1 := mat[0][0]; b1 := mat[0][1];
+  c1 := mat[0][2]; d1 := mat[0][3];
+
+  a2 := mat[1][0]; b2 := mat[1][1];
+  c2 := mat[1][2]; d2 := mat[1][3];
+
+  a3 := mat[2][0]; b3 := mat[2][1];
+  c3 := mat[2][2]; d3 := mat[2][3];
+
+  a4 := mat[3][0]; b4 := mat[3][1];
+  c4 := mat[3][2]; d4 := mat[3][3];
+
+  result := a1 * MatrixDet3x3 (b2, b3, b4, c2, c3, c4, d2, d3, d4) -
+            b1 * MatrixDet3x3 (a2, a3, a4, c2, c3, c4, d2, d3, d4) +
+            c1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, d2, d3, d4) -
+            d1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, c2, c3, c4);
+end;
+
+
+function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TScalar): TScalar;
+begin
+  result := a1 * MatrixDet2x2 (b2, b3, c2, c3)
+          - b1 * MatrixDet2x2 (a2, a3, c2, c3)
+          + c1 * MatrixDet2x2 (a2, a3, b2, b3);
+end;
+
+function MatrixDet2x2(const a, b, c, d: TScalar): TScalar;
+begin
+  result := a * d - b * c;
 end;
 
 {$endif read_implementation}
