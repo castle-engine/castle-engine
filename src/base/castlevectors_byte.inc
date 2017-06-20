@@ -32,6 +32,9 @@ function VectorsPerfectlyEqual(const V1, V2: TVector2Byte  ): boolean; overload;
 function VectorsPerfectlyEqual(const V1, V2: TVector3Byte  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 function VectorsPerfectlyEqual(const V1, V2: TVector4Byte  ): boolean; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 
+{ Normalize the first 3 vector components. For zero vectors, does nothing. }
+procedure NormalizeVar3Bytev(vv: PVector3Byte);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -103,6 +106,20 @@ begin
             (V1[1] = V2[1]) and
             (V1[2] = V2[2]) and
             (V1[3] = V2[3]);
+end;
+
+procedure NormalizeVar3Bytev(vv: PVector3Byte);
+var
+  Len: integer;
+begin
+  Len := Round( Sqrt(
+    Sqr(Integer(vv^[0])) +
+    Sqr(Integer(vv^[1])) +
+    Sqr(Integer(vv^[2]))) );
+  if Len = 0 then exit;
+  vv^[0] := vv^[0] div Len;
+  vv^[1] := vv^[1] div Len;
+  vv^[2] := vv^[2] div Len;
 end;
 
 {$endif read_implementation}

@@ -25,6 +25,27 @@
 
 {$ifdef read_interface}
 
+{ Compare two float values, with some epsilon.
+  When two float values differ by less than given epsilon, they are
+  considered equal.
+
+  @groupBegin }
+function FloatsEqual(const f1, f2: TScalar): boolean; overload;
+function FloatsEqual(const f1, f2, EqEpsilon: TScalar): boolean; overload;
+{ @groupEnd }
+
+{ Compare float value with zero, with some epsilon.
+  This is somewhat optimized version of doing FloatsEqual(F1, 0).
+
+  This is named Zero, not IsZero --- to not collide with IsZero function
+  in Math unit (that has the same purpose, but uses different epsilons
+  by default).
+
+  @groupBegin }
+function Zero(const f1: TScalar): boolean; overload;
+function Zero(const f1, EqEpsilon: TScalar): boolean; overload;
+{ @groupEnd }
+
 { Subtract two vectors.
 
   Versions *Var place result back into the 1st vector,
@@ -1038,6 +1059,34 @@ function MatrixDet2x2(const a, b, c, d: TScalar): TScalar;
 {$endif read_interface}
 
 {$ifdef read_implementation}
+
+function FloatsEqual(const f1, f2: TScalar): boolean;
+begin
+  if ScalarEqualityEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < ScalarEqualityEpsilon;
+end;
+
+function FloatsEqual(const f1, f2, EqEpsilon: TScalar): boolean;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = f2 else
+    Result := Abs(f1-f2) < EqEpsilon
+end;
+
+function Zero(const f1: TScalar  ): boolean;
+begin
+  if ScalarEqualityEpsilon = 0 then
+    Result := f1 = 0 else
+    Result := Abs(f1)<  ScalarEqualityEpsilon
+end;
+
+function Zero(const f1, EqEpsilon: TScalar): boolean;
+begin
+  if EqEpsilon = 0 then
+    Result := f1 = 0 else
+    result := Abs(f1) < EqEpsilon
+end;
 
 {$define VECTOR_OP_FUNCS:=
 function VectorOpFuncName(const V1, V2: TVector2): TVector2;
