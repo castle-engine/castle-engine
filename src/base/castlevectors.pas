@@ -198,7 +198,7 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, CastleUtils, Matrix, CastleGenericLists;
+uses SysUtils, CastleUtils, CastleGenericLists;
 
 {$define read_interface}
 
@@ -229,12 +229,6 @@ uses SysUtils, CastleUtils, Matrix, CastleGenericLists;
 {$define UnitVector3 := UnitVector3Single}
 {$define ZeroVector3 := ZeroVector3Single}
 {$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define TMatrix2_ := TMatrix2_Single}
-{$define TMatrix3_ := TMatrix3_Single}
-{$define TMatrix4_ := TMatrix4_Single}
-{$define TVector2_ := TVector2_Single}
-{$define TVector3_ := TVector3_Single}
-{$define TVector4_ := TVector4_Single}
 {$define Vector3 := Vector3Single}
 {$I castlevectors_generic_float.inc}
 
@@ -253,12 +247,6 @@ uses SysUtils, CastleUtils, Matrix, CastleGenericLists;
 {$define UnitVector3 := UnitVector3Double}
 {$define ZeroVector3 := ZeroVector3Double}
 {$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define TMatrix2_ := TMatrix2_Double}
-{$define TMatrix3_ := TMatrix3_Double}
-{$define TMatrix4_ := TMatrix4_Double}
-{$define TVector2_ := TVector2_Double}
-{$define TVector3_ := TVector3_Double}
-{$define TVector4_ := TVector4_Double}
 {$define Vector3 := Vector3Double}
 {$I castlevectors_generic_float.inc}
 {$endif CASTLE_HAS_DOUBLE_PRECISION}
@@ -297,12 +285,6 @@ uses Math, CastleStringUtils, CastleColors;
 {$define UnitVector3 := UnitVector3Single}
 {$define ZeroVector3 := ZeroVector3Single}
 {$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define TMatrix2_ := TMatrix2_Single}
-{$define TMatrix3_ := TMatrix3_Single}
-{$define TMatrix4_ := TMatrix4_Single}
-{$define TVector2_ := TVector2_Single}
-{$define TVector3_ := TVector3_Single}
-{$define TVector4_ := TVector4_Single}
 {$define Vector3 := Vector3Single}
 {$I castlevectors_generic_float.inc}
 
@@ -321,12 +303,6 @@ uses Math, CastleStringUtils, CastleColors;
 {$define UnitVector3 := UnitVector3Double}
 {$define ZeroVector3 := ZeroVector3Double}
 {$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define TMatrix2_ := TMatrix2_Double}
-{$define TMatrix3_ := TMatrix3_Double}
-{$define TMatrix4_ := TMatrix4_Double}
-{$define TVector2_ := TVector2_Double}
-{$define TVector3_ := TVector3_Double}
-{$define TVector4_ := TVector4_Double}
 {$define Vector3 := Vector3Double}
 {$I castlevectors_generic_float.inc}
 {$endif CASTLE_HAS_DOUBLE_PRECISION}

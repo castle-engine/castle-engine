@@ -17,33 +17,6 @@
 
 {$ifdef read_interface}
 
-{ Define pointer types for all Matrix unit types. }
-type
-  { }
-  Pvector2_single   = ^Tvector2_single  ;
-  Pvector2_double   = ^Tvector2_double  ;
-  Pvector2_extended = ^Tvector2_extended;
-
-  Pvector3_single   = ^Tvector3_single  ;
-  Pvector3_double   = ^Tvector3_double  ;
-  Pvector3_extended = ^Tvector3_extended;
-
-  Pvector4_single   = ^Tvector4_single  ;
-  Pvector4_double   = ^Tvector4_double  ;
-  Pvector4_extended = ^Tvector4_extended;
-
-  Pmatrix2_single   = ^Tmatrix2_single  ;
-  Pmatrix2_double   = ^Tmatrix2_double  ;
-  Pmatrix2_extended = ^Tmatrix2_extended;
-
-  Pmatrix3_single   = ^Tmatrix3_single  ;
-  Pmatrix3_double   = ^Tmatrix3_double  ;
-  Pmatrix3_extended = ^Tmatrix3_extended;
-
-  Pmatrix4_single   = ^Tmatrix4_single  ;
-  Pmatrix4_double   = ^Tmatrix4_double  ;
-  Pmatrix4_extended = ^Tmatrix4_extended;
-
 { Most types below are packed anyway, so the "packed" keyword below
   is often not needed (but it doesn't hurt).
 
@@ -54,9 +27,9 @@ type
 
 type
   { }
-  TVector2Single = Tvector2_single_data;              PVector2Single = ^TVector2Single;
-  TVector2Double = Tvector2_double_data;              PVector2Double = ^TVector2Double;
-  TVector2Extended = Tvector2_extended_data;          PVector2Extended = ^TVector2Extended;
+  TVector2Single = packed array [0..1] of Single;     PVector2Single = ^TVector2Single;
+  TVector2Double = packed array [0..1] of Double;     PVector2Double = ^TVector2Double;
+  TVector2Extended = packed array [0..1] of Extended; PVector2Extended = ^TVector2Extended;
   TVector2Byte = packed array [0..1] of Byte;         PVector2Byte = ^TVector2Byte;
   TVector2Word = packed array [0..1] of Word;         PVector2Word = ^TVector2Word;
   TVector2SmallInt = packed array [0..1] of SmallInt; PVector2SmallInt = ^TVector2SmallInt;
@@ -65,9 +38,9 @@ type
   TVector2Cardinal = packed array [0..1] of Cardinal; PVector2Cardinal = ^TVector2Cardinal;
   TVector2Integer = packed array [0..1] of Integer;   PVector2Integer = ^TVector2Integer;
 
-  TVector3Single = Tvector3_single_data;              PVector3Single = ^TVector3Single;
-  TVector3Double = Tvector3_double_data;              PVector3Double = ^TVector3Double;
-  TVector3Extended = Tvector3_extended_data;          PVector3Extended = ^TVector3Extended;
+  TVector3Single = packed array [0..2] of Single;     PVector3Single = ^TVector3Single;
+  TVector3Double = packed array [0..2] of Double;     PVector3Double = ^TVector3Double;
+  TVector3Extended = packed array [0..2] of Extended; PVector3Extended = ^TVector3Extended;
   TVector3Byte = packed array [0..2] of Byte;         PVector3Byte = ^TVector3Byte;
   TVector3Word = packed array [0..2] of Word;         PVector3Word = ^TVector3Word;
   TVector3Longint = packed array [0..2] of Longint;   PVector3Longint = ^TVector3Longint;
@@ -75,9 +48,9 @@ type
   TVector3Integer = packed array [0..2] of Integer;   PVector3Integer = ^TVector3Integer;
   TVector3Cardinal = packed array [0..2] of Cardinal; PVector3Cardinal = ^TVector3Cardinal;
 
-  TVector4Single = Tvector4_single_data;              PVector4Single = ^TVector4Single;
-  TVector4Double = Tvector4_double_data;              PVector4Double = ^TVector4Double;
-  TVector4Extended = Tvector4_extended_data;          PVector4Extended = ^TVector4Extended;
+  TVector4Single = packed array [0..3] of Single;     PVector4Single = ^TVector4Single;
+  TVector4Double = packed array [0..3] of Double;     PVector4Double = ^TVector4Double;
+  TVector4Extended = packed array [0..3] of Extended; PVector4Extended = ^TVector4Extended;
   TVector4Byte = packed array [0..3] of Byte;         PVector4Byte = ^TVector4Byte;
   TVector4Word = packed array [0..3] of Word;         PVector4Word = ^TVector4Word;
   TVector4Longint = packed array [0..3] of Longint;   PVector4Longint = ^TVector4Longint;
@@ -102,17 +75,17 @@ type
     This is sometimes useful and comfortable.
 
     @groupBegin }
-  TMatrix2Single = Tmatrix2_single_data;                   PMatrix2Single = ^TMatrix2Single;
-  TMatrix2Double = Tmatrix2_double_data;                   PMatrix2Double = ^TMatrix2Double;
-  TMatrix2Longint = packed array[0..1]of TVector2Longint;  PMatrix2Longint = ^TMatrix2Longint;
+  TMatrix2Single = packed array [0..1] of TVector2Single;    PMatrix2Single = ^TMatrix2Single;
+  TMatrix2Double = packed array [0..1] of TVector2Double;    PMatrix2Double = ^TMatrix2Double;
+  TMatrix2Longint = packed array [0..1] of TVector2Longint;  PMatrix2Longint = ^TMatrix2Longint;
 
-  TMatrix3Single = Tmatrix3_single_data;                   PMatrix3Single = ^TMatrix3Single;
-  TMatrix3Double = Tmatrix3_double_data;                   PMatrix3Double = ^TMatrix3Double;
-  TMatrix3Longint = packed array[0..2]of TVector3Longint;  PMatrix3Longint = ^TMatrix3Longint;
+  TMatrix3Single = packed array [0..2] of TVector3Single;    PMatrix3Single = ^TMatrix3Single;
+  TMatrix3Double = packed array [0..2] of TVector3Double;    PMatrix3Double = ^TMatrix3Double;
+  TMatrix3Longint = packed array [0..2] of TVector3Longint;  PMatrix3Longint = ^TMatrix3Longint;
 
-  TMatrix4Single = Tmatrix4_single_data;                   PMatrix4Single = ^TMatrix4Single;
-  TMatrix4Double = Tmatrix4_double_data;                   PMatrix4Double = ^TMatrix4Double;
-  TMatrix4Longint = packed array[0..3]of TVector4Longint;  PMatrix4Longint = ^TMatrix4Longint;
+  TMatrix4Single = packed array [0..3] of TVector4Single;    PMatrix4Single = ^TMatrix4Single;
+  TMatrix4Double = packed array [0..3] of TVector4Double;    PMatrix4Double = ^TMatrix4Double;
+  TMatrix4Longint = packed array [0..3] of TVector4Longint;  PMatrix4Longint = ^TMatrix4Longint;
   { @groupEnd }
 
   { The "infinite" arrays, useful for some type-casting hacks }

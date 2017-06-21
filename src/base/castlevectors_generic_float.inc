@@ -321,15 +321,6 @@ procedure SwapValues(var V1, V2: TVector4); overload;
 
 function VectorAverage(const V: TVector3): TScalar; overload;
 
-{ Overload := operator to allow conversion between
-  Matrix unit objects and this unit's arrays easy. }
-operator := (const V: TVector2_): TVector2;
-operator := (const V: TVector3_): TVector3;
-operator := (const V: TVector4_): TVector4;
-operator := (const V: TVector2): TVector2_;
-operator := (const V: TVector3): TVector3_;
-operator := (const V: TVector4): TVector4_;
-
 { Linear interpolation between two vector values.
   Returns (1-A) * V1 + A * V2 (well, calculated a little differently for speed).
   So A = 0 gives V1, A = 1 gives V2, and values between and around are
@@ -343,18 +334,11 @@ function Lerp(const A: TScalar; const M1, M2: TMatrix3): TMatrix3; overload;
 function Lerp(const A: TScalar; const M1, M2: TMatrix4): TMatrix4; overload;
 { @groupEnd }
 
-function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector3_): TVector3_; overload;
-function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector4_): TVector4_; overload;
-
 procedure NormalizeVar(var v: TVector2); overload;
 procedure NormalizeVar(var v: TVector3); overload;
 
 function Normalized(const v: TVector2): TVector2; overload;
 function Normalized(const v: TVector3): TVector3; overload;
-
-function Vector_Get_Normalized(const V: TVector3_): TVector3_; overload;
-
-procedure Vector_Normalize(var V: TVector3_); overload;
 
 { This normalizes Plane by scaling all @italic(four) coordinates of Plane
   so that length of plane vector (taken from 1st @italic(three) coordinates)
@@ -820,9 +804,9 @@ function MatrixDeterminant(const M: TMatrix4): TScalar; overload;
   from this float division if the matrix is not reversible.
 
   @groupBegin }
-function MatrixInverse(const M: TMatrix2; const Determinant: TScalar): TMatrix2; overload;
-function MatrixInverse(const M: TMatrix3; const Determinant: TScalar): TMatrix3; overload;
-function MatrixInverse(const M: TMatrix4; const Determinant: TScalar): TMatrix4; overload;
+function MatrixInverse(const M: TMatrix2; Determinant: TScalar): TMatrix2; overload;
+function MatrixInverse(const M: TMatrix3; Determinant: TScalar): TMatrix3; overload;
+function MatrixInverse(const M: TMatrix4; Determinant: TScalar): TMatrix4; overload;
 { @groupEnd }
 
 { Transpose the matrix.
@@ -1051,10 +1035,6 @@ procedure RotationMatricesRad(const AngleRad: TScalar; const Axis: TVector3;
 procedure RotationMatricesRad(const AxisAngle: TVector4;
   out Matrix, InvertedMatrix: TMatrix4);
 { @groupEnd }
-
-function MatrixDet4x4(const mat: TMatrix4): TScalar;
-function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TScalar): TScalar;
-function MatrixDet2x2(const a, b, c, d: TScalar): TScalar;
 
 {$endif read_interface}
 
@@ -1457,51 +1437,6 @@ begin
   Result := (V[0] + V[1] + V[2]) / 3;
 end;
 
-operator := (const V: TVector2_): TVector2;
-begin
-  Result := V.Data;
-end;
-
-operator := (const V: TVector3_): TVector3;
-begin
-  Result := V.Data;
-end;
-
-operator := (const V: TVector4_): TVector4;
-begin
-  Result := V.Data;
-end;
-
-operator := (const V: TVector2): TVector2_;
-begin
-  Result.Data := V;
-end;
-
-operator := (const V: TVector3): TVector3_;
-begin
-  Result.Data := V;
-end;
-
-operator := (const V: TVector4): TVector4_;
-begin
-  Result.Data := V;
-end;
-
-function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector3_): TVector3_;
-begin
-  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
-  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
-  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
-end;
-
-function Vector_Init_Lerp(const A: TScalar; const V1, V2: TVector4_): TVector4_;
-begin
-  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
-  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
-  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
-  Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
-end;
-
 procedure NormalizeVar(var V: TVector2);
 var
   len: TScalar;
@@ -1732,17 +1667,6 @@ function Normalized(const v: TVector2): TVector2;
 begin
   Result := v;
   NormalizeVar(result);
-end;
-
-function Vector_Get_Normalized(const V: TVector3_): TVector3_;
-begin
-  Result.Data := V.Data;
-  NormalizeVar(Result.Data);
-end;
-
-procedure Vector_Normalize(var V: TVector3_);
-begin
-  NormalizeVar(V.Data);
 end;
 
 function RotatePointAroundAxisDeg(Angle: TScalar; const Point: TVector3;
@@ -3519,66 +3443,156 @@ begin
   Result[3, 3] := 1;
 end;
 
-{ We're happily using FPC's Matrix unit to trivially implement
-  matrix determinant and inverse. }
+function MatrixDet2x2(const a1, a2, b1, b2: TScalar): TScalar;
+{ Matrix is
+  [ a1 a2 ]
+  [ b1 b2 ]
+}
+begin
+  result := a1 * b2 - a2 * b1;
+end;
+
+function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TScalar): TScalar;
+begin
+  result := a1 * MatrixDet2x2 (b2, b3, c2, c3)
+          - b1 * MatrixDet2x2 (a2, a3, c2, c3)
+          + c1 * MatrixDet2x2 (a2, a3, b2, b3);
+end;
 
 function MatrixDeterminant(const M: TMatrix2): TScalar;
-var
-  MM: TMatrix2_;
 begin
-  { Note that generally data should be transposed between
-    TMatrix2_ and TMatrix2. But in this case, it's not needed,
-    as the determinant of the transposition is exactly the same. }
-
-  MM.Data := M;
-  Result := MM.Determinant;
+  Result := MatrixDet2x2(
+    M[0][0], M[1][0],
+    M[0][1], M[1][1]
+  );
 end;
 
 function MatrixDeterminant(const M: TMatrix3): TScalar;
-var
-  MM: TMatrix3_;
 begin
-  MM.Data := M;
-  Result := MM.Determinant;
+  Result := MatrixDet3x3(
+    M[0][0], M[1][0], M[2][0],
+    M[0][1], M[1][1], M[2][1],
+    M[0][2], M[1][2], M[2][2]
+  );
 end;
 
 function MatrixDeterminant(const M: TMatrix4): TScalar;
 var
-  MM: TMatrix4_;
+  a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4: TScalar;
 begin
-  MM.Data := M;
-  Result := MM.Determinant;
+  a1 := M[0][0]; b1 := M[0][1];
+  c1 := M[0][2]; d1 := M[0][3];
+
+  a2 := M[1][0]; b2 := M[1][1];
+  c2 := M[1][2]; d2 := M[1][3];
+
+  a3 := M[2][0]; b3 := M[2][1];
+  c3 := M[2][2]; d3 := M[2][3];
+
+  a4 := M[3][0]; b4 := M[3][1];
+  c4 := M[3][2]; d4 := M[3][3];
+
+  result := a1 * MatrixDet3x3 (b2, b3, b4, c2, c3, c4, d2, d3, d4) -
+            b1 * MatrixDet3x3 (a2, a3, a4, c2, c3, c4, d2, d3, d4) +
+            c1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, d2, d3, d4) -
+            d1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, c2, c3, c4);
 end;
 
-function MatrixInverse(const M: TMatrix2; const Determinant: TScalar): TMatrix2;
-var
-  MM: TMatrix2_;
+function MatrixInverse(const M: TMatrix2; Determinant: TScalar): TMatrix2;
 begin
-  { Note that generally data should be transposed between
-    TMatrix2_ and TMatrix2. But in this case, it's not needed,
-    as the transpose of the inverse is the inverse of the transpose.
+  { Code adapted from FPC Matrix unit (same license as Castle Game Engine).
+
+    Note that the code below is taken from FPC Matrix unit which has transposed
+    matrices. So we should transpose the input and output, in general.
+    But in this case, it's not needed, as the transpose of the inverse
+    is the inverse of the transpose.
     Which means that
+
       Result = transpose(inverse(transpose(m))
-             = transpose(transpose(inverse(m))) = just inverse(m)) }
+             = transpose(transpose(inverse(m)))
+             = just inverse(m))
+  }
 
-  MM.Data := M;
-  Result := MM.Inverse(Determinant).Data;
+  Determinant := 1 / Determinant;
+  Result[0,0] := M[1,1] * Determinant;
+  Result[0,1] := -M[0,1] * Determinant;
+  Result[1,0] := -M[1,0] * Determinant;
+  Result[1,1] := M[0,0] * Determinant;
 end;
 
-function MatrixInverse(const M: TMatrix3; const Determinant: TScalar): TMatrix3;
-var
-  MM: TMatrix3_;
+function MatrixInverse(const M: TMatrix3; Determinant: TScalar): TMatrix3;
 begin
-  MM.Data := M;
-  Result := MM.Inverse(Determinant).Data;
+  { Code adapted from FPC Matrix unit (same license as Castle Game Engine).
+    This calculates the inverse of a transpose, but it doesn't matter,
+    see MatrixInverse on TMatrix2 comments. }
+
+  Determinant := 1 / Determinant;
+  Result[0,0] := (M[1,1] * M[2,2]-M[2,1] * M[1,2]) * Determinant;
+  Result[0,1] := -(M[0,1] * M[2,2]-M[2,1] * M[0,2]) * Determinant;
+  Result[0,2] := (M[0,1] * M[1,2]-M[1,1] * M[0,2]) * Determinant;
+  Result[1,0] := -(M[1,0] * M[2,2]-M[2,0] * M[1,2]) * Determinant;
+  Result[1,1] := (M[0,0] * M[2,2]-M[2,0] * M[0,2]) * Determinant;
+  Result[1,2] := -(M[0,0] * M[1,2]-M[1,0] * M[0,2]) * Determinant;
+  Result[2,0] := (M[1,0] * M[2,1]-M[2,0] * M[1,1]) * Determinant;
+  Result[2,1] := -(M[0,0] * M[2,1]-M[2,0] * M[0,1]) * Determinant;
+  Result[2,2] := (M[0,0] * M[1,1]-M[1,0] * M[0,1]) * Determinant;
 end;
 
-function MatrixInverse(const M: TMatrix4; const Determinant: TScalar): TMatrix4;
-var
-  MM: TMatrix4_;
+function MatrixInverse(const M: TMatrix4; Determinant: TScalar): TMatrix4;
 begin
-  MM.Data := M;
-  Result := MM.Inverse(Determinant).Data;
+  { Code adapted from FPC Matrix unit (same license as Castle Game Engine).
+    This calculates the inverse of a transpose, but it doesn't matter,
+    see MatrixInverse on TMatrix3 comments. }
+
+  Determinant := 1 / Determinant;
+  Result[0,0] := Determinant * (M[1,1] * (M[2,2] * M[3,3]-M[2,3] * M[3,2])+
+                                M[1,2] * (M[2,3] * M[3,1]-M[2,1] * M[3,3])+
+                                M[1,3] * (M[2,1] * M[3,2]-M[2,2] * M[3,1]));
+  Result[0,1] := Determinant * (M[2,1] * (M[0,2] * M[3,3]-M[0,3] * M[3,2])+
+                                M[2,2] * (M[0,3] * M[3,1]-M[0,1] * M[3,3])+
+                                M[2,3] * (M[0,1] * M[3,2]-M[0,2] * M[3,1]));
+  Result[0,2] := Determinant * (M[3,1] * (M[0,2] * M[1,3]-M[0,3] * M[1,2])+
+                                M[3,2] * (M[0,3] * M[1,1]-M[0,1] * M[1,3])+
+                                M[3,3] * (M[0,1] * M[1,2]-M[0,2] * M[1,1]));
+  Result[0,3] := Determinant * (M[0,1] * (M[1,3] * M[2,2]-M[1,2] * M[2,3])+
+                                M[0,2] * (M[1,1] * M[2,3]-M[1,3] * M[2,1])+
+                                M[0,3] * (M[1,2] * M[2,1]-M[1,1] * M[2,2]));
+  Result[1,0] := Determinant * (M[1,2] * (M[2,0] * M[3,3]-M[2,3] * M[3,0])+
+                                M[1,3] * (M[2,2] * M[3,0]-M[2,0] * M[3,2])+
+                                M[1,0] * (M[2,3] * M[3,2]-M[2,2] * M[3,3]));
+  Result[1,1] := Determinant * (M[2,2] * (M[0,0] * M[3,3]-M[0,3] * M[3,0])+
+                                M[2,3] * (M[0,2] * M[3,0]-M[0,0] * M[3,2])+
+                                M[2,0] * (M[0,3] * M[3,2]-M[0,2] * M[3,3]));
+  Result[1,2] := Determinant * (M[3,2] * (M[0,0] * M[1,3]-M[0,3] * M[1,0])+
+                                M[3,3] * (M[0,2] * M[1,0]-M[0,0] * M[1,2])+
+                                M[3,0] * (M[0,3] * M[1,2]-M[0,2] * M[1,3]));
+  Result[1,3] := Determinant * (M[0,2] * (M[1,3] * M[2,0]-M[1,0] * M[2,3])+
+                                M[0,3] * (M[1,0] * M[2,2]-M[1,2] * M[2,0])+
+                                M[0,0] * (M[1,2] * M[2,3]-M[1,3] * M[2,2]));
+  Result[2,0] := Determinant * (M[1,3] * (M[2,0] * M[3,1]-M[2,1] * M[3,0])+
+                                M[1,0] * (M[2,1] * M[3,3]-M[2,3] * M[3,1])+
+                                M[1,1] * (M[2,3] * M[3,0]-M[2,0] * M[3,3]));
+  Result[2,1] := Determinant * (M[2,3] * (M[0,0] * M[3,1]-M[0,1] * M[3,0])+
+                                M[2,0] * (M[0,1] * M[3,3]-M[0,3] * M[3,1])+
+                                M[2,1] * (M[0,3] * M[3,0]-M[0,0] * M[3,3]));
+  Result[2,2] := Determinant * (M[3,3] * (M[0,0] * M[1,1]-M[0,1] * M[1,0])+
+                                M[3,0] * (M[0,1] * M[1,3]-M[0,3] * M[1,1])+
+                                M[3,1] * (M[0,3] * M[1,0]-M[0,0] * M[1,3]));
+  Result[2,3] := Determinant * (M[0,3] * (M[1,1] * M[2,0]-M[1,0] * M[2,1])+
+                                M[0,0] * (M[1,3] * M[2,1]-M[1,1] * M[2,3])+
+                                M[0,1] * (M[1,0] * M[2,3]-M[1,3] * M[2,0]));
+  Result[3,0] := Determinant * (M[1,0] * (M[2,2] * M[3,1]-M[2,1] * M[3,2])+
+                                M[1,1] * (M[2,0] * M[3,2]-M[2,2] * M[3,0])+
+                                M[1,2] * (M[2,1] * M[3,0]-M[2,0] * M[3,1]));
+  Result[3,1] := Determinant * (M[2,0] * (M[0,2] * M[3,1]-M[0,1] * M[3,2])+
+                                M[2,1] * (M[0,0] * M[3,2]-M[0,2] * M[3,0])+
+                                M[2,2] * (M[0,1] * M[3,0]-M[0,0] * M[3,1]));
+  Result[3,2] := Determinant * (M[3,0] * (M[0,2] * M[1,1]-M[0,1] * M[1,2])+
+                                M[3,1] * (M[0,0] * M[1,2]-M[0,2] * M[1,0])+
+                                M[3,2] * (M[0,1] * M[1,0]-M[0,0] * M[1,1]));
+  Result[3,3] := Determinant * (M[0,0] * (M[1,1] * M[2,2]-M[1,2] * M[2,1])+
+                                M[0,1] * (M[1,2] * M[2,0]-M[1,0] * M[2,2])+
+                                M[0,2] * (M[1,0] * M[2,1]-M[1,1] * M[2,0]));
 end;
 
 function MatrixRow(const m: TMatrix2; const Row: Integer): TVector2;
@@ -3852,43 +3866,6 @@ function RotationMatrixRad(const AngleRad: TScalar;
   const AxisX, AxisY, AxisZ: TScalar): TMatrix4;
 begin
   result := RotationMatrixRad(AngleRad, Vector3(AxisX, AxisY, AxisZ));
-end;
-
-{ kod dla MatrixDet* przerobiony z vect.c z mgflib }
-
-function MatrixDet4x4(const mat: TMatrix4): TScalar;
-var
-  a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4: TScalar;
-begin
-  a1 := mat[0][0]; b1 := mat[0][1];
-  c1 := mat[0][2]; d1 := mat[0][3];
-
-  a2 := mat[1][0]; b2 := mat[1][1];
-  c2 := mat[1][2]; d2 := mat[1][3];
-
-  a3 := mat[2][0]; b3 := mat[2][1];
-  c3 := mat[2][2]; d3 := mat[2][3];
-
-  a4 := mat[3][0]; b4 := mat[3][1];
-  c4 := mat[3][2]; d4 := mat[3][3];
-
-  result := a1 * MatrixDet3x3 (b2, b3, b4, c2, c3, c4, d2, d3, d4) -
-            b1 * MatrixDet3x3 (a2, a3, a4, c2, c3, c4, d2, d3, d4) +
-            c1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, d2, d3, d4) -
-            d1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, c2, c3, c4);
-end;
-
-
-function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TScalar): TScalar;
-begin
-  result := a1 * MatrixDet2x2 (b2, b3, c2, c3)
-          - b1 * MatrixDet2x2 (a2, a3, c2, c3)
-          + c1 * MatrixDet2x2 (a2, a3, b2, b3);
-end;
-
-function MatrixDet2x2(const a, b, c, d: TScalar): TScalar;
-begin
-  result := a * d - b * c;
 end;
 
 {$endif read_implementation}
