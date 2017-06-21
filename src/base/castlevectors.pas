@@ -13,21 +13,23 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Vector and matrix types and operations.
-  Includes operations on basic geometric objects (2D and 3D),
-  like collision-checking routines.)
+{ @abstract(Vector and matrix types and basic operations.
+  Also operations on basic geometric objects (2D and 3D),
+  inluding core collision-checking routines.)
 
-  Representation of geometric objects in this unit :
+  Various routines in this unit perform operations
+  on geometric objects, like spheres and line segments.
+  Here's an outline @bold(how do we represent various geometric objects):
 
   @unorderedList(
     @item(
-      @italic(Plane in 3D space) is a vector TVector4*. Such vector [A, B, C, D]
+      @italic(Plane in 3D space) is a vector of 4 values. Such vector [A, B, C, D]
       defines a surface that consists of all points satisfying equation
       @code(A * x + B * y + C * z + D = 0). At least one of A, B, C must be
       different than zero.
 
       Vector [A, B, C] is called PlaneDir in many places.
-      Or PlaneNormal when it's guaranteed (or required to be) normalized,
+      It is called PlaneNormal when it's guaranteed (or required to be) normalized,
       i.e. scaled to have length 1.)
 
     @item(
@@ -61,7 +63,7 @@
       for R being any real value >= 0.)
 
     @item(
-      A @italic(simple plane in 3D) is a plane parallel to one of
+      An @italic(axis-aligned plane in 3D) is a plane parallel to one of
       the three basic planes. This is a plane defined by the equation
       @code(X = Const) or @code(Y = Count) or @code(Z = Const).
       Such plane is represented as PlaneConstCoord integer value equal
@@ -75,9 +77,7 @@
         Plane[PlaneConstCoord] = -1,
         Plane[3] = PlaneConstValue.
       )
-
-      On such "simple plane" we can perform many calculations
-      much faster.)
+    )
 
     @item(
       A @italic(line segment) (often referred to as just @italic(segment))
@@ -94,31 +94,35 @@
       just take Pos1 = Segment0 and Pos2 = Segment0 + SegmentVector.)
   )
 
-  In descriptions of geometric objects above, I often
-  stated some requirements, e.g. the triangle must not be "degenerated"
-  to a line segment, RayDirection must not be a zero vector, etc.
-  You should note that these requirements are generally @italic(not checked)
-  by routines in this unit (for the sake of speed) and passing
-  wrong values to many of the routines may lead to serious bugs
-  --- maybe the function will raise some arithmetic exception,
-  maybe it will return some nonsensible result. In other words: when
-  calling these functions, always make sure that values you pass
-  satisfy the requirements.
+  @bold(Requirements of the geometric objects:)
 
-  (However, wrong input values should never lead to some serious
-  bugs like access violations or range check errors ---
-  in cases when it would be possible, we safeguard against this.
-  That's because sometimes you simply cannot guarantee for 100%
-  that input values are correct, because of floating-point precision
-  problems -- see below.)
+  In descriptions of the geometric objects above, you can see
+  some @italic(requirements), e.g.
+  @italic("the triangle must not be degenerated (equivalent to a line segment)"),
+  @italic("RayDirection must not be a zero vector"), etc.
+  These requirements are generally @italic(not checked)
+  by routines in this unit (for the sake of speed) and @italic(passing
+  wrong values to many of the routines may lead to exceptions)
+  (like an arithmetic exception) or nonsensible results. So try to make sure
+  that the values you pass satisfy the requirements.
 
-  As for floating-point precision:
+  However, @italic(wrong input values should never lead to exceptions
+  that would be a security risk), like access violations or range check errors.
+  As these exceptions could be uncatched in some situations,
+  and then allow accessing a memory that otherwise should not be accessed,
+  so we protect from this.
+  Sometimes you simply cannot guarantee for 100%
+  that input values are correct, because the floating-point operations
+  are inherently not precise.
+
+  @bold(About floating-point precision:)
+
   @unorderedList(
-    @item(Well, floating-point inaccuracy is, as always, a problem.
+    @item(Floating-point operations are never precise.
       This unit always uses FloatsEqual
       and variables SingleEqualityEpsilon, DoubleEqualityEpsilon
-      and ExtendedEpsilonEquality when comparison of floating-point
-      values is needed. In some cases you may be able to adjust these
+      and ExtendedEpsilonEquality to compare floats with some small
+      tolerance. Sometimes you may want to adjust these
       variables to somewhat fine-tune the comparisons.)
 
     @item(For collision-detecting routines, the general strategy
@@ -131,65 +135,6 @@
 
       This approach should be suitable for most use cases.)
   )
-
-  A design question about this unit: Right now I must declare two variables
-  to define a sphere (like @code(SphereCenter: vector; SphereRadius: scalar;))
-  Why not wrap all the geometric objects (spheres, lines, rays, tunnels etc.)
-  inside some records ? For example, define a sphere as
-
-  @longcode(#
-    TSphere = record Center: vector; Radius: scalar; end;
-  #)
-
-  The answer: this is not so good idea, because it would create
-  a lot of such types into unit, and I would have to implement
-  simple functions that construct and convert between these
-  types. Consider e.g. when I have a tunnel (given
-  as Tunnel1, Tunnel2 points and TunnelRadius vector)
-  and I want to "extract" the properties of the sphere at the 1st end
-  of this tunnel. Right now, it's simple: just consider
-  Tunnel1 as a sphere center, and TunnelRadius is obviously a sphere radius.
-  Computer doesn't have to actually do anything, you just have to think
-  in a different way about Tunnel1 and TunnelRadius.
-  But if I would have tunnel wrapped in a type like @code(TTunnel)
-  and a sphere wrapped in a type like @code(TSphere), then I would
-  have to actually implement this trivial conversion. And then doing
-  such trivial conversion at run-time would take some time,
-  because you have to copy 6 floating-point values.
-  This would be a very serious waste of time at run-time.
-  Well, on the other hand, routines could take less parameters
-  (e.g. only 1 parameter @code(TTunnel), instead of three vector parameters),
-  but (overall) we would still loose a lot of time.
-
-  In many places where I have to return collision with
-  a line segment, a line or a ray there are alternative versions
-  that return just a scalar "T" instead of a calculated point.
-  The actual collision point can be calculated then like
-  @code(RayOrigin + T * RayDirection). Of course for rays you can be sure
-  that T is >= 0, for line segments you can be sure that
-  0 <= T <= 1. The "T" is often useful, because it allows
-  you to easily calculate collision point, and also the distance
-  to the collision (you can e.g. compare T1 and T2 to compare which
-  collision is closer, and when your RayDirection is normalized then
-  the T gives you the exact distance). Thanks to this you can often
-  entirely avoid calculating the actual collision point
-  (@code(RayOrigin + T * RayDirection)).
-
-  Contains some stuff useful for integration with FPC's Matrix unit.
-  For now, there are some "glueing" functions here like
-  Vector_Get_Normalized that allow you to comfortably
-  perform operations on Matrix unit object types.
-  Most important is also the overload of ":=" operator that allows
-  you to switch between CastleVectors arrays and Matrix objects without
-  any syntax obfuscation. Although note that this overload is a little
-  dangerous, since now code like
-  @preformatted(  V3 := VectorProduct(V1, V2);)
-  compiles and works both when all three V1, V2 and V3 are TVector3Single arrays
-  or TVector3_Single objects. However, for the case when they are all
-  TVector3_Single objects, this is highly un-optimal, and
-  @preformatted(  V3 := V1 >< V2;)
-  is much faster, since it avoids the implicit conversions (unnecessary
-  memory copying around).
 }
 
 unit CastleVectors;

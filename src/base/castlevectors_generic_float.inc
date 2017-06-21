@@ -568,6 +568,7 @@ function PointToLineDistanceSqr(const point, line0, lineVector: TVector3): TScal
 
   Otherwise, returns @true, and calculates 3D intersection point,
   or calculates T such that @code(3D intersection = Line0 + LineVector * T).
+  T is always within [0,1] range.
   @groupBegin }
 function TryPlaneLineIntersection(out intersection: TVector3;
   const plane: TVector4; const line0, lineVector: TVector3): boolean; overload;
@@ -584,6 +585,7 @@ function TryPlaneLineIntersection(out t: TScalar;
 
   Otherwise, returns @true, and calculates 3D intersection point,
   or calculates T such that @code(3D intersection = RayOrigin + RayDirection * T).
+  T is always >= 0.
   @groupBegin }
 function TrySimplePlaneRayIntersection(out Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
@@ -609,7 +611,8 @@ function TryPlaneRayIntersection(out Intersection: TVector3; out T: TScalar;
   would have to be longer to hit the plane.
 
   Otherwise, returns @true, and calculates 3D intersection point,
-  or calculates T such that @code(3D intersection = RayOrigin + RayDirection * T).
+  or calculates T such that @code(3D intersection = Segment0 + SegmentVector * T).
+  T is always in range [0,1].
   @groupBegin }
 function TrySimplePlaneSegmentDirIntersection(var Intersection: TVector3;
   const PlaneConstCoord: integer; const PlaneConstValue: TScalar;
