@@ -52,8 +52,6 @@ uses SysUtils, Process,
   CastleUtils, CastleStringUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   ToolUtils;
 
-(* Not useful anymore. May become useful again some day.
-
 type
   TFPCVersion = object
     Major, Minor, Release: Integer;
@@ -96,7 +94,6 @@ begin
 
   Writeln(Format('FPC version: %d.%d.%d', [Result.Major, Result.Minor, Result.Release]));
 end;
-*)
 
 type
   TFPCVersionForIPhoneSimulatorChecked = class
@@ -265,7 +262,10 @@ var
 var
   FpcOutput, CastleEngineSrc1, CastleEngineSrc2, CastleEngineSrc3, FpcExe: string;
   FpcExitStatus: Integer;
+  FPCVer: TFPCVersion;
 begin
+  FPCVer := FPCVersion;
+
   FpcOptions := TCastleStringList.Create;
   try
     CastleEnginePath := GetEnvironmentVariable('CASTLE_ENGINE_PATH');
@@ -341,6 +341,10 @@ begin
         AddEnginePath('ui/opengl');
         AddEnginePath('game');
         AddEnginePath('services');
+
+        if (FPCVer.Major < 3) or
+          ((FPCVer.Major = 3) and (FPCVer.Minor = 0)) then
+          AddEnginePath('compatibility/generics.collections/src');
 
         { Do not add castle-fpc.cfg.
           Instead, rely on code below duplicating castle-fpc.cfg logic
