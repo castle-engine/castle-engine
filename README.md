@@ -74,6 +74,26 @@ commercial and closed-source games using the engine,
 you only have to share your modifications to the engine core.
 See COPYING.txt for details.
 
+Submodules
+----------
+
+To get the Generics.Collections unit in FPC < 3.1.1,
+we use "git submodule" feature to include the
+https://github.com/dathox/generics.collections repository
+inside the Castle Game Engine repository.
+In short, after you clone the Castle Game Engine repository from GitHub,
+do this:
+
+```
+git submodule init
+git submodule update
+# check: should list dirs like src/ examples/ etc.
+ls src/compatibility/generics.collections
+```
+
+See the https://git-scm.com/book/en/v2/Git-Tools-Submodules
+for more information about git submodules.
+
 Have fun!
 
 Michalis Kamburelis
