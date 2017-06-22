@@ -128,10 +128,10 @@ var c64: QWord; //current seed;
   end;
 begin
   {We add an additional semi-random variable based on local c64 variable
-   64-bit address. The only profit we have here is that this address will be
+   address. The only profit we have here is that this address will be
    different for different threads, therefore no 2 threads can be initialized
    with equal seed even if they are absolutely simultaneous}
-  c64 := QWORD(@(c64));
+  c64 := PtrUInt(@(c64));
 
   while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
 
