@@ -30,6 +30,7 @@ uses
   TestCompiler,
   TestSysUtils,
   TestFGL,
+  TestGenericsCollections,
   TestOldFPCBugs,
   TestFPImage,
 
