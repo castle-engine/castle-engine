@@ -68,7 +68,7 @@ interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  Variants, SysUtils, Math, FGL;
+  Variants, SysUtils, Math, Generics.Collections;
 
 {$define read_interface}
 

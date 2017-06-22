@@ -2262,7 +2262,7 @@ begin
 
   if Arrays.Indexes <> nil then
     BufferData(vtIndex, GL_ELEMENT_ARRAY_BUFFER,
-      Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.List);
+      Arrays.Indexes.Count * SizeOf(TGeometryIndex), Arrays.Indexes.L);
 
   VboAllocatedUsage := DataUsage;
 

@@ -924,9 +924,9 @@ begin
     SetValueBegin(ForceException);
     case Owner.Support of
       {$ifndef ForceStandardGLSLApi}
-      gsExtension: glUniform1ivARB(Location, Value.Count, PGLint(Ints.List));
+      gsExtension: glUniform1ivARB(Location, Value.Count, Ints.L);
       {$endif}
-      gsStandard : glUniform1iv   (Location, Value.Count, PGLint(Ints.List));
+      gsStandard : glUniform1iv   (Location, Value.Count, Ints.L);
     end;
     SetValueEnd(ForceException);
   finally FreeAndNil(Ints) end;
@@ -939,9 +939,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform1ivARB(Location, Value.Count, PGLint(Value.List));
+    gsExtension: glUniform1ivARB(Location, Value.Count, Value.L);
     {$endif}
-    gsStandard : glUniform1iv   (Location, Value.Count, PGLint(Value.List));
+    gsStandard : glUniform1iv   (Location, Value.Count, Value.L);
   end;
   SetValueEnd(ForceException);
 end;
@@ -952,9 +952,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform1fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform1fvARB(Location, Value.Count, Value.L);
     {$endif}
-    gsStandard : glUniform1fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform1fv   (Location, Value.Count, Value.L);
   end;
   SetValueEnd(ForceException);
 end;

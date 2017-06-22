@@ -272,7 +272,7 @@ procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: HWND);
 
             FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
 
-            Success := wglChoosePixelFormatARB(H_Dc, PGLint(VisualAttr.List),
+            Success := wglChoosePixelFormatARB(H_Dc, PGLint(VisualAttr.L),
               @VisualAttrFloat[0], 1, @PixelFormat, @ReturnedFormats);
           finally FreeAndNil(VisualAttr) end;
 

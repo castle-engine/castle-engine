@@ -54,7 +54,7 @@ begin
     { growing count works, and sets Items to non-nil }
     iarr.Count := 3;
     AssertTrue(iarr.Count = 3);
-    AssertTrue(iarr.List <> nil);
+    AssertTrue(iarr.L <> nil);
 
     { growing count doesn't change previous values }
     iarr[2] := 123;

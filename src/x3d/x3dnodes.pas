@@ -1030,8 +1030,8 @@ type
       usually assumes that all MFNode children are non-nil.
       (As VRML/X3D spec don't really allow NULL items inside MFNode fields.)
       @groupBegin }
-    function GetCount: Integer; override;
-    procedure SetCount(const Value: Integer); override;
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
     { @groupEnd }
   public
     { Construct a field allowing any children class.
@@ -3828,12 +3828,12 @@ begin
   Result := sxChildElement;
 end;
 
-function TMFNode.GetCount: integer;
+function TMFNode.GetCount: SizeInt;
 begin
   Result := Items.Count;
 end;
 
-procedure TMFNode.SetCount(const Value: Integer);
+procedure TMFNode.SetCount(const Value: SizeInt);
 var
   I: Integer;
 begin
