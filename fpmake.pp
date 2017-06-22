@@ -83,6 +83,20 @@ begin
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := {$I src/base/castleversion.inc};
 
+    { Add our unit groups.
+      For simplicity, keep things in alphabetical order in each group. }
+
+    { Add local version of Generics.Collections for FPC < 3.1.1 }
+    {$if defined(VER2) or defined(VER3_0)}
+    P.SourcePath.Add('src' + PathDelim + 'compatibility' + PathDelim + 'generics.collections' + PathDelim + 'src' + PathDelim);
+    P.Targets.AddUnit('generics.collections.pas');
+    P.Targets.AddUnit('generics.defaults.pas');
+    P.Targets.AddUnit('generics.hashes.pas');
+    P.Targets.AddUnit('generics.helpers.pas');
+    P.Targets.AddUnit('generics.memoryexpanders.pas');
+    P.Targets.AddUnit('generics.strings.pas');
+    {$endif}
+
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castleboxes.pas');
@@ -182,11 +196,6 @@ begin
       P.Targets.AddUnit('castleandroidnativeappglue.pas');
     end;
     {$endif}
-
-    if IOS then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'ios');
-    end;
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlenoise.pas');
