@@ -12,6 +12,28 @@
         <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/net;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/3d/opengl;../src/base/opengl;../src/castlescript/opengl;../src/images/opengl;../src/fonts/opengl"/>
         <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
+      <Conditionals Value="// example for adding linker options on Mac OS X
+//if TargetOS='darwin' then
+//  LinkerOptions := ' -framework OpenGL';
+
+// example for adding a unit and include path on Windows
+//if SrcOS='win' then begin
+//  UnitPath += ';win';
+//  IncPath += ';win';
+//end;
+
+if GetProjValue('FPC_FULLVERSION') &lt; 30101 then
+begin
+  UnitPath += ';../src/compatibility/generics.collections/src/';
+
+  { Since we don't add the Generics.Collections units
+    to the package (because we can't do it only for specific
+    FPC versions), they may not be compiled.
+    (At least now, when engine does not use them yet,
+    but it seeems like a good safeguard for the future too.)
+    So expose path to their sources for dependent projects. }
+  UsageUnitPath += ';../src/compatibility/generics.collections/src/';
+end;"/>
       <Parsing>
         <SyntaxOptions>
           <CStyleMacros Value="True"/>
