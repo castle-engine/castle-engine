@@ -1026,11 +1026,12 @@ begin
         the same pointer more than once. }
       for I := 0 to FScenes.Count - 2 do
       begin
-        if FScenes[I] = FScenes[I+1] then
-          FScenes[I] := nil { set to nil, just for safety } else
-          FPGObjectList_FreeAndNilItem(FScenes, I);
+        if FScenes[I] <> FScenes[I+1] then
+          FScenes[I].Free;
+        FScenes[I] := nil; // always set to nil, for safety
       end;
-      FPGObjectList_FreeAndNilItem(FScenes, FScenes.Count - 1);
+      FScenes[FScenes.Count - 1].Free;
+      FScenes[FScenes.Count - 1] := nil;
     end;
 
     FreeAndNil(FScenes);

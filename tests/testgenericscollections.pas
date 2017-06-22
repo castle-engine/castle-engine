@@ -24,6 +24,7 @@ uses
 type
   TTestGenericsCollections = class(TTestCase)
     procedure Test1;
+    procedure TestFreeingManually;
   end;
 
 implementation
@@ -70,6 +71,30 @@ begin
     Apples.Delete(0);
 
     AssertEquals(0, Apples.Count);
+  finally FreeAndNil(Apples) end;
+end;
+
+procedure TTestGenericsCollections.TestFreeingManually;
+var
+  A: TApple;
+  Apples: TAppleList;
+begin
+  Apples := TAppleList.Create(false);
+  try
+    A := TApple.Create;
+    Apples.Add(A);
+    Apples.Add(A);
+    Apples.Add(TApple.Create);
+
+    { This freeing would be invalid on a list that owns children,
+      as we free something twice, and we leave some invalid references
+      (to already freed items) in the list at various stages.
+      But it should be OK with list that has OwnsChildren = false. }
+
+    Apples[0].Free;
+    Apples[0] := nil;
+    Apples[1] := nil;
+    Apples[2].Free;
   finally FreeAndNil(Apples) end;
 end;
 

@@ -1165,7 +1165,10 @@ begin
   begin
     for I := 0 to FEvents.Count - 1 do
       if FEvents[I].ParentInterfaceDeclaration = nil then
-        FPGObjectList_FreeAndNilItem(FEvents, I);
+      begin
+        FEvents[I].Free;
+        FEvents[I] := nil;
+      end;
     FreeAndNil(FEvents);
   end;
 
@@ -1173,7 +1176,10 @@ begin
   begin
     for I := 0 to FFields.Count - 1 do
       if FFields[I].ParentInterfaceDeclaration = nil then
-        FPGObjectList_FreeAndNilItem(FFields, I);
+      begin
+        FFields[I].Free;
+        FFields[I] := nil;
+      end;
     FreeAndNil(FFields);
   end;
 

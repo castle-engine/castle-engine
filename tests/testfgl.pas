@@ -50,6 +50,15 @@ procedure TItemList.DeleteDuplicates;
     result := -1;
   end;
 
+  { Set to @nil (never freeing) given item on TFPGObjectList. }
+  procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
+  begin
+    { Do not set the list item by normal List.Items, as it will cause
+      freeing the item, once http://bugs.freepascal.org/view.php?id=19854
+      is fixed (it is fixed in FPC > 2.6.0). }
+    PPointer(List.List)[I] := nil;
+  end;
+
 var
   I, Index: integer;
 begin
@@ -60,7 +69,13 @@ begin
     repeat
       Index := IndexOf(Items[I], Index);
       if Index = -1 then Break;
-      FPGObjectList_NilItem(Self, Index);
+      // even in case the list has FreeObjects, this needs to nil *without freeing*
+      if FreeObjects then
+        FPGObjectList_NilItem(Self, Index)
+      else
+        // we could use FPGObjectList_NilItem(Self, Index) here too,
+        // but we can also make non-hacky assignment to nil.
+        Items[Index] := nil;
       Delete(Index);
     until false;
 

@@ -593,7 +593,10 @@ var
   I: Integer;
 begin
   for I := 0 to KeyNodes.Count - 1 do
-    FPGObjectList_FreeAndNilItem(KeyNodes, I);
+  begin
+    KeyNodes[I].Free;
+    KeyNodes[I] := nil;
+  end;
   KeyNodes.Clear;
 end;
 
@@ -631,7 +634,10 @@ var
   I: Integer;
 begin
   for I := 0 to Nodes.Count - 1 do
-    FPGObjectList_FreeAndNilItem(Nodes, I);
+  begin
+    Nodes[I].Free;
+    Nodes[I] := nil;
+  end;
   Nodes.Clear;
 end;
 
