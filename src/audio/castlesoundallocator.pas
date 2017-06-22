@@ -557,7 +557,7 @@ procedure TSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin
-  FAllocatedSources := TSoundList.Create(false);
+  FAllocatedSources := TSoundList.Create(true);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TSound.Create(Self);
@@ -579,7 +579,8 @@ begin
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
-        FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
+        { This will free FAllocatedSources[I], as FAllocatedSources owns children }
+        FAllocatedSources[I] := nil;
       end;
 
     FreeAndNil(FAllocatedSources);
@@ -710,7 +711,8 @@ begin
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
-        FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
+        { This will free FAllocatedSources[I], as FAllocatedSources owns children }
+        FAllocatedSources[I] := nil;
       end;
       FAllocatedSources.Count := MaxAllocatedSources;
     end;

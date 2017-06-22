@@ -1,13 +1,12 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <General>
       <Flags>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
       <MainUnit Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -32,14 +31,13 @@
         <PackageName Value="LCL"/>
       </Item2>
     </RequiredPackages>
-    <Units Count="2">
+    <Units Count="4">
       <Unit0>
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="test_al_source_allocator"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="10"/>
-        <UsageCount Value="26"/>
+        <CursorPos Y="10"/>
+        <UsageCount Value="27"/>
+        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -47,99 +45,157 @@
         <ComponentName Value="Main"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="mainf"/>
         <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
         <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
-        <CursorPos X="80" Y="16"/>
-        <UsageCount Value="26"/>
+        <TopLine Value="42"/>
+        <CursorPos X="44" Y="59"/>
+        <UsageCount Value="27"/>
         <Loaded Value="True"/>
         <LoadedDesigner Value="True"/>
         <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
+      <Unit2>
+        <Filename Value="../../src/audio/castlesoundallocator.pas"/>
+        <UnitName Value="CastleSoundAllocator"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="253"/>
+        <CursorPos X="14" Y="273"/>
+        <UsageCount Value="11"/>
+        <Loaded Value="True"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../src/audio/castlesoundengine.pas"/>
+        <UnitName Value="CastleSoundEngine"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="1"/>
+        <TopLine Value="1982"/>
+        <CursorPos X="13" Y="1991"/>
+        <UsageCount Value="10"/>
+        <Loaded Value="True"/>
+      </Unit3>
     </Units>
-    <JumpHistory Count="20" HistoryIndex="19">
+    <JumpHistory Count="30" HistoryIndex="29">
       <Position1>
         <Filename Value="mainf.pas"/>
-        <Caret Line="117" Column="7" TopLine="102"/>
+        <Caret Line="74" Column="21" TopLine="66"/>
       </Position1>
       <Position2>
         <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="16" TopLine="1"/>
+        <Caret Line="76" Column="75" TopLine="63"/>
       </Position2>
       <Position3>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="55" TopLine="1"/>
+        <Caret Line="67" Column="17" TopLine="57"/>
       </Position3>
       <Position4>
         <Filename Value="mainf.pas"/>
-        <Caret Line="78" Column="3" TopLine="67"/>
+        <Caret Line="34" Column="47" TopLine="34"/>
       </Position4>
       <Position5>
         <Filename Value="mainf.pas"/>
-        <Caret Line="74" Column="21" TopLine="66"/>
+        <Caret Column="33"/>
       </Position5>
       <Position6>
         <Filename Value="mainf.pas"/>
-        <Caret Line="76" Column="75" TopLine="63"/>
+        <Caret Line="148" Column="21" TopLine="137"/>
       </Position6>
       <Position7>
         <Filename Value="mainf.pas"/>
-        <Caret Line="67" Column="17" TopLine="57"/>
+        <Caret Line="91" Column="42" TopLine="80"/>
       </Position7>
       <Position8>
         <Filename Value="mainf.pas"/>
-        <Caret Line="34" Column="47" TopLine="34"/>
+        <Caret Line="38" TopLine="27"/>
       </Position8>
       <Position9>
         <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="33" TopLine="1"/>
+        <Caret Line="144" Column="31" TopLine="136"/>
       </Position9>
       <Position10>
         <Filename Value="mainf.pas"/>
-        <Caret Line="148" Column="21" TopLine="137"/>
+        <Caret Line="96" Column="49" TopLine="88"/>
       </Position10>
       <Position11>
         <Filename Value="mainf.pas"/>
-        <Caret Line="91" Column="42" TopLine="80"/>
+        <Caret Line="102" Column="33" TopLine="86"/>
       </Position11>
       <Position12>
         <Filename Value="mainf.pas"/>
-        <Caret Line="38" Column="1" TopLine="27"/>
+        <Caret Line="144" TopLine="133"/>
       </Position12>
       <Position13>
         <Filename Value="mainf.pas"/>
-        <Caret Line="144" Column="31" TopLine="136"/>
+        <Caret Line="91" Column="62" TopLine="88"/>
       </Position13>
       <Position14>
         <Filename Value="mainf.pas"/>
-        <Caret Line="96" Column="49" TopLine="88"/>
+        <Caret Line="72" Column="9" TopLine="61"/>
       </Position14>
       <Position15>
         <Filename Value="mainf.pas"/>
-        <Caret Line="102" Column="33" TopLine="86"/>
+        <Caret Line="43" TopLine="29"/>
       </Position15>
       <Position16>
         <Filename Value="mainf.pas"/>
-        <Caret Line="144" Column="1" TopLine="133"/>
+        <Caret Line="9" Column="42"/>
       </Position16>
       <Position17>
         <Filename Value="mainf.pas"/>
-        <Caret Line="91" Column="62" TopLine="88"/>
+        <Caret Line="16" Column="36"/>
       </Position17>
       <Position18>
         <Filename Value="mainf.pas"/>
-        <Caret Line="72" Column="9" TopLine="61"/>
+        <Caret Line="129" Column="38" TopLine="107"/>
       </Position18>
       <Position19>
         <Filename Value="mainf.pas"/>
-        <Caret Line="43" Column="1" TopLine="29"/>
+        <Caret Line="144" TopLine="107"/>
       </Position19>
       <Position20>
         <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="42" TopLine="1"/>
+        <Caret Line="132" TopLine="108"/>
       </Position20>
+      <Position21>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="114" Column="45" TopLine="109"/>
+      </Position21>
+      <Position22>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="99" Column="16" TopLine="93"/>
+      </Position22>
+      <Position23>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="112" Column="14" TopLine="102"/>
+      </Position23>
+      <Position24>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="127" TopLine="107"/>
+      </Position24>
+      <Position25>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="44" TopLine="44"/>
+      </Position25>
+      <Position26>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="75" Column="5" TopLine="32"/>
+      </Position26>
+      <Position27>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="89" Column="3" TopLine="85"/>
+      </Position27>
+      <Position28>
+        <Filename Value="../../src/audio/castlesoundengine.pas"/>
+        <Caret Line="213" TopLine="208"/>
+      </Position28>
+      <Position29>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="82" TopLine="82"/>
+      </Position29>
+      <Position30>
+        <Filename Value="mainf.pas"/>
+        <Caret Line="114" Column="40" TopLine="78"/>
+      </Position30>
     </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
@@ -163,6 +219,9 @@
       </Checks>
     </CodeGeneration>
     <Linking>
+      <Debugging>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
@@ -173,7 +232,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -189,5 +247,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>
