@@ -13,3 +13,4 @@ set -eu
 
 rm -Rf generics.collections
 git clone https://github.com/dathox/generics.collections
+rm -Rf generics.collections/.git/

@@ -1,0 +1,102 @@
+#
+#   Makefile.fpc for running fpmake
+#
+
+[package]
+name=googleapi
+version=3.1.1
+
+[require]
+packages=rtl fpmkunit
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[prerules]
+FPMAKE_BIN_CLEAN=$(wildcard ./fpmake$(SRCEXEEXT))
+ifdef OS_TARGET
+FPC_TARGETOPT+=--os=$(OS_TARGET)
+endif
+ifdef CPU_TARGET
+FPC_TARGETOPT+=--cpu=$(CPU_TARGET)
+endif
+LOCALFPMAKE=./fpmake$(SRCEXEEXT)
+
+[rules]
+# Do not pass the Makefile's unit and binary target locations. Fpmake uses it's own.
+override FPCOPT:=$(filter-out -FU%,$(FPCOPT))
+override FPCOPT:=$(filter-out -FE%,$(FPCOPT))
+# Do not pass the package-unitdirectories. Fpmake adds those and this way they don't apear in the .fpm
+override FPCOPT:=$(filter-out $(addprefix -Fu,$(COMPILER_UNITDIR)),$(FPCOPT))# Compose general fpmake-parameters
+# Compose general fpmake-parameters
+ifdef FPMAKEOPT
+FPMAKE_OPT+=$(FPMAKEOPT)
+endif
+FPMAKE_OPT+=--localunitdir=../..
+FPMAKE_OPT+=--globalunitdir=..
+FPMAKE_OPT+=$(FPC_TARGETOPT)
+FPMAKE_OPT+=$(addprefix -o ,$(FPCOPT))
+FPMAKE_OPT+=--compiler=$(FPC)
+FPMAKE_OPT+=-bu
+.NOTPARALLEL:
+
+fpmake$(SRCEXEEXT): fpmake.pp
+	$(FPCFPMAKE) fpmake.pp $(FPMAKE_SKIP_CONFIG) $(addprefix -Fu,$(COMPILER_FPMAKE_UNITDIR)) $(FPCMAKEOPT) $(OPT)
+all:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT)
+smart:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -XX -o -CX
+release:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dRELEASE
+debug:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) compile $(FPMAKE_OPT) -o -dDEBUG
+# If no fpmake exists and (dist)clean is called, do not try to build fpmake, it will
+# most often fail because the dependencies are cleared.
+# In case of a clean, simply do nothing
+ifeq ($(FPMAKE_BIN_CLEAN),)
+clean:
+else
+clean:
+	$(FPMAKE_BIN_CLEAN) clean $(FPMAKE_OPT)
+endif
+# In case of a distclean, perform an 'old'-style distclean. This to avoid problems
+# when the package is compiled using fpcmake prior to running this clean using fpmake
+ifeq ($(FPMAKE_BIN_CLEAN),)
+distclean:	$(addsuffix _distclean,$(TARGET_DIRS)) fpc_cleanall
+else
+distclean:
+ifdef inUnix
+        { $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT); if [ $$? != "0" ]; then { echo Something wrong with fpmake exectable. Remove the executable and call make recursively to recover.; $(DEL) $(FPMAKE_BIN_CLEAN); $(MAKE) fpc_cleanall; }; fi;  }
+else
+        $(FPMAKE_BIN_CLEAN) distclean $(FPMAKE_OPT)
+endif
+	-$(DEL) $(LOCALFPMAKE)
+endif
+cleanall: distclean
+install:	fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR)
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR)
+endif
+# distinstall also installs the example-sources and omits the location of the source-
+# files from the fpunits.cfg files.
+distinstall:	fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_PREFIX) --baseinstalldir=$(INSTALL_LIBDIR)/fpc/$(FPC_VERSION) --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
+else
+	$(LOCALFPMAKE) install $(FPMAKE_OPT) --prefix=$(INSTALL_BASEDIR) --baseinstalldir=$(INSTALL_BASEDIR) --unitinstalldir=$(INSTALL_UNITDIR) -ie -fsp 0
+endif
+zipinstall:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX)
+zipdistinstall:	fpmake$(SRCEXEEXT)
+	$(LOCALFPMAKE) zipinstall $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) -ie -fsp 0
+zipsourceinstall:	fpmake$(SRCEXEEXT)
+ifdef UNIXHier
+	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=share/src/fpc-\$$\(PACKAGEVERSION\)/$(INSTALL_FPCSUBDIR)/\$$\(PACKAGEDIRECTORY\)
+else
+	$(LOCALFPMAKE) archive $(FPMAKE_OPT) --zipprefix=$(DIST_DESTDIR)/$(ZIPPREFIX) --prefix=source\\$(INSTALL_FPCSUBDIR)\\\$$\(PACKAGEDIRECTORY\)
+endif
