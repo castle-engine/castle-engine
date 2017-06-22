@@ -1,3 +1,0 @@
-[submodule "src/compatibility/generics.collections"]
-	path = src/compatibility/generics.collections
-	url = https://github.com/dathox/generics.collections
