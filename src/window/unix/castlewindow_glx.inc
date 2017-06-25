@@ -115,7 +115,7 @@ begin
     if UseFBConfig then
     begin
       FBConfigs := glXChooseFBConfig(Application.XDisplay, Application.XScreen,
-        PInteger(Attribs.List), FBConfigsCount);
+        Attribs.L, FBConfigsCount);
       if FBConfigsCount = 0 then
         raise EGLContextNotPossible.CreateFmt('No frame buffer configurations that match the specified attributes (%s)',
           [RequestedBufferAttributes]);
@@ -124,7 +124,7 @@ begin
       FBConfig := FBConfigs^;
       XVisual := glXGetVisualFromFBConfig(Application.XDisplay, FBConfig);
     end else
-      XVisual := glXChooseVisual(Application.XDisplay, Application.XScreen, PInteger(Attribs.List));
+      XVisual := glXChooseVisual(Application.XDisplay, Application.XScreen, Attribs.L);
   finally FreeAndNil(Attribs) end;
 
   if XVisual = nil then
