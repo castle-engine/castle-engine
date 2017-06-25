@@ -160,7 +160,9 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        Addr(CoordIndex.L[ThisFace^.StartIndex]), ThisFace^.IndicesCount,
+        { It could be written as "Addr(CoordIndex.L[ThisFace^.StartIndex])"
+          but FPC 3.1.1 fails to parse it. }
+        PArray_LongInt(CoordIndex.L(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 1), Convex);
 
@@ -278,7 +280,7 @@ begin
       StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
       Result.L[FaceNumber] := IndexedPolygonNormal(
-        Addr(CoordIndex.L[StartIndex]),
+        PArray_LongInt(CoordIndex.L(StartIndex)),
         I - StartIndex,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 0), Convex);

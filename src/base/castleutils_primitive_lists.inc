@@ -126,6 +126,7 @@ type
     { Add given Item a number of times to the list. }
     procedure AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
     function L: PLongInt;
+    function L(const Index: Integer): PLongInt;
     procedure Assign(const Source: TLongIntList);
   end;
 
@@ -505,6 +506,12 @@ end;
 function TLongIntList.L: PLongInt;
 begin
   Result := PLongInt(FItems);
+end;
+
+function TLongIntList.L(const Index: Integer): PLongInt;
+begin
+  Result := PLongInt(FItems);
+  PtrUInt(Result) := PtrUInt(Result) + Index * SizeOf(LongInt);
 end;
 
 procedure TLongIntList.Assign(const Source: TLongIntList);
