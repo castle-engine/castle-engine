@@ -57,6 +57,7 @@ uses
 {$ifndef VER3_0_0}
   {$define HAS_TARRAY}
 {$endif}
+{.$define EXTRA_WARNINGS}
 
 type
   // bug #24254 workaround
@@ -84,7 +85,7 @@ type
       out AFoundIndex: SizeInt; const AComparer: IComparer<T>): Boolean; overload;
     class function BinarySearch(constref AValues: array of T; constref AItem: T;
       out AFoundIndex: SizeInt): Boolean; overload;
-  end experimental; // will be renamed to TCustomArray (bug #24254)
+  end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TCustomArray (bug #24254)
 
   TArrayHelper<T> = class(TCustomArrayHelper<T>)
   protected
@@ -94,7 +95,7 @@ type
     class function BinarySearch(constref AValues: array of T; constref AItem: T;
       out AFoundIndex: SizeInt; const AComparer: IComparer<T>;
       AIndex, ACount: SizeInt): Boolean; override; overload;
-  end experimental; // will be renamed to TArray (bug #24254)
+  end {$ifdef EXTRA_WARNINGS}experimental{$endif}; // will be renamed to TArray (bug #24254)
 
   TCollectionNotification = (cnAdded, cnRemoved, cnExtracted);
   TCollectionNotifyEvent<T> = procedure(ASender: TObject; constref AItem: T; AAction: TCollectionNotification)

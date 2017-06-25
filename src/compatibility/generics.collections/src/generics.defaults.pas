@@ -554,7 +554,7 @@ type
     EqualityComparer_Method_VMT : THashFactory.TEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Method ; GetHashCode: @THashFactory.Method );
     EqualityComparer_Variant_VMT: THashFactory.TEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Variant; GetHashCode: @THashFactory.Variant);
     EqualityComparer_Pointer_VMT: THashFactory.TEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Pointer; GetHashCode: @THashFactory.Pointer);
-{$WARNINGS ON}
+{.$WARNINGS ON} // do not enable warnings ever in this unit, or you will get many warnings about uninitialized TEqualityComparerVMT fields
   private class var
     // IEqualityComparer VMT
     FEqualityComparer_Int8_VMT  : THashFactory.TEqualityComparerVMT;
@@ -673,7 +673,7 @@ type
     ExtendedEqualityComparer_Method_VMT : TExtendedHashFactory.TExtendedEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Method ; GetHashCode: @THashFactory.Method ; GetHashList: @TExtendedHashFactory.Method );
     ExtendedEqualityComparer_Variant_VMT: TExtendedHashFactory.TExtendedEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Variant; GetHashCode: @THashFactory.Variant; GetHashList: @TExtendedHashFactory.Variant);
     ExtendedEqualityComparer_Pointer_VMT: TExtendedHashFactory.TExtendedEqualityComparerVMT = (STD_RAW_INTERFACE_METHODS; Equals: @TEquals.Pointer; GetHashCode: @THashFactory.Pointer; GetHashList: @TExtendedHashFactory.Pointer);
-{$WARNINGS ON}
+{.$WARNINGS ON} // do not enable warnings ever in this unit, or you will get many warnings about uninitialized TEqualityComparerVMT fields
   private class var
     // IExtendedEqualityComparer VMT
     FExtendedEqualityComparer_Int8_VMT  : TExtendedHashFactory.TExtendedEqualityComparerVMT;
@@ -2879,7 +2879,7 @@ begin
   else
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
   end;
-{$WARNINGS ON}
+{.$WARNINGS ON} // do not enable warnings ever in this unit, or you will get many warnings about uninitialized TEqualityComparerVMT fields
 end;
 
 { TDelphiQuadrupleHashFactory }
