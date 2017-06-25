@@ -19,7 +19,7 @@ unit CastleControl;
 
 {$I castleconf.inc}
 
-{ Define this for new Lazarus that has TCustomOpenGLControl.RenderAtDesignTime
+{ Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
 { $define HAS_RENDER_AT_DESIGN_TIME}
 
@@ -238,7 +238,7 @@ type
     property StencilBits;
     property AUXBuffers;
     {$ifdef HAS_RENDER_AT_DESIGN_TIME}
-    property RenderAtDesignTime;
+    property Options;
     {$endif}
     property OnChangeBounds;
     property OnConstrainedResize;
