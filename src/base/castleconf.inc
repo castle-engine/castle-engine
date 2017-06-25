@@ -80,20 +80,13 @@
 {$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
 {$ifdef VER2_6_2} {$fatal FPC 2.6.2 is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
 
-{ These options (like mode objfpc) should be set on the command-line always.
-
-  We used to *not* set them here, deliberately, to force the user
-  to use correct compilation method for the engine
-  (like using castle-fpc.cfg or the build tool or Lazarus package)
-  instead of hacking something.
-
-  Now, we need to specify "mode objfpc" here to avoid FPC 3.0.0 bug (seems fixed in 3.0.2),
-  it seems to undefine FPC_OBJFPC after Generics.Collections was compiled. }
-{$mode objfpc}
-{$ifdef VER3_0_0} {$define FPC_OBJFPC} {$endif} // workaround FPC 3.0.0 bug
-
-{$H+}
-{$macro on}
+{ These should be set on the command-line always.
+  NOT setting them here forces the user to use correct compilation method
+  for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
+  instead of hacking something, which is GOOD. }
+{ $mode objfpc}
+{ $H+}
+{ $macro on}
 
 { Unfortunately, it seems that this can only be specified here, not on the command-line. }
 {$writeableconst off}
