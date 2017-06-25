@@ -1075,7 +1075,7 @@ type
       Remember that increasing this generally sets new items to undefined
       values (see SetCount documentation of particular descendant for docs).
       So you usually want to initialize them afterwards to something correct. }
-    property Count: Integer read GetCount write SetCount;
+    property Count: SizeInt read GetCount write SetCount;
 
     { If SecondValue.Count <> Count, raises EX3DMultFieldDifferentCount }
     procedure CheckCountEqual(SecondValue: TX3DMultField);
@@ -1129,7 +1129,7 @@ type
 
     function GetCapacity: SizeInt; virtual; abstract;
     procedure SetCapacity(const Value: SizeInt); virtual; abstract;
-    property Capacity: Integer read GetCapacity write SetCapacity;
+    property Capacity: SizeInt read GetCapacity write SetCapacity;
   public
     { A corresponding SF field class. All items that will be passed
       to RawItemsAdd will be of this class. }

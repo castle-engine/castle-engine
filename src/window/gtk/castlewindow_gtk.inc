@@ -965,7 +965,7 @@ begin
   { end of VisualAttr list }
   VisualAttr.Add(GDK_GL_ATTRIB_LIST_NONE);
 
-  GLConfig := gdk_gl_config_new(PInteger(VisualAttr.List));
+  GLConfig := gdk_gl_config_new(PInteger(VisualAttr.L));
   { Looking at gears demo of GtkGLExt, one should check GLConfig = nil
     to know whether such gl configuration was possible. }
   if GLConfig = nil then
