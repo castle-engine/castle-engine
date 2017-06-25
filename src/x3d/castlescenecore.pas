@@ -2066,6 +2066,11 @@ implementation
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
 
+{ Workaround FPC 3.0.0 and 3.0.2 bug:
+  after using Generics.Collections (and compiling Generics.Collections
+  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
+{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+
 { TX3DBindableStack ----------------------------------------------------- }
 
 constructor TX3DBindableStack.Create(AParentScene: TCastleSceneCore);

@@ -621,11 +621,18 @@ function IsCenteredBox3DPlaneCollision(
 function BoundingBox3DFromSphere(const Center: TVector3Single;
   const Radius: Single): TBox3D;
 
+{$ifdef FPC}
 operator+ (const Box1, Box2: TBox3D): TBox3D;
 operator+ (const B: TBox3D; const V: TVector3Single): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
 operator+ (const V: TVector3Single; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
+{$endif}
 
 implementation
+
+{ Workaround FPC 3.0.0 and 3.0.2 bug:
+  after using Generics.Collections (and compiling Generics.Collections
+  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
+{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
 
 { TBox3D --------------------------------------------------------------------- }
 
@@ -2259,6 +2266,7 @@ begin
   Result.Data[1][2] += Radius;
 end;
 
+{$ifdef FPC}
 operator+ (const Box1, Box2: TBox3D): TBox3D;
 begin
   if Box1.IsEmpty then
@@ -2284,5 +2292,6 @@ operator+ (const V: TVector3Single; const B: TBox3D): TBox3D;
 begin
   Result := B.Translate(V);
 end;
+{$endif}
 
 end.

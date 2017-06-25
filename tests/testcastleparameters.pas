@@ -44,6 +44,11 @@ implementation
 
 uses CastleUtils, CastleStringUtils;
 
+{ Workaround FPC 3.0.0 and 3.0.2 bug:
+  after using Generics.Collections (and compiling Generics.Collections
+  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
+{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
 var
