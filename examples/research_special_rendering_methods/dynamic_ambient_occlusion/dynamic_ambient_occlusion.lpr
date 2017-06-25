@@ -100,7 +100,7 @@ begin
   if CoordIndex <> nil then
   begin
     for I := 0 to Length(Indexes) - 1 do
-      DirectIndexes[I] := CoordIndex.List^[Indexes[I]];
+      DirectIndexes[I] := CoordIndex[Indexes[I]];
   end else
   begin
     for I := 0 to Length(Indexes) - 1 do
