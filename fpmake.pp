@@ -70,6 +70,11 @@ begin
       P.Dependencies.Add('winunits-base');
       P.Dependencies.Add('fcl-registry');
     end;
+    {$ifndef VER2}
+    {$ifndef VER3_0}
+    P.Dependencies.Add('rtl-generics');
+    {$endif}
+    {$endif}
 
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
