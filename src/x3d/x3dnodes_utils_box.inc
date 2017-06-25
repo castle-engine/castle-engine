@@ -161,7 +161,7 @@ begin
     Vector3Single(-Sizes[0],  Sizes[1],  Sizes[2])
   ]);
 
-  CoordIndex.AddArray([
+  CoordIndex.AddRange([
     0, 1, 2, 3, 0, -1,
     4, 5, 6, 7, 4, -1,
     0, 4, -1,

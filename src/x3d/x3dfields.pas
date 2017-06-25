@@ -5696,8 +5696,8 @@ end;
 constructor TMF_CLASS.Create(AParentNode: TX3DFileItem; const AName: string;
   const InitialContent: array of TMF_STATIC_ITEM);
 begin
-  inherited Create(AParentNode, AName);
-  Items.AddArray(InitialContent);
+   inherited Create(AParentNode, AName);
+   Items.AddArray(InitialContent);
   AssignDefaultValueFromValue;
 end;
 

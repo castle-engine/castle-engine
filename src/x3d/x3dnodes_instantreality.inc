@@ -699,8 +699,9 @@ begin
     end;
 
     if FdManifold.Value then
-      IFS.FdCoordIndex.Items.AddArray(TeapotManifoldCoordIndex) else
-      IFS.FdCoordIndex.Items.AddArray(TeapotCoordIndex);
+      IFS.FdCoordIndex.Items.AddRange(TeapotManifoldCoordIndex)
+    else
+      IFS.FdCoordIndex.Items.AddRange(TeapotCoordIndex);
 
     IFS.FdSolid.Value := FdSolid.Value;
 

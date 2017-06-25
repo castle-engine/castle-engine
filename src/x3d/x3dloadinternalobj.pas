@@ -604,18 +604,18 @@ begin
         { We add Faces as long as FacesWithXxx parameters stay the same.
           We know that at least the next face is Ok. }
         repeat
-          Faces.FdCoordIndex.Items.AddList(Obj.Faces[I].VertIndices);
+          Faces.FdCoordIndex.Items.AddRange(Obj.Faces[I].VertIndices);
           Faces.FdCoordIndex.Items.Add(-1);
 
           if FacesWithTexCoord then
           begin
-            Faces.FdTexCoordIndex.Items.AddList(Obj.Faces[I].TexCoordIndices);
+            Faces.FdTexCoordIndex.Items.AddRange(Obj.Faces[I].TexCoordIndices);
             Faces.FdTexCoordIndex.Items.Add(-1);
           end;
 
           if FacesWithNormal then
           begin
-            Faces.FdNormalIndex.Items.AddList(Obj.Faces[I].NormalIndices);
+            Faces.FdNormalIndex.Items.AddRange(Obj.Faces[I].NormalIndices);
             Faces.FdNormalIndex.Items.Add(-1);
           end;
 
