@@ -45,7 +45,7 @@ unit CastleClassUtils;
 interface
 
 uses Classes, SysUtils, CastleUtils, CastleStringUtils, Contnrs,
-  FGL, CastleGenericLists, CastleVectors;
+  CastleGenericLists, CastleVectors;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
@@ -657,27 +657,6 @@ type
     { Call all (non-nil) Items, from last to first. }
     procedure ExecuteBackward(Sender: TObject);
   end;
-
-{ Remove all nils.
-  Returns how many instances were removed (how much Count was decreased).
-  Do not call this with other TFPSList descendants,
-  only TFPGObjectList specializations. }
-function FPGObjectList_RemoveNils(List: TFPSList): Cardinal;
-
-{ Replace all OldItem instances with NewItem.
-  Do not call this with other TFPSList descendants,
-  only TFPGObjectList specializations. }
-procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
-
-{ Free and set to @nil given item on TFPGObjectList.
-
-  Usually, simply assigning to it @nil value (when list has FreeObjects = @true)
-  would do the trick. Unfortunately there's bug
-  http://bugs.freepascal.org/view.php?id=19854 . }
-procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
-
-{ Set to @nil (never freeing) given item on TFPGObjectList. }
-procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
 
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
@@ -1728,53 +1707,6 @@ begin
   for I := Count - 1 downto 0 do
     if Assigned(L[I]) then
       L[I](Sender);
-end;
-
-{ FGL helpers ---------------------------------------------------------------- }
-
-function FPGObjectList_RemoveNils(List: TFPSList): Cardinal;
-var
-  I: Integer;
-begin
-  Result := 0;
-  I := 0;
-  while I < List.Count do
-  begin
-    if PPointer(List.Items[I])^ = nil then
-      begin List.Delete(I); Inc(Result) end else
-      Inc(I);
-  end;
-end;
-
-procedure FPGObjectList_ReplaceAll(List: TFPSList; OldItem, NewItem: TObject);
-var
-  I: Integer;
-begin
-  { do not assign to List.Items[I], to never free,
-    regardless of http://bugs.freepascal.org/view.php?id=19854 fixed or not. }
-  for I := 0 to List.Count - 1 do
-    if TObject(PPointer(List.List)[I]) = OldItem then
-      TObject(PPointer(List.List)[I]) := NewItem;
-end;
-
-procedure FPGObjectList_FreeAndNilItem(List: TFPSList; I: Integer);
-begin
-  { do not set the list item by normal List.Items, as it will cause
-    problems once http://bugs.freepascal.org/view.php?id=19854
-    will be fixed (if FreeObjects = true, then when assigning "Items[I] := nil",
-    previous Items[I] must contain a valid reference or nil, not something freed.
-    And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
-  FreeAndNil(PPointer(List.List)[I]);
-end;
-
-procedure FPGObjectList_NilItem(List: TFPSList; I: Integer);
-begin
-  { do not set the list item by normal List.Items, as it will cause
-    problems once http://bugs.freepascal.org/view.php?id=19854
-    will be fixed (if FreeObjects = true, then when assigning "Items[I] := nil",
-    previous Items[I] must contain a valid reference or nil, not something freed.
-    And we cannot temporarily change FreeObjects, as it's not in TFPSList). }
-  PPointer(List.List)[I] := nil;
 end;
 
 function DumpStackToString(const BaseFramePointer: Pointer): string;

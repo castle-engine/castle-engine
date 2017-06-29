@@ -13,8 +13,167 @@
   ----------------------------------------------------------------------------
 }
 
-{ CastleTriangles Implementation parameterized with macros,
-  so that it's suitable for both Single and Double versions. }
+{ Interface and implementation of CastleTriangles for a one floating-point precision,
+  like Single or Double.
+
+  Before including this file, define types like TScalar and TVector3 to something like
+  - Single and TVector3Single, or
+  - Double and TVector3Double.
+
+  This file will define (and implement) triangles functions using these types. }
+
+{$ifdef read_interface}
+
+{ Check does the triangle define a correct plane in 3D space.
+  That is, check does the triangle not degenerate to a point or line segment
+  (which can happen when some points are at the same position, or are colinear).
+  @groupBegin }
+function IsValidTriangle(const Tri: TTriangle3): boolean; overload;
+{ @groupEnd }
+
+{ Normal vector of a triangle. Returns vector pointing our from CCW triangle
+  side (for right-handed coordinate system), and orthogonal to triangle plane.
+  The version "Dir" (TriangleDir) doesn't normalize the result
+  (it may not have length equal 1).
+
+  For degenerated triangles (when IsValidTriangle would return false),
+  we return zero vector.
+  @groupBegin }
+function TriangleDir(const Tri: TTriangle3): TVector3; overload;
+function TriangleDir(const p0, p1, p2: TVector3): TVector3; overload;
+function TriangleNormal(const Tri: TTriangle3): TVector3; overload;
+function TriangleNormal(const p0, p1, p2: TVector3): TVector3; overload;
+{ @groupEnd }
+
+{ Plane of the triangle. Note that this has many possible solutions
+  (plane representation as equation @code(Ax + By + Cz + D = 0)
+  is not unambiguous), this just returns some solution deterministically.
+
+  It's guaranteed that the direction of this plane (i.e. first 3 items
+  of returned vector) will be in the same direction as calcualted by
+  TriangleDir, which means that it points outward from CCW side of
+  the triangle (assuming right-handed coord system).
+
+  For TriangleNormPlane, this direction is also normalized
+  (makes a vector with length 1). This way TrianglePlane calculates
+  also TriangleNormal.
+
+  For three points that do not define a plane, a plane with first three
+  components = 0 is returned. In fact, the 4th component will be zero too
+  in this case (for now), but don't depend on it.
+  @groupBegin }
+function TrianglePlane(const Tri: TTriangle3): TVector4; overload;
+function TrianglePlane(const p0, p1, p2: TVector3): TVector4; overload;
+function TriangleNormPlane(const Tri: TTriangle3): TVector4; overload;
+{ @groupEnd }
+
+{ Transform triangle by 4x4 matrix. This simply transforms each triangle point.
+
+  @raises(ETransformedResultInvalid Raised when matrix
+  will transform some point to a direction (vector with 4th component
+  equal zero). In this case we just cannot interpret the result as a 3D point.)
+
+  @groupBegin }
+function TriangleTransform(const Tri: TTriangle3; const M: TMatrix4): TTriangle3; overload;
+{ @groupEnd }
+
+{ Surface area of 3D triangle.
+  This works for degenerated (equal to line segment or even single point)
+  triangles too: returns 0 for them.
+
+  @groupBegin }
+function TriangleArea(const Tri: TTriangle3): TScalar; overload;
+function TriangleAreaSqr(const Tri: TTriangle3): TScalar; overload;
+{ @groupEnd }
+
+{ Assuming a point lies on a triangle plane,
+  check does it lie inside a triangle.
+  Give first 3 components of triangle plane as TriDir.
+  @groupBegin }
+function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
+  const Tri: TTriangle3; const TriDir: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Check does point lie inside a triangle, in 2D.
+  @groupBegin }
+function IsPointWithinTriangle2D(const P: TVector2;
+  const Tri: TTriangle2): boolean; overload;
+function IsPointWithinTriangle2D(const P: TVector2;
+  const Tri: TTriangle3): boolean; overload;
+{ @groupEnd }
+
+{ Check triangle with line segment collision.
+  You can pass the triangle plane along with a triangle,
+  this will speed calculation.
+  @groupBegin }
+function IsTriangleSegmentCollision(const Tri: TTriangle3;
+  const TriPlane: TVector4;
+  const pos1, pos2: TVector3): boolean; overload;
+function IsTriangleSegmentCollision(const Tri: TTriangle3;
+  const pos1, pos2: TVector3): boolean; overload;
+{ @groupEnd }
+
+function IsTriangleSphereCollision(const Tri: TTriangle3;
+  const TriPlane: TVector4;
+  const SphereCenter: TVector3; SphereRadius: TScalar): boolean; overload;
+function IsTriangleSphereCollision(const Tri: TTriangle3;
+  const SphereCenter: TVector3; SphereRadius: TScalar): boolean; overload;
+
+{ Test collision between triangle and sphere in 2D.
+  If you use overloaded version with TTriangle3, the Z coordinate
+  of the triangle corners is simply ignored, so everything is projected
+  on the Z=0 plane.
+  @groupBegin }
+function IsTriangleSphereCollision2D(const Tri: TTriangle2;
+  const SphereCenter: TVector2; SphereRadius: TScalar): boolean; overload;
+function IsTriangleSphereCollision2D(const Tri: TTriangle3;
+  const SphereCenter: TVector2; SphereRadius: TScalar): boolean; overload;
+{ @groupEnd }
+
+{ Calculate triangle with line segment collision.
+  You can pass the triangle plane along with a triangle,
+  this will speed calculation.
+
+  When there's no intersection, returns @false and doesn't modify Intersection
+  or T.
+  @groupBegin }
+function TryTriangleSegmentCollision(var Intersection: TVector3;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Pos1, Pos2: TVector3): boolean; overload;
+
+function TryTriangleSegmentDirCollision(var Intersection: TVector3;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Segment0, SegmentVector: TVector3): boolean; overload;
+function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: TScalar;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const Segment0, SegmentVector: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Calculate triangle with ray collision.
+  You can pass the triangle plane along with a triangle,
+  this will speed calculation.
+
+  When there's no intersection, returns @false and doesn't modify Intersection
+  or T.
+  @groupBegin }
+function TryTriangleRayCollision(var Intersection: TVector3;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+function TryTriangleRayCollision(var Intersection: TVector3; var T: TScalar;
+  const Tri: TTriangle3; const TriPlane: TVector4;
+  const RayOrigin, RayDirection: TVector3): boolean; overload;
+{ @groupEnd }
+
+{ Converting to string.
+  @groupBegin }
+function TriangleToNiceStr(const t: TTriangle2): string; overload;
+function TriangleToNiceStr(const t: TTriangle3): string; overload;
+function TriangleToRawStr(const t: TTriangle3): string; overload;
+{ @groupEnd }
+
+{$endif read_interface}
+
+{$ifdef read_implementation}
 
 function IsValidTriangle(const Tri: TTriangle3): boolean;
 begin
@@ -255,21 +414,6 @@ end;
 //  result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDir(Tri));
 //end;
 
-{$define TryTriangleRayCollision_IMPLEMENT:=
-var
-  MaybeIntersection: TVector3;
-  MaybeT: TScalar;
-  TriDir: TVector3 absolute TriPlane;
-begin
-  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
-          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
-  if result then
-  begin
-    Intersection := MaybeIntersection;
-    {$ifdef HAS_T} T := MaybeT; {$endif}
-  end;
-end;}
-
 function IsPointWithinTriangle2D(const P: TVector2;
   const Tri: TTriangle2): boolean;
 var
@@ -328,21 +472,6 @@ begin
   Result := IsPointWithinTriangle2D(P, Tri2D);
 end;
 
-{$define TryTriangleSegmentDirCollision_IMPLEMENT:=
-var
-  MaybeIntersection: TVector3;
-  MaybeT: TScalar;
-  TriDir: TVector3 absolute TriPlane;
-begin
-  result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
-          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
-  if result then
-  begin
-    Intersection := MaybeIntersection;
-    {$ifdef HAS_T} T := MaybeT; {$endif}
-  end;
-end;}
-
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
   const TriPlane: TVector4; const pos1, pos2: TVector3): boolean;
 var
@@ -371,14 +500,33 @@ end;
 function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: TScalar;
   const Tri: TTriangle3; const TriPlane: TVector4;
   const Segment0, SegmentVector: TVector3): boolean;
-{$define HAS_T}
-TryTriangleSegmentDirCollision_IMPLEMENT
-{$undef HAS_T}
+var
+  MaybeIntersection: TVector3;
+  MaybeT: TScalar;
+  TriDir: TVector3 absolute TriPlane;
+begin
+  result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
+          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
+  if result then
+  begin
+    Intersection := MaybeIntersection;
+    T := MaybeT;
+  end;
+end;
 
 function TryTriangleSegmentDirCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
   const Segment0, SegmentVector: TVector3): boolean;
-TryTriangleSegmentDirCollision_IMPLEMENT
+var
+  MaybeIntersection: TVector3;
+  MaybeT: TScalar;
+  TriDir: TVector3 absolute TriPlane;
+begin
+  result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
+          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
+  if result then
+    Intersection := MaybeIntersection;
+end;
 
 function IsTriangleSphereCollision(const Tri: TTriangle3;
   const TriPlane: TVector4;
@@ -416,14 +564,33 @@ end;
 function TryTriangleRayCollision(var Intersection: TVector3; var T: TScalar;
   const Tri: TTriangle3; const TriPlane: TVector4;
   const RayOrigin, RayDirection: TVector3): boolean;
-{$define HAS_T}
-TryTriangleRayCollision_IMPLEMENT
-{$undef HAS_T}
+var
+  MaybeIntersection: TVector3;
+  MaybeT: TScalar;
+  TriDir: TVector3 absolute TriPlane;
+begin
+  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
+          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
+  if result then
+  begin
+    Intersection := MaybeIntersection;
+    T := MaybeT;
+  end;
+end;
 
 function TryTriangleRayCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
   const RayOrigin, RayDirection: TVector3): boolean;
-TryTriangleRayCollision_IMPLEMENT
+var
+  MaybeIntersection: TVector3;
+  MaybeT: TScalar;
+  TriDir: TVector3 absolute TriPlane;
+begin
+  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
+          IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
+  if result then
+    Intersection := MaybeIntersection;
+end;
 
 { triangles and strings ------------------------------------------------------ }
 
@@ -447,3 +614,5 @@ begin
                 + VectorToRawStr(T[1]) + ', '
                 + VectorToRawStr(T[2]) + ']';
 end;
+
+{$endif read_implementation}

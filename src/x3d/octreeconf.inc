@@ -12,6 +12,9 @@
     ProximitySensor.hitTexCoord_changed and
     ProximitySensor.hitNormal_changed (they will never be generated).
 
+    We also cannot generate textures or produce smooth normal vectors
+    in ray-tracer.
+
   - Face indexes stored at triangles.
 
     Not having this information, we cannot implement the feature

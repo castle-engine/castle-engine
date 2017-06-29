@@ -1047,7 +1047,7 @@ begin
   ]);
 
   FGeometry := TLineSetNode.Create;
-  FGeometry.FdVertexCount.Items.AddArray([2, 2, 2]);
+  FGeometry.FdVertexCount.Items.AddRange([2, 2, 2]);
   FGeometry.FdCoord.Value := FCoord;
 
   FShape := TShapeNode.Create;

@@ -205,6 +205,7 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
+  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   TCasScriptVec2dArray = class(TCasScriptArray)
   private
     class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -271,50 +272,6 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptMatrix3fArray = class(TCasScriptArray)
-  private
-    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-  private
-    FValue: TMatrix3SingleList;
-    procedure SetValue(const AValue: TMatrix3SingleList);
-  public
-    constructor Create(const AWriteable: boolean; const AValue: TMatrix3SingleList);
-    constructor Create(const AWriteable: boolean); override;
-    destructor Destroy; override;
-
-    { Array value. Assigning here makes a @italic(copy) of the array. }
-    property Value: TMatrix3SingleList read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
-  end;
-
-  TCasScriptMatrix4fArray = class(TCasScriptArray)
-  private
-    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-  private
-    FValue: TMatrix4SingleList;
-    procedure SetValue(const AValue: TMatrix4SingleList);
-  public
-    constructor Create(const AWriteable: boolean; const AValue: TMatrix4SingleList);
-    constructor Create(const AWriteable: boolean); override;
-    destructor Destroy; override;
-
-    { Array value. Assigning here makes a @italic(copy) of the array. }
-    property Value: TMatrix4SingleList read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
-  end;
-
   TCasScriptMatrix3dArray = class(TCasScriptArray)
   private
     class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -355,6 +312,51 @@ type
 
     { Array value. Assigning here makes a @italic(copy) of the array. }
     property Value: TMatrix4DoubleList read FValue write SetValue;
+
+    procedure AssignValue(Source: TCasScriptValue); override;
+  end;
+  {$endif CASTLE_HAS_DOUBLE_PRECISION}
+
+  TCasScriptMatrix3fArray = class(TCasScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  private
+    FValue: TMatrix3SingleList;
+    procedure SetValue(const AValue: TMatrix3SingleList);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TMatrix3SingleList);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TMatrix3SingleList read FValue write SetValue;
+
+    procedure AssignValue(Source: TCasScriptValue); override;
+  end;
+
+  TCasScriptMatrix4fArray = class(TCasScriptArray)
+  private
+    class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  private
+    FValue: TMatrix4SingleList;
+    procedure SetValue(const AValue: TMatrix4SingleList);
+  public
+    constructor Create(const AWriteable: boolean; const AValue: TMatrix4SingleList);
+    constructor Create(const AWriteable: boolean); override;
+    destructor Destroy; override;
+
+    { Array value. Assigning here makes a @italic(copy) of the array. }
+    property Value: TMatrix4SingleList read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -468,27 +470,6 @@ uses SysUtils, CastleScriptCoreFunctions, CastleCurves;
 {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TCasScriptXxxArray := TCasScriptVec2dArray}
-{$define TXxxList := TVector2DoubleList}
-{$define TCasScriptXxxElement := TCasScriptVec2d}
-{$define RegisterXxxFunctions := RegisterVec2dFunctions}
-{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-{$I castlescriptarrays_implement.inc}
-
-{$define TCasScriptXxxArray := TCasScriptVec3dArray}
-{$define TXxxList := TVector3DoubleList}
-{$define TCasScriptXxxElement := TCasScriptVec3d}
-{$define RegisterXxxFunctions := RegisterVec3dFunctions}
-{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-{$I castlescriptarrays_implement.inc}
-
-{$define TCasScriptXxxArray := TCasScriptVec4dArray}
-{$define TXxxList := TVector4DoubleList}
-{$define TCasScriptXxxElement := TCasScriptVec4d}
-{$define RegisterXxxFunctions := RegisterVec4dFunctions}
-{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-{$I castlescriptarrays_implement.inc}
-
 {$define TCasScriptXxxArray := TCasScriptMatrix3fArray}
 {$define TXxxList := TMatrix3SingleList}
 {$define TCasScriptXxxElement := TCasScriptMatrix3f}
@@ -503,19 +484,44 @@ uses SysUtils, CastleScriptCoreFunctions, CastleCurves;
 {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$define TCasScriptXxxArray := TCasScriptMatrix3dArray}
-{$define TXxxList := TMatrix3DoubleList}
-{$define TCasScriptXxxElement := TCasScriptMatrix3d}
-{$define RegisterXxxFunctions := RegisterMatrix3dFunctions}
-{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-{$I castlescriptarrays_implement.inc}
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
 
-{$define TCasScriptXxxArray := TCasScriptMatrix4dArray}
-{$define TXxxList := TMatrix4DoubleList}
-{$define TCasScriptXxxElement := TCasScriptMatrix4d}
-{$define RegisterXxxFunctions := RegisterMatrix4dFunctions}
-{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-{$I castlescriptarrays_implement.inc}
+  {$define TCasScriptXxxArray := TCasScriptVec2dArray}
+  {$define TXxxList := TVector2DoubleList}
+  {$define TCasScriptXxxElement := TCasScriptVec2d}
+  {$define RegisterXxxFunctions := RegisterVec2dFunctions}
+  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+  {$I castlescriptarrays_implement.inc}
+
+  {$define TCasScriptXxxArray := TCasScriptVec3dArray}
+  {$define TXxxList := TVector3DoubleList}
+  {$define TCasScriptXxxElement := TCasScriptVec3d}
+  {$define RegisterXxxFunctions := RegisterVec3dFunctions}
+  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+  {$I castlescriptarrays_implement.inc}
+
+  {$define TCasScriptXxxArray := TCasScriptVec4dArray}
+  {$define TXxxList := TVector4DoubleList}
+  {$define TCasScriptXxxElement := TCasScriptVec4d}
+  {$define RegisterXxxFunctions := RegisterVec4dFunctions}
+  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+  {$I castlescriptarrays_implement.inc}
+
+  {$define TCasScriptXxxArray := TCasScriptMatrix3dArray}
+  {$define TXxxList := TMatrix3DoubleList}
+  {$define TCasScriptXxxElement := TCasScriptMatrix3d}
+  {$define RegisterXxxFunctions := RegisterMatrix3dFunctions}
+  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+  {$I castlescriptarrays_implement.inc}
+
+  {$define TCasScriptXxxArray := TCasScriptMatrix4dArray}
+  {$define TXxxList := TMatrix4DoubleList}
+  {$define TCasScriptXxxElement := TCasScriptMatrix4d}
+  {$define RegisterXxxFunctions := RegisterMatrix4dFunctions}
+  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+  {$I castlescriptarrays_implement.inc}
+
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 class procedure TCasScriptSingleArray.HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
@@ -708,18 +714,20 @@ initialization
   RegisterVec2fFunctions;
   RegisterVec3fFunctions;
   RegisterVec4fFunctions;
+  RegisterMatrix3fFunctions;
+  RegisterMatrix4fFunctions;
+
+  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   RegisterVec2dFunctions;
   RegisterVec3dFunctions;
   RegisterVec4dFunctions;
+  RegisterMatrix3dFunctions;
+  RegisterMatrix4dFunctions;
+  {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteTenseSpline, TCasScriptHermiteTenseSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
-
-  RegisterMatrix3fFunctions;
-  RegisterMatrix4fFunctions;
-  RegisterMatrix3dFunctions;
-  RegisterMatrix4dFunctions;
 
   RegisterCharacterFunctions;
 end.

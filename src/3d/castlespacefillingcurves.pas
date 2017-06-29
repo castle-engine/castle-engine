@@ -195,6 +195,11 @@ implementation
 
 uses CastleUtils;
 
+{ Workaround FPC 3.0.0 and 3.0.2 bug:
+  after using Generics.Collections (and compiling Generics.Collections
+  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
+{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+
 const
   { AngleTurn[Angle, Orient] = (definicja)
       if Orient then

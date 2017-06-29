@@ -107,7 +107,7 @@ begin
   try
     S.Append('Sound library (OpenAL) status:');
     S.Append('');
-    Strings_AddSplittedString(S, SoundEngine.SoundInitializationReport, nl);
+    Strings_AddSplittedString(S, SoundEngine.Information, nl);
 
     if Application.MainWindow = nil then
       raise EInternalError.Create('You must assign Application.MainWindow to make clicks on TSoundInfoMenuItem work');

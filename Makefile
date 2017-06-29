@@ -163,6 +163,7 @@ EXAMPLES_BASE_NAMES := \
   examples/fonts/font_from_texture \
   examples/fonts/test_local_characters/test_local_characters \
   examples/fonts/html_text \
+  examples/fonts/font_draw_over_image \
   examples/tiled/tiled_demo_standalone \
   examples/window/window_events \
   examples/window/window_menu \

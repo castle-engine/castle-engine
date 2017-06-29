@@ -1125,7 +1125,7 @@ begin
   for I := 0 to Count - 1 do
   begin
     Items[I].FreeByParentExpression;
-    FPGObjectList_NilItem(Self, I);
+    Items[I] := nil;
   end;
 end;
 

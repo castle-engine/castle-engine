@@ -70,6 +70,11 @@ begin
       P.Dependencies.Add('winunits-base');
       P.Dependencies.Add('fcl-registry');
     end;
+    {$ifndef VER2}
+    {$ifndef VER3_0}
+    P.Dependencies.Add('rtl-generics');
+    {$endif}
+    {$endif}
 
     { Some general variables, visible only (as far as I can see) when
       using "./fpmake manifest". }
@@ -82,6 +87,20 @@ begin
     {$endif} := 'http://castle-engine.sourceforge.net/';
     P.Email := 'michalis.kambi' + '@gmail.com'; { at least protect sources from spammers }
     P.Version := {$I src/base/castleversion.inc};
+
+    { Add our unit groups.
+      For simplicity, keep things in alphabetical order in each group. }
+
+    { Add local version of Generics.Collections for FPC < 3.1.1 }
+    {$if defined(VER2) or defined(VER3_0)}
+    P.SourcePath.Add('src' + PathDelim + 'compatibility' + PathDelim + 'generics.collections' + PathDelim + 'src' + PathDelim);
+    P.Targets.AddUnit('generics.collections.pas');
+    P.Targets.AddUnit('generics.defaults.pas');
+    P.Targets.AddUnit('generics.hashes.pas');
+    P.Targets.AddUnit('generics.helpers.pas');
+    P.Targets.AddUnit('generics.memoryexpanders.pas');
+    P.Targets.AddUnit('generics.strings.pas');
+    {$endif}
 
     P.SourcePath.Add('src' + PathDelim + '3d');
     P.Targets.AddUnit('castle3d.pas');
@@ -182,11 +201,6 @@ begin
       P.Targets.AddUnit('castleandroidnativeappglue.pas');
     end;
     {$endif}
-
-    if IOS then
-    begin
-      P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'ios');
-    end;
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
     P.Targets.AddUnit('castlenoise.pas');
@@ -320,6 +334,7 @@ begin
     P.Targets.AddUnit('x3dloadinternalobj.pas');
     P.Targets.AddUnit('x3dloadinternal3ds.pas');
     P.Targets.AddUnit('x3dloadinternalspine.pas');
+    P.Targets.AddUnit('x3dloadinternalstl.pas');
     P.Targets.AddUnit('x3dloadinternalutils.pas');
     P.Targets.AddUnit('x3dnodes.pas');
     P.Targets.AddUnit('x3dtime.pas');

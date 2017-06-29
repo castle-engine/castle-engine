@@ -1,13 +1,13 @@
-<?xml version="1.0"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="9"/>
+    <Version Value="10"/>
     <General>
       <Flags>
         <LRSInOutputDirectory Value="False"/>
       </Flags>
+      <SessionStorage Value="InIDEConfig"/>
       <MainUnit Value="0"/>
-      <ActiveWindowIndexAtStart Value="0"/>
     </General>
     <BuildModes Count="1">
       <Item1 Name="default" Default="True"/>
@@ -26,7 +26,7 @@
     </RunParams>
     <RequiredPackages Count="2">
       <Item1>
-        <PackageName Value="castle_base"/>
+        <PackageName Value="castle_components"/>
       </Item1>
       <Item2>
         <PackageName Value="LCL"/>
@@ -36,10 +36,6 @@
       <Unit0>
         <Filename Value="test_al_source_allocator.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="test_al_source_allocator"/>
-        <TopLine Value="1"/>
-        <CursorPos X="1" Y="10"/>
-        <UsageCount Value="26"/>
       </Unit0>
       <Unit1>
         <Filename Value="mainf.pas"/>
@@ -47,100 +43,8 @@
         <ComponentName Value="Main"/>
         <HasResources Value="True"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="mainf"/>
-        <IsVisibleTab Value="True"/>
-        <EditorIndex Value="0"/>
-        <WindowIndex Value="1"/>
-        <TopLine Value="1"/>
-        <CursorPos X="80" Y="16"/>
-        <UsageCount Value="26"/>
-        <Loaded Value="True"/>
-        <LoadedDesigner Value="True"/>
-        <DefaultSyntaxHighlighter Value="Delphi"/>
       </Unit1>
     </Units>
-    <JumpHistory Count="20" HistoryIndex="19">
-      <Position1>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="117" Column="7" TopLine="102"/>
-      </Position1>
-      <Position2>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="16" TopLine="1"/>
-      </Position2>
-      <Position3>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="55" TopLine="1"/>
-      </Position3>
-      <Position4>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="78" Column="3" TopLine="67"/>
-      </Position4>
-      <Position5>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="74" Column="21" TopLine="66"/>
-      </Position5>
-      <Position6>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="76" Column="75" TopLine="63"/>
-      </Position6>
-      <Position7>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="67" Column="17" TopLine="57"/>
-      </Position7>
-      <Position8>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="34" Column="47" TopLine="34"/>
-      </Position8>
-      <Position9>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="1" Column="33" TopLine="1"/>
-      </Position9>
-      <Position10>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="148" Column="21" TopLine="137"/>
-      </Position10>
-      <Position11>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="91" Column="42" TopLine="80"/>
-      </Position11>
-      <Position12>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="38" Column="1" TopLine="27"/>
-      </Position12>
-      <Position13>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="144" Column="31" TopLine="136"/>
-      </Position13>
-      <Position14>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="96" Column="49" TopLine="88"/>
-      </Position14>
-      <Position15>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="102" Column="33" TopLine="86"/>
-      </Position15>
-      <Position16>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="144" Column="1" TopLine="133"/>
-      </Position16>
-      <Position17>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="91" Column="62" TopLine="88"/>
-      </Position17>
-      <Position18>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="72" Column="9" TopLine="61"/>
-      </Position18>
-      <Position19>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="43" Column="1" TopLine="29"/>
-      </Position19>
-      <Position20>
-        <Filename Value="mainf.pas"/>
-        <Caret Line="9" Column="42" TopLine="1"/>
-      </Position20>
-    </JumpHistory>
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
@@ -163,6 +67,9 @@
       </Checks>
     </CodeGeneration>
     <Linking>
+      <Debugging>
+        <UseHeaptrc Value="True"/>
+      </Debugging>
       <Options>
         <Win32>
           <GraphicApplication Value="True"/>
@@ -173,7 +80,6 @@
       <Verbosity>
         <ShowHints Value="False"/>
       </Verbosity>
-      <CompilerPath Value="$(CompPath)"/>
     </Other>
   </CompilerOptions>
   <Debugging>
@@ -189,5 +95,4 @@
       </Item3>
     </Exceptions>
   </Debugging>
-  <EditorMacros Count="0"/>
 </CONFIG>

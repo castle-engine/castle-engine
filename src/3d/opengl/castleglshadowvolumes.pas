@@ -43,7 +43,7 @@ type
     FrustumAndLightPlanes: array [0..5] of TVector4Single;
     FrustumAndLightPlanesCount: Cardinal;
     FFrustum: TFrustum;
-    FrustumNearPoints: TFrustumPointsDouble;
+    FrustumNearPoints: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} TFrustumPointsDouble {$else} TFrustumPointsSingle {$endif};
 
     FWrapAvailable: boolean;
     FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
@@ -395,7 +395,7 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         inside the Plane (i.e. where the plane equation is <= 0).
         Also returns @true if Plane is invalid, since in this case result
         of CalculateZFail should depend on other planes. }
-      function InsidePlane(const Plane: TVector4Double): boolean;
+      function InsidePlane(const Plane: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} TVector4Double {$else} TVector4Single {$endif}): boolean;
 
         function CalculatePoint(const X, Y, Z: Integer): Single;
         begin
@@ -419,8 +419,8 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
       end;
 
     var
-      LightPosition3: PVector3Double;
-      NearPlane: TVector4Double;
+      LightPosition3: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} PVector3Double {$else} PVector3Single {$endif};
+      NearPlane: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} TVector4Double {$else} TVector4Single {$endif};
     begin
       LightPosition3 := @FLightPositionDouble;
       if LightPosition[3] <> 0 then

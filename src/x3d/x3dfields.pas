@@ -1061,12 +1061,13 @@ type
 
   EX3DMultFieldDifferentCount = class(EX3DError);
 
+  { X3D field with a list of values. }
   TX3DMultField = class(TX3DField)
   protected
     { Get or set the number of items, see @link(Count).
       @groupBegin }
-    function GetCount: Integer; virtual; abstract;
-    procedure SetCount(const Value: Integer); virtual; abstract;
+    function GetCount: SizeInt; virtual; abstract;
+    procedure SetCount(const Value: SizeInt); virtual; abstract;
     { @groupEnd }
   public
     { Number of items in this field.
@@ -1074,47 +1075,21 @@ type
       Remember that increasing this generally sets new items to undefined
       values (see SetCount documentation of particular descendant for docs).
       So you usually want to initialize them afterwards to something correct. }
-    property Count: Integer read GetCount write SetCount;
+    property Count: SizeInt read GetCount write SetCount;
 
     { If SecondValue.Count <> Count, raises EX3DMultFieldDifferentCount }
     procedure CheckCountEqual(SecondValue: TX3DMultField);
   end;
 
-  { Field holding multiple values. Remember that such field may always have
-    any number of items, including zero.
+  { X3D field with a list of values.
 
-    Note that we keep MF fields contents in TFPSList or TCastleStringList instances
-    (RawItems in this class, also accessible as Items (with more concrete
-    class) in descendants). This means that they are in compact form,
-    easy for reading, or even for feeding the list into OpenGL.
-    That's the main reason why I did not simply implement
-    TX3DSimpleMultField as a descendant of TX3DSingleFieldsList:
-    A long list of vertexes, MFVec3f, would be kept as a list of pointers
-    to a lot of TSFVec3f instances. This would be quite memory-consuming,
-    and very uncomfortable for access. On the contrary, current implementation
-    keeps all these vertexes inside one TVector3SingleList instance,
-    that internally keeps all items in one continuos piece of memory.
-
-    @italic(Descendants implementors notes): to make new descendant:
-
-    @unorderedList(
-      @item(In CreateUndefined you have to initialize FItemClass and create
-        RawItems. In destructor of this class, RawItems are freed, so
-        don't worry about this.)
-
-      @item(Override RawItemsAdd.)
-
-      @item(
-        If your ItemClass doesn't work 100% correctly when it's initialized
-        by CreateUndefined, you may have to override CreateItemBeforeParse.
-        Fortunately, VRML specification was careful to choose as multi-valued field
-        types' only fields that can behave nicely when initialized by
-        CreateUndefined (and in fact VRML 2.0 removed the "bad fields" entirely).)
-
-      @item(Not strictly required, but usually it's comfortable to have
-        a constructor that allows you to init default field value
-        from some "array of TXxx".)
-    ) }
+    @italic(Design note): The MF field classes can keep their items
+    in compact lists, e.g. Generics.Collections.TList<T>.
+    This allows speed (the TList<T> has trivial cache-friendly layout).
+    That's why TX3DSimpleMultField is not a descendant of TX3DSingleFieldsList,
+    as then we would have a list of references, which could be quite memory-consuming
+    (imagine a milion vertexes in MFVec3f, which is absolutely possible)
+    and not cache friendly. }
   TX3DSimpleMultField = class(TX3DMultField)
   private
     InvalidIndexWarnings: Cardinal;
@@ -1150,24 +1125,12 @@ type
       (although SaveToStreamValue may sometimes ignore it, if it knows better). }
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
 
-    { Get or set the number of items.
-      In TX3DSimpleMultField descendants, these simply get/set RawItems.Count
-      (you could do it directly as well, since operating on RawItems directly
-      is Ok).
-      @groupBegin }
-    function GetCount: Integer; override;
-    procedure SetCount(const Value: Integer); override;
-    { @groupEnd }
+    procedure Clear; virtual; abstract;
 
-    procedure Clear;
+    function GetCapacity: SizeInt; virtual; abstract;
+    procedure SetCapacity(const Value: SizeInt); virtual; abstract;
+    property Capacity: SizeInt read GetCapacity write SetCapacity;
   public
-    { Items of this field. Either TFPSList or TCastleStringList.
-
-      @italic(Descendants implementors notes): You have to initialize this field
-      in descendants' constructor, it will be always freed in our
-      destructor. }
-    RawItems: TObject;
-
     { A corresponding SF field class. All items that will be passed
       to RawItemsAdd will be of this class. }
     property ItemClass: TX3DSingleFieldClass read fItemClass;
@@ -1175,8 +1138,6 @@ type
     { Parse MF field. This class handles parsing fully, usually no need to
       override this more in descendants. It uses ItemClass.Parse method. }
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    destructor Destroy; override;
 
     { Checks equality between this and SecondValue field.
       In addition to inherited(Equals), this also checks that
@@ -2003,6 +1964,7 @@ type
   { }
   TMFBool = class(TX3DSimpleMultField)
   private
+    RawItems: TBooleanList;
     DefaultValuesCount: Integer;
     DefaultValue: boolean;
     function GetItems: TBooleanList;
@@ -2010,6 +1972,11 @@ type
     function GetItemsSafe(Index: Integer): boolean;
     procedure SetItemsSafe(Index: Integer; const Value: boolean);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TBooleanList read GetItems write SetItems;
@@ -2019,6 +1986,7 @@ type
       const InitialContent: array of boolean);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2042,6 +2010,7 @@ type
 
   TMFLong = class(TX3DSimpleMultField)
   private
+    RawItems: TLongIntList;
     DefaultValuesCount: integer;
     DefaultValue: Longint;
     FSaveToStreamLineUptoNegative: boolean;
@@ -2051,6 +2020,11 @@ type
     function GetItems: TLongIntList;
     procedure SetItems(const Value: TLongIntList);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
@@ -2067,6 +2041,7 @@ type
       const AName: string; const InitialContent: array of Longint);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2119,6 +2094,7 @@ type
 
   TMFMatrix3f = class(TX3DSimpleMultField)
   private
+    RawItems: TMatrix3SingleList;
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Single;
     function GetItems: TMatrix3SingleList;
@@ -2126,6 +2102,11 @@ type
     function GetItemsSafe(Index: Integer): TMatrix3Single;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Single);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix3SingleList read GetItems write SetItems;
@@ -2134,6 +2115,7 @@ type
       const AName: string; const InitialContent: array of TMatrix3Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2159,6 +2141,7 @@ type
 
   TMFMatrix3d = class(TX3DSimpleMultField)
   private
+    RawItems: TMatrix3DoubleList;
     DefaultValuesCount: integer;
     DefaultValue: TMatrix3Double;
     function GetItems: TMatrix3DoubleList;
@@ -2166,6 +2149,11 @@ type
     function GetItemsSafe(Index: Integer): TMatrix3Double;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Double);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix3DoubleList read GetItems write SetItems;
@@ -2174,6 +2162,7 @@ type
       const AName: string; const InitialContent: array of TMatrix3Double);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2199,6 +2188,7 @@ type
 
   TMFMatrix4f = class(TX3DSimpleMultField)
   private
+    RawItems: TMatrix4SingleList;
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Single;
     function GetItems: TMatrix4SingleList;
@@ -2206,6 +2196,11 @@ type
     function GetItemsSafe(Index: Integer): TMatrix4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Single);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix4SingleList read GetItems write SetItems;
@@ -2214,6 +2209,7 @@ type
       const AName: string; const InitialContent: array of TMatrix4Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2239,6 +2235,7 @@ type
 
   TMFMatrix4d = class(TX3DSimpleMultField)
   private
+    RawItems: TMatrix4DoubleList;
     DefaultValuesCount: integer;
     DefaultValue: TMatrix4Double;
     function GetItems: TMatrix4DoubleList;
@@ -2246,6 +2243,11 @@ type
     function GetItemsSafe(Index: Integer): TMatrix4Double;
     procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Double);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TMatrix4DoubleList read GetItems write SetItems;
@@ -2254,6 +2256,7 @@ type
       const AName: string; const InitialContent: array of TMatrix4Double);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2279,6 +2282,7 @@ type
 
   TMFVec2f = class(TX3DSimpleMultField)
   private
+    RawItems: TVector2SingleList;
     DefaultValuesCount: integer;
     DefaultValue: TVector2Single;
     function GetItemsSafe(Index: Integer): TVector2Single;
@@ -2286,6 +2290,11 @@ type
     function GetItems: TVector2SingleList;
     procedure SetItems(const Value: TVector2SingleList);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector2SingleList read GetItems write SetItems;
@@ -2294,6 +2303,7 @@ type
       const AName: string; const InitialContent: array of TVector2Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2319,6 +2329,7 @@ type
 
   TMFVec3f = class(TX3DSimpleMultField)
   private
+    RawItems: TVector3SingleList;
     DefaultValuesCount: integer;
     DefaultValue: TVector3Single;
     function GetItemsSafe(Index: Integer): TVector3Single;
@@ -2326,6 +2337,11 @@ type
     function GetItems: TVector3SingleList;
     procedure SetItems(const Value: TVector3SingleList);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector3SingleList read GetItems write SetItems;
@@ -2334,6 +2350,7 @@ type
       const AName: string; const InitialContent: array of TVector3Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2366,6 +2383,7 @@ type
 
   TMFVec4f = class(TX3DSimpleMultField)
   private
+    RawItems: TVector4SingleList;
     DefaultValuesCount: integer;
     DefaultValue: TVector4Single;
     function GetItemsSafe(Index: Integer): TVector4Single;
@@ -2373,6 +2391,11 @@ type
     function GetItems: TVector4SingleList;
     procedure SetItems(const Value: TVector4SingleList);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector4SingleList read GetItems write SetItems;
@@ -2381,6 +2404,7 @@ type
       const AName: string; const InitialContent: array of TVector4Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2413,6 +2437,7 @@ type
 
   TMFVec2d = class(TX3DSimpleMultField)
   private
+    RawItems: TVector2DoubleList;
     DefaultValuesCount: integer;
     DefaultValue: TVector2Double;
     function GetItems: TVector2DoubleList;
@@ -2420,6 +2445,11 @@ type
     function GetItemsSafe(Index: Integer): TVector2Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector2Double);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector2DoubleList read GetItems write SetItems;
@@ -2428,6 +2458,7 @@ type
       const AName: string; const InitialContent: array of TVector2Double);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2453,6 +2484,7 @@ type
 
   TMFVec3d = class(TX3DSimpleMultField)
   private
+    RawItems: TVector3DoubleList;
     DefaultValuesCount: integer;
     DefaultValue: TVector3Double;
     function GetItems: TVector3DoubleList;
@@ -2460,6 +2492,11 @@ type
     function GetItemsSafe(Index: Integer): TVector3Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector3Double);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector3DoubleList read GetItems write SetItems;
@@ -2468,6 +2505,7 @@ type
       const AName: string; const InitialContent: array of TVector3Double);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2493,6 +2531,7 @@ type
 
   TMFVec4d = class(TX3DSimpleMultField)
   private
+    RawItems: TVector4DoubleList;
     DefaultValuesCount: integer;
     DefaultValue: TVector4Double;
     function GetItems: TVector4DoubleList;
@@ -2500,6 +2539,11 @@ type
     function GetItemsSafe(Index: Integer): TVector4Double;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Double);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector4DoubleList read GetItems write SetItems;
@@ -2508,6 +2552,7 @@ type
       const AName: string; const InitialContent: array of TVector4Double);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2533,6 +2578,7 @@ type
 
   TMFRotation = class(TX3DSimpleMultField)
   private
+    RawItems: TVector4SingleList;
     DefaultValuesCount: Integer;
     DefaultValue: TVector4Single;
     function GetItems: TVector4SingleList;
@@ -2540,6 +2586,11 @@ type
     function GetItemsSafe(Index: Integer): TVector4Single;
     procedure SetItemsSafe(Index: Integer; const Value: TVector4Single);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
   public
     property Items: TVector4SingleList read GetItems write SetItems;
@@ -2549,6 +2600,7 @@ type
       const InitialContent: array of TVector4Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2574,6 +2626,7 @@ type
 
   TMFFloat = class(TX3DSimpleMultField)
   private
+    RawItems: TSingleList;
     DefaultValuesCount: integer;
     DefaultValue: Single;
     FAngle: boolean;
@@ -2582,6 +2635,11 @@ type
     function GetItemsSafe(Index: Integer): Single;
     procedure SetItemsSafe(Index: Integer; const Value: Single);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
     function CreateItemBeforeParse: TX3DSingleField; override;
@@ -2598,6 +2656,7 @@ type
       const InitialContent: array of Single);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2623,6 +2682,7 @@ type
 
   TMFDouble = class(TX3DSimpleMultField)
   private
+    RawItems: TDoubleList;
     DefaultValuesCount: integer;
     DefaultValue: Double;
     function GetItems: TDoubleList;
@@ -2630,6 +2690,11 @@ type
     function GetItemsSafe(Index: Integer): Double;
     procedure SetItemsSafe(Index: Integer; const Value: Double);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
     function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
   public
@@ -2640,6 +2705,7 @@ type
       const InitialContent: array of Double);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -2671,6 +2737,7 @@ type
 
   TMFString = class(TX3DSimpleMultField)
   private
+    RawItems: TCastleStringList;
     DefaultValuesCount: Integer;
     DefaultValue: string;
     function GetItems: TCastleStringList;
@@ -2678,6 +2745,11 @@ type
     function GetItemsSafe(Index: Integer): string;
     procedure SetItemsSafe(Index: Integer; const Value: string);
   protected
+    function GetCount: SizeInt; override;
+    procedure SetCount(const Value: SizeInt); override;
+    function GetCapacity: SizeInt; override;
+    procedure SetCapacity(const Value: SizeInt); override;
+    procedure Clear; override;
     function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
@@ -2687,6 +2759,7 @@ type
       const AName: string; const InitialContent: array of string);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
+    destructor Destroy; override;
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
@@ -3576,33 +3649,6 @@ end;
 
 { TX3DSimpleMultField ------------------------------------------------------- }
 
-destructor TX3DSimpleMultField.Destroy;
-begin
-  RawItems.Free;
-  inherited;
-end;
-
-function TX3DSimpleMultField.GetCount: Integer;
-begin
-  if RawItems is TFPSList then
-    Result := TFPSList(RawItems).Count else
-    Result := TCastleStringList(RawItems).Count;
-end;
-
-procedure TX3DSimpleMultField.SetCount(const Value: Integer);
-begin
-  if RawItems is TFPSList then
-    TFPSList(RawItems).Count := Value else
-    TCastleStringList(RawItems).Count := Value;
-end;
-
-procedure TX3DSimpleMultField.Clear;
-begin
-  if RawItems is TFPSList then
-    TFPSList(RawItems).Clear else
-    TCastleStringList(RawItems).Clear;
-end;
-
 function TX3DSimpleMultField.CreateItemBeforeParse: TX3DSingleField;
 begin
   result := ItemClass.CreateUndefined(ParentNode, '', false);
@@ -3624,8 +3670,7 @@ begin
 
       { List size may be increased rapidly during parsing.
         Prepare for it by allocating some size in advance. }
-      if RawItems is TFPSList then
-        TFPSList(RawItems).Capacity := 64;
+      Capacity := 64;
 
       while Lexer.Token <> vtCloseSqBracket do
       { we always look now at "]" or next single value }
@@ -3675,8 +3720,7 @@ begin
   try
     { List size may be increased rapidly during parsing.
       Prepare for it by allocating some size in advance. }
-    if RawItems is TFPSList then
-      TFPSList(RawItems).Capacity := 64;
+    Capacity := 64;
 
     while Lexer.Token <> vtEnd do
     begin
@@ -5640,27 +5684,52 @@ end;
 {$endif}
 
 {$define IMPLEMENT_MF_CLASS:=
-constructor TMF_CLASS.Create(AParentNode: TX3DFileItem;
-  const AName: string;
-  const InitialContent: array of TMF_STATIC_ITEM);
-begin
-  inherited Create(AParentNode, AName);
-
-  Items.AddArray(InitialContent);
-
-  AssignDefaultValueFromValue;
-end;
-
 constructor TMF_CLASS.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
-
   FItemClass := TMF_CLASS_ITEM;
-
   RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
-
   DefaultValuesCount := -1;
+end;
+
+constructor TMF_CLASS.Create(AParentNode: TX3DFileItem; const AName: string;
+  const InitialContent: array of TMF_STATIC_ITEM);
+begin
+   inherited Create(AParentNode, AName);
+   Items.AddArray(InitialContent);
+  AssignDefaultValueFromValue;
+end;
+
+destructor TMF_CLASS.Destroy;
+begin
+  FreeAndNil(RawItems);
+  inherited;
+end;
+
+function TMF_CLASS.GetCount: SizeInt;
+begin
+  Result := RawItems.Count;
+end;
+
+procedure TMF_CLASS.SetCount(const Value: SizeInt);
+begin
+  RawItems.Count := Value;
+end;
+
+function TMF_CLASS.GetCapacity: SizeInt;
+begin
+  Result := RawItems.Capacity;
+end;
+
+procedure TMF_CLASS.SetCapacity(const Value: SizeInt);
+begin
+  RawItems.Capacity := Value;
+end;
+
+procedure TMF_CLASS.Clear;
+begin
+  RawItems.Clear;
 end;
 
 function TMF_CLASS.GetItems: TMF_DYN_STATIC_ITEM_ARRAY;

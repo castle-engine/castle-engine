@@ -594,7 +594,7 @@ var
       ftLinear: F := (FogVisibilityRangeScaled - Distance) / FogVisibilityRangeScaled;
       ftExp   : F := Exp(-Distance / (FogVisibilityRangeScaled - Distance));
     end;
-    Color := Vector_Init_Lerp(F, FdColor.Value, Color);
+    Color := Lerp(F, FdColor.Value, Color);
   end;
 
 var

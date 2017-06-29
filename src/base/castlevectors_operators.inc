@@ -19,74 +19,74 @@
 {$ifdef read_interface}
 
 {Vector to vector operations.}
-operator + (const x,y:Tvector2_single_data) : Tvector2_single_data;
-operator + (const x,y:Tvector2_double_data) : Tvector2_double_data;
-operator + (const x,y:Tvector2_extended_data) : Tvector2_extended_data;
+operator + (const x,y:TVector2Single) : TVector2Single;
+operator + (const x,y:TVector2Double) : TVector2Double;
+operator + (const x,y:TVector2Extended) : TVector2Extended;
 operator + (const x,y:Tvector2Integer) : Tvector2Integer;
-operator + (const x,y:Tvector3_single_data) : Tvector3_single_data;
-operator + (const x,y:Tvector3_double_data) : Tvector3_double_data;
-operator + (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator + (const x,y:TVector3Single) : TVector3Single;
+operator + (const x,y:TVector3Double) : TVector3Double;
+operator + (const x,y:TVector3Extended) : TVector3Extended;
 operator + (const x,y:Tvector3Integer) : Tvector3Integer;
-operator + (const x,y:Tvector4_single_data) : Tvector4_single_data;
-operator + (const x,y:Tvector4_double_data) : Tvector4_double_data;
-operator + (const x,y:Tvector4_extended_data) : Tvector4_extended_data;
+operator + (const x,y:TVector4Single) : TVector4Single;
+operator + (const x,y:TVector4Double) : TVector4Double;
+operator + (const x,y:TVector4Extended) : TVector4Extended;
 operator + (const x,y:Tvector4Integer) : Tvector4Integer;
 
-operator - (const x,y:Tvector2_single_data) : Tvector2_single_data;
-operator - (const x,y:Tvector2_double_data) : Tvector2_double_data;
-operator - (const x,y:Tvector2_extended_data) : Tvector2_extended_data;
+operator - (const x,y:TVector2Single) : TVector2Single;
+operator - (const x,y:TVector2Double) : TVector2Double;
+operator - (const x,y:TVector2Extended) : TVector2Extended;
 operator - (const x,y:Tvector2Integer) : Tvector2Integer;
-operator - (const x,y:Tvector3_single_data) : Tvector3_single_data;
-operator - (const x,y:Tvector3_double_data) : Tvector3_double_data;
-operator - (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator - (const x,y:TVector3Single) : TVector3Single;
+operator - (const x,y:TVector3Double) : TVector3Double;
+operator - (const x,y:TVector3Extended) : TVector3Extended;
 operator - (const x,y:Tvector3Integer) : Tvector3Integer;
-operator - (const x,y:Tvector4_single_data) : Tvector4_single_data;
-operator - (const x,y:Tvector4_double_data) : Tvector4_double_data;
-operator - (const x,y:Tvector4_extended_data) : Tvector4_extended_data;
+operator - (const x,y:TVector4Single) : TVector4Single;
+operator - (const x,y:TVector4Double) : TVector4Double;
+operator - (const x,y:TVector4Extended) : TVector4Extended;
 operator - (const x,y:Tvector4Integer) : Tvector4Integer;
 
-operator - (const x:Tvector2_single_data) : Tvector2_single_data;
-operator - (const x:Tvector2_double_data) : Tvector2_double_data;
-operator - (const x:Tvector2_extended_data) : Tvector2_extended_data;
+operator - (const x:TVector2Single) : TVector2Single;
+operator - (const x:TVector2Double) : TVector2Double;
+operator - (const x:TVector2Extended) : TVector2Extended;
 operator - (const x:Tvector2Integer) : Tvector2Integer;
-operator - (const x:Tvector3_single_data) : Tvector3_single_data;
-operator - (const x:Tvector3_double_data) : Tvector3_double_data;
-operator - (const x:Tvector3_extended_data) : Tvector3_extended_data;
+operator - (const x:TVector3Single) : TVector3Single;
+operator - (const x:TVector3Double) : TVector3Double;
+operator - (const x:TVector3Extended) : TVector3Extended;
 operator - (const x:Tvector3Integer) : Tvector3Integer;
-operator - (const x:Tvector4_single_data) : Tvector4_single_data;
-operator - (const x:Tvector4_double_data) : Tvector4_double_data;
-operator - (const x:Tvector4_extended_data) : Tvector4_extended_data;
+operator - (const x:TVector4Single) : TVector4Single;
+operator - (const x:TVector4Double) : TVector4Double;
+operator - (const x:TVector4Extended) : TVector4Extended;
 operator - (const x:Tvector4Integer) : Tvector4Integer;
 
-operator * (const x,y:Tvector2_single_data) : Tvector2_single_data;
-operator * (const x,y:Tvector2_double_data) : Tvector2_double_data;
-operator * (const x,y:Tvector2_extended_data) : Tvector2_extended_data;
+operator * (const x,y:TVector2Single) : TVector2Single;
+operator * (const x,y:TVector2Double) : TVector2Double;
+operator * (const x,y:TVector2Extended) : TVector2Extended;
 operator * (const x,y:Tvector2Integer) : Tvector2Integer;
-operator * (const x,y:Tvector3_single_data) : Tvector3_single_data;
-operator * (const x,y:Tvector3_double_data) : Tvector3_double_data;
-operator * (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator * (const x,y:TVector3Single) : TVector3Single;
+operator * (const x,y:TVector3Double) : TVector3Double;
+operator * (const x,y:TVector3Extended) : TVector3Extended;
 operator * (const x,y:Tvector3Integer) : Tvector3Integer;
-operator * (const x,y:Tvector4_single_data) : Tvector4_single_data;
-operator * (const x,y:Tvector4_double_data) : Tvector4_double_data;
-operator * (const x,y:Tvector4_extended_data) : Tvector4_extended_data;
+operator * (const x,y:TVector4Single) : TVector4Single;
+operator * (const x,y:TVector4Double) : TVector4Double;
+operator * (const x,y:TVector4Extended) : TVector4Extended;
 operator * (const x,y:Tvector4Integer) : Tvector4Integer;
 
-operator ** (const x,y:Tvector2_single_data) : single;
-operator ** (const x,y:Tvector2_double_data) : double;
-operator ** (const x,y:Tvector2_extended_data) : extended;
+operator ** (const x,y:TVector2Single) : single;
+operator ** (const x,y:TVector2Double) : double;
+operator ** (const x,y:TVector2Extended) : extended;
 operator ** (const x,y:Tvector2Integer) : Integer;
-operator ** (const x,y:Tvector3_single_data) : single;
-operator ** (const x,y:Tvector3_double_data) : double;
-operator ** (const x,y:Tvector3_extended_data) : extended;
+operator ** (const x,y:TVector3Single) : single;
+operator ** (const x,y:TVector3Double) : double;
+operator ** (const x,y:TVector3Extended) : extended;
 operator ** (const x,y:Tvector3Integer) : Integer;
-operator ** (const x,y:Tvector4_single_data) : single;
-operator ** (const x,y:Tvector4_double_data) : double;
-operator ** (const x,y:Tvector4_extended_data) : extended;
+operator ** (const x,y:TVector4Single) : single;
+operator ** (const x,y:TVector4Double) : double;
+operator ** (const x,y:TVector4Extended) : extended;
 operator ** (const x,y:Tvector4Integer) : Integer;
 
-operator >< (const x,y:Tvector3_single_data) : Tvector3_single_data;
-operator >< (const x,y:Tvector3_double_data) : Tvector3_double_data;
-operator >< (const x,y:Tvector3_extended_data) : Tvector3_extended_data;
+operator >< (const x,y:TVector3Single) : TVector3Single;
+operator >< (const x,y:TVector3Double) : TVector3Double;
+operator >< (const x,y:TVector3Extended) : TVector3Extended;
 operator >< (const x,y:Tvector3Integer) : Tvector3Integer;
 
 {Vector/scalar operations.
@@ -103,76 +103,68 @@ operator >< (const x,y:Tvector3Integer) : Tvector3Integer;
   So, they make more harm than gain.
 }
 { }
-operator * (const x:Tvector2_single_data;y:single) : Tvector2_single_data;
-operator * (const x:Tvector2_double_data;y:double) : Tvector2_double_data;
-operator * (const x:Tvector2_extended_data;y:extended) : Tvector2_extended_data;
-operator * (const x:Tvector3_single_data;y:single) : Tvector3_single_data;
-operator * (const x:Tvector3_double_data;y:double) : Tvector3_double_data;
-operator * (const x:Tvector3_extended_data;y:extended) : Tvector3_extended_data;
-operator * (const x:Tvector4_single_data;y:single) : Tvector4_single_data;
-operator * (const x:Tvector4_double_data;y:double) : Tvector4_double_data;
-operator * (const x:Tvector4_extended_data;y:extended) : Tvector4_extended_data;
+operator * (const x:TVector2Single;y:single) : TVector2Single;
+operator * (const x:TVector2Double;y:double) : TVector2Double;
+operator * (const x:TVector2Extended;y:extended) : TVector2Extended;
+operator * (const x:TVector3Single;y:single) : TVector3Single;
+operator * (const x:TVector3Double;y:double) : TVector3Double;
+operator * (const x:TVector3Extended;y:extended) : TVector3Extended;
+operator * (const x:TVector4Single;y:single) : TVector4Single;
+operator * (const x:TVector4Double;y:double) : TVector4Double;
+operator * (const x:TVector4Extended;y:extended) : TVector4Extended;
 
-operator / (const x:Tvector2_single_data;y:single) : Tvector2_single_data;
-operator / (const x:Tvector2_double_data;y:double) : Tvector2_double_data;
-operator / (const x:Tvector2_extended_data;y:extended) : Tvector2_extended_data;
-operator / (const x:Tvector3_single_data;y:single) : Tvector3_single_data;
-operator / (const x:Tvector3_double_data;y:double) : Tvector3_double_data;
-operator / (const x:Tvector3_extended_data;y:extended) : Tvector3_extended_data;
-operator / (const x:Tvector4_single_data;y:single) : Tvector4_single_data;
-operator / (const x:Tvector4_double_data;y:double) : Tvector4_double_data;
-operator / (const x:Tvector4_extended_data;y:extended) : Tvector4_extended_data;
+operator / (const x:TVector2Single;y:single) : TVector2Single;
+operator / (const x:TVector2Double;y:double) : TVector2Double;
+operator / (const x:TVector2Extended;y:extended) : TVector2Extended;
+operator / (const x:TVector3Single;y:single) : TVector3Single;
+operator / (const x:TVector3Double;y:double) : TVector3Double;
+operator / (const x:TVector3Extended;y:extended) : TVector3Extended;
+operator / (const x:TVector4Single;y:single) : TVector4Single;
+operator / (const x:TVector4Double;y:double) : TVector4Double;
+operator / (const x:TVector4Extended;y:extended) : TVector4Extended;
 
-operator + (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
-operator + (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator + (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
-operator + (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator + (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
-operator + (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
+operator + (const m1,m2:TMatrix2Single) : TMatrix2Single;
+operator + (const m1,m2:TMatrix2Double) : TMatrix2Double;
+operator + (const m1,m2:TMatrix3Single) : TMatrix3Single;
+operator + (const m1,m2:TMatrix3Double) : TMatrix3Double;
+operator + (const m1,m2:TMatrix4Single) : TMatrix4Single;
+operator + (const m1,m2:TMatrix4Double) : TMatrix4Double;
 
-operator - (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
-operator - (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator - (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
-operator - (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator - (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
-operator - (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
+operator - (const m1,m2:TMatrix2Single) : TMatrix2Single;
+operator - (const m1,m2:TMatrix2Double) : TMatrix2Double;
+operator - (const m1,m2:TMatrix3Single) : TMatrix3Single;
+operator - (const m1,m2:TMatrix3Double) : TMatrix3Double;
+operator - (const m1,m2:TMatrix4Single) : TMatrix4Single;
+operator - (const m1,m2:TMatrix4Double) : TMatrix4Double;
 
-operator - (const m1:Tmatrix2_single_data) : Tmatrix2_single_data;
-operator - (const m1:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator - (const m1:Tmatrix3_single_data) : Tmatrix3_single_data;
-operator - (const m1:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator - (const m1:Tmatrix4_single_data) : Tmatrix4_single_data;
-operator - (const m1:Tmatrix4_double_data) : Tmatrix4_double_data;
+operator - (const m1:TMatrix2Single) : TMatrix2Single;
+operator - (const m1:TMatrix2Double) : TMatrix2Double;
+operator - (const m1:TMatrix3Single) : TMatrix3Single;
+operator - (const m1:TMatrix3Double) : TMatrix3Double;
+operator - (const m1:TMatrix4Single) : TMatrix4Single;
+operator - (const m1:TMatrix4Double) : TMatrix4Double;
 
-operator * (const m1,m2:Tmatrix2_single_data) : Tmatrix2_single_data;
-operator * (const m1,m2:Tmatrix2_double_data) : Tmatrix2_double_data;
-operator * (const m1,m2:Tmatrix3_single_data) : Tmatrix3_single_data;
-operator * (const m1,m2:Tmatrix3_double_data) : Tmatrix3_double_data;
-operator * (const m1,m2:Tmatrix4_single_data) : Tmatrix4_single_data;
-operator * (const m1,m2:Tmatrix4_double_data) : Tmatrix4_double_data;
+{ Note: matrix * matrix and matrix * vector multiplication
+  is inside castlevectors_generic_float.inc.
 
-{Matrix/vector operations}
-operator * (const m:Tmatrix2_single_data;const v:Tvector2_single_data) : Tvector2_single_data;
-operator * (const m:Tmatrix2_double_data;const v:Tvector2_double_data) : Tvector2_double_data;
-operator * (const m:Tmatrix3_single_data;const v:Tvector3_single_data) : Tvector3_single_data;
-operator * (const m:Tmatrix3_double_data;const v:Tvector3_double_data) : Tvector3_double_data;
-operator * (const m:Tmatrix4_single_data;const v:Tvector4_single_data) : Tvector4_single_data;
-operator * (const m:Tmatrix4_double_data;const v:Tvector4_double_data) : Tvector4_double_data;
+  We do not use matrix multiplication code from FPC Matrix unit here,
+  as their matrices are transposed compared to ours.
+  Instead we use our own code, adjusted from MatrixMult implementation. }
 
 {Matrix/scalar operations}
-operator * (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
-operator * (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
-operator * (const m:Tmatrix3_single_data;const x:single) : Tmatrix3_single_data;
-operator * (const m:Tmatrix3_double_data;const x:double) : Tmatrix3_double_data;
-operator * (const m:Tmatrix4_single_data;const x:single) : Tmatrix4_single_data;
-operator * (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
+operator * (const m:TMatrix2Single;const x:single) : TMatrix2Single;
+operator * (const m:TMatrix2Double;const x:double) : TMatrix2Double;
+operator * (const m:TMatrix3Single;const x:single) : TMatrix3Single;
+operator * (const m:TMatrix3Double;const x:double) : TMatrix3Double;
+operator * (const m:TMatrix4Single;const x:single) : TMatrix4Single;
+operator * (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 
-operator / (const m:Tmatrix2_single_data;const x:single) : Tmatrix2_single_data;
-operator / (const m:Tmatrix2_double_data;const x:double) : Tmatrix2_double_data;
-operator / (const m:Tmatrix3_single_data;const x:single) : Tmatrix3_single_data;
-operator / (const m:Tmatrix3_double_data;const x:double) : Tmatrix3_double_data;
-operator / (const m:Tmatrix4_single_data;const x:single) : Tmatrix4_single_data;
-operator / (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
+operator / (const m:TMatrix2Single;const x:single) : TMatrix2Single;
+operator / (const m:TMatrix2Double;const x:double) : TMatrix2Double;
+operator / (const m:TMatrix3Single;const x:single) : TMatrix3Single;
+operator / (const m:TMatrix3Double;const x:double) : TMatrix3Double;
+operator / (const m:TMatrix4Single;const x:single) : TMatrix4Single;
+operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 
 {$endif read_interface}
 
@@ -186,35 +178,35 @@ operator / (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
   for integer vectors. }
 
 {******************************************************************************
-                                Tvector2_single_data
+                                TVector2Single
 ******************************************************************************}
 
 {Need to use capitals due to bug in FPC. Bug was fixed in FPC 1.9.3 on
  10 Feb. 2004}
 {$DEFINE datatype:=SINGLE}
-{$DEFINE objectname:=Tvector2_single_data}
+{$DEFINE objectname:=TVector2Single}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2_single_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector2Single}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
-                                Tvector2_double_data
+                                TVector2Double
 ******************************************************************************}
 
 {$DEFINE datatype:=DOUBLE}
-{$DEFINE objectname:=Tvector2_double_data}
+{$DEFINE objectname:=TVector2Double}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2_double_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector2Double}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
-                               Tvector2_extended_data
+                               TVector2Extended
 ******************************************************************************}
 
 {$DEFINE datatype:=EXTENDED}
-{$DEFINE objectname:=Tvector2_extended_data}
+{$DEFINE objectname:=TVector2Extended}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2_extended_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector2Extended}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
@@ -231,35 +223,35 @@ operator / (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
 
 
 {******************************************************************************
-                                Tvector3_single_data
+                                TVector3Single
 ******************************************************************************}
 
 {Need to use capitals due to bug in FPC. Bug was fixed in FPC 1.9.3 on
  10 Feb. 2004}
 {$DEFINE datatype:=SINGLE}
-{$DEFINE objectname:=Tvector3_single_data}
+{$DEFINE objectname:=TVector3Single}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3_single_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector3Single}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
-                                Tvector3_double_data
+                                TVector3Double
 ******************************************************************************}
 
 {$DEFINE datatype:=DOUBLE}
-{$DEFINE objectname:=Tvector3_double_data}
+{$DEFINE objectname:=TVector3Double}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3_double_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector3Double}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
-                               Tvector3_extended_data
+                               TVector3Extended
 ******************************************************************************}
 
 {$DEFINE datatype:=EXTENDED}
-{$DEFINE objectname:=Tvector3_extended_data}
+{$DEFINE objectname:=TVector3Extended}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3_extended_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector3Extended}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
@@ -276,35 +268,35 @@ operator / (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
 
 
 {******************************************************************************
-                                Tvector4_single_data
+                                TVector4Single
 ******************************************************************************}
 
 {Need to use capitals due to bug in FPC. Bug was fixed in FPC 1.9.3 on
  10 Feb. 2004}
 {$DEFINE datatype:=SINGLE}
-{$DEFINE objectname:=Tvector4_single_data}
+{$DEFINE objectname:=TVector4Single}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4_single_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector4Single}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
-                                Tvector4_double_data
+                                TVector4Double
 ******************************************************************************}
 
 {$DEFINE datatype:=DOUBLE}
-{$DEFINE objectname:=Tvector4_double_data}
+{$DEFINE objectname:=TVector4Double}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4_double_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector4Double}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
-                               Tvector4_extended_data
+                               TVector4Extended
 ******************************************************************************}
 
 {$DEFINE datatype:=EXTENDED}
-{$DEFINE objectname:=Tvector4_extended_data}
+{$DEFINE objectname:=TVector4Extended}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4_extended_data}
+{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector4Extended}
 {$i castlevectors_operators_vector_implementation.inc}
 
 {******************************************************************************
@@ -321,69 +313,69 @@ operator / (const m:Tmatrix4_double_data;const x:double) : Tmatrix4_double_data;
 
 
 {******************************************************************************
-                                Tmatrix2_single_data
+                                TMatrix2Single
 ******************************************************************************}
 
 {$DEFINE datatype:=SINGLE}
-{$DEFINE objectname:=Tmatrix2_single_data}
-{$DEFINE vectorcompanion:=Tvector2_single_data}
+{$DEFINE objectname:=TMatrix2Single}
+{$DEFINE vectorcompanion:=TVector2Single}
 {$DEFINE matsize:=2}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix2_single_data}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix2Single}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                                Tmatrix2_double_data
+                                TMatrix2Double
 ******************************************************************************}
 
 {$DEFINE datatype:=DOUBLE}
-{$DEFINE objectname:=Tmatrix2_double_data}
-{$DEFINE vectorcompanion:=Tvector2_double_data}
+{$DEFINE objectname:=TMatrix2Double}
+{$DEFINE vectorcompanion:=TVector2Double}
 {$DEFINE matsize:=2}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix2_double_data}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix2Double}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                                Tmatrix3_single_data
+                                TMatrix3Single
 ******************************************************************************}
 
 {$DEFINE datatype:=SINGLE}
-{$DEFINE objectname:=Tmatrix3_single_data}
-{$DEFINE vectorcompanion:=Tvector3_single_data}
+{$DEFINE objectname:=TMatrix3Single}
+{$DEFINE vectorcompanion:=TVector3Single}
 {$DEFINE matsize:=3}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix3_single_data}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix3Single}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                                Tmatrix3_double_data
+                                TMatrix3Double
 ******************************************************************************}
 
 {$DEFINE datatype:=DOUBLE}
-{$DEFINE objectname:=Tmatrix3_double_data}
-{$DEFINE vectorcompanion:=Tvector3_double_data}
+{$DEFINE objectname:=TMatrix3Double}
+{$DEFINE vectorcompanion:=TVector3Double}
 {$DEFINE matsize:=3}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix3_double_data}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix3Double}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                                Tmatrix4_single_data
+                                TMatrix4Single
 ******************************************************************************}
 
 {$DEFINE datatype:=SINGLE}
-{$DEFINE objectname:=Tmatrix4_single_data}
-{$DEFINE vectorcompanion:=Tvector4_single_data}
+{$DEFINE objectname:=TMatrix4Single}
+{$DEFINE vectorcompanion:=TVector4Single}
 {$DEFINE matsize:=4}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_single_data}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix4Single}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {******************************************************************************
-                                Tmatrix4_double_data
+                                TMatrix4Double
 ******************************************************************************}
 
 {$DEFINE datatype:=DOUBLE}
-{$DEFINE objectname:=Tmatrix4_double_data}
-{$DEFINE vectorcompanion:=Tvector4_double_data}
+{$DEFINE objectname:=TMatrix4Double}
+{$DEFINE vectorcompanion:=TVector4Double}
 {$DEFINE matsize:=4}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for Tmatrix4_double_data}
+{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix4Double}
 {$i castlevectors_operators_matrix_implementation.inc}
 
 {$endif read_implementation}

@@ -5,7 +5,7 @@ MODE:=debug
 
 .PHONY: compile
 compile:
-	castle-engine --mode=$(MODE)  compile $(CASTLE_ENGINE_TOOL_OPTIONS)
+	castle-engine --mode=$(MODE) compile $(CASTLE_ENGINE_TOOL_OPTIONS)
 
 .PHONY: clean
 clean:
@@ -32,3 +32,8 @@ android:
 .PHONY: ios
 ios:
 	castle-engine --mode=$(MODE) package --target=iOS
+
+.PHONY: ios-quick
+ios-quick:
+	castle-engine --mode=$(MODE) compile --target=iOS
+	castle-engine --mode=$(MODE) package --target=iOS --assume-compiled

@@ -304,6 +304,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				"OTHER_LDFLAGS[arch=*]" = "-w";
 				PRODUCT_BUNDLE_IDENTIFIER = ${QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
@@ -324,6 +325,7 @@
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
+				"OTHER_LDFLAGS[arch=*]" = "-w";
 				PRODUCT_BUNDLE_IDENTIFIER = ${QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";

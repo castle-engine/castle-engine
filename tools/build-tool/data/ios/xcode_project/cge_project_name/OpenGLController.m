@@ -253,7 +253,12 @@
 //-----------------------------------------------------------------
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation
 {
-    return UIInterfaceOrientationIsLandscape(interfaceOrientation);
+    // TODO: This probably can be removed?
+    // This is deprecated:
+    // https://developer.apple.com/documentation/uikit/uiviewcontroller/1621459-shouldautorotatetointerfaceorien
+    // And results of this are intersected with orientations we define in project already:
+    // https://developer.apple.com/documentation/uikit/uiviewcontroller/1621435-supportedinterfaceorientations?language=objc
+    return YES;
 }
 
 //---------------------------------------------------------------------------

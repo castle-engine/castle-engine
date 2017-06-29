@@ -621,11 +621,18 @@ function IsCenteredBox3DPlaneCollision(
 function BoundingBox3DFromSphere(const Center: TVector3Single;
   const Radius: Single): TBox3D;
 
+{$ifdef FPC}
 operator+ (const Box1, Box2: TBox3D): TBox3D;
 operator+ (const B: TBox3D; const V: TVector3Single): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
 operator+ (const V: TVector3Single; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
+{$endif}
 
 implementation
+
+{ Workaround FPC 3.0.0 and 3.0.2 bug:
+  after using Generics.Collections (and compiling Generics.Collections
+  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
+{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
 
 { TBox3D --------------------------------------------------------------------- }
 
@@ -1370,14 +1377,28 @@ function TBox3D.IsTriangleCollision(const Triangle: TTriangle3Single): boolean;
 { The same comments about precision as for IsCenteredBox3DPlaneCollision apply also here. }
 {$define EqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon}
 
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+{ When CASTLE_HAS_DOUBLE_PRECISION is defined, do these calculations using Double precision. }
+{$define TScalar := Double}
+{$define TVector3 := TVector3Double}
+{$define TVector4 := TVector4Double}
+{$define TTriangle3 := TTriangle3Double}
+{$else}
+{ When CASTLE_HAS_DOUBLE_PRECISION is not defined, do these calculations using Single precision. }
+{$define TScalar := Single}
+{$define TVector3 := TVector3Single}
+{$define TVector4 := TVector4Single}
+{$define TTriangle3 := TTriangle3Single}
+{$endif}
+
 var
-  TriangleMoved: TTriangle3Double;
-  BoxHalfSize: TVector3Double;
+  TriangleMoved: TTriangle3;
+  BoxHalfSize: TVector3;
 
   { ======================== X-tests ======================== }
-  function AXISTEST_X01(const a, b, fa, fb: Double): boolean;
+  function AXISTEST_X01(const a, b, fa, fb: TScalar): boolean;
   var
-    p0, p2, rad, min, max: Double;
+    p0, p2, rad, min, max: TScalar;
   begin
     p0 := a * TriangleMoved[0][1] - b * TriangleMoved[0][2];
     p2 := a * TriangleMoved[2][1] - b * TriangleMoved[2][2];
@@ -1387,9 +1408,9 @@ var
     Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  function AXISTEST_X2(const a, b, fa, fb: Double): boolean;
+  function AXISTEST_X2(const a, b, fa, fb: TScalar): boolean;
   var
-    p0, p1, rad, min, max: Double;
+    p0, p1, rad, min, max: TScalar;
   begin
     p0 := a * TriangleMoved[0][1] - b * TriangleMoved[0][2];
     p1 := a * TriangleMoved[1][1] - b * TriangleMoved[1][2];
@@ -1400,9 +1421,9 @@ var
   end;
 
   { ======================== Y-tests ======================== }
-  function AXISTEST_Y02(const a, b, fa, fb: Double): boolean;
+  function AXISTEST_Y02(const a, b, fa, fb: TScalar): boolean;
   var
-    p0, p2, rad, min, max: Double;
+    p0, p2, rad, min, max: TScalar;
   begin
     p0 := -a * TriangleMoved[0][0] + b * TriangleMoved[0][2];
     p2 := -a * TriangleMoved[2][0] + b * TriangleMoved[2][2];
@@ -1412,9 +1433,9 @@ var
     Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  function AXISTEST_Y1(const a, b, fa, fb: Double): boolean;
+  function AXISTEST_Y1(const a, b, fa, fb: TScalar): boolean;
   var
-    p0, p1, rad, min, max: Double;
+    p0, p1, rad, min, max: TScalar;
   begin
     p0 := -a * TriangleMoved[0][0] + b * TriangleMoved[0][2];
     p1 := -a * TriangleMoved[1][0] + b * TriangleMoved[1][2];
@@ -1425,9 +1446,9 @@ var
   end;
 
   { ======================== Z-tests ======================== }
-  function AXISTEST_Z12(const a, b, fa, fb: Double): boolean;
+  function AXISTEST_Z12(const a, b, fa, fb: TScalar): boolean;
   var
-    p1, p2, rad, min, max: Double;
+    p1, p2, rad, min, max: TScalar;
   begin
     p1 := a * TriangleMoved[1][0] - b * TriangleMoved[1][1];
     p2 := a * TriangleMoved[2][0] - b * TriangleMoved[2][1];
@@ -1437,9 +1458,9 @@ var
     Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
   end;
 
-  function AXISTEST_Z0(const a, b, fa, fb: Double): boolean;
+  function AXISTEST_Z0(const a, b, fa, fb: TScalar): boolean;
   var
-    p0, p1, rad, min, max: Double;
+    p0, p1, rad, min, max: TScalar;
   begin
     p0 := a * TriangleMoved[0][0] - b * TriangleMoved[0][1];
     p1 := a * TriangleMoved[1][0] - b * TriangleMoved[1][1];
@@ -1450,13 +1471,13 @@ var
   end;
 
 var
-  BoxCenter: TVector3Double;
+  BoxCenter: TVector3;
   I: Integer;
-  TriangleEdges: array [0..2] of TVector3Double;
-  EdgeAbs: TVector3Double;
-  min, max: Double;
-  Plane: TVector4Double;
-  PlaneDir: TVector3Double absolute Plane;
+  TriangleEdges: array [0..2] of TVector3;
+  EdgeAbs: TVector3;
+  min, max: TScalar;
+  Plane: TVector4;
+  PlaneDir: TVector3 absolute Plane;
 begin
   if IsEmpty then
     Exit(false);
@@ -1470,9 +1491,9 @@ begin
 
   { calculate TriangleMoved (Triangle shifted by -BoxCenter,
     so that we can treat the BoxHalfSize as centered around origin) }
-  TriangleMoved[0] := VectorSubtract(Vector3Double(Triangle[0]), BoxCenter);
-  TriangleMoved[1] := VectorSubtract(Vector3Double(Triangle[1]), BoxCenter);
-  TriangleMoved[2] := VectorSubtract(Vector3Double(Triangle[2]), BoxCenter);
+  TriangleMoved[0] := VectorSubtract({$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[0]), BoxCenter);
+  TriangleMoved[1] := VectorSubtract({$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[1]), BoxCenter);
+  TriangleMoved[2] := VectorSubtract({$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[2]), BoxCenter);
 
   { calculate TriangleMoved edges }
   TriangleEdges[0] := VectorSubtract(TriangleMoved[1], TriangleMoved[0]);
@@ -1533,6 +1554,9 @@ begin
   Result := true; { box and triangle overlaps }
 end;
 
+{$undef TScalar}
+{$undef TVector3}
+{$undef TTriangle3}
 {$undef EqualityEpsilon}
 
 procedure TBox3D.BoundingSphere(
@@ -2242,6 +2266,7 @@ begin
   Result.Data[1][2] += Radius;
 end;
 
+{$ifdef FPC}
 operator+ (const Box1, Box2: TBox3D): TBox3D;
 begin
   if Box1.IsEmpty then
@@ -2267,5 +2292,6 @@ operator+ (const V: TVector3Single; const B: TBox3D): TBox3D;
 begin
   Result := B.Translate(V);
 end;
+{$endif}
 
 end.

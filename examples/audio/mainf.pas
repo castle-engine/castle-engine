@@ -50,12 +50,18 @@ var
 
 implementation
 
-uses CastleVectors, CastleOpenAL, CastleUtils, CastleStringUtils;
-
-{ TMain }
+uses CastleVectors, CastleUtils, CastleStringUtils;
 
 type
-  TSoundData = class
+  { Data associated with sounds.
+
+    TODO: we use TComponent freeing mechanism to keep all the TSoundData
+    instances cleaned, because we cannot depend that TSound.OnRelease
+    is reliably called always, even when TSound is destroyed.
+    But this is unoptimal, it would be better to make OnRelease more reliable. }
+
+  TSoundData = class(TComponent)
+  public
     Buffer: TSoundBuffer;
     FileName: string;
     StartedTime: TTime;
@@ -85,37 +91,61 @@ var
   UsedSource: TSound;
   UserData: TSoundData;
   Buffer: TSoundBuffer;
+  PlayParameters: TSoundParameters;
 begin
   Buffer := SoundEngine.LoadBuffer(FileNameEditSound.FileName);
-  UsedSource := SoundEngine.AllocateSound(SpinEditSourceImportance.Value);
+
+  PlayParameters := TSoundParameters.Create;
+  try
+    PlayParameters.Buffer := Buffer;
+    PlayParameters.Importance := SpinEditSourceImportance.Value;
+    PlayParameters.Spatial := false;
+    PlayParameters.Looping := CheckBoxPlayLooping.Checked;
+    UsedSource := SoundEngine.PlaySound(PlayParameters);
+  finally FreeAndNil(PlayParameters) end;
 
   if UsedSource <> nil then
   begin
-    UserData := TSoundData.Create;
+    // Free previous UserData,
+    // as (it seems) the Release is sometimes not called
+    // (TODO: OnRelease should be more reliable in this case too)
+    UsedSource.UserData.Free;
+    UsedSource.UserData := nil;
+
+    UserData := TSoundData.Create(Self);
     UserData.FileName := FileNameEditSound.FileName;
     UserData.Buffer := Buffer;
     UserData.StartedTime := Now;
 
     UsedSource.UserData := UserData;
-
-    UsedSource.Buffer := UserData.Buffer;
-    UsedSource.Relative := true;
-    UsedSource.Position := ZeroVector3Single;
-    UsedSource.Looping := CheckBoxPlayLooping.Checked;
-
-    alSourcePlay(UsedSource.ALSource);
   end;
 end;
 
 procedure TMain.FormDestroy(Sender: TObject);
+var
+  I: Integer;
+  SoundData: TSoundData;
 begin
+  if SoundEngine.AllocatedSources <> nil then
+    for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
+    begin
+      SoundData := TSoundData(SoundEngine.AllocatedSources[I].UserData);
+      if SoundData <> nil then
+      begin
+        { free the UserData, that keeps our TSoundData references }
+        SoundEngine.FreeBuffer(SoundData.Buffer);
+        SoundEngine.AllocatedSources[I].UserData.Free;
+        SoundEngine.AllocatedSources[I].UserData := nil;
+      end;
+    end;
+
   SoundEngine.ALContextClose;
 end;
 
 procedure TMain.SourceRelease(Sender: TSound);
 begin
   Assert(Sender.UserData <> nil);
-  alDeleteBuffers(1, @TSoundData(Sender.UserData).Buffer);
+  SoundEngine.FreeBuffer(TSoundData(Sender.UserData).Buffer);
   Sender.UserData.Free;
   Sender.UserData := nil;
 end;
@@ -126,22 +156,24 @@ var
   S: string;
 begin
   ListAllocatedSources.Clear;
-  for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
-  begin
-    S := Format('%d: AL source: %4d, used: %5s',
-      [ I,
-        SoundEngine.AllocatedSources[I].ALSource,
-        BoolToStr(SoundEngine.AllocatedSources[I].Used, true) ]);
-    if SoundEngine.AllocatedSources[I].Used then
-      S += Format(', started on %s, importance: %d, filename: %s',
-        [ FormatDateTime('tt', TSoundData(
-            SoundEngine.AllocatedSources[I].UserData).StartedTime),
-          SoundEngine.AllocatedSources[I].Importance,
-          TSoundData(SoundEngine.AllocatedSources[I].
-            UserData).FileName
-        ]);
-    ListAllocatedSources.Items.Append(S);
-  end;
+  // SoundEngine.AllocatedSources will be nil is OpenAL initialization failed
+  if SoundEngine.AllocatedSources <> nil then
+    for I := 0 to SoundEngine.AllocatedSources.Count - 1 do
+    begin
+      S := Format('%d: AL source: %4d, used: %5s',
+        [ I,
+          SoundEngine.AllocatedSources[I].ALSource,
+          BoolToStr(SoundEngine.AllocatedSources[I].Used, true) ]);
+      if SoundEngine.AllocatedSources[I].Used then
+        S += Format(', started on %s, importance: %d, filename: %s',
+          [ FormatDateTime('tt', TSoundData(
+              SoundEngine.AllocatedSources[I].UserData).StartedTime),
+            SoundEngine.AllocatedSources[I].Importance,
+            TSoundData(SoundEngine.AllocatedSources[I].
+              UserData).FileName
+          ]);
+      ListAllocatedSources.Items.Append(S);
+    end;
 end;
 
 initialization

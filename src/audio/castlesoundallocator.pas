@@ -151,19 +151,21 @@ type
 
     { Playback time of this sound, expressed in seconds.
 
-      The value will loop back to zero for looping sources.
-      Setting this to value further than the sound (underlying buffer)
-      duration is ignored.
+      This value will loop back to zero for looping sound sources.
+      Setting this to something larger than the @italic(sound buffer duration)
+      is ignored.
 
-      The value refers to the sound like it had a @link(Pitch) equal 1.
-      So a sound offset will vary from 0 to it's duration,
+      This offset refers to the sound like it had a @link(Pitch) equal 1.0
+      (when the sound is not slowed down or sped up).
+      So this offset will vary from 0 to the @italic(sound buffer duration),
       regardless of the current @link(Pitch) value.
-      Thus, the @italic(actual) seconds passed since the sound started
-      playing may be different, if you play with @link(Pitch).
+      The @italic(actual) seconds passed since the sound started
+      playing may be different, if you will change the @link(Pitch)
+      to something else than 1.0.
 
       Setting this on a not-yet playing sound source
       (this is done by @link(TSoundEngine.PlaySound))
-      causes the sound to start playing from that location. }
+      causes the sound to start playing from that offset. }
     property Offset: Single read GetOffset write SetOffset;
 
     { Is the sound playing or paused. This is almost always @true for sounds
@@ -555,7 +557,7 @@ procedure TSoundAllocator.ALContextOpen;
 var
   I: Integer;
 begin
-  FAllocatedSources := TSoundList.Create(false);
+  FAllocatedSources := TSoundList.Create(true);
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TSound.Create(Self);
@@ -577,7 +579,8 @@ begin
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
-        FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
+        { This will free FAllocatedSources[I], as FAllocatedSources owns children }
+        FAllocatedSources[I] := nil;
       end;
 
     FreeAndNil(FAllocatedSources);
@@ -708,7 +711,8 @@ begin
       begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
-        FPGObjectList_FreeAndNilItem(FAllocatedSources, I);
+        { This will free FAllocatedSources[I], as FAllocatedSources owns children }
+        FAllocatedSources[I] := nil;
       end;
       FAllocatedSources.Count := MaxAllocatedSources;
     end;

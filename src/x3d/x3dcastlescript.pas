@@ -151,6 +151,7 @@ begin
     Result := TCasScriptVec4f.Create(true) else
   if FieldClass.InheritsFrom(TMFVec4f) then
     Result := TCasScriptVec4fArray.Create(true) else
+  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   if FieldClass.InheritsFrom(TSFVec2d) then
     Result := TCasScriptVec2d.Create(true) else
   if FieldClass.InheritsFrom(TMFVec2d) then
@@ -163,6 +164,7 @@ begin
     Result := TCasScriptVec4d.Create(true) else
   if FieldClass.InheritsFrom(TMFVec4d) then
     Result := TCasScriptVec4dArray.Create(true) else
+  {$endif CASTLE_HAS_DOUBLE_PRECISION}
   if FieldClass.InheritsFrom(TSFRotation) then
     Result := TCasScriptRotation.Create(true) else
   if FieldClass.InheritsFrom(TMFRotation) then
@@ -175,6 +177,7 @@ begin
     Result := TCasScriptMatrix4f.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4f) then
     Result := TCasScriptMatrix4fArray.Create(true) else
+  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   if FieldClass.InheritsFrom(TSFMatrix3d) then
     Result := TCasScriptMatrix3d.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix3d) then
@@ -183,6 +186,7 @@ begin
     Result := TCasScriptMatrix4d.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4d) then
     Result := TCasScriptMatrix4dArray.Create(true) else
+  {$endif CASTLE_HAS_DOUBLE_PRECISION}
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
@@ -240,6 +244,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
     if Field is TMFVec4f then
       TCasScriptVec4fArray(Value).Value := TMFVec4f(Field).Items else
 
+    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     if Field is TSFVec2d then
       TCasScriptVec2d(Value).Value := TSFVec2d(Field).Value else
     if Field is TMFVec2d then
@@ -254,6 +259,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
       TCasScriptVec4d(Value).Value := TSFVec4d(Field).Value else
     if Field is TMFVec4d then
       TCasScriptVec4dArray(Value).Value := TMFVec4d(Field).Items else
+    {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
     if Field is TSFRotation then
       TCasScriptRotation(Value).Value := TSFRotation(Field).Value else
@@ -270,6 +276,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
     if Field is TMFMatrix4f then
       TCasScriptMatrix4fArray(Value).Value := TMFMatrix4f(Field).Items else
 
+    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     if Field is TSFMatrix3d then
       TCasScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
     if Field is TMFMatrix3d then
@@ -279,6 +286,7 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
       TCasScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
     if Field is TMFMatrix4d then
       TCasScriptMatrix4dArray(Value).Value := TMFMatrix4d(Field).Items else
+    {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
     if Field is TSFImage then
       TCasScriptImage(Value).Value := TSFImage(Field).Value else
@@ -386,6 +394,7 @@ begin
     if Field is TMFVec4f then
       TMFVec4f(Field).Items := TCasScriptVec4fArray(Value).Value else
 
+    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     if Field is TSFVec2d then
       TSFVec2d(Field).Value := TCasScriptVec2d(Value).Value else
     if Field is TMFVec2d then
@@ -400,6 +409,7 @@ begin
       TSFVec4d(Field).Value := TCasScriptVec4d(Value).Value else
     if Field is TMFVec4d then
       TMFVec4d(Field).Items := TCasScriptVec4dArray(Value).Value else
+    {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
     if Field is TSFRotation then
       TSFRotation(Field).Value := TCasScriptRotation(Value).Value else
@@ -416,6 +426,7 @@ begin
     if Field is TMFMatrix4f then
       TMFMatrix4f(Field).Items := TCasScriptMatrix4fArray(Value).Value else
 
+    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     if Field is TSFMatrix3d then
       TSFMatrix3d(Field).Value := TCasScriptMatrix3d(Value).Value else
     if Field is TMFMatrix3d then
@@ -425,6 +436,7 @@ begin
       TSFMatrix4d(Field).Value := TCasScriptMatrix4d(Value).Value else
     if Field is TMFMatrix4d then
       TMFMatrix4d(Field).Items := TCasScriptMatrix4dArray(Value).Value else
+    {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
     if Field is TSFImage then
       TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy else

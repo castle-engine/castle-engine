@@ -112,10 +112,10 @@ begin
   Attribs := TLongIntList.Create;
   try
     if StencilBits > 0 then
-      Attribs.AddArray([EGL_STENCIL_SIZE, StencilBits]);
+      Attribs.AddRange([EGL_STENCIL_SIZE, StencilBits]);
     if AlphaBits > 0 then
-      Attribs.AddArray([EGL_ALPHA_SIZE, AlphaBits]);
-    Attribs.AddArray([
+      Attribs.AddRange([EGL_ALPHA_SIZE, AlphaBits]);
+    Attribs.AddRange([
       EGL_DEPTH_SIZE, DepthBits,
       EGL_RED_SIZE  , Max(1, RedBits),
       EGL_GREEN_SIZE, Max(1, GreenBits),
@@ -123,7 +123,7 @@ begin
       EGL_RENDERABLE_TYPE, EGL_OPENGL_ES2_BIT,
       EGL_NONE
     ]);
-    if eglChooseConfig(Display, PEGLint(Attribs.List), @Config, 1, @NumConfig) = EGL_FALSE then
+    if eglChooseConfig(Display, PEGLint(Attribs.L), @Config, 1, @NumConfig) = EGL_FALSE then
       raise EGLContextNotPossible.Create('EGL: Cannot choose config: ' + EGLError);
   finally FreeAndNil(Attribs) end;
 

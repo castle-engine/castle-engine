@@ -145,7 +145,10 @@ type
     CurrentMultiSampling: Cardinal;
 
     { Does OpenGL context have depth buffer packed with stencil buffer.
-      See EXT_packed_depth_stencil extension for explanation.
+      See OpenGL extensions EXT_packed_depth_stencil and OES_packed_depth_stencil
+      (http://www.opengl.org/registry/specs/EXT/packed_depth_stencil.txt,
+      https://www.khronos.org/registry/OpenGL/extensions/OES/OES_packed_depth_stencil.txt)
+      for explanation what does it mean.
 
       This is important for FBOs, as the depth/stencil have to be set up differently
       depending on PackedDepthStencil value.

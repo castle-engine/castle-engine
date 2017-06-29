@@ -324,7 +324,7 @@ begin
   NavigationNode.FdType.Items.Clear;
   NavigationNode.FdType.Items.Add(NavigationType);
   NavigationNode.FdAvatarSize.Items.Clear;
-  NavigationNode.FdAvatarSize.Items.AddArray(AvatarSize);
+  NavigationNode.FdAvatarSize.Items.AddRange(AvatarSize);
   NavigationNode.FdHeadlight.Value := Headlight;
   NavigationNode.FdSpeed.Value := WalkSpeed;
   NavigationNode.FdVisibilityLimit.Value := VisibilityLimit;

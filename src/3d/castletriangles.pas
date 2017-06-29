@@ -66,197 +66,11 @@ function Triangle3Single(const p0, p1, p2: TVector3Single): TTriangle3Single; ov
 function Triangle3Double(const T: TTriangle3Single): TTriangle3Double; overload;
 function Triangle3Double(const p0, p1, p2: TVector3Double): TTriangle3Double; overload;
 
-{ Check does the triangle define a correct plane in 3D space.
-  That is, check does the triangle not degenerate to a point or line segment
-  (which can happen when some points are at the same position, or are colinear).
-  @groupBegin }
-function IsValidTriangle(const Tri: TTriangle3Single): boolean; overload;
-function IsValidTriangle(const Tri: TTriangle3Double): boolean; overload;
-{ @groupEnd }
-
-{ Normal vector of a triangle. Returns vector pointing our from CCW triangle
-  side (for right-handed coordinate system), and orthogonal to triangle plane.
-  The version "Dir" (TriangleDir) doesn't normalize the result
-  (it may not have length equal 1).
-
-  For degenerated triangles (when IsValidTriangle would return false),
-  we return zero vector.
-  @groupBegin }
-function TriangleDir(const Tri: TTriangle3Single): TVector3Single; overload;
-function TriangleDir(const Tri: TTriangle3Double): TVector3Double; overload;
-function TriangleDir(const p0, p1, p2: TVector3Single): TVector3Single; overload;
-function TriangleDir(const p0, p1, p2: TVector3Double): TVector3Double; overload;
-function TriangleNormal(const Tri: TTriangle3Single): TVector3Single; overload;
-function TriangleNormal(const Tri: TTriangle3Double): TVector3Double; overload;
-function TriangleNormal(const p0, p1, p2: TVector3Single): TVector3Single; overload;
-function TriangleNormal(const p0, p1, p2: TVector3Double): TVector3Double; overload;
-{ @groupEnd }
-
-{ Transform triangle by 4x4 matrix. This simply transforms each triangle point.
-
-  @raises(ETransformedResultInvalid Raised when matrix
-  will transform some point to a direction (vector with 4th component
-  equal zero). In this case we just cannot interpret the result as a 3D point.)
-
-  @groupBegin }
-function TriangleTransform(const Tri: TTriangle3Single; const M: TMatrix4Single): TTriangle3Single; overload;
-function TriangleTransform(const Tri: TTriangle3Double; const M: TMatrix4Double): TTriangle3Double; overload;
-{ @groupEnd }
-
 { Normal vector of a triangle defined as three indexes intro vertex array.
   VerticesStride is the shift between vertex values in the array,
   VerticesStride = 0 behaves like VerticesStride = SizeOf(TVector3Single). }
 function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
   VerticesArray: PVector3Single; VerticesStride: integer): TVector3Single;
-
-{ Surface area of 3D triangle.
-  This works for degenerated (equal to line segment or even single point)
-  triangles too: returns 0 for them.
-
-  @groupBegin }
-function TriangleArea(const Tri: TTriangle3Single): Single; overload;
-function TriangleArea(const Tri: TTriangle3Double): Double; overload;
-function TriangleAreaSqr(const Tri: TTriangle3Single): Single; overload;
-function TriangleAreaSqr(const Tri: TTriangle3Double): Double; overload;
-{ @groupEnd }
-
-{ Plane of the triangle. Note that this has many possible solutions
-  (plane representation as equation @code(Ax + By + Cz + D = 0)
-  is not unambiguous), this just returns some solution deterministically.
-
-  It's guaranteed that the direction of this plane (i.e. first 3 items
-  of returned vector) will be in the same direction as calcualted by
-  TriangleDir, which means that it points outward from CCW side of
-  the triangle (assuming right-handed coord system).
-
-  For TriangleNormPlane, this direction is also normalized
-  (makes a vector with length 1). This way TrianglePlane calculates
-  also TriangleNormal.
-
-  For three points that do not define a plane, a plane with first three
-  components = 0 is returned. In fact, the 4th component will be zero too
-  in this case (for now), but don't depend on it.
-  @groupBegin }
-function TrianglePlane(const Tri: TTriangle3Single): TVector4Single; overload;
-function TrianglePlane(const Tri: TTriangle3Double): TVector4Double; overload;
-function TrianglePlane(const p0, p1, p2: TVector3Single): TVector4Single; overload;
-function TrianglePlane(const p0, p1, p2: TVector3Double): TVector4Double; overload;
-function TriangleNormPlane(const Tri: TTriangle3Single): TVector4Single; overload;
-function TriangleNormPlane(const Tri: TTriangle3Double): TVector4Double; overload;
-{ @groupEnd }
-
-{ Assuming a point lies on a triangle plane,
-  check does it lie inside a triangle.
-  Give first 3 components of triangle plane as TriDir.
-  @groupBegin }
-function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Single;
-  const Tri: TTriangle3Single; const TriDir: TVector3Single): boolean; overload;
-function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3Double;
-  const Tri: TTriangle3Double; const TriDir: TVector3Double): boolean; overload;
-{ @groupEnd }
-
-{ Check does point lie inside a triangle, in 2D.
-  @groupBegin }
-function IsPointWithinTriangle2D(const P: TVector2Single;
-  const Tri: TTriangle2Single): boolean; overload;
-function IsPointWithinTriangle2D(const P: TVector2Double;
-  const Tri: TTriangle2Double): boolean; overload;
-function IsPointWithinTriangle2D(const P: TVector2Single;
-  const Tri: TTriangle3Single): boolean; overload;
-function IsPointWithinTriangle2D(const P: TVector2Double;
-  const Tri: TTriangle3Double): boolean; overload;
-{ @groupEnd }
-
-{ Check triangle with line segment collision.
-  You can pass the triangle plane along with a triangle,
-  this will speed calculation.
-  @groupBegin }
-function IsTriangleSegmentCollision(const Tri: TTriangle3Single;
-  const TriPlane: TVector4Single;
-  const pos1, pos2: TVector3Single): boolean; overload;
-function IsTriangleSegmentCollision(const Tri: TTriangle3Double;
-  const TriPlane: TVector4Double;
-  const pos1, pos2: TVector3Double): boolean; overload;
-function IsTriangleSegmentCollision(const Tri: TTriangle3Single;
-  const pos1, pos2: TVector3Single): boolean; overload;
-function IsTriangleSegmentCollision(const Tri: TTriangle3Double;
-  const pos1, pos2: TVector3Double): boolean; overload;
-{ @groupEnd }
-
-function IsTriangleSphereCollision(const Tri: TTriangle3Single;
-  const TriPlane: TVector4Single;
-  const SphereCenter: TVector3Single; SphereRadius: Single): boolean; overload;
-function IsTriangleSphereCollision(const Tri: TTriangle3Double;
-  const TriPlane: TVector4Double;
-  const SphereCenter: TVector3Double; SphereRadius: Double): boolean; overload;
-function IsTriangleSphereCollision(const Tri: TTriangle3Single;
-  const SphereCenter: TVector3Single; SphereRadius: Single): boolean; overload;
-function IsTriangleSphereCollision(const Tri: TTriangle3Double;
-  const SphereCenter: TVector3Double; SphereRadius: Double): boolean; overload;
-
-{ Test collision between triangle and sphere in 2D.
-  If you use overloaded version with TTriangle3Single, the Z coordinate
-  of the triangle corners is simply ignored, so everything is projected
-  on the Z=0 plane.
-  @groupBegin }
-function IsTriangleSphereCollision2D(const Tri: TTriangle2Single;
-  const SphereCenter: TVector2Single; SphereRadius: Single): boolean; overload;
-function IsTriangleSphereCollision2D(const Tri: TTriangle2Double;
-  const SphereCenter: TVector2Double; SphereRadius: Double): boolean; overload;
-function IsTriangleSphereCollision2D(const Tri: TTriangle3Single;
-  const SphereCenter: TVector2Single; SphereRadius: Single): boolean; overload;
-function IsTriangleSphereCollision2D(const Tri: TTriangle3Double;
-  const SphereCenter: TVector2Double; SphereRadius: Double): boolean; overload;
-{ @groupEnd }
-
-{ Calculate triangle with line segment collision.
-  You can pass the triangle plane along with a triangle,
-  this will speed calculation.
-
-  When there's no intersection, returns @false and doesn't modify Intersection
-  or T.
-  @groupBegin }
-function TryTriangleSegmentCollision(var Intersection: TVector3Single;
-  const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Pos1, Pos2: TVector3Single): boolean; overload;
-function TryTriangleSegmentCollision(var Intersection: TVector3Double;
-  const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Pos1, Pos2: TVector3Double): boolean; overload;
-
-function TryTriangleSegmentDirCollision(var Intersection: TVector3Single;
-  const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Segment0, SegmentVector: TVector3Single): boolean; overload;
-function TryTriangleSegmentDirCollision(var Intersection: TVector3Double;
-  const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Segment0, SegmentVector: TVector3Double): boolean; overload;
-function TryTriangleSegmentDirCollision(var Intersection: TVector3Single; var T: Single;
-  const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const Segment0, SegmentVector: TVector3Single): boolean; overload;
-function TryTriangleSegmentDirCollision(var Intersection: TVector3Double; var T: Double;
-  const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const Segment0, SegmentVector: TVector3Double): boolean; overload;
-{ @groupEnd }
-
-{ Calculate triangle with ray collision.
-  You can pass the triangle plane along with a triangle,
-  this will speed calculation.
-
-  When there's no intersection, returns @false and doesn't modify Intersection
-  or T.
-  @groupBegin }
-function TryTriangleRayCollision(var Intersection: TVector3Single;
-  const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
-function TryTriangleRayCollision(var Intersection: TVector3Double;
-  const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
-function TryTriangleRayCollision(var Intersection: TVector3Single; var T: Single;
-  const Tri: TTriangle3Single; const TriPlane: TVector4Single;
-  const RayOrigin, RayDirection: TVector3Single): boolean; overload;
-function TryTriangleRayCollision(var Intersection: TVector3Double; var T: Double;
-  const Tri: TTriangle3Double; const TriPlane: TVector4Double;
-  const RayOrigin, RayDirection: TVector3Double): boolean; overload;
-{ @groupEnd }
 
 { Random triangle point, chosen with a constant density for triangle area. }
 function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
@@ -423,16 +237,6 @@ function Polygon2dArea(Verts: PArray_Vector2Single; const VertsCount: Integer): 
 function Polygon2dArea(const Verts: array of TVector2Single): Single; overload;
 { @groupEnd }
 
-{ triangles and strings ------------------------------------------------------ }
-
-{ }
-function TriangleToNiceStr(const t: TTriangle2Single): string; overload;
-function TriangleToNiceStr(const t: TTriangle2Double): string; overload;
-function TriangleToNiceStr(const t: TTriangle3Single): string; overload;
-function TriangleToNiceStr(const t: TTriangle3Double): string; overload;
-function TriangleToRawStr(const t: TTriangle3Single): string; overload;
-function TriangleToRawStr(const t: TTriangle3Double): string; overload;
-
 { TFaceIndex ----------------------------------------------------------------- }
 
 type
@@ -452,6 +256,62 @@ type
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
+
+{ includes ------------------------------------------------------------------- }
+
+{$define read_interface}
+
+{$define TScalar := Single}
+{$define TVector2 := TVector2Single}
+{$define TVector3 := TVector3Single}
+{$define TVector4 := TVector4Single}
+{$define PVector2 := PVector2Single}
+{$define PVector3 := PVector3Single}
+{$define PVector4 := PVector4Single}
+{$define TTriangle2 := TTriangle2Single}
+{$define TTriangle3 := TTriangle3Single}
+{$define TMatrix2 := TMatrix2Single}
+{$define TMatrix3 := TMatrix3Single}
+{$define TMatrix4 := TMatrix4Single}
+{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
+{$define UnitVector3 := UnitVector3Single}
+{$define ZeroVector3 := ZeroVector3Single}
+{$define IdentityMatrix4 := IdentityMatrix4Single}
+{$define TMatrix2_ := TMatrix2_Single}
+{$define TMatrix3_ := TMatrix3_Single}
+{$define TMatrix4_ := TMatrix4_Single}
+{$define TVector2_ := TVector2_Single}
+{$define TVector3_ := TVector3_Single}
+{$define TVector4_ := TVector4_Single}
+{$I castletriangles_generic_float.inc}
+
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+{$define TScalar := Double}
+{$define TVector2 := TVector2Double}
+{$define TVector3 := TVector3Double}
+{$define TVector4 := TVector4Double}
+{$define PVector2 := PVector2Double}
+{$define PVector3 := PVector3Double}
+{$define PVector4 := PVector4Double}
+{$define TTriangle2 := TTriangle2Double}
+{$define TTriangle3 := TTriangle3Double}
+{$define TMatrix2 := TMatrix2Double}
+{$define TMatrix3 := TMatrix3Double}
+{$define TMatrix4 := TMatrix4Double}
+{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
+{$define UnitVector3 := UnitVector3Double}
+{$define ZeroVector3 := ZeroVector3Double}
+{$define IdentityMatrix4 := IdentityMatrix4Double}
+{$define TMatrix2_ := TMatrix2_Double}
+{$define TMatrix3_ := TMatrix3_Double}
+{$define TMatrix4_ := TMatrix4_Double}
+{$define TVector2_ := TVector2_Double}
+{$define TVector3_ := TVector3_Double}
+{$define TVector4_ := TVector4_Double}
+{$I castletriangles_generic_float.inc}
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
+
+{$undef read_interface}
 
 implementation
 
@@ -782,7 +642,9 @@ begin
   World := Local;
 end;
 
-{ rest of global routines ---------------------------------------------------- }
+{ includes ------------------------------------------------------------------- }
+
+{$define read_implementation}
 
 {$define TScalar := Single}
 {$define TVector2 := TVector2Single}
@@ -806,8 +668,9 @@ end;
 {$define TVector2_ := TVector2_Single}
 {$define TVector3_ := TVector3_Single}
 {$define TVector4_ := TVector4_Single}
-{$I castletriangles_dualimplementation.inc}
+{$I castletriangles_generic_float.inc}
 
+{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
 {$define TScalar := Double}
 {$define TVector2 := TVector2Double}
 {$define TVector3 := TVector3Double}
@@ -830,6 +693,7 @@ end;
 {$define TVector2_ := TVector2_Double}
 {$define TVector3_ := TVector3_Double}
 {$define TVector4_ := TVector4_Double}
-{$I castletriangles_dualimplementation.inc}
+{$I castletriangles_generic_float.inc}
+{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 end.

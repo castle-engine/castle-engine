@@ -47,7 +47,7 @@ var
   IcoPath, OutputRc, OutputManifest: string;
   WindresOutput, WindresExe, RcFilename, ManifestFilename, ResName: string;
   WindresStatus: Integer;
-  OutputResourcesPath: string;
+  OutputResourcesPath, FullIcoPath: string;
 begin
   OutputResourcesPath := OutputPath(Project.Path) + 'windows' + PathDelim;
   CheckForceDirectories(OutputResourcesPath);
@@ -55,8 +55,13 @@ begin
   OutputRc := Project.ReplaceMacros(RcTemplate[Plugin]);
 
   IcoPath := Project.Icons.FindExtension(['.ico']);
+  FullIcoPath := CombinePaths(Project.Path, IcoPath);
+  {$ifdef MSWINDOWS}
+  { use only / on Windows, to avoid "unrecognized escape sequence" messages from windres }
+  FullIcoPath := StringReplace(FullIcoPath, '\', '/', [rfReplaceAll]);
+  {$endif}
   if IcoPath <> '' then
-    OutputRc := 'MainIcon ICON "' + CombinePaths(Project.Path, IcoPath) + '"' + NL + OutputRc else
+    OutputRc := 'MainIcon ICON "' + FullIcoPath + '"' + NL + OutputRc else
     WritelnWarning('Windows Resources', 'Icon in format suitable for Windows (.ico) not found. Exe file will not have icon.');
 
   RcFilename := OutputResourcesPath + RcName[Plugin];
