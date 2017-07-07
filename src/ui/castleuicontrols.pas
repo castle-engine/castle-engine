@@ -831,7 +831,7 @@ type
     FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
     FVerticalAnchorDelta: Integer;
     FEnableUIScaling: boolean;
-    FKeepInFront: boolean;
+    FKeepInFront, FCapturesEvents: boolean;
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TUIControl;
     procedure SetControls(const I: Integer; const Item: TUIControl);
@@ -915,7 +915,7 @@ type
 
     { Does this control capture events under this screen position.
       The default implementation simply checks whether Position
-      is inside ScreenRect now.
+      is inside ScreenRect now. It also checks whether @link(CapturesEvents) is @true.
 
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
@@ -1357,6 +1357,9 @@ type
       a children of something. }
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
+
+    property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
+      default true;
   end;
 
   { UI control with configurable size.
@@ -2772,6 +2775,7 @@ begin
   inherited;
   FExists := true;
   FEnableUIScaling := true;
+  FCapturesEvents := true;
 end;
 
 destructor TUIControl.Destroy;
@@ -2908,6 +2912,9 @@ function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): bo
 var
   SR: TRectangle;
 begin
+  if not CapturesEvents then
+    Exit(false);
+
   SR := ScreenRect;
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
