@@ -54,12 +54,13 @@ uses
   OTHER: 25595, 25612, 25615, 25617, 25618, 25619
 }
 
-{$ifndef VER3_0_0}
-  {$define HAS_TARRAY}
-{$endif}
 {.$define EXTRA_WARNINGS}
 
 type
+  {$ifdef VER3_0_0}
+  TArray<T> = array of T;
+  {$endif}
+
   // bug #24254 workaround
   // should be TArray = record class procedure Sort<T>(...) etc.
   TCustomArrayHelper<T> = class abstract
@@ -116,16 +117,12 @@ type
 
   TEnumerable<T> = class abstract
   protected
-    {$ifdef HAS_TARRAY}
     function ToArrayImpl(ACount: SizeInt): TArray<T>; overload; // used by descendants
-    {$endif}
   protected
     function DoGetEnumerator: TEnumerator<T>; virtual; abstract;
   public
     function GetEnumerator: TEnumerator<T>; inline;
-    {$ifdef HAS_TARRAY}
     function ToArray: TArray<T>; virtual; overload;
-    {$endif}
   end;
 
   // More info: http://stackoverflow.com/questions/5232198/about-vectors-growth
@@ -150,9 +147,7 @@ type
     procedure SetCapacity(AValue: SizeInt); virtual; abstract;
     function GetCount: SizeInt; virtual;
   public
-    {$ifdef HAS_TARRAY}
     function ToArray: TArray<T>; override; final;
-    {$endif}
 
     property Count: SizeInt read GetCount;
     property Capacity: SizeInt read GetCapacity write SetCapacity;
@@ -352,9 +347,7 @@ type
 
   PObject = ^TObject;
 
-{$ifdef HAS_TARRAY}
 {$I inc\generics.dictionariesh.inc}
-{$endif}
 
 function InCircularRange(ABottom, AItem, ATop: SizeInt): Boolean;
 
@@ -512,7 +505,6 @@ end;
 
 { TEnumerable<T> }
 
-{$ifdef HAS_TARRAY}
 function TEnumerable<T>.ToArrayImpl(ACount: SizeInt): TArray<T>;
 var
   i: SizeInt;
@@ -533,14 +525,12 @@ begin
     LEnumerator.Free;
   end;
 end;
-{$endif}
 
 function TEnumerable<T>.GetEnumerator: TEnumerator<T>;
 begin
   Exit(DoGetEnumerator);
 end;
 
-{$ifdef HAS_TARRAY}
 function TEnumerable<T>.ToArray: TArray<T>;
 var
   LEnumerator: TEnumerator<T>;
@@ -559,7 +549,6 @@ begin
     LEnumerator.Free;
   end;
 end;
-{$endif}
 
 { TCustomList<T> }
 
@@ -601,12 +590,10 @@ begin
   Inc(FItemsLength, ACount);
 end;
 
-{$ifdef HAS_TARRAY}
 function TCustomList<T>.ToArray: TArray<T>;
 begin
   Result := ToArrayImpl(Count);
 end;
-{$endif}
 
 function TCustomList<T>.GetCount: SizeInt;
 begin
@@ -1362,8 +1349,6 @@ begin
   Result := inherited Pop;
 end;
 
-{$ifdef HAS_TARRAY}
 {$I inc\generics.dictionaries.inc}
-{$endif}
 
 end.
