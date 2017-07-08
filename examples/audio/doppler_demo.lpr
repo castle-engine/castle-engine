@@ -24,7 +24,7 @@
 program doppler_demo;
 
 uses SysUtils, CastleVectors, CastleWindow, CastleColors, CastleGLUtils,
-  CastleALUtils, CastleSoundEngine, CastleStringUtils, CastleKeysMouse,
+  CastleSoundEngine, CastleStringUtils, CastleKeysMouse,
   CastleRectangles, CastleUIControls;
 
 const
