@@ -136,12 +136,12 @@ end;"/>
         <UnitName Value="CastleGLShadowVolumes"/>
       </Item19>
       <Item20>
-        <Filename Value="../src/audio/castlealutils.pas"/>
-        <UnitName Value="CastleALUtils"/>
+        <Filename Value="../src/audio/castleinternalalutils.pas"/>
+        <UnitName Value="CastleInternalALUtils"/>
       </Item20>
       <Item21>
-        <Filename Value="../src/audio/castleefx.pas"/>
-        <UnitName Value="CastleEFX"/>
+        <Filename Value="../src/audio/castleinternalefx.pas"/>
+        <UnitName Value="CastleInternalEFX"/>
       </Item21>
       <Item22>
         <Filename Value="../src/audio/castleinternalogg.pas"/>
@@ -160,8 +160,8 @@ end;"/>
         <UnitName Value="CastleInternalVorbisFile"/>
       </Item25>
       <Item26>
-        <Filename Value="../src/audio/castleopenal.pas"/>
-        <UnitName Value="CastleOpenAL"/>
+        <Filename Value="../src/audio/castleinternalopenal.pas"/>
+        <UnitName Value="CastleInternalOpenAL"/>
       </Item26>
       <Item27>
         <Filename Value="../src/audio/castlesoundallocator.pas"/>
@@ -172,8 +172,8 @@ end;"/>
         <UnitName Value="CastleSoundEngine"/>
       </Item28>
       <Item29>
-        <Filename Value="../src/audio/castlesoundfile.pas"/>
-        <UnitName Value="CastleSoundFile"/>
+        <Filename Value="../src/audio/castleinternalsoundfile.pas"/>
+        <UnitName Value="CastleInternalSoundFile"/>
       </Item29>
       <Item30>
         <Filename Value="../src/base/castleapplicationproperties.pas"/>

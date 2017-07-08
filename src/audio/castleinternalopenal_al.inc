@@ -20,7 +20,7 @@
  * Or go to http://www.gnu.org/copyleft/lgpl.html
  *}
 
-{$I openal_altypes.inc}
+{$I castleinternalopenal_altypes.inc}
 
 var
 

@@ -26,7 +26,10 @@
 }
 program efx_demo;
 
-uses SysUtils, CastleUtils, CastleOpenAL, CastleALUtils, CastleEFX,
+uses SysUtils, CastleUtils,
+  { TODO: To use EFX, we need to dabble in OpenAL internals,
+    they are not nicely wrapped in CastleSoundEngine API yet. }
+  CastleInternalOpenAL, CastleInternalALUtils, CastleInternalEFX,
   CastleSoundEngine, CastleParameters;
 
 type

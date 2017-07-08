@@ -16,7 +16,7 @@
 { Simply load and play sound file using OpenAL. }
 program alplay;
 
-uses SysUtils, CastleUtils, CastleOpenAL,
+uses SysUtils, CastleUtils,
   CastleLog, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors,
   CastleApplicationProperties;
 

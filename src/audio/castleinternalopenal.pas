@@ -22,13 +22,13 @@
   This allows you to check at runtime and gracefully work
   if OpenAL is not installed (e.g. you can turn off game sounds.)
 
-  Renamed to CastleOpenAL (from OpenAL) to avoid clash with FPC's OpenAL
+  Renamed to CastleInternalOpenAL (from OpenAL) to avoid clash with FPC's OpenAL
   unit. FPC unit doesn't provide above ALInitialized feature, and it doesn't
   integrate with CastleVectors.
 
   @exclude (Unit not really ready for PasDoc, with many comments from
   original C headers.) }
-unit CastleOpenAL;
+unit CastleInternalOpenAL;
 
 { C->Pascal translation comments:
 
@@ -66,8 +66,8 @@ uses SysUtils, CastleVectors, CTypes;
 {$define extdecl := cdecl}
 
 {$ifndef PASDOC}
-{$I openal_al.inc}
-{$I openal_alc.inc}
+{$I castleinternalopenal_al.inc}
+{$I castleinternalopenal_alc.inc}
 {$endif}
 
 { ----------------------------------------------------------------------------

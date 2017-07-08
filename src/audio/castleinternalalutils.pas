@@ -14,16 +14,17 @@
 }
 
 { Internal low-level utilities for working with OpenAL.
-  Everything based on OpenAL bindings in unit CastleOpenAL.
+  Everything based on OpenAL bindings in unit CastleInternalOpenAL.
   For a higher-level class that takes care of initializing OpenAL
   and loading and playing sounds, see CastleSoundEngine.
 
   You shouldn't use any alc* functions or alutInit/alutExit
-  functions from CastleOpenAL yourself. This unit and CastleSoundEngine take care
+  functions from CastleInternalOpenAL yourself.
+  This unit and CastleSoundEngine take care
   about everything needed there.
 }
 
-unit CastleALUtils;
+unit CastleInternalALUtils;
 
 {$I castleconf.inc}
 
@@ -31,7 +32,8 @@ interface
 
 {$define read_interface}
 
-uses SysUtils, CastleUtils, CastleOpenAL, Classes, CastleSoundFile, CastleTimeUtils;
+uses SysUtils, Classes,
+  CastleUtils, CastleInternalOpenAL, CastleInternalSoundFile, CastleTimeUtils;
 
 type
   EOpenALError = class(Exception);
@@ -265,7 +267,7 @@ end;
 procedure TALSoundFile.alBufferData(buffer: TALuint);
 begin
   SoundFile.PrepareOpenAL;
-  CastleOpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
+  CastleInternalOpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
     SoundFile.DataSize, SoundFile.Frequency);
 end;
 

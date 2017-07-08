@@ -16,22 +16,26 @@
 { OpenAL EFX (Effects Extension) API.
 
   Documentation is in OpenAL SDK for Windows (installable under Linux
-  through wine). }
-unit CastleEFX;
+  through wine).
+
+  TODO: This functionality is NOT yet available through the public
+  Castle Game Engine API in CastleSoundEngine. For now, you need to use
+  this unit directly, see efx_demo in engine examples. }
+unit CastleInternalEFX;
 
 {$I castleconf.inc}
 
 interface
 
-uses CastleVectors, CastleOpenAL, Math;
+uses CastleVectors, CastleInternalOpenAL, Math;
 
 { Macro below must be named "extdecl", to workaround Lazarus code tools
   known bug http://bugs.freepascal.org/view.php?id=7431 }
 {$define extdecl := cdecl}
 
 {$ifndef PASDOC}
-{$I efx.inc}
-{$I efx-creative.inc}
+{$I castleinternalefx_api.inc}
+{$I castleinternalefx_api_creative.inc}
 {$endif PASDOC}
 
 { Checks is EFX extension, along with all it's entry points, present

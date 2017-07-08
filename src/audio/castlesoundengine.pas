@@ -21,7 +21,7 @@ unit CastleSoundEngine;
 interface
 
 uses SysUtils, Classes, Math, FGL,
-  CastleOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
+  CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils;
 
 type
@@ -1057,9 +1057,9 @@ operator = (const SoundType1, SoundType2: TSoundType): boolean;
 implementation
 
 uses DOM, XMLRead, StrUtils,
-  CastleUtils, CastleALUtils, CastleLog, CastleProgress,
-  CastleSoundFile, CastleInternalVorbisFile, CastleEFX, CastleParameters,
-  CastleXMLUtils, CastleFilesUtils, CastleConfig,
+  CastleUtils, CastleInternalALUtils, CastleLog, CastleProgress,
+  CastleInternalSoundFile, CastleInternalVorbisFile, CastleInternalEFX,
+  CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
 { TSound ---------------------------------------------------------- }

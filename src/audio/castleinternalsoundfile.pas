@@ -19,13 +19,13 @@
   this unit can be used even when OpenAL is not initilized and not
   even available. The methods that require OpenAL to be available and
   initialized are clearly marked as such in the documentation. }
-unit CastleSoundFile;
+unit CastleInternalSoundFile;
 
 {$I castleconf.inc}
 
 interface
 
-uses SysUtils, CastleUtils, Classes, CastleOpenAL, CastleTimeUtils;
+uses SysUtils, CastleUtils, Classes, CastleInternalOpenAL, CastleTimeUtils;
 
 type
   ESoundFormatNotSupportedByOpenAL = class(Exception);

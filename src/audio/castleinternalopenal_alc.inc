@@ -3,7 +3,7 @@
 { we should include here OpenAL_altypes.inc but they are already included
   with OpenAL_al.inc }
 
-{$I openal_alctypes.inc}
+{$I castleinternalopenal_alctypes.inc}
 
 { #define ALC_VERSION_0_1         1 }
 

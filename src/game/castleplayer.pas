@@ -436,9 +436,11 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
-  CastleOpenAL, CastleGL, CastleGLBoxes,
-  CastleGameNotifications, CastleXMLConfig, CastleGLImages, CastleConfig,
-  CastleResources, CastleShapes, CastleRenderingCamera;
+  { TODO: this unit should not use CastleInternalOpenAL directly }
+  CastleInternalOpenAL,
+  CastleGL, CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
+  CastleGLImages, CastleConfig, CastleResources, CastleShapes,
+  CastleRenderingCamera;
 
 { TPlayerBox ----------------------------------------------------------------- }
 

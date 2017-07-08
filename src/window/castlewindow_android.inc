@@ -39,7 +39,7 @@ JNI,
 CastleAndroidInternalCWString, CastleAndroidInternalLooper,
 CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
-CastleOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
+CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
 {$endif}
 
 {$ifdef read_window_interface}

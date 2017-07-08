@@ -20,13 +20,18 @@
 
   You can run this with an optional command-line option:
   an URL of any sound file we can load
-  (right now, the allowed formats are wav and OggVorbis;
-  see CastleSoundFile unit for up-to-date list). Then the sound file will
-  be loaded as OpenAL sound, and some additional tests will be performed. }
+  (WAV and OggVorbis for now, see
+  https://castle-engine.sourceforge.io/x3d_implementation_sound.php ).
+  Then the sound file will be loaded as OpenAL sound,
+  and some additional tests will be performed. }
 program algets;
 
-uses CastleOpenAL, CastleALUtils, SysUtils, CastleUtils, CastleVectors,
-  CastleStringUtils, CastleEFX, CastleSoundEngine, CastleTimeUtils, CastleParameters;
+uses SysUtils,
+  { To query some things, we use internal units. You should not need to use these
+    in your own applications. }
+  CastleInternalOpenAL, CastleInternalALUtils, CastleInternalEFX,
+  CastleUtils, CastleVectors, CastleStringUtils, CastleSoundEngine, CastleTimeUtils,
+  CastleParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 
@@ -212,7 +217,7 @@ begin
     if SoundEngine.ALActive then
       Gets
     else
-      Writeln('Sound engine not initialized: ' + SoundEngine.SoundInitializationReport);
+      Writeln('Sound engine not initialized: ' + SoundEngine.Information);
   finally
     SoundEngine.ALContextClose;
   end;
