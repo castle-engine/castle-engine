@@ -13,9 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Low-level utilities for working with OpenAL.
-  Everything is based on my OpenAL bindings in unit CastleOpenAL.
-  For higher-level class that takes care of initializing OpenAL
+{ Internal low-level utilities for working with OpenAL.
+  Everything based on OpenAL bindings in unit CastleOpenAL.
+  For a higher-level class that takes care of initializing OpenAL
   and loading and playing sounds, see CastleSoundEngine.
 
   You shouldn't use any alc* functions or alutInit/alutExit
@@ -52,6 +52,15 @@ type
   public
     property ALErrorNum: TALenum read FALErrorNum;
     constructor Create(AALErrorNum: TALenum; const AMessage: string);
+  end;
+
+  { For alcGetError errors (ALC_xxx constants). }
+  EALCError = class(EOpenALError)
+  private
+    FALCErrorNum: TALenum;
+  public
+    property ALCErrorNum: TALenum read FALCErrorNum;
+    constructor Create(AALCErrorNum: TALenum; const AMessage: string);
   end;
 
 { @raises(EALError if alGetError returned something <> AL_NO_ERROR) }
@@ -191,6 +200,15 @@ procedure alFreeSource(var Source: TALuint);
 procedure alFreeBuffer(var Buffer: TALuint);
 { @groupEnd }
 
+{ Check and use OpenAL enumeration extension.
+  If OpenAL supports ALC_ENUMERATION_EXT, then we return @true
+  and pDeviceList is initialized to the null-separated list of
+  possible OpenAL devices.
+  @groupBegin }
+function EnumerationExtPresent(out pDeviceList: PChar): boolean;
+function EnumerationExtPresent: boolean;
+{ @groupEnd }
+
 {$undef read_interface}
 
 implementation
@@ -219,6 +237,14 @@ begin
  err := alGetError();
  if err <> AL_NO_ERROR then raise EALError.Create(err,
    'OpenAL error AL_xxx at '+situation+' : '+alGetString(err));
+end;
+
+{ EALCError ------------------------------------------------------------------ }
+
+constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: string);
+begin
+  FALCErrorNum := AALCErrorNum;
+  inherited Create(AMessage);
 end;
 
 { TALSoundFile ------------------------------------------------------------ }
@@ -414,6 +440,21 @@ begin
     alDeleteBuffers(1, @Buffer);
     Buffer := 0;
   end;
+end;
+
+function EnumerationExtPresent(out pDeviceList: PChar): boolean;
+begin
+  Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
+  if Result then
+  begin
+    pDeviceList := alcGetString(nil, ALC_DEVICE_SPECIFIER);
+    Assert(pDeviceList <> nil);
+  end;
+end;
+
+function EnumerationExtPresent: boolean;
+begin
+  Result := alcIsExtensionPresent(nil, 'ALC_ENUMERATION_EXT');
 end;
 
 end.
