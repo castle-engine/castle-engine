@@ -86,12 +86,13 @@ type
     constructor Create;
   end;
 
-  { OpenAL sound engine. Takes care of all the 3D sound stuff,
-    wrapping OpenAL is a nice and comfortable interface.
+  { Sound engine, responsible for loading and playing sound.
 
     There should always be only one instance of this class,
-    in global SoundEngine variable. See docs at SoundEngine for more details.
+    accessed through the global @link(SoundEngine) variable.
+    See docs at @link(SoundEngine) for more details.
 
+    The sound engine is actually a wrapper over OpenAL.
     You can explicitly initialize OpenAL context by ALContextOpen,
     and explicitly close it by ALContextClose. If you did not call ALContextOpen
     explicitly (that is, ALInitialized is @false), then the first LoadBuffer
