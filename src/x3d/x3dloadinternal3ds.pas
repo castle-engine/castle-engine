@@ -347,10 +347,40 @@ const
 
 type
   TChunkHeader = packed record
-    id: Word;
-    len: LongWord;
+    Id: Word;
+    Len: LongWord;
+    procedure ReadFromStream(const Stream: TStream);
   end;
 
+procedure TChunkHeader.ReadFromStream(const Stream: TStream);
+begin
+  Stream.ReadBuffer(Id, SizeOf(Id));
+  Stream.ReadBuffer(Len, SizeOf(Len));
+  Id := LEtoN(Id);
+  Len := LEtoN(Len);
+end;
+
+  { TODO: Using this (with "inline" or not) causes various Internal Errors
+    with FPC 3.1.1:
+
+      x3dloadinternal3ds.pas(<end line>,4) Fatal: Internal error 2011031501
+
+    or
+
+      x3dnodes.pas(99,1) Fatal: Internal error 200611031
+
+    or sometimes access violation. It is reproducible by
+
+      make clean
+      fpc fpmake.pp
+      ./fpmake build --nofpccfg --verbose --globalunitdir="$FPCDIR"
+
+    in CGE. It also occurs (but completely randomly, I failed to reproduce
+    it reliably so far) with FPC 2.6.4 and 3.0.0.
+
+    So far, I failed to express this bug in a simple testcase for FPC bugreport. }
+
+(*
   T3dsStreamHelper = class helper(TStreamHelper) for TStream
     procedure ReadChunkHeader(out Buffer: TChunkHeader); inline;
   end;
@@ -361,6 +391,7 @@ begin
   Buffer.id := LEtoN(Buffer.id);
   Buffer.len := LEtoN(Buffer.len);
 end;
+*)
 
 procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 begin
@@ -388,7 +419,7 @@ begin
   result := false;
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
     { TODO: we ignore gamma correction entirely so we don't distinct
       gamma corrected and not corrected colors }
@@ -439,7 +470,7 @@ begin
   result := false;
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
     if h.id = CHUNK_DOUBLE_BYTE then
     begin
@@ -492,7 +523,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
     { read MAP subchunks }
     while Stream.Position < EndPos do
     begin
-      Stream.ReadChunkHeader(h);
+      h.ReadFromStream(Stream);
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
         CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
@@ -512,7 +543,7 @@ begin
   { read material subchunks }
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
     case h.id of
       { Colors }
@@ -579,7 +610,7 @@ begin
 
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     if h.id = CHUNK_MATNAME then
     begin
       MatName := StreamReadZeroEndString(Stream);
@@ -637,7 +668,7 @@ begin
   { searching for chunk TRIMESH / CAMERA / LIGHT }
   while Stream.Position < ObjectEndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     ChunkEndPos := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
       CHUNK_TRIMESH: Result := TTrimesh3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
@@ -753,7 +784,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     { read subchunks - look for FACEMAT chunk }
     while Stream.Position < chunkEnd do
     begin
-      Stream.ReadChunkHeader(h);
+      h.ReadFromStream(Stream);
       hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
       if h.id = CHUNK_FACEMAT then
         ReadFacemat else
@@ -800,7 +831,7 @@ begin
   { read subchunks inside CHUNK_TRIMESH }
   while Stream.Position < ChunkEndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hend := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
       CHUNK_VERTLIST: ReadVertlist;
@@ -893,12 +924,12 @@ begin
   Lights := TLight3dsList.Create;
   Materials := TMaterial3dsList.Create;
 
-  Stream.ReadChunkHeader(hmain);
+  hmain.ReadFromStream(Stream);
   Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');
 
   while Stream.Position < hmain.len do
   begin
-    Stream.ReadChunkHeader(hsubmain);
+    hsubmain.ReadFromStream(Stream);
     hsubmainEnd := Stream.Position+hsubmain.len-SizeOf(TChunkHeader);
     case hsubmain.id of
       CHUNK_OBJMESH:
@@ -906,7 +937,7 @@ begin
           { look for chunks OBJBLOCK and MATERIAL }
           while Stream.Position < hsubmainEnd do
           begin
-            Stream.ReadChunkHeader(hsubObjMesh);
+            hsubObjMesh.ReadFromStream(Stream);
             hsubObjMeshEnd := Stream.Position + hsubObjMesh.len - SizeOf(TChunkHeader);
             case hsubObjMesh.id of
               CHUNK_OBJBLOCK:
