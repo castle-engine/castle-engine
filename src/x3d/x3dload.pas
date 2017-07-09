@@ -53,7 +53,7 @@
       so that GNOME nautilus thumbnailers for this MIME types can be installed.)
 
     @item(You probably also want to extend documentation.
-      At least ../../../www/htdocs/view3dscene.php, it has a "Features" section that lists
+      At least ../../../cge-www/htdocs/view3dscene.php, it has a "Features" section that lists
       all supported 3D formats.)
   )
 }
