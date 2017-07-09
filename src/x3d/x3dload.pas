@@ -63,8 +63,8 @@ unit X3DLoad;
 
 interface
 
-uses CastleVectors, SysUtils, X3DNodes, X3DLoadInternalMD3,
-  CastleUtils, Classes;
+uses SysUtils, Classes,
+  CastleUtils, CastleVectors, X3DNodes;
 
 { Load 3D model. Guess model format based on URL extension.
   VRML/X3D formats are loaded directly,
@@ -148,7 +148,7 @@ implementation
 
 uses CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
+  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL, X3DLoadInternalMD3,
   CastleInternalNodeInterpolator;
 
 function Load3D(const URL: string;
