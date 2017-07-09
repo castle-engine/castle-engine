@@ -79,9 +79,8 @@
       @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses).
 
       Examples of defining your own VRML/X3D node types (without modifying
-      sources of this unit, or any other unit) are for example in the
-      X3DBezierCurve unit in @code(bezier_curves) demo,
-      and LevelUnit in malfunction.)
+      sources of this unit, or any other unit) are for example in "malfunction" game
+      on https://github.com/castle-engine/malfunction (see LevelUnit).)
   )
 
   @bold(Node class names, and inheritance:)
