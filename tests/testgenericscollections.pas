@@ -25,6 +25,7 @@ type
   TTestGenericsCollections = class(TTestCase)
     procedure Test1;
     procedure TestFreeingManually;
+    procedure TestAddingLists;
   end;
 
 implementation
@@ -95,6 +96,37 @@ begin
     Apples[0] := nil;
     Apples[1] := nil;
     Apples[2].Free;
+  finally FreeAndNil(Apples) end;
+end;
+
+procedure TTestGenericsCollections.TestAddingLists;
+var
+  A: TApple;
+  Apples, Apples2: TAppleList;
+begin
+  Apples := TAppleList.Create(true);
+  try
+    A := TApple.Create;
+    A.Name := 'One';
+    Apples.Add(A);
+
+    A := TApple.Create;
+    A.Name := 'Two';
+    Apples.Add(A);
+
+    Apples2 := TAppleList.Create(false);
+    try
+      Apples2.AddRange(Apples);
+      Apples2.AddRange(Apples);
+      Apples2.AddRange(Apples);
+      AssertEquals(6, Apples2.Count);
+      AssertEquals('One', Apples2[0].Name);
+      AssertEquals('Two', Apples2[1].Name);
+      AssertEquals('One', Apples2[2].Name);
+      AssertEquals('Two', Apples2[3].Name);
+      AssertEquals('One', Apples2[4].Name);
+      AssertEquals('Two', Apples2[5].Name);
+    finally FreeAndNil(Apples2) end;
   finally FreeAndNil(Apples) end;
 end;
 
