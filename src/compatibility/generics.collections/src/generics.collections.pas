@@ -714,7 +714,9 @@ begin
   if (AIndex < 0) or (AIndex >= Count) then
     raise EArgumentOutOfRangeException.CreateRes(@SArgumentOutOfRange);
 
+  Notify(FItems[AIndex], cnRemoved);
   FItems[AIndex] := AValue;
+  Notify(FItems[AIndex], cnAdded);
 end;
 
 function TList<T>.GetEnumerator: TEnumerator;

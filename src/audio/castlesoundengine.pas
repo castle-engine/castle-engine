@@ -1309,11 +1309,7 @@ begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
         { This will free FAllocatedSources[I], as FAllocatedSources owns children }
-        { TODO: Generics.Collections bug, it doesn't free the children in this case,
-          since TList<T>.SetItem doesn't do notification about remove and addition.
-          Leave it non-nil, in this case it will be freed later by FreeAndNil(FAllocatedSources) anyway
         FAllocatedSources[I] := nil;
-        }
       end;
 
     FreeAndNil(FAllocatedSources);
@@ -1445,11 +1441,7 @@ begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
         { This will free FAllocatedSources[I], as FAllocatedSources owns children }
-        { TODO: Generics.Collections bug, it doesn't free the children in this case,
-          since TList<T>.SetItem doesn't do notification about remove and addition.
-          Leave it non-nil, in this case it will be freed later by SetCount anyway.
         FAllocatedSources[I] := nil;
-        }
       end;
       FAllocatedSources.Count := MaxAllocatedSources;
     end;
