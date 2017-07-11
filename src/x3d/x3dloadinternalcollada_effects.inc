@@ -38,7 +38,7 @@ begin
 end;
 
 type
-  TColladaEffectList = class(specialize TFPGObjectList<TColladaEffect>)
+  TColladaEffectList = class(specialize TObjectList<TColladaEffect>)
     { Find a TColladaEffect with given Name, @nil if not found. }
     function Find(const Name: string): TColladaEffect;
   end;

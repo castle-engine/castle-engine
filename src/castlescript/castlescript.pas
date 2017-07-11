@@ -68,7 +68,8 @@ unit CastleScript;
 
 interface
 
-uses SysUtils, Math, Contnrs, CastleUtils, CastleClassUtils, Classes, FGL;
+uses SysUtils, Math, Contnrs, Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils;
 
 type
   { }
@@ -200,10 +201,10 @@ type
     property Environment: TCasScriptEnvironment read FEnvironment write FEnvironment;
   end;
 
-  TCasScriptExpressionList = class(specialize TFPGObjectList<TCasScriptExpression>)
+  TCasScriptExpressionList = class(specialize TObjectList<TCasScriptExpression>)
   public
-    procedure AddArray(const A: array of TCasScriptExpression);
-    procedure AddList(const Source: TCasScriptExpressionList);
+    procedure AddArray(const A: array of TCasScriptExpression); deprecated 'use AddRange';
+    procedure AddList(const Source: TCasScriptExpressionList); deprecated 'use AddRange';
     procedure FreeContentsByParentExpression;
   end;
 
@@ -256,9 +257,9 @@ type
   TCasScriptValueClassArray = array of TCasScriptValueClass;
   TCasScriptValuesArray = array of TCasScriptValue;
 
-  TCasScriptValueList = class(specialize TFPGObjectList<TCasScriptValue>)
+  TCasScriptValueList = class(specialize TObjectList<TCasScriptValue>)
   public
-    procedure AddArray(const A: array of TCasScriptValue);
+    procedure AddArray(const A: array of TCasScriptValue); deprecated 'use AddRange';
     function ToArray: TCasScriptValuesArray;
     { Find an item by Name. @nil if not found. }
     function FindName(const VariableName: string): TCasScriptValue;
@@ -484,7 +485,7 @@ type
 
   TCasScriptSearchArgumentClassesCache = record
     IsCache: boolean;
-    QueryHandlersByArgument: TObjectList;
+    QueryHandlersByArgument: Contnrs.TObjectList;
     QueryArgumentClasses: TCasScriptValueClassArray;
     Answer: boolean;
     AnswerArgumentIndex: Integer;
@@ -498,7 +499,7 @@ type
     ParentOfLastExecuteResult: boolean;
 
     { This is as returned by SearchFunctionClass }
-    HandlersByArgument: TObjectList;
+    HandlersByArgument: Contnrs.TObjectList;
 
     { Helper variables for Execute implementation.
       Initialized in CheckArguments, to optimize: profiling shows that when
@@ -780,23 +781,23 @@ type
       Each nested list has only TCasScriptRegisteredHandler items.
       It always has at least one item.
       Each nested list has only equal FunctionClass values. }
-    FHandlersByFunction: TObjectList;
+    FHandlersByFunction: Contnrs.TObjectList;
 
     function SearchFunctionClass(
       FunctionClass: TCasScriptFunctionClass;
       out FunctionIndex: Integer;
-      out HandlersByArgument: TObjectList): boolean; overload;
+      out HandlersByArgument: Contnrs.TObjectList): boolean; overload;
     function SearchFunctionClass(
       FunctionClass: TCasScriptFunctionClass;
-      out HandlersByArgument: TObjectList): boolean; overload;
+      out HandlersByArgument: Contnrs.TObjectList): boolean; overload;
 
     function SearchArgumentClasses(
-      HandlersByArgument: TObjectList;
+      HandlersByArgument: Contnrs.TObjectList;
       const ArgumentClasses: TCasScriptValueClassArray;
       out ArgumentIndex: Integer;
       out Handler: TCasScriptRegisteredHandler): boolean; overload;
     function SearchArgumentClasses(
-      HandlersByArgument: TObjectList;
+      HandlersByArgument: Contnrs.TObjectList;
       const ArgumentClasses: TCasScriptValueClassArray;
       out Handler: TCasScriptRegisteredHandler): boolean; overload;
 
@@ -807,7 +808,7 @@ type
       HandlersByArgument, ArgumentClasses --- then this will use cache
       to give answer much faster. }
     function SearchArgumentClasses(
-      HandlersByArgument: TObjectList;
+      HandlersByArgument: Contnrs.TObjectList;
       const ArgumentClasses: TCasScriptValueClassArray;
       out Handler: TCasScriptRegisteredHandler;
       var Cache: TCasScriptSearchArgumentClassesCache): boolean; overload;
@@ -862,7 +863,7 @@ type
     property Body: TCasScriptExpression read FBody write FBody;
   end;
 
-  TCasScriptUserFunctionList = class(specialize TFPGObjectList<TCasScriptUserFunction>)
+  TCasScriptUserFunctionList = class(specialize TObjectList<TCasScriptUserFunction>)
     function IndexOf(const FunctionName: string): Integer;
   end;
 
@@ -1099,23 +1100,13 @@ end;
 { TCasScriptExpressionList -------------------------------------------------- }
 
 procedure TCasScriptExpressionList.AddArray(const A: array of TCasScriptExpression);
-var
-  OldCount: Integer;
 begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
+  AddRange(A);
 end;
 
 procedure TCasScriptExpressionList.AddList(const Source: TCasScriptExpressionList);
-var
-  OldCount: Integer;
 begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.List^[0], List^[OldCount], SizeOf(Pointer) * Source.Count);
+  AddRange(Source);
 end;
 
 procedure TCasScriptExpressionList.FreeContentsByParentExpression;
@@ -1147,13 +1138,8 @@ end;
 { TCasScriptValueList ------------------------------------------------------- }
 
 procedure TCasScriptValueList.AddArray(const A: array of TCasScriptValue);
-var
-  OldCount: Integer;
 begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], List^[OldCount], SizeOf(Pointer) * (High(A) + 1));
+  AddRange(A);
 end;
 
 function TCasScriptValueList.ToArray: TCasScriptValuesArray;
@@ -2479,7 +2465,7 @@ end;
 constructor TCasScriptFunctionHandlers.Create;
 begin
   inherited;
-  FHandlersByFunction := TObjectList.Create(true);
+  FHandlersByFunction := Contnrs.TObjectList.Create(true);
 end;
 
 destructor TCasScriptFunctionHandlers.Destroy;
@@ -2491,13 +2477,13 @@ end;
 function TCasScriptFunctionHandlers.SearchFunctionClass(
   FunctionClass: TCasScriptFunctionClass;
   out FunctionIndex: Integer;
-  out HandlersByArgument: TObjectList): boolean;
+  out HandlersByArgument: Contnrs.TObjectList): boolean;
 var
   I: Integer;
 begin
   for I := 0 to FHandlersByFunction.Count - 1 do
   begin
-    HandlersByArgument := FHandlersByFunction[I] as TObjectList;
+    HandlersByArgument := FHandlersByFunction[I] as Contnrs.TObjectList;
     if FunctionClass = (HandlersByArgument[0] as
       TCasScriptRegisteredHandler).FunctionClass then
     begin
@@ -2511,7 +2497,7 @@ end;
 
 function TCasScriptFunctionHandlers.SearchFunctionClass(
   FunctionClass: TCasScriptFunctionClass;
-  out HandlersByArgument: TObjectList): boolean;
+  out HandlersByArgument: Contnrs.TObjectList): boolean;
 var
   FunctionIndex: Integer;
 begin
@@ -2520,7 +2506,7 @@ begin
 end;
 
 function TCasScriptFunctionHandlers.SearchArgumentClasses(
-  HandlersByArgument: TObjectList;
+  HandlersByArgument: Contnrs.TObjectList;
   const ArgumentClasses: TCasScriptValueClassArray;
   out ArgumentIndex: Integer;
   out Handler: TCasScriptRegisteredHandler): boolean;
@@ -2572,7 +2558,7 @@ begin
 end;
 
 function TCasScriptFunctionHandlers.SearchArgumentClasses(
-  HandlersByArgument: TObjectList;
+  HandlersByArgument: Contnrs.TObjectList;
   const ArgumentClasses: TCasScriptValueClassArray;
   out Handler: TCasScriptRegisteredHandler): boolean;
 var
@@ -2583,7 +2569,7 @@ begin
 end;
 
 function TCasScriptFunctionHandlers.SearchArgumentClasses(
-  HandlersByArgument: TObjectList;
+  HandlersByArgument: Contnrs.TObjectList;
   const ArgumentClasses: TCasScriptValueClassArray;
   out Handler: TCasScriptRegisteredHandler;
   var Cache: TCasScriptSearchArgumentClassesCache): boolean;
@@ -2637,7 +2623,7 @@ procedure TCasScriptFunctionHandlers.RegisterHandler(
   const AArgumentClasses: array of TCasScriptValueClass;
   const AVariableArgumentsCount: boolean);
 var
-  HandlersByArgument: TObjectList;
+  HandlersByArgument: Contnrs.TObjectList;
   Handler: TCasScriptRegisteredHandler;
   ArgumentClassesDyn: TCasScriptValueClassArray;
 begin
@@ -2656,7 +2642,7 @@ begin
     end;
   end else
   begin
-    HandlersByArgument := TObjectList.Create(true);
+    HandlersByArgument := Contnrs.TObjectList.Create(true);
     FHandlersByFunction.Add(HandlersByArgument);
 
     Handler := TCasScriptRegisteredHandler.Create(
@@ -2669,11 +2655,11 @@ function TCasScriptFunctionHandlers.SearchFunctionShortName(
   const AShortName: string): TCasScriptFunctionClass;
 var
   I: Integer;
-  HandlersByArgument: TObjectList;
+  HandlersByArgument: Contnrs.TObjectList;
 begin
   for I := 0 to FHandlersByFunction.Count - 1 do
   begin
-    HandlersByArgument := FHandlersByFunction[I] as TObjectList;
+    HandlersByArgument := FHandlersByFunction[I] as Contnrs.TObjectList;
     Result := (HandlersByArgument[0] as
       TCasScriptRegisteredHandler).FunctionClass;
     if SameText(AShortName, Result.ShortName) then

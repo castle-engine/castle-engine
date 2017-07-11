@@ -20,7 +20,7 @@ unit CastleFileFilters;
 
 interface
 
-uses SysUtils, Classes, FGL;
+uses SysUtils, Classes, Generics.Collections;
 
 type
   TFileFilter = class
@@ -35,7 +35,7 @@ type
     property Patterns: TStringList read FPatterns;
   end;
 
-  TFileFilterList = class(specialize TFPGObjectList<TFileFilter>)
+  TFileFilterList = class(specialize TObjectList<TFileFilter>)
   private
     FDefaultFilter: Integer;
   public

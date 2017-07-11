@@ -34,7 +34,7 @@
       const Container: TX3DRootNode; const SlotsToReset: TSlotsAnimated);
   end;
 
-  TDrawOrderTimelineList = class(specialize TFPGObjectList<TDrawOrderTimeline>)
+  TDrawOrderTimelineList = class(specialize TObjectList<TDrawOrderTimeline>)
   strict private
     FMaxTime: Single;
   public

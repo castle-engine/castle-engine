@@ -196,12 +196,11 @@ unit CastleRenderer;
 
 interface
 
-uses Classes, SysUtils, FGL, CastleGL,
-  CastleUtils, CastleVectors, X3DFields, X3DNodes,
+uses Classes, SysUtils, Generics.Collections,
+  CastleGL, CastleUtils, CastleVectors, X3DFields, X3DNodes,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
-  CastleGLShaders, CastleGLImages, CastleTextureImages,
-  CastleVideos, X3DTime, CastleShapes,
-  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
+  CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
+  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv;
 
@@ -552,7 +551,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureImageCacheList = specialize TFPGObjectList<TTextureImageCache>;
+  TTextureImageCacheList = specialize TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
     FullUrl: string;
@@ -574,7 +573,7 @@ type
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
-  TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
+  TTextureVideoCacheList = specialize TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
     InitialNode: TAbstractEnvironmentTextureNode;
@@ -583,7 +582,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureCubeMapCacheList = specialize TFPGObjectList<TTextureCubeMapCache>;
+  TTextureCubeMapCacheList = specialize TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
     InitialNode: TAbstractTexture3DNode;
@@ -593,7 +592,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTexture3DCacheList = specialize TFPGObjectList<TTexture3DCache>;
+  TTexture3DCacheList = specialize TObjectList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
@@ -605,7 +604,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureDepthOrFloatCacheList = specialize TFPGObjectList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = specialize TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -649,7 +648,7 @@ type
     procedure FreeArrays(const Changed: TVboTypes);
   end;
 
-  TShapeCacheList = specialize TFPGObjectList<TShapeCache>;
+  TShapeCacheList = specialize TObjectList<TShapeCache>;
 
   TX3DGLSLProgram = class;
 
@@ -668,7 +667,7 @@ type
     destructor Destroy; override;
   end;
 
-  TShaderProgramCacheList = specialize TFPGObjectList<TShaderProgramCache>;
+  TShaderProgramCacheList = specialize TObjectList<TShaderProgramCache>;
 
   TGLRenderer = class;
 

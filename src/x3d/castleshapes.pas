@@ -26,7 +26,7 @@ unit CastleShapes;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections, FGL,
   CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
@@ -616,7 +616,7 @@ type
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
   end;
 
-  TShapeTreeList = specialize TFPGObjectList<TShapeTree>;
+  TShapeTreeList = specialize TObjectList<TShapeTree>;
 
   { Internal (non-leaf) node of the TShapeTree.
     This is practically just a list of other children
@@ -847,7 +847,12 @@ type
     property Current: TShape read FCurrent;
   end;
 
-  TShapeList = class(specialize TFPGObjectList<TShape>)
+  TShapeList = class(specialize TObjectList<TShape>)
+  strict private
+    SortPosition: TVector3Single;
+    function IsSmallerFrontToBack(constref A, B: TShape): Integer;
+    function IsSmallerBackToFront3D(constref A, B: TShape): Integer;
+    function IsSmallerBackToFront2D(constref A, B: TShape): Integer;
   public
     constructor Create;
 
@@ -927,7 +932,8 @@ var
 
 implementation
 
-uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
+uses Generics.Defaults,
+  CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
@@ -2813,23 +2819,21 @@ begin
   Assert(AddedCount = Count);
 end;
 
-var
-  { Has to be global (not private field in TShapeList),
-    since TFPGObjectList.Sort requires normal function (not "of object"). }
-  SortPosition: TVector3Single;
+type
+  TShapeComparer = specialize TComparer<TShape>;
 
-function IsSmallerFrontToBack(const A, B: TShape): Integer;
+function TShapeList.IsSmallerFrontToBack(constref A, B: TShape): Integer;
 begin
   { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
   Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
-function IsSmallerBackToFront3D(const A, B: TShape): Integer;
+function TShapeList.IsSmallerBackToFront3D(constref A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
-function IsSmallerBackToFront2D(const A, B: TShape): Integer;
+function TShapeList.IsSmallerBackToFront2D(constref A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;
@@ -2837,7 +2841,7 @@ end;
 procedure TShapeList.SortFrontToBack(const Position: TVector3Single);
 begin
   SortPosition := Position;
-  Sort(@IsSmallerFrontToBack);
+  Sort(TShapeComparer.Construct(@IsSmallerFrontToBack));
 end;
 
 procedure TShapeList.SortBackToFront(const Position: TVector3Single;
@@ -2845,8 +2849,9 @@ procedure TShapeList.SortBackToFront(const Position: TVector3Single;
 begin
   SortPosition := Position;
   if Distance3D then
-    Sort(@IsSmallerBackToFront3D) else
-    Sort(@IsSmallerBackToFront2D);
+    Sort(TShapeComparer.Construct(@IsSmallerBackToFront3D))
+  else
+    Sort(TShapeComparer.Construct(@IsSmallerBackToFront2D));
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }

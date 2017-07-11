@@ -20,9 +20,9 @@ unit Castle3D;
 
 interface
 
-uses SysUtils, Classes, Math, CastleVectors, CastleFrustum,
-  CastleBoxes, CastleClassUtils, CastleKeysMouse, CastleRectangles,
-  CastleUtils, FGL, CastleGenericLists, CastleTimeUtils,
+uses SysUtils, Classes, Math, Generics.Collections,
+  CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
+  CastleRectangles, CastleUtils, CastleGenericLists, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
 type
@@ -216,7 +216,7 @@ type
 
   { List of lights. Always TLightInstancesList, but we cannot declare it here
     as such. }
-  TAbstractLightInstancesList = TFPSList;
+  TAbstractLightInstancesList = TObject;
 
   TRenderingPass = 0..1;
 
@@ -2792,7 +2792,7 @@ begin
 end;
 
 var
-  { Has to be global, since TFPGObjectList.Sort
+  { Has to be global, since TObjectList.Sort
     requires normal function (not "of object"). }
   SortCameraPosition: TVector3Single;
 

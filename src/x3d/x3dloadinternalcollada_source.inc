@@ -58,7 +58,7 @@ type
     function AssignToVectorST(const Value: TVector2SingleList): boolean;
   end;
 
-  TColladaSourceList = class(specialize TFPGObjectList<TColladaSource>)
+  TColladaSourceList = class(specialize TObjectList<TColladaSource>)
   public
     { Find a TColladaSource with given Name, @nil if not found. }
     function Find(const Name: string): TColladaSource;

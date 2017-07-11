@@ -22,7 +22,7 @@ unit CastleCurves;
 
 interface
 
-uses SysUtils, Classes, FGL, DOM,
+uses SysUtils, Classes, Generics.Collections, DOM,
   CastleVectors, CastleBoxes, CastleUtils, CastleScript,
   CastleClassUtils, Castle3D, CastleFrustum, CastleColors;
 
@@ -90,7 +90,7 @@ type
     class function LoadFromFile(const URL: string): TCurve;
   end;
 
-  TCurveList = class(specialize TFPGObjectList<TCurve>)
+  TCurveList = class(specialize TObjectList<TCurve>)
   public
     { Load curves definitions from a simple XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
@@ -221,7 +221,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TControlPointsCurveList = specialize TFPGObjectList<TControlPointsCurve>;
+  TControlPointsCurveList = specialize TObjectList<TControlPointsCurve>;
 
   { Rational Bezier curve (Bezier curve with weights).
     Note: for Bezier Curve ControlPoints.Count MAY be 1.
@@ -244,7 +244,7 @@ type
 
   {$warnings off} { Consciously using deprecated stuff. }
   { List of TRationalBezierCurve. }
-  TRationalBezierCurveList = specialize TFPGObjectList<TRationalBezierCurve>;
+  TRationalBezierCurveList = specialize TObjectList<TRationalBezierCurve>;
   {$warnings on}
 
   TCubicBezier2DPoints = array [0..3] of TVector2Single;

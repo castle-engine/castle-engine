@@ -21,7 +21,7 @@ unit CastleScene;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
@@ -785,7 +785,7 @@ type
       read FDistanceCulling write FDistanceCulling default 0;
   end;
 
-  TCastleSceneList = class(specialize TFPGObjectList<TCastleScene>)
+  TCastleSceneList = class(specialize TObjectList<TCastleScene>)
   private
     { Just call InvalidateBackground or CloseGLRenderer on all items.
       These methods are private, because corresponding methods in

@@ -46,7 +46,7 @@
     procedure InternalChangedField(Field: TX3DField); virtual; abstract;
   end;
 
-  TX3DEventsEngineList = class(specialize TFPGObjectList<TX3DEventsEngine>)
+  TX3DEventsEngineList = class(specialize TObjectList<TX3DEventsEngine>)
   public
     { Notify listeners about a field value change.
       See TCastleSceneCore.InternalChangedField for exact specification. }

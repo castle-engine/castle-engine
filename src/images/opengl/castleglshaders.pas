@@ -77,8 +77,9 @@ unit CastleGLShaders;
 
 interface
 
-uses SysUtils, Classes, CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
-  FGL, CastleShaders, CastleGenericLists;
+uses SysUtils, Classes, Generics.Collections,
+  CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
+  CastleShaders, CastleGenericLists;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -578,7 +579,7 @@ type
     { @groupEnd }
   end;
 
-  TGLSLProgramList = specialize TFPGObjectList<TGLSLProgram>;
+  TGLSLProgramList = specialize TObjectList<TGLSLProgram>;
 
 var
   LogShaders: boolean;

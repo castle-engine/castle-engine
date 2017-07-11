@@ -20,10 +20,11 @@ unit CastleItems;
 
 interface
 
-uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
+uses Generics.Collections,
+  CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
-  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
+  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, CastleColors;
 
 type
   TInventoryItem = class;
@@ -427,7 +428,7 @@ type
     @link(T3DAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
-  TInventory = class(specialize TFPGObjectList<TInventoryItem>)
+  TInventory = class(specialize TObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAliveWithInventory;
   protected

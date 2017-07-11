@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   TSlotList = class;
 
-  TMaterialNodeList = specialize TFPGObjectList<TMaterialNode>;
+  TMaterialNodeList = specialize TObjectList<TMaterialNode>;
 
   TSlotsAnimated = class
     Attachment: TSlotList;
@@ -29,8 +29,8 @@
     procedure Assign(const Source: TSlotsAnimated);
   end;
 
-  TColorInterpolatorNodeList = specialize TFPGObjectList<TColorInterpolatorNode>;
-  TScalarInterpolatorNodeList = specialize TFPGObjectList<TScalarInterpolatorNode>;
+  TColorInterpolatorNodeList = specialize TObjectList<TColorInterpolatorNode>;
+  TScalarInterpolatorNodeList = specialize TObjectList<TScalarInterpolatorNode>;
 
   TSlot = class
   public
@@ -69,7 +69,7 @@
       const ContainerForResetNode: TAbstractX3DGroupingNode);
   end;
 
-  TSlotList = class(specialize TFPGObjectList<TSlot>)
+  TSlotList = class(specialize TObjectList<TSlot>)
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;
@@ -78,6 +78,7 @@
       const SlotsAnimated: TSlotsAnimated;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
       const ContainerForResetNode: TAbstractX3DGroupingNode);
+    procedure Assign(const Source: TSlotList);
   end;
 {$endif}
 
@@ -311,6 +312,12 @@ begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, SlotsAnimated,
       AttachmentsPreferred, AttachmentsDefault, ContainerForResetNode);
+end;
+
+procedure TSlotList.Assign(const Source: TSlotList);
+begin
+  Clear;
+  AddRange(Source);
 end;
 
 {$endif}

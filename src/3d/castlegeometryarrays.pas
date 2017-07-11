@@ -20,7 +20,8 @@ unit CastleGeometryArrays;
 
 interface
 
-uses CastleUtils, CastleVectors, FGL, CastleTriangles;
+uses Generics.Collections,
+  CastleUtils, CastleVectors, CastleTriangles;
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
@@ -80,7 +81,7 @@ type
     { Offset, only for Generation = tgExplicit. }
     Offset: Integer;
   end;
-  TGeometryTexCoordList = specialize TFPGObjectList<TGeometryTexCoord>;
+  TGeometryTexCoordList = specialize TObjectList<TGeometryTexCoord>;
 
   TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
     atMatrix3, atMatrix4);
@@ -94,7 +95,7 @@ type
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
-  TGeometryAttribList = class(specialize TFPGObjectList<TGeometryAttrib>)
+  TGeometryAttribList = class(specialize TObjectList<TGeometryAttrib>)
   public
     function Find(const Name: string): TGeometryAttrib;
   end;

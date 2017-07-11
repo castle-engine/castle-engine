@@ -27,11 +27,11 @@ unit RiftCreatures;
 
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
-  FGL, CastleColors;
+  CastleColors;
 
 type
   TCreatureState = (csStand, csBored, csWalk);
@@ -77,7 +77,7 @@ type
     property ReceiveShadowVolumes: boolean read FReceiveShadowVolumes;
   end;
 
-  TCreatureKindList = class(specialize TFPGObjectList<TCreatureKind>)
+  TCreatureKindList = class(specialize TObjectList<TCreatureKind>)
   public
     procedure Load(const BaseLights: TLightInstancesList);
     procedure UnLoad;

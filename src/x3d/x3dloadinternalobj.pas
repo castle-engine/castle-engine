@@ -29,9 +29,9 @@ function LoadWavefrontOBJ(const URL: string): TX3DRootNode;
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils, CastleLog,
-  CastleVectors, CastleUtils, Classes, CastleClassUtils, SysUtils,
-  FGL, X3DLoadInternalUtils, CastleGenericLists, CastleURIUtils,
+uses SysUtils, Classes, Generics.Collections,
+  CastleStringUtils, CastleFilesUtils, CastleLog, CastleVectors, CastleUtils,
+  CastleClassUtils, X3DLoadInternalUtils, CastleGenericLists, CastleURIUtils,
   CastleDownload;
 
 type
@@ -51,7 +51,7 @@ type
     constructor Create(const AName: string);
   end;
 
-  TWavefrontMaterialList = class(specialize TFPGObjectList<TWavefrontMaterial>)
+  TWavefrontMaterialList = class(specialize TObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
@@ -68,7 +68,7 @@ type
     destructor Destroy; override;
   end;
 
-  TWavefrontFaceList = specialize TFPGObjectList<TWavefrontFace>;
+  TWavefrontFaceList = specialize TObjectList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class

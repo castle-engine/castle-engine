@@ -23,8 +23,7 @@ unit CastleSceneCore;
 
 interface
 
-uses
-  SysUtils, Classes, FGL, Contnrs,
+uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
@@ -263,9 +262,9 @@ type
   end;
 
   { @exclude }
-  TProximitySensorInstanceList = specialize TFPGObjectList<TProximitySensorInstance>;
+  TProximitySensorInstanceList = specialize TObjectList<TProximitySensorInstance>;
   { @exclude }
-  TVisibilitySensorInstanceList = specialize TFPGObjectList<TVisibilitySensorInstance>;
+  TVisibilitySensorInstanceList = specialize TObjectList<TVisibilitySensorInstance>;
   { @exclude }
   TVisibilitySensors = class(specialize TGenericStructMap<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
   public
@@ -275,7 +274,7 @@ type
       We do not own TVisibilitySensorNode (our Keys list). }
     procedure Clear;
   end;
-  TTimeDependentHandlerList = class(specialize TFPGObjectList<TInternalTimeDependentHandler>)
+  TTimeDependentHandlerList = class(specialize TObjectList<TInternalTimeDependentHandler>)
     procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
   end;
 
@@ -514,7 +513,7 @@ type
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
   type
-    TAbstractViewpointNodeList = specialize TFPGObjectList<TAbstractViewpointNode>;
+    TAbstractViewpointNodeList = specialize TObjectList<TAbstractViewpointNode>;
   var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;

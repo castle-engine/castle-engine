@@ -63,13 +63,14 @@
     function ToLocalSpace(const V: TVector3Single): TVector3Single;
   end;
 
-  TBoneList = class(specialize TFPGObjectList<TBone>)
+  TBoneList = class(specialize TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
     procedure Parse(const Json: TJSONObject; var Root: TBone);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
+    procedure Assign(const Source: TBoneList);
   end;
 {$endif}
 
@@ -321,4 +322,11 @@ begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, BonesAnimated);
 end;
+
+procedure TBoneList.Assign(const Source: TBoneList);
+begin
+  Clear;
+  AddRange(Source);
+end;
+
 {$endif}

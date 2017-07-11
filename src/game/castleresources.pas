@@ -21,7 +21,7 @@ unit CastleResources;
 
 interface
 
-uses Classes, DOM, FGL,
+uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleXMLConfig, CastleTimeUtils,
   CastleScene, X3DNodes, Castle3D, CastleBoxes, CastleFindFiles;
 
@@ -99,7 +99,7 @@ type
     property Required: boolean read FRequired;
   end;
 
-  T3DResourceAnimationList = class(specialize TFPGObjectList<T3DResourceAnimation>)
+  T3DResourceAnimationList = class(specialize TObjectList<T3DResourceAnimation>)
     { Find an animation by name.
       @raises Exception if not found. }
     function FindName(const AName: string): T3DResourceAnimation;
@@ -327,7 +327,7 @@ type
 
   T3DResourceClass = class of T3DResource;
 
-  T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
+  T3DResourceList = class(specialize TObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
     procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -392,7 +392,7 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
-uses SysUtils,
+uses SysUtils, FGL,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
   CastleFilesUtils, CastleInternalNodeInterpolator;

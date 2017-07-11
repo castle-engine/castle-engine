@@ -17,8 +17,8 @@ unit TestCastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, fpcunit, testutils, testregistry, CastleUtils,
-  CastleClassUtils, FGL;
+uses Classes, SysUtils, fpcunit, testutils, testregistry, Generics.Collections,
+  CastleUtils, CastleClassUtils;
 
 type
   TStreamFromStreamFunc = function(Stream: TStream): TPeekCharStream of object;
@@ -46,12 +46,14 @@ type
     S: string;
   end;
 
-  TFooList = class(specialize TFPGObjectList<TFoo>)
+  TFooList = class(specialize TObjectList<TFoo>)
   public
     procedure SortFoo;
   end;
 
 implementation
+
+uses Generics.Defaults;
 
 { TFoo, TFoosList ------------------------------------------------------------ }
 
@@ -61,14 +63,16 @@ begin
   S := AnS;
 end;
 
-function IsFooSmaller(const A, B: TFoo): Integer;
+function IsFooSmaller(constref A, B: TFoo): Integer;
 begin
   Result := A.I - B.I;
 end;
 
 procedure TFooList.SortFoo;
+type
+  TFooComparer = specialize TComparer<TFoo>;
 begin
-  Sort(@IsFooSmaller);
+  Sort(TFooComparer.Construct(@IsFooSmaller));
 end;
 
 { TTestCastleClassUtils ------------------------------------------------------- }

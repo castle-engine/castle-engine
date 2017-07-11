@@ -21,7 +21,7 @@ unit CastleInternalNodeInterpolator;
 
 interface
 
-uses Classes, FGL,
+uses Classes, Generics.Collections,
   CastleUtils, X3DNodes, CastleBoxes;
 
 type
@@ -64,7 +64,7 @@ type
         procedure FreeKeyNodesContents;
       end;
 
-      TAnimationList = class(specialize TFPGObjectList<TAnimation>)
+      TAnimationList = class(specialize TObjectList<TAnimation>)
         { Call TAnimation.FreeKeyNodesContents on all the items. }
         procedure FreeKeyNodesContents;
       end;
@@ -103,7 +103,7 @@ type
         function Duration: Single;
       end;
 
-      TBakedAnimationList = class(specialize TFPGObjectList<TBakedAnimation>)
+      TBakedAnimationList = class(specialize TObjectList<TBakedAnimation>)
         procedure FreeNodesContents;
       end;
 

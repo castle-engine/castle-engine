@@ -23,8 +23,8 @@ unit CastleSectors;
 
 interface
 
-uses SysUtils, CastleUtils, CastleClassUtils, Classes, CastleVectors, CastleBoxes,
-  FGL;
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils, CastleVectors, CastleBoxes;
 
 type
   TSectorList = class;
@@ -49,7 +49,7 @@ type
     property Sectors: TSectorList read FSectors;
   end;
 
-  TWaypointList = class(specialize TFPGObjectList<TWaypoint>)
+  TWaypointList = class(specialize TObjectList<TWaypoint>)
   end;
 
   TSector = class
@@ -89,7 +89,7 @@ type
   ESectorNotInitialized = class(Exception);
   EWaypointNotInitialized = class(Exception);
 
-  TSectorList = class(specialize TFPGObjectList<TSector>)
+  TSectorList = class(specialize TObjectList<TSector>)
   public
     { Connect sectors and waypoints into a graph.
       Adds appropriate waypoints to sectors and sectors to waypoints,

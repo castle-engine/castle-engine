@@ -20,7 +20,7 @@ unit CastleTextureFontData;
 
 interface
 
-uses FGL,
+uses Generics.Collections, FGL,
   CastleVectors, CastleUnicode, CastleStringUtils, CastleImages,
   CastleInternalFreeType;
 

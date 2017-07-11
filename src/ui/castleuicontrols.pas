@@ -20,7 +20,7 @@ unit CastleUIControls;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections, FGL,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
@@ -1403,7 +1403,7 @@ type
   end;
 
   { Simple list of TUIControl instances. }
-  TUIControlList = class(specialize TFPGObjectList<TUIControl>)
+  TUIControlList = class(specialize TObjectList<TUIControl>)
   public
     { Add child control, at the front of other children. }
     procedure InsertFront(const NewItem: TUIControl);

@@ -73,7 +73,7 @@ interface
 
 uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
   CastleFileFilters, CastleClassUtils, CastleColors,
-  FGL, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
+  Generics.Collections, FPImage, FPReadPCX, FPReadGIF, FPReadPSD, FPReadTGA, FPReadTiff, FPReadXPM,
   FPReadJPEG, FPWriteJPEG, FPReadPNM
   {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleInternalFPWritePNG
   {$else} , CastleInternalPng {$endif};
@@ -826,9 +826,9 @@ type
     { @groupEnd }
   end;
 
-  TCastleImageList = specialize TFPGObjectList<TCastleImage>;
+  TCastleImageList = specialize TObjectList<TCastleImage>;
 
-  TEncodedImageList = specialize TFPGObjectList<TEncodedImage>;
+  TEncodedImageList = specialize TObjectList<TEncodedImage>;
 
   { Possible compression of textures for GPU. }
   TTextureCompression = (

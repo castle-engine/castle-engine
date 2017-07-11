@@ -27,8 +27,9 @@ function Load3DS(const URL: string): TX3DRootNode;
 
 implementation
 
-uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
+  X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
   CastleStreamUtils;
 
 { 3DS reading mostly based on spec from
@@ -111,7 +112,7 @@ type
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
   end;
 
-  TMaterial3dsList = class(specialize TFPGObjectList<TMaterial3ds>)
+  TMaterial3dsList = class(specialize TObjectList<TMaterial3ds>)
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
@@ -227,9 +228,9 @@ type
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
-  TTrimesh3dsList = specialize TFPGObjectList<TTrimesh3ds>;
-  TCamera3dsList = specialize TFPGObjectList<TCamera3ds>;
-  TLight3dsList = specialize TFPGObjectList<TLight3ds>;
+  TTrimesh3dsList = specialize TObjectList<TTrimesh3ds>;
+  TCamera3dsList = specialize TObjectList<TCamera3ds>;
+  TLight3dsList = specialize TObjectList<TLight3ds>;
 
   { 3DS loader. }
   TScene3DS = class

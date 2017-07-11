@@ -21,14 +21,7 @@ unit CastleGLUtils;
 
 interface
 
-uses SysUtils, Math, Matrix,
-  { Because of FPC 2.6.4 bugs (not present in FPC >= 3.0.0) we cannot use here
-    the FGL unit. It breaks compilation of Lazarus packages, as compiling
-    castle_window.lpk then accidentally wants to recompile CastleGLShaders too.
-    In consequence, we use TFPObjectList instead of generic TFPGObjectList
-    for scissor stuff.
-    This will be remedied once we drop FPC 2.6.4 compatibility. }
-  Contnrs,
+uses SysUtils, Math, Matrix, Generics.Collections,
   CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection;
 

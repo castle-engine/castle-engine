@@ -74,7 +74,7 @@
     function DoingSomething: boolean; override;
   end;
 
-  TBoneTimelineList = class(specialize TFPGObjectList<TBoneTimeline>)
+  TBoneTimelineList = class(specialize TObjectList<TBoneTimeline>)
   end;
 {$endif}
 

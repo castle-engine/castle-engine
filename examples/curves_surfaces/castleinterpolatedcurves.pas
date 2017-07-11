@@ -22,7 +22,8 @@ unit CastleInterpolatedCurves;
 
 interface
 
-uses Classes, FGL, CastleVectors, CastleBoxes, CastleUtils, CastleScript,
+uses Classes, Generics.Collections,
+  CastleVectors, CastleBoxes, CastleUtils, CastleScript,
   CastleClassUtils, Castle3D, CastleFrustum, CastleColors, CastleCurves;
 
 type

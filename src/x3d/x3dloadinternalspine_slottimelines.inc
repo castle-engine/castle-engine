@@ -65,7 +65,7 @@
       const SlotsToReset: TSlotsAnimated); override;
   end;
 
-  TSlotTimelineList = class(specialize TFPGObjectList<TSlotTimeline>)
+  TSlotTimelineList = class(specialize TObjectList<TSlotTimeline>)
   end;
 {$endif}
 

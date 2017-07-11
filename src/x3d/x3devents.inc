@@ -147,7 +147,7 @@
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TX3DEventList = class(specialize TFPGObjectList<TX3DEvent>)
+  TX3DEventList = class(specialize TObjectList<TX3DEvent>)
   private
     function GetByName(const AName: string): TX3DEvent;
   public

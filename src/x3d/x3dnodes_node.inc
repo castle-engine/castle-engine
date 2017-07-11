@@ -1043,7 +1043,7 @@
     function NiceName: string;
   end;
 
-  TX3DNodeList = class(specialize TFPGObjectList<TX3DNode>)
+  TX3DNodeList = class(specialize TObjectList<TX3DNode>)
     { Find node by name, @nil if not found.
 
       For empty node name, always returns @nil. This follows the definition
@@ -1061,8 +1061,8 @@
     function IndexOfName(const Name: string): Integer;
 
     procedure AddIfNotExists(const Node: TX3DNode);
-
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    procedure Assign(const Source: TX3DNodeList);
   end;
 
 {$endif read_interface}
@@ -3356,6 +3356,12 @@ begin
     for I := 0 to Count - 1 do
       if Items[I] <> TX3DNodeList(SecondValue)[I] then
         Exit(false);
+end;
+
+procedure TX3DNodeList.Assign(const Source: TX3DNodeList);
+begin
+  Clear;
+  AddRange(Source);
 end;
 
 procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);

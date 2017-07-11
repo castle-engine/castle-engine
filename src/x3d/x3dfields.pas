@@ -20,7 +20,7 @@ unit X3DFields;
 
 interface
 
-uses Classes, SysUtils, DOM, FGL,
+uses Classes, SysUtils, DOM, Generics.Collections,
   CastleVectors, CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   CastleImages, CastleStringUtils, CastleInterfaces,
   X3DTime, CastleGenericLists, CastleColors, CastleQuaternions;
@@ -425,7 +425,7 @@ type
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TX3DFileItemList = class(specialize TFPGObjectList<TX3DFileItem>)
+  TX3DFileItemList = class(specialize TObjectList<TX3DFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -579,7 +579,7 @@ type
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TX3DFieldOrEventList = specialize TFPGObjectList<TX3DFieldOrEvent>;
+  TX3DFieldOrEventList = specialize TObjectList<TX3DFieldOrEvent>;
   TX3DEventReceiveList = class;
   TX3DFieldClass = class of TX3DField;
 
@@ -1033,7 +1033,7 @@ type
     function OnReceive: TX3DEventReceiveList;
   end;
 
-  TX3DFieldList = class(specialize TFPGObjectList<TX3DField>)
+  TX3DFieldList = class(specialize TObjectList<TX3DField>)
   private
     function GetByName(const AName: string): TX3DField;
   public
@@ -1057,7 +1057,7 @@ type
   end;
   TX3DSingleFieldClass = class of TX3DSingleField;
 
-  TX3DSingleFieldList = specialize TFPGObjectList<TX3DSingleField>;
+  TX3DSingleFieldList = specialize TObjectList<TX3DSingleField>;
 
   EX3DMultFieldDifferentCount = class(EX3DError);
 
@@ -2864,7 +2864,8 @@ function X3DChangesToStr(const Changes: TX3DChanges): string;
 
 implementation
 
-uses Math, X3DNodes, CastleXMLUtils, CastleLog;
+uses Math, Generics.Defaults,
+  X3DNodes, CastleXMLUtils, CastleLog;
 
 {$define read_implementation}
 
@@ -2997,7 +2998,7 @@ end;
 
 { TX3DFileItemList --------------------------------------------------------- }
 
-function IsSmallerPositionInParent(const A, B: TX3DFileItem): Integer;
+function IsSmallerPositionInParent(constref A, B: TX3DFileItem): Integer;
 begin
   Result := A.PositionInParent - B.PositionInParent;
   if Result = 0 then
@@ -3005,8 +3006,10 @@ begin
 end;
 
 procedure TX3DFileItemList.SortPositionInParent;
+type
+  TX3DFileItemComparer = specialize TComparer<TX3DFileItem>;
 begin
-  Sort(@IsSmallerPositionInParent);
+  Sort(TX3DFileItemComparer.Construct(@IsSmallerPositionInParent));
 end;
 
 procedure TX3DFileItemList.SaveToStream(Writer: TX3DWriter);

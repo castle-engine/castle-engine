@@ -31,7 +31,7 @@ type
     procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
 
-  TAtlasRegionList = specialize TFPGObjectList<TAtlasRegion>;
+  TAtlasRegionList = specialize TObjectList<TAtlasRegion>;
 
   TAtlasPage = class
   public
@@ -48,7 +48,7 @@ type
     procedure BuildNodes(const BaseUrl: string);
   end;
 
-  TAtlasPageList = specialize TFPGObjectList<TAtlasPage>;
+  TAtlasPageList = specialize TObjectList<TAtlasPage>;
 
   TAtlas = class(TTextureLoader)
     Pages: TAtlasPageList;

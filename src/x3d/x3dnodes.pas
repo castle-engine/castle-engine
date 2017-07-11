@@ -171,7 +171,7 @@ unit X3DNodes;
 
 interface
 
-uses SysUtils, FGL, Classes, XMLRead, DOM,
+uses SysUtils, FGL, Generics.Collections, Classes, XMLRead, DOM,
   CastleVectors, CastleRectangles,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
@@ -756,7 +756,10 @@ type
     References: Cardinal;
     Node: TX3DRootNode;
   end;
-  TCachedNodeList = specialize TFPGObjectList<TCachedNode>;
+
+  TCachedNodeList = class(specialize TObjectList<TCachedNode>)
+    procedure Pack;
+  end;
 
   { Cache for resources not specific to renderer (OpenGL).
     Includes all TTexturesVideosCache resources (texture, movie
@@ -1338,7 +1341,7 @@ type
       CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
   end;
 
-  TX3DInterfaceDeclarationList = class(specialize TFPGObjectList<TX3DInterfaceDeclaration>)
+  TX3DInterfaceDeclarationList = class(specialize TObjectList<TX3DInterfaceDeclaration>)
   public
     { Find field or event with given Name.
       @nil if not found. }
@@ -1561,7 +1564,7 @@ type
     property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 
-  TX3DPrototypeBaseList = class(specialize TFPGObjectList<TX3DPrototypeBase>);
+  TX3DPrototypeBaseList = class(specialize TObjectList<TX3DPrototypeBase>);
 
   TX3DPrototype = class(TX3DPrototypeBase)
   private
@@ -1778,7 +1781,7 @@ type
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
 
-  TX3DRouteList = class(specialize TFPGObjectList<TX3DRoute>);
+  TX3DRouteList = class(specialize TObjectList<TX3DRoute>);
 
   TX3DImport = class(TX3DFileItem)
   public
@@ -3137,6 +3140,13 @@ begin
   ItemsAllocated := 0;
 end;
 
+{ TCachedNodeList ------------------------------------------------------------ }
+
+procedure TCachedNodeList.Pack;
+begin
+  while Remove(nil) <> -1 do ;
+end;
+
 { TX3DNodesCache ------------------------------------------------------------ }
 
 { $define DEBUG_CACHE}
@@ -3849,7 +3859,7 @@ begin
   end else
   if Value > Items.Count then
   begin
-    { TFPGObjectList makes sure that increasing count sets new items to nil }
+    { TObjectList makes sure that increasing count sets new items to nil }
     Items.Count := Value;
   end;
 end;

@@ -57,7 +57,7 @@ type
   TSprite = class
   private
     type
-      TSpriteAnimations = specialize TFPGObjectList<TSpriteAnimation>;
+      TSpriteAnimations = specialize TObjectList<TSpriteAnimation>;
     var
     FImage: TGLImage;
     FX, FY: Integer;
@@ -329,7 +329,7 @@ type
   end;
 
   { List of sprites. }
-  TSpriteList = specialize TFPGObjectList<TSprite>;
+  TSpriteList = specialize TObjectList<TSprite>;
 
 {$endif read_interface}
 

@@ -30,7 +30,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaPrimitiveList = specialize TFPGObjectList<TColladaPrimitive>;
+  TColladaPrimitiveList = specialize TObjectList<TColladaPrimitive>;
 
 {$endif read_interface}
 

@@ -24,7 +24,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaGeometryList = class (specialize TFPGObjectList<TColladaGeometry>)
+  TColladaGeometryList = class (specialize TObjectList<TColladaGeometry>)
   public
     { Find item with given Name, @nil if not found. }
     function Find(const Name: string): TColladaGeometry;

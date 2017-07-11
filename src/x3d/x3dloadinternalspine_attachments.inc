@@ -81,7 +81,7 @@
     V: TVector2Single; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
-  TSkinnedMeshVertexBoneList = specialize TFPGObjectList<TSkinnedMeshVertexBone>;
+  TSkinnedMeshVertexBoneList = specialize TObjectList<TSkinnedMeshVertexBone>;
 
   TSkinnedMeshVertex = class
     Bones: TSkinnedMeshVertexBoneList;
@@ -91,7 +91,7 @@
       Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
   end;
 
-  TSkinnedMeshVertexList = class(specialize TFPGObjectList<TSkinnedMeshVertex>)
+  TSkinnedMeshVertexList = class(specialize TObjectList<TSkinnedMeshVertex>)
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
@@ -103,7 +103,7 @@
     procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
-  TAttachmentList = class(specialize TFPGObjectList<TAttachment>)
+  TAttachmentList = class(specialize TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
     function Find(const SlotName, AttachmentName: string;

@@ -19,7 +19,7 @@ unit GenerateProcessors;
 
 interface
 
-uses SysUtils, FGL,
+uses SysUtils, Generics.Collections,
   CastleClassUtils, CastleStringUtils, CastleTimeUtils, CastleLog,
   CastleColors, CastleUtils, CastleApplicationProperties;
 
@@ -44,7 +44,7 @@ type
     function IsAbstract: boolean;
   end;
 
-  TX3DNodeInformationList = class(specialize TFPGObjectList<TX3DNodeInformation>)
+  TX3DNodeInformationList = class(specialize TObjectList<TX3DNodeInformation>)
     function PascalTypesList: string;
   end;
 

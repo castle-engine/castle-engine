@@ -25,8 +25,9 @@ unit RiftLocations;
 
 interface
 
-uses CastleUtils, CastleClassUtils, Classes, CastleScene, CastleVectors,
-  RiftLoadable, X3DNodes, FGL, CastleGLImages;
+uses Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils, CastleScene, CastleVectors, X3DNodes, CastleGLImages,
+  RiftLoadable;
 
 type
   TLocation = class(TLoadable)
@@ -67,7 +68,7 @@ type
     property GLShadowedImage: TGLImage read FGLShadowedImage;
   end;
 
-  TLocationList = class(specialize TFPGObjectList<TLocation>)
+  TLocationList = class(specialize TObjectList<TLocation>)
     { Call Load on all items, producing also appropriate progress bar. }
     procedure Load(const BaseLights: TLightInstancesList);
   end;

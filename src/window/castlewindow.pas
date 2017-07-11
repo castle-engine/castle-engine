@@ -497,7 +497,7 @@ uses {$define read_interface_uses}
   {$I castlewindow_backend.inc}
   {$undef read_interface_uses}
   { FPC units }
-  SysUtils, Classes, FGL, CustApp,
+  SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
   CastleVectors, CastleGL, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
@@ -2381,7 +2381,7 @@ type
       read GetNavigationType write SetNavigationType;
   end;
 
-  TWindowList = class(specialize TFPGObjectList<TCastleWindowCustom>)
+  TWindowList = class(specialize TObjectList<TCastleWindowCustom>)
   private
     { Call wszystkie OnUpdate / OnTimer for all windows on this list.
       Using Application.OpenWindows.DoUpdate / DoTimer  is a simplest

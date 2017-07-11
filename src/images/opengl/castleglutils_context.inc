@@ -61,8 +61,7 @@ type
   TRenderContext = class
   strict private
     type
-      TScissorList = class(TFPObjectList)
-      //class(specialize TFPGObjectList<TScissor>) // see comments in "uses" clause -- we cannot use FGL unit here
+      TScissorList = class(specialize TObjectList<TScissor>)
       public
         procedure Update;
       end;
@@ -261,9 +260,9 @@ var
 begin
   if Count <> 0 then
   begin
-    R := TScissor(Items[0]).Rect;
+    R := Items[0].Rect;
     for I := 1 to Count - 1 do
-      R := R * TScissor(Items[I]).Rect;
+      R := R * Items[I].Rect;
     glScissor(R.Left, R.Bottom, R.Width, R.Height);
     glEnable(GL_SCISSOR_TEST);
   end else

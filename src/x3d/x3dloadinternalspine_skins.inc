@@ -25,7 +25,7 @@
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 
-  TSkinList = class(specialize TFPGObjectList<TSkin>)
+  TSkinList = class(specialize TObjectList<TSkin>)
     { Find by name.
       @raises ESpineReadError If does not exist and NilOnError = @false. }
     function Find(const Name: string; const NilOnError: boolean): TSkin;

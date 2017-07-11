@@ -20,7 +20,7 @@ unit CastleSoundEngine;
 
 interface
 
-uses SysUtils, Classes, Math, FGL,
+uses SysUtils, Classes, Math, Generics.Collections,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
   CastleClassUtils, CastleStringUtils;
 
@@ -178,7 +178,7 @@ type
     function PlayingOrPaused: boolean;
   end;
 
-  TSoundList = class(specialize TFPGObjectList<TSound>)
+  TSoundList = class(specialize TObjectList<TSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -346,7 +346,7 @@ type
     Duration: TFloatTime;
     References: Cardinal;
   end;
-  TSoundBuffersCacheList = specialize TFPGObjectList<TSoundBuffersCache>;
+  TSoundBuffersCacheList = specialize TObjectList<TSoundBuffersCache>;
 
   TSoundDevice = class
   private
@@ -358,7 +358,7 @@ type
     property Caption: string read FCaption;
     property NiceName: string read FCaption; deprecated 'use Caption';
   end;
-  TSoundDeviceList = specialize TFPGObjectList<TSoundDevice>;
+  TSoundDeviceList = specialize TObjectList<TSoundDevice>;
 
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TSoundParameters = class
@@ -783,7 +783,7 @@ type
     DefaultImportance: Cardinal;
   end;
 
-  TSoundInfoList = specialize TFPGObjectList<TSoundInfo>;
+  TSoundInfoList = specialize TObjectList<TSoundInfo>;
 
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
   TSoundType = object
@@ -1056,7 +1056,7 @@ operator = (const SoundType1, SoundType2: TSoundType): boolean;
 
 implementation
 
-uses DOM, XMLRead, StrUtils,
+uses DOM, XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleInternalALUtils, CastleLog, CastleProgress,
   CastleInternalSoundFile, CastleInternalVorbisFile, CastleInternalEFX,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
@@ -1241,7 +1241,7 @@ end;
 
 { TSoundList ----------------------------------------------------- }
 
-function IsSmallerByImportance(const AA, BB: TSound): Integer;
+function IsSmallerByImportance(constref AA, BB: TSound): Integer;
 begin
   if (AA.Used and (not BB.Used)) or
      (AA.Used and BB.Used and (AA.Importance > BB.Importance)) then
@@ -1253,8 +1253,10 @@ begin
 end;
 
 procedure TSoundList.SortByImportance;
+type
+  TSoundComparer = specialize TComparer<TSound>;
 begin
-  Sort(@IsSmallerByImportance);
+  Sort(TSoundComparer.Construct(@IsSmallerByImportance));
 end;
 
 { TSoundAllocator ---------------------------------------------------------- }
@@ -1307,7 +1309,11 @@ begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
         { This will free FAllocatedSources[I], as FAllocatedSources owns children }
+        { TODO: Generics.Collections bug, it doesn't free the children in this case,
+          since TList<T>.SetItem doesn't do notification about remove and addition.
+          Leave it non-nil, in this case it will be freed later by FreeAndNil(FAllocatedSources) anyway
         FAllocatedSources[I] := nil;
+        }
       end;
 
     FreeAndNil(FAllocatedSources);
@@ -1439,7 +1445,11 @@ begin
         if FAllocatedSources[I].Used then
           FAllocatedSources[I].Release;
         { This will free FAllocatedSources[I], as FAllocatedSources owns children }
+        { TODO: Generics.Collections bug, it doesn't free the children in this case,
+          since TList<T>.SetItem doesn't do notification about remove and addition.
+          Leave it non-nil, in this case it will be freed later by SetCount anyway.
         FAllocatedSources[I] := nil;
+        }
       end;
       FAllocatedSources.Count := MaxAllocatedSources;
     end;

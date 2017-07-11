@@ -20,7 +20,7 @@ unit CastleUIState;
 
 interface
 
-uses Classes, FGL,
+uses Classes, Generics.Collections,
   CastleConfig, CastleKeysMouse, CastleImages, CastleUIControls,
   CastleGLImages, CastleVectors, CastleRectangles;
 
@@ -231,7 +231,7 @@ type
       var HandleInput: boolean); override;
   end;
 
-  TUIStateList = class(specialize TFPGObjectList<TUIState>);
+  TUIStateList = class(specialize TObjectList<TUIState>);
 
 implementation
 

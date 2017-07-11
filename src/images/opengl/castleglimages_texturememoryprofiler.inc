@@ -31,11 +31,9 @@ type
       Size: Int64;
       ImageFormat: string;
     end;
-    { using TFPGObjectList, not map, because we can sort the list
-      looking at data sizes (not possible through TFPGMap API that
-      allows only to assign OnKeyCompare to sort,
-      which is used too early to look at data values...). }
-    TAllocatedTextures = specialize TFPGObjectList<TAllocatedTexture>;
+    { Using TObjectList, not map, this way we can sort the list looking
+      at data sizes. }
+    TAllocatedTextures = specialize TObjectList<TAllocatedTexture>;
   var
     AllocatedTextures: TAllocatedTextures;
     FEnabled: boolean;
@@ -236,7 +234,7 @@ begin
     [Result, Image.Size, Result / Image.Size]));}
 end;
 
-function AllocatedTexturesSort(const Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
+function AllocatedTexturesSort(constref Value1, Value2: TTextureMemoryProfiler.TAllocatedTexture): Integer;
 begin
   Result := Value2.Size - Value1.Size;
 end;
@@ -254,6 +252,8 @@ function TTextureMemoryProfiler.Summary: string;
       Result := IntToStr(Size) + ' B';
   end;
 
+type
+  TAllocatedTextureComparer = specialize TComparer<TAllocatedTexture>;
 var
   S: string;
   I: Integer;
@@ -268,7 +268,7 @@ begin
   S := Format('Texture memory used: %s (%d bytes in %d textures)',
     [FormatSize(Used), Used, AllocatedTextures.Count]) + NL;
 
-  AllocatedTextures.Sort(@AllocatedTexturesSort);
+  AllocatedTextures.Sort(TAllocatedTextureComparer.Construct(@AllocatedTexturesSort));
   for I := 0 to AllocatedTextures.Count - 1 do
   begin
     AllocatedTex := AllocatedTextures[I];

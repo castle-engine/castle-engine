@@ -20,7 +20,7 @@ unit CastleFontFamily;
 
 interface
 
-uses Classes, FGL,
+uses Classes, Generics.Collections,
   CastleColors, CastleVectors, CastleRectangles, CastleFonts;
 
 type
@@ -112,7 +112,7 @@ type
 
   { Line of text with processing commands.
     @exclude Internal type for TRichText. }
-  TTextLine = class(specialize TFPGObjectList<TTextProperty>)
+  TTextLine = class(specialize TObjectList<TTextProperty>)
   strict private
     FWidthKnown: boolean;
     FWidth: Cardinal;
@@ -123,7 +123,7 @@ type
         Color: TCastleColor;
         Size: Single;
       end;
-      TFontStateList = specialize TFPGObjectList<TFontState>;
+      TFontStateList = specialize TObjectList<TFontState>;
 
       TPrintState = class
         Color: TCastleColor;
@@ -206,7 +206,7 @@ type
     Note that TRichText instance is always tied to a corresponding
     TFontFamily used to render it. @bold(Through the lifetime of TRichText,
     we assume that size and other properties of this font remain constant.) }
-  TRichText = class(specialize TFPGObjectList<TTextLine>)
+  TRichText = class(specialize TObjectList<TTextLine>)
   strict private
     FWidthKnown: boolean;
     { Known max line width, e.g. calculated by @link(Wrap).

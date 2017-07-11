@@ -227,8 +227,9 @@ function GetArraysGenerator(AGeometry: TAbstractGeometryNode): TArraysGeneratorC
 
 implementation
 
-uses SysUtils, CastleLog, FGL, CastleTriangles, CastleColors,
-  CastleBoxes, CastleTriangulate, CastleStringUtils;
+uses SysUtils, Generics.Collections,
+  CastleLog, CastleTriangles, CastleColors, CastleBoxes, CastleTriangulate,
+  CastleStringUtils;
 
 { Copying to interleaved memory utilities ------------------------------------ }
 
@@ -247,8 +248,8 @@ type
   will be properly referenced.
 
   @raises EAssignInterleavedRangeError When Count < CopyCount. }
-procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal); forward;
+procedure AssignToInterleaved(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  Target: Pointer; const Stride, CopyCount: Cardinal); forward;
 
 { Copy Source contents to given Target memory. Each item in Target
   is separated by the Stride bytes.
@@ -267,30 +268,30 @@ procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
 
   @raises(EAssignInterleavedRangeError When Indexes.Count < CopyCount,
     or some index points outside of array.) }
-procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TGeometryIndexList); forward;
+procedure AssignToInterleavedIndexed(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  Target: Pointer; const Stride, CopyCount: Cardinal;
+  Indexes: TGeometryIndexList); forward;
 
-procedure AssignToInterleaved(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal);
+procedure AssignToInterleaved(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  Target: Pointer; const Stride, CopyCount: Cardinal);
 var
   I: Integer;
-  SourcePtr: Pointer;
 begin
-  if Source.Count < CopyCount then
+  if SourceCount < CopyCount then
     raise EAssignInterleavedRangeError.CreateFmt('Not enough items: %d, but at least %d required',
-      [Source.Count, CopyCount]);
+      [SourceCount, CopyCount]);
 
-  SourcePtr := Source.List;
   for I := 0 to CopyCount - 1 do
   begin
-    Move(SourcePtr^, Target^, Source.ItemSize);
-    PtrUInt(SourcePtr) += Source.ItemSize;
+    Move(Source^, Target^, SourceItemSize);
+    PtrUInt(Source) += SourceItemSize;
     PtrUInt(Target) += Stride;
   end;
 end;
 
-procedure AssignToInterleavedIndexed(Source: TFPSList; Target: Pointer;
-  const Stride, CopyCount: Cardinal; Indexes: TGeometryIndexList);
+procedure AssignToInterleavedIndexed(Source: Pointer; const SourceItemSize, SourceCount: SizeInt;
+  Target: Pointer; const Stride, CopyCount: Cardinal;
+  Indexes: TGeometryIndexList);
 var
   I: Integer;
   Index: TGeometryIndex;
@@ -302,16 +303,16 @@ begin
   for I := 0 to CopyCount - 1 do
   begin
     Index := Indexes.L[I];
-    if Index >= Source.Count then
+    if Index >= SourceCount then
       raise EAssignInterleavedRangeError.CreateFmt('Invalid index: %d, but we have %d items',
-        [Index, Source.Count]);
+        [Index, SourceCount]);
 
     { Beware to not make multiplication below (* ItemSize) using 64-bit ints.
       This would cause noticeable slowdown when using AssignToInterleavedIndexed
       for ArraysGenerator, that in turn affects dynamic scenes
       and especially dynamic shading like radiance_transfer. }
-    Move(Pointer(PtrUInt(Source.List) + PtrUInt(Index) * PtrUInt(Source.ItemSize))^,
-      Target^, Source.ItemSize);
+    Move(Pointer(PtrUInt(Source) + PtrUInt(Index) * PtrUInt(SourceItemSize))^,
+      Target^, SourceItemSize);
     PtrUInt(Target) += Stride;
   end;
 end;
@@ -664,7 +665,7 @@ type
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
   end;
 
-  TX3DVertexAttributeNodes = specialize TFPGObjectList<TAbstractVertexAttributeNode>;
+  TX3DVertexAttributeNodes = specialize TObjectList<TAbstractVertexAttributeNode>;
 
   { Handle GLSL attributes from VRML/X3D "attrib" field.
     Descendants don't have to do anything, this just works
@@ -795,13 +796,13 @@ begin
 
         Arrays.Count := Coord.Count;
 
-        AssignToInterleaved(Coord.Items, Arrays.Position, Arrays.CoordinateSize, Arrays.Count);
+        AssignToInterleaved       (Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count);
       end else
       begin
         Arrays.Count := IndexesFromCoordIndex.Count;
 
         { Expand IndexesFromCoordIndex, to specify vertexes multiple times }
-        AssignToInterleavedIndexed(Coord.Items, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+        AssignToInterleavedIndexed(Coord.Items.L, Coord.Items.ItemSize, Coord.Items.Count, Arrays.Position, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
       end;
 
       GenerateCoordinateBegin;
@@ -1338,7 +1339,7 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
   var
     I: Integer;
 
-    procedure Handle(TexCoordArray: TFPSList);
+    procedure Handle(const TexCoordPtr: Pointer; const TexCoordSize, TexCoordCount: SizeInt);
     var
       A: Pointer;
     begin
@@ -1346,14 +1347,14 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
       if TexImplementation = tcCoordIndexed then
       begin
         if Arrays.Indexes <> nil then
-          AssignToInterleaved(TexCoordArray, A, Arrays.AttributeSize, Arrays.Count) else
-          AssignToInterleavedIndexed(TexCoordArray, A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
+          AssignToInterleaved       (TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count) else
+          AssignToInterleavedIndexed(TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count, IndexesFromCoordIndex);
       end else
       begin
         Assert(TexImplementation = tcNonIndexed);
         Assert(CoordIndex = nil); { tcNonIndexed happens only for non-indexed triangle/quad primitives }
         Assert(Arrays.Indexes = nil);
-        AssignToInterleaved(TexCoordArray, A, Arrays.AttributeSize, Arrays.Count);
+        AssignToInterleaved(TexCoordPtr, TexCoordSize, TexCoordCount, A, Arrays.AttributeSize, Arrays.Count);
       end;
     end;
 
@@ -1361,9 +1362,9 @@ procedure TAbstractTextureCoordinateGenerator.GenerateCoordinateBegin;
     for I := 0 to Arrays.TexCoords.Count - 1 do
       if Arrays.TexCoords[I].Generation = tgExplicit then
         case Arrays.TexCoords[I].Dimensions of
-          2: Handle(TexCoordArray2d[I].Items);
-          3: Handle(TexCoordArray3d[I].Items);
-          4: Handle(TexCoordArray4d[I].Items);
+          2: Handle(TexCoordArray2d[I].Items.L, TexCoordArray2d[I].Items.ItemSize, TexCoordArray2d[I].Items.Count);
+          3: Handle(TexCoordArray3d[I].Items.L, TexCoordArray3d[I].Items.ItemSize, TexCoordArray3d[I].Items.Count);
+          4: Handle(TexCoordArray4d[I].Items.L, TexCoordArray4d[I].Items.ItemSize, TexCoordArray4d[I].Items.Count);
         end;
   end;
 
@@ -1874,13 +1875,13 @@ begin
   if NorImplementation = niPerVertexCoordIndexed then
   begin
     if Arrays.Indexes <> nil then
-      AssignToInterleaved(CcwNormals, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
-      AssignToInterleavedIndexed(CcwNormals, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+      AssignToInterleaved       (CcwNormals.L, CcwNormals.ItemSize, CcwNormals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
+      AssignToInterleavedIndexed(CcwNormals.L, CcwNormals.ItemSize, CcwNormals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
     Assert(Arrays.Indexes = nil);
-    AssignToInterleaved(CcwNormals, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
+    AssignToInterleaved         (CcwNormals.L, CcwNormals.ItemSize, CcwNormals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
   end else
   if NorImplementation = niOverall then
   begin

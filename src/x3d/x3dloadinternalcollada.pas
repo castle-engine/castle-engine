@@ -38,7 +38,7 @@ function LoadCollada(const URL: string;
 
 implementation
 
-uses SysUtils, Classes, DOM, XMLRead, FGL, Math, URIParser,
+uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, FGL, Math, URIParser,
   CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
   CastleDownload, CastleURIUtils, CastleGenericLists;

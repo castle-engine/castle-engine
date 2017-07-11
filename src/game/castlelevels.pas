@@ -21,7 +21,7 @@ unit CastleLevels;
 
 interface
 
-uses Classes, DOM, FGL,
+uses Classes, DOM, Generics.Collections, FGL,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
@@ -251,7 +251,7 @@ type
     property MusicSound: TSoundType read FMusicSound write FMusicSound;
   end;
 
-  TLevelInfoList = class(specialize TFPGObjectList<TLevelInfo>)
+  TLevelInfoList = class(specialize TObjectList<TLevelInfo>)
   private
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
@@ -550,9 +550,10 @@ function Levels: TLevelInfoList;
 
 implementation
 
-uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
+uses SysUtils, Generics.Defaults, Math,
+  CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderingCamera, Math, CastleLog, X3DCameraUtils,
+  CastleRenderingCamera, CastleLog, X3DCameraUtils,
   CastleGLVersion, CastleURIUtils, CastleDownload;
 
 { globals -------------------------------------------------------------------- }
@@ -722,7 +723,8 @@ begin
   Result := T3DResourceList.Create(false);
   if Info <> nil then
   begin
-    Result.Assign(Info.LevelResources);
+    Result.Clear;
+    Result.AddRange(Info.LevelResources);
     Dec(Levels.References);
     FInfo := nil;
   end;
@@ -1277,7 +1279,7 @@ begin
   raise Exception.Create(S);
 end;
 
-function IsSmallerByNumber(const A, B: TLevelInfo): Integer;
+function IsSmallerByNumber(constref A, B: TLevelInfo): Integer;
 begin
   Result := A.Number - B.Number;
 end;
@@ -1333,8 +1335,10 @@ begin
 end;
 
 procedure TLevelInfoList.SortByNumber;
+type
+  TLevelInfoComparer = specialize TComparer<TLevelInfo>;
 begin
-  Sort(@IsSmallerByNumber);
+  Sort(TLevelInfoComparer.Construct(@IsSmallerByNumber));
 end;
 
 { initialization / finalization ---------------------------------------------- }

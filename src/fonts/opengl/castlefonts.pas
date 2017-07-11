@@ -20,9 +20,10 @@ unit CastleFonts;
 
 interface
 
-uses SysUtils, Classes, FGL, CastleGLImages, CastleStringUtils, CastleColors,
-  CastleVectors, CastleTextureFontData, CastleImages, CastleUnicode,
-  CastleRectangles, CastleApplicationProperties;
+uses SysUtils, Classes, Generics.Collections,
+  CastleGLImages, CastleStringUtils, CastleColors, CastleVectors,
+  CastleTextureFontData, CastleImages, CastleUnicode, CastleRectangles,
+  CastleApplicationProperties;
 
 type
   { Abstract class for 2D font. }
@@ -36,7 +37,7 @@ type
       OutlineHighQuality: boolean;
       TargetImage: TCastleImage;
     end;
-    TSavedPropertiesList = specialize TFPGObjectList<TSavedProperties>;
+    TSavedPropertiesList = specialize TObjectList<TSavedProperties>;
   var
     MeasureDone: boolean;
     FRowHeight, FRowHeightBase, FDescend: Integer;

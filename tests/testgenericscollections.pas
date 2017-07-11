@@ -26,9 +26,13 @@ type
     procedure Test1;
     procedure TestFreeingManually;
     procedure TestAddingLists;
+    procedure TestSort;
+    procedure TestPack;
   end;
 
 implementation
+
+uses Generics.Defaults;
 
 type
   TApple = class
@@ -42,7 +46,14 @@ begin
 end;
 
 type
-  TAppleList = specialize TObjectList<TApple>;
+  TAppleList = class(specialize TObjectList<TApple>)
+    procedure Pack;
+  end;
+
+procedure TAppleList.Pack;
+begin
+  while Remove(nil) <> -1 do ;
+end;
 
 procedure TTestGenericsCollections.Test1;
 var
@@ -128,6 +139,76 @@ begin
       AssertEquals('Two', Apples2[5].Name);
     finally FreeAndNil(Apples2) end;
   finally FreeAndNil(Apples) end;
+end;
+
+function CompareApples(constref Left, Right: TApple): Integer;
+begin
+  Result := AnsiCompareStr(Left.Name, Right.Name);
+end;
+
+procedure TTestGenericsCollections.TestSort;
+type
+  TAppleComparer = specialize TComparer<TApple>;
+var
+  A: TApple;
+  L: TAppleList;
+begin
+  L := TAppleList.Create(true);
+  try
+    A := TApple.Create;
+    A.Name := '11';
+    L.Add(A);
+
+    A := TApple.Create;
+    A.Name := '33';
+    L.Add(A);
+
+    A := TApple.Create;
+    A.Name := '22';
+    L.Add(A);
+
+    L.Sort(TAppleComparer.Construct(@CompareApples));
+
+    AssertEquals(3, L.Count);
+    AssertEquals('11', L[0].Name);
+    AssertEquals('22', L[1].Name);
+    AssertEquals('33', L[2].Name);
+  finally FreeAndNil(L) end;
+end;
+
+procedure TTestGenericsCollections.TestPack;
+var
+  A: TApple;
+  L: TAppleList;
+begin
+  L := TAppleList.Create(true);
+  try
+    L.Add(nil);
+
+    A := TApple.Create;
+    A.Name := '11';
+    L.Add(A);
+
+    L.Add(nil);
+
+    A := TApple.Create;
+    A.Name := '33';
+    L.Add(A);
+
+    A := TApple.Create;
+    A.Name := '22';
+    L.Add(A);
+
+    L.Add(nil);
+    L.Add(nil);
+
+    L.Pack;
+
+    AssertEquals(3, L.Count);
+    AssertEquals('11', L[0].Name);
+    AssertEquals('33', L[1].Name);
+    AssertEquals('22', L[2].Name);
+  finally FreeAndNil(L) end;
 end;
 
 initialization

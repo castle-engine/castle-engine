@@ -20,7 +20,7 @@ unit CastleSceneManager;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
   CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
@@ -617,7 +617,7 @@ type
     property FullSize default true;
   end;
 
-  TCastleAbstractViewportList = class(specialize TFPGObjectList<TCastleAbstractViewport>)
+  TCastleAbstractViewportList = class(specialize TObjectList<TCastleAbstractViewport>)
   public
     { Does any viewport on the list has shadow volumes all set up? }
     function UsesShadowVolumes: boolean;

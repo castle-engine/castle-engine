@@ -20,7 +20,8 @@ unit CastleRendererInternalShader;
 
 interface
 
-uses FGL, CastleVectors, CastleGLShaders, CastleGenericLists,
+uses Generics.Collections,
+  CastleVectors, CastleGLShaders, CastleGenericLists,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
   CastleRendererInternalTextureEnv, CastleStringUtils, CastleShaders,
   CastleShapes;
@@ -208,7 +209,7 @@ type
     procedure SetDynamicUniforms(AProgram: TX3DShaderProgram);
   end;
 
-  TLightShaders = class(specialize TFPGObjectList<TLightShader>)
+  TLightShaders = class(specialize TObjectList<TLightShader>)
   private
     function Find(const Node: TAbstractLightNode; out Shader: TLightShader): boolean;
   end;
@@ -260,7 +261,7 @@ type
       GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
   end;
 
-  TTextureCoordinateShaderList = specialize TFPGObjectList<TTextureCoordinateShader>;
+  TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
 
   TBumpMapping = (bmNone, bmBasic, bmParallax, bmSteepParallax, bmSteepParallaxShadowing);
 
@@ -297,7 +298,7 @@ type
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
-  TDynamicUniformList = specialize TFPGObjectList<TDynamicUniform>;
+  TDynamicUniformList = specialize TObjectList<TDynamicUniform>;
 
   TSurfaceTextureShader = record
     Enable: boolean;

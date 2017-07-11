@@ -88,7 +88,7 @@ unit CastleInputs;
 
 interface
 
-uses Classes, FGL,
+uses Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleXMLConfig, CastleUIControls;
 
@@ -345,7 +345,7 @@ type
         Other TExamineCamera are allowed only when modifiers = []. }
   end;
 
-  TInputShortcutList = class(specialize TFPGObjectList<TInputShortcut>)
+  TInputShortcutList = class(specialize TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
     function FindName(const Name: string): TInputShortcut;
@@ -374,7 +374,8 @@ var
 
 implementation
 
-uses SysUtils, CastleStringUtils;
+uses SysUtils, Generics.Defaults,
+  CastleStringUtils;
 
 { TInputShortcut ------------------------------------------------------------- }
 
@@ -700,7 +701,7 @@ begin
   end;
 end;
 
-function SortInputShortcut(const A, B: TInputShortcut): Integer;
+function SortInputShortcut(constref A, B: TInputShortcut): Integer;
 begin
   Result := A.GroupOrder - B.GroupOrder;
   { since TFPSList.Sort is not stable, we use Index to keep order predictable
@@ -710,6 +711,8 @@ begin
 end;
 
 procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig);
+type
+  TInputShortcutComparer = specialize TComparer<TInputShortcut>;
 var
   I: Integer;
   ConflictDescription: string;
@@ -722,7 +725,7 @@ begin
       'Default key/mouse shortcuts layout has conflicts: ' + ConflictDescription);
 
   for G := Low(InputsGroup) to High(InputsGroup) do
-    InputsGroup[G].Sort(@SortInputShortcut);
+    InputsGroup[G].Sort(TInputShortcutComparer.Construct(@SortInputShortcut));
 
   for I := 0 to Count - 1 do
   begin

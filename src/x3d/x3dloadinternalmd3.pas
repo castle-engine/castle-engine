@@ -21,7 +21,7 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleVectors, X3DNodes, CastleGenericLists,
   CastleInternalNodeInterpolator;
 
@@ -77,7 +77,7 @@ type
     VertexesInFrameCount: Cardinal;
   end;
 
-  TMd3SurfaceList = specialize TFPGObjectList<TMd3Surface>;
+  TMd3SurfaceList = specialize TObjectList<TMd3Surface>;
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class

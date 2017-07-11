@@ -33,7 +33,7 @@ procedure DoIntro;
 
 implementation
 
-uses SysUtils, DOM, FGL,
+uses SysUtils, DOM, Generics.Collections,
   CastleWindow, CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleWindowModes, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, CastleXMLUtils,
@@ -49,7 +49,7 @@ type
     ImageCorroded: TGLImage;
     destructor Destroy; override;
   end;
-  TIntroPartList = specialize TFPGObjectList<TIntroPart>;
+  TIntroPartList = specialize TObjectList<TIntroPart>;
 
 destructor TIntroPart.Destroy;
 begin

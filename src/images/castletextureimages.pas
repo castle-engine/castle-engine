@@ -34,7 +34,8 @@ unit CastleTextureImages;
 
 interface
 
-uses CastleImages, CastleCompositeImage, CastleUtils, FGL, CastleVideos;
+uses Generics.Collections,
+  CastleImages, CastleCompositeImage, CastleUtils, CastleVideos;
 
 const
   { Image classes that are handled by absolutely all OpenGL versions. }
@@ -130,7 +131,7 @@ type
         Composite: TCompositeImage;
         AlphaChannel: TAlphaChannel;
       end;
-      TCachedTextureList = specialize TFPGObjectList<TCachedTexture>;
+      TCachedTextureList = specialize TObjectList<TCachedTexture>;
     var
       CachedTextures: TCachedTextureList;
   public

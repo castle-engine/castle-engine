@@ -20,10 +20,11 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, CastleVectors, CastleBoxes, CastleClassUtils,
+uses Classes, Generics.Collections,
+  CastleVectors, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
   CastleResources, CastleXMLConfig, Castle3D,
-  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors, FGL;
+  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors;
 
 type
   TCreatureState = type Integer;
@@ -898,7 +899,7 @@ type
     property CollidesWithMoving default true;
   end;
 
-  TCreatureList = class(specialize TFPGObjectList<TCreature>)
+  TCreatureList = class(specialize TObjectList<TCreature>)
   end;
 
   { Creature using TWalkAttackCreatureResource. }
