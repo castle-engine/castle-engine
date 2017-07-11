@@ -104,7 +104,20 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  TStringLongIntMap = specialize TFPGMap<string, LongInt>;
+  TStringLongIntMap = class(specialize TDictionary<string, LongInt>)
+  strict private
+    function GetItems(const AKey: string): LongInt;
+    procedure SetItems(const AKey: string; const AValue: LongInt);
+  public
+    { Assign contents (all keys, values) of another TStringLongIntMap instance. }
+    procedure Assign(const Source: TStringLongIntMap);
+
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: LongInt read GetItems write SetItems; default;
+  end;
 
   { A top-level VRML/X3D node. This is what you get by loading 3D model from file.
 
@@ -616,6 +629,29 @@ begin
   Result := FdChildren.Enumerate(Func);
   if Result <> nil then Exit;
 end;
+
+{ TStringLongIntMap ---------------------------------------------------------- }
+
+procedure TStringLongIntMap.Assign(const Source: TStringLongIntMap);
+var
+  Pair: TDictionaryPair;
+begin
+  Clear;
+  for Pair in Source do
+    Items[Pair.Key] := Pair.Value;
+end;
+
+function TStringLongIntMap.GetItems(const AKey: string): LongInt;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TStringLongIntMap.SetItems(const AKey: string; const AValue: LongInt);
+begin
+  AddOrSetValue(AKey, AValue);
+end;
+
+{ TX3DRootNode --------------------------------------------------------------- }
 
 procedure TX3DRootNode.CreateNode;
 begin

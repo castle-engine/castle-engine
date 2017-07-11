@@ -28,6 +28,7 @@ type
     procedure TestAddingLists;
     procedure TestSort;
     procedure TestPack;
+    procedure TestMapTryGetValue;
   end;
 
 implementation
@@ -209,6 +210,42 @@ begin
     AssertEquals('33', L[1].Name);
     AssertEquals('22', L[2].Name);
   finally FreeAndNil(L) end;
+end;
+
+type
+  TAppleDictionary = specialize TDictionary<string, TApple>;
+
+procedure TTestGenericsCollections.TestMapTryGetValue;
+var
+  Apples: TAppleDictionary;
+  A, FoundA: TApple;
+begin
+  Apples := TAppleDictionary.Create;
+  try
+    Apples.TryGetValue('blah', FoundA);
+    AssertTrue(nil = FoundA);
+
+    A := TApple.Create;
+    Apples.AddOrSetValue('nope', A);
+
+    Apples.TryGetValue('blah', FoundA);
+    AssertTrue(nil = FoundA);
+
+    A := TApple.Create;
+    Apples.AddOrSetValue('blah', A);
+
+    Apples.TryGetValue('blah', FoundA);
+    AssertTrue(A = FoundA);
+
+    Apples.Remove('blah');
+
+    A.Free;
+
+    Apples.TryGetValue('blah', FoundA);
+    AssertTrue(nil = FoundA);
+
+    Apples['nope'].Free;
+  finally FreeAndNil(Apples) end;
 end;
 
 initialization

@@ -38,7 +38,7 @@ function LoadCollada(const URL: string;
 
 implementation
 
-uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, FGL, Math, URIParser,
+uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
   CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
   CastleDownload, CastleURIUtils, CastleGenericLists;
@@ -94,10 +94,8 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, FGL, Math, URIParser
 {$I x3dloadinternalcollada_geometries.inc}
 {$I x3dloadinternalcollada_integerparser.inc}
 {$I x3dloadinternalcollada_indexes.inc}
-{$I x3dloadinternalcollada_materialsmap.inc}
 {$I x3dloadinternalcollada_source.inc}
 {$I x3dloadinternalcollada_sources.inc}
-{$I x3dloadinternalcollada_stringtexturenodemap.inc}
 {$I x3dloadinternalcollada_librarynodes.inc}
 {$undef read_interface}
 
@@ -108,10 +106,8 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, FGL, Math, URIParser
 {$I x3dloadinternalcollada_geometries.inc}
 {$I x3dloadinternalcollada_integerparser.inc}
 {$I x3dloadinternalcollada_indexes.inc}
-{$I x3dloadinternalcollada_materialsmap.inc}
 {$I x3dloadinternalcollada_source.inc}
 {$I x3dloadinternalcollada_sources.inc}
-{$I x3dloadinternalcollada_stringtexturenodemap.inc}
 {$I x3dloadinternalcollada_librarynodes.inc}
 {$undef read_implementation}
 
@@ -132,10 +128,8 @@ var
   {$I x3dloadinternalcollada_controllers.inc}
   {$I x3dloadinternalcollada_integerparser.inc}
   {$I x3dloadinternalcollada_indexes.inc}
-  {$I x3dloadinternalcollada_materialsmap.inc}
   {$I x3dloadinternalcollada_source.inc}
   {$I x3dloadinternalcollada_sources.inc}
-  {$I x3dloadinternalcollada_stringtexturenodemap.inc}
   {$I x3dloadinternalcollada_read_helpers.inc}
   {$I x3dloadinternalcollada_librarynodes.inc}
   {$I x3dloadinternalcollada_materials.inc}
@@ -154,10 +148,8 @@ var
   {$I x3dloadinternalcollada_controllers.inc}
   {$I x3dloadinternalcollada_integerparser.inc}
   {$I x3dloadinternalcollada_indexes.inc}
-  {$I x3dloadinternalcollada_materialsmap.inc}
   {$I x3dloadinternalcollada_source.inc}
   {$I x3dloadinternalcollada_sources.inc}
-  {$I x3dloadinternalcollada_stringtexturenodemap.inc}
   {$I x3dloadinternalcollada_read_helpers.inc}
   {$I x3dloadinternalcollada_librarynodes.inc}
   {$I x3dloadinternalcollada_materials.inc}

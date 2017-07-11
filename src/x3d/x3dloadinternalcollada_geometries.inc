@@ -113,7 +113,7 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
       end;
     end;
 
-    Effect := Materials.Find(MaterialId);
+    Materials.TryGetValue(MaterialId, Effect); // Effect will be nil if not found
     if Effect = nil then
     begin
       WritelnWarning('Collada', Format('Referencing non-existing material name "%s"',

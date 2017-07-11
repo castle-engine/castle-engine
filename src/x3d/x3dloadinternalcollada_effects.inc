@@ -16,6 +16,8 @@
 {$ifdef read_interface}
 
 type
+  TStringTextureNodeMap = specialize TDictionary<string, TAbstractTextureNode>;
+
   TColladaEffect = class
     Appearance: TAppearanceNode;
     { If this effect contains a texture for diffuse, this is the name
@@ -178,7 +180,7 @@ var
               DiffuseTextureName, DiffuseTexCoordName);
             if DiffuseTextureName <> '' then
             begin
-              Image := Samplers2D.Find(DiffuseTextureName);
+              Samplers2D.TryGetValue(DiffuseTextureName, Image); // Image will be nil if not found
               if Image <> nil then
               begin
                 Effect.DiffuseTexCoordName := DiffuseTexCoordName;
@@ -248,7 +250,7 @@ var
         RefersTo := ReadChildText(Child, 'init_from');
         Image := Images.FindName(RefersTo) as TAbstractTextureNode;
         if Image <> nil then
-          Surfaces[Name] := Image else
+          Surfaces.AddOrSetValue(Name, Image) else
           WritelnWarning('Collada', Format('<surface> refers to missing image name "%s"',
             [RefersTo]));
       end else
@@ -258,9 +260,10 @@ var
         begin
           { Read <sampler2D>. It has <source>, referring to name on Surfaces. }
           RefersTo := ReadChildText(Child, 'source');
-          Image := Surfaces.Find(RefersTo);
+          Surfaces.TryGetValue(RefersTo, Image); // Image will be nil if not found
           if Image <> nil then
-            Samplers2D[Name] := Image else
+            Samplers2D.AddOrSetValue(Name, Image)
+          else
             WritelnWarning('Collada', Format('<sampler2D> refers to missing surface name "%s"',
               [RefersTo]));
         end; { else not handled <newparam> }

@@ -17,8 +17,7 @@
 
 {$APPTYPE CONSOLE}
 
-uses
-  Classes, SysUtils, strutils, DOM, RegExpr, FGL,
+uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
   CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
   CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
   CastleTextureImages, CastleXMLUtils;
@@ -37,7 +36,7 @@ type
   end;
 
   TFrameList = specialize TGenericStructList<TFrame>;
-  TAnimations = class(specialize TFPGMap<string, TFrameList>)
+  TAnimations = class(specialize TDictionary<string, TFrameList>)
     destructor Destroy; override;
   end;
 
@@ -53,10 +52,10 @@ var
 
 destructor TAnimations.Destroy;
 var
-  I: Integer;
+  F: TFrameList;
 begin
-  for I := 0 to Count - 1 do
-    Data[I].Free;
+  for F in Values do
+    F.Free;
   inherited;
 end;
 
@@ -85,13 +84,8 @@ end;
 procedure AddFrame(const AKey: string; const AFrame: TFrame);
 var
   List: TFrameList;
-  i: integer;
 begin
-  if Animations.Find(AKey, i) then
-  begin
-    List := Animations.Data[i];
-  end
-  else
+  if not Animations.TryGetValue(AKey, List) then
   begin
     List := TFrameList.Create;
     Animations.Add(AKey, List);
@@ -140,6 +134,8 @@ procedure Convert;
 var
   i, j: integer;
   List: TFrameList;
+  AnimationName: string;
+  AnimationPair: TAnimations.TDictionaryPair;
   Frame: TFrame;
   Root: TX3DRootNode;
   Shape: TShapeNode;
@@ -158,9 +154,8 @@ var
   TexCoordArray: array of TVector2Single;
   R1, R2, R3, R4: TX3DRoute;
 begin
-  for j := 0 to Animations.Count-1 do
+  for List in Animations.Values do
   begin
-    List := Animations.Data[j];
     { Convert sprite texture coordinates to X3D format. }
     for i := 0 to List.Count-1 do
     begin
@@ -221,18 +216,20 @@ begin
     SetLength(CoordInterpArray, Animations.Count);
     SetLength(TexCoordInterpArray, Animations.Count);
 
-    for j := 0 to Animations.Count-1 do
+    j := 0;
+    for AnimationPair in Animations do
     begin
-      List := Animations.Data[j];
-      TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
+      AnimationName := AnimationPair.Key;
+      List := AnimationPair.Value;
+      TimeSensor := TTimeSensorNode.Create(AnimationName);
       TimeSensor.CycleInterval := List.Count / FramesPerSecond;
-      Writeln('Generating animation ' + Animations.Keys[j] +
+      Writeln('Generating animation ' + AnimationName +
         ', frames: ', List.Count,
         ', duration: ', TimeSensor.CycleInterval:1:2);
       CoordInterp :=
-          TCoordinateInterpolatorNode.Create(Animations.Keys[j] + '_Coord');
+          TCoordinateInterpolatorNode.Create(AnimationName + '_Coord');
       TexCoordInterp :=
-          TCoordinateInterpolator2DNode.Create(Animations.Keys[j] + '_TexCoord');
+          TCoordinateInterpolator2DNode.Create(AnimationName + '_TexCoord');
       TimeSensorArray[j] := TimeSensor;
       CoordInterpArray[j] := CoordInterp;
       TexCoordInterpArray[j] := TexCoordInterp;
@@ -298,6 +295,7 @@ begin
       Root.AddRoute(R2);
       Root.AddRoute(R3);
       Root.AddRoute(R4);
+      Inc(j);
     end;
     { Put everything into the scene. }
     Root.FdChildren.Add(Shape);

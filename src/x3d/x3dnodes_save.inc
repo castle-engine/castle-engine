@@ -295,24 +295,24 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      I: Integer;
+      ComponentLevel: TStringLongIntMap.TDictionaryPair;
     begin
-      for I := 0 to Root.Components.Count - 1 do
+      for ComponentLevel in Root.Components do
         Writer.Writeln(Format('COMPONENT %s:%d',
-          [ Root.Components.Keys[I],
-            Root.Components.Data[I] ]));
+          [ ComponentLevel.Key,
+            ComponentLevel.Value ]));
       if Root.Components.Count <> 0 then
         Writer.Write(NL);
     end;
 
     procedure SaveMetas(Root: TX3DRootNode);
     var
-      I: Integer;
+      MetaPair: TStringStringMap.TDictionaryPair;
     begin
-      for I := 0 to Root.Meta.Count - 1 do
+      for MetaPair in Root.Meta do
         Writer.Writeln(Format('META %s %s',
-          [ StringToX3DClassic(Root.Meta.Keys[I]),
-            StringToX3DClassic(Root.Meta.Data[I])]));
+          [ StringToX3DClassic(MetaPair.Key),
+            StringToX3DClassic(MetaPair.Value)]));
       if Root.Meta.Count <> 0 then
         Writer.Write(NL);
     end;
@@ -385,22 +385,22 @@ var
 
     procedure SaveComponents(Root: TX3DRootNode);
     var
-      I: Integer;
+      ComponentLevel: TStringLongIntMap.TDictionaryPair;
     begin
-      for I := 0 to Root.Components.Count - 1 do
+      for ComponentLevel in Root.Components do
         Writer.WritelnIndent(Format('<component name=%s level="%d" />',
-          [ StringToX3DXml(Root.Components.Keys[I]),
-            Root.Components.Data[I] ]));
+          [ StringToX3DXml(ComponentLevel.Key),
+            ComponentLevel.Value ]));
     end;
 
     procedure SaveMetas(Root: TX3DRootNode);
     var
-      I: Integer;
+      MetaPair: TStringStringMap.TDictionaryPair;
     begin
-      for I := 0 to Root.Meta.Count - 1 do
+      for MetaPair in Root.Meta do
         Writer.WritelnIndent(Format('<meta name=%s content=%s />',
-          [ StringToX3DXml(Root.Meta.Keys[I]),
-            StringToX3DXml(Root.Meta.Data[I])]));
+          [ StringToX3DXml(MetaPair.Key),
+            StringToX3DXml(MetaPair.Value)]));
     end;
 
   begin

@@ -15,6 +15,11 @@
 
 {$ifdef read_interface_nested}
 
+type
+  { Collada materials. Data contains TColladaEffect, which is a reference
+    to Effects list (it is not owned by this TColladaMaterialsMap). }
+  TColladaMaterialsMap = specialize TDictionary<string, TColladaEffect>;
+
 var
   { List of Collada materials. Collada material is just a reference
     to Collada effect with a name.
@@ -90,7 +95,7 @@ var
     { Collada 1.3 doesn't really have a concept of effects used by materials.
       But to be consistent, we add one effect (to Effects list)
       and one reference to it (to Materials list). }
-    Materials[MatId] := Effect;
+    Materials.AddOrSetValue(MatId, Effect);
 
     // TODO: generate CommonSurfaceShader as an alternative?
 
@@ -171,7 +176,8 @@ var
         Delete(EffectId, 1, 1); { delete initial '#' char }
         Effect := Effects.Find(EffectId);
         if Effect <> nil then
-          Materials[MatId] := Effect else
+          Materials.AddOrSetValue(MatId, Effect)
+        else
           WritelnWarning('Collada', Format('Material "%s" references ' +
             'non-existing effect "%s"', [MatId, EffectId]));
       end;

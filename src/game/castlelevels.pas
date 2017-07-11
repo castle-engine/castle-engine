@@ -21,7 +21,7 @@ unit CastleLevels;
 
 interface
 
-uses Classes, DOM, Generics.Collections, FGL,
+uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
@@ -539,7 +539,17 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TLevelLogicClasses = specialize TFPGMap<string, TLevelLogicClass>;
+  TLevelLogicClasses = class(specialize TDictionary<string, TLevelLogicClass>)
+  strict private
+    function GetItems(const AKey: string): TLevelLogicClass;
+    procedure SetItems(const AKey: string; const AValue: TLevelLogicClass);
+  public
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: TLevelLogicClass read GetItems write SetItems; default;
+  end;
 
 function LevelLogicClasses: TLevelLogicClasses;
 
@@ -1169,12 +1179,9 @@ procedure TLevelInfo.LoadFromDocument;
     const AttrName: string; var Value: TLevelLogicClass): boolean;
   var
     ValueStr: string;
-    LevelClassIndex: Integer;
   begin
     Result := Element.AttributeString(AttrName, ValueStr);
-    LevelClassIndex := LevelLogicClasses.IndexOf(ValueStr);
-    if LevelClassIndex <> -1 then
-      Value := LevelLogicClasses.Data[LevelClassIndex] else
+    if not LevelLogicClasses.TryGetValue(ValueStr, Value) then
       raise Exception.CreateFmt('Unknown level type "%s"', [ValueStr]);
   end;
 
@@ -1339,6 +1346,18 @@ type
   TLevelInfoComparer = specialize TComparer<TLevelInfo>;
 begin
   Sort(TLevelInfoComparer.Construct(@IsSmallerByNumber));
+end;
+
+{ TLevelLogicClasses --------------------------------------------------------- }
+
+function TLevelLogicClasses.GetItems(const AKey: string): TLevelLogicClass;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TLevelLogicClasses.SetItems(const AKey: string; const AValue: TLevelLogicClass);
+begin
+  AddOrSetValue(AKey, AValue);
 end;
 
 { initialization / finalization ---------------------------------------------- }

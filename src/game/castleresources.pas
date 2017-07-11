@@ -392,15 +392,38 @@ procedure RegisterResourceClass(const AClass: T3DResourceClass; const TypeName: 
 
 implementation
 
-uses SysUtils, FGL,
+uses SysUtils,
   CastleProgress, CastleXMLUtils, CastleUtils, CastleSceneCore,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
   CastleFilesUtils, CastleInternalNodeInterpolator;
 
+{ TResourceClasses  ---------------------------------------------------------- }
+
 type
-  TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
+  TResourceClasses = class(specialize TDictionary<string, T3DResourceClass>)
+  strict private
+    function GetItems(const AKey: string): T3DResourceClass;
+    procedure SetItems(const AKey: string; const AValue: T3DResourceClass);
+  public
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: T3DResourceClass read GetItems write SetItems; default;
+  end;
+
 var
   ResourceClasses: TResourceClasses;
+
+function TResourceClasses.GetItems(const AKey: string): T3DResourceClass;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TResourceClasses.SetItems(const AKey: string; const AValue: T3DResourceClass);
+begin
+  AddOrSetValue(AKey, AValue);
+end;
 
 { T3DResourceAnimation ------------------------------------------------------- }
 
@@ -673,7 +696,6 @@ procedure T3DResourceList.AddFromFileDefaultReload(const URL: string);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
-  ResourceClassIndex: Integer;
   ResourceClass: T3DResourceClass;
   Resource: T3DResource;
 begin
@@ -687,9 +709,7 @@ begin
         WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
-      ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
-      if ResourceClassIndex <> -1 then
-        ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
+      if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
           [ResourceClassName, URL]);
 

@@ -20,7 +20,7 @@ unit CastleTextureFontData;
 
 interface
 
-uses Generics.Collections, FGL,
+uses Generics.Collections,
   CastleVectors, CastleUnicode, CastleStringUtils, CastleImages,
   CastleInternalFreeType;
 
@@ -53,12 +53,19 @@ type
         ImageX, ImageY: Cardinal;
       end;
       { Map Unicode code to a TGlyph representation. }
-      TGlyphDictionary = class(specialize TFPGMap<TUnicodeChar, TGlyph>)
-      private
+      TGlyphDictionary = class(specialize TDictionary<TUnicodeChar, TGlyph>)
+      strict private
         FOwnsGlyphs: boolean;
+        function GetItems(const AKey: TUnicodeChar): TGlyph;
+        procedure SetItems(const AKey: TUnicodeChar; const AValue: TGlyph);
       public
         property OwnsGlyphs: boolean read FOwnsGlyphs write FOwnsGlyphs default true;
-        constructor Create;
+        { Access dictionary items.
+          Setting this is allowed regardless if the key previously existed or not,
+          in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+          that only allows setting when the key already exists. }
+        property Items [const AKey: TUnicodeChar]: TGlyph read GetItems write SetItems; default;
+        constructor Create; reintroduce;
         destructor Destroy; override;
       end;
   private
@@ -151,13 +158,23 @@ end;
 
 destructor TTextureFontData.TGlyphDictionary.Destroy;
 var
-  I: Integer;
+  G: TGlyph;
 begin
   if OwnsGlyphs then
-    for I := 0 to Count - 1 do
-      Data[I].Free;
+    for G in Values do
+      G.Free;
   Clear;
   inherited;
+end;
+
+function TTextureFontData.TGlyphDictionary.GetItems(const AKey: TUnicodeChar): TGlyph;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TTextureFontData.TGlyphDictionary.SetItems(const AKey: TUnicodeChar; const AValue: TGlyph);
+begin
+  AddOrSetValue(AKey, AValue);
 end;
 
 { TTextureFontData ----------------------------------------------------------------- }
@@ -317,7 +334,7 @@ begin
       GlyphInfo := GetGlyphInfo(C);
       if C <= High(FGlyphsByte) then
         FGlyphsByte[C] := GlyphInfo else
-        FGlyphsExtra.KeyData[C] := GlyphInfo;
+        FGlyphsExtra[C] := GlyphInfo;
       if GlyphInfo <> nil then
       begin
         Inc(GlyphsCount);
@@ -376,8 +393,8 @@ constructor TTextureFontData.CreateFromData(const AGlyphs: TGlyphDictionary;
   const AImage: TGrayscaleImage;
   const ASize: Integer; const AnAntiAliased: boolean);
 var
-  I: Integer;
   C: TUnicodeChar;
+  GlyphPair: TGlyphDictionary.TDictionaryPair;
 begin
   inherited Create;
   FSize := ASize;
@@ -385,12 +402,13 @@ begin
 
   { split AGlyphs into FGlyphsByte and FGlyphsExtra }
   FGlyphsExtra := TGlyphDictionary.Create;
-  for I := 0 to AGlyphs.Count - 1 do
+  for GlyphPair in AGlyphs do
   begin
-    C := AGlyphs.Keys[I];
+    C := GlyphPair.Key;
     if C <= High(FGlyphsByte) then
-      FGlyphsByte[C] := AGlyphs.Data[I] else
-      FGlyphsExtra.KeyData[C] := AGlyphs.Data[I];
+      FGlyphsByte[C] := GlyphPair.Value
+    else
+      FGlyphsExtra[C] := GlyphPair.Value;
   end;
   AGlyphs.OwnsGlyphs := false;
   AGlyphs.Free; // we own AGlyphs, for now we just free them
@@ -410,30 +428,24 @@ begin
 end;
 
 function TTextureFontData.Glyph(const C: TUnicodeChar): TGlyph;
-var
-  I: Integer;
 begin
   if C <= High(FGlyphsByte) then
-    Result := FGlyphsByte[C] else
-  begin
-    I := FGlyphsExtra.IndexOf(C);
-    if I <> -1 then
-      Result := FGlyphsExtra.Data[I] else
-      Result := nil;
-  end;
+    Result := FGlyphsByte[C]
+  else
+  if not FGlyphsExtra.TryGetValue(C, Result) then
+    Result := nil;
 end;
 
 function TTextureFontData.LoadedGlyphs: TUnicodeCharList;
 var
-  I: Integer;
   C: TUnicodeChar;
 begin
   Result := TUnicodeCharList.Create;
   for C := 0 to High(FGlyphsByte) do
     if FGlyphsByte[C] <> nil then
       Result.Add(C);
-  for I := 0 to FGlyphsExtra.Count - 1 do
-    Result.Add(FGlyphsExtra.Keys[I]);
+  for C in FGlyphsExtra.Keys do
+    Result.Add(C);
 end;
 
 function TTextureFontData.TextWidth(const S: string): Integer;

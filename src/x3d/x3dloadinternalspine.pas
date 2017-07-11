@@ -29,7 +29,7 @@ var
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections, FGL, FpJson, JSONParser, JSONScanner, Math,
+uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
   CastleStringUtils, CastleClassUtils, CastleColors,
   X3DLoadInternalUtils, X3DFields, CastleGenericLists;

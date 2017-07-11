@@ -20,7 +20,7 @@ unit CastleUIControls;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
   CastleGenericLists, CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
@@ -186,7 +186,7 @@ type
   TUIContainer = class abstract(TComponent)
   private
     type
-      TFingerIndexCaptureMap = specialize TFPGMap<TFingerIndex, TUIControl>;
+      TFingerIndexCaptureMap = specialize TDictionary<TFingerIndex, TUIControl>;
     var
     FOnOpen, FOnClose: TContainerEvent;
     FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
@@ -224,6 +224,7 @@ type
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
     function UseForceCaptureInput: boolean;
+    function TryGetFingerOfControl(const C: TUIControl; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
     procedure SetUIReferenceWidth(const Value: Integer);
     procedure SetUIReferenceHeight(const Value: Integer);
@@ -1665,6 +1666,7 @@ end;
 procedure TUIContainer.DetachNotification(const C: TUIControl);
 var
   Index: Integer;
+  FingerIndex: TFingerIndex;
 begin
   if FFocus <> nil then
   begin
@@ -1678,10 +1680,24 @@ begin
 
   if FCaptureInput <> nil then
   begin
-    Index := FCaptureInput.IndexOfData(C);
-    if Index <> -1 then
-      FCaptureInput.Delete(Index);
+    while TryGetFingerOfControl(C, FingerIndex) do
+      FCaptureInput.Remove(FingerIndex);
   end;
+end;
+
+function TUIContainer.TryGetFingerOfControl(const C: TUIControl; out Finger: TFingerIndex): boolean;
+var
+  FingerControlPair: TFingerIndexCaptureMap.TDictionaryPair;
+begin
+  { search for control C among the FCaptureInput values, and return corresponding key }
+  for FingerControlPair in FCaptureInput do
+    if FingerControlPair.Value = C then
+    begin
+      Finger := FingerControlPair.Key;
+      Result := true;
+      Exit;
+    end;
+  Result := false;
 end;
 
 function TUIContainer.UseForceCaptureInput: boolean;
@@ -1772,6 +1788,7 @@ var
 var
   I: Integer;
   Tmp: TUIControlList;
+  ControlUnderFinger0: TUIControl;
 begin
   { since this is called at the end of TChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
@@ -1795,8 +1812,8 @@ begin
       also still focused) }
     if UseForceCaptureInput then
       AddInFrontOfNewFocus(ForceCaptureInput) else
-    if (FCaptureInput.IndexOf(0) <> -1) then
-      AddInFrontOfNewFocus(FCaptureInput[0]);
+    if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
+      AddInFrontOfNewFocus(ControlUnderFinger0);
 
     { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
     for I := 0 to FNewFocus.Count - 1 do
@@ -2138,7 +2155,7 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
           Release method because it has Container = nil, and so on). }
         if (Event.EventType = itMouseButton) and
            (C.Container = Self) then
-          FCaptureInput[Event.FingerIndex] := C;
+          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
         Exit(true);
       end;
     end;
@@ -2196,7 +2213,7 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
   end;
 
 var
-  I, CaptureIndex: Integer;
+  I: Integer;
   Capture: TUIControl;
 begin
   Result := false;
@@ -2210,30 +2227,27 @@ begin
 
   { pass to control holding capture }
 
-  CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
+  if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+    Capture := nil;
 
-  if (CaptureIndex <> -1) and
-     not FCaptureInput.Data[CaptureIndex].GetExists then
+  if (Capture <> nil) and not Capture.GetExists then
   begin
     { No longer capturing, since the GetExists returns false now.
       We do not send any events to non-existing controls. }
-    FCaptureInput.Delete(CaptureIndex);
-    CaptureIndex := -1;
+    FCaptureInput.Remove(Event.FingerIndex);
+    Capture := nil;
   end;
 
-  if CaptureIndex <> -1 then
-    Capture := FCaptureInput.Data[CaptureIndex] else
-    Capture := nil;
-  if (CaptureIndex <> -1) and (MousePressed = []) then
+  if (Capture <> nil) and (MousePressed = []) then
   begin
-    { No longer capturing, but will receive the Release event. }
-    FCaptureInput.Delete(CaptureIndex);
+    { No longer capturing, but do not set Capture to nil (it should receive the Release event). }
+    FCaptureInput.Remove(Event.FingerIndex);
   end;
 
   if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
     Result := Capture.Release(Event);
-    Exit;
+    Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
 
   { pass to all Controls with TUIControl.Release event }
@@ -2251,15 +2265,10 @@ end;
 
 procedure TUIContainer.ReleaseCapture(const C: TUIControl);
 var
-  I: Integer;
+  FingerIndex: TFingerIndex;
 begin
-  I := 0;
-  while I < FCaptureInput.Count do
-  begin
-    if FCaptureInput.Data[I] = C then
-      FCaptureInput.Delete(I) else
-      Inc(I);
-  end;
+  while TryGetFingerOfControl(C, FingerIndex) do
+    FCaptureInput.Remove(FingerIndex);
 end;
 
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
@@ -2382,7 +2391,8 @@ procedure TUIContainer.EventMotion(const Event: TInputMotion);
   end;
 
 var
-  I, CaptureIndex: Integer;
+  I: Integer;
+  Capture: TUIControl;
 begin
   UpdateFocusAndMouseCursor;
 
@@ -2395,21 +2405,21 @@ begin
 
   { pass to control holding capture }
 
-  CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
+  if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+    Capture := nil;
 
-  if (CaptureIndex <> -1) and
-     not FCaptureInput.Data[CaptureIndex].GetExists then
+  if (Capture <> nil) and not Capture.GetExists then
   begin
     { No longer capturing, since the GetExists returns false now.
       We do not send any events to non-existing controls. }
-    FCaptureInput.Delete(CaptureIndex);
-    CaptureIndex := -1;
+    FCaptureInput.Remove(Event.FingerIndex);
+    Capture := nil;
   end;
 
-  if (CaptureIndex <> -1) and (FCaptureInput.Data[CaptureIndex] <> ForceCaptureInput) then
+  if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
-    FCaptureInput.Data[CaptureIndex].Motion(Event);
-    Exit;
+    Capture.Motion(Event);
+    Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
 
   { pass to all Controls }

@@ -43,7 +43,7 @@ unit CastleStringUtils;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
 type
@@ -85,7 +85,10 @@ type
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
     but this is better if your key/values may be multiline. }
-  TStringStringMap = class(specialize TFPGMap<string, string>)
+  TStringStringMap = class(specialize TDictionary<string, string>)
+  strict private
+    function GetItems(const AKey: string): string;
+    procedure SetItems(const AKey: string; const AValue: string);
   public
     { Set given key value, trying to preserve previous key value too.
       This is useful for safely setting X3D META values.
@@ -103,6 +106,12 @@ type
 
     { Assign contents (all keys, values) of another TStringStringMap instance. }
     procedure Assign(const Source: TStringStringMap);
+
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
 
 type
@@ -1035,21 +1044,14 @@ end;
 procedure TStringStringMap.PutPreserve(const Name, Content: string);
 var
   PreviousContent: string;
-  I: Integer;
 begin
-  I := IndexOf(Name);
-  if I <> -1 then
-  begin
-    PreviousContent := Data[I];
-    if PreviousContent <> Content then
-    begin
-      { move current content to -previous name }
-      KeyData[Name + '-previous'] := PreviousContent;
-      { set new content }
-      Data[I] := Content;
-    end;
-  end else
-    KeyData[Name] := Content;
+  if TryGetValue(Name, PreviousContent) and
+     (PreviousContent <> Content) then
+    { move current content to -previous name }
+    Items[Name + '-previous'] := PreviousContent;
+
+  { set new content }
+  Items[Name] := Content;
 end;
 
 function TStringStringMap.CreateCopy: TStringStringMap;
@@ -1062,11 +1064,21 @@ end;
 
 procedure TStringStringMap.Assign(const Source: TStringStringMap);
 var
-  I: Integer;
+  Pair: TDictionaryPair;
 begin
   Clear;
-  for I := 0 to Source.Count - 1 do
-    KeyData[Source.Keys[I]] := Source.Data[I];
+  for Pair in Source do
+    Items[Pair.Key] := Pair.Value;
+end;
+
+function TStringStringMap.GetItems(const AKey: string): string;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
+begin
+  AddOrSetValue(AKey, AValue);
 end;
 
 { routines ------------------------------------------------------------------- }
@@ -1874,19 +1886,8 @@ end;
 
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
   const IgnoreCase: boolean): string;
-var
-  PatternsArray, ValuesArray: TDynamicStringArray;
-  I: Integer;
 begin
-  { calculate PatternsArray and ValuesArray from Parameters }
-  SetLength(PatternsArray, Parameters.Count);
-  SetLength(ValuesArray, Parameters.Count);
-  for I := 0 to Parameters.Count - 1 do
-  begin
-    PatternsArray[I] := Parameters.Keys[I];
-    ValuesArray[I] := Parameters.Data[I];
-  end;
-  Result := SReplacePatterns(S, PatternsArray, ValuesArray, IgnoreCase);
+  Result := SReplacePatterns(S, Parameters.Keys.ToArray, Parameters.Values.ToArray, IgnoreCase);
 end;
 
 function SReplacePatterns(const S: string;

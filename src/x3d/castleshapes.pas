@@ -26,7 +26,7 @@ unit CastleShapes;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
@@ -925,7 +925,17 @@ type
     when only mesh names are stored in VRML/X3D exported files),
     in which case it can be a mesh name. }
   TPlaceholderName = function (const Shape: TShape): string;
-  TPlaceholderNames = specialize TFPGMap<string, TPlaceholderName>;
+  TPlaceholderNames = class(specialize TDictionary<string, TPlaceholderName>)
+  strict private
+    function GetItems(const AKey: string): TPlaceholderName;
+    procedure SetItems(const AKey: string; const AValue: TPlaceholderName);
+  public
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: TPlaceholderName read GetItems write SetItems; default;
+  end;
 
 var
   PlaceholderNames: TPlaceholderNames;
@@ -2855,6 +2865,16 @@ begin
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }
+
+function TPlaceholderNames.GetItems(const AKey: string): TPlaceholderName;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TPlaceholderNames.SetItems(const AKey: string; const AValue: TPlaceholderName);
+begin
+  AddOrSetValue(AKey, AValue);
+end;
 
 function X3DShapePlaceholder(const Shape: TShape): string;
 begin
