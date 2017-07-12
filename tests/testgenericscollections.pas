@@ -29,6 +29,9 @@ type
     procedure TestSort;
     procedure TestPack;
     procedure TestMapTryGetValue;
+    procedure TestRecordsList;
+    procedure TestVectorsList;
+    procedure TestMethodsList;
   end;
 
 implementation
@@ -246,6 +249,225 @@ begin
 
     Apples['nope'].Free;
   finally FreeAndNil(Apples) end;
+end;
+
+procedure TTestGenericsCollections.TestRecordsList;
+type
+  TMyRecord = packed record
+    A, B: Integer;
+  end;
+  TMyRecordList = specialize TList<TMyRecord>;
+var
+  List: TMyRecordList;
+  R1, R2, R: TMyRecord;
+begin
+  List := TMyRecordList.Create;
+  try
+    R1.A := 11;
+    R1.B := 22;
+    List.Add(R1);
+
+    R2.A := 33;
+    R2.B := 44;
+    List.Add(R2);
+
+    R2.A := 33;
+    R2.B := 44;
+    List.Add(R2);
+
+    AssertEquals(3, List.Count);
+    AssertEquals(11, List[0].A);
+    AssertEquals(22, List[0].B);
+    AssertEquals(33, List[1].A);
+    AssertEquals(44, List[1].B);
+    AssertEquals(33, List[2].A);
+    AssertEquals(44, List[2].B);
+
+    List.Delete(2);
+
+    AssertEquals(2, List.Count);
+    AssertEquals(11, List[0].A);
+    AssertEquals(22, List[0].B);
+    AssertEquals(33, List[1].A);
+    AssertEquals(44, List[1].B);
+
+    AssertEquals(0, List.IndexOf(R1));
+    AssertEquals(1, List.IndexOf(R2));
+
+    // change R1 and R2, to make sure it doesn't matter for tests
+    R1.A := 111111;
+    R1.B := 222222;
+    R2.A := 333333;
+    R2.B := 444444;
+    AssertEquals(-1, List.IndexOf(R1));
+    AssertEquals(-1, List.IndexOf(R2));
+
+    R.A := 11;
+    R.B := 22;
+    AssertEquals(0, List.IndexOf(R));
+
+    R.A := 33;
+    R.B := 44;
+    AssertEquals(1, List.IndexOf(R));
+
+    R.A := 11;
+    R.B := 22;
+    List.Remove(R);
+    AssertEquals(1, List.Count);
+    AssertEquals(33, List[0].A);
+    AssertEquals(44, List[0].B);
+
+    R.A := 666;
+    R.B := 22;
+    List.Remove(R); // does nothing, no such record
+    AssertEquals(1, List.Count);
+    AssertEquals(33, List[0].A);
+    AssertEquals(44, List[0].B);
+  finally FreeAndNil(List) end;
+end;
+
+procedure TTestGenericsCollections.TestVectorsList;
+type
+  TMyVector = packed array [0..1] of Single;
+  TMyVectorList = specialize TList<TMyVector>;
+var
+  List: TMyVectorList;
+  R1, R2, R: TMyVector;
+begin
+  List := TMyVectorList.Create;
+  try
+    R1[0] := 11;
+    R1[1] := 22;
+    List.Add(R1);
+
+    R2[0] := 33;
+    R2[1] := 44;
+    List.Add(R2);
+
+    R2[0] := 33;
+    R2[1] := 44;
+    List.Add(R2);
+
+    AssertEquals(3, List.Count);
+    AssertEquals(11, List[0][0]);
+    AssertEquals(22, List[0][1]);
+    AssertEquals(33, List[1][0]);
+    AssertEquals(44, List[1][1]);
+    AssertEquals(33, List[2][0]);
+    AssertEquals(44, List[2][1]);
+
+    List.Delete(2);
+
+    AssertEquals(2, List.Count);
+    AssertEquals(11, List[0][0]);
+    AssertEquals(22, List[0][1]);
+    AssertEquals(33, List[1][0]);
+    AssertEquals(44, List[1][1]);
+
+    AssertEquals(0, List.IndexOf(R1));
+    AssertEquals(1, List.IndexOf(R2));
+
+    // change R1 and R2, to make sure it doesn't matter for tests
+    R1[0] := 111111;
+    R1[1] := 222222;
+    R2[0] := 333333;
+    R2[1] := 444444;
+    AssertEquals(-1, List.IndexOf(R1));
+    AssertEquals(-1, List.IndexOf(R2));
+
+    R[0] := 11;
+    R[1] := 22;
+    AssertEquals(0, List.IndexOf(R));
+
+    R[0] := 33;
+    R[1] := 44;
+    AssertEquals(1, List.IndexOf(R));
+
+    R[0] := 11;
+    R[1] := 22;
+    List.Remove(R);
+    AssertEquals(1, List.Count);
+    AssertEquals(33, List[0][0]);
+    AssertEquals(44, List[0][1]);
+
+    R[0] := 666;
+    R[1] := 22;
+    List.Remove(R); // does nothing, no such item
+    AssertEquals(1, List.Count);
+    AssertEquals(33, List[0][0]);
+    AssertEquals(44, List[0][1]);
+  finally FreeAndNil(List) end;
+end;
+
+type
+  TSomeClass = class
+    procedure Foo(A: Integer);
+  end;
+
+procedure TSomeClass.Foo(A: Integer);
+begin
+end;
+
+procedure TTestGenericsCollections.TestMethodsList;
+type
+  TMyMethod = procedure (A: Integer) of object;
+  TMyMethodList = specialize TList<TMyMethod>;
+
+  procedure AssertMethodsEqual(const M1, M2: TMyMethod);
+  begin
+    AssertTrue(TMethod(M1).Code = TMethod(M2).Code);
+    AssertTrue(TMethod(M1).Data = TMethod(M2).Data);
+  end;
+
+var
+  List: TMyMethodList;
+  C1, C2, C3: TSomeClass;
+  M: TMyMethod;
+begin
+  C1 := TSomeClass.Create;
+  C2 := TSomeClass.Create;
+  C3 := TSomeClass.Create;
+
+  List := TMyMethodList.Create;
+  try
+    List.Add(@C1.Foo);
+    List.Add(@C2.Foo);
+    List.Add(@C2.Foo);
+
+    AssertEquals(3, List.Count);
+    M := @C1.Foo;
+    AssertMethodsEqual(List[0], M);
+    M := @C2.Foo;
+    AssertMethodsEqual(List[1], M);
+    AssertMethodsEqual(List[2], M);
+
+    List.Delete(2);
+
+    AssertEquals(2, List.Count);
+    M := @C1.Foo;
+    AssertMethodsEqual(List[0], M);
+    M := @C2.Foo;
+    AssertMethodsEqual(List[1], M);
+
+    AssertEquals(0, List.IndexOf(@C1.Foo));
+    AssertEquals(1, List.IndexOf(@C2.Foo));
+
+    AssertEquals(-1, List.IndexOf(@C3.Foo));
+
+    List.Remove(@C1.Foo);
+    AssertEquals(1, List.Count);
+    M := @C2.Foo;
+    AssertMethodsEqual(List[0], M);
+
+    List.Remove(@C3.Foo); // does nothing, no such item
+    AssertEquals(1, List.Count);
+    M := @C2.Foo;
+    AssertMethodsEqual(List[0], M);
+  finally FreeAndNil(List) end;
+
+  C1.Free;
+  C2.Free;
+  C3.Free;
 end;
 
 initialization
