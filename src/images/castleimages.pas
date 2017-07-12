@@ -3950,61 +3950,16 @@ end;
 
 type
   { List of TLoadImageEvent methods. }
-  TLoadImageEventList = class
-  strict private
-    { TODO: Cannot base TLoadImageEventList on
-        specialize TGenericStructList<TLoadImageEvent>
-      because of FPC 2.6.4 bugs, it would prevent using castle_bake.lpk in Lazarus
-      --- the unit then tries to endlessly recompile itself?
-      Even with -Ur, and -Ur is bad anyway (uncomfortable for engine development).
-
-      This can probably be solved now with FPC 3.0.0 and Generics.Collections }
-    FItems: array of TLoadImageEvent;
-    procedure Delete(const Index: Integer);
-  public
-    procedure Add(const M: TLoadImageEvent);
-    procedure Remove(const M: TLoadImageEvent);
+  TLoadImageEventList = class(specialize TList<TLoadImageEvent>)
     procedure Execute(var URL: string);
   end;
-
-procedure TLoadImageEventList.Add(const M: TLoadImageEvent);
-var
-  C: Integer;
-begin
-  C := Length(FItems);
-  SetLength(FItems, C + 1);
-  FItems[C] := M;
-end;
-
-procedure TLoadImageEventList.Remove(const M: TLoadImageEvent);
-var
-  I: Integer;
-begin
-  for I := 0 to High(FItems) do
-    if (TMethod(FItems[I]).Code = TMethod(M).Code) and
-       (TMethod(FItems[I]).Data = TMethod(M).Data) then
-    begin
-      Delete(I);
-      Exit;
-    end;
-end;
-
-procedure TLoadImageEventList.Delete(const Index: Integer);
-var
-  I, C: Integer;
-begin
-  C := Length(FItems);
-  for I := Index + 1 to C - 1 do
-    FItems[I - 1] := FItems[I];
-  SetLength(FItems, C - 1);
-end;
 
 procedure TLoadImageEventList.Execute(var URL: string);
 var
   I: Integer;
 begin
-  for I := 0 to High(FItems) do
-    FItems[I](URL);
+  for I := 0 to Count - 1 do
+    Items[I](URL);
 end;
 
 var
