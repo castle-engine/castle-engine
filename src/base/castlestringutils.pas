@@ -260,11 +260,11 @@ function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 
 { Appends to a string S DataSize bytes from Data. }
-procedure SAppendData(var s: string; const Data; DataSize: integer);
+procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
 
 { A pointer to S[CharNum], that is just @@S[CharNum],
   avoiding range checking. }
-function SChar(const s: string; CharNum: integer): PChar;
+function SChar(const s: string; CharNum: integer): PChar; deprecated 'this function is not very useful';
 
 { Check whether S[Index] = C, also checking is Index within S length.
   Return false if S is too short, or the chatacter differs.
@@ -1343,19 +1343,28 @@ var
 begin
   OldLen := Length(s);
   SetLength(s, OldLen+DataSize);
+  {$warnings off}
+  // using deprecated within deprecated
   Move(Data, SChar(s, OldLen+1)^ , DataSize);
+  {$warnings on}
 end;
 
 {$Include NoRQCheckBegin.inc}
 function SChar(const s: string; CharNum: integer): PChar;
-begin Result := @s[CharNum] end;
+begin
+  Result := @s[CharNum]
+end;
 {$Include NoRQCheckEnd.inc}
 
 function SCharIs(const s: string; index: integer; c: char): boolean;
-begin result:=(index <= Length(s)) and (s[index] = c) end;
+begin
+  Result := (index <= Length(s)) and (s[index] = c)
+end;
 
 function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean;
-begin result:=(index <= Length(s)) and (s[index] in chars) end;
+begin
+  Result := (index <= Length(s)) and (s[index] in chars)
+end;
 
 function SReadableForm(const S: string): string;
 var

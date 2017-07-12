@@ -138,13 +138,14 @@ begin
   Result := ExcludeTrailingPathDelimiter(S);
 end;
 
+{ This is also defined in CastleStringUtils publicly,
+  but we don't want to use CastleStringUtils here, to keep our dependencies simple. }
+function SCharIs(const s: string; index: integer; c: char): boolean;
+begin
+  Result := (index <= Length(s)) and (s[index] = c);
+end;
+
 function IsPathAbsolute(const Path: string): boolean;
-
-  function SCharIs(const s: string; index: integer; c: char): boolean;
-  begin
-    result:=(index <= Length(s)) and (s[index] = c)
-  end;
-
 begin
   Result := {$ifdef UNIX} SCharIs(Path, 1, PathDelim) {$endif}
             {$ifdef MSWINDOWS} SCharIs(Path, 2, DriveDelim) {$endif};
