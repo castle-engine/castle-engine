@@ -46,6 +46,7 @@ type
   TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
   TInputMotionEvent = procedure (Container: TUIContainer; const Event: TInputMotion);
 
+  { Tracking of a touch by a single finger, used by TTouchList. }
   TTouch = object
   public
     { Index of the finger/mouse. Always simply zero on traditional desktops with
@@ -96,6 +97,7 @@ type
   end;
   PTouch = ^TTouch;
 
+  { Tracking of multi-touch, a position of each finger on the screen. }
   TTouchList = class(specialize TStructList<TTouch>)
   private
     { Find an item with given FingerIndex, or -1 if not found. }
@@ -387,7 +389,18 @@ type
 
     function Fps: TFramesPerSecond; virtual; abstract;
 
+    { Currently active touches on the screen.
+      This tracks currently pressed fingers, in case of touch devices (mobile, like Android and iOS).
+      In case of desktops, it tracks the current mouse position, regardless if any mouse button is
+      currently pressed.
+
+      Indexed from 0 to TouchesCount - 1.
+      @seealso TouchesCount
+      @seealso TTouch }
     property Touches[Index: Integer]: TTouch read GetTouches;
+
+    { Count of currently active touches (mouse or fingers pressed) on the screen.
+      @seealso Touches }
     function TouchesCount: Integer; virtual; abstract;
 
     { Capture the current container (window) contents to an image

@@ -1237,7 +1237,18 @@ type
     property MousePosition: TVector2Single
       read FMousePosition write SetMousePosition;
 
+    { Currently active touches on the screen.
+      This tracks currently pressed fingers, in case of touch devices (mobile, like Android and iOS).
+      In case of desktops, it tracks the current mouse position, regardless if any mouse button is
+      currently pressed.
+
+      Indexed from 0 to TouchesCount - 1.
+      @seealso TouchesCount
+      @seealso TTouch }
     property Touches[Index: Integer]: TTouch read GetTouches;
+
+    { Count of currently active touches (mouse or fingers pressed) on the screen.
+      @seealso Touches }
     function TouchesCount: Integer;
 
     { When (if at all) window size may be changed.
@@ -3546,7 +3557,12 @@ begin
   Event := InputMouseButton(Position, Button, FingerIndex);
   Container.EventRelease(Event);
   if TrackReleased then
-    FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position else
+    { for desktops, when the mouse is used, we track the position of the mouse
+      even after "mouse up" event. }
+    FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position
+  else
+    { for touch devices, it does not make sense to track the position when the finger
+      is not pressing. }
     FTouches.RemoveFingerIndex(Event.FingerIndex);
 end;
 
