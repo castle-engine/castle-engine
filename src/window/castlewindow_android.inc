@@ -31,7 +31,7 @@
 
 {$ifdef read_interface_uses}
 CastleAndroidInternalNativeWindow, CastleAndroidInternalInput,
-CastleAndroidNativeAppGlue, CastleGenericLists,
+CastleAndroidNativeAppGlue,
 {$endif}
 
 {$ifdef read_implementation_uses}
@@ -72,7 +72,7 @@ private
       Touch: TTouchChange;
       FingerIndex: TFingerIndex;
     end;
-    TQueuedEventList = specialize TGenericStructList<TQueuedEvent>;
+    TQueuedEventList = specialize TList<TQueuedEvent>;
 
   const
     FingerCount = 20;

@@ -97,7 +97,8 @@ function CreateSmoothNormalsCoordinateNode(
 
 implementation
 
-uses X3DFields, CastleTriangulate, CastleGenericLists;
+uses Generics.Collections,
+  X3DFields, CastleTriangulate;
 
 type
   TFace = record
@@ -107,7 +108,7 @@ type
   end;
   PFace = ^TFace;
 
-  TFaceList = specialize TGenericStructList<TFace>;
+  TFaceList = specialize TStructList<TFace>;
 
 function CreateNormals(CoordIndex: TLongintList;
   Vertices: TVector3SingleList;
@@ -160,9 +161,7 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        { It could be written as "Addr(CoordIndex.L[ThisFace^.StartIndex])"
-          but FPC 3.1.1 fails to parse it. }
-        PArray_LongInt(CoordIndex.L(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
+        PArray_LongInt(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
         PVector3Single(Vertices.List), Vertices.Count,
         Vector3Single(0, 0, 1), Convex);
 
@@ -280,10 +279,8 @@ begin
       StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
       Result.L[FaceNumber] := IndexedPolygonNormal(
-        PArray_LongInt(CoordIndex.L(StartIndex)),
-        I - StartIndex,
-        PVector3Single(Vertices.List), Vertices.Count,
-        Vector3Single(0, 0, 0), Convex);
+        PArray_LongInt(CoordIndex.Ptr(StartIndex)), I - StartIndex,
+        Vertices.L, Vertices.Count, Vector3Single(0, 0, 0), Convex);
       Inc(FaceNumber);
 
       Inc(I);
@@ -330,8 +327,7 @@ begin
 
   FaceNormal := IndexedPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    PVector3Single(Coord.List), Coord.Count,
-    Vector3Single(0, 0, 0), Convex);
+    Coord.L, Coord.Count, Vector3Single(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
   begin

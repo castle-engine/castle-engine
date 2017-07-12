@@ -48,7 +48,8 @@ unit CastleTriangles;
 
 interface
 
-uses CastleUtils, CastleVectors, CastleGenericLists;
+uses Generics.Collections,
+  CastleUtils, CastleVectors;
 
 type
   TTriangle2Single = packed array[0..2]of TVector2Single;     PTriangle2Single = ^TTriangle2Single;
@@ -252,7 +253,7 @@ type
     IndexBegin, IndexEnd: Integer;
   end;
 
-  TFaceIndexesList = specialize TGenericStructList<TFaceIndex>;
+  TFaceIndexesList = specialize TStructList<TFaceIndex>;
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);

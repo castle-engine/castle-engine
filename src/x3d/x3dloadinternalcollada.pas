@@ -41,7 +41,7 @@ implementation
 uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
   CastleUtils, CastleStringUtils, CastleVectors, CastleColors,
   CastleXMLUtils, CastleLog, CastleClassUtils, X3DLoadInternalUtils,
-  CastleDownload, CastleURIUtils, CastleGenericLists;
+  CastleDownload, CastleURIUtils;
 
 { Large missing stuff:
 

@@ -26,7 +26,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
-  CastleGenericLists, CastleRectangles, CastleCameras, CastleRendererInternalShader,
+  CastleRectangles, CastleCameras, CastleRendererInternalShader,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 
 {$define read_interface}
@@ -802,7 +802,7 @@ type
   end;
 
 type
-  TTriangle4SingleList = specialize TGenericStructList<TTriangle4Single>;
+  TTriangle4SingleList = specialize TStructList<TTriangle4Single>;
 
 procedure Register;
 
@@ -1225,9 +1225,10 @@ var
 
   procedure UpdateVisibilitySensors;
   var
-    I, J: Integer;
+    J: Integer;
     Instances: TVisibilitySensorInstanceList;
     NewActive: boolean;
+    VisibilitySensorsPair: TVisibilitySensors.TDictionaryPair;
   begin
     { optimize for common case: exit early if nothing to do }
     if VisibilitySensors.Count = 0 then Exit;
@@ -1236,12 +1237,12 @@ var
     begin
       BeginChangesSchedule;
       try
-        for I := 0 to VisibilitySensors.Count - 1 do
-          if VisibilitySensors.Keys[I].FdEnabled.Value then
+        for VisibilitySensorsPair in VisibilitySensors do
+          if VisibilitySensorsPair.Key.Enabled then
           begin
             { calculate NewActive }
             NewActive := false;
-            Instances := VisibilitySensors.Data[I];
+            Instances := VisibilitySensorsPair.Value;
             for J := 0 to Instances.Count - 1 do
               if Frustum.Box3DCollisionPossibleSimple(Instances[J].Box) then
               begin
@@ -1254,7 +1255,7 @@ var
               has a problem at initialization, when multiple sensors
               send isActive = TRUE, and X3D mechanism to avoid loops
               kicks in. }
-            VisibilitySensors.Keys[I].SetIsActive(NewActive, NextEventTime);
+            VisibilitySensorsPair.Key.SetIsActive(NewActive, NextEventTime);
           end;
       finally EndChangesSchedule; end;
     end;

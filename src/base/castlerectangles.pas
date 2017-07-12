@@ -20,7 +20,8 @@ unit CastleRectangles;
 
 interface
 
-uses CastleGenericLists, CastleVectors;
+uses Generics.Collections,
+  CastleVectors, CastleUtils;
 
 type
   { Horizontal position of one control/rectangle
@@ -363,7 +364,7 @@ type
 
   PFloatRectangle = ^TFloatRectangle;
 
-  TRectangleList = class(specialize TGenericStructList<TRectangle>)
+  TRectangleList = class(specialize TStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
@@ -371,7 +372,7 @@ type
     function FindRectangle(const Point: TVector2Single): Integer;
   end;
 
-  TFloatRectangleList = specialize TGenericStructList<TFloatRectangle>;
+  TFloatRectangleList = specialize TStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle;
@@ -393,8 +394,7 @@ operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
 
 implementation
 
-uses SysUtils, Math,
-  CastleUtils;
+uses SysUtils, Math;
 
 { TRectangle ----------------------------------------------------------------- }
 

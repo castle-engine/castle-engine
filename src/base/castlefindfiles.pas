@@ -20,7 +20,8 @@ unit CastleFindFiles;
 
 interface
 
-uses SysUtils, CastleUtils, Classes, CastleGenericLists;
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils;
 
 type
   { }
@@ -39,7 +40,7 @@ type
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
-  TFileInfoList = specialize TGenericStructList<TFileInfo>;
+  TFileInfoList = specialize TStructList<TFileInfo>;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop

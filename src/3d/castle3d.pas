@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Math, Generics.Collections,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
-  CastleRectangles, CastleUtils, CastleGenericLists, CastleTimeUtils,
+  CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
 type
@@ -128,7 +128,7 @@ type
     This allows you to track the containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
-  TRayCollision = class(specialize TGenericStructList<TRayCollisionNode>)
+  TRayCollision = class(specialize TStructList<TRayCollisionNode>)
   public
     { Distance, in world coordinate system, from the current
       camera to the picked point. The suggested usage is to decide if player
@@ -181,7 +181,7 @@ type
     This allows you to track the containers that contain given collision.
 
     This is never an empty list when returned by XxxCollision method. }
-  TCollisionDetails = class(specialize TGenericStructList<TCollisionDetailsItem>)
+  TCollisionDetails = class(specialize TStructList<TCollisionDetailsItem>)
   public
     { Index of node with given Item. }
     function IndexOfItem(const Item: T3D): Integer;

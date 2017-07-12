@@ -31,7 +31,7 @@ implementation
 
 uses SysUtils, Classes, Generics.Collections,
   CastleStringUtils, CastleFilesUtils, CastleLog, CastleVectors, CastleUtils,
-  CastleClassUtils, X3DLoadInternalUtils, CastleGenericLists, CastleURIUtils,
+  CastleClassUtils, X3DLoadInternalUtils, CastleURIUtils,
   CastleDownload;
 
 type

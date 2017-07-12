@@ -20,7 +20,8 @@ unit X3DTime;
 
 interface
 
-uses CastleUtils, CastleTimeUtils, CastleGenericLists;
+uses Generics.Collections,
+  CastleUtils, CastleTimeUtils;
 
 { Workaround FPC 3.0.0 and 3.0.2 bug:
   after using Generics.Collections (and compiling Generics.Collections
@@ -93,7 +94,7 @@ operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 {$endif FPC_OBJFPC}
 
 type
-  TX3DTimeList = specialize TGenericStructList<TX3DTime>;
+  TX3DTimeList = specialize TStructList<TX3DTime>;
 
 implementation
 

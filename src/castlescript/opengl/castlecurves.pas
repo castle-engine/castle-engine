@@ -629,7 +629,7 @@ end;
 
 procedure TControlPointsCurve.UpdateControlPoints;
 begin
-  FBoundingBox := CalculateBoundingBox(PVector3Single(ControlPoints.List),
+  FBoundingBox := CalculateBoundingBox(ControlPoints.L,
     ControlPoints.Count, 0);
 end;
 
@@ -953,7 +953,7 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
   procedure UpdateBoundingBox;
   begin
-    FBoundingBox := CalculateBoundingBox(PVector3Single(ConvexHullPoints.List),
+    FBoundingBox := CalculateBoundingBox(ConvexHullPoints.L,
       ConvexHullPoints.Count, 0);
   end;
 

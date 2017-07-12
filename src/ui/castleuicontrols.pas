@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleGenericLists, CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
+  CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
 const
@@ -96,7 +96,7 @@ type
   end;
   PTouch = ^TTouch;
 
-  TTouchList = class(specialize TGenericStructList<TTouch>)
+  TTouchList = class(specialize TStructList<TTouch>)
   private
     { Find an item with given FingerIndex, or -1 if not found. }
     function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
@@ -1567,7 +1567,8 @@ var
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    Result := L[Index].Position else
+    Result := L[Index].Position
+  else
     Result := ZeroVector2Single;
 end;
 

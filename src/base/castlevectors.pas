@@ -143,7 +143,7 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, CastleUtils, CastleGenericLists;
+uses SysUtils, CastleUtils, Generics.Collections;
 
 {$define read_interface}
 

@@ -21,12 +21,13 @@ unit CastleApplicationProperties;
 
 interface
 
-uses CastleClassUtils, CastleGenericLists;
+uses Generics.Collections,
+  CastleClassUtils;
 
 type
   TGLContextEvent = procedure;
 
-  TGLContextEventList = class(specialize TGenericStructList<TGLContextEvent>)
+  TGLContextEventList = class(specialize TList<TGLContextEvent>)
   public
     { Call all items, first to last. }
     procedure ExecuteForward;
@@ -36,7 +37,7 @@ type
 
   TWarningEvent = procedure (Sender: TObject; const Category, Message: string) of object;
 
-  TWarningEventList = class(specialize TGenericStructList<TWarningEvent>)
+  TWarningEventList = class(specialize TList<TWarningEvent>)
   public
     procedure ExecuteAll(Sender: TObject; const Category, Message: string);
   end;

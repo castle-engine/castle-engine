@@ -18,7 +18,7 @@
 {$APPTYPE CONSOLE}
 
 uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
-  CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
+  CastleParameters, CastleImages, CastleStringUtils,
   CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
   CastleTextureImages, CastleXMLUtils;
 
@@ -35,7 +35,7 @@ type
     AX, AY: single;     { Anchor }
   end;
 
-  TFrameList = specialize TGenericStructList<TFrame>;
+  TFrameList = specialize TList<TFrame>;
   TAnimations = class(specialize TDictionary<string, TFrameList>)
     destructor Destroy; override;
   end;

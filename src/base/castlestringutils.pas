@@ -78,7 +78,7 @@ type
 
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
-      to work for both TGenericStructList and for TCastleStringList. }
+      that work for both TCastleStringList and TStructList. }
     property L[Index: Integer]: string read GetL write SetL;
   end;
 

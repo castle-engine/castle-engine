@@ -20,9 +20,8 @@ unit CastleXMLConfig;
 
 interface
 
-uses SysUtils, Classes, DOM,
-  CastleUtils, CastleXMLCfgInternal, CastleXMLUtils, CastleVectors,
-  CastleGenericLists, CastleColors;
+uses SysUtils, Classes, DOM, Generics.Collections,
+  CastleUtils, CastleXMLCfgInternal, CastleXMLUtils, CastleVectors, CastleColors;
 
 type
   EMissingAttribute = class(Exception);
@@ -31,7 +30,7 @@ type
 
   TCastleConfigEvent = procedure (const Config: TCastleConfig) of object;
 
-  TCastleConfigEventList = class(specialize TGenericStructList<TCastleConfigEvent>)
+  TCastleConfigEventList = class(specialize TList<TCastleConfigEvent>)
   public
     { Call all items. }
     procedure ExecuteAll(const Config: TCastleConfig);

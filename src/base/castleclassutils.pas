@@ -44,8 +44,8 @@ unit CastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, CastleUtils, CastleStringUtils, Contnrs,
-  CastleGenericLists, CastleVectors;
+uses Classes, SysUtils, Contnrs, Generics.Collections,
+  CastleUtils, CastleStringUtils, CastleVectors;
 
 { ---------------------------------------------------------------------------- }
 { @section(Text reading) }
@@ -562,11 +562,11 @@ var
   { @groupEnd }
 
 { ---------------------------------------------------------------------------- }
-{ @section(Stack, Queue) }
+{ @section(Containers) }
 
 type
-  { }
-  TCastleObjectStack = class(TObjectStack)
+  { Extended TObjectStack for Castle Game Engine. }
+  TCastleObjectStack = class(Contnrs.TObjectStack)
   private
     function GetCapacity: Integer;
     procedure SetCapacity(const Value: Integer);
@@ -574,18 +574,17 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
   end;
 
-  TCastleObjectQueue = class(TObjectQueue)
+  { Extended TObjectQueue for Castle Game Engine. }
+  TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
     function GetCapacity: Integer;
     procedure SetCapacity(const Value: Integer);
   public
     property Capacity: Integer read GetCapacity write SetCapacity;
   end;
-
-{ ---------------------------------------------------------------------------- }
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class(TObjectList)
+  TCastleObjectList = class(Contnrs.TObjectList)
   public
     { Create and fill with the contents of given array.
 
@@ -599,7 +598,7 @@ type
     procedure AddArray(const A: array of TObject);
 
     { Add contents of other TObjectList instance to the list. }
-    procedure AddList(AList: TObjectList);
+    procedure AddList(AList: Contnrs.TObjectList);
 
     { Replace first found descendant of ReplaceClass with NewItem.
       In case no descendant of ReplaceClass was found,
@@ -648,7 +647,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class(specialize TGenericStructList<TNotifyEvent>)
+  TNotifyEventList = class(specialize TList<TNotifyEvent>)
   public
     { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -1575,7 +1574,7 @@ begin
     Add(A[I]);
 end;
 
-procedure TCastleObjectList.AddList(AList: TObjectList);
+procedure TCastleObjectList.AddList(AList: Contnrs.TObjectList);
 var
   I: Integer;
 begin
@@ -1691,8 +1690,8 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Assigned(L[I]) then
-      L[I](Sender);
+    if Assigned(Items[I]) then
+      Items[I](Sender);
 end;
 
 procedure TNotifyEventList.ExecuteForward(Sender: TObject);
@@ -1705,9 +1704,11 @@ var
   I: Integer;
 begin
   for I := Count - 1 downto 0 do
-    if Assigned(L[I]) then
-      L[I](Sender);
+    if Assigned(Items[I]) then
+      Items[I](Sender);
 end;
+
+{ DumpStack ------------------------------------------------------------------ }
 
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 var

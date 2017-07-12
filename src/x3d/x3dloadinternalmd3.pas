@@ -22,7 +22,7 @@ unit X3DLoadInternalMD3;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes, CastleGenericLists,
+  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   CastleInternalNodeInterpolator;
 
 { Load MD3 animation as a sequence of static X3D models. }
@@ -37,14 +37,14 @@ type
   TMd3Triangle = record
     Indexes: array [0..2] of LongWord;
   end;
-  TMd3TriangleList = specialize TGenericStructList<TMd3Triangle>;
+  TMd3TriangleList = specialize TStructList<TMd3Triangle>;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
     Normal: SmallInt;
   end;
   PMd3Vertex = ^TMd3Vertex;
-  TMd3VertexList = specialize TGenericStructList<TMd3Vertex>;
+  TMd3VertexList = specialize TStructList<TMd3Vertex>;
 
   TMd3TexCoord = TVector2Single;
   TMd3TexCoordList = TVector2SingleList;
@@ -475,7 +475,7 @@ var
   begin
     Result := TTextureCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := TextureCoords.Count;
-    V := PVector2Single(TextureCoords.List);
+    V := TextureCoords.L;
     for I := 0 to TextureCoords.Count - 1 do
     begin
       Result.FdPoint.Items.L[I] := Vector2Single(V^[0], 1-V^[1]);

@@ -178,7 +178,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleGenericLists, CastleShaders, CastleProjection;
+  CastleTextureFontData, CastleShaders, CastleProjection;
 
 {$define read_interface}
 
@@ -390,7 +390,7 @@ type
   end;
   PLightInstance = ^TLightInstance;
 
-  TLightInstancesList = class(specialize TGenericStructList<TLightInstance>)
+  TLightInstancesList = class(specialize TStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TAbstractLightNode): integer;
@@ -409,7 +409,7 @@ type
   end;
   PClipPlane = ^TClipPlane;
 
-  TClipPlaneList = class(specialize TGenericStructList<TClipPlane>)
+  TClipPlaneList = class(specialize TStructList<TClipPlane>)
   public
     { Find record with given TClipPlaneNode, returns -1 if not found. }
     function IndexOfNode(Node: TClipPlaneNode): Integer;
@@ -729,7 +729,7 @@ type
 
   TNodeDestructionNotification = procedure (Node: TX3DNode) of object;
 
-  TNodeDestructionNotificationList = class(specialize TGenericStructList<TNodeDestructionNotification>)
+  TNodeDestructionNotificationList = class(specialize TList<TNodeDestructionNotification>)
   public
     { Call all functions. }
     procedure ExecuteAll(Node: TX3DNode);
@@ -1825,7 +1825,7 @@ type
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
   { List to track node names while parsing VRML/X3D file. }
-  TX3DNodeNames = class(specialize TGenericStructList<TX3DNodeNameRec>)
+  TX3DNodeNames = class(specialize TStructList<TX3DNodeNameRec>)
   private
     FAutoRemove: boolean;
     procedure DestructionNotification(Node: TX3DNode);
@@ -6467,7 +6467,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](Node);
+    Items[I](Node);
 end;
 
 { unit init/fini ------------------------------------------------------------ }

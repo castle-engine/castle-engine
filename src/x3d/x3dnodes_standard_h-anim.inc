@@ -47,7 +47,7 @@
     procedure Add(Joint: THAnimJointNode; const Weight: Single);
   end;
   PVertexJoints = ^TVertexJoints;
-  TVertexJointsList = specialize TGenericStructList<TVertexJoints>;
+  TVertexJointsList = specialize TStructList<TVertexJoints>;
 
   { Central node for moving the animated humanoid. It contains the skeleton,
     and other information necessary for animation. }

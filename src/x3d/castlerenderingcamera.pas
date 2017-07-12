@@ -20,7 +20,8 @@ unit CastleRenderingCamera;
 
 interface
 
-uses CastleUtils, CastleVectors, CastleFrustum, CastleCameras, CastleGenericLists, X3DNodes;
+uses Generics.Collections,
+  CastleUtils, CastleVectors, CastleFrustum, CastleCameras, X3DNodes;
 
 type
   TRenderingCamera = class;
@@ -29,7 +30,7 @@ type
     const RenderingCamera: TRenderingCamera;
     Viewpoint: TAbstractViewpointNode) of object;
 
-  TCameraChangedEventList = class(specialize TGenericStructList<TCameraChangedEvent>)
+  TCameraChangedEventList = class(specialize TList<TCameraChangedEvent>)
   public
     { This calls all functions (all Items). }
     procedure ExecuteAll(const RenderingCamera: TRenderingCamera;
@@ -151,7 +152,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](RenderingCamera, Viewpoint);
+    Items[I](RenderingCamera, Viewpoint);
 end;
 
 { TRenderingCamera --------------------------------------------------------------- }

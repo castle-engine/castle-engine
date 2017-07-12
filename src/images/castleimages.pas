@@ -3956,7 +3956,9 @@ type
         specialize TGenericStructList<TLoadImageEvent>
       because of FPC 2.6.4 bugs, it would prevent using castle_bake.lpk in Lazarus
       --- the unit then tries to endlessly recompile itself?
-      Even with -Ur, and -Ur is bad anyway (uncomfortable for engine development). }
+      Even with -Ur, and -Ur is bad anyway (uncomfortable for engine development).
+
+      This can probably be solved now with FPC 3.0.0 and Generics.Collections }
     FItems: array of TLoadImageEvent;
     procedure Delete(const Index: Integer);
   public

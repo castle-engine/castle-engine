@@ -22,8 +22,9 @@ unit X3DTriangles;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, X3DNodes, Castle3D, CastleBoxes,
-  CastleInternalOctree, CastleGenericLists, CastleTriangles;
+uses SysUtils, Generics.Collections,
+  CastleVectors, CastleUtils, X3DNodes, Castle3D, CastleBoxes,
+  CastleInternalOctree, CastleTriangles;
 
 { TTriangle  ------------------------------------------------------------ }
 
@@ -187,7 +188,7 @@ type
   end;
   PTriangle = ^TTriangle;
 
-  TTriangleList = specialize TGenericStructList<TTriangle>;
+  TTriangleList = specialize TStructList<TTriangle>;
 
 { TBaseTrianglesOctree ----------------------------------------------------------- }
 

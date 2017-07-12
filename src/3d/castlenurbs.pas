@@ -154,7 +154,7 @@ function NurbsCurvePoint(const Points: TVector3SingleList;
   Knot, Weight: TDoubleList;
   Tangent: PVector3Single): TVector3Single;
 begin
-  Result := NurbsCurvePoint(PVector3Single(Points.List), Points.Count,
+  Result := NurbsCurvePoint(Points.L, Points.Count,
     U, Order, Knot, Weight, Tangent);
 end;
 

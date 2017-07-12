@@ -19,7 +19,8 @@ unit CastleShapeInternalShadowVolumes;
 
 interface
 
-uses CastleGenericLists, CastleVectors, CastleTriangles;
+uses Generics.Collections,
+  CastleUtils, CastleVectors, CastleTriangles;
 
 type
   { Edge that is between exactly two triangles.
@@ -62,7 +63,7 @@ type
   end;
   PManifoldEdge = ^TManifoldEdge;
 
-  TManifoldEdgeList = specialize TGenericStructList<TManifoldEdge>;
+  TManifoldEdgeList = specialize TStructList<TManifoldEdge>;
 
   { Edge that has one neighbor, i.e. border edge.
     It's used by @link(TShapeShadowVolumes.BorderEdges),
@@ -80,9 +81,9 @@ type
   end;
   PBorderEdge = ^TBorderEdge;
 
-  TBorderEdgeList = specialize TGenericStructList<TBorderEdge>;
+  TBorderEdgeList = specialize TStructList<TBorderEdge>;
 
-  TTriangle3SingleList = specialize TGenericStructList<TTriangle3Single>;
+  TTriangle3SingleList = specialize TStructList<TTriangle3Single>;
 
   { Triangles array for shadow casting shape. In local shape coordinates. }
   TTrianglesShadowCastersList = TTriangle3SingleList;

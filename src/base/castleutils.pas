@@ -102,6 +102,7 @@ type
 
 {$I castleutils_basic_algorithms.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
@@ -125,6 +126,7 @@ uses CastleStringUtils, CastleFilesUtils;
 
 {$I castleutils_basic_algorithms.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
 {$I castleutils_math.inc}

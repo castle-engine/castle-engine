@@ -31,8 +31,8 @@ implementation
 
 uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
-  CastleStringUtils, CastleClassUtils, CastleColors,
-  X3DLoadInternalUtils, X3DFields, CastleGenericLists;
+  CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
+  X3DFields;
 
 type
   ESpineReadError = class(Exception);

@@ -111,14 +111,14 @@ end;
 function Coords_BoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3Single(Coord.Items.List),
+  Result := CalculateBoundingBox(Coord.Items.L,
     Coord.Items.Count, 0, State.Transform);
 end;
 
 function Coords_LocalBoundingBox(State: TX3DGraphTraverseState;
   Coord: TMFVec3f): TBox3D;
 begin
-  Result := CalculateBoundingBox(PVector3Single(Coord.Items.List),
+  Result := CalculateBoundingBox(Coord.Items.L,
     Coord.Items.Count, 0);
 end;
 

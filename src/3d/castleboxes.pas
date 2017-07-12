@@ -20,8 +20,8 @@ unit CastleBoxes;
 
 interface
 
-uses CastleVectors, SysUtils, CastleUtils, CastleGenericLists, CastleTriangles,
-  CastleRectangles;
+uses SysUtils, Generics.Collections,
+  CastleVectors, CastleUtils, CastleTriangles, CastleRectangles;
 
 type
   EBox3DEmpty = class(Exception);
@@ -523,7 +523,7 @@ const
   EmptyBox3D: TBox3D = (Data: ((0, 0, 0), (-1, -1, -1)));
 
 type
-  TBox3DList = specialize TGenericStructList<TBox3D>;
+  TBox3DList = specialize TStructList<TBox3D>;
 
 { Construct TBox3D value from a minimum and maximum 3D point. }
 function Box3D(const p0, p1: TVector3Single): TBox3D;

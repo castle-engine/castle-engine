@@ -44,9 +44,9 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils,
-  CastleBoxes, CastleLog, CastleVectors, CastleGenericLists,
-  CastleRectangles;
+uses SysUtils, Generics.Collections,
+  CastleUtils, CastleStringUtils,
+  CastleBoxes, CastleLog, CastleVectors, CastleRectangles;
 
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers
@@ -63,7 +63,7 @@ type
   end;
   PLight = ^TLight;
 
-  TLightList = class(specialize TGenericStructList<TLight>)
+  TLightList = class(specialize TStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TComposedShaderNode;

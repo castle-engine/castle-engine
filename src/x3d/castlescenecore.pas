@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
-  Castle3D, CastleInternalShadowMaps, CastleGenericLists, CastleProjection;
+  Castle3D, CastleInternalShadowMaps, CastleProjection;
 
 type
   { Internal helper type for TCastleSceneCore.
@@ -241,7 +241,7 @@ type
     Internal for TCastleSceneCore: list of generated textures
     (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
     along with their shape. }
-  TGeneratedTextureList = class(specialize TGenericStructList<TGeneratedTexture>)
+  TGeneratedTextureList = class(specialize TStructList<TGeneratedTexture>)
   public
     function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
     function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
@@ -266,13 +266,13 @@ type
   { @exclude }
   TVisibilitySensorInstanceList = specialize TObjectList<TVisibilitySensorInstance>;
   { @exclude }
-  TVisibilitySensors = class(specialize TGenericStructMap<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+  TVisibilitySensors = class(specialize TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
   public
     destructor Destroy; override;
     { Remove everything are released owned stuff.
       We own TVisibilitySensorInstanceList instances on our Data list.
       We do not own TVisibilitySensorNode (our Keys list). }
-    procedure Clear;
+    procedure Clear; reintroduce;
   end;
   TTimeDependentHandlerList = class(specialize TObjectList<TInternalTimeDependentHandler>)
     procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
@@ -287,7 +287,7 @@ type
     Name: string;
   end;
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  TCompiledScriptHandlerInfoList = specialize TGenericStructList<TCompiledScriptHandlerInfo>;
+  TCompiledScriptHandlerInfoList = specialize TStructList<TCompiledScriptHandlerInfo>;
 
   { Possible spatial structures that may be managed by TCastleSceneCore,
     see @link(TCastleSceneCore.Spatial). }
@@ -2436,14 +2436,11 @@ end;
 
 procedure TVisibilitySensors.Clear;
 var
-  I: Integer;
+  V: TVisibilitySensorInstanceList;
 begin
-  for I := 0 to Count - 1 do
-  begin
-    Data[I].Free;
-    Data[I] := nil;
-  end;
-  Count := 0;
+  for V in Values do
+    V.Free;
+  inherited Clear;
 end;
 
 { TCastleSceneCore ----------------------------------------------------------- }
@@ -2890,7 +2887,6 @@ function TChangedAllTraverser.Traverse(
   var
     VSI: TVisibilitySensorInstance;
     Instances: TVisibilitySensorInstanceList;
-    Index: Integer;
   begin
     VSI := TVisibilitySensorInstance.Create(ParentScene);
     VSI.Node := Node;
@@ -2900,13 +2896,11 @@ function TChangedAllTraverser.Traverse(
     ShapesGroup.Children.Add(VSI);
 
     { add to ParentScene.VisibilitySensors map }
-    Index := ParentScene.VisibilitySensors.IndexOf(Node);
-    if Index = -1 then
+    if not ParentScene.VisibilitySensors.TryGetValue(Node, Instances) then
     begin
       Instances := TVisibilitySensorInstanceList.Create(false);
       ParentScene.VisibilitySensors.Add(Node, Instances);
-    end else
-      Instances := ParentScene.VisibilitySensors.Data[Index];
+    end;
     Instances.Add(VSI);
   end;
 
@@ -4120,10 +4114,8 @@ var
       VS := TVisibilitySensorNode(ANode);
       { local Box of this node changed,
         so update transformed Box in all TVisibilitySensorInstance for this node }
-      I := VisibilitySensors.IndexOf(VS);
-      if I <> -1 then
+      if VisibilitySensors.TryGetValue(VS, VSInstances) then
       begin
-        VSInstances := VisibilitySensors.Data[I];
         for I := 0 to VSInstances.Count - 1 do
           VSInstances[I].Box := VS.Box.Transform(VSInstances[I].Transform);
       end;

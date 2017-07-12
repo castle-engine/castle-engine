@@ -78,8 +78,7 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
-  CastleShaders, CastleGenericLists;
+  CastleGL, CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -254,7 +253,7 @@ type
     { @groupEnd }
   end;
 
-  TGLSLAttributeList = specialize TGenericStructList<TGLSLAttribute>;
+  TGLSLAttributeList = specialize TList<TGLSLAttribute>;
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -966,9 +965,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
@@ -979,9 +978,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
@@ -992,9 +991,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
@@ -1005,9 +1004,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
@@ -1018,9 +1017,9 @@ begin
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;

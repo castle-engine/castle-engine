@@ -35,7 +35,7 @@ uses SysUtils, Classes, Math,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
   CastleGLVersion, CastleSceneManager, CastleRenderingCamera,
-  CastleGenericLists, CastleRectangles, CastleApplicationProperties;
+  CastleRectangles, CastleApplicationProperties;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -61,7 +61,7 @@ type
     Position, Normal: TVector3Single;
   end;
   PAOElement = ^TAOElement;
-  TAOElementList = specialize TGenericStructList<TAOElement>;
+  TAOElementList = specialize TStructList<TAOElement>;
 
 var
   Elements: TAOElementList;
@@ -557,7 +557,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
 
       if GLVersion.Fglrx then
       begin
-        GLSLProgram[Pass].SetUniform('elements_count', Elements.Count);
+        GLSLProgram[Pass].SetUniform('elements_count', TGLint(Elements.Count));
         GLSLProgram[Pass].SetUniform('tex_elements_size', TGLint(ElementsTexSize));
       end;
 

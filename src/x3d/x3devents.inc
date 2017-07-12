@@ -19,7 +19,7 @@
   TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
     const Time: TX3DTime) of object;
 
-  TX3DEventReceiveList = class(specialize TGenericStructList<TX3DEventReceive>)
+  TX3DEventReceiveList = class(specialize TList<TX3DEventReceive>)
   public
     { Call all functions. }
     procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
@@ -171,7 +171,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](Event, Value, Time);
+    Items[I](Event, Value, Time);
 end;
 
 { TX3DEvent ----------------------------------------------------------------- }
@@ -217,7 +217,7 @@ procedure TX3DEvent.Send(Field: TX3DField; const Time: TX3DTime);
     I: Integer;
   begin
     for I := 0 to HandlersToRemove.Count - 1 do
-      OnReceive.Remove(HandlersToRemove.L[I]);
+      OnReceive.Remove(HandlersToRemove.Items[I]);
     HandlersToRemove.Count := 0;
   end;
 
