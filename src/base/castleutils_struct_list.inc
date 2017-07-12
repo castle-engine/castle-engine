@@ -20,7 +20,7 @@
 type
   { List of structures.
     This is just TList class from Generics.Collections, with some useful helpers. }
-  generic TStructList<T> = class(specialize TList<T>)
+  TStructList<T> = class(TList<T>)
   public
     type
       PT = ^T;
@@ -79,7 +79,7 @@ type
     { Pointer to ith item. }
     function Ptr(I: Integer): PT;
 
-    procedure Assign(const Source: TStructList);
+    procedure Assign(const Source: TStructList<T>);
 
     function ItemSize: SizeInt;
   end;
@@ -90,34 +90,34 @@ type
 
 { TStructList ---------------------------------------------------------------- }
 
-function TStructList.List: PTypeList;
+function TStructList<T>.List: PTypeList;
 begin
   Result := PTypeList(FItems);
 end;
 
-function TStructList.L: PT;
+function TStructList<T>.L: PT;
 begin
   Result := PT(FItems);
 end;
 
-function TStructList.Add: PT;
+function TStructList<T>.Add: PT;
 begin
   Count := Count + 1;
   Result := Addr(List^[Count - 1]);
 end;
 
-function TStructList.Ptr(I: Integer): PT;
+function TStructList<T>.Ptr(I: Integer): PT;
 begin
   Result := Addr(List^[I]);
 end;
 
-procedure TStructList.Assign(const Source: TStructList);
+procedure TStructList<T>.Assign(const Source: TStructList<T>);
 begin
   Clear;
   AddRange(Source);
 end;
 
-function TStructList.ItemSize: SizeInt;
+function TStructList<T>.ItemSize: SizeInt;
 begin
   Result := SizeOf(T);
 end;

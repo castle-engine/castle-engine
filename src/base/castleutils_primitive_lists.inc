@@ -192,7 +192,7 @@ begin
     But, in exchange, it's fast. }
   Count := Source.Count;
   if Count <> 0 then
-    System.Move(Source.L[0], L[0], SizeOf(LongWord) * Count);
+    System.Move(Source.List^[0], List^[0], SizeOf(LongWord) * Count);
 end;
 
 { TFloatList ------------------------------------------------------------ }
@@ -270,7 +270,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(Single) * AddCount);
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(Single) * AddCount);
 end;
 
 procedure TSingleList.AddArray(constref A: array of Single);

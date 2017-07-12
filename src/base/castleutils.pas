@@ -64,6 +64,16 @@ unit CastleUtils;
 
 {$I castleconf.inc}
 
+{ Most of CGE code uses ObjFpc mode under FPC,
+  but this unit needs Delphi mode to workaround FPC 3.0.0 and 3.0.2 bug:
+  they segfault on TStructList definition
+  "generic TStructList<T> = class(specialize TList<T>)".
+
+  Fixed in FPC 3.1.1 already, but CGE needs to work with FPC 3.0.0 and 3.0.2 too.
+
+  So it doesn't seem to be possible to define TStructList correctly in ObjFpc mode. }
+{$mode delphi}
+
 interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
@@ -119,8 +129,6 @@ var
   LocaleDecimalSeparator: char;
 
 implementation
-
-uses CastleStringUtils, CastleFilesUtils;
 
 {$define read_implementation}
 
