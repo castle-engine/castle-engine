@@ -260,7 +260,6 @@ type
   TCasScriptValueList = class(specialize TObjectList<TCasScriptValue>)
   public
     procedure AddArray(const A: array of TCasScriptValue); deprecated 'use AddRange';
-    function ToArray: TCasScriptValuesArray;
     { Find an item by Name. @nil if not found. }
     function FindName(const VariableName: string): TCasScriptValue;
   end;
@@ -864,7 +863,7 @@ type
   end;
 
   TCasScriptUserFunctionList = class(specialize TObjectList<TCasScriptUserFunction>)
-    function IndexOf(const FunctionName: string): Integer;
+    function IndexOfName(const FunctionName: string): Integer;
   end;
 
   ECasScriptMissingFunction = class(ECasScriptError);
@@ -1140,15 +1139,6 @@ end;
 procedure TCasScriptValueList.AddArray(const A: array of TCasScriptValue);
 begin
   AddRange(A);
-end;
-
-function TCasScriptValueList.ToArray: TCasScriptValuesArray;
-var
-  I: Integer;
-begin
-  SetLength(Result, Count);
-  for I := 0 to Count - 1 do
-    Result[I] := Items[I];
 end;
 
 function TCasScriptValueList.FindName(const VariableName: string): TCasScriptValue;
@@ -2686,8 +2676,7 @@ end;
 
 { TCasScriptUserFunctionList ------------------------------------------ }
 
-function TCasScriptUserFunctionList.IndexOf(
-  const FunctionName: string): Integer;
+function TCasScriptUserFunctionList.IndexOfName(const FunctionName: string): Integer;
 begin
   for Result := 0 to Count - 1 do
     if SameText(FunctionName, Items[Result].Name) then
@@ -2718,7 +2707,7 @@ var
   Func: TCasScriptUserFunction;
   FuncIndex, I: Integer;
 begin
-  FuncIndex := Functions.IndexOf(FunctionName);
+  FuncIndex := Functions.IndexOfName(FunctionName);
   if FuncIndex = -1 then
   begin
     if IgnoreMissingFunction then

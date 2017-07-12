@@ -2920,7 +2920,7 @@ function TX3DNode.Field(const AName: string): TX3DField;
 var
   I: Integer;
 begin
-  I := FFields.IndexOf(AName);
+  I := FFields.IndexOfName(AName);
   if I <> -1 then
     Result := FFields[I] else
     Result := nil; { not found }
@@ -2931,7 +2931,7 @@ var
   I: Integer;
   ResultEvent: TX3DEvent;
 begin
-  I := FFields.IndexOf(AName);
+  I := FFields.IndexOfName(AName);
   if I <> -1 then
     Exit(FFields[I]);
 
@@ -2946,7 +2946,7 @@ begin
   if I <> -1 then
     Exit(ResultEvent);
 
-  I := FEvents.IndexOf(AName);
+  I := FEvents.IndexOfName(AName);
   if I <> -1 then
     Exit(Events[I]);
 
@@ -2961,7 +2961,7 @@ begin
   if I <> -1 then
     Exit; { Result is already set }
 
-  I := FEvents.IndexOf(AName);
+  I := FEvents.IndexOfName(AName);
   if I <> -1 then
     Exit(Events[I]);
 
@@ -3197,7 +3197,7 @@ end;
 
 function TX3DNode.IndexOfField(const AName: string): Integer;
 begin
-  Result := FFields.IndexOf(AName);
+  Result := FFields.IndexOfName(AName);
 end;
 
 function TX3DNode.GetEvents(const Index: Integer): TX3DEvent;
@@ -3217,7 +3217,7 @@ end;
 
 function TX3DNode.IndexOfEvent(const AName: string): Integer;
 begin
-  Result := FEvents.IndexOf(AName);
+  Result := FEvents.IndexOfName(AName);
 end;
 
 function TX3DNode.GetPrototypes(const Index: Integer): TX3DPrototypeBase;

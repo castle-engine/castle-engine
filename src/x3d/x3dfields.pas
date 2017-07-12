@@ -1042,7 +1042,7 @@ type
     property ByName[const AName: string]: TX3DField read GetByName;
 
     { Searches for a field with given Name, returns it's index or -1 if not found. }
-    function IndexOf(const AName: string): integer;
+    function IndexOfName(const AName: string): integer;
 
     { Returns if EventName is an event implicitly exposed by one of our
       exposed fields (i.e. set_xxx or xxx_changed). If yes, then
@@ -3582,7 +3582,7 @@ end;
 
 { TX3DFieldList ------------------------------------------------------------- }
 
-function TX3DFieldList.IndexOf(const AName: string): integer;
+function TX3DFieldList.IndexOfName(const AName: string): integer;
 begin
   for Result := 0 to Count-1 do
     if Items[Result].IsName(AName) then
@@ -3594,7 +3594,7 @@ function TX3DFieldList.GetByName(const AName: string): TX3DField;
 var
   I: integer;
 begin
-  I := IndexOf(AName);
+  I := IndexOfName(AName);
   if I <> -1 then
     Result := Items[I] else
     raise EX3DNotFound.CreateFmt('Field name "%s" not found', [AName]);
@@ -3615,12 +3615,12 @@ begin
   if IsPrefix(SetPrefix, EventName, false) then
   begin
     InEvent := true;
-    Result := IndexOf(SEnding(EventName, Length(SetPrefix) + 1));
+    Result := IndexOfName(SEnding(EventName, Length(SetPrefix) + 1));
   end else
   if IsSuffix(ChangedSuffix, EventName, false) then
   begin
     InEvent := false;
-    Result := IndexOf(Copy(EventName, 1,
+    Result := IndexOfName(Copy(EventName, 1,
       Length(EventName) - Length(ChangedSuffix)));
   end else
     Result := -1;

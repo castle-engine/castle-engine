@@ -156,7 +156,7 @@
     property ByName[const AName: string]: TX3DEvent read GetByName;
 
     { Find event index on the list. -1 if not found. }
-    function IndexOf(const Name: string): Integer;
+    function IndexOfName(const Name: string): Integer;
   end;
 
 {$endif read_interface}
@@ -292,7 +292,7 @@ end;
 
 { TX3DEventList ------------------------------------------------------------ }
 
-function TX3DEventList.IndexOf(const Name: string): Integer;
+function TX3DEventList.IndexOfName(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;
@@ -303,7 +303,7 @@ function TX3DEventList.GetByName(const AName: string): TX3DEvent;
 var
   I: integer;
 begin
-  I := IndexOf(AName);
+  I := IndexOfName(AName);
   if I <> -1 then
     Result := Items[I] else
     raise EX3DNotFound.CreateFmt('Event name "%s" not found', [AName]);
