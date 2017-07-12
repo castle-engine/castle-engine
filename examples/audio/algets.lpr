@@ -77,12 +77,8 @@ var
   begin
    result:=
      'Sample Source state -------------------------------' +nl+
-     {$ifdef VER3_1_1}
-     {$warning Workarounding FPC 3.1.1 internal error 200211262 in algets.lpr}
-     {$else}
      'POSITION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_POSITION)) +nl+
      'VELOCITY : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_VELOCITY)) +nl+
-     {$endif}
      'GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_GAIN)) +nl+
      'RELATIVE : '+ BoolToStr(alGetSource1bool(SampleSource, AL_SOURCE_RELATIVE), true) +nl+
      'LOOPING : '+ BoolToStr(alGetSource1bool(SampleSource, AL_LOOPING), true) +nl+
@@ -95,11 +91,7 @@ var
      'ROLLOFF_FACTOR : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_ROLLOFF_FACTOR)) +nl+
      'MAX_DISTANCE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MAX_DISTANCE)) +nl+
      'PITCH : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_PITCH)) +nl+
-     {$ifdef VER3_1_1}
-     {$warning Workarounding FPC 3.1.1 internal error 200211262 in algets.lpr}
-     {$else}
      'DIRECTION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_DIRECTION)) +nl+
-     {$endif}
      'CONE_INNER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_INNER_ANGLE)) +nl+
      'CONE_OUTER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_ANGLE)) +nl+
      'CONE_OUTER_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_GAIN)) +nl+
