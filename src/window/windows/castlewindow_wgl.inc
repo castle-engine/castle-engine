@@ -231,7 +231,7 @@ procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: HWND);
 
           VisualAttr := TLongIntList.Create;
           try
-            VisualAttr.AddArray([
+            VisualAttr.AddRange([
               WGL_DRAW_TO_WINDOW_ARB, GL_TRUE,
               WGL_SUPPORT_OPENGL_ARB, GL_TRUE,
               { If indexed mode will be implemented in CastleWindow one day, this can take
@@ -239,8 +239,8 @@ procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: HWND);
               WGL_PIXEL_TYPE_ARB, WGL_TYPE_RGBA_ARB,
               WGL_ACCELERATION_ARB, WGL_FULL_ACCELERATION_ARB]);
             if DoubleBuffer then
-              VisualAttr.AddArray([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
-            VisualAttr.AddArray([
+              VisualAttr.AddRange([WGL_DOUBLE_BUFFER_ARB, GL_TRUE]);
+            VisualAttr.AddRange([
               WGL_RED_BITS_ARB, RedBits,
               WGL_GREEN_BITS_ARB, GreenBits,
               WGL_BLUE_BITS_ARB, BlueBits,
@@ -256,7 +256,7 @@ procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: HWND);
             begin
               if Load_WGL_ARB_multisample then
               begin
-                VisualAttr.AddArray([
+                VisualAttr.AddRange([
                   WGL_SAMPLE_BUFFERS_ARB, 1,
                   WGL_SAMPLES_ARB, MultiSampling ]);
                 if Log then
@@ -268,7 +268,7 @@ procedure TCastleWindowCustom.ContextCreateEnd(WndPtr: HWND);
             end;
 
             { end of VisualAttr array }
-            VisualAttr.AddArray([0, 0]);
+            VisualAttr.AddRange([0, 0]);
 
             FillChar(VisualAttrFloat, SizeOf(VisualAttrFloat), 0);
 

@@ -149,7 +149,7 @@ procedure BoxWireframe_Proxy(CoordIndex: TLongIntList;
 begin
   Sizes /= 2;
 
-  Coord.AddArray([
+  Coord.AddRange([
     Vector3Single(-Sizes[0], -Sizes[1], -Sizes[2]),
     Vector3Single( Sizes[0], -Sizes[1], -Sizes[2]),
     Vector3Single( Sizes[0],  Sizes[1], -Sizes[2]),

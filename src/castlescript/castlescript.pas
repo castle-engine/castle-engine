@@ -2088,7 +2088,7 @@ constructor TCasScriptFunction.Create(AArgs: TCasScriptExpressionList);
 begin
   inherited Create;
   FArgs := TCasScriptExpressionList.Create(false);
-  FArgs.AddList(AArgs);
+  FArgs.AddRange(AArgs);
   CheckArguments;
 end;
 
@@ -2096,7 +2096,7 @@ constructor TCasScriptFunction.Create(const AArgs: array of TCasScriptExpression
 begin
   inherited Create;
   FArgs := TCasScriptExpressionList.Create(false);
-  FArgs.AddArray(AArgs);
+  FArgs.AddRange(AArgs);
   CheckArguments;
 end;
 

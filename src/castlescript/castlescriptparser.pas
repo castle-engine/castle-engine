@@ -458,7 +458,7 @@ var
         { We first added parameters, then added GlobalVariables,
           so when resolving, parameter names will hide global
           variable names, just like they should in normal language. }
-        BodyVariables.AddArray(GlobalVariables);
+        BodyVariables.AddRange(GlobalVariables);
 
         Result.Body := Expression(Lexer, Environment, BodyVariables);
       finally FreeAndNil(BodyVariables); end;

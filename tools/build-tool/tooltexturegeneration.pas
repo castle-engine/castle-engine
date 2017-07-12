@@ -122,8 +122,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
     CommandOptions := TCastleStringList.Create;
     try
-      {$ifdef MSWINDOWS} CommandExe := ToolExe; CommandOptions.AddArray([
-      {$else}            CommandExe := WineExe; CommandOptions.AddArray([ToolExe,
+      {$ifdef MSWINDOWS} CommandExe := ToolExe; CommandOptions.AddRange([
+      {$else}            CommandExe := WineExe; CommandOptions.AddRange([ToolExe,
       {$endif}
         '-fd', CompressionNameForTool,
         { we cannot just pass InputFlippedFile, OutputFile to compressonator,
@@ -134,7 +134,7 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
         anything useful in alpha value. Seems like AMDCompressCLI bug,
         or I just don't know how to use the DXT1 options? }
       if C = tcDxt1_RGB then // special options for tcDxt1_RGB
-        CommandOptions.AddArray(
+        CommandOptions.AddRange(
           ['-DXT1UseAlpha', '1', '-AlphaThreshold', '0.5']);
       RunCommandSimple(ExtractFilePath(TempPrefix),
         CommandExe, CommandOptions.ToArray);

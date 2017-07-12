@@ -191,7 +191,7 @@ begin
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
     Coord := TCoordinateNode.Create('coord');
-    Coord.FdPoint.Items.AddArray([
+    Coord.FdPoint.Items.AddRange([
         Vector3Single(-128, -128, 0),
         Vector3Single(128, -128, 0),
         Vector3Single(128, 128, 0),
@@ -199,7 +199,7 @@ begin
         Vector3Single(128, 128, 0),
         Vector3Single(-128, 128, 0)]);
     TexCoord := TTextureCoordinateNode.Create('texcoord');
-    TexCoord.FdPoint.Items.AddArray([
+    TexCoord.FdPoint.Items.AddRange([
          Vector2Single(0, 0),
          Vector2Single(1, 0),
          Vector2Single(1, 1),
@@ -272,11 +272,11 @@ begin
         TexCoordArray[3] := Vector2Single(Frame.X1, Frame.Y1);
         TexCoordArray[4] := Vector2Single(Frame.X2, Frame.Y2);
         TexCoordArray[5] := Vector2Single(Frame.X1, Frame.Y2);
-        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
+        CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
         { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
-        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
+        CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
       end;
       { Create routes. }
       R1 := TX3DRoute.Create;

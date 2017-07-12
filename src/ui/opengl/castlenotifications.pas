@@ -210,7 +210,7 @@ begin
     AddStrings(S);
 
   if CollectHistory then
-    History.AddList(S);
+    History.AddRange(S);
 
   VisibleChange;
 end;

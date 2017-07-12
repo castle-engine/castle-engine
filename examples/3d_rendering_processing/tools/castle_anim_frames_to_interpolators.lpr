@@ -132,7 +132,7 @@ begin
         begin
           FrameCoord := Anim.Scenes[I].RootNode.FindNodeByName(
             TCoordinateNode, CoordinateNodeName, false) as TCoordinateNode;
-          OutputInterp.FdKeyValue.Items.AddList(FrameCoord.FdPoint.Items);
+          OutputInterp.FdKeyValue.Items.AddRange(FrameCoord.FdPoint.Items);
           OutputInterp.FdKey.Items.Add(I / (Anim.ScenesCount - 1));
           Progress.Step;
 

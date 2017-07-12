@@ -64,11 +64,16 @@ type
   public
     constructor Create;
     property Count: Integer read GetCount write SetCount;
+
     { Add strings from Source list.
-      Alias for AddStrings, useful for castlescriptarrays_implement.inc
-      (since it's consistent with AddList in other lists). }
-    procedure AddList(const Source: TStringList);
-    procedure AddArray(const A: array of string);
+      Alias for AddStrings, useful for usage with macros,
+      since it's consistent with AddRange in other lists. }
+    procedure AddRange(const Source: TStringList);
+    procedure AddList(const Source: TStringList); deprecated 'use AddRange, consistent with other lists';
+
+    procedure AddRange(const A: array of string);
+    procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
+
     procedure AssignArray(const A: array of string);
     function Equal(List: TCastleStringList): boolean; overload;
     function Equal(const A: array of string): boolean; overload;
@@ -977,12 +982,17 @@ begin
   end;
 end;
 
+procedure TCastleStringList.AddRange(const Source: TStringList);
+begin
+  AddStrings(Source);
+end;
+
 procedure TCastleStringList.AddList(const Source: TStringList);
 begin
   AddStrings(Source);
 end;
 
-procedure TCastleStringList.AddArray(const A: array of string);
+procedure TCastleStringList.AddRange(const A: array of string);
 var
   I: Integer;
 begin
@@ -990,10 +1000,15 @@ begin
     Add(A[I]);
 end;
 
+procedure TCastleStringList.AddArray(const A: array of string);
+begin
+  AddRange(A);
+end;
+
 procedure TCastleStringList.AssignArray(const A: array of string);
 begin
   Clear;
-  AddArray(A);
+  AddRange(A);
 end;
 
 procedure TCastleStringList.Reverse;

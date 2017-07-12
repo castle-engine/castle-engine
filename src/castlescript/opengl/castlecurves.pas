@@ -942,7 +942,7 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
     I: Integer;
   begin
     ConvexHullPoints.Clear;
-    ConvexHullPoints.AddList(ControlPoints);
+    ConvexHullPoints.AddRange(ControlPoints);
     for I := 0 to Length(BezierCurves) - 1 do
     begin
       { add also intermediate control points }

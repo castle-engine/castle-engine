@@ -928,7 +928,7 @@ begin
  try
   if DoubleBuffer then
     VisualAttr.Add(GDK_GL_DOUBLEBUFFER);
-  VisualAttr.AddArray([
+  VisualAttr.AddRange([
     GDK_GL_RGBA,
 
     GDK_GL_RED_SIZE, RedBits,
@@ -958,7 +958,7 @@ begin
   if MultiSampling > 1 then
     { I guess that gtkglext should internally check for
       glXQueryExtensionsString and GLX_ARB_multisample availability. }
-    VisualAttr.AddArray([
+    VisualAttr.AddRange([
       GDK_GL_SAMPLE_BUFFERS, 1,
       GDK_GL_SAMPLES, MultiSampling ]);
 

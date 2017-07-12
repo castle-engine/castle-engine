@@ -138,7 +138,7 @@ begin
     since CreateValueIfNeeded could left previous AResult }
   Arr.Clear;
   for I := 0 to Length(Arguments) - 1 do
-    Arr.AddList(TCasScriptXxxArray(Arguments[I]).Value);
+    Arr.AddRange(TCasScriptXxxArray(Arguments[I]).Value);
 
   TCasScriptXxxArray(AResult).ValueAssigned := true;
 end;

@@ -133,7 +133,7 @@ begin
   Appearance.Texture := Texture;
 
   Coordinate := TCoordinateNode.Create;
-  Coordinate.FdPoint.Items.AddArray(
+  Coordinate.FdPoint.Items.AddRange(
     [Vector3Single(0, 0, 0),
      Vector3Single(1, 0, 0),
      Vector3Single(1, 1, 0),

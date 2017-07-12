@@ -595,10 +595,12 @@ type
       const AItems: array of TObject);
 
     { Add contents of given array to the list. }
-    procedure AddArray(const A: array of TObject);
+    procedure AddRange(const A: array of TObject);
+    procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
     { Add contents of other TObjectList instance to the list. }
-    procedure AddList(AList: Contnrs.TObjectList);
+    procedure AddRange(AList: Contnrs.TObjectList);
+    procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
     { Replace first found descendant of ReplaceClass with NewItem.
       In case no descendant of ReplaceClass was found,
@@ -1562,10 +1564,10 @@ constructor TCastleObjectList.CreateFromArray(const FreeObjects: boolean;
   const AItems: array of TObject);
 begin
   Create(FreeObjects);
-  AddArray(AItems);
+  AddRange(AItems);
 end;
 
-procedure TCastleObjectList.AddArray(const A: array of TObject);
+procedure TCastleObjectList.AddRange(const A: array of TObject);
 var
   I: Integer;
 begin
@@ -1574,7 +1576,12 @@ begin
     Add(A[I]);
 end;
 
-procedure TCastleObjectList.AddList(AList: Contnrs.TObjectList);
+procedure TCastleObjectList.AddArray(const A: array of TObject);
+begin
+  AddRange(A);
+end;
+
+procedure TCastleObjectList.AddRange(AList: Contnrs.TObjectList);
 var
   I: Integer;
 begin
@@ -1585,6 +1592,11 @@ begin
   for I := 0 to AList.Count - 1 do
     if AList[I] <> nil then
       Notify(AList[I], lnAdded);
+end;
+
+procedure TCastleObjectList.AddList(AList: Contnrs.TObjectList);
+begin
+  AddRange(AList);
 end;
 
 function TCastleObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;

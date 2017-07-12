@@ -106,7 +106,7 @@ begin
    sarr[0] := 'FOO';
    sarr[1] := 'foo bar xyz';
    sarr.Delete(0);
-   sarr.AddArray(twoStrings);
+   sarr.AddRange(twoStrings);
    sarr.Add('trzy?');
 
    AssertTrue(not Equal(sarr, ['foo bar xyz', '', '']));
@@ -191,10 +191,10 @@ begin
   AssertTrue(iarr.Sum = 0);
   AssertTrue(iarr2.Sum = 0);
 
-  iarr.AddArray([1, 3, 6, 8]);
+  iarr.AddRange([1, 3, 6, 8]);
   AssertTrue(not Equal(iarr, iarr2));
   AssertTrue(iarr.Sum = 1 + 3 + 6 + 8);
-  iarr2.AddArray([1, 3, 6, 8]);
+  iarr2.AddRange([1, 3, 6, 8]);
   AssertTrue(Equal(iarr, iarr2));
   iarr2.Insert(0, 99);
   AssertTrue(not Equal(iarr, iarr2));
@@ -269,7 +269,7 @@ begin
     V1.Add(Vector3Single(7.0, 8.0, 9.0));
 
     V2.Add(Vector3Single(6.0, 6.0, 6.0));
-    V2.AddList(V1);
+    V2.AddRange(V1);
     V2.Add(Vector3Single(6.0, 6.0, 6.0));
 
     AssertTrue(VectorsPerfectlyEqual(V1.L[0], V2.L[1]));

@@ -293,7 +293,7 @@ end;
 procedure TVector3SingleList.AssignArray(const A: array of TVector3Single);
 begin
   Clear;
-  AddArray(A);
+  AddRange(A);
 end;
 
 { TVector2SingleList ----------------------------------------------------- }
@@ -351,7 +351,7 @@ end;
 procedure TVector2SingleList.AssignArray(const A: array of TVector2Single);
 begin
   Clear;
-  AddArray(A);
+  AddRange(A);
 end;
 
 { TVector4SingleList ----------------------------------------------------- }
@@ -379,7 +379,7 @@ end;
 procedure TVector4SingleList.AssignArray(const A: array of TVector4Single);
 begin
   Clear;
-  AddArray(A);
+  AddRange(A);
 end;
 
 { TVector2DoubleList ----------------------------------------------------- }

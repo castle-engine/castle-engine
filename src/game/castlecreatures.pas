@@ -1041,7 +1041,7 @@ begin
   inherited Create(AOwner);
 
   FCoord := TCoordinateNode.Create;
-  FCoord.FdPoint.Items.AddArray([
+  FCoord.FdPoint.Items.AddRange([
     Vector3Single(-1,  0,  0), Vector3Single(1, 0, 0),
     Vector3Single( 0, -1,  0), Vector3Single(0, 1, 0),
     Vector3Single( 0,  0, -1), Vector3Single(0, 0, 1)
