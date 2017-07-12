@@ -68,14 +68,10 @@ begin
        Window.Fps.FrameTime,
        Window.Fps.RealTime]));
     S.Append(Format('Touches (%d)', [Container.TouchesCount]));
-    {$ifdef VER3_1_1}
-    {$warning Workarounding FPC 3.1.1 internal error 200211262 in drawing_toy/game.pas}
-    {$else}
     for I := 0 to Container.TouchesCount - 1 do
       S.Append(Format('Touch %d: FingerIndex %d, Position %s',
         [I, Container.Touches[I].FingerIndex,
          VectorToNiceStr(Container.Touches[I].Position) ]));
-    {$endif}
     UIFont.PrintStrings(10, 10, Yellow, S, false, 2);
   finally FreeAndNil(S) end;
 end;
