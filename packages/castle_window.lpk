@@ -29,6 +29,9 @@
           <ShowNotes Value="False"/>
           <ShowHints Value="False"/>
         </Verbosity>
+        <CompilerMessages>
+          <IgnoredMessages idx5063="True" idx4046="True"/>
+        </CompilerMessages>
         <CustomOptions Value="-dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
     </CompilerOptions>
@@ -90,6 +93,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
         <Type Value="Include"/>
       </Item13>
+      <Item14>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Type Value="Include"/>
+      </Item14>
       <Item15>
         <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
         <Type Value="Include"/>
@@ -103,10 +110,6 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalXlib"/>
       </Item17>
-      <Item14>
-        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
-        <Type Value="Include"/>
-      </Item14>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

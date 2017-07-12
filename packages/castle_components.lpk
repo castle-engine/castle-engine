@@ -29,6 +29,9 @@
         <Verbosity>
           <ShowHints Value="False"/>
         </Verbosity>
+        <CompilerMessages>
+          <IgnoredMessages idx5063="True" idx4046="True"/>
+        </CompilerMessages>
         <CustomOptions Value="-Sh
 -dCASTLE_ENGINE_LAZARUS_PACKAGE"/>
       </Other>
@@ -90,5 +93,8 @@
       <Version Value="2"/>
       <IgnoreBinaries Value="False"/>
     </PublishOptions>
+    <CustomOptions Items="ExternHelp" Version="2">
+      <_ExternHelp Items="Count"/>
+    </CustomOptions>
   </Package>
 </CONFIG>
