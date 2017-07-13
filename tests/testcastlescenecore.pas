@@ -149,6 +149,9 @@ begin
   CheckIterator('data/extrusion_empty_spine.x3dv');
   CheckIterator('data/extrusion_empty_spine_concave.x3dv');
   CheckIterator('data/extrusion_empty_spine_smooth.x3dv');
+
+  // This failed to be read with FPC 3.1.1
+  CheckIterator('data/escape_from_the_universe_boss/boss.json');
 end;
 
 procedure TTestSceneCore.TestFind;

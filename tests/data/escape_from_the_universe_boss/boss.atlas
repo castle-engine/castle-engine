@@ -1,0 +1,90 @@
+
+boss.png
+size: 2048,512
+format: RGBA8888
+filter: Linear,Linear
+repeat: none
+BOSS_BODY
+  rotate: true
+  xy: 2, 121
+  size: 368, 1007
+  orig: 368, 1007
+  offset: 0, 0
+  index: -1
+BOSS_ENGINE
+  rotate: false
+  xy: 1421, 269
+  size: 227, 220
+  orig: 227, 220
+  offset: 0, 0
+  index: -1
+BOSS_gun
+  rotate: true
+  xy: 1650, 406
+  size: 83, 283
+  orig: 83, 283
+  offset: 0, 0
+  index: -1
+BOSS_gun2
+  rotate: true
+  xy: 1935, 444
+  size: 45, 94
+  orig: 45, 94
+  offset: 0, 0
+  index: -1
+ENGINE
+  rotate: false
+  xy: 1248, 56
+  size: 73, 157
+  orig: 73, 157
+  offset: 0, 0
+  index: -1
+TANK1
+  rotate: true
+  xy: 1011, 215
+  size: 64, 309
+  orig: 64, 309
+  offset: 0, 0
+  index: -1
+TANK_GUN
+  rotate: true
+  xy: 2, 54
+  size: 65, 334
+  orig: 65, 334
+  offset: 0, 0
+  index: -1
+WING
+  rotate: true
+  xy: 1011, 281
+  size: 208, 408
+  orig: 208, 408
+  offset: 0, 0
+  index: -1
+WING1
+  rotate: true
+  xy: 1170, 56
+  size: 157, 76
+  orig: 157, 76
+  offset: 0, 0
+  index: -1
+back_wing
+  rotate: true
+  xy: 1650, 295
+  size: 109, 200
+  orig: 109, 200
+  offset: 0, 0
+  index: -1
+gun3
+  rotate: true
+  xy: 2, 2
+  size: 50, 94
+  orig: 50, 94
+  offset: 0, 0
+  index: -1
+tank_head
+  rotate: false
+  xy: 1011, 61
+  size: 157, 152
+  orig: 157, 152
+  offset: 0, 0
+  index: -1
