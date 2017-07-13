@@ -20,6 +20,14 @@ unit CastleCurves;
 
 {$modeswitch nestedprocvars}{$H+}
 
+{ Turn off warnings for the entire unit, otherwise (since using
+  Generics.Collections) the warnings from using deprecated stuff
+  are not avaidable by more local $warnings off.
+  This may be solved in FPC by
+  https://bugs.freepascal.org/view.php?id=25593 (if not, we'll submit
+  another bug). }
+{$warnings off}
+
 interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
@@ -242,10 +250,11 @@ type
     function Point(const t: Float): TVector3Single; override;
   end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. Also, this is usually not very useful curve for game purposes, you usually want to use cubic Bezier (CubicBezier3D) or piecewise cubic Bezier (TPiecewiseCubicBezier) instead. For portable and fast general curves use X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
+  {$push}
   {$warnings off} { Consciously using deprecated stuff. }
   { List of TRationalBezierCurve. }
   TRationalBezierCurveList = specialize TObjectList<TRationalBezierCurve>;
-  {$warnings on}
+  {$pop}
 
   TCubicBezier2DPoints = array [0..3] of TVector2Single;
   TCubicBezier3DPoints = array [0..3] of TVector3Single;
@@ -352,6 +361,7 @@ end;
 procedure TCurve.Render(Segments: Cardinal);
 {$ifndef OpenGLES} //TODO-es
 { Using deprecated stuff within deprecated stuff. }
+{$push}
 {$warnings off}
 var
   i: Integer;
@@ -361,7 +371,7 @@ begin
   glBegin(GL_LINE_STRIP);
   for i := 0 to Segments do glVertexv(PointOfSegment(i, Segments));
   glEnd;
-{$warnings on}
+{$pop}
 {$else}
 begin
 {$endif}
@@ -380,9 +390,10 @@ begin
     end;
     {$endif}
 
+    {$push}
     {$warnings off}
     Render(DefaultSegments);
-    {$warnings on}
+    {$pop}
 
     {$ifndef OpenGLES}
     if not Params.RenderTransformIdentity then
@@ -458,11 +469,12 @@ begin
       while I.GetNext do
       begin
         CurveTypeStr := I.Current.AttributeString('type');
+        {$push}
         {$warnings off}
         { consciously using deprecated }
         if SameText(CurveTypeStr, TRationalBezierCurve.ClassName) then
           Curve := TRationalBezierCurve.Create(nil) else
-        {$warnings on}
+        {$pop}
         if SameText(CurveTypeStr, TPiecewiseCubicBezier.ClassName) then
           Curve := TPiecewiseCubicBezier.Create(nil) else
         if SameText(CurveTypeStr, TCasScriptCurve.ClassName) then
@@ -611,9 +623,10 @@ procedure TControlPointsCurve.RenderControlPoints;
 var
   i: Integer;
 begin
+  {$push}
   {$warnings off}
   glColorv(ControlPointsColor);
-  {$warnings on}
+  {$pop}
   glBegin(GL_POINTS);
   for i := 0 to ControlPoints.Count-1 do glVertexv(ControlPoints.L[i]);
   glEnd;
@@ -653,9 +666,10 @@ begin
   try
     CH := ConvexHull(CHPoints);
     try
+      {$push}
       {$warnings off}
       glColorv(ConvexHullColor);
-      {$warnings on}
+      {$pop}
       glBegin(GL_POLYGON);
       try
         for i := 0 to CH.Count-1 do
