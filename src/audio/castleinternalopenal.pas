@@ -151,6 +151,11 @@ implementation
 
 uses CastleUtils, CastleDynLib;
 
+{ Workaround FPC bug:
+  after using Generics.Collections and CastleUtils (that are in Delphi mode),
+  the FPC_OBJFPC gets undefined (sometimes?). }
+{$define FPC_OBJFPC}
+
 function OpenALSampleImplementation: boolean;
 begin
   Result := alGetString(AL_VENDOR) = 'J. Valenzuela';
