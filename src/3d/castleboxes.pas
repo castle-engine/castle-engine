@@ -23,6 +23,11 @@ interface
 uses SysUtils, Generics.Collections,
   CastleVectors, CastleUtils, CastleTriangles, CastleRectangles;
 
+{ Workaround FPC bug:
+  after using Generics.Collections and CastleUtils (that are in Delphi mode),
+  the FPC_OBJFPC gets undefined (sometimes?). }
+{$define FPC_OBJFPC}
+
 type
   EBox3DEmpty = class(Exception);
 
