@@ -30,6 +30,8 @@ type
 
   TAndroidProjectType = (apBase, apIntegrated);
 
+  ECannotGuessManifest = class(Exception);
+
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -273,10 +275,29 @@ constructor TCastleProject.Create(const APath: string);
     end;
 
     procedure AutoGuessManifest;
+
+      function GuessName: string;
+      var
+        FileInfo: TFileInfo;
+      begin
+        Result := ExtractFileName(ExtractFileDir(ManifestFile));
+        if not FileExists(Result + '.lpr') then
+        begin
+          if FindFirstFile(GetCurrentDir, '*.lpr', false, [], FileInfo) then
+            Result := DeleteFileExt(FileInfo.Name)
+          else
+          if FindFirstFile(GetCurrentDir, '*.dpr', false, [], FileInfo) then
+            Result := DeleteFileExt(FileInfo.Name)
+          else
+            raise ECannotGuessManifest.Create('Cannot find any *.lpr or *.dpr file in this directory, cannot guess which file to compile.' + NL +
+              'Please create a CastleEngineManifest.xml to instruct Castle Game Engine build tool how to build your project.');
+        end;
+      end;
+
     begin
       Writeln('Manifest file not found: ' + ManifestFile);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
-      FName := ExtractFileName(ExtractFileDir(ManifestFile));
+      FName := GuessName;
       FCaption := FName;
       FQualifiedName := DefaultQualifiedName;
       FExecutableName := FName;
