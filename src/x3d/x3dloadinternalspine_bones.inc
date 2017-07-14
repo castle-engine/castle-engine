@@ -135,8 +135,9 @@ begin
     InheritRotation := Json.Get('inheritRotation', true);
   end;
 
-  if (not InheritScale) or (not InheritRotation) then
-    WritelnWarning('Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
+  // The support seems to be OK for Dragon Bones, that uses this always, so don't warn anymore.
+  // if (not InheritScale) or (not InheritRotation) then
+  //   WritelnWarning('Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
 
   ParentName := Json.Get('parent', '');
   if ParentName <> '' then
