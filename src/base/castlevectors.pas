@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Vector and matrix types and basic operations.
-  Also operations on basic geometric objects (2D and 3D),
-  inluding core collision-checking routines.)
+{ @abstract(Vector and matrix types and basic geometric operations.)
 
   Various routines in this unit perform operations
   on geometric objects, like spheres and line segments.
@@ -143,7 +141,8 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, CastleUtils, Generics.Collections;
+uses SysUtils, Generics.Collections,
+  CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble;
 
 {$define read_interface}
 
@@ -195,6 +194,24 @@ uses SysUtils, CastleUtils, Generics.Collections;
 {$define Vector3 := Vector3Double}
 {$I castlevectors_generic_float.inc}
 {$endif CASTLE_HAS_DOUBLE_PRECISION}
+
+{$undef TScalar}
+{$undef TVector2}
+{$undef TVector3}
+{$undef TVector4}
+{$undef PVector2}
+{$undef PVector3}
+{$undef PVector4}
+{$undef TMatrix2}
+{$undef TMatrix3}
+{$undef TMatrix4}
+{$undef ScalarEqualityEpsilon}
+{$undef UnitVector3}
+{$undef ZeroVector3}
+{$undef IdentityMatrix4}
+{$undef Vector3}
+
+{$I castlevectors_records.inc}
 
 {$undef read_interface}
 
@@ -251,5 +268,23 @@ uses Math, CastleStringUtils, CastleColors;
 {$define Vector3 := Vector3Double}
 {$I castlevectors_generic_float.inc}
 {$endif CASTLE_HAS_DOUBLE_PRECISION}
+
+{$undef TScalar}
+{$undef TVector2}
+{$undef TVector3}
+{$undef TVector4}
+{$undef PVector2}
+{$undef PVector3}
+{$undef PVector4}
+{$undef TMatrix2}
+{$undef TMatrix3}
+{$undef TMatrix4}
+{$undef ScalarEqualityEpsilon}
+{$undef UnitVector3}
+{$undef ZeroVector3}
+{$undef IdentityMatrix4}
+{$undef Vector3}
+
+{$I castlevectors_records.inc}
 
 end.
