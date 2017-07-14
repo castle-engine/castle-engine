@@ -84,6 +84,9 @@ function LoadSpine(URL: string): TX3DRootNode;
     Atlas: TAtlas;
   begin
     AtlasURL := ChangeURIExt(URL, '.atlas');
+    // try alternative name, with "_tex", used by Dragon Bones
+    if not URIFileExists(AtlasURL) then
+      AtlasURL := ChangeURIExt(URL, '_tex.atlas');
     if URIFileExists(AtlasURL) then
     begin
       Atlas := TAtlas.Create;
