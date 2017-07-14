@@ -183,7 +183,7 @@ begin
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
-  if Time.Count = 1 then
+  if SpineVerboseWarnings and (Time.Count = 1) then
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
 end;
 
@@ -304,7 +304,7 @@ begin
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
-  if Time.Count = 1 then
+  if SpineVerboseWarnings and (Time.Count = 1) then
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'color']));
 end;
 

@@ -343,7 +343,7 @@ begin
       (TexRect[1][0] <> 0) or
       (TexRect[0][1] <> 1) or
       (TexRect[1][1] <> 1)) and
-     LogSpineMeshCompressWhitespaceWarning then
+     SpineVerboseWarnings then
     WritelnLog('Spine', Format('Slot "%s" with attachment "%s" uses "mesh" attachment type, and you exported atlas with "compress whitespace" option selected. Rendering artifacts may occur if mesh faces use the texture in "whitespace" region --- in such case, export again with "compress whitespace" turned off at atlas generation.',
       [SlotName, Name]));
 

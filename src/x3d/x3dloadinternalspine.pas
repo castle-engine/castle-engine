@@ -25,7 +25,10 @@ uses X3DNodes;
 function LoadSpine(URL: string): TX3DRootNode;
 
 var
-  LogSpineMeshCompressWhitespaceWarning: boolean = true;
+  { Turn this on to see some additional warnings when loading Spine models.
+    These warnings are sometimes too verbose (often the models will work fine,
+    and these warning can be ignored), so they are disabled by default. }
+  SpineVerboseWarnings: boolean = false;
 
 implementation
 
