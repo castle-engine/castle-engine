@@ -79,14 +79,30 @@ end;
 procedure TSkeleton.Parse(const Json: TJSONData);
 var
   O: TJSONObject;
+  JsonArmatureArray: TJSONArray;
+  DragonBonesFormat: boolean;
 begin
   if not (Json is TJSONObject) then
     raise ESpineReadError.Create('Spine JSON skeleton: Expected JSONObject at root');
   O := TJSONObject(Json);
 
-  Bones.Parse(O, Root);
-  Slots.Parse(O, Bones);
-  Skins.Parse(O, DefaultSkin, Bones);
+  DragonBonesFormat :=
+    (O.Find('armature', jtArray) <> nil) and
+    (O.Find('skeleton', jtObject) = nil);
+
+  if DragonBonesFormat then
+  begin
+    { In Dragon Bones, almost everything is inside "armature".
+      TODO: For now, we only read 1st armature item. }
+    JsonArmatureArray := O.Find('armature', jtArray) as TJSONArray;
+    if JsonArmatureArray.Count = 0 then
+      raise ESpineReadError.Create('Dragon Bones JSON skeleton: no armatures');
+    O := JsonArmatureArray[0] as TJSONObject;
+  end;
+
+  Bones.Parse(O, Root, DragonBonesFormat);
+  Slots.Parse(O, Bones, DragonBonesFormat);
+  Skins.Parse(O, DefaultSkin, Bones, DragonBonesFormat);
   Animations.Parse(O, Bones, BonesAnimated, Slots, SlotsAnimated);
 
   // WritelnLog('Spine', Format('Skeleton read, bones: %d, slots: %d, skins: %d, animations: %d',

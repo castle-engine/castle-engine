@@ -62,7 +62,8 @@
     Materials: TMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const SlotsAnimated: TSlotsAnimated;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
@@ -73,7 +74,8 @@
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const SlotsAnimated: TSlotsAnimated;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
@@ -123,7 +125,8 @@ end;
 destructor TSlot.Destroy;
 begin
   if NodeUsedAsChild then
-    Node := nil else
+    Node := nil
+  else
     FreeIfUnusedAndNil(Node);
   FreeAndNil(AttachmentNames);
   FreeAndNil(Materials);
@@ -132,10 +135,14 @@ begin
   inherited;
 end;
 
-procedure TSlot.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TSlot.Parse(const Json: TJSONObject; const Bones: TBoneList;
+  const DragonBonesFormat: boolean);
 begin
   Name := Json.Get('name', '');
-  Bone := Bones.Find(Json.Get('bone', ''));
+  if DragonBonesFormat then
+    Bone := Bones.Find(Json.Get('parent', ''))
+  else
+    Bone := Bones.Find(Json.Get('bone', ''));
   AttachmentNames.Add(Json.Get('attachment', ''));
   Color := HexToColor(Json.Get('color', 'ffffffff'));
 end;
@@ -282,15 +289,20 @@ begin
   raise ESpineReadError.CreateFmt('Slot name "%s" not found', [SlotName]);
 end;
 
-procedure TSlotList.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TSlotList.Parse(const Json: TJSONObject; const Bones: TBoneList; const DragonBonesFormat: boolean);
 var
   I: Integer;
   Slot: TSlot;
   ChildArray: TJSONArray;
+  ArrayName: string;
 begin
-  ChildArray := Json.Find('slots', jtArray) as TJSONArray;
+  if DragonBonesFormat then
+    ArrayName := 'slot'
+  else
+    ArrayName := 'slots';
+  ChildArray := Json.Find(ArrayName, jtArray) as TJSONArray;
   if ChildArray = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "slots" array');
+    raise ESpineReadError.CreateFmt('Spine / Dragon Bones JSON skeleton: Missing "%s" array', [ArrayName]);
 
   for I := 0 to ChildArray.Count - 1 do
     if ChildArray[I] is TJSONObject then
@@ -298,7 +310,7 @@ begin
       Slot := TSlot.Create;
       Slot.DrawOrder := Count;
       Add(Slot);
-      Slot.Parse(TJSONObject(ChildArray[I]), Bones);
+      Slot.Parse(TJSONObject(ChildArray[I]), Bones, DragonBonesFormat);
     end;
 end;
 

@@ -55,7 +55,7 @@
     NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
-      const PossibleParents: TBoneList; const ExpectedParent: boolean);
+      const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
     function ToWorldSpace(const V: TVector2Single): TVector2Single;
@@ -67,7 +67,8 @@
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
-    procedure Parse(const Json: TJSONObject; var Root: TBone);
+    procedure Parse(const Json: TJSONObject; var Root: TBone;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
     procedure Assign(const Source: TBoneList);
@@ -104,19 +105,35 @@ end;
 { TBone ---------------------------------------------------------------------- }
 
 procedure TBone.Parse(const Json: TJSONObject;
-  const PossibleParents: TBoneList; const ExpectedParent: boolean);
+  const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
 var
   ParentName: string;
+  Transform: TJSONObject;
 begin
   Name := Json.Get('name', '');
   Length := Json.Get('length', 0.0);
-  XY[0] := Json.Get('x', 0.0);
-  XY[1] := Json.Get('y', 0.0);
-  Scale[0] := Json.Get('scaleX', 1.0);
-  Scale[1] := Json.Get('scaleY', 1.0);
-  Rotation := Json.Get('rotation', 0.0);
-  InheritScale := Json.Get('inheritScale', true);
-  InheritRotation := Json.Get('inheritRotation', true);
+  if DragonBonesFormat then
+  begin
+    Transform := Json.Find('transform', jtObject) as TJSONObject;
+    if Transform = nil then
+      raise ESpineReadError.CreateFmt('Missing "transform" of Dragon Bones bone "%s"', [Name]);
+    XY[0] := Transform.Get('x', 0.0);
+    XY[1] := Transform.Get('y', 0.0);
+    Scale[0] := Transform.Get('scX', 1.0);
+    Scale[1] := Transform.Get('scY', 1.0);
+    Rotation := Json.Get('rotation', 0.0); // TODO: is this the correct name in Dragon Bones?
+    InheritScale := Json.Get('inheritScale', true); // TODO: is this the correct name in Dragon Bones?
+    InheritRotation := Json.Get('inheritRotation', true); // TODO: is this the correct name in Dragon Bones?
+  end else
+  begin
+    XY[0] := Json.Get('x', 0.0);
+    XY[1] := Json.Get('y', 0.0);
+    Scale[0] := Json.Get('scaleX', 1.0);
+    Scale[1] := Json.Get('scaleY', 1.0);
+    Rotation := Json.Get('rotation', 0.0);
+    InheritScale := Json.Get('inheritScale', true);
+    InheritRotation := Json.Get('inheritRotation', true);
+  end;
 
   if (not InheritScale) or (not InheritRotation) then
     WritelnWarning('Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
@@ -288,15 +305,20 @@ begin
   raise ESpineReadError.CreateFmt('Bone name "%s" not found', [BoneName]);
 end;
 
-procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone);
+procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: boolean);
 var
   I: Integer;
   Bone: TBone;
   ChildArray: TJSONArray;
+  ArrayName: string;
 begin
-  ChildArray := Json.Find('bones', jtArray) as TJSONArray;
+  if DragonBonesFormat then
+    ArrayName := 'bone'
+  else
+    ArrayName := 'bones';
+  ChildArray := Json.Find(ArrayName, jtArray) as TJSONArray;
   if ChildArray = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "bones" array');
+    raise ESpineReadError.CreateFmt('Spine / Dragon Bones JSON skeleton: Missing "%s" array', [ArrayName]);
 
   for I := 0 to ChildArray.Count - 1 do
     if ChildArray[I] is TJSONObject then
@@ -306,11 +328,11 @@ begin
       if Root = nil then
       begin
         { reading Root bone. It should have no parent. }
-        Bone.Parse(TJSONObject(ChildArray[I]), Self, false);
+        Bone.Parse(TJSONObject(ChildArray[I]), Self, false, DragonBonesFormat);
         Root := Bone;
       end else
         { reading child bone. It must have a parent. }
-        Bone.Parse(TJSONObject(ChildArray[I]), Self, true);
+        Bone.Parse(TJSONObject(ChildArray[I]), Self, true, DragonBonesFormat);
     end;
 end;
 
