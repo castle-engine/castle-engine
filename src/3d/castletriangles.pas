@@ -408,7 +408,7 @@ begin
   Tri[2] := Verts_Indices_I;
 
   if IsValidTriangle(Tri) then
-    VectorAddVar(result, TriangleNormal(Tri) );
+    Result := Result + TriangleNormal(Tri);
 
   repeat
     { find next valid point, which makes another triangle of polygon }
@@ -420,7 +420,7 @@ begin
     Tri[2] := Verts_Indices_I;
 
     if IsValidTriangle(Tri) then
-      VectorAddVar(result, TriangleNormal(Tri) );
+      Result := Result + TriangleNormal(Tri);
   until false;
 
   { All triangle normals are summed up now. (Each triangle normal was also
@@ -550,7 +550,7 @@ end;
 
 function Polygon2dArea(const Verts: array of TVector2Single): Single;
 begin
-  result := Polygon2dArea(@Verts, High(Verts)+1);
+  result := Polygon2dArea(@Verts, High(Verts) + 1);
 end;
 
 function SampleTrianglePoint(const Tri: TTriangle3Single): TVector3Single;
@@ -560,9 +560,10 @@ begin
   { Based on "Global Illumination Compendium" }
   r1Sqrt := Sqrt(Random);
   r2 := Random;
-  result := VectorScale(Tri[0], 1-r1Sqrt);
-  VectorAddVar(result, VectorScale(Tri[1], (1-r2)*r1Sqrt));
-  VectorAddVar(result, VectorScale(Tri[2], r2*r1Sqrt));
+  Result :=
+    (Tri[0] * (1 - r1Sqrt) ) +
+    (Tri[1] * ((1 - r2) * r1Sqrt) ) +
+    (Tri[2] * (r2 * r1Sqrt) );
 end;
 
 function Barycentric(const Triangle: TTriangle3Single;

@@ -108,9 +108,9 @@ function IsPointWithinTriangle2D(const P: TVector2;
   @groupBegin }
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
   const TriPlane: TVector4;
-  const pos1, pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): boolean; overload;
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
-  const pos1, pos2: TVector3): boolean; overload;
+  const Pos1, Pos2: TVector3): boolean; overload;
 { @groupEnd }
 
 function IsTriangleSphereCollision(const Tri: TTriangle3;
@@ -177,84 +177,81 @@ function TriangleToRawStr(const t: TTriangle3): string; overload;
 
 function IsValidTriangle(const Tri: TTriangle3): boolean;
 begin
-  (* chcemy sprawdzic czy Tri nie jest zdegenerowanym trojkatem, czyli czy
-     wyznacza dobra plaszczyzne; wiec nie tylko wszstkie punkty musza byc
-     rozne ale tez nie moga byc wspolliniowe. Jak to najlatwiej sprawdzic ?
+  (* We want to check is Tri a "non-degenerated" triangle,
+     i.e. does not determine a plane in 3D.
+     So all points must be different, and also must not be colinear.
 
-     Sprawdzajac czy VectorProduct(
-       VectorSubtract(Tri[2], Tri[1]),
-       VectorSubtract(Tri[0], Tri[1]))
-     ma dlugosc > 0.
-     Mozna to uzasadnic na dwa sposoby : prosto i nie do konca scisle -
-     liczymy TrianglePlane uzywajac takiego wlasnie VectorProduct, a przeciez
-     chcemy wlasnie sprawdzic czy TrianglePlane zwroci prawidlowy plane.
-     Albo inaczej : te trzy punkty wyznaczaja plaszczyzne wtw. gdy rownoleglobok
-     ktorego dwa boki tworza wektory Tri[2]-Tri[1] i Tri[0]-Tri[1] ma niezerowe
-     pole. A przeciez dlugosc VectorProduct to pole tego rownolegloboku.
-     Wiec testujac dlugosc VectorProduct testujemy dlugosc tego rownolegloboku.
+     We can check this by checking
+       VectorProduct(
+         (Tri[2] - Tri[1]),
+         (Tri[0] - Tri[1])).Length > 0.
 
-     Taki VectorProduct() mozemy obliczyc uzywajac TriangleDir().
+     This actually exactly corresponds to saying "this triangle has non-zero area".
+     It also measn that TrianglePlane is non-zero, since it uses the same
+     VectorProduct.
+     You can calculate this using TriangleDir(), since TriangleDir calculates
+     exactly this VectorProduct.
   *)
-  result := VectorLenSqr(TriangleDir(Tri)) > Sqr(ScalarEqualityEpsilon);
+  Result := VectorLenSqr(TriangleDir(Tri)) > Sqr(ScalarEqualityEpsilon);
 end;
 
 function TriangleDir(const Tri: TTriangle3): TVector3;
 begin
-  result := VectorProduct(
-    VectorSubtract(Tri[2], Tri[1]),
-    VectorSubtract(Tri[0], Tri[1]));
+  Result := VectorProduct(
+    Tri[2] - Tri[1],
+    Tri[0] - Tri[1]);
 end;
 
 function TriangleDir(const p0, p1, p2: TVector3): TVector3;
 begin
-  result := VectorProduct(
-    VectorSubtract(p2, p1),
-    VectorSubtract(p0, p1));
+  Result := VectorProduct(
+    p2 - p1,
+    p0 - p1);
 end;
 
 function TriangleNormal(const Tri: TTriangle3): TVector3;
 begin
-  result := Normalized( TriangleDir(Tri) );
+  Result := Normalized( TriangleDir(Tri) );
 end;
 
 function TriangleNormal(const p0, p1, p2: TVector3): TVector3;
 begin
-  result := Normalized( TriangleDir(p0, p1, p2) );
+  Result := Normalized( TriangleDir(p0, p1, p2) );
 end;
 
 function TrianglePlane(const Tri: TTriangle3): TVector4;
 var
-  ResultDir: TVector3 absolute result;
+  ResultDir: TVector3 absolute Result;
 begin
   ResultDir := TriangleDir(Tri);
-  (* Punkt Tri[0] musi lezec na plane result. Wiec musi zachodzic
+  (* Punkt Tri[0] musi lezec na plane Result. Wiec musi zachodzic
      ResulrDir[0]*Tri[0, 0] + ResulrDir[1]*Tri[0, 1] + ResulrDir[2]*Tri[0, 2]
-       + result[3] = 0.
-     Stad widac jak wyznaczyc result[3]. *)
-  result[3] := -ResultDir[0]*Tri[0, 0]
+       + Result[3] = 0.
+     Stad widac jak wyznaczyc Result[3]. *)
+  Result[3] := -ResultDir[0]*Tri[0, 0]
                -ResultDir[1]*Tri[0, 1]
                -ResultDir[2]*Tri[0, 2];
 end;
 
 function TrianglePlane(const p0, p1, p2: TVector3): TVector4;
 var
-  ResultDir: TVector3 absolute result;
+  ResultDir: TVector3 absolute Result;
 begin
   ResultDir := TriangleDir(p0, p1, p2);
-  result[3] := -ResultDir[0]*p0[0]
+  Result[3] := -ResultDir[0]*p0[0]
                -ResultDir[1]*p0[1]
                -ResultDir[2]*p0[2];
 end;
 
 function TriangleNormPlane(const Tri: TTriangle3): TVector4;
 var
-  resultNormal: TVector3 absolute result;
+  ResultNormal: TVector3 absolute Result;
 begin
   (* dzialamy tak samo jak TrianglePlane tyle ze teraz uzywamy TriangleNormal
      zamiast TriangleNormalNotNorm *)
-  resultNormal := TriangleNormal(Tri);
-  result[3] := -resultNormal[0]*Tri[0, 0] -resultNormal[1]*Tri[0, 1]
-    -resultNormal[2]*Tri[0, 2];
+  ResultNormal := TriangleNormal(Tri);
+  Result[3] := -ResultNormal[0]*Tri[0, 0] -ResultNormal[1]*Tri[0, 1]
+    -ResultNormal[2]*Tri[0, 2];
 end;
 
 function TriangleTransform(const Tri: TTriangle3; const M: TMatrix4): TTriangle3;
@@ -266,16 +263,16 @@ end;
 
 function TriangleArea(const Tri: TTriangle3): TScalar;
 begin
-  result := VectorLen(
-    VectorProduct(VectorSubtract(Tri[1], Tri[0]),
-                  VectorSubtract(Tri[2], Tri[0]))) / 2;
+  Result := VectorLen(VectorProduct(
+    Tri[1] - Tri[0],
+    Tri[2] - Tri[0])) / 2;
 end;
 
 function TriangleAreaSqr(const Tri: TTriangle3): TScalar;
 begin
-  result := VectorLenSqr(
-    VectorProduct(VectorSubtract(Tri[1], Tri[0]),
-                  VectorSubtract(Tri[2], Tri[0]))) / 4;
+  Result := VectorLenSqr(
+    VectorProduct(Tri[1] - Tri[0],
+                  Tri[2] - Tri[0])) / 4;
 end;
 
 function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
@@ -340,14 +337,14 @@ var
   S, T, One, UU, UV, VV, WV, WU, Denominator: TScalar;
   W, U, V: TVector3;
 begin
-  U := VectorSubtract(Tri[1], Tri[0]);
-  V := VectorSubtract(Tri[2], Tri[0]);
+  U := Tri[1] - Tri[0];
+  V := Tri[2] - Tri[0];
   UV := VectorDotProduct(U, V);
   UU := VectorLenSqr(U); { = VectorDotProduct(U, U) }
   VV := VectorLenSqr(V); { = VectorDotProduct(V, V) }
   Denominator := Sqr(UV) - UU * VV;
 
-  W := VectorSubtract(P, Tri[0]);
+  W := P - Tri[0];
   WV := VectorDotProduct(W, V);
   WU := VectorDotProduct(W, U);
 
@@ -369,7 +366,7 @@ begin
   if T < -ScalarEqualityEpsilon then
     Exit(false);
 
-  result := S + T <= One;
+  Result := S + T <= One;
 end;
 
 {$else}
@@ -379,9 +376,9 @@ var
   W, U, V, Ortho: TVector3;
   One: TScalar;
 begin
-  U := VectorSubtract(Tri[1], Tri[0]);
-  V := VectorSubtract(Tri[2], Tri[0]);
-  W := VectorSubtract(P, Tri[0]);
+  U := Tri[1] - Tri[0];
+  V := Tri[2] - Tri[0];
+  W := P - Tri[0];
 
   One := 1 + ScalarEqualityEpsilon;
 
@@ -403,7 +400,7 @@ begin
   if T < -ScalarEqualityEpsilon then
     Exit(false);
 
-  result := S + T <= One;
+  Result := S + T <= One;
 end;
 
 {$endif IsPointOnTrianglePlaneWithinTriangle_Simplified}
@@ -411,7 +408,7 @@ end;
 //function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
 //  const Tri: TTriangle3): boolean;
 //begin
-//  result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDir(Tri));
+//  Result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDir(Tri));
 //end;
 
 function IsPointWithinTriangle2D(const P: TVector2;
@@ -473,28 +470,28 @@ begin
 end;
 
 function IsTriangleSegmentCollision(const Tri: TTriangle3;
-  const TriPlane: TVector4; const pos1, pos2: TVector3): boolean;
+  const TriPlane: TVector4; const Pos1, Pos2: TVector3): boolean;
 var
-  lineVector, MaybeIntersection: TVector3;
+  LineVector, MaybeIntersection: TVector3;
   TriDir: TVector3 absolute TriPlane;
 begin
-  lineVector := VectorSubtract(pos2, pos1);
-  result := TryPlaneLineIntersection(MaybeIntersection, TriPlane, pos1, lineVector) and
-            IsPointOnSegmentLineWithinSegment(MaybeIntersection, pos1, pos2) and
+  LineVector := Pos2 - Pos1;
+  Result := TryPlaneLineIntersection(MaybeIntersection, TriPlane, Pos1, LineVector) and
+            IsPointOnSegmentLineWithinSegment(MaybeIntersection, Pos1, Pos2) and
             IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
 end;
 
-function IsTriangleSegmentCollision(const Tri: TTriangle3; const pos1, pos2: TVector3): boolean;
+function IsTriangleSegmentCollision(const Tri: TTriangle3; const Pos1, Pos2: TVector3): boolean;
 begin
-  result := IsTriangleSegmentCollision(Tri, TrianglePlane(Tri), pos1, pos2);
+  Result := IsTriangleSegmentCollision(Tri, TrianglePlane(Tri), Pos1, Pos2);
 end;
 
 function TryTriangleSegmentCollision(var Intersection: TVector3;
   const Tri: TTriangle3; const TriPlane: TVector4;
-  const pos1, pos2: TVector3): boolean;
+  const Pos1, Pos2: TVector3): boolean;
 begin
-  result := TryTriangleSegmentDirCollision(Intersection, Tri, TriPlane,
-    Pos1, VectorSubtract(Pos2, Pos1));
+  Result := TryTriangleSegmentDirCollision(Intersection, Tri, TriPlane,
+    Pos1, Pos2 - Pos1);
 end;
 
 function TryTriangleSegmentDirCollision(var Intersection: TVector3; var T: TScalar;
@@ -505,9 +502,9 @@ var
   MaybeT: TScalar;
   TriDir: TVector3 absolute TriPlane;
 begin
-  result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
+  Result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
-  if result then
+  if Result then
   begin
     Intersection := MaybeIntersection;
     T := MaybeT;
@@ -522,9 +519,9 @@ var
   MaybeT: TScalar;
   TriDir: TVector3 absolute TriPlane;
 begin
-  result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
+  Result := TryPlaneSegmentDirIntersection(MaybeIntersection, MaybeT, TriPlane, Segment0, SegmentVector) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
-  if result then
+  if Result then
     Intersection := MaybeIntersection;
 end;
 
@@ -569,9 +566,9 @@ var
   MaybeT: TScalar;
   TriDir: TVector3 absolute TriPlane;
 begin
-  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
+  Result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
-  if result then
+  if Result then
   begin
     Intersection := MaybeIntersection;
     T := MaybeT;
@@ -586,9 +583,9 @@ var
   MaybeT: TScalar;
   TriDir: TVector3 absolute TriPlane;
 begin
-  result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
+  Result := TryPlaneRayIntersection(MaybeIntersection, MaybeT, TriPlane, RayOrigin, RayDirection) and
           IsPointOnTrianglePlaneWithinTriangle(MaybeIntersection, Tri, TriDir);
-  if result then
+  if Result then
     Intersection := MaybeIntersection;
 end;
 
@@ -596,14 +593,14 @@ end;
 
 function TriangleToNiceStr(const t: TTriangle2): string;
 begin
-  result := '['+VectorToNiceStr(t[0])+', '
+  Result := '['+VectorToNiceStr(t[0])+', '
                +VectorToNiceStr(t[1])+', '
                +VectorToNiceStr(t[2])+']';
 end;
 
 function TriangleToNiceStr(const t: TTriangle3): string;
 begin
-  result := '['+VectorToNiceStr(t[0])+', '
+  Result := '['+VectorToNiceStr(t[0])+', '
                +VectorToNiceStr(t[1])+', '
                +VectorToNiceStr(t[2])+']';
 end;

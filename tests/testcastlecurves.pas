@@ -102,8 +102,8 @@ var
   function MiddlePoint(i, Sign: Integer): TVector3Single;
   begin
     Result := ControlPoints.L[i];
-    VectorAddVar(Result,
-      VectorScale(S.L[i], Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3));
+    Result := Result +
+      S.L[i] * (Sign * (ControlPointT(i) - ControlPointT(i-1)) / 3);
   end;
 
 var
@@ -152,9 +152,8 @@ begin
       { calculate C values }
       for i := 0 to C.Count-1 do
       begin
-        C.L[i] := VectorSubtract(ControlPoints.L[i+1], ControlPoints.L[i]);
-        VectorScaleVar(C.L[i],
-          1/(ControlPointT(i+1) - ControlPointT(i)));
+        C.L[i] := ControlPoints.L[i+1] - ControlPoints.L[i];
+        C.L[i] := C.L[i] * (1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 
       S := TVector3SingleList.Create;
@@ -164,8 +163,8 @@ begin
         S.L[i] := Lerp( (ControlPointT(i+1) - ControlPointT(i))/
                             (ControlPointT(i+1) - ControlPointT(i-1)),
                             C.L[i-1], C.L[i]);
-      S.L[0        ] := VectorSubtract(VectorScale(C.L[0        ], 2), S.L[1        ]);
-      S.L[S.Count-1] := VectorSubtract(VectorScale(C.L[S.Count-2], 2), S.L[S.Count-2]);
+      S.L[0        ] := C.L[0        ] * 2 - S.L[1        ];
+      S.L[S.Count-1] := C.L[S.Count-2] * 2 - S.L[S.Count-2];
 
       for i := 1 to ControlPoints.Count-1 do
       begin
@@ -239,7 +238,7 @@ function TOnlinePiecewiseCubicBezier.Point(const T: Float): TVector3Single;
   function C(const I: Integer): TVector3Single;
   begin
     Result := ControlPoints.L[I + 1] - ControlPoints.L[I];
-    //VectorScaleVar(Result, 1 / (ControlPointT(I + 1) - ControlPointT(I)));
+    //Result := Result * (1 / (ControlPointT(I + 1) - ControlPointT(I)));
   end;
 
   { This asssumes that I = [0..ControlPoints.Count - 1],

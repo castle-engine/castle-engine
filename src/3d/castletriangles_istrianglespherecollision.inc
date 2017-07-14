@@ -44,7 +44,7 @@ begin
   begin
     NextI := (I + 1) mod 3;
     Intersection := PointOnLineClosestToPoint(Tri[I],
-      VectorSubtract(Tri[NextI], Tri[I]), SphereCenter);
+      Tri[NextI] - Tri[I], SphereCenter);
     if IsPointOnSegmentLineWithinSegment(Intersection, Tri[I], Tri[NextI]) and
        (PointsDistanceSqr(SphereCenter, Intersection) <= SphereRadiusSqr) then
       Exit(true);

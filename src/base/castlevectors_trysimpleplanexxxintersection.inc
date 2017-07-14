@@ -26,7 +26,7 @@ begin
   if result then
   begin
    {$ifdef HAS_T}T := MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection := VectorAdd(RayOrigin, VectorScale(RayDirection, MaybeT));{$endif}
+   {$ifdef HAS_INTR}Intersection := RayOrigin + RayDirection * MaybeT;{$endif}
   end;
  end;
 end;}
@@ -70,7 +70,7 @@ begin
   if result then
   begin
    {$ifdef HAS_T}T := MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));{$endif}
+   {$ifdef HAS_INTR}Intersection := Segment0 + SegmentVector * MaybeT;{$endif}
   end;
  end;
 end;}
@@ -107,7 +107,7 @@ var MaybeT: TScalar;
     Segment0: TVector3 absolute Pos1;
     SegmentVector: TVector3;
 begin
- SegmentVector := VectorSubtract(Pos2, Pos1);
+ SegmentVector := Pos2 - Pos1;
 
  result := not IsLineParallelToSimplePlane(SegmentVector, PlaneConstCoord);
  if result then
@@ -117,7 +117,7 @@ begin
   if result then
   begin
    {$ifdef HAS_T}T := MaybeT;{$endif}
-   {$ifdef HAS_INTR}Intersection := VectorAdd(Segment0, VectorScale(SegmentVector, MaybeT));{$endif}
+   {$ifdef HAS_INTR}Intersection := Segment0 + SegmentVector * MaybeT;{$endif}
   end;
  end;
 end;}

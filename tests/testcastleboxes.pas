@@ -161,17 +161,17 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
       repeat
         V0 := Vector3Single(10 + Random(10) * XRandomness, 10 + Random(10) * YRandomness, 10 + Random(10) * ZRandomness);
         V1 := Vector3Single(10 + Random(10) * XRandomness, 10 + Random(10) * YRandomness, 10 + Random(10) * ZRandomness);
-        V2 := VectorNegate(VectorAdd(V0, V1));
-        Triangle[0] := VectorAdd(Vector3Single(15, 15, 15), V0);
-        Triangle[1] := VectorAdd(Vector3Single(15, 15, 15), V1);
-        Triangle[2] := VectorAdd(Vector3Single(15, 15, 15), V2);
+        V2 := -(V0 + V1);
+        Triangle[0] := Vector3Single(15, 15, 15) + V0;
+        Triangle[1] := Vector3Single(15, 15, 15) + V1;
+        Triangle[2] := Vector3Single(15, 15, 15) + V2;
       until IsValidTriangle(Triangle);
 
       AssertTrue(Box.IsTriangleCollision(Triangle));
 
-      VectorAddVar(Triangle[0], Vector3Single(100, 100, 100));
-      VectorAddVar(Triangle[1], Vector3Single(100, 100, 100));
-      VectorAddVar(Triangle[2], Vector3Single(100, 100, 100));
+      Triangle[0] := Triangle[0] + Vector3Single(100, 100, 100);
+      Triangle[1] := Triangle[1] + Vector3Single(100, 100, 100);
+      Triangle[2] := Triangle[2] + Vector3Single(100, 100, 100);
       AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
 
@@ -183,16 +183,16 @@ procedure TTestCastleBoxes.TestIsBox3DTriangleCollision;
       repeat
         V0 := Vector3Single(10 + Random(10) * XRandomness, 10 + Random(10) * YRandomness, 10 + Random(10) * ZRandomness);
         V1 := Vector3Single(10 + Random(10) * XRandomness, 10 + Random(10) * YRandomness, 10 + Random(10) * ZRandomness);
-        Triangle[0] := VectorAdd(Vector3Single(15, 15, 15), V0);
-        Triangle[1] := VectorAdd(Vector3Single(15, 15, 15), V1);
+        Triangle[0] := Vector3Single(15, 15, 15) + V0;
+        Triangle[1] := Vector3Single(15, 15, 15) + V1;
         Triangle[2] := Vector3Single(15, 15, 15);
       until IsValidTriangle(Triangle);
 
       AssertTrue(Box.IsTriangleCollision(Triangle));
 
-      VectorAddVar(Triangle[0], Vector3Single(100, 100, 100));
-      VectorAddVar(Triangle[1], Vector3Single(100, 100, 100));
-      VectorAddVar(Triangle[2], Vector3Single(100, 100, 100));
+      Triangle[0] := Triangle[0] + Vector3Single(100, 100, 100);
+      Triangle[1] := Triangle[1] + Vector3Single(100, 100, 100);
+      Triangle[2] := Triangle[2] + Vector3Single(100, 100, 100);
       AssertTrue(not Box.IsTriangleCollision(Triangle));
     end;
   end;
@@ -404,14 +404,14 @@ var
 
     { calculate TriangleMoved (Triangle shifted by -BoxCenter,
       so that we can treat the BoxHalfSize as centered around origin) }
-    TriangleMoved[0] := VectorSubtract(Triangle[0], BoxCenter);
-    TriangleMoved[1] := VectorSubtract(Triangle[1], BoxCenter);
-    TriangleMoved[2] := VectorSubtract(Triangle[2], BoxCenter);
+    TriangleMoved[0] := Triangle[0] - BoxCenter;
+    TriangleMoved[1] := Triangle[1] - BoxCenter;
+    TriangleMoved[2] := Triangle[2] - BoxCenter;
 
     { calculate TriangleMoved edges }
-    TriangleEdges[0] := VectorSubtract(TriangleMoved[1], TriangleMoved[0]);
-    TriangleEdges[1] := VectorSubtract(TriangleMoved[2], TriangleMoved[1]);
-    TriangleEdges[2] := VectorSubtract(TriangleMoved[0], TriangleMoved[2]);
+    TriangleEdges[0] := TriangleMoved[1] - TriangleMoved[0];
+    TriangleEdges[1] := TriangleMoved[2] - TriangleMoved[1];
+    TriangleEdges[2] := TriangleMoved[0] - TriangleMoved[2];
 
     { tests 3) }
     EdgeAbs[0] := Abs(TriangleEdges[0][0]);

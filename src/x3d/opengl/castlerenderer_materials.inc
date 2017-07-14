@@ -114,8 +114,7 @@ procedure RenderMaterialsBegin;
     if (Material <> nil) and not Material.PureEmissive then
     begin
       RenderMaterial(
-        VectorScale(Material.FdDiffuseColor.Value,
-          Material.FdAmbientIntensity.Value),
+        Material.FdDiffuseColor.Value * Material.FdAmbientIntensity.Value,
         Material.FdDiffuseColor.Value,
         Material.FdSpecularColor.Value,
         Material.FdEmissiveColor.Value,

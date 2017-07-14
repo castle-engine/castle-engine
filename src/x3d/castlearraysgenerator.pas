@@ -2301,13 +2301,14 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       Alpha := (                  D[1] - TriangleTexCoord[1][1]) /
                (TriangleTexCoord[2][1] - TriangleTexCoord[1][1]);
 
-    DIn3D := VectorAdd(
-      VectorScale(Triangle3D[1], 1 - Alpha),
-      VectorScale(Triangle3D[2], Alpha));
+    DIn3D :=
+      (Triangle3D[1] * (1 - Alpha)) +
+      (Triangle3D[2] * Alpha);
 
     if D[SearchCoord] > TriangleTexCoord[0][SearchCoord] then
-      Tangent := VectorSubtract(DIn3D, Triangle3D[0]) else
-      Tangent := VectorSubtract(Triangle3D[0], DIn3D);
+      Tangent := DIn3D - Triangle3D[0]
+    else
+      Tangent := Triangle3D[0] - DIn3D;
 
     NormalizeVar(Tangent);
 

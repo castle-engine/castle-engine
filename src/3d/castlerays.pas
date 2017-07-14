@@ -256,10 +256,10 @@ procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
   out RayOrigin, RayDirection: TVector3Single);
 begin
   RayOrigin := CamPosition;
-  RayOrigin += VectorScale(CamSide, MapRange(X + 0.5, 0, ScreenWidth,
-    Dimensions.Left, Dimensions.Right));
-  RayOrigin += VectorScale(CamUp, MapRange(Y + 0.5, 0, ScreenHeight,
-    Dimensions.Bottom, Dimensions.Top));
+  RayOrigin += CamSide * MapRange(X + 0.5, 0, ScreenWidth,
+    Dimensions.Left, Dimensions.Right);
+  RayOrigin += CamUp * MapRange(Y + 0.5, 0, ScreenHeight,
+    Dimensions.Bottom, Dimensions.Top);
 
   { CamDirection must already be normalized, so RayDirection is normalized too }
   RayDirection := CamDirection;

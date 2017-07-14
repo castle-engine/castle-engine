@@ -3381,8 +3381,7 @@ begin
   { To make TransformInverse, we multiply inverted matrices in inverted order
     below. }
 
-  MultMatricesTranslation(Transform, TransformInverse,
-    VectorAdd(Translation, Center));
+  MultMatricesTranslation(Transform, TransformInverse, Translation + Center);
 
   { We avoid using RotationMatricesRad when angle = 0, since this
     is often the case, and it makes TransformState much faster
@@ -3427,7 +3426,7 @@ begin
     end;
   end;
 
-  MultMatricesTranslation(Transform, TransformInverse, VectorNegate(Center));
+  MultMatricesTranslation(Transform, TransformInverse, -Center);
 end;
 
 { T3DWorld ------------------------------------------------------------------- }

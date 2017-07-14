@@ -469,7 +469,7 @@ var
   begin
     { since Position <> WantsToWalkPos, we know that
       MoveDirectionMax is non-zero }
-    MoveDirectionMax := VectorSubtract(WantsToWalkPos, Position);
+    MoveDirectionMax := WantsToWalkPos - Position;
     MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / VectorLen(MoveDirectionMax);
     if MoveDirectionCurrentScale >= 1.0 then
     begin
@@ -481,8 +481,8 @@ var
       State := csStand;
     end else
     begin
-      MoveDirectionCurrent := VectorScale(MoveDirectionMax, MoveDirectionCurrentScale);
-      Position := VectorAdd(Position, MoveDirectionCurrent);
+      MoveDirectionCurrent := MoveDirectionMax * MoveDirectionCurrentScale;
+      Position := Position + MoveDirectionCurrent;
     end;
   end;
 

@@ -1077,8 +1077,8 @@ function TBox3D.Translate(
 begin
   if not IsEmpty then
   begin
-    Result.Data[0] := VectorAdd(Data[0], Translation);
-    Result.Data[1] := VectorAdd(Data[1], Translation);
+    Result.Data[0] := Data[0] + Translation;
+    Result.Data[1] := Data[1] + Translation;
   end else
     Result := EmptyBox3D;
 end;
@@ -1088,8 +1088,8 @@ function TBox3D.AntiTranslate(
 begin
   if not IsEmpty then
   begin
-    Result.Data[0] := VectorSubtract(Data[0], Translation);
-    Result.Data[1] := VectorSubtract(Data[1], Translation);
+    Result.Data[0] := Data[0] - Translation;
+    Result.Data[1] := Data[1] - Translation;
   end else
     Result := EmptyBox3D;
 end;
@@ -1496,14 +1496,14 @@ begin
 
   { calculate TriangleMoved (Triangle shifted by -BoxCenter,
     so that we can treat the BoxHalfSize as centered around origin) }
-  TriangleMoved[0] := VectorSubtract({$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[0]), BoxCenter);
-  TriangleMoved[1] := VectorSubtract({$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[1]), BoxCenter);
-  TriangleMoved[2] := VectorSubtract({$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[2]), BoxCenter);
+  TriangleMoved[0] := {$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[0]) - BoxCenter;
+  TriangleMoved[1] := {$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[1]) - BoxCenter;
+  TriangleMoved[2] := {$ifdef CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle[2]) - BoxCenter;
 
   { calculate TriangleMoved edges }
-  TriangleEdges[0] := VectorSubtract(TriangleMoved[1], TriangleMoved[0]);
-  TriangleEdges[1] := VectorSubtract(TriangleMoved[2], TriangleMoved[1]);
-  TriangleEdges[2] := VectorSubtract(TriangleMoved[0], TriangleMoved[2]);
+  TriangleEdges[0] := TriangleMoved[1] - TriangleMoved[0];
+  TriangleEdges[1] := TriangleMoved[2] - TriangleMoved[1];
+  TriangleEdges[2] := TriangleMoved[0] - TriangleMoved[2];
 
   { tests 3) }
   EdgeAbs[0] := Abs(TriangleEdges[0][0]);

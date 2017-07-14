@@ -141,7 +141,7 @@ begin
   AssertTrue( VectorsPerp(AnyOrthogonalVector(v), v) );
   { I has to comment it out -- it fails too often due to floating point
     inaccuracy. }
-  { AssertTrue( VectorsParallel(VectorScale(v, Random*10), v) ); }
+  { AssertTrue( VectorsParallel(v * (Random * 10)), v) ); }
   AssertTrue( VectorsPerp(ZeroVector3Single, v) );
   AssertTrue( VectorsParallel(ZeroVector3Single, v) );
  except
@@ -242,8 +242,8 @@ begin
 	'RayOrigin = ',VectorToNiceStr(RayOrigin), ' RayDirection = ',VectorToNiceStr(RayDirection), nl,
 	FloatToNiceStr(t1), nl,
 	FloatToNiceStr(t2), nl,
-	VectorToNiceStr(VectorAdd(RayOrigin, VectorScale(RayDirection, t1))), nl,
-	VectorToNiceStr(VectorAdd(RayOrigin, VectorScale(RayDirection, t2)))
+	VectorToNiceStr(RayOrigin + RayDirection * t1), nl,
+	VectorToNiceStr(RayOrigin + RayDirection * t2)
       );
      end; }
      AssertFloatsEqual(PlaneConstVal, I1[PlaneConstCoord]);
@@ -293,7 +293,7 @@ begin
  for i := 1 to SPEED_TEST_2_CYCLES do
  begin
   V := VConst;
-  VectorScaleVar(V, Pi);
+  V := V * Pi;
  end;
  Time1 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Using assignment + VectorScaleVar = %f',[Time1]));
@@ -301,7 +301,7 @@ begin
  StartTime := ProcessTimer;
  for i := 1 to SPEED_TEST_2_CYCLES do
  begin
-  V := VectorScale(VConst, Pi);
+  V := VConst * Pi;
  end;
  Time2 := ProcessTimerSeconds(ProcessTimer, StartTime);
  WritelnSpeedTest(Format('Using VectorScale = %f',[Time2]));
@@ -421,7 +421,7 @@ begin
 
     V := RandomVector;
     NewM := MatrixMult(M, TranslationMatrix(V));
-    NewMInverse := MatrixMult(TranslationMatrix(VectorNegate(V)), MInverse);
+    NewMInverse := MatrixMult(TranslationMatrix(-V), MInverse);
     MultMatricesTranslation(M, MInverse, V);
     AssertMatricesEqual(M, NewM, 0.001);
     AssertMatricesEqual(MInverse, NewMInverse, 0.001);

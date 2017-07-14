@@ -193,8 +193,8 @@ var
         This follows X3D / VRML spec ("If the Z-axis of the
         first point is undefined..."). }
       Z := VectorProduct(
-        VectorSubtract(SpinePoints.L[I + 1], SpinePoints.L[I]),
-        VectorSubtract(SpinePoints.L[I - 1], SpinePoints.L[I]));
+        (SpinePoints.L[I + 1] - SpinePoints.L[I]),
+        (SpinePoints.L[I - 1] - SpinePoints.L[I]));
       if not ZeroVector(Z) then
       begin
         Result := true;
@@ -213,7 +213,7 @@ var
   begin
     for I := 1 to High do
     begin
-      Y := VectorSubtract(SpinePoints.L[I], SpinePoints.L[I - 1]);
+      Y := (SpinePoints.L[I] - SpinePoints.L[I - 1]);
       if not ZeroVector(Y) then
       begin
         NormalizeVar(Y);
@@ -276,15 +276,15 @@ var
   procedure CalculateYZForClosed(out Y, Z: TVector3Single);
   begin
     { Same for Spine = 0 and High, as this is the same point actually. }
-    Y := VectorSubtract(SpinePoints.L[1], SpinePoints.L[High - 1]);
+    Y := SpinePoints.L[1] - SpinePoints.L[High - 1];
 
     if not ZeroVector(Y) then
       NormalizeVar(Y) else
       FindFirstNonCoincident(Y);
 
     Z := VectorProduct(
-      VectorSubtract(SpinePoints.L[1], SpinePoints.L[0]),
-      VectorSubtract(SpinePoints.L[High - 1], SpinePoints.L[0]));
+      (SpinePoints.L[1] - SpinePoints.L[0]),
+      (SpinePoints.L[High - 1] - SpinePoints.L[0]));
 
     if not ZeroVector(Z) then
       NormalizeVar(Z) else
@@ -312,7 +312,7 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := VectorSubtract(SpinePoints.L[1], SpinePoints.L[0]);
+      Y := (SpinePoints.L[1] - SpinePoints.L[0]);
       if not ZeroVector(Y) then
         NormalizeVar(Y) else
         FindFirstNonCoincident(Y);
@@ -327,7 +327,7 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := VectorSubtract(SpinePoints.L[High], SpinePoints.L[High - 1]);
+      Y := (SpinePoints.L[High] - SpinePoints.L[High - 1]);
       if not ZeroVector(Y) then
         NormalizeVar(Y) else
         Y := LastY;
@@ -340,15 +340,15 @@ begin
       in this case, and that's good. This is the most common case
       for this routine. }
 
-    Y := VectorSubtract(SpinePoints.L[Spine + 1], SpinePoints.L[Spine - 1]);
+    Y := (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine - 1]);
 
     if not ZeroVector(Y) then
       NormalizeVar(Y) else
       Y := LastY;
 
     Z := VectorProduct(
-      VectorSubtract(SpinePoints.L[Spine + 1], SpinePoints.L[Spine]),
-      VectorSubtract(SpinePoints.L[Spine - 1], SpinePoints.L[Spine]));
+      (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine]),
+      (SpinePoints.L[Spine - 1] - SpinePoints.L[Spine]));
 
     if not ZeroVector(Z) then
       NormalizeVar(Z) else
@@ -356,9 +356,7 @@ begin
   end;
 
   if (Spine > 0) and (VectorDotProduct(LastZ, Z) < 0) then
-  begin
-    VectorNegateVar(Z);
-  end;
+    Z := -Z;
 
   LastY := Y;
   LastZ := Z;

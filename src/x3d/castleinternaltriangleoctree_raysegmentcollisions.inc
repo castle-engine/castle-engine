@@ -109,7 +109,7 @@ var
   Iterate_IntersectionDistance: TYPE_SCALAR;
 begin
  {$ifdef SEGMENT_COLLISION}
- RayDirection := VectorSubtract(Pos2, Pos1);
+ RayDirection := Pos2 - Pos1;
  {$endif}
 
  if ReturnClosestIntersection then

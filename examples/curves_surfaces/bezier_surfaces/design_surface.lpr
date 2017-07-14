@@ -443,10 +443,11 @@ begin
       depth buffer). }
     WinZ := ProjectToZ(ControlPoints(CurrentCurve).List^[CurrentPoint]);
 
-    Move := Vector3Single(VectorSubtract(
-      UnProject(Event.   Position[0], Event.   Position[1], WinZ),
-      UnProject(Event.OldPosition[0], Event.OldPosition[1], WinZ)));
-    VectorAddVar(ControlPoints(CurrentCurve).List^[CurrentPoint], Move);
+    Move := Vector3Single(
+      UnProject(Event.   Position[0], Event.   Position[1], WinZ) -
+      UnProject(Event.OldPosition[0], Event.OldPosition[1], WinZ));
+    ControlPoints(CurrentCurve).List^[CurrentPoint] :=
+      ControlPoints(CurrentCurve).List^[CurrentPoint] + Move;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.Invalidate;
   end;

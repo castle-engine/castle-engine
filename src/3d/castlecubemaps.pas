@@ -116,8 +116,7 @@ begin
   { Result = exactly CubeMapInfo[Side].Dir when
     PixelX/Y = CubeMapSize/2 (pixel is on the middle of the image). }
   Result := CubeMapInfo[Side].Dir;
-  VectorAddVar(Result,
-    VectorScale(CubeMapInfo[Side].Side, -1 + 2 * PixelX/CubeMapSize
+  Result := Result + CubeMapInfo[Side].Side * (-1 + 2 * PixelX/CubeMapSize
 
     { We want the generated direction to be exactly in the middle of
       cube map pixel.
@@ -137,10 +136,9 @@ begin
       max =  1 - 1/CubeMapSize,
       so all will be perfect. }
       + 1/CubeMapSize
-    ));
-  VectorAddVar(Result,
-    VectorScale(CubeMapInfo[Side].Up  , -1 + 2 * PixelY/CubeMapSize
-      + 1/CubeMapSize));
+    );
+  Result := Result + CubeMapInfo[Side].Up * (-1 + 2 * PixelY/CubeMapSize
+      + 1/CubeMapSize);
 end;
 
 procedure DirectionToCubeMap(const Dir: TVector3Single;
@@ -316,7 +314,7 @@ begin
 
   { normalize Dir. Since we already have DirLength,
     we can just call VectorScale. }
-  VectorScaleVar(Dir, 1/DirLength);
+  Dir := Dir * (1 / DirLength);
 
   Result := VectorDotProduct(Dir, CubeMapInfo[Side].Dir) *
     ( 4 / Sqr(CubeMapSize) ) /

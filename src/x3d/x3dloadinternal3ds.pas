@@ -872,7 +872,7 @@ end;
 
 function TCamera3ds.Direction: TVector3Single;
 begin
-  result := VectorSubtract(Target, Position);
+  result := Target - Position;
 end;
 
 function TCamera3ds.Up: TVector3Single;

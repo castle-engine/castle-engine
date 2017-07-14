@@ -144,8 +144,8 @@ procedure TMySceneManager.RenderFromViewEverything;
       Map: PCubeMapByte;
       Side: TCubeMapSide;
     begin
-      Map := Field.EnvMapFromPoint(VectorSubtract(
-        NavigatorData[ntSFExplorer].Pos, FieldMoveAmount), FieldScale);
+      Map := Field.EnvMapFromPoint(
+        NavigatorData[ntSFExplorer].Pos - FieldMoveAmount, FieldScale);
       if Map <> nil then
       begin
         for Side := Low(Side) to High(Side) do
@@ -329,14 +329,14 @@ var
     Pixel: Cardinal;
     C: Single;
   begin
-    CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorData[ntCaster].Pos), NavigatorData[ntCaster].Scale);
+    CasterMap := CasterOOF.EnvMapFromPoint(
+      Position - NavigatorData[ntCaster].Pos, NavigatorData[ntCaster].Scale);
 
     if not (CasterBeforeLocalLight or UseEnvLight) then
       CasterMap := nil;
 
-    LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorData[ntLocalLight].Pos), NavigatorData[ntLocalLight].Scale);
+    LocalLightMap := LocalLightSRF.EnvMapFromPoint(
+      Position - NavigatorData[ntLocalLight].Pos, NavigatorData[ntLocalLight].Scale);
 
     if LocalLightMap = nil then
       { Too far from light }
@@ -390,8 +390,8 @@ var
     C: Single;
     LM: Cardinal;
   begin
-    CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorData[ntCaster].Pos),
+    CasterVector := CasterOOF.SHVectorFromPoint(
+      Position - NavigatorData[ntCaster].Pos,
       NavigatorData[ntCaster].Scale, UseInterpolation, SHCount);
 
     if not (CasterBeforeLocalLight or UseEnvLight) then
@@ -402,8 +402,8 @@ var
 
     if UseEnvLight then
       LightVector := @EnvLightSHVector else
-      LightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
-        Position, NavigatorData[ntLocalLight].Pos),
+      LightVector := LocalLightSRF.SHVectorFromPoint(
+        Position - NavigatorData[ntLocalLight].Pos,
         NavigatorData[ntLocalLight].Scale, UseInterpolation, SHCount);
 
     if LightVector = nil then

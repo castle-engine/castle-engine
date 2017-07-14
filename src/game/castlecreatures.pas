@@ -1939,7 +1939,7 @@ var
     out AngleRadBetweenDirectionToTarget: Single);
   begin
     { calculate DirectionToTarget }
-    DirectionToTarget := VectorSubtract(Target, Middle);
+    DirectionToTarget := Target - Middle;
     if Gravity then
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
@@ -1962,7 +1962,7 @@ var
   begin
     CalculateDirectionToEnemy(
       DirectionFromEnemy, AngleRadBetweenDirectionFromEnemy);
-    VectorNegateVar(DirectionFromEnemy);
+    DirectionFromEnemy := -DirectionFromEnemy;
     AngleRadBetweenDirectionFromEnemy :=
       Pi - AngleRadBetweenDirectionFromEnemy;
   end;
@@ -2641,7 +2641,7 @@ var
 
     { We would like to check collision between EB and our B translated
       by our Direction now, i.e.
-        B.Translate(VectorScale(Direction, ???)).Collision(EB)
+        B.Translate(Direction * ???).Collision(EB)
       But how much should be scale Direction, i.e. what to put for "???" ?
       It must be large enough to compensate even large Resource.AttackMaxDistance,
       it must be small enough so that enemy should not be able to avoid
@@ -2657,14 +2657,13 @@ var
     DistanceLength := DistanceIncrease;
     while DistanceLength < Resource.AttackMaxDistance do
     begin
-      if B.Translate(VectorScale(Direction, DistanceLength)).Collision(EB) then
+      if B.Translate(Direction * DistanceLength).Collision(EB) then
         Exit(true);
       DistanceLength += DistanceIncrease;
     end;
 
     { Check one last time for Resource.AttackMaxDistance }
-    Result := B.Translate(
-      VectorScale(Direction, Resource.AttackMaxDistance)).Collision(EB);
+    Result := B.Translate(Direction * Resource.AttackMaxDistance).Collision(EB);
   end;
 
 begin
@@ -2684,7 +2683,7 @@ begin
   if (Resource.FireMissileName <> '') and HasLastSensedEnemy then
   begin
     MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
-    MissileDirection := VectorSubtract(LastSensedEnemy, MissilePosition);
+    MissileDirection := LastSensedEnemy - MissilePosition;
     Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
       CreateCreature(World, MissilePosition, MissileDirection);
     Missile.Sound3d(Resource.FireMissileSound, 0.0);

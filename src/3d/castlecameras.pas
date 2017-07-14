@@ -2348,7 +2348,7 @@ begin
   begin
     GetView(Pos, Dir, Up);
 
-    VectorAddVar(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
+    Pos := Pos + AInitialPosition - FInitialPosition;
 
     if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
             VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
@@ -2509,17 +2509,17 @@ end;
 
 function TExamineCamera.Matrix: TMatrix4Single;
 begin
-  Result := TranslationMatrix(VectorAdd(Translation, FCenterOfRotation));
+  Result := TranslationMatrix(Translation + FCenterOfRotation);
   Result := MatrixMult(Result, Rotations.ToRotationMatrix);
   Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
-  Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
+  Result := MatrixMult(Result, TranslationMatrix(-FCenterOfRotation));
 end;
 
 function TExamineCamera.MatrixInverse: TMatrix4Single;
 begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
 
-  Result := TranslationMatrix(VectorNegate(VectorAdd(Translation, FCenterOfRotation)));
+  Result := TranslationMatrix(-(Translation + FCenterOfRotation));
   Result := MatrixMult(Rotations.Conjugate.ToRotationMatrix, Result);
   Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
   Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
@@ -3459,7 +3459,8 @@ begin
     wokol -GravityUp.
   }
   if AngleRadBetweenVectors(Up, GravityUp) > Pi/2 then
-    Axis := VectorNegate(GravityUp) else
+    Axis := -GravityUp
+  else
     Axis := GravityUp;
 
   FUp := RotatePointAroundAxisDeg(AngleDeg, Up, Axis);
@@ -3604,7 +3605,7 @@ end;
 function TWalkCamera.Move(const MoveVector: TVector3Single;
   const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 begin
-  Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity, CheckClimbHeight);
+  Result := MoveTo(Position + MoveVector, BecauseOfGravity, CheckClimbHeight);
 end;
 
 procedure TWalkCamera.MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
@@ -3733,7 +3734,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           MoveSpeed * MoveVerticalSpeed * GrowSpeed * SecondsPassed,
           RealPreferredHeight - AboveHeight);
 
-        Move(VectorScale(GravityUp, GrowingVectorLength), true, false);
+        Move(GravityUp * GrowingVectorLength, true, false);
 
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
@@ -3826,7 +3827,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         MoveSpeed * MoveVerticalSpeed * FFallSpeed * SecondsPassed;
       MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
-      if Move(VectorScale(GravityUp, - FallingVectorLength), true, false) and
+      if Move(GravityUp * (- FallingVectorLength), true, false) and
         (not VectorsPerfectlyEqual(Position, PositionBefore)) then
       begin
         if not Falling then
@@ -4174,7 +4175,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         if FloatsEqual(AngleRadBetweenTargetAndGravity, HalfPi) then
           TargetUp := GravityUp else
         if AngleRadBetweenTargetAndGravity > HalfPi then
-          VectorNegateVar(TargetUp);
+          TargetUp := -TargetUp;
 
         AngleRadBetweenTarget := AngleRadBetweenVectors(TargetUp, FUp);
         AngleRadBetweenTargetChange := 0.5 * SecondsPassed;
@@ -5353,10 +5354,10 @@ var
   Offset: Single;
 begin
   Direction := UnitVector3Single[WantedDirection];
-  if not WantedDirectionPositive then VectorNegateVar(Direction);
+  if not WantedDirectionPositive then Direction := -Direction;
 
   Up := UnitVector3Single[WantedUp];
-  if not WantedUpPositive then VectorNegateVar(Up);
+  if not WantedUpPositive then Up := -Up;
 
   if Box.IsEmpty then
   begin

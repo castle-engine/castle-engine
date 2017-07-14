@@ -311,7 +311,7 @@ begin
       instead, but that would be slow (NormalizePlaneVar costs me
       calculating 1 Sqrt).
     if VectorLenSqr(PVector3Single(@Planes[fp])^) < 0.001 then
-      VectorScaleVar(Planes[fp], 100000);
+      Planes[fp] := Planes[fp] * 100000;
     }
   end;
 end;
@@ -356,10 +356,10 @@ begin
   begin
     Camera := ThreePlanesIntersectionPoint(Planes[fpRight], Planes[fpLeft],  Planes[fpTop]);
 
-    FrustumPoints[4].XYZ := VectorSubtract(FrustumPoints[0].XYZ, Camera);
-    FrustumPoints[5].XYZ := VectorSubtract(FrustumPoints[1].XYZ, Camera);
-    FrustumPoints[6].XYZ := VectorSubtract(FrustumPoints[2].XYZ, Camera);
-    FrustumPoints[7].XYZ := VectorSubtract(FrustumPoints[3].XYZ, Camera);
+    FrustumPoints[4].XYZ := FrustumPoints[0].XYZ - Camera;
+    FrustumPoints[5].XYZ := FrustumPoints[1].XYZ - Camera;
+    FrustumPoints[6].XYZ := FrustumPoints[2].XYZ - Camera;
+    FrustumPoints[7].XYZ := FrustumPoints[3].XYZ - Camera;
 
     FrustumPoints[4].W := 0;
     FrustumPoints[5].W := 0;
@@ -400,10 +400,10 @@ begin
   begin
     Camera := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
 
-    FrustumPoints[4].XYZ := VectorSubtract(FrustumPoints[0].XYZ, Camera);
-    FrustumPoints[5].XYZ := VectorSubtract(FrustumPoints[1].XYZ, Camera);
-    FrustumPoints[6].XYZ := VectorSubtract(FrustumPoints[2].XYZ, Camera);
-    FrustumPoints[7].XYZ := VectorSubtract(FrustumPoints[3].XYZ, Camera);
+    FrustumPoints[4].XYZ := FrustumPoints[0].XYZ - Camera;
+    FrustumPoints[5].XYZ := FrustumPoints[1].XYZ - Camera;
+    FrustumPoints[6].XYZ := FrustumPoints[2].XYZ - Camera;
+    FrustumPoints[7].XYZ := FrustumPoints[3].XYZ - Camera;
 
     FrustumPoints[4].W := 0;
     FrustumPoints[5].W := 0;

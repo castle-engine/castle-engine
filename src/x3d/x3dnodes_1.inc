@@ -1904,8 +1904,7 @@ end;
 
 function TTexture2TransformNode_1.TextureMatrixTransformation: TMatrix4Single;
 begin
-  result := TranslationMatrix( Vector3Single(
-    VectorAdd(FdTranslation.Value, FdCenter.Value) ));
+  result := TranslationMatrix( Vector3Single(FdTranslation.Value + FdCenter.Value) );
   result := MatrixMult(result, RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
   result := MatrixMult(result, ScalingMatrix(
     Vector3Single( FdScaleFactor.Value[0], FdScaleFactor.Value[1], 1 )));
@@ -2132,7 +2131,7 @@ procedure TTransformNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Si
 var
   M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
 begin
-  TranslationMatrices(VectorAdd(FdTranslation.Value, FdCenter.Value),
+  TranslationMatrices(FdTranslation.Value + FdCenter.Value,
     Matrix, InvertedMatrix);
 
   { Note that even Axis = zero is OK, both M and IM will be identity in
@@ -2164,7 +2163,7 @@ begin
     InvertedMatrix := MatrixMult(MRotateScaleOrient, InvertedMatrix);
   end;
 
-  TranslationMatrices(VectorNegate(FdCenter.Value), M, IM);
+  TranslationMatrices(-FdCenter.Value, M, IM);
   Matrix := MatrixMult(Matrix, M);
   InvertedMatrix := MatrixMult(IM, InvertedMatrix);
 end;

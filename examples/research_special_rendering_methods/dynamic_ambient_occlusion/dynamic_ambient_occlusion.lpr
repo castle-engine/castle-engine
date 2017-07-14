@@ -131,7 +131,8 @@ begin
   for I := 0 to Length(Indexes) - 1 do
     if DirectIndexes[I] >= 0 then
     begin
-      VectorAddVar(ShapeElements[DirectIndexes[I]].Normal, FaceNormal);
+      ShapeElements[DirectIndexes[I]].Normal :=
+        ShapeElements[DirectIndexes[I]].Normal + FaceNormal;
       { Split FaceArea into the number of polygon corners. }
       ShapeElements[DirectIndexes[I]].Area += FaceArea;
     end;

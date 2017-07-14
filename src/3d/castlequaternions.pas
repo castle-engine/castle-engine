@@ -188,7 +188,7 @@ begin
       to keep assertion that returned Axis is normalized). }
     Axis := Vector3Single(0, 0, 1);
   end else
-    Axis := VectorScale(Data.Vector, 1 / SinHalfAngle);
+    Axis := Data.Vector * (1 / SinHalfAngle);
 end;
 
 function TQuaternion.ToAxisAngle: TVector4Single;
@@ -200,13 +200,13 @@ end;
 
 function TQuaternion.Conjugate: TQuaternion;
 begin
-  Result.Data.Vector := VectorNegate(Data.Vector);
+  Result.Data.Vector := -Data.Vector;
   Result.Data.Real := Data.Real;
 end;
 
 procedure TQuaternion.ConjugateMe;
 begin
-  VectorNegateVar(Data.Vector);
+  Data.Vector := -Data.Vector;
 end;
 
 function TQuaternion.Rotate(const Point: TVector4Single): TVector4Single;
@@ -311,7 +311,7 @@ begin
   if NormalizeAxis then
     SinHalfAngle /= VectorLen(Axis);
 
-  Result.Data.Vector := VectorScale(Axis, SinHalfAngle);
+  Result.Data.Vector := Axis * SinHalfAngle;
   Result.Data.Real := CosHalfAngle;
 end;
 
@@ -325,11 +325,13 @@ end;
 
 operator* (const Q1, Q2: TQuaternion): TQuaternion;
 begin
-  Result.Data.Vector := VectorProduct(Q1.Data.Vector, Q2.Data.Vector);
-  VectorAddVar(Result.Data.Vector, VectorScale(Q1.Data.Vector, Q2.Data.Real));
-  VectorAddVar(Result.Data.Vector, VectorScale(Q2.Data.Vector, Q1.Data.Real));
+  Result.Data.Vector :=
+    VectorProduct(Q1.Data.Vector, Q2.Data.Vector) +
+    (Q1.Data.Vector * Q2.Data.Real) +
+    (Q2.Data.Vector * Q1.Data.Real);
 
-  Result.Data.Real := Q1.Data.Real * Q2.Data.Real - VectorDotProduct(Q1.Data.Vector, Q2.Data.Vector);
+  Result.Data.Real := Q1.Data.Real * Q2.Data.Real -
+    VectorDotProduct(Q1.Data.Vector, Q2.Data.Vector);
 end;
 
 { For SLerp and NLerp implementations, see
@@ -382,7 +384,7 @@ begin
     W1 := 1 - A;
     W2 := A;
   end;
-  Result.Data.Vector4 := VectorAdd(VectorScale(Q1.Data.Vector4, W1), VectorScale(Q2.Data.Vector4, W2));
+  Result.Data.Vector4 := (Q1.Data.Vector4 * W1) + (Q2.Data.Vector4 * W2);
 end;
 
 function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
@@ -398,7 +400,7 @@ begin
   if ForceShortestPath and (VectorDotProduct(Q1.Data.Vector4, Q2.Data.Vector4) < 0) then
   begin
     { negate one quaternion }
-    Result.Data.Vector4 := Lerp(A, VectorNegate(Q1.Data.Vector4), Q2.Data.Vector4);
+    Result.Data.Vector4 := Lerp(A, -Q1.Data.Vector4, Q2.Data.Vector4);
   end else
     Result.Data.Vector4 := Lerp(A, Q1.Data.Vector4, Q2.Data.Vector4);
 

@@ -92,12 +92,12 @@ function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
   const RenderDir: TVector3Single): TVector3Single;
 var i: Integer;
 begin
- result := ZeroVector3Single;
+ Result := ZeroVector3Single;
  for i := 0 to Lights.Count-1 do
   if Octree.LightNotBlocked(Lights.List^[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
-   VectorAddVar(result, Lights.List^[i].ContributionCameraIndependent(
-     Point, PointPlaneNormal, { TODO } WhiteRGB, { TODO } WhiteRGB));
+   Result := Result + Lights.List^[i].ContributionCameraIndependent(
+     Point, PointPlaneNormal, { TODO } WhiteRGB, { TODO } WhiteRGB);
 end;
 
 procedure TriangleLightMapVar(const Image: TCastleImage;
@@ -119,15 +119,15 @@ var RayNormVector: TVector3Single;
     TrianglePos i Lights. }
   var RayOrigin: TVector3Single;
   begin
-   RayOrigin := TrianglePos[1];
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(TrianglePos[0], TrianglePos[1]), Tri10Pos));
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(TrianglePos[2], TrianglePos[1]), Tri12Pos));
-   result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
+    RayOrigin := TrianglePos[1];
+    RayOrigin := RayOrigin + (TrianglePos[0] - TrianglePos[1]) * Tri10Pos;
+    RayOrigin := RayOrigin + (TrianglePos[2] - TrianglePos[1]) * Tri12Pos;
+    Result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
   function PrzekatnaXFromY(y: Integer): Integer;
   begin
-   result := Clamped(Round((Image.Width-1) * (1-y/(Image.Height-1))),
+   Result := Clamped(Round((Image.Width-1) * (1-y/(Image.Height-1))),
      0, Image.Width-1);
   end;
 
@@ -174,7 +174,7 @@ function QuadNormPlane(Quad: TQuad3Single): TVector4Single;
   quada jako normal jego dowolnego trojkata. }
 var Tri: TTriangle3Single absolute Quad;
 begin
- result := TriangleNormPlane(Tri);
+ Result := TriangleNormPlane(Tri);
 end;
 
 procedure QuadLightMapVar(const Image: TCastleImage;
@@ -189,9 +189,9 @@ var RayNormVector: TVector3Single;
   var RayOrigin: TVector3Single;
   begin
    RayOrigin := Quad[0];
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(Quad[1], Quad[0]), Quad01Pos));
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(Quad[3], Quad[0]), Quad03Pos));
-   result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
+   RayOrigin := RayOrigin + (Quad[1] - Quad[0]) * Quad01Pos;
+   RayOrigin := RayOrigin + (Quad[3] - Quad[0]) * Quad03Pos;
+   Result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
   procedure DoPixel(x, y: Integer);

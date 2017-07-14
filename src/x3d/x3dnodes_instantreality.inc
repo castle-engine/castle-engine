@@ -694,8 +694,7 @@ begin
       Assumes that original coords are good for default size (3, 3, 3). }
     if not FdSize.EqualsDefaultValue then
     begin
-      CoordNode.FdPoint.Items.MultiplyComponents(
-        VectorScale(FdSize.Value, 1/3));
+      CoordNode.FdPoint.Items.MultiplyComponents(FdSize.Value * 1/3);
     end;
 
     if FdManifold.Value then

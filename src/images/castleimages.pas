@@ -3407,7 +3407,7 @@ begin
   PFloat := RGBFloatPixels;
   for i := 1 to Width * Height * Depth do
   begin
-    PFloat^ := VectorScale(PFloat^, Scale);
+    PFloat^ := PFloat^ * Scale;
     Inc(PFloat);
   end;
 end;

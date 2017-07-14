@@ -1188,10 +1188,9 @@ begin
           begin
             TexCoordNode.FdPoint.Items.L[
               SidesCount + I] :=
-              VectorScale(VectorAdd(
-                FdCrossSection.Items.L[I],
-                Vector2Single(TexCapsTranslation, TexCapsTranslation)),
-                TexCapsScale);
+                (FdCrossSection.Items.L[I] +
+                 Vector2Single(TexCapsTranslation, TexCapsTranslation))
+                * TexCapsScale;
           end;
         end;
       end;

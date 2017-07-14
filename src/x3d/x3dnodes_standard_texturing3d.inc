@@ -656,13 +656,13 @@ end;
 
 function TTextureTransform3DNode.TransformMatrix: TMatrix4Single;
 begin
-  Result := TranslationMatrix(VectorAdd(FdTranslation.Value, FdCenter.Value));
+  Result := TranslationMatrix(FdTranslation.Value + FdCenter.Value);
   Result := MatrixMult(Result,
     RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
   Result := MatrixMult(Result,
     ScalingMatrix(FdScale.Value));
   Result := MatrixMult(Result,
-    TranslationMatrix(VectorNegate(FdCenter.Value)));
+    TranslationMatrix(-FdCenter.Value));
 end;
 
 procedure RegisterTexturing3DNodes;

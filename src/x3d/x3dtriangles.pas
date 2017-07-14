@@ -960,8 +960,8 @@ begin
     { Visit every subnode containing this sphere, and look for collision there.
       TODO: we take box below, as simply bounding box of the sphere,
       so potentially we visit more nodes than necessary. }
-    SubnodesBox.Data[0] := VectorSubtract(pos, Vector3Single(Radius, Radius, Radius) );
-    SubnodesBox.Data[1] := VectorAdd(     pos, Vector3Single(Radius, Radius, Radius) );
+    SubnodesBox.Data[0] := pos - Vector3Single(Radius, Radius, Radius);
+    SubnodesBox.Data[1] := pos + Vector3Single(Radius, Radius, Radius);
 
     SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 
@@ -996,8 +996,8 @@ begin
     { Visit every subnode containing this sphere, and look for collision there.
       TODO: we take box below, as simply bounding box of the sphere,
       so potentially we visit more nodes than necessary. }
-    SubnodesBoxMin := VectorSubtract(pos, Vector2Single(Radius, Radius) );
-    SubnodesBoxMax := VectorAdd(     pos, Vector2Single(Radius, Radius) );
+    SubnodesBoxMin := pos - Vector2Single(Radius, Radius);
+    SubnodesBoxMax := pos + Vector2Single(Radius, Radius);
 
     SubnodesWithBox2D(SubnodesBoxMin, SubnodesBoxMax, BoxLo, BoxHi);
 
@@ -1361,10 +1361,11 @@ function TBaseTrianglesOctree.MoveCollision(
     { now NewPos must be on the same plane side as OldPos is,
       and it must be at the distance slightly larger than Radius from the plane }
     if VectorsSamePlaneDirections(PlaneNormalPtr^,
-         VectorSubtract(ProposedNewPos, NewPos), PlanePtr^) then
-      NewPosShift := VectorScale(PlaneNormalPtr^,  Radius * RadiusEnlarge) else
-      NewPosShift := VectorScale(PlaneNormalPtr^, -Radius * RadiusEnlarge);
-    VectorAddVar(NewPos, NewPosShift);
+         ProposedNewPos - NewPos, PlanePtr^) then
+      NewPosShift := PlaneNormalPtr^ * ( Radius * RadiusEnlarge)
+    else
+      NewPosShift := PlaneNormalPtr^ * (-Radius * RadiusEnlarge);
+    NewPos := NewPos + NewPosShift;
 
     { Even though I calculated NewPos so that it's not blocked by object
       Blocker, I must check whether it's not blocked by something else
@@ -1431,11 +1432,11 @@ function TBaseTrianglesOctree.MoveCollision(
     if SegmentCollision then
     begin
       Projected := PointOnPlaneClosestToPoint(PlanePtr^, ProposedNewPos);
-      Slide := VectorSubtract(Projected, BlockerIntersection);
+      Slide := Projected - BlockerIntersection;
     end else
     begin
       Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
-      Slide := VectorSubtract(BlockerIntersection, Projected);
+      Slide := BlockerIntersection - Projected;
     end;
 
     if not ZeroVector(Slide) then
@@ -1450,7 +1451,7 @@ function TBaseTrianglesOctree.MoveCollision(
 
       VectorAdjustToLengthVar(Slide, PointsDistance(OldPos, ProposedNewPos));
 
-      NewPos := VectorAdd(OldPos, Slide);
+      NewPos := OldPos + Slide;
 
       { Even though I calculated NewPos so that it's not blocked by object
         Blocker, I must check whether it's not blocked by something else
@@ -1493,7 +1494,7 @@ function TBaseTrianglesOctree.MoveCollision(
              Radius * 2) and
            TryPlaneLineIntersection(NewBlockerIntersection,
              NewBlocker^.World.Plane,
-             OldPos, VectorSubtract(ProposedNewPos, OldPos)) then
+             OldPos, ProposedNewPos - OldPos) then
         begin
           {$ifdef DEBUG_WALL_SLIDING} Writeln('Wall-sliding: Better blocker found: ', PointerToStr(NewBlocker), '.'); {$endif}
 
@@ -1508,12 +1509,12 @@ function TBaseTrianglesOctree.MoveCollision(
           PlanePtr := @(NewBlocker^.World.Plane);
           {$endif}
           Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
-          Slide := VectorSubtract(NewBlockerIntersection, Projected);
+          Slide := NewBlockerIntersection - Projected;
 
           if not ZeroVector(Slide) then
           begin
             VectorAdjustToLengthVar(Slide, PointsDistance(OldPos, ProposedNewPos));
-            NewPos := VectorAdd(OldPos, Slide);
+            NewPos := OldPos + Slide;
             Result := MoveCollision(OldPos, NewPos,
               IsRadius, Radius, OldBox, NewBox, TriangleToIgnore, TrianglesToIgnoreFunc);
 
@@ -1530,7 +1531,7 @@ function TBaseTrianglesOctree.MoveCollision(
               ProposedNewPos, Radius), ' ',
             TryPlaneLineIntersection(NewBlockerIntersection,
               NewBlocker^.World.Plane,
-              OldPos, VectorSubtract(ProposedNewPos, OldPos)), '.');
+              OldPos, ProposedNewPos - OldPos), '.');
           {$endif}
         end;
       end;
@@ -1572,7 +1573,7 @@ begin
       NewPos := ProposedNewPos;
     end else
     if TryPlaneLineIntersection(BlockerIntersection, Blocker^.World.Plane,
-      OldPos, VectorSubtract(ProposedNewPos, OldPos)) then
+      OldPos, ProposedNewPos - OldPos) then
       Result := MoveAlongTheBlocker(BlockerIntersection, false, Blocker) else
       Result := MoveAlongTheBlocker(Blocker);
   end else
@@ -1585,7 +1586,7 @@ function TBaseTrianglesOctree.HeightCollision(
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  AboveGround := RayCollision(AboveHeight, Position, VectorNegate(GravityUp),
+  AboveGround := RayCollision(AboveHeight, Position, -GravityUp,
     true, TriangleToIgnore, false, TrianglesToIgnoreFunc);
   Result := AboveGround <> nil;
   if not Result then
@@ -1663,13 +1664,12 @@ begin
     W ten sposob otrzymujemy punkt ktory na pewno lezy POZA TreeRoot.Box
     i jezeli nic nie zaslania drogi od Point do tego punktu to
     znaczy ze swiatlo oswietla Intersection. }
-  LightPos := VectorSubtract(LightedPoint,
-    VectorAdjustToLength(Light.Direction,
-      3 * InternalTreeRoot.Box.MaxSize ) ) else
+  LightPos := LightedPoint -
+    VectorAdjustToLength(Light.Direction, 3 * InternalTreeRoot.Box.MaxSize) else
   LightPos := Light.Location;
 
  Result := (VectorsSamePlaneDirections(
-       VectorSubtract(LightPos, LightedPoint),
+       LightPos - LightedPoint,
        RenderDir,
        LightedPointPlane)) and
    (SegmentCollision(LightedPoint, LightPos,

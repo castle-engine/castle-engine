@@ -170,7 +170,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    VectorNegateVar(L[I]);
+    L[I] := -L[I];
 end;
 
 procedure TVector3SingleList.Normalize;
