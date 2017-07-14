@@ -212,7 +212,11 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueString(const Line, Name: string; out Value: string): boolean;
+  { All the IsNameValueXxx functions return @true and change Value
+    only if the line contains (corrent) specification of attribute
+    Name. Otherwise, they return @false and leave Value unmodified. }
+
+  function IsNameValueString(const Line, Name: string; var Value: string): boolean;
   var
     N, V: string;
   begin
@@ -221,7 +225,7 @@ procedure TAtlas.Parse(const URL: string);
       Value := V;
   end;
 
-  function IsNameValueBoolean(const Line, Name: string; out Value: boolean): boolean;
+  function IsNameValueBoolean(const Line, Name: string; var Value: boolean): boolean;
   var
     ValueStr: string;
   begin
@@ -236,7 +240,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueInteger(const Line, Name: string; out Value: Integer): boolean;
+  function IsNameValueInteger(const Line, Name: string; var Value: Integer): boolean;
   var
     ValueStr: string;
   begin
@@ -252,7 +256,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueVector2Integer(const Line, Name: string; out Vector: TVector2Integer): boolean;
+  function IsNameValueVector2Integer(const Line, Name: string; var Vector: TVector2Integer): boolean;
   var
     ValueStr, ValueStr0, ValueStr1: string;
   begin
@@ -271,7 +275,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueFilter(const Line, Name: string; out Filter: string): boolean;
+  function IsNameValueFilter(const Line, Name: string; var Filter: string): boolean;
   var
     ValueStr: string;
   begin
@@ -279,14 +283,16 @@ procedure TAtlas.Parse(const URL: string);
     if Result then
     begin
       if ValueStr = 'Linear,Linear' then
-        Filter := 'AVG_PIXEL' else
+        Filter := 'AVG_PIXEL'
+      else
       if ValueStr = 'Nearest,Nearest' then
-        Filter := 'NEAREST_PIXEL' else
+        Filter := 'NEAREST_PIXEL'
+      else
         raise ESpineReadError.CreateFmt('Unsupported filter mode "%s"', [ValueStr]);
     end;
   end;
 
-  function IsNameValueRepeat(const Line, Name: string; out IsRepeat: boolean): boolean;
+  function IsNameValueRepeat(const Line, Name: string; var IsRepeat: boolean): boolean;
   var
     ValueStr: string;
   begin
@@ -294,7 +300,8 @@ procedure TAtlas.Parse(const URL: string);
     if Result then
     begin
       if ValueStr = 'none' then
-        IsRepeat := false else
+        IsRepeat := false
+      else
         { is there anything else allowed for repeat: field ? }
         raise ESpineReadError.CreateFmt('Unsupported repeat mode "%s"', [ValueStr]);
     end;
