@@ -20,7 +20,6 @@
 type
   EPlanesParallel = class(Exception);
   ELinesParallel = class(Exception);
-  ETransformedResultInvalid = class(EVectorInvalidOp);
 
 var
   { Format used by functions named "ToNiceStr", like FloatToNiceStr and VectorToNiceStr. }

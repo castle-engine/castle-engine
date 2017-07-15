@@ -17,13 +17,4 @@ type
   { Internal type, always means Double within the NewVectorsInternalDouble unit. }
   TGenericScalar = Double;
 
-{$define read_interface}
 {$I castlevectors_generic_float_record.inc}
-{$undef read_interface}
-
-implementation
-
-{$define read_implementation}
-{$I castlevectors_generic_float_record.inc}
-
-end.

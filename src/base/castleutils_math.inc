@@ -385,6 +385,10 @@ function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
 
+type
+  EVectorInvalidOp = class(Exception);
+  ETransformedResultInvalid = class(EVectorInvalidOp);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

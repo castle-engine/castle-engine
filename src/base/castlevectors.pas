@@ -212,6 +212,8 @@ uses SysUtils, Generics.Collections,
 {$undef Vector3}
 
 {$I castlevectors_records.inc}
+{$I castlevectors_records_lists.inc}
+{$I castlevectors_records_single.inc}
 
 {$undef read_interface}
 
@@ -286,5 +288,7 @@ uses Math, CastleStringUtils, CastleColors;
 {$undef Vector3}
 
 {$I castlevectors_records.inc}
+{$I castlevectors_records_lists.inc}
+{$I castlevectors_records_single.inc}
 
 end.
