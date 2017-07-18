@@ -107,6 +107,10 @@
            this plane is flat within it's octree, even when it's transformed
            by rotation). }
 
+         { We could here just use TrySimplePlaneRayIntersection always.
+           But that would be unoptimal for segment, since a ray may collide while
+           segment doesn't. }
+
          Exists:=
            {$ifdef SEGMENT_COLLISION}
            TrySimplePlaneSegmentIntersection(PlaneIntersect, PlaneIntersectionDistance,

@@ -13,62 +13,18 @@
   ----------------------------------------------------------------------------
 }
 
-{ implementacja funkcji CommonSegmentLeaf i CommonRayLeaf w jednym kodzie.
-  Implementujac segment zdefiniuj SEGMENT_COLLISION zebysmy mogli
-  w odpowiednich miejscach uzyc specyficznego tylko dla Odcinka lub tylko
-  dla Promienia kawalka kodu.
-
-  Roznice w obsludze SegmentCollision :
-  - zasadniczo, dla poprawnosci dzialania wystarczylo
-    a) uzywac TryTriangleSegmentDirCollision do testowania bezposrednich przeciec
-       trojkat-segment w DoLeaf (zamiast TryTriangleRayCollision).
-    b) schodzic rekurencyjnie w DoNotLeaf przez SegmentCollision (zamiast
-       przez RayCollision)
-    W kazdym innym przypadku mozna traktowac segment Pos1, Pos2
-    jak promien dla ktorego RayOrigin = Pos1, RayDirection = Pos2-Pos1.
-
-  - ale natuaralnie tracilibysmy wtedy sporo dla optymalnosci.
-    O ile DoLeaf nie mozna juz zoptymalizowac w jakis specyficzny dla
-    odcinka sposob o tyle DoNotLeaf mozna zoptymalizowac znacznie :
-    chodzi o to zeby przy obliczaniu przeciec PlaneIntersects
-    uwzgledniac fakt ze mamy do czynienia z odcinkiem, w zwiazku z czym
-    czasem mimo ze mamy przeciecie z promieniem odcinka - nie mamy
-    przeciecia z samym odcinkiem.
-}
-
-{ nie uzywam tu mechanizmu DUAL_IMPLEMENTATION. Ale kiedys zaczalem to robic
-  i niewykluczone ze kiedys jednak bede chcial to tu miec. Dlatego zapisuje
-  funkcje *Collision uzywajac zdefiniowanych ponizej makr ktore w razie czego
-  pozwala latwo zmienic uzywane typy. }
-
-{$define TYPE_SCALAR := Single}
-{$define TYPE_VECTOR2 := TVector2}
-{$define TYPE_VECTOR3 := TVector3}
-{$define TYPE_VECTOR4 := TVector4}
-{$define TYPE_TRIANGLE2 := TTriangle2Single}
-{$define TYPE_TRIANGLE3 := TTriangle3Single}
-{$define TYPE_MATRIX4 := TMatrix4}
-{$define SCALAR_EQUALITY_EPSILON := SingleEpsilon}
-{$define ONE_VECTOR := OneVectorSingle}
-{$define IDENTITY_MATRIX := TMatrix4.Identity}
-
-{ CommonRay/SegmentLeaf begins --------------------------------------------- }
-
-{ To silence warning
-  "Warning: Variable "IntersectionDistance" does not seem to be initialized"
-  (FPC cannot figure out that we use IntersectionDistance only when
-  Result <> nil, when IntersectionDistance is initialized). }
-{$warnings off}
+{ Implementation of TTriangleOctreeNode.CommonSegmentLeaf and TTriangleOctreeNode.CommonRayLeaf.
+  Uses SEGMENT_COLLISION to differentiate between segment and ray case. }
 
 {$ifdef SEGMENT_COLLISION}
 var
-  RayOrigin: TYPE_VECTOR3 absolute Pos1;
-  RayDirection: TYPE_VECTOR3;
+  RayOrigin: TVector3 absolute Pos1;
+  RayDirection: TVector3;
 {$endif}
 
   function TryTriangleCollision(
-    out Intersection: TYPE_VECTOR3;
-    out IntersectionDistance: TYPE_SCALAR;
+    out Intersection: TVector3;
+    out IntersectionDistance: Single;
     var Item: TTriangle): boolean;
   begin
     Result:=
@@ -81,66 +37,64 @@ var
       {$endif}
   end;
 
-  { makro ITERATE_INTERSECTIONS iteruje zmienna Iterate_ItemNum po tablicy
-    Items i wywoluje makro ON_INTERSECTION_FOUND gdy Iterate_ItemNum
-    wskazuje na trojkat z ktorym jest przeciecie.
-
-    Podczas wywolywania ON_INTERSECTION_FOUND zmienne Iterate_Intersection
-    and Iterate_IntersectionDistance are set to calculated intersection point.
-  }
-  {$define ITERATE_INTERSECTIONS:=
-  for Iterate_ItemNumber := 0 to ItemsCount-1 do
+  function FoundIntersection(
+    out Intersection: TVector3;
+    out IntersectionDistance: Single;
+    const ItemPtr: PTriangle): boolean;
   begin
-    Iterate_Item := Items[Iterate_ItemNumber];
-    if TryTriangleCollision(Iterate_Intersection, Iterate_IntersectionDistance,
-         Iterate_Item^) and
-       ( TriangleToIgnore <> Iterate_Item ) and
+    Result := TryTriangleCollision(Intersection, IntersectionDistance,  ItemPtr^) and
+       ( TriangleToIgnore <> ItemPtr ) and
        ( (not IgnoreMarginAtStart) or
-         (not VectorsEqual(Iterate_Intersection, RayOrigin)) ) and
+         (not TVector3.Equals(Intersection, RayOrigin)) ) and
        ( (not Assigned(TrianglesToIgnoreFunc)) or
-         (not TrianglesToIgnoreFunc(ParentTree, Iterate_Item)) ) then
-     ON_INTERSECTION_FOUND
-  end;}
+         (not TrianglesToIgnoreFunc(ParentTree, ItemPtr)) );
+  end;
 
 var
   Iterate_ItemNumber: integer;
   Iterate_Item: PTriangle;
-  Iterate_Intersection: TYPE_VECTOR3;
-  Iterate_IntersectionDistance: TYPE_SCALAR;
+  Iterate_Intersection: TVector3;
+  Iterate_IntersectionDistance: Single;
 begin
- {$ifdef SEGMENT_COLLISION}
- RayDirection := Pos2 - Pos1;
- {$endif}
+  {$ifdef SEGMENT_COLLISION}
+  RayDirection := Pos2 - Pos1;
+  {$endif}
 
- if ReturnClosestIntersection then
- begin
-  Result := nil;
+  // Always define to something, to avoid warnings and to be deterministic
+  // (although user code should not use it if Result = nil).
+  IntersectionDistance := 0;
 
-  {$define ON_INTERSECTION_FOUND :=
+  if ReturnClosestIntersection then
   begin
-    if (Result = nil) or
-       (Iterate_IntersectionDistance < IntersectionDistance) then
+    Result := nil;
+
+    for Iterate_ItemNumber := 0 to ItemsCount - 1 do
     begin
-      Result               := Iterate_Item;
-      Intersection         := Iterate_Intersection;
-      IntersectionDistance := Iterate_IntersectionDistance;
+      Iterate_Item := Items[Iterate_ItemNumber];
+      if FoundIntersection(Iterate_Intersection, Iterate_IntersectionDistance, Iterate_Item) then
+      begin
+        if (Result = nil) or
+           (Iterate_IntersectionDistance < IntersectionDistance) then
+        begin
+          Result               := Iterate_Item;
+          Intersection         := Iterate_Intersection;
+          IntersectionDistance := Iterate_IntersectionDistance;
+        end;
+      end;
     end;
-  end;}
-  ITERATE_INTERSECTIONS
- end else
- begin
-  {$define ON_INTERSECTION_FOUND :=
+  end else
   begin
-    Result               := Iterate_Item;
-    Intersection         := Iterate_Intersection;
-    IntersectionDistance := Iterate_IntersectionDistance;
-    Exit;
-  end;}
-  ITERATE_INTERSECTIONS
-  Exit(nil);
- end;
+    for Iterate_ItemNumber := 0 to ItemsCount - 1 do
+    begin
+      Iterate_Item := Items[Iterate_ItemNumber];
+      if FoundIntersection(Iterate_Intersection, Iterate_IntersectionDistance, Iterate_Item) then
+      begin
+        Result               := Iterate_Item;
+        Intersection         := Iterate_Intersection;
+        IntersectionDistance := Iterate_IntersectionDistance;
+        Exit;
+      end;
+    end;
+    Exit(nil);
+  end;
 end;
-{$undef ITERATE_INTERSECTIONS}
-{$undef ON_INTERSECTION_FOUND}
-
-{$warnings on}
