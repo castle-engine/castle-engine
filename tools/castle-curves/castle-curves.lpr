@@ -50,7 +50,7 @@ var
     Always SelectedPoint <> -1 (so SelectedCurve also <>-1) when Dragging. }
   Dragging: boolean = false;
   DraggingFarEnoughToBeActive: boolean;
-  DraggingStartPosition: TVector2Single;
+  DraggingStartPosition: TVector2;
 
   { Just an indication of from what URL we loaded these Curves /
     where we saved them last time / etc.
@@ -267,11 +267,11 @@ begin
 end;
 
 { Add new curve point and select it. }
-procedure AddNewPoint(const Position: TVector2Single);
+procedure AddNewPoint(const Position: TVector2);
 var
-  NewPoint: TVector3Single;
+  NewPoint: TVector3;
 begin
-  NewPoint := Vector3Single(Position[0], Position[1], 0);
+  NewPoint := Vector3(Position[0], Position[1], 0);
 
   if SelectedCurve = -1 then
   begin
@@ -306,7 +306,7 @@ end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 
-  procedure ClosestControlPoint(const Point: TVector2Single;
+  procedure ClosestControlPoint(const Point: TVector2;
     var CurveNum, PointNum: Integer);
   { return such CurveNum, PointNum that
     Curves[CurveNum].ControlPoints[PointNum] is the closest control point
@@ -333,7 +333,7 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
       end;
   end;
 
-  procedure SelectClosestPoint(const Point: TVector2Single);
+  procedure SelectClosestPoint(const Point: TVector2);
   var
     NewSelectedCurve, NewSelectedPoint: Integer;
   begin
@@ -355,7 +355,7 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 const
   ZoomFactor = 1.05;
 var
-  Pos: TVector2Single;
+  Pos: TVector2;
 begin
   Pos := Event.Position / Zoom;
   if Event.IsMouseButton(mbLeft) then
@@ -387,8 +387,8 @@ procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 const
   DraggingFarEnough = 5;
 var
-  Change: TVector2Single;
-  Change3D: TVector3Single;
+  Change: TVector2;
+  Change3D: TVector3;
   I: Integer;
 begin
   if Dragging then
@@ -404,7 +404,7 @@ begin
     end else
       Change := Event.Position - Event.OldPosition;
 
-    Change3D := Vector3Single(Change, 0);
+    Change3D := Vector3(Change, 0);
     if not (mkShift in Window.Pressed.Modifiers) then
     begin
       Curves[SelectedCurve].ControlPoints.L[SelectedPoint] += Change3D;

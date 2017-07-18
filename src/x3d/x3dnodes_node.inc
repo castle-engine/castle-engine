@@ -707,7 +707,7 @@
     function TryFindNodeTransform(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
-      out Transform: TMatrix4Single;
+      out Transform: TMatrix4;
       out TransformScale: Single): boolean;
     { @groupEnd }
 
@@ -2316,7 +2316,7 @@ end;
 type
   TTryFindNodeTransformResult = class
     Node: TX3DNode;
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
     TransformScale: Single;
   end;
 
@@ -2336,7 +2336,7 @@ end;
 function TX3DNode.TryFindNodeTransform(
   NodeClass: TX3DNodeClass;
   out Node: TX3DNode;
-  out Transform: TMatrix4Single;
+  out Transform: TMatrix4;
   out TransformScale: Single): boolean;
 var
   Res: TTryFindNodeTransformResult;

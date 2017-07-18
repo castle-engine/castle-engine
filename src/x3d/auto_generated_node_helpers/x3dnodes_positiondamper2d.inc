@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   private
-    function GetInitialDestination: TVector2Single;
-    procedure SetInitialDestination(const Value: TVector2Single);
-    function GetInitialValue: TVector2Single;
-    procedure SetInitialValue(const Value: TVector2Single);
+    function GetInitialDestination: TVector2;
+    procedure SetInitialDestination(const Value: TVector2);
+    function GetInitialValue: TVector2;
+    procedure SetInitialValue(const Value: TVector2);
   public
-    property InitialDestination: TVector2Single read GetInitialDestination write SetInitialDestination;
-    property InitialValue: TVector2Single read GetInitialValue write SetInitialValue;
+    property InitialDestination: TVector2 read GetInitialDestination write SetInitialDestination;
+    property InitialValue: TVector2 read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}
 
@@ -41,22 +41,22 @@
 
 { TPositionDamper2DNode ----------------------------------------------- }
 
-function TPositionDamper2DNode.GetInitialDestination: TVector2Single;
+function TPositionDamper2DNode.GetInitialDestination: TVector2;
 begin
   Result := FdInitialDestination.Value;
 end;
 
-procedure TPositionDamper2DNode.SetInitialDestination(const Value: TVector2Single);
+procedure TPositionDamper2DNode.SetInitialDestination(const Value: TVector2);
 begin
   FdInitialDestination.Send(Value);
 end;
 
-function TPositionDamper2DNode.GetInitialValue: TVector2Single;
+function TPositionDamper2DNode.GetInitialValue: TVector2;
 begin
   Result := FdInitialValue.Value;
 end;
 
-procedure TPositionDamper2DNode.SetInitialValue(const Value: TVector2Single);
+procedure TPositionDamper2DNode.SetInitialValue(const Value: TVector2);
 begin
   FdInitialValue.Send(Value);
 end;

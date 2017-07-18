@@ -367,7 +367,7 @@
       This mapping is like the default IndexedFaceSet texture mapping,
       following X3D spec. We also use it for other geometry nodes,
       and even allow explicitly requesting it by TextureCoordinateGenerator.mode = "BOUNDS2D". }
-    procedure GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
+    procedure GetTextureBounds2DST(const LocalBoxSizes: TVector3;
       out S, T: Integer);
 
     { Is this object lit, disregarding the material.
@@ -469,7 +469,7 @@
       The vectors are taken from the Normal node inside our FdNormal field.
       In case of problems (no Normal node specified, invalid node specified etc.)
       returns @nil. }
-    function NormalItems: TVector3SingleList;
+    function NormalItems: TVector3List;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
@@ -1016,7 +1016,7 @@ begin
   Result := ntcGeometry;
 end;
 
-procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3Single;
+procedure TAbstractGeometryNode.GetTextureBounds2DST(const LocalBoxSizes: TVector3;
   out S, T: Integer);
 var
   C1, C2: Integer;
@@ -1240,7 +1240,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractComposedGeometryNode.NormalItems: TVector3SingleList;
+function TAbstractComposedGeometryNode.NormalItems: TVector3List;
 begin
   if (FdNormal.Value <> nil) and
      (FdNormal.Value is TNormalNode) then
@@ -1284,7 +1284,7 @@ begin
    FdEnabled.ChangesAlways := [chClipPlane];
   AddField(FFdEnabled);
 
-  FFdPlane := TSFVec4f.Create(Self, 'plane', Vector4Single(0, 1, 0, 0));
+  FFdPlane := TSFVec4f.Create(Self, 'plane', Vector4(0, 1, 0, 0));
    FdPlane.ChangesAlways := [chClipPlane];
   AddField(FFdPlane);
   { X3D specification comment: [0,1] }

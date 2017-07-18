@@ -40,8 +40,8 @@
   end;
 
   TRegionAttachment = class(TAttachment)
-    XY: TVector2Single;
-    Scale: TVector2Single;
+    XY: TVector2;
+    Scale: TVector2;
     Rotation: Single;
     Width, Height: Integer;
     Path: string;
@@ -56,9 +56,9 @@
   strict protected
     Coord: TCoordinateNode;
   public
-    UVs: TVector2SingleList;
+    UVs: TVector2List;
     Triangles: TLongIntList;
-    Vertices: TVector2SingleList;
+    Vertices: TVector2List;
     Edges: TLongIntList; //< unused for now
     { Unused for now.
       Looking as official Spine runtime in spine-csharp and spine-unity,
@@ -78,7 +78,7 @@
 
   TSkinnedMeshVertexBone = class
     Bone: TBone;
-    V: TVector2Single; //< vertex position in local Bone coordinate system
+    V: TVector2; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
   TSkinnedMeshVertexBoneList = specialize TObjectList<TSkinnedMeshVertexBone>;
@@ -203,9 +203,9 @@ begin
   Node := TTransformNode.Create(
     Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
-  Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
-  Node.FdScale.Value := Vector3Single(Scale[0], Scale[1], 1);
-  Node.FdRotation.Value := Vector4Single(0, 0, 1, DegToRad(Rotation));
+  Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
+  Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
+  Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));
 
   Shape := TShapeNode.Create('', BaseUrl);
   Node.FdChildren.Add(Shape);
@@ -224,7 +224,7 @@ begin
     Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
   Shape.Material.ForcePureEmissive;
-  Shape.Material.FdEmissiveColor.Value := Vector3Single(1, 1, 1);
+  Shape.Material.FdEmissiveColor.Value := Vector3(1, 1, 1);
   Material := Shape.Material;
 end;
 
@@ -236,7 +236,7 @@ var
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;
   Faces: TIndexedFaceSetNode;
-  Rect: array [0..1] of TVector2Single;
+  Rect: array [0..1] of TVector2;
 begin
   Faces := TIndexedFaceSetNode.Create('', BaseUrl);
   Result := Faces;
@@ -255,10 +255,10 @@ begin
   Rect[1][0] := MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2);
   Rect[0][1] := MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2);
   Rect[1][1] := MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2);
-  Coord.FdPoint.Items.Add(Vector3Single(Rect[0][0], Rect[0][1], 0));
-  Coord.FdPoint.Items.Add(Vector3Single(Rect[1][0], Rect[0][1], 0));
-  Coord.FdPoint.Items.Add(Vector3Single(Rect[1][0], Rect[1][1], 0));
-  Coord.FdPoint.Items.Add(Vector3Single(Rect[0][0], Rect[1][1], 0));
+  Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[0][1], 0));
+  Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[0][1], 0));
+  Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[1][1], 0));
+  Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[1][1], 0));
   Faces.FdCoord.Value := Coord;
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
@@ -272,9 +272,9 @@ end;
 constructor TAbstractMeshAttachment.Create;
 begin
   inherited;
-  UVs := TVector2SingleList.Create;
+  UVs := TVector2List.Create;
   Triangles := TLongIntList.Create;
-  Vertices := TVector2SingleList.Create;
+  Vertices := TVector2List.Create;
   Edges := TLongIntList.Create;
 end;
 
@@ -290,7 +290,7 @@ end;
 procedure TAbstractMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 begin
   inherited;
-  ReadVector2SingleList(Json, 'uvs', UVs);
+  ReadVector2List(Json, 'uvs', UVs);
 
   ReadLongIntList(Json, 'triangles', Triangles);
   if Triangles.Count mod 3 <> 0 then
@@ -308,7 +308,7 @@ function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
 var
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;
-  UVRangeX, UVRangeY: TVector2Single;
+  UVRangeX, UVRangeY: TVector2;
   Faces: TIndexedTriangleSetNode;
 begin
   Faces := TIndexedTriangleSetNode.Create('', BaseUrl);
@@ -322,7 +322,7 @@ begin
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
-    Coord.FdPoint.Items.Add(Vector3Single(Vertices[I][0], Vertices[I][1], 0));
+    Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
   Faces.FdCoord.Value := Coord;
 
   { We do not guarantee correct rendering when model used
@@ -356,7 +356,7 @@ begin
   UVRangeY[0] := Min(TexCoord[0][1], TexCoord[2][1]);
   UVRangeY[1] := Max(TexCoord[0][1], TexCoord[2][1]);
   for I := 0 to UVs.Count - 1 do
-    TexCoordNode.FdPoint.Items.Add(Vector2Single(
+    TexCoordNode.FdPoint.Items.Add(Vector2(
       MapRange(UVs[I][0], 0, 1, UVRangeX[0], UVRangeX[1]),
       MapRange(UVs[I][1], 1, 0, UVRangeY[0], UVRangeY[1])
     ));
@@ -368,7 +368,7 @@ end;
 procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
 begin
   inherited;
-  ReadVector2SingleList(Json, 'vertices', Vertices);
+  ReadVector2List(Json, 'vertices', Vertices);
   if UVs.Count <> Vertices.Count then
   begin
     WritelnWarning('Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
@@ -460,7 +460,7 @@ var
   JsonArray: TJSONArray;
   I, J: Integer;
   VB: TSkinnedMeshVertexBone;
-  V: TVector2Single;
+  V: TVector2;
 begin
   inherited;
   JsonArray := Json.Find('vertices', jtArray) as TJSONArray;
@@ -479,7 +479,7 @@ begin
   Vertices.Count := Weights.Count;
   for I := 0 to Weights.Count - 1 do
   begin
-    V := ZeroVector2Single;
+    V := TVector2.Zero;
     for J := 0 to Weights[I].Bones.Count - 1 do
     begin
       VB := Weights[I].Bones[J];
@@ -491,7 +491,7 @@ end;
 
 procedure TSkinnedMeshAttachment.TransformToBoneSpace(const Bone: TBone);
 var
-  List: TVector3SingleList;
+  List: TVector3List;
   I: Integer;
 begin
   inherited;

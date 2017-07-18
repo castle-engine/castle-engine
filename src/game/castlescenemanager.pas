@@ -54,7 +54,7 @@ type
   { Event for TCastleSceneManager.OnMoveAllowed. }
   TWorldMoveAllowedEvent = procedure (Sender: TCastleSceneManager;
     var Allowed: boolean;
-    const OldPosition, NewPosition: TVector3Single;
+    const OldPosition, NewPosition: TVector3;
     const BecauseOfGravity: boolean) of object;
 
   { Common abstract class for things that may act as a viewport:
@@ -63,8 +63,8 @@ type
   private
     type
       TScreenPoint = packed record
-        Position: TVector2Single;
-        TexCoord: TVector2Single;
+        Position: TVector2;
+        TexCoord: TVector2;
       end;
     var
     FCamera: TCamera;
@@ -235,7 +235,7 @@ type
 
       @seealso TCastleSceneCore.MainLightForShadows }
     function MainLightForShadows(
-      out AMainLightPosition: TVector4Single): boolean; virtual;
+      out AMainLightPosition: TVector4): boolean; virtual;
 
     procedure SetCamera(const Value: TCamera); virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -255,7 +255,7 @@ type
     { @groupEnd }
 
     { Pass pointing device (mouse) move event to 3D world. }
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; virtual; abstract;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; virtual; abstract;
     { Pass pointing device (mouse) activation/deactivation event to 3D world. }
     function PointingDeviceActivate(const Active: boolean): boolean; virtual; abstract;
 
@@ -266,11 +266,11 @@ type
 
       @groupBegin }
     function CameraMoveAllowed(ACamera: TWalkCamera;
-      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
-    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3Single;
+    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
-    function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
+    function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
 
@@ -729,11 +729,11 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     function CameraMoveAllowed(ACamera: TWalkCamera;
-      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; override;
-    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3Single;
+    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
+    function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
     function GetItems: T3DWorld; override;
@@ -744,7 +744,7 @@ type
     function GetPlayer: TPlayer; override;
     function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; override;
     { Called when PointingDeviceActivate was not handled by any 3D object.
       You can override this to make a message / sound signal to notify user
       that his Input_Interact click was not successful. }
@@ -764,7 +764,7 @@ type
       is allowed. The default implementation in TCastleSceneManager
       calculates the result using the algorithm described at the MoveLimit
       property, then calls OnMoveAllowed event. }
-    function MoveAllowed(const OldPosition, NewPosition: TVector3Single;
+    function MoveAllowed(const OldPosition, NewPosition: TVector3;
       const BecauseOfGravity: boolean): boolean; virtual;
 
     procedure BoundNavigationInfoChanged; virtual;
@@ -861,7 +861,7 @@ type
     property Viewports: TCastleAbstractViewportList read FViewports;
 
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
-    function GravityUp: TVector3Single;
+    function GravityUp: TVector3;
 
     { Sectors and waypoints of this world, for AI in 3D.
       Initialized by TGameSceneManager.LoadLevel.
@@ -1095,14 +1095,14 @@ type
     function GetPlayer: TPlayer; override;
     function GetTimeScale: Single; override;
     function PointingDeviceActivate(const Active: boolean): boolean; override;
-    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3Single): boolean; override;
+    function PointingDeviceMove(const RayOrigin, RayDirection: TVector3): boolean; override;
 
     function CameraMoveAllowed(ACamera: TWalkCamera;
-      const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; override;
-    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3Single;
+    function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
+    function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
     function Headlight: TAbstractLightNode; override;
   public
@@ -1424,7 +1424,7 @@ end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
 var
-  RayOrigin, RayDirection: TVector3Single;
+  RayOrigin, RayDirection: TVector3;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
@@ -1572,7 +1572,7 @@ procedure TCastleAbstractViewport.ApplyProjection;
 var
   Viewport: TRectangle;
   AspectRatio: Single;
-  M: TMatrix4Single;
+  M: TMatrix4;
 begin
   RequiredCamera; // create Camera if necessary
 
@@ -1742,7 +1742,7 @@ begin
 end;
 
 function TCastleAbstractViewport.MainLightForShadows(
-  out AMainLightPosition: TVector4Single): boolean;
+  out AMainLightPosition: TVector4): boolean;
 begin
   if GetMainScene <> nil then
     Result := GetMainScene.MainLightForShadows(AMainLightPosition) else
@@ -1758,7 +1758,7 @@ end;
 
 procedure TCastleAbstractViewport.RenderShadowVolume;
 begin
-  GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, IdentityMatrix4Single);
+  GetItems.RenderShadowVolume(GetShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
 function TCastleAbstractViewport.HeadlightInstance(out Instance: TLightInstance): boolean;
@@ -1768,7 +1768,7 @@ var
 
   procedure PrepareInstance;
   var
-    Position, Direction, Up: TVector3Single;
+    Position, Direction, Up: TVector3;
   begin
 
     Assert(Node <> nil);
@@ -1790,7 +1790,7 @@ var
     Instance.Node := Node;
     Instance.Location := Position;
     Instance.Direction := Direction;
-    Instance.Transform := IdentityMatrix4Single;
+    Instance.Transform := TMatrix4.Identity;
     Instance.TransformScale := 1;
     Instance.Radius := MaxSingle;
     Instance.WorldCoordinates := true;
@@ -1867,14 +1867,14 @@ procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
     Params.Transparent := true ; Params.ShadowVolumesReceivers := true ; Render3D(Params);
   end;
 
-  procedure RenderWithShadows(const MainLightPosition: TVector4Single);
+  procedure RenderWithShadows(const MainLightPosition: TVector4);
   begin
     GetShadowVolumeRenderer.InitFrustumAndLight(RenderingCamera.Frustum, MainLightPosition);
     GetShadowVolumeRenderer.Render(Params, @Render3D, @RenderShadowVolume, ShadowVolumesRender);
   end;
 
 var
-  MainLightPosition: TVector4Single;
+  MainLightPosition: TVector4;
 begin
   if GLFeatures.ShadowVolumesPossible and
      ShadowVolumes and
@@ -1888,8 +1888,8 @@ var
   ClearBuffers: TClearBuffers;
   ClearColor: TCastleColor;
   UsedBackground: TBackground;
-  MainLightPosition: TVector4Single; { ignored }
-  SavedProjectionMatrix: TMatrix4Single;
+  MainLightPosition: TVector4; { ignored }
+  SavedProjectionMatrix: TMatrix4;
 begin
   ClearBuffers := [cbDepth];
 
@@ -1897,7 +1897,7 @@ begin
   begin
     { When rendering to VSM, we want to clear the screen to max depths (1, 1^2). }
     Include(ClearBuffers, cbColor);
-    ClearColor := Vector4Single(1, 1, 0, 1);
+    ClearColor := Vector4(1, 1, 0, 1);
   end else
   if not Transparent then
   begin
@@ -1977,14 +1977,14 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
     begin
       { generate and fill ScreenPointVbo. It's contents are constant. }
       glGenBuffers(1, @ScreenPointVbo);
-      ScreenPoint[0].TexCoord := Vector2Single(0, 0);
-      ScreenPoint[0].Position := Vector2Single(-1, -1);
-      ScreenPoint[1].TexCoord := Vector2Single(1, 0);
-      ScreenPoint[1].Position := Vector2Single( 1, -1);
-      ScreenPoint[2].TexCoord := Vector2Single(1, 1);
-      ScreenPoint[2].Position := Vector2Single( 1,  1);
-      ScreenPoint[3].TexCoord := Vector2Single(0, 1);
-      ScreenPoint[3].Position := Vector2Single(-1,  1);
+      ScreenPoint[0].TexCoord := Vector2(0, 0);
+      ScreenPoint[0].Position := Vector2(-1, -1);
+      ScreenPoint[1].TexCoord := Vector2(1, 0);
+      ScreenPoint[1].Position := Vector2( 1, -1);
+      ScreenPoint[2].TexCoord := Vector2(1, 1);
+      ScreenPoint[2].Position := Vector2( 1,  1);
+      ScreenPoint[3].TexCoord := Vector2(0, 1);
+      ScreenPoint[3].Position := Vector2(-1,  1);
       glBindBuffer(GL_ARRAY_BUFFER, ScreenPointVbo);
       glBufferData(GL_ARRAY_BUFFER, SizeOf(ScreenPoint), @(ScreenPoint[0]), GL_STATIC_DRAW);
     end;
@@ -2036,10 +2036,10 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       glViewport that takes care of this. }
 
     AttribVertex := Shader.Attribute('vertex');
-    AttribVertex.EnableArrayVector2Single(SizeOf(TScreenPoint),
+    AttribVertex.EnableArrayVector2(SizeOf(TScreenPoint),
       OffsetUInt(ScreenPoint[0].Position, ScreenPoint[0]));
     AttribTexCoord := Shader.Attribute('tex_coord');
-    AttribTexCoord.EnableArrayVector2Single(SizeOf(TScreenPoint),
+    AttribTexCoord.EnableArrayVector2(SizeOf(TScreenPoint),
       OffsetUInt(ScreenPoint[0].TexCoord, ScreenPoint[0]));
 
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
@@ -2450,7 +2450,7 @@ end;
 function TCastleAbstractViewportList.UsesShadowVolumes: boolean;
 var
   I: Integer;
-  MainLightPosition: TVector4Single; { ignored }
+  MainLightPosition: TVector4; { ignored }
   V: TCastleAbstractViewport;
 begin
   for I := 0 to Count - 1 do
@@ -2473,25 +2473,25 @@ type
     function Owner: TCastleSceneManager;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
-    function GravityUp: TVector3Single; override;
+    function GravityUp: TVector3; override;
     function Player: T3DAlive; override;
     function BaseLights: TAbstractLightInstancesList; override;
     function Sectors: TSectorList; override;
     function Water: TBox3D; override;
     function WorldMoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
     function WorldMoveAllowed(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
-    function WorldHeight(const Position: TVector3Single;
+    function WorldHeight(const Position: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; override;
-    function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; override;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; override;
+    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
 
 function T3DWorldConcrete.Owner: TCastleSceneManager;
@@ -2505,7 +2505,7 @@ begin
   Result := Owner.CollisionIgnoreItem(Sender, Triangle);
 end;
 
-function T3DWorldConcrete.GravityUp: TVector3Single;
+function T3DWorldConcrete.GravityUp: TVector3;
 begin
   Result := Owner.GravityUp;
 end;
@@ -2531,7 +2531,7 @@ begin
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const BecauseOfGravity: boolean): boolean;
@@ -2543,7 +2543,7 @@ begin
 end;
 
 function T3DWorldConcrete.WorldMoveAllowed(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const BecauseOfGravity: boolean): boolean;
@@ -2554,14 +2554,14 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldHeight(const Position: TVector3Single;
+function T3DWorldConcrete.WorldHeight(const Position: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   Result := HeightCollision(Position, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 
-function T3DWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+function T3DWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
@@ -2572,7 +2572,7 @@ begin
 end;
 
 function T3DWorldConcrete.WorldRay(
-  const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+  const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection,
     { Do not use CollisionIgnoreItem here,
@@ -2595,8 +2595,8 @@ begin
   FItems.OnCursorChange := @RecalculateCursor;
   FItems.OnVisibleChange := @ItemsVisibleChange;
 
-  FMoveLimit := EmptyBox3D;
-  FWater := EmptyBox3D;
+  FMoveLimit := TBox3D.Empty;
+  FWater := TBox3D.Empty;
   FTimeScale := 1;
 
   FDefaultViewport := true;
@@ -2676,7 +2676,7 @@ end;
 function TCastleSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
 var
   Box: TBox3D;
-  Position, Direction, Up, GravUp: TVector3Single;
+  Position, Direction, Up, GravUp: TVector3;
 begin
   Box := Items.BoundingBox;
   if MainScene <> nil then
@@ -2988,14 +2988,14 @@ function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): bool
   end;
 
 var
-  MousePosition: TVector2Single;
+  MousePosition: TVector2;
 
   { Try PointingDeviceActivate on 3D stuff hit by ray moved by given number
     of screen pixels from current mouse position.
     Call only if Camera and MousePosition already assigned. }
-  function TryActivateAround(const Change: TVector2Single): boolean;
+  function TryActivateAround(const Change: TVector2): boolean;
   var
-    RayOrigin, RayDirection: TVector3Single;
+    RayOrigin, RayDirection: TVector3;
     RayHit: TRayCollision;
   begin
     Camera.CustomRay(ScreenRect, MousePosition + Change,
@@ -3016,14 +3016,14 @@ var
 
   function TryActivateAroundSquare(const Change: Single): boolean;
   begin
-    Result := TryActivateAround(Vector2Single(-Change, -Change)) or
-              TryActivateAround(Vector2Single(-Change, +Change)) or
-              TryActivateAround(Vector2Single(+Change, +Change)) or
-              TryActivateAround(Vector2Single(+Change, -Change)) or
-              TryActivateAround(Vector2Single(      0, -Change)) or
-              TryActivateAround(Vector2Single(      0, +Change)) or
-              TryActivateAround(Vector2Single(-Change,       0)) or
-              TryActivateAround(Vector2Single(+Change,       0));
+    Result := TryActivateAround(Vector2(-Change, -Change)) or
+              TryActivateAround(Vector2(-Change, +Change)) or
+              TryActivateAround(Vector2(+Change, +Change)) or
+              TryActivateAround(Vector2(+Change, -Change)) or
+              TryActivateAround(Vector2(      0, -Change)) or
+              TryActivateAround(Vector2(      0, +Change)) or
+              TryActivateAround(Vector2(-Change,       0)) or
+              TryActivateAround(Vector2(+Change,       0));
   end;
 
   { If Container assigned, set local MousePosition. }
@@ -3065,7 +3065,7 @@ begin
 end;
 
 function TCastleSceneManager.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 var
   PassToMainScene: boolean;
   I: Integer;
@@ -3102,7 +3102,7 @@ begin
       is for now used only by TCastleSceneCore, and only when Triangle <> nil. }
     if MouseRayHit <> nil then
       MainSceneNode.Point := MouseRayHit.Last.Point else
-      MainSceneNode.Point := ZeroVector3Single;
+      MainSceneNode.Point := TVector3.Zero;
     MainSceneNode.RayOrigin := RayOrigin;
     MainSceneNode.RayDirection := RayDirection;
     MainSceneNode.Triangle := nil;
@@ -3172,7 +3172,7 @@ end;
 
 procedure TCastleSceneManager.CameraVisibleChange(ACamera: TObject);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   (ACamera as TCamera).GetView(Pos, Dir, Up);
 
@@ -3200,7 +3200,7 @@ begin
 end;
 
 function TCastleSceneManager.CameraMoveAllowed(ACamera: TWalkCamera;
-  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const ProposedNewPos: TVector3; out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 begin
   { Both version result in calling WorldMoveAllowed.
@@ -3216,7 +3216,7 @@ begin
 end;
 
 function TCastleSceneManager.CameraHeight(ACamera: TWalkCamera;
-  const Position: TVector3Single;
+  const Position: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   { Both version result in calling WorldHeight.
@@ -3226,7 +3226,7 @@ begin
     Result := Items.WorldHeight(Position, AboveHeight, AboveGround);
 end;
 
-function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+function TCastleSceneManager.CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   { Both version result in calling WorldRay.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
@@ -3313,14 +3313,14 @@ begin
   end;
 end;
 
-function TCastleSceneManager.GravityUp: TVector3Single;
+function TCastleSceneManager.GravityUp: TVector3;
 begin
   if Camera <> nil then
     Result := Camera.GetGravityUp else
     Result := DefaultCameraUp;
 end;
 
-function TCastleSceneManager.MoveAllowed(const OldPosition, NewPosition: TVector3Single;
+function TCastleSceneManager.MoveAllowed(const OldPosition, NewPosition: TVector3;
   const BecauseOfGravity: boolean): boolean;
 begin
   Result := true;
@@ -3383,7 +3383,7 @@ begin
 end;
 
 function TCastleViewport.CameraMoveAllowed(ACamera: TWalkCamera;
-  const ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const ProposedNewPos: TVector3; out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 begin
   if SceneManager <> nil then
@@ -3396,7 +3396,7 @@ begin
 end;
 
 function TCastleViewport.CameraHeight(ACamera: TWalkCamera;
-  const Position: TVector3Single;
+  const Position: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   if SceneManager <> nil then
@@ -3408,7 +3408,7 @@ begin
   end;
 end;
 
-function TCastleViewport.CameraRayCollision(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+function TCastleViewport.CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   if SceneManager <> nil then
     Result := SceneManager.CameraRayCollision(RayOrigin, RayDirection) else
@@ -3482,7 +3482,7 @@ begin
 end;
 
 function TCastleViewport.PointingDeviceMove(
-  const RayOrigin, RayDirection: TVector3Single): boolean;
+  const RayOrigin, RayDirection: TVector3): boolean;
 begin
   Result := (SceneManager <> nil) and
     SceneManager.PointingDeviceMove(RayOrigin, RayDirection);

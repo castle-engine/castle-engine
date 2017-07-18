@@ -59,13 +59,13 @@ begin
     Nodes.AddOrSetValue(AttachmentName, Result);
   end;
 
-  TexCoord[0] := Vector2Single(0, 0);
-  TexCoord[1] := Vector2Single(1, 0);
-  TexCoord[2] := Vector2Single(1, 1);
-  TexCoord[3] := Vector2Single(0, 1);
+  TexCoord[0] := Vector2(0, 0);
+  TexCoord[1] := Vector2(1, 0);
+  TexCoord[2] := Vector2(1, 1);
+  TexCoord[3] := Vector2(0, 1);
 
-  TexRect[0] := Vector2Single(0, 0);
-  TexRect[1] := Vector2Single(1, 1);
+  TexRect[0] := Vector2(0, 0);
+  TexRect[1] := Vector2(1, 1);
 
   TexRotated := false;
 end;

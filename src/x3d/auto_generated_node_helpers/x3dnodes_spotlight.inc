@@ -27,26 +27,26 @@
 {$ifdef read_interface}
 
   private
-    function GetAttenuation: TVector3Single;
-    procedure SetAttenuation(const Value: TVector3Single);
+    function GetAttenuation: TVector3;
+    procedure SetAttenuation(const Value: TVector3);
     function GetBeamWidth: Single;
     procedure SetBeamWidth(const Value: Single);
     function GetCutOffAngle: Single;
     procedure SetCutOffAngle(const Value: Single);
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
-    function GetLocation: TVector3Single;
-    procedure SetLocation(const Value: TVector3Single);
+    function GetDirection: TVector3;
+    procedure SetDirection(const Value: TVector3);
+    function GetLocation: TVector3;
+    procedure SetLocation(const Value: TVector3);
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
     function GetProjectionAngle: Single;
     procedure SetProjectionAngle(const Value: Single);
   public
-    property Attenuation: TVector3Single read GetAttenuation write SetAttenuation;
+    property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
     property BeamWidth: Single read GetBeamWidth write SetBeamWidth;
     property CutOffAngle: Single read GetCutOffAngle write SetCutOffAngle;
-    property Direction: TVector3Single read GetDirection write SetDirection;
-    property Location: TVector3Single read GetLocation write SetLocation;
+    property Direction: TVector3 read GetDirection write SetDirection;
+    property Location: TVector3 read GetLocation write SetLocation;
     property Radius: Single read GetRadius write SetRadius;
     property ProjectionAngle: Single read GetProjectionAngle write SetProjectionAngle;
 
@@ -56,12 +56,12 @@
 
 { TSpotLightNode ----------------------------------------------- }
 
-function TSpotLightNode.GetAttenuation: TVector3Single;
+function TSpotLightNode.GetAttenuation: TVector3;
 begin
   Result := FdAttenuation.Value;
 end;
 
-procedure TSpotLightNode.SetAttenuation(const Value: TVector3Single);
+procedure TSpotLightNode.SetAttenuation(const Value: TVector3);
 begin
   FdAttenuation.Send(Value);
 end;
@@ -86,22 +86,22 @@ begin
   FdCutOffAngle.Send(Value);
 end;
 
-function TSpotLightNode.GetDirection: TVector3Single;
+function TSpotLightNode.GetDirection: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TSpotLightNode.SetDirection(const Value: TVector3Single);
+procedure TSpotLightNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;
 
-function TSpotLightNode.GetLocation: TVector3Single;
+function TSpotLightNode.GetLocation: TVector3;
 begin
   Result := FdLocation.Value;
 end;
 
-procedure TSpotLightNode.SetLocation(const Value: TVector3Single);
+procedure TSpotLightNode.SetLocation(const Value: TVector3);
 begin
   FdLocation.Send(Value);
 end;

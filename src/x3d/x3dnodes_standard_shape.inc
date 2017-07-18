@@ -337,10 +337,10 @@
       in FdReflSpecular field.
 
       @groupBegin }
-    procedure CalculateReflSpecular(out V: TVector3Single);
-    procedure CalculateReflDiffuse(out V: TVector3Single);
-    procedure CalculateTransSpecular(out V: TVector3Single);
-    procedure CalculateTransDiffuse(out V: TVector3Single);
+    procedure CalculateReflSpecular(out V: TVector3);
+    procedure CalculateReflDiffuse(out V: TVector3);
+    procedure CalculateTransSpecular(out V: TVector3);
+    procedure CalculateTransDiffuse(out V: TVector3);
     { @groupEnd }
   public
     const
@@ -357,33 +357,33 @@
         The AmbientColor is an exception, the effective ambientColor for X3D is
         @code(ambientIntensity * diffuseColor = (0.2 * 0.8, 0.2 * 0.8, 0.2 * 0.8)).
       }
-      DefaultAmbientColor: TVector3Single = (0.2, 0.2, 0.2);
+      DefaultAmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2));
       DefaultAmbientIntensity = 0.2;
-      DefaultDiffuseColor: TVector3Single = (0.8, 0.8, 0.8);
-      DefaultSpecularColor: TVector3Single = (0, 0, 0);
-      DefaultEmissiveColor: TVector3Single = (0, 0, 0);
+      DefaultDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8));
+      DefaultSpecularColor: TVector3 = (Data: (0, 0, 0));
+      DefaultEmissiveColor: TVector3 = (Data: (0, 0, 0));
       DefaultShininess = 0.2;
       DefaultShininessExp = DefaultShininess * 128;
       DefaultTransparency = 0.0;
-      DefaultReflectionColor: TVector3Single = (0, 0, 0);
-      DefaultTransmissionColor: TVector3Single = (0, 0, 0);
+      DefaultReflectionColor: TVector3 = (Data: (0, 0, 0));
+      DefaultTransmissionColor: TVector3 = (Data: (0, 0, 0));
       DefaultReflSpecularExp = 1000000;
       DefaultTransSpecularExp = 1000000;
 
-    function AmbientColor: TVector3Single; virtual; abstract;
-    function DiffuseColor: TVector3Single; virtual; abstract;
-    function SpecularColor: TVector3Single; virtual; abstract;
-    function EmissiveColor: TVector3Single; virtual; abstract;
+    function AmbientColor: TVector3; virtual; abstract;
+    function DiffuseColor: TVector3; virtual; abstract;
+    function SpecularColor: TVector3; virtual; abstract;
+    function EmissiveColor: TVector3; virtual; abstract;
     function Shininess: Single; virtual; abstract;
     function ShininessExp: Single;
-    function ReflectionColor: TVector3Single; virtual; abstract;
-    function TransmissionColor: TVector3Single; virtual;
+    function ReflectionColor: TVector3; virtual; abstract;
+    function TransmissionColor: TVector3; virtual;
     function Transparency: Single; virtual; abstract;
 
-    function ReflSpecular: TVector3Single; virtual; abstract;
-    function ReflDiffuse: TVector3Single; virtual; abstract;
-    function TransSpecular: TVector3Single; virtual; abstract;
-    function TransDiffuse: TVector3Single; virtual; abstract;
+    function ReflSpecular: TVector3; virtual; abstract;
+    function ReflDiffuse: TVector3; virtual; abstract;
+    function TransSpecular: TVector3; virtual; abstract;
+    function TransDiffuse: TVector3; virtual; abstract;
 
     function ReflSpecularExp: Single; virtual; abstract;
     function TransSpecularExp: Single; virtual; abstract;
@@ -402,18 +402,18 @@
       public
         constructor Create(Node: TMaterialNode);
 
-        function AmbientColor: TVector3Single; override;
-        function DiffuseColor: TVector3Single; override;
-        function SpecularColor: TVector3Single; override;
-        function EmissiveColor: TVector3Single; override;
+        function AmbientColor: TVector3; override;
+        function DiffuseColor: TVector3; override;
+        function SpecularColor: TVector3; override;
+        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
-        function ReflectionColor: TVector3Single; override;
+        function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
 
-        function ReflSpecular: TVector3Single; override;
-        function ReflDiffuse: TVector3Single; override;
-        function TransSpecular: TVector3Single; override;
-        function TransDiffuse: TVector3Single; override;
+        function ReflSpecular: TVector3; override;
+        function ReflDiffuse: TVector3; override;
+        function TransSpecular: TVector3; override;
+        function TransDiffuse: TVector3; override;
 
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
@@ -634,12 +634,12 @@ begin
    FdGeometry.ChangesAlways := [chEverything];
   AddField(FFdGeometry);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
    FdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
    FdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -1086,7 +1086,7 @@ begin
   FFdFilled := TSFBool.Create(Self, 'filled', true);
   AddField(FFdFilled);
 
-  FFdHatchColor := TSFColor.Create(Self, 'hatchColor', Vector3Single(1, 1, 1));
+  FFdHatchColor := TSFColor.Create(Self, 'hatchColor', Vector3(1, 1, 1));
   AddField(FFdHatchColor);
   { X3D specification comment: [0,1] }
 
@@ -1280,32 +1280,32 @@ end;
 
 procedure TMaterialNode.ForcePureEmissive;
 begin
-  FdDiffuseColor.Send(ZeroVector3Single);
-  FdSpecularColor.Send(ZeroVector3Single);
+  FdDiffuseColor.Send(TVector3.Zero);
+  FdSpecularColor.Send(TVector3.Zero);
   FdAmbientIntensity.Send(0);
   Assert(PureEmissive);
 end;
 
 { TMaterialInfo ---------------------------------------------------------- }
 
-procedure TMaterialInfo.CalculateReflSpecular(out V: TVector3Single);
+procedure TMaterialInfo.CalculateReflSpecular(out V: TVector3);
 begin
   V := ReflectionColor;
 end;
 
-procedure TMaterialInfo.CalculateReflDiffuse(out V: TVector3Single);
+procedure TMaterialInfo.CalculateReflDiffuse(out V: TVector3);
 begin
   V := DiffuseColor;
 end;
 
-procedure TMaterialInfo.CalculateTransSpecular(out V: TVector3Single);
+procedure TMaterialInfo.CalculateTransSpecular(out V: TVector3);
 begin
   V := TransmissionColor;
 end;
 
-procedure TMaterialInfo.CalculateTransDiffuse(out V: TVector3Single);
+procedure TMaterialInfo.CalculateTransDiffuse(out V: TVector3);
 begin
-  V := DiffuseColor * TransmissionColor;
+  V := TVector3.MultiplyComponents(DiffuseColor, TransmissionColor);
 end;
 
 function TMaterialInfo.ShininessExp: Single;
@@ -1313,10 +1313,10 @@ begin
   Result := Clamped(Shininess * 128.0, 0.0, 128.0);
 end;
 
-function TMaterialInfo.TransmissionColor: TVector3Single;
+function TMaterialInfo.TransmissionColor: TVector3;
 begin
   { default TransmisionColor implementation }
-  Result := Vector3Single(Transparency, Transparency, Transparency);
+  Result := Vector3(Transparency, Transparency, Transparency);
 end;
 
 { TMaterialNode.TX3DMaterialInfo -------------------------------------------------------- }
@@ -1327,22 +1327,22 @@ begin
   FNode := Node;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.AmbientColor: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.AmbientColor: TVector3;
 begin
   Result := FNode.FdDiffuseColor.Value * FNode.FdAmbientIntensity.Value;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.DiffuseColor: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.DiffuseColor: TVector3;
 begin
   Result := FNode.FdDiffuseColor.Value;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.SpecularColor: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.SpecularColor: TVector3;
 begin
   Result := FNode.FdSpecularColor.Value;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.EmissiveColor: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.EmissiveColor: TVector3;
 begin
   Result := FNode.FdEmissiveColor.Value;
 end;
@@ -1352,9 +1352,9 @@ begin
   Result := FNode.FdShininess.Value;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.ReflectionColor: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.ReflectionColor: TVector3;
 begin
-  Result := Vector3Single(
+  Result := Vector3(
     FNode.FdMirror.Value,
     FNode.FdMirror.Value,
     FNode.FdMirror.Value
@@ -1366,9 +1366,9 @@ begin
   Result := FNode.FdTransparency.Value;
 end;
 
-function TMaterialNode.TX3DMaterialInfo.ReflSpecular: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.ReflSpecular: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
@@ -1376,9 +1376,9 @@ begin
     Result := A.L[0];
 end;
 
-function TMaterialNode.TX3DMaterialInfo.ReflDiffuse: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.ReflDiffuse: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
@@ -1386,9 +1386,9 @@ begin
     Result := A.L[0];
 end;
 
-function TMaterialNode.TX3DMaterialInfo.TransSpecular: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.TransSpecular: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
@@ -1396,9 +1396,9 @@ begin
     Result := A.L[0];
 end;
 
-function TMaterialNode.TX3DMaterialInfo.TransDiffuse: TVector3Single;
+function TMaterialNode.TX3DMaterialInfo.TransDiffuse: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
@@ -1449,12 +1449,12 @@ begin
   AddField(FFdBackAmbientIntensity);
   { X3D specification comment: [0,1] }
 
-  FFdBackDiffuseColor := TSFColor.Create(Self, 'backDiffuseColor', Vector3Single(0.8, 0.8, 0.8));
+  FFdBackDiffuseColor := TSFColor.Create(Self, 'backDiffuseColor', Vector3(0.8, 0.8, 0.8));
    FdBackDiffuseColor.ChangesAlways := [chMaterial2];
   AddField(FFdBackDiffuseColor);
   { X3D specification comment: [0,1] }
 
-  FFdBackEmissiveColor := TSFColor.Create(Self, 'backEmissiveColor', Vector3Single(0, 0, 0));
+  FFdBackEmissiveColor := TSFColor.Create(Self, 'backEmissiveColor', Vector3(0, 0, 0));
    FdBackEmissiveColor.ChangesAlways := [chMaterial2];
   AddField(FFdBackEmissiveColor);
   { X3D specification comment: [0,1] }
@@ -1464,7 +1464,7 @@ begin
   AddField(FFdBackShininess);
   { X3D specification comment: [0,1] }
 
-  FFdBackSpecularColor := TSFColor.Create(Self, 'backSpecularColor', Vector3Single(0, 0, 0));
+  FFdBackSpecularColor := TSFColor.Create(Self, 'backSpecularColor', Vector3(0, 0, 0));
    FdBackSpecularColor.ChangesAlways := [chMaterial2];
   AddField(FFdBackSpecularColor);
   { X3D specification comment: [0,1] }
@@ -1474,12 +1474,12 @@ begin
   AddField(FFdBackTransparency);
   { X3D specification comment: [0,1] }
 
-  FFdDiffuseColor := TSFColor.Create(Self, 'diffuseColor', Vector3Single(0.8, 0.8, 0.8));
+  FFdDiffuseColor := TSFColor.Create(Self, 'diffuseColor', Vector3(0.8, 0.8, 0.8));
    FdDiffuseColor.ChangesAlways := [chMaterial2];
   AddField(FFdDiffuseColor);
   { X3D specification comment: [0,1] }
 
-  FFdEmissiveColor := TSFColor.Create(Self, 'emissiveColor', Vector3Single(0, 0, 0));
+  FFdEmissiveColor := TSFColor.Create(Self, 'emissiveColor', Vector3(0, 0, 0));
    FdEmissiveColor.ChangesAlways := [chMaterial2];
   AddField(FFdEmissiveColor);
   { X3D specification comment: [0,1] }
@@ -1493,7 +1493,7 @@ begin
    FdSeparateBackColor.ChangesAlways := [chMaterial2];
   AddField(FFdSeparateBackColor);
 
-  FFdSpecularColor := TSFColor.Create(Self, 'specularColor', Vector3Single(0, 0, 0));
+  FFdSpecularColor := TSFColor.Create(Self, 'specularColor', Vector3(0, 0, 0));
    FdSpecularColor.ChangesAlways := [chMaterial2];
   AddField(FFdSpecularColor);
   { X3D specification comment: [0,1] }

@@ -39,7 +39,7 @@ type
     Note that contents of Verts and Faces are read-only for user of this unit. }
   TObject3DGEO = class
   public
-    Verts: TVector3SingleList;
+    Verts: TVector3List;
     Faces: TVector3CardinalList;
     constructor Create(const URL: string);
     destructor Destroy; override;
@@ -118,7 +118,7 @@ var
   VertsCount, PolysCount, VertsInPolysCount: Integer;
 begin
  inherited Create;
- Verts := TVector3SingleList.Create;
+ Verts := TVector3List.Create;
  Faces := TVector3CardinalList.Create;
 
  Reader := TTextReader.Create(URL);
@@ -161,7 +161,7 @@ begin
 
   Verts.Count := VertsCount;
   for i := 0 to Verts.Count-1 do
-    Verts.L[I] := Vector3SingleFromStr(Reader.Readln);
+    Verts.L[I] := Vector3FromStr(Reader.Readln);
 
   if PolysCount <> -1 then
   begin

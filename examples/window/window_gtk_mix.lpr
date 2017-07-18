@@ -77,7 +77,7 @@ begin
   Text.FdString.Send([TextString]);
 
   Material := TMaterialNode.Create;
-  Material.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
+  Material.FdDiffuseColor.Value := Vector3(1, 1, 0);
 
   Appearance := TAppearanceNode.Create;
   Appearance.FdMaterial.Value := Material;

@@ -47,15 +47,15 @@ begin
 
   IndexedFaceSetCoordinate := TCoordinateNode.Create;
   IndexedFaceSetCoordinate.FdPoint.Items.AddRange(
-    [Vector3Single(0, 0, 0),
-     Vector3Single(1, 0, 0),
-     Vector3Single(1, 1, 0),
-     Vector3Single(0, 1, 0),
+    [Vector3(0, 0, 0),
+     Vector3(1, 0, 0),
+     Vector3(1, 1, 0),
+     Vector3(0, 1, 0),
 
-     Vector3Single(0, 0, 0.5),
-     Vector3Single(1, 0, 0.5),
-     Vector3Single(1, 1, 0.5),
-     Vector3Single(0, 1, 0.5)
+     Vector3(0, 0, 0.5),
+     Vector3(1, 0, 0.5),
+     Vector3(1, 1, 0.5),
+     Vector3(0, 1, 0.5)
     ]);
 
   IndexedFaceSet := TIndexedFaceSetNode.Create;
@@ -70,7 +70,7 @@ begin
   IndexedFaceSetShape.Geometry := IndexedFaceSet;
 
   IndexedFaceSetShapeTranslated := TTransformNode.Create;
-  IndexedFaceSetShapeTranslated.Translation := Vector3Single(2, 0, 0);
+  IndexedFaceSetShapeTranslated.Translation := Vector3(2, 0, 0);
   IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
 
   Root := TX3DRootNode.Create;

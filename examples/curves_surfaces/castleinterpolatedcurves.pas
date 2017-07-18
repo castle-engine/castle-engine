@@ -58,7 +58,7 @@ type
     Newton: array[0..2]of TFloatList;
   public
     procedure UpdateControlPoints; override;
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -107,7 +107,7 @@ type
     Spline: array[0..2]of TNaturalCubicSpline;
   public
     procedure UpdateControlPoints; override;
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -156,7 +156,7 @@ begin
   begin
     Newton[i].Count := ControlPoints.Count;
     for j := 0 to ControlPoints.Count-1 do
-      Newton[i].L[j] := ControlPoints.L[j, i];
+      Newton[i].L[j] := ControlPoints.L[j].Data[i];
 
     { licz kolumny tablicy ilorazow roznicowych in place, overriding Newton[i] }
     for k := 1 to ControlPoints.Count-1 do
@@ -169,7 +169,7 @@ begin
   end;
 end;
 
-function TLagrangeInterpolatedCurve.Point(const t: Float): TVector3Single;
+function TLagrangeInterpolatedCurve.Point(const t: Float): TVector3;
 var
   i, k: Integer;
   f: Float;
@@ -446,13 +446,13 @@ begin
     { calculate SplineY }
     SplineY := TFloatList.Create;
     SplineY.Count := ControlPoints.Count;
-    for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.L[j, i];
+    for j := 0 to ControlPoints.Count-1 do SplineY[j] := ControlPoints.L[j].Data[i];
 
     Spline[i] := TNaturalCubicSpline.Create(SplineX, SplineY, i = 2, true, Closed);
   end;
 end;
 
-function TNaturalCubicSplineCurve_Abstract.Point(const t: Float): TVector3Single;
+function TNaturalCubicSplineCurve_Abstract.Point(const t: Float): TVector3;
 var
   i: Integer;
 begin

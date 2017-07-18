@@ -40,7 +40,7 @@
   THAnimJointNode = class;
 
   TVertexJoints = object
-    RestPosition: TVector3Single;
+    RestPosition: TVector3;
     Count: Cardinal;
     Joints: array of THAnimJointNode;
     Weights: array of Single;
@@ -138,8 +138,8 @@
     Joints are organized in a hierarchy, like bones. }
   THAnimJointNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
-    AnimateSkinTransform: TMatrix4Single;
-    RestCenter: TVector3Single;
+    AnimateSkinTransform: TMatrix4;
+    RestCenter: TVector3;
     { Animate point, based on it's rest position.
 
       We used, at one point, to apply here a relative change since last position.
@@ -154,7 +154,7 @@
         be applied only once, and then relative change must be reset to identity).
         Without this, we can repply AnimateSkinPoint many times, and it's
         always valid. }
-    function AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
+    function AnimateSkinPoint(const Point: TVector3): TVector3;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
@@ -337,7 +337,7 @@ procedure THAnimHumanoidNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -351,17 +351,17 @@ begin
   FFdName := TSFString.Create(Self, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
@@ -389,7 +389,7 @@ begin
   FFdSkinNormal := TSFNode.Create(Self, 'skinNormal', [TAbstractNormalNode]);
   AddField(FFdSkinNormal);
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -410,12 +410,12 @@ begin
     TAbstractX3DViewpointNode, TViewpointGroupNode ]);
   AddField(FFdViewpoints);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -476,8 +476,8 @@ begin
   StateStack.Push;
 
   StateStack.Top.Humanoid := Self;
-  StateStack.Top.HumanoidTransform := IdentityMatrix4Single;
-  StateStack.Top.HumanoidInvertedTransform := IdentityMatrix4Single;
+  StateStack.Top.HumanoidTransform := TMatrix4.Identity;
+  StateStack.Top.HumanoidInvertedTransform := TMatrix4.Identity;
 
   TransformState(StateStack.Top, Fdcenter.Value, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
@@ -485,13 +485,13 @@ end;
 
 function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
 
-  function UpdateVertex(const VJ: TVertexJoints): TVector3Single;
+  function UpdateVertex(const VJ: TVertexJoints): TVector3;
   var
-    New: TVector3Single;
+    New: TVector3;
     J: Integer;
     WeightSum: Single;
   begin
-    New := ZeroVector3Single;
+    New := TVector3.Zero;
     WeightSum := 0;
 
     for J := 0 to VJ.Count - 1 do
@@ -507,7 +507,7 @@ function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
 
 var
   I: Integer;
-  SkinCoord: TVector3SingleList;
+  SkinCoord: TVector3List;
 begin
   if not (
     (FdSkinCoord.Value <> nil) and
@@ -533,7 +533,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
 
   procedure CalculateVertexJoints;
   var
-    SkinCoord: TVector3SingleList;
+    SkinCoord: TVector3List;
     I, J: Integer;
     SkinCoordIndex: TLongIntList;
     CoordIndex: Integer;
@@ -594,7 +594,7 @@ procedure THAnimJointNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -602,7 +602,7 @@ begin
   FFdDisplacers := TMFNode.Create(Self, 'displacers', [THAnimDisplacerNode]);
   AddField(FFdDisplacers);
 
-  FFdLimitOrientation := TSFRotation.Create(Self, 'limitOrientation', Vector3Single(0, 0, 1), 0);
+  FFdLimitOrientation := TSFRotation.Create(Self, 'limitOrientation', Vector3(0, 0, 1), 0);
   AddField(FFdLimitOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
@@ -613,17 +613,17 @@ begin
   FFdName := TSFString.Create(Self, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
@@ -638,7 +638,7 @@ begin
   AddField(FFdStiffness);
   { X3D specification comment: [0,1] }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -649,7 +649,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  AnimateSkinTransform := IdentityMatrix4Single;
+  AnimateSkinTransform := TMatrix4.Identity;
 end;
 
 class function THAnimJointNode.ClassX3DType: string;
@@ -669,7 +669,7 @@ begin
   if Result <> nil then Exit;
 end;
 
-function THAnimJointNode.AnimateSkinPoint(const Point: TVector3Single): TVector3Single;
+function THAnimJointNode.AnimateSkinPoint(const Point: TVector3): TVector3;
 begin
   Result := MatrixMultPoint(AnimateSkinTransform, Point);
 end;
@@ -684,7 +684,7 @@ procedure THAnimJointNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
   I: Integer;
   ChildJoint: THAnimJointNode;
-  LocalCenter, NewChildCenter: TVector3Single;
+  LocalCenter, NewChildCenter: TVector3;
   TempToSend: TSFVec3f;
 begin
   inherited;
@@ -760,7 +760,7 @@ procedure THAnimSegmentNode.CreateNode;
 begin
   inherited;
 
-  FFdCenterOfMass := TSFVec3f.Create(Self, 'centerOfMass', Vector3Single(0, 0, 0));
+  FFdCenterOfMass := TSFVec3f.Create(Self, 'centerOfMass', Vector3(0, 0, 0));
   AddField(FFdCenterOfMass);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -781,17 +781,17 @@ begin
   FFdName := TSFString.Create(Self, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -819,8 +819,8 @@ end;
 procedure THAnimSegmentNode.ApplyTransform(State: TX3DGraphTraverseState);
 begin
   inherited;
-  TransformState(State, ZeroVector3Single, Fdrotation.Value,
-    Fdscale.Value, ZeroVector4Single, Fdtranslation.Value);
+  TransformState(State, TVector3.Zero, Fdrotation.Value,
+    Fdscale.Value, TVector4.Zero, Fdtranslation.Value);
 end;
 
 function THAnimSegmentNode.TransformationChange: TNodeTransformationChange;
@@ -832,7 +832,7 @@ procedure THAnimSiteNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -840,22 +840,22 @@ begin
   FFdName := TSFString.Create(Self, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }

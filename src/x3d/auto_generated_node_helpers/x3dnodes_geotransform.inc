@@ -29,22 +29,22 @@
   private
     function GetGeoCenter: TVector3Double;
     procedure SetGeoCenter(const Value: TVector3Double);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetScaleOrientation: TVector4Single;
-    procedure SetScaleOrientation(const Value: TVector4Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetScaleOrientation: TVector4;
+    procedure SetScaleOrientation(const Value: TVector4);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
 
 {$endif read_interface}
@@ -63,42 +63,42 @@ begin
   FdGeoCenter.Send(Value);
 end;
 
-function TGeoTransformNode.GetRotation: TVector4Single;
+function TGeoTransformNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure TGeoTransformNode.SetRotation(const Value: TVector4Single);
+procedure TGeoTransformNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function TGeoTransformNode.GetScale: TVector3Single;
+function TGeoTransformNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure TGeoTransformNode.SetScale(const Value: TVector3Single);
+procedure TGeoTransformNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function TGeoTransformNode.GetScaleOrientation: TVector4Single;
+function TGeoTransformNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
 end;
 
-procedure TGeoTransformNode.SetScaleOrientation(const Value: TVector4Single);
+procedure TGeoTransformNode.SetScaleOrientation(const Value: TVector4);
 begin
   FdScaleOrientation.Send(Value);
 end;
 
-function TGeoTransformNode.GetTranslation: TVector3Single;
+function TGeoTransformNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TGeoTransformNode.SetTranslation(const Value: TVector3Single);
+procedure TGeoTransformNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;

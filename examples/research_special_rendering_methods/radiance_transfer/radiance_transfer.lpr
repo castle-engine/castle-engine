@@ -43,7 +43,7 @@ var
   Scene: TCastleScene;
   ViewMode: TViewMode = vmFull;
   LightRadius: Single;
-  LightPos: TVector3Single;
+  LightPos: TVector3;
   RenderParams: TBasicRenderParams;
 
 const
@@ -134,13 +134,13 @@ end;
 type
   THelper = class
     function DoRadianceTransfer(Node: TAbstractGeometryNode;
-      RadianceTransfer: PVector3Single;
-      const RadianceTransferCount: Cardinal): TVector3Single;
+      RadianceTransfer: PVector3;
+      const RadianceTransferCount: Cardinal): TVector3;
   end;
 
 function THelper.DoRadianceTransfer(Node: TAbstractGeometryNode;
-  RadianceTransfer: PVector3Single;
-  const RadianceTransferCount: Cardinal): TVector3Single;
+  RadianceTransfer: PVector3;
+  const RadianceTransferCount: Cardinal): TVector3;
 var
   I: Integer;
 begin
@@ -151,12 +151,12 @@ begin
     Result := RadianceTransfer[0];
   end else
   begin
-    Result := ZeroVector3Single;
+    Result := TVector3.Zero;
     for I := 0 to Min(RadianceTransferCount, LightSHBasisCount) - 1 do
     begin
-      Result[0] += RadianceTransfer[I][0] * LightSHBasis[I];
-      Result[1] += RadianceTransfer[I][1] * LightSHBasis[I];
-      Result[2] += RadianceTransfer[I][2] * LightSHBasis[I];
+      Result.Data[0] += RadianceTransfer[I].Data[0] * LightSHBasis[I];
+      Result.Data[1] += RadianceTransfer[I].Data[1] * LightSHBasis[I];
+      Result.Data[2] += RadianceTransfer[I].Data[2] * LightSHBasis[I];
     end;
   end;
 end;
@@ -187,7 +187,7 @@ procedure Update(Container: TUIContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos[Coord] += Change * Window.Fps.UpdateSecondsPassed *
+    LightPos.Data[Coord] += Change * Window.Fps.UpdateSecondsPassed *
       { scale by Box3DAvgSize, to get similar move on all models }
       Scene.BoundingBox.AverageSize;
     Window.Invalidate;
@@ -278,12 +278,14 @@ begin
   if Scene.BoundingBox.IsEmpty then
   begin
     LightRadius := 1;
-    LightPos := Vector3Single(2, 0, 0);
+    LightPos := Vector3(2, 0, 0);
   end else
   begin
     LightRadius := Scene.BoundingBox.AverageSize;
     LightPos := Scene.BoundingBox.Center;
-    LightPos[0] += Scene.BoundingBox.Data[1][0] - Scene.BoundingBox.Data[0][0] + LightRadius;
+    LightPos.Data[0] +=
+      Scene.BoundingBox.Data[1].Data[0] -
+      Scene.BoundingBox.Data[0].Data[0] + LightRadius;
   end;
 
   SceneManager := TMySceneManager.Create(Application);

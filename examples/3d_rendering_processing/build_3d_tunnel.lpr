@@ -36,9 +36,9 @@ type
     TCoordinateNode and TIndexedFaceSetNode nodes. }
   TSection = record
     { Average point and next average point for the section. }
-    median, next: Tvector3single;
+    median, next: TVector3;
     { Vertexes constituting a section. }
-    pt: array [1..MaxPoints] of Tvector3single;
+    pt: array [1..MaxPoints] of TVector3;
     { Absolute (global) indexes of each vertex. }
     index: array [1..MaxPoints] of integer;
     { Angle the section faces. }
@@ -104,7 +104,7 @@ begin
       pt[i][1] := median[1]+(core_section.pt[i][1])*height;
       inc(nindex);
       index[i] := nindex;
-      Coords.FdPoint.Items.Add(Vector3Single(pt[i][0], pt[i][1], pt[i][2]));
+      Coords.FdPoint.Items.Add(Vector3(pt[i][0], pt[i][1], pt[i][2]));
     end;
 end;
 
@@ -193,8 +193,8 @@ begin
 
   { create some simple material }
   Material := TMaterialNode.Create('', '');
-  Material.FdDiffuseColor.value:=vector3single(1,0.9,0.9);
-  material.FdAmbientIntensity.value:=2;
+  Material.FdDiffuseColor.value := Vector3(1, 0.9, 0.9);
+  material.FdAmbientIntensity.value := 2;
 
   { and add it to Appearance node }
   Appearance := TAppearanceNode.Create('', '');
@@ -233,7 +233,7 @@ begin
 
   { Set some parameters for the player }
 
-  Player.Position := Vector3Single(0,0,-1);
+  Player.Position := Vector3(0,0,-1);
   Player.Camera.MouseLook := true;
   Player.DefaultPreferredHeight := 1;
   Player.DefaultMoveHorizontalSpeed := 10;

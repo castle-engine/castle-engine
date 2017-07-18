@@ -171,8 +171,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$ifdef read_implementation}
 
 { To implement, use macros and
-  castlevectors_operators_vector_implementation.inc,
-  castlevectors_operators_matrix_implementation.inc
+  castlevectors_deprecated_operators_vector_implementation.inc,
+  castlevectors_deprecated_operators_matrix_implementation.inc
   includes. Copied and adjusted from FPC's Matrix implementation.
   I added CASTLEVECTOR_OPERATOR_ON_INTEGERS option, to overload also
   for integer vectors. }
@@ -186,8 +186,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=SINGLE}
 {$DEFINE objectname:=TVector2Single}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector2Single}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector2Single}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 TVector2Double
@@ -196,8 +196,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=DOUBLE}
 {$DEFINE objectname:=TVector2Double}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector2Double}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector2Double}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                TVector2Extended
@@ -206,8 +206,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=EXTENDED}
 {$DEFINE objectname:=TVector2Extended}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector2Extended}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector2Extended}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector2Integer
@@ -216,9 +216,9 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=Integer}
 {$DEFINE objectname:=Tvector2Integer}
 {$DEFINE vecsize:=2}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector2Integer}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for Tvector2Integer}
 {$define CASTLEVECTOR_OPERATOR_ON_INTEGERS}
-{$i castlevectors_operators_vector_implementation.inc}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 {$undef CASTLEVECTOR_OPERATOR_ON_INTEGERS}
 
 
@@ -231,8 +231,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=SINGLE}
 {$DEFINE objectname:=TVector3Single}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector3Single}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector3Single}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 TVector3Double
@@ -241,8 +241,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=DOUBLE}
 {$DEFINE objectname:=TVector3Double}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector3Double}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector3Double}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                TVector3Extended
@@ -251,8 +251,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=EXTENDED}
 {$DEFINE objectname:=TVector3Extended}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector3Extended}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector3Extended}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector3Integer
@@ -261,9 +261,9 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=Integer}
 {$DEFINE objectname:=Tvector3Integer}
 {$DEFINE vecsize:=3}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector3Integer}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for Tvector3Integer}
 {$define CASTLEVECTOR_OPERATOR_ON_INTEGERS}
-{$i castlevectors_operators_vector_implementation.inc}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 {$undef CASTLEVECTOR_OPERATOR_ON_INTEGERS}
 
 
@@ -276,8 +276,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=SINGLE}
 {$DEFINE objectname:=TVector4Single}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector4Single}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector4Single}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 TVector4Double
@@ -286,8 +286,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=DOUBLE}
 {$DEFINE objectname:=TVector4Double}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector4Double}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector4Double}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                TVector4Extended
@@ -296,8 +296,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=EXTENDED}
 {$DEFINE objectname:=TVector4Extended}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for TVector4Extended}
-{$i castlevectors_operators_vector_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for TVector4Extended}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 
 {******************************************************************************
                                 Tvector4Integer
@@ -306,9 +306,9 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE datatype:=Integer}
 {$DEFINE objectname:=Tvector4Integer}
 {$DEFINE vecsize:=4}
-{.$INFO Compile castlevectors_operators_vector_implementation.inc for Tvector4Integer}
+{.$INFO Compile castlevectors_deprecated_operators_vector_implementation.inc for Tvector4Integer}
 {$define CASTLEVECTOR_OPERATOR_ON_INTEGERS}
-{$i castlevectors_operators_vector_implementation.inc}
+{$i castlevectors_deprecated_operators_vector_implementation.inc}
 {$undef CASTLEVECTOR_OPERATOR_ON_INTEGERS}
 
 
@@ -320,8 +320,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE objectname:=TMatrix2Single}
 {$DEFINE vectorcompanion:=TVector2Single}
 {$DEFINE matsize:=2}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix2Single}
-{$i castlevectors_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_matrix_implementation.inc for TMatrix2Single}
+{$i castlevectors_deprecated_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 TMatrix2Double
@@ -331,8 +331,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE objectname:=TMatrix2Double}
 {$DEFINE vectorcompanion:=TVector2Double}
 {$DEFINE matsize:=2}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix2Double}
-{$i castlevectors_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_matrix_implementation.inc for TMatrix2Double}
+{$i castlevectors_deprecated_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 TMatrix3Single
@@ -342,8 +342,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE objectname:=TMatrix3Single}
 {$DEFINE vectorcompanion:=TVector3Single}
 {$DEFINE matsize:=3}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix3Single}
-{$i castlevectors_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_matrix_implementation.inc for TMatrix3Single}
+{$i castlevectors_deprecated_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 TMatrix3Double
@@ -353,8 +353,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE objectname:=TMatrix3Double}
 {$DEFINE vectorcompanion:=TVector3Double}
 {$DEFINE matsize:=3}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix3Double}
-{$i castlevectors_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_matrix_implementation.inc for TMatrix3Double}
+{$i castlevectors_deprecated_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 TMatrix4Single
@@ -364,8 +364,8 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE objectname:=TMatrix4Single}
 {$DEFINE vectorcompanion:=TVector4Single}
 {$DEFINE matsize:=4}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix4Single}
-{$i castlevectors_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_matrix_implementation.inc for TMatrix4Single}
+{$i castlevectors_deprecated_operators_matrix_implementation.inc}
 
 {******************************************************************************
                                 TMatrix4Double
@@ -375,7 +375,7 @@ operator / (const m:TMatrix4Double;const x:double) : TMatrix4Double;
 {$DEFINE objectname:=TMatrix4Double}
 {$DEFINE vectorcompanion:=TVector4Double}
 {$DEFINE matsize:=4}
-{.$INFO Compile castlevectors_operators_matrix_implementation.inc for TMatrix4Double}
-{$i castlevectors_operators_matrix_implementation.inc}
+{.$INFO Compile castlevectors_deprecated_operators_matrix_implementation.inc for TMatrix4Double}
+{$i castlevectors_deprecated_operators_matrix_implementation.inc}
 
 {$endif read_implementation}

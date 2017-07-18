@@ -175,9 +175,9 @@ begin
   UCamera := TUniversalCamera.Create(AOwner);
   UCamera.NavigationType := ntNone;
   UCamera.SetInitialView(
-    { pos } Vector3Single(0, 0, DefaultCameraZ),
-    { dir } Vector3Single(0, 0, -1),
-    { up } Vector3Single(0, 1, 0), false);
+    { pos } Vector3(0, 0, DefaultCameraZ),
+    { dir } Vector3(0, 0, -1),
+    { up } Vector3(0, 1, 0), false);
   UCamera.GoToInitial;
   UCamera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
   Result := UCamera;

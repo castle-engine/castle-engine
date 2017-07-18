@@ -180,14 +180,20 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleShaders, CastleProjection;
 
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
+
 {$define read_interface}
 
 const
-  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2) deprecated 'use TMaterialInfo.DefaultAmbientColor';
+  DefaultMaterial_1AmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2)) deprecated 'use TMaterialInfo.DefaultAmbientColor';
   DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TMaterialInfo.DefaultAmbientIntensity';
-  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
-  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultSpecularColor';
-  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
+  DefaultMaterialDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8)) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
+  DefaultMaterialSpecularColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TMaterialInfo.DefaultSpecularColor';
+  DefaultMaterialEmissiveColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
   DefaultMaterialShininess = 0.2 deprecated 'use TMaterialInfo.DefaultShininess';
   DefaultMaterialTransparency = 0.0 deprecated 'use TMaterialInfo.DefaultTransparency';
   DefaultMaterialMirror = 0.0 deprecated 'use TMaterialInfo.DefaultMirror';
@@ -324,17 +330,17 @@ type
   TLightInstance = object
     Node: TAbstractLightNode;
 
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
     TransformScale: Single;
 
     { Light location, already transformed by the @link(Transform) matrix.
       For TAbstractPositionalLightNode lights. }
-    Location: TVector3Single;
+    Location: TVector3;
 
     { Light direction, already normalized and
       transformed by the @link(Transform) matrix.
       For spot and directional lights. }
-    Direction: TVector3Single;
+    Direction: TVector3;
 
     { Light radius, already transformed by the @link(Transform) matrix.
       For lights with radius (positional lights in VRML >= 2.0,
@@ -358,7 +364,7 @@ type
     { Position expressed in homogeneous coordinates.
       For positional lights, the last component is always 1.
       For directional lights, the last component is always 0. }
-    function Position: TVector4Single;
+    function Position: TVector4;
 
     { Light contribution to the specified vertex color.
       This can be used by software renderers (ray-tracers etc.)
@@ -372,10 +378,10 @@ type
       to multiply / accumulate values outside of the (0, 1) range
       during calculations. OpenGL also clamps only at the end. }
     function Contribution(
-      const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
+      const Point: TVector3; const PointPlaneNormal: TVector3;
       State: TX3DGraphTraverseState;
-      const CamPosition: TVector3Single;
-      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+      const CamPosition: TVector3;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3;
 
     { Light contribution, without knowing the camera or full material.
       We have a 3D vertex, we know it lies on a plane with given normal,
@@ -385,8 +391,8 @@ type
 
       The specular lighting part must be simply ignored in this case.  }
     function ContributionCameraIndependent(
-      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
-      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3;
   end;
   PLightInstance = ^TLightInstance;
 
@@ -405,7 +411,7 @@ type
   { Clipping plane, along with a transformation. }
   TClipPlane = record
     Node: TClipPlaneNode;
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
   end;
   PClipPlane = ^TClipPlane;
 
@@ -448,7 +454,7 @@ type
     procedure AddLight(const Light: TLightInstance);
   public
     { Current transformation. }
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
 
     { Inverted @link(Transform) matrix. This matrix is crucial for some
       special effects (for example, it's needed for calculating in tangent space
@@ -467,7 +473,7 @@ type
       with zero factor, since one resulting point may correpond to infinitely many
       source points (i.e., it's natural that such scaling function cannot be
       reversed). }
-    InvertedTransform: TMatrix4Single;
+    InvertedTransform: TMatrix4;
 
     { A uniform scale of the matrix @link(Transform). If the matrix
       causes non-uniform scaling, this value represents an average scale.
@@ -488,7 +494,7 @@ type
   public
     { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
       texture transformations don't accumulate like modelview transformations. }
-    TextureTransform: TMatrix4Single;
+    TextureTransform: TMatrix4;
 
     ShapeNode: TAbstractShapeNode;
 
@@ -589,7 +595,7 @@ type
     PointingDeviceSensors: TPointingDeviceSensorList;
 
     { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransform, HumanoidInvertedTransform: TMatrix4Single;
+    HumanoidTransform, HumanoidInvertedTransform: TMatrix4;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
 
@@ -2238,10 +2244,11 @@ uses
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 {$define read_implementation}
 
@@ -2258,7 +2265,7 @@ resourcestring
   function TGeometryNotImplemented.LocalBoundingBox(State: TX3DGraphTraverseState;
     ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
   begin
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
   end;
 
   function TGeometryNotImplemented.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -2730,24 +2737,24 @@ end;
 { TLightInstance ------------------------------------------------------------- }
 
 function TLightInstance.Contribution(
-  const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
+  const Point: TVector3; const PointPlaneNormal: TVector3;
   State: TX3DGraphTraverseState;
-  const CamPosition: TVector3Single;
-  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+  const CamPosition: TVector3;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3;
 {$I x3dnodes_lightcontribution.inc}
 
 function TLightInstance.ContributionCameraIndependent(
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
-  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3;
 {$define CAMERA_INDEP}
 {$I x3dnodes_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
-function TLightInstance.Position: TVector4Single;
+function TLightInstance.Position: TVector4;
 begin
   if Node is TAbstractPositionalLightNode then
-    Result := Vector4Single(Location, 1) else
-    Result := Vector4Single(-Direction, 0);
+    Result := Vector4(Location, 1) else
+    Result := Vector4(-Direction, 0);
 end;
 
 { TLightInstancesList ----------------------------------------------------- }
@@ -2860,9 +2867,9 @@ constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
 
-  Transform := IdentityMatrix4Single;
+  Transform := TMatrix4.Identity;
   TransformScale := 1.0;
-  InvertedTransform := IdentityMatrix4Single;
+  InvertedTransform := TMatrix4.Identity;
 
   { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
     But set it also here, just in case we have Joint without surrounding
@@ -2870,10 +2877,10 @@ begin
     THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
     testcase is
     view3dscene ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
-  HumanoidTransform := IdentityMatrix4Single;
-  HumanoidInvertedTransform := IdentityMatrix4Single;
+  HumanoidTransform := TMatrix4.Identity;
+  HumanoidInvertedTransform := TMatrix4.Identity;
 
-  TextureTransform := IdentityMatrix4Single;
+  TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
 end;
 
@@ -2889,14 +2896,14 @@ end;
 
 procedure TX3DGraphTraverseState.Clear;
 begin
-  Transform := IdentityMatrix4Single;
+  Transform := TMatrix4.Identity;
   TransformScale := 1.0;
-  InvertedTransform := IdentityMatrix4Single;
+  InvertedTransform := TMatrix4.Identity;
 
-  HumanoidTransform := IdentityMatrix4Single;
-  HumanoidInvertedTransform := IdentityMatrix4Single;
+  HumanoidTransform := TMatrix4.Identity;
+  HumanoidInvertedTransform := TMatrix4.Identity;
 
-  TextureTransform := IdentityMatrix4Single;
+  TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
   ShapeNode := nil;
   InsideInline := 0;

@@ -79,9 +79,14 @@ type
     { Pointer to ith item. }
     function Ptr(I: Integer): PT;
 
-    procedure Assign(const Source: TStructList<T>);
+    procedure Assign(const Source: TStructList<T>); overload;
+    procedure Assign(const A: array of T); overload;
 
     function ItemSize: SizeInt;
+
+    procedure AddArray(const A: array of T); deprecated 'use AddRange';
+    procedure AddList(const Source: TStructList<T>); deprecated 'use AddRange';
+    procedure AssignArray(const A: array of T); deprecated 'use Assign';
   end;
 
 {$endif}
@@ -117,9 +122,30 @@ begin
   AddRange(Source);
 end;
 
+procedure TStructList<T>.Assign(const A: array of T);
+begin
+  Clear;
+  AddRange(A);
+end;
+
 function TStructList<T>.ItemSize: SizeInt;
 begin
   Result := SizeOf(T);
+end;
+
+procedure TStructList<T>.AddArray(const A: array of T);
+begin
+  AddRange(A);
+end;
+
+procedure TStructList<T>.AddList(const Source: TStructList<T>);
+begin
+  AddRange(Source);
+end;
+
+procedure TStructList<T>.AssignArray(const A: array of T);
+begin
+  Assign(A);
 end;
 
 {$endif read_implementation}

@@ -40,10 +40,10 @@ type
     see [http://castle-engine.sourceforge.net/vrml_engine_doc/output/xsl/html/chapter.shadows.html] }
   TGLShadowVolumeRenderer = class(TBaseShadowVolumeRenderer)
   private
-    FrustumAndLightPlanes: array [0..5] of TVector4Single;
+    FrustumAndLightPlanes: array [0..5] of TVector4;
     FrustumAndLightPlanesCount: Cardinal;
     FFrustum: TFrustum;
-    FrustumNearPoints: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} TFrustumPointsDouble {$else} TFrustumPointsSingle {$endif};
+    FrustumNearPoints: TFrustumPoints;
 
     FWrapAvailable: boolean;
     FStencilOpIncrWrap, FStencilOpDecrWrap: TGLenum;
@@ -67,8 +67,7 @@ type
     FZFail: boolean;
     FZFailAndLightCap: boolean;
 
-    FLightPosition: TVector4Single;
-    FLightPositionDouble: TVector4Double;
+    FLightPosition: TVector4;
 
     StencilConfigurationKnown: boolean;
     StencilConfigurationKnownKind: TStencilSetupKind;
@@ -106,11 +105,10 @@ type
       It also resets CountCasters etc. counters for debug purposes. }
     procedure InitFrustumAndLight(
       const Frustum: TFrustum;
-      const ALightPosition: TVector4Single);
+      const ALightPosition: TVector4);
 
     { Light casting shadows position, initialized by InitFrustumAndLight. }
-    property LightPosition: TVector4Single read FLightPosition;
-    property LightPositionDouble: TVector4Double read FLightPositionDouble;
+    property LightPosition: TVector4 read FLightPosition;
 
     { Call this when the bounding box of shadow caster is known.
 
@@ -294,7 +292,7 @@ end;
 
 procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
   const Frustum: TFrustum;
-  const ALightPosition: TVector4Single);
+  const ALightPosition: TVector4);
 
   procedure CalculateFrustumAndLightPlanes;
   var
@@ -337,11 +335,10 @@ procedure TGLShadowVolumeRenderer.InitFrustumAndLight(
   end;
 
 var
-  ALightPosition3: TVector3Single absolute ALightPosition;
+  ALightPosition3: TVector3 absolute ALightPosition;
 begin
   FFrustum := Frustum;
   FLightPosition := ALightPosition;
-  FLightPositionDouble := Vector4Double(ALightPosition);
 
   Frustum.CalculatePoints(FrustumNearPoints);
 
@@ -395,7 +392,7 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         inside the Plane (i.e. where the plane equation is <= 0).
         Also returns @true if Plane is invalid, since in this case result
         of CalculateZFail should depend on other planes. }
-      function InsidePlane(const Plane: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} TVector4Double {$else} TVector4Single {$endif}): boolean;
+      function InsidePlane(const Plane: TVector4): boolean;
 
         function CalculatePoint(const X, Y, Z: Integer): Single;
         begin
@@ -419,10 +416,10 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
       end;
 
     var
-      LightPosition3: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} PVector3Double {$else} PVector3Single {$endif};
-      NearPlane: {$ifdef CASTLE_HAS_DOUBLE_PRECISION} TVector4Double {$else} TVector4Single {$endif};
+      LightPosition3: PVector3;
+      NearPlane: TVector4;
     begin
-      LightPosition3 := @FLightPositionDouble;
+      LightPosition3 := @FLightPosition;
       if LightPosition[3] <> 0 then
       begin
         { Idea: calculate a pyramid between light position and near plane rectangle
@@ -462,10 +459,10 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
           flip NearPlane. Also, calculations of other side planes should
           generate flipped planes. }
 
-        if (NearPlane[0] * LightPositionDouble[0] +
-            NearPlane[1] * LightPositionDouble[1] +
-            NearPlane[2] * LightPositionDouble[2] +
-            NearPlane[3] * LightPositionDouble[3]) > 0 then
+        if (NearPlane.Data[0] * LightPosition.Data[0] +
+            NearPlane.Data[1] * LightPosition.Data[1] +
+            NearPlane.Data[2] * LightPosition.Data[2] +
+            NearPlane.Data[3] * LightPosition.Data[3]) > 0 then
         begin
           NearPlane := -NearPlane;
           Result :=
@@ -501,9 +498,9 @@ procedure TGLShadowVolumeRenderer.InitCaster(const CasterBox: TBox3D);
         NearPlane := TrianglePlane(
           FrustumNearPoints[2].XYZ, FrustumNearPoints[1].XYZ, FrustumNearPoints[0].XYZ);
 
-        if (NearPlane[0] * LightPositionDouble[0] +
-            NearPlane[1] * LightPositionDouble[1] +
-            NearPlane[2] * LightPositionDouble[2]) > 0 then
+        if (NearPlane.Data[0] * LightPosition.Data[0] +
+            NearPlane.Data[1] * LightPosition.Data[1] +
+            NearPlane.Data[2] * LightPosition.Data[2]) > 0 then
         begin
           Result :=
             InsidePlane(TrianglePlane(FrustumNearPoints[0].XYZ, FrustumNearPoints[1].XYZ, (FrustumNearPoints[0].XYZ + LightPosition3^))) and

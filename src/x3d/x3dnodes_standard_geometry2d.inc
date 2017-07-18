@@ -359,7 +359,7 @@ begin
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
 
-      C.FdPoint.Items.L[I] := Vector3Single(
+      C.FdPoint.Items.L[I] := Vector3(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value, 0);
     end;
@@ -467,7 +467,7 @@ procedure TRectangle2DNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(2, 2));
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
@@ -491,7 +491,7 @@ begin
 end;
 
 function Rectangle2DProxy(Original: TAbstractGeometryNode;
-  const Size: TVector2Single; const Solid: boolean): TAbstractGeometryNode;
+  const Size: TVector2; const Solid: boolean): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoord: TTextureCoordinateNode;
@@ -509,17 +509,17 @@ begin
 
     { calculate Coord, TexCoord contents }
 
-    Coord.FdPoint.Items.L[0] := Vector3Single(-Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[0] := Vector2Single(0, 0);
+    Coord.FdPoint.Items.L[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[0] := Vector2(0, 0);
 
-    Coord.FdPoint.Items.L[1] := Vector3Single( Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[1] := Vector2Single(1, 0);
+    Coord.FdPoint.Items.L[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[1] := Vector2(1, 0);
 
-    Coord.FdPoint.Items.L[2] := Vector3Single( Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[2] := Vector2Single(1, 1);
+    Coord.FdPoint.Items.L[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[2] := Vector2(1, 1);
 
-    Coord.FdPoint.Items.L[3] := Vector3Single(-Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[3] := Vector2Single(0, 1);
+    Coord.FdPoint.Items.L[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.L[3] := Vector2(0, 1);
 
     QuadSet.FdSolid.Value := Solid;
   except FreeAndNil(Result); raise end;

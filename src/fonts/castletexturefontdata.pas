@@ -508,7 +508,7 @@ var
   CharLen: Integer;
   G: TTextureFontData.TGlyph;
 begin
-  Result := ZeroVector2Integer;
+  Result := TVector2Integer.Zero;
 
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -519,8 +519,8 @@ begin
     G := Glyph(C);
     if G <> nil then
     begin
-      Result[0] += G.AdvanceX;
-      Result[1] += G.AdvanceY;
+      Result.Data[0] += G.AdvanceX;
+      Result.Data[1] += G.AdvanceY;
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);

@@ -29,8 +29,8 @@ type
   { Calculate primary rays for given camera settings and screen size. }
   TRaysWindow = class
   private
-    FCamPosition, FCamDirection, FCamUp: TVector3Single;
-    CamSide: TVector3Single;
+    FCamPosition, FCamDirection, FCamUp: TVector3;
+    CamSide: TVector3;
   public
     { Camera vectors. Initialized in the constructor.
       Must be given already normalized.
@@ -38,21 +38,21 @@ type
       orthogonal to CamDirection.
 
       @groupBegin }
-    property CamPosition: TVector3Single read FCamPosition;
-    property CamDirection: TVector3Single read FCamDirection;
-    property CamUp: TVector3Single read FCamUp;
+    property CamPosition: TVector3 read FCamPosition;
+    property CamDirection: TVector3 read FCamDirection;
+    property CamUp: TVector3 read FCamUp;
     { @groupEnd }
 
     { Constructor. Calculates some values based on camera settings,
       this way many calls to PrimaryRay for the same camera settings
       are fast (useful for ray-tracers). }
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single);
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3);
 
     { Create appropriate TRaysWindow instance.
       Constructs non-abstract descendant (TPerspectiveRaysWindow or
       TOrthographicRaysWindow, depending on Projection.ProjectionType). }
     class function CreateDescendant(
-      const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+      const ACamPosition, ACamDirection, ACamUp: TVector3;
       const Projection: TProjection): TRaysWindow;
 
     { Calculate position and direction of the primary ray cast from CamPosition,
@@ -72,44 +72,44 @@ type
       direction is normalized, various distances from ray collisions are "real"). }
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out RayOrigin, RayDirection: TVector3Single); virtual; abstract;
+      out RayOrigin, RayDirection: TVector3); virtual; abstract;
   end;
 
   TPerspectiveRaysWindow = class(TRaysWindow)
   private
     WindowWidth, WindowHeight: Single;
-    PerspectiveAngles: TVector2Single;
+    PerspectiveAngles: TVector2;
   public
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-      const APerspectiveAngles: TVector2Single);
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3;
+      const APerspectiveAngles: TVector2);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out RayOrigin, RayDirection: TVector3Single); override;
+      out RayOrigin, RayDirection: TVector3); override;
   end;
 
   TFrustumRaysWindow = class(TRaysWindow)
   private
     Dimensions: TFloatRectangle;
   public
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3;
       const ADimensions: TFloatRectangle);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out RayOrigin, RayDirection: TVector3Single); override;
+      out RayOrigin, RayDirection: TVector3); override;
   end;
 
   TOrthographicRaysWindow = class(TRaysWindow)
   private
     Dimensions: TFloatRectangle;
   public
-    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+    constructor Create(const ACamPosition, ACamDirection, ACamUp: TVector3;
       const ADimensions: TFloatRectangle);
 
     procedure PrimaryRay(const x, y: Single;
       const ScreenWidth, ScreenHeight: Integer;
-      out RayOrigin, RayDirection: TVector3Single); override;
+      out RayOrigin, RayDirection: TVector3); override;
   end;
 
 { Calculate position and direction of the primary ray cast from CamPosition,
@@ -121,9 +121,9 @@ type
   it may be more optimal to create TRaysWindow instance first
   and call it's TRaysWindow.PrimaryRay method. }
 procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
+  const CamPosition, CamDirection, CamUp: TVector3;
   const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 
 implementation
 
@@ -132,7 +132,7 @@ uses Math, CastleUtils;
 { TRaysWindow ------------------------------------------------------------ }
 
 constructor TRaysWindow.Create(
-  const ACamPosition, ACamDirection, ACamUp: TVector3Single);
+  const ACamPosition, ACamDirection, ACamUp: TVector3);
 begin
   inherited Create;
 
@@ -144,7 +144,7 @@ begin
   MakeVectorsOrthoOnTheirPlane(FCamUp, FCamDirection);
 
   { CamSide will be normalized, if CamDirection and CamUp are normalized too. }
-  CamSide := CamDirection >< CamUp;
+  CamSide := TVector3.CrossProduct(CamDirection, CamUp);
 
   Assert(FloatsEqual(VectorLenSqr(CamDirection), 1.0, 0.01));
   Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.01));
@@ -152,7 +152,7 @@ begin
 end;
 
 class function TRaysWindow.CreateDescendant(
-  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const ACamPosition, ACamDirection, ACamUp: TVector3;
   const Projection: TProjection): TRaysWindow;
 begin
   case Projection.ProjectionType of
@@ -172,8 +172,8 @@ end;
 { TPerspectiveRaysWindow ----------------------------------------------------- }
 
 constructor TPerspectiveRaysWindow.Create(
-  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
-  const APerspectiveAngles: TVector2Single);
+  const ACamPosition, ACamDirection, ACamUp: TVector3;
+  const APerspectiveAngles: TVector2);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
 
@@ -191,7 +191,7 @@ end;
 
 procedure TPerspectiveRaysWindow.PrimaryRay(const x, y: Single;
   const ScreenWidth, ScreenHeight: Integer;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 begin
   RayOrigin := CamPosition;
 
@@ -206,13 +206,13 @@ begin
   { Transform ray to take camera settings into acount. }
   RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
 
-  NormalizeVar(RayDirection);
+  RayDirection.NormalizeMe;
 end;
 
 { TFrustumRaysWindow ---------------------------------------------------- }
 
 constructor TFrustumRaysWindow.Create(
-  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const ACamPosition, ACamDirection, ACamUp: TVector3;
   const ADimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
@@ -221,7 +221,7 @@ end;
 
 procedure TFrustumRaysWindow.PrimaryRay(const X, Y: Single;
   const ScreenWidth, ScreenHeight: Integer;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 begin
   { this is quite similar to TPerspectiveRaysWindow }
 
@@ -238,13 +238,13 @@ begin
   { Transform ray to take camera settings into acount. }
   RayDirection := TransformToCoords(RayDirection, CamSide, CamUp, -CamDirection);
 
-  NormalizeVar(RayDirection);
+  RayDirection.NormalizeMe;
 end;
 
 { TOrthographicRaysWindow ---------------------------------------------------- }
 
 constructor TOrthographicRaysWindow.Create(
-  const ACamPosition, ACamDirection, ACamUp: TVector3Single;
+  const ACamPosition, ACamDirection, ACamUp: TVector3;
   const ADimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
@@ -253,7 +253,7 @@ end;
 
 procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;
   const ScreenWidth, ScreenHeight: Integer;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 begin
   RayOrigin := CamPosition;
   RayOrigin += CamSide * MapRange(X + 0.5, 0, ScreenWidth,
@@ -268,9 +268,9 @@ end;
 { global functions ----------------------------------------------------------- }
 
 procedure PrimaryRay(const x, y: Single; const ScreenWidth, ScreenHeight: Integer;
-  const CamPosition, CamDirection, CamUp: TVector3Single;
+  const CamPosition, CamDirection, CamUp: TVector3;
   const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 var
   RaysWindow: TRaysWindow;
 begin

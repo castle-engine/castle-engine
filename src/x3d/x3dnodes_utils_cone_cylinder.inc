@@ -24,7 +24,7 @@
 
   Assumes QuadricSlices >= 1. }
 procedure GenerateCircle(const QuadricSlices: Cardinal;
-  const Radius, Height: Single; Points: PVector3Single);
+  const Radius, Height: Single; Points: PVector3);
 var
   AngleRad: Single;
   AngleSin, AngleCos: Float;
@@ -32,7 +32,7 @@ var
 begin
   if Radius <> 0 then
   begin
-    Points^ := Vector3Single(0, Height, -Radius);
+    Points^ := Vector3(0, Height, -Radius);
     Inc(Points);
 
     for I := 1 to QuadricSlices - 1 do
@@ -40,13 +40,13 @@ begin
       AngleRad := (I / QuadricSlices) * 2 * Pi;
       SinCos(AngleRad, AngleSin, AngleCos);
 
-      Points^ := Vector3Single(-AngleSin * Radius, Height, -AngleCos * Radius);
+      Points^ := Vector3(-AngleSin * Radius, Height, -AngleCos * Radius);
       Inc(Points);
     end;
   end else
   begin
-    { Actually, above code would also make points exactly equal.
-      But below is still faster. }
+    { The code above would work for this case too,
+      but this is an optimized version. }
     for I := 0 to QuadricSlices - 1 do
     begin
       Points^[0] := 0;
@@ -63,15 +63,15 @@ end;
 
   @param(InvertT Allows you to invert texture, suitable for top cap.) }
 procedure GenerateTexCoordCircle(const QuadricSlices: Cardinal;
-  Points: PVector2Single; const InvertT: boolean);
+  Points: PVector2; const InvertT: boolean);
 var
   AngleRad: Single;
   AngleSin, AngleCos: Float;
   I: integer;
 begin
   if InvertT then
-    Points^ := Vector2Single(0.5, 1) else
-    Points^ := Vector2Single(0.5, 0);
+    Points^ := Vector2(0.5, 1) else
+    Points^ := Vector2(0.5, 0);
   Inc(Points);
 
   for I := 1 to QuadricSlices - 1 do
@@ -82,7 +82,7 @@ begin
     AngleSin := -AngleSin;
     if not InvertT then AngleCos := -AngleCos;
 
-    Points^ := Vector2Single((AngleSin + 1) / 2, (AngleCos + 1) / 2 );
+    Points^ := Vector2((AngleSin + 1) / 2, (AngleCos + 1) / 2 );
     Inc(Points);
   end;
 end;
@@ -112,8 +112,8 @@ end;
     May be = 0, then Top does not matter (we'll never make
     a top cap in this case.)) }
 procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
-  Coord: TVector3SingleList; Normal: TVector3SingleList;
-  TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
+  Coord: TVector3List; Normal: TVector3List;
+  TexCoord: TVector2List; MaterialIndex: TLongIntList;
   OverTriangulate: boolean; const BottomRadius, TopRadius, Height: Single;
   const Bottom, Side, Top: boolean;
   const QuadricSlices, QuadricStacks: Cardinal);
@@ -197,7 +197,7 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
   { For given angle, calculate side face normal vector.
     Where Angle is in [0...CalculateQuadricSlices] range,
     we will automatically adjust it for correct angle in radians. }
-  function SideNormal(const Angle: Single): TVector3Single;
+  function SideNormal(const Angle: Single): TVector3;
   var
     AngleSin, AngleCos: Float;
   begin
@@ -218,7 +218,7 @@ procedure CylinderCone_Proxy(CoordIndex: TLongIntList;
 
     { When Result[1] is zero (straight cylinder), it's already normalized }
     if Result[1] <> 0 then
-      NormalizeVar(Result);
+      Result.NormalizeMe;
   end;
 
 var
@@ -244,7 +244,7 @@ begin
     GenerateCircle(QuadricSlices, BottomRadius, -Height / 2, Coord.Ptr(BottomCircleIndex));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
-      Normal.L[BottomCircleIndex + I] := Vector3Single(0, -1, 0);
+      Normal.L[BottomCircleIndex + I] := Vector3(0, -1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
@@ -252,10 +252,10 @@ begin
     end;
 
     BottomMiddleIndex := Coord.Count;
-    Coord.Add^ := Vector3Single(0, -Height / 2, 0);
-    Normal.Add^ := Vector3Single(0, -1, 0);
+    Coord.Add^ := Vector3(0, -Height / 2, 0);
+    Normal.Add^ := Vector3(0, -1, 0);
     if TexCoord <> nil then
-      TexCoord.Add^ := Vector2Single(0.5, 0.5);
+      TexCoord.Add^ := Vector2(0.5, 0.5);
 
     BottomFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
@@ -287,7 +287,7 @@ begin
     GenerateCircle(QuadricSlices, TopRadius, Height / 2, Coord.Ptr(TopCircleIndex));
     Normal.Count := Normal.Count + QuadricSlices;
     for I := 0 to QuadricSlices - 1 do
-      Normal.L[TopCircleIndex + I] := Vector3Single(0, 1, 0);
+      Normal.L[TopCircleIndex + I] := Vector3(0, 1, 0);
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices;
@@ -295,10 +295,10 @@ begin
     end;
 
     TopMiddleIndex := Coord.Count;
-    Coord.Add^ := Vector3Single(0, Height / 2, 0);
-    Normal.Add^ := Vector3Single(0, 1, 0);
+    Coord.Add^ := Vector3(0, Height / 2, 0);
+    Normal.Add^ := Vector3(0, 1, 0);
     if TexCoord <> nil then
-      TexCoord.Add^ := Vector2Single(0.5, 0.5);
+      TexCoord.Add^ := Vector2(0.5, 0.5);
 
     TopFaceIndex := CoordIndex.Count;
     CoordIndex.Count := CoordIndex.Count + QuadricSlices * 4;
@@ -343,7 +343,7 @@ begin
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.L[SideBottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 0);
+        TexCoord.L[SideBottomCircleIndex + I] := Vector2(I / QuadricSlices, 0);
     end;
 
     { Add additional "stacks" to the geometry. }
@@ -365,7 +365,7 @@ begin
         begin
           TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
           for I := 0 to QuadricSlices do
-            TexCoord.L[MiddleCircleIndex + I] := Vector2Single(I / QuadricSlices, Stack);
+            TexCoord.L[MiddleCircleIndex + I] := Vector2(I / QuadricSlices, Stack);
         end;
 
         MiddleFaceIndex := CoordIndex.Count;
@@ -402,7 +402,7 @@ begin
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices do
-        TexCoord.L[SideTopCircleIndex + I] := Vector2Single(I / QuadricSlices, 1);
+        TexCoord.L[SideTopCircleIndex + I] := Vector2(I / QuadricSlices, 1);
     end;
 
     SideFaceIndex := CoordIndex.Count;
@@ -448,7 +448,7 @@ var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
   TexCoordNode: TTextureCoordinateNode;
-  TexCoords: TVector2SingleList;
+  TexCoords: TVector2List;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
   IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
@@ -491,7 +491,7 @@ var
   CoordNode: TCoordinateNode;
   NormalNode: TNormalNode;
   TexCoordNode: TTextureCoordinateNode;
-  TexCoords: TVector2SingleList;
+  TexCoords: TVector2List;
   IFS: TIndexedFaceSetNode absolute Result;
 begin
   IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);

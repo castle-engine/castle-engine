@@ -16,7 +16,7 @@
 { @abstract(Calculating convex hull.)
 
   TODO: This is an old and abandoned unit.
-  The ConvexHull utility should just be moved to TVector3SingleList method?
+  The ConvexHull utility should just be moved to TVector3List method?
 }
 
 unit CastleConvexHull;
@@ -34,11 +34,11 @@ uses CastleVectors, CastleUtils, Math;
   you want to iterate over these points like (for each i) Points[Result[i]]).
 
   Points.Count must be >= 1. }
-function ConvexHull(Points: TVector3SingleList): TIntegerList;
+function ConvexHull(Points: TVector3List): TIntegerList;
 
 implementation
 
-function ConvexHull(Points: TVector3SingleList): TIntegerList;
+function ConvexHull(Points: TVector3List): TIntegerList;
 
 { this is the Jarvis algorithm, based on description in Cormen's
   "Introduction to alg." }

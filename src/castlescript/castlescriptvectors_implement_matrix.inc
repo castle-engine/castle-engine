@@ -20,8 +20,8 @@ begin
     the first arg as TCasScriptMatrixXx. }
   TCasScriptMatrixXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TCasScriptMatrixXx(AResult).Value := MatrixAdd(
-      TCasScriptMatrixXx(AResult).Value, TCasScriptMatrixXx(Arguments[I]).Value);
+    TCasScriptMatrixXx(AResult).Value :=
+      TCasScriptMatrixXx(AResult).Value + TCasScriptMatrixXx(Arguments[I]).Value;
 end;
 
 class procedure TCasScriptMatrixXx.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -31,14 +31,14 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
   TCasScriptMatrixXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TCasScriptMatrixXx(AResult).Value := MatrixSubtract(
-      TCasScriptMatrixXx(AResult).Value, TCasScriptMatrixXx(Arguments[I]).Value);
+    TCasScriptMatrixXx(AResult).Value :=
+      TCasScriptMatrixXx(AResult).Value - TCasScriptMatrixXx(Arguments[I]).Value;
 end;
 
 class procedure TCasScriptMatrixXx.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
-  TCasScriptMatrixXx(AResult).Value := MatrixNegate(TCasScriptMatrixXx(Arguments[0]).Value);
+  TCasScriptMatrixXx(AResult).Value := -TCasScriptMatrixXx(Arguments[0]).Value;
 end;
 
 class procedure TCasScriptMatrixXx.HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -50,44 +50,45 @@ begin
      (Arguments[1] is TCasScriptMatrixXx) then
   begin
     CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
-    TCasScriptMatrixXx(AResult).Value := MatrixMultScalar(
-      TCasScriptMatrixXx(Arguments[1]).Value,
-      TCasScriptFloat(Arguments[0]).Value);
+    TCasScriptMatrixXx(AResult).Value :=
+      TCasScriptMatrixXx(Arguments[1]).Value *
+      TCasScriptFloat(Arguments[0]).Value;
   end else
   if (Length(Arguments) = 2) and
      (Arguments[1] is TCasScriptFloat) and
      (Arguments[0] is TCasScriptMatrixXx) then
   begin
     CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
-    TCasScriptMatrixXx(AResult).Value := MatrixMultScalar(
-      TCasScriptMatrixXx(Arguments[0]).Value,
-      TCasScriptFloat(Arguments[1]).Value);
+    TCasScriptMatrixXx(AResult).Value :=
+      TCasScriptMatrixXx(Arguments[0]).Value *
+      TCasScriptFloat(Arguments[1]).Value;
   end else
   if (Length(Arguments) = 2) and
      (Arguments[0] is TCasScriptMatrixXx) and
      (Arguments[1] is TCasScriptVecXx) then
   begin
     CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
-    TCasScriptVecXx(AResult).Value := MatrixMultVector(
-      TCasScriptMatrixXx(Arguments[0]).Value,
-      TCasScriptVecXx(Arguments[1]).Value);
+    TCasScriptVecXx(AResult).Value :=
+      TCasScriptMatrixXx(Arguments[0]).Value *
+      TCasScriptVecXx(Arguments[1]).Value;
   end else
   begin
     { So this is matrix * matrix... operation }
     CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
     TCasScriptMatrixXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value;
     for I := 1 to Length(Arguments) - 1 do
-      TCasScriptMatrixXx(AResult).Value := MatrixMult(
-        TCasScriptMatrixXx(AResult).Value, TCasScriptMatrixXx(Arguments[I]).Value);
+      TCasScriptMatrixXx(AResult).Value :=
+        TCasScriptMatrixXx(AResult).Value *
+        TCasScriptMatrixXx(Arguments[I]).Value;
   end;
 end;
 
 class procedure TCasScriptMatrixXx.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
-  TCasScriptMatrixXx(AResult).Value := MatrixMultScalar(
-    TCasScriptMatrixXx(Arguments[0]).Value,
-    1/TCasScriptFloat(Arguments[1]).Value);
+  TCasScriptMatrixXx(AResult).Value :=
+    TCasScriptMatrixXx(Arguments[0]).Value *
+    (1/TCasScriptFloat(Arguments[1]).Value);
 end;
 
 class procedure TCasScriptMatrixXx.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -103,7 +104,7 @@ class procedure TCasScriptMatrixXx.HandleEqual(AFunction: TCasScriptFunction; co
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
-    MatricesPerfectlyEqual(
+    TMatrixXxx.PerfectlyEquals(
       TCasScriptMatrixXx(Arguments[0]).Value,
       TCasScriptMatrixXx(Arguments[1]).Value);
 end;
@@ -112,7 +113,7 @@ class procedure TCasScriptMatrixXx.HandleNotEqual(AFunction: TCasScriptFunction;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
-    not MatricesPerfectlyEqual(
+    not TMatrixXxx.PerfectlyEquals(
       TCasScriptMatrixXx(Arguments[0]).Value,
       TCasScriptMatrixXx(Arguments[1]).Value);
 end;
@@ -123,13 +124,14 @@ var
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptMatrixXx);
   for I := 0 to MatrixGetCount - 1 do
-    TCasScriptMatrixXx(AResult).FValue[I] := TCasScriptVecXx(Arguments[I]).Value;
+    TCasScriptMatrixXx(AResult).FValue.Data[I] := TCasScriptVecXx(Arguments[I]).Value.Data;
   TCasScriptMatrixXx(AResult).ValueAssigned := true;
 end;
 
 class procedure TCasScriptMatrixXx.HandleMatrixGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
+  V: TVectorXxx;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
 
@@ -138,7 +140,8 @@ begin
     raise ECasScriptError.CreateFmt('Invalid index %d for matrix_get on %d-column matrix',
       [Index, MatrixGetCount]);
 
-  TCasScriptVecXx(AResult).Value := TCasScriptMatrixXx(Arguments[0]).Value[Index];
+  V.Data := TCasScriptMatrixXx(Arguments[0]).Value.Data[Index];
+  TCasScriptVecXx(AResult).Value := V;
 end;
 
 class procedure TCasScriptMatrixXx.HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -155,7 +158,7 @@ begin
     raise ECasScriptError.CreateFmt('Invalid index %d for matrix_set on %d-column matrix',
       [Index, MatrixGetCount]);
 
-  TCasScriptMatrixXx(Arguments[0]).FValue[Index] := TCasScriptVecXx(Arguments[2]).Value;
+  TCasScriptMatrixXx(Arguments[0]).FValue.Data[Index] := TCasScriptVecXx(Arguments[2]).Value.Data;
   TCasScriptMatrixXx(Arguments[0]).ValueAssigned := true;
 
   AResult := Arguments[0];

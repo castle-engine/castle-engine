@@ -148,27 +148,27 @@ type
       ScenesPerTime: Cardinal;
       const EqualityEpsilon: Single);
 
-    function HeightCollision(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveCollision(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+    function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -549,7 +549,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); override;
+      const ParentTransform: TMatrix4); override;
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -1206,7 +1206,7 @@ begin
       ValidateBoundingBox;
     Result := FBoundingBox;
   end else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 procedure TCastlePrecalculatedAnimation.BeforeNodesFree;
@@ -1403,7 +1403,7 @@ end;
 procedure TCastlePrecalculatedAnimation.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4Single);
+  const ParentTransform: TMatrix4);
 begin
   if Loaded and GetExists and CastShadowVolumes then
     CurrentScene.RenderShadowVolume(ShadowVolumeRenderer,
@@ -1417,7 +1417,7 @@ end;
 {$define LastAnimScene := TAnimationScene(LastScene)}
 
 function TCastlePrecalculatedAnimation.HeightCollision(
-  const Position, GravityUp: TVector3Single;
+  const Position, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 
@@ -1452,7 +1452,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1478,7 +1478,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.MoveCollision(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1491,7 +1491,7 @@ begin
            IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) ));
 end;
 
-function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -1504,7 +1504,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.SphereCollision(
-  const Pos: TVector3Single; const Radius: Single;
+  const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Loaded and GetCollides and
@@ -1526,7 +1526,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.RayCollision(
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   NewResult: TRayCollision;

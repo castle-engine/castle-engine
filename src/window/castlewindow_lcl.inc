@@ -578,7 +578,7 @@ begin
   Result := false;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
   if not Closed then
     Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(
@@ -651,7 +651,7 @@ var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
-    DoMouseDown(Vector2Single(X, Height - 1 - Y), MyButton, 0);
+    DoMouseDown(Vector2(X, Height - 1 - Y), MyButton, 0);
 end;
 
 procedure TCastleWindowCustom.OpenGLControlMouseUp(Sender: TObject;
@@ -660,7 +660,7 @@ var
   MyButton: CastleKeysMouse.TMouseButton;
 begin
   if MouseButtonLCLToCastle(Button, MyButton) then
-    DoMouseUp(Vector2Single(X, Height - 1 - Y), MyButton, 0);
+    DoMouseUp(Vector2(X, Height - 1 - Y), MyButton, 0);
 end;
 
 { Since LCL event loop may become clogged when dragging with mouse
@@ -702,7 +702,7 @@ end;
 procedure TCastleWindowCustom.OpenGLControlMouseMove(Sender: TObject;
   Shift: TShiftState; X, Y: Integer);
 begin
-  DoMotion(InputMotion(MousePosition, Vector2Single(X, Height - 1 - Y),
+  DoMotion(InputMotion(MousePosition, Vector2(X, Height - 1 - Y),
     MousePressed, 0));
   AggressiveUpdate;
 end;
@@ -742,7 +742,7 @@ begin
   finally FreeAndNil(Dialog) end;
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
 var
   Dialog: TColorDialog;
   ColorByte: TVector3Byte;
@@ -756,7 +756,7 @@ begin
     if Result then
     begin
       RedGreenBlue(Dialog.Color, ColorByte[0], ColorByte[1], ColorByte[2]);
-      Color := Vector3Single(ColorByte);
+      Color := Vector3(ColorByte);
     end;
   finally FreeAndNil(Dialog) end;
 end;

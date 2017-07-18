@@ -104,7 +104,7 @@
     procedure GLContextClose; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
   end;
 
 {$endif read_interface}
@@ -393,7 +393,7 @@ begin
   Theme.Draw(ScreenRect, tiWindow, UIScale);
 end;
 
-function TCastleDialog.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TCastleDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true; // always capture
 end;

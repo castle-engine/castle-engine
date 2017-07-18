@@ -31,17 +31,19 @@ type
     has swapped bottom and top positions). }
   TFrustumPlane = (fpLeft, fpRight, fpBottom, fpTop, fpNear, fpFar);
 
-  TFrustumPointsSingle = packed array [0..7] of packed record
+  TFrustumPoints = packed array [0..7] of packed record
     case Integer of
-      0: (XYZ: TVector3Single; W: Single);
-      1: (XYZW: TVector4Single);
+      0: (XYZ: TVector3; W: Single);
+      1: (XYZW: TVector4);
   end;
+
+  TFrustumPointsSingle = TFrustumPoints deprecated 'use TFrustumPoints';
 
   TFrustumPointsDouble = packed array [0..7] of packed record
     case Integer of
       0: (XYZ: TVector3Double; W: Double);
       1: (XYZW: TVector4Double);
-  end;
+  end deprecated 'use Single-precision TFrustumPoints';
 
 const
   FrustumPointsQuadsIndexes: array[TFrustumPlane, 0..3]of LongWord =
@@ -86,7 +88,7 @@ type
     procedure NormalizePlanes;
   public
     { Calculate frustum, knowing the combined matrix (modelview * projection). }
-    constructor Init(const Matrix: TMatrix4Single);
+    constructor Init(const Matrix: TMatrix4);
 
     { Calculate frustum, knowing projection and modelview matrices.
       This is equivalent to 1-parameter Init
@@ -95,7 +97,7 @@ type
       and projection) (or you can calculate them using routines
       like @link(FrustumProjectionMatrix)), then pass them to this routine
       and you get your current viewing frustum. }
-    constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
+    constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4);
   public
     { Six planes defining the frustum.
       Direction vectors of these planes must point to the inside of the frustum.
@@ -104,7 +106,7 @@ type
       Note that if projection has far plane in infinity (indicated by
       ZFarInfinity) then the far plane will be invalid ---
       first three values of it's equation will be 0. }
-    Planes: array [TFrustumPlane] of TVector4Single;
+    Planes: array [TFrustumPlane] of TVector4;
 
     ZFarInfinity: boolean;
 
@@ -121,29 +123,13 @@ type
       and in fact you can just render such points without any problems
       in OpenGL.
 
-      For good precision, always use TFrustumPointsDouble.
-      Tests show that, while storing the plane equations
-      with Single precision is sufficient, calculating FrustumPoints
-      using Single precision is *not* sufficient.
-
-      (Testcase that the Double precision is needed:
-      run @code(view3dscene demo_models/vrml_2/cones.wrl).
-      Jump to viewpoint named "Frustum needs double-precision".
-      Turn "Show viewing frustum" on. When view3dscene.lpr uses Single precision
-      with CalculatePoints (use TFrustumPointsSingle, and GL_FLOAT
-      at glVertexPointer) the result is incorrect, near and far quads
-      are visibly asymetrical.)
-
       @raises(EPlanesParallel If Frustum doesn't have planes of any
         valid frustum.)
-
-      @groupBegin
     }
-    procedure CalculatePoints(out FrustumPoints: TFrustumPointsSingle); overload;
-    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+    procedure CalculatePoints(out FrustumPoints: TFrustumPoints); overload;
+
     procedure CalculatePoints(out FrustumPoints: TFrustumPointsDouble); overload;
-    {$endif CASTLE_HAS_DOUBLE_PRECISION}
-    { @groupEnd }
+      deprecated 'use the overload on TFrustumPoints (Single-precision); it may calculate parts using Double-precision internally, to be correct';
 
     { Checks for collision between frustum and sphere.
 
@@ -183,7 +169,7 @@ type
       @seealso TFrustum.Box3DCollisionPossible
     }
     function SphereCollisionPossible(
-      const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
+      const SphereCenter: TVector3; const SphereRadiusSqr: Single):
       TFrustumCollisionPossible;
 
     { Checks for collision between frustum and sphere, faster.
@@ -197,7 +183,7 @@ type
       Use this if you don't need to differentiate between
       fcSomeCollisionPossible or fcInsideFrustum cases. }
     function SphereCollisionPossibleSimple(
-      const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
+      const SphereCenter: TVector3; const SphereRadiusSqr: Single):
       boolean;
 
     { Checks for collision between frustum and box.
@@ -210,14 +196,14 @@ type
     function Box3DCollisionPossibleSimple(
       const Box: TBox3D): boolean;
 
-    function Move(const M: TVector3Single): TFrustum;
-    procedure MoveVar(const M: TVector3Single);
+    function Move(const M: TVector3): TFrustum;
+    procedure MoveVar(const M: TVector3);
 
     { Is Direction within a frustum. You can think of
       direction it as a "point infinitely away in given Direction",
       like the direction to the sun. Note that this ignores
       near/far planes of the frustum, only checking the 4 side planes. }
-    function DirectionInside(const Direction: TVector3Single): boolean;
+    function DirectionInside(const Direction: TVector3): boolean;
 
     { Transform frustum by a matrix.
 
@@ -230,7 +216,7 @@ type
         scale parameters being > 0).)
 
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
-    function Transform(const M: TMatrix4Single): TFrustum;
+    function Transform(const M: TMatrix4): TFrustum;
 
     function ToNiceStr(const Indent: string): string;
   end;
@@ -238,41 +224,41 @@ type
 
 implementation
 
-constructor TFrustum.Init(const Matrix: TMatrix4Single);
+constructor TFrustum.Init(const Matrix: TMatrix4);
 begin
   { Based on [http://www2.ravensoft.com/users/ggribb/plane%20extraction.pdf].
     Note that position of bottom and top planes in array Frustum is swapped
     in my code. }
 
-  Planes[fpLeft][0] := Matrix[0][3] + Matrix[0][0];
-  Planes[fpLeft][1] := Matrix[1][3] + Matrix[1][0];
-  Planes[fpLeft][2] := Matrix[2][3] + Matrix[2][0];
-  Planes[fpLeft][3] := Matrix[3][3] + Matrix[3][0];
+  Planes[fpLeft][0] := Matrix.Data[0, 3] + Matrix.Data[0, 0];
+  Planes[fpLeft][1] := Matrix.Data[1, 3] + Matrix.Data[1, 0];
+  Planes[fpLeft][2] := Matrix.Data[2, 3] + Matrix.Data[2, 0];
+  Planes[fpLeft][3] := Matrix.Data[3, 3] + Matrix.Data[3, 0];
 
-  Planes[fpRight][0] := Matrix[0][3] - Matrix[0][0];
-  Planes[fpRight][1] := Matrix[1][3] - Matrix[1][0];
-  Planes[fpRight][2] := Matrix[2][3] - Matrix[2][0];
-  Planes[fpRight][3] := Matrix[3][3] - Matrix[3][0];
+  Planes[fpRight][0] := Matrix.Data[0, 3] - Matrix.Data[0, 0];
+  Planes[fpRight][1] := Matrix.Data[1, 3] - Matrix.Data[1, 0];
+  Planes[fpRight][2] := Matrix.Data[2, 3] - Matrix.Data[2, 0];
+  Planes[fpRight][3] := Matrix.Data[3, 3] - Matrix.Data[3, 0];
 
-  Planes[fpBottom][0] := Matrix[0][3] + Matrix[0][1];
-  Planes[fpBottom][1] := Matrix[1][3] + Matrix[1][1];
-  Planes[fpBottom][2] := Matrix[2][3] + Matrix[2][1];
-  Planes[fpBottom][3] := Matrix[3][3] + Matrix[3][1];
+  Planes[fpBottom][0] := Matrix.Data[0, 3] + Matrix.Data[0, 1];
+  Planes[fpBottom][1] := Matrix.Data[1, 3] + Matrix.Data[1, 1];
+  Planes[fpBottom][2] := Matrix.Data[2, 3] + Matrix.Data[2, 1];
+  Planes[fpBottom][3] := Matrix.Data[3, 3] + Matrix.Data[3, 1];
 
-  Planes[fpTop][0] := Matrix[0][3] - Matrix[0][1];
-  Planes[fpTop][1] := Matrix[1][3] - Matrix[1][1];
-  Planes[fpTop][2] := Matrix[2][3] - Matrix[2][1];
-  Planes[fpTop][3] := Matrix[3][3] - Matrix[3][1];
+  Planes[fpTop][0] := Matrix.Data[0, 3] - Matrix.Data[0, 1];
+  Planes[fpTop][1] := Matrix.Data[1, 3] - Matrix.Data[1, 1];
+  Planes[fpTop][2] := Matrix.Data[2, 3] - Matrix.Data[2, 1];
+  Planes[fpTop][3] := Matrix.Data[3, 3] - Matrix.Data[3, 1];
 
-  Planes[fpNear][0] := Matrix[0][3] + Matrix[0][2];
-  Planes[fpNear][1] := Matrix[1][3] + Matrix[1][2];
-  Planes[fpNear][2] := Matrix[2][3] + Matrix[2][2];
-  Planes[fpNear][3] := Matrix[3][3] + Matrix[3][2];
+  Planes[fpNear][0] := Matrix.Data[0, 3] + Matrix.Data[0, 2];
+  Planes[fpNear][1] := Matrix.Data[1, 3] + Matrix.Data[1, 2];
+  Planes[fpNear][2] := Matrix.Data[2, 3] + Matrix.Data[2, 2];
+  Planes[fpNear][3] := Matrix.Data[3, 3] + Matrix.Data[3, 2];
 
-  Planes[fpFar][0] := Matrix[0][3] - Matrix[0][2];
-  Planes[fpFar][1] := Matrix[1][3] - Matrix[1][2];
-  Planes[fpFar][2] := Matrix[2][3] - Matrix[2][2];
-  Planes[fpFar][3] := Matrix[3][3] - Matrix[3][2];
+  Planes[fpFar][0] := Matrix.Data[0, 3] - Matrix.Data[0, 2];
+  Planes[fpFar][1] := Matrix.Data[1, 3] - Matrix.Data[1, 2];
+  Planes[fpFar][2] := Matrix.Data[2, 3] - Matrix.Data[2, 2];
+  Planes[fpFar][3] := Matrix.Data[3, 3] - Matrix.Data[3, 2];
 
   { If Planes[fpFar] has really exactly zero vector,
     then far plane is in infinity. }
@@ -310,21 +296,21 @@ begin
         NormalizePlaneVar(Planes[fp]);
       instead, but that would be slow (NormalizePlaneVar costs me
       calculating 1 Sqrt).
-    if VectorLenSqr(PVector3Single(@Planes[fp])^) < 0.001 then
+    if VectorLenSqr(PVector3(@Planes[fp])^) < 0.001 then
       Planes[fp] := Planes[fp] * 100000;
     }
   end;
 end;
 
 constructor TFrustum.Init(
-  const ProjectionMatrix, ModelviewMatrix: TMatrix4Single);
+  const ProjectionMatrix, ModelviewMatrix: TMatrix4);
 begin
-  Init(MatrixMult(ProjectionMatrix, ModelviewMatrix));
+  Init(ProjectionMatrix * ModelviewMatrix);
 end;
 
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsSingle);
 var
-  Camera: TVector3Single;
+  Camera: TVector3;
 begin
   { Actually this can be speeded up some day by doing
     TwoPlanesIntersectionLine and then some TryPlaneLineIntersection,
@@ -368,8 +354,8 @@ begin
   end;
 end;
 
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
+{$ifdef TODO_2_CASTLE_HAS_DOUBLE_PRECISION}
 var
   Camera: TVector3Double;
 begin
@@ -411,10 +397,19 @@ begin
     FrustumPoints[7].W := 0;
   end;
 end;
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
+{$else}
+var
+  FrustumPointsSingle: TFrustumPointsSingle;
+  I: Integer;
+begin
+  CalculatePoints(FrustumPointsSingle);
+  for I := 0 to High(FrustumPoints) do
+    FrustumPoints[I].XYZW := Vector4Double(FrustumPointsSingle[I].XYZW);
+end;
+{$endif}
 
 function TFrustum.SphereCollisionPossible(
-  const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
+  const SphereCenter: TVector3; const SphereRadiusSqr: Single):
   TFrustumCollisionPossible;
 var
   fp, LastPlane: TFrustumPlane;
@@ -474,7 +469,7 @@ begin
 end;
 
 function TFrustum.SphereCollisionPossibleSimple(
-  const SphereCenter: TVector3Single; const SphereRadiusSqr: Single):
+  const SphereCenter: TVector3; const SphereRadiusSqr: Single):
   boolean;
 var
   fp: TFrustumPlane;
@@ -587,7 +582,7 @@ begin
   Result := true;
 end;
 
-function TFrustum.Move(const M: TVector3Single): TFrustum;
+function TFrustum.Move(const M: TVector3): TFrustum;
 begin
   Result.Planes[fpLeft  ] := PlaneMove(Planes[fpLeft]  , M);
   Result.Planes[fpRight ] := PlaneMove(Planes[fpRight] , M);
@@ -601,7 +596,7 @@ begin
   Result.NormalizePlanes;
 end;
 
-procedure TFrustum.MoveVar(const M: TVector3Single);
+procedure TFrustum.MoveVar(const M: TVector3);
 begin
   PlaneMoveVar(Planes[fpLeft]  , M);
   PlaneMoveVar(Planes[fpRight] , M);
@@ -614,7 +609,7 @@ begin
   NormalizePlanes;
 end;
 
-function TFrustum.DirectionInside(const Direction: TVector3Single): boolean;
+function TFrustum.DirectionInside(const Direction: TVector3): boolean;
 begin
   { First we check fpTop, since this (usually?) has the highest chance
     of failing (when Direction is direction of sun high in the sky) }
@@ -632,7 +627,7 @@ begin
               Planes[fpBottom][2] * Direction[2] >= 0 );
 end;
 
-function TFrustum.Transform(const M: TMatrix4Single): TFrustum;
+function TFrustum.Transform(const M: TMatrix4): TFrustum;
 var
   I: TFrustumPlane;
 begin
@@ -641,7 +636,7 @@ begin
     Assert(High(I) = fpFar);
     for I := Low(I) to Pred(High(I)) do
       Result.Planes[I] := PlaneTransform(Planes[I], M);
-    Result.Planes[fpFar] := ZeroVector4Single;
+    Result.Planes[fpFar] := TVector4.Zero;
   end else
     for I := Low(I) to High(I) do
       Result.Planes[I] := PlaneTransform(Planes[I], M);

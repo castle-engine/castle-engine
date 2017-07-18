@@ -128,7 +128,7 @@ procedure TSurface.Render(const XSegments, YSegments: Cardinal);
 var
   I, J: Integer;
   X, Y: Single;
-  NewPointPrev, NewPointNow, LastPointPrev, LastPointNow: TVector3Single;
+  NewPointPrev, NewPointNow, LastPointPrev, LastPointNow: TVector3;
   CurvePrev, CurveNow: TCurve;
 begin
   CurvePrev := MakeCurve(XBegin);
@@ -170,9 +170,9 @@ end;
 function TSurface.BoundingBox: TBox3D;
 var
   I, J: Cardinal;
-  CP: TVector3SingleList;
+  CP: TVector3List;
 begin
-  Result := EmptyBox3D;
+  Result := TBox3D.Empty;
   for I := 0 to Curves.Count - 1 do
   begin
     CP := (Curves[I] as TControlPointsCurve).ControlPoints;
@@ -185,7 +185,7 @@ procedure TSurface.RenderControlPoints;
 var
   CurveControlPointsCount, I, J: Cardinal;
   Curve0, CurvePrev, CurveNow: TControlPointsCurve;
-  LastPrev, LastNow, NewPrev, NewNow: TVector3Single;
+  LastPrev, LastNow, NewPrev, NewNow: TVector3;
 begin
   Curve0 := Curves.Items[0] as TControlPointsCurve;
   CurveControlPointsCount := Curve0.ControlPoints.Count;

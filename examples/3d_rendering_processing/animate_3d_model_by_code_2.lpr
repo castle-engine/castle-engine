@@ -64,7 +64,7 @@ begin
   Result := TX3DRootNode.Create;
 
   Mat := TMaterialNode.Create;
-  Mat.FdDiffuseColor.Value := Vector3Single(1, 1, 0);
+  Mat.FdDiffuseColor.Value := Vector3(1, 1, 0);
 
   Shape := TShapeNode.Create;
   Shape.FdAppearance.Value := TAppearanceNode.Create;
@@ -75,7 +75,7 @@ begin
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J] := TTransformNode.Create;
-      Transform[I, J].FdTranslation.Value := Vector3Single(I * 2, J * 2, 0);
+      Transform[I, J].FdTranslation.Value := Vector3(I * 2, J * 2, 0);
       Transform[I, J].FdChildren.Add(Shape);
 
       Result.FdChildren.Add(Transform[I, J]);
@@ -109,7 +109,7 @@ begin
     (Window.SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
     { set more interesting view by default }
     (Window.SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
-      Normalized(Vector3Single(1, 1, 0)), Pi/4);
+      Normalized(Vector3(1, 1, 0)), Pi/4);
 
     Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);

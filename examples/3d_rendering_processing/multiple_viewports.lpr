@@ -193,7 +193,7 @@ begin
     Viewports[I].Camera := Window.SceneManager.CreateDefaultCamera;
     if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
       TExamineCamera(Viewports[I].Camera).Rotations :=
-        QuatFromAxisAngle(UnitVector3Single[I], Pi/2);
+        QuatFromAxisAngle(TVector3.One[I], Pi/2);
   end;
 
   { scene manager needs assigned camera to make a headlight.
@@ -263,7 +263,7 @@ begin
   {$ifdef ADD_ANIMATION}
   { initialize Transform }
   Transform := T3DTransform.Create(Window.SceneManager);
-//  Transform.Translation := Vector3Single(5, 3, 60);
+//  Transform.Translation := Vector3(5, 3, 60);
   Window.SceneManager.Items.Add(Transform);
 
   { initialize Animation }
@@ -332,7 +332,7 @@ begin
   { add a background, since our viewports (deliberately, for demo)
     do not cover whole window. }
   Background := TCastleSimpleBackground.Create(Application);
-  Background.Color := Vector4Single(0.5, 0.5, 1.0, 1.0);
+  Background.Color := Vector4(0.5, 0.5, 1.0, 1.0);
   Window.Controls.InsertBack(Background);
 
   Window.StencilBits := 8;

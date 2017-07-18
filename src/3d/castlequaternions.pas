@@ -27,34 +27,34 @@ type
   TQuaternion = object
     Data: packed record
       case Integer of
-        0: (Vector: TVector3Single;
+        0: (Vector: TVector3;
             Real: Single);
         1: ({ Alternative, sometimes comfortable, view on quaternion as one
               4-element vector. }
-            Vector4: TVector4Single);
+            Vector4: TVector4);
     end;
 
     { Calculate axis (will be normalized) and angle (will be in radians)
       of rotation encoded in unit quaternion Q.
       This is the reverse of QuatFromAxisAngle. }
-    procedure ToAxisAngle(out Axis: TVector3Single; out AngleRad: Single);
+    procedure ToAxisAngle(out Axis: TVector3; out AngleRad: Single);
 
     { Convert quaternion to a rotation axis and angle encoded in 4D vector.
       Axis is normalized if quaternion was also normalized
       (which is true if working with rotation quaternions).
       Angle is in radians. }
-    function ToAxisAngle: TVector4Single;
+    function ToAxisAngle: TVector4;
 
     { Calculate matrix doing rotation described by unit quaternion. }
-    function ToRotationMatrix: TMatrix4Single;
+    function ToRotationMatrix: TMatrix4;
 
     { Rotate by unit quaternion.
 
-      You can pass here TVector4Single, which is then understood to be a 3D
+      You can pass here TVector4, which is then understood to be a 3D
       position in homogeneous coordinates.
       @groupBegin }
-    function Rotate(const Point: TVector4Single): TVector4Single; overload;
-    function Rotate(const Point: TVector3Single): TVector3Single; overload;
+    function Rotate(const Point: TVector4): TVector4; overload;
+    function Rotate(const Point: TVector3): TVector3; overload;
     { @groupEnd }
 
     { Quaternion conjugation. This is just a fancy name for negating Q.Vector.
@@ -93,7 +93,7 @@ type
   end;
 
 const
-  QuatIdentityRot: TQuaternion = (Data: (Vector: (0, 0, 0); Real: 1));
+  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
 
 { Calculate unit quaternion representing rotation around Axis
   by AngleRad angle (in radians).
@@ -102,9 +102,9 @@ const
   (then we'll normalize it ourselves inside). Otherwise you will
   get non-normalized quaternion that doesn't represent rotation,
   and is usually useless for us. }
-function QuatFromAxisAngle(const Axis: TVector3Single;
+function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean = false): TQuaternion;
-function QuatFromAxisAngle(const AxisAngle: TVector4Single;
+function QuatFromAxisAngle(const AxisAngle: TVector4;
   const NormalizeAxis: boolean = false): TQuaternion;
 
 { Multiply two quaternions.
@@ -121,7 +121,7 @@ operator* (const Q1, Q2: TQuaternion): TQuaternion;
 { Interpolate between two rotations, along the shortest path on the unit sphere,
   with constant speed.
 
-  The overloaded version that works with TVector4Single takes
+  The overloaded version that works with TVector4 takes
   a rotation (not a quaternion) expressed as an axis
   (first 3 elements) and angle (in radians, 4th element).
   Axis does not have to be normalized (we'll normalize it).
@@ -129,7 +129,7 @@ operator* (const Q1, Q2: TQuaternion): TQuaternion;
 
   @groupBegin }
 function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
-function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4;
 { @groupEnd }
 
 { Interpolate between two rotations, along the straightest path on the unit sphere.
@@ -145,7 +145,7 @@ function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Singl
   Use ForceShortestPath = @true if you want to interpolate through the
   shortest.
 
-  The overloaded version that works with TVector4Single takes
+  The overloaded version that works with TVector4 takes
   a rotation (not a quaternion) expressed as an axis
   (first 3 elements) and angle (in radians, 4th element).
   Axis does not have to be normalized (we'll normalize it).
@@ -154,8 +154,8 @@ function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Singl
   @groupBegin }
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;
   const ForceShortestPath: boolean = true): TQuaternion;
-function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
-  const ForceShortestPath: boolean = true): TVector4Single;
+function NLerp(const A: Single; const Rot1, Rot2: TVector4;
+  const ForceShortestPath: boolean = true): TVector4;
 { @groupEnd }
 
 implementation
@@ -164,7 +164,7 @@ uses Math, CastleUtils;
 
 { TQuaternion ---------------------------------------------------------------- }
 
-procedure TQuaternion.ToAxisAngle(out Axis: TVector3Single;
+procedure TQuaternion.ToAxisAngle(out Axis: TVector3;
   out AngleRad: Single);
 { Data is a normalized quaternion, so
     Data.Vector = Sin(AngleRad / 2) * Axis
@@ -186,16 +186,16 @@ begin
 
       Which means that any Axis is Ok (but return anything normalized,
       to keep assertion that returned Axis is normalized). }
-    Axis := Vector3Single(0, 0, 1);
+    Axis := Vector3(0, 0, 1);
   end else
     Axis := Data.Vector * (1 / SinHalfAngle);
 end;
 
-function TQuaternion.ToAxisAngle: TVector4Single;
+function TQuaternion.ToAxisAngle: TVector4;
 var
-  Axis: TVector3Single absolute Result;
+  Axis: TVector3 absolute Result;
 begin
-  ToAxisAngle(Axis, Result[3]);
+  ToAxisAngle(Axis, Result.Data[3]);
 end;
 
 function TQuaternion.Conjugate: TQuaternion;
@@ -209,22 +209,22 @@ begin
   Data.Vector := -Data.Vector;
 end;
 
-function TQuaternion.Rotate(const Point: TVector4Single): TVector4Single;
+function TQuaternion.Rotate(const Point: TVector4): TVector4;
 begin
   Result := (Self * TQuaternion(Point)).Data.Vector4;
   Result := (TQuaternion(Result) * Conjugate).Data.Vector4;
 end;
 
-function TQuaternion.Rotate(const Point: TVector3Single): TVector3Single;
+function TQuaternion.Rotate(const Point: TVector3): TVector3;
 var
-  P4: TVector4Single;
+  P4: TVector4;
 begin
-  P4 := Vector4Single(Point, 0);
+  P4 := Vector4(Point, 0);
   P4 := Rotate(P4);
-  Result := Vector3SingleCut(P4);
+  Result := P4.XYZ;
 end;
 
-function QuatToRotationMatrix(const X, Y, Z, W: Single): TMatrix4Single;
+function QuatToRotationMatrix(const X, Y, Z, W: Single): TMatrix4;
 var
   XX, YY, ZZ: Single;
 begin
@@ -258,9 +258,13 @@ begin
   Result[3, 3] := 1;
 end;
 
-function TQuaternion.ToRotationMatrix: TMatrix4Single;
+function TQuaternion.ToRotationMatrix: TMatrix4;
 begin
-  Result := QuatToRotationMatrix(Data.Vector[0], Data.Vector[1], Data.Vector[2], Data.Real);
+  Result := QuatToRotationMatrix(
+    Data.Vector.Data[0],
+    Data.Vector.Data[1],
+    Data.Vector.Data[2],
+    Data.Real);
 end;
 
 procedure TQuaternion.Normalize;
@@ -271,9 +275,9 @@ begin
   if Len <> 0 then
   begin
     Len := 1/Len;
-    Data.Vector[0] *= Len;
-    Data.Vector[1] *= Len;
-    Data.Vector[2] *= Len;
+    Data.Vector.Data[0] *= Len;
+    Data.Vector.Data[1] *= Len;
+    Data.Vector.Data[2] *= Len;
     Data.Real *= Len;
   end;
 end;
@@ -290,9 +294,9 @@ begin
     if Len <> 0 then
     begin
       Len := 1/Len;
-      Data.Vector[0] *= Len;
-      Data.Vector[1] *= Len;
-      Data.Vector[2] *= Len;
+      Data.Vector.Data[0] *= Len;
+      Data.Vector.Data[1] *= Len;
+      Data.Vector.Data[2] *= Len;
       Data.Real *= Len;
     end;
   end;
@@ -300,7 +304,7 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
-function QuatFromAxisAngle(const Axis: TVector3Single;
+function QuatFromAxisAngle(const Axis: TVector3;
   const AngleRad: Single; const NormalizeAxis: boolean): TQuaternion;
 var
   SinHalfAngle, CosHalfAngle: Float;
@@ -315,10 +319,10 @@ begin
   Result.Data.Real := CosHalfAngle;
 end;
 
-function QuatFromAxisAngle(const AxisAngle: TVector4Single;
+function QuatFromAxisAngle(const AxisAngle: TVector4;
   const NormalizeAxis: boolean): TQuaternion;
 var
-  Axis: TVector3Single absolute AxisAngle;
+  Axis: TVector3 absolute AxisAngle;
 begin
   Result := QuatFromAxisAngle(Axis, AxisAngle[3], NormalizeAxis);
 end;
@@ -387,7 +391,7 @@ begin
   Result.Data.Vector4 := (Q1.Data.Vector4 * W1) + (Q2.Data.Vector4 * W2);
 end;
 
-function SLerp(const A: Single; const Rot1, Rot2: TVector4Single): TVector4Single;
+function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4;
 begin
   Result := SLerp(A,
     QuatFromAxisAngle(Rot1, true),
@@ -407,8 +411,8 @@ begin
   Result.Normalize;
 end;
 
-function NLerp(const A: Single; const Rot1, Rot2: TVector4Single;
-  const ForceShortestPath: boolean): TVector4Single;
+function NLerp(const A: Single; const Rot1, Rot2: TVector4;
+  const ForceShortestPath: boolean): TVector4;
 begin
   Result := NLerp(A,
     QuatFromAxisAngle(Rot1, true),

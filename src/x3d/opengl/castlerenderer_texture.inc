@@ -273,7 +273,7 @@
       var NeedsRestoreViewport: boolean;
       CurrentViewpoint: TAbstractViewpointNode;
       CameraViewKnown: boolean;
-      const CameraPosition, CameraDirection, CameraUp: TVector3Single);
+      const CameraPosition, CameraDirection, CameraUp: TVector3);
   end;
 
   { Common handling for texture nodes of TAbstractEnvironmentTextureNode. }
@@ -332,7 +332,7 @@
       const Render: TRenderFromViewFunction;
       const ProjectionNear, ProjectionFar: Single;
       var NeedsRestoreViewport: boolean;
-      const CubeMiddle: TVector3Single);
+      const CubeMiddle: TVector3);
   end;
 
   TGL3DTextureNode = class(TGLSingleTextureNode)
@@ -850,7 +850,7 @@ begin
           if Env.NeedsConstantColor then
           begin
             { Assign constant color now, when we know it should be used. }
-            glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4Single(
+            glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4(
               TextureNode.FdColor.Value,
               TextureNode.FdAlpha.Value));
           end;
@@ -1206,12 +1206,12 @@ procedure TGLRenderedTextureNode.Update(
   var NeedsRestoreViewport: boolean;
   CurrentViewpoint: TAbstractViewpointNode;
   CameraViewKnown: boolean;
-  const CameraPosition, CameraDirection, CameraUp: TVector3Single);
+  const CameraPosition, CameraDirection, CameraUp: TVector3);
 
 var
   Viewpoint: TAbstractViewpointNode;
 
-  function GetProjectionMatrix: TMatrix4Single;
+  function GetProjectionMatrix: TMatrix4;
   { This somewhat follows the logic similar to TCastleScene.GLProjectionCore:
     we have to calculate projection, given Viewpoint node.
 
@@ -1297,10 +1297,10 @@ var
     end;
   end;
 
-  procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3Single);
+  procedure GetRenderedTextureCamera(out Pos, Dir, Up: TVector3);
   var
     { It's returned by Viewpoint.GetView, but we'll ignore it. }
-    GravityUp: TVector3Single;
+    GravityUp: TVector3;
 
     procedure GetFromCurrent;
     begin
@@ -1333,8 +1333,8 @@ var
   end;
 
 var
-  CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4Single;
-  Pos, Dir, Up: TVector3Single;
+  CameraMatrix, CameraRotationMatrix, SavedProjectionMatrix, NewProjectionMatrix: TMatrix4;
+  Pos, Dir, Up: TVector3;
 begin
   if FGLName = 0 then Exit;
 
@@ -1349,7 +1349,7 @@ begin
 
   GetRenderedTextureCamera(Pos, Dir, Up);
   CameraMatrix := LookDirMatrix(Pos, Dir, Up);
-  CameraRotationMatrix := LookDirMatrix(ZeroVector3Single, Dir, Up);
+  CameraRotationMatrix := LookDirMatrix(TVector3.Zero, Dir, Up);
   TextureNode.EventViewing.Send(CameraMatrix);
 
   TextureNode.EventRendering.Send(true);
@@ -1663,7 +1663,7 @@ procedure TGLGeneratedCubeMapTextureNode.Update(
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   var NeedsRestoreViewport: boolean;
-  const CubeMiddle: TVector3Single);
+  const CubeMiddle: TVector3);
 begin
   if GLName = 0 then Exit;
 
@@ -1885,7 +1885,7 @@ procedure TGLGeneratedShadowMap.Update(
   var NeedsRestoreViewport: boolean;
   Light: TAbstractLightNode);
 var
-  NewProjectionMatrix, SavedProjectionMatrix: TMatrix4Single;
+  NewProjectionMatrix, SavedProjectionMatrix: TMatrix4;
   SavedDepthRange: TDepthRange;
 begin
   if FGLName = 0 then Exit;

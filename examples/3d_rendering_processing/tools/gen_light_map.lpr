@@ -28,7 +28,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes, CastleSceneCore,
   LightMap, CastleImages, CastleProgress, CastleProgressConsole, CastleTimeUtils,
   CastleParameters;
 
-function ReadParametersVectorVar(i: Integer): TVector3Single;
+function ReadParametersVectorVar(i: Integer): TVector3;
 begin
  result[0] := StrToFloat(Parameters[i]);
  result[1] := StrToFloat(Parameters[i+1]);
@@ -43,7 +43,7 @@ var
   ImageSizeX, ImageSizeY: Integer;
 
   Quad: TQuad3Single;
-  RenderDir: TVector3Single;
+  RenderDir: TVector3;
 
   i: Integer;
 

@@ -47,7 +47,7 @@ type
     function Rect: TRectangle; override;
     procedure BeforeRender; override;
     procedure Render; override;
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
 
     { Text color. By default it's white. }
@@ -129,7 +129,7 @@ begin
   Hash := Hash xor (Hash shr 16);
   {$I norqcheckend.inc}
 
-  Result := Vector4Single(
+  Result := Vector4(
     0.5 + (Hash and $FF) / 128,
     0.5 + ((Hash shr 8) and $FF) / 128,
     0.5 + ((Hash shr 16) and $FF) / 128,
@@ -243,7 +243,7 @@ begin
   FControlsInitialized := true;
 end;
 
-function TCastleInspectorControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TCastleInspectorControl.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true;
 end;

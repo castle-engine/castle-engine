@@ -123,7 +123,7 @@ type
     function IsEmpty: boolean;
 
     function Contains(const X, Y: Integer): boolean;
-    function Contains(const Point: TVector2Single): boolean;
+    function Contains(const Point: TVector2): boolean;
     function Contains(const Point: TVector2Integer): boolean;
 
     { Right and top coordinates of the rectangle.
@@ -305,7 +305,7 @@ type
     function IsEmpty: boolean;
 
     function Contains(const X, Y: Single): boolean;
-    function Contains(const Point: TVector2Single): boolean;
+    function Contains(const Point: TVector2): boolean;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -324,8 +324,8 @@ type
     property Top: Single read GetTop {write SetTop} { };
     { @groupEnd }
 
-    function Middle: TVector2Single; deprecated 'use Center';
-    function Center: TVector2Single;
+    function Middle: TVector2; deprecated 'use Center';
+    function Center: TVector2;
 
     { Grow (when Delta > 0) or shrink (when Delta < 0)
       the rectangle, returning new value.
@@ -340,26 +340,26 @@ type
     function ToString: string;
 
     { Move the rectangle. Empty rectangle after moving is still an empty rectangle. }
-    function Translate(const V: TVector2Single): TFloatRectangle;
+    function Translate(const V: TVector2): TFloatRectangle;
 
     { Does it have any common part with another rectangle. }
     function Collides(const R: TFloatRectangle): boolean;
 
-    function CollidesDisc(const DiscCenter: TVector2Single; const Radius: Single): boolean;
+    function CollidesDisc(const DiscCenter: TVector2; const Radius: Single): boolean;
 
     { Scale rectangle position and size around the (0,0) point. }
     function ScaleAround0(const Factor: Single): TFloatRectangle;
 
     { Return larger rectangle, so that it includes given point. }
-    function Add(const P: TVector2Single): TFloatRectangle;
+    function Add(const P: TVector2): TFloatRectangle;
 
     { Convert to a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
-    function ToX3DVector: TVector4Single;
+    function ToX3DVector: TVector4;
 
     { Convert from a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
-    class function FromX3DVector(const V: TVector4Single): TFloatRectangle; static;
+    class function FromX3DVector(const V: TVector4): TFloatRectangle; static;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
@@ -369,7 +369,7 @@ type
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
     function FindRectangle(const X, Y: Integer): Integer;
-    function FindRectangle(const Point: TVector2Single): Integer;
+    function FindRectangle(const Point: TVector2): Integer;
   end;
 
   TFloatRectangleList = specialize TStructList<TFloatRectangle>;
@@ -380,7 +380,7 @@ function Rectangle(const LeftBottom: TVector2Integer;
   const Width, Height: Cardinal): TRectangle;
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
 function FloatRectangle(const R: TRectangle): TFloatRectangle;
-function FloatRectangle(const LeftBottom: TVector2Single;
+function FloatRectangle(const LeftBottom: TVector2;
   const Width, Height: Single): TFloatRectangle;
 
 { Sum of the two rectangles is a bounding rectangle -
@@ -427,7 +427,7 @@ begin
             (Y >= Bottom) and (Y < Bottom + Integer(Height));
 end;
 
-function TRectangle.Contains(const Point: TVector2Single): boolean;
+function TRectangle.Contains(const Point: TVector2): boolean;
 begin
   Result := (Point[0] >= Left  ) and (Point[0] < Left   + Integer(Width)) and
             (Point[1] >= Bottom) and (Point[1] < Bottom + Integer(Height));
@@ -837,7 +837,7 @@ begin
   Result.Height := R.Height;
 end;
 
-function FloatRectangle(const LeftBottom: TVector2Single;
+function FloatRectangle(const LeftBottom: TVector2;
   const Width, Height: Single): TFloatRectangle;
 begin
   Result.Left   := LeftBottom[0];
@@ -857,18 +857,18 @@ begin
             (Y >= Bottom) and (Y <= Bottom + Height);
 end;
 
-function TFloatRectangle.Contains(const Point: TVector2Single): boolean;
+function TFloatRectangle.Contains(const Point: TVector2): boolean;
 begin
   Result := (Point[0] >= Left  ) and (Point[0] <= Left   + Width) and
             (Point[1] >= Bottom) and (Point[1] <= Bottom + Height);
 end;
 
-function TFloatRectangle.Center: TVector2Single;
+function TFloatRectangle.Center: TVector2;
 begin
-  Result := Vector2Single(Left + Width / 2, Bottom + Height / 2);
+  Result := Vector2(Left + Width / 2, Bottom + Height / 2);
 end;
 
-function TFloatRectangle.Middle: TVector2Single;
+function TFloatRectangle.Middle: TVector2;
 begin
   Result := Center;
 end;
@@ -928,7 +928,7 @@ begin
   Result := Format('TFloatRectangle: %fx%f %fx%f', [Left, Bottom, Width, Height]);
 end;
 
-function TFloatRectangle.Translate(const V: TVector2Single): TFloatRectangle;
+function TFloatRectangle.Translate(const V: TVector2): TFloatRectangle;
 begin
   Result.Left := Left + V[0];
   Result.Bottom := Bottom + V[1];
@@ -947,7 +947,7 @@ begin
           (R.Top   <   Bottom)));
 end;
 
-function TFloatRectangle.CollidesDisc(const DiscCenter: TVector2Single;
+function TFloatRectangle.CollidesDisc(const DiscCenter: TVector2;
   const Radius: Single): boolean;
 var
   ARight, ATop, ClosestCornerX, ClosestCornerY: Single;
@@ -1041,7 +1041,7 @@ begin
   end;
 end;
 
-function TFloatRectangle.Add(const P: TVector2Single): TFloatRectangle;
+function TFloatRectangle.Add(const P: TVector2): TFloatRectangle;
 begin
   if IsEmpty then
   begin
@@ -1079,16 +1079,16 @@ begin
   end;
 end;
 
-function TFloatRectangle.ToX3DVector: TVector4Single;
+function TFloatRectangle.ToX3DVector: TVector4;
 begin
-  Result := Vector4Single(
+  Result := Vector4(
     Left,
     Bottom,
     Right,
     Top);
 end;
 
-class function TFloatRectangle.FromX3DVector(const V: TVector4Single): TFloatRectangle;
+class function TFloatRectangle.FromX3DVector(const V: TVector4): TFloatRectangle;
 begin
   Result.Left   := V[0];
   Result.Bottom := V[1];
@@ -1106,7 +1106,7 @@ begin
   Result := -1;
 end;
 
-function TRectangleList.FindRectangle(const Point: TVector2Single): Integer;
+function TRectangleList.FindRectangle(const Point: TVector2): Integer;
 begin
   for Result := 0 to Count - 1 do
     if L[Result].Contains(Point) then

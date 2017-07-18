@@ -244,13 +244,13 @@ end;
 
 procedure TTestBasicLists.TestCastleVectorsLists;
 var
-  vecs: TVector3SingleList;
+  vecs: TVector3List;
 begin
-  vecs := TVector3SingleList.Create;
+  vecs := TVector3List.Create;
   try
-    vecs.Add(Vector3Single(1.0, 2.0, 3.0));
-    vecs.Add(Vector3Single(4.0, 5.0, 6.0));
-    vecs.Add(Vector3Single(1.0, 2.0, 3.0));
+    vecs.Add(Vector3(1.0, 2.0, 3.0));
+    vecs.Add(Vector3(4.0, 5.0, 6.0));
+    vecs.Add(Vector3(1.0, 2.0, 3.0));
     AssertTrue(    VectorsPerfectlyEqual(vecs.L[0], vecs.L[2]));
     AssertTrue(not VectorsPerfectlyEqual(vecs.L[0], vecs.L[1]));
     AssertTrue(not VectorsPerfectlyEqual(vecs.L[2], vecs.L[1]));
@@ -259,18 +259,18 @@ end;
 
 procedure TTestBasicLists.TestListsAssign;
 var
-  V1, V2: TVector3SingleList;
+  V1, V2: TVector3List;
 begin
-  V1 := TVector3SingleList.Create;
-  V2 := TVector3SingleList.Create;
+  V1 := TVector3List.Create;
+  V2 := TVector3List.Create;
   try
-    V1.Add(Vector3Single(1.0, 2.0, 3.0));
-    V1.Add(Vector3Single(4.0, 5.0, 6.0));
-    V1.Add(Vector3Single(7.0, 8.0, 9.0));
+    V1.Add(Vector3(1.0, 2.0, 3.0));
+    V1.Add(Vector3(4.0, 5.0, 6.0));
+    V1.Add(Vector3(7.0, 8.0, 9.0));
 
-    V2.Add(Vector3Single(6.0, 6.0, 6.0));
+    V2.Add(Vector3(6.0, 6.0, 6.0));
     V2.AddRange(V1);
-    V2.Add(Vector3Single(6.0, 6.0, 6.0));
+    V2.Add(Vector3(6.0, 6.0, 6.0));
 
     AssertTrue(VectorsPerfectlyEqual(V1.L[0], V2.L[1]));
     AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[2]));
@@ -287,28 +287,28 @@ end;
 
 procedure TTestBasicLists.TestListsAssignLerp;
 var
-  V1, V2, V3: TVector3SingleList;
+  V1, V2, V3: TVector3List;
 begin
-  V1 := TVector3SingleList.Create;
-  V2 := TVector3SingleList.Create;
-  V3 := TVector3SingleList.Create;
+  V1 := TVector3List.Create;
+  V2 := TVector3List.Create;
+  V3 := TVector3List.Create;
   try
-    V1.Add(Vector3Single(1.0, 2.0, 3.0));
-    V1.Add(Vector3Single(4.0, 5.0, 6.0));
+    V1.Add(Vector3(1.0, 2.0, 3.0));
+    V1.Add(Vector3(4.0, 5.0, 6.0));
 
-    V2.Add(Vector3Single(7.0, 8.0, 9.0));
-    V2.Add(Vector3Single(11.0, 12.0, 13.0));
-    V2.Add(Vector3Single(17.0, 18.0, 19.0));
+    V2.Add(Vector3(7.0, 8.0, 9.0));
+    V2.Add(Vector3(11.0, 12.0, 13.0));
+    V2.Add(Vector3(17.0, 18.0, 19.0));
 
     V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
     AssertTrue(V3.Count = 2);
 
     AssertTrue(VectorsPerfectlyEqual(V3.L[0], Lerp(0.2,
-      Vector3Single(1.0, 2.0, 3.0),
-      Vector3Single(11.0, 12.0, 13.0))));
+      Vector3(1.0, 2.0, 3.0),
+      Vector3(11.0, 12.0, 13.0))));
     AssertTrue(VectorsPerfectlyEqual(V3.L[1], Lerp(0.2,
-      Vector3Single(4.0, 5.0, 6.0),
-      Vector3Single(17.0, 18.0, 19.0))));
+      Vector3(4.0, 5.0, 6.0),
+      Vector3(17.0, 18.0, 19.0))));
   finally
     FreeAndNil(V1);
     FreeAndNil(V2);

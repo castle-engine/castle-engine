@@ -63,8 +63,8 @@ var
 var
   I: TXMLElementIterator;
   NodeId: string;
-  V3: TVector3Single;
-  V4: TVector4Single;
+  V3: TVector3;
+  V4: TVector4;
 begin
   if not NodeElement.AttributeString('id', NodeId) then
     NodeId := '';
@@ -96,7 +96,7 @@ begin
       end else
       if I.Current.TagName = 'rotate' then
       begin
-        V4 := Vector4SingleFromStr(I.Current.TextData);
+        V4 := Vector4FromStr(I.Current.TextData);
         if V4[3] <> 0.0 then
         begin
           NestedTransform.FdRotation.ValueDeg := V4;
@@ -104,8 +104,8 @@ begin
       end else
       if I.Current.TagName = 'scale' then
       begin
-        V3 := Vector3SingleFromStr(I.Current.TextData);
-        if not VectorsPerfectlyEqual(V3, Vector3Single(1, 1, 1)) then
+        V3 := Vector3FromStr(I.Current.TextData);
+        if not VectorsPerfectlyEqual(V3, Vector3(1, 1, 1)) then
         begin
           NestedTransform.FdScale.Value := V3;
         end;
@@ -120,8 +120,8 @@ begin
       end else
       if I.Current.TagName = 'translate' then
       begin
-        V3 := Vector3SingleFromStr(I.Current.TextData);
-        if not VectorsPerfectlyEqual(V3, ZeroVector3Single) then
+        V3 := Vector3FromStr(I.Current.TextData);
+        if not VectorsPerfectlyEqual(V3, TVector3.Zero) then
         begin
           NestedTransform.FdTranslation.Value := V3;
         end;

@@ -109,28 +109,28 @@ var fhead: TBitmapFileHeader;
         PutPaletteColor(bmprow^[bmpi], rgbrow^[bmpi]);
     16:for rgbi := 0 to ihead.biWidth-1 do
        begin
-        rgbrow^[rgbi, 0] := FiveBitsToByte((PWord(bmprow)[rgbi] and $7C00) shr 10);
-        rgbrow^[rgbi, 1] := FiveBitsToByte((PWord(bmprow)[rgbi] and $03E0) shr 5);
-        rgbrow^[rgbi, 2] := FiveBitsToByte(PWord(bmprow)[rgbi] and $001F);
+        rgbrow^[rgbi].Data[0] := FiveBitsToByte((PWord(bmprow)[rgbi] and $7C00) shr 10);
+        rgbrow^[rgbi].Data[1] := FiveBitsToByte((PWord(bmprow)[rgbi] and $03E0) shr 5);
+        rgbrow^[rgbi].Data[2] := FiveBitsToByte(PWord(bmprow)[rgbi] and $001F);
        end;
     24:{ bmprow in 24 bit bitmap have almost the same format as rgbrow  -
          we only have to swap bgr to rgb }
        for rgbi := 0 to ihead.biWidth-1 do
        begin
-        rgbrow^[rgbi, 0] := PArray_RGB_BMP24(bmprow)^[rgbi].r;
-        rgbrow^[rgbi, 1] := PArray_RGB_BMP24(bmprow)^[rgbi].g;
-        rgbrow^[rgbi, 2] := PArray_RGB_BMP24(bmprow)^[rgbi].b;
+        rgbrow^[rgbi].Data[0] := PArray_RGB_BMP24(bmprow)^[rgbi].r;
+        rgbrow^[rgbi].Data[1] := PArray_RGB_BMP24(bmprow)^[rgbi].g;
+        rgbrow^[rgbi].Data[2] := PArray_RGB_BMP24(bmprow)^[rgbi].b;
        end;
     32:for rgbi := 0 to ihead.biWidth-1 do
        begin
          { We know that for 32, we have TRGBAlphaImage, so we use rgbarow }
          Assert(Result is TRGBAlphaImage);
 
-         rgbarow^[rgbi, 0] := PArray_RGBQuad(bmprow)^[rgbi].red;
-         rgbarow^[rgbi, 1] := PArray_RGBQuad(bmprow)^[rgbi].green;
-         rgbarow^[rgbi, 2] := PArray_RGBQuad(bmprow)^[rgbi].blue;
+         rgbarow^[rgbi].Data[0] := PArray_RGBQuad(bmprow)^[rgbi].red;
+         rgbarow^[rgbi].Data[1] := PArray_RGBQuad(bmprow)^[rgbi].green;
+         rgbarow^[rgbi].Data[2] := PArray_RGBQuad(bmprow)^[rgbi].blue;
          { At least GIMP treats the 4th component as alpha value. }
-         rgbarow^[rgbi, 3] := PArray_RGBQuad(bmprow)^[rgbi].reserved;
+         rgbarow^[rgbi].Data[3] := PArray_RGBQuad(bmprow)^[rgbi].reserved;
        end;
    end;
   end;

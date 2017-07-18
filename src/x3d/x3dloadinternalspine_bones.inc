@@ -30,10 +30,10 @@
     { World-space bone transformation, necessary for skinnedmesh calculations.
       WorldMatrix includes rotation and scale, from WorldRotation and WorldScale.
       @groupBegin }
-    WorldXY: TVector2Single;
-    WorldScale: TVector2Single;
+    WorldXY: TVector2;
+    WorldScale: TVector2;
     WorldRotation: Single;
-    WorldMatrix, WorldMatrixInverse: TMatrix2Single;
+    WorldMatrix, WorldMatrixInverse: TMatrix2;
     { @groupEnd }
 
     { Calculate world-space (well, at least in the space of whole JSON file)
@@ -43,8 +43,8 @@
   public
     Name: string;
     Length: Single;
-    XY: TVector2Single;
-    Scale: TVector2Single;
+    XY: TVector2;
+    Scale: TVector2;
     Rotation: Single;
     InheritScale, InheritRotation: boolean;
     Parent: TBone;
@@ -58,9 +58,9 @@
       const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
-    function ToWorldSpace(const V: TVector2Single): TVector2Single;
-    function ToLocalSpace(V: TVector2Single): TVector2Single;
-    function ToLocalSpace(const V: TVector3Single): TVector3Single;
+    function ToWorldSpace(const V: TVector2): TVector2;
+    function ToLocalSpace(V: TVector2): TVector2;
+    function ToLocalSpace(const V: TVector3): TVector3;
   end;
 
   TBoneList = class(specialize TObjectList<TBone>)
@@ -225,9 +225,9 @@ procedure TBone.BuildNodes(const BaseUrl: string;
 
 begin
   Node := TTransformNode.Create('Bone_' + ToX3DName(Name), BaseUrl);
-  Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
-  Node.FdScale.Value := Vector3Single(Scale[0], Scale[1], 1);
-  Node.FdRotation.Value := Vector4Single(0, 0, 1, DegToRad(Rotation));
+  Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
+  Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
+  Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));
   if Parent <> nil then
   begin
     NodeUsedAsChild := true;
@@ -249,48 +249,48 @@ begin
 
   if Parent <> nil then
   begin
-    WorldXY := Vector2Single(
-      WorldXY[0] * Parent.WorldMatrix[0][0] + WorldXY[1] * Parent.WorldMatrix[0][1],
-      WorldXY[0] * Parent.WorldMatrix[1][0] + WorldXY[1] * Parent.WorldMatrix[1][1]);
+    WorldXY := Vector2(
+      WorldXY[0] * Parent.WorldMatrix[0, 0] + WorldXY[1] * Parent.WorldMatrix[0, 1],
+      WorldXY[0] * Parent.WorldMatrix[1, 0] + WorldXY[1] * Parent.WorldMatrix[1, 1]);
     WorldXY += Parent.WorldXY;
     if InheritScale then
-      WorldScale := WorldScale * Parent.WorldScale;
+      WorldScale := TVector2.MultiplyComponents(WorldScale, Parent.WorldScale);
     if InheritRotation then
       WorldRotation += Parent.WorldRotation;
   end;
 
   SinCos(DegToRad(WorldRotation), S, C);
-  WorldMatrix[0][0] :=  C * WorldScale[0];
-  WorldMatrix[0][1] := -S * WorldScale[1];
-  WorldMatrix[1][0] :=  S * WorldScale[0];
-  WorldMatrix[1][1] :=  C * WorldScale[1];
+  WorldMatrix[0, 0] :=  C * WorldScale[0];
+  WorldMatrix[0, 1] := -S * WorldScale[1];
+  WorldMatrix[1, 0] :=  S * WorldScale[0];
+  WorldMatrix[1, 1] :=  C * WorldScale[1];
 
   { inverse of 2D rotation matrix is it's transposition. Also, invert scale }
-  WorldMatrixInverse[0][0] :=  C / WorldScale[0];
-  WorldMatrixInverse[1][0] := -S / WorldScale[1];
-  WorldMatrixInverse[0][1] :=  S / WorldScale[0];
-  WorldMatrixInverse[1][1] :=  C / WorldScale[1];
+  WorldMatrixInverse[0, 0] :=  C / WorldScale[0];
+  WorldMatrixInverse[1, 0] := -S / WorldScale[1];
+  WorldMatrixInverse[0, 1] :=  S / WorldScale[0];
+  WorldMatrixInverse[1, 1] :=  C / WorldScale[1];
 end;
 
-function TBone.ToWorldSpace(const V: TVector2Single): TVector2Single;
+function TBone.ToWorldSpace(const V: TVector2): TVector2;
 begin
-  Result := Vector2Single(
-    V[0] * WorldMatrix[0][0] + V[1] * WorldMatrix[0][1],
-    V[0] * WorldMatrix[1][0] + V[1] * WorldMatrix[1][1]);
+  Result := Vector2(
+    V[0] * WorldMatrix[0, 0] + V[1] * WorldMatrix[0, 1],
+    V[0] * WorldMatrix[1, 0] + V[1] * WorldMatrix[1, 1]);
   Result += WorldXY;
 end;
 
-function TBone.ToLocalSpace(V: TVector2Single): TVector2Single;
+function TBone.ToLocalSpace(V: TVector2): TVector2;
 begin
   V -= WorldXY;
-  Result := Vector2Single(
-    V[0] * WorldMatrixInverse[0][0] + V[1] * WorldMatrixInverse[0][1],
-    V[0] * WorldMatrixInverse[1][0] + V[1] * WorldMatrixInverse[1][1]);
+  Result := Vector2(
+    V[0] * WorldMatrixInverse[0, 0] + V[1] * WorldMatrixInverse[0, 1],
+    V[0] * WorldMatrixInverse[1, 0] + V[1] * WorldMatrixInverse[1, 1]);
 end;
 
-function TBone.ToLocalSpace(const V: TVector3Single): TVector3Single;
+function TBone.ToLocalSpace(const V: TVector3): TVector3;
 var
-  Result2: TVector2Single absolute Result;
+  Result2: TVector2 absolute Result;
 begin
   Result := V;
   Result2 := ToLocalSpace(Result2);

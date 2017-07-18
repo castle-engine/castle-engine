@@ -29,14 +29,14 @@
   private
     function GetAngularDampingFactor: Single;
     procedure SetAngularDampingFactor(const Value: Single);
-    function GetAngularVelocity: TVector3Single;
-    procedure SetAngularVelocity(const Value: TVector3Single);
+    function GetAngularVelocity: TVector3;
+    procedure SetAngularVelocity(const Value: TVector3);
     function GetAutoDamp: boolean;
     procedure SetAutoDamp(const Value: boolean);
     function GetAutoDisable: boolean;
     procedure SetAutoDisable(const Value: boolean);
-    function GetCenterOfMass: TVector3Single;
-    procedure SetCenterOfMass(const Value: TVector3Single);
+    function GetCenterOfMass: TVector3;
+    procedure SetCenterOfMass(const Value: TVector3);
     function GetDisableAngularSpeed: Single;
     procedure SetDisableAngularSpeed(const Value: Single);
     function GetDisableLinearSpeed: Single;
@@ -45,44 +45,44 @@
     procedure SetDisableTime(const Value: Single);
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
-    function GetFiniteRotationAxis: TVector3Single;
-    procedure SetFiniteRotationAxis(const Value: TVector3Single);
+    function GetFiniteRotationAxis: TVector3;
+    procedure SetFiniteRotationAxis(const Value: TVector3);
     function GetFixed: boolean;
     procedure SetFixed(const Value: boolean);
-    function GetInertia: TMatrix3Single;
-    procedure SetInertia(const Value: TMatrix3Single);
+    function GetInertia: TMatrix3;
+    procedure SetInertia(const Value: TMatrix3);
     function GetLinearDampingFactor: Single;
     procedure SetLinearDampingFactor(const Value: Single);
-    function GetLinearVelocity: TVector3Single;
-    procedure SetLinearVelocity(const Value: TVector3Single);
+    function GetLinearVelocity: TVector3;
+    procedure SetLinearVelocity(const Value: TVector3);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
-    function GetOrientation: TVector4Single;
-    procedure SetOrientation(const Value: TVector4Single);
-    function GetPosition: TVector3Single;
-    procedure SetPosition(const Value: TVector3Single);
+    function GetOrientation: TVector4;
+    procedure SetOrientation(const Value: TVector4);
+    function GetPosition: TVector3;
+    procedure SetPosition(const Value: TVector3);
     function GetUseFiniteRotation: boolean;
     procedure SetUseFiniteRotation(const Value: boolean);
     function GetUseGlobalGravity: boolean;
     procedure SetUseGlobalGravity(const Value: boolean);
   public
     property AngularDampingFactor: Single read GetAngularDampingFactor write SetAngularDampingFactor;
-    property AngularVelocity: TVector3Single read GetAngularVelocity write SetAngularVelocity;
+    property AngularVelocity: TVector3 read GetAngularVelocity write SetAngularVelocity;
     property AutoDamp: boolean read GetAutoDamp write SetAutoDamp;
     property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
-    property CenterOfMass: TVector3Single read GetCenterOfMass write SetCenterOfMass;
+    property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
     property DisableLinearSpeed: Single read GetDisableLinearSpeed write SetDisableLinearSpeed;
     property DisableTime: Single read GetDisableTime write SetDisableTime;
     property Enabled: boolean read GetEnabled write SetEnabled;
-    property FiniteRotationAxis: TVector3Single read GetFiniteRotationAxis write SetFiniteRotationAxis;
+    property FiniteRotationAxis: TVector3 read GetFiniteRotationAxis write SetFiniteRotationAxis;
     property Fixed: boolean read GetFixed write SetFixed;
-    property Inertia: TMatrix3Single read GetInertia write SetInertia;
+    property Inertia: TMatrix3 read GetInertia write SetInertia;
     property LinearDampingFactor: Single read GetLinearDampingFactor write SetLinearDampingFactor;
-    property LinearVelocity: TVector3Single read GetLinearVelocity write SetLinearVelocity;
+    property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
     property Mass: Single read GetMass write SetMass;
-    property Orientation: TVector4Single read GetOrientation write SetOrientation;
-    property Position: TVector3Single read GetPosition write SetPosition;
+    property Orientation: TVector4 read GetOrientation write SetOrientation;
+    property Position: TVector3 read GetPosition write SetPosition;
     property UseFiniteRotation: boolean read GetUseFiniteRotation write SetUseFiniteRotation;
     property UseGlobalGravity: boolean read GetUseGlobalGravity write SetUseGlobalGravity;
 
@@ -102,12 +102,12 @@ begin
   FdAngularDampingFactor.Send(Value);
 end;
 
-function TRigidBodyNode.GetAngularVelocity: TVector3Single;
+function TRigidBodyNode.GetAngularVelocity: TVector3;
 begin
   Result := FdAngularVelocity.Value;
 end;
 
-procedure TRigidBodyNode.SetAngularVelocity(const Value: TVector3Single);
+procedure TRigidBodyNode.SetAngularVelocity(const Value: TVector3);
 begin
   FdAngularVelocity.Send(Value);
 end;
@@ -132,12 +132,12 @@ begin
   FdAutoDisable.Send(Value);
 end;
 
-function TRigidBodyNode.GetCenterOfMass: TVector3Single;
+function TRigidBodyNode.GetCenterOfMass: TVector3;
 begin
   Result := FdCenterOfMass.Value;
 end;
 
-procedure TRigidBodyNode.SetCenterOfMass(const Value: TVector3Single);
+procedure TRigidBodyNode.SetCenterOfMass(const Value: TVector3);
 begin
   FdCenterOfMass.Send(Value);
 end;
@@ -182,12 +182,12 @@ begin
   FdEnabled.Send(Value);
 end;
 
-function TRigidBodyNode.GetFiniteRotationAxis: TVector3Single;
+function TRigidBodyNode.GetFiniteRotationAxis: TVector3;
 begin
   Result := FdFiniteRotationAxis.Value;
 end;
 
-procedure TRigidBodyNode.SetFiniteRotationAxis(const Value: TVector3Single);
+procedure TRigidBodyNode.SetFiniteRotationAxis(const Value: TVector3);
 begin
   FdFiniteRotationAxis.Send(Value);
 end;
@@ -202,12 +202,12 @@ begin
   FdFixed.Send(Value);
 end;
 
-function TRigidBodyNode.GetInertia: TMatrix3Single;
+function TRigidBodyNode.GetInertia: TMatrix3;
 begin
   Result := FdInertia.Value;
 end;
 
-procedure TRigidBodyNode.SetInertia(const Value: TMatrix3Single);
+procedure TRigidBodyNode.SetInertia(const Value: TMatrix3);
 begin
   FdInertia.Send(Value);
 end;
@@ -222,12 +222,12 @@ begin
   FdLinearDampingFactor.Send(Value);
 end;
 
-function TRigidBodyNode.GetLinearVelocity: TVector3Single;
+function TRigidBodyNode.GetLinearVelocity: TVector3;
 begin
   Result := FdLinearVelocity.Value;
 end;
 
-procedure TRigidBodyNode.SetLinearVelocity(const Value: TVector3Single);
+procedure TRigidBodyNode.SetLinearVelocity(const Value: TVector3);
 begin
   FdLinearVelocity.Send(Value);
 end;
@@ -242,22 +242,22 @@ begin
   FdMass.Send(Value);
 end;
 
-function TRigidBodyNode.GetOrientation: TVector4Single;
+function TRigidBodyNode.GetOrientation: TVector4;
 begin
   Result := FdOrientation.Value;
 end;
 
-procedure TRigidBodyNode.SetOrientation(const Value: TVector4Single);
+procedure TRigidBodyNode.SetOrientation(const Value: TVector4);
 begin
   FdOrientation.Send(Value);
 end;
 
-function TRigidBodyNode.GetPosition: TVector3Single;
+function TRigidBodyNode.GetPosition: TVector3;
 begin
   Result := FdPosition.Value;
 end;
 
-procedure TRigidBodyNode.SetPosition(const Value: TVector3Single);
+procedure TRigidBodyNode.SetPosition(const Value: TVector3);
 begin
   FdPosition.Send(Value);
 end;

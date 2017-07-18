@@ -63,7 +63,7 @@ private
       AMOTION_EVENT_ACTION_MOVE immediately, while calling DoMotion may take a while
       (esp. if it calls Application.ProcessMessage). }
     TTouchChange = object
-      OldPosition, Position: TVector2Single;
+      OldPosition, Position: TVector2;
     end;
 
     TQueuedEventType = (aeOpen, aeMotionDown, aeMotionUp, aeMotionMove);
@@ -203,9 +203,9 @@ end;
 
 function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent): boolean;
 
-  function CurrentPosition(const PointerIndex: Integer): TVector2Single;
+  function CurrentPosition(const PointerIndex: Integer): TVector2;
   begin
-    Result := Vector2Single(
+    Result := Vector2(
       AMotionEvent_getX(Event, PointerIndex),
       ScreenHeight - AMotionEvent_getY(Event, PointerIndex));
   end;
@@ -256,7 +256,7 @@ function TCastleApplication.HandleInput(App: PAndroid_app; Event: PAInputEvent):
   procedure MotionMove(const FingerIndex: TFingerIndex; const PointerIndex: Integer);
   var
     QEvent: TQueuedEvent;
-    NewPosition: TVector2Single;
+    NewPosition: TVector2;
   const
     MinDistanceToReportMove = 0.5;
   begin
@@ -514,7 +514,7 @@ begin
   Result := true;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
   { There is no cursor position on Android devices.
     Just update MousePosition (although we're not really required to

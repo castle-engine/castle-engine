@@ -44,7 +44,7 @@ const
       (2, -2), (2, -1), (2, 0), (2, 1), (2, 2),
       ... )
   ) ) }
-function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
+function SHBasis(const LM: Cardinal; const PhiTheta: TVector2): Float;
 
 procedure LMDecode(const LM: Cardinal; out L: Cardinal; out M: Integer);
 
@@ -84,7 +84,7 @@ implementation
 
 uses CastleSphereSampling;
 
-function SHBasis(const LM: Cardinal; const PhiTheta: TVector2Single): Float;
+function SHBasis(const LM: Cardinal; const PhiTheta: TVector2): Float;
 
 { Taken from http://www.sjbrown.co.uk/2004/10/16/spherical-harmonic-basis/ }
 

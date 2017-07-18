@@ -31,8 +31,8 @@ function ToX3DName(const S: string): string;
   satisfy the equation AmbientColor = AmbientIntensity * DiffuseColor.
   Suitable for VRML 2.0/X3D Material.ambientIntensity (as there's no
   Material.ambientColor in VRML 2.0/X3D). }
-function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3Single): Single;
-function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4Single): Single;
+function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3): Single;
+function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4): Single;
 
 { Search harder for file named Base inside directory of BaseUrl.
   BaseUrl must be an absolute URL, we will extract path from it.
@@ -69,7 +69,7 @@ begin
   result := SReplaceChars(S, NonAllowedNameChars, '_');
 end;
 
-function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3Single): Single;
+function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3): Single;
 begin
   Result := 0;
   if not Zero(DiffuseColor[0]) then Result += AmbientColor[0] / DiffuseColor[0];
@@ -78,11 +78,11 @@ begin
   Result /= 3;
 end;
 
-function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4Single): Single;
+function AmbientIntensity(const AmbientColor, DiffuseColor: TVector4): Single;
 begin
   Result := AmbientIntensity(
-    Vector3SingleCut(AmbientColor),
-    Vector3SingleCut(DiffuseColor));
+    AmbientColor.XYZ,
+    DiffuseColor.XYZ);
 end;
 
 function SearchTextureFile(const BaseUrl: string; Base: string): string;

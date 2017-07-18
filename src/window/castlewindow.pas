@@ -606,8 +606,8 @@ type
     function Width: Integer; override;
     function Height: Integer; override;
     function Rect: TRectangle; override;
-    function GetMousePosition: TVector2Single; override;
-    procedure SetMousePosition(const Value: TVector2Single); override;
+    function GetMousePosition: TVector2; override;
+    procedure SetMousePosition(const Value: TVector2); override;
     function Dpi: Integer; override;
     function MousePressed: TMouseButtons; override;
     function Focused: boolean; override;
@@ -651,7 +651,7 @@ type
     FResizeAllowed: TResizeAllowed;
     FMousePressed: TMouseButtons;
     FFocused: boolean;
-    FMousePosition: TVector2Single;
+    FMousePosition: TVector2;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
     FAutoRedisplay: boolean;
     FCaption: array [TCaptionPart] of string;
@@ -743,7 +743,7 @@ type
       This will work, as long as OpenBackend honors the FullScreen setting. }
     procedure SimpleSetFullScreen(const Value: boolean);
 
-    procedure SetMousePosition(const Value: TVector2Single);
+    procedure SetMousePosition(const Value: TVector2);
 
     { Used in particular backend, open OpenGL context and do
       Application.OpenWindowsAdd(Self) there.
@@ -1014,9 +1014,9 @@ type
         update MousePressed
         MakeCurrent
         EventPress/EventRelease }
-    procedure DoMouseDown(const Position: TVector2Single;
+    procedure DoMouseDown(const Position: TVector2;
       Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0);
-    procedure DoMouseUp(const Position: TVector2Single;
+    procedure DoMouseUp(const Position: TVector2;
       Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex = 0;
       const TrackReleased: boolean = true);
     procedure DoMouseWheel(const Scroll: Single; const Vertical: boolean);
@@ -1234,7 +1234,7 @@ type
         @item(Setting mouse position is always ignored when
           the window is closed.)
       ) }
-    property MousePosition: TVector2Single
+    property MousePosition: TVector2
       read FMousePosition write SetMousePosition;
 
     { Currently active touches on the screen.
@@ -2262,7 +2262,7 @@ type
 
       @groupBegin }
     function ColorDialog(var Color: TCastleColor): boolean;
-    function ColorDialog(var Color: TVector3Single): boolean;
+    function ColorDialog(var Color: TVector3): boolean;
     function ColorDialog(var Color: TVector3Byte): boolean;
     { @groupEnd }
 
@@ -2888,10 +2888,11 @@ uses CastleLog, CastleGLVersion, CastleURIUtils,
   {$undef read_implementation_uses}
   X3DLoad, Math;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 {$define read_implementation}
 
@@ -2931,12 +2932,12 @@ begin
   Result := Parent.Rect;
 end;
 
-function TWindowContainer.GetMousePosition: TVector2Single;
+function TWindowContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
 end;
 
-procedure TWindowContainer.SetMousePosition(const Value: TVector2Single);
+procedure TWindowContainer.SetMousePosition(const Value: TVector2);
 begin
   Parent.MousePosition := Value;
 end;
@@ -3526,7 +3527,7 @@ begin
   FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
 
-procedure TCastleWindowCustom.DoMouseDown(const Position: TVector2Single;
+procedure TCastleWindowCustom.DoMouseDown(const Position: TVector2;
   Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex);
 var
   Event: TInputPressRelease;
@@ -3542,7 +3543,7 @@ begin
   FTouches.FingerIndexPosition[Event.FingerIndex] := Event.Position;
 end;
 
-procedure TCastleWindowCustom.DoMouseUp(const Position: TVector2Single;
+procedure TCastleWindowCustom.DoMouseUp(const Position: TVector2;
   Button: CastleKeysMouse.TMouseButton; const FingerIndex: TFingerIndex;
   const TrackReleased: boolean);
 var
@@ -3729,17 +3730,17 @@ end;
 
 function TCastleWindowCustom.ColorDialog(var Color: TCastleColor): boolean;
 var
-  Color3: TVector3Single;
+  Color3: TVector3;
 begin
-  Color3 := Vector3SingleCut(Color);
+  Color3 := Color.XYZ;
   Result := ColorDialog(Color3);
   if Result then
-    Color := Vector4Single(Color3, 1.0);
+    Color := Vector4(Color3, 1.0);
 end;
 
 function TCastleWindowCustom.ColorDialog(var Color: TVector3Byte): boolean;
 var
-  ColorSingle: TVector3Single;
+  ColorSingle: TVector3;
 begin
   ColorSingle[0] := Color[0] / High(Byte);
   ColorSingle[1] := Color[1] / High(Byte);

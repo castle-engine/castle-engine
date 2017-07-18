@@ -70,10 +70,10 @@ type
 
 procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
 var
-  TextureXY, TextureSize: TVector2Single;
+  TextureXY, TextureSize: TVector2;
   I: Integer;
 begin
-  TextureXY := Vector2Single(
+  TextureXY := Vector2(
     XY[0] / ImageWidth,
     XY[1] / ImageHeight);
   TexRect[0][0] := Offset[0] / Orig[0];
@@ -82,7 +82,7 @@ begin
   TexRect[1][1] := (Offset[1] + Size[1]) / Orig[1];
   if Rotate then
   begin
-    TextureSize := Vector2Single(
+    TextureSize := Vector2(
       Size[0] / ImageHeight,
       Size[1] / ImageWidth);
     TextureXY[1] :=
@@ -92,7 +92,7 @@ begin
       - TextureSize[0];
   end else
   begin
-    TextureSize := Vector2Single(
+    TextureSize := Vector2(
       Size[0] / ImageWidth,
       Size[1] / ImageHeight);
     TextureXY[1] :=
@@ -104,16 +104,16 @@ begin
 
   if Rotate then
   begin
-    TexCoord[0] := Vector2Single(TextureSize[1],              0);
-    TexCoord[1] := Vector2Single(TextureSize[1], TextureSize[0]);
-    TexCoord[2] := Vector2Single(             0, TextureSize[0]);
-    TexCoord[3] := Vector2Single(             0,              0);
+    TexCoord[0] := Vector2(TextureSize[1],              0);
+    TexCoord[1] := Vector2(TextureSize[1], TextureSize[0]);
+    TexCoord[2] := Vector2(             0, TextureSize[0]);
+    TexCoord[3] := Vector2(             0,              0);
   end else
   begin
-    TexCoord[0] := Vector2Single(             0,              0);
-    TexCoord[1] := Vector2Single(TextureSize[0],              0);
-    TexCoord[2] := Vector2Single(TextureSize[0], TextureSize[1]);
-    TexCoord[3] := Vector2Single(             0, TextureSize[1]);
+    TexCoord[0] := Vector2(             0,              0);
+    TexCoord[1] := Vector2(TextureSize[0],              0);
+    TexCoord[2] := Vector2(TextureSize[0], TextureSize[1]);
+    TexCoord[3] := Vector2(             0, TextureSize[1]);
   end;
 
   for I := 0 to 3 do

@@ -38,7 +38,7 @@ begin
   try
     Scene.Load('data/model_manifold.wrl');
     Scene.EdgesCount(Manifold, Border);
-    AssertTrue(Border = 0);
+    AssertEquals(0, Border);
   finally FreeAndNil(Scene) end;
 end;
 

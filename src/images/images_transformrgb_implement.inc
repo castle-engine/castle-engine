@@ -1,4 +1,4 @@
-var NewColor: TVector3Single;
+var NewColor: TVector3;
     p: PPixel;
     i: integer;
 begin

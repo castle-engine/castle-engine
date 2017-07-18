@@ -76,16 +76,16 @@ uses SysUtils, CastleVectors, CTypes;
   Definitions of types below are connected with definitions in openal_altypes.inc
   --- if you change some type in openal_altypes.inc you have to adjust definitions
   below as well. That's because we use constructions like
-    TALVector3f = TVector3Single
+    TALVector3f = TVector3
   instead of
     TALVector3f = array [0..2] of TALSingle
-  This way we can use all TVector3Single functions from CastleVectors
+  This way we can use all TVector3 functions from CastleVectors
   to operate on OpenAL vectors.
 }
 
 type
   { }
-  TALVector3f = TVector3Single;
+  TALVector3f = TVector3;
   TALVector3d = TVector3Double;
   { TwoVectors type is useful for OpenAL's listener ORIENTATION property.
     @groupBegin }
@@ -152,9 +152,10 @@ implementation
 uses CastleUtils, CastleDynLib;
 
 { Workaround FPC bug:
-  after using Generics.Collections and CastleUtils (that are in Delphi mode),
-  the FPC_OBJFPC gets undefined (sometimes?). }
-{$define FPC_OBJFPC}
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 function OpenALSampleImplementation: boolean;
 begin

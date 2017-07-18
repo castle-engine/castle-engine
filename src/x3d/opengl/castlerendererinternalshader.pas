@@ -282,19 +282,19 @@ type
 
   TDynamicUniformVec3 = class(TDynamicUniform)
   public
-    Value: TVector3Single;
+    Value: TVector3;
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
   TDynamicUniformVec4 = class(TDynamicUniform)
   public
-    Value: TVector4Single;
+    Value: TVector4;
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
   TDynamicUniformMat4 = class(TDynamicUniform)
   public
-    Value: TMatrix4Single;
+    Value: TMatrix4;
     procedure SetUniform(AProgram: TX3DShaderProgram); override;
   end;
 
@@ -339,7 +339,7 @@ type
     FSurfaceTextureShaders: array [TSurfaceTexture] of TSurfaceTextureShader;
     FFogEnabled: boolean;
     FFogType: TFogType;
-    FFogColor: TVector3Single;
+    FFogColor: TVector3;
     FFogLinearEnd: Single;
     FFogExpDensity: Single;
     FFogCoordinateSource: TFogCoordinateSource;
@@ -394,9 +394,9 @@ type
     { Collected material properties for current shape.
       Must be set before EnableLight, and be constant later --- this matters
       esp. for MaterialSpecular. }
-    MaterialAmbient, MaterialDiffuse, MaterialSpecular, MaterialEmission: TVector4Single;
+    MaterialAmbient, MaterialDiffuse, MaterialSpecular, MaterialEmission: TVector4;
     MaterialShininessExp: Single;
-    MaterialUnlit: TVector4Single;
+    MaterialUnlit: TVector4;
 
     constructor Create;
     destructor Destroy; override;
@@ -466,7 +466,7 @@ type
       const ShadowVisualizeDepth: boolean = false);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent
-      {$ifdef OpenGLES} ; const Plane: TVector4Single {$endif});
+      {$ifdef OpenGLES} ; const Plane: TVector4 {$endif});
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComplete;
       const TransformToWorldSpace: boolean = false);
@@ -476,7 +476,7 @@ type
     procedure DisableTexGen(const TextureUnit: Cardinal);
     {$ifdef OpenGLES}
     procedure EnableTextureTransform(const TextureUnit: Cardinal;
-      const Matrix: TMatrix4Single);
+      const Matrix: TMatrix4);
     {$endif}
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
@@ -491,7 +491,7 @@ type
     procedure EnableLight(const Number: Cardinal; Light: PLightInstance);
     procedure EnableFog(const FogType: TFogType;
       const FogCoordinateSource: TFogCoordinateSource;
-      const FogColor: TVector3Single; const FogLinearEnd: Single;
+      const FogColor: TVector3; const FogLinearEnd: Single;
       const FogExpDensity: Single);
     { Modify some fog parameters, relevant only if fog already enabled.
       Used by FogCoordinate, that changes some fog settings,
@@ -858,9 +858,9 @@ end;
 procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
 var
   {$ifdef OpenGLES}
-  Color3, AmbientColor3: TVector3Single;
-  Color4, AmbientColor4: TVector4Single;
-  Position: TVector4Single;
+  Color3, AmbientColor3: TVector3;
+  Color4, AmbientColor4: TVector4;
+  Position: TVector4;
   {$endif}
   LiPos: TAbstractPositionalLightNode;
   LiSpot1: TSpotLightNode_1;
@@ -869,14 +869,14 @@ begin
   {$ifdef OpenGLES}
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
-  Color4 := Vector4Single(Color3, 1);
+  Color4 := Vector4(Color3, 1);
 
   { calculate AmbientColor4 = light color * light ambient intensity }
   if Node.FdAmbientIntensity.Value < 0 then
     AmbientColor4 := Color4 else
   begin
     AmbientColor3 := Node.FdColor.Value * Node.FdAmbientIntensity.Value;
-    AmbientColor4 := Vector4Single(AmbientColor3, 1);
+    AmbientColor4 := Vector4(AmbientColor3, 1);
   end;
 
   Position := Light^.Position;
@@ -887,7 +887,7 @@ begin
     we don't need it. #defines tell the shader whether we deal with direcional
     or positional light. }
   AProgram.SetUniform(Format('castle_LightSource%dPosition', [Number]),
-    Vector3SingleCut(Position));
+    Position.XYZ);
   {$endif}
 
   if Node is TAbstractPositionalLightNode then
@@ -1066,11 +1066,11 @@ procedure TX3DShaderProgram.SetUniformFromField(
   const EnableDisable: boolean);
 var
   TempF: TSingleList;
-  TempVec2f: TVector2SingleList;
-  TempVec3f: TVector3SingleList;
-  TempVec4f: TVector4SingleList;
-  TempMat3f: TMatrix3SingleList;
-  TempMat4f: TMatrix4SingleList;
+  TempVec2f: TVector2List;
+  TempVec3f: TVector3List;
+  TempVec4f: TVector4List;
+  TempMat3f: TMatrix3List;
+  TempMat4f: TMatrix4List;
 begin
   { program must be active to set uniform values. }
   if EnableDisable then
@@ -1088,7 +1088,7 @@ begin
     as vec4 (so says the spec, I guess that the reason is that for GLSL most
     input/output colors are vec4). }
   if UniformValue is TSFColor then
-    SetUniform(UniformName, Vector4Single(TSFColor(UniformValue).Value, 1.0), true) else
+    SetUniform(UniformName, Vector4(TSFColor(UniformValue).Value, 1.0), true) else
   if UniformValue is TSFVec3f then
     SetUniform(UniformName, TSFVec3f(UniformValue).Value, true) else
   if UniformValue is TSFVec4f then
@@ -1116,15 +1116,15 @@ begin
     the reasonable approach: support all double-precision vectors and matrices,
     just like single-precision. }
   if UniformValue is TSFVec2d then
-    SetUniform(UniformName, Vector2Single(TSFVec2d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector2(TSFVec2d(UniformValue).Value), true) else
   if UniformValue is TSFVec3d then
-    SetUniform(UniformName, Vector3Single(TSFVec3d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector3(TSFVec3d(UniformValue).Value), true) else
   if UniformValue is TSFVec4d then
-    SetUniform(UniformName, Vector4Single(TSFVec4d(UniformValue).Value), true) else
+    SetUniform(UniformName, Vector4(TSFVec4d(UniformValue).Value), true) else
   if UniformValue is TSFMatrix3d then
-    SetUniform(UniformName, Matrix3Single(TSFMatrix3d(UniformValue).Value), true) else
+    SetUniform(UniformName, Matrix3(TSFMatrix3d(UniformValue).Value), true) else
   if UniformValue is TSFMatrix4d then
-    SetUniform(UniformName, Matrix4Single(TSFMatrix4d(UniformValue).Value), true) else
+    SetUniform(UniformName, Matrix4(TSFMatrix4d(UniformValue).Value), true) else
 
   { Now repeat this for array types }
   if UniformValue is TMFBool then
@@ -1135,7 +1135,7 @@ begin
     SetUniform(UniformName, TMFVec2f(UniformValue).Items, true) else
   if UniformValue is TMFColor then
   begin
-    TempVec4f := TMFColor(UniformValue).Items.ToVector4Single(1.0);
+    TempVec4f := TMFColor(UniformValue).Items.ToVector4(1.0);
     try
       SetUniform(UniformName, TempVec4f, true);
     finally FreeAndNil(TempVec4f) end;
@@ -1161,35 +1161,35 @@ begin
   end else
   if UniformValue is TMFVec2d then
   begin
-    TempVec2f := TMFVec2d(UniformValue).Items.ToVector2Single;
+    TempVec2f := TMFVec2d(UniformValue).Items.ToVector2;
     try
       SetUniform(UniformName, TempVec2f, true);
     finally FreeAndNil(TempVec2f) end;
   end else
   if UniformValue is TMFVec3d then
   begin
-    TempVec3f := TMFVec3d(UniformValue).Items.ToVector3Single;
+    TempVec3f := TMFVec3d(UniformValue).Items.ToVector3;
     try
       SetUniform(UniformName, TempVec3f, true);
     finally FreeAndNil(TempVec3f) end;
   end else
   if UniformValue is TMFVec4d then
   begin
-    TempVec4f := TMFVec4d(UniformValue).Items.ToVector4Single;
+    TempVec4f := TMFVec4d(UniformValue).Items.ToVector4;
     try
       SetUniform(UniformName, TempVec4f, true);
     finally FreeAndNil(TempVec4f) end;
   end else
   if UniformValue is TMFMatrix3d then
   begin
-    TempMat3f := TMFMatrix3d(UniformValue).Items.ToMatrix3Single;
+    TempMat3f := TMFMatrix3d(UniformValue).Items.ToMatrix3;
     try
       SetUniform(UniformName, TempMat3f, true);
     finally FreeAndNil(TempMat3f) end;
   end else
   if UniformValue is TMFMatrix4d then
   begin
-    TempMat4f := TMFMatrix4d(UniformValue).Items.ToMatrix4Single;
+    TempMat4f := TMFMatrix4d(UniformValue).Items.ToMatrix4;
     try
       SetUniform(UniformName, TempMat4f, true);
     finally FreeAndNil(TempMat4f) end;
@@ -1704,13 +1704,13 @@ begin
   GroupEffects := nil;
   Lighting := false;
   MaterialFromColor := false;
-  ShapeBoundingBox := EmptyBox3D;
-  MaterialAmbient := ZeroVector4Single;
-  MaterialDiffuse := ZeroVector4Single;
-  MaterialSpecular := ZeroVector4Single;
-  MaterialEmission := ZeroVector4Single;
+  ShapeBoundingBox := TBox3D.Empty;
+  MaterialAmbient := TVector4.Zero;
+  MaterialDiffuse := TVector4.Zero;
+  MaterialSpecular := TVector4.Zero;
+  MaterialEmission := TVector4.Zero;
   MaterialShininessExp := 0;
-  MaterialUnlit := ZeroVector4Single;
+  MaterialUnlit := TVector4.Zero;
   DynamicUniforms.Clear;
   {$ifdef OpenGLES} TextureMatrix.Clear; {$endif}
   NeedsCameraInverseMatrix := false;
@@ -2898,7 +2898,7 @@ end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
   const Generation: TTexGenerationComponent; const Component: TTexComponent
-  {$ifdef OpenGLES} ; const Plane: TVector4Single {$endif});
+  {$ifdef OpenGLES} ; const Plane: TVector4 {$endif});
 const
   PlaneComponentNames: array [TTexComponent] of char = ('S', 'T', 'R', 'Q');
   { Note: R changes to p ! }
@@ -2967,7 +2967,7 @@ end;
 
 {$ifdef OpenGLES}
 procedure TShader.EnableTextureTransform(const TextureUnit: Cardinal;
-  const Matrix: TMatrix4Single);
+  const Matrix: TMatrix4);
 var
   Uniform: TDynamicUniformMat4;
 begin
@@ -3097,7 +3097,7 @@ end;
 
 procedure TShader.EnableFog(const FogType: TFogType;
   const FogCoordinateSource: TFogCoordinateSource;
-  const FogColor: TVector3Single; const FogLinearEnd: Single;
+  const FogColor: TVector3; const FogLinearEnd: Single;
   const FogExpDensity: Single);
 begin
   FFogEnabled := true;

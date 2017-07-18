@@ -20,9 +20,9 @@
     material binding BIND_PER_FACE_INDEXED. Pass @nil if you don't
     need it.) }
 procedure Box_Proxy(CoordIndex: TLongIntList;
-  Coord: TVector3SingleList; Normal: TVector3SingleList;
-  TexCoord: TVector2SingleList; MaterialIndex: TLongIntList;
-  OverTriangulate: boolean; Sizes: TVector3Single;
+  Coord: TVector3List; Normal: TVector3List;
+  TexCoord: TVector2List; MaterialIndex: TLongIntList;
+  OverTriangulate: boolean; Sizes: TVector3;
   const Divisions: Cardinal);
 
 var
@@ -43,7 +43,7 @@ var
     const FaceMaterialIndex: Integer;
     const TextureSIsY: boolean = false);
 
-    function MakeTexCoord(const S, T: Single): TVector2Single;
+    function MakeTexCoord(const S, T: Single): TVector2;
     begin
       if TextureSIsY then
       begin
@@ -60,7 +60,7 @@ var
     FaceIndex, Index, C1, C2: integer;
     X2, Y2, TexX2, TexY2: Single;
     I, J, NewCoords, ThisIndex: Integer;
-    N: TVector3Single;
+    N: TVector3;
   begin
     RestOf3dCoords(ConstCoord, C1, C2);
 
@@ -145,20 +145,20 @@ end;
 
 { Make a wireframe box. }
 procedure BoxWireframe_Proxy(CoordIndex: TLongIntList;
-  Coord: TVector3SingleList; Sizes: TVector3Single);
+  Coord: TVector3List; Sizes: TVector3);
 begin
   Sizes /= 2;
 
   Coord.AddRange([
-    Vector3Single(-Sizes[0], -Sizes[1], -Sizes[2]),
-    Vector3Single( Sizes[0], -Sizes[1], -Sizes[2]),
-    Vector3Single( Sizes[0],  Sizes[1], -Sizes[2]),
-    Vector3Single(-Sizes[0],  Sizes[1], -Sizes[2]),
+    Vector3(-Sizes[0], -Sizes[1], -Sizes[2]),
+    Vector3( Sizes[0], -Sizes[1], -Sizes[2]),
+    Vector3( Sizes[0],  Sizes[1], -Sizes[2]),
+    Vector3(-Sizes[0],  Sizes[1], -Sizes[2]),
 
-    Vector3Single(-Sizes[0], -Sizes[1],  Sizes[2]),
-    Vector3Single( Sizes[0], -Sizes[1],  Sizes[2]),
-    Vector3Single( Sizes[0],  Sizes[1],  Sizes[2]),
-    Vector3Single(-Sizes[0],  Sizes[1],  Sizes[2])
+    Vector3(-Sizes[0], -Sizes[1],  Sizes[2]),
+    Vector3( Sizes[0], -Sizes[1],  Sizes[2]),
+    Vector3( Sizes[0],  Sizes[1],  Sizes[2]),
+    Vector3(-Sizes[0],  Sizes[1],  Sizes[2])
   ]);
 
   CoordIndex.AddRange([
@@ -194,7 +194,7 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
     CoordNode: TCoordinateNode;
     NormalNode: TNormalNode;
     TexCoordNode: TTextureCoordinateNode;
-    TexCoords: TVector2SingleList;
+    TexCoords: TVector2List;
     IFS: TIndexedFaceSetNode absolute Result;
   begin
     IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
@@ -296,7 +296,7 @@ begin
       CoordNode.FdPoint.Items, NormalNode.FdVector.Items,
       TexCoordNode.FdPoint.Items, MaterialIndex,
       OverTriangulate,
-      Vector3Single(FdWidth.Value, FdHeight.Value, FdDepth.Value),
+      Vector3(FdWidth.Value, FdHeight.Value, FdDepth.Value),
       DefaultTriangulationDivisions);
 
     { For VRML 1.0, unfortunately textureCoordIndex must be set

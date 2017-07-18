@@ -64,7 +64,7 @@ begin
             if PerspectiveE <> nil then
             begin
               Viewpoint := TViewpointNode.Create(Id + '_viewpoint', BaseUrl);
-              Viewpoint.FdPosition.Value := ZeroVector3Single;
+              Viewpoint.FdPosition.Value := TVector3.Zero;
               CameraGroup.FdChildren.Add(Viewpoint);
 
               { Try to get YFov, and use it as X3D fieldOfView.
@@ -85,7 +85,7 @@ begin
               if OrthographicE <> nil then
               begin
                 OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', BaseUrl);
-                OrthoViewpoint.FdPosition.Value := ZeroVector3Single;
+                OrthoViewpoint.FdPosition.Value := TVector3.Zero;
                 CameraGroup.FdChildren.Add(OrthoViewpoint);
 
                 { Translation to X3D cannot be perfect, as fieldOfView

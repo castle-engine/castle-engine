@@ -46,7 +46,7 @@ type
 
       Memory cost is acceptable: assume we have model with 10 000 faces,
       so 15 000 edges (assuming it's correctly closed manifold), so we waste
-      15 000 * 2 * SizeOf(TVector3Single) = 360 000 bytes... that's really nothing
+      15 000 * 2 * SizeOf(TVector3) = 360 000 bytes... that's really nothing
       to worry (we waste much more on other things).
 
       Checked with "The Castle": indeed, this costs about 1 MB memory
@@ -59,7 +59,7 @@ type
       Also, in the future, maybe it will be sensible
       to use this for actual shadow quad rendering, in cases when we know that
       TCastleSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
-    V0, V1: TVector3Single;
+    V0, V1: TVector3;
   end;
   PManifoldEdge = ^TManifoldEdge;
 
@@ -193,18 +193,18 @@ type
   TTriangleAdder = class
     TriangleList: TTriangle3SingleList;
     procedure AddTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Triangle: TTriangle3Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   end;
 
 procedure TTriangleAdder.AddTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Triangle: TTriangle3Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
-  if IsValidTriangle(Position) then
-    TriangleList.Add(Position);
+  if Triangle.IsValid then
+    TriangleList.Add(Triangle);
 end;
 
 function TShapeShadowVolumes.TrianglesListShadowCasters: TTrianglesShadowCastersList;
@@ -280,8 +280,8 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     procedure AddEdgeCheckManifold(
       EdgesSingle: TManifoldEdgeList;
       const TriangleIndex: Cardinal;
-      const V0: TVector3Single;
-      const V1: TVector3Single;
+      const V0: TVector3;
+      const V1: TVector3;
       const VertexIndex: Cardinal;
       Triangles: TTriangle3SingleList);
     var
@@ -346,7 +346,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     Assert(FManifoldEdges = nil);
     Assert(FBorderEdges = nil);
 
-    { It's important here that TrianglesListShadowCasters guarentees that only
+    { It's important here that TrianglesListShadowCasters guarantees that only
       valid triangles are included. Otherwise degenerate triangles could make
       shadow volumes rendering result bad. }
     Triangles := TrianglesListShadowCasters;
@@ -363,13 +363,13 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
     try
       EdgesSingle.Capacity := Triangles.Count * 3 div 2;
 
-      TrianglePtr := PTriangle3Single(Triangles.List);
+      TrianglePtr := PTriangle3(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
       begin
         { TrianglePtr points to Triangles[I] now }
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[0], TrianglePtr^[1], 0, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[1], TrianglePtr^[2], 1, Triangles);
-        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^[2], TrianglePtr^[0], 2, Triangles);
+        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^.Data[0], TrianglePtr^.Data[1], 0, Triangles);
+        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^.Data[1], TrianglePtr^.Data[2], 1, Triangles);
+        AddEdgeCheckManifold(EdgesSingle, I, TrianglePtr^.Data[2], TrianglePtr^.Data[0], 2, Triangles);
         Inc(TrianglePtr);
       end;
 

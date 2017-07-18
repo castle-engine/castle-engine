@@ -87,7 +87,7 @@ begin
     end;
 
     Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
-    Node.FdKeyValue.Items.Add(Vector3Single(0, 0, DrawOrder[I] * TSlot.DrawOrderZ));
+    Node.FdKeyValue.Items.Add(Vector3(0, 0, DrawOrder[I] * TSlot.DrawOrderZ));
   end;
 
   NodeUsedAsChild := true;

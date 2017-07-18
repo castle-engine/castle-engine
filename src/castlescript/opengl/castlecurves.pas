@@ -57,14 +57,14 @@ type
 
     { Curve function, for each parameter value determine the 3D point.
       This determines the actual shape of the curve. }
-    function Point(const t: Float): TVector3Single; virtual; abstract;
-    function Point2D(const t: Float): TVector2Single;
+    function Point(const t: Float): TVector3; virtual; abstract;
+    function Point2D(const t: Float): TVector2;
 
     { Curve function to work with rendered line segments begin/end points.
       This is simply a more specialized version of @link(Point),
       it scales the argument such that you get Point(TBegin) for I = 0
       and you get Point(TEnd) for I = Segments. }
-    function PointOfSegment(i, Segments: Cardinal): TVector3Single;
+    function PointOfSegment(i, Segments: Cardinal): TVector3;
 
     { Render curve by dividing it into a given number of line segments.
       So actually @italic(every) curve will be rendered as a set of straight lines.
@@ -128,7 +128,7 @@ type
     procedure LoadFromElement(const E: TDOMElement); override;
     procedure SaveToStream(const Stream: TStream); override;
   public
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
 
     { XFunction, YFunction, ZFunction are functions based on variable 't'.
       Once set, these instances become owned by this class, do not free
@@ -180,13 +180,13 @@ type
 
       Default implementation in this class returns ControlPoints as
       CreateConvexHullPoints. (and does nothing in DestroyConvexHullPoints) }
-    function CreateConvexHullPoints: TVector3SingleList; virtual;
-    procedure DestroyConvexHullPoints(Points: TVector3SingleList); virtual;
+    function CreateConvexHullPoints: TVector3List; virtual;
+    procedure DestroyConvexHullPoints(Points: TVector3List); virtual;
   protected
     procedure LoadFromElement(const E: TDOMElement); override;
     procedure SaveToStream(const Stream: TStream); override;
   public
-    ControlPoints: TVector3SingleList;
+    ControlPoints: TVector3List;
 
     property ControlPointsColor: TCastleColor read FControlPointsColor write FControlPointsColor;
       deprecated 'Do not use this, as you should not use RenderControlPoints method.';
@@ -247,7 +247,7 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure UpdateControlPoints; override;
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
   end deprecated 'Rendering of TRationalBezierCurve is not portable to OpenGLES (that is: Android and iOS) and not very efficient. Also, this is usually not very useful curve for game purposes, you usually want to use cubic Bezier (CubicBezier3D) or piecewise cubic Bezier (TPiecewiseCubicBezier) instead. For portable and fast general curves use X3D NURBS nodes (wrapped in a TCastleScene) instead.';
 
   {$push}
@@ -256,8 +256,8 @@ type
   TRationalBezierCurveList = specialize TObjectList<TRationalBezierCurve>;
   {$pop}
 
-  TCubicBezier2DPoints = array [0..3] of TVector2Single;
-  TCubicBezier3DPoints = array [0..3] of TVector3Single;
+  TCubicBezier2DPoints = array [0..3] of TVector2;
+  TCubicBezier3DPoints = array [0..3] of TVector3;
 
   { Piecewise (composite) cubic Bezier curve.
     Each segment (ControlPoints[i]..ControlPoints[i+1])
@@ -285,27 +285,27 @@ type
   TPiecewiseCubicBezier = class(TControlPointsCurve)
   strict private
     BezierCurves: array of TCubicBezier3DPoints;
-    ConvexHullPoints: TVector3SingleList;
+    ConvexHullPoints: TVector3List;
     FBoundingBox: TBox3D;
   strict protected
-    function CreateConvexHullPoints: TVector3SingleList; override;
-    procedure DestroyConvexHullPoints(Points: TVector3SingleList); override;
+    function CreateConvexHullPoints: TVector3List; override;
+    procedure DestroyConvexHullPoints(Points: TVector3List); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure UpdateControlPoints; override;
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
     function BoundingBox: TBox3D; override;
   end;
 
 { Cubic (4 control points) Bezier curve (with all weights equal) in 1D. }
-function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
+function CubicBezier1D(T: Single; const Points: TVector4): Single;
 
 { Cubic (4 control points) Bezier curve (with all weights equal) in 2D. }
-function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2Single;
+function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2;
 
 { Cubic (4 control points) Bezier curve (with all weights equal) in 3D. }
-function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3Single;
+function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3;
 
 { Catmull-Rom spline. Nice way to have a function that for certain arguments
   reaches certain values, and between interpolates smoothly.
@@ -353,7 +353,7 @@ uses Math,
 
 { TCurve ------------------------------------------------------------ }
 
-function TCurve.PointOfSegment(i, Segments: Cardinal): TVector3Single;
+function TCurve.PointOfSegment(i, Segments: Cardinal): TVector3;
 begin
   Result := Point(TBegin + (i/Segments) * (TEnd-TBegin));
 end;
@@ -426,9 +426,9 @@ begin
   WritelnStr(Stream, Format('    <time begin="%f" end="%f" />', [TBegin, TEnd]));
 end;
 
-function TCurve.Point2D(const T: Float): TVector2Single;
+function TCurve.Point2D(const T: Float): TVector2;
 var
-  V: TVector3Single;
+  V: TVector3;
 begin
   V := Point(T);
   Result[0] := V[0];
@@ -544,13 +544,13 @@ end;
 procedure TCasScriptCurve.UpdateBoundingBox;
 var
   i, k: Integer;
-  P: TVector3Single;
+  P: TVector3;
 begin
   if (XFunction = nil) or
      (YFunction = nil) or
      (ZFunction = nil) or
      (TVariable = nil) then
-    FBoundingBox := EmptyBox3D else
+    FBoundingBox := TBox3D.Empty else
   begin
     { calculate FBoundingBox }
     P := PointOfSegment(0, SegmentsForBoundingBox); { = Point(TBegin) }
@@ -561,14 +561,14 @@ begin
       P := PointOfSegment(i, SegmentsForBoundingBox);
       for k := 0 to 2 do
       begin
-        FBoundingBox.Data[0, k] := Min(FBoundingBox.Data[0, k], P[k]);
-        FBoundingBox.Data[1, k] := Max(FBoundingBox.Data[1, k], P[k]);
+        FBoundingBox.Data[0].Data[k] := Min(FBoundingBox.Data[0].Data[k], P[k]);
+        FBoundingBox.Data[1].Data[k] := Max(FBoundingBox.Data[1].Data[k], P[k]);
       end;
     end;
   end;
 end;
 
-function TCasScriptCurve.Point(const t: Float): TVector3Single;
+function TCasScriptCurve.Point(const t: Float): TVector3;
 var
   I: Integer;
 begin
@@ -646,19 +646,19 @@ begin
     ControlPoints.Count, 0);
 end;
 
-function TControlPointsCurve.CreateConvexHullPoints: TVector3SingleList;
+function TControlPointsCurve.CreateConvexHullPoints: TVector3List;
 begin
   Result := ControlPoints;
 end;
 
-procedure TControlPointsCurve.DestroyConvexHullPoints(Points: TVector3SingleList);
+procedure TControlPointsCurve.DestroyConvexHullPoints(Points: TVector3List);
 begin
 end;
 
 procedure TControlPointsCurve.RenderConvexHull;
 {$ifndef OpenGLES} //TODO-es
 var
-  CHPoints: TVector3SingleList;
+  CHPoints: TVector3List;
   CH: TIntegerList;
   i: Integer;
 begin
@@ -685,10 +685,10 @@ end;
 constructor TControlPointsCurve.Create(AOwner: TComponent);
 begin
   inherited;
-  ControlPoints := TVector3SingleList.Create;
+  ControlPoints := TVector3List.Create;
   { DON'T call UpdateControlPoints from here - UpdateControlPoints is virtual !
     So we set FBoundingBox by hand. }
-  FBoundingBox := EmptyBox3D;
+  FBoundingBox := TBox3D.Empty;
   FControlPointsColor := White;
   FConvexHullColor := White;
 end;
@@ -746,10 +746,10 @@ end;
 
 { TRationalBezierCurve ----------------------------------------------- }
 
-function TRationalBezierCurve.Point(const t: Float): TVector3Single;
+function TRationalBezierCurve.Point(const t: Float): TVector3;
 var
   u: Float;
-  W: TVector3SingleList;
+  W: TVector3List;
   Wgh: TFloatList;
   i, k, n, j: Integer;
 begin
@@ -766,7 +766,7 @@ begin
     // using nice FPC memory manager should make this memory allocating
     // (in each call to Point) painless. So I don't care about optimizing
     // this by moving W to private class-scope.
-    W := TVector3SingleList.Create;
+    W := TVector3List.Create;
     W.Assign(ControlPoints);
     Wgh := TFloatList.Create;
     Wgh.Assign(Weights);
@@ -783,7 +783,7 @@ begin
                              u * Wgh[i+1] * W.L[i+1][j];
         Wgh.L[i]:=(1-u) * Wgh[i] + u * Wgh[i+1];
         for j := 0 to 2 do
-          W.L[i][j] /= Wgh.L[i];
+          W.L[i].Data[j] /= Wgh.L[i];
       end;
     end;
 
@@ -836,22 +836,22 @@ begin
 
   WritelnStr(Stream, '    <weights>');
   for I := 0 to Weights.Count - 1 do
-    WritelnStr(Stream, '      <weight value="' + FloatToRawStr(Weights[I]) + '"/>');
+    WritelnStr(Stream, '      <weight value="' + Format('%g', [Weights[I]]) + '"/>');
   WritelnStr(Stream, '    </weights>');
 end;
 
 { TPiecewiseCubicBezier --------------------------------------------------- }
 
-function TPiecewiseCubicBezier.CreateConvexHullPoints: TVector3SingleList;
+function TPiecewiseCubicBezier.CreateConvexHullPoints: TVector3List;
 begin
   Result := ConvexHullPoints;
 end;
 
-procedure TPiecewiseCubicBezier.DestroyConvexHullPoints(Points: TVector3SingleList);
+procedure TPiecewiseCubicBezier.DestroyConvexHullPoints(Points: TVector3List);
 begin
 end;
 
-function TPiecewiseCubicBezier.Point(const t: Float): TVector3Single;
+function TPiecewiseCubicBezier.Point(const t: Float): TVector3;
 var
   T01: Single;
   TInsidePiece: Double;
@@ -898,10 +898,10 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
   procedure UpdateBezierCurves;
   var
-    S: TVector3SingleList;
-    C: TVector3SingleList;
+    S: TVector3List;
+    C: TVector3List;
     I: Integer;
-    PointBegin, PointEnd: TVector3Single;
+    PointBegin, PointEnd: TVector3;
   begin
     { Normal calculations cannot be done when
       ControlPoints.Count = 2:
@@ -920,13 +920,13 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
     C := nil;
     S := nil;
     try
-      C := TVector3SingleList.Create;
+      C := TVector3List.Create;
       C.Count := ControlPoints.Count - 1;
       { calculate C values }
       for I := 0 to C.Count - 1 do
         C[I] := ControlPoints[I + 1] - ControlPoints[I];
 
-      S := TVector3SingleList.Create;
+      S := TVector3List.Create;
       S.Count := ControlPoints.Count;
       { calculate S values }
       for I := 1 to S.Count - 2 do
@@ -981,7 +981,7 @@ end;
 constructor TPiecewiseCubicBezier.Create(AOwner: TComponent);
 begin
   inherited;
-  ConvexHullPoints := TVector3SingleList.Create;
+  ConvexHullPoints := TVector3List.Create;
 end;
 
 destructor TPiecewiseCubicBezier.Destroy;
@@ -997,7 +997,7 @@ end;
 
 { global routines ------------------------------------------------------------ }
 
-function CubicBezier1D(T: Single; const Points: TVector4Single): Single;
+function CubicBezier1D(T: Single; const Points: TVector4): Single;
 var
   T1: Single;
 begin
@@ -1009,7 +1009,7 @@ begin
             Points[3] *     Sqr(T) * T;
 end;
 
-function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2Single;
+function CubicBezier2D(T: Single; const Points: TCubicBezier2DPoints): TVector2;
 var
   T1: Single;
 begin
@@ -1021,7 +1021,7 @@ begin
             Points[3] * (    Sqr(T) * T);
 end;
 
-function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3Single;
+function CubicBezier3D(T: Single; const Points: TCubicBezier3DPoints): TVector3;
 var
   T1: Single;
 begin

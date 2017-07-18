@@ -63,19 +63,19 @@ uses SysUtils, CastleUtils, CastleVectors, CastleSceneCore, X3DNodes,
 
 var
   Scene: TCastleSceneCore;
-  Normals: TVector3SingleList;
+  Normals: TVector3List;
   SHBasisCount: Integer = 25;
   RaysPerVertex: Cardinal = 1000;
 
-procedure ComputeTransfer(RadianceTransfer: TVector3SingleList;
-  Coord: TVector3SingleList; const Transform: TMatrix4Single;
-  const DiffuseColor: TVector3Single);
+procedure ComputeTransfer(RadianceTransfer: TVector3List;
+  Coord: TVector3List; const Transform: TMatrix4;
+  const DiffuseColor: TVector3);
 var
   I, J, SHBase: Integer;
-  V, N: TVector3Single;
-  RayDirectionPT: TVector2Single;
-  RayDirection: TVector3Single;
-  VertexTransfer: PVector3Single;
+  V, N: TVector3;
+  RayDirectionPT: TVector2;
+  RayDirection: TVector3;
+  VertexTransfer: PVector3;
 begin
   RadianceTransfer.Count := Coord.Count * SHBasisCount;
 
@@ -91,10 +91,10 @@ begin
       { N = scene-space normal coord
         TODO: MatrixMultDirection will not work under non-uniform scaling
         matrix correctly. }
-      N := Normalized(MatrixMultDirection(Transform, Normals.List^[I]));
+      N := Normalized(Transform.MultDirection(Normals.List^[I]));
 
       for SHBase := 0 to SHBasisCount - 1 do
-        VertexTransfer[SHBase] := ZeroVector3Single;
+        VertexTransfer[SHBase] := TVector3.Zero;
 
       { In some nasty cases, smoothed normal may be zero, see e.g. spider_queen
         legs. Leave VertexTransfer[SHBase] as zeros in this case. }
@@ -130,7 +130,7 @@ begin
 
                 We calculate only red component here, the rest will
                 be copied from it later. }
-              VertexTransfer[SHBase][0] += SHBasis(SHBase, RayDirectionPT) *
+              VertexTransfer[SHBase].Data[0] += SHBasis(SHBase, RayDirectionPT) *
                 VectorDotProduct(N, RayDirection);
           end;
         end;
@@ -139,20 +139,20 @@ begin
         begin
           { VertexTransfer[SHBase][0] is an integral over hemisphere,
             so normalize. }
-          VertexTransfer[SHBase][0] *= 2 * Pi / RaysPerVertex;
+          VertexTransfer[SHBase].Data[0] *= 2 * Pi / RaysPerVertex;
 
           { Calculate Green, Blue components of VertexTransfer
             (just copy from Red, since we didn't take DiffuseColor
             into account yet). }
-          VertexTransfer[SHBase][1] := VertexTransfer[SHBase][0];
-          VertexTransfer[SHBase][2] := VertexTransfer[SHBase][0];
+          VertexTransfer[SHBase].Data[1] := VertexTransfer[SHBase].Data[0];
+          VertexTransfer[SHBase].Data[2] := VertexTransfer[SHBase].Data[0];
 
           { Multiply by BRDF = DiffuseColor (since
             BRDF is simply constant, so we can simply multiply here).
             For diffuse surface, BRDF is just = DiffuseColor. }
-          VertexTransfer[SHBase][0] *= DiffuseColor[0];
-          VertexTransfer[SHBase][1] *= DiffuseColor[1];
-          VertexTransfer[SHBase][2] *= DiffuseColor[2];
+          VertexTransfer[SHBase].Data[0] *= DiffuseColor[0];
+          VertexTransfer[SHBase].Data[1] *= DiffuseColor[1];
+          VertexTransfer[SHBase].Data[2] *= DiffuseColor[2];
         end;
       end;
 
@@ -161,7 +161,7 @@ begin
   finally Progress.Fini end;
 end;
 
-function DiffuseColor(State: TX3DGraphTraverseState): TVector3Single;
+function DiffuseColor(State: TX3DGraphTraverseState): TVector3;
 var
   MaterialInfo: TMaterialInfo;
 begin
@@ -191,7 +191,7 @@ var
   SI: TShapeTreeIterator;
   Geometry: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  RadianceTransfer: TVector3SingleList;
+  RadianceTransfer: TVector3List;
   S: string;
 begin
   Parameters.Parse(Options, @OptionProc, nil);

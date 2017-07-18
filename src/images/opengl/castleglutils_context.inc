@@ -138,7 +138,7 @@ begin
   inherited;
   FLineWidth := 1;
   FPointSize := 1;
-  FGlobalAmbient := Vector3Single(0.2, 0.2, 0.2);
+  FGlobalAmbient := Vector3(0.2, 0.2, 0.2);
   FEnabledScissors := TScissorList.Create(false);
 end;
 
@@ -225,7 +225,7 @@ begin
     { We always set "1" as global ambient alpha.
       This alpha does not have any useful interpretation, it seems,
       so don't let it change. }
-    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(FGlobalAmbient, 1));
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4(FGlobalAmbient, 1));
     {$endif}
   end;
 end;

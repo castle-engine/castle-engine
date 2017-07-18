@@ -946,7 +946,7 @@ var
                 RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
               for X := 0 to Width - 1 do
               begin
-                SwapValues(Row^[2], Row^[0]);
+                SwapValues(Row^.Data[2], Row^.Data[0]);
                 Inc(Row);
               end;
 
@@ -982,7 +982,7 @@ var
               { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
               for X := 0 to Width - 1 do
               begin
-                SwapValues(Row^[2], Row^[0]);
+                SwapValues(Row^.Data[2], Row^.Data[0]);
                 Inc(Row);
               end;
 
@@ -1042,8 +1042,8 @@ var
                 GA := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
-                  GA^[0] := Reader.RGBA(0);
-                  GA^[1] := Reader.RGBA(3);
+                  GA^.Data[0] := Reader.RGBA(0);
+                  GA^.Data[1] := Reader.RGBA(3);
                   Reader.NextPixel;
                   Inc(GA);
                 end;
@@ -1066,9 +1066,9 @@ var
                 RGB := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
-                  RGB^[0] := Reader.RGBA(0);
-                  RGB^[1] := Reader.RGBA(1);
-                  RGB^[2] := Reader.RGBA(2);
+                  RGB^.Data[0] := Reader.RGBA(0);
+                  RGB^.Data[1] := Reader.RGBA(1);
+                  RGB^.Data[2] := Reader.RGBA(2);
                   Reader.NextPixel;
                   Inc(RGB);
                 end;
@@ -1091,10 +1091,10 @@ var
                 RGBA := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
-                  RGBA^[0] := Reader.RGBA(0);
-                  RGBA^[1] := Reader.RGBA(1);
-                  RGBA^[2] := Reader.RGBA(2);
-                  RGBA^[3] := Reader.RGBA(3);
+                  RGBA^.Data[0] := Reader.RGBA(0);
+                  RGBA^.Data[1] := Reader.RGBA(1);
+                  RGBA^.Data[2] := Reader.RGBA(2);
+                  RGBA^.Data[3] := Reader.RGBA(3);
                   Reader.NextPixel;
                   Inc(RGBA);
                 end;
@@ -1118,8 +1118,8 @@ var
                 GA := Res.RowPtr(Y, Z);
                 for X := 0 to Width - 1 do
                 begin
-                  GA^[0] := 255;
-                  GA^[1] := Reader.RGBA(3);
+                  GA^.Data[0] := 255;
+                  GA^.Data[1] := Reader.RGBA(3);
                   Reader.NextPixel;
                   Inc(GA);
                 end;

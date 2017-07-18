@@ -122,7 +122,7 @@ type
   TPlayer = class(TCreature)
   private
     { This is set and used only if csWalk }
-    WantsToWalkPos, WantsToWalkDir: TVector3Single;
+    WantsToWalkPos, WantsToWalkDir: TVector3;
 
     TargetVisualize: TCastleScene;
   public
@@ -135,7 +135,7 @@ type
 
     procedure LocationChanged;
 
-    procedure WantsToWalk(const Value: TVector3Single);
+    procedure WantsToWalk(const Value: TVector3);
   end;
 
 var
@@ -445,7 +445,7 @@ end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  RotationAxis: TVector3Single;
+  RotationAxis: TVector3;
   AngleToTarget: Single;
 
   procedure Rotate;
@@ -464,7 +464,7 @@ var
   const
     MoveSpeed = 0.5;
   var
-    MoveDirectionCurrent, MoveDirectionMax: TVector3Single;
+    MoveDirectionCurrent, MoveDirectionMax: TVector3;
     MoveDirectionCurrentScale: Single;
   begin
     { since Position <> WantsToWalkPos, we know that
@@ -540,7 +540,7 @@ begin
   end;
 end;
 
-procedure TPlayer.WantsToWalk(const Value: TVector3Single);
+procedure TPlayer.WantsToWalk(const Value: TVector3);
 begin
   WantsToWalkPos := Value;
   WantsToWalkDir := Normalized(WantsToWalkPos - Direction);

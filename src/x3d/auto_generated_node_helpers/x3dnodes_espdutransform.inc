@@ -33,16 +33,16 @@
     procedure SetApplicationID(const Value: Integer);
     function GetArticulationParameterCount: Integer;
     procedure SetArticulationParameterCount(const Value: Integer);
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
     function GetCollisionType: Integer;
     procedure SetCollisionType(const Value: Integer);
     function GetDeadReckoning: Integer;
     procedure SetDeadReckoning(const Value: Integer);
-    function GetDetonationLocation: TVector3Single;
-    procedure SetDetonationLocation(const Value: TVector3Single);
-    function GetDetonationRelativeLocation: TVector3Single;
-    procedure SetDetonationRelativeLocation(const Value: TVector3Single);
+    function GetDetonationLocation: TVector3;
+    procedure SetDetonationLocation(const Value: TVector3);
+    function GetDetonationRelativeLocation: TVector3;
+    procedure SetDetonationRelativeLocation(const Value: TVector3);
     function GetDetonationResult: Integer;
     procedure SetDetonationResult(const Value: Integer);
     function GetEnabled: boolean;
@@ -85,10 +85,10 @@
     procedure SetForceID(const Value: Integer);
     function GetFuse: Integer;
     procedure SetFuse(const Value: Integer);
-    function GetLinearVelocity: TVector3Single;
-    procedure SetLinearVelocity(const Value: TVector3Single);
-    function GetLinearAcceleration: TVector3Single;
-    procedure SetLinearAcceleration(const Value: TVector3Single);
+    function GetLinearVelocity: TVector3;
+    procedure SetLinearVelocity(const Value: TVector3);
+    function GetLinearAcceleration: TVector3;
+    procedure SetLinearAcceleration(const Value: TVector3);
     function GetMarking: string;
     procedure SetMarking(const Value: string);
     function GetMulticastRelayHost: string;
@@ -97,30 +97,30 @@
     procedure SetMulticastRelayPort(const Value: Integer);
     function GetMunitionApplicationID: Integer;
     procedure SetMunitionApplicationID(const Value: Integer);
-    function GetMunitionEndPoint: TVector3Single;
-    procedure SetMunitionEndPoint(const Value: TVector3Single);
+    function GetMunitionEndPoint: TVector3;
+    procedure SetMunitionEndPoint(const Value: TVector3);
     function GetMunitionEntityID: Integer;
     procedure SetMunitionEntityID(const Value: Integer);
     function GetMunitionQuantity: Integer;
     procedure SetMunitionQuantity(const Value: Integer);
     function GetMunitionSiteID: Integer;
     procedure SetMunitionSiteID(const Value: Integer);
-    function GetMunitionStartPoint: TVector3Single;
-    procedure SetMunitionStartPoint(const Value: TVector3Single);
+    function GetMunitionStartPoint: TVector3;
+    procedure SetMunitionStartPoint(const Value: TVector3);
     function GetPort: Integer;
     procedure SetPort(const Value: Integer);
     function GetReadInterval: TFloatTime;
     procedure SetReadInterval(const Value: TFloatTime);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetScaleOrientation: TVector4Single;
-    procedure SetScaleOrientation(const Value: TVector4Single);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetScaleOrientation: TVector4;
+    procedure SetScaleOrientation(const Value: TVector4);
     function GetSiteID: Integer;
     procedure SetSiteID(const Value: Integer);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
     function GetWarhead: Integer;
     procedure SetWarhead(const Value: Integer);
     function GetWriteInterval: TFloatTime;
@@ -131,11 +131,11 @@
     property Address: string read GetAddress write SetAddress;
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     property ArticulationParameterCount: Integer read GetArticulationParameterCount write SetArticulationParameterCount;
-    property Center: TVector3Single read GetCenter write SetCenter;
+    property Center: TVector3 read GetCenter write SetCenter;
     property CollisionType: Integer read GetCollisionType write SetCollisionType;
     property DeadReckoning: Integer read GetDeadReckoning write SetDeadReckoning;
-    property DetonationLocation: TVector3Single read GetDetonationLocation write SetDetonationLocation;
-    property DetonationRelativeLocation: TVector3Single read GetDetonationRelativeLocation write SetDetonationRelativeLocation;
+    property DetonationLocation: TVector3 read GetDetonationLocation write SetDetonationLocation;
+    property DetonationRelativeLocation: TVector3 read GetDetonationRelativeLocation write SetDetonationRelativeLocation;
     property DetonationResult: Integer read GetDetonationResult write SetDetonationResult;
     property Enabled: boolean read GetEnabled write SetEnabled;
     property EntityCategory: Integer read GetEntityCategory write SetEntityCategory;
@@ -157,24 +157,24 @@
     property FiringRate: Integer read GetFiringRate write SetFiringRate;
     property ForceID: Integer read GetForceID write SetForceID;
     property Fuse: Integer read GetFuse write SetFuse;
-    property LinearVelocity: TVector3Single read GetLinearVelocity write SetLinearVelocity;
-    property LinearAcceleration: TVector3Single read GetLinearAcceleration write SetLinearAcceleration;
+    property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
+    property LinearAcceleration: TVector3 read GetLinearAcceleration write SetLinearAcceleration;
     property Marking: string read GetMarking write SetMarking;
     property MulticastRelayHost: string read GetMulticastRelayHost write SetMulticastRelayHost;
     property MulticastRelayPort: Integer read GetMulticastRelayPort write SetMulticastRelayPort;
     property MunitionApplicationID: Integer read GetMunitionApplicationID write SetMunitionApplicationID;
-    property MunitionEndPoint: TVector3Single read GetMunitionEndPoint write SetMunitionEndPoint;
+    property MunitionEndPoint: TVector3 read GetMunitionEndPoint write SetMunitionEndPoint;
     property MunitionEntityID: Integer read GetMunitionEntityID write SetMunitionEntityID;
     property MunitionQuantity: Integer read GetMunitionQuantity write SetMunitionQuantity;
     property MunitionSiteID: Integer read GetMunitionSiteID write SetMunitionSiteID;
-    property MunitionStartPoint: TVector3Single read GetMunitionStartPoint write SetMunitionStartPoint;
+    property MunitionStartPoint: TVector3 read GetMunitionStartPoint write SetMunitionStartPoint;
     property Port: Integer read GetPort write SetPort;
     property ReadInterval: TFloatTime read GetReadInterval write SetReadInterval;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
     property SiteID: Integer read GetSiteID write SetSiteID;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
     property Warhead: Integer read GetWarhead write SetWarhead;
     property WriteInterval: TFloatTime read GetWriteInterval write SetWriteInterval;
     property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
@@ -215,12 +215,12 @@ begin
   FdArticulationParameterCount.Send(Value);
 end;
 
-function TEspduTransformNode.GetCenter: TVector3Single;
+function TEspduTransformNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TEspduTransformNode.SetCenter(const Value: TVector3Single);
+procedure TEspduTransformNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
@@ -245,22 +245,22 @@ begin
   FdDeadReckoning.Send(Value);
 end;
 
-function TEspduTransformNode.GetDetonationLocation: TVector3Single;
+function TEspduTransformNode.GetDetonationLocation: TVector3;
 begin
   Result := FdDetonationLocation.Value;
 end;
 
-procedure TEspduTransformNode.SetDetonationLocation(const Value: TVector3Single);
+procedure TEspduTransformNode.SetDetonationLocation(const Value: TVector3);
 begin
   FdDetonationLocation.Send(Value);
 end;
 
-function TEspduTransformNode.GetDetonationRelativeLocation: TVector3Single;
+function TEspduTransformNode.GetDetonationRelativeLocation: TVector3;
 begin
   Result := FdDetonationRelativeLocation.Value;
 end;
 
-procedure TEspduTransformNode.SetDetonationRelativeLocation(const Value: TVector3Single);
+procedure TEspduTransformNode.SetDetonationRelativeLocation(const Value: TVector3);
 begin
   FdDetonationRelativeLocation.Send(Value);
 end;
@@ -475,22 +475,22 @@ begin
   FdFuse.Send(Value);
 end;
 
-function TEspduTransformNode.GetLinearVelocity: TVector3Single;
+function TEspduTransformNode.GetLinearVelocity: TVector3;
 begin
   Result := FdLinearVelocity.Value;
 end;
 
-procedure TEspduTransformNode.SetLinearVelocity(const Value: TVector3Single);
+procedure TEspduTransformNode.SetLinearVelocity(const Value: TVector3);
 begin
   FdLinearVelocity.Send(Value);
 end;
 
-function TEspduTransformNode.GetLinearAcceleration: TVector3Single;
+function TEspduTransformNode.GetLinearAcceleration: TVector3;
 begin
   Result := FdLinearAcceleration.Value;
 end;
 
-procedure TEspduTransformNode.SetLinearAcceleration(const Value: TVector3Single);
+procedure TEspduTransformNode.SetLinearAcceleration(const Value: TVector3);
 begin
   FdLinearAcceleration.Send(Value);
 end;
@@ -535,12 +535,12 @@ begin
   FdMunitionApplicationID.Send(Value);
 end;
 
-function TEspduTransformNode.GetMunitionEndPoint: TVector3Single;
+function TEspduTransformNode.GetMunitionEndPoint: TVector3;
 begin
   Result := FdMunitionEndPoint.Value;
 end;
 
-procedure TEspduTransformNode.SetMunitionEndPoint(const Value: TVector3Single);
+procedure TEspduTransformNode.SetMunitionEndPoint(const Value: TVector3);
 begin
   FdMunitionEndPoint.Send(Value);
 end;
@@ -575,12 +575,12 @@ begin
   FdMunitionSiteID.Send(Value);
 end;
 
-function TEspduTransformNode.GetMunitionStartPoint: TVector3Single;
+function TEspduTransformNode.GetMunitionStartPoint: TVector3;
 begin
   Result := FdMunitionStartPoint.Value;
 end;
 
-procedure TEspduTransformNode.SetMunitionStartPoint(const Value: TVector3Single);
+procedure TEspduTransformNode.SetMunitionStartPoint(const Value: TVector3);
 begin
   FdMunitionStartPoint.Send(Value);
 end;
@@ -605,32 +605,32 @@ begin
   FdReadInterval.Send(Value);
 end;
 
-function TEspduTransformNode.GetRotation: TVector4Single;
+function TEspduTransformNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure TEspduTransformNode.SetRotation(const Value: TVector4Single);
+procedure TEspduTransformNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function TEspduTransformNode.GetScale: TVector3Single;
+function TEspduTransformNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure TEspduTransformNode.SetScale(const Value: TVector3Single);
+procedure TEspduTransformNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function TEspduTransformNode.GetScaleOrientation: TVector4Single;
+function TEspduTransformNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
 end;
 
-procedure TEspduTransformNode.SetScaleOrientation(const Value: TVector4Single);
+procedure TEspduTransformNode.SetScaleOrientation(const Value: TVector4);
 begin
   FdScaleOrientation.Send(Value);
 end;
@@ -645,12 +645,12 @@ begin
   FdSiteID.Send(Value);
 end;
 
-function TEspduTransformNode.GetTranslation: TVector3Single;
+function TEspduTransformNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TEspduTransformNode.SetTranslation(const Value: TVector3Single);
+procedure TEspduTransformNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;

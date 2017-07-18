@@ -111,8 +111,6 @@ type
   TArray_Vector4Single = packed array [0..MaxInt div SizeOf(TVector4Single) - 1] of TVector4Single;
   PArray_Vector4Single = ^TArray_Vector4Single;
 
-  TGetVertexFromIndexFunc = function (Index: integer): TVector3Single of object;
-
 const
   ZeroVector2Integer: TVector2Integer = (0, 0);
   ZeroVector2Single: TVector2Single = (0, 0);

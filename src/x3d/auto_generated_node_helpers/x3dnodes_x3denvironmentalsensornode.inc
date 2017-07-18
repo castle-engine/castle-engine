@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
-    function GetSize: TVector3Single;
-    procedure SetSize(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
+    function GetSize: TVector3;
+    procedure SetSize(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
-    property Size: TVector3Single read GetSize write SetSize;
+    property Center: TVector3 read GetCenter write SetCenter;
+    property Size: TVector3 read GetSize write SetSize;
 
 {$endif read_interface}
 
@@ -41,22 +41,22 @@
 
 { TAbstractEnvironmentalSensorNode ----------------------------------------------- }
 
-function TAbstractEnvironmentalSensorNode.GetCenter: TVector3Single;
+function TAbstractEnvironmentalSensorNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TAbstractEnvironmentalSensorNode.SetCenter(const Value: TVector3Single);
+procedure TAbstractEnvironmentalSensorNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
 
-function TAbstractEnvironmentalSensorNode.GetSize: TVector3Single;
+function TAbstractEnvironmentalSensorNode.GetSize: TVector3;
 begin
   Result := FdSize.Value;
 end;
 
-procedure TAbstractEnvironmentalSensorNode.SetSize(const Value: TVector3Single);
+procedure TAbstractEnvironmentalSensorNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
 end;

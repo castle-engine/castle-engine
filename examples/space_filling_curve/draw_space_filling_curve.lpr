@@ -44,8 +44,8 @@ var
   Window: TCastleWindowCustom;
   CurveImage: TRGBImage;
 const
-  CurveCol: TVector3Byte = (255, 255, 255);
-  CurveImageBGCol: TVector3Byte = (0, 0, 0);
+  CurveCol: TVector3Byte = (Data: (255, 255, 255));
+  CurveImageBGCol: TVector4Byte = (Data: (0, 0, 0, 0));
 
 { CastleWindow callbacks ------------------------------------------------------- }
 
@@ -94,7 +94,8 @@ begin
      Between(LastY, 0, Integer(CurveImage.Height-1)) then
   begin
     if x = LastX then
-      CurveImage.VerticalLine(x, Min(y, LastY), Max(y, LastY), CurveCol) else
+      CurveImage.VerticalLine(x, Min(y, LastY), Max(y, LastY), CurveCol)
+    else
       CurveImage.HorizontalLine(Min(x, LastX), Max(x, LastX), y, CurveCol);
   end;
 
@@ -152,7 +153,7 @@ begin
   { init CurveImage }
   CurveImage := TRGBImage.Create(Window.Width, Window.Height);
   try
-    CurveImage.Clear(Vector4Byte(CurveImageBGCol, 0));
+    CurveImage.Clear(CurveImageBGCol);
 
     { calculate StepsToRedisplay i StepSize pomagajac sobie StepsResolution i
       AllStepsCount }

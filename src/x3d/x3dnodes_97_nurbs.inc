@@ -362,11 +362,11 @@ begin
   FFdweight := TMFFloat.Create(Self, 'weight', []);
   AddField(FFdweight);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
+  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', TVector3.Zero);
   FFdbboxCenter.Exposed := false;
   AddField(FFdbboxCenter);
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   AddField(FFdbboxSize);
 
@@ -578,7 +578,7 @@ procedure TNurbsPositionInterpolatorNode_2.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   Knot, KeyWeight: TDoubleList;
-  OutputValue: TVector3Single;
+  OutputValue: TVector3;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 

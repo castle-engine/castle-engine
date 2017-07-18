@@ -180,7 +180,7 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
 
   Only RGB portion of AFadeColor is used. }
 procedure GLFadeRectangleDark(const X1, Y1, X2, Y2: Integer;
-  const AFadeColor: TVector3Single;
+  const AFadeColor: TVector3;
   const FadeIntensity: Single);
 procedure GLFadeRectangleDark(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
@@ -189,7 +189,7 @@ procedure GLFadeRectangleLight(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
   const FadeIntensity: Single);
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const AFadeColor: TVector3Single;
+  const AFadeColor: TVector3;
   const FadeIntensity: Single); deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
 procedure GLFadeRectangle(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
@@ -200,9 +200,9 @@ procedure GLFadeRectangle(const Rect: TRectangle;
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
   const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor;
-  const Color: TVector4Single); deprecated 'use DrawRectangle';
+  const Color: TVector4); deprecated 'use DrawRectangle';
 procedure GLBlendRectangle(const Rect: TRectangle;
-  const Color: TVector4Single); deprecated 'use DrawRectangle';
+  const Color: TVector4); deprecated 'use DrawRectangle';
 
 procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor);
@@ -509,10 +509,10 @@ end;
 { GLFadeRectangle ------------------------------------------------------------ }
 
 procedure GLFadeRectangleDark(const X1, Y1, X2, Y2: Integer;
-  const AFadeColor: TVector3Single; const FadeIntensity: Single);
+  const AFadeColor: TVector3; const FadeIntensity: Single);
 begin
   GLFadeRectangleDark(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
-    Vector4Single(AFadeColor, 1.0), FadeIntensity);
+    Vector4(AFadeColor, 1.0), FadeIntensity);
 end;
 
 procedure GLFadeRectangleDark(const Rect: TRectangle;
@@ -528,11 +528,11 @@ begin
 end;
 
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
-  const AFadeColor: TVector3Single; const FadeIntensity: Single);
+  const AFadeColor: TVector3; const FadeIntensity: Single);
 begin
   {$warnings off} // using deprecated in deprecated
   GLFadeRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1),
-    Vector4Single(AFadeColor, 1.0), FadeIntensity);
+    Vector4(AFadeColor, 1.0), FadeIntensity);
   {$warnings on}
 end;
 
@@ -565,14 +565,14 @@ end;
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
   const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor;
-  const Color: TVector4Single);
+  const Color: TVector4);
 begin
   DrawRectangle(Rectangle(X1, Y1, X2 - X1, Y2 - Y1), Color,
     SourceFactor, DestinationFactor, true);
 end;
 
 procedure GLBlendRectangle(const Rect: TRectangle;
-  const Color: TVector4Single);
+  const Color: TVector4);
 begin
   DrawRectangle(Rect, Color, bsOne, bdSrcAlpha, true);
 end;

@@ -42,15 +42,15 @@
   pozwala latwo zmienic uzywane typy. }
 
 {$define TYPE_SCALAR := Single}
-{$define TYPE_VECTOR2 := TVector2Single}
-{$define TYPE_VECTOR3 := TVector3Single}
-{$define TYPE_VECTOR4 := TVector4Single}
+{$define TYPE_VECTOR2 := TVector2}
+{$define TYPE_VECTOR3 := TVector3}
+{$define TYPE_VECTOR4 := TVector4}
 {$define TYPE_TRIANGLE2 := TTriangle2Single}
 {$define TYPE_TRIANGLE3 := TTriangle3Single}
-{$define TYPE_MATRIX4 := TMatrix4Single}
+{$define TYPE_MATRIX4 := TMatrix4}
 {$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
 {$define ONE_VECTOR := OneVectorSingle}
-{$define IDENTITY_MATRIX := IdentityMatrix4Single}
+{$define IDENTITY_MATRIX := TMatrix4.Identity}
 
 { CommonRay/SegmentLeaf begins --------------------------------------------- }
 

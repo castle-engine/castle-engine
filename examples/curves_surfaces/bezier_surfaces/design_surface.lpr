@@ -56,7 +56,7 @@ var
 
 { various utility funcs ------------------------------------------------------ }
 
-function ControlPoints(CurveNum: Integer): TVector3SingleList;
+function ControlPoints(CurveNum: Integer): TVector3List;
 begin
   Result := (Surface.Curves.Items[CurveNum] as TControlPointsCurve).
     ControlPoints;
@@ -92,7 +92,7 @@ begin
     MyCurve.TEnd := Surface.XEnd;
     for J := 0 to CurveControlPointsCount - 1 do
     begin
-      MyCurve.ControlPoints.Add(Vector3Single(
+      MyCurve.ControlPoints.Add(Vector3(
         J / (CurveControlPointsCount - 1),
         I / (CurvesCount - 1), 0));
       MyCurve.Weights.Add(1.0);
@@ -110,7 +110,7 @@ var
   F: TTextReader;
   I, J: Integer;
   MyCurve: TRationalBezierCurve;
-  V: TVector3Single;
+  V: TVector3;
   NewSurface: TSurface;
 begin
   try
@@ -128,7 +128,7 @@ begin
         MyCurve.TEnd := NewSurface.XEnd;
         for J := 0 to CurveControlPointsCount - 1 do
         begin
-          V := F.ReadVector3Single;
+          V := F.ReadVector3;
           MyCurve.ControlPoints.Add(V);
           MyCurve.Weights.Add(1.0);
         end;
@@ -159,7 +159,7 @@ var
   CurveControlPointsCount: Cardinal;
   F: TTextWriter;
   I, J: Integer;
-  V: TVector3Single;
+  V: TVector3;
 begin
   CurveControlPointsCount := ControlPoints(0).Count;
 
@@ -279,7 +279,7 @@ procedure Update(Container: TUIContainer);
 
   procedure Move(Coord, MoveDir: Integer);
   begin
-    ControlPoints(CurrentCurve).List^[CurrentPoint][Coord] +=
+    ControlPoints(CurrentCurve).List^[CurrentPoint].Data[Coord] +=
       MoveDir * Window.Fps.UpdateSecondsPassed * 50 * 0.01;
     (Surface.Curves[CurrentCurve] as TControlPointsCurve).UpdateControlPoints;
     Window.Invalidate;
@@ -304,18 +304,18 @@ procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
     ModelMatrix, ProjMatrix: T16dArray;
     Viewport: TViewPortArray;
 
-    procedure Project(const V: TVector3Single; out WinX, WinY: TGLdouble);
+    procedure Project(const V: TVector3; out WinX, WinY: TGLdouble);
     var
       WinZ: TGLdouble;
-      // ProjectResult: TVector3Single;
+      // ProjectResult: TVector3;
     begin
       { Implementing glProject by ourselves is quite trivial,
         just multiply by modelview, projection,
         go to clip space then to window space. See e.g.
         http://www.gamedev.net/topic/436455-gluproject-efficient/ }
       (*
-      ProjectResult := Vector3SinglePoint(
-        ProjectionMatrix * Camera.Matrix * Vector4Single(V, 1.0));
+      ProjectResult := Vector3Point(
+        ProjectionMatrix * Camera.Matrix * Vector4(V, 1.0));
       { Map x, y and z to range 0-1 }
       ProjectResult[0] := ProjectResult[0] * 0.5 + 0.5;
       ProjectResult[1] := ProjectResult[1] * 0.5 + 0.5;
@@ -393,7 +393,7 @@ var
   ModelMatrix, ProjMatrix: T16dArray;
   Viewport: TViewPortArray;
 
-  function ProjectToZ(const V: TVector3Single): Single;
+  function ProjectToZ(const V: TVector3): Single;
   var
     WinX, WinY, WinZ: TGLdouble;
   begin
@@ -407,11 +407,11 @@ var
   begin
     Check( gluUnProject(Winx, Winy, Winz,
       ModelMatrix, ProjMatrix, Viewport,
-      @Result[0], @Result[1], @Result[2]) = GL_TRUE, 'gluUnProject');
+      @Result.Data[0], @Result.Data[1], @Result.Data[2]) = GL_TRUE, 'gluUnProject');
   end;
 
 var
-  Move: TVector3Single;
+  Move: TVector3;
   WinZ: Single;
 begin
   if Dragging then
@@ -443,7 +443,7 @@ begin
       depth buffer). }
     WinZ := ProjectToZ(ControlPoints(CurrentCurve).List^[CurrentPoint]);
 
-    Move := Vector3Single(
+    Move := Vector3(
       UnProject(Event.   Position[0], Event.   Position[1], WinZ) -
       UnProject(Event.OldPosition[0], Event.OldPosition[1], WinZ));
     ControlPoints(CurrentCurve).List^[CurrentPoint] :=
@@ -632,8 +632,8 @@ begin
 
   Camera := TExamineCamera.Create(Window);
   Camera.OnVisibleChange := @Dummy.VisibleChange;
-  Camera.Init(Box3D(Vector3Single(0, 0, -1),
-                    Vector3Single(1, 1,  1)), 0.2);
+  Camera.Init(Box3D(Vector3(0, 0, -1),
+                    Vector3(1, 1,  1)), 0.2);
   { conflicts with our Press / Release }
   Camera.Input := Camera.Input - [ciMouseDragging];
   Camera.Input_StopRotating.MouseButtonUse := false;

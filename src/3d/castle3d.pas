@@ -81,7 +81,7 @@ type
       Note that only @link(TCastleSceneManager.MainScene) is informed about pointing
       device events when the ray hit empty space, so this is an unusual case.
     }
-    Point: TVector3Single;
+    Point: TVector3;
 
     { Triangle that was hit. This triangle is always a part of @link(Item).
 
@@ -107,7 +107,7 @@ type
 
     { Ray used to cause the collision,
       in local coordinate system of this 3D object. }
-    RayOrigin, RayDirection: TVector3Single;
+    RayOrigin, RayDirection: TVector3;
   end;
   PRayCollisionNode = ^TRayCollisionNode;
 
@@ -249,7 +249,7 @@ type
     { Transformation that should be applied to the rendered result.
       If RenderTransformIdentity, then RenderTransform is always identity.
       @groupBegin }
-    RenderTransform: TMatrix4Single;
+    RenderTransform: TMatrix4;
     RenderTransformIdentity: boolean;
     { @groupEnd }
 
@@ -339,7 +339,7 @@ type
         Or to decrease player life points for walking on hot lava.
         See "The Castle" game for examples.)
     }
-    function HeightCollision(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
 
@@ -368,21 +368,21 @@ type
 
       @groupBegin }
     function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     function MoveCollision(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
     { @groupEnd }
 
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; virtual;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+    function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
@@ -396,7 +396,7 @@ type
         If the result is @false, the Details contents are untouched.
         If the result is @true, the Details contents are set to describe
         the 3D objects hierarchy that caused this collision.) }
-    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; virtual;
 
@@ -435,7 +435,7 @@ type
           @italic(only when necessary).)
       )
     }
-    function PointCollision2D(const Point: TVector2Single;
+    function PointCollision2D(const Point: TVector2;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
 
     function BoxCollision(const Box: TBox3D;
@@ -456,7 +456,7 @@ type
       the one with smallest TRayCollision.Distance. For example, when
       implemented in T3DList, this checks collisions for all list items,
       and chooses the closest one. }
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
   public
     constructor Create(AOwner: TComponent); override;
@@ -588,7 +588,7 @@ type
       of this object in the 3D world.
       T3D objects may be organized in a hierarchy when
       parent transforms it's children. When ParentTransformIsIdentity,
-      ParentTransform must be IdentityMatrix4Single (it's not guaranteed
+      ParentTransform must be TMatrix4.Identity (it's not guaranteed
       that when ParentTransformIsIdentity = @true, Transform value will be
       ignored !).
 
@@ -603,7 +603,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); virtual;
+      const ParentTransform: TMatrix4); virtual;
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
@@ -846,7 +846,7 @@ type
       that in turn are ancestors of normal creatures, items etc.)
       this is overriden to return something sensible above the bottom
       of the box. See T3DCustomTransform.MiddleHeight. }
-    function Middle: TVector3Single; virtual;
+    function Middle: TVector3; virtual;
 
     { Sector where the middle of this 3D object is.
       Used for AI. @nil if none (maybe because we're not part of any world,
@@ -864,7 +864,7 @@ type
 
       Must return @false when not GetExists (because we can't express
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
-      EmptyBox3D).
+      TBox3D.Empty).
 
       By default, in T3D class, this always returns @false
       and @link(Sphere) is undefined.
@@ -970,13 +970,13 @@ type
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
-    function Height(const MyPosition: TVector3Single;
+    function Height(const MyPosition: TVector3;
       out AboveHeight: Single): boolean;
-    function Height(const MyPosition: TVector3Single;
+    function Height(const MyPosition: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
     { @groupEnd }
 
-    function LineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+    function LineOfSight(const Pos1, Pos2: TVector3): boolean;
 
     { Is the move from OldPos to ProposedNewPos possible for me.
       Returns true and sets NewPos if some move is allowed.
@@ -989,10 +989,10 @@ type
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
-    function MoveAllowed(const OldPos, ProposedNewPos: TVector3Single;
-      out NewPos: TVector3Single;
+    function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
+      out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean;
-    function MoveAllowed(const OldPos, NewPos: TVector3Single;
+    function MoveAllowed(const OldPos, NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean;
     { @groupEnd }
 
@@ -1000,7 +1000,7 @@ type
 
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world. }
-    function Ray(const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+    function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
 
     { In case this scene shares lights with other scenes,
       this is the source scene. In usual circumstances, this method
@@ -1093,32 +1093,32 @@ type
       Presence of this item is completely determined by GetChild implementation. }
     function GetChild: T3D; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveCollision(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+    function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; override;
-    function PointCollision2D(const Point: TVector2Single;
+    function PointCollision2D(const Point: TVector2;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -1161,12 +1161,12 @@ type
       See the TBlendingSort documentation for the exact specification
       of sorting algorithms. Using BlendingSort = bsNone does nothing. }
     procedure SortBackToFront(const BlendingSort: TBlendingSort;
-      const CameraPosition: TVector3Single);
+      const CameraPosition: TVector3);
 
     { Sort objects back-to-front @italic(right now)
       following the 2D blending sorting algorithm.
       See @link(SortBackToFront) for documentation, this method
-      is only a shortcut for @code(SortBackToFront(bs2D, ZeroVector3Single)). }
+      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
     procedure SortBackToFront2D;
 
     function BoundingBox: TBox3D; override;
@@ -1174,7 +1174,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); override;
+      const ParentTransform: TMatrix4); override;
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;
@@ -1209,7 +1209,7 @@ type
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; virtual; abstract;
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
-    function GravityUp: TVector3Single; virtual; abstract;
+    function GravityUp: TVector3; virtual; abstract;
     { The major axis of gravity vector: 0, 1 or 2.
       This is derived from GravityUp value. It can only truly express
       GravityUp vector values (1,0,0) or (0,1,0) or (0,0,1),
@@ -1245,23 +1245,23 @@ type
       additionally making sure that the 3D object does not collide with itself.
       @groupBegin }
     function WorldMoveAllowed(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
     function WorldMoveAllowed(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
-    function WorldHeight(const Position: TVector3Single;
+    function WorldHeight(const Position: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3Single): boolean; virtual; abstract;
-    function WorldRay(const RayOrigin, RayDirection: TVector3Single): TRayCollision; virtual; abstract;
-    function WorldSphereCollision(const Pos: TVector3Single; const Radius: Single): boolean;
-    function WorldSphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
+    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
+    function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
+    function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
-    function WorldPointCollision2D(const Point: TVector2Single): boolean;
+    function WorldPointCollision2D(const Point: TVector2): boolean;
     { @groupEnd }
   end;
 
@@ -1278,7 +1278,7 @@ type
   T3DCustomTransform = class(T3DList)
   private
     FGravity: boolean;
-    FFallingStartMiddle: TVector3Single;
+    FFallingStartMiddle: TVector3;
     FFalling: boolean;
     FFallSpeed: Single;
     FGrowSpeed: Single;
@@ -1314,21 +1314,21 @@ type
       implementation), but are used.
 
       @groupBegin }
-    function GetTranslation: TVector3Single; virtual;
-    function GetCenter: TVector3Single; virtual;
-    function GetRotation: TVector4Single; virtual;
-    function GetScale: TVector3Single; virtual;
-    function GetScaleOrientation: TVector4Single; virtual;
+    function GetTranslation: TVector3; virtual;
+    function GetCenter: TVector3; virtual;
+    function GetRotation: TVector4; virtual;
+    function GetScale: TVector3; virtual;
+    function GetScaleOrientation: TVector4; virtual;
     { @groupEnd }
 
     { Get translation in 2D (uses GetTranslation, ignores Z coord). }
-    function GetTranslation2D: TVector2Single;
+    function GetTranslation2D: TVector2;
 
     { Can we use simple GetTranslation instead of full TransformMatricesMult.
       Returning @true allows optimization in some cases. }
     function OnlyTranslation: boolean; virtual;
-    function Transform: TMatrix4Single;
-    function TransformInverse: TMatrix4Single;
+    function Transform: TMatrix4;
+    function TransformInverse: TMatrix4;
 
     { Transformation matrix.
       You can override this to derive transformation using anything,
@@ -1339,36 +1339,36 @@ type
       In other words, using MatrixMultPoint or MatrixMultDirection
       with these matrices must never raise ETransformedResultInvalid.
       For example, a combination of translations, rotations, scaling is Ok. }
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); virtual;
-    procedure TransformMatrices(out M, MInverse: TMatrix4Single);
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4); virtual;
+    procedure TransformMatrices(out M, MInverse: TMatrix4);
     function AverageScale: Single;
 
-    function HeightCollision(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveCollision(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+    function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails): boolean; override;
-    function PointCollision2D(const Point: TVector2Single;
+    function PointCollision2D(const Point: TVector2;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
 
     { Called when fall ended. You can use FallHeight to decrease creature
@@ -1387,16 +1387,16 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); override;
-    function Middle: TVector3Single; override;
+      const ParentTransform: TMatrix4); override;
+    function Middle: TVector3; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Convert position between local and outside coordinate system.
       This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
       defined in this item --- it does not recursively apply all transform on the way to root
       @groupBegin. }
-    function OutsideToLocal(const Pos: TVector3Single): TVector3Single;
-    function LocalToOutside(const Pos: TVector3Single): TVector3Single;
+    function OutsideToLocal(const Pos: TVector3): TVector3;
+    function LocalToOutside(const Pos: TVector3): TVector3;
     { @groupEnd }
 
     { Gravity may make this object fall down (see FallSpeed)
@@ -1491,16 +1491,16 @@ type
 
     { Translation (move) the children. Zero by default.
       @seealso T3DTransform.Translation }
-    property Translation: TVector3Single read GetTranslation;
+    property Translation: TVector3 read GetTranslation;
 
     { Rotation in 3D, around a specified axis.
       @seealso T3DTransform.Rotation }
-    property Rotation: TVector4Single read GetRotation;
+    property Rotation: TVector4 read GetRotation;
 
     { Unconditionally move this 3D object by given vector.
       You usually don't want to use this directly, instead use @link(Move)
       method to move checking collisions (and with optional wall sliding). }
-    procedure Translate(const T: TVector3Single); virtual; abstract;
+    procedure Translate(const T: TVector3); virtual; abstract;
 
     { Move, if possible (no collisions). This is the simplest way to move
       a 3D object, and a basic building block for artificial intelligence
@@ -1508,7 +1508,7 @@ type
 
       Checks move possibility by MoveAllowed, using @link(Middle) point.
       Actual move is done using @link(Translate). }
-    function Move(const ATranslation: TVector3Single;
+    function Move(const ATranslation: TVector3;
       const BecauseOfGravity: boolean;
       const EnableWallSliding: boolean = true): boolean;
   end;
@@ -1528,34 +1528,34 @@ type
     This descends from T3DList, and it transforms all it's children. }
   T3DTransform = class(T3DCustomTransform)
   private
-    FCenter: TVector3Single;
-    FRotation: TVector4Single;
-    FScale: TVector3Single;
-    FScaleOrientation: TVector4Single;
-    FTranslation: TVector3Single;
+    FCenter: TVector3;
+    FRotation: TVector4;
+    FScale: TVector3;
+    FScaleOrientation: TVector4;
+    FTranslation: TVector3;
     FOnlyTranslation: boolean;
   protected
-    procedure SetCenter(const Value: TVector3Single);
-    procedure SetRotation(const Value: TVector4Single);
-    procedure SetScale(const Value: TVector3Single);
-    procedure SetScaleOrientation(const Value: TVector4Single);
-    procedure SetTranslation(const Value: TVector3Single);
+    procedure SetCenter(const Value: TVector3);
+    procedure SetRotation(const Value: TVector4);
+    procedure SetScale(const Value: TVector3);
+    procedure SetScaleOrientation(const Value: TVector4);
+    procedure SetTranslation(const Value: TVector3);
 
     function OnlyTranslation: boolean; override;
 
-    function GetCenter: TVector3Single; override;
-    function GetRotation: TVector4Single; override;
-    function GetScale: TVector3Single; override;
-    function GetScaleOrientation: TVector4Single; override;
-    function GetTranslation: TVector3Single; override;
+    function GetCenter: TVector3; override;
+    function GetRotation: TVector4; override;
+    function GetScale: TVector3; override;
+    function GetScaleOrientation: TVector4; override;
+    function GetTranslation: TVector3; override;
   public
     constructor Create(AOwner: TComponent); override;
 
     { Translation (move) the children. Zero by default. }
-    property Translation: TVector3Single read FTranslation write SetTranslation;
+    property Translation: TVector3 read FTranslation write SetTranslation;
 
     { Center point around which the @link(Rotation) and @link(Scale) is performed. }
-    property Center: TVector3Single read FCenter write SetCenter;
+    property Center: TVector3 read FCenter write SetCenter;
 
     { Rotation in 3D, around a specified axis.
       Rotation is expressed as a 4D vector, in which the first 3 components
@@ -1563,7 +1563,7 @@ type
       and the last component is the rotation angle @italic(in radians).
 
       Rotation is done around @link(Center). }
-    property Rotation: TVector4Single read FRotation write SetRotation;
+    property Rotation: TVector4 read FRotation write SetRotation;
 
     { Scale in 3D. Scaling is done around @link(Center)
       and with orientation given by @link(ScaleOrientation).
@@ -1602,12 +1602,12 @@ type
           using @link(Collides) = @false.)
       )
     }
-    property Scale: TVector3Single read FScale write SetScale;
+    property Scale: TVector3 read FScale write SetScale;
 
     { Orientation in which 3D @link(Scale) is performed. }
-    property ScaleOrientation: TVector4Single read FScaleOrientation write SetScaleOrientation;
+    property ScaleOrientation: TVector4 read FScaleOrientation write SetScaleOrientation;
 
-    procedure Translate(const T: TVector3Single); override;
+    procedure Translate(const T: TVector3); override;
 
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
@@ -1658,17 +1658,17 @@ type
   private
     FCamera: TWalkCamera;
     FOrientation: TOrientationType;
-    function GetPosition: TVector3Single;
-    function GetDirection: TVector3Single;
-    function GetUp: TVector3Single;
-    procedure SetPosition(const Value: TVector3Single);
-    procedure SetDirection(const Value: TVector3Single);
-    procedure SetUp(const Value: TVector3Single);
+    function GetPosition: TVector3;
+    function GetDirection: TVector3;
+    function GetUp: TVector3;
+    procedure SetPosition(const Value: TVector3);
+    procedure SetDirection(const Value: TVector3);
+    procedure SetUp(const Value: TVector3);
   protected
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4Single); override;
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4); override;
     function OnlyTranslation: boolean; override;
-    function GetTranslation: TVector3Single; override;
-    function GetRotation: TVector4Single; override;
+    function GetTranslation: TVector3; override;
+    function GetRotation: TVector4; override;
   public
     { Default value of T3DOrient.Orientation, for new instances of T3DOrient
       (creatures, items, player etc.). }
@@ -1678,7 +1678,7 @@ type
     destructor Destroy; override;
 
     { Position (translation) of this 3D object. }
-    property Position: TVector3Single read GetPosition write SetPosition;
+    property Position: TVector3 read GetPosition write SetPosition;
 
     { Direction the creature is facing, and up vector.
 
@@ -1696,12 +1696,12 @@ type
       up is +Y (DefaultCameraUp).
 
       @groupBegin }
-    property Direction: TVector3Single read GetDirection write SetDirection;
-    property Up: TVector3Single read GetUp write SetUp;
+    property Direction: TVector3 read GetDirection write SetDirection;
+    property Up: TVector3 read GetUp write SetUp;
     { @groupEnd }
 
     { Get at once vectors: position, direction, up. }
-    procedure GetView(out APos, ADir, AUp: TVector3Single);
+    procedure GetView(out APos, ADir, AUp: TVector3);
 
     { Set at once vectors: position, direction, up.
 
@@ -1711,9 +1711,9 @@ type
       when AdjustUp = @true (the default) we will adjust the up vector
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
-    procedure SetView(const APos, ADir, AUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true);
-    procedure SetView(const ADir, AUp: TVector3Single;
+    procedure SetView(const ADir, AUp: TVector3;
       const AdjustUp: boolean = true);
 
     { Change up vector, keeping the direction unchanged.
@@ -1730,9 +1730,9 @@ type
 
       It's good to use this if you have a preferred up vector for creatures,
       but still preserving the direction vector has the highest priority. }
-    procedure UpPrefer(const AUp: TVector3Single);
+    procedure UpPrefer(const AUp: TVector3);
 
-    procedure Translate(const T: TVector3Single); override;
+    procedure Translate(const T: TVector3); override;
 
     { How the direction and up vectors determine transformation.
       See TOrientationType for values documentation.
@@ -1802,11 +1802,11 @@ type
     { Implements T3D.GetTranslation by always calling
       GetTranslationFromTime(AnimationTime).
       Descendants should only override GetTranslationFromTime. }
-    function GetTranslation: TVector3Single; override;
+    function GetTranslation: TVector3; override;
     function OnlyTranslation: boolean; override;
 
     function GetTranslationFromTime(const AnAnimationTime: TFloatTime):
-      TVector3Single; virtual; abstract;
+      TVector3; virtual; abstract;
 
     { Do something right before animation progresses.
       Called at the beginning of our @link(Update),
@@ -1822,7 +1822,7 @@ type
   public
     constructor Create(AOwner: TComponent); override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    procedure Translate(const T: TVector3Single); override;
+    procedure Translate(const T: TVector3); override;
   published
     { Are other 3D objects pushed when this object moves.
       Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by this object
@@ -1904,7 +1904,7 @@ type
 
     UsedSound: TSound;
     procedure SoundRelease(Sender: TSound);
-    function SoundPosition: TVector3Single;
+    function SoundPosition: TVector3;
     procedure PlaySound(SoundType: TSoundType; Looping: boolean);
   public
     constructor Create(AOwner: TComponent); override;
@@ -1979,10 +1979,10 @@ type
       default false;
   public
     MoveTime: Single;
-    TranslationEnd: TVector3Single;
+    TranslationEnd: TVector3;
 
     function GetTranslationFromTime(const AnAnimationTime: TFloatTime):
-      TVector3Single; override;
+      TVector3; override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
@@ -2005,12 +2005,12 @@ type
     FMaxLife: Single;
     { FKnockbackDistance <= 0 means "no knockback currently" }
     FKnockbackDistance: Single;
-    FLastHurtDirection: TVector3Single;
+    FLastHurtDirection: TVector3;
     { Same as LastHurtDirection but (for things with Gravity) flattened
       to be orthogonal to World.Gravity. This prevents from "pushing" creatures
       into the floor by hitting them in downward direction, which is often
       too easy for non-flying creatures that have Sphere with Middle point high. }
-    FLastHurtDirectionGround: TVector3Single;
+    FLastHurtDirectionGround: TVector3;
     FKnockBackSpeed: Single;
   protected
     procedure SetLife(const Value: Single); virtual;
@@ -2043,7 +2043,7 @@ type
       be useful for various purposes, for example the victim may become aware
       of attacker presence when it's attacked. }
     procedure Hurt(const LifeLoss: Single;
-      const HurtDirection: TVector3Single;
+      const HurtDirection: TVector3;
       const AKnockbackDistance: Single; const Attacker: T3DAlive); virtual;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -2051,7 +2051,7 @@ type
     { Direction from where the attack came.
       Zero if there was no specific direction of last attack,
       otherwise a normalized (length 1) vector. }
-    property LastHurtDirection: TVector3Single read FLastHurtDirection;
+    property LastHurtDirection: TVector3 read FLastHurtDirection;
 
     property LifeTime: Single read FLifeTime;
 
@@ -2097,14 +2097,14 @@ const
   DefaultPlayerFallSoundName = 'player_fall';
   { @groupEnd }
 
-  DirectionFromOrientation: array [TOrientationType] of TVector3Single =
-  ( (0, 0, -1),
-    (0, -1, 0),
-    (1, 0, 0) );
-  UpFromOrientation: array [TOrientationType] of TVector3Single =
-  ( (0, 1, 0),
-    (0, 0, 1),
-    (0, 0, 1) );
+  DirectionFromOrientation: array [TOrientationType] of TVector3 =
+  ( (Data: (0, 0, -1)),
+    (Data: (0, -1, 0)),
+    (Data: (1, 0, 0)) );
+  UpFromOrientation: array [TOrientationType] of TVector3 =
+  ( (Data: (0, 1, 0)),
+    (Data: (0, 0, 1)),
+    (Data: (0, 0, 1)) );
 
 { Apply transformation to a matrix.
   Calculates at the same time transformation matrix, and it's inverse,
@@ -2118,12 +2118,12 @@ const
     specify the rotation axis (does not need to be normalized, but must be non-zero),
     and the last component is the rotation angle @italic(in radians).)
 }
-procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
-  const Center: TVector3Single;
-  const Rotation: TVector4Single;
-  const Scale: TVector3Single;
-  const ScaleOrientation: TVector4Single;
-  const Translation: TVector3Single);
+procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4;
+  const Center: TVector3;
+  const Rotation: TVector4;
+  const Scale: TVector3;
+  const ScaleOrientation: TVector4;
+  const Translation: TVector3);
 
 var
   { Creatures, items and possibly other 3D stuff may look at these variables
@@ -2174,7 +2174,7 @@ end;
 constructor TRenderParams.Create;
 begin
   inherited;
-  RenderTransform := IdentityMatrix4Single;
+  RenderTransform := TMatrix4.Identity;
   RenderTransformIdentity := true;
 end;
 
@@ -2205,7 +2205,7 @@ end;
 procedure T3D.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4Single);
+  const ParentTransform: TMatrix4);
 begin
 end;
 
@@ -2273,11 +2273,11 @@ procedure T3D.GLContextClose;
 begin
 end;
 
-function T3D.HeightCollision(const Position, GravityUp: TVector3Single;
+function T3D.HeightCollision(const Position, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
-  Intersection: TVector3Single;
+  Intersection: TVector3;
   IntersectionDistance: Single;
 begin
   AboveHeight := MaxSingle;
@@ -2297,7 +2297,7 @@ begin
 end;
 
 function T3D.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -2310,7 +2310,7 @@ begin
 end;
 
 function T3D.MoveCollision(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -2318,9 +2318,9 @@ var
   MyBox: TBox3D;
 
   { P1 is closer to our middle than P2. }
-  function CloserToMiddle(const P1, P2: TVector3Single): boolean;
+  function CloserToMiddle(const P1, P2: TVector3): boolean;
   var
-    M: TVector3Single;
+    M: TVector3;
   begin
     M := Middle;
     Result := PointsDistanceSqr(M, P1) < PointsDistanceSqr(M, P2);
@@ -2408,7 +2408,7 @@ begin
 }
 end;
 
-function T3D.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3D.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -2416,13 +2416,13 @@ begin
     BoundingBox.SegmentCollision(Pos1, Pos2);
 end;
 
-function T3D.SphereCollision(const Pos: TVector3Single; const Radius: Single;
+function T3D.SphereCollision(const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := GetCollides and BoundingBox.SphereCollision(Pos, Radius);
 end;
 
-function T3D.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+function T3D.SphereCollision2D(const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 begin
@@ -2435,7 +2435,7 @@ begin
   end;
 end;
 
-function T3D.PointCollision2D(const Point: TVector2Single;
+function T3D.PointCollision2D(const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := GetCollides and BoundingBox.Contains2D(Point);
@@ -2447,10 +2447,10 @@ begin
   Result := GetCollides and BoundingBox.Collision(Box);
 end;
 
-function T3D.RayCollision(const RayOrigin, RayDirection: TVector3Single;
+function T3D.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
-  Intersection: TVector3Single;
+  Intersection: TVector3;
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
 begin
@@ -2499,9 +2499,9 @@ begin
   Result := FPickable and GetExists;
 end;
 
-function T3D.Middle: TVector3Single;
+function T3D.Middle: TVector3;
 begin
-  Result := ZeroVector3Single;
+  Result := TVector3.Zero;
 end;
 
 function T3D.Sector: TSector;
@@ -2554,7 +2554,7 @@ begin
     SetWorld(nil);
 end;
 
-function T3D.Height(const MyPosition: TVector3Single;
+function T3D.Height(const MyPosition: TVector3;
   out AboveHeight: Single): boolean;
 var
   AboveGroundIgnored: P3DTriangle;
@@ -2562,7 +2562,7 @@ begin
   Result := Height(MyPosition, AboveHeight, AboveGroundIgnored);
 end;
 
-function T3D.Height(const MyPosition: TVector3Single;
+function T3D.Height(const MyPosition: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   Disable;
@@ -2571,7 +2571,7 @@ begin
   finally Enable end;
 end;
 
-function T3D.LineOfSight(const Pos1, Pos2: TVector3Single): boolean;
+function T3D.LineOfSight(const Pos1, Pos2: TVector3): boolean;
 begin
   Disable;
   try
@@ -2580,8 +2580,8 @@ begin
 end;
 
 function T3D.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3Single;
-  out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3;
+  out NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 var
   Sp: boolean;
@@ -2604,7 +2604,7 @@ begin
 end;
 
 function T3D.MoveAllowed(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const BecauseOfGravity: boolean): boolean;
 var
   Sp: boolean;
@@ -2627,7 +2627,7 @@ begin
 end;
 
 function T3D.Ray(
-  const RayOrigin, RayDirection: TVector3Single): TRayCollision;
+  const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Disable;
   try
@@ -2794,7 +2794,7 @@ end;
 var
   { Has to be global, since TObjectList.Sort
     requires normal function (not "of object"). }
-  SortCameraPosition: TVector3Single;
+  SortCameraPosition: TVector3;
 
 function CompareBackToFront3D(A, B: Pointer): Integer;
 begin
@@ -2803,7 +2803,7 @@ begin
 end;
 
 procedure T3DList.SortBackToFront(const BlendingSort: TBlendingSort;
-  const CameraPosition: TVector3Single);
+  const CameraPosition: TVector3);
 begin
   case BlendingSort of
     bs2D: List.Sort(@CompareBackToFront2D);
@@ -2817,14 +2817,14 @@ end;
 
 procedure T3DList.SortBackToFront2D;
 begin
-  SortBackToFront(bs2D, ZeroVector3Single);
+  SortBackToFront(bs2D, TVector3.Zero);
 end;
 
 function T3DList.BoundingBox: TBox3D;
 var
   I: Integer;
 begin
-  Result := EmptyBox3D;
+  Result := TBox3D.Empty;
   if GetExists then
   begin
     if (GetChild <> nil) and
@@ -2853,7 +2853,7 @@ end;
 procedure T3DList.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4Single);
+  const ParentTransform: TMatrix4);
 var
   I: Integer;
 begin
@@ -3008,7 +3008,7 @@ begin
     List.RemoveAll(AComponent);
 end;
 
-function T3DList.HeightCollision(const Position, GravityUp: TVector3Single;
+function T3DList.HeightCollision(const Position, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
@@ -3052,7 +3052,7 @@ begin
 end;
 
 function T3DList.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -3111,7 +3111,7 @@ begin
 end;
 
 function T3DList.MoveCollision(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -3138,7 +3138,7 @@ begin
   end;
 end;
 
-function T3DList.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DList.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 var
@@ -3162,7 +3162,7 @@ begin
   end;
 end;
 
-function T3DList.SphereCollision(const Pos: TVector3Single; const Radius: Single;
+function T3DList.SphereCollision(const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -3185,7 +3185,7 @@ begin
   end;
 end;
 
-function T3DList.SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+function T3DList.SphereCollision2D(const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 var
@@ -3219,7 +3219,7 @@ begin
   end;
 end;
 
-function T3DList.PointCollision2D(const Point: TVector2Single;
+function T3DList.PointCollision2D(const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -3265,7 +3265,7 @@ begin
   end;
 end;
 
-function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3Single;
+function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 
   procedure AddNewResult(NewResult: TRayCollision);
@@ -3368,15 +3368,15 @@ end;
 
 { TransformMatricesMult ------------------------------------------------------ }
 
-procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4Single;
-  const Center: TVector3Single;
-  const Rotation: TVector4Single;
-  const Scale: TVector3Single;
-  const ScaleOrientation: TVector4Single;
-  const Translation: TVector3Single);
+procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4;
+  const Center: TVector3;
+  const Rotation: TVector4;
+  const Scale: TVector3;
+  const ScaleOrientation: TVector4;
+  const Translation: TVector3);
 var
-  M, IM: TMatrix4Single;
-  MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
+  M, IM: TMatrix4;
+  MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
 begin
   { To make TransformInverse, we multiply inverted matrices in inverted order
     below. }
@@ -3391,8 +3391,8 @@ begin
     { Note that even rotation Axis = zero is OK, both M and IM will be
       identity in this case. }
     RotationMatricesRad(Rotation, M, IM);
-    Transform := MatrixMult(Transform, M);
-    TransformInverse := MatrixMult(IM, TransformInverse);
+    Transform := Transform * M;
+    TransformInverse := IM * TransformInverse;
   end;
 
   if (Scale[0] <> 1) or
@@ -3402,8 +3402,8 @@ begin
     if ScaleOrientation[3] <> 0 then
     begin
       RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
-      Transform := MatrixMult(Transform, MRotateScaleOrient);
-      TransformInverse := MatrixMult(IMRotateScaleOrient, TransformInverse);
+      Transform := Transform * MRotateScaleOrient;
+      TransformInverse := IMRotateScaleOrient * TransformInverse;
     end;
 
     { For scaling, we explicitly request that if ScalingFactor contains
@@ -3413,16 +3413,16 @@ begin
       for special tricks). }
 
     ScalingMatrices(Scale, true, M, IM);
-    Transform := MatrixMult(Transform, M);
-    TransformInverse := MatrixMult(IM, TransformInverse);
+    Transform := Transform * M;
+    TransformInverse := IM * TransformInverse;
 
     if ScaleOrientation[3] <> 0 then
     begin
       { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
         matrices below. Since we want to reverse them now, so normal
         Transform is multiplied by IM and TransformInverse is multiplied by M. }
-      Transform := MatrixMult(Transform, IMRotateScaleOrient);
-      TransformInverse := MatrixMult(MRotateScaleOrient, TransformInverse);
+      Transform := Transform * IMRotateScaleOrient;
+      TransformInverse := MRotateScaleOrient * TransformInverse;
     end;
   end;
 
@@ -3443,20 +3443,20 @@ begin
   Result := MaxAbsVectorCoord(GravityUp);
 end;
 
-function T3DWorld.WorldSphereCollision(const Pos: TVector3Single;
+function T3DWorld.WorldSphereCollision(const Pos: TVector3;
   const Radius: Single): boolean;
 begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
-function T3DWorld.WorldSphereCollision2D(const Pos: TVector2Single;
+function T3DWorld.WorldSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const Details: TCollisionDetails): boolean;
 begin
   Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
-function T3DWorld.WorldPointCollision2D(const Point: TVector2Single): boolean;
+function T3DWorld.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
 end;
@@ -3469,41 +3469,41 @@ begin
   FMiddleHeight := DefaultMiddleHeight;
 end;
 
-function T3DCustomTransform.GetTranslation: TVector3Single;
+function T3DCustomTransform.GetTranslation: TVector3;
 begin
-  Result := ZeroVector3Single;
+  Result := TVector3.Zero;
 end;
 
-function T3DCustomTransform.GetTranslation2D: TVector2Single;
+function T3DCustomTransform.GetTranslation2D: TVector2;
 var
-  T: TVector3Single;
+  T: TVector3;
 begin
   T := GetTranslation;
   Result[0] := T[0];
   Result[1] := T[1];
 end;
 
-function T3DCustomTransform.GetCenter: TVector3Single;
+function T3DCustomTransform.GetCenter: TVector3;
 begin
-  Result := ZeroVector3Single;
+  Result := TVector3.Zero;
 end;
 
-function T3DCustomTransform.GetRotation: TVector4Single;
+function T3DCustomTransform.GetRotation: TVector4;
 begin
-  Result := ZeroVector4Single;
+  Result := TVector4.Zero;
 end;
 
 const
-  NoScale: TVector3Single = (1, 1, 1);
+  NoScale: TVector3 = (Data: (1, 1, 1));
 
-function T3DCustomTransform.GetScale: TVector3Single;
+function T3DCustomTransform.GetScale: TVector3;
 begin
   Result := NoScale;
 end;
 
-function T3DCustomTransform.GetScaleOrientation: TVector4Single;
+function T3DCustomTransform.GetScaleOrientation: TVector4;
 begin
-  Result := ZeroVector4Single;
+  Result := TVector4.Zero;
 end;
 
 function T3DCustomTransform.OnlyTranslation: boolean;
@@ -3511,32 +3511,32 @@ begin
   Result := false; { safer but slower default }
 end;
 
-function T3DCustomTransform.Transform: TMatrix4Single;
+function T3DCustomTransform.Transform: TMatrix4;
 var
-  Dummy: TMatrix4Single;
+  Dummy: TMatrix4;
 begin
   TransformMatrices(Result, Dummy); // TODO: optimize, if needed?
 end;
 
-function T3DCustomTransform.TransformInverse: TMatrix4Single;
+function T3DCustomTransform.TransformInverse: TMatrix4;
 var
-  Dummy: TMatrix4Single;
+  Dummy: TMatrix4;
 begin
   TransformMatrices(Dummy, Result); // TODO: optimize, if needed?
 end;
 
 procedure T3DCustomTransform.TransformMatricesMult(
-  var M, MInverse: TMatrix4Single);
+  var M, MInverse: TMatrix4);
 begin
   Castle3D.TransformMatricesMult(M, MInverse,
     GetCenter, GetRotation, GetScale, GetScaleOrientation, GetTranslation);
 end;
 
 procedure T3DCustomTransform.TransformMatrices(
-  out M, MInverse: TMatrix4Single);
+  out M, MInverse: TMatrix4);
 begin
-  M := IdentityMatrix4Single;
-  MInverse := IdentityMatrix4Single;
+  M := TMatrix4.Identity;
+  MInverse := TMatrix4.Identity;
   TransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
 end;
 
@@ -3564,8 +3564,8 @@ end;
 
 procedure T3DCustomTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
-  T: TVector3Single;
-  OldRenderTransform, Inverse: TMatrix4Single;
+  T: TVector3;
+  OldRenderTransform, Inverse: TMatrix4;
   OldRenderTransformIdentity: boolean;
 begin
   T := GetTranslation;
@@ -3585,9 +3585,9 @@ begin
         inherited Render(Frustum.Move(-T), Params);
       end else
       begin
-        Inverse := IdentityMatrix4Single;
+        Inverse := TMatrix4.Identity;
         TransformMatricesMult(Params.RenderTransform, Inverse);
-        if IsNan(Inverse[0][0]) then
+        if IsNan(Inverse.Data[0, 0]) then
           {$ifndef VER3_1}
           WritelnWarning('Transform', Format(
             'Inverse transform matrix has NaN value inside:' + NL +
@@ -3615,9 +3615,9 @@ end;
 procedure T3DCustomTransform.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4Single);
+  const ParentTransform: TMatrix4);
 var
-  T: TVector3Single;
+  T: TVector3;
 begin
   if OnlyTranslation then
   begin
@@ -3626,17 +3626,17 @@ begin
       inherited RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform) else
       inherited RenderShadowVolume(ShadowVolumeRenderer,
-        false, MatrixMult(TranslationMatrix(T), ParentTransform));
+        false, TranslationMatrix(T) * ParentTransform);
   end else
     inherited RenderShadowVolume(ShadowVolumeRenderer,
-      false, MatrixMult(Transform, ParentTransform));
+      false, Transform * ParentTransform);
 end;
 
-function T3DCustomTransform.HeightCollision(const Position, GravityUp: TVector3Single;
+function T3DCustomTransform.HeightCollision(const Position, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
-  MInverse: TMatrix4Single;
+  MInverse: TMatrix4;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -3665,13 +3665,13 @@ begin
 end;
 
 function T3DCustomTransform.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
-  T: TVector3Single;
-  M, MInverse: TMatrix4Single;
+  T: TVector3;
+  M, MInverse: TMatrix4;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -3709,13 +3709,13 @@ begin
 end;
 
 function T3DCustomTransform.MoveCollision(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
-  T: TVector3Single;
-  MInverse: TMatrix4Single;
+  T: TVector3;
+  MInverse: TMatrix4;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -3747,12 +3747,12 @@ begin
   end;
 end;
 
-function T3DCustomTransform.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function T3DCustomTransform.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 var
-  T: TVector3Single;
-  MInverse: TMatrix4Single;
+  T: TVector3;
+  MInverse: TMatrix4;
 begin
   { inherited will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
@@ -3772,7 +3772,7 @@ begin
 end;
 
 function T3DCustomTransform.SphereCollision(
-  const Pos: TVector3Single; const Radius: Single;
+  const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   { inherited will check these anyway. But by checking them here,
@@ -3787,7 +3787,7 @@ begin
 end;
 
 function T3DCustomTransform.SphereCollision2D(
-  const Pos: TVector2Single; const Radius: Single;
+  const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 begin
@@ -3803,7 +3803,7 @@ begin
 end;
 
 function T3DCustomTransform.PointCollision2D(
-  const Point: TVector2Single;
+  const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   { inherited will check these anyway. But by checking them here,
@@ -3832,25 +3832,25 @@ begin
       Box.Transform(TransformInverse), TrianglesToIgnoreFunc);
 end;
 
-function T3DCustomTransform.OutsideToLocal(const Pos: TVector3Single): TVector3Single;
+function T3DCustomTransform.OutsideToLocal(const Pos: TVector3): TVector3;
 begin
   if OnlyTranslation then
     Result := Pos - GetTranslation else
     Result := MatrixMultPoint(TransformInverse, Pos);
 end;
 
-function T3DCustomTransform.LocalToOutside(const Pos: TVector3Single): TVector3Single;
+function T3DCustomTransform.LocalToOutside(const Pos: TVector3): TVector3;
 begin
   if OnlyTranslation then
     Result := Pos + GetTranslation else
     Result := MatrixMultPoint(Transform, Pos);
 end;
 
-function T3DCustomTransform.RayCollision(const RayOrigin, RayDirection: TVector3Single;
+function T3DCustomTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
-  T: TVector3Single;
-  M, MInverse: TMatrix4Single;
+  T: TVector3;
+  M, MInverse: TMatrix4;
   LastNode: PRayCollisionNode;
 begin
   { inherited will check these anyway. But by checking them here,
@@ -3895,10 +3895,10 @@ function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;
 begin
   if Gravity then
     Result := 0 else
-    Result := BoundingBox.Data[0, GravityCoordinate];
+    Result := BoundingBox.Data[0].Data[GravityCoordinate];
 end;
 
-function T3DCustomTransform.Middle: TVector3Single;
+function T3DCustomTransform.Middle: TVector3;
 var
   GC: Integer;
   B: TBox3D;
@@ -3917,7 +3917,7 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := GetTranslation;
-  Result[GC] += Bottom(Gravity, GC, B) + PreferredHeight;
+  Result.Data[GC] += Bottom(Gravity, GC, B) + PreferredHeight;
 end;
 
 function T3DCustomTransform.PreferredHeight: Single;
@@ -3931,7 +3931,7 @@ begin
   if MiddleForceBox then
     B := MiddleForceBoxValue else
     B := LocalBoundingBox;
-  Result := MiddleHeight * (B.Data[1, GC] - Bottom(Gravity, GC, B));
+  Result := MiddleHeight * (B.Data[1].Data[GC] - Bottom(Gravity, GC, B));
 
   {$ifdef CHECK_HEIGHT_VS_RADIUS}
   if Sphere(R) and (R > Result) then
@@ -3947,17 +3947,17 @@ procedure T3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: T
 
   procedure DoGravity(const PreferredHeight: Single);
   var
-    GravityUp: TVector3Single;
+    GravityUp: TVector3;
 
     { TODO: this is a duplicate of similar TWalkCamera method }
     procedure DoFall;
     var
-      BeginPos, EndPos, FallVector: TVector3Single;
+      BeginPos, EndPos, FallVector: TVector3;
     begin
       { Project Middle and FFallingStartMiddle
         onto GravityUp vector to calculate fall height. }
-      BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, FFallingStartMiddle);
-      EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, Middle);
+      BeginPos := PointOnLineClosestToPoint(TVector3.Zero, GravityUp, FFallingStartMiddle);
+      EndPos   := PointOnLineClosestToPoint(TVector3.Zero, GravityUp, Middle);
       FallVector := BeginPos - EndPos;
 
       { Because of various growing and jumping effects (imagine you jump up
@@ -4079,10 +4079,10 @@ begin
   Result := inherited BoundingBox;
 end;
 
-function T3DCustomTransform.Move(const ATranslation: TVector3Single;
+function T3DCustomTransform.Move(const ATranslation: TVector3;
   const BecauseOfGravity, EnableWallSliding: boolean): boolean;
 var
-  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3Single;
+  OldMiddle, ProposedNewMiddle, NewMiddle: TVector3;
 begin
   OldMiddle := Middle;
 
@@ -4109,27 +4109,27 @@ begin
   FScale := NoScale;
 end;
 
-function T3DTransform.GetCenter: TVector3Single;
+function T3DTransform.GetCenter: TVector3;
 begin
   Result := FCenter;
 end;
 
-function T3DTransform.GetRotation: TVector4Single;
+function T3DTransform.GetRotation: TVector4;
 begin
   Result := FRotation;
 end;
 
-function T3DTransform.GetScale: TVector3Single;
+function T3DTransform.GetScale: TVector3;
 begin
   Result := FScale;
 end;
 
-function T3DTransform.GetScaleOrientation: TVector4Single;
+function T3DTransform.GetScaleOrientation: TVector4;
 begin
   Result := FScaleOrientation;
 end;
 
-function T3DTransform.GetTranslation: TVector3Single;
+function T3DTransform.GetTranslation: TVector3;
 begin
   Result := FTranslation;
 end;
@@ -4138,7 +4138,7 @@ end;
   This will allow T3DCustomTransform to be optimized and accurate
   for often case of pure translation. }
 
-procedure T3DTransform.SetCenter(const Value: TVector3Single);
+procedure T3DTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
   FOnlyTranslation := FOnlyTranslation and
@@ -4146,14 +4146,14 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DTransform.SetRotation(const Value: TVector4Single);
+procedure T3DTransform.SetRotation(const Value: TVector4);
 begin
   FRotation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DTransform.SetScale(const Value: TVector3Single);
+procedure T3DTransform.SetScale(const Value: TVector3);
 begin
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
@@ -4161,14 +4161,14 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DTransform.SetScaleOrientation(const Value: TVector4Single);
+procedure T3DTransform.SetScaleOrientation(const Value: TVector4);
 begin
   FScaleOrientation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DTransform.SetTranslation(const Value: TVector3Single);
+procedure T3DTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
   VisibleChangeHere([vcVisibleGeometry]);
@@ -4179,18 +4179,18 @@ begin
   Result := FOnlyTranslation;
 end;
 
-procedure T3DTransform.Translate(const T: TVector3Single);
+procedure T3DTransform.Translate(const T: TVector3);
 begin
   Translation := Translation + T;
 end;
 
 procedure T3DTransform.Identity;
 begin
-  Center := ZeroVector3Single;
-  Rotation := ZeroVector4Single;
+  Center := TVector3.Zero;
+  Rotation := TVector4.Zero;
   Scale := NoScale;
-  ScaleOrientation := ZeroVector4Single;
-  Translation := ZeroVector3Single;
+  ScaleOrientation := TVector4.Zero;
+  Translation := TVector3.Zero;
 end;
 
 { T3DOrient ------------------------------------------------------------------ }
@@ -4208,11 +4208,11 @@ begin
   inherited;
 end;
 
-procedure T3DOrient.TransformMatricesMult(var M, MInverse: TMatrix4Single);
+procedure T3DOrient.TransformMatricesMult(var M, MInverse: TMatrix4);
 var
-  NewM, NewMInverse: TMatrix4Single;
+  NewM, NewMInverse: TMatrix4;
 var
-  P, D, U, Side: TVector3Single;
+  P, D, U, Side: TVector3;
 begin
   { Note that actually I could do here TransformToCoordsNoScaleMatrix,
     as obviously I don't want any scaling. But in this case I know
@@ -4254,78 +4254,78 @@ begin
   Result := false;
 end;
 
-function T3DOrient.GetPosition: TVector3Single;
+function T3DOrient.GetPosition: TVector3;
 begin
   Result := Camera.Position;
 end;
 
-function T3DOrient.GetDirection: TVector3Single;
+function T3DOrient.GetDirection: TVector3;
 begin
   Result := Camera.Direction;
 end;
 
-function T3DOrient.GetUp: TVector3Single;
+function T3DOrient.GetUp: TVector3;
 begin
   Result := Camera.Up;
 end;
 
-procedure T3DOrient.SetPosition(const Value: TVector3Single);
+procedure T3DOrient.SetPosition(const Value: TVector3);
 begin
   Camera.Position := Value;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.SetDirection(const Value: TVector3Single);
+procedure T3DOrient.SetDirection(const Value: TVector3);
 begin
   Camera.Direction := Value;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.SetUp(const Value: TVector3Single);
+procedure T3DOrient.SetUp(const Value: TVector3);
 begin
   Camera.Up := Value;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.UpPrefer(const AUp: TVector3Single);
+procedure T3DOrient.UpPrefer(const AUp: TVector3);
 begin
   Camera.UpPrefer(AUp);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.GetView(out APos, ADir, AUp: TVector3Single);
+procedure T3DOrient.GetView(out APos, ADir, AUp: TVector3);
 begin
   Camera.GetView(APos, ADir, AUp);
 end;
 
-procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3Single;
+procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
   Camera.SetView(APos, ADir, AUp, AdjustUp);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.SetView(const ADir, AUp: TVector3Single;
+procedure T3DOrient.SetView(const ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
   Camera.SetView(ADir, AUp, AdjustUp);
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-procedure T3DOrient.Translate(const T: TVector3Single);
+procedure T3DOrient.Translate(const T: TVector3);
 begin
   Camera.Position := Camera.Position + T;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-function T3DOrient.GetTranslation: TVector3Single;
+function T3DOrient.GetTranslation: TVector3;
 begin
   Result := Camera.Position;
 end;
 
-function T3DOrient.GetRotation: TVector4Single;
+function T3DOrient.GetRotation: TVector4;
 var
-  APos, ADir, AUp: TVector3Single;
+  APos, ADir, AUp: TVector3;
 begin
   Camera.GetView(APos, ADir, AUp);
   { TODO: Is this correct also for TOrientationType <> otUpYDirectionMinusZ? }
@@ -4345,7 +4345,7 @@ begin
   FAnimationTime := 0;
 end;
 
-function T3DMoving.GetTranslation: TVector3Single;
+function T3DMoving.GetTranslation: TVector3;
 begin
   Result := GetTranslationFromTime(AnimationTime);
 end;
@@ -4372,16 +4372,16 @@ procedure T3DMoving.BeforeTimeIncrease(
   const NewAnimationTime: TFloatTime);
 
   function BoundingBoxAssumeTranslation(
-    const AssumeTranslation: TVector3Single): TBox3D;
+    const AssumeTranslation: TVector3): TBox3D;
   begin
     if GetCollides then
       Result := (inherited BoundingBox).Translate(AssumeTranslation) else
-      Result := EmptyBox3D;
+      Result := TBox3D.Empty;
   end;
 
   function SphereCollisionAssumeTranslation(
-    const AssumeTranslation: TVector3Single;
-    const Pos: TVector3Single; const Radius: Single;
+    const AssumeTranslation: TVector3;
+    const Pos: TVector3; const Radius: Single;
     const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
   begin
     Result := GetCollides;
@@ -4396,7 +4396,7 @@ procedure T3DMoving.BeforeTimeIncrease(
   end;
 
   function BoxCollisionAssumeTranslation(
-    const AssumeTranslation: TVector3Single;
+    const AssumeTranslation: TVector3;
     const Box: TBox3D;
     const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
   begin
@@ -4414,8 +4414,8 @@ procedure T3DMoving.BeforeTimeIncrease(
 var
   CurrentBox, NewBox, Box: TBox3D;
   I: Integer;
-  MoveTranslation: TVector3Single;
-  CurrentTranslation, NewTranslation: TVector3Single;
+  MoveTranslation: TVector3;
+  CurrentTranslation, NewTranslation: TVector3;
   SphereRadius: Single;
   Item: T3D;
 begin
@@ -4499,7 +4499,7 @@ begin
   FAnimationTime := NewAnimationTime;
 end;
 
-procedure T3DMoving.Translate(const T: TVector3Single);
+procedure T3DMoving.Translate(const T: TVector3);
 begin
   { ignore Translate calls, our translation is determined by current time
     and other properties. }
@@ -4540,7 +4540,7 @@ begin
   UsedSound := nil;
 end;
 
-function T3DLinearMoving.SoundPosition: TVector3Single;
+function T3DLinearMoving.SoundPosition: TVector3;
 begin
   Result := BoundingBox.Center;
 end;
@@ -4606,13 +4606,13 @@ begin
 end;
 
 function T3DLinearMoving.GetTranslationFromTime(
-  const AnAnimationTime: TFloatTime): TVector3Single;
+  const AnAnimationTime: TFloatTime): TVector3;
 begin
   if not EndPosition then
   begin
     if AnAnimationTime - EndPositionStateChangeTime > MoveTime then
       { Completely closed. }
-      Result := ZeroVector3Single else
+      Result := TVector3.Zero else
       { During closing. }
       Result := TranslationEnd *
         (1 - (AnAnimationTime - EndPositionStateChangeTime) / MoveTime);
@@ -4678,7 +4678,7 @@ begin
 end;
 
 procedure T3DAlive.Hurt(const LifeLoss: Single;
-  const HurtDirection: TVector3Single;
+  const HurtDirection: TVector3;
   const AKnockbackDistance: Single; const Attacker: T3DAlive);
 begin
   Life := Life - LifeLoss;

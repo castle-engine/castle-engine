@@ -73,8 +73,8 @@ begin
 
   { initialize ParticlesTransform }
   ParticlesTransform := T3DTransform.Create(Application);
-  ParticlesTransform.Translation := Vector3Single(-15, -4, 0);
-  ParticlesTransform.Rotation := Vector4Single(1, 0, 0, -Pi/2);
+  ParticlesTransform.Translation := Vector3(-15, -4, 0);
+  ParticlesTransform.Rotation := Vector4(1, 0, 0, -Pi/2);
   Window.SceneManager.Items.Add(ParticlesTransform);
 
   { initialize ParticlesScene }
@@ -91,7 +91,7 @@ begin
 
   { initialize DinoTransform }
   DinoTransform := T3DTransform.Create(Application);
-  DinoTransform.Translation := Vector3Single(-20, -1, -2);
+  DinoTransform.Translation := Vector3(-20, -1, -2);
   Window.SceneManager.Items.Add(DinoTransform);
 
   { initialize DinoScene }
@@ -102,7 +102,7 @@ begin
   { render wireframe over a normal model. See TWireframeEffect docs
     for other options.  }
   DinoScene.Attributes.WireframeEffect := weSolidWireframe;
-  DinoScene.Attributes.WireframeColor := Vector3Single(0, 0.25, 0); { dark green }
+  DinoScene.Attributes.WireframeColor := Vector3(0, 0.25, 0); { dark green }
   DinoTransform.Add(DinoScene);
 
   Window.FpsShowOnCaption := true;

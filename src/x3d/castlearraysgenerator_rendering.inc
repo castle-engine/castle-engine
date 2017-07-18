@@ -36,13 +36,13 @@ type
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetGenerator = class(TAbstractCompleteGenerator)
   private
-    TriFaceNormal: TVector3Single;
+    TriFaceNormal: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives; override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
-      out N: TVector3Single); override;
+      out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
@@ -52,7 +52,7 @@ type
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetGenerator = class(TAbstractCompleteGenerator)
   private
-    TriFaceNormal: TVector3Single;
+    TriFaceNormal: TVector3;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
@@ -63,7 +63,7 @@ type
       BeginIndex, EndIndex: Integer); override;
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
-      out N: TVector3Single); override;
+      out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
@@ -77,7 +77,7 @@ type
     Inventor/VRML 1.0 conventions). }
   TTriangleStripSetGenerator = class(TAbstractCompleteGenerator)
   private
-    TriFaceNormal: TVector3Single;
+    TriFaceNormal: TVector3;
     VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -89,7 +89,7 @@ type
       BeginIndex, EndIndex: Integer); override;
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
-      out N: TVector3Single); override;
+      out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
@@ -99,13 +99,13 @@ type
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
   TQuadSetGenerator = class(TAbstractCompleteGenerator)
   private
-    QuadFaceNormal: TVector3Single;
+    QuadFaceNormal: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure GenerateCoordinate; override;
     procedure PrepareIndexesPrimitives; override;
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
-      out N: TVector3Single); override;
+      out N: TVector3); override;
     procedure GenerateCoordinateBegin; override;
   public
     constructor Create(AShape: TShape; AOverTriangulate: boolean); override;
@@ -234,9 +234,9 @@ begin
     Arrays.HasDefaultColor := true;
     M := State.MaterialInfo;
     if M <> nil then
-      Arrays.DefaultColor := Vector4Single(M.EmissiveColor, MaterialOpacity)
+      Arrays.DefaultColor := Vector4(M.EmissiveColor, MaterialOpacity)
     else
-      Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
+      Arrays.DefaultColor := Vector4(WhiteRGB, MaterialOpacity);
   end;
 end;
 
@@ -363,7 +363,7 @@ begin
 end;
 
 procedure TTriangleSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
-  out N: TVector3Single);
+  out N: TVector3);
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
@@ -514,7 +514,7 @@ begin
 end;
 
 procedure TTriangleFanSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
-  out N: TVector3Single);
+  out N: TVector3);
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
@@ -738,7 +738,7 @@ begin
 end;
 
 procedure TTriangleStripSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
-  out N: TVector3Single);
+  out N: TVector3);
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
@@ -961,7 +961,7 @@ begin
 end;
 
 procedure TQuadSetGenerator.GetNormal(IndexNum: Integer; RangeNumber: Integer;
-  out N: TVector3Single);
+  out N: TVector3);
 begin
   if NorImplementation = niNone then
     { TODO: hack, assuming GetNormal is only called for current face }
@@ -1117,8 +1117,8 @@ begin
     Arrays.HasDefaultColor := true;
     M := State.MaterialInfo;
     if M <> nil then
-      Arrays.DefaultColor := Vector4Single(M.EmissiveColor, MaterialOpacity)
+      Arrays.DefaultColor := Vector4(M.EmissiveColor, MaterialOpacity)
     else
-      Arrays.DefaultColor := Vector4Single(WhiteRGB, MaterialOpacity);
+      Arrays.DefaultColor := Vector4(WhiteRGB, MaterialOpacity);
   end;
 end;

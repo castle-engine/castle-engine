@@ -534,12 +534,12 @@ begin
    FdChildren.ChangesAlways := [chEverything];
   AddField(FFdChildren);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', ZeroVector3Single);
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', TVector3.Zero);
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -775,15 +775,15 @@ end;
 
 procedure TX3DRootNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
-  M, IM: TMatrix4Single;
+  M, IM: TMatrix4;
 begin
   inherited;
 
   if Scale <> 1 then
   begin
-    ScalingMatrices(Vector3Single(Scale, Scale, Scale), true, M, IM);
-    State.Transform := MatrixMult(State.Transform, M);
-    State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+    ScalingMatrices(Vector3(Scale, Scale, Scale), true, M, IM);
+    State.Transform := State.Transform * M;
+    State.InvertedTransform := IM * State.InvertedTransform;
     State.TransformScale *= Scale;
   end;
 end;
@@ -821,12 +821,12 @@ begin
    FdChildren.ChangesAlways := [chEverything];
   AddField(FFdChildren);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -901,27 +901,27 @@ procedure TTransformNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -958,11 +958,11 @@ begin
 end;
 
 procedure TransformState(State: TX3DGraphTraverseState;
-  const Center: TVector3Single;
-  const Rotation: TVector4Single;
-  const Scale: TVector3Single;
-  const ScaleOrientation: TVector4Single;
-  const Translation: TVector3Single);
+  const Center: TVector3;
+  const Rotation: TVector4;
+  const Scale: TVector3;
+  const ScaleOrientation: TVector4;
+  const Translation: TVector3);
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);

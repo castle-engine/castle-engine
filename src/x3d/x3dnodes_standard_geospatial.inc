@@ -640,12 +640,12 @@ begin
   FFdRootNode.Exposed := false;
   AddField(FFdRootNode);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -839,19 +839,19 @@ begin
   AddField(FFdGeoCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
   AddField(FFdScaleOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -880,7 +880,7 @@ procedure TGeoViewpointNode.CreateNode;
 begin
   inherited;
 
-  DummyPositionSingle := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 100000));
+  DummyPositionSingle := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 100000));
 
   FEventSet_orientation := TSFRotationEvent.Create(Self, 'set_orientation', true);
   AddEvent(FEventSet_orientation);

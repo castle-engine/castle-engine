@@ -547,12 +547,12 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
   procedure AutoCalculateProjectionForDirectionalLight(
     const LightNode: TDirectionalLightNode);
   var
-    Pos, Dir, Side, Up, MinCorner, MaxCorner: TVector3Single;
-    ProjectionLocation: TVector3Single;
+    Pos, Dir, Side, Up, MinCorner, MaxCorner: TVector3;
+    ProjectionLocation: TVector3;
     ProjectionRectangle: TFloatRectangle;
   begin
     if VectorsPerfectlyEqual(
-         LightNode.FdProjectionRectangle.Value, ZeroVector4Single) and
+         LightNode.FdProjectionRectangle.Value, TVector4.Zero) and
       (not ShadowCastersBox.IsEmpty) then
     begin
       LightNode.GetView(Pos, Dir, Side, Up);
@@ -638,7 +638,7 @@ begin
     if Enable then
     begin
       Lights.DefaultShadowMapSize := DefaultShadowMapSize;
-      Lights.ShadowCastersBox := EmptyBox3D;
+      Lights.ShadowCastersBox := TBox3D.Empty;
 
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);

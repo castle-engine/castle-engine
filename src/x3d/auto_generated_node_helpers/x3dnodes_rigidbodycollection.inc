@@ -43,8 +43,8 @@
     procedure SetEnabled(const Value: boolean);
     function GetErrorCorrection: Single;
     procedure SetErrorCorrection(const Value: Single);
-    function GetGravity: TVector3Single;
-    procedure SetGravity(const Value: TVector3Single);
+    function GetGravity: TVector3;
+    procedure SetGravity(const Value: TVector3);
     function GetIterations: Integer;
     procedure SetIterations(const Value: Integer);
     function GetMaxCorrectionSpeed: Single;
@@ -62,7 +62,7 @@
     property DisableTime: Single read GetDisableTime write SetDisableTime;
     property Enabled: boolean read GetEnabled write SetEnabled;
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
-    property Gravity: TVector3Single read GetGravity write SetGravity;
+    property Gravity: TVector3 read GetGravity write SetGravity;
     property Iterations: Integer read GetIterations write SetIterations;
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
     property PreferAccuracy: boolean read GetPreferAccuracy write SetPreferAccuracy;
@@ -154,12 +154,12 @@ begin
   FdErrorCorrection.Send(Value);
 end;
 
-function TRigidBodyCollectionNode.GetGravity: TVector3Single;
+function TRigidBodyCollectionNode.GetGravity: TVector3;
 begin
   Result := FdGravity.Value;
 end;
 
-procedure TRigidBodyCollectionNode.SetGravity(const Value: TVector3Single);
+procedure TRigidBodyCollectionNode.SetGravity(const Value: TVector3);
 begin
   FdGravity.Send(Value);
 end;

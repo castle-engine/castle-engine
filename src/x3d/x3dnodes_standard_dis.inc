@@ -849,7 +849,7 @@ begin
   AddField(FFdArticulationParameterArray);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -861,11 +861,11 @@ begin
   AddField(FFdDeadReckoning);
   { X3D specification comment: [0,255] }
 
-  FFdDetonationLocation := TSFVec3f.Create(Self, 'detonationLocation', Vector3Single(0, 0, 0));
+  FFdDetonationLocation := TSFVec3f.Create(Self, 'detonationLocation', Vector3(0, 0, 0));
   AddField(FFdDetonationLocation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdDetonationRelativeLocation := TSFVec3f.Create(Self, 'detonationRelativeLocation', Vector3Single(0, 0, 0));
+  FFdDetonationRelativeLocation := TSFVec3f.Create(Self, 'detonationRelativeLocation', Vector3(0, 0, 0));
   AddField(FFdDetonationRelativeLocation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -950,11 +950,11 @@ begin
   AddField(FFdFuse);
   { X3D specification comment: [0,65535] }
 
-  FFdLinearVelocity := TSFVec3f.Create(Self, 'linearVelocity', Vector3Single(0, 0, 0));
+  FFdLinearVelocity := TSFVec3f.Create(Self, 'linearVelocity', Vector3(0, 0, 0));
   AddField(FFdLinearVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdLinearAcceleration := TSFVec3f.Create(Self, 'linearAcceleration', Vector3Single(0, 0, 0));
+  FFdLinearAcceleration := TSFVec3f.Create(Self, 'linearAcceleration', Vector3(0, 0, 0));
   AddField(FFdLinearAcceleration);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -971,7 +971,7 @@ begin
   AddField(FFdMunitionApplicationID);
   { X3D specification comment: [0,65535] }
 
-  FFdMunitionEndPoint := TSFVec3f.Create(Self, 'munitionEndPoint', Vector3Single(0, 0, 0));
+  FFdMunitionEndPoint := TSFVec3f.Create(Self, 'munitionEndPoint', Vector3(0, 0, 0));
   AddField(FFdMunitionEndPoint);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -987,7 +987,7 @@ begin
   AddField(FFdMunitionSiteID);
   { X3D specification comment: [0,65535] }
 
-  FFdMunitionStartPoint := TSFVec3f.Create(Self, 'munitionStartPoint', Vector3Single(0, 0, 0));
+  FFdMunitionStartPoint := TSFVec3f.Create(Self, 'munitionStartPoint', Vector3(0, 0, 0));
   AddField(FFdMunitionStartPoint);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1003,15 +1003,15 @@ begin
   AddField(FFdReadInterval);
   { X3D specification comment: [0,Inf) }
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
   AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
@@ -1019,7 +1019,7 @@ begin
   AddField(FFdSiteID);
   { X3D specification comment: [0,65535] }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1197,12 +1197,12 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1 }
@@ -1312,12 +1312,12 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -1343,7 +1343,7 @@ begin
   FFdAddress := TSFString.Create(Self, 'address', 'localhost');
   AddField(FFdAddress);
 
-  FFdAntennaLocation := TSFVec3f.Create(Self, 'antennaLocation', Vector3Single(0, 0, 0));
+  FFdAntennaLocation := TSFVec3f.Create(Self, 'antennaLocation', Vector3(0, 0, 0));
   AddField(FFdAntennaLocation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1448,7 +1448,7 @@ begin
   AddField(FFdReadInterval);
   { X3D specification comment: [0,Inf) }
 
-  FFdRelativeAntennaLocation := TSFVec3f.Create(Self, 'relativeAntennaLocation', Vector3Single(0, 0, 0));
+  FFdRelativeAntennaLocation := TSFVec3f.Create(Self, 'relativeAntennaLocation', Vector3(0, 0, 0));
   AddField(FFdRelativeAntennaLocation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1490,12 +1490,12 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1 }

@@ -23,7 +23,7 @@ interface
 uses SysUtils, CastleVectors, CastleUtils, CastleTriangles;
 
 type
-  TTriangulatorProc = procedure (const Tri: TVector3Longint) of object;
+  TTriangulatorProc = procedure (const Tri: TVector3Integer) of object;
 
 { Triangulate potentially non-convex face.
 
@@ -71,7 +71,7 @@ type
   @groupBegin }
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; VerticesCount: Integer;
+  Vertices: PVector3; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 
@@ -101,8 +101,8 @@ procedure TriangulateConvexFace(Count: Integer;
 { Calculate normal vector of possibly concave polygon. }
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
-  Vertices: PVector3Single; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
+  Vertices: PVector3; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 
 var
   { Write to Log a @italic(lot) of comments how the triangulation goes.
@@ -154,13 +154,13 @@ procedure TriangulateFace(
 
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
-    TriangulatorProc(Vector3Longint(
+    TriangulatorProc(Vector3Integer(
       P0 + AddToIndices,
       P1 + AddToIndices,
       P2 + AddToIndices));
   end;
 
-  function Verts(I: Longint): TVector3Single;
+  function Verts(I: Longint): TVector3;
   begin
     if FaceIndices <> nil then
       Result := Vertices(FaceIndices^[I]) else
@@ -168,7 +168,7 @@ procedure TriangulateFace(
   end;
 
   { Calculate the most distant vertex from Center. }
-  function GetMostDistantVertex(const Center: TVector3Single): Integer;
+  function GetMostDistantVertex(const Center: TVector3): Integer;
   var
     MaxLen, D: Single;
     I: Integer;
@@ -211,7 +211,7 @@ var
     Searches to make sure we have a good non-colinear triangle around Middle.
     Returns false (and does log message) if not possible. }
   function EarAround(const Middle: Integer; out Previous, Next: Integer;
-    out EarDir: TVector3Single): boolean;
+    out EarDir: TVector3): boolean;
   begin
     { Previous := previous from Middle, with different value. }
     Previous := Middle;
@@ -228,7 +228,7 @@ var
     Next := Middle;
     repeat
       Next := NextNotOut(Next);
-      EarDir := TriangleDir(Verts(Previous), Verts(Middle), Verts(Next));
+      EarDir := TriangleDirection(Verts(Previous), Verts(Middle), Verts(Next));
       { note: no need to check for VectorsEqual(Verts(Next), Verts(Middle)) anywhere,
         because if EarDir is non-zero then they had to be different. }
     until (Next = Previous) or not ZeroVector(EarDir);
@@ -243,7 +243,7 @@ var
 
   function EarAround(const Middle: Integer; out Previous, Next: Integer): boolean;
   var
-    EarDirIgnored: TVector3Single;
+    EarDirIgnored: TVector3;
   begin
     Result := EarAround(Middle, Previous, Next, EarDirIgnored);
   end;
@@ -280,7 +280,7 @@ var
 
     This function distinguishes between these two cases.
     Inside1/2/3 must be the edge comparison results. }
-  function BorderVertexInsideTriangle(const V0, V1, V2, TriangleNormal: TVector3Single;
+  function BorderVertexInsideTriangle(const V0, V1, V2, TriangleNormal: TVector3;
     const Inside1, Inside2, Inside3: Single;
     const Border: Integer): boolean;
 
@@ -293,12 +293,12 @@ var
       we use this always in case when we now that ray never lies
       on the line segment, because our line segment is chosen to be a triangle
       edge that *does not* contain Border vertex). }
-    function RaySegment01Collision2D(Ray0: TVector3Single;
-      const RayDirection: TVector3Single;
-      const Origin, XDirection: TVector3Single;
-      YDirection: TVector3Single): boolean;
+    function RaySegment01Collision2D(Ray0: TVector3;
+      const RayDirection: TVector3;
+      const Origin, XDirection: TVector3;
+      YDirection: TVector3): boolean;
     var
-      R0, RDirection: TVector2Single;
+      R0, RDirection: TVector2;
       X, T, XDirectionLenSqr, YDirectionLenSqr: Single;
     begin
       Ray0 -= Origin;
@@ -330,7 +330,7 @@ var
 
   var
     BorderPrevious, BorderNext: Integer;
-    VBorder, BorderEarNormal, PullDirection: TVector3Single;
+    VBorder, BorderEarNormal, PullDirection: TVector3;
   begin
     { The two cases can be distinguished by looking at edges
       around Border. If they go out of V0-V1-V2 triangle,
@@ -374,7 +374,7 @@ var
 
     Assert(Result = IsPointOnTrianglePlaneWithinTriangle(
       VBorder + PullDirection * 0.01,
-      Triangle3Single(V0, V1, V2), TriangleNormal)); }
+      Triangle3(V0, V1, V2), TriangleNormal)); }
 
     if Log and LogTriangulation then
       WritelnLog('Triangulation', Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
@@ -382,7 +382,7 @@ var
   end;
 
 var
-  Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3Single;
+  Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   EarFound, FailureWarningDone, ValidEar: boolean;
@@ -397,7 +397,7 @@ begin
     FailureWarningDone := false;
 
     { calculate Center := average of all vertexes }
-    Center := ZeroVector3Single;
+    Center := TVector3.Zero;
     for I := 0 to Count - 1 do
       Center += Verts(I);
     Center /= Count;
@@ -428,7 +428,7 @@ begin
       P1 := GetMostDistantVertex(Center);
       if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
       Assert(not ZeroVector(PolygonNormal));
-      NormalizeVar(PolygonNormal);
+      PolygonNormal.NormalizeMe;
 
       if Log and LogTriangulation then
         WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
@@ -483,7 +483,7 @@ begin
             Break;
           end;
 
-          EarNormal := TriangleDir(V0, V1, V2);
+          EarNormal := TriangleDirection(V0, V1, V2);
           if ZeroVector(EarNormal) then
           begin
             if Log and LogTriangulation then
@@ -494,7 +494,7 @@ begin
               Leave ValidEar = false, so it will not be actually returned. }
             Break;
           end;
-          NormalizeVar(EarNormal);
+          EarNormal.NormalizeMe;
 
           ValidEar := true;
 
@@ -562,23 +562,23 @@ end;
 
 type
   TVerticesGenerator = class
-    Vertices: PVector3Single;
+    Vertices: PVector3;
     VerticesCount: Integer;
-    function Generate(Index: Integer): TVector3Single;
+    function Generate(Index: Integer): TVector3;
   end;
 
-function TVerticesGenerator.Generate(Index: Integer): TVector3Single;
+function TVerticesGenerator.Generate(Index: Integer): TVector3;
 begin
   if Index < VerticesCount then
     Result := Vertices[Index] else
     { invalid vertex index. VRML/X3D code will warn about it elsewhere,
       so do not make warning now --- just make sure we don't crash. }
-    Result := ZeroVector3Single;
+    Result := TVector3.Zero;
 end;
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; VerticesCount: Integer;
+  Vertices: PVector3; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 var
@@ -599,7 +599,7 @@ procedure TriangulateConvexFace(Count: Integer;
 
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
-    TriangulatorProc(Vector3Longint(
+    TriangulatorProc(Vector3Integer(
       P0 + AddToIndices,
       P1 + AddToIndices,
       P2 + AddToIndices));
@@ -614,8 +614,8 @@ end;
 
 function IndexedConcavePolygonNormal(
   Indices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+  Vertices: PVector3; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3): TVector3;
 
 { Alternative implementation of IndexedConcavePolygonNormal
   is to do TriangulateFace on the polygon, sum normal vectors
@@ -637,18 +637,18 @@ function IndexedConcavePolygonNormal(
     Result := (I + 1) mod Count;
   end;
 
-  function Verts(const I: Longint): TVector3Single;
+  function Verts(const I: Longint): TVector3;
   var
     Index: LongInt;
   begin
     Index := Indices^[I];
     if Index < VerticesCount then
       Result := Vertices[Index] else
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
   end;
 
   { Calculate the most distant vertex from Center. }
-  function GetMostDistantVertex(const Center: TVector3Single): Integer;
+  function GetMostDistantVertex(const Center: TVector3): Integer;
   var
     MaxLen, D: Single;
     I: Integer;
@@ -667,14 +667,14 @@ function IndexedConcavePolygonNormal(
   end;
 
 var
-  Center: TVector3Single;
+  Center: TVector3;
   P0, P1, P2, I: Integer;
 begin
   if Count < 3 then
     Exit(ResultForIncorrectPoly);
 
   { calculate Center := average of all vertexes }
-  Center := ZeroVector3Single;
+  Center := TVector3.Zero;
   for I := 0 to Count - 1 do
     Center += Verts(I);
   Center /= Count;
@@ -697,7 +697,7 @@ begin
   P2 := P1;
   repeat
     P2 := Next(P2);
-    Result := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
+    Result := TriangleDirection(Verts(P0), Verts(P1), Verts(P2));
     { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
       because if EarDir is non-zero then they had to be different. }
   until (P2 = P0) or not ZeroVector(Result);
@@ -707,16 +707,17 @@ begin
     Exit(ResultForIncorrectPoly);
   end;
 
-  NormalizeVar(Result);
+  Result.NormalizeMe;
 end;
 
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
-  Vertices: PVector3Single; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
+  Vertices: PVector3; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 begin
   if Convex then
-    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly) else
+    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly)
+  else
     Result := IndexedConcavePolygonNormal(Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly);
 end;
 

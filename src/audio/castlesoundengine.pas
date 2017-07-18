@@ -47,14 +47,14 @@ type
       and in destructor (if constructor exited with ENoMoreOpenALSources). }
     FALSourceAllocated: boolean;
     FUserData: TObject;
-    FPosition, FVelocity: TVector3Single;
+    FPosition, FVelocity: TVector3;
     FLooping, FRelative: boolean;
     FGain, FMinGain, FMaxGain, FPitch: Single;
     FBuffer: TSoundBuffer;
     FRolloffFactor, FReferenceDistance, FMaxDistance: Single;
     FAllocator: TSoundAllocator;
-    procedure SetPosition(const Value: TVector3Single);
-    procedure SetVelocity(const Value: TVector3Single);
+    procedure SetPosition(const Value: TVector3);
+    procedure SetVelocity(const Value: TVector3);
     procedure SetLooping(const Value: boolean);
     procedure SetRelative(const Value: boolean);
     procedure SetGain(const Value: Single);
@@ -138,8 +138,8 @@ type
       You can call this only when Used = @true. }
     procedure Release; virtual;
 
-    property Position: TVector3Single read FPosition write SetPosition;
-    property Velocity: TVector3Single read FVelocity write SetVelocity;
+    property Position: TVector3 read FPosition write SetPosition;
+    property Velocity: TVector3 read FVelocity write SetVelocity;
     property Looping: boolean read FLooping write SetLooping;
     property Relative: boolean read FRelative write SetRelative;
     property Gain: Single read FGain write SetGain;
@@ -372,7 +372,7 @@ type
     Gain, MinGain, MaxGain: Single;
     { The position of sound in 3D space.
       Used only if @link(Spatial) = @true. }
-    Position: TVector3Single;
+    Position: TVector3;
     { Pitch allows to play the sound faster. By default it is 1.0. }
     Pitch: Single;
     { See @link(TSoundEngine.DefaultRolloffFactor) for description.
@@ -425,7 +425,7 @@ type
 
     { We record listener state regardless of ALActive. This way at the ALContextOpen
       call we can immediately set the good listener parameters. }
-    ListenerPosition: TVector3Single;
+    ListenerPosition: TVector3;
     ListenerOrientation: TALTwoVectors3f;
 
     FEnableSaveToConfig, DeviceSaveToConfig: boolean;
@@ -567,12 +567,12 @@ type
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
-      const Position: TVector3Single;
+      const Position: TVector3;
       const Pitch: Single = 1): TSound;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
-      const Position: TVector3Single;
+      const Position: TVector3;
       const Pitch: Single;
       const ReferenceDistance: Single;
       const MaxDistance: Single): TSound; deprecated 'use PlaySound that gets TSoundParameters instance';
@@ -601,7 +601,7 @@ type
     function ParseParametersHelp: string;
 
     { Set OpenAL listener position and orientation. }
-    procedure UpdateListener(const Position, Direction, Up: TVector3Single);
+    procedure UpdateListener(const Position, Direction, Up: TVector3);
 
     { List of available OpenAL sound devices. Read-only.
 
@@ -864,7 +864,7 @@ type
         stMySound2 := SoundEngine.SoundFromName('my_sound_2');
         // ... and later in your game you can do stuff like this:
         SoundEngine.Sound(stMySound1);
-        SoundEngine.Sound3D(stMySound1, Vector3Single(0, 0, 10));
+        SoundEngine.Sound3D(stMySound1, Vector3(0, 0, 10));
       #)
 
       See CastleFilesUtils unit for docs of ApplicationData function.
@@ -926,7 +926,7 @@ type
 
       @noAutoLinkHere }
     function Sound3D(SoundType: TSoundType;
-      const Position: TVector3Single;
+      const Position: TVector3;
       const Looping: boolean = false): TSound; overload;
 
     { Sound importance names and values.
@@ -1121,13 +1121,13 @@ begin
   end;
 end;
 
-procedure TSound.SetPosition(const Value: TVector3Single);
+procedure TSound.SetPosition(const Value: TVector3);
 begin
   FPosition := Value;
   alSourceVector3f(ALSource, AL_POSITION, Value);
 end;
 
-procedure TSound.SetVelocity(const Value: TVector3Single);
+procedure TSound.SetVelocity(const Value: TVector3);
 begin
   FVelocity := Value;
   alSourceVector3f(ALSource, AL_VELOCITY, Value);
@@ -1518,9 +1518,9 @@ begin
   FOnOpenClose := TNotifyEventList.Create;
 
   { Default OpenAL listener attributes }
-  ListenerPosition := ZeroVector3Single;
-  ListenerOrientation[0] := Vector3Single(0, 0, -1);
-  ListenerOrientation[1] := Vector3Single(0, 1, 0);
+  ListenerPosition := TVector3.Zero;
+  ListenerOrientation[0] := Vector3(0, 0, -1);
+  ListenerOrientation[1] := Vector3(0, 1, 0);
 
   // automatic loading/saving is more troublesome than it's worth
   // Config.AddLoadListener(@LoadFromConfig);
@@ -1964,7 +1964,7 @@ begin
           That's why setting source position exactly on the player
           is needed here. }
         Result.Relative := true;
-        Result.Position := ZeroVector3Single;
+        Result.Position := TVector3.Zero;
       end;
 
       if CheckBufferLoaded then
@@ -2022,7 +2022,7 @@ end;
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
-  const Position: TVector3Single;
+  const Position: TVector3;
   const Pitch: Single): TSound;
 var
   Parameters: TSoundParameters;
@@ -2045,7 +2045,7 @@ end;
 function TSoundEngine.PlaySound(const Buffer: TSoundBuffer;
   const Spatial, Looping: boolean; const Importance: Cardinal;
   const Gain, MinGain, MaxGain: Single;
-  const Position: TVector3Single;
+  const Position: TVector3;
   const Pitch, ReferenceDistance, MaxDistance: Single): TSound;
 var
   Parameters: TSoundParameters;
@@ -2276,7 +2276,7 @@ begin
     '  --no-sound            Turn off sound.';
 end;
 
-procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3Single);
+procedure TSoundEngine.UpdateListener(const Position, Direction, Up: TVector3);
 begin
   ListenerPosition := Position;
   ListenerOrientation[0] := Direction;
@@ -2495,11 +2495,11 @@ begin
     Sounds[SoundType.Index].Gain,
     Sounds[SoundType.Index].MinGain,
     Sounds[SoundType.Index].MaxGain,
-    ZeroVector3Single);
+    TVector3.Zero);
 end;
 
 function TRepoSoundEngine.Sound3D(SoundType: TSoundType;
-  const Position: TVector3Single;
+  const Position: TVector3;
   const Looping: boolean): TSound;
 begin
   { If there is no actual sound, exit early without initializing OpenAL.
@@ -2708,7 +2708,7 @@ begin
     FEngine.Sounds[Sound.Index].Buffer, false, true,
     MaxSoundImportance,
     MusicVolume * FEngine.Sounds[Sound.Index].Gain, 0, 1,
-    ZeroVector3Single);
+    TVector3.Zero);
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease := @AllocatedSourceRelease;

@@ -234,7 +234,7 @@ type
 
       @groupBegin }
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single);
+      const GravityUp: TVector3);
       deprecated 'use Prepare overload without the GravityUp parameter';
     procedure Prepare(const BaseLights: TAbstractLightInstancesList = nil);
     procedure Release;
@@ -243,7 +243,7 @@ type
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
     procedure InstantiatePlaceholder(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
+      const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 
     { Animations of this resource.
@@ -468,7 +468,7 @@ begin
   if Owner.Model <> nil then
     Result := Owner.Model.BoundingBox else
     { animation 3D model not loaded }
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 function T3DResourceAnimation.Defined: boolean;
@@ -653,7 +653,7 @@ begin
 end;
 
 procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single);
+  const GravityUp: TVector3);
 begin
   Prepare(BaseLights);
 end;

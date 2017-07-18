@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   private
-    function GetInitialDestination: TVector4Single;
-    procedure SetInitialDestination(const Value: TVector4Single);
-    function GetInitialValue: TVector4Single;
-    procedure SetInitialValue(const Value: TVector4Single);
+    function GetInitialDestination: TVector4;
+    procedure SetInitialDestination(const Value: TVector4);
+    function GetInitialValue: TVector4;
+    procedure SetInitialValue(const Value: TVector4);
   public
-    property InitialDestination: TVector4Single read GetInitialDestination write SetInitialDestination;
-    property InitialValue: TVector4Single read GetInitialValue write SetInitialValue;
+    property InitialDestination: TVector4 read GetInitialDestination write SetInitialDestination;
+    property InitialValue: TVector4 read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}
 
@@ -41,22 +41,22 @@
 
 { TOrientationDamperNode ----------------------------------------------- }
 
-function TOrientationDamperNode.GetInitialDestination: TVector4Single;
+function TOrientationDamperNode.GetInitialDestination: TVector4;
 begin
   Result := FdInitialDestination.Value;
 end;
 
-procedure TOrientationDamperNode.SetInitialDestination(const Value: TVector4Single);
+procedure TOrientationDamperNode.SetInitialDestination(const Value: TVector4);
 begin
   FdInitialDestination.Send(Value);
 end;
 
-function TOrientationDamperNode.GetInitialValue: TVector4Single;
+function TOrientationDamperNode.GetInitialValue: TVector4;
 begin
   Result := FdInitialValue.Value;
 end;
 
-procedure TOrientationDamperNode.SetInitialValue(const Value: TVector4Single);
+procedure TOrientationDamperNode.SetInitialValue(const Value: TVector4);
 begin
   FdInitialValue.Send(Value);
 end;

@@ -41,12 +41,12 @@ type
   TSlowestPiecewiseCubicBezier = class(TInterpolatedCurve)
   private
     BezierCurves: TRationalBezierCurveList;
-    ConvexHullPoints: TVector3SingleList;
+    ConvexHullPoints: TVector3List;
   protected
-    function CreateConvexHullPoints: TVector3SingleList; override;
-    procedure DestroyConvexHullPoints(Points: TVector3SingleList); override;
+    function CreateConvexHullPoints: TVector3List; override;
+    procedure DestroyConvexHullPoints(Points: TVector3List); override;
   public
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
 
     { Convert to a list of @link(TRationalBezierCurve) instances.
 
@@ -70,16 +70,16 @@ type
 
 { TSlowestPiecewiseCubicBezier --------------------------------------------------- }
 
-function TSlowestPiecewiseCubicBezier.CreateConvexHullPoints: TVector3SingleList;
+function TSlowestPiecewiseCubicBezier.CreateConvexHullPoints: TVector3List;
 begin
   Result := ConvexHullPoints;
 end;
 
-procedure TSlowestPiecewiseCubicBezier.DestroyConvexHullPoints(Points: TVector3SingleList);
+procedure TSlowestPiecewiseCubicBezier.DestroyConvexHullPoints(Points: TVector3List);
 begin
 end;
 
-function TSlowestPiecewiseCubicBezier.Point(const t: Float): TVector3Single;
+function TSlowestPiecewiseCubicBezier.Point(const t: Float): TVector3;
 var
   i: Integer;
 begin
@@ -97,9 +97,9 @@ end;
 
 function TSlowestPiecewiseCubicBezier.ToRationalBezierCurves(ResultOwnsCurves: boolean): TRationalBezierCurveList;
 var
-  S: TVector3SingleList;
+  S: TVector3List;
 
-  function MiddlePoint(i, Sign: Integer): TVector3Single;
+  function MiddlePoint(i, Sign: Integer): TVector3;
   begin
     Result := ControlPoints.L[i];
     Result := Result +
@@ -107,7 +107,7 @@ var
   end;
 
 var
-  C: TVector3SingleList;
+  C: TVector3List;
   i: Integer;
   {$warnings off} { Consciously using deprecated stuff. }
   NewCurve: TRationalBezierCurve;
@@ -147,7 +147,7 @@ begin
     C := nil;
     S := nil;
     try
-      C := TVector3SingleList.Create;
+      C := TVector3List.Create;
       C.Count := ControlPoints.Count-1;
       { calculate C values }
       for i := 0 to C.Count-1 do
@@ -156,7 +156,7 @@ begin
         C.L[i] := C.L[i] * (1/(ControlPointT(i+1) - ControlPointT(i)));
       end;
 
-      S := TVector3SingleList.Create;
+      S := TVector3List.Create;
       S.Count := ControlPoints.Count;
       { calculate S values }
       for i := 1 to S.Count-2 do
@@ -209,7 +209,7 @@ end;
 constructor TSlowestPiecewiseCubicBezier.Create(AOwner: TComponent);
 begin
   inherited;
-  ConvexHullPoints := TVector3SingleList.Create;
+  ConvexHullPoints := TVector3List.Create;
 end;
 
 destructor TSlowestPiecewiseCubicBezier.Destroy;
@@ -227,15 +227,15 @@ type
     Use if you may very often change control points. }
   TOnlinePiecewiseCubicBezier = class(TInterpolatedCurve)
   public
-    function Point(const t: Float): TVector3Single; override;
+    function Point(const t: Float): TVector3; override;
   end;
 
 { TOnlinePiecewiseCubicBezier implementation --------------------------------- }
 
-function TOnlinePiecewiseCubicBezier.Point(const T: Float): TVector3Single;
+function TOnlinePiecewiseCubicBezier.Point(const T: Float): TVector3;
 
   { This asssumes that I = [0..ControlPoints.Count - 2]. }
-  function C(const I: Integer): TVector3Single;
+  function C(const I: Integer): TVector3;
   begin
     Result := ControlPoints.L[I + 1] - ControlPoints.L[I];
     //Result := Result * (1 / (ControlPointT(I + 1) - ControlPointT(I)));
@@ -243,7 +243,7 @@ function TOnlinePiecewiseCubicBezier.Point(const T: Float): TVector3Single;
 
   { This asssumes that I = [0..ControlPoints.Count - 1],
     not outside of this range, and that ControlPoints.Count > 2. }
-  function S(const I: Integer): TVector3Single;
+  function S(const I: Integer): TVector3;
   begin
     if I = 0 then
       Exit(C(0) * 2 - S(1)) else
@@ -309,20 +309,20 @@ procedure TTestCastleCurves.TestSlowFastPiecewiseBezier;
   procedure InitCurve1(const C: TControlPointsCurve);
   begin
     C.ControlPoints.Clear;
-    C.ControlPoints.Add(Vector3Single(0, 0, 0));
-    C.ControlPoints.Add(Vector3Single(1, 1, 0));
-    C.ControlPoints.Add(Vector3Single(2, 0, 0));
+    C.ControlPoints.Add(Vector3(0, 0, 0));
+    C.ControlPoints.Add(Vector3(1, 1, 0));
+    C.ControlPoints.Add(Vector3(2, 0, 0));
     C.UpdateControlPoints;
   end;
 
   procedure InitCurve2(const C: TControlPointsCurve);
   begin
     C.ControlPoints.Clear;
-    C.ControlPoints.Add(Vector3Single(0, -1, 0));
-    C.ControlPoints.Add(Vector3Single(1, 1, 0));
-    C.ControlPoints.Add(Vector3Single(2, 0, 3));
-    C.ControlPoints.Add(Vector3Single(5, 10, 6));
-    C.ControlPoints.Add(Vector3Single(6, 0, 4));
+    C.ControlPoints.Add(Vector3(0, -1, 0));
+    C.ControlPoints.Add(Vector3(1, 1, 0));
+    C.ControlPoints.Add(Vector3(2, 0, 3));
+    C.ControlPoints.Add(Vector3(5, 10, 6));
+    C.ControlPoints.Add(Vector3(6, 0, 4));
     C.UpdateControlPoints;
   end;
 
@@ -331,8 +331,8 @@ procedure TTestCastleCurves.TestSlowFastPiecewiseBezier;
     C.ControlPoints.Clear;
     { for 2 items, Point implementation can do just Lerp in optimized
       implementations, test it }
-    C.ControlPoints.Add(Vector3Single(5, 6, 7));
-    C.ControlPoints.Add(Vector3Single(55, 66, 77));
+    C.ControlPoints.Add(Vector3(5, 6, 7));
+    C.ControlPoints.Add(Vector3(55, 66, 77));
     C.UpdateControlPoints;
   end;
 

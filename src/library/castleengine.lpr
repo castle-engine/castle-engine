@@ -347,7 +347,7 @@ end;
 procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl;
 var
-  Pos, Dir, Up, GravityUp: TVector3Single;
+  Pos, Dir, Up, GravityUp: TVector3;
 begin
   try
     if not CGE_VerifyWindow then exit;
@@ -366,7 +366,7 @@ procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
                                bAnimated: cBool); cdecl;
 var
-  Pos, Dir, Up, GravityUp: TVector3Single;
+  Pos, Dir, Up, GravityUp: TVector3;
 begin
   try
     if not CGE_VerifyWindow then exit;
@@ -626,9 +626,9 @@ begin
     aNewVal := nil;
 
     if aField is TSFVec3f then
-      aNewVal := TSFVec3f.Create(nil, '', Vector3Single(fVal1, fVal2, fVal3))
+      aNewVal := TSFVec3f.Create(nil, '', Vector3(fVal1, fVal2, fVal3))
     else if aField is TSFVec4f then
-      aNewVal := TSFVec4f.Create(nil, '', Vector4Single(fVal1, fVal2, fVal3, fVal4))
+      aNewVal := TSFVec4f.Create(nil, '', Vector4(fVal1, fVal2, fVal3, fVal4))
     else if aField is TSFVec3d then
       aNewVal := TSFVec3d.Create(nil, '', Vector3Double(fVal1, fVal2, fVal3))
     else if aField is TSFVec4d then

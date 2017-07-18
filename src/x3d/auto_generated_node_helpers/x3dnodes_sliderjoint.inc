@@ -27,8 +27,8 @@
 {$ifdef read_interface}
 
   private
-    function GetAxis: TVector3Single;
-    procedure SetAxis(const Value: TVector3Single);
+    function GetAxis: TVector3;
+    procedure SetAxis(const Value: TVector3);
     function GetMaxSeparation: Single;
     procedure SetMaxSeparation(const Value: Single);
     function GetMinSeparation: Single;
@@ -38,7 +38,7 @@
     function GetStopErrorCorrection: Single;
     procedure SetStopErrorCorrection(const Value: Single);
   public
-    property Axis: TVector3Single read GetAxis write SetAxis;
+    property Axis: TVector3 read GetAxis write SetAxis;
     property MaxSeparation: Single read GetMaxSeparation write SetMaxSeparation;
     property MinSeparation: Single read GetMinSeparation write SetMinSeparation;
     property StopBounce: Single read GetStopBounce write SetStopBounce;
@@ -50,12 +50,12 @@
 
 { TSliderJointNode ----------------------------------------------- }
 
-function TSliderJointNode.GetAxis: TVector3Single;
+function TSliderJointNode.GetAxis: TVector3;
 begin
   Result := FdAxis.Value;
 end;
 
-procedure TSliderJointNode.SetAxis(const Value: TVector3Single);
+procedure TSliderJointNode.SetAxis(const Value: TVector3);
 begin
   FdAxis.Send(Value);
 end;

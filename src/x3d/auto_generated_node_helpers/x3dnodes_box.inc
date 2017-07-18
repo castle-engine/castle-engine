@@ -27,12 +27,12 @@
 {$ifdef read_interface}
 
   private
-    function GetSize: TVector3Single;
-    procedure SetSize(const Value: TVector3Single);
+    function GetSize: TVector3;
+    procedure SetSize(const Value: TVector3);
     function GetDivisions: Integer;
     procedure SetDivisions(const Value: Integer);
   public
-    property Size: TVector3Single read GetSize write SetSize;
+    property Size: TVector3 read GetSize write SetSize;
     property Divisions: Integer read GetDivisions write SetDivisions;
 
 {$endif read_interface}
@@ -41,12 +41,12 @@
 
 { TBoxNode ----------------------------------------------- }
 
-function TBoxNode.GetSize: TVector3Single;
+function TBoxNode.GetSize: TVector3;
 begin
   Result := FdSize.Value;
 end;
 
-procedure TBoxNode.SetSize(const Value: TVector3Single);
+procedure TBoxNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
 end;

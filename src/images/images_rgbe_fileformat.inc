@@ -91,12 +91,12 @@ var LoadResult: TCastleImage absolute result;
      while DoneCount < LoadResult.Width do
      begin
       Stream.ReadBuffer(RGBERow^[DoneCount], SizeOf(TVector4Byte));
-      if (RGBERow^[DoneCount, 0] = 1) and
-         (RGBERow^[DoneCount, 1] = 1) and
-	 (RGBERow^[DoneCount, 2] = 1) then
+      if (RGBERow^[DoneCount].Data[0] = 1) and
+         (RGBERow^[DoneCount].Data[1] = 1) and
+	 (RGBERow^[DoneCount].Data[2] = 1) then
       begin
        RepeatPixel := RGBERow^[DoneCount-1];
-       RepeatCount := LongWord(RGBERow^[DoneCount, 3]) shl ShiftRepeatCount;
+       RepeatCount := LongWord(RGBERow^[DoneCount].Data[3]) shl ShiftRepeatCount;
        ShiftRepeatCount := ShiftRepeatCount + 8;
        for i := 1 to RepeatCount do
        begin
@@ -118,7 +118,7 @@ var LoadResult: TCastleImage absolute result;
    Stream.ReadBuffer(RGBERow^[0], SizeOf(RGBERow^[0]));
    if CompressedLineMarker(RGBERow^[0]) then
    begin
-    for i := 0 to 3 do ReadRLECompressedScanlineChannel(@(RGBERow^[0, i]));
+    for i := 0 to 3 do ReadRLECompressedScanlineChannel(@(RGBERow^[0].Data[i]));
    end else
    begin
     { file is not RLE compressed or is RLE compressed using old fashion
@@ -142,7 +142,7 @@ var
   xyzFormat: boolean;
   x, y, RGBEWidth, RGBEHeight: Integer;
   RGBERow: PArray_Vector4Byte;
-  FloatRow: PArray_Vector3Single;
+  FloatRow: PArray_Vector3;
   ByteRow: PArray_Vector3Byte;
 begin
   { read header }
@@ -195,7 +195,7 @@ end;
 procedure SaveRGBE(Img: TEncodedImage; Stream: TStream);
 var
   PByte: PVector3Byte;
-  PFloat: PVector3Single;
+  PFloat: PVector3;
   x, y: Integer;
   RGBE: TVector4Byte;
 begin
@@ -224,7 +224,7 @@ begin
       PByte := TCastleImage(Img).RowPtr(y);
       for x := 0 to Img.Width - 1 do
       begin
-        RGBE := Vector3ToRGBE( Vector3Single(PByte^) );
+        RGBE := Vector3ToRGBE( Vector3(PByte^) );
         Stream.WriteBuffer(RGBE, SizeOf(RGBE));
         Inc(PByte);
       end;

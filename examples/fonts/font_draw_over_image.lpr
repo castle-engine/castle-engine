@@ -100,7 +100,7 @@ begin
     try
       MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 30, true);
       MyTextureFont.TargetImage := Image;
-      MyTextureFont.PrintStrings(Image.Width div 2, 500, Vector4Single(0.5, 0.5, 1, 1),
+      MyTextureFont.PrintStrings(Image.Width div 2, 500, Vector4(0.5, 0.5, 1, 1),
         ['DejaVuSans font with anti-aliasing',
          'and larger size and <font color="#ff0000">HTML colors</font>.'],
         true, DefaultLineSpacing, DefaultAlignment);

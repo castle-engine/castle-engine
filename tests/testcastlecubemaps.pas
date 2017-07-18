@@ -37,7 +37,7 @@ procedure TTestCubeMap.TestReverse;
 var
   Side, NewSide: TCubeMapSide;
   Pixel, NewPixel: Cardinal;
-  Dir: TVector3Single;
+  Dir: TVector3;
 begin
   for Side := Low(Side) to High(Side) do
     for Pixel := 0 to Sqr(CubeMapSize) - 1 do

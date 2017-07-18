@@ -47,8 +47,8 @@ begin
   Control1.SceneManager.MainScene := Scene1;
   Control1.SceneManager.Items.Add(Scene1);
 
-  WalkCamera1.Init(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0),
-    Vector3Single(0, 1, 0), Vector3Single(0, 1, 0), 1, 0.1);
+  WalkCamera1.Init(Vector3(0, 0, 0), Vector3(1, 0, 0),
+    Vector3(0, 1, 0), Vector3(0, 1, 0), 1, 0.1);
   WalkCamera1.MoveSpeed := 10.0; // default is 1
   WalkCamera1.Gravity := true; // if you want gravity, of course
   Control1.SceneManager.Camera := WalkCamera1;

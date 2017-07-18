@@ -23,7 +23,7 @@
     Bone: TBone;
     Time: TSingleList;
     Curve: boolean;
-    CurveControlPoints: TVector4SingleList;
+    CurveControlPoints: TVector4List;
     Node: TAbstractInterpolatorNode;
     NodeUsedAsChild: boolean;
     property MaxTime: Single read FMaxTime;
@@ -40,7 +40,7 @@
   TBoneTimelineVector2 = class(TBoneTimeline)
     { Position or scale values on the timeline.
       This always has the same length as @link(Time) list. }
-    Vectors: TVector2SingleList;
+    Vectors: TVector2List;
     constructor Create;
     destructor Destroy; override;
   end;
@@ -90,7 +90,7 @@ constructor TBoneTimeline.Create;
 begin
   inherited;
   Time := TSingleList.Create;
-  CurveControlPoints := TVector4SingleList.Create;
+  CurveControlPoints := TVector4List.Create;
 end;
 
 destructor TBoneTimeline.Destroy;
@@ -105,7 +105,7 @@ var
   I: Integer;
   O: TJSONObject;
   NextTime: Single;
-  ControlPoints: TVector4Single;
+  ControlPoints: TVector4;
   CurveTypeJson: TJSONData;
 begin
   Curve := false;
@@ -121,7 +121,7 @@ begin
       Time.Add(NextTime);
       FMaxTime := NextTime;
 
-      ControlPoints := Vector4Single(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
+      ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
       CurveTypeJson := O.Find('curve');
       if CurveTypeJson <> nil then
       begin
@@ -175,7 +175,7 @@ end;
 constructor TBoneTimelineVector2.Create;
 begin
   inherited Create;
-  Vectors := TVector2SingleList.Create;
+  Vectors := TVector2List.Create;
 end;
 
 destructor TBoneTimelineVector2.Destroy;
@@ -188,7 +188,7 @@ end;
 
 procedure TBoneTimelineTranslate.ParseSingleValue(const Json: TJSONObject);
 begin
-  Vectors.Add(Vector2Single(
+  Vectors.Add(Vector2(
     Json.Get('x', 0.0),
     Json.Get('y', 0.0)));
 end;
@@ -208,7 +208,7 @@ begin
     NC := TCubicBezierPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
     for I := 0 to Vectors.Count - 1 do
     begin
-      NC.FdKeyValue.Items.Add(Vector3Single(
+      NC.FdKeyValue.Items.Add(Vector3(
         { add setup pose transform, as bone timeline is relative to setup pose }
         Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
         Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
@@ -221,7 +221,7 @@ begin
   begin
     N := TPositionInterpolatorNode.Create('BoneTimeline_translate_' + ToX3DName(Bone.Name));
     for I := 0 to Vectors.Count - 1 do
-      N.FdKeyValue.Items.Add(Vector3Single(
+      N.FdKeyValue.Items.Add(Vector3(
         { add setup pose transform, as bone timeline is relative to setup pose }
         Bone.Node.FdTranslation.Value[0] + Vectors[I][0],
         Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
@@ -261,7 +261,7 @@ end;
 
 procedure TBoneTimelineScale.ParseSingleValue(const Json: TJSONObject);
 begin
-  Vectors.Add(Vector2Single(
+  Vectors.Add(Vector2(
     Json.Get('x', 1.0),
     Json.Get('y', 1.0)));
 end;
@@ -271,8 +271,8 @@ procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
   const BonesToReset: TBonesAnimated);
 
   { Combine initial node scale and 2D key scale into a final scale. }
-  function FinalScale(const InitialScale: TVector3Single;
-    const KeyScale: TVector2Single): TVector3Single;
+  function FinalScale(const InitialScale: TVector3;
+    const KeyScale: TVector2): TVector3;
   begin
     { multiply setup pose transformation (scale) by key scale,
       as bone timeline is relative to setup pose }
@@ -373,7 +373,7 @@ begin
   if Curve then
   begin
     NC := TCubicBezier2DOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
-    NC.FdAxis.Value := Vector3Single(0, 0, 1);
+    NC.FdAxis.Value := Vector3(0, 0, 1);
     for I := 0 to Angles.Count - 1 do
     begin
       NC.FdKeyValue.Items.Add(
@@ -388,7 +388,7 @@ begin
   begin
     N := TOrientationInterpolatorNode.Create('BoneTimeline_rotate_' + ToX3DName(Bone.Name));
     for I := 0 to Angles.Count - 1 do
-      N.FdKeyValue.Items.Add(Vector4Single(0, 0, 1,
+      N.FdKeyValue.Items.Add(Vector4(0, 0, 1,
         { add setup pose transform, as bone timeline is relative to setup pose }
         Bone.Node.FdRotation.Value[3] +
         DegToRad(Angles[I])));

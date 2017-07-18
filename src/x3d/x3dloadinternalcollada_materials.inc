@@ -36,21 +36,21 @@ procedure ReadLibraryMaterials(LibraryElement: TDOMElement); forward;
 { Read <material>. It is added to the Materials list. }
 procedure ReadMaterial(MatElement: TDOMElement);
 
-  function ReadParamAsVector3(Element: TDOMElement): TVector3Single;
+  function ReadParamAsVector3(Element: TDOMElement): TVector3;
   var
     AType: string;
   begin
     if not Element.AttributeString('type', AType) then
     begin
       WritelnWarning('Collada', '<param> has no type attribute');
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
     end else
     if AType <> 'float3' then
     begin
       WritelnWarning('Collada', 'Expected <param> with type "float3"');
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
     end else
-       Result := Vector3SingleFromStr(Element.TextData);
+       Result := Vector3FromStr(Element.TextData);
    end;
 
    function ReadParamAsFloat(Element: TDOMElement): Float;

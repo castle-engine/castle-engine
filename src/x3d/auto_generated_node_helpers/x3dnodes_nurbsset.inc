@@ -29,14 +29,14 @@
   private
     function GetTessellationScale: Single;
     procedure SetTessellationScale(const Value: Single);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
     property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -54,22 +54,22 @@ begin
   FdTessellationScale.Send(Value);
 end;
 
-function TNurbsSetNode.GetBboxCenter: TVector3Single;
+function TNurbsSetNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TNurbsSetNode.SetBboxCenter(const Value: TVector3Single);
+procedure TNurbsSetNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TNurbsSetNode.GetBboxSize: TVector3Single;
+function TNurbsSetNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TNurbsSetNode.SetBboxSize(const Value: TVector3Single);
+procedure TNurbsSetNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

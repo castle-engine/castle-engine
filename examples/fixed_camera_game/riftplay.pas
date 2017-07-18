@@ -63,7 +63,7 @@ type
     function CalculateProjection: TProjection; override;
     procedure Render3D(const Params: TRenderParams); override;
     procedure RenderShadowVolume; override;
-    function MainLightForShadows(out AMainLightPosition: TVector4Single): boolean; override;
+    function MainLightForShadows(out AMainLightPosition: TVector4): boolean; override;
   end;
 
 procedure TGameSceneManager.Render3D(const Params: TRenderParams);
@@ -80,7 +80,7 @@ procedure TGameSceneManager.Render3D(const Params: TRenderParams);
         Image.Alpha := acBlending;
         Image.BlendingSourceFactor := bsConstantAlpha;
         Image.BlendingDestinationFactor := bdOneMinusConstantAlpha;
-        Image.BlendingConstantColor := Vector4Single(0, 0, 0, 0.5);
+        Image.BlendingConstantColor := Vector4(0, 0, 0, 0.5);
       end else
        Image.Alpha := acNone;
     end else
@@ -91,7 +91,7 @@ procedure TGameSceneManager.Render3D(const Params: TRenderParams);
 
 var
   H: TLightInstance;
-  SavedProjectionMatrix: TMatrix4Single;
+  SavedProjectionMatrix: TMatrix4;
 begin
   { Render the location 3D scene.
     If DebugDisplay = ddNormal, render it only to the depth buffer. }
@@ -148,7 +148,7 @@ begin
       PlayerKind.ReceiveShadowVolumes then
     begin
       H.Node.AmbientIntensity := 1;
-      H.Node.Color := Vector3Single(0.2, 0.2, 0.2);
+      H.Node.Color := Vector3(0.2, 0.2, 0.2);
     end;
     RiftPlay.Player.Render(RenderingCamera.Frustum, Params);
     if Params.InShadow and HeadlightInstance(H) then
@@ -162,18 +162,18 @@ end;
 procedure TGameSceneManager.RenderShadowVolume;
 begin
   if not DebugNoCreatures then
-    RiftPlay.Player.RenderShadowVolume(ShadowVolumeRenderer, true, IdentityMatrix4Single);
+    RiftPlay.Player.RenderShadowVolume(ShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
 function TGameSceneManager.MainLightForShadows(
-  out AMainLightPosition: TVector4Single): boolean;
+  out AMainLightPosition: TVector4): boolean;
 begin
   { The light casting shadows.
     TODO: Hardcoded for now, in the future could be determined per-location
     (e.g. looking at location light with shadowVolumesMain, would be consistent
     with standard 3D rendering of shadow volumes). }
-  AMainLightPosition := {Vector4Single(SceneCamera.InitialPosition, 1);}
-    Vector4Single(1, 1, -1, 0);
+  AMainLightPosition := {Vector4(SceneCamera.InitialPosition, 1);}
+    Vector4(1, 1, -1, 0);
   Result := true;
 end;
 
@@ -198,7 +198,7 @@ var
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
   URL: string;
-  RayOrigin, RayDirection, SelectedPoint: TVector3Single;
+  RayOrigin, RayDirection, SelectedPoint: TVector3;
 begin
   case Event.EventType of
     itKey:
@@ -269,7 +269,7 @@ end;
 
 procedure InitLocation;
 var
-  ScenePosition, SceneDirection, SceneUp, SceneGravityUp: TVector3Single;
+  ScenePosition, SceneDirection, SceneUp, SceneGravityUp: TVector3;
   GeneralViewpoint: TAbstractViewpointNode;
   RadAngleOfViewX, RadAngleOfViewY: Single;
 begin

@@ -1,6 +1,6 @@
 { This is part of CastleBoxes unit implementation that uses TGenericFloat,
   TVector3GenericFloat etc. types, instead of normal Single/Double,
-  TVector3Single/TVector3Double. }
+  TVector3 / TVector3Double. }
 
 function IsCenteredBox3DPlaneCollision(
   const BoxHalfSize: TVector3GenericFloat;

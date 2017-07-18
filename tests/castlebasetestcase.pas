@@ -28,27 +28,31 @@ uses
 type
   TCastleBaseTestCase = class(TTestCase)
   public
-    procedure AssertMatricesEqual(const Expected, Actual: TMatrix4Single;
+    procedure AssertMatricesEqual(const Expected, Actual: TMatrix4;
       const EqualityEpsilon: Single);
     procedure AssertVectorsEqual(const Expected, Actual: TVector2Byte);
     procedure AssertVectorsEqual(const Expected, Actual: TVector3Byte);
     procedure AssertVectorsEqual(const Expected, Actual: TVector4Byte);
 
-    procedure AssertVectorsEqual(const Expected, Actual: TVector3Single);
-    procedure AssertVectorsEqual(const Expected, Actual: TVector4Single);
-    procedure AssertVectorsEqual(const Expected, Actual: TVector3Single; const EqualityEpsilon: Single);
-    procedure AssertVectorsEqual(const Expected, Actual: TVector4Single; const EqualityEpsilon: Single);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector2);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector3);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector4);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector2; const EqualityEpsilon: Single);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector3; const EqualityEpsilon: Single);
+    procedure AssertVectorsEqual(const Expected, Actual: TVector4; const EqualityEpsilon: Single);
+
     procedure AssertFloatsEqual(const Expected, Actual: Single);
     procedure AssertFloatsEqual(const Expected, Actual: Single; const EqualityEpsilon: Single);
 
-    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-    procedure AssertVectorsEqual(const Expected, Actual: TVector3Double);
-    procedure AssertVectorsEqual(const Expected, Actual: TVector4Double);
-    procedure AssertVectorsEqual(const Expected, Actual: TVector3Double; const EqualityEpsilon: Single);
-    procedure AssertVectorsEqual(const Expected, Actual: TVector4Double; const EqualityEpsilon: Single);
+    // TODO: Need to have different names to avoid FPC errors "duplicate ASM label"
+    procedure AssertVectorsEqualDouble(const Expected, Actual: TVector2Double);
+    procedure AssertVectorsEqualDouble(const Expected, Actual: TVector3Double);
+    procedure AssertVectorsEqualDouble(const Expected, Actual: TVector4Double);
+    procedure AssertVectorsEqualDouble(const Expected, Actual: TVector2Double; const EqualityEpsilon: Single);
+    procedure AssertVectorsEqualDouble(const Expected, Actual: TVector3Double; const EqualityEpsilon: Single);
+    procedure AssertVectorsEqualDouble(const Expected, Actual: TVector4Double; const EqualityEpsilon: Single);
     procedure AssertFloatsEqual(const Expected, Actual: Double);
     procedure AssertFloatsEqual(const Expected, Actual: Double; const EqualityEpsilon: Double);
-    {$endif}
 
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const EqualityEpsilon: Double);
     procedure AssertFilenamesEqual(const Expected, Actual: string);
@@ -58,14 +62,14 @@ type
 implementation
 
 procedure TCastleBaseTestCase.AssertMatricesEqual(
-  const Expected, Actual: TMatrix4Single; const EqualityEpsilon: Single);
+  const Expected, Actual: TMatrix4; const EqualityEpsilon: Single);
 begin
-  if not MatricesEqual(Expected, Actual, EqualityEpsilon) then
-    Fail('Matrices (TMatrix4Single) are not equal:' + LineEnding +
+  if not TMatrix4.Equals(Expected, Actual, EqualityEpsilon) then
+    Fail('Matrices (TMatrix4) are not equal:' + LineEnding +
       '  Expected:' + LineEnding +
-      MatrixToRawStr(Expected, '    ') + LineEnding +
+      Expected.ToRawString('    ') + LineEnding +
       '  Actual:' + LineEnding +
-      MatrixToRawStr(Actual, '    '));
+      Actual.ToRawString('    '));
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
@@ -73,7 +77,7 @@ procedure TCastleBaseTestCase.AssertVectorsEqual(
 begin
   if not VectorsPerfectlyEqual(Expected, Actual) then
     Fail(Format('Vectors (TVector2Byte) are not equal: expected: %s, actual: %s',
-      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+      [Expected.ToString, Actual.ToString]));
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
@@ -81,7 +85,7 @@ procedure TCastleBaseTestCase.AssertVectorsEqual(
 begin
   if not VectorsPerfectlyEqual(Expected, Actual) then
     Fail(Format('Vectors (TVector3Byte) are not equal: expected: %s, actual: %s',
-      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+      [Expected.ToString, Actual.ToString]));
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
@@ -89,34 +93,48 @@ procedure TCastleBaseTestCase.AssertVectorsEqual(
 begin
   if not VectorsPerfectlyEqual(Expected, Actual) then
     Fail(Format('Vectors (TVector4Byte) are not equal: expected: %s, actual: %s',
-      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+      [Expected.ToString, Actual.ToString]));
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
-  const Expected, Actual: TVector3Single);
+  const Expected, Actual: TVector2);
 begin
   AssertVectorsEqual(Expected, Actual, SingleEqualityEpsilon);
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
-  const Expected, Actual: TVector4Single);
+  const Expected, Actual: TVector3);
 begin
   AssertVectorsEqual(Expected, Actual, SingleEqualityEpsilon);
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
-  const Expected, Actual: TVector3Single; const EqualityEpsilon: Single);
+  const Expected, Actual: TVector4);
+begin
+  AssertVectorsEqual(Expected, Actual, SingleEqualityEpsilon);
+end;
+
+procedure TCastleBaseTestCase.AssertVectorsEqual(
+  const Expected, Actual: TVector2; const EqualityEpsilon: Single);
 begin
   if not VectorsEqual(Expected, Actual, EqualityEpsilon) then
-    Fail(Format('Vectors (TVector3Single) are not equal: expected: %s, actual: %s',
+    Fail(Format('Vectors (TVector2) are not equal: expected: %s, actual: %s',
       [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
 end;
 
 procedure TCastleBaseTestCase.AssertVectorsEqual(
-  const Expected, Actual: TVector4Single; const EqualityEpsilon: Single);
+  const Expected, Actual: TVector3; const EqualityEpsilon: Single);
 begin
   if not VectorsEqual(Expected, Actual, EqualityEpsilon) then
-    Fail(Format('Vectors (TVector4Single) are not equal: expected: %s, actual: %s',
+    Fail(Format('Vectors (TVector3) are not equal: expected: %s, actual: %s',
+      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+end;
+
+procedure TCastleBaseTestCase.AssertVectorsEqual(
+  const Expected, Actual: TVector4; const EqualityEpsilon: Single);
+begin
+  if not VectorsEqual(Expected, Actual, EqualityEpsilon) then
+    Fail(Format('Vectors (TVector4) are not equal: expected: %s, actual: %s',
       [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
 end;
 
@@ -133,34 +151,46 @@ begin
       [Expected, Actual]));
 end;
 
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+procedure TCastleBaseTestCase.AssertVectorsEqualDouble(
+  const Expected, Actual: TVector2Double);
+begin
+  AssertVectorsEqualDouble(Expected, Actual, DoubleEqualityEpsilon);
+end;
 
-procedure TCastleBaseTestCase.AssertVectorsEqual(
+procedure TCastleBaseTestCase.AssertVectorsEqualDouble(
   const Expected, Actual: TVector3Double);
 begin
-  AssertVectorsEqual(Expected, Actual, DoubleEqualityEpsilon);
+  AssertVectorsEqualDouble(Expected, Actual, DoubleEqualityEpsilon);
 end;
 
-procedure TCastleBaseTestCase.AssertVectorsEqual(
+procedure TCastleBaseTestCase.AssertVectorsEqualDouble(
   const Expected, Actual: TVector4Double);
 begin
-  AssertVectorsEqual(Expected, Actual, DoubleEqualityEpsilon);
+  AssertVectorsEqualDouble(Expected, Actual, DoubleEqualityEpsilon);
 end;
 
-procedure TCastleBaseTestCase.AssertVectorsEqual(
+procedure TCastleBaseTestCase.AssertVectorsEqualDouble(
+  const Expected, Actual: TVector2Double; const EqualityEpsilon: Single);
+begin
+  if not TVector2Double.Equals(Expected, Actual, EqualityEpsilon) then
+    Fail(Format('Vectors (TVector2Double) are not equal: expected: %s, actual: %s',
+      [Expected.ToRawString, Actual.ToRawString]));
+end;
+
+procedure TCastleBaseTestCase.AssertVectorsEqualDouble(
   const Expected, Actual: TVector3Double; const EqualityEpsilon: Single);
 begin
-  if not VectorsEqual(Expected, Actual, EqualityEpsilon) then
+  if not TVector3Double.Equals(Expected, Actual, EqualityEpsilon) then
     Fail(Format('Vectors (TVector3Double) are not equal: expected: %s, actual: %s',
-      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+      [Expected.ToRawString, Actual.ToRawString]));
 end;
 
-procedure TCastleBaseTestCase.AssertVectorsEqual(
+procedure TCastleBaseTestCase.AssertVectorsEqualDouble(
   const Expected, Actual: TVector4Double; const EqualityEpsilon: Single);
 begin
-  if not VectorsEqual(Expected, Actual, EqualityEpsilon) then
+  if not TVector4Double.Equals(Expected, Actual, EqualityEpsilon) then
     Fail(Format('Vectors (TVector4Double) are not equal: expected: %s, actual: %s',
-      [VectorToRawStr(Expected), VectorToRawStr(Actual)]));
+      [Expected.ToRawString, Actual.ToRawString]));
 end;
 
 procedure TCastleBaseTestCase.AssertFloatsEqual(const Expected, Actual: Double);
@@ -175,8 +205,6 @@ begin
     Fail(Format('Floats (Double) are not equal: expected: %g, actual: %g',
       [Expected, Actual]));
 end;
-
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 procedure TCastleBaseTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
   const EqualityEpsilon: Double);

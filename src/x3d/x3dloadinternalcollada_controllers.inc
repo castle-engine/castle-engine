@@ -19,7 +19,7 @@ type
   TColladaController = class
     Name: string;
     Source: string;
-    BoundShapeMatrix: TMatrix4Single;
+    BoundShapeMatrix: TMatrix4;
     BoundShapeMatrixIdentity: boolean;
   end;
 

@@ -113,8 +113,8 @@ type
     @param(Face Describes the indexes of this face, for editing / removing it.
       See TFaceIndex.) }
   TTriangleEvent = procedure (Shape: TObject;
-    const Position: TTriangle3Single;
-    const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+    const Position: TTriangle3;
+    const Normal: TTriangle3; const TexCoord: TTriangle4;
     const Face: TFaceIndex) of object;
 
   { Tree of shapes.
@@ -215,7 +215,7 @@ type
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TShapeValidities;
-    FBoundingSphereCenter: TVector3Single;
+    FBoundingSphereCenter: TVector3;
     FBoundingSphereRadiusSqr: Single;
     FOriginalGeometry: TAbstractGeometryNode;
     FOriginalState: TX3DGraphTraverseState;
@@ -255,8 +255,8 @@ type
   private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TTriangleOctree;
@@ -277,7 +277,7 @@ type
       @groupBegin }
     MailboxSavedTag: TMailboxTag;
     MailboxResult: PTriangle;
-    MailboxIntersection: TVector3Single;
+    MailboxIntersection: TVector3;
     MailboxIntersectionDistance: Single;
     { @groupEnd }
     {$endif}
@@ -285,7 +285,7 @@ type
     { Meaningful only when svNormals in Validities.
       Normals may be assigned only if svNormals in Validities. }
     FNormalsCached: TShapeNormalsCached;
-    FNormals: TVector3SingleList;
+    FNormals: TVector3List;
     { Meaningful only when svNormals in Validities and
       NormalsCached = ncCreaseAngle. }
     FNormalsCreaseAngle: Single;
@@ -351,7 +351,7 @@ type
       if Box is empty.
 
       @groupBegin }
-    function BoundingSphereCenter: TVector3Single;
+    function BoundingSphereCenter: TVector3;
     function BoundingSphereRadiusSqr: Single;
     function BoundingSphereRadius: Single;
     { @groupEnd }
@@ -498,9 +498,9 @@ type
       wil use the mailbox. }
     function RayCollision(
       const Tag: TMailboxTag;
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3Single;
+      const RayOrigin, RayDirection: TVector3;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -510,9 +510,9 @@ type
       wil use the mailbox. }
     function SegmentCollision(
       const Tag: TMailboxTag;
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const Pos1, Pos2: TVector3Single;
+      const Pos1, Pos2: TVector3;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -551,10 +551,10 @@ type
       is passed to all Create*Normals internally).
 
       @groupBegin }
-    function NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
-    function NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
+    function NormalsSmooth(OverTriangulate: boolean): TVector3List;
+    function NormalsFlat(OverTriangulate: boolean): TVector3List;
     function NormalsCreaseAngle(OverTriangulate: boolean;
-      const CreaseAngle: Single): TVector3SingleList;
+      const CreaseAngle: Single): TVector3List;
     { @groupEnd }
 
     function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
@@ -739,16 +739,16 @@ type
   TShapeTreeLOD = class(TShapeTreeGroup)
   private
     FLODNode: TAbstractLODNode;
-    FLODInvertedTransform: TMatrix4Single;
+    FLODInvertedTransform: TMatrix4;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   public
     property LODNode: TAbstractLODNode read FLODNode write FLODNode;
-    function LODInvertedTransform: PMatrix4Single;
+    function LODInvertedTransform: PMatrix4;
 
     { Calculate @link(Level). This only calculates level, doesn't
       assign @link(Level) property or send level_changed event. }
-    function CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
+    function CalculateLevel(const CameraPosition: TVector3): Cardinal;
 
     { Current level, that is index of the active child of this LOD node.
       This is always < Children.Count, unless there are no children.
@@ -782,7 +782,7 @@ type
   private
     FNode: TProximitySensorNode;
   public
-    InvertedTransform: TMatrix4Single;
+    InvertedTransform: TMatrix4;
     IsActive: boolean;
 
     property Node: TProximitySensorNode read FNode write FNode;
@@ -806,7 +806,7 @@ type
       already transformed to global VRML/X3D scene coordinates.
       That is, transformed by parent Transform and similar nodes. }
     Box: TBox3D;
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
 
     property Node: TVisibilitySensorNode read FNode write FNode;
 
@@ -849,7 +849,7 @@ type
 
   TShapeList = class(specialize TObjectList<TShape>)
   strict private
-    SortPosition: TVector3Single;
+    SortPosition: TVector3;
     function IsSmallerFrontToBack(constref A, B: TShape): Integer;
     function IsSmallerBackToFront3D(constref A, B: TShape): Integer;
     function IsSmallerBackToFront2D(constref A, B: TShape): Integer;
@@ -862,7 +862,7 @@ type
       const OnlyCollidable: boolean = false);
 
     { Sort shapes by distance to given Position point, closest first. }
-    procedure SortFrontToBack(const Position: TVector3Single);
+    procedure SortFrontToBack(const Position: TVector3);
 
     { Sort shapes by distance to given Position point, farthest first.
 
@@ -873,7 +873,7 @@ type
       to sort. This is suitable for
       rendering things that pretend to be 2D, like Spine slots.
       See the @link(bs2D) at @link(TBlendingSort) documentation. }
-    procedure SortBackToFront(const Position: TVector3Single;
+    procedure SortBackToFront(const Position: TVector3;
       const Distance3D: boolean);
   end;
 
@@ -947,10 +947,11 @@ uses Generics.Defaults,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
-  UnknownTexCoord: TTriangle4Single = (
-    (0, 0, 0, 1),
-    (0, 0, 0, 1),
-    (0, 0, 0, 1) );
+  UnknownTexCoord: TTriangle4 = (Data: (
+    (Data: (0, 0, 0, 1)),
+    (Data: (0, 0, 0, 1)),
+    (Data: (0, 0, 0, 1))
+  ));
 
 { TShapeTree ------------------------------------------------------------ }
 
@@ -1222,15 +1223,15 @@ var
       Result.Primitive := gpTriangleFan; // gpQuads; - use triangle fan instead, to work with OpenGLES
       Result.Count := 4;
 
-      Result.Position(0)^ := Vector3Single(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
-      Result.Position(1)^ := Vector3Single(Box.Data[1][0], Box.Data[0][1], Box.Data[0][2]);
-      Result.Position(2)^ := Vector3Single(Box.Data[1][0], Box.Data[1][1], Box.Data[0][2]);
-      Result.Position(3)^ := Vector3Single(Box.Data[0][0], Box.Data[1][1], Box.Data[0][2]);
+      Result.Position(0)^ := Vector3(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
+      Result.Position(1)^ := Vector3(Box.Data[1][0], Box.Data[0][1], Box.Data[0][2]);
+      Result.Position(2)^ := Vector3(Box.Data[1][0], Box.Data[1][1], Box.Data[0][2]);
+      Result.Position(3)^ := Vector3(Box.Data[0][0], Box.Data[1][1], Box.Data[0][2]);
 
-      Result.Normal(0)^ := UnitVector3Single[2];
-      Result.Normal(1)^ := UnitVector3Single[2];
-      Result.Normal(2)^ := UnitVector3Single[2];
-      Result.Normal(3)^ := UnitVector3Single[2];
+      Result.Normal(0)^ := TVector3.One[2];
+      Result.Normal(1)^ := TVector3.One[2];
+      Result.Normal(2)^ := TVector3.One[2];
+      Result.Normal(3)^ := TVector3.One[2];
     end;
   end;
 
@@ -1345,7 +1346,7 @@ begin
   end;
 end;
 
-function TShape.BoundingSphereCenter: TVector3Single;
+function TShape.BoundingSphereCenter: TVector3;
 begin
   ValidateBoundingSphere;
   Result := FBoundingSphereCenter;
@@ -1394,8 +1395,8 @@ begin
 end;
 
 procedure TShape.AddTriangleToOctreeProgress(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   Progress.Step;
@@ -1411,13 +1412,13 @@ function TShape.CreateTriangleOctree(
     procedure LocalTriangulateRect(constCoord: integer;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
-      Position, Normal: TTriangle3Single;
+      Position, Normal: TTriangle3;
       i, c1, c2: integer;
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        Position[TriIndex, c1] := c1value;
-        Position[TriIndex, c2] := c2value;
+        Position.Data[TriIndex].Data[c1] := c1value;
+        Position.Data[TriIndex].Data[c2] := c2value;
       end;
 
     begin
@@ -1425,10 +1426,10 @@ function TShape.CreateTriangleOctree(
 
       for I := 0 to 2 do
       begin
-        Position[I, ConstCoord] := ConstCoordValue;
-        Normal[I, C1] := 0;
-        Normal[I, C2] := 0;
-        Normal[I, ConstCoord] := 1; { TODO: or -1 }
+        Position.Data[I].Data[ConstCoord] := ConstCoordValue;
+        Normal.Data[I].Data[C1] := 0;
+        Normal.Data[I].Data[C2] := 0;
+        Normal.Data[I].Data[ConstCoord] := 1; { TODO: or -1 }
       end;
 
       TriAssign(0, x1, y1);
@@ -1660,9 +1661,9 @@ end;
 
 function TShape.RayCollision(
   const Tag: TMailboxTag;
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -1701,9 +1702,9 @@ end;
 
 function TShape.SegmentCollision(
   const Tag: TMailboxTag;
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const Pos1, Pos2: TVector3Single;
+  const Pos1, Pos2: TVector3;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -1740,7 +1741,7 @@ begin
   {$endif}
 end;
 
-function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
+function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -1768,7 +1769,7 @@ begin
   Result := FNormals;
 end;
 
-function TShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
+function TShape.NormalsFlat(OverTriangulate: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -1798,7 +1799,7 @@ begin
 end;
 
 function TShape.NormalsCreaseAngle(OverTriangulate: boolean;
-  const CreaseAngle: Single): TVector3SingleList;
+  const CreaseAngle: Single): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -2111,8 +2112,8 @@ var
   procedure Triangle(const I1, I2, I3: Cardinal);
   var
     VI1, VI2, VI3: Integer;
-    Position, Normal: TTriangle3Single;
-    TexCoord: TTriangle4Single;
+    Position, Normal: TTriangle3;
+    TexCoord: TTriangle4;
     Face: TFaceIndex;
   begin
     if Arrays.Indexes <> nil then
@@ -2126,12 +2127,12 @@ var
       VI2 := RangeBeginIndex + I2;
       VI3 := RangeBeginIndex + I3;
     end;
-    Position[0] := Arrays.Position(VI1)^;
-    Position[1] := Arrays.Position(VI2)^;
-    Position[2] := Arrays.Position(VI3)^;
-    Normal[0] := Arrays.Normal(VI1)^;
-    Normal[1] := Arrays.Normal(VI2)^;
-    Normal[2] := Arrays.Normal(VI3)^;
+    Position.Data[0] := Arrays.Position(VI1)^;
+    Position.Data[1] := Arrays.Position(VI2)^;
+    Position.Data[2] := Arrays.Position(VI3)^;
+    Normal.Data[0] := Arrays.Normal(VI1)^;
+    Normal.Data[1] := Arrays.Normal(VI2)^;
+    Normal.Data[2] := Arrays.Normal(VI3)^;
 
     if (Arrays.TexCoords.Count <> 0) and
        (Arrays.TexCoords[0] <> nil) and
@@ -2139,19 +2140,19 @@ var
     begin
       case Arrays.TexCoords[0].Dimensions of
         2: begin
-             TexCoord[0] := Vector4Single(Arrays.TexCoord2D(0, VI1)^);
-             TexCoord[1] := Vector4Single(Arrays.TexCoord2D(0, VI2)^);
-             TexCoord[2] := Vector4Single(Arrays.TexCoord2D(0, VI3)^);
+             TexCoord.Data[0] := Vector4(Arrays.TexCoord2D(0, VI1)^, 0, 1);
+             TexCoord.Data[1] := Vector4(Arrays.TexCoord2D(0, VI2)^, 0, 1);
+             TexCoord.Data[2] := Vector4(Arrays.TexCoord2D(0, VI3)^, 0, 1);
            end;
         3: begin
-             TexCoord[0] := Vector4Single(Arrays.TexCoord3D(0, VI1)^);
-             TexCoord[1] := Vector4Single(Arrays.TexCoord3D(0, VI2)^);
-             TexCoord[2] := Vector4Single(Arrays.TexCoord3D(0, VI3)^);
+             TexCoord.Data[0] := Vector4(Arrays.TexCoord3D(0, VI1)^, 1);
+             TexCoord.Data[1] := Vector4(Arrays.TexCoord3D(0, VI2)^, 1);
+             TexCoord.Data[2] := Vector4(Arrays.TexCoord3D(0, VI3)^, 1);
            end;
         4: begin
-             TexCoord[0] := Arrays.TexCoord4D(0, VI1)^;
-             TexCoord[1] := Arrays.TexCoord4D(0, VI2)^;
-             TexCoord[2] := Arrays.TexCoord4D(0, VI3)^;
+             TexCoord.Data[0] := Arrays.TexCoord4D(0, VI1)^;
+             TexCoord.Data[1] := Arrays.TexCoord4D(0, VI2)^;
+             TexCoord.Data[2] := Arrays.TexCoord4D(0, VI3)^;
            end;
         else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at TShape.localtriangulate');
       end;
@@ -2159,7 +2160,8 @@ var
       TexCoord := UnknownTexCoord;
 
     if Arrays.Faces <> nil then
-      Face := Arrays.Faces.L[RangeBeginIndex + I1] else
+      Face := Arrays.Faces.L[RangeBeginIndex + I1]
+    else
       Face := UnknownFaceIndex;
 
     TriangleEvent(Self, Position, Normal, TexCoord, Face);
@@ -2241,17 +2243,17 @@ end;
 
 type
   TTriangulateRedirect = class
-    Transform: PMatrix4Single;
+    Transform: PMatrix4;
     TriangleEvent: TTriangleEvent;
     procedure LocalNewTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   end;
 
 procedure TTriangulateRedirect.LocalNewTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   TriangleEvent(Shape, TriangleTransform(Position, Transform^), Normal, TexCoord, Face);
@@ -2472,14 +2474,14 @@ end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
 
-function TShapeTreeLOD.LODInvertedTransform: PMatrix4Single;
+function TShapeTreeLOD.LODInvertedTransform: PMatrix4;
 begin
   Result := @FLODInvertedTransform;
 end;
 
-function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
+function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3): Cardinal;
 var
-  Camera: TVector3Single;
+  Camera: TVector3;
   Dummy: Single;
 begin
   if (Children.Count = 0) or
@@ -2848,13 +2850,13 @@ begin
   Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;
 
-procedure TShapeList.SortFrontToBack(const Position: TVector3Single);
+procedure TShapeList.SortFrontToBack(const Position: TVector3);
 begin
   SortPosition := Position;
   Sort(TShapeComparer.Construct(@IsSmallerFrontToBack));
 end;
 
-procedure TShapeList.SortBackToFront(const Position: TVector3Single;
+procedure TShapeList.SortBackToFront(const Position: TVector3;
   const Distance3D: boolean);
 begin
   SortPosition := Position;

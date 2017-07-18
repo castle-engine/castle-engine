@@ -27,22 +27,22 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetScaleOrientation: TVector4Single;
-    procedure SetScaleOrientation(const Value: TVector4Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetScaleOrientation: TVector4;
+    procedure SetScaleOrientation(const Value: TVector4);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Center: TVector3 read GetCenter write SetCenter;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}
 
@@ -50,52 +50,52 @@
 
 { TTransformNode ----------------------------------------------- }
 
-function TTransformNode.GetCenter: TVector3Single;
+function TTransformNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TTransformNode.SetCenter(const Value: TVector3Single);
+procedure TTransformNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
 
-function TTransformNode.GetRotation: TVector4Single;
+function TTransformNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure TTransformNode.SetRotation(const Value: TVector4Single);
+procedure TTransformNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function TTransformNode.GetScale: TVector3Single;
+function TTransformNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure TTransformNode.SetScale(const Value: TVector3Single);
+procedure TTransformNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function TTransformNode.GetScaleOrientation: TVector4Single;
+function TTransformNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
 end;
 
-procedure TTransformNode.SetScaleOrientation(const Value: TVector4Single);
+procedure TTransformNode.SetScaleOrientation(const Value: TVector4);
 begin
   FdScaleOrientation.Send(Value);
 end;
 
-function TTransformNode.GetTranslation: TVector3Single;
+function TTransformNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TTransformNode.SetTranslation(const Value: TVector3Single);
+procedure TTransformNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;

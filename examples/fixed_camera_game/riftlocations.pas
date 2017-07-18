@@ -39,9 +39,9 @@ type
     FScene: TCastleScene;
     FGLImage, FGLShadowedImage: TGLImage;
     FSceneCameraDescription: string;
-    FInitialPosition: TVector3Single;
-    FInitialDirection: TVector3Single;
-    FInitialUp: TVector3Single;
+    FInitialPosition: TVector3;
+    FInitialDirection: TVector3;
+    FInitialUp: TVector3;
     procedure EnumerateLights(Node: TX3DNode);
   protected
     procedure LoadInternal(const BaseLights: TLightInstancesList); override;
@@ -59,9 +59,9 @@ type
 
     property SceneCameraDescription: string read FSceneCameraDescription;
 
-    property InitialPosition: TVector3Single read FInitialPosition;
-    property InitialDirection: TVector3Single read FInitialDirection;
-    property InitialUp: TVector3Single read FInitialUp;
+    property InitialPosition: TVector3 read FInitialPosition;
+    property InitialDirection: TVector3 read FInitialDirection;
+    property InitialUp: TVector3 read FInitialUp;
 
     property Scene: TCastleScene read FScene;
     property GLImage: TGLImage read FGLImage;
@@ -203,16 +203,16 @@ begin
         Location.FSceneCameraDescription);
 
       if I.Current.AttributeString('initial_position', V) then
-        Location.FInitialPosition := Vector3SingleFromStr(V) else
-        Location.FInitialPosition := Vector3Single(0, 0, 0);
+        Location.FInitialPosition := Vector3FromStr(V) else
+        Location.FInitialPosition := Vector3(0, 0, 0);
 
       if I.Current.AttributeString('initial_direction', V) then
-        Location.FInitialDirection := Vector3SingleFromStr(V) else
-        Location.FInitialDirection := Vector3Single(1, 0, 0);
+        Location.FInitialDirection := Vector3FromStr(V) else
+        Location.FInitialDirection := Vector3(1, 0, 0);
 
       if I.Current.AttributeString('initial_up', V) then
-        Location.FInitialUp := Vector3SingleFromStr(V) else
-        Location.FInitialUp := Vector3Single(0, 0, 1);
+        Location.FInitialUp := Vector3FromStr(V) else
+        Location.FInitialUp := Vector3(0, 0, 1);
     end;
   finally FreeAndNil(I) end;
 

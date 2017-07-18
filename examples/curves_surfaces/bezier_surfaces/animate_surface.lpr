@@ -28,15 +28,15 @@ var
   Window: TCastleWindow;
   Camera: TWalkCamera;
   Surface1, Surface2: TSurface;
-  SurfacePos, SurfaceDir, SurfaceUp: TVector3Single;
+  SurfacePos, SurfaceDir, SurfaceUp: TVector3;
   SurfaceMoveSpeed: Single;
   F: TGLfloat = 0.0;
   FUp: boolean = true;
 
 procedure CameraHome;
 begin
-  Camera.Init(Box3D(Vector3Single(0, 0, -1),
-                    Vector3Single(1, 1,  1)), Camera.Radius);
+  Camera.Init(Box3D(Vector3(0, 0, -1),
+                    Vector3(1, 1,  1)), Camera.Radius);
 end;
 
 procedure CameraScene;
@@ -54,7 +54,7 @@ var
   var
     I, J: Integer;
     MyCurve: TRationalBezierCurve;
-    V: TVector3Single;
+    V: TVector3;
   begin
     for I := 0 to N - 1 do
     begin
@@ -63,7 +63,7 @@ var
       MyCurve.TEnd := Surface.XEnd;
       for J := 0 to N - 1 do
       begin
-        V := F.ReadVector3Single;
+        V := F.ReadVector3;
         MyCurve.ControlPoints.Add(V);
         MyCurve.Weights.Add(1.0);
       end;
@@ -79,13 +79,13 @@ begin
 
   F := TTextReader.Create(URL);
   try
-    SurfacePos := F.ReadVector3Single;
-    SurfaceDir := F.ReadVector3Single;
-    SurfaceUp := F.ReadVector3Single;
+    SurfacePos := F.ReadVector3;
+    SurfaceDir := F.ReadVector3;
+    SurfaceUp := F.ReadVector3;
     { The lengths of our direction vectors express speed in old terms
       (1/50 of the second), rescale them here. }
     SurfaceMoveSpeed := VectorLen(SurfaceDir) * 50;
-    NormalizeVar(SurfaceDir);
+    SurfaceDir.NormalizeMe;
     N := F.ReadInteger;
     Load(Surface1);
     Load(Surface2);

@@ -33,46 +33,46 @@
     procedure SetBody2(const Value: TRigidBodyNode);
     function GetBounce: Single;
     procedure SetBounce(const Value: Single);
-    function GetContactNormal: TVector3Single;
-    procedure SetContactNormal(const Value: TVector3Single);
+    function GetContactNormal: TVector3;
+    procedure SetContactNormal(const Value: TVector3);
     function GetDepth: Single;
     procedure SetDepth(const Value: Single);
-    function GetFrictionCoefficients: TVector2Single;
-    procedure SetFrictionCoefficients(const Value: TVector2Single);
-    function GetFrictionDirection: TVector3Single;
-    procedure SetFrictionDirection(const Value: TVector3Single);
+    function GetFrictionCoefficients: TVector2;
+    procedure SetFrictionCoefficients(const Value: TVector2);
+    function GetFrictionDirection: TVector3;
+    procedure SetFrictionDirection(const Value: TVector3);
     function GetGeometry1: TAbstractNBodyCollidableNode;
     procedure SetGeometry1(const Value: TAbstractNBodyCollidableNode);
     function GetGeometry2: TAbstractNBodyCollidableNode;
     procedure SetGeometry2(const Value: TAbstractNBodyCollidableNode);
     function GetMinbounceSpeed: Single;
     procedure SetMinbounceSpeed(const Value: Single);
-    function GetPosition: TVector3Single;
-    procedure SetPosition(const Value: TVector3Single);
-    function GetSlipCoefficients: TVector2Single;
-    procedure SetSlipCoefficients(const Value: TVector2Single);
+    function GetPosition: TVector3;
+    procedure SetPosition(const Value: TVector3);
+    function GetSlipCoefficients: TVector2;
+    procedure SetSlipCoefficients(const Value: TVector2);
     function GetSoftnessConstantForceMix: Single;
     procedure SetSoftnessConstantForceMix(const Value: Single);
     function GetSoftnessErrorCorrection: Single;
     procedure SetSoftnessErrorCorrection(const Value: Single);
-    function GetSurfaceSpeed: TVector2Single;
-    procedure SetSurfaceSpeed(const Value: TVector2Single);
+    function GetSurfaceSpeed: TVector2;
+    procedure SetSurfaceSpeed(const Value: TVector2);
   public
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
     property Bounce: Single read GetBounce write SetBounce;
-    property ContactNormal: TVector3Single read GetContactNormal write SetContactNormal;
+    property ContactNormal: TVector3 read GetContactNormal write SetContactNormal;
     property Depth: Single read GetDepth write SetDepth;
-    property FrictionCoefficients: TVector2Single read GetFrictionCoefficients write SetFrictionCoefficients;
-    property FrictionDirection: TVector3Single read GetFrictionDirection write SetFrictionDirection;
+    property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
+    property FrictionDirection: TVector3 read GetFrictionDirection write SetFrictionDirection;
     property Geometry1: TAbstractNBodyCollidableNode read GetGeometry1 write SetGeometry1;
     property Geometry2: TAbstractNBodyCollidableNode read GetGeometry2 write SetGeometry2;
     property MinbounceSpeed: Single read GetMinbounceSpeed write SetMinbounceSpeed;
-    property Position: TVector3Single read GetPosition write SetPosition;
-    property SlipCoefficients: TVector2Single read GetSlipCoefficients write SetSlipCoefficients;
+    property Position: TVector3 read GetPosition write SetPosition;
+    property SlipCoefficients: TVector2 read GetSlipCoefficients write SetSlipCoefficients;
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
-    property SurfaceSpeed: TVector2Single read GetSurfaceSpeed write SetSurfaceSpeed;
+    property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
 
 {$endif read_interface}
 
@@ -116,12 +116,12 @@ begin
   FdBounce.Send(Value);
 end;
 
-function TContactNode.GetContactNormal: TVector3Single;
+function TContactNode.GetContactNormal: TVector3;
 begin
   Result := FdContactNormal.Value;
 end;
 
-procedure TContactNode.SetContactNormal(const Value: TVector3Single);
+procedure TContactNode.SetContactNormal(const Value: TVector3);
 begin
   FdContactNormal.Send(Value);
 end;
@@ -136,22 +136,22 @@ begin
   FdDepth.Send(Value);
 end;
 
-function TContactNode.GetFrictionCoefficients: TVector2Single;
+function TContactNode.GetFrictionCoefficients: TVector2;
 begin
   Result := FdFrictionCoefficients.Value;
 end;
 
-procedure TContactNode.SetFrictionCoefficients(const Value: TVector2Single);
+procedure TContactNode.SetFrictionCoefficients(const Value: TVector2);
 begin
   FdFrictionCoefficients.Send(Value);
 end;
 
-function TContactNode.GetFrictionDirection: TVector3Single;
+function TContactNode.GetFrictionDirection: TVector3;
 begin
   Result := FdFrictionDirection.Value;
 end;
 
-procedure TContactNode.SetFrictionDirection(const Value: TVector3Single);
+procedure TContactNode.SetFrictionDirection(const Value: TVector3);
 begin
   FdFrictionDirection.Send(Value);
 end;
@@ -192,22 +192,22 @@ begin
   FdMinbounceSpeed.Send(Value);
 end;
 
-function TContactNode.GetPosition: TVector3Single;
+function TContactNode.GetPosition: TVector3;
 begin
   Result := FdPosition.Value;
 end;
 
-procedure TContactNode.SetPosition(const Value: TVector3Single);
+procedure TContactNode.SetPosition(const Value: TVector3);
 begin
   FdPosition.Send(Value);
 end;
 
-function TContactNode.GetSlipCoefficients: TVector2Single;
+function TContactNode.GetSlipCoefficients: TVector2;
 begin
   Result := FdSlipCoefficients.Value;
 end;
 
-procedure TContactNode.SetSlipCoefficients(const Value: TVector2Single);
+procedure TContactNode.SetSlipCoefficients(const Value: TVector2);
 begin
   FdSlipCoefficients.Send(Value);
 end;
@@ -232,12 +232,12 @@ begin
   FdSoftnessErrorCorrection.Send(Value);
 end;
 
-function TContactNode.GetSurfaceSpeed: TVector2Single;
+function TContactNode.GetSurfaceSpeed: TVector2;
 begin
   Result := FdSurfaceSpeed.Value;
 end;
 
-procedure TContactNode.SetSurfaceSpeed(const Value: TVector2Single);
+procedure TContactNode.SetSurfaceSpeed(const Value: TVector2);
 begin
   FdSurfaceSpeed.Send(Value);
 end;

@@ -186,7 +186,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     begin
       ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
       ColInterp.FdKey.Items.Add(0);
-      ColInterp.FdKeyValue.Items.Add(Vector3SingleCut(Color));
+      ColInterp.FdKeyValue.Items.Add(Color.XYZ);
       ContainerForResetNode.FdChildren.Add(ColInterp);
       ResetColor1.Add(ColInterp);
 
@@ -259,7 +259,7 @@ var
   I: Integer;
 begin
   Node := TTransformNode.Create('SlotTransform_' + ToX3DName(Name), BaseUrl);
-  Node.FdTranslation.Value := Vector3Single(0, 0, DrawOrder * DrawOrderZ);
+  Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
   Bone.Node.FdChildren.Add(Node);
   NodeUsedAsChild := true;
 

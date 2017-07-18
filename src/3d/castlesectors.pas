@@ -36,7 +36,7 @@ type
     constructor Create;
     destructor Destroy; override;
   public
-    Position: TVector3Single;
+    Position: TVector3;
 
     { Box of the waypoint is only used by TSectorList.LinkToWaypoints,
       to detect which sectors contain ths waypoint (presumably,
@@ -64,7 +64,7 @@ type
     property Boxes: TBox3DList read FBoxes;
 
     { Is Point inside the sector. }
-    function Contains(const Point: TVector3Single): boolean;
+    function Contains(const Point: TVector3): boolean;
 
     { Does the box collide (at least partially) with sector. }
     function Collision(const Box: TBox3D): boolean;
@@ -104,7 +104,7 @@ type
 
     { Returns sector with given point (using @link(TSector.Contains) of each sector).
       Returns nil if no such sector. }
-    function SectorWithPoint(const Point: TVector3Single): TSector;
+    function SectorWithPoint(const Point: TVector3): TSector;
 
     { This sets Waypoints contents to the list of waypoints
       that must be passed to travel from sector SectorBegin to SectorEnd.
@@ -171,7 +171,7 @@ begin
   inherited;
 end;
 
-function TSector.Contains(const Point: TVector3Single): boolean;
+function TSector.Contains(const Point: TVector3): boolean;
 var
   I: Integer;
 begin
@@ -237,7 +237,7 @@ begin
   end;
 end;
 
-function TSectorList.SectorWithPoint(const Point: TVector3Single):
+function TSectorList.SectorWithPoint(const Point: TVector3):
   TSector;
 var
   I: Integer;

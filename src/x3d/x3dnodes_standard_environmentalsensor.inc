@@ -107,12 +107,12 @@ procedure TAbstractEnvironmentalSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chEnvironmentalSensorBounds];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
+  FFdSize := TSFVec3f.Create(Self, 'size', Vector3(0, 0, 0));
    FdSize.ChangesAlways := [chEnvironmentalSensorBounds];
   AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
@@ -216,13 +216,13 @@ begin
      (FdSize.Value[2] < 0) then
   begin
     WritelnWarning('VRML/X3D', 'All VisibilitySensor.size components must be >= 0');
-    Exit(EmptyBox3D);
+    Exit(TBox3D.Empty);
   end;
 
   { In case of VisibilitySensor, specification doesn't say that size = 0
     indicates empty box (like in case of ProximitySensor).
     And this is sensible: flat (0 depth or such) VisibilitySensor
-    makes sense. So for a valid VRML/X3D, this box is never EmptyBox3D. }
+    makes sense. So for a valid VRML/X3D, this box is never TBox3D.Empty. }
 
   Result := Box3DAroundPoint(FdCenter.Value, FdSize.Value);
 end;

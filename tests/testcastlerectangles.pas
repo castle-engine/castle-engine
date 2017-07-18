@@ -106,53 +106,53 @@ begin
 
   { circles far outside }
 
-  AssertFalse(R.CollidesDisc(Vector2Single(0 , 0), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(20, 0), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(50, 0), 1));
+  AssertFalse(R.CollidesDisc(Vector2(0 , 0), 1));
+  AssertFalse(R.CollidesDisc(Vector2(20, 0), 1));
+  AssertFalse(R.CollidesDisc(Vector2(50, 0), 1));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(0,  100), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(20, 100), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(50, 100), 1));
+  AssertFalse(R.CollidesDisc(Vector2(0,  100), 1));
+  AssertFalse(R.CollidesDisc(Vector2(20, 100), 1));
+  AssertFalse(R.CollidesDisc(Vector2(50, 100), 1));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(0, 10), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(0, 40), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(0, 70), 1));
+  AssertFalse(R.CollidesDisc(Vector2(0, 10), 1));
+  AssertFalse(R.CollidesDisc(Vector2(0, 40), 1));
+  AssertFalse(R.CollidesDisc(Vector2(0, 70), 1));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(100, 10), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(100, 40), 1));
-  AssertFalse(R.CollidesDisc(Vector2Single(100, 70), 1));
+  AssertFalse(R.CollidesDisc(Vector2(100, 10), 1));
+  AssertFalse(R.CollidesDisc(Vector2(100, 40), 1));
+  AssertFalse(R.CollidesDisc(Vector2(100, 70), 1));
 
   { circles collide, when one range inside }
 
-  AssertFalse(R.CollidesDisc(Vector2Single(-10, 10), 15));
-  AssertTrue(R.CollidesDisc(Vector2Single(20, 10), 15));
-  AssertFalse(R.CollidesDisc(Vector2Single(60, 10), 15));
+  AssertFalse(R.CollidesDisc(Vector2(-10, 10), 15));
+  AssertTrue(R.CollidesDisc(Vector2(20, 10), 15));
+  AssertFalse(R.CollidesDisc(Vector2(60, 10), 15));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(-10, 70), 15));
-  AssertTrue(R.CollidesDisc(Vector2Single(20, 70), 15));
-  AssertFalse(R.CollidesDisc(Vector2Single(60, 70), 15));
+  AssertFalse(R.CollidesDisc(Vector2(-10, 70), 15));
+  AssertTrue(R.CollidesDisc(Vector2(20, 70), 15));
+  AssertFalse(R.CollidesDisc(Vector2(60, 70), 15));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(0, 0), 15));
-  AssertTrue(R.CollidesDisc(Vector2Single(0, 40), 15));
-  AssertFalse(R.CollidesDisc(Vector2Single(0, 80), 15));
+  AssertFalse(R.CollidesDisc(Vector2(0, 0), 15));
+  AssertTrue(R.CollidesDisc(Vector2(0, 40), 15));
+  AssertFalse(R.CollidesDisc(Vector2(0, 80), 15));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(50, 0), 15));
-  AssertTrue(R.CollidesDisc(Vector2Single(50, 40), 15));
-  AssertFalse(R.CollidesDisc(Vector2Single(50, 80), 15));
+  AssertFalse(R.CollidesDisc(Vector2(50, 0), 15));
+  AssertTrue(R.CollidesDisc(Vector2(50, 40), 15));
+  AssertFalse(R.CollidesDisc(Vector2(50, 80), 15));
 
   { circles collide, both ranges inside }
 
-  AssertTrue(R.CollidesDisc(Vector2Single(20, 40), 1));
+  AssertTrue(R.CollidesDisc(Vector2(20, 40), 1));
 
   R := FloatRectangle(0, 0, 10, 10);
 
-  AssertFalse(R.CollidesDisc(Vector2Single(-1, -1), 0.9));
-  AssertFalse(R.CollidesDisc(Vector2Single(-1,  5), 0.9));
-  AssertFalse(R.CollidesDisc(Vector2Single(-1, 11), 0.9));
+  AssertFalse(R.CollidesDisc(Vector2(-1, -1), 0.9));
+  AssertFalse(R.CollidesDisc(Vector2(-1,  5), 0.9));
+  AssertFalse(R.CollidesDisc(Vector2(-1, 11), 0.9));
 
-  AssertFalse(R.CollidesDisc(Vector2Single(-1, -1), 1.1));
-  AssertTrue(R.CollidesDisc(Vector2Single(-1,  5), 1.1));
-  AssertFalse(R.CollidesDisc(Vector2Single(-1, 11), 1.1));
+  AssertFalse(R.CollidesDisc(Vector2(-1, -1), 1.1));
+  AssertTrue(R.CollidesDisc(Vector2(-1,  5), 1.1));
+  AssertFalse(R.CollidesDisc(Vector2(-1, 11), 1.1));
 end;
 
 procedure TTestRectangles.TestAdd;
@@ -161,47 +161,47 @@ var
 begin
   R := TFloatRectangle.Empty;
 
-  R.Add(Vector2Single(10, 20)); // without assignment, R.Add does nothing
+  R.Add(Vector2(10, 20)); // without assignment, R.Add does nothing
   AssertTrue(R.IsEmpty);
 
-  R := R.Add(Vector2Single(10, 20));
+  R := R.Add(Vector2(10, 20));
   AssertFalse(R.IsEmpty);
   AssertFloatsEqual(10, R.Left);
   AssertFloatsEqual(20, R.Bottom);
   AssertFloatsEqual(0, R.Width);
   AssertFloatsEqual(0, R.Height);
 
-  R.Add(Vector2Single(0, 40)); // without assignment, R.Add does nothing
+  R.Add(Vector2(0, 40)); // without assignment, R.Add does nothing
   AssertFloatsEqual(10, R.Left);
   AssertFloatsEqual(20, R.Bottom);
   AssertFloatsEqual(0, R.Width);
   AssertFloatsEqual(0, R.Height);
 
-  R := R.Add(Vector2Single(0, 40));
+  R := R.Add(Vector2(0, 40));
   AssertFloatsEqual(0, R.Left);
   AssertFloatsEqual(20, R.Bottom);
   AssertFloatsEqual(10, R.Width);
   AssertFloatsEqual(20, R.Height);
 
-  R := R.Add(Vector2Single(5, 30)); // does not change R, since already inside
+  R := R.Add(Vector2(5, 30)); // does not change R, since already inside
   AssertFloatsEqual(0, R.Left);
   AssertFloatsEqual(20, R.Bottom);
   AssertFloatsEqual(10, R.Width);
   AssertFloatsEqual(20, R.Height);
 
-  R := R.Add(Vector2Single(-10, 30)); // changes R only horizontally
+  R := R.Add(Vector2(-10, 30)); // changes R only horizontally
   AssertFloatsEqual(-10, R.Left);
   AssertFloatsEqual(20, R.Bottom);
   AssertFloatsEqual(20, R.Width);
   AssertFloatsEqual(20, R.Height);
 
-  R := R.Add(Vector2Single(5, -50)); // changes R only vertically
+  R := R.Add(Vector2(5, -50)); // changes R only vertically
   AssertFloatsEqual(-10, R.Left);
   AssertFloatsEqual(-50, R.Bottom);
   AssertFloatsEqual(20, R.Width);
   AssertFloatsEqual(90, R.Height);
 
-  R := R.Add(Vector2Single(5, -25)); // should not change R
+  R := R.Add(Vector2(5, -25)); // should not change R
   AssertFloatsEqual(-10, R.Left);
   AssertFloatsEqual(-50, R.Bottom);
   AssertFloatsEqual(20, R.Width);

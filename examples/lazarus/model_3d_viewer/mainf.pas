@@ -193,7 +193,7 @@ end;
 
 procedure TMain.Timer1Timer(Sender: TObject);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   UpdateCaption; { to update FPS }
 
@@ -349,15 +349,15 @@ end;
 procedure TMain.ButtonChangeCameraClick(Sender: TObject);
 begin
   Browser.Camera.SetView(
-    Vector3Single(
+    Vector3(
       StrToFloat(EditPositionX.Text),
       StrToFloat(EditPositionY.Text),
       StrToFloat(EditPositionZ.Text)),
-    Vector3Single(
+    Vector3(
       StrToFloat(EditDirectionX.Text),
       StrToFloat(EditDirectionY.Text),
       StrToFloat(EditDirectionZ.Text)),
-    Vector3Single(
+    Vector3(
       StrToFloat(EditUpX.Text),
       StrToFloat(EditUpY.Text),
       StrToFloat(EditUpZ.Text)));

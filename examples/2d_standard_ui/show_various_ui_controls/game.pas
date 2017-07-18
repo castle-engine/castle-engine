@@ -112,7 +112,7 @@ end;
 procedure ApplicationInitialize;
 const
   TestClip = false;
-  TestClipLine: TVector3Single = (0.5, -1, 0);
+  TestClipLine: TVector3 = (Data: (0.5, -1, 0));
 begin
   { customize tooltips to use rounded corners.
     Just because we can :) }

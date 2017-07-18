@@ -40,7 +40,7 @@ type
     function CheckXYZ(out XIndex, YIndex, ZIndex: Integer): boolean;
     function CheckST(out SIndex, TIndex: Integer): boolean;
 
-    { Extract from source an array of TVector3Single.
+    { Extract from source an array of TVector3.
       Params will be checked to contain at least three vector components
       'X', 'Y', 'Z'. (These should be specified in <param name="..." type="float"/>).
 
@@ -50,12 +50,12 @@ type
       and this method will reorder this suitable for X3D.
 
       Returns if components were fully correct (no warnings). }
-    function AssignToVectorXYZ(const Value: TVector3SingleList): boolean;
+    function AssignToVectorXYZ(const Value: TVector3List): boolean;
 
-    { Extract from source an array of TVector2Single, for texture coordinates.
+    { Extract from source an array of TVector2, for texture coordinates.
       Like AssignToVectorXYZ, but for 2D vectors, with component names 'S' and 'T'
       (or 'U' and 'V'). }
-    function AssignToVectorST(const Value: TVector2SingleList): boolean;
+    function AssignToVectorST(const Value: TVector2List): boolean;
   end;
 
   TColladaSourceList = class(specialize TObjectList<TColladaSource>)
@@ -122,7 +122,7 @@ begin
   end;
 end;
 
-function TColladaSource.AssignToVectorXYZ(const Value: TVector3SingleList): boolean;
+function TColladaSource.AssignToVectorXYZ(const Value: TVector3List): boolean;
 var
   XIndex, YIndex, ZIndex, I: Integer;
 begin
@@ -176,7 +176,7 @@ begin
   end;
 end;
 
-function TColladaSource.AssignToVectorST(const Value: TVector2SingleList): boolean;
+function TColladaSource.AssignToVectorST(const Value: TVector2List): boolean;
 var
   SIndex, TIndex, I: Integer;
 begin

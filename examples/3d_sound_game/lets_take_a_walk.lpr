@@ -105,16 +105,16 @@ end;
 
 procedure TTnt.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  T: TVector3Single;
+  T: TVector3;
 begin
   inherited;
 
   { make gravity }
   T := Translation;
-  if T[2] > 0 then
+  if T.Data[2] > 0 then
   begin
-    T[2] -= 5 * SecondsPassed;
-    MaxVar(T[2], 0);
+    T.Data[2] -= 5 * SecondsPassed;
+    MaxVar(T.Data[2], 0);
     Translation := T;
   end;
 
@@ -131,9 +131,9 @@ begin
   TntSize := TntScene.BoundingBox.MaxSize;
   Tnt := TTnt.Create(SceneManager);
   Box := SceneManager.MainScene.BoundingBox;
-  Tnt.Translation := Vector3Single(
-    RandomFloatRange(Box.Data[0, 0], Box.Data[1, 0]-TntSize),
-    RandomFloatRange(Box.Data[0, 1], Box.Data[1, 1]-TntSize),
+  Tnt.Translation := Vector3(
+    RandomFloatRange(Box.Data[0].Data[0], Box.Data[1].Data[0]-TntSize),
+    RandomFloatRange(Box.Data[0].Data[1], Box.Data[1].Data[1]-TntSize),
     Z);
   SceneManager.Items.Add(Tnt);
   Inc(TntsCount);
@@ -144,14 +144,14 @@ end;
 { update Rat.Translation based on RatAngle }
 procedure UpdateRatPosition;
 const
-  RatCircleMiddle: TVector3Single = (0, 0, 0);
+  RatCircleMiddle: TVector3 = (Data: (0, 0, 0));
   RatCircleRadius = 3;
 var
-  T: TVector3Single;
+  T: TVector3;
 begin
   T := RatCircleMiddle;
-  T[0] += Cos(RatAngle) * RatCircleRadius;
-  T[1] += Sin(RatAngle) * RatCircleRadius;
+  T.Data[0] += Cos(RatAngle) * RatCircleRadius;
+  T.Data[1] += Sin(RatAngle) * RatCircleRadius;
   Rat.Translation := T;
 end;
 
@@ -169,7 +169,7 @@ type
 class procedure TDummy.CameraChanged(Camera: TObject);
 { Update stuff based on whether camera position is inside mute area. }
 
-  function CylinderContains(const P: TVector3Single;
+  function CylinderContains(const P: TVector3;
     const MiddleX, MiddleY, Radius, MinZ, MaxZ: Single): boolean;
   begin
     Result :=
@@ -360,7 +360,7 @@ begin
   stKaboom    := SoundEngine.SoundFromName('kaboom');
   stCricket   := SoundEngine.SoundFromName('cricket');
   RatSound := SoundEngine.Sound3D(stRatSound, Rat.Translation, true);
-  SoundEngine.Sound3D(stCricket, Vector3Single(2.61, -1.96, 1), true);
+  SoundEngine.Sound3D(stCricket, Vector3(2.61, -1.96, 1), true);
 
   Application.Run;
 end.

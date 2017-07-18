@@ -27,15 +27,15 @@ type
     IFSIndexesCount: Cardinal;
     IFSNextIndex: Cardinal;
 
-    procedure PrepareIndexesTriangle1(const TriIndices: TVector3Longint);
-    procedure PrepareIndexesTriangle2(const TriIndices: TVector3Longint);
+    procedure PrepareIndexesTriangle1(const TriIndices: TVector3Integer);
+    procedure PrepareIndexesTriangle2(const TriIndices: TVector3Integer);
 
     procedure PrepareIndexesCoordsRange1(
       const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
     procedure PrepareIndexesCoordsRange2(
       const RangeNumber: Cardinal; BeginIndex, EndIndex: Integer);
 
-    procedure GenerateTriangle(const TriIndices: TVector3Longint);
+    procedure GenerateTriangle(const TriIndices: TVector3Integer);
   protected
     { Set these in descendant's constructor. }
     FaceConvex: boolean;
@@ -160,7 +160,7 @@ begin
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.GenerateTriangle(
-  const TriIndices: TVector3Longint);
+  const TriIndices: TVector3Integer);
 begin
   GenerateVertex(TriIndices[0]);
   GenerateVertex(TriIndices[1]);
@@ -180,7 +180,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(PArray_LongInt(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3Single(Coord.Items.List), Coord.Count,
+      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
       @GenerateTriangle, BeginIndex);
   end else
   begin
@@ -197,7 +197,7 @@ begin
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle1(
-  const TriIndices: TVector3Longint);
+  const TriIndices: TVector3Integer);
 begin
   IFSIndexesCount += 3;
 end;
@@ -208,7 +208,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(PArray_LongInt(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3Single(Coord.Items.List), Coord.Count,
+      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
       @PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
@@ -217,7 +217,7 @@ begin
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesTriangle2(
-  const TriIndices: TVector3Longint);
+  const TriIndices: TVector3Integer);
 begin
   IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[0]]; Inc(IFSNextIndex);
   IndexesFromCoordIndex.L[IFSNextIndex] := CoordIndex.Items.L[TriIndices[1]]; Inc(IFSNextIndex);
@@ -234,7 +234,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(PArray_LongInt(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3Single(Coord.Items.List), Coord.Count,
+      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
       @PrepareIndexesTriangle2, BeginIndex);
   end else
   begin

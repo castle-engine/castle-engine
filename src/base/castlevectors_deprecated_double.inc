@@ -65,6 +65,19 @@ begin
 end;
 
 function Vector3DoubleFromStr(const s: string): TVector3Double;
-{$I castlevectors_vector3fromstr.inc}
+var
+  SPosition: Integer;
+begin
+  SPosition := 1;
+  Result[0] := StrToFloat(NextToken(S, SPosition));
+  Result[1] := StrToFloat(NextToken(S, SPosition));
+  Result[2] := StrToFloat(NextToken(S, SPosition));
+  if NextToken(S, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
+
+  { This could also be implemented by DeFormat, but this is faster
+    (which is important for e.g. reading 3D data where this function may be used
+    often) }
+end;
 
 {$endif read_implementation}

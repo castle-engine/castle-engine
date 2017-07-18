@@ -61,7 +61,7 @@ var
   CameraView3D: TCastleButton;
   CameraFollowsDragon: TCastleButton;
   DragonFlying: boolean;
-  DragonFlyingTarget: TVector2Single;
+  DragonFlyingTarget: TVector2;
   Status: TCastleLabel;
 
 type
@@ -71,7 +71,7 @@ type
   end;
 
 const
-  DragonInitialPosition: TVector3Single = (2800, 800, 400);
+  DragonInitialPosition: TVector3 = (2800, 800, 400);
   DragonSpeedX = 1000.0;
   DragonSpeedY =  500.0;
   DragonScale = 0.5;
@@ -88,8 +88,8 @@ procedure AddBackgroundItems;
     Scene: T2DScene;
   begin
     Transform := T3DTransform.Create(Application);
-    Transform.Scale := Vector3Single(Scale, Scale, Scale);
-    Transform.Translation := Vector3Single(X, Y, Z);
+    Transform.Scale := Vector3(Scale, Scale, Scale);
+    Transform.Translation := Vector3(X, Y, Z);
     { do not capture mouse picking on this item,
       otherwise Background.PointingDeviceOverItem in WindoPress would not work
       as we want, because items in front of the background would "hijack"
@@ -178,7 +178,7 @@ begin
 
   DragonTransform := T3DTransform.Create(Application);
   DragonTransform.Pickable := false;
-  DragonTransform.Scale := Vector3Single(DragonScale, DragonScale, DragonScale);
+  DragonTransform.Scale := Vector3(DragonScale, DragonScale, DragonScale);
   { translate in XY to set initial position in the middle of the screen.
     translate in Z to push dragon in front of trees
     (on Z = 20, see data/background.x3dv) }
@@ -223,23 +223,23 @@ end;
 
 { Looking at current state of CameraView3D.Pressed
   and CameraFollowsDragon.Pressed, calculate camera vectors. }
-procedure CalculateCamera(out Pos, Dir, Up: TVector3Single);
+procedure CalculateCamera(out Pos, Dir, Up: TVector3);
 const
   { Initial camera. Like initialized by T2DSceneManager,
     but shifted to the right, to see the middle of the background scene
     where we can see the castle and dragon at initial position. }
-  Camera2DPos: TVector3Single = (2100, 0, 0);
-  Camera2DDir: TVector3Single = (0, 0, -1);
-  Camera2DUp : TVector3Single = (0, 1, 0);
+  Camera2DPos: TVector3 = (2100, 0, 0);
+  Camera2DDir: TVector3 = (0, 0, -1);
+  Camera2DUp : TVector3 = (0, 1, 0);
 
   { Alternative camera view where it is clearly visible we are in 3D :).
     This corresponds to the initial camera 2D view above, so it is also shited
     as necessary to see the castle and dragon at initial position.
     Hint: to pick camera values experimentally, use view3dscene
     and Console->Print Current Camera.. menu item. }
-  Camera3DPos: TVector3Single = (329.62554931640625, 581.32476806640625, 2722.44921875);
-  Camera3DDir: TVector3Single = (0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
-  Camera3DUp : TVector3Single = (0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
+  Camera3DPos: TVector3 = (329.62554931640625, 581.32476806640625, 2722.44921875);
+  Camera3DDir: TVector3 = (0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
+  Camera3DUp : TVector3 = (0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
 begin
   if not CameraView3D.Pressed then
   begin
@@ -279,8 +279,8 @@ end;
 procedure WindowUpdate(Container: TUIContainer);
 var
   SecondsPassed: Single;
-  T: TVector3Single;
-  Pos, Dir, Up: TVector3Single;
+  T: TVector3;
+  Pos, Dir, Up: TVector3;
 begin
   Status.Caption := Format('FPS: %f (real : %f)',
     [Window.Fps.FrameTime, Window.Fps.RealTime]);
@@ -345,7 +345,7 @@ end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
-  S: TVector3Single;
+  S: TVector3;
 begin
   if Event.IsKey(K_F5) then
     Window.SaveScreen(FileNameAutoInc(ApplicationName + '_screen_%d.png'));
@@ -369,7 +369,7 @@ begin
       if not DragonFlying then
         Dragon.PlayAnimation('flying', paForceLooping);
       DragonFlying := true;
-      DragonFlyingTarget := Vector2Single(
+      DragonFlyingTarget := Vector2(
         { ignore 3rd dimension from Background.PointingDeviceOverPoint }
         Background.PointingDeviceOverPoint[0],
         Background.PointingDeviceOverPoint[1]);
@@ -393,7 +393,7 @@ end;
 
 class procedure TButtonsHandler.CameraView3DClick(Sender: TObject);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   if not SceneManager.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
   begin
@@ -406,7 +406,7 @@ end;
 
 class procedure TButtonsHandler.CameraFollowsDragonClick(Sender: TObject);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   if not SceneManager.Camera.Animation then { do not mess when Camera.AnimateTo is in progress }
   begin

@@ -772,7 +772,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
     FrameURL: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
-    FrameBoxCenter, FrameBoxSize: TVector3Single;
+    FrameBoxCenter, FrameBoxSize: TVector3;
   begin
     Result := TAnimation.Create;
     try

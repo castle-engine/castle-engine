@@ -15,6 +15,8 @@
 
 unit TestCastleColors;
 
+{$I castleconf.inc}
+
 { $define SPEED_TESTS}
 
 interface
@@ -36,7 +38,7 @@ uses CastleUtils, CastleStringUtils, CastleTimeUtils;
 procedure TTestCastleColors.TestHSV;
 var
   RGB: TVector3Byte;
-  HSV: TVector3Single;
+  HSV: TVector3;
   R, G, B: Integer;
   {$ifdef SPEED_TESTS}
   Operations: Integer;
@@ -81,11 +83,11 @@ end;
 
 procedure TTestCastleColors.TestLerpInHsv;
 const
-  PureRed: TVector3Single = (1, 0, 0);
-  PureBlue: TVector3Single = (0, 0, 1);
+  PureRed: TVector3 = (Data: (1, 0, 0));
+  PureBlue: TVector3 = (Data: (0, 0, 1));
 var
   I: Integer;
-  C: TVector3Single;
+  C: TVector3;
   H: Single;
 begin
   for I := 1 to 10 do

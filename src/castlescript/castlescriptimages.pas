@@ -310,14 +310,14 @@ begin
     2: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec2f);
          GA := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptVec2f(AResult).Value := Vector2Single(
+         TCasScriptVec2f(AResult).Value := Vector2(
            GA^[0]/255,
            GA^[1]/255);
        end;
     3: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
          RGB := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptVec3f(AResult).Value := Vector3Single(
+         TCasScriptVec3f(AResult).Value := Vector3(
            RGB^[0]/255,
            RGB^[1]/255,
            RGB^[2]/255);
@@ -325,7 +325,7 @@ begin
     4: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec4f);
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptVec4f(AResult).Value := Vector4Single(
+         TCasScriptVec4f(AResult).Value := Vector4(
            RGBAlpha^[0]/255,
            RGBAlpha^[1]/255,
            RGBAlpha^[2]/255,
@@ -361,7 +361,7 @@ begin
     3: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
          RGB := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptVec3f(AResult).Value := Vector3Single(
+         TCasScriptVec3f(AResult).Value := Vector3(
            RGB^[0]/255,
            RGB^[1]/255,
            RGB^[2]/255);
@@ -369,7 +369,7 @@ begin
     4: begin
          CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
          RGBAlpha := TCasScriptImage(Arguments[0]).Value.PixelPtr(X, Y);
-         TCasScriptVec3f(AResult).Value := Vector3Single(
+         TCasScriptVec3f(AResult).Value := Vector3(
            RGBAlpha^[0]/255,
            RGBAlpha^[1]/255,
            RGBAlpha^[2]/255);

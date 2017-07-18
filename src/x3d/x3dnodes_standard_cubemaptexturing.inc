@@ -289,7 +289,7 @@ begin
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 
-  FFdBias := TSFVec3f.Create(Self, 'bias', ZeroVector3Single);
+  FFdBias := TSFVec3f.Create(Self, 'bias', TVector3.Zero);
   AddField(FFdBias);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;

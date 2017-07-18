@@ -33,12 +33,12 @@ type
       V1, V2: TVector2List; Index1, Index2, ACount: Integer);
 
     procedure AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
-    procedure Assign(const A: array of TVector2);
+    procedure AddListRange(const Source: TVector2List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
   TVector3List = class(specialize TStructList<TVector3>)
   public
-    // procedure AssignNegated(const Source: TVector3List);
+    procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
 
     { Negate all items. }
     procedure Negate;
@@ -47,7 +47,7 @@ type
     procedure Normalize;
 
     { Multiply each item, component-wise, with V. }
-    // procedure MultiplyComponents(const V: TVector3);
+    procedure MultiplyComponents(const V: TVector3); deprecated 'this method does not seem very useful, report if you need it';
 
     { Assign linear interpolation between two other vector arrays.
       We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
@@ -63,8 +63,8 @@ type
     { Assign linear interpolation between two other vector arrays,
       and normalize resulting vectors.
       @seealso AssignLerp }
-    // procedure AssignLerpNormalize(const Fraction: Single;
-    //   V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+    procedure AssignLerpNormalize(const Fraction: Single;
+      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
     { Assign linear interpolation between two other vector arrays,
       treating vectors as RGB colors and interpolating in HSV space.
@@ -73,11 +73,11 @@ type
       V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
     procedure AddSubRange(const Source: TVector3List; Index, AddCount: Integer);
-    procedure Assign(const A: array of TVector3);
+    procedure AddListRange(const Source: TVector3List; Index, AddCount: Integer); deprecated 'use AddSubRange';
 
     { Convert to TVector4List, with 4th vector component in
       new array set to constant W. }
-    // function ToVector4(const W: Single): TVector4List;
+    function ToVector4(const W: Single): TVector4List;
 
     { When two vertexes on the list are closer than MergeDistance,
       set them truly (exactly) equal.
@@ -88,20 +88,20 @@ type
   TVector4List = class(specialize TStructList<TVector4>)
   public
     procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
-    procedure Assign(const A: array of TVector4);
+    procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
-  TVector2dList = class(specialize TStructList<TVector2d>)
+  TVector2DoubleList = class(specialize TStructList<TVector2Double>)
   public
     function ToVector2: TVector2List;
   end;
 
-  TVector3dList = class(specialize TStructList<TVector3d>)
+  TVector3DoubleList = class(specialize TStructList<TVector3Double>)
   public
     function ToVector3: TVector3List;
   end;
 
-  TVector4dList = class(specialize TStructList<TVector4d>)
+  TVector4DoubleList = class(specialize TStructList<TVector4Double>)
   public
     function ToVector4: TVector4List;
   end;
@@ -110,7 +110,7 @@ type
   public
   end;
 
-  TMatrix3dList = class(specialize TStructList<TMatrix3d>)
+  TMatrix3DoubleList = class(specialize TStructList<TMatrix3Double>)
   public
     function ToMatrix3: TMatrix3List;
   end;
@@ -119,10 +119,13 @@ type
   public
   end;
 
-  TMatrix4dList = class(specialize TStructList<TMatrix4d>)
+  TMatrix4DoubleList = class(specialize TStructList<TMatrix4Double>)
   public
     function ToMatrix4: TMatrix4List;
   end;
+
+  TVector2SmallIntList = specialize TStructList<TVector2SmallInt>;
+  TVector3CardinalList = specialize TStructList<TVector3Cardinal>;
 
 {$endif read_interface}
 
@@ -170,19 +173,18 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(TVector2) * AddCount);
 end;
 
-procedure TVector2List.Assign(const A: array of TVector2);
+procedure TVector2List.AddListRange(const Source: TVector2List; Index, AddCount: Integer);
 begin
-  Clear;
-  AddRange(A);
+  AddSubRange(Source, Index, AddCount);
 end;
 
 { TVector3List ----------------------------------------------------- }
 
-// procedure TVector3List.AssignNegated(const Source: TVector3List);
-// begin
-//   Assign(Source);
-//   Negate;
-// end;
+procedure TVector3List.AssignNegated(const Source: TVector3List);
+begin
+  Assign(Source);
+  Negate;
+end;
 
 procedure TVector3List.Negate;
 var
@@ -197,16 +199,16 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I] := L[I].Normalize;
+    L[I].NormalizeMe;
 end;
 
-// procedure TVector3List.MultiplyComponents(const V: TVector3);
-// var
-//   I: Integer;
-// begin
-//   for I := 0 to Count - 1 do
-//     L[I] := L[I].MultiplyComponents(V);
-// end;
+procedure TVector3List.MultiplyComponents(const V: TVector3);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    L[I] := TVector3.MultiplyComponents(L[I], V);
+end;
 
 procedure TVector3List.AssignLerp(const Fraction: Single;
   V1, V2: TVector3List; Index1, Index2, ACount: Integer);
@@ -218,18 +220,18 @@ begin
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
-// procedure TVector3List.AssignLerpNormalize(const Fraction: Single;
-//   V1, V2: TVector3List; Index1, Index2, ACount: Integer);
-// var
-//   I: Integer;
-// begin
-//   Count := ACount;
-//   for I := 0 to Count - 1 do
-//   begin
-//     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
-//     L[I] := L[I].Normalize;
-//   end;
-// end;
+procedure TVector3List.AssignLerpNormalize(const Fraction: Single;
+  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+  begin
+    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+    L[I].NormalizeMe;
+  end;
+end;
 
 procedure TVector3List.AssignLerpRgbInHsv(const Fraction: Single;
   V1, V2: TVector3List; Index1, Index2, ACount: Integer);
@@ -241,15 +243,15 @@ begin
     L[I] := LerpRgbInHsv(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
-// function TVector3List.ToVector4(const W: Single): TVector4List;
-// var
-//   I: Integer;
-// begin
-//   Result := TVector4List.Create;
-//   Result.Count := Count;
-//   for I := 0 to Count - 1 do
-//     Result.L[I] := Vector4(L[I], W);
-// end;
+function TVector3List.ToVector4(const W: Single): TVector4List;
+var
+  I: Integer;
+begin
+  Result := TVector4List.Create;
+  Result.Count := Count;
+  for I := 0 to Count - 1 do
+    Result.L[I] := Vector4(L[I], W);
+end;
 
 function TVector3List.MergeCloseVertexes(MergeDistance: Single): Cardinal;
 var
@@ -275,9 +277,9 @@ begin
     for J := I + 1 to Count - 1 do
     begin
       if PointsDistanceSqr(V1^, V2^) < MergeDistance then
-        { We do the VectorsPerfectlyEqual comparison only to get nice Result.
+        { We do the TVector3.PerfectlyEquals comparison only to get nice Result.
           But this *is* an important value for the user, so it's worth it. }
-        if not VectorsPerfectlyEqual(V1^, V2^) then
+        if not TVector3.PerfectlyEquals(V1^, V2^) then
         begin
           V2^ := V1^;
           Inc(Result);
@@ -299,10 +301,9 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3) * AddCount);
 end;
 
-procedure TVector3List.Assign(const A: array of TVector3);
+procedure TVector3List.AddListRange(const Source: TVector3List; Index, AddCount: Integer);
 begin
-  Clear;
-  AddRange(A);
+  AddSubRange(Source, Index, AddCount);
 end;
 
 { TVector4List ----------------------------------------------------- }
@@ -317,15 +318,14 @@ begin
     System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4) * AddCount);
 end;
 
-procedure TVector4List.Assign(const A: array of TVector4);
+procedure TVector4List.AddListRange(const Source: TVector4List; Index, AddCount: Integer);
 begin
-  Clear;
-  AddRange(A);
+  AddSubRange(Source, Index, AddCount);
 end;
 
-{ TVector2dList ----------------------------------------------------- }
+{ TVector2DoubleList ----------------------------------------------------- }
 
-function TVector2dList.ToVector2: TVector2List;
+function TVector2DoubleList.ToVector2: TVector2List;
 var
   I: Integer;
   Source: PDouble;
@@ -343,9 +343,9 @@ begin
   end;
 end;
 
-{ TVector3dList ----------------------------------------------------- }
+{ TVector3DoubleList ----------------------------------------------------- }
 
-function TVector3dList.ToVector3: TVector3List;
+function TVector3DoubleList.ToVector3: TVector3List;
 var
   I: Integer;
   Source: PDouble;
@@ -363,9 +363,9 @@ begin
   end;
 end;
 
-{ TVector4dList ----------------------------------------------------- }
+{ TVector4DoubleList ----------------------------------------------------- }
 
-function TVector4dList.ToVector4: TVector4List;
+function TVector4DoubleList.ToVector4: TVector4List;
 var
   I: Integer;
   Source: PDouble;
@@ -387,9 +387,9 @@ end;
 
 { TMatrix4List ----------------------------------------------------- }
 
-{ TMatrix3dList ----------------------------------------------------- }
+{ TMatrix3DoubleList ----------------------------------------------------- }
 
-function TMatrix3dList.ToMatrix3: TMatrix3List;
+function TMatrix3DoubleList.ToMatrix3: TMatrix3List;
 var
   I: Integer;
   Source: PDouble;
@@ -407,9 +407,9 @@ begin
   end;
 end;
 
-{ TMatrix4dList ----------------------------------------------------- }
+{ TMatrix4DoubleList ----------------------------------------------------- }
 
-function TMatrix4dList.ToMatrix4: TMatrix4List;
+function TMatrix4DoubleList.ToMatrix4: TMatrix4List;
 var
   I: Integer;
   Source: PDouble;

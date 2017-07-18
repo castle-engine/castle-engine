@@ -29,14 +29,14 @@
   private
     function GetLoad: boolean;
     procedure SetLoad(const Value: boolean);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
     property Load: boolean read GetLoad write SetLoad;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -54,22 +54,22 @@ begin
   FdLoad.Send(Value);
 end;
 
-function TInlineNode.GetBboxCenter: TVector3Single;
+function TInlineNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TInlineNode.SetBboxCenter(const Value: TVector3Single);
+procedure TInlineNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TInlineNode.GetBboxSize: TVector3Single;
+function TInlineNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TInlineNode.SetBboxSize(const Value: TVector3Single);
+procedure TInlineNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

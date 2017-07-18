@@ -37,7 +37,7 @@ uses SysUtils, Classes, Generics.Collections,
 type
   TWavefrontMaterial = class
     Name: string;
-    AmbientColor, DiffuseColor, SpecularColor, TransmissionColor: TVector3Single;
+    AmbientColor, DiffuseColor, SpecularColor, TransmissionColor: TVector3;
     IlluminationModel: Cardinal;
     Opacity: Single;
     SpecularExponent: Single;
@@ -74,17 +74,17 @@ type
   TObject3DOBJ = class
   strict private
     { Lists to fill with vertex, tex coord and normal data }
-    Verts: TVector3SingleList;
-    TexCoords: TVector2SingleList;
-    Normals: TVector3SingleList;
+    Verts: TVector3List;
+    TexCoords: TVector2List;
+    Normals: TVector3List;
 
     FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
   public
     constructor Create(const URL: string;
-      const AVerts: TVector3SingleList;
-      const ATexCoords: TVector2SingleList;
-      const ANormals: TVector3SingleList);
+      const AVerts: TVector3List;
+      const ATexCoords: TVector2List;
+      const ANormals: TVector3List);
     destructor Destroy; override;
 
     property Faces: TWavefrontFaceList read FFaces;
@@ -101,12 +101,12 @@ begin
 
   Name := AName;
 
-  AmbientColor := Vector3Single(0.2, 0.2, 0.2);
-  DiffuseColor := Vector3Single(0.8, 0.8, 0.8);
-  SpecularColor := Vector3Single(0, 0, 0);
+  AmbientColor := Vector3(0.2, 0.2, 0.2);
+  DiffuseColor := Vector3(0.8, 0.8, 0.8);
+  SpecularColor := Vector3(0, 0, 0);
 
   { This is not necessarily good, I don't use it anywhere for now }
-  TransmissionColor := Vector3Single(0, 0, 0);
+  TransmissionColor := Vector3(0, 0, 0);
 
   { Blender exported writes such illumination, I guess it's good default }
   IlluminationModel := 2;
@@ -157,9 +157,9 @@ end;
 { TObject3DOBJ --------------------------------------------------------------- }
 
 constructor TObject3DOBJ.Create(const URL: string;
-  const AVerts: TVector3SingleList;
-  const ATexCoords: TVector2SingleList;
-  const ANormals: TVector3SingleList);
+  const AVerts: TVector3List;
+  const ATexCoords: TVector2List;
+  const ANormals: TVector3List);
 var
   BasePath: string;
 
@@ -266,7 +266,7 @@ var
       ReadIndices(NextVertex);
   end;
 
-  function ReadTexCoordFromOBJLine(const line: string): TVector2Single;
+  function ReadTexCoordFromOBJLine(const line: string): TVector2;
   var
     SeekPos: integer;
   begin
@@ -298,15 +298,15 @@ var
   var
     IsMaterial: boolean;
 
-    function ReadRGBColor(const Line: string): TVector3Single;
+    function ReadRGBColor(const Line: string): TVector3;
     var
       FirstToken: string;
     begin
       FirstToken := NextTokenOnce(Line);
       if SameText(FirstToken, 'xyz') or SameText(FirstToken, 'spectral') then
         { we can't interpret other colors than RGB, so we silently ignore them }
-        Result := Vector3Single(1, 1, 1) else
-        Result := Vector3SingleFromStr(Line);
+        Result := Vector3(1, 1, 1) else
+        Result := Vector3FromStr(Line);
     end;
 
     procedure CheckIsMaterial(const AttributeName: string);
@@ -440,10 +440,10 @@ begin
 
       { specialized token line parsing }
       case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
-        0: Verts.Add(Vector3SingleFromStr(lineAfterMarker));
+        0: Verts.Add(Vector3FromStr(lineAfterMarker));
         1: TexCoords.Add(ReadTexCoordFromOBJLine(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
-        3: Normals.Add(Vector3SingleFromStr(lineAfterMarker));
+        3: Normals.Add(Vector3FromStr(lineAfterMarker));
         4: {GroupName := LineAfterMarker};
         5: ReadMaterials(LineAfterMarker);
         6: begin

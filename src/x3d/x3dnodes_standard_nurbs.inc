@@ -777,7 +777,7 @@ end;
 { Convert X3D or VRML 97 NurbsCurve to LineSet. }
 procedure NurbsCurveProxy(
   const LS: TLineSetNode;
-  const ControlPoint: TVector3SingleList;
+  const ControlPoint: TVector3List;
   const Tessellation, Order: LongInt;
   const FieldKnot, Weight: TDoubleList);
 var
@@ -829,7 +829,7 @@ end;
 function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  ControlPoint: TVector3SingleList;
+  ControlPoint: TVector3List;
 begin
   Result := TLineSetNode.Create(X3DName, BaseUrl);
   try
@@ -871,7 +871,7 @@ begin
   if FdControlPoint.Value is TCoordinateNode then // also checks that FdControlPoint.Value <> nil
     Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items)
   else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
@@ -882,7 +882,7 @@ begin
   if FdControlPoint.Value is TCoordinateNode then // also checks that FdControlPoint.Value <> nil
     Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform)
   else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 function TNurbsCurveNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -982,10 +982,10 @@ end;
 procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  ControlPoint: TVector3SingleList;
+  ControlPoint: TVector3List;
   Knot: TDoubleList;
-  Tangent: TVector3Single;
-  Orientation: TVector4Single;
+  Tangent: TVector3;
+  Orientation: TVector4;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
@@ -1046,7 +1046,7 @@ end;
   IndexedQuadSet. This is for Proxy methods implementation. }
 procedure NurbsPatchSurfaceProxy(
   const QS: TIndexedQuadSetNode;
-  const ControlPoint: TVector3SingleList;
+  const ControlPoint: TVector3List;
   const UTessellation, VTessellation, UDimension, VDimension, UOrder, VOrder: LongInt;
   const FieldUKnot, FieldVKnot, Weight: TDoubleList;
   const PossiblyUClosed, PossiblyVClosed, Solid, Ccw: boolean;
@@ -1117,13 +1117,13 @@ var
   end;
 
 var
-  ResultCoord, ResultNormal: TVector3SingleList;
+  ResultCoord, ResultNormal: TVector3List;
   ResultIndex: TLongIntList;
   I, J, NextIndex: Cardinal;
   UIncrease, VIncrease: Double;
   UKnot, VKnot: TDoubleList;
-  ResultTexCoord: TVector2SingleList;
-  Normal: TVector3Single;
+  ResultTexCoord: TVector2List;
+  Normal: TVector3;
 begin
   if ControlPoint.Count = 0 then Exit;
 
@@ -1266,7 +1266,7 @@ begin
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
       for J := 0 to VTess - 1 do
-        ResultTexCoord.L[I + J * UTess] := Vector2Single(
+        ResultTexCoord.L[I + J * UTess] := Vector2(
           I / (UTess - 1),
           J / (VTess - 1));
   end;
@@ -1278,7 +1278,7 @@ end;
 function TAbstractNurbsSurfaceGeometryNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  ControlPoint: TVector3SingleList;
+  ControlPoint: TVector3List;
 begin
   Result := TIndexedQuadSetNode.Create(X3DName, BaseUrl);
   try
@@ -1337,7 +1337,7 @@ begin
   if FdControlPoint.Value is TCoordinateNode then // also checks that FdControlPoint.Value <> nil
     Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items)
   else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 { We cannot simply override Coord() and let bounding box be calculated
@@ -1348,7 +1348,7 @@ begin
   if FdControlPoint.Value is TCoordinateNode then // also checks that FdControlPoint.Value <> nil
     Result := NurbsBoundingBox(TCoordinateNode(FdControlPoint.Value).FdPoint.Items, FdWeight.Items, State.Transform)
   else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 function TAbstractNurbsSurfaceGeometryNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -1426,9 +1426,9 @@ end;
 procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  ControlPoint: TVector3SingleList;
+  ControlPoint: TVector3List;
   Knot: TDoubleList;
-  OutputValue: TVector3Single;
+  OutputValue: TVector3;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
@@ -1479,12 +1479,12 @@ begin
   AddField(FFdTessellationScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3Single(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3Single(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -1578,9 +1578,9 @@ end;
 procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  ControlPoint: TVector3SingleList;
-  OutputNormal: TVector3Single;
-  OutputPosition: TVector3Single;
+  ControlPoint: TVector3List;
+  OutputNormal: TVector3;
+  OutputPosition: TVector3;
   UKnot, VKnot: TDoubleList;
 begin
   if not (EventPosition_Changed.SendNeeded or

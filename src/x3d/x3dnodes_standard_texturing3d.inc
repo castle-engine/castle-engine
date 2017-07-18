@@ -170,7 +170,7 @@
     private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
-    function TransformMatrix: TMatrix4Single; override;
+    function TransformMatrix: TMatrix4; override;
 
     {$I auto_generated_node_helpers/x3dnodes_texturetransformmatrix3d.inc}
   end;
@@ -195,7 +195,7 @@
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    function TransformMatrix: TMatrix4Single; override;
+    function TransformMatrix: TMatrix4; override;
 
     {$I auto_generated_node_helpers/x3dnodes_texturetransform3d.inc}
   end;
@@ -596,7 +596,7 @@ procedure TTextureTransformMatrix3DNode.CreateNode;
 begin
   inherited;
 
-  FFdMatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
+  FFdMatrix := TSFMatrix4f.Create(Self, 'matrix', TMatrix4.Identity);
    FdMatrix.ChangesAlways := [chTextureTransform];
   AddField(FFdMatrix);
   { X3D specification comment: (-Inf,Inf) }
@@ -613,7 +613,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TTextureTransformMatrix3DNode.TransformMatrix: TMatrix4Single;
+function TTextureTransformMatrix3DNode.TransformMatrix: TMatrix4;
 begin
   Result := FdMatrix.Value;
 end;
@@ -622,22 +622,22 @@ procedure TTextureTransform3DNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTextureTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTextureTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3Single(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTextureTransform];
   AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTextureTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -654,15 +654,13 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TTextureTransform3DNode.TransformMatrix: TMatrix4Single;
+function TTextureTransform3DNode.TransformMatrix: TMatrix4;
 begin
-  Result := TranslationMatrix(FdTranslation.Value + FdCenter.Value);
-  Result := MatrixMult(Result,
-    RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis));
-  Result := MatrixMult(Result,
-    ScalingMatrix(FdScale.Value));
-  Result := MatrixMult(Result,
-    TranslationMatrix(-FdCenter.Value));
+  Result :=
+    TranslationMatrix(FdTranslation.Value + FdCenter.Value) *
+    RotationMatrixRad(FdRotation.RotationRad, FdRotation.Axis) *
+    ScalingMatrix(FdScale.Value) *
+    TranslationMatrix(-FdCenter.Value);
 end;
 
 procedure RegisterTexturing3DNodes;

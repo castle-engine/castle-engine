@@ -16,6 +16,8 @@
 { TMX files processing unit. Based on Tiled v0.17. }
 unit CastleTiledMap;
 
+{$I castleconf.inc}
+
 interface
 
 uses
@@ -103,7 +105,7 @@ type
     Visible: Boolean;
     Properties: TProperties;
     { List of points for poligon and poliline. }
-    Points: TVector2SingleList;
+    Points: TVector2List;
     Primitive: TTileObjectPrimitive;
     Image: TImage;
     procedure Free;
@@ -415,7 +417,7 @@ var
 begin
   with NewTileset do
   begin
-    TileOffset := ZeroVector2Integer;
+    TileOffset := TVector2Integer.Zero;
     Properties := nil;
     Tiles := nil;
     Spacing := 0;
@@ -538,7 +540,7 @@ end;
 
 procedure TTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
 const
-  DefaultTrans: TCastleColorRGB = (1.0, 0.0, 1.0); {Fuchsia}
+  DefaultTrans: TCastleColorRGB = (Data: (1.0, 0.0, 1.0)); {Fuchsia}
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -688,7 +690,7 @@ var
   I: TXMLElementIterator;
   TmpStr: string;
 
-  procedure ReadPoints(const PointsString: string; var PointsList: TVector2SingleList);
+  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
   const
     PointsSeparator = Char(' ');
     SinglePointSeparator = Char(',');
@@ -696,9 +698,9 @@ var
     tmpChar, p: PChar;
     tmpChar2, p2: PChar;
     tmpPoint, tmpPoint2: string;
-    VectorPoint: TVector2Single;
+    VectorPoint: TVector2;
   begin
-    if not Assigned(PointsList) then PointsList := TVector2SingleList.Create;
+    if not Assigned(PointsList) then PointsList := TVector2List.Create;
     p := PChar(PointsString);
     repeat
       tmpChar := StrPos(p, PointsSeparator);

@@ -27,12 +27,12 @@
 {$ifdef read_interface}
 
   private
-    function GetAnchorPoint: TVector3Single;
-    procedure SetAnchorPoint(const Value: TVector3Single);
-    function GetAxis1: TVector3Single;
-    procedure SetAxis1(const Value: TVector3Single);
-    function GetAxis2: TVector3Single;
-    procedure SetAxis2(const Value: TVector3Single);
+    function GetAnchorPoint: TVector3;
+    procedure SetAnchorPoint(const Value: TVector3);
+    function GetAxis1: TVector3;
+    procedure SetAxis1(const Value: TVector3);
+    function GetAxis2: TVector3;
+    procedure SetAxis2(const Value: TVector3);
     function GetDesiredAngularVelocity1: Single;
     procedure SetDesiredAngularVelocity1(const Value: Single);
     function GetDesiredAngularVelocity2: Single;
@@ -56,9 +56,9 @@
     function GetSuspensionForce: Single;
     procedure SetSuspensionForce(const Value: Single);
   public
-    property AnchorPoint: TVector3Single read GetAnchorPoint write SetAnchorPoint;
-    property Axis1: TVector3Single read GetAxis1 write SetAxis1;
-    property Axis2: TVector3Single read GetAxis2 write SetAxis2;
+    property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+    property Axis1: TVector3 read GetAxis1 write SetAxis1;
+    property Axis2: TVector3 read GetAxis2 write SetAxis2;
     property DesiredAngularVelocity1: Single read GetDesiredAngularVelocity1 write SetDesiredAngularVelocity1;
     property DesiredAngularVelocity2: Single read GetDesiredAngularVelocity2 write SetDesiredAngularVelocity2;
     property MaxAngle1: Single read GetMaxAngle1 write SetMaxAngle1;
@@ -77,32 +77,32 @@
 
 { TDoubleAxisHingeJointNode ----------------------------------------------- }
 
-function TDoubleAxisHingeJointNode.GetAnchorPoint: TVector3Single;
+function TDoubleAxisHingeJointNode.GetAnchorPoint: TVector3;
 begin
   Result := FdAnchorPoint.Value;
 end;
 
-procedure TDoubleAxisHingeJointNode.SetAnchorPoint(const Value: TVector3Single);
+procedure TDoubleAxisHingeJointNode.SetAnchorPoint(const Value: TVector3);
 begin
   FdAnchorPoint.Send(Value);
 end;
 
-function TDoubleAxisHingeJointNode.GetAxis1: TVector3Single;
+function TDoubleAxisHingeJointNode.GetAxis1: TVector3;
 begin
   Result := FdAxis1.Value;
 end;
 
-procedure TDoubleAxisHingeJointNode.SetAxis1(const Value: TVector3Single);
+procedure TDoubleAxisHingeJointNode.SetAxis1(const Value: TVector3);
 begin
   FdAxis1.Send(Value);
 end;
 
-function TDoubleAxisHingeJointNode.GetAxis2: TVector3Single;
+function TDoubleAxisHingeJointNode.GetAxis2: TVector3;
 begin
   Result := FdAxis2.Value;
 end;
 
-procedure TDoubleAxisHingeJointNode.SetAxis2(const Value: TVector3Single);
+procedure TDoubleAxisHingeJointNode.SetAxis2(const Value: TVector3);
 begin
   FdAxis2.Send(Value);
 end;

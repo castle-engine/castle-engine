@@ -84,8 +84,8 @@
   TSFMatrix3fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TMatrix3Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TMatrix3Single); overload;
+    procedure Send(const Value: TMatrix3; const Time: TX3DTime); overload;
+    procedure Send(const Value: TMatrix3); overload;
   end;
 
   TSFMatrix4dEvent = class(TX3DEvent)
@@ -98,8 +98,8 @@
   TSFMatrix4fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TMatrix4Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TMatrix4Single); overload;
+    procedure Send(const Value: TMatrix4; const Time: TX3DTime); overload;
+    procedure Send(const Value: TMatrix4); overload;
   end;
 
   TSFNodeEvent = class(TX3DEvent)
@@ -110,8 +110,8 @@
   TSFRotationEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector4Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TVector4Single); overload;
+    procedure Send(const Value: TVector4; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector4); overload;
   end;
 
   TSFStringEvent = class(TX3DEvent)
@@ -131,8 +131,8 @@
   TSFVec2fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector2Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TVector2Single); overload;
+    procedure Send(const Value: TVector2; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector2); overload;
   end;
 
   TSFVec3dEvent = class(TX3DEvent)
@@ -145,8 +145,8 @@
   TSFVec3fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector3Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TVector3Single); overload;
+    procedure Send(const Value: TVector3; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector3); overload;
   end;
 
   TSFVec4dEvent = class(TX3DEvent)
@@ -159,15 +159,15 @@
   TSFVec4fEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector4Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TVector4Single); overload;
+    procedure Send(const Value: TVector4; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector4); overload;
   end;
 
   TSFColorEvent = class(TX3DEvent)
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean);
-    procedure Send(const Value: TVector3Single; const Time: TX3DTime); overload;
-    procedure Send(const Value: TVector3Single); overload;
+    procedure Send(const Value: TVector3; const Time: TX3DTime); overload;
+    procedure Send(const Value: TVector3); overload;
   end;
 
   TSFColorRGBAEvent = class(TX3DEvent)
@@ -482,7 +482,7 @@ begin
   inherited Create(AParentNode, AName, TSFMatrix3f, AInEvent);
 end;
 
-procedure TSFMatrix3fEvent.Send(const Value: TMatrix3Single; const Time: TX3DTime);
+procedure TSFMatrix3fEvent.Send(const Value: TMatrix3; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -493,7 +493,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFMatrix3fEvent.Send(const Value: TMatrix3Single);
+procedure TSFMatrix3fEvent.Send(const Value: TMatrix3);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -532,7 +532,7 @@ begin
   inherited Create(AParentNode, AName, TSFMatrix4f, AInEvent);
 end;
 
-procedure TSFMatrix4fEvent.Send(const Value: TMatrix4Single; const Time: TX3DTime);
+procedure TSFMatrix4fEvent.Send(const Value: TMatrix4; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -543,7 +543,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFMatrix4fEvent.Send(const Value: TMatrix4Single);
+procedure TSFMatrix4fEvent.Send(const Value: TMatrix4);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -564,7 +564,7 @@ begin
   inherited Create(AParentNode, AName, TSFRotation, AInEvent);
 end;
 
-procedure TSFRotationEvent.Send(const Value: TVector4Single; const Time: TX3DTime);
+procedure TSFRotationEvent.Send(const Value: TVector4; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -575,7 +575,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFRotationEvent.Send(const Value: TVector4Single);
+procedure TSFRotationEvent.Send(const Value: TVector4);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -639,7 +639,7 @@ begin
   inherited Create(AParentNode, AName, TSFVec2f, AInEvent);
 end;
 
-procedure TSFVec2fEvent.Send(const Value: TVector2Single; const Time: TX3DTime);
+procedure TSFVec2fEvent.Send(const Value: TVector2; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -650,7 +650,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFVec2fEvent.Send(const Value: TVector2Single);
+procedure TSFVec2fEvent.Send(const Value: TVector2);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -689,7 +689,7 @@ begin
   inherited Create(AParentNode, AName, TSFVec3f, AInEvent);
 end;
 
-procedure TSFVec3fEvent.Send(const Value: TVector3Single; const Time: TX3DTime);
+procedure TSFVec3fEvent.Send(const Value: TVector3; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -700,7 +700,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFVec3fEvent.Send(const Value: TVector3Single);
+procedure TSFVec3fEvent.Send(const Value: TVector3);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -739,7 +739,7 @@ begin
   inherited Create(AParentNode, AName, TSFVec4f, AInEvent);
 end;
 
-procedure TSFVec4fEvent.Send(const Value: TVector4Single; const Time: TX3DTime);
+procedure TSFVec4fEvent.Send(const Value: TVector4; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -750,7 +750,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFVec4fEvent.Send(const Value: TVector4Single);
+procedure TSFVec4fEvent.Send(const Value: TVector4);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then
@@ -764,7 +764,7 @@ begin
   inherited Create(AParentNode, AName, TSFColor, AInEvent);
 end;
 
-procedure TSFColorEvent.Send(const Value: TVector3Single; const Time: TX3DTime);
+procedure TSFColorEvent.Send(const Value: TVector3; const Time: TX3DTime);
 var
   Field: TX3DField;
 begin
@@ -775,7 +775,7 @@ begin
   finally FreeTemp(Field) end;
 end;
 
-procedure TSFColorEvent.Send(const Value: TVector3Single);
+procedure TSFColorEvent.Send(const Value: TVector3);
 begin
   if (ParentNode <> nil) and
      (TX3DNode(ParentNode).Scene <> nil) then

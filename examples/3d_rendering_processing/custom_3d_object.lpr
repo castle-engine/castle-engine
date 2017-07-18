@@ -57,8 +57,8 @@ begin
     glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glDrawBox3DWire(Box3D(
-        Vector3Single(-1, -1, -1),
-        Vector3Single( 1,  1,  1)));
+        Vector3(-1, -1, -1),
+        Vector3( 1,  1,  1)));
     glPopAttrib;
 
     if not Params.RenderTransformIdentity then
@@ -69,8 +69,8 @@ end;
 function TCube.BoundingBox: TBox3D;
 begin
   Result := Box3D(
-    Vector3Single(-1, -1, -1),
-    Vector3Single( 1,  1,  1));
+    Vector3(-1, -1, -1),
+    Vector3( 1,  1,  1));
 end;
 
 var

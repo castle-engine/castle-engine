@@ -142,10 +142,10 @@ procedure TLayer2DNode.CreateNode;
 begin
   inherited;
 
-  FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
+  FFdTranslation := TSFVec2f.Create(Self, 'translation', TVector2.Zero);
   AddField(FFdTranslation);
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(-1, -1));
   AddField(FFdSize);
 
   FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
@@ -179,13 +179,13 @@ begin
   FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TLayer3DNode]);
   AddField(FFdChildrenLayer);
 
-  FFdTranslation := TSFVec2f.Create(Self, 'translation', ZeroVector2Single);
+  FFdTranslation := TSFVec2f.Create(Self, 'translation', TVector2.Zero);
   AddField(FFdTranslation);
 
   FFdDepth := TSFInt32.Create(Self, 'depth', 0);
   AddField(FFdDepth);
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(-1, -1));
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(-1, -1));
   AddField(FFdSize);
 
   FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);

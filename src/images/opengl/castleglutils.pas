@@ -50,29 +50,41 @@ type
 
 type
   { }
-  TVector2f = TVector2Single;   PVector2f = PVector2Single;
-  TVector2d = TVector2Double;   PVector2d = PVector2Double;
-  TVector2ub = TVector2Byte;    PVector2ub = PVector2Byte;
-  TVector2i = TVector2LongInt;  PVector2i = PVector2LongInt;
+  TVector2f = TVector2 deprecated 'use TVector2';
+  PVector2f = PVector2 deprecated 'use PVector2';
 
-  TVector3f = TVector3Single;   PVector3f = PVector3Single;
-  TVector3d = TVector3Double;   PVector3d = PVector3Double;
-  TVector3ub = TVector3Byte;    PVector3ub = PVector3Byte;
-  TVector3i = TVector3LongInt;  PVector3i = PVector3LongInt;
+  TVector2ub = TVector2Byte deprecated 'use TVector2Byte';
+  PVector2ub = PVector2Byte deprecated 'use PVector2Byte';
 
-  TVector4f = TVector4Single;   PVector4f = PVector4Single;
-  TVector4d = TVector4Double;   PVector4d = PVector4Double;
-  TVector4ub = TVector4Byte;    PVector4ub = PVector4Byte;
-  TVector4i = TVector4LongInt;  PVector4i = PVector4LongInt;
+  TVector2i = TVector2Integer deprecated 'use TVector2Integer';
+  PVector2i = PVector2Integer deprecated 'use PVector2Integer';
 
-  TMatrix2f = TMatrix2Single;  PMatrix2f = PMatrix2Single;
-  TMatrix2d = TMatrix2Double;  PMatrix2d = PMatrix2Double;
+  TVector3f = TVector3 deprecated 'use TVector3';
+  PVector3f = PVector3 deprecated 'use PVector3';
 
-  TMatrix3f = TMatrix3Single;  PMatrix3f = PMatrix3Single;
-  TMatrix3d = TMatrix3Double;  PMatrix3d = PMatrix3Double;
+  TVector3ub = TVector3Byte deprecated 'use TVector3Byte';
+  PVector3ub = PVector3Byte deprecated 'use PVector3Byte';
 
-  TMatrix4f = TMatrix4Single;  PMatrix4f = PMatrix4Single;
-  TMatrix4d = TMatrix4Double;  PMatrix4d = PMatrix4Double;
+  TVector3i = TVector3Integer deprecated 'use TVector3Integer';
+  PVector3i = PVector3Integer deprecated 'use PVector3Integer';
+
+  TVector4f = TVector4 deprecated 'use TVector4';
+  PVector4f = PVector4 deprecated 'use PVector4';
+
+  TVector4ub = TVector4Byte deprecated 'use TVector4Byte';
+  PVector4ub = PVector4Byte deprecated 'use PVector4Byte';
+
+  TVector4i = TVector4Integer deprecated 'use TVector4Integer';
+  PVector4i = PVector4Integer deprecated 'use PVector4Integer';
+
+  TMatrix2f = TMatrix2 deprecated 'use TMatrix2';
+  PMatrix2f = PMatrix2 deprecated 'use PMatrix2';
+
+  TMatrix3f = TMatrix3 deprecated 'use TMatrix3';
+  PMatrix3f = PMatrix3 deprecated 'use PMatrix3';
+
+  TMatrix4f = TMatrix4 deprecated 'use TMatrix4';
+  PMatrix4f = PMatrix4 deprecated 'use PMatrix4';
 
 { OpenGL error checking ------------------------------------------------------ }
 
@@ -157,9 +169,9 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
   function call overhead), by importing these functions from so/dll
   under different names, like
 
-    procedure glVertexv(const V: TVector3Single); OPENGL_CALL overload; external OpenGLDLL name 'glVertex3fv';
+    procedure glVertexv(const V: TVector3); OPENGL_CALL overload; external OpenGLDLL name 'glVertex3fv';
 
-  But this is problematic: it assumes that TVector3Single will be passed
+  But this is problematic: it assumes that TVector3 will be passed
   by reference. Which actually is not guaranteed by a compiler (FPC sometimes
   doesn't). In newer FPC versions, we could use "constref" for this.
   Or we could just declare these functions as "inline".
@@ -195,9 +207,9 @@ procedure glScalev(const V: TVector3_Single); overload; deprecated 'use other me
 
 procedure glRotatev(const Angle: TGLfloat;  const V: TVector3f); overload; deprecated 'use other methods to transform things, e.g. TUIControl position / anchors, or T3DTransform for TCastleScene, or TTransformNode in X3D';
 
-procedure glClipPlane(plane: GLenum; const V: TVector4d); overload;
+procedure glClipPlane(plane: GLenum; const V: TVector4Double); overload;
 
-procedure glNormalv(const v: TVector3f); overload;
+procedure glNormalv(const v: TVector3); overload;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f); overload;
 
@@ -253,8 +265,8 @@ property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
 
 { Projection matrix -------------------------------------------------------- }
 
-function GetProjectionMatrix: TMatrix4Single;
-procedure SetProjectionMatrix(const Value: TMatrix4Single);
+function GetProjectionMatrix: TMatrix4;
+procedure SetProjectionMatrix(const Value: TMatrix4);
 
 { Current projection matrix.
 
@@ -264,7 +276,7 @@ procedure SetProjectionMatrix(const Value: TMatrix4Single);
   For desktop OpenGL, setting this also sets fixed-function projection matrix.
   The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
   then changed back to GL_MODELVIEW. }
-property ProjectionMatrix: TMatrix4Single
+property ProjectionMatrix: TMatrix4
   read GetProjectionMatrix write SetProjectionMatrix;
 
 { Set ProjectionMatrix to given value.
@@ -274,17 +286,17 @@ property ProjectionMatrix: TMatrix4Single
   Useful e.g. for z-fail shadow volumes.
 
   @groupBegin }
-function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
 function OrthoProjection(const Dimensions: TFloatRectangle;
-  const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4Single;
-function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+  const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4;
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
 var
   { Viewport size for 2D rendering functions: DrawRectangle and TGLImageCore.Draw.
     UI container (like TCastleWindowCustom or TCastleControlCustom)
     must take care to set this before rendering. }
-  Viewport2DSize: TVector2Single;
+  Viewport2DSize: TVector2;
 
 { ---------------------------------------------------------------------------- }
 
@@ -336,13 +348,13 @@ procedure CastleGluSphere(
 { Draw axis (3 lines) around given position.
   Nothing is generated besides vertex positions ---
   no normal vectors, no texture coords, nothing. }
-procedure glDrawAxisWire(const Position: TVector3Single; Size: Single); deprecated 'use TCastleScene to draw 3D stuff';
+procedure glDrawAxisWire(const Position: TVector3; Size: Single); deprecated 'use TCastleScene to draw 3D stuff';
 
 { Call glColor, taking Opacity as separate Single argument.
   Deprecated, do not use colors like that, instead pass TCastleColor
   to appropriate routines like TCastleFont.Print.
   @groupBegin }
-procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorOpacity(const Color: TVector3; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 { @groupEnd }
 {$endif}
@@ -572,19 +584,19 @@ end;
 procedure glColorv(const v: TVector3ub);
 begin
   glColor3ubv(@v);
-  FCurrentColor := Vector4Single(Vector4Byte(V, 255));
+  FCurrentColor := Vector4(Vector3(V), 1);
 end;
 
 procedure glColorv(const v: TVector4ub);
 begin
   glColor4ubv(@v);
-  FCurrentColor := Vector4Single(V);
+  FCurrentColor := Vector4(V);
 end;
 
 procedure glColorv(const v: TVector3f);
 begin
   glColor3fv(@v);
-  FCurrentColor := Vector4Single(V);
+  FCurrentColor := Vector4(V, 1);
 end;
 
 procedure glColorv(const v: TVector4f);
@@ -611,13 +623,12 @@ procedure glVertexv(const v: TVector3_Single);  begin glVertex3fv(@v.Data); end;
 
 procedure glVertexv(const v: TVector4_Single);  begin glVertex4fv(@v.Data); end;
 
-procedure glClipPlane(plane: GLenum; const V: TVector4d);
+procedure glClipPlane(plane: GLenum; const V: TVector4Double);
 begin
   GL.glClipPlane(plane, @V);
 end;
 
-procedure glNormalv(const v: TVector3d); begin glNormal3dv(@v); end;
-procedure glNormalv(const v: TVector3f); begin glNormal3fv(@v); end;
+procedure glNormalv(const v: TVector3); begin glNormal3fv(@v); end;
 
 procedure glMaterialv(face, pname: TGLEnum; const params: TVector4f);  begin glMaterialfv(face, pname, @params); end;
 
@@ -658,14 +669,14 @@ end;
 { projection matrix ---------------------------------------------------------- }
 
 var
-  FProjectionMatrix: TMatrix4Single;
+  FProjectionMatrix: TMatrix4;
 
-function GetProjectionMatrix: TMatrix4Single;
+function GetProjectionMatrix: TMatrix4;
 begin
   Result := FProjectionMatrix;
 end;
 
-procedure SetProjectionMatrix(const Value: TMatrix4Single);
+procedure SetProjectionMatrix(const Value: TMatrix4);
 begin
   FProjectionMatrix := Value;
 
@@ -678,19 +689,19 @@ begin
   {$endif}
 end;
 
-function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
 begin
   Result := PerspectiveProjectionMatrixDeg(fovy, aspect, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 
-function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 begin
   Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
 end;
 
-function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 begin
   Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
   ProjectionMatrix := Result;
@@ -819,20 +830,20 @@ begin
   finally gluDeleteQuadric(Q); end;
 end;
 
-procedure glDrawAxisWire(const Position: TVector3Single; Size: Single);
+procedure glDrawAxisWire(const Position: TVector3; Size: Single);
 begin
   Size /= 2;
   glBegin(GL_LINES);
-    glVertexv(Position - Vector3Single(Size, 0, 0));
-    glVertexv(Position + Vector3Single(Size, 0, 0));
-    glVertexv(Position - Vector3Single(0, Size, 0));
-    glVertexv(Position + Vector3Single(0, Size, 0));
-    glVertexv(Position - Vector3Single(0, 0, Size));
-    glVertexv(Position + Vector3Single(0, 0, Size));
+    glVertexv(Position - Vector3(Size, 0, 0));
+    glVertexv(Position + Vector3(Size, 0, 0));
+    glVertexv(Position - Vector3(0, Size, 0));
+    glVertexv(Position + Vector3(0, Size, 0));
+    glVertexv(Position - Vector3(0, 0, Size));
+    glVertexv(Position + Vector3(0, 0, Size));
   glEnd;
 end;
 
-procedure glColorOpacity(const Color: TVector3Single; const Opacity: Single);
+procedure glColorOpacity(const Color: TVector3; const Opacity: Single);
 begin
   glColor4f(Color[0], Color[1], Color[2], Opacity);
 end;

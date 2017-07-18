@@ -334,18 +334,18 @@
       public
         constructor Create(Node: TMaterialNode_1; const Index: Integer);
 
-        function AmbientColor: TVector3Single; override;
-        function DiffuseColor: TVector3Single; override;
-        function SpecularColor: TVector3Single; override;
-        function EmissiveColor: TVector3Single; override;
+        function AmbientColor: TVector3; override;
+        function DiffuseColor: TVector3; override;
+        function SpecularColor: TVector3; override;
+        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
-        function ReflectionColor: TVector3Single; override;
+        function ReflectionColor: TVector3; override;
         function Transparency: Single; override;
 
-        function ReflSpecular: TVector3Single; override;
-        function ReflDiffuse: TVector3Single; override;
-        function TransSpecular: TVector3Single; override;
-        function TransDiffuse: TVector3Single; override;
+        function ReflSpecular: TVector3; override;
+        function ReflDiffuse: TVector3; override;
+        function TransSpecular: TVector3; override;
+        function TransDiffuse: TVector3; override;
 
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
@@ -404,7 +404,7 @@
       These methods secure you from accessing non-existing material index
       (will return the last existing value, or default value if field is empty).
 
-      Functions returning TVector4Single add Opacity at the last component.
+      Functions returning TVector4 add Opacity at the last component.
 
       Transparency and Opacity are in [0 .. 1] range.
       Opacity = 1 - Transparency.
@@ -414,14 +414,14 @@
       is "normalized", that is it has to be multiplied by 128 to get
       actual exponent for lighting equations.
       @groupBegin }
-    function AmbientColor3Single(MatNum: integer): TVector3Single;
-    function AmbientColor4Single(MatNum: integer): TVector4Single;
-    function DiffuseColor3Single(MatNum: integer): TVector3Single;
-    function DiffuseColor4Single(MatNum: integer): TVector4Single;
-    function SpecularColor3Single(MatNum: integer): TVector3Single;
-    function SpecularColor4Single(MatNum: integer): TVector4Single;
-    function EmissiveColor3Single(MatNum: integer): TVector3Single;
-    function EmissiveColor4Single(MatNum: integer): TVector4Single;
+    function AmbientColor3Single(MatNum: integer): TVector3;
+    function AmbientColor4Single(MatNum: integer): TVector4;
+    function DiffuseColor3Single(MatNum: integer): TVector3;
+    function DiffuseColor4Single(MatNum: integer): TVector4;
+    function SpecularColor3Single(MatNum: integer): TVector3;
+    function SpecularColor4Single(MatNum: integer): TVector4;
+    function EmissiveColor3Single(MatNum: integer): TVector3;
+    function EmissiveColor4Single(MatNum: integer): TVector4;
     function Transparency(MatNum: integer): Single;
     function Opacity(MatNum: integer): Single;
     function Shininess(MatNum: integer): Single;
@@ -535,7 +535,7 @@
     private FFdCenter: TSFVec2f;
     public property FdCenter: TSFVec2f read FFdCenter;
 
-    function TextureMatrixTransformation: TMatrix4Single;
+    function TextureMatrixTransformation: TMatrix4;
   end;
 
   TTextureCoordinate2Node_1 = class(TAbstractChildNode)
@@ -573,7 +573,7 @@
   protected
     procedure MiddleTraverse(StateStack: TX3DGraphTraverseStateStack); override;
   public
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); virtual; abstract;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); virtual; abstract;
     function TransformScale: Single; virtual; abstract;
   end;
 
@@ -587,7 +587,7 @@
 
     { Returns simply FdMatrix as transformation. Inverse is also calculated
       (if matrix is invertible at all, otherwise identity is returned). }
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
 
     { Return average scale for this FdMatrix.
 
@@ -613,7 +613,7 @@
     private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
     function TransformScale: Single; override;
   end;
 
@@ -624,7 +624,7 @@
     private FFdScaleFactor: TSFVec3f;
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
 
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
     function TransformScale: Single; override;
   end;
 
@@ -648,7 +648,7 @@
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
     function TransformScale: Single; override;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -662,7 +662,7 @@
     private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
     function TransformScale: Single; override;
   end;
 
@@ -733,10 +733,10 @@
 
   TSpotLightNode_1 = class(TAbstractPositionalLightNode)
   protected
-    function  GetProjectionLocationLocal: TVector3Single; override;
-    procedure SetProjectionLocationLocal(const Value: TVector3Single); override;
-    function  GetProjectionDirectionLocal: TVector3Single; override;
-    procedure SetProjectionDirectionLocal(const Value: TVector3Single); override;
+    function  GetProjectionLocationLocal: TVector3; override;
+    procedure SetProjectionLocationLocal(const Value: TVector3); override;
+    function  GetProjectionDirectionLocal: TVector3; override;
+    procedure SetProjectionDirectionLocal(const Value: TVector3); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -773,9 +773,9 @@
 
     procedure UpdateLightInstance(var LightInstance: TLightInstance); override;
 
-    function ProjectionMatrix: TMatrix4Single; override;
-    function ModelviewMatrix: TMatrix4Single; override;
-    function ModelviewRotationMatrix: TMatrix4Single; override;
+    function ProjectionMatrix: TMatrix4; override;
+    function ModelviewMatrix: TMatrix4; override;
+    function ModelviewRotationMatrix: TMatrix4; override;
     procedure Box3DDistances(const Box: TBox3D;
       out MinDistance, MaxDistance: Single); override;
     function HasRadius: boolean; override;
@@ -827,7 +827,7 @@
 
   TTransformSeparatorNode_1 = class(TAbstractChildNode)
   private
-    OriginalTransform, OriginalInvertedTransform: TMatrix4Single;
+    OriginalTransform, OriginalInvertedTransform: TMatrix4;
     OriginalTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -914,7 +914,7 @@ end;
 
 class function TAsciiTextNode_1.ClassX3DType: string;
 begin
-  result := 'AsciiText';
+  Result := 'AsciiText';
 end;
 
 function TAsciiTextNode_1.Justify: TX3DFontJustify;
@@ -1009,7 +1009,7 @@ end;
 
 class function TConeNode_1.ClassX3DType: string;
 begin
-  result := 'Cone';
+  Result := 'Cone';
 end;
 
 function TConeNode_1.AutoGenerate3DTexCoords: boolean;
@@ -1036,7 +1036,7 @@ end;
 
 class function TCubeNode_1.ClassX3DType: string;
 begin
-  result := 'Cube';
+  Result := 'Cube';
 end;
 
 function TCubeNode_1.AutoGenerate3DTexCoords: boolean;
@@ -1063,7 +1063,7 @@ end;
 
 class function TCylinderNode_1.ClassX3DType: string;
 begin
-  result := 'Cylinder';
+  Result := 'Cylinder';
 end;
 
 function TCylinderNode_1.AutoGenerate3DTexCoords: boolean;
@@ -1117,7 +1117,7 @@ end;
 
 class function TIndexedFaceSetNode_1.ClassX3DType: string;
 begin
-  result := 'IndexedFaceSet';
+  Result := 'IndexedFaceSet';
 end;
 
 function TIndexedFaceSetNode_1.TexCoord(State: TX3DGraphTraverseState;
@@ -1129,7 +1129,7 @@ end;
 
 class function TIndexedLineSetNode_1.ClassX3DType: string;
 begin
-  result := 'IndexedLineSet';
+  Result := 'IndexedLineSet';
 end;
 
 function TIndexedLineSetNode_1.TexCoord(State: TX3DGraphTraverseState;
@@ -1185,7 +1185,7 @@ end;
 
 class function TPointSetNode_1.ClassX3DType: string;
 begin
-  result := 'PointSet';
+  Result := 'PointSet';
 end;
 
 function TPointSetNode_1.Coord(State: TX3DGraphTraverseState;
@@ -1238,7 +1238,7 @@ begin
       As long as model stays static (and for strict VRML 1.0, it should
       always remain static), this will not be actually often called. }
     CoordSubrange.Items.Count := 0;
-    CoordSubrange.Items.AddListRange(FullCoord.Items, StartIndex, NumPoints);
+    CoordSubrange.Items.AddSubRange(FullCoord.Items, StartIndex, NumPoints);
     ACoord := CoordSubrange;
   end;
 end;
@@ -1259,7 +1259,7 @@ end;
 
 class function TSphereNode_1.ClassX3DType: string;
 begin
-  result := 'Sphere';
+  Result := 'Sphere';
 end;
 
 function TSphereNode_1.AutoGenerate3DTexCoords: boolean;
@@ -1271,14 +1271,14 @@ procedure TCoordinate3Node_1.CreateNode;
 begin
   inherited;
 
-  FFdPoint := TMFVec3f.Create(Self, 'point', [Vector3Single(0, 0, 0)]);
+  FFdPoint := TMFVec3f.Create(Self, 'point', [Vector3(0, 0, 0)]);
    FdPoint.ChangesAlways := [chCoordinate];
   AddField(FFdPoint);
 end;
 
 class function TCoordinate3Node_1.ClassX3DType: string;
 begin
-  result := 'Coordinate3';
+  Result := 'Coordinate3';
 end;
 
 procedure TFontStyleNode_1.CreateNode;
@@ -1306,7 +1306,7 @@ end;
 
 class function TFontStyleNode_1.ClassX3DType: string;
 begin
-  result := 'FontStyle';
+  Result := 'FontStyle';
 end;
 
 function TFontStyleNode_1.Family: TX3DFontFamily;
@@ -1365,7 +1365,7 @@ end;
 
 class function TInfoNode_1.ClassX3DType: string;
 begin
-  result := 'Info';
+  Result := 'Info';
 end;
 
 procedure TLODNode_1.CreateNode;
@@ -1375,7 +1375,7 @@ begin
   FFdRange := TMFFloat.Create(Self, 'range',[]);
   AddField(FFdRange);
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
   AddField(FFdCenter);
 
   VRML1ChildrenAllowed := true;
@@ -1384,7 +1384,7 @@ end;
 
 class function TLODNode_1.ClassX3DType: string;
 begin
-  result := 'LOD';
+  Result := 'LOD';
 end;
 
 function TLODNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -1472,7 +1472,7 @@ end;
 
 class function TMaterialNode_1.ClassX3DType: string;
 begin
-  result := 'Material';
+  Result := 'Material';
 end;
 
 { Functions below return MatNum Material property. If there doesn't exist
@@ -1487,19 +1487,19 @@ end;
   property number. }
 
 {$define MATERIAL_FUNCTION_3_SINGLE:=
-function TMaterialNode_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3Single;
+function TMaterialNode_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3;
 begin
   if MATERIAL_FUNCTION_FIELD.Count = 0 then
-    result := MATERIAL_FUNCTION_DEFAULT else
-    result := MATERIAL_FUNCTION_FIELD.Items.L[
+    Result := MATERIAL_FUNCTION_DEFAULT else
+    Result := MATERIAL_FUNCTION_FIELD.Items.L[
       min(MatNum, MATERIAL_FUNCTION_FIELD.Count - 1)];
 end;
 
-function TMaterialNode_1.MATERIAL_FUNCTION_NAME_4(MatNum: integer): TVector4Single;
-var result3: TVector3Single absolute result;
+function TMaterialNode_1.MATERIAL_FUNCTION_NAME_4(MatNum: integer): TVector4;
+var Result3: TVector3 absolute Result;
 begin
-  result3 := MATERIAL_FUNCTION_NAME_3(MatNum);
-  result[3] := Opacity(MatNum);
+  Result3 := MATERIAL_FUNCTION_NAME_3(MatNum);
+  Result[3] := Opacity(MatNum);
 end;
 }
 
@@ -1537,8 +1537,8 @@ end;
 function TMaterialNode_1.MATERIAL_FUNCTION_NAME(MatNum: integer): Single;
 begin
  if MATERIAL_FUNCTION_FIELD.Count = 0 then
-  result := MATERIAL_FUNCTION_DEFAULT else
-  result := MATERIAL_FUNCTION_FIELD.Items.L[
+  Result := MATERIAL_FUNCTION_DEFAULT else
+  Result := MATERIAL_FUNCTION_FIELD.Items.L[
     min(MatNum, MATERIAL_FUNCTION_FIELD.Count-1)];
 end;}
 
@@ -1569,15 +1569,15 @@ end;}
 
 function TMaterialNode_1.Opacity(MatNum: integer): Single;
 begin
-  result := 1 - Transparency(MatNum);
+  Result := 1 - Transparency(MatNum);
 end;
 
 function TMaterialNode_1.Shininess(MatNum: integer): Single;
 begin
   if FdShininess.Count = 0 then
-    result := TMaterialInfo.DefaultShininess
+    Result := TMaterialInfo.DefaultShininess
   else
-    result := FdShininess.Items.L[min(MatNum, FdShininess.Count-1)];
+    Result := FdShininess.Items.L[min(MatNum, FdShininess.Count-1)];
 end;
 
 function TMaterialNode_1.ShininessExp(MatNum: integer): Single;
@@ -1595,9 +1595,9 @@ begin
     and stored actual exponent in VRML file.
     This unfortunately happens, see e.g. helix.wrl test. }
 
-  if result > 2 then
-    result := Clamped(result,         0.0, 128.0) else
-    result := Clamped(result * 128.0, 0.0, 128.0);
+  if Result > 2 then
+    Result := Clamped(Result,         0.0, 128.0) else
+    Result := Clamped(Result * 128.0, 0.0, 128.0);
 end;
 
 function TMaterialNode_1.PureEmissive: boolean;
@@ -1639,22 +1639,22 @@ begin
   FIndex := Index;
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.AmbientColor: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.AmbientColor: TVector3;
 begin
   Result := FNode.AmbientColor3Single(FIndex);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.DiffuseColor: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.DiffuseColor: TVector3;
 begin
   Result := FNode.DiffuseColor3Single(FIndex);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.SpecularColor: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.SpecularColor: TVector3;
 begin
   Result := FNode.SpecularColor3Single(FIndex);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveColor3Single(FIndex);
 end;
@@ -1664,9 +1664,9 @@ begin
   Result := FNode.Shininess(FIndex);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.ReflectionColor: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflectionColor: TVector3;
 begin
-  Result := Vector3Single(
+  Result := Vector3(
     FNode.Mirror(FIndex),
     FNode.Mirror(FIndex),
     FNode.Mirror(FIndex)
@@ -1678,9 +1678,9 @@ begin
   Result := FNode.Transparency(FIndex);
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.ReflSpecular: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflSpecular: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
@@ -1688,9 +1688,9 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.ReflDiffuse: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.ReflDiffuse: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
@@ -1698,9 +1698,9 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.TransSpecular: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.TransSpecular: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
@@ -1708,9 +1708,9 @@ begin
     Result := A.L[Min(FIndex, A.Count - 1)];
 end;
 
-function TMaterialNode_1.TMaterialInfo_1.TransDiffuse: TVector3Single;
+function TMaterialNode_1.TMaterialInfo_1.TransDiffuse: TVector3;
 var
-  A: TVector3SingleList;
+  A: TVector3List;
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
@@ -1741,7 +1741,7 @@ end;
 
 class function TMaterialBindingNode_1.ClassX3DType: string;
 begin
-  result := 'MaterialBinding';
+  Result := 'MaterialBinding';
 end;
 
 procedure TNormalBindingNode_1.CreateNode;
@@ -1755,7 +1755,7 @@ end;
 
 class function TNormalBindingNode_1.ClassX3DType: string;
 begin
-  result := 'NormalBinding';
+  Result := 'NormalBinding';
 end;
 
 procedure TTexture2Node_1.CreateNode;
@@ -1786,14 +1786,14 @@ begin
    FdModel.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdModel);
 
-  FFdBlendColor := TSFVec3f.Create(Self, 'blendColor', Vector3Single(0, 0, 0));
+  FFdBlendColor := TSFVec3f.Create(Self, 'blendColor', Vector3(0, 0, 0));
    FdBlendColor.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdBlendColor);
 end;
 
 class function TTexture2Node_1.ClassX3DType: string;
 begin
-  result := 'Texture2';
+  Result := 'Texture2';
 end;
 
 procedure TTexture2Node_1.LoadTextureData(out CacheUsed: boolean);
@@ -1829,7 +1829,7 @@ function TTexture2Node_1.TextureDescription: string;
 
   function InlinedDescr: string;
   begin
-    result := Format('inlined (width = %d; height = %d; with alpha = %s)',
+    Result := Format('inlined (width = %d; height = %d; with alpha = %s)',
       [ FdImage.Value.Width,
         FdImage.Value.Height,
         BoolToStr(FdImage.Value.HasAlpha, true) ]);
@@ -1838,12 +1838,12 @@ function TTexture2Node_1.TextureDescription: string;
 begin
   if FdFilename.Value <> '' then
   begin
-    result := 'file "' +PathFromBaseUrl(FdFilename.Value) +'"';
-    if not FdImage.Value.IsEmpty then result += ' (and '+InlinedDescr+')';
+    Result := 'file "' +PathFromBaseUrl(FdFilename.Value) +'"';
+    if not FdImage.Value.IsEmpty then Result += ' (and '+InlinedDescr+')';
   end else
   if not FdImage.Value.IsEmpty then
-    result := InlinedDescr else
-    result := 'none';
+    Result := InlinedDescr else
+    Result := 'none';
 end;
 
 {$warnings off} // using deprecated TEXWRAP_xxx knowingly, it should be internal
@@ -1880,7 +1880,7 @@ procedure TTexture2TransformNode_1.CreateNode;
 begin
   inherited;
 
-  FFdTranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
+  FFdTranslation := TSFVec2f.Create(Self, 'translation', Vector2(0, 0));
    FdTranslation.ChangesAlways := [chEverything];
   AddField(FFdTranslation);
 
@@ -1888,49 +1888,48 @@ begin
    FdRotation.ChangesAlways := [chEverything];
   AddField(FFdRotation);
 
-  FFdScaleFactor := TSFVec2f.Create(Self, 'scaleFactor', Vector2Single(1, 1));
+  FFdScaleFactor := TSFVec2f.Create(Self, 'scaleFactor', Vector2(1, 1));
    FdScaleFactor.ChangesAlways := [chEverything];
   AddField(FFdScaleFactor);
 
-  FFdCenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
+  FFdCenter := TSFVec2f.Create(Self, 'center', Vector2(0, 0));
    FdCenter.ChangesAlways := [chEverything];
   AddField(FFdCenter);
 end;
 
 class function TTexture2TransformNode_1.ClassX3DType: string;
 begin
-  result := 'Texture2Transform';
+  Result := 'Texture2Transform';
 end;
 
-function TTexture2TransformNode_1.TextureMatrixTransformation: TMatrix4Single;
+function TTexture2TransformNode_1.TextureMatrixTransformation: TMatrix4;
 begin
-  result := TranslationMatrix( Vector3Single(FdTranslation.Value + FdCenter.Value) );
-  result := MatrixMult(result, RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
-  result := MatrixMult(result, ScalingMatrix(
-    Vector3Single( FdScaleFactor.Value[0], FdScaleFactor.Value[1], 1 )));
-  result := MatrixMult(result, TranslationMatrix(
-    Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 )));
+  Result :=
+    TranslationMatrix(Vector3(FdTranslation.Value + FdCenter.Value, 0)) *
+    RotationMatrixRad(FdRotation.Value, Vector3(0, 0, 1)) *
+    ScalingMatrix(Vector3(FdScaleFactor.Value[0], FdScaleFactor.Value[1], 1)) *
+    TranslationMatrix(Vector3(-FdCenter.Value[0], -FdCenter.Value[1], 0));
 end;
 
 procedure TTexture2TransformNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 begin
   inherited;
-  StateStack.Top.TextureTransform := MatrixMult(StateStack.Top.TextureTransform,
-    TextureMatrixTransformation);
+  StateStack.Top.TextureTransform := StateStack.Top.TextureTransform *
+    TextureMatrixTransformation;
 end;
 
 procedure TTextureCoordinate2Node_1.CreateNode;
 begin
   inherited;
 
-  FFdPoint := TMFVec2f.Create(Self, 'point', [Vector2Single(0, 0)]);
+  FFdPoint := TMFVec2f.Create(Self, 'point', [Vector2(0, 0)]);
    FdPoint.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdPoint);
 end;
 
 class function TTextureCoordinate2Node_1.ClassX3DType: string;
 begin
-  result := 'TextureCoordinate2';
+  Result := 'TextureCoordinate2';
 end;
 
 procedure TShapeHintsNode_1.CreateNode;
@@ -1957,7 +1956,7 @@ end;
 
 class function TShapeHintsNode_1.ClassX3DType: string;
 begin
-  result := 'ShapeHints';
+  Result := 'ShapeHints';
 end;
 
 function TShapeHintsNode_1.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames;
@@ -1996,13 +1995,13 @@ end;
 
 procedure TAbstractTransformationNode_1.MiddleTraverse(StateStack: TX3DGraphTraverseStateStack);
 var
-  M, IM: TMatrix4Single;
+  M, IM: TMatrix4;
 begin
   inherited;
 
   Transformation(M, IM);
-  StateStack.Top.Transform := MatrixMult(StateStack.Top.Transform, M);
-  StateStack.Top.InvertedTransform := MatrixMult(IM, StateStack.Top.InvertedTransform);
+  StateStack.Top.Transform := StateStack.Top.Transform * M;
+  StateStack.Top.InvertedTransform := IM * StateStack.Top.InvertedTransform;
 
   StateStack.Top.TransformScale *= TransformScale;
 end;
@@ -2011,18 +2010,18 @@ procedure TMatrixTransformNode_1.CreateNode;
 begin
   inherited;
 
-  FFdMatrix := TSFMatrix.Create(Self, 'matrix', IdentityMatrix4Single);
+  FFdMatrix := TSFMatrix.Create(Self, 'matrix', TMatrix4.Identity);
    FdMatrix.ChangesAlways := [chEverything];
   AddField(FFdMatrix);
 end;
 
 class function TMatrixTransformNode_1.ClassX3DType: string;
 begin
- result := 'MatrixTransform';
+ Result := 'MatrixTransform';
 end;
 
 procedure TMatrixTransformNode_1.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4Single);
+  out Matrix, InvertedMatrix: TMatrix4);
 begin
   Matrix := FdMatrix.Value;
 
@@ -2031,7 +2030,7 @@ begin
     if Log then
       WritelnLogMultiline('Matrix',
         'Cannot invert matrix:' + NL + MatrixToRawStr(Matrix, '  '));
-    InvertedMatrix := IdentityMatrix4Single;
+    InvertedMatrix := TMatrix4.Identity;
   end;
 end;
 
@@ -2049,18 +2048,18 @@ procedure TRotationNode_1.CreateNode;
 begin
   inherited;
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chEverything];
   AddField(FFdRotation);
 end;
 
 class function TRotationNode_1.ClassX3DType: string;
 begin
-  result := 'Rotation';
+  Result := 'Rotation';
 end;
 
 procedure TRotationNode_1.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4Single);
+  out Matrix, InvertedMatrix: TMatrix4);
 begin
   { We don't check here for FdRotation.Axis = zero, RotationMatricesRad
     will set both matrices for identity in such case. }
@@ -2077,17 +2076,17 @@ procedure TScaleNode_1.CreateNode;
 begin
   inherited;
 
-  FFdScaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
+  FFdScaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3(1, 1, 1));
    FdScaleFactor.ChangesAlways := [chEverything];
   AddField(FFdScaleFactor);
 end;
 
 class function TScaleNode_1.ClassX3DType: string;
 begin
- result := 'Scale';
+ Result := 'Scale';
 end;
 
-procedure TScaleNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
+procedure TScaleNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4);
 begin
   ScalingMatrices(FdScaleFactor.Value, true, Matrix, InvertedMatrix);
 end;
@@ -2101,35 +2100,35 @@ procedure TTransformNode_1.CreateNode;
 begin
   inherited;
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chEverything];
   AddField(FFdTranslation);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3Single(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chEverything];
   AddField(FFdRotation);
 
-  FFdScaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3Single(1, 1, 1));
+  FFdScaleFactor := TSFVec3f.Create(Self, 'scaleFactor', Vector3(1, 1, 1));
    FdScaleFactor.ChangesAlways := [chEverything];
   AddField(FFdScaleFactor);
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3Single(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chEverything];
   AddField(FFdScaleOrientation);
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chEverything];
   AddField(FFdCenter);
 end;
 
 class function TTransformNode_1.ClassX3DType: string;
 begin
-  result := 'Transform';
+  Result := 'Transform';
 end;
 
-procedure TTransformNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4Single);
+procedure TTransformNode_1.Transformation(out Matrix, InvertedMatrix: TMatrix4);
 var
-  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4Single;
+  M, IM, MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
 begin
   TranslationMatrices(FdTranslation.Value + FdCenter.Value,
     Matrix, InvertedMatrix);
@@ -2137,8 +2136,8 @@ begin
   { Note that even Axis = zero is OK, both M and IM will be identity in
     this case. }
   RotationMatricesRad(FdRotation.RotationRad, FdRotation.Axis, M, IM);
-  Matrix := MatrixMult(Matrix, M);
-  InvertedMatrix := MatrixMult(IM, InvertedMatrix);
+  Matrix := Matrix * M;
+  InvertedMatrix := IM * InvertedMatrix;
 
   if (FdScaleFactor.Value[0] <> 1) or
      (FdScaleFactor.Value[1] <> 1) or
@@ -2147,8 +2146,8 @@ begin
     RotationMatricesRad(FdScaleOrientation.RotationRad, FdScaleOrientation.Axis,
       MRotateScaleOrient, IMRotateScaleOrient);
 
-    Matrix := MatrixMult(Matrix, MRotateScaleOrient);
-    InvertedMatrix := MatrixMult(IMRotateScaleOrient, InvertedMatrix);
+    Matrix := Matrix * MRotateScaleOrient;
+    InvertedMatrix := IMRotateScaleOrient * InvertedMatrix;
 
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity. That's because VRML allows
@@ -2156,16 +2155,16 @@ begin
       for special tricks). }
 
     ScalingMatrices(FdScaleFactor.Value, true, M, IM);
-    Matrix := MatrixMult(Matrix, M);
-    InvertedMatrix := MatrixMult(IM, InvertedMatrix);
+    Matrix := Matrix * M;
+    InvertedMatrix := IM * InvertedMatrix;
 
-    Matrix := MatrixMult(Matrix, IMRotateScaleOrient);
-    InvertedMatrix := MatrixMult(MRotateScaleOrient, InvertedMatrix);
+    Matrix := Matrix * IMRotateScaleOrient;
+    InvertedMatrix := MRotateScaleOrient * InvertedMatrix;
   end;
 
   TranslationMatrices(-FdCenter.Value, M, IM);
-  Matrix := MatrixMult(Matrix, M);
-  InvertedMatrix := MatrixMult(IM, InvertedMatrix);
+  Matrix := Matrix * M;
+  InvertedMatrix := IM * InvertedMatrix;
 end;
 
 function TTransformNode_1.TransformScale: Single;
@@ -2182,18 +2181,18 @@ procedure TTranslationNode_1.CreateNode;
 begin
   inherited;
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3Single(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chEverything];
   AddField(FFdTranslation);
 end;
 
 class function TTranslationNode_1.ClassX3DType: string;
 begin
-  result := 'Translation';
+  Result := 'Translation';
 end;
 
 procedure TTranslationNode_1.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4Single);
+  out Matrix, InvertedMatrix: TMatrix4);
 begin
   TranslationMatrices(FdTranslation.Value, Matrix, InvertedMatrix);
 end;
@@ -2209,7 +2208,7 @@ begin
 
   { Note that the default "position" value for VRML 1.0 is different
     than for VRML >= 2.0 (where is (0, 0, 10)). }
-  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 1));
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 1));
    FdPosition.ChangesAlways := [chViewpointVectors];
   AddField(FFdPosition);
 
@@ -2240,12 +2239,12 @@ end;
 
 class function TOrthographicCameraNode_1.ClassX3DType: string;
 begin
-  result := 'OrthographicCamera';
+  Result := 'OrthographicCamera';
 end;
 
 class function TOrthographicCameraNode_1.ProjectionType: TProjectionType;
 begin
-  result := ptOrthographic;
+  Result := ptOrthographic;
 end;
 
 procedure TPerspectiveCameraNode_1.CreateNode;
@@ -2258,12 +2257,12 @@ end;
 
 class function TPerspectiveCameraNode_1.ClassX3DType: string;
 begin
-  result := 'PerspectiveCamera';
+  Result := 'PerspectiveCamera';
 end;
 
 class function TPerspectiveCameraNode_1.ProjectionType: TProjectionType;
 begin
-  result := ptPerspective;
+  Result := ptPerspective;
 end;
 
 procedure TDirectionalLightNode_1.CreateNode;
@@ -2298,8 +2297,8 @@ begin
   FdAmbientIntensity.DefaultValue := -1;
 
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
-  FdLocation.Value := Vector3Single(0, 0, 1);
-  FdLocation.DefaultValue := Vector3Single(0, 0, 1);
+  FdLocation.Value := Vector3(0, 0, 1);
+  FdLocation.DefaultValue := Vector3(0, 0, 1);
 end;
 
 class function TPointLightNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2329,10 +2328,10 @@ begin
   FdAmbientIntensity.DefaultValue := -1;
 
   { Default location value for VRML 1.0, was changed in VRML >= 2.0 }
-  FdLocation.Value := Vector3Single(0, 0, 1);
-  FdLocation.DefaultValue := Vector3Single(0, 0, 1);
+  FdLocation.Value := Vector3(0, 0, 1);
+  FdLocation.DefaultValue := Vector3(0, 0, 1);
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, -1));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 0, -1));
    FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   AddField(FFdDirection);
 
@@ -2347,7 +2346,7 @@ end;
 
 class function TSpotLightNode_1.ClassX3DType: string;
 begin
-  result := 'SpotLight';
+  Result := 'SpotLight';
 end;
 
 function TSpotLightNode_1.SpotExponent: Single;
@@ -2377,7 +2376,7 @@ begin
     LightInstance.Transform, FdDirection.Value));
 end;
 
-function TSpotLightNode_1.ProjectionMatrix: TMatrix4Single;
+function TSpotLightNode_1.ProjectionMatrix: TMatrix4;
 var
   Angle, N, F: Single;
 begin
@@ -2397,38 +2396,38 @@ begin
   Result := PerspectiveProjectionMatrixRad(Angle, 1, N, F);
 end;
 
-function TSpotLightNode_1.ModelviewMatrix: TMatrix4Single;
+function TSpotLightNode_1.ModelviewMatrix: TMatrix4;
 var
-  Pos, Dir, Side, AUp: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3;
 begin
   GetView(Pos, Dir, Side, AUp);
   Result := LookDirMatrix(Pos, Dir, Side, AUp);
 end;
 
-function TSpotLightNode_1.ModelviewRotationMatrix: TMatrix4Single;
+function TSpotLightNode_1.ModelviewRotationMatrix: TMatrix4;
 var
-  Pos, Dir, Side, AUp: TVector3Single;
+  Pos, Dir, Side, AUp: TVector3;
 begin
   GetView(Pos, Dir, Side, AUp);
   Result := FastLookDirMatrix(Dir, AUp);
 end;
 
-function TSpotLightNode_1.GetProjectionLocationLocal: TVector3Single;
+function TSpotLightNode_1.GetProjectionLocationLocal: TVector3;
 begin
   Result := FdLocation.Value;
 end;
 
-procedure TSpotLightNode_1.SetProjectionLocationLocal(const Value: TVector3Single);
+procedure TSpotLightNode_1.SetProjectionLocationLocal(const Value: TVector3);
 begin
   FdLocation.Send(Value);
 end;
 
-function TSpotLightNode_1.GetProjectionDirectionLocal: TVector3Single;
+function TSpotLightNode_1.GetProjectionDirectionLocal: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TSpotLightNode_1.SetProjectionDirectionLocal(const Value: TVector3Single);
+procedure TSpotLightNode_1.SetProjectionDirectionLocal(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;
@@ -2462,7 +2461,7 @@ end;
 
 class function TGroupNode_1.ClassX3DType: string;
 begin
-  result := 'Group';
+  Result := 'Group';
 end;
 
 class function TGroupNode_1.ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -2523,7 +2522,7 @@ end;
 
 class function TSeparatorNode_1.ClassX3DType: string;
 begin
-  result := 'Separator';
+  Result := 'Separator';
 end;
 
 procedure TSwitchNode_1.CreateNode;
@@ -2540,7 +2539,7 @@ end;
 
 class function TSwitchNode_1.ClassX3DType: string;
 begin
-  result := 'Switch';
+  Result := 'Switch';
 end;
 
 function TSwitchNode_1.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -2583,7 +2582,7 @@ end;
 
 class function TTransformSeparatorNode_1.ClassX3DType: string;
 begin
-  result := 'TransformSeparator';
+  Result := 'TransformSeparator';
 end;
 
 procedure TTransformSeparatorNode_1.BeforeTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -2621,7 +2620,7 @@ end;
 
 class function TWWWAnchorNode_1.ClassX3DType: string;
 begin
-  result := 'WWWAnchor';
+  Result := 'WWWAnchor';
 end;
 
 procedure TWWWInlineNode_1.CreateNode;
@@ -2634,7 +2633,7 @@ begin
   FdUrl.AssignDefaultValueFromValue;
 
   { bboxSize is (0, 0, 0) in VRMl 1.0 (in VRML 2.0/X3D it's (-1, -1, -1)) }
-  FFdBboxSize.Value := Vector3Single(0, 0, 0);
+  FFdBboxSize.Value := Vector3(0, 0, 0);
   FFdBboxSize.AssignDefaultValueFromValue;
 
   FFdSeparate := TSFBool.Create(Self, 'separate', true);
@@ -2644,7 +2643,7 @@ end;
 
 class function TWWWInlineNode_1.ClassX3DType: string;
 begin
-  result := 'WWWInline';
+  Result := 'WWWInline';
 end;
 
 function TWWWInlineNode_1.SeparateGroup: boolean;

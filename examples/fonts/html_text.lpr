@@ -107,7 +107,7 @@ begin
   (Font.BoldItalicFont as TTextureFont).Load(TextureFont_DejaVuSansBoldOblique_20);
 
   Background := TCastleSimpleBackground.Create(Window);
-  Background.Color := White; // Vector4Single(0.9, 0.9, 0.7, 1.0);
+  Background.Color := White; // Vector4(0.9, 0.9, 0.7, 1.0);
   Window.Controls.InsertFront(Background);
 
   ButtonHtml := TCastleButton.Create(Window);

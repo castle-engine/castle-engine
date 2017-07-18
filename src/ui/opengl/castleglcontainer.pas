@@ -93,7 +93,7 @@ begin
     guaranteed value, for Render2d calls. }
   {$ifndef OpenGLES} glLoadIdentity; {$endif}
   {$warnings off}
-  CastleGLUtils.WindowPos := Vector2LongInt(0, 0);
+  CastleGLUtils.WindowPos := Vector2Integer(0, 0);
   {$warnings on}
 end;
 

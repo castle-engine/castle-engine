@@ -37,7 +37,7 @@ procedure TTestScene.TestScene;
   procedure EmptySceneAsserts(EmptyScene: TCastleScene);
   var
     CamProjection: TProjectionType;
-    CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+    CamPos, CamDir, CamUp, GravityUp: TVector3;
   begin
    AssertTrue(EmptyScene.VerticesCount(false) = 0);
    AssertTrue(EmptyScene.VerticesCount(true) = 0);

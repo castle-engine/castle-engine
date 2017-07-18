@@ -99,7 +99,7 @@ begin
   end;
 end;
 
-procedure Draw(const Position: TVector2Single; const BrushIndex: TFingerIndex);
+procedure Draw(const Position: TVector2; const BrushIndex: TFingerIndex);
 var
   Brush: TCastleImage;
   X, Y: Integer;

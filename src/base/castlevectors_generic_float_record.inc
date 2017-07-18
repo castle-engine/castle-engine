@@ -1,3 +1,18 @@
+{
+  Copyright 2017-2017 Michalis Kamburelis.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
 (*Interface and implementation of a TGenericVector* types,
   that can use any floating-point precision (Single, Double, Extended).
 
@@ -34,18 +49,89 @@ type
       TIndex = 0..1;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar;
+    procedure SetItems(const Index: TIndex; const Value: TGenericScalar);
   public
     var
       Data: array [TIndex] of TGenericScalar;
     const
+      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero: TGenericVector2 = (Data: (0, 0));
-    procedure Init(const X, Y: TGenericScalar);
-    function Length: TGenericScalar;
-    function Normalize: TGenericVector2;
-    function ToString: string;
-    property Items [const Index: TIndex]: TGenericScalar read GetItems; default;
+      {$endif}
+      { Vectors with a single component equal 1, others equal 0. }
+      One: array [TIndex] of TGenericVector2 = (
+        (Data: (1, 0)),
+        (Data: (0, 1))
+      );
+
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector2): TGenericVector2;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector2): TGenericVector2;
+    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+
+    procedure Init(const X, Y: TGenericScalar);
+    function ToString: string;
+
+    { Convert to string using the most precise (not always easily readable
+      by humans) float format. This may use the exponential
+      (scientific) notation to represent the floating-point value,
+      if needed.
+
+      This is suitable for storing the value in a file,
+      with a best precision possible. }
+    function ToRawString: string;
+
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+
+    function Normalize: TGenericVector2;
+    procedure NormalizeMe;
+    function Length: TGenericScalar;
+
+    { Vector length squared.
+      This is slightly faster than @link(Length) as it avoids calculating
+      a square root along the way. (But, please remember to not optimize
+      your code without a need. Optimize only parts that are proven bottlenecks,
+      otherwise don't make the code less readable for the sake of speed.) }
+    function LengthSqr: TGenericScalar;
+
+    { Multiply vectors component-wise. }
+    class function MultiplyComponents(const V1, V2: TGenericVector2): TGenericVector2; static;
+
+    { Calculate a new vector scaled so that it has length equal to NewLength.
+      NewLength may be negative, in which case we'll negate the vector
+      and then adjust it's length to Abs(NewLength). }
+    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector2;
+
+    { Dot product of two vectors.
+      See https://en.wikipedia.org/wiki/Dot_product . }
+    class function DotProduct(const V1, V2: TGenericVector2): TGenericScalar; static;
+
+    { Absolute value on all components. }
+    function Abs: TGenericVector2;
+
+    { Are all components equal to zero (within some epsilon margin). }
+    function IsZero: boolean; overload;
+
+    { Are all components equal to zero (within EqualityEpsilon margin). }
+    function IsZero(const EqualityEpsilon: TGenericScalar): boolean; overload;
+
+    function IsPerfectlyZero: boolean;
+
+    { Compare two vectors, with epsilon to tolerate slightly different floats. }
+    class function Equals(const V1, V2: TGenericVector2): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector2; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+
+    { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
+    class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static;
+
+    { Linear interpolation between two vector values.
+      @seealso @link(TVector3.Lerp) }
+    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2; static;
+
+    {$ifdef BUGGY_ZERO_CONSTANT}
+    class function Zero: TGenericVector2; static;
+    {$endif}
   end;
 
   { Vector of 3 floating-point values.
@@ -68,18 +154,123 @@ type
       TIndex = 0..2;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar;
+    procedure SetItems(const Index: TIndex; const Value: TGenericScalar);
   public
     var
       Data: array [TIndex] of TGenericScalar;
     const
+      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero: TGenericVector3 = (Data: (0, 0, 0));
-    procedure Init(const X, Y, Z: TGenericScalar);
-    function Length: TGenericScalar;
-    function Normalize: TGenericVector3;
-    function ToString: string;
-    property Items [const Index: TIndex]: TGenericScalar read GetItems; default;
+      {$endif}
+      { Vectors with a single component equal 1, others equal 0. }
+      One: array [TIndex] of TGenericVector3 = (
+        (Data: (1, 0, 0)),
+        (Data: (0, 1, 0)),
+        (Data: (0, 0, 1))
+      );
+
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector3): TGenericVector3;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector3): TGenericVector3;
+    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+
+    procedure Init(const X, Y, Z: TGenericScalar);
+    function ToString: string;
+
+    { Convert to string using the most precise (not always easily readable
+      by humans) float format. This may use the exponential
+      (scientific) notation to represent the floating-point value,
+      if needed.
+
+      This is suitable for storing the value in a file,
+      with a best precision possible. }
+    function ToRawString: string;
+
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+
+    function Normalize: TGenericVector3;
+    procedure NormalizeMe;
+    function Length: TGenericScalar;
+
+    { Vector length squared.
+      This is slightly faster than @link(Length) as it avoids calculating
+      a square root along the way. (But, please remember to not optimize
+      your code without a need. Optimize only parts that are proven bottlenecks,
+      otherwise don't make the code less readable for the sake of speed.) }
+    function LengthSqr: TGenericScalar;
+
+    { Multiply vectors component-wise. }
+    class function MultiplyComponents(const V1, V2: TGenericVector3): TGenericVector3; static;
+
+    { Calculate a new vector scaled so that it has length equal to NewLength.
+      NewLength may be negative, in which case we'll negate the vector
+      and then adjust it's length to Abs(NewLength). }
+    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector3;
+
+    { Vector cross product.
+      See http://en.wikipedia.org/wiki/Cross_product .
+
+      Result is a vector orthogonal to both given vectors.
+      Generally there are two such vectors, this method returns
+      the one following right-hand rule. More precisely, V1, V2 and
+      Product(V1, V2) are in the same relation as basic X, Y, Z
+      axes. Reverse the order of arguments to get negated result.
+
+      If you use this to calculate a normal vector of a triangle
+      (P0, P1, P2): note that @code(VectorProduct(P1 - P0, P1 - P2))
+      points out from CCW triangle side in right-handed coordinate system.
+
+      When V1 and V2 are parallel (that is, when V1 = V2 multiplied by some scalar),
+      and this includes the case when one of them is zero,
+      then result is a zero vector. }
+    class function CrossProduct(const V1, V2: TGenericVector3): TGenericVector3; static;
+
+    { Dot product of two vectors.
+      See https://en.wikipedia.org/wiki/Dot_product . }
+    class function DotProduct(const V1, V2: TGenericVector3): TGenericScalar; static;
+
+    { Absolute value on all components. }
+    function Abs: TGenericVector3;
+
+    { Average from all components. }
+    function Average: TGenericScalar;
+
+    { Are all components equal to zero (within some epsilon margin). }
+    function IsZero: boolean; overload;
+
+    { Are all components equal to zero (within EqualityEpsilon margin). }
+    function IsZero(const EqualityEpsilon: TGenericScalar): boolean; overload;
+
+    function IsPerfectlyZero: boolean;
+
+    { Compare two vectors, with epsilon to tolerate slightly different floats. }
+    class function Equals(const V1, V2: TGenericVector3): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector3; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+
+    { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
+    class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static;
+
+    function XY: TGenericVector2;
+
+    { Linear interpolation between two vector values.
+      Returns @code((1-A) * V1 + A * V2).
+
+      So:
+
+      @unorderedList(
+        @itemSpacing Compact
+        @item A = 0 gives V1,
+        @item A = 1 gives V2,
+        @item values between are interpolated,
+        @item values outside are extrapolated.
+      ) }
+    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3; static;
+
+    {$ifdef BUGGY_ZERO_CONSTANT}
+    class function Zero: TGenericVector3; static;
+    {$endif}
   end;
 
   { Vector of 4 floating-point values.
@@ -90,17 +281,165 @@ type
       TIndex = 0..3;
   strict private
     function GetItems(const Index: TIndex): TGenericScalar;
+    procedure SetItems(const Index: TIndex; const Value: TGenericScalar);
   public
     var
       Data: array [TIndex] of TGenericScalar;
     const
-      Zero: TGenericVector3 = (Data: (0, 0, 0));
-    procedure Init(const X, Y, Z, W: TGenericScalar);
-    function Length: TGenericScalar;
-    function ToString: string;
-    property Items [const Index: TIndex]: TGenericScalar read GetItems; default;
+      {$ifndef BUGGY_ZERO_CONSTANT}
+      Zero: TGenericVector4 = (Data: (0, 0, 0, 0));
+      {$endif}
+      { Vectors with a single component equal 1, others equal 0. }
+      One: array [TIndex] of TGenericVector4 = (
+        (Data: (1, 0, 0, 0)),
+        (Data: (0, 1, 0, 0)),
+        (Data: (0, 0, 1, 0)),
+        (Data: (0, 0, 0, 1))
+      );
+
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector4): TGenericVector4;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector4): TGenericVector4;
+    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+
+    procedure Init(const X, Y, Z, W: TGenericScalar);
+    function ToString: string;
+
+    { Convert to string using the most precise (not always easily readable
+      by humans) float format. This may use the exponential
+      (scientific) notation to represent the floating-point value,
+      if needed.
+
+      This is suitable for storing the value in a file,
+      with a best precision possible. }
+    function ToRawString: string;
+
+    property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+
+    function Length: TGenericScalar;
+
+    { Vector length squared.
+      This is slightly faster than @link(Length) as it avoids calculating
+      a square root along the way. (But, please remember to not optimize
+      your code without a need. Optimize only parts that are proven bottlenecks,
+      otherwise don't make the code less readable for the sake of speed.) }
+    function LengthSqr: TGenericScalar;
+
+    { Multiply vectors component-wise. }
+    class function MultiplyComponents(const V1, V2: TGenericVector4): TGenericVector4; static;
+
+    { Calculate a new vector scaled so that it has length equal to NewLength.
+      NewLength may be negative, in which case we'll negate the vector
+      and then adjust it's length to Abs(NewLength). }
+    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector4;
+
+    { Dot product of two vectors.
+      See https://en.wikipedia.org/wiki/Dot_product . }
+    class function DotProduct(const V1, V2: TGenericVector4): TGenericScalar; static;
+
+    { Absolute value on all components. }
+    function Abs: TGenericVector4;
+
+    { Are all components equal to zero (within some epsilon margin). }
+    function IsZero: boolean; overload;
+
+    { Are all components equal to zero (within EqualityEpsilon margin). }
+    function IsZero(const EqualityEpsilon: TGenericScalar): boolean; overload;
+
+    function IsPerfectlyZero: boolean;
+
+    { Compare two vectors, with epsilon to tolerate slightly different floats. }
+    class function Equals(const V1, V2: TGenericVector4): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector4; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+
+    { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
+    class function PerfectlyEquals(const V1, V2: TGenericVector4): boolean; static;
+
+    { Convert a 4D homogeneous coordinate to 3D position. }
+    function ToPosition: TGenericVector3;
+
+    { Get first 3 components as a 3D vector.
+      This simply rejects the 4th component. }
+    function XYZ: TGenericVector3;
+
+    { Linear interpolation between two vector values.
+      @seealso @link(TVector3.Lerp) }
+    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static;
+
+    {$ifdef BUGGY_ZERO_CONSTANT}
+    class function Zero: TGenericVector4; static;
+    {$endif}
+  end;
+
+  { 2x2 matrix of floating-point values.
+    @seealso TGenericMatrix3 }
+  TGenericMatrix2 = record
+  public
+    type
+      TIndex = 0..1;
+  strict private
+    function GetItems(const AColumn, ARow: TIndex): TGenericScalar;
+    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+  public
+    var
+      Data: array [TIndex, TIndex] of TGenericScalar;
+    const
+      {$ifndef BUGGY_ZERO_CONSTANT}
+      Zero    : TGenericMatrix2 = (Data: ((0, 0), (0, 0)));
+      {$endif}
+      Identity: TGenericMatrix2 = (Data: ((1, 0), (0, 1)));
+
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix2): TGenericMatrix2;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix2; const Scalar: TGenericScalar): TGenericMatrix2;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix2): TGenericMatrix2;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix2; const V: TGenericVector2): TGenericVector2;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
+
+    function ToString(const LineIndent: string = ''): string;
+
+    { Convert to string using the most precise (not always easily readable
+      by humans) float format. This may use the exponential
+      (scientific) notation to represent the floating-point value,
+      if needed.
+
+      This is suitable for storing the value in a file,
+      with a best precision possible. }
+    function ToRawString(const LineIndent: string = ''): string;
+
+    property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    function Row(const ARow: TIndex): TGenericVector2;
+    function Determinant: TGenericScalar;
+
+    { Inverse the matrix.
+
+      This does division by ADeterminant internally, so will raise exception
+      from this float division if the matrix is not reversible.
+      Check Math.IsZero(ADeterminant) first to avoid this, or use @link(TryInverse). }
+    function Inverse(ADeterminant: TGenericScalar): TGenericMatrix2;
+
+    { Inverse the matrix, or return @false if the matrix is not invertible. }
+    function TryInverse(out MInverse: TGenericMatrix2): boolean;
+
+    function Transpose: TGenericMatrix2;
+
+    { Compare two vectors, with epsilon to tolerate slightly different floats. }
+    class function Equals(const M1, M2: TGenericMatrix2): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix2; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+
+    { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
+    class function PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean; static;
+
+    { Linear interpolation between two matrix values.
+      @seealso @link(TVector3.Lerp) }
+    class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix2): TGenericMatrix2; static;
+
+    {$ifdef BUGGY_ZERO_CONSTANT}
+    class function Zero: TGenericMatrix2; static;
+    {$endif}
   end;
 
   { 3x3 matrix of floating-point values.
@@ -114,25 +453,77 @@ type
     @orderedList(
       @itemSpacing Compact
       @item @link(TMatrix3), a matrix of 3 Single values (floats with single precision),
-      @item @link(TMatrix3d), a matrix of 3 Double values (floats with double precision).
+      @item @link(TMatrix3Double), a matrix of 3 Double values (floats with double precision).
     )
 
     The type TGenericScalar is, accordingly,
-    Single or Double for @link(TMatrix3) or @link(TMatrix3d).
+    Single or Double for @link(TMatrix3) or @link(TMatrix3Double).
   }
   TGenericMatrix3 = record
   public
     type
       TIndex = 0..2;
+  strict private
+    function GetItems(const AColumn, ARow: TIndex): TGenericScalar;
+    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
     const
+      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero    : TGenericMatrix3 = (Data: ((0, 0, 0), (0, 0, 0), (0, 0, 0)));
+      {$endif}
       Identity: TGenericMatrix3 = (Data: ((1, 0, 0), (0, 1, 0), (0, 0, 1)));
-    function ToString: string;
+
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix3): TGenericMatrix3;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix3; const Scalar: TGenericScalar): TGenericMatrix3;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix3): TGenericMatrix3;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
+
+    function ToString(const LineIndent: string = ''): string;
+
+    { Convert to string using the most precise (not always easily readable
+      by humans) float format. This may use the exponential
+      (scientific) notation to represent the floating-point value,
+      if needed.
+
+      This is suitable for storing the value in a file,
+      with a best precision possible. }
+    function ToRawString(const LineIndent: string = ''): string;
+
+    property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    function Row(const ARow: TIndex): TGenericVector3;
+    function Determinant: TGenericScalar;
+
+    { Inverse the matrix.
+
+      This does division by ADeterminant internally, so will raise exception
+      from this float division if the matrix is not reversible.
+      Check Math.IsZero(ADeterminant) first to avoid this, or use @link(TryInverse). }
+    function Inverse(ADeterminant: TGenericScalar): TGenericMatrix3;
+
+    { Inverse the matrix, or return @false if the matrix is not invertible. }
+    function TryInverse(out MInverse: TGenericMatrix3): boolean;
+
+    function Transpose: TGenericMatrix3;
+
+    { Compare two vectors, with epsilon to tolerate slightly different floats. }
+    class function Equals(const M1, M2: TGenericMatrix3): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix3; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+
+    { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
+    class function PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean; static;
+
+    { Linear interpolation between two matrix values.
+      @seealso @link(TVector3.Lerp) }
+    class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix3): TGenericMatrix3; static;
+
+    {$ifdef BUGGY_ZERO_CONSTANT}
+    class function Zero: TGenericMatrix3; static;
+    {$endif}
   end;
 
   { 4x4 matrix of floating-point values.
@@ -141,15 +532,52 @@ type
   public
     type
       TIndex = 0..3;
+  strict private
+    function GetItems(const AColumn, ARow: TIndex): TGenericScalar;
+    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
     const
+      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero    : TGenericMatrix4 = (Data: ((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0)));
+      {$endif}
       Identity: TGenericMatrix4 = (Data: ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)));
-    function ToString: string;
+
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix4): TGenericMatrix4;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix4; const Scalar: TGenericScalar): TGenericMatrix4;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix4): TGenericMatrix4;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4;
+
+    function ToString(const LineIndent: string = ''): string;
+
+    { Convert to string using the most precise (not always easily readable
+      by humans) float format. This may use the exponential
+      (scientific) notation to represent the floating-point value,
+      if needed.
+
+      This is suitable for storing the value in a file,
+      with a best precision possible. }
+    function ToRawString(const LineIndent: string = ''): string;
+
+    property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    function Row(const ARow: TIndex): TGenericVector4;
+    function Determinant: TGenericScalar;
+
+    { Inverse the matrix.
+
+      This does division by ADeterminant internally, so will raise exception
+      from this float division if the matrix is not reversible.
+      Check Math.IsZero(ADeterminant) first to avoid this, or use @link(TryInverse). }
+    function Inverse(ADeterminant: TGenericScalar): TGenericMatrix4;
+
+    { Inverse the matrix, or return @false if the matrix is not invertible. }
+    function TryInverse(out MInverse: TGenericMatrix4): boolean;
+
+    function Transpose: TGenericMatrix4;
 
     { Transform a 3D or 2D point with 4x4 matrix.
 
@@ -182,6 +610,21 @@ type
     function MultDirection(const Dir: TGenericVector3): TGenericVector3; overload;
     function MultDirection(const Dir: TGenericVector2): TGenericVector2; overload;
     { @groupEnd }
+
+    { Compare two vectors, with epsilon to tolerate slightly different floats. }
+    class function Equals(const M1, M2: TGenericMatrix4): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix4; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+
+    { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
+    class function PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean; static;
+
+    { Linear interpolation between two matrix values.
+      @seealso @link(TVector3.Lerp) }
+    class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix4): TGenericMatrix4; static;
+
+    {$ifdef BUGGY_ZERO_CONSTANT}
+    class function Zero: TGenericMatrix4; static;
+    {$endif}
   end;
 
 implementation
@@ -191,18 +634,66 @@ uses Math,
 
 { TGenericVector2 ------------------------------------------------------------ }
 
+class operator TGenericVector2. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := A.Data[0] + B.Data[0];
+  Result.Data[1] := A.Data[1] + B.Data[1];
+end;
+
+class operator TGenericVector2. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := A.Data[0] - B.Data[0];
+  Result.Data[1] := A.Data[1] - B.Data[1];
+end;
+
+class operator TGenericVector2. {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := - V.Data[0];
+  Result.Data[1] := - V.Data[1];
+end;
+
+class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+begin
+  Result.Data[0] := V.Data[0] * Scalar;
+  Result.Data[1] := V.Data[1] * Scalar;
+end;
+
+class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := V.Data[0] * Scalar;
+  Result.Data[1] := V.Data[1] * Scalar;
+end;
+
+class operator TGenericVector2. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+begin
+  Result.Data[0] := V.Data[0] / Scalar;
+  Result.Data[1] := V.Data[1] / Scalar;
+end;
+
 procedure TGenericVector2.Init(const X, Y: TGenericScalar);
 begin
   Data[0] := X;
   Data[1] := Y;
 end;
 
-function TGenericVector2.Length: TGenericScalar;
+function TGenericVector2.ToString: string;
 begin
-  Result := Sqrt(
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1])
-  );
+  Result := Format('%f %f', [Data[0], Data[1]]);
+end;
+
+function TGenericVector2.ToRawString: string;
+begin
+  Result := Format('%g %g', [Data[0], Data[1]]);
+end;
+
+function TGenericVector2.GetItems(const Index: TIndex): TGenericScalar;
+begin
+  Result := Data[Index];
+end;
+
+procedure TGenericVector2.SetItems(const Index: TIndex; const Value: TGenericScalar);
+begin
+  Data[Index] := Value;
 end;
 
 function TGenericVector2.Normalize: TGenericVector2;
@@ -214,34 +705,158 @@ begin
     Result.Data := Data
   else
   begin
-    Result.Data[0] := Data[0] / Length;
-    Result.Data[1] := Data[1] / Length;
+    Result.Data[0] := Data[0] / L;
+    Result.Data[1] := Data[1] / L;
   end;
 end;
 
-function TGenericVector2.ToString: string;
+procedure TGenericVector2.NormalizeMe;
+var
+  L: TGenericScalar;
 begin
-  Result := Format('%f %f', [Data[0], Data[1]]);
+  L := Length;
+  if L <> 0 then
+  begin
+    Data[0] := Data[0] / L;
+    Data[1] := Data[1] / L;
+  end;
 end;
 
-function TGenericVector2.GetItems(const Index: TIndex): TGenericScalar;
+function TGenericVector2.Length: TGenericScalar;
 begin
-  Result := Data[Index];
+  Result := Sqrt(
+    (Data[0] * Data[0]) +
+    (Data[1] * Data[1])
+  );
 end;
 
-class operator TGenericVector2. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
+function TGenericVector2.LengthSqr: TGenericScalar;
 begin
-  Result.Data[0] := A[0] + B[0];
-  Result.Data[1] := A[1] + B[1];
+  Result :=
+    (Data[0] * Data[0]) +
+    (Data[1] * Data[1]);
 end;
 
-class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+class function TGenericVector2.MultiplyComponents(const V1, V2: TGenericVector2): TGenericVector2;
 begin
-  Result.Data[0] := V[0] * Scalar;
-  Result.Data[1] := V[1] * Scalar;
+  Result.Data[0] := V1.Data[0] * V2.Data[0];
+  Result.Data[1] := V1.Data[1] * V2.Data[1];
 end;
+
+function TGenericVector2.AdjustToLength(const NewLength: TGenericScalar): TGenericVector2;
+begin
+  Result := Self * (NewLength / Length);
+end;
+
+class function TGenericVector2.DotProduct(const V1, V2: TGenericVector2): TGenericScalar;
+begin
+  Result :=
+    V1.Data[0] * V2.Data[0] +
+    V1.Data[1] * V2.Data[1];
+end;
+
+function TGenericVector2.Abs: TGenericVector2;
+begin
+  Result.Data[0] := System.Abs(Data[0]);
+  Result.Data[1] := System.Abs(Data[1]);
+end;
+
+function TGenericVector2.IsZero: boolean;
+begin
+  Result :=
+    Math.IsZero(Data[0]) and
+    Math.IsZero(Data[1]);
+end;
+
+function TGenericVector2.IsZero(const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  Result := (System.Abs(Data[0]) < EqualityEpsilon) and
+            (System.Abs(Data[1]) < EqualityEpsilon);
+end;
+
+function TGenericVector2.IsPerfectlyZero: boolean;
+begin
+  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+end;
+
+class function TGenericVector2.Equals(const V1, V2: TGenericVector2): boolean;
+begin
+  Result :=
+    SameValue(V1.Data[0], V2.Data[0]) and
+    SameValue(V1.Data[1], V2.Data[1]);
+end;
+
+class function TGenericVector2.Equals(const V1, V2: TGenericVector2; const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := (V1.Data[0] = V2.Data[0]) and
+              (V1.Data[1] = V2.Data[1]) else
+    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < EqualityEpsilon) and
+              (System.Abs(V1.Data[1]-V2.Data[1]) < EqualityEpsilon);
+end;
+
+class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): boolean;
+begin
+  Result := (V1.Data[0] = V2.Data[0]) and
+            (V1.Data[1] = V2.Data[1]);
+end;
+
+class function TGenericVector2.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TGenericVector2.Zero: TGenericVector2;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
 
 { TGenericVector3 ------------------------------------------------------------ }
+
+class operator TGenericVector3. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := A.Data[0] + B.Data[0];
+  Result.Data[1] := A.Data[1] + B.Data[1];
+  Result.Data[2] := A.Data[2] + B.Data[2];
+end;
+
+class operator TGenericVector3. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := A.Data[0] - B.Data[0];
+  Result.Data[1] := A.Data[1] - B.Data[1];
+  Result.Data[2] := A.Data[2] - B.Data[2];
+end;
+
+class operator TGenericVector3. {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := - V.Data[0];
+  Result.Data[1] := - V.Data[1];
+  Result.Data[2] := - V.Data[2];
+end;
+
+class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+begin
+  Result.Data[0] := V.Data[0] * Scalar;
+  Result.Data[1] := V.Data[1] * Scalar;
+  Result.Data[2] := V.Data[2] * Scalar;
+end;
+
+class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := V.Data[0] * Scalar;
+  Result.Data[1] := V.Data[1] * Scalar;
+  Result.Data[2] := V.Data[2] * Scalar;
+end;
+
+class operator TGenericVector3. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+begin
+  Result.Data[0] := V.Data[0] / Scalar;
+  Result.Data[1] := V.Data[1] / Scalar;
+  Result.Data[2] := V.Data[2] / Scalar;
+end;
 
 procedure TGenericVector3.Init(const X, Y, Z: TGenericScalar);
 begin
@@ -250,13 +865,24 @@ begin
   Data[2] := Z;
 end;
 
-function TGenericVector3.Length: TGenericScalar;
+function TGenericVector3.ToString: string;
 begin
-  Result := Sqrt(
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]) +
-    (Data[2] * Data[2])
-  );
+  Result := Format('%f %f %f', [Data[0], Data[1], Data[2]]);
+end;
+
+function TGenericVector3.ToRawString: string;
+begin
+  Result := Format('%g %g %g', [Data[0], Data[1], Data[2]]);
+end;
+
+function TGenericVector3.GetItems(const Index: TIndex): TGenericScalar;
+begin
+  Result := Data[Index];
+end;
+
+procedure TGenericVector3.SetItems(const Index: TIndex; const Value: TGenericScalar);
+begin
+  Data[Index] := Value;
 end;
 
 function TGenericVector3.Normalize: TGenericVector3;
@@ -268,37 +894,196 @@ begin
     Result.Data := Data
   else
   begin
-    Result.Data[0] := Data[0] / Length;
-    Result.Data[1] := Data[1] / Length;
-    Result.Data[2] := Data[2] / Length;
+    Result.Data[0] := Data[0] / L;
+    Result.Data[1] := Data[1] / L;
+    Result.Data[2] := Data[2] / L;
   end;
 end;
 
-function TGenericVector3.ToString: string;
+procedure TGenericVector3.NormalizeMe;
+var
+  L: TGenericScalar;
 begin
-  Result := Format('%f %f %f', [Data[0], Data[1], Data[2]]);
+  L := Length;
+  if L <> 0 then
+  begin
+    Data[0] := Data[0] / L;
+    Data[1] := Data[1] / L;
+    Data[2] := Data[2] / L;
+  end;
 end;
 
-function TGenericVector3.GetItems(const Index: TIndex): TGenericScalar;
+function TGenericVector3.Length: TGenericScalar;
 begin
-  Result := Data[Index];
+  Result := Sqrt(
+    (Data[0] * Data[0]) +
+    (Data[1] * Data[1]) +
+    (Data[2] * Data[2])
+  );
 end;
 
-class operator TGenericVector3. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3;
+function TGenericVector3.LengthSqr: TGenericScalar;
 begin
-  Result.Data[0] := A[0] + B[0];
-  Result.Data[1] := A[1] + B[1];
-  Result.Data[2] := A[2] + B[2];
+  Result :=
+    (Data[0] * Data[0]) +
+    (Data[1] * Data[1]) +
+    (Data[2] * Data[2]);
 end;
 
-class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+class function TGenericVector3.MultiplyComponents(const V1, V2: TGenericVector3): TGenericVector3;
 begin
-  Result.Data[0] := V[0] * Scalar;
-  Result.Data[1] := V[1] * Scalar;
-  Result.Data[2] := V[2] * Scalar;
+  Result.Data[0] := V1.Data[0] * V2.Data[0];
+  Result.Data[1] := V1.Data[1] * V2.Data[1];
+  Result.Data[2] := V1.Data[2] * V2.Data[2];
 end;
+
+function TGenericVector3.AdjustToLength(const NewLength: TGenericScalar): TGenericVector3;
+begin
+  Result := Self * (NewLength / Length);
+end;
+
+class function TGenericVector3.CrossProduct(const V1, V2: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := V1.Data[1] * V2.Data[2] - V1.Data[2] * V2.Data[1];
+  Result.Data[1] := V1.Data[2] * V2.Data[0] - V1.Data[0] * V2.Data[2];
+  Result.Data[2] := V1.Data[0] * V2.Data[1] - V1.Data[1] * V2.Data[0];
+end;
+
+class function TGenericVector3.DotProduct(const V1, V2: TGenericVector3): TGenericScalar;
+begin
+  Result :=
+    V1.Data[0] * V2.Data[0] +
+    V1.Data[1] * V2.Data[1] +
+    V1.Data[2] * V2.Data[2];
+end;
+
+function TGenericVector3.Abs: TGenericVector3;
+begin
+  Result.Data[0] := System.Abs(Data[0]);
+  Result.Data[1] := System.Abs(Data[1]);
+  Result.Data[2] := System.Abs(Data[2]);
+end;
+
+function TGenericVector3.Average: TGenericScalar;
+begin
+  Result := (Data[0] + Data[1] + Data[2]) / 3;
+end;
+
+function TGenericVector3.IsZero: boolean;
+begin
+  Result :=
+    Math.IsZero(Data[0]) and
+    Math.IsZero(Data[1]) and
+    Math.IsZero(Data[2]);
+end;
+
+function TGenericVector3.IsZero(const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  Result := (System.Abs(Data[0]) < EqualityEpsilon) and
+            (System.Abs(Data[1]) < EqualityEpsilon) and
+            (System.Abs(Data[2]) < EqualityEpsilon);
+end;
+
+function TGenericVector3.IsPerfectlyZero: boolean;
+begin
+  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+end;
+
+class function TGenericVector3.Equals(const V1, V2: TGenericVector3): boolean;
+begin
+  Result :=
+    SameValue(V1.Data[0], V2.Data[0]) and
+    SameValue(V1.Data[1], V2.Data[1]) and
+    SameValue(V1.Data[2], V2.Data[2]);
+end;
+
+class function TGenericVector3.Equals(const V1, V2: TGenericVector3; const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := (V1.Data[0] = V2.Data[0]) and
+              (V1.Data[1] = V2.Data[1]) and
+              (V1.Data[2] = V2.Data[2]) else
+    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < EqualityEpsilon) and
+              (System.Abs(V1.Data[1]-V2.Data[1]) < EqualityEpsilon) and
+              (System.Abs(V1.Data[2]-V2.Data[2]) < EqualityEpsilon);
+end;
+
+class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): boolean;
+begin
+  Result := (V1.Data[0] = V2.Data[0]) and
+            (V1.Data[1] = V2.Data[1]) and
+            (V1.Data[2] = V2.Data[2]);
+end;
+
+function TGenericVector3.XY: TGenericVector2;
+begin
+  Result.Data[0] := Data[0];
+  Result.Data[1] := Data[1];
+end;
+
+class function TGenericVector3.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TGenericVector3.Zero: TGenericVector3;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
 
 { TGenericVector4 ------------------------------------------------------------ }
+
+class operator TGenericVector4. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := A.Data[0] + B.Data[0];
+  Result.Data[1] := A.Data[1] + B.Data[1];
+  Result.Data[2] := A.Data[2] + B.Data[2];
+  Result.Data[3] := A.Data[3] + B.Data[3];
+end;
+
+class operator TGenericVector4. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := A.Data[0] - B.Data[0];
+  Result.Data[1] := A.Data[1] - B.Data[1];
+  Result.Data[2] := A.Data[2] - B.Data[2];
+  Result.Data[3] := A.Data[3] - B.Data[3];
+end;
+
+class operator TGenericVector4. {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := - V.Data[0];
+  Result.Data[1] := - V.Data[1];
+  Result.Data[2] := - V.Data[2];
+  Result.Data[3] := - V.Data[3];
+end;
+
+class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+begin
+  Result.Data[0] := V.Data[0] * Scalar;
+  Result.Data[1] := V.Data[1] * Scalar;
+  Result.Data[2] := V.Data[2] * Scalar;
+  Result.Data[3] := V.Data[3] * Scalar;
+end;
+
+class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := V.Data[0] * Scalar;
+  Result.Data[1] := V.Data[1] * Scalar;
+  Result.Data[2] := V.Data[2] * Scalar;
+  Result.Data[3] := V.Data[3] * Scalar;
+end;
+
+class operator TGenericVector4. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+begin
+  Result.Data[0] := V.Data[0] / Scalar;
+  Result.Data[1] := V.Data[1] / Scalar;
+  Result.Data[2] := V.Data[2] / Scalar;
+  Result.Data[3] := V.Data[3] / Scalar;
+end;
 
 procedure TGenericVector4.Init(const X, Y, Z, W: TGenericScalar);
 begin
@@ -308,18 +1093,14 @@ begin
   Data[3] := Z;
 end;
 
-function TGenericVector4.Length: TGenericScalar;
-begin
-  Result := Sqrt(
-    (Data[0] * Data[0]) +
-    (Data[1] * Data[1]) +
-    (Data[2] * Data[2])
-  );
-end;
-
 function TGenericVector4.ToString: string;
 begin
-  Result := Format('%f %f %f', [Data[0], Data[1], Data[2]]);
+  Result := Format('%f %f %f %f', [Data[0], Data[1], Data[2], Data[3]]);
+end;
+
+function TGenericVector4.ToRawString: string;
+begin
+  Result := Format('%g %g %g %g', [Data[0], Data[1], Data[2], Data[3]]);
 end;
 
 function TGenericVector4.GetItems(const Index: TIndex): TGenericScalar;
@@ -327,31 +1108,337 @@ begin
   Result := Data[Index];
 end;
 
-class operator TGenericVector4. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4;
+procedure TGenericVector4.SetItems(const Index: TIndex; const Value: TGenericScalar);
 begin
-  Result.Data[0] := A[0] + B[0];
-  Result.Data[1] := A[1] + B[1];
-  Result.Data[2] := A[2] + B[2];
+  Data[Index] := Value;
 end;
 
-class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+function TGenericVector4.Length: TGenericScalar;
 begin
-  Result.Data[0] := V[0] * Scalar;
-  Result.Data[1] := V[1] * Scalar;
-  Result.Data[2] := V[2] * Scalar;
+  Result := Sqrt(
+    (Data[0] * Data[0]) +
+    (Data[1] * Data[1]) +
+    (Data[2] * Data[2]) +
+    (Data[3] * Data[3])
+  );
 end;
+
+function TGenericVector4.LengthSqr: TGenericScalar;
+begin
+  Result :=
+    (Data[0] * Data[0]) +
+    (Data[1] * Data[1]) +
+    (Data[2] * Data[2]) +
+    (Data[3] * Data[3]);
+end;
+
+class function TGenericVector4.MultiplyComponents(const V1, V2: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := V1.Data[0] * V2.Data[0];
+  Result.Data[1] := V1.Data[1] * V2.Data[1];
+  Result.Data[2] := V1.Data[2] * V2.Data[2];
+  Result.Data[3] := V1.Data[3] * V2.Data[3];
+end;
+
+function TGenericVector4.AdjustToLength(const NewLength: TGenericScalar): TGenericVector4;
+begin
+  Result := Self * (NewLength / Length);
+end;
+
+class function TGenericVector4.DotProduct(const V1, V2: TGenericVector4): TGenericScalar;
+begin
+  Result :=
+    V1.Data[0] * V2.Data[0] +
+    V1.Data[1] * V2.Data[1] +
+    V1.Data[2] * V2.Data[2] +
+    V1.Data[3] * V2.Data[3];
+end;
+
+function TGenericVector4.Abs: TGenericVector4;
+begin
+  Result.Data[0] := System.Abs(Data[0]);
+  Result.Data[1] := System.Abs(Data[1]);
+  Result.Data[2] := System.Abs(Data[2]);
+  Result.Data[3] := System.Abs(Data[3]);
+end;
+
+function TGenericVector4.IsZero: boolean;
+begin
+  Result :=
+    Math.IsZero(Data[0]) and
+    Math.IsZero(Data[1]) and
+    Math.IsZero(Data[2]) and
+    Math.IsZero(Data[3]);
+end;
+
+function TGenericVector4.IsZero(const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  Result := (System.Abs(Data[0]) < EqualityEpsilon) and
+            (System.Abs(Data[1]) < EqualityEpsilon) and
+            (System.Abs(Data[2]) < EqualityEpsilon) and
+            (System.Abs(Data[3]) < EqualityEpsilon);
+end;
+
+function TGenericVector4.IsPerfectlyZero: boolean;
+begin
+  Result := IsMemCharFilled(Data, SizeOf(Data), #0);
+end;
+
+class function TGenericVector4.Equals(const V1, V2: TGenericVector4): boolean;
+begin
+  Result :=
+    SameValue(V1.Data[0], V2.Data[0]) and
+    SameValue(V1.Data[1], V2.Data[1]) and
+    SameValue(V1.Data[2], V2.Data[2]) and
+    SameValue(V1.Data[3], V2.Data[3]);
+end;
+
+class function TGenericVector4.Equals(const V1, V2: TGenericVector4; const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := (V1.Data[0] = V2.Data[0]) and
+              (V1.Data[1] = V2.Data[1]) and
+              (V1.Data[2] = V2.Data[2]) and
+              (V1.Data[3] = V2.Data[3]) else
+    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < EqualityEpsilon) and
+              (System.Abs(V1.Data[1]-V2.Data[1]) < EqualityEpsilon) and
+              (System.Abs(V1.Data[2]-V2.Data[2]) < EqualityEpsilon) and
+              (System.Abs(V1.Data[3]-V2.Data[3]) < EqualityEpsilon);
+end;
+
+class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): boolean;
+begin
+  Result := (V1.Data[0] = V2.Data[0]) and
+            (V1.Data[1] = V2.Data[1]) and
+            (V1.Data[2] = V2.Data[2]) and
+            (V1.Data[3] = V2.Data[3]);
+end;
+
+function TGenericVector4.ToPosition: TGenericVector3;
+begin
+  Result.Data[0] := Data[0] / Data[3];
+  Result.Data[1] := Data[1] / Data[3];
+  Result.Data[2] := Data[2] / Data[3];
+end;
+
+function TGenericVector4.XYZ: TGenericVector3;
+begin
+  Result.Data[0] := Data[0];
+  Result.Data[1] := Data[1];
+  Result.Data[2] := Data[2];
+end;
+
+class function TGenericVector4.Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := V1.Data[0] + A * (V2.Data[0] - V1.Data[0]);
+  Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
+  Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
+  Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
+end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TGenericVector4.Zero: TGenericVector4;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
+
+{ TGenericMatrix2 ------------------------------------------------------------ }
+
+class operator TGenericMatrix2. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := A.Data[0, 0] + B.Data[0, 0];
+  Result.Data[0, 1] := A.Data[0, 1] + B.Data[0, 1];
+
+  Result.Data[1, 0] := A.Data[1, 0] + B.Data[1, 0];
+  Result.Data[1, 1] := A.Data[1, 1] + B.Data[1, 1];
+end;
+
+class operator TGenericMatrix2. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := A.Data[0, 0] - B.Data[0, 0];
+  Result.Data[0, 1] := A.Data[0, 1] - B.Data[0, 1];
+
+  Result.Data[1, 0] := A.Data[1, 0] - B.Data[1, 0];
+  Result.Data[1, 1] := A.Data[1, 1] - B.Data[1, 1];
+end;
+
+class operator TGenericMatrix2. {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix2): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := - M.Data[0, 0];
+  Result.Data[0, 1] := - M.Data[0, 1];
+
+  Result.Data[1, 0] := - M.Data[1, 0];
+  Result.Data[1, 1] := - M.Data[1, 1];
+end;
+
+class operator TGenericMatrix2.{$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix2; const Scalar: TGenericScalar): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := V.Data[0, 0] * Scalar;
+  Result.Data[0, 1] := V.Data[0, 1] * Scalar;
+
+  Result.Data[1, 0] := V.Data[1, 0] * Scalar;
+  Result.Data[1, 1] := V.Data[1, 1] * Scalar;
+end;
+
+class operator TGenericMatrix2.{$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix2): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := V.Data[0, 0] * Scalar;
+  Result.Data[0, 1] := V.Data[0, 1] * Scalar;
+
+  Result.Data[1, 0] := V.Data[1, 0] * Scalar;
+  Result.Data[1, 1] := V.Data[1, 1] * Scalar;
+end;
+
+class operator TGenericMatrix2.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix2; const V: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := M.Data[0, 0] * V.Data[0] + M.Data[1, 0] * V.Data[1];
+  Result.Data[1] := M.Data[0, 1] * V.Data[0] + M.Data[1, 1] * V.Data[1];
+end;
+
+class operator TGenericMatrix2.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := M1.Data[0, 0] * M2.Data[0, 0] + M1.Data[1, 0] * M2.Data[0, 1];
+  Result.Data[1, 0] := M1.Data[0, 0] * M2.Data[1, 0] + M1.Data[1, 0] * M2.Data[1, 1];
+  Result.Data[0, 1] := M1.Data[0, 1] * M2.Data[0, 0] + M1.Data[1, 1] * M2.Data[0, 1];
+  Result.Data[1, 1] := M1.Data[0, 1] * M2.Data[1, 0] + M1.Data[1, 1] * M2.Data[1, 1];
+end;
+
+function TGenericMatrix2.ToString(const LineIndent: string): string;
+begin
+  Result := Format('%s%f %f' + NL +
+                   '%s%f %f',
+   [LineIndent, Data[0, 0], Data[1, 0],
+    LineIndent, Data[0, 1], Data[1, 1] ]);
+end;
+
+function TGenericMatrix2.ToRawString(const LineIndent: string): string;
+begin
+  Result := Format('%s%g %g' + NL +
+                   '%s%g %g',
+   [LineIndent, Data[0, 0], Data[1, 0],
+    LineIndent, Data[0, 1], Data[1, 1] ]);
+end;
+
+function TGenericMatrix2.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
+begin
+  Result := Data[AColumn, ARow];
+end;
+
+procedure TGenericMatrix2.SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+begin
+  Data[AColumn, ARow] := Value;
+end;
+
+function TGenericMatrix2.Row(const ARow: TIndex): TGenericVector2;
+begin
+  Result.Data[0] := Data[0, ARow];
+  Result.Data[1] := Data[1, ARow];
+end;
+
+function MatrixDet2x2(const a1, a2, b1, b2: TGenericScalar): TGenericScalar;
+{ Matrix is
+  [ a1 a2 ]
+  [ b1 b2 ]
+}
+begin
+  Result := a1 * b2 - a2 * b1;
+end;
+
+function TGenericMatrix2.Determinant: TGenericScalar;
+begin
+  Result := MatrixDet2x2(
+    Data[0, 0], Data[1, 0],
+    Data[0, 1], Data[1, 1]
+  );
+end;
+
+function TGenericMatrix2.Inverse(ADeterminant: TGenericScalar): TGenericMatrix2;
+begin
+  { Code adapted from FPC Matrix unit (same license as Castle Game Engine).
+
+    Note that the code below is taken from FPC Matrix unit which has transposed
+    matrices. So we should transpose the input and output, in general.
+    But in this case, it's not needed, as the transpose of the inverse
+    is the inverse of the transpose.
+    Which means that
+
+      Result = transpose(inverse(transpose(m))
+             = transpose(transpose(inverse(m)))
+             = just inverse(m))
+  }
+
+  ADeterminant := 1 / ADeterminant;
+  Result.Data[0, 0] :=  Data[1, 1] * ADeterminant;
+  Result.Data[0, 1] := -Data[0, 1] * ADeterminant;
+  Result.Data[1, 0] := -Data[1, 0] * ADeterminant;
+  Result.Data[1, 1] :=  Data[0, 0] * ADeterminant;
+end;
+
+function TGenericMatrix2.TryInverse(out MInverse: TGenericMatrix2): boolean;
+var
+  D: TGenericScalar;
+begin
+  D := Determinant;
+  Result := not Math.IsZero(D);
+  if Result then
+    MInverse := Inverse(D);
+end;
+
+function TGenericMatrix2.Transpose: TGenericMatrix2;
+begin
+  Result.Data[0, 0] := Data[0, 0];
+  Result.Data[0, 1] := Data[1, 0];
+
+  Result.Data[1, 0] := Data[0, 1];
+  Result.Data[1, 1] := Data[1, 1];
+end;
+
+class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2): boolean;
+begin
+  Result :=
+    SameValue(M1.Data[0, 0], M2.Data[0, 0]) and
+    SameValue(M1.Data[0, 1], M2.Data[0, 1]) and
+
+    SameValue(M1.Data[1, 0], M2.Data[1, 0]) and
+    SameValue(M1.Data[1, 1], M2.Data[1, 1]);
+end;
+
+class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2; const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@M1, @M2, SizeOf(M1))
+  else
+    Result :=
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < EqualityEpsilon) and
+
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < EqualityEpsilon);
+end;
+
+class function TGenericMatrix2.PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean;
+begin
+  Result := CompareMem(@M1, @M2, SizeOf(M1));
+end;
+
+class function TGenericMatrix2.Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix2): TGenericMatrix2;
+begin
+  Result.Data[0, 0] := M1.Data[0, 0] + A * (M2.Data[0, 0] - M1.Data[0, 0]);
+  Result.Data[0, 1] := M1.Data[0, 1] + A * (M2.Data[0, 1] - M1.Data[0, 1]);
+
+  Result.Data[1, 0] := M1.Data[1, 0] + A * (M2.Data[1, 0] - M1.Data[1, 0]);
+  Result.Data[1, 1] := M1.Data[1, 1] + A * (M2.Data[1, 1] - M1.Data[1, 1]);
+end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TGenericMatrix2.Zero: TGenericMatrix2;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
 
 { TGenericMatrix3 ------------------------------------------------------------ }
-
-function TGenericMatrix3.ToString: string;
-begin
-  Result := Format('%f %f %f' + NL +
-                   '%f %f %f' + NL +
-                   '%f %f %f',
-   [Data[0, 0], Data[1, 0], Data[2, 0],
-    Data[0, 1], Data[1, 1], Data[2, 1],
-    Data[0, 2], Data[1, 2], Data[2, 2] ]);
-end;
 
 class operator TGenericMatrix3. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3;
 begin
@@ -366,6 +1453,36 @@ begin
   Result.Data[2, 0] := A.Data[2, 0] + B.Data[2, 0];
   Result.Data[2, 1] := A.Data[2, 1] + B.Data[2, 1];
   Result.Data[2, 2] := A.Data[2, 2] + B.Data[2, 2];
+end;
+
+class operator TGenericMatrix3. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3;
+begin
+  Result.Data[0, 0] := A.Data[0, 0] - B.Data[0, 0];
+  Result.Data[0, 1] := A.Data[0, 1] - B.Data[0, 1];
+  Result.Data[0, 2] := A.Data[0, 2] - B.Data[0, 2];
+
+  Result.Data[1, 0] := A.Data[1, 0] - B.Data[1, 0];
+  Result.Data[1, 1] := A.Data[1, 1] - B.Data[1, 1];
+  Result.Data[1, 2] := A.Data[1, 2] - B.Data[1, 2];
+
+  Result.Data[2, 0] := A.Data[2, 0] - B.Data[2, 0];
+  Result.Data[2, 1] := A.Data[2, 1] - B.Data[2, 1];
+  Result.Data[2, 2] := A.Data[2, 2] - B.Data[2, 2];
+end;
+
+class operator TGenericMatrix3. {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix3): TGenericMatrix3;
+begin
+  Result.Data[0, 0] := - M.Data[0, 0];
+  Result.Data[0, 1] := - M.Data[0, 1];
+  Result.Data[0, 2] := - M.Data[0, 2];
+
+  Result.Data[1, 0] := - M.Data[1, 0];
+  Result.Data[1, 1] := - M.Data[1, 1];
+  Result.Data[1, 2] := - M.Data[1, 2];
+
+  Result.Data[2, 0] := - M.Data[2, 0];
+  Result.Data[2, 1] := - M.Data[2, 1];
+  Result.Data[2, 2] := - M.Data[2, 2];
 end;
 
 class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix3; const Scalar: TGenericScalar): TGenericMatrix3;
@@ -383,19 +1500,200 @@ begin
   Result.Data[2, 2] := V.Data[2, 2] * Scalar;
 end;
 
-{ TGenericMatrix4 ------------------------------------------------------------ }
-
-function TGenericMatrix4.ToString: string;
+class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix3): TGenericMatrix3;
 begin
-  Result := Format('%f %f %f %f' + NL +
-                   '%f %f %f %f' + NL +
-                   '%f %f %f %f' + NL +
-                   '%f %f %f %f',
-   [Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
-    Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
-    Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
-    Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+  Result.Data[0, 0] := V.Data[0, 0] * Scalar;
+  Result.Data[0, 1] := V.Data[0, 1] * Scalar;
+  Result.Data[0, 2] := V.Data[0, 2] * Scalar;
+
+  Result.Data[1, 0] := V.Data[1, 0] * Scalar;
+  Result.Data[1, 1] := V.Data[1, 1] * Scalar;
+  Result.Data[1, 2] := V.Data[1, 2] * Scalar;
+
+  Result.Data[2, 0] := V.Data[2, 0] * Scalar;
+  Result.Data[2, 1] := V.Data[2, 1] * Scalar;
+  Result.Data[2, 2] := V.Data[2, 2] * Scalar;
 end;
+
+class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := M.Data[0, 0] * V.Data[0] + M.Data[1, 0] * V.Data[1] + M.Data[2, 0] * V.Data[2];
+  Result.Data[1] := M.Data[0, 1] * V.Data[0] + M.Data[1, 1] * V.Data[1] + M.Data[2, 1] * V.Data[2];
+  Result.Data[2] := M.Data[0, 2] * V.Data[0] + M.Data[1, 2] * V.Data[1] + M.Data[2, 2] * V.Data[2];
+end;
+
+class operator TGenericMatrix3.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
+begin
+  Result.Data[0, 0] := M1.Data[0, 0] * M2.Data[0, 0] + M1.Data[1, 0] * M2.Data[0, 1] + M1.Data[2, 0] * M2.Data[0, 2];
+  Result.Data[1, 0] := M1.Data[0, 0] * M2.Data[1, 0] + M1.Data[1, 0] * M2.Data[1, 1] + M1.Data[2, 0] * M2.Data[1, 2];
+  Result.Data[2, 0] := M1.Data[0, 0] * M2.Data[2, 0] + M1.Data[1, 0] * M2.Data[2, 1] + M1.Data[2, 0] * M2.Data[2, 2];
+  Result.Data[0, 1] := M1.Data[0, 1] * M2.Data[0, 0] + M1.Data[1, 1] * M2.Data[0, 1] + M1.Data[2, 1] * M2.Data[0, 2];
+  Result.Data[1, 1] := M1.Data[0, 1] * M2.Data[1, 0] + M1.Data[1, 1] * M2.Data[1, 1] + M1.Data[2, 1] * M2.Data[1, 2];
+  Result.Data[2, 1] := M1.Data[0, 1] * M2.Data[2, 0] + M1.Data[1, 1] * M2.Data[2, 1] + M1.Data[2, 1] * M2.Data[2, 2];
+  Result.Data[0, 2] := M1.Data[0, 2] * M2.Data[0, 0] + M1.Data[1, 2] * M2.Data[0, 1] + M1.Data[2, 2] * M2.Data[0, 2];
+  Result.Data[1, 2] := M1.Data[0, 2] * M2.Data[1, 0] + M1.Data[1, 2] * M2.Data[1, 1] + M1.Data[2, 2] * M2.Data[1, 2];
+  Result.Data[2, 2] := M1.Data[0, 2] * M2.Data[2, 0] + M1.Data[1, 2] * M2.Data[2, 1] + M1.Data[2, 2] * M2.Data[2, 2];
+end;
+
+function TGenericMatrix3.ToString(const LineIndent: string): string;
+begin
+  Result := Format('%s%f %f %f' + NL +
+                   '%s%f %f %f' + NL +
+                   '%s%f %f %f',
+   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
+    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
+    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
+end;
+
+function TGenericMatrix3.ToRawString(const LineIndent: string): string;
+begin
+  Result := Format('%s%g %g %g' + NL +
+                   '%s%g %g %g' + NL +
+                   '%s%g %g %g',
+   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0],
+    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1],
+    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2] ]);
+end;
+
+function TGenericMatrix3.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
+begin
+  Result := Data[AColumn, ARow];
+end;
+
+procedure TGenericMatrix3.SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+begin
+  Data[AColumn, ARow] := Value;
+end;
+
+function TGenericMatrix3.Row(const ARow: TIndex): TGenericVector3;
+begin
+  Result.Data[0] := Data[0, ARow];
+  Result.Data[1] := Data[1, ARow];
+  Result.Data[2] := Data[2, ARow];
+end;
+
+function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TGenericScalar): TGenericScalar;
+begin
+  Result := a1 * MatrixDet2x2 (b2, b3, c2, c3)
+          - b1 * MatrixDet2x2 (a2, a3, c2, c3)
+          + c1 * MatrixDet2x2 (a2, a3, b2, b3);
+end;
+
+function TGenericMatrix3.Determinant: TGenericScalar;
+begin
+  Result := MatrixDet3x3(
+    Data[0, 0], Data[1, 0], Data[2, 0],
+    Data[0, 1], Data[1, 1], Data[2, 1],
+    Data[0, 2], Data[1, 2], Data[2, 2]
+  );
+end;
+
+function TGenericMatrix3.Inverse(ADeterminant: TGenericScalar): TGenericMatrix3;
+begin
+  { Code adapted from FPC Matrix unit (same license as Castle Game Engine).
+    This calculates the inverse of a transpose, but it doesn't matter,
+    see MatrixInverse on TMatrix2 comments. }
+
+  ADeterminant := 1 / ADeterminant;
+  Result.Data[0,0] := (Data[1,1] * Data[2,2]-Data[2,1] * Data[1,2]) * ADeterminant;
+  Result.Data[0,1] := -(Data[0,1] * Data[2,2]-Data[2,1] * Data[0,2]) * ADeterminant;
+  Result.Data[0,2] := (Data[0,1] * Data[1,2]-Data[1,1] * Data[0,2]) * ADeterminant;
+  Result.Data[1,0] := -(Data[1,0] * Data[2,2]-Data[2,0] * Data[1,2]) * ADeterminant;
+  Result.Data[1,1] := (Data[0,0] * Data[2,2]-Data[2,0] * Data[0,2]) * ADeterminant;
+  Result.Data[1,2] := -(Data[0,0] * Data[1,2]-Data[1,0] * Data[0,2]) * ADeterminant;
+  Result.Data[2,0] := (Data[1,0] * Data[2,1]-Data[2,0] * Data[1,1]) * ADeterminant;
+  Result.Data[2,1] := -(Data[0,0] * Data[2,1]-Data[2,0] * Data[0,1]) * ADeterminant;
+  Result.Data[2,2] := (Data[0,0] * Data[1,1]-Data[1,0] * Data[0,1]) * ADeterminant;
+end;
+
+function TGenericMatrix3.TryInverse(out MInverse: TGenericMatrix3): boolean;
+var
+  D: TGenericScalar;
+begin
+  D := Determinant;
+  Result := not Math.IsZero(D);
+  if Result then
+    MInverse := Inverse(D);
+end;
+
+function TGenericMatrix3.Transpose: TGenericMatrix3;
+begin
+  Result.Data[0, 0] := Data[0, 0];
+  Result.Data[0, 1] := Data[1, 0];
+  Result.Data[0, 2] := Data[2, 0];
+
+  Result.Data[1, 0] := Data[0, 1];
+  Result.Data[1, 1] := Data[1, 1];
+  Result.Data[1, 2] := Data[2, 1];
+
+  Result.Data[2, 0] := Data[0, 2];
+  Result.Data[2, 1] := Data[1, 2];
+  Result.Data[2, 2] := Data[2, 2];
+end;
+
+class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3): boolean;
+begin
+  Result :=
+    SameValue(M1.Data[0, 0], M2.Data[0, 0]) and
+    SameValue(M1.Data[0, 1], M2.Data[0, 1]) and
+    SameValue(M1.Data[0, 2], M2.Data[0, 2]) and
+
+    SameValue(M1.Data[1, 0], M2.Data[1, 0]) and
+    SameValue(M1.Data[1, 1], M2.Data[1, 1]) and
+    SameValue(M1.Data[1, 2], M2.Data[1, 2]) and
+
+    SameValue(M1.Data[2, 0], M2.Data[2, 0]) and
+    SameValue(M1.Data[2, 1], M2.Data[2, 1]) and
+    SameValue(M1.Data[2, 2], M2.Data[2, 2]);
+end;
+
+class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3; const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@M1, @M2, SizeOf(M1))
+  else
+    Result :=
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < EqualityEpsilon) and
+
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < EqualityEpsilon) and
+
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < EqualityEpsilon);
+end;
+
+class function TGenericMatrix3.PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean;
+begin
+  Result := CompareMem(@M1, @M2, SizeOf(M1));
+end;
+
+class function TGenericMatrix3.Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix3): TGenericMatrix3;
+begin
+  Result.Data[0, 0] := M1.Data[0, 0] + A * (M2.Data[0, 0] - M1.Data[0, 0]);
+  Result.Data[0, 1] := M1.Data[0, 1] + A * (M2.Data[0, 1] - M1.Data[0, 1]);
+  Result.Data[0, 2] := M1.Data[0, 2] + A * (M2.Data[0, 2] - M1.Data[0, 2]);
+
+  Result.Data[1, 0] := M1.Data[1, 0] + A * (M2.Data[1, 0] - M1.Data[1, 0]);
+  Result.Data[1, 1] := M1.Data[1, 1] + A * (M2.Data[1, 1] - M1.Data[1, 1]);
+  Result.Data[1, 2] := M1.Data[1, 2] + A * (M2.Data[1, 2] - M1.Data[1, 2]);
+
+  Result.Data[2, 0] := M1.Data[2, 0] + A * (M2.Data[2, 0] - M1.Data[2, 0]);
+  Result.Data[2, 1] := M1.Data[2, 1] + A * (M2.Data[2, 1] - M1.Data[2, 1]);
+  Result.Data[2, 2] := M1.Data[2, 2] + A * (M2.Data[2, 2] - M1.Data[2, 2]);
+end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TGenericMatrix3.Zero: TGenericMatrix3;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
+
+{ TGenericMatrix4 ------------------------------------------------------------ }
 
 class operator TGenericMatrix4. {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4;
 begin
@@ -418,6 +1716,52 @@ begin
   Result.Data[3, 1] := A.Data[3, 1] + B.Data[3, 1];
   Result.Data[3, 2] := A.Data[3, 2] + B.Data[3, 2];
   Result.Data[3, 3] := A.Data[3, 3] + B.Data[3, 3];
+end;
+
+class operator TGenericMatrix4. {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4;
+begin
+  Result.Data[0, 0] := A.Data[0, 0] - B.Data[0, 0];
+  Result.Data[0, 1] := A.Data[0, 1] - B.Data[0, 1];
+  Result.Data[0, 2] := A.Data[0, 2] - B.Data[0, 2];
+  Result.Data[0, 3] := A.Data[0, 3] - B.Data[0, 3];
+
+  Result.Data[1, 0] := A.Data[1, 0] - B.Data[1, 0];
+  Result.Data[1, 1] := A.Data[1, 1] - B.Data[1, 1];
+  Result.Data[1, 2] := A.Data[1, 2] - B.Data[1, 2];
+  Result.Data[1, 3] := A.Data[1, 3] - B.Data[1, 3];
+
+  Result.Data[2, 0] := A.Data[2, 0] - B.Data[2, 0];
+  Result.Data[2, 1] := A.Data[2, 1] - B.Data[2, 1];
+  Result.Data[2, 2] := A.Data[2, 2] - B.Data[2, 2];
+  Result.Data[2, 3] := A.Data[2, 3] - B.Data[2, 3];
+
+  Result.Data[3, 0] := A.Data[3, 0] - B.Data[3, 0];
+  Result.Data[3, 1] := A.Data[3, 1] - B.Data[3, 1];
+  Result.Data[3, 2] := A.Data[3, 2] - B.Data[3, 2];
+  Result.Data[3, 3] := A.Data[3, 3] - B.Data[3, 3];
+end;
+
+class operator TGenericMatrix4. {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix4): TGenericMatrix4;
+begin
+  Result.Data[0, 0] := - M.Data[0, 0];
+  Result.Data[0, 1] := - M.Data[0, 1];
+  Result.Data[0, 2] := - M.Data[0, 2];
+  Result.Data[0, 3] := - M.Data[0, 3];
+
+  Result.Data[1, 0] := - M.Data[1, 0];
+  Result.Data[1, 1] := - M.Data[1, 1];
+  Result.Data[1, 2] := - M.Data[1, 2];
+  Result.Data[1, 3] := - M.Data[1, 3];
+
+  Result.Data[2, 0] := - M.Data[2, 0];
+  Result.Data[2, 1] := - M.Data[2, 1];
+  Result.Data[2, 2] := - M.Data[2, 2];
+  Result.Data[2, 3] := - M.Data[2, 3];
+
+  Result.Data[3, 0] := - M.Data[3, 0];
+  Result.Data[3, 1] := - M.Data[3, 1];
+  Result.Data[3, 2] := - M.Data[3, 2];
+  Result.Data[3, 3] := - M.Data[3, 3];
 end;
 
 class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix4; const Scalar: TGenericScalar): TGenericMatrix4;
@@ -443,12 +1787,241 @@ begin
   Result.Data[3, 3] := V.Data[3, 3] * Scalar;
 end;
 
+class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix4): TGenericMatrix4;
+begin
+  Result.Data[0, 0] := V.Data[0, 0] * Scalar;
+  Result.Data[0, 1] := V.Data[0, 1] * Scalar;
+  Result.Data[0, 2] := V.Data[0, 2] * Scalar;
+  Result.Data[0, 3] := V.Data[0, 3] * Scalar;
+
+  Result.Data[1, 0] := V.Data[1, 0] * Scalar;
+  Result.Data[1, 1] := V.Data[1, 1] * Scalar;
+  Result.Data[1, 2] := V.Data[1, 2] * Scalar;
+  Result.Data[1, 3] := V.Data[1, 3] * Scalar;
+
+  Result.Data[2, 0] := V.Data[2, 0] * Scalar;
+  Result.Data[2, 1] := V.Data[2, 1] * Scalar;
+  Result.Data[2, 2] := V.Data[2, 2] * Scalar;
+  Result.Data[2, 3] := V.Data[2, 3] * Scalar;
+
+  Result.Data[3, 0] := V.Data[3, 0] * Scalar;
+  Result.Data[3, 1] := V.Data[3, 1] * Scalar;
+  Result.Data[3, 2] := V.Data[3, 2] * Scalar;
+  Result.Data[3, 3] := V.Data[3, 3] * Scalar;
+end;
+
+class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;
+{var
+  I, J: Integer;}
+begin
+  {
+  for I := 0 to 3 do
+  begin
+    Result.Data[I] := 0;
+    for J := 0 to 3 do
+      Result.Data[I] := Result.Data[I] + M.Data[J, I] * V.Data[J];
+  end;
+
+  Code expanded for the sake of speed:}
+
+  Result.Data[0] := M.Data[0, 0] * V.Data[0] + M.Data[1, 0] * V.Data[1] + M.Data[2, 0] * V.Data[2] + M.Data[3, 0] * V.Data[3];
+  Result.Data[1] := M.Data[0, 1] * V.Data[0] + M.Data[1, 1] * V.Data[1] + M.Data[2, 1] * V.Data[2] + M.Data[3, 1] * V.Data[3];
+  Result.Data[2] := M.Data[0, 2] * V.Data[0] + M.Data[1, 2] * V.Data[1] + M.Data[2, 2] * V.Data[2] + M.Data[3, 2] * V.Data[3];
+  Result.Data[3] := M.Data[0, 3] * V.Data[0] + M.Data[1, 3] * V.Data[1] + M.Data[2, 3] * V.Data[2] + M.Data[3, 3] * V.Data[3];
+end;
+
+class operator TGenericMatrix4.{$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4;
+{var
+  I, J, K: Integer;}
+begin
+(*
+  FillChar(Result, SizeOf(Result), 0);
+  for I := 0 to 3 do { i = rows, j = columns }
+    for J := 0 to 3 do
+      for K := 0 to 3 do
+        Result.Data[J, I] += M1.Data[K, I] * M2.Data[J, K];
+*)
+
+  { This is code above expanded for speed sake
+    (code generated by genMultMatrix) }
+  Result.Data[0, 0] := M1.Data[0, 0] * M2.Data[0, 0] + M1.Data[1, 0] * M2.Data[0, 1] + M1.Data[2, 0] * M2.Data[0, 2] + M1.Data[3, 0] * M2.Data[0, 3];
+  Result.Data[1, 0] := M1.Data[0, 0] * M2.Data[1, 0] + M1.Data[1, 0] * M2.Data[1, 1] + M1.Data[2, 0] * M2.Data[1, 2] + M1.Data[3, 0] * M2.Data[1, 3];
+  Result.Data[2, 0] := M1.Data[0, 0] * M2.Data[2, 0] + M1.Data[1, 0] * M2.Data[2, 1] + M1.Data[2, 0] * M2.Data[2, 2] + M1.Data[3, 0] * M2.Data[2, 3];
+  Result.Data[3, 0] := M1.Data[0, 0] * M2.Data[3, 0] + M1.Data[1, 0] * M2.Data[3, 1] + M1.Data[2, 0] * M2.Data[3, 2] + M1.Data[3, 0] * M2.Data[3, 3];
+  Result.Data[0, 1] := M1.Data[0, 1] * M2.Data[0, 0] + M1.Data[1, 1] * M2.Data[0, 1] + M1.Data[2, 1] * M2.Data[0, 2] + M1.Data[3, 1] * M2.Data[0, 3];
+  Result.Data[1, 1] := M1.Data[0, 1] * M2.Data[1, 0] + M1.Data[1, 1] * M2.Data[1, 1] + M1.Data[2, 1] * M2.Data[1, 2] + M1.Data[3, 1] * M2.Data[1, 3];
+  Result.Data[2, 1] := M1.Data[0, 1] * M2.Data[2, 0] + M1.Data[1, 1] * M2.Data[2, 1] + M1.Data[2, 1] * M2.Data[2, 2] + M1.Data[3, 1] * M2.Data[2, 3];
+  Result.Data[3, 1] := M1.Data[0, 1] * M2.Data[3, 0] + M1.Data[1, 1] * M2.Data[3, 1] + M1.Data[2, 1] * M2.Data[3, 2] + M1.Data[3, 1] * M2.Data[3, 3];
+  Result.Data[0, 2] := M1.Data[0, 2] * M2.Data[0, 0] + M1.Data[1, 2] * M2.Data[0, 1] + M1.Data[2, 2] * M2.Data[0, 2] + M1.Data[3, 2] * M2.Data[0, 3];
+  Result.Data[1, 2] := M1.Data[0, 2] * M2.Data[1, 0] + M1.Data[1, 2] * M2.Data[1, 1] + M1.Data[2, 2] * M2.Data[1, 2] + M1.Data[3, 2] * M2.Data[1, 3];
+  Result.Data[2, 2] := M1.Data[0, 2] * M2.Data[2, 0] + M1.Data[1, 2] * M2.Data[2, 1] + M1.Data[2, 2] * M2.Data[2, 2] + M1.Data[3, 2] * M2.Data[2, 3];
+  Result.Data[3, 2] := M1.Data[0, 2] * M2.Data[3, 0] + M1.Data[1, 2] * M2.Data[3, 1] + M1.Data[2, 2] * M2.Data[3, 2] + M1.Data[3, 2] * M2.Data[3, 3];
+  Result.Data[0, 3] := M1.Data[0, 3] * M2.Data[0, 0] + M1.Data[1, 3] * M2.Data[0, 1] + M1.Data[2, 3] * M2.Data[0, 2] + M1.Data[3, 3] * M2.Data[0, 3];
+  Result.Data[1, 3] := M1.Data[0, 3] * M2.Data[1, 0] + M1.Data[1, 3] * M2.Data[1, 1] + M1.Data[2, 3] * M2.Data[1, 2] + M1.Data[3, 3] * M2.Data[1, 3];
+  Result.Data[2, 3] := M1.Data[0, 3] * M2.Data[2, 0] + M1.Data[1, 3] * M2.Data[2, 1] + M1.Data[2, 3] * M2.Data[2, 2] + M1.Data[3, 3] * M2.Data[2, 3];
+  Result.Data[3, 3] := M1.Data[0, 3] * M2.Data[3, 0] + M1.Data[1, 3] * M2.Data[3, 1] + M1.Data[2, 3] * M2.Data[3, 2] + M1.Data[3, 3] * M2.Data[3, 3];
+end;
+
+function TGenericMatrix4.ToString(const LineIndent: string): string;
+begin
+  Result := Format('%s%f %f %f %f' + NL +
+                   '%s%f %f %f %f' + NL +
+                   '%s%f %f %f %f' + NL +
+                   '%s%f %f %f %f',
+   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
+    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
+    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
+    LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+end;
+
+function TGenericMatrix4.ToRawString(const LineIndent: string): string;
+begin
+  Result := Format('%s%g %g %g %g' + NL +
+                   '%s%g %g %g %g' + NL +
+                   '%s%g %g %g %g' + NL +
+                   '%s%g %g %g %g',
+   [LineIndent, Data[0, 0], Data[1, 0], Data[2, 0], Data[3, 0],
+    LineIndent, Data[0, 1], Data[1, 1], Data[2, 1], Data[3, 1],
+    LineIndent, Data[0, 2], Data[1, 2], Data[2, 2], Data[3, 2],
+    LineIndent, Data[0, 3], Data[1, 3], Data[2, 3], Data[3, 3] ]);
+end;
+
+function TGenericMatrix4.GetItems(const AColumn, ARow: TIndex): TGenericScalar;
+begin
+  Result := Data[AColumn, ARow];
+end;
+
+procedure TGenericMatrix4.SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+begin
+  Data[AColumn, ARow] := Value;
+end;
+
+function TGenericMatrix4.Row(const ARow: TIndex): TGenericVector4;
+begin
+  Result.Data[0] := Data[0, ARow];
+  Result.Data[1] := Data[1, ARow];
+  Result.Data[2] := Data[2, ARow];
+  Result.Data[3] := Data[3, ARow];
+end;
+
+function TGenericMatrix4.Determinant: TGenericScalar;
+var
+  a1, a2, a3, a4, b1, b2, b3, b4, c1, c2, c3, c4, d1, d2, d3, d4: TGenericScalar;
+begin
+  a1 := Data[0, 0]; b1 := Data[0, 1];
+  c1 := Data[0, 2]; d1 := Data[0, 3];
+
+  a2 := Data[1, 0]; b2 := Data[1, 1];
+  c2 := Data[1, 2]; d2 := Data[1, 3];
+
+  a3 := Data[2, 0]; b3 := Data[2, 1];
+  c3 := Data[2, 2]; d3 := Data[2, 3];
+
+  a4 := Data[3, 0]; b4 := Data[3, 1];
+  c4 := Data[3, 2]; d4 := Data[3, 3];
+
+  Result := a1 * MatrixDet3x3 (b2, b3, b4, c2, c3, c4, d2, d3, d4) -
+            b1 * MatrixDet3x3 (a2, a3, a4, c2, c3, c4, d2, d3, d4) +
+            c1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, d2, d3, d4) -
+            d1 * MatrixDet3x3 (a2, a3, a4, b2, b3, b4, c2, c3, c4);
+end;
+
+function TGenericMatrix4.Inverse(ADeterminant: TGenericScalar): TGenericMatrix4;
+begin
+  { Code adapted from FPC Matrix unit (same license as Castle Game Engine).
+    This calculates the inverse of a transpose, but it doesn't matter,
+    see TGenericMatrix3.Inverse comments. }
+
+  ADeterminant := 1 / ADeterminant;
+  Result.Data[0,0] := ADeterminant * (Data[1,1] * (Data[2,2] * Data[3,3] - Data[2,3] * Data[3,2])+
+                                      Data[1,2] * (Data[2,3] * Data[3,1] - Data[2,1] * Data[3,3])+
+                                      Data[1,3] * (Data[2,1] * Data[3,2] - Data[2,2] * Data[3,1]));
+  Result.Data[0,1] := ADeterminant * (Data[2,1] * (Data[0,2] * Data[3,3] - Data[0,3] * Data[3,2])+
+                                      Data[2,2] * (Data[0,3] * Data[3,1] - Data[0,1] * Data[3,3])+
+                                      Data[2,3] * (Data[0,1] * Data[3,2] - Data[0,2] * Data[3,1]));
+  Result.Data[0,2] := ADeterminant * (Data[3,1] * (Data[0,2] * Data[1,3] - Data[0,3] * Data[1,2])+
+                                      Data[3,2] * (Data[0,3] * Data[1,1] - Data[0,1] * Data[1,3])+
+                                      Data[3,3] * (Data[0,1] * Data[1,2] - Data[0,2] * Data[1,1]));
+  Result.Data[0,3] := ADeterminant * (Data[0,1] * (Data[1,3] * Data[2,2] - Data[1,2] * Data[2,3])+
+                                      Data[0,2] * (Data[1,1] * Data[2,3] - Data[1,3] * Data[2,1])+
+                                      Data[0,3] * (Data[1,2] * Data[2,1] - Data[1,1] * Data[2,2]));
+  Result.Data[1,0] := ADeterminant * (Data[1,2] * (Data[2,0] * Data[3,3] - Data[2,3] * Data[3,0])+
+                                      Data[1,3] * (Data[2,2] * Data[3,0] - Data[2,0] * Data[3,2])+
+                                      Data[1,0] * (Data[2,3] * Data[3,2] - Data[2,2] * Data[3,3]));
+  Result.Data[1,1] := ADeterminant * (Data[2,2] * (Data[0,0] * Data[3,3] - Data[0,3] * Data[3,0])+
+                                      Data[2,3] * (Data[0,2] * Data[3,0] - Data[0,0] * Data[3,2])+
+                                      Data[2,0] * (Data[0,3] * Data[3,2] - Data[0,2] * Data[3,3]));
+  Result.Data[1,2] := ADeterminant * (Data[3,2] * (Data[0,0] * Data[1,3] - Data[0,3] * Data[1,0])+
+                                      Data[3,3] * (Data[0,2] * Data[1,0] - Data[0,0] * Data[1,2])+
+                                      Data[3,0] * (Data[0,3] * Data[1,2] - Data[0,2] * Data[1,3]));
+  Result.Data[1,3] := ADeterminant * (Data[0,2] * (Data[1,3] * Data[2,0] - Data[1,0] * Data[2,3])+
+                                      Data[0,3] * (Data[1,0] * Data[2,2] - Data[1,2] * Data[2,0])+
+                                      Data[0,0] * (Data[1,2] * Data[2,3] - Data[1,3] * Data[2,2]));
+  Result.Data[2,0] := ADeterminant * (Data[1,3] * (Data[2,0] * Data[3,1] - Data[2,1] * Data[3,0])+
+                                      Data[1,0] * (Data[2,1] * Data[3,3] - Data[2,3] * Data[3,1])+
+                                      Data[1,1] * (Data[2,3] * Data[3,0] - Data[2,0] * Data[3,3]));
+  Result.Data[2,1] := ADeterminant * (Data[2,3] * (Data[0,0] * Data[3,1] - Data[0,1] * Data[3,0])+
+                                      Data[2,0] * (Data[0,1] * Data[3,3] - Data[0,3] * Data[3,1])+
+                                      Data[2,1] * (Data[0,3] * Data[3,0] - Data[0,0] * Data[3,3]));
+  Result.Data[2,2] := ADeterminant * (Data[3,3] * (Data[0,0] * Data[1,1] - Data[0,1] * Data[1,0])+
+                                      Data[3,0] * (Data[0,1] * Data[1,3] - Data[0,3] * Data[1,1])+
+                                      Data[3,1] * (Data[0,3] * Data[1,0] - Data[0,0] * Data[1,3]));
+  Result.Data[2,3] := ADeterminant * (Data[0,3] * (Data[1,1] * Data[2,0] - Data[1,0] * Data[2,1])+
+                                      Data[0,0] * (Data[1,3] * Data[2,1] - Data[1,1] * Data[2,3])+
+                                      Data[0,1] * (Data[1,0] * Data[2,3] - Data[1,3] * Data[2,0]));
+  Result.Data[3,0] := ADeterminant * (Data[1,0] * (Data[2,2] * Data[3,1] - Data[2,1] * Data[3,2])+
+                                      Data[1,1] * (Data[2,0] * Data[3,2] - Data[2,2] * Data[3,0])+
+                                      Data[1,2] * (Data[2,1] * Data[3,0] - Data[2,0] * Data[3,1]));
+  Result.Data[3,1] := ADeterminant * (Data[2,0] * (Data[0,2] * Data[3,1] - Data[0,1] * Data[3,2])+
+                                      Data[2,1] * (Data[0,0] * Data[3,2] - Data[0,2] * Data[3,0])+
+                                      Data[2,2] * (Data[0,1] * Data[3,0] - Data[0,0] * Data[3,1]));
+  Result.Data[3,2] := ADeterminant * (Data[3,0] * (Data[0,2] * Data[1,1] - Data[0,1] * Data[1,2])+
+                                      Data[3,1] * (Data[0,0] * Data[1,2] - Data[0,2] * Data[1,0])+
+                                      Data[3,2] * (Data[0,1] * Data[1,0] - Data[0,0] * Data[1,1]));
+  Result.Data[3,3] := ADeterminant * (Data[0,0] * (Data[1,1] * Data[2,2] - Data[1,2] * Data[2,1])+
+                                      Data[0,1] * (Data[1,2] * Data[2,0] - Data[1,0] * Data[2,2])+
+                                      Data[0,2] * (Data[1,0] * Data[2,1] - Data[1,1] * Data[2,0]));
+end;
+
+function TGenericMatrix4.TryInverse(out MInverse: TGenericMatrix4): boolean;
+var
+  D: TGenericScalar;
+begin
+  D := Determinant;
+  Result := not Math.IsZero(D);
+  if Result then
+    MInverse := Inverse(D);
+end;
+
+function TGenericMatrix4.Transpose: TGenericMatrix4;
+begin
+  Result.Data[0, 0] := Data[0, 0];
+  Result.Data[0, 1] := Data[1, 0];
+  Result.Data[0, 2] := Data[2, 0];
+  Result.Data[0, 3] := Data[3, 0];
+
+  Result.Data[1, 0] := Data[0, 1];
+  Result.Data[1, 1] := Data[1, 1];
+  Result.Data[1, 2] := Data[2, 1];
+  Result.Data[1, 3] := Data[3, 1];
+
+  Result.Data[2, 0] := Data[0, 2];
+  Result.Data[2, 1] := Data[1, 2];
+  Result.Data[2, 2] := Data[2, 2];
+  Result.Data[2, 3] := Data[3, 2];
+
+  Result.Data[3, 0] := Data[0, 3];
+  Result.Data[3, 1] := Data[1, 3];
+  Result.Data[3, 2] := Data[2, 3];
+  Result.Data[3, 3] := Data[3, 3];
+end;
+
 function TGenericMatrix4.MultPoint(const Pt: TGenericVector3): TGenericVector3;
 var
   Divisor: TGenericScalar;
 begin
   { Simple implementation:
-  Result := Vector3SinglePoint(MatrixMultVector(m, Vector4Single(pt))); }
+  Result := (M * Vector4(Pt, 1)).ToPosition; }
 
   Result.Data[0] := Data[0, 0] * Pt.Data[0] + Data[1, 0] * Pt.Data[1] + Data[2, 0] * Pt.Data[2] + Data[3, 0];
   Result.Data[1] := Data[0, 1] * Pt.Data[0] + Data[1, 1] * Pt.Data[1] + Data[2, 1] * Pt.Data[2] + Data[3, 1];
@@ -478,7 +2051,7 @@ begin
       Data[1, 3] * Pt.Data[1] +
       Data[2, 3] * Pt.Data[2] +
       Data[3, 3];
-    if IsZero(Divisor) then
+    if Math.IsZero(Divisor) then
       raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
 
     Result.Data[0] /= Divisor;
@@ -498,25 +2071,25 @@ begin
 
   Res3D := MultPoint(V3);
 
-  Result.Data[0] := Res3D[0];
-  Result.Data[1] := Res3D[1];
+  Result.Data[0] := Res3D.Data[0];
+  Result.Data[1] := Res3D.Data[1];
 end;
 
 function TGenericMatrix4.MultDirection(const Dir: TGenericVector3): TGenericVector3;
 var
   Divisor: TGenericScalar;
 begin
-  Result.Data[0] := Data[0, 0] * Dir[0] + Data[1, 0] * Dir[1] + Data[2, 0] * Dir[2];
-  Result.Data[1] := Data[0, 1] * Dir[0] + Data[1, 1] * Dir[1] + Data[2, 1] * Dir[2];
-  Result.Data[2] := Data[0, 2] * Dir[0] + Data[1, 2] * Dir[1] + Data[2, 2] * Dir[2];
+  Result.Data[0] := Data[0, 0] * Dir.Data[0] + Data[1, 0] * Dir.Data[1] + Data[2, 0] * Dir.Data[2];
+  Result.Data[1] := Data[0, 1] * Dir.Data[0] + Data[1, 1] * Dir.Data[1] + Data[2, 1] * Dir.Data[2];
+  Result.Data[2] := Data[0, 2] * Dir.Data[0] + Data[1, 2] * Dir.Data[1] + Data[2, 2] * Dir.Data[2];
 
   if not (
     (Data[0, 3] = 0) and
     (Data[1, 3] = 0) and
     (Data[2, 3] = 0) ) then
   begin
-    Divisor := Data[0, 3] * Dir[0] + Data[1, 3] * Dir[1] + Data[2, 3] * Dir[2];
-    if not IsZero(Divisor) then
+    Divisor := Data[0, 3] * Dir.Data[0] + Data[1, 3] * Dir.Data[1] + Data[2, 3] * Dir.Data[2];
+    if not Math.IsZero(Divisor) then
       raise ETransformedResultInvalid.Create(Format(
         '3D direction transformed by 4x4 matrix to a point, with divisor = %f (%g), with matrix:',
         [Divisor, Divisor]) + NL + ToString);
@@ -534,8 +2107,94 @@ begin
 
   Res3D := MultDirection(V3);
 
-  Result.Data[0] := Res3D[0];
-  Result.Data[1] := Res3D[1];
+  Result.Data[0] := Res3D.Data[0];
+  Result.Data[1] := Res3D.Data[1];
 end;
+
+class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4): boolean;
+begin
+  Result :=
+    SameValue(M1.Data[0, 0], M2.Data[0, 0]) and
+    SameValue(M1.Data[0, 1], M2.Data[0, 1]) and
+    SameValue(M1.Data[0, 2], M2.Data[0, 2]) and
+    SameValue(M1.Data[0, 3], M2.Data[0, 3]) and
+
+    SameValue(M1.Data[1, 0], M2.Data[1, 0]) and
+    SameValue(M1.Data[1, 1], M2.Data[1, 1]) and
+    SameValue(M1.Data[1, 2], M2.Data[1, 2]) and
+    SameValue(M1.Data[1, 3], M2.Data[1, 3]) and
+
+    SameValue(M1.Data[2, 0], M2.Data[2, 0]) and
+    SameValue(M1.Data[2, 1], M2.Data[2, 1]) and
+    SameValue(M1.Data[2, 2], M2.Data[2, 2]) and
+    SameValue(M1.Data[2, 3], M2.Data[2, 3]) and
+
+    SameValue(M1.Data[3, 0], M2.Data[3, 0]) and
+    SameValue(M1.Data[3, 1], M2.Data[3, 1]) and
+    SameValue(M1.Data[3, 2], M2.Data[3, 2]) and
+    SameValue(M1.Data[3, 3], M2.Data[3, 3]);
+end;
+
+class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4; const EqualityEpsilon: TGenericScalar): boolean;
+begin
+  if EqualityEpsilon = 0 then
+    Result := CompareMem(@M1, @M2, SizeOf(M1))
+  else
+    Result :=
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) < EqualityEpsilon) and
+
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) < EqualityEpsilon) and
+
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) < EqualityEpsilon) and
+
+      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) < EqualityEpsilon);
+end;
+
+class function TGenericMatrix4.PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean;
+begin
+  Result := CompareMem(@M1, @M2, SizeOf(M1));
+end;
+
+class function TGenericMatrix4.Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix4): TGenericMatrix4;
+begin
+  Result.Data[0, 0] := M1.Data[0, 0] + A * (M2.Data[0, 0] - M1.Data[0, 0]);
+  Result.Data[0, 1] := M1.Data[0, 1] + A * (M2.Data[0, 1] - M1.Data[0, 1]);
+  Result.Data[0, 2] := M1.Data[0, 2] + A * (M2.Data[0, 2] - M1.Data[0, 2]);
+  Result.Data[0, 3] := M1.Data[0, 3] + A * (M2.Data[0, 3] - M1.Data[0, 3]);
+
+  Result.Data[1, 0] := M1.Data[1, 0] + A * (M2.Data[1, 0] - M1.Data[1, 0]);
+  Result.Data[1, 1] := M1.Data[1, 1] + A * (M2.Data[1, 1] - M1.Data[1, 1]);
+  Result.Data[1, 2] := M1.Data[1, 2] + A * (M2.Data[1, 2] - M1.Data[1, 2]);
+  Result.Data[1, 3] := M1.Data[1, 3] + A * (M2.Data[1, 3] - M1.Data[1, 3]);
+
+  Result.Data[2, 0] := M1.Data[2, 0] + A * (M2.Data[2, 0] - M1.Data[2, 0]);
+  Result.Data[2, 1] := M1.Data[2, 1] + A * (M2.Data[2, 1] - M1.Data[2, 1]);
+  Result.Data[2, 2] := M1.Data[2, 2] + A * (M2.Data[2, 2] - M1.Data[2, 2]);
+  Result.Data[2, 3] := M1.Data[2, 3] + A * (M2.Data[2, 3] - M1.Data[2, 3]);
+
+  Result.Data[3, 0] := M1.Data[3, 0] + A * (M2.Data[3, 0] - M1.Data[3, 0]);
+  Result.Data[3, 1] := M1.Data[3, 1] + A * (M2.Data[3, 1] - M1.Data[3, 1]);
+  Result.Data[3, 2] := M1.Data[3, 2] + A * (M2.Data[3, 2] - M1.Data[3, 2]);
+  Result.Data[3, 3] := M1.Data[3, 3] + A * (M2.Data[3, 3] - M1.Data[3, 3]);
+end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TGenericMatrix4.Zero: TGenericMatrix4;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
 
 end.

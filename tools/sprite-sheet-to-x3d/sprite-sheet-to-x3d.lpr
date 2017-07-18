@@ -150,8 +150,8 @@ var
   CoordInterpArray: array of TCoordinateInterpolatorNode;
   TexCoordInterpArray: array of TCoordinateInterpolator2DNode;
   Key: single;
-  CoordArray: array of TVector3Single;
-  TexCoordArray: array of TVector2Single;
+  CoordArray: array of TVector3;
+  TexCoordArray: array of TVector2;
   R1, R2, R3, R4: TX3DRoute;
 begin
   for List in Animations.Values do
@@ -174,10 +174,10 @@ begin
   try
     Shape:= TShapeNode.Create;
     Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := Vector3Single(0, 0, 0);
-    Shape.Material.SpecularColor := Vector3Single(0, 0, 0);
+    Shape.Material.DiffuseColor := Vector3(0, 0, 0);
+    Shape.Material.SpecularColor := Vector3(0, 0, 0);
     Shape.Material.AmbientIntensity := 0;
-    Shape.Material.EmissiveColor := Vector3Single(1, 1, 1);
+    Shape.Material.EmissiveColor := Vector3(1, 1, 1);
 
     Tex := TImageTextureNode.Create;
     Tex.FdUrl.Send(Meta.Name);
@@ -192,20 +192,20 @@ begin
     Tri.Solid := false;
     Coord := TCoordinateNode.Create('coord');
     Coord.FdPoint.Items.AddRange([
-        Vector3Single(-128, -128, 0),
-        Vector3Single(128, -128, 0),
-        Vector3Single(128, 128, 0),
-        Vector3Single(-128, -128, 0),
-        Vector3Single(128, 128, 0),
-        Vector3Single(-128, 128, 0)]);
+        Vector3(-128, -128, 0),
+        Vector3(128, -128, 0),
+        Vector3(128, 128, 0),
+        Vector3(-128, -128, 0),
+        Vector3(128, 128, 0),
+        Vector3(-128, 128, 0)]);
     TexCoord := TTextureCoordinateNode.Create('texcoord');
     TexCoord.FdPoint.Items.AddRange([
-         Vector2Single(0, 0),
-         Vector2Single(1, 0),
-         Vector2Single(1, 1),
-         Vector2Single(0, 0),
-         Vector2Single(1, 1),
-         Vector2Single(0, 1)]);
+         Vector2(0, 0),
+         Vector2(1, 0),
+         Vector2(1, 1),
+         Vector2(0, 0),
+         Vector2(1, 1),
+         Vector2(0, 1)]);
     Tri.FdCoord.Value := Coord;
     Tri.FdTexCoord.Value := TexCoord;
     Shape.Geometry := Tri;
@@ -254,24 +254,24 @@ begin
       for i := 0 to List.Count-1 do
       begin
         Frame := List[i];
-        CoordArray[0] := Vector3Single(
+        CoordArray[0] := Vector3(
             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
-        CoordArray[1] := Vector3Single(
+        CoordArray[1] := Vector3(
              Frame.W * (1-Frame.AX),  Frame.H * (  Frame.AY), 0);
-        CoordArray[2] := Vector3Single(
+        CoordArray[2] := Vector3(
              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 0);
-        CoordArray[3] := Vector3Single(
+        CoordArray[3] := Vector3(
             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
-        CoordArray[4] := Vector3Single(
+        CoordArray[4] := Vector3(
              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 0);
-        CoordArray[5] := Vector3Single(
+        CoordArray[5] := Vector3(
             -Frame.W * (  Frame.AX), -Frame.H * (1-Frame.AY), 0);
-        TexCoordArray[0] := Vector2Single(Frame.X1, Frame.Y1);
-        TexCoordArray[1] := Vector2Single(Frame.X2, Frame.Y1);
-        TexCoordArray[2] := Vector2Single(Frame.X2, Frame.Y2);
-        TexCoordArray[3] := Vector2Single(Frame.X1, Frame.Y1);
-        TexCoordArray[4] := Vector2Single(Frame.X2, Frame.Y2);
-        TexCoordArray[5] := Vector2Single(Frame.X1, Frame.Y2);
+        TexCoordArray[0] := Vector2(Frame.X1, Frame.Y1);
+        TexCoordArray[1] := Vector2(Frame.X2, Frame.Y1);
+        TexCoordArray[2] := Vector2(Frame.X2, Frame.Y2);
+        TexCoordArray[3] := Vector2(Frame.X1, Frame.Y1);
+        TexCoordArray[4] := Vector2(Frame.X2, Frame.Y2);
+        TexCoordArray[5] := Vector2(Frame.X1, Frame.Y2);
         CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
         TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
         { Repeat all keyValues, to avoid interpolating them smoothly between two keys }

@@ -111,7 +111,7 @@ type
     FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingSort: TBlendingSort;
     FControlBlending: boolean;
-    FWireframeColor: TVector3Single;
+    FWireframeColor: TVector3;
     FWireframeEffect: TWireframeEffect;
     FUseOcclusionQuery: boolean;
     FUseHierarchicalOcclusionQuery: boolean;
@@ -162,7 +162,7 @@ type
       { Default value of @link(TSceneRenderingAttributes.BlendingSort). }
       DefaultBlendingSort = bs3D;
 
-      DefaultWireframeColor: TVector3Single = (0, 0, 0);
+      DefaultWireframeColor: TVector3 = (Data: (0, 0, 0));
 
       DefaultSolidWireframeScale = 1;
       DefaultSolidWireframeBias = 1;
@@ -242,7 +242,7 @@ type
 
     { Wireframe color, used with some WireframeEffect values.
       Default value is DefaultWireframeColor. }
-    property WireframeColor: TVector3Single
+    property WireframeColor: TVector3
       read FWireframeColor write FWireframeColor;
 
     { Should we use ARB_occlusion_query (if available) to avoid rendering
@@ -648,7 +648,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); override;
+      const ParentTransform: TMatrix4); override;
 
     { Render silhouette edges.
       Silhouette is determined from the ObserverPos.
@@ -658,15 +658,15 @@ type
       edges are silhouette and before rendering). In other words,
       Transform must transform the scene to the same coord space where
       given ObserverPos is. When they are in the same space, just use
-      IdentityMatrix4Single. }
+      TMatrix4.Identity. }
     procedure RenderSilhouetteEdges(
-      const ObserverPos: TVector4Single;
-      const Transform: TMatrix4Single);
+      const ObserverPos: TVector4;
+      const Transform: TMatrix4);
 
     { Render all border edges (the edges without neighbor).
       Useful to debug (visualize) BorderEdges of the scene. }
     procedure RenderBorderEdges(
-      const Transform: TMatrix4Single);
+      const Transform: TMatrix4);
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
@@ -802,7 +802,7 @@ type
   end;
 
 type
-  TTriangle4SingleList = specialize TStructList<TTriangle4Single>;
+  TTriangle4List = specialize TStructList<TTriangle4>;
 
 procedure Register;
 
@@ -1120,11 +1120,11 @@ procedure TCastleScene.RenderScene(
   TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
 var
-  ModelView: TMatrix4Single;
+  ModelView: TMatrix4;
 
   { Transformation of Params.RenderTransform and current RenderingCamera
     expressed as a single combined matrix. }
-  function GetModelViewTransform: TMatrix4Single;
+  function GetModelViewTransform: TMatrix4;
   begin
     if Params.RenderTransformIdentity then
       Result := RenderingCamera.Matrix else
@@ -1698,12 +1698,12 @@ end;
 procedure TCastleScene.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4Single);
+  const ParentTransform: TMatrix4);
 var
   SceneBox, ShapeBox: TBox3D;
   SVRenderer: TGLShadowVolumeRenderer;
   SI: TShapeTreeIterator;
-  T: TMatrix4Single;
+  T: TMatrix4;
   ForceOpaque: boolean;
 begin
   if GetExists and CastShadowVolumes then
@@ -1745,11 +1745,11 @@ begin
 end;
 
 procedure TCastleScene.RenderSilhouetteEdges(
-  const ObserverPos: TVector4Single;
-  const Transform: TMatrix4Single);
+  const ObserverPos: TVector4;
+  const Transform: TMatrix4);
 var
   SI: TShapeTreeIterator;
-  T: TMatrix4Single;
+  T: TMatrix4;
 begin
   SI := TShapeTreeIterator.Create(Shapes, true);
   try
@@ -1762,10 +1762,10 @@ begin
 end;
 
 procedure TCastleScene.RenderBorderEdges(
-  const Transform: TMatrix4Single);
+  const Transform: TMatrix4);
 var
   SI: TShapeTreeIterator;
-  T: TMatrix4Single;
+  T: TMatrix4;
 begin
   SI := TShapeTreeIterator.Create(Shapes, true);
   try

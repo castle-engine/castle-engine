@@ -317,10 +317,10 @@ begin
   AddField(FFdAngle);
   { X3D specification comment: [0,Pi] }
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 1, 0));
   AddField(FFdDirection);
 
-  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 0));
   AddField(FFdPosition);
 end;
 
@@ -339,7 +339,7 @@ procedure TExplosionEmitterNode.CreateNode;
 begin
   inherited;
 
-  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 0));
   AddField(FFdPosition);
 end;
 
@@ -358,7 +358,7 @@ procedure TForcePhysicsModelNode.CreateNode;
 begin
   inherited;
 
-  FFdForce := TSFVec3f.Create(Self, 'force', Vector3Single(0, -9.8, 0));
+  FFdForce := TSFVec3f.Create(Self, 'force', Vector3(0, -9.8, 0));
   AddField(FFdForce);
   { X3D specification comment: (Inf,Inf) }
 end;
@@ -396,7 +396,7 @@ begin
   AddField(FFdParticleLifetime);
   { X3D specification comment: [0,Inf) }
 
-  FFdParticleSize := TSFVec2f.Create(Self, 'particleSize', Vector2Single(0.02, 0.02));
+  FFdParticleSize := TSFVec2f.Create(Self, 'particleSize', Vector2(0.02, 0.02));
   AddField(FFdParticleSize);
   { X3D specification comment: [0,Inf) }
 
@@ -450,10 +450,10 @@ procedure TPointEmitterNode.CreateNode;
 begin
   inherited;
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 1, 0));
   AddField(FFdDirection);
 
-  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 0));
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 0));
   AddField(FFdPosition);
 end;
 
@@ -478,7 +478,7 @@ begin
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
   AddField(FFdCoord);
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 1, 0));
   AddField(FFdDirection);
   { X3D specification comment: [-1,1] }
 
@@ -537,7 +537,7 @@ begin
   FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
   AddField(FFdCoord);
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 1, 0));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 1, 0));
   AddField(FFdDirection);
   { X3D specification comment: [-1,1] }
 
@@ -566,7 +566,7 @@ procedure TWindPhysicsModelNode.CreateNode;
 begin
   inherited;
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, 0));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 0, 0));
   AddField(FFdDirection);
   { X3D specification comment: (Inf,Inf) }
 

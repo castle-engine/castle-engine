@@ -411,7 +411,7 @@ begin
  for i := 1 to n do
  begin
 //TODO:  alSourcei(sources^, AL_MAX_DISTANCE, );
-  alSourceVector3f(sources^, AL_DIRECTION, ZeroVector3Single);
+  alSourceVector3f(sources^, AL_DIRECTION, TVector3.Zero);
   alSourcef(sources^, AL_CONE_OUTER_GAIN, 0);
   Inc(sources);
  end;

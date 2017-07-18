@@ -109,7 +109,7 @@ function FilenameToURISafeUTF8(const FileName: string): string;
 function URIToFilenameSafeUTF8(const URL: string): string;
 
 { Convert LCL color values to our colors (vectors). }
-function ColorToVector3(const Color: TColor): TVector3Single;
+function ColorToVector3(const Color: TColor): TVector3;
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
 
 implementation
@@ -430,9 +430,9 @@ begin
   Result := SysToUTF8(URIToFilenameSafe(URL));
 end;
 
-function ColorToVector3(const Color: TColor): TVector3Single;
+function ColorToVector3(const Color: TColor): TVector3;
 begin
-  Result := Vector3Single(ColorToVector3Byte(Color));
+  Result := Vector3(ColorToVector3Byte(Color));
 end;
 
 function ColorToVector3Byte(const Color: TColor): TVector3Byte;
@@ -440,7 +440,7 @@ var
   Col: LongInt;
 begin
   Col := ColorToRGB(Color);
-  RedGreenBlue(Col, Result[0], Result[1], Result[2]);
+  RedGreenBlue(Col, Result.Data[0], Result.Data[1], Result.Data[2]);
 end;
 
 end.

@@ -51,7 +51,7 @@ type
     FLoadingImage: TRGBImage;
     FLoadingBarYPosition: Single;
     FPlaceholderName: TPlaceholderName;
-    FPlaceholderReferenceDirection: TVector3Single;
+    FPlaceholderReferenceDirection: TVector3;
     FMusicSound: TSoundType;
     { We keep XML Document reference through the lifetime of this object,
       to allow the particular level logic (TLevelLogic descendant)
@@ -243,7 +243,7 @@ type
       In Blender it's useful to enable the "Display -> Wire" option for placeholder
       objects, then Blender will show arrows inside the placeholder.
       +X of the arrow determines the default direction understood by our engine. }
-    property PlaceholderReferenceDirection: TVector3Single
+    property PlaceholderReferenceDirection: TVector3
       read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
     { Music played when entering the level.
@@ -611,7 +611,7 @@ const
     ResourceNumberPresent: boolean;
     Resource: T3DResource;
     Box: TBox3D;
-    Position, Direction: TVector3Single;
+    Position, Direction: TVector3;
     IgnoredBegin, NumberBegin: Integer;
     ResourceNumber: Int64;
   begin
@@ -642,7 +642,7 @@ const
 
     Box := Shape.BoundingBox;
     Position := Box.Center;
-    Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
+    Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
     Direction := MatrixMultDirection(Shape.State.Transform, Direction);
@@ -793,9 +793,9 @@ var
     begin
       { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := MainScene.BoundingBox;
-      NewMoveLimit.Data[1, Items.GravityCoordinate] +=
-        4 * (NewMoveLimit.Data[1, Items.GravityCoordinate] -
-             NewMoveLimit.Data[0, Items.GravityCoordinate]);
+      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +=
+        4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
+             NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
       MoveLimit := NewMoveLimit;
     end;
 
@@ -810,10 +810,10 @@ var
     initial direciton, World.GravityUp etc.) }
   procedure InitializeCamera;
   var
-    InitialPosition: TVector3Single;
-    InitialDirection: TVector3Single;
-    InitialUp: TVector3Single;
-    GravityUp: TVector3Single;
+    InitialPosition: TVector3;
+    InitialDirection: TVector3;
+    InitialUp: TVector3;
+    GravityUp: TVector3;
     CameraRadius, PreferredHeight: Single;
     NavigationNode: TNavigationInfoNode;
     WalkCamera: TWalkCamera;
@@ -939,8 +939,8 @@ begin
     FreeAndNil(Waypoints);
     FSectors := TSectorList.Create(true);
     Waypoints := TWaypointList.Create(true);
-    MoveLimit := EmptyBox3D;
-    Water := EmptyBox3D;
+    MoveLimit := TBox3D.Empty;
+    Water := TBox3D.Empty;
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
@@ -1053,7 +1053,7 @@ end;
 function TLevelLogic.BoundingBox: TBox3D;
 begin
   { This object is invisible and non-colliding. }
-  Result := EmptyBox3D;
+  Result := TBox3D.Empty;
 end;
 
 procedure TLevelLogic.PrepareNewPlayer(NewPlayer: TPlayer);
@@ -1197,7 +1197,7 @@ procedure TLevelInfo.LoadFromDocument;
   end;
 
 const
-  DefaultPlaceholderReferenceDirection: TVector3Single = (1, 0, 0);
+  DefaultPlaceholderReferenceDirection: TVector3 = (Data: (1, 0, 0));
 var
   LoadingImageURL: string;
   SoundName: string;
@@ -1258,7 +1258,7 @@ begin
     LoadingBarYPosition := TProgressUserInterface.DefaultBarYPosition;
 
   if Element.AttributeString('placeholder_reference_direction', S) then
-    PlaceholderReferenceDirection := Vector3SingleFromStr(S) else
+    PlaceholderReferenceDirection := Vector3FromStr(S) else
     PlaceholderReferenceDirection := DefaultPlaceholderReferenceDirection;
 
   LevelResources.LoadResources(Element);

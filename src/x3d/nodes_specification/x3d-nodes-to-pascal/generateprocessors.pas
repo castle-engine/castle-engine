@@ -243,11 +243,11 @@ begin
   if X3DType = 'SFTime' then
     Result := 'TFloatTime' else
   if X3DType = 'SFVec2f' then
-    Result := 'TVector2Single' else
+    Result := 'TVector2' else
   if X3DType = 'SFVec3f' then
-    Result := 'TVector3Single' else
+    Result := 'TVector3' else
   if X3DType = 'SFVec4f' then
-    Result := 'TVector4Single' else
+    Result := 'TVector4' else
   if X3DType = 'SFVec2d' then
     Result := 'TVector2Double' else
   if X3DType = 'SFVec3d' then
@@ -259,7 +259,7 @@ begin
   if X3DType = 'SFBool' then
     Result := 'boolean' else
   if X3DType = 'SFRotation' then
-    Result := 'TVector4Single' else
+    Result := 'TVector4' else
   if X3DType = 'SFColor' then
     Result := 'TCastleColorRGB' else
   if X3DType = 'SFColorRGBA' then
@@ -269,9 +269,9 @@ begin
   if X3DType = 'SFString' then
     Result := 'string' else
   if X3DType = 'SFMatrix3f' then
-    Result := 'TMatrix3Single' else
+    Result := 'TMatrix3' else
   if X3DType = 'SFMatrix4f' then
-    Result := 'TMatrix4Single' else
+    Result := 'TMatrix4' else
 //  if X3DType = 'SFNode' then // nope, because these should be typed accordingly in ObjectPascal
 //    Result := 'TXxx' else
     Result := '';
@@ -362,7 +362,7 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
        (Field.X3DType = 'MFVec2d') or
        (Field.X3DType = 'MFVec2f') then
     begin
-      Field.DefaultValue := 'Vector2Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue := 'Vector2(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
     end else
     if (Field.X3DType = 'SFColor') or
@@ -372,7 +372,7 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
        (Field.X3DType = 'MFVec3d') or
        (Field.X3DType = 'MFVec3f') then
     begin
-      Field.DefaultValue := 'Vector3Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue := 'Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
     end else
@@ -383,7 +383,7 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
        (Field.X3DType = 'MFVec4d') or
        (Field.X3DType = 'MFVec4f') then
     begin
-      Field.DefaultValue := 'Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue := 'Vector4(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + ')';
@@ -393,15 +393,15 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
        (Field.X3DType = 'MFMatrix4f') or
        (Field.X3DType = 'MFMatrix4d') then
     begin
-      Field.DefaultValue := 'Matrix4Single(';
+      Field.DefaultValue := 'Matrix4(';
 
       if NextTokenOnce(Line, SeekPos, WhiteSpaces) = 'identity' then
       begin
         if Field.X3DType = 'SFMatrix4f' then
-          Field.DefaultValue := 'IdentityMatrix4Single'
+          Field.DefaultValue := 'TMatrix4.Identity'
         else
         if Field.X3DType = 'SFMatrix4d' then
-          Field.DefaultValue := 'IdentityMatrix4Double';
+          Field.DefaultValue := 'TMatrix4d.Identity';
 
         // just to advance SeekPos
         NextToken(Line, SeekPos, WhiteSpaces);
@@ -409,13 +409,13 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
       begin
         for I := 1 to 3 do
         begin
-          Field.DefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+          Field.DefaultValue += '    Vector4(' + NextToken(Line, SeekPos, WhiteSpaces);
           Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
           Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
           Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '),' + NL;
         end;
 
-        Field.DefaultValue += '    Vector4Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+        Field.DefaultValue += '    Vector4(' + NextToken(Line, SeekPos, WhiteSpaces);
         Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
         Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
         Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces) + '));';
@@ -425,7 +425,7 @@ procedure TProcessor.ProcessFile(const InputFileName: string);
     if (Field.X3DType = 'SFRotation') or
        (Field.X3DType = 'MFRotation') then
     begin
-      Field.DefaultValue := 'Vector3Single(' + NextToken(Line, SeekPos, WhiteSpaces);
+      Field.DefaultValue := 'Vector3(' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += ', ' + NextToken(Line, SeekPos, WhiteSpaces);
       Field.DefaultValue += '), ' + NextToken(Line, SeekPos, WhiteSpaces);

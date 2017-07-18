@@ -93,7 +93,7 @@ type
       when mouse is outside the window, which means that mouse position
       may be outside the rectangle (0, 0) - (Width, Height),
       so it may even be negative. }
-    Position: TVector2Single;
+    Position: TVector2;
   end;
   PTouch = ^TTouch;
 
@@ -102,15 +102,15 @@ type
   private
     { Find an item with given FingerIndex, or -1 if not found. }
     function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
-    function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2Single;
+    function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
     procedure SetFingerIndexPosition(const FingerIndex: TFingerIndex;
-      const Value: TVector2Single);
+      const Value: TVector2);
   public
     { Gets or sets a position corresponding to given FingerIndex.
       If there is no information for given FingerIndex on the list,
       the getter will return zero, and the setter will automatically create
       and add appropriate information. }
-    property FingerIndexPosition[const FingerIndex: TFingerIndex]: TVector2Single
+    property FingerIndexPosition[const FingerIndex: TFingerIndex]: TVector2
       read GetFingerIndexPosition write SetFingerIndexPosition;
     { Remove a touch item for given FingerIndex. }
     procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
@@ -211,9 +211,9 @@ type
     FTooltipDelay: Single;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
-    FTooltipPosition: TVector2Single;
+    FTooltipPosition: TVector2;
     HasLastPositionForTooltip: boolean;
-    LastPositionForTooltip: TVector2Single;
+    LastPositionForTooltip: TVector2;
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
@@ -257,8 +257,8 @@ type
       deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
-    function GetMousePosition: TVector2Single; virtual; abstract;
-    procedure SetMousePosition(const Value: TVector2Single); virtual; abstract;
+    function GetMousePosition: TVector2; virtual; abstract;
+    procedure SetMousePosition(const Value: TVector2); virtual; abstract;
     function GetTouches(const Index: Integer): TTouch; virtual; abstract;
 
     { Get the default UI scale of controls.
@@ -331,7 +331,7 @@ type
       non-empty.
       @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
-    property TooltipPosition: TVector2Single read FTooltipPosition;
+    property TooltipPosition: TVector2 read FTooltipPosition;
     { @groupEnd }
 
     { Redraw the contents of of this window, at the nearest good time.
@@ -368,7 +368,7 @@ type
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
-    property MousePosition: TVector2Single
+    property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
 
     function Dpi: Integer; virtual; abstract;
@@ -619,7 +619,7 @@ type
         if HandleInput then
         begin
           if Container.Pressed[K_Right] then
-            Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+            Transform.Position += Vector3(SecondsPassed * 10, 0, 0);
           HandleInput := not ExclusiveEvents;
         end;
       #)
@@ -934,7 +934,7 @@ type
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
       GetExists = @true.  }
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; virtual;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; virtual;
 
     { Prepare your resources, right before drawing.
       Called only when @link(GetExists) and GLInitialized.
@@ -1574,7 +1574,7 @@ begin
   Result := -1;
 end;
 
-function TTouchList.GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2Single;
+function TTouchList.GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
 var
   Index: Integer;
 begin
@@ -1582,11 +1582,11 @@ begin
   if Index <> -1 then
     Result := L[Index].Position
   else
-    Result := ZeroVector2Single;
+    Result := TVector2.Zero;
 end;
 
 procedure TTouchList.SetFingerIndexPosition(const FingerIndex: TFingerIndex;
-  const Value: TVector2Single);
+  const Value: TVector2);
 var
   Index: Integer;
   NewTouch: PTouch;
@@ -2510,7 +2510,7 @@ end;
 
 function TUIContainer.IsMousePositionForMouseLook: boolean;
 var
-  P: TVector2Single;
+  P: TVector2;
 begin
   P := MousePosition;
   Result := (P[0] = Width div 2) and (P[1] = Height div 2);
@@ -2542,7 +2542,7 @@ begin
     { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
       seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
       we will never be able to position mouse exactly at half pixel. }
-    MousePosition := Vector2Single(Width div 2, Height div 2);
+    MousePosition := Vector2(Width div 2, Height div 2);
 end;
 
 procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
@@ -2932,7 +2932,7 @@ begin
 end;
 }
 
-function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TUIControl.CapturesEventsAtPosition(const Position: TVector2): boolean;
 var
   SR: TRectangle;
 begin
@@ -3214,10 +3214,10 @@ begin
   begin
     Result := Parent.LocalToScreenTranslation;
     RA := Parent.RectWithAnchors;
-    Result[0] += RA.Left;
-    Result[1] += RA.Bottom;
+    Result.Data[0] += RA.Left;
+    Result.Data[1] += RA.Bottom;
   end else
-    Result := ZeroVector2Integer;
+    Result := TVector2Integer.Zero;
 end;
 
 function TUIControl.ParentRect: TRectangle;

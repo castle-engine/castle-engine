@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetAxisOfRotation: TVector3Single;
-    procedure SetAxisOfRotation(const Value: TVector3Single);
+    function GetAxisOfRotation: TVector3;
+    procedure SetAxisOfRotation(const Value: TVector3);
   public
-    property AxisOfRotation: TVector3Single read GetAxisOfRotation write SetAxisOfRotation;
+    property AxisOfRotation: TVector3 read GetAxisOfRotation write SetAxisOfRotation;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TBillboardNode ----------------------------------------------- }
 
-function TBillboardNode.GetAxisOfRotation: TVector3Single;
+function TBillboardNode.GetAxisOfRotation: TVector3;
 begin
   Result := FdAxisOfRotation.Value;
 end;
 
-procedure TBillboardNode.SetAxisOfRotation(const Value: TVector3Single);
+procedure TBillboardNode.SetAxisOfRotation(const Value: TVector3);
 begin
   FdAxisOfRotation.Send(Value);
 end;

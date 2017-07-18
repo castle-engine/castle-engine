@@ -30,6 +30,12 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
   Castle3D, CastleInternalShadowMaps, CastleProjection;
 
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
+
 type
   { Internal helper type for TCastleSceneCore.
     @exclude }
@@ -523,7 +529,7 @@ type
     function GetViewpointCore(
       const OnlyPerspective: boolean;
       out ProjectionType: TProjectionType;
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+      out CamPos, CamDir, CamUp, GravityUp: TVector3;
       const ViewpointDescription: string):
       TAbstractViewpointNode;
   private
@@ -585,7 +591,7 @@ type
     FInitialViewpointName: string;
 
     FPointingDeviceOverItem: PTriangle;
-    FPointingDeviceOverPoint: TVector3Single;
+    FPointingDeviceOverPoint: TVector3;
     FPointingDeviceActive: boolean;
     FPointingDeviceActiveSensors: TX3DNodeList;
   private
@@ -597,7 +603,7 @@ type
       properties. }
     procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance);
   private
-    FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
+    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
     FCameraViewKnown: boolean;
 
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
@@ -662,8 +668,8 @@ type
   private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   private
     FTriangleOctreeLimits: TOctreeLimits;
@@ -714,9 +720,9 @@ type
     procedure SetSpatial(const Value: TSceneSpatialStructures);
   private
     FMainLightForShadowsExists: boolean;
-    FMainLightForShadows: TVector4Single;
+    FMainLightForShadows: TVector4;
     FMainLightForShadowsNode: TAbstractLightNode;
-    FMainLightForShadowsTransform: TMatrix4Single;
+    FMainLightForShadowsTransform: TMatrix4;
     function SearchMainLightForShadows(
       Node: TX3DNode; StateStack: TX3DGraphTraverseStateStack;
       ParentInfo: PTraversingInfo; var TraverseIntoChildren: boolean): Pointer;
@@ -779,33 +785,33 @@ type
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
   public
-    function HeightCollision(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
   protected
     function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveCollision(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+    function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision2D(const Pos: TVector2Single; const Radius: Single;
+    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails): boolean; override;
-    function PointCollision2D(const Point: TVector2Single;
+    function PointCollision2D(const Point: TVector2;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
     { Nonzero value prevents rendering of this scene,
@@ -1258,12 +1264,12 @@ type
       @groupBegin }
     function GetViewpoint(
       out ProjectionType: TProjectionType;
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+      out CamPos, CamDir, CamUp, GravityUp: TVector3;
       const ViewpointDescription: string = ''):
       TAbstractViewpointNode;
 
     function GetPerspectiveViewpoint(
-      out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+      out CamPos, CamDir, CamUp, GravityUp: TVector3;
       const ViewpointDescription: string = ''):
       TAbstractViewpointNode;
     { @groupEnd }
@@ -1312,7 +1318,7 @@ type
     { Current 3D point under the pointing device.
       Only meaningful when PointingDeviceOverItem <> nil,
       otherwise undefined. }
-    property PointingDeviceOverPoint: TVector3Single
+    property PointingDeviceOverPoint: TVector3
       read FPointingDeviceOverPoint write FPointingDeviceOverPoint;
 
     { Pointing-device sensors over which the pointing device is.
@@ -1492,9 +1498,9 @@ type
       (or it's transform), or changing LOD node children.
 
       @groupBegin }
-    property CameraPosition: TVector3Single read FCameraPosition;
-    property CameraDirection: TVector3Single read FCameraDirection;
-    property CameraUp: TVector3Single read FCameraUp;
+    property CameraPosition: TVector3 read FCameraPosition;
+    property CameraDirection: TVector3 read FCameraDirection;
+    property CameraUp: TVector3 read FCameraUp;
     property CameraViewKnown: boolean read FCameraViewKnown;
     { @groupEnd }
 
@@ -1615,8 +1621,8 @@ type
       Will generate NavigationInfo.transitionComplete when transition ends.
 
       @groupBegin }
-    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up: TVector3Single);
-    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up, GravityUp: TVector3Single);
+    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up: TVector3);
+    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up, GravityUp: TVector3);
     { @groupEnd }
 
     { Detect position/direction of the main light that produces shadows.
@@ -1636,7 +1642,7 @@ type
 
       @seealso TCastleAbstractViewport.MainLightForShadows }
     function MainLightForShadows(
-      out AMainLightPosition: TVector4Single): boolean;
+      out AMainLightPosition: TVector4): boolean;
 
     { Light node that should be used for headlight, or @nil if default
       directional headlight is suitable.
@@ -2065,10 +2071,11 @@ implementation
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 { TX3DBindableStack ----------------------------------------------------- }
 
@@ -2639,7 +2646,7 @@ function TCastleSceneCore.CalculateBoundingBox: TBox3D;
 var
   SI: TShapeTreeIterator;
 begin
-  Result := EmptyBox3D;
+  Result := TBox3D.Empty;
   SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
@@ -2682,7 +2689,7 @@ begin
     end;
     Result := FBoundingBox;
   end else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 function TCastleSceneCore.VerticesCount(OverTriangulate: boolean): Cardinal;
@@ -3136,7 +3143,7 @@ procedure TCastleSceneCore.ChangedAll;
       (but that's simply unavoidable if you have scene with VRML 2.0
       positional lights). }
     procedure AddLightRadius(const L: TLightInstance;
-      const Location: TVector3Single; const Radius: Single);
+      const Location: TVector3; const Radius: Single);
     var
       SI: TShapeTreeIterator;
     begin
@@ -4579,8 +4586,8 @@ begin
 end;
 
 procedure TCastleSceneCore.AddTriangleToOctreeProgress(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   Progress.Step;
@@ -4884,7 +4891,7 @@ type
 function TCastleSceneCore.GetViewpointCore(
   const OnlyPerspective: boolean;
   out ProjectionType: TProjectionType;
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3;
   const ViewpointDescription: string): TAbstractViewpointNode;
 var
   Seeker: TFirstViewpointSeeker;
@@ -4919,7 +4926,7 @@ end;
 
 function TCastleSceneCore.GetViewpoint(
   out ProjectionType: TProjectionType;
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3;
   const ViewpointDescription: string): TAbstractViewpointNode;
 begin
   Result := GetViewpointCore(false, ProjectionType, CamPos, CamDir, CamUp, GravityUp,
@@ -4927,7 +4934,7 @@ begin
 end;
 
 function TCastleSceneCore.GetPerspectiveViewpoint(
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single;
+  out CamPos, CamDir, CamUp, GravityUp: TVector3;
   const ViewpointDescription: string): TAbstractViewpointNode;
 var
   ProjectionType: TProjectionType;
@@ -5357,7 +5364,7 @@ begin
   FPointingDeviceOverItem := nil;
   { PointingDeviceOverPoint may be left undefined now, but let's set it
     to something deterministic to ease debugging. }
-  FPointingDeviceOverPoint := ZeroVector3Single;
+  FPointingDeviceOverPoint := TVector3.Zero;
   FPointingDeviceActive := false;
   if FPointingDeviceActiveSensors <> nil then
     FPointingDeviceActiveSensors.Count := 0;
@@ -5860,7 +5867,7 @@ end;
 
 procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
-  Position, Direction, Up: TVector3Single;
+  Position, Direction, Up: TVector3;
   ProxNode: TProximitySensorNode;
   NewIsActive: boolean;
 begin
@@ -6210,10 +6217,10 @@ end;
 procedure TCastleSceneCore.CameraFromViewpoint(ACamera: TCamera;
   const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
-  Position: TVector3Single;
-  Direction: TVector3Single;
-  Up: TVector3Single;
-  GravityUp: TVector3Single;
+  Position: TVector3;
+  Direction: TVector3;
+  Up: TVector3;
+  GravityUp: TVector3;
   WalkCamera: TWalkCamera;
 begin
   if ViewpointStack.Top <> nil then
@@ -6261,7 +6268,7 @@ begin
 end;
 
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
-  const Position, Direction, Up: TVector3Single);
+  const Position, Direction, Up: TVector3);
 var
   NavigationNode: TNavigationInfoNode;
   TransitionAnimate: boolean;
@@ -6313,7 +6320,7 @@ begin
 end;
 
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
-  const Position, Direction, Up, GravityUp: TVector3Single);
+  const Position, Direction, Up, GravityUp: TVector3);
 begin
   if Camera is TWalkCamera then
     TWalkCamera(Camera).GravityUp := GravityUp else
@@ -6349,12 +6356,12 @@ end;
 procedure TCastleSceneCore.CalculateMainLightForShadowsPosition;
 begin
   if FMainLightForShadowsNode is TAbstractPositionalLightNode then
-    FMainLightForShadows := Vector4Single(
+    FMainLightForShadows := Vector4(
       MatrixMultPoint(
         FMainLightForShadowsTransform,
         TAbstractPositionalLightNode(FMainLightForShadowsNode).FdLocation.Value), 1) else
   if FMainLightForShadowsNode is TAbstractDirectionalLightNode then
-    FMainLightForShadows := Vector4Single( Normalized(
+    FMainLightForShadows := Vector4( Normalized(
       MatrixMultDirection(
         FMainLightForShadowsTransform,
         TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
@@ -6399,7 +6406,7 @@ begin
 end;
 
 function TCastleSceneCore.MainLightForShadows(
-  out AMainLightPosition: TVector4Single): boolean;
+  out AMainLightPosition: TVector4): boolean;
 begin
   ValidateMainLightForShadows;
   Result := FMainLightForShadowsExists;
@@ -6533,7 +6540,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3Single;
+function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
@@ -6554,7 +6561,7 @@ begin
 end;
 
 function TCastleSceneCore.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6576,7 +6583,7 @@ begin
 end;
 
 function TCastleSceneCore.MoveCollision(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -6591,7 +6598,7 @@ begin
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
 end;
 
-function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -6604,7 +6611,7 @@ begin
 end;
 
 function TCastleSceneCore.SphereCollision(
-  const Pos: TVector3Single; const Radius: Single;
+  const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if UseInternalOctreeCollisions then
@@ -6615,7 +6622,7 @@ begin
 end;
 
 function TCastleSceneCore.SphereCollision2D(
-  const Pos: TVector2Single; const Radius: Single;
+  const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 begin
@@ -6633,7 +6640,7 @@ begin
 end;
 
 function TCastleSceneCore.PointCollision2D(
-  const Point: TVector2Single;
+  const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   if UseInternalOctreeCollisions then
@@ -6652,11 +6659,11 @@ begin
     Result := inherited BoxCollision(Box, TrianglesToIgnoreFunc);
 end;
 
-function TCastleSceneCore.RayCollision(const RayOrigin, RayDirection: TVector3Single;
+function TCastleSceneCore.RayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   Triangle: PTriangle;
-  Intersection: TVector3Single;
+  Intersection: TVector3;
   IntersectionDistance: Single;
   NewNode: PRayCollisionNode;
 begin
@@ -6792,10 +6799,10 @@ end;
 
 procedure TCastleSceneCore.AddViewpointFromCamera(ACamera: TCamera; AName: string);
 var
-  Position: TVector3Single;
-  Direction: TVector3Single;
-  Up: TVector3Single;
-  GravityUp: TVector3Single;
+  Position: TVector3;
+  Direction: TVector3;
+  Up: TVector3;
+  GravityUp: TVector3;
   Version: TX3DCameraVersion;
   NewViewNode: TX3DNode;
   NewViewpointNode: TAbstractViewpointNode;
@@ -6804,7 +6811,7 @@ var
   Examine: TExamineCamera;
   Universal: TUniversalCamera;
   WalkSpeed, VisibilityLimit: Single;
-  AvatarSize: TVector3Single;
+  AvatarSize: TVector3;
   NewNavigationNode: TNavigationInfoNode;
   NewGroupNode: TGroupNode;
   NewRoute: TX3DRoute;

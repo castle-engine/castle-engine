@@ -374,7 +374,7 @@ procedure T3DTerrain.Render(const Frustum: TFrustum; const Params: TRenderParams
 
   procedure WalkCameraAboveGround;
   var
-    P: TVector3Single;
+    P: TVector3;
   begin
     P := WalkCamera.Position;
     P[2] := CurrentTerrain.Height(P[0], P[1]) + 0.1;
@@ -451,7 +451,7 @@ begin
             VisibilityEnd := BaseSize * (1 shl (LayersCount-1));
             GLSLProgram.SetUniform('fog_start', VisibilityEnd * 0.7);
             GLSLProgram.SetUniform('fog_end', VisibilityEnd);
-            GLSLProgram.SetUniform('fog_color', Vector3SingleCut(BackgroundColor));
+            GLSLProgram.SetUniform('fog_color', BackgroundColor.XYZ);
           end;
         end else
           CurrentProgram := nil;
@@ -474,7 +474,10 @@ function T3DTerrain.BoundingBox: TBox3D;
   to calculate sufficiently large ProjectionFar. }
 const
   M = 10000;
-  InfiniteBox: TBox3D = (Data:((-M, -M, -M), (M, M, M)));
+  InfiniteBox: TBox3D = (Data: (
+    (Data: (-M, -M, -M)),
+    (Data: (M, M, M))
+  ));
 begin
   Result := InfiniteBox;
 end;
@@ -558,7 +561,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
   var
     CountSteps: Cardinal;
     Size: Single;
-    XRange, ZRange: TVector2Single;
+    XRange, ZRange: TVector2;
     Root: TX3DRootNode;
     Shape: TShapeNode;
     Shader: TComposedShaderNode;
@@ -811,14 +814,14 @@ begin
   try
     ExamineCamera := TExamineCamera.Create(Window);
     ExamineCamera.Init(Box3D(
-      Vector3Single(-1, -1, -1),
-      Vector3Single( 1,  1,  1)), { Radius } 0.2);
+      Vector3(-1, -1, -1),
+      Vector3( 1,  1,  1)), { Radius } 0.2);
 
     WalkCamera := TWalkCamera.Create(Window);
-    WalkCamera.Init(Vector3Single(0, 0, 0) { position },
-      Vector3Single(0, 1, 0) { direction },
-      Vector3Single(0, 0, 1) { up },
-      Vector3Single(0, 0, 1),
+    WalkCamera.Init(Vector3(0, 0, 0) { position },
+      Vector3(0, 1, 0) { direction },
+      Vector3(0, 0, 1) { up },
+      Vector3(0, 0, 1),
       { PreferredHeight: unused, we don't use Gravity here } 0,
       { Radius } 0.02);
     WalkCamera.MoveSpeed := 0.5;

@@ -21,12 +21,12 @@ var
 { Read <library_lights> (Collada 1.4.x). Fills Lights list. }
 procedure ReadLibraryLights(LibraryE: TDOMElement);
 
-  function ReadAttenuation(E: TDOMElement): TVector3Single;
+  function ReadAttenuation(E: TDOMElement): TVector3;
   begin
-    Result := Vector3Single(1, 0, 0);
-    ReadChildFloat(E, 'constant_attenuation', Result[0]);
-    ReadChildFloat(E, 'linear_attenuation', Result[1]);
-    ReadChildFloat(E, 'quadratic_attenuation', Result[2]);
+    Result := Vector3(1, 0, 0);
+    ReadChildFloat(E, 'constant_attenuation', Result.Data[0]);
+    ReadChildFloat(E, 'linear_attenuation', Result.Data[1]);
+    ReadChildFloat(E, 'quadratic_attenuation', Result.Data[2]);
   end;
 
 var
@@ -38,7 +38,7 @@ var
   Id, Profile: string;
   TechniqueE, LightE, ExtraE: TDOMElement;
   FalloffAngle, Radius: Float;
-  LightColor: TVector3Single;
+  LightColor: TVector3;
 begin
   I := LibraryE.ChildrenIterator('light');
   try

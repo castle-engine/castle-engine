@@ -54,26 +54,26 @@ begin
     FillChar(SF.EnvMaps, SizeOf(SF.EnvMaps), 0);
     SF.FirstSphereRadius := 2;
     SF.LastSphereRadius := 10;
-    SF.SpheresMiddle := Vector3Single(50, 0, 0);
+    SF.SpheresMiddle := Vector3(50, 0, 0);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(100, 100, 100), 1);
+    Map := SF.EnvMapFromPoint(Vector3(100, 100, 100), 1);
     Assert(Map = nil);
-    Map := SF.EnvMapFromPoint(Vector3Single(50, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(50, 0, 0), 1);
     Assert(Map = nil);
-    Map := SF.EnvMapFromPoint(Vector3Single(0, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(0, 0, 0), 1);
     Assert(Map = nil);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(55, 0, 0), 1);
     Assert(Map <> nil);
-    Map := SF.EnvMapFromPoint(Vector3Single(51, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(51, 0, 0), 1);
     Map^[csPositiveX, 10] := 55;
     Map^[csNegativeX, 20] := 66;
 
-    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(55, 0, 0), 1);
     Map^[csPositiveX, 10] := 11;
     Map^[csNegativeX, 20] := 22;
 
-    Map := SF.EnvMapFromPoint(Vector3Single(60, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(60, 0, 0), 1);
     Map^[csPositiveX, 10] := 99;
     Map^[csNegativeX, 20] := 88;
 
@@ -86,25 +86,25 @@ begin
     Assert(SF.FirstSphereRadius = 2);
     Assert(SF.LastSphereRadius = 10);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(100, 100, 100), 1);
+    Map := SF.EnvMapFromPoint(Vector3(100, 100, 100), 1);
     Assert(Map = nil);
-    Map := SF.EnvMapFromPoint(Vector3Single(50, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(50, 0, 0), 1);
     Assert(Map = nil);
-    Map := SF.EnvMapFromPoint(Vector3Single(0, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(0, 0, 0), 1);
     Assert(Map = nil);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(55, 0, 0), 1);
     Assert(Map <> nil);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(51, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(51, 0, 0), 1);
     Assert(Map^[csPositiveX, 10] = 55);
     Assert(Map^[csNegativeX, 20] = 66);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(55, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(55, 0, 0), 1);
     Assert(Map^[csPositiveX, 10] = 11);
     Assert(Map^[csNegativeX, 20] = 22);
 
-    Map := SF.EnvMapFromPoint(Vector3Single(60, 0, 0), 1);
+    Map := SF.EnvMapFromPoint(Vector3(60, 0, 0), 1);
     Assert(Map^[csPositiveX, 10] = 99);
     Assert(Map^[csNegativeX, 20] = 88);
 

@@ -27,25 +27,25 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
     function GetNameField: string;
     procedure SetNameField(const Value: string);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetScaleOrientation: TVector4Single;
-    procedure SetScaleOrientation(const Value: TVector4Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetScaleOrientation: TVector4;
+    procedure SetScaleOrientation(const Value: TVector4);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
+    property Center: TVector3 read GetCenter write SetCenter;
     property NameField: string read GetNameField write SetNameField;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}
 
@@ -53,12 +53,12 @@
 
 { TCADPartNode ----------------------------------------------- }
 
-function TCADPartNode.GetCenter: TVector3Single;
+function TCADPartNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TCADPartNode.SetCenter(const Value: TVector3Single);
+procedure TCADPartNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
@@ -73,42 +73,42 @@ begin
   FdName.Send(Value);
 end;
 
-function TCADPartNode.GetRotation: TVector4Single;
+function TCADPartNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure TCADPartNode.SetRotation(const Value: TVector4Single);
+procedure TCADPartNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function TCADPartNode.GetScale: TVector3Single;
+function TCADPartNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure TCADPartNode.SetScale(const Value: TVector3Single);
+procedure TCADPartNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function TCADPartNode.GetScaleOrientation: TVector4Single;
+function TCADPartNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
 end;
 
-procedure TCADPartNode.SetScaleOrientation(const Value: TVector4Single);
+procedure TCADPartNode.SetScaleOrientation(const Value: TVector4);
 begin
   FdScaleOrientation.Send(Value);
 end;
 
-function TCADPartNode.GetTranslation: TVector3Single;
+function TCADPartNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TCADPartNode.SetTranslation(const Value: TVector3Single);
+procedure TCADPartNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;

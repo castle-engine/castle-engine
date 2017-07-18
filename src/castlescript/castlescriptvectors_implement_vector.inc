@@ -46,7 +46,7 @@ class procedure TCasScriptVecXx.HandleEqual(AFunction: TCasScriptFunction; const
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
-    VectorsPerfectlyEqual(
+    TVectorXxx.PerfectlyEquals(
       TCasScriptVecXx(Arguments[0]).Value,
       TCasScriptVecXx(Arguments[1]).Value);
 end;
@@ -55,7 +55,7 @@ class procedure TCasScriptVecXx.HandleNotEqual(AFunction: TCasScriptFunction; co
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
-    not VectorsPerfectlyEqual(
+    not TVectorXxx.PerfectlyEquals(
       TCasScriptVecXx(Arguments[0]).Value,
       TCasScriptVecXx(Arguments[1]).Value);
 end;
@@ -170,23 +170,22 @@ end;
 class procedure TCasScriptVecXx.HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
-  TCasScriptFloat(AResult).Value :=
-    VectorLen(TCasScriptVecXx(Arguments[0]).Value);
+  TCasScriptFloat(AResult).Value := TCasScriptVecXx(Arguments[0]).Value.Length;
 end;
 
 class procedure TCasScriptVecXx.HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
-  TCasScriptFloat(AResult).Value :=
-    VectorLenSqr(TCasScriptVecXx(Arguments[0]).Value);
+  TCasScriptFloat(AResult).Value := TCasScriptVecXx(Arguments[0]).Value.LengthSqr;
 end;
 
 class procedure TCasScriptVecXx.HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value :=
-    VectorDotProduct( TCasScriptVecXx(Arguments[0]).Value,
-                      TCasScriptVecXx(Arguments[1]).Value );
+    TVectorXxx.DotProduct(
+      TCasScriptVecXx(Arguments[0]).Value,
+      TCasScriptVecXx(Arguments[1]).Value );
 end;
 
 procedure TCasScriptVecXx.AssignValue(Source: TCasScriptValue);

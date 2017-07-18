@@ -48,7 +48,7 @@ type
 
 procedure TStatusText.Render;
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   if not GetExists then Exit;
 
@@ -103,10 +103,10 @@ begin
 
     SceneManager.Camera := TWalkCamera.Create(SceneManager);
     (SceneManager.Camera as TWalkCamera).Init(
-      Vector3Single(3, 3, 4),
-      Vector3Single(-1, -1, -1),
-      Vector3Single(0, 0, 1) { this will be corrected for ortho to dir, don't worry },
-      Vector3Single(0, 0, 1),
+      Vector3(3, 3, 4),
+      Vector3(-1, -1, -1),
+      Vector3(0, 0, 1) { this will be corrected for ortho to dir, don't worry },
+      Vector3(0, 0, 1),
       0, 0.1);
     (SceneManager.Camera as TWalkCamera).MoveSpeed := 2.5;
     { by default, forward is also activated with "w", and backward with "s",
@@ -117,8 +117,8 @@ begin
     { TODO: allow to choose creature }
     Creature := TCreature.Create(PlayerKind);
     try
-      Creature.Direction := Vector3Single(1, 0, 0);
-      Creature.Up := Vector3Single(0, 0, 1);
+      Creature.Direction := Vector3(1, 0, 0);
+      Creature.Up := Vector3(0, 0, 1);
       SceneManager.Items.Add(Creature);
 
       StatusText := TStatusText.Create(Window);

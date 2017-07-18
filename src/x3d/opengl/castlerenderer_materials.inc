@@ -32,10 +32,10 @@ procedure RenderMaterialsBegin;
 
     MaterialOpacity := ShapeOpacity * Attributes.Opacity;
 
-    Shader.MaterialAmbient := Vector4Single(AmbientColor, MaterialOpacity);
-    Shader.MaterialDiffuse := Vector4Single(DiffuseColor, MaterialOpacity);
-    Shader.MaterialSpecular := Vector4Single(SpecularColor, MaterialOpacity);
-    Shader.MaterialEmission := Vector4Single(EmissiveColor, MaterialOpacity);
+    Shader.MaterialAmbient := Vector4(AmbientColor, MaterialOpacity);
+    Shader.MaterialDiffuse := Vector4(DiffuseColor, MaterialOpacity);
+    Shader.MaterialSpecular := Vector4(SpecularColor, MaterialOpacity);
+    Shader.MaterialEmission := Vector4(EmissiveColor, MaterialOpacity);
     Shader.MaterialShininessExp := ShininessExp;
 
     if MaterialAndShapeLit then
@@ -51,8 +51,8 @@ procedure RenderMaterialsBegin;
         as they are written like Attributes.Lighting = always @true.
         So we can just do whatever seems natural for user that
         turned off lighting. }
-      Shader.MaterialUnlit := Vector4Single(DiffuseColor, MaterialOpacity) else
-      Shader.MaterialUnlit := Vector4Single(UnLitColor, MaterialOpacity);
+      Shader.MaterialUnlit := Vector4(DiffuseColor, MaterialOpacity) else
+      Shader.MaterialUnlit := Vector4(UnLitColor, MaterialOpacity);
 
     {$ifndef OpenGLES}
     if Lighting then
@@ -74,7 +74,7 @@ procedure RenderMaterialsBegin;
     (index 0). }
   procedure Material_1(M: TMaterialNode_1);
   var
-    UnlitColor: TVector3Single;
+    UnlitColor: TVector3;
   begin
     { Usually, UnlitColor should be from EmissiveColor3Single.
 

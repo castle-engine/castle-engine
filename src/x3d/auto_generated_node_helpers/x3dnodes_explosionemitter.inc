@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetPosition: TVector3Single;
-    procedure SetPosition(const Value: TVector3Single);
+    function GetPosition: TVector3;
+    procedure SetPosition(const Value: TVector3);
   public
-    property Position: TVector3Single read GetPosition write SetPosition;
+    property Position: TVector3 read GetPosition write SetPosition;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TExplosionEmitterNode ----------------------------------------------- }
 
-function TExplosionEmitterNode.GetPosition: TVector3Single;
+function TExplosionEmitterNode.GetPosition: TVector3;
 begin
   Result := FdPosition.Value;
 end;
 
-procedure TExplosionEmitterNode.SetPosition(const Value: TVector3Single);
+procedure TExplosionEmitterNode.SetPosition(const Value: TVector3);
 begin
   FdPosition.Send(Value);
 end;

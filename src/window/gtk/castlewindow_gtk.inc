@@ -595,7 +595,7 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_PRESS) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseDown(Vector2Single(Event^.x, Height - 1 - Event^.y), mb, 0);
+    DoMouseDown(Vector2(Event^.x, Height - 1 - Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_button_release_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventButton;
@@ -605,14 +605,14 @@ SIGNAL_GLAREA_BEGIN
   Result := PasToGbool((Event^._type = GDK_BUTTON_RELEASE) and
     ButtonNumberToMouseButton(Event^.button, mb));
   if GboolToPas(Result) then
-    DoMouseUp(Vector2Single(Event^.x, Height - 1 - Event^.y), mb, 0);
+    DoMouseUp(Vector2(Event^.x, Height - 1 - Event^.y), mb, 0);
 SIGNAL_GLAREA_END;
 
 function signal_motion_notify_event(AGLAreaGtk: PGtkGLArea; Event: PGdkEventMotion;
   data: gpointer): gboolean; cdecl;
 SIGNAL_GLAREA_BEGIN
   DoMotion(InputMotion(MousePosition,
-    Vector2Single(Event^.x, Height - 1 - Event^.y), MousePressed, 0));
+    Vector2(Event^.x, Height - 1 - Event^.y), MousePressed, 0));
   Result := g_true;
 SIGNAL_GLAREA_END;
 
@@ -699,7 +699,7 @@ function signal_window_focus_in_event(AWindowGtk: PGtkWindow;
 SIGNAL_WINDOW_BEGIN
   { reset FMousePosition, since mouse position is unknown now,
     and do not activate mouse look at next frame (IsMousePositionForMouseLook should be false). }
-  FMousePosition := Vector2Single(-1, -1);
+  FMousePosition := Vector2(-1, -1);
   FFocused := true;
   Result := g_false;
 SIGNAL_WINDOW_END;
@@ -780,7 +780,7 @@ procedure gdk_window_get_root_coords(Window: PGdkWindow;
   X, Y: GInt; RootX, RootY: PGInt); cdecl; external gtklib;
 {$endif}
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
 { With older GDK/GTK, you had to use XWarpPointer to position mouse.
   We still use it, for now, for GTK under Xlib --- this way we work
@@ -1489,7 +1489,7 @@ begin
   gtk_widget_destroy(GTK_WIDGET(Dialog));
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
 var
   Dialog: PGtkColorSelectionDialog;
   GtkColor: array [0..3] of GDouble;

@@ -308,19 +308,19 @@
       public
         constructor Create(Node: TCommonSurfaceShaderNode);
 
-        function AmbientColor: TVector3Single; override;
-        function DiffuseColor: TVector3Single; override;
-        function SpecularColor: TVector3Single; override;
-        function EmissiveColor: TVector3Single; override;
+        function AmbientColor: TVector3; override;
+        function DiffuseColor: TVector3; override;
+        function SpecularColor: TVector3; override;
+        function EmissiveColor: TVector3; override;
         function Shininess: Single; override;
-        function ReflectionColor: TVector3Single; override;
-        function TransmissionColor: TVector3Single; override;
+        function ReflectionColor: TVector3; override;
+        function TransmissionColor: TVector3; override;
         function Transparency: Single; override;
 
-        function ReflSpecular: TVector3Single; override;
-        function ReflDiffuse: TVector3Single; override;
-        function TransSpecular: TVector3Single; override;
-        function TransDiffuse: TVector3Single; override;
+        function ReflSpecular: TVector3; override;
+        function ReflDiffuse: TVector3; override;
+        function TransSpecular: TVector3; override;
+        function TransDiffuse: TVector3; override;
 
         function ReflSpecularExp: Single; override;
         function TransSpecularExp: Single; override;
@@ -566,7 +566,7 @@ procedure TMatrixTransformNode.CreateNode;
 begin
   inherited;
 
-  FFdMatrix := TSFMatrix4f.Create(Self, 'matrix', IdentityMatrix4Single);
+  FFdMatrix := TSFMatrix4f.Create(Self, 'matrix', TMatrix4.Identity);
    FdMatrix.ChangesAlways := [chTransform];
   AddField(FFdMatrix);
 
@@ -603,18 +603,17 @@ end;
 
 procedure TMatrixTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
-  InvertedMatrix: TMatrix4Single;
+  InvertedMatrix: TMatrix4;
 begin
   inherited;
 
   { Inherited TAbstractGroupingNode already saved State.Transform and such. }
 
-  State.Transform := MatrixMult(State.Transform, FdMatrix.Value);
+  State.Transform := State.Transform * FdMatrix.Value;
 
   if TryMatrixInverse(FdMatrix.Value, InvertedMatrix) then
   begin
-    State.InvertedTransform :=
-      MatrixMult(InvertedMatrix, State.InvertedTransform);
+    State.InvertedTransform := InvertedMatrix * State.InvertedTransform;
   end else
   begin
     if Log then
@@ -638,7 +637,7 @@ procedure TTeapotNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(3, 3, 3));
+  FFdSize := TSFVec3f.Create(Self, 'size', Vector3(3, 3, 3));
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
@@ -672,11 +671,13 @@ end;
 function TTeapotNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 const
-{ TeapotCoord: array [0..0] of TVector3Single = ((0, 0, 0));
+  // Uncomment these if you need to temporarily compile without teapot.inc.
+  {
+  TeapotCoord: array [0..0] of TVector3 = ((Data: (0, 0, 0)));
   TeapotCoordIndex: array [0..0] of LongInt = (0);
-  TeapotManifoldCoord: array [0..0] of TVector3Single = ((0, 0, 0));
+  TeapotManifoldCoord: array [0..0] of TVector3 = ((Data: (0, 0, 0)));
   TeapotManifoldCoordIndex: array [0..0] of LongInt = (0);
-}
+  }
   {$I teapot/teapot.inc}
 var
   CoordNode: TCoordinateNode;
@@ -687,8 +688,8 @@ begin
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
     if FdManifold.Value then
-      CoordNode.FdPoint.Items.AssignArray(TeapotManifoldCoord) else
-      CoordNode.FdPoint.Items.AssignArray(TeapotCoord);
+      CoordNode.FdPoint.Items.Assign(TeapotManifoldCoord) else
+      CoordNode.FdPoint.Items.Assign(TeapotCoord);
 
     { Scale Coords according to "size" field.
       Assumes that original coords are good for default size (3, 3, 3). }
@@ -1056,7 +1057,7 @@ procedure TPlaneNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2Single(2, 2));
+  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(2, 2));
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
@@ -1223,22 +1224,22 @@ begin
   FNode := Node;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.AmbientColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.AmbientColor: TVector3;
 begin
   Result := FNode.AmbientFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.DiffuseColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.DiffuseColor: TVector3;
 begin
   Result := FNode.DiffuseFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SpecularColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.SpecularColor: TVector3;
 begin
   Result := FNode.SpecularFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.EmissiveColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.EmissiveColor: TVector3;
 begin
   Result := FNode.EmissiveFactor;
 end;
@@ -1248,12 +1249,12 @@ begin
   Result := FNode.ShininessFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflectionColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflectionColor: TVector3;
 begin
   Result := FNode.ReflectionFactor;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransmissionColor: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransmissionColor: TVector3;
 begin
   Result := FNode.TransmissionFactor;
 end;
@@ -1263,22 +1264,22 @@ begin
   Result := FNode.Transparency;
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflSpecular: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflSpecular: TVector3;
 begin
   CalculateReflSpecular(Result);
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflDiffuse: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.ReflDiffuse: TVector3;
 begin
   CalculateReflDiffuse(Result);
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransSpecular: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransSpecular: TVector3;
 begin
   CalculateTransSpecular(Result);
 end;
 
-function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransDiffuse: TVector3Single;
+function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.TransDiffuse: TVector3;
 begin
   CalculateTransDiffuse(Result);
 end;
@@ -1319,7 +1320,7 @@ begin
    FdAlphaTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdAlphaTexture);
 
-  FFdAmbientFactor := TSFVec3f.Create(Self, 'ambientFactor', Vector3Single(0.2, 0.2, 0.2));
+  FFdAmbientFactor := TSFVec3f.Create(Self, 'ambientFactor', Vector3(0.2, 0.2, 0.2));
    FdAmbientFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdAmbientFactor);
 
@@ -1339,7 +1340,7 @@ begin
    FdAmbientTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdAmbientTexture);
 
-  FFdDiffuseFactor := TSFVec3f.Create(Self, 'diffuseFactor', Vector3Single(0.8, 0.8, 0.8));
+  FFdDiffuseFactor := TSFVec3f.Create(Self, 'diffuseFactor', Vector3(0.8, 0.8, 0.8));
    FdDiffuseFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDiffuseFactor);
 
@@ -1383,7 +1384,7 @@ begin
    FdDisplacementTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDisplacementTexture);
 
-  FFdEmissiveFactor := TSFVec3f.Create(Self, 'emissiveFactor', Vector3Single(0, 0, 0));
+  FFdEmissiveFactor := TSFVec3f.Create(Self, 'emissiveFactor', Vector3(0, 0, 0));
    FdEmissiveFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdEmissiveFactor);
 
@@ -1403,7 +1404,7 @@ begin
    FdEmissiveTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdEmissiveTexture);
 
-  FFdEnvironmentFactor := TSFVec3f.Create(Self, 'environmentFactor', Vector3Single(1, 1, 1));
+  FFdEnvironmentFactor := TSFVec3f.Create(Self, 'environmentFactor', Vector3(1, 1, 1));
    FdEnvironmentFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdEnvironmentFactor);
 
@@ -1461,12 +1462,12 @@ begin
    FdNormalTextureChannelMask.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdNormalTextureChannelMask);
 
-  FFdNormalScale := TSFVec3f.Create(Self, 'normalScale', Vector3Single(2, 2, 2));
+  FFdNormalScale := TSFVec3f.Create(Self, 'normalScale', Vector3(2, 2, 2));
    FdNormalScale.ChangesAlways := [chVisibleNonGeometry];
    FdNormalScale.Exposed := false;
   AddField(FFdNormalScale);
 
-  FFdNormalBias := TSFVec3f.Create(Self, 'normalBias', Vector3Single(-1, -1, -1));
+  FFdNormalBias := TSFVec3f.Create(Self, 'normalBias', Vector3(-1, -1, -1));
    FdNormalBias.ChangesAlways := [chVisibleNonGeometry];
    FdNormalBias.Exposed := false;
   AddField(FFdNormalBias);
@@ -1479,7 +1480,7 @@ begin
    FdNormalTextureParallaxHeight.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdNormalTextureParallaxHeight);
 
-  FFdReflectionFactor := TSFVec3f.Create(Self, 'reflectionFactor', Vector3Single(0, 0, 0));
+  FFdReflectionFactor := TSFVec3f.Create(Self, 'reflectionFactor', Vector3(0, 0, 0));
    FdReflectionFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdReflectionFactor);
 
@@ -1519,7 +1520,7 @@ begin
    FdShininessTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdShininessTexture);
 
-  FFdSpecularFactor := TSFVec3f.Create(Self, 'specularFactor', Vector3Single(0, 0, 0));
+  FFdSpecularFactor := TSFVec3f.Create(Self, 'specularFactor', Vector3(0, 0, 0));
    FdSpecularFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdSpecularFactor);
 
@@ -1539,7 +1540,7 @@ begin
    FdSpecularTexture.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdSpecularTexture);
 
-  FFdTransmissionFactor := TSFVec3f.Create(Self, 'transmissionFactor', Vector3Single(0, 0, 0));
+  FFdTransmissionFactor := TSFVec3f.Create(Self, 'transmissionFactor', Vector3(0, 0, 0));
    FdTransmissionFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdTransmissionFactor);
 

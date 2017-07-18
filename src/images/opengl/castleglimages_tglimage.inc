@@ -45,7 +45,7 @@ type
     type
       TPoint = packed record
         Position: TVector2SmallInt;
-        TexCoord: TVector2Single;
+        TexCoord: TVector2;
       end;
       PPoint = ^TPoint;
 
@@ -88,7 +88,7 @@ type
     ScreenCenterX, ScreenCenterY: Single;
     UseScreenCenter: boolean;
     FClip: boolean;
-    FClipLine: TVector3Single;
+    FClipLine: TVector3;
     { The detected alpha channel of the loaded image.
       It influences the drawing mode, if @link(Alpha) is acAuto.
 
@@ -98,7 +98,7 @@ type
     FImageAlpha: TAlphaChannel;
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
-    FBlendingConstantColor: TVector4Single;
+    FBlendingConstantColor: TVector4;
     function FinalAlpha: TAlphaChannel;
     procedure AlphaBegin;
     procedure AlphaEnd;
@@ -119,7 +119,7 @@ type
     const
       DefaultBlendingSourceFactor = bsSrcAlpha;
       DefaultBlendingDestinationFactor = bdOneMinusSrcAlpha;
-      DefaultBlendingConstantColor: TVector4Single = (1, 1, 1, 1);
+      DefaultBlendingConstantColor: TVector4 = (Data: (1, 1, 1, 1));
 
     { Prepare image for drawing.
 
@@ -297,7 +297,7 @@ type
       this constant color (or it's alpha value) take part
       in the blending equation. Used only if blending (see @link(Alpha)).
       By default, opaque white. }
-    property BlendingConstantColor: TVector4Single
+    property BlendingConstantColor: TVector4
       read FBlendingConstantColor
       write FBlendingConstantColor;
 
@@ -489,7 +489,7 @@ type
       the pixel is clipped (rejected) if @code(A * x + B * y + C < 0).
       This provides a functionality similar to desktop OpenGL glClipPlane
       (working on all platforms -- desktop, mobile). }
-    property ClipLine: TVector3Single read FClipLine write FClipLine;
+    property ClipLine: TVector3 read FClipLine write FClipLine;
   end;
 
   { Image ready to be drawn on 2D screen, with automatically
@@ -1024,9 +1024,9 @@ var
   { Rotate Point by Rotation radians around (ShiftX, ShiftY). }
   function RotatePoint2DAroundShift(const Point: TVector2SmallInt): TVector2SmallInt;
   var
-    PointSingle, ResultSingle: TVector2Single;
+    PointSingle, ResultSingle: TVector2;
   begin
-    PointSingle := Vector2Single(Point[0] - ShiftX, Point[1] - ShiftY);
+    PointSingle := Vector2(Point[0] - ShiftX, Point[1] - ShiftY);
     ResultSingle := RotatePoint2D(PointSingle, Rotation);
     Result := Vector2SmallInt(Round(ResultSingle[0] + ShiftX), Round(ResultSingle[1] + ShiftY));
   end;
@@ -1061,13 +1061,13 @@ var
        (Y1 > High(SmallInt)) then
       Exit;
 
-    QuadPoints[0].TexCoord := Vector2Single(TexX0, TexY0);
+    QuadPoints[0].TexCoord := Vector2(TexX0, TexY0);
     QuadPoints[0].Position := Vector2SmallInt( X0,    Y0);
-    QuadPoints[1].TexCoord := Vector2Single(TexX1, TexY0);
+    QuadPoints[1].TexCoord := Vector2(TexX1, TexY0);
     QuadPoints[1].Position := Vector2SmallInt( X1,    Y0);
-    QuadPoints[2].TexCoord := Vector2Single(TexX1, TexY1);
+    QuadPoints[2].TexCoord := Vector2(TexX1, TexY1);
     QuadPoints[2].Position := Vector2SmallInt( X1,    Y1);
-    QuadPoints[3].TexCoord := Vector2Single(TexX0, TexY1);
+    QuadPoints[3].TexCoord := Vector2(TexX0, TexY1);
     QuadPoints[3].Position := Vector2SmallInt( X0,    Y1);
 
     if FRotation <> 0 then

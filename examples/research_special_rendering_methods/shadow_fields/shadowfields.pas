@@ -16,6 +16,8 @@
 { Shadow fields structures. }
 unit ShadowFields;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleCubeMaps, CastleVectors, Math, CastleSphericalHarmonics;
@@ -32,7 +34,7 @@ type
   private
     InterpolatedVector: TSHVectorSingle;
 
-    function SphereIndexFromPoint(const V: TVector3Single;
+    function SphereIndexFromPoint(const V: TVector3;
       out Sphere: Cardinal): boolean;
   public
     EnvMaps: array [0..SFSpheresCount - 1,
@@ -41,7 +43,7 @@ type
     SHVectors: array [0..SFSpheresCount - 1,
       TCubeMapSide, 0..Sqr(CubeMapSize) - 1] of TSHVectorSingle;
 
-    SpheresMiddle: TVector3Single;
+    SpheresMiddle: TVector3;
 
     { Radius of the smallest sphere of the shadow field.
       Must be >= 0 (yes, should work Ok with = 0 too). }
@@ -59,7 +61,7 @@ type
 
       Returns @nil if there's no environment map this far or this close
       to V (that is, when IndexFromPoint returns @false). }
-    function EnvMapFromPoint(const V: TVector3Single;
+    function EnvMapFromPoint(const V: TVector3;
       const Scale: Single): PCubeMapByte;
 
     { SH vector, corresponding to point V in 3D space.
@@ -81,7 +83,7 @@ type
       Returns @nil if there's no environment map this far or this close
       to V (that is, when Index*FromPoint returns @false). }
     function SHVectorFromPoint(
-      const V: TVector3Single; const Scale: Single;
+      const V: TVector3; const Scale: Single;
       const Interpolation: TSFInterpolation;
       const SHVectorCount: Cardinal): PSHVectorSingle;
 
@@ -99,7 +101,7 @@ type
       is too close to shadow caster to choose a suitable env map.
       It doesn't matter what you assume in this case, as this shouldn't happen... }
     function IndexFromPoint(
-      V: TVector3Single; const Scale: Single;
+      V: TVector3; const Scale: Single;
       out Sphere: Cardinal; out Side: TCubeMapSide; out Pixel: Cardinal):
       boolean;
 
@@ -109,24 +111,24 @@ type
       Ratio1 + Ratio2 always sum to 1. One of the ratios may be exactly 0,
       in this case you should ignore indexes (they may be invalid). }
     function Index2FromPoint(
-      V: TVector3Single; const Scale: Single;
+      V: TVector3; const Scale: Single;
       out Sphere: TVector2Cardinal; out Side: TCubeMapSide; out Pixel: Cardinal;
-      out Ratio: TVector2Single): boolean;
+      out Ratio: TVector2): boolean;
 
     { Like IndexFromPoint, but returns four SF items, you should interpolate
       between them with Ratio. This does bilinear interpolation (using closest
       sphere radius). }
     function Index4FromPoint(
-      V: TVector3Single; const Scale: Single;
+      V: TVector3; const Scale: Single;
       out Sphere: Cardinal;
       out Side: TCubeMapSide4;
       out Pixel: TVector4Cardinal;
-      out Ratio: TVector4Single): boolean;
+      out Ratio: TVector4): boolean;
 
     { Given indexes to EnvMaps array, to which point in 3D space
       they correspond? This is reverse to IndexFromPoint. }
     function PointFromIndex(const Sphere: Cardinal;
-      const CubeMapSide: TCubeMapSide; const Pixel: Cardinal): TVector3Single;
+      const CubeMapSide: TCubeMapSide; const Pixel: Cardinal): TVector3;
   end;
 
 implementation
@@ -161,7 +163,7 @@ begin
   finally FreeAndNil(F) end;
 end;
 
-function TShadowField.EnvMapFromPoint(const V: TVector3Single;
+function TShadowField.EnvMapFromPoint(const V: TVector3;
   const Scale: Single): PCubeMapByte;
 var
   Sphere, Pixel: Cardinal;
@@ -172,7 +174,7 @@ begin
     Result := nil;
 end;
 
-function TShadowField.SHVectorFromPoint(const V: TVector3Single;
+function TShadowField.SHVectorFromPoint(const V: TVector3;
   const Scale: Single;
   const Interpolation: TSFInterpolation;
   const SHVectorCount: Cardinal): PSHVectorSingle;
@@ -192,7 +194,7 @@ function TShadowField.SHVectorFromPoint(const V: TVector3Single;
     Sphere: TVector2Cardinal;
     Pixel, LM: Cardinal;
     Side: TCubeMapSide;
-    Ratio: TVector2Single;
+    Ratio: TVector2;
     Vector: array [0..1] of PSHVectorSingle;
   begin
     if Index2FromPoint(V, Scale, Sphere, Side, Pixel, Ratio) then
@@ -218,7 +220,7 @@ function TShadowField.SHVectorFromPoint(const V: TVector3Single;
     const Sphere: Cardinal;
     const Side: TCubeMapSide4;
     const Pixel: TVector4Cardinal;
-    const Ratio: TVector4Single);
+    const Ratio: TVector4);
   var
     LM: Cardinal;
     Vector: array [0..3] of PSHVectorSingle;
@@ -239,7 +241,7 @@ function TShadowField.SHVectorFromPoint(const V: TVector3Single;
     Sphere: Cardinal;
     Pixel: TVector4Cardinal;
     Side: TCubeMapSide4;
-    Ratio: TVector4Single;
+    Ratio: TVector4;
   begin
     if Index4FromPoint(V, Scale, Sphere, Side, Pixel, Ratio) then
     begin
@@ -255,8 +257,8 @@ function TShadowField.SHVectorFromPoint(const V: TVector3Single;
     LM: Cardinal;
     Pixel: TVector4Cardinal;
     Side: TCubeMapSide4;
-    Ratio2: TVector2Single;
-    Ratio4: TVector4Single;
+    Ratio2: TVector2;
+    Ratio4: TVector4;
     BiVector: array [0..1] of TSHVectorSingle;
     DummySphere, DummyPixel: Cardinal;
     DummySide: TCubeMapSide;
@@ -308,7 +310,7 @@ begin
   end;
 end;
 
-function TShadowField.SphereIndexFromPoint(const V: TVector3Single;
+function TShadowField.SphereIndexFromPoint(const V: TVector3;
   out Sphere: Cardinal): boolean;
 var
   Distance: Float;
@@ -337,7 +339,7 @@ begin
   Result := true;
 end;
 
-function TShadowField.IndexFromPoint(V: TVector3Single;
+function TShadowField.IndexFromPoint(V: TVector3;
   const Scale: Single;
   out Sphere: Cardinal; out Side: TCubeMapSide; out Pixel: Cardinal):
   boolean;
@@ -355,11 +357,11 @@ begin
 end;
 
 function TShadowField.Index4FromPoint(
-  V: TVector3Single; const Scale: Single;
+  V: TVector3; const Scale: Single;
   out Sphere: Cardinal;
   out Side: TCubeMapSide4;
   out Pixel: TVector4Cardinal;
-  out Ratio: TVector4Single): boolean;
+  out Ratio: TVector4): boolean;
 begin
   V := V - SpheresMiddle;
   if ZeroVector(V) then
@@ -373,10 +375,10 @@ begin
   Result := true;
 end;
 
-function TShadowField.Index2FromPoint(V: TVector3Single;
+function TShadowField.Index2FromPoint(V: TVector3;
   const Scale: Single;
   out Sphere: TVector2Cardinal; out Side: TCubeMapSide; out Pixel: Cardinal;
-  out Ratio: TVector2Single): boolean;
+  out Ratio: TVector2): boolean;
 var
   Distance: Float;
 begin
@@ -438,7 +440,7 @@ begin
 end;
 
 function TShadowField.PointFromIndex(const Sphere: Cardinal;
-  const CubeMapSide: TCubeMapSide; const Pixel: Cardinal): TVector3Single;
+  const CubeMapSide: TCubeMapSide; const Pixel: Cardinal): TVector3;
 var
   Distance: Float;
 begin

@@ -63,16 +63,16 @@ function ActualTessellation(const Tessellation: Integer;
   orientations by X3D NurbsOrientationInterpolator node.
 
   @groupBegin }
-function NurbsCurvePoint(const Points: PVector3Single;
+function NurbsCurvePoint(const Points: PVector3;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
-  Tangent: PVector3Single): TVector3Single;
-function NurbsCurvePoint(const Points: TVector3SingleList;
+  Tangent: PVector3): TVector3;
+function NurbsCurvePoint(const Points: TVector3List;
   const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
-  Tangent: PVector3Single): TVector3Single;
+  Tangent: PVector3): TVector3;
 { @groupEnd }
 
 { Return point on NURBS surface.
@@ -92,12 +92,12 @@ function NurbsCurvePoint(const Points: TVector3SingleList;
   Normal, if non-nil, will be set to the normal at given point of the
   surface. It will be normalized. You can use this to pass these normals
   to rendering. Or to generate normals for X3D NurbsSurfaceInterpolator node. }
-function NurbsSurfacePoint(const Points: TVector3SingleList;
+function NurbsSurfacePoint(const Points: TVector3List;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDoubleList;
-  Normal: PVector3Single): TVector3Single;
+  Normal: PVector3): TVector3;
 
 type
   { Naming notes: what precisely is called a "uniform" knot vector seems
@@ -125,15 +125,15 @@ type
 procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 
-function NurbsBoundingBox(Point: TVector3SingleList;
+function NurbsBoundingBox(Point: TVector3List;
   Weight: TDoubleList): TBox3D;
-function NurbsBoundingBox(Point: TVector3SingleList;
+function NurbsBoundingBox(Point: TVector3List;
   Weight: TSingleList): TBox3D;
 
-function NurbsBoundingBox(Point: TVector3SingleList;
-  Weight: TDoubleList; const Transform: TMatrix4Single): TBox3D;
-function NurbsBoundingBox(Point: TVector3SingleList;
-  Weight: TSingleList; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3List;
+  Weight: TDoubleList; const Transform: TMatrix4): TBox3D;
+function NurbsBoundingBox(Point: TVector3List;
+  Weight: TSingleList; const Transform: TMatrix4): TBox3D;
 
 implementation
 
@@ -148,11 +148,11 @@ begin
   Inc(Result);
 end;
 
-function NurbsCurvePoint(const Points: TVector3SingleList;
+function NurbsCurvePoint(const Points: TVector3List;
   const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
-  Tangent: PVector3Single): TVector3Single;
+  Tangent: PVector3): TVector3;
 begin
   Result := NurbsCurvePoint(Points.L, Points.Count,
     U, Order, Knot, Weight, Tangent);
@@ -162,23 +162,23 @@ end;
 
 { Dummy implementations }
 
-function NurbsCurvePoint(const Points: PVector3Single;
+function NurbsCurvePoint(const Points: PVector3;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
-  Tangent: PVector3Single): TVector3Single;
+  Tangent: PVector3): TVector3;
 begin
-  Result := ZeroVector3Single;
+  Result := TVector3.Zero;
 end;
 
-function NurbsSurfacePoint(const Points: TVector3SingleList;
+function NurbsSurfacePoint(const Points: TVector3List;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDoubleList;
-  Normal: PVector3Single): TVector3Single;
+  Normal: PVector3): TVector3;
 begin
-  Result := ZeroVector3Single;
+  Result := TVector3.Zero;
 end;
 
 {$else CASTLE_ENGINE_LGPL}
@@ -280,18 +280,18 @@ begin
   FreeAndNil(right);
 end;
 
-function NurbsCurvePoint(const Points: PVector3Single;
+function NurbsCurvePoint(const Points: PVector3;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
-  Tangent: PVector3Single): TVector3Single;
+  Tangent: PVector3): TVector3;
 var
   i: Integer;
   w, duw: Single;
   span: LongInt;
   basis, deriv: TDoubleList;
   UseWeight: boolean;
-  du: TVector3Single;
+  du: TVector3;
   index: Cardinal;
 begin
   UseWeight := Cardinal(Weight.Count) = PointsCount;
@@ -303,8 +303,8 @@ begin
 
   basisFuns(span, u, order, Knot, basis, deriv);
 
-  Result := ZeroVector3Single;
-  du := ZeroVector3Single;
+  Result := TVector3.Zero;
+  du := TVector3.Zero;
 
   w := 0.0;
   duw := 0.0;
@@ -330,28 +330,28 @@ begin
   if Tangent <> nil then
   begin
     Tangent^ := (du - Result * duw) / w;
-    NormalizeVar(Tangent^);
+    Tangent^.NormalizeMe;
   end;
 
   FreeAndNil(basis);
   FreeAndNil(deriv);
 end;
 
-function NurbsSurfacePoint(const Points: TVector3SingleList;
+function NurbsSurfacePoint(const Points: TVector3List;
   const UDimension, VDimension: Cardinal;
   const U, V: Single;
   const UOrder, VOrder: Cardinal;
   UKnot, VKnot, Weight: TDoubleList;
-  Normal: PVector3Single): TVector3Single;
+  Normal: PVector3): TVector3;
 var
   uBasis, vBasis, uDeriv, vDeriv: TDoubleList;
   uSpan, vSpan: LongInt;
   I, J: LongInt;
   uBase, vBase, index: Cardinal;
-  du, dv, un, vn: TVector3Single;
+  du, dv, un, vn: TVector3;
   w, duw, dvw: Single;
   gain, dugain, dvgain: Single;
-  P: TVector3Single;
+  P: TVector3;
   UseWeight: boolean;
 begin
   UseWeight := Weight.Count = Points.Count;
@@ -371,9 +371,9 @@ begin
   vBase := vSpan-vOrder+1;
 
   index := vBase*uDimension + uBase;
-  Result := ZeroVector3Single;
-  du := ZeroVector3Single;
-  dv := ZeroVector3Single;
+  Result := TVector3.Zero;
+  du := TVector3.Zero;
+  dv := TVector3.Zero;
 
   w := 0.0;
   duw := 0.0;
@@ -415,8 +415,8 @@ begin
   begin
     un := (du - Result * duw) / w;
     vn := (dv - Result * dvw) / w;
-    normal^ := un >< vn;
-    NormalizeVar(normal^);
+    normal^ := TVector3.CrossProduct(un, vn);
+    normal^.NormalizeMe;
   end;
 
   FreeAndNil(uBasis);
@@ -459,17 +459,17 @@ begin
   end;
 end;
 
-function NurbsBoundingBox(Point: TVector3SingleList;
+function NurbsBoundingBox(Point: TVector3List;
   Weight: TDoubleList): TBox3D;
 var
-  V: PVector3Single;
+  V: PVector3;
   W: Single;
   I: Integer;
 begin
   if Weight.Count = Point.Count then
   begin
     if Point.Count = 0 then
-      Result := EmptyBox3D else
+      Result := TBox3D.Empty else
     begin
       W := Weight.L[0];
       if W = 0 then W := 1;
@@ -483,13 +483,13 @@ begin
         W := Weight.L[I];
         if W = 0 then W := 1;
 
-        MinVar(Result.Data[0][0], V^[0] / W);
-        MinVar(Result.Data[0][1], V^[1] / W);
-        MinVar(Result.Data[0][2], V^[2] / W);
+        MinVar(Result.Data[0].Data[0], V^.Data[0] / W);
+        MinVar(Result.Data[0].Data[1], V^.Data[1] / W);
+        MinVar(Result.Data[0].Data[2], V^.Data[2] / W);
 
-        MaxVar(Result.Data[1][0], V^[0] / W);
-        MaxVar(Result.Data[1][1], V^[1] / W);
-        MaxVar(Result.Data[1][2], V^[2] / W);
+        MaxVar(Result.Data[1].Data[0], V^.Data[0] / W);
+        MaxVar(Result.Data[1].Data[1], V^.Data[1] / W);
+        MaxVar(Result.Data[1].Data[2], V^.Data[2] / W);
       end;
     end;
   end else
@@ -497,7 +497,7 @@ begin
     Result := CalculateBoundingBox(Point);
 end;
 
-function NurbsBoundingBox(Point: TVector3SingleList;
+function NurbsBoundingBox(Point: TVector3List;
   Weight: TSingleList): TBox3D;
 var
   WeightDouble: TDoubleList;
@@ -510,17 +510,17 @@ begin
   finally FreeAndNil(WeightDouble) end;
 end;
 
-function NurbsBoundingBox(Point: TVector3SingleList;
-  Weight: TDoubleList; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3List;
+  Weight: TDoubleList; const Transform: TMatrix4): TBox3D;
 var
-  V: TVector3Single;
+  V: TVector3;
   W: Single;
   I: Integer;
 begin
   if Weight.Count = Point.Count then
   begin
     if Point.Count = 0 then
-      Result := EmptyBox3D else
+      Result := TBox3D.Empty else
     begin
       W := Weight.L[0];
       if W = 0 then W := 1;
@@ -535,13 +535,13 @@ begin
 
         V := MatrixMultPoint(Transform, Point.L[I] / W);
 
-        MinVar(Result.Data[0][0], V[0]);
-        MinVar(Result.Data[0][1], V[1]);
-        MinVar(Result.Data[0][2], V[2]);
+        MinVar(Result.Data[0].Data[0], V[0]);
+        MinVar(Result.Data[0].Data[1], V[1]);
+        MinVar(Result.Data[0].Data[2], V[2]);
 
-        MaxVar(Result.Data[1][0], V[0]);
-        MaxVar(Result.Data[1][1], V[1]);
-        MaxVar(Result.Data[1][2], V[2]);
+        MaxVar(Result.Data[1].Data[0], V[0]);
+        MaxVar(Result.Data[1].Data[1], V[1]);
+        MaxVar(Result.Data[1].Data[2], V[2]);
       end;
     end;
   end else
@@ -549,8 +549,8 @@ begin
     Result := CalculateBoundingBox(Point, Transform);
 end;
 
-function NurbsBoundingBox(Point: TVector3SingleList;
-  Weight: TSingleList; const Transform: TMatrix4Single): TBox3D;
+function NurbsBoundingBox(Point: TVector3List;
+  Weight: TSingleList; const Transform: TMatrix4): TBox3D;
 var
   WeightDouble: TDoubleList;
 begin

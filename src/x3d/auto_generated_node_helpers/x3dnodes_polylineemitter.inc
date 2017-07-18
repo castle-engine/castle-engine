@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
+    function GetDirection: TVector3;
+    procedure SetDirection(const Value: TVector3);
   public
-    property Direction: TVector3Single read GetDirection write SetDirection;
+    property Direction: TVector3 read GetDirection write SetDirection;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TPolylineEmitterNode ----------------------------------------------- }
 
-function TPolylineEmitterNode.GetDirection: TVector3Single;
+function TPolylineEmitterNode.GetDirection: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TPolylineEmitterNode.SetDirection(const Value: TVector3Single);
+procedure TPolylineEmitterNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;

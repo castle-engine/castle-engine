@@ -9,9 +9,9 @@ begin
   Result := MessageInputQuery(Self, Title, FileName);
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
 var
-  NewColor: TVector3Single;
+  NewColor: TVector3;
 begin
   Result := false;
   if not MessageInputQuery(Self, 'Input Red value:'  , NewColor[0]) then Exit;

@@ -43,7 +43,7 @@ type
   want to hide them). }
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TCubeMapRenderSimpleFunction;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
@@ -74,7 +74,7 @@ procedure SHVectorGLCapture(
   as always. }
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single);
 
@@ -84,7 +84,7 @@ procedure GLCaptureCubeMapImages(
   but it creates TCompositeImage instance containing all six images. }
 function GLCaptureCubeMapComposite(
   const Size: Cardinal;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single): TCompositeImage;
 
@@ -107,7 +107,7 @@ function GLCaptureCubeMapComposite(
 procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   RenderToTexture: TGLRenderToTexture);
@@ -118,7 +118,7 @@ uses SysUtils, CastleSphericalHarmonics, CastleRectangles;
 
 procedure SHVectorGLCapture(
   var SHVector: array of Single;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TCubeMapRenderSimpleFunction;
   const MapScreenX, MapScreenY: Integer;
   const ScaleColor: Single);
@@ -162,7 +162,7 @@ procedure SHVectorGLCapture(
 var
   SHBasis: Integer;
   Side: TCubeMapSide;
-  SavedProjectionMatrix: TMatrix4Single;
+  SavedProjectionMatrix: TMatrix4;
 begin
   InitializeSHBasisMap;
 
@@ -194,7 +194,7 @@ begin
 end;
 
 procedure SetRenderingCamera(
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Side: TCubeMapSide);
 begin
   RenderingCamera.FromMatrix(
@@ -205,7 +205,7 @@ end;
 
 procedure GLCaptureCubeMapImages(
   const Images: TCubeMapImages;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single);
 var
@@ -229,7 +229,7 @@ var
 
 var
   Side: TCubeMapSide;
-  SavedProjectionMatrix: TMatrix4Single;
+  SavedProjectionMatrix: TMatrix4;
 begin
   Width  := Images[csPositiveX].Width ;
   Height := Images[csPositiveX].Height;
@@ -251,7 +251,7 @@ end;
 
 function GLCaptureCubeMapComposite(
   const Size: Cardinal;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single): TCompositeImage;
 var
@@ -277,7 +277,7 @@ end;
 procedure GLCaptureCubeMapTexture(
   const Tex: TGLuint;
   const Size: Cardinal;
-  const CapturePoint: TVector3Single;
+  const CapturePoint: TVector3;
   const Render: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
   RenderToTexture: TGLRenderToTexture);
@@ -298,7 +298,7 @@ procedure GLCaptureCubeMapTexture(
 
 var
   Side: TCubeMapSide;
-  SavedProjectionMatrix: TMatrix4Single;
+  SavedProjectionMatrix: TMatrix4;
 begin
   RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
 

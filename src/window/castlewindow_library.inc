@@ -158,7 +158,7 @@ begin
   { TODO: call LibraryCallbackProc with custom cursor shape, if you want this }
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
   if (not Closed) and Assigned(LibraryCallbackProc) then
     LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]), nil);
@@ -230,7 +230,7 @@ begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
 begin
   { TODO } Result := false;
 end;
@@ -443,7 +443,7 @@ begin
   try
     CheckMainWindow;
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Application.MainWindow.DoMouseDown(Vector2Single(X, Y), MyButton, FingerIndex);
+    Application.MainWindow.DoMouseDown(Vector2(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_MouseDown', ExceptMessage(E));
   end;
@@ -458,7 +458,7 @@ begin
     { TODO: using MousePressed as Pressed is only OK without multi-touch. }
     W := Application.MainWindow;
     W.DoMotion(InputMotion(W.FTouches.FingerIndexPosition[FingerIndex],
-      Vector2Single(X, Y), W.MousePressed, FingerIndex));
+      Vector2(X, Y), W.MousePressed, FingerIndex));
   except
     on E: TObject do WritelnWarning('CGEApp_Motion', ExceptMessage(E));
   end;
@@ -471,7 +471,7 @@ begin
   try
     CheckMainWindow;
     if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Application.MainWindow.DoMouseUp(Vector2Single(X, Y), MyButton, FingerIndex);
+    Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex);
   except
     on E: TObject do WritelnWarning('CGEApp_TouchUp', ExceptMessage(E));
   end;

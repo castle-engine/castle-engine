@@ -1173,7 +1173,7 @@ begin
     ScreenX := X;
     ScreenY := Y;
     if TargetImage <> nil then
-      FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Vector3SingleCut(OutlineColor)); // ignore Color[3] for now
+      FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(OutlineColor.XYZ); // ignore OutlineColor[3] for now
 
     TextPtr := PChar(S);
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -1219,7 +1219,7 @@ begin
   ScreenX := X;
   ScreenY := Y;
   if TargetImage <> nil then
-    FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Vector3SingleCut(Color)); // ignore Color[3] for now
+    FFont.Image.ColorWhenTreatedAsAlpha := Vector3Byte(Color.XYZ); // ignore Color[3] for now
 
   TextPtr := PChar(S);
   C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -1270,10 +1270,10 @@ end;
 function TTextureFont.TextMove(const S: string): TVector2Integer;
 begin
   Result := FFont.TextMove(S);
-  Result[0] := Round(Result[0] * Scale);
+  Result.Data[0] := Round(Result.Data[0] * Scale);
   if Outline <> 0 then
-    Result[0] += Outline * 2 * UTF8Length(S);
-  Result[1] := Round(Result[1] * Scale);
+    Result.Data[0] += Outline * 2 * UTF8Length(S);
+  Result.Data[1] := Round(Result.Data[1] * Scale);
 end;
 
 procedure TTextureFont.SetScale(const Value: Single);

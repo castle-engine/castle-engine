@@ -59,7 +59,7 @@
     private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
-    function TransformRotation: TMatrix4Single;
+    function TransformRotation: TMatrix4;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dbackgroundnode.inc}
   end;
@@ -182,8 +182,8 @@
 
       Does nothing if AFogType = ftNone. In this special case, it's also
       allowed to call this on @nil instance. }
-    procedure ApplyFog(var Color: TVector3Single;
-      const Position, VertexPos: TVector3Single; const AFogType: TFogTypeOrNone);
+    procedure ApplyFog(var Color: TVector3;
+      const Position, VertexPos: TVector3; const AFogType: TFogTypeOrNone);
 
     {$I auto_generated_node_helpers/x3dnodes_fog.inc}
   end;
@@ -309,7 +309,7 @@ begin
   AddField(FFdSkyAngle);
   { X3D specification comment: [0,Pi] }
 
-  FFdSkyColor := TMFColor.Create(Self, 'skyColor', Vector3Single(0, 0, 0));
+  FFdSkyColor := TMFColor.Create(Self, 'skyColor', Vector3(0, 0, 0));
    FdSkyColor.ChangesAlways := [chBackground];
   AddField(FFdSkyColor);
   { X3D specification comment: [0,1] }
@@ -360,7 +360,7 @@ begin
   Result := ntcBackground;
 end;
 
-function TAbstractBackgroundNode.TransformRotation: TMatrix4Single;
+function TAbstractBackgroundNode.TransformRotation: TMatrix4;
 begin
   Result := Transform;
 
@@ -368,9 +368,9 @@ begin
     Below is a very hacky way of at least cancelling the translation.
     This will work OK for any rigid body matrix, i.e. composed only from
     rotation and translation. }
-  Result[3][0] := 0;
-  Result[3][1] := 0;
-  Result[3][2] := 0;
+  Result.Data[3, 0] := 0;
+  Result.Data[3, 1] := 0;
+  Result.Data[3, 2] := 0;
 end;
 
 procedure TBackgroundNode.CreateNode;
@@ -458,7 +458,7 @@ begin
     With new renderer, we possible don't have to do *anything*
     when fog property changes, they will be automatically used? }
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
    FdColor.ChangesAlways := [chEverything];
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
@@ -477,7 +477,7 @@ begin
    FdVolumetric.ChangesAlways := [chEverything];
   AddField(FFdVolumetric);
 
-  FFdVolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3Single(0, -1, 0));
+  FFdVolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3(0, -1, 0));
    FdVolumetricDirection.ChangesAlways := [chEverything];
   AddField(FFdVolumetricDirection);
 
@@ -581,8 +581,8 @@ begin
   Result := FogType;
 end;
 
-procedure TFogNode.ApplyFog(var Color: TVector3Single;
-  const Position, VertexPos: TVector3Single; const AFogType: TFogTypeOrNone);
+procedure TFogNode.ApplyFog(var Color: TVector3;
+  const Position, VertexPos: TVector3; const AFogType: TFogTypeOrNone);
 var
   FogVisibilityRangeScaled: Single;
 
@@ -600,7 +600,7 @@ var
 var
   FogVolumetricVisibilityStart: Single;
   Distance, DistanceSqr: Single;
-  VertProjected: TVector3Single;
+  VertProjected: TVector3;
 begin
   if AFogType <> ftNone then
   begin
@@ -614,7 +614,7 @@ begin
         GetFogVolumetric inside ArraysGenerator. }
 
       VertProjected := PointOnLineClosestToPoint(
-        ZeroVector3Single, FdVolumetricDirection.Value, VertexPos);
+        TVector3.Zero, FdVolumetricDirection.Value, VertexPos);
       Distance := VectorLen(VertProjected);
       if not AreParallelVectorsSameDirection(
         VertProjected, FdVolumetricDirection.Value) then
@@ -671,7 +671,7 @@ procedure TLocalFogNode.CreateNode;
 begin
   inherited;
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 
@@ -690,7 +690,7 @@ begin
    FdVolumetric.ChangesAlways := [chEverything];
   AddField(FFdVolumetric);
 
-  FFdVolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3Single(0, -1, 0));
+  FFdVolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3(0, -1, 0));
    FdVolumetricDirection.ChangesAlways := [chEverything];
   AddField(FFdVolumetricDirection);
 

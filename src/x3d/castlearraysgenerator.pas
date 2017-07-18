@@ -25,15 +25,15 @@ uses CastleShapes, X3DNodes, X3DFields, CastleUtils, CastleGeometryArrays,
 
 type
   TRadianceTransferFunction = function (Node: TAbstractGeometryNode;
-    RadianceTransfer: PVector3Single;
-    const RadianceTransferCount: Cardinal): TVector3Single of object;
+    RadianceTransfer: PVector3;
+    const RadianceTransferCount: Cardinal): TVector3 of object;
 
   { Callback used by TRenderingAttributes.OnVertexColor.
     Passed here VertexPosition is in local coordinates (that is,
     local of this object, multiply by State.Transform to get scene coords).
     VertexIndex is the direct index to Node.Coordinates. }
-  TVertexColorFunction = procedure (var Color: TVector3Single;
-    Shape: TShape; const VertexPosition: TVector3Single;
+  TVertexColorFunction = procedure (var Color: TVector3;
+    Shape: TShape; const VertexPosition: TVector3;
     VertexIndex: Integer) of object;
 
   { Generate TGeometryArrays for a VRML/X3D shape. This is the basis
@@ -130,7 +130,7 @@ type
 
     { Get vertex coordinate. Returned vertex is in local coordinate space
       (use State.Transform if you want to get global coordinates). }
-    function GetVertex(IndexNum: integer): TVector3Single;
+    function GetVertex(IndexNum: integer): TVector3;
 
     { Count of indexes. You can pass index between 0 and CoordCount - 1
       to various methods taking an index, like GenerateVertex. }
@@ -200,7 +200,7 @@ type
     TexCoordsNeeded: Cardinal;
     MaterialOpacity: Single;
     FogVolumetric: boolean;
-    FogVolumetricDirection: TVector3Single;
+    FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
     ShapeBumpMappingUsed: boolean;
     ShapeBumpMappingTextureCoordinatesId: Cardinal;
@@ -412,13 +412,13 @@ type
 
       Works in all cases when we actually render some texture.
 
-      Overloaded version with only TVector2Single just ignores the 3rd and
+      Overloaded version with only TVector2 just ignores the 3rd and
       4th texture coordinate, working only when texture coord is
       normal 2D coord. }
     function GetTextureCoord(IndexNum: integer;
-      const TextureUnit: Cardinal; out Tex: TVector4Single): boolean;
+      const TextureUnit: Cardinal; out Tex: TVector4): boolean;
     function GetTextureCoord(IndexNum: integer;
-      const TextureUnit: Cardinal; out Tex: TVector2Single): boolean;
+      const TextureUnit: Cardinal; out Tex: TVector2): boolean;
 
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
 
@@ -463,8 +463,8 @@ type
       For this reason, call UpdateMat1Implementation inside descendant
       constructor after changing this. }
     Mat1Implementation: TMaterials1Implementation;
-    FaceMaterial1Color: TVector4Single;
-    function GetMaterial1Color(const MaterialIndex: Integer): TVector4Single;
+    FaceMaterial1Color: TVector4;
+    function GetMaterial1Color(const MaterialIndex: Integer): TVector4;
   protected
     { You can leave MaterialIndex as nil if you are sure that
       MaterialBinding will not be any _INDEXED value.
@@ -527,8 +527,8 @@ type
   TAbstractColorGenerator = class(TAbstractMaterial1Generator)
   private
     RadianceTransferVertexSize: Cardinal;
-    RadianceTransfer: TVector3SingleList;
-    FaceColor: TVector4Single;
+    RadianceTransfer: TVector3List;
+    FaceColor: TVector4;
   protected
     Color: TMFVec3f;
     ColorRGBA: TMFColorRGBA;
@@ -598,12 +598,12 @@ type
   private
     { Will be set to Normals or it's inverted version, to keep
       pointing from CCW. }
-    CcwNormals: TVector3SingleList;
-    FaceNormal: TVector3Single;
-    function CcwNormalsSafe(const Index: Integer): TVector3Single;
+    CcwNormals: TVector3List;
+    FaceNormal: TVector3;
+    function CcwNormalsSafe(const Index: Integer): TVector3;
   protected
     NormalIndex: TMFLong;
-    Normals: TVector3SingleList;
+    Normals: TVector3List;
     NormalsCcw: boolean;
 
     { This is calculated in constructor. Unlike similar TexImplementation
@@ -631,7 +631,7 @@ type
       Override this in descendants only to handle
       NorImplementation = niNone case. }
     procedure GetNormal(IndexNum: Integer; RangeNumber: Integer;
-      out N: TVector3Single); virtual;
+      out N: TVector3); virtual;
 
     { If @true, then it's guaranteed that normals for the same face will
       be equal. This may be useful for various optimization purposes.
@@ -694,7 +694,7 @@ type
   private
     { Helpers for bump mapping }
     HasTangentVectors: boolean;
-    STangent, TTangent: TVector3Single;
+    STangent, TTangent: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
     procedure PrepareAttributes(var AllowIndexed: boolean); override;
@@ -847,7 +847,7 @@ begin
     ArrayIndexNum := IndexNum;
 end;
 
-function TArraysGenerator.GetVertex(IndexNum: integer): TVector3Single;
+function TArraysGenerator.GetVertex(IndexNum: integer): TVector3;
 begin
   { This assertion should never fail, it's the responsibility
     of the programmer. }
@@ -926,11 +926,11 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
   function Bounds2DTextureGenVectors: TTextureGenerationVectors;
   var
     LocalBBox: TBox3D;
-    LocalBBoxSize: TVector3Single;
+    LocalBBoxSize: TVector3;
 
     { Setup and enable glTexGen to make automatic 2D texture coords
       based on shape bounding box. On texture unit 0. }
-    procedure SetupCoordGen(out Gen: TVector4Single;
+    procedure SetupCoordGen(out Gen: TVector4;
       const Coord: integer; const GenStart, GenEnd: Single);
 
     { We want to map float from range
@@ -962,7 +962,7 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
       FillChar(Gen, SizeOf(Gen), 0);
       Gen[Coord] := (GenEnd - GenStart) / LocalBBoxSize[Coord];
       Gen[3] :=
-        - LocalBBox.Data[0, Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
+        - LocalBBox.Data[0].Data[Coord] * (GenEnd - GenStart) / LocalBBoxSize[Coord]
         + GenStart;
     end;
 
@@ -983,11 +983,11 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
     end else
     begin
       { When local bounding box is empty, set these to any sensible value }
-      Result[0] := Vector4Single(1, 0, 0, 0);
-      Result[1] := Vector4Single(0, 1, 0, 0);
+      Result[0] := Vector4(1, 0, 0, 0);
+      Result[1] := Vector4(0, 1, 0, 0);
     end;
 
-    Result[2] := Vector4Single(0, 0, 1, 0); //< whatever, just to be defined.
+    Result[2] := Vector4(0, 0, 1, 0); //< whatever, just to be defined.
   end;
 
   function Bounds3DTextureGenVectors: TTextureGenerationVectors;
@@ -1004,25 +1004,25 @@ procedure TAbstractTextureCoordinateGenerator.PrepareAttributes(
         Same for T.
         For R, X3D spec says that coords go backwards, so just SwapValues. }
 
-      SwapValues(Box.Data[0][2], Box.Data[1][2]);
+      SwapValues(Box.Data[0].Data[2], Box.Data[1].Data[2]);
 
-      XStart := Box.Data[0][0];
-      YStart := Box.Data[0][1];
-      ZStart := Box.Data[0][2];
+      XStart := Box.Data[0].Data[0];
+      YStart := Box.Data[0].Data[1];
+      ZStart := Box.Data[0].Data[2];
 
-      XSize := Box.Data[1][0] - Box.Data[0][0];
-      YSize := Box.Data[1][1] - Box.Data[0][1];
-      ZSize := Box.Data[1][2] - Box.Data[0][2];
+      XSize := Box.Data[1].Data[0] - Box.Data[0].Data[0];
+      YSize := Box.Data[1].Data[1] - Box.Data[0].Data[1];
+      ZSize := Box.Data[1].Data[2] - Box.Data[0].Data[2];
 
-      Result[0] := Vector4Single(1 / XSize, 0, 0, - XStart / XSize);
-      Result[1] := Vector4Single(0, 1 / YSize, 0, - YStart / YSize);
-      Result[2] := Vector4Single(0, 0, 1 / ZSize, - ZStart / ZSize);
+      Result[0] := Vector4(1 / XSize, 0, 0, - XStart / XSize);
+      Result[1] := Vector4(0, 1 / YSize, 0, - YStart / YSize);
+      Result[2] := Vector4(0, 0, 1 / ZSize, - ZStart / ZSize);
     end else
     begin
       { When local bounding box is empty, set these to any sensible value }
-      Result[0] := Vector4Single(1, 0, 0, 0);
-      Result[1] := Vector4Single(0, 1, 0, 0);
-      Result[2] := Vector4Single(0, 0, 1, 0);
+      Result[0] := Vector4(1, 0, 0, 0);
+      Result[1] := Vector4(0, 1, 0, 0);
+      Result[2] := Vector4(0, 0, 1, 0);
     end;
   end;
 
@@ -1377,27 +1377,27 @@ end;
 
 function TAbstractTextureCoordinateGenerator.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
-  out Tex: TVector4Single): boolean;
+  out Tex: TVector4): boolean;
 
-  function GenerateTexCoord(const TexCoord: TGeometryTexCoord): TVector4Single;
+  function GenerateTexCoord(const TexCoord: TGeometryTexCoord): TVector4;
   var
-    Vertex: TVector3Single;
+    Vertex: TVector3;
   begin
     case TexCoord.Generation of
       tgBounds2d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[0]);
-          Result[1] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[1]);
+          Result[0] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
+          Result[1] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
           Result[2] := 0;
           Result[3] := 1;
         end;
       tgBounds3d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[0]);
-          Result[1] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[1]);
-          Result[2] := VectorDotProduct(Vertex, TexCoord.GenerationBoundsVector[2]);
+          Result[0] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
+          Result[1] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
+          Result[2] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[2]);
           Result[3] := 1;
         end;
       tgCoord:
@@ -1417,8 +1417,8 @@ function TAbstractTextureCoordinateGenerator.GetTextureCoord(
   procedure SetTexFromTexCoordArray(const Dimensions: TTexCoordDimensions;
     const Index: Integer);
   var
-    Tex2d: TVector2Single absolute Tex;
-    Tex3d: TVector3Single absolute Tex;
+    Tex2d: TVector2 absolute Tex;
+    Tex3d: TVector3 absolute Tex;
   begin
     case Dimensions of
       2: Tex2d := TexCoordArray2d[TextureUnit].ItemsSafe[Index];
@@ -1439,7 +1439,7 @@ begin
     Assert(IndexNum < CoordCount);
 
     { Initialize to common values }
-    Tex := Vector4Single(0, 0, 0, 1);
+    Tex := Vector4(0, 0, 0, 1);
 
     Result := TextureUnit < Arrays.TexCoords.Count;
     if not Result then Exit;
@@ -1468,9 +1468,9 @@ end;
 
 function TAbstractTextureCoordinateGenerator.GetTextureCoord(
   IndexNum: integer; const TextureUnit: Cardinal;
-  out Tex: TVector2Single): boolean;
+  out Tex: TVector2): boolean;
 var
-  Tex4f: TVector4Single;
+  Tex4f: TVector4;
 begin
   Result := GetTextureCoord(IndexNum, TextureUnit, Tex4f);
   Tex[0] := Tex4f[0];
@@ -1559,7 +1559,7 @@ begin
 end;
 
 function TAbstractMaterial1Generator.GetMaterial1Color(
-  const MaterialIndex: Integer): TVector4Single;
+  const MaterialIndex: Integer): TVector4;
 var
   M: TMaterialNode_1;
 begin
@@ -1673,7 +1673,7 @@ begin
       VertexColor := WhiteRGB; { default fallback }
 
     OnVertexColor(VertexColor, Shape, GetVertex(IndexNum), VertexIndex);
-    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
+    Arrays.Color(ArrayIndexNum)^ := Vector4(VertexColor, MaterialOpacity);
   end else
   if RadianceTransfer <> nil then
   begin
@@ -1685,17 +1685,17 @@ begin
       Addr(RadianceTransfer.List^[VertexIndex * RadianceTransferVertexSize]),
       RadianceTransferVertexSize);
 
-    Arrays.Color(ArrayIndexNum)^ := Vector4Single(VertexColor, MaterialOpacity);
+    Arrays.Color(ArrayIndexNum)^ := Vector4(VertexColor, MaterialOpacity);
   end else
   if Color <> nil then
   begin
     if ColorPerVertex then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
+        Arrays.Color(ArrayIndexNum)^ := Vector4(Color.ItemsSafe[ColorIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
       if CoordIndex <> nil then
-        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
-        Arrays.Color(ArrayIndexNum)^ := Vector4Single(Color.ItemsSafe[IndexNum], MaterialOpacity);
+        Arrays.Color(ArrayIndexNum)^ := Vector4(Color.ItemsSafe[CoordIndex.ItemsSafe[IndexNum]], MaterialOpacity) else
+        Arrays.Color(ArrayIndexNum)^ := Vector4(Color.ItemsSafe[IndexNum], MaterialOpacity);
     end else
       Arrays.Color(ArrayIndexNum)^ := FaceColor;
   end else
@@ -1725,8 +1725,8 @@ begin
     if (Color <> nil) and (not ColorPerVertex) then
     begin
       if (ColorIndex <> nil) and (ColorIndex.Count <> 0) then
-        FaceColor := Vector4Single(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], MaterialOpacity) else
-        FaceColor := Vector4Single(Color.ItemsSafe[RangeNumber], MaterialOpacity);
+        FaceColor := Vector4(Color.ItemsSafe[ColorIndex.ItemsSafe[RangeNumber]], MaterialOpacity) else
+        FaceColor := Vector4(Color.ItemsSafe[RangeNumber], MaterialOpacity);
     end else
     if (ColorRGBA <> nil) and (not ColorPerVertex) then
     begin
@@ -1787,15 +1787,15 @@ begin
 end;
 
 function TAbstractNormalGenerator.CcwNormalsSafe(
-  const Index: Integer): TVector3Single;
+  const Index: Integer): TVector3;
 begin
   if Index < CcwNormals.Count then
     Result := CcwNormals.L[Index] else
-    Result := ZeroVector3Single;
+    Result := TVector3.Zero;
 end;
 
 procedure TAbstractNormalGenerator.GetNormal(
-  IndexNum: Integer; RangeNumber: Integer; out N: TVector3Single);
+  IndexNum: Integer; RangeNumber: Integer; out N: TVector3);
 begin
   case NorImplementation of
     niOverall:
@@ -1846,9 +1846,9 @@ end;
 
 procedure TAbstractNormalGenerator.GenerateCoordinateBegin;
 
-  procedure SetAllNormals(const Value: TVector3Single);
+  procedure SetAllNormals(const Value: TVector3);
   var
-    N: PVector3Single;
+    N: PVector3;
     I: Integer;
   begin
     N := Arrays.Normal;
@@ -1867,7 +1867,7 @@ begin
     if NormalsCcw then
       CcwNormals := Normals else
     begin
-      CcwNormals := TVector3SingleList.Create;
+      CcwNormals := TVector3List.Create;
       CcwNormals.AssignNegated(Normals);
     end;
   end;
@@ -1953,7 +1953,7 @@ procedure TAbstractFogGenerator.GenerateVertex(
 
   function GetFogVolumetric: Single;
   var
-    Position, Projected: TVector3Single;
+    Position, Projected: TVector3;
   begin
     { calculate global vertex position }
     if CoordIndex <> nil then
@@ -1962,7 +1962,7 @@ procedure TAbstractFogGenerator.GenerateVertex(
     Position := MatrixMultPoint(State.Transform, Position);
 
     Projected := PointOnLineClosestToPoint(
-      ZeroVector3Single, FogVolumetricDirection, Position);
+      TVector3.Zero, FogVolumetricDirection, Position);
     Result := VectorLen(Projected);
     if not AreParallelVectorsSameDirection(
       Projected, FogVolumetricDirection) then
@@ -2115,14 +2115,14 @@ begin
         case TFloatVertexAttributeNode(Attrib[I]).FdNumComponents.Value of
           1: Arrays.GLSLAttributeFloat(Attrib[I].FdName.Value, ArrayIndexNum)^ :=
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex];
-          2: Arrays.GLSLAttributeVector2(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector2Single(
+          2: Arrays.GLSLAttributeVector2(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector2(
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 2 + 1]);
-          3: Arrays.GLSLAttributeVector3(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector3Single(
+          3: Arrays.GLSLAttributeVector3(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector3(
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 1],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 3 + 2]);
-          4: Arrays.GLSLAttributeVector4(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector4Single(
+          4: Arrays.GLSLAttributeVector4(Attrib[I].FdName.Value, ArrayIndexNum)^ := Vector4(
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 1],
                TFloatVertexAttributeNode(Attrib[I]).FdValue.ItemsSafe[VertexIndex * 4 + 2],
@@ -2152,18 +2152,18 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
 
   procedure DoBumpMapping;
 
-    function TangentToObjectSpace: TMatrix3Single;
+    function TangentToObjectSpace: TMatrix3;
 
-      procedure SetResult(const Normal, STangent, TTangent: TVector3Single);
+      procedure SetResult(const Normal, STangent, TTangent: TVector3);
       begin
-        Result[0] := STangent;
-        Result[1] := TTangent;
-        Result[2] := Normal;
+        Result.Data[0] := STangent.Data;
+        Result.Data[1] := TTangent.Data;
+        Result.Data[2] := Normal.Data;
       end;
 
     var
-      LocalSTangent, LocalTTangent: TVector3Single;
-      Normal: TVector3Single;
+      LocalSTangent, LocalTTangent: TVector3;
+      Normal: TVector3;
     begin
       GetNormal(IndexNum, CurrentRangeNumber, Normal);
 
@@ -2200,7 +2200,7 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
         SetResult(Normal,
           { would be more correct to set LocalSTangent as anything perpendicular
             to Normal, and LocalTTangent as vector product (normal, LocalSTangent) }
-          Vector3Single(1, 0, 0), Vector3Single(0, 1, 0));
+          Vector3(1, 0, 0), Vector3(0, 1, 0));
       end;
     end;
 
@@ -2223,12 +2223,12 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
     needless mem copying.
 
     Returns @false if cannot be calculated. }
-  function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3Single;
+  function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3;
     var Triangle3D: TTriangle3Single;
     var TriangleTexCoord: TTriangle2Single): boolean;
   var
-    D: TVector2Single;
-    LineA, LineBC, DIn3D: TVector3Single;
+    D: TVector2;
+    LineA, LineBC, DIn3D: TVector3;
     MiddleIndex: Integer;
     FarthestDistance, NewDistance, Alpha: Single;
     SearchCoord, OtherCoord: Cardinal;
@@ -2245,16 +2245,16 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       MiddleIndex, (MiddleIndex + 1) mod 3 are farthest. }
 
     MiddleIndex := 2;
-    FarthestDistance := Abs(TriangleTexCoord[0][OtherCoord] - TriangleTexCoord[1][OtherCoord]);
+    FarthestDistance := Abs(TriangleTexCoord.Data[0].Data[OtherCoord] - TriangleTexCoord.Data[1].Data[OtherCoord]);
 
-    NewDistance := Abs(TriangleTexCoord[1][OtherCoord] - TriangleTexCoord[2][OtherCoord]);
+    NewDistance := Abs(TriangleTexCoord.Data[1].Data[OtherCoord] - TriangleTexCoord.Data[2].Data[OtherCoord]);
     if NewDistance > FarthestDistance then
     begin
       MiddleIndex := 0;
       FarthestDistance := NewDistance;
     end;
 
-    NewDistance := Abs(TriangleTexCoord[2][OtherCoord] - TriangleTexCoord[0][OtherCoord]);
+    NewDistance := Abs(TriangleTexCoord.Data[2].Data[OtherCoord] - TriangleTexCoord.Data[0].Data[OtherCoord]);
     if NewDistance > FarthestDistance then
     begin
       MiddleIndex := 1;
@@ -2266,25 +2266,25 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
 
     if MiddleIndex <> 0 then
     begin
-      SwapValues(TriangleTexCoord[0], TriangleTexCoord[MiddleIndex]);
-      SwapValues(Triangle3D      [0], Triangle3D      [MiddleIndex]);
+      SwapValues(TriangleTexCoord.Data[0], TriangleTexCoord.Data[MiddleIndex]);
+      SwapValues(Triangle3D      .Data[0], Triangle3D      .Data[MiddleIndex]);
     end;
 
     if IsSTangent then
     begin
-      { we want line Y = TriangleTexCoord[0][1]. }
+      { we want line Y = TriangleTexCoord.Data[0].Data[1]. }
       LineA[0] := 0;
       LineA[1] := 1;
-      LineA[2] := -TriangleTexCoord[0][1];
+      LineA[2] := -TriangleTexCoord.Data[0].Data[1];
     end else
     begin
-      { we want line X = TriangleTexCoord[0][0]. }
+      { we want line X = TriangleTexCoord.Data[0].Data[0]. }
       LineA[0] := 1;
       LineA[1] := 0;
-      LineA[2] := -TriangleTexCoord[0][0];
+      LineA[2] := -TriangleTexCoord.Data[0].Data[0];
     end;
     LineBC := LineOfTwoDifferentPoints2d(
-      TriangleTexCoord[1], TriangleTexCoord[2]);
+      TriangleTexCoord.Data[1], TriangleTexCoord.Data[2]);
 
     try
       D := Lines2DIntersection(LineA, LineBC);
@@ -2296,21 +2296,21 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       If Abs(LineBC[0]) is *smaller* then it means that B and C points
       are most different on 0 coord. }
     if Abs(LineBC[0]) < Abs(LineBC[1]) then
-      Alpha := (                  D[0] - TriangleTexCoord[1][0]) /
-               (TriangleTexCoord[2][0] - TriangleTexCoord[1][0]) else
-      Alpha := (                  D[1] - TriangleTexCoord[1][1]) /
-               (TriangleTexCoord[2][1] - TriangleTexCoord[1][1]);
+      Alpha := (                            D[0] - TriangleTexCoord.Data[1].Data[0]) /
+               (TriangleTexCoord.Data[2].Data[0] - TriangleTexCoord.Data[1].Data[0]) else
+      Alpha := (                            D[1] - TriangleTexCoord.Data[1].Data[1]) /
+               (TriangleTexCoord.Data[2].Data[1] - TriangleTexCoord.Data[1].Data[1]);
 
     DIn3D :=
-      (Triangle3D[1] * (1 - Alpha)) +
-      (Triangle3D[2] * Alpha);
+      (Triangle3D.Data[1] * (1 - Alpha)) +
+      (Triangle3D.Data[2] * Alpha);
 
-    if D[SearchCoord] > TriangleTexCoord[0][SearchCoord] then
-      Tangent := DIn3D - Triangle3D[0]
+    if D[SearchCoord] > TriangleTexCoord.Data[0].Data[SearchCoord] then
+      Tangent := DIn3D - Triangle3D.Data[0]
     else
-      Tangent := Triangle3D[0] - DIn3D;
+      Tangent := Triangle3D.Data[0] - DIn3D;
 
-    NormalizeVar(Tangent);
+    Tangent.NormalizeMe;
 
     Result := true;
   end;
@@ -2323,19 +2323,19 @@ begin
   if ShapeBumpMappingUsed then
   begin
     { calculate Triangle3D }
-    Triangle3D[0] := GetVertex(TriangleIndex1);
-    Triangle3D[1] := GetVertex(TriangleIndex2);
-    Triangle3D[2] := GetVertex(TriangleIndex3);
+    Triangle3D.Data[0] := GetVertex(TriangleIndex1);
+    Triangle3D.Data[1] := GetVertex(TriangleIndex2);
+    Triangle3D.Data[2] := GetVertex(TriangleIndex3);
 
     { This is just to shut up FPC 2.2.0 warnings about
       TriangleTexCoord not initialized. }
-    TriangleTexCoord[0][0] := 0.0;
+    TriangleTexCoord.Data[0].Data[0] := 0.0;
 
     HasTangentVectors :=
       { calculate TriangleTexCoord }
-      GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord[0]) and
-      GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord[1]) and
-      GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord[2]) and
+      GetTextureCoord(TriangleIndex1, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[0]) and
+      GetTextureCoord(TriangleIndex2, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[1]) and
+      GetTextureCoord(TriangleIndex3, ShapeBumpMappingTextureCoordinatesId, TriangleTexCoord.Data[2]) and
       { calculate STangent, TTangent }
       CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
       CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and

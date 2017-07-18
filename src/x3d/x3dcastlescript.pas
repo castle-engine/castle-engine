@@ -179,13 +179,13 @@ begin
     Result := TCasScriptMatrix4fArray.Create(true) else
   {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   if FieldClass.InheritsFrom(TSFMatrix3d) then
-    Result := TCasScriptMatrix3d.Create(true) else
+    Result := TCasScriptMatrix3Double.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix3d) then
-    Result := TCasScriptMatrix3dArray.Create(true) else
+    Result := TCasScriptMatrix3DoubleArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix4d) then
-    Result := TCasScriptMatrix4d.Create(true) else
+    Result := TCasScriptMatrix4Double.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4d) then
-    Result := TCasScriptMatrix4dArray.Create(true) else
+    Result := TCasScriptMatrix4DoubleArray.Create(true) else
   {$endif CASTLE_HAS_DOUBLE_PRECISION}
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
@@ -278,14 +278,14 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
 
     {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     if Field is TSFMatrix3d then
-      TCasScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
+      TCasScriptMatrix3Double(Value).Value := TSFMatrix3d(Field).Value else
     if Field is TMFMatrix3d then
-      TCasScriptMatrix3dArray(Value).Value := TMFMatrix3d(Field).Items else
+      TCasScriptMatrix3DoubleArray(Value).Value := TMFMatrix3d(Field).Items else
 
     if Field is TSFMatrix4d then
-      TCasScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
+      TCasScriptMatrix4Double(Value).Value := TSFMatrix4d(Field).Value else
     if Field is TMFMatrix4d then
-      TCasScriptMatrix4dArray(Value).Value := TMFMatrix4d(Field).Items else
+      TCasScriptMatrix4DoubleArray(Value).Value := TMFMatrix4d(Field).Items else
     {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
     if Field is TSFImage then
@@ -428,14 +428,14 @@ begin
 
     {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
     if Field is TSFMatrix3d then
-      TSFMatrix3d(Field).Value := TCasScriptMatrix3d(Value).Value else
+      TSFMatrix3d(Field).Value := TCasScriptMatrix3Double(Value).Value else
     if Field is TMFMatrix3d then
-      TMFMatrix3d(Field).Items := TCasScriptMatrix3dArray(Value).Value else
+      TMFMatrix3d(Field).Items := TCasScriptMatrix3DoubleArray(Value).Value else
 
     if Field is TSFMatrix4d then
-      TSFMatrix4d(Field).Value := TCasScriptMatrix4d(Value).Value else
+      TSFMatrix4d(Field).Value := TCasScriptMatrix4Double(Value).Value else
     if Field is TMFMatrix4d then
-      TMFMatrix4d(Field).Items := TCasScriptMatrix4dArray(Value).Value else
+      TMFMatrix4d(Field).Items := TCasScriptMatrix4DoubleArray(Value).Value else
     {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
     if Field is TSFImage then

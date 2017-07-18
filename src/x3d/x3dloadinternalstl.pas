@@ -34,10 +34,10 @@ uses SysUtils, Classes,
 
 { Load STL text (ASCII) variation. }
 procedure LoadSTLText(const Stream: TStream;
-  const Coordinate, Normal: TVector3SingleList);
+  const Coordinate, Normal: TVector3List);
 
-  procedure AddTriangle(const Coordinate, Normal: TVector3SingleList;
-    NormalVector: TVector3Single; const Triangle: TTriangle3Single);
+  procedure AddTriangle(const Coordinate, Normal: TVector3List;
+    NormalVector: TVector3; const Triangle: TTriangle3);
   begin
     { if the STL file specifies zero vector, calculate it }
     if PerfectlyZeroVector(NormalVector) then
@@ -49,9 +49,9 @@ procedure LoadSTLText(const Stream: TStream;
     Normal.Add(NormalVector);
     Normal.Add(NormalVector);
 
-    Coordinate.Add(Triangle[0]);
-    Coordinate.Add(Triangle[1]);
-    Coordinate.Add(Triangle[2]);
+    Coordinate.Add(Triangle.Data[0]);
+    Coordinate.Add(Triangle.Data[1]);
+    Coordinate.Add(Triangle.Data[2]);
   end;
 
 var
@@ -76,8 +76,8 @@ var
 
 var
   S: string;
-  NormalVector: TVector3Single;
-  Triangle: TTriangle3Single;
+  NormalVector: TVector3;
+  Triangle: TTriangle3;
   I: Integer;
 begin
   TextReader := TTextReader.Create(Stream, false);
@@ -91,13 +91,13 @@ begin
       begin
         { S = facet -> new triangle }
         if not ReadExpect('normal') then Exit;
-        NormalVector := TextReader.ReadVector3Single;
+        NormalVector := TextReader.ReadVector3;
         if not ReadExpect('outer') then Exit;
         if not ReadExpect('loop') then Exit;
         for I := 0 to 2 do
         begin
           if not ReadExpect('vertex') then Exit;
-          Triangle[I] := TextReader.ReadVector3Single;
+          Triangle.Data[I] := TextReader.ReadVector3;
         end;
         AddTriangle(Coordinate, Normal, NormalVector, Triangle);
         if not ReadExpect('endloop') then Exit;
@@ -116,12 +116,12 @@ end;
 
 { Load STL binary variation. }
 procedure LoadSTLBinary(const Stream: TStream;
-  const Coordinate, Normal: TVector3SingleList);
+  const Coordinate, Normal: TVector3List);
 var
   RestOfHeader: array [0..79 - 5] of char;
   TriangleCount: LongWord;
-  NormalVector: TVector3Single;
-  Triangle: TTriangle3Single;
+  NormalVector: TVector3;
+  Triangle: TTriangle3;
   I, J: Integer;
   TriangleAttribute: Word;
 begin
@@ -136,12 +136,12 @@ begin
   for I := 0 to TriangleCount - 1 do
   begin
     for J := 0 to 2 do
-      Stream.ReadLE(NormalVector[J]);
+      Stream.ReadLE(NormalVector.Data[J]);
     for J := 0 to 2 do
     begin
-      Stream.ReadLE(Triangle[J][0]);
-      Stream.ReadLE(Triangle[J][1]);
-      Stream.ReadLE(Triangle[J][2]);
+      Stream.ReadLE(Triangle.Data[J].Data[0]);
+      Stream.ReadLE(Triangle.Data[J].Data[1]);
+      Stream.ReadLE(Triangle.Data[J].Data[2]);
     end;
     { we read and ignore for now the TriangleAttribute,
       see https://en.wikipedia.org/wiki/STL_%28file_format%29 for it's meaning }
@@ -156,9 +156,9 @@ begin
     if PerfectlyZeroVector(NormalVector) then
       NormalVector := TriangleNormal(Triangle);
 
-    Coordinate[I * 3    ] := Triangle[0];
-    Coordinate[I * 3 + 1] := Triangle[1];
-    Coordinate[I * 3 + 2] := Triangle[2];
+    Coordinate[I * 3    ] := Triangle.Data[0];
+    Coordinate[I * 3 + 1] := Triangle.Data[1];
+    Coordinate[I * 3 + 2] := Triangle.Data[2];
 
     Normal[I * 3    ] := NormalVector;
     Normal[I * 3 + 1] := NormalVector;

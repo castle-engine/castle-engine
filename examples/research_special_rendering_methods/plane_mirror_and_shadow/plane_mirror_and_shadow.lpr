@@ -73,7 +73,7 @@ var
 
   { 4th component must be always 1, because LightNode
     is always created as positional }
-  LightPosition: TVector4Single = (0, 0, 3, 1);
+  LightPosition: TVector4 = (Data: (0, 0, 3, 1));
 
   RotationAngle: Single;
 
@@ -85,7 +85,7 @@ var
   Mirror: boolean = true;
 
 const
-  ClearColor: TCastleColor = (0.5, 0.5, 0.5, 1);
+  ClearColor: TCastleColor = (Data: (0.5, 0.5, 0.5, 1));
 
 var
   PlaneConstCoord: Integer = 2;
@@ -95,7 +95,7 @@ var
   PlaneOtherCoord2: Integer = 1;
 
 function Vector3Split(const ValueOnConstCoord, ValueOnOtherCoords: Single):
-  TVector3Single;
+  TVector3;
 begin
   Result[PlaneConstCoord] := ValueOnConstCoord;
   Result[PlaneOtherCoord1] := ValueOnOtherCoords;
@@ -103,7 +103,7 @@ begin
 end;
 
 function Vector4Split(const ValueOnConstCoord, ValueOnOtherCoords,
-  ValueLast: Single): TVector4Single;
+  ValueLast: Single): TVector4;
 begin
   Result[PlaneConstCoord] := ValueOnConstCoord;
   Result[PlaneOtherCoord1] := ValueOnOtherCoords;
@@ -135,8 +135,8 @@ type
 procedure TMySceneManager.RenderFromViewEverything;
 
   function PlaneProjectedShadowMatrix(
-    const Plane: TVector4Single;
-    const LightPosition: TVector4Single): TMatrix4Single;
+    const Plane: TVector4;
+    const LightPosition: TVector4): TMatrix4;
   var
     Dot: Single;
   begin
@@ -144,29 +144,29 @@ procedure TMySceneManager.RenderFromViewEverything;
 
     { Based on http://www.devmaster.net/articles/shadows/ }
 
-    Result[0][0] := Dot  - LightPosition[0] * Plane[0];
-    Result[1][0] :=      - LightPosition[0] * Plane[1];
-    Result[2][0] :=      - LightPosition[0] * Plane[2];
-    Result[3][0] :=      - LightPosition[0] * Plane[3];
+    Result[0, 0] := Dot  - LightPosition[0] * Plane[0];
+    Result[1, 0] :=      - LightPosition[0] * Plane[1];
+    Result[2, 0] :=      - LightPosition[0] * Plane[2];
+    Result[3, 0] :=      - LightPosition[0] * Plane[3];
 
-    Result[0][1] :=      - LightPosition[1] * Plane[0];
-    Result[1][1] := Dot  - LightPosition[1] * Plane[1];
-    Result[2][1] :=      - LightPosition[1] * Plane[2];
-    Result[3][1] :=      - LightPosition[1] * Plane[3];
+    Result[0, 1] :=      - LightPosition[1] * Plane[0];
+    Result[1, 1] := Dot  - LightPosition[1] * Plane[1];
+    Result[2, 1] :=      - LightPosition[1] * Plane[2];
+    Result[3, 1] :=      - LightPosition[1] * Plane[3];
 
-    Result[0][2] :=      - LightPosition[2] * Plane[0];
-    Result[1][2] :=      - LightPosition[2] * Plane[1];
-    Result[2][2] := Dot  - LightPosition[2] * Plane[2];
-    Result[3][2] :=      - LightPosition[2] * Plane[3];
+    Result[0, 2] :=      - LightPosition[2] * Plane[0];
+    Result[1, 2] :=      - LightPosition[2] * Plane[1];
+    Result[2, 2] := Dot  - LightPosition[2] * Plane[2];
+    Result[3, 2] :=      - LightPosition[2] * Plane[3];
 
-    Result[0][3] :=      - LightPosition[3] * Plane[0];
-    Result[1][3] :=      - LightPosition[3] * Plane[1];
-    Result[2][3] :=      - LightPosition[3] * Plane[2];
-    Result[3][3] := Dot  - LightPosition[3] * Plane[3];
+    Result[0, 3] :=      - LightPosition[3] * Plane[0];
+    Result[1, 3] :=      - LightPosition[3] * Plane[1];
+    Result[2, 3] :=      - LightPosition[3] * Plane[2];
+    Result[3, 3] := Dot  - LightPosition[3] * Plane[3];
   end;
 
 var
-  Plane: TVector4Single;
+  Plane: TVector4;
 
   procedure DoShadow;
   begin
@@ -174,7 +174,7 @@ var
       glMultMatrix(PlaneProjectedShadowMatrix(Plane, LightPosition));
       glPushAttrib(GL_ENABLE_BIT or GL_DEPTH_BUFFER_BIT);
         glDisable(GL_LIGHTING);
-        glColorv(Vector4Single(0, 0, 0, 0.2));
+        glColorv(Vector4(0, 0, 0, 0.2));
 
         if ShadowBlend then
         begin
@@ -236,10 +236,10 @@ var
       just like glClear(GL_DEPTH_BUFFER_BIT).  }
     procedure ClearDepthBufferHonouringStencil;
     var
-      SavedProjectionMatrix: TMatrix4Single;
+      SavedProjectionMatrix: TMatrix4;
     begin
       SavedProjectionMatrix := ProjectionMatrix;
-      ProjectionMatrix := IdentityMatrix4Single;
+      ProjectionMatrix := TMatrix4.Identity;
 
       glPushMatrix;
         glLoadIdentity;
@@ -325,7 +325,7 @@ var
     procedure Vertex(const X, Y: Single);
     var
       XCoord, YCoord: Integer;
-      V: TVector3Single;
+      V: TVector3;
     begin
       if ConstCoord = 1 then
       begin
@@ -343,7 +343,7 @@ var
 
   begin
     glBegin(GL_QUADS);
-      glNormalv(UnitVector3Single[ConstCoord]);
+      glNormalv(TVector3.One[ConstCoord]);
       Vertex(X1, Y1);
       Vertex(X2, Y1);
       Vertex(X2, Y2);
@@ -367,11 +367,11 @@ var
     { Render the plane where the shadow lies.
       The plane size and position is calculated to have a nice shadow receiver
       for Scene. }
-    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4Single(0.2, 0.2, 0, 0.3));
-    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(0  , 1  , 0, 0.3));
-    DrawPlane(Box.Data[0, PlaneOtherCoord1] - BoxMaxSize, Box.Data[0, PlaneOtherCoord2] - BoxMaxSize,
-              Box.Data[1, PlaneOtherCoord1] + BoxMaxSize, Box.Data[1, PlaneOtherCoord2] + BoxMaxSize,
-              Box.Data[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize,
+    glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Vector4(0.2, 0.2, 0, 0.3));
+    glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(0  , 1  , 0, 0.3));
+    DrawPlane(Box.Data[0].Data[PlaneOtherCoord1] - BoxMaxSize, Box.Data[0].Data[PlaneOtherCoord2] - BoxMaxSize,
+              Box.Data[1].Data[PlaneOtherCoord1] + BoxMaxSize, Box.Data[1].Data[PlaneOtherCoord2] + BoxMaxSize,
+              Box.Data[0].Data[PlaneConstCoord] - PlaneDistance * BoxMaxSize,
               PlaneConstCoord);
   end;
 
@@ -380,8 +380,8 @@ begin
   glLoadMatrix(RenderingCamera.Matrix);
 
   { set light position for Scene (by LightInstance and LightNode) }
-  LightInstance.Location := Vector3SingleCut(LightPosition);
-  LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
+  LightInstance.Location := LightPosition.XYZ;
+  LightNode.Location := LightPosition.XYZ;
 
   { draw point indicating LightPosition }
   glPushAttrib(GL_ENABLE_BIT);
@@ -480,7 +480,7 @@ begin
         0 * x + 0 * y + 1 * z - (Box.Data[0, 2] - PlaneDistance * BoxMaxSize) = 0
     }
     Plane := Vector4Split(1, 0,
-      - (Box.Data[0, PlaneConstCoord] - PlaneDistance * BoxMaxSize));
+      - (Box.Data[0].Data[PlaneConstCoord] - PlaneDistance * BoxMaxSize));
 
     { everything else is drawn only on the floor }
     if UseStencil then
@@ -517,7 +517,7 @@ procedure Update(Container: TUIContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPosition[Coord] += Change * Window.Fps.UpdateSecondsPassed * 5;
+    LightPosition.Data[Coord] += Change * Window.Fps.UpdateSecondsPassed * 5;
   end;
 
 begin
@@ -655,12 +655,12 @@ begin
 
     { init light that we'll control }
     LightNode := TPointLightNode.Create;
-    LightNode.FdLocation.Value := Vector3SingleCut(LightPosition);
+    LightNode.Location := LightPosition.XYZ;
 
     LightInstance.Node := LightNode;
-    LightInstance.Transform := IdentityMatrix4Single;
+    LightInstance.Transform := TMatrix4.Identity;
     LightInstance.TransformScale := 1;
-    LightInstance.Location := Vector3SingleCut(LightPosition);
+    LightInstance.Location := LightPosition.XYZ;
     LightInstance.Radius := 1000;
 
     { parameters for render calls must contain our custom light }

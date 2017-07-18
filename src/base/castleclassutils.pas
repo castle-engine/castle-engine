@@ -124,7 +124,8 @@ type
 
        @raises(EConvertError If one of the components cannot be converted
          to Single, or when stream ended prematurely.) }
-    function ReadVector3Single: TVector3Single;
+    function ReadVector3: TVector3;
+    function ReadVector3Single: TVector3; deprecated 'use ReadVector3';
 
     function Eof: boolean;
   end;
@@ -783,11 +784,16 @@ begin
   Result := StrToFloat(Read);
 end;
 
-function TTextReader.ReadVector3Single: TVector3Single;
+function TTextReader.ReadVector3: TVector3;
 begin
   Result[0] := ReadSingle;
   Result[1] := ReadSingle;
   Result[2] := ReadSingle;
+end;
+
+function TTextReader.ReadVector3Single: TVector3;
+begin
+  Result := ReadVector3;
 end;
 
 function TTextReader.Eof: boolean;

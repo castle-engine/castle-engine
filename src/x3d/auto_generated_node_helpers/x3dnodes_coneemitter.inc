@@ -29,14 +29,14 @@
   private
     function GetAngle: Single;
     procedure SetAngle(const Value: Single);
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
-    function GetPosition: TVector3Single;
-    procedure SetPosition(const Value: TVector3Single);
+    function GetDirection: TVector3;
+    procedure SetDirection(const Value: TVector3);
+    function GetPosition: TVector3;
+    procedure SetPosition(const Value: TVector3);
   public
     property Angle: Single read GetAngle write SetAngle;
-    property Direction: TVector3Single read GetDirection write SetDirection;
-    property Position: TVector3Single read GetPosition write SetPosition;
+    property Direction: TVector3 read GetDirection write SetDirection;
+    property Position: TVector3 read GetPosition write SetPosition;
 
 {$endif read_interface}
 
@@ -54,22 +54,22 @@ begin
   FdAngle.Send(Value);
 end;
 
-function TConeEmitterNode.GetDirection: TVector3Single;
+function TConeEmitterNode.GetDirection: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TConeEmitterNode.SetDirection(const Value: TVector3Single);
+procedure TConeEmitterNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;
 
-function TConeEmitterNode.GetPosition: TVector3Single;
+function TConeEmitterNode.GetPosition: TVector3;
 begin
   Result := FdPosition.Value;
 end;
 
-procedure TConeEmitterNode.SetPosition(const Value: TVector3Single);
+procedure TConeEmitterNode.SetPosition(const Value: TVector3);
 begin
   FdPosition.Send(Value);
 end;

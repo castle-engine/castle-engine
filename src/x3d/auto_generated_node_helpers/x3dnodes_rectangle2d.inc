@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetSize: TVector2Single;
-    procedure SetSize(const Value: TVector2Single);
+    function GetSize: TVector2;
+    procedure SetSize(const Value: TVector2);
   public
-    property Size: TVector2Single read GetSize write SetSize;
+    property Size: TVector2 read GetSize write SetSize;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TRectangle2DNode ----------------------------------------------- }
 
-function TRectangle2DNode.GetSize: TVector2Single;
+function TRectangle2DNode.GetSize: TVector2;
 begin
   Result := FdSize.Value;
 end;
 
-procedure TRectangle2DNode.SetSize(const Value: TVector2Single);
+procedure TRectangle2DNode.SetSize(const Value: TVector2);
 begin
   FdSize.Send(Value);
 end;

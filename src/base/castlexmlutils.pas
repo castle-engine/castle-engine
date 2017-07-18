@@ -132,14 +132,14 @@ type
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector2(const AttrName: string; var Value: TVector2Single): boolean;
+    function AttributeVector2(const AttrName: string; var Value: TVector2): boolean;
 
     { Read from Element attribute as a 3D vector (3 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector3(const AttrName: string; var Value: TVector3Single): boolean;
+    function AttributeVector3(const AttrName: string; var Value: TVector3): boolean;
 
     { ------------------------------------------------------------------------
       Get a required attribute, returns value (exception if not found). }
@@ -222,12 +222,12 @@ type
     { Retrieves from Element given attribute as a 2D vector (2 floats),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector2(const AttrName: string): TVector2Single;
+    function AttributeVector2(const AttrName: string): TVector2;
 
     { Retrieves from Element given attribute as a 3D vector (3 floats),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector3(const AttrName: string): TVector3Single;
+    function AttributeVector3(const AttrName: string): TVector3;
 
     { ------------------------------------------------------------------------
       Get an optional attribute, returns attribute or a default value. }
@@ -269,11 +269,11 @@ type
 
     { Retrieves from Element given attribute as a 2D vector (2 floats), or a default value.
       @raises EConvertError If the value exists in XML, but has invalid format. }
-    function AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2Single): TVector2Single;
+    function AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2): TVector2;
 
     { Retrieves from Element given attribute as a 3D vector (3 floats), or a default value.
       @raises EConvertError If the value exists in XML, but has invalid format. }
-    function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3Single): TVector3Single;
+    function AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3): TVector3;
 
     { Attribute setting ------------------------------------------------------ }
 
@@ -720,23 +720,23 @@ begin
 end;
 
 function TDOMElementHelper.AttributeVector2(
-  const AttrName: string; var Value: TVector2Single): boolean;
+  const AttrName: string; var Value: TVector2): boolean;
 var
   ValueStr: string;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := Vector2SingleFromStr(ValueStr);
+    Value := Vector2FromStr(ValueStr);
 end;
 
 function TDOMElementHelper.AttributeVector3(
-  const AttrName: string; var Value: TVector3Single): boolean;
+  const AttrName: string; var Value: TVector3): boolean;
 var
   ValueStr: string;
 begin
   Result := AttributeString(AttrName, ValueStr);
   if Result then
-    Value := Vector3SingleFromStr(ValueStr);
+    Value := Vector3FromStr(ValueStr);
 end;
 
 { ------------------------------------------------------------------------
@@ -803,13 +803,13 @@ begin
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (RGB color) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeVector2(const AttrName: string): TVector2Single;
+function TDOMElementHelper.AttributeVector2(const AttrName: string): TVector2;
 begin
   if not AttributeVector2(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector2) attribute "%s" on element "%s"', [AttrName, TagName]);
 end;
 
-function TDOMElementHelper.AttributeVector3(const AttrName: string): TVector3Single;
+function TDOMElementHelper.AttributeVector3(const AttrName: string): TVector3;
 begin
   if not AttributeVector3(AttrName, Result) then
     raise EDOMAttributeMissing.CreateFmt('Missing (or has an invalid value) required (vector3) attribute "%s" on element "%s"', [AttrName, TagName]);
@@ -873,13 +873,13 @@ begin
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2Single): TVector2Single;
+function TDOMElementHelper.AttributeVector2Def(const AttrName: string; const DefaultValue: TVector2): TVector2;
 begin
   if not AttributeVector2(AttrName, Result) then
     Result := DefaultValue;
 end;
 
-function TDOMElementHelper.AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3Single): TVector3Single;
+function TDOMElementHelper.AttributeVector3Def(const AttrName: string; const DefaultValue: TVector3): TVector3;
 begin
   if not AttributeVector3(AttrName, Result) then
     Result := DefaultValue;

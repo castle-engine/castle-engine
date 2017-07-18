@@ -134,10 +134,10 @@ begin
 
   Coordinate := TCoordinateNode.Create;
   Coordinate.FdPoint.Items.AddRange(
-    [Vector3Single(0, 0, 0),
-     Vector3Single(1, 0, 0),
-     Vector3Single(1, 1, 0),
-     Vector3Single(0, 1, 0)
+    [Vector3(0, 0, 0),
+     Vector3(1, 0, 0),
+     Vector3(1, 1, 0),
+     Vector3(0, 1, 0)
     ]);
 
   QuadSet := TQuadSetNode.Create;

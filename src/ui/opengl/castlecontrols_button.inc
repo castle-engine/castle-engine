@@ -59,7 +59,7 @@
     FCustomTextColorUse: boolean;
     FToggle: boolean;
     ClickStarted: boolean;
-    ClickStartedPosition: TVector2Single;
+    ClickStartedPosition: TVector2;
     FMinImageWidth: Cardinal;
     FMinImageHeight: Cardinal;
     FImageLayout: TCastleButtonImageLayout;

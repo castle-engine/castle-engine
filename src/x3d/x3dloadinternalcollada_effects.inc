@@ -82,7 +82,7 @@ begin
     { I simply drop 4th color component, I don't know what's the use of this
       (alpha is exposed by effect/materials parameter transparency, so color
       alpha is supposed to mean something else ?). }
-    Result := Vector3SingleCut(Vector4SingleFromStr(Child.TextData));
+    Result := Vector4FromStr(Child.TextData).XYZ;
   end else
   begin
     Child := Element.ChildElement('texture', false);
@@ -96,7 +96,7 @@ end;
 
 { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x,
   but allow only color specification. }
-function ReadColor(Element: TDOMElement): TVector3Single;
+function ReadColor(Element: TDOMElement): TVector3;
 var
   IgnoreTextureName, IgnoreTexCoordName: string;
 begin
