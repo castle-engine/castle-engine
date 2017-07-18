@@ -144,10 +144,6 @@ interface
 uses SysUtils, Generics.Collections,
   CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble;
 
-{$ifdef VER3_0_2} // causes internal error in FPC 3.0.2 (not in 3.0.0 or 3.1.1)
-  {$define BUGGY_ZERO_CONSTANT}
-{$endif}
-
 {$define read_interface}
 
 {$I castlevectors_records_float.inc}

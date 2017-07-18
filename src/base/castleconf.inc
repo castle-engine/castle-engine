@@ -209,7 +209,7 @@
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
-{ Double precision ----------------------------------------------------------- }
+{ others --------------------------------------------------------------------- }
 
 { Define this to have an additional version of many float routines
   in CastleVectors, CastleTriangles unit,
@@ -218,5 +218,13 @@
   TODO: X3DFields, and units on top of it, will not compile with
   CASTLE_HAS_DOUBLE_PRECISION defined now. }
 {$define CASTLE_HAS_DOUBLE_PRECISION}
+
+// We have a construction in CastleVectors and friends that causes
+// internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1).
+{$ifdef VER3_0}
+  {$ifndef VER3_0_0}
+    {$define BUGGY_ZERO_CONSTANT}
+  {$endif}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
