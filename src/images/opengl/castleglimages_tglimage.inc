@@ -1159,7 +1159,7 @@ begin
   {$ifdef GLImageUseShaders}
   if TextureHasOnlyAlpha then
     ColorTreatment := ctColorMultipliesTextureAlpha else
-  if not VectorsPerfectlyEqual(Color, White) then
+  if not TCastleColor.PerfectlyEquals(Color, White) then
     ColorTreatment := ctColorMultipliesTexture else
     ColorTreatment := ctPureTexture;
 
