@@ -44,7 +44,20 @@ type
     that is able to handle "degenerated" triangles is @link(TTriangle3.IsValid),
     which is exactly used to check whether the triangle is degenerated. }
   TTriangle3 = record
-    Data: packed array [0..2] of TVector3;
+  public
+    type
+      TIndex = 0..2;
+  strict private
+    function GetItems(const Index: TIndex): TVector3;
+    procedure SetItems(const Index: TIndex; const Value: TVector3);
+  public
+    Data: packed array [TIndex] of TVector3;
+
+    { Access the points of the triangle.
+      This is the same as accessing @link(Data) field,
+      it is also the default record property so you can just write @code(MyTriangle[0])
+      instead of @code(MyTriangle.Items[0]) or @code(MyTriangle.Data[0]). }
+    property Items [const Index: TIndex]: TVector3 read GetItems write SetItems; default;
 
     { Multiline triangle description. }
     function ToString: string;
@@ -826,6 +839,16 @@ begin
     (Data[2].Data[C2] - Data[0].Data[C2]) * (  Point.Data[C1] - Data[2].Data[C1])
     ) / Det;
   Result.Data[2] := 1 - Result.Data[0] - Result.Data[1];
+end;
+
+function TTriangle3.GetItems(const Index: TIndex): TVector3;
+begin
+  Result := Data[Index];
+end;
+
+procedure TTriangle3.SetItems(const Index: TIndex; const Value: TVector3);
+begin
+  Data[Index] := Value;
 end;
 
 { TTriangle4 ----------------------------------------------------------------- }
