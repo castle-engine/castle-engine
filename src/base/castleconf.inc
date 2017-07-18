@@ -211,14 +211,6 @@
 
 { others --------------------------------------------------------------------- }
 
-{ Define this to have an additional version of many float routines
-  in CastleVectors, CastleTriangles unit,
-  working on vectors, matrices and triangles with Double precision.
-
-  TODO: X3DFields, and units on top of it, will not compile with
-  CASTLE_HAS_DOUBLE_PRECISION defined now. }
-{$define CASTLE_HAS_DOUBLE_PRECISION}
-
 // We have a construction in CastleVectors and friends that causes
 // internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1).
 {$ifdef VER3_0}

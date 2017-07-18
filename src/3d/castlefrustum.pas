@@ -356,7 +356,10 @@ begin
 end;
 
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
-{$ifdef TODO_2_CASTLE_HAS_DOUBLE_PRECISION}
+{ It's better to make these calculations using Double precision. }
+// TODO:
+{ $define CalculatePoints_DoublePrecision}
+{$ifdef CalculatePoints_DoublePrecision}
 var
   Camera: TVector3Double;
 begin
@@ -398,7 +401,7 @@ begin
     FrustumPoints[7].W := 0;
   end;
 end;
-{$else}
+{$else CalculatePoints_DoublePrecision}
 var
   FrustumPointsSingle: TFrustumPoints;
   I: Integer;
@@ -407,7 +410,7 @@ begin
   for I := 0 to High(FrustumPoints) do
     FrustumPoints[I].XYZW := Vector4Double(FrustumPointsSingle[I].XYZW);
 end;
-{$endif}
+{$endif CalculatePoints_DoublePrecision}
 
 function TFrustum.SphereCollisionPossible(
   const SphereCenter: TVector3; const SphereRadiusSqr: Single):

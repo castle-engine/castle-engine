@@ -1435,18 +1435,20 @@ function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
 { The same comments about precision as for IsCenteredBox3DPlaneCollision apply also here. }
 {$define Epsilon := Box3DPlaneCollisionEpsilon}
 
-{$ifdef TODO_CASTLE_HAS_DOUBLE_PRECISION}
-{ When TODO_CASTLE_HAS_DOUBLE_PRECISION is defined, do these calculations using Double precision. }
-{$define TScalar := Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define TTriangle3 := TTriangle3Double}
+{ It's better to make these calculations using Double precision. }
+// TODO:
+{ $define IsTriangleCollision_DoublePrecision}
+
+{$ifdef IsTriangleCollision_DoublePrecision}
+  {$define TScalar := Double}
+  {$define TVector3 := TVector3Double}
+  {$define TVector4 := TVector4Double}
+  {$define TTriangle3 := TTriangle3Double}
 {$else}
-{ When TODO_CASTLE_HAS_DOUBLE_PRECISION is not defined, do these calculations using Single precision. }
-{$define TScalar := Single}
-{ $define TVector3 := TVector3}
-{ $define TVector4 := TVector4}
-{ $define TTriangle3 := TTriangle3}
+  {$define TScalar := Single}
+  { $define TVector3 := TVector3}
+  { $define TVector4 := TVector4}
+  { $define TTriangle3 := TTriangle3}
 {$endif}
 
 var
@@ -1549,9 +1551,9 @@ begin
 
   { calculate TriangleMoved (Triangle shifted by -BoxCenter,
     so that we can treat the BoxHalfSize as centered around origin) }
-  TriangleMoved.Data[0] := {$ifdef TODO_CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle.Data[0]) - BoxCenter;
-  TriangleMoved.Data[1] := {$ifdef TODO_CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle.Data[1]) - BoxCenter;
-  TriangleMoved.Data[2] := {$ifdef TODO_CASTLE_HAS_DOUBLE_PRECISION}Vector3Double{$endif}(Triangle.Data[2]) - BoxCenter;
+  TriangleMoved.Data[0] := {$ifdef IsTriangleCollision_DoublePrecision}Vector3Double{$endif}(Triangle.Data[0]) - BoxCenter;
+  TriangleMoved.Data[1] := {$ifdef IsTriangleCollision_DoublePrecision}Vector3Double{$endif}(Triangle.Data[1]) - BoxCenter;
+  TriangleMoved.Data[2] := {$ifdef IsTriangleCollision_DoublePrecision}Vector3Double{$endif}(Triangle.Data[2]) - BoxCenter;
 
   { calculate TriangleMoved edges }
   TriangleEdges[0] := TriangleMoved.Data[1] - TriangleMoved.Data[0];

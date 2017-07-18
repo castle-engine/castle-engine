@@ -205,7 +205,6 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   TCasScriptVec2dArray = class(TCasScriptArray)
   private
     class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -315,7 +314,6 @@ type
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
-  {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
   TCasScriptMatrix3fArray = class(TCasScriptArray)
   private
@@ -484,44 +482,40 @@ uses SysUtils, CastleScriptCoreFunctions, CastleCurves;
 {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
 {$I castlescriptarrays_implement.inc}
 
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+{$define TCasScriptXxxArray := TCasScriptVec2dArray}
+{$define TXxxList := TVector2DoubleList}
+{$define TCasScriptXxxElement := TCasScriptVec2d}
+{$define RegisterXxxFunctions := RegisterVec2dFunctions}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+{$I castlescriptarrays_implement.inc}
 
-  {$define TCasScriptXxxArray := TCasScriptVec2dArray}
-  {$define TXxxList := TVector2DoubleList}
-  {$define TCasScriptXxxElement := TCasScriptVec2d}
-  {$define RegisterXxxFunctions := RegisterVec2dFunctions}
-  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-  {$I castlescriptarrays_implement.inc}
+{$define TCasScriptXxxArray := TCasScriptVec3dArray}
+{$define TXxxList := TVector3DoubleList}
+{$define TCasScriptXxxElement := TCasScriptVec3d}
+{$define RegisterXxxFunctions := RegisterVec3dFunctions}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+{$I castlescriptarrays_implement.inc}
 
-  {$define TCasScriptXxxArray := TCasScriptVec3dArray}
-  {$define TXxxList := TVector3DoubleList}
-  {$define TCasScriptXxxElement := TCasScriptVec3d}
-  {$define RegisterXxxFunctions := RegisterVec3dFunctions}
-  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-  {$I castlescriptarrays_implement.inc}
+{$define TCasScriptXxxArray := TCasScriptVec4dArray}
+{$define TXxxList := TVector4DoubleList}
+{$define TCasScriptXxxElement := TCasScriptVec4d}
+{$define RegisterXxxFunctions := RegisterVec4dFunctions}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+{$I castlescriptarrays_implement.inc}
 
-  {$define TCasScriptXxxArray := TCasScriptVec4dArray}
-  {$define TXxxList := TVector4DoubleList}
-  {$define TCasScriptXxxElement := TCasScriptVec4d}
-  {$define RegisterXxxFunctions := RegisterVec4dFunctions}
-  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-  {$I castlescriptarrays_implement.inc}
+{$define TCasScriptXxxArray := TCasScriptMatrix3DoubleArray}
+{$define TXxxList := TMatrix3DoubleList}
+{$define TCasScriptXxxElement := TCasScriptMatrix3Double}
+{$define RegisterXxxFunctions := RegisterMatrix3DoubleFunctions}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+{$I castlescriptarrays_implement.inc}
 
-  {$define TCasScriptXxxArray := TCasScriptMatrix3DoubleArray}
-  {$define TXxxList := TMatrix3DoubleList}
-  {$define TCasScriptXxxElement := TCasScriptMatrix3Double}
-  {$define RegisterXxxFunctions := RegisterMatrix3DoubleFunctions}
-  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-  {$I castlescriptarrays_implement.inc}
-
-  {$define TCasScriptXxxArray := TCasScriptMatrix4DoubleArray}
-  {$define TXxxList := TMatrix4DoubleList}
-  {$define TCasScriptXxxElement := TCasScriptMatrix4Double}
-  {$define RegisterXxxFunctions := RegisterMatrix4DoubleFunctions}
-  {$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
-  {$I castlescriptarrays_implement.inc}
-
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
+{$define TCasScriptXxxArray := TCasScriptMatrix4DoubleArray}
+{$define TXxxList := TMatrix4DoubleList}
+{$define TCasScriptXxxElement := TCasScriptMatrix4Double}
+{$define RegisterXxxFunctions := RegisterMatrix4DoubleFunctions}
+{$define TCasScriptXxxArrayFun := TCasScriptArrayFun}
+{$I castlescriptarrays_implement.inc}
 
 class procedure TCasScriptSingleArray.HandleCatmullRomSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
@@ -717,13 +711,11 @@ initialization
   RegisterMatrix3fFunctions;
   RegisterMatrix4fFunctions;
 
-  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   RegisterVec2dFunctions;
   RegisterVec3dFunctions;
   RegisterVec4dFunctions;
   RegisterMatrix3DoubleFunctions;
   RegisterMatrix4DoubleFunctions;
-  {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
