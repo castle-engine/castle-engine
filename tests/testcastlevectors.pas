@@ -77,21 +77,21 @@ procedure TTestCastleVectors.TestPlaneOdcCollision;
 var Intersection: TVector3;
     T: Single;
 begin
- T := VectorDotProduct(Vector3(0, 0, 1), Vector3(0, 0, 6));
- AssertFloatsEqual(6, T);
+ T := TVector3.DotProduct(Vector3(0, 0, 1), Vector3(0, 0, 6));
+ AssertSameValue(6, T);
 
  AssertTrue(TryPlaneLineIntersection(T,
    Vector4(0, 0, 1, 1),
    Vector3(2, 2, -3),
    Vector3(0, 0, 6) ));
- AssertFloatsEqual(1/3, T, 0.0000001);
+ AssertSameValue(1/3, T, 0.0000001);
 
  AssertTrue(TryPlaneSegmentDirIntersection(Intersection, T,
    Vector4(0, 0, 1, 1),
    Vector3(2, 2, -3),
    Vector3(0, 0, 6) ));
- AssertVectorsEqual(Vector3(2, 2, -1), Intersection);
- AssertFloatsEqual(1/3, T, 0.0000001);
+ AssertVectorEquals(Vector3(2, 2, -1), Intersection);
+ AssertSameValue(1/3, T, 0.0000001);
 end;
 
 procedure WritelnSpeedTest(const s: string);
@@ -117,10 +117,10 @@ begin
  { czy dziala TryTriangleSegmentCollision na tym naszym skonstruowanym
    przykladzie ? }
  AssertTrue( TryTriangleSegmentCollision(Intersection, TriConst, TriPlaneConst,
-   Pos1Const, Pos2Const) and VectorsEqual(Intersection, Coll));
- { czy dziala tak samo gdy sam musi sobie wyliczyc TriPlane (test TrianglePlane) ? }
- AssertTrue( TryTriangleSegmentCollision(Intersection2, TriConst, TrianglePlane(TriConst),
-   Pos1Const, Pos2Const) and VectorsEqual(Intersection2, Coll));
+   Pos1Const, Pos2Const) and TVector3.Equals(Intersection, Coll));
+ { czy dziala tak samo gdy sam musi sobie wyliczyc place (test TTriangle3.Plane) ? }
+ AssertTrue( TryTriangleSegmentCollision(Intersection2, TriConst, TriConst.Plane,
+   Pos1Const, Pos2Const) and TVector3.Equals(Intersection2, Coll));
 end;
 
 procedure TTestCastleVectors.TestArea;
@@ -142,7 +142,7 @@ const
     (Data: (2, 3)),
     (Data: (5, 4)) );
 begin
- AssertTrue(TriangleArea(Tri) = 10*25/2);
+ AssertTrue(Tri.Area = 10*25/2);
 
  AssertTrue(Polygon2dArea(CCWPoly) = 5.5);
  AssertTrue(Polygon2dArea(CWPoly) = 5.5);
@@ -164,8 +164,8 @@ begin
   AssertTrue( VectorsPerp(TVector3.Zero, v) );
   AssertTrue( VectorsParallel(TVector3.Zero, v) );
  except
-  Writeln('and failed : v = ',VectorToNiceStr(v),
-    ' anyPerp = ',VectorToNiceStr(AnyOrthogonalVector(v)));
+  Writeln('and failed : v = ',v.ToString,
+    ' anyPerp = ',AnyOrthogonalVector(v).ToString);
   raise;
  end;
 
@@ -191,7 +191,7 @@ var
   Line0, LineVector: TVector3;
 begin
  TwoPlanesIntersectionLine(P1, P2, Line0, LineVector);
- { Writeln(VectorToRawStr(Line0), ' ', VectorToRawStr(LineVector)); }
+ { Writeln(Line0.ToRawString, ' ', LineVector.ToRawString); }
 end;
 
 procedure TTestCastleVectors.TestOther;
@@ -243,33 +243,33 @@ begin
   end else
   begin
    { nie wykonuj testu jesli wylosowalimy niepoprawne dane }
-   if not VectorsEqual(RayDirection, Vector3(0, 0, 0)) then
+   if not TVector3.Equals(RayDirection, Vector3(0, 0, 0)) then
    begin
     b1 := TrySimplePlaneRayIntersection(I1, PlaneConstCoord, PlaneConstVal, RayOrigin, RayDirection);
     b2 := TryPlaneRayIntersection(I2, Plane, RayOrigin, RayDirection);
     AssertEquals(b1, b2);
     if b1 then
     begin
-{     if not VectorsEqual(I1, I2) or
-        not FloatsEqual(I1[PlaneConstCoord], PlaneConstVal) or
-	not FloatsEqual(I2[PlaneConstCoord], PlaneConstVal) then
+{     if not TVector3.Equals(I1, I2) or
+        not SameValue(I1[PlaneConstCoord], PlaneConstVal) or
+	not SameValue(I2[PlaneConstCoord], PlaneConstVal) then
      begin
       t1:=(PlaneConstVal-RayOrigin[PlaneConstCoord]) / RayDirection[PlaneConstCoord];
       t2 := -(plane[0]*RayOrigin[0] + plane[1]*RayOrigin[1] + plane[2]*RayOrigin[2] + plane[3])/
-          VectorDotProduct(PlaneDir, RayDirection);
-      Writeln('I1 = ',VectorToNiceStr(I1), ' I2 = ',VectorToNiceStr(I2), nl,
+          TVector3.DotProduct(PlaneDir, RayDirection);
+      Writeln('I1 = ',I1.ToString, ' I2 = ',I2.ToString, nl,
         'PlaneConst Coord = ',PlaneConstCoord, ' Value = ',PlaneConstVal, nl,
-	'Plane = ',VectorToNiceStr(Plane), nl,
-	'RayOrigin = ',VectorToNiceStr(RayOrigin), ' RayDirection = ',VectorToNiceStr(RayDirection), nl,
-	FloatToNiceStr(t1), nl,
-	FloatToNiceStr(t2), nl,
-	VectorToNiceStr(RayOrigin + RayDirection * t1), nl,
-	VectorToNiceStr(RayOrigin + RayDirection * t2)
+	'Plane = ',Plane.ToString, nl,
+	'RayOrigin = ',RayOrigin.ToString, ' RayDirection = ',RayDirection.ToString, nl,
+	t1:1:2, nl,
+	t2:1:2, nl,
+	(RayOrigin + RayDirection * t1).ToString, nl,
+	(RayOrigin + RayDirection * t2).ToString
       );
      end; }
-     AssertFloatsEqual(PlaneConstVal, I1[PlaneConstCoord]);
-     AssertFloatsEqual(PlaneConstVal, I2[PlaneConstCoord]);
-     AssertVectorsEqual(I1, I2);
+     AssertSameValue(PlaneConstVal, I1[PlaneConstCoord]);
+     AssertSameValue(PlaneConstVal, I2[PlaneConstCoord]);
+     AssertVectorEquals(I1, I2);
     end;
    end;
   end;
@@ -342,9 +342,9 @@ procedure TTestCastleVectors.TestVectorStr;
       s: string;
   begin
    v := RandomVector;
-   s := VectorToRawStr(v);
+   s := v.ToRawString;
    v2 := Vector3FromStr(s);
-   AssertVectorsEqual(v2, v);
+   AssertVectorEquals(v2, v);
   end;
 
   procedure OneTestByDeformat;
@@ -352,9 +352,9 @@ procedure TTestCastleVectors.TestVectorStr;
       s: string;
   begin
    v := RandomVector;
-   s := VectorToRawStr(v);
+   s := v.ToRawString;
    DeFormat(s, '%.single. %.single. %.single.', [@v2.Data[0], @v2.Data[1], @v2.Data[2]]);
-   AssertVectorsEqual(v2, v);
+   AssertVectorEquals(v2, v);
   end;
 
 const
@@ -395,18 +395,18 @@ begin
   M := ScalingMatrix(Vector3(2, 2, 2));
 
 { Tests:
-  Writeln(MatrixToNiceStr(M, '  '));
-  Writeln(MatrixToNiceStr(ScalingMatrix(Vector3(0.5, 0.5, 0.5)), '  '));
-  Writeln(MatrixToNiceStr(MatrixInverse(M, MatrixDeterminant(M)), '  '));
+  Writeln(M.ToString('  '));
+  Writeln(ScalingMatrix(Vector3(0.5, 0.5, 0.5)).ToString('  '));
+  Writeln(MatrixInverse(M, MatrixDeterminant(M)).ToString('  '));
 }
 
-  AssertMatricesEqual(
+  AssertMatrixEquals(
     ScalingMatrix(Vector3(0.5, 0.5, 0.5)),
     M.Inverse(M.Determinant),
     0.01);
 
   M := TranslationMatrix(Vector3(2, 2, 2));
-  AssertMatricesEqual(
+  AssertMatrixEquals(
     TranslationMatrix(Vector3(-2, -2, -2)),
     M.Inverse(M.Determinant),
     0.01);
@@ -424,7 +424,7 @@ begin
     V := RandomVector;
     NewM := M * TranslationMatrix(V);
     MultMatrixTranslation(M, V);
-    AssertMatricesEqual(M, NewM, 0.001);
+    AssertMatrixEquals(M, NewM, 0.001);
   end;
 end;
 
@@ -437,15 +437,15 @@ begin
   for I := 1 to 100 do
   begin
     M := RandomMatrix;
-    if not TryMatrixInverse(M, MInverse) then
+    if not M.TryInverse(MInverse) then
       MInverse := TMatrix4.Identity;
 
     V := RandomVector;
     NewM := M * TranslationMatrix(V);
     NewMInverse := TranslationMatrix(-V) * MInverse;
     MultMatricesTranslation(M, MInverse, V);
-    AssertMatricesEqual(M, NewM, 0.001);
-    AssertMatricesEqual(MInverse, NewMInverse, 0.001);
+    AssertMatrixEquals(M, NewM, 0.001);
+    AssertMatrixEquals(MInverse, NewMInverse, 0.001);
   end;
 end;
 
@@ -460,21 +460,21 @@ const
   CCWPolyIndex: array [0..6] of LongInt = (0, 1, 5, 2, 3, 4, 999);
   CWPolyIndex: array [0..6] of LongInt = (666, 4, 105, 3, 2, 1, 0);
 begin
-  AssertVectorsEqual(
+  AssertVectorEquals(
     Vector3(0, 0, 1),
     IndexedConvexPolygonNormal(@CCWPolyIndex, High(CCWPolyIndex) + 1,
       @Poly, High(Poly) + 1, TVector3.Zero));
 
-  AssertVectorsEqual(
+  AssertVectorEquals(
     Vector3(0, 0, -1),
     IndexedConvexPolygonNormal(@CWPolyIndex, High(CWPolyIndex) + 1,
       @Poly, High(Poly) + 1, TVector3.Zero));
 
-  AssertFloatsEqual(8,
+  AssertSameValue(8,
     IndexedConvexPolygonArea(@CCWPolyIndex, High(CCWPolyIndex) + 1,
       @Poly, High(Poly) + 1));
 
-  AssertFloatsEqual(8,
+  AssertSameValue(8,
     IndexedConvexPolygonArea(@CWPolyIndex , High(CWPolyIndex) + 1,
       @Poly, High(Poly) + 1));
 end;
@@ -487,12 +487,12 @@ begin
   Res := TrySphereRayIntersection(I, Vector3(3, 0, 0), 10,
     Vector3(0, 0, 0), Vector3(1, 0, 0));
   AssertTrue(Res);
-  AssertVectorsEqual(Vector3(13, 0, 0), I);
+  AssertVectorEquals(Vector3(13, 0, 0), I);
 
   Res := TrySphereRayIntersection(I, Vector3(3, 0, 0), 10,
     Vector3(0, 0, 0), Vector3(-1, 0, 0));
   AssertTrue(Res);
-  AssertVectorsEqual(Vector3(-7, 0, 0), I);
+  AssertVectorEquals(Vector3(-7, 0, 0), I);
 
   Res := TrySphereRayIntersection(I, Vector3(3, 0, 0), 10,
     Vector3(20, 0, 0), Vector3(1, 0, 0));
@@ -501,7 +501,7 @@ begin
   Res := TrySphereRayIntersection(I, Vector3(3, 0, 0), 10,
     Vector3(20, 0, 0), Vector3(-1, 0, 0));
   AssertTrue(Res);
-  AssertVectorsEqual(Vector3(13, 0, 0), I);
+  AssertVectorEquals(Vector3(13, 0, 0), I);
 end;
 
 { global utils --------------------------------------------------------------- }
@@ -557,16 +557,16 @@ begin
 
   Result1 := M1 * M2;
   Result2 := M1 * M2;
-  AssertMatricesEqual(Result1, Result2, 0.1);
+  AssertMatrixEquals(Result1, Result2, 0.1);
 
   Result2 := M1 * M2 * M3;
 
   Result1 := M1 * M2;
   Result1 := Result1 * M3;
-  AssertMatricesEqual(Result1, Result2, 0.1);
+  AssertMatrixEquals(Result1, Result2, 0.1);
 
   Result1 := M1 * M2 * M3;
-  AssertMatricesEqual(Result1, Result2, 0.1);
+  AssertMatrixEquals(Result1, Result2, 0.1);
 end;
 
 procedure TTestCastleVectors.TestMatrixTranspose;
@@ -582,7 +582,7 @@ begin
   M2.Data[2] := Vector3(3, 6, 9).Data;
 
   M1 := M1.Transpose;
-  AssertTrue(MatricesPerfectlyEqual(M1, M2));
+  AssertTrue(TMatrix3.PerfectlyEquals(M1, M2));
 end;
 
 procedure TTestCastleVectors.TestVector3FromStr;
@@ -610,9 +610,9 @@ begin
   except on EConvertError do ; end;
 
   V := Vector3FromStr('  11       22 ' + NL + ' 33    ');
-  AssertFloatsEqual(11, V[0]);
-  AssertFloatsEqual(22, V[1]);
-  AssertFloatsEqual(33, V[2]);
+  AssertSameValue(11, V[0]);
+  AssertSameValue(22, V[1]);
+  AssertSameValue(33, V[2]);
 end;
 
 procedure TTestCastleVectors.TestVector4FromStr;
@@ -640,10 +640,10 @@ begin
   except on EConvertError do ; end;
 
   V := Vector4FromStr('  11       22 ' + NL + ' 33    44');
-  AssertFloatsEqual(11, V[0]);
-  AssertFloatsEqual(22, V[1]);
-  AssertFloatsEqual(33, V[2]);
-  AssertFloatsEqual(44, V[3]);
+  AssertSameValue(11, V[0]);
+  AssertSameValue(22, V[1]);
+  AssertSameValue(33, V[2]);
+  AssertSameValue(44, V[3]);
 end;
 
 procedure TTestCastleVectors.TestPlaneTransform;
@@ -652,9 +652,9 @@ procedure TTestCastleVectors.TestPlaneTransform;
   var
     PlaneDir: TVector3 absolute Plane;
   begin
-    // Writeln('point ', VectorToNiceStr(Point), ' gives ',
-    //   FloatToNiceStr(VectorDotProduct(Point, PlaneDir) + Plane[3]));
-    Result := IsZero(VectorDotProduct(Point, PlaneDir) + Plane[3], 0.001);
+    // Writeln('point ', Point.ToString, ' gives ',
+    //   (TVector3.DotProduct(Point, PlaneDir) + Plane[3]):1:2);
+    Result := IsZero(TVector3.DotProduct(Point, PlaneDir) + Plane[3], 0.001);
   end;
 
   procedure DoTest(const Plane: TVector4; const Matrix: TMatrix4;
@@ -665,7 +665,7 @@ procedure TTestCastleVectors.TestPlaneTransform;
     NewPlane: TVector4;
   begin
     NewPlane := PlaneTransform(Plane, Matrix);
-    // Writeln('New plane ', VectorToNiceStr(NewPlane));
+    // Writeln('New plane ', NewPlane.ToString);
     for I := 0 to High(PointsYes) do
       AssertTrue(PointLiesOnPlane(PointsYes[I], NewPlane));
     for I := 0 to High(PointsNo) do
@@ -738,19 +738,19 @@ var
   NewOrigin, NewX, NewY, NewZ: TVector3;
 begin
   NewOrigin := RandomVector;
-  repeat NewX := Normalized(RandomVector) until not ZeroVector(NewX);
-  NewY := Normalized(AnyOrthogonalVector(NewX));
-  NewZ := VectorProduct(NewX, NewY);
+  repeat NewX := RandomVector.Normalize until not NewX.IsZero;
+  NewY := AnyOrthogonalVector(NewX).Normalize;
+  NewZ := TVector3.CrossProduct(NewX, NewY);
 
   M        := TransformToCoordsMatrix  (NewOrigin, NewX, NewY, NewZ);
   MInverse := TransformFromCoordsMatrix(NewOrigin, NewX, NewY, NewZ);
 
   try
-    AssertMatricesEqual(TMatrix4.Identity, M * MInverse, 0.01);
-    AssertMatricesEqual(TMatrix4.Identity, MInverse * M, 0.01);
+    AssertMatrixEquals(TMatrix4.Identity, M * MInverse, 0.01);
+    AssertMatrixEquals(TMatrix4.Identity, MInverse * M, 0.01);
   except
-    Writeln('Failed for origin=', VectorToRawStr(NewOrigin),
-      ' newX=', VectorToRawStr(NewX));
+    Writeln('Failed for origin=', NewOrigin.ToRawString,
+      ' newX=', NewX.ToRawString);
     raise;
   end;
 end;
@@ -760,10 +760,10 @@ const
   P1: TVector3 = (Data: (1, 2, 3));
   P2: TVector3 = (Data: (2, 5, 13));
 begin
-  AssertFloatsEqual(Sqr(1) + Sqr(3) + Sqr(10), PointsDistanceSqr(P1, P2), 0.01);
-  AssertFloatsEqual(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
-  AssertFloatsEqual(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
-  AssertFloatsEqual(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
+  AssertSameValue(Sqr(1) + Sqr(3) + Sqr(10), PointsDistanceSqr(P1, P2), 0.01);
+  AssertSameValue(Sqr(3) + Sqr(10), PointsDistance2DSqr(P1, P2, 0), 0.01);
+  AssertSameValue(Sqr(1) + Sqr(10), PointsDistance2DSqr(P1, P2, 1), 0.01);
+  AssertSameValue(Sqr(1) + Sqr(3), PointsDistance2DSqr(P1, P2, 2), 0.01);
   try
     PointsDistance2DSqr(P1, P2, 3);
     Fail('Above PointsDistance2DSqr with IgnoreIndex = 3 should raise exception');
@@ -774,13 +774,13 @@ procedure TTestCastleVectors.TestApproximateScale;
 const
   EqualityEpsilon = 0.0001;
 begin
-  AssertFloatsEqual(2, Approximate3DScale(2, 2, 2), EqualityEpsilon);
-  AssertFloatsEqual(-2, Approximate3DScale(-2, -2, -2), EqualityEpsilon);
-  AssertFloatsEqual(1, Approximate3DScale(1, 1, 1), EqualityEpsilon);
-  AssertFloatsEqual(-1, Approximate3DScale(-1, -1, -1), EqualityEpsilon);
-  AssertFloatsEqual(7/3, Approximate3DScale(1, 3, 3), EqualityEpsilon);
-  AssertFloatsEqual(-7/3, Approximate3DScale(-1, -3, -3), EqualityEpsilon);
-  AssertFloatsEqual(1, Approximate3DScale(-1, 1, 1), EqualityEpsilon);
+  AssertSameValue(2, Approximate3DScale(2, 2, 2), EqualityEpsilon);
+  AssertSameValue(-2, Approximate3DScale(-2, -2, -2), EqualityEpsilon);
+  AssertSameValue(1, Approximate3DScale(1, 1, 1), EqualityEpsilon);
+  AssertSameValue(-1, Approximate3DScale(-1, -1, -1), EqualityEpsilon);
+  AssertSameValue(7/3, Approximate3DScale(1, 3, 3), EqualityEpsilon);
+  AssertSameValue(-7/3, Approximate3DScale(-1, -3, -3), EqualityEpsilon);
+  AssertSameValue(1, Approximate3DScale(-1, 1, 1), EqualityEpsilon);
 end;
 
 initialization

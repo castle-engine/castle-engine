@@ -577,7 +577,7 @@ begin
     Result[I] := (FFunction[I].Execute as TCasScriptFloat).Value;
 
   {test: Writeln('Point at t = ',FloatToNiceStr(Single(t)), ' is (',
-    VectorToNiceStr(Result), ')');}
+    Result.ToString, ')');}
 end;
 
 function TCasScriptCurve.BoundingBox: TBox3D;
@@ -738,7 +738,7 @@ begin
   WritelnStr(Stream, '    <control_points>');
   for I := 0 to ControlPoints.Count - 1 do
   begin
-    VectorStr := VectorToRawStr(ControlPoints[I]);
+    VectorStr := ControlPoints[I].ToRawString;
     WritelnStr(Stream, '      <control_point value="' + VectorStr + '"/>');
   end;
   WritelnStr(Stream, '    </control_points>');

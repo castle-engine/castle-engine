@@ -2256,7 +2256,7 @@ procedure TTriangulateRedirect.LocalNewTriangle(Shape: TObject;
   const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
-  TriangleEvent(Shape, TriangleTransform(Position, Transform^), Normal, TexCoord, Face);
+  TriangleEvent(Shape, Position.Transform(Transform^), Normal, TexCoord, Face);
 end;
 
 procedure TShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
@@ -2489,7 +2489,7 @@ begin
     Result := 0 else
   begin
     try
-      Camera := MatrixMultPoint(LODInvertedTransform^, CameraPosition);
+      Camera := LODInvertedTransform^.MultPoint(CameraPosition);
       Result := KeyRange(LODNode.FdRange.Items,
         PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
       { Now we know Result is between 0..LODNode.FdRange.Count.
@@ -2501,7 +2501,7 @@ begin
       on E: ETransformedResultInvalid do
       begin
         WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
-          [ VectorToRawStr(CameraPosition), E.Message ]));
+          [ CameraPosition.ToRawString, E.Message ]));
         Result := 0;
       end;
     end;

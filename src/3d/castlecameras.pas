@@ -2314,9 +2314,9 @@ begin
   { No point in doing animation (especially since it blocks camera movement
     for Time seconds) if we're already there. }
   FAnimation := not (
-    VectorsEqual(AnimationBeginPosition , AnimationEndPosition) and
-    VectorsEqual(AnimationBeginDirection, AnimationEndDirection) and
-    VectorsEqual(AnimationBeginUp       , AnimationEndUp));
+    TVector3.Equals(AnimationBeginPosition , AnimationEndPosition) and
+    TVector3.Equals(AnimationBeginDirection, AnimationEndDirection) and
+    TVector3.Equals(AnimationBeginUp       , AnimationEndUp));
 end;
 
 procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
@@ -2350,8 +2350,8 @@ begin
 
     Pos := Pos + AInitialPosition - FInitialPosition;
 
-    if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
-            VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
+    if not (TVector3.PerfectlyEquals(FInitialDirection, AInitialDirection) and
+            TVector3.PerfectlyEquals(FInitialUp       , AInitialUp ) ) then
     begin
       OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
       NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
@@ -2573,7 +2573,7 @@ begin
     keys (that increase RotationsAnim). Exact equality is Ok check
     to detect this. }
 
-  if not PerfectlyZeroVector(FRotationsAnim) then
+  if not FRotationsAnim.IsPerfectlyZero then
   begin
     RotChange := SecondsPassed;
 
@@ -2678,7 +2678,7 @@ end;
 
 function TExamineCamera.StopRotating: boolean;
 begin
-  Result := not PerfectlyZeroVector(FRotationsAnim);
+  Result := not FRotationsAnim.IsPerfectlyZero;
   if Result then
   begin
     FRotationsAnim := TVector3.Zero;
@@ -3137,14 +3137,14 @@ begin
   This should always succeed now, many cases tested automatically
   by TTestCastleCameras.TestOrientationFromBasicAxes.
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(Dir)), DefaultCameraDirection, 0.01) then
+  if not TVector3.Equals(QuatRotate(FRotations, Dir.Normalize), DefaultCameraDirection, 0.01) then
   begin
-    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Dir))));
-    Writeln('  q: ', VectorToNiceStr(FRotations.Vector4));
+    Writeln('oh yes, dir wrong: ', QuatRotate(FRotations, Dir.Normalize).ToString);
+    Writeln('  q: ', FRotations.Vector4.ToString);
   end;
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(Up)), DefaultCameraUp, 0.01) then
-    Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Up))));
+  if not TVector3.Equals(QuatRotate(FRotations, Up.Normalize), DefaultCameraUp, 0.01) then
+    Writeln('oh yes, up wrong: ', QuatRotate(FRotations, Up.Normalize).ToString);
 }
 
   { We have to fix our FTranslation, since our TExamineCamera.Matrix
@@ -3520,8 +3520,8 @@ begin
 
   if PreferGravityUpForRotations and (MinAngleRadFromGravityUp <> 0.0) then
   begin
-    Side := VectorProduct(Direction, GravityUp);
-    if ZeroVector(Side) then
+    Side := TVector3.CrossProduct(Direction, GravityUp);
+    if Side.IsZero then
     begin
       { Brutally adjust Direction and Up to be correct.
         This should happen only if your code was changing values of
@@ -3548,8 +3548,8 @@ begin
         node transformation.
         So the above will mean that gravity vector is parallel to your
         looking direction. }
-      Side := VectorProduct(Direction, GravityUp);
-      if ZeroVector(Side) then
+      Side := TVector3.CrossProduct(Direction, GravityUp);
+      if Side.IsZero then
       begin
         FDirection := AnyOrthogonalVector(GravityUp);
         FUp := GravityUp;
@@ -3567,7 +3567,7 @@ begin
     end;
   end else
   begin
-    Side := VectorProduct(Direction, Up);
+    Side := TVector3.CrossProduct(Direction, Up);
     DoRealRotate;
   end;
 
@@ -3595,8 +3595,8 @@ begin
     Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
     if NewIsAbove then
     begin
-      OldAbsoluteHeight := VectorDotProduct(GravityUp, Position);
-      NewAbsoluteHeight := VectorDotProduct(GravityUp, NewPos);
+      OldAbsoluteHeight := TVector3.DotProduct(GravityUp, Position);
+      NewAbsoluteHeight := TVector3.DotProduct(GravityUp, NewPos);
       Result := not (
         AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
         ClimbHeight );
@@ -3836,7 +3836,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
       MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
       if Move(GravityUp * (- FallingVectorLength), true, false) and
-        (not VectorsPerfectlyEqual(Position, PositionBefore)) then
+        (not TVector3.PerfectlyEquals(Position, PositionBefore)) then
       begin
         if not Falling then
         begin
@@ -4007,7 +4007,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
       Angle := AngleRadBetweenVectors(Up, GravityUp);
 
-      if FloatsEqual(Angle, HalfPi, 0.01) then
+      if SameValue(Angle, HalfPi, 0.01) then
       begin
         { FallingOnTheGround effect stops here. }
         FFallingOnTheGround := false;
@@ -4037,10 +4037,10 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         { Because of various growing and jumping effects (imagine you jump up
           onto a taller pillar) it may turn out that we're higher at the end
           at the end of fall. Do not report it to OnFall event in this case. }
-        if VectorDotProduct(GravityUp, Normalized(FallVector)) <= 0 then
+        if TVector3.DotProduct(GravityUp, FallVector.Normalize) <= 0 then
           Exit;
 
-        OnFall(Self, VectorLen(FallVector));
+        OnFall(Self, FallVector.Length);
       end;
     end;
 
@@ -4151,7 +4151,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
         Math:
           TargetPlane := common plane of GravityUp and Direction,
-          given by (A, B, C) = VectorProduct(GravityUp, Direction)
+          given by (A, B, C) = TVector3.CrossProduct(GravityUp, Direction)
           and D = 0 (because point (0, 0, 0) is part of this plane).
 
           We check whether Up is on this TargetPlane too.
@@ -4166,7 +4166,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           And then we make the angle between TargetUp and Up
           smaller. }
 
-      TargetPlaneDir := VectorProduct(GravityUp, Direction);
+      TargetPlaneDir := TVector3.CrossProduct(GravityUp, Direction);
       if not Zero(
          (TargetPlaneDir[0] * FUp[0]) +
          (TargetPlaneDir[1] * FUp[1]) +
@@ -4180,7 +4180,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         TargetUp := PointOnPlaneClosestToPoint(TargetPlane, FUp);
         AngleRadBetweenTargetAndGravity :=
           AngleRadBetweenVectors(TargetUp, GravityUp);
-        if FloatsEqual(AngleRadBetweenTargetAndGravity, HalfPi) then
+        if SameValue(AngleRadBetweenTargetAndGravity, HalfPi) then
           TargetUp := GravityUp else
         if AngleRadBetweenTargetAndGravity > HalfPi then
           TargetUp := -TargetUp;
@@ -4587,7 +4587,7 @@ procedure TWalkCamera.Init(
   const ARadius: Single);
 begin
   SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
-  FGravityUp := Normalized(AGravityUp);
+  FGravityUp := AGravityUp.Normalize;
   PreferredHeight := APreferredHeight;
   Radius := ARadius;
   CorrectPreferredHeight;
@@ -4630,21 +4630,21 @@ end;
 
 procedure TWalkCamera.SetDirection(const Value: TVector3);
 begin
-  FDirection := Normalized(Value);
+  FDirection := Value.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
   ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.SetUp(const Value: TVector3);
 begin
-  FUp := Normalized(Value);
+  FUp := Value.Normalize;
   MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
   ScheduleVisibleChange;
 end;
 
 procedure TWalkCamera.UpPrefer(const AUp: TVector3);
 begin
-  FUp := Normalized(AUp);
+  FUp := AUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
   ScheduleVisibleChange;
 end;
@@ -4804,8 +4804,8 @@ end;
 procedure TWalkCamera.SetView(const ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
+  FDirection := ADir.Normalize;
+  FUp := AUp.Normalize;
   if AdjustUp then
     MakeVectorsOrthoOnTheirPlane(FUp, FDirection) else
     MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
@@ -4817,8 +4817,8 @@ procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
   FPosition := APos;
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
+  FDirection := ADir.Normalize;
+  FUp := AUp.Normalize;
   if AdjustUp then
     MakeVectorsOrthoOnTheirPlane(FUp, FDirection) else
     MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
@@ -4835,7 +4835,7 @@ end;
 
 procedure TWalkCamera.SetGravityUp(const Value: TVector3);
 begin
-  FGravityUp := Normalized(Value);
+  FGravityUp := Value.Normalize;
 end;
 
 function TWalkCamera.GetNavigationType: TNavigationType;
@@ -5158,7 +5158,7 @@ begin
       But, for the future, protect from it, since the doc for SetView guarantees
       correct behavior only for dir/up non-zero. }
 
-    if not (PerfectlyZeroVector(Dir) and PerfectlyZeroVector(Up)) then
+    if not (Dir.IsPerfectlyZero and Up.IsPerfectlyZero) then
       Current.SetView(Pos, Dir, Up);
     { our Cursor should always reflect Current.Cursor }
     Cursor := Current.Cursor;
@@ -5279,19 +5279,19 @@ begin
   CamUp.NormalizeMe;
 
   { calculate Rot1Quat }
-  Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
+  Rot1Axis := TVector3.CrossProduct(DefaultCameraDirection, CamDir);
   { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
     When they point in the same direction, then it doesn't matter
     (rotation will be by 0 angle anyway), but when they are in opposite
     direction we want to do some rotation, so we need some non-zero
     sensible Rot1Axis. }
-  if ZeroVector(Rot1Axis) then
+  if Rot1Axis.IsZero then
     Rot1Axis := DefaultCameraUp else
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
     Rot1Axis.NormalizeMe;
-  Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
+  Rot1CosAngle := TVector3.DotProduct(DefaultCameraDirection, CamDir);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
   { calculate Rot2Quat }
@@ -5299,7 +5299,7 @@ begin
   { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
     which one? (To make the rotation around it in correct direction.)
     Calculating Rot2Axis below is a solution. }
-  Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
+  Rot2Axis := TVector3.CrossProduct(StdCamUpAfterRot1, CamUp);
 
   (*We could now do Rot2Axis.NormalizeMe,
     after making sure it's not zero. Like
@@ -5307,7 +5307,7 @@ begin
     { we need larger epsilon for ZeroVector below, in case
       StdCamUpAfterRot1 is = -CamUp.
       testcameras.pas contains testcases that require it. }
-    if ZeroVector(Rot2Axis, 0.001) then
+    if Rot2Axis.IsZero(0.001) then
       Rot2Axis := CamDir else
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
@@ -5316,11 +5316,11 @@ begin
 
     And later do
 
-      { epsilon for VectorsEqual 0.001 is too small }
-      Assert( VectorsEqual(Rot2Axis,  CamDir, 0.01) or
-              VectorsEqual(Rot2Axis, -CamDir, 0.01),
+      { epsilon for TVector3.Equals 0.001 is too small }
+      Assert( TVector3.Equals(Rot2Axis,  CamDir, 0.01) or
+              TVector3.Equals(Rot2Axis, -CamDir, 0.01),
         Format('CamDirUp2OrientQuat failed for CamDir, CamUp: (%s), (%s)',
-          [ VectorToRawStr(CamDir), VectorToRawStr(CamUp) ]));
+          [ CamDir.ToRawString, CamUp.ToRawString ]));
 
     However, as can be seen in above comments, this requires some careful
     adjustments of epsilons, so it's somewhat numerically unstable.
@@ -5330,7 +5330,7 @@ begin
     Rot2Axis :=  CamDir else
     Rot2Axis := -CamDir;
 
-  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
+  Rot2CosAngle := TVector3.DotProduct(StdCamUpAfterRot1, CamUp);
   Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
   { calculate Result = combine Rot1 and Rot2 (yes, the order

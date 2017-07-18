@@ -459,8 +459,8 @@ var
     { tests 2)
       test if the box intersects the plane of the triangle
       compute plane equation of triangle: normal*x+d=0 }
-    PlaneDir := VectorProduct(TriangleEdges[0], TriangleEdges[1]);
-    Plane[3] := -VectorDotProduct(PlaneDir, TriangleMoved.Data[0]);
+    PlaneDir := TVector3.CrossProduct(TriangleEdges[0], TriangleEdges[1]);
+    Plane[3] := -TVector3.DotProduct(PlaneDir, TriangleMoved.Data[0]);
     if not IsCenteredBox3DPlaneCollision(BoxHalfSize, Plane) then
       Exit(false);
 
@@ -612,7 +612,7 @@ procedure TTestCastleBoxes.TestBox3DTransform;
       Exit(TBox3D.Empty);
 
     Box.Corners(BoxPoints);
-    for i := 0 to 7 do BoxPoints[i] := MatrixMultPoint(Matrix, BoxPoints[i]);
+    for i := 0 to 7 do BoxPoints[i] := Matrix.MultPoint(BoxPoints[i]);
 
     { Non-optimized version:
         Result := CalculateBoundingBox(@BoxPoints, 8, 0);
@@ -706,15 +706,15 @@ begin
     on E: EBox3DEmpty do { Ok };
   end;
 
-  AssertVectorsEqual(Vector4(-1, 0, 0, 2), Box3D(
+  AssertVectorEquals(Vector4(-1, 0, 0, 2), Box3D(
     Vector3(2, 3, 4),
     Vector3(50, 60, 70)).MaximumPlane(Vector3(-1, 0, 0)));
 
-  AssertVectorsEqual(Vector4(0, 0, -1, 4), Box3D(
+  AssertVectorEquals(Vector4(0, 0, -1, 4), Box3D(
     Vector3(2, 3, 4),
     Vector3(50, 60, 70)).MaximumPlane(Vector3(0, 0, -1)));
 
-  AssertVectorsEqual(Vector4(1, 1, 1,
+  AssertVectorEquals(Vector4(1, 1, 1,
       { 50 + 60 + 70 + Result.Data[3] = 0 }
       - 50 - 60 - 70
     ), Box3D(
@@ -730,15 +730,15 @@ begin
     on E: EBox3DEmpty do { Ok };
   end;
 
-  AssertVectorsEqual(Vector4(1, 0, 0, -2), Box3D(
+  AssertVectorEquals(Vector4(1, 0, 0, -2), Box3D(
     Vector3(2, 3, 4),
     Vector3(50, 60, 70)).MinimumPlane(Vector3(1, 0, 0)));
 
-  AssertVectorsEqual(Vector4(0, 0, 1, -4), Box3D(
+  AssertVectorEquals(Vector4(0, 0, 1, -4), Box3D(
     Vector3(2, 3, 4),
     Vector3(50, 60, 70)).MinimumPlane(Vector3(0, 0, 1)));
 
-  AssertVectorsEqual(Vector4(1, 1, 1,
+  AssertVectorEquals(Vector4(1, 1, 1,
       { 2 + 3 + 4 + Result.Data[3] = 0 }
       - 2 - 3 - 4
     ), Box3D(
@@ -755,23 +755,23 @@ const
   Epsilon = 0.0001;
 begin
   { check point inside box case }
-  AssertFloatsEqual(0, Box.PointDistance(Vector3(1, 2, 3)), 0);
-  AssertFloatsEqual(0, Box.PointDistance(Vector3(3, 4, 5)), 0);
+  AssertSameValue(0, Box.PointDistance(Vector3(1, 2, 3)), 0);
+  AssertSameValue(0, Box.PointDistance(Vector3(3, 4, 5)), 0);
   { check point <-> box side case }
-  AssertFloatsEqual(4, Box.PointDistance(Vector3(3, 4, 10)));
-  AssertFloatsEqual(3, Box.PointDistance(Vector3(3, 4, 0)));
+  AssertSameValue(4, Box.PointDistance(Vector3(3, 4, 10)));
+  AssertSameValue(3, Box.PointDistance(Vector3(3, 4, 0)));
   { check point <-> box edge case }
-  AssertFloatsEqual(Sqrt( Sqr(10-6) + Sqr(10-5) ),
+  AssertSameValue(Sqrt( Sqr(10-6) + Sqr(10-5) ),
     Box.PointDistance(Vector3(3, 10, 10)),
     Epsilon);
-  AssertFloatsEqual(Sqrt( Sqr(0-2)  + Sqr(0-3)  ),
+  AssertSameValue(Sqrt( Sqr(0-2)  + Sqr(0-3)  ),
     Box.PointDistance(Vector3(3, 0, 0)),
     Epsilon);
   { check point <-> box corner case }
-  AssertFloatsEqual(Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ),
+  AssertSameValue(Sqrt( Sqr(10-6) + Sqr(10-5) + Sqr(10-4) ),
     Box.PointDistance(Vector3(10, 10, 10)),
     Epsilon);
-  AssertFloatsEqual(Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ),
+  AssertSameValue(Sqrt( Sqr(0-2)  + Sqr(0-3)  + Sqr(0-1)  ),
     Box.PointDistance(Vector3(0, 0, 0)),
     Epsilon);
 end;
@@ -795,18 +795,18 @@ begin
     Fail('Above Contains2D with IgnoreIndex = 3 should raise exception');
   except end;
 
-  AssertFloatsEqual(Sqrt(Sqr(5) + Sqr(6)), Box.Radius2D(0), 0.01);
-  AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(6)), Box.Radius2D(1), 0.01);
-  AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(5)), Box.Radius2D(2), 0.01);
+  AssertSameValue(Sqrt(Sqr(5) + Sqr(6)), Box.Radius2D(0), 0.01);
+  AssertSameValue(Sqrt(Sqr(4) + Sqr(6)), Box.Radius2D(1), 0.01);
+  AssertSameValue(Sqrt(Sqr(4) + Sqr(5)), Box.Radius2D(2), 0.01);
   try
     Box.Radius2D(3);
     Fail('Above Radius2D with IgnoreIndex = 3 should raise exception');
   except end;
 
-  AssertFloatsEqual(Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), Box.Radius, 0.01);
+  AssertSameValue(Sqrt(Sqr(4) + Sqr(5) + Sqr(6)), Box.Radius, 0.01);
 
-  AssertFloatsEqual(Sqrt(Sqr(3) + Sqr(3) + Sqr(3)), Box.Diagonal, 0.01);
-  AssertFloatsEqual(Sqrt(Sqr(1) + Sqr(10) + Sqr(3)), Box2.Diagonal, 0.01);
+  AssertSameValue(Sqrt(Sqr(3) + Sqr(3) + Sqr(3)), Box.Diagonal, 0.01);
+  AssertSameValue(Sqrt(Sqr(1) + Sqr(10) + Sqr(3)), Box2.Diagonal, 0.01);
 end;
 
 initialization

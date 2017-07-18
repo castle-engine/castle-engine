@@ -2025,11 +2025,11 @@ procedure TMatrixTransformNode_1.Transformation(
 begin
   Matrix := FdMatrix.Value;
 
-  if not TryMatrixInverse(Matrix, InvertedMatrix) then
+  if not Matrix.TryInverse(InvertedMatrix) then
   begin
     if Log then
       WritelnLogMultiline('Matrix',
-        'Cannot invert matrix:' + NL + MatrixToRawStr(Matrix, '  '));
+        'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
     InvertedMatrix := TMatrix4.Identity;
   end;
 end;
@@ -2372,8 +2372,8 @@ end;
 procedure TSpotLightNode_1.UpdateLightInstance(var LightInstance: TLightInstance);
 begin
   inherited;
-  LightInstance.Direction := Normalized(MatrixMultDirection(
-    LightInstance.Transform, FdDirection.Value));
+  LightInstance.Direction :=
+    LightInstance.Transform.MultDirection(FdDirection.Value).Normalize;
 end;
 
 function TSpotLightNode_1.ProjectionMatrix: TMatrix4;

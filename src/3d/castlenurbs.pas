@@ -525,7 +525,7 @@ begin
       W := Weight.L[0];
       if W = 0 then W := 1;
 
-      Result.Data[0] := MatrixMultPoint(Transform, Point.L[0] / W);
+      Result.Data[0] := Transform.MultPoint(Point.L[0] / W);
       Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
@@ -533,7 +533,7 @@ begin
         W := Weight.L[I];
         if W = 0 then W := 1;
 
-        V := MatrixMultPoint(Transform, Point.L[I] / W);
+        V := Transform.MultPoint(Point.L[I] / W);
 
         MinVar(Result.Data[0].Data[0], V[0]);
         MinVar(Result.Data[0].Data[1], V[1]);

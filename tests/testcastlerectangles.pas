@@ -166,46 +166,46 @@ begin
 
   R := R.Add(Vector2(10, 20));
   AssertFalse(R.IsEmpty);
-  AssertFloatsEqual(10, R.Left);
-  AssertFloatsEqual(20, R.Bottom);
-  AssertFloatsEqual(0, R.Width);
-  AssertFloatsEqual(0, R.Height);
+  AssertSameValue(10, R.Left);
+  AssertSameValue(20, R.Bottom);
+  AssertSameValue(0, R.Width);
+  AssertSameValue(0, R.Height);
 
   R.Add(Vector2(0, 40)); // without assignment, R.Add does nothing
-  AssertFloatsEqual(10, R.Left);
-  AssertFloatsEqual(20, R.Bottom);
-  AssertFloatsEqual(0, R.Width);
-  AssertFloatsEqual(0, R.Height);
+  AssertSameValue(10, R.Left);
+  AssertSameValue(20, R.Bottom);
+  AssertSameValue(0, R.Width);
+  AssertSameValue(0, R.Height);
 
   R := R.Add(Vector2(0, 40));
-  AssertFloatsEqual(0, R.Left);
-  AssertFloatsEqual(20, R.Bottom);
-  AssertFloatsEqual(10, R.Width);
-  AssertFloatsEqual(20, R.Height);
+  AssertSameValue(0, R.Left);
+  AssertSameValue(20, R.Bottom);
+  AssertSameValue(10, R.Width);
+  AssertSameValue(20, R.Height);
 
   R := R.Add(Vector2(5, 30)); // does not change R, since already inside
-  AssertFloatsEqual(0, R.Left);
-  AssertFloatsEqual(20, R.Bottom);
-  AssertFloatsEqual(10, R.Width);
-  AssertFloatsEqual(20, R.Height);
+  AssertSameValue(0, R.Left);
+  AssertSameValue(20, R.Bottom);
+  AssertSameValue(10, R.Width);
+  AssertSameValue(20, R.Height);
 
   R := R.Add(Vector2(-10, 30)); // changes R only horizontally
-  AssertFloatsEqual(-10, R.Left);
-  AssertFloatsEqual(20, R.Bottom);
-  AssertFloatsEqual(20, R.Width);
-  AssertFloatsEqual(20, R.Height);
+  AssertSameValue(-10, R.Left);
+  AssertSameValue(20, R.Bottom);
+  AssertSameValue(20, R.Width);
+  AssertSameValue(20, R.Height);
 
   R := R.Add(Vector2(5, -50)); // changes R only vertically
-  AssertFloatsEqual(-10, R.Left);
-  AssertFloatsEqual(-50, R.Bottom);
-  AssertFloatsEqual(20, R.Width);
-  AssertFloatsEqual(90, R.Height);
+  AssertSameValue(-10, R.Left);
+  AssertSameValue(-50, R.Bottom);
+  AssertSameValue(20, R.Width);
+  AssertSameValue(90, R.Height);
 
   R := R.Add(Vector2(5, -25)); // should not change R
-  AssertFloatsEqual(-10, R.Left);
-  AssertFloatsEqual(-50, R.Bottom);
-  AssertFloatsEqual(20, R.Width);
-  AssertFloatsEqual(90, R.Height);
+  AssertSameValue(-10, R.Left);
+  AssertSameValue(-50, R.Bottom);
+  AssertSameValue(20, R.Width);
+  AssertSameValue(90, R.Height);
 end;
 
 {
@@ -229,12 +229,12 @@ begin
   R.Bottom := 50;
   R.Right := 100;
   R.Top := 1000;
-  AssertFloatsEqual(90, R.Width);
-  AssertFloatsEqual(950, R.Height);
-  AssertFloatsEqual(10, R.Left);
-  AssertFloatsEqual(50, R.Bottom);
-  AssertFloatsEqual(100, R.Right);
-  AssertFloatsEqual(1000, R.Top);
+  AssertSameValue(90, R.Width);
+  AssertSameValue(950, R.Height);
+  AssertSameValue(10, R.Left);
+  AssertSameValue(50, R.Bottom);
+  AssertSameValue(100, R.Right);
+  AssertSameValue(1000, R.Top);
 end;
 }
 

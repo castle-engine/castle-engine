@@ -227,7 +227,7 @@ function GetArraysGenerator(AGeometry: TAbstractGeometryNode): TArraysGeneratorC
 
 implementation
 
-uses SysUtils, Generics.Collections,
+uses SysUtils, Math, Generics.Collections,
   CastleLog, CastleTriangles, CastleColors, CastleBoxes, CastleTriangulate,
   CastleStringUtils;
 
@@ -1387,17 +1387,17 @@ function TAbstractTextureCoordinateGenerator.GetTextureCoord(
       tgBounds2d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
-          Result[1] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
+          Result[0] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
+          Result[1] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
           Result[2] := 0;
           Result[3] := 1;
         end;
       tgBounds3d:
         begin
           Vertex := GetVertex(IndexNum);
-          Result[0] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
-          Result[1] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
-          Result[2] := VectorDotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[2]);
+          Result[0] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[0]);
+          Result[1] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[1]);
+          Result[2] := TVector4.DotProduct(Vector4(Vertex, 1), TexCoord.GenerationBoundsVector[2]);
           Result[3] := 1;
         end;
       tgCoord:
@@ -1868,7 +1868,8 @@ begin
       CcwNormals := Normals else
     begin
       CcwNormals := TVector3List.Create;
-      CcwNormals.AssignNegated(Normals);
+      CcwNormals.Assign(Normals);
+      CcwNormals.Negate;
     end;
   end;
 
@@ -1959,11 +1960,11 @@ procedure TAbstractFogGenerator.GenerateVertex(
     if CoordIndex <> nil then
       Position := Coord.Items.L[CoordIndex.Items.L[IndexNum]] else
       Position := Coord.Items.L[IndexNum];
-    Position := MatrixMultPoint(State.Transform, Position);
+    Position := State.Transform.MultPoint(Position);
 
     Projected := PointOnLineClosestToPoint(
       TVector3.Zero, FogVolumetricDirection, Position);
-    Result := VectorLen(Projected);
+    Result := Projected.Length;
     if not AreParallelVectorsSameDirection(
       Projected, FogVolumetricDirection) then
       Result := -Result;
@@ -2168,8 +2169,8 @@ procedure TAbstractBumpMappingGenerator.GenerateVertex(IndexNum: Integer);
       GetNormal(IndexNum, CurrentRangeNumber, Normal);
 
       if HasTangentVectors and
-        (Abs(VectorDotProduct(STangent, Normal)) < 0.95) and
-        (Abs(VectorDotProduct(TTangent, Normal)) < 0.95) then
+        (Abs(TVector3.DotProduct(STangent, Normal)) < 0.95) and
+        (Abs(TVector3.DotProduct(TTangent, Normal)) < 0.95) then
       begin
         if NormalsFlat then
         begin
@@ -2224,8 +2225,8 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
 
     Returns @false if cannot be calculated. }
   function CalculateTangent(IsSTangent: boolean; var Tangent: TVector3;
-    var Triangle3D: TTriangle3Single;
-    var TriangleTexCoord: TTriangle2Single): boolean;
+    var Triangle3D: TTriangle3;
+    var TriangleTexCoord: TTriangle2): boolean;
   var
     D: TVector2;
     LineA, LineBC, DIn3D: TVector3;
@@ -2261,7 +2262,7 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
       FarthestDistance := NewDistance;
     end;
 
-    if Zero(FarthestDistance) then
+    if IsZero(FarthestDistance) then
       Exit(false);
 
     if MiddleIndex <> 0 then
@@ -2316,8 +2317,8 @@ procedure TAbstractBumpMappingGenerator.CalculateTangentVectors(
   end;
 
 var
-  Triangle3D: TTriangle3Single;
-  TriangleTexCoord: TTriangle2Single;
+  Triangle3D: TTriangle3;
+  TriangleTexCoord: TTriangle2;
 begin
   HasTangentVectors := false;
   if ShapeBumpMappingUsed then
@@ -2339,7 +2340,7 @@ begin
       { calculate STangent, TTangent }
       CalculateTangent(true , STangent, Triangle3D, TriangleTexCoord) and
       CalculateTangent(false, TTangent, Triangle3D, TriangleTexCoord) and
-      (Abs(VectorDotProduct(STangent, TTangent)) < 0.95);
+      (Abs(TVector3.DotProduct(STangent, TTangent)) < 0.95);
   end;
 end;
 

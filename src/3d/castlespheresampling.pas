@@ -148,7 +148,7 @@ begin
   result := PhiThetaToXYZ(PhiTheta, 1);
 
   { make NewX anything orthogonal (but not zero) to SphereTheta0. }
-  if Zero(SphereTheta0[0]) and Zero(SphereTheta0[1]) then
+  if IsZero(SphereTheta0[0]) and IsZero(SphereTheta0[1]) then
   begin
     { then we're sure that SphereTheta0[2] <> 0, so NewX will not be zero }
     NewX[0] := 0;
@@ -160,23 +160,23 @@ begin
     NewX[1] := SphereTheta0[0];
     NewX[2] := 0;
   end;
-  NewY := VectorProduct(SphereTheta0, NewX);
+  NewY := TVector3.CrossProduct(SphereTheta0, NewX);
   { set correct lengths for NewX and NewY. We calculate NewYLen fast, without
     any Sqrt (which would happen inside VectorLen), because we know that
-    NewY was calculated by VectorProduct above and that NewX and SphereTheta0
+    NewY was calculated by TVector3.CrossProduct above and that NewX and SphereTheta0
     are orthogonal. }
-  SphereRadius := VectorLen(SphereTheta0);
-  NewXLen := VectorLen(NewX);
+  SphereRadius := SphereTheta0.Length;
+  NewXLen := NewX.Length;
   NewYLen := NewXLen * SphereRadius;
 
   NewX := NewX * SphereRadius/NewXLen;
   NewY := NewY * SphereRadius/NewYLen;
 
   { TODO: create MatrixMultPointVar to speed this a little bit? }
-  result := MatrixMultPoint(TransformToCoordsMatrix(TVector3.Zero,
+  Result := TransformToCoordsMatrix(TVector3.Zero,
     NewX,
     NewY,
-    SphereTheta0), result);
+    SphereTheta0).MultPoint(Result);
 end;
 
 function RandomHemispherePointConst: TVector2;

@@ -4070,7 +4070,7 @@ begin
    Result += Format(', with %d-bits sized stencil buffer', [StencilBits]);
  if AlphaBits > 0 then
    Result += Format(', with %d-bits sized alpha channel', [AlphaBits]);
- if not ZeroVector(FAccumBits) then
+ if not FAccumBits.IsZero then
    Result += Format(', with (%d,%d,%d,%d)-bits sized accumulation buffer',
     [FAccumBits[0], FAccumBits[1], FAccumBits[2], FAccumBits[3]]);
  if MultiSampling > 1 then

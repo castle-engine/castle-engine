@@ -1799,7 +1799,7 @@ var
   begin
     Result := (Volumetric1 = Volumetric2) and
       ( (not Volumetric1) or
-        ( VectorsPerfectlyEqual(VolumetricDirection1, VolumetricDirection2) and
+        ( TVector3.PerfectlyEquals(VolumetricDirection1, VolumetricDirection2) and
           (VolumetricVisibilityStart1 = VolumetricVisibilityStart2) ) );
   end;
 

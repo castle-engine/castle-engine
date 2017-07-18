@@ -119,7 +119,7 @@ var
                    if ParamName = 'EMISSION' then
                      Mat.FdEmissiveColor.Value := ReadParamAsVector3(I.Current) else
                    if ParamName = 'AMBIENT' then
-                     Mat.FdAmbientIntensity.Value := VectorAverage(ReadParamAsVector3(I.Current)) else
+                     Mat.FdAmbientIntensity.Value := ReadParamAsVector3(I.Current).Average else
                    if ParamName = 'DIFFUSE' then
                      Mat.FdDiffuseColor.Value := ReadParamAsVector3(I.Current) else
                    if ParamName = 'SPECULAR' then

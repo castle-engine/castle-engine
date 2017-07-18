@@ -292,7 +292,7 @@ begin
           Parameters.Looping := Loop;
           Parameters.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
           Parameters.Gain := SoundNode.Intensity;
-          Parameters.Position := MatrixMultPoint(SoundNode.FTransform, SoundNode.Location);
+          Parameters.Position := SoundNode.FTransform.MultPoint(SoundNode.Location);
           Parameters.Pitch := SafePitch;
           { We pass min/maxFront as OpenAL reference distance/max distance,
             as their meanings match for distance model = dmLinearDistanceClamped. }
@@ -461,7 +461,7 @@ begin
   begin
     AudioClip := TAudioClipNode(FdSource.Value);
     if AudioClip.Sound <> nil then
-      AudioClip.Sound.Position := MatrixMultPoint(FTransform, FdLocation.Value);
+      AudioClip.Sound.Position := FTransform.MultPoint(FdLocation.Value);
   end;
 end;
 

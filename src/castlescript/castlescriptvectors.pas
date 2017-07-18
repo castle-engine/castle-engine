@@ -458,9 +458,9 @@ uses CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras, CastleQua
 class procedure TCasScriptVec3f.HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
-  TCasScriptVec3f(AResult).Value :=
-    VectorProduct( TCasScriptVec3f(Arguments[0]).Value,
-                   TCasScriptVec3f(Arguments[1]).Value );
+  TCasScriptVec3f(AResult).Value := TVector3.CrossProduct(
+    TCasScriptVec3f(Arguments[0]).Value,
+    TCasScriptVec3f(Arguments[1]).Value );
 end;
 
 class procedure TCasScriptVec3f.HandleGrayscale(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -492,7 +492,7 @@ var
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
 
-  if not ZeroVector(Axis) then
+  if not Axis.IsZero then
     TCasScriptVec3f(AResult).Value := RotatePointAroundAxisRad(
       Rotation[3], Point, Axis) else
   begin

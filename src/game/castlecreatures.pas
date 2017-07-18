@@ -1624,8 +1624,8 @@ end;
 
 procedure TCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 begin
-  Lines.Add(Format('%s [%s / %s]',
-    [Resource.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]));
+  Lines.Add(Format('%s [%f / %f]',
+    [Resource.Name, Life, MaxLife]));
 end;
 
 procedure TCreature.Fall(const FallHeight: Single);
@@ -1726,7 +1726,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
           World.GravityUp * H,
           { By default, Text is in XY plane.
             Adjust it to our Orientation. }
-          VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
+          TVector3.CrossProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
           UpFromOrientation[Orientation],
           DirectionFromOrientation[Orientation]);
 
@@ -1987,7 +1987,7 @@ var
       MinVar(AngleRadChange, AngleRadBetweenDirectionToTarget);
 
       NewDirection := RotatePointAroundAxisRad(AngleRadChange, Direction,
-        VectorProduct(Direction, DirectionToTarget));
+        TVector3.CrossProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
       if Gravity then

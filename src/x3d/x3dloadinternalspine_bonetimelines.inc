@@ -252,7 +252,7 @@ var
   I: Integer;
 begin
   for I := 0 to Vectors.Count - 1 do
-    if not PerfectlyZeroVector(Vectors[I]) then
+    if not Vectors[I].IsPerfectlyZero then
       Exit(true);
   Result := false;
 end;

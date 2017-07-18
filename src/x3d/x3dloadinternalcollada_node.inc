@@ -105,7 +105,7 @@ begin
       if I.Current.TagName = 'scale' then
       begin
         V3 := Vector3FromStr(I.Current.TextData);
-        if not VectorsPerfectlyEqual(V3, Vector3(1, 1, 1)) then
+        if not TVector3.PerfectlyEquals(V3, Vector3(1, 1, 1)) then
         begin
           NestedTransform.FdScale.Value := V3;
         end;
@@ -121,7 +121,7 @@ begin
       if I.Current.TagName = 'translate' then
       begin
         V3 := Vector3FromStr(I.Current.TextData);
-        if not VectorsPerfectlyEqual(V3, TVector3.Zero) then
+        if not TVector3.PerfectlyEquals(V3, TVector3.Zero) then
         begin
           NestedTransform.FdTranslation.Value := V3;
         end;

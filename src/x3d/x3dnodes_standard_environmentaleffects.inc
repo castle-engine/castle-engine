@@ -615,7 +615,7 @@ begin
 
       VertProjected := PointOnLineClosestToPoint(
         TVector3.Zero, FdVolumetricDirection.Value, VertexPos);
-      Distance := VectorLen(VertProjected);
+      Distance := VertProjected.Length;
       if not AreParallelVectorsSameDirection(
         VertProjected, FdVolumetricDirection.Value) then
         Distance := -Distance;

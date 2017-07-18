@@ -307,7 +307,7 @@ end;
 
 procedure TUIControlFont.SetOutlineColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FOutlineColor, Value) then
   begin
     FOutlineColor := Value;
     FontChanged;

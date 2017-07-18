@@ -7,8 +7,8 @@ begin
   try
     // That's it, you loaded the 1st curve from XML file.
     // Write some initial curve points.
-    Writeln(VectorToNiceStr(FirstCurve.Point(0.0)));
-    Writeln(VectorToNiceStr(FirstCurve.Point(0.1)));
+    Writeln(FirstCurve.Point(0.0).ToString);
+    Writeln(FirstCurve.Point(0.1).ToString);
   finally FreeAndNil(FirstCurve) end;
 
   { in more complicated scenarios, my_curves.xml may keep many curves

@@ -513,7 +513,7 @@ begin
   { All triangle normals are summed up now. (Each triangle normal was also
     normalized, to have equal contribution to the Result.)
     Normalize Result now, if we had any valid triangle. }
-  if ZeroVector(Result) then
+  if Result.IsZero then
     Result := ResultForIncorrectPoly
   else
     Result.NormalizeMe;
@@ -692,15 +692,15 @@ begin
      So all points must be different, and also must not be colinear.
 
      We can check this by checking
-       VectorProduct(
+       TVector3.CrossProduct(
          (Data[2] - Data[1]),
          (Data[0] - Data[1])).Length > 0.
 
      This actually exactly corresponds to saying "this triangle has non-zero area".
      It also measn that TrianglePlane is non-zero, since it uses the same
-     VectorProduct.
-     You can calculate this using TriangleDir(), since TriangleDir calculates
-     exactly this VectorProduct.
+     TVector3.CrossProduct.
+     You can calculate this using TTriangle3.Direction, since TTriangle3.Direction calculates
+     exactly this TVector3.CrossProduct.
   *)
   Result := Direction.LengthSqr > Sqr(SingleEqualityEpsilon);
   { This would detect as invalid too much (the tests/data/model_manifold.wrl
@@ -894,7 +894,7 @@ function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
 
   - It remains to find s,t.
     Let w = point - tri[0], so w = s*u + t*v.
-    Let x^ (for x = direction on a plane) mean VectorProduct(x, PlaneDir),
+    Let x^ (for x = direction on a plane) mean TVector3.CrossProduct(x, PlaneDir),
     so a direction orthogonal to x and still on the plane.
     Note some dot product properties:
 
@@ -927,14 +927,14 @@ var
 begin
   U := Tri.Data[1] - Tri.Data[0];
   V := Tri.Data[2] - Tri.Data[0];
-  UV := VectorDotProduct(U, V);
-  UU := VectorLenSqr(U); { = VectorDotProduct(U, U) }
-  VV := VectorLenSqr(V); { = VectorDotProduct(V, V) }
+  UV := DotProduct(U, V);
+  UU := U.LengthSqr; { = TVector3.DotProduct(U, U) }
+  VV := V.LengthSqr; { = TVector3.DotProduct(V, V) }
   Denominator := Sqr(UV) - UU * VV;
 
   W := P - Tri.Data[0];
-  WV := VectorDotProduct(W, V);
-  WU := VectorDotProduct(W, U);
+  WV := TVector3.DotProduct(W, V);
+  WU := TVector3.DotProduct(W, U);
 
   One := 1 + SingleEqualityEpsilon;
 
@@ -970,8 +970,8 @@ begin
 
   One := 1 + SingleEqualityEpsilon;
 
-  Ortho := VectorProduct(V, TriDir);
-  S := VectorDotProduct(W, Ortho) / VectorDotProduct(U, Ortho);
+  Ortho := TVector3.CrossProduct(V, TriDir);
+  S := TVector3.DotProduct(W, Ortho) / TVector3.DotProduct(U, Ortho);
   if (S < -SingleEqualityEpsilon) or
     { As far as only correctness is concerned, check for S > One isn't needed
       here since we will check S+T <= One later anyway.
@@ -983,8 +983,8 @@ begin
      (S > One) then
     Exit(false);
 
-  Ortho := VectorProduct(U, TriDir);
-  T := VectorDotProduct(W, Ortho) / VectorDotProduct(V, Ortho);
+  Ortho := TVector3.CrossProduct(U, TriDir);
+  T := TVector3.DotProduct(W, Ortho) / TVector3.DotProduct(V, Ortho);
   if T < -SingleEqualityEpsilon then
     Exit(false);
 
@@ -996,7 +996,7 @@ end;
 //function IsPointOnTrianglePlaneWithinTriangle(const P: TVector3;
 //  const Tri: TTriangle3): boolean;
 //begin
-//  Result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDir(Tri));
+//  Result := IsPointOnTrianglePlaneWithinTriangle(P, Tri, TriangleDirection(Tri));
 //end;
 
 function IsPointWithinTriangle2D(const P: TVector2;
@@ -1223,14 +1223,14 @@ end;
 
 function TriangleNormal(const p0, p1, p2: TVector3): TVector3;
 begin
-  Result := TriangleDir(p0, p1, p2).Normalize;
+  Result := TriangleDirection(p0, p1, p2).Normalize;
 end;
 
 function TrianglePlane(const p0, p1, p2: TVector3): TVector4;
 var
   ResultDir: TVector3 absolute Result;
 begin
-  ResultDir := TriangleDir(p0, p1, p2);
+  ResultDir := TriangleDirection(p0, p1, p2);
   Result.Data[3] :=
     -ResultDir.Data[0] * p0.Data[0]
     -ResultDir.Data[1] * p0.Data[1]

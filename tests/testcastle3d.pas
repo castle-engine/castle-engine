@@ -113,7 +113,7 @@ begin
     IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(IsAbove);
-    AssertFloatsEqual(1, AboveHeight);
+    AssertSameValue(1, AboveHeight);
 
     IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
@@ -127,7 +127,7 @@ begin
       true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
     AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
       true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
-    AssertTrue(VectorsEqual(Vector3(-2, -1.5, 0), NewPos));
+    AssertVectorEquals(Vector3(-2, -1.5, 0), NewPos);
 
     { no wall-sliding, with sphere }
     AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
@@ -161,8 +161,8 @@ begin
     Collision := M.RayCollision(
       Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -300,8 +300,8 @@ begin
     Collision := M.RayCollision(
       Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -331,7 +331,7 @@ begin
     IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(IsAbove);
-    AssertFloatsEqual(1, AboveHeight);
+    AssertSameValue(1, AboveHeight);
 
     IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
@@ -345,7 +345,7 @@ begin
       true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
     AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
       true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
-    AssertTrue(VectorsEqual(Vector3(-2, -1.5, 0), NewPos));
+    AssertVectorEquals(Vector3(-2, -1.5, 0), NewPos);
 
     { no wall-sliding, with sphere }
     AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
@@ -379,8 +379,8 @@ begin
     Collision := M.RayCollision(
       Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -522,8 +522,8 @@ begin
     Collision := M.RayCollision(
       Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -554,7 +554,7 @@ procedure TTestCastle3D.Test3DTransformReal;
     IsAbove := M.HeightCollision(Vector3(20.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(IsAbove);
-    AssertFloatsEqual(1, AboveHeight);
+    AssertSameValue(1, AboveHeight);
 
     { wall-sliding with sphere }
     AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(22, 2, 0), NewPos,
@@ -563,7 +563,7 @@ procedure TTestCastle3D.Test3DTransformReal;
       true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
     AssertTrue(M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0), NewPos,
       true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
-    AssertTrue(VectorsEqual(Vector3(18, -1.5, 0), NewPos));
+    AssertVectorEquals(Vector3(18, -1.5, 0), NewPos);
 
     { no wall-sliding, with sphere }
     AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(22, 2, 0),
@@ -601,8 +601,8 @@ procedure TTestCastle3D.Test3DTransformReal;
     Collision := M.RayCollision(
       Vector3(30, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3(21, 0, 0), 0.001));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(21, 0, 0), 0.001);
     FreeAndNil(Collision);
   end;
 
@@ -762,40 +762,40 @@ begin
 
   { no need to change direction/up angle, only normalize them }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3(0, 0, 1), O.Up, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(0, 0, 10));
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3(0, 0, 1), O.Up, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   { SetView corrects up vector angle }
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 10));
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3(0, 0, 1), O.Up, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   { SetView with AdjustUp = false corrects direction vector angle }
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 10), false);
-  AssertVectorsEqual(Normalized(Vector3(Sqrt(2), 0, -Sqrt(2))), O.Direction, 0.1);
-  AssertVectorsEqual(Normalized(Vector3(Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, -Sqrt(2)).Normalize, O.Direction, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, Sqrt(2)).Normalize, O.Up, 0.1);
 
   { Setting direction corrects up vector }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
   O.Direction := Vector3(10, 0, 10);
-  AssertVectorsEqual(Normalized(Vector3(Sqrt(2), 0, Sqrt(2))), O.Direction, 0.1);
-  AssertVectorsEqual(Normalized(Vector3(-Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, Sqrt(2)).Normalize, O.Direction, 0.1);
+  AssertVectorEquals(Vector3(-Sqrt(2), 0, Sqrt(2)).Normalize, O.Up, 0.1);
 
   { Setting up corrects direction vector }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
   O.Up := Vector3(10, 0, 10);
-  AssertVectorsEqual(Normalized(Vector3(Sqrt(2), 0, -Sqrt(2))), O.Direction, 0.1);
-  AssertVectorsEqual(Normalized(Vector3(Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, -Sqrt(2)).Normalize, O.Direction, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, Sqrt(2)).Normalize, O.Up, 0.1);
 
   { UpPrefer corrects up vector }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
   O.UpPrefer(Vector3(10, 0, 10));
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3(0, 0, 1), O.Up, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   FreeAndNil(O);
 end;
@@ -811,31 +811,31 @@ begin
 
   { SetView corrects up vector angle }
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 0));
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Up, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Up, 0.1);
 
   { SetView with AdjustUp = false corrects direction vector angle }
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 0), false);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Up, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Up, 0.1);
 
   { Setting direction corrects up vector }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
   O.Direction := Vector3(0, 0, 10);
-  AssertVectorsEqual(Vector3(0, 0, 1), O.Direction, 0.1);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3(0, 0, 1)), O.Up, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Direction, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(0, 0, 1)), O.Up, 0.1);
 
   { Setting up corrects direction vector }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
   O.Up := Vector3(10, 0, 0);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Up, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Up, 0.1);
 
   { UpPrefer corrects up vector }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
   O.UpPrefer(Vector3(10, 0, 0));
-  AssertVectorsEqual(Vector3(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Up, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Up, 0.1);
 
   FreeAndNil(O);
 end;

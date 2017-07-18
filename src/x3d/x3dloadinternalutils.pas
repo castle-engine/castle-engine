@@ -54,8 +54,8 @@ function FixRelativeUrl(const URL: string): string;
 
 implementation
 
-uses SysUtils, CastleStringUtils, CastleFindFiles, CastleLog,
-  URIParser, CastleURIUtils;
+uses SysUtils, Math, URIParser,
+  CastleStringUtils, CastleFindFiles, CastleLog, CastleURIUtils;
 
 function ToX3DName(const s: string): string;
 const
@@ -72,9 +72,9 @@ end;
 function AmbientIntensity(const AmbientColor, DiffuseColor: TVector3): Single;
 begin
   Result := 0;
-  if not Zero(DiffuseColor[0]) then Result += AmbientColor[0] / DiffuseColor[0];
-  if not Zero(DiffuseColor[1]) then Result += AmbientColor[1] / DiffuseColor[1];
-  if not Zero(DiffuseColor[2]) then Result += AmbientColor[2] / DiffuseColor[2];
+  if not IsZero(DiffuseColor[0]) then Result += AmbientColor[0] / DiffuseColor[0];
+  if not IsZero(DiffuseColor[1]) then Result += AmbientColor[1] / DiffuseColor[1];
+  if not IsZero(DiffuseColor[2]) then Result += AmbientColor[2] / DiffuseColor[2];
   Result /= 3;
 end;
 

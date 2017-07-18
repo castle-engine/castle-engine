@@ -159,7 +159,7 @@ begin
   Theme.Draw(SR, ImageOuter, UIScale);
 
   // compute lever offset (must not move outside outer ring)
-  LeverDist := VectorLen(FLeverOffset);
+  LeverDist := FLeverOffset.Length;
   MaxDist := MaxOffsetDist;
   if LeverDist <= MaxDist then
   begin

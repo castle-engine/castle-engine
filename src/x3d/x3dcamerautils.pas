@@ -168,17 +168,17 @@ var
   S1, S2, S3, S4: string;
 begin
   Result := Format(Comment[Xml], [ApplicationName,
-    VectorToRawStr(Direction),
-    VectorToRawStr(Up),
-    VectorToRawStr(GravityUp) ]);
+    Direction.ToRawString,
+    Up.ToRawString,
+    GravityUp.ToRawString ]);
 
-  RotationVectorForGravity := VectorProduct(DefaultX3DGravityUp, GravityUp);
-  if ZeroVector(RotationVectorForGravity) then
+  RotationVectorForGravity := TVector3.CrossProduct(DefaultX3DGravityUp, GravityUp);
+  if RotationVectorForGravity.IsZero then
   begin
     { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
-    S1 := VectorToRawStr(Position);
-    S2 := VectorToRawStr(CamDirUp2Orient(Direction, Up));
+    S1 := Position.ToRawString;
+    S2 := CamDirUp2Orient(Direction, Up).ToRawString;
     Result := Result + Format(UntransformedViewpoint[Version, Xml], [S1, S2]);
   end else
   begin
@@ -186,8 +186,8 @@ begin
       DefaultX3DGravityUp affected by this transformation will give
       desired GravityUp. }
     AngleForGravity := AngleRadBetweenVectors(DefaultX3DGravityUp, GravityUp);
-    S1 := VectorToRawStr(Position);
-    S2 := VectorToRawStr(RotationVectorForGravity);
+    S1 := Position.ToRawString;
+    S2 := RotationVectorForGravity.ToRawString;
     S3 := Format('%g', [AngleForGravity]);
     { We want such that
         1. standard VRML/X3D dir/up vectors
@@ -198,10 +198,10 @@ begin
       achieve given up/dir vectors. So I have to pass there
       MatrixWalker.Direction/Up *already rotated negatively
       around RotationVectorForGravity*. }
-    S4 := VectorToRawStr( CamDirUp2Orient(
+    S4 := CamDirUp2Orient(
             RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
             RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity)
-          ));
+          ).ToRawString;
     Result := Result + Format(TransformedViewpoint[Version, Xml], [S1, S2, S3, S4]);
   end;
 end;
@@ -218,8 +218,8 @@ var
   Transform_2: TTransformNode;
   Rotation, Orientation: TVector4;
 begin
-  RotationVectorForGravity := VectorProduct(DefaultX3DGravityUp, GravityUp);
-  if ZeroVector(RotationVectorForGravity) then
+  RotationVectorForGravity := TVector3.CrossProduct(DefaultX3DGravityUp, GravityUp);
+  if RotationVectorForGravity.IsZero then
   begin
     { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }

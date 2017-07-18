@@ -146,9 +146,9 @@ begin
   { CamSide will be normalized, if CamDirection and CamUp are normalized too. }
   CamSide := TVector3.CrossProduct(CamDirection, CamUp);
 
-  Assert(FloatsEqual(VectorLenSqr(CamDirection), 1.0, 0.01));
-  Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.01));
-  Assert(FloatsEqual(VectorLenSqr(CamSide), 1.0, 0.01));
+  Assert(SameValue(CamDirection.LengthSqr, 1.0, 0.01));
+  Assert(SameValue(CamUp.LengthSqr, 1.0, 0.01));
+  Assert(SameValue(CamSide.LengthSqr, 1.0, 0.01));
 end;
 
 class function TRaysWindow.CreateDescendant(

@@ -246,7 +246,7 @@ end;
 
 procedure TCastleImageControl.SetClipLine(const Value: TVector3);
 begin
-  if not VectorsPerfectlyEqual(FClipLine, Value) then
+  if not TVector3.PerfectlyEquals(FClipLine, Value) then
   begin
     FClipLine := Value;
     if FGLImage <> nil then
@@ -324,7 +324,7 @@ begin
   inherited;
   if FGLImage = nil then Exit;
   SR := ScreenRect;
-  if ZeroVector(FCorners) then
+  if FCorners.IsZero then
     FGLImage.Draw(SR) else
   begin
     FGLImage.ScaleCorners := UIScale;

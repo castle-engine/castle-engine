@@ -549,12 +549,12 @@ end;
 
 function TAbstractLightNode.GetProjectionSceneLocation: TVector3;
 begin
-  Result := MatrixMultPoint(Transform, ProjectionLocationLocal);
+  Result := Transform.MultPoint(ProjectionLocationLocal);
 end;
 
 procedure TAbstractLightNode.SetProjectionSceneLocation(const Value: TVector3);
 begin
-  ProjectionLocationLocal := MatrixMultPoint(InvertedTransform, Value);
+  ProjectionLocationLocal := InvertedTransform.MultPoint(Value);
 end;
 
 function TAbstractLightNode.GetProjectionSceneDirection: TVector3;
@@ -564,7 +564,7 @@ end;
 
 procedure TAbstractLightNode.SetProjectionSceneDirection(const Value: TVector3);
 begin
-  ProjectionDirectionLocal := MatrixMultDirection(InvertedTransform, Value);
+  ProjectionDirectionLocal := InvertedTransform.MultDirection(Value);
 end;
 
 procedure TAbstractLightNode.GetView(out Pos, Dir, Side, Up: TVector3);
@@ -577,7 +577,7 @@ begin
     We could let AnyOrthogonalVector do this job, but when +Y is sensible
     (when it results in something non-parallel to Dir), let's use it.
     This makes calculated "up" more deterministic. }
-  if PerfectlyZeroVector(Up) then
+  if Up.IsPerfectlyZero then
     Up := Vector3(0, 1, 0);
   Up := Transform.MultDirection(Up);
   { When the "up" vector is parallel to the dir then fix it. }
@@ -587,9 +587,9 @@ begin
   { now normalize all vectors,
     calculate Side,
     and make Up orthogonal to Dir }
-  Side := Normalized(VectorProduct(Dir, Up));
+  Side := TVector3.CrossProduct(Dir, Up).Normalize;
   Dir.NormalizeMe;
-  Up := VectorProduct(Side, Dir);
+  Up := TVector3.CrossProduct(Side, Dir);
 end;
 
 function TAbstractLightNode.CreateLightInstance(
@@ -667,8 +667,8 @@ procedure TAbstractDirectionalLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   inherited;
-  LightInstance.Direction := Normalized(MatrixMultDirection(
-    LightInstance.Transform, FdDirection.Value));
+  LightInstance.Direction :=
+    LightInstance.Transform.MultDirection(FdDirection.Value).Normalize;
 end;
 
 function TAbstractDirectionalLightNode.ProjectionMatrix: TMatrix4;
@@ -687,7 +687,7 @@ begin
   if F = 0 then F := FallbackProjectionFar;
 
   R := FdProjectionRectangle.Value;
-  if PerfectlyZeroVector(R) then R := FallbackProjectionRectangle;
+  if R.IsPerfectlyZero then R := FallbackProjectionRectangle;
 
   Dimensions.Left   := R[0];
   Dimensions.Bottom := R[1];
@@ -818,7 +818,7 @@ procedure TAbstractPositionalLightNode.UpdateLightInstance(
 begin
   inherited;
 
-  LightInstance.Location := MatrixMultPoint(LightInstance.Transform,
+  LightInstance.Location := LightInstance.Transform.MultPoint(
     FdLocation.Value);
 
   { TODO: For non-uniform scale, this will simply use average scale.
@@ -893,12 +893,12 @@ end;
 
 function TAbstractPositionalLightNode.GetSceneLocation: TVector3;
 begin
-  Result := MatrixMultPoint(Transform, Location);
+  Result := Transform.MultPoint(Location);
 end;
 
 procedure TAbstractPositionalLightNode.SetSceneLocation(const Value: TVector3);
 begin
-  Location := MatrixMultPoint(InvertedTransform, Value);
+  Location := InvertedTransform.MultPoint(Value);
 end;
 
 function TAbstractPositionalLightNode.GetRadius: Single;
@@ -1032,8 +1032,8 @@ procedure TSpotLightNode.UpdateLightInstance(
   var LightInstance: TLightInstance);
 begin
   inherited;
-  LightInstance.Direction := Normalized(MatrixMultDirection(
-    LightInstance.Transform, FdDirection.Value));
+  LightInstance.Direction :=
+    LightInstance.Transform.MultDirection(FdDirection.Value).Normalize;
 end;
 
 function TSpotLightNode.ProjectionMatrix: TMatrix4;

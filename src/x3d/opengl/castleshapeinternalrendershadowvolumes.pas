@@ -159,8 +159,8 @@ var
     EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -184,8 +184,8 @@ var
     EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -227,10 +227,10 @@ var
       Plane: TVector4;
       TriangleTransformed: TTriangle3;
     begin
-      TriangleTransformed.Data[0] := MatrixMultPoint(Transform, T.Data[0]);
-      TriangleTransformed.Data[1] := MatrixMultPoint(Transform, T.Data[1]);
-      TriangleTransformed.Data[2] := MatrixMultPoint(Transform, T.Data[2]);
-      Plane := TrianglePlane(TriangleTransformed);
+      TriangleTransformed.Data[0] := Transform.MultPoint(T.Data[0]);
+      TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
+      TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
+      Plane := TriangleTransformed.Plane;
       Result := (Plane.Data[0] * LightPos.Data[0] +
                  Plane.Data[1] * LightPos.Data[1] +
                  Plane.Data[2] * LightPos.Data[2] +
@@ -518,8 +518,8 @@ var
     EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
     EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -530,9 +530,9 @@ var
     Plane: TVector4;
   begin
     Plane := TrianglePlane(
-      MatrixMultPoint(Transform, T.Data[0]),
-      MatrixMultPoint(Transform, T.Data[1]),
-      MatrixMultPoint(Transform, T.Data[2]));
+      Transform.MultPoint(T.Data[0]),
+      Transform.MultPoint(T.Data[1]),
+      Transform.MultPoint(T.Data[2]));
     Result := (Plane.Data[0] * ObserverPos.Data[0] +
                Plane.Data[1] * ObserverPos.Data[1] +
                Plane.Data[2] * ObserverPos.Data[2] +
@@ -598,8 +598,8 @@ var
     EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + 0) mod 3];
     EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + 1) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);

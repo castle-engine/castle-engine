@@ -248,12 +248,12 @@ function VectorsParallel(const V1, V2: TVector3): boolean; overload;
   When vectors are parallel (this includes the case when one of them is zero),
   we set V1 to ResultWhenParallel.
 
-  We make it such that V1 rotated around axis VectorProduct(V1, V2) by given
+  We make it such that V1 rotated around axis TVector3.CrossProduct(V1, V2) by given
   angle will result in V2. Note that this means that
   @code(MakeVectorsAngleRadOnTheirPlane(V1, V2, Angle, ...))
   results in the same (not reversed) relation between vectors as
   @code(MakeVectorsAngleRadOnTheirPlane(V2, V1, Angle, ...)).
-  That's because you change the arguments order, but also VectorProduct
+  That's because you change the arguments order, but also TVector3.CrossProduct
   sign changes.
   @groupBegin }
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
@@ -859,9 +859,9 @@ var
   LensSquared: Float;
 begin
   (* jak widac, wykrecam sie jednym pierwiastkowaniem pierwiastkujac
-     VectorLenSqr(v1) i VectorLenSqr(v2) jednoczesnie. *)
+     v1.LengthSqr i v2.LengthSqr jednoczesnie. *)
 
-  LensSquared := VectorLenSqr(v1) * VectorLenSqr(v2);
+  LensSquared := v1.LengthSqr * v2.LengthSqr;
   if IsZero(LensSquared) then
     raise EVectorInvalidOp.Create(
       'Cannot calculate angle between vectors, at least one of the vectors is zero');
@@ -910,9 +910,9 @@ begin
 { Commented out by default because this assertion is costly.
   But it should be valid, you can uncomment it for test!
 
-  Assert(FloatsEqual(
+  Assert(SameValue(
     PointsDistance(RotatePointAroundAxisRad(Result, V1, Cross), V2),
-    Abs(VectorLen(V1) - VectorLen(V2)), 0.01));
+    Abs(V1.Length - V2.Length), 0.01));
 }
 end;
 
@@ -934,7 +934,7 @@ var
   sinAngle, cosAngle: Float;
 begin
   SinCos(Angle, sinAngle, cosAngle);
-  l := VectorLen(Axis);
+  l := Axis.Length;
 
   { normalize and decompose Axis vector }
   x := Axis.Data[0]/l;
@@ -1163,8 +1163,8 @@ begin
   end;
 
   { tests: (checking should write zeros)
-  Writeln('intersection 2d: ', VectorToNiceStr(Line0), ' ',
-    VectorToNiceStr(Line1), ' gives ', VectorToNiceStr(Result), ' checking: ',
+  Writeln('intersection 2d: ', Line0.ToString, ' ',
+    Line1.ToString, ' gives ', Result.ToString, ' checking: ',
     FloatToNiceStr(Line0.Data[0] * Result.Data[0] + Line0.Data[1] * Result.Data[1] + Line0.Data[2]), ' ',
     FloatToNiceStr(Line1.Data[0] * Result.Data[0] + Line1.Data[1] * Result.Data[1] + Line1.Data[2])); }
 end;
@@ -1278,13 +1278,13 @@ end;
 
 function PointsDistanceSqr(const V1, V2: TVector3): Single;
 begin
-  { Result := VectorLenSqr(v2 - v1);, expanded for speed }
+  { Result := (v2 - v1).LengthSqr;, expanded for speed }
   Result := Sqr(V2.Data[0]-V1.Data[0]) + Sqr(V2.Data[1]-V1.Data[1]) + Sqr(V2.Data[2]-V1.Data[2]);
 end;
 
 function PointsDistanceSqr(const V1, V2: TVector2): Single;
 begin
-  { Result := VectorLenSqr(v2 - v1);, expanded for speed }
+  { Result := (v2 - v1).LengthSqr;, expanded for speed }
   Result := Sqr(V2.Data[0]-V1.Data[0]) + Sqr(V2.Data[1]-V1.Data[1]);
 end;
 
@@ -1319,8 +1319,8 @@ begin
 
   Scale := V2.Data[mc] / V1.Data[mc];
   RestOf3dCoords(mc, c1, c2);
-  Result := FloatsEqual(V1.Data[c1] * Scale, V2.Data[c1]) and
-            FloatsEqual(V1.Data[c2] * Scale, V2.Data[c2]);
+  Result := SameValue(V1.Data[c1] * Scale, V2.Data[c1]) and
+            SameValue(V1.Data[c2] * Scale, V2.Data[c2]);
 end;
 
 procedure MakeVectorsAngleRadOnTheirPlane(var v1: TVector3;
@@ -1329,12 +1329,11 @@ var
   rotAxis: TVector3;
   v1len: Single;
 begin
-  v1len := VectorLen(v1);
+  v1len := v1.Length;
   rotAxis := TVector3.CrossProduct(V1, V2);
   if rotAxis.IsZero then
     V1 := ResultWhenParallel else
-    V1 := VectorAdjustToLength(
-      RotatePointAroundAxisRad(-AngleRad, v2, rotAxis), v1len);
+    V1 := RotatePointAroundAxisRad(-AngleRad, v2, rotAxis).AdjustToLength(v1len);
 end;
 
 procedure MakeVectorsOrthoOnTheirPlane(var v1: TVector3; const v2: TVector3);
@@ -1410,7 +1409,7 @@ begin
     plane.Data[2]*(pos.Data[2] + d*plane.Data[2])+ plane.Data[3] = 0
     Przeksztalcajac otrzymujemy rownanie na d.*)
   d := -(plane.Data[0]*point.Data[0] + plane.Data[1]*point.Data[1] + plane.Data[2]*point.Data[2] + plane.Data[3])/
-      VectorLenSqr(PlaneDir);
+      PlaneDir.LengthSqr;
   Result := Point + PlaneDir * d;
 end;
 
@@ -1487,7 +1486,7 @@ begin
                              point[1]*lineVector[1] +
                              point[2]*lineVector[2]
    d*(Sqr(lineVector[0])+ Sqr(lineVector[1])+ Sqr(lineVector[2]) ) =
-   d*VectorLenSqr(lineVector) =
+   d*lineVector.LengthSqr =
    lineVector[0]*(point[0]-line0[0]) +
    lineVector[1]*(point[1]-line0[1]) +
    lineVector[2]*(point[2]-line0[2]);
@@ -1495,7 +1494,7 @@ begin
    And we can calculate d now. *)
   d := (lineVector.Data[0] * (point.Data[0]-line0.Data[0]) +
         lineVector.Data[1] * (point.Data[1]-line0.Data[1]) +
-        lineVector.Data[2] * (point.Data[2]-line0.Data[2]) ) / VectorLenSqr(lineVector);
+        lineVector.Data[2] * (point.Data[2]-line0.Data[2]) ) / lineVector.LengthSqr;
   Result := line0 + lineVector * d;
 end;
 
@@ -1505,7 +1504,7 @@ var
   d: Single;
 begin
   d := (lineVector.Data[0] * (point.Data[0]-line0.Data[0]) +
-        lineVector.Data[1] * (point.Data[1]-line0.Data[1]) ) / VectorLenSqr(lineVector);
+        lineVector.Data[1] * (point.Data[1]-line0.Data[1]) ) / lineVector.LengthSqr;
   Result := line0 + lineVector * d;
 end;
 
@@ -1857,7 +1856,7 @@ begin
   { We know Intersection = RayOrigin + RayDirection * T.
     For cylinder, normalize CylinderAxis and then
 
-      VectorLen( TVector3.CrossProduct(Intersection - CylinderAxisOrigin, CylinderAxis))
+      TVector3.CrossProduct(Intersection - CylinderAxisOrigin, CylinderAxis).Length
       = CylinderRadius
 
     (For why, see http://en.wikipedia.org/wiki/Cross_product:
@@ -1870,9 +1869,9 @@ begin
 
   X := RayOrigin - CylinderAxisOrigin;
   Y := RayDirection;
-  B := Normalized(CylinderAxis);
+  B := CylinderAxis.Normalize;
 
-  { Now let A = X + Y * T, then VectorLen(A x B)^2 = CylinderRadius^2.
+  { Now let A = X + Y * T, then A x B.Length^2 = CylinderRadius^2.
     Solve for T. Expanding this by hand would be *real* pain,
     so I used open-source maxima (http://maxima.sourceforge.net/):
 
@@ -2053,7 +2052,7 @@ function TransformToCoordsNoScaleMatrix(const NewOrigin,
   NewX, NewY, NewZ: TVector3): TMatrix4;
 begin
   Result := TransformToCoordsMatrix(NewOrigin,
-    Normalized(NewX), Normalized(NewY), Normalized(NewZ));
+    NewX.Normalize, NewY.Normalize, NewZ.Normalize);
 end;
 
 function TransformFromCoordsMatrix(const OldOrigin,
@@ -2115,7 +2114,7 @@ function TransformFromCoordsNoScaleMatrix(const OldOrigin,
   OldX, OldY, OldZ: TVector3): TMatrix4;
 begin
   Result := TransformFromCoordsMatrix(OldOrigin,
-    Normalized(OldX), Normalized(OldY), Normalized(OldZ));
+    OldX.Normalize, OldY.Normalize, OldZ.Normalize);
 end;
 
 procedure TransformCoordsMatrices(const NewX, NewY, NewZ: TVector3;
@@ -2134,8 +2133,8 @@ function LookDirMatrix(const Eye, Dir, Up: TVector3): TMatrix4;
 var
   GoodDir, GoodUp, Side: TVector3;
 begin
-  Side := Normalized(TVector3.CrossProduct(Dir, Up));
-  GoodDir := Normalized(Dir);
+  Side := TVector3.CrossProduct(Dir, Up).Normalize;
+  GoodDir := Dir.Normalize;
 
   { Recalculate GoodUp from Side and GoodDir. This way:
     1. We make sure GoodUp is orthogonal to Side and GoodDir.
@@ -2298,7 +2297,7 @@ var
   AngleSin, AngleCos: Float;
   S, C: Single;
 begin
-  NormAxis := Normalized(Axis);
+  NormAxis := Axis.Normalize;
 
   SinCos(AngleRad, AngleSin, AngleCos);
   { convert Float to Single once }
@@ -2355,7 +2354,7 @@ var
   AngleSin, AngleCos: Float;
   S, C: Single;
 begin
-  NormAxis := Normalized(Axis);
+  NormAxis := Axis.Normalize;
 
   SinCos(AngleRad, AngleSin, AngleCos);
   { convert Float to Single once }

@@ -435,7 +435,7 @@ begin
       EncodedImage := Texture2D.TextureImage;
       if (EncodedImage is TCastleImage) and
          (not EncodedImage.IsEmpty) and
-         (not Zero(TexCoord[3])) then
+         (not IsZero(TexCoord[3])) then
       begin
         Image := TCastleImage(EncodedImage);
         TexCoord3D := TexCoord.ToPosition;
@@ -448,9 +448,9 @@ begin
         begin
           // TODO: bug on demo-models/bump_mapping/bump_mapping_leaf_test.wrl
           {
-          Writeln(VectorToRawStr(Pixel));
-          Writeln(VectorToRawStr(TexCoord3D));
-          Writeln(VectorToRawStr(TexCoord));
+          Writeln(Pixel.ToRawString);
+          Writeln(TexCoord3D.ToRawString);
+          Writeln(TexCoord.ToRawString);
           Writeln(Image.Width, ' ', Image.Height, ' ', Image.Depth);
           }
           Exit;
@@ -540,7 +540,7 @@ var
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
         if TryTransmittedRayDirection(
-          TransmittedRayVec, Normalized(RayDirection),
+          TransmittedRayVec, RayDirection.Normalize,
           IntersectNormal, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
@@ -563,7 +563,7 @@ var
       );
       if MaterialReflection > 0 then
       begin
-        ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
+        ReflRayDirection := ReflectedRayDirection(RayDirection.Normalize,
           IntersectNormal);
         ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
@@ -769,7 +769,7 @@ begin
   SFCurve := nil;
   try
     RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
-      Normalized(CamDirection), Normalized(CamUp), Projection);
+      CamDirection.Normalize, CamUp.Normalize, Projection);
 
     { Using any other kind of space filling curve doesn't have any
       noticeable impact right now for classic ray tracer, since
@@ -840,7 +840,7 @@ end;
 
   function IsLightSource(const Item: TTriangle): boolean;
   begin
-    Result := VectorLenSqr(EmissiveColor(Item)) > Sqr(SingleEqualityEpsilon);
+    Result := EmissiveColor(Item).LengthSqr > Sqr(SingleEqualityEpsilon);
   end;
 
 procedure TPathTracer.CollectLightItems(const Triangle: PTriangle);
@@ -1017,7 +1017,7 @@ const
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
         Result := TryTransmittedRayDirection(TransmittedRayDirection,
-          Normalized(RayDirection),
+          RayDirection.Normalize,
           IntersectNormal, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
@@ -1086,7 +1086,7 @@ const
             rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
             nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
           SampleLightPoint := LightSource^.World.Triangle.RandomPoint;
-          if VectorsEqual(SampleLightPoint, Intersection) then Continue;
+          if TVector3.Equals(SampleLightPoint, Intersection) then Continue;
 
           { calculate LigtDirNorm (nieznormalizowane).
             Jezeli LigtDirNorm wychodzi z innej strony
@@ -1258,7 +1258,7 @@ const
                     RandomHemispherePointCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
-                    ReflectedRayDirection(Normalized(RayDirection),
+                    ReflectedRayDirection(RayDirection.Normalize,
                       IntersectNormal));
           end;
 
@@ -1401,7 +1401,7 @@ begin
 
     { calculate RaysWindow }
     RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
-      Normalized(CamDirection), Normalized(CamUp), Projection);
+      CamDirection.Normalize, CamUp.Normalize, Projection);
 
     { calculate SFCurve }
     SFCurve := SFCurveClass.Create(Image.Width, Image.Height);

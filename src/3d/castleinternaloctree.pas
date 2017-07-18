@@ -451,7 +451,7 @@ type
     function TotalItemsInOctree: Int64; virtual; abstract;
   end;
 
-function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
+function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string; deprecated;
 function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean;
 
 implementation

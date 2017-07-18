@@ -71,8 +71,8 @@ begin
  begin
   CamOrientToDirUp(TestOrients[i], Dir, Up);
   NewOrient := CamDirUp2Orient(Dir, Up);
-  if not ( (Zero(NewOrient[3]) and Zero(TestOrients[i][3])) or
-	   VectorsEqual(NewOrient, TestOrients[i], EqEpsilon) ) then
+  if not ( (IsZero(NewOrient[3]) and IsZero(TestOrients[i][3])) or
+	   TVector4.Equals(NewOrient, TestOrients[i], EqEpsilon) ) then
   begin
    Writeln(Format(
      'failed z TestOrients[%d] = %s' +nl+
@@ -80,10 +80,10 @@ begin
      'Up = %s' +nl+
      'NewOrient = %s',
      [ i,
-       VectorToNiceStr(TestOrients[i]),
-       VectorToNiceStr(Dir),
-       VectorToNiceStr(Up),
-       VectorToNiceStr(NewOrient) ]));
+       TestOrients[i].ToString,
+       Dir.ToString,
+       Up.ToString,
+       NewOrient.ToString ]));
    oohFailed := true;
   end;
  end;
@@ -128,18 +128,18 @@ const
   var
     Orientation: TQuaternion;
   begin
-    if not IsZero(VectorDotProduct(Dir, Up), 0.001) then
+    if not IsZero(TVector3.DotProduct(Dir, Up), 0.001) then
       Fail(TestName + ': Given test dir/up not orthogonal, CamDirUp2OrientQuat assumes it');
 
     Orientation := CamDirUp2OrientQuat(Dir, Up).Conjugate;
     try
-      AssertTrue(VectorsEqual(Orientation.Rotate(Normalized(Dir)), DefaultX3DCameraDirection, 0.01));
-      AssertTrue(VectorsEqual(Orientation.Rotate(Normalized(Up )), DefaultX3DCameraUp       , 0.01));
+      AssertTrue(TVector3.Equals(Orientation.Rotate(Dir.Normalize), DefaultX3DCameraDirection, 0.01));
+      AssertTrue(TVector3.Equals(Orientation.Rotate(Up .Normalize), DefaultX3DCameraUp       , 0.01));
     except
       Writeln('Failed on ', TestName, '. Resulting dir is ',
-        VectorToNiceStr(Orientation.Rotate(Normalized(Dir))),
+        Orientation.Rotate(Dir.Normalize).ToString,
         ', resulting up is ',
-        VectorToNiceStr(Orientation.Rotate(Normalized(Up))));
+        Orientation.Rotate(Up.Normalize).ToString);
       raise;
     end;
   end;

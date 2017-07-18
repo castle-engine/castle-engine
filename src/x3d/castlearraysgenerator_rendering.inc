@@ -980,9 +980,9 @@ begin
   begin
     if NorImplementation = niNone then
       { Normal is average of normals of two triangles. }
-      QuadFaceNormal := Normalized(
+      QuadFaceNormal := (
         TriangleNormal(GetVertex(I), GetVertex(I + 1), GetVertex(I + 2)) +
-        TriangleNormal(GetVertex(I), GetVertex(I + 2), GetVertex(I + 3)) );
+        TriangleNormal(GetVertex(I), GetVertex(I + 2), GetVertex(I + 3)) ).Normalize;
 
     CalculateTangentVectors(I, I + 1, I + 2);
 

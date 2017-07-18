@@ -514,7 +514,7 @@ begin
   if FdDirection.Items.Count > 0 then
   begin
     CamDir := FdDirection.Items.L[0];
-    if ZeroVector(CamDir) then
+    if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
       CamDir := FdOrientation.RotatedPoint( DefaultX3DCameraDirection );
@@ -525,7 +525,7 @@ begin
   if FdUp.Items.Count > 0 then
   begin
     CamUp := FdUp.Items.L[0];
-    if ZeroVector(CamUp) then
+    if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
       CamUp := FdOrientation.RotatedPoint( DefaultX3DCameraUp );
@@ -534,7 +534,7 @@ begin
     CamUp := FdOrientation.RotatedPoint( DefaultX3DCameraUp );
 
   GravityUp := FdGravityUp.Value;
-  if ZeroVector(GravityUp) then
+  if GravityUp.IsZero then
     GravityUp := DefaultX3DGravityUp;
 
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
@@ -546,8 +546,8 @@ begin
   CamUp     := Transform.MultDirection(CamUp).Normalize;
   GravityUp := Transform.MultDirection(GravityUp).Normalize;
 
-  Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
-  Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
+  Assert(SameValue(CamDir.LengthSqr, 1.0, 0.0001));
+  Assert(SameValue(CamUp.LengthSqr, 1.0, 0.0001));
 end;
 
 procedure TAbstractViewpointNode.EventSet_BindReceive(
@@ -669,10 +669,10 @@ var
 begin
   if CameraViewKnown then
   begin
-    if PerfectlyZeroVector(FdAxisOfRotation.Value) then
+    if FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := MatrixMultDirection(State.InvertedTransform, FCameraDirection);
-      LocalUp        := MatrixMultDirection(State.InvertedTransform, FCameraUp);
+      LocalDirection := State.InvertedTransform.MultDirection(FCameraDirection);
+      LocalUp        := State.InvertedTransform.MultDirection(FCameraUp);
       { although FCameraDirection/Up are for sure normalized and orthogonal,
         but State.InvertedTransform may contain scaling,
         so be sure to normalize again the result.
@@ -681,7 +681,7 @@ begin
       LocalUp.NormalizeMe;
       MakeVectorsOrthoOnTheirPlane(LocalDirection, LocalUp);
 
-      NewX := VectorProduct(LocalDirection, LocalUp);
+      NewX := TVector3.CrossProduct(LocalDirection, LocalUp);
       NewY := LocalUp;
       NewZ := -LocalDirection;
 
@@ -691,27 +691,27 @@ begin
     end else
     begin
       { vector from node origin to CameraPosition, in local coords }
-      BillboardToViewer := MatrixMultPoint(State.InvertedTransform, CameraPosition);
+      BillboardToViewer := State.InvertedTransform.MultPoint(CameraPosition);
 
       { plane of axisOfRotation }
       PlaneAxisDir := FdAxisOfRotation.Value;
       PlaneAxis[3] := 0;
 
-      { we want to have a rotation that changes UnitVector3[2]
+      { we want to have a rotation that changes TVector3.One[2]
         into BillboardToViewer. But the rotation axis is fixed
-        to axisOfRotation (we cannot just take their VectorProduct).
+        to axisOfRotation (we cannot just take their TVector3.CrossProduct).
         So project both points on a plane orthogonal to axisOfRotation,
         and calculate angle there. }
       P1 := PointOnPlaneClosestToPoint(PlaneAxis, TVector3.One[2]);
       P2 := PointOnPlaneClosestToPoint(PlaneAxis, BillboardToViewer);
 
       if { axisOfRotation paralell to Z axis? Then nothing sensible to do. }
-        ZeroVector(P1) or
+        P1.IsZero or
         { billboard-to-viewer vector parallel to axisOfRotation (includes
           the case when billboard-to-viewer vector is zero in local coords,
           which means that camera standing at Billboard origin)?
           Then nothing sensible to do. }
-        ZeroVector(P2) then
+        P2.IsZero then
         Exit;
 
       { As https://sourceforge.net/p/castle-engine/tickets/38/ shows,
@@ -719,7 +719,7 @@ begin
         (because it replicates what happens in CosAngleBetweenVectors)
         would be to add
 
-          (VectorLenSqr(P1) * VectorLenSqr(P2) < SingleEqualityEpsilon)
+          (P1.LengthSqr * P2.LengthSqr < SingleEqualityEpsilon)
 
         But that's not really a future-proof solution, to repeat this code.
         It's safer (even if a little slower) to capture exception here. }

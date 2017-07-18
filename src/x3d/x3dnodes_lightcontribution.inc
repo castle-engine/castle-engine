@@ -124,7 +124,7 @@ begin
 
   { LightDirNorm is called "L" in the equation in VRML spec }
   if Node is TAbstractPositionalLightNode then
-   LightDirNorm := Normalized(Location - Point) else
+   LightDirNorm := (Location - Point).Normalize else
    LightDirNorm := -Direction;
   { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
     powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
@@ -141,8 +141,8 @@ begin
     cosinusa jako prostego dot product; jak zwykle, nalezy pamietac
     ze suma dwoch wektorow dlugosci 1 niekoniecznie (rzadko) jest wektorem
     dlugosci 2 (wiec skalowanie przez 1/2 nie rozwiazaloby tu problemu)) }
-  CameraAndLightHalfway := Normalized(
-    Normalized(CamPosition - Point) + LightDirNorm);
+  CameraAndLightHalfway := (
+    (CamPosition - Point).Normalize + LightDirNorm).Normalize;
   {$endif}
 
   { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,

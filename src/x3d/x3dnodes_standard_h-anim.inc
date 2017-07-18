@@ -671,7 +671,7 @@ end;
 
 function THAnimJointNode.AnimateSkinPoint(const Point: TVector3): TVector3;
 begin
-  Result := MatrixMultPoint(AnimateSkinTransform, Point);
+  Result := AnimateSkinTransform.MultPoint(Point);
 end;
 
 procedure THAnimJointNode.ParseAfter(Reader: TX3DReaderNames);
@@ -698,7 +698,7 @@ begin
 
     Fortunately, normal State isn't really used for skinned animation. }
 
-  LocalCenter := MatrixMultPoint(State.HumanoidInvertedTransform, FdCenter.Value);
+  LocalCenter := State.HumanoidInvertedTransform.MultPoint(FdCenter.Value);
   TransformState(State, LocalCenter, Fdrotation.Value,
     Fdscale.Value, FdscaleOrientation.Value, Fdtranslation.Value);
 
@@ -727,7 +727,7 @@ begin
         slowdown and bugs (on lucy) right now. }
 
       NewChildCenter := AnimateSkinPoint(ChildJoint.RestCenter);
-      if not VectorsPerfectlyEqual(ChildJoint.FdCenter.Value, NewChildCenter) then
+      if not TVector3.PerfectlyEquals(ChildJoint.FdCenter.Value, NewChildCenter) then
       begin
         ChildJoint.FdCenter.Value := NewChildCenter;
 

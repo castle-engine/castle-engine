@@ -178,7 +178,7 @@ begin
 
   SinHalfAngle := Sin(HalfAngle);
   AngleRad := HalfAngle * 2;
-  if Zero(SinHalfAngle) then
+  if IsZero(SinHalfAngle) then
   begin
     { Then Data.Vector must be zero also... How could this happen?
       SinHalfAngle = 0 means that HalfAngle = Pi * K (e.g. 0).
@@ -271,7 +271,7 @@ procedure TQuaternion.Normalize;
 var
   Len: Single;
 begin
-  Len := VectorLen(Data.Vector4);
+  Len := Data.Vector4.Length;
   if Len <> 0 then
   begin
     Len := 1/Len;
@@ -286,7 +286,7 @@ procedure TQuaternion.LazyNormalize;
 var
   Len: Single;
 begin
-  Len := VectorLenSqr(Data.Vector4);
+  Len := Data.Vector4.LengthSqr;
   if (Len - 1) > 0.001 then
   begin
     { tests: Writeln('quat lazily normed'); }
@@ -313,7 +313,7 @@ begin
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);
 
   if NormalizeAxis then
-    SinHalfAngle /= VectorLen(Axis);
+    SinHalfAngle /= Axis.Length;
 
   Result.Data.Vector := Axis * SinHalfAngle;
   Result.Data.Real := CosHalfAngle;
@@ -330,12 +330,12 @@ end;
 operator* (const Q1, Q2: TQuaternion): TQuaternion;
 begin
   Result.Data.Vector :=
-    VectorProduct(Q1.Data.Vector, Q2.Data.Vector) +
+    TVector3.CrossProduct(Q1.Data.Vector, Q2.Data.Vector) +
     (Q1.Data.Vector * Q2.Data.Real) +
     (Q2.Data.Vector * Q1.Data.Real);
 
   Result.Data.Real := Q1.Data.Real * Q2.Data.Real -
-    VectorDotProduct(Q1.Data.Vector, Q2.Data.Vector);
+    TVector3.DotProduct(Q1.Data.Vector, Q2.Data.Vector);
 end;
 
 { For SLerp and NLerp implementations, see
@@ -351,7 +351,7 @@ var
   CosTheta, Theta: Float;
   SinTheta: Single;
 begin
-  CosTheta := VectorDotProduct(Q1.Data.Vector4, Q2.Data.Vector4);
+  CosTheta := TVector4.DotProduct(Q1.Data.Vector4, Q2.Data.Vector4);
 
   { Following wikipedia:
     Long paths can be prevented by negating one end if the dot product,
@@ -401,7 +401,7 @@ end;
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;
   const ForceShortestPath: boolean): TQuaternion;
 begin
-  if ForceShortestPath and (VectorDotProduct(Q1.Data.Vector4, Q2.Data.Vector4) < 0) then
+  if ForceShortestPath and (TVector4.DotProduct(Q1.Data.Vector4, Q2.Data.Vector4) < 0) then
   begin
     { negate one quaternion }
     Result.Data.Vector4 := Lerp(A, -Q1.Data.Vector4, Q2.Data.Vector4);

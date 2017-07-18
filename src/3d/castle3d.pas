@@ -3569,7 +3569,7 @@ var
   OldRenderTransformIdentity: boolean;
 begin
   T := GetTranslation;
-  if OnlyTranslation and ZeroVector(T) then
+  if OnlyTranslation and T.IsZero then
     inherited Render(Frustum, Params) else
     begin
       { inherited Render expects Frustum in local coordinates (without
@@ -3593,12 +3593,12 @@ begin
             'Inverse transform matrix has NaN value inside:' + NL +
             '%s' + NL +
             '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-            [MatrixToNiceStr(Inverse, '  '),
-             VectorToNiceStr(GetCenter),
-             VectorToNiceStr(GetRotation),
-             VectorToNiceStr(GetScale),
-             VectorToNiceStr(GetScaleOrientation),
-             VectorToNiceStr(GetTranslation)
+            [Inverse.ToString('  '),
+             GetCenter.ToString,
+             GetRotation.ToString,
+             GetScale.ToString,
+             GetScaleOrientation.ToString,
+             GetTranslation.ToString
             ]));
           {$else}
           { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
@@ -3622,7 +3622,7 @@ begin
   if OnlyTranslation then
   begin
     T := GetTranslation;
-    if ZeroVector(T) then
+    if T.IsZero then
       inherited RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform) else
       inherited RenderShadowVolume(ShadowVolumeRenderer,
@@ -3655,8 +3655,8 @@ begin
   begin
     MInverse := TransformInverse;
     Result := inherited HeightCollision(
-      MatrixMultPoint(MInverse, Position),
-      MatrixMultDirection(MInverse, GravityUp), TrianglesToIgnoreFunc,
+      MInverse.MultPoint(Position),
+      MInverse.MultDirection(GravityUp), TrianglesToIgnoreFunc,
         AboveHeight, AboveGround);
     { Note that we should not scale resulting AboveHeight by AverageScale.
       That is because AboveHeight is relative to GravityUp length,
@@ -3697,14 +3697,14 @@ begin
   begin
     TransformMatrices(M, MInverse);
     Result := inherited MoveCollision(
-      MatrixMultPoint(MInverse, OldPos),
-      MatrixMultPoint(MInverse, ProposedNewPos), NewPos,
+      MInverse.MultPoint(OldPos),
+      MInverse.MultPoint(ProposedNewPos), NewPos,
       IsRadius, Radius / AverageScale,
       OldBox.Transform(MInverse),
       NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
     { transform calculated NewPos back }
     if Result then
-      NewPos := MatrixMultPoint(M, NewPos);
+      NewPos := M.MultPoint(NewPos);
   end;
 end;
 
@@ -3739,8 +3739,8 @@ begin
   begin
     MInverse := TransformInverse;
     Result := inherited MoveCollision(
-      MatrixMultPoint(MInverse, OldPos),
-      MatrixMultPoint(MInverse, NewPos),
+      MInverse.MultPoint(OldPos),
+      MInverse.MultPoint(NewPos),
       IsRadius, Radius / AverageScale,
       OldBox.Transform(MInverse),
       NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
@@ -3766,8 +3766,8 @@ begin
   begin
     MInverse := TransformInverse;
     Result := inherited SegmentCollision(
-      MatrixMultPoint(MInverse, Pos1),
-      MatrixMultPoint(MInverse, Pos2), TrianglesToIgnoreFunc, ALineOfSight);
+      MInverse.MultPoint(Pos1),
+      MInverse.MultPoint(Pos2), TrianglesToIgnoreFunc, ALineOfSight);
   end;
 end;
 
@@ -3783,7 +3783,7 @@ begin
     Result := inherited SphereCollision(
       Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
-      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+      TransformInverse.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.SphereCollision2D(
@@ -3799,7 +3799,7 @@ begin
     Result := inherited SphereCollision2D(
       Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc, Details) else
     Result := inherited SphereCollision2D(
-      MatrixMultPoint(TransformInverse, Pos), Radius / AverageScale, TrianglesToIgnoreFunc, Details);
+      TransformInverse.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc, Details);
 end;
 
 function T3DCustomTransform.PointCollision2D(
@@ -3814,7 +3814,7 @@ begin
     Result := inherited PointCollision2D(
       Point - GetTranslation2D, TrianglesToIgnoreFunc) else
     Result := inherited PointCollision2D(
-      MatrixMultPoint(TransformInverse, Point), TrianglesToIgnoreFunc);
+      TransformInverse.MultPoint(Point), TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(
@@ -3836,14 +3836,14 @@ function T3DCustomTransform.OutsideToLocal(const Pos: TVector3): TVector3;
 begin
   if OnlyTranslation then
     Result := Pos - GetTranslation else
-    Result := MatrixMultPoint(TransformInverse, Pos);
+    Result := TransformInverse.MultPoint(Pos);
 end;
 
 function T3DCustomTransform.LocalToOutside(const Pos: TVector3): TVector3;
 begin
   if OnlyTranslation then
     Result := Pos + GetTranslation else
-    Result := MatrixMultPoint(Transform, Pos);
+    Result := Transform.MultPoint(Pos);
 end;
 
 function T3DCustomTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
@@ -3873,12 +3873,12 @@ begin
   begin
     TransformMatrices(M, MInverse);
     Result := inherited RayCollision(
-      MatrixMultPoint(MInverse, RayOrigin),
-      MatrixMultDirection(MInverse, RayDirection), TrianglesToIgnoreFunc);
+      MInverse.MultPoint(RayOrigin),
+      MInverse.MultDirection(RayDirection), TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
       LastNode := @(Result.List^[Result.Count - 1]);
-      LastNode^.Point := MatrixMultPoint(M, LastNode^.Point);
+      LastNode^.Point := M.MultPoint(LastNode^.Point);
       { untransform the ray }
       LastNode^.RayOrigin := RayOrigin;
       LastNode^.RayDirection := RayDirection;
@@ -3963,10 +3963,10 @@ procedure T3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: T
       { Because of various growing and jumping effects (imagine you jump up
         onto a taller pillar) it may turn out that we're higher at the end
         at the end of fall. Do not report it to Fall event in this case. }
-      if VectorDotProduct(GravityUp, Normalized(FallVector)) <= 0 then
+      if TVector3.DotProduct(GravityUp, FallVector.Normalize) <= 0 then
         Exit;
 
-      Fall(VectorLen(FallVector));
+      Fall(FallVector.Length);
     end;
 
   const
@@ -4226,19 +4226,19 @@ begin
   case Orientation of
     otUpYDirectionMinusZ:
       begin
-        Side := VectorProduct(U, -D);
+        Side := TVector3.CrossProduct(U, -D);
         NewM := TransformToCoordsMatrix         (P, Side, U, -D);
         NewMInverse := TransformFromCoordsMatrix(P, Side, U, -D);
       end;
     otUpZDirectionMinusY:
       begin
-        Side := VectorProduct(-D, U);
+        Side := TVector3.CrossProduct(-D, U);
         NewM := TransformToCoordsMatrix         (P, Side, -D, U);
         NewMInverse := TransformFromCoordsMatrix(P, Side, -D, U);
       end;
     otUpZDirectionX:
       begin
-        Side := VectorProduct(U, D);
+        Side := TVector3.CrossProduct(U, D);
         NewM := TransformToCoordsMatrix         (P, D, Side, U);
         NewMInverse := TransformFromCoordsMatrix(P, D, Side, U);
       end;
@@ -4430,7 +4430,7 @@ begin
       floats). So the check below may be worth the time, we expect
       it will avoid doing actual work. }
 
-    if not VectorsPerfectlyEqual(CurrentTranslation, NewTranslation) then
+    if not TVector3.PerfectlyEquals(CurrentTranslation, NewTranslation) then
     begin
       MoveTranslation := NewTranslation - CurrentTranslation;
 

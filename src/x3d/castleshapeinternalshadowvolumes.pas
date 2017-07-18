@@ -83,10 +83,8 @@ type
 
   TBorderEdgeList = specialize TStructList<TBorderEdge>;
 
-  TTriangle3SingleList = specialize TStructList<TTriangle3Single>;
-
   { Triangles array for shadow casting shape. In local shape coordinates. }
-  TTrianglesShadowCastersList = TTriangle3SingleList;
+  TTrianglesShadowCastersList = TTriangle3List;
 
   TShapeShadowVolumes = class
   strict private
@@ -191,16 +189,16 @@ end;
 
 type
   TTriangleAdder = class
-    TriangleList: TTriangle3SingleList;
+    TriangleList: TTriangle3List;
     procedure AddTriangle(Shape: TObject;
-      const Triangle: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4;
+      const Triangle: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   end;
 
 procedure TTriangleAdder.AddTriangle(Shape: TObject;
-  const Triangle: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4;
+  const Triangle: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   if Triangle.IsValid then
@@ -283,7 +281,7 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
       const V0: TVector3;
       const V1: TVector3;
       const VertexIndex: Cardinal;
-      Triangles: TTriangle3SingleList);
+      Triangles: TTriangle3List);
     var
       I: Integer;
       EdgePtr: PManifoldEdge;
@@ -307,8 +305,8 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
             so the second time an edge is present, we know it must
             be in different order. So we compare V0 with EdgeV1
             (and V1 with EdgeV0), no need to compare V1 with EdgeV1. }
-          if VectorsPerfectlyEqual(V0, EdgePtr^.V1) and
-             VectorsPerfectlyEqual(V1, EdgePtr^.V0) then
+          if TVector3.PerfectlyEquals(V0, EdgePtr^.V1) and
+             TVector3.PerfectlyEquals(V1, EdgePtr^.V0) then
           begin
             EdgePtr^.Triangles[1] := TriangleIndex;
 
@@ -339,8 +337,8 @@ procedure TShapeShadowVolumes.CalculateIfNeededManifoldAndBorderEdges;
 
   var
     I: Integer;
-    Triangles: TTriangle3SingleList;
-    TrianglePtr: PTriangle3Single;
+    Triangles: TTriangle3List;
+    TrianglePtr: PTriangle3;
     EdgesSingle: TManifoldEdgeList;
   begin
     Assert(FManifoldEdges = nil);

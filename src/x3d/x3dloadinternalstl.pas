@@ -40,8 +40,8 @@ procedure LoadSTLText(const Stream: TStream;
     NormalVector: TVector3; const Triangle: TTriangle3);
   begin
     { if the STL file specifies zero vector, calculate it }
-    if PerfectlyZeroVector(NormalVector) then
-      NormalVector := TriangleNormal(Triangle);
+    if NormalVector.IsPerfectlyZero then
+      NormalVector := Triangle.Normal;
 
     { add 3 times the same NormalVector.
       See TODO about TriangleSet.NormalPerVertex lower in this file. }
@@ -153,8 +153,8 @@ begin
       Here, we know the triangle count beforehand. }
 
     { if the STL file specifies zero vector, calculate it }
-    if PerfectlyZeroVector(NormalVector) then
-      NormalVector := TriangleNormal(Triangle);
+    if NormalVector.IsPerfectlyZero then
+      NormalVector := Triangle.Normal;
 
     Coordinate[I * 3    ] := Triangle.Data[0];
     Coordinate[I * 3 + 1] := Triangle.Data[1];

@@ -75,7 +75,7 @@ begin
     AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Single(44.0) * Single(666.0) +
       Single(10.0) * Single(777.0));
-    AssertVectorsEqual(
+    AssertVectorEquals(
       (Vars[2] as TCasScriptVec2f).Value,
       Vector2(456 + 44, Vector2(456 + 44, 10 + 13).Length));
 
@@ -87,15 +87,15 @@ begin
       Single(44.0) * Single(666.0) +
       Single(10.0) * Single(777.0) +
       Single(33.0) * Single(91.0));
-    AssertVectorsEqual(
+    AssertVectorEquals(
       (Vars[3] as TCasScriptVec3f).Value,
       Vector3(456 + 44, 10 + 13,
-        VectorLen(Vector3(456 + 44, 10 + 13, 33))));
+        Vector3(456 + 44, 10 + 13, 33).Length));
 
     { test 3 cross }
 
     Prog.ExecuteFunction('test_cross', []);
-    AssertVectorsEqual(
+    AssertVectorEquals(
       (Vars[3] as TCasScriptVec3f).Value, Vector3(0, 0, 1));
 
     { test 4 }
@@ -107,10 +107,10 @@ begin
       Single(10.0) * Single(777.0) +
       Single(33.0) * Single(91.0) +
       Single(123.0) * Single(890.0));
-    AssertVectorsEqual(
+    AssertVectorEquals(
       (Vars[4] as TCasScriptVec4f).Value,
       Vector4(456 + 44, 10 + 13, 33,
-        VectorLen(Vector4(456 + 44, 10 + 13, 33, 123))));
+        Vector4(456 + 44, 10 + 13, 33, 123).Length));
 
     FreeAndNil(Prog);
 
@@ -176,7 +176,7 @@ begin
     AssertTrue((Vars[1] as TCasScriptFloat).Value =
       Double(44.0) * Double(666.0) +
       Double(10.0) * Double(777.0));
-    AssertVectorsEqualDouble(
+    AssertVectorEqualsDouble(
       (Vars[2] as TCasScriptVec2d).Value,
       Vector2Double(456 + 44, Vector2Double(456 + 44, 10 + 13).Length));
 
@@ -188,7 +188,7 @@ begin
       Double(44.0) * Double(666.0) +
       Double(10.0) * Double(777.0) +
       Double(33.0) * Double(91.0));
-    AssertVectorsEqualDouble(
+    AssertVectorEqualsDouble(
       (Vars[3] as TCasScriptVec3d).Value,
       Vector3Double(456 + 44, 10 + 13,
         Vector3Double(456 + 44, 10 + 13, 33).Length));
@@ -196,7 +196,7 @@ begin
     { test 3 cross }
 
     Prog.ExecuteFunction('test_cross', []);
-    AssertVectorsEqualDouble(
+    AssertVectorEqualsDouble(
       (Vars[3] as TCasScriptVec3d).Value, Vector3Double(0, 0, 1));
 
     { test 4 }
@@ -208,7 +208,7 @@ begin
       Double(10.0) * Double(777.0) +
       Double(33.0) * Double(91.0) +
       Double(123.0) * Double(890.0));
-    AssertVectorsEqualDouble(
+    AssertVectorEqualsDouble(
       (Vars[4] as TCasScriptVec4d).Value,
       Vector4Double(456 + 44, 10 + 13, 33,
         Vector4Double(456 + 44, 10 + 13, 33, 123).Length));
@@ -260,9 +260,9 @@ begin
     Prog.ExecuteFunction('main', []);
     FreeAndNil(Prog);
 
-    AssertVectorsEqual((Vars[1] as TCasScriptVec3f).Value,
+    AssertVectorEquals((Vars[1] as TCasScriptVec3f).Value,
       Vector3(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2));
-    AssertVectorsEqual((Vars[2] as TCasScriptVec4f).Value,
+    AssertVectorEquals((Vars[2] as TCasScriptVec4f).Value,
       Vector4(11 * 5 * 2, 22 * 3 * 2, 33 * 1 * 2, 44 * 666));
   finally
     FreeAndNil(Vars);

@@ -163,15 +163,15 @@ begin
   if not TryPlaneRayIntersection(SideIntersect,
     SidePlane, TVector3.Zero, Dir) then
     raise Exception.CreateFmt('DirectionToCubeMap: direction (%s) doesn''t hit it''s cube map side (%d)',
-      [VectorToRawStr(Dir), Side]);
+      [Dir.ToRawString, Side]);
 
   { We're not interested in this coord, this is either 1 or -1.
-    Having this non-zero would break VectorDotProduct (projecting to Side/Up)
+    Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
   SideIntersect[SideCoord] := 0;
 
   PixelX := Round(MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side].Side),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side].Side),
     { 1/CubeMapSize here, to take into account that the perfect ray
       goes exactly through the middle pixel of cube map pixel.
       See CubeMapDirection reasoning. }
@@ -180,7 +180,7 @@ begin
     0, CubeMapSize - 1));
 
   PixelY := Round(MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side].Up),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side].Up),
     -1 + 1/CubeMapSize,
      1 - 1/CubeMapSize,
     0, CubeMapSize - 1));
@@ -226,15 +226,15 @@ begin
   if not TryPlaneRayIntersection(SideIntersect,
     SidePlane, TVector3.Zero, Dir) then
     raise Exception.CreateFmt('DirectionToCubeMap: direction (%s) doesn''t hit it''s cube map side (%d)',
-      [VectorToRawStr(Dir), Side[0]]);
+      [Dir.ToRawString, Side[0]]);
 
   { We're not interested in this coord, this is either 1 or -1.
-    Having this non-zero would break VectorDotProduct (projecting to Side/Up)
+    Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
   SideIntersect[SideCoord] := 0;
 
   PixelFX := MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side[0]].Side),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side[0]].Side),
     { 1/CubeMapSize here, to take into account that the perfect ray
       goes exactly through the middle pixel of cube map pixel.
       See CubeMapDirection reasoning. }
@@ -243,7 +243,7 @@ begin
     0, CubeMapSize - 1);
 
   PixelFY := MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side[0]].Up),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side[0]].Up),
     -1 + 1/CubeMapSize,
      1 - 1/CubeMapSize,
     0, CubeMapSize - 1);
@@ -310,13 +310,13 @@ var
   DirLength: Single;
 begin
   Dir := CubeMapDirection(Side, Pixel);
-  DirLength := VectorLen(Dir);
+  DirLength := Dir.Length;
 
   { normalize Dir. Since we already have DirLength,
     we can just call VectorScale. }
   Dir := Dir * (1 / DirLength);
 
-  Result := VectorDotProduct(Dir, CubeMapInfo[Side].Dir) *
+  Result := TVector3.DotProduct(Dir, CubeMapInfo[Side].Dir) *
     ( 4 / Sqr(CubeMapSize) ) /
     Sqr(DirLength);
 end;

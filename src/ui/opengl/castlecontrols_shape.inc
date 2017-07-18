@@ -132,7 +132,7 @@ end;
 
 procedure TCastleShape.SetColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
     VisibleChange;
@@ -150,7 +150,7 @@ end;
 
 procedure TCastleShape.SetOutlineColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FOutlineColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FOutlineColor, Value) then
   begin
     FOutlineColor := Value;
     VisibleChange;

@@ -4490,10 +4490,10 @@ var
   BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box : ' + BBox.ToNiceStr;
+  Result := 'Bounding box : ' + BBox.ToString;
   if not BBox.IsEmpty then
   begin
-    Result += ', average size : ' + FloatToNiceStr(BBox.AverageSize);
+    Result += Format(', average size : %f', [BBox.AverageSize]);
   end;
   Result += NL;
 end;
@@ -5305,7 +5305,7 @@ begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
                   we can get this by InverseTransform. }
-                MatrixMultPoint(OverItem^.State.InvertedTransform, Pick.Point), NextEventTime);
+                OverItem^.State.InvertedTransform.MultPoint(Pick.Point), NextEventTime);
 
               {$ifndef CONSERVE_TRIANGLE_MEMORY}
               if TouchSensor.EventHitNormal_Changed.SendNeeded then
@@ -5897,7 +5897,7 @@ begin
           it's InvertedTransform and call ProximitySensorUpdate.
       }
 
-      Position := MatrixMultPoint(PSI.InvertedTransform, CameraPosition);
+      Position := PSI.InvertedTransform.MultPoint(CameraPosition);
 
       NewIsActive :=
         (Position[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
@@ -5933,8 +5933,8 @@ begin
         ProxNode.EventPosition_Changed.Send(Position, NextEventTime);
         if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
-          Direction := MatrixMultDirection(PSI.InvertedTransform, CameraDirection);
-          Up        := MatrixMultDirection(PSI.InvertedTransform, CameraUp);
+          Direction := PSI.InvertedTransform.MultDirection(CameraDirection);
+          Up        := PSI.InvertedTransform.MultDirection(CameraUp);
           ProxNode.EventOrientation_Changed.Send(
             CamDirUp2Orient(Direction, Up), NextEventTime);
         end;
@@ -6357,14 +6357,12 @@ procedure TCastleSceneCore.CalculateMainLightForShadowsPosition;
 begin
   if FMainLightForShadowsNode is TAbstractPositionalLightNode then
     FMainLightForShadows := Vector4(
-      MatrixMultPoint(
-        FMainLightForShadowsTransform,
+      FMainLightForShadowsTransform.MultPoint(
         TAbstractPositionalLightNode(FMainLightForShadowsNode).FdLocation.Value), 1) else
   if FMainLightForShadowsNode is TAbstractDirectionalLightNode then
-    FMainLightForShadows := Vector4( Normalized(
-      MatrixMultDirection(
-        FMainLightForShadowsTransform,
-        TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value) ), 0) else
+    FMainLightForShadows := Vector4(
+      FMainLightForShadowsTransform.MultDirection(
+        TAbstractDirectionalLightNode(FMainLightForShadowsNode).FdDirection.Value).Normalize, 0) else
     raise Exception.CreateFmt('TCastleSceneCore.MainLightForShadows: ' +
       'light node "%s" cannot be used to cast shadows, it has no position ' +
       'and no direction', [FMainLightForShadowsNode.X3DType]);

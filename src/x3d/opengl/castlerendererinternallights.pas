@@ -158,7 +158,7 @@ begin
     if (Light.Node is TAbstractPositionalLightNode) then
     begin
       Attenuat := TAbstractPositionalLightNode(Light.Node).FdAttenuation.Value;
-      if not ZeroVector(Attenuat) then
+      if not Attenuat.IsZero then
       begin
         SetNoAttenuation := false;
         glLightf(glLightNum, GL_CONSTANT_ATTENUATION, Attenuat[0]);
@@ -228,7 +228,7 @@ begin
       ( (LightsDone[Index] <> nil) and
         (Light <> nil) and
         (LightsDone[Index]^.Node = Light^.Node) and
-        (MatricesPerfectlyEqual(
+        (TMatrix4.PerfectlyEquals(
           LightsDone[Index]^.Transform, Light^.Transform)) )
     ));
   if Result then

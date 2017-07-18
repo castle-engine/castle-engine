@@ -551,8 +551,7 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
     ProjectionLocation: TVector3;
     ProjectionRectangle: TFloatRectangle;
   begin
-    if VectorsPerfectlyEqual(
-         LightNode.FdProjectionRectangle.Value, TVector4.Zero) and
+    if LightNode.FdProjectionRectangle.Value.IsPerfectlyZero and
       (not ShadowCastersBox.IsEmpty) then
     begin
       LightNode.GetView(Pos, Dir, Side, Up);
@@ -567,12 +566,12 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
         ProjectionLocation, Dir, Side, Up);
       LightNode.FdProjectionRectangle.Value := ProjectionRectangle.ToX3DVector;
       LightNode.FdProjectionLocation.Value :=
-        MatrixMultPoint(LightNode.InvertedTransform, ProjectionLocation);
+        LightNode.InvertedTransform.MultPoint(ProjectionLocation);
 
       if Log then
         WritelnLog('Shadow Maps', Format('Auto-calculated directional light source "%s" projectionLocation as %s, projectionRectangle as %s',
           [Light.Light.NiceName,
-           VectorToNiceStr(ProjectionLocation),
+           ProjectionLocation.ToString,
            ProjectionRectangle.ToString]));
     end;
   end;

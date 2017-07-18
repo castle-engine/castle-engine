@@ -1081,7 +1081,7 @@ var
 
         { We don't have separate TextureTransform for bump map.
           Just check that in 3DS bump map and diffuse textures have equal transform. }
-        if not VectorsEqual(
+        if not TVector2.Equals(
             Material.TextureMap1.Scale,
             Material.TextureMapBump.Scale) then
           WritelnWarning('VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');

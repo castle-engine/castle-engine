@@ -151,7 +151,7 @@ end;
 
 procedure TCastleEdit.SetFocusedColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FFocusedColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FFocusedColor, Value) then
   begin
     FFocusedColor := Value;
     VisibleChange;
@@ -160,7 +160,7 @@ end;
 
 procedure TCastleEdit.SetUnfocusedColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FUnfocusedColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FUnfocusedColor, Value) then
   begin
     FUnfocusedColor := Value;
     VisibleChange;
@@ -169,7 +169,7 @@ end;
 
 procedure TCastleEdit.SetBackgroundColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FBackgroundColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FBackgroundColor, Value) then
   begin
     FBackgroundColor := Value;
     VisibleChange;

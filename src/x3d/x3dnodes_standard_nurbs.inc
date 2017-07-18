@@ -1075,7 +1075,7 @@ const
     if Result then
     begin
       for J := 0 to VDimension - 1 do
-        if not VectorsEqual(
+        if not TVector3.Equals(
           ControlPoint.L[                 J * UDimension],
           ControlPoint.L[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
         begin
@@ -1094,7 +1094,7 @@ const
     if Result then
     begin
       for I := 0 to UDimension - 1 do
-        if not VectorsEqual(
+        if not TVector3.Equals(
           ControlPoint.L[I                                ],
           ControlPoint.L[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
         begin

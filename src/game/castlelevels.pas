@@ -645,7 +645,7 @@ const
     Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
-    Direction := MatrixMultDirection(Shape.State.Transform, Direction);
+    Direction := Shape.State.Transform.MultDirection(Direction);
 
     Resource.InstantiatePlaceholder(Items, Position, Direction,
       ResourceNumberPresent, ResourceNumber);
@@ -665,7 +665,7 @@ const
 
     { Tests:
     Writeln('Waypoint ', Waypoints.Count - 1, ': at position ',
-      VectorToNiceStr(Waypoint.Position));}
+      Waypoint.Position.ToString);}
   end;
 
   { Shapes placed under the name CasSector<index>[_<ignored>]

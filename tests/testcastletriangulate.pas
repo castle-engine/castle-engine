@@ -22,10 +22,10 @@ interface
 
 uses
   Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors,
-  CastleTriangulate, CastleTriangles;
+  CastleTriangulate, CastleTriangles, CastleBaseTestCase;
 
 type
-  TTestCastleTriangulate = class(TTestCase)
+  TTestCastleTriangulate = class(TCastleBaseTestCase)
   private
     { private vars for Face callback }
     Vertexes: PVector3;
@@ -56,18 +56,18 @@ const
   );
   Indexes: array [0..3] of LongInt = (0, 1, 2, 3);
 begin
-  AssertTrue(VectorsEqual(
+  AssertVectorEquals(
     IndexedPolygonNormal(@Indexes, High(Indexes) + 1,
       @Verts, High(Verts) + 1, TVector3.Zero, false),
-    Vector3(0, 0, -1)));
+    Vector3(0, 0, -1));
 
   { This is an example polygon that cannot be handled
     by IndexedConvexPolygonNormal }
-  AssertTrue(not VectorsEqual(
+  AssertTrue(not TVector3.Equals(
     IndexedConvexPolygonNormal(@Indexes, High(Indexes) + 1,
       @Verts, High(Verts) + 1, TVector3.Zero),
     Vector3(0, 0, -1)));
-  AssertTrue(not VectorsEqual(
+  AssertTrue(not TVector3.Equals(
     IndexedPolygonNormal(@Indexes, High(Indexes) + 1,
       @Verts, High(Verts) + 1, TVector3.Zero, true),
     Vector3(0, 0, -1)));
@@ -81,7 +81,7 @@ begin
   V1 := Vertexes[Tri[1]];
   V2 := Vertexes[Tri[2]];
   EarNormal := TriangleDirection(V0, V1, V2);
-  AssertTrue(not ZeroVector(EarNormal));
+  AssertTrue(not EarNormal.IsZero);
 end;
 
 procedure TTestCastleTriangulate.TestTriangulateFace;

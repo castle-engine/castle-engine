@@ -211,7 +211,7 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
       begin
         { note that we update DragSpeed even when DragSinceLastUpdate = 0,
           which means user keeps pressing but doesn't drag }
-        if not Zero(SecondsPassed) then
+        if not IsZero(SecondsPassed) then
           DragSpeed := DragSinceLastUpdate / SecondsPassed else
           DragSpeed := 0; // whatever sensible value
         TimeSinceDraggingStopped := 0;

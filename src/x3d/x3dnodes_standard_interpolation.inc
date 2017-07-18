@@ -426,7 +426,7 @@ var
 
     if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
-      Result.Items.AddListRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
+      Result.Items.AddSubRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
     end else
       WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
         [X3DType]));

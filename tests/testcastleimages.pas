@@ -165,7 +165,7 @@ procedure TTestImages.TestRGBEToRGBTranslating;
 
     rgbe := Vector3ToRGBE(rgb);
     newrgb := VectorRGBETo3Single(rgbe);
-    if not VectorsEqual(rgb, newrgb, UpperValue/256) then
+    if not TVector3.Equals(rgb, newrgb, UpperValue/256) then
      raise Exception.Create('Error -'+
        ' rgb '+rgb.ToString+
        ' rgbe '+rgbe.ToString+

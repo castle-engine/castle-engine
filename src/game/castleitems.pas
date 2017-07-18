@@ -1153,7 +1153,7 @@ begin
 
   ItemRotation += RotationSpeed * SecondsPassed;
   U := World.GravityUp; // copy to local variable for speed
-  DirectionZero := Normalized(AnyOrthogonalVector(U));
+  DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
 
   if AutoPick and

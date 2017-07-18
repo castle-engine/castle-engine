@@ -107,7 +107,7 @@ begin
 
   { CubeMapSolidAngle is a gross approximation now, so we allow quite large
     error. }
-  TestCase.AssertFloatsEqual(4 * Pi, SphereArea, 0.02);
+  TestCase.AssertSameValue(4 * Pi, SphereArea, 0.02);
 end;
 
 procedure TTestCubeMap.TestCubeMapSolidAngle;

@@ -111,7 +111,8 @@ var
 
 implementation
 
-uses CastleLog, CastleStringUtils;
+uses Math,
+  CastleLog, CastleStringUtils;
 
 { Do additional operations (normalize some vectors etc.)
   that in theory should improve numerical stability of this algorithm.
@@ -217,7 +218,7 @@ var
     Previous := Middle;
     repeat
       Previous := PreviousNotOut(Previous);
-    until (Previous = Middle) or not VectorsEqual(Verts(Previous), Verts(Middle));
+    until (Previous = Middle) or not TVector3.Equals(Verts(Previous), Verts(Middle));
     if Previous = Middle then
     begin
       if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
@@ -229,9 +230,9 @@ var
     repeat
       Next := NextNotOut(Next);
       EarDir := TriangleDirection(Verts(Previous), Verts(Middle), Verts(Next));
-      { note: no need to check for VectorsEqual(Verts(Next), Verts(Middle)) anywhere,
+      { note: no need to check for TVector3.Equals(Verts(Next), Verts(Middle)) anywhere,
         because if EarDir is non-zero then they had to be different. }
-    until (Next = Previous) or not ZeroVector(EarDir);
+    until (Next = Previous) or not EarDir.IsZero;
     if Next = Previous then
     begin
       if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
@@ -304,18 +305,18 @@ var
       Ray0 -= Origin;
 
       { fix YDirection to be orthogonal to XDirection, to make sure projecting
-        by VectorDotProduct is correct }
+        by TVector3.DotProduct is correct }
       MakeVectorsOrthoOnTheirPlane(YDirection, XDirection);
 
-      XDirectionLenSqr := VectorLenSqr(XDirection);
-      YDirectionLenSqr := VectorLenSqr(YDirection);
+      XDirectionLenSqr := XDirection.LengthSqr;
+      YDirectionLenSqr := YDirection.LengthSqr;
 
-      R0[0] := VectorDotProduct(Ray0, XDirection) / XDirectionLenSqr;
-      R0[1] := VectorDotProduct(Ray0, YDirection) / YDirectionLenSqr;
-      RDirection[0] := VectorDotProduct(RayDirection, XDirection) / XDirectionLenSqr;
-      RDirection[1] := VectorDotProduct(RayDirection, YDirection) / YDirectionLenSqr;
+      R0[0] := TVector3.DotProduct(Ray0, XDirection) / XDirectionLenSqr;
+      R0[1] := TVector3.DotProduct(Ray0, YDirection) / YDirectionLenSqr;
+      RDirection[0] := TVector3.DotProduct(RayDirection, XDirection) / XDirectionLenSqr;
+      RDirection[1] := TVector3.DotProduct(RayDirection, YDirection) / YDirectionLenSqr;
 
-      if Zero(RDirection[1]) then Exit(false);
+      if IsZero(RDirection[1]) then Exit(false);
 
       { we're interested now in intersection on OX axis with ray.
         R0 + RDirection * T = (X, 0), so
@@ -342,15 +343,16 @@ var
     { if EarAround fails, then everything is colinear, we may as well
       let EarFound be true. This should not happen, except because
       of fp inaccuracy: if everything is colinear,
-      then our ZeroVector(EarNormal) check earlier should usually
+      then our EarNormal.IsZero check earlier should usually
       detect this. }
     if not EarAround(Border, BorderPrevious, BorderNext, BorderEarNormal) then
       Exit(true);
 
     VBorder := Verts(Border);
 
-    PullDirection := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif}
-      (((VBorder + Verts(BorderPrevious) + Verts(BorderNext)) / 3.0) - VBorder);
+    PullDirection :=
+      (((VBorder + Verts(BorderPrevious) + Verts(BorderNext)) / 3.0) - VBorder)
+      {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
 
     { Some (at least one) of the three Inside1/2/3 values are
       now between -Epsilon .. +Epsilon, these are the edges where
@@ -427,12 +429,12 @@ begin
         (they do not determine triangulation in any other way). }
       P1 := GetMostDistantVertex(Center);
       if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
-      Assert(not ZeroVector(PolygonNormal));
+      Assert(not PolygonNormal.IsZero);
       PolygonNormal.NormalizeMe;
 
       if Log and LogTriangulation then
         WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
-          [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
+          [P1, P0, P1, P2, PolygonNormal.ToString]));
 
       Corners := Count; { Corners = always "how many Outs are false" }
 
@@ -484,7 +486,7 @@ begin
           end;
 
           EarNormal := TriangleDirection(V0, V1, V2);
-          if ZeroVector(EarNormal) then
+          if EarNormal.IsZero then
           begin
             if Log and LogTriangulation then
               WritelnLog('Triangulation', Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
@@ -505,15 +507,15 @@ begin
           if Log and LogTriangulation then
             WritelnLog('Triangulation', Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
               [P0, P1, P2, BoolToStr(EarFound, true),
-               VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
+               EarNormal.ToString, Sqrt(DistanceSqr)]));
 
           { check is the ear triangle non-empty }
           if EarFound then
           begin
             { vectors orthogonal to triangle edges going *outside* from the triangle }
-            E1 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V0 - V1));
-            E2 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V1 - V2));
-            E3 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V2 - V0));
+            E1 := (TVector3.CrossProduct(EarNormal, V0 - V1)) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
+            E2 := (TVector3.CrossProduct(EarNormal, V1 - V2)) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
+            E3 := (TVector3.CrossProduct(EarNormal, V2 - V0)) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
 
             for I := 0 to Count - 1 do
               { if we can find a vertex that is
@@ -529,9 +531,9 @@ begin
                  (I <> P1) and
                  (I <> P2) then
               begin
-                Inside1 := VectorDotProduct(E1, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V0+V1)/2.0 {$else} V0 {$endif}));
-                Inside2 := VectorDotProduct(E2, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V1+V2)/2.0 {$else} V1 {$endif}));
-                Inside3 := VectorDotProduct(E3, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V2+V0)/2.0 {$else} V2 {$endif}));
+                Inside1 := TVector3.DotProduct(E1, (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V0+V1)/2.0 {$else} V0 {$endif}) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif});
+                Inside2 := TVector3.DotProduct(E2, (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V1+V2)/2.0 {$else} V1 {$endif}) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif});
+                Inside3 := TVector3.DotProduct(E3, (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V2+V0)/2.0 {$else} V2 {$endif}) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif});
 
                 if ( (Inside1 <= -EpsilonForEmptyCheck) and
                      (Inside2 <= -EpsilonForEmptyCheck) and
@@ -686,7 +688,7 @@ begin
   P0 := P1;
   repeat
     P0 := Previous(P0);
-  until (P0 = P1) or not VectorsEqual(Verts(P0), Verts(P1));
+  until (P0 = P1) or not TVector3.Equals(Verts(P0), Verts(P1));
   if P0 = P1 then
   begin
     { All vertexes of given polygon are equal. }
@@ -698,9 +700,9 @@ begin
   repeat
     P2 := Next(P2);
     Result := TriangleDirection(Verts(P0), Verts(P1), Verts(P2));
-    { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
+    { note: no need to check for TVector3.Equals(Verts(P2), Verts(P1)) anywhere,
       because if EarDir is non-zero then they had to be different. }
-  until (P2 = P0) or not ZeroVector(Result);
+  until (P2 = P0) or not Result.IsZero;
   if P2 = P0 then
   begin
     { All vertexes of given polygon are collinear. }

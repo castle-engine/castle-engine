@@ -169,7 +169,7 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          MatrixMultPoint(Shape.State.Transform, Coord.Items.List^[I]);
+          Shape.State.Transform.MultPoint(Coord.Items.List^[I]);
         ShapeElements[I].Normal := TVector3.Zero;
         ShapeElements[I].Area := 0;
       end;
@@ -240,7 +240,7 @@ begin
 
   for I := 0 to Elements.Count - 1 do
   begin
-    if not PerfectlyZeroVector(Elements.List^[I].Normal) then
+    if not Elements.List^[I].Normal.IsPerfectlyZero then
     begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
@@ -276,8 +276,8 @@ begin
   Writeln('Elements: ', Elements.Count);
   for I := 0 to Elements.Count - 1 do
   begin
-    Writeln('pos ', VectorToNiceStr(Elements.List^[I].Position),
-            ' nor ', VectorToNiceStr(Elements.List^[I].Normal),
+    Writeln('pos ', Elements.List^[I].Position.ToString,
+            ' nor ', Elements.List^[I].Normal.ToString,
             ' area ', Elements.List^[I].Area:1:10);
   end;}
 end;
@@ -371,8 +371,8 @@ begin
 
   Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
   Writeln('To squeeze positions into texture we use scale = ',
-    VectorToNiceStr(PositionScale), ' and shift ',
-    VectorToNiceStr(PositionShift), ' (bbox is ',
+    PositionScale.ToString, ' and shift ',
+    PositionShift.ToString, ' (bbox is ',
     Scene.BoundingBox.ToNiceStr, ')');
 
   { initialize textures }
@@ -502,7 +502,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         glPushMatrix;
           NewZ := Elements.List^[I].Normal;
           NewX := AnyOrthogonalVector(NewZ);
-          NewY := VectorProduct(NewZ, NewX);
+          NewY := TVector3.CrossProduct(NewZ, NewX);
           glMultMatrix(TransformToCoordsMatrix(Elements.List^[I].Position,
             NewX, NewY, NewZ));
 

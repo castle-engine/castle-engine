@@ -283,8 +283,11 @@ type
     { Move Box, by -Translation. Does nothing if Box is empty. }
     function AntiTranslate(const Translation: TVector3): TBox3D;
 
-    function ToNiceStr: string;
-    function ToRawStr: string;
+    function ToNiceStr: string; deprecated 'use ToString';
+    function ToRawStr: string; deprecated 'use ToRawString';
+
+    function ToString: string;
+    function ToRawString: string;
 
     procedure ClampVar(var point: TVector3); overload;
 
@@ -1113,18 +1116,30 @@ begin
     Result := Empty;
 end;
 
+function TBox3D.ToString: string;
+begin
+  if IsEmpty then
+    Result := 'EMPTY'
+  else
+    Result := Data[0].ToString+' - '+Data[1].ToString;
+end;
+
+function TBox3D.ToRawString: string;
+begin
+  if IsEmpty then
+    Result := 'EMPTY'
+  else
+    Result := '(' + Data[0].ToRawString + ') - (' + Data[1].ToRawString + ')';
+end;
+
 function TBox3D.ToNiceStr: string;
 begin
- if IsEmpty then
-  result := 'EMPTY' else
-  result := VectorToNiceStr(Data[0])+' - '+VectorToNiceStr(Data[1]);
+  Result := ToString;
 end;
 
 function TBox3D.ToRawStr: string;
 begin
- if IsEmpty then
-  result := 'EMPTY' else
-  result := '(' + VectorToRawStr(Data[0]) + ') - (' + VectorToRawStr(Data[1]) + ')';
+  Result := ToRawString;
 end;
 
 procedure TBox3D.ClampVar(var point: TVector3);
@@ -1589,8 +1604,8 @@ begin
   { tests 2)
     test if the box intersects the plane of the triangle
     compute plane equation of triangle: normal*x+d=0 }
-  PlaneDir := VectorProduct(TriangleEdges[0], TriangleEdges[1]);
-  Plane.Data[3] := -VectorDotProduct(PlaneDir, TriangleMoved.Data[0]);
+  PlaneDir := TVector3.CrossProduct(TriangleEdges[0], TriangleEdges[1]);
+  Plane.Data[3] := -TVector3.DotProduct(PlaneDir, TriangleMoved.Data[0]);
   if not IsCenteredBox3DPlaneCollision(BoxHalfSize, Plane) then
     Exit(false);
 
@@ -1630,14 +1645,14 @@ begin
   if IsEmpty then
     Result := 0 else
     Result := Sqrt(Max(
-      Max(Max(VectorLenSqr(Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2])),
-              VectorLenSqr(Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]))),
-          Max(VectorLenSqr(Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2])),
-              VectorLenSqr(Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2])))),
-      Max(Max(VectorLenSqr(Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2])),
-              VectorLenSqr(Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]))),
-          Max(VectorLenSqr(Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2])),
-              VectorLenSqr(Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]))))));
+      Max(Max((Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr),
+              (Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr)),
+          Max((Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr),
+              (Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr))),
+      Max(Max((Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr),
+              (Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr)),
+          Max((Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr),
+              (Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr)))));
 end;
 
 { Separated from Radius2D, to not slowdown it by implicit
@@ -1654,20 +1669,20 @@ begin
   begin
     case IgnoreIndex of
       0: Result := Max(
-           Max(VectorLenSqr(Vector2(Data[0].Data[1], Data[0].Data[2])),
-               VectorLenSqr(Vector2(Data[1].Data[1], Data[0].Data[2]))),
-           Max(VectorLenSqr(Vector2(Data[1].Data[1], Data[1].Data[2])),
-               VectorLenSqr(Vector2(Data[0].Data[1], Data[1].Data[2]))));
+           Max((Vector2(Data[0].Data[1], Data[0].Data[2]).LengthSqr),
+               (Vector2(Data[1].Data[1], Data[0].Data[2]).LengthSqr)),
+           Max((Vector2(Data[1].Data[1], Data[1].Data[2]).LengthSqr),
+               (Vector2(Data[0].Data[1], Data[1].Data[2]).LengthSqr)));
       1: Result := Max(
-           Max(VectorLenSqr(Vector2(Data[0].Data[2], Data[0].Data[0])),
-               VectorLenSqr(Vector2(Data[1].Data[2], Data[0].Data[0]))),
-           Max(VectorLenSqr(Vector2(Data[1].Data[2], Data[1].Data[0])),
-               VectorLenSqr(Vector2(Data[0].Data[2], Data[1].Data[0]))));
+           Max((Vector2(Data[0].Data[2], Data[0].Data[0]).LengthSqr),
+               (Vector2(Data[1].Data[2], Data[0].Data[0]).LengthSqr)),
+           Max((Vector2(Data[1].Data[2], Data[1].Data[0]).LengthSqr),
+               (Vector2(Data[0].Data[2], Data[1].Data[0]).LengthSqr)));
       2: Result := Max(
-           Max(VectorLenSqr(Vector2(Data[0].Data[0], Data[0].Data[1])),
-               VectorLenSqr(Vector2(Data[1].Data[0], Data[0].Data[1]))),
-           Max(VectorLenSqr(Vector2(Data[1].Data[0], Data[1].Data[1])),
-               VectorLenSqr(Vector2(Data[0].Data[0], Data[1].Data[1]))));
+           Max((Vector2(Data[0].Data[0], Data[0].Data[1]).LengthSqr),
+               (Vector2(Data[1].Data[0], Data[0].Data[1]).LengthSqr)),
+           Max((Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr),
+               (Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr)));
       else Radius2D_InvalidIgnoreIndex;
     end;
 
@@ -1954,8 +1969,8 @@ begin
   if IsEmpty then
     Result := Box2.IsEmpty else
     Result := (not Box2.IsEmpty) and
-      VectorsEqual(Data[0], Box2.Data[0]) and
-      VectorsEqual(Data[1], Box2.Data[1]);
+      TVector3.Equals(Data[0], Box2.Data[0]) and
+      TVector3.Equals(Data[1], Box2.Data[1]);
 end;
 
 function TBox3D.Equal(const Box2: TBox3D; const EqualityEpsilon: Single): boolean;
@@ -1963,8 +1978,8 @@ begin
   if IsEmpty then
     Result := Box2.IsEmpty else
     Result := (not Box2.IsEmpty) and
-      VectorsEqual(Data[0], Box2.Data[0], EqualityEpsilon) and
-      VectorsEqual(Data[1], Box2.Data[1], EqualityEpsilon);
+      TVector3.Equals(Data[0], Box2.Data[0], EqualityEpsilon) and
+      TVector3.Equals(Data[1], Box2.Data[1], EqualityEpsilon);
 end;
 
 function TBox3D.Diagonal: Single;
@@ -2007,8 +2022,8 @@ function TBox3D.OrthoProject(const Pos, Dir, Side, Up: TVector3): TFloatRectangl
     PDiff: TVector3;
   begin
     PDiff := P - Pos;
-    Result.Data[0] := VectorDotProduct(PDiff, Side);
-    Result.Data[1] := VectorDotProduct(PDiff, Up);
+    Result.Data[0] := TVector3.DotProduct(PDiff, Side);
+    Result.Data[1] := TVector3.DotProduct(PDiff, Up);
   end;
 
 var

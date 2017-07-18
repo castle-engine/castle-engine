@@ -276,7 +276,7 @@ begin
     AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[2]));
     AssertTrue(VectorsPerfectlyEqual(V1.L[2], V2.L[3]));
 
-    V2.AddListRange(V1, 1, 1);
+    V2.AddSubRange(V1, 1, 1);
     AssertTrue(V2.Count = 6);
     AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[5]));
   finally

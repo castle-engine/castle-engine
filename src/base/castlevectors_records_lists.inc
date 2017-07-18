@@ -47,7 +47,7 @@ type
     procedure Normalize;
 
     { Multiply each item, component-wise, with V. }
-    procedure MultiplyComponents(const V: TVector3); deprecated 'this method does not seem very useful, report if you need it';
+    procedure MultiplyComponents(const V: TVector3);
 
     { Assign linear interpolation between two other vector arrays.
       We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and

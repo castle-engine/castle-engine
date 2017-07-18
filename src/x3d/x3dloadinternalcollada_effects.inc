@@ -173,7 +173,7 @@ var
           if I.Current.TagName = 'emission' then
             Mat.FdEmissiveColor.Value :=  ReadColor(I.Current) else
           if I.Current.TagName = 'ambient' then
-            Mat.FdAmbientIntensity.Value := VectorAverage(ReadColor(I.Current)) else
+            Mat.FdAmbientIntensity.Value := ReadColor(I.Current).Average else
           if I.Current.TagName = 'diffuse' then
           begin
             Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current,
@@ -216,7 +216,7 @@ var
           end else
           if I.Current.TagName = 'transparent' then
           begin
-            Transparency *= VectorAverage(ReadColor(I.Current));
+            Transparency *= ReadColor(I.Current).Average;
             HasTransparency := true;
           end else
           if I.Current.TagName = 'transparency' then

@@ -2785,7 +2785,7 @@ function TLightInstancesList.Equals(SecondValue: TObject): boolean;
   function LightInstanceEquals(const L1, L2: TLightInstance): boolean;
   begin
     Result := (L1.Node = L2.Node) and
-      MatricesPerfectlyEqual(L1.Transform, L2.Transform);
+      TMatrix4.PerfectlyEquals(L1.Transform, L2.Transform);
 
     { No need to compare things like Location or Direction,
       as they are just precalculated based on Node and Transform. }
@@ -2840,7 +2840,7 @@ begin
   if Result then
     for I := 0 to Count - 1 do
       if (L[I].Node <> TClipPlaneList(SecondValue).L[I].Node) or
-         MatricesPerfectlyEqual(L[I].Transform, TClipPlaneList(SecondValue).L[I].Transform) then
+         TMatrix4.PerfectlyEquals(L[I].Transform, TClipPlaneList(SecondValue).L[I].Transform) then
         Exit(false);
 end;
 
@@ -2999,8 +2999,8 @@ begin
     others. }
 
   Result :=
-    (IgnoreTransform or MatricesPerfectlyEqual(Transform, SecondValue.Transform)) and
-    MatricesPerfectlyEqual(TextureTransform, SecondValue.TextureTransform) and
+    (IgnoreTransform or TMatrix4.PerfectlyEquals(Transform, SecondValue.Transform)) and
+    TMatrix4.PerfectlyEquals(TextureTransform, SecondValue.TextureTransform) and
     (ShapeNode = SecondValue.ShapeNode) and
     (LocalFog = SecondValue.LocalFog);
 

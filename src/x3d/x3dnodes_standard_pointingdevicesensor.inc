@@ -402,7 +402,7 @@ begin
     InvertedTransform := IM * InvertedTransform;
   end;
 
-  OriginalIntersection := MatrixMultPoint(InvertedTransform, OverPoint);
+  OriginalIntersection := InvertedTransform.MultPoint(OverPoint);
   Caps := AngleRadBetweenVectors(OriginalIntersection,
     Vector3(0, 1, 0)) < FdDiskAngle.Value;
 
@@ -415,10 +415,10 @@ begin
       and passing though PlaneOrigin. }
     CapsPlaneDir := PVector3(@CapsPlane);
     CapsPlaneDir^ := Transform.MultDirection(TVector3.One[1]);
-    CapsPlane[3] := -VectorDotProduct(CapsPlaneDir^, OverPoint);
+    CapsPlane[3] := -TVector3.DotProduct(CapsPlaneDir^, OverPoint);
   end else
   begin
-    CylinderAxisOrigin := MatrixMultPoint(Transform, TVector3.Zero);
+    CylinderAxisOrigin := Transform.MultPoint(TVector3.Zero);
     CylinderAxis := Transform.MultDirection(TVector3.One[1]);
     CylinderRadius := Sqrt(PointToLineDistanceSqr(
       CylinderAxisOrigin, CylinderAxis, OverPoint));
@@ -545,12 +545,12 @@ begin
       and passing though PlaneOrigin. }
     PlaneDir := PVector3(@Plane);
     PlaneDir^ := Transform.MultDirection(TVector3.One[2]);
-    Plane[3] := -VectorDotProduct(PlaneDir^, PlaneOrigin);
+    Plane[3] := -TVector3.DotProduct(PlaneDir^, PlaneOrigin);
 
     { +X, +Y vectors, transformed by current sensor transform and
       by axisRotation, normalized. }
-    PlaneX := Normalized(Transform.MultDirection(TVector3.One[0]));
-    PlaneY := Normalized(Transform.MultDirection(TVector3.One[1]));
+    PlaneX := Transform.MultDirection(TVector3.One[0]).Normalize;
+    PlaneY := Transform.MultDirection(TVector3.One[1]).Normalize;
   except
     on ETransformedResultInvalid do
     begin
@@ -610,7 +610,7 @@ begin
         That's more difficult, see
         http://castle-engine.sourceforge.net/x3d_implementation_pointingdevicesensor.php }
       EventTrackPoint_changed.Send(
-        MatrixMultPoint(InvertedTransform, Intersection), Time);
+        InvertedTransform.MultPoint(Intersection), Time);
     except
       on ETransformedResultInvalid do
       begin
@@ -625,14 +625,14 @@ begin
 
       Then applying the PointOrigin, PlaneX, PlaneY would be much simpler:
       PointOrigin is just zero, and PlaneX = just (1, 0, 0).
-      So instead of VectorDotProduct(V, PlaneX) just take V[0]. }
+      So instead of TVector3.DotProduct(V, PlaneX) just take V[0]. }
 
     TranslationGlobal := Intersection - PlaneOrigin;
 
     { map TranslationGlobal to the plane local coord system
       (with axisRotation) }
-    Translation[0] := VectorDotProduct(TranslationGlobal, PlaneX);
-    Translation[1] := VectorDotProduct(TranslationGlobal, PlaneY);
+    Translation[0] := TVector3.DotProduct(TranslationGlobal, PlaneX);
+    Translation[1] := TVector3.DotProduct(TranslationGlobal, PlaneY);
     Translation[2] := 0;
 
     Translation += FdOffset.Value;
@@ -681,9 +681,9 @@ begin
 
   InvertedTransform := AInvertedTransform;
 
-  OriginalIntersection := MatrixMultPoint(AInvertedTransform, OverPoint);
+  OriginalIntersection := AInvertedTransform.MultPoint(OverPoint);
 
-  SphereCenter := MatrixMultPoint(ATransform, TVector3.Zero);
+  SphereCenter := ATransform.MultPoint(TVector3.Zero);
   SphereRadius := PointsDistance(OverPoint, SphereCenter);
 
   WasRotation := false;
@@ -711,7 +711,7 @@ begin
     RayOrigin, RayDirection) then
   begin
     try
-      LocalIntersection := MatrixMultPoint(InvertedTransform, Intersection);
+      LocalIntersection := InvertedTransform.MultPoint(Intersection);
     except
       on ETransformedResultInvalid do
       begin
@@ -727,12 +727,12 @@ begin
 
     { Add to RotationQ rotation from OriginalIntersection to current. }
     RotationAxis := TVector3.CrossProduct(OriginalIntersection, LocalIntersection);
-    if not ZeroVector(RotationAxis) then
+    if not RotationAxis.IsZero then
     begin
       RotationAngle := RotationAngleRadBetweenVectors(
         OriginalIntersection, LocalIntersection);
       RotationQ := QuatFromAxisAngle(
-        Normalized(RotationAxis), RotationAngle) * RotationQ;
+        RotationAxis.Normalize, RotationAngle) * RotationQ;
     end;
 
     Rotation := RotationQ.ToAxisAngle;

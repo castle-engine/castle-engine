@@ -47,7 +47,7 @@ function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
       Result[0] := Random * Scale - Scale/2;
       Result[1] := Random * Scale - Scale/2;
       Result[2] := Random * Scale - Scale/2;
-    until not PerfectlyZeroVector(Result);
+    until not Result.IsPerfectlyZero;
   end;
 
 var

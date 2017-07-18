@@ -143,8 +143,8 @@ begin
     SpineOrientationVar(0, BeginOrientation);
     SpineOrientationVar(High, EndOrientation);
     FBeginEndCapsMatching :=
-      VectorsPerfectlyEqual(BeginOrientation, EndOrientation) and
-      VectorsPerfectlyEqual(BeginScale, EndScale);
+      TVector4.PerfectlyEquals(BeginOrientation, EndOrientation) and
+      TVector2.PerfectlyEquals(BeginScale, EndScale);
   end else
     FBeginEndCapsMatching := false;
 end;
@@ -195,7 +195,7 @@ var
       Z := TVector3.CrossProduct(
         (SpinePoints.L[I + 1] - SpinePoints.L[I]),
         (SpinePoints.L[I - 1] - SpinePoints.L[I]));
-      if not ZeroVector(Z) then
+      if not Z.IsZero then
       begin
         Result := true;
         break;
@@ -214,7 +214,7 @@ var
     for I := 1 to High do
     begin
       Y := (SpinePoints.L[I] - SpinePoints.L[I - 1]);
-      if not ZeroVector(Y) then
+      if not Y.IsZero then
       begin
         Y.NormalizeMe;
         Exit;
@@ -240,7 +240,7 @@ var
     AngleRad := AngleRadBetweenNormals(TVector3.One[1], Y);
     Rotation := TVector3.CrossProduct(TVector3.One[1], Y);
 
-    if ZeroVector(Rotation) then
+    if Rotation.IsZero then
     begin
       { This means that Y is actually just equal (0, 1, 0).
         So Z is just (0, 0, 1). }
@@ -253,14 +253,14 @@ var
 
         Note: the first implementation was like
 
-          if not VectorsEqual(ForPositiveAngleRad, Y) then
+          if not TVector3.Equals(ForPositiveAngleRad, Y) then
           begin
             AngleRad := -AngleRad;
-            Assert(VectorsEqual(ForNegativeAngleRad, Y));
+            Assert(TVector3.Equals(ForNegativeAngleRad, Y));
           end;
 
         but this is obviously unsafe because of floating point errors,
-        there was always a chance that both VectorsEqual fail.
+        there was always a chance that both TVector3.Equals fail.
         Fixed below to just choose the best one. }
       ForPositiveAngleRad := RotatePointAroundAxisRad( AngleRad, TVector3.One[1], Rotation);
       ForNegativeAngleRad := RotatePointAroundAxisRad(-AngleRad, TVector3.One[1], Rotation);
@@ -278,7 +278,7 @@ var
     { Same for Spine = 0 and High, as this is the same point actually. }
     Y := SpinePoints.L[1] - SpinePoints.L[High - 1];
 
-    if not ZeroVector(Y) then
+    if not Y.IsZero then
       Y.NormalizeMe else
       FindFirstNonCoincident(Y);
 
@@ -286,7 +286,7 @@ var
       (SpinePoints.L[1] - SpinePoints.L[0]),
       (SpinePoints.L[High - 1] - SpinePoints.L[0]));
 
-    if not ZeroVector(Z) then
+    if not Z.IsZero then
       Z.NormalizeMe else
     if FindFirstNonColinear(Z) then
       Z.NormalizeMe else
@@ -313,7 +313,7 @@ begin
       CalculateYZForClosed(Y, Z) else
     begin
       Y := (SpinePoints.L[1] - SpinePoints.L[0]);
-      if not ZeroVector(Y) then
+      if not Y.IsZero then
         Y.NormalizeMe else
         FindFirstNonCoincident(Y);
 
@@ -328,7 +328,7 @@ begin
       CalculateYZForClosed(Y, Z) else
     begin
       Y := (SpinePoints.L[High] - SpinePoints.L[High - 1]);
-      if not ZeroVector(Y) then
+      if not Y.IsZero then
         Y.NormalizeMe else
         Y := LastY;
 
@@ -342,7 +342,7 @@ begin
 
     Y := (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine - 1]);
 
-    if not ZeroVector(Y) then
+    if not Y.IsZero then
       Y.NormalizeMe else
       Y := LastY;
 
@@ -350,12 +350,12 @@ begin
       (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine]),
       (SpinePoints.L[Spine - 1] - SpinePoints.L[Spine]));
 
-    if not ZeroVector(Z) then
+    if not Z.IsZero then
       Z.NormalizeMe else
       Z := LastZ;
   end;
 
-  if (Spine > 0) and (VectorDotProduct(LastZ, Z) < 0) then
+  if (Spine > 0) and (TVector3.DotProduct(LastZ, Z) < 0) then
     Z := -Z;
 
   LastY := Y;

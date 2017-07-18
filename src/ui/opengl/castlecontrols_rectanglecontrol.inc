@@ -53,7 +53,7 @@ end;
 
 procedure TCastleRectangleControl.SetColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
     VisibleChange;

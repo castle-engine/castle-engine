@@ -4018,7 +4018,7 @@ begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
     (SecondValue is TSFFloat) and
     (TSFFloat(SecondValue).MustBeNonnegative = MustBeNonnegative) and
-    FloatsEqual(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
+    SameValue(TSFFloat(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
 function TSFFloat.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -4125,7 +4125,7 @@ function TSFDouble.Equals(SecondValue: TX3DField;
 begin
   Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
     (SecondValue is TSFDouble) and
-    FloatsEqual(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
+    SameValue(TSFDouble(SecondValue).Value, Value, EqualityEpsilon);
 end;
 
 function TSFDouble.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -4886,7 +4886,7 @@ end;
 
 function TSFRotation.RotatedPoint(const pt: TVector3): TVector3;
 begin
-  if not ZeroVector(Axis) then
+  if not Axis.IsZero then
     Result := RotatePointAroundAxisRad(RotationRad, pt, Axis) else
   begin
     { Safeguard against rotation around zero vector, which produces unpredictable
@@ -6007,7 +6007,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not FloatsEqual(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
+   if not SameValue(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
      EqualityEpsilon) then
     Exit(false);
 end;

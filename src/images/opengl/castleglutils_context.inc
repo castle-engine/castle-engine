@@ -168,7 +168,7 @@ begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if not VectorsPerfectlyEqual(FClearColor, ClearColor) then
+  if not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
     glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
@@ -217,7 +217,7 @@ begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if not VectorsPerfectlyEqual(FGlobalAmbient, Value) then
+  if not TVector3.PerfectlyEquals(FGlobalAmbient, Value) then
   begin
     FGlobalAmbient := Value;
 

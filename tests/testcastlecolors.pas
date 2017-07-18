@@ -22,10 +22,11 @@ unit TestCastleColors;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, CastleColors;
+  Classes, SysUtils, fpcunit, testutils, testregistry,
+  CastleBaseTestCase, CastleVectors, CastleColors;
 
 type
-  TTestCastleColors = class(TTestCase)
+  TTestCastleColors = class(TCastleBaseTestCase)
   published
     procedure TestHSV;
     procedure TestLerpInHsv;
@@ -58,7 +59,7 @@ begin
         RGB[2] := B * 5;
         HSV := RgbToHsv(RGB);
         { test trip to HSV and back returns the same }
-        AssertTrue(VectorsPerfectlyEqual(RGB, HsvToRgbByte(HSV)));
+        AssertTrue(TVector3Byte.Equals(RGB, HsvToRgbByte(HSV)));
         { test HSV components are in appropriate ranges }
         AssertTrue(Between(HSV[0], 0, 6));
         AssertTrue(Between(HSV[1], 0, 1));
@@ -97,7 +98,7 @@ begin
       all colors along the way should keep hue = blue }
     H := RgbToHsv(C)[0];
     AssertTrue(RgbToHsv(PureBlue)[0] = H);
-//    Writeln(VectorToNiceStr(C), ' ', VectorToNiceStr(RgbToHsv(C)));
+//    Writeln(C.ToString, ' ', VectorToNiceStr(RgbToHsv(C)));
   end;
 
   for I := 0 to 10 do
@@ -106,7 +107,7 @@ begin
     { interpolate from hue 0 to hue 4 --- go down through 0 }
     H := RgbToHsv(C)[0];
     AssertTrue((H = 0.0) or Between(H, 4, 6));
-//    Writeln(VectorToNiceStr(C), ' ', VectorToNiceStr(RgbToHsv(C)));
+//    Writeln(C.ToString, ' ', VectorToNiceStr(RgbToHsv(C)));
   end;
 
   for I := 0 to 10 do
@@ -115,15 +116,15 @@ begin
     { interpolate from hue 4 to hue 0 --- go up through 6 }
     H := RgbToHsv(C)[0];
     AssertTrue((H = 0.0) or Between(H, 4, 6));
-//    Writeln(VectorToNiceStr(C), ' ', VectorToNiceStr(RgbToHsv(C)));
+//    Writeln(C.ToString, ' ', VectorToNiceStr(RgbToHsv(C)));
   end;
 
-  AssertTrue(VectorsEqual(LerpRgbInHsv(0, PureBlue, PureRed), PureBlue));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(1, PureBlue, PureRed), PureRed));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(0, PureRed, PureBlue), PureRed));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(1, PureRed, PureBlue), PureBlue));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(0, BlackRGB, PureRed), BlackRGB));
-  AssertTrue(VectorsEqual(LerpRgbInHsv(1, BlackRGB, PureRed), PureRed));
+  AssertVectorEquals(LerpRgbInHsv(0, PureBlue, PureRed), PureBlue);
+  AssertVectorEquals(LerpRgbInHsv(1, PureBlue, PureRed), PureRed);
+  AssertVectorEquals(LerpRgbInHsv(0, PureRed, PureBlue), PureRed);
+  AssertVectorEquals(LerpRgbInHsv(1, PureRed, PureBlue), PureBlue);
+  AssertVectorEquals(LerpRgbInHsv(0, BlackRGB, PureRed), BlackRGB);
+  AssertVectorEquals(LerpRgbInHsv(1, BlackRGB, PureRed), PureRed);
 end;
 
 initialization

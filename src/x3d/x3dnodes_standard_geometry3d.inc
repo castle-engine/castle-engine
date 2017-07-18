@@ -983,8 +983,8 @@ var
 begin
   SpinePoints := FdSpine.Items;
   Result := (SpinePoints.Count <> 0) and
-    VectorsPerfectlyEqual(SpinePoints.Last,
-                          SpinePoints.First);
+    TVector3.PerfectlyEquals(SpinePoints.Last,
+                             SpinePoints.First);
 end;
 
 function TExtrusionNode.CrossSectionClosed: boolean;
@@ -993,8 +993,8 @@ var
 begin
   CrossSectionPoints := FdCrossSection.Items;
   Result := (CrossSectionPoints.Count <> 0) and
-    VectorsPerfectlyEqual(CrossSectionPoints.Last,
-                          CrossSectionPoints.First);
+    TVector2.PerfectlyEquals(CrossSectionPoints.Last,
+                             CrossSectionPoints.First);
 end;
 
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
@@ -1127,7 +1127,7 @@ begin
         for J := 0 to FdCrossSection.Count - 1 do
         begin
           CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
-            MatrixMultPoint(Transform, CrossSection3D(J));
+            Transform.MultPoint(CrossSection3D(J));
         end;
       end;
 
@@ -1166,7 +1166,7 @@ begin
             if TexCapsMax[0] - TexCapsMin[0] >=
                TexCapsMax[1] - TexCapsMin[1] then
             begin
-              if not Zero(TexCapsMax[0] - TexCapsMin[0]) then
+              if not IsZero(TexCapsMax[0] - TexCapsMin[0]) then
               begin
                 { scale such that U is along the X of cap.
                   Coord calculation will go like
@@ -1176,7 +1176,7 @@ begin
               end;
             end else
             begin
-              if not Zero(TexCapsMax[1] - TexCapsMin[1]) then
+              if not IsZero(TexCapsMax[1] - TexCapsMin[1]) then
               begin
                 TexCapsTranslation := -TexCapsMin[1];
                 TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);

@@ -346,7 +346,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalPos := MatrixMultPoint(Shape.State.InvertedTransform, Pos);
+      LocalPos := Shape.State.InvertedTransform.MultPoint(Pos);
       LocalRadius := Radius / Shape.State.TransformScale;
       Result := Shape.InternalOctreeTriangles.SphereCollision2D(
         LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
@@ -398,7 +398,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalPoint := MatrixMultPoint(Shape.State.InvertedTransform, Point);
+      LocalPoint := Shape.State.InvertedTransform.MultPoint(Point);
       Result := Shape.InternalOctreeTriangles.PointCollision2D(
         LocalPoint, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
@@ -508,8 +508,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
-        LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
+        LocalPos1 := Shape.State.InvertedTransform.MultPoint(Pos1);
+        LocalPos2 := Shape.State.InvertedTransform.MultPoint(Pos2);
         Result := Shape.SegmentCollision(Tag,
           Intersection, IntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
@@ -520,7 +520,7 @@ begin
 
       if Result <> nil then
       begin
-        Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+        Intersection := Result^.State.Transform.MultPoint(Intersection);
         Exit;
       end;
     end;
@@ -534,8 +534,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
-        LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
+        LocalPos1 := Shape.State.InvertedTransform.MultPoint(Pos1);
+        LocalPos2 := Shape.State.InvertedTransform.MultPoint(Pos2);
         ThisResult := Shape.SegmentCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
@@ -554,7 +554,7 @@ begin
     end;
 
     if Result <> nil then
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
   end;
 end;
 
@@ -592,7 +592,7 @@ begin
     TrianglesToIgnoreFunc);
 
   { At one point, I also did here
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
@@ -645,8 +645,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalRayOrigin := MatrixMultPoint(Shape.State.InvertedTransform, RayOrigin);
-        LocalRayDirection := MatrixMultDirection(Shape.State.InvertedTransform, RayDirection);
+        LocalRayOrigin := Shape.State.InvertedTransform.MultPoint(RayOrigin);
+        LocalRayDirection := Shape.State.InvertedTransform.MultDirection(RayDirection);
         Result := Shape.RayCollision(Tag,
           Intersection, IntersectionDistance, LocalRayOrigin, LocalRayDirection,
           ReturnClosestIntersection,
@@ -657,7 +657,7 @@ begin
 
       if Result <> nil then
       begin
-        Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+        Intersection := Result^.State.Transform.MultPoint(Intersection);
         Exit;
       end;
     end;
@@ -672,8 +672,8 @@ begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       Assert(Shape.InternalOctreeTriangles <> nil);
       try
-        LocalRayOrigin := MatrixMultPoint(Shape.State.InvertedTransform, RayOrigin);
-        LocalRayDirection := MatrixMultDirection(Shape.State.InvertedTransform, RayDirection);
+        LocalRayOrigin := Shape.State.InvertedTransform.MultPoint(RayOrigin);
+        LocalRayDirection := Shape.State.InvertedTransform.MultDirection(RayDirection);
         ThisResult := Shape.RayCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalRayOrigin, LocalRayDirection,
           ReturnClosestIntersection,
@@ -692,7 +692,7 @@ begin
     end;
 
     if Result <> nil then
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
   end;
 end;
 
@@ -730,7 +730,7 @@ begin
     TrianglesToIgnoreFunc);
 
   { At one point, I also did here
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's

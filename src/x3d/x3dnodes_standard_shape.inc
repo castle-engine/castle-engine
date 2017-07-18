@@ -1274,8 +1274,8 @@ end;
 function TMaterialNode.PureEmissive: boolean;
 begin
   Result := (FdAmbientIntensity.Value = 0) and
-            PerfectlyZeroVector(FdDiffuseColor.Value) and
-            PerfectlyZeroVector(FdSpecularColor.Value);
+            FdDiffuseColor.Value.IsPerfectlyZero and
+            FdSpecularColor.Value.IsPerfectlyZero;
 end;
 
 procedure TMaterialNode.ForcePureEmissive;

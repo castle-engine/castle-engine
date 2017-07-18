@@ -218,7 +218,8 @@ type
       @raises(ETransformedResultInvalid In some cases when matrix is not sane.) }
     function Transform(const M: TMatrix4): TFrustum;
 
-    function ToNiceStr(const Indent: string): string;
+    function ToNiceStr(const Indent: string): string; deprecated 'use ToString';
+    function ToString(const Indent: string): string;
   end;
   PFrustum = ^TFrustum;
 
@@ -296,7 +297,7 @@ begin
         NormalizePlaneVar(Planes[fp]);
       instead, but that would be slow (NormalizePlaneVar costs me
       calculating 1 Sqrt).
-    if VectorLenSqr(PVector3(@Planes[fp])^) < 0.001 then
+    if PVector3(@Planes[fp].LengthSqr^) < 0.001 then
       Planes[fp] := Planes[fp] * 100000;
     }
   end;
@@ -399,7 +400,7 @@ begin
 end;
 {$else}
 var
-  FrustumPointsSingle: TFrustumPointsSingle;
+  FrustumPointsSingle: TFrustumPoints;
   I: Integer;
 begin
   CalculatePoints(FrustumPointsSingle);
@@ -443,7 +444,7 @@ begin
     answer, NoCollision, exists. }
 
   { For the sake of maximum speed, I'm not using here things like
-    VectorDotProduct or PointToPlaneDistanceSqr }
+    TVector3.DotProduct or PointToPlaneDistanceSqr }
   for fp := Low(fp) to LastPlane do
   begin
    { This is not a true distance since this is signed }
@@ -645,6 +646,11 @@ begin
 end;
 
 function TFrustum.ToNiceStr(const Indent: string): string;
+begin
+  Result := ToString(Indent);
+end;
+
+function TFrustum.ToString(const Indent: string): string;
 var
   I: TFrustumPlane;
 begin
@@ -653,12 +659,12 @@ begin
   begin
     Assert(High(I) = fpFar);
     for I := Low(I) to Pred(High(I)) do
-      Result += Indent + VectorToNiceStr(Planes[I]) + LineEnding;
+      Result += Indent + Planes[I].ToString + LineEnding;
     Result += Indent + '(no far plane, frustum goes to infinity)' +
       LineEnding;
   end else
     for I := Low(I) to High(I) do
-      Result += Indent + VectorToNiceStr(Planes[I]) + LineEnding;
+      Result += Indent + Planes[I].ToString + LineEnding;
 end;
 
 end.

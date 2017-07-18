@@ -476,8 +476,9 @@ end;
 
 function TNaturalCubicSplineCurve.Closed: boolean;
 begin
-  Result := VectorsEqual(ControlPoints.First,
-                         ControlPoints.Last);
+  Result := TVector3.Equals(
+    ControlPoints.First,
+    ControlPoints.Last);
 end;
 
 { TNaturalCubicSplineCurveAlwaysClosed -------------------------------------- }

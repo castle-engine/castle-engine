@@ -87,7 +87,7 @@ begin
   Coord[Coord.Count - 1] := Coord.L[BottomCircleIndex];
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices - 1 do
-    Normal.L[BottomCircleIndex + I] := Normalized(Coord.L[BottomCircleIndex + I]);
+    Normal.L[BottomCircleIndex + I] := (Coord.L[BottomCircleIndex + I]).Normalize;
   Normal[Normal.Count - 1] := Normal.L[BottomCircleIndex];
   if TexCoord <> nil then
   begin
@@ -118,7 +118,7 @@ begin
     Coord[Coord.Count - 1] := Coord.L[CircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.L[CircleIndex + I] := Normalized(Coord.L[CircleIndex + I]);
+      Normal.L[CircleIndex + I] := (Coord.L[CircleIndex + I]).Normalize;
     Normal[Normal.Count - 1] := Normal.L[CircleIndex];
     if TexCoord <> nil then
     begin

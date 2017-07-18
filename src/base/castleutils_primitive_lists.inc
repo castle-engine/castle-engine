@@ -58,7 +58,9 @@ type
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TSingleList; Index1, Index2, ACount: Integer);
-    procedure AddListRange(Source: TSingleList; Index, AddCount: Integer);
+
+    procedure AddSubRange(Source: TSingleList; Index, AddCount: Integer);
+    procedure AddListRange(Source: TSingleList; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
   TDoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Double>)
@@ -210,6 +212,11 @@ begin
 end;
 
 procedure TSingleList.AddListRange(Source: TSingleList; Index, AddCount: Integer);
+begin
+  AddSubRange(Source, Index, AddCount);
+end;
+
+procedure TSingleList.AddSubRange(Source: TSingleList; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin

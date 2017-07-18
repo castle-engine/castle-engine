@@ -1231,10 +1231,10 @@ var
   BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box (of the whole animation) : ' + BBox.ToNiceStr;
+  Result := 'Bounding box (of the whole animation) : ' + BBox.ToString;
   if not BBox.IsEmpty then
   begin
-    Result += ', average size : ' + FloatToNiceStr(BBox.AverageSize);
+    Result += Format(', average size : %f', [BBox.AverageSize]);
   end;
   Result += NL;
 end;

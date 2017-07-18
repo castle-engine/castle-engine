@@ -178,12 +178,12 @@ procedure TRenderingCamera.InverseMatrixNeeded;
 begin
   if not InverseMatrixDone then
   begin
-    if not TryMatrixInverse(Matrix, InverseMatrix) then
+    if not Matrix.TryInverse(InverseMatrix) then
     begin
       InverseMatrix := TMatrix4.Identity;
       if Log then
         WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          MatrixToRawStr(Matrix, '  '));
+          Matrix.ToRawString('  '));
     end;
     InverseMatrixDone := true;
   end;
@@ -193,12 +193,12 @@ procedure TRenderingCamera.RotationInverseMatrixNeeded;
 begin
   if not RotationInverseMatrixDone then
   begin
-    if not TryMatrixInverse(RotationMatrix, RotationInverseMatrix) then
+    if not RotationMatrix.TryInverse(RotationInverseMatrix) then
     begin
       RotationInverseMatrix := TMatrix4.Identity;
       if Log then
         WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          MatrixToRawStr(RotationMatrix, '  '));
+          RotationMatrix.ToRawString('  '));
     end;
     RotationInverseMatrixDone := true;
   end;

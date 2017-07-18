@@ -110,30 +110,30 @@ begin
 
     { Also, test PointFromIndex }
     Assert(
-      VectorLen(SF.PointFromIndex(0, csPositiveX, 0)) <
-      VectorLen(SF.PointFromIndex(1, csPositiveX, 0)));
+      SF.PointFromIndex(0, csPositiveX, 0).Length <
+      SF.PointFromIndex(1, csPositiveX, 0).Length);
 
     Assert(
-      VectorLen(SF.PointFromIndex(1, csPositiveX, 0)) <
-      VectorLen(SF.PointFromIndex(2, csPositiveX, 0)));
+      SF.PointFromIndex(1, csPositiveX, 0).Length <
+      SF.PointFromIndex(2, csPositiveX, 0).Length);
 
     Assert(
-      VectorLen(SF.PointFromIndex(10, csPositiveX, 0)) <
-      VectorLen(SF.PointFromIndex(11, csPositiveX, 0)));
+      SF.PointFromIndex(10, csPositiveX, 0).Length <
+      SF.PointFromIndex(11, csPositiveX, 0).Length);
 
     { Test PointFromIndex further: since SpheresMiddle is in +x,
       so looking at csNegativeX sides with larger radius gets us closer to 0. }
     Assert(
-      VectorLen(SF.PointFromIndex(0, csNegativeX, 0)) >
-      VectorLen(SF.PointFromIndex(1, csNegativeX, 0)));
+      SF.PointFromIndex(0, csNegativeX, 0).Length >
+      SF.PointFromIndex(1, csNegativeX, 0).Length);
 
     Assert(
-      VectorLen(SF.PointFromIndex(1, csNegativeX, 0)) >
-      VectorLen(SF.PointFromIndex(2, csNegativeX, 0)));
+      SF.PointFromIndex(1, csNegativeX, 0).Length >
+      SF.PointFromIndex(2, csNegativeX, 0).Length);
 
     Assert(
-      VectorLen(SF.PointFromIndex(10, csNegativeX, 0)) >
-      VectorLen(SF.PointFromIndex(11, csNegativeX, 0)));
+      SF.PointFromIndex(10, csNegativeX, 0).Length >
+      SF.PointFromIndex(11, csNegativeX, 0).Length);
   finally FreeAndNil(SF) end;
 
   CheckDeleteFile(FileName, true);

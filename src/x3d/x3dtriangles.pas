@@ -41,8 +41,8 @@ type
     { Initialize new triangle.
       Given ATriangle must satisfy ATriangle.IsValid. }
     constructor Init(AShape: TObject;
-      const ATriangle: TTriangle3Single;
-      const ANormal: TTriangle3Single; const ATexCoord: TTriangle4;
+      const ATriangle: TTriangle3;
+      const ANormal: TTriangle3; const ATexCoord: TTriangle4;
       const AFace: TFaceIndex);
 
     procedure UpdateWorld;
@@ -51,7 +51,7 @@ type
     Shape: TObject;
 
     {$ifndef CONSERVE_TRIANGLE_MEMORY}
-    Normal: TTriangle3Single;
+    Normal: TTriangle3;
     TexCoord: TTriangle4;
     Face: TFaceIndex;
     {$else}
@@ -721,8 +721,8 @@ uses Math,
 { TTriangle  ------------------------------------------------------------- }
 
 constructor TTriangle.Init(AShape: TObject;
-  const ATriangle: TTriangle3Single;
-  const ANormal: TTriangle3Single; const ATexCoord: TTriangle4;
+  const ATriangle: TTriangle3;
+  const ANormal: TTriangle3; const ATexCoord: TTriangle4;
   const AFace: TFaceIndex);
 begin
   inherited Init(ATriangle);
@@ -747,10 +747,10 @@ end;
 
 procedure TTriangle.UpdateWorld;
 begin
-  World.Triangle := TriangleTransform(Local.Triangle, State.Transform);
+  World.Triangle := Local.Triangle.Transform(State.Transform);
   {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
-  World.Plane := TriangleNormPlane(World.Triangle);
-  World.Area := CastleTriangles.TriangleArea(World.Triangle);
+  World.Plane := World.Triangle.NormalizedPlane;
+  World.Area := World.Triangle.Area;
   {$endif}
 end;
 
@@ -900,7 +900,7 @@ function TTriangle.ITexCoord(const Point: TVector3): TVector4;
 var
   B: TVector3;
 begin
-  B := Barycentric(World.Triangle, Point);
+  B := World.Triangle.Barycentric(Point);
   Result := TexCoord.Data[0] * B[0] +
             TexCoord.Data[1] * B[1] +
             TexCoord.Data[2] * B[2];
@@ -918,7 +918,7 @@ function TTriangle.INormalCore(const Point: TVector3): TVector3;
 var
   B: TVector3;
 begin
-  B := Barycentric(World.Triangle, Point);
+  B := World.Triangle.Barycentric(Point);
   Result := Normal.Data[0] * B[0] +
             Normal.Data[1] * B[1] +
             Normal.Data[2] * B[2];
@@ -926,12 +926,12 @@ end;
 
 function TTriangle.INormal(const Point: TVector3): TVector3;
 begin
-  Result := Normalized(INormalCore(Point));
+  Result := INormalCore(Point).Normalize;
 end;
 
 function TTriangle.INormalWorldSpace(const Point: TVector3): TVector3;
 begin
-  Result := Normalized(MatrixMultDirection(State.Transform, INormalCore(Point)));
+  Result := State.Transform.MultDirection(INormalCore(Point)).Normalize;
 end;
 
 {$else}
@@ -1440,7 +1440,7 @@ function TBaseTrianglesOctree.MoveCollision(
       Slide := BlockerIntersection - Projected;
     end;
 
-    if not ZeroVector(Slide) then
+    if not Slide.IsZero then
     begin
       { Move by Slide.
 
@@ -1512,7 +1512,7 @@ function TBaseTrianglesOctree.MoveCollision(
           Projected := PointOnPlaneClosestToPoint(PlanePtr^, OldPos);
           Slide := NewBlockerIntersection - Projected;
 
-          if not ZeroVector(Slide) then
+          if not Slide.IsZero then
           begin
             Slide := Slide.AdjustToLength(PointsDistance(OldPos, ProposedNewPos));
             NewPos := OldPos + Slide;
@@ -1666,7 +1666,7 @@ begin
     i jezeli nic nie zaslania drogi od Point do tego punktu to
     znaczy ze swiatlo oswietla Intersection. }
   LightPos := LightedPoint -
-    VectorAdjustToLength(Light.Direction, 3 * InternalTreeRoot.Box.MaxSize) else
+    Light.Direction.AdjustToLength(3 * InternalTreeRoot.Box.MaxSize) else
   LightPos := Light.Location;
 
  Result := (VectorsSamePlaneDirections(

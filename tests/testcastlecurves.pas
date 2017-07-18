@@ -354,8 +354,8 @@ begin
     for I := 0 to TestCount do
     begin
       // Writeln(i);
-      AssertVectorsEqual(C1.Point(I / TestCount), C2.Point(I / TestCount), 0.01);
-      AssertVectorsEqual(C2.Point(I / TestCount), C3.Point(I / TestCount), 0.01);
+      AssertVectorEquals(C1.Point(I / TestCount), C2.Point(I / TestCount), 0.01);
+      AssertVectorEquals(C2.Point(I / TestCount), C3.Point(I / TestCount), 0.01);
     end;
 
     InitCurve2(C1);
@@ -364,8 +364,8 @@ begin
     for I := 0 to TestCount do
     begin
       // Writeln(i);
-      AssertVectorsEqual(C1.Point(I / TestCount), C2.Point(I / TestCount), 0.01);
-      AssertVectorsEqual(C2.Point(I / TestCount), C3.Point(I / TestCount), 0.01);
+      AssertVectorEquals(C1.Point(I / TestCount), C2.Point(I / TestCount), 0.01);
+      AssertVectorEquals(C2.Point(I / TestCount), C3.Point(I / TestCount), 0.01);
     end;
 
     InitCurve3(C1);
@@ -374,8 +374,8 @@ begin
     for I := 0 to TestCount do
     begin
       // Writeln(i);
-      AssertVectorsEqual(C1.Point(I / TestCount), C2.Point(I / TestCount), 0.01);
-      AssertVectorsEqual(C2.Point(I / TestCount), C3.Point(I / TestCount), 0.01);
+      AssertVectorEquals(C1.Point(I / TestCount), C2.Point(I / TestCount), 0.01);
+      AssertVectorEquals(C2.Point(I / TestCount), C3.Point(I / TestCount), 0.01);
     end;
   finally
     FreeAndNil(C1);
