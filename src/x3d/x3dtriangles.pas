@@ -873,7 +873,7 @@ end;
 
 function TTriangle.IsTransparent: boolean;
 begin
-  Result := Transparency > SingleEqualityEpsilon;
+  Result := Transparency > SingleEpsilon;
 end;
 
 function TTriangle.IgnoreForShadowRays: boolean;
@@ -891,7 +891,7 @@ function TTriangle.IgnoreForShadowRays: boolean;
   end;
 
 begin
-  Result := ({ IsTransparent } Transparency > SingleEqualityEpsilon) or
+  Result := ({ IsTransparent } Transparency > SingleEpsilon) or
     NonShadowCaster(State);
 end;
 

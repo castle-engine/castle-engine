@@ -1571,10 +1571,10 @@ function TShape.Blending: boolean;
     i: Integer;
   begin
     if Node.FdTransparency.Items.Count = 0 then
-      result := TMaterialInfo.DefaultTransparency > SingleEqualityEpsilon else
+      result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
     begin
       for i := 0 to Node.FdTransparency.Items.Count-1 do
-        if Node.FdTransparency.Items.L[i] <= SingleEqualityEpsilon then
+        if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
           Exit(false);
       result := true;
     end;
@@ -1590,11 +1590,11 @@ begin
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
-      Result := SurfaceShader.Transparency > SingleEqualityEpsilon;
+      Result := SurfaceShader.Transparency > SingleEpsilon;
     end else
     begin
       M := State.ShapeNode.Material;
-      Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+      Result := (M <> nil) and (M.FdTransparency.Value > SingleEpsilon);
     end;
   end else
     { For VRML 1.0, there may be multiple materials on a node.

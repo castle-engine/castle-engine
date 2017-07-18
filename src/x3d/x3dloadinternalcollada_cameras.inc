@@ -74,7 +74,7 @@ begin
                 Viewpoint.FdFieldOfView.Value := DegToRad(YFov) else
               if ReadChildFloat(PerspectiveE, 'xfov', XFov) and
                  ReadChildFloat(PerspectiveE, 'aspect_ratio', AspectRatio) and
-                 (AspectRatio > SingleEqualityEpsilon) then
+                 (AspectRatio > SingleEpsilon) then
                 { aspect_ratio = xfov / yfov, so we can calculate yfov }
                 Viewpoint.FdFieldOfView.Value := DegToRad(XFov) / AspectRatio;
 
@@ -101,7 +101,7 @@ begin
                 if ReadChildFloat(OrthographicE, 'xmag', XMag) then
                 begin
                   if ReadChildFloat(OrthographicE, 'aspect_ratio', AspectRatio) and
-                     (AspectRatio > SingleEqualityEpsilon) then
+                     (AspectRatio > SingleEpsilon) then
                   begin
                     { aspect_ratio = xmag / ymag, so we can calculate ymag }
                     YMag := XMag / AspectRatio;

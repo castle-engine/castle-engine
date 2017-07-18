@@ -48,7 +48,7 @@
 {$define TYPE_TRIANGLE2 := TTriangle2Single}
 {$define TYPE_TRIANGLE3 := TTriangle3Single}
 {$define TYPE_MATRIX4 := TMatrix4}
-{$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
+{$define SCALAR_EQUALITY_EPSILON := SingleEpsilon}
 {$define ONE_VECTOR := OneVectorSingle}
 {$define IDENTITY_MATRIX := TMatrix4.Identity}
 

@@ -225,10 +225,10 @@ end;
 
 procedure TTestCastleBoxes.TestIsBox3DTriangleCollisionEpsilons;
 var
-  EqualityEpsilon: Single;
+  Epsilon: Single;
 
   { Modified version of IsCenteredBox3DPlaneCollision and IsBox3DTriangleCollision
-    that use EqualityEpsilon variable here. Also, use Single precision calculations. }
+    that use Epsilon variable here. Also, use Single precision calculations. }
 
   function IsCenteredBox3DPlaneCollision(
     const BoxHalfSize: TVector3;
@@ -266,14 +266,14 @@ var
     if Plane[0] * VMin[0] +
        Plane[1] * VMin[1] +
        Plane[2] * VMin[2] +
-       Plane[3] > EqualityEpsilon then
+       Plane[3] > Epsilon then
       Exit(false);
 
     { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
     Result :=  Plane[0] * VMax[0] +
                Plane[1] * VMax[1] +
                Plane[2] * VMax[2] +
-               Plane[3] >= EqualityEpsilon;
+               Plane[3] >= Epsilon;
   end;
 
   function IsBox3DTriangleCollision(
@@ -308,7 +308,7 @@ var
       if p0<p2 then begin min := p0; max := p2; end else
                     begin min := p2; max := p0; end;
       rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
-      Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+      Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
     function AXISTEST_X2(const a, b, fa, fb: Single): boolean;
@@ -320,7 +320,7 @@ var
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
       rad := fa * BoxHalfSize[1] + fb * BoxHalfSize[2];
-      Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+      Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
     { ======================== Y-tests ======================== }
@@ -333,7 +333,7 @@ var
       if p0<p2 then begin min := p0; max := p2; end else
                     begin min := p2; max := p0; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
-      Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+      Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
     function AXISTEST_Y1(const a, b, fa, fb: Single): boolean;
@@ -345,7 +345,7 @@ var
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[2];
-      Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+      Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
     { ======================== Z-tests ======================== }
@@ -358,7 +358,7 @@ var
       if p2<p1 then begin min := p2; max := p1; end else
                     begin min := p1; max := p2; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
-      Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+      Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
     function AXISTEST_Z0(const a, b, fa, fb: Single): boolean;
@@ -370,7 +370,7 @@ var
       if p0<p1 then begin min := p0; max := p1; end else
                     begin min := p1; max := p0; end;
       rad := fa * BoxHalfSize[0] + fb * BoxHalfSize[1];
-      Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+      Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
     end;
 
     procedure FindMinMax(const x0, x1, x2: Single; out min, max: Single);
@@ -443,18 +443,18 @@ var
 
     { test in X-direction }
     FindMinMax(TriangleMoved.Data[0].Data[0], TriangleMoved.Data[1].Data[0], TriangleMoved.Data[2].Data[0], min, max);
-    if (min >  boxhalfsize[0] + EqualityEpsilon) or
-       (max < -boxhalfsize[0] - EqualityEpsilon) then Exit(false);
+    if (min >  boxhalfsize[0] + Epsilon) or
+       (max < -boxhalfsize[0] - Epsilon) then Exit(false);
 
     { test in Y-direction }
     FindMinMax(TriangleMoved.Data[0].Data[1], TriangleMoved.Data[1].Data[1], TriangleMoved.Data[2].Data[1], min, max);
-    if (min >  boxhalfsize[1] + EqualityEpsilon) or
-       (max < -boxhalfsize[1] - EqualityEpsilon) then Exit(false);
+    if (min >  boxhalfsize[1] + Epsilon) or
+       (max < -boxhalfsize[1] - Epsilon) then Exit(false);
 
     { test in Z-direction }
     FindMinMax(TriangleMoved.Data[0].Data[2], TriangleMoved.Data[1].Data[2], TriangleMoved.Data[2].Data[2], min, max);
-    if (min >  boxhalfsize[2] + EqualityEpsilon) or
-       (max < -boxhalfsize[2] - EqualityEpsilon) then Exit(false);
+    if (min >  boxhalfsize[2] + Epsilon) or
+       (max < -boxhalfsize[2] - Epsilon) then Exit(false);
 
     { tests 2)
       test if the box intersects the plane of the triangle
@@ -477,9 +477,9 @@ var
       and 1e-3 is enough for these tests... That's assuming that we have
       IsBox3DTriangleCollision implementation based on Single type. }
     {Write(TestName, ': ');
-    EqualityEpsilon := 1e-3;
+    Epsilon := 1e-3;
     Write(Box.IsTriangleCollision(Triangle), ' ');
-    EqualityEpsilon := 1e-6;
+    Epsilon := 1e-6;
     Write(Box.IsTriangleCollision(Triangle), ' ');
     Write(CorrectResult, ' ');
     Write(Box.IsTriangleCollision(Triangle), ' ');
@@ -490,9 +490,9 @@ var
 const
   A = 1.980401039123535;
 var
-  OldBox3DPlaneCollisionEqualityEpsilon: Double;
+  OldBox3DPlaneCollisionEpsilon: Double;
 begin
-  EqualityEpsilon := 1e-5;
+  Epsilon := 1e-5;
 
   Box.Data[0].Data[0] := -7.721179485321045;
   Box.Data[0].Data[1] := -3.115305423736572;
@@ -530,17 +530,17 @@ begin
   Triangle.Data[2].Data[1] := -26.554182052612305;
   Triangle.Data[2].Data[2] := -A;
 
-  { Looks like for this test, even larger Box3DPlaneCollisionEqualityEpsilon
+  { Looks like for this test, even larger Box3DPlaneCollisionEpsilon
     is needed.
     At least under x86_64 (tested on Linux with fpc 2.2.4 and trunk on 2009-08-21,
     tested again with FPC 3.1.1 from 2015-11).
     And probably on armel / armhf too. }
-  OldBox3DPlaneCollisionEqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon;
-  Box3DPlaneCollisionEqualityEpsilon := 1e-3;
+  OldBox3DPlaneCollisionEpsilon := Box3DPlaneCollisionEpsilon;
+  Box3DPlaneCollisionEpsilon := 1e-3;
 
   DoTest('2', true);
 
-  Box3DPlaneCollisionEqualityEpsilon := OldBox3DPlaneCollisionEqualityEpsilon;
+  Box3DPlaneCollisionEpsilon := OldBox3DPlaneCollisionEpsilon;
 
   Box.Data[0].Data[0] := 0.283733367919922;
   Box.Data[0].Data[1] := -47.603790283203125;

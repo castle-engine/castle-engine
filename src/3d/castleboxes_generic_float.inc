@@ -27,15 +27,15 @@ function IsCenteredBox3DPlaneCollision(
   castle.wrl test VRML model, so yes, these errors produce real errors
   (they make some valid triangles not appear at all in the octree, so collision detection
   and picking fail on these areas).
-  Otherwise floating point errors will force you to define really large EqualityEpsilon:
-  when trying to set this experimentally, I had to set EqualityEpsilon = 1e-3 (even
-  EqualityEpsilon = 1e-4 was still too small epsilon !).
+  Otherwise floating point errors will force you to define really large Epsilon:
+  when trying to set this experimentally, I had to set Epsilon = 1e-3 (even
+  Epsilon = 1e-4 was still too small epsilon !).
 
-  With Double, I can use EqualityEpsilon below. OK, that's stil a large epsilon...
+  With Double, I can use Epsilon below. OK, that's stil a large epsilon...
   You can test on VRML models like malfunction/trunk/vrmls/wawoz.wrl:
   view3dscene (when compiled with -dDEBUG) with fail loading
   (Assert(AddedSomewhere) will trigger) with too small epsilon. }
-{$define EqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon}
+{$define Epsilon := Box3DPlaneCollisionEpsilon}
 
 var
   I: Integer;
@@ -57,14 +57,14 @@ begin
   if Plane[0] * VMin[0] +
      Plane[1] * VMin[1] +
      Plane[2] * VMin[2] +
-     Plane[3] > EqualityEpsilon then
+     Plane[3] > Epsilon then
     Exit(false);
 
   { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
   Result :=  Plane[0] * VMax[0] +
              Plane[1] * VMax[1] +
              Plane[2] * VMax[2] +
-             Plane[3] >= -EqualityEpsilon;
+             Plane[3] >= -Epsilon;
 end;
 
-{$undef EqualityEpsilon}
+{$undef Epsilon}

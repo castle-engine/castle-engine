@@ -772,15 +772,15 @@ end;
 
 procedure TTestCastleVectors.TestApproximateScale;
 const
-  EqualityEpsilon = 0.0001;
+  Epsilon = 0.0001;
 begin
-  AssertSameValue(2, Approximate3DScale(2, 2, 2), EqualityEpsilon);
-  AssertSameValue(-2, Approximate3DScale(-2, -2, -2), EqualityEpsilon);
-  AssertSameValue(1, Approximate3DScale(1, 1, 1), EqualityEpsilon);
-  AssertSameValue(-1, Approximate3DScale(-1, -1, -1), EqualityEpsilon);
-  AssertSameValue(7/3, Approximate3DScale(1, 3, 3), EqualityEpsilon);
-  AssertSameValue(-7/3, Approximate3DScale(-1, -3, -3), EqualityEpsilon);
-  AssertSameValue(1, Approximate3DScale(-1, 1, 1), EqualityEpsilon);
+  AssertSameValue(2, Approximate3DScale(2, 2, 2), Epsilon);
+  AssertSameValue(-2, Approximate3DScale(-2, -2, -2), Epsilon);
+  AssertSameValue(1, Approximate3DScale(1, 1, 1), Epsilon);
+  AssertSameValue(-1, Approximate3DScale(-1, -1, -1), Epsilon);
+  AssertSameValue(7/3, Approximate3DScale(1, 3, 3), Epsilon);
+  AssertSameValue(-7/3, Approximate3DScale(-1, -3, -3), Epsilon);
+  AssertSameValue(1, Approximate3DScale(-1, 1, 1), Epsilon);
 end;
 
 initialization

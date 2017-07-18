@@ -33,7 +33,7 @@ uses CastleVectors, CastleControls;
 
 procedure TTestCastleControls.TestFloatSliderRoundAndClamp;
 const
-  EqualityEpsilon = 0.001;
+  Epsilon = 0.001;
 var
   F: TCastleFloatSlider;
 begin
@@ -42,53 +42,53 @@ begin
     F.Min := 10;
     F.Max := 20;
     F.MultipleOf := 0;
-    AssertSameValue(12, F.RoundAndClamp(12), EqualityEpsilon);
-    AssertSameValue(11, F.RoundAndClamp(11), EqualityEpsilon);
-    AssertSameValue(10.1, F.RoundAndClamp(10.1), EqualityEpsilon);
-    AssertSameValue(10.9, F.RoundAndClamp(10.9), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(10), EqualityEpsilon);
-    AssertSameValue(20, F.RoundAndClamp(20), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(5), EqualityEpsilon);
-    AssertSameValue(20, F.RoundAndClamp(25), EqualityEpsilon);
+    AssertSameValue(12, F.RoundAndClamp(12), Epsilon);
+    AssertSameValue(11, F.RoundAndClamp(11), Epsilon);
+    AssertSameValue(10.1, F.RoundAndClamp(10.1), Epsilon);
+    AssertSameValue(10.9, F.RoundAndClamp(10.9), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(10), Epsilon);
+    AssertSameValue(20, F.RoundAndClamp(20), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(5), Epsilon);
+    AssertSameValue(20, F.RoundAndClamp(25), Epsilon);
 
     F.Min := 10;
     F.Max := 20;
     F.MultipleOf := 3;
-    AssertSameValue(12, F.RoundAndClamp(12), EqualityEpsilon);
-    AssertSameValue(12, F.RoundAndClamp(11), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(10.1), EqualityEpsilon);
-    AssertSameValue(12, F.RoundAndClamp(10.9), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(10), EqualityEpsilon);
-    AssertSameValue(20, F.RoundAndClamp(20), EqualityEpsilon);
-    AssertSameValue(15, F.RoundAndClamp(14), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(5), EqualityEpsilon);
-    AssertSameValue(20, F.RoundAndClamp(25), EqualityEpsilon);
+    AssertSameValue(12, F.RoundAndClamp(12), Epsilon);
+    AssertSameValue(12, F.RoundAndClamp(11), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(10.1), Epsilon);
+    AssertSameValue(12, F.RoundAndClamp(10.9), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(10), Epsilon);
+    AssertSameValue(20, F.RoundAndClamp(20), Epsilon);
+    AssertSameValue(15, F.RoundAndClamp(14), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(5), Epsilon);
+    AssertSameValue(20, F.RoundAndClamp(25), Epsilon);
 
     F.Min := 10;
     F.Max := 20;
     F.MultipleOf := -3;
-    AssertSameValue(12, F.RoundAndClamp(12), EqualityEpsilon);
-    AssertSameValue(12, F.RoundAndClamp(11), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(10.1), EqualityEpsilon);
-    AssertSameValue(12, F.RoundAndClamp(10.9), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(10), EqualityEpsilon);
-    AssertSameValue(20, F.RoundAndClamp(20), EqualityEpsilon);
-    AssertSameValue(15, F.RoundAndClamp(14), EqualityEpsilon);
-    AssertSameValue(10, F.RoundAndClamp(5), EqualityEpsilon);
-    AssertSameValue(20, F.RoundAndClamp(25), EqualityEpsilon);
+    AssertSameValue(12, F.RoundAndClamp(12), Epsilon);
+    AssertSameValue(12, F.RoundAndClamp(11), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(10.1), Epsilon);
+    AssertSameValue(12, F.RoundAndClamp(10.9), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(10), Epsilon);
+    AssertSameValue(20, F.RoundAndClamp(20), Epsilon);
+    AssertSameValue(15, F.RoundAndClamp(14), Epsilon);
+    AssertSameValue(10, F.RoundAndClamp(5), Epsilon);
+    AssertSameValue(20, F.RoundAndClamp(25), Epsilon);
 
     F.Min := -20;
     F.Max := -10;
     F.MultipleOf := 3;
-    AssertSameValue(-12, F.RoundAndClamp(-12), EqualityEpsilon);
-    AssertSameValue(-12, F.RoundAndClamp(-11), EqualityEpsilon);
-    AssertSameValue(-10, F.RoundAndClamp(-10.1), EqualityEpsilon);
-    AssertSameValue(-12, F.RoundAndClamp(-10.9), EqualityEpsilon);
-    AssertSameValue(-10, F.RoundAndClamp(-10), EqualityEpsilon);
-    AssertSameValue(-20, F.RoundAndClamp(-20), EqualityEpsilon);
-    AssertSameValue(-15, F.RoundAndClamp(-14), EqualityEpsilon);
-    AssertSameValue(-10, F.RoundAndClamp(-5), EqualityEpsilon);
-    AssertSameValue(-20, F.RoundAndClamp(-25), EqualityEpsilon);
+    AssertSameValue(-12, F.RoundAndClamp(-12), Epsilon);
+    AssertSameValue(-12, F.RoundAndClamp(-11), Epsilon);
+    AssertSameValue(-10, F.RoundAndClamp(-10.1), Epsilon);
+    AssertSameValue(-12, F.RoundAndClamp(-10.9), Epsilon);
+    AssertSameValue(-10, F.RoundAndClamp(-10), Epsilon);
+    AssertSameValue(-20, F.RoundAndClamp(-20), Epsilon);
+    AssertSameValue(-15, F.RoundAndClamp(-14), Epsilon);
+    AssertSameValue(-10, F.RoundAndClamp(-5), Epsilon);
+    AssertSameValue(-20, F.RoundAndClamp(-25), Epsilon);
   finally FreeAndNil(F) end;
 end;
 

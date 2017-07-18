@@ -914,7 +914,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
-      const EqualityEpsilon: Double): boolean; override;
+      const Epsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -1097,7 +1097,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
-      const EqualityEpsilon: Double): boolean; override;
+      const Epsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -3571,9 +3571,9 @@ begin
 end;
 
 function TSFNode.Equals(SecondValue: TX3DField;
-  const EqualityEpsilon: Double): boolean;
+  const Epsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+ Result := (inherited Equals(SecondValue, Epsilon)) and
    (SecondValue is TSFNode) and
    (TSFNode(SecondValue).Value = Value);
 end;
@@ -4072,9 +4072,9 @@ begin
 end;
 
 function TMFNode.Equals(SecondValue: TX3DField;
-  const EqualityEpsilon: Double): boolean;
+  const Epsilon: Double): boolean;
 begin
-  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+  Result := (inherited Equals(SecondValue, Epsilon)) and
     (SecondValue is TMFNode) and
     (TMFNode(SecondValue).Items.Equals(Items));
 end;

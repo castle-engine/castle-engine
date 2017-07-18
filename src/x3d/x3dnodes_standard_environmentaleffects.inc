@@ -630,14 +630,14 @@ begin
         So Distance < 0 should be equivalent to Distance = 0. }
       MaxVar(Distance, 0);
 
-      if Distance >= FogVisibilityRangeScaled - SingleEqualityEpsilon then
+      if Distance >= FogVisibilityRangeScaled - SingleEpsilon then
         Color := FdColor.Value else
         ApplyDistance(Distance);
     end else
     begin
       DistanceSqr := PointsDistanceSqr(Position, VertexPos);
 
-      if DistanceSqr >= Sqr(FogVisibilityRangeScaled - SingleEqualityEpsilon) then
+      if DistanceSqr >= Sqr(FogVisibilityRangeScaled - SingleEpsilon) then
         Color := FdColor.Value else
         ApplyDistance(Sqrt(DistanceSqr));
 

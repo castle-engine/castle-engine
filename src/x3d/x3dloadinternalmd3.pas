@@ -585,7 +585,7 @@ begin
         frame will result in one frame inside TCastlePrecalculatedAnimation.
         So don't try to merge these frames (on the assumption that
         they are not merged in MD3... so hopefully there's no need for it ?). }
-      Animation.EqualityEpsilon := 0.0;
+      Animation.Epsilon := 0.0;
 
       { Really, no sensible default for Loop/Backwards here...
         I set Loop to @false, otherwise it's not clear for user when

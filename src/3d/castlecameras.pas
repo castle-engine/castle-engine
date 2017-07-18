@@ -3424,7 +3424,7 @@ end;
 function TWalkCamera.RealPreferredHeightMargin: Single;
 begin
   { I tried using here something smaller like
-    SingleEqualityEpsilon, but this was not good. }
+    SingleEpsilon, but this was not good. }
   Result := RealPreferredHeight * 0.01;
 end;
 
@@ -4061,18 +4061,18 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           go to nearest integer value.
 
           Note that we avoid changing HeadBobbingPosition by less
-          than SingleEqualityEpsilon, just to be on the safe side
+          than SingleEpsilon, just to be on the safe side
           and avoid any "corner cases", when HeadBobbingPosition
           would switch between going up and down repeatedly. }
         FracHeadBobbingPosition := Frac(HeadBobbingPosition);
         if FracHeadBobbingPosition > 0.5 then
         begin
-          if 1 - FracHeadBobbingPosition > SingleEqualityEpsilon then
+          if 1 - FracHeadBobbingPosition > SingleEpsilon then
             HeadBobbingPosition += Min(HeadBobbingGoingDownSpeed * SecondsPassed,
               1 - FracHeadBobbingPosition);
         end else
         begin
-          if FracHeadBobbingPosition > SingleEqualityEpsilon then
+          if FracHeadBobbingPosition > SingleEpsilon then
             HeadBobbingPosition -= Min(HeadBobbingGoingDownSpeed * SecondsPassed,
               FracHeadBobbingPosition);
         end;

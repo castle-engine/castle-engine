@@ -117,7 +117,7 @@ function Vector4Single(const V: TVector4Double): TVector4; deprecated 'use Vecto
 { Various compatibility functions (on Single) }
 
 function FloatsEqual(const A, B: Single): boolean; deprecated 'use Math.SameValue';
-function FloatsEqual(const A, B: Single; const EqualityEpsilon: Single): boolean; deprecated 'use Math.SameValue';
+function FloatsEqual(const A, B: Single; const Epsilon: Single): boolean; deprecated 'use Math.SameValue';
 function FloatToNiceStr(const A: Single): string; deprecated 'use Format(''%f'', [Value])';
 function FloatToRawStr(const A: Single): string; deprecated 'use Format(''%g'', [Value])';
 function Zero(const A: Single): boolean; deprecated 'use Math.IsZero';
@@ -189,9 +189,9 @@ function VectorDotProduct(const V1, V2: TVector4): Single; deprecated 'use TVect
 function VectorsEqual(const V1, V2: TVector2): boolean; deprecated 'use TVector2.Equals(V1, V2)';
 function VectorsEqual(const V1, V2: TVector3): boolean; deprecated 'use TVector3.Equals(V1, V2)';
 function VectorsEqual(const V1, V2: TVector4): boolean; deprecated 'use TVector4.Equals(V1, V2)';
-function VectorsEqual(const V1, V2: TVector2; const EqualityEpsilon: Single): boolean; deprecated 'use TVector2.Equals(V1, V2, EqualityEpsilon)';
-function VectorsEqual(const V1, V2: TVector3; const EqualityEpsilon: Single): boolean; deprecated 'use TVector3.Equals(V1, V2, EqualityEpsilon)';
-function VectorsEqual(const V1, V2: TVector4; const EqualityEpsilon: Single): boolean; deprecated 'use TVector4.Equals(V1, V2, EqualityEpsilon)';
+function VectorsEqual(const V1, V2: TVector2; const Epsilon: Single): boolean; deprecated 'use TVector2.Equals(V1, V2, Epsilon)';
+function VectorsEqual(const V1, V2: TVector3; const Epsilon: Single): boolean; deprecated 'use TVector3.Equals(V1, V2, Epsilon)';
+function VectorsEqual(const V1, V2: TVector4; const Epsilon: Single): boolean; deprecated 'use TVector4.Equals(V1, V2, Epsilon)';
 function VectorsPerfectlyEqual(const V1, V2: TVector2): boolean; deprecated 'use TVector2.PerfectlyEquals(V1, V2)';
 function VectorsPerfectlyEqual(const V1, V2: TVector3): boolean; deprecated 'use TVector3.PerfectlyEquals(V1, V2)';
 function VectorsPerfectlyEqual(const V1, V2: TVector4): boolean; deprecated 'use TVector4.PerfectlyEquals(V1, V2)';
@@ -298,9 +298,9 @@ begin
   Result := SameValue(A, B);
 end;
 
-function FloatsEqual(const A, B, EqualityEpsilon: Single): boolean;
+function FloatsEqual(const A, B, Epsilon: Single): boolean;
 begin
-  Result := SameValue(A, B, EqualityEpsilon);
+  Result := SameValue(A, B, Epsilon);
 end;
 
 function FloatToNiceStr(const A: Single): string;
@@ -645,19 +645,19 @@ begin
   Result := TVector4.Equals(V1, V2);
 end;
 
-function VectorsEqual(const V1, V2: TVector2; const EqualityEpsilon: Single): boolean;
+function VectorsEqual(const V1, V2: TVector2; const Epsilon: Single): boolean;
 begin
-  Result := TVector2.Equals(V1, V2, EqualityEpsilon);
+  Result := TVector2.Equals(V1, V2, Epsilon);
 end;
 
-function VectorsEqual(const V1, V2: TVector3; const EqualityEpsilon: Single): boolean;
+function VectorsEqual(const V1, V2: TVector3; const Epsilon: Single): boolean;
 begin
-  Result := TVector3.Equals(V1, V2, EqualityEpsilon);
+  Result := TVector3.Equals(V1, V2, Epsilon);
 end;
 
-function VectorsEqual(const V1, V2: TVector4; const EqualityEpsilon: Single): boolean;
+function VectorsEqual(const V1, V2: TVector4; const Epsilon: Single): boolean;
 begin
-  Result := TVector4.Equals(V1, V2, EqualityEpsilon);
+  Result := TVector4.Equals(V1, V2, Epsilon);
 end;
 
 function VectorsPerfectlyEqual(const V1, V2: TVector2): boolean;

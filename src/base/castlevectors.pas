@@ -116,12 +116,19 @@
   @bold(About floating-point precision:)
 
   @unorderedList(
-    @item(Floating-point operations are never precise.
-      This unit always uses FloatsEqual
-      and variables SingleEqualityEpsilon, DoubleEqualityEpsilon
-      and ExtendedEpsilonEquality to compare floats with some small
-      tolerance. Sometimes you may want to adjust these
-      variables to somewhat fine-tune the comparisons.)
+    @item(As floating-point operations are never precise,
+      when comparing floating-point values we always use some epsilon
+      to "tolerate" some small differences.
+
+      This epsilon is either done through the standard Math.SameValue and Math.IsZero
+      or by using our own SingleEpsilon and DoubleEpsilon constants
+      (they are equal to standard Math unit epsilon values).
+      The floating-point vector and matrix comparison methods,
+      like @link(TVector3.Equals) and @link(TVector3.IsZero), compare with such epsilon.
+
+      If you really want to compare things precisely,
+      use methods like @link(TVector3.PerfectlyEquals) or @link(TVector3.IsPerfectlyZero).
+    )
 
     @item(For collision-detecting routines, the general strategy
       in case of uncertainty (when we're not sure whether there

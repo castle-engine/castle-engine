@@ -27,7 +27,7 @@
   {$endif}
 
     { For demo_models/vrml_1/flat_triangles_octree_test.wrl,
-      this really needs some tolerance. And SingleEqualityEpsilon
+      this really needs some tolerance. And SingleEpsilon
       was too small. }
     function Box3DContainsTolerant(
       const pt: TVector3; const box: TBox3D): boolean;

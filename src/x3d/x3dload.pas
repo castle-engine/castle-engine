@@ -126,7 +126,7 @@ procedure Load3DSequence(
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
+  out Epsilon: Single;
   out TimeLoop, TimeBackwards: boolean); deprecated 'use Load3D instead of Load3DSequence';
 
 const
@@ -239,7 +239,7 @@ procedure Load3DSequence(const URL: string;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
+  out Epsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
   procedure LoadNodeAnimation(Animations: TNodeInterpolator.TAnimationList);
@@ -256,7 +256,7 @@ procedure Load3DSequence(const URL: string;
     for I := 0 to Animation.KeyTimes.Count - 1 do
       KeyTimes.Add(Animation.KeyTimes[I]);
     ScenesPerTime   := Animation.ScenesPerTime;
-    EqualityEpsilon := Animation.EqualityEpsilon;
+    Epsilon         := Animation.Epsilon;
     TimeLoop        := Animation.Loop;
     TimeBackwards   := Animation.Backwards;
 
@@ -268,7 +268,7 @@ procedure Load3DSequence(const URL: string;
     KeyNodes.Add(Node);
     KeyTimes.Add(0); { One time value }
     ScenesPerTime := 1;      { doesn't matter }
-    EqualityEpsilon := 0.0;  { doesn't matter }
+    Epsilon := 0.0;  { doesn't matter }
     TimeLoop := false;      { doesn't matter }
     TimeBackwards := false; { doesn't matter }
   end;

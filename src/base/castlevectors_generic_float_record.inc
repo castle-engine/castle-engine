@@ -113,14 +113,14 @@ type
     { Are all components equal to zero (within some epsilon margin). }
     function IsZero: boolean; overload;
 
-    { Are all components equal to zero (within EqualityEpsilon margin). }
-    function IsZero(const EqualityEpsilon: TGenericScalar): boolean; overload;
+    { Are all components equal to zero (within Epsilon margin). }
+    function IsZero(const Epsilon: TGenericScalar): boolean; overload;
 
     function IsPerfectlyZero: boolean;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
     class function Equals(const V1, V2: TGenericVector2): boolean; static; overload;
-    class function Equals(const V1, V2: TGenericVector2; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean; static; overload;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static;
@@ -240,14 +240,14 @@ type
     { Are all components equal to zero (within some epsilon margin). }
     function IsZero: boolean; overload;
 
-    { Are all components equal to zero (within EqualityEpsilon margin). }
-    function IsZero(const EqualityEpsilon: TGenericScalar): boolean; overload;
+    { Are all components equal to zero (within Epsilon margin). }
+    function IsZero(const Epsilon: TGenericScalar): boolean; overload;
 
     function IsPerfectlyZero: boolean;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
     class function Equals(const V1, V2: TGenericVector3): boolean; static; overload;
-    class function Equals(const V1, V2: TGenericVector3; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean; static; overload;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static;
@@ -345,14 +345,14 @@ type
     { Are all components equal to zero (within some epsilon margin). }
     function IsZero: boolean; overload;
 
-    { Are all components equal to zero (within EqualityEpsilon margin). }
-    function IsZero(const EqualityEpsilon: TGenericScalar): boolean; overload;
+    { Are all components equal to zero (within Epsilon margin). }
+    function IsZero(const Epsilon: TGenericScalar): boolean; overload;
 
     function IsPerfectlyZero: boolean;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
     class function Equals(const V1, V2: TGenericVector4): boolean; static; overload;
-    class function Equals(const V1, V2: TGenericVector4; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean; static; overload;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector4): boolean; static;
@@ -428,7 +428,7 @@ type
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
     class function Equals(const M1, M2: TGenericMatrix2): boolean; static; overload;
-    class function Equals(const M1, M2: TGenericMatrix2; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): boolean; static; overload;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean; static;
@@ -512,7 +512,7 @@ type
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
     class function Equals(const M1, M2: TGenericMatrix3): boolean; static; overload;
-    class function Equals(const M1, M2: TGenericMatrix3; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): boolean; static; overload;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean; static;
@@ -613,7 +613,7 @@ type
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
     class function Equals(const M1, M2: TGenericMatrix4): boolean; static; overload;
-    class function Equals(const M1, M2: TGenericMatrix4; const EqualityEpsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): boolean; static; overload;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean; static;
@@ -768,10 +768,10 @@ begin
     Math.IsZero(Data[1]);
 end;
 
-function TGenericVector2.IsZero(const EqualityEpsilon: TGenericScalar): boolean;
+function TGenericVector2.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(Data[0]) < EqualityEpsilon) and
-            (System.Abs(Data[1]) < EqualityEpsilon);
+  Result := (System.Abs(Data[0]) < Epsilon) and
+            (System.Abs(Data[1]) < Epsilon);
 end;
 
 function TGenericVector2.IsPerfectlyZero: boolean;
@@ -786,13 +786,13 @@ begin
     SameValue(V1.Data[1], V2.Data[1]);
 end;
 
-class function TGenericVector2.Equals(const V1, V2: TGenericVector2; const EqualityEpsilon: TGenericScalar): boolean;
+class function TGenericVector2.Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean;
 begin
-  if EqualityEpsilon = 0 then
+  if Epsilon = 0 then
     Result := (V1.Data[0] = V2.Data[0]) and
               (V1.Data[1] = V2.Data[1]) else
-    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < EqualityEpsilon) and
-              (System.Abs(V1.Data[1]-V2.Data[1]) < EqualityEpsilon);
+    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < Epsilon) and
+              (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon);
 end;
 
 class function TGenericVector2.PerfectlyEquals(const V1, V2: TGenericVector2): boolean;
@@ -977,11 +977,11 @@ begin
     Math.IsZero(Data[2]);
 end;
 
-function TGenericVector3.IsZero(const EqualityEpsilon: TGenericScalar): boolean;
+function TGenericVector3.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(Data[0]) < EqualityEpsilon) and
-            (System.Abs(Data[1]) < EqualityEpsilon) and
-            (System.Abs(Data[2]) < EqualityEpsilon);
+  Result := (System.Abs(Data[0]) < Epsilon) and
+            (System.Abs(Data[1]) < Epsilon) and
+            (System.Abs(Data[2]) < Epsilon);
 end;
 
 function TGenericVector3.IsPerfectlyZero: boolean;
@@ -997,15 +997,15 @@ begin
     SameValue(V1.Data[2], V2.Data[2]);
 end;
 
-class function TGenericVector3.Equals(const V1, V2: TGenericVector3; const EqualityEpsilon: TGenericScalar): boolean;
+class function TGenericVector3.Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean;
 begin
-  if EqualityEpsilon = 0 then
+  if Epsilon = 0 then
     Result := (V1.Data[0] = V2.Data[0]) and
               (V1.Data[1] = V2.Data[1]) and
               (V1.Data[2] = V2.Data[2]) else
-    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < EqualityEpsilon) and
-              (System.Abs(V1.Data[1]-V2.Data[1]) < EqualityEpsilon) and
-              (System.Abs(V1.Data[2]-V2.Data[2]) < EqualityEpsilon);
+    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < Epsilon) and
+              (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon) and
+              (System.Abs(V1.Data[2]-V2.Data[2]) < Epsilon);
 end;
 
 class function TGenericVector3.PerfectlyEquals(const V1, V2: TGenericVector3): boolean;
@@ -1171,12 +1171,12 @@ begin
     Math.IsZero(Data[3]);
 end;
 
-function TGenericVector4.IsZero(const EqualityEpsilon: TGenericScalar): boolean;
+function TGenericVector4.IsZero(const Epsilon: TGenericScalar): boolean;
 begin
-  Result := (System.Abs(Data[0]) < EqualityEpsilon) and
-            (System.Abs(Data[1]) < EqualityEpsilon) and
-            (System.Abs(Data[2]) < EqualityEpsilon) and
-            (System.Abs(Data[3]) < EqualityEpsilon);
+  Result := (System.Abs(Data[0]) < Epsilon) and
+            (System.Abs(Data[1]) < Epsilon) and
+            (System.Abs(Data[2]) < Epsilon) and
+            (System.Abs(Data[3]) < Epsilon);
 end;
 
 function TGenericVector4.IsPerfectlyZero: boolean;
@@ -1193,17 +1193,17 @@ begin
     SameValue(V1.Data[3], V2.Data[3]);
 end;
 
-class function TGenericVector4.Equals(const V1, V2: TGenericVector4; const EqualityEpsilon: TGenericScalar): boolean;
+class function TGenericVector4.Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean;
 begin
-  if EqualityEpsilon = 0 then
+  if Epsilon = 0 then
     Result := (V1.Data[0] = V2.Data[0]) and
               (V1.Data[1] = V2.Data[1]) and
               (V1.Data[2] = V2.Data[2]) and
               (V1.Data[3] = V2.Data[3]) else
-    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < EqualityEpsilon) and
-              (System.Abs(V1.Data[1]-V2.Data[1]) < EqualityEpsilon) and
-              (System.Abs(V1.Data[2]-V2.Data[2]) < EqualityEpsilon) and
-              (System.Abs(V1.Data[3]-V2.Data[3]) < EqualityEpsilon);
+    Result := (System.Abs(V1.Data[0]-V2.Data[0]) < Epsilon) and
+              (System.Abs(V1.Data[1]-V2.Data[1]) < Epsilon) and
+              (System.Abs(V1.Data[2]-V2.Data[2]) < Epsilon) and
+              (System.Abs(V1.Data[3]-V2.Data[3]) < Epsilon);
 end;
 
 class function TGenericVector4.PerfectlyEquals(const V1, V2: TGenericVector4): boolean;
@@ -1404,17 +1404,17 @@ begin
     SameValue(M1.Data[1, 1], M2.Data[1, 1]);
 end;
 
-class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2; const EqualityEpsilon: TGenericScalar): boolean;
+class function TGenericMatrix2.Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): boolean;
 begin
-  if EqualityEpsilon = 0 then
+  if Epsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < EqualityEpsilon);
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon);
 end;
 
 class function TGenericMatrix2.PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean;
@@ -1647,23 +1647,23 @@ begin
     SameValue(M1.Data[2, 2], M2.Data[2, 2]);
 end;
 
-class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3; const EqualityEpsilon: TGenericScalar): boolean;
+class function TGenericMatrix3.Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): boolean;
 begin
-  if EqualityEpsilon = 0 then
+  if Epsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < Epsilon) and
 
-      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < EqualityEpsilon);
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < Epsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < Epsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon);
 end;
 
 class function TGenericMatrix3.PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean;
@@ -2135,31 +2135,31 @@ begin
     SameValue(M1.Data[3, 3], M2.Data[3, 3]);
 end;
 
-class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4; const EqualityEpsilon: TGenericScalar): boolean;
+class function TGenericMatrix4.Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): boolean;
 begin
-  if EqualityEpsilon = 0 then
+  if Epsilon = 0 then
     Result := CompareMem(@M1, @M2, SizeOf(M1))
   else
     Result :=
-      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[0, 0] - M2.Data[0, 0]) < Epsilon) and
+      (System.Abs(M1.Data[0, 1] - M2.Data[0, 1]) < Epsilon) and
+      (System.Abs(M1.Data[0, 2] - M2.Data[0, 2]) < Epsilon) and
+      (System.Abs(M1.Data[0, 3] - M2.Data[0, 3]) < Epsilon) and
 
-      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[1, 0] - M2.Data[1, 0]) < Epsilon) and
+      (System.Abs(M1.Data[1, 1] - M2.Data[1, 1]) < Epsilon) and
+      (System.Abs(M1.Data[1, 2] - M2.Data[1, 2]) < Epsilon) and
+      (System.Abs(M1.Data[1, 3] - M2.Data[1, 3]) < Epsilon) and
 
-      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) < EqualityEpsilon) and
+      (System.Abs(M1.Data[2, 0] - M2.Data[2, 0]) < Epsilon) and
+      (System.Abs(M1.Data[2, 1] - M2.Data[2, 1]) < Epsilon) and
+      (System.Abs(M1.Data[2, 2] - M2.Data[2, 2]) < Epsilon) and
+      (System.Abs(M1.Data[2, 3] - M2.Data[2, 3]) < Epsilon) and
 
-      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) < EqualityEpsilon) and
-      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) < EqualityEpsilon);
+      (System.Abs(M1.Data[3, 0] - M2.Data[3, 0]) < Epsilon) and
+      (System.Abs(M1.Data[3, 1] - M2.Data[3, 1]) < Epsilon) and
+      (System.Abs(M1.Data[3, 2] - M2.Data[3, 2]) < Epsilon) and
+      (System.Abs(M1.Data[3, 3] - M2.Data[3, 3]) < Epsilon);
 end;
 
 class function TGenericMatrix4.PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean;

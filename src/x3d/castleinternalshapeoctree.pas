@@ -255,7 +255,7 @@ begin
     3 orthogonal planes determined by MiddlePoint then
     this ItemIndex will be said to collide with both sides
     of this plane. }
-  SubnodesBox.ExpandMe(SingleEqualityEpsilon);
+  SubnodesBox.ExpandMe(SingleEpsilon);
 
   SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 

@@ -719,7 +719,7 @@ begin
         (because it replicates what happens in CosAngleBetweenVectors)
         would be to add
 
-          (P1.LengthSqr * P2.LengthSqr < SingleEqualityEpsilon)
+          (P1.LengthSqr * P2.LengthSqr < SingleEpsilon)
 
         But that's not really a future-proof solution, to repeat this code.
         It's safer (even if a little slower) to capture exception here. }

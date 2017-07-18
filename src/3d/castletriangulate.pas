@@ -395,7 +395,7 @@ begin
     NewTriangle(0, 1, 2) else
   if Count > 3 then
   begin
-    EpsilonForEmptyCheck := SingleEqualityEpsilon;
+    EpsilonForEmptyCheck := SingleEpsilon;
     FailureWarningDone := false;
 
     { calculate Center := average of all vertexes }

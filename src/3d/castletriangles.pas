@@ -702,7 +702,7 @@ begin
      You can calculate this using TTriangle3.Direction, since TTriangle3.Direction calculates
      exactly this TVector3.CrossProduct.
   *)
-  Result := Direction.LengthSqr > Sqr(SingleEqualityEpsilon);
+  Result := Direction.LengthSqr > Sqr(SingleEpsilon);
   { This would detect as invalid too much (the tests/data/model_manifold.wrl
     would fail then, not all edges detected manifold. }
   // Result := not IsZero(Direction.LengthSqr);
@@ -936,10 +936,10 @@ begin
   WV := TVector3.DotProduct(W, V);
   WU := TVector3.DotProduct(W, U);
 
-  One := 1 + SingleEqualityEpsilon;
+  One := 1 + SingleEpsilon;
 
   S := (UV * WV - VV * WU) / Denominator;
-  if (S < -SingleEqualityEpsilon) or
+  if (S < -SingleEpsilon) or
     { As far as only correctness is concerned, check for S > One isn't needed
       here since we will check S+T <= One later anyway.
       But for the speed, it's better to make here a quick check
@@ -951,7 +951,7 @@ begin
     Exit(false);
 
   T := (UV * WU - UU * WV) / Denominator;
-  if T < -SingleEqualityEpsilon then
+  if T < -SingleEpsilon then
     Exit(false);
 
   Result := S + T <= One;
@@ -968,11 +968,11 @@ begin
   V := Tri.Data[2] - Tri.Data[0];
   W := P - Tri.Data[0];
 
-  One := 1 + SingleEqualityEpsilon;
+  One := 1 + SingleEpsilon;
 
   Ortho := TVector3.CrossProduct(V, TriDir);
   S := TVector3.DotProduct(W, Ortho) / TVector3.DotProduct(U, Ortho);
-  if (S < -SingleEqualityEpsilon) or
+  if (S < -SingleEpsilon) or
     { As far as only correctness is concerned, check for S > One isn't needed
       here since we will check S+T <= One later anyway.
       But for the speed, it's better to make here a quick check
@@ -985,7 +985,7 @@ begin
 
   Ortho := TVector3.CrossProduct(U, TriDir);
   T := TVector3.DotProduct(W, Ortho) / TVector3.DotProduct(V, Ortho);
-  if T < -SingleEqualityEpsilon then
+  if T < -SingleEpsilon then
     Exit(false);
 
   Result := S + T <= One;
@@ -1017,8 +1017,8 @@ begin
     + (Tri.Data[2].Data[1] - Tri.Data[0].Data[1]) * P.Data[0]
     + (Tri.Data[0].Data[0] - Tri.Data[2].Data[0]) * P.Data[1]);
 
-  One := 1 + SingleEqualityEpsilon;
-  if (S < -SingleEqualityEpsilon) or
+  One := 1 + SingleEpsilon;
+  if (S < -SingleEpsilon) or
     { Like in 3D: checking this here is an optimization. }
      (S > One) then
     Exit(false);
@@ -1032,9 +1032,9 @@ begin
   { We could check at the end just this:
       Result := (S > 0) and (T > 0) and (1 - S - T > 0);
     Our more optimized version tries to exit early, and also applies
-    SingleEqualityEpsilon. }
+    SingleEpsilon. }
 
-  if T < -SingleEqualityEpsilon then
+  if T < -SingleEpsilon then
     Exit(false);
   Result := S + T <= One;
 end;

@@ -496,7 +496,7 @@ type
       const EmptyBoxDistance: Single): Single;
 
     function Equal(const Box2: TBox3D): boolean;
-    function Equal(const Box2: TBox3D; const EqualityEpsilon: Single): boolean;
+    function Equal(const Box2: TBox3D; const Epsilon: Single): boolean;
 
     { Diagonal of the box, zero if empty. }
     function Diagonal: Single;
@@ -618,8 +618,8 @@ var
     For implementation reasons, they always
     use Double precision (even when called with arguments with Single precision),
     and still have to use epsilon slightly larger than usual
-    CastleVectors.DoubleEqualityEpsilon. }
-  Box3DPlaneCollisionEqualityEpsilon: Double = 1e-5;
+    CastleVectors.DoubleEpsilon. }
+  Box3DPlaneCollisionEpsilon: Double = 1e-5;
 
 { Tests for collision between box3d centered around (0, 0, 0)
   and a plane.
@@ -1433,7 +1433,7 @@ function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
 }
 
 { The same comments about precision as for IsCenteredBox3DPlaneCollision apply also here. }
-{$define EqualityEpsilon := Box3DPlaneCollisionEqualityEpsilon}
+{$define Epsilon := Box3DPlaneCollisionEpsilon}
 
 {$ifdef TODO_CASTLE_HAS_DOUBLE_PRECISION}
 { When TODO_CASTLE_HAS_DOUBLE_PRECISION is defined, do these calculations using Double precision. }
@@ -1463,7 +1463,7 @@ var
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
     rad := fa * BoxHalfSize.Data[1] + fb * BoxHalfSize.Data[2];
-    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+    Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
   function AXISTEST_X2(const a, b, fa, fb: TScalar): boolean;
@@ -1475,7 +1475,7 @@ var
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize.Data[1] + fb * BoxHalfSize.Data[2];
-    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+    Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
   { ======================== Y-tests ======================== }
@@ -1488,7 +1488,7 @@ var
     if p0<p2 then begin min := p0; max := p2; end else
                   begin min := p2; max := p0; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[2];
-    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+    Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
   function AXISTEST_Y1(const a, b, fa, fb: TScalar): boolean;
@@ -1500,7 +1500,7 @@ var
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[2];
-    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+    Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
   { ======================== Z-tests ======================== }
@@ -1513,7 +1513,7 @@ var
     if p2<p1 then begin min := p2; max := p1; end else
                   begin min := p1; max := p2; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[1];
-    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+    Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
   function AXISTEST_Z0(const a, b, fa, fb: TScalar): boolean;
@@ -1525,7 +1525,7 @@ var
     if p0<p1 then begin min := p0; max := p1; end else
                   begin min := p1; max := p0; end;
     rad := fa * BoxHalfSize.Data[0] + fb * BoxHalfSize.Data[1];
-    Result := (min > rad + EqualityEpsilon) or (max < -rad - EqualityEpsilon);
+    Result := (min > rad + Epsilon) or (max < -rad - Epsilon);
   end;
 
 var
@@ -1588,18 +1588,18 @@ begin
 
   { test in X-direction }
   MinMax(TriangleMoved.Data[0].Data[0], TriangleMoved.Data[1].Data[0], TriangleMoved.Data[2].Data[0], min, max);
-  if (min >  boxhalfsize.Data[0] + EqualityEpsilon) or
-     (max < -boxhalfsize.Data[0] - EqualityEpsilon) then Exit(false);
+  if (min >  boxhalfsize.Data[0] + Epsilon) or
+     (max < -boxhalfsize.Data[0] - Epsilon) then Exit(false);
 
   { test in Y-direction }
   MinMax(TriangleMoved.Data[0].Data[1], TriangleMoved.Data[1].Data[1], TriangleMoved.Data[2].Data[1], min, max);
-  if (min >  boxhalfsize.Data[1] + EqualityEpsilon) or
-     (max < -boxhalfsize.Data[1] - EqualityEpsilon) then Exit(false);
+  if (min >  boxhalfsize.Data[1] + Epsilon) or
+     (max < -boxhalfsize.Data[1] - Epsilon) then Exit(false);
 
   { test in Z-direction }
   MinMax(TriangleMoved.Data[0].Data[2], TriangleMoved.Data[1].Data[2], TriangleMoved.Data[2].Data[2], min, max);
-  if (min >  boxhalfsize.Data[2] + EqualityEpsilon) or
-     (max < -boxhalfsize.Data[2] - EqualityEpsilon) then Exit(false);
+  if (min >  boxhalfsize.Data[2] + Epsilon) or
+     (max < -boxhalfsize.Data[2] - Epsilon) then Exit(false);
 
   { tests 2)
     test if the box intersects the plane of the triangle
@@ -1615,7 +1615,7 @@ end;
 {$undef TScalar}
 {$undef TVector3}
 {$undef TTriangle3}
-{$undef EqualityEpsilon}
+{$undef Epsilon}
 
 procedure TBox3D.BoundingSphere(
   var SphereCenter: TVector3; var SphereRadiusSqr: Single);
@@ -1973,13 +1973,13 @@ begin
       TVector3.Equals(Data[1], Box2.Data[1]);
 end;
 
-function TBox3D.Equal(const Box2: TBox3D; const EqualityEpsilon: Single): boolean;
+function TBox3D.Equal(const Box2: TBox3D; const Epsilon: Single): boolean;
 begin
   if IsEmpty then
     Result := Box2.IsEmpty else
     Result := (not Box2.IsEmpty) and
-      TVector3.Equals(Data[0], Box2.Data[0], EqualityEpsilon) and
-      TVector3.Equals(Data[1], Box2.Data[1], EqualityEpsilon);
+      TVector3.Equals(Data[0], Box2.Data[0], Epsilon) and
+      TVector3.Equals(Data[1], Box2.Data[1], Epsilon);
 end;
 
 function TBox3D.Diagonal: Single;

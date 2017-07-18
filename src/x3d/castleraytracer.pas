@@ -840,7 +840,7 @@ end;
 
   function IsLightSource(const Item: TTriangle): boolean;
   begin
-    Result := EmissiveColor(Item).LengthSqr > Sqr(SingleEqualityEpsilon);
+    Result := EmissiveColor(Item).LengthSqr > Sqr(SingleEpsilon);
   end;
 
 procedure TPathTracer.CollectLightItems(const Triangle: PTriangle);
@@ -1225,13 +1225,13 @@ const
         end;
 
         { notka : nie, ponizej nie mozna zamienic na test WeightsSum >
-          SingleEqualityEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
+          SingleEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
           ze WeightsSum jest wprawdzie duzo wieksze od zera ale samo
           Weights[ck] jest mikroskopijnie male (i po prostu mielismy duzo
           szczescia w losowaniu; path tracer robi tyle sciezek, tyle pixeli
           itd. ze nietrudno tutaj "przez przypadek" wylosowac mikroskopijnie
           mala wartosc). }
-        if Weights[ck] > SingleEqualityEpsilon then
+        if Weights[ck] > SingleEpsilon then
         begin
           IntersectNormal :=
             {$ifdef CONSERVE_TRIANGLE_MEMORY}
@@ -1270,7 +1270,7 @@ const
             jego wyboru sposrod czterech Colors[], czyli przez
             Weights[ck]/WeightsSum (bo to w koncu jest importance sampling)
             (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
-            > SingleEqualityEpsilon, sprawdzilismy to juz wczesniej). }
+            > SingleEpsilon, sprawdzilismy to juz wczesniej). }
           TracedCol := TVector3.MultiplyComponents(TracedCol, Colors[ck]);
           TracedCol *= WeightsSum / Weights[ck];
 

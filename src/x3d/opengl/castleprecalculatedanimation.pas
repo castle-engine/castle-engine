@@ -140,13 +140,13 @@ type
       by AOwnsFirstRootNode, but you cannot free it anyway while this is loaded.
 
       See @link(Load) for more information, including the meaning of
-      EqualityEpsilon. }
+      Epsilon. }
     procedure LoadCore(
       GetKeyNodeWithTime: TGetKeyNodeWithTime;
       KeyNodesCount: Cardinal;
       AOwnsFirstRootNode: boolean;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single);
+      const Epsilon: Single);
 
     function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -222,7 +222,7 @@ type
         over time, and you don't need TCastlePrecalculatedAnimation to insert any more
         scenes.)
 
-      @param(EqualityEpsilon
+      @param(Epsilon
         This will be used for comparing fields, to decide if two fields
         (and, consequently, nodes) are equal. It will be simply
         passed to TX3DField.Equals.
@@ -237,7 +237,7 @@ type
       AOwnsFirstRootNode: boolean;
       AKeyTimes: TSingleList;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single);
+      const Epsilon: Single);
 
     { Load precalculated animation by playing a single VRML/X3D file with
       events (interpolators, TimeSensor and such working).
@@ -249,7 +249,7 @@ type
 
       @param(ScenesPerTime
         tells with what density should the animation be recorded.
-        See @link(Load) for ScenesPerTime, EqualityEpsilon precise documentation.
+        See @link(Load) for ScenesPerTime, Epsilon precise documentation.
         Note that special value ScenesPerTime = 0 is interpreted here as
         "record only one, initial frame".)
 
@@ -260,7 +260,7 @@ type
       AOwnsRootNode: boolean;
       const ATimeBegin, ATimeEnd: Single;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single;
+      const Epsilon: Single;
       const ProgressTitle: string);
 
     { Load a dumb animation that consists of only one frame (so actually
@@ -270,7 +270,7 @@ type
       @orderedList(
         @item(KeyNodes list contains one specified node)
         @item(Times contain only one item 0.0)
-        @item(ScenesPerTime and EqualityEpsilon have some unimportant
+        @item(ScenesPerTime and Epsilon have some unimportant
           values --- they are not meaningfull when you have only one scene)
       )
 
@@ -288,7 +288,7 @@ type
 
       If you need more control over loading, for example you want to
       change some parameters at loading (for example, ScenesPerTime
-      and EqualityEpsilon of castle-anim-frames files), you should use
+      and Epsilon of castle-anim-frames files), you should use
       more flexible (and less comfortable to use)
       LoadFromFileToVars class procedure (specialized for castle-anim-frames files)
       or Load3DSequence (if you want to handle any files).
@@ -814,7 +814,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
   KeyNodesCount: Cardinal;
   AOwnsFirstRootNode: boolean;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single);
+  const Epsilon: Single);
 var
   SceneStatic: boolean;
   BakedAnimation: TNodeInterpolator.TBakedAnimation;
@@ -831,7 +831,7 @@ begin
   SceneStatic := not (TryFirstSceneDynamic and (KeyNodesCount = 1));
 
   BakedAnimation := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
-    ScenesPerTime, EqualityEpsilon);
+    ScenesPerTime, Epsilon);
   try
     FTimeBegin := BakedAnimation.TimeBegin;
     FTimeEnd := BakedAnimation.TimeEnd;
@@ -870,14 +870,14 @@ procedure TCastlePrecalculatedAnimation.Load(
   AOwnsFirstRootNode: boolean;
   AKeyTimes: TSingleList;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single);
+  const Epsilon: Single);
 begin
   Assert(KeyNodes.Count = AKeyTimes.Count);
   Load_KeyNodes := KeyNodes;
   Load_KeyTimes := AKeyTimes;
 
   LoadCore(@Load_GetKeyNodeWithTime, KeyNodes.Count,
-    AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
+    AOwnsFirstRootNode, ScenesPerTime, Epsilon);
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetKeyNodeWithTime(
@@ -908,7 +908,7 @@ procedure TCastlePrecalculatedAnimation.LoadFromEvents(
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single;
+  const Epsilon: Single;
   const ProgressTitle: string);
 var
   Count: Cardinal;
@@ -928,14 +928,14 @@ begin
       Progress.Init(Count, ProgressTitle);
       try
         LoadCore(@LoadFromEvents_GetKeyNodeWithTime_Progress, Count,
-          true, 0, EqualityEpsilon);
+          true, 0, Epsilon);
       finally
         Progress.Fini;
       end;
     end else
     begin
       LoadCore(@LoadFromEvents_GetKeyNodeWithTime, Count,
-        true, 0, EqualityEpsilon);
+        true, 0, Epsilon);
     end;
 
     { Although LoadCore sets FTimeEnd already, it may be a little
@@ -976,7 +976,7 @@ var
   Times: TSingleList;
   KeyNodes: TX3DNodeList;
   ScenesPerTime: Cardinal;
-  EqualityEpsilon: Single;
+  Epsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
   Times := TSingleList.Create;
@@ -985,11 +985,11 @@ begin
     {$warnings off}
     { deliberately using deprecated function in a deprecated unit }
     Load3DSequence(URL, AllowStdIn,
-      KeyNodes, Times, ScenesPerTime, EqualityEpsilon,
+      KeyNodes, Times, ScenesPerTime, Epsilon,
       NewTimeLoop, NewTimeBackwards);
     {$warnings on}
 
-    Load(KeyNodes, true, Times, ScenesPerTime, EqualityEpsilon);
+    Load(KeyNodes, true, Times, ScenesPerTime, Epsilon);
 
     if LoadTime then
     begin
