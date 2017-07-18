@@ -124,9 +124,16 @@ function Vector2Byte(const X, Y: Byte): TVector2Byte;
 function Vector3Byte(const X, Y, Z: Byte): TVector3Byte;
 function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte;
 
+{ Convert float vectors into byte vectors.
+  Each float component is converted such that float 0.0 (or less)
+  results in byte 0, float 1.0 (or more) results in byte 255.
+  Values between 0.0 and 1.0 are appropriately (linearly) converted
+  into the byte range.
+  @groupBegin }
 function Vector2Byte(const V: TVector2): TVector2Byte;
 function Vector3Byte(const V: TVector3): TVector3Byte;
 function Vector4Byte(const V: TVector4): TVector4Byte;
+{ @groupEnd }
 
 function Vector2(const V: TVector2Byte): TVector2; overload;
 function Vector3(const V: TVector3Byte): TVector3; overload;
