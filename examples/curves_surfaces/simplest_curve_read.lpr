@@ -22,8 +22,8 @@ begin
     FirstCurve := Curves[0];
     // That's it, you have the 1st curve from XML file.
     // Write some initial curve points.
-    Writeln(VectorToNiceStr(FirstCurve.Point(0.0)));
-    Writeln(VectorToNiceStr(FirstCurve.Point(0.1)));
-    Writeln(VectorToNiceStr(FirstCurve.Point(0.2)));
+    Writeln(FirstCurve.Point(0.0).ToString);
+    Writeln(FirstCurve.Point(0.1).ToString);
+    Writeln(FirstCurve.Point(0.2).ToString);
   finally FreeAndNil(Curves) end;
 end.

@@ -67,7 +67,7 @@ procedure Gets;
 
   function TwoVectorsToNiceStr(const tv:TALTwoVectors3f):string;
   begin
-    result:='at : ' +VectorToNiceStr(tv[0]) +', up : ' +VectorToNiceStr(tv[1]);
+    result:='at : ' +tv[0].ToString +', up : ' +tv[1].ToString;
   end;
 
 var

@@ -70,8 +70,9 @@ begin
     S.Append(Format('Touches (%d)', [Container.TouchesCount]));
     for I := 0 to Container.TouchesCount - 1 do
       S.Append(Format('Touch %d: FingerIndex %d, Position %s',
-        [I, Container.Touches[I].FingerIndex,
-         VectorToNiceStr(Container.Touches[I].Position) ]));
+        [I,
+         Container.Touches[I].FingerIndex,
+         Container.Touches[I].Position.ToString ]));
     UIFont.PrintStrings(10, 10, Yellow, S, false, 2);
   finally FreeAndNil(S) end;
 end;

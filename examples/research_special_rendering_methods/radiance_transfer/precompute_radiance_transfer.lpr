@@ -86,12 +86,12 @@ begin
       VertexTransfer := Addr(RadianceTransfer.List^[I * SHBasisCount]);
 
       { V = scene-space vertex coord }
-      V := MatrixMultPoint(Transform, Coord.List^[I]);
+      V := Transform.MultPoint(Coord.List^[I]);
 
       { N = scene-space normal coord
         TODO: MatrixMultDirection will not work under non-uniform scaling
         matrix correctly. }
-      N := Normalized(Transform.MultDirection(Normals.List^[I]));
+      N := Transform.MultDirection(Normals.List^[I]).Normalize;
 
       for SHBase := 0 to SHBasisCount - 1 do
         VertexTransfer[SHBase] := TVector3.Zero;
@@ -99,7 +99,7 @@ begin
       { In some nasty cases, smoothed normal may be zero, see e.g. spider_queen
         legs. Leave VertexTransfer[SHBase] as zeros in this case. }
 
-      if not ZeroVector(N) then
+      if not N.IsZero then
       begin
         { Integrate over hemisphere (around N). Actually, we could integrate
           over the sphere, but this is (on most models) a waste of time
@@ -124,14 +124,14 @@ begin
 
             RayDirectionPT := XYZToPhiTheta(RayDirection);
             for SHBase := 0 to SHBasisCount - 1 do
-              { VectorDotProduct below must be >= 0, since RayDirection was
+              { TVector3.DotProduct below must be >= 0, since RayDirection was
                 chosen at random within hemisphere around N.
-                So no need to do Max(0, VectorDotProduct(...)) below.
+                So no need to do Max(0, TVector3.DotProduct(...)) below.
 
                 We calculate only red component here, the rest will
                 be copied from it later. }
               VertexTransfer[SHBase].Data[0] += SHBasis(SHBase, RayDirectionPT) *
-                VectorDotProduct(N, RayDirection);
+                TVector3.DotProduct(N, RayDirection);
           end;
         end;
 

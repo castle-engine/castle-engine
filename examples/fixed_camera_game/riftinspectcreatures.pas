@@ -56,7 +56,7 @@ begin
   Text.Clear;
   SceneManager.Camera.GetView(Pos, Dir, Up);
   Text.Append(Format('Camera: pos %s, dir %s, up %s',
-    [ VectorToNiceStr(Pos), VectorToNiceStr(Dir), VectorToNiceStr(Up) ]));
+    [ Pos.ToString, Dir.ToString, Up.ToString ]));
   Text.Append(Format('World time : %f', [WorldTime]));
   Text.Append(Format('Creature state : %s', [CreatureStateName[Creature.State]]));
 

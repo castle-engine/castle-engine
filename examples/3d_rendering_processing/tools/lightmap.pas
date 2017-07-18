@@ -64,7 +64,7 @@ type
 procedure TriangleLightMapVar(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
-  const TrianglePos: TTriangle3Single;
+  const TrianglePos: TTriangle3;
   const RenderDir: TVector3);
 
 { Render the light map on a quad. Everything works exactly like with
@@ -103,7 +103,7 @@ end;
 procedure TriangleLightMapVar(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
-  const TrianglePos: TTriangle3Single;
+  const TrianglePos: TTriangle3;
   const RenderDir: TVector3);
 
 var RayNormVector: TVector3;
@@ -138,7 +138,7 @@ var
 begin
  { RayNormVector bedzie caly czas taki sam, bedzie to wektor normalny
    TrianglePos w kierunku RenderDir }
- RayNormVector := PlaneDirInDirection(TriangleNormPlane(TrianglePos), RenderDir);
+ RayNormVector := PlaneDirInDirection(TrianglePos.NormalizedPlane, RenderDir);
 
  { dzieki temu ze zawsze TrianglePos[1] jest mapowane na rog obrazka
    ktory jest caly pokryty tekstura (tzn. wycinek tekstury na obrazku
@@ -172,9 +172,9 @@ function QuadNormPlane(Quad: TQuad3Single): TVector4;
 { w naszym module Quad zawsze powinien byc planarny i jego oba trojkaty
   musza byc niezdegenerowane. Wiec mozemy po prostu policzyc normal
   quada jako normal jego dowolnego trojkata. }
-var Tri: TTriangle3Single absolute Quad;
+var Tri: TTriangle3 absolute Quad;
 begin
- Result := TriangleNormPlane(Tri);
+ Result := Tri.NormalizedPlane;
 end;
 
 procedure QuadLightMapVar(const Image: TCastleImage;

@@ -373,7 +373,7 @@ begin
   Writeln('To squeeze positions into texture we use scale = ',
     PositionScale.ToString, ' and shift ',
     PositionShift.ToString, ' (bbox is ',
-    Scene.BoundingBox.ToNiceStr, ')');
+    Scene.BoundingBox.ToString, ')');
 
   { initialize textures }
   FreeAndNil(ElementsPositionAreaTex);

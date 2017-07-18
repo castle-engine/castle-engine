@@ -71,7 +71,7 @@ type
   end;
 
 const
-  DragonInitialPosition: TVector3 = (2800, 800, 400);
+  DragonInitialPosition: TVector3 = (Data: (2800, 800, 400));
   DragonSpeedX = 1000.0;
   DragonSpeedY =  500.0;
   DragonScale = 0.5;
@@ -228,18 +228,18 @@ const
   { Initial camera. Like initialized by T2DSceneManager,
     but shifted to the right, to see the middle of the background scene
     where we can see the castle and dragon at initial position. }
-  Camera2DPos: TVector3 = (2100, 0, 0);
-  Camera2DDir: TVector3 = (0, 0, -1);
-  Camera2DUp : TVector3 = (0, 1, 0);
+  Camera2DPos: TVector3 = (Data: (2100, 0, 0));
+  Camera2DDir: TVector3 = (Data: (0, 0, -1));
+  Camera2DUp : TVector3 = (Data: (0, 1, 0));
 
   { Alternative camera view where it is clearly visible we are in 3D :).
     This corresponds to the initial camera 2D view above, so it is also shited
     as necessary to see the castle and dragon at initial position.
     Hint: to pick camera values experimentally, use view3dscene
     and Console->Print Current Camera.. menu item. }
-  Camera3DPos: TVector3 = (329.62554931640625, 581.32476806640625, 2722.44921875);
-  Camera3DDir: TVector3 = (0.6533169150352478, -0.13534674048423767, -0.7448880672454834);
-  Camera3DUp : TVector3 = (0.10390279442071915, 0.99060952663421631, -0.088864780962467194);
+  Camera3DPos: TVector3 = (Data: (329.62554931640625, 581.32476806640625, 2722.44921875));
+  Camera3DDir: TVector3 = (Data: (0.6533169150352478, -0.13534674048423767, -0.7448880672454834));
+  Camera3DUp : TVector3 = (Data: (0.10390279442071915, 0.99060952663421631, -0.088864780962467194));
 begin
   if not CameraView3D.Pressed then
   begin
@@ -263,7 +263,7 @@ begin
     { when both "Camera Follows Dragon" and "Camera 3D View" are pressed,
       we need to offset the above calculation }
     if CameraView3D.Pressed then
-      Pos[0] += Camera3DPos[0] - Camera2DPos[0];
+      Pos.Data[0] += Camera3DPos[0] - Camera2DPos[0];
   end;
 
   { Limit camera span, to not show blackness to the left or right.
@@ -272,8 +272,8 @@ begin
     into account screen width.  }
   if not CameraView3D.Pressed then
     Pos[0] := Clamped(Pos[0],
-      Background.BoundingBox.Data[0][0],
-      Background.BoundingBox.Data[1][0] - SceneManager.CurrentProjectionWidth);
+      Background.BoundingBox.Data[0].Data[0],
+      Background.BoundingBox.Data[1].Data[0] - SceneManager.CurrentProjectionWidth);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);

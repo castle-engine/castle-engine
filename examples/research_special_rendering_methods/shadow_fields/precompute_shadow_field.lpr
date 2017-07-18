@@ -123,7 +123,7 @@ begin
       SF.LastSphereRadius := 8 * BoundingSphereRadius;
 
       Writeln(Format('Shadow fields spheres: middle %s, radius (%f - %f)',
-        [ VectorToNiceStr(SF.SpheresMiddle),
+        [ SF.SpheresMiddle.ToString,
           SF.FirstSphereRadius, SF.LastSphereRadius ]));
 
       ProcessTimerBegin;

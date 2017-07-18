@@ -140,7 +140,7 @@ procedure TMySceneManager.RenderFromViewEverything;
   var
     Dot: Single;
   begin
-    Dot := VectorDotProduct(LightPosition, Plane);
+    Dot := TVector4.DotProduct(LightPosition, Plane);
 
     { Based on http://www.devmaster.net/articles/shadows/ }
 

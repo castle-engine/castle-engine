@@ -84,7 +84,7 @@ begin
     SurfaceUp := F.ReadVector3;
     { The lengths of our direction vectors express speed in old terms
       (1/50 of the second), rescale them here. }
-    SurfaceMoveSpeed := VectorLen(SurfaceDir) * 50;
+    SurfaceMoveSpeed := SurfaceDir.Length * 50;
     SurfaceDir.NormalizeMe;
     N := F.ReadInteger;
     Load(Surface1);

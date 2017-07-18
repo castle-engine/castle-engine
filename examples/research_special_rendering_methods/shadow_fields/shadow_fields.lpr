@@ -436,7 +436,7 @@ var
   end;
 
 begin
-  Position := MatrixMultPoint(Shape.State.Transform, VertexPosition);
+  Position := Shape.State.Transform.MultPoint(VertexPosition);
 
   CasterBeforeLocalLight :=
     PointsDistanceSqr(Position, NavigatorData[ntCaster].Pos) <

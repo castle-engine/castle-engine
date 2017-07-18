@@ -470,7 +470,7 @@ var
     { since Position <> WantsToWalkPos, we know that
       MoveDirectionMax is non-zero }
     MoveDirectionMax := WantsToWalkPos - Position;
-    MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / VectorLen(MoveDirectionMax);
+    MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / MoveDirectionMax.Length;
     if MoveDirectionCurrentScale >= 1.0 then
     begin
       { This means that
@@ -498,13 +498,13 @@ begin
 
     { TODO: check collisions with the scene before changing Position }
 
-    IsTargetPos := VectorsEqual(Position, WantsToWalkPos);
-    IsTargetDir := VectorsEqual(Direction, WantsToWalkDir);
+    IsTargetPos := TVector3.Equals(Position, WantsToWalkPos);
+    IsTargetDir := TVector3.Equals(Direction, WantsToWalkDir);
 
     if not IsTargetDir then
     begin
       { compare Direction and WantsToWalkDir with more tolerance }
-      RotationAxis := VectorProduct(Direction, WantsToWalkDir);
+      RotationAxis := TVector3.CrossProduct(Direction, WantsToWalkDir);
       AngleToTarget := RotationAngleRadBetweenVectors(Direction, WantsToWalkDir, RotationAxis);
       if Abs(AngleToTarget) < 0.01 then
         IsTargetDir := true;
@@ -543,7 +543,7 @@ end;
 procedure TPlayer.WantsToWalk(const Value: TVector3);
 begin
   WantsToWalkPos := Value;
-  WantsToWalkDir := Normalized(WantsToWalkPos - Direction);
+  WantsToWalkDir := (WantsToWalkPos - Direction).Normalize;
   { fix WantsToWalkDir, to avoid wild rotations.
     Without this, our avatar would wildly change up when walking to some
     higher/lower target. This is coupled with the fact that currently

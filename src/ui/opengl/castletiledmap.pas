@@ -972,8 +972,8 @@ begin
       Probability := StrToFloat(TmpStr);
 
     WritelnLog('LoadTile Id', IntToStr(Id));
-    WritelnLog('LoadTile Terrain', VectorToNiceStr(Terrain));
-    WritelnLog('LoadTile Probability', FloatToStr(Probability));
+    WritelnLog('LoadTile Terrain', Terrain.ToString);
+    WritelnLog('LoadTile Probability %f', [Probability]);
 
     I := TXMLElementIterator.Create(Element);
     try
