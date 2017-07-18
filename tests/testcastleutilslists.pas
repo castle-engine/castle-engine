@@ -251,9 +251,9 @@ begin
     vecs.Add(Vector3(1.0, 2.0, 3.0));
     vecs.Add(Vector3(4.0, 5.0, 6.0));
     vecs.Add(Vector3(1.0, 2.0, 3.0));
-    AssertTrue(    VectorsPerfectlyEqual(vecs.L[0], vecs.L[2]));
-    AssertTrue(not VectorsPerfectlyEqual(vecs.L[0], vecs.L[1]));
-    AssertTrue(not VectorsPerfectlyEqual(vecs.L[2], vecs.L[1]));
+    AssertTrue(    TVector3.PerfectlyEquals(vecs.L[0], vecs.L[2]));
+    AssertTrue(not TVector3.PerfectlyEquals(vecs.L[0], vecs.L[1]));
+    AssertTrue(not TVector3.PerfectlyEquals(vecs.L[2], vecs.L[1]));
   finally FreeAndNil(vecs) end;
 end;
 
@@ -272,13 +272,13 @@ begin
     V2.AddRange(V1);
     V2.Add(Vector3(6.0, 6.0, 6.0));
 
-    AssertTrue(VectorsPerfectlyEqual(V1.L[0], V2.L[1]));
-    AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[2]));
-    AssertTrue(VectorsPerfectlyEqual(V1.L[2], V2.L[3]));
+    AssertTrue(TVector3.PerfectlyEquals(V1.L[0], V2.L[1]));
+    AssertTrue(TVector3.PerfectlyEquals(V1.L[1], V2.L[2]));
+    AssertTrue(TVector3.PerfectlyEquals(V1.L[2], V2.L[3]));
 
     V2.AddSubRange(V1, 1, 1);
     AssertTrue(V2.Count = 6);
-    AssertTrue(VectorsPerfectlyEqual(V1.L[1], V2.L[5]));
+    AssertTrue(TVector3.PerfectlyEquals(V1.L[1], V2.L[5]));
   finally
     FreeAndNil(V1);
     FreeAndNil(V2);
@@ -303,10 +303,10 @@ begin
     V3.AssignLerp(0.2, V1, V2, 0, 1, 2);
     AssertTrue(V3.Count = 2);
 
-    AssertTrue(VectorsPerfectlyEqual(V3.L[0], Lerp(0.2,
+    AssertTrue(TVector3.PerfectlyEquals(V3.L[0], Lerp(0.2,
       Vector3(1.0, 2.0, 3.0),
       Vector3(11.0, 12.0, 13.0))));
-    AssertTrue(VectorsPerfectlyEqual(V3.L[1], Lerp(0.2,
+    AssertTrue(TVector3.PerfectlyEquals(V3.L[1], Lerp(0.2,
       Vector3(4.0, 5.0, 6.0),
       Vector3(17.0, 18.0, 19.0))));
   finally
