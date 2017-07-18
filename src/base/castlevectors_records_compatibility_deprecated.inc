@@ -72,10 +72,6 @@ const
     (Data: (0, 0, 0, 1))
   ) deprecated 'use TVector4.One';
 
-  ExtendedEqualityEpsilon = 1E-16 deprecated 'use Math.SameValue or Math.IsZero to compare, not this explicit epsilon';
-  DoubleEqualityEpsilon = 1E-12 deprecated 'use Math.SameValue or Math.IsZero to compare, not this explicit epsilon';
-  SingleEqualityEpsilon = 1E-4 deprecated 'use Math.SameValue or Math.IsZero to compare, not this explicit epsilon';
-
 type
   TVector2Single = TVector2 deprecated;
   TVector3Single = TVector3 deprecated;

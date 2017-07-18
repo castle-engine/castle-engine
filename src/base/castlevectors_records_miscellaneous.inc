@@ -25,6 +25,19 @@ type
   EPlanesParallel = class(Exception);
   ELinesParallel = class(Exception);
 
+const
+  { Epsilon used by default when compating Single (Single-precision float values).
+    Compatible with Math unit value, used by standard routines like Math.SameValue
+    and Math.IsZero. }
+  SingleEqualityEpsilon = 1E-4;
+
+  { Epsilon used by default when compating Double (Double-precision float values).
+    Compatible with Math unit value, used by standard routines like Math.SameValue
+    and Math.IsZero. }
+  DoubleEqualityEpsilon = 1E-12;
+
+  ExtendedEqualityEpsilon = 1E-16 deprecated 'use only Math functions, like SameValue and IsZero, to operate on Extended type; CastleVectors unit does not deal with Extended type anymore';
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
