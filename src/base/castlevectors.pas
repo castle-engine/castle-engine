@@ -137,10 +137,6 @@
 
 unit CastleVectors;
 
-{ It is necessary to define this before including castleconf.inc,
-  to make KEEP_OLD_VECTOR_API work. }
-{$define CASTLE_VECTORS_PROHIBIT_NEW_NAMES}
-
 {$I castleconf.inc}
 
 interface
@@ -154,77 +150,6 @@ uses SysUtils, Generics.Collections,
 
 {$define read_interface}
 
-{$ifdef KEEP_OLD_VECTOR_API}
-
-{$I castlevectors_deprecated_initial_definitions.inc}
-{$I castlevectors_deprecated_constructors.inc}
-{$I castlevectors_deprecated_lists.inc}
-{$I castlevectors_deprecated_operators.inc}
-{$I castlevectors_deprecated_various.inc}
-
-{$I castlevectors_deprecated_byte.inc}
-{$I castlevectors_deprecated_integer.inc}
-{$I castlevectors_deprecated_cardinal.inc}
-{$I castlevectors_deprecated_single.inc}
-{$I castlevectors_deprecated_double.inc}
-{$I castlevectors_deprecated_extended.inc}
-
-{$define TScalar := Single}
-{$define TVector2 := TVector2Single}
-{$define TVector3 := TVector3Single}
-{$define TVector4 := TVector4Single}
-{$define PVector2 := PVector2Single}
-{$define PVector3 := PVector3Single}
-{$define PVector4 := PVector4Single}
-{$define TMatrix2 := TMatrix2Single}
-{$define TMatrix3 := TMatrix3Single}
-{$define TMatrix4 := TMatrix4Single}
-{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Single}
-{$define ZeroVector3 := ZeroVector3Single}
-{$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define Vector3 := Vector3Single}
-{$I castlevectors_deprecated_generic_float.inc}
-
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-{$define TScalar := Double}
-{$define TVector2 := TVector2Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define PVector2 := PVector2Double}
-{$define PVector3 := PVector3Double}
-{$define PVector4 := PVector4Double}
-{$define TMatrix2 := TMatrix2Double}
-{$define TMatrix3 := TMatrix3Double}
-{$define TMatrix4 := TMatrix4Double}
-{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Double}
-{$define ZeroVector3 := ZeroVector3Double}
-{$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define Vector3 := Vector3Double}
-{$I castlevectors_deprecated_generic_float.inc}
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
-
-{$undef TScalar}
-{$undef TVector2}
-{$undef TVector3}
-{$undef TVector4}
-{$undef PVector2}
-{$undef PVector3}
-{$undef PVector4}
-{$undef TMatrix2}
-{$undef TMatrix3}
-{$undef TMatrix4}
-{$undef ScalarEqualityEpsilon}
-{$undef UnitVector3}
-{$undef ZeroVector3}
-{$undef IdentityMatrix4}
-{$undef Vector3}
-
-{$endif KEEP_OLD_VECTOR_API}
-
-{$I vectors_new_names_begin.inc}
-
 {$I castlevectors_records_float.inc}
 {$I castlevectors_records_single.inc}
 {$I castlevectors_records_byte.inc}
@@ -234,8 +159,6 @@ uses SysUtils, Generics.Collections,
 {$I castlevectors_records_lists.inc}
 {$I castlevectors_records_compatibility_deprecated.inc}
 {$I castlevectors_records_miscellaneous.inc}
-
-{$I vectors_new_names_end.inc}
 
 {$undef read_interface}
 
@@ -245,76 +168,6 @@ uses Math, CastleStringUtils, CastleColors;
 
 {$define read_implementation}
 
-{$ifdef KEEP_OLD_VECTOR_API}
-
-{$I castlevectors_deprecated_constructors.inc}
-{$I castlevectors_deprecated_lists.inc}
-{$I castlevectors_deprecated_operators.inc}
-{$I castlevectors_deprecated_various.inc}
-
-{$I castlevectors_deprecated_byte.inc}
-{$I castlevectors_deprecated_integer.inc}
-{$I castlevectors_deprecated_cardinal.inc}
-{$I castlevectors_deprecated_single.inc}
-{$I castlevectors_deprecated_double.inc}
-{$I castlevectors_deprecated_extended.inc}
-
-{$define TScalar := Single}
-{$define TVector2 := TVector2Single}
-{$define TVector3 := TVector3Single}
-{$define TVector4 := TVector4Single}
-{$define PVector2 := PVector2Single}
-{$define PVector3 := PVector3Single}
-{$define PVector4 := PVector4Single}
-{$define TMatrix2 := TMatrix2Single}
-{$define TMatrix3 := TMatrix3Single}
-{$define TMatrix4 := TMatrix4Single}
-{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Single}
-{$define ZeroVector3 := ZeroVector3Single}
-{$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define Vector3 := Vector3Single}
-{$I castlevectors_deprecated_generic_float.inc}
-
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-{$define TScalar := Double}
-{$define TVector2 := TVector2Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define PVector2 := PVector2Double}
-{$define PVector3 := PVector3Double}
-{$define PVector4 := PVector4Double}
-{$define TMatrix2 := TMatrix2Double}
-{$define TMatrix3 := TMatrix3Double}
-{$define TMatrix4 := TMatrix4Double}
-{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Double}
-{$define ZeroVector3 := ZeroVector3Double}
-{$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define Vector3 := Vector3Double}
-{$I castlevectors_deprecated_generic_float.inc}
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
-
-{$undef TScalar}
-{$undef TVector2}
-{$undef TVector3}
-{$undef TVector4}
-{$undef PVector2}
-{$undef PVector3}
-{$undef PVector4}
-{$undef TMatrix2}
-{$undef TMatrix3}
-{$undef TMatrix4}
-{$undef ScalarEqualityEpsilon}
-{$undef UnitVector3}
-{$undef ZeroVector3}
-{$undef IdentityMatrix4}
-{$undef Vector3}
-
-{$endif KEEP_OLD_VECTOR_API}
-
-{$I vectors_new_names_begin.inc}
-
 {$I castlevectors_records_miscellaneous.inc}
 {$I castlevectors_records_float.inc}
 {$I castlevectors_records_single.inc}
@@ -324,7 +177,5 @@ uses Math, CastleStringUtils, CastleColors;
 {$I castlevectors_records_smallint.inc}
 {$I castlevectors_records_lists.inc}
 {$I castlevectors_records_compatibility_deprecated.inc}
-
-{$I vectors_new_names_end.inc}
 
 end.

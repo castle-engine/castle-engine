@@ -219,44 +219,4 @@
   CASTLE_HAS_DOUBLE_PRECISION defined now. }
 {$define CASTLE_HAS_DOUBLE_PRECISION}
 
-{ Define this to keep the old array-based types defined as before
-  (in Castle Game Engine <= 6.2). So there will be TVector3Single
-  defined as "array [0..2] of Single".
-  They will coexist with new record-based types
-  (like TVector3), and the assignment operator is overloaded to
-  automatically convert between TVector3Single and TVector3.
-
-  Sometimes this provides a better compatibility with code developed
-  for Castle Game Engine <= 6.2:
-  - TVector3Single constants can remain as they are (no need for "Data:")
-  - arrays of TVector3Single remain "array of arrays",
-    so can be accessed as "V[1, 2]"
-  - V[0] is a variable, so "V[0] += 12" works,
-    and "V[0]" can be used as "var" or "out" parameters
-
-  Sometimes the compatibility is worse, as e.g.
-  - "out" and "var" parameters
-    using new TVector3 become incompatible with your TVector3Single
-    variables (this affects e.g. cameras GetView methods, Image.Resize3x3)
-  - "array of TVector3Single" and "array of TGenericVector3" are now incompatible
-  - TVector3SingleList vs TVector3List are now incompatible
-
-  Neither version removes all incompatibilities because e.g.:
-  - Box[0, 0] must be now Box[0].Data[0],
-  - and constants for TCastleColor are new record-based.
-
-  TODO: what should be the default?
-
-  Undefine this to remove the old array-based types and API.
-  Instead, the TVector3Single will be a deprecated alias for TVector3.
-  This provides a smooth migration path to the new record-based API,
-  but will sometimes immediately require some adjustments in your code. }
-{ $define KEEP_OLD_VECTOR_API}
-
-{$ifdef KEEP_OLD_VECTOR_API}
-  {$ifndef CASTLE_VECTORS_PROHIBIT_NEW_NAMES}
-    {$I vectors_new_names_begin.inc}
-  {$endif}
-{$endif}
-
 {$endif not CASTLE_CONF_INCLUDED}

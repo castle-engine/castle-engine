@@ -485,13 +485,6 @@ type
     procedure GetView(out APos, ADir, AUp: TVector3); virtual; abstract;
     procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); virtual; abstract;
 
-    {$ifdef KEEP_OLD_VECTOR_API}
-    {$I vectors_new_names_end.inc}
-    procedure GetView(out APos, ADir, AUp: TVector3Single);
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
-    {$I vectors_new_names_begin.inc}
-    {$endif KEEP_OLD_VECTOR_API}
-
     { Set camera view from vectors: position, direction, up.
 
       Direction, Up and GravityUp do not have to be normalized,
@@ -2282,35 +2275,6 @@ begin
     Projection,
     RayOrigin, RayDirection);
 end;
-
-{$ifdef KEEP_OLD_VECTOR_API}
-
-{$I vectors_new_names_end.inc}
-
-procedure TCamera.GetView(out APos, ADir, AUp: TVector3Single);
-var
-  P, D, U: TVector3;
-begin
-  GetView(P, D, U);
-  APos := P;
-  ADir := D;
-  AUp  := U;
-end;
-
-procedure TCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
-var
-  P, D, U, G: TVector3;
-begin
-  GetView(P, D, U, G);
-  APos := P;
-  ADir := D;
-  AUp  := U;
-  AGravityUp := G;
-end;
-
-{$I vectors_new_names_begin.inc}
-
-{$endif KEEP_OLD_VECTOR_API}
 
 procedure TCamera.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
