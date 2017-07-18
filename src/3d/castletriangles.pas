@@ -927,7 +927,7 @@ var
 begin
   U := Tri.Data[1] - Tri.Data[0];
   V := Tri.Data[2] - Tri.Data[0];
-  UV := DotProduct(U, V);
+  UV := TVector3.DotProduct(U, V);
   UU := U.LengthSqr; { = TVector3.DotProduct(U, U) }
   VV := V.LengthSqr; { = TVector3.DotProduct(V, V) }
   Denominator := Sqr(UV) - UU * VV;
