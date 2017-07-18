@@ -251,10 +251,12 @@ begin
   Faces.FdCoordIndex.Items.Add(3);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
-  Rect[0][0] := MapRange(TexRect[0][0], 0, 1, -Width / 2, Width / 2);
-  Rect[1][0] := MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2);
-  Rect[0][1] := MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2);
-  Rect[1][1] := MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2);
+  Rect[0] := Vector2(
+    MapRange(TexRect[0][0], 0, 1, -Width / 2, Width / 2),
+    MapRange(TexRect[0][1], 0, 1, -Height / 2, Height / 2));
+  Rect[1] := Vector2(
+    MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2),
+    MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2));
   Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[0][1], 0));
   Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[0][1], 0));
   Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[1][1], 0));

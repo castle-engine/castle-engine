@@ -223,12 +223,9 @@ begin
   MinY *= Size * Spacing;
   MaxY *= Size * Spacing;
 
-  Result.Data[0][0] := MinX;
-  Result.Data[0][1] := MinY;
-  Result.Data[0][2] := 0;
-  Result.Data[1][0] := MaxX;
-  Result.Data[1][1] := MaxY;
-  Result.Data[1][2] := 0;
+  Result := Box3D(
+    Vector3(MinX, MinY, 0),
+    Vector3(MaxX, MaxY, 0));
 end;
 
 function TAsciiTextNode_1.LocalBoundingBox(State: TX3DGraphTraverseState;
