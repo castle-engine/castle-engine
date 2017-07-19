@@ -65,7 +65,7 @@ var InResult: TBooleanList;
    for i := 0 to Points.Count-1 do
     if not InResult[i] then
     begin
-     if FloatsEqual(Points.L[i][1], Points.L[Start][1]) then
+     if SameValue(Points.L[i][1], Points.L[Start][1]) then
      begin
       if RightSide = (Points.L[i][0] > Points.L[Start][0]) then
       begin
