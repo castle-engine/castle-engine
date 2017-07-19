@@ -2873,7 +2873,7 @@ begin
 
   { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
     But set it also here, just in case we have Joint without surrounding
-    Humanoid node. (Otherwise MatrixMultPoint may raise errors in
+    Humanoid node. (Otherwise Matrix.MultPoint may raise errors in
     THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
     testcase is
     view3dscene ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }

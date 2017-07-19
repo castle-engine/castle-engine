@@ -3072,7 +3072,7 @@ begin
     So assume that GetView is called very often, and make it instant. }
   M := MatrixInverse;
 
-  { These MatrixMultPoint/Direction should never fail with ETransformedResultInvalid.
+  { These MultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
     which preserve points/directions (4th component in homogeneous coordinates)
     nicely. }

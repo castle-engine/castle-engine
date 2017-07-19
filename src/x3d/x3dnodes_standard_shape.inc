@@ -1305,7 +1305,7 @@ end;
 
 procedure TMaterialInfo.CalculateTransDiffuse(out V: TVector3);
 begin
-  V := TVector3.MultiplyComponents(DiffuseColor, TransmissionColor);
+  V := DiffuseColor * TransmissionColor;
 end;
 
 function TMaterialInfo.ShininessExp: Single;

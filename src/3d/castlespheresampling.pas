@@ -172,7 +172,7 @@ begin
   NewX := NewX * SphereRadius/NewXLen;
   NewY := NewY * SphereRadius/NewYLen;
 
-  { TODO: create MatrixMultPointVar to speed this a little bit? }
+  { TODO: create TMatrix4.MultPointVar to speed this a little bit? }
   Result := TransformToCoordsMatrix(TVector3.Zero,
     NewX,
     NewY,

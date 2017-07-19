@@ -209,7 +209,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I] := TVector3.MultiplyComponents(L[I], V);
+    L[I] := L[I] * V;
 end;
 
 procedure TVector3List.AssignLerp(const Fraction: Single;

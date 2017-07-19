@@ -166,7 +166,7 @@ begin
   {$endif}
 
   { Factors += diffuse factor }
-  Factors += TVector3.MultiplyComponents(MaterialDiffuseColor, DiffuseTextureColor) *
+  Factors += (MaterialDiffuseColor * DiffuseTextureColor) *
     (Node.FdIntensity.Value * TVector3.DotProduct(Normal, LightDirNorm));
 
   {$ifndef CAMERA_INDEP}
@@ -177,5 +177,5 @@ begin
         MaterialShininessExp));
   {$endif}
 
-  Result := TVector3.MultiplyComponents(Result, Factors);
+  Result := Result * Factors;
 end;

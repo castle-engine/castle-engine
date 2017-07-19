@@ -68,6 +68,9 @@ type
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector2): TGenericVector2;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector2): TGenericVector2;
+    { Vector * vector makes a component-wise multiplication.
+      This is consistent with GLSL and other vector APIs. }
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector2): TGenericVector2;
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
 
     procedure Init(const X, Y: TGenericScalar);
@@ -94,9 +97,6 @@ type
       your code without a need. Optimize only parts that are proven bottlenecks,
       otherwise don't make the code less readable for the sake of speed.) }
     function LengthSqr: TGenericScalar;
-
-    { Multiply vectors component-wise. }
-    class function MultiplyComponents(const V1, V2: TGenericVector2): TGenericVector2; static;
 
     { Calculate a new vector scaled so that it has length equal to NewLength.
       NewLength may be negative, in which case we'll negate the vector
@@ -174,6 +174,9 @@ type
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector3): TGenericVector3;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector3): TGenericVector3;
+    { Vector * vector makes a component-wise multiplication.
+      This is consistent with GLSL and other vector APIs. }
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector3): TGenericVector3;
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
 
     procedure Init(const X, Y, Z: TGenericScalar);
@@ -200,9 +203,6 @@ type
       your code without a need. Optimize only parts that are proven bottlenecks,
       otherwise don't make the code less readable for the sake of speed.) }
     function LengthSqr: TGenericScalar;
-
-    { Multiply vectors component-wise. }
-    class function MultiplyComponents(const V1, V2: TGenericVector3): TGenericVector3; static;
 
     { Calculate a new vector scaled so that it has length equal to NewLength.
       NewLength may be negative, in which case we'll negate the vector
@@ -302,6 +302,9 @@ type
     class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector4): TGenericVector4;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector4): TGenericVector4;
+    { Vector * vector makes a component-wise multiplication.
+      This is consistent with GLSL and other vector APIs. }
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector4): TGenericVector4;
     class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
 
     procedure Init(const X, Y, Z, W: TGenericScalar);
@@ -326,9 +329,6 @@ type
       your code without a need. Optimize only parts that are proven bottlenecks,
       otherwise don't make the code less readable for the sake of speed.) }
     function LengthSqr: TGenericScalar;
-
-    { Multiply vectors component-wise. }
-    class function MultiplyComponents(const V1, V2: TGenericVector4): TGenericVector4; static;
 
     { Calculate a new vector scaled so that it has length equal to NewLength.
       NewLength may be negative, in which case we'll negate the vector
@@ -397,6 +397,10 @@ type
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix2; const Scalar: TGenericScalar): TGenericMatrix2;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix2): TGenericMatrix2;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix2; const V: TGenericVector2): TGenericVector2;
+    { Matrix * matrix makes a normal matrix algebraic multiplication
+      (not component-wise multiplication).
+      Note that this is different from vectors, where vector * vector
+      makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix2): TGenericMatrix2;
 
     function ToString(const LineIndent: string = ''): string;
@@ -481,6 +485,10 @@ type
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix3; const Scalar: TGenericScalar): TGenericMatrix3;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix3): TGenericMatrix3;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3;
+    { Matrix * matrix makes a normal matrix algebraic multiplication
+      (not component-wise multiplication).
+      Note that this is different from vectors, where vector * vector
+      makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix3): TGenericMatrix3;
 
     function ToString(const LineIndent: string = ''): string;
@@ -550,6 +558,10 @@ type
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix4; const Scalar: TGenericScalar): TGenericMatrix4;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix4): TGenericMatrix4;
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;
+    { Matrix * matrix makes a normal matrix algebraic multiplication
+      (not component-wise multiplication).
+      Note that this is different from vectors, where vector * vector
+      makes a component-wise multiplication. }
     class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4;
 
     function ToString(const LineIndent: string = ''): string;
@@ -664,6 +676,12 @@ begin
   Result.Data[1] := V.Data[1] * Scalar;
 end;
 
+class operator TGenericVector2. {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector2): TGenericVector2;
+begin
+  Result.Data[0] := V1.Data[0] * V2.Data[0];
+  Result.Data[1] := V1.Data[1] * V2.Data[1];
+end;
+
 class operator TGenericVector2. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
 begin
   Result.Data[0] := V.Data[0] / Scalar;
@@ -735,12 +753,6 @@ begin
   Result :=
     (Data[0] * Data[0]) +
     (Data[1] * Data[1]);
-end;
-
-class function TGenericVector2.MultiplyComponents(const V1, V2: TGenericVector2): TGenericVector2;
-begin
-  Result.Data[0] := V1.Data[0] * V2.Data[0];
-  Result.Data[1] := V1.Data[1] * V2.Data[1];
 end;
 
 function TGenericVector2.AdjustToLength(const NewLength: TGenericScalar): TGenericVector2;
@@ -851,6 +863,13 @@ begin
   Result.Data[2] := V.Data[2] * Scalar;
 end;
 
+class operator TGenericVector3. {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector3): TGenericVector3;
+begin
+  Result.Data[0] := V1.Data[0] * V2.Data[0];
+  Result.Data[1] := V1.Data[1] * V2.Data[1];
+  Result.Data[2] := V1.Data[2] * V2.Data[2];
+end;
+
 class operator TGenericVector3. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
 begin
   Result.Data[0] := V.Data[0] / Scalar;
@@ -928,13 +947,6 @@ begin
     (Data[0] * Data[0]) +
     (Data[1] * Data[1]) +
     (Data[2] * Data[2]);
-end;
-
-class function TGenericVector3.MultiplyComponents(const V1, V2: TGenericVector3): TGenericVector3;
-begin
-  Result.Data[0] := V1.Data[0] * V2.Data[0];
-  Result.Data[1] := V1.Data[1] * V2.Data[1];
-  Result.Data[2] := V1.Data[2] * V2.Data[2];
 end;
 
 function TGenericVector3.AdjustToLength(const NewLength: TGenericScalar): TGenericVector3;
@@ -1077,6 +1089,14 @@ begin
   Result.Data[3] := V.Data[3] * Scalar;
 end;
 
+class operator TGenericVector4. {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector4): TGenericVector4;
+begin
+  Result.Data[0] := V1.Data[0] * V2.Data[0];
+  Result.Data[1] := V1.Data[1] * V2.Data[1];
+  Result.Data[2] := V1.Data[2] * V2.Data[2];
+  Result.Data[3] := V1.Data[3] * V2.Data[3];
+end;
+
 class operator TGenericVector4. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
 begin
   Result.Data[0] := V.Data[0] / Scalar;
@@ -1130,14 +1150,6 @@ begin
     (Data[1] * Data[1]) +
     (Data[2] * Data[2]) +
     (Data[3] * Data[3]);
-end;
-
-class function TGenericVector4.MultiplyComponents(const V1, V2: TGenericVector4): TGenericVector4;
-begin
-  Result.Data[0] := V1.Data[0] * V2.Data[0];
-  Result.Data[1] := V1.Data[1] * V2.Data[1];
-  Result.Data[2] := V1.Data[2] * V2.Data[2];
-  Result.Data[3] := V1.Data[3] * V2.Data[3];
 end;
 
 function TGenericVector4.AdjustToLength(const NewLength: TGenericScalar): TGenericVector4;

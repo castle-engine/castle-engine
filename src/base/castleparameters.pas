@@ -311,6 +311,8 @@ type
   end;
 
 function SeparateArgsToVector3(const v: TSeparateArgs): TVector3;
+function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;
+  deprecated 'use SeparateArgsToVector3';
 
 const
   OnlyHelpOptions: array[0..0]of TOption = (
@@ -646,6 +648,11 @@ begin
  result[0] := StrToFloat(v[1]);
  result[1] := StrToFloat(v[2]);
  result[2] := StrToFloat(v[3]);
+end;
+
+function SeparateArgsToVector3Single(const v: TSeparateArgs): TVector3;
+begin
+  Result := SeparateArgsToVector3(V);
 end;
 
 procedure InitializationParams;

@@ -882,7 +882,7 @@ begin
   Position := Light^.Position;
   // TODO: assume Light.WorldCoordinates=true or light scene not transformed
   // same TODO about spot light direction below
-  Position := MatrixMultVector(RenderingCamera.Matrix, Position);
+  Position := RenderingCamera.Matrix * Position;
   { Note that we cut off last component of Node.Position,
     we don't need it. #defines tell the shader whether we deal with direcional
     or positional light. }
@@ -900,8 +900,8 @@ begin
         LiSpot1.SpotCosCutoff);
       {$ifdef OpenGLES}
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
-        MatrixMultDirection(RenderingCamera.Matrix,
-          MatrixMultDirection(Node.Transform, LiSpot1.FdDirection.Value)));
+        RenderingCamera.Matrix.MultDirection(
+          Node.Transform.MultDirection(LiSpot1.FdDirection.Value)));
       if LiSpot1.SpotExponent <> 0 then
       begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotExponent', [Number]),
@@ -916,8 +916,8 @@ begin
         LiSpot.SpotCosCutoff);
       {$ifdef OpenGLES}
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
-        MatrixMultDirection(RenderingCamera.Matrix,
-          MatrixMultDirection(Node.Transform, LiSpot.FdDirection.Value)));
+        RenderingCamera.Matrix.MultDirection(
+          Node.Transform.MultDirection(LiSpot.FdDirection.Value)));
       if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
       begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotCutoff', [Number]),

@@ -254,7 +254,7 @@ begin
       WorldXY[0] * Parent.WorldMatrix[1, 0] + WorldXY[1] * Parent.WorldMatrix[1, 1]);
     WorldXY += Parent.WorldXY;
     if InheritScale then
-      WorldScale := TVector2.MultiplyComponents(WorldScale, Parent.WorldScale);
+      WorldScale := WorldScale * Parent.WorldScale;
     if InheritRotation then
       WorldRotation += Parent.WorldRotation;
   end;

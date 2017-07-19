@@ -2253,7 +2253,7 @@ begin
 
     This is important, because GetVertex may be quite expensive
     operation (in case of e.g. TVertTransform_Calculator.GetTransformed,
-    this is MatrixMultPoint for every vertex). At the beginning
+    this is Matrix.MultPoint for every vertex). At the beginning
     I implemented this by caling 6 time find_extremum function,
     and each call to find_extremum was iterating over every vertex.
     This was obviously wrong, because this caused calling GetVertex

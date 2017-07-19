@@ -89,8 +89,7 @@ begin
       V := Transform.MultPoint(Coord.List^[I]);
 
       { N = scene-space normal coord
-        TODO: MatrixMultDirection will not work under non-uniform scaling
-        matrix correctly. }
+        TODO: MultDirection will not work under non-uniform scaling matrix correctly. }
       N := Transform.MultDirection(Normals.List^[I]).Normalize;
 
       for SHBase := 0 to SHBasisCount - 1 do

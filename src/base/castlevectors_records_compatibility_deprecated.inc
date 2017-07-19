@@ -130,6 +130,9 @@ function VectorAdd(const V1, V2: TVector4): TVector4; deprecated 'use V1 + V2';
 function VectorSubtract(const V1, V2: TVector2): TVector2; deprecated 'use V1 - V2';
 function VectorSubtract(const V1, V2: TVector3): TVector3; deprecated 'use V1 - V2';
 function VectorSubtract(const V1, V2: TVector4): TVector4; deprecated 'use V1 - V2';
+function VectorMultiplyComponents(const V1, V2: TVector2): TVector2; deprecated 'use V1 * V2';
+function VectorMultiplyComponents(const V1, V2: TVector3): TVector3; deprecated 'use V1 * V2';
+function VectorMultiplyComponents(const V1, V2: TVector4): TVector4; deprecated 'use V1 * V2';
 function VectorProduct(const V1, V2: TVector3): TVector3; deprecated 'use TVector3.CrossProduct';
 function Normalized(const V: TVector2): TVector2; deprecated 'use V.Normalize method';
 function Normalized(const V: TVector3): TVector3; deprecated 'use V.Normalize method';
@@ -348,6 +351,21 @@ end;
 function VectorSubtract(const V1, V2: TVector4): TVector4;
 begin
   Result := V1 - V2;
+end;
+
+function VectorMultiplyComponents(const V1, V2: TVector2): TVector2;
+begin
+  Result := V1 * V2;
+end;
+
+function VectorMultiplyComponents(const V1, V2: TVector3): TVector3;
+begin
+  Result := V1 * V2;
+end;
+
+function VectorMultiplyComponents(const V1, V2: TVector4): TVector4;
+begin
+  Result := V1 * V2;
 end;
 
 function VectorProduct(const V1, V2: TVector3): TVector3;

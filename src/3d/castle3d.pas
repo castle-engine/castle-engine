@@ -1336,7 +1336,7 @@ type
 
       This method must produce matrices that preserve points as points
       and directions as directions in homegeneous space.
-      In other words, using MatrixMultPoint or MatrixMultDirection
+      In other words, using TMatrix4.MultPoint or TMatrix4.MultDirection
       with these matrices must never raise ETransformedResultInvalid.
       For example, a combination of translations, rotations, scaling is Ok. }
     procedure TransformMatricesMult(var M, MInverse: TMatrix4); virtual;

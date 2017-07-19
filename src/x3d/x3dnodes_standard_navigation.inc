@@ -540,7 +540,7 @@ begin
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
     uzylismy FdOrientation.RotatedPoint( DefaultX3DCameraDirection/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-    TODO: byloby dobrze uzyc tutaj czegos jak MatrixMultDirectionNoScale }
+    TODO: byloby dobrze uzyc tutaj czegos jak Transform.MultDirectionNoScale }
   CamPos    := Transform.MultPoint(CamPos);
   CamDir    := Transform.MultDirection(CamDir).Normalize;
   CamUp     := Transform.MultDirection(CamUp).Normalize;

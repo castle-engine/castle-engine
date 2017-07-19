@@ -574,7 +574,7 @@ var
             E.g. for MaterialReflectionColor = blue, it will make the surface
             somewhat yellowish. }
           Result * (1 - MaterialReflection) +
-          TVector3.MultiplyComponents(ReflColor, MaterialReflectionColor);
+          (ReflColor * MaterialReflectionColor);
       end;
     end;
 
@@ -1106,7 +1106,7 @@ const
 
           { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
             materialu }
-          DirectColor := TVector3.MultiplyComponents(DirectColor, MaterialInfo.DiffuseColor);
+          DirectColor := DirectColor * MaterialInfo.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
           LightDirNorm.NormalizeMe;
@@ -1271,7 +1271,7 @@ const
             Weights[ck]/WeightsSum (bo to w koncu jest importance sampling)
             (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
             > SingleEpsilon, sprawdzilismy to juz wczesniej). }
-          TracedCol := TVector3.MultiplyComponents(TracedCol, Colors[ck]);
+          TracedCol := TracedCol * Colors[ck];
           TracedCol *= WeightsSum / Weights[ck];
 
           Result += TracedCol;

@@ -436,7 +436,7 @@ begin
       How ? gluProject does just that.
 
       (My first idea was just to calculate
-      WinZ := MatrixMultPoint(Camera.Matrix,
+      WinZ := Camera.Matrix.MultPoint(
         ControlPoints(CurrentCurve).List^[CurrentPoint])[2];
       but that's bad: WinZ value for gluUnProject is not the actual
       distance from the camera. It's expressed in the 0..1 range of
