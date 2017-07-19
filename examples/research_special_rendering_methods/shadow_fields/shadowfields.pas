@@ -16,8 +16,6 @@
 { Shadow fields structures. }
 unit ShadowFields;
 
-{$I castleconf.inc}
-
 interface
 
 uses CastleCubeMaps, CastleVectors, Math, CastleSphericalHarmonics;
