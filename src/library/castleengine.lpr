@@ -336,9 +336,9 @@ begin
     if not CGE_VerifyScene then exit;
 
     BBox := Window.MainScene.BoundingBox;
-    pfXMin^ := BBox.Data[0, 0]; pfXMax^ := BBox.Data[1, 0];
-    pfYMin^ := BBox.Data[0, 1]; pfYMax^ := BBox.Data[1, 1];
-    pfZMin^ := BBox.Data[0, 2]; pfZMax^ := BBox.Data[1, 2];
+    pfXMin^ := BBox.Data[0].Data[0]; pfXMax^ := BBox.Data[1].Data[0];
+    pfYMin^ := BBox.Data[0].Data[1]; pfYMax^ := BBox.Data[1].Data[1];
+    pfZMin^ := BBox.Data[0].Data[2]; pfZMax^ := BBox.Data[1].Data[2];
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;

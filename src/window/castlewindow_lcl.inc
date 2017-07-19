@@ -755,7 +755,7 @@ begin
     Result := Dialog.Execute;
     if Result then
     begin
-      RedGreenBlue(Dialog.Color, ColorByte[0], ColorByte[1], ColorByte[2]);
+      RedGreenBlue(Dialog.Color, ColorByte.Data[0], ColorByte.Data[1], ColorByte.Data[2]);
       Color := Vector3(ColorByte);
     end;
   finally FreeAndNil(Dialog) end;
