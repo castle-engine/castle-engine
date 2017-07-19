@@ -91,6 +91,15 @@ type
     procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
+  TMatrix3List = class(specialize TStructList<TMatrix3>)
+  public
+  end;
+
+  TMatrix4List = class(specialize TStructList<TMatrix4>)
+  public
+  end;
+
+  {$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
   TVector2DoubleList = class(specialize TStructList<TVector2Double>)
   public
     function ToVector2: TVector2List;
@@ -106,23 +115,16 @@ type
     function ToVector4: TVector4List;
   end;
 
-  TMatrix3List = class(specialize TStructList<TMatrix3>)
-  public
-  end;
-
   TMatrix3DoubleList = class(specialize TStructList<TMatrix3Double>)
   public
     function ToMatrix3: TMatrix3List;
-  end;
-
-  TMatrix4List = class(specialize TStructList<TMatrix4>)
-  public
   end;
 
   TMatrix4DoubleList = class(specialize TStructList<TMatrix4Double>)
   public
     function ToMatrix4: TMatrix4List;
   end;
+  {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
   TVector2SmallIntList = specialize TStructList<TVector2SmallInt>;
   TVector3CardinalList = specialize TStructList<TVector3Cardinal>;
@@ -323,6 +325,8 @@ begin
   AddSubRange(Source, Index, AddCount);
 end;
 
+{$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+
 { TVector2DoubleList ----------------------------------------------------- }
 
 function TVector2DoubleList.ToVector2: TVector2List;
@@ -383,10 +387,6 @@ begin
   end;
 end;
 
-{ TMatrix3List ----------------------------------------------------- }
-
-{ TMatrix4List ----------------------------------------------------- }
-
 { TMatrix3DoubleList ----------------------------------------------------- }
 
 function TMatrix3DoubleList.ToMatrix3: TMatrix3List;
@@ -426,5 +426,7 @@ begin
     Inc(Dest);
   end;
 end;
+
+{$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
 {$endif read_implementation}

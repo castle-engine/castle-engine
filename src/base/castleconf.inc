@@ -222,7 +222,7 @@
 
 // Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
 {$ifdef VER3_0_0}
-  {$define BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
+  {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

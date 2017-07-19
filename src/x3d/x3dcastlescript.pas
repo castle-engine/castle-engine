@@ -153,10 +153,16 @@ begin
     Result := TCasScriptVec4fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec2d) then
     Result := TCasScriptVec2d.Create(true) else
+  if FieldClass.InheritsFrom(TMFVec2d) then
+    Result := TCasScriptVec2dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec3d) then
     Result := TCasScriptVec3d.Create(true) else
+  if FieldClass.InheritsFrom(TMFVec3d) then
+    Result := TCasScriptVec3dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFVec4d) then
     Result := TCasScriptVec4d.Create(true) else
+  if FieldClass.InheritsFrom(TMFVec4d) then
+    Result := TCasScriptVec4dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFRotation) then
     Result := TCasScriptRotation.Create(true) else
   if FieldClass.InheritsFrom(TMFRotation) then
@@ -171,22 +177,12 @@ begin
     Result := TCasScriptMatrix4fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix3d) then
     Result := TCasScriptMatrix3Double.Create(true) else
-  if FieldClass.InheritsFrom(TSFMatrix4d) then
-    Result := TCasScriptMatrix4Double.Create(true) else
-
-  {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
-  if FieldClass.InheritsFrom(TMFVec2d) then
-    Result := TCasScriptVec2dArray.Create(true) else
-  if FieldClass.InheritsFrom(TMFVec3d) then
-    Result := TCasScriptVec3dArray.Create(true) else
-  if FieldClass.InheritsFrom(TMFVec4d) then
-    Result := TCasScriptVec4dArray.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix3d) then
     Result := TCasScriptMatrix3DoubleArray.Create(true) else
+  if FieldClass.InheritsFrom(TSFMatrix4d) then
+    Result := TCasScriptMatrix4Double.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4d) then
     Result := TCasScriptMatrix4DoubleArray.Create(true) else
-  {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
-
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
@@ -246,24 +242,18 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
 
     if Field is TSFVec2d then
       TCasScriptVec2d(Value).Value := TSFVec2d(Field).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFVec2d then
       TCasScriptVec2dArray(Value).Value := TMFVec2d(Field).Items else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFVec3d then
       TCasScriptVec3d(Value).Value := TSFVec3d(Field).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFVec3d then
       TCasScriptVec3dArray(Value).Value := TMFVec3d(Field).Items else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFVec4d then
       TCasScriptVec4d(Value).Value := TSFVec4d(Field).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFVec4d then
       TCasScriptVec4dArray(Value).Value := TMFVec4d(Field).Items else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFRotation then
       TCasScriptRotation(Value).Value := TSFRotation(Field).Value else
@@ -282,17 +272,13 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
 
     if Field is TSFMatrix3d then
       TCasScriptMatrix3Double(Value).Value := TSFMatrix3d(Field).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFMatrix3d then
       TCasScriptMatrix3DoubleArray(Value).Value := TMFMatrix3d(Field).Items else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFMatrix4d then
       TCasScriptMatrix4Double(Value).Value := TSFMatrix4d(Field).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFMatrix4d then
       TCasScriptMatrix4DoubleArray(Value).Value := TMFMatrix4d(Field).Items else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFImage then
       TCasScriptImage(Value).Value := TSFImage(Field).Value else
@@ -402,24 +388,18 @@ begin
 
     if Field is TSFVec2d then
       TSFVec2d(Field).Value := TCasScriptVec2d(Value).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFVec2d then
       TMFVec2d(Field).Items := TCasScriptVec2dArray(Value).Value else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFVec3d then
       TSFVec3d(Field).Value := TCasScriptVec3d(Value).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFVec3d then
       TMFVec3d(Field).Items := TCasScriptVec3dArray(Value).Value else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFVec4d then
       TSFVec4d(Field).Value := TCasScriptVec4d(Value).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFVec4d then
       TMFVec4d(Field).Items := TCasScriptVec4dArray(Value).Value else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFRotation then
       TSFRotation(Field).Value := TCasScriptRotation(Value).Value else
@@ -438,17 +418,13 @@ begin
 
     if Field is TSFMatrix3d then
       TSFMatrix3d(Field).Value := TCasScriptMatrix3Double(Value).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFMatrix3d then
       TMFMatrix3d(Field).Items := TCasScriptMatrix3DoubleArray(Value).Value else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFMatrix4d then
       TSFMatrix4d(Field).Value := TCasScriptMatrix4Double(Value).Value else
-    {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
     if Field is TMFMatrix4d then
       TMFMatrix4d(Field).Items := TCasScriptMatrix4DoubleArray(Value).Value else
-    {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
     if Field is TSFImage then
       TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy else

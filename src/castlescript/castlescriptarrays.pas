@@ -21,7 +21,7 @@ unit CastleScriptArrays;
 interface
 
 uses CastleVectors, CastleScript, CastleScriptVectors, CastleUtils, CastleStringUtils,
-  CastleScriptCoreFunctions;
+  CastleScriptCoreFunctions, CastleInternalDoubleLists;
 
 type
   TCasScriptArrayFun = class;
@@ -104,19 +104,6 @@ type
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix3fArray = class(specialize TCasScriptArray<
-    TMatrix3List,
-    TCasScriptMatrix3f,
-    TCasScriptArrayFun>)
-  end;
-
-  TCasScriptMatrix4fArray = class(specialize TCasScriptArray<
-    TMatrix4List,
-    TCasScriptMatrix4f,
-    TCasScriptArrayFun>)
-  end;
-
-  {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
   TCasScriptVec2dArray = class(specialize TCasScriptArray<
     TVector2DoubleList,
     TCasScriptVec2d,
@@ -146,7 +133,18 @@ type
     TCasScriptMatrix4Double,
     TCasScriptArrayFun>)
   end;
-  {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
+
+  TCasScriptMatrix3fArray = class(specialize TCasScriptArray<
+    TMatrix3List,
+    TCasScriptMatrix3f,
+    TCasScriptArrayFun>)
+  end;
+
+  TCasScriptMatrix4fArray = class(specialize TCasScriptArray<
+    TMatrix4List,
+    TCasScriptMatrix4f,
+    TCasScriptArrayFun>)
+  end;
 
   TCasScriptArrayFun = class(TCasScriptFunction)
   public
@@ -558,13 +556,11 @@ initialization
   TCasScriptMatrix3fArray.RegisterFunctions;
   TCasScriptMatrix4fArray.RegisterFunctions;
 
-  {$ifndef BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
   TCasScriptVec2dArray.RegisterFunctions;
   TCasScriptVec3dArray.RegisterFunctions;
   TCasScriptVec4dArray.RegisterFunctions;
   TCasScriptMatrix3DoubleArray.RegisterFunctions;
   TCasScriptMatrix4DoubleArray.RegisterFunctions;
-  {$endif BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
