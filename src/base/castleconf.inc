@@ -212,11 +212,17 @@
 { others --------------------------------------------------------------------- }
 
 // We have a construction in CastleVectors and friends that causes
-// internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1).
+// internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
+// so already fixed in FPC).
 {$ifdef VER3_0}
   {$ifndef VER3_0_0}
     {$define BUGGY_ZERO_CONSTANT}
   {$endif}
+{$endif}
+
+// Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
+{$ifdef VER3_0_0}
+  {$define BUGGY_CASTLE_SCRIPT_DOUBLE_ARRAYS}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
