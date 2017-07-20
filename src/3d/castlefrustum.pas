@@ -310,65 +310,29 @@ begin
 end;
 
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsSingle);
+{ It's better to make these calculations using Double precision. }
+// This deliberately uses TFrustumPointsDouble
+// and CalculatePoints based on TFrustumPointsDouble.
+// They should be internal (private) in this unit in the future.
+{$warnings off}
 var
-  Camera: TVector3;
+  FrustumPointsDouble: TFrustumPointsDouble;
+  I: Integer;
 begin
-  { Actually this can be speeded up some day by doing
-    TwoPlanesIntersectionLine and then some TryPlaneLineIntersection,
-    since current implementation will calculate
-    (inside ThreePlanesIntersectionPoint) the same Line0+LineVector many times. }
-  FrustumPoints[0].XYZ := ThreePlanesIntersectionPoint(Planes[fpNear], Planes[fpLeft],  Planes[fpTop]);
-  FrustumPoints[1].XYZ := ThreePlanesIntersectionPoint(Planes[fpNear], Planes[fpRight], Planes[fpTop]);
-  FrustumPoints[2].XYZ := ThreePlanesIntersectionPoint(Planes[fpNear], Planes[fpRight], Planes[fpBottom]);
-  FrustumPoints[3].XYZ := ThreePlanesIntersectionPoint(Planes[fpNear], Planes[fpLeft],  Planes[fpBottom]);
-
-  FrustumPoints[0].W := 1;
-  FrustumPoints[1].W := 1;
-  FrustumPoints[2].W := 1;
-  FrustumPoints[3].W := 1;
-
-  if not ZFarInfinity then
-  begin
-    { 4..7 are in the same order as 0..3, but with "far" instead of "near" }
-    FrustumPoints[4].XYZ := ThreePlanesIntersectionPoint(Planes[fpFar], Planes[fpLeft],  Planes[fpTop]);
-    FrustumPoints[5].XYZ := ThreePlanesIntersectionPoint(Planes[fpFar], Planes[fpRight], Planes[fpTop]);
-    FrustumPoints[6].XYZ := ThreePlanesIntersectionPoint(Planes[fpFar], Planes[fpRight], Planes[fpBottom]);
-    FrustumPoints[7].XYZ := ThreePlanesIntersectionPoint(Planes[fpFar], Planes[fpLeft],  Planes[fpBottom]);
-
-    FrustumPoints[4].W := 1;
-    FrustumPoints[5].W := 1;
-    FrustumPoints[6].W := 1;
-    FrustumPoints[7].W := 1;
-  end else
-  begin
-    Camera := ThreePlanesIntersectionPoint(Planes[fpRight], Planes[fpLeft],  Planes[fpTop]);
-
-    FrustumPoints[4].XYZ := FrustumPoints[0].XYZ - Camera;
-    FrustumPoints[5].XYZ := FrustumPoints[1].XYZ - Camera;
-    FrustumPoints[6].XYZ := FrustumPoints[2].XYZ - Camera;
-    FrustumPoints[7].XYZ := FrustumPoints[3].XYZ - Camera;
-
-    FrustumPoints[4].W := 0;
-    FrustumPoints[5].W := 0;
-    FrustumPoints[6].W := 0;
-    FrustumPoints[7].W := 0;
-  end;
+  CalculatePoints(FrustumPointsDouble);
+  for I := 0 to High(FrustumPoints) do
+    FrustumPoints[I].XYZW := Vector4(FrustumPointsDouble[I].XYZW);
 end;
+{$warnings on}
 
 procedure TFrustum.CalculatePoints(out FrustumPoints: TFrustumPointsDouble);
-{ It's better to make these calculations using Double precision. }
-// TODO:
-{ $define CalculatePoints_DoublePrecision}
-{$ifdef CalculatePoints_DoublePrecision}
 var
   Camera: TVector3Double;
 begin
-  { Copied from implementation for TFrustumPointsSingle, but here converting
-    to double precision. }
-  FrustumPoints[0].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
-  FrustumPoints[1].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]));
-  FrustumPoints[2].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom]));
-  FrustumPoints[3].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom]));
+  FrustumPoints[0].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
+  FrustumPoints[1].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]));
+  FrustumPoints[2].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom]));
+  FrustumPoints[3].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpNear]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom]));
 
   FrustumPoints[0].W := 1;
   FrustumPoints[1].W := 1;
@@ -377,10 +341,10 @@ begin
 
   if not ZFarInfinity then
   begin
-    FrustumPoints[4].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
-    FrustumPoints[5].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]));
-    FrustumPoints[6].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom]));
-    FrustumPoints[7].XYZ := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom]));
+    FrustumPoints[4].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
+    FrustumPoints[5].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpTop]));
+    FrustumPoints[6].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpBottom]));
+    FrustumPoints[7].XYZ := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpFar]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpBottom]));
 
     FrustumPoints[4].W := 1;
     FrustumPoints[5].W := 1;
@@ -388,7 +352,7 @@ begin
     FrustumPoints[7].W := 1;
   end else
   begin
-    Camera := ThreePlanesIntersectionPoint(Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
+    Camera := ThreePlanesIntersectionPointDouble(Vector4Double(Planes[fpRight]), Vector4Double(Planes[fpLeft]),  Vector4Double(Planes[fpTop]));
 
     FrustumPoints[4].XYZ := FrustumPoints[0].XYZ - Camera;
     FrustumPoints[5].XYZ := FrustumPoints[1].XYZ - Camera;
@@ -401,16 +365,6 @@ begin
     FrustumPoints[7].W := 0;
   end;
 end;
-{$else CalculatePoints_DoublePrecision}
-var
-  FrustumPointsSingle: TFrustumPoints;
-  I: Integer;
-begin
-  CalculatePoints(FrustumPointsSingle);
-  for I := 0 to High(FrustumPoints) do
-    FrustumPoints[I].XYZW := Vector4Double(FrustumPointsSingle[I].XYZW);
-end;
-{$endif CalculatePoints_DoublePrecision}
 
 function TFrustum.SphereCollisionPossible(
   const SphereCenter: TVector3; const SphereRadiusSqr: Single):

@@ -155,6 +155,7 @@ uses SysUtils, Generics.Collections,
 
 {$I castlevectors_records_float.inc}
 {$I castlevectors_records_single.inc}
+{$I castlevectors_records_double.inc}
 {$I castlevectors_records_byte.inc}
 {$I castlevectors_records_integer.inc}
 {$I castlevectors_records_cardinal.inc}
@@ -174,6 +175,7 @@ uses Math, CastleStringUtils, CastleColors;
 {$I castlevectors_records_miscellaneous.inc}
 {$I castlevectors_records_float.inc}
 {$I castlevectors_records_single.inc}
+{$I castlevectors_records_double.inc}
 {$I castlevectors_records_byte.inc}
 {$I castlevectors_records_integer.inc}
 {$I castlevectors_records_cardinal.inc}
