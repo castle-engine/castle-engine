@@ -124,6 +124,20 @@ function Vector2Integer(const X, Y: Integer): TVector2Integer;
 function Vector3Integer(const X, Y, Z: Integer): TVector3Integer;
 function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer;
 
+(*
+Not defined for now, it's not obvious whether this is the most intuitive Lerp.
+
+function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2Integer; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Integer): TVector3Integer; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Integer): TVector4Integer; overload;
+
+The other approach is to convert to floating-point type while doing Lerp, like this:
+
+function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Integer): TVector3; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Integer): TVector4; overload;
+*)
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -322,25 +336,27 @@ begin
   Result.Data[3] := W;
 end;
 
+(*
 function Lerp(const A: Single; const V1, V2: TVector2Integer): TVector2Integer;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Integer));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Integer));
+  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), Low(Integer), High(Integer));
+  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), Low(Integer), High(Integer));
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector3Integer): TVector3Integer;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Integer));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Integer));
-  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Integer));
+  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), Low(Integer), High(Integer));
+  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), Low(Integer), High(Integer));
+  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), Low(Integer), High(Integer));
 end;
 
 function Lerp(const A: Single; const V1, V2: TVector4Integer): TVector4Integer;
 begin
-  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Integer));
-  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Integer));
-  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Integer));
-  Result.Data[3] := Clamped(Round(V1.Data[3] + A * (V2.Data[3] - V1.Data[3])), 0, High(Integer));
+  Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), Low(Integer), High(Integer));
+  Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), Low(Integer), High(Integer));
+  Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), Low(Integer), High(Integer));
+  Result.Data[3] := Clamped(Round(V1.Data[3] + A * (V2.Data[3] - V1.Data[3])), Low(Integer), High(Integer));
 end;
+*)
 
 {$endif read_implementation}
