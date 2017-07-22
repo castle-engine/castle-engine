@@ -702,10 +702,42 @@ begin
      You can calculate this using TTriangle3.Direction, since TTriangle3.Direction calculates
      exactly this TVector3.CrossProduct.
   *)
-  Result := Direction.LengthSqr > Sqr(SingleEpsilon);
-  { This would detect as invalid too much (the tests/data/model_manifold.wrl
-    would fail then, not all edges detected manifold. }
+
+  { This is incorrect:
+    It would detect as invalid too much (the tests/data/model_manifold.wrl
+    would fail then, not all edges detected manifold). }
   // Result := not IsZero(Direction.LengthSqr);
+
+  { This is incorrect:
+    It would detect as invalid still too much (the
+    examples/research_special_rendering_methods/radiance_transfer/data/chinchilla.wrl.gz
+    would be black then, and not pickable) }
+  // Result := Direction.LengthSqr > Sqr(SingleEpsilon);
+
+  { This used to be used in Castle Game Engine 6.2, and seems to work OK.
+    But it feels wrong: we can make a valid, arbitrarily small triangle,
+    and thus any epsilon is wrong. }
+  // Result := Direction.LengthSqr > Sqr(1e-7);
+
+  { This is safer, but slower.
+    Makes 2 normalizations and this way it can use a larger epsilon.
+    But it is still not perfect, as TTestCastleTriangles.TestIsValid shows.
+    This detects as invalid
+
+      T[0] := Vector3(5, 0.01, 0);
+      T[1] := Vector3(0, 0, 0);
+      T[2] := Vector3(10, 0, 0);
+      AssertTrue('23', T.IsValid);
+
+    ... and only changing 0.01 to 0.1 helps to make it valid.
+  }
+  // Result := not IsZero(TVector3.CrossProduct(
+  //   (Data[2] - Data[1]).Normalize,
+  //   (Data[0] - Data[1]).Normalize
+  // ).LengthSqr);
+
+  { This is simple, fast and correct according to tests. }
+  Result := Direction.LengthSqr > 0;
 end;
 
 function TTriangle3.Direction: TVector3;

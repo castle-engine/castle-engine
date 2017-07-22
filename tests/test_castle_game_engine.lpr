@@ -42,6 +42,7 @@ uses
   TestCastleUtilsLists,
   TestCastleClassUtils,
   TestCastleVectors,
+  TestCastleTriangles,
   TestCastleColors,
   TestCastleKeysMouse,
   TestCastleImages,
