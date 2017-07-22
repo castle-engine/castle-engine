@@ -135,7 +135,7 @@ begin
   case ProjectionType of
     ptPerspective:
       Result := PerspectiveProjectionMatrixDeg(
-        PerspectiveAngles[1],
+        PerspectiveAngles.Data[1],
         AspectRatio,
         ProjectionNear,
         ProjectionFar);
@@ -191,13 +191,13 @@ begin
   Depth := ZFar - ZNear;
 
   Result := TMatrix4.Zero;
-  Result[0, 0] := 2 / Dimensions.Width;
-  Result[1, 1] := 2 / Dimensions.Height;
-  Result[2, 2] := - 2 / Depth; { negate, because our Z-y are negative when going "deeper inside the screen" }
-  Result[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
-  Result[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
-  Result[3, 2] := - (ZFar + ZNear) / Depth;
-  Result[3, 3] := 1;
+  Result.Data[0, 0] := 2 / Dimensions.Width;
+  Result.Data[1, 1] := 2 / Dimensions.Height;
+  Result.Data[2, 2] := - 2 / Depth; { negate, because our Z-y are negative when going "deeper inside the screen" }
+  Result.Data[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
+  Result.Data[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
+  Result.Data[3, 2] := - (ZFar + ZNear) / Depth;
+  Result.Data[3, 3] := 1;
 end;
 
 function Ortho2DProjectionMatrix(const Left, Right, Bottom, Top: Single): TMatrix4;
@@ -220,12 +220,12 @@ begin
   { optimized version below: }
 
   Result := TMatrix4.Zero;
-  Result[0, 0] := 2 / Dimensions.Width;
-  Result[1, 1] := 2 / Dimensions.Height;
-  Result[2, 2] := -1;
-  Result[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
-  Result[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
-  Result[3, 3] := 1;
+  Result.Data[0, 0] := 2 / Dimensions.Width;
+  Result.Data[1, 1] := 2 / Dimensions.Height;
+  Result.Data[2, 2] := -1;
+  Result.Data[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
+  Result.Data[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
+  Result.Data[3, 3] := 1;
 end;
 
 function FrustumProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4;
@@ -252,21 +252,21 @@ begin
   ZNear2 := ZNear * 2;
 
   Result := TMatrix4.Zero;
-  Result[0, 0] := ZNear2                               / Dimensions.Width;
-  Result[2, 0] := (Dimensions.Right + Dimensions.Left) / Dimensions.Width;
-  Result[1, 1] := ZNear2                               / Dimensions.Height;
-  Result[2, 1] := (Dimensions.Top + Dimensions.Bottom) / Dimensions.Height;
+  Result.Data[0, 0] := ZNear2                               / Dimensions.Width;
+  Result.Data[2, 0] := (Dimensions.Right + Dimensions.Left) / Dimensions.Width;
+  Result.Data[1, 1] := ZNear2                               / Dimensions.Height;
+  Result.Data[2, 1] := (Dimensions.Top + Dimensions.Bottom) / Dimensions.Height;
   if ZFar <> ZFarInfinity then
   begin
     Depth := ZFar - ZNear;
-    Result[2, 2] := - (ZFar + ZNear) / Depth;
-    Result[3, 2] := - ZNear2 * ZFar  / Depth;
+    Result.Data[2, 2] := - (ZFar + ZNear) / Depth;
+    Result.Data[3, 2] := - ZNear2 * ZFar  / Depth;
   end else
   begin
-    Result[2, 2] := -1;
-    Result[3, 2] := -ZNear2;
+    Result.Data[2, 2] := -1;
+    Result.Data[3, 2] := -ZNear2;
   end;
-  Result[2, 3] := -1;
+  Result.Data[2, 3] := -1;
 end;
 
 function PerspectiveProjectionMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4;
@@ -295,20 +295,20 @@ begin
   Cotangent := CastleCoTan(FovyRad / 2);
 
   Result := TMatrix4.Zero;
-  Result[0, 0] := Cotangent / Aspect;
-  Result[1, 1] := Cotangent;
+  Result.Data[0, 0] := Cotangent / Aspect;
+  Result.Data[1, 1] := Cotangent;
   if ZFar <> ZFarInfinity then
   begin
     Depth := ZFar - ZNear;
-    Result[2, 2] := - (ZFar + ZNear) / Depth;
-    Result[3, 2] := - ZNear2 * ZFar  / Depth;
+    Result.Data[2, 2] := - (ZFar + ZNear) / Depth;
+    Result.Data[3, 2] := - ZNear2 * ZFar  / Depth;
   end else
   begin
-    Result[2, 2] := -1;
-    Result[3, 2] := -ZNear2;
+    Result.Data[2, 2] := -1;
+    Result.Data[3, 2] := -ZNear2;
   end;
 
-  Result[2, 3] := -1;
+  Result.Data[2, 3] := -1;
 end;
 
 end.

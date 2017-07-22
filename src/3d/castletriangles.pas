@@ -438,7 +438,7 @@ var
 begin
   if VerticesStride = 0 then VerticesStride := SizeOf(TVector3);
   for i := 0 to 2 do
-    Tri.Data[i] := PVector3(PointerAdd(VerticesArray, VerticesStride*Integer(Indexes[i])))^;
+    Tri.Data[i] := PVector3(PointerAdd(VerticesArray, VerticesStride*Integer(Indexes.Data[i])))^;
   Result := Tri.Normal;
 end;
 

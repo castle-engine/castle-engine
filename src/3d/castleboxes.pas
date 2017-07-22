@@ -788,13 +788,13 @@ end;
 
 procedure TBox3D.ExpandMe(const AExpand: TVector3);
 begin
- Data[0].Data[0] -= AExpand[0];
- Data[0].Data[1] -= AExpand[1];
- Data[0].Data[2] -= AExpand[2];
+ Data[0].Data[0] -= AExpand.Data[0];
+ Data[0].Data[1] -= AExpand.Data[1];
+ Data[0].Data[2] -= AExpand.Data[2];
 
- Data[1].Data[0] += AExpand[0];
- Data[1].Data[1] += AExpand[1];
- Data[1].Data[2] += AExpand[2];
+ Data[1].Data[0] += AExpand.Data[0];
+ Data[1].Data[1] += AExpand.Data[1];
+ Data[1].Data[2] += AExpand.Data[2];
 end;
 
 function TBox3D.Grow(const AExpand: Single): TBox3D;
@@ -814,13 +814,13 @@ function TBox3D.Grow(const AExpand: TVector3): TBox3D;
 begin
   if IsEmpty then Exit(Empty);
 
-  Result.Data[0].Data[0] := Data[0].Data[0] - AExpand[0];
-  Result.Data[0].Data[1] := Data[0].Data[1] - AExpand[1];
-  Result.Data[0].Data[2] := Data[0].Data[2] - AExpand[2];
+  Result.Data[0].Data[0] := Data[0].Data[0] - AExpand.Data[0];
+  Result.Data[0].Data[1] := Data[0].Data[1] - AExpand.Data[1];
+  Result.Data[0].Data[2] := Data[0].Data[2] - AExpand.Data[2];
 
-  Result.Data[1].Data[0] := Data[1].Data[0] + AExpand[0];
-  Result.Data[1].Data[1] := Data[1].Data[1] + AExpand[1];
-  Result.Data[1].Data[2] := Data[1].Data[2] + AExpand[2];
+  Result.Data[1].Data[0] := Data[1].Data[0] + AExpand.Data[0];
+  Result.Data[1].Data[1] := Data[1].Data[1] + AExpand.Data[1];
+  Result.Data[1].Data[2] := Data[1].Data[2] + AExpand.Data[2];
 end;
 
 function TBox3D.Expand(const AExpand: Single): TBox3D;
@@ -837,9 +837,9 @@ function TBox3D.Contains(const Point: TVector3): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].Data[0] <= Point[0]) and (Point[0] <=  Data[1].Data[0]) and
-    (Data[0].Data[1] <= Point[1]) and (Point[1] <=  Data[1].Data[1]) and
-    (Data[0].Data[2] <= Point[2]) and (Point[2] <=  Data[1].Data[2]);
+    (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
+    (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]) and
+    (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]);
 end;
 
 { Causes FPC error:
@@ -849,9 +849,9 @@ function TBox3D.Contains(const Point: TVector3Double): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].Data[0] <= Point[0]) and (Point[0] <=  Data[1].Data[0]) and
-    (Data[0].Data[1] <= Point[1]) and (Point[1] <=  Data[1].Data[1]) and
-    (Data[0].Data[2] <= Point[2]) and (Point[2] <=  Data[1].Data[2]);
+    (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
+    (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]) and
+    (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]);
 end;
 }
 
@@ -880,8 +880,8 @@ function TBox3D.Contains2D(const Point: TVector2): boolean;
 begin
   if IsEmpty then Exit(false);
   Result :=
-    (Data[0].Data[0] <= Point[0]) and (Point[0] <=  Data[1].Data[0]) and
-    (Data[0].Data[1] <= Point[1]) and (Point[1] <=  Data[1].Data[1]);
+    (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
+    (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]);
 end;
 
 function TBox3D.Contains2D(const Point: TVector3;
@@ -890,14 +890,14 @@ begin
   if IsEmpty then Exit(false);
   case IgnoreIndex of
     0: Result :=
-         (Data[0].Data[1] <= Point[1]) and (Point[1] <=  Data[1].Data[1]) and
-         (Data[0].Data[2] <= Point[2]) and (Point[2] <=  Data[1].Data[2]);
+         (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]) and
+         (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]);
     1: Result :=
-         (Data[0].Data[2] <= Point[2]) and (Point[2] <=  Data[1].Data[2]) and
-         (Data[0].Data[0] <= Point[0]) and (Point[0] <=  Data[1].Data[0]);
+         (Data[0].Data[2] <= Point.Data[2]) and (Point.Data[2] <=  Data[1].Data[2]) and
+         (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]);
     2: Result :=
-         (Data[0].Data[0] <= Point[0]) and (Point[0] <=  Data[1].Data[0]) and
-         (Data[0].Data[1] <= Point[1]) and (Point[1] <=  Data[1].Data[1]);
+         (Data[0].Data[0] <= Point.Data[0]) and (Point.Data[0] <=  Data[1].Data[0]) and
+         (Data[0].Data[1] <= Point.Data[1]) and (Point.Data[1] <=  Data[1].Data[1]);
     else Contains2D_InvalidIgnoreIndex;
   end;
 end;
@@ -937,12 +937,12 @@ begin
     Data[1] := Point;
   end else
   begin
-    MinVar(Data[0].Data[0], Point[0]);
-    MaxVar(Data[1].Data[0], Point[0]);
-    MinVar(Data[0].Data[1], Point[1]);
-    MaxVar(Data[1].Data[1], Point[1]);
-    MinVar(Data[0].Data[2], Point[2]);
-    MaxVar(Data[1].Data[2], Point[2]);
+    MinVar(Data[0].Data[0], Point.Data[0]);
+    MaxVar(Data[1].Data[0], Point.Data[0]);
+    MinVar(Data[0].Data[1], Point.Data[1]);
+    MaxVar(Data[1].Data[1], Point.Data[1]);
+    MinVar(Data[0].Data[2], Point.Data[2]);
+    MaxVar(Data[1].Data[2], Point.Data[2]);
   end;
 end;
 
@@ -961,15 +961,15 @@ end;
 
 procedure TBox3D.GetAllPoints(AllPoints: PVector3);
 begin
-  AllPoints[0] := Vector3(Data[0][0], Data[0][1], Data[0][2]);
-  AllPoints[1] := Vector3(Data[0][0], Data[0][1], Data[1][2]);
-  AllPoints[2] := Vector3(Data[0][0], Data[1][1], Data[0][2]);
-  AllPoints[3] := Vector3(Data[0][0], Data[1][1], Data[1][2]);
+  AllPoints[0] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]);
+  AllPoints[1] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]);
+  AllPoints[2] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]);
+  AllPoints[3] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]);
 
-  AllPoints[4] := Vector3(Data[1][0], Data[0][1], Data[0][2]);
-  AllPoints[5] := Vector3(Data[1][0], Data[0][1], Data[1][2]);
-  AllPoints[6] := Vector3(Data[1][0], Data[1][1], Data[0][2]);
-  AllPoints[7] := Vector3(Data[1][0], Data[1][1], Data[1][2]);
+  AllPoints[4] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]);
+  AllPoints[5] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]);
+  AllPoints[6] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]);
+  AllPoints[7] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]);
 end;
 
 procedure TBox3D.Corners(var AllPoints: TBoxCorners);
@@ -1053,11 +1053,11 @@ function TBox3D.Transform(
 
     for I := 0 to 2 do
     begin
-      { Calculate Result[0][I], Result[1][I] }
+      { Calculate Result[0].Data[I], Result[1].Data[I] }
       for J := 0 to 2 do
       begin
-        A := Matrix.Data[J][I] * Data[0][J];
-        B := Matrix.Data[J][I] * Data[1][J];
+        A := Matrix.Data[J, I] * Data[0].Data[J];
+        B := Matrix.Data[J, I] * Data[1].Data[J];
         if A < B then
         begin
           Result.Data[0].Data[I] += A;
@@ -1075,10 +1075,10 @@ begin
   if IsEmpty then
     Exit(Empty);
 
-  if (Matrix.Data[0][3] = 0) and
-     (Matrix.Data[1][3] = 0) and
-     (Matrix.Data[2][3] = 0) and
-     (Matrix.Data[3][3] = 1) then
+  if (Matrix.Data[0, 3] = 0) and
+     (Matrix.Data[1, 3] = 0) and
+     (Matrix.Data[2, 3] = 0) and
+     (Matrix.Data[3, 3] = 1) then
     Result := Faster(Matrix) else
     Result := Slower(Matrix);
 end;
@@ -1181,8 +1181,8 @@ var
       PlaneConstCoord, PlaneConstValue, RayOrigin, RayDirection) then
     begin
       RestOf3dCoords(PlaneConstCoord, c1, c2);
-      if Between(NowIntersection[c1], Data[0].Data[c1], Data[1].Data[c1]) and
-         Between(NowIntersection[c2], Data[0].Data[c2], Data[1].Data[c2]) then
+      if Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
+         Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]) then
       begin
         if (not IntrProposed) or
            (NowIntersectionDistance < IntersectionDistance) then
@@ -1205,9 +1205,9 @@ begin
       promien ktory przecinalby scianke Data[1].Data[i] pudelka przecinalby najpierw
       tez inna scianke. Wiec jezeli RayOrigin[i] < Data[0].Data[i] to nie musimy sprawdzac
       przeciecia z plaszczyzna Data[1].Data[i]. }
-    if RayOrigin[i] < Data[0].Data[i] then
+    if RayOrigin.Data[i] < Data[0].Data[i] then
       ProposeBoxIntr(i, Data[0].Data[i]) else
-    if RayOrigin[i] > Data[1].Data[i] then
+    if RayOrigin.Data[i] > Data[1].Data[i] then
       ProposeBoxIntr(i, Data[1].Data[i]) else
     begin
       ProposeBoxIntr(i, Data[0].Data[i]);
@@ -1281,8 +1281,8 @@ function TBox3D.SegmentCollision(
     begin
       RestOf3dCoords(PlaneConstCoord, c1, c2);
       Result :=
-        Between(NowIntersection[c1], Data[0].Data[c1], Data[1].Data[c1]) and
-        Between(NowIntersection[c2], Data[0].Data[c2], Data[1].Data[c2]);
+        Between(NowIntersection.Data[c1], Data[0].Data[c1], Data[1].Data[c1]) and
+        Between(NowIntersection.Data[c2], Data[0].Data[c2], Data[1].Data[c2]);
     end else
       Result := false;
   end;
@@ -1296,11 +1296,11 @@ begin
       promien ktory przecinalby scianke Data[1].Data[i] pudelka przecinalby najpierw
       tez inna scianke. Wiec jezeli Segment1[i] < Data[0].Data[i] to nie musimy sprawdzac
       przeciecia z plaszczyzna Data[1].Data[i]. }
-    if Segment1[i] < Data[0].Data[i] then
+    if Segment1.Data[i] < Data[0].Data[i] then
     begin
       if IsCollisionWithBoxPlane(i, Data[0].Data[i]) then Exit(true);
     end else
-    if Segment1[i] > Data[1].Data[i] then
+    if Segment1.Data[i] > Data[1].Data[i] then
     begin
       if IsCollisionWithBoxPlane(i, Data[1].Data[i]) then Exit(true);
     end else
@@ -1334,31 +1334,31 @@ begin
     { Normal code:
     if Plane[I] >= 0 then
     begin
-      VMin[I] := Data[0][I];
-      VMax[I] := Data[1][I];
+      VMin[I] := Data[0].Data[I];
+      VMax[I] := Data[1].Data[I];
     end else
     begin
-      VMin[I] := Data[1][I];
-      VMax[I] := Data[0][I];
+      VMin[I] := Data[1].Data[I];
+      VMax[I] := Data[0].Data[I];
     end;
     }
 
     { Code optimized to avoid "if", instead doing table lookup by BoxBool }
-    B := Plane[I] >= 0;
-    VMin[I] := BoxBool[not B][I];
-    VMax[I] := BoxBool[B][I];
+    B := Plane.Data[I] >= 0;
+    VMin.Data[I] := BoxBool[not B].Data[I];
+    VMax.Data[I] := BoxBool[B].Data[I];
   end;
 
-  if Plane[0] * VMin[0] +
-     Plane[1] * VMin[1] +
-     Plane[2] * VMin[2] +
-     Plane[3] > 0 then
+  if Plane.Data[0] * VMin.Data[0] +
+     Plane.Data[1] * VMin.Data[1] +
+     Plane.Data[2] * VMin.Data[2] +
+     Plane.Data[3] > 0 then
     Exit(pcOutside);
 
-  if Plane[0] * VMax[0] +
-     Plane[1] * VMax[1] +
-     Plane[2] * VMax[2] +
-     Plane[3] < 0 then
+  if Plane.Data[0] * VMax.Data[0] +
+     Plane.Data[1] * VMax.Data[1] +
+     Plane.Data[2] * VMax.Data[2] +
+     Plane.Data[3] < 0 then
     Exit(pcInside);
 
   Result := pcIntersecting;
@@ -1383,10 +1383,10 @@ begin
     Exit(false);
 
   Result :=
-    BoxBool[Plane[0] >= 0][0] * Plane[0] +
-    BoxBool[Plane[1] >= 0][1] * Plane[1] +
-    BoxBool[Plane[2] >= 0][2] * Plane[2] +
-    Plane[3] < 0;
+    BoxBool[Plane.Data[0] >= 0].Data[0] * Plane.Data[0] +
+    BoxBool[Plane.Data[1] >= 0].Data[1] * Plane.Data[1] +
+    BoxBool[Plane.Data[2] >= 0].Data[2] * Plane.Data[2] +
+    Plane.Data[3] < 0;
 end;
 
 function TBox3D.PlaneCollisionOutside(
@@ -1398,10 +1398,10 @@ begin
     Exit(false);
 
   Result :=
-    BoxBool[Plane[0] < 0][0] * Plane[0] +
-    BoxBool[Plane[1] < 0][1] * Plane[1] +
-    BoxBool[Plane[2] < 0][2] * Plane[2] +
-    Plane[3] > 0;
+    BoxBool[Plane.Data[0] < 0].Data[0] * Plane.Data[0] +
+    BoxBool[Plane.Data[1] < 0].Data[1] * Plane.Data[1] +
+    BoxBool[Plane.Data[2] < 0].Data[2] * Plane.Data[2] +
+    Plane.Data[3] > 0;
 end;
 
 function TBox3D.IsTriangleCollision(const Triangle: TTriangle3): boolean;
@@ -1684,12 +1684,12 @@ function TBox3D.SphereSimpleCollision(
   const SphereCenter: TVector3; const SphereRadius: Single): boolean;
 begin
   Result := (not IsEmpty) and
-    (SphereCenter[0] >= Data[0][0] - SphereRadius) and
-    (SphereCenter[0] <= Data[1][0] + SphereRadius) and
-    (SphereCenter[1] >= Data[0][1] - SphereRadius) and
-    (SphereCenter[1] <= Data[1][1] + SphereRadius) and
-    (SphereCenter[2] >= Data[0][2] - SphereRadius) and
-    (SphereCenter[2] <= Data[1][2] + SphereRadius);
+    (SphereCenter.Data[0] >= Data[0].Data[0] - SphereRadius) and
+    (SphereCenter.Data[0] <= Data[1].Data[0] + SphereRadius) and
+    (SphereCenter.Data[1] >= Data[0].Data[1] - SphereRadius) and
+    (SphereCenter.Data[1] <= Data[1].Data[1] + SphereRadius) and
+    (SphereCenter.Data[2] >= Data[0].Data[2] - SphereRadius) and
+    (SphereCenter.Data[2] <= Data[1].Data[2] + SphereRadius);
 end;
 
 function TBox3D.SphereCollision(
@@ -1722,14 +1722,14 @@ begin
     Ok, that's damn fast, but still a little slower than
     TBox3D.SphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
 
-  if SphereCenter[0] < Data[0][0] then D += Sqr(SphereCenter[0] - Data[0][0]) else
-  if SphereCenter[0] > Data[1][0] then D += Sqr(SphereCenter[0] - Data[1][0]);
+  if SphereCenter.Data[0] < Data[0].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[0].Data[0]) else
+  if SphereCenter.Data[0] > Data[1].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[1].Data[0]);
 
-  if SphereCenter[1] < Data[0][1] then D += Sqr(SphereCenter[1] - Data[0][1]) else
-  if SphereCenter[1] > Data[1][1] then D += Sqr(SphereCenter[1] - Data[1][1]);
+  if SphereCenter.Data[1] < Data[0].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[0].Data[1]) else
+  if SphereCenter.Data[1] > Data[1].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[1].Data[1]);
 
-  if SphereCenter[2] < Data[0][2] then D += Sqr(SphereCenter[2] - Data[0][2]) else
-  if SphereCenter[2] > Data[1][2] then D += Sqr(SphereCenter[2] - Data[1][2]);
+  if SphereCenter.Data[2] < Data[0].Data[2] then D += Sqr(SphereCenter.Data[2] - Data[0].Data[2]) else
+  if SphereCenter.Data[2] > Data[1].Data[2] then D += Sqr(SphereCenter.Data[2] - Data[1].Data[2]);
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1743,11 +1743,11 @@ begin
 
   D := 0;
 
-  if SphereCenter[0] < Data[0][0] then D += Sqr(SphereCenter[0] - Data[0][0]) else
-  if SphereCenter[0] > Data[1][0] then D += Sqr(SphereCenter[0] - Data[1][0]);
+  if SphereCenter.Data[0] < Data[0].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[0].Data[0]) else
+  if SphereCenter.Data[0] > Data[1].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[1].Data[0]);
 
-  if SphereCenter[1] < Data[0][1] then D += Sqr(SphereCenter[1] - Data[0][1]) else
-  if SphereCenter[1] > Data[1][1] then D += Sqr(SphereCenter[1] - Data[1][1]);
+  if SphereCenter.Data[1] < Data[0].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[0].Data[1]) else
+  if SphereCenter.Data[1] > Data[1].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[1].Data[1]);
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1766,9 +1766,9 @@ begin
 (*
   { calculate box corner that intersects resulting plane:
     just choose appropriate coords using Direction. }
-  P[0] := BoxBool[Direction[0] >= 0][0];
-  P[1] := BoxBool[Direction[1] >= 0][1];
-  P[2] := BoxBool[Direction[2] >= 0][2];
+  P[0] := BoxBool[Direction[0] >= 0].Data[0];
+  P[1] := BoxBool[Direction[1] >= 0].Data[1];
+  P[2] := BoxBool[Direction[2] >= 0].Data[2];
 
   { calculate 4th plane component.
     Plane must intersect P, so
@@ -1781,9 +1781,9 @@ begin
 
   { optimized version, just do this in one go: }
   Result.Data[3] := - (
-    BoxBool[Direction[0] >= 0][0] * Result.Data[0] +
-    BoxBool[Direction[1] >= 0][1] * Result.Data[1] +
-    BoxBool[Direction[2] >= 0][2] * Result.Data[2]);
+    BoxBool[Direction.Data[0] >= 0].Data[0] * Result.Data[0] +
+    BoxBool[Direction.Data[1] >= 0].Data[1] * Result.Data[1] +
+    BoxBool[Direction.Data[2] >= 0].Data[2] * Result.Data[2]);
 end;
 
 function TBox3D.MinimumPlane(const Direction: TVector3): TVector4;
@@ -1798,9 +1798,9 @@ begin
 
   { optimized version, just do this in one go: }
   Result.Data[3] := - (
-    BoxBool[Direction[0] < 0][0] * Result.Data[0] +
-    BoxBool[Direction[1] < 0][1] * Result.Data[1] +
-    BoxBool[Direction[2] < 0][2] * Result.Data[2]);
+    BoxBool[Direction.Data[0] < 0].Data[0] * Result.Data[0] +
+    BoxBool[Direction.Data[1] < 0].Data[1] * Result.Data[1] +
+    BoxBool[Direction.Data[2] < 0].Data[2] * Result.Data[2]);
 end;
 
 function TBox3D.MaximumCorner(const Direction: TVector3): TVector3;
@@ -1808,9 +1808,9 @@ var
   BoxBool: TBox3DBool absolute Data;
 begin
   CheckNonEmpty;
-  Result.Data[0] := BoxBool[Direction[0] >= 0][0];
-  Result.Data[1] := BoxBool[Direction[1] >= 0][1];
-  Result.Data[2] := BoxBool[Direction[2] >= 0][2];
+  Result.Data[0] := BoxBool[Direction.Data[0] >= 0].Data[0];
+  Result.Data[1] := BoxBool[Direction.Data[1] >= 0].Data[1];
+  Result.Data[2] := BoxBool[Direction.Data[2] >= 0].Data[2];
 end;
 
 function TBox3D.MinimumCorner(const Direction: TVector3): TVector3;
@@ -1818,9 +1818,9 @@ var
   BoxBool: TBox3DBool absolute Data;
 begin
   CheckNonEmpty;
-  Result.Data[0] := BoxBool[Direction[0] < 0][0];
-  Result.Data[1] := BoxBool[Direction[1] < 0][1];
-  Result.Data[2] := BoxBool[Direction[2] < 0][2];
+  Result.Data[0] := BoxBool[Direction.Data[0] < 0].Data[0];
+  Result.Data[1] := BoxBool[Direction.Data[1] < 0].Data[1];
+  Result.Data[2] := BoxBool[Direction.Data[2] < 0].Data[2];
 end;
 
 procedure TBox3D.PointDistances(const P: TVector3;
@@ -1840,8 +1840,8 @@ begin
     We want to calculate distance to this point, so we do it by the way. }
   for I := 0 to 2 do
   begin
-    Dist0 := Sqr(P[I] - Data[0][I]);
-    Dist1 := Sqr(P[I] - Data[1][I]);
+    Dist0 := Sqr(P.Data[I] - Data[0].Data[I]);
+    Dist1 := Sqr(P.Data[I] - Data[1].Data[I]);
     if Dist0 < Dist1 then
     begin
       MinDistance += Dist0;
@@ -1873,14 +1873,14 @@ var
 begin
   CheckNonEmpty;
 
-  XMin := Dir[0] < 0;
-  YMin := Dir[1] < 0;
-  ZMin := Dir[2] < 0;
+  XMin := Dir.Data[0] < 0;
+  YMin := Dir.Data[1] < 0;
+  ZMin := Dir.Data[2] < 0;
 
   MinPoint := PointOnLineClosestToPoint(Point, Dir,
-    Vector3(B[XMin][0], B[YMin][1], B[ZMin][2]));
+    Vector3(B[XMin].Data[0], B[YMin].Data[1], B[ZMin].Data[2]));
   MaxPoint := PointOnLineClosestToPoint(Point, Dir,
-    Vector3(B[not XMin][0], B[not YMin][1], B[not ZMin][2]));
+    Vector3(B[not XMin].Data[0], B[not YMin].Data[1], B[not ZMin].Data[2]));
 
   MinDistance := PointsDistance(Point, MinPoint);
   MaxDistance := PointsDistance(Point, MaxPoint);
@@ -1890,7 +1890,7 @@ begin
     distances should be negated. }
   Coord := MaxAbsVectorCoord(Dir);
 
-  if Dir[Coord] > 0 then
+  if Dir.Data[Coord] > 0 then
   begin
     { So the distances to points that are *larger* on Coord are positive.
       Others should be negative. }
@@ -1931,10 +1931,10 @@ begin
   Result := 0;
   for I := 0 to 2 do
   begin
-    if Point.Data[I] < Data[0][I] then
-      Result += Sqr(Point.Data[I] - Data[0][I]) else
-    if Point.Data[I] > Data[1][I] then
-      Result += Sqr(Point.Data[I] - Data[1][I]);
+    if Point.Data[I] < Data[0].Data[I] then
+      Result += Sqr(Point.Data[I] - Data[0].Data[I]) else
+    if Point.Data[I] > Data[1].Data[I] then
+      Result += Sqr(Point.Data[I] - Data[1].Data[I]);
   end;
 
   Result := Sqrt(Result);
@@ -1948,9 +1948,9 @@ begin
   if IsEmpty then
     Result := EmptyBoxDistance else
     Result := Sqrt(
-      Sqr(Point.Data[0] - B[Point.Data[0] < (Data[0][0] + Data[1][0]) / 2][0]) +
-      Sqr(Point.Data[1] - B[Point.Data[1] < (Data[0][1] + Data[1][1]) / 2][1]) +
-      Sqr(Point.Data[2] - B[Point.Data[2] < (Data[0][2] + Data[1][2]) / 2][2])
+      Sqr(Point.Data[0] - B[Point.Data[0] < (Data[0].Data[0] + Data[1].Data[0]) / 2].Data[0]) +
+      Sqr(Point.Data[1] - B[Point.Data[1] < (Data[0].Data[1] + Data[1].Data[1]) / 2].Data[1]) +
+      Sqr(Point.Data[2] - B[Point.Data[2] < (Data[0].Data[2] + Data[1].Data[2]) / 2].Data[2])
     );
 end;
 
@@ -1976,9 +1976,9 @@ function TBox3D.Diagonal: Single;
 begin
   if IsEmpty then
     Result := 0 else
-    Result := Sqrt(Sqr(Data[1][0] - Data[0][0]) +
-                   Sqr(Data[1][1] - Data[0][1]) +
-                   Sqr(Data[1][2] - Data[0][2]));
+    Result := Sqrt(Sqr(Data[1].Data[0] - Data[0].Data[0]) +
+                   Sqr(Data[1].Data[1] - Data[0].Data[1]) +
+                   Sqr(Data[1].Data[2] - Data[0].Data[2]));
 end;
 
 function TBox3D.RectangleXY: TFloatRectangle;
@@ -1986,10 +1986,10 @@ begin
   if IsEmpty then
     Exit(TFloatRectangle.Empty) else
   begin
-    Result.Left   := Data[0][0];
-    Result.Bottom := Data[0][1];
-    Result.Width  := Data[1][0] - Data[0][0];
-    Result.Height := Data[1][1] - Data[0][1];
+    Result.Left   := Data[0].Data[0];
+    Result.Bottom := Data[0].Data[1];
+    Result.Width  := Data[1].Data[0] - Data[0].Data[0];
+    Result.Height := Data[1].Data[1] - Data[0].Data[1];
   end;
 end;
 
@@ -1998,10 +1998,10 @@ begin
   if IsEmpty then
     Exit(TFloatRectangle.Empty) else
   begin
-    Result.Left   := Data[0][0];
-    Result.Bottom := Data[0][2];
-    Result.Width  := Data[1][0] - Data[0][0];
-    Result.Height := Data[1][2] - Data[0][2];
+    Result.Left   := Data[0].Data[0];
+    Result.Bottom := Data[0].Data[2];
+    Result.Width  := Data[1].Data[0] - Data[0].Data[0];
+    Result.Height := Data[1].Data[2] - Data[0].Data[2];
   end;
 end;
 
@@ -2059,15 +2059,15 @@ begin
 
     For speed, we don't look at bounding box Middle, only at it's min point.
     The assumption here is that shape is 2D, so
-      BoundingBox.Data[0][2] = BoundingBox.Data[1][2] = BoundingBox.Center[2] . }
+      BoundingBox.Data[0].Data[2] = BoundingBox.Data[1].Data[2] = BoundingBox.Center[2] . }
 
   if (not A.IsEmpty) and
     ( B.IsEmpty or
-      ( A.Data[0][2] < B.Data[0][2] )) then
+      ( A.Data[0].Data[2] < B.Data[0].Data[2] )) then
     Result := -1 else
   if (not B.IsEmpty) and
     ( A.IsEmpty or
-      ( B.Data[0][2] < A.Data[0][2] )) then
+      ( B.Data[0].Data[2] < A.Data[0].Data[2] )) then
     Result :=  1 else
     Result :=  0;
 end;
@@ -2118,29 +2118,29 @@ var
   VMin, VMax: TVector3Double;
 begin
   for I := 0 to 2 do
-    if Plane[I] > 0 then
+    if Plane.Data[I] > 0 then
     begin
-      VMin[I] := -BoxHalfSize[I];
-      VMax[I] :=  BoxHalfSize[I];
+      VMin.Data[I] := -BoxHalfSize.Data[I];
+      VMax.Data[I] :=  BoxHalfSize.Data[I];
     end else
     begin
-      VMin[I] :=  BoxHalfSize[I];
-      VMax[I] := -BoxHalfSize[I];
+      VMin.Data[I] :=  BoxHalfSize.Data[I];
+      VMax.Data[I] := -BoxHalfSize.Data[I];
     end;
 
   { If VMin is above the plane (plane equation is > 0), then VMax
     is also above, no need to test anything else. }
-  if Plane[0] * VMin[0] +
-     Plane[1] * VMin[1] +
-     Plane[2] * VMin[2] +
-     Plane[3] > Epsilon then
+  if Plane.Data[0] * VMin.Data[0] +
+     Plane.Data[1] * VMin.Data[1] +
+     Plane.Data[2] * VMin.Data[2] +
+     Plane.Data[3] > Epsilon then
     Exit(false);
 
   { So VMin is <= plane. So if VMax is >= 0, then there's a collision. }
-  Result :=  Plane[0] * VMax[0] +
-             Plane[1] * VMax[1] +
-             Plane[2] * VMax[2] +
-             Plane[3] >= -Epsilon;
+  Result :=  Plane.Data[0] * VMax.Data[0] +
+             Plane.Data[1] * VMax.Data[1] +
+             Plane.Data[2] * VMax.Data[2] +
+             Plane.Data[3] >= -Epsilon;
 end;
 
 function IsCenteredBox3DPlaneCollision(
@@ -2165,28 +2165,28 @@ begin
     Exit(TBox3D.Empty);
 
   Size /= 2;
-  Result.Data[0][0] := Pt[0] - Size;
-  Result.Data[0][1] := Pt[1] - Size;
-  Result.Data[0][2] := Pt[2] - Size;
-  Result.Data[1][0] := Pt[0] + Size;
-  Result.Data[1][1] := Pt[1] + Size;
-  Result.Data[1][2] := Pt[2] + Size;
+  Result.Data[0].Data[0] := Pt.Data[0] - Size;
+  Result.Data[0].Data[1] := Pt.Data[1] - Size;
+  Result.Data[0].Data[2] := Pt.Data[2] - Size;
+  Result.Data[1].Data[0] := Pt.Data[0] + Size;
+  Result.Data[1].Data[1] := Pt.Data[1] + Size;
+  Result.Data[1].Data[2] := Pt.Data[2] + Size;
 end;
 
 function Box3DAroundPoint(const Pt: TVector3; Size: TVector3): TBox3D;
 begin
-  if (Size[0] < 0) or
-     (Size[1] < 0) or
-     (Size[2] < 0) then
+  if (Size.Data[0] < 0) or
+     (Size.Data[1] < 0) or
+     (Size.Data[2] < 0) then
     Exit(TBox3D.Empty);
 
   Size /= 2;
-  Result.Data[0][0] := Pt[0] - Size[0];
-  Result.Data[0][1] := Pt[1] - Size[1];
-  Result.Data[0][2] := Pt[2] - Size[2];
-  Result.Data[1][0] := Pt[0] + Size[0];
-  Result.Data[1][1] := Pt[1] + Size[1];
-  Result.Data[1][2] := Pt[2] + Size[2];
+  Result.Data[0].Data[0] := Pt.Data[0] - Size.Data[0];
+  Result.Data[0].Data[1] := Pt.Data[1] - Size.Data[1];
+  Result.Data[0].Data[2] := Pt.Data[2] - Size.Data[2];
+  Result.Data[1].Data[0] := Pt.Data[0] + Size.Data[0];
+  Result.Data[1].Data[1] := Pt.Data[1] + Size.Data[1];
+  Result.Data[1].Data[2] := Pt.Data[2] + Size.Data[2];
 end;
 
 function CalculateBoundingBox(
@@ -2204,13 +2204,13 @@ begin
     for I := 1 to VertsCount - 1 do
     begin
       V := GetVertex(I);
-      MinVar(Result.Data[0].Data[0], V[0]);
-      MinVar(Result.Data[0].Data[1], V[1]);
-      MinVar(Result.Data[0].Data[2], V[2]);
+      MinVar(Result.Data[0].Data[0], V.Data[0]);
+      MinVar(Result.Data[0].Data[1], V.Data[1]);
+      MinVar(Result.Data[0].Data[2], V.Data[2]);
 
-      MaxVar(Result.Data[1].Data[0], V[0]);
-      MaxVar(Result.Data[1].Data[1], V[1]);
-      MaxVar(Result.Data[1].Data[2], V[2]);
+      MaxVar(Result.Data[1].Data[0], V.Data[0]);
+      MaxVar(Result.Data[1].Data[1], V.Data[1]);
+      MaxVar(Result.Data[1].Data[2], V.Data[2]);
     end;
   end;
 end;
@@ -2323,12 +2323,12 @@ begin
     if Index >= 0 then
     begin
       ThisVertex := GetVertex(Index);
-      if ThisVertex[0] < Result.Data[0].Data[0] then Result.Data[0].Data[0] := ThisVertex[0];
-      if ThisVertex[1] < Result.Data[0].Data[1] then Result.Data[0].Data[1] := ThisVertex[1];
-      if ThisVertex[2] < Result.Data[0].Data[2] then Result.Data[0].Data[2] := ThisVertex[2];
-      if ThisVertex[0] > Result.Data[1].Data[0] then Result.Data[1].Data[0] := ThisVertex[0];
-      if ThisVertex[1] > Result.Data[1].Data[1] then Result.Data[1].Data[1] := ThisVertex[1];
-      if ThisVertex[2] > Result.Data[1].Data[2] then Result.Data[1].Data[2] := ThisVertex[2];
+      if ThisVertex.Data[0] < Result.Data[0].Data[0] then Result.Data[0].Data[0] := ThisVertex.Data[0];
+      if ThisVertex.Data[1] < Result.Data[0].Data[1] then Result.Data[0].Data[1] := ThisVertex.Data[1];
+      if ThisVertex.Data[2] < Result.Data[0].Data[2] then Result.Data[0].Data[2] := ThisVertex.Data[2];
+      if ThisVertex.Data[0] > Result.Data[1].Data[0] then Result.Data[1].Data[0] := ThisVertex.Data[0];
+      if ThisVertex.Data[1] > Result.Data[1].Data[1] then Result.Data[1].Data[1] := ThisVertex.Data[1];
+      if ThisVertex.Data[2] > Result.Data[1].Data[2] then Result.Data[1].Data[2] := ThisVertex.Data[2];
     end;
   end;
 end;

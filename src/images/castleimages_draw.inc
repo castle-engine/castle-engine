@@ -343,9 +343,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
           PDest := PixelPtr(X, DestY);
           for DestX := X to X + SourceWidth - 1 do
           begin
-            PDest^.Data[0] := BlendBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha[0], PSource^);
-            PDest^.Data[1] := BlendBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha[1], PSource^);
-            PDest^.Data[2] := BlendBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha[2], PSource^);
+            PDest^.Data[0] := BlendBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha.Data[0], PSource^);
+            PDest^.Data[1] := BlendBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha.Data[1], PSource^);
+            PDest^.Data[2] := BlendBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha.Data[2], PSource^);
             Inc(PSource);
             Inc(PDest);
           end;
@@ -360,9 +360,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[3], PSource^, Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + Source.ColorWhenTreatedAsAlpha[0]*alpha2)/alphaSum);
-              PDest^.Data[1] := Round((PDest^.Data[1]*alpha1d + Source.ColorWhenTreatedAsAlpha[1]*alpha2)/alphaSum);
-              PDest^.Data[2] := Round((PDest^.Data[2]*alpha1d + Source.ColorWhenTreatedAsAlpha[2]*alpha2)/alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[0]*alpha2)/alphaSum);
+              PDest^.Data[1] := Round((PDest^.Data[1]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[1]*alpha2)/alphaSum);
+              PDest^.Data[2] := Round((PDest^.Data[2]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[2]*alpha2)/alphaSum);
               PDest^.Data[3] := Round(255*alphaSum);
             end;
             Inc(PSource);
@@ -377,9 +377,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^.Data[0] := MultiplyBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha[0]);
-              PDest^.Data[1] := MultiplyBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha[1]);
-              PDest^.Data[2] := MultiplyBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha[2]);
+              PDest^.Data[0] := MultiplyBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha.Data[0]);
+              PDest^.Data[1] := MultiplyBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha.Data[1]);
+              PDest^.Data[2] := MultiplyBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha.Data[2]);
               PDest^.Data[3] := MultiplyBytes(PDest^.Data[3], PSource^);
               Inc(PSource);
               Inc(PDest);
@@ -394,9 +394,9 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^.Data[0] := AddBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha[0], PSource^);
-              PDest^.Data[1] := AddBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha[1], PSource^);
-              PDest^.Data[2] := AddBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha[2], PSource^);
+              PDest^.Data[0] := AddBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha.Data[0], PSource^);
+              PDest^.Data[1] := AddBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha.Data[1], PSource^);
+              PDest^.Data[2] := AddBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha.Data[2], PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -708,9 +708,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
           PDest := PixelPtr(X, DestY);
           for DestX := X to X + SourceWidth - 1 do
           begin
-            PDest^.Data[0] := BlendBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha[0], PSource^);
-            PDest^.Data[1] := BlendBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha[1], PSource^);
-            PDest^.Data[2] := BlendBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha[2], PSource^);
+            PDest^.Data[0] := BlendBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha.Data[0], PSource^);
+            PDest^.Data[1] := BlendBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha.Data[1], PSource^);
+            PDest^.Data[2] := BlendBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha.Data[2], PSource^);
             Inc(PSource);
             Inc(PDest);
           end;
@@ -723,9 +723,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^.Data[0] := MultiplyBytesOpaque(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha[0], PSource^);
-              PDest^.Data[1] := MultiplyBytesOpaque(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha[1], PSource^);
-              PDest^.Data[2] := MultiplyBytesOpaque(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha[2], PSource^);
+              PDest^.Data[0] := MultiplyBytesOpaque(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha.Data[0], PSource^);
+              PDest^.Data[1] := MultiplyBytesOpaque(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha.Data[1], PSource^);
+              PDest^.Data[2] := MultiplyBytesOpaque(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha.Data[2], PSource^);
               Inc(PSource);
               Inc(PDest);
             end;
@@ -739,9 +739,9 @@ procedure TRGBImage.DrawFromCore(Source: TCastleImage;
             PDest := PixelPtr(X, DestY);
             for DestX := X to X + SourceWidth - 1 do
             begin
-              PDest^.Data[0] := AddBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha[0], PSource^);
-              PDest^.Data[1] := AddBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha[1], PSource^);
-              PDest^.Data[2] := AddBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha[2], PSource^);
+              PDest^.Data[0] := AddBytes(PDest^.Data[0], Source.ColorWhenTreatedAsAlpha.Data[0], PSource^);
+              PDest^.Data[1] := AddBytes(PDest^.Data[1], Source.ColorWhenTreatedAsAlpha.Data[1], PSource^);
+              PDest^.Data[2] := AddBytes(PDest^.Data[2], Source.ColorWhenTreatedAsAlpha.Data[2], PSource^);
               Inc(PSource);
               Inc(PDest);
             end;

@@ -233,29 +233,29 @@ begin
   ZZ := Sqr(Z);
 
   { row 0 }
-  Result[0, 0] := 1 - 2 * (YY + ZZ);
-  Result[1, 0] := 2 * ( X * Y - W * Z );
-  Result[2, 0] := 2 * ( X * Z + W * Y );
-  Result[3, 0] := 0;
+  Result.Data[0, 0] := 1 - 2 * (YY + ZZ);
+  Result.Data[1, 0] := 2 * ( X * Y - W * Z );
+  Result.Data[2, 0] := 2 * ( X * Z + W * Y );
+  Result.Data[3, 0] := 0;
 
   { row 1 }
-  Result[0, 1] := 2 * ( X * Y + W * Z );
-  Result[1, 1] := 1 - 2 * (XX + ZZ);
-  Result[2, 1] := 2 * ( Y * Z - W * X );
-  Result[3, 1] := 0;
+  Result.Data[0, 1] := 2 * ( X * Y + W * Z );
+  Result.Data[1, 1] := 1 - 2 * (XX + ZZ);
+  Result.Data[2, 1] := 2 * ( Y * Z - W * X );
+  Result.Data[3, 1] := 0;
 
   { row 2 }
-  Result[0, 2] := 2 * ( X * Z - W * Y );
-  Result[1, 2] := 2 * ( Y * Z + W * X );
-  Result[2, 2] := 1 - 2 * (XX + YY);
-  Result[3, 2] := 0;
+  Result.Data[0, 2] := 2 * ( X * Z - W * Y );
+  Result.Data[1, 2] := 2 * ( Y * Z + W * X );
+  Result.Data[2, 2] := 1 - 2 * (XX + YY);
+  Result.Data[3, 2] := 0;
 
   { row 3 - like in identity matrix,
     only 3x3 matrix is interesting in rotations. }
-  Result[0, 3] := 0;
-  Result[1, 3] := 0;
-  Result[2, 3] := 0;
-  Result[3, 3] := 1;
+  Result.Data[0, 3] := 0;
+  Result.Data[1, 3] := 0;
+  Result.Data[2, 3] := 0;
+  Result.Data[3, 3] := 1;
 end;
 
 function TQuaternion.ToRotationMatrix: TMatrix4;
@@ -324,7 +324,7 @@ function QuatFromAxisAngle(const AxisAngle: TVector4;
 var
   Axis: TVector3 absolute AxisAngle;
 begin
-  Result := QuatFromAxisAngle(Axis, AxisAngle[3], NormalizeAxis);
+  Result := QuatFromAxisAngle(Axis, AxisAngle.Data[3], NormalizeAxis);
 end;
 
 operator* (const Q1, Q2: TQuaternion): TQuaternion;

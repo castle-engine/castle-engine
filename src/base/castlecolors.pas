@@ -201,54 +201,54 @@ const
 
 function GrayscaleValue(const v: TCastleColor): Single;
 begin
-  result := (GrayscaleValuesFloat[0]*v[0]+
-             GrayscaleValuesFloat[1]*v[1]+
-             GrayscaleValuesFloat[2]*v[2]);
+  result := (GrayscaleValuesFloat[0] * V.Data[0]+
+             GrayscaleValuesFloat[1] * V.Data[1]+
+             GrayscaleValuesFloat[2] * V.Data[2]);
 end;
 
 function GrayscaleValue(const v: TCastleColorRGB): Single;
 begin
-  result := GrayscaleValuesFloat[0]*v[0]+
-            GrayscaleValuesFloat[1]*v[1]+
-            GrayscaleValuesFloat[2]*v[2];
+  result := GrayscaleValuesFloat[0] * V.Data[0]+
+            GrayscaleValuesFloat[1] * V.Data[1]+
+            GrayscaleValuesFloat[2] * V.Data[2];
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
-  result := (GrayscaleValuesByte[0]*v[0]+
-             GrayscaleValuesByte[1]*v[1]+
-             GrayscaleValuesByte[2]*v[2]) div 256;
+  result := (GrayscaleValuesByte[0] * V.Data[0]+
+             GrayscaleValuesByte[1] * V.Data[1]+
+             GrayscaleValuesByte[2] * V.Data[2]) div 256;
 end;
 
 function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
-  result := (GrayscaleValuesByte[0]*v[0]+
-             GrayscaleValuesByte[1]*v[1]+
-             GrayscaleValuesByte[2]*v[2]) div 256;
+  result := (GrayscaleValuesByte[0] * V.Data[0]+
+             GrayscaleValuesByte[1] * V.Data[1]+
+             GrayscaleValuesByte[2] * V.Data[2]) div 256;
 end;
 
 function Grayscale(const v: TCastleColor): TCastleColor;
 var
   V3: TVector3 absolute V;
 begin
-  Result[0] := GrayscaleValue(V3);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
-  Result[3] := V[3];
+  Result.Data[0] := GrayscaleValue(V3);
+  Result.Data[1] := Result.Data[0];
+  Result.Data[2] := Result.Data[0];
+  Result.Data[3] := V.Data[3];
 end;
 
 function Grayscale(const v: TCastleColorRGB): TCastleColorRGB;
 begin
-  Result[0] := GrayscaleValue(V);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
+  Result.Data[0] := GrayscaleValue(V);
+  Result.Data[1] := Result.Data[0];
+  Result.Data[2] := Result.Data[0];
 end;
 
 function Grayscale(const v: TVector3Byte): TVector3Byte;
 begin
-  Result[0] := GrayscaleValue(V);
-  Result[1] := Result[0];
-  Result[2] := Result[0];
+  Result.Data[0] := GrayscaleValue(V);
+  Result.Data[1] := Result.Data[0];
+  Result.Data[2] := Result.Data[0];
 end;
 
 { color changing ------------------------------------------------------------ }
@@ -260,44 +260,44 @@ end;
 
 function ColorRedConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result[0] := GrayscaleValue(Color);
-  Result[1] := 0;
-  Result[2] := 0;
+  Result.Data[0] := GrayscaleValue(Color);
+  Result.Data[1] := 0;
+  Result.Data[2] := 0;
 end;
 
 function ColorGreenConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result[1] := GrayscaleValue(Color);
-  Result[0] := 0;
-  Result[2] := 0;
+  Result.Data[1] := GrayscaleValue(Color);
+  Result.Data[0] := 0;
+  Result.Data[2] := 0;
 end;
 
 function ColorBlueConvertByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result[2] := GrayscaleValue(Color);
-  Result[0] := 0;
-  Result[1] := 0;
+  Result.Data[2] := GrayscaleValue(Color);
+  Result.Data[0] := 0;
+  Result.Data[1] := 0;
 end;
 
 function ColorRedStripByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result[0] := Color[0];
-  Result[1] := 0;
-  Result[2] := 0;
+  Result.Data[0] := Color.Data[0];
+  Result.Data[1] := 0;
+  Result.Data[2] := 0;
 end;
 
 function ColorGreenStripByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result[0] := 0;
-  Result[1] := Color[1];
-  Result[2] := 0;
+  Result.Data[0] := 0;
+  Result.Data[1] := Color.Data[1];
+  Result.Data[2] := 0;
 end;
 
 function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
 begin
-  Result[0] := 0;
-  Result[1] := 0;
-  Result[2] := Color[2];
+  Result.Data[0] := 0;
+  Result.Data[1] := 0;
+  Result.Data[2] := Color.Data[2];
 end;
 
 { HSV stuff ------------------------------------------------------------------ }
@@ -360,9 +360,9 @@ function RgbToHsv(const Value: TVector3Byte): TVector3;
 var
   ValueFloat: TVector3;
 begin
-  ValueFloat[0] := Value[0] / 255.0;
-  ValueFloat[1] := Value[1] / 255.0;
-  ValueFloat[2] := Value[2] / 255.0;
+  ValueFloat.Data[0] := Value.Data[0] / 255.0;
+  ValueFloat.Data[1] := Value.Data[1] / 255.0;
+  ValueFloat.Data[2] := Value.Data[2] / 255.0;
   Result := RgbToHsv(ValueFloat);
 end;
 
@@ -371,9 +371,9 @@ var
   ResultFloat: TVector3;
 begin
   ResultFloat := HsvToRgb(Value);
-  Result[0] := RoundClamp255(ResultFloat[0] * 255.0);
-  Result[1] := RoundClamp255(ResultFloat[1] * 255.0);
-  Result[2] := RoundClamp255(ResultFloat[2] * 255.0);
+  Result.Data[0] := RoundClamp255(ResultFloat.Data[0] * 255.0);
+  Result.Data[1] := RoundClamp255(ResultFloat.Data[1] * 255.0);
+  Result.Data[2] := RoundClamp255(ResultFloat.Data[2] * 255.0);
 end;
 
 function LerpRgbInHsv(const A: Single; const V1, V2: TVector3): TVector3;
@@ -424,19 +424,19 @@ function ColorToHex(const V: TCastleColor): string;
 var
   A: Byte;
 begin
-  Result := IntToHex(RoundClamp255(V[0] * 255), 2) +
-            IntToHex(RoundClamp255(V[1] * 255), 2) +
-            IntToHex(RoundClamp255(V[2] * 255), 2);
-  A := RoundClamp255(V[3] * 255);
+  Result := IntToHex(RoundClamp255(V.Data[0] * 255), 2) +
+            IntToHex(RoundClamp255(V.Data[1] * 255), 2) +
+            IntToHex(RoundClamp255(V.Data[2] * 255), 2);
+  A := RoundClamp255(V.Data[3] * 255);
   if A <> 255 then
     Result += IntToHex(A, 2);
 end;
 
 function ColorRGBToHex(const V: TCastleColorRGB): string;
 begin
-  Result := IntToHex(RoundClamp255(V[0] * 255), 2) +
-            IntToHex(RoundClamp255(V[1] * 255), 2) +
-            IntToHex(RoundClamp255(V[2] * 255), 2);
+  Result := IntToHex(RoundClamp255(V.Data[0] * 255), 2) +
+            IntToHex(RoundClamp255(V.Data[1] * 255), 2) +
+            IntToHex(RoundClamp255(V.Data[2] * 255), 2);
 end;
 
 function HexToColor(const S: string): TCastleColor;

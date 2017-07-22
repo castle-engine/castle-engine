@@ -64,9 +64,9 @@ var fhead: TBitmapFileHeader;
   procedure PutPaletteColor(paletteIndex: integer; var rgb3: TVector3Byte);
   { ustaw rgb3 na kolor numer paletteIndex wziety z palety }
   begin
-   rgb3[0] := palette^[paletteIndex].red;
-   rgb3[1] := palette^[paletteIndex].green;
-   rgb3[2] := palette^[paletteIndex].blue;
+   rgb3.Data[0] := palette^[paletteIndex].red;
+   rgb3.Data[1] := palette^[paletteIndex].green;
+   rgb3.Data[2] := palette^[paletteIndex].blue;
   end;
 
   procedure WriteRow(Row: Pointer; bmprow: PByteArray);
@@ -329,9 +329,9 @@ begin
    row := rowdata;
    for i := 0 to img.Width - 1 do
    begin
-    row^.r := p^[0];
-    row^.g := p^[1];
-    row^.b := p^[2];
+    row^.r := p^.Data[0];
+    row^.g := p^.Data[1];
+    row^.b := p^.Data[2];
     Inc(p);
     Inc(row);
    end;

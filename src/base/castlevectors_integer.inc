@@ -184,8 +184,8 @@ end;
 
 class function TVector2Integer.Equals(const V1, V2: TVector2Integer): boolean;
 begin
-  Result := (V1[0] = V2[0]) and
-            (V1[1] = V2[1]);
+  Result := (V1.Data[0] = V2.Data[0]) and
+            (V1.Data[1] = V2.Data[1]);
 end;
 
 {$ifdef BUGGY_ZERO_CONSTANT}
@@ -240,9 +240,9 @@ end;
 
 class function TVector3Integer.Equals(const V1, V2: TVector3Integer): boolean;
 begin
-  Result := (V1[0] = V2[0]) and
-            (V1[1] = V2[1]) and
-            (V1[2] = V2[2]);
+  Result := (V1.Data[0] = V2.Data[0]) and
+            (V1.Data[1] = V2.Data[1]) and
+            (V1.Data[2] = V2.Data[2]);
 end;
 
 {$ifdef BUGGY_ZERO_CONSTANT}
@@ -300,10 +300,10 @@ end;
 
 class function TVector4Integer.Equals(const V1, V2: TVector4Integer): boolean;
 begin
-  Result := (V1[0] = V2[0]) and
-            (V1[1] = V2[1]) and
-            (V1[2] = V2[2]) and
-            (V1[3] = V2[3]);
+  Result := (V1.Data[0] = V2.Data[0]) and
+            (V1.Data[1] = V2.Data[1]) and
+            (V1.Data[2] = V2.Data[2]) and
+            (V1.Data[3] = V2.Data[3]);
 end;
 
 {$ifdef BUGGY_ZERO_CONSTANT}

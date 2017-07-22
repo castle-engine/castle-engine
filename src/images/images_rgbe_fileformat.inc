@@ -44,15 +44,15 @@ var LoadResult: TCastleImage absolute result;
 
     function CompressedLineMarker(const Marker: TVector4Byte): boolean;
     begin
-     result := (Marker[0] = 2) and (Marker[1] = 2) and ((Marker[2] and $80) = 0);
+     result := (Marker.Data[0] = 2) and (Marker.Data[1] = 2) and ((Marker.Data[2] and $80) = 0);
      Assert((not result) or (LoadResult.Width =
-       LongWord((Marker[2] shl 8) or Marker[3])));
+       LongWord((Marker.Data[2] shl 8) or Marker.Data[3])));
     end;
 
     procedure ReadRLECompressedScanlineChannel(Pixel: PByteArray);
     { odczytaj z aktualnego strumienia skompresowany RLE ciag bajtow.
-      Kolejne bajty beda zapisywane do Pixel^[0], Pixel^[4], Pixel^[8] itd.,
-      az do Pixel^[(LoadResult.Width-1)*4]. }
+      Kolejne bajty beda zapisywane do Pixel^.Data[0], Pixel^.Data[4], Pixel^.Data[8] itd.,
+      az do Pixel^.Data[(LoadResult.Width-1)*4]. }
     var i: Integer;
         x: Cardinal;
         ByteMarker, ByteRepeat: byte;

@@ -66,9 +66,9 @@ begin
     for X := 0 to FPImage.Width - 1 do
     begin
       Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^[0] := Color.R;
-      ResultPixels^[1] := Color.G;
-      ResultPixels^[2] := Color.B;
+      ResultPixels^.Data[0] := Color.R;
+      ResultPixels^.Data[1] := Color.G;
+      ResultPixels^.Data[2] := Color.B;
       Inc(ResultPixels);
     end;
 end;
@@ -86,10 +86,10 @@ begin
     for X := 0 to FPImage.Width - 1 do
     begin
       Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^[0] := Color.R;
-      ResultPixels^[1] := Color.G;
-      ResultPixels^[2] := Color.B;
-      ResultPixels^[3] := Color.A;
+      ResultPixels^.Data[0] := Color.R;
+      ResultPixels^.Data[1] := Color.G;
+      ResultPixels^.Data[2] := Color.B;
+      ResultPixels^.Data[3] := Color.A;
       Inc(ResultPixels);
     end;
 end;
@@ -128,11 +128,11 @@ begin
     for X := 0 to FPImage.Width - 1 do
     begin
       Color := FPImage.Colors8Bit[X, Y];
-      ResultPixels^[0] := GrayscaleValue(Vector3Byte(
+      ResultPixels^.Data[0] := GrayscaleValue(Vector3Byte(
         Color.R,
         Color.G,
         Color.B));
-      ResultPixels^[1] := Color.A;
+      ResultPixels^.Data[1] := Color.A;
       Inc(ResultPixels);
     end;
 end;
@@ -305,10 +305,10 @@ begin
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.R := P^[0];
+        Color.R := P^.Data[0];
         Color.G := Color.R;
         Color.B := Color.R;
-        Color.A := P^[1];
+        Color.A := P^.Data[1];
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;
@@ -328,9 +328,9 @@ begin
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.R := P^[0];
-        Color.G := P^[1];
-        Color.B := P^[2];
+        Color.R := P^.Data[0];
+        Color.G := P^.Data[1];
+        Color.B := P^.Data[2];
         Color.A := $FF;
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
@@ -351,10 +351,10 @@ begin
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
-        Color.R := P^[0];
-        Color.G := P^[1];
-        Color.B := P^[2];
-        Color.A := P^[3];
+        Color.R := P^.Data[0];
+        Color.G := P^.Data[1];
+        Color.B := P^.Data[2];
+        Color.A := P^.Data[3];
         Result.Colors8Bit[X, Y] := Color;
         Inc(P);
       end;

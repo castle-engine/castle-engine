@@ -2425,14 +2425,14 @@ begin
   { convert Float to Single once }
   S := AngleSin;
   C := AngleCos;
-  Result[0] := Point[0] * C - Point[1] * S;
-  Result[1] := Point[0] * S + Point[1] * C;
+  Result.Data[0] := Point.Data[0] * C - Point.Data[1] * S;
+  Result.Data[1] := Point.Data[0] * S + Point.Data[1] * C;
 end;
 
 function RotationNegate(const Rotation: TVector4): TVector4;
 begin
   Result := Rotation;
-  Result[3] := -Result[3];
+  Result.Data[3] := -Result.Data[3];
 end;
 
 function Approximate3DScale(const X, Y, Z: Single): Single;
@@ -2450,7 +2450,7 @@ end;
 
 function Approximate3DScale(const V: TVector3): Single;
 begin
-  Result := Approximate3DScale(V[0], V[1], V[2]);
+  Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
 end;
 
 {$endif read_implementation}
