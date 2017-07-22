@@ -1601,7 +1601,10 @@ begin
     compute plane equation of triangle: normal*x+d=0 }
   PlaneDir := TVector3.CrossProduct(TriangleEdges[0], TriangleEdges[1]);
   Plane.Data[3] := -TVector3.DotProduct(PlaneDir, TriangleMoved[0]);
-  if not IsCenteredBox3DPlaneCollisionDouble(BoxHalfSize, Plane) then
+  if not {$ifdef IsTriangleCollision_DoublePrecision}
+         IsCenteredBox3DPlaneCollisionDouble{$else}
+         IsCenteredBox3DPlaneCollision{$endif}
+         (BoxHalfSize, Plane) then
     Exit(false);
 
   Result := true; { box and triangle overlaps }
