@@ -48,8 +48,8 @@ type
     type
       TIndex = 0..1;
   strict private
-    function GetItems(const Index: TIndex): TGenericScalar;
-    procedure SetItems(const Index: TIndex; const Value: TGenericScalar);
+    function GetItems(const Index: TIndex): TGenericScalar; inline;
+    procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -63,17 +63,17 @@ type
         (Data: (0, 1))
       );
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector2): TGenericVector2;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector2): TGenericVector2;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector2): TGenericVector2; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector2): TGenericVector2; inline;
     { Vector * vector makes a component-wise multiplication.
       This is consistent with GLSL and other vector APIs. }
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector2): TGenericVector2;
-    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector2): TGenericVector2; inline;
+    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2; inline;
 
-    procedure Init(const X, Y: TGenericScalar);
+    procedure Init(const X, Y: TGenericScalar); inline;
     function ToString: string;
 
     { Convert to string using the most precise (not always easily readable
@@ -87,50 +87,50 @@ type
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
 
-    function Normalize: TGenericVector2;
-    procedure NormalizeMe;
-    function Length: TGenericScalar;
+    function Normalize: TGenericVector2; inline;
+    procedure NormalizeMe; inline;
+    function Length: TGenericScalar; inline;
 
     { Vector length squared.
       This is slightly faster than @link(Length) as it avoids calculating
       a square root along the way. (But, please remember to not optimize
       your code without a need. Optimize only parts that are proven bottlenecks,
       otherwise don't make the code less readable for the sake of speed.) }
-    function LengthSqr: TGenericScalar;
+    function LengthSqr: TGenericScalar; inline;
 
     { Calculate a new vector scaled so that it has length equal to NewLength.
       NewLength may be negative, in which case we'll negate the vector
       and then adjust it's length to Abs(NewLength). }
-    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector2;
+    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector2; inline;
 
     { Dot product of two vectors.
       See https://en.wikipedia.org/wiki/Dot_product . }
-    class function DotProduct(const V1, V2: TGenericVector2): TGenericScalar; static;
+    class function DotProduct(const V1, V2: TGenericVector2): TGenericScalar; static; inline;
 
     { Absolute value on all components. }
-    function Abs: TGenericVector2;
+    function Abs: TGenericVector2; inline;
 
     { Are all components equal to zero (within some epsilon margin). }
-    function IsZero: boolean; overload;
+    function IsZero: boolean; overload; inline;
 
     { Are all components equal to zero (within Epsilon margin). }
-    function IsZero(const Epsilon: TGenericScalar): boolean; overload;
+    function IsZero(const Epsilon: TGenericScalar): boolean; overload; inline;
 
     function IsPerfectlyZero: boolean;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector2): boolean; static; overload;
-    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector2): boolean; static; overload; inline;
+    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean; static; overload; inline;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static;
+    class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static; inline;
 
     { Linear interpolation between two vector values.
       @seealso @link(TVector3.Lerp) }
-    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2; static;
+    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TGenericVector2; static;
+    class function Zero: TGenericVector2; static; inline;
     {$endif}
   end;
 
@@ -153,8 +153,8 @@ type
     type
       TIndex = 0..2;
   strict private
-    function GetItems(const Index: TIndex): TGenericScalar;
-    procedure SetItems(const Index: TIndex; const Value: TGenericScalar);
+    function GetItems(const Index: TIndex): TGenericScalar; inline;
+    procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -169,17 +169,17 @@ type
         (Data: (0, 0, 1))
       );
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector3): TGenericVector3;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector3): TGenericVector3;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector3): TGenericVector3; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector3): TGenericVector3; inline;
     { Vector * vector makes a component-wise multiplication.
       This is consistent with GLSL and other vector APIs. }
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector3): TGenericVector3;
-    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector3): TGenericVector3; inline;
+    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3; inline;
 
-    procedure Init(const X, Y, Z: TGenericScalar);
+    procedure Init(const X, Y, Z: TGenericScalar); inline;
     function ToString: string;
 
     { Convert to string using the most precise (not always easily readable
@@ -193,21 +193,21 @@ type
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
 
-    function Normalize: TGenericVector3;
-    procedure NormalizeMe;
-    function Length: TGenericScalar;
+    function Normalize: TGenericVector3; inline;
+    procedure NormalizeMe; inline;
+    function Length: TGenericScalar; inline;
 
     { Vector length squared.
       This is slightly faster than @link(Length) as it avoids calculating
       a square root along the way. (But, please remember to not optimize
       your code without a need. Optimize only parts that are proven bottlenecks,
       otherwise don't make the code less readable for the sake of speed.) }
-    function LengthSqr: TGenericScalar;
+    function LengthSqr: TGenericScalar; inline;
 
     { Calculate a new vector scaled so that it has length equal to NewLength.
       NewLength may be negative, in which case we'll negate the vector
       and then adjust it's length to Abs(NewLength). }
-    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector3;
+    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector3; inline;
 
     { Vector cross product.
       See http://en.wikipedia.org/wiki/Cross_product .
@@ -225,34 +225,34 @@ type
       When V1 and V2 are parallel (that is, when V1 = V2 multiplied by some scalar),
       and this includes the case when one of them is zero,
       then result is a zero vector. }
-    class function CrossProduct(const V1, V2: TGenericVector3): TGenericVector3; static;
+    class function CrossProduct(const V1, V2: TGenericVector3): TGenericVector3; static; inline;
 
     { Dot product of two vectors.
       See https://en.wikipedia.org/wiki/Dot_product . }
-    class function DotProduct(const V1, V2: TGenericVector3): TGenericScalar; static;
+    class function DotProduct(const V1, V2: TGenericVector3): TGenericScalar; static; inline;
 
     { Absolute value on all components. }
-    function Abs: TGenericVector3;
+    function Abs: TGenericVector3; inline;
 
     { Average from all components. }
-    function Average: TGenericScalar;
+    function Average: TGenericScalar; inline;
 
     { Are all components equal to zero (within some epsilon margin). }
-    function IsZero: boolean; overload;
+    function IsZero: boolean; overload; inline;
 
     { Are all components equal to zero (within Epsilon margin). }
-    function IsZero(const Epsilon: TGenericScalar): boolean; overload;
+    function IsZero(const Epsilon: TGenericScalar): boolean; overload; inline;
 
-    function IsPerfectlyZero: boolean;
+    function IsPerfectlyZero: boolean; inline;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector3): boolean; static; overload;
-    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector3): boolean; static; overload; inline;
+    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean; static; overload; inline;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static;
+    class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static; inline;
 
-    function XY: TGenericVector2;
+    function XY: TGenericVector2; inline;
 
     { Linear interpolation between two vector values.
       Returns @code((1-A) * V1 + A * V2).
@@ -266,10 +266,10 @@ type
         @item values between are interpolated,
         @item values outside are extrapolated.
       ) }
-    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3; static;
+    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TGenericVector3; static;
+    class function Zero: TGenericVector3; static; inline;
     {$endif}
   end;
 
@@ -280,8 +280,8 @@ type
     type
       TIndex = 0..3;
   strict private
-    function GetItems(const Index: TIndex): TGenericScalar;
-    procedure SetItems(const Index: TIndex; const Value: TGenericScalar);
+    function GetItems(const Index: TIndex): TGenericScalar; inline;
+    procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -297,17 +297,17 @@ type
         (Data: (0, 0, 0, 1))
       );
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector4): TGenericVector4;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector4): TGenericVector4;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TGenericVector4): TGenericVector4; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericVector4): TGenericVector4; inline;
     { Vector * vector makes a component-wise multiplication.
       This is consistent with GLSL and other vector APIs. }
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector4): TGenericVector4;
-    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V1, V2: TGenericVector4): TGenericVector4; inline;
+    class operator {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4; inline;
 
-    procedure Init(const X, Y, Z, W: TGenericScalar);
+    procedure Init(const X, Y, Z, W: TGenericScalar); inline;
     function ToString: string;
 
     { Convert to string using the most precise (not always easily readable
@@ -321,55 +321,55 @@ type
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
 
-    function Length: TGenericScalar;
+    function Length: TGenericScalar; inline;
 
     { Vector length squared.
       This is slightly faster than @link(Length) as it avoids calculating
       a square root along the way. (But, please remember to not optimize
       your code without a need. Optimize only parts that are proven bottlenecks,
       otherwise don't make the code less readable for the sake of speed.) }
-    function LengthSqr: TGenericScalar;
+    function LengthSqr: TGenericScalar; inline;
 
     { Calculate a new vector scaled so that it has length equal to NewLength.
       NewLength may be negative, in which case we'll negate the vector
       and then adjust it's length to Abs(NewLength). }
-    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector4;
+    function AdjustToLength(const NewLength: TGenericScalar): TGenericVector4; inline;
 
     { Dot product of two vectors.
       See https://en.wikipedia.org/wiki/Dot_product . }
-    class function DotProduct(const V1, V2: TGenericVector4): TGenericScalar; static;
+    class function DotProduct(const V1, V2: TGenericVector4): TGenericScalar; static; inline;
 
     { Absolute value on all components. }
-    function Abs: TGenericVector4;
+    function Abs: TGenericVector4; inline;
 
     { Are all components equal to zero (within some epsilon margin). }
-    function IsZero: boolean; overload;
+    function IsZero: boolean; overload; inline;
 
     { Are all components equal to zero (within Epsilon margin). }
-    function IsZero(const Epsilon: TGenericScalar): boolean; overload;
+    function IsZero(const Epsilon: TGenericScalar): boolean; overload; inline;
 
-    function IsPerfectlyZero: boolean;
+    function IsPerfectlyZero: boolean; inline;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector4): boolean; static; overload;
-    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const V1, V2: TGenericVector4): boolean; static; overload; inline;
+    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean; static; overload; inline;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
-    class function PerfectlyEquals(const V1, V2: TGenericVector4): boolean; static;
+    class function PerfectlyEquals(const V1, V2: TGenericVector4): boolean; static; inline;
 
     { Convert a 4D homogeneous coordinate to 3D position. }
-    function ToPosition: TGenericVector3;
+    function ToPosition: TGenericVector3; inline;
 
     { Get first 3 components as a 3D vector.
       This simply rejects the 4th component. }
-    function XYZ: TGenericVector3;
+    function XYZ: TGenericVector3; inline;
 
     { Linear interpolation between two vector values.
       @seealso @link(TVector3.Lerp) }
-    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static;
+    class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TGenericVector4; static;
+    class function Zero: TGenericVector4; static; inline;
     {$endif}
   end;
 
@@ -380,8 +380,8 @@ type
     type
       TIndex = 0..1;
   strict private
-    function GetItems(const AColumn, ARow: TIndex): TGenericScalar;
-    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+    function GetItems(const AColumn, ARow: TIndex): TGenericScalar; inline;
+    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -391,12 +391,12 @@ type
       {$endif}
       Identity: TGenericMatrix2 = (Data: ((1, 0), (0, 1)));
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix2): TGenericMatrix2;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix2; const Scalar: TGenericScalar): TGenericMatrix2;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix2): TGenericMatrix2;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix2; const V: TGenericVector2): TGenericVector2;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix2): TGenericMatrix2; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix2; const Scalar: TGenericScalar): TGenericMatrix2; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix2): TGenericMatrix2; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix2; const V: TGenericVector2): TGenericVector2; inline;
     { Matrix * matrix makes a normal matrix algebraic multiplication
       (not component-wise multiplication).
       Note that this is different from vectors, where vector * vector
@@ -415,7 +415,7 @@ type
     function ToRawString(const LineIndent: string = ''): string;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    function Row(const ARow: TIndex): TGenericVector2;
+    function Row(const ARow: TIndex): TGenericVector2; inline;
     function Determinant: TGenericScalar;
 
     { Inverse the matrix.
@@ -468,8 +468,8 @@ type
     type
       TIndex = 0..2;
   strict private
-    function GetItems(const AColumn, ARow: TIndex): TGenericScalar;
-    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+    function GetItems(const AColumn, ARow: TIndex): TGenericScalar; inline;
+    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -479,12 +479,12 @@ type
       {$endif}
       Identity: TGenericMatrix3 = (Data: ((1, 0, 0), (0, 1, 0), (0, 0, 1)));
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix3): TGenericMatrix3;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix3; const Scalar: TGenericScalar): TGenericMatrix3;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix3): TGenericMatrix3;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix3): TGenericMatrix3; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix3; const Scalar: TGenericScalar): TGenericMatrix3; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix3): TGenericMatrix3; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix3; const V: TGenericVector3): TGenericVector3; inline;
     { Matrix * matrix makes a normal matrix algebraic multiplication
       (not component-wise multiplication).
       Note that this is different from vectors, where vector * vector
@@ -503,7 +503,7 @@ type
     function ToRawString(const LineIndent: string = ''): string;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    function Row(const ARow: TIndex): TGenericVector3;
+    function Row(const ARow: TIndex): TGenericVector3; inline;
     function Determinant: TGenericScalar;
 
     { Inverse the matrix.
@@ -541,8 +541,8 @@ type
     type
       TIndex = 0..3;
   strict private
-    function GetItems(const AColumn, ARow: TIndex): TGenericScalar;
-    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar);
+    function GetItems(const AColumn, ARow: TIndex): TGenericScalar; inline;
+    procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -552,17 +552,17 @@ type
       {$endif}
       Identity: TGenericMatrix4 = (Data: ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)));
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix4): TGenericMatrix4;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix4; const Scalar: TGenericScalar): TGenericMatrix4;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix4): TGenericMatrix4;
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const M: TGenericMatrix4): TGenericMatrix4; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const V: TGenericMatrix4; const Scalar: TGenericScalar): TGenericMatrix4; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Scalar: TGenericScalar; const V: TGenericMatrix4): TGenericMatrix4; inline;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M: TGenericMatrix4; const V: TGenericVector4): TGenericVector4; inline;
     { Matrix * matrix makes a normal matrix algebraic multiplication
       (not component-wise multiplication).
       Note that this is different from vectors, where vector * vector
       makes a component-wise multiplication. }
-    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4;
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const M1, M2: TGenericMatrix4): TGenericMatrix4; inline;
 
     function ToString(const LineIndent: string = ''): string;
 
@@ -576,7 +576,7 @@ type
     function ToRawString(const LineIndent: string = ''): string;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    function Row(const ARow: TIndex): TGenericVector4;
+    function Row(const ARow: TIndex): TGenericVector4; inline;
     function Determinant: TGenericScalar;
 
     { Inverse the matrix.

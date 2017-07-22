@@ -25,8 +25,8 @@ type
     type
       TIndex = 0..1;
   strict private
-    function GetItems(const Index: TIndex): Byte;
-    procedure SetItems(const Index: TIndex; const Value: Byte);
+    function GetItems(const Index: TIndex): Byte; inline;
+    procedure SetItems(const Index: TIndex; const Value: Byte); inline;
   public
     var
       Data: array [TIndex] of Byte;
@@ -35,17 +35,17 @@ type
       Zero: TVector2Byte = (Data: (0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Byte): TVector2Byte;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Byte): TVector2Byte;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Byte): TVector2Byte; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Byte): TVector2Byte; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector2Byte): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector2Byte; static;
+    class function Zero: TVector2Byte; static; inline;
     {$endif}
   end;
 
@@ -55,8 +55,8 @@ type
     type
       TIndex = 0..2;
   strict private
-    function GetItems(const Index: TIndex): Byte;
-    procedure SetItems(const Index: TIndex; const Value: Byte);
+    function GetItems(const Index: TIndex): Byte; inline;
+    procedure SetItems(const Index: TIndex; const Value: Byte); inline;
   public
     var
       Data: array [TIndex] of Byte;
@@ -65,17 +65,17 @@ type
       Zero: TVector3Byte = (Data: (0, 0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Byte): TVector3Byte;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Byte): TVector3Byte;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Byte): TVector3Byte; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Byte): TVector3Byte; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector3Byte): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector3Byte; static;
+    class function Zero: TVector3Byte; static; inline;
     {$endif}
   end;
 
@@ -85,8 +85,8 @@ type
     type
       TIndex = 0..3;
   strict private
-    function GetItems(const Index: TIndex): Byte;
-    procedure SetItems(const Index: TIndex; const Value: Byte);
+    function GetItems(const Index: TIndex): Byte; inline;
+    procedure SetItems(const Index: TIndex; const Value: Byte); inline;
   public
     var
       Data: array [TIndex] of Byte;
@@ -95,14 +95,14 @@ type
       Zero: TVector4Byte = (Data: (0, 0, 0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Byte): TVector4Byte;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Byte): TVector4Byte;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Byte): TVector4Byte; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Byte): TVector4Byte; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector4Byte): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
     class function Zero: TVector4Byte; static;
@@ -120,9 +120,9 @@ type
   TArray_Vector4Byte = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
   PArray_Vector4Byte = ^TArray_Vector4Byte;
 
-function Vector2Byte(const X, Y: Byte): TVector2Byte;
-function Vector3Byte(const X, Y, Z: Byte): TVector3Byte;
-function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte;
+function Vector2Byte(const X, Y: Byte): TVector2Byte; inline;
+function Vector3Byte(const X, Y, Z: Byte): TVector3Byte; inline;
+function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; inline;
 
 { Convert float vectors into byte vectors.
   Each float component is converted such that float 0.0 (or less)
@@ -139,9 +139,9 @@ function Vector2(const V: TVector2Byte): TVector2; overload;
 function Vector3(const V: TVector3Byte): TVector3; overload;
 function Vector4(const V: TVector4Byte): TVector4; overload;
 
-function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte; overload;
-function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte; overload;
-function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Byte): TVector2Byte; overload; inline;
+function Lerp(const A: Single; const V1, V2: TVector3Byte): TVector3Byte; overload; inline;
+function Lerp(const A: Single; const V1, V2: TVector4Byte): TVector4Byte; overload; inline;
 
 {$endif read_interface}
 

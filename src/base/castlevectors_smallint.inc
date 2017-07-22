@@ -24,8 +24,8 @@ type
     type
       TIndex = 0..1;
   strict private
-    function GetItems(const Index: TIndex): SmallInt;
-    procedure SetItems(const Index: TIndex; const Value: SmallInt);
+    function GetItems(const Index: TIndex): SmallInt; inline;
+    procedure SetItems(const Index: TIndex; const Value: SmallInt); inline;
   public
     var
       Data: array [TIndex] of SmallInt;
@@ -34,22 +34,22 @@ type
       Zero: TVector2SmallInt = (Data: (0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2SmallInt): TVector2SmallInt;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2SmallInt): TVector2SmallInt; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2SmallInt): TVector2SmallInt; inline;
 
     function ToString: string;
 
     property Items [const Index: TIndex]: SmallInt read GetItems write SetItems; default;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector2SmallInt; static;
+    class function Zero: TVector2SmallInt; static; inline;
     {$endif}
   end;
 
   PVector2SmallInt = ^TVector2SmallInt;
 
-function Vector2SmallInt(const X, Y: SmallInt): TVector2SmallInt;
+function Vector2SmallInt(const X, Y: SmallInt): TVector2SmallInt; inline;
 
 {$endif read_interface}
 

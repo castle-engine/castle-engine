@@ -25,8 +25,8 @@ type
     type
       TIndex = 0..1;
   strict private
-    function GetItems(const Index: TIndex): Integer;
-    procedure SetItems(const Index: TIndex; const Value: Integer);
+    function GetItems(const Index: TIndex): Integer; inline;
+    procedure SetItems(const Index: TIndex; const Value: Integer); inline;
   public
     var
       Data: array [TIndex] of Integer;
@@ -35,17 +35,17 @@ type
       Zero: TVector2Integer = (Data: (0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Integer): TVector2Integer;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Integer): TVector2Integer;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Integer): TVector2Integer;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Integer): TVector2Integer; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Integer): TVector2Integer; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Integer): TVector2Integer; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector2Integer): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector2Integer): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector2Integer; static;
+    class function Zero: TVector2Integer; static; inline;
     {$endif}
   end;
 
@@ -55,8 +55,8 @@ type
     type
       TIndex = 0..2;
   strict private
-    function GetItems(const Index: TIndex): Integer;
-    procedure SetItems(const Index: TIndex; const Value: Integer);
+    function GetItems(const Index: TIndex): Integer; inline;
+    procedure SetItems(const Index: TIndex; const Value: Integer); inline;
   public
     var
       Data: array [TIndex] of Integer;
@@ -65,17 +65,17 @@ type
       Zero: TVector3Integer = (Data: (0, 0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Integer): TVector3Integer;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Integer): TVector3Integer;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Integer): TVector3Integer;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Integer): TVector3Integer; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Integer): TVector3Integer; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Integer): TVector3Integer; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector3Integer): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector3Integer): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector3Integer; static;
+    class function Zero: TVector3Integer; static; inline;
     {$endif}
   end;
 
@@ -85,8 +85,8 @@ type
     type
       TIndex = 0..3;
   strict private
-    function GetItems(const Index: TIndex): Integer;
-    procedure SetItems(const Index: TIndex; const Value: Integer);
+    function GetItems(const Index: TIndex): Integer; inline;
+    procedure SetItems(const Index: TIndex; const Value: Integer); inline;
   public
     var
       Data: array [TIndex] of Integer;
@@ -95,17 +95,17 @@ type
       Zero: TVector4Integer = (Data: (0, 0, 0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Integer): TVector4Integer;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Integer): TVector4Integer;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Integer): TVector4Integer;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Integer): TVector4Integer; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Integer): TVector4Integer; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Integer): TVector4Integer; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector4Integer): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector4Integer): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector4Integer; static;
+    class function Zero: TVector4Integer; static; inline;
     {$endif}
   end;
 
@@ -120,9 +120,9 @@ type
   TArray_Vector4Integer = packed array [0..MaxInt div SizeOf(TVector4Integer)-1] of TVector4Integer;
   PArray_Vector4Integer = ^TArray_Vector4Integer;
 
-function Vector2Integer(const X, Y: Integer): TVector2Integer;
-function Vector3Integer(const X, Y, Z: Integer): TVector3Integer;
-function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer;
+function Vector2Integer(const X, Y: Integer): TVector2Integer; inline;
+function Vector3Integer(const X, Y, Z: Integer): TVector3Integer; inline;
+function Vector4Integer(const X, Y, Z, W: Integer): TVector4Integer; inline;
 
 (*
 Not defined for now, it's not obvious whether this is the most intuitive Lerp.

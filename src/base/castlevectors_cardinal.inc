@@ -25,8 +25,8 @@ type
     type
       TIndex = 0..1;
   strict private
-    function GetItems(const Index: TIndex): Cardinal;
-    procedure SetItems(const Index: TIndex; const Value: Cardinal);
+    function GetItems(const Index: TIndex): Cardinal; inline;
+    procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
   public
     var
       Data: array [TIndex] of Cardinal;
@@ -35,17 +35,17 @@ type
       Zero: TVector2Cardinal = (Data: (0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector2Cardinal): TVector2Cardinal; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector2Cardinal): TVector2Cardinal; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector2Cardinal): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector2Cardinal; static;
+    class function Zero: TVector2Cardinal; static; inline;
     {$endif}
   end;
 
@@ -55,8 +55,8 @@ type
     type
       TIndex = 0..2;
   strict private
-    function GetItems(const Index: TIndex): Cardinal;
-    procedure SetItems(const Index: TIndex; const Value: Cardinal);
+    function GetItems(const Index: TIndex): Cardinal; inline;
+    procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
   public
     var
       Data: array [TIndex] of Cardinal;
@@ -65,17 +65,17 @@ type
       Zero: TVector3Cardinal = (Data: (0, 0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector3Cardinal): TVector3Cardinal; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector3Cardinal): TVector3Cardinal; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector3Cardinal): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector3Cardinal; static;
+    class function Zero: TVector3Cardinal; static; inline;
     {$endif}
   end;
 
@@ -85,8 +85,8 @@ type
     type
       TIndex = 0..3;
   strict private
-    function GetItems(const Index: TIndex): Cardinal;
-    procedure SetItems(const Index: TIndex; const Value: Cardinal);
+    function GetItems(const Index: TIndex): Cardinal; inline;
+    procedure SetItems(const Index: TIndex; const Value: Cardinal); inline;
   public
     var
       Data: array [TIndex] of Cardinal;
@@ -95,17 +95,17 @@ type
       Zero: TVector4Cardinal = (Data: (0, 0, 0, 0));
     {$endif}
 
-    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal;
-    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal;
-    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
+    class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TVector4Cardinal): TVector4Cardinal; inline;
+    class operator {$ifdef FPC}-{$else}Negative{$endif} (const V: TVector4Cardinal): TVector4Cardinal; inline;
 
     function ToString: string;
     property Items [const Index: TIndex]: Cardinal read GetItems write SetItems; default;
-    function IsZero: boolean;
-    class function Equals(const V1, V2: TVector4Cardinal): boolean; static;
+    function IsZero: boolean; inline;
+    class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
-    class function Zero: TVector4Cardinal; static;
+    class function Zero: TVector4Cardinal; static; inline;
     {$endif}
   end;
 
@@ -120,9 +120,9 @@ type
   TArray_Vector4Cardinal = packed array [0..MaxInt div SizeOf(TVector4Cardinal)-1] of TVector4Cardinal;
   PArray_Vector4Cardinal = ^TArray_Vector4Cardinal;
 
-function Vector2Cardinal(const X, Y: Cardinal): TVector2Cardinal;
-function Vector3Cardinal(const X, Y, Z: Cardinal): TVector3Cardinal;
-function Vector4Cardinal(const X, Y, Z, W: Cardinal): TVector4Cardinal;
+function Vector2Cardinal(const X, Y: Cardinal): TVector2Cardinal; inline;
+function Vector3Cardinal(const X, Y, Z: Cardinal): TVector3Cardinal; inline;
+function Vector4Cardinal(const X, Y, Z, W: Cardinal): TVector4Cardinal; inline;
 
 {$endif read_interface}
 
