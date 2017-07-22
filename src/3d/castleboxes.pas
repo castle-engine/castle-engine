@@ -116,6 +116,12 @@ type
     to manage this, you can simply declare TBox3D type and copy / pass around
     this box to other procedures. }
   TBox3D = object
+  strict private
+    function GetMin: TVector3; inline;
+    procedure SetMin(const Value: TVector3); inline;
+    function GetMax: TVector3; inline;
+    procedure SetMax(const Value: TVector3); inline;
+  public
     Data: array [0..1] of TVector3;
 
     const
@@ -132,6 +138,14 @@ type
       that TBox3D.Empty is the only allowed value that breaks
       @code(Data[0].Data[0] <= Data[1].Data[0]) rule. }
     function IsEmpty: boolean;
+
+    { The minimum 3D position within this box. Use only if not @link(IsEmpty),
+      in which case this is just a shortcut for @code(Data[0]). }
+    property Min: TVector3 read GetMin write SetMin;
+
+    { The maximum 3D position within this box. Use only if not @link(IsEmpty),
+      in which case this is just a shortcut for @code(Data[1]). }
+    property Max: TVector3 read GetMax write SetMax;
 
     { Check is box empty or has all the sizes equal 0. }
     function IsEmptyOrZero: boolean;
@@ -641,7 +655,59 @@ function IsCenteredBox3DPlaneCollisionDouble(
   const BoxHalfSize: TVector3Double;
   const Plane: TVector4Double): boolean; forward;
 
+{ Special procedures for raising errors, to make GetMin and friends ultra-fast,
+  so that they don't need an implicit try-finally section because they have a string. }
+
+procedure RaiseGetMin;
+begin
+  raise EBox3DEmpty.Create('Empty box 3D (Box.IsEmpty), cannot get minimum point');
+end;
+
+procedure RaiseSetMin;
+begin
+  raise EBox3DEmpty.Create('Empty box 3D (Box.IsEmpty), cannot set minimum point. Set the whole box to non-empty using the global Box3D() function');
+end;
+
+procedure RaiseGetMax;
+begin
+  raise EBox3DEmpty.Create('Empty box 3D (Box.IsEmpty), cannot get maximum point');
+end;
+
+procedure RaiseSetMax;
+begin
+  raise EBox3DEmpty.Create('Empty box 3D (Box.IsEmpty), cannot set maximum point. Set the whole box to non-empty using the global Box3D() function');
+end;
+
+procedure RaiseRadius2DInvalidIgnoreIndex;
+begin
+  raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.Radius2D');
+end;
+
 { TBox3D --------------------------------------------------------------------- }
+
+function TBox3D.GetMin: TVector3;
+begin
+  if IsEmpty then RaiseGetMin;
+  Result := Data[0];
+end;
+
+procedure TBox3D.SetMin(const Value: TVector3);
+begin
+  if IsEmpty then RaiseSetMin;
+  Data[0] := Value;
+end;
+
+function TBox3D.GetMax: TVector3;
+begin
+  if IsEmpty then RaiseGetMax;
+  Result := Data[1];
+end;
+
+procedure TBox3D.SetMax(const Value: TVector3);
+begin
+  if IsEmpty then RaiseSetMax;
+  Data[1] := Value;
+end;
 
 function TBox3D.IsEmpty: boolean;
 begin
@@ -702,7 +768,7 @@ end;
 function TBox3D.MaxSize: Single;
 begin
   CheckNonEmpty;
-  Result := Max(
+  Result := CastleUtils.Max(
      Data[1].Data[0] - Data[0].Data[0],
      Data[1].Data[1] - Data[0].Data[1],
      Data[1].Data[2] - Data[0].Data[2]);
@@ -714,7 +780,7 @@ begin
   if IsEmpty then
     Result := EmptyBoxSize else
   begin
-    Result := Max(
+    Result := CastleUtils.Max(
       Data[1].Data[0] - Data[0].Data[0],
       Data[1].Data[1] - Data[0].Data[1],
       Data[1].Data[2] - Data[0].Data[2]);
@@ -744,7 +810,7 @@ function TBox3D.MinSize: Single;
 begin
  CheckNonEmpty;
 
- Result := Min(
+ Result := CastleUtils.Min(
    Data[1].Data[0] - Data[0].Data[0],
    Data[1].Data[1] - Data[0].Data[1],
    Data[1].Data[2] - Data[0].Data[2]);
@@ -1528,7 +1594,7 @@ var
   I: Integer;
   TriangleEdges: TTriangle3;
   EdgeAbs: TVector3;
-  min, max: TScalar;
+  TriMin, TriMax: TScalar;
   Plane: TVector4;
   PlaneDir: TVector3 absolute Plane;
 begin
@@ -1577,24 +1643,24 @@ begin
 
   { tests 1)
     first test overlap in the (x,y,z)-directions
-    find min, max of the triangle each direction, and test for overlap in
+    find TriMin, TriMax of the triangle each direction, and test for overlap in
     that direction -- this is equivalent to testing a minimal AABB around
     the triangle against the AABB }
 
   { test in X-direction }
-  MinMax(TriangleMoved[0].Data[0], TriangleMoved[1].Data[0], TriangleMoved[2].Data[0], min, max);
-  if (min >  boxhalfsize.Data[0] + Epsilon) or
-     (max < -boxhalfsize.Data[0] - Epsilon) then Exit(false);
+  MinMax(TriangleMoved[0].Data[0], TriangleMoved[1].Data[0], TriangleMoved[2].Data[0], TriMin, TriMax);
+  if (TriMin >  boxhalfsize.Data[0] + Epsilon) or
+     (TriMax < -boxhalfsize.Data[0] - Epsilon) then Exit(false);
 
   { test in Y-direction }
-  MinMax(TriangleMoved[0].Data[1], TriangleMoved[1].Data[1], TriangleMoved[2].Data[1], min, max);
-  if (min >  boxhalfsize.Data[1] + Epsilon) or
-     (max < -boxhalfsize.Data[1] - Epsilon) then Exit(false);
+  MinMax(TriangleMoved[0].Data[1], TriangleMoved[1].Data[1], TriangleMoved[2].Data[1], TriMin, TriMax);
+  if (TriMin >  boxhalfsize.Data[1] + Epsilon) or
+     (TriMax < -boxhalfsize.Data[1] - Epsilon) then Exit(false);
 
   { test in Z-direction }
-  MinMax(TriangleMoved[0].Data[2], TriangleMoved[1].Data[2], TriangleMoved[2].Data[2], min, max);
-  if (min >  boxhalfsize.Data[2] + Epsilon) or
-     (max < -boxhalfsize.Data[2] - Epsilon) then Exit(false);
+  MinMax(TriangleMoved[0].Data[2], TriangleMoved[1].Data[2], TriangleMoved[2].Data[2], TriMin, TriMax);
+  if (TriMin >  boxhalfsize.Data[2] + Epsilon) or
+     (TriMax < -boxhalfsize.Data[2] - Epsilon) then Exit(false);
 
   { tests 2)
     test if the box intersects the plane of the triangle
@@ -1637,22 +1703,19 @@ function TBox3D.Radius: Single;
 begin
   if IsEmpty then
     Result := 0 else
-    Result := Sqrt(Max(
-      Max(Max((Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr),
+    Result := Sqrt(CastleUtils.Max(
+      CastleUtils.Max(CastleUtils.Max(
+              (Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr),
               (Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr)),
-          Max((Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr),
+          CastleUtils.Max(
+              (Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr),
               (Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr))),
-      Max(Max((Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr),
+      CastleUtils.Max(CastleUtils.Max(
+              (Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr),
               (Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr)),
-          Max((Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr),
+          CastleUtils.Max(
+              (Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr),
               (Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr)))));
-end;
-
-{ Separated from Radius2D, to not slowdown it by implicit
-  try/finally section because we use string. }
-procedure Radius2D_InvalidIgnoreIndex;
-begin
-  raise EInternalError.Create('Invalid IgnoreIndex for TBox3D.Radius2D');
 end;
 
 function TBox3D.Radius2D(const IgnoreIndex: Integer): Single;
@@ -1661,22 +1724,28 @@ begin
     Result := 0 else
   begin
     case IgnoreIndex of
-      0: Result := Max(
-           Max((Vector2(Data[0].Data[1], Data[0].Data[2]).LengthSqr),
+      0: Result := CastleUtils.Max(
+           CastleUtils.Max(
+               (Vector2(Data[0].Data[1], Data[0].Data[2]).LengthSqr),
                (Vector2(Data[1].Data[1], Data[0].Data[2]).LengthSqr)),
-           Max((Vector2(Data[1].Data[1], Data[1].Data[2]).LengthSqr),
+           CastleUtils.Max(
+               (Vector2(Data[1].Data[1], Data[1].Data[2]).LengthSqr),
                (Vector2(Data[0].Data[1], Data[1].Data[2]).LengthSqr)));
-      1: Result := Max(
-           Max((Vector2(Data[0].Data[2], Data[0].Data[0]).LengthSqr),
+      1: Result := CastleUtils.Max(
+           CastleUtils.Max(
+               (Vector2(Data[0].Data[2], Data[0].Data[0]).LengthSqr),
                (Vector2(Data[1].Data[2], Data[0].Data[0]).LengthSqr)),
-           Max((Vector2(Data[1].Data[2], Data[1].Data[0]).LengthSqr),
+           CastleUtils.Max(
+               (Vector2(Data[1].Data[2], Data[1].Data[0]).LengthSqr),
                (Vector2(Data[0].Data[2], Data[1].Data[0]).LengthSqr)));
-      2: Result := Max(
-           Max((Vector2(Data[0].Data[0], Data[0].Data[1]).LengthSqr),
+      2: Result := CastleUtils.Max(
+           CastleUtils.Max(
+               (Vector2(Data[0].Data[0], Data[0].Data[1]).LengthSqr),
                (Vector2(Data[1].Data[0], Data[0].Data[1]).LengthSqr)),
-           Max((Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr),
+           CastleUtils.Max(
+               (Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr),
                (Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr)));
-      else Radius2D_InvalidIgnoreIndex;
+      else RaiseRadius2DInvalidIgnoreIndex;
     end;
 
     Result := Sqrt(Result);
@@ -2395,12 +2464,12 @@ begin
   if Box2.IsEmpty then
     Result := Box1 else
   begin
-    Result.Data[0].Data[0] := Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
-    Result.Data[1].Data[0] := Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
-    Result.Data[0].Data[1] := Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
-    Result.Data[1].Data[1] := Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
-    Result.Data[0].Data[2] := Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
-    Result.Data[1].Data[2] := Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
+    Result.Data[0].Data[0] := CastleUtils.Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
+    Result.Data[1].Data[0] := CastleUtils.Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
+    Result.Data[0].Data[1] := CastleUtils.Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
+    Result.Data[1].Data[1] := CastleUtils.Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
+    Result.Data[0].Data[2] := CastleUtils.Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
+    Result.Data[1].Data[2] := CastleUtils.Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
   end;
 end;
 

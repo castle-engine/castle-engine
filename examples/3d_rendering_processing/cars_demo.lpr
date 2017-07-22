@@ -40,8 +40,8 @@ procedure WindowUpdate(Container: TUIContainer);
       and will always move 40 units / per second along the -Z axis. }
     T := T + Vector3(0, 0, -40) * Container.Fps.UpdateSecondsPassed;
     { Wrap the Z position, to move in a loop }
-    if T[2] < -70.0 then
-      T[2] := 50.0;
+    if T.Z < -70.0 then
+      T.Z := 50.0;
     CarTransform.Translation := T;
   end;
 
@@ -89,18 +89,18 @@ begin
   Appearance.Material := Material;
 
   Box1 := TBoxNode.Create('box_1_geometry');
-  Box1.Size := Vector3(0.5, WallHeight, RoadBox.Size[2]);
+  Box1.Size := Vector3(0.5, WallHeight, RoadBox.Size.Z);
 
   Shape1 := TShapeNode.Create('box_1_shape');
   Shape1.Appearance := Appearance;
   Shape1.Geometry := Box1;
 
   Transform1 := TTransformNode.Create('box_1_transform');
-  Transform1.Translation := Vector3(RoadBox.Data[0][0], WallHeight / 2, RoadBox.Center[2]);
+  Transform1.Translation := Vector3(RoadBox.Min.X, WallHeight / 2, RoadBox.Center.Z);
   Transform1.FdChildren.Add(Shape1);
 
   Box2 := TBoxNode.Create('box_2_geometry');
-  Box2.Size := Vector3(0.5, WallHeight, RoadBox.Size[2]);
+  Box2.Size := Vector3(0.5, WallHeight, RoadBox.Size.Z);
 
   Shape2 := TShapeNode.Create('box_2_shape');
   { Reuse the same Appearance node for another shape.
@@ -109,7 +109,7 @@ begin
   Shape2.Geometry := Box2;
 
   Transform2 := TTransformNode.Create('box_2_transform');
-  Transform2.Translation := Vector3(RoadBox.Data[1][0], WallHeight / 2, RoadBox.Center[2]);
+  Transform2.Translation := Vector3(RoadBox.Max.X, WallHeight / 2, RoadBox.Center.Z);
   Transform2.FdChildren.Add(Shape2);
 
   RootNode := TX3DRootNode.Create;
