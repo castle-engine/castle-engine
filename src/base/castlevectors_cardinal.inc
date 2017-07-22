@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of record-based vector types using the Cardinal components. }
+{ Vector types using Cardinal components. }
 
 {$ifdef read_interface}
 

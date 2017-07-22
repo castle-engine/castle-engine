@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of miscellaneous stuff for CastleVectors. }
+{ Miscellaneous stuff for CastleVectors. }
 
 {$ifdef read_interface}
 

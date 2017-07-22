@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Define Single- and Double-precision vectors types (and constructors) using advanced records. }
+{ Define Single- and Double-precision vector and matrix types
+  (and their constructors) using advanced records. }
 
 {$ifdef read_interface}
 

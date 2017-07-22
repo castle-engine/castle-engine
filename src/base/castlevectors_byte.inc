@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-(* Interface and implementation vectors based on the Byte type *)
+(* Vectors based on the Byte type. *)
 
 {$ifdef read_interface}
 

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of record-based vector types using the Integer components. }
+{ Vector types using Integer components. }
 
 {$ifdef read_interface}
 

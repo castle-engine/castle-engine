@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of CastleVectors for lists using record-based
-  vector and matrix types (TVector3 and friends). }
+{ CastleVectors lists of vectors and matrices. }
 
 {$ifdef read_interface}
 

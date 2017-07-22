@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of record-based vector types using the SmallInt components. }
+{ Vector types using SmallInt components. }
 
 {$ifdef read_interface}
 

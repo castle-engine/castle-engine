@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of CastleVectors routines (global functions, procedures)
-  for Single precision of record-based types (TVector3 and friends). }
+{ CastleVectors routines (global functions, procedures)
+  for Single precision of vectors and matrices. }
 
 {$ifdef read_interface}
 

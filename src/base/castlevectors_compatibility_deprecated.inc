@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Deprecated stuff kept only for compatibility with older versions
-  of Castle Game Engine. }
+{ Deprecated definitions (types and functions), existing only to keep
+  backward-compatibility with older versions of Castle Game Engine. }
 
 {$ifdef read_interface}
 

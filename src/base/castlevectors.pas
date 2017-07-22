@@ -153,16 +153,16 @@ uses SysUtils, Generics.Collections,
 
 {$define read_interface}
 
-{$I castlevectors_records_float.inc}
-{$I castlevectors_records_single.inc}
-{$I castlevectors_records_double.inc}
-{$I castlevectors_records_byte.inc}
-{$I castlevectors_records_integer.inc}
-{$I castlevectors_records_cardinal.inc}
-{$I castlevectors_records_smallint.inc}
-{$I castlevectors_records_lists.inc}
-{$I castlevectors_records_compatibility_deprecated.inc}
-{$I castlevectors_records_miscellaneous.inc}
+{$I castlevectors_float.inc}
+{$I castlevectors_single.inc}
+{$I castlevectors_double.inc}
+{$I castlevectors_byte.inc}
+{$I castlevectors_integer.inc}
+{$I castlevectors_cardinal.inc}
+{$I castlevectors_smallint.inc}
+{$I castlevectors_lists.inc}
+{$I castlevectors_compatibility_deprecated.inc}
+{$I castlevectors_miscellaneous.inc}
 
 {$undef read_interface}
 
@@ -172,15 +172,15 @@ uses Math, CastleStringUtils, CastleColors;
 
 {$define read_implementation}
 
-{$I castlevectors_records_miscellaneous.inc}
-{$I castlevectors_records_float.inc}
-{$I castlevectors_records_single.inc}
-{$I castlevectors_records_double.inc}
-{$I castlevectors_records_byte.inc}
-{$I castlevectors_records_integer.inc}
-{$I castlevectors_records_cardinal.inc}
-{$I castlevectors_records_smallint.inc}
-{$I castlevectors_records_lists.inc}
-{$I castlevectors_records_compatibility_deprecated.inc}
+{$I castlevectors_miscellaneous.inc}
+{$I castlevectors_float.inc}
+{$I castlevectors_single.inc}
+{$I castlevectors_double.inc}
+{$I castlevectors_byte.inc}
+{$I castlevectors_integer.inc}
+{$I castlevectors_cardinal.inc}
+{$I castlevectors_smallint.inc}
+{$I castlevectors_lists.inc}
+{$I castlevectors_compatibility_deprecated.inc}
 
 end.
