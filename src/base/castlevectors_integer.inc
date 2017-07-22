@@ -27,6 +27,8 @@ type
   strict private
     function GetItems(const Index: TIndex): Integer; inline;
     procedure SetItems(const Index: TIndex; const Value: Integer); inline;
+    function GetItemsInt(const Index: Integer): Integer; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: Integer); inline;
   public
     var
       Data: array [TIndex] of Integer;
@@ -41,6 +43,9 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
+    property X: Integer index 0 read GetItemsInt write SetItemsInt;
+    property Y: Integer index 1 read GetItemsInt write SetItemsInt;
+
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Integer): boolean; static; inline;
 
@@ -57,6 +62,8 @@ type
   strict private
     function GetItems(const Index: TIndex): Integer; inline;
     procedure SetItems(const Index: TIndex; const Value: Integer); inline;
+    function GetItemsInt(const Index: Integer): Integer; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: Integer); inline;
   public
     var
       Data: array [TIndex] of Integer;
@@ -71,6 +78,10 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
+    property X: Integer index 0 read GetItemsInt write SetItemsInt;
+    property Y: Integer index 1 read GetItemsInt write SetItemsInt;
+    property Z: Integer index 2 read GetItemsInt write SetItemsInt;
+
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Integer): boolean; static; inline;
 
@@ -87,6 +98,8 @@ type
   strict private
     function GetItems(const Index: TIndex): Integer; inline;
     procedure SetItems(const Index: TIndex; const Value: Integer); inline;
+    function GetItemsInt(const Index: Integer): Integer; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: Integer); inline;
   public
     var
       Data: array [TIndex] of Integer;
@@ -101,6 +114,11 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Integer read GetItems write SetItems; default;
+    property X: Integer index 0 read GetItemsInt write SetItemsInt;
+    property Y: Integer index 1 read GetItemsInt write SetItemsInt;
+    property Z: Integer index 2 read GetItemsInt write SetItemsInt;
+    property W: Integer index 3 read GetItemsInt write SetItemsInt;
+
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Integer): boolean; static; inline;
 
@@ -177,6 +195,16 @@ begin
   Data[Index] := Value;
 end;
 
+function TVector2Integer.GetItemsInt(const Index: Integer): Integer;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector2Integer.SetItemsInt(const Index: Integer; const Value: Integer);
+begin
+  Data[Index] := Value;
+end;
+
 function TVector2Integer.IsZero: boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
@@ -229,6 +257,16 @@ begin
 end;
 
 procedure TVector3Integer.SetItems(const Index: TIndex; const Value: Integer);
+begin
+  Data[Index] := Value;
+end;
+
+function TVector3Integer.GetItemsInt(const Index: Integer): Integer;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector3Integer.SetItemsInt(const Index: Integer; const Value: Integer);
 begin
   Data[Index] := Value;
 end;
@@ -289,6 +327,16 @@ begin
 end;
 
 procedure TVector4Integer.SetItems(const Index: TIndex; const Value: Integer);
+begin
+  Data[Index] := Value;
+end;
+
+function TVector4Integer.GetItemsInt(const Index: Integer): Integer;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector4Integer.SetItemsInt(const Index: Integer; const Value: Integer);
 begin
   Data[Index] := Value;
 end;

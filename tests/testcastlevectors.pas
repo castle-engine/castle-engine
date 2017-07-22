@@ -46,6 +46,7 @@ type
     procedure TestTransformToFromCoordsMatrix;
     procedure Test2D;
     procedure TestApproximateScale;
+    procedure TestXYZ;
   end;
 
 function RandomVector: TVector3;
@@ -781,6 +782,39 @@ begin
   AssertSameValue(7/3, Approximate3DScale(1, 3, 3), Epsilon);
   AssertSameValue(-7/3, Approximate3DScale(-1, -3, -3), Epsilon);
   AssertSameValue(1, Approximate3DScale(-1, 1, 1), Epsilon);
+end;
+
+procedure TTestCastleVectors.TestXYZ;
+const
+  V2Const: TVector2 = (Data: (1, 2));
+  V3Const: TVector3 = (Data: (1, 2, 3));
+  V4Const: TVector4 = (Data: (1, 2, 3, 4));
+var
+  V2: TVector2;
+  V3: TVector3;
+  V4: TVector4;
+begin
+  V2 := V2Const;
+  V3 := V3Const;
+  V4 := V4Const;
+
+  AssertEquals(1, V2.X);
+  V2.X := 33;
+  AssertEquals(33, V2.X);
+  AssertEquals(2, V2.Y);
+
+  AssertEquals(1, V3.X);
+  AssertEquals(2, V3.Y);
+  AssertEquals(3, V3.Z);
+  V3.Z := 44;
+  AssertEquals(1, V3.X);
+  AssertEquals(2, V3.Y);
+  AssertEquals(44, V3.Z);
+
+  AssertEquals(1, V4.X);
+  AssertEquals(2, V4.Y);
+  AssertEquals(3, V4.Z);
+  AssertEquals(4, V4.W);
 end;
 
 initialization

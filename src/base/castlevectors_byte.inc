@@ -27,6 +27,8 @@ type
   strict private
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
+    function GetItemsInt(const Index: Integer): Byte; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: Byte); inline;
   public
     var
       Data: array [TIndex] of Byte;
@@ -41,6 +43,9 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
+    property X: Byte index 0 read GetItemsInt write SetItemsInt;
+    property Y: Byte index 1 read GetItemsInt write SetItemsInt;
+
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
 
@@ -57,6 +62,8 @@ type
   strict private
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
+    function GetItemsInt(const Index: Integer): Byte; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: Byte); inline;
   public
     var
       Data: array [TIndex] of Byte;
@@ -71,6 +78,10 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
+    property X: Byte index 0 read GetItemsInt write SetItemsInt;
+    property Y: Byte index 1 read GetItemsInt write SetItemsInt;
+    property Z: Byte index 2 read GetItemsInt write SetItemsInt;
+
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
 
@@ -87,6 +98,8 @@ type
   strict private
     function GetItems(const Index: TIndex): Byte; inline;
     procedure SetItems(const Index: TIndex; const Value: Byte); inline;
+    function GetItemsInt(const Index: Integer): Byte; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: Byte); inline;
   public
     var
       Data: array [TIndex] of Byte;
@@ -101,6 +114,11 @@ type
 
     function ToString: string;
     property Items [const Index: TIndex]: Byte read GetItems write SetItems; default;
+    property X: Byte index 0 read GetItemsInt write SetItemsInt;
+    property Y: Byte index 1 read GetItemsInt write SetItemsInt;
+    property Z: Byte index 2 read GetItemsInt write SetItemsInt;
+    property W: Byte index 3 read GetItemsInt write SetItemsInt;
+
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
 
@@ -182,6 +200,16 @@ begin
   Data[Index] := Value;
 end;
 
+function TVector2Byte.GetItemsInt(const Index: Integer): Byte;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector2Byte.SetItemsInt(const Index: Integer; const Value: Byte);
+begin
+  Data[Index] := Value;
+end;
+
 function TVector2Byte.IsZero: boolean;
 begin
   Result := IsMemCharFilled(Data, SizeOf(Data), #0);
@@ -234,6 +262,16 @@ begin
 end;
 
 procedure TVector3Byte.SetItems(const Index: TIndex; const Value: Byte);
+begin
+  Data[Index] := Value;
+end;
+
+function TVector3Byte.GetItemsInt(const Index: Integer): Byte;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector3Byte.SetItemsInt(const Index: Integer; const Value: Byte);
 begin
   Data[Index] := Value;
 end;
@@ -294,6 +332,16 @@ begin
 end;
 
 procedure TVector4Byte.SetItems(const Index: TIndex; const Value: Byte);
+begin
+  Data[Index] := Value;
+end;
+
+function TVector4Byte.GetItemsInt(const Index: Integer): Byte;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector4Byte.SetItemsInt(const Index: Integer; const Value: Byte);
 begin
   Data[Index] := Value;
 end;

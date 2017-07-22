@@ -50,6 +50,8 @@ type
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; inline;
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
+    function GetItemsInt(const Index: Integer): TGenericScalar; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -86,6 +88,8 @@ type
     function ToRawString: string;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
+    property Y: TGenericScalar index 1 read GetItemsInt write SetItemsInt;
 
     function Normalize: TGenericVector2; inline;
     procedure NormalizeMe; inline;
@@ -155,6 +159,8 @@ type
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; inline;
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
+    function GetItemsInt(const Index: Integer): TGenericScalar; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -192,6 +198,9 @@ type
     function ToRawString: string;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
+    property Y: TGenericScalar index 1 read GetItemsInt write SetItemsInt;
+    property Z: TGenericScalar index 2 read GetItemsInt write SetItemsInt;
 
     function Normalize: TGenericVector3; inline;
     procedure NormalizeMe; inline;
@@ -282,6 +291,8 @@ type
   strict private
     function GetItems(const Index: TIndex): TGenericScalar; inline;
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
+    function GetItemsInt(const Index: Integer): TGenericScalar; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
   public
     var
       Data: array [TIndex] of TGenericScalar;
@@ -320,6 +331,10 @@ type
     function ToRawString: string;
 
     property Items [const Index: TIndex]: TGenericScalar read GetItems write SetItems; default;
+    property X: TGenericScalar index 0 read GetItemsInt write SetItemsInt;
+    property Y: TGenericScalar index 1 read GetItemsInt write SetItemsInt;
+    property Z: TGenericScalar index 2 read GetItemsInt write SetItemsInt;
+    property W: TGenericScalar index 3 read GetItemsInt write SetItemsInt;
 
     function Length: TGenericScalar; inline;
 
@@ -714,6 +729,16 @@ begin
   Data[Index] := Value;
 end;
 
+function TGenericVector2.GetItemsInt(const Index: Integer): TGenericScalar;
+begin
+  Result := Data[Index];
+end;
+
+procedure TGenericVector2.SetItemsInt(const Index: Integer; const Value: TGenericScalar);
+begin
+  Data[Index] := Value;
+end;
+
 function TGenericVector2.Normalize: TGenericVector2;
 var
   L: TGenericScalar;
@@ -900,6 +925,16 @@ begin
 end;
 
 procedure TGenericVector3.SetItems(const Index: TIndex; const Value: TGenericScalar);
+begin
+  Data[Index] := Value;
+end;
+
+function TGenericVector3.GetItemsInt(const Index: Integer): TGenericScalar;
+begin
+  Result := Data[Index];
+end;
+
+procedure TGenericVector3.SetItemsInt(const Index: Integer; const Value: TGenericScalar);
 begin
   Data[Index] := Value;
 end;
@@ -1129,6 +1164,16 @@ begin
 end;
 
 procedure TGenericVector4.SetItems(const Index: TIndex; const Value: TGenericScalar);
+begin
+  Data[Index] := Value;
+end;
+
+function TGenericVector4.GetItemsInt(const Index: Integer): TGenericScalar;
+begin
+  Result := Data[Index];
+end;
+
+procedure TGenericVector4.SetItemsInt(const Index: Integer; const Value: TGenericScalar);
 begin
   Data[Index] := Value;
 end;

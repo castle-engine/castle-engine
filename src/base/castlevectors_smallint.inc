@@ -26,6 +26,8 @@ type
   strict private
     function GetItems(const Index: TIndex): SmallInt; inline;
     procedure SetItems(const Index: TIndex; const Value: SmallInt); inline;
+    function GetItemsInt(const Index: Integer): SmallInt; inline;
+    procedure SetItemsInt(const Index: Integer; const Value: SmallInt); inline;
   public
     var
       Data: array [TIndex] of SmallInt;
@@ -41,6 +43,8 @@ type
     function ToString: string;
 
     property Items [const Index: TIndex]: SmallInt read GetItems write SetItems; default;
+    property X: SmallInt index 0 read GetItemsInt write SetItemsInt;
+    property Y: SmallInt index 1 read GetItemsInt write SetItemsInt;
 
     {$ifdef BUGGY_ZERO_CONSTANT}
     class function Zero: TVector2SmallInt; static; inline;
@@ -86,6 +90,16 @@ begin
 end;
 
 procedure TVector2SmallInt.SetItems(const Index: TIndex; const Value: SmallInt);
+begin
+  Data[Index] := Value;
+end;
+
+function TVector2SmallInt.GetItemsInt(const Index: Integer): SmallInt;
+begin
+  Result := Data[Index];
+end;
+
+procedure TVector2SmallInt.SetItemsInt(const Index: Integer; const Value: SmallInt);
 begin
   Data[Index] := Value;
 end;
