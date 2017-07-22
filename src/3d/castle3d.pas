@@ -3475,12 +3475,8 @@ begin
 end;
 
 function T3DCustomTransform.GetTranslation2D: TVector2;
-var
-  T: TVector3;
 begin
-  T := GetTranslation;
-  Result[0] := T[0];
-  Result[1] := T[1];
+  Result := GetTranslation.XY;
 end;
 
 function T3DCustomTransform.GetCenter: TVector3;
@@ -4141,8 +4137,7 @@ end;
 procedure T3DTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
-  FOnlyTranslation := FOnlyTranslation and
-    (Value[0] = 0) and (Value[1] = 0) and (Value[2] = 0);
+  FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
