@@ -77,9 +77,12 @@
 {$ifdef VER2} {$fatal FPC 2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
 
 { These should be set on the command-line always.
-  NOT setting them here forces the user to use correct compilation method
-  for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
-  instead of hacking something, which is GOOD. }
+  - NOT setting them here forces the user to use correct compilation method
+    for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
+    instead of hacking something, which is GOOD.
+  - Also, not setting them allows to check compilation of the engine without macros
+    and in Delphi mode, which is useful to keep Delphi compatibility.
+}
 { $mode objfpc}
 { $H+}
 { $macro on}
