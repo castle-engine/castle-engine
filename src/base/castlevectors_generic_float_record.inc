@@ -146,11 +146,11 @@ type
     @orderedList(
       @itemSpacing Compact
       @item @link(TVector3), a vector of 3 Single values (floats with single precision),
-      @item @link(TVector3d), a vector of 3 Double values (floats with double precision).
+      @item @link(TVector3Double), a vector of 3 Double values (floats with double precision).
     )
 
-    The type TGenericScalar is, accordingly,
-    Single or Double for @link(TVector3) or @link(TVector3d).
+    The actual type of TGenericScalar is
+    Single or Double for (respectively) @link(TVector3) or @link(TVector3Double).
   }
   TGenericVector3 = record
   public

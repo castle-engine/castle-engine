@@ -20,6 +20,7 @@
 type
   TVector4List = class;
 
+  { List of @link(TVector2). }
   TVector2List = class(specialize TStructList<TVector2>)
   public
     { Calculate minimum and maximum values for both dimensions of
@@ -35,6 +36,7 @@ type
     procedure AddListRange(const Source: TVector2List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
+  { List of @link(TVector3). }
   TVector3List = class(specialize TStructList<TVector3>)
   public
     procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
@@ -84,48 +86,59 @@ type
     function MergeCloseVertexes(MergeDistance: Single): Cardinal;
   end;
 
+  { List of @link(TVector4). }
   TVector4List = class(specialize TStructList<TVector4>)
   public
     procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
+  { List of @link(TMatrix3). }
   TMatrix3List = class(specialize TStructList<TMatrix3>)
   public
   end;
 
+  { List of @link(TMatrix4). }
   TMatrix4List = class(specialize TStructList<TMatrix4>)
   public
   end;
 
   {$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+  { List of @link(TVector2Double). }
   TVector2DoubleList = class(specialize TStructList<TVector2Double>)
   public
     function ToVector2: TVector2List;
   end;
 
+  { List of @link(TVector3Double). }
   TVector3DoubleList = class(specialize TStructList<TVector3Double>)
   public
     function ToVector3: TVector3List;
   end;
 
+  { List of @link(TVector4Double). }
   TVector4DoubleList = class(specialize TStructList<TVector4Double>)
   public
     function ToVector4: TVector4List;
   end;
 
+  { List of @link(TMatrix3Double). }
   TMatrix3DoubleList = class(specialize TStructList<TMatrix3Double>)
   public
     function ToMatrix3: TMatrix3List;
   end;
 
+  { List of @link(TMatrix4Double). }
   TMatrix4DoubleList = class(specialize TStructList<TMatrix4Double>)
   public
     function ToMatrix4: TMatrix4List;
   end;
   {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
+  { List of @link(TVector2SmallInt). }
   TVector2SmallIntList = specialize TStructList<TVector2SmallInt>;
+
+  { List of @link(TVector2Cardinal). }
   TVector3CardinalList = specialize TStructList<TVector3Cardinal>;
 
 {$endif read_interface}

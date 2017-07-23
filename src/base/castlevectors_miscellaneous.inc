@@ -18,6 +18,7 @@
 {$ifdef read_interface}
 
 type
+  { Vector of 4 Pointers. }
   TVector4Pointer = record
     Data: packed array [0..3] of Pointer;
   end;
