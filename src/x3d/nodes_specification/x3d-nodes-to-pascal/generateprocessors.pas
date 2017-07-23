@@ -686,6 +686,24 @@ begin
   end;
 end;
 
+function CopyrightYears: string;
+const
+  YearBegin = '2015-';
+var
+  BuildDate: TDateTime;
+  SourceDateEpoch: string;
+begin
+  { Look at SOURCE_DATE_EPOCH to support reproducible builds,
+    https://wiki.debian.org/ReproducibleBuilds/TimestampsProposal
+    https://reproducible-builds.org/specs/source-date-epoch/ }
+  SourceDateEpoch := GetEnvironmentVariable('SOURCE_DATE_EPOCH');
+  if SourceDateEpoch = '' then
+    BuildDate := Now
+  else
+    BuildDate := UnixToDateTime(StrToInt(SourceDateEpoch));
+  Result := YearBegin + IntToStr(YearOf(BuildDate));
+end;
+
 procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
 
   procedure GenerateOutput(const OutputInterface, OutputImplementation: string);
@@ -698,7 +716,7 @@ procedure THelperProcessor.NodeEnd(const Node: TX3DNodeInformation);
     StringToFile(OutputFileName,
       '{ -*- buffer-read-only: t -*-' + NL +
       '' + NL +
-      '  Copyright 2015-' + IntToStr(YearOf(Now)) + ' Michalis Kamburelis.' + NL +
+      '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
       '' + NL +
       '  This file is part of "Castle Game Engine".' + NL +
       '' + NL +
@@ -921,10 +939,7 @@ begin
 end;
 
 procedure TTemplateProcessor.ComponentEnd(const ComponentName: string);
-var
-  CopyrightYears: string;
 begin
-  CopyrightYears := IntToStr(YearOf(Now)) + '-' + IntToStr(YearOf(Now));
   Writeln(
     '{' + NL +
     '  Copyright ' + CopyrightYears + ' Michalis Kamburelis.' + NL +
