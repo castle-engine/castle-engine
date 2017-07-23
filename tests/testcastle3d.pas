@@ -601,7 +601,7 @@ procedure TTestCastle3D.Test3DTransformReal;
     Collision := M.RayCollision(
       Vector3(30, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertSameValue(9, Collision.Distance);
+    AssertSameValue(9, Collision.Distance, 0.001); // larger epsilon for ppc64
     AssertVectorEquals(Collision.Last.Point, Vector3(21, 0, 0), 0.001);
     FreeAndNil(Collision);
   end;

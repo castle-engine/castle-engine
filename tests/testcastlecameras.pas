@@ -53,7 +53,7 @@ const
     (Data: (0.9133538007736206, -0.23269428312778472, -0.33412325382232666, 1.807408332824707))
   );
 
-  EqEpsilon = 0.0001;
+  EqEpsilon = 0.01; // larger epsilon for ppc64
 
 var Dir, Up: TVector3;
     i: Integer;

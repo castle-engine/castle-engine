@@ -345,7 +345,7 @@ procedure TTestCastleVectors.TestVectorStr;
    v := RandomVector;
    s := v.ToRawString;
    v2 := Vector3FromStr(s);
-   AssertVectorEquals(v2, v);
+   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
   end;
 
   procedure OneTestByDeformat;
@@ -355,7 +355,7 @@ procedure TTestCastleVectors.TestVectorStr;
    v := RandomVector;
    s := v.ToRawString;
    DeFormat(s, '%.single. %.single. %.single.', [@v2.Data[0], @v2.Data[1], @v2.Data[2]]);
-   AssertVectorEquals(v2, v);
+   AssertVectorEquals(v2, v, 0.001); // larger epsilon for ppc64
   end;
 
 const
