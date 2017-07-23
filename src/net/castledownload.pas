@@ -20,7 +20,8 @@ unit CastleDownload;
 
 interface
 
-uses SysUtils, Classes {$ifdef HAS_FP_HTTP_CLIENT}, FpHttpClient {$endif};
+uses SysUtils, Classes {$ifdef HAS_FP_HTTP_CLIENT}, FpHttpClient {$endif},
+  CastleVectors;
 
 const
   DefaultEnableNetwork = false;
@@ -262,7 +263,7 @@ type
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
-  CastleClassUtils, CastleDataURI, CastleProgress
+  CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
