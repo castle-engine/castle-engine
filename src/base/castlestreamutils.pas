@@ -24,7 +24,7 @@ uses
   Classes, CastleVectors;
 
 type
-  { Helper class for streams that allows to correct read and write either little
+  { Helper class for streams that allows to correctly read and write either little
     or big endian values. }
   TStreamHelper = class helper for TStream
   public

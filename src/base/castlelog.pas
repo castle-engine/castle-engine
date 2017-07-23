@@ -146,8 +146,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleClassUtils, CastleTimeUtils,
-  CastleFilesUtils, CastleURIUtils, CastleApplicationProperties
+  CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var

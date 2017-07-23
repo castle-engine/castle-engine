@@ -23,31 +23,56 @@
     @item(ApplicationData -- installed program's data files)
   )
 
-  List of things to do / not to do if you want to write
-  truly cross-platform program (that also handles URLs everywhere):
+  Hints about what to use (and what not to use) in a cross-platform applications
+  using Castle Game Engine:
 
   @unorderedList(
-    @item(Never use things like ParamStr(0), or Lazarus Application.ExeName.
-      If you really want the filename of your executable, we have
-      CastleFilesUtils.ExeName, but this also should not be depended on
-      (it may raise exception on some OSes).
+    @item(
+      To get a nice application name, use the @code(ApplicationName)
+      function (defined in the standard SysUtils unit).
+      Every application can customize it by OnGetApplicationName.
+      The Castle Game Engine units use it where appropriate.
+    )
 
-      If you want a nice application name, use SysUtils.ApplicationName
-      (our units use it too).
+    @item(
+      Use the @link(ApplicationData) for all URLs from which you load
+      your application read-only data.
+      For example, @longCode(#
+        MyImage := LoadImage(ApplicationData('gui/my_image.png'))
+      #)
+    )
 
-      If you want to load program data or save program config,
-      it's best to use ApplicationConfig and ApplicationData for all paths.)
+    @item(
+      Use the @link(ApplicationConfig) for all URLs where you save or load
+      the user configuration files, savegames etc.
+    )
 
-    @item(Do not use standard FindFirst/FindNext.
+    @item(
+      Do not try to get the application name, or executable file name,
+      using ParamStr(0). Do not rely on Lazarus Application.ExeName
+      or our own (deprecated) @link(ExeName).
 
-      If you need to search a directory for some files,
-      use CastleFindFiles unit. But it only works for
-      local filesystems (or Android assets filesystem),
-      of course you cannot search for files within http URLs.
-      So in general avoid such file searching.)
+      The "executable file name" is just not 100% reliably available on all OSes.
+      And in some cases, like Android or iOS, the concept of
+      @italic("executable file name") doesn't even make sense,
+      as your application is a library being called by a higher-level application
+      (written in Java or Objective-C), and it's really an "internal matter"
+      where is the executable file that started it.
+    )
 
-    @item(Read / write all data using streams (TStream) descendants.
-      Open and save these streams using our CastleDownload unit.)
+    @item(
+      Use CastleFindFiles unit to search for files and directories.
+      It nicely works with URLs, has some support for the Android "assets"
+      filesystem, and it has more comfortable API (e.g. searching recursively
+      or not is just a matter of passing a particular flag).
+
+      Do not use standard FindFirst/FindNext.
+    )
+
+    @item(
+      Read and write all data using streams (TStream) descendants.
+      Open and save these streams using our CastleDownload unit.
+    )
   )
 }
 unit CastleFilesUtils;
@@ -81,7 +106,7 @@ type
   compiled Linux kernel with /proc support. So under Linux
   this may work, but still you should be always prepared that it
   may raise @link(EExeNameNotAvailable). }
-function ExeName: string;
+function ExeName: string; deprecated 'as this function is not portable (may raise exception on non-Windows), it should not be used in a cross-platform game code';
 
 { The name of our program.
 
@@ -391,17 +416,28 @@ function GetTempFileNamePrefix: string;
 function BundlePath: string;
 {$endif}
 
+{ Read file or URL contents to a string.
+  MimeType is returned, calculated just like the @link(Download) function.
+  If AllowStdIn, then URL = '-' (one dash) is treated specially:
+  it means to read contents from standard input (stdin, Input in Pascal). }
+function FileToString(const URL: string;
+  const AllowStdIn: boolean; out MimeType: string): string;
+function FileToString(const URL: string;
+  const AllowStdIn: boolean = false): string;
+
+procedure StringToFile(const URL, contents: string);
+
 implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
-  CastleURIUtils, CastleFindFiles;
+  CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload;
 
 var
-  { inicjowane w initialization i pozniej stale.
-    Nie-Windowsy nie daja zadnej gwarancji ze to sie uda zainicjowac -
-    wtedy function ExeName rzuca wyjatek. ZADNA funkcja poza
-    initialization i ExeName nie powinna wprost odwolywac sie do tej zmiennej ! }
+  { Initialized once in initialization, afterwards constant.
+    On non-Windows, this may not be reliable, ExeName can even raise an exception.
+    Nothing except the initialization, and the ExeName function,
+    should access FExeName variable. }
   FExeName: string;
 
 function ExeName: string;
@@ -850,43 +886,6 @@ begin
   {$endif}
 end;
 
-procedure DoInitialization;
-begin
- { inicjalizacja FExeName }
-
- { First, assume that there is no way to obtain FExeName
-   on this platform }
- FExeName := '';
-
- {$ifdef LINUX}
-
- { Pod UNIXem wlasciwie ExeName nie powinno nam byc do niczego
-   potrzebne - pod Windowsem uzywam ExeName np. aby uzyskac sciezke
-   do aplikacji i tam zalozyc plik ini, ale pod UNIXem
-   powinienem uzywac do tego celu katalogu $HOME albo czytac ustawienia
-   gdzies z /etc.
-
-   Ale zrobilem to. Nie jest to 100% pewna metoda ale nie jest tez taka
-   zupelnie nieelegancka : korzystamy z proc/getpid()/exe.
-
-   Notka : NIE mozemy w zaden sposob uzywac ParamStr(0) do obliczania fExeName.
-   Nasze ParamStr(0) jest ustalane przez proces ktory nas wywolal - moze to
-   byc nazwa naszego pliku wykonywalnmego lub symboic linka do niego, ze sciezka
-   wzgledna lub bezwzgledna lub bez sciezki gdy nasz executable byl wsrod $PATH
-   ale to wszystko to tylko GDYBANIE - taka jest konwencja ale tak naprawde
-   nasze ParamStr(0) moze byc absolutnie czymkolwiek. Nie mozemy wiec w zaden
-   sposob polegac na tym ze jego wartosc okresla cokolwiek w jakikolwiek sposob. }
-
- try
-  FExeName := CastleReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
- except
-  on EOSError do FExeName := '';
- end;
- {$endif}
-
- {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
-end;
-
 function GetTempFileNameCheck: string;
 begin
   Result := GetTempFileName('', ApplicationName);
@@ -947,6 +946,87 @@ begin
   Result := BundlePathCache;
 end;
 {$endif DARWIN}
+
+function FileToString(const URL: string;
+  const AllowStdIn: boolean; out MimeType: string): string;
+var
+  F: TStream;
+begin
+  if AllowStdIn and (URL = '-') then
+  begin
+    Result := ReadGrowingStreamToString(StdInStream);
+    MimeType := '';
+  end else
+  begin
+    F := Download(URL, [], MimeType);
+    try
+      { Some streams can be optimized, just load file straight to string memory }
+      if (F is TFileStream) or
+         (F is TMemoryStream) then
+      begin
+        SetLength(Result, F.Size);
+        if F.Size <> 0 then
+          F.ReadBuffer(Result[1], Length(Result));
+      end else
+        Result := ReadGrowingStreamToString(F);
+    finally FreeAndNil(F) end;
+  end;
+end;
+
+function FileToString(const URL: string; const AllowStdIn: boolean): string;
+var
+  MimeType: string;
+begin
+  Result := FileToString(URL, AllowStdIn, MimeType { ignored });
+end;
+
+procedure StringToFile(const URL, Contents: string);
+var
+  F: TStream;
+begin
+  F := URLSaveStream(URL);
+  try
+    if Length(Contents) <> 0 then
+      F.WriteBuffer(Contents[1], Length(Contents));
+  finally FreeAndNil(F) end;
+end;
+
+procedure DoInitialization;
+begin
+  { inicjalizacja FExeName }
+
+  { First, assume that there is no way to obtain FExeName
+    on this platform }
+  FExeName := '';
+
+  {$ifdef LINUX}
+
+  { Pod UNIXem wlasciwie ExeName nie powinno nam byc do niczego
+    potrzebne - pod Windowsem uzywam ExeName np. aby uzyskac sciezke
+    do aplikacji i tam zalozyc plik ini, ale pod UNIXem
+    powinienem uzywac do tego celu katalogu $HOME albo czytac ustawienia
+    gdzies z /etc.
+
+    Ale zrobilem to. Nie jest to 100% pewna metoda ale nie jest tez taka
+    zupelnie nieelegancka : korzystamy z proc/getpid()/exe.
+
+    Notka : NIE mozemy w zaden sposob uzywac ParamStr(0) do obliczania fExeName.
+    Nasze ParamStr(0) jest ustalane przez proces ktory nas wywolal - moze to
+    byc nazwa naszego pliku wykonywalnmego lub symboic linka do niego, ze sciezka
+    wzgledna lub bezwzgledna lub bez sciezki gdy nasz executable byl wsrod $PATH
+    ale to wszystko to tylko GDYBANIE - taka jest konwencja ale tak naprawde
+    nasze ParamStr(0) moze byc absolutnie czymkolwiek. Nie mozemy wiec w zaden
+    sposob polegac na tym ze jego wartosc okresla cokolwiek w jakikolwiek sposob. }
+
+  try
+    FExeName := CastleReadLink('/proc/' + IntToStr(FpGetpid) + '/exe')
+  except
+    on EOSError do FExeName := '';
+  end;
+  {$endif}
+
+  {$ifdef MSWINDOWS} FExeName := ParamStr(0) {$endif};
+end;
 
 initialization
   DoInitialization;
