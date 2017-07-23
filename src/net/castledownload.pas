@@ -33,6 +33,7 @@ var
 
 type
   EDownloadError = class(Exception);
+  ESaveError = class(Exception);
 
   { Options for the @link(Download) function. }
   TStreamOption = (
@@ -70,7 +71,7 @@ type
   is always at the beginning.
   Overloaded version also returns a MIME type (or '' if unknown).
 
-  All errors are reported by raising exceptions.
+  Any errors are reported by raising exceptions.
 
   A local file URL is always supported,
   without using any networking library. URL without any protocol is always
@@ -99,7 +100,19 @@ type
   looking at URL using URIMimeType).
 
   On Android, URLs that indicate assets (files packaged inside .apk)
-  are also supported, as @code(assets:/my_file.png). }
+  are also supported, as @code(assets:/my_file.png).
+
+  @raises(EDownloadError In case of problems saving this URL.)
+
+  @raises(Exception Various TStream instances (used internally by this
+    function) may raise exceptions in case the stream cannot be created
+    for reading.
+    Right now, we simply let these exceptions to "pass through" from this function
+    (instead of catching and re-raising).
+    So be ready that this function may raise @italic(any) Exception class.
+    In case of local files (file:// URLs), the typical exception class
+    is EFOpenError.)
+}
 function Download(const URL: string; const Options: TStreamOptions = []): TStream;
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
@@ -107,7 +120,17 @@ function Download(const URL: string; const Options: TStreamOptions;
 { Create a stream to save a given URL, for example create a TFileStream
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
   Right now, this only works for @code(file) URLs, and the only advantage
-  it has over manually creating TFileStream is that this accepts URLs. }
+  it has over manually creating TFileStream is that this accepts URLs.
+
+  @raises(ESaveError In case of problems saving this URL.)
+
+  @raises(Exception Various TStream instances (used internally by this
+    function) may raise exceptions in case the stream cannot be created
+    for saving.
+    Right now, we simply let these exceptions to "pass through" from this function
+    (instead of catching and re-raising).
+    So be ready that this function may raise @italic(any) Exception class.)
+}
 function URLSaveStream(const URL: string; const Options: TSaveStreamOptions = []): TStream;
 
 var
@@ -504,9 +527,9 @@ begin
   begin
     FileName := URIToFilenameSafe(URL);
     if FileName = '' then
-      raise Exception.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
+      raise ESaveError.CreateFmt('Cannot convert URL to a filename: "%s"', [URL]);
   end else
-    raise Exception.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
+    raise ESaveError.CreateFmt('Saving of URL with protocol "%s" not possible', [P]);
   if ssoGzip in Options then
   begin
     Result := TGZFileStream.Create(TFileStream.Create(FileName, fmCreate), true);

@@ -1509,6 +1509,17 @@ type
     MIME type, derived from file extension in case of local files)
     or if this image format cannot be loaded at all.)
 
+  @raises(EImageLoadError If the image file cannot be processed for some reason.)
+
+  @raises(Exception Various TStream instances (used internally by the
+    @link(Download) function) may raise exceptions in case the stream cannot
+    be created for reading.
+    Right now, we simply let these exceptions to "pass through" from this function
+    (instead of catching and re-raising).
+    So be ready that this function may raise @italic(any) Exception class.
+    In case of local files (file:// URLs), the typical exception class
+    is EFOpenError.)
+
   @seealso LoadEncodedImage
 
   @groupBegin *)
