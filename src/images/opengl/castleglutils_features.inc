@@ -487,6 +487,9 @@ begin
       TextureCompression += [tcETC1];
   end;
 
+  SupportedTextureCompressionKnown := true;
+  SupportedTextureCompression := TextureCompression;
+
   VertexBufferObject := {$ifdef OpenGLES} true {$else}
     Version_1_5 and not GLVersion.BuggyVBO {$endif};
 

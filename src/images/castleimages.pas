@@ -1686,6 +1686,15 @@ type
   { Listener type for @link(AddLoadImageListener). }
   TLoadImageEvent = procedure (var ImageUrl: string) of object;
 
+var
+  { Is the value of @link(SupportedTextureCompression) determined
+    by the renderer (like OpenGL context) parameters. }
+  SupportedTextureCompressionKnown: boolean;
+
+  { Which texture compression values are supported by
+    the renderer (like OpenGL context). }
+  SupportedTextureCompression: TTextureCompressions;
+
 { All URLs loaded by LoadImage and LoadEncodedImage are processed
   by this event. This allows to globally modify / observe your images paths,
   e.g. to use GPU compressed alternative versions.
