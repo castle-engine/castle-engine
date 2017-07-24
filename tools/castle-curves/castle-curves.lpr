@@ -57,8 +57,6 @@ var
     Set only using SetCurvesURL. }
   CurvesURL: string;
 
-  NewCurvesClass: TControlPointsCurveClass = TPiecewiseCubicBezier;
-
   ColorConvexHull: TCastleColor;
   ColorCurveSelected: TCastleColor;
   ColorCurveNotSelected: TCastleColor;
@@ -101,34 +99,15 @@ begin
   Window.Caption := Value + ' - Curves plotting';
 end;
 
-function RationalBezierCurveSelected: boolean;
-begin
-  Result := (SelectedCurve <> -1) and
-            {$warnings off}
-            (Curves[SelectedCurve] is TRationalBezierCurve);
-            {$warnings on}
-end;
-
 function PiecewiseCubicBezierCurveSelected: boolean;
 begin
   Result := (SelectedCurve <> -1) and
             (Curves[SelectedCurve] is TPiecewiseCubicBezier);
 end;
 
-function RationalBezierCurvePointSelected: boolean;
-begin
-  Result := (SelectedPoint <> -1) and
-            {$warnings off}
-            (Curves[SelectedCurve] is TRationalBezierCurve);
-            {$warnings on}
-end;
-
 const
   SErrSelectCurve = 'You must select some curve.';
-  SErrSelectRationalCurve = 'You must select a Rational Bezier curve.';
   SErrSelectPiecewiseCubicBezierCurve = 'You must select a Piecewise Cubic Bezier curve.';
-  SErrSelectRationalCurvePoint =
-    'You must select some point on a Rational Bezier curve.';
 
 procedure LoadCurves(const NewURL: string);
 var
@@ -194,14 +173,8 @@ begin
   if SelectedCurve <> -1 then
     Text.Append(Format('  Curve type : %s', [Curves[SelectedCurve].ClassName]));
   Text.Append(Format('Selected point : %s', [IntToStrOrNone(SelectedPoint)]));
-  {$warnings off}
-  if RationalBezierCurvePointSelected then
-    Text.Append(Format('  Weight : %f',
-      [TRationalBezierCurve(Curves[SelectedCurve]).Weights[SelectedPoint]]));
-  {$warnings on}
   Text.Append('');
   Text.Append(Format('Rendering segments = %d', [RenderSegments]));
-  Text.Append(Format('New curves type = %s', [NewCurvesClass.ClassName]));
 
   inherited;
 end;
@@ -275,7 +248,7 @@ begin
 
   if SelectedCurve = -1 then
   begin
-    Curves.Add(NewCurvesClass.Create(nil));
+    Curves.Add(TPiecewiseCubicBezier.Create(nil));
     SetSelectedCurve(Curves.Count - 1);
   end;
 
@@ -288,12 +261,6 @@ begin
     Curves[SelectedCurve].ControlPoints.Insert(SelectedPoint+1, NewPoint);
     SetSelectedPoint(SelectedPoint+1);
   end;
-
-  { set Weight of new point }
-  {$warnings off}
-  if Curves[SelectedCurve] is TRationalBezierCurve then
-    TRationalBezierCurve(Curves[SelectedCurve]).Weights.Insert(SelectedPoint, 1);
-  {$warnings on}
 
   Curves[SelectedCurve].UpdateControlPoints;
 end;
@@ -506,10 +473,6 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
       begin
         { remove point }
         Curves[SelectedCurve].ControlPoints.Delete(SelectedPoint);
-        {$warnings off}
-        if Curves[SelectedCurve] is TRationalBezierCurve then
-          TRationalBezierCurve(Curves[SelectedCurve]).Weights.Delete(SelectedPoint);
-        {$warnings on}
         Curves[SelectedCurve].UpdateControlPoints;
         { update SelectedPoint }
         if SelectedPoint >= Curves[SelectedCurve].ControlPoints.Count then
@@ -547,33 +510,6 @@ procedure MenuClick(Container: TUIContainer; MenuItem: TMenuItem);
 
       SetCurvesURL(S);
     end;
-  end;
-
-  procedure SetSelectedWeight;
-  var
-    NewWeight: Single;
-  begin
-    if RationalBezierCurvePointSelected then
-    begin
-      {$warnings off}
-      NewWeight := TRationalBezierCurve(Curves[SelectedCurve]).
-        Weights[SelectedPoint];
-      {$warnings on}
-      if MessageInputQuery(Window, 'Enter new weight:', NewWeight) then
-      begin
-        if NewWeight <= 0 then
-          MessageOK(Window, 'Invalid weight, each weight must be > 0') else
-        begin
-          {$warnings off}
-          TRationalBezierCurve(Curves[SelectedCurve]).
-            Weights[SelectedPoint] := NewWeight;
-          {$warnings on}
-          Curves[SelectedCurve].UpdateControlPoints;
-          SelectedChanged;
-        end;
-      end;
-    end else
-      MessageOK(Window, SErrSelectRationalCurvePoint);
   end;
 
   procedure ScaleCurve;
@@ -641,24 +577,6 @@ begin
     407: ChangeSelectedPoint(false);
     408: DeleteSelectedPoint;
     409: DeleteSelectedCurve;
-    411: SetSelectedWeight;
-
-    412: if RationalBezierCurvePointSelected then
-           {$warnings off}
-           with TRationalBezierCurve(Curves[SelectedCurve]).Weights do
-           {$warnings on}
-             L[SelectedPoint] *= 2 else
-           MessageOK(Window, SErrSelectRationalCurvePoint);
-    413: if RationalBezierCurvePointSelected then
-           {$warnings off}
-           with TRationalBezierCurve(Curves[SelectedCurve]).Weights do
-           {$warnings on}
-             L[SelectedPoint] /= 2 else
-           MessageOK(Window, SErrSelectRationalCurvePoint);
-    431: NewCurvesClass := TPiecewiseCubicBezier;
-    {$warnings off}
-    432: NewCurvesClass := TRationalBezierCurve;
-    {$warnings on}
 
     1010:if not OpenURL(CurvesToolURL) then
            Window.MessageOk(SCannotOpenURL, mtError);
@@ -680,7 +598,7 @@ end;
 
 function CreateMainMenu: TMenu;
 var
-  M, M2: TMenu;
+  M: TMenu;
 begin
   Result := TMenu.Create('Main menu');
   M := TMenu.Create('_File');
@@ -730,21 +648,12 @@ begin
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Select next point on this curve',     406, 'p'));
     M.Append(TMenuItem.Create('Select previous point on this curve', 407, 'P'));
-    M.Append(TMenuSeparator.Create);
-      M2 := TMenu.Create('Set new curves _type');
-      M2.Append(TMenuItem.Create('_Piecewise Cubic Bezier curve',       431));
-      M2.Append(TMenuItem.Create('_Rational Bezier curve (Deprecated)', 432));
-    M.Append(M2);
     Result.Append(M);
   M := TMenu.Create('_Edit');
     M.Append(TMenuItem.Create('_Scale curve...',                     401));
     M.Append(TMenuSeparator.Create);
     M.Append(TMenuItem.Create('Delete selected _point',              408, 'd'));
     M.Append(TMenuItem.Create('Delete selected _curve',              409, 'D'));
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('Set _weight of selected point ...',   411));
-    M.Append(TMenuItem.Create('Weight of selected point x 2',        412, 'w'));
-    M.Append(TMenuItem.Create('Weight of selected point / 2',        413, 'W'));
     Result.Append(M);
   M := TMenu.Create('_Help');
     M.Append(TMenuItem.Create('Visit castle-curves website',  1010));
