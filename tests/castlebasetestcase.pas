@@ -55,6 +55,7 @@ type
     procedure AssertSameValue(const Expected, Actual: Double);
     procedure AssertSameValue(const Expected, Actual: Double; const Epsilon: Double);
 
+    procedure AssertBoxesEqual(const Expected, Actual: TBox3D);
     procedure AssertBoxesEqual(const Expected, Actual: TBox3D; const Epsilon: Double);
     procedure AssertFilenamesEqual(const Expected, Actual: string);
     procedure AssertImagesEqual(const Expected, Actual: TRGBAlphaImage);
@@ -209,11 +210,27 @@ begin
       [Expected, Actual]));
 end;
 
+procedure TCastleBaseTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D);
+begin
+  AssertBoxesEqual(Expected, Actual, SingleEpsilon);
+end;
+
 procedure TCastleBaseTestCase.AssertBoxesEqual(const Expected, Actual: TBox3D;
   const Epsilon: Double);
 var
   I: Integer;
 begin
+  if Expected.IsEmpty and Actual.IsEmpty then
+    Exit; // OK
+
+  if Expected.IsEmpty then
+    Fail(Format('Expected empty box, actual box is NOT empty (%s)',
+      [Actual.ToRawString]));
+
+  if Actual.IsEmpty then
+    Fail(Format('Expected NOT empty box (%s), actual box is empty',
+      [Expected.ToRawString]));
+
   for I := 0 to 2 do
     if (not SameValue(Expected.Data[0][I], Actual.Data[0][I], Epsilon)) or
        (not SameValue(Expected.Data[1][I], Actual.Data[1][I], Epsilon)) then

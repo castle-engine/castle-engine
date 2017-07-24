@@ -61,7 +61,7 @@ end;"/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="641">
+    <Files Count="640">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -74,10 +74,6 @@ end;"/>
         <Filename Value="../src/3d/castlecameras.pas"/>
         <UnitName Value="CastleCameras"/>
       </Item3>
-      <Item4>
-        <Filename Value="../src/3d/castleconvexhull.pas"/>
-        <UnitName Value="CastleConvexHull"/>
-      </Item4>
       <Item5>
         <Filename Value="../src/3d/castlecubemaps.pas"/>
         <UnitName Value="CastleCubeMaps"/>
@@ -453,7 +449,7 @@ end;"/>
         <UnitName Value="CastleScriptXML"/>
       </Item97>
       <Item98>
-        <Filename Value="../src/castlescript/opengl/castlecurves.pas"/>
+        <Filename Value="../src/castlescript/castlecurves.pas"/>
         <UnitName Value="CastleCurves"/>
       </Item98>
       <Item99>
@@ -2630,10 +2626,10 @@ end;"/>
         <Filename Value="../src/x3d/x3dtriangles.pas"/>
         <UnitName Value="X3DTriangles"/>
       </Item640>
-      <Item641>
+      <Item4>
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
-      </Item641>
+      </Item4>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

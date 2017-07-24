@@ -106,7 +106,6 @@ begin
     P.Targets.AddUnit('castle3d.pas');
     P.Targets.AddUnit('castleboxes.pas');
     P.Targets.AddUnit('castlecameras.pas');
-    P.Targets.AddUnit('castleconvexhull.pas');
     P.Targets.AddUnit('castlefrustum.pas');
     P.Targets.AddUnit('castleinternaloctree.pas');
     P.Targets.AddUnit('castlerandom.pas');
@@ -203,6 +202,7 @@ begin
     {$endif}
 
     P.SourcePath.Add('src' + PathDelim + 'castlescript');
+    P.Targets.AddUnit('castlecurves.pas');
     P.Targets.AddUnit('castlenoise.pas');
     P.Targets.AddUnit('castlescript.pas');
     P.Targets.AddUnit('castlescriptarrays.pas');
@@ -212,9 +212,6 @@ begin
     P.Targets.AddUnit('castlescriptparser.pas');
     P.Targets.AddUnit('castlescriptvectors.pas');
     P.Targets.AddUnit('castlescriptxml.pas');
-
-    P.SourcePath.Add('src' + PathDelim + 'castlescript' + PathDelim + 'opengl');
-    P.Targets.AddUnit('castlecurves.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'fonts');
     P.Targets.AddUnit('castlefont2pascal.pas');
