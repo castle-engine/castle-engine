@@ -33,7 +33,7 @@ type
 implementation
 
 uses CastleVectors, CastleScript, CastleScriptLexer, CastleScriptParser,
-  CastleStringUtils, CastleScriptVectors, CastleClassUtils, Math;
+  CastleStringUtils, CastleFilesUtils, CastleScriptVectors, CastleClassUtils, Math;
 
 procedure TTestCastleScriptVectors.TestVecSingle;
 var

@@ -40,7 +40,7 @@ implementation
 
 uses CastleVectors, CastleScript, CastleScriptLexer, CastleScriptParser,
   CastleStringUtils, CastleScriptCoreFunctions, CastleClassUtils,
-  CastleScriptArrays;
+  CastleFilesUtils, CastleScriptArrays;
 
 procedure TTestCastleScript.Test1;
 

@@ -21,7 +21,8 @@ interface
 
 uses SysUtils, Generics.Collections,
   CastleClassUtils, CastleStringUtils, CastleTimeUtils, CastleLog,
-  CastleColors, CastleUtils, CastleApplicationProperties;
+  CastleColors, CastleUtils, CastleApplicationProperties, CastleFilesUtils,
+  CastleDownload;
 
 type
   { X3D field/event access type.

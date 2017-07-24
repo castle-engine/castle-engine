@@ -22,7 +22,7 @@ program animate_surface;
 uses CastleCameras, Surfaces, CastleWindow, CastleGL, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleParameters,
-  CastleColors, Castle3D, CastleFrustum, CastleClassUtils;
+  CastleColors, Castle3D, CastleFrustum, CastleClassUtils, CastleDownload;
 
 var
   Window: TCastleWindow;

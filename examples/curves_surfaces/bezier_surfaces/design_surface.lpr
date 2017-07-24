@@ -25,7 +25,8 @@ uses Classes, CastleCameras, Surfaces, CastleWindow, CastleGL, CastleVectors,
   CastleGLUtils, CastleCurves, CastleBoxes, SysUtils, CastleUtils, CastleKeysMouse,
   CastleStringUtils, CastleMessages, CastleFilesUtils, CastleUIControls,
   CastleColors, Castle3D, CastleControls,
-  CastleFrustum, CastleURIUtils, CastleClassUtils, CastleParameters;
+  CastleFrustum, CastleURIUtils, CastleClassUtils, CastleParameters,
+  CastleDownload;
 
 type
   TShow = (shNone, shWire, shFill);

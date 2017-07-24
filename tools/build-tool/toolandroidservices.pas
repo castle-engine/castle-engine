@@ -56,7 +56,7 @@ procedure MergeBuildGradle(const Source, Destination: string;
 implementation
 
 uses Classes, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils;
+  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
 
 { TAndroidService ---------------------------------------------------------- }
 
