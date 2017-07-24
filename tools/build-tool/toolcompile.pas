@@ -344,7 +344,6 @@ begin
         AddEnginePath('audio');
         AddEnginePath('net');
         AddEnginePath('castlescript');
-        AddEnginePath('castlescript/opengl');
         AddEnginePath('ui');
         AddEnginePath('ui/windows');
         AddEnginePath('ui/opengl');
