@@ -191,7 +191,7 @@ end;"/>
         <Type Value="Include"/>
       </Item33>
       <Item34>
-        <Filename Value="../src/base/castleconfig.pas"/>
+        <Filename Value="../src/files/castleconfig.pas"/>
         <UnitName Value="CastleConfig"/>
       </Item34>
       <Item35>
@@ -203,11 +203,11 @@ end;"/>
         <UnitName Value="CastleFileFilters"/>
       </Item36>
       <Item37>
-        <Filename Value="../src/base/castlefilesutils.pas"/>
+        <Filename Value="../src/files/castlefilesutils.pas"/>
         <UnitName Value="CastleFilesUtils"/>
       </Item37>
       <Item38>
-        <Filename Value="../src/base/castlefindfiles.pas"/>
+        <Filename Value="../src/files/castlefindfiles.pas"/>
         <UnitName Value="CastleFindFiles"/>
       </Item38>
       <Item39>
@@ -259,7 +259,7 @@ end;"/>
         <UnitName Value="CastleRandom"/>
       </Item50>
       <Item51>
-        <Filename Value="../src/base/castlerecentfiles.pas"/>
+        <Filename Value="../src/files/castlerecentfiles.pas"/>
         <UnitName Value="CastleRecentFiles"/>
       </Item51>
       <Item52>
@@ -359,16 +359,16 @@ end;"/>
         <UnitName Value="CastleWarnings"/>
       </Item75>
       <Item76>
-        <Filename Value="../src/base/castlexmlcfginternal.pas"/>
+        <Filename Value="../src/files/castlexmlcfginternal.pas"/>
         <UnitName Value="CastleXMLCfgInternal"/>
       </Item76>
       <Item77>
-        <Filename Value="../src/base/castlexmlconfig.pas"/>
+        <Filename Value="../src/files/castlexmlconfig.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="CastleXMLConfig"/>
       </Item77>
       <Item78>
-        <Filename Value="../src/base/castlexmlutils.pas"/>
+        <Filename Value="../src/files/castlexmlutils.pas"/>
         <UnitName Value="CastleXMLUtils"/>
       </Item78>
       <Item79>

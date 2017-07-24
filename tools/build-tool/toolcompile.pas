@@ -342,7 +342,7 @@ begin
         AddEnginePath('x3d/opengl');
         AddEnginePath('x3d/opengl/glsl');
         AddEnginePath('audio');
-        AddEnginePath('net');
+        AddEnginePath('files');
         AddEnginePath('castlescript');
         AddEnginePath('ui');
         AddEnginePath('ui/windows');

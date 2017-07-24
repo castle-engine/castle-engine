@@ -142,11 +142,8 @@ begin
     P.Targets.AddUnit('castleapplicationproperties.pas');
     P.Targets.AddUnit('castleclassutils.pas');
     P.Targets.AddUnit('castlecolors.pas');
-    P.Targets.AddUnit('castleconfig.pas');
     P.Targets.AddUnit('castledynlib.pas');
     P.Targets.AddUnit('castlefilefilters.pas');
-    P.Targets.AddUnit('castlefilesutils.pas');
-    P.Targets.AddUnit('castlefindfiles.pas');
     P.Targets.AddUnit('castlegenericlists.pas');
     P.Targets.AddUnit('castleinterfaces.pas');
     P.Targets.AddUnit('castleinternalgzio.pas');
@@ -158,7 +155,6 @@ begin
     P.Targets.AddUnit('castleprogress.pas');
     P.Targets.AddUnit('castleprogressconsole.pas');
     P.Targets.AddUnit('castleprojection.pas');
-    P.Targets.AddUnit('castlerecentfiles.pas');
     P.Targets.AddUnit('castlerectangles.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');
@@ -167,8 +163,6 @@ begin
     P.Targets.AddUnit('castleutils.pas');
     P.Targets.AddUnit('castlevectors.pas');
     P.Targets.AddUnit('castlewarnings.pas');
-    P.Targets.AddUnit('castlexmlconfig.pas');
-    P.Targets.AddUnit('castlexmlutils.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'base' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlegles20.pas');
@@ -270,10 +264,16 @@ begin
     P.Targets.AddUnit('castleglshaders.pas');
     P.Targets.AddUnit('castlescreeneffects.pas');
 
-    P.SourcePath.Add('src' + PathDelim + 'net');
-    P.Targets.AddUnit('castleuriutils.pas');
+    P.SourcePath.Add('src' + PathDelim + 'files');
+    P.Targets.AddUnit('castleconfig.pas');
     P.Targets.AddUnit('castledatauri.pas');
     P.Targets.AddUnit('castledownload.pas');
+    P.Targets.AddUnit('castlefilesutils.pas');
+    P.Targets.AddUnit('castlefindfiles.pas');
+    P.Targets.AddUnit('castlerecentfiles.pas');
+    P.Targets.AddUnit('castleuriutils.pas');
+    P.Targets.AddUnit('castlexmlconfig.pas');
+    P.Targets.AddUnit('castlexmlutils.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'ui');
     P.Targets.AddUnit('castleinputs.pas');
