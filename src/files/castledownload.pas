@@ -141,18 +141,31 @@ type
     when the @link(Status) property changes to dsError or dsSuccess
     to detect when this finished downloading.
 
-    It is undefined whether this uses threads or not internally.
-    The methods and properties can be accessed from the main thread, the same thread
-    you use for all Castle Game Engine functions. }
+    The download starts when you construct the instance of this class.
+    When it ends, the @link(OnFinished) is called and @link(Status) changes.
+    You can also always just free an instance of this class, this will
+    break the download immediately.
+
+    Do not worry whether this uses threads (or not) internally.
+    All the methods and properties of this class should be accessed
+    from the main thread, the same thread you use for all Castle Game Engine
+    functions. And the OnFinished is called in the main thread,
+    so you can handle it without worrying about threading.
+  }
   TDownload = class
     { Start the download process. This constructor starts downloading,
-      and immediately returns. }
+      and immediately returns.
+
+      Note that this constructor never calls OnFinished or changes @link(Status)
+      immediately (this would be quite uncomfortable,
+      as you didn't have a chance to set OnFinished yet...).
+      Even if you provide a URL that is a file:// or data URI
+      (which can be read / decoded immediately). }
     constructor Create(const AURL: string);
 
-    { Event called when we finish downloading.
-      It is called in the main application thread (the same thread
-      you use for all Castle Game Engine functions), so you can handle
-      it without worrying about threading, even if we use threads internally. }
+    property URL: string read;
+
+    { Event called when we finish downloading. }
     property OnFinished: TNotifyEvent read write;
 
     { Whether we finished the download or not, and if we finished
@@ -173,12 +186,16 @@ type
       and still keep the stream reference.
       It is your responsibility then to keep and free the @link(Content)
       stream whenever you want. }
+    // Is this property really much useful? Possibly resign from this.
     property ContentOwned: boolean read;
 
-    { How many bytes were downloaded. }
+    { How many bytes were downloaded.
+      Together with @link(TotalBytes), you can use it e.g. to show a progress bar
+      when downloading. }
     property DownloadedBytes: Int64;
 
-    { How many bytes are total to be downloaded. -1 if unknown.
+    { How many bytes are expected to be downloaded, in total.
+      -1 if unknown.
       Depending on the server answer, this may be known fairly quickly after
       starting the download, or if may not be known at all (until we finish
       the download).
@@ -195,14 +212,24 @@ type
       have set this property to true: the instance of TDownload
       may become invalid at any moment (even right after when you have set
       the FreeOnFinish to @true, in case the contents were already downloaded).
+      It is always freed in the main CGE thread (to avoid risk when iterating
+      over @link(Downloads) list).
 
       You should always register the OnFinished callback before setting
       this to @true, to be notified when the download finishes.
       The OnFinished callback will be your last chance to get the downloaded
       data (unless you set FreeOnFinish := @false inside OnFinished
       implementation, which is allowed). }
+    // Maybe resign from this property, it is dangerous -- is it really much useful?
     property FreeOnFinish: boolean read write default false;
   end;
+
+  TDownloadList = specialize TObjectList<TDownload>;
+
+{ List of currently existing TDownload instances.
+  You can use this e.g. to implement a GUI to show ongoing downloads.
+  Remember that some downloads on this list may be
+function Downloads: TDownloadList;
 *)
 
 { Create a stream to save a given URL, for example create a TFileStream
