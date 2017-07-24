@@ -27,8 +27,9 @@ function Load3DS(const URL: string): TX3DRootNode;
 
 implementation
 
-uses CastleUtils, Classes, CastleClassUtils, SysUtils, CastleVectors, X3DCameraUtils,
-  FGL, X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
+  X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
   CastleStreamUtils;
 
 { 3DS reading mostly based on spec from
@@ -74,7 +75,7 @@ type
   TMaterialMap3ds = record
     Exists: boolean;
     MapURL: string;
-    Scale, Offset: TVector2Single;
+    Scale, Offset: TVector2;
   end;
 
   TMaterial3ds = class
@@ -91,9 +92,9 @@ type
     { Material properties. Have default values (following VRML and OpenGL
       defaults, as I don't know 3DS defaults) in case they would be
       undefined in 3DS file. }
-    AmbientColor: TVector4Single;
-    DiffuseColor: TVector4Single;
-    SpecularColor: TVector4Single;
+    AmbientColor: TVector4;
+    DiffuseColor: TVector4;
+    SpecularColor: TVector4;
 
     { Texture maps, initialized with Exists = false }
     TextureMap1, TextureMap2, TextureMapBump: TMaterialMap3ds;
@@ -111,7 +112,7 @@ type
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
   end;
 
-  TMaterial3dsList = class(specialize TFPGObjectList<TMaterial3ds>)
+  TMaterial3dsList = class(specialize TObjectList<TMaterial3ds>)
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
@@ -167,10 +168,10 @@ type
 
   { Vertex information from 3DS. }
   TVertex3ds = packed record
-    Pos: TVector3Single;
+    Pos: TVector3;
     { Texture coordinates. (0, 0) if the object doesn't have texture coords
       (HasTexCoords is @false). }
-    TexCoord: TVector2Single;
+    TexCoord: TVector2;
   end;
   TArray_Vertex3ds = packed array [0 .. MaxInt div SizeOf(TVertex3ds) - 1] of TVertex3ds;
   PArray_Vertex3ds = ^TArray_Vertex3ds;
@@ -202,34 +203,34 @@ type
 
   TCamera3ds = class(TObject3DS)
   strict private
-    FPosition, FTarget: TVector3Single;
+    FPosition, FTarget: TVector3;
     FBank, FLens: Single;
   public
-    property Position: TVector3Single read FPosition;
-    property Target: TVector3Single read FTarget;
+    property Position: TVector3 read FPosition;
+    property Target: TVector3 read FTarget;
     property Bank: Single read FBank;
     property Lens: Single read FLens;
     constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
 
     { Camera direction. Calculated from Position and Target. }
-    function Direction: TVector3Single;
+    function Direction: TVector3;
     { Camera up. Calculated from Direction and Bank. }
-    function Up: TVector3Single;
+    function Up: TVector3;
   end;
 
   TLight3ds = class(TObject3DS)
   public
-    Pos: TVector3Single;
-    Col: TVector3Single;
+    Pos: TVector3;
+    Col: TVector3;
     Enabled: boolean;
     constructor Create(const AName: string; AScene: TScene3DS;
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
-  TTrimesh3dsList = specialize TFPGObjectList<TTrimesh3ds>;
-  TCamera3dsList = specialize TFPGObjectList<TCamera3ds>;
-  TLight3dsList = specialize TFPGObjectList<TLight3ds>;
+  TTrimesh3dsList = specialize TObjectList<TTrimesh3ds>;
+  TCamera3dsList = specialize TObjectList<TCamera3ds>;
+  TLight3dsList = specialize TObjectList<TLight3ds>;
 
   { 3DS loader. }
   TScene3DS = class
@@ -347,10 +348,40 @@ const
 
 type
   TChunkHeader = packed record
-    id: Word;
-    len: LongWord;
+    Id: Word;
+    Len: LongWord;
+    procedure ReadFromStream(const Stream: TStream);
   end;
 
+procedure TChunkHeader.ReadFromStream(const Stream: TStream);
+begin
+  Stream.ReadBuffer(Id, SizeOf(Id));
+  Stream.ReadBuffer(Len, SizeOf(Len));
+  Id := LEtoN(Id);
+  Len := LEtoN(Len);
+end;
+
+  { TODO: Using this (with "inline" or not) causes various Internal Errors
+    with FPC 3.1.1:
+
+      x3dloadinternal3ds.pas(<end line>,4) Fatal: Internal error 2011031501
+
+    or
+
+      x3dnodes.pas(99,1) Fatal: Internal error 200611031
+
+    or sometimes access violation. It is reproducible by
+
+      make clean
+      fpc fpmake.pp
+      ./fpmake build --nofpccfg --verbose --globalunitdir="$FPCDIR"
+
+    in CGE. It also occurs (but completely randomly, I failed to reproduce
+    it reliably so far) with FPC 2.6.4 and 3.0.0.
+
+    So far, I failed to express this bug in a simple testcase for FPC bugreport. }
+
+(*
   T3dsStreamHelper = class helper(TStreamHelper) for TStream
     procedure ReadChunkHeader(out Buffer: TChunkHeader); inline;
   end;
@@ -361,6 +392,7 @@ begin
   Buffer.id := LEtoN(Buffer.id);
   Buffer.len := LEtoN(Buffer.len);
 end;
+*)
 
 procedure Check3dsFile(TrueValue: boolean; const ErrMessg: string);
 begin
@@ -375,7 +407,7 @@ end;
   not an "out" parameter).
 
   Overloaded version with 4 components always returns alpha = 1. }
-function TryReadColorInSubchunks(var Col: TVector3Single;
+function TryReadColorInSubchunks(var Col: TVector3;
   Stream: TStream; EndPos: Int64): boolean;
 var
   h: TChunkHeader;
@@ -388,7 +420,7 @@ begin
   result := false;
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
     { TODO: we ignore gamma correction entirely so we don't distinct
       gamma corrected and not corrected colors }
@@ -407,7 +439,7 @@ begin
           Col3Byte[0] := Col3Byte[2];
           Col3Byte[2] := b;
           {$endif ENDIAN_BIG}
-          Col := Vector3Single(Col3Byte);
+          Col := Vector3(Col3Byte);
           result := true;
           break;
         end;
@@ -417,13 +449,13 @@ begin
   Stream.Position := EndPos;
 end;
 
-function TryReadColorInSubchunks(var Col: TVector4Single;
+function TryReadColorInSubchunks(var Col: TVector4;
   Stream: TStream; EndPos: Int64): boolean;
 var
-  Col3Single: TVector3Single;
+  Col3Single: TVector3;
 begin
   result := TryReadColorInSubchunks(Col3Single, Stream, EndPos);
-  if result then Col := Vector4Single(Col3Single);
+  if result then Col := Vector4(Col3Single, 1);
 end;
 
 { Read 3DS subchunks until EndPos, ignoring everything except CHUNK_DOUBLE_BYTE
@@ -439,7 +471,7 @@ begin
   result := false;
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hEnd := Stream.Position -SizeOf(TChunkHeader) + h.len;
     if h.id = CHUNK_DOUBLE_BYTE then
     begin
@@ -458,9 +490,9 @@ end;
 const
   { TODO: I don't know default 3DS material parameters.
     Below I just use some default OpenGL and VRML 1.0 values. } { }
-  Default3dsMatAmbient: TVector4Single = (0.2, 0.2, 0.2, 1.0);
-  Default3dsMatDiffuse: TVector4Single = (0.8, 0.8, 0.8, 1.0);
-  Default3dsMatSpecular: TVector4Single = (0, 0, 0, 1.0);
+  Default3dsMatAmbient: TVector4 = (Data: (0.2, 0.2, 0.2, 1.0));
+  Default3dsMatDiffuse: TVector4 = (Data: (0.8, 0.8, 0.8, 1.0));
+  Default3dsMatSpecular: TVector4 = (Data: (0, 0, 0, 1.0));
   Default3dsMatShininess: Single = 0.2; {< in range 0..1 }
 
 constructor TMaterial3ds.Create(const AName: string);
@@ -482,7 +514,7 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
   function ReadMaterialMap(EndPos: Int64): TMaterialMap3ds;
   const
     InitialExistingMatMap: TMaterialMap3ds =
-    (Exists: true; MapURL: ''; Scale: (1, 1); Offset: (0, 0));
+    (Exists: true; MapURL: ''; Scale: (Data: (1, 1)); Offset: (Data: (0, 0)));
   var
     h: TChunkHeader;
     hEnd: Int64;
@@ -492,14 +524,14 @@ procedure TMaterial3ds.ReadFromStream(Stream: TStream; EndPos: Int64);
     { read MAP subchunks }
     while Stream.Position < EndPos do
     begin
-      Stream.ReadChunkHeader(h);
+      h.ReadFromStream(Stream);
       hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
       case h.id of
         CHUNK_MAP_FILE: Result.MapURL := StreamReadZeroEndString(Stream);
-        CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale[0]);
-        CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale[1]);
-        CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset[0]);
-        CHUNK_MAP_VOFFSET: Stream.ReadLE(Result.Offset[1]);
+        CHUNK_MAP_USCALE: Stream.ReadLE(Result.Scale.Data[0]);
+        CHUNK_MAP_VSCALE: Stream.ReadLE(Result.Scale.Data[1]);
+        CHUNK_MAP_UOFFSET: Stream.ReadLE(Result.Offset.Data[0]);
+        CHUNK_MAP_VOFFSET: Stream.ReadLE(Result.Offset.Data[1]);
         else Stream.Position := hEnd;
       end;
     end;
@@ -512,7 +544,7 @@ begin
   { read material subchunks }
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hEnd := Stream.Position -SizeOf(TChunkHeader) +h.len;
     case h.id of
       { Colors }
@@ -579,7 +611,7 @@ begin
 
   while Stream.Position < EndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     if h.id = CHUNK_MATNAME then
     begin
       MatName := StreamReadZeroEndString(Stream);
@@ -637,7 +669,7 @@ begin
   { searching for chunk TRIMESH / CAMERA / LIGHT }
   while Stream.Position < ObjectEndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     ChunkEndPos := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
       CHUNK_TRIMESH: Result := TTrimesh3ds.Create(ObjName, AScene, Stream, ChunkEndPos);
@@ -753,7 +785,7 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
     { read subchunks - look for FACEMAT chunk }
     while Stream.Position < chunkEnd do
     begin
-      Stream.ReadChunkHeader(h);
+      h.ReadFromStream(Stream);
       hEnd := Stream.Position + h.len - SizeOf(TChunkHeader);
       if h.id = CHUNK_FACEMAT then
         ReadFacemat else
@@ -765,19 +797,19 @@ constructor TTrimesh3ds.Create(const AName: string; AScene: TScene3DS;
   procedure ReadMatrix(ChunkEnd: Int64);
   var
     I: Integer;
-    Matrix: TMatrix4Single;
+    Matrix: TMatrix4;
     MatrixTransform: TMatrixTransformNode;
   begin
-    Matrix := IdentityMatrix4Single;
+    Matrix := TMatrix4.Identity;
     for I := 0 to 3 do
       Stream.ReadLE(Matrix[I]);
     { The 4th row of our matrix will remain (0,0,0,1). }
 
-    if not MatricesPerfectlyEqual(Matrix, IdentityMatrix4Single) then
+    if not MatricesPerfectlyEqual(Matrix, TMatrix4.Identity) then
     begin
       FreeIfUnusedAndNil(Group);
       MatrixTransform := TMatrixTransformNode.Create;
-      MatrixTransform.FdMatrix.Value := Matrix;
+      MatrixTransform.Matrix := Matrix;
       Group := MatrixTransform;
     end;
 
@@ -800,7 +832,7 @@ begin
   { read subchunks inside CHUNK_TRIMESH }
   while Stream.Position < ChunkEndPos do
   begin
-    Stream.ReadChunkHeader(h);
+    h.ReadFromStream(Stream);
     hend := Stream.Position + h.len - SizeOf(TChunkHeader);
     case h.id of
       CHUNK_VERTLIST: ReadVertlist;
@@ -838,17 +870,17 @@ begin
   Stream.ReadLE(FLens);
 end;
 
-function TCamera3ds.Direction: TVector3Single;
+function TCamera3ds.Direction: TVector3;
 begin
-  result := VectorSubtract(Target, Position);
+  result := Target - Position;
 end;
 
-function TCamera3ds.Up: TVector3Single;
+function TCamera3ds.Up: TVector3;
 var
-  D: TVector3Single;
+  D: TVector3;
 const
-  StandardUp: TVector3Single = (0, 0, 1);
-  StandardUpAlt: TVector3Single = (0, 1, 0);
+  StandardUp: TVector3 = (Data: (0, 0, 1));
+  StandardUpAlt: TVector3 = (Data: (0, 1, 0));
 begin
   D := Direction;
 
@@ -893,12 +925,12 @@ begin
   Lights := TLight3dsList.Create;
   Materials := TMaterial3dsList.Create;
 
-  Stream.ReadChunkHeader(hmain);
+  hmain.ReadFromStream(Stream);
   Check3dsFile(hmain.id = CHUNK_MAIN, 'First chunk id <> CHUNK_MAIN');
 
   while Stream.Position < hmain.len do
   begin
-    Stream.ReadChunkHeader(hsubmain);
+    hsubmain.ReadFromStream(Stream);
     hsubmainEnd := Stream.Position+hsubmain.len-SizeOf(TChunkHeader);
     case hsubmain.id of
       CHUNK_OBJMESH:
@@ -906,7 +938,7 @@ begin
           { look for chunks OBJBLOCK and MATERIAL }
           while Stream.Position < hsubmainEnd do
           begin
-            Stream.ReadChunkHeader(hsubObjMesh);
+            hsubObjMesh.ReadFromStream(Stream);
             hsubObjMeshEnd := Stream.Position + hsubObjMesh.len - SizeOf(TChunkHeader);
             case hsubObjMesh.id of
               CHUNK_OBJBLOCK:
@@ -1007,9 +1039,9 @@ var
         O3ds.Lights[I].Name), BaseUrl);
       Result.FdChildren.Add(Light);
 
-      Light.FdOn.Value := O3ds.Lights[I].Enabled;
-      Light.FdLocation.Value := O3ds.Lights[I].Pos;
-      Light.FdColor.Value := O3ds.Lights[I].Col;
+      Light.IsOn := O3ds.Lights[I].Enabled;
+      Light.Location := O3ds.Lights[I].Pos;
+      Light.Color := O3ds.Lights[I].Col;
     end;
   end;
 
@@ -1022,34 +1054,34 @@ var
     Result := TAppearanceNode.Create(MaterialVRMLName(Material.Name), BaseUrl);
 
     Mat := TMaterialNode.Create('', BaseUrl);
-    Mat.FdDiffuseColor.Value := Vector3SingleCut(Material.DiffuseColor);
-    Mat.FdAmbientIntensity.Value := AmbientIntensity(Material.AmbientColor, Material.DiffuseColor);
-    Mat.FdSpecularColor.Value := Vector3SingleCut(Material.SpecularColor);
-    Mat.FdShininess.Value := Material.Shininess;
-    Mat.FdTransparency.Value := Material.Transparency;
-    Result.FdMaterial.Value := Mat;
+    Mat.DiffuseColor := Material.DiffuseColor.XYZ;
+    Mat.AmbientIntensity := AmbientIntensity(Material.AmbientColor, Material.DiffuseColor);
+    Mat.SpecularColor := Material.SpecularColor.XYZ;
+    Mat.Shininess := Material.Shininess;
+    Mat.Transparency := Material.Transparency;
+    Result.Material := Mat;
 
     if Material.TextureMap1.Exists then
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
       Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
         Material.TextureMap1.MapURL));
-      Result.FdTexture.Value := Tex;
+      Result.Texture := Tex;
 
       TexTransform := TTextureTransformNode.Create('', BaseUrl);
-      TexTransform.FdScale.Value := Material.TextureMap1.Scale;
-      Result.FdTextureTransform.Value := TexTransform;
+      TexTransform.Scale := Material.TextureMap1.Scale;
+      Result.TextureTransform := TexTransform;
 
       if Material.TextureMapBump.Exists then
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
         Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
           Material.TextureMapBump.MapURL));
-        Result.FdNormalMap.Value := Tex;
+        Result.NormalMap := Tex;
 
         { We don't have separate TextureTransform for bump map.
           Just check that in 3DS bump map and diffuse textures have equal transform. }
-        if not VectorsEqual(
+        if not TVector2.Equals(
             Material.TextureMap1.Scale,
             Material.TextureMapBump.Scale) then
           WritelnWarning('VRML/X3D', 'Texture scale for diffuse and normal (bump) maps is different in the 3DS file. Currently this is not correctly handled when converting to VRML/X3D');
@@ -1130,11 +1162,11 @@ begin
           IFS.FdCoord.Value := Coord;
           { We don't support 3DS smoothing groups.
             So instead assign some sensible non-zero crease angle. }
-          IFS.FdCreaseAngle.Value := NiceCreaseAngle;
-          IFS.FdSolid.Value := false;
+          IFS.CreaseAngle := NiceCreaseAngle;
+          IFS.Solid := false;
 
           Shape := TShapeNode.Create('', BaseUrl);
-          Shape.FdGeometry.Value := IFS;
+          Shape.Geometry := IFS;
 
           FaceMaterialNum := Trimesh3ds.Faces^[j].FaceMaterialIndex;
           if FaceMaterialNum <> -1 then

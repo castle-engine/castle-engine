@@ -13,22 +13,42 @@
   ----------------------------------------------------------------------------
 }
 
-{ Interface and implementation of CastleVectors for lists. }
+{ CastleVectors lists of vectors and matrices. }
 
 {$ifdef read_interface}
 
 type
-  TVector4SingleList = class;
+  TVector4List = class;
 
-  TVector3SingleList = class(specialize TGenericStructList<TVector3Single>)
+  { List of @link(TVector2). }
+  TVector2List = class(specialize TStructList<TVector2>)
   public
-    procedure AssignNegated(Source: TVector3SingleList);
+    { Calculate minimum and maximum values for both dimensions of
+      this set of points. Returns @false when Count = 0. }
+    function MinMax(out Min, Max: TVector2): boolean;
+
+    { Assign linear interpolation between two other vector arrays.
+      @seealso TVector3List.AssignLerp }
+    procedure AssignLerp(const Fraction: Single;
+      V1, V2: TVector2List; Index1, Index2, ACount: Integer);
+
+    procedure AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector2List; Index, AddCount: Integer); deprecated 'use AddSubRange';
+  end;
+
+  { List of @link(TVector3). }
+  TVector3List = class(specialize TStructList<TVector3>)
+  public
+    procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
+
     { Negate all items. }
     procedure Negate;
+
     { Normalize all items. Zero vectors are left as zero. }
     procedure Normalize;
+
     { Multiply each item, component-wise, with V. }
-    procedure MultiplyComponents(const V: TVector3Single);
+    procedure MultiplyComponents(const V: TVector3);
 
     { Assign linear interpolation between two other vector arrays.
       We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
@@ -39,28 +59,26 @@ type
       But their ranges should not overlap, for future optimizations
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
     { Assign linear interpolation between two other vector arrays,
       and normalize resulting vectors.
       @seealso AssignLerp }
     procedure AssignLerpNormalize(const Fraction: Single;
-      V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
     { Assign linear interpolation between two other vector arrays,
       treating vectors as RGB colors and interpolating in HSV space.
       @seealso AssignLerp }
     procedure AssignLerpRgbInHsv(const Fraction: Single;
-      V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 
-    procedure AddList(Source: TVector3SingleList);
-    procedure AddListRange(Source: TVector3SingleList; Index, AddCount: Integer);
-    procedure AddArray(const A: array of TVector3Single);
-    procedure AssignArray(const A: array of TVector3Single);
+    procedure AddSubRange(const Source: TVector3List; Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector3List; Index, AddCount: Integer); deprecated 'use AddSubRange';
 
-    { Convert to TVector4SingleList, with 4th vector component in
+    { Convert to TVector4List, with 4th vector component in
       new array set to constant W. }
-    function ToVector4Single(const W: Single): TVector4SingleList;
+    function ToVector4(const W: Single): TVector4List;
 
     { When two vertexes on the list are closer than MergeDistance,
       set them truly (exactly) equal.
@@ -68,125 +86,89 @@ type
     function MergeCloseVertexes(MergeDistance: Single): Cardinal;
   end;
 
-  TVector2SingleList = class(specialize TGenericStructList<TVector2Single>)
+  { List of @link(TVector4). }
+  TVector4List = class(specialize TStructList<TVector4>)
   public
-    { Calculate minimum and maximum values for both dimensions of
-      this set of points. Returns @false when Count = 0. }
-    function MinMax(out Min, Max: TVector2Single): boolean;
-
-    { Assign linear interpolation between two other vector arrays.
-      @seealso TVector3SingleList.AssignLerp }
-    procedure AssignLerp(const Fraction: Single;
-      V1, V2: TVector2SingleList; Index1, Index2, ACount: Integer);
-
-    procedure AddList(Source: TVector2SingleList);
-    procedure AddListRange(Source: TVector2SingleList; Index, AddCount: Integer);
-    procedure AddArray(const A: array of TVector2Single);
-    procedure AssignArray(const A: array of TVector2Single);
+    procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
+    procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
-  TVector4SingleList = class(specialize TGenericStructList<TVector4Single>)
+  { List of @link(TMatrix3). }
+  TMatrix3List = class(specialize TStructList<TMatrix3>)
   public
-    procedure AddList(Source: TVector4SingleList);
-    procedure AddListRange(Source: TVector4SingleList; Index, AddCount: Integer);
-    procedure AddArray(const A: array of TVector4Single);
-    procedure AssignArray(const A: array of TVector4Single);
   end;
 
-  TVector3CardinalList = specialize TGenericStructList<TVector3Cardinal>;
-
-  TVector2DoubleList = class(specialize TGenericStructList<TVector2Double>)
+  { List of @link(TMatrix4). }
+  TMatrix4List = class(specialize TStructList<TMatrix4>)
   public
-    function ToVector2Single: TVector2SingleList;
-    procedure AddList(Source: TVector2DoubleList);
-    procedure AddArray(const A: array of TVector2Double);
   end;
 
-  TVector3DoubleList = class(specialize TGenericStructList<TVector3Double>)
+  {$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+  { List of @link(TVector2Double). }
+  TVector2DoubleList = class(specialize TStructList<TVector2Double>)
   public
-    function ToVector3Single: TVector3SingleList;
-    procedure AddList(Source: TVector3DoubleList);
-    procedure AddArray(const A: array of TVector3Double);
+    function ToVector2: TVector2List;
   end;
 
-  TVector4DoubleList = class(specialize TGenericStructList<TVector4Double>)
+  { List of @link(TVector3Double). }
+  TVector3DoubleList = class(specialize TStructList<TVector3Double>)
   public
-    function ToVector4Single: TVector4SingleList;
-    procedure AddList(Source: TVector4DoubleList);
-    procedure AddArray(const A: array of TVector4Double);
+    function ToVector3: TVector3List;
   end;
 
-  TMatrix3SingleList = class(specialize TGenericStructList<TMatrix3Single>)
+  { List of @link(TVector4Double). }
+  TVector4DoubleList = class(specialize TStructList<TVector4Double>)
   public
-    procedure AddList(Source: TMatrix3SingleList);
-    procedure AddArray(const A: array of TMatrix3Single);
+    function ToVector4: TVector4List;
   end;
 
-  TMatrix3DoubleList = class(specialize TGenericStructList<TMatrix3Double>)
+  { List of @link(TMatrix3Double). }
+  TMatrix3DoubleList = class(specialize TStructList<TMatrix3Double>)
   public
-    function ToMatrix3Single: TMatrix3SingleList;
-    procedure AddList(Source: TMatrix3DoubleList);
-    procedure AddArray(const A: array of TMatrix3Double);
+    function ToMatrix3: TMatrix3List;
   end;
 
-  TMatrix4SingleList = class(specialize TGenericStructList<TMatrix4Single>)
+  { List of @link(TMatrix4Double). }
+  TMatrix4DoubleList = class(specialize TStructList<TMatrix4Double>)
   public
-    procedure AddList(Source: TMatrix4SingleList);
-    procedure AddArray(const A: array of TMatrix4Single);
+    function ToMatrix4: TMatrix4List;
   end;
+  {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
-  TMatrix4DoubleList = class(specialize TGenericStructList<TMatrix4Double>)
-  public
-    function ToMatrix4Single: TMatrix4SingleList;
-    procedure AddList(Source: TMatrix4DoubleList);
-    procedure AddArray(const A: array of TMatrix4Double);
-  end;
+  { List of @link(TVector2SmallInt). }
+  TVector2SmallIntList = specialize TStructList<TVector2SmallInt>;
 
-  TVector2IntegerList = class(specialize TGenericStructList<TVector2Integer>)
-    procedure Reverse;
-    procedure AddList(Source: TVector2IntegerList);
-  end;
-
-  TVector2SmallIntList = specialize TGenericStructList<TVector2SmallInt>;
+  { List of @link(TVector2Cardinal). }
+  TVector3CardinalList = specialize TStructList<TVector3Cardinal>;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
-{ TVector3SingleList ----------------------------------------------------- }
+{ TVector2List ----------------------------------------------------- }
 
-procedure TVector3SingleList.AssignNegated(Source: TVector3SingleList);
-begin
-  Assign(Source);
-  Negate;
-end;
-
-procedure TVector3SingleList.Negate;
+function TVector2List.MinMax(out Min, Max: TVector2): boolean;
 var
   I: Integer;
 begin
-  for I := 0 to Count - 1 do
-    VectorNegateVar(L[I]);
+  Result := Count > 0;
+  if Result then
+  begin
+    Min := L[0];
+    Max := L[0];
+    for I := 1 to Count - 1 do
+    begin
+      if L[I].Data[0] < Min.Data[0] then Min.Data[0] := L[I].Data[0] else
+      if L[I].Data[0] > Max.Data[0] then Max.Data[0] := L[I].Data[0];
+
+      if L[I].Data[1] < Min.Data[1] then Min.Data[1] := L[I].Data[1] else
+      if L[I].Data[1] > Max.Data[1] then Max.Data[1] := L[I].Data[1];
+    end;
+  end;
 end;
 
-procedure TVector3SingleList.Normalize;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    NormalizeVar(L[I]);
-end;
-
-procedure TVector3SingleList.MultiplyComponents(const V: TVector3Single);
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    VectorMultiplyComponentsVar(L[I], V);
-end;
-
-procedure TVector3SingleList.AssignLerp(const Fraction: Single;
-  V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+procedure TVector2List.AssignLerp(const Fraction: Single;
+  V1, V2: TVector2List; Index1, Index2, ACount: Integer);
 var
   I: Integer;
 begin
@@ -195,8 +177,65 @@ begin
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
-procedure TVector3SingleList.AssignLerpNormalize(const Fraction: Single;
-  V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+procedure TVector2List.AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
+var
+  OldCount: Integer;
+begin
+  OldCount := Count;
+  Count := Count + AddCount;
+  if Source.Count <> 0 then
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector2) * AddCount);
+end;
+
+procedure TVector2List.AddListRange(const Source: TVector2List; Index, AddCount: Integer);
+begin
+  AddSubRange(Source, Index, AddCount);
+end;
+
+{ TVector3List ----------------------------------------------------- }
+
+procedure TVector3List.AssignNegated(const Source: TVector3List);
+begin
+  Assign(Source);
+  Negate;
+end;
+
+procedure TVector3List.Negate;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    L[I] := -L[I];
+end;
+
+procedure TVector3List.Normalize;
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    L[I].NormalizeMe;
+end;
+
+procedure TVector3List.MultiplyComponents(const V: TVector3);
+var
+  I: Integer;
+begin
+  for I := 0 to Count - 1 do
+    L[I] := L[I] * V;
+end;
+
+procedure TVector3List.AssignLerp(const Fraction: Single;
+  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+var
+  I: Integer;
+begin
+  Count := ACount;
+  for I := 0 to Count - 1 do
+    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+end;
+
+procedure TVector3List.AssignLerpNormalize(const Fraction: Single;
+  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 var
   I: Integer;
 begin
@@ -204,12 +243,12 @@ begin
   for I := 0 to Count - 1 do
   begin
     L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
-    NormalizeVar(L[I]);
+    L[I].NormalizeMe;
   end;
 end;
 
-procedure TVector3SingleList.AssignLerpRgbInHsv(const Fraction: Single;
-  V1, V2: TVector3SingleList; Index1, Index2, ACount: Integer);
+procedure TVector3List.AssignLerpRgbInHsv(const Fraction: Single;
+  V1, V2: TVector3List; Index1, Index2, ACount: Integer);
 var
   I: Integer;
 begin
@@ -218,25 +257,25 @@ begin
     L[I] := LerpRgbInHsv(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
 end;
 
-function TVector3SingleList.ToVector4Single(const W: Single): TVector4SingleList;
+function TVector3List.ToVector4(const W: Single): TVector4List;
 var
   I: Integer;
 begin
-  Result := TVector4SingleList.Create;
+  Result := TVector4List.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
-    Result.L[I] := Vector4Single(L[I], W);
+    Result.L[I] := Vector4(L[I], W);
 end;
 
-function TVector3SingleList.MergeCloseVertexes(MergeDistance: Single): Cardinal;
+function TVector3List.MergeCloseVertexes(MergeDistance: Single): Cardinal;
 var
-  V1, V2: PVector3Single;
+  V1, V2: PT;
   I, J: Integer;
 begin
   MergeDistance := Sqr(MergeDistance);
   Result := 0;
 
-  V1 := PVector3Single(List);
+  V1 := L;
   for I := 0 to Count - 1 do
   begin
     { Find vertexes closer to L[I], and merge them.
@@ -252,9 +291,9 @@ begin
     for J := I + 1 to Count - 1 do
     begin
       if PointsDistanceSqr(V1^, V2^) < MergeDistance then
-        { We do the VectorsPerfectlyEqual comparison only to get nice Result.
+        { We do the TVector3.PerfectlyEquals comparison only to get nice Result.
           But this *is* an important value for the user, so it's worth it. }
-        if not VectorsPerfectlyEqual(V1^, V2^) then
+        if not TVector3.PerfectlyEquals(V1^, V2^) then
         begin
           V2^ := V1^;
           Inc(Result);
@@ -266,160 +305,52 @@ begin
   end;
 end;
 
-procedure TVector3SingleList.AddList(Source: TVector3SingleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector3Single) * Source.Count);
-end;
-
-procedure TVector3SingleList.AddListRange(Source: TVector3SingleList; Index, AddCount: Integer);
+procedure TVector3List.AddSubRange(const Source: TVector3List; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3Single) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3) * AddCount);
 end;
 
-procedure TVector3SingleList.AddArray(const A: array of TVector3Single);
-var
-  OldCount: Integer;
+procedure TVector3List.AddListRange(const Source: TVector3List; Index, AddCount: Integer);
 begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TVector3Single) * (High(A) + 1));
+  AddSubRange(Source, Index, AddCount);
 end;
 
-procedure TVector3SingleList.AssignArray(const A: array of TVector3Single);
-begin
-  Clear;
-  AddArray(A);
-end;
+{ TVector4List ----------------------------------------------------- }
 
-{ TVector2SingleList ----------------------------------------------------- }
-
-function TVector2SingleList.MinMax(out Min, Max: TVector2Single): boolean;
-var
-  I: Integer;
-begin
-  Result := Count > 0;
-  if Result then
-  begin
-    Min := L[0];
-    Max := L[0];
-    for I := 1 to Count - 1 do
-    begin
-      if L[I][0] < Min[0] then Min[0] := L[I][0] else
-      if L[I][0] > Max[0] then Max[0] := L[I][0];
-
-      if L[I][1] < Min[1] then Min[1] := L[I][1] else
-      if L[I][1] > Max[1] then Max[1] := L[I][1];
-    end;
-  end;
-end;
-
-procedure TVector2SingleList.AssignLerp(const Fraction: Single;
-  V1, V2: TVector2SingleList; Index1, Index2, ACount: Integer);
-var
-  I: Integer;
-begin
-  Count := ACount;
-  for I := 0 to Count - 1 do
-    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
-end;
-
-procedure TVector2SingleList.AddList(Source: TVector2SingleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector2Single) * Source.Count);
-end;
-
-procedure TVector2SingleList.AddListRange(Source: TVector2SingleList; Index, AddCount: Integer);
+procedure TVector4List.AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector2Single) * AddCount);
+    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4) * AddCount);
 end;
 
-procedure TVector2SingleList.AddArray(const A: array of TVector2Single);
-var
-  OldCount: Integer;
+procedure TVector4List.AddListRange(const Source: TVector4List; Index, AddCount: Integer);
 begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TVector2Single) * (High(A) + 1));
+  AddSubRange(Source, Index, AddCount);
 end;
 
-procedure TVector2SingleList.AssignArray(const A: array of TVector2Single);
-begin
-  Clear;
-  AddArray(A);
-end;
-
-{ TVector4SingleList ----------------------------------------------------- }
-
-procedure TVector4SingleList.AddList(Source: TVector4SingleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector4Single) * Source.Count);
-end;
-
-procedure TVector4SingleList.AddListRange(Source: TVector4SingleList; Index, AddCount: Integer);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + AddCount;
-  if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4Single) * AddCount);
-end;
-
-procedure TVector4SingleList.AddArray(const A: array of TVector4Single);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TVector4Single) * (High(A) + 1));
-end;
-
-procedure TVector4SingleList.AssignArray(const A: array of TVector4Single);
-begin
-  Clear;
-  AddArray(A);
-end;
+{$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
 { TVector2DoubleList ----------------------------------------------------- }
 
-function TVector2DoubleList.ToVector2Single: TVector2SingleList;
+function TVector2DoubleList.ToVector2: TVector2List;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TVector2SingleList.Create;
+  Result := TVector2List.Create;
   Result.Count := Count;
-  Source := PDouble(List);
-  Dest := PSingle(Result.List);
+  Source := PDouble(L);
+  Dest := PSingle(Result.L);
   for I := 0 to Count * 2 - 1 do
   begin
     Dest^ := Source^;
@@ -428,38 +359,18 @@ begin
   end;
 end;
 
-procedure TVector2DoubleList.AddList(Source: TVector2DoubleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector2Double) * Source.Count);
-end;
-
-procedure TVector2DoubleList.AddArray(const A: array of TVector2Double);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TVector2Double) * (High(A) + 1));
-end;
-
 { TVector3DoubleList ----------------------------------------------------- }
 
-function TVector3DoubleList.ToVector3Single: TVector3SingleList;
+function TVector3DoubleList.ToVector3: TVector3List;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TVector3SingleList.Create;
+  Result := TVector3List.Create;
   Result.Count := Count;
-  Source := PDouble(List);
-  Dest := PSingle(Result.List);
+  Source := PDouble(L);
+  Dest := PSingle(Result.L);
   for I := 0 to Count * 3 - 1 do
   begin
     Dest^ := Source^;
@@ -468,38 +379,18 @@ begin
   end;
 end;
 
-procedure TVector3DoubleList.AddList(Source: TVector3DoubleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector3Double) * Source.Count);
-end;
-
-procedure TVector3DoubleList.AddArray(const A: array of TVector3Double);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TVector3Double) * (High(A) + 1));
-end;
-
 { TVector4DoubleList ----------------------------------------------------- }
 
-function TVector4DoubleList.ToVector4Single: TVector4SingleList;
+function TVector4DoubleList.ToVector4: TVector4List;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TVector4SingleList.Create;
+  Result := TVector4List.Create;
   Result.Count := Count;
-  Source := PDouble(List);
-  Dest := PSingle(Result.List);
+  Source := PDouble(L);
+  Dest := PSingle(Result.L);
   for I := 0 to Count * 4 - 1 do
   begin
     Dest^ := Source^;
@@ -508,105 +399,18 @@ begin
   end;
 end;
 
-procedure TVector4DoubleList.AddList(Source: TVector4DoubleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector4Double) * Source.Count);
-end;
-
-procedure TVector4DoubleList.AddArray(const A: array of TVector4Double);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TVector4Double) * (High(A) + 1));
-end;
-
-{ TVector2IntegerList ---------------------------------------------------- }
-
-procedure TVector2IntegerList.Reverse;
-var
-  I: Integer;
-begin
-  { Need to specially check for Count = 0 case, since (0-1) div 2 = -1 div 2 = 0
-    which means that loop would try invalid Exchange(0, -1). }
-  if Count = 0 then Exit;
-  for I := 0 to (Count - 1) div 2 do
-    Exchange(I, Count - 1 - I);
-end;
-
-procedure TVector2IntegerList.AddList(Source: TVector2IntegerList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TVector2Integer) * Source.Count);
-end;
-
-{ TMatrix3SingleList ----------------------------------------------------- }
-
-procedure TMatrix3SingleList.AddList(Source: TMatrix3SingleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix3Single) * Source.Count);
-end;
-
-procedure TMatrix3SingleList.AddArray(const A: array of TMatrix3Single);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TMatrix3Single) * (High(A) + 1));
-end;
-
-{ TMatrix4SingleList ----------------------------------------------------- }
-
-procedure TMatrix4SingleList.AddList(Source: TMatrix4SingleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix4Single) * Source.Count);
-end;
-
-procedure TMatrix4SingleList.AddArray(const A: array of TMatrix4Single);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TMatrix4Single) * (High(A) + 1));
-end;
-
 { TMatrix3DoubleList ----------------------------------------------------- }
 
-function TMatrix3DoubleList.ToMatrix3Single: TMatrix3SingleList;
+function TMatrix3DoubleList.ToMatrix3: TMatrix3List;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TMatrix3SingleList.Create;
+  Result := TMatrix3List.Create;
   Result.Count := Count;
-  Source := PDouble(List);
-  Dest := PSingle(Result.List);
+  Source := PDouble(L);
+  Dest := PSingle(Result.L);
   for I := 0 to Count * 3 * 3 - 1 do
   begin
     Dest^ := Source^;
@@ -615,38 +419,18 @@ begin
   end;
 end;
 
-procedure TMatrix3DoubleList.AddList(Source: TMatrix3DoubleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix3Double) * Source.Count);
-end;
-
-procedure TMatrix3DoubleList.AddArray(const A: array of TMatrix3Double);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TMatrix3Double) * (High(A) + 1));
-end;
-
 { TMatrix4DoubleList ----------------------------------------------------- }
 
-function TMatrix4DoubleList.ToMatrix4Single: TMatrix4SingleList;
+function TMatrix4DoubleList.ToMatrix4: TMatrix4List;
 var
   I: Integer;
   Source: PDouble;
   Dest: PSingle;
 begin
-  Result := TMatrix4SingleList.Create;
+  Result := TMatrix4List.Create;
   Result.Count := Count;
-  Source := PDouble(List);
-  Dest := PSingle(Result.List);
+  Source := PDouble(L);
+  Dest := PSingle(Result.L);
   for I := 0 to Count * 4 * 4 - 1 do
   begin
     Dest^ := Source^;
@@ -655,24 +439,6 @@ begin
   end;
 end;
 
-procedure TMatrix4DoubleList.AddList(Source: TMatrix4DoubleList);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + Source.Count;
-  if Source.Count <> 0 then
-    System.Move(Source.L[0], L[OldCount], SizeOf(TMatrix4Double) * Source.Count);
-end;
-
-procedure TMatrix4DoubleList.AddArray(const A: array of TMatrix4Double);
-var
-  OldCount: Integer;
-begin
-  OldCount := Count;
-  Count := Count + High(A) + 1;
-  if High(A) <> -1 then
-    System.Move(A[0], L[OldCount], SizeOf(TMatrix4Double) * (High(A) + 1));
-end;
+{$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
 {$endif read_implementation}

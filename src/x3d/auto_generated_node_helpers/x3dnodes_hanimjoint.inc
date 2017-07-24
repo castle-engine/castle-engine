@@ -27,28 +27,28 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
-    function GetLimitOrientation: TVector4Single;
-    procedure SetLimitOrientation(const Value: TVector4Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
+    function GetLimitOrientation: TVector4;
+    procedure SetLimitOrientation(const Value: TVector4);
     function GetNameField: string;
     procedure SetNameField(const Value: string);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetScaleOrientation: TVector4Single;
-    procedure SetScaleOrientation(const Value: TVector4Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetScaleOrientation: TVector4;
+    procedure SetScaleOrientation(const Value: TVector4);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
-    property LimitOrientation: TVector4Single read GetLimitOrientation write SetLimitOrientation;
+    property Center: TVector3 read GetCenter write SetCenter;
+    property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
     property NameField: string read GetNameField write SetNameField;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}
 
@@ -56,22 +56,22 @@
 
 { THAnimJointNode ----------------------------------------------- }
 
-function THAnimJointNode.GetCenter: TVector3Single;
+function THAnimJointNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure THAnimJointNode.SetCenter(const Value: TVector3Single);
+procedure THAnimJointNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
 
-function THAnimJointNode.GetLimitOrientation: TVector4Single;
+function THAnimJointNode.GetLimitOrientation: TVector4;
 begin
   Result := FdLimitOrientation.Value;
 end;
 
-procedure THAnimJointNode.SetLimitOrientation(const Value: TVector4Single);
+procedure THAnimJointNode.SetLimitOrientation(const Value: TVector4);
 begin
   FdLimitOrientation.Send(Value);
 end;
@@ -86,42 +86,42 @@ begin
   FdName.Send(Value);
 end;
 
-function THAnimJointNode.GetRotation: TVector4Single;
+function THAnimJointNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure THAnimJointNode.SetRotation(const Value: TVector4Single);
+procedure THAnimJointNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function THAnimJointNode.GetScale: TVector3Single;
+function THAnimJointNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure THAnimJointNode.SetScale(const Value: TVector3Single);
+procedure THAnimJointNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function THAnimJointNode.GetScaleOrientation: TVector4Single;
+function THAnimJointNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
 end;
 
-procedure THAnimJointNode.SetScaleOrientation(const Value: TVector4Single);
+procedure THAnimJointNode.SetScaleOrientation(const Value: TVector4);
 begin
   FdScaleOrientation.Send(Value);
 end;
 
-function THAnimJointNode.GetTranslation: TVector3Single;
+function THAnimJointNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure THAnimJointNode.SetTranslation(const Value: TVector3Single);
+procedure THAnimJointNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;

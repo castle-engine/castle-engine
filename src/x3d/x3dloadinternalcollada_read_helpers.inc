@@ -68,13 +68,13 @@ begin
 end;
 
 { Read the contents of the text data inside single child ChildTagName,
-  interpret them as TVector3Single.
+  interpret them as TVector3.
 
   Returns false when such child not found (or occurs more than once),
   or when cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
 function ReadChildVector(Element: TDOMElement; const ChildTagName: string;
-  var Value: TVector3Single): boolean;
+  var Value: TVector3): boolean;
 var
   Child: TDOMElement;
 begin
@@ -82,7 +82,7 @@ begin
   Result := Child <> nil;
   if Result then
   try
-    Value := Vector3SingleFromStr(Child.TextData);
+    Value := Vector3FromStr(Child.TextData);
   except on EConvertError do Result := false; end;
 end;
 

@@ -146,8 +146,7 @@ var
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleClassUtils, CastleTimeUtils,
-  CastleFilesUtils, CastleURIUtils, CastleApplicationProperties
+  CastleUtils, CastleApplicationProperties, CastleClassUtils, CastleTimeUtils
   {$ifdef ANDROID}, CastleAndroidInternalLog {$endif};
 
 var
@@ -185,6 +184,16 @@ var
     Result := true;
   end;
 
+  { Similar to CastleFilesUtils.ApplicationConfig directory,
+    but returns a filename, and doesn't depend on CastleFilesUtils and friends. }
+  function ApplicationConfigPath: string;
+  begin
+    Result := InclPathDelim(GetAppConfigDir(false));
+    if not ForceDirectories(Result) then
+      raise Exception.CreateFmt('Cannot create directory for config file: "%s"',
+        [Result]);
+  end;
+
 begin
   LogTimePrefix := ALogTimePrefix;
 
@@ -200,8 +209,7 @@ begin
       create .log file in user's directory. }
     if IsLibrary then
     begin
-      if not InitializeLogFile(
-        URIToFilenameSafe(ApplicationConfig(ApplicationName + '.log'))) then
+      if not InitializeLogFile(ApplicationConfigPath + ApplicationName + '.log') then
         Exit;
     end else
     {$endif}

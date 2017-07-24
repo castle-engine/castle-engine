@@ -81,12 +81,12 @@ var
   Navigator: TNavigatorType = ntAll;
   NavigatorRadio: array [TNavigatorType] of TMenuItemRadio;
   NavigatorData: array [ntCaster..ntEnvLight] of record
-    Pos: TVector3Single;
+    Pos: TVector3;
     Scale: Single;
-  end = ( (Pos: (0, 0, 0); Scale: 1.0),
-          (Pos: (0, 0, 0); Scale: 1.0),
-          (Pos: (0, 0, 0); Scale: 1.0),
-          (Pos: (0, 0, 0); Scale: 1.0) );
+  end = ( (Pos: (Data: (0, 0, 0)); Scale: 1.0),
+          (Pos: (Data: (0, 0, 0)); Scale: 1.0),
+          (Pos: (Data: (0, 0, 0)); Scale: 1.0),
+          (Pos: (Data: (0, 0, 0)); Scale: 1.0) );
 
 procedure NavigatorChanged;
 begin
@@ -137,15 +137,15 @@ procedure TMySceneManager.RenderFromViewEverything;
     Scale = 3;
 
     procedure DrawOneMap(Field: TShadowField;
-      const FieldMoveAmount: TVector3Single;
+      const FieldMoveAmount: TVector3;
       const FieldScale: Single;
       const ShiftX, ShiftY: Integer);
     var
       Map: PCubeMapByte;
       Side: TCubeMapSide;
     begin
-      Map := Field.EnvMapFromPoint(VectorSubtract(
-        NavigatorData[ntSFExplorer].Pos, FieldMoveAmount), FieldScale);
+      Map := Field.EnvMapFromPoint(
+        NavigatorData[ntSFExplorer].Pos - FieldMoveAmount, FieldScale);
       if Map <> nil then
       begin
         for Side := Low(Side) to High(Side) do
@@ -265,7 +265,7 @@ begin
     Y := (Y - H2) / 100;
     if mbLeft in Event.Pressed then
     begin
-      NavigatorData[Navigator].Pos := Vector3Single(X, Y, 0);
+      NavigatorData[Navigator].Pos := Vector3(X, Y, 0);
       Window.Invalidate;
     end else
     if mbRight in Event.Pressed then
@@ -293,13 +293,13 @@ end;
 
 type
   THelper = class
-    procedure VertexColor(var Color: TVector3Single;
-      Shape: TShape; const VertexPosition: TVector3Single;
+    procedure VertexColor(var Color: TVector3;
+      Shape: TShape; const VertexPosition: TVector3;
       VertexIndex: Integer);
   end;
 
-procedure THelper.VertexColor(var Color: TVector3Single;
-  Shape: TShape; const VertexPosition: TVector3Single;
+procedure THelper.VertexColor(var Color: TVector3;
+  Shape: TShape; const VertexPosition: TVector3;
   VertexIndex: Integer);
 const
   { TODO: this is needed to make results with CalculateByEnvMaps
@@ -307,7 +307,7 @@ const
     correctly. }
   SHLightIntensity = 4*Pi;
 var
-  Position: TVector3Single;
+  Position: TVector3;
   CasterBeforeLocalLight: boolean;
 
   procedure CalculateByEnvMaps;
@@ -329,18 +329,18 @@ var
     Pixel: Cardinal;
     C: Single;
   begin
-    CasterMap := CasterOOF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorData[ntCaster].Pos), NavigatorData[ntCaster].Scale);
+    CasterMap := CasterOOF.EnvMapFromPoint(
+      Position - NavigatorData[ntCaster].Pos, NavigatorData[ntCaster].Scale);
 
     if not (CasterBeforeLocalLight or UseEnvLight) then
       CasterMap := nil;
 
-    LocalLightMap := LocalLightSRF.EnvMapFromPoint(VectorSubtract(
-      Position, NavigatorData[ntLocalLight].Pos), NavigatorData[ntLocalLight].Scale);
+    LocalLightMap := LocalLightSRF.EnvMapFromPoint(
+      Position - NavigatorData[ntLocalLight].Pos, NavigatorData[ntLocalLight].Scale);
 
     if LocalLightMap = nil then
       { Too far from light }
-      Color := Vector3Single(0, 0, 0) else
+      Color := Vector3(0, 0, 0) else
     begin
       { TODO: we completely ignore here BRDF and cos() for light equations! }
 
@@ -377,9 +377,9 @@ var
 
       { normalize B, apply LightIntensity }
       C := (B / 255) * LightIntensity / (6 * Sqr(CubeMapSize));
-      Color[0] *= C;
-      Color[1] *= C;
-      Color[2] *= C;
+      Color.Data[0] *= C;
+      Color.Data[1] *= C;
+      Color.Data[2] *= C;
     end;
   end;
 
@@ -390,8 +390,8 @@ var
     C: Single;
     LM: Cardinal;
   begin
-    CasterVector := CasterOOF.SHVectorFromPoint(VectorSubtract(
-      Position, NavigatorData[ntCaster].Pos),
+    CasterVector := CasterOOF.SHVectorFromPoint(
+      Position - NavigatorData[ntCaster].Pos,
       NavigatorData[ntCaster].Scale, UseInterpolation, SHCount);
 
     if not (CasterBeforeLocalLight or UseEnvLight) then
@@ -402,13 +402,13 @@ var
 
     if UseEnvLight then
       LightVector := @EnvLightSHVector else
-      LightVector := LocalLightSRF.SHVectorFromPoint(VectorSubtract(
-        Position, NavigatorData[ntLocalLight].Pos),
+      LightVector := LocalLightSRF.SHVectorFromPoint(
+        Position - NavigatorData[ntLocalLight].Pos,
         NavigatorData[ntLocalLight].Scale, UseInterpolation, SHCount);
 
     if LightVector = nil then
       { Too far from light }
-      Color := Vector3Single(0, 0, 0) else
+      Color := Vector3(0, 0, 0) else
     begin
       B := 0;
 
@@ -429,14 +429,14 @@ var
 
       { apply LightIntensity }
       C := B * LightIntensity * SHLightIntensity;
-      Color[0] *= C;
-      Color[1] *= C;
-      Color[2] *= C;
+      Color.Data[0] *= C;
+      Color.Data[1] *= C;
+      Color.Data[2] *= C;
     end;
   end;
 
 begin
-  Position := MatrixMultPoint(Shape.State.Transform, VertexPosition);
+  Position := Shape.State.Transform.MultPoint(VertexPosition);
 
   CasterBeforeLocalLight :=
     PointsDistanceSqr(Position, NavigatorData[ntCaster].Pos) <
@@ -617,7 +617,7 @@ begin
     { calculate starting local light position }
     if BoxSum.IsEmpty then
     begin
-      NavigatorData[ntLocalLight].Pos := Vector3Single(0, 0, 1);
+      NavigatorData[ntLocalLight].Pos := Vector3(0, 0, 1);
     end else
     begin
       NavigatorData[ntLocalLight].Pos := BoxSum.Center;
@@ -627,7 +627,7 @@ begin
     { calculate starting sf explorer position }
     if BoxSum.IsEmpty then
     begin
-      NavigatorData[ntSFExplorer].Pos := Vector3Single(0, 0, 1);
+      NavigatorData[ntSFExplorer].Pos := Vector3(0, 0, 1);
     end else
     begin
       NavigatorData[ntSFExplorer].Pos := BoxSum.Center;
@@ -637,7 +637,7 @@ begin
     { calculate starting env light position }
     if BoxSum.IsEmpty then
     begin
-      NavigatorData[ntEnvLight].Pos := Vector3Single(0, 0, 1);
+      NavigatorData[ntEnvLight].Pos := Vector3(0, 0, 1);
     end else
     begin
       NavigatorData[ntEnvLight].Pos := BoxSum.Center;

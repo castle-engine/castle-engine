@@ -33,7 +33,7 @@
       const BonesAnimated: TBonesAnimated; const SlotsAnimated: TSlotsAnimated);
   end;
 
-  TAnimationList = class(specialize TFPGObjectList<TAnimation>)
+  TAnimationList = class(specialize TObjectList<TAnimation>)
     procedure Parse(const Json: TJSONObject;
       const Bones: TBoneList; const BonesAnimated: TBonesAnimated;
       const Slots: TSlotList; const SlotsAnimated: TSlotsAnimated);

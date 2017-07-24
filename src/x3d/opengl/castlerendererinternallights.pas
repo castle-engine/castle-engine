@@ -127,9 +127,9 @@ procedure glLightFromVRMLLight(glLightNum: Integer; const Light: TLightInstance)
 
 var
   SetNoAttenuation: boolean;
-  Attenuat: TVector3Single;
-  Color3, AmbientColor3: TVector3Single;
-  Color4, AmbientColor4: TVector4Single;
+  Attenuat: TVector3;
+  Color3, AmbientColor3: TVector3;
+  Color4, AmbientColor4: TVector4;
 begin
   glLightNum += GL_LIGHT0;
 
@@ -158,7 +158,7 @@ begin
     if (Light.Node is TAbstractPositionalLightNode) then
     begin
       Attenuat := TAbstractPositionalLightNode(Light.Node).FdAttenuation.Value;
-      if not ZeroVector(Attenuat) then
+      if not Attenuat.IsZero then
       begin
         SetNoAttenuation := false;
         glLightf(glLightNum, GL_CONSTANT_ATTENUATION, Attenuat[0]);
@@ -179,7 +179,7 @@ begin
 
   { calculate Color4 = light color * light intensity }
   Color3 := Light.Node.FdColor.Value * Light.Node.FdIntensity.Value;
-  Color4 := Vector4Single(Color3, 1);
+  Color4 := Vector4(Color3, 1);
 
   { calculate AmbientColor4 = light color * light ambient intensity }
   if Light.Node.FdAmbientIntensity.Value < 0 then
@@ -187,7 +187,7 @@ begin
   begin
     AmbientColor3 := Light.Node.FdColor.Value *
       Light.Node.FdAmbientIntensity.Value;
-    AmbientColor4 := Vector4Single(AmbientColor3, 1);
+    AmbientColor4 := Vector4(AmbientColor3, 1);
   end;
 
   glLightv(glLightNum, GL_AMBIENT, AmbientColor4);
@@ -228,7 +228,7 @@ begin
       ( (LightsDone[Index] <> nil) and
         (Light <> nil) and
         (LightsDone[Index]^.Node = Light^.Node) and
-        (MatricesPerfectlyEqual(
+        (TMatrix4.PerfectlyEquals(
           LightsDone[Index]^.Transform, Light^.Transform)) )
     ));
   if Result then

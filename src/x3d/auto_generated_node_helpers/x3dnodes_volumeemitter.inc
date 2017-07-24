@@ -27,12 +27,12 @@
 {$ifdef read_interface}
 
   private
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
+    function GetDirection: TVector3;
+    procedure SetDirection(const Value: TVector3);
     function GetInternal: boolean;
     procedure SetInternal(const Value: boolean);
   public
-    property Direction: TVector3Single read GetDirection write SetDirection;
+    property Direction: TVector3 read GetDirection write SetDirection;
     property Internal: boolean read GetInternal write SetInternal;
 
 {$endif read_interface}
@@ -41,12 +41,12 @@
 
 { TVolumeEmitterNode ----------------------------------------------- }
 
-function TVolumeEmitterNode.GetDirection: TVector3Single;
+function TVolumeEmitterNode.GetDirection: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TVolumeEmitterNode.SetDirection(const Value: TVector3Single);
+procedure TVolumeEmitterNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;

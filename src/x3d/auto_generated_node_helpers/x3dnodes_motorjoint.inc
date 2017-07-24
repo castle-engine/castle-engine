@@ -41,12 +41,12 @@
     procedure SetAxis3Torque(const Value: Single);
     function GetEnabledAxes: Integer;
     procedure SetEnabledAxes(const Value: Integer);
-    function GetMotor1Axis: TVector3Single;
-    procedure SetMotor1Axis(const Value: TVector3Single);
-    function GetMotor2Axis: TVector3Single;
-    procedure SetMotor2Axis(const Value: TVector3Single);
-    function GetMotor3Axis: TVector3Single;
-    procedure SetMotor3Axis(const Value: TVector3Single);
+    function GetMotor1Axis: TVector3;
+    procedure SetMotor1Axis(const Value: TVector3);
+    function GetMotor2Axis: TVector3;
+    procedure SetMotor2Axis(const Value: TVector3);
+    function GetMotor3Axis: TVector3;
+    procedure SetMotor3Axis(const Value: TVector3);
     function GetStop1Bounce: Single;
     procedure SetStop1Bounce(const Value: Single);
     function GetStop1ErrorCorrection: Single;
@@ -69,9 +69,9 @@
     property Axis3Angle: Single read GetAxis3Angle write SetAxis3Angle;
     property Axis3Torque: Single read GetAxis3Torque write SetAxis3Torque;
     property EnabledAxes: Integer read GetEnabledAxes write SetEnabledAxes;
-    property Motor1Axis: TVector3Single read GetMotor1Axis write SetMotor1Axis;
-    property Motor2Axis: TVector3Single read GetMotor2Axis write SetMotor2Axis;
-    property Motor3Axis: TVector3Single read GetMotor3Axis write SetMotor3Axis;
+    property Motor1Axis: TVector3 read GetMotor1Axis write SetMotor1Axis;
+    property Motor2Axis: TVector3 read GetMotor2Axis write SetMotor2Axis;
+    property Motor3Axis: TVector3 read GetMotor3Axis write SetMotor3Axis;
     property Stop1Bounce: Single read GetStop1Bounce write SetStop1Bounce;
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
@@ -156,32 +156,32 @@ begin
   FdEnabledAxes.Send(Value);
 end;
 
-function TMotorJointNode.GetMotor1Axis: TVector3Single;
+function TMotorJointNode.GetMotor1Axis: TVector3;
 begin
   Result := FdMotor1Axis.Value;
 end;
 
-procedure TMotorJointNode.SetMotor1Axis(const Value: TVector3Single);
+procedure TMotorJointNode.SetMotor1Axis(const Value: TVector3);
 begin
   FdMotor1Axis.Send(Value);
 end;
 
-function TMotorJointNode.GetMotor2Axis: TVector3Single;
+function TMotorJointNode.GetMotor2Axis: TVector3;
 begin
   Result := FdMotor2Axis.Value;
 end;
 
-procedure TMotorJointNode.SetMotor2Axis(const Value: TVector3Single);
+procedure TMotorJointNode.SetMotor2Axis(const Value: TVector3);
 begin
   FdMotor2Axis.Send(Value);
 end;
 
-function TMotorJointNode.GetMotor3Axis: TVector3Single;
+function TMotorJointNode.GetMotor3Axis: TVector3;
 begin
   Result := FdMotor3Axis.Value;
 end;
 
-procedure TMotorJointNode.SetMotor3Axis(const Value: TVector3Single);
+procedure TMotorJointNode.SetMotor3Axis(const Value: TVector3);
 begin
   FdMotor3Axis.Send(Value);
 end;

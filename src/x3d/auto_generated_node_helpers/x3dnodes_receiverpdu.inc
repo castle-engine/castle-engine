@@ -63,10 +63,10 @@
     procedure SetWhichGeometry(const Value: Integer);
     function GetWriteInterval: Single;
     procedure SetWriteInterval(const Value: Single);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
     property Address: string read GetAddress write SetAddress;
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
@@ -86,8 +86,8 @@
     property TransmitterSiteID: Integer read GetTransmitterSiteID write SetTransmitterSiteID;
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -275,22 +275,22 @@ begin
   FdWriteInterval.Send(Value);
 end;
 
-function TReceiverPduNode.GetBboxCenter: TVector3Single;
+function TReceiverPduNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TReceiverPduNode.SetBboxCenter(const Value: TVector3Single);
+procedure TReceiverPduNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TReceiverPduNode.GetBboxSize: TVector3Single;
+function TReceiverPduNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TReceiverPduNode.SetBboxSize(const Value: TVector3Single);
+procedure TReceiverPduNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

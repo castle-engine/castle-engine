@@ -27,12 +27,12 @@
 {$ifdef read_interface}
 
   private
-    function GetSize: TVector3Single;
-    procedure SetSize(const Value: TVector3Single);
+    function GetSize: TVector3;
+    procedure SetSize(const Value: TVector3);
     function GetManifold: boolean;
     procedure SetManifold(const Value: boolean);
   public
-    property Size: TVector3Single read GetSize write SetSize;
+    property Size: TVector3 read GetSize write SetSize;
     property Manifold: boolean read GetManifold write SetManifold;
 
 {$endif read_interface}
@@ -41,12 +41,12 @@
 
 { TTeapotNode ----------------------------------------------- }
 
-function TTeapotNode.GetSize: TVector3Single;
+function TTeapotNode.GetSize: TVector3;
 begin
   Result := FdSize.Value;
 end;
 
-procedure TTeapotNode.SetSize(const Value: TVector3Single);
+procedure TTeapotNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
 end;

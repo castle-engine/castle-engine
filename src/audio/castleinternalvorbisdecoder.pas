@@ -5,7 +5,7 @@ unit CastleInternalVorbisDecoder;
 
 interface
 
-uses SysUtils, Classes, CastleOpenAL;
+uses SysUtils, Classes, CastleInternalOpenAL;
 
 type
   EVorbisLoadError = class(Exception);

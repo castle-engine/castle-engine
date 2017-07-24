@@ -22,7 +22,7 @@ interface
 uses CastleVectors, X3DNodes, CastleImages, X3DTriangles, CastleColors, CastleTriangles;
 
 type
-  TQuad3Single = packed array[0..3]of TVector3Single;
+  TQuad3Single = packed array[0..3]of TVector3;
 
 { Render one triangle of the image, storing there colors
   that would appear on a given surface in the 3D space.
@@ -64,8 +64,8 @@ type
 procedure TriangleLightMapVar(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
-  const TrianglePos: TTriangle3Single;
-  const RenderDir: TVector3Single);
+  const TrianglePos: TTriangle3;
+  const RenderDir: TVector3);
 
 { Render the light map on a quad. Everything works exactly like with
   TriangleLightMapVar, except that now we render for the quad,
@@ -80,35 +80,35 @@ procedure TriangleLightMapVar(const Image: TCastleImage;
 procedure QuadLightMapVar(const Image: TCastleImage;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
-  const RenderDir: TVector3Single;
+  const RenderDir: TVector3;
   const ProgresTitle: string);
 
 implementation
 
 uses CastleUtils, CastleProgress;
 
-function PointLightMap(const Point, PointPlaneNormal: TVector3Single;
+function PointLightMap(const Point, PointPlaneNormal: TVector3;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
-  const RenderDir: TVector3Single): TVector3Single;
+  const RenderDir: TVector3): TVector3;
 var i: Integer;
 begin
- result := ZeroVector3Single;
+ Result := TVector3.Zero;
  for i := 0 to Lights.Count-1 do
   if Octree.LightNotBlocked(Lights.List^[i], Point, PointPlaneNormal,
     RenderDir, nil, true) then
-   VectorAddVar(result, Lights.List^[i].ContributionCameraIndependent(
-     Point, PointPlaneNormal, { TODO } WhiteRGB, { TODO } WhiteRGB));
+   Result := Result + Lights.List^[i].ContributionCameraIndependent(
+     Point, PointPlaneNormal, { TODO } WhiteRGB, { TODO } WhiteRGB);
 end;
 
 procedure TriangleLightMapVar(const Image: TCastleImage;
   LeftDownImagePart: boolean;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
-  const TrianglePos: TTriangle3Single;
-  const RenderDir: TVector3Single);
+  const TrianglePos: TTriangle3;
+  const RenderDir: TVector3);
 
-var RayNormVector: TVector3Single;
+var RayNormVector: TVector3;
 
-  function Color(const Tri10Pos, Tri12Pos: Single): TVector3Single;
+  function Color(const Tri10Pos, Tri12Pos: Single): TVector3;
   { Gdyby TrianglePos[1] bylo srodkiem ukladu wspolrzednych o ramionach
       TrianglePos[0]---TrianglePos[1] i
       TrianglePos[0]---TrianglePos[2]
@@ -117,17 +117,17 @@ var RayNormVector: TVector3Single;
     W ten sposob argumenty podawane do tej funkcji juz nie mowia nic
     o Image - one tylko podaja pozycje w swiecie 3d w ktorym jest
     TrianglePos i Lights. }
-  var RayOrigin: TVector3Single;
+  var RayOrigin: TVector3;
   begin
-   RayOrigin := TrianglePos[1];
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(TrianglePos[0], TrianglePos[1]), Tri10Pos));
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(TrianglePos[2], TrianglePos[1]), Tri12Pos));
-   result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
+    RayOrigin := TrianglePos.Data[1];
+    RayOrigin := RayOrigin + (TrianglePos.Data[0] - TrianglePos.Data[1]) * Tri10Pos;
+    RayOrigin := RayOrigin + (TrianglePos.Data[2] - TrianglePos.Data[1]) * Tri12Pos;
+    Result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
   function PrzekatnaXFromY(y: Integer): Integer;
   begin
-   result := Clamped(Round((Image.Width-1) * (1-y/(Image.Height-1))),
+   Result := Clamped(Round((Image.Width-1) * (1-y/(Image.Height-1))),
      0, Image.Width-1);
   end;
 
@@ -138,7 +138,7 @@ var
 begin
  { RayNormVector bedzie caly czas taki sam, bedzie to wektor normalny
    TrianglePos w kierunku RenderDir }
- RayNormVector := PlaneDirInDirection(TriangleNormPlane(TrianglePos), RenderDir);
+ RayNormVector := PlaneDirInDirection(TrianglePos.NormalizedPlane, RenderDir);
 
  { dzieki temu ze zawsze TrianglePos[1] jest mapowane na rog obrazka
    ktory jest caly pokryty tekstura (tzn. wycinek tekstury na obrazku
@@ -168,30 +168,30 @@ begin
  end;
 end;
 
-function QuadNormPlane(Quad: TQuad3Single): TVector4Single;
+function QuadNormPlane(Quad: TQuad3Single): TVector4;
 { w naszym module Quad zawsze powinien byc planarny i jego oba trojkaty
   musza byc niezdegenerowane. Wiec mozemy po prostu policzyc normal
   quada jako normal jego dowolnego trojkata. }
-var Tri: TTriangle3Single absolute Quad;
+var Tri: TTriangle3 absolute Quad;
 begin
- result := TriangleNormPlane(Tri);
+ Result := Tri.NormalizedPlane;
 end;
 
 procedure QuadLightMapVar(const Image: TCastleImage;
   Lights: TLightInstancesList; Octree: TBaseTrianglesOctree;
   const Quad: TQuad3Single;
-  const RenderDir: TVector3Single;
+  const RenderDir: TVector3;
   const ProgresTitle: string);
 
-var RayNormVector: TVector3Single;
+var RayNormVector: TVector3;
 
-  function Color(const Quad01Pos, Quad03Pos: Single): TVector3Single;
-  var RayOrigin: TVector3Single;
+  function Color(const Quad01Pos, Quad03Pos: Single): TVector3;
+  var RayOrigin: TVector3;
   begin
    RayOrigin := Quad[0];
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(Quad[1], Quad[0]), Quad01Pos));
-   VectorAddVar(RayOrigin, VectorScale( VectorSubtract(Quad[3], Quad[0]), Quad03Pos));
-   result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
+   RayOrigin := RayOrigin + (Quad[1] - Quad[0]) * Quad01Pos;
+   RayOrigin := RayOrigin + (Quad[3] - Quad[0]) * Quad03Pos;
+   Result := PointLightMap(RayOrigin, RayNormVector, Lights, Octree, RenderDir);
   end;
 
   procedure DoPixel(x, y: Integer);
@@ -207,8 +207,8 @@ var RayNormVector: TVector3Single;
 var x, y: Integer;
 begin
 { prosto:
-    TriangleLightMapVar(Image, true , Lights, Octree, Triangle3Single(Quad[3], Quad[0], Quad[1]), RenderDir);
-    TriangleLightMapVar(Image, false, Lights, Octree, Triangle3Single(Quad[1], Quad[2], Quad[3]), RenderDir);
+    TriangleLightMapVar(Image, true , Lights, Octree, Triangle3(Quad[3], Quad[0], Quad[1]), RenderDir);
+    TriangleLightMapVar(Image, false, Lights, Octree, Triangle3(Quad[1], Quad[2], Quad[3]), RenderDir);
   Ale nie robimy tak zeby zrobic tutaj progres. (no i zyskujemy w ten
   sposob odrobinke szybkosci).
 }

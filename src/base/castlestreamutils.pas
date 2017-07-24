@@ -24,7 +24,7 @@ uses
   Classes, CastleVectors;
 
 type
-  { Helper class for streams that allows to correct read and write either little
+  { Helper class for streams that allows to correctly read and write either little
     or big endian values. }
   TStreamHelper = class helper for TStream
   public
@@ -40,14 +40,9 @@ type
     procedure ReadLE(out Value: Int64); overload;
     procedure ReadLE(out Value: Single); overload;
     procedure ReadLE(out Value: Double); overload;
-    procedure ReadLE(out Value: TVector2Single); overload;
-    procedure ReadLE(out Value: TVector3Single); overload;
-    procedure ReadLE(out Value: TVector4Single); overload;
-    {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-    procedure ReadLE(out Value: TVector2Double); overload;
-    procedure ReadLE(out Value: TVector3Double); overload;
-    procedure ReadLE(out Value: TVector4Double); overload;
-    {$endif CASTLE_HAS_DOUBLE_PRECISION}
+    procedure ReadLE(out Value: TVector2); overload;
+    procedure ReadLE(out Value: TVector3); overload;
+    procedure ReadLE(out Value: TVector4); overload;
     { @groupEnd }
 
     { Reads a big endian value from the stream and converts it to native
@@ -146,45 +141,23 @@ begin
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: TVector2Single);
+procedure TStreamHelper.ReadLE(out Value: TVector2);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: TVector3Single);
+procedure TStreamHelper.ReadLE(out Value: TVector3);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
 end;
 
-procedure TStreamHelper.ReadLE(out Value: TVector4Single);
+procedure TStreamHelper.ReadLE(out Value: TVector4);
 begin
   ReadBuffer(Value, SizeOf(Value));
   Value := LEtoN(Value);
 end;
-
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-
-procedure TStreamHelper.ReadLE(out Value: TVector2Double);
-begin
-  ReadBuffer(Value, SizeOf(Value));
-  Value := LEtoN(Value);
-end;
-
-procedure TStreamHelper.ReadLE(out Value: TVector3Double);
-begin
-  ReadBuffer(Value, SizeOf(Value));
-  Value := LEtoN(Value);
-end;
-
-procedure TStreamHelper.ReadLE(out Value: TVector4Double);
-begin
-  ReadBuffer(Value, SizeOf(Value));
-  Value := LEtoN(Value);
-end;
-
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
 
 procedure TStreamHelper.ReadBE(out Value: Word);
 begin

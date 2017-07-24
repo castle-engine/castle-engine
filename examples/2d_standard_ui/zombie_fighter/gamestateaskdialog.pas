@@ -60,7 +60,7 @@ begin
 
   Width := 400;
   Height := 500;
-  Color := HexToColor('5f3939'); // equivalent: Vector4Single(95/255, 57/255, 57/255, 1.0);
+  Color := HexToColor('5f3939'); // equivalent: Vector4(95/255, 57/255, 57/255, 1.0);
 
   InsideRect := TCastleRectangleControl.Create(Self);
   InsideRect.Width := CalculatedWidth - 10;
@@ -136,7 +136,7 @@ begin
   InterceptInput := true;
 
   TransparentBackground := TCastleRectangleControl.Create(FreeAtStop);
-  TransparentBackground.Color := Vector4Single(0.1, 0.1, 0.1, 0.5);
+  TransparentBackground.Color := Vector4(0.1, 0.1, 0.1, 0.5);
   TransparentBackground.FullSize := true;
   InsertFront(TransparentBackground);
 

@@ -21,15 +21,17 @@
     Name: string;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 
-  TSkinList = class(specialize TFPGObjectList<TSkin>)
+  TSkinList = class(specialize TObjectList<TSkin>)
     { Find by name.
       @raises ESpineReadError If does not exist and NilOnError = @false. }
     function Find(const Name: string; const NilOnError: boolean): TSkin;
-    procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList);
+    procedure Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader);
   end;
 {$endif}
@@ -50,7 +52,8 @@ begin
   inherited;
 end;
 
-procedure TSkin.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TSkin.Parse(const Json: TJSONObject; const Bones: TBoneList;
+  const DragonBonesFormat: boolean);
 
   procedure ParseSlotMap(const Json: TJSONObject; const SlotName: string);
   var
@@ -70,6 +73,8 @@ procedure TSkin.Parse(const Json: TJSONObject; const Bones: TBoneList);
 var
   I: Integer;
 begin
+  { TODO: this does not read skin in Dragon Bones version now. }
+
   for I := 0 to Json.Count - 1 do
     if Json.Items[I] is TJSONObject then
       ParseSlotMap(TJSONObject(Json.Items[I]), Json.Names[I]);
@@ -100,27 +105,62 @@ begin
     raise ESpineReadError.CreateFmt('Skin name "%s" not found', [Name]);
 end;
 
-procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList);
-var
-  I: Integer;
-  Skin: TSkin;
-  ChildObj: TJSONObject;
-begin
-  ChildObj := Json.Find('skins', jtObject) as TJSONObject;
-  if ChildObj = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "skins" object');
+procedure TSkinList.Parse(const Json: TJSONObject; var DefaultSkin: TSkin; const Bones: TBoneList;
+  const DragonBonesFormat: boolean);
 
-  for I := 0 to ChildObj.Count - 1 do
-    if ChildObj.Items[I] is TJSONObject then
+  procedure ParseSpine;
+  var
+    I: Integer;
+    Skin: TSkin;
+    SkinObject, ChildObj: TJSONObject;
+  begin
+    ChildObj := Json.Find('skins', jtObject) as TJSONObject;
+    if ChildObj = nil then
+      raise ESpineReadError.Create('Spine JSON skeleton: Missing "skins" object');
+
+    for I := 0 to ChildObj.Count - 1 do
+      if ChildObj.Items[I] is TJSONObject then
+      begin
+        SkinObject := TJSONObject(ChildObj.Items[I]);
+        Skin := TSkin.Create;
+        Add(Skin);
+        Skin.Name := ChildObj.Names[I];
+        Skin.Parse(SkinObject, Bones, DragonBonesFormat);
+
+        if Skin.Name = 'default' then
+          DefaultSkin := Skin;
+      end;
+  end;
+
+  procedure ParseDragonBones;
+  var
+    I: Integer;
+    Skin: TSkin;
+    SkinObject: TJSONObject;
+    ChildArray: TJSONArray;
+  begin
+    ChildArray := Json.Find('skin', jtArray) as TJSONArray;
+    if ChildArray = nil then
+      raise ESpineReadError.Create('Dragon Bones JSON skeleton: Missing "skin" array');
+
+    for I := 0 to ChildArray.Count - 1 do
     begin
+      SkinObject := TJSONObject(ChildArray[I]);
       Skin := TSkin.Create;
       Add(Skin);
-      Skin.Name := ChildObj.Names[I];
-      Skin.Parse(TJSONObject(ChildObj.Items[I]), Bones);
+      Skin.Name := SkinObject.Get('name', '');
+      Skin.Parse(SkinObject, Bones, DragonBonesFormat);
 
-      if Skin.Name = 'default' then
+      if DefaultSkin = nil then // just use 1st skin as default for now
         DefaultSkin := Skin;
     end;
+  end;
+
+begin
+  if DragonBonesFormat then
+    ParseDragonBones
+  else
+    ParseSpine;
 
   if DefaultSkin = nil then
     raise ESpineReadError.Create('Spine JSON skeleton: Missing "default" skin definition');

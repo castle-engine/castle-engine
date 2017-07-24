@@ -44,106 +44,8 @@ unit CastleClassUtils;
 
 interface
 
-uses Classes, SysUtils, CastleUtils, CastleStringUtils, Contnrs,
-  CastleGenericLists, CastleVectors;
-
-{ ---------------------------------------------------------------------------- }
-{ @section(Text reading) }
-
-type
-  { Common class for reading or writing a stream like a text file. }
-  TTextReaderWriter = class
-  private
-    FOwnsStream: boolean;
-    FStream: TStream;
-  public
-    { Open a stream. If AOwnsStream then in destructor we will free
-      given AStream object. }
-    constructor Create(AStream: TStream; AOwnsStream: boolean); overload;
-    destructor Destroy; override;
-  end;
-
-  { Read any stream like a text file. You can read an arbitrary TStream
-    instance, or you can read an URL. Reading from URL supports all kinds
-    of URL protocols supportted by @link(Download),
-    including @code(file), @code(http) and Android @code(assets)
-    (see http://castle-engine.sourceforge.net/tutorial_network.php ).
-
-    Includes comfortable @link(Readln) routine to read line by line
-    (lines may be terminated in any OS convention).
-    Includes comfortable @link(Read) to read next non-whitespace
-    characters, @link(ReadInteger) to read next integer and such.
-
-    Do not use the underlying stream once you started reading it with
-    this class. We will move the position within this stream ourselves. }
-  TTextReader = class(TTextReaderWriter)
-  private
-    ReadBuf: string;
-    { Try to read more data from underlying stream and add it to ReadBuf.
-      Returns if we succeded, @false means that the stream ends.
-      When it returns @true, you can be sure that Length(ReadBuf) increased. }
-    function IncreaseReadBuf: boolean;
-  public
-    { Download and open a file. }
-    constructor Create(const URL: string); overload;
-
-    { Read next line from Stream. Returned string does not contain
-      any end-of-line characters. }
-    function Readln: string;
-
-    { Read the next string of non-whitespace characters.
-      This skips any whitespace (including newlines) we currently see,
-      then reads all non-whitespace characters as far as it can.
-      It does not consume any whitespace characters after the string.
-
-      Returns empty string if and only if the stream ended.
-      Otherwise, returns the read non-whitespace characters. }
-    function Read: string;
-
-    { Read the next Integer from stream. Reads next string of non-whitespace
-      characters, like @link(Read), and then converts it to Integer.
-
-       @raises(EConvertError If the next non-whitespace string
-         cannot be converted to Integer. This includes situations
-         when stream ended (@link(Read) would return empty string in this
-         case).)  }
-    function ReadInteger: Integer;
-
-    { Read the next Single value from stream.
-      Reads next string of non-whitespace
-      characters, like @link(Read), and then converts it to Single.
-
-       @raises(EConvertError If the next non-whitespace string
-         cannot be converted to Single. This includes situations
-         when stream ended (@link(Read) would return empty string in this
-         case).)  }
-    function ReadSingle: Single;
-
-    { Read the next vector from a stream, simply reading 3 Single values
-      in sequence.
-
-       @raises(EConvertError If one of the components cannot be converted
-         to Single, or when stream ended prematurely.) }
-    function ReadVector3Single: TVector3Single;
-
-    function Eof: boolean;
-  end;
-
-  { Write to a stream like to a text file.
-
-    You can write to an arbitrary TStream instance,
-    or you can write to an URL. Writing to an URL supports all
-    URL protocols supportted by @link(URLSaveStream), which for now
-    doesn't include much: only @code(file) protocol. But it will produce
-    a nice exception message in case of unsupprted URL protocol. }
-  TTextWriter = class(TTextReaderWriter)
-  public
-    constructor Create(const URL: string); overload;
-    procedure Write(const S: string);
-    procedure Write(const S: string; const Args: array of const);
-    procedure Writeln(const S: string = '');
-    procedure Writeln(const S: string; const Args: array of const);
-  end;
+uses Classes, SysUtils, Contnrs, Generics.Collections,
+  CastleUtils, CastleStringUtils, CastleVectors;
 
 { ---------------------------------------------------------------------------- }
 { @section(TStrings utilities) }
@@ -255,24 +157,6 @@ function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars;
 function StreamReadUpto_EOS(Stream: TStream; const endingChars: TSetOfChars): string; overload;
 { @groupEnd }
 
-{ Open a proper stream to read a file, fast (with buffering) and with seeking.
-  This gives you a stream most comfortable for reading (buffering means
-  that you can read small, comfortable pieces of it; seeking means
-  you can jump freely to various file positions, back and forward).
-
-  On different OSes or even compilers this may require a little different
-  stream, so it's safest to just use this function. For example,
-  traditional Classes.TFileStream doesn't do buffering. Although under Linux,
-  the buffering of file handles is done at kernel level (so everything
-  works fast), on Windows the slowdown is noticeable.
-  This function will always create
-  proper stream descendant, eventually wrapping some standard stream
-  in a buffered stream with full seeking capability.
-
-  @deprecated Instead of this, use CastleDownload.Download with
-  LocalFileInMemory. }
-function CreateReadFileStream(const URL: string): TStream; deprecated;
-
 { Read a growing stream, and append it to another destination stream.
   A "growing stream" is a stream that we can only read
   sequentially, no seeks allowed, and size is unknown until we hit the end.
@@ -303,8 +187,6 @@ function StreamReadString(Stream: TStream): string;
   Changes Stream.Position to 0 and then reads Stream.Size bytes,
   so be sure that Stream.Size is usable. }
 function StreamToString(Stream: TStream): string;
-
-procedure StreamSaveToFile(Stream: TStream; const URL: string);
 
 { Set contents of TMemoryStream to given string.
   If Rewind then the position is reset to the beginning,
@@ -500,73 +382,94 @@ procedure CreateIfNeeded(var Component: TComponent;
   Initialized and finalized in this unit.) }
 
 var
-  { Streams that wrap standard input/output/error of the program.
+  { Streams to read/write a standard input/output/error of the program.
 
-    Note that you can't simultaneously read from StdInStream
-    and StdInReader (reasons: see comments at TTextReader class,
-    TTextReader has to internally manage the stream underneath).
+    Tip: to read the standard input as a text file,
+    you can use @link(TTextReader) and @link(StdInStream):
 
-    Notes for Windows:
+    @longCode(#
+    var
+      StdInReader: TTextReader;
+    begin
+      StdInReader := TTextReader.Create(StdInStream, false);
+      try
+        while not StdInReader.Eof do
+          DoSomethingWithInputLine(StdInReader.Readln);
+      finally FreeAndNil(StdinReader) end;
+    end;
+    #)
+
+    The advantage of using @link(TTextReader) above,
+    compared to using the standard Pascal @code(Readln) procedure
+    to read from the standard Pascal @code(Input) text file,
+    is that you can easily modify the above code to read from @italic(any)
+    stream. So, instead of the standard input, you can easily read
+    some stream that decompresses gzip data, or downloads data from
+    the Internet... Actually, the overloaded constructor
+    @link(TTextReader.Create) can accept an URL, like a @code(file://...)
+    or @code(http://...), and will internally use the stream returned
+    by @link(Download) function for this URL.
+
+    Notes @bold(only for Windows GUI applications):
 
     @orderedList(
       @item(
-        Under Windows when program is a GUI program then some (or all)
-        of the variables below may be nil.)
+        Some (or all) of the variables below may be @nil in a Windows GUI
+        application.
+
+        If you want to be on the safe side, then don't use these streams
+        in the GUI application (when IsConsole = false on Windows).
+        But (with some caveats, see below) you can sometimes use them,
+        if they are not-nil.
+      )
 
       @item(
-        But they don't @italic(have) to be nil. User can run a GUI
-        program and explicitly redirect it's standard stream, e.g.
-        @code(cat something | my_program) for stdin or
-        @code(my_program > output.txt) for stdout. Actually
+        You @italic(can) have some of the standard streams available,
+        even in a GUI application.
+
+        User can run a GUI program and explicitly redirect it's standard stream,
+        e.g.  @code(cat something | my_program.exe) for stdin or
+        @code(my_program.exe > output.txt) for stdout. Actually
         some shells, like Cygwin's bash, always redirect some streams
-        "under the mask". And then you have
-        some of std* streams available.
+        under the hood.
 
-        Actually FPC (and Delphi?)
-        RTL don't provide in such cases valid Input/Output/ErrOutput
-        variables (because IsConsole = false). But my streams below
-        try to obtain standard stream handles under Windows
-        @italic(regardless of IsConsole value). So even a GUI program
-        is able to write to stdin/stdout/stderr using these streams.)
+        Note that the FPC (and Delphi?) RTL may not provide the standard
+        Input/Output/ErrOutput in this case (because IsConsole = false),
+        but we try a little harder, regardless of the IsConsole value.
+      )
 
       @item(
-        Unfortunately, in a GUI program under Windows you @italic(cannot)
+        Caveat: in a GUI program under Windows you @italic(cannot)
         depend on the fact that "StdOutStream <> nil means that stdout
         is actually available (because user redirected stdout etc.)".
-        Reason? Windows failure, as usual:
+        A first write to the StdOutStream may cause EWriteError,
+        so watch out for this.
 
         This is tested on Windows 2000 Prof, with FPC 2.0.0 and 2.1.1 (revision 4317).
         When no stdout is available, StdOutStream should be nil, because
         GetStdHandle(STD_OUTPUT_HANDLE) should return 0. However,
         GetStdHandle(STD_OUTPUT_HANDLE) doesn't return 0... It returns
-        some stupid handle (no, not INVALID_HANDLE_VALUE either)
+        some invalid handle (no, not INVALID_HANDLE_VALUE either)
         that you can't write into (trying to write returns in ERROR_INVALID_HANDLE
         WinAPI error). It seems that there is no way for me to check
         whether GetStdHandle(STD_OUTPUT_HANDLE) returned valid handle
         (e.g. because the program's stdout was redirected, so stdout is perfectly
         available) or whether it returned something unusable.
 
-        So if you write an $apptype GUI program and you want to try to use stdout
-        anyway, you can't just check for StdOutStream <> nil.
-        You should also check the first write to StdOutStream for EWriteError.
-
         Note that GetStdHandle(STD_INPUT_HANDLE) and GetStdHandle(STD_ERROR_HANDLE)
         work correctly, so it should be OK to check StdInStream <> nil or
         StdErrStream <> nil. The only problematic one is GetStdHandle(STD_OUTPUT_HANDLE).)
+      )
     )
-
-    @groupBegin
   }
-  StdInStream, StdOutStream, StdErrStream :TStream;
-  StdInReader: TTextReader;
-  { @groupEnd }
+  StdInStream, StdOutStream, StdErrStream: TStream;
 
 { ---------------------------------------------------------------------------- }
-{ @section(Stack, Queue) }
+{ @section(Containers) }
 
 type
-  { }
-  TCastleObjectStack = class(TObjectStack)
+  { Extended TObjectStack for Castle Game Engine. }
+  TCastleObjectStack = class(Contnrs.TObjectStack)
   private
     function GetCapacity: Integer;
     procedure SetCapacity(const Value: Integer);
@@ -574,18 +477,17 @@ type
     property Capacity: Integer read GetCapacity write SetCapacity;
   end;
 
-  TCastleObjectQueue = class(TObjectQueue)
+  { Extended TObjectQueue for Castle Game Engine. }
+  TCastleObjectQueue = class(Contnrs.TObjectQueue)
   private
     function GetCapacity: Integer;
     procedure SetCapacity(const Value: Integer);
   public
     property Capacity: Integer read GetCapacity write SetCapacity;
   end;
-
-{ ---------------------------------------------------------------------------- }
 
   { Extended TObjectList for Castle Game Engine. }
-  TCastleObjectList = class(TObjectList)
+  TCastleObjectList = class(Contnrs.TObjectList)
   public
     { Create and fill with the contents of given array.
 
@@ -596,10 +498,12 @@ type
       const AItems: array of TObject);
 
     { Add contents of given array to the list. }
-    procedure AddArray(const A: array of TObject);
+    procedure AddRange(const A: array of TObject);
+    procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
     { Add contents of other TObjectList instance to the list. }
-    procedure AddList(AList: TObjectList);
+    procedure AddRange(AList: Contnrs.TObjectList);
+    procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
     { Replace first found descendant of ReplaceClass with NewItem.
       In case no descendant of ReplaceClass was found,
@@ -648,7 +552,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class(specialize TGenericStructList<TNotifyEvent>)
+  TNotifyEventList = class(specialize TList<TNotifyEvent>)
   public
     { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -664,162 +568,7 @@ function DumpExceptionBackTraceToString: string;
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, CastleDownload, CastleURIUtils, StreamIO;
-
-{ TTextReaderWriter ---------------------------------------------------------- }
-
-constructor TTextReaderWriter.Create(AStream: TStream; AOwnsStream: boolean);
-begin
-  inherited Create;
-  FStream := Astream;
-  FOwnsStream := AOwnsStream;
-end;
-
-destructor TTextReaderWriter.Destroy;
-begin
-  if FOwnsStream then FStream.Free;
-  inherited;
-end;
-
-{ TTextReader ---------------------------------------------------------------- }
-
-constructor TTextReader.Create(const URL: string);
-begin
-  inherited Create(Download(URL), true);
-end;
-
-function TTextReader.IncreaseReadBuf: boolean;
-const
-  BufferIncrease = 100;
-var
-  ReadCnt: Integer;
-begin
-  SetLength(ReadBuf, Length(ReadBuf) + BufferIncrease);
-  ReadCnt := FStream.Read(ReadBuf[Length(ReadBuf) - BufferIncrease + 1], BufferIncrease);
-  SetLength(ReadBuf, Length(ReadBuf) - BufferIncrease + ReadCnt);
-  Result := ReadCnt <> 0;
-end;
-
-function TTextReader.Readln: string;
-var
-  I, DeleteCount: integer;
-begin
-  I := 1;
-
-  { Note that ReadBuf may contain data that we
-    already read from stream at some time but did not returned it to
-    user of this class
-    (because we realized we have read too much). }
-
-  repeat
-    if (I > Length(ReadBuf)) and not IncreaseReadBuf then
-    begin
-      Result := ReadBuf;
-      ReadBuf := '';
-      Exit;
-    end;
-
-    if ReadBuf[I] in [#10, #13] then
-    begin
-      Result := Copy(ReadBuf, 1, I - 1);
-      DeleteCount := I;
-
-      { If this is followed by 2nd newline character, we want to consume it.
-        To do this, we may have to increase ReadBuf. }
-      if ( (I < Length(ReadBuf)) or IncreaseReadBuf ) and
-         { check we have #13 followed by #10 or #10 followed by #13.
-           Be careful to *not* eat #10 followed by #10, as that would
-           make us silently consume empty lines in files with Unix line ending. }
-         ( ( (ReadBuf[I] = #10) and (ReadBuf[I + 1] = #13) ) or
-           ( (ReadBuf[I] = #13) and (ReadBuf[I + 1] = #10) ) ) then
-        Inc(DeleteCount);
-
-      Delete(ReadBuf, 1, DeleteCount);
-      Exit;
-    end;
-
-    Inc(I);
-  until false;
-end;
-
-function TTextReader.Read: string;
-var
-  Start, I: integer;
-begin
-  I := 1;
-
-  repeat
-    if (I > Length(ReadBuf)) and not IncreaseReadBuf then
-      Exit('');
-    if not (ReadBuf[I] in WhiteSpaces) then
-      Break;
-    Inc(I);
-  until false;
-
-  Start := I;
-
-  repeat
-    if (I > Length(ReadBuf)) and not IncreaseReadBuf then
-      Break;
-    if ReadBuf[I] in WhiteSpaces then
-      Break;
-    Inc(I);
-  until false;
-
-  Dec(I); { we know we're 1 position too far now }
-  Assert(I > 0);
-  Result := CopyPos(ReadBuf, Start, I);
-  Delete(ReadBuf, 1, I);
-end;
-
-function TTextReader.ReadInteger: Integer;
-begin
-  Result := StrToInt(Read);
-end;
-
-function TTextReader.ReadSingle: Single;
-begin
-  Result := StrToFloat(Read);
-end;
-
-function TTextReader.ReadVector3Single: TVector3Single;
-begin
-  Result[0] := ReadSingle;
-  Result[1] := ReadSingle;
-  Result[2] := ReadSingle;
-end;
-
-function TTextReader.Eof: boolean;
-begin
-  Result := (ReadBuf = '') and not IncreaseReadBuf;
-end;
-
-{ TTextWriter ---------------------------------------------------------------- }
-
-constructor TTextWriter.Create(const URL: string);
-begin
-  inherited Create(URLSaveStream(URL), true);
-end;
-
-procedure TTextWriter.Write(const S: string);
-begin
-  WriteStr(FStream, S);
-end;
-
-procedure TTextWriter.Writeln(const S: string);
-begin
-  WritelnStr(FStream, S);
-end;
-
-procedure TTextWriter.Write(const S: string; const Args: array of const);
-begin
-  WriteStr(FStream, Format(S, Args));
-end;
-
-procedure TTextWriter.Writeln(const S: string; const Args: array of const);
-begin
-  WritelnStr(FStream, Format(S, Args));
-end;
+  StrUtils, StreamIO;
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -1031,11 +780,6 @@ begin
   result := StreamReadUpto_EOS(Stream, endingChars, false);
 end;
 
-function CreateReadFileStream(const URL: string): TStream;
-begin
-  Result := Download(URL, [soForceMemoryStream]);
-end;
-
 procedure ReadGrowingStream(GrowingStream, DestStream: TStream;
   ResetDestStreamPosition: boolean);
 var
@@ -1091,37 +835,6 @@ begin
   SetLength(Result, Stream.Size);
   Stream.Position := 0;
   Stream.ReadBuffer(Pointer(Result)^, Length(Result));
-end;
-
-procedure StreamSaveToFile(Stream: TStream; const URL: string);
-const
-  BufSize = 100000;
-var
-  S : TStream;
-  Buffer: Pointer;
-  ReadCount: Integer;
-begin
-  { optimized implementation for TMemoryStream }
-  if Stream is TMemoryStream then
-  begin
-    TMemoryStream(Stream).SaveToFile(URIToFilenameSafe(URL));
-    Exit;
-  end;
-
-  Buffer := GetMem(BufSize);
-  try
-    S := URLSaveStream(URL);
-    try
-      repeat
-        ReadCount := Stream.Read(Buffer^, BufSize);
-        if ReadCount = 0 then
-          Break else
-          S.WriteBuffer(Buffer^, ReadCount);
-      until false;
-    finally
-      S.free;
-    end;
-  finally FreeMem(Buffer) end;
 end;
 
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
@@ -1477,7 +1190,7 @@ begin
     Component := ComponentClass.Create(Owner);
 end;
 
-{ init / fini --------------------------------------------------------------- }
+{ initialization / finalization ---------------------------------------------- }
 
 procedure InitStdStreams;
 
@@ -1520,9 +1233,6 @@ begin
   InitStdStream(StdInStream,  {$ifdef MSWINDOWS} STD_INPUT_HANDLE  {$else} StdInputHandle  {$endif});
   InitStdStream(StdOutStream, {$ifdef MSWINDOWS} STD_OUTPUT_HANDLE {$else} StdOutputHandle {$endif});
   InitStdStream(StdErrStream, {$ifdef MSWINDOWS} STD_ERROR_HANDLE  {$else} StdErrorHandle  {$endif});
-  if StdInStream <> nil then
-    StdInReader := TTextReader.Create(StdInStream, false) else
-    StdInReader := nil;
 end;
 
 procedure FiniStdStreams;
@@ -1530,7 +1240,6 @@ begin
   FreeAndNil(StdInStream);
   FreeAndNil(StdOutStream);
   FreeAndNil(StdErrStream);
-  FreeAndNil(StdInReader);
 end;
 
 { TCastleObjectStack ------------------------------------------------------------ }
@@ -1563,10 +1272,10 @@ constructor TCastleObjectList.CreateFromArray(const FreeObjects: boolean;
   const AItems: array of TObject);
 begin
   Create(FreeObjects);
-  AddArray(AItems);
+  AddRange(AItems);
 end;
 
-procedure TCastleObjectList.AddArray(const A: array of TObject);
+procedure TCastleObjectList.AddRange(const A: array of TObject);
 var
   I: Integer;
 begin
@@ -1575,7 +1284,12 @@ begin
     Add(A[I]);
 end;
 
-procedure TCastleObjectList.AddList(AList: TObjectList);
+procedure TCastleObjectList.AddArray(const A: array of TObject);
+begin
+  AddRange(A);
+end;
+
+procedure TCastleObjectList.AddRange(AList: Contnrs.TObjectList);
 var
   I: Integer;
 begin
@@ -1586,6 +1300,11 @@ begin
   for I := 0 to AList.Count - 1 do
     if AList[I] <> nil then
       Notify(AList[I], lnAdded);
+end;
+
+procedure TCastleObjectList.AddList(AList: Contnrs.TObjectList);
+begin
+  AddRange(AList);
 end;
 
 function TCastleObjectList.MakeSingle(ReplaceClass: TClass; NewItem: TObject;
@@ -1691,8 +1410,8 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if Assigned(L[I]) then
-      L[I](Sender);
+    if Assigned(Items[I]) then
+      Items[I](Sender);
 end;
 
 procedure TNotifyEventList.ExecuteForward(Sender: TObject);
@@ -1705,9 +1424,11 @@ var
   I: Integer;
 begin
   for I := Count - 1 downto 0 do
-    if Assigned(L[I]) then
-      L[I](Sender);
+    if Assigned(Items[I]) then
+      Items[I](Sender);
 end;
+
+{ DumpStack ------------------------------------------------------------------ }
 
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 var

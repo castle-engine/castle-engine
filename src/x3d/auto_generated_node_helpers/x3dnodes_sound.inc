@@ -27,12 +27,12 @@
 {$ifdef read_interface}
 
   private
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
+    function GetDirection: TVector3;
+    procedure SetDirection(const Value: TVector3);
     function GetIntensity: Single;
     procedure SetIntensity(const Value: Single);
-    function GetLocation: TVector3Single;
-    procedure SetLocation(const Value: TVector3Single);
+    function GetLocation: TVector3;
+    procedure SetLocation(const Value: TVector3);
     function GetMaxBack: Single;
     procedure SetMaxBack(const Value: Single);
     function GetMaxFront: Single;
@@ -48,9 +48,9 @@
     function GetSpatialize: boolean;
     procedure SetSpatialize(const Value: boolean);
   public
-    property Direction: TVector3Single read GetDirection write SetDirection;
+    property Direction: TVector3 read GetDirection write SetDirection;
     property Intensity: Single read GetIntensity write SetIntensity;
-    property Location: TVector3Single read GetLocation write SetLocation;
+    property Location: TVector3 read GetLocation write SetLocation;
     property MaxBack: Single read GetMaxBack write SetMaxBack;
     property MaxFront: Single read GetMaxFront write SetMaxFront;
     property MinBack: Single read GetMinBack write SetMinBack;
@@ -65,12 +65,12 @@
 
 { TSoundNode ----------------------------------------------- }
 
-function TSoundNode.GetDirection: TVector3Single;
+function TSoundNode.GetDirection: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TSoundNode.SetDirection(const Value: TVector3Single);
+procedure TSoundNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;
@@ -85,12 +85,12 @@ begin
   FdIntensity.Send(Value);
 end;
 
-function TSoundNode.GetLocation: TVector3Single;
+function TSoundNode.GetLocation: TVector3;
 begin
   Result := FdLocation.Value;
 end;
 
-procedure TSoundNode.SetLocation(const Value: TVector3Single);
+procedure TSoundNode.SetLocation(const Value: TVector3);
 begin
   FdLocation.Send(Value);
 end;

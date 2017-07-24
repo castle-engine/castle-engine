@@ -31,7 +31,7 @@ type
     procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
 
-  TAtlasRegionList = specialize TFPGObjectList<TAtlasRegion>;
+  TAtlasRegionList = specialize TObjectList<TAtlasRegion>;
 
   TAtlasPage = class
   public
@@ -48,7 +48,7 @@ type
     procedure BuildNodes(const BaseUrl: string);
   end;
 
-  TAtlasPageList = specialize TFPGObjectList<TAtlasPage>;
+  TAtlasPageList = specialize TObjectList<TAtlasPage>;
 
   TAtlas = class(TTextureLoader)
     Pages: TAtlasPageList;
@@ -70,10 +70,10 @@ type
 
 procedure TAtlasRegion.CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
 var
-  TextureXY, TextureSize: TVector2Single;
+  TextureXY, TextureSize: TVector2;
   I: Integer;
 begin
-  TextureXY := Vector2Single(
+  TextureXY := Vector2(
     XY[0] / ImageWidth,
     XY[1] / ImageHeight);
   TexRect[0][0] := Offset[0] / Orig[0];
@@ -82,7 +82,7 @@ begin
   TexRect[1][1] := (Offset[1] + Size[1]) / Orig[1];
   if Rotate then
   begin
-    TextureSize := Vector2Single(
+    TextureSize := Vector2(
       Size[0] / ImageHeight,
       Size[1] / ImageWidth);
     TextureXY[1] :=
@@ -92,7 +92,7 @@ begin
       - TextureSize[0];
   end else
   begin
-    TextureSize := Vector2Single(
+    TextureSize := Vector2(
       Size[0] / ImageWidth,
       Size[1] / ImageHeight);
     TextureXY[1] :=
@@ -104,16 +104,16 @@ begin
 
   if Rotate then
   begin
-    TexCoord[0] := Vector2Single(TextureSize[1],              0);
-    TexCoord[1] := Vector2Single(TextureSize[1], TextureSize[0]);
-    TexCoord[2] := Vector2Single(             0, TextureSize[0]);
-    TexCoord[3] := Vector2Single(             0,              0);
+    TexCoord[0] := Vector2(TextureSize[1],              0);
+    TexCoord[1] := Vector2(TextureSize[1], TextureSize[0]);
+    TexCoord[2] := Vector2(             0, TextureSize[0]);
+    TexCoord[3] := Vector2(             0,              0);
   end else
   begin
-    TexCoord[0] := Vector2Single(             0,              0);
-    TexCoord[1] := Vector2Single(TextureSize[0],              0);
-    TexCoord[2] := Vector2Single(TextureSize[0], TextureSize[1]);
-    TexCoord[3] := Vector2Single(             0, TextureSize[1]);
+    TexCoord[0] := Vector2(             0,              0);
+    TexCoord[1] := Vector2(TextureSize[0],              0);
+    TexCoord[2] := Vector2(TextureSize[0], TextureSize[1]);
+    TexCoord[3] := Vector2(             0, TextureSize[1]);
   end;
 
   for I := 0 to 3 do
@@ -212,7 +212,11 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueString(const Line, Name: string; out Value: string): boolean;
+  { All the IsNameValueXxx functions return @true and change Value
+    only if the line contains (corrent) specification of attribute
+    Name. Otherwise, they return @false and leave Value unmodified. }
+
+  function IsNameValueString(const Line, Name: string; var Value: string): boolean;
   var
     N, V: string;
   begin
@@ -221,7 +225,7 @@ procedure TAtlas.Parse(const URL: string);
       Value := V;
   end;
 
-  function IsNameValueBoolean(const Line, Name: string; out Value: boolean): boolean;
+  function IsNameValueBoolean(const Line, Name: string; var Value: boolean): boolean;
   var
     ValueStr: string;
   begin
@@ -236,7 +240,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueInteger(const Line, Name: string; out Value: Integer): boolean;
+  function IsNameValueInteger(const Line, Name: string; var Value: Integer): boolean;
   var
     ValueStr: string;
   begin
@@ -252,7 +256,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueVector2Integer(const Line, Name: string; out Vector: TVector2Integer): boolean;
+  function IsNameValueVector2Integer(const Line, Name: string; var Vector: TVector2Integer): boolean;
   var
     ValueStr, ValueStr0, ValueStr1: string;
   begin
@@ -271,7 +275,7 @@ procedure TAtlas.Parse(const URL: string);
     end;
   end;
 
-  function IsNameValueFilter(const Line, Name: string; out Filter: string): boolean;
+  function IsNameValueFilter(const Line, Name: string; var Filter: string): boolean;
   var
     ValueStr: string;
   begin
@@ -279,14 +283,16 @@ procedure TAtlas.Parse(const URL: string);
     if Result then
     begin
       if ValueStr = 'Linear,Linear' then
-        Filter := 'AVG_PIXEL' else
+        Filter := 'AVG_PIXEL'
+      else
       if ValueStr = 'Nearest,Nearest' then
-        Filter := 'NEAREST_PIXEL' else
+        Filter := 'NEAREST_PIXEL'
+      else
         raise ESpineReadError.CreateFmt('Unsupported filter mode "%s"', [ValueStr]);
     end;
   end;
 
-  function IsNameValueRepeat(const Line, Name: string; out IsRepeat: boolean): boolean;
+  function IsNameValueRepeat(const Line, Name: string; var IsRepeat: boolean): boolean;
   var
     ValueStr: string;
   begin
@@ -294,7 +300,8 @@ procedure TAtlas.Parse(const URL: string);
     if Result then
     begin
       if ValueStr = 'none' then
-        IsRepeat := false else
+        IsRepeat := false
+      else
         { is there anything else allowed for repeat: field ? }
         raise ESpineReadError.CreateFmt('Unsupported repeat mode "%s"', [ValueStr]);
     end;

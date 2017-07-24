@@ -26,7 +26,7 @@ unit CastleShapes;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
@@ -113,8 +113,8 @@ type
     @param(Face Describes the indexes of this face, for editing / removing it.
       See TFaceIndex.) }
   TTriangleEvent = procedure (Shape: TObject;
-    const Position: TTriangle3Single;
-    const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+    const Position: TTriangle3;
+    const Normal: TTriangle3; const TexCoord: TTriangle4;
     const Face: TFaceIndex) of object;
 
   { Tree of shapes.
@@ -215,7 +215,7 @@ type
     FBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TShapeValidities;
-    FBoundingSphereCenter: TVector3Single;
+    FBoundingSphereCenter: TVector3;
     FBoundingSphereRadiusSqr: Single;
     FOriginalGeometry: TAbstractGeometryNode;
     FOriginalState: TX3DGraphTraverseState;
@@ -255,8 +255,8 @@ type
   private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TTriangleOctree;
@@ -277,7 +277,7 @@ type
       @groupBegin }
     MailboxSavedTag: TMailboxTag;
     MailboxResult: PTriangle;
-    MailboxIntersection: TVector3Single;
+    MailboxIntersection: TVector3;
     MailboxIntersectionDistance: Single;
     { @groupEnd }
     {$endif}
@@ -285,7 +285,7 @@ type
     { Meaningful only when svNormals in Validities.
       Normals may be assigned only if svNormals in Validities. }
     FNormalsCached: TShapeNormalsCached;
-    FNormals: TVector3SingleList;
+    FNormals: TVector3List;
     { Meaningful only when svNormals in Validities and
       NormalsCached = ncCreaseAngle. }
     FNormalsCreaseAngle: Single;
@@ -351,7 +351,7 @@ type
       if Box is empty.
 
       @groupBegin }
-    function BoundingSphereCenter: TVector3Single;
+    function BoundingSphereCenter: TVector3;
     function BoundingSphereRadiusSqr: Single;
     function BoundingSphereRadius: Single;
     { @groupEnd }
@@ -498,9 +498,9 @@ type
       wil use the mailbox. }
     function RayCollision(
       const Tag: TMailboxTag;
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3Single;
+      const RayOrigin, RayDirection: TVector3;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -510,9 +510,9 @@ type
       wil use the mailbox. }
     function SegmentCollision(
       const Tag: TMailboxTag;
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const Pos1, Pos2: TVector3Single;
+      const Pos1, Pos2: TVector3;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -551,10 +551,10 @@ type
       is passed to all Create*Normals internally).
 
       @groupBegin }
-    function NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
-    function NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
+    function NormalsSmooth(OverTriangulate: boolean): TVector3List;
+    function NormalsFlat(OverTriangulate: boolean): TVector3List;
     function NormalsCreaseAngle(OverTriangulate: boolean;
-      const CreaseAngle: Single): TVector3SingleList;
+      const CreaseAngle: Single): TVector3List;
     { @groupEnd }
 
     function EnumerateTextures(Enumerate: TEnumerateShapeTexturesFunction): Pointer; override;
@@ -616,7 +616,7 @@ type
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
   end;
 
-  TShapeTreeList = specialize TFPGObjectList<TShapeTree>;
+  TShapeTreeList = specialize TObjectList<TShapeTree>;
 
   { Internal (non-leaf) node of the TShapeTree.
     This is practically just a list of other children
@@ -739,16 +739,16 @@ type
   TShapeTreeLOD = class(TShapeTreeGroup)
   private
     FLODNode: TAbstractLODNode;
-    FLODInvertedTransform: TMatrix4Single;
+    FLODInvertedTransform: TMatrix4;
     FLevel: Cardinal;
     FWasLevel_ChangedSend: boolean;
   public
     property LODNode: TAbstractLODNode read FLODNode write FLODNode;
-    function LODInvertedTransform: PMatrix4Single;
+    function LODInvertedTransform: PMatrix4;
 
     { Calculate @link(Level). This only calculates level, doesn't
       assign @link(Level) property or send level_changed event. }
-    function CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
+    function CalculateLevel(const CameraPosition: TVector3): Cardinal;
 
     { Current level, that is index of the active child of this LOD node.
       This is always < Children.Count, unless there are no children.
@@ -782,7 +782,7 @@ type
   private
     FNode: TProximitySensorNode;
   public
-    InvertedTransform: TMatrix4Single;
+    InvertedTransform: TMatrix4;
     IsActive: boolean;
 
     property Node: TProximitySensorNode read FNode write FNode;
@@ -806,7 +806,7 @@ type
       already transformed to global VRML/X3D scene coordinates.
       That is, transformed by parent Transform and similar nodes. }
     Box: TBox3D;
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
 
     property Node: TVisibilitySensorNode read FNode write FNode;
 
@@ -847,7 +847,12 @@ type
     property Current: TShape read FCurrent;
   end;
 
-  TShapeList = class(specialize TFPGObjectList<TShape>)
+  TShapeList = class(specialize TObjectList<TShape>)
+  strict private
+    SortPosition: TVector3;
+    function IsSmallerFrontToBack(constref A, B: TShape): Integer;
+    function IsSmallerBackToFront3D(constref A, B: TShape): Integer;
+    function IsSmallerBackToFront2D(constref A, B: TShape): Integer;
   public
     constructor Create;
 
@@ -857,7 +862,7 @@ type
       const OnlyCollidable: boolean = false);
 
     { Sort shapes by distance to given Position point, closest first. }
-    procedure SortFrontToBack(const Position: TVector3Single);
+    procedure SortFrontToBack(const Position: TVector3);
 
     { Sort shapes by distance to given Position point, farthest first.
 
@@ -868,7 +873,7 @@ type
       to sort. This is suitable for
       rendering things that pretend to be 2D, like Spine slots.
       See the @link(bs2D) at @link(TBlendingSort) documentation. }
-    procedure SortBackToFront(const Position: TVector3Single;
+    procedure SortBackToFront(const Position: TVector3;
       const Distance3D: boolean);
   end;
 
@@ -920,21 +925,33 @@ type
     when only mesh names are stored in VRML/X3D exported files),
     in which case it can be a mesh name. }
   TPlaceholderName = function (const Shape: TShape): string;
-  TPlaceholderNames = specialize TFPGMap<string, TPlaceholderName>;
+  TPlaceholderNames = class(specialize TDictionary<string, TPlaceholderName>)
+  strict private
+    function GetItems(const AKey: string): TPlaceholderName;
+    procedure SetItems(const AKey: string; const AValue: TPlaceholderName);
+  public
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: TPlaceholderName read GetItems write SetItems; default;
+  end;
 
 var
   PlaceholderNames: TPlaceholderNames;
 
 implementation
 
-uses CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
+uses Generics.Defaults,
+  CastleProgress, CastleSceneCore, CastleInternalNormals, CastleLog,
   CastleStringUtils, CastleArraysGenerator, CastleImages, CastleURIUtils;
 
 const
-  UnknownTexCoord: TTriangle4Single = (
-    (0, 0, 0, 1),
-    (0, 0, 0, 1),
-    (0, 0, 0, 1) );
+  UnknownTexCoord: TTriangle4 = (Data: (
+    (Data: (0, 0, 0, 1)),
+    (Data: (0, 0, 0, 1)),
+    (Data: (0, 0, 0, 1))
+  ));
 
 { TShapeTree ------------------------------------------------------------ }
 
@@ -1206,15 +1223,15 @@ var
       Result.Primitive := gpTriangleFan; // gpQuads; - use triangle fan instead, to work with OpenGLES
       Result.Count := 4;
 
-      Result.Position(0)^ := Vector3Single(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
-      Result.Position(1)^ := Vector3Single(Box.Data[1][0], Box.Data[0][1], Box.Data[0][2]);
-      Result.Position(2)^ := Vector3Single(Box.Data[1][0], Box.Data[1][1], Box.Data[0][2]);
-      Result.Position(3)^ := Vector3Single(Box.Data[0][0], Box.Data[1][1], Box.Data[0][2]);
+      Result.Position(0)^ := Vector3(Box.Data[0][0], Box.Data[0][1], Box.Data[0][2]);
+      Result.Position(1)^ := Vector3(Box.Data[1][0], Box.Data[0][1], Box.Data[0][2]);
+      Result.Position(2)^ := Vector3(Box.Data[1][0], Box.Data[1][1], Box.Data[0][2]);
+      Result.Position(3)^ := Vector3(Box.Data[0][0], Box.Data[1][1], Box.Data[0][2]);
 
-      Result.Normal(0)^ := UnitVector3Single[2];
-      Result.Normal(1)^ := UnitVector3Single[2];
-      Result.Normal(2)^ := UnitVector3Single[2];
-      Result.Normal(3)^ := UnitVector3Single[2];
+      Result.Normal(0)^ := TVector3.One[2];
+      Result.Normal(1)^ := TVector3.One[2];
+      Result.Normal(2)^ := TVector3.One[2];
+      Result.Normal(3)^ := TVector3.One[2];
     end;
   end;
 
@@ -1329,7 +1346,7 @@ begin
   end;
 end;
 
-function TShape.BoundingSphereCenter: TVector3Single;
+function TShape.BoundingSphereCenter: TVector3;
 begin
   ValidateBoundingSphere;
   Result := FBoundingSphereCenter;
@@ -1378,8 +1395,8 @@ begin
 end;
 
 procedure TShape.AddTriangleToOctreeProgress(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   Progress.Step;
@@ -1395,13 +1412,13 @@ function TShape.CreateTriangleOctree(
     procedure LocalTriangulateRect(constCoord: integer;
       const constCoordValue, x1, y1, x2, y2: Single);
     var
-      Position, Normal: TTriangle3Single;
+      Position, Normal: TTriangle3;
       i, c1, c2: integer;
 
       procedure TriAssign(TriIndex: integer; c1value, c2value: Single);
       begin
-        Position[TriIndex, c1] := c1value;
-        Position[TriIndex, c2] := c2value;
+        Position.Data[TriIndex].Data[c1] := c1value;
+        Position.Data[TriIndex].Data[c2] := c2value;
       end;
 
     begin
@@ -1409,10 +1426,10 @@ function TShape.CreateTriangleOctree(
 
       for I := 0 to 2 do
       begin
-        Position[I, ConstCoord] := ConstCoordValue;
-        Normal[I, C1] := 0;
-        Normal[I, C2] := 0;
-        Normal[I, ConstCoord] := 1; { TODO: or -1 }
+        Position.Data[I].Data[ConstCoord] := ConstCoordValue;
+        Normal.Data[I].Data[C1] := 0;
+        Normal.Data[I].Data[C2] := 0;
+        Normal.Data[I].Data[ConstCoord] := 1; { TODO: or -1 }
       end;
 
       TriAssign(0, x1, y1);
@@ -1554,10 +1571,10 @@ function TShape.Blending: boolean;
     i: Integer;
   begin
     if Node.FdTransparency.Items.Count = 0 then
-      result := TMaterialInfo.DefaultTransparency > SingleEqualityEpsilon else
+      result := TMaterialInfo.DefaultTransparency > SingleEpsilon else
     begin
       for i := 0 to Node.FdTransparency.Items.Count-1 do
-        if Node.FdTransparency.Items.L[i] <= SingleEqualityEpsilon then
+        if Node.FdTransparency.Items.L[i] <= SingleEpsilon then
           Exit(false);
       result := true;
     end;
@@ -1573,11 +1590,11 @@ begin
     SurfaceShader := State.ShapeNode.CommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
-      Result := SurfaceShader.Transparency > SingleEqualityEpsilon;
+      Result := SurfaceShader.Transparency > SingleEpsilon;
     end else
     begin
       M := State.ShapeNode.Material;
-      Result := (M <> nil) and (M.FdTransparency.Value > SingleEqualityEpsilon);
+      Result := (M <> nil) and (M.FdTransparency.Value > SingleEpsilon);
     end;
   end else
     { For VRML 1.0, there may be multiple materials on a node.
@@ -1644,9 +1661,9 @@ end;
 
 function TShape.RayCollision(
   const Tag: TMailboxTag;
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -1685,9 +1702,9 @@ end;
 
 function TShape.SegmentCollision(
   const Tag: TMailboxTag;
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const Pos1, Pos2: TVector3Single;
+  const Pos1, Pos2: TVector3;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
@@ -1724,7 +1741,7 @@ begin
   {$endif}
 end;
 
-function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3SingleList;
+function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -1752,7 +1769,7 @@ begin
   Result := FNormals;
 end;
 
-function TShape.NormalsFlat(OverTriangulate: boolean): TVector3SingleList;
+function TShape.NormalsFlat(OverTriangulate: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -1782,7 +1799,7 @@ begin
 end;
 
 function TShape.NormalsCreaseAngle(OverTriangulate: boolean;
-  const CreaseAngle: Single): TVector3SingleList;
+  const CreaseAngle: Single): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
@@ -2095,8 +2112,8 @@ var
   procedure Triangle(const I1, I2, I3: Cardinal);
   var
     VI1, VI2, VI3: Integer;
-    Position, Normal: TTriangle3Single;
-    TexCoord: TTriangle4Single;
+    Position, Normal: TTriangle3;
+    TexCoord: TTriangle4;
     Face: TFaceIndex;
   begin
     if Arrays.Indexes <> nil then
@@ -2110,12 +2127,12 @@ var
       VI2 := RangeBeginIndex + I2;
       VI3 := RangeBeginIndex + I3;
     end;
-    Position[0] := Arrays.Position(VI1)^;
-    Position[1] := Arrays.Position(VI2)^;
-    Position[2] := Arrays.Position(VI3)^;
-    Normal[0] := Arrays.Normal(VI1)^;
-    Normal[1] := Arrays.Normal(VI2)^;
-    Normal[2] := Arrays.Normal(VI3)^;
+    Position.Data[0] := Arrays.Position(VI1)^;
+    Position.Data[1] := Arrays.Position(VI2)^;
+    Position.Data[2] := Arrays.Position(VI3)^;
+    Normal.Data[0] := Arrays.Normal(VI1)^;
+    Normal.Data[1] := Arrays.Normal(VI2)^;
+    Normal.Data[2] := Arrays.Normal(VI3)^;
 
     if (Arrays.TexCoords.Count <> 0) and
        (Arrays.TexCoords[0] <> nil) and
@@ -2123,19 +2140,19 @@ var
     begin
       case Arrays.TexCoords[0].Dimensions of
         2: begin
-             TexCoord[0] := Vector4Single(Arrays.TexCoord2D(0, VI1)^);
-             TexCoord[1] := Vector4Single(Arrays.TexCoord2D(0, VI2)^);
-             TexCoord[2] := Vector4Single(Arrays.TexCoord2D(0, VI3)^);
+             TexCoord.Data[0] := Vector4(Arrays.TexCoord2D(0, VI1)^, 0, 1);
+             TexCoord.Data[1] := Vector4(Arrays.TexCoord2D(0, VI2)^, 0, 1);
+             TexCoord.Data[2] := Vector4(Arrays.TexCoord2D(0, VI3)^, 0, 1);
            end;
         3: begin
-             TexCoord[0] := Vector4Single(Arrays.TexCoord3D(0, VI1)^);
-             TexCoord[1] := Vector4Single(Arrays.TexCoord3D(0, VI2)^);
-             TexCoord[2] := Vector4Single(Arrays.TexCoord3D(0, VI3)^);
+             TexCoord.Data[0] := Vector4(Arrays.TexCoord3D(0, VI1)^, 1);
+             TexCoord.Data[1] := Vector4(Arrays.TexCoord3D(0, VI2)^, 1);
+             TexCoord.Data[2] := Vector4(Arrays.TexCoord3D(0, VI3)^, 1);
            end;
         4: begin
-             TexCoord[0] := Arrays.TexCoord4D(0, VI1)^;
-             TexCoord[1] := Arrays.TexCoord4D(0, VI2)^;
-             TexCoord[2] := Arrays.TexCoord4D(0, VI3)^;
+             TexCoord.Data[0] := Arrays.TexCoord4D(0, VI1)^;
+             TexCoord.Data[1] := Arrays.TexCoord4D(0, VI2)^;
+             TexCoord.Data[2] := Arrays.TexCoord4D(0, VI3)^;
            end;
         else raise EInternalError.Create('Arrays.TexCoord[0].Dimensions? at TShape.localtriangulate');
       end;
@@ -2143,7 +2160,8 @@ var
       TexCoord := UnknownTexCoord;
 
     if Arrays.Faces <> nil then
-      Face := Arrays.Faces.L[RangeBeginIndex + I1] else
+      Face := Arrays.Faces.L[RangeBeginIndex + I1]
+    else
       Face := UnknownFaceIndex;
 
     TriangleEvent(Self, Position, Normal, TexCoord, Face);
@@ -2225,20 +2243,20 @@ end;
 
 type
   TTriangulateRedirect = class
-    Transform: PMatrix4Single;
+    Transform: PMatrix4;
     TriangleEvent: TTriangleEvent;
     procedure LocalNewTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   end;
 
 procedure TTriangulateRedirect.LocalNewTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
-  TriangleEvent(Shape, TriangleTransform(Position, Transform^), Normal, TexCoord, Face);
+  TriangleEvent(Shape, Position.Transform(Transform^), Normal, TexCoord, Face);
 end;
 
 procedure TShape.Triangulate(OverTriangulate: boolean; TriangleEvent: TTriangleEvent);
@@ -2456,14 +2474,14 @@ end;
 
 { TShapeTreeLOD ------------------------------------------------------- }
 
-function TShapeTreeLOD.LODInvertedTransform: PMatrix4Single;
+function TShapeTreeLOD.LODInvertedTransform: PMatrix4;
 begin
   Result := @FLODInvertedTransform;
 end;
 
-function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3Single): Cardinal;
+function TShapeTreeLOD.CalculateLevel(const CameraPosition: TVector3): Cardinal;
 var
-  Camera: TVector3Single;
+  Camera: TVector3;
   Dummy: Single;
 begin
   if (Children.Count = 0) or
@@ -2471,7 +2489,7 @@ begin
     Result := 0 else
   begin
     try
-      Camera := MatrixMultPoint(LODInvertedTransform^, CameraPosition);
+      Camera := LODInvertedTransform^.MultPoint(CameraPosition);
       Result := KeyRange(LODNode.FdRange.Items,
         PointsDistance(Camera, LODNode.FdCenter.Value), Dummy);
       { Now we know Result is between 0..LODNode.FdRange.Count.
@@ -2483,7 +2501,7 @@ begin
       on E: ETransformedResultInvalid do
       begin
         WritelnWarning('VRML/X3D', Format('Cannot transform camera position %s to LOD node local coordinate space, transformation results in direction (not point): %s',
-          [ VectorToRawStr(CameraPosition), E.Message ]));
+          [ CameraPosition.ToRawString, E.Message ]));
         Result := 0;
       end;
     end;
@@ -2813,43 +2831,52 @@ begin
   Assert(AddedCount = Count);
 end;
 
-var
-  { Has to be global (not private field in TShapeList),
-    since TFPGObjectList.Sort requires normal function (not "of object"). }
-  SortPosition: TVector3Single;
+type
+  TShapeComparer = specialize TComparer<TShape>;
 
-function IsSmallerFrontToBack(const A, B: TShape): Integer;
+function TShapeList.IsSmallerFrontToBack(constref A, B: TShape): Integer;
 begin
   { To revert the order, we revert the order of A and B as passed to CompareBackToFront3D. }
   Result := TBox3D.CompareBackToFront3D(B.BoundingBox, A.BoundingBox, SortPosition);
 end;
 
-function IsSmallerBackToFront3D(const A, B: TShape): Integer;
+function TShapeList.IsSmallerBackToFront3D(constref A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront3D(A.BoundingBox, B.BoundingBox, SortPosition);
 end;
 
-function IsSmallerBackToFront2D(const A, B: TShape): Integer;
+function TShapeList.IsSmallerBackToFront2D(constref A, B: TShape): Integer;
 begin
   Result := TBox3D.CompareBackToFront2D(A.BoundingBox, B.BoundingBox);
 end;
 
-procedure TShapeList.SortFrontToBack(const Position: TVector3Single);
+procedure TShapeList.SortFrontToBack(const Position: TVector3);
 begin
   SortPosition := Position;
-  Sort(@IsSmallerFrontToBack);
+  Sort(TShapeComparer.Construct(@IsSmallerFrontToBack));
 end;
 
-procedure TShapeList.SortBackToFront(const Position: TVector3Single;
+procedure TShapeList.SortBackToFront(const Position: TVector3;
   const Distance3D: boolean);
 begin
   SortPosition := Position;
   if Distance3D then
-    Sort(@IsSmallerBackToFront3D) else
-    Sort(@IsSmallerBackToFront2D);
+    Sort(TShapeComparer.Construct(@IsSmallerBackToFront3D))
+  else
+    Sort(TShapeComparer.Construct(@IsSmallerBackToFront2D));
 end;
 
 { TPlaceholderNames ------------------------------------------------------- }
+
+function TPlaceholderNames.GetItems(const AKey: string): TPlaceholderName;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TPlaceholderNames.SetItems(const AKey: string; const AValue: TPlaceholderName);
+begin
+  AddOrSetValue(AKey, AValue);
+end;
 
 function X3DShapePlaceholder(const Shape: TShape): string;
 begin

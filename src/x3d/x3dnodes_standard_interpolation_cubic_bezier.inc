@@ -85,7 +85,7 @@ begin
 end;
 
 function CubicBezierPercent(const T: Single;
-  const ControlPoints: TVector4Single): Single;
+  const ControlPoints: TVector4): Single;
 var
   {CX1, }CY1, {CX2, }CY2: Single;
 begin
@@ -121,7 +121,7 @@ begin
   FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
   AddField(FFdControlPoints);
 
-  FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3Single(0, 0, 1));
+  FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3(0, 0, 1));
   AddField(FFdAxis);
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
@@ -180,7 +180,7 @@ begin
       OutputValueAngle := AngleLerp(T, KeyValue(Range - 1), KeyValue(Range));
     end;
   end;
-  EventValue_Changed.Send(Vector4Single(FdAxis.Value, OutputValueAngle), Time);
+  EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time);
 end;
 
 procedure TCubicBezierPositionInterpolatorNode.CreateNode;
@@ -217,16 +217,16 @@ end;
 procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 
-  function KeyValue(Index: Integer): TVector3Single;
+  function KeyValue(Index: Integer): TVector3;
   begin
     if Index < FdKeyValue.Items.Count then
       Result := FdKeyValue.Items.L[Index] else
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
   end;
 
 var
   T: Single;
-  OutputValue: TVector3Single;
+  OutputValue: TVector3;
   KeyCount, Range: Integer;
 begin
   if not EventValue_Changed.SendNeeded then Exit;

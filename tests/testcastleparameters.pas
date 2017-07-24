@@ -17,9 +17,14 @@ unit TestCastleParameters;
 
 interface
 
-uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleParameters,
-  CastleGenericLists;
+uses Classes, SysUtils, fpcunit, testutils, testregistry,
+  CastleParameters, CastleUtils;
+
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 type
   TParsedOption = record
@@ -29,7 +34,7 @@ type
     SeparateArgs: TSeparateArgs;
   end;
   PParsedOption = ^TParsedOption;
-  TParsedOptionList = specialize TGenericStructList<TParsedOption>;
+  TParsedOptionList = specialize TStructList<TParsedOption>;
 
   TTestParsingParameters = class(TTestCase)
   private
@@ -42,12 +47,7 @@ type
 
 implementation
 
-uses CastleUtils, CastleStringUtils;
-
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+uses CastleStringUtils;
 
 procedure ParseNextParam(OptionNum: Integer; HasArgument: boolean;
   const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);

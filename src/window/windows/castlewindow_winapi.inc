@@ -365,14 +365,14 @@ function TCastleWindowCustom.WindowProc(uMsg: UINT; wParm: WPARAM; lParm: LPARAM
   procedure HandleMouseDown(const Button: TMouseButton);
   begin
     MaybeCapture;
-    DoMouseDown(Vector2Single(
+    DoMouseDown(Vector2(
                    TWinParam(lParm).LoSmallint,
       Height - 1 - TWinParam(lParm).HiSmallint), Button, 0);
   end;
 
   procedure HandleMouseUp(const Button: TMouseButton);
   begin
-    DoMouseUp(Vector2Single(
+    DoMouseUp(Vector2(
                    TWinParam(lParm).LoSmallint,
       Height - 1 - TWinParam(lParm).HiSmallint), Button, 0);
     MaybeRelease;
@@ -588,7 +588,7 @@ begin
             if (MK_MBUTTON and wParm) <> 0 then Include(fmousePressed, mbMiddle);
             if (MK_RBUTTON and wParm) <> 0 then Include(fmousePressed, mbRight);
           but it's not needed (we keep it current anyway in mousedown/up events). }
-        DoMotion(InputMotion(MousePosition, Vector2Single(
+        DoMotion(InputMotion(MousePosition, Vector2(
                          TWinParam(lParm).LoSmallint,
             Height - 1 - TWinParam(lParm).HiSmallint),
           MousePressed, 0));
@@ -941,7 +941,7 @@ begin
   { TODO }
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
   if not Closed then
     SetCursorPos(Left + Floor(Value[0]), Top + Height - 1 - Floor(Value[1]));
@@ -1198,16 +1198,16 @@ begin
   end;
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
 
-  function Vector3SingleToColorRef(const Value: TVector3Single): TColorRef;
+  function Vector3ToColorRef(const Value: TVector3): TColorRef;
   begin
    Result := Windows.RGB(Clamped(Round(Value[0]*High(Byte)), 0, High(Byte)),
                          Clamped(Round(Value[1]*High(Byte)), 0, High(Byte)),
                          Clamped(Round(Value[2]*High(Byte)), 0, High(Byte)) );
   end;
 
-  function ColorRefToVector3Single(const Value: TColorRef): TVector3Single;
+  function ColorRefToVector3(const Value: TColorRef): TVector3;
   begin
    Result[0] := GetRValue(Value)/High(Byte);
    Result[1] := GetGValue(Value)/High(Byte);
@@ -1227,7 +1227,7 @@ begin
   FillChar(Struct, SizeOf(Struct), 0);
   Struct.lStructSize := SizeOf(Struct);
   Struct.hwndOwner := H_Wnd;
-  Struct.rgbResult := Vector3SingleToColorRef(Color);
+  Struct.rgbResult := Vector3ToColorRef(Color);
   Struct.lpCustColors := @CustomColors;
   { Give CC_FULLOPEN since this is intended to give user a free choice from RGB
     colors. So we suggest user to choose any RGB color freely, instead of using
@@ -1240,7 +1240,7 @@ begin
   finally Mode.Free end;
 
   if Result then
-    Color := ColorRefToVector3Single(Struct.rgbResult);
+    Color := ColorRefToVector3(Struct.rgbResult);
 end;
 
 const

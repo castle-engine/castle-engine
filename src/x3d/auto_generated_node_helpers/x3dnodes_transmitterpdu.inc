@@ -29,8 +29,8 @@
   private
     function GetAddress: string;
     procedure SetAddress(const Value: string);
-    function GetAntennaLocation: TVector3Single;
-    procedure SetAntennaLocation(const Value: TVector3Single);
+    function GetAntennaLocation: TVector3;
+    procedure SetAntennaLocation(const Value: TVector3);
     function GetAntennaPatternLength: Integer;
     procedure SetAntennaPatternLength(const Value: Integer);
     function GetAntennaPatternType: Integer;
@@ -81,8 +81,8 @@
     procedure SetRadioID(const Value: Integer);
     function GetReadInterval: Single;
     procedure SetReadInterval(const Value: Single);
-    function GetRelativeAntennaLocation: TVector3Single;
-    procedure SetRelativeAntennaLocation(const Value: TVector3Single);
+    function GetRelativeAntennaLocation: TVector3;
+    procedure SetRelativeAntennaLocation(const Value: TVector3);
     function GetRtpHeaderExpected: boolean;
     procedure SetRtpHeaderExpected(const Value: boolean);
     function GetSiteID: Integer;
@@ -95,13 +95,13 @@
     procedure SetWhichGeometry(const Value: Integer);
     function GetWriteInterval: Single;
     procedure SetWriteInterval(const Value: Single);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
     property Address: string read GetAddress write SetAddress;
-    property AntennaLocation: TVector3Single read GetAntennaLocation write SetAntennaLocation;
+    property AntennaLocation: TVector3 read GetAntennaLocation write SetAntennaLocation;
     property AntennaPatternLength: Integer read GetAntennaPatternLength write SetAntennaPatternLength;
     property AntennaPatternType: Integer read GetAntennaPatternType write SetAntennaPatternType;
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
@@ -127,15 +127,15 @@
     property RadioEntityTypeNomenclatureVersion: Integer read GetRadioEntityTypeNomenclatureVersion write SetRadioEntityTypeNomenclatureVersion;
     property RadioID: Integer read GetRadioID write SetRadioID;
     property ReadInterval: Single read GetReadInterval write SetReadInterval;
-    property RelativeAntennaLocation: TVector3Single read GetRelativeAntennaLocation write SetRelativeAntennaLocation;
+    property RelativeAntennaLocation: TVector3 read GetRelativeAntennaLocation write SetRelativeAntennaLocation;
     property RtpHeaderExpected: boolean read GetRtpHeaderExpected write SetRtpHeaderExpected;
     property SiteID: Integer read GetSiteID write SetSiteID;
     property TransmitFrequencyBandwidth: Single read GetTransmitFrequencyBandwidth write SetTransmitFrequencyBandwidth;
     property TransmitState: Integer read GetTransmitState write SetTransmitState;
     property WhichGeometry: Integer read GetWhichGeometry write SetWhichGeometry;
     property WriteInterval: Single read GetWriteInterval write SetWriteInterval;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -153,12 +153,12 @@ begin
   FdAddress.Send(Value);
 end;
 
-function TTransmitterPduNode.GetAntennaLocation: TVector3Single;
+function TTransmitterPduNode.GetAntennaLocation: TVector3;
 begin
   Result := FdAntennaLocation.Value;
 end;
 
-procedure TTransmitterPduNode.SetAntennaLocation(const Value: TVector3Single);
+procedure TTransmitterPduNode.SetAntennaLocation(const Value: TVector3);
 begin
   FdAntennaLocation.Send(Value);
 end;
@@ -413,12 +413,12 @@ begin
   FdReadInterval.Send(Value);
 end;
 
-function TTransmitterPduNode.GetRelativeAntennaLocation: TVector3Single;
+function TTransmitterPduNode.GetRelativeAntennaLocation: TVector3;
 begin
   Result := FdRelativeAntennaLocation.Value;
 end;
 
-procedure TTransmitterPduNode.SetRelativeAntennaLocation(const Value: TVector3Single);
+procedure TTransmitterPduNode.SetRelativeAntennaLocation(const Value: TVector3);
 begin
   FdRelativeAntennaLocation.Send(Value);
 end;
@@ -483,22 +483,22 @@ begin
   FdWriteInterval.Send(Value);
 end;
 
-function TTransmitterPduNode.GetBboxCenter: TVector3Single;
+function TTransmitterPduNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TTransmitterPduNode.SetBboxCenter(const Value: TVector3Single);
+procedure TTransmitterPduNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TTransmitterPduNode.GetBboxSize: TVector3Single;
+function TTransmitterPduNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TTransmitterPduNode.SetBboxSize(const Value: TVector3Single);
+procedure TTransmitterPduNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

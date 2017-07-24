@@ -16,6 +16,8 @@
 { Projection parameters (TProjection). }
 unit CastleProjection;
 
+{$I castleconf.inc}
+
 interface
 
 uses CastleVectors, CastleRectangles;
@@ -39,7 +41,7 @@ type
       to the aspect ratio).
       Use the AdjustViewAngleDegToAspectRatio to calculate the angles as necessary.
     }
-    PerspectiveAngles: TVector2Single;
+    PerspectiveAngles: TVector2;
 
     { If ProjectionType is ptOrthographic or ptFrustum, this property specifies
       dimensions of the visible window. }
@@ -62,7 +64,7 @@ type
     ProjectionFarFinite: Single;
 
     { Projection matrix, adjusted to given viewport aspect ratio (width/height). }
-    function Matrix(const AspectRatio: Single): TMatrix4Single;
+    function Matrix(const AspectRatio: Single): TMatrix4;
   end;
 
 { Calculate second viewing angle for perspective projection.
@@ -108,17 +110,17 @@ const
   Then you get perspective projection matrix withour far clipping plane,
   which is very useful for the z-fail shadow volumes technique.
   @groupBegin }
-function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
-function OrthoProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
+function OrthoProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
-function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4Single; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
-function Ortho2DProjectionMatrix(const left, right, bottom, top: Single): TMatrix4Single; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2DProjectionMatrix(const left, right, bottom, top: Single): TMatrix4; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
 
-function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
-function FrustumProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4Single; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
+function FrustumProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
-function PerspectiveProjectionMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Single): TMatrix4Single;
-function PerspectiveProjectionMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Single): TMatrix4;
+function PerspectiveProjectionMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4;
 { @groupEnd }
 
 implementation
@@ -128,12 +130,12 @@ uses Math,
 
 { TProjection ---------------------------------------------------------------- }
 
-function TProjection.Matrix(const AspectRatio: Single): TMatrix4Single;
+function TProjection.Matrix(const AspectRatio: Single): TMatrix4;
 begin
   case ProjectionType of
     ptPerspective:
       Result := PerspectiveProjectionMatrixDeg(
-        PerspectiveAngles[1],
+        PerspectiveAngles.Data[1],
         AspectRatio,
         ProjectionNear,
         ProjectionFar);
@@ -171,7 +173,7 @@ begin
     SecondToFirstRatio));
 end;
 
-function OrthoProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -182,23 +184,23 @@ begin
   Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
 end;
 
-function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 var
   Depth: Single;
 begin
   Depth := ZFar - ZNear;
 
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := 2 / Dimensions.Width;
-  Result[1, 1] := 2 / Dimensions.Height;
-  Result[2, 2] := - 2 / Depth; { negate, because our Z-y are negative when going "deeper inside the screen" }
-  Result[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
-  Result[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
-  Result[3, 2] := - (ZFar + ZNear) / Depth;
-  Result[3, 3] := 1;
+  Result := TMatrix4.Zero;
+  Result.Data[0, 0] := 2 / Dimensions.Width;
+  Result.Data[1, 1] := 2 / Dimensions.Height;
+  Result.Data[2, 2] := - 2 / Depth; { negate, because our Z-y are negative when going "deeper inside the screen" }
+  Result.Data[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
+  Result.Data[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
+  Result.Data[3, 2] := - (ZFar + ZNear) / Depth;
+  Result.Data[3, 3] := 1;
 end;
 
-function Ortho2DProjectionMatrix(const Left, Right, Bottom, Top: Single): TMatrix4Single;
+function Ortho2DProjectionMatrix(const Left, Right, Bottom, Top: Single): TMatrix4;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -212,21 +214,21 @@ begin
   {$warnings on}
 end;
 
-function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4Single;
+function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4;
 begin
   { simple version: Result := OrthoProjectionMatrix(Dimensions, -1, 1); }
   { optimized version below: }
 
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := 2 / Dimensions.Width;
-  Result[1, 1] := 2 / Dimensions.Height;
-  Result[2, 2] := -1;
-  Result[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
-  Result[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
-  Result[3, 3] := 1;
+  Result := TMatrix4.Zero;
+  Result.Data[0, 0] := 2 / Dimensions.Width;
+  Result.Data[1, 1] := 2 / Dimensions.Height;
+  Result.Data[2, 2] := -1;
+  Result.Data[3, 0] := - (Dimensions.Right + Dimensions.Left  ) / Dimensions.Width;
+  Result.Data[3, 1] := - (Dimensions.Top   + Dimensions.Bottom) / Dimensions.Height;
+  Result.Data[3, 3] := 1;
 end;
 
-function FrustumProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4Single;
+function FrustumProjectionMatrix(const Left, Right, Bottom, Top, ZNear, ZFar: Single): TMatrix4;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -237,7 +239,7 @@ begin
   Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
 end;
 
-function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4Single;
+function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
 
 { This is based on "OpenGL Programming Guide",
   Appendix G "... and Transformation Matrices".
@@ -249,30 +251,30 @@ var
 begin
   ZNear2 := ZNear * 2;
 
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := ZNear2                               / Dimensions.Width;
-  Result[2, 0] := (Dimensions.Right + Dimensions.Left) / Dimensions.Width;
-  Result[1, 1] := ZNear2                               / Dimensions.Height;
-  Result[2, 1] := (Dimensions.Top + Dimensions.Bottom) / Dimensions.Height;
+  Result := TMatrix4.Zero;
+  Result.Data[0, 0] := ZNear2                               / Dimensions.Width;
+  Result.Data[2, 0] := (Dimensions.Right + Dimensions.Left) / Dimensions.Width;
+  Result.Data[1, 1] := ZNear2                               / Dimensions.Height;
+  Result.Data[2, 1] := (Dimensions.Top + Dimensions.Bottom) / Dimensions.Height;
   if ZFar <> ZFarInfinity then
   begin
     Depth := ZFar - ZNear;
-    Result[2, 2] := - (ZFar + ZNear) / Depth;
-    Result[3, 2] := - ZNear2 * ZFar  / Depth;
+    Result.Data[2, 2] := - (ZFar + ZNear) / Depth;
+    Result.Data[3, 2] := - ZNear2 * ZFar  / Depth;
   end else
   begin
-    Result[2, 2] := -1;
-    Result[3, 2] := -ZNear2;
+    Result.Data[2, 2] := -1;
+    Result.Data[3, 2] := -ZNear2;
   end;
-  Result[2, 3] := -1;
+  Result.Data[2, 3] := -1;
 end;
 
-function PerspectiveProjectionMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixDeg(const FovyDeg, Aspect, ZNear, ZFar: Single): TMatrix4;
 begin
   Result := PerspectiveProjectionMatrixRad(DegToRad(FovyDeg), Aspect, ZNear, ZFar);
 end;
 
-function PerspectiveProjectionMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): TMatrix4Single;
+function PerspectiveProjectionMatrixRad(const FovyRad, Aspect, ZNear, ZFar: Single): TMatrix4;
 { Based on various sources, e.g. sample implementation of
   glu by SGI in Mesa3d sources. }
 var
@@ -292,21 +294,21 @@ begin
   ZNear2 := ZNear * 2;
   Cotangent := CastleCoTan(FovyRad / 2);
 
-  Result := ZeroMatrix4Single;
-  Result[0, 0] := Cotangent / Aspect;
-  Result[1, 1] := Cotangent;
+  Result := TMatrix4.Zero;
+  Result.Data[0, 0] := Cotangent / Aspect;
+  Result.Data[1, 1] := Cotangent;
   if ZFar <> ZFarInfinity then
   begin
     Depth := ZFar - ZNear;
-    Result[2, 2] := - (ZFar + ZNear) / Depth;
-    Result[3, 2] := - ZNear2 * ZFar  / Depth;
+    Result.Data[2, 2] := - (ZFar + ZNear) / Depth;
+    Result.Data[3, 2] := - ZNear2 * ZFar  / Depth;
   end else
   begin
-    Result[2, 2] := -1;
-    Result[3, 2] := -ZNear2;
+    Result.Data[2, 2] := -1;
+    Result.Data[3, 2] := -ZNear2;
   end;
 
-  Result[2, 3] := -1;
+  Result.Data[2, 3] := -1;
 end;
 
 end.

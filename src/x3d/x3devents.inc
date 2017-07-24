@@ -19,7 +19,7 @@
   TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
     const Time: TX3DTime) of object;
 
-  TX3DEventReceiveList = class(specialize TGenericStructList<TX3DEventReceive>)
+  TX3DEventReceiveList = class(specialize TList<TX3DEventReceive>)
   public
     { Call all functions. }
     procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
@@ -147,7 +147,7 @@
     procedure Assign(Source: TPersistent); override;
   end;
 
-  TX3DEventList = class(specialize TFPGObjectList<TX3DEvent>)
+  TX3DEventList = class(specialize TObjectList<TX3DEvent>)
   private
     function GetByName(const AName: string): TX3DEvent;
   public
@@ -156,7 +156,7 @@
     property ByName[const AName: string]: TX3DEvent read GetByName;
 
     { Find event index on the list. -1 if not found. }
-    function IndexOf(const Name: string): Integer;
+    function IndexOfName(const Name: string): Integer;
   end;
 
 {$endif read_interface}
@@ -171,7 +171,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](Event, Value, Time);
+    Items[I](Event, Value, Time);
 end;
 
 { TX3DEvent ----------------------------------------------------------------- }
@@ -217,7 +217,7 @@ procedure TX3DEvent.Send(Field: TX3DField; const Time: TX3DTime);
     I: Integer;
   begin
     for I := 0 to HandlersToRemove.Count - 1 do
-      OnReceive.Remove(HandlersToRemove.L[I]);
+      OnReceive.Remove(HandlersToRemove.Items[I]);
     HandlersToRemove.Count := 0;
   end;
 
@@ -292,7 +292,7 @@ end;
 
 { TX3DEventList ------------------------------------------------------------ }
 
-function TX3DEventList.IndexOf(const Name: string): Integer;
+function TX3DEventList.IndexOfName(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
     if Items[Result].IsName(Name) then Exit;
@@ -303,7 +303,7 @@ function TX3DEventList.GetByName(const AName: string): TX3DEvent;
 var
   I: integer;
 begin
-  I := IndexOf(AName);
+  I := IndexOfName(AName);
   if I <> -1 then
     Result := Items[I] else
     raise EX3DNotFound.CreateFmt('Event name "%s" not found', [AName]);

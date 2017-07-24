@@ -35,7 +35,7 @@ uses SysUtils, Classes, Math,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
   CastleGLVersion, CastleSceneManager, CastleRenderingCamera,
-  CastleGenericLists, CastleRectangles, CastleApplicationProperties;
+  CastleRectangles, CastleApplicationProperties;
 
 type
   TDrawType = (dtNormalGL, dtElements, dtElementsIntensity, dtPass1, dtPass2);
@@ -58,10 +58,10 @@ type
   TAOElement = record
     Area: Single;
     { Position and Normal are in *world* coordinates (not local!) }
-    Position, Normal: TVector3Single;
+    Position, Normal: TVector3;
   end;
   PAOElement = ^TAOElement;
-  TAOElementList = specialize TGenericStructList<TAOElement>;
+  TAOElementList = specialize TStructList<TAOElement>;
 
 var
   Elements: TAOElementList;
@@ -80,7 +80,7 @@ type
   TElementsCalculator = class
   public
     CoordIndex: TLongIntList;
-    Coord: TVector3SingleList;
+    Coord: TVector3List;
     ShapeElements: PAOElement;
 
     procedure Polygon(const Indexes: array of Cardinal);
@@ -89,7 +89,7 @@ type
 procedure TElementsCalculator.Polygon(
   const Indexes: array of Cardinal);
 var
-  FaceNormal: TVector3Single;
+  FaceNormal: TVector3;
   { DirectIndexes is LongInt, not Cardinal array, since we cannot
     guarantee that CoordIndex items are >= 0. }
   DirectIndexes: array of LongInt;
@@ -112,8 +112,8 @@ begin
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3Single(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
-    Vector3Single(0, 0, 0));
+    PVector3(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
+    Vector3(0, 0, 0));
 
   { We assume here that polygon is convex, while in fact it doesn't
     have to be. But this will be a good approximation anyway, usually. }
@@ -123,7 +123,7 @@ begin
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3Single(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
+    PVector3(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
 
   { Split FaceArea into the number of polygon corners. }
   FaceArea /= Length(Indexes);
@@ -131,7 +131,8 @@ begin
   for I := 0 to Length(Indexes) - 1 do
     if DirectIndexes[I] >= 0 then
     begin
-      VectorAddVar(ShapeElements[DirectIndexes[I]].Normal, FaceNormal);
+      ShapeElements[DirectIndexes[I]].Normal :=
+        ShapeElements[DirectIndexes[I]].Normal + FaceNormal;
       { Split FaceArea into the number of polygon corners. }
       ShapeElements[DirectIndexes[I]].Area += FaceArea;
     end;
@@ -168,8 +169,8 @@ procedure CalculateElements;
       for I := 0 to Coord.Count - 1 do
       begin
         ShapeElements[I].Position :=
-          MatrixMultPoint(Shape.State.Transform, Coord.Items.List^[I]);
-        ShapeElements[I].Normal := ZeroVector3Single;
+          Shape.State.Transform.MultPoint(Coord.Items.List^[I]);
+        ShapeElements[I].Normal := TVector3.Zero;
         ShapeElements[I].Area := 0;
       end;
 
@@ -186,7 +187,7 @@ procedure CalculateElements;
 
       { Normalize all new normals }
       for I := 0 to Coord.Count - 1 do
-        NormalizeVar(ShapeElements[I].Normal);
+        ShapeElements[I].Normal.NormalizeMe;
     end else
     begin
       SetLength(Shapes[ShapeIndex].CoordToElement, 0);
@@ -239,7 +240,7 @@ begin
 
   for I := 0 to Elements.Count - 1 do
   begin
-    if not PerfectlyZeroVector(Elements.List^[I].Normal) then
+    if not Elements.List^[I].Normal.IsPerfectlyZero then
     begin
       { Then Element I should be on position GoodElementsCount. }
       if GoodElementsCount <> I then
@@ -275,8 +276,8 @@ begin
   Writeln('Elements: ', Elements.Count);
   for I := 0 to Elements.Count - 1 do
   begin
-    Writeln('pos ', VectorToNiceStr(Elements.List^[I].Position),
-            ' nor ', VectorToNiceStr(Elements.List^[I].Normal),
+    Writeln('pos ', Elements.List^[I].Position.ToString,
+            ' nor ', Elements.List^[I].Normal.ToString,
             ' area ', Elements.List^[I].Area:1:10);
   end;}
 end;
@@ -308,7 +309,7 @@ var
     For area, shift = 0, scale = calculated using max area.
     For positions, both scale and shift are calculated, using bounding box
     of points. }
-  PositionScale, PositionShift: TVector3Single;
+  PositionScale, PositionShift: TVector3;
   AreaScale: Single;
 
 procedure CalculateElementsTex;
@@ -370,9 +371,9 @@ begin
 
   Writeln('To squeeze area into texture we use area_scale = ', AreaScale:1:10);
   Writeln('To squeeze positions into texture we use scale = ',
-    VectorToNiceStr(PositionScale), ' and shift ',
-    VectorToNiceStr(PositionShift), ' (bbox is ',
-    Scene.BoundingBox.ToNiceStr, ')');
+    PositionScale.ToString, ' and shift ',
+    PositionShift.ToString, ' (bbox is ',
+    Scene.BoundingBox.ToString, ')');
 
   { initialize textures }
   FreeAndNil(ElementsPositionAreaTex);
@@ -472,17 +473,17 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
   var
     I: Integer;
     Q: PGLUQuadric;
-    NewX, NewY, NewZ: TVector3Single;
+    NewX, NewY, NewZ: TVector3;
     Radius: Float;
     ElementIntensity: PByte;
   begin
     glPushAttrib(GL_ENABLE_BIT);
       glEnable(GL_DEPTH_TEST);
-      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4Single(0, 0, 0, 1));
+      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Vector4(0, 0, 0, 1));
 
       if ElementsIntensityTex = nil then
       begin
-        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4Single(1, 1, 0, 1));
+        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(1, 1, 0, 1));
       end else
       begin
         ElementIntensity := ElementsIntensityTex.GrayscalePixels;
@@ -501,7 +502,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         glPushMatrix;
           NewZ := Elements.List^[I].Normal;
           NewX := AnyOrthogonalVector(NewZ);
-          NewY := VectorProduct(NewZ, NewX);
+          NewY := TVector3.CrossProduct(NewZ, NewX);
           glMultMatrix(TransformToCoordsMatrix(Elements.List^[I].Position,
             NewX, NewY, NewZ));
 
@@ -557,7 +558,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
 
       if GLVersion.Fglrx then
       begin
-        GLSLProgram[Pass].SetUniform('elements_count', Elements.Count);
+        GLSLProgram[Pass].SetUniform('elements_count', TGLint(Elements.Count));
         GLSLProgram[Pass].SetUniform('tex_elements_size', TGLint(ElementsTexSize));
       end;
 
@@ -574,7 +575,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
     end;
 
   var
-    SavedProjectionMatrix: TMatrix4Single;
+    SavedProjectionMatrix: TMatrix4;
   begin
     SavedProjectionMatrix := ProjectionMatrix;
     OrthoProjection(FloatRectangle(Window.Rect));
@@ -658,8 +659,8 @@ end;
 
 type
   THelper = class
-    class procedure VertexColor(var Color: TVector3Single;
-      Shape: TShape; const VertexPosition: TVector3Single;
+    class procedure VertexColor(var Color: TVector3;
+      Shape: TShape; const VertexPosition: TVector3;
       VertexIndex: Integer);
 
     class procedure SceneGeometryChanged(Scene: TCastleSceneCore;
@@ -667,8 +668,8 @@ type
       OnlyShapeChanged: TShape);
   end;
 
-class procedure THelper.VertexColor(var Color: TVector3Single;
-  Shape: TShape; const VertexPosition: TVector3Single;
+class procedure THelper.VertexColor(var Color: TVector3;
+  Shape: TShape; const VertexPosition: TVector3;
   VertexIndex: Integer);
 var
   ElemIndex, I: Integer;
@@ -689,12 +690,12 @@ begin
 
   ElemIndex := FullRenderShapeInfo^.CoordToElement[VertexIndex];
   if ElemIndex = -1 then
-    Color := ZeroVector3Single { element invalid, probably separate vertex } else
+    Color := TVector3.Zero { element invalid, probably separate vertex } else
   begin
     Intensity := FullRenderIntensityTex.GrayscalePixels[ElemIndex]/255;
-    Color[0] *= Intensity;
-    Color[1] *= Intensity;
-    Color[2] *= Intensity;
+    Color.Data[0] *= Intensity;
+    Color.Data[1] *= Intensity;
+    Color.Data[2] *= Intensity;
   end;
 end;
 

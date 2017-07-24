@@ -54,9 +54,9 @@
   end;
 
   TSlotTimelineColor = class(TSlotTimeline)
-    Colors: TVector4SingleList;
+    Colors: TVector4List;
     Curve: boolean;
-    CurveControlPoints: TVector4SingleList;
+    CurveControlPoints: TVector4List;
     constructor Create;
     destructor Destroy; override;
     procedure ParseSingleValue(const Json: TJSONObject); override;
@@ -65,7 +65,7 @@
       const SlotsToReset: TSlotsAnimated); override;
   end;
 
-  TSlotTimelineList = class(specialize TFPGObjectList<TSlotTimeline>)
+  TSlotTimelineList = class(specialize TObjectList<TSlotTimeline>)
   end;
 {$endif}
 
@@ -183,7 +183,7 @@ begin
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
-  if Time.Count = 1 then
+  if SpineVerboseWarnings and (Time.Count = 1) then
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'attachment']));
 end;
 
@@ -192,8 +192,8 @@ end;
 constructor TSlotTimelineColor.Create;
 begin
   inherited Create;
-  Colors := TVector4SingleList.Create;
-  CurveControlPoints := TVector4SingleList.Create;
+  Colors := TVector4List.Create;
+  CurveControlPoints := TVector4List.Create;
 end;
 
 destructor TSlotTimelineColor.Destroy;
@@ -205,10 +205,10 @@ end;
 
 procedure TSlotTimelineColor.ParseSingleValue(const Json: TJSONObject);
 var
-  ControlPoints: TVector4Single;
+  ControlPoints: TVector4;
   CurveTypeJson: TJSONData;
 begin
-  ControlPoints := Vector4Single(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
+  ControlPoints := Vector4(0, 0, 1, 1); // default value, in case curve is later changed from linear to curve
   CurveTypeJson := Json.Find('curve');
   if CurveTypeJson <> nil then
   begin
@@ -266,7 +266,7 @@ begin
   begin
     N := TColorInterpolatorNode.Create('SlotTimeline_color_' + ToX3DName(Slot.Name));
     for I := 0 to Colors.Count - 1 do
-      N.FdKeyValue.Items.Add(Vector3SingleCut(Colors[I]));
+      N.FdKeyValue.Items.Add(Colors[I].XYZ);
     EventValueChanged1 := N.EventValue_changed;
     Node1.EventSet_Fraction := N.EventSet_Fraction;
     Node1.Node := N;
@@ -304,7 +304,7 @@ begin
     interpolation, animation suddenly jumps from setup pose to given keyframe
     pose at given key time (unless animation is looping and it's the last frame,
     then it's visibly ignored). }
-  if Time.Count = 1 then
+  if SpineVerboseWarnings and (Time.Count = 1) then
     WritelnWarning('Spine', Format(SSpine1KeyFrameWarning, ['slot', Slot.Name, 'color']));
 end;
 

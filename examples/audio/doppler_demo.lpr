@@ -24,7 +24,7 @@
 program doppler_demo;
 
 uses SysUtils, CastleVectors, CastleWindow, CastleColors, CastleGLUtils,
-  CastleALUtils, CastleSoundEngine, CastleStringUtils, CastleKeysMouse,
+  CastleSoundEngine, CastleStringUtils, CastleKeysMouse,
   CastleRectangles, CastleUIControls;
 
 const
@@ -32,7 +32,7 @@ const
 
 var
   Window: TCastleWindowCustom;
-  PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3Single;
+  PreviousSoundPosition, SoundPosition, ListenerPosition: TVector3;
   { Playing sound. It may be @nil if we couldn't allocate it,
     which practically will happen only when OpenAL is not installed
     or --no-sound command-line option is used. }
@@ -41,7 +41,7 @@ var
 procedure Render(Container: TUIContainer);
 
   { Trivial visualization of a point. }
-  procedure DrawPoint(const V: TVector3Single; const Color: TCastleColor);
+  procedure DrawPoint(const V: TVector3; const Color: TCastleColor);
   var
     R: TRectangle;
   begin
@@ -67,7 +67,7 @@ procedure Motion(Container: TUIContainer; const Event: TInputMotion);
 begin
   if mbLeft in Event.Pressed then
   begin
-    SoundPosition := Vector3Single(Event.Position[0], Event.Position[1], 0);
+    SoundPosition := Vector3(Event.Position[0], Event.Position[1], 0);
     if Sound <> nil then
       Sound.Position := SoundPosition * ALDistanceScaling;
     Window.Invalidate;
@@ -88,7 +88,7 @@ begin
 
     //alDopplerFactor(3.0);
 
-    SoundPosition := Vector3Single(200, 300, 0);
+    SoundPosition := Vector3(200, 300, 0);
     PreviousSoundPosition := SoundPosition;
     Parameters := TSoundParameters.Create;
     try
@@ -99,9 +99,9 @@ begin
       Sound := SoundEngine.PlaySound(Parameters);
     finally FreeAndNil(Parameters) end;
 
-    ListenerPosition := Vector3Single(300, 300, 0);
+    ListenerPosition := Vector3(300, 300, 0);
     SoundEngine.UpdateListener(ListenerPosition * ALDistanceScaling,
-      Vector3Single(0, 1, 0), Vector3Single(0, 0, 1));
+      Vector3(0, 1, 0), Vector3(0, 0, 1));
 
     Application.TimerMilisec := 1000;
     Window.OnTimer := @Timer;

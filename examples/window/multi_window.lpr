@@ -37,7 +37,7 @@ type
     ParentWindow: TCastleWindowCustom;
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
   end;
 
 procedure TText.Render;
@@ -71,7 +71,7 @@ begin
   end;
 end;
 
-function TText.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TText.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true; // always
 end;
@@ -87,8 +87,8 @@ begin
 
     Text := TText.Create(Windows[I]);
     Text.Text := 'Window ' + IntToStr(I);
-    Text.LightColor := Vector4Single(Random*1.5, Random*1.5, Random*1.5, 1);
-    Text.DarkColor  := Vector4Single(Random*0.7, Random*0.7, Random*0.7, 1);
+    Text.LightColor := Vector4(Random*1.5, Random*1.5, Random*1.5, 1);
+    Text.DarkColor  := Vector4(Random*0.7, Random*0.7, Random*0.7, 1);
     Text.ParentWindow := Windows[I];
     Windows[I].Controls.InsertFront(Text);
 

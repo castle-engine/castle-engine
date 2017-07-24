@@ -22,40 +22,29 @@ type
   TDoubleList = class;
   TLongIntList = class;
 
-  TWordList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<Word>)
+  TWordList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Word>)
   public
-    procedure AddList(Source: TWordList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of Word); deprecated 'use AddRange';
-    function L: PWord;
     function Max: Word;
     procedure Assign(const Source: TLongIntList);
   end;
 
-  TLongWordList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<LongWord>)
+  TLongWordList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<LongWord>)
   public
-    procedure AddList(Source: TLongWordList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of LongWord); deprecated 'use AddRange';
-    function L: PLongWord;
     function Max: LongWord;
     procedure Assign(const Source: TLongIntList);
   end;
 
-  TFloatList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<Float>)
+  TFloatList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Float>)
     procedure AppendFloats(Floats: TSingleList);
-    procedure AddList(Source: TFloatList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of Float); deprecated 'use AddRange';
-    function L: PFloat;
-    procedure Assign(const Source: TFloatList);
   end;
 
   TArray_Single = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
   PArray_Single = ^TArray_Single;
 
-  TSingleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<Single>)
+  TSingleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Single>)
     procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
-    procedure Assign(const Source: TSingleList); overload;
     { Assign value from TDoubleList, converting to double-precision. }
     procedure Assign(const Source: TDoubleList); overload;
 
@@ -69,33 +58,24 @@ type
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
       V1, V2: TSingleList; Index1, Index2, ACount: Integer);
-    procedure AddList(Source: TSingleList); deprecated 'use AddRange';
-    procedure AddListRange(Source: TSingleList; Index, AddCount: Integer);
-    procedure AddArray(constref A: array of Single); deprecated 'use AddRange';
-    function L: PSingle;
+
+    procedure AddSubRange(Source: TSingleList; Index, AddCount: Integer);
+    procedure AddListRange(Source: TSingleList; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
-  TDoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<Double>)
+  TDoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Double>)
     function ToSingle: TSingleList;
 
-    procedure Assign(const Source: TDoubleList); overload;
     { Assign value from TSingleList, converting to single-precision. }
     procedure Assign(const Source: TSingleList); overload;
-
-    procedure AddList(Source: TDoubleList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of Double); deprecated 'use AddRange';
-    function L: PDouble;
   end;
 
-  TCardinalList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<Cardinal>)
+  TCardinalList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Cardinal>)
     function BigSum: Int64;
     function Sum: Cardinal;
-    procedure AddList(Source: TCardinalList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of Cardinal); deprecated 'use AddRange';
-    function L: PCardinal;
   end;
 
-  TBooleanList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<boolean>)
+  TBooleanList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -107,57 +87,29 @@ type
     procedure SetTrue(Index: Integer);
     { @groupEnd }
     function ToLongInt: TLongIntList;
-    procedure AddList(Source: TBooleanList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of boolean); deprecated 'use AddRange';
-    function L: PBoolean;
-    procedure Assign(const Source: TBooleanList);
   end;
 
   TArray_LongInt = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
   PArray_LongInt = ^TArray_LongInt;
 
-  TLongIntList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<LongInt>)
+  TLongIntList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<LongInt>)
   public
     function Max: LongInt;
     function Sum: LongInt;
     procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
-    procedure AddList(Source: TLongIntList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of LongInt); deprecated 'use AddRange';
     { Add given Item a number of times to the list. }
     procedure AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
-    function L: PLongInt;
-    function L(const Index: Integer): PLongInt;
-    procedure Assign(const Source: TLongIntList);
   end;
 
-  TIntegerList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<Integer>)
+  TIntegerList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Integer>)
   public
     function Sum: Integer;
-    procedure AddList(Source: TIntegerList); deprecated 'use AddRange';
-    procedure AddArray(constref A: array of Integer); deprecated 'use AddRange';
-    function L: PInteger;
-    procedure Assign(const Source: TIntegerList);
   end;
 {$endif}
 
 {$ifdef read_implementation}
 
 { TWordList ------------------------------------------------------------ }
-
-procedure TWordList.AddList(Source: TWordList);
-begin
-  AddRange(Source);
-end;
-
-procedure TWordList.AddArray(constref A: array of Word);
-begin
-  AddRange(A);
-end;
-
-function TWordList.L: PWord;
-begin
-  Result := PWord(FItems);
-end;
 
 function TWordList.Max: Word;
 var
@@ -187,21 +139,6 @@ end;
 
 { TLongWordList ------------------------------------------------------------ }
 
-procedure TLongWordList.AddList(Source: TLongWordList);
-begin
-  AddRange(Source);
-end;
-
-procedure TLongWordList.AddArray(constref A: array of LongWord);
-begin
-  AddRange(A);
-end;
-
-function TLongWordList.L: PLongWord;
-begin
-  Result := PLongWord(FItems);
-end;
-
 function TLongWordList.Max: LongWord;
 var
   I: Integer;
@@ -218,7 +155,7 @@ begin
     But, in exchange, it's fast. }
   Count := Source.Count;
   if Count <> 0 then
-    System.Move(Source.L[0], L[0], SizeOf(LongWord) * Count);
+    System.Move(Source.List^[0], List^[0], SizeOf(LongWord) * Count);
 end;
 
 { TFloatList ------------------------------------------------------------ }
@@ -229,27 +166,6 @@ begin
  OldCount := Count;
  Count := Count + Floats.Count;
  for i := 0 to Floats.Count - 1 do Items[OldCount+i] := Floats.Items[i];
-end;
-
-procedure TFloatList.AddList(Source: TFloatList);
-begin
-  AddRange(Source);
-end;
-
-procedure TFloatList.AddArray(constref A: array of Float);
-begin
-  AddRange(A);
-end;
-
-function TFloatList.L: PFloat;
-begin
-  Result := PFloat(FItems);
-end;
-
-procedure TFloatList.Assign(const Source: TFloatList);
-begin
-  Clear;
-  AddRange(Source);
 end;
 
 { TSingleList ------------------------------------------------------------ }
@@ -295,35 +211,19 @@ begin
     Items[I] := Lerp(Fraction, V1.Items[Index1 + I], V2.Items[Index2 + I]);
 end;
 
-procedure TSingleList.AddList(Source: TSingleList);
+procedure TSingleList.AddListRange(Source: TSingleList; Index, AddCount: Integer);
 begin
-  AddRange(Source);
+  AddSubRange(Source, Index, AddCount);
 end;
 
-procedure TSingleList.AddListRange(Source: TSingleList; Index, AddCount: Integer);
+procedure TSingleList.AddSubRange(Source: TSingleList; Index, AddCount: Integer);
 var
   OldCount: Integer;
 begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(Single) * AddCount);
-end;
-
-procedure TSingleList.AddArray(constref A: array of Single);
-begin
-  AddRange(A);
-end;
-
-function TSingleList.L: PSingle;
-begin
-  Result := PSingle(FItems);
-end;
-
-procedure TSingleList.Assign(const Source: TSingleList);
-begin
-  Clear;
-  AddRange(Source);
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(Single) * AddCount);
 end;
 
 { TDoubleList ------------------------------------------------------------ }
@@ -351,27 +251,6 @@ begin
   end;
 end;
 
-procedure TDoubleList.AddList(Source: TDoubleList);
-begin
-  AddRange(Source);
-end;
-
-procedure TDoubleList.AddArray(constref A: array of Double);
-begin
-  AddRange(A);
-end;
-
-function TDoubleList.L: PDouble;
-begin
-  Result := PDouble(FItems);
-end;
-
-procedure TDoubleList.Assign(const Source: TDoubleList);
-begin
-  Clear;
-  AddRange(Source);
-end;
-
 { TCardinalList ------------------------------------------------------------ }
 
 function TCardinalList.BigSum: Int64;
@@ -388,21 +267,6 @@ begin
   Result := 0;
   for I := 0 to Count - 1 do
     Result += Items[I];
-end;
-
-procedure TCardinalList.AddList(Source: TCardinalList);
-begin
-  AddRange(Source);
-end;
-
-procedure TCardinalList.AddArray(constref A: array of Cardinal);
-begin
-  AddRange(A);
-end;
-
-function TCardinalList.L: PCardinal;
-begin
-  Result := PCardinal(FItems);
 end;
 
 { TBooleanList ------------------------------------------------------------ }
@@ -425,27 +289,6 @@ begin
   Result.Count := Count;
   for I := 0 to Count - 1 do
     Result.Items[I] := Ord(Items[I]);
-end;
-
-procedure TBooleanList.AddList(Source: TBooleanList);
-begin
-  AddRange(Source);
-end;
-
-procedure TBooleanList.AddArray(constref A: array of boolean);
-begin
-  AddRange(A);
-end;
-
-function TBooleanList.L: PBoolean;
-begin
-  Result := PBoolean(FItems);
-end;
-
-procedure TBooleanList.Assign(const Source: TBooleanList);
-begin
-  Clear;
-  AddRange(Source);
 end;
 
 { TLongIntList ----------------------------------------------------------- }
@@ -483,16 +326,6 @@ begin
   Count := Count - DelCount;
 end;
 
-procedure TLongIntList.AddList(Source: TLongIntList);
-begin
-  AddRange(Source);
-end;
-
-procedure TLongIntList.AddArray(constref A: array of LongInt);
-begin
-  AddRange(A);
-end;
-
 procedure TLongIntList.AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
 var
   I, C: Integer;
@@ -501,23 +334,6 @@ begin
   Count := Count + DuplicateCount;
   for I := C to Count - 1 do
     Items[I] := Item;
-end;
-
-function TLongIntList.L: PLongInt;
-begin
-  Result := PLongInt(FItems);
-end;
-
-function TLongIntList.L(const Index: Integer): PLongInt;
-begin
-  Result := PLongInt(FItems);
-  PtrUInt(Result) := PtrUInt(Result) + Index * SizeOf(LongInt);
-end;
-
-procedure TLongIntList.Assign(const Source: TLongIntList);
-begin
-  Clear;
-  AddRange(Source);
 end;
 
 { TIntegerList ----------------------------------------------------------- }
@@ -529,27 +345,6 @@ begin
   Result := 0;
   for I := 0 to Count - 1 do
     Result += Items[I];
-end;
-
-procedure TIntegerList.AddList(Source: TIntegerList);
-begin
-  AddRange(Source);
-end;
-
-procedure TIntegerList.AddArray(constref A: array of Integer);
-begin
-  AddRange(A);
-end;
-
-function TIntegerList.L: PInteger;
-begin
-  Result := PInteger(FItems);
-end;
-
-procedure TIntegerList.Assign(const Source: TIntegerList);
-begin
-  Clear;
-  AddRange(Source);
 end;
 
 {$endif}

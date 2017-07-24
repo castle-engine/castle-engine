@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   TSlotList = class;
 
-  TMaterialNodeList = specialize TFPGObjectList<TMaterialNode>;
+  TMaterialNodeList = specialize TObjectList<TMaterialNode>;
 
   TSlotsAnimated = class
     Attachment: TSlotList;
@@ -29,8 +29,8 @@
     procedure Assign(const Source: TSlotsAnimated);
   end;
 
-  TColorInterpolatorNodeList = specialize TFPGObjectList<TColorInterpolatorNode>;
-  TScalarInterpolatorNodeList = specialize TFPGObjectList<TScalarInterpolatorNode>;
+  TColorInterpolatorNodeList = specialize TObjectList<TColorInterpolatorNode>;
+  TScalarInterpolatorNodeList = specialize TObjectList<TScalarInterpolatorNode>;
 
   TSlot = class
   public
@@ -62,22 +62,25 @@
     Materials: TMaterialNodeList;
     constructor Create;
     destructor Destroy; override;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const SlotsAnimated: TSlotsAnimated;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
       const ContainerForResetNode: TAbstractX3DGroupingNode);
   end;
 
-  TSlotList = class(specialize TFPGObjectList<TSlot>)
+  TSlotList = class(specialize TObjectList<TSlot>)
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;
-    procedure Parse(const Json: TJSONObject; const Bones: TBoneList);
+    procedure Parse(const Json: TJSONObject; const Bones: TBoneList;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const SlotsAnimated: TSlotsAnimated;
       const AttachmentsPreferred, AttachmentsDefault: TAttachmentList;
       const ContainerForResetNode: TAbstractX3DGroupingNode);
+    procedure Assign(const Source: TSlotList);
   end;
 {$endif}
 
@@ -122,7 +125,8 @@ end;
 destructor TSlot.Destroy;
 begin
   if NodeUsedAsChild then
-    Node := nil else
+    Node := nil
+  else
     FreeIfUnusedAndNil(Node);
   FreeAndNil(AttachmentNames);
   FreeAndNil(Materials);
@@ -131,10 +135,14 @@ begin
   inherited;
 end;
 
-procedure TSlot.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TSlot.Parse(const Json: TJSONObject; const Bones: TBoneList;
+  const DragonBonesFormat: boolean);
 begin
   Name := Json.Get('name', '');
-  Bone := Bones.Find(Json.Get('bone', ''));
+  if DragonBonesFormat then
+    Bone := Bones.Find(Json.Get('parent', ''))
+  else
+    Bone := Bones.Find(Json.Get('bone', ''));
   AttachmentNames.Add(Json.Get('attachment', ''));
   Color := HexToColor(Json.Get('color', 'ffffffff'));
 end;
@@ -178,7 +186,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     begin
       ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
       ColInterp.FdKey.Items.Add(0);
-      ColInterp.FdKeyValue.Items.Add(Vector3SingleCut(Color));
+      ColInterp.FdKeyValue.Items.Add(Color.XYZ);
       ContainerForResetNode.FdChildren.Add(ColInterp);
       ResetColor1.Add(ColInterp);
 
@@ -251,7 +259,7 @@ var
   I: Integer;
 begin
   Node := TTransformNode.Create('SlotTransform_' + ToX3DName(Name), BaseUrl);
-  Node.FdTranslation.Value := Vector3Single(0, 0, DrawOrder * DrawOrderZ);
+  Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
   Bone.Node.FdChildren.Add(Node);
   NodeUsedAsChild := true;
 
@@ -281,15 +289,20 @@ begin
   raise ESpineReadError.CreateFmt('Slot name "%s" not found', [SlotName]);
 end;
 
-procedure TSlotList.Parse(const Json: TJSONObject; const Bones: TBoneList);
+procedure TSlotList.Parse(const Json: TJSONObject; const Bones: TBoneList; const DragonBonesFormat: boolean);
 var
   I: Integer;
   Slot: TSlot;
   ChildArray: TJSONArray;
+  ArrayName: string;
 begin
-  ChildArray := Json.Find('slots', jtArray) as TJSONArray;
+  if DragonBonesFormat then
+    ArrayName := 'slot'
+  else
+    ArrayName := 'slots';
+  ChildArray := Json.Find(ArrayName, jtArray) as TJSONArray;
   if ChildArray = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "slots" array');
+    raise ESpineReadError.CreateFmt('Spine / Dragon Bones JSON skeleton: Missing "%s" array', [ArrayName]);
 
   for I := 0 to ChildArray.Count - 1 do
     if ChildArray[I] is TJSONObject then
@@ -297,7 +310,7 @@ begin
       Slot := TSlot.Create;
       Slot.DrawOrder := Count;
       Add(Slot);
-      Slot.Parse(TJSONObject(ChildArray[I]), Bones);
+      Slot.Parse(TJSONObject(ChildArray[I]), Bones, DragonBonesFormat);
     end;
 end;
 
@@ -311,6 +324,12 @@ begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, SlotsAnimated,
       AttachmentsPreferred, AttachmentsDefault, ContainerForResetNode);
+end;
+
+procedure TSlotList.Assign(const Source: TSlotList);
+begin
+  Clear;
+  AddRange(Source);
 end;
 
 {$endif}

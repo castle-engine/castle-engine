@@ -397,8 +397,8 @@ end;
 procedure TKambiHeadLightNode.CreateNode;
 const
   HeadLightDefaultAmbientIntensity = 0;
-  HeadLightDefaultAttenuation: TVector3Single = (1, 0, 0);
-  HeadLightDefaultColor: TVector3Single = (1, 1, 1);
+  HeadLightDefaultAttenuation: TVector3 = (Data: (1, 0, 0));
+  HeadLightDefaultColor: TVector3 = (Data: (1, 1, 1));
   HeadLightDefaultIntensity = 1.0;
   HeadLightDefaultSpot = false;
   HeadLightDefaultSpotCutOffAngle = Pi / 4;
@@ -480,7 +480,7 @@ begin
    FdDestFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDestFactor);
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
    FdColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdColor);
 

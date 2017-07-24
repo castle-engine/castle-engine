@@ -75,13 +75,13 @@ type
       CamUp will be automatically corrected to be orthogonal to
       CamDirection if necessary, you only make sure it's not parallel
       to CamDirection. }
-    CamPosition, CamDirection, CamUp: TVector3Single;
+    CamPosition, CamDirection, CamUp: TVector3;
 
     { Camera projection properties. }
     Projection: TProjection;
 
     { Default background color, if scene doesn't have Background node with skyColor. }
-    SceneBGColor: TVector3Single;
+    SceneBGColor: TVector3;
 
     { Scene Background node. }
     Background: TAbstractBackgroundNode;
@@ -242,24 +242,24 @@ uses SysUtils, Math,
   - transmitted into the material with angle of refraction EtaTo
   - hit occurs on the plane with normal vector (i.e. normalized) PlaneNormal }
 function TryTransmittedRayDirection(
-  out TransmittedRayDirection: TVector3Single;
-  const NormRayDirection: TVector3Single;
-  const PlaneNormal: TVector3Single;
+  out TransmittedRayDirection: TVector3;
+  const NormRayDirection: TVector3;
+  const PlaneNormal: TVector3;
   const EtaFrom, EtaTo: Single): boolean;
 { Written based on Foley, page 627 }
 var
   EtaTransmission, RayIDotNormal, ToBeSqrRooted: Single;
-  RayI: TVector3Single;
+  RayI: TVector3;
   { This is the Normal pointing in the direction from where the RayDirection came
     (i.e. in the opposite of RayDirection,
     i.e. -RayDirection (note the "-") and Normal must point to the same side
     of plane with PlaneNormal) }
-  Normal: TVector3Single;
+  Normal: TVector3;
 begin
   Normal := PlaneDirNotInDirection(PlaneNormal, NormRayDirection);
   RayI := -NormRayDirection;
 
-  RayIDotNormal := RayI ** Normal;
+  RayIDotNormal := TVector3.DotProduct(RayI, Normal);
 
   { EtaTransmission is the ratio between angles of refraction of materials
     that change when the transmitted ray enters to the other side
@@ -278,10 +278,10 @@ end;
 { Calculate the perfect reflected vector.
   Arguments NormRayDirection and PlaneNormal like for TryTransmittedRayDirection. }
 function ReflectedRayDirection(
-  const NormRayDirection: TVector3Single;
-  const PlaneNormal: TVector3Single): TVector3Single;
+  const NormRayDirection: TVector3;
+  const PlaneNormal: TVector3): TVector3;
 var
-  Normal, NormNegatedRayDirection: TVector3Single;
+  Normal, NormNegatedRayDirection: TVector3;
 begin
   { Calculate Normal like in TryTransmittedRayDirection. }
   Normal := PlaneDirNotInDirection(PlaneNormal, NormRayDirection);
@@ -289,7 +289,7 @@ begin
 
   { We calculate ray as mirror ray to NormNegatedRayDirection.
     Calculation is just like in Foley (page 601, section (14.16)). }
-  Result := (Normal * 2 * (Normal ** NormNegatedRayDirection))
+  Result := (Normal * 2 * TVector3.DotProduct(Normal, NormNegatedRayDirection))
     - NormNegatedRayDirection;
 end;
 
@@ -305,7 +305,7 @@ begin
 end;
 
 function GetDiffuseTexture(const Texture: TAbstractTextureNode;
-  const TexCoord: TVector4Single): TCastleColorRGB;
+  const TexCoord: TVector4): TCastleColorRGB;
 
   function DivUnsignedModulo(const Dividend: Integer; const Divisor: Integer): Integer;
   var
@@ -319,7 +319,7 @@ function GetDiffuseTexture(const Texture: TAbstractTextureNode;
 var
   RepeatCoord: array [0..2] of boolean;
 
-  function SampleNearest(const Image: TCastleImage; const Pixel: TVector3Single): TCastleColor;
+  function SampleNearest(const Image: TCastleImage; const Pixel: TVector3): TCastleColor;
   var
     I: Integer;
     Dimensions: TVector3Cardinal;
@@ -339,12 +339,12 @@ var
 
   // This works OK, but is not needed now (as it ~2 times slower than SampleLinear2D).
   {
-  function SampleLinear(const Image: TCastleImage; Pixel: TVector3Single): TCastleColor;
+  function SampleLinear(const Image: TCastleImage; Pixel: TVector3): TCastleColor;
   var
     I: Integer;
     Dimensions: TVector3Cardinal;
     PixelInt: array [boolean, 0..2] of Integer;
-    PixelFrac: TVector3Single;
+    PixelFrac: TVector3;
   begin
     Dimensions := Image.Dimensions;
     for I := 0 to 2 do
@@ -374,20 +374,20 @@ var
   end;
   }
 
-  function SampleLinear2D(const Image: TCastleImage; Pixel: TVector3Single): TCastleColor;
+  function SampleLinear2D(const Image: TCastleImage; Pixel: TVector3): TCastleColor;
   var
     I: Integer;
     Dimensions: TVector3Cardinal;
     PixelInt: array [boolean, 0..1] of Integer;
-    PixelFrac: TVector2Single;
+    PixelFrac: TVector2;
   begin
     Dimensions := Image.Dimensions;
     for I := 0 to 1 do
     begin
       if RepeatCoord[I] then
-        Pixel[I] := FloatModulo(Pixel[I], Dimensions[I])
+        Pixel.Data[I] := FloatModulo(Pixel.Data[I], Dimensions[I])
       else
-        Pixel[I] := Clamped(Pixel[I], 0, Dimensions[I]);
+        Pixel.Data[I] := Clamped(Pixel.Data[I], 0, Dimensions[I]);
     end;
 
     for I := 0 to 1 do
@@ -411,8 +411,8 @@ var
   Texture2D: TAbstractTexture2DNode;
   EncodedImage: TEncodedImage;
   Image: TCastleImage;
-  TexCoord3D: TVector3Single;
-  Pixel: TVector3Single;
+  TexCoord3D: TVector3;
+  Pixel: TVector3;
   Color: TCastleColor;
   Bilinear: boolean;
 begin
@@ -435,20 +435,22 @@ begin
       EncodedImage := Texture2D.TextureImage;
       if (EncodedImage is TCastleImage) and
          (not EncodedImage.IsEmpty) and
-         (not Zero(TexCoord[3])) then
+         (not IsZero(TexCoord[3])) then
       begin
         Image := TCastleImage(EncodedImage);
-        TexCoord3D := Vector3SinglePoint(TexCoord);
-        Pixel[0] := TexCoord3D[0] * Image.Width;
-        Pixel[1] := TexCoord3D[1] * Image.Height;
-        Pixel[2] := TexCoord3D[2] * Image.Depth;
+        TexCoord3D := TexCoord.ToPosition;
+        Pixel.Init(
+          TexCoord3D[0] * Image.Width,
+          TexCoord3D[1] * Image.Height,
+          TexCoord3D[2] * Image.Depth
+        );
         if IsNan(TexCoord[0]) then
         begin
           // TODO: bug on demo-models/bump_mapping/bump_mapping_leaf_test.wrl
           {
-          Writeln(VectorToRawStr(Pixel));
-          Writeln(VectorToRawStr(TexCoord3D));
-          Writeln(VectorToRawStr(TexCoord));
+          Writeln(Pixel.ToRawString);
+          Writeln(TexCoord3D.ToRawString);
+          Writeln(TexCoord.ToRawString);
           Writeln(Image.Width, ' ', Image.Height, ' ', Image.Depth);
           }
           Exit;
@@ -468,7 +470,7 @@ begin
         else
           Color := SampleNearest(Image, Pixel);
 
-        Result := Vector3SingleCut(Color);
+        Result := Color.XYZ;
       end;
     end;
   end;
@@ -507,18 +509,18 @@ var
   { Traces the ray with given Depth.
     Returns @false if the ray didn't hit anything, otherwise
     returns @true and sets Color. }
-  function Trace(const RayOrigin, RayDirection: TVector3Single; const Depth: Cardinal;
+  function Trace(const RayOrigin, RayDirection: TVector3; const Depth: Cardinal;
     const TriangleToIgnore: PTriangle; IgnoreMarginAtStart: boolean): TCastleColorRGB;
   var
-    Intersection: TVector3Single;
-    IntersectNormal: TVector3Single;
+    Intersection: TVector3;
+    IntersectNormal: TVector3;
     IntersectNode: PTriangle;
     MaterialTransparency: Single;
-    MaterialReflectionColor: TVector3Single;
+    MaterialReflectionColor: TVector3;
 
     procedure ModifyColorByTransmittedRay;
     var
-      TransmittedColor, TransmittedRayVec: TVector3Single;
+      TransmittedColor, TransmittedRayVec: TVector3;
       EtaFrom, EtaTo: Single;
     const
       EtaConst = 1.3;
@@ -538,7 +540,7 @@ var
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
         if TryTransmittedRayDirection(
-          TransmittedRayVec, Normalized(RayDirection),
+          TransmittedRayVec, RayDirection.Normalize,
           IntersectNormal, EtaFrom, EtaTo) then
         begin
           TransmittedColor := Trace(Intersection, TransmittedRayVec,
@@ -551,7 +553,7 @@ var
 
     procedure ModifyColorByReflectedRay;
     var
-      ReflRayDirection, ReflColor: TVector3Single;
+      ReflRayDirection, ReflColor: TVector3;
       MaterialReflection: Single;
     begin
       MaterialReflection := Max(
@@ -561,7 +563,7 @@ var
       );
       if MaterialReflection > 0 then
       begin
-        ReflRayDirection := ReflectedRayDirection(Normalized(RayDirection),
+        ReflRayDirection := ReflectedRayDirection(RayDirection.Normalize,
           IntersectNormal);
         ReflColor := Trace(Intersection, ReflRayDirection, Depth - 1,
           IntersectNode, true);
@@ -572,7 +574,7 @@ var
             E.g. for MaterialReflectionColor = blue, it will make the surface
             somewhat yellowish. }
           Result * (1 - MaterialReflection) +
-          ReflColor * MaterialReflectionColor;
+          (ReflColor * MaterialReflectionColor);
       end;
     end;
 
@@ -614,7 +616,7 @@ var
       the scene completely unlit, usually diffuseColor is more useful for this
       (since emissiveColor is often black on everything). }
     function Emission(const M: TMaterialInfo;
-      const LightingCalculationOn: boolean): TVector3Single;
+      const LightingCalculationOn: boolean): TVector3;
     begin
       if M <> nil then
       begin
@@ -626,10 +628,10 @@ var
       begin
         if LightingCalculationOn then
           { Default VRML 2.0 Material.emissiveColor }
-          Result := ZeroVector3Single
+          Result := TVector3.Zero
         else
           { Default VRML 2.0 Material.diffuseColor }
-          Result := Vector3Single(0.8, 0.8, 0.8);
+          Result := Vector3(0.8, 0.8, 0.8);
       end;
     end;
 
@@ -645,7 +647,7 @@ var
 
     IntersectNormal :=
       {$ifdef CONSERVE_TRIANGLE_MEMORY}
-      Vector3SingleCut(IntersectNode^.World.Plane)
+      IntersectNode^.World.Plane.XYZ
       {$else}
       IntersectNode^.INormalWorldSpace(Intersection)
       {$endif};
@@ -745,7 +747,7 @@ var
 
   procedure DoPixel(const x, y: Cardinal);
   var
-    RayOrigin, RayDirection: TVector3Single;
+    RayOrigin, RayDirection: TVector3;
     C: TCastleColor;
     ColRGB: TCastleColorRGB absolute C;
   begin
@@ -767,7 +769,7 @@ begin
   SFCurve := nil;
   try
     RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
-      Normalized(CamDirection), Normalized(CamUp), Projection);
+      CamDirection.Normalize, CamUp.Normalize, Projection);
 
     { Using any other kind of space filling curve doesn't have any
       noticeable impact right now for classic ray tracer, since
@@ -825,7 +827,7 @@ begin
   SFCurveClass := TSwapScanCurve;
 end;
 
-  function EmissiveColor(const Item: TTriangle): TVector3Single;
+  function EmissiveColor(const Item: TTriangle): TVector3;
   var
     M: TMaterialInfo;
   begin
@@ -838,7 +840,7 @@ end;
 
   function IsLightSource(const Item: TTriangle): boolean;
   begin
-    Result := VectorLenSqr(EmissiveColor(Item)) > Sqr(SingleEqualityEpsilon);
+    Result := EmissiveColor(Item).LengthSqr > Sqr(SingleEpsilon);
   end;
 
 procedure TPathTracer.CollectLightItems(const Triangle: PTriangle);
@@ -936,9 +938,9 @@ const
   LightEmissionArea = 1/30;
 
   function IsLightShadowed(const Item: PTriangle;
-    const ItemPoint: TVector3Single;
+    const ItemPoint: TVector3;
     const LightSourceIndiceIndex: Integer;
-    LightSourcePoint: TVector3Single): boolean;
+    LightSourcePoint: TVector3): boolean;
   { ta funkcja liczy shadow ray (a w zasadzie segment). Zwraca true jezeli
     pomiedzy punktem ItemPoint a LightSourcePoint jest jakis element
     o transparency = 1. Wpp. zwraca false.
@@ -987,25 +989,25 @@ const
     finally OctreeIgnorer.Free end;
   end;
 
-  function Trace(const RayOrigin, RayDirection: TVector3Single;
+  function Trace(const RayOrigin, RayDirection: TVector3;
     const Depth: Integer; const TriangleToIgnore: PTriangle;
     const IgnoreMarginAtStart: boolean; const TraceOnlyIndirect: boolean)
-    : TVector3Single;
+    : TVector3;
   { sledzi promien z zadana glebokoscia. Zwraca Black (0, 0, 0) jesli
     promien w nic nie trafia, wpp. zwraca wyliczony kolor. }
   var
-    Intersection: TVector3Single;
+    Intersection: TVector3;
     IntersectNode: PTriangle;
     MaterialInfo: TMaterialInfo; { = IntersectNode.MaterialInfo }
-    IntersectNormal: TVector3Single;
+    IntersectNormal: TVector3;
 
-    function TraceNonEmissivePart: TVector3Single;
+    function TraceNonEmissivePart: TVector3;
 
       function TryCalculateTransmittedSpecularRayDirection(
-        var TracedDir: TVector3Single;
+        var TracedDir: TVector3;
         var PdfValue: Single): boolean;
       var
-        TransmittedRayDirection: TVector3Single;
+        TransmittedRayDirection: TVector3;
         EtaFrom, EtaTo: Single;
       const
         EtaConst = 1.3; { TODO: tu tez uzywam EtaConst, jak w Classic }
@@ -1015,7 +1017,7 @@ const
           begin EtaFrom := EtaConst; EtaTo := 1 end;
 
         Result := TryTransmittedRayDirection(TransmittedRayDirection,
-          Normalized(RayDirection),
+          RayDirection.Normalize,
           IntersectNormal, EtaFrom, EtaTo);
         if Result then
           TracedDir := PhiThetaToXYZ(
@@ -1025,7 +1027,7 @@ const
             TransmittedRayDirection);
       end;
 
-      function DirectIllumination: TVector3Single;
+      function DirectIllumination: TVector3;
       { ta funkcja liczy DirectIllumination dla naszego Intersection.
         Implementacja : uzywamy sformulowania (101) z GlobalIllumCompendium :
 
@@ -1060,11 +1062,11 @@ const
       var
         LightSource: PTriangle;
         LightSourceIndiceIndex: Integer; { indeks do LightIndices[] }
-        SampleLightPoint: TVector3Single;
-        DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3Single;
+        SampleLightPoint: TVector3;
+        DirectColor, LightDirNorm, NegatedLightDirNorm: TVector3;
         i: integer;
       begin
-        Result := ZeroVector3Single;
+        Result := TVector3.Zero;
 
         { trzeba ustrzec sie tu przed LightsItems.Count = 0 (zeby moc pozniej
           spokojnie robic Random(LightsItems.Count) i przed
@@ -1083,8 +1085,8 @@ const
             Lepiej pozniej sprawdz ze SampleLightPoint jest
             rozny od Intersection (poniewaz SampleLightPoint jest losowy to na
             nieprawidlowo skonstruowanym modelu wszystko moze sie zdarzyc...)  }
-          SampleLightPoint := SampleTrianglePoint(LightSource^.World.Triangle);
-          if VectorsEqual(SampleLightPoint, Intersection) then Continue;
+          SampleLightPoint := LightSource^.World.Triangle.RandomPoint;
+          if TVector3.Equals(SampleLightPoint, Intersection) then Continue;
 
           { calculate LigtDirNorm (nieznormalizowane).
             Jezeli LigtDirNorm wychodzi z innej strony
@@ -1104,10 +1106,10 @@ const
 
           { wymnoz przez naszego "niby-BRDFa" czyli po prostu przez kolor Diffuse
             materialu }
-          DirectColor *= MaterialInfo.DiffuseColor;
+          DirectColor := DirectColor * MaterialInfo.DiffuseColor;
 
           { calculate LightDirNorm (znormalizowane), NegatedLightDirNorm }
-          NormalizeVar(LightDirNorm);
+          LightDirNorm.NormalizeMe;
           NegatedLightDirNorm := -LightDirNorm;
 
           { Wymnoz DirectColor
@@ -1139,8 +1141,8 @@ const
               przenioslem mnozenie przez LightEmissionArea na sam koniec tej
               funkcji.}
           DirectColor *=
-            (LightDirNorm ** IntersectNormal) *
-            (NegatedLightDirNorm **
+            TVector3.DotProduct(LightDirNorm, IntersectNormal) *
+            TVector3.DotProduct(NegatedLightDirNorm,
               PlaneDirInDirection(LightSource^.World.Plane,
                 NegatedLightDirNorm)) *
             LightSource^.World.Area /
@@ -1161,15 +1163,15 @@ const
       { kolory Transmittive/Reflective Diffuse/Specular }
       TColorKind = (ckRS, ckRD, ckTS, ckTD);
     var
-      Colors: array[TColorKind]of TVector3Single;
+      Colors: array[TColorKind]of TVector3;
       Weights: array[TColorKind]of Single;
       WeightsSum: Single;
       RandomCK: Single;
       PdfValue: Single;
-      TracedCol, TracedDir: TVector3Single;
+      TracedCol, TracedDir: TVector3;
       ck: TColorKind;
     begin
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
       { caly result jaki tu wyliczymy dostaniemy dzieki wygranej w rosyjskiej
         ruletce jezeli Depth <= 0. (Trzeba o tym pamietac i pozniej podzielic
         przez RROulContinue.) }
@@ -1223,17 +1225,17 @@ const
         end;
 
         { notka : nie, ponizej nie mozna zamienic na test WeightsSum >
-          SingleEqualityEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
+          SingleEpsilon. Nawet gdy to zachodzi ciagle moze sie okazac
           ze WeightsSum jest wprawdzie duzo wieksze od zera ale samo
           Weights[ck] jest mikroskopijnie male (i po prostu mielismy duzo
           szczescia w losowaniu; path tracer robi tyle sciezek, tyle pixeli
           itd. ze nietrudno tutaj "przez przypadek" wylosowac mikroskopijnie
           mala wartosc). }
-        if Weights[ck] > SingleEqualityEpsilon then
+        if Weights[ck] > SingleEpsilon then
         begin
           IntersectNormal :=
             {$ifdef CONSERVE_TRIANGLE_MEMORY}
-            Vector3SingleCut(IntersectNode^.World.Plane)
+            IntersectNode^.World.Plane.XYZ
             {$else}
             IntersectNode^.INormalWorldSpace(Intersection)
             {$endif};
@@ -1256,7 +1258,7 @@ const
                     RandomHemispherePointCosThetaExp(
                       Round(MaterialInfo.ReflSpecularExp),
                       PdfValue),
-                    ReflectedRayDirection(Normalized(RayDirection),
+                    ReflectedRayDirection(RayDirection.Normalize,
                       IntersectNormal));
           end;
 
@@ -1268,8 +1270,8 @@ const
             jego wyboru sposrod czterech Colors[], czyli przez
             Weights[ck]/WeightsSum (bo to w koncu jest importance sampling)
             (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
-            > SingleEqualityEpsilon, sprawdzilismy to juz wczesniej). }
-          TracedCol *= Colors[ck];
+            > SingleEpsilon, sprawdzilismy to juz wczesniej). }
+          TracedCol := TracedCol * Colors[ck];
           TracedCol *= WeightsSum / Weights[ck];
 
           Result += TracedCol;
@@ -1286,7 +1288,7 @@ const
 
   var
     i: Integer;
-    NonEmissiveColor: TVector3Single;
+    NonEmissiveColor: TVector3;
   begin
     IntersectNode := Octree.RayCollision(Intersection, RayOrigin, RayDirection, true,
       TriangleToIgnore, IgnoreMarginAtStart, nil);
@@ -1294,7 +1296,7 @@ const
 
     if TraceOnlyIndirect and IsLightSource(IntersectNode^) then
     begin
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
       Exit;
     end;
 
@@ -1318,7 +1320,7 @@ const
           nie rozgaleziamy sie na wiele promieni. }
       if MinDepth = Depth then
       begin
-        NonEmissiveColor := ZeroVector3Single;
+        NonEmissiveColor := TVector3.Zero;
         for i := 0 to NonPrimarySamplesCount-1 do
           NonEmissiveColor += TraceNonEmissivePart;
         NonEmissiveColor *= 1 / NonPrimarySamplesCount;
@@ -1333,7 +1335,7 @@ var
 
   procedure DoPixel(const x, y: Cardinal);
   var
-    PixColor, PrimaryRayOrigin, PrimaryRayDirection: TVector3Single;
+    PixColor, PrimaryRayOrigin, PrimaryRayDirection: TVector3;
     SampleNum: Integer;
     C: TCastleColor;
     ColRGB: TCastleColorRGB absolute C;
@@ -1348,7 +1350,7 @@ var
       PixColor := Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
     end else
     begin
-      PixColor := ZeroVector3Single;
+      PixColor := TVector3.Zero;
       for SampleNum := 0 to PrimarySamplesCount - 1 do
       begin
         RaysWindow.PrimaryRay(
@@ -1399,7 +1401,7 @@ begin
 
     { calculate RaysWindow }
     RaysWindow := TRaysWindow.CreateDescendant(CamPosition,
-      Normalized(CamDirection), Normalized(CamUp), Projection);
+      CamDirection.Normalize, CamUp.Normalize, Projection);
 
     { calculate SFCurve }
     SFCurve := SFCurveClass.Create(Image.Width, Image.Height);

@@ -64,16 +64,27 @@ unit CastleUtils;
 
 {$I castleconf.inc}
 
+{ Most of CGE code uses ObjFpc mode under FPC,
+  but this unit needs Delphi mode to workaround FPC 3.0.0 and 3.0.2 bug:
+  they segfault on TStructList definition
+  "generic TStructList<T> = class(specialize TList<T>)".
+
+  Fixed in FPC 3.1.1 already, but CGE needs to work with FPC 3.0.0 and 3.0.2 too.
+
+  So it doesn't seem to be possible to define TStructList correctly in ObjFpc mode. }
+{$mode delphi}
+
 interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
   Variants, SysUtils, Math, Generics.Collections;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 {$define read_interface}
 
@@ -102,6 +113,7 @@ type
 
 {$I castleutils_basic_algorithms.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
 {$ifdef UNIX}      {$I castleutils_os_specific_unix.inc}    {$endif}
@@ -119,12 +131,11 @@ var
 
 implementation
 
-uses CastleStringUtils, CastleFilesUtils;
-
 {$define read_implementation}
 
 {$I castleutils_basic_algorithms.inc}
 {$I castleutils_miscella.inc}
+{$I castleutils_struct_list.inc}
 {$I castleutils_primitive_lists.inc}
 {$I castleutils_program_exit.inc}
 {$I castleutils_math.inc}

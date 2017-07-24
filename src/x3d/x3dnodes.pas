@@ -79,9 +79,8 @@
       @link(TNodesManager.RegisterNodeClasses NodesManager.RegisterNodeClasses).
 
       Examples of defining your own VRML/X3D node types (without modifying
-      sources of this unit, or any other unit) are for example in the
-      X3DBezierCurve unit in @code(bezier_curves) demo,
-      and LevelUnit in malfunction.)
+      sources of this unit, or any other unit) are for example in "malfunction" game
+      on https://github.com/castle-engine/malfunction (see LevelUnit).)
   )
 
   @bold(Node class names, and inheritance:)
@@ -172,23 +171,29 @@ unit X3DNodes;
 
 interface
 
-uses SysUtils, FGL, Classes, XMLRead, DOM,
+uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVectors, CastleRectangles,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleGenericLists, CastleShaders, CastleProjection;
+  CastleTextureFontData, CastleShaders, CastleProjection;
+
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 {$define read_interface}
 
 const
-  DefaultMaterial_1AmbientColor: TVector3Single = (0.2, 0.2, 0.2) deprecated 'use TMaterialInfo.DefaultAmbientColor';
+  DefaultMaterial_1AmbientColor: TVector3 = (Data: (0.2, 0.2, 0.2)) deprecated 'use TMaterialInfo.DefaultAmbientColor';
   DefaultMaterialAmbientIntensity = 0.2 deprecated 'use TMaterialInfo.DefaultAmbientIntensity';
-  DefaultMaterialDiffuseColor: TVector3Single = (0.8, 0.8, 0.8) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
-  DefaultMaterialSpecularColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultSpecularColor';
-  DefaultMaterialEmissiveColor: TVector3Single = (0, 0, 0) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
+  DefaultMaterialDiffuseColor: TVector3 = (Data: (0.8, 0.8, 0.8)) deprecated 'use TMaterialInfo.DefaultDiffuseColor';
+  DefaultMaterialSpecularColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TMaterialInfo.DefaultSpecularColor';
+  DefaultMaterialEmissiveColor: TVector3 = (Data: (0, 0, 0)) deprecated 'use TMaterialInfo.DefaultEmissiveColor';
   DefaultMaterialShininess = 0.2 deprecated 'use TMaterialInfo.DefaultShininess';
   DefaultMaterialTransparency = 0.0 deprecated 'use TMaterialInfo.DefaultTransparency';
   DefaultMaterialMirror = 0.0 deprecated 'use TMaterialInfo.DefaultMirror';
@@ -325,17 +330,17 @@ type
   TLightInstance = object
     Node: TAbstractLightNode;
 
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
     TransformScale: Single;
 
     { Light location, already transformed by the @link(Transform) matrix.
       For TAbstractPositionalLightNode lights. }
-    Location: TVector3Single;
+    Location: TVector3;
 
     { Light direction, already normalized and
       transformed by the @link(Transform) matrix.
       For spot and directional lights. }
-    Direction: TVector3Single;
+    Direction: TVector3;
 
     { Light radius, already transformed by the @link(Transform) matrix.
       For lights with radius (positional lights in VRML >= 2.0,
@@ -359,7 +364,7 @@ type
     { Position expressed in homogeneous coordinates.
       For positional lights, the last component is always 1.
       For directional lights, the last component is always 0. }
-    function Position: TVector4Single;
+    function Position: TVector4;
 
     { Light contribution to the specified vertex color.
       This can be used by software renderers (ray-tracers etc.)
@@ -373,10 +378,10 @@ type
       to multiply / accumulate values outside of the (0, 1) range
       during calculations. OpenGL also clamps only at the end. }
     function Contribution(
-      const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
+      const Point: TVector3; const PointPlaneNormal: TVector3;
       State: TX3DGraphTraverseState;
-      const CamPosition: TVector3Single;
-      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+      const CamPosition: TVector3;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3;
 
     { Light contribution, without knowing the camera or full material.
       We have a 3D vertex, we know it lies on a plane with given normal,
@@ -386,12 +391,12 @@ type
 
       The specular lighting part must be simply ignored in this case.  }
     function ContributionCameraIndependent(
-      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
-      const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+      const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3;
+      const DiffuseTextureColor: TCastleColorRGB): TVector3;
   end;
   PLightInstance = ^TLightInstance;
 
-  TLightInstancesList = class(specialize TGenericStructList<TLightInstance>)
+  TLightInstancesList = class(specialize TStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TAbstractLightNode): integer;
@@ -406,11 +411,11 @@ type
   { Clipping plane, along with a transformation. }
   TClipPlane = record
     Node: TClipPlaneNode;
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
   end;
   PClipPlane = ^TClipPlane;
 
-  TClipPlaneList = class(specialize TGenericStructList<TClipPlane>)
+  TClipPlaneList = class(specialize TStructList<TClipPlane>)
   public
     { Find record with given TClipPlaneNode, returns -1 if not found. }
     function IndexOfNode(Node: TClipPlaneNode): Integer;
@@ -449,7 +454,7 @@ type
     procedure AddLight(const Light: TLightInstance);
   public
     { Current transformation. }
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
 
     { Inverted @link(Transform) matrix. This matrix is crucial for some
       special effects (for example, it's needed for calculating in tangent space
@@ -468,7 +473,7 @@ type
       with zero factor, since one resulting point may correpond to infinitely many
       source points (i.e., it's natural that such scaling function cannot be
       reversed). }
-    InvertedTransform: TMatrix4Single;
+    InvertedTransform: TMatrix4;
 
     { A uniform scale of the matrix @link(Transform). If the matrix
       causes non-uniform scaling, this value represents an average scale.
@@ -489,7 +494,7 @@ type
   public
     { Current texture transformation. Usable only for VRML 1.0, in VRML 2.0
       texture transformations don't accumulate like modelview transformations. }
-    TextureTransform: TMatrix4Single;
+    TextureTransform: TMatrix4;
 
     ShapeNode: TAbstractShapeNode;
 
@@ -590,7 +595,7 @@ type
     PointingDeviceSensors: TPointingDeviceSensorList;
 
     { For Humanoid skeleton, these contain cummulated joint transformation. }
-    HumanoidTransform, HumanoidInvertedTransform: TMatrix4Single;
+    HumanoidTransform, HumanoidInvertedTransform: TMatrix4;
     { Humanoid node containing us, or @nil if none. }
     Humanoid: THAnimHumanoidNode;
 
@@ -730,7 +735,7 @@ type
 
   TNodeDestructionNotification = procedure (Node: TX3DNode) of object;
 
-  TNodeDestructionNotificationList = class(specialize TGenericStructList<TNodeDestructionNotification>)
+  TNodeDestructionNotificationList = class(specialize TList<TNodeDestructionNotification>)
   public
     { Call all functions. }
     procedure ExecuteAll(Node: TX3DNode);
@@ -757,7 +762,10 @@ type
     References: Cardinal;
     Node: TX3DRootNode;
   end;
-  TCachedNodeList = specialize TFPGObjectList<TCachedNode>;
+
+  TCachedNodeList = class(specialize TObjectList<TCachedNode>)
+    procedure Pack;
+  end;
 
   { Cache for resources not specific to renderer (OpenGL).
     Includes all TTexturesVideosCache resources (texture, movie
@@ -906,7 +914,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
-      const EqualityEpsilon: Double): boolean; override;
+      const Epsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -1089,7 +1097,7 @@ type
 
     function EqualsDefaultValue: boolean; override;
     function Equals(SecondValue: TX3DField;
-      const EqualityEpsilon: Double): boolean; override;
+      const Epsilon: Double): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -1339,7 +1347,7 @@ type
       CopyState: TX3DNodeDeepCopyState): TX3DInterfaceDeclaration;
   end;
 
-  TX3DInterfaceDeclarationList = class(specialize TFPGObjectList<TX3DInterfaceDeclaration>)
+  TX3DInterfaceDeclarationList = class(specialize TObjectList<TX3DInterfaceDeclaration>)
   public
     { Find field or event with given Name.
       @nil if not found. }
@@ -1562,7 +1570,7 @@ type
     property BaseUrl: string read FBaseUrl write FBaseUrl;
   end;
 
-  TX3DPrototypeBaseList = class(specialize TFPGObjectList<TX3DPrototypeBase>);
+  TX3DPrototypeBaseList = class(specialize TObjectList<TX3DPrototypeBase>);
 
   TX3DPrototype = class(TX3DPrototypeBase)
   private
@@ -1779,7 +1787,7 @@ type
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DRoute;
   end;
 
-  TX3DRouteList = class(specialize TFPGObjectList<TX3DRoute>);
+  TX3DRouteList = class(specialize TObjectList<TX3DRoute>);
 
   TX3DImport = class(TX3DFileItem)
   public
@@ -1823,7 +1831,7 @@ type
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
   { List to track node names while parsing VRML/X3D file. }
-  TX3DNodeNames = class(specialize TGenericStructList<TX3DNodeNameRec>)
+  TX3DNodeNames = class(specialize TStructList<TX3DNodeNameRec>)
   private
     FAutoRemove: boolean;
     procedure DestructionNotification(Node: TX3DNode);
@@ -2236,10 +2244,11 @@ uses
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 {$define read_implementation}
 
@@ -2256,7 +2265,7 @@ resourcestring
   function TGeometryNotImplemented.LocalBoundingBox(State: TX3DGraphTraverseState;
     ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
   begin
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
   end;
 
   function TGeometryNotImplemented.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -2728,24 +2737,24 @@ end;
 { TLightInstance ------------------------------------------------------------- }
 
 function TLightInstance.Contribution(
-  const Point: TVector3Single; const PointPlaneNormal: TVector3Single;
+  const Point: TVector3; const PointPlaneNormal: TVector3;
   State: TX3DGraphTraverseState;
-  const CamPosition: TVector3Single;
-  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+  const CamPosition: TVector3;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3;
 {$I x3dnodes_lightcontribution.inc}
 
 function TLightInstance.ContributionCameraIndependent(
-  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3Single;
-  const DiffuseTextureColor: TCastleColorRGB): TVector3Single;
+  const Point, PointPlaneNormal, MaterialDiffuseColor: TVector3;
+  const DiffuseTextureColor: TCastleColorRGB): TVector3;
 {$define CAMERA_INDEP}
 {$I x3dnodes_lightcontribution.inc}
 {$undef CAMERA_INDEP}
 
-function TLightInstance.Position: TVector4Single;
+function TLightInstance.Position: TVector4;
 begin
   if Node is TAbstractPositionalLightNode then
-    Result := Vector4Single(Location, 1) else
-    Result := Vector4Single(-Direction, 0);
+    Result := Vector4(Location, 1) else
+    Result := Vector4(-Direction, 0);
 end;
 
 { TLightInstancesList ----------------------------------------------------- }
@@ -2776,7 +2785,7 @@ function TLightInstancesList.Equals(SecondValue: TObject): boolean;
   function LightInstanceEquals(const L1, L2: TLightInstance): boolean;
   begin
     Result := (L1.Node = L2.Node) and
-      MatricesPerfectlyEqual(L1.Transform, L2.Transform);
+      TMatrix4.PerfectlyEquals(L1.Transform, L2.Transform);
 
     { No need to compare things like Location or Direction,
       as they are just precalculated based on Node and Transform. }
@@ -2831,7 +2840,7 @@ begin
   if Result then
     for I := 0 to Count - 1 do
       if (L[I].Node <> TClipPlaneList(SecondValue).L[I].Node) or
-         MatricesPerfectlyEqual(L[I].Transform, TClipPlaneList(SecondValue).L[I].Transform) then
+         TMatrix4.PerfectlyEquals(L[I].Transform, TClipPlaneList(SecondValue).L[I].Transform) then
         Exit(false);
 end;
 
@@ -2858,20 +2867,20 @@ constructor TX3DGraphTraverseState.Create;
 begin
   CommonCreate;
 
-  Transform := IdentityMatrix4Single;
+  Transform := TMatrix4.Identity;
   TransformScale := 1.0;
-  InvertedTransform := IdentityMatrix4Single;
+  InvertedTransform := TMatrix4.Identity;
 
   { THAnimHumanoidNode.BeforeTraverse will initialize it anyway.
     But set it also here, just in case we have Joint without surrounding
-    Humanoid node. (Otherwise MatrixMultPoint may raise errors in
+    Humanoid node. (Otherwise Matrix.MultPoint may raise errors in
     THAnimJointNode.ApplyTransform, when multiplying points with 0 matrix,
     testcase is
     view3dscene ~/3dmodels/vrmlx3d/hanim/tecfa.unige.ch/vrml/objects/avatars/blaxxun/kambi_hanim_10_test.wrl.) }
-  HumanoidTransform := IdentityMatrix4Single;
-  HumanoidInvertedTransform := IdentityMatrix4Single;
+  HumanoidTransform := TMatrix4.Identity;
+  HumanoidInvertedTransform := TMatrix4.Identity;
 
-  TextureTransform := IdentityMatrix4Single;
+  TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
 end;
 
@@ -2887,14 +2896,14 @@ end;
 
 procedure TX3DGraphTraverseState.Clear;
 begin
-  Transform := IdentityMatrix4Single;
+  Transform := TMatrix4.Identity;
   TransformScale := 1.0;
-  InvertedTransform := IdentityMatrix4Single;
+  InvertedTransform := TMatrix4.Identity;
 
-  HumanoidTransform := IdentityMatrix4Single;
-  HumanoidInvertedTransform := IdentityMatrix4Single;
+  HumanoidTransform := TMatrix4.Identity;
+  HumanoidInvertedTransform := TMatrix4.Identity;
 
-  TextureTransform := IdentityMatrix4Single;
+  TextureTransform := TMatrix4.Identity;
   FVRML1State.Assign(VRML1DefaultState);
   ShapeNode := nil;
   InsideInline := 0;
@@ -2990,8 +2999,8 @@ begin
     others. }
 
   Result :=
-    (IgnoreTransform or MatricesPerfectlyEqual(Transform, SecondValue.Transform)) and
-    MatricesPerfectlyEqual(TextureTransform, SecondValue.TextureTransform) and
+    (IgnoreTransform or TMatrix4.PerfectlyEquals(Transform, SecondValue.Transform)) and
+    TMatrix4.PerfectlyEquals(TextureTransform, SecondValue.TextureTransform) and
     (ShapeNode = SecondValue.ShapeNode) and
     (LocalFog = SecondValue.LocalFog);
 
@@ -3136,6 +3145,13 @@ end;
 procedure TX3DGraphTraverseStateStack.Clear;
 begin
   ItemsAllocated := 0;
+end;
+
+{ TCachedNodeList ------------------------------------------------------------ }
+
+procedure TCachedNodeList.Pack;
+begin
+  while Remove(nil) <> -1 do ;
 end;
 
 { TX3DNodesCache ------------------------------------------------------------ }
@@ -3555,9 +3571,9 @@ begin
 end;
 
 function TSFNode.Equals(SecondValue: TX3DField;
-  const EqualityEpsilon: Double): boolean;
+  const Epsilon: Double): boolean;
 begin
- Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+ Result := (inherited Equals(SecondValue, Epsilon)) and
    (SecondValue is TSFNode) and
    (TSFNode(SecondValue).Value = Value);
 end;
@@ -3850,7 +3866,7 @@ begin
   end else
   if Value > Items.Count then
   begin
-    { TFPGObjectList makes sure that increasing count sets new items to nil }
+    { TObjectList makes sure that increasing count sets new items to nil }
     Items.Count := Value;
   end;
 end;
@@ -4056,9 +4072,9 @@ begin
 end;
 
 function TMFNode.Equals(SecondValue: TX3DField;
-  const EqualityEpsilon: Double): boolean;
+  const Epsilon: Double): boolean;
 begin
-  Result := (inherited Equals(SecondValue, EqualityEpsilon)) and
+  Result := (inherited Equals(SecondValue, Epsilon)) and
     (SecondValue is TMFNode) and
     (TMFNode(SecondValue).Items.Equals(Items));
 end;
@@ -6458,7 +6474,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](Node);
+    Items[I](Node);
 end;
 
 { unit init/fini ------------------------------------------------------------ }

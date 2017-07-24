@@ -317,7 +317,7 @@
     { For given Index, return appropriate FdCrossIndex item as 3D vertex.
       That is, uses FdCrossIndex values as X, Z of 3D vertex and sets Y = 0
       (that's how Extrusion is defined in VRML / X3D). }
-    function CrossSection3D(Index: integer): TVector3Single;
+    function CrossSection3D(Index: integer): TVector3;
 
     { Check is spine closed. This happens when "spine" field is non-empty
       and it's first and last points are equal. }
@@ -461,7 +461,7 @@ procedure TBoxNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(2, 2, 2));
+  FFdSize := TSFVec3f.Create(Self, 'size', Vector3(2, 2, 2));
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
@@ -919,7 +919,7 @@ begin
   AddField(FFdCreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdCrossSection := TMFVec2f.Create(Self, 'crossSection', [ Vector2Single(1, 1), Vector2Single(1, -1),  Vector2Single(-1, -1), Vector2Single(-1, 1), Vector2Single(1, 1) ]);
+  FFdCrossSection := TMFVec2f.Create(Self, 'crossSection', [ Vector2(1, 1), Vector2(1, -1),  Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]);
    FdCrossSection.Exposed := false;
    FdCrossSection.ChangesAlways := [chGeometry];
   AddField(FFdCrossSection);
@@ -930,13 +930,13 @@ begin
    FdEndCap.ChangesAlways := [chGeometry];
   AddField(FFdEndCap);
 
-  FFdOrientation := TMFRotation.Create(Self, 'orientation', [ Vector4Single(0, 0, 1, 0) ]);
+  FFdOrientation := TMFRotation.Create(Self, 'orientation', [ Vector4(0, 0, 1, 0) ]);
    FdOrientation.Exposed := false;
    FdOrientation.ChangesAlways := [chGeometry];
   AddField(FFdOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdScale := TMFVec2f.Create(Self, 'scale', Vector2Single(1, 1));
+  FFdScale := TMFVec2f.Create(Self, 'scale', Vector2(1, 1));
    FdScale.Exposed := false;
    FdScale.ChangesAlways := [chGeometry];
   AddField(FFdScale);
@@ -947,7 +947,7 @@ begin
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdSpine := TMFVec3f.Create(Self, 'spine', [ Vector3Single(0, 0, 0), Vector3Single(0, 1, 0) ]);
+  FFdSpine := TMFVec3f.Create(Self, 'spine', [ Vector3(0, 0, 0), Vector3(0, 1, 0) ]);
    FdSpine.Exposed := false;
    FdSpine.ChangesAlways := [chGeometry];
   AddField(FFdSpine);
@@ -970,7 +970,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TExtrusionNode.CrossSection3D(Index: integer): TVector3Single;
+function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
 begin
   Result[0] := FdCrossSection.Items.L[Index][0];
   Result[1] := 0;
@@ -979,22 +979,22 @@ end;
 
 function TExtrusionNode.SpineClosed: boolean;
 var
-  SpinePoints: TVector3SingleList;
+  SpinePoints: TVector3List;
 begin
   SpinePoints := FdSpine.Items;
   Result := (SpinePoints.Count <> 0) and
-    VectorsPerfectlyEqual(SpinePoints.Last,
-                          SpinePoints.First);
+    TVector3.PerfectlyEquals(SpinePoints.Last,
+                             SpinePoints.First);
 end;
 
 function TExtrusionNode.CrossSectionClosed: boolean;
 var
-  CrossSectionPoints: TVector2SingleList;
+  CrossSectionPoints: TVector2List;
 begin
   CrossSectionPoints := FdCrossSection.Items;
   Result := (CrossSectionPoints.Count <> 0) and
-    VectorsPerfectlyEqual(CrossSectionPoints.Last,
-                          CrossSectionPoints.First);
+    TVector2.PerfectlyEquals(CrossSectionPoints.Last,
+                             CrossSectionPoints.First);
 end;
 
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
@@ -1043,7 +1043,7 @@ var
   IFS: TIndexedFaceSetNode absolute Result;
   Index: Integer;
   E: TVRMLExtrusion;
-  TexCoords: TVector2SingleList;
+  TexCoords: TVector2List;
 
   procedure NextIndex(SpineIndex, CrossSectionIndex: Integer;
     SpecialTex: boolean; SpecialTexIndex: Integer);
@@ -1084,7 +1084,7 @@ var
     Inc(Index);
   end;
 
-  function SideTexCoord(SpineIndex, CrossSectionIndex: Integer): TVector2Single;
+  function SideTexCoord(SpineIndex, CrossSectionIndex: Integer): TVector2;
   begin
     { Check ranges, to avoid dividing by zero (eventually the
       corresponding coord is set to a predictable zero :) ). }
@@ -1099,10 +1099,10 @@ var
 var
   CoordNode: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
-  Transform: TMatrix4Single;
+  Transform: TMatrix4;
   I, J, Len, SidesCount: Integer;
-  LastY, LastZ: TVector3Single;
-  TexCapsMin, TexCapsMax: TVector2Single;
+  LastY, LastZ: TVector3;
+  TexCapsMin, TexCapsMax: TVector2;
   TexCapsTranslation, TexCapsScale: Single;
 begin
   IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
@@ -1127,7 +1127,7 @@ begin
         for J := 0 to FdCrossSection.Count - 1 do
         begin
           CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
-            MatrixMultPoint(Transform, CrossSection3D(J));
+            Transform.MultPoint(CrossSection3D(J));
         end;
       end;
 
@@ -1166,7 +1166,7 @@ begin
             if TexCapsMax[0] - TexCapsMin[0] >=
                TexCapsMax[1] - TexCapsMin[1] then
             begin
-              if not Zero(TexCapsMax[0] - TexCapsMin[0]) then
+              if not IsZero(TexCapsMax[0] - TexCapsMin[0]) then
               begin
                 { scale such that U is along the X of cap.
                   Coord calculation will go like
@@ -1176,7 +1176,7 @@ begin
               end;
             end else
             begin
-              if not Zero(TexCapsMax[1] - TexCapsMin[1]) then
+              if not IsZero(TexCapsMax[1] - TexCapsMin[1]) then
               begin
                 TexCapsTranslation := -TexCapsMin[1];
                 TexCapsScale := 1 /  (TexCapsMax[1] - TexCapsMin[1]);
@@ -1188,10 +1188,9 @@ begin
           begin
             TexCoordNode.FdPoint.Items.L[
               SidesCount + I] :=
-              VectorScale(VectorAdd(
-                FdCrossSection.Items.L[I],
-                Vector2Single(TexCapsTranslation, TexCapsTranslation)),
-                TexCapsScale);
+                (FdCrossSection.Items.L[I] +
+                 Vector2(TexCapsTranslation, TexCapsTranslation))
+                * TexCapsScale;
           end;
         end;
       end;

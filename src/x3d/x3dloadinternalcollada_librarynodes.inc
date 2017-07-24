@@ -23,7 +23,7 @@ type
     Handled: boolean;
   end;
   PNodeAvailableInLibrary = ^TNodeAvailableInLibrary;
-  TNodeAvailableInLibraryList = specialize TGenericStructList<TNodeAvailableInLibrary>;
+  TNodeAvailableInLibraryList = specialize TStructList<TNodeAvailableInLibrary>;
 
 {$endif read_interface}
 

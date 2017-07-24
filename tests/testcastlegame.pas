@@ -35,7 +35,7 @@ procedure TTestGame.TestGameData;
 
   procedure AssertFloat(const A, B: Single);
   begin
-    AssertFloatsEqual(A, B, 0.01);
+    AssertSameValue(A, B, 0.01);
   end;
 
   procedure AssertURL(const A, B: string);
@@ -50,9 +50,9 @@ procedure TTestGame.TestGameData;
     AssertTrue(A = SoundEngine.SoundFromName(B));
   end;
 
-  procedure AssertVector(const A: TVector3Single; const BX, BY, BZ: Single);
+  procedure AssertVector(const A: TVector3; const BX, BY, BZ: Single);
   begin
-    AssertVectorsEqual(A, Vector3Single(BX, BY, BZ), 0.01);
+    AssertVectorEquals(A, Vector3(BX, BY, BZ), 0.01);
   end;
 
 var

@@ -48,12 +48,8 @@
   </ProjectOptions>
   <CompilerOptions>
     <Version Value="11"/>
-    <SearchPaths>
-      <SrcPath Value="$(LazarusDir)/lcl;$(LazarusDir)/lcl/interfaces/$(LCLWidgetType)"/>
-    </SearchPaths>
     <Parsing>
       <SyntaxOptions>
-        <SyntaxMode Value="Delphi"/>
         <IncludeAssertionCode Value="True"/>
         <CStyleMacros Value="True"/>
       </SyntaxOptions>

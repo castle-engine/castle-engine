@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetOffset: TVector4Single;
-    procedure SetOffset(const Value: TVector4Single);
+    function GetOffset: TVector4;
+    procedure SetOffset(const Value: TVector4);
   public
-    property Offset: TVector4Single read GetOffset write SetOffset;
+    property Offset: TVector4 read GetOffset write SetOffset;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TSphereSensorNode ----------------------------------------------- }
 
-function TSphereSensorNode.GetOffset: TVector4Single;
+function TSphereSensorNode.GetOffset: TVector4;
 begin
   Result := FdOffset.Value;
 end;
 
-procedure TSphereSensorNode.SetOffset(const Value: TVector4Single);
+procedure TSphereSensorNode.SetOffset(const Value: TVector4);
 begin
   FdOffset.Send(Value);
 end;

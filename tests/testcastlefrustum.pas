@@ -25,7 +25,7 @@ type
   TTestCastleFrustum = class(TTestCase)
   private
     procedure AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
-      const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
+      const SphereCenter: TVector3; const SphereRadiusSqt: Single;
       const GoodResult: TFrustumCollisionPossible);
     procedure AssertFrustumBox3DCollisionPossible(const Frustum: TFrustum;
       const Box3D: TBox3D; const GoodResult: TFrustumCollisionPossible);
@@ -41,13 +41,13 @@ uses Math, CastleUtils, CastleTimeUtils, CastleProjection;
 
 function RandomFrustum(MakeZFarInfinity: boolean): TFrustum;
 
-  function RandomNonZeroVector(const Scale: Float): TVector3Single;
+  function RandomNonZeroVector(const Scale: Float): TVector3;
   begin
     repeat
       Result[0] := Random * Scale - Scale/2;
       Result[1] := Random * Scale - Scale/2;
       Result[2] := Random * Scale - Scale/2;
-    until not PerfectlyZeroVector(Result);
+    until not Result.IsPerfectlyZero;
   end;
 
 var
@@ -73,21 +73,21 @@ end;
 
 function RandomBox: TBox3D;
 begin
-  Result.Data[0][0] := Random * 20 - 10;
-  Result.Data[0][1] := Random * 20 - 10;
-  Result.Data[0][2] := Random * 20 - 10;
+  Result.Data[0].Data[0] := Random * 20 - 10;
+  Result.Data[0].Data[1] := Random * 20 - 10;
+  Result.Data[0].Data[2] := Random * 20 - 10;
 
-  Result.Data[1][0] := Random * 20 - 10;
-  Result.Data[1][1] := Random * 20 - 10;
-  Result.Data[1][2] := Random * 20 - 10;
+  Result.Data[1].Data[0] := Random * 20 - 10;
+  Result.Data[1].Data[1] := Random * 20 - 10;
+  Result.Data[1].Data[2] := Random * 20 - 10;
 
-  OrderUp(Result.Data[0][0], Result.Data[1][0]);
-  OrderUp(Result.Data[0][1], Result.Data[1][1]);
-  OrderUp(Result.Data[0][2], Result.Data[1][2]);
+  OrderUp(Result.Data[0].Data[0], Result.Data[1].Data[0]);
+  OrderUp(Result.Data[0].Data[1], Result.Data[1].Data[1]);
+  OrderUp(Result.Data[0].Data[2], Result.Data[1].Data[2]);
 end;
 
 procedure TTestCastleFrustum.AssertFrustumSphereCollisionPossible(const Frustum: TFrustum;
-  const SphereCenter: TVector3Single; const SphereRadiusSqt: Single;
+  const SphereCenter: TVector3; const SphereRadiusSqt: Single;
   const GoodResult: TFrustumCollisionPossible);
 begin
  AssertTrue( Frustum.SphereCollisionPossible(SphereCenter,
@@ -114,34 +114,34 @@ begin
  Frustum.Init(
    PerspectiveProjectionMatrixDeg(60, 1, 10, 100),
    LookDirMatrix(
-     Vector3Single(10, 10, 10) { eye position },
-     Vector3Single(1, 0, 0) { look direction },
-     vector3Single(0, 0, 1) { up vector } ));
+     Vector3(10, 10, 10) { eye position },
+     Vector3(1, 0, 0) { look direction },
+     Vector3(0, 0, 1) { up vector } ));
  AssertTrue(not Frustum.ZFarInfinity);
 
- AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
+ AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 81,
    fcNoCollision);
  { This is between camera pos and near plane }
- AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 200,
+ AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 200,
    fcNoCollision);
  { This should collide with frustum, as it crosses near plane }
- AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 420,
+ AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 420,
    fcSomeCollisionPossible);
- AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(50, 10, 10), 1,
+ AssertFrustumSphereCollisionPossible(Frustum, Vector3(50, 10, 10), 1,
    fcInsideFrustum);
  { This sphere intersects near plane }
- AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(20, 10, 10), 1,
+ AssertFrustumSphereCollisionPossible(Frustum, Vector3(20, 10, 10), 1,
    fcSomeCollisionPossible);
 
- AssertFrustumBox3DCollisionPossible(Frustum, EmptyBox3D, fcNoCollision);
+ AssertFrustumBox3DCollisionPossible(Frustum, TBox3D.Empty, fcNoCollision);
  AssertFrustumBox3DCollisionPossible(Frustum,
-   Box3D(Vector3Single(-1, -1, -1), Vector3Single(9, 9, 9)),
+   Box3D(Vector3(-1, -1, -1), Vector3(9, 9, 9)),
    fcNoCollision);
  AssertFrustumBox3DCollisionPossible(Frustum,
-   Box3D(Vector3Single(50, 10, 10), Vector3Single(51, 11, 11)),
+   Box3D(Vector3(50, 10, 10), Vector3(51, 11, 11)),
    fcInsideFrustum);
  AssertFrustumBox3DCollisionPossible(Frustum,
-   Box3D(Vector3Single(19, 10, 10), Vector3Single(21, 11, 11)),
+   Box3D(Vector3(19, 10, 10), Vector3(21, 11, 11)),
    fcSomeCollisionPossible);
 end;
 
@@ -152,20 +152,20 @@ begin
   Frustum.Init(
     PerspectiveProjectionMatrixDeg(60, 1, 10, ZFarInfinity),
     LookDirMatrix(
-      Vector3Single(10, 10, 10) { eye position },
-      Vector3Single(1, 0, 0) { look direction },
-      vector3Single(0, 0, 1) { up vector } ));
+      Vector3(10, 10, 10) { eye position },
+      Vector3(1, 0, 0) { look direction },
+      Vector3(0, 0, 1) { up vector } ));
 
   AssertTrue(Frustum.Planes[fpFar][0] = 0);
   AssertTrue(Frustum.Planes[fpFar][1] = 0);
   AssertTrue(Frustum.Planes[fpFar][2] = 0);
   AssertTrue(Frustum.ZFarInfinity);
 
-  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 81,
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 81,
     fcNoCollision);
-  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(100, 10, 10), 1,
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3(100, 10, 10), 1,
     fcInsideFrustum);
-  AssertFrustumSphereCollisionPossible(Frustum, Vector3Single(0, 0, 0), 400,
+  AssertFrustumSphereCollisionPossible(Frustum, Vector3(0, 0, 0), 400,
     fcSomeCollisionPossible);
 end;
 

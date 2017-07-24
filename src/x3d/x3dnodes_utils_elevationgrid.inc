@@ -37,7 +37,7 @@ function TElevationGridNode.Proxy(var State: TX3DGraphTraverseState;
   and also it's used for triangulating.
 }
 var
-  Coords: TVector3SingleList;
+  Coords: TVector3List;
   CoordIndexes: TLongIntList;
 
   { Add to CoordIndexes a quad from given indexes.
@@ -75,7 +75,7 @@ var
   TexCoordProvided: boolean;
   I, J, NextIndex: Integer;
   CoordNode: TCoordinateNode;
-  TexCoords: TVector2SingleList;
+  TexCoords: TVector2List;
 begin
   IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);
   try
@@ -108,13 +108,13 @@ begin
       for J := 0 to ZDim - 1 do
         for I := 0 to XDim - 1 do
         begin
-          Coords.L[I + J * XDim] := Vector3Single(
+          Coords.L[I + J * XDim] := Vector3(
             FdXSpacing.Value * I,
             FdHeight.Items.L[I + J * XDim],
             FdZSpacing.Value * J);
 
           if not TexCoordProvided then
-            TexCoords.L[I + J * XDim] := Vector2Single(
+            TexCoords.L[I + J * XDim] := Vector2(
               I / (XDim - 1),
               J / (ZDim - 1));
         end;

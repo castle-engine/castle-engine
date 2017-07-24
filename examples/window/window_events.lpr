@@ -103,11 +103,11 @@ begin
     'n': Notifications.Cursor := mcNone;
     'd': Notifications.Cursor := mcDefault;
     'w': Notifications.Cursor := mcWait;
-    '1': Window.MousePosition := Vector2Single(0           , 0);
-    '2': Window.MousePosition := Vector2Single(Window.Width, 0);
-    '3': Window.MousePosition := Vector2Single(Window.Width, Window.Height);
-    '4': Window.MousePosition := Vector2Single(0           , Window.Height);
-    '5': Window.MousePosition := Vector2Single(Window.Width / 2, Window.Height / 2);
+    '1': Window.MousePosition := Vector2(0           , 0);
+    '2': Window.MousePosition := Vector2(Window.Width, 0);
+    '3': Window.MousePosition := Vector2(Window.Width, Window.Height);
+    '4': Window.MousePosition := Vector2(0           , Window.Height);
+    '5': Window.MousePosition := Vector2(Window.Width / 2, Window.Height / 2);
   end;
 
   { Test what messages happen when switching FullScreen }

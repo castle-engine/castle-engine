@@ -47,10 +47,10 @@ type
     class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
   private
-    FValue: TVector2Single;
-    procedure SetValue(const AValue: TVector2Single);
+    FValue: TVector2;
+    procedure SetValue(const AValue: TVector2);
   public
-    property Value: TVector2Single read FValue write SetValue;
+    property Value: TVector2 read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -82,10 +82,10 @@ type
     class procedure HandleGrayscale(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
   private
-    FValue: TVector3Single;
-    procedure SetValue(const AValue: TVector3Single);
+    FValue: TVector3;
+    procedure SetValue(const AValue: TVector3);
   public
-    property Value: TVector3Single read FValue write SetValue;
+    property Value: TVector3 read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -115,7 +115,7 @@ type
 
     class procedure HandleOrientationFromDirectionUp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleRotateCore(
-      const Rotation: TVector4Single; const Point: TVector3Single;
+      const Rotation: TVector4; const Point: TVector3;
       var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleRotate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleOrientationToDirection(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -123,10 +123,10 @@ type
     class procedure HandleSlerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
   private
-    FValue: TVector4Single;
-    procedure SetValue(const AValue: TVector4Single);
+    FValue: TVector4;
+    procedure SetValue(const AValue: TVector4);
   public
-    property Value: TVector4Single read FValue write SetValue;
+    property Value: TVector4 read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -148,10 +148,10 @@ type
     class procedure HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
   private
-    FValue: TMatrix3Single;
-    procedure SetValue(const AValue: TMatrix3Single);
+    FValue: TMatrix3;
+    procedure SetValue(const AValue: TMatrix3);
   public
-    property Value: TMatrix3Single read FValue write SetValue;
+    property Value: TMatrix3 read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
@@ -173,15 +173,14 @@ type
     class procedure HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
   private
-    FValue: TMatrix4Single;
-    procedure SetValue(const AValue: TMatrix4Single);
+    FValue: TMatrix4;
+    procedure SetValue(const AValue: TMatrix4);
   public
-    property Value: TMatrix4Single read FValue write SetValue;
+    property Value: TMatrix4 read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   TCasScriptVec2d = class(TCasScriptValue)
   private
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -280,7 +279,7 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptMatrix3d = class(TCasScriptValue)
+  TCasScriptMatrix3Double = class(TCasScriptValue)
   private
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -305,7 +304,7 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptMatrix4d = class(TCasScriptValue)
+  TCasScriptMatrix4Double = class(TCasScriptValue)
   private
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -329,7 +328,6 @@ type
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
-  {$endif CASTLE_HAS_DOUBLE_PRECISION}
 
   TCasScriptVector = class(TCasScriptFunction)
   public
@@ -439,28 +437,28 @@ uses CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras, CastleQua
 
 {$define VectorGetCount := 2}
 {$define TCasScriptVecXx := TCasScriptVec2f}
-{$define TVectorXxx := TVector2Single}
+{$define TVectorXxx := TVector2}
 {$define RegisterVecXxFunctions := RegisterVec2fFunctions}
 {$I castlescriptvectors_implement_vector.inc}
 
 {$define VectorGetCount := 3}
 {$define TCasScriptVecXx := TCasScriptVec3f}
-{$define TVectorXxx := TVector3Single}
+{$define TVectorXxx := TVector3}
 {$define RegisterVecXxFunctions := RegisterVec3fFunctions}
 {$I castlescriptvectors_implement_vector.inc}
 
 {$define VectorGetCount := 4}
 {$define TCasScriptVecXx := TCasScriptVec4f}
-{$define TVectorXxx := TVector4Single}
+{$define TVectorXxx := TVector4}
 {$define RegisterVecXxFunctions := RegisterVec4fFunctions}
 {$I castlescriptvectors_implement_vector.inc}
 
 class procedure TCasScriptVec3f.HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
-  TCasScriptVec3f(AResult).Value :=
-    VectorProduct( TCasScriptVec3f(Arguments[0]).Value,
-                   TCasScriptVec3f(Arguments[1]).Value );
+  TCasScriptVec3f(AResult).Value := TVector3.CrossProduct(
+    TCasScriptVec3f(Arguments[0]).Value,
+    TCasScriptVec3f(Arguments[1]).Value );
 end;
 
 class procedure TCasScriptVec3f.HandleGrayscale(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -472,7 +470,7 @@ end;
 
 class procedure TCasScriptVec4f.HandleOrientationFromDirectionUp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  Dir, Up: TVector3Single;
+  Dir, Up: TVector3;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec4f);
 
@@ -485,14 +483,14 @@ begin
 end;
 
 class procedure TCasScriptVec4f.HandleRotateCore(
-  const Rotation: TVector4Single; const Point: TVector3Single;
+  const Rotation: TVector4; const Point: TVector3;
   var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
-  Axis: TVector3Single absolute Rotation;
+  Axis: TVector3 absolute Rotation;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
 
-  if not ZeroVector(Axis) then
+  if not Axis.IsZero then
     TCasScriptVec3f(AResult).Value := RotatePointAroundAxisRad(
       Rotation[3], Point, Axis) else
   begin
@@ -536,71 +534,68 @@ end;
 
 { Double-precision vectors --------------------------------------------------- }
 
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+{$define TCasScriptVectorFunXxx := TCasScriptVectorD}
 
-  {$define TCasScriptVectorFunXxx := TCasScriptVectorD}
+{$define VectorGetCount := 2}
+{$define TCasScriptVecXx := TCasScriptVec2d}
+{$define TVectorXxx := TVector2Double}
+{$define RegisterVecXxFunctions := RegisterVec2dFunctions}
+{$I castlescriptvectors_implement_vector.inc}
 
-  {$define VectorGetCount := 2}
-  {$define TCasScriptVecXx := TCasScriptVec2d}
-  {$define TVectorXxx := TVector2Double}
-  {$define RegisterVecXxFunctions := RegisterVec2dFunctions}
-  {$I castlescriptvectors_implement_vector.inc}
+{$define VectorGetCount := 3}
+{$define TCasScriptVecXx := TCasScriptVec3d}
+{$define TVectorXxx := TVector3Double}
+{$define RegisterVecXxFunctions := RegisterVec3dFunctions}
+{$I castlescriptvectors_implement_vector.inc}
 
-  {$define VectorGetCount := 3}
-  {$define TCasScriptVecXx := TCasScriptVec3d}
-  {$define TVectorXxx := TVector3Double}
-  {$define RegisterVecXxFunctions := RegisterVec3dFunctions}
-  {$I castlescriptvectors_implement_vector.inc}
+{$define VectorGetCount := 4}
+{$define TCasScriptVecXx := TCasScriptVec4d}
+{$define TVectorXxx := TVector4Double}
+{$define RegisterVecXxFunctions := RegisterVec4dFunctions}
+{$I castlescriptvectors_implement_vector.inc}
 
-  {$define VectorGetCount := 4}
-  {$define TCasScriptVecXx := TCasScriptVec4d}
-  {$define TVectorXxx := TVector4Double}
-  {$define RegisterVecXxFunctions := RegisterVec4dFunctions}
-  {$I castlescriptvectors_implement_vector.inc}
-
-  class procedure TCasScriptVec3d.HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-  begin
-    CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3d);
-    TCasScriptVec3d(AResult).Value :=
-      VectorProduct( TCasScriptVec3d(Arguments[0]).Value,
-                     TCasScriptVec3d(Arguments[1]).Value );
-  end;
-
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
+class procedure TCasScriptVec3d.HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3d);
+  TCasScriptVec3d(AResult).Value :=
+    TVector3Double.CrossProduct(
+      TCasScriptVec3d(Arguments[0]).Value,
+      TCasScriptVec3d(Arguments[1]).Value );
+end;
 
 { Matrices ------------------------------------------------------------------- }
 
 {$define MatrixGetCount := 3}
 {$define TCasScriptVecXx := TCasScriptVec3f}
 {$define TCasScriptMatrixXx := TCasScriptMatrix3f}
-{$define TMatrixXxx := TMatrix3Single}
+{$define TMatrixXxx := TMatrix3}
+{$define TVectorXxx := TVector3}
 {$define RegisterMatrixXxFunctions := RegisterMatrix3fFunctions}
 {$I castlescriptvectors_implement_matrix.inc}
 
 {$define MatrixGetCount := 4}
 {$define TCasScriptVecXx := TCasScriptVec4f}
 {$define TCasScriptMatrixXx := TCasScriptMatrix4f}
-{$define TMatrixXxx := TMatrix4Single}
+{$define TMatrixXxx := TMatrix4}
+{$define TVectorXxx := TVector4}
 {$define RegisterMatrixXxFunctions := RegisterMatrix4fFunctions}
 {$I castlescriptvectors_implement_matrix.inc}
 
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
+{$define MatrixGetCount := 3}
+{$define TCasScriptVecXx := TCasScriptVec3d}
+{$define TCasScriptMatrixXx := TCasScriptMatrix3Double}
+{$define TMatrixXxx := TMatrix3Double}
+{$define TVectorXxx := TVector3Double}
+{$define RegisterMatrixXxFunctions := RegisterMatrix3DoubleFunctions}
+{$I castlescriptvectors_implement_matrix.inc}
 
-  {$define MatrixGetCount := 3}
-  {$define TCasScriptVecXx := TCasScriptVec3d}
-  {$define TCasScriptMatrixXx := TCasScriptMatrix3d}
-  {$define TMatrixXxx := TMatrix3Double}
-  {$define RegisterMatrixXxFunctions := RegisterMatrix3dFunctions}
-  {$I castlescriptvectors_implement_matrix.inc}
-
-  {$define MatrixGetCount := 4}
-  {$define TCasScriptVecXx := TCasScriptVec4d}
-  {$define TCasScriptMatrixXx := TCasScriptMatrix4d}
-  {$define TMatrixXxx := TMatrix4Double}
-  {$define RegisterMatrixXxFunctions := RegisterMatrix4dFunctions}
-  {$I castlescriptvectors_implement_matrix.inc}
-
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
+{$define MatrixGetCount := 4}
+{$define TCasScriptVecXx := TCasScriptVec4d}
+{$define TCasScriptMatrixXx := TCasScriptMatrix4Double}
+{$define TMatrixXxx := TMatrix4Double}
+{$define TVectorXxx := TVector4Double}
+{$define RegisterMatrixXxFunctions := RegisterMatrix4DoubleFunctions}
+{$I castlescriptvectors_implement_matrix.inc}
 
 { TCasScriptFunction descendants --------------------------------------------- }
 
@@ -730,14 +725,12 @@ initialization
   RegisterMatrix3fFunctions;
   RegisterMatrix4fFunctions;
 
-  {$ifdef CASTLE_HAS_DOUBLE_PRECISION}
   RegisterVec2dFunctions;
   RegisterVec3dFunctions;
   RegisterVec4dFunctions;
 
   FunctionHandlers.RegisterHandler(@TCasScriptVec3d(nil).HandleVectorCross, TCasScriptVectorCross, [TCasScriptVec3d, TCasScriptVec3d], false);
 
-  RegisterMatrix3dFunctions;
-  RegisterMatrix4dFunctions;
-  {$endif CASTLE_HAS_DOUBLE_PRECISION}
+  RegisterMatrix3DoubleFunctions;
+  RegisterMatrix4DoubleFunctions;
 end.

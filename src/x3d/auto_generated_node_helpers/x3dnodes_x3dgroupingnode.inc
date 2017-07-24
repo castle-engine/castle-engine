@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   private
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -41,22 +41,22 @@
 
 { TAbstractX3DGroupingNode ----------------------------------------------- }
 
-function TAbstractX3DGroupingNode.GetBboxCenter: TVector3Single;
+function TAbstractX3DGroupingNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TAbstractX3DGroupingNode.SetBboxCenter(const Value: TVector3Single);
+procedure TAbstractX3DGroupingNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TAbstractX3DGroupingNode.GetBboxSize: TVector3Single;
+function TAbstractX3DGroupingNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TAbstractX3DGroupingNode.SetBboxSize(const Value: TVector3Single);
+procedure TAbstractX3DGroupingNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

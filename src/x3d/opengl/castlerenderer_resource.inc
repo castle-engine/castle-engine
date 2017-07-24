@@ -20,7 +20,7 @@
     procedure Unprepare; virtual; abstract;
   end;
 
-  TResourceRendererList = class(specialize TFPGObjectList<TResourceRenderer>)
+  TResourceRendererList = class(specialize TObjectList<TResourceRenderer>)
   private
     InsideUnprepareAll: Cardinal;
   public

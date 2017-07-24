@@ -173,13 +173,13 @@ end;
 
 procedure TButtons.AddCreatureButtonClick(Sender: TObject);
 var
-  Position: TVector3Single;
-  Direction: TVector3Single;
+  Position: TVector3;
+  Direction: TVector3;
   CreatureResource: TCreatureResource;
 begin
   Position := Player.Position + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Position[1] += 5;
+  Position.Data[1] += 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
@@ -188,12 +188,12 @@ end;
 
 procedure TButtons.AddItemButtonClick(Sender: TObject);
 var
-  Position: TVector3Single;
+  Position: TVector3;
   ItemResource: TItemResource;
 begin
   Position := Player.Position + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Position[1] += 5;
+  Position.Data[1] += 5;
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
@@ -293,7 +293,7 @@ begin
     code). Engine example examples/3d_rendering_processing/multiple_viewports.lpr
     shows how to set them up in code. }
   if Player.Swimming = psUnderWater then
-    DrawRectangle(ParentRect, Vector4Single(0, 0, 0.1, 0.5));
+    DrawRectangle(ParentRect, Vector4(0, 0, 0.1, 0.5));
   if Player.Dead then
     GLFadeRectangleDark(ParentRect, Red, 1.0) else
     GLFadeRectangleDark(ParentRect, Player.FadeOutColor, Player.FadeOutIntensity);
@@ -560,9 +560,9 @@ begin
     TUniversalCamera, so we can safely cast below. }
   (ExtraViewport.RequiredCamera as TUniversalCamera).NavigationType := ntExamine;
   ExtraViewport.RequiredCamera.SetView(
-    { position } Vector3Single(0, 55, 44),
-    { direction } Vector3Single(0, -1, 0),
-    { up } Vector3Single(0, 0, -1), false
+    { position } Vector3(0, 55, 44),
+    { direction } Vector3(0, -1, 0),
+    { up } Vector3(0, 0, -1), false
   );
   { Note we allow user to actually edit this view, e.g. by mouse dragging.
     But you could always do this to make camera non-editable: }

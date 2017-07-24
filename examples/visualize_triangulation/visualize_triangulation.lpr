@@ -43,22 +43,22 @@ type
   TVisualizeTriangulation = class
   strict private
     TriangleCount: Integer;
-    Vertexes: TVector3SingleList;
+    Vertexes: TVector3List;
     ImageUrlPrefix: string;
     Image: TFPCustomImage;
     Canvas: TFPCustomCanvas;
     VisualizeX, VisualizeY: Cardinal;
-    MinV, MaxV: TVector3Single;
+    MinV, MaxV: TVector3;
 
-    function VisualizePoint(const P: TVector3Single): TPoint;
-    function VisualizePointRect(const P: TVector3Single): TRect;
+    function VisualizePoint(const P: TVector3): TPoint;
+    function VisualizePointRect(const P: TVector3): TRect;
     procedure SaveImage(const Url, Message: string);
-    procedure Face(const Tri: TVector3Longint);
+    procedure Face(const Tri: TVector3Integer);
     procedure CreateCommon(
       const Name: string; AVisualizeX, AVisualizeY: Cardinal;
       const RevertOrder: boolean);
   public
-    constructor Create(AVertexes: array of TVector3Single;
+    constructor Create(AVertexes: array of TVector3;
       const Name: string; AVisualizeX, AVisualizeY: Cardinal;
       const RevertOrder: boolean);
     constructor Create(const URL: string);
@@ -67,7 +67,7 @@ type
     procedure VisualizeTriangulation;
   end;
 
-function TVisualizeTriangulation.VisualizePoint(const P: TVector3Single): TPoint;
+function TVisualizeTriangulation.VisualizePoint(const P: TVector3): TPoint;
 begin
   Result := Point(
     Round(MapRange(P[VisualizeX], MinV[VisualizeX], MaxV[VisualizeX], 0, Image.Width)),
@@ -75,7 +75,7 @@ begin
   );
 end;
 
-function TVisualizeTriangulation.VisualizePointRect(const P: TVector3Single): TRect;
+function TVisualizeTriangulation.VisualizePointRect(const P: TVector3): TRect;
 var
   Pt: TPoint;
 begin
@@ -97,10 +97,10 @@ begin
   Writeln(Message, ' (Saved to ', Url, ')');
 end;
 
-procedure TVisualizeTriangulation.Face(const Tri: TVector3Longint);
+procedure TVisualizeTriangulation.Face(const Tri: TVector3Integer);
 var
-  V0, V1, V2, EarNormal: TVector3Single;
-  E1, E2, E3: TVector3Single;
+  V0, V1, V2, EarNormal: TVector3;
+  E1, E2, E3: TVector3;
   Middle: TPoint;
 begin
   Inc(TriangleCount);
@@ -113,7 +113,7 @@ begin
     like the ones calculated in TriangulateFace algorithm. }
   EarNormal := TriangleDir(V0, V1, V2);
   Assert(not ZeroVector(EarNormal));
-  NormalizeVar(EarNormal);
+  EarNormal.NormalizeMe;
 
   E1 := VectorProduct(EarNormal, V0 - V1);
   E2 := VectorProduct(EarNormal, V1 - V2);
@@ -160,7 +160,7 @@ begin
       raise Exception.CreateFmt('No Extrusion node found in scene "%s"', [URL]);
 
     { initialize Vertexes based on Extrusion.crossSection }
-    Vertexes := TVector3SingleList.Create;
+    Vertexes := TVector3List.Create;
     Vertexes.Count := Extrusion.FdCrossSection.Count;
     for I := 0 to Vertexes.Count - 1 do
       Vertexes.List^[I] := Extrusion.CrossSection3D(I);
@@ -169,7 +169,7 @@ begin
   CreateCommon(ExtractURIName(URL), 0, 2, false);
 end;
 
-constructor TVisualizeTriangulation.Create(AVertexes: array of TVector3Single;
+constructor TVisualizeTriangulation.Create(AVertexes: array of TVector3;
   const Name: string; AVisualizeX, AVisualizeY: Cardinal;
   const RevertOrder: boolean);
 var
@@ -178,7 +178,7 @@ begin
   inherited Create;
 
   { initialize Vertexes based on array AVertexes }
-  Vertexes := TVector3SingleList.Create;
+  Vertexes := TVector3List.Create;
   Vertexes.Count := High(AVertexes) + 1;
   for I := 0 to Vertexes.Count - 1 do
     Vertexes.List^[I] := AVertexes[I];
@@ -273,7 +273,7 @@ end;
 
 const
   { Hardcoded polygon from https://sourceforge.net/p/castle-engine/tickets/13/ }
-  Polygon: array [0..17] of TVector3Single = (
+  Polygon: array [0..17] of TVector3 = (
     (1, 0, -2.44921e-016),
     (0.932472, 0, -0.361242),
     (0.739009, 0, -0.673696),

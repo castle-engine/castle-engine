@@ -144,7 +144,7 @@ begin
   Result := { TODO } true;
 end;
 
-procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2Single);
+procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
   if not Closed then
     { TODO };
@@ -172,7 +172,7 @@ begin
   { TODO } Result := false;
 end;
 
-function TCastleWindowCustom.ColorDialog(var Color: TVector3Single): boolean;
+function TCastleWindowCustom.ColorDialog(var Color: TVector3): boolean;
 begin
   { TODO } Result := false;
 end;

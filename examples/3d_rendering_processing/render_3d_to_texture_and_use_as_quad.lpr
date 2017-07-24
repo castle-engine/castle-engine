@@ -133,11 +133,11 @@ begin
   Appearance.Texture := Texture;
 
   Coordinate := TCoordinateNode.Create;
-  Coordinate.FdPoint.Items.AddArray(
-    [Vector3Single(0, 0, 0),
-     Vector3Single(1, 0, 0),
-     Vector3Single(1, 1, 0),
-     Vector3Single(0, 1, 0)
+  Coordinate.FdPoint.Items.AddRange(
+    [Vector3(0, 0, 0),
+     Vector3(1, 0, 0),
+     Vector3(1, 1, 0),
+     Vector3(0, 1, 0)
     ]);
 
   QuadSet := TQuadSetNode.Create;

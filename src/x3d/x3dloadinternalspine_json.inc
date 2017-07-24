@@ -19,12 +19,12 @@
 {$endif}
 
 {$ifdef read_implementation}
-procedure ReadVector2SingleList(const Json: TJSONObject; const Name: string;
-  const List: TVector2SingleList);
+procedure ReadVector2List(const Json: TJSONObject; const Name: string;
+  const List: TVector2List);
 var
   JsonArray: TJSONArray;
   I: Integer;
-  Vec2: TVector2Single;
+  Vec2: TVector2;
   Vec2Index: Integer;
 begin
   JsonArray := Json.Find(Name, jtArray) as TJSONArray;

@@ -56,19 +56,19 @@ type
       ignored, since the volume is always closed by a single point in infinity.
     }
     procedure RenderSilhouetteShadowVolume(
-      const LightPos: TVector4Single;
-      const Transform: TMatrix4Single;
+      const LightPos: TVector4;
+      const Transform: TMatrix4;
       const LightCap, DarkCap: boolean;
       const ForceOpaque: boolean);
 
     { Render silhouette edges. See TCastleScene.RenderSilhouetteEdges. }
     procedure RenderSilhouetteEdges(
-      const ObserverPos: TVector4Single;
-      const Transform: TMatrix4Single);
+      const ObserverPos: TVector4;
+      const Transform: TMatrix4);
 
     { Render silhouette edges. See TCastleScene.RenderBorderEdges. }
     procedure RenderBorderEdges(
-      const Transform: TMatrix4Single);
+      const Transform: TMatrix4);
   end;
 
 implementation
@@ -93,10 +93,10 @@ uses SysUtils,
   i386) generates then bad code, the loop to ManifoldEdgesNow.Count doesn't finish OK,
   the index goes beyond ManifoldEdgesNow.Count-1. }
 function ExtrudeVertex(
-  const Original: TVector3Single;
-  const LightPos: TVector4Single): TVector4Single;
+  const Original: TVector3;
+  const LightPos: TVector4): TVector4;
 var
-  LightPos3: TVector3Single absolute LightPos;
+  LightPos3: TVector3 absolute LightPos;
 begin
   { Below is the moment when we require that
     if LightPos[3] <> 0 then LightPos[3] = 1 (not any other non-zero value).
@@ -111,8 +111,8 @@ begin
 end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteShadowVolume(
-  const LightPos: TVector4Single;
-  const Transform: TMatrix4Single;
+  const LightPos: TVector4;
+  const Transform: TMatrix4;
   const LightCap, DarkCap: boolean;
   const ForceOpaque: boolean);
 
@@ -151,16 +151,16 @@ var
   procedure RenderShadowQuad(EdgePtr: PManifoldEdge;
     const P0Index, P1Index: Cardinal); overload;
   var
-    V0, V1: TVector3Single;
-    EdgeV0, EdgeV1: PVector3Single;
-    TrianglePtr: PTriangle3Single;
+    V0, V1: TVector3;
+    EdgeV0, EdgeV1: PVector3;
+    TrianglePtr: PTriangle3;
   begin
     TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
-    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
-    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
+    EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
+    EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -176,16 +176,16 @@ var
   procedure RenderShadowQuad(EdgePtr: PBorderEdge;
     const P0Index, P1Index: Cardinal); overload;
   var
-    V0, V1: TVector3Single;
-    EdgeV0, EdgeV1: PVector3Single;
-    TrianglePtr: PTriangle3Single;
+    V0, V1: TVector3;
+    EdgeV0, EdgeV1: PVector3;
+    TrianglePtr: PTriangle3;
   begin
     TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
-    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
-    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
+    EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
+    EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
@@ -205,36 +205,36 @@ var
     TrianglesPlaneSide: TBooleanList;
     LightCap, DarkCap: boolean);
 
-    procedure RenderCaps(const T: TTriangle3Single);
+    procedure RenderCaps(const T: TTriangle3);
     begin
       if LightCap then
       begin
-        glVertexv(T[0]);
-        glVertexv(T[1]);
-        glVertexv(T[2]);
+        glVertexv(T.Data[0]);
+        glVertexv(T.Data[1]);
+        glVertexv(T.Data[2]);
       end;
 
       if DarkCap then
       begin
-        glVertexv(ExtrudeVertex(T[2], LightPos));
-        glVertexv(ExtrudeVertex(T[1], LightPos));
-        glVertexv(ExtrudeVertex(T[0], LightPos));
+        glVertexv(ExtrudeVertex(T.Data[2], LightPos));
+        glVertexv(ExtrudeVertex(T.Data[1], LightPos));
+        glVertexv(ExtrudeVertex(T.Data[0], LightPos));
       end;
     end;
 
-    function PlaneSide(const T: TTriangle3Single): boolean;
+    function PlaneSide(const T: TTriangle3): boolean;
     var
-      Plane: TVector4Single;
-      TriangleTransformed: TTriangle3Single;
+      Plane: TVector4;
+      TriangleTransformed: TTriangle3;
     begin
-      TriangleTransformed[0] := MatrixMultPoint(Transform, T[0]);
-      TriangleTransformed[1] := MatrixMultPoint(Transform, T[1]);
-      TriangleTransformed[2] := MatrixMultPoint(Transform, T[2]);
-      Plane := TrianglePlane(TriangleTransformed);
-      Result := (Plane[0] * LightPos[0] +
-                 Plane[1] * LightPos[1] +
-                 Plane[2] * LightPos[2] +
-                 Plane[3] * LightPos[3]) > 0;
+      TriangleTransformed.Data[0] := Transform.MultPoint(T.Data[0]);
+      TriangleTransformed.Data[1] := Transform.MultPoint(T.Data[1]);
+      TriangleTransformed.Data[2] := Transform.MultPoint(T.Data[2]);
+      Plane := TriangleTransformed.Plane;
+      Result := (Plane.Data[0] * LightPos.Data[0] +
+                 Plane.Data[1] * LightPos.Data[1] +
+                 Plane.Data[2] * LightPos.Data[2] +
+                 Plane.Data[3] * LightPos.Data[3]) > 0;
       if Result then RenderCaps(TriangleTransformed);
     end;
 
@@ -353,7 +353,7 @@ var
       { Caps are always needed, doesn't depend on zpass/zfail.
         Well, for dark cap we can avoid them if the light is directional. }
       LightCap := true;
-      DarkCap := LightPos[3] <> 0;
+      DarkCap := LightPos.Data[3] <> 0;
 
       glBegin(GL_TRIANGLES);
     end;
@@ -364,14 +364,14 @@ var
     end;
 
   var
-    TrianglePtr: PTriangle3Single;
+    TrianglePtr: PTriangle3;
     I: Integer;
   begin
     TrianglesPlaneSide.Count := Triangles.Count;
-    TrianglePtr := PTriangle3Single(Triangles.List);
+    TrianglePtr := PTriangle3(Triangles.List);
 
     { If light is directional, no need to render dark cap }
-    DarkCap := DarkCap and (LightPos[3] <> 0);
+    DarkCap := DarkCap and (LightPos.Data[3] <> 0);
 
     if ForceOpaque or not TShape(FShape).Blending then
       OpaqueTrianglesBegin else
@@ -433,7 +433,7 @@ begin
           This is needed, since user of this method may want to do culling
           to eliminate back or front faces.
 
-          TriangleDir(T) indicates direction that goes from CCW triangle side
+          TriangleDirection(T) indicates direction that goes from CCW triangle side
           (that's guaranteed by the way TriangleDir calculates plane dir).
           So PlaneSideX is @true if LightPos is on CCW side of appropriate
           triangle. So if PlaneSide0 the shadow quad is extended
@@ -472,7 +472,7 @@ begin
           This is needed, since user of this method may want to do culling
           to eliminate back or front faces.
 
-          TriangleDir(T) indicates direction that goes from CCW triangle side
+          TriangleDirection(T) indicates direction that goes from CCW triangle side
           (that's guaranteed by the way TriangleDir calculates plane dir).
           So PlaneSide0 is true if LightPos is on CCW side of appropriate
           triangle. So if PlaneSide0, the shadow quad is extended
@@ -493,8 +493,8 @@ begin
 end;
 
 procedure TRenderShapeShadowVolumes.RenderSilhouetteEdges(
-  const ObserverPos: TVector4Single;
-  const Transform: TMatrix4Single);
+  const ObserverPos: TVector4;
+  const Transform: TMatrix4);
 
 {$ifndef OpenGLES} //TODO-es
 
@@ -504,44 +504,44 @@ procedure TRenderShapeShadowVolumes.RenderSilhouetteEdges(
   as OpenGL line. }
 
 var
-  Triangles: TTriangle3SingleList;
+  Triangles: TTriangle3List;
   EdgePtr: PManifoldEdge;
 
   procedure RenderEdge(
     const P0Index, P1Index: Cardinal);
   var
-    V0, V1: TVector3Single;
-    EdgeV0, EdgeV1: PVector3Single;
-    TrianglePtr: PTriangle3Single;
+    V0, V1: TVector3;
+    EdgeV0, EdgeV1: PVector3;
+    TrianglePtr: PTriangle3;
   begin
     TrianglePtr := Triangles.Ptr(EdgePtr^.Triangles[0]);
-    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + P0Index) mod 3];
-    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + P1Index) mod 3];
+    EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P0Index) mod 3];
+    EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + P1Index) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);
   end;
 
-  function PlaneSide(const T: TTriangle3Single): boolean;
+  function PlaneSide(const T: TTriangle3): boolean;
   var
-    Plane: TVector4Single;
+    Plane: TVector4;
   begin
     Plane := TrianglePlane(
-      MatrixMultPoint(Transform, T[0]),
-      MatrixMultPoint(Transform, T[1]),
-      MatrixMultPoint(Transform, T[2]));
-    Result := (Plane[0] * ObserverPos[0] +
-               Plane[1] * ObserverPos[1] +
-               Plane[2] * ObserverPos[2] +
-               Plane[3] * ObserverPos[3]) > 0;
+      Transform.MultPoint(T.Data[0]),
+      Transform.MultPoint(T.Data[1]),
+      Transform.MultPoint(T.Data[2]));
+    Result := (Plane.Data[0] * ObserverPos.Data[0] +
+               Plane.Data[1] * ObserverPos.Data[1] +
+               Plane.Data[2] * ObserverPos.Data[2] +
+               Plane.Data[3] * ObserverPos.Data[3]) > 0;
   end;
 
 var
   I: Integer;
-  TrianglePtr: PTriangle3Single;
+  TrianglePtr: PTriangle3;
   PlaneSide0, PlaneSide1: boolean;
   TrianglesPlaneSide: TBooleanList;
   Edges: TManifoldEdgeList;
@@ -554,7 +554,7 @@ begin
     try
       { calculate TrianglesPlaneSide array }
       TrianglesPlaneSide.Count := Triangles.Count;
-      TrianglePtr := PTriangle3Single(Triangles.List);
+      TrianglePtr := PTriangle3(Triangles.List);
       for I := 0 to Triangles.Count - 1 do
       begin
         TrianglesPlaneSide.L[I] := PlaneSide(TrianglePtr^);
@@ -582,24 +582,24 @@ begin
 end;
 
 procedure TRenderShapeShadowVolumes.RenderBorderEdges(
-  const Transform: TMatrix4Single);
+  const Transform: TMatrix4);
 {$ifndef OpenGLES} //TODO-es
 var
-  Triangles: TTriangle3SingleList;
+  Triangles: TTriangle3List;
   EdgePtr: PBorderEdge;
 
   procedure RenderEdge;
   var
-    V0, V1: TVector3Single;
-    EdgeV0, EdgeV1: PVector3Single;
-    TrianglePtr: PTriangle3Single;
+    V0, V1: TVector3;
+    EdgeV0, EdgeV1: PVector3;
+    TrianglePtr: PTriangle3;
   begin
     TrianglePtr := Triangles.Ptr(EdgePtr^.TriangleIndex);
-    EdgeV0 := @TrianglePtr^[(EdgePtr^.VertexIndex + 0) mod 3];
-    EdgeV1 := @TrianglePtr^[(EdgePtr^.VertexIndex + 1) mod 3];
+    EdgeV0 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + 0) mod 3];
+    EdgeV1 := @TrianglePtr^.Data[(EdgePtr^.VertexIndex + 1) mod 3];
 
-    V0 := MatrixMultPoint(Transform, EdgeV0^);
-    V1 := MatrixMultPoint(Transform, EdgeV1^);
+    V0 := Transform.MultPoint(EdgeV0^);
+    V1 := Transform.MultPoint(EdgeV1^);
 
     glVertexv(V0);
     glVertexv(V1);

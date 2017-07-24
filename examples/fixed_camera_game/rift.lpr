@@ -115,7 +115,7 @@ begin
 
   { configure Notifications }
   Notifications.MaxMessages := 4;
-  Notifications.Color := Vector4Single(0.8, 0.8, 0.8, 1.0);
+  Notifications.Color := Vector4(0.8, 0.8, 0.8, 1.0);
 
   UserConfig.Load;
   SoundEngine.LoadFromConfig(UserConfig);

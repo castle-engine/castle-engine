@@ -44,7 +44,7 @@
 
 uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
   CastleProgressConsole, CastleParameters, CastleURIUtils,
-  CastleClassUtils;
+  CastleClassUtils, CastleDownload;
 
 var
   ShowProgress: boolean = true;

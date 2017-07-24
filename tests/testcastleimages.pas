@@ -15,6 +15,8 @@
 
 unit TestCastleImages;
 
+{$I castleconf.inc}
+
 interface
 
 uses fpcunit, testutils, testregistry,
@@ -121,7 +123,7 @@ begin
   ImgR.Clear(Vector4Byte(22, 33, 44, 55));
   AssertTrue(ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
 
-  ImgR.Colors[0, 0, 0] := Vector4Single(0.5, 0.6, 0.7, 1.0);
+  ImgR.Colors[0, 0, 0] := Vector4(0.5, 0.6, 0.7, 1.0);
   AssertTrue(not ImgR.IsClear(Vector4Byte(22, 33, 44, 66)));
  finally FreeAndNil(ImgR) end;
 
@@ -132,25 +134,28 @@ begin
   AssertTrue(not ImgA.IsClear(Vector4Byte(22, 33, 44, 66)));
   AssertTrue(ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
 
-  ImgA.Colors[0, 0, 0] := Vector4Single(0.5, 0.6, 0.7, 1.0);
+  ImgA.Colors[0, 0, 0] := Vector4(0.5, 0.6, 0.7, 1.0);
   AssertTrue(not ImgA.IsClear(Vector4Byte(22, 33, 44, 55)));
  finally FreeAndNil(ImgA) end;
 end;
 
 procedure TTestImages.TestVector3ToRGBE;
-const RightRGBE: TVector4Byte=(154, 10, 51, 127);
-var NewRGBE: TVector4Byte;
+const
+  RightRGBE: TVector4Byte= (Data: (154, 10, 51, 127));
+var
+  NewRGBE: TVector4Byte;
 begin
- NewRGBE := Vector3ToRGBE(Vector3Single(0.3, 0.02, 0.1));
+ NewRGBE := Vector3ToRGBE(Vector3(0.3, 0.02, 0.1));
  AssertTrue(CompareMem(@NewRGBE, @RightRGBE, SizeOf(TVector4Byte)));
 end;
 
 procedure TTestImages.TestRGBEToRGBTranslating;
 
   procedure CheckRGBEToRGBTranslating(const UpperValue: Single);
-  var rgbe: TVector4Byte;
-      rgb, newrgb: TVector3Single;
-      i: Integer;
+  var
+    rgbe: TVector4Byte;
+    rgb, newrgb: TVector3;
+    i: Integer;
   begin
    for i := 1 to 1000 do
    begin
@@ -160,11 +165,11 @@ procedure TTestImages.TestRGBEToRGBTranslating;
 
     rgbe := Vector3ToRGBE(rgb);
     newrgb := VectorRGBETo3Single(rgbe);
-    if not VectorsEqual(rgb, newrgb, UpperValue/256) then
+    if not TVector3.Equals(rgb, newrgb, UpperValue/256) then
      raise Exception.Create('Error -'+
-       ' rgb '+VectorToNiceStr(rgb)+
-       ' rgbe '+VectorToNiceStr(rgbe)+
-       ' newrgb '+VectorToNiceStr(newrgb) );
+       ' rgb '+rgb.ToString+
+       ' rgbe '+rgbe.ToString+
+       ' newrgb '+newrgb.ToString );
    end;
   end;
 

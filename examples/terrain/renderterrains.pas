@@ -57,7 +57,7 @@ procedure RenderTerrainsOpenGL;
 procedure RenderTerrainsCloseGL;
 
 { Returns same colors as used by DrawTerrain. }
-function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3Single;
+function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3;
 
 implementation
 
@@ -81,17 +81,17 @@ begin
   glFreeBuffer(TerrainIndexVbo);
 end;
 
-function ColorFromHeightCore(const H: Single): TVector3Single;
+function ColorFromHeightCore(const H: Single): TVector3;
 begin
   { Colors strategy from http://www.ii.uni.wroc.pl/~anl/dyd/PGK/pracownia.html }
-  if      (H < 0  )  then Result := Vector3Single(0,       0,         1) { blue }
-  else if (H < 500)  then Result := Vector3Single(0,       H/500,     0) { green }
-  else if (H < 1000) then Result := Vector3Single(H/500-1, 1,         0) { yellow }
-  else if (H < 1500) then Result := Vector3Single(1,       H/500-2.0, 0) { red }
-  else Result := Vector3Single(1, 1, 1);                                 { white }
+  if      (H < 0  )  then Result := Vector3(0,       0,         1) { blue }
+  else if (H < 500)  then Result := Vector3(0,       H/500,     0) { green }
+  else if (H < 1000) then Result := Vector3(H/500-1, 1,         0) { yellow }
+  else if (H < 1500) then Result := Vector3(1,       H/500-2.0, 0) { red }
+  else Result := Vector3(1, 1, 1);                                 { white }
 end;
 
-function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3Single;
+function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3;
 begin
   if Terrain is TTerrainGrid then
   begin
@@ -111,7 +111,7 @@ end;
 
 type
   TTerrainPoint = packed record
-    Position, Normal, Color: TVector3Single;
+    Position, Normal, Color: TVector3;
   end;
   PTerrainPoint = ^TTerrainPoint;
 
@@ -155,8 +155,9 @@ var
     { TODO: this is actually normal vector of 1 of the four faces around this
       vertex. Optimally, we should calculate normals on all faces,
       and for vertex normal take average. }
-    P^.Normal := (PX^.Position - P^.Position) ><
-                 (PY^.Position - P^.Position);
+    P^.Normal := TVector3.CrossProduct(
+      (PX^.Position - P^.Position),
+      (PY^.Position - P^.Position));
   end;
 
 var
@@ -388,7 +389,7 @@ procedure DrawGrid(Grid: TTerrainGrid);
     HForColor := Grid.GridHeight(I, J);
     glColorv(ColorFromHeightCore(HForColor));
 
-    glVertexv(Vector3Single(
+    glVertexv(Vector3(
       (GridX2 - GridX1) * I / Grid.GridSizeX + GridX1,
       (GridY2 - GridY1) * J / Grid.GridSizeY + GridY1,
       HForColor * GridHeightScale));

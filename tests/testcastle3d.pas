@@ -80,14 +80,20 @@ begin
     not at Collides property".) }
   if GetExists then
     Result := MyBox else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 { Helper box values ---------------------------------------------------------- }
 
 const
-  Box0: TBox3D = (Data: ((-1, -1, -1), (1, 1, 1)));
-  Box20: TBox3D = (Data: ((19, -1, -1), (21, 1, 1)));
+  Box0: TBox3D = (Data: (
+    (Data: (-1, -1, -1)),
+    (Data: (1, 1, 1))
+  ));
+  Box20: TBox3D = (Data: (
+    (Data: (19, -1, -1)),
+    (Data: (21, 1, 1))
+  ));
 
 { TTestCastle3D ---------------------------------------------------------------- }
 
@@ -97,66 +103,66 @@ var
   IsAbove: boolean;
   AboveHeight: Single;
   AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   Collision: TRayCollision;
 begin
   M := TMy3D.Create(nil, Box0);
   try
     AssertTrue(M.BoundingBox.Equal(Box0));
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(IsAbove);
-    AssertFloatsEqual(1, AboveHeight);
+    AssertSameValue(1, AboveHeight);
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
     { wall-sliding with sphere }
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(VectorsEqual(Vector3Single(-2, -1.5, 0), NewPos));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertVectorEquals(Vector3(-2, -1.5, 0), NewPos);
 
     { no wall-sliding, with sphere }
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil, false));
-    AssertTrue(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(20, 20, 20), nil, false));
+    AssertTrue(M.SegmentCollision(Vector3(10, 10, 10), Vector3(-10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
-    AssertTrue(M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 0.3, nil));
+    AssertTrue(M.SphereCollision(Vector3(2, 2, 2), 3, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
-    AssertTrue(M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 0.6), nil));
+    AssertTrue(M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -167,7 +173,7 @@ var
   IsAbove: boolean;
   AboveHeight: Single;
   AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   Collision: TRayCollision;
 begin
   M := TMy3D.Create(nil, Box0);
@@ -176,55 +182,55 @@ begin
 
     AssertTrue(M.BoundingBox.IsEmpty);
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
     { wall-sliding with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { no wall-sliding, with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil, false));
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(20, 20, 20), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(-10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 0.3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 3, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 0.6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
   finally FreeAndNil(M) end;
 end;
@@ -235,7 +241,7 @@ var
   IsAbove: boolean;
   AboveHeight: Single;
   AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   Collision: TRayCollision;
 begin
   M := TMy3D.Create(nil, Box0);
@@ -244,58 +250,58 @@ begin
 
     AssertTrue(M.BoundingBox.Equal(Box0));
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
     { wall-sliding with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { no wall-sliding, with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil, false));
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(20, 20, 20), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(-10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 0.3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 3, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 0.6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -312,7 +318,7 @@ var
   IsAbove: boolean;
   AboveHeight: Single;
   AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   Collision: TRayCollision;
 begin
   M := TMy3DTransform.Create(nil);
@@ -322,59 +328,59 @@ begin
 
     AssertTrue(M.BoundingBox.Equal(Box0));
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(IsAbove);
-    AssertFloatsEqual(1, AboveHeight);
+    AssertSameValue(1, AboveHeight);
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
     { wall-sliding with sphere }
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(VectorsEqual(Vector3Single(-2, -1.5, 0), NewPos));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertVectorEquals(Vector3(-2, -1.5, 0), NewPos);
 
     { no wall-sliding, with sphere }
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
+    AssertTrue(not M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil, false));
-    AssertTrue(M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(20, 20, 20), nil, false));
+    AssertTrue(M.SegmentCollision(Vector3(10, 10, 10), Vector3(-10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
-    AssertTrue(M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 0.3, nil));
+    AssertTrue(M.SphereCollision(Vector3(2, 2, 2), 3, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
-    AssertTrue(M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 0.6), nil));
+    AssertTrue(M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -385,7 +391,7 @@ var
   IsAbove: boolean;
   AboveHeight: Single;
   AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   Collision: TRayCollision;
 begin
   M := TMy3DTransform.Create(nil);
@@ -396,55 +402,55 @@ begin
 
     AssertTrue(M.BoundingBox.IsEmpty);
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
     { wall-sliding with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { no wall-sliding, with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil, false));
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(20, 20, 20), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(-10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 0.3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 3, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 0.6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
   finally FreeAndNil(M) end;
 end;
@@ -455,7 +461,7 @@ var
   IsAbove: boolean;
   AboveHeight: Single;
   AboveGround: P3DTriangle;
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   Collision: TRayCollision;
 begin
   M := TMy3DTransform.Create(nil);
@@ -466,58 +472,58 @@ begin
 
     AssertTrue(M.BoundingBox.Equal(Box0));
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
     { wall-sliding with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { no wall-sliding, with sphere }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(2, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(-2, -2, 0), Vector3Single(-2, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(2, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(-2, -2, 0), Vector3(-2, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(2, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(20, 20, 20), nil, false));
-    AssertTrue(not M.SegmentCollision(Vector3Single(10, 10, 10), Vector3Single(-10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(20, 20, 20), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(10, 10, 10), Vector3(-10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 0.3, nil));
-    AssertTrue(not M.SphereCollision(Vector3Single(2, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 0.3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(2, 2, 2), 3, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 0.6), nil));
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(2, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 0.6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(2, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(10, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(10, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(10, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3Single(1, 0, 0)));
+    AssertSameValue(9, Collision.Distance);
+    AssertVectorEquals(Collision.Last.Point, Vector3(1, 0, 0));
     FreeAndNil(Collision);
   finally FreeAndNil(M) end;
 end;
@@ -530,73 +536,73 @@ procedure TTestCastle3D.Test3DTransformReal;
     IsAbove: boolean;
     AboveHeight: Single;
     AboveGround: P3DTriangle;
-    NewPos: TVector3Single;
+    NewPos: TVector3;
     Collision: TRayCollision;
   begin
     AssertTrue(M.BoundingBox.Equal(Box20));
 
-    IsAbove := M.HeightCollision(Vector3Single(0.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(0.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
-    IsAbove := M.HeightCollision(Vector3Single(10.5, 10.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(10.5, 10.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(not IsAbove);
     AssertTrue(AboveHeight = Single(MaxSingle));
 
-    IsAbove := M.HeightCollision(Vector3Single(20.5, 0.5, 2), Vector3Single(0, 0, 1),
+    IsAbove := M.HeightCollision(Vector3(20.5, 0.5, 2), Vector3(0, 0, 1),
       nil, AboveHeight, AboveGround);
     AssertTrue(IsAbove);
-    AssertFloatsEqual(1, AboveHeight);
+    AssertSameValue(1, AboveHeight);
 
     { wall-sliding with sphere }
-    AssertTrue(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0), NewPos,
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0), NewPos,
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(VectorsEqual(Vector3Single(18, -1.5, 0), NewPos));
+    AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(22, 2, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0), NewPos,
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0), NewPos,
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertVectorEquals(Vector3(18, -1.5, 0), NewPos);
 
     { no wall-sliding, with sphere }
-    AssertTrue(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      true, 1.5, EmptyBox3D, EmptyBox3D, nil));
-    AssertTrue(M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      true, 0.5, EmptyBox3D, EmptyBox3D, nil));
+    AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(22, 2, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0),
+      true, 1.5, TBox3D.Empty, TBox3D.Empty, nil));
+    AssertTrue(M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0),
+      true, 0.5, TBox3D.Empty, TBox3D.Empty, nil));
 
     { with box }
-    AssertTrue(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(22, 2, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
-    AssertTrue(not M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 3.0), nil));
-    AssertTrue(M.MoveCollision(Vector3Single(18, -2, 0), Vector3Single(18, -1.5, 0),
-      false, 0, EmptyBox3D, Box3DAroundPoint(Vector3Single(22, 2, 0), 1.0), nil));
+    AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(22, 2, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(22, 2, 0), 1.0), nil));
+    AssertTrue(not M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(22, 2, 0), 3.0), nil));
+    AssertTrue(M.MoveCollision(Vector3(18, -2, 0), Vector3(18, -1.5, 0),
+      false, 0, TBox3D.Empty, Box3DAroundPoint(Vector3(22, 2, 0), 1.0), nil));
 
-    AssertTrue(not M.SegmentCollision(Vector3Single(30, 10, 10), Vector3Single(40, 20, 20), nil, false));
-    AssertTrue(M.SegmentCollision(Vector3Single(30, 10, 10), Vector3Single(10, -10, -10), nil, false));
+    AssertTrue(not M.SegmentCollision(Vector3(30, 10, 10), Vector3(40, 20, 20), nil, false));
+    AssertTrue(M.SegmentCollision(Vector3(30, 10, 10), Vector3(10, -10, -10), nil, false));
 
-    AssertTrue(not M.SphereCollision(Vector3Single(22, 2, 2), 0.3, nil));
-    AssertTrue(M.SphereCollision(Vector3Single(22, 2, 2), 3, nil));
+    AssertTrue(not M.SphereCollision(Vector3(22, 2, 2), 0.3, nil));
+    AssertTrue(M.SphereCollision(Vector3(22, 2, 2), 3, nil));
     { below radius values chosen specifically to test that "/ AverageScale"
       inside T3DCustomTransform.SphereCollision works Ok }
-    AssertTrue(not M.SphereCollision(Vector3Single(22, 0, 0), 0.9, nil));
-    AssertTrue(M.SphereCollision(Vector3Single(22, 0, 0), 1.1, nil));
+    AssertTrue(not M.SphereCollision(Vector3(22, 0, 0), 0.9, nil));
+    AssertTrue(M.SphereCollision(Vector3(22, 0, 0), 1.1, nil));
 
-    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3Single(22, 2, 2), 0.6), nil));
-    AssertTrue(M.BoxCollision(Box3DAroundPoint(Vector3Single(22, 2, 2), 6), nil));
+    AssertTrue(not M.BoxCollision(Box3DAroundPoint(Vector3(22, 2, 2), 0.6), nil));
+    AssertTrue(M.BoxCollision(Box3DAroundPoint(Vector3(22, 2, 2), 6), nil));
 
     Collision := M.RayCollision(
-      Vector3Single(30, 10, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(30, 10, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision = nil);
 
     Collision := M.RayCollision(
-      Vector3Single(30, 0, 0), Vector3Single(-1, 0, 0), nil);
+      Vector3(30, 0, 0), Vector3(-1, 0, 0), nil);
     AssertTrue(Collision <> nil);
-    AssertFloatsEqual(9, Collision.Distance);
-    AssertTrue(VectorsEqual(Collision.Last.Point, Vector3Single(21, 0, 0), 0.001));
+    AssertSameValue(9, Collision.Distance, 0.001); // larger epsilon for ppc64
+    AssertVectorEquals(Collision.Last.Point, Vector3(21, 0, 0), 0.001);
     FreeAndNil(Collision);
   end;
 
@@ -606,7 +612,7 @@ begin
   M := TMy3DTransform.Create(nil);
   try
     M.Add(TMy3D.Create(M, Box0));
-    M.Translation := Vector3Single(20, 0, 0);
+    M.Translation := Vector3(20, 0, 0);
     AssertTrue(M.OnlyTranslation);
     DoTests(M);
   finally FreeAndNil(M) end;
@@ -614,8 +620,8 @@ begin
   M := TMy3DTransform.Create(nil);
   try
     M.Add(TMy3D.Create(M, Box0));
-    M.Translation := Vector3Single(20, 0, 0);
-    M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
+    M.Translation := Vector3(20, 0, 0);
+    M.Rotation := Vector4(0, 1, 0, Pi / 2);
     AssertTrue(not M.OnlyTranslation);
     DoTests(M);
   finally FreeAndNil(M) end;
@@ -629,11 +635,11 @@ begin
     { test rotation and translation in different order.
       This requires connecting 2 T3DTransform instances, and using Center. }
     M.Add(M2);
-    M.Rotation := Vector4Single(0, 1, 0, Pi / 2);
-    M.Center := Vector3Single(20, 0, 0);
+    M.Rotation := Vector4(0, 1, 0, Pi / 2);
+    M.Center := Vector3(20, 0, 0);
     AssertTrue(not M.OnlyTranslation);
     M2.Add(TMy3D.Create(M, Box0));
-    M2.Translation := Vector3Single(20, 0, 0);
+    M2.Translation := Vector3(20, 0, 0);
     AssertTrue(M2.OnlyTranslation);
     DoTests(M);
   finally
@@ -645,10 +651,10 @@ begin
   try
     { use scaling in T3DTransform }
     M.Add(TMy3D.Create(M, Box3D(
-      Vector3Single(-0.25, -0.25, -0.25),
-      Vector3Single( 0.25,  0.25,  0.25))));
-    M.Translation := Vector3Single(20, 0, 0);
-    M.Scale := Vector3Single(4, 4, 4);
+      Vector3(-0.25, -0.25, -0.25),
+      Vector3( 0.25,  0.25,  0.25))));
+    M.Translation := Vector3(20, 0, 0);
+    M.Scale := Vector3(4, 4, 4);
     AssertTrue(not M.OnlyTranslation);
     DoTests(M);
   finally FreeAndNil(M) end;
@@ -755,41 +761,41 @@ begin
   O := T3DOrient.Create(nil);
 
   { no need to change direction/up angle, only normalize them }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(0, 0, 10));
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(0, 0, 10));
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   { SetView corrects up vector angle }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 10));
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 10));
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   { SetView with AdjustUp = false corrects direction vector angle }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 10), false);
-  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))), O.Direction, 0.1);
-  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 10), false);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, -Sqrt(2)).Normalize, O.Direction, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, Sqrt(2)).Normalize, O.Up, 0.1);
 
   { Setting direction corrects up vector }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  O.Direction := Vector3Single(10, 0, 10);
-  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))), O.Direction, 0.1);
-  AssertVectorsEqual(Normalized(Vector3Single(-Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  O.Direction := Vector3(10, 0, 10);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, Sqrt(2)).Normalize, O.Direction, 0.1);
+  AssertVectorEquals(Vector3(-Sqrt(2), 0, Sqrt(2)).Normalize, O.Up, 0.1);
 
   { Setting up corrects direction vector }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  O.Up := Vector3Single(10, 0, 10);
-  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, -Sqrt(2))), O.Direction, 0.1);
-  AssertVectorsEqual(Normalized(Vector3Single(Sqrt(2), 0, Sqrt(2))), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  O.Up := Vector3(10, 0, 10);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, -Sqrt(2)).Normalize, O.Direction, 0.1);
+  AssertVectorEquals(Vector3(Sqrt(2), 0, Sqrt(2)).Normalize, O.Up, 0.1);
 
   { UpPrefer corrects up vector }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  O.UpPrefer(Vector3Single(10, 0, 10));
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  O.UpPrefer(Vector3(10, 0, 10));
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Up, 0.1);
 
   FreeAndNil(O);
 end;
@@ -804,32 +810,32 @@ begin
   O := T3DOrient.Create(nil);
 
   { SetView corrects up vector angle }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0));
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 0));
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Up, 0.1);
 
   { SetView with AdjustUp = false corrects direction vector angle }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(10, 0, 0), Vector3Single(10, 0, 0), false);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 0), false);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Up, 0.1);
 
   { Setting direction corrects up vector }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  O.Direction := Vector3Single(0, 0, 10);
-  AssertVectorsEqual(Vector3Single(0, 0, 1), O.Direction, 0.1);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(0, 0, 1)), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  O.Direction := Vector3(0, 0, 10);
+  AssertVectorEquals(Vector3(0, 0, 1), O.Direction, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(0, 0, 1)), O.Up, 0.1);
 
   { Setting up corrects direction vector }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  O.Up := Vector3Single(10, 0, 0);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Direction, 0.1);
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  O.Up := Vector3(10, 0, 0);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Direction, 0.1);
+  AssertVectorEquals(Vector3(1, 0, 0), O.Up, 0.1);
 
   { UpPrefer corrects up vector }
-  O.SetView(Vector3Single(0, 0, 0), Vector3Single(1, 0, 0), Vector3Single(0, 0, 1));
-  O.UpPrefer(Vector3Single(10, 0, 0));
-  AssertVectorsEqual(Vector3Single(1, 0, 0), O.Direction, 0.1);
-  AssertVectorsEqual(AnyOrthogonalVector(Vector3Single(1, 0, 0)), O.Up, 0.1);
+  O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
+  O.UpPrefer(Vector3(10, 0, 0));
+  AssertVectorEquals(Vector3(1, 0, 0), O.Direction, 0.1);
+  AssertVectorEquals(AnyOrthogonalVector(Vector3(1, 0, 0)), O.Up, 0.1);
 
   FreeAndNil(O);
 end;

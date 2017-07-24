@@ -198,12 +198,12 @@ var
       case Arrays.Attribs[I].AType of
         atFloat  : A.EnableArraySingle       (Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-        atVector2: A.EnableArrayVector2Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector3: A.EnableArrayVector3Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atVector4: A.EnableArrayVector4Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector2: A.EnableArrayVector2(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector3: A.EnableArrayVector3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atVector4: A.EnableArrayVector4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
-        atMatrix3: A.EnableArrayMatrix3Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
-        atMatrix4: A.EnableArrayMatrix4Single(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix3: A.EnableArrayMatrix3(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
+        atMatrix4: A.EnableArrayMatrix4(Arrays.AttributeSize, Arrays.GLSLAttribute(Arrays.Attribs[I]));
 
         else raise EInternalError.Create('Arrays.Attribs[I].AType?');
       end;
@@ -282,16 +282,16 @@ begin
       CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
       CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
       CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
-      CurrentMeshShader.UniformCastle_SceneColor.SetValue(Vector3SingleCut(Shader.MaterialEmission) +
-        RenderContext.GlobalAmbient * Vector3SingleCut(Shader.MaterialAmbient));
+      CurrentMeshShader.UniformCastle_SceneColor.SetValue(Shader.MaterialEmission.XYZ +
+        RenderContext.GlobalAmbient * Shader.MaterialAmbient.XYZ);
       CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
 
       Attribs := TGLSLAttributeList.Create;
 
-      CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3Single(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+      CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
       Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
 
-      CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3Single(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+      CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
       Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
       {$else}
       glEnableClientState(GL_VERTEX_ARRAY);
@@ -309,7 +309,7 @@ begin
         mcColorPerVertex:
           begin
             Assert(Arrays.HasColor);
-            CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4Single(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+            CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
             Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
           end;
 
@@ -501,7 +501,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         like a direction, so we want to set Q = always 0.0
         (in homogeneous coords, this means that vector represents
         a direction and will be accordingly transformed). }
-      MultiTexCoord(TexUnit, ZeroVector4Single);
+      MultiTexCoord(TexUnit, TVector4.Zero);
 
       { Remember to set default tex coord 4th component back to 1
         at the end. Otherwise rendering normal textures (not cube maps)
@@ -544,20 +544,20 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
   const
     GenerationVectorsIdentity: TTextureGenerationVectors =
-    ( (1, 0, 0, 0),
-      (0, 1, 0, 0),
-      (0, 0, 1, 0) );
+    ( (Data: (1, 0, 0, 0)),
+      (Data: (0, 1, 0, 0)),
+      (Data: (0, 0, 1, 0)) );
   var
     TransformToWorldSpace: boolean;
   {$ifndef OpenGLES} // TODO-es
   const
-    ProjectorScalingMatrix: TMatrix4Single =
+    ProjectorScalingMatrix: TMatrix4 = (Data:
     ( (0.5,   0,   0, 0),
       (  0, 0.5,   0, 0),
       (  0,   0, 0.5, 0),
-      (0.5, 0.5, 0.5, 1) );
+      (0.5, 0.5, 0.5, 1) ));
   var
-    ProjectorMatrix: TMatrix4Single;
+    ProjectorMatrix: TMatrix4;
   {$endif}
   begin
     TransformToWorldSpace := TexCoord.Generation in
@@ -675,16 +675,16 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
               glLoadMatrix(RenderingCamera.Matrix);
 
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 0));
+              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Row(0));
 
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 1));
+              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Row(1));
 
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 2));
+              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Row(2));
 
               glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, MatrixRow(ProjectorMatrix, 3));
+              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Row(3));
             glPopMatrix;
             Shader.EnableTexGen(TexUnit, tgEye, 0);
             Shader.EnableTexGen(TexUnit, tgEye, 1);
@@ -734,7 +734,7 @@ end;
 procedure TTextureCoordinateRenderer.RenderCoordinateEnd;
 {$ifndef OpenGLES}
 const
-  DefaultTexCoord: TVector4Single = (0, 0, 0, 1);
+  DefaultTexCoord: TVector4 = (Data: (0, 0, 0, 1));
 {$endif}
 var
   I: Integer;

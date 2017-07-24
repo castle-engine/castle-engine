@@ -17,9 +17,8 @@
 
 {$APPTYPE CONSOLE}
 
-uses
-  Classes, SysUtils, strutils, DOM, RegExpr, FGL,
-  CastleParameters, CastleImages, CastleGenericLists, CastleStringUtils,
+uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
+  CastleParameters, CastleImages, CastleStringUtils,
   CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
   CastleTextureImages, CastleXMLUtils;
 
@@ -36,8 +35,8 @@ type
     AX, AY: single;     { Anchor }
   end;
 
-  TFrameList = specialize TGenericStructList<TFrame>;
-  TAnimations = class(specialize TFPGMap<string, TFrameList>)
+  TFrameList = specialize TList<TFrame>;
+  TAnimations = class(specialize TDictionary<string, TFrameList>)
     destructor Destroy; override;
   end;
 
@@ -53,10 +52,10 @@ var
 
 destructor TAnimations.Destroy;
 var
-  I: Integer;
+  F: TFrameList;
 begin
-  for I := 0 to Count - 1 do
-    Data[I].Free;
+  for F in Values do
+    F.Free;
   inherited;
 end;
 
@@ -85,13 +84,8 @@ end;
 procedure AddFrame(const AKey: string; const AFrame: TFrame);
 var
   List: TFrameList;
-  i: integer;
 begin
-  if Animations.Find(AKey, i) then
-  begin
-    List := Animations.Data[i];
-  end
-  else
+  if not Animations.TryGetValue(AKey, List) then
   begin
     List := TFrameList.Create;
     Animations.Add(AKey, List);
@@ -140,6 +134,8 @@ procedure Convert;
 var
   i, j: integer;
   List: TFrameList;
+  AnimationName: string;
+  AnimationPair: TAnimations.TDictionaryPair;
   Frame: TFrame;
   Root: TX3DRootNode;
   Shape: TShapeNode;
@@ -154,13 +150,12 @@ var
   CoordInterpArray: array of TCoordinateInterpolatorNode;
   TexCoordInterpArray: array of TCoordinateInterpolator2DNode;
   Key: single;
-  CoordArray: array of TVector3Single;
-  TexCoordArray: array of TVector2Single;
+  CoordArray: array of TVector3;
+  TexCoordArray: array of TVector2;
   R1, R2, R3, R4: TX3DRoute;
 begin
-  for j := 0 to Animations.Count-1 do
+  for List in Animations.Values do
   begin
-    List := Animations.Data[j];
     { Convert sprite texture coordinates to X3D format. }
     for i := 0 to List.Count-1 do
     begin
@@ -179,10 +174,10 @@ begin
   try
     Shape:= TShapeNode.Create;
     Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := Vector3Single(0, 0, 0);
-    Shape.Material.SpecularColor := Vector3Single(0, 0, 0);
+    Shape.Material.DiffuseColor := Vector3(0, 0, 0);
+    Shape.Material.SpecularColor := Vector3(0, 0, 0);
     Shape.Material.AmbientIntensity := 0;
-    Shape.Material.EmissiveColor := Vector3Single(1, 1, 1);
+    Shape.Material.EmissiveColor := Vector3(1, 1, 1);
 
     Tex := TImageTextureNode.Create;
     Tex.FdUrl.Send(Meta.Name);
@@ -196,21 +191,21 @@ begin
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
     Coord := TCoordinateNode.Create('coord');
-    Coord.FdPoint.Items.AddArray([
-        Vector3Single(-128, -128, 0),
-        Vector3Single(128, -128, 0),
-        Vector3Single(128, 128, 0),
-        Vector3Single(-128, -128, 0),
-        Vector3Single(128, 128, 0),
-        Vector3Single(-128, 128, 0)]);
+    Coord.FdPoint.Items.AddRange([
+        Vector3(-128, -128, 0),
+        Vector3(128, -128, 0),
+        Vector3(128, 128, 0),
+        Vector3(-128, -128, 0),
+        Vector3(128, 128, 0),
+        Vector3(-128, 128, 0)]);
     TexCoord := TTextureCoordinateNode.Create('texcoord');
-    TexCoord.FdPoint.Items.AddArray([
-         Vector2Single(0, 0),
-         Vector2Single(1, 0),
-         Vector2Single(1, 1),
-         Vector2Single(0, 0),
-         Vector2Single(1, 1),
-         Vector2Single(0, 1)]);
+    TexCoord.FdPoint.Items.AddRange([
+         Vector2(0, 0),
+         Vector2(1, 0),
+         Vector2(1, 1),
+         Vector2(0, 0),
+         Vector2(1, 1),
+         Vector2(0, 1)]);
     Tri.FdCoord.Value := Coord;
     Tri.FdTexCoord.Value := TexCoord;
     Shape.Geometry := Tri;
@@ -221,18 +216,20 @@ begin
     SetLength(CoordInterpArray, Animations.Count);
     SetLength(TexCoordInterpArray, Animations.Count);
 
-    for j := 0 to Animations.Count-1 do
+    j := 0;
+    for AnimationPair in Animations do
     begin
-      List := Animations.Data[j];
-      TimeSensor := TTimeSensorNode.Create(Animations.Keys[j]);
+      AnimationName := AnimationPair.Key;
+      List := AnimationPair.Value;
+      TimeSensor := TTimeSensorNode.Create(AnimationName);
       TimeSensor.CycleInterval := List.Count / FramesPerSecond;
-      Writeln('Generating animation ' + Animations.Keys[j] +
+      Writeln('Generating animation ' + AnimationName +
         ', frames: ', List.Count,
         ', duration: ', TimeSensor.CycleInterval:1:2);
       CoordInterp :=
-          TCoordinateInterpolatorNode.Create(Animations.Keys[j] + '_Coord');
+          TCoordinateInterpolatorNode.Create(AnimationName + '_Coord');
       TexCoordInterp :=
-          TCoordinateInterpolator2DNode.Create(Animations.Keys[j] + '_TexCoord');
+          TCoordinateInterpolator2DNode.Create(AnimationName + '_TexCoord');
       TimeSensorArray[j] := TimeSensor;
       CoordInterpArray[j] := CoordInterp;
       TexCoordInterpArray[j] := TexCoordInterp;
@@ -257,29 +254,29 @@ begin
       for i := 0 to List.Count-1 do
       begin
         Frame := List[i];
-        CoordArray[0] := Vector3Single(
+        CoordArray[0] := Vector3(
             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
-        CoordArray[1] := Vector3Single(
+        CoordArray[1] := Vector3(
              Frame.W * (1-Frame.AX),  Frame.H * (  Frame.AY), 0);
-        CoordArray[2] := Vector3Single(
+        CoordArray[2] := Vector3(
              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 0);
-        CoordArray[3] := Vector3Single(
+        CoordArray[3] := Vector3(
             -Frame.W * (  Frame.AX),  Frame.H * (  Frame.AY), 0);
-        CoordArray[4] := Vector3Single(
+        CoordArray[4] := Vector3(
              Frame.W * (1-Frame.AX), -Frame.H * (1-Frame.AY), 0);
-        CoordArray[5] := Vector3Single(
+        CoordArray[5] := Vector3(
             -Frame.W * (  Frame.AX), -Frame.H * (1-Frame.AY), 0);
-        TexCoordArray[0] := Vector2Single(Frame.X1, Frame.Y1);
-        TexCoordArray[1] := Vector2Single(Frame.X2, Frame.Y1);
-        TexCoordArray[2] := Vector2Single(Frame.X2, Frame.Y2);
-        TexCoordArray[3] := Vector2Single(Frame.X1, Frame.Y1);
-        TexCoordArray[4] := Vector2Single(Frame.X2, Frame.Y2);
-        TexCoordArray[5] := Vector2Single(Frame.X1, Frame.Y2);
-        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
+        TexCoordArray[0] := Vector2(Frame.X1, Frame.Y1);
+        TexCoordArray[1] := Vector2(Frame.X2, Frame.Y1);
+        TexCoordArray[2] := Vector2(Frame.X2, Frame.Y2);
+        TexCoordArray[3] := Vector2(Frame.X1, Frame.Y1);
+        TexCoordArray[4] := Vector2(Frame.X2, Frame.Y2);
+        TexCoordArray[5] := Vector2(Frame.X1, Frame.Y2);
+        CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
         { Repeat all keyValues, to avoid interpolating them smoothly between two keys }
-        CoordInterp.FdKeyValue.Items.AddArray(CoordArray);
-        TexCoordInterp.FdKeyValue.Items.AddArray(TexCoordArray);
+        CoordInterp.FdKeyValue.Items.AddRange(CoordArray);
+        TexCoordInterp.FdKeyValue.Items.AddRange(TexCoordArray);
       end;
       { Create routes. }
       R1 := TX3DRoute.Create;
@@ -298,6 +295,7 @@ begin
       Root.AddRoute(R2);
       Root.AddRoute(R3);
       Root.AddRoute(R4);
+      Inc(j);
     end;
     { Put everything into the scene. }
     Root.FdChildren.Add(Shape);

@@ -13,7 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Reporting warnings (OnWarning). }
+{ Reporting warnings (OnWarning).
+  @deprecated @exclude }
 unit CastleWarnings
   deprecated 'this interface to warnings is overcomplicated; better use WritelnWarning from CastleLog unit instead';
 

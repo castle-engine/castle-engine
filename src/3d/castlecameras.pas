@@ -157,7 +157,7 @@ type
       if HandleInput then
       begin
         if Container.Pressed[K_Right] then
-          Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+          Transform.Position += Vector3(SecondsPassed * 10, 0, 0);
         HandleInput := not ExclusiveEvents;
       end;
       #)
@@ -336,8 +336,8 @@ type
     VisibleChangeSchedule: Cardinal;
     IsVisibleChangeScheduled: boolean;
     FInput: TCameraInputs;
-    FInitialPosition, FInitialDirection, FInitialUp: TVector3Single;
-    FProjectionMatrix: TMatrix4Single;
+    FInitialPosition, FInitialDirection, FInitialUp: TVector3;
+    FProjectionMatrix: TMatrix4;
     FRadius: Single;
     FEnableDragging: boolean;
 
@@ -345,12 +345,12 @@ type
     AnimationEndTime: TFloatTime;
     AnimationCurrentTime: TFloatTime;
 
-    AnimationBeginPosition: TVector3Single;
-    AnimationBeginDirection: TVector3Single;
-    AnimationBeginUp: TVector3Single;
-    AnimationEndPosition: TVector3Single;
-    AnimationEndDirection: TVector3Single;
-    AnimationEndUp: TVector3Single;
+    AnimationBeginPosition: TVector3;
+    AnimationBeginDirection: TVector3;
+    AnimationBeginUp: TVector3;
+    AnimationEndPosition: TVector3;
+    AnimationEndDirection: TVector3;
+    AnimationEndUp: TVector3;
 
     FFrustum: TFrustum;
 
@@ -362,7 +362,7 @@ type
       MouseDraggingStarted -1 means none, otherwise it's the finder index
       (to support multitouch). }
     MouseDraggingStarted: Integer;
-    MouseDraggingStart: TVector2Single;
+    MouseDraggingStart: TVector2;
 
     { Mechanism to schedule VisibleChange calls.
 
@@ -388,11 +388,11 @@ type
       TCamera descendants may override this.
       In normal circumstances, you should not call it anywhere (it's automatically
       called by the scene manager). }
-    procedure SetProjectionMatrix(const Value: TMatrix4Single); virtual;
+    procedure SetProjectionMatrix(const Value: TMatrix4); virtual;
     procedure SetRadius(const Value: Single); virtual;
 
-    function GetPositionInternal: TVector3Single; virtual; abstract;
-    procedure SetPosition(const Value: TVector3Single); virtual; abstract;
+    function GetPositionInternal: TVector3; virtual; abstract;
+    procedure SetPosition(const Value: TVector3); virtual; abstract;
 
     function ReallyEnableMouseDragging: boolean; virtual;
   public
@@ -417,7 +417,7 @@ type
     { Current camera matrix. You should multiply every 3D point of your
       scene by this matrix, which usually simply means that you should
       do @code(glLoadMatrix) or @code(glMultMatrix) of this matrix. }
-    function Matrix: TMatrix4Single; virtual; abstract;
+    function Matrix: TMatrix4; virtual; abstract;
 
     { Extract only rotation from your current camera @link(Matrix).
       This is useful for rendering skybox in 3D programs
@@ -427,7 +427,7 @@ type
       It's guaranteed that this is actually only 3x3 matrix,
       the 4th row and 4th column are all zero except the lowest right item
       which is 1.0. }
-    function RotationMatrix: TMatrix4Single; virtual; abstract;
+    function RotationMatrix: TMatrix4; virtual; abstract;
 
     { Deprecated, use more flexible @link(Input) instead.
       @code(IgnoreAllInputs := true) is equivalent to @code(Input := []),
@@ -451,7 +451,7 @@ type
       In normal circumstances, if you use our @italic(scene manager)
       and viewport (@link(TCastleAbstractViewport)) for rendering,
       this is automatically correctly set for you. }
-    property ProjectionMatrix: TMatrix4Single
+    property ProjectionMatrix: TMatrix4
       read FProjectionMatrix write SetProjectionMatrix;
 
     { The radius of a sphere around the camera
@@ -482,8 +482,8 @@ type
 
       Returned Dir and Up must be orthogonal.
       Returned Dir and Up and GravityUp are already normalized. }
-    procedure GetView(out APos, ADir, AUp: TVector3Single); virtual; abstract;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); virtual; abstract;
+    procedure GetView(out APos, ADir, AUp: TVector3); virtual; abstract;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); virtual; abstract;
 
     { Set camera view from vectors: position, direction, up.
 
@@ -495,14 +495,14 @@ type
       when AdjustUp = @true (the default) we will adjust the up vector
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
-    procedure SetView(const APos, ADir, AUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); virtual; abstract;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
       const AdjustUp: boolean = true); virtual; abstract;
 
-    property Position: TVector3Single read GetPositionInternal write SetPosition;
-    function GetPosition: TVector3Single; deprecated 'use Position property';
-    function GetGravityUp: TVector3Single; virtual; abstract;
+    property Position: TVector3 read GetPositionInternal write SetPosition;
+    function GetPosition: TVector3; deprecated 'use Position property';
+    function GetGravityUp: TVector3; virtual; abstract;
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
@@ -515,9 +515,9 @@ type
 
       WindowPosition is given in the same style as TUIContainer.MousePosition:
       (0, 0) is bottom-left. }
-    procedure Ray(const WindowPosition: TVector2Single;
+    procedure Ray(const WindowPosition: TVector2;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
+      out RayOrigin, RayDirection: TVector3); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
 
     { Calculate a ray picked by current mouse position on the window.
       Uses current Container (both to get it's size and to get current
@@ -529,7 +529,7 @@ type
       @seealso CustomRay }
     procedure MouseRay(
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
+      out RayOrigin, RayDirection: TVector3); deprecated 'use CustomRay with proper viewport sizes, or use higher-level utilities like SceneManager.MouseRayHit instead';
 
     { Calculate a ray picked by WindowPosition position on the viewport,
       assuming current viewport dimensions are as given.
@@ -544,9 +544,9 @@ type
       (0, 0) is bottom-left. }
     procedure CustomRay(
       const Viewport: TRectangle;
-      const WindowPosition: TVector2Single;
+      const WindowPosition: TVector2;
       const Projection: TProjection;
-      out RayOrigin, RayDirection: TVector3Single);
+      out RayOrigin, RayDirection: TVector3);
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
@@ -585,7 +585,7 @@ type
 
       @groupBegin }
     procedure AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
-    procedure AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TFloatTime);
+    procedure AnimateTo(const Pos, Dir, Up: TVector3; const Time: TFloatTime);
     { @groupEnd }
 
     function Animation: boolean; virtual;
@@ -600,9 +600,9 @@ type
       DefaultCameraUp = (0, 1, 0).
 
       @groupBegin }
-    property InitialPosition : TVector3Single read FInitialPosition;
-    property InitialDirection: TVector3Single read FInitialDirection;
-    property InitialUp       : TVector3Single read FInitialUp;
+    property InitialPosition : TVector3 read FInitialPosition;
+    property InitialDirection: TVector3 read FInitialDirection;
+    property InitialUp       : TVector3 read FInitialUp;
     { @groupEnd }
 
     { Set three initial camera vectors.
@@ -624,8 +624,8 @@ type
       viewpoint position/orientation, and when viewpoint position/orientation
       changes, viewer should also change". }
     procedure SetInitialView(
-      const AInitialPosition: TVector3Single;
-      AInitialDirection, AInitialUp: TVector3Single;
+      const AInitialPosition: TVector3;
+      AInitialDirection, AInitialUp: TVector3;
       const TransformCurrentCamera: boolean); virtual;
 
     { Jump to initial camera view (set by SetInitialView). }
@@ -658,7 +658,7 @@ type
     rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
   TExamineCamera = class(TCamera)
   private
-    FTranslation, FCenterOfRotation: TVector3Single;
+    FTranslation, FCenterOfRotation: TVector3;
     FRotations: TQuaternion;
     FDragMoveSpeed, FKeysMoveSpeed: Single;
     { Speed of rotations. Always zero when RotationAccelerate = false.
@@ -672,13 +672,13 @@ type
       The only way would be to convert FRotationsAnim back to AxisAngle,
       then scale angle, then convert back to quaternion... which makes
       the whole exercise useless. }
-    FRotationsAnim: TVector3Single;
+    FRotationsAnim: TVector3;
     FScaleFactor: Single;
     FModelBox: TBox3D;
     FRotationAccelerate: boolean;
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
-    FPosition, FDirection, FUp: TVector3Single;
+    FPosition, FDirection, FUp: TVector3;
     FTurntable: boolean;
 
     FInputs_Move: T3BoolInputs;
@@ -688,12 +688,12 @@ type
     FInput_Home: TInputShortcut;
     FInput_StopRotating: TInputShortcut;
 
-    procedure SetRotationsAnim(const Value: TVector3Single);
+    procedure SetRotationsAnim(const Value: TVector3);
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
-    procedure SetTranslation(const Value: TVector3Single);
+    procedure SetTranslation(const Value: TVector3);
     procedure SetModelBox(const Value: TBox3D);
-    procedure SetCenterOfRotation(const Value: TVector3Single);
+    procedure SetCenterOfRotation(const Value: TVector3);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
 
@@ -713,8 +713,8 @@ type
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
   protected
-    function GetPositionInternal: TVector3Single; override;
-    procedure SetPosition(const Value: TVector3Single); override;
+    function GetPositionInternal: TVector3; override;
+    procedure SetPosition(const Value: TVector3); override;
   public
     const
       DefaultRotationAccelerationSpeed = 5.0;
@@ -723,11 +723,11 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    function Matrix: TMatrix4Single; override;
+    function Matrix: TMatrix4; override;
 
-    function MatrixInverse: TMatrix4Single;
+    function MatrixInverse: TMatrix4;
 
-    function RotationMatrix: TMatrix4Single; override;
+    function RotationMatrix: TMatrix4; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -744,7 +744,7 @@ type
     property Rotations: TQuaternion read FRotations write SetRotations;
 
     { Continous rotation animation, applied each Update to Rotations. }
-    property RotationsAnim: TVector3Single read FRotationsAnim write SetRotationsAnim;
+    property RotationsAnim: TVector3 read FRotationsAnim write SetRotationsAnim;
 
     { How fast user moves the scene by mouse/touch dragging. }
     property DragMoveSpeed: Single read FDragMoveSpeed write FDragMoveSpeed default 1.0;
@@ -752,17 +752,17 @@ type
     { How fast user moves the scene by pressing keys. }
     property KeysMoveSpeed: Single read FKeysMoveSpeed write FKeysMoveSpeed default 1.0;
 
-    property MoveAmount: TVector3Single read FTranslation write SetTranslation;
+    property MoveAmount: TVector3 read FTranslation write SetTranslation;
       deprecated 'use Translation';
 
     { How much to move the model. By default, zero. }
-    property Translation: TVector3Single read FTranslation write SetTranslation;
+    property Translation: TVector3 read FTranslation write SetTranslation;
 
     { Center of rotation and scale, relative to @link(Translation).
       By default, zero.
       Setting the @link(ModelBox) or calling @link(Init) sets this to the middle
       of the model bounding box (@link(ModelBox)), which is usually most natural. }
-    property CenterOfRotation: TVector3Single read FCenterOfRotation write SetCenterOfRotation;
+    property CenterOfRotation: TVector3 read FCenterOfRotation write SetCenterOfRotation;
 
     { Turntable rotates the scene around its Y axis instead of current camera axis. }
     property Turntable: boolean
@@ -788,7 +788,7 @@ type
       So often you only need to set ModelBox, once,
       and everything else will work smoothly.
 
-      Initially this is EmptyBox3D. }
+      Initially this is TBox3D.Empty. }
     property ModelBox: TBox3D read FModelBox write SetModelBox;
 
     { Initialize most important properties of this class:
@@ -818,12 +818,12 @@ type
     property Inputs_Rotate: T3BoolInputs read FInputs_Rotate;
     { @groupEnd }
 
-    procedure GetView(out APos, ADir, AUp: TVector3Single); override;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    function GetGravityUp: TVector3Single; override;
-    procedure SetView(const APos, ADir, AUp: TVector3Single;
+    procedure GetView(out APos, ADir, AUp: TVector3); override;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); override;
+    function GetGravityUp: TVector3; override;
+    procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
       const AdjustUp: boolean = true); override;
 
     procedure VisibleChange; override;
@@ -901,8 +901,8 @@ type
   { See @link(TWalkCamera.DoMoveAllowed) and
     @link(TWalkCamera.OnMoveAllowed) }
   TMoveAllowedFunc = function(Camera: TWalkCamera;
-    const ProposedNewPos: TVector3Single;
-    out NewPos: TVector3Single;
+    const ProposedNewPos: TVector3;
+    out NewPos: TVector3;
     const BecauseOfGravity: boolean): boolean of object;
 
   { See @link(TWalkCamera.OnFall). }
@@ -910,7 +910,7 @@ type
     const FallHeight: Single) of object;
 
   THeightEvent = function (Camera: TWalkCamera;
-    const Position: TVector3Single;
+    const Position: TVector3;
     out AboveHeight: Single; out AboveGround: P3DTriangle): boolean of object;
 
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
@@ -919,7 +919,7 @@ type
   TWalkCamera = class(TCamera)
   private
     FPosition, FDirection, FUp,
-    FGravityUp: TVector3Single;
+    FGravityUp: TVector3;
     FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FRotationHorizontalPivot: Single;
@@ -931,10 +931,10 @@ type
     FMouseLook: boolean;
     FMouseDragMode: TMouseDragMode;
 
-    procedure SetDirection(const Value: TVector3Single);
-    procedure SetUp(const Value: TVector3Single);
+    procedure SetDirection(const Value: TVector3);
+    procedure SetUp(const Value: TVector3);
     procedure SetMouseLook(const Value: boolean);
-    procedure SetGravityUp(const Value: TVector3Single);
+    procedure SetGravityUp(const Value: TVector3);
   private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -989,7 +989,7 @@ type
     procedure RotateVertical(const AngleDeg: Single);
 
     { Like Move, but you pass here final ProposedNewPos. }
-    function MoveTo(const ProposedNewPos: TVector3Single;
+    function MoveTo(const ProposedNewPos: TVector3;
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
     { Try to move from current Position to Position + MoveVector.
       Checks DoMoveAllowed, also (if CheckClimbHeight is @true)
@@ -999,7 +999,7 @@ type
       Returns @true is some move occured (but don't assume too much:
       possibly we didn't move to exactly Position + MoveVector
       because of wall sliding). }
-    function Move(const MoveVector: TVector3Single;
+    function Move(const MoveVector: TVector3;
       const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
     { Forward or backward move. Multiply must be +1 or -1. }
     procedure MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
@@ -1015,7 +1015,7 @@ type
 
     { Call always after horizontal rotation (but before ScheduleVisibleChange).
       This will eventually adjust FPosition for RotationHorizontalPivot <> 0. }
-    procedure AdjustForRotationHorizontalPivot(const OldDirection: TVector3Single);
+    procedure AdjustForRotationHorizontalPivot(const OldDirection: TVector3);
 
     { Jump.
 
@@ -1028,7 +1028,7 @@ type
 
     FPreferredHeight: Single;
     FFalling: boolean;
-    FFallingStartPosition: TVector3Single;
+    FFallingStartPosition: TVector3;
     FOnFall: TFallNotifyFunc;
     FFallSpeedStart: Single;
     FFallSpeed: Single;
@@ -1074,12 +1074,12 @@ type
     function RealPreferredHeightMargin: Single;
   protected
     { Call OnHeight callback. }
-    procedure Height(const APosition: TVector3Single;
+    procedure Height(const APosition: TVector3;
       out AIsAbove: boolean;
       out AnAboveHeight: Single; out AnAboveGround: P3DTriangle); virtual;
 
-    function GetPositionInternal: TVector3Single; override;
-    procedure SetPosition(const Value: TVector3Single); override;
+    function GetPositionInternal: TVector3; override;
+    procedure SetPosition(const Value: TVector3); override;
 
     function ReallyEnableMouseDragging: boolean; override;
   public
@@ -1104,8 +1104,8 @@ type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
-    function Matrix: TMatrix4Single; override;
-    function RotationMatrix: TMatrix4Single; override;
+    function Matrix: TMatrix4; override;
+    function RotationMatrix: TMatrix4; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
     function AllowSuspendForInput: boolean; override;
@@ -1161,8 +1161,8 @@ type
       If OnMoveAllowed = nil then returns true and sets NewPos to
       ProposedNewPos (so move is always allowed).
       Else calls OnMoveAllowed. }
-    function DoMoveAllowed(const ProposedNewPos: TVector3Single;
-      out NewPos: TVector3Single;
+    function DoMoveAllowed(const ProposedNewPos: TVector3;
+      out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; virtual;
 
     { Camera position, looking direction and up vector.
@@ -1186,9 +1186,9 @@ type
       when setting @link(Up), @link(Direction) will be adjusted.
 
       @groupBegin }
-    property Position : TVector3Single read FPosition  write SetPosition;
-    property Direction: TVector3Single read FDirection write SetDirection;
-    property Up       : TVector3Single read FUp        write SetUp;
+    property Position : TVector3 read FPosition  write SetPosition;
+    property Direction: TVector3 read FDirection write SetDirection;
+    property Up       : TVector3 read FUp        write SetUp;
     { @groupEnd }
 
     { This is the upward direction of the world in which player moves.
@@ -1204,7 +1204,7 @@ type
 
       The default value of this vector is (0, 1, 0) (same as the default
       InitialUp and Up vectors). }
-    property GravityUp: TVector3Single read FGravityUp write SetGravityUp;
+    property GravityUp: TVector3 read FGravityUp write SetGravityUp;
 
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
       then various operations are done with respect
@@ -1306,7 +1306,7 @@ type
       Note that when @link(Direction) and GravityUp are parallel,
       this just returns current @link(Direction) --- because in such case
       we can't project @link(Direction) on the horizontal plane. }
-    function DirectionInGravityPlane: TVector3Single;
+    function DirectionInGravityPlane: TVector3;
 
     { Set the most important properties of this camera, in one call.
       Sets initial camera properties (InitialPosition, InitialDirection,
@@ -1324,8 +1324,8 @@ type
       You can pass ARadius = 0.0 if you really don't want this
       PreferredHeight adjustment. }
     procedure Init(const AInitialPosition, AInitialDirection,
-      AInitialUp: TVector3Single;
-      const AGravityUp: TVector3Single;
+      AInitialUp: TVector3;
+      const AGravityUp: TVector3;
       const APreferredHeight: Single;
       const ARadius: Single); overload;
 
@@ -1697,14 +1697,14 @@ type
       some "footsteps" sound for the player. }
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
 
-    procedure GetView(out APos, ADir, AUp: TVector3Single); override;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    function GetGravityUp: TVector3Single; override;
-    procedure SetView(const ADir, AUp: TVector3Single;
+    procedure GetView(out APos, ADir, AUp: TVector3); override;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); override;
+    function GetGravityUp: TVector3; override;
+    procedure SetView(const ADir, AUp: TVector3;
       const AdjustUp: boolean = true);
-    procedure SetView(const APos, ADir, AUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
       const AdjustUp: boolean = true); override;
     function GetNavigationType: TNavigationType; override;
 
@@ -1712,7 +1712,7 @@ type
       If necessary, the up vector provided here will be fixed to be orthogonal
       to direction.
       See T3DOrient.UpPrefer for detailed documentation what this does. }
-    procedure UpPrefer(const AUp: TVector3Single);
+    procedure UpPrefer(const AUp: TVector3);
 
     { Last known information about whether camera is over the ground.
       Updated by using @link(Height) call. For normal TCamera descendants,
@@ -1883,11 +1883,11 @@ type
   protected
     procedure SetInput(const Value: TCameraInputs); override;
     procedure SetEnableDragging(const Value: boolean); override;
-    procedure SetProjectionMatrix(const Value: TMatrix4Single); override;
+    procedure SetProjectionMatrix(const Value: TMatrix4); override;
     procedure SetContainer(const Value: TUIContainer); override;
     procedure SetRadius(const Value: Single); override;
-    function GetPositionInternal: TVector3Single; override;
-    procedure SetPosition(const Value: TVector3Single); override;
+    function GetPositionInternal: TVector3; override;
+    procedure SetPosition(const Value: TVector3); override;
   public
     constructor Create(AOwner: TComponent); override;
 
@@ -1895,14 +1895,14 @@ type
       that is either @link(Examine) or @link(Walk). }
     function Current: TCamera;
 
-    function Matrix: TMatrix4Single; override;
-    function RotationMatrix: TMatrix4Single; override;
-    procedure GetView(out APos, ADir, AUp: TVector3Single); override;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3Single); override;
-    function GetGravityUp: TVector3Single; override;
-    procedure SetView(const APos, ADir, AUp: TVector3Single;
+    function Matrix: TMatrix4; override;
+    function RotationMatrix: TMatrix4; override;
+    procedure GetView(out APos, ADir, AUp: TVector3); override;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); override;
+    function GetGravityUp: TVector3; override;
+    procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
       const AdjustUp: boolean = true); override;
 
     procedure Update(const SecondsPassed: Single;
@@ -1919,8 +1919,8 @@ type
     function GetNavigationType: TNavigationType; override;
 
     procedure SetInitialView(
-      const AInitialPosition: TVector3Single;
-      AInitialDirection, AInitialUp: TVector3Single;
+      const AInitialPosition: TVector3;
+      AInitialDirection, AInitialUp: TVector3;
       const TransformCurrentCamera: boolean); override;
   published
     property Examine: TExamineCamera read FExamine;
@@ -1970,8 +1970,8 @@ const
     of "camera orientation" for CamDirUp2Orient routines.
     These match VRML/X3D default camera values.
     @groupBegin }
-  DefaultCameraDirection: TVector3Single = (0, 0, -1);
-  DefaultCameraUp: TVector3Single = (0, 1, 0);
+  DefaultCameraDirection: TVector3 = (Data: (0, 0, -1));
+  DefaultCameraUp: TVector3 = (Data: (0, 1, 0));
   { @groupEnd }
 
 { Convert camera direction and up vectors into VRML/X3D "orientation" vector.
@@ -1987,9 +1987,9 @@ const
   before passing here).
 
   @groupBegin }
-function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
-procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
-  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+function CamDirUp2Orient(const CamDir, CamUp: TVector3): TVector4;
+procedure CamDirUp2Orient(const CamDir, CamUp: TVector3;
+  out OrientAxis: TVector3; out OrientRadAngle: Single);
 { @groupEnd }
 
 { Convert camera direction and up vectors into "rotation quaternion" of
@@ -2005,7 +2005,7 @@ procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
   before passing here).
 
   @groupBegin }
-function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
+function CamDirUp2OrientQuat(CamDir, CamUp: TVector3): TQuaternion;
 { @groupEnd }
 
 { Calculate sensible camera configuration to see the whole Box.
@@ -2019,7 +2019,7 @@ function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean;
-  out Position, Direction, Up, GravityUp: TVector3Single);
+  out Position, Direction, Up, GravityUp: TVector3);
 
 procedure Register;
 
@@ -2170,8 +2170,8 @@ end;
 constructor TCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FProjectionMatrix := IdentityMatrix4Single;
-  FInitialPosition  := Vector3Single(0, 0, 0);
+  FProjectionMatrix := TMatrix4.Identity;
+  FInitialPosition  := Vector3(0, 0, 0);
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
   FRadius := DefaultRadius;
@@ -2230,7 +2230,7 @@ begin
   FFrustum.Init(ProjectionMatrix, Matrix);
 end;
 
-procedure TCamera.SetProjectionMatrix(const Value: TMatrix4Single);
+procedure TCamera.SetProjectionMatrix(const Value: TMatrix4);
 begin
   FProjectionMatrix := Value;
   RecalculateFrustum;
@@ -2241,9 +2241,9 @@ begin
   FRadius := Value;
 end;
 
-procedure TCamera.Ray(const WindowPosition: TVector2Single;
+procedure TCamera.Ray(const WindowPosition: TVector2;
   const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.Ray');
   CustomRay(ContainerRect, WindowPosition, Projection, RayOrigin, RayDirection);
@@ -2251,7 +2251,7 @@ end;
 
 procedure TCamera.MouseRay(
   const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 begin
   Assert(ContainerSizeKnown, 'Camera container size not known yet (probably camera not added to Controls list), cannot use TCamera.MouseRay');
   CustomRay(ContainerRect, Container.MousePosition, Projection, RayOrigin, RayDirection);
@@ -2259,11 +2259,11 @@ end;
 
 procedure TCamera.CustomRay(
   const Viewport: TRectangle;
-  const WindowPosition: TVector2Single;
+  const WindowPosition: TVector2;
   const Projection: TProjection;
-  out RayOrigin, RayDirection: TVector3Single);
+  out RayOrigin, RayDirection: TVector3);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   GetView(Pos, Dir, Up);
 
@@ -2298,7 +2298,7 @@ begin
   end;
 end;
 
-procedure TCamera.AnimateTo(const Pos, Dir, Up: TVector3Single; const Time: TFloatTime);
+procedure TCamera.AnimateTo(const Pos, Dir, Up: TVector3; const Time: TFloatTime);
 begin
   GetView(
     AnimationBeginPosition,
@@ -2314,14 +2314,14 @@ begin
   { No point in doing animation (especially since it blocks camera movement
     for Time seconds) if we're already there. }
   FAnimation := not (
-    VectorsEqual(AnimationBeginPosition , AnimationEndPosition) and
-    VectorsEqual(AnimationBeginDirection, AnimationEndDirection) and
-    VectorsEqual(AnimationBeginUp       , AnimationEndUp));
+    TVector3.Equals(AnimationBeginPosition , AnimationEndPosition) and
+    TVector3.Equals(AnimationBeginDirection, AnimationEndDirection) and
+    TVector3.Equals(AnimationBeginUp       , AnimationEndUp));
 end;
 
 procedure TCamera.AnimateTo(OtherCamera: TCamera; const Time: TFloatTime);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   OtherCamera.GetView(Pos, Dir, Up);
   AnimateTo(Pos, Dir, Up, Time);
@@ -2333,25 +2333,25 @@ begin
 end;
 
 procedure TCamera.SetInitialView(
-  const AInitialPosition: TVector3Single;
-  AInitialDirection, AInitialUp: TVector3Single;
+  const AInitialPosition: TVector3;
+  AInitialDirection, AInitialUp: TVector3;
   const TransformCurrentCamera: boolean);
 var
   OldInitialOrientation, NewInitialOrientation, Orientation: TQuaternion;
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
-  NormalizeVar(AInitialDirection);
-  NormalizeVar(AInitialUp);
+  AInitialDirection.NormalizeMe;
+  AInitialUp.NormalizeMe;
   MakeVectorsOrthoOnTheirPlane(AInitialUp, AInitialDirection);
 
   if TransformCurrentCamera then
   begin
     GetView(Pos, Dir, Up);
 
-    VectorAddVar(Pos, VectorSubtract(AInitialPosition, FInitialPosition));
+    Pos := Pos + AInitialPosition - FInitialPosition;
 
-    if not (VectorsPerfectlyEqual(FInitialDirection, AInitialDirection) and
-            VectorsPerfectlyEqual(FInitialUp       , AInitialUp ) ) then
+    if not (TVector3.PerfectlyEquals(FInitialDirection, AInitialDirection) and
+            TVector3.PerfectlyEquals(FInitialUp       , AInitialUp ) ) then
     begin
       OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
       NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
@@ -2418,7 +2418,7 @@ begin
   Result := inherited;
 end;
 
-function TCamera.GetPosition: TVector3Single;
+function TCamera.GetPosition: TVector3;
 begin
   Result := GetPositionInternal;
 end;
@@ -2441,10 +2441,10 @@ var
 begin
   inherited;
 
-  FModelBox := EmptyBox3D;
-  FTranslation := ZeroVector3Single;
+  FModelBox := TBox3D.Empty;
+  FTranslation := TVector3.Zero;
   FRotations := QuatIdentityRot;
-  FRotationsAnim := ZeroVector3Single;
+  FRotationsAnim := TVector3.Zero;
   FScaleFactor := 1;
   FDragMoveSpeed := 1;
   FKeysMoveSpeed := 1;
@@ -2507,25 +2507,27 @@ begin
   inherited;
 end;
 
-function TExamineCamera.Matrix: TMatrix4Single;
+function TExamineCamera.Matrix: TMatrix4;
 begin
-  Result := TranslationMatrix(VectorAdd(Translation, FCenterOfRotation));
-  Result := MatrixMult(Result, Rotations.ToRotationMatrix);
-  Result := MatrixMult(Result, ScalingMatrix(Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor)));
-  Result := MatrixMult(Result, TranslationMatrix(VectorNegate(FCenterOfRotation)));
+  Result :=
+    TranslationMatrix(Translation + FCenterOfRotation) *
+    Rotations.ToRotationMatrix *
+    ScalingMatrix(Vector3(ScaleFactor, ScaleFactor, ScaleFactor)) *
+    TranslationMatrix(-FCenterOfRotation);
 end;
 
-function TExamineCamera.MatrixInverse: TMatrix4Single;
+function TExamineCamera.MatrixInverse: TMatrix4;
 begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
 
-  Result := TranslationMatrix(VectorNegate(VectorAdd(Translation, FCenterOfRotation)));
-  Result := MatrixMult(Rotations.Conjugate.ToRotationMatrix, Result);
-  Result := MatrixMult(ScalingMatrix(Vector3Single(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)), Result);
-  Result := MatrixMult(TranslationMatrix(FCenterOfRotation), Result);
+  Result :=
+    TranslationMatrix(FCenterOfRotation) *
+    ScalingMatrix(Vector3(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)) *
+    Rotations.Conjugate.ToRotationMatrix *
+    TranslationMatrix(-(Translation + FCenterOfRotation));
 end;
 
-function TExamineCamera.RotationMatrix: TMatrix4Single;
+function TExamineCamera.RotationMatrix: TMatrix4;
 begin
   Result := Rotations.ToRotationMatrix;
 end;
@@ -2544,7 +2546,7 @@ procedure TExamineCamera.Update(const SecondsPassed: Single;
         Clamped(FRotationsAnim[coord] +
           RotationAccelerationSpeed * SecondsPassed * Direction,
           -MaxRotationSpeed, MaxRotationSpeed) else
-      FRotations := QuatFromAxisAngle(UnitVector3Single[Coord],
+      FRotations := QuatFromAxisAngle(TVector3.One[Coord],
         RotationSpeed * SecondsPassed * Direction) * FRotations;
     ScheduleVisibleChange;
   end;
@@ -2554,7 +2556,7 @@ var
   MoveChange, ScaleChange: Single;
   ModsDown: TModifierKeys;
   RotChange: Single;
-  MoveChangeVector: TVector3Single;
+  MoveChangeVector: TVector3;
 begin
   inherited;
 
@@ -2571,25 +2573,25 @@ begin
     keys (that increase RotationsAnim). Exact equality is Ok check
     to detect this. }
 
-  if not PerfectlyZeroVector(FRotationsAnim) then
+  if not FRotationsAnim.IsPerfectlyZero then
   begin
     RotChange := SecondsPassed;
 
     if FRotationsAnim[0] <> 0 then
-      FRotations := QuatFromAxisAngle(UnitVector3Single[0],
+      FRotations := QuatFromAxisAngle(TVector3.One[0],
         FRotationsAnim[0] * RotChange) * FRotations;
 
     if FRotationsAnim[1] <> 0 then
     begin
       if Turntable then
-        FRotations := FRotations * QuatFromAxisAngle(UnitVector3Single[1],
+        FRotations := FRotations * QuatFromAxisAngle(TVector3.One[1],
           FRotationsAnim[1] * RotChange) else
-        FRotations := QuatFromAxisAngle(UnitVector3Single[1],
+        FRotations := QuatFromAxisAngle(TVector3.One[1],
           FRotationsAnim[1] * RotChange) * FRotations;
     end;
 
     if FRotationsAnim[2] <> 0 then
-      FRotations := QuatFromAxisAngle(UnitVector3Single[2],
+      FRotations := QuatFromAxisAngle(TVector3.One[2],
         FRotationsAnim[2] * RotChange) * FRotations;
 
     FRotations.LazyNormalize;
@@ -2614,7 +2616,7 @@ begin
       begin
         if Inputs_Move[i, true ].IsPressed(Container) then
         begin
-          MoveChangeVector := ZeroVector3Single;
+          MoveChangeVector := TVector3.Zero;
           MoveChangeVector[I] := MoveChange;
           Translation := Translation + MoveChangeVector;
 
@@ -2622,7 +2624,7 @@ begin
         end;
         if Inputs_Move[i, false].IsPressed(Container) then
         begin
-          MoveChangeVector := ZeroVector3Single;
+          MoveChangeVector := TVector3.Zero;
           MoveChangeVector[I] := -MoveChange;
           Translation := Translation + MoveChangeVector;
 
@@ -2670,25 +2672,31 @@ begin
   if FRotationAccelerate <> Value then
   begin
     FRotationAccelerate := Value;
-    FRotationsAnim := ZeroVector3Single;
+    FRotationsAnim := TVector3.Zero;
   end;
 end;
 
 function TExamineCamera.StopRotating: boolean;
 begin
-  Result := not PerfectlyZeroVector(FRotationsAnim);
+  Result := not FRotationsAnim.IsPerfectlyZero;
   if Result then
   begin
-    FRotationsAnim := ZeroVector3Single;
+    FRotationsAnim := TVector3.Zero;
     ScheduleVisibleChange;
   end;
 end;
 
 procedure TExamineCamera.Scale(const ScaleBy: Single);
-begin FScaleFactor *= ScaleBy; ScheduleVisibleChange; end;
+begin
+  FScaleFactor *= ScaleBy;
+  ScheduleVisibleChange;
+end;
 
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
-begin FTranslation[coord] += MoveDistance; ScheduleVisibleChange; end;
+begin
+  FTranslation.Data[coord] += MoveDistance;
+  ScheduleVisibleChange;
+end;
 
 function TExamineCamera.SensorTranslation(const X, Y, Z, Length: Double;
   const SecondsPassed: Single): boolean;
@@ -2707,13 +2715,13 @@ begin
 
   if Abs(X)>5 then   { left / right }
   begin
-    FTranslation[0] += Size * X * MoveSize;
+    FTranslation.Data[0] += Size * X * MoveSize;
     Moved := true;
   end;
 
   if Abs(Y)>5 then   { up / down }
   begin
-    FTranslation[1] += Size * Y * MoveSize;
+    FTranslation.Data[1] += Size * Y * MoveSize;
     Moved := true;
   end;
 
@@ -2740,7 +2748,7 @@ begin
 
   if Abs(X) > 0.4 then      { tilt forward / backward}
   begin
-    NewRotation := QuatFromAxisAngle(Vector3Single(1, 0, 0), X * RotationSize) * NewRotation;
+    NewRotation := QuatFromAxisAngle(Vector3(1, 0, 0), X * RotationSize) * NewRotation;
     Moved := true;
   end;
 
@@ -2748,15 +2756,15 @@ begin
   begin
     if Turntable then
       NewRotation := NewRotation *
-        QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize) else
-      NewRotation := QuatFromAxisAngle(Vector3Single(0, 1, 0), Y * RotationSize) *
+        QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize) else
+      NewRotation := QuatFromAxisAngle(Vector3(0, 1, 0), Y * RotationSize) *
         NewRotation;
     Moved := true;
   end;
 
   if (Abs(Z) > 0.4) and (not Turntable) then      { tilt sidewards }
   begin
-    NewRotation := QuatFromAxisAngle(Vector3Single(0, 0, 1), Z * RotationSize) * NewRotation;
+    NewRotation := QuatFromAxisAngle(Vector3(0, 0, 1), Z * RotationSize) * NewRotation;
     Moved := true;
   end;
 
@@ -2769,7 +2777,7 @@ end;
 
 procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
 var
-  Pos, Dir, Up, GravityUp: TVector3Single;
+  Pos, Dir, Up, GravityUp: TVector3;
 begin
   ModelBox := AModelBox;
   Radius := ARadius;
@@ -2782,7 +2790,7 @@ end;
 
 { TExamineCamera.Set* properties }
 
-procedure TExamineCamera.SetRotationsAnim(const Value: TVector3Single);
+procedure TExamineCamera.SetRotationsAnim(const Value: TVector3);
 begin FRotationsAnim := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetRotations(const Value: TQuaternion);
@@ -2791,17 +2799,17 @@ begin FRotations := Value; ScheduleVisibleChange; end;
 procedure TExamineCamera.SetScaleFactor(const Value: Single);
 begin FScaleFactor := Value; ScheduleVisibleChange; end;
 
-procedure TExamineCamera.SetTranslation(const Value: TVector3Single);
+procedure TExamineCamera.SetTranslation(const Value: TVector3);
 begin FTranslation := Value; ScheduleVisibleChange; end;
 
-procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3Single);
+procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3);
 begin FCenterOfRotation := Value; ScheduleVisibleChange; end;
 
 procedure TExamineCamera.SetModelBox(const Value: TBox3D);
 begin
   FModelBox := Value;
   if FModelBox.IsEmpty then
-    FCenterOfRotation := Vector3Single(0, 0, 0) { any dummy value } else
+    FCenterOfRotation := Vector3(0, 0, 0) { any dummy value } else
     FCenterOfRotation := FModelBox.Center;
   ScheduleVisibleChange;
 end;
@@ -2849,7 +2857,7 @@ end;
 function TExamineCamera.Zoom(const Factor: Single): boolean;
 var
   Size: Single;
-  OldTranslation, OldPosition: TVector3Single;
+  OldTranslation, OldPosition: TVector3;
 begin
   Result := not FModelBox.IsEmptyOrZero;
   if Result then
@@ -2859,7 +2867,7 @@ begin
     OldTranslation := FTranslation;
     OldPosition := Position;
 
-    FTranslation[2] += Size * Factor;
+    FTranslation.Data[2] += Size * Factor;
 
     { Cancel zoom in, don't allow to go to the other side of the model too far.
       Note that Box3DPointDistance = 0 when you're inside the box,
@@ -2891,12 +2899,12 @@ var
     begin
       if Turntable then
         Result :=
-          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (Event.OldPosition[1] - Event.Position[1]) / MoveDivConst) *
+          QuatFromAxisAngle(Vector3(1, 0, 0), Scale * (Event.OldPosition[1] - Event.Position[1]) / MoveDivConst) *
           FRotations *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (Event.Position[0] - Event.OldPosition[0]) / MoveDivConst) else
+          QuatFromAxisAngle(Vector3(0, 1, 0), Scale * (Event.Position[0] - Event.OldPosition[0]) / MoveDivConst) else
         Result :=
-          QuatFromAxisAngle(Vector3Single(1, 0, 0), Scale * (Event.OldPosition[1] - Event.Position[1]) / MoveDivConst) *
-          QuatFromAxisAngle(Vector3Single(0, 1, 0), Scale * (Event.Position[0] - Event.OldPosition[0]) / MoveDivConst);
+          QuatFromAxisAngle(Vector3(1, 0, 0), Scale * (Event.OldPosition[1] - Event.Position[1]) / MoveDivConst) *
+          QuatFromAxisAngle(Vector3(0, 1, 0), Scale * (Event.Position[0] - Event.OldPosition[0]) / MoveDivConst);
     end;
 
   var
@@ -2930,7 +2938,7 @@ var
         in 0..1 }
       ZRotRatio := Min(1.0, Sqrt(Sqr((AvgX - W2) / W2) + Sqr((AvgY - H2) / H2)));
       Result :=
-        QuatFromAxisAngle(Vector3Single(0, 0, -1), ZRotRatio * ZRotAngle) *
+        QuatFromAxisAngle(Vector3(0, 0, -1), ZRotRatio * ZRotAngle) *
         XYRotation(1 - ZRotRatio);
     end;
   end;
@@ -3039,14 +3047,14 @@ begin
   if DoMoving then
   begin
     Size := FModelBox.AverageSize;
-    FTranslation[0] -= DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst);
-    FTranslation[1] -= DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst);
+    FTranslation.Data[0] -= DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst);
+    FTranslation.Data[1] -= DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst);
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
 end;
 
-procedure TExamineCamera.GetView(out APos, ADir, AUp: TVector3Single);
+procedure TExamineCamera.GetView(out APos, ADir, AUp: TVector3);
 begin
   APos := FPosition;
   ADir := FDirection;
@@ -3055,7 +3063,7 @@ end;
 
 procedure TExamineCamera.VisibleChange;
 var
-  M: TMatrix4Single;
+  M: TMatrix4;
 begin
   { calculate our pos/dir/up vectors here.
     This allows our GetView to work immediately fast, at the expense of doing
@@ -3064,37 +3072,37 @@ begin
     So assume that GetView is called very often, and make it instant. }
   M := MatrixInverse;
 
-  { These MatrixMultPoint/Direction should never fail with ETransformedResultInvalid.
+  { These MultPoint/Direction should never fail with ETransformedResultInvalid.
     That's because M is composed from translations, rotations, scaling,
-    which preserve points/directions (4th component in homogeneus coordinates)
+    which preserve points/directions (4th component in homogeneous coordinates)
     nicely. }
-  FPosition  := MatrixMultPoint(M, ZeroVector3Single);
-  FDirection := MatrixMultDirection(M, DefaultCameraDirection);
-  FUp        := MatrixMultDirection(M, DefaultCameraUp);
+  FPosition  := M.MultPoint(TVector3.Zero);
+  FDirection := M.MultDirection(DefaultCameraDirection);
+  FUp        := M.MultDirection(DefaultCameraUp);
 
   { In case of ScaleFactor, it is possible that M is such that dir/up
     are not normalized. Fix them now, GetView guarantees normalized vectors. }
   if ScaleFactor <> 1 then
   begin
-    NormalizeVar(FDirection);
-    NormalizeVar(FUp);
+    FDirection.NormalizeMe;
+    FUp.NormalizeMe;
   end;
 
   inherited;
 end;
 
-procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
 begin
   GetView(APos, ADir, AUp);
   AGravityUp := GetGravityUp;
 end;
 
-function TExamineCamera.GetPositionInternal: TVector3Single;
+function TExamineCamera.GetPositionInternal: TVector3;
 begin
-  Result := MatrixMultPoint(MatrixInverse, Vector3Single(0, 0, 0));
+  Result := MatrixInverse.MultPoint(TVector3.Zero);
 end;
 
-procedure TExamineCamera.SetPosition(const Value: TVector3Single);
+procedure TExamineCamera.SetPosition(const Value: TVector3);
 begin
   { a subset of what SetView does }
   FTranslation := -Value;
@@ -3103,15 +3111,15 @@ begin
   ScheduleVisibleChange;
 end;
 
-function TExamineCamera.GetGravityUp: TVector3Single;
+function TExamineCamera.GetGravityUp: TVector3;
 begin
   Result := DefaultCameraUp; { nothing more sensible for Examine camera }
 end;
 
-procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3Single;
+procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 var
-  Dir, Up: TVector3Single;
+  Dir, Up: TVector3;
 begin
   FTranslation := -APos;
 
@@ -3129,14 +3137,14 @@ begin
   This should always succeed now, many cases tested automatically
   by TTestCastleCameras.TestOrientationFromBasicAxes.
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(Dir)), DefaultCameraDirection, 0.01) then
+  if not TVector3.Equals(QuatRotate(FRotations, Dir.Normalize), DefaultCameraDirection, 0.01) then
   begin
-    Writeln('oh yes, dir wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Dir))));
-    Writeln('  q: ', VectorToNiceStr(FRotations.Vector4));
+    Writeln('oh yes, dir wrong: ', QuatRotate(FRotations, Dir.Normalize).ToString);
+    Writeln('  q: ', FRotations.Vector4.ToString);
   end;
 
-  if not VectorsEqual(QuatRotate(FRotations, Normalized(Up)), DefaultCameraUp, 0.01) then
-    Writeln('oh yes, up wrong: ', VectorToNiceStr(QuatRotate(FRotations, Normalized(Up))));
+  if not TVector3.Equals(QuatRotate(FRotations, Up.Normalize), DefaultCameraUp, 0.01) then
+    Writeln('oh yes, up wrong: ', QuatRotate(FRotations, Up.Normalize).ToString);
 }
 
   { We have to fix our FTranslation, since our TExamineCamera.Matrix
@@ -3161,12 +3169,12 @@ begin
   { Stopping the rotation animation wasn't really promised in SetView
     interface. But this is nice for user, otherwise after e.g. jumping
     to viewpoint you may find yourself still rotating --- usually distracting. }
-  FRotationsAnim := ZeroVector3Single;
+  FRotationsAnim := TVector3.Zero;
 
   ScheduleVisibleChange;
 end;
 
-procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
   const AdjustUp: boolean);
 begin
   SetView(APos, ADir, AUp, AdjustUp);
@@ -3319,7 +3327,7 @@ begin
   inherited;
 end;
 
-function TWalkCamera.Matrix: TMatrix4Single;
+function TWalkCamera.Matrix: TMatrix4;
 begin
   { Yes, below we compare Fde_UpRotate with 0.0 using normal
     (precise) <> operator. Don't worry --- Fde_Stabilize in Update
@@ -3331,13 +3339,13 @@ begin
     Result := LookDirMatrix(Position, Direction, Up);
 end;
 
-function TWalkCamera.RotationMatrix: TMatrix4Single;
+function TWalkCamera.RotationMatrix: TMatrix4;
 begin
  result := FastLookDirMatrix(Direction, Up);
 end;
 
-function TWalkCamera.DoMoveAllowed(const ProposedNewPos: TVector3Single;
-  out NewPos: TVector3Single; const BecauseOfGravity: boolean): boolean;
+function TWalkCamera.DoMoveAllowed(const ProposedNewPos: TVector3;
+  out NewPos: TVector3; const BecauseOfGravity: boolean): boolean;
 begin
  if Assigned(OnMoveAllowed) then
   Result := OnMoveAllowed(Self, ProposedNewPos, NewPos, BecauseOfGravity) else
@@ -3347,7 +3355,7 @@ begin
  end;
 end;
 
-procedure TWalkCamera.Height(const APosition: TVector3Single;
+procedure TWalkCamera.Height(const APosition: TVector3;
   out AIsAbove: boolean;
   out AnAboveHeight: Single; out AnAboveGround: P3DTriangle);
 begin
@@ -3416,13 +3424,13 @@ end;
 function TWalkCamera.RealPreferredHeightMargin: Single;
 begin
   { I tried using here something smaller like
-    SingleEqualityEpsilon, but this was not good. }
+    SingleEpsilon, but this was not good. }
   Result := RealPreferredHeight * 0.01;
 end;
 
-procedure TWalkCamera.AdjustForRotationHorizontalPivot(const OldDirection: TVector3Single);
+procedure TWalkCamera.AdjustForRotationHorizontalPivot(const OldDirection: TVector3);
 var
-  Pivot, OldDirectionInGravityPlane: TVector3Single;
+  Pivot, OldDirectionInGravityPlane: TVector3;
 begin
   if RotationHorizontalPivot <> 0 then
   begin
@@ -3443,7 +3451,7 @@ end;
 
 procedure TWalkCamera.RotateAroundGravityUp(const AngleDeg: Single);
 var
-  Axis, OldDirection: TVector3Single;
+  Axis, OldDirection: TVector3;
 begin
   { nie obracamy Direction wokol Up, takie obroty w polaczeniu z
     obrotami vertical moglyby sprawic ze kamera staje sie przechylona w
@@ -3459,7 +3467,8 @@ begin
     wokol -GravityUp.
   }
   if AngleRadBetweenVectors(Up, GravityUp) > Pi/2 then
-    Axis := VectorNegate(GravityUp) else
+    Axis := -GravityUp
+  else
     Axis := GravityUp;
 
   FUp := RotatePointAroundAxisDeg(AngleDeg, Up, Axis);
@@ -3472,7 +3481,7 @@ end;
 
 procedure TWalkCamera.RotateAroundUp(const AngleDeg: Single);
 var
-  OldDirection: TVector3Single;
+  OldDirection: TVector3;
 begin
   { We know that RotatePointAroundAxisDeg below doesn't change the length
     of the Direction (so it will remain normalized) and it will keep
@@ -3493,7 +3502,7 @@ end;
 
 procedure TWalkCamera.RotateVertical(const AngleDeg: Single);
 var
-  Side: TVector3Single;
+  Side: TVector3;
   AngleRad: Single;
 
   procedure DoRealRotate;
@@ -3511,8 +3520,8 @@ begin
 
   if PreferGravityUpForRotations and (MinAngleRadFromGravityUp <> 0.0) then
   begin
-    Side := VectorProduct(Direction, GravityUp);
-    if ZeroVector(Side) then
+    Side := TVector3.CrossProduct(Direction, GravityUp);
+    if Side.IsZero then
     begin
       { Brutally adjust Direction and Up to be correct.
         This should happen only if your code was changing values of
@@ -3539,8 +3548,8 @@ begin
         node transformation.
         So the above will mean that gravity vector is parallel to your
         looking direction. }
-      Side := VectorProduct(Direction, GravityUp);
-      if ZeroVector(Side) then
+      Side := TVector3.CrossProduct(Direction, GravityUp);
+      if Side.IsZero then
       begin
         FDirection := AnyOrthogonalVector(GravityUp);
         FUp := GravityUp;
@@ -3558,17 +3567,17 @@ begin
     end;
   end else
   begin
-    Side := VectorProduct(Direction, Up);
+    Side := TVector3.CrossProduct(Direction, Up);
     DoRealRotate;
   end;
 
   ScheduleVisibleChange;
 end;
 
-function TWalkCamera.MoveTo(const ProposedNewPos: TVector3Single;
+function TWalkCamera.MoveTo(const ProposedNewPos: TVector3;
   const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 var
-  NewPos: TVector3Single;
+  NewPos: TVector3;
   NewIsAbove: boolean;
   NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
   NewAboveGround: P3DTriangle;
@@ -3586,8 +3595,8 @@ begin
     Height(NewPos, NewIsAbove, NewAboveHeight, NewAboveGround);
     if NewIsAbove then
     begin
-      OldAbsoluteHeight := VectorDotProduct(GravityUp, Position);
-      NewAbsoluteHeight := VectorDotProduct(GravityUp, NewPos);
+      OldAbsoluteHeight := TVector3.DotProduct(GravityUp, Position);
+      NewAbsoluteHeight := TVector3.DotProduct(GravityUp, NewPos);
       Result := not (
         AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
         ClimbHeight );
@@ -3601,15 +3610,15 @@ begin
     Position := NewPos;
 end;
 
-function TWalkCamera.Move(const MoveVector: TVector3Single;
+function TWalkCamera.Move(const MoveVector: TVector3;
   const BecauseOfGravity, CheckClimbHeight: boolean): boolean;
 begin
-  Result := MoveTo(VectorAdd(Position, MoveVector), BecauseOfGravity, CheckClimbHeight);
+  Result := MoveTo(Position + MoveVector, BecauseOfGravity, CheckClimbHeight);
 end;
 
 procedure TWalkCamera.MoveHorizontal(const SecondsPassed: Single; const Multiply: Integer = 1);
 var
-  Dir: TVector3Single;
+  Dir: TVector3;
   Multiplier: Single;
 begin
   Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed * Multiply;
@@ -3637,7 +3646,7 @@ end;
 procedure TWalkCamera.MoveVertical(const SecondsPassed: Single; const Multiply: Integer);
 
   { Provided PreferredUpVector must be already normalized. }
-  procedure MoveVerticalCore(const PreferredUpVector: TVector3Single);
+  procedure MoveVerticalCore(const PreferredUpVector: TVector3);
   var
     Multiplier: Single;
   begin
@@ -3733,7 +3742,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           MoveSpeed * MoveVerticalSpeed * GrowSpeed * SecondsPassed,
           RealPreferredHeight - AboveHeight);
 
-        Move(VectorScale(GravityUp, GrowingVectorLength), true, false);
+        Move(GravityUp * GrowingVectorLength, true, false);
 
         { When growing, TryFde_Stabilize also must be done.
           Otherwise when player walks horizontally on the flat surface
@@ -3751,7 +3760,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
       Fde_VerticalRotateDeviation = 50.0;
       Fde_HorizontalRotateDeviation = 15.0;
     var
-      PositionBefore: TVector3Single;
+      PositionBefore: TVector3;
       FallingVectorLength: Single;
     begin
       Result := false;
@@ -3826,8 +3835,8 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         MoveSpeed * MoveVerticalSpeed * FFallSpeed * SecondsPassed;
       MinVar(FallingVectorLength, AboveHeight - RealPreferredHeight);
 
-      if Move(VectorScale(GravityUp, - FallingVectorLength), true, false) and
-        (not VectorsPerfectlyEqual(Position, PositionBefore)) then
+      if Move(GravityUp * (- FallingVectorLength), true, false) and
+        (not TVector3.PerfectlyEquals(Position, PositionBefore)) then
       begin
         if not Falling then
         begin
@@ -3998,7 +4007,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
       Angle := AngleRadBetweenVectors(Up, GravityUp);
 
-      if FloatsEqual(Angle, HalfPi, 0.01) then
+      if SameValue(Angle, HalfPi, 0.01) then
       begin
         { FallingOnTheGround effect stops here. }
         FFallingOnTheGround := false;
@@ -4015,23 +4024,23 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
     procedure DoFall;
     var
-      BeginPos, EndPos, FallVector: TVector3Single;
+      BeginPos, EndPos, FallVector: TVector3;
     begin
       if Assigned(OnFall) then
       begin
         { Project Position and FFallingStartPosition
           onto GravityUp vector to calculate fall height. }
-        BeginPos := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, FFallingStartPosition);
-        EndPos   := PointOnLineClosestToPoint(ZeroVector3Single, GravityUp, Position);
+        BeginPos := PointOnLineClosestToPoint(TVector3.Zero, GravityUp, FFallingStartPosition);
+        EndPos   := PointOnLineClosestToPoint(TVector3.Zero, GravityUp, Position);
         FallVector := BeginPos - EndPos;
 
         { Because of various growing and jumping effects (imagine you jump up
           onto a taller pillar) it may turn out that we're higher at the end
           at the end of fall. Do not report it to OnFall event in this case. }
-        if VectorDotProduct(GravityUp, Normalized(FallVector)) <= 0 then
+        if TVector3.DotProduct(GravityUp, FallVector.Normalize) <= 0 then
           Exit;
 
-        OnFall(Self, VectorLen(FallVector));
+        OnFall(Self, FallVector.Length);
       end;
     end;
 
@@ -4052,18 +4061,18 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           go to nearest integer value.
 
           Note that we avoid changing HeadBobbingPosition by less
-          than SingleEqualityEpsilon, just to be on the safe side
+          than SingleEpsilon, just to be on the safe side
           and avoid any "corner cases", when HeadBobbingPosition
           would switch between going up and down repeatedly. }
         FracHeadBobbingPosition := Frac(HeadBobbingPosition);
         if FracHeadBobbingPosition > 0.5 then
         begin
-          if 1 - FracHeadBobbingPosition > SingleEqualityEpsilon then
+          if 1 - FracHeadBobbingPosition > SingleEpsilon then
             HeadBobbingPosition += Min(HeadBobbingGoingDownSpeed * SecondsPassed,
               1 - FracHeadBobbingPosition);
         end else
         begin
-          if FracHeadBobbingPosition > SingleEqualityEpsilon then
+          if FracHeadBobbingPosition > SingleEpsilon then
             HeadBobbingPosition -= Min(HeadBobbingGoingDownSpeed * SecondsPassed,
               FracHeadBobbingPosition);
         end;
@@ -4126,12 +4135,12 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
      Temporary I don't need it.
 
   var
-    TargetPlane: TVector4Single;
-    TargetPlaneDir: TVector3Single absolute TargetPlane;
-    TargetUp: TVector3Single;
+    TargetPlane: TVector4;
+    TargetPlaneDir: TVector3 absolute TargetPlane;
+    TargetUp: TVector3;
     AngleRadBetweenTargetAndGravity: Single;
     AngleRadBetweenTarget, AngleRadBetweenTargetChange: Single;
-    NewUp: TVector3Single;
+    NewUp: TVector3;
   begin
     if PreferGravityUp then
     begin
@@ -4142,7 +4151,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
 
         Math:
           TargetPlane := common plane of GravityUp and Direction,
-          given by (A, B, C) = VectorProduct(GravityUp, Direction)
+          given by (A, B, C) = TVector3.CrossProduct(GravityUp, Direction)
           and D = 0 (because point (0, 0, 0) is part of this plane).
 
           We check whether Up is on this TargetPlane too.
@@ -4157,7 +4166,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           And then we make the angle between TargetUp and Up
           smaller. }
 
-      TargetPlaneDir := VectorProduct(GravityUp, Direction);
+      TargetPlaneDir := TVector3.CrossProduct(GravityUp, Direction);
       if not Zero(
          (TargetPlaneDir[0] * FUp[0]) +
          (TargetPlaneDir[1] * FUp[1]) +
@@ -4171,10 +4180,10 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         TargetUp := PointOnPlaneClosestToPoint(TargetPlane, FUp);
         AngleRadBetweenTargetAndGravity :=
           AngleRadBetweenVectors(TargetUp, GravityUp);
-        if FloatsEqual(AngleRadBetweenTargetAndGravity, HalfPi) then
+        if SameValue(AngleRadBetweenTargetAndGravity, HalfPi) then
           TargetUp := GravityUp else
         if AngleRadBetweenTargetAndGravity > HalfPi then
-          VectorNegateVar(TargetUp);
+          TargetUp := -TargetUp;
 
         AngleRadBetweenTarget := AngleRadBetweenVectors(TargetUp, FUp);
         AngleRadBetweenTargetChange := 0.5 * SecondsPassed;
@@ -4247,7 +4256,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
       Container.MakeMousePositionForMouseLook;
   end;
 
-  procedure MoveViaMouseDragging(Delta: TVector2Single);
+  procedure MoveViaMouseDragging(Delta: TVector2);
   var
     MoveSizeX, MoveSizeY: Single;
   const
@@ -4572,13 +4581,13 @@ begin
 end;
 
 procedure TWalkCamera.Init(
-  const AInitialPosition, AInitialDirection, AInitialUp: TVector3Single;
-  const AGravityUp: TVector3Single;
+  const AInitialPosition, AInitialDirection, AInitialUp: TVector3;
+  const AGravityUp: TVector3;
   const APreferredHeight: Single;
   const ARadius: Single);
 begin
   SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
-  FGravityUp := Normalized(AGravityUp);
+  FGravityUp := AGravityUp.Normalize;
   PreferredHeight := APreferredHeight;
   Radius := ARadius;
   CorrectPreferredHeight;
@@ -4586,55 +4595,56 @@ begin
 end;
 
 procedure TWalkCamera.Init(const Box: TBox3D; const ARadius: Single);
-var Pos: TVector3Single;
+var Pos: TVector3;
     AvgSize: Single;
 begin
  if Box.IsEmptyOrZero then
-  Init(Vector3Single(0, 0, 0),
+  Init(Vector3(0, 0, 0),
        DefaultCameraDirection,
        DefaultCameraUp,
-       Vector3Single(0, 1, 0) { GravityUp is the same as InitialUp },
+       Vector3(0, 1, 0) { GravityUp is the same as InitialUp },
        0 { whatever }, ARadius) else
  begin
   AvgSize := Box.AverageSize;
-  Pos[0] := Box.Data[0, 0]-AvgSize;
-  Pos[1] := (Box.Data[0, 1]+Box.Data[1, 1])/2;
-  Pos[2] := (Box.Data[0, 2]+Box.Data[1, 2])/2;
-  Init(Pos, UnitVector3Single[0],
-    UnitVector3Single[2],
-    UnitVector3Single[2] { GravityUp is the same as InitialUp },
+  Pos[0] := Box.Data[0].Data[0] - AvgSize;
+  Pos[1] := (Box.Data[0].Data[1] + Box.Data[1].Data[1]) / 2;
+  Pos[2] := (Box.Data[0].Data[2] + Box.Data[1].Data[2]) / 2;
+  Init(Pos,
+    TVector3.One[0],
+    TVector3.One[2],
+    TVector3.One[2] { GravityUp is the same as InitialUp },
     AvgSize * 5, ARadius);
  end;
 end;
 
-function TWalkCamera.GetPositionInternal: TVector3Single;
+function TWalkCamera.GetPositionInternal: TVector3;
 begin
   Result := FPosition;
 end;
 
-procedure TWalkCamera.SetPosition(const Value: TVector3Single);
+procedure TWalkCamera.SetPosition(const Value: TVector3);
 begin
   FPosition := Value;
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetDirection(const Value: TVector3Single);
+procedure TWalkCamera.SetDirection(const Value: TVector3);
 begin
-  FDirection := Normalized(Value);
+  FDirection := Value.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetUp(const Value: TVector3Single);
+procedure TWalkCamera.SetUp(const Value: TVector3);
 begin
-  FUp := Normalized(Value);
+  FUp := Value.Normalize;
   MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.UpPrefer(const AUp: TVector3Single);
+procedure TWalkCamera.UpPrefer(const AUp: TVector3);
 begin
-  FUp := Normalized(AUp);
+  FUp := AUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
   ScheduleVisibleChange;
 end;
@@ -4650,7 +4660,7 @@ begin
   Result := JumpMaxHeight * PreferredHeight;
 end;
 
-function TWalkCamera.DirectionInGravityPlane: TVector3Single;
+function TWalkCamera.DirectionInGravityPlane: TVector3;
 begin
   Result := Direction;
 
@@ -4694,7 +4704,7 @@ end;
 
 function TWalkCamera.Motion(const Event: TInputMotion): boolean;
 var
-  MouseChange: TVector2Single;
+  MouseChange: TVector2;
 begin
   Result := inherited;
   if Result or (Event.FingerIndex <> 0) then Exit;
@@ -4773,29 +4783,29 @@ begin
 end;
 
 procedure TWalkCamera.GetView(
-  out APos, ADir, AUp: TVector3Single);
+  out APos, ADir, AUp: TVector3);
 begin
   APos := FPosition;
   ADir := FDirection;
   AUp  := FUp;
 end;
 
-procedure TWalkCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TWalkCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
 begin
   GetView(APos, ADir, AUp);
   AGravityUp := GravityUp;
 end;
 
-function TWalkCamera.GetGravityUp: TVector3Single;
+function TWalkCamera.GetGravityUp: TVector3;
 begin
   Result := GravityUp;
 end;
 
-procedure TWalkCamera.SetView(const ADir, AUp: TVector3Single;
+procedure TWalkCamera.SetView(const ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
+  FDirection := ADir.Normalize;
+  FUp := AUp.Normalize;
   if AdjustUp then
     MakeVectorsOrthoOnTheirPlane(FUp, FDirection) else
     MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
@@ -4803,12 +4813,12 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3Single;
+procedure TWalkCamera.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
   FPosition := APos;
-  FDirection := Normalized(ADir);
-  FUp := Normalized(AUp);
+  FDirection := ADir.Normalize;
+  FUp := AUp.Normalize;
   if AdjustUp then
     MakeVectorsOrthoOnTheirPlane(FUp, FDirection) else
     MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
@@ -4816,16 +4826,16 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+procedure TWalkCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
   const AdjustUp: boolean);
 begin
   GravityUp := AGravityUp;
   SetView(APos, ADir, AUp, AdjustUp);
 end;
 
-procedure TWalkCamera.SetGravityUp(const Value: TVector3Single);
+procedure TWalkCamera.SetGravityUp(const Value: TVector3);
 begin
-  FGravityUp := Normalized(Value);
+  FGravityUp := Value.Normalize;
 end;
 
 function TWalkCamera.GetNavigationType: TNavigationType;
@@ -4924,42 +4934,42 @@ begin
     Result := FWalk;
 end;
 
-function TUniversalCamera.Matrix: TMatrix4Single;
+function TUniversalCamera.Matrix: TMatrix4;
 begin
   Result := Current.Matrix;
 end;
 
-function TUniversalCamera.RotationMatrix: TMatrix4Single;
+function TUniversalCamera.RotationMatrix: TMatrix4;
 begin
   Result := Current.RotationMatrix;
 end;
 
-procedure TUniversalCamera.GetView(out APos, ADir, AUp: TVector3Single);
+procedure TUniversalCamera.GetView(out APos, ADir, AUp: TVector3);
 begin
   Current.GetView(APos, ADir, AUp);
 end;
 
-procedure TUniversalCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3Single);
+procedure TUniversalCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
 begin
   Current.GetView(APos, ADir, AUp, AGravityUp);
 end;
 
-function TUniversalCamera.GetPositionInternal: TVector3Single;
+function TUniversalCamera.GetPositionInternal: TVector3;
 begin
   Result := Current.Position;
 end;
 
-procedure TUniversalCamera.SetPosition(const Value: TVector3Single);
+procedure TUniversalCamera.SetPosition(const Value: TVector3);
 begin
   Current.Position := Value;
 end;
 
-function TUniversalCamera.GetGravityUp: TVector3Single;
+function TUniversalCamera.GetGravityUp: TVector3;
 begin
   Result := Current.GetGravityUp;
 end;
 
-procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3Single;
+procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
   { Note that both Xxx.SetView calls below do Xxx.VisibleChange at the end,
@@ -4998,7 +5008,7 @@ begin
   finally EndVisibleChangeSchedule end;
 end;
 
-procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3Single;
+procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
   const AdjustUp: boolean);
 begin
   BeginVisibleChangeSchedule;
@@ -5029,7 +5039,7 @@ begin
   FWalk.EnableDragging := Value;
 end;
 
-procedure TUniversalCamera.SetProjectionMatrix(const Value: TMatrix4Single);
+procedure TUniversalCamera.SetProjectionMatrix(const Value: TMatrix4);
 begin
   { This calls RecalculateFrustum on all 3 cameras, while only once
     is needed... But speed should not be a problem here, this is seldom used. }
@@ -5101,8 +5111,8 @@ begin
 end;
 
 procedure TUniversalCamera.SetInitialView(
-  const AInitialPosition: TVector3Single;
-  AInitialDirection, AInitialUp: TVector3Single;
+  const AInitialPosition: TVector3;
+  AInitialDirection, AInitialUp: TVector3;
   const TransformCurrentCamera: boolean);
 begin
   BeginVisibleChangeSchedule;
@@ -5123,7 +5133,7 @@ end;
 
 procedure TUniversalCamera.SetNavigationClass(const Value: TNavigationClass);
 var
-  Pos, Dir, Up: TVector3Single;
+  Pos, Dir, Up: TVector3;
 begin
   if FNavigationClass <> Value then
   begin
@@ -5148,7 +5158,7 @@ begin
       But, for the future, protect from it, since the doc for SetView guarantees
       correct behavior only for dir/up non-zero. }
 
-    if not (PerfectlyZeroVector(Dir) and PerfectlyZeroVector(Up)) then
+    if not (Dir.IsPerfectlyZero and Up.IsPerfectlyZero) then
       Current.SetView(Pos, Dir, Up);
     { our Cursor should always reflect Current.Cursor }
     Cursor := Current.Cursor;
@@ -5230,7 +5240,7 @@ begin
     PreferredHeight := NewPreferredHeight;
 end;
 
-function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
+function CamDirUp2OrientQuat(CamDir, CamUp: TVector3): TQuaternion;
 
 { This was initially based on Stephen Chenney's ANSI C code orient.c,
   available still from here: http://vrmlworks.crispen.org/tools.html
@@ -5254,34 +5264,34 @@ function CamDirUp2OrientQuat(CamDir, CamUp: TVector3Single): TQuaternion;
   single rotation? That's where quaternions rule.
 }
 
-  function QuatFromAxisAngleCos(const Axis: TVector3Single;
+  function QuatFromAxisAngleCos(const Axis: TVector3;
     const AngleRadCos: Single): TQuaternion;
   begin
     Result := QuatFromAxisAngle(Axis, ArcCos(Clamped(AngleRadCos, -1.0, 1.0)));
   end;
 
 var
-  Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3Single;
+  Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3;
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  NormalizeVar(CamDir);
-  NormalizeVar(CamUp);
+  CamDir.NormalizeMe;
+  CamUp.NormalizeMe;
 
   { calculate Rot1Quat }
-  Rot1Axis := VectorProduct(DefaultCameraDirection, CamDir);
+  Rot1Axis := TVector3.CrossProduct(DefaultCameraDirection, CamDir);
   { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
     When they point in the same direction, then it doesn't matter
     (rotation will be by 0 angle anyway), but when they are in opposite
     direction we want to do some rotation, so we need some non-zero
     sensible Rot1Axis. }
-  if ZeroVector(Rot1Axis) then
+  if Rot1Axis.IsZero then
     Rot1Axis := DefaultCameraUp else
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
-    NormalizeVar(Rot1Axis);
-  Rot1CosAngle := VectorDotProduct(DefaultCameraDirection, CamDir);
+    Rot1Axis.NormalizeMe;
+  Rot1CosAngle := TVector3.DotProduct(DefaultCameraDirection, CamDir);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
   { calculate Rot2Quat }
@@ -5289,28 +5299,28 @@ begin
   { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
     which one? (To make the rotation around it in correct direction.)
     Calculating Rot2Axis below is a solution. }
-  Rot2Axis := VectorProduct(StdCamUpAfterRot1, CamUp);
+  Rot2Axis := TVector3.CrossProduct(StdCamUpAfterRot1, CamUp);
 
-  (*We could now do NormalizeVar(Rot2Axis),
+  (*We could now do Rot2Axis.NormalizeMe,
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
       StdCamUpAfterRot1 is = -CamUp.
       testcameras.pas contains testcases that require it. }
-    if ZeroVector(Rot2Axis, 0.001) then
+    if Rot2Axis.IsZero(0.001) then
       Rot2Axis := CamDir else
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
-      NormalizeVar(Rot2Axis);
+      Rot2Axis.NormalizeMe;
 
     And later do
 
-      { epsilon for VectorsEqual 0.001 is too small }
-      Assert( VectorsEqual(Rot2Axis,  CamDir, 0.01) or
-              VectorsEqual(Rot2Axis, -CamDir, 0.01),
+      { epsilon for TVector3.Equals 0.001 is too small }
+      Assert( TVector3.Equals(Rot2Axis,  CamDir, 0.01) or
+              TVector3.Equals(Rot2Axis, -CamDir, 0.01),
         Format('CamDirUp2OrientQuat failed for CamDir, CamUp: (%s), (%s)',
-          [ VectorToRawStr(CamDir), VectorToRawStr(CamUp) ]));
+          [ CamDir.ToRawString, CamUp.ToRawString ]));
 
     However, as can be seen in above comments, this requires some careful
     adjustments of epsilons, so it's somewhat numerically unstable.
@@ -5320,7 +5330,7 @@ begin
     Rot2Axis :=  CamDir else
     Rot2Axis := -CamDir;
 
-  Rot2CosAngle := VectorDotProduct(StdCamUpAfterRot1, CamUp);
+  Rot2CosAngle := TVector3.DotProduct(StdCamUpAfterRot1, CamUp);
   Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
   { calculate Result = combine Rot1 and Rot2 (yes, the order
@@ -5328,47 +5338,48 @@ begin
   Result := Rot2Quat * Rot1Quat;
 end;
 
-procedure CamDirUp2Orient(const CamDir, CamUp: TVector3Single;
-  out OrientAxis: TVector3Single; out OrientRadAngle: Single);
+procedure CamDirUp2Orient(const CamDir, CamUp: TVector3;
+  out OrientAxis: TVector3; out OrientRadAngle: Single);
 begin
   { Call CamDirUp2OrientQuat,
     and extract the axis and angle from the quaternion. }
   CamDirUp2OrientQuat(CamDir, CamUp).ToAxisAngle(OrientAxis, OrientRadAngle);
 end;
 
-function CamDirUp2Orient(const CamDir, CamUp: TVector3Single): TVector4Single;
+function CamDirUp2Orient(const CamDir, CamUp: TVector3): TVector4;
 var
-  OrientAxis: TVector3Single;
+  OrientAxis: TVector3;
   OrientAngle: Single;
 begin
   CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
-  result := Vector4Single(OrientAxis, OrientAngle);
+  result := Vector4(OrientAxis, OrientAngle);
 end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
   const WantedDirectionPositive, WantedUpPositive: boolean;
-  out Position, Direction, Up, GravityUp: TVector3Single);
+  out Position, Direction, Up, GravityUp: TVector3);
 var
   Offset: Single;
 begin
-  Direction := UnitVector3Single[WantedDirection];
-  if not WantedDirectionPositive then VectorNegateVar(Direction);
+  Direction := TVector3.One[WantedDirection];
+  if not WantedDirectionPositive then Direction := -Direction;
 
-  Up := UnitVector3Single[WantedUp];
-  if not WantedUpPositive then VectorNegateVar(Up);
+  Up := TVector3.One[WantedUp];
+  if not WantedUpPositive then Up := -Up;
 
   if Box.IsEmpty then
   begin
-    Position  := ZeroVector3Single;
+    Position  := TVector3.Zero;
   end else
   begin
     Position := Box.Center;
     Offset := 2 * Box.AverageSize;
 
     if WantedDirectionPositive then
-      Position[WantedDirection] := Box.Data[0, WantedDirection] - Offset else
-      Position[WantedDirection] := Box.Data[1, WantedDirection] + Offset;
+      Position[WantedDirection] := Box.Data[0].Data[WantedDirection] - Offset
+    else
+      Position[WantedDirection] := Box.Data[1].Data[WantedDirection] + Offset;
   end;
 
   { GravityUp is just always equal Up here. }

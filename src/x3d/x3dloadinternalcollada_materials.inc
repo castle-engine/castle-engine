@@ -15,6 +15,11 @@
 
 {$ifdef read_interface_nested}
 
+type
+  { Collada materials. Data contains TColladaEffect, which is a reference
+    to Effects list (it is not owned by this TColladaMaterialsMap). }
+  TColladaMaterialsMap = specialize TDictionary<string, TColladaEffect>;
+
 var
   { List of Collada materials. Collada material is just a reference
     to Collada effect with a name.
@@ -31,21 +36,21 @@ procedure ReadLibraryMaterials(LibraryElement: TDOMElement); forward;
 { Read <material>. It is added to the Materials list. }
 procedure ReadMaterial(MatElement: TDOMElement);
 
-  function ReadParamAsVector3(Element: TDOMElement): TVector3Single;
+  function ReadParamAsVector3(Element: TDOMElement): TVector3;
   var
     AType: string;
   begin
     if not Element.AttributeString('type', AType) then
     begin
       WritelnWarning('Collada', '<param> has no type attribute');
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
     end else
     if AType <> 'float3' then
     begin
       WritelnWarning('Collada', 'Expected <param> with type "float3"');
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
     end else
-       Result := Vector3SingleFromStr(Element.TextData);
+       Result := Vector3FromStr(Element.TextData);
    end;
 
    function ReadParamAsFloat(Element: TDOMElement): Float;
@@ -90,7 +95,7 @@ var
     { Collada 1.3 doesn't really have a concept of effects used by materials.
       But to be consistent, we add one effect (to Effects list)
       and one reference to it (to Materials list). }
-    Materials[MatId] := Effect;
+    Materials.AddOrSetValue(MatId, Effect);
 
     // TODO: generate CommonSurfaceShader as an alternative?
 
@@ -114,7 +119,7 @@ var
                    if ParamName = 'EMISSION' then
                      Mat.FdEmissiveColor.Value := ReadParamAsVector3(I.Current) else
                    if ParamName = 'AMBIENT' then
-                     Mat.FdAmbientIntensity.Value := VectorAverage(ReadParamAsVector3(I.Current)) else
+                     Mat.FdAmbientIntensity.Value := ReadParamAsVector3(I.Current).Average else
                    if ParamName = 'DIFFUSE' then
                      Mat.FdDiffuseColor.Value := ReadParamAsVector3(I.Current) else
                    if ParamName = 'SPECULAR' then
@@ -171,7 +176,8 @@ var
         Delete(EffectId, 1, 1); { delete initial '#' char }
         Effect := Effects.Find(EffectId);
         if Effect <> nil then
-          Materials[MatId] := Effect else
+          Materials.AddOrSetValue(MatId, Effect)
+        else
           WritelnWarning('Collada', Format('Material "%s" references ' +
             'non-existing effect "%s"', [MatId, EffectId]));
       end;

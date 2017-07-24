@@ -24,7 +24,7 @@
 {$ifdef read_implementation_nested}
 
 { Read <matrix> or <bind_shape_matrix> element to given Matrix. }
-function ReadMatrix(MatrixElement: TDOMElement): TMatrix4Single;
+function ReadMatrix(MatrixElement: TDOMElement): TMatrix4;
 var
   SeekPos: Integer;
   Row, Col: Integer;
@@ -49,12 +49,12 @@ begin
 end;
 
 { Read <lookat> element, return appropriate matrix. }
-function ReadLookAt(MatrixElement: TDOMElement): TMatrix4Single;
+function ReadLookAt(MatrixElement: TDOMElement): TMatrix4;
 var
   SeekPos: Integer;
   Content: string;
 
-  function ReadVector(out Vector: TVector3Single): boolean;
+  function ReadVector(out Vector: TVector3): boolean;
   var
     Token: string;
     I: Integer;
@@ -74,7 +74,7 @@ var
   end;
 
 var
-  Eye, Center, Up: TVector3Single;
+  Eye, Center, Up: TVector3;
 begin
   Content := MatrixElement.TextData;
 

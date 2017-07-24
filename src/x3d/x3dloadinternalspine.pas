@@ -25,14 +25,17 @@ uses X3DNodes;
 function LoadSpine(URL: string): TX3DRootNode;
 
 var
-  LogSpineMeshCompressWhitespaceWarning: boolean = true;
+  { Turn this on to see some additional warnings when loading Spine models.
+    These warnings are sometimes too verbose (often the models will work fine,
+    and these warning can be ignored), so they are disabled by default. }
+  SpineVerboseWarnings: boolean = false;
 
 implementation
 
-uses SysUtils, Classes, FGL, FpJson, JSONParser, JSONScanner, Math,
+uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,
   CastleVectors, CastleUtils, CastleLog, CastleURIUtils, CastleDownload,
-  CastleStringUtils, CastleClassUtils, CastleColors,
-  X3DLoadInternalUtils, X3DFields, CastleGenericLists;
+  CastleStringUtils, CastleClassUtils, CastleColors, X3DLoadInternalUtils,
+  X3DFields;
 
 type
   ESpineReadError = class(Exception);
@@ -84,6 +87,9 @@ function LoadSpine(URL: string): TX3DRootNode;
     Atlas: TAtlas;
   begin
     AtlasURL := ChangeURIExt(URL, '.atlas');
+    // try alternative name, with "_tex", used by Dragon Bones
+    if not URIFileExists(AtlasURL) then
+      AtlasURL := ChangeURIExt(URL, '_tex.atlas');
     if URIFileExists(AtlasURL) then
     begin
       Atlas := TAtlas.Create;
@@ -118,7 +124,13 @@ begin
         {$ifdef VER2} TJSONParser.Create(S);
         {$else}
           {$ifdef VER3_0_0} TJSONParser.Create(S);
-          {$else} { For FPC > 3.0.0 } TJSONParser.Create(S, [joUTF8, joComments]);
+          {$else} { For FPC > 3.0.0 }
+            { Do not add joUTF8, it fails to work on
+                tests/data/escape_from_the_universe_boss/boss.json
+              with FPC 3.1.1-r36683 [2017/07/08] for Linux x86_64
+              (and it may be our fault? not really sure.)
+              Works with FPC 3.0.2. }
+            TJSONParser.Create(S, [joComments]);
           {$endif}
         {$endif}
       try
@@ -126,14 +138,22 @@ begin
         try
           Result := TX3DRootNode.Create('', URL);
           try
-            if Assigned(Json) then
-            begin
-              Skeleton := TSkeleton.Create;
-              try
-                Skeleton.Parse(Json);
-                Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
-                Skeleton.Animations.Exported(Result);
-              finally FreeAndNil(Skeleton) end;
+            try
+              if Assigned(Json) then
+              begin
+                Skeleton := TSkeleton.Create;
+                try
+                  Skeleton.Parse(Json);
+                  Skeleton.BuildNodes(URL, TextureLoader, Result, SkinName);
+                  Skeleton.Animations.Exported(Result);
+                finally FreeAndNil(Skeleton) end;
+              end;
+            except
+              on E: ESpineReadError do
+              begin
+                E.Message := E.Message + ' (inside ' + URIDisplay(URL) + ')';
+                raise;
+              end;
             end;
           except FreeAndNil(Result); raise end;
         finally FreeAndNil(Json) end;

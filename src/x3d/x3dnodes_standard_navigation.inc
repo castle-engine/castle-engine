@@ -20,10 +20,10 @@
   strict private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-    function GetPosition: TVector3Single;
-    procedure SetPosition(const Value: TVector3Single);
-    function GetOrientation: TVector4Single;
-    procedure SetOrientation(const Value: TVector4Single);
+    function GetPosition: TVector3;
+    procedure SetPosition(const Value: TVector3);
+    function GetOrientation: TVector4;
+    procedure SetOrientation(const Value: TVector4);
   strict protected
     function PositionField: TSFVec3f; virtual; abstract;
   public
@@ -32,7 +32,7 @@
 
     private FFdOrientation: TSFRotation;
     public property FdOrientation: TSFRotation read FFdOrientation;
-    property Orientation: TVector4Single read GetOrientation write SetOrientation;
+    property Orientation: TVector4 read GetOrientation write SetOrientation;
 
     private FFdDirection: TMFVec3f;
     public property FdDirection: TMFVec3f read FFdDirection;
@@ -59,7 +59,7 @@
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
 
     { Position of the viewpoint. }
-    property Position: TVector3Single read GetPosition write SetPosition;
+    property Position: TVector3 read GetPosition write SetPosition;
 
     class function ProjectionType: TProjectionType; virtual; abstract;
 
@@ -84,7 +84,7 @@
       http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_cameras_alt_orient
 
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
-    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
+    procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
 
     private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
@@ -116,9 +116,9 @@
       Override ProjectionMatrix for subclasses (ModelviewMatrix
       is already correctly defined here).
       @groupBegin }
-    function ProjectionMatrix: TMatrix4Single; virtual;
-    function ModelviewMatrix: TMatrix4Single;
-    function GetProjectorMatrix: TMatrix4Single;
+    function ProjectionMatrix: TMatrix4; virtual;
+    function ModelviewMatrix: TMatrix4;
+    function GetProjectorMatrix: TMatrix4;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
@@ -128,7 +128,7 @@
     so that they always turn towards the viewer. }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   private
-    FCameraPosition, FCameraDirection, FCameraUp: TVector3Single;
+    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
     FCameraViewKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -140,11 +140,11 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     property CameraViewKnown: boolean read FCameraViewKnown;
-    property CameraPosition: TVector3Single read FCameraPosition;
-    property CameraDirection: TVector3Single read FCameraDirection;
-    property CameraUp: TVector3Single read FCameraUp;
+    property CameraPosition: TVector3 read FCameraPosition;
+    property CameraDirection: TVector3 read FCameraDirection;
+    property CameraUp: TVector3 read FCameraUp;
 
-    procedure CameraChanged(const APosition, ADirection, AUp: TVector3Single);
+    procedure CameraChanged(const APosition, ADirection, AUp: TVector3);
 
     private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
@@ -221,8 +221,8 @@
   TAbstractLODNode = class(TAbstractX3DGroupingNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
     function GetForceTransitions: boolean;
     procedure SetForceTransitions(const Value: boolean);
   public
@@ -231,7 +231,7 @@
 
     private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
-    property Center: TVector3Single read GetCenter write SetCenter;
+    property Center: TVector3 read GetCenter write SetCenter;
 
     private FFdRange: TMFFloat;
     public property FdRange: TMFFloat read FFdRange;
@@ -362,7 +362,7 @@
     public property FdPosition: TSFVec3f read FFdPosition;
 
     class function ProjectionType: TProjectionType; override;
-    function ProjectionMatrix: TMatrix4Single; override;
+    function ProjectionMatrix: TMatrix4; override;
 
     { Fix given field of view value for window aspect ratio.
       The idea is that OrthoViewpoint.fieldOfView specifies the minimal
@@ -416,7 +416,7 @@
     class function ViewpointAngleOfView(
       FieldOfView: Single;
       const ThisToOtherSizeRatio: Single): Single;
-    function ProjectionMatrix: TMatrix4Single; override;
+    function ProjectionMatrix: TMatrix4; override;
 
     {$I auto_generated_node_helpers/x3dnodes_viewpoint.inc}
   end;
@@ -468,7 +468,7 @@ begin
   { In X3D, this is part of X3DViewpointNode.
     In our engine, X3DViewpointNode descends from TAbstractViewpointNode
     inheriting "orientation" field this way. }
-  FFdOrientation := TSFRotation.Create(Self, 'orientation', Vector3Single(0, 0, 1), 0);
+  FFdOrientation := TSFRotation.Create(Self, 'orientation', Vector3(0, 0, 1), 0);
    FdOrientation.ChangesAlways := [chViewpointVectors];
   AddField(FFdOrientation);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
@@ -507,14 +507,14 @@ begin
 end;
 
 procedure TAbstractViewpointNode.GetView(
-  out CamPos, CamDir, CamUp, GravityUp: TVector3Single);
+  out CamPos, CamDir, CamUp, GravityUp: TVector3);
 begin
   CamPos := Position;
 
   if FdDirection.Items.Count > 0 then
   begin
     CamDir := FdDirection.Items.L[0];
-    if ZeroVector(CamDir) then
+    if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
       CamDir := FdOrientation.RotatedPoint( DefaultX3DCameraDirection );
@@ -525,7 +525,7 @@ begin
   if FdUp.Items.Count > 0 then
   begin
     CamUp := FdUp.Items.L[0];
-    if ZeroVector(CamUp) then
+    if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
       CamUp := FdOrientation.RotatedPoint( DefaultX3DCameraUp );
@@ -534,20 +534,20 @@ begin
     CamUp := FdOrientation.RotatedPoint( DefaultX3DCameraUp );
 
   GravityUp := FdGravityUp.Value;
-  if ZeroVector(GravityUp) then
+  if GravityUp.IsZero then
     GravityUp := DefaultX3DGravityUp;
 
   { Niestety, macierz ponizej moze cos skalowac wiec nawet jesli powyzej
     uzylismy FdOrientation.RotatedPoint( DefaultX3DCameraDirection/Up ) i wiemy ze CamDir/Up
     jest znormalizowane - to i tak musimy je tutaj znormalizowac.
-    TODO: byloby dobrze uzyc tutaj czegos jak MatrixMultDirectionNoScale }
-  CamPos    := MatrixMultPoint(Transform, CamPos);
-  CamDir    := Normalized( MatrixMultDirection(Transform, CamDir) );
-  CamUp     := Normalized( MatrixMultDirection(Transform, CamUp) );
-  GravityUp := Normalized( MatrixMultDirection(Transform, GravityUp) );
+    TODO: byloby dobrze uzyc tutaj czegos jak Transform.MultDirectionNoScale }
+  CamPos    := Transform.MultPoint(CamPos);
+  CamDir    := Transform.MultDirection(CamDir).Normalize;
+  CamUp     := Transform.MultDirection(CamUp).Normalize;
+  GravityUp := Transform.MultDirection(GravityUp).Normalize;
 
-  Assert(FloatsEqual(VectorLenSqr(CamDir), 1.0, 0.0001));
-  Assert(FloatsEqual(VectorLenSqr(CamUp), 1.0, 0.0001));
+  Assert(SameValue(CamDir.LengthSqr, 1.0, 0.0001));
+  Assert(SameValue(CamUp.LengthSqr, 1.0, 0.0001));
 end;
 
 procedure TAbstractViewpointNode.EventSet_BindReceive(
@@ -573,22 +573,22 @@ begin
     Result := X3DType;
 end;
 
-function TAbstractViewpointNode.GetPosition: TVector3Single;
+function TAbstractViewpointNode.GetPosition: TVector3;
 begin
   Result := PositionField.Value;
 end;
 
-procedure TAbstractViewpointNode.SetPosition(const Value: TVector3Single);
+procedure TAbstractViewpointNode.SetPosition(const Value: TVector3);
 begin
   PositionField.Send(Value);
 end;
 
-function TAbstractViewpointNode.GetOrientation: TVector4Single;
+function TAbstractViewpointNode.GetOrientation: TVector4;
 begin
   Result := FdOrientation.Value;
 end;
 
-procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4Single);
+procedure TAbstractViewpointNode.SetOrientation(const Value: TVector4);
 begin
   FdOrientation.Send(Value);
 end;
@@ -597,7 +597,7 @@ procedure TAbstractX3DViewpointNode.CreateNode;
 begin
   inherited;
 
-  FFdCenterOfRotation := TSFVec3f.Create(Self, 'centerOfRotation', Vector3Single(0, 0, 0));
+  FFdCenterOfRotation := TSFVec3f.Create(Self, 'centerOfRotation', Vector3(0, 0, 0));
   AddField(FFdCenterOfRotation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -610,20 +610,20 @@ begin
   DefaultContainerField := 'children';
 end;
 
-function TAbstractX3DViewpointNode.ProjectionMatrix: TMatrix4Single;
+function TAbstractX3DViewpointNode.ProjectionMatrix: TMatrix4;
 begin
-  Result := IdentityMatrix4Single;
+  Result := TMatrix4.Identity;
 end;
 
-function TAbstractX3DViewpointNode.ModelviewMatrix: TMatrix4Single;
+function TAbstractX3DViewpointNode.ModelviewMatrix: TMatrix4;
 var
-  CamPos, CamDir, CamUp, CamGravityUp: TVector3Single;
+  CamPos, CamDir, CamUp, CamGravityUp: TVector3;
 begin
   GetView(CamPos, CamDir, CamUp, CamGravityUp);
   Result := LookDirMatrix(CamPos, CamDir, CamUp);
 end;
 
-function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4Single;
+function TAbstractX3DViewpointNode.GetProjectorMatrix: TMatrix4;
 begin
   Result := ProjectionMatrix * ModelviewMatrix;
 end;
@@ -634,7 +634,7 @@ procedure TBillboardNode.CreateNode;
 begin
   inherited;
 
-  FFdAxisOfRotation := TSFVec3f.Create(Self, 'axisOfRotation', Vector3Single(0, 1, 0));
+  FFdAxisOfRotation := TSFVec3f.Create(Self, 'axisOfRotation', Vector3(0, 1, 0));
   AddField(FFdAxisOfRotation);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -661,57 +661,57 @@ end;
 
 procedure TBillboardNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
-  NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3Single;
+  NewX, NewY, NewZ, BillboardToViewer, P1, P2, LocalDirection, LocalUp: TVector3;
   Angle: Single;
-  M, IM: TMatrix4Single;
-  PlaneAxis: TVector4Single;
-  PlaneAxisDir: TVector3Single absolute PlaneAxis;
+  M, IM: TMatrix4;
+  PlaneAxis: TVector4;
+  PlaneAxisDir: TVector3 absolute PlaneAxis;
 begin
   if CameraViewKnown then
   begin
-    if PerfectlyZeroVector(FdAxisOfRotation.Value) then
+    if FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := MatrixMultDirection(State.InvertedTransform, FCameraDirection);
-      LocalUp        := MatrixMultDirection(State.InvertedTransform, FCameraUp);
+      LocalDirection := State.InvertedTransform.MultDirection(FCameraDirection);
+      LocalUp        := State.InvertedTransform.MultDirection(FCameraUp);
       { although FCameraDirection/Up are for sure normalized and orthogonal,
         but State.InvertedTransform may contain scaling,
         so be sure to normalize again the result.
         For safety, also call MakeVectorsOrthoOnTheirPlane. }
-      NormalizeVar(LocalDirection);
-      NormalizeVar(LocalUp);
+      LocalDirection.NormalizeMe;
+      LocalUp.NormalizeMe;
       MakeVectorsOrthoOnTheirPlane(LocalDirection, LocalUp);
 
-      NewX := VectorProduct(LocalDirection, LocalUp);
+      NewX := TVector3.CrossProduct(LocalDirection, LocalUp);
       NewY := LocalUp;
       NewZ := -LocalDirection;
 
       TransformCoordsMatrices(NewX, NewY, NewZ, M, IM);
-      State.Transform := MatrixMult(State.Transform, M);
-      State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+      State.Transform := State.Transform * M;
+      State.InvertedTransform := IM * State.InvertedTransform;
     end else
     begin
       { vector from node origin to CameraPosition, in local coords }
-      BillboardToViewer := MatrixMultPoint(State.InvertedTransform, CameraPosition);
+      BillboardToViewer := State.InvertedTransform.MultPoint(CameraPosition);
 
       { plane of axisOfRotation }
       PlaneAxisDir := FdAxisOfRotation.Value;
       PlaneAxis[3] := 0;
 
-      { we want to have a rotation that changes UnitVector3Single[2]
+      { we want to have a rotation that changes TVector3.One[2]
         into BillboardToViewer. But the rotation axis is fixed
-        to axisOfRotation (we cannot just take their VectorProduct).
+        to axisOfRotation (we cannot just take their TVector3.CrossProduct).
         So project both points on a plane orthogonal to axisOfRotation,
         and calculate angle there. }
-      P1 := PointOnPlaneClosestToPoint(PlaneAxis, UnitVector3Single[2]);
+      P1 := PointOnPlaneClosestToPoint(PlaneAxis, TVector3.One[2]);
       P2 := PointOnPlaneClosestToPoint(PlaneAxis, BillboardToViewer);
 
       if { axisOfRotation paralell to Z axis? Then nothing sensible to do. }
-        ZeroVector(P1) or
+        P1.IsZero or
         { billboard-to-viewer vector parallel to axisOfRotation (includes
           the case when billboard-to-viewer vector is zero in local coords,
           which means that camera standing at Billboard origin)?
           Then nothing sensible to do. }
-        ZeroVector(P2) then
+        P2.IsZero then
         Exit;
 
       { As https://sourceforge.net/p/castle-engine/tickets/38/ shows,
@@ -719,7 +719,7 @@ begin
         (because it replicates what happens in CosAngleBetweenVectors)
         would be to add
 
-          (VectorLenSqr(P1) * VectorLenSqr(P2) < SingleEqualityEpsilon)
+          (P1.LengthSqr * P2.LengthSqr < SingleEpsilon)
 
         But that's not really a future-proof solution, to repeat this code.
         It's safer (even if a little slower) to capture exception here. }
@@ -730,14 +730,14 @@ begin
       end;
 
       RotationMatricesRad(Angle, FdAxisOfRotation.Value, M, IM);
-      State.Transform := MatrixMult(State.Transform, M);
-      State.InvertedTransform := MatrixMult(IM, State.InvertedTransform);
+      State.Transform := State.Transform * M;
+      State.InvertedTransform := IM * State.InvertedTransform;
     end;
   end;
 end;
 
 procedure TBillboardNode.CameraChanged(
-  const APosition, ADirection, AUp: TVector3Single);
+  const APosition, ADirection, AUp: TVector3);
 begin
   FCameraViewKnown := true;
   FCameraPosition := APosition;
@@ -874,7 +874,7 @@ procedure TAbstractLODNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', ZeroVector3Single);
+  FFdCenter := TSFVec3f.Create(Self, 'center', TVector3.Zero);
    FdCenter.Exposed := false;
    { Just redisplay, and new appropriate LOD children will be displayed. }
    FdCenter.ChangesAlways := [chRedisplay];
@@ -919,12 +919,12 @@ begin
   Result := ntcLOD;
 end;
 
-function TAbstractLODNode.GetCenter: TVector3Single;
+function TAbstractLODNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TAbstractLODNode.SetCenter(const Value: TVector3Single);
+procedure TAbstractLODNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
@@ -1066,7 +1066,7 @@ begin
   AddField(FFdFieldOfView);
   { X3D specification comment:  (-Inf,Inf) }
 
-  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 10));
    FdPosition.ChangesAlways := [chViewpointVectors];
   AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
@@ -1095,7 +1095,7 @@ begin
   Result := ptOrthographic;
 end;
 
-function TOrthoViewpointNode.ProjectionMatrix: TMatrix4Single;
+function TOrthoViewpointNode.ProjectionMatrix: TMatrix4;
 var
   Dimensions: TFloatRectangle;
 begin
@@ -1216,7 +1216,7 @@ begin
   AddField(FFdFieldOfView);
   { X3D specification comment: (0,Pi) }
 
-  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3Single(0, 0, 10));
+  FFdPosition := TSFVec3f.Create(Self, 'position', Vector3(0, 0, 10));
    FdPosition.ChangesAlways := [chViewpointVectors];
   AddField(FFdPosition);
   { X3D specification comment: (-Inf,Inf) }
@@ -1279,7 +1279,7 @@ begin
   end;
 end;
 
-function TViewpointNode.ProjectionMatrix: TMatrix4Single;
+function TViewpointNode.ProjectionMatrix: TMatrix4;
 begin
   { TODO: for currently bound viewpoint, we should honour
     fieldOfView and aspect ratio of current window? }
@@ -1294,7 +1294,7 @@ procedure TViewpointGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3Single(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -1310,7 +1310,7 @@ begin
   FFdRetainUserOffsets := TSFBool.Create(Self, 'retainUserOffsets', false);
   AddField(FFdRetainUserOffsets);
 
-  FFdSize := TSFVec3f.Create(Self, 'size', Vector3Single(0, 0, 0));
+  FFdSize := TSFVec3f.Create(Self, 'size', Vector3(0, 0, 0));
   AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
 

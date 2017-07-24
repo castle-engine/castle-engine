@@ -27,19 +27,19 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector2Single;
-    procedure SetCenter(const Value: TVector2Single);
+    function GetCenter: TVector2;
+    procedure SetCenter(const Value: TVector2);
     function GetRotation: Single;
     procedure SetRotation(const Value: Single);
-    function GetScale: TVector2Single;
-    procedure SetScale(const Value: TVector2Single);
-    function GetTranslation: TVector2Single;
-    procedure SetTranslation(const Value: TVector2Single);
+    function GetScale: TVector2;
+    procedure SetScale(const Value: TVector2);
+    function GetTranslation: TVector2;
+    procedure SetTranslation(const Value: TVector2);
   public
-    property Center: TVector2Single read GetCenter write SetCenter;
+    property Center: TVector2 read GetCenter write SetCenter;
     property Rotation: Single read GetRotation write SetRotation;
-    property Scale: TVector2Single read GetScale write SetScale;
-    property Translation: TVector2Single read GetTranslation write SetTranslation;
+    property Scale: TVector2 read GetScale write SetScale;
+    property Translation: TVector2 read GetTranslation write SetTranslation;
 
 {$endif read_interface}
 
@@ -47,12 +47,12 @@
 
 { TTextureTransformNode ----------------------------------------------- }
 
-function TTextureTransformNode.GetCenter: TVector2Single;
+function TTextureTransformNode.GetCenter: TVector2;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TTextureTransformNode.SetCenter(const Value: TVector2Single);
+procedure TTextureTransformNode.SetCenter(const Value: TVector2);
 begin
   FdCenter.Send(Value);
 end;
@@ -67,22 +67,22 @@ begin
   FdRotation.Send(Value);
 end;
 
-function TTextureTransformNode.GetScale: TVector2Single;
+function TTextureTransformNode.GetScale: TVector2;
 begin
   Result := FdScale.Value;
 end;
 
-procedure TTextureTransformNode.SetScale(const Value: TVector2Single);
+procedure TTextureTransformNode.SetScale(const Value: TVector2);
 begin
   FdScale.Send(Value);
 end;
 
-function TTextureTransformNode.GetTranslation: TVector2Single;
+function TTextureTransformNode.GetTranslation: TVector2;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TTextureTransformNode.SetTranslation(const Value: TVector2Single);
+procedure TTextureTransformNode.SetTranslation(const Value: TVector2);
 begin
   FdTranslation.Send(Value);
 end;

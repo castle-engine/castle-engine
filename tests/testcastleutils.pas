@@ -345,14 +345,14 @@ begin
   AssertTrue(Between(3, -100, 100));
   AssertTrue(not Between(-300, -100, 100));
 
-  AssertFloatsEqual( 0.5, MapRange(2  , 1  , 3  , 0  , 1  ), 0.01);
-  AssertFloatsEqual( 0.5, MapRange(2.0, 1.0, 3.0, 0.0, 1.0), 0.01);
+  AssertSameValue( 0.5, MapRange(2  , 1  , 3  , 0  , 1  ), 0.01);
+  AssertSameValue( 0.5, MapRange(2.0, 1.0, 3.0, 0.0, 1.0), 0.01);
 
-  AssertFloatsEqual(0.75, MapRange(1.5, 3  , 1  , 0  , 1  ), 0.01);
-  AssertFloatsEqual(0.75, MapRange(1.5, 3.0, 1.0, 0.0, 1.0), 0.01);
+  AssertSameValue(0.75, MapRange(1.5, 3  , 1  , 0  , 1  ), 0.01);
+  AssertSameValue(0.75, MapRange(1.5, 3.0, 1.0, 0.0, 1.0), 0.01);
 
-  AssertFloatsEqual(0.25, MapRange(1.5, 1  , 3  , 0  , 1  ), 0.01);
-  AssertFloatsEqual(0.25, MapRange(1.5, 1.0, 3.0, 0.0, 1.0), 0.01);
+  AssertSameValue(0.25, MapRange(1.5, 1  , 3  , 0  , 1  ), 0.01);
+  AssertSameValue(0.25, MapRange(1.5, 1.0, 3.0, 0.0, 1.0), 0.01);
 
   AssertTrue(DivRoundUp(40, 4) = 10);
   AssertTrue(DivRoundUp(42, 4) = 11);
@@ -451,12 +451,12 @@ end;
 
 procedure TTestCastleUtils.TestFloatModulo;
 begin
-  AssertFloatsEqual(0.5, FloatModulo( 0.5, 2));
-  AssertFloatsEqual(0.5, FloatModulo( 2.5, 2));
-  AssertFloatsEqual(1.5, FloatModulo( 3.5, 2));
-  AssertFloatsEqual(1.5, FloatModulo(-0.5, 2));
-  AssertFloatsEqual(1.5, FloatModulo(-2.5, 2));
-  AssertFloatsEqual(0.5, FloatModulo(-3.5, 2));
+  AssertSameValue(0.5, FloatModulo( 0.5, 2));
+  AssertSameValue(0.5, FloatModulo( 2.5, 2));
+  AssertSameValue(1.5, FloatModulo( 3.5, 2));
+  AssertSameValue(1.5, FloatModulo(-0.5, 2));
+  AssertSameValue(1.5, FloatModulo(-2.5, 2));
+  AssertSameValue(0.5, FloatModulo(-3.5, 2));
 end;
 
 procedure TTestCastleUtils.TestRandomIntRange;

@@ -14,8 +14,7 @@
 }
 
 { Play the animations of resources (creatures/items). }
-
-uses SysUtils, FGL,
+uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
   CastleUtils, Castle3D, CastleSoundEngine, CastleCreatures, CastleLog;
@@ -94,8 +93,8 @@ type
     procedure DoClick; override;
   end;
 
-  TResourceButtonList = specialize TFPGObjectList<TResourceButton>;
-  TAnimationButtonList = specialize TFPGObjectList<TAnimationButton>;
+  TResourceButtonList = specialize TObjectList<TResourceButton>;
+  TAnimationButtonList = specialize TObjectList<TAnimationButton>;
 
 var
   ResButtons: TResourceButtonList;

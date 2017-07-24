@@ -27,7 +27,7 @@ type
   TCubeMapSide = CastleCompositeImage.TCubeMapSide;
 
   TCubeMapInfo = record
-    Dir, Up, Side: TVector3Single;
+    Dir, Up, Side: TVector3;
     ScreenX, ScreenY: Integer;
   end;
 
@@ -40,14 +40,14 @@ const
     orientation (see http://www.opengl.org/registry/specs/ARB/texture_cube_map.txt),
     so it's straighforward to use this for OpenGL cube maps. }
   CubeMapInfo: array [TCubeMapSide] of TCubeMapInfo =
-  ( (Dir: ( 1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0,-1); ScreenX: 3; ScreenY: 0),
-    (Dir: (-1,  0, 0); Up: (0, -1, 0); Side: ( 0, 0, 1); ScreenX: 1; ScreenY: 0),
+  ( (Dir: (Data: ( 1,  0, 0)); Up: (Data: (0, -1, 0)); Side: (Data: ( 0, 0,-1)); ScreenX: 3; ScreenY: 0),
+    (Dir: (Data: (-1,  0, 0)); Up: (Data: (0, -1, 0)); Side: (Data: ( 0, 0, 1)); ScreenX: 1; ScreenY: 0),
 
-    (Dir: ( 0,  1, 0); Up: (0, 0,  1); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: -1),
-    (Dir: ( 0, -1, 0); Up: (0, 0, -1); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: +1),
+    (Dir: (Data: ( 0,  1, 0)); Up: (Data: (0, 0,  1)); Side: (Data: ( 1, 0, 0)); ScreenX: 2; ScreenY: -1),
+    (Dir: (Data: ( 0, -1, 0)); Up: (Data: (0, 0, -1)); Side: (Data: ( 1, 0, 0)); ScreenX: 2; ScreenY: +1),
 
-    (Dir: ( 0, 0,  1); Up: (0, -1, 0); Side: ( 1, 0, 0); ScreenX: 2; ScreenY: 0),
-    (Dir: ( 0, 0, -1); Up: (0, -1, 0); Side: (-1, 0, 0); ScreenX: 0; ScreenY: 0)
+    (Dir: (Data: ( 0, 0,  1)); Up: (Data: (0, -1, 0)); Side: (Data: ( 1, 0, 0)); ScreenX: 2; ScreenY: 0),
+    (Dir: (Data: ( 0, 0, -1)); Up: (Data: (0, -1, 0)); Side: (Data: (-1, 0, 0)); ScreenX: 0; ScreenY: 0)
   );
 
 { Direction corresponding to given cube map side and pixel number.
@@ -61,13 +61,13 @@ const
 
   Returned vector is @italic(not normalized). }
 function CubeMapDirection(const Side: TCubeMapSide;
-  const Pixel: Cardinal): TVector3Single;
+  const Pixel: Cardinal): TVector3;
 
 { Return cube map side and pixel that is the closest to
   given direction Dir. This is the reverse of CubeMapDirection function.
 
   Given here Dir need not be normalized, although must not be zero. }
-procedure DirectionToCubeMap(const Dir: TVector3Single;
+procedure DirectionToCubeMap(const Dir: TVector3;
   out Side: TCubeMapSide; out Pixel: Cardinal);
 
 type
@@ -79,10 +79,10 @@ type
 
   This is like DirectionToCubeMap, except this returns 4 values.
   It allows you to do bilinear interpolation between cube map items. }
-procedure Direction4ToCubeMap(const Dir: TVector3Single;
+procedure Direction4ToCubeMap(const Dir: TVector3;
   out Side: TCubeMapSide4;
   out Pixel: TVector4Cardinal;
-  out Ratio: TVector4Single);
+  out Ratio: TVector4);
 
 type
   { Cube map, with each item being a Float. }
@@ -107,7 +107,7 @@ uses SysUtils, CastleUtils;
   returns the position of the middle of the pixel. That is, it assumes
   you don't normalize the returned direction. }
 function CubeMapDirection(const Side: TCubeMapSide;
-  const Pixel: Cardinal): TVector3Single;
+  const Pixel: Cardinal): TVector3;
 var
   PixelX, PixelY: Cardinal;
 begin
@@ -116,8 +116,7 @@ begin
   { Result = exactly CubeMapInfo[Side].Dir when
     PixelX/Y = CubeMapSize/2 (pixel is on the middle of the image). }
   Result := CubeMapInfo[Side].Dir;
-  VectorAddVar(Result,
-    VectorScale(CubeMapInfo[Side].Side, -1 + 2 * PixelX/CubeMapSize
+  Result := Result + CubeMapInfo[Side].Side * (-1 + 2 * PixelX/CubeMapSize
 
     { We want the generated direction to be exactly in the middle of
       cube map pixel.
@@ -137,19 +136,18 @@ begin
       max =  1 - 1/CubeMapSize,
       so all will be perfect. }
       + 1/CubeMapSize
-    ));
-  VectorAddVar(Result,
-    VectorScale(CubeMapInfo[Side].Up  , -1 + 2 * PixelY/CubeMapSize
-      + 1/CubeMapSize));
+    );
+  Result := Result + CubeMapInfo[Side].Up * (-1 + 2 * PixelY/CubeMapSize
+      + 1/CubeMapSize);
 end;
 
-procedure DirectionToCubeMap(const Dir: TVector3Single;
+procedure DirectionToCubeMap(const Dir: TVector3;
   out Side: TCubeMapSide; out Pixel: Cardinal);
 var
-  SidePlane: TVector4Single;
-  SidePlaneDir: TVector3Single absolute SidePlane;
+  SidePlane: TVector4;
+  SidePlaneDir: TVector3 absolute SidePlane;
   SideCoord: Integer;
-  SideIntersect: TVector3Single;
+  SideIntersect: TVector3;
   PixelX, PixelY: Integer;
 begin
   SideCoord := MaxAbsVectorCoord(Dir);
@@ -163,17 +161,17 @@ begin
   SidePlane[3] := -1;
 
   if not TryPlaneRayIntersection(SideIntersect,
-    SidePlane, ZeroVector3Single, Dir) then
+    SidePlane, TVector3.Zero, Dir) then
     raise Exception.CreateFmt('DirectionToCubeMap: direction (%s) doesn''t hit it''s cube map side (%d)',
-      [VectorToRawStr(Dir), Side]);
+      [Dir.ToRawString, Side]);
 
   { We're not interested in this coord, this is either 1 or -1.
-    Having this non-zero would break VectorDotProduct (projecting to Side/Up)
+    Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
   SideIntersect[SideCoord] := 0;
 
   PixelX := Round(MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side].Side),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side].Side),
     { 1/CubeMapSize here, to take into account that the perfect ray
       goes exactly through the middle pixel of cube map pixel.
       See CubeMapDirection reasoning. }
@@ -182,7 +180,7 @@ begin
     0, CubeMapSize - 1));
 
   PixelY := Round(MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side].Up),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side].Up),
     -1 + 1/CubeMapSize,
      1 - 1/CubeMapSize,
     0, CubeMapSize - 1));
@@ -194,15 +192,15 @@ begin
   Pixel := PixelY * CubeMapSize + PixelX;
 end;
 
-procedure Direction4ToCubeMap(const Dir: TVector3Single;
+procedure Direction4ToCubeMap(const Dir: TVector3;
   out Side: TCubeMapSide4;
   out Pixel: TVector4Cardinal;
-  out Ratio: TVector4Single);
+  out Ratio: TVector4);
 var
-  SidePlane: TVector4Single;
-  SidePlaneDir: TVector3Single absolute SidePlane;
+  SidePlane: TVector4;
+  SidePlaneDir: TVector3 absolute SidePlane;
   SideCoord: Integer;
-  SideIntersect: TVector3Single;
+  SideIntersect: TVector3;
   PixelFX, PixelFY, PixelXFrac, PixelYFrac: Single;
   PixelX, PixelY: array [0..3] of Cardinal;
   I: Cardinal;
@@ -226,17 +224,17 @@ begin
   SidePlane[3] := -1;
 
   if not TryPlaneRayIntersection(SideIntersect,
-    SidePlane, ZeroVector3Single, Dir) then
+    SidePlane, TVector3.Zero, Dir) then
     raise Exception.CreateFmt('DirectionToCubeMap: direction (%s) doesn''t hit it''s cube map side (%d)',
-      [VectorToRawStr(Dir), Side[0]]);
+      [Dir.ToRawString, Side[0]]);
 
   { We're not interested in this coord, this is either 1 or -1.
-    Having this non-zero would break VectorDotProduct (projecting to Side/Up)
+    Having this non-zero would break TVector3.DotProduct (projecting to Side/Up)
     in following code. }
   SideIntersect[SideCoord] := 0;
 
   PixelFX := MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side[0]].Side),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side[0]].Side),
     { 1/CubeMapSize here, to take into account that the perfect ray
       goes exactly through the middle pixel of cube map pixel.
       See CubeMapDirection reasoning. }
@@ -245,7 +243,7 @@ begin
     0, CubeMapSize - 1);
 
   PixelFY := MapRange(
-    VectorDotProduct(SideIntersect, CubeMapInfo[Side[0]].Up),
+    TVector3.DotProduct(SideIntersect, CubeMapInfo[Side[0]].Up),
     -1 + 1/CubeMapSize,
      1 - 1/CubeMapSize,
     0, CubeMapSize - 1);
@@ -308,17 +306,17 @@ function CubeMapSolidAngle(const Side: TCubeMapSide;
   doesn't improve it. }
 
 var
-  Dir: TVector3Single;
+  Dir: TVector3;
   DirLength: Single;
 begin
   Dir := CubeMapDirection(Side, Pixel);
-  DirLength := VectorLen(Dir);
+  DirLength := Dir.Length;
 
   { normalize Dir. Since we already have DirLength,
     we can just call VectorScale. }
-  VectorScaleVar(Dir, 1/DirLength);
+  Dir := Dir * (1 / DirLength);
 
-  Result := VectorDotProduct(Dir, CubeMapInfo[Side].Dir) *
+  Result := TVector3.DotProduct(Dir, CubeMapInfo[Side].Dir) *
     ( 4 / Sqr(CubeMapSize) ) /
     Sqr(DirLength);
 end;

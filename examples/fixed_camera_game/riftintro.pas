@@ -33,7 +33,7 @@ procedure DoIntro;
 
 implementation
 
-uses SysUtils, DOM, FGL,
+uses SysUtils, DOM, Generics.Collections,
   CastleWindow, CastleFilesUtils, CastleVectors,
   CastleGLUtils, CastleWindowModes, CastleImages, CastleSoundEngine,
   CastleGLImages, CastleUIControls, CastleStringUtils, CastleXMLUtils,
@@ -49,7 +49,7 @@ type
     ImageCorroded: TGLImage;
     destructor Destroy; override;
   end;
-  TIntroPartList = specialize TFPGObjectList<TIntroPart>;
+  TIntroPartList = specialize TObjectList<TIntroPart>;
 
 destructor TIntroPart.Destroy;
 begin
@@ -107,14 +107,14 @@ begin
     IntroParts[IntroPart].Image.BlendingSourceFactor := bsConstantColor;
     IntroParts[IntroPart].Image.BlendingDestinationFactor := bdOne;
     IntroParts[IntroPart].Image.BlendingConstantColor :=
-      Vector4Single(1 - Corrosion, 1 - Corrosion, 1 - Corrosion, 1);
+      Vector4(1 - Corrosion, 1 - Corrosion, 1 - Corrosion, 1);
     IntroParts[IntroPart].Image.Draw(0, 0);
 
     IntroParts[IntroPart].ImageCorroded.Alpha := acBlending;
     IntroParts[IntroPart].ImageCorroded.BlendingSourceFactor := bsConstantColor;
     IntroParts[IntroPart].ImageCorroded.BlendingDestinationFactor := bdOne;
     IntroParts[IntroPart].ImageCorroded.BlendingConstantColor :=
-      Vector4Single(Corrosion, Corrosion, Corrosion, 1);
+      Vector4(Corrosion, Corrosion, Corrosion, 1);
     IntroParts[IntroPart].ImageCorroded.Draw(0, 0);
   end;
 end;

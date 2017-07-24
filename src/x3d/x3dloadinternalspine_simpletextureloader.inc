@@ -15,7 +15,7 @@
 
 type
   { Texture nodes, indexed by attachment name. }
-  TImageTextureNodeMap = specialize TFPGMap<string, TImageTextureNode>;
+  TImageTextureNodeMap = specialize TDictionary<string, TImageTextureNode>;
 
   { Spine simple texture loader (without atlas).
     Reads each region attachment as a single texture file,
@@ -48,28 +48,24 @@ end;
 function TSimpleTextureLoader.UseNode(const AttachmentName: string;
   out TexCoord: TQuadTexCoord; out TexRect: TQuadTexRect;
   out TexRotated: boolean): TImageTextureNode;
-var
-  Index: Integer;
 begin
-  Index := Nodes.IndexOf(AttachmentName);
-  if Index <> -1 then
-    Result := Nodes.Data[Index] else
+  if not Nodes.TryGetValue(AttachmentName, Result) then
   begin
     Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
     Result.FdUrl.Items.Add('images/' + AttachmentName + '.png');
     Result.RepeatS := false;
     Result.RepeatT := false;
 
-    Nodes[AttachmentName] := Result;
+    Nodes.AddOrSetValue(AttachmentName, Result);
   end;
 
-  TexCoord[0] := Vector2Single(0, 0);
-  TexCoord[1] := Vector2Single(1, 0);
-  TexCoord[2] := Vector2Single(1, 1);
-  TexCoord[3] := Vector2Single(0, 1);
+  TexCoord[0] := Vector2(0, 0);
+  TexCoord[1] := Vector2(1, 0);
+  TexCoord[2] := Vector2(1, 1);
+  TexCoord[3] := Vector2(0, 1);
 
-  TexRect[0] := Vector2Single(0, 0);
-  TexRect[1] := Vector2Single(1, 1);
+  TexRect[0] := Vector2(0, 0);
+  TexRect[1] := Vector2(1, 1);
 
   TexRotated := false;
 end;

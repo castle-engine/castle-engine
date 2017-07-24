@@ -336,9 +336,9 @@ begin
     if not CGE_VerifyScene then exit;
 
     BBox := Window.MainScene.BoundingBox;
-    pfXMin^ := BBox.Data[0, 0]; pfXMax^ := BBox.Data[1, 0];
-    pfYMin^ := BBox.Data[0, 1]; pfYMax^ := BBox.Data[1, 1];
-    pfZMin^ := BBox.Data[0, 2]; pfZMax^ := BBox.Data[1, 2];
+    pfXMin^ := BBox.Data[0].Data[0]; pfXMax^ := BBox.Data[1].Data[0];
+    pfYMin^ := BBox.Data[0].Data[1]; pfYMax^ := BBox.Data[1].Data[1];
+    pfZMin^ := BBox.Data[0].Data[2]; pfZMax^ := BBox.Data[1].Data[2];
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -347,7 +347,7 @@ end;
 procedure CGE_GetViewCoords(pfPosX, pfPosY, pfPosZ, pfDirX, pfDirY, pfDirZ,
                             pfUpX, pfUpY, pfUpZ, pfGravX, pfGravY, pfGravZ: pcfloat); cdecl;
 var
-  Pos, Dir, Up, GravityUp: TVector3Single;
+  Pos, Dir, Up, GravityUp: TVector3;
 begin
   try
     if not CGE_VerifyWindow then exit;
@@ -366,7 +366,7 @@ procedure CGE_MoveViewToCoords(fPosX, fPosY, fPosZ, fDirX, fDirY, fDirZ,
                                fUpX, fUpY, fUpZ, fGravX, fGravY, fGravZ: cFloat;
                                bAnimated: cBool); cdecl;
 var
-  Pos, Dir, Up, GravityUp: TVector3Single;
+  Pos, Dir, Up, GravityUp: TVector3;
 begin
   try
     if not CGE_VerifyWindow then exit;
@@ -626,9 +626,9 @@ begin
     aNewVal := nil;
 
     if aField is TSFVec3f then
-      aNewVal := TSFVec3f.Create(nil, '', Vector3Single(fVal1, fVal2, fVal3))
+      aNewVal := TSFVec3f.Create(nil, '', Vector3(fVal1, fVal2, fVal3))
     else if aField is TSFVec4f then
-      aNewVal := TSFVec4f.Create(nil, '', Vector4Single(fVal1, fVal2, fVal3, fVal4))
+      aNewVal := TSFVec4f.Create(nil, '', Vector4(fVal1, fVal2, fVal3, fVal4))
     else if aField is TSFVec3d then
       aNewVal := TSFVec3d.Create(nil, '', Vector3Double(fVal1, fVal2, fVal3))
     else if aField is TSFVec4d then

@@ -263,7 +263,7 @@
   TAbstractTextureTransformNode = class(TAbstractAppearanceChildNode)
   public
     procedure CreateNode; override;
-    function TransformMatrix: TMatrix4Single; virtual; abstract;
+    function TransformMatrix: TMatrix4; virtual; abstract;
     {$I auto_generated_node_helpers/x3dnodes_x3dtexturetransformnode.inc}
   end;
 
@@ -433,7 +433,7 @@
 
       @raises(EInternalError Always, since this method has no sense
         for MultiTextureTransform.) }
-    function TransformMatrix: TMatrix4Single; override;
+    function TransformMatrix: TMatrix4; override;
 
     {$I auto_generated_node_helpers/x3dnodes_multitexturetransform.inc}
   end;
@@ -589,7 +589,7 @@
     private FFdTranslation: TSFVec2f;
     public property FdTranslation: TSFVec2f read FFdTranslation;
 
-    function TransformMatrix: TMatrix4Single; override;
+    function TransformMatrix: TMatrix4; override;
 
     {$I auto_generated_node_helpers/x3dnodes_texturetransform.inc}
   end;
@@ -1081,7 +1081,7 @@ begin
   AddField(FFdAlpha);
   { X3D specification comment: [0,1] }
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3Single(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
    FdColor.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
@@ -1169,10 +1169,10 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TMultiTextureTransformNode.TransformMatrix: TMatrix4Single;
+function TMultiTextureTransformNode.TransformMatrix: TMatrix4;
 begin
   raise EInternalError.Create('You cannot get single TransformMatrix from MultiTextureTransform node');
-  Result := IdentityMatrix4Single; { avoid warnings that result not set }
+  Result := TMatrix4.Identity; { avoid warnings that result not set }
 end;
 
 procedure TPixelTextureNode.CreateNode;
@@ -1291,7 +1291,7 @@ begin
   AddField(FFdAnisotropicDegree);
   { X3D specification comment: [1,Inf) }
 
-  FFdBorderColor := TSFColorRGBA.Create(Self, 'borderColor', Vector4Single(0, 0, 0, 0));
+  FFdBorderColor := TSFColorRGBA.Create(Self, 'borderColor', Vector4(0, 0, 0, 0));
    FdBorderColor.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdBorderColor);
   { X3D specification comment: [0,1] }
@@ -1462,7 +1462,7 @@ procedure TTextureTransformNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec2f.Create(Self, 'center', Vector2Single(0, 0));
+  FFdCenter := TSFVec2f.Create(Self, 'center', Vector2(0, 0));
    FdCenter.ChangesAlways := [chTextureTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
@@ -1473,12 +1473,12 @@ begin
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdScale := TSFVec2f.Create(Self, 'scale', Vector2Single(1, 1));
+  FFdScale := TSFVec2f.Create(Self, 'scale', Vector2(1, 1));
    FdScale.ChangesAlways := [chTextureTransform];
   AddField(FFdScale);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdTranslation := TSFVec2f.Create(Self, 'translation', Vector2Single(0, 0));
+  FFdTranslation := TSFVec2f.Create(Self, 'translation', Vector2(0, 0));
    FdTranslation.ChangesAlways := [chTextureTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -1496,7 +1496,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TTextureTransformNode.TransformMatrix: TMatrix4Single;
+function TTextureTransformNode.TransformMatrix: TMatrix4;
 begin
   { Yes, VRML 2 and X3D specs say in effect that the order of operations
     is *reversed* with regards to VRML 1 spec.
@@ -1521,17 +1521,13 @@ begin
 
     - Other: [http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=4320634] }
 
-  Result := TranslationMatrix(
-    Vector3Single( -FdCenter.Value[0], -FdCenter.Value[1], 0 ));
-  Result := MatrixMult(Result,
-    ScalingMatrix(
-      Vector3Single( FdScale.Value[0], FdScale.Value[1], 1 )));
-  Result := MatrixMult(Result,
-    RotationMatrixRad(FdRotation.Value, Vector3Single(0, 0, 1)));
-  Result := MatrixMult(Result,
-    TranslationMatrix( Vector3Single(
+  Result :=
+    TranslationMatrix(Vector3( -FdCenter.Value[0], -FdCenter.Value[1], 0 )) *
+    ScalingMatrix(Vector3( FdScale.Value[0], FdScale.Value[1], 1 )) *
+    RotationMatrixRad(FdRotation.Value, Vector3(0, 0, 1)) *
+    TranslationMatrix( Vector3(
       FdTranslation.Value[0] + FdCenter.Value[0],
-      FdTranslation.Value[1] + FdCenter.Value[1], 0)));
+      FdTranslation.Value[1] + FdCenter.Value[1], 0));
 end;
 
 procedure RegisterTexturingNodes;

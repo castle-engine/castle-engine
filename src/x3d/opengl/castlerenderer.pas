@@ -196,12 +196,11 @@ unit CastleRenderer;
 
 interface
 
-uses Classes, SysUtils, FGL, CastleGL,
-  CastleUtils, CastleVectors, X3DFields, X3DNodes,
+uses Classes, SysUtils, Generics.Collections,
+  CastleGL, CastleUtils, CastleVectors, X3DFields, X3DNodes,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
-  CastleGLShaders, CastleGLImages, CastleTextureImages,
-  CastleVideos, X3DTime, CastleShapes,
-  CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
+  CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
+  CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
   CastleGeometryArrays, CastleArraysGenerator, CastleRendererInternalShader,
   CastleRendererInternalTextureEnv;
 
@@ -209,7 +208,7 @@ uses Classes, SysUtils, FGL, CastleGL,
 
 type
   TBeforeGLVertexProc = procedure (Node: TAbstractGeometryNode;
-    const Vert: TVector3Single) of object;
+    const Vert: TVector3) of object;
 
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
   { Faces to cull (make invisible) during VRML/X3D rendering. }
@@ -552,7 +551,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureImageCacheList = specialize TFPGObjectList<TTextureImageCache>;
+  TTextureImageCacheList = specialize TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
     FullUrl: string;
@@ -574,7 +573,7 @@ type
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
-  TTextureVideoCacheList = specialize TFPGObjectList<TTextureVideoCache>;
+  TTextureVideoCacheList = specialize TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
     InitialNode: TAbstractEnvironmentTextureNode;
@@ -583,7 +582,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureCubeMapCacheList = specialize TFPGObjectList<TTextureCubeMapCache>;
+  TTextureCubeMapCacheList = specialize TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
     InitialNode: TAbstractTexture3DNode;
@@ -593,7 +592,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTexture3DCacheList = specialize TFPGObjectList<TTexture3DCache>;
+  TTexture3DCacheList = specialize TObjectList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
@@ -605,7 +604,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureDepthOrFloatCacheList = specialize TFPGObjectList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = specialize TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -620,7 +619,7 @@ type
     State: TX3DGraphTraverseState;
     Fog: IAbstractFogObject;
     FogVolumetric: boolean;
-    FogVolumetricDirection: TVector3Single;
+    FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
     References: Cardinal;
 
@@ -649,7 +648,7 @@ type
     procedure FreeArrays(const Changed: TVboTypes);
   end;
 
-  TShapeCacheList = specialize TFPGObjectList<TShapeCache>;
+  TShapeCacheList = specialize TObjectList<TShapeCache>;
 
   TX3DGLSLProgram = class;
 
@@ -668,7 +667,7 @@ type
     destructor Destroy; override;
   end;
 
-  TShaderProgramCacheList = specialize TFPGObjectList<TShaderProgramCache>;
+  TShaderProgramCacheList = specialize TObjectList<TShaderProgramCache>;
 
   TGLRenderer = class;
 
@@ -832,7 +831,7 @@ type
     Cache: TShapeCache;
 
     { Assign this each time before passing this shape to RenderShape. }
-    ModelView: TMatrix4Single;
+    ModelView: TMatrix4;
   end;
 
   TGLRenderer = class
@@ -949,11 +948,11 @@ type
     FogNode: IAbstractFogObject;
     FogEnabled: boolean;
     FogType: TFogType;
-    FogColor: TVector3Single;
+    FogColor: TVector3;
     FogLinearEnd: Single;
     FogExpDensity: Single;
     FogVolumetric: boolean;
-    FogVolumetricDirection: TVector3Single;
+    FogVolumetricDirection: TVector3;
     FogVolumetricVisibilityStart: Single;
 
     FAttributes: TRenderingAttributes;
@@ -969,13 +968,13 @@ type
     { Get VRML/X3D fog parameters, based on fog node and Attributes. }
     procedure GetFog(Node: IAbstractFogObject;
       out Enabled, Volumetric: boolean;
-      out VolumetricDirection: TVector3Single;
+      out VolumetricDirection: TVector3;
       out VolumetricVisibilityStart: Single);
 
     {$ifdef USE_VRML_TRIANGULATION}
     procedure DrawTriangle(Shape: TObject;
-      const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Position: TTriangle3;
+      const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
     {$endif}
 
@@ -1090,7 +1089,7 @@ type
       var NeedsRestoreViewport: boolean;
       CurrentViewpoint: TAbstractViewpointNode;
       CameraViewKnown: boolean;
-      const CameraPosition, CameraDirection, CameraUp: TVector3Single);
+      const CameraPosition, CameraDirection, CameraUp: TVector3);
 
     { Load GLSL shader for the ScreenEffect node.
       Makes sure that Node.ShaderLoaded is true.
@@ -1768,7 +1767,7 @@ function TGLRendererContextCache.Shape_IncReference(
   ARenderer: TGLRenderer): TShapeCache;
 var
   FogEnabled, FogVolumetric: boolean;
-  FogVolumetricDirection: TVector3Single;
+  FogVolumetricDirection: TVector3;
   FogVolumetricVisibilityStart: Single;
 
   function IgnoreStateTransform: boolean;
@@ -1792,15 +1791,15 @@ var
 
   function FogVolumetricEqual(
     const Volumetric1: boolean;
-    const VolumetricDirection1: TVector3Single;
+    const VolumetricDirection1: TVector3;
     const VolumetricVisibilityStart1: Single;
     const Volumetric2: boolean;
-    const VolumetricDirection2: TVector3Single;
+    const VolumetricDirection2: TVector3;
     const VolumetricVisibilityStart2: Single): boolean;
   begin
     Result := (Volumetric1 = Volumetric2) and
       ( (not Volumetric1) or
-        ( VectorsPerfectlyEqual(VolumetricDirection1, VolumetricDirection2) and
+        ( TVector3.PerfectlyEquals(VolumetricDirection1, VolumetricDirection2) and
           (VolumetricVisibilityStart1 = VolumetricVisibilityStart2) ) );
   end;
 
@@ -2442,7 +2441,7 @@ end;
 
 procedure TGLRenderer.GetFog(Node: IAbstractFogObject;
   out Enabled, Volumetric: boolean;
-  out VolumetricDirection: TVector3Single;
+  out VolumetricDirection: TVector3;
   out VolumetricVisibilityStart: Single);
 begin
   Enabled := (Attributes.Mode = rmFull) and
@@ -2459,7 +2458,7 @@ begin
   begin
     { whatever, just set them to any determined values }
     VolumetricVisibilityStart := 0;
-    VolumetricDirection := ZeroVector3Single;
+    VolumetricDirection := TVector3.Zero;
   end;
 end;
 
@@ -2650,8 +2649,8 @@ end;
 
 {$ifdef USE_VRML_TRIANGULATION}
 procedure TGLRenderer.DrawTriangle(Shape: TObject;
-  const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Position: TTriangle3;
+  const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 var
   I: Integer;
@@ -2753,7 +2752,7 @@ const
     like GetFog. }
   procedure RenderFog(Node: IAbstractFogObject;
     out Volumetric: boolean;
-    out VolumetricDirection: TVector3Single;
+    out VolumetricDirection: TVector3;
     out VolumetricVisibilityStart: Single);
   var
     VisibilityRangeScaled: Single;
@@ -2819,7 +2818,7 @@ begin
       on desktop OpenGL. }
     if FogEnabled then
     begin
-      glFogv(GL_FOG_COLOR, Vector4Single(FogColor, 1.0));
+      glFogv(GL_FOG_COLOR, Vector4(FogColor, 1.0));
       case FogType of
         ftLinear:
           begin
@@ -2854,7 +2853,7 @@ var
   Transforms: TMFNode;
   I, FirstTexUnit: Integer;
   State: TX3DGraphTraverseState;
-  Matrix: TMatrix4Single;
+  Matrix: TMatrix4;
 begin
   TextureTransformUnitsUsed := 0;
   TextureTransformUnitsUsedMore.Count := 0;
@@ -3496,7 +3495,7 @@ procedure TGLRenderer.UpdateGeneratedTextures(Shape: TShape;
   var NeedsRestoreViewport: boolean;
   CurrentViewpoint: TAbstractViewpointNode;
   CameraViewKnown: boolean;
-  const CameraPosition, CameraDirection, CameraUp: TVector3Single);
+  const CameraPosition, CameraDirection, CameraUp: TVector3);
 var
   { Only for CheckUpdateField and PostUpdateField }
   SavedHandler: TGeneratedTextureHandler;

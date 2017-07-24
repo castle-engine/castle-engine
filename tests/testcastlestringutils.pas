@@ -245,7 +245,7 @@ begin
    sarr[0] := 'FOO';
    sarr[1] := 'foo bar xyz';
    sarr.Delete(0);
-   sarr.AddArray(twoStrings);
+   sarr.AddRange(twoStrings);
    sarr.Add('trzy?');
 
    AssertTrue(not sarr.Equal(['foo bar xyz', '', '']));

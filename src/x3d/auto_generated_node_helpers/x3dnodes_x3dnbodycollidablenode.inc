@@ -29,20 +29,20 @@
   private
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
     property Enabled: boolean read GetEnabled write SetEnabled;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -60,42 +60,42 @@ begin
   FdEnabled.Send(Value);
 end;
 
-function TAbstractNBodyCollidableNode.GetRotation: TVector4Single;
+function TAbstractNBodyCollidableNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure TAbstractNBodyCollidableNode.SetRotation(const Value: TVector4Single);
+procedure TAbstractNBodyCollidableNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function TAbstractNBodyCollidableNode.GetTranslation: TVector3Single;
+function TAbstractNBodyCollidableNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TAbstractNBodyCollidableNode.SetTranslation(const Value: TVector3Single);
+procedure TAbstractNBodyCollidableNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;
 
-function TAbstractNBodyCollidableNode.GetBboxCenter: TVector3Single;
+function TAbstractNBodyCollidableNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TAbstractNBodyCollidableNode.SetBboxCenter(const Value: TVector3Single);
+procedure TAbstractNBodyCollidableNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TAbstractNBodyCollidableNode.GetBboxSize: TVector3Single;
+function TAbstractNBodyCollidableNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TAbstractNBodyCollidableNode.SetBboxSize(const Value: TVector3Single);
+procedure TAbstractNBodyCollidableNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

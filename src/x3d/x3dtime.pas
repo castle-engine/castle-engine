@@ -20,12 +20,14 @@ unit X3DTime;
 
 interface
 
-uses CastleUtils, CastleTimeUtils, CastleGenericLists;
+uses Generics.Collections,
+  CastleUtils, CastleTimeUtils;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 type
   { Complete timestamp for X3D events.
@@ -93,7 +95,7 @@ operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 {$endif FPC_OBJFPC}
 
 type
-  TX3DTimeList = specialize TGenericStructList<TX3DTime>;
+  TX3DTimeList = specialize TStructList<TX3DTime>;
 
 implementation
 

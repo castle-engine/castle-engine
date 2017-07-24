@@ -74,14 +74,14 @@ type
     { If Spine > 0, LastY and LastZ must contain what was set here by calling
       SpineTransformVar(Spine - 1, LastY, LastZ). }
     procedure SpineTransformVar(Spine: Cardinal;
-      var LastY, LastZ: TVector3Single;
-      out Transform: TMatrix4Single);
+      var LastY, LastZ: TVector3;
+      out Transform: TMatrix4);
 
     procedure SpineScaleVar(Spine: Cardinal;
-      out Scale: TVector2Single);
+      out Scale: TVector2);
 
     procedure SpineOrientationVar(Spine: Cardinal;
-      out Orientation: TVector4Single);
+      out Orientation: TVector4);
   end;
 
 constructor TVRMLExtrusion.Create;
@@ -91,8 +91,8 @@ end;
 
 procedure TVRMLExtrusion.SetNode(Value: TExtrusionNode);
 var
-  BeginOrientation, EndOrientation: TVector4Single;
-  BeginScale, EndScale: TVector2Single;
+  BeginOrientation, EndOrientation: TVector4;
+  BeginScale, EndScale: TVector2;
 begin
   FNode := Value;
 
@@ -143,14 +143,14 @@ begin
     SpineOrientationVar(0, BeginOrientation);
     SpineOrientationVar(High, EndOrientation);
     FBeginEndCapsMatching :=
-      VectorsPerfectlyEqual(BeginOrientation, EndOrientation) and
-      VectorsPerfectlyEqual(BeginScale, EndScale);
+      TVector4.PerfectlyEquals(BeginOrientation, EndOrientation) and
+      TVector2.PerfectlyEquals(BeginScale, EndScale);
   end else
     FBeginEndCapsMatching := false;
 end;
 
 procedure TVRMLExtrusion.SpineScaleVar(Spine: Cardinal;
-  out Scale: TVector2Single);
+  out Scale: TVector2);
 begin
   Assert(Between(Spine, 0, High));
   { So High must be >= 0, by the way.
@@ -162,7 +162,7 @@ begin
 end;
 
 procedure TVRMLExtrusion.SpineOrientationVar(Spine: Cardinal;
-  out Orientation: TVector4Single);
+  out Orientation: TVector4);
 begin
   Assert(Between(Spine, 0, High));
   { So High must be >= 0, by the way.
@@ -174,14 +174,14 @@ begin
 end;
 
 procedure TVRMLExtrusion.SpineTransformVar(Spine: Cardinal;
-  var LastY, LastZ: TVector3Single;
-  out Transform: TMatrix4Single);
+  var LastY, LastZ: TVector3;
+  out Transform: TMatrix4);
 var
-  SpinePoints: TVector3SingleList;
+  SpinePoints: TVector3List;
 
   { Calculate Z by searching for the first non-colinear three spine
     points. @false if not found. }
-  function FindFirstNonColinear(out Z: TVector3Single): boolean;
+  function FindFirstNonColinear(out Z: TVector3): boolean;
   var
     I: Integer;
   begin
@@ -192,10 +192,10 @@ var
       { Try to find first spine point with Z defined as non-zero.
         This follows X3D / VRML spec ("If the Z-axis of the
         first point is undefined..."). }
-      Z := VectorProduct(
-        VectorSubtract(SpinePoints.L[I + 1], SpinePoints.L[I]),
-        VectorSubtract(SpinePoints.L[I - 1], SpinePoints.L[I]));
-      if not ZeroVector(Z) then
+      Z := TVector3.CrossProduct(
+        (SpinePoints.L[I + 1] - SpinePoints.L[I]),
+        (SpinePoints.L[I - 1] - SpinePoints.L[I]));
+      if not Z.IsZero then
       begin
         Result := true;
         break;
@@ -207,28 +207,28 @@ var
     points. Sets to (0, 1, 0) if not found.
 
     Y is always normalized. }
-  procedure FindFirstNonCoincident(out Y: TVector3Single);
+  procedure FindFirstNonCoincident(out Y: TVector3);
   var
     I: Integer;
   begin
     for I := 1 to High do
     begin
-      Y := VectorSubtract(SpinePoints.L[I], SpinePoints.L[I - 1]);
-      if not ZeroVector(Y) then
+      Y := (SpinePoints.L[I] - SpinePoints.L[I - 1]);
+      if not Y.IsZero then
       begin
-        NormalizeVar(Y);
+        Y.NormalizeMe;
         Exit;
       end;
     end;
-    Y := UnitVector3Single[1];
+    Y := TVector3.One[1];
   end;
 
   { Calculate Z based on Y (already normalized) if all spine points
     are colinear. }
-  function AllColinear(const Y: TVector3Single): TVector3Single;
+  function AllColinear(const Y: TVector3): TVector3;
   var
     AngleRad: Single;
-    Rotation, ForPositiveAngleRad, ForNegativeAngleRad: TVector3Single;
+    Rotation, ForPositiveAngleRad, ForNegativeAngleRad: TVector3;
   begin
     { Spec: "If the entire spine is collinear,
       the SCP is computed by finding the rotation of a
@@ -237,14 +237,14 @@ var
       by this value."
 
       v2 is actually just our Y variable. }
-    AngleRad := AngleRadBetweenNormals(UnitVector3Single[1], Y);
-    Rotation := VectorProduct(UnitVector3Single[1], Y);
+    AngleRad := AngleRadBetweenNormals(TVector3.One[1], Y);
+    Rotation := TVector3.CrossProduct(TVector3.One[1], Y);
 
-    if ZeroVector(Rotation) then
+    if Rotation.IsZero then
     begin
       { This means that Y is actually just equal (0, 1, 0).
         So Z is just (0, 0, 1). }
-      Result := UnitVector3Single[2];
+      Result := TVector3.One[2];
     end else
     begin
       { Is the rotation by AngleRad or -AngleRad?
@@ -253,50 +253,50 @@ var
 
         Note: the first implementation was like
 
-          if not VectorsEqual(ForPositiveAngleRad, Y) then
+          if not TVector3.Equals(ForPositiveAngleRad, Y) then
           begin
             AngleRad := -AngleRad;
-            Assert(VectorsEqual(ForNegativeAngleRad, Y));
+            Assert(TVector3.Equals(ForNegativeAngleRad, Y));
           end;
 
         but this is obviously unsafe because of floating point errors,
-        there was always a chance that both VectorsEqual fail.
+        there was always a chance that both TVector3.Equals fail.
         Fixed below to just choose the best one. }
-      ForPositiveAngleRad := RotatePointAroundAxisRad( AngleRad, UnitVector3Single[1], Rotation);
-      ForNegativeAngleRad := RotatePointAroundAxisRad(-AngleRad, UnitVector3Single[1], Rotation);
+      ForPositiveAngleRad := RotatePointAroundAxisRad( AngleRad, TVector3.One[1], Rotation);
+      ForNegativeAngleRad := RotatePointAroundAxisRad(-AngleRad, TVector3.One[1], Rotation);
 
       if PointsDistanceSqr(ForPositiveAngleRad, Y) >
          PointsDistanceSqr(ForNegativeAngleRad, Y) then
         AngleRad := -AngleRad;
 
-      Result := RotatePointAroundAxisRad(AngleRad, UnitVector3Single[2], Rotation);
+      Result := RotatePointAroundAxisRad(AngleRad, TVector3.One[2], Rotation);
     end;
   end;
 
-  procedure CalculateYZForClosed(out Y, Z: TVector3Single);
+  procedure CalculateYZForClosed(out Y, Z: TVector3);
   begin
     { Same for Spine = 0 and High, as this is the same point actually. }
-    Y := VectorSubtract(SpinePoints.L[1], SpinePoints.L[High - 1]);
+    Y := SpinePoints.L[1] - SpinePoints.L[High - 1];
 
-    if not ZeroVector(Y) then
-      NormalizeVar(Y) else
+    if not Y.IsZero then
+      Y.NormalizeMe else
       FindFirstNonCoincident(Y);
 
-    Z := VectorProduct(
-      VectorSubtract(SpinePoints.L[1], SpinePoints.L[0]),
-      VectorSubtract(SpinePoints.L[High - 1], SpinePoints.L[0]));
+    Z := TVector3.CrossProduct(
+      (SpinePoints.L[1] - SpinePoints.L[0]),
+      (SpinePoints.L[High - 1] - SpinePoints.L[0]));
 
-    if not ZeroVector(Z) then
-      NormalizeVar(Z) else
+    if not Z.IsZero then
+      Z.NormalizeMe else
     if FindFirstNonColinear(Z) then
-      NormalizeVar(Z) else
+      Z.NormalizeMe else
       Z := AllColinear(Y);
   end;
 
 var
-  X, Y, Z: TVector3Single;
-  Scale: TVector2Single;
-  Orientation: TVector4Single;
+  X, Y, Z: TVector3;
+  Scale: TVector2;
+  Orientation: TVector4;
 begin
   Assert(Between(Spine, 0, High));
 
@@ -304,21 +304,21 @@ begin
 
   if High = 0 then
   begin
-    Y := UnitVector3Single[1];
-    Z := UnitVector3Single[2];
+    Y := TVector3.One[1];
+    Z := TVector3.One[2];
   end else
   if Spine = 0 then
   begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := VectorSubtract(SpinePoints.L[1], SpinePoints.L[0]);
-      if not ZeroVector(Y) then
-        NormalizeVar(Y) else
+      Y := (SpinePoints.L[1] - SpinePoints.L[0]);
+      if not Y.IsZero then
+        Y.NormalizeMe else
         FindFirstNonCoincident(Y);
 
       if FindFirstNonColinear(Z) then
-        NormalizeVar(Z) else
+        Z.NormalizeMe else
         Z := AllColinear(Y);
     end;
   end else
@@ -327,9 +327,9 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := VectorSubtract(SpinePoints.L[High], SpinePoints.L[High - 1]);
-      if not ZeroVector(Y) then
-        NormalizeVar(Y) else
+      Y := (SpinePoints.L[High] - SpinePoints.L[High - 1]);
+      if not Y.IsZero then
+        Y.NormalizeMe else
         Y := LastY;
 
       Z := LastZ;
@@ -340,37 +340,35 @@ begin
       in this case, and that's good. This is the most common case
       for this routine. }
 
-    Y := VectorSubtract(SpinePoints.L[Spine + 1], SpinePoints.L[Spine - 1]);
+    Y := (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine - 1]);
 
-    if not ZeroVector(Y) then
-      NormalizeVar(Y) else
+    if not Y.IsZero then
+      Y.NormalizeMe else
       Y := LastY;
 
-    Z := VectorProduct(
-      VectorSubtract(SpinePoints.L[Spine + 1], SpinePoints.L[Spine]),
-      VectorSubtract(SpinePoints.L[Spine - 1], SpinePoints.L[Spine]));
+    Z := TVector3.CrossProduct(
+      (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine]),
+      (SpinePoints.L[Spine - 1] - SpinePoints.L[Spine]));
 
-    if not ZeroVector(Z) then
-      NormalizeVar(Z) else
+    if not Z.IsZero then
+      Z.NormalizeMe else
       Z := LastZ;
   end;
 
-  if (Spine > 0) and (VectorDotProduct(LastZ, Z) < 0) then
-  begin
-    VectorNegateVar(Z);
-  end;
+  if (Spine > 0) and (TVector3.DotProduct(LastZ, Z) < 0) then
+    Z := -Z;
 
   LastY := Y;
   LastZ := Z;
 
-  X := VectorProduct(Y, Z);
+  X := TVector3.CrossProduct(Y, Z);
 
   SpineScaleVar(Spine, Scale);
   SpineOrientationVar(Spine, Orientation);
 
-  Transform := MatrixMult(
-    TransformToCoordsMatrix(SpinePoints.L[Spine], X, Y, Z),
-    MatrixMult(RotationMatrixRad(Orientation[3],
-      Orientation[0], Orientation[1], Orientation[2]),
-      ScalingMatrix(Vector3Single(Scale[0], 1, Scale[1]))));
+  Transform :=
+    TransformToCoordsMatrix(SpinePoints.L[Spine], X, Y, Z) *
+    RotationMatrixRad(Orientation[3],
+      Orientation[0], Orientation[1], Orientation[2]) *
+    ScalingMatrix(Vector3(Scale[0], 1, Scale[1]));
 end;

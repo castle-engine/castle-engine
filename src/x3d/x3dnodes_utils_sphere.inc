@@ -15,8 +15,8 @@
 
 { Make a sphere. }
 procedure Sphere_Proxy(CoordIndex: TLongIntList;
-  Coord: TVector3SingleList; Normal: TVector3SingleList;
-  TexCoord: TVector2SingleList;
+  Coord: TVector3List; Normal: TVector3List;
+  TexCoord: TVector2List;
   OverTriangulate: boolean; const Radius: Single;
   const QuadricSlices, QuadricStacks: Cardinal);
 
@@ -70,14 +70,14 @@ begin
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices do
   begin
-    Coord.L[BottomIndex + I] := Vector3Single(0, -Radius, 0);
-    Normal.L[BottomIndex + I] := Vector3Single(0, -1, 0);
+    Coord.L[BottomIndex + I] := Vector3(0, -Radius, 0);
+    Normal.L[BottomIndex + I] := Vector3(0, -1, 0);
   end;
   if TexCoord <> nil then
   begin
     TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices do
-      TexCoord.L[BottomIndex + I] := Vector2Single(I / QuadricSlices, 0);
+      TexCoord.L[BottomIndex + I] := Vector2(I / QuadricSlices, 0);
   end;
 
   BottomCircleIndex := Coord.Count;
@@ -87,13 +87,13 @@ begin
   Coord[Coord.Count - 1] := Coord.L[BottomCircleIndex];
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices - 1 do
-    Normal.L[BottomCircleIndex + I] := Normalized(Coord.L[BottomCircleIndex + I]);
+    Normal.L[BottomCircleIndex + I] := (Coord.L[BottomCircleIndex + I]).Normalize;
   Normal[Normal.Count - 1] := Normal.L[BottomCircleIndex];
   if TexCoord <> nil then
   begin
     TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices  do
-      TexCoord.L[BottomCircleIndex + I] := Vector2Single(I / QuadricSlices, 1 / QuadricStacks);
+      TexCoord.L[BottomCircleIndex + I] := Vector2(I / QuadricSlices, 1 / QuadricStacks);
   end;
 
   { Bottom stack, from triangles }
@@ -118,13 +118,13 @@ begin
     Coord[Coord.Count - 1] := Coord.L[CircleIndex];
     Normal.Count := Normal.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices - 1 do
-      Normal.L[CircleIndex + I] := Normalized(Coord.L[CircleIndex + I]);
+      Normal.L[CircleIndex + I] := (Coord.L[CircleIndex + I]).Normalize;
     Normal[Normal.Count - 1] := Normal.L[CircleIndex];
     if TexCoord <> nil then
     begin
       TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
       for I := 0 to QuadricSlices  do
-        TexCoord.L[CircleIndex + I] := Vector2Single(I / QuadricSlices, StackNum / QuadricStacks);
+        TexCoord.L[CircleIndex + I] := Vector2(I / QuadricSlices, StackNum / QuadricStacks);
     end;
 
     { Next stack, from quads }
@@ -147,14 +147,14 @@ begin
   Normal.Count := Normal.Count + QuadricSlices + 1;
   for I := 0 to QuadricSlices do
   begin
-    Coord.L[TopIndex + I] := Vector3Single(0, Radius, 0);
-    Normal.L[TopIndex + I] := Vector3Single(0, 1, 0);
+    Coord.L[TopIndex + I] := Vector3(0, Radius, 0);
+    Normal.L[TopIndex + I] := Vector3(0, 1, 0);
   end;
   if TexCoord <> nil then
   begin
     TexCoord.Count := TexCoord.Count + QuadricSlices + 1;
     for I := 0 to QuadricSlices do
-      TexCoord.L[TopIndex + I] := Vector2Single(I / QuadricSlices, 1);
+      TexCoord.L[TopIndex + I] := Vector2(I / QuadricSlices, 1);
   end;
 
   { Top stack, from triangles }
@@ -171,7 +171,7 @@ end;
 
 { Make a wireframe sphere. }
 procedure SphereWireframe_Proxy(CoordIndex: TLongIntList;
-  Coord: TVector3SingleList; const Radius: Single;
+  Coord: TVector3List; const Radius: Single;
   const QuadricSlices, QuadricStacks: Cardinal);
 
   { We have rings numbered 0 ... QuadricStacks.
@@ -210,7 +210,7 @@ begin
 
   BottomIndex := Coord.Count;
   Coord.Count := Coord.Count + 1;
-  Coord.L[BottomIndex] := Vector3Single(0, -Radius, 0);
+  Coord.L[BottomIndex] := Vector3(0, -Radius, 0);
 
   BottomCircleIndex := Coord.Count;
   Coord.Count := Coord.Count + QuadricSlices;
@@ -256,7 +256,7 @@ begin
 
   TopIndex := Coord.Count;
   Coord.Count := Coord.Count + 1;
-  Coord.L[TopIndex] := Vector3Single(0, Radius, 0);
+  Coord.L[TopIndex] := Vector3(0, Radius, 0);
 
   { Top stack, from triangles }
   StackFaceIndex := CoordIndex.Count;
@@ -294,7 +294,7 @@ function TSphereNode.Proxy(var State: TX3DGraphTraverseState;
     CoordNode: TCoordinateNode;
     NormalNode: TNormalNode;
     TexCoordNode: TTextureCoordinateNode;
-    TexCoords: TVector2SingleList;
+    TexCoords: TVector2List;
     IFS: TIndexedFaceSetNode absolute Result;
   begin
     IFS := TIndexedFaceSetNode.Create(X3DName, BaseUrl);

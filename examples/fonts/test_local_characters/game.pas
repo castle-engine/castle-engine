@@ -181,9 +181,9 @@ begin
   Window.SceneManager.Height := 300;
   Window.SceneManager.BackgroundColor := Gray;
   Window.SceneManager.RequiredCamera.SetView(
-    Vector3Single(2, -2, 10),
-    Vector3Single(0.5, 0, -1),
-    Vector3Single(0, 1, 0)
+    Vector3(2, -2, 10),
+    Vector3(0.5, 0, -1),
+    Vector3(0, 1, 0)
   ); // rotate camera, just to show it's 3D :)
 
   Y := 10;

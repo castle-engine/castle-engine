@@ -30,10 +30,10 @@
     { World-space bone transformation, necessary for skinnedmesh calculations.
       WorldMatrix includes rotation and scale, from WorldRotation and WorldScale.
       @groupBegin }
-    WorldXY: TVector2Single;
-    WorldScale: TVector2Single;
+    WorldXY: TVector2;
+    WorldScale: TVector2;
     WorldRotation: Single;
-    WorldMatrix, WorldMatrixInverse: TMatrix2Single;
+    WorldMatrix, WorldMatrixInverse: TMatrix2;
     { @groupEnd }
 
     { Calculate world-space (well, at least in the space of whole JSON file)
@@ -43,8 +43,8 @@
   public
     Name: string;
     Length: Single;
-    XY: TVector2Single;
-    Scale: TVector2Single;
+    XY: TVector2;
+    Scale: TVector2;
     Rotation: Single;
     InheritScale, InheritRotation: boolean;
     Parent: TBone;
@@ -55,21 +55,23 @@
     NodeUsedAsChild: boolean;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject;
-      const PossibleParents: TBoneList; const ExpectedParent: boolean);
+      const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
-    function ToWorldSpace(const V: TVector2Single): TVector2Single;
-    function ToLocalSpace(V: TVector2Single): TVector2Single;
-    function ToLocalSpace(const V: TVector3Single): TVector3Single;
+    function ToWorldSpace(const V: TVector2): TVector2;
+    function ToLocalSpace(V: TVector2): TVector2;
+    function ToLocalSpace(const V: TVector3): TVector3;
   end;
 
-  TBoneList = class(specialize TFPGObjectList<TBone>)
+  TBoneList = class(specialize TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
-    procedure Parse(const Json: TJSONObject; var Root: TBone);
+    procedure Parse(const Json: TJSONObject; var Root: TBone;
+      const DragonBonesFormat: boolean);
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
+    procedure Assign(const Source: TBoneList);
   end;
 {$endif}
 
@@ -103,21 +105,40 @@ end;
 { TBone ---------------------------------------------------------------------- }
 
 procedure TBone.Parse(const Json: TJSONObject;
-  const PossibleParents: TBoneList; const ExpectedParent: boolean);
+  const PossibleParents: TBoneList; const ExpectedParent, DragonBonesFormat: boolean);
 var
   ParentName: string;
+  Transform: TJSONObject;
 begin
   Name := Json.Get('name', '');
   Length := Json.Get('length', 0.0);
-  XY[0] := Json.Get('x', 0.0);
-  XY[1] := Json.Get('y', 0.0);
-  Scale[0] := Json.Get('scaleX', 1.0);
-  Scale[1] := Json.Get('scaleY', 1.0);
-  Rotation := Json.Get('rotation', 0.0);
-  InheritScale := Json.Get('inheritScale', true);
-  InheritRotation := Json.Get('inheritRotation', true);
+  if DragonBonesFormat then
+  begin
+    Transform := Json.Find('transform', jtObject) as TJSONObject;
+    if Transform = nil then
+      raise ESpineReadError.CreateFmt('Missing "transform" of Dragon Bones bone "%s"', [Name]);
+    XY[0] := Transform.Get('x', 0.0);
+    XY[1] := Transform.Get('y', 0.0);
+    Scale[0] := Transform.Get('scX', 1.0);
+    Scale[1] := Transform.Get('scY', 1.0);
+    Rotation := Json.Get('rotation', 0.0); // TODO: is this the correct name in Dragon Bones?
+    InheritScale := Json.Get('inheritScale', true); // TODO: is this the correct name in Dragon Bones?
+    InheritRotation := Json.Get('inheritRotation', true); // TODO: is this the correct name in Dragon Bones?
+  end else
+  begin
+    XY[0] := Json.Get('x', 0.0);
+    XY[1] := Json.Get('y', 0.0);
+    Scale[0] := Json.Get('scaleX', 1.0);
+    Scale[1] := Json.Get('scaleY', 1.0);
+    Rotation := Json.Get('rotation', 0.0);
+    InheritScale := Json.Get('inheritScale', true);
+    InheritRotation := Json.Get('inheritRotation', true);
+  end;
 
-  if (not InheritScale) or (not InheritRotation) then
+  // The support seems to be OK for Dragon Bones,
+  // that uses this always, so don't warn by default anymore.
+  if SpineVerboseWarnings and
+     ((not InheritScale) or (not InheritRotation)) then
     WritelnWarning('Spine', 'bone inheritRotation=false or inheritScale=false is only partially supported');
 
   ParentName := Json.Get('parent', '');
@@ -204,9 +225,9 @@ procedure TBone.BuildNodes(const BaseUrl: string;
 
 begin
   Node := TTransformNode.Create('Bone_' + ToX3DName(Name), BaseUrl);
-  Node.FdTranslation.Value := Vector3Single(XY[0], XY[1], 0);
-  Node.FdScale.Value := Vector3Single(Scale[0], Scale[1], 1);
-  Node.FdRotation.Value := Vector4Single(0, 0, 1, DegToRad(Rotation));
+  Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
+  Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
+  Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));
   if Parent <> nil then
   begin
     NodeUsedAsChild := true;
@@ -228,9 +249,9 @@ begin
 
   if Parent <> nil then
   begin
-    WorldXY := Vector2Single(
-      WorldXY[0] * Parent.WorldMatrix[0][0] + WorldXY[1] * Parent.WorldMatrix[0][1],
-      WorldXY[0] * Parent.WorldMatrix[1][0] + WorldXY[1] * Parent.WorldMatrix[1][1]);
+    WorldXY := Vector2(
+      WorldXY[0] * Parent.WorldMatrix[0, 0] + WorldXY[1] * Parent.WorldMatrix[0, 1],
+      WorldXY[0] * Parent.WorldMatrix[1, 0] + WorldXY[1] * Parent.WorldMatrix[1, 1]);
     WorldXY += Parent.WorldXY;
     if InheritScale then
       WorldScale := WorldScale * Parent.WorldScale;
@@ -239,37 +260,37 @@ begin
   end;
 
   SinCos(DegToRad(WorldRotation), S, C);
-  WorldMatrix[0][0] :=  C * WorldScale[0];
-  WorldMatrix[0][1] := -S * WorldScale[1];
-  WorldMatrix[1][0] :=  S * WorldScale[0];
-  WorldMatrix[1][1] :=  C * WorldScale[1];
+  WorldMatrix[0, 0] :=  C * WorldScale[0];
+  WorldMatrix[0, 1] := -S * WorldScale[1];
+  WorldMatrix[1, 0] :=  S * WorldScale[0];
+  WorldMatrix[1, 1] :=  C * WorldScale[1];
 
   { inverse of 2D rotation matrix is it's transposition. Also, invert scale }
-  WorldMatrixInverse[0][0] :=  C / WorldScale[0];
-  WorldMatrixInverse[1][0] := -S / WorldScale[1];
-  WorldMatrixInverse[0][1] :=  S / WorldScale[0];
-  WorldMatrixInverse[1][1] :=  C / WorldScale[1];
+  WorldMatrixInverse[0, 0] :=  C / WorldScale[0];
+  WorldMatrixInverse[1, 0] := -S / WorldScale[1];
+  WorldMatrixInverse[0, 1] :=  S / WorldScale[0];
+  WorldMatrixInverse[1, 1] :=  C / WorldScale[1];
 end;
 
-function TBone.ToWorldSpace(const V: TVector2Single): TVector2Single;
+function TBone.ToWorldSpace(const V: TVector2): TVector2;
 begin
-  Result := Vector2Single(
-    V[0] * WorldMatrix[0][0] + V[1] * WorldMatrix[0][1],
-    V[0] * WorldMatrix[1][0] + V[1] * WorldMatrix[1][1]);
+  Result := Vector2(
+    V[0] * WorldMatrix[0, 0] + V[1] * WorldMatrix[0, 1],
+    V[0] * WorldMatrix[1, 0] + V[1] * WorldMatrix[1, 1]);
   Result += WorldXY;
 end;
 
-function TBone.ToLocalSpace(V: TVector2Single): TVector2Single;
+function TBone.ToLocalSpace(V: TVector2): TVector2;
 begin
   V -= WorldXY;
-  Result := Vector2Single(
-    V[0] * WorldMatrixInverse[0][0] + V[1] * WorldMatrixInverse[0][1],
-    V[0] * WorldMatrixInverse[1][0] + V[1] * WorldMatrixInverse[1][1]);
+  Result := Vector2(
+    V[0] * WorldMatrixInverse[0, 0] + V[1] * WorldMatrixInverse[0, 1],
+    V[0] * WorldMatrixInverse[1, 0] + V[1] * WorldMatrixInverse[1, 1]);
 end;
 
-function TBone.ToLocalSpace(const V: TVector3Single): TVector3Single;
+function TBone.ToLocalSpace(const V: TVector3): TVector3;
 var
-  Result2: TVector2Single absolute Result;
+  Result2: TVector2 absolute Result;
 begin
   Result := V;
   Result2 := ToLocalSpace(Result2);
@@ -287,15 +308,20 @@ begin
   raise ESpineReadError.CreateFmt('Bone name "%s" not found', [BoneName]);
 end;
 
-procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone);
+procedure TBoneList.Parse(const Json: TJSONObject; var Root: TBone; const DragonBonesFormat: boolean);
 var
   I: Integer;
   Bone: TBone;
   ChildArray: TJSONArray;
+  ArrayName: string;
 begin
-  ChildArray := Json.Find('bones', jtArray) as TJSONArray;
+  if DragonBonesFormat then
+    ArrayName := 'bone'
+  else
+    ArrayName := 'bones';
+  ChildArray := Json.Find(ArrayName, jtArray) as TJSONArray;
   if ChildArray = nil then
-    raise ESpineReadError.Create('Spine JSON skeleton: Missing "bones" array');
+    raise ESpineReadError.CreateFmt('Spine / Dragon Bones JSON skeleton: Missing "%s" array', [ArrayName]);
 
   for I := 0 to ChildArray.Count - 1 do
     if ChildArray[I] is TJSONObject then
@@ -305,11 +331,11 @@ begin
       if Root = nil then
       begin
         { reading Root bone. It should have no parent. }
-        Bone.Parse(TJSONObject(ChildArray[I]), Self, false);
+        Bone.Parse(TJSONObject(ChildArray[I]), Self, false, DragonBonesFormat);
         Root := Bone;
       end else
         { reading child bone. It must have a parent. }
-        Bone.Parse(TJSONObject(ChildArray[I]), Self, true);
+        Bone.Parse(TJSONObject(ChildArray[I]), Self, true, DragonBonesFormat);
     end;
 end;
 
@@ -321,4 +347,11 @@ begin
   for I := 0 to Count - 1 do
     Items[I].BuildNodes(BaseUrl, BonesAnimated);
 end;
+
+procedure TBoneList.Assign(const Source: TBoneList);
+begin
+  Clear;
+  AddRange(Source);
+end;
+
 {$endif}

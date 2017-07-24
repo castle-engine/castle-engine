@@ -50,16 +50,16 @@ end;
 type
   TMyScene = class(TCastleScene)
   private
-    procedure VertexColor(var Color: TVector3Single;
-      Shape: TShape; const VertexPosition: TVector3Single;
+    procedure VertexColor(var Color: TVector3;
+      Shape: TShape; const VertexPosition: TVector3;
       VertexIndex: Integer);
   public
     constructor Create(AOwner: TComponent); override;
     procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
-procedure TMyScene.VertexColor(var Color: TVector3Single;
-  Shape: TShape; const VertexPosition: TVector3Single;
+procedure TMyScene.VertexColor(var Color: TVector3;
+  Shape: TShape; const VertexPosition: TVector3;
   VertexIndex: Integer);
 var
   SH: Float;
@@ -69,8 +69,8 @@ begin
   if SH < MinSHValue then MinSHValue := SH;
 
   if SH >= 0 then
-    Color := Vector3Single(SH, SH, 0) else
-    Color := Vector3Single(0, 0, -SH);
+    Color := Vector3(SH, SH, 0) else
+    Color := Vector3(0, 0, -SH);
 end;
 
 constructor TMyScene.Create(AOwner: TComponent);

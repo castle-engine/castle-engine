@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetAnchorPoint: TVector3Single;
-    procedure SetAnchorPoint(const Value: TVector3Single);
+    function GetAnchorPoint: TVector3;
+    procedure SetAnchorPoint(const Value: TVector3);
   public
-    property AnchorPoint: TVector3Single read GetAnchorPoint write SetAnchorPoint;
+    property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TBallJointNode ----------------------------------------------- }
 
-function TBallJointNode.GetAnchorPoint: TVector3Single;
+function TBallJointNode.GetAnchorPoint: TVector3;
 begin
   Result := FdAnchorPoint.Value;
 end;
 
-procedure TBallJointNode.SetAnchorPoint(const Value: TVector3Single);
+procedure TBallJointNode.SetAnchorPoint(const Value: TVector3);
 begin
   FdAnchorPoint.Send(Value);
 end;

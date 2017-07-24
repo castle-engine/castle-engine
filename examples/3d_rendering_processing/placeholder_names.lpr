@@ -20,6 +20,7 @@
 
   For example,
     ./placeholder_names model.x3d blender
+    ./placeholder_names ../fps_game/data/example_level/example_level.x3d blender
   will assume that model.x3d was created using standard Blender X3D exporter,
   and will show Blender object names for every shape in the model.
 
@@ -35,19 +36,17 @@ var
   Scene: TCastleSceneCore;
   Shape: TShape;
   SI: TShapeTreeIterator;
-  I: Integer;
+  PlaceholderNameKey: string;
 begin
   { show PlaceholderNames }
   Writeln(Format('Available placeholder detection methods (%d):',
     [PlaceholderNames.Count]));
-  for I := 0 to PlaceholderNames.Count - 1 do
-    Writeln('  ', PlaceholderNames.Keys[I]);
+  for PlaceholderNameKey in PlaceholderNames.Keys do
+    Writeln('  ', PlaceholderNameKey);
 
   { calculate PlaceholderName looking at command-line parameter }
   Parameters.CheckHigh(2);
-  I := PlaceholderNames.IndexOf(Parameters[2]);
-  if I <> -1 then
-    PlaceholderName := PlaceholderNames.Data[I] else
+  if not PlaceholderNames.TryGetValue(Parameters[2], PlaceholderName) then
     raise Exception.CreateFmt('Placeholder detection method "%s" not found',
       [Parameters[2]]);
 

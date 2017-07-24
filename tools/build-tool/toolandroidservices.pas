@@ -18,7 +18,7 @@ unit ToolAndroidServices;
 
 interface
 
-uses SysUtils, FGL, DOM,
+uses SysUtils, Generics.Collections, DOM,
   CastleUtils, CastleStringUtils,
   ToolUtils;
 
@@ -38,7 +38,7 @@ type
     property Parameters: TStringStringMap read FParameters;
   end;
 
-  TAndroidServiceList = class(specialize TFPGObjectList<TAndroidService>)
+  TAndroidServiceList = class(specialize TObjectList<TAndroidService>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function HasService(const Name: string): boolean;
@@ -56,7 +56,7 @@ procedure MergeBuildGradle(const Source, Destination: string;
 implementation
 
 uses Classes, XMLRead, XMLWrite,
-  CastleXMLUtils, CastleURIUtils;
+  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
 
 { TAndroidService ---------------------------------------------------------- }
 

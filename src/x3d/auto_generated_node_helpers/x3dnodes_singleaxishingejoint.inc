@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetAnchorPoint: TVector3Single;
-    procedure SetAnchorPoint(const Value: TVector3Single);
-    function GetAxis: TVector3Single;
-    procedure SetAxis(const Value: TVector3Single);
+    function GetAnchorPoint: TVector3;
+    procedure SetAnchorPoint(const Value: TVector3);
+    function GetAxis: TVector3;
+    procedure SetAxis(const Value: TVector3);
     function GetMaxAngle: Single;
     procedure SetMaxAngle(const Value: Single);
     function GetMinAngle: Single;
@@ -40,8 +40,8 @@
     function GetStopErrorCorrection: Single;
     procedure SetStopErrorCorrection(const Value: Single);
   public
-    property AnchorPoint: TVector3Single read GetAnchorPoint write SetAnchorPoint;
-    property Axis: TVector3Single read GetAxis write SetAxis;
+    property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+    property Axis: TVector3 read GetAxis write SetAxis;
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
     property MinAngle: Single read GetMinAngle write SetMinAngle;
     property StopBounce: Single read GetStopBounce write SetStopBounce;
@@ -53,22 +53,22 @@
 
 { TSingleAxisHingeJointNode ----------------------------------------------- }
 
-function TSingleAxisHingeJointNode.GetAnchorPoint: TVector3Single;
+function TSingleAxisHingeJointNode.GetAnchorPoint: TVector3;
 begin
   Result := FdAnchorPoint.Value;
 end;
 
-procedure TSingleAxisHingeJointNode.SetAnchorPoint(const Value: TVector3Single);
+procedure TSingleAxisHingeJointNode.SetAnchorPoint(const Value: TVector3);
 begin
   FdAnchorPoint.Send(Value);
 end;
 
-function TSingleAxisHingeJointNode.GetAxis: TVector3Single;
+function TSingleAxisHingeJointNode.GetAxis: TVector3;
 begin
   Result := FdAxis.Value;
 end;
 
-procedure TSingleAxisHingeJointNode.SetAxis(const Value: TVector3Single);
+procedure TSingleAxisHingeJointNode.SetAxis(const Value: TVector3);
 begin
   FdAxis.Send(Value);
 end;

@@ -27,19 +27,19 @@
 {$ifdef read_interface}
 
   private
-    function GetAxisRotation: TVector4Single;
-    procedure SetAxisRotation(const Value: TVector4Single);
-    function GetMaxPosition: TVector2Single;
-    procedure SetMaxPosition(const Value: TVector2Single);
-    function GetMinPosition: TVector2Single;
-    procedure SetMinPosition(const Value: TVector2Single);
-    function GetOffset: TVector3Single;
-    procedure SetOffset(const Value: TVector3Single);
+    function GetAxisRotation: TVector4;
+    procedure SetAxisRotation(const Value: TVector4);
+    function GetMaxPosition: TVector2;
+    procedure SetMaxPosition(const Value: TVector2);
+    function GetMinPosition: TVector2;
+    procedure SetMinPosition(const Value: TVector2);
+    function GetOffset: TVector3;
+    procedure SetOffset(const Value: TVector3);
   public
-    property AxisRotation: TVector4Single read GetAxisRotation write SetAxisRotation;
-    property MaxPosition: TVector2Single read GetMaxPosition write SetMaxPosition;
-    property MinPosition: TVector2Single read GetMinPosition write SetMinPosition;
-    property Offset: TVector3Single read GetOffset write SetOffset;
+    property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
+    property MaxPosition: TVector2 read GetMaxPosition write SetMaxPosition;
+    property MinPosition: TVector2 read GetMinPosition write SetMinPosition;
+    property Offset: TVector3 read GetOffset write SetOffset;
 
 {$endif read_interface}
 
@@ -47,42 +47,42 @@
 
 { TPlaneSensorNode ----------------------------------------------- }
 
-function TPlaneSensorNode.GetAxisRotation: TVector4Single;
+function TPlaneSensorNode.GetAxisRotation: TVector4;
 begin
   Result := FdAxisRotation.Value;
 end;
 
-procedure TPlaneSensorNode.SetAxisRotation(const Value: TVector4Single);
+procedure TPlaneSensorNode.SetAxisRotation(const Value: TVector4);
 begin
   FdAxisRotation.Send(Value);
 end;
 
-function TPlaneSensorNode.GetMaxPosition: TVector2Single;
+function TPlaneSensorNode.GetMaxPosition: TVector2;
 begin
   Result := FdMaxPosition.Value;
 end;
 
-procedure TPlaneSensorNode.SetMaxPosition(const Value: TVector2Single);
+procedure TPlaneSensorNode.SetMaxPosition(const Value: TVector2);
 begin
   FdMaxPosition.Send(Value);
 end;
 
-function TPlaneSensorNode.GetMinPosition: TVector2Single;
+function TPlaneSensorNode.GetMinPosition: TVector2;
 begin
   Result := FdMinPosition.Value;
 end;
 
-procedure TPlaneSensorNode.SetMinPosition(const Value: TVector2Single);
+procedure TPlaneSensorNode.SetMinPosition(const Value: TVector2);
 begin
   FdMinPosition.Send(Value);
 end;
 
-function TPlaneSensorNode.GetOffset: TVector3Single;
+function TPlaneSensorNode.GetOffset: TVector3;
 begin
   Result := FdOffset.Value;
 end;
 
-procedure TPlaneSensorNode.SetOffset(const Value: TVector3Single);
+procedure TPlaneSensorNode.SetOffset(const Value: TVector3);
 begin
   FdOffset.Send(Value);
 end;

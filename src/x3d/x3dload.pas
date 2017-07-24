@@ -53,7 +53,7 @@
       so that GNOME nautilus thumbnailers for this MIME types can be installed.)
 
     @item(You probably also want to extend documentation.
-      At least ../../../www/htdocs/view3dscene.php, it has a "Features" section that lists
+      At least ../../../cge-www/htdocs/view3dscene.php, it has a "Features" section that lists
       all supported 3D formats.)
   )
 }
@@ -63,8 +63,8 @@ unit X3DLoad;
 
 interface
 
-uses CastleVectors, SysUtils, X3DNodes, X3DLoadInternalMD3,
-  CastleUtils, Classes;
+uses SysUtils, Classes,
+  CastleUtils, CastleVectors, X3DNodes;
 
 { Load 3D model. Guess model format based on URL extension.
   VRML/X3D formats are loaded directly,
@@ -126,7 +126,7 @@ procedure Load3DSequence(
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
+  out Epsilon: Single;
   out TimeLoop, TimeBackwards: boolean); deprecated 'use Load3D instead of Load3DSequence';
 
 const
@@ -148,7 +148,7 @@ implementation
 
 uses CastleClassUtils, CastleURIUtils,
   X3DLoadInternalGEO, X3DLoadInternal3DS, X3DLoadInternalOBJ,
-  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL,
+  X3DLoadInternalCollada, X3DLoadInternalSpine, X3DLoadInternalSTL, X3DLoadInternalMD3,
   CastleInternalNodeInterpolator;
 
 function Load3D(const URL: string;
@@ -239,7 +239,7 @@ procedure Load3DSequence(const URL: string;
   const KeyNodes: TX3DNodeList;
   const KeyTimes: TSingleList;
   out ScenesPerTime: Cardinal;
-  out EqualityEpsilon: Single;
+  out Epsilon: Single;
   out TimeLoop, TimeBackwards: boolean);
 
   procedure LoadNodeAnimation(Animations: TNodeInterpolator.TAnimationList);
@@ -256,7 +256,7 @@ procedure Load3DSequence(const URL: string;
     for I := 0 to Animation.KeyTimes.Count - 1 do
       KeyTimes.Add(Animation.KeyTimes[I]);
     ScenesPerTime   := Animation.ScenesPerTime;
-    EqualityEpsilon := Animation.EqualityEpsilon;
+    Epsilon         := Animation.Epsilon;
     TimeLoop        := Animation.Loop;
     TimeBackwards   := Animation.Backwards;
 
@@ -268,7 +268,7 @@ procedure Load3DSequence(const URL: string;
     KeyNodes.Add(Node);
     KeyTimes.Add(0); { One time value }
     ScenesPerTime := 1;      { doesn't matter }
-    EqualityEpsilon := 0.0;  { doesn't matter }
+    Epsilon := 0.0;  { doesn't matter }
     TimeLoop := false;      { doesn't matter }
     TimeBackwards := false; { doesn't matter }
   end;

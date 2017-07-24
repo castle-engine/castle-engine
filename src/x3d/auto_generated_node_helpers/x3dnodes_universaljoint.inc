@@ -27,12 +27,12 @@
 {$ifdef read_interface}
 
   private
-    function GetAnchorPoint: TVector3Single;
-    procedure SetAnchorPoint(const Value: TVector3Single);
-    function GetAxis1: TVector3Single;
-    procedure SetAxis1(const Value: TVector3Single);
-    function GetAxis2: TVector3Single;
-    procedure SetAxis2(const Value: TVector3Single);
+    function GetAnchorPoint: TVector3;
+    procedure SetAnchorPoint(const Value: TVector3);
+    function GetAxis1: TVector3;
+    procedure SetAxis1(const Value: TVector3);
+    function GetAxis2: TVector3;
+    procedure SetAxis2(const Value: TVector3);
     function GetStopBounce1: Single;
     procedure SetStopBounce1(const Value: Single);
     function GetStop1ErrorCorrection: Single;
@@ -42,9 +42,9 @@
     function GetStop2ErrorCorrection: Single;
     procedure SetStop2ErrorCorrection(const Value: Single);
   public
-    property AnchorPoint: TVector3Single read GetAnchorPoint write SetAnchorPoint;
-    property Axis1: TVector3Single read GetAxis1 write SetAxis1;
-    property Axis2: TVector3Single read GetAxis2 write SetAxis2;
+    property AnchorPoint: TVector3 read GetAnchorPoint write SetAnchorPoint;
+    property Axis1: TVector3 read GetAxis1 write SetAxis1;
+    property Axis2: TVector3 read GetAxis2 write SetAxis2;
     property StopBounce1: Single read GetStopBounce1 write SetStopBounce1;
     property Stop1ErrorCorrection: Single read GetStop1ErrorCorrection write SetStop1ErrorCorrection;
     property Stop2Bounce: Single read GetStop2Bounce write SetStop2Bounce;
@@ -56,32 +56,32 @@
 
 { TUniversalJointNode ----------------------------------------------- }
 
-function TUniversalJointNode.GetAnchorPoint: TVector3Single;
+function TUniversalJointNode.GetAnchorPoint: TVector3;
 begin
   Result := FdAnchorPoint.Value;
 end;
 
-procedure TUniversalJointNode.SetAnchorPoint(const Value: TVector3Single);
+procedure TUniversalJointNode.SetAnchorPoint(const Value: TVector3);
 begin
   FdAnchorPoint.Send(Value);
 end;
 
-function TUniversalJointNode.GetAxis1: TVector3Single;
+function TUniversalJointNode.GetAxis1: TVector3;
 begin
   Result := FdAxis1.Value;
 end;
 
-procedure TUniversalJointNode.SetAxis1(const Value: TVector3Single);
+procedure TUniversalJointNode.SetAxis1(const Value: TVector3);
 begin
   FdAxis1.Send(Value);
 end;
 
-function TUniversalJointNode.GetAxis2: TVector3Single;
+function TUniversalJointNode.GetAxis2: TVector3;
 begin
   Result := FdAxis2.Value;
 end;
 
-procedure TUniversalJointNode.SetAxis2(const Value: TVector3Single);
+procedure TUniversalJointNode.SetAxis2(const Value: TVector3);
 begin
   FdAxis2.Send(Value);
 end;

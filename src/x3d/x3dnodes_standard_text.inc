@@ -611,11 +611,11 @@ var
 
 var
   YScale, XScale, MaxTextWidth: Single;
-  ExtraTexOrigin: TVector2Single;
+  ExtraTexOrigin: TVector2;
 
   procedure SendEvents;
   var
-    Origin: TVector3Single;
+    Origin: TVector3;
     LineBounds: TMFVec2f;
     FinalRowHeight: Single;
     I: Integer;
@@ -636,7 +636,7 @@ var
       FinalRowHeight := Font.RowHeight * Spacing * YScale;
 
       { calculate and send Origin }
-      Origin := ZeroVector3Single;
+      Origin := TVector3.Zero;
       case Justify of
         fjBegin, fjFirst :
                   Origin[0] := 0;
@@ -662,15 +662,15 @@ var
           case Justify of
             fjBegin, fjFirst:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2Single(
+                LineBounds.Items.L[I] := Vector2(
                   TextWidths[I] * XScale, FinalRowHeight);
             fjMiddle:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2Single(
+                LineBounds.Items.L[I] := Vector2(
                   (MaxTextWidth + TextWidths[I]) * XScale / 2, FinalRowHeight);
             fjEnd   :
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2Single(
+                LineBounds.Items.L[I] := Vector2(
                   MaxTextWidth * XScale, FinalRowHeight);
             else raise EInternalError.Create('Invalid font justify value');
           end;
@@ -679,7 +679,7 @@ var
         finally FreeAndNil(LineBounds) end;
       end;
 
-      EventTextBounds.Send(Vector2Single(
+      EventTextBounds.Send(Vector2(
         MaxTextWidth * XScale, FinalRowHeight * Strings.Count), OriginalNode.Scene.NextEventTime);
     end;
   end;
@@ -738,20 +738,20 @@ var
           CoordY0 *= YScale;
           CoordY1 *= YScale;
 
-          OutCoord.Items.Add(Vector3Single(CoordX0, CoordY0, 0));
-          OutCoord.Items.Add(Vector3Single(CoordX1, CoordY0, 0));
-          OutCoord.Items.Add(Vector3Single(CoordX1, CoordY1, 0));
-          OutCoord.Items.Add(Vector3Single(CoordX0, CoordY1, 0));
+          OutCoord.Items.Add(Vector3(CoordX0, CoordY0, 0));
+          OutCoord.Items.Add(Vector3(CoordX1, CoordY0, 0));
+          OutCoord.Items.Add(Vector3(CoordX1, CoordY1, 0));
+          OutCoord.Items.Add(Vector3(CoordX0, CoordY1, 0));
 
           TexX0 := (G.ImageX {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Width;
           TexY0 := (G.ImageY {$ifdef EXTRA_GLYPH_SPACE} - 0.5 {$endif}) / Font.Image.Height;
           TexX1 := (G.ImageX + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Width;
           TexY1 := (G.ImageY + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif}) / Font.Image.Height;
 
-          OutTexCoord.Items.Add(Vector2Single(TexX0, TexY0));
-          OutTexCoord.Items.Add(Vector2Single(TexX1, TexY0));
-          OutTexCoord.Items.Add(Vector2Single(TexX1, TexY1));
-          OutTexCoord.Items.Add(Vector2Single(TexX0, TexY1));
+          OutTexCoord.Items.Add(Vector2(TexX0, TexY0));
+          OutTexCoord.Items.Add(Vector2(TexX1, TexY0));
+          OutTexCoord.Items.Add(Vector2(TexX1, TexY1));
+          OutTexCoord.Items.Add(Vector2(TexX0, TexY1));
 
           { if we want extra texture coordinates, generate them knowing
             ExtraTexOrigin and current Coord* values. This is enough,
@@ -769,10 +769,10 @@ var
             ExtraTexX1 := ConvertCoordToExtraTex(0, CoordX1);
             ExtraTexY1 := ConvertCoordToExtraTex(1, CoordY1);
 
-            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX0, ExtraTexY0));
-            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX1, ExtraTexY0));
-            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX1, ExtraTexY1));
-            OutExtraTexCoord.Items.Add(Vector2Single(ExtraTexX0, ExtraTexY1));
+            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX0, ExtraTexY0));
+            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX1, ExtraTexY0));
+            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX1, ExtraTexY1));
+            OutExtraTexCoord.Items.Add(Vector2(ExtraTexX0, ExtraTexY1));
           end;
         end;
         X += G.AdvanceX;
@@ -802,7 +802,7 @@ begin
 
     if Strings.Count <> 0 then
     begin
-      ExtraTexOrigin := Vector2Single(StringPosX(0) * XScale, StringPosY(0) * YScale);
+      ExtraTexOrigin := Vector2(StringPosX(0) * XScale, StringPosY(0) * YScale);
       for I := 0 to Strings.Count - 1 do
         Print(StringPosX(I), StringPosY(I), Strings[I], XScale, YScale);
     end;

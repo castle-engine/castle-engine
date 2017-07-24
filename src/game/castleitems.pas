@@ -20,10 +20,11 @@ unit CastleItems;
 
 interface
 
-uses CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
+uses Generics.Collections,
+  CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
-  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, FGL, CastleColors;
+  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, CastleColors;
 
 type
   TInventoryItem = class;
@@ -54,7 +55,7 @@ type
     { The largest possible bounding box of the 3D item,
       taking into account that actual item 3D model will be rotated when
       placed on world. You usually want to add current item position to this. }
-    function BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
+    function BoundingBoxRotated(const GravityUp: TVector3): TBox3D;
   protected
     procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean); override;
@@ -126,7 +127,7 @@ type
       example how to add an item to your 3D world is this:
 
       @longCode(#
-        Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3Single(2, 3, 4));
+        Sword.CreateItem(1).PutOnWorld(SceneManager.World, Vector3(2, 3, 4));
       #)
 
       This adds 1 item of the MyItemResource to the 3D world,
@@ -150,7 +151,7 @@ type
     { Instantiate placeholder by create new item with CreateItem
       and putting it on level with TInventoryItem.PutOnWorld. }
     procedure InstantiatePlaceholder(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
+      const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
     function AlwaysPrepared: boolean; override;
@@ -362,7 +363,7 @@ type
       This is how you should create new TItemOnWorld instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items. }
     function PutOnWorld(const AWorld: T3DWorld;
-      const APosition: TVector3Single): TItemOnWorld;
+      const APosition: TVector3): TItemOnWorld;
 
     { 3D owner of the item,
       like a player or creature (if the item is in the backpack)
@@ -427,7 +428,7 @@ type
     @link(T3DAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
-  TInventory = class(specialize TFPGObjectList<TInventoryItem>)
+  TInventory = class(specialize TObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAliveWithInventory;
   protected
@@ -652,7 +653,7 @@ begin
 end;
 
 procedure TItemResource.InstantiatePlaceholder(World: T3DWorld;
-  const APosition, ADirection: TVector3Single;
+  const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
   ItemQuantity: Cardinal;
@@ -670,7 +671,7 @@ begin
   Result := true;
 end;
 
-function TItemResource.BoundingBoxRotated(const GravityUp: TVector3Single): TBox3D;
+function TItemResource.BoundingBoxRotated(const GravityUp: TVector3): TBox3D;
 var
   B: TBox3D;
 begin
@@ -749,7 +750,7 @@ begin
 end;
 
 function TInventoryItem.PutOnWorld(const AWorld: T3DWorld;
-  const APosition: TVector3Single): TItemOnWorld;
+  const APosition: TVector3): TItemOnWorld;
 begin
   Result := TItemOnWorld.Create(AWorld { owner });
   { set properties that in practice must have other-than-default values
@@ -1138,7 +1139,7 @@ end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  DirectionZero, U: TVector3Single;
+  DirectionZero, U: TVector3;
 begin
   inherited;
   if not GetExists then Exit;
@@ -1152,7 +1153,7 @@ begin
 
   ItemRotation += RotationSpeed * SecondsPassed;
   U := World.GravityUp; // copy to local variable for speed
-  DirectionZero := Normalized(AnyOrthogonalVector(U));
+  DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
 
   if AutoPick and
@@ -1208,17 +1209,17 @@ end;
 function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
 
   function GetItemDropPosition(DroppedItemResource: TItemResource;
-    out DropPosition: TVector3Single): boolean;
+    out DropPosition: TVector3): boolean;
   var
     ItemBox: TBox3D;
     ItemBoxRadius: Single;
-    ItemBoxMiddle: TVector3Single;
+    ItemBoxMiddle: TVector3;
   begin
     ItemBox := DroppedItemResource.BoundingBoxRotated(World.GravityUp);
     ItemBoxMiddle := ItemBox.Center;
     { Box3DRadius calculates radius around (0, 0, 0) and we want
       radius around ItemBoxMiddle }
-    ItemBoxRadius := ItemBox.Translate(VectorNegate(ItemBoxMiddle)).Radius;
+    ItemBoxRadius := ItemBox.Translate(-ItemBoxMiddle).Radius;
 
     { Calculate DropPosition.
 
@@ -1256,7 +1257,7 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
   end;
 
 var
-  DropPosition: TVector3Single;
+  DropPosition: TVector3;
   DropppedItem: TInventoryItem;
 begin
   Result := nil;

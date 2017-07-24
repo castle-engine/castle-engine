@@ -30,11 +30,11 @@ var
   Spot: Single;
   Attenuat: Single;
 
-  Factors: TVector3Single;
+  Factors: TVector3;
   { kierunek od Point do zrodla swiatla, normalized }
-  LightDirNorm: TVector3Single;
+  LightDirNorm: TVector3;
   { wektor normalny do powierzchni (skierowany w strone Light) }
-  Normal: TVector3Single;
+  Normal: TVector3;
   PosLightNode: TAbstractPositionalLightNode;
 
   {$ifndef CAMERA_INDEP}
@@ -42,11 +42,11 @@ var
 
   { srednia z wektora do camera i LightDirNorm, potrzebna do liczenia
     odbicia Specular }
-  CameraAndLightHalfway: TVector3Single;
+  CameraAndLightHalfway: TVector3;
 
-  MaterialAmbientColor: TVector3Single;
-  MaterialDiffuseColor: TVector3Single;
-  MaterialSpecularColor: TVector3Single;
+  MaterialAmbientColor: TVector3;
+  MaterialDiffuseColor: TVector3;
+  MaterialSpecularColor: TVector3;
   MaterialShininessExp: Single;
   {$endif}
 
@@ -57,7 +57,7 @@ var
     { Uzywamy dropOffRate VRMLa 1.0 zeby sprawic by spot byl
       bardziej "skupiony" zgodnie z rownaniami swiatla OpenGLa.
       W VRMLu 97 skupienie spota jest okreslane inaczej, przez beamWidth. }
-    CosSpotAngle := (-LightDirNorm) ** Direction;
+    CosSpotAngle := TVector3.DotProduct(-LightDirNorm, Direction);
     { TODO: optimize: no need to calc ArcCos here if we would precalc
       CosCutOffAngle for every light. }
     SpotAngle := ArcCos(CosSpotAngle);
@@ -70,7 +70,7 @@ var
   var
     CosSpotAngle, SpotAngle, SpotCO, SpotBW: Single;
   begin
-    CosSpotAngle := (-LightDirNorm) ** Direction;
+    CosSpotAngle := TVector3.DotProduct(-LightDirNorm, Direction);
     SpotAngle := ArcCos(CosSpotAngle);
     SpotCO := SpotLight.FdCutOffAngle.Value;
     SpotBW := SpotLight.FdBeamWidth.Value;
@@ -85,97 +85,97 @@ var
   end;
 
 begin
- { wyciagnij ze struktur kilka zmiennych ktorych bedziemy intensywnie uzywac }
- {$ifndef CAMERA_INDEP}
- M := State.MaterialInfo;
- if M <> nil then
- begin
-   MaterialAmbientColor := M.AmbientColor;
-   MaterialDiffuseColor := M.DiffuseColor;
-   MaterialSpecularColor := M.SpecularColor;
-   MaterialShininessExp := M.ShininessExp;
- end else
- begin
-   MaterialAmbientColor := TMaterialInfo.DefaultAmbientColor;
-   MaterialDiffuseColor := TMaterialInfo.DefaultDiffuseColor;
-   MaterialSpecularColor := TMaterialInfo.DefaultSpecularColor;
-   MaterialShininessExp := TMaterialInfo.DefaultShininessExp;
- end;
- {$endif}
+  { wyciagnij ze struktur kilka zmiennych ktorych bedziemy intensywnie uzywac }
+  {$ifndef CAMERA_INDEP}
+  M := State.MaterialInfo;
+  if M <> nil then
+  begin
+    MaterialAmbientColor := M.AmbientColor;
+    MaterialDiffuseColor := M.DiffuseColor;
+    MaterialSpecularColor := M.SpecularColor;
+    MaterialShininessExp := M.ShininessExp;
+  end else
+  begin
+    MaterialAmbientColor := TMaterialInfo.DefaultAmbientColor;
+    MaterialDiffuseColor := TMaterialInfo.DefaultDiffuseColor;
+    MaterialSpecularColor := TMaterialInfo.DefaultSpecularColor;
+    MaterialShininessExp := TMaterialInfo.DefaultShininessExp;
+  end;
+  {$endif}
 
- if (not Node.FdOn.Value) then
- begin
-   Result := ZeroVector3Single;
-   Exit;
- end;
+  if (not Node.FdOn.Value) then
+  begin
+    Result := TVector3.Zero;
+    Exit;
+  end;
 
- { TODO: arg dla attenuation powinien byc w ukladzie transformacji swiatla.
-   For now lights with non-trivial attenuation put under some transformation
-   that does distance scaling will not render as required by VRML 2.0 spec.
-   Czyli musze implementowac InvertTransformation ? }
- if Node is TAbstractPositionalLightNode then
- begin
-  PosLightNode := TAbstractPositionalLightNode(Node);
-  if PosLightNode.DistanceNeededForAttenuation then
-   Attenuat := PosLightNode.CalculateAttenuation( PointsDistance(Point, Location) ) else
-   Attenuat := PosLightNode.CalculateAttenuation( Single(0.0) );
- end else
-  Attenuat := 1;
+  { TODO: arg dla attenuation powinien byc w ukladzie transformacji swiatla.
+    For now lights with non-trivial attenuation put under some transformation
+    that does distance scaling will not render as required by VRML 2.0 spec.
+    Czyli musze implementowac InvertTransformation ? }
+  if Node is TAbstractPositionalLightNode then
+  begin
+   PosLightNode := TAbstractPositionalLightNode(Node);
+   if PosLightNode.DistanceNeededForAttenuation then
+    Attenuat := PosLightNode.CalculateAttenuation( PointsDistance(Point, Location) ) else
+    Attenuat := PosLightNode.CalculateAttenuation( Single(0.0) );
+  end else
+   Attenuat := 1;
 
- { LightDirNorm is called "L" in the equation in VRML spec }
- if Node is TAbstractPositionalLightNode then
-  LightDirNorm := Normalized(Location - Point) else
-  LightDirNorm := -Direction;
- { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
-   powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
-   jest okreslane jako two-sided lighting, czyli wziac albo Normal albo
-   -Normal, w zaleznosci od pozycji swiatla.). }
+  { LightDirNorm is called "L" in the equation in VRML spec }
+  if Node is TAbstractPositionalLightNode then
+   LightDirNorm := (Location - Point).Normalize else
+   LightDirNorm := -Direction;
+  { wektory Normal i LightDirNorm musza wychodzic z tej samej strony
+    powierzchni TriNormPlaneSingle (musimy przeciez zrobic cos co w OpenGLu
+    jest okreslane jako two-sided lighting, czyli wziac albo Normal albo
+    -Normal, w zaleznosci od pozycji swiatla.). }
 
- { Normal is called "N" in the equation in VRML spec }
- Normal := PlaneDirInDirection(PointPlaneNormal, LightDirNorm);
+  { Normal is called "N" in the equation in VRML spec }
+  Normal := PlaneDirInDirection(PointPlaneNormal, LightDirNorm);
 
- {$ifndef CAMERA_INDEP}
- { niestety musimy znormalizowac (CamPosition - Point)
-   (zeby mial taki sam wklad w sume co LightDirNorm) i wynik
-   (ktory musi byc znormalizowany zeby nadawal sie do wyliczania
-   cosinusa jako prostego dot product; jak zwykle, nalezy pamietac
-   ze suma dwoch wektorow dlugosci 1 niekoniecznie (rzadko) jest wektorem
-   dlugosci 2 (wiec skalowanie przez 1/2 nie rozwiazaloby tu problemu)) }
- CameraAndLightHalfway := Normalized(
-   Normalized(CamPosition - Point) + LightDirNorm);
- {$endif}
+  {$ifndef CAMERA_INDEP}
+  { niestety musimy znormalizowac (CamPosition - Point)
+    (zeby mial taki sam wklad w sume co LightDirNorm) i wynik
+    (ktory musi byc znormalizowany zeby nadawal sie do wyliczania
+    cosinusa jako prostego dot product; jak zwykle, nalezy pamietac
+    ze suma dwoch wektorow dlugosci 1 niekoniecznie (rzadko) jest wektorem
+    dlugosci 2 (wiec skalowanie przez 1/2 nie rozwiazaloby tu problemu)) }
+  CameraAndLightHalfway := (
+    (CamPosition - Point).Normalize + LightDirNorm).Normalize;
+  {$endif}
 
- { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
-   dla innych swiatel jest zawsze = 1. }
- if Node is TSpotLightNode_1 then
-   Spot := CalculateSpot_1(TSpotLightNode_1(Node)) else
- if Node is TSpotLightNode then
-   Spot := CalculateSpot(TSpotLightNode(Node)) else
-   Spot := 1;
+  { oblicz Spot - dla SpotLight okresla on jak bardzo punkt jest w spocie,
+    dla innych swiatel jest zawsze = 1. }
+  if Node is TSpotLightNode_1 then
+    Spot := CalculateSpot_1(TSpotLightNode_1(Node)) else
+  if Node is TSpotLightNode then
+    Spot := CalculateSpot(TSpotLightNode(Node)) else
+    Spot := 1;
 
- Result := Node.FdColor.Value * (Attenuat * Spot);
+  Result := Node.FdColor.Value * (Attenuat * Spot);
 
- { Factors := ambient factor }
- {$ifdef CAMERA_INDEP}
- Factors := ZeroVector3Single;
- {$else}
- if Node.FdAmbientIntensity.Value < 0 then
-   Factors := ZeroVector3Single
- else
-   Factors := MaterialAmbientColor * Node.FdAmbientIntensity.Value;
- {$endif}
+  { Factors := ambient factor }
+  {$ifdef CAMERA_INDEP}
+  Factors := TVector3.Zero;
+  {$else}
+  if Node.FdAmbientIntensity.Value < 0 then
+    Factors := TVector3.Zero
+  else
+    Factors := MaterialAmbientColor * Node.FdAmbientIntensity.Value;
+  {$endif}
 
- { Factors += diffuse factor }
- Factors += MaterialDiffuseColor * DiffuseTextureColor *
-   (Node.FdIntensity.Value * (Normal ** LightDirNorm));
+  { Factors += diffuse factor }
+  Factors += (MaterialDiffuseColor * DiffuseTextureColor) *
+    (Node.FdIntensity.Value * TVector3.DotProduct(Normal, LightDirNorm));
 
- {$ifndef CAMERA_INDEP}
- { Factors += specular factor }
- Factors += MaterialSpecularColor *
-   (Node.FdIntensity.Value *
-     Power( Max(Normal ** CameraAndLightHalfway, Single(0.0)),
-       MaterialShininessExp));
- {$endif}
+  {$ifndef CAMERA_INDEP}
+  { Factors += specular factor }
+  Factors += MaterialSpecularColor *
+    (Node.FdIntensity.Value *
+      Power( Max(TVector3.DotProduct(Normal, CameraAndLightHalfway), Single(0.0)),
+        MaterialShininessExp));
+  {$endif}
 
- Result *= Factors;
+  Result := Result * Factors;
 end;

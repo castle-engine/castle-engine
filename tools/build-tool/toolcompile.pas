@@ -55,7 +55,16 @@ uses SysUtils, Process,
 type
   TFPCVersion = object
     Major, Minor, Release: Integer;
+    function AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
   end;
+
+function TFPCVersion.AtLeast(const AMajor, AMinor, ARelease: Integer): boolean;
+begin
+  Result :=
+      (AMajor < Major) or
+    ( (AMajor = Major) and (AMinor < Minor) ) or
+    ( (AMajor = Major) and (AMinor = Minor) and (ARelease <= Release) );
+end;
 
 { Get FPC version by running "fpc -iV". }
 function FPCVersion: TFPCVersion;
@@ -333,17 +342,16 @@ begin
         AddEnginePath('x3d/opengl');
         AddEnginePath('x3d/opengl/glsl');
         AddEnginePath('audio');
-        AddEnginePath('net');
+        AddEnginePath('files');
         AddEnginePath('castlescript');
-        AddEnginePath('castlescript/opengl');
         AddEnginePath('ui');
         AddEnginePath('ui/windows');
         AddEnginePath('ui/opengl');
         AddEnginePath('game');
         AddEnginePath('services');
+        AddEnginePath('services/opengl');
 
-        if (FPCVer.Major < 3) or
-          ((FPCVer.Major = 3) and (FPCVer.Minor = 0)) then
+        if not FPCVer.AtLeast(3, 1, 1) then
           AddEnginePath('compatibility/generics.collections/src');
 
         { Do not add castle-fpc.cfg.
@@ -374,6 +382,18 @@ begin
     FpcOptions.Add('-Sh');
     FpcOptions.Add('-vm2045'); // do not show Warning: (2045) APPTYPE is not supported by the target OS
     FpcOptions.Add('-vm5024'); // do not show Hint: (5024) Parameter "..." not used
+
+    // do not show Warning: Symbol "TArrayHelper$1" is experimental
+    // (only for FPC 3.1.1, for 3.0.x we fix this in our custom Generics.Collections unit)
+    // TODO: This is a pity, we also hide useful warnings this way.
+    if FPCVer.AtLeast(3, 1, 1) then
+      FpcOptions.Add('-vm05063');
+    // do not show
+    // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crc6100464F" with abstract method "GetCurrent"
+    // Warning: Constructing a class "TCustomDictionaryEnumerator$4$crcBD4794B2" with abstract method "DoMoveNext"
+    // TODO: This is a pity, we also hide useful warnings this way.
+    FpcOptions.Add('-vm04046');
+
     FpcOptions.Add('-T' + OSToString(OS));
     FpcOptions.Add('-P' + CPUToString(CPU));
 

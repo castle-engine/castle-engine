@@ -20,7 +20,7 @@ unit CastleInAppPurchases;
 
 interface
 
-uses Classes, FGL,
+uses Classes, Generics.Collections,
   CastleStringUtils;
 
 type
@@ -113,7 +113,7 @@ type
   TInAppPurchases = class(TComponent)
   private
   type
-    TProductList = specialize TFPGObjectList<TInAppProduct>;
+    TProductList = specialize TObjectList<TInAppProduct>;
   var
     FDebugMockupBuying: boolean;
     List: TProductList;

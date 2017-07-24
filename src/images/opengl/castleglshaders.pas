@@ -77,8 +77,8 @@ unit CastleGLShaders;
 
 interface
 
-uses SysUtils, Classes, CastleGL, CastleGLUtils, CastleUtils, CastleVectors,
-  FGL, CastleShaders, CastleGenericLists;
+uses SysUtils, Classes, Generics.Collections,
+  CastleGL, CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -164,21 +164,21 @@ type
     procedure SetValue(const Value: TVector3Integer; const ForceException: boolean = false);
     procedure SetValue(const Value: TVector4Integer; const ForceException: boolean = false);
     procedure SetValue(const Value: TGLfloat       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector2Single ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector3Single ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector4Single ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix2Single ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix3Single ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix4Single ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TVector2       ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TVector3       ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TVector4       ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TMatrix2       ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TMatrix3       ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TMatrix4       ; const ForceException: boolean = false);
 
-    procedure SetValue(const Value: TBooleanList      ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TLongIntList      ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TSingleList       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector2SingleList; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector3SingleList; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector4SingleList; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix3SingleList; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix4SingleList; const ForceException: boolean = false);
+    procedure SetValue(const Value: TBooleanList; const ForceException: boolean = false);
+    procedure SetValue(const Value: TLongIntList; const ForceException: boolean = false);
+    procedure SetValue(const Value: TSingleList ; const ForceException: boolean = false);
+    procedure SetValue(const Value: TVector2List; const ForceException: boolean = false);
+    procedure SetValue(const Value: TVector3List; const ForceException: boolean = false);
+    procedure SetValue(const Value: TVector4List; const ForceException: boolean = false);
+    procedure SetValue(const Value: TMatrix3List; const ForceException: boolean = false);
+    procedure SetValue(const Value: TMatrix4List; const ForceException: boolean = false);
     { @groupEnd }
   end;
 
@@ -209,16 +209,16 @@ type
       Ptr: PtrUInt);
     { Shortcut to enable an array of floats (Single in Pascal). }
     procedure EnableArraySingle(Stride: TGLsizei; Ptr: PtrUInt);
-    { Shortcut to enable an array of TVector2Single. }
-    procedure EnableArrayVector2Single(Stride: TGLsizei; Ptr: PtrUInt);
-    { Shortcut to enable an array of TVector3Single. }
-    procedure EnableArrayVector3Single(Stride: TGLsizei; Ptr: PtrUInt);
-    { Shortcut to enable an array of TVector4Single. }
-    procedure EnableArrayVector4Single(Stride: TGLsizei; Ptr: PtrUInt);
-    { Shortcut to enable an array of TMatrix3Single. }
-    procedure EnableArrayMatrix3Single(Stride: TGLsizei; Ptr: PtrUInt);
-    { Shortcut to enable an array of TMatrix4Single. }
-    procedure EnableArrayMatrix4Single(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TVector2. }
+    procedure EnableArrayVector2(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TVector3. }
+    procedure EnableArrayVector3(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TVector4. }
+    procedure EnableArrayVector4(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TMatrix3. }
+    procedure EnableArrayMatrix3(Stride: TGLsizei; Ptr: PtrUInt);
+    { Shortcut to enable an array of TMatrix4. }
+    procedure EnableArrayMatrix4(Stride: TGLsizei; Ptr: PtrUInt);
 
     procedure DisableArray;
 
@@ -237,23 +237,24 @@ type
 
       @groupBegin }
     procedure SetValue(const Value: TGLfloat);
-    procedure SetValue(const Value: TVector2Single);
-    procedure SetValue(const Value: TVector3Single);
-    procedure SetValue(const Value: TVector4Single);
-    procedure SetValue(const Value: TMatrix3Single);
-    procedure SetValue(const Value: TMatrix4Single);
+    procedure SetValue(const Value: TVector2);
+    procedure SetValue(const Value: TVector3);
+    procedure SetValue(const Value: TVector4);
+    procedure SetValue(const Value: TMatrix3);
+    procedure SetValue(const Value: TMatrix4);
     {$ifndef OpenGLES}
     procedure SetValue(const Value: TVector4Integer);
     procedure SetValue(const Value: TVector4Byte);
     procedure SetValue(const Value: TGLdouble);
-    procedure SetValue(const Value: TVector2Double);
-    procedure SetValue(const Value: TVector3Double);
-    procedure SetValue(const Value: TVector4Double);
+    // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
+    // procedure SetValue(const Value: TVector2Double);
+    // procedure SetValue(const Value: TVector3Double);
+    // procedure SetValue(const Value: TVector4Double);
     {$endif}
     { @groupEnd }
   end;
 
-  TGLSLAttributeList = specialize TGenericStructList<TGLSLAttribute>;
+  TGLSLAttributeList = specialize TList<TGLSLAttribute>;
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -474,21 +475,21 @@ type
     procedure SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TGLfloat       ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector2Single ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector3Single ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector4Single ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix2Single ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix3Single ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix4Single ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector2 ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector3 ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector4 ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix2 ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix3 ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix4 ; const ForceException: boolean = false);
 
     procedure SetUniform(const Name: string; const Value: TBooleanList      ; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TLongIntList      ; const ForceException: boolean = false);
     procedure SetUniform(const Name: string; const Value: TSingleList       ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector2List; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector3List; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TVector4List; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix3List; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TMatrix4List; const ForceException: boolean = false);
     { @groupEnd }
 
     { Get the attribute instance. It can be used to make repeated
@@ -562,23 +563,24 @@ type
 
       @groupBegin }
     procedure SetAttribute(const Name: string; const Value: TGLfloat); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector2Single); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector3Single); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector4Single); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TMatrix3Single); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TMatrix4Single); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector2); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector3); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector4); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TMatrix3); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TMatrix4); deprecated 'use TGLSLAttribute.SetValue';
     {$ifndef OpenGLES}
     procedure SetAttribute(const Name: string; const Value: TVector4Integer); deprecated 'use TGLSLAttribute.SetValue';
     procedure SetAttribute(const Name: string; const Value: TVector4Byte); deprecated 'use TGLSLAttribute.SetValue';
     procedure SetAttribute(const Name: string; const Value: TGLdouble); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector2Double); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector3Double); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector4Double); deprecated 'use TGLSLAttribute.SetValue';
+    // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
+    // procedure SetAttribute(const Name: string; const Value: TVector2Double); deprecated 'use TGLSLAttribute.SetValue';
+    // procedure SetAttribute(const Name: string; const Value: TVector3Double); deprecated 'use TGLSLAttribute.SetValue';
+    // procedure SetAttribute(const Name: string; const Value: TVector4Double); deprecated 'use TGLSLAttribute.SetValue';
     {$endif}
     { @groupEnd }
   end;
 
-  TGLSLProgramList = specialize TFPGObjectList<TGLSLProgram>;
+  TGLSLProgramList = specialize TObjectList<TGLSLProgram>;
 
 var
   LogShaders: boolean;
@@ -827,7 +829,7 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TVector2Single; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TVector2; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
@@ -840,7 +842,7 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TVector3Single; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TVector3; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
@@ -853,7 +855,7 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TVector4Single; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TVector4; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
@@ -866,7 +868,7 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TMatrix2Single; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TMatrix2; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
@@ -879,7 +881,7 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TMatrix3Single; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TMatrix3; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
@@ -892,7 +894,7 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TMatrix4Single; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TMatrix4; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
@@ -959,67 +961,67 @@ begin
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TVector2SingleList; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TVector2List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform2fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform2fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TVector3SingleList; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TVector3List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform3fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform3fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TVector4SingleList; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TVector4List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.List));
+    gsExtension: glUniform4fvARB(Location, Value.Count, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.List));
+    gsStandard : glUniform4fv   (Location, Value.Count, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TMatrix3SingleList; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TMatrix3List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsExtension: glUniformMatrix3fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsStandard : glUniformMatrix3fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
 
-procedure TGLSLUniform.SetValue(const Value: TMatrix4SingleList; const ForceException: boolean);
+procedure TGLSLUniform.SetValue(const Value: TMatrix4List; const ForceException: boolean);
 begin
   if Location = -1 then Exit; // ignore non-existing uniform here
   SetValueBegin(ForceException);
   case Owner.Support of
     {$ifndef ForceStandardGLSLApi}
-    gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsExtension: glUniformMatrix4fvARB(Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
     {$endif}
-    gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.List));
+    gsStandard : glUniformMatrix4fv   (Location, Value.Count, GL_FALSE, PGLfloat(Value.L));
   end;
   SetValueEnd(ForceException);
 end;
@@ -1038,7 +1040,7 @@ begin
   end;
 end;
 
-procedure TGLSLAttribute.SetValue(const Value: TVector2Single);
+procedure TGLSLAttribute.SetValue(const Value: TVector2);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
@@ -1050,7 +1052,7 @@ begin
   end;
 end;
 
-procedure TGLSLAttribute.SetValue(const Value: TVector3Single);
+procedure TGLSLAttribute.SetValue(const Value: TVector3);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
@@ -1062,7 +1064,7 @@ begin
   end;
 end;
 
-procedure TGLSLAttribute.SetValue(const Value: TVector4Single);
+procedure TGLSLAttribute.SetValue(const Value: TVector4);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
@@ -1074,7 +1076,7 @@ begin
   end;
 end;
 
-procedure TGLSLAttribute.SetValue(const Value: TMatrix3Single);
+procedure TGLSLAttribute.SetValue(const Value: TMatrix3);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
@@ -1082,21 +1084,21 @@ begin
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
-        glVertexAttrib3fvARB(Location    , @Value[0]);
-        glVertexAttrib3fvARB(Location + 1, @Value[1]);
-        glVertexAttrib3fvARB(Location + 2, @Value[2]);
+        glVertexAttrib3fvARB(Location    , @Value.Data[0]);
+        glVertexAttrib3fvARB(Location + 1, @Value.Data[1]);
+        glVertexAttrib3fvARB(Location + 2, @Value.Data[2]);
       end;
     {$endif}
     gsStandard    :
       begin
-        glVertexAttrib3fv   (Location    , @Value[0]);
-        glVertexAttrib3fv   (Location + 1, @Value[1]);
-        glVertexAttrib3fv   (Location + 2, @Value[2]);
+        glVertexAttrib3fv   (Location    , @Value.Data[0]);
+        glVertexAttrib3fv   (Location + 1, @Value.Data[1]);
+        glVertexAttrib3fv   (Location + 2, @Value.Data[2]);
       end;
   end;
 end;
 
-procedure TGLSLAttribute.SetValue(const Value: TMatrix4Single);
+procedure TGLSLAttribute.SetValue(const Value: TMatrix4);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
   Owner.Enable;
@@ -1104,18 +1106,18 @@ begin
     {$ifndef ForceStandardGLSLApi}
     gsExtension:
       begin
-        glVertexAttrib4fvARB(Location    , @Value[0]);
-        glVertexAttrib4fvARB(Location + 1, @Value[1]);
-        glVertexAttrib4fvARB(Location + 2, @Value[2]);
-        glVertexAttrib4fvARB(Location + 3, @Value[3]);
+        glVertexAttrib4fvARB(Location    , @Value.Data[0]);
+        glVertexAttrib4fvARB(Location + 1, @Value.Data[1]);
+        glVertexAttrib4fvARB(Location + 2, @Value.Data[2]);
+        glVertexAttrib4fvARB(Location + 3, @Value.Data[3]);
       end;
     {$endif}
     gsStandard    :
       begin
-        glVertexAttrib4fv   (Location    , @Value[0]);
-        glVertexAttrib4fv   (Location + 1, @Value[1]);
-        glVertexAttrib4fv   (Location + 2, @Value[2]);
-        glVertexAttrib4fv   (Location + 3, @Value[3]);
+        glVertexAttrib4fv   (Location    , @Value.Data[0]);
+        glVertexAttrib4fv   (Location + 1, @Value.Data[1]);
+        glVertexAttrib4fv   (Location + 2, @Value.Data[2]);
+        glVertexAttrib4fv   (Location + 3, @Value.Data[3]);
       end;
   end;
 end;
@@ -1151,6 +1153,8 @@ begin
   end;
 end;
 
+// Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
+{
 procedure TGLSLAttribute.SetValue(const Value: TVector2Double);
 begin
   if Location = -1 then Exit; // ignore non-existing attribute here
@@ -1180,6 +1184,7 @@ begin
     gsStandard : glVertexAttrib4dv   (Location, @Value);
   end;
 end;
+}
 {$endif}
 
 procedure TGLSLAttribute.EnableArray(LocationOffset: TLocationOffset;
@@ -1210,34 +1215,34 @@ begin
   EnableArray(0, 1, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayVector2Single(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayVector2(Stride: TGLsizei; Ptr: PtrUInt);
 begin
   EnableArray(0, 2, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayVector3Single(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayVector3(Stride: TGLsizei; Ptr: PtrUInt);
 begin
   EnableArray(0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayVector4Single(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayVector4(Stride: TGLsizei; Ptr: PtrUInt);
 begin
   EnableArray(0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
 end;
 
-procedure TGLSLAttribute.EnableArrayMatrix3Single(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayMatrix3(Stride: TGLsizei; Ptr: PtrUInt);
 begin
   EnableArray(0, 3, GL_FLOAT, GL_FALSE, Stride, Ptr);
-  EnableArray(1, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3Single));
-  EnableArray(2, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3Single) * 2);
+  EnableArray(1, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3));
+  EnableArray(2, 3, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector3) * 2);
 end;
 
-procedure TGLSLAttribute.EnableArrayMatrix4Single(Stride: TGLsizei; Ptr: PtrUInt);
+procedure TGLSLAttribute.EnableArrayMatrix4(Stride: TGLsizei; Ptr: PtrUInt);
 begin
   EnableArray(0, 4, GL_FLOAT, GL_FALSE, Stride, Ptr);
-  EnableArray(1, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4Single));
-  EnableArray(2, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4Single) * 2);
-  EnableArray(3, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4Single) * 3);
+  EnableArray(1, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4));
+  EnableArray(2, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4) * 2);
+  EnableArray(3, 4, GL_FLOAT, GL_FALSE, Stride, Ptr + SizeOf(TVector4) * 3);
 end;
 
 procedure TGLSLAttribute.DisableArray;
@@ -1902,42 +1907,42 @@ begin
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2Single; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3Single; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4Single; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2Single; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix2; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3Single; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4Single; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
@@ -1965,35 +1970,35 @@ begin
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2SingleList; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector2List; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3SingleList; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector3List; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4SingleList; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TVector4List; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3SingleList; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix3List; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
     Uniform(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4SingleList; const ForceException: boolean);
+procedure TGLSLProgram.SetUniform(const Name: string; const Value: TMatrix4List; const ForceException: boolean);
 begin
   if ForceException then
     Uniform(Name, uaException).SetValue(Value, ForceException) else
@@ -2026,27 +2031,27 @@ begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Single);
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3Single);
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector3);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Single);
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3Single);
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix3);
 begin
   Attribute(Name).SetValue(Value);
 end;
 
-procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix4Single);
+procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TMatrix4);
 begin
   Attribute(Name).SetValue(Value);
 end;
@@ -2067,6 +2072,8 @@ begin
   Attribute(Name).SetValue(Value);
 end;
 
+// Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
+{
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Double);
 begin
   Attribute(Name).SetValue(Value);
@@ -2081,6 +2088,7 @@ procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector4Dou
 begin
   Attribute(Name).SetValue(Value);
 end;
+}
 {$endif}
 
 function TGLSLProgram.VertexAttribPointer(const Name: string;

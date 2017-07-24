@@ -273,16 +273,16 @@ function MapRangeClamped(sourceVal, sourceBegin, sourceEnd, destBegin, destEnd: 
 { Random float value in the given range,
   result is between RangeBegin and RangeEnd.
   Always pass arguments such that RangeBegin < RangeEnd. }
-function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
-function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
+function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single; overload;
+function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float; overload;
 
 { Random int value in the given range,
   result is always >= RangeBegin and < RangeEnd.
   So @italic(result is never equal to RangeEnd), this is often convenient,
   and makes @code(RandomIntRange(0, N)) consistent with @code(Random(N)).
   Always pass arguments such that RangeBegin < RangeEnd. }
-function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer;
-function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
+function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer; overload;
+function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64; overload;
 
 function RandomBoolean: boolean;
 
@@ -384,6 +384,10 @@ function LEtoN(const Value: Double): Double; overload;
 function BEtoN(const Value: Single): Single; overload;
 function BEtoN(const Value: Double): Double; overload;
 { @groupEnd }
+
+type
+  EVectorInvalidOp = class(Exception);
+  ETransformedResultInvalid = class(EVectorInvalidOp);
 
 {$endif read_interface}
 

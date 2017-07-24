@@ -149,62 +149,62 @@ begin
   { draw from rgb }
   ResetImages;
   Rgb2.DrawTo(Rgb, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 1)^);
 
   ResetImages;
   Rgb2.DrawTo(Rgb, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(4 + 1, 5 + 2, 6 + 3), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(44 + 11, 55 + 22, 66 + 33), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(4 + 1, 5 + 2, 6 + 3), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(44 + 11, 55 + 22, 66 + 33), Rgb.PixelPtr(1, 1)^);
 
   { draw from rgb + alpha }
   ResetImages;
   RgbAlpha.DrawTo(Rgb, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(BlendBytes(4, 7, 128), BlendBytes(5, 8, 128), BlendBytes(6, 9, 128)), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(BlendBytes(44, 77, 128), BlendBytes(55, 88, 128), BlendBytes(66, 99, 128)), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(BlendBytes(4, 7, 128), BlendBytes(5, 8, 128), BlendBytes(6, 9, 128)), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(BlendBytes(44, 77, 128), BlendBytes(55, 88, 128), BlendBytes(66, 99, 128)), Rgb.PixelPtr(1, 1)^);
 
   ResetImages;
   RgbAlpha.DrawTo(Rgb, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(4 + 7 div 2, 5 + 8 div 2, 6 + 9 div 2), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(44 + 77 div 2, 55 + 88 div 2, 66 + 99 div 2), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(4 + 7 div 2, 5 + 8 div 2, 6 + 9 div 2), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(44 + 77 div 2, 55 + 88 div 2, 66 + 99 div 2), Rgb.PixelPtr(1, 1)^);
 
   { draw from grayscale }
   ResetImages;
   Gray.DrawTo(Rgb, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(100, 100, 100), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(102, 102, 102), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(100, 100, 100), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(102, 102, 102), Rgb.PixelPtr(1, 1)^);
 
   ResetImages;
   Gray.DrawTo(Rgb, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(4 + 100, 5 + 100, 6 + 100), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(44 + 102, 55 + 102, 66 + 102), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(4 + 100, 5 + 100, 6 + 100), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(44 + 102, 55 + 102, 66 + 102), Rgb.PixelPtr(1, 1)^);
 
   { draw from grayscale + alpha }
   ResetImages;
   GrayAlpha.DrawTo(Rgb, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(BlendBytes(4, 200, 128), BlendBytes(5, 200, 128), BlendBytes(6, 200, 128)), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(BlendBytes(44, 202, 128), BlendBytes(55, 202, 128), BlendBytes(66, 202, 128)), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(BlendBytes(4, 200, 128), BlendBytes(5, 200, 128), BlendBytes(6, 200, 128)), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(BlendBytes(44, 202, 128), BlendBytes(55, 202, 128), BlendBytes(66, 202, 128)), Rgb.PixelPtr(1, 1)^);
 
   ResetImages;
   GrayAlpha.DrawTo(Rgb, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector3Byte(4 + 200 div 2, 5 + 200 div 2, 6 + 200 div 2), Rgb.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector3Byte(44 + 202 div 2, 55 + 202 div 2, 66 + 202 div 2), Rgb.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector3Byte(1, 2, 3), Rgb.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector3Byte(4 + 200 div 2, 5 + 200 div 2, 6 + 200 div 2), Rgb.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector3Byte(11, 22, 33), Rgb.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector3Byte(44 + 202 div 2, 55 + 202 div 2, 66 + 202 div 2), Rgb.PixelPtr(1, 1)^);
 end;
 
 procedure TTestImagesDraw.TestDrawToRgbAlpha;
@@ -212,62 +212,62 @@ begin
   { draw from rgb }
   ResetImages;
   Rgb.DrawTo(RgbAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(1, 2, 3, 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(11, 22, 33, 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(1, 2, 3, 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(11, 22, 33, 128), RgbAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   Rgb.DrawTo(RgbAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(3 + 1, 2 + 2, 1 + 3, 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(33 + 11, 22 + 22, 11 + 33, 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(3 + 1, 2 + 2, 1 + 3, 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(33 + 11, 22 + 22, 11 + 33, 128), RgbAlpha.PixelPtr(1, 1)^);
 
   { draw from rgb + alpha }
   ResetImages;
   RgbAlpha2.DrawTo(RgbAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(BlendBytes(3, 7, 128), BlendBytes(2, 8, 128), BlendBytes(1, 9, 128), 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(BlendBytes(33, 77, 128), BlendBytes(22, 88, 128), BlendBytes(11, 99, 128), 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(BlendBytes(3, 7, 128), BlendBytes(2, 8, 128), BlendBytes(1, 9, 128), 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(BlendBytes(33, 77, 128), BlendBytes(22, 88, 128), BlendBytes(11, 99, 128), 128), RgbAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   RgbAlpha2.DrawTo(RgbAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(3 + 7 div 2, 2 + 8 div 2, 1 + 9 div 2, 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(33 + 77 div 2, 22 + 88 div 2, 11 + 99 div 2, 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(3 + 7 div 2, 2 + 8 div 2, 1 + 9 div 2, 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(33 + 77 div 2, 22 + 88 div 2, 11 + 99 div 2, 128), RgbAlpha.PixelPtr(1, 1)^);
 
   { draw from grayscale }
   ResetImages;
   Gray.DrawTo(RgbAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(100, 100, 100, 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(102, 102, 102, 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(100, 100, 100, 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(102, 102, 102, 128), RgbAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   Gray.DrawTo(RgbAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(3 + 100, 2 + 100, 1 + 100, 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(33 + 102, 22 + 102, 11 + 102, 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(3 + 100, 2 + 100, 1 + 100, 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(33 + 102, 22 + 102, 11 + 102, 128), RgbAlpha.PixelPtr(1, 1)^);
 
   { draw from grayscale + alpha }
   ResetImages;
   GrayAlpha.DrawTo(RgbAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(BlendBytes(3, 200, 128), BlendBytes(2, 200, 128), BlendBytes(1, 200, 128), 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(BlendBytes(33, 202, 128), BlendBytes(22, 202, 128), BlendBytes(11, 202, 128), 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(BlendBytes(3, 200, 128), BlendBytes(2, 200, 128), BlendBytes(1, 200, 128), 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(BlendBytes(33, 202, 128), BlendBytes(22, 202, 128), BlendBytes(11, 202, 128), 128), RgbAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   GrayAlpha.DrawTo(RgbAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector4Byte(3 + 200 div 2, 2 + 200 div 2, 1 + 200 div 2, 128), RgbAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector4Byte(33 + 202 div 2, 22 + 202 div 2, 11 + 202 div 2, 128), RgbAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector4Byte(7, 8, 9, 128), RgbAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector4Byte(3 + 200 div 2, 2 + 200 div 2, 1 + 200 div 2, 128), RgbAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector4Byte(77, 88, 99, 128), RgbAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector4Byte(33 + 202 div 2, 22 + 202 div 2, 11 + 202 div 2, 128), RgbAlpha.PixelPtr(1, 1)^);
 end;
 
 procedure TTestImagesDraw.TestDrawToGrayscale;
@@ -338,62 +338,62 @@ begin
   { draw from rgb }
   ResetImages;
   Rgb.DrawTo(GrayAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(GrayscaleValue(Vector3Byte(1, 2, 3)), 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(GrayscaleValue(Vector3Byte(11, 22, 33)), 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(GrayscaleValue(Vector3Byte(1, 2, 3)), 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(GrayscaleValue(Vector3Byte(11, 22, 33)), 128), GrayAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   Rgb.DrawTo(GrayAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(201 + GrayscaleValue(Vector3Byte(1, 2, 3)), 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(203 + GrayscaleValue(Vector3Byte(11, 22, 33)), 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(201 + GrayscaleValue(Vector3Byte(1, 2, 3)), 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(203 + GrayscaleValue(Vector3Byte(11, 22, 33)), 128), GrayAlpha.PixelPtr(1, 1)^);
 
   { draw from rgb + alpha }
   ResetImages;
   RgbAlpha.DrawTo(GrayAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(BlendBytes(201, GrayscaleValue(Vector3Byte(7, 8, 9)), 128), 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(BlendBytes(203, GrayscaleValue(Vector3Byte(77, 88, 99)), 128), 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(BlendBytes(201, GrayscaleValue(Vector3Byte(7, 8, 9)), 128), 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(BlendBytes(203, GrayscaleValue(Vector3Byte(77, 88, 99)), 128), 128), GrayAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   RgbAlpha.DrawTo(GrayAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(201 + GrayscaleValue(Vector3Byte(7, 8, 9)) div 2, 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(203 + GrayscaleValue(Vector3Byte(77, 88, 99)) div 2, 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(201 + GrayscaleValue(Vector3Byte(7, 8, 9)) div 2, 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(203 + GrayscaleValue(Vector3Byte(77, 88, 99)) div 2, 128), GrayAlpha.PixelPtr(1, 1)^);
 
   { draw from grayscale }
   ResetImages;
   Gray.DrawTo(GrayAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(100, 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(102, 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(100, 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(102, 128), GrayAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   Gray.DrawTo(GrayAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(AddBytesPremultiplied(201, 100), 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(AddBytesPremultiplied(203, 102), 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(201, 100), 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(203, 102), 128), GrayAlpha.PixelPtr(1, 1)^);
 
   { draw from grayscale + alpha }
   ResetImages;
   GrayAlpha2.DrawTo(GrayAlpha, 0, 1, dmBlend);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(BlendBytes(201, 200, 128), 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(BlendBytes(203, 202, 128), 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(BlendBytes(201, 200, 128), 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(BlendBytes(203, 202, 128), 128), GrayAlpha.PixelPtr(1, 1)^);
 
   ResetImages;
   GrayAlpha2.DrawTo(GrayAlpha, 0, 1, dmAdd);
-  AssertVectorsEqual(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
-  AssertVectorsEqual(Vector2Byte(AddBytesPremultiplied(201, 200), 128), GrayAlpha.PixelPtr(0, 1)^);
-  AssertVectorsEqual(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
-  AssertVectorsEqual(Vector2Byte(AddBytesPremultiplied(203, 202), 128), GrayAlpha.PixelPtr(1, 1)^);
+  AssertVectorEquals(Vector2Byte(200, 128), GrayAlpha.PixelPtr(0, 0)^);
+  AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(201, 200), 128), GrayAlpha.PixelPtr(0, 1)^);
+  AssertVectorEquals(Vector2Byte(202, 128), GrayAlpha.PixelPtr(1, 0)^);
+  AssertVectorEquals(Vector2Byte(AddBytesPremultiplied(203, 202), 128), GrayAlpha.PixelPtr(1, 1)^);
 end;
 
 initialization

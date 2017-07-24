@@ -45,7 +45,7 @@ var
   Scene: TCastleSceneCore;
   LightSource: boolean;
 
-procedure ComputeCubeMap(const Point: TVector3Single;
+procedure ComputeCubeMap(const Point: TVector3;
   var CubeMap: TCubeMapByte; var SHVector: TSHVectorSingle);
 var
   Side: TCubeMapSide;
@@ -82,7 +82,7 @@ var
   SF: TShadowField;
   Sphere, Pixel: Cardinal;
   Side: TCubeMapSide;
-  BoundingSphereCenter: TVector3Single;
+  BoundingSphereCenter: TVector3;
   BoundingSphereRadius: Single;
   InputURL, OutputURL: string;
 begin
@@ -123,7 +123,7 @@ begin
       SF.LastSphereRadius := 8 * BoundingSphereRadius;
 
       Writeln(Format('Shadow fields spheres: middle %s, radius (%f - %f)',
-        [ VectorToNiceStr(SF.SpheresMiddle),
+        [ SF.SpheresMiddle.ToString,
           SF.FirstSphereRadius, SF.LastSphereRadius ]));
 
       ProcessTimerBegin;

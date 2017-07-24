@@ -27,8 +27,8 @@
 {$ifdef read_interface}
 
   private
-    function GetAxisRotation: TVector4Single;
-    procedure SetAxisRotation(const Value: TVector4Single);
+    function GetAxisRotation: TVector4;
+    procedure SetAxisRotation(const Value: TVector4);
     function GetDiskAngle: Single;
     procedure SetDiskAngle(const Value: Single);
     function GetMaxAngle: Single;
@@ -38,7 +38,7 @@
     function GetOffset: Single;
     procedure SetOffset(const Value: Single);
   public
-    property AxisRotation: TVector4Single read GetAxisRotation write SetAxisRotation;
+    property AxisRotation: TVector4 read GetAxisRotation write SetAxisRotation;
     property DiskAngle: Single read GetDiskAngle write SetDiskAngle;
     property MaxAngle: Single read GetMaxAngle write SetMaxAngle;
     property MinAngle: Single read GetMinAngle write SetMinAngle;
@@ -50,12 +50,12 @@
 
 { TCylinderSensorNode ----------------------------------------------- }
 
-function TCylinderSensorNode.GetAxisRotation: TVector4Single;
+function TCylinderSensorNode.GetAxisRotation: TVector4;
 begin
   Result := FdAxisRotation.Value;
 end;
 
-procedure TCylinderSensorNode.SetAxisRotation(const Value: TVector4Single);
+procedure TCylinderSensorNode.SetAxisRotation(const Value: TVector4);
 begin
   FdAxisRotation.Send(Value);
 end;

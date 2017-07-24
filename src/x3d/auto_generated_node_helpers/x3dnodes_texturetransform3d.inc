@@ -27,19 +27,19 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Center: TVector3 read GetCenter write SetCenter;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
 
 {$endif read_interface}
 
@@ -47,42 +47,42 @@
 
 { TTextureTransform3DNode ----------------------------------------------- }
 
-function TTextureTransform3DNode.GetCenter: TVector3Single;
+function TTextureTransform3DNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TTextureTransform3DNode.SetCenter(const Value: TVector3Single);
+procedure TTextureTransform3DNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
 
-function TTextureTransform3DNode.GetRotation: TVector4Single;
+function TTextureTransform3DNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure TTextureTransform3DNode.SetRotation(const Value: TVector4Single);
+procedure TTextureTransform3DNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function TTextureTransform3DNode.GetScale: TVector3Single;
+function TTextureTransform3DNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure TTextureTransform3DNode.SetScale(const Value: TVector3Single);
+procedure TTextureTransform3DNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function TTextureTransform3DNode.GetTranslation: TVector3Single;
+function TTextureTransform3DNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure TTextureTransform3DNode.SetTranslation(const Value: TVector3Single);
+procedure TTextureTransform3DNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;

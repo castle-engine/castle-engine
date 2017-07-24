@@ -16,6 +16,8 @@
 {$ifdef read_interface}
 
 type
+  TStringTextureNodeMap = specialize TDictionary<string, TAbstractTextureNode>;
+
   TColladaEffect = class
     Appearance: TAppearanceNode;
     { If this effect contains a texture for diffuse, this is the name
@@ -38,7 +40,7 @@ begin
 end;
 
 type
-  TColladaEffectList = class(specialize TFPGObjectList<TColladaEffect>)
+  TColladaEffectList = class(specialize TObjectList<TColladaEffect>)
     { Find a TColladaEffect with given Name, @nil if not found. }
     function Find(const Name: string): TColladaEffect;
   end;
@@ -80,7 +82,7 @@ begin
     { I simply drop 4th color component, I don't know what's the use of this
       (alpha is exposed by effect/materials parameter transparency, so color
       alpha is supposed to mean something else ?). }
-    Result := Vector3SingleCut(Vector4SingleFromStr(Child.TextData));
+    Result := Vector4FromStr(Child.TextData).XYZ;
   end else
   begin
     Child := Element.ChildElement('texture', false);
@@ -94,7 +96,7 @@ end;
 
 { Read elements of type "common_color_or_texture_type" in Collada >= 1.4.x,
   but allow only color specification. }
-function ReadColor(Element: TDOMElement): TVector3Single;
+function ReadColor(Element: TDOMElement): TVector3;
 var
   IgnoreTextureName, IgnoreTexCoordName: string;
 begin
@@ -171,14 +173,14 @@ var
           if I.Current.TagName = 'emission' then
             Mat.FdEmissiveColor.Value :=  ReadColor(I.Current) else
           if I.Current.TagName = 'ambient' then
-            Mat.FdAmbientIntensity.Value := VectorAverage(ReadColor(I.Current)) else
+            Mat.FdAmbientIntensity.Value := ReadColor(I.Current).Average else
           if I.Current.TagName = 'diffuse' then
           begin
             Mat.FdDiffuseColor.Value := ReadColorOrTexture(I.Current,
               DiffuseTextureName, DiffuseTexCoordName);
             if DiffuseTextureName <> '' then
             begin
-              Image := Samplers2D.Find(DiffuseTextureName);
+              Samplers2D.TryGetValue(DiffuseTextureName, Image); // Image will be nil if not found
               if Image <> nil then
               begin
                 Effect.DiffuseTexCoordName := DiffuseTexCoordName;
@@ -214,7 +216,7 @@ var
           end else
           if I.Current.TagName = 'transparent' then
           begin
-            Transparency *= VectorAverage(ReadColor(I.Current));
+            Transparency *= ReadColor(I.Current).Average;
             HasTransparency := true;
           end else
           if I.Current.TagName = 'transparency' then
@@ -248,7 +250,7 @@ var
         RefersTo := ReadChildText(Child, 'init_from');
         Image := Images.FindName(RefersTo) as TAbstractTextureNode;
         if Image <> nil then
-          Surfaces[Name] := Image else
+          Surfaces.AddOrSetValue(Name, Image) else
           WritelnWarning('Collada', Format('<surface> refers to missing image name "%s"',
             [RefersTo]));
       end else
@@ -258,9 +260,10 @@ var
         begin
           { Read <sampler2D>. It has <source>, referring to name on Surfaces. }
           RefersTo := ReadChildText(Child, 'source');
-          Image := Surfaces.Find(RefersTo);
+          Surfaces.TryGetValue(RefersTo, Image); // Image will be nil if not found
           if Image <> nil then
-            Samplers2D[Name] := Image else
+            Samplers2D.AddOrSetValue(Name, Image)
+          else
             WritelnWarning('Collada', Format('<sampler2D> refers to missing surface name "%s"',
               [RefersTo]));
         end; { else not handled <newparam> }

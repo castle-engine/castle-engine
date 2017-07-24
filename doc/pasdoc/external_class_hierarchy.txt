@@ -162,6 +162,7 @@ TFPGInterfacedObjectList=TFPSList
 TFPSMap=TFPSList
 TFPGMap=TFPSMap
 TFPGMapInterfacedObjectData=TFPSMap
+TDictionary=TObject
 
 TIniFile=TCustomIniFile
 TCustomIniFile=TObject

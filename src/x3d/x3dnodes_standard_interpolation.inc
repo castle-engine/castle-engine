@@ -426,7 +426,7 @@ var
 
     if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
     begin
-      Result.Items.AddListRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
+      Result.Items.AddSubRange(FdKeyValue.Items, Index * FrameValues, FrameValues);
     end else
       WritelnWarning('VRML/X3D', Format('Not enough keyValue items for %s interpolator',
         [X3DType]));
@@ -535,8 +535,8 @@ end;
 
 procedure TColorInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-{$define SingleInterpolatorType := TVector3Single}
-{$define SingleInterpolatorDefault := ZeroVector3Single}
+{$define SingleInterpolatorType := TVector3}
+{$define SingleInterpolatorDefault := TVector3.Zero}
 {$define SingleInterpolatorLerp := LerpRgbInHsv}
 SingleInterpolator
 
@@ -738,8 +738,8 @@ end;
 
 procedure TOrientationInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-{$define SingleInterpolatorType := TVector4Single}
-{$define SingleInterpolatorDefault := ZeroVector4Single}
+{$define SingleInterpolatorType := TVector4}
+{$define SingleInterpolatorDefault := TVector4.Zero}
 
 { In my tests, NLerp works as good as SLerp here.
   Although NLerp doesn't guarantee constant velocity, and should be
@@ -779,8 +779,8 @@ end;
 
 procedure TPositionInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-{$define SingleInterpolatorType := TVector3Single}
-{$define SingleInterpolatorDefault := ZeroVector3Single}
+{$define SingleInterpolatorType := TVector3}
+{$define SingleInterpolatorDefault := TVector3.Zero}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 
@@ -813,8 +813,8 @@ end;
 
 procedure TPositionInterpolator2DNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-{$define SingleInterpolatorType := TVector2Single}
-{$define SingleInterpolatorDefault := ZeroVector2Single}
+{$define SingleInterpolatorType := TVector2}
+{$define SingleInterpolatorDefault := TVector2.Zero}
 {$define SingleInterpolatorLerp := Lerp}
 SingleInterpolator
 

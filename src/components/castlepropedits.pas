@@ -112,7 +112,7 @@ begin
     Scene.Load(Root, true);
 
     Transform := T3DTransform.Create(Items);
-    Transform.Translation := Vector3Single(
+    Transform.Translation := Vector3(
       RandomFloatRange(-1, 1),
       RandomFloatRange(-1, 1),
       RandomFloatRange(-1, 1)

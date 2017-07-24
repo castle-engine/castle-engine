@@ -43,7 +43,7 @@ unit CastleStringUtils;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
 type
@@ -64,11 +64,16 @@ type
   public
     constructor Create;
     property Count: Integer read GetCount write SetCount;
+
     { Add strings from Source list.
-      Alias for AddStrings, useful for castlescriptarrays_implement.inc
-      (since it's consistent with AddList in other lists). }
-    procedure AddList(const Source: TStringList);
-    procedure AddArray(const A: array of string);
+      Alias for AddStrings, useful for usage with macros,
+      since it's consistent with AddRange in other lists. }
+    procedure AddRange(const Source: TStringList);
+    procedure AddList(const Source: TStringList); deprecated 'use AddRange, consistent with other lists';
+
+    procedure AddRange(const A: array of string);
+    procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
+
     procedure AssignArray(const A: array of string);
     function Equal(List: TCastleStringList): boolean; overload;
     function Equal(const A: array of string): boolean; overload;
@@ -78,14 +83,17 @@ type
 
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
-      to work for both TGenericStructList and for TCastleStringList. }
+      that work for both TCastleStringList and TStructList. }
     property L[Index: Integer]: string read GetL write SetL;
   end;
 
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
     but this is better if your key/values may be multiline. }
-  TStringStringMap = class(specialize TFPGMap<string, string>)
+  TStringStringMap = class(specialize TDictionary<string, string>)
+  strict private
+    function GetItems(const AKey: string): string;
+    procedure SetItems(const AKey: string; const AValue: string);
   public
     { Set given key value, trying to preserve previous key value too.
       This is useful for safely setting X3D META values.
@@ -103,6 +111,12 @@ type
 
     { Assign contents (all keys, values) of another TStringStringMap instance. }
     procedure Assign(const Source: TStringStringMap);
+
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: string read GetItems write SetItems; default;
   end;
 
 type
@@ -246,11 +260,11 @@ function PrefixRemove(const Prefix, S: string; IgnoreCase: boolean): string;
 function SuffixRemove(const Suffix, S: string; IgnoreCase: boolean): string;
 
 { Appends to a string S DataSize bytes from Data. }
-procedure SAppendData(var s: string; const Data; DataSize: integer);
+procedure SAppendData(var s: string; const Data; DataSize: integer); deprecated 'this function is not very useful';
 
 { A pointer to S[CharNum], that is just @@S[CharNum],
   avoiding range checking. }
-function SChar(const s: string; CharNum: integer): PChar;
+function SChar(const s: string; CharNum: integer): PChar; deprecated 'this function is not very useful';
 
 { Check whether S[Index] = C, also checking is Index within S length.
   Return false if S is too short, or the chatacter differs.
@@ -427,17 +441,6 @@ function SRight(const s: string; const rpart: integer): string;
 
 { If S = '' then returns NextPart, else returns S + PartSeparator + NextPart. }
 function SAppendPart(const s, PartSeparator, NextPart: string): string;
-
-{ Read file or URL contents to a string.
-  MimeType is returned, calculated just like the @link(Download) function.
-  If AllowStdIn, then URL = '-' (one dash) is treated specially:
-  it means to read contents from standard input (stdin, Input in Pascal). }
-function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): string;
-function FileToString(const URL: string;
-  const AllowStdIn: boolean = false): string;
-
-procedure StringToFile(const URL, contents: string);
 
 type
   EDeformatError = class(Exception);
@@ -931,7 +934,7 @@ const
 implementation
 
 uses Regexpr, StrUtils,
-  CastleFilesUtils, CastleClassUtils, CastleDownload, CastleLog;
+  CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
 
@@ -968,12 +971,17 @@ begin
   end;
 end;
 
+procedure TCastleStringList.AddRange(const Source: TStringList);
+begin
+  AddStrings(Source);
+end;
+
 procedure TCastleStringList.AddList(const Source: TStringList);
 begin
   AddStrings(Source);
 end;
 
-procedure TCastleStringList.AddArray(const A: array of string);
+procedure TCastleStringList.AddRange(const A: array of string);
 var
   I: Integer;
 begin
@@ -981,10 +989,15 @@ begin
     Add(A[I]);
 end;
 
+procedure TCastleStringList.AddArray(const A: array of string);
+begin
+  AddRange(A);
+end;
+
 procedure TCastleStringList.AssignArray(const A: array of string);
 begin
   Clear;
-  AddArray(A);
+  AddRange(A);
 end;
 
 procedure TCastleStringList.Reverse;
@@ -1035,21 +1048,14 @@ end;
 procedure TStringStringMap.PutPreserve(const Name, Content: string);
 var
   PreviousContent: string;
-  I: Integer;
 begin
-  I := IndexOf(Name);
-  if I <> -1 then
-  begin
-    PreviousContent := Data[I];
-    if PreviousContent <> Content then
-    begin
-      { move current content to -previous name }
-      KeyData[Name + '-previous'] := PreviousContent;
-      { set new content }
-      Data[I] := Content;
-    end;
-  end else
-    KeyData[Name] := Content;
+  if TryGetValue(Name, PreviousContent) and
+     (PreviousContent <> Content) then
+    { move current content to -previous name }
+    Items[Name + '-previous'] := PreviousContent;
+
+  { set new content }
+  Items[Name] := Content;
 end;
 
 function TStringStringMap.CreateCopy: TStringStringMap;
@@ -1062,11 +1068,21 @@ end;
 
 procedure TStringStringMap.Assign(const Source: TStringStringMap);
 var
-  I: Integer;
+  Pair: TDictionaryPair;
 begin
   Clear;
-  for I := 0 to Source.Count - 1 do
-    KeyData[Source.Keys[I]] := Source.Data[I];
+  for Pair in Source do
+    Items[Pair.Key] := Pair.Value;
+end;
+
+function TStringStringMap.GetItems(const AKey: string): string;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TStringStringMap.SetItems(const AKey: string; const AValue: string);
+begin
+  AddOrSetValue(AKey, AValue);
 end;
 
 { routines ------------------------------------------------------------------- }
@@ -1316,19 +1332,28 @@ var
 begin
   OldLen := Length(s);
   SetLength(s, OldLen+DataSize);
+  {$warnings off}
+  // using deprecated within deprecated
   Move(Data, SChar(s, OldLen+1)^ , DataSize);
+  {$warnings on}
 end;
 
 {$Include NoRQCheckBegin.inc}
 function SChar(const s: string; CharNum: integer): PChar;
-begin Result := @s[CharNum] end;
+begin
+  Result := @s[CharNum]
+end;
 {$Include NoRQCheckEnd.inc}
 
 function SCharIs(const s: string; index: integer; c: char): boolean;
-begin result:=(index <= Length(s)) and (s[index] = c) end;
+begin
+  Result := (index <= Length(s)) and (s[index] = c)
+end;
 
 function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boolean;
-begin result:=(index <= Length(s)) and (s[index] in chars) end;
+begin
+  Result := (index <= Length(s)) and (s[index] in chars)
+end;
 
 function SReadableForm(const S: string): string;
 var
@@ -1538,50 +1563,6 @@ begin
  if s = '' then
   result := NextPart else
   result := s+PartSeparator+NextPart;
-end;
-
-function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): string;
-var
-  F: TStream;
-begin
-  if AllowStdIn and (URL = '-') then
-  begin
-    Result := ReadGrowingStreamToString(StdInStream);
-    MimeType := '';
-  end else
-  begin
-    F := Download(URL, [], MimeType);
-    try
-      { Some streams can be optimized, just load file straight to string memory }
-      if (F is TFileStream) or
-         (F is TMemoryStream) then
-      begin
-        SetLength(Result, F.Size);
-        if F.Size <> 0 then
-          F.ReadBuffer(Result[1], Length(Result));
-      end else
-        Result := ReadGrowingStreamToString(F);
-    finally FreeAndNil(F) end;
-  end;
-end;
-
-function FileToString(const URL: string; const AllowStdIn: boolean): string;
-var
-  MimeType: string;
-begin
-  Result := FileToString(URL, AllowStdIn, MimeType { ignored });
-end;
-
-procedure StringToFile(const URL, Contents: string);
-var
-  F: TStream;
-begin
-  F := URLSaveStream(URL);
-  try
-    if Length(Contents) <> 0 then
-      F.WriteBuffer(Contents[1], Length(Contents));
-  finally FreeAndNil(F) end;
 end;
 
 procedure DeFormat(Data: string; const Format: string;
@@ -1874,19 +1855,8 @@ end;
 
 function SReplacePatterns(const s: string; const Parameters: TStringStringMap;
   const IgnoreCase: boolean): string;
-var
-  PatternsArray, ValuesArray: TDynamicStringArray;
-  I: Integer;
 begin
-  { calculate PatternsArray and ValuesArray from Parameters }
-  SetLength(PatternsArray, Parameters.Count);
-  SetLength(ValuesArray, Parameters.Count);
-  for I := 0 to Parameters.Count - 1 do
-  begin
-    PatternsArray[I] := Parameters.Keys[I];
-    ValuesArray[I] := Parameters.Data[I];
-  end;
-  Result := SReplacePatterns(S, PatternsArray, ValuesArray, IgnoreCase);
+  Result := SReplacePatterns(S, Parameters.Keys.ToArray, Parameters.Values.ToArray, IgnoreCase);
 end;
 
 function SReplacePatterns(const S: string;

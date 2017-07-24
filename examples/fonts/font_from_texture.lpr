@@ -75,7 +75,7 @@ begin
   Window := TCastleWindow.Create(Application);
 
   Background := TCastleSimpleBackground.Create(Window);
-  Background.Color := Vector4Single(0.4, 0.4, 0.0, 1.0);
+  Background.Color := Vector4(0.4, 0.4, 0.0, 1.0);
   Window.Controls.InsertFront(Background);
 
   MySimpleTextureFont := TSimpleTextureFont.Create(nil);
@@ -127,7 +127,7 @@ begin
   LabelDejaLarge := TCastleLabel.Create(Window);
   LabelDejaLarge.Text.Append('DejaVuSans font with anti-aliasing');
   LabelDejaLarge.Text.Append('and larger size.');
-  LabelDejaLarge.Color := Vector4Single(0.5, 0.5, 1, 1); // light blue
+  LabelDejaLarge.Color := Vector4(0.5, 0.5, 1, 1); // light blue
   LabelDejaLarge.Padding := 5;
   MyTextureFont := TTextureFont.Create(LabelDejaLarge);
   MyTextureFont.Load(ApplicationData('DejaVuSans.ttf'), 30, true);

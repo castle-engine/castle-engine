@@ -65,9 +65,9 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
     This makes calculation faster (but may yield incorrect results
     for concave polygons).) }
 function CreateNormals(CoordIndex: TLongintList;
-  Vertices: TVector3SingleList;
+  Vertices: TVector3List;
   CreaseAngleRad: Single;
-  const FromCCW, Convex: boolean): TVector3SingleList;
+  const FromCCW, Convex: boolean): TVector3List;
 
 { Calculate flat per-face normals for indexed faces.
 
@@ -76,8 +76,8 @@ function CreateNormals(CoordIndex: TLongintList;
   normal is stored, as this is most sensible compact representation.
   Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TLongintList;
-  vertices: TVector3SingleList;
-  const FromCCW, Convex: boolean): TVector3SingleList;
+  vertices: TVector3List;
+  const FromCCW, Convex: boolean): TVector3List;
 
 { Calculate always smooth normals per-vertex, for VRML/X3D coordinate-based
   node. We use TAbstractGeometryNode.CoordPolygons for this, so the node class
@@ -93,26 +93,27 @@ function CreateFlatNormals(coordIndex: TLongintList;
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  const FromCCW: boolean): TVector3SingleList;
+  const FromCCW: boolean): TVector3List;
 
 implementation
 
-uses X3DFields, CastleTriangulate, CastleGenericLists;
+uses Generics.Collections,
+  X3DFields, CastleTriangulate;
 
 type
   TFace = record
     StartIndex: Integer;
     IndicesCount: Integer;
-    Normal: TVector3Single;
+    Normal: TVector3;
   end;
   PFace = ^TFace;
 
-  TFaceList = specialize TGenericStructList<TFace>;
+  TFaceList = specialize TStructList<TFace>;
 
 function CreateNormals(CoordIndex: TLongintList;
-  Vertices: TVector3SingleList;
+  Vertices: TVector3List;
   CreaseAngleRad: Single;
-  const FromCCW, Convex: boolean): TVector3SingleList;
+  const FromCCW, Convex: boolean): TVector3List;
 var
   Faces: TFaceList;
   { For each vertex (this array Count is always Vertices.Count),
@@ -122,7 +123,7 @@ var
     of incorrect data, or some concave faces), a face is mentioned
     at most once (for given vertex) in this structure. }
   VerticesFaces: array of TIntegerList;
-  NormalsResult: TVector3SingleList absolute Result;
+  NormalsResult: TVector3List absolute Result;
   CosCreaseAngle: Single;
 
   procedure CalculateFacesAndVerticesFaces;
@@ -160,11 +161,9 @@ var
 
       { calculate ThisFace.Normal }
       ThisFace^.Normal := IndexedPolygonNormal(
-        { It could be written as "Addr(CoordIndex.L[ThisFace^.StartIndex])"
-          but FPC 3.1.1 fails to parse it. }
-        PArray_LongInt(CoordIndex.L(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
-        PVector3Single(Vertices.List), Vertices.Count,
-        Vector3Single(0, 0, 1), Convex);
+        PArray_LongInt(CoordIndex.Ptr(ThisFace^.StartIndex)), ThisFace^.IndicesCount,
+        PVector3(Vertices.List), Vertices.Count,
+        Vector3(0, 0, 1), Convex);
 
       { move to next face (omits the negative index we're standing on) }
       Inc(I);
@@ -176,7 +175,7 @@ var
     Vertex must be present at least once on a given face.
     Works OK also in cases when vertex is duplicated (present more than once)
     on a single face. }
-  procedure SetNormal(VertexNum: integer; const face: TFace; const Normal: TVector3Single);
+  procedure SetNormal(VertexNum: integer; const face: TFace; const Normal: TVector3);
   var
     I: Integer;
     Found: boolean;
@@ -214,7 +213,7 @@ var
 
   var
     I, J: Integer;
-    Normal: TVector3Single;
+    Normal: TVector3;
   begin
     ThisVertexFaces := VerticesFaces[VertexNum];
     for I := 0 to ThisVertexFaces.Count - 1 do
@@ -222,8 +221,8 @@ var
       Normal := Faces.L[ThisVertexFaces[I]].Normal;
       for J := 0 to ThisVertexFaces.Count - 1 do
         if (I <> J) and FaceCanBeSmoothedWith(I, J) then
-          VectorAddVar(Normal, Faces.L[ThisVertexFaces[J]].Normal);
-      NormalizeVar(Normal);
+          Normal := Normal + Faces.L[ThisVertexFaces[J]].Normal;
+      Normal.NormalizeMe;
       SetNormal(VertexNum, Faces.L[ThisVertexFaces[I]], Normal);
     end;
   end;
@@ -247,7 +246,7 @@ begin
       { calculate Faces and VerticesFaces contents }
       CalculateFacesAndVerticesFaces;
 
-      Result := TVector3SingleList.Create;
+      Result := TVector3List.Create;
       Result.Count := CoordIndex.Count;
 
       { for each vertex, calculate all his normals (on all his faces) }
@@ -262,14 +261,14 @@ begin
 end;
 
 function CreateFlatNormals(CoordIndex: TLongintList;
-  Vertices: TVector3SingleList;
-  const FromCCW, Convex: boolean): TVector3SingleList;
+  Vertices: TVector3List;
+  const FromCCW, Convex: boolean): TVector3List;
 var
   I, StartIndex: Integer;
   FaceNumber: Integer;
 begin
   { CoordIndex.Count is just a maximum Count, we will shrink it later. }
-  Result := TVector3SingleList.Create;
+  Result := TVector3List.Create;
   try
     Result.Count := CoordIndex.Count;
     FaceNumber := 0;
@@ -280,10 +279,8 @@ begin
       StartIndex := I;
       while (I < CoordIndex.Count) and (CoordIndex.L[I] >= 0) do Inc(I);
       Result.L[FaceNumber] := IndexedPolygonNormal(
-        PArray_LongInt(CoordIndex.L(StartIndex)),
-        I - StartIndex,
-        PVector3Single(Vertices.List), Vertices.Count,
-        Vector3Single(0, 0, 0), Convex);
+        PArray_LongInt(CoordIndex.Ptr(StartIndex)), I - StartIndex,
+        Vertices.L, Vertices.Count, Vector3(0, 0, 0), Convex);
       Inc(FaceNumber);
 
       Inc(I);
@@ -300,9 +297,9 @@ end;
 type
   TCoordinateNormalsCalculator = class
   public
-    Normals: TVector3SingleList;
+    Normals: TVector3List;
     CoordIndex: TLongIntList;
-    Coord: TVector3SingleList;
+    Coord: TVector3List;
     Convex: boolean;
     procedure Polygon(const Indexes: array of Cardinal);
   end;
@@ -310,7 +307,7 @@ type
 procedure TCoordinateNormalsCalculator.Polygon(
   const Indexes: array of Cardinal);
 var
-  FaceNormal: TVector3Single;
+  FaceNormal: TVector3;
   { DirectIndexes is LongInt, not Cardinal array, since we cannot
     guarantee that CoordIndex items are >= 0. }
   DirectIndexes: array of LongInt;
@@ -330,8 +327,7 @@ begin
 
   FaceNormal := IndexedPolygonNormal(
     PArray_LongInt(DirectIndexes), Length(DirectIndexes),
-    PVector3Single(Coord.List), Coord.Count,
-    Vector3Single(0, 0, 0), Convex);
+    Coord.L, Coord.Count, Vector3(0, 0, 0), Convex);
 
   for I := 0 to Length(Indexes) - 1 do
   begin
@@ -341,14 +337,14 @@ begin
       to a non-existing vertex index. VRML/X3D code will warn about it
       elsewhere, here just make sure we don't crash. }
     if Index < Normals.Count then
-      VectorAddVar(Normals.L[Index], FaceNormal);
+      Normals.L[Index] := Normals.L[Index] + FaceNormal;
   end;
 end;
 
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  const FromCCW: boolean): TVector3SingleList;
+  const FromCCW: boolean): TVector3List;
 var
   Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;
@@ -358,7 +354,7 @@ begin
   { Node coordinate-based, but specified with empty coord }
   if C = nil then Exit(nil);
 
-  Result := TVector3SingleList.Create;
+  Result := TVector3List.Create;
   try
     Result.Count := C.Count; { TFPSList initialized everything to 0 }
 

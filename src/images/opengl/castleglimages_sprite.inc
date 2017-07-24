@@ -57,7 +57,7 @@ type
   TSprite = class
   private
     type
-      TSpriteAnimations = specialize TFPGObjectList<TSpriteAnimation>;
+      TSpriteAnimations = specialize TObjectList<TSpriteAnimation>;
     var
     FImage: TGLImage;
     FX, FY: Integer;
@@ -80,11 +80,11 @@ type
     function GetCenterY: Single;
     function GetFrameRect: TRectangle;
     function GetDrawRect: TRectangle;
-    function GetCenter: TVector2Single;
+    function GetCenter: TVector2;
     function GetPosition: TVector2Integer;
     function GetRotation: Single;
     procedure SetTime(AValue: TFloatTime);
-    procedure SetCenter(AValue: TVector2Single);
+    procedure SetCenter(AValue: TVector2);
     procedure SetCenterX(AValue: Single);
     procedure SetCenterY(AValue: Single);
     procedure SetDrawRect(AValue: TRectangle);
@@ -209,7 +209,7 @@ type
     property DrawRect: TRectangle read GetDrawRect write SetDrawRect;
 
     { Center of rotation. Values between 0 and 1. }
-    property Center: TVector2Single read GetCenter write SetCenter;
+    property Center: TVector2 read GetCenter write SetCenter;
 
     { Rotation in degrees. }
     property Rotation: Single read GetRotation write SetRotation default 0;
@@ -329,7 +329,7 @@ type
   end;
 
   { List of sprites. }
-  TSpriteList = specialize TFPGObjectList<TSprite>;
+  TSpriteList = specialize TObjectList<TSprite>;
 
 {$endif read_interface}
 
@@ -445,13 +445,13 @@ begin
   Result.Height := FDrawingHeight;
 end;
 
-function TSprite.GetCenter: TVector2Single;
+function TSprite.GetCenter: TVector2;
 begin
   Result[0] := CenterX;
   Result[1] := CenterY;
 end;
 
-procedure TSprite.SetCenter(AValue: TVector2Single);
+procedure TSprite.SetCenter(AValue: TVector2);
 begin
   CenterX := AValue[0];
   CenterY := AValue[1];

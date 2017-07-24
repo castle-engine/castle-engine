@@ -21,8 +21,8 @@ unit X3DLoadInternalMD3;
 
 interface
 
-uses SysUtils, Classes, FGL,
-  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes, CastleGenericLists,
+uses SysUtils, Classes, Generics.Collections,
+  CastleUtils, CastleClassUtils, CastleVectors, X3DNodes,
   CastleInternalNodeInterpolator;
 
 { Load MD3 animation as a sequence of static X3D models. }
@@ -37,17 +37,17 @@ type
   TMd3Triangle = record
     Indexes: array [0..2] of LongWord;
   end;
-  TMd3TriangleList = specialize TGenericStructList<TMd3Triangle>;
+  TMd3TriangleList = specialize TStructList<TMd3Triangle>;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
     Normal: SmallInt;
   end;
   PMd3Vertex = ^TMd3Vertex;
-  TMd3VertexList = specialize TGenericStructList<TMd3Vertex>;
+  TMd3VertexList = specialize TStructList<TMd3Vertex>;
 
-  TMd3TexCoord = TVector2Single;
-  TMd3TexCoordList = TVector2SingleList;
+  TMd3TexCoord = TVector2;
+  TMd3TexCoordList = TVector2List;
 
   TMd3Surface = class
   private
@@ -77,7 +77,7 @@ type
     VertexesInFrameCount: Cardinal;
   end;
 
-  TMd3SurfaceList = specialize TFPGObjectList<TMd3Surface>;
+  TMd3SurfaceList = specialize TObjectList<TMd3Surface>;
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
@@ -162,17 +162,17 @@ type
   end;
 
   TMd3Frame = record
-    MinBounds: TVector3Single;
-    MaxBounds: TVector3Single;
-    LocalOrigin: TVector3Single;
+    MinBounds: TVector3;
+    MaxBounds: TVector3;
+    LocalOrigin: TVector3;
     Radius: Single;
     Name: array [0..15] of char;
   end;
 
   TMd3Tag = record
     Name: array [0..Md3MaxQPath - 1] of char;
-    Origin: TVector3Single;
-    Axis: array [0..2] of TVector3Single;
+    Origin: TVector3;
+    Axis: array [0..2] of TVector3;
   end;
 
   TMd3FileSurface = record
@@ -457,7 +457,7 @@ var
     V := Vertexes.Ptr(VertexesInFrameCount * FrameNumber);
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.L[I] := Vector3Single(
+      Result.FdPoint.Items.L[I] := Vector3(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -471,14 +471,14 @@ var
     TextureCoords: TMd3TexCoordList): TTextureCoordinateNode;
   var
     I: Integer;
-    V: PVector2Single;
+    V: PVector2;
   begin
     Result := TTextureCoordinateNode.Create('', BaseUrl);
     Result.FdPoint.Items.Count := TextureCoords.Count;
-    V := PVector2Single(TextureCoords.List);
+    V := TextureCoords.L;
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.L[I] := Vector2Single(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.L[I] := Vector2(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -532,7 +532,7 @@ begin
   Result.HasForceVersion := true;
   Result.ForceVersion := X3DVersion;
 
-  SceneBox := EmptyBox3D;
+  SceneBox := TBox3D.Empty;
 
   if Md3.TextureURL <> '' then
   begin
@@ -585,7 +585,7 @@ begin
         frame will result in one frame inside TCastlePrecalculatedAnimation.
         So don't try to merge these frames (on the assumption that
         they are not merged in MD3... so hopefully there's no need for it ?). }
-      Animation.EqualityEpsilon := 0.0;
+      Animation.Epsilon := 0.0;
 
       { Really, no sensible default for Loop/Backwards here...
         I set Loop to @false, otherwise it's not clear for user when

@@ -61,8 +61,7 @@ type
   TRenderContext = class
   strict private
     type
-      TScissorList = class(TFPObjectList)
-      //class(specialize TFPGObjectList<TScissor>) // see comments in "uses" clause -- we cannot use FGL unit here
+      TScissorList = class(specialize TObjectList<TScissor>)
       public
         procedure Update;
       end;
@@ -139,7 +138,7 @@ begin
   inherited;
   FLineWidth := 1;
   FPointSize := 1;
-  FGlobalAmbient := Vector3Single(0.2, 0.2, 0.2);
+  FGlobalAmbient := Vector3(0.2, 0.2, 0.2);
   FEnabledScissors := TScissorList.Create(false);
 end;
 
@@ -169,7 +168,7 @@ begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if not VectorsPerfectlyEqual(FClearColor, ClearColor) then
+  if not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
     glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
@@ -218,7 +217,7 @@ begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if not VectorsPerfectlyEqual(FGlobalAmbient, Value) then
+  if not TVector3.PerfectlyEquals(FGlobalAmbient, Value) then
   begin
     FGlobalAmbient := Value;
 
@@ -226,7 +225,7 @@ begin
     { We always set "1" as global ambient alpha.
       This alpha does not have any useful interpretation, it seems,
       so don't let it change. }
-    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4Single(FGlobalAmbient, 1));
+    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4(FGlobalAmbient, 1));
     {$endif}
   end;
 end;
@@ -261,9 +260,9 @@ var
 begin
   if Count <> 0 then
   begin
-    R := TScissor(Items[0]).Rect;
+    R := Items[0].Rect;
     for I := 1 to Count - 1 do
-      R := R * TScissor(Items[I]).Rect;
+      R := R * Items[I].Rect;
     glScissor(R.Left, R.Bottom, R.Width, R.Height);
     glEnable(GL_SCISSOR_TEST);
   end else

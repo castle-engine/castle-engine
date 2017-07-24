@@ -20,8 +20,9 @@ begin
     the first arg as TCasScriptVecXx. }
   TCasScriptVecXx(AResult).Value := TCasScriptVecXx(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TCasScriptVecXx(AResult).Value := VectorAdd(
-      TCasScriptVecXx(AResult).Value, TCasScriptVecXx(Arguments[I]).Value);
+    TCasScriptVecXx(AResult).Value :=
+      TCasScriptVecXx(AResult).Value +
+      TCasScriptVecXx(Arguments[I]).Value;
 end;
 
 class procedure TCasScriptVecXx.HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -31,21 +32,21 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
   TCasScriptVecXx(AResult).Value := TCasScriptVecXx(Arguments[0]).Value;
   for I := 1 to Length(Arguments) - 1 do
-    TCasScriptVecXx(AResult).Value := VectorSubtract(
-      TCasScriptVecXx(AResult).Value, TCasScriptVecXx(Arguments[I]).Value);
+    TCasScriptVecXx(AResult).Value :=
+      TCasScriptVecXx(AResult).Value - TCasScriptVecXx(Arguments[I]).Value;
 end;
 
 class procedure TCasScriptVecXx.HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
-  TCasScriptVecXx(AResult).Value := VectorNegate(TCasScriptVecXx(Arguments[0]).Value);
+  TCasScriptVecXx(AResult).Value := -TCasScriptVecXx(Arguments[0]).Value;
 end;
 
 class procedure TCasScriptVecXx.HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
-    VectorsPerfectlyEqual(
+    TVectorXxx.PerfectlyEquals(
       TCasScriptVecXx(Arguments[0]).Value,
       TCasScriptVecXx(Arguments[1]).Value);
 end;
@@ -54,7 +55,7 @@ class procedure TCasScriptVecXx.HandleNotEqual(AFunction: TCasScriptFunction; co
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
   TCasScriptBoolean(AResult).Value :=
-    not VectorsPerfectlyEqual(
+    not TVectorXxx.PerfectlyEquals(
       TCasScriptVecXx(Arguments[0]).Value,
       TCasScriptVecXx(Arguments[1]).Value);
 end;
@@ -64,23 +65,23 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
   if Arguments[0] is TCasScriptFloat then
   begin
-    TCasScriptVecXx(AResult).Value := VectorScale(
-      TCasScriptVecXx(Arguments[1]).Value,
-      TCasScriptFloat(Arguments[0]).Value);
+    TCasScriptVecXx(AResult).Value :=
+      TCasScriptVecXx(Arguments[1]).Value *
+      TCasScriptFloat(Arguments[0]).Value;
   end else
   begin
-    TCasScriptVecXx(AResult).Value := VectorScale(
-      TCasScriptVecXx(Arguments[0]).Value,
-      TCasScriptFloat(Arguments[1]).Value);
+    TCasScriptVecXx(AResult).Value :=
+      TCasScriptVecXx(Arguments[0]).Value *
+      TCasScriptFloat(Arguments[1]).Value;
   end;
 end;
 
 class procedure TCasScriptVecXx.HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXx);
-  TCasScriptVecXx(AResult).Value := VectorScale(
-    TCasScriptVecXx(Arguments[0]).Value,
-    1/TCasScriptFloat(Arguments[1]).Value);
+  TCasScriptVecXx(AResult).Value :=
+    TCasScriptVecXx(Arguments[0]).Value *
+    1/TCasScriptFloat(Arguments[1]).Value;
 end;
 
 class procedure TCasScriptVecXx.HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -169,23 +170,22 @@ end;
 class procedure TCasScriptVecXx.HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
-  TCasScriptFloat(AResult).Value :=
-    VectorLen(TCasScriptVecXx(Arguments[0]).Value);
+  TCasScriptFloat(AResult).Value := TCasScriptVecXx(Arguments[0]).Value.Length;
 end;
 
 class procedure TCasScriptVecXx.HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
-  TCasScriptFloat(AResult).Value :=
-    VectorLenSqr(TCasScriptVecXx(Arguments[0]).Value);
+  TCasScriptFloat(AResult).Value := TCasScriptVecXx(Arguments[0]).Value.LengthSqr;
 end;
 
 class procedure TCasScriptVecXx.HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
   TCasScriptFloat(AResult).Value :=
-    VectorDotProduct( TCasScriptVecXx(Arguments[0]).Value,
-                      TCasScriptVecXx(Arguments[1]).Value );
+    TVectorXxx.DotProduct(
+      TCasScriptVecXx(Arguments[0]).Value,
+      TCasScriptVecXx(Arguments[1]).Value );
 end;
 
 procedure TCasScriptVecXx.AssignValue(Source: TCasScriptValue);

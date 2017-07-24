@@ -16,10 +16,12 @@
 { TMX files processing unit. Based on Tiled v0.17. }
 unit CastleTiledMap;
 
+{$I castleconf.inc}
+
 interface
 
 uses
-  Classes, SysUtils, DOM, XMLRead, base64, zstream, CastleGenericLists,
+  Classes, SysUtils, DOM, XMLRead, base64, zstream,
   CastleVectors, CastleColors, CastleUtils, CastleURIUtils, CastleXMLUtils,
   CastleLog, CastleStringUtils, CastleUIControls, CastleGLImages;
 
@@ -35,7 +37,7 @@ type
   end;
 
   { List of properties. }
-  TProperties = specialize TGenericStructList<TProperty>;
+  TProperties = specialize TStructList<TProperty>;
 
   TEncodingType = (etNone, etBase64, etCSV);
   TCompressionType = (ctNone, ctGZip, ctZLib);
@@ -103,13 +105,13 @@ type
     Visible: Boolean;
     Properties: TProperties;
     { List of points for poligon and poliline. }
-    Points: TVector2SingleList;
+    Points: TVector2List;
     Primitive: TTileObjectPrimitive;
     Image: TImage;
     procedure Free;
   end;
 
-  TTiledObjects = class(specialize TGenericStructList<TTiledObject>)
+  TTiledObjects = class(specialize TStructList<TTiledObject>)
     destructor Destroy; override;
   end;
 
@@ -153,7 +155,7 @@ type
   end;
 
   { List of layers. }
-  TLayers = class(specialize TGenericStructList<TLayer>)
+  TLayers = class(specialize TStructList<TLayer>)
     { Should we call Free on all our items when being destroyed. }
     FreeChildren: boolean;
     destructor Destroy; override;
@@ -171,7 +173,7 @@ type
   { Contains a list of animation frames.
     As of Tiled 0.10, each tile can have exactly one animation associated with it.
     In the future, there could be support for multiple named animations on a tile. }
-  TAnimation = specialize TGenericStructList<TFrame>;
+  TAnimation = specialize TStructList<TFrame>;
 
   TTile = object
     { The local tile ID within its tileset. }
@@ -193,7 +195,7 @@ type
   end;
 
   { Tiles list. }
-  TTiles = class(specialize TGenericStructList<TTile>)
+  TTiles = class(specialize TStructList<TTile>)
     destructor Destroy; override;
   end;
 
@@ -207,7 +209,7 @@ type
 
   { This element defines an array of terrain types, which can be referenced from
     the terrain attribute of the tile element. }
-  TTerrainTypes = specialize TGenericStructList<TTerrain>;
+  TTerrainTypes = specialize TStructList<TTerrain>;
 
   PTileset = ^TTileset;
   { Tileset definition. }
@@ -251,7 +253,7 @@ type
   end;
 
   { List of tilesets. }
-  TTilesets = class(specialize TGenericStructList<TTileset>)
+  TTilesets = class(specialize TStructList<TTileset>)
     destructor Destroy; override;
   end;
 
@@ -415,7 +417,7 @@ var
 begin
   with NewTileset do
   begin
-    TileOffset := ZeroVector2Integer;
+    TileOffset := TVector2Integer.Zero;
     Properties := nil;
     Tiles := nil;
     Spacing := 0;
@@ -538,7 +540,7 @@ end;
 
 procedure TTiledMap.LoadImage(Element: TDOMElement; var AImage: TImage);
 const
-  DefaultTrans: TCastleColorRGB = (1.0, 0.0, 1.0); {Fuchsia}
+  DefaultTrans: TCastleColorRGB = (Data: (1.0, 0.0, 1.0)); {Fuchsia}
 var
   I: TXMLElementIterator;
   TmpStr: string;
@@ -688,7 +690,7 @@ var
   I: TXMLElementIterator;
   TmpStr: string;
 
-  procedure ReadPoints(const PointsString: string; var PointsList: TVector2SingleList);
+  procedure ReadPoints(const PointsString: string; var PointsList: TVector2List);
   const
     PointsSeparator = Char(' ');
     SinglePointSeparator = Char(',');
@@ -696,9 +698,9 @@ var
     tmpChar, p: PChar;
     tmpChar2, p2: PChar;
     tmpPoint, tmpPoint2: string;
-    VectorPoint: TVector2Single;
+    VectorPoint: TVector2;
   begin
-    if not Assigned(PointsList) then PointsList := TVector2SingleList.Create;
+    if not Assigned(PointsList) then PointsList := TVector2List.Create;
     p := PChar(PointsString);
     repeat
       tmpChar := StrPos(p, PointsSeparator);
@@ -970,8 +972,8 @@ begin
       Probability := StrToFloat(TmpStr);
 
     WritelnLog('LoadTile Id', IntToStr(Id));
-    WritelnLog('LoadTile Terrain', VectorToNiceStr(Terrain));
-    WritelnLog('LoadTile Probability', FloatToStr(Probability));
+    WritelnLog('LoadTile Terrain', Terrain.ToString);
+    WritelnLog('LoadTile Probability %f', [Probability]);
 
     I := TXMLElementIterator.Create(Element);
     try

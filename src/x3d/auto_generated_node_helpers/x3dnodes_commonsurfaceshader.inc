@@ -37,8 +37,8 @@
     procedure SetAlphaTextureChannelMask(const Value: string);
     function GetAlphaTexture: TAbstractTextureNode;
     procedure SetAlphaTexture(const Value: TAbstractTextureNode);
-    function GetAmbientFactor: TVector3Single;
-    procedure SetAmbientFactor(const Value: TVector3Single);
+    function GetAmbientFactor: TVector3;
+    procedure SetAmbientFactor(const Value: TVector3);
     function GetAmbientTextureId: Integer;
     procedure SetAmbientTextureId(const Value: Integer);
     function GetAmbientTextureCoordinatesId: Integer;
@@ -47,8 +47,8 @@
     procedure SetAmbientTextureChannelMask(const Value: string);
     function GetAmbientTexture: TAbstractTextureNode;
     procedure SetAmbientTexture(const Value: TAbstractTextureNode);
-    function GetDiffuseFactor: TVector3Single;
-    procedure SetDiffuseFactor(const Value: TVector3Single);
+    function GetDiffuseFactor: TVector3;
+    procedure SetDiffuseFactor(const Value: TVector3);
     function GetDiffuseTextureId: Integer;
     procedure SetDiffuseTextureId(const Value: Integer);
     function GetDiffuseTextureCoordinatesId: Integer;
@@ -69,8 +69,8 @@
     procedure SetDisplacementTextureCoordinatesId(const Value: Integer);
     function GetDisplacementTexture: TAbstractTextureNode;
     procedure SetDisplacementTexture(const Value: TAbstractTextureNode);
-    function GetEmissiveFactor: TVector3Single;
-    procedure SetEmissiveFactor(const Value: TVector3Single);
+    function GetEmissiveFactor: TVector3;
+    procedure SetEmissiveFactor(const Value: TVector3);
     function GetEmissiveTextureId: Integer;
     procedure SetEmissiveTextureId(const Value: Integer);
     function GetEmissiveTextureCoordinatesId: Integer;
@@ -79,8 +79,8 @@
     procedure SetEmissiveTextureChannelMask(const Value: string);
     function GetEmissiveTexture: TAbstractTextureNode;
     procedure SetEmissiveTexture(const Value: TAbstractTextureNode);
-    function GetEnvironmentFactor: TVector3Single;
-    procedure SetEnvironmentFactor(const Value: TVector3Single);
+    function GetEnvironmentFactor: TVector3;
+    procedure SetEnvironmentFactor(const Value: TVector3);
     function GetEnvironmentTextureId: Integer;
     procedure SetEnvironmentTextureId(const Value: Integer);
     function GetEnvironmentTextureCoordinatesId: Integer;
@@ -103,16 +103,16 @@
     procedure SetNormalTextureCoordinatesId(const Value: Integer);
     function GetNormalTextureChannelMask: string;
     procedure SetNormalTextureChannelMask(const Value: string);
-    function GetNormalScale: TVector3Single;
-    procedure SetNormalScale(const Value: TVector3Single);
-    function GetNormalBias: TVector3Single;
-    procedure SetNormalBias(const Value: TVector3Single);
+    function GetNormalScale: TVector3;
+    procedure SetNormalScale(const Value: TVector3);
+    function GetNormalBias: TVector3;
+    procedure SetNormalBias(const Value: TVector3);
     function GetNormalTexture: TAbstractTextureNode;
     procedure SetNormalTexture(const Value: TAbstractTextureNode);
     function GetNormalTextureParallaxHeight: Single;
     procedure SetNormalTextureParallaxHeight(const Value: Single);
-    function GetReflectionFactor: TVector3Single;
-    procedure SetReflectionFactor(const Value: TVector3Single);
+    function GetReflectionFactor: TVector3;
+    procedure SetReflectionFactor(const Value: TVector3);
     function GetReflectionTextureId: Integer;
     procedure SetReflectionTextureId(const Value: Integer);
     function GetReflectionTextureCoordinatesId: Integer;
@@ -131,8 +131,8 @@
     procedure SetShininessTextureChannelMask(const Value: string);
     function GetShininessTexture: TAbstractTextureNode;
     procedure SetShininessTexture(const Value: TAbstractTextureNode);
-    function GetSpecularFactor: TVector3Single;
-    procedure SetSpecularFactor(const Value: TVector3Single);
+    function GetSpecularFactor: TVector3;
+    procedure SetSpecularFactor(const Value: TVector3);
     function GetSpecularTextureId: Integer;
     procedure SetSpecularTextureId(const Value: Integer);
     function GetSpecularTextureCoordinatesId: Integer;
@@ -141,8 +141,8 @@
     procedure SetSpecularTextureChannelMask(const Value: string);
     function GetSpecularTexture: TAbstractTextureNode;
     procedure SetSpecularTexture(const Value: TAbstractTextureNode);
-    function GetTransmissionFactor: TVector3Single;
-    procedure SetTransmissionFactor(const Value: TVector3Single);
+    function GetTransmissionFactor: TVector3;
+    procedure SetTransmissionFactor(const Value: TVector3);
     function GetTransmissionTextureId: Integer;
     procedure SetTransmissionTextureId(const Value: Integer);
     function GetTransmissionTextureCoordinatesId: Integer;
@@ -167,12 +167,12 @@
     property AlphaTextureCoordinatesId: Integer read GetAlphaTextureCoordinatesId write SetAlphaTextureCoordinatesId;
     property AlphaTextureChannelMask: string read GetAlphaTextureChannelMask write SetAlphaTextureChannelMask;
     property AlphaTexture: TAbstractTextureNode read GetAlphaTexture write SetAlphaTexture;
-    property AmbientFactor: TVector3Single read GetAmbientFactor write SetAmbientFactor;
+    property AmbientFactor: TVector3 read GetAmbientFactor write SetAmbientFactor;
     property AmbientTextureId: Integer read GetAmbientTextureId write SetAmbientTextureId;
     property AmbientTextureCoordinatesId: Integer read GetAmbientTextureCoordinatesId write SetAmbientTextureCoordinatesId;
     property AmbientTextureChannelMask: string read GetAmbientTextureChannelMask write SetAmbientTextureChannelMask;
     property AmbientTexture: TAbstractTextureNode read GetAmbientTexture write SetAmbientTexture;
-    property DiffuseFactor: TVector3Single read GetDiffuseFactor write SetDiffuseFactor;
+    property DiffuseFactor: TVector3 read GetDiffuseFactor write SetDiffuseFactor;
     property DiffuseTextureId: Integer read GetDiffuseTextureId write SetDiffuseTextureId;
     property DiffuseTextureCoordinatesId: Integer read GetDiffuseTextureCoordinatesId write SetDiffuseTextureCoordinatesId;
     property DiffuseTextureChannelMask: string read GetDiffuseTextureChannelMask write SetDiffuseTextureChannelMask;
@@ -183,12 +183,12 @@
     property DisplacementTextureId: Integer read GetDisplacementTextureId write SetDisplacementTextureId;
     property DisplacementTextureCoordinatesId: Integer read GetDisplacementTextureCoordinatesId write SetDisplacementTextureCoordinatesId;
     property DisplacementTexture: TAbstractTextureNode read GetDisplacementTexture write SetDisplacementTexture;
-    property EmissiveFactor: TVector3Single read GetEmissiveFactor write SetEmissiveFactor;
+    property EmissiveFactor: TVector3 read GetEmissiveFactor write SetEmissiveFactor;
     property EmissiveTextureId: Integer read GetEmissiveTextureId write SetEmissiveTextureId;
     property EmissiveTextureCoordinatesId: Integer read GetEmissiveTextureCoordinatesId write SetEmissiveTextureCoordinatesId;
     property EmissiveTextureChannelMask: string read GetEmissiveTextureChannelMask write SetEmissiveTextureChannelMask;
     property EmissiveTexture: TAbstractTextureNode read GetEmissiveTexture write SetEmissiveTexture;
-    property EnvironmentFactor: TVector3Single read GetEnvironmentFactor write SetEnvironmentFactor;
+    property EnvironmentFactor: TVector3 read GetEnvironmentFactor write SetEnvironmentFactor;
     property EnvironmentTextureId: Integer read GetEnvironmentTextureId write SetEnvironmentTextureId;
     property EnvironmentTextureCoordinatesId: Integer read GetEnvironmentTextureCoordinatesId write SetEnvironmentTextureCoordinatesId;
     property EnvironmentTextureChannelMask: string read GetEnvironmentTextureChannelMask write SetEnvironmentTextureChannelMask;
@@ -200,11 +200,11 @@
     property NormalTextureId: Integer read GetNormalTextureId write SetNormalTextureId;
     property NormalTextureCoordinatesId: Integer read GetNormalTextureCoordinatesId write SetNormalTextureCoordinatesId;
     property NormalTextureChannelMask: string read GetNormalTextureChannelMask write SetNormalTextureChannelMask;
-    property NormalScale: TVector3Single read GetNormalScale write SetNormalScale;
-    property NormalBias: TVector3Single read GetNormalBias write SetNormalBias;
+    property NormalScale: TVector3 read GetNormalScale write SetNormalScale;
+    property NormalBias: TVector3 read GetNormalBias write SetNormalBias;
     property NormalTexture: TAbstractTextureNode read GetNormalTexture write SetNormalTexture;
     property NormalTextureParallaxHeight: Single read GetNormalTextureParallaxHeight write SetNormalTextureParallaxHeight;
-    property ReflectionFactor: TVector3Single read GetReflectionFactor write SetReflectionFactor;
+    property ReflectionFactor: TVector3 read GetReflectionFactor write SetReflectionFactor;
     property ReflectionTextureId: Integer read GetReflectionTextureId write SetReflectionTextureId;
     property ReflectionTextureCoordinatesId: Integer read GetReflectionTextureCoordinatesId write SetReflectionTextureCoordinatesId;
     property ReflectionTextureChannelMask: string read GetReflectionTextureChannelMask write SetReflectionTextureChannelMask;
@@ -214,12 +214,12 @@
     property ShininessTextureCoordinatesId: Integer read GetShininessTextureCoordinatesId write SetShininessTextureCoordinatesId;
     property ShininessTextureChannelMask: string read GetShininessTextureChannelMask write SetShininessTextureChannelMask;
     property ShininessTexture: TAbstractTextureNode read GetShininessTexture write SetShininessTexture;
-    property SpecularFactor: TVector3Single read GetSpecularFactor write SetSpecularFactor;
+    property SpecularFactor: TVector3 read GetSpecularFactor write SetSpecularFactor;
     property SpecularTextureId: Integer read GetSpecularTextureId write SetSpecularTextureId;
     property SpecularTextureCoordinatesId: Integer read GetSpecularTextureCoordinatesId write SetSpecularTextureCoordinatesId;
     property SpecularTextureChannelMask: string read GetSpecularTextureChannelMask write SetSpecularTextureChannelMask;
     property SpecularTexture: TAbstractTextureNode read GetSpecularTexture write SetSpecularTexture;
-    property TransmissionFactor: TVector3Single read GetTransmissionFactor write SetTransmissionFactor;
+    property TransmissionFactor: TVector3 read GetTransmissionFactor write SetTransmissionFactor;
     property TransmissionTextureId: Integer read GetTransmissionTextureId write SetTransmissionTextureId;
     property TransmissionTextureCoordinatesId: Integer read GetTransmissionTextureCoordinatesId write SetTransmissionTextureCoordinatesId;
     property TransmissionTextureChannelMask: string read GetTransmissionTextureChannelMask write SetTransmissionTextureChannelMask;
@@ -289,12 +289,12 @@ begin
   FdAlphaTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetAmbientFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetAmbientFactor: TVector3;
 begin
   Result := FdAmbientFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetAmbientFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetAmbientFactor(const Value: TVector3);
 begin
   FdAmbientFactor.Send(Value);
 end;
@@ -342,12 +342,12 @@ begin
   FdAmbientTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetDiffuseFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetDiffuseFactor: TVector3;
 begin
   Result := FdDiffuseFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetDiffuseFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetDiffuseFactor(const Value: TVector3);
 begin
   FdDiffuseFactor.Send(Value);
 end;
@@ -461,12 +461,12 @@ begin
   FdDisplacementTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetEmissiveFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetEmissiveFactor: TVector3;
 begin
   Result := FdEmissiveFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetEmissiveFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetEmissiveFactor(const Value: TVector3);
 begin
   FdEmissiveFactor.Send(Value);
 end;
@@ -514,12 +514,12 @@ begin
   FdEmissiveTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetEnvironmentFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetEnvironmentFactor: TVector3;
 begin
   Result := FdEnvironmentFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetEnvironmentFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetEnvironmentFactor(const Value: TVector3);
 begin
   FdEnvironmentFactor.Send(Value);
 end;
@@ -649,22 +649,22 @@ begin
   FdNormalTextureChannelMask.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetNormalScale: TVector3Single;
+function TCommonSurfaceShaderNode.GetNormalScale: TVector3;
 begin
   Result := FdNormalScale.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetNormalScale(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetNormalScale(const Value: TVector3);
 begin
   FdNormalScale.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetNormalBias: TVector3Single;
+function TCommonSurfaceShaderNode.GetNormalBias: TVector3;
 begin
   Result := FdNormalBias.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetNormalBias(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetNormalBias(const Value: TVector3);
 begin
   FdNormalBias.Send(Value);
 end;
@@ -692,12 +692,12 @@ begin
   FdNormalTextureParallaxHeight.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetReflectionFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetReflectionFactor: TVector3;
 begin
   Result := FdReflectionFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetReflectionFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetReflectionFactor(const Value: TVector3);
 begin
   FdReflectionFactor.Send(Value);
 end;
@@ -798,12 +798,12 @@ begin
   FdShininessTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetSpecularFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetSpecularFactor: TVector3;
 begin
   Result := FdSpecularFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetSpecularFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetSpecularFactor(const Value: TVector3);
 begin
   FdSpecularFactor.Send(Value);
 end;
@@ -851,12 +851,12 @@ begin
   FdSpecularTexture.Send(Value);
 end;
 
-function TCommonSurfaceShaderNode.GetTransmissionFactor: TVector3Single;
+function TCommonSurfaceShaderNode.GetTransmissionFactor: TVector3;
 begin
   Result := FdTransmissionFactor.Value;
 end;
 
-procedure TCommonSurfaceShaderNode.SetTransmissionFactor(const Value: TVector3Single);
+procedure TCommonSurfaceShaderNode.SetTransmissionFactor(const Value: TVector3);
 begin
   FdTransmissionFactor.Send(Value);
 end;

@@ -99,9 +99,10 @@ type
 
 implementation
 
-uses CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
-  X3DFields, CastleTimeUtils, FGL, CastleDownload, X3DLoad,
-  CastleApplicationProperties, CastleTextureImages;
+uses Generics.Collections,
+  CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
+  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, CastleApplicationProperties,
+  CastleTextureImages;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -160,7 +161,8 @@ type
     Keyword: TX3DKeyword; //< for vtKeyword
     Integer: Int64; //< for vtInteger
   end;
-  TX3DTokenInfoList = class(specialize TFPGObjectList<TX3DTokenInfo>)
+
+  TX3DTokenInfoList = class(specialize TObjectList<TX3DTokenInfo>)
     procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;

@@ -44,9 +44,9 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 
 implementation
 
-uses SysUtils, CastleUtils, CastleStringUtils,
-  CastleBoxes, CastleLog, CastleVectors, CastleGenericLists,
-  CastleRectangles;
+uses SysUtils, Generics.Collections,
+  CastleUtils, CastleStringUtils,
+  CastleBoxes, CastleLog, CastleVectors, CastleRectangles;
 
 const
   { Suffix of VRML node names created by ProcessShadowMapsReceivers
@@ -63,7 +63,7 @@ type
   end;
   PLight = ^TLight;
 
-  TLightList = class(specialize TGenericStructList<TLight>)
+  TLightList = class(specialize TStructList<TLight>)
   public
     DefaultShadowMapSize: Cardinal;
     ShadowMapShaders: array [boolean, 0..1] of TComposedShaderNode;
@@ -547,12 +547,11 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
   procedure AutoCalculateProjectionForDirectionalLight(
     const LightNode: TDirectionalLightNode);
   var
-    Pos, Dir, Side, Up, MinCorner, MaxCorner: TVector3Single;
-    ProjectionLocation: TVector3Single;
+    Pos, Dir, Side, Up, MinCorner, MaxCorner: TVector3;
+    ProjectionLocation: TVector3;
     ProjectionRectangle: TFloatRectangle;
   begin
-    if VectorsPerfectlyEqual(
-         LightNode.FdProjectionRectangle.Value, ZeroVector4Single) and
+    if LightNode.FdProjectionRectangle.Value.IsPerfectlyZero and
       (not ShadowCastersBox.IsEmpty) then
     begin
       LightNode.GetView(Pos, Dir, Side, Up);
@@ -567,12 +566,12 @@ procedure TLightList.HandleLightAutomaticProjection(const Light: TLight);
         ProjectionLocation, Dir, Side, Up);
       LightNode.FdProjectionRectangle.Value := ProjectionRectangle.ToX3DVector;
       LightNode.FdProjectionLocation.Value :=
-        MatrixMultPoint(LightNode.InvertedTransform, ProjectionLocation);
+        LightNode.InvertedTransform.MultPoint(ProjectionLocation);
 
       if Log then
         WritelnLog('Shadow Maps', Format('Auto-calculated directional light source "%s" projectionLocation as %s, projectionRectangle as %s',
           [Light.Light.NiceName,
-           VectorToNiceStr(ProjectionLocation),
+           ProjectionLocation.ToString,
            ProjectionRectangle.ToString]));
     end;
   end;
@@ -638,7 +637,7 @@ begin
     if Enable then
     begin
       Lights.DefaultShadowMapSize := DefaultShadowMapSize;
-      Lights.ShadowCastersBox := EmptyBox3D;
+      Lights.ShadowCastersBox := TBox3D.Empty;
 
       { calculate Lights.LightsCastingOnEverything first }
       Lights.LightsCastingOnEverything := TX3DNodeList.Create(false);

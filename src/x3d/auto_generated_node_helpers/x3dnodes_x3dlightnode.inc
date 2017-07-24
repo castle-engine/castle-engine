@@ -47,8 +47,8 @@
     procedure SetProjectionNear(const Value: Single);
     function GetProjectionFar: Single;
     procedure SetProjectionFar(const Value: Single);
-    function GetUp: TVector3Single;
-    procedure SetUp(const Value: TVector3Single);
+    function GetUp: TVector3;
+    procedure SetUp(const Value: TVector3);
     function GetDefaultShadowMap: TGeneratedShadowMapNode;
     procedure SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
   public
@@ -62,7 +62,7 @@
     property ShadowVolumesMain: boolean read GetShadowVolumesMain write SetShadowVolumesMain;
     property ProjectionNear: Single read GetProjectionNear write SetProjectionNear;
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
-    property Up: TVector3Single read GetUp write SetUp;
+    property Up: TVector3 read GetUp write SetUp;
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
 
 {$endif read_interface}
@@ -171,12 +171,12 @@ begin
   FdProjectionFar.Send(Value);
 end;
 
-function TAbstractLightNode.GetUp: TVector3Single;
+function TAbstractLightNode.GetUp: TVector3;
 begin
   Result := FdUp.Value;
 end;
 
-procedure TAbstractLightNode.SetUp(const Value: TVector3Single);
+procedure TAbstractLightNode.SetUp(const Value: TVector3);
 begin
   FdUp.Send(Value);
 end;

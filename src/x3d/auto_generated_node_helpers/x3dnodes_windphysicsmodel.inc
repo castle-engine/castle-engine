@@ -27,8 +27,8 @@
 {$ifdef read_interface}
 
   private
-    function GetDirection: TVector3Single;
-    procedure SetDirection(const Value: TVector3Single);
+    function GetDirection: TVector3;
+    procedure SetDirection(const Value: TVector3);
     function GetGustiness: Single;
     procedure SetGustiness(const Value: Single);
     function GetSpeed: Single;
@@ -36,7 +36,7 @@
     function GetTurbulence: Single;
     procedure SetTurbulence(const Value: Single);
   public
-    property Direction: TVector3Single read GetDirection write SetDirection;
+    property Direction: TVector3 read GetDirection write SetDirection;
     property Gustiness: Single read GetGustiness write SetGustiness;
     property Speed: Single read GetSpeed write SetSpeed;
     property Turbulence: Single read GetTurbulence write SetTurbulence;
@@ -47,12 +47,12 @@
 
 { TWindPhysicsModelNode ----------------------------------------------- }
 
-function TWindPhysicsModelNode.GetDirection: TVector3Single;
+function TWindPhysicsModelNode.GetDirection: TVector3;
 begin
   Result := FdDirection.Value;
 end;
 
-procedure TWindPhysicsModelNode.SetDirection(const Value: TVector3Single);
+procedure TWindPhysicsModelNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
 end;

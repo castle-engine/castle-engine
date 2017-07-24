@@ -21,7 +21,7 @@ unit CastleInternalNodeInterpolator;
 
 interface
 
-uses Classes, FGL,
+uses Classes, Generics.Collections,
   CastleUtils, X3DNodes, CastleBoxes;
 
 type
@@ -38,7 +38,7 @@ type
   public
     const
       DefaultScenesPerTime = 30;
-      DefaultEqualityEpsilon = 0.001;
+      DefaultEpsilon = 0.001;
       DefaultAnimationName = 'animation';
 
     type
@@ -55,7 +55,7 @@ type
         { @groupEnd }
         Name: string;
         ScenesPerTime: Cardinal;
-        EqualityEpsilon: Single;
+        Epsilon: Single;
         Loop, Backwards: boolean;
         BoundingBox: TBox3D;
 
@@ -64,7 +64,7 @@ type
         procedure FreeKeyNodesContents;
       end;
 
-      TAnimationList = class(specialize TFPGObjectList<TAnimation>)
+      TAnimationList = class(specialize TObjectList<TAnimation>)
         { Call TAnimation.FreeKeyNodesContents on all the items. }
         procedure FreeKeyNodesContents;
       end;
@@ -103,7 +103,7 @@ type
         function Duration: Single;
       end;
 
-      TBakedAnimationList = class(specialize TFPGObjectList<TBakedAnimation>)
+      TBakedAnimationList = class(specialize TObjectList<TBakedAnimation>)
         procedure FreeNodesContents;
       end;
 
@@ -145,7 +145,7 @@ type
     class function BakeToSequence(const GetKeyNodeWithTime: TGetKeyNodeWithTime;
       const KeyNodesCount: Cardinal;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single): TBakedAnimation;
+      const Epsilon: Single): TBakedAnimation;
 
     { Convert a node list to animate (like the one from MD3 loader,
       or from TNodeInterpolator.BakeToSequence,
@@ -204,7 +204,7 @@ end;
   interpolating between Model1 and Model2 is not possible),
   it will raise EModelsStructureDifferent. }
 procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
-  const EqualityEpsilon: Single);
+  const Epsilon: Single);
 
   procedure CheckSFNodesStructurallyEqual(Field1, Field2: TSFNode);
   begin
@@ -215,7 +215,7 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
     if (Field1.Value <> nil) and (not Field1.WeakLink) and
        (Field2.Value <> nil) and (not Field2.WeakLink) then
     begin
-      CheckNodesStructurallyEqual(Field1.Value, Field2.Value, EqualityEpsilon);
+      CheckNodesStructurallyEqual(Field1.Value, Field2.Value, Epsilon);
     end else
     if not ((Field1.Value = nil) and (Field2.Value = nil)) then
       raise EModelsStructureDifferent.CreateFmt('Field "%s" of type SFNode ' +
@@ -232,7 +232,7 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
         [Field1.NiceName, Field1.Items.Count, Field2.Items.Count]);
 
     for I := 0 to Field1.Items.Count - 1 do
-      CheckNodesStructurallyEqual(Field1[I], Field2[I], EqualityEpsilon);
+      CheckNodesStructurallyEqual(Field1[I], Field2[I], Epsilon);
   end;
 
 var
@@ -272,7 +272,7 @@ begin
       [Model1.VRML1ChildrenCount, Model2.VRML1ChildrenCount]);
 
   for I := 0 to Model1.VRML1ChildrenCount - 1 do
-    CheckNodesStructurallyEqual(Model1.VRML1Children[I], Model2.VRML1Children[I], EqualityEpsilon);
+    CheckNodesStructurallyEqual(Model1.VRML1Children[I], Model2.VRML1Children[I], Epsilon);
 
   { Yes, the situation below can happen. *Usually* when we know
     that Model1 and Model2 are equal classes then we know that
@@ -330,7 +330,7 @@ begin
 
       if not (
          ( (Model1 is TInlineNode)            and (Model1.Fields[I].X3DName = 'url') ) or
-         Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon)
+         Model1.Fields[I].Equals(Model2.Fields[I], Epsilon)
          ) then
         raise EModelsStructureDifferent.CreateFmt(
           'Fields "%s" (class "%s") are not equal',
@@ -383,7 +383,7 @@ end;
      up loading time and conserve memory use, if it sees the same
      reference to given GeometryNode twice. }
 function NodesMerge(Model1, Model2: TX3DNode;
-  const EqualityEpsilon: Single): boolean;
+  const Epsilon: Single): boolean;
 
   function SFNodesMerge(Field1, Field2: TSFNode): boolean;
   begin
@@ -396,7 +396,7 @@ function NodesMerge(Model1, Model2: TX3DNode;
       (not Field1.WeakLink) and
       (not Field2.WeakLink) then
     begin
-      if NodesMerge(Field1.Value, Field2.Value, EqualityEpsilon) then
+      if NodesMerge(Field1.Value, Field2.Value, Epsilon) then
         Field1.Value := Field2.Value else
         Result := false;
     end;
@@ -413,7 +413,7 @@ function NodesMerge(Model1, Model2: TX3DNode;
     Assert(Field1.Items.Count = Field2.Items.Count);
     for I := 0 to Field1.Items.Count - 1 do
     begin
-      if NodesMerge(Field1[I], Field2[I], EqualityEpsilon) then
+      if NodesMerge(Field1[I], Field2[I], Epsilon) then
       begin
         { Think of this as
             Field1[I] := Field2[I]
@@ -436,7 +436,7 @@ begin
     merge Model1 and Model2 children as much as we can. }
   for I := 0 to Model1.VRML1ChildrenCount - 1 do
   begin
-    if NodesMerge(Model1.VRML1Children[I], Model2.VRML1Children[I], EqualityEpsilon) then
+    if NodesMerge(Model1.VRML1Children[I], Model2.VRML1Children[I], Epsilon) then
     begin
       { Tests: Writeln('merged child ', I, ' of class ',
         Model1.VRML1Children[I].X3DType); }
@@ -463,7 +463,7 @@ begin
     end else
     if Model1.Fields[I].CanAssignLerp then
     begin
-      if not Model1.Fields[I].Equals(Model2.Fields[I], EqualityEpsilon) then
+      if not Model1.Fields[I].Equals(Model2.Fields[I], Epsilon) then
         Result := false;
     end;
 
@@ -656,7 +656,7 @@ class function TNodeInterpolator.BakeToSequence(
   const GetKeyNodeWithTime: TGetKeyNodeWithTime;
   const KeyNodesCount: Cardinal;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single): TBakedAnimation;
+  const Epsilon: Single): TBakedAnimation;
 var
   I: Integer;
   StructurallyEqual, KeyNodesEqual: boolean;
@@ -694,7 +694,7 @@ begin
       StructurallyEqual := false;
 
       try
-        CheckNodesStructurallyEqual(LastKeyNode, NewKeyNode, EqualityEpsilon);
+        CheckNodesStructurallyEqual(LastKeyNode, NewKeyNode, Epsilon);
         StructurallyEqual := true;
       except
         on E: EModelsStructureDifferent do
@@ -713,7 +713,7 @@ begin
       begin
         { Try to merge it with LastKeyNode.
           Then initialize Nodes[LastNodesIndex + 1 to Nodes.Count - 1]. }
-        KeyNodesEqual := NodesMerge(NewKeyNode, LastKeyNode, EqualityEpsilon);
+        KeyNodesEqual := NodesMerge(NewKeyNode, LastKeyNode, Epsilon);
         if KeyNodesEqual then
         begin
           { In this case don't waste memory, simply reuse
@@ -772,7 +772,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
     FrameURL: string;
     NewNode: TX3DRootNode;
     Attr: TDOMAttr;
-    FrameBoxCenter, FrameBoxSize: TVector3Single;
+    FrameBoxCenter, FrameBoxSize: TVector3;
   begin
     Result := TAnimation.Create;
     try
@@ -783,7 +783,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
       { Assign default values for optional attributes }
       Result.Name := DefaultAnimationName;
       Result.ScenesPerTime := DefaultScenesPerTime;
-      Result.EqualityEpsilon := DefaultEqualityEpsilon;
+      Result.Epsilon := DefaultEpsilon;
       Result.Loop := DefaultLoop;
       Result.Backwards := DefaultBackwards;
       Result.BoundingBox := TBox3D.Empty;
@@ -801,7 +801,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           { ignore, for backward compatibility }
         else
         if Attr.Name = 'equality_epsilon' then
-          Result.EqualityEpsilon := StrToFloat(Attr.NodeValue8)
+          Result.Epsilon := StrToFloat(Attr.NodeValue8)
         else
         if Attr.Name = 'loop' then
           Result.Loop := StrToBool(Attr.NodeValue8)
@@ -1098,7 +1098,7 @@ begin
         LoadToX3D_KeyNodes := Animation.KeyNodes;
         LoadToX3D_KeyTimes := Animation.KeyTimes;
         BakedAnimation := BakeToSequence(@LoadToX3D_GetKeyNodeWithTime,
-          Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.EqualityEpsilon);
+          Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.Epsilon);
         BakedAnimation.Name := Animation.Name;
         BakedAnimation.Loop := Animation.Loop;
         BakedAnimation.Backwards := Animation.Backwards;

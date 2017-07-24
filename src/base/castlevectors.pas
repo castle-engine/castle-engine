@@ -13,9 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ @abstract(Vector and matrix types and basic operations.
-  Also operations on basic geometric objects (2D and 3D),
-  inluding core collision-checking routines.)
+{ @abstract(Vector and matrix types and basic geometric operations.)
 
   Various routines in this unit perform operations
   on geometric objects, like spheres and line segments.
@@ -118,12 +116,19 @@
   @bold(About floating-point precision:)
 
   @unorderedList(
-    @item(Floating-point operations are never precise.
-      This unit always uses FloatsEqual
-      and variables SingleEqualityEpsilon, DoubleEqualityEpsilon
-      and ExtendedEpsilonEquality to compare floats with some small
-      tolerance. Sometimes you may want to adjust these
-      variables to somewhat fine-tune the comparisons.)
+    @item(As floating-point operations are never precise,
+      when comparing floating-point values we always use some epsilon
+      to "tolerate" some small differences.
+
+      This epsilon is either done through the standard Math.SameValue and Math.IsZero
+      or by using our own SingleEpsilon and DoubleEpsilon constants
+      (they are equal to standard Math unit epsilon values).
+      The floating-point vector and matrix comparison methods,
+      like @link(TVector3.Equals) and @link(TVector3.IsZero), compare with such epsilon.
+
+      If you really want to compare things precisely,
+      use methods like @link(TVector3.PerfectlyEquals) or @link(TVector3.IsPerfectlyZero).
+    )
 
     @item(For collision-detecting routines, the general strategy
       in case of uncertainty (when we're not sure whether there
@@ -143,58 +148,21 @@ unit CastleVectors;
 
 interface
 
-uses SysUtils, CastleUtils, CastleGenericLists;
+uses SysUtils, Generics.Collections,
+  CastleUtils, CastleVectorsInternalSingle, CastleVectorsInternalDouble;
 
 {$define read_interface}
 
-{$I castlevectors_initial_definitions.inc}
-{$I castlevectors_constructors.inc}
-{$I castlevectors_lists.inc}
-{$I castlevectors_operators.inc}
-{$I castlevectors_various.inc}
-
+{$I castlevectors_float.inc}
+{$I castlevectors_single.inc}
+{$I castlevectors_double.inc}
 {$I castlevectors_byte.inc}
 {$I castlevectors_integer.inc}
 {$I castlevectors_cardinal.inc}
-{$I castlevectors_single.inc}
-{$I castlevectors_double.inc}
-{$I castlevectors_extended.inc}
-
-{$define TScalar := Single}
-{$define TVector2 := TVector2Single}
-{$define TVector3 := TVector3Single}
-{$define TVector4 := TVector4Single}
-{$define PVector2 := PVector2Single}
-{$define PVector3 := PVector3Single}
-{$define PVector4 := PVector4Single}
-{$define TMatrix2 := TMatrix2Single}
-{$define TMatrix3 := TMatrix3Single}
-{$define TMatrix4 := TMatrix4Single}
-{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Single}
-{$define ZeroVector3 := ZeroVector3Single}
-{$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define Vector3 := Vector3Single}
-{$I castlevectors_generic_float.inc}
-
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-{$define TScalar := Double}
-{$define TVector2 := TVector2Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define PVector2 := PVector2Double}
-{$define PVector3 := PVector3Double}
-{$define PVector4 := PVector4Double}
-{$define TMatrix2 := TMatrix2Double}
-{$define TMatrix3 := TMatrix3Double}
-{$define TMatrix4 := TMatrix4Double}
-{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Double}
-{$define ZeroVector3 := ZeroVector3Double}
-{$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define Vector3 := Vector3Double}
-{$I castlevectors_generic_float.inc}
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
+{$I castlevectors_smallint.inc}
+{$I castlevectors_lists.inc}
+{$I castlevectors_compatibility_deprecated.inc}
+{$I castlevectors_miscellaneous.inc}
 
 {$undef read_interface}
 
@@ -204,52 +172,15 @@ uses Math, CastleStringUtils, CastleColors;
 
 {$define read_implementation}
 
-{$I castlevectors_constructors.inc}
-{$I castlevectors_lists.inc}
-{$I castlevectors_operators.inc}
-{$I castlevectors_various.inc}
-
+{$I castlevectors_miscellaneous.inc}
+{$I castlevectors_float.inc}
+{$I castlevectors_single.inc}
+{$I castlevectors_double.inc}
 {$I castlevectors_byte.inc}
 {$I castlevectors_integer.inc}
 {$I castlevectors_cardinal.inc}
-{$I castlevectors_single.inc}
-{$I castlevectors_double.inc}
-{$I castlevectors_extended.inc}
-
-{$define TScalar := Single}
-{$define TVector2 := TVector2Single}
-{$define TVector3 := TVector3Single}
-{$define TVector4 := TVector4Single}
-{$define PVector2 := PVector2Single}
-{$define PVector3 := PVector3Single}
-{$define PVector4 := PVector4Single}
-{$define TMatrix2 := TMatrix2Single}
-{$define TMatrix3 := TMatrix3Single}
-{$define TMatrix4 := TMatrix4Single}
-{$define ScalarEqualityEpsilon := SingleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Single}
-{$define ZeroVector3 := ZeroVector3Single}
-{$define IdentityMatrix4 := IdentityMatrix4Single}
-{$define Vector3 := Vector3Single}
-{$I castlevectors_generic_float.inc}
-
-{$ifdef CASTLE_HAS_DOUBLE_PRECISION}
-{$define TScalar := Double}
-{$define TVector2 := TVector2Double}
-{$define TVector3 := TVector3Double}
-{$define TVector4 := TVector4Double}
-{$define PVector2 := PVector2Double}
-{$define PVector3 := PVector3Double}
-{$define PVector4 := PVector4Double}
-{$define TMatrix2 := TMatrix2Double}
-{$define TMatrix3 := TMatrix3Double}
-{$define TMatrix4 := TMatrix4Double}
-{$define ScalarEqualityEpsilon := DoubleEqualityEpsilon}
-{$define UnitVector3 := UnitVector3Double}
-{$define ZeroVector3 := ZeroVector3Double}
-{$define IdentityMatrix4 := IdentityMatrix4Double}
-{$define Vector3 := Vector3Double}
-{$I castlevectors_generic_float.inc}
-{$endif CASTLE_HAS_DOUBLE_PRECISION}
+{$I castlevectors_smallint.inc}
+{$I castlevectors_lists.inc}
+{$I castlevectors_compatibility_deprecated.inc}
 
 end.

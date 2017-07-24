@@ -37,8 +37,8 @@
     procedure SetMaxParticles(const Value: Integer);
     function GetParticleLifetime: Single;
     procedure SetParticleLifetime(const Value: Single);
-    function GetParticleSize: TVector2Single;
-    procedure SetParticleSize(const Value: TVector2Single);
+    function GetParticleSize: TVector2;
+    procedure SetParticleSize(const Value: TVector2);
     function GetColorRamp: TAbstractColorNode;
     procedure SetColorRamp(const Value: TAbstractColorNode);
     function GetEmitter: TAbstractParticleEmitterNode;
@@ -51,7 +51,7 @@
     property LifetimeVariation: Single read GetLifetimeVariation write SetLifetimeVariation;
     property MaxParticles: Integer read GetMaxParticles write SetMaxParticles;
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
-    property ParticleSize: TVector2Single read GetParticleSize write SetParticleSize;
+    property ParticleSize: TVector2 read GetParticleSize write SetParticleSize;
     property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
@@ -112,12 +112,12 @@ begin
   FdParticleLifetime.Send(Value);
 end;
 
-function TParticleSystemNode.GetParticleSize: TVector2Single;
+function TParticleSystemNode.GetParticleSize: TVector2;
 begin
   Result := FdParticleSize.Value;
 end;
 
-procedure TParticleSystemNode.SetParticleSize(const Value: TVector2Single);
+procedure TParticleSystemNode.SetParticleSize(const Value: TVector2);
 begin
   FdParticleSize.Send(Value);
 end;

@@ -20,10 +20,11 @@ unit CastleCreatures;
 
 interface
 
-uses Classes, CastleVectors, CastleBoxes, CastleClassUtils,
+uses Classes, Generics.Collections,
+  CastleVectors, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
   CastleResources, CastleXMLConfig, Castle3D,
-  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors, FGL;
+  CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors;
 
 type
   TCreatureState = type Integer;
@@ -94,7 +95,7 @@ type
       Defining it in the creature resource.xml file
       (as radius="xxx" attribute on the root <resource> element)
       overrides the results of this function. }
-    function RadiusCalculate(const GravityUp: TVector3Single): Single; virtual;
+    function RadiusCalculate(const GravityUp: TVector3): Single; virtual;
 
     { Can the "up" vector be skewed, that is: not equal to gravity up vector.
       This is used when creating creature in CreateCreature.
@@ -183,15 +184,15 @@ type
 
       @groupBegin }
     function CreateCreature(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
+      const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; virtual; overload;
     function CreateCreature(World: T3DWorld;
-      const APosition, ADirection: TVector3Single): TCreature; overload;
+      const APosition, ADirection: TVector3): TCreature; overload;
     { @groupEnd }
 
     { Instantiate creature placeholder, by calling CreateCreature. }
     procedure InstantiatePlaceholder(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
+      const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
     function CreatureClass: TCreatureClass; virtual; abstract;
@@ -302,7 +303,7 @@ type
       PreferredHeight is by default @italic(MiddleHeight (default 0.5) *
       bounding box height). Your radius must be smaller
       for all possible bounding box heights when the creature is not dead. }
-    function Radius(const GravityUp: TVector3Single): Single;
+    function Radius(const GravityUp: TVector3): Single;
   end;
 
   { Creature with smart walking and attacking intelligence.
@@ -651,7 +652,7 @@ type
     FDirectionFallSpeed: Single;
     FRemoveDead: boolean;
   protected
-    function RadiusCalculate(const GravityUp: TVector3Single): Single; override;
+    function RadiusCalculate(const GravityUp: TVector3): Single; override;
   public
     const
       DefaultMoveSpeed = 10.0;
@@ -666,7 +667,7 @@ type
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
     function CreateCreature(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
+      const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; override;
 
     property FlyAnimation: T3DResourceAnimation read FFlyAnimation;
@@ -768,13 +769,13 @@ type
     FCoord: TCoordinateNode;
     FTransform: TTransformNode;
     procedure SetRender(const Value: boolean);
-    procedure SetPosition(const Value: TVector3Single);
+    procedure SetPosition(const Value: TVector3);
     procedure SetScaleFromBox(const Value: TBox3D);
   public
     constructor Create(const AOwner: TComponent; const Color: TCastleColorRGB); reintroduce;
     property Root: TTransformNode read FTransform;
     property Render: boolean {read GetRender} {} write SetRender;
-    property Position: TVector3Single {read GetPosition} {} write SetPosition;
+    property Position: TVector3 {read GetPosition} {} write SetPosition;
     property ScaleFromBox: TBox3D {read GetScale} {} write SetScaleFromBox;
   end;
 
@@ -839,7 +840,7 @@ type
 
     { LerpLegsMiddle interpolates between Position and Middle
       (intuitively, legs and eye positions). }
-    function LerpLegsMiddle(const A: Single): TVector3Single;
+    function LerpLegsMiddle(const A: Single): TVector3;
 
     { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
     procedure AttackHurt(const HurtEnemy: T3DAlive);
@@ -898,7 +899,7 @@ type
     property CollidesWithMoving default true;
   end;
 
-  TCreatureList = class(specialize TFPGObjectList<TCreature>)
+  TCreatureList = class(specialize TObjectList<TCreature>)
   end;
 
   { Creature using TWalkAttackCreatureResource. }
@@ -916,7 +917,7 @@ type
     AttackDone, FireMissileDone: boolean;
 
     HasAlternativeTarget: boolean;
-    AlternativeTarget: TVector3Single;
+    AlternativeTarget: TVector3;
     { Time of last setting HasAlternativeTarget to true and AlternativeTarget
       value, taken from LifeTime. Used to not fall into loop
       when the creature tries to walk to AlternativeTarget, and is not
@@ -936,7 +937,7 @@ type
   protected
     { Last known information about enemy. }
     HasLastSensedEnemy: boolean;
-    LastSensedEnemy: TVector3Single;
+    LastSensedEnemy: TVector3;
     LastSensedEnemySector: TSector;
 
     procedure SetState(Value: TCreatureState); virtual;
@@ -988,7 +989,7 @@ type
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3Single;
+    procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3;
       const AKnockbackDistance: Single; const Attacker: T3DAlive); override;
   end;
 
@@ -1040,10 +1041,10 @@ begin
   inherited Create(AOwner);
 
   FCoord := TCoordinateNode.Create;
-  FCoord.FdPoint.Items.AddArray([
-    Vector3Single(-1,  0,  0), Vector3Single(1, 0, 0),
-    Vector3Single( 0, -1,  0), Vector3Single(0, 1, 0),
-    Vector3Single( 0,  0, -1), Vector3Single(0, 0, 1)
+  FCoord.FdPoint.Items.AddRange([
+    Vector3(-1,  0,  0), Vector3(1, 0, 0),
+    Vector3( 0, -1,  0), Vector3(0, 1, 0),
+    Vector3( 0,  0, -1), Vector3(0, 0, 1)
   ]);
 
   FGeometry := TLineSetNode.Create;
@@ -1065,7 +1066,7 @@ begin
   FShape.Render := Value;
 end;
 
-procedure TDebugAxis.SetPosition(const Value: TVector3Single);
+procedure TDebugAxis.SetPosition(const Value: TVector3);
 begin
   FTransform.Translation := Value;
 end;
@@ -1075,7 +1076,7 @@ var
   ScaleFactor: Single;
 begin
   ScaleFactor := Value.AverageSize(true, 1) / 2;
-  FTransform.Scale := Vector3Single(ScaleFactor, ScaleFactor, ScaleFactor);
+  FTransform.Scale := Vector3(ScaleFactor, ScaleFactor, ScaleFactor);
 end;
 
 { TDebug3DCustomTransform ---------------------------------------------------- }
@@ -1248,7 +1249,7 @@ begin
 end;
 
 function TCreatureResource.CreateCreature(World: T3DWorld;
-  const APosition, ADirection: TVector3Single;
+  const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 begin
   { This is only needed if you did not add creature to <resources>.
@@ -1279,16 +1280,16 @@ begin
 end;
 
 function TCreatureResource.CreateCreature(World: T3DWorld;
-  const APosition, ADirection: TVector3Single): TCreature;
+  const APosition, ADirection: TVector3): TCreature;
 begin
   Result := CreateCreature(World, APosition, ADirection, DefaultMaxLife);
 end;
 
 procedure TCreatureResource.InstantiatePlaceholder(World: T3DWorld;
-  const APosition, ADirection: TVector3Single;
+  const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
-  CreatureDirection: TVector3Single;
+  CreatureDirection: TVector3;
   MaxLife: Single;
 begin
   { calculate CreatureDirection }
@@ -1302,7 +1303,7 @@ begin
   CreateCreature(World, APosition, CreatureDirection, MaxLife);
 end;
 
-function TCreatureResource.Radius(const GravityUp: TVector3Single): Single;
+function TCreatureResource.Radius(const GravityUp: TVector3): Single;
 begin
   if RadiusOverride <> 0 then
     Result := RadiusOverride
@@ -1310,7 +1311,7 @@ begin
     Result := RadiusCalculate(GravityUp);
 end;
 
-function TCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
+function TCreatureResource.RadiusCalculate(const GravityUp: TVector3): Single;
 var
   GC: Integer;
   Box: TBox3D;
@@ -1327,7 +1328,7 @@ begin
     let default T3DCustomTransform.PreferredHeight algorithm to work. }
 
   if Animations.Count = 0 then
-    Box := EmptyBox3D
+    Box := TBox3D.Empty
   else
     Box := Animations[0].BoundingBox;
 
@@ -1344,7 +1345,7 @@ begin
     { Maximum radius value that allows gravity to work,
       assuming default T3D.PreferredHeight implementation,
       and assuming that Box is the smallest possible bounding box of our creature. }
-    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1, GC];
+    MaxRadiusForGravity := 0.9 * MiddleHeight * Box.Data[1].Data[GC];
     Result := Min(Box.Radius2D(GC), MaxRadiusForGravity);
   end;
 end;
@@ -1480,7 +1481,7 @@ begin
 end;
 
 function TMissileCreatureResource.CreateCreature(World: T3DWorld;
-  const APosition, ADirection: TVector3Single;
+  const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 begin
   Result := inherited;
@@ -1505,7 +1506,7 @@ begin
   Result.Gravity := false;
 end;
 
-function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3Single): Single;
+function TMissileCreatureResource.RadiusCalculate(const GravityUp: TVector3): Single;
 var
   Box: TBox3D;
 begin
@@ -1604,7 +1605,7 @@ procedure TCreature.Sound3d(const SoundType: TSoundType; const SoundHeight: Sing
   TiedToCreature: boolean);
 var
   NewSource: TSound;
-  SoundPosition: TVector3Single;
+  SoundPosition: TVector3;
 begin
   SoundPosition := LerpLegsMiddle(SoundHeight);
   NewSource := SoundEngine.Sound3d(SoundType, SoundPosition);
@@ -1616,15 +1617,15 @@ begin
   end;
 end;
 
-function TCreature.LerpLegsMiddle(const A: Single): TVector3Single;
+function TCreature.LerpLegsMiddle(const A: Single): TVector3;
 begin
   Result := Lerp(A, Position, Middle);
 end;
 
 procedure TCreature.UpdateDebugCaption(const Lines: TCastleStringList);
 begin
-  Lines.Add(Format('%s [%s / %s]',
-    [Resource.Name, FloatToNiceStr(Life), FloatToNiceStr(MaxLife)]));
+  Lines.Add(Format('%s [%f / %f]',
+    [Resource.Name, Life, MaxLife]));
 end;
 
 procedure TCreature.Fall(const FallHeight: Single);
@@ -1639,7 +1640,7 @@ begin
       FallHeight * MapRange(Random, 0.0, 1.0,
         Resource.FallDamageScaleMin,
         Resource.FallDamageScaleMax)),
-      ZeroVector3Single, 0, nil);
+      TVector3.Zero, 0, nil);
 end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1647,7 +1648,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
   procedure UpdateUsedSounds;
   var
     I: Integer;
-    SoundPosition: TVector3Single;
+    SoundPosition: TVector3;
   begin
     for I := 0 to UsedSounds.Count - 1 do
     begin
@@ -1718,14 +1719,14 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptionsShape.Render := not BBox.IsEmpty;
       if FDebugCaptionsShape.Render then
       begin
-        H := BBox.Data[1, World.GravityCoordinate];
+        H := BBox.Data[1].Data[World.GravityCoordinate];
         FDebugCaptionsFontStyle.Size := H / 8;
         FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
           { move the caption to be at the top }
           World.GravityUp * H,
           { By default, Text is in XY plane.
             Adjust it to our Orientation. }
-          VectorProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
+          TVector3.CrossProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
           UpFromOrientation[Orientation],
           DirectionFromOrientation[Orientation]);
 
@@ -1933,12 +1934,12 @@ var
   end;
 
   procedure CalculateDirectionToTarget(
-    const Target: TVector3Single;
-    out DirectionToTarget: TVector3Single;
+    const Target: TVector3;
+    out DirectionToTarget: TVector3;
     out AngleRadBetweenDirectionToTarget: Single);
   begin
     { calculate DirectionToTarget }
-    DirectionToTarget := VectorSubtract(Target, Middle);
+    DirectionToTarget := Target - Middle;
     if Gravity then
       MakeVectorsOrthoOnTheirPlane(DirectionToTarget, World.GravityUp);
 
@@ -1948,7 +1949,7 @@ var
   end;
 
   { Call this only when HasLastSensedEnemy }
-  procedure CalculateDirectionToEnemy(out DirectionToEnemy: TVector3Single;
+  procedure CalculateDirectionToEnemy(out DirectionToEnemy: TVector3;
     out AngleRadBetweenDirectionToEnemy: Single);
   begin
     CalculateDirectionToTarget(LastSensedEnemy,
@@ -1956,12 +1957,12 @@ var
   end;
 
   procedure CalculateDirectionFromEnemy(
-    var DirectionFromEnemy: TVector3Single;
+    var DirectionFromEnemy: TVector3;
     var AngleRadBetweenDirectionFromEnemy: Single);
   begin
     CalculateDirectionToEnemy(
       DirectionFromEnemy, AngleRadBetweenDirectionFromEnemy);
-    VectorNegateVar(DirectionFromEnemy);
+    DirectionFromEnemy := -DirectionFromEnemy;
     AngleRadBetweenDirectionFromEnemy :=
       Pi - AngleRadBetweenDirectionFromEnemy;
   end;
@@ -1969,13 +1970,13 @@ var
   { This changes Direction to be closer to DirectionToTarget.
     Note that it requires the value of AngleRadBetweenDirectionToTarget
     effectively }
-  procedure RotateDirectionToFaceTarget(const DirectionToTarget: TVector3Single;
+  procedure RotateDirectionToFaceTarget(const DirectionToTarget: TVector3;
     const AngleRadBetweenDirectionToTarget: Single);
   const
     AngleRadChangeSpeed = 5.0;
   var
     AngleRadChange: Single;
-    NewDirection: TVector3Single;
+    NewDirection: TVector3;
   begin
     if not VectorsParallel(DirectionToTarget, Direction) then
     begin
@@ -1986,7 +1987,7 @@ var
       MinVar(AngleRadChange, AngleRadBetweenDirectionToTarget);
 
       NewDirection := RotatePointAroundAxisRad(AngleRadChange, Direction,
-        VectorProduct(Direction, DirectionToTarget));
+        TVector3.CrossProduct(Direction, DirectionToTarget));
 
       { Make sure direction for non-flying creatures is orthogonal to GravityUp. }
       if Gravity then
@@ -1995,7 +1996,7 @@ var
     end;
   end;
 
-  function CloseEnoughToTarget(const Target: TVector3Single): boolean;
+  function CloseEnoughToTarget(const Target: TVector3): boolean;
   const
     MinDistanceToTarget = 0.1;
   var
@@ -2042,7 +2043,7 @@ var
     direction of the Target, and if were not already as close as possible
     to Target. }
   function WantToWalkToTarget(
-    const Target: TVector3Single;
+    const Target: TVector3;
     const AngleRadBetweenDirectionToTarget: Single): boolean;
   begin
     Result :=
@@ -2124,7 +2125,7 @@ var
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
       if (not Gravity) or (I <> World.GravityCoordinate) then
-        AlternativeTarget[I] += Random * Distance * 2 - Distance;
+        AlternativeTarget.Data[I] += Random * Distance * 2 - Distance;
 
     HasAlternativeTarget := true;
 
@@ -2133,7 +2134,7 @@ var
 
   procedure DoIdle;
   var
-    DirectionToEnemy: TVector3Single;
+    DirectionToEnemy: TVector3;
     AngleRadBetweenDirectionToEnemy: Single;
   begin
     if HasLastSensedEnemy then
@@ -2186,7 +2187,7 @@ var
     function MoveAlongTheDirection: boolean;
 
       { Don't be stupid, and don't walk where you see you will fall down. }
-      function TooHighAboveTheGround(const NewMiddle: TVector3Single):
+      function TooHighAboveTheGround(const NewMiddle: TVector3):
         boolean;
       var
         AboveHeight: Single;
@@ -2225,7 +2226,7 @@ var
       Assumes HasLastSensedEnemy. }
     procedure WalkNormal;
     var
-      DirectionToTarget: TVector3Single;
+      DirectionToTarget: TVector3;
       AngleRadBetweenDirectionToTarget: Single;
     begin
       CalculateDirectionToEnemy(DirectionToTarget,
@@ -2251,9 +2252,9 @@ var
         AngleRadBetweenDirectionToTarget);
     end;
 
-    procedure WalkToWaypoint(const Target: TVector3Single);
+    procedure WalkToWaypoint(const Target: TVector3);
     var
-      DirectionToTarget: TVector3Single;
+      DirectionToTarget: TVector3;
       AngleRadBetweenDirectionToTarget: Single;
     begin
       CalculateDirectionToTarget(Target, DirectionToTarget,
@@ -2284,7 +2285,7 @@ var
     AngleRadBetweenDirectionToTargetToResign = Pi / 180 { 1 degree };
     MaxTimeForAlternativeTarget = 5.0;
   var
-    DirectionToTarget: TVector3Single;
+    DirectionToTarget: TVector3;
     AngleRadBetweenDirectionToTarget: Single;
     SectorNow: TSector;
     UseWalkNormal: boolean;
@@ -2640,7 +2641,7 @@ var
 
     { We would like to check collision between EB and our B translated
       by our Direction now, i.e.
-        B.Translate(VectorScale(Direction, ???)).Collision(EB)
+        B.Translate(Direction * ???).Collision(EB)
       But how much should be scale Direction, i.e. what to put for "???" ?
       It must be large enough to compensate even large Resource.AttackMaxDistance,
       it must be small enough so that enemy should not be able to avoid
@@ -2656,14 +2657,13 @@ var
     DistanceLength := DistanceIncrease;
     while DistanceLength < Resource.AttackMaxDistance do
     begin
-      if B.Translate(VectorScale(Direction, DistanceLength)).Collision(EB) then
+      if B.Translate(Direction * DistanceLength).Collision(EB) then
         Exit(true);
       DistanceLength += DistanceIncrease;
     end;
 
     { Check one last time for Resource.AttackMaxDistance }
-    Result := B.Translate(
-      VectorScale(Direction, Resource.AttackMaxDistance)).Collision(EB);
+    Result := B.Translate(Direction * Resource.AttackMaxDistance).Collision(EB);
   end;
 
 begin
@@ -2678,12 +2678,12 @@ end;
 procedure TWalkAttackCreature.FireMissile;
 var
   Missile: TCreature;
-  MissilePosition, MissileDirection: TVector3Single;
+  MissilePosition, MissileDirection: TVector3;
 begin
   if (Resource.FireMissileName <> '') and HasLastSensedEnemy then
   begin
     MissilePosition := LerpLegsMiddle(Resource.FireMissileHeight);
-    MissileDirection := VectorSubtract(LastSensedEnemy, MissilePosition);
+    MissileDirection := LastSensedEnemy - MissilePosition;
     Missile := (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
       CreateCreature(World, MissilePosition, MissileDirection);
     Missile.Sound3d(Resource.FireMissileSound, 0.0);
@@ -2714,7 +2714,7 @@ begin
 end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
-  const HurtDirection: TVector3Single;
+  const HurtDirection: TVector3;
   const AKnockbackDistance: Single; const Attacker: T3DAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
@@ -2750,7 +2750,7 @@ procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRe
 var
   Player: T3DOrient;
 
-  function MissileMoveAllowed(const OldPos, NewPos: TVector3Single): boolean;
+  function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
   begin
     if (not Resource.HitsPlayer) and (Player <> nil) then Player.Disable;
     if not Resource.HitsCreatures then Inc(DisableCreatures);
@@ -2763,9 +2763,9 @@ var
   end;
 
 var
-  OldMiddle, NewMiddle: TVector3Single;
+  OldMiddle, NewMiddle: TVector3;
   AngleBetween, AngleChange: Single;
-  NewDirection, TargetDirection: TVector3Single;
+  NewDirection, TargetDirection: TVector3;
   I: Integer;
   C: TCreature;
 begin
@@ -2874,7 +2874,7 @@ begin
     So do here additional checks for collision and hurt player and creatures. }
 
   Sound3d(Resource.SoundHit, 0, false);
-  Hurt(1000 * 1000, ZeroVector3Single, 0, Self);
+  Hurt(1000 * 1000, TVector3.Zero, 0, Self);
 end;
 
 procedure TMissileCreature.HitPlayer;

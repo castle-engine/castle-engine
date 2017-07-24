@@ -65,7 +65,7 @@ function TNastyProxy.BoundingBox(State: TX3DGraphTraverseState;
   ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized BoundingBox');
-  Result := EmptyBox3D; { silence compiler warnings }
+  Result := TBox3D.Empty; { silence compiler warnings }
 end;
 
 function TNastyProxy.LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -73,7 +73,7 @@ function TNastyProxy.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyState: TX3DGraphTraverseState): TBox3D;
 begin
   raise ENastyProxy.Create('Something tried to use unoptimized LocalBoundingBox');
-  Result := EmptyBox3D; { silence compiler warnings }
+  Result := TBox3D.Empty; { silence compiler warnings }
 end;
 
 function TNastyProxy.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;

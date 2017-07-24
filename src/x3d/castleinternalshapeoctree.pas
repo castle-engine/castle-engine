@@ -57,17 +57,17 @@ type
       this transformation, thus saving a tiny amount of time.
       And the non-local versions without "Is" can just transform
       the result at the end, if non-nil. }
-    function LocalSphereCollision(const pos: TVector3Single;
+    function LocalSphereCollision(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
-    function LocalSphereCollision2D(const pos: TVector2Single;
+    function LocalSphereCollision2D(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
-    function LocalPointCollision2D(const Point: TVector2Single;
+    function LocalPointCollision2D(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
@@ -76,9 +76,9 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     function LocalSegmentCollision(
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const Pos1, Pos2: TVector3Single;
+      const Pos1, Pos2: TVector3;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -86,9 +86,9 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 
     function LocalRayCollision(
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3Single;
+      const RayOrigin, RayDirection: TVector3;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -97,17 +97,17 @@ type
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
-    function CommonSphereLeaf(const pos: TVector3Single;
+    function CommonSphereLeaf(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
-    function CommonSphere2DLeaf(const pos: TVector2Single;
+    function CommonSphere2DLeaf(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
-    function CommonPoint2DLeaf(const Point: TVector2Single;
+    function CommonPoint2DLeaf(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
@@ -116,9 +116,9 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function CommonSegmentLeaf(
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const pos1, pos2: TVector3Single;
+      const pos1, pos2: TVector3;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -126,9 +126,9 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function CommonRayLeaf(
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3Single;
+      const RayOrigin, RayDirection: TVector3;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -138,31 +138,31 @@ type
     function ParentTree: TShapeOctree;
     function ParentNode: TShapeOctreeNode;
 
-    function SphereCollision(const pos: TVector3Single;
+    function SphereCollision(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
-    function IsSphereCollision(const pos: TVector3Single;
+    function IsSphereCollision(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
-    function SphereCollision2D(const pos: TVector2Single;
+    function SphereCollision2D(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
-    function IsSphereCollision2D(const pos: TVector2Single;
+    function IsSphereCollision2D(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
-    function PointCollision2D(const Point: TVector2Single;
+    function PointCollision2D(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
-    function IsPointCollision2D(const Point: TVector2Single;
+    function IsPointCollision2D(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
@@ -175,9 +175,9 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function SegmentCollision(
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const Pos1, Pos2: TVector3Single;
+      const Pos1, Pos2: TVector3;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -185,16 +185,16 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function IsSegmentCollision(
-      const Pos1, Pos2: TVector3Single;
+      const Pos1, Pos2: TVector3;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
 
     function RayCollision(
-      out Intersection: TVector3Single;
+      out Intersection: TVector3;
       out IntersectionDistance: Single;
-      const RayOrigin, RayDirection: TVector3Single;
+      const RayOrigin, RayDirection: TVector3;
       const Tag: TMailboxTag;
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
@@ -202,7 +202,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
 
     function IsRayCollision(
-      const RayOrigin, RayDirection: TVector3Single;
+      const RayOrigin, RayDirection: TVector3;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
@@ -255,7 +255,7 @@ begin
     3 orthogonal planes determined by MiddlePoint then
     this ItemIndex will be said to collide with both sides
     of this plane. }
-  SubnodesBox.ExpandMe(SingleEqualityEpsilon);
+  SubnodesBox.ExpandMe(SingleEpsilon);
 
   SubnodesWithBox(SubnodesBox, BoxLo, BoxHi);
 
@@ -275,7 +275,7 @@ begin
   Result := TShapeOctreeNode(InternalParentNode);
 end;
 
-function TShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3Single;
+function TShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -303,7 +303,7 @@ begin
   end;
 end;
 
-function TShapeOctreeNode.LocalSphereCollision(const Pos: TVector3Single;
+function TShapeOctreeNode.LocalSphereCollision(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -311,7 +311,7 @@ begin
   Result := CommonSphere(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TShapeOctreeNode.SphereCollision(const Pos: TVector3Single;
+function TShapeOctreeNode.SphereCollision(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -322,7 +322,7 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TShapeOctreeNode.IsSphereCollision(const Pos: TVector3Single;
+function TShapeOctreeNode.IsSphereCollision(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -331,14 +331,14 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TShapeOctreeNode.CommonSphere2DLeaf(const Pos: TVector2Single;
+function TShapeOctreeNode.CommonSphere2DLeaf(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
-  LocalPos: TVector2Single;
+  LocalPos: TVector2;
   LocalRadius: Single;
 begin
   Result := nil;
@@ -346,7 +346,7 @@ begin
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalPos := MatrixMultPoint(Shape.State.InvertedTransform, Pos);
+      LocalPos := Shape.State.InvertedTransform.MultPoint(Pos);
       LocalRadius := Radius / Shape.State.TransformScale;
       Result := Shape.InternalOctreeTriangles.SphereCollision2D(
         LocalPos, LocalRadius, TriangleToIgnore, TrianglesToIgnoreFunc);
@@ -357,7 +357,7 @@ begin
   end;
 end;
 
-function TShapeOctreeNode.LocalSphereCollision2D(const Pos: TVector2Single;
+function TShapeOctreeNode.LocalSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -365,7 +365,7 @@ begin
   Result := CommonSphere2D(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TShapeOctreeNode.SphereCollision2D(const Pos: TVector2Single;
+function TShapeOctreeNode.SphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
@@ -376,7 +376,7 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TShapeOctreeNode.IsSphereCollision2D(const Pos: TVector2Single;
+function TShapeOctreeNode.IsSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -385,20 +385,20 @@ begin
     TrianglesToIgnoreFunc) <> nil;
 end;
 
-function TShapeOctreeNode.CommonPoint2DLeaf(const Point: TVector2Single;
+function TShapeOctreeNode.CommonPoint2DLeaf(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
-  LocalPoint: TVector2Single;
+  LocalPoint: TVector2;
 begin
   Result := nil;
   for I := 0 to ItemsIndices.Count - 1 do
   begin
     Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
     try
-      LocalPoint := MatrixMultPoint(Shape.State.InvertedTransform, Point);
+      LocalPoint := Shape.State.InvertedTransform.MultPoint(Point);
       Result := Shape.InternalOctreeTriangles.PointCollision2D(
         LocalPoint, TriangleToIgnore, TrianglesToIgnoreFunc);
     except
@@ -408,14 +408,14 @@ begin
   end;
 end;
 
-function TShapeOctreeNode.LocalPointCollision2D(const Point: TVector2Single;
+function TShapeOctreeNode.LocalPointCollision2D(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonPoint2D(Point, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
-function TShapeOctreeNode.PointCollision2D(const Point: TVector2Single;
+function TShapeOctreeNode.PointCollision2D(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
 begin
@@ -425,7 +425,7 @@ begin
     Result^.UpdateWorld;
 end;
 
-function TShapeOctreeNode.IsPointCollision2D(const Point: TVector2Single;
+function TShapeOctreeNode.IsPointCollision2D(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -484,9 +484,9 @@ begin
 end;
 
 function TShapeOctreeNode.CommonSegmentLeaf(
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const Pos1, Pos2: TVector3Single;
+  const Pos1, Pos2: TVector3;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -495,8 +495,8 @@ function TShapeOctreeNode.CommonSegmentLeaf(
 var
   I: Integer;
   Shape: TShape;
-  LocalPos1, LocalPos2: TVector3Single;
-  ThisIntersection: TVector3Single;
+  LocalPos1, LocalPos2: TVector3;
+  ThisIntersection: TVector3;
   ThisIntersectionDistance: Single;
   ThisResult: PTriangle;
 begin
@@ -508,8 +508,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
-        LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
+        LocalPos1 := Shape.State.InvertedTransform.MultPoint(Pos1);
+        LocalPos2 := Shape.State.InvertedTransform.MultPoint(Pos2);
         Result := Shape.SegmentCollision(Tag,
           Intersection, IntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
@@ -520,7 +520,7 @@ begin
 
       if Result <> nil then
       begin
-        Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+        Intersection := Result^.State.Transform.MultPoint(Intersection);
         Exit;
       end;
     end;
@@ -534,8 +534,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalPos1 := MatrixMultPoint(Shape.State.InvertedTransform, Pos1);
-        LocalPos2 := MatrixMultPoint(Shape.State.InvertedTransform, Pos2);
+        LocalPos1 := Shape.State.InvertedTransform.MultPoint(Pos1);
+        LocalPos2 := Shape.State.InvertedTransform.MultPoint(Pos2);
         ThisResult := Shape.SegmentCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalPos1, LocalPos2,
           ReturnClosestIntersection,
@@ -554,14 +554,14 @@ begin
     end;
 
     if Result <> nil then
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
   end;
 end;
 
 function TShapeOctreeNode.LocalSegmentCollision(
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const Pos1, Pos2: TVector3Single;
+  const Pos1, Pos2: TVector3;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -576,9 +576,9 @@ begin
 end;
 
 function TShapeOctreeNode.SegmentCollision(
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const Pos1, Pos2: TVector3Single;
+  const Pos1, Pos2: TVector3;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -592,7 +592,7 @@ begin
     TrianglesToIgnoreFunc);
 
   { At one point, I also did here
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
@@ -603,14 +603,14 @@ begin
 end;
 
 function TShapeOctreeNode.IsSegmentCollision(
-  const Pos1, Pos2: TVector3Single;
+  const Pos1, Pos2: TVector3;
   const Tag: TMailboxTag;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   { We just ignore returned Intersection, IntersectionDistance }
-  Intersection: TVector3Single;
+  Intersection: TVector3;
   IntersectionDistance: Single;
 begin
   Result := LocalSegmentCollision(
@@ -621,9 +621,9 @@ begin
 end;
 
 function TShapeOctreeNode.CommonRayLeaf(
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -632,8 +632,8 @@ function TShapeOctreeNode.CommonRayLeaf(
 var
   I: Integer;
   Shape: TShape;
-  LocalRayOrigin, LocalRayDirection: TVector3Single;
-  ThisIntersection: TVector3Single;
+  LocalRayOrigin, LocalRayDirection: TVector3;
+  ThisIntersection: TVector3;
   ThisIntersectionDistance: Single;
   ThisResult: PTriangle;
 begin
@@ -645,8 +645,8 @@ begin
     begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       try
-        LocalRayOrigin := MatrixMultPoint(Shape.State.InvertedTransform, RayOrigin);
-        LocalRayDirection := MatrixMultDirection(Shape.State.InvertedTransform, RayDirection);
+        LocalRayOrigin := Shape.State.InvertedTransform.MultPoint(RayOrigin);
+        LocalRayDirection := Shape.State.InvertedTransform.MultDirection(RayDirection);
         Result := Shape.RayCollision(Tag,
           Intersection, IntersectionDistance, LocalRayOrigin, LocalRayDirection,
           ReturnClosestIntersection,
@@ -657,7 +657,7 @@ begin
 
       if Result <> nil then
       begin
-        Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+        Intersection := Result^.State.Transform.MultPoint(Intersection);
         Exit;
       end;
     end;
@@ -672,8 +672,8 @@ begin
       Shape := ParentTree.ShapesList.Items[ItemsIndices.Items[I]];
       Assert(Shape.InternalOctreeTriangles <> nil);
       try
-        LocalRayOrigin := MatrixMultPoint(Shape.State.InvertedTransform, RayOrigin);
-        LocalRayDirection := MatrixMultDirection(Shape.State.InvertedTransform, RayDirection);
+        LocalRayOrigin := Shape.State.InvertedTransform.MultPoint(RayOrigin);
+        LocalRayDirection := Shape.State.InvertedTransform.MultDirection(RayDirection);
         ThisResult := Shape.RayCollision(Tag,
           ThisIntersection, ThisIntersectionDistance, LocalRayOrigin, LocalRayDirection,
           ReturnClosestIntersection,
@@ -692,14 +692,14 @@ begin
     end;
 
     if Result <> nil then
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
   end;
 end;
 
 function TShapeOctreeNode.LocalRayCollision(
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -714,9 +714,9 @@ begin
 end;
 
 function TShapeOctreeNode.RayCollision(
-  out Intersection: TVector3Single;
+  out Intersection: TVector3;
   out IntersectionDistance: Single;
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const Tag: TMailboxTag;
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
@@ -730,7 +730,7 @@ begin
     TrianglesToIgnoreFunc);
 
   { At one point, I also did here
-      Intersection := MatrixMultPoint(Result^.State.Transform, Intersection);
+      Intersection := Result^.State.Transform.MultPoint(Intersection);
     But it turns out that CommonRay/Segment (for non-leaf  nodes) code
     requires the returned intersection to be in correct (global, for this
     octree) coordinates --- see it's
@@ -741,14 +741,14 @@ begin
 end;
 
 function TShapeOctreeNode.IsRayCollision(
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const Tag: TMailboxTag;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   { We just ignore returned Intersection, IntersectionDistance }
-  Intersection: TVector3Single;
+  Intersection: TVector3;
   IntersectionDistance: Single;
 begin
   Result := LocalRayCollision(Intersection, IntersectionDistance,

@@ -65,8 +65,9 @@ procedure glDrawBox3DWire(const Box: TBox3D);
   end;
 
 begin
-  glDrawRaw(Box.Data[0,0], Box.Data[0,1], Box.Data[0,2],
-            Box.Data[1,0], Box.Data[1,1], Box.Data[1,2])
+  glDrawRaw(
+    Box.Data[0].Data[0], Box.Data[0].Data[1], Box.Data[0].Data[2],
+    Box.Data[1].Data[0], Box.Data[1].Data[1], Box.Data[1].Data[2])
 end;
 
 {$endif}

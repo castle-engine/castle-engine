@@ -21,7 +21,7 @@ unit CastleLevels;
 
 interface
 
-uses Classes, DOM, FGL,
+uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
@@ -51,7 +51,7 @@ type
     FLoadingImage: TRGBImage;
     FLoadingBarYPosition: Single;
     FPlaceholderName: TPlaceholderName;
-    FPlaceholderReferenceDirection: TVector3Single;
+    FPlaceholderReferenceDirection: TVector3;
     FMusicSound: TSoundType;
     { We keep XML Document reference through the lifetime of this object,
       to allow the particular level logic (TLevelLogic descendant)
@@ -243,7 +243,7 @@ type
       In Blender it's useful to enable the "Display -> Wire" option for placeholder
       objects, then Blender will show arrows inside the placeholder.
       +X of the arrow determines the default direction understood by our engine. }
-    property PlaceholderReferenceDirection: TVector3Single
+    property PlaceholderReferenceDirection: TVector3
       read FPlaceholderReferenceDirection write FPlaceholderReferenceDirection;
 
     { Music played when entering the level.
@@ -251,7 +251,7 @@ type
     property MusicSound: TSoundType read FMusicSound write FMusicSound;
   end;
 
-  TLevelInfoList = class(specialize TFPGObjectList<TLevelInfo>)
+  TLevelInfoList = class(specialize TObjectList<TLevelInfo>)
   private
     { How many TGameSceneManager have references to our children by
       TGameSceneManager.Info? }
@@ -539,7 +539,17 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-  TLevelLogicClasses = specialize TFPGMap<string, TLevelLogicClass>;
+  TLevelLogicClasses = class(specialize TDictionary<string, TLevelLogicClass>)
+  strict private
+    function GetItems(const AKey: string): TLevelLogicClass;
+    procedure SetItems(const AKey: string; const AValue: TLevelLogicClass);
+  public
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: TLevelLogicClass read GetItems write SetItems; default;
+  end;
 
 function LevelLogicClasses: TLevelLogicClasses;
 
@@ -550,9 +560,10 @@ function Levels: TLevelInfoList;
 
 implementation
 
-uses SysUtils, CastleGLUtils, CastleFilesUtils, CastleStringUtils,
+uses SysUtils, Generics.Defaults, Math,
+  CastleGLUtils, CastleFilesUtils, CastleStringUtils,
   CastleGLImages, CastleUIControls, XMLRead, CastleInputs, CastleXMLUtils,
-  CastleRenderingCamera, Math, CastleLog, X3DCameraUtils,
+  CastleRenderingCamera, CastleLog, X3DCameraUtils,
   CastleGLVersion, CastleURIUtils, CastleDownload;
 
 { globals -------------------------------------------------------------------- }
@@ -600,7 +611,7 @@ const
     ResourceNumberPresent: boolean;
     Resource: T3DResource;
     Box: TBox3D;
-    Position, Direction: TVector3Single;
+    Position, Direction: TVector3;
     IgnoredBegin, NumberBegin: Integer;
     ResourceNumber: Int64;
   begin
@@ -631,10 +642,10 @@ const
 
     Box := Shape.BoundingBox;
     Position := Box.Center;
-    Position[Items.GravityCoordinate] := Box.Data[0, Items.GravityCoordinate];
+    Position[Items.GravityCoordinate] := Box.Data[0].Data[Items.GravityCoordinate];
 
     Direction := Info.PlaceholderReferenceDirection;
-    Direction := MatrixMultDirection(Shape.State.Transform, Direction);
+    Direction := Shape.State.Transform.MultDirection(Direction);
 
     Resource.InstantiatePlaceholder(Items, Position, Direction,
       ResourceNumberPresent, ResourceNumber);
@@ -654,7 +665,7 @@ const
 
     { Tests:
     Writeln('Waypoint ', Waypoints.Count - 1, ': at position ',
-      VectorToNiceStr(Waypoint.Position));}
+      Waypoint.Position.ToString);}
   end;
 
   { Shapes placed under the name CasSector<index>[_<ignored>]
@@ -722,7 +733,8 @@ begin
   Result := T3DResourceList.Create(false);
   if Info <> nil then
   begin
-    Result.Assign(Info.LevelResources);
+    Result.Clear;
+    Result.AddRange(Info.LevelResources);
     Dec(Levels.References);
     FInfo := nil;
   end;
@@ -781,9 +793,9 @@ var
     begin
       { Set MoveLimit to MainScene.BoundingBox, and make maximum up larger. }
       NewMoveLimit := MainScene.BoundingBox;
-      NewMoveLimit.Data[1, Items.GravityCoordinate] +=
-        4 * (NewMoveLimit.Data[1, Items.GravityCoordinate] -
-             NewMoveLimit.Data[0, Items.GravityCoordinate]);
+      NewMoveLimit.Data[1].Data[Items.GravityCoordinate] +=
+        4 * (NewMoveLimit.Data[1].Data[Items.GravityCoordinate] -
+             NewMoveLimit.Data[0].Data[Items.GravityCoordinate]);
       MoveLimit := NewMoveLimit;
     end;
 
@@ -798,10 +810,10 @@ var
     initial direciton, World.GravityUp etc.) }
   procedure InitializeCamera;
   var
-    InitialPosition: TVector3Single;
-    InitialDirection: TVector3Single;
-    InitialUp: TVector3Single;
-    GravityUp: TVector3Single;
+    InitialPosition: TVector3;
+    InitialDirection: TVector3;
+    InitialUp: TVector3;
+    GravityUp: TVector3;
     CameraRadius, PreferredHeight: Single;
     NavigationNode: TNavigationInfoNode;
     WalkCamera: TWalkCamera;
@@ -927,8 +939,8 @@ begin
     FreeAndNil(Waypoints);
     FSectors := TSectorList.Create(true);
     Waypoints := TWaypointList.Create(true);
-    MoveLimit := EmptyBox3D;
-    Water := EmptyBox3D;
+    MoveLimit := TBox3D.Empty;
+    Water := TBox3D.Empty;
 
     ItemsToRemove := TX3DNodeList.Create(false);
     try
@@ -1041,7 +1053,7 @@ end;
 function TLevelLogic.BoundingBox: TBox3D;
 begin
   { This object is invisible and non-colliding. }
-  Result := EmptyBox3D;
+  Result := TBox3D.Empty;
 end;
 
 procedure TLevelLogic.PrepareNewPlayer(NewPlayer: TPlayer);
@@ -1167,12 +1179,9 @@ procedure TLevelInfo.LoadFromDocument;
     const AttrName: string; var Value: TLevelLogicClass): boolean;
   var
     ValueStr: string;
-    LevelClassIndex: Integer;
   begin
     Result := Element.AttributeString(AttrName, ValueStr);
-    LevelClassIndex := LevelLogicClasses.IndexOf(ValueStr);
-    if LevelClassIndex <> -1 then
-      Value := LevelLogicClasses.Data[LevelClassIndex] else
+    if not LevelLogicClasses.TryGetValue(ValueStr, Value) then
       raise Exception.CreateFmt('Unknown level type "%s"', [ValueStr]);
   end;
 
@@ -1188,7 +1197,7 @@ procedure TLevelInfo.LoadFromDocument;
   end;
 
 const
-  DefaultPlaceholderReferenceDirection: TVector3Single = (1, 0, 0);
+  DefaultPlaceholderReferenceDirection: TVector3 = (Data: (1, 0, 0));
 var
   LoadingImageURL: string;
   SoundName: string;
@@ -1249,7 +1258,7 @@ begin
     LoadingBarYPosition := TProgressUserInterface.DefaultBarYPosition;
 
   if Element.AttributeString('placeholder_reference_direction', S) then
-    PlaceholderReferenceDirection := Vector3SingleFromStr(S) else
+    PlaceholderReferenceDirection := Vector3FromStr(S) else
     PlaceholderReferenceDirection := DefaultPlaceholderReferenceDirection;
 
   LevelResources.LoadResources(Element);
@@ -1277,7 +1286,7 @@ begin
   raise Exception.Create(S);
 end;
 
-function IsSmallerByNumber(const A, B: TLevelInfo): Integer;
+function IsSmallerByNumber(constref A, B: TLevelInfo): Integer;
 begin
   Result := A.Number - B.Number;
 end;
@@ -1333,8 +1342,22 @@ begin
 end;
 
 procedure TLevelInfoList.SortByNumber;
+type
+  TLevelInfoComparer = specialize TComparer<TLevelInfo>;
 begin
-  Sort(@IsSmallerByNumber);
+  Sort(TLevelInfoComparer.Construct(@IsSmallerByNumber));
+end;
+
+{ TLevelLogicClasses --------------------------------------------------------- }
+
+function TLevelLogicClasses.GetItems(const AKey: string): TLevelLogicClass;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TLevelLogicClasses.SetItems(const AKey: string; const AValue: TLevelLogicClass);
+begin
+  AddOrSetValue(AKey, AValue);
 end;
 
 { initialization / finalization ---------------------------------------------- }

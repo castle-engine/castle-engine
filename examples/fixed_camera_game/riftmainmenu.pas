@@ -146,8 +146,8 @@ constructor TRiftMenu.Create(AOwner: TComponent);
 begin
   inherited;
   CurrentItemBorderColor1 := Black;
-  CurrentItemBorderColor2 := Vector4Single(186/255, 134/255,  88/255, 1.0);
-  CurrentItemColor        := Vector4Single(252/255, 253/255, 200/255, 1.0);
+  CurrentItemBorderColor2 := Vector4(186/255, 134/255,  88/255, 1.0);
+  CurrentItemColor        := Vector4(252/255, 253/255, 200/255, 1.0);
   NonCurrentItemColor     := CurrentItemBorderColor2;
 
   Anchor(hpRight, -91);
@@ -203,7 +203,7 @@ begin
   Anchor(vpTop, -273);
 
   DrawBackgroundRectangle := true;
-  NonFocusableItemColor := Vector4Single(0.7, 0.7, 0.7, 1.0);
+  NonFocusableItemColor := Vector4(0.7, 0.7, 0.7, 1.0);
 end;
 
 { TRiftSoundMenu ------------------------------------------------------------- }
@@ -253,7 +253,7 @@ begin
   SoundEngine.Device := Device.Name;
   SoundMenu.SoundDeviceArgument.Caption := SoundEngine.DeviceCaption;
   if not SoundEngine.ALActive then
-    MessageOK(Window, SoundEngine.SoundInitializationReport);
+    MessageOK(Window, SoundEngine.Information);
 
   SetCurrentMenu(SoundMenu);
 end;

@@ -27,14 +27,14 @@
 {$ifdef read_interface}
 
   private
-    function GetCenterOfMass: TVector3Single;
-    procedure SetCenterOfMass(const Value: TVector3Single);
+    function GetCenterOfMass: TVector3;
+    procedure SetCenterOfMass(const Value: TVector3);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
     function GetNameField: string;
     procedure SetNameField(const Value: string);
   public
-    property CenterOfMass: TVector3Single read GetCenterOfMass write SetCenterOfMass;
+    property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
     property Mass: Single read GetMass write SetMass;
     property NameField: string read GetNameField write SetNameField;
 
@@ -44,12 +44,12 @@
 
 { THAnimSegmentNode ----------------------------------------------- }
 
-function THAnimSegmentNode.GetCenterOfMass: TVector3Single;
+function THAnimSegmentNode.GetCenterOfMass: TVector3;
 begin
   Result := FdCenterOfMass.Value;
 end;
 
-procedure THAnimSegmentNode.SetCenterOfMass(const Value: TVector3Single);
+procedure THAnimSegmentNode.SetCenterOfMass(const Value: TVector3);
 begin
   FdCenterOfMass.Send(Value);
 end;

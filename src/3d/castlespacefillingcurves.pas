@@ -195,10 +195,11 @@ implementation
 
 uses CastleUtils;
 
-{ Workaround FPC 3.0.0 and 3.0.2 bug:
-  after using Generics.Collections (and compiling Generics.Collections
-  as dependency of CastleUtils), the FPC_OBJFPC gets undefined. }
-{$ifdef VER3_0} {$define FPC_OBJFPC} {$endif}
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 const
   { AngleTurn[Angle, Orient] = (definicja)
@@ -338,25 +339,28 @@ end;
 { TSwapScanCurve ------------------------------------------------------------ }
 
 procedure TSwapScanCurve.GeneratePixels(APixels: PArray_Vector2Cardinal);
-var NextPixelToWriteNum: Cardinal;
+var
+  NextPixelToWriteNum: Cardinal;
 
   procedure AppendPixel(x, y: Cardinal);
   begin
-   APixels^[NextPixelToWriteNum, 0] := x;
-   APixels^[NextPixelToWriteNum, 1] := y;
-   Inc(NextPixelToWriteNum);
+    APixels^[NextPixelToWriteNum].Data[0] := x;
+    APixels^[NextPixelToWriteNum].Data[1] := y;
+    Inc(NextPixelToWriteNum);
   end;
 
-var x, y: Cardinal;
+var
+  x, y: Cardinal;
 begin
- NextPixelToWriteNum := 0;
+  NextPixelToWriteNum := 0;
 
- for y := 0 to SizeY-1 do
- begin
-  if Odd(y) then
-   for x := SizeX-1 downto 0 do AppendPixel(x, y) else
-   for x := 0 to SizeX-1 do AppendPixel(x, y);
- end;
+  for y := 0 to SizeY-1 do
+  begin
+    if Odd(y) then
+      for x := SizeX-1 downto 0 do AppendPixel(x, y)
+    else
+      for x := 0 to SizeX-1 do AppendPixel(x, y);
+  end;
 end;
 
 class function TSwapScanCurve.SFCName: string;
@@ -403,8 +407,8 @@ begin
 
   if Between(LastX, 0, SizeX-1) and Between(LastY, 0, SizeY-1) then
   begin
-   Pixels^[NextPixelToWriteNum, 0] := LastX;
-   Pixels^[NextPixelToWriteNum, 1] := LastY;
+   Pixels^[NextPixelToWriteNum].Data[0] := LastX;
+   Pixels^[NextPixelToWriteNum].Data[1] := LastY;
    Inc(NextPixelToWriteNum);
   end;
  end;

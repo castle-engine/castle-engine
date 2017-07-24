@@ -65,7 +65,7 @@ type
   { Abstract base type for all bindable children nodes. }
   TAbstractBindableNode = class(TAbstractChildNode)
   private
-    FTransform: TMatrix4Single;
+    FTransform: TMatrix4;
     FTransformScale: Single;
   protected
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -108,7 +108,7 @@ type
       (OpenGL) without any problems.
 
       @groupBegin }
-    property Transform: TMatrix4Single read FTransform;
+    property Transform: TMatrix4 read FTransform;
     property TransformScale: Single read FTransformScale;
     { @groupEnd }
 
@@ -318,7 +318,7 @@ begin
   FEventIsBound := TSFBoolEvent.Create(Self, 'isBound', false);
   AddEvent(FEventIsBound);
 
-  FTransform := IdentityMatrix4Single;
+  FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 end;
 

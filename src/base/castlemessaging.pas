@@ -21,8 +21,8 @@ unit CastleMessaging;
 
 interface
 
-uses {$ifdef ANDROID} JNI, {$endif} SyncObjs,
-  CastleStringUtils, CastleGenericLists, CastleTimeUtils;
+uses {$ifdef ANDROID} JNI, {$endif} SyncObjs, Generics.Collections,
+  CastleStringUtils, CastleTimeUtils;
 
 type
   { Called by TMessaging when a new message from Java is received.
@@ -32,7 +32,7 @@ type
   TMessageReceivedEvent = function (const Received: TCastleStringList): boolean of object;
 
   { Used by TMessaging to manage a list of listeners. }
-  TMessageReceivedEventList = class(specialize TGenericStructList<TMessageReceivedEvent>)
+  TMessageReceivedEventList = class(specialize TList<TMessageReceivedEvent>)
   public
     procedure ExecuteAll(const Received: TCastleStringList);
   end;

@@ -96,7 +96,7 @@ type
     function GetCurrentItem: Integer;
     procedure SetCurrentItem(const Value: Integer);
     procedure SetRegularSpaceBetweenItems(const Value: Cardinal);
-    function FindChildIndex(const ScreenPosition: TVector2Single): Integer;
+    function FindChildIndex(const ScreenPosition: TVector2): Integer;
   protected
     procedure UIScaleChanged; override;
     { Decide whether a children control is focusable or not.
@@ -113,11 +113,11 @@ type
       DefaultMenuKeyPreviousItem = K_Up;
       DefaultMenuKeySelectItem = K_Enter;
 
-      DefaultCurrentItemBorderColor1: TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
-      DefaultCurrentItemBorderColor2: TCastleColor = (0.5, 0.5, 0.5, 1.0) { Gray   }; { }
-      DefaultCurrentItemColor       : TCastleColor = (1.0, 1.0, 0.0, 1.0) { Yellow }; { }
-      DefaultNonCurrentItemColor    : TCastleColor = (1.0, 1.0, 1.0, 1.0) { White  }; { }
-      DefaultNonFocusableItemColor  : TCastleColor = (0.75, 0.75, 0.75, 1.0) { Light Gray }; { }
+      DefaultCurrentItemBorderColor1: TCastleColor = (Data: (1.0, 1.0, 1.0, 1.0)) { White  }; { }
+      DefaultCurrentItemBorderColor2: TCastleColor = (Data: (0.5, 0.5, 0.5, 1.0)) { Gray   }; { }
+      DefaultCurrentItemColor       : TCastleColor = (Data: (1.0, 1.0, 0.0, 1.0)) { Yellow }; { }
+      DefaultNonCurrentItemColor    : TCastleColor = (Data: (1.0, 1.0, 1.0, 1.0)) { White  }; { }
+      DefaultNonFocusableItemColor  : TCastleColor = (Data: (0.75, 0.75, 0.75, 1.0)) { Light Gray }; { }
 
       DefaultRegularSpaceBetweenItems = 10;
       DefaultBackgroundOpacityNotFocused = 0.4;
@@ -164,7 +164,7 @@ type
     procedure Resize; override;
 
     function Rect: TRectangle; override;
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
     procedure Render; override;
 
     property KeyNextItem: TKey read FKeyNextItem write FKeyNextItem
@@ -557,8 +557,8 @@ begin
   if DrawBackgroundRectangle then
   begin
     if Focused then
-      BgColor := Vector4Single(0, 0, 0, BackgroundOpacityFocused) else
-      BgColor := Vector4Single(0, 0, 0, BackgroundOpacityNotFocused);
+      BgColor := Vector4(0, 0, 0, BackgroundOpacityFocused) else
+      BgColor := Vector4(0, 0, 0, BackgroundOpacityNotFocused);
     DrawRectangle(SR, BgColor);
   end;
 
@@ -592,7 +592,7 @@ begin
 end;
 
 function TCastleOnScreenMenu.FindChildIndex(
-  const ScreenPosition: TVector2Single): Integer;
+  const ScreenPosition: TVector2): Integer;
 var
   I: Integer;
 begin
@@ -744,7 +744,7 @@ begin
   Result := Rectangle(LeftBottomScaled, FWidth, FHeight);
 end;
 
-function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TCastleOnScreenMenu.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := CaptureAllEvents or (inherited CapturesEventsAtPosition(Position));
 end;

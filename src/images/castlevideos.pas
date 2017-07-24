@@ -20,7 +20,7 @@ unit CastleVideos;
 
 interface
 
-uses SysUtils, FGL,
+uses SysUtils, Generics.Collections,
   CastleImages, CastleTimeUtils;
 
 type
@@ -332,7 +332,7 @@ type
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
       end;
-      TCachedVideoList = specialize TFPGObjectList<TCachedVideo>;
+      TCachedVideoList = specialize TObjectList<TCachedVideo>;
     var
       CachedVideos: TCachedVideoList;
       FOnEmpty: TProcedure;

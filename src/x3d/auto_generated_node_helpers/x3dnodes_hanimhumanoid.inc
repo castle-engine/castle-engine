@@ -27,37 +27,37 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
     function GetNameField: string;
     procedure SetNameField(const Value: string);
-    function GetRotation: TVector4Single;
-    procedure SetRotation(const Value: TVector4Single);
-    function GetScale: TVector3Single;
-    procedure SetScale(const Value: TVector3Single);
-    function GetScaleOrientation: TVector4Single;
-    procedure SetScaleOrientation(const Value: TVector4Single);
+    function GetRotation: TVector4;
+    procedure SetRotation(const Value: TVector4);
+    function GetScale: TVector3;
+    procedure SetScale(const Value: TVector3);
+    function GetScaleOrientation: TVector4;
+    procedure SetScaleOrientation(const Value: TVector4);
     function GetSkinNormal: TAbstractNormalNode;
     procedure SetSkinNormal(const Value: TAbstractNormalNode);
-    function GetTranslation: TVector3Single;
-    procedure SetTranslation(const Value: TVector3Single);
+    function GetTranslation: TVector3;
+    procedure SetTranslation(const Value: TVector3);
     function GetVersion: string;
     procedure SetVersion(const Value: string);
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
+    property Center: TVector3 read GetCenter write SetCenter;
     property NameField: string read GetNameField write SetNameField;
-    property Rotation: TVector4Single read GetRotation write SetRotation;
-    property Scale: TVector3Single read GetScale write SetScale;
-    property ScaleOrientation: TVector4Single read GetScaleOrientation write SetScaleOrientation;
+    property Rotation: TVector4 read GetRotation write SetRotation;
+    property Scale: TVector3 read GetScale write SetScale;
+    property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
-    property Translation: TVector3Single read GetTranslation write SetTranslation;
+    property Translation: TVector3 read GetTranslation write SetTranslation;
     property Version: string read GetVersion write SetVersion;
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
 {$endif read_interface}
 
@@ -65,12 +65,12 @@
 
 { THAnimHumanoidNode ----------------------------------------------- }
 
-function THAnimHumanoidNode.GetCenter: TVector3Single;
+function THAnimHumanoidNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure THAnimHumanoidNode.SetCenter(const Value: TVector3Single);
+procedure THAnimHumanoidNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
@@ -85,32 +85,32 @@ begin
   FdName.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetRotation: TVector4Single;
+function THAnimHumanoidNode.GetRotation: TVector4;
 begin
   Result := FdRotation.Value;
 end;
 
-procedure THAnimHumanoidNode.SetRotation(const Value: TVector4Single);
+procedure THAnimHumanoidNode.SetRotation(const Value: TVector4);
 begin
   FdRotation.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetScale: TVector3Single;
+function THAnimHumanoidNode.GetScale: TVector3;
 begin
   Result := FdScale.Value;
 end;
 
-procedure THAnimHumanoidNode.SetScale(const Value: TVector3Single);
+procedure THAnimHumanoidNode.SetScale(const Value: TVector3);
 begin
   FdScale.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetScaleOrientation: TVector4Single;
+function THAnimHumanoidNode.GetScaleOrientation: TVector4;
 begin
   Result := FdScaleOrientation.Value;
 end;
 
-procedure THAnimHumanoidNode.SetScaleOrientation(const Value: TVector4Single);
+procedure THAnimHumanoidNode.SetScaleOrientation(const Value: TVector4);
 begin
   FdScaleOrientation.Send(Value);
 end;
@@ -128,12 +128,12 @@ begin
   FdSkinNormal.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetTranslation: TVector3Single;
+function THAnimHumanoidNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
 end;
 
-procedure THAnimHumanoidNode.SetTranslation(const Value: TVector3Single);
+procedure THAnimHumanoidNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
 end;
@@ -148,22 +148,22 @@ begin
   FdVersion.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetBboxCenter: TVector3Single;
+function THAnimHumanoidNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure THAnimHumanoidNode.SetBboxCenter(const Value: TVector3Single);
+procedure THAnimHumanoidNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function THAnimHumanoidNode.GetBboxSize: TVector3Single;
+function THAnimHumanoidNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure THAnimHumanoidNode.SetBboxSize(const Value: TVector3Single);
+procedure THAnimHumanoidNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

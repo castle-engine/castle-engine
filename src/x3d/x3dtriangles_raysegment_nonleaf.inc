@@ -17,42 +17,31 @@
   See castleinternaltriangleoctree_raysegmentcollisions.inc for some comments.
 }
 
-{$define TYPE_SCALAR := Single}
-{$define TYPE_VECTOR2 := TVector2Single}
-{$define TYPE_VECTOR3 := TVector3Single}
-{$define TYPE_VECTOR4 := TVector4Single}
-{$define TYPE_TRIANGLE2 := TTriangle2Single}
-{$define TYPE_TRIANGLE3 := TTriangle3Single}
-{$define TYPE_MATRIX4 := TMatrix4Single}
-{$define SCALAR_EQUALITY_EPSILON := SingleEqualityEpsilon}
-{$define ONE_VECTOR := OneVectorSingle}
-{$define IDENTITY_MATRIX := IdentityMatrix4Single}
-
 { CommonRay/Segment begins --------------------------------------------------- }
 
   function DoNotLeaf: PTriangle;
   {$ifdef SEGMENT_COLLISION}
   var
-    RayOrigin: TYPE_VECTOR3 absolute Pos1;
-    RayDirection: TYPE_VECTOR3;
+    RayOrigin: TVector3 absolute Pos1;
+    RayDirection: TVector3;
   {$endif}
 
     { For demo_models/vrml_1/flat_triangles_octree_test.wrl,
-      this really needs some tolerance. And SingleEqualityEpsilon
+      this really needs some tolerance. And SingleEpsilon
       was too small. }
     function Box3DContainsTolerant(
-      const pt: TVector3Single; const box: TBox3D): boolean;
+      const pt: TVector3; const box: TBox3D): boolean;
     begin
       if box.IsEmpty then exit(false);
-      result := Between(pt[0], Box.Data[0, 0] - 0.001, Box.Data[1, 0] + 0.001) and
-                Between(pt[1], Box.Data[0, 1] - 0.001, Box.Data[1, 1] + 0.001) and
-                Between(pt[2], Box.Data[0, 2] - 0.001, Box.Data[1, 2] + 0.001);
+      result := Between(pt[0], Box.Data[0].Data[0] - 0.001, Box.Data[1].Data[0] + 0.001) and
+                Between(pt[1], Box.Data[0].Data[1] - 0.001, Box.Data[1].Data[1] + 0.001) and
+                Between(pt[2], Box.Data[0].Data[2] - 0.001, Box.Data[1].Data[2] + 0.001);
     end;
 
   var
     { FirstBoxIntr = first ray with box intersection if RayOrigin is outside
       if the Box or simply RayOrigin if RayOrigin is inside our Box  }
-    FirstBoxIntr: TYPE_VECTOR3;
+    FirstBoxIntr: TVector3;
 
     { poczatkowy Subnode, inicjowany na poczatku na SubnodeWithPoint(FirstBoxIntr).
       Moze byc modyfikowany w pewnym specjalnym przypadku przy okazji obliczania
@@ -70,7 +59,7 @@
         PlaneIntersectsCount moze byc <= 3.}
     PlaneIntersects: array[0..2]of record
       Exists: boolean;
-      PlaneIntersectionDistance: TYPE_SCALAR;
+      PlaneIntersectionDistance: Single;
     end;
     ExistingPlaneIntersectsCount: integer;
 
@@ -93,17 +82,17 @@
 
     procedure CalculatePlaneIntersects;
     var i: integer;
-        PlaneIntersect: TYPE_VECTOR3;
+        PlaneIntersect: TVector3;
     begin
      ExistingPlaneIntersectsCount := 0;
 
      for i := 0 to 2 do
       with PlaneIntersects[i] do
       begin
-       if (Box.Data[1][I] - Box.Data[0][I]) < SCALAR_EQUALITY_EPSILON then
+       if SameValue(Box.Data[1].Data[I], Box.Data[0].Data[I]) then
        begin
          { This means that the Box is practically flat, so all 3 planes
-           (Box.Data[0][I], MiddlePoint[I], Box.Data[1][I]) are practically
+           (Box.Data[0].Data[I], MiddlePoint[I], Box.Data[1].Data[I]) are practically
            coplanar.
 
            We want in this case to make sure that we actually
@@ -117,6 +106,10 @@
            for example when this is needed (with new okDynamicCollisions,
            this plane is flat within it's octree, even when it's transformed
            by rotation). }
+
+         { We could here just use TrySimplePlaneRayIntersection always.
+           But that would be unoptimal for segment, since a ray may collide while
+           segment doesn't. }
 
          Exists:=
            {$ifdef SEGMENT_COLLISION}
@@ -140,8 +133,8 @@
 
          StartSubnode[i] := RayDirection[i] <= 0;
        end else
-       if (PointToSimplePlaneDistance(FirstBoxIntr, i, MiddlePoint[i])
-           < SCALAR_EQUALITY_EPSILON) and not Zero(RayDirection[i]) then
+       if IsZero(PointToSimplePlaneDistance(FirstBoxIntr, i, MiddlePoint[i])) and
+          not IsZero(RayDirection[i]) then
        begin
          { This means that FirstBoxIntr lies on MiddlePoint[I] plane.
            Although the box is not flat (this case was eliminated above).
@@ -253,7 +246,7 @@
     SubNode: TBaseTrianglesOctreeNode;
   begin
    {$ifdef SEGMENT_COLLISION}
-   RayDirection := VectorSubtract(Pos2, Pos1);
+   RayDirection := Pos2 - Pos1;
    {$endif}
 
    if not Box.TryRayEntrance(FirstBoxIntr, RayOrigin, RayDirection) then

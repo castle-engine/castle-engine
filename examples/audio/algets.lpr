@@ -20,13 +20,18 @@
 
   You can run this with an optional command-line option:
   an URL of any sound file we can load
-  (right now, the allowed formats are wav and OggVorbis;
-  see CastleSoundFile unit for up-to-date list). Then the sound file will
-  be loaded as OpenAL sound, and some additional tests will be performed. }
+  (WAV and OggVorbis for now, see
+  https://castle-engine.sourceforge.io/x3d_implementation_sound.php ).
+  Then the sound file will be loaded as OpenAL sound,
+  and some additional tests will be performed. }
 program algets;
 
-uses CastleOpenAL, CastleALUtils, SysUtils, CastleUtils, CastleVectors,
-  CastleStringUtils, CastleEFX, CastleSoundEngine, CastleTimeUtils, CastleParameters;
+uses SysUtils,
+  { To query some things, we use internal units. You should not need to use these
+    in your own applications. }
+  CastleInternalOpenAL, CastleInternalALUtils, CastleInternalEFX,
+  CastleUtils, CastleVectors, CastleStringUtils, CastleSoundEngine, CastleTimeUtils,
+  CastleParameters;
 
 { force compatibility : use alCreateSources/Buffers instead of alGen*.
 
@@ -62,7 +67,7 @@ procedure Gets;
 
   function TwoVectorsToNiceStr(const tv:TALTwoVectors3f):string;
   begin
-    result:='at : ' +VectorToNiceStr(tv[0]) +', up : ' +VectorToNiceStr(tv[1]);
+    result:='at : ' +tv[0].ToString +', up : ' +tv[1].ToString;
   end;
 
 var
@@ -72,12 +77,8 @@ var
   begin
    result:=
      'Sample Source state -------------------------------' +nl+
-     {$ifdef VER3_1_1}
-     {$warning Workarounding FPC 3.1.1 internal error 200211262 in algets.lpr}
-     {$else}
      'POSITION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_POSITION)) +nl+
      'VELOCITY : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_VELOCITY)) +nl+
-     {$endif}
      'GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_GAIN)) +nl+
      'RELATIVE : '+ BoolToStr(alGetSource1bool(SampleSource, AL_SOURCE_RELATIVE), true) +nl+
      'LOOPING : '+ BoolToStr(alGetSource1bool(SampleSource, AL_LOOPING), true) +nl+
@@ -90,11 +91,7 @@ var
      'ROLLOFF_FACTOR : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_ROLLOFF_FACTOR)) +nl+
      'MAX_DISTANCE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MAX_DISTANCE)) +nl+
      'PITCH : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_PITCH)) +nl+
-     {$ifdef VER3_1_1}
-     {$warning Workarounding FPC 3.1.1 internal error 200211262 in algets.lpr}
-     {$else}
      'DIRECTION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_DIRECTION)) +nl+
-     {$endif}
      'CONE_INNER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_INNER_ANGLE)) +nl+
      'CONE_OUTER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_ANGLE)) +nl+
      'CONE_OUTER_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_GAIN)) +nl+
@@ -212,7 +209,7 @@ begin
     if SoundEngine.ALActive then
       Gets
     else
-      Writeln('Sound engine not initialized: ' + SoundEngine.SoundInitializationReport);
+      Writeln('Sound engine not initialized: ' + SoundEngine.Information);
   finally
     SoundEngine.ALContextClose;
   end;

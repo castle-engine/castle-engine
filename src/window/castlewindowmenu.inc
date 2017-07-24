@@ -73,7 +73,7 @@
     property ParentMenuPosition: Cardinal read FParentMenuPosition;
   end;
 
-  TMenuEntryList = specialize TFPGObjectList<TMenuEntry>;
+  TMenuEntryList = specialize TObjectList<TMenuEntry>;
 
   TMenuEntryWithCaption = class(TMenuEntry)
   private
@@ -392,9 +392,11 @@
     All TMenuItemRadio within the same group share the same
     TMenuItemRadioGroup instance.
 
-    Never modify anything within this group using general TFPGObjectList
-    properties. Instead always use methods defined here. }
-  TMenuItemRadioGroup = class(specialize TFPGObjectList<TMenuItemRadio>)
+    Never modify anything within this group using general TObjectList
+    properties. Instead always use methods defined here.
+    TODO: This should not descend from TObjectList<TMenuItemRadio> then,
+    it should contain it privately. }
+  TMenuItemRadioGroup = class(specialize TObjectList<TMenuItemRadio>)
   private
     FSelected: TMenuItemRadio;
     procedure SetSelected(Value: TMenuItemRadio);
@@ -630,11 +632,7 @@ var
   Entry: TMenuEntry;
   P: TCastleWindowCustom;
 begin
-  { extract Entry from Entries list }
-  Entry := FEntries[Index];
-  FEntries.FreeObjects := false; // temporarily disable FreeObjects
-  FEntries.Delete(Index);
-  FEntries.FreeObjects := true;
+  Entry := FEntries.ExtractIndex(Index);
 
   { update changed FParentMenuPosition values }
   for I := Index to Count - 1 do

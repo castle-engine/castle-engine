@@ -27,22 +27,22 @@
 {$ifdef read_interface}
 
   private
-    function GetCenter: TVector3Single;
-    procedure SetCenter(const Value: TVector3Single);
+    function GetCenter: TVector3;
+    procedure SetCenter(const Value: TVector3);
     function GetDescription: string;
     procedure SetDescription(const Value: string);
     function GetDisplayed: boolean;
     procedure SetDisplayed(const Value: boolean);
     function GetRetainUserOffsets: boolean;
     procedure SetRetainUserOffsets(const Value: boolean);
-    function GetSize: TVector3Single;
-    procedure SetSize(const Value: TVector3Single);
+    function GetSize: TVector3;
+    procedure SetSize(const Value: TVector3);
   public
-    property Center: TVector3Single read GetCenter write SetCenter;
+    property Center: TVector3 read GetCenter write SetCenter;
     property Description: string read GetDescription write SetDescription;
     property Displayed: boolean read GetDisplayed write SetDisplayed;
     property RetainUserOffsets: boolean read GetRetainUserOffsets write SetRetainUserOffsets;
-    property Size: TVector3Single read GetSize write SetSize;
+    property Size: TVector3 read GetSize write SetSize;
 
 {$endif read_interface}
 
@@ -50,12 +50,12 @@
 
 { TViewpointGroupNode ----------------------------------------------- }
 
-function TViewpointGroupNode.GetCenter: TVector3Single;
+function TViewpointGroupNode.GetCenter: TVector3;
 begin
   Result := FdCenter.Value;
 end;
 
-procedure TViewpointGroupNode.SetCenter(const Value: TVector3Single);
+procedure TViewpointGroupNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
 end;
@@ -90,12 +90,12 @@ begin
   FdRetainUserOffsets.Send(Value);
 end;
 
-function TViewpointGroupNode.GetSize: TVector3Single;
+function TViewpointGroupNode.GetSize: TVector3;
 begin
   Result := FdSize.Value;
 end;
 
-procedure TViewpointGroupNode.SetSize(const Value: TVector3Single);
+procedure TViewpointGroupNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
 end;

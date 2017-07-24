@@ -707,7 +707,7 @@
     function TryFindNodeTransform(
       NodeClass: TX3DNodeClass;
       out Node: TX3DNode;
-      out Transform: TMatrix4Single;
+      out Transform: TMatrix4;
       out TransformScale: Single): boolean;
     { @groupEnd }
 
@@ -1043,7 +1043,7 @@
     function NiceName: string;
   end;
 
-  TX3DNodeList = class(specialize TFPGObjectList<TX3DNode>)
+  TX3DNodeList = class(specialize TObjectList<TX3DNode>)
     { Find node by name, @nil if not found.
 
       For empty node name, always returns @nil. This follows the definition
@@ -1061,8 +1061,8 @@
     function IndexOfName(const Name: string): Integer;
 
     procedure AddIfNotExists(const Node: TX3DNode);
-
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
+    procedure Assign(const Source: TX3DNodeList);
   end;
 
 {$endif read_interface}
@@ -2316,7 +2316,7 @@ end;
 type
   TTryFindNodeTransformResult = class
     Node: TX3DNode;
-    Transform: TMatrix4Single;
+    Transform: TMatrix4;
     TransformScale: Single;
   end;
 
@@ -2336,7 +2336,7 @@ end;
 function TX3DNode.TryFindNodeTransform(
   NodeClass: TX3DNodeClass;
   out Node: TX3DNode;
-  out Transform: TMatrix4Single;
+  out Transform: TMatrix4;
   out TransformScale: Single): boolean;
 var
   Res: TTryFindNodeTransformResult;
@@ -2920,7 +2920,7 @@ function TX3DNode.Field(const AName: string): TX3DField;
 var
   I: Integer;
 begin
-  I := FFields.IndexOf(AName);
+  I := FFields.IndexOfName(AName);
   if I <> -1 then
     Result := FFields[I] else
     Result := nil; { not found }
@@ -2931,7 +2931,7 @@ var
   I: Integer;
   ResultEvent: TX3DEvent;
 begin
-  I := FFields.IndexOf(AName);
+  I := FFields.IndexOfName(AName);
   if I <> -1 then
     Exit(FFields[I]);
 
@@ -2946,7 +2946,7 @@ begin
   if I <> -1 then
     Exit(ResultEvent);
 
-  I := FEvents.IndexOf(AName);
+  I := FEvents.IndexOfName(AName);
   if I <> -1 then
     Exit(Events[I]);
 
@@ -2961,7 +2961,7 @@ begin
   if I <> -1 then
     Exit; { Result is already set }
 
-  I := FEvents.IndexOf(AName);
+  I := FEvents.IndexOfName(AName);
   if I <> -1 then
     Exit(Events[I]);
 
@@ -3197,7 +3197,7 @@ end;
 
 function TX3DNode.IndexOfField(const AName: string): Integer;
 begin
-  Result := FFields.IndexOf(AName);
+  Result := FFields.IndexOfName(AName);
 end;
 
 function TX3DNode.GetEvents(const Index: Integer): TX3DEvent;
@@ -3217,7 +3217,7 @@ end;
 
 function TX3DNode.IndexOfEvent(const AName: string): Integer;
 begin
-  Result := FEvents.IndexOf(AName);
+  Result := FEvents.IndexOfName(AName);
 end;
 
 function TX3DNode.GetPrototypes(const Index: Integer): TX3DPrototypeBase;
@@ -3356,6 +3356,12 @@ begin
     for I := 0 to Count - 1 do
       if Items[I] <> TX3DNodeList(SecondValue)[I] then
         Exit(false);
+end;
+
+procedure TX3DNodeList.Assign(const Source: TX3DNodeList);
+begin
+  Clear;
+  AddRange(Source);
 end;
 
 procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);

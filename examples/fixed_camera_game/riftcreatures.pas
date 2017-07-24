@@ -27,11 +27,11 @@ unit RiftCreatures;
 
 interface
 
-uses SysUtils, Classes,
+uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
   RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
-  FGL, CastleColors;
+  CastleColors;
 
 type
   TCreatureState = (csStand, csBored, csWalk);
@@ -77,7 +77,7 @@ type
     property ReceiveShadowVolumes: boolean read FReceiveShadowVolumes;
   end;
 
-  TCreatureKindList = class(specialize TFPGObjectList<TCreatureKind>)
+  TCreatureKindList = class(specialize TObjectList<TCreatureKind>)
   public
     procedure Load(const BaseLights: TLightInstancesList);
     procedure UnLoad;
@@ -122,7 +122,7 @@ type
   TPlayer = class(TCreature)
   private
     { This is set and used only if csWalk }
-    WantsToWalkPos, WantsToWalkDir: TVector3Single;
+    WantsToWalkPos, WantsToWalkDir: TVector3;
 
     TargetVisualize: TCastleScene;
   public
@@ -135,7 +135,7 @@ type
 
     procedure LocationChanged;
 
-    procedure WantsToWalk(const Value: TVector3Single);
+    procedure WantsToWalk(const Value: TVector3);
   end;
 
 var
@@ -445,7 +445,7 @@ end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  RotationAxis: TVector3Single;
+  RotationAxis: TVector3;
   AngleToTarget: Single;
 
   procedure Rotate;
@@ -464,13 +464,13 @@ var
   const
     MoveSpeed = 0.5;
   var
-    MoveDirectionCurrent, MoveDirectionMax: TVector3Single;
+    MoveDirectionCurrent, MoveDirectionMax: TVector3;
     MoveDirectionCurrentScale: Single;
   begin
     { since Position <> WantsToWalkPos, we know that
       MoveDirectionMax is non-zero }
-    MoveDirectionMax := VectorSubtract(WantsToWalkPos, Position);
-    MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / VectorLen(MoveDirectionMax);
+    MoveDirectionMax := WantsToWalkPos - Position;
+    MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / MoveDirectionMax.Length;
     if MoveDirectionCurrentScale >= 1.0 then
     begin
       { This means that
@@ -481,8 +481,8 @@ var
       State := csStand;
     end else
     begin
-      MoveDirectionCurrent := VectorScale(MoveDirectionMax, MoveDirectionCurrentScale);
-      Position := VectorAdd(Position, MoveDirectionCurrent);
+      MoveDirectionCurrent := MoveDirectionMax * MoveDirectionCurrentScale;
+      Position := Position + MoveDirectionCurrent;
     end;
   end;
 
@@ -498,13 +498,13 @@ begin
 
     { TODO: check collisions with the scene before changing Position }
 
-    IsTargetPos := VectorsEqual(Position, WantsToWalkPos);
-    IsTargetDir := VectorsEqual(Direction, WantsToWalkDir);
+    IsTargetPos := TVector3.Equals(Position, WantsToWalkPos);
+    IsTargetDir := TVector3.Equals(Direction, WantsToWalkDir);
 
     if not IsTargetDir then
     begin
       { compare Direction and WantsToWalkDir with more tolerance }
-      RotationAxis := VectorProduct(Direction, WantsToWalkDir);
+      RotationAxis := TVector3.CrossProduct(Direction, WantsToWalkDir);
       AngleToTarget := RotationAngleRadBetweenVectors(Direction, WantsToWalkDir, RotationAxis);
       if Abs(AngleToTarget) < 0.01 then
         IsTargetDir := true;
@@ -540,10 +540,10 @@ begin
   end;
 end;
 
-procedure TPlayer.WantsToWalk(const Value: TVector3Single);
+procedure TPlayer.WantsToWalk(const Value: TVector3);
 begin
   WantsToWalkPos := Value;
-  WantsToWalkDir := Normalized(WantsToWalkPos - Direction);
+  WantsToWalkDir := (WantsToWalkPos - Direction).Normalize;
   { fix WantsToWalkDir, to avoid wild rotations.
     Without this, our avatar would wildly change up when walking to some
     higher/lower target. This is coupled with the fact that currently

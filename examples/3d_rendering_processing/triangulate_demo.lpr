@@ -8,17 +8,17 @@ type
   TTriangleHandler = class
     procedure HandleTriangle(Shape: TObject;
       const Position: TTriangle3Single;
-      const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+      const Normal: TTriangle3Single; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   end;
 
 procedure TTriangleHandler.HandleTriangle(Shape: TObject;
   const Position: TTriangle3Single;
-  const Normal: TTriangle3Single; const TexCoord: TTriangle4Single;
+  const Normal: TTriangle3Single; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
-  Writeln('Triangle position (in world coordinates): ',
-    TriangleToNiceStr(Position));
+  Writeln('Triangle position (in world coordinates):');
+  Write(Position.ToString);
 end;
 
 var
@@ -58,7 +58,8 @@ begin
     for I := 0 to Scene.InternalOctreeVisibleTriangles.Triangles.Count - 1 do
     begin
       TriangleInfo := @(Scene.InternalOctreeVisibleTriangles.Triangles.List^[I]);
-      Writeln('Triangle position (in world coordinates): ', TriangleToNiceStr(TriangleInfo^.World.Triangle));
+      Writeln('Triangle position (in world coordinates):');
+      Write(TriangleInfo^.World.Triangle.ToString);
     end;
     }
 

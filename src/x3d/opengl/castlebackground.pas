@@ -77,7 +77,7 @@ type
     procedure Update(const Node: TAbstractBackgroundNode;
       const SkySphereRadius: Single);
     procedure Render(const Wireframe: boolean; const Frustum: TFrustum);
-    procedure UpdateTransform(const Transform: TMatrix4Single);
+    procedure UpdateTransform(const Transform: TMatrix4);
     procedure FreeResources;
   end;
 
@@ -167,15 +167,20 @@ var
 
     procedure RenderTextureSide(const Side: TBackgroundSide);
     const
-      Coords: array [TBackgroundSide, 0..3] of TVector3Single =
-      ( (( 1, -1,  1), (-1, -1,  1), (-1,  1,  1), ( 1,  1,  1)), {back}
-        ((-1, -1,  1), ( 1, -1,  1), ( 1, -1, -1), (-1, -1, -1)), {bottom}
-        ((-1, -1, -1), ( 1, -1, -1), ( 1,  1, -1), (-1,  1, -1)), {front}
-        ((-1, -1,  1), (-1, -1, -1), (-1,  1, -1), (-1,  1,  1)), {left}
-        (( 1, -1, -1), ( 1, -1,  1), ( 1,  1,  1), ( 1,  1, -1)), {right}
-        ((-1,  1, -1), ( 1,  1, -1), ( 1,  1,  1), (-1,  1,  1))  {top}
+      Coords: array [TBackgroundSide, 0..3] of TVector3 =
+      ( ((Data: ( 1, -1,  1)), (Data: (-1, -1,  1)), (Data: (-1,  1,  1)), (Data: ( 1,  1,  1))), {back}
+        ((Data: (-1, -1,  1)), (Data: ( 1, -1,  1)), (Data: ( 1, -1, -1)), (Data: (-1, -1, -1))), {bottom}
+        ((Data: (-1, -1, -1)), (Data: ( 1, -1, -1)), (Data: ( 1,  1, -1)), (Data: (-1,  1, -1))), {front}
+        ((Data: (-1, -1,  1)), (Data: (-1, -1, -1)), (Data: (-1,  1, -1)), (Data: (-1,  1,  1))), {left}
+        ((Data: ( 1, -1, -1)), (Data: ( 1, -1,  1)), (Data: ( 1,  1,  1)), (Data: ( 1,  1, -1))), {right}
+        ((Data: (-1,  1, -1)), (Data: ( 1,  1, -1)), (Data: ( 1,  1,  1)), (Data: (-1,  1,  1)))  {top}
       );
-      TexCoords: array [0..3] of TVector2Single = ((0, 0), (1, 0), (1, 1), (0, 1));
+      TexCoords: array [0..3] of TVector2 = (
+        (Data: (0, 0)),
+        (Data: (1, 0)),
+        (Data: (1, 1)),
+        (Data: (0, 1))
+      );
     var
       Shape: TShapeNode;
       Appearance: TAppearanceNode;
@@ -183,7 +188,7 @@ var
       Coord: TCoordinateNode;
       TexCoord: TTextureCoordinateNode;
       Texture: TAbstractTextureNode;
-      V: TVector3Single;
+      V: TVector3;
     begin
       Texture := Node.Texture(Side);
       if Texture = nil then Exit;
@@ -283,33 +288,33 @@ const
     Y := C * SkySphereRadius;
   end;
 
-  function StackTipCalc(const Angle: Single): TVector3Single;
+  function StackTipCalc(const Angle: Single): TVector3;
   begin
-    // Result := Vector3Single(0, Cos(Angle) * SkySphereRadius, 0);
+    // Result := Vector3(0, Cos(Angle) * SkySphereRadius, 0);
     { simpler and more accurate version, since StackTipCalc is only called with
       Angle = 0 or Pi }
     if Angle = 0 then
-      Result := Vector3Single(0,  SkySphereRadius, 0) else
+      Result := Vector3(0,  SkySphereRadius, 0) else
     begin
       Assert(Angle = Single(Pi));
-      Result := Vector3Single(0, -SkySphereRadius, 0);
+      Result := Vector3(0, -SkySphereRadius, 0);
     end;
   end;
 
-  function CirclePoint(const Y, Radius: Single; const SliceIndex: Integer): TVector3Single;
+  function CirclePoint(const Y, Radius: Single; const SliceIndex: Integer): TVector3;
   var
     S, C: Extended;
   begin
     SinCos(SliceIndex * 2 * Pi / Slices, S, C);
-    Result := Vector3Single(S * Radius, Y, C * Radius);
+    Result := Vector3(S * Radius, Y, C * Radius);
   end;
 
   { Render*Stack: render one stack of sky/ground sphere.
     Angles are given in the sky connvention : 0 is zenith, Pi is nadir. }
 
   procedure RenderFirstStack(
-    const TipColor   : TVector3Single; const TipAngle   : Single;
-    const CircleColor: TVector3Single; const CircleAngle: Single);
+    const TipColor   : TVector3; const TipAngle   : Single;
+    const CircleColor: TVector3; const CircleAngle: Single);
   var
     CircleY, CircleRadius: Single;
     I, Start, Next, StartIndex, NextIndex: Integer;
@@ -347,7 +352,7 @@ const
   end;
 
   procedure RenderNextStack(
-    const CircleColor: TVector3Single; const CircleAngle: Single);
+    const CircleColor: TVector3; const CircleAngle: Single);
   var
     CircleY, CircleRadius: Single;
     I, Start, Next, StartIndex, NextIndex: Integer;
@@ -387,7 +392,7 @@ const
   end;
 
   procedure RenderLastStack(
-    const TipColor: TVector3Single; const TipAngle: Single);
+    const TipColor: TVector3; const TipAngle: Single);
   var
     I, Start, StartIndex, NextIndex: Integer;
   begin
@@ -419,7 +424,7 @@ const
   var
     I, ColorCount, AngleCount: Integer;
     Angle: PSingle;
-    Color: PVector3Single;
+    Color: PVector3;
     GroundHighestAngle: Single;
   begin
     { calculate GroundHighestAngle, will be usable to optimize rendering sky.
@@ -453,7 +458,7 @@ const
     Assert(ColorCount >= 1);
     Assert(AngleCount + 1 = ColorCount);
 
-    ClearColor := Vector4Single(Color[0], 1.0);
+    ClearColor := Vector4(Color[0], 1.0);
     if ColorCount > 1 then
     begin
       { When ColorCount >= 2, the idea of rendering is to do:
@@ -484,7 +489,7 @@ const
     I: Integer;
     ColorCount, AngleCount: Integer;
     Angle: PSingle;
-    Color: PVector3Single;
+    Color: PVector3;
   begin
     ColorCount := Node.FdGroundColor.Count;
     AngleCount := Node.FdGroundAngle.Count;
@@ -557,7 +562,7 @@ begin
   Scene.FreeResources([frTextureDataInNodes]);
 end;
 
-procedure TBackground.UpdateTransform(const Transform: TMatrix4Single);
+procedure TBackground.UpdateTransform(const Transform: TMatrix4);
 begin
   MatrixTransform.FdMatrix.Send(Transform);
 end;

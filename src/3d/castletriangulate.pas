@@ -23,7 +23,7 @@ interface
 uses SysUtils, CastleVectors, CastleUtils, CastleTriangles;
 
 type
-  TTriangulatorProc = procedure (const Tri: TVector3Longint) of object;
+  TTriangulatorProc = procedure (const Tri: TVector3Integer) of object;
 
 { Triangulate potentially non-convex face.
 
@@ -71,7 +71,7 @@ type
   @groupBegin }
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; VerticesCount: Integer;
+  Vertices: PVector3; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint); overload;
 
@@ -101,8 +101,8 @@ procedure TriangulateConvexFace(Count: Integer;
 { Calculate normal vector of possibly concave polygon. }
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
-  Vertices: PVector3Single; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
+  Vertices: PVector3; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 
 var
   { Write to Log a @italic(lot) of comments how the triangulation goes.
@@ -111,7 +111,8 @@ var
 
 implementation
 
-uses CastleLog, CastleStringUtils;
+uses Math,
+  CastleLog, CastleStringUtils;
 
 { Do additional operations (normalize some vectors etc.)
   that in theory should improve numerical stability of this algorithm.
@@ -154,13 +155,13 @@ procedure TriangulateFace(
 
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
-    TriangulatorProc(Vector3Longint(
+    TriangulatorProc(Vector3Integer(
       P0 + AddToIndices,
       P1 + AddToIndices,
       P2 + AddToIndices));
   end;
 
-  function Verts(I: Longint): TVector3Single;
+  function Verts(I: Longint): TVector3;
   begin
     if FaceIndices <> nil then
       Result := Vertices(FaceIndices^[I]) else
@@ -168,7 +169,7 @@ procedure TriangulateFace(
   end;
 
   { Calculate the most distant vertex from Center. }
-  function GetMostDistantVertex(const Center: TVector3Single): Integer;
+  function GetMostDistantVertex(const Center: TVector3): Integer;
   var
     MaxLen, D: Single;
     I: Integer;
@@ -211,13 +212,13 @@ var
     Searches to make sure we have a good non-colinear triangle around Middle.
     Returns false (and does log message) if not possible. }
   function EarAround(const Middle: Integer; out Previous, Next: Integer;
-    out EarDir: TVector3Single): boolean;
+    out EarDir: TVector3): boolean;
   begin
     { Previous := previous from Middle, with different value. }
     Previous := Middle;
     repeat
       Previous := PreviousNotOut(Previous);
-    until (Previous = Middle) or not VectorsEqual(Verts(Previous), Verts(Middle));
+    until (Previous = Middle) or not TVector3.Equals(Verts(Previous), Verts(Middle));
     if Previous = Middle then
     begin
       if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are equal. So polygon doesn''t contain any non-empty triangles.');
@@ -228,10 +229,10 @@ var
     Next := Middle;
     repeat
       Next := NextNotOut(Next);
-      EarDir := TriangleDir(Verts(Previous), Verts(Middle), Verts(Next));
-      { note: no need to check for VectorsEqual(Verts(Next), Verts(Middle)) anywhere,
+      EarDir := TriangleDirection(Verts(Previous), Verts(Middle), Verts(Next));
+      { note: no need to check for TVector3.Equals(Verts(Next), Verts(Middle)) anywhere,
         because if EarDir is non-zero then they had to be different. }
-    until (Next = Previous) or not ZeroVector(EarDir);
+    until (Next = Previous) or not EarDir.IsZero;
     if Next = Previous then
     begin
       if Log then WritelnLog('Triangulator', 'All vertexes of given polygon are collinear. So polygon doesn''t contain any non-empty triangles.');
@@ -243,7 +244,7 @@ var
 
   function EarAround(const Middle: Integer; out Previous, Next: Integer): boolean;
   var
-    EarDirIgnored: TVector3Single;
+    EarDirIgnored: TVector3;
   begin
     Result := EarAround(Middle, Previous, Next, EarDirIgnored);
   end;
@@ -280,7 +281,7 @@ var
 
     This function distinguishes between these two cases.
     Inside1/2/3 must be the edge comparison results. }
-  function BorderVertexInsideTriangle(const V0, V1, V2, TriangleNormal: TVector3Single;
+  function BorderVertexInsideTriangle(const V0, V1, V2, TriangleNormal: TVector3;
     const Inside1, Inside2, Inside3: Single;
     const Border: Integer): boolean;
 
@@ -293,29 +294,29 @@ var
       we use this always in case when we now that ray never lies
       on the line segment, because our line segment is chosen to be a triangle
       edge that *does not* contain Border vertex). }
-    function RaySegment01Collision2D(Ray0: TVector3Single;
-      const RayDirection: TVector3Single;
-      const Origin, XDirection: TVector3Single;
-      YDirection: TVector3Single): boolean;
+    function RaySegment01Collision2D(Ray0: TVector3;
+      const RayDirection: TVector3;
+      const Origin, XDirection: TVector3;
+      YDirection: TVector3): boolean;
     var
-      R0, RDirection: TVector2Single;
+      R0, RDirection: TVector2;
       X, T, XDirectionLenSqr, YDirectionLenSqr: Single;
     begin
       Ray0 -= Origin;
 
       { fix YDirection to be orthogonal to XDirection, to make sure projecting
-        by VectorDotProduct is correct }
+        by TVector3.DotProduct is correct }
       MakeVectorsOrthoOnTheirPlane(YDirection, XDirection);
 
-      XDirectionLenSqr := VectorLenSqr(XDirection);
-      YDirectionLenSqr := VectorLenSqr(YDirection);
+      XDirectionLenSqr := XDirection.LengthSqr;
+      YDirectionLenSqr := YDirection.LengthSqr;
 
-      R0[0] := VectorDotProduct(Ray0, XDirection) / XDirectionLenSqr;
-      R0[1] := VectorDotProduct(Ray0, YDirection) / YDirectionLenSqr;
-      RDirection[0] := VectorDotProduct(RayDirection, XDirection) / XDirectionLenSqr;
-      RDirection[1] := VectorDotProduct(RayDirection, YDirection) / YDirectionLenSqr;
+      R0[0] := TVector3.DotProduct(Ray0, XDirection) / XDirectionLenSqr;
+      R0[1] := TVector3.DotProduct(Ray0, YDirection) / YDirectionLenSqr;
+      RDirection[0] := TVector3.DotProduct(RayDirection, XDirection) / XDirectionLenSqr;
+      RDirection[1] := TVector3.DotProduct(RayDirection, YDirection) / YDirectionLenSqr;
 
-      if Zero(RDirection[1]) then Exit(false);
+      if IsZero(RDirection[1]) then Exit(false);
 
       { we're interested now in intersection on OX axis with ray.
         R0 + RDirection * T = (X, 0), so
@@ -330,7 +331,7 @@ var
 
   var
     BorderPrevious, BorderNext: Integer;
-    VBorder, BorderEarNormal, PullDirection: TVector3Single;
+    VBorder, BorderEarNormal, PullDirection: TVector3;
   begin
     { The two cases can be distinguished by looking at edges
       around Border. If they go out of V0-V1-V2 triangle,
@@ -342,15 +343,16 @@ var
     { if EarAround fails, then everything is colinear, we may as well
       let EarFound be true. This should not happen, except because
       of fp inaccuracy: if everything is colinear,
-      then our ZeroVector(EarNormal) check earlier should usually
+      then our EarNormal.IsZero check earlier should usually
       detect this. }
     if not EarAround(Border, BorderPrevious, BorderNext, BorderEarNormal) then
       Exit(true);
 
     VBorder := Verts(Border);
 
-    PullDirection := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif}
-      (((VBorder + Verts(BorderPrevious) + Verts(BorderNext)) / 3.0) - VBorder);
+    PullDirection :=
+      (((VBorder + Verts(BorderPrevious) + Verts(BorderNext)) / 3.0) - VBorder)
+      {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
 
     { Some (at least one) of the three Inside1/2/3 values are
       now between -Epsilon .. +Epsilon, these are the edges where
@@ -374,7 +376,7 @@ var
 
     Assert(Result = IsPointOnTrianglePlaneWithinTriangle(
       VBorder + PullDirection * 0.01,
-      Triangle3Single(V0, V1, V2), TriangleNormal)); }
+      Triangle3(V0, V1, V2), TriangleNormal)); }
 
     if Log and LogTriangulation then
       WritelnLog('Triangulation', Format('Border vertex %d (part of %d - %d - %d) considered inside triangle? %s.',
@@ -382,7 +384,7 @@ var
   end;
 
 var
-  Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3Single;
+  Center, EarNormal, E1, E2, E3, V0, V1, V2, PolygonNormal: TVector3;
   Corners, Start, I, P0, P1, P2: Integer;
   DistanceSqr: Single;
   EarFound, FailureWarningDone, ValidEar: boolean;
@@ -393,11 +395,11 @@ begin
     NewTriangle(0, 1, 2) else
   if Count > 3 then
   begin
-    EpsilonForEmptyCheck := SingleEqualityEpsilon;
+    EpsilonForEmptyCheck := SingleEpsilon;
     FailureWarningDone := false;
 
     { calculate Center := average of all vertexes }
-    Center := ZeroVector3Single;
+    Center := TVector3.Zero;
     for I := 0 to Count - 1 do
       Center += Verts(I);
     Center /= Count;
@@ -427,12 +429,12 @@ begin
         (they do not determine triangulation in any other way). }
       P1 := GetMostDistantVertex(Center);
       if not EarAround(P1, P0, P2, PolygonNormal) then Exit;
-      Assert(not ZeroVector(PolygonNormal));
-      NormalizeVar(PolygonNormal);
+      Assert(not PolygonNormal.IsZero);
+      PolygonNormal.NormalizeMe;
 
       if Log and LogTriangulation then
         WritelnLog('Triangulation', Format('Most distant vertex: %d. Triangle for PolygonNormal: %d - %d - %d. Polygon normal: %s',
-          [P1, P0, P1, P2, VectorToNiceStr(PolygonNormal)]));
+          [P1, P0, P1, P2, PolygonNormal.ToString]));
 
       Corners := Count; { Corners = always "how many Outs are false" }
 
@@ -483,8 +485,8 @@ begin
             Break;
           end;
 
-          EarNormal := TriangleDir(V0, V1, V2);
-          if ZeroVector(EarNormal) then
+          EarNormal := TriangleDirection(V0, V1, V2);
+          if EarNormal.IsZero then
           begin
             if Log and LogTriangulation then
               WritelnLog('Triangulation', Format('Triangle %d - %d - %d is colinear, removing.', [P0, P1, P2]));
@@ -494,7 +496,7 @@ begin
               Leave ValidEar = false, so it will not be actually returned. }
             Break;
           end;
-          NormalizeVar(EarNormal);
+          EarNormal.NormalizeMe;
 
           ValidEar := true;
 
@@ -505,15 +507,15 @@ begin
           if Log and LogTriangulation then
             WritelnLog('Triangulation', Format('Does the ear %d - %d - %d have the same orientation as polygon? %s. (Ear normal: %s, distance to polygon normal: %f.)' ,
               [P0, P1, P2, BoolToStr(EarFound, true),
-               VectorToNiceStr(EarNormal), Sqrt(DistanceSqr)]));
+               EarNormal.ToString, Sqrt(DistanceSqr)]));
 
           { check is the ear triangle non-empty }
           if EarFound then
           begin
             { vectors orthogonal to triangle edges going *outside* from the triangle }
-            E1 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V0 - V1));
-            E2 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V1 - V2));
-            E3 := {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (VectorProduct(EarNormal, V2 - V0));
+            E1 := (TVector3.CrossProduct(EarNormal, V0 - V1)) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
+            E2 := (TVector3.CrossProduct(EarNormal, V1 - V2)) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
+            E3 := (TVector3.CrossProduct(EarNormal, V2 - V0)) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif};
 
             for I := 0 to Count - 1 do
               { if we can find a vertex that is
@@ -529,9 +531,9 @@ begin
                  (I <> P1) and
                  (I <> P2) then
               begin
-                Inside1 := VectorDotProduct(E1, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V0+V1)/2.0 {$else} V0 {$endif}));
-                Inside2 := VectorDotProduct(E2, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V1+V2)/2.0 {$else} V1 {$endif}));
-                Inside3 := VectorDotProduct(E3, {$ifdef TRIANGULATION_EXTRA_STABILITY} Normalized {$endif} (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V2+V0)/2.0 {$else} V2 {$endif}));
+                Inside1 := TVector3.DotProduct(E1, (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V0+V1)/2.0 {$else} V0 {$endif}) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif});
+                Inside2 := TVector3.DotProduct(E2, (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V1+V2)/2.0 {$else} V1 {$endif}) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif});
+                Inside3 := TVector3.DotProduct(E3, (Verts(I) - {$ifdef TRIANGULATION_EXTRA_STABILITY} (V2+V0)/2.0 {$else} V2 {$endif}) {$ifdef TRIANGULATION_EXTRA_STABILITY} .Normalize {$endif});
 
                 if ( (Inside1 <= -EpsilonForEmptyCheck) and
                      (Inside2 <= -EpsilonForEmptyCheck) and
@@ -562,23 +564,23 @@ end;
 
 type
   TVerticesGenerator = class
-    Vertices: PVector3Single;
+    Vertices: PVector3;
     VerticesCount: Integer;
-    function Generate(Index: Integer): TVector3Single;
+    function Generate(Index: Integer): TVector3;
   end;
 
-function TVerticesGenerator.Generate(Index: Integer): TVector3Single;
+function TVerticesGenerator.Generate(Index: Integer): TVector3;
 begin
   if Index < VerticesCount then
     Result := Vertices[Index] else
     { invalid vertex index. VRML/X3D code will warn about it elsewhere,
       so do not make warning now --- just make sure we don't crash. }
-    Result := ZeroVector3Single;
+    Result := TVector3.Zero;
 end;
 
 procedure TriangulateFace(
   FaceIndices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; VerticesCount: Integer;
+  Vertices: PVector3; VerticesCount: Integer;
   TriangulatorProc: TTriangulatorProc;
   AddToIndices: Longint);
 var
@@ -599,7 +601,7 @@ procedure TriangulateConvexFace(Count: Integer;
 
   procedure NewTriangle(const p0, p1, p2: Longint);
   begin
-    TriangulatorProc(Vector3Longint(
+    TriangulatorProc(Vector3Integer(
       P0 + AddToIndices,
       P1 + AddToIndices,
       P2 + AddToIndices));
@@ -614,8 +616,8 @@ end;
 
 function IndexedConcavePolygonNormal(
   Indices: PArray_Longint; Count: Integer;
-  Vertices: PVector3Single; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single): TVector3Single;
+  Vertices: PVector3; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3): TVector3;
 
 { Alternative implementation of IndexedConcavePolygonNormal
   is to do TriangulateFace on the polygon, sum normal vectors
@@ -637,18 +639,18 @@ function IndexedConcavePolygonNormal(
     Result := (I + 1) mod Count;
   end;
 
-  function Verts(const I: Longint): TVector3Single;
+  function Verts(const I: Longint): TVector3;
   var
     Index: LongInt;
   begin
     Index := Indices^[I];
     if Index < VerticesCount then
       Result := Vertices[Index] else
-      Result := ZeroVector3Single;
+      Result := TVector3.Zero;
   end;
 
   { Calculate the most distant vertex from Center. }
-  function GetMostDistantVertex(const Center: TVector3Single): Integer;
+  function GetMostDistantVertex(const Center: TVector3): Integer;
   var
     MaxLen, D: Single;
     I: Integer;
@@ -667,14 +669,14 @@ function IndexedConcavePolygonNormal(
   end;
 
 var
-  Center: TVector3Single;
+  Center: TVector3;
   P0, P1, P2, I: Integer;
 begin
   if Count < 3 then
     Exit(ResultForIncorrectPoly);
 
   { calculate Center := average of all vertexes }
-  Center := ZeroVector3Single;
+  Center := TVector3.Zero;
   for I := 0 to Count - 1 do
     Center += Verts(I);
   Center /= Count;
@@ -686,7 +688,7 @@ begin
   P0 := P1;
   repeat
     P0 := Previous(P0);
-  until (P0 = P1) or not VectorsEqual(Verts(P0), Verts(P1));
+  until (P0 = P1) or not TVector3.Equals(Verts(P0), Verts(P1));
   if P0 = P1 then
   begin
     { All vertexes of given polygon are equal. }
@@ -697,26 +699,27 @@ begin
   P2 := P1;
   repeat
     P2 := Next(P2);
-    Result := TriangleDir(Verts(P0), Verts(P1), Verts(P2));
-    { note: no need to check for VectorsEqual(Verts(P2), Verts(P1)) anywhere,
+    Result := TriangleDirection(Verts(P0), Verts(P1), Verts(P2));
+    { note: no need to check for TVector3.Equals(Verts(P2), Verts(P1)) anywhere,
       because if EarDir is non-zero then they had to be different. }
-  until (P2 = P0) or not ZeroVector(Result);
+  until (P2 = P0) or not Result.IsZero;
   if P2 = P0 then
   begin
     { All vertexes of given polygon are collinear. }
     Exit(ResultForIncorrectPoly);
   end;
 
-  NormalizeVar(Result);
+  Result.NormalizeMe;
 end;
 
 function IndexedPolygonNormal(
   Indices: PArray_Longint; IndicesCount: Integer;
-  Vertices: PVector3Single; const VerticesCount: Integer;
-  const ResultForIncorrectPoly: TVector3Single; const Convex: boolean): TVector3Single;
+  Vertices: PVector3; const VerticesCount: Integer;
+  const ResultForIncorrectPoly: TVector3; const Convex: boolean): TVector3;
 begin
   if Convex then
-    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly) else
+    Result := IndexedConvexPolygonNormal (Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly)
+  else
     Result := IndexedConcavePolygonNormal(Indices, IndicesCount, Vertices, VerticesCount, ResultForIncorrectPoly);
 end;
 

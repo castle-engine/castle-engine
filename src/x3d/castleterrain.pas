@@ -27,7 +27,7 @@ type
   TTerrain = class;
 
   TColorFromHeightFunction =
-    function (Terrain: TTerrain; Height: Single): TVector3Single;
+    function (Terrain: TTerrain; Height: Single): TVector3;
 
   { Terrain (height for each X, Y) data. }
   TTerrain = class
@@ -35,7 +35,7 @@ type
     function Height(const X, Y: Single): Single; virtual; abstract;
     { Create X3D node with the given terrain. }
     function CreateNode(const Dimensions: Cardinal;
-      const Size: Single; const XRange, ZRange: TVector2Single;
+      const Size: Single; const XRange, ZRange: TVector2;
       const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
   end;
 
@@ -305,7 +305,7 @@ uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
 { TTerrain ------------------------------------------------------------------- }
 
 function TTerrain.CreateNode(const Dimensions: Cardinal;
-  const Size: Single; const XRange, ZRange: TVector2Single;
+  const Size: Single; const XRange, ZRange: TVector2;
   const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
 var
   X, Z: Cardinal;

@@ -15,7 +15,7 @@
 
 var
   Intersection: TVector3;
-  SphereRadiusSqr: TScalar;
+  SphereRadiusSqr: Single;
   I, NextI: integer;
   {$ifndef HAS_PRECALC_PLANE} TriPlane: TVector4; {$endif}
   { In case HAS_PRECALC_PLANE is not defined, TriDir is valid only once
@@ -27,12 +27,12 @@ begin
   (* Is SphereCenter within the radius of one of triangle corners.
      Note that this case is necessary, it is not fully catched by
      "SphereCenter close to one of the triangles' edges" lower. *)
-  if (PointsDistanceSqr(Tri[0], SphereCenter) <= SphereRadiusSqr) or
-     (PointsDistanceSqr(Tri[1], SphereCenter) <= SphereRadiusSqr) or
-     (PointsDistanceSqr(Tri[2], SphereCenter) <= SphereRadiusSqr) then
+  if (PointsDistanceSqr(Tri.Data[0], SphereCenter) <= SphereRadiusSqr) or
+     (PointsDistanceSqr(Tri.Data[1], SphereCenter) <= SphereRadiusSqr) or
+     (PointsDistanceSqr(Tri.Data[2], SphereCenter) <= SphereRadiusSqr) then
     Exit(true);
 
-  {$ifndef HAS_PRECALC_PLANE} TriPlane := TrianglePlane(Tri);{$endif}
+  {$ifndef HAS_PRECALC_PLANE} TriPlane := Tri.Plane; {$endif}
   (* Is SphereCenter within the triangle. *)
   Intersection := PointOnPlaneClosestToPoint(TriPlane, SphereCenter);
   if (PointsDistanceSqr(SphereCenter, Intersection) <= SphereRadiusSqr) and
@@ -43,9 +43,9 @@ begin
   for I := 0 to 2 do
   begin
     NextI := (I + 1) mod 3;
-    Intersection := PointOnLineClosestToPoint(Tri[I],
-      VectorSubtract(Tri[NextI], Tri[I]), SphereCenter);
-    if IsPointOnSegmentLineWithinSegment(Intersection, Tri[I], Tri[NextI]) and
+    Intersection := PointOnLineClosestToPoint(Tri.Data[I],
+      Tri.Data[NextI] - Tri.Data[I], SphereCenter);
+    if IsPointOnSegmentLineWithinSegment(Intersection, Tri.Data[I], Tri.Data[NextI]) and
        (PointsDistanceSqr(SphereCenter, Intersection) <= SphereRadiusSqr) then
       Exit(true);
   end;

@@ -41,7 +41,7 @@
     private FFdAngle: TSFFloat;
     public property FdAngle: TSFFloat read FFdAngle;
 
-    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4Single); override;
+    procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
     function TransformScale: Single; override;
   end;
 {$endif read_interface}
@@ -78,12 +78,9 @@ begin
 end;
 
 procedure TRotationXYZNode.Transformation(
-  out Matrix, InvertedMatrix: TMatrix4Single);
-const
-  AxisVectors: array[0..2]of TVector3Single =
-  ( (1, 0, 0), (0, 1, 0), (0, 0, 1) );
+  out Matrix, InvertedMatrix: TMatrix4);
 begin
-  RotationMatricesRad(FdAngle.Value, AxisVectors[FdAxis.Value],
+  RotationMatricesRad(FdAngle.Value, TVector3.One[FdAxis.Value],
     Matrix, InvertedMatrix);
 end;
 

@@ -20,7 +20,8 @@ unit CastleRenderingCamera;
 
 interface
 
-uses CastleUtils, CastleVectors, CastleFrustum, CastleCameras, CastleGenericLists, X3DNodes;
+uses Generics.Collections,
+  CastleUtils, CastleVectors, CastleFrustum, CastleCameras, X3DNodes;
 
 type
   TRenderingCamera = class;
@@ -29,7 +30,7 @@ type
     const RenderingCamera: TRenderingCamera;
     Viewpoint: TAbstractViewpointNode) of object;
 
-  TCameraChangedEventList = class(specialize TGenericStructList<TCameraChangedEvent>)
+  TCameraChangedEventList = class(specialize TList<TCameraChangedEvent>)
   public
     { This calls all functions (all Items). }
     procedure ExecuteAll(const RenderingCamera: TRenderingCamera;
@@ -68,7 +69,7 @@ type
 
       Always after changing this, change also all other camera
       fields, and then call @link(Changed). }
-    Matrix: TMatrix4Single;
+    Matrix: TMatrix4;
 
     { Inverse of @link(Matrix).
 
@@ -76,7 +77,7 @@ type
       InverseMatrixNeeded will check InverseMatrixDone
       and eventually will calculate inverse and set InverseMatrixDone to
       @true. }
-    InverseMatrix: TMatrix4Single;
+    InverseMatrix: TMatrix4;
     InverseMatrixDone: boolean;
 
     { Camera rotation matrix. That is, this is like @link(Matrix) but
@@ -85,7 +86,7 @@ type
       It's guaranteed that this is actually only 3x3 matrix,
       the 4th row and 4th column are all zero except the lowest right item
       which is 1.0. }
-    RotationMatrix: TMatrix4Single;
+    RotationMatrix: TMatrix4;
 
     { Inverse of RotationMatrix.
 
@@ -93,7 +94,7 @@ type
       RotationInverseMatrixNeeded will check RotationInverseMatrixDone
       and eventually will calculate inverse and set RotationInverseMatrixDone to
       @true. }
-    RotationInverseMatrix: TMatrix4Single;
+    RotationInverseMatrix: TMatrix4;
     RotationInverseMatrixDone: boolean;
 
     Frustum: TFrustum;
@@ -102,8 +103,8 @@ type
     procedure RotationInverseMatrixNeeded;
 
     { Camera rotation matrix, as a 3x3 matrix. }
-    function RotationMatrix3: TMatrix3Single;
-    function RotationInverseMatrix3: TMatrix3Single;
+    function RotationMatrix3: TMatrix3;
+    function RotationInverseMatrix3: TMatrix3;
 
     { Set all properties (except Target) from TCamera instance in ACamera.
       See @link(FromMatrix) for comments about @link(Target) property
@@ -121,7 +122,7 @@ type
       It should be non-nil to indicate that the view comes from non-standard
       (not currently bound) VRML/X3D Viewpoint node. }
     procedure FromMatrix(const AMatrix, ARotationMatrix,
-      ProjectionMatrix: TMatrix4Single;
+      ProjectionMatrix: TMatrix4;
       const Viewpoint: TAbstractViewpointNode);
 
     property Target: TRenderTarget read FTarget write FTarget;
@@ -151,7 +152,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I](RenderingCamera, Viewpoint);
+    Items[I](RenderingCamera, Viewpoint);
 end;
 
 { TRenderingCamera --------------------------------------------------------------- }
@@ -177,12 +178,12 @@ procedure TRenderingCamera.InverseMatrixNeeded;
 begin
   if not InverseMatrixDone then
   begin
-    if not TryMatrixInverse(Matrix, InverseMatrix) then
+    if not Matrix.TryInverse(InverseMatrix) then
     begin
-      InverseMatrix := IdentityMatrix4Single;
+      InverseMatrix := TMatrix4.Identity;
       if Log then
         WritelnLogMultiline('Camera', 'Camera matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          MatrixToRawStr(Matrix, '  '));
+          Matrix.ToRawString('  '));
     end;
     InverseMatrixDone := true;
   end;
@@ -192,29 +193,29 @@ procedure TRenderingCamera.RotationInverseMatrixNeeded;
 begin
   if not RotationInverseMatrixDone then
   begin
-    if not TryMatrixInverse(RotationMatrix, RotationInverseMatrix) then
+    if not RotationMatrix.TryInverse(RotationInverseMatrix) then
     begin
-      RotationInverseMatrix := IdentityMatrix4Single;
+      RotationInverseMatrix := TMatrix4.Identity;
       if Log then
         WritelnLogMultiline('Camera', 'Camera rotation matrix cannot be inverted, conversions between world and camera space will not be done. Camera matrix is: ' +
-          MatrixToRawStr(RotationMatrix, '  '));
+          RotationMatrix.ToRawString('  '));
     end;
     RotationInverseMatrixDone := true;
   end;
 end;
 
-function TRenderingCamera.RotationMatrix3: TMatrix3Single;
+function TRenderingCamera.RotationMatrix3: TMatrix3;
 begin
-  Move(RotationMatrix[0], Result[0], SizeOf(Single) * 3);
-  Move(RotationMatrix[1], Result[1], SizeOf(Single) * 3);
-  Move(RotationMatrix[2], Result[2], SizeOf(Single) * 3);
+  Move(RotationMatrix.Data[0], Result.Data[0], SizeOf(Single) * 3);
+  Move(RotationMatrix.Data[1], Result.Data[1], SizeOf(Single) * 3);
+  Move(RotationMatrix.Data[2], Result.Data[2], SizeOf(Single) * 3);
 end;
 
-function TRenderingCamera.RotationInverseMatrix3: TMatrix3Single;
+function TRenderingCamera.RotationInverseMatrix3: TMatrix3;
 begin
-  Move(RotationInverseMatrix[0], Result[0], SizeOf(Single) * 3);
-  Move(RotationInverseMatrix[1], Result[1], SizeOf(Single) * 3);
-  Move(RotationInverseMatrix[2], Result[2], SizeOf(Single) * 3);
+  Move(RotationInverseMatrix.Data[0], Result.Data[0], SizeOf(Single) * 3);
+  Move(RotationInverseMatrix.Data[1], Result.Data[1], SizeOf(Single) * 3);
+  Move(RotationInverseMatrix.Data[2], Result.Data[2], SizeOf(Single) * 3);
 end;
 
 procedure TRenderingCamera.FromCameraObject(const ACamera: TCamera;
@@ -229,7 +230,7 @@ begin
 end;
 
 procedure TRenderingCamera.FromMatrix(
-  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4Single;
+  const AMatrix, ARotationMatrix, ProjectionMatrix: TMatrix4;
   const Viewpoint: TAbstractViewpointNode);
 begin
   Matrix := AMatrix;

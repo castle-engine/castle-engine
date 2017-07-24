@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetMatrix: TMatrix4Single;
-    procedure SetMatrix(const Value: TMatrix4Single);
+    function GetMatrix: TMatrix4;
+    procedure SetMatrix(const Value: TMatrix4);
   public
-    property Matrix: TMatrix4Single read GetMatrix write SetMatrix;
+    property Matrix: TMatrix4 read GetMatrix write SetMatrix;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TMatrixTransformNode ----------------------------------------------- }
 
-function TMatrixTransformNode.GetMatrix: TMatrix4Single;
+function TMatrixTransformNode.GetMatrix: TMatrix4;
 begin
   Result := FdMatrix.Value;
 end;
 
-procedure TMatrixTransformNode.SetMatrix(const Value: TMatrix4Single);
+procedure TMatrixTransformNode.SetMatrix(const Value: TMatrix4);
 begin
   FdMatrix.Send(Value);
 end;

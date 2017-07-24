@@ -178,7 +178,7 @@ type
     procedure SetLife(const Value: Single); override;
     function GetChild: T3D; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const APosition, GravityUp: TVector3Single;
+    function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     procedure Fall(const FallHeight: Single); override;
@@ -259,7 +259,7 @@ type
     property EquippedWeapon: TItemWeapon read FEquippedWeapon write SetEquippedWeapon;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    function Middle: TVector3Single; override;
+    function Middle: TVector3; override;
 
     { Cause a fade-out effect on the screen, tinting the screen to the given Color.
       The TPlayer class doesn't do the actual drawing of the fade-out effect
@@ -338,7 +338,7 @@ type
       default DefaultSickProjectionSpeed;
 
     property CollidesWithMoving default true;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     function Sphere(out Radius: Single): boolean; override;
@@ -436,9 +436,11 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
-  CastleOpenAL, CastleGL, CastleGLBoxes,
-  CastleGameNotifications, CastleXMLConfig, CastleGLImages, CastleConfig,
-  CastleResources, CastleShapes, CastleRenderingCamera;
+  { TODO: this unit should not use CastleInternalOpenAL directly }
+  CastleInternalOpenAL,
+  CastleGL, CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
+  CastleGLImages, CastleConfig, CastleResources, CastleShapes,
+  CastleRenderingCamera;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -458,16 +460,16 @@ begin
   if GetExists then
   begin
     Camera := TPlayer(Owner).Camera;
-    Result.Data[0, 0] := -Camera.Radius;
-    Result.Data[0, 1] := -Camera.Radius;
-    Result.Data[0, 2] := -Camera.Radius;
-    Result.Data[0, World.GravityCoordinate] := -Camera.RealPreferredHeight;
+    Result.Data[0].Data[0] := -Camera.Radius;
+    Result.Data[0].Data[1] := -Camera.Radius;
+    Result.Data[0].Data[2] := -Camera.Radius;
+    Result.Data[0].Data[World.GravityCoordinate] := -Camera.RealPreferredHeight;
 
-    Result.Data[1, 0] := Camera.Radius;
-    Result.Data[1, 1] := Camera.Radius;
-    Result.Data[1, 2] := Camera.Radius;
+    Result.Data[1].Data[0] := Camera.Radius;
+    Result.Data[1].Data[1] := Camera.Radius;
+    Result.Data[1].Data[2] := Camera.Radius;
   end else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 procedure TPlayerBox.Render(const Frustum: TFrustum; const Params: TRenderParams);
@@ -1006,7 +1008,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         if FootstepsSound <> nil then
         begin
           { Lower the position, to be on our feet. }
-          FootstepsSound.Position := Vector3Single(0, 0, -1.0);
+          FootstepsSound.Position := Vector3(0, 0, -1.0);
           FootstepsSound.OnRelease := @FootstepsSoundRelease;
         end else
           { Failed to allocate sound, so force new
@@ -1247,7 +1249,7 @@ begin
   Result := PTriangle(Camera.AboveGround);
 end;
 
-function TPlayer.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function TPlayer.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -1280,7 +1282,7 @@ begin
     FEquippedWeapon := nil;
 end;
 
-function TPlayer.HeightCollision(const APosition, GravityUp: TVector3Single;
+function TPlayer.HeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
@@ -1330,7 +1332,7 @@ begin
     DepthRange := drFar;
 end;
 
-function TPlayer.Middle: TVector3Single;
+function TPlayer.Middle: TVector3;
 begin
   { For player, our Position is already the suitable "eye position"
     above the ground.

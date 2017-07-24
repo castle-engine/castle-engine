@@ -29,8 +29,8 @@
   private
     function GetAmbientIntensity: Single;
     procedure SetAmbientIntensity(const Value: Single);
-    function GetAttenuation: TVector3Single;
-    procedure SetAttenuation(const Value: TVector3Single);
+    function GetAttenuation: TVector3;
+    procedure SetAttenuation(const Value: TVector3);
     function GetColor: TCastleColorRGB;
     procedure SetColor(const Value: TCastleColorRGB);
     function GetIntensity: Single;
@@ -43,7 +43,7 @@
     procedure SetSpotCutOffAngle(const Value: Single);
   public
     property AmbientIntensity: Single read GetAmbientIntensity write SetAmbientIntensity;
-    property Attenuation: TVector3Single read GetAttenuation write SetAttenuation;
+    property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
     property Color: TCastleColorRGB read GetColor write SetColor;
     property Intensity: Single read GetIntensity write SetIntensity;
     property Spot: boolean read GetSpot write SetSpot;
@@ -66,12 +66,12 @@ begin
   FdAmbientIntensity.Send(Value);
 end;
 
-function TKambiHeadLightNode.GetAttenuation: TVector3Single;
+function TKambiHeadLightNode.GetAttenuation: TVector3;
 begin
   Result := FdAttenuation.Value;
 end;
 
-procedure TKambiHeadLightNode.SetAttenuation(const Value: TVector3Single);
+procedure TKambiHeadLightNode.SetAttenuation(const Value: TVector3);
 begin
   FdAttenuation.Send(Value);
 end;

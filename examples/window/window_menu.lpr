@@ -30,7 +30,7 @@ program window_menu;
 
 {$apptype CONSOLE}
 
-uses SysUtils, CastleVectors, CastleKeysMouse,
+uses SysUtils, CastleVectors, CastleKeysMouse, CastleColors,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils,
   CastleScene, X3DNodes;
 
@@ -40,14 +40,14 @@ var
   MainMenu, AlternativeMainMenu: TMenu;
 
 const
-  Colors: array [0..6] of TVector3Single =
-  ( (1, 0, 0),
-    (0, 1, 0),
-    (0, 0, 1),
-    (1, 1, 0),
-    (1, 1, 1),
-    (0.5, 0.5, 0.5),
-    (0, 0, 0)
+  Colors: array [0..6] of TCastleColorRGB =
+  ( (Data: (1, 0, 0)),
+    (Data: (0, 1, 0)),
+    (Data: (0, 0, 1)),
+    (Data: (1, 1, 0)),
+    (Data: (1, 1, 1)),
+    (Data: (0.5, 0.5, 0.5)),
+    (Data: (0, 0, 0))
   );
 
 var
@@ -55,7 +55,7 @@ var
   Scene: TCastleScene;
 
   Filled: boolean = true;
-  Translation: TVector3Single;
+  Translation: TVector3;
 
   Shape: TShapeNode;
   Material: TMaterialNode;
@@ -71,16 +71,16 @@ var
 begin
   CoordRect := TCoordinateNode.Create;
   CoordRect.FdPoint.Send([
-    Vector3Single(-0.5, -0.5, 0),
-    Vector3Single( 0.5, -0.5, 0),
-    Vector3Single( 0.5,  0.5, 0),
-    Vector3Single(-0.5,  0.5, 0)]);
+    Vector3(-0.5, -0.5, 0),
+    Vector3( 0.5, -0.5, 0),
+    Vector3( 0.5,  0.5, 0),
+    Vector3(-0.5,  0.5, 0)]);
 
   CoordTriangle := TCoordinateNode.Create;
   CoordTriangle.FdPoint.Send([
-    Vector3Single(-0.5, -0.5, 0),
-    Vector3Single( 0.5, -0.5, 0),
-    Vector3Single(   0,  0.5, 0)]);
+    Vector3(-0.5, -0.5, 0),
+    Vector3( 0.5, -0.5, 0),
+    Vector3(   0,  0.5, 0)]);
 
   GeometryRect := TQuadSetNode.Create;
   GeometryRect.FdCoord.Value := CoordRect;

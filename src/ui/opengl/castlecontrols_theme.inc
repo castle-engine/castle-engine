@@ -140,12 +140,12 @@ function Theme: TCastleTheme;
 constructor TCastleTheme.Create;
 begin
   inherited;
-  TooltipTextColor       := Vector4Single(0   , 0, 0, 1);
-  TextColor              := Vector4Single(0   , 0, 0, 1);
-  DisabledTextColor      := Vector4Single(0.33, 0.33, 0.33, 1);
-  MessageInputTextColor  := Vector4Single(0.33, 1, 1, 1);
-  MessageTextColor       := Vector4Single(1   , 1, 1, 1);
-  BackgroundTint         := Vector4Single(0.25, 0.25, 0.25, 1);
+  TooltipTextColor       := Vector4(0   , 0, 0, 1);
+  TextColor              := Vector4(0   , 0, 0, 1);
+  DisabledTextColor      := Vector4(0.33, 0.33, 0.33, 1);
+  MessageInputTextColor  := Vector4(0.33, 1, 1, 1);
+  MessageTextColor       := Vector4(1   , 1, 1, 1);
+  BackgroundTint         := Vector4(0.25, 0.25, 0.25, 1);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
 
@@ -299,7 +299,7 @@ end;
 
 procedure TCastleTheme.DialogsLight;
 begin
-  MessageInputTextColor := Vector4Single(0, 0.4, 0, 1.0);
+  MessageInputTextColor := Vector4(0, 0.4, 0, 1.0);
   MessageTextColor := Black;
   Images[tiWindow] := WindowGray;
   Images[tiLabel] := FrameYellowBlack;

@@ -69,7 +69,7 @@ uses SysUtils, CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
   It can be safely placed in a display list. }
 procedure glDrawBox3DSimple(const Box: TBox3D);
 var
-  Verts: array [0..7] of TVector3Single;
+  Verts: array [0..7] of TVector3;
 const
   VertsIndices: array [0..23] of TGLuint =
   (
@@ -233,7 +233,7 @@ var
 
       Note that we can render here boxes of only non-rendered shapes,
       that's Ok and may actually speed up. }
-    Box := EmptyBox3D;
+    Box := TBox3D.Empty;
 
     for I := 0 to Node.ItemsIndices.Count - 1 do
     begin

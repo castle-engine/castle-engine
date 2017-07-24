@@ -15,6 +15,8 @@
 
 unit TestCastleSpaceFillingCurves;
 
+{$I castleconf.inc}
+
 interface
 
 uses
@@ -32,8 +34,10 @@ uses CastleVectors, CastleImages, CastleSpaceFillingCurves, CastleUtils,
   CastleColors;
 
 const
-  Red3Byte: TVector3Byte = (255, 0, 0);
-  Green3Byte: TVector3Byte = (0, 255, 0);
+  Red3Byte  : TVector3Byte = (Data: (255, 0, 0));
+  Green3Byte: TVector3Byte = (Data: (0, 255, 0));
+  Red4Byte  : TVector4Byte = (Data: (255, 0, 0, 255));
+  Green4Byte: TVector4Byte = (Data: (0, 255, 0, 255));
 
 procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
 
@@ -52,7 +56,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
     try
      Curve := CurveClass.Create(Width, Height);
 
-     Img.Clear(Vector4Byte(Green3Byte, 255));
+     Img.Clear(Green4Byte);
 
      while not Curve.EndOfPixels do
      begin
@@ -67,7 +71,7 @@ procedure TTestSpaceFillingCurves.TestSpaceFillingCurves;
      end;
 
      { na koncu caly obrazek powinien byc czerwony }
-     AssertTrue(Img.IsClear(Vector4Byte(Red3Byte, 255)));
+     AssertTrue(Img.IsClear(Red4Byte));
     except
      OutFileName := GetTempDir + '/test_space_filling_curves.ppm';
      SaveImage(Img, OutFileName);

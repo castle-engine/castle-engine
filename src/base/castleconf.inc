@@ -74,16 +74,15 @@
   {$define SUPPORTS_INLINE}
 {$endif}
 
-{$ifdef VER2_0} {$fatal FPC 2.0.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
-{$ifdef VER2_2} {$fatal FPC 2.2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
-{$ifdef VER2_4} {$fatal FPC 2.4.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
-{$ifdef VER2_6_0} {$fatal FPC 2.6.0 is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
-{$ifdef VER2_6_2} {$fatal FPC 2.6.2 is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
+{$ifdef VER2} {$fatal FPC 2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
 
 { These should be set on the command-line always.
-  NOT setting them here forces the user to use correct compilation method
-  for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
-  instead of hacking something, which is GOOD. }
+  - NOT setting them here forces the user to use correct compilation method
+    for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
+    instead of hacking something, which is GOOD.
+  - Also, not setting them allows to check compilation of the engine without macros
+    and in Delphi mode, which is useful to keep Delphi compatibility.
+}
 { $mode objfpc}
 { $H+}
 { $macro on}
@@ -213,14 +212,20 @@
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
-{ Double precision ----------------------------------------------------------- }
+{ others --------------------------------------------------------------------- }
 
-{ Define this to have an additional version of many float routines
-  in CastleVectors, CastleTriangles unit,
-  working on vectors, matrices and triangles with Double precision.
+// We have a construction in CastleVectors and friends that causes
+// internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
+// so already fixed in FPC).
+{$ifdef VER3_0}
+  {$ifndef VER3_0_0}
+    {$define BUGGY_ZERO_CONSTANT}
+  {$endif}
+{$endif}
 
-  TODO: X3DFields, and units on top of it, will not compile with
-  CASTLE_HAS_DOUBLE_PRECISION defined now. }
-{$define CASTLE_HAS_DOUBLE_PRECISION}
+// Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
+{$ifdef VER3_0_0}
+  {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

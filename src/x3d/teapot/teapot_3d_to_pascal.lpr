@@ -40,10 +40,10 @@ var
     Merged := C.FdPoint.Items.MergeCloseVertexes(0.001);
     Writeln(ErrOutput, 'Merged close vertexes on mesh ', BlenderName, ': ', Merged, ' changed.');
 
-    Writeln('Teapot' + PascalName + 'Coord: array [0..', C.FdPoint.Count - 1, '] of TVector3Single = (');
+    Writeln('Teapot' + PascalName + 'Coord: array [0..', C.FdPoint.Count - 1, '] of TVector3 = (');
     for I := 0 to C.FdPoint.Count - 1 do
     begin
-      Write(Format('(%g, %g, %g)', [
+      Write(Format('(Data: (%g, %g, %g))', [
         C.FdPoint.Items.L[I][0],
         C.FdPoint.Items.L[I][1],
         C.FdPoint.Items.L[I][2] ]));

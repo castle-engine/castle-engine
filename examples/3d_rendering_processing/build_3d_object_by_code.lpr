@@ -46,20 +46,20 @@ begin
   SphereShape.Geometry := Sphere;
 
   IndexedFaceSetCoordinate := TCoordinateNode.Create;
-  IndexedFaceSetCoordinate.FdPoint.Items.AddArray(
-    [Vector3Single(0, 0, 0),
-     Vector3Single(1, 0, 0),
-     Vector3Single(1, 1, 0),
-     Vector3Single(0, 1, 0),
+  IndexedFaceSetCoordinate.FdPoint.Items.AddRange(
+    [Vector3(0, 0, 0),
+     Vector3(1, 0, 0),
+     Vector3(1, 1, 0),
+     Vector3(0, 1, 0),
 
-     Vector3Single(0, 0, 0.5),
-     Vector3Single(1, 0, 0.5),
-     Vector3Single(1, 1, 0.5),
-     Vector3Single(0, 1, 0.5)
+     Vector3(0, 0, 0.5),
+     Vector3(1, 0, 0.5),
+     Vector3(1, 1, 0.5),
+     Vector3(0, 1, 0.5)
     ]);
 
   IndexedFaceSet := TIndexedFaceSetNode.Create;
-  IndexedFaceSet.FdCoordIndex.Items.AddArray(
+  IndexedFaceSet.FdCoordIndex.Items.AddRange(
     { Two quad faces. These are just indexes for
       the array placed in IndexedFaceSet.FdCoordinate array. }
     [0, 1, 2, 3, 0, -1, 4, 5, 6, 7, 4]);
@@ -70,7 +70,7 @@ begin
   IndexedFaceSetShape.Geometry := IndexedFaceSet;
 
   IndexedFaceSetShapeTranslated := TTransformNode.Create;
-  IndexedFaceSetShapeTranslated.Translation := Vector3Single(2, 0, 0);
+  IndexedFaceSetShapeTranslated.Translation := Vector3(2, 0, 0);
   IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
 
   Root := TX3DRootNode.Create;

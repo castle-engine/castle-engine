@@ -20,9 +20,9 @@ unit CastleUIControls;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes, Generics.Collections,
   CastleKeysMouse, CastleUtils, CastleClassUtils,
-  CastleGenericLists, CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
+  CastleRectangles, CastleTimeUtils, CastleInternalPk3DConnexion,
   CastleImages, CastleVectors, CastleJoysticks, CastleApplicationProperties;
 
 const
@@ -46,6 +46,7 @@ type
   TInputPressReleaseEvent = procedure (Container: TUIContainer; const Event: TInputPressRelease);
   TInputMotionEvent = procedure (Container: TUIContainer; const Event: TInputMotion);
 
+  { Tracking of a touch by a single finger, used by TTouchList. }
   TTouch = object
   public
     { Index of the finger/mouse. Always simply zero on traditional desktops with
@@ -92,23 +93,24 @@ type
       when mouse is outside the window, which means that mouse position
       may be outside the rectangle (0, 0) - (Width, Height),
       so it may even be negative. }
-    Position: TVector2Single;
+    Position: TVector2;
   end;
   PTouch = ^TTouch;
 
-  TTouchList = class(specialize TGenericStructList<TTouch>)
+  { Tracking of multi-touch, a position of each finger on the screen. }
+  TTouchList = class(specialize TStructList<TTouch>)
   private
     { Find an item with given FingerIndex, or -1 if not found. }
     function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
-    function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2Single;
+    function GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
     procedure SetFingerIndexPosition(const FingerIndex: TFingerIndex;
-      const Value: TVector2Single);
+      const Value: TVector2);
   public
     { Gets or sets a position corresponding to given FingerIndex.
       If there is no information for given FingerIndex on the list,
       the getter will return zero, and the setter will automatically create
       and add appropriate information. }
-    property FingerIndexPosition[const FingerIndex: TFingerIndex]: TVector2Single
+    property FingerIndexPosition[const FingerIndex: TFingerIndex]: TVector2
       read GetFingerIndexPosition write SetFingerIndexPosition;
     { Remove a touch item for given FingerIndex. }
     procedure RemoveFingerIndex(const FingerIndex: TFingerIndex);
@@ -186,7 +188,7 @@ type
   TUIContainer = class abstract(TComponent)
   private
     type
-      TFingerIndexCaptureMap = specialize TFPGMap<TFingerIndex, TUIControl>;
+      TFingerIndexCaptureMap = specialize TDictionary<TFingerIndex, TUIControl>;
     var
     FOnOpen, FOnClose: TContainerEvent;
     FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
@@ -209,9 +211,9 @@ type
     FTooltipDelay: Single;
     FTooltipDistance: Cardinal;
     FTooltipVisible: boolean;
-    FTooltipPosition: TVector2Single;
+    FTooltipPosition: TVector2;
     HasLastPositionForTooltip: boolean;
-    LastPositionForTooltip: TVector2Single;
+    LastPositionForTooltip: TVector2;
     LastPositionForTooltipTime: TTimerResult;
     Mouse3d: T3DConnexionDevice;
     Mouse3dPollTimer: Single;
@@ -224,6 +226,7 @@ type
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
     function UseForceCaptureInput: boolean;
+    function TryGetFingerOfControl(const C: TUIControl; out Finger: TFingerIndex): boolean;
     procedure SetUIScaling(const Value: TUIScaling);
     procedure SetUIReferenceWidth(const Value: Integer);
     procedure SetUIReferenceHeight(const Value: Integer);
@@ -254,8 +257,8 @@ type
       deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
-    function GetMousePosition: TVector2Single; virtual; abstract;
-    procedure SetMousePosition(const Value: TVector2Single); virtual; abstract;
+    function GetMousePosition: TVector2; virtual; abstract;
+    procedure SetMousePosition(const Value: TVector2); virtual; abstract;
     function GetTouches(const Index: Integer): TTouch; virtual; abstract;
 
     { Get the default UI scale of controls.
@@ -328,7 +331,7 @@ type
       non-empty.
       @groupBegin }
     property TooltipVisible: boolean read FTooltipVisible;
-    property TooltipPosition: TVector2Single read FTooltipPosition;
+    property TooltipPosition: TVector2 read FTooltipPosition;
     { @groupEnd }
 
     { Redraw the contents of of this window, at the nearest good time.
@@ -365,7 +368,7 @@ type
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
-    property MousePosition: TVector2Single
+    property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
 
     function Dpi: Integer; virtual; abstract;
@@ -386,7 +389,18 @@ type
 
     function Fps: TFramesPerSecond; virtual; abstract;
 
+    { Currently active touches on the screen.
+      This tracks currently pressed fingers, in case of touch devices (mobile, like Android and iOS).
+      In case of desktops, it tracks the current mouse position, regardless if any mouse button is
+      currently pressed.
+
+      Indexed from 0 to TouchesCount - 1.
+      @seealso TouchesCount
+      @seealso TTouch }
     property Touches[Index: Integer]: TTouch read GetTouches;
+
+    { Count of currently active touches (mouse or fingers pressed) on the screen.
+      @seealso Touches }
     function TouchesCount: Integer; virtual; abstract;
 
     { Capture the current container (window) contents to an image
@@ -605,7 +619,7 @@ type
         if HandleInput then
         begin
           if Container.Pressed[K_Right] then
-            Transform.Position += Vector3Single(SecondsPassed * 10, 0, 0);
+            Transform.Position += Vector3(SecondsPassed * 10, 0, 0);
           HandleInput := not ExclusiveEvents;
         end;
       #)
@@ -831,7 +845,7 @@ type
     FVerticalAnchorSelf, FVerticalAnchorParent: TVerticalPosition;
     FVerticalAnchorDelta: Integer;
     FEnableUIScaling: boolean;
-    FKeepInFront: boolean;
+    FKeepInFront, FCapturesEvents: boolean;
     procedure SetExists(const Value: boolean);
     function GetControls(const I: Integer): TUIControl;
     procedure SetControls(const I: Integer; const Item: TUIControl);
@@ -915,12 +929,12 @@ type
 
     { Does this control capture events under this screen position.
       The default implementation simply checks whether Position
-      is inside ScreenRect now.
+      is inside ScreenRect now. It also checks whether @link(CapturesEvents) is @true.
 
       Always treated like @false when GetExists returns @false,
       so the implementation of this method only needs to make checks assuming that
       GetExists = @true.  }
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; virtual;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; virtual;
 
     { Prepare your resources, right before drawing.
       Called only when @link(GetExists) and GLInitialized.
@@ -1357,6 +1371,9 @@ type
       a children of something. }
     property KeepInFront: boolean read FKeepInFront write FKeepInFront
       default false;
+
+    property CapturesEvents: boolean read FCapturesEvents write FCapturesEvents
+      default true;
   end;
 
   { UI control with configurable size.
@@ -1400,7 +1417,7 @@ type
   end;
 
   { Simple list of TUIControl instances. }
-  TUIControlList = class(specialize TFPGObjectList<TUIControl>)
+  TUIControlList = class(specialize TObjectList<TUIControl>)
   public
     { Add child control, at the front of other children. }
     procedure InsertFront(const NewItem: TUIControl);
@@ -1557,18 +1574,19 @@ begin
   Result := -1;
 end;
 
-function TTouchList.GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2Single;
+function TTouchList.GetFingerIndexPosition(const FingerIndex: TFingerIndex): TVector2;
 var
   Index: Integer;
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    Result := L[Index].Position else
-    Result := ZeroVector2Single;
+    Result := L[Index].Position
+  else
+    Result := TVector2.Zero;
 end;
 
 procedure TTouchList.SetFingerIndexPosition(const FingerIndex: TFingerIndex;
-  const Value: TVector2Single);
+  const Value: TVector2);
 var
   Index: Integer;
   NewTouch: PTouch;
@@ -1662,6 +1680,7 @@ end;
 procedure TUIContainer.DetachNotification(const C: TUIControl);
 var
   Index: Integer;
+  FingerIndex: TFingerIndex;
 begin
   if FFocus <> nil then
   begin
@@ -1675,10 +1694,24 @@ begin
 
   if FCaptureInput <> nil then
   begin
-    Index := FCaptureInput.IndexOfData(C);
-    if Index <> -1 then
-      FCaptureInput.Delete(Index);
+    while TryGetFingerOfControl(C, FingerIndex) do
+      FCaptureInput.Remove(FingerIndex);
   end;
+end;
+
+function TUIContainer.TryGetFingerOfControl(const C: TUIControl; out Finger: TFingerIndex): boolean;
+var
+  FingerControlPair: TFingerIndexCaptureMap.TDictionaryPair;
+begin
+  { search for control C among the FCaptureInput values, and return corresponding key }
+  for FingerControlPair in FCaptureInput do
+    if FingerControlPair.Value = C then
+    begin
+      Finger := FingerControlPair.Key;
+      Result := true;
+      Exit;
+    end;
+  Result := false;
 end;
 
 function TUIContainer.UseForceCaptureInput: boolean;
@@ -1769,6 +1802,7 @@ var
 var
   I: Integer;
   Tmp: TUIControlList;
+  ControlUnderFinger0: TUIControl;
 begin
   { since this is called at the end of TChildrenControls.Notify after
     some control is removed, we're paranoid here about checking csDestroying. }
@@ -1792,8 +1826,8 @@ begin
       also still focused) }
     if UseForceCaptureInput then
       AddInFrontOfNewFocus(ForceCaptureInput) else
-    if (FCaptureInput.IndexOf(0) <> -1) then
-      AddInFrontOfNewFocus(FCaptureInput[0]);
+    if FCaptureInput.TryGetValue(0, ControlUnderFinger0) then
+      AddInFrontOfNewFocus(ControlUnderFinger0);
 
     { update TUIControl.Focused values, based on differences between FFocus and FNewFocus }
     for I := 0 to FNewFocus.Count - 1 do
@@ -2135,7 +2169,7 @@ function TUIContainer.EventPress(const Event: TInputPressRelease): boolean;
           Release method because it has Container = nil, and so on). }
         if (Event.EventType = itMouseButton) and
            (C.Container = Self) then
-          FCaptureInput[Event.FingerIndex] := C;
+          FCaptureInput.AddOrSetValue(Event.FingerIndex, C);
         Exit(true);
       end;
     end;
@@ -2193,7 +2227,7 @@ function TUIContainer.EventRelease(const Event: TInputPressRelease): boolean;
   end;
 
 var
-  I, CaptureIndex: Integer;
+  I: Integer;
   Capture: TUIControl;
 begin
   Result := false;
@@ -2207,30 +2241,27 @@ begin
 
   { pass to control holding capture }
 
-  CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
+  if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+    Capture := nil;
 
-  if (CaptureIndex <> -1) and
-     not FCaptureInput.Data[CaptureIndex].GetExists then
+  if (Capture <> nil) and not Capture.GetExists then
   begin
     { No longer capturing, since the GetExists returns false now.
       We do not send any events to non-existing controls. }
-    FCaptureInput.Delete(CaptureIndex);
-    CaptureIndex := -1;
+    FCaptureInput.Remove(Event.FingerIndex);
+    Capture := nil;
   end;
 
-  if CaptureIndex <> -1 then
-    Capture := FCaptureInput.Data[CaptureIndex] else
-    Capture := nil;
-  if (CaptureIndex <> -1) and (MousePressed = []) then
+  if (Capture <> nil) and (MousePressed = []) then
   begin
-    { No longer capturing, but will receive the Release event. }
-    FCaptureInput.Delete(CaptureIndex);
+    { No longer capturing, but do not set Capture to nil (it should receive the Release event). }
+    FCaptureInput.Remove(Event.FingerIndex);
   end;
 
   if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
     Result := Capture.Release(Event);
-    Exit;
+    Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
 
   { pass to all Controls with TUIControl.Release event }
@@ -2248,15 +2279,10 @@ end;
 
 procedure TUIContainer.ReleaseCapture(const C: TUIControl);
 var
-  I: Integer;
+  FingerIndex: TFingerIndex;
 begin
-  I := 0;
-  while I < FCaptureInput.Count do
-  begin
-    if FCaptureInput.Data[I] = C then
-      FCaptureInput.Delete(I) else
-      Inc(I);
-  end;
+  while TryGetFingerOfControl(C, FingerIndex) do
+    FCaptureInput.Remove(FingerIndex);
 end;
 
 procedure TUIContainer.EventOpen(const OpenWindowsCount: Cardinal);
@@ -2379,7 +2405,8 @@ procedure TUIContainer.EventMotion(const Event: TInputMotion);
   end;
 
 var
-  I, CaptureIndex: Integer;
+  I: Integer;
+  Capture: TUIControl;
 begin
   UpdateFocusAndMouseCursor;
 
@@ -2392,21 +2419,21 @@ begin
 
   { pass to control holding capture }
 
-  CaptureIndex := FCaptureInput.IndexOf(Event.FingerIndex);
+  if not FCaptureInput.TryGetValue(Event.FingerIndex, Capture) then
+    Capture := nil;
 
-  if (CaptureIndex <> -1) and
-     not FCaptureInput.Data[CaptureIndex].GetExists then
+  if (Capture <> nil) and not Capture.GetExists then
   begin
     { No longer capturing, since the GetExists returns false now.
       We do not send any events to non-existing controls. }
-    FCaptureInput.Delete(CaptureIndex);
-    CaptureIndex := -1;
+    FCaptureInput.Remove(Event.FingerIndex);
+    Capture := nil;
   end;
 
-  if (CaptureIndex <> -1) and (FCaptureInput.Data[CaptureIndex] <> ForceCaptureInput) then
+  if (Capture <> nil) and (Capture <> ForceCaptureInput) then
   begin
-    FCaptureInput.Data[CaptureIndex].Motion(Event);
-    Exit;
+    Capture.Motion(Event);
+    Exit; // if something is capturing the input, prevent other controls from getting the events
   end;
 
   { pass to all Controls }
@@ -2483,7 +2510,7 @@ end;
 
 function TUIContainer.IsMousePositionForMouseLook: boolean;
 var
-  P: TVector2Single;
+  P: TVector2;
 begin
   P := MousePosition;
   Result := (P[0] = Width div 2) and (P[1] = Height div 2);
@@ -2515,7 +2542,7 @@ begin
     { Note: setting to float position (ContainerWidth/2, ContainerHeight/2)
       seems simpler, but is risky: we if the backend doesn't support sub-pixel accuracy,
       we will never be able to position mouse exactly at half pixel. }
-    MousePosition := Vector2Single(Width div 2, Height div 2);
+    MousePosition := Vector2(Width div 2, Height div 2);
 end;
 
 procedure TUIContainer.SetUIScaling(const Value: TUIScaling);
@@ -2772,6 +2799,7 @@ begin
   inherited;
   FExists := true;
   FEnableUIScaling := true;
+  FCapturesEvents := true;
 end;
 
 destructor TUIControl.Destroy;
@@ -2904,10 +2932,13 @@ begin
 end;
 }
 
-function TUIControl.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TUIControl.CapturesEventsAtPosition(const Position: TVector2): boolean;
 var
   SR: TRectangle;
 begin
+  if not CapturesEvents then
+    Exit(false);
+
   SR := ScreenRect;
   Result := SR.Contains(Position) or
     { if the control covers the whole Container, it *always* captures events,
@@ -3183,10 +3214,10 @@ begin
   begin
     Result := Parent.LocalToScreenTranslation;
     RA := Parent.RectWithAnchors;
-    Result[0] += RA.Left;
-    Result[1] += RA.Bottom;
+    Result.Data[0] += RA.Left;
+    Result.Data[1] += RA.Bottom;
   end else
-    Result := ZeroVector2Integer;
+    Result := TVector2Integer.Zero;
 end;
 
 function TUIControl.ParentRect: TRectangle;

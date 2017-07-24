@@ -21,7 +21,7 @@ unit CastleResources;
 
 interface
 
-uses Classes, DOM, FGL,
+uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleXMLConfig, CastleTimeUtils,
   CastleScene, X3DNodes, Castle3D, CastleBoxes, CastleFindFiles;
 
@@ -99,7 +99,7 @@ type
     property Required: boolean read FRequired;
   end;
 
-  T3DResourceAnimationList = class(specialize TFPGObjectList<T3DResourceAnimation>)
+  T3DResourceAnimationList = class(specialize TObjectList<T3DResourceAnimation>)
     { Find an animation by name.
       @raises Exception if not found. }
     function FindName(const AName: string): T3DResourceAnimation;
@@ -234,7 +234,7 @@ type
 
       @groupBegin }
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3Single);
+      const GravityUp: TVector3);
       deprecated 'use Prepare overload without the GravityUp parameter';
     procedure Prepare(const BaseLights: TAbstractLightInstancesList = nil);
     procedure Release;
@@ -243,7 +243,7 @@ type
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
     procedure InstantiatePlaceholder(World: T3DWorld;
-      const APosition, ADirection: TVector3Single;
+      const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 
     { Animations of this resource.
@@ -327,7 +327,7 @@ type
 
   T3DResourceClass = class of T3DResource;
 
-  T3DResourceList = class(specialize TFPGObjectList<T3DResource>)
+  T3DResourceList = class(specialize TObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
     procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -397,10 +397,33 @@ uses SysUtils,
   CastleStringUtils, CastleLog, CastleConfig, CastleApplicationProperties,
   CastleFilesUtils, CastleInternalNodeInterpolator;
 
+{ TResourceClasses  ---------------------------------------------------------- }
+
 type
-  TResourceClasses = specialize TFPGMap<string, T3DResourceClass>;
+  TResourceClasses = class(specialize TDictionary<string, T3DResourceClass>)
+  strict private
+    function GetItems(const AKey: string): T3DResourceClass;
+    procedure SetItems(const AKey: string; const AValue: T3DResourceClass);
+  public
+    { Access dictionary items.
+      Setting this is allowed regardless if the key previously existed or not,
+      in other words: setting this does AddOrSetValue, contrary to the ancestor TDictionary
+      that only allows setting when the key already exists. }
+    property Items [const AKey: string]: T3DResourceClass read GetItems write SetItems; default;
+  end;
+
 var
   ResourceClasses: TResourceClasses;
+
+function TResourceClasses.GetItems(const AKey: string): T3DResourceClass;
+begin
+  Result := inherited Items[AKey];
+end;
+
+procedure TResourceClasses.SetItems(const AKey: string; const AValue: T3DResourceClass);
+begin
+  AddOrSetValue(AKey, AValue);
+end;
 
 { T3DResourceAnimation ------------------------------------------------------- }
 
@@ -445,7 +468,7 @@ begin
   if Owner.Model <> nil then
     Result := Owner.Model.BoundingBox else
     { animation 3D model not loaded }
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 function T3DResourceAnimation.Defined: boolean;
@@ -630,7 +653,7 @@ begin
 end;
 
 procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;
-  const GravityUp: TVector3Single);
+  const GravityUp: TVector3);
 begin
   Prepare(BaseLights);
 end;
@@ -673,7 +696,6 @@ procedure T3DResourceList.AddFromFileDefaultReload(const URL: string);
 var
   Xml: TCastleConfig;
   ResourceClassName, ResourceName: string;
-  ResourceClassIndex: Integer;
   ResourceClass: T3DResourceClass;
   Resource: T3DResource;
 begin
@@ -687,9 +709,7 @@ begin
         WritelnLog('Resources', Format('Loading T3DResource from "%s"', [URL]));
 
       ResourceClassName := Xml.GetStringNonEmpty('type');
-      ResourceClassIndex := ResourceClasses.IndexOf(ResourceClassName);
-      if ResourceClassIndex <> -1 then
-        ResourceClass := ResourceClasses.Data[ResourceClassIndex] else
+      if not ResourceClasses.TryGetValue(ResourceClassName, ResourceClass) then
         raise Exception.CreateFmt('Resource type "%s" not found, mentioned in file "%s"',
           [ResourceClassName, URL]);
 

@@ -43,7 +43,7 @@
     FCenterY: Single;
     FRotation: Single;
     FClip: boolean;
-    FClipLine: TVector3Single;
+    FClipLine: TVector3;
     procedure SetCenterX(const AValue: Single);
     procedure SetCenterY(const AValue: Single);
     procedure SetRotation(const AValue: Single);
@@ -60,7 +60,7 @@
     procedure SetColor(const Value: TCastleColor);
     procedure SetSmoothScaling(const Value: boolean);
     procedure SetClip(const Value: boolean);
-    procedure SetClipLine(const Value: TVector3Single);
+    procedure SetClipLine(const Value: TVector3);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -123,7 +123,7 @@
       The equation is calculated in the final scaled screen coordinates
       (not in the local, unscaled pixels). Adjust it to match the ScreenRect
       if necessary, to make it work with UI scaling. }
-    property ClipLine: TVector3Single read FClipLine write SetClipLine;
+    property ClipLine: TVector3 read FClipLine write SetClipLine;
   published
     { URL of the image. Setting this also sets @link(Image).
       Set this to '' to clear the image. }
@@ -244,9 +244,9 @@ begin
   end;
 end;
 
-procedure TCastleImageControl.SetClipLine(const Value: TVector3Single);
+procedure TCastleImageControl.SetClipLine(const Value: TVector3);
 begin
-  if not VectorsPerfectlyEqual(FClipLine, Value) then
+  if not TVector3.PerfectlyEquals(FClipLine, Value) then
   begin
     FClipLine := Value;
     if FGLImage <> nil then
@@ -324,7 +324,7 @@ begin
   inherited;
   if FGLImage = nil then Exit;
   SR := ScreenRect;
-  if ZeroVector(FCorners) then
+  if FCorners.IsZero then
     FGLImage.Draw(SR) else
   begin
     FGLImage.ScaleCorners := UIScale;
@@ -457,7 +457,7 @@ end;
 
 procedure TCastleImageControl.SetColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FColor, Value) then
   begin
     FColor := Value;
     if FGLImage <> nil then

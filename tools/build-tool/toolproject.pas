@@ -30,6 +30,8 @@ type
 
   TAndroidProjectType = (apBase, apIntegrated);
 
+  ECannotGuessManifest = class(Exception);
+
   TCastleProject = class
   private
     FDependencies: TDependencies;
@@ -273,10 +275,29 @@ constructor TCastleProject.Create(const APath: string);
     end;
 
     procedure AutoGuessManifest;
+
+      function GuessName: string;
+      var
+        FileInfo: TFileInfo;
+      begin
+        Result := ExtractFileName(ExtractFileDir(ManifestFile));
+        if not FileExists(Result + '.lpr') then
+        begin
+          if FindFirstFile(GetCurrentDir, '*.lpr', false, [], FileInfo) then
+            Result := DeleteFileExt(FileInfo.Name)
+          else
+          if FindFirstFile(GetCurrentDir, '*.dpr', false, [], FileInfo) then
+            Result := DeleteFileExt(FileInfo.Name)
+          else
+            raise ECannotGuessManifest.Create('Cannot find any *.lpr or *.dpr file in this directory, cannot guess which file to compile.' + NL +
+              'Please create a CastleEngineManifest.xml to instruct Castle Game Engine build tool how to build your project.');
+        end;
+      end;
+
     begin
       Writeln('Manifest file not found: ' + ManifestFile);
       Writeln('Guessing project values. Use create-manifest command to write these guesses into new CastleEngineManifest.xml');
-      FName := ExtractFileName(ExtractFileDir(ManifestFile));
+      FName := GuessName;
       FCaption := FName;
       FQualifiedName := DefaultQualifiedName;
       FExecutableName := FName;
@@ -1361,10 +1382,12 @@ const
 
 var
   Macros: TStringStringMap;
-  I, J: Integer;
+  I: Integer;
   P, NonEmptyAuthor, AndroidLibraryName: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
+  AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
+  PreviousMacros: array of TStringStringMap.TDictionaryPair;
 begin
   { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
   VersionComponentsString := SplitString(Version, '.');
@@ -1407,23 +1430,24 @@ begin
     Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
     Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
     for I := 0 to AndroidServices.Count - 1 do
-      for J := 0 to AndroidServices[I].Parameters.Count - 1 do
+      for AndroidServiceParameterPair in AndroidServices[I].Parameters do
         Macros.Add('ANDROID.' +
           UpperCase(AndroidServices[I].Name) + '.' +
-          UpperCase(AndroidServices[I].Parameters.Keys[J]),
-          AndroidServices[I].Parameters.Data[J]);
+          UpperCase(AndroidServiceParameterPair.Key),
+          AndroidServiceParameterPair.Value);
 
     // iOS specific stuff }
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
 
     // add CamelCase() replacements, add ${} around
-    for I := 0 to Macros.Count - 1 do
+    PreviousMacros := Macros.ToArray;
+    Macros.Clear;
+    for I := 0 to Length(PreviousMacros) - 1 do
     begin
-      P := Macros.Keys[I];
-      Macros.Keys[I] := '${' + P + '}';
-      //debug: Writeln(Macros.Keys[I], '->', Macros.Data[I]);
-      Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(Macros.Data[I]));
+      P := PreviousMacros[I].Key;
+      Macros.Add('${' + P + '}', PreviousMacros[I].Value);
+      Macros.Add('${CamelCase(' + P + ')}', MakeCamelCase(PreviousMacros[I].Value));
     end;
     Result := SReplacePatterns(Source, Macros, true);
   finally FreeAndNil(Macros) end;

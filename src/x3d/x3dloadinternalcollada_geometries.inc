@@ -24,7 +24,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaGeometryList = class (specialize TFPGObjectList<TColladaGeometry>)
+  TColladaGeometryList = class (specialize TObjectList<TColladaGeometry>)
   public
     { Find item with given Name, @nil if not found. }
     function Find(const Name: string): TColladaGeometry;
@@ -113,7 +113,7 @@ procedure AddGeometryInstance(Group: TAbstractX3DGroupingNode;
       end;
     end;
 
-    Effect := Materials.Find(MaterialId);
+    Materials.TryGetValue(MaterialId, Effect); // Effect will be nil if not found
     if Effect = nil then
     begin
       WritelnWarning('Collada', Format('Referencing non-existing material name "%s"',

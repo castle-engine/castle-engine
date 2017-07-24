@@ -28,7 +28,8 @@ type
 
 implementation
 
-uses SysUtils, Classes, CastleGenericLists;
+uses SysUtils, Classes,
+  CastleGenericLists;
 
 { Do not put these as local types inside TestList, it makes FPC 2.6.4
   fail with Access Violation. (Works OK with FPC 3.0.2.) }

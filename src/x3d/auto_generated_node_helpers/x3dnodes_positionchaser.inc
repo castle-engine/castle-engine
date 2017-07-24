@@ -27,13 +27,13 @@
 {$ifdef read_interface}
 
   private
-    function GetInitialDestination: TVector3Single;
-    procedure SetInitialDestination(const Value: TVector3Single);
-    function GetInitialValue: TVector3Single;
-    procedure SetInitialValue(const Value: TVector3Single);
+    function GetInitialDestination: TVector3;
+    procedure SetInitialDestination(const Value: TVector3);
+    function GetInitialValue: TVector3;
+    procedure SetInitialValue(const Value: TVector3);
   public
-    property InitialDestination: TVector3Single read GetInitialDestination write SetInitialDestination;
-    property InitialValue: TVector3Single read GetInitialValue write SetInitialValue;
+    property InitialDestination: TVector3 read GetInitialDestination write SetInitialDestination;
+    property InitialValue: TVector3 read GetInitialValue write SetInitialValue;
 
 {$endif read_interface}
 
@@ -41,22 +41,22 @@
 
 { TPositionChaserNode ----------------------------------------------- }
 
-function TPositionChaserNode.GetInitialDestination: TVector3Single;
+function TPositionChaserNode.GetInitialDestination: TVector3;
 begin
   Result := FdInitialDestination.Value;
 end;
 
-procedure TPositionChaserNode.SetInitialDestination(const Value: TVector3Single);
+procedure TPositionChaserNode.SetInitialDestination(const Value: TVector3);
 begin
   FdInitialDestination.Send(Value);
 end;
 
-function TPositionChaserNode.GetInitialValue: TVector3Single;
+function TPositionChaserNode.GetInitialValue: TVector3;
 begin
   Result := FdInitialValue.Value;
 end;
 
-procedure TPositionChaserNode.SetInitialValue(const Value: TVector3Single);
+procedure TPositionChaserNode.SetInitialValue(const Value: TVector3);
 begin
   FdInitialValue.Send(Value);
 end;

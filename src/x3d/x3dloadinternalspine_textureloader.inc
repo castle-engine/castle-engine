@@ -14,8 +14,8 @@
 }
 
 type
-  TQuadTexCoord = array [0..3] of TVector2Single;
-  TQuadTexRect = array [0..1] of TVector2Single;
+  TQuadTexCoord = array [0..3] of TVector2;
+  TQuadTexRect = array [0..1] of TVector2;
 
   { Abstract provider of X3D Apperance nodes based on Spine attachment name
     (using atlas or not, depending on descendant, like TAtlas or

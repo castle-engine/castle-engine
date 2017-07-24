@@ -102,12 +102,12 @@ type
   private
     { read-only after the object is created }
     FBox: TBox3D;
-    FMiddlePoint: TVector3Single;
+    FMiddlePoint: TVector3;
     FDepth: Integer;
     FParentTree: TOctree;
     FParentNode: TOctreeNode;
     FBoundingSphereRadiusSqr: Single;
-    FBoundingSphereCenter: TVector3Single;
+    FBoundingSphereCenter: TVector3;
 
     FItemsIndices: TIntegerList;
     FIsLeaf: boolean;
@@ -218,7 +218,7 @@ type
       if will yield better hierarchical division of your scene.
 
       When @link(Box) is empty, then value of MiddlePoint is undefined.  }
-    property MiddlePoint: TVector3Single read fMiddlePoint;
+    property MiddlePoint: TVector3 read fMiddlePoint;
 
     { Axis-aligned box in the 3D space that contains all items within
       this node. It's allowed that some items are actually larger
@@ -241,7 +241,7 @@ type
 
       BoundingSphereRadiusSqr = 0 and BoundingSphereCenter is undefined
       if Box is empty. }
-    property BoundingSphereCenter: TVector3Single read FBoundingSphereCenter;
+    property BoundingSphereCenter: TVector3 read FBoundingSphereCenter;
     property BoundingSphereRadiusSqr: Single read FBoundingSphereRadiusSqr;
 
     property Depth: integer read fDepth;
@@ -266,7 +266,7 @@ type
     constructor CreateBase(const ABox: TBox3D; AParentTree: TOctree;
       AParentNode: TOctreeNode;
       ADepth: integer; AsLeaf: boolean;
-      const AMiddlePoint: TVector3Single); virtual;
+      const AMiddlePoint: TVector3); virtual;
 
     destructor Destroy; override;
 
@@ -275,16 +275,13 @@ type
 
       This is a simple utility, ignores what is our @link(Box) (doesn't check
       is P is inside @link(Box) at all), ignores if we're leaf or not. }
-    function SubnodeWithPoint(const P: TVector3Double):
-      TOctreeSubnodeIndex; overload;
-    function SubnodeWithPoint(const P: TVector3Single):
-      TOctreeSubnodeIndex; overload;
+    function SubnodeWithPoint(const P: TVector3): TOctreeSubnodeIndex; overload;
 
     procedure SubnodesWithBox(const ABox: TBox3D;
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 
     { Ignore Z coords of boxes, like they were infinite in Z. }
-    procedure SubnodesWithBox2D(const ABoxMin, ABoxMax: TVector2Single;
+    procedure SubnodesWithBox2D(const ABoxMin, ABoxMax: TVector2;
       out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 
     { Simple check for frustum collision. }
@@ -292,8 +289,8 @@ type
 
     { Push children nodes (use this only for non-leafs) into the List.
       @groupBegin }
-    procedure PushChildrenFrontToBack(List: TOrderedList; const Position: TVector3Single);
-    procedure PushChildrenBackToFront(List: TOrderedList; const Position: TVector3Single);
+    procedure PushChildrenFrontToBack(List: TOrderedList; const Position: TVector3);
+    procedure PushChildrenBackToFront(List: TOrderedList; const Position: TVector3);
     procedure PushChildren(List: TOrderedList);
     { @groupEnd }
   end;
@@ -454,7 +451,7 @@ type
     function TotalItemsInOctree: Int64; virtual; abstract;
   end;
 
-function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string;
+function OctreeSubnodeIndexToNiceStr(const SI: TOctreeSubnodeIndex): string; deprecated;
 function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean;
 
 implementation
@@ -484,8 +481,8 @@ begin
         SubBox := Box;
         for i := 0 to 2 do
           if b[i] then
-            SubBox.Data[0, i] := MiddlePoint[i] else
-            SubBox.Data[1, i] := MiddlePoint[i];
+            SubBox.Data[0].Data[i] := MiddlePoint[i] else
+            SubBox.Data[1].Data[i] := MiddlePoint[i];
 
         TreeSubNodes[b[0], b[1], b[2]] :=
           TOctreeNodeClass(Self.ClassType).Create(
@@ -565,13 +562,13 @@ constructor TOctreeNode.Create(const ABox: TBox3D; AParentTree: TOctree;
   AParentNode: TOctreeNode;
   ADepth: integer; AsLeaf: boolean);
 var
-  AMiddlePoint: TVector3Single;
+  AMiddlePoint: TVector3;
 begin
   if ABox.IsEmpty then
   begin
     Check(AsLeaf, 'TOctreeNode.Create error: attempt to create non-leaf'
       +' node with empty bounding box');
-    AMiddlePoint := Vector3Single(0, 0, 0);
+    AMiddlePoint := Vector3(0, 0, 0);
   end else
     AMiddlePoint := ABox.Center;
 
@@ -580,7 +577,7 @@ end;
 
 constructor TOctreeNode.CreateBase(const ABox: TBox3D;
   AParentTree: TOctree; AParentNode: TOctreeNode;
-  ADepth: integer; AsLeaf: boolean; const AMiddlePoint: TVector3Single);
+  ADepth: integer; AsLeaf: boolean; const AMiddlePoint: TVector3);
 begin
   inherited Create;
 
@@ -641,14 +638,7 @@ begin
   StatisticsAdded := false;
 end;
 
-function TOctreeNode.SubnodeWithPoint(const P: TVector3Single): TOctreeSubnodeIndex;
-begin
-  result[0] := P[0] >= MiddlePoint[0];
-  result[1] := P[1] >= MiddlePoint[1];
-  result[2] := P[2] >= MiddlePoint[2];
-end;
-
-function TOctreeNode.SubnodeWithPoint(const P: TVector3Double): TOctreeSubnodeIndex;
+function TOctreeNode.SubnodeWithPoint(const P: TVector3): TOctreeSubnodeIndex;
 begin
   result[0] := P[0] >= MiddlePoint[0];
   result[1] := P[1] >= MiddlePoint[1];
@@ -664,14 +654,14 @@ begin
   begin
     SubnodeLow[i] := false;
     SubnodeHigh[i] := true;
-    if ABox.Data[0, i] >= MiddlePoint[i] then
+    if ABox.Data[0].Data[i] >= MiddlePoint[i] then
       SubnodeLow[i] := true else
-    if ABox.Data[1, i] < MiddlePoint[i] then
+    if ABox.Data[1].Data[i] < MiddlePoint[i] then
       SubnodeHigh[i] := false;
   end;
 end;
 
-procedure TOctreeNode.SubnodesWithBox2D(const ABoxMin, ABoxMax: TVector2Single;
+procedure TOctreeNode.SubnodesWithBox2D(const ABoxMin, ABoxMax: TVector2;
   out SubnodeLow, SubnodeHigh: TOctreeSubnodeIndex);
 var
   i: Integer;
@@ -803,7 +793,7 @@ begin
 end;
 
 procedure TOctreeNode.PushChildrenFrontToBack(List: TOrderedList;
-  const Position: TVector3Single);
+  const Position: TVector3);
 var
   Index: TOctreeSubnodeIndex;
 begin
@@ -829,7 +819,7 @@ begin
 end;
 
 procedure TOctreeNode.PushChildrenBackToFront(List: TOrderedList;
-  const Position: TVector3Single);
+  const Position: TVector3);
 var
   FrontIndex, BackIndex: TOctreeSubnodeIndex;
 begin

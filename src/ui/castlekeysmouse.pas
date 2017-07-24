@@ -525,7 +525,7 @@ type
       this is the position of main mouse/finger.
       See TCastleWindow.MousePosition documentation for what it means,
       in particular what happens on touch devices. }
-    Position: TVector2Single;
+    Position: TVector2;
 
     { When EventType is itMouseWheel, this is the mouse wheel action.
       MouseWheel is mwNone if and only if EventType <> itMouseWheel.
@@ -565,23 +565,23 @@ type
 
   { Motion (movement) of mouse or a finger on a touch device. }
   TInputMotion = object
-    OldPosition, Position: TVector2Single;
+    OldPosition, Position: TVector2;
     Pressed: TMouseButtons;
     FingerIndex: TFingerIndex;
   end;
 
 { Construct TInputPressRelease corresponding to given event.
   @groupBegin }
-function InputKey(const Position: TVector2Single;
+function InputKey(const Position: TVector2;
   const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
-function InputMouseButton(const Position: TVector2Single;
+function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
-function InputMouseWheel(const Position: TVector2Single;
+function InputMouseWheel(const Position: TVector2;
   const Scroll: Single; const Vertical: boolean): TInputPressRelease;
 { @groupEnd }
 
 { Construct TInputMotion. }
-function InputMotion(const OldPosition, Position: TVector2Single;
+function InputMotion(const OldPosition, Position: TVector2;
   const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 
 type
@@ -1027,7 +1027,7 @@ begin
   Result := ToString;
 end;
 
-function InputKey(const Position: TVector2Single;
+function InputKey(const Position: TVector2;
   const Key: TKey; const KeyCharacter: Char): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1037,7 +1037,7 @@ begin
   Result.KeyCharacter := KeyCharacter;
 end;
 
-function InputMouseButton(const Position: TVector2Single;
+function InputMouseButton(const Position: TVector2;
   const MouseButton: TMouseButton; const FingerIndex: TFingerIndex): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1047,7 +1047,7 @@ begin
   Result.FingerIndex := FingerIndex;
 end;
 
-function InputMouseWheel(const Position: TVector2Single;
+function InputMouseWheel(const Position: TVector2;
   const Scroll: Single; const Vertical: boolean): TInputPressRelease;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -1057,7 +1057,7 @@ begin
   Result.MouseWheelVertical := Vertical;
 end;
 
-function InputMotion(const OldPosition, Position: TVector2Single;
+function InputMotion(const OldPosition, Position: TVector2;
   const Pressed: TMouseButtons; const FingerIndex: TFingerIndex): TInputMotion;
 begin
   FillChar(Result, SizeOf(Result), 0);

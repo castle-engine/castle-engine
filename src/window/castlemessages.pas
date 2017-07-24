@@ -297,15 +297,15 @@ function MessageInputQuery(Window: TCastleWindowCustom; const Title: string;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 { @groupEnd }
 
-function MessageInputQueryVector3Single(
+function MessageInputQueryVector3(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector3Single;
+  var Value: TVector3;
   const TextAlign: THorizontalPosition = DefaultAlign;
   const Html: boolean = false): boolean;
 
-function MessageInputQueryVector4Single(
+function MessageInputQueryVector4(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector4Single;
+  var Value: TVector4;
   const TextAlign: THorizontalPosition = DefaultAlign;
   const Html: boolean = false): boolean;
 
@@ -1030,11 +1030,11 @@ begin
 end;
 {$endif not EXTENDED_EQUALS_DOUBLE}
 
-{ MessageInputQueryVector3Single --------------------------------------------- }
+{ MessageInputQueryVector3 --------------------------------------------- }
 
-function MessageInputQueryVector3Single(
+function MessageInputQueryVector3(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector3Single; const TextAlign: THorizontalPosition;
+  var Value: TVector3; const TextAlign: THorizontalPosition;
   const Html: boolean): boolean;
 var s: string;
 begin
@@ -1043,7 +1043,7 @@ begin
   if MessageInputQuery(Window, Title, s, 0, 0, AllChars, TextAlign, Html) then
   begin
     try
-      Value := Vector3SingleFromStr(s);
+      Value := Vector3FromStr(s);
       Result := true;
     except
       on E: EConvertError do
@@ -1052,11 +1052,11 @@ begin
   end;
 end;
 
-{ MessageInputQueryVector4Single --------------------------------------------- }
+{ MessageInputQueryVector4 --------------------------------------------- }
 
-function MessageInputQueryVector4Single(
+function MessageInputQueryVector4(
   Window: TCastleWindowCustom; const Title: string;
-  var Value: TVector4Single; const TextAlign: THorizontalPosition;
+  var Value: TVector4; const TextAlign: THorizontalPosition;
   const Html: boolean): boolean;
 var
   s: string;
@@ -1066,7 +1066,7 @@ begin
   if MessageInputQuery(Window, Title, s, 0, 0, AllChars, TextAlign, Html) then
   begin
     try
-      Value := Vector4SingleFromStr(s);
+      Value := Vector4FromStr(s);
       Result := true;
     except
       on E: EConvertError do

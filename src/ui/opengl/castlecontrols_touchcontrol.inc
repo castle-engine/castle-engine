@@ -29,7 +29,7 @@
   TCastleTouchControl = class(TUIControl)
   strict private
     FTouchMode: TCastleTouchCtlMode;
-    FLeverOffset: TVector2Single;
+    FLeverOffset: TVector2;
     FDragging: Integer; //< finger index that started drag, -1 if none
     FPosition: TCastleTouchPosition;
     FScale: Single;
@@ -159,7 +159,7 @@ begin
   Theme.Draw(SR, ImageOuter, UIScale);
 
   // compute lever offset (must not move outside outer ring)
-  LeverDist := VectorLen(FLeverOffset);
+  LeverDist := FLeverOffset.Length;
   MaxDist := MaxOffsetDist;
   if LeverDist <= MaxDist then
   begin
@@ -199,7 +199,7 @@ begin
 
   Result := ExclusiveEvents;
   FDragging := Event.FingerIndex;
-  FLeverOffset := ZeroVector2Single;
+  FLeverOffset := TVector2.Zero;
 end;
 
 function TCastleTouchControl.Release(const Event: TInputPressRelease): boolean;
@@ -212,7 +212,7 @@ begin
     Result := ExclusiveEvents;
 
     FDragging := -1;
-    FLeverOffset := ZeroVector2Single;
+    FLeverOffset := TVector2.Zero;
     VisibleChange; { repaint with lever back in the center }
   end;
 end;

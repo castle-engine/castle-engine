@@ -99,9 +99,9 @@ begin
   Viewport.Transparent := true;
   (Viewport.RequiredCamera as TUniversalCamera).NavigationType := ntNone;
   (Viewport.RequiredCamera as TUniversalCamera).SetView(
-    Vector3Single(5, 92.00, 0.99),
-    Vector3Single(0, -1, 0),
-    Vector3Single(0, 0, 1));
+    Vector3(5, 92.00, 0.99),
+    Vector3(0, -1, 0),
+    Vector3(0, 0, 1));
   ViewportRect.InsertFront(Viewport);
 
   LabelInstructions := TCastleLabel.Create(FreeAtStop);

@@ -20,7 +20,8 @@ unit CastleGeometryArrays;
 
 interface
 
-uses CastleUtils, CastleVectors, FGL, CastleTriangles;
+uses Generics.Collections,
+  CastleUtils, CastleVectors, CastleTriangles;
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
@@ -53,9 +54,9 @@ type
     tgWorldSpaceReflectionVector,
     tgProjection);
 
-  TProjectorMatrixFunction = function: TMatrix4Single of object;
+  TProjectorMatrixFunction = function: TMatrix4 of object;
 
-  TTextureGenerationVectors = array [0..2] of TVector4Single;
+  TTextureGenerationVectors = array [0..2] of TVector4;
 
   { Texture coord array information, for TGeometryArrays.
     If Generation <> tgExplicit, then the actual array data is not stored. }
@@ -80,7 +81,7 @@ type
     { Offset, only for Generation = tgExplicit. }
     Offset: Integer;
   end;
-  TGeometryTexCoordList = specialize TFPGObjectList<TGeometryTexCoord>;
+  TGeometryTexCoordList = specialize TObjectList<TGeometryTexCoord>;
 
   TGeometryAttribType = (atFloat, atVector2, atVector3, atVector4,
     atMatrix3, atMatrix4);
@@ -94,7 +95,7 @@ type
     AType: TGeometryAttribType;
     Offset: Integer;
   end;
-  TGeometryAttribList = class(specialize TFPGObjectList<TGeometryAttrib>)
+  TGeometryAttribList = class(specialize TObjectList<TGeometryAttrib>)
   public
     function Find(const Name: string): TGeometryAttrib;
   end;
@@ -133,7 +134,7 @@ type
     FHasColor: boolean;
     ColorOffset: Integer;
     FHasDefaultColor: boolean;
-    FDefaultColor: TVector4Single;
+    FDefaultColor: TVector4;
 
     FHasFogCoord: boolean;
     FogCoordOffset: Integer;
@@ -217,7 +218,7 @@ type
     { Memory containing vertex positions and normals, that is everything
       that changes during Coordinate.coord animation.
       CoordinateSize is size, in bytes, of one item of this array
-      (currently just constant, 2 * TVector3Single).
+      (currently just constant, 2 * TVector3).
       @groupBegin }
     property CoordinateArray: Pointer read FCoordinateArray;
     property CoordinateSize: Cardinal read FCoordinateSize;
@@ -231,9 +232,9 @@ type
     property AttributeSize: Cardinal read FAttributeSize;
     { @groupEnd }
 
-    function Position: PVector3Single;
-    function Position(const Index: Cardinal): PVector3Single;
-    procedure IncPosition(var P: PVector3Single);
+    function Position: PVector3;
+    function Position(const Index: Cardinal): PVector3;
+    procedure IncPosition(var P: PVector3);
 
     { Allocated number of items in vertex positions, normals, colors
       and such arrays.
@@ -245,20 +246,20 @@ type
       Also, IndexesCount and HasIndexes is stored at this point. }
     property Count: Integer read FCount write SetCount;
 
-    function Normal: PVector3Single;
-    function Normal(const Index: Cardinal): PVector3Single;
-    procedure IncNormal(var P: PVector3Single);
+    function Normal: PVector3;
+    function Normal(const Index: Cardinal): PVector3;
+    procedure IncNormal(var P: PVector3);
 
     procedure AddColor;
-    function Color(const Index: Cardinal = 0): PVector4Single;
-    procedure IncColor(var P: PVector4Single);
+    function Color(const Index: Cardinal = 0): PVector4;
+    procedure IncColor(var P: PVector4);
     property HasColor: boolean read FHasColor;
 
     { When Color array is not initialized and HasDefaultColor,
       then the default color will be set to DefaultColor.
       @groupBegin }
     property HasDefaultColor: boolean read FHasDefaultColor write FHasDefaultColor default false;
-    property DefaultColor: TVector4Single read FDefaultColor write FDefaultColor;
+    property DefaultColor: TVector4 read FDefaultColor write FDefaultColor;
     { @groupEnd }
 
     procedure AddFogCoord;
@@ -292,9 +293,9 @@ type
     procedure AddTexCoordCopy(const NewTextureUnit, ExistingTextureUnit: Cardinal);
 
     function TexCoord(const TextureUnit, Index: Cardinal): Pointer;
-    function TexCoord2D(const TextureUnit, Index: Cardinal): PVector2Single;
-    function TexCoord3D(const TextureUnit, Index: Cardinal): PVector3Single;
-    function TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
+    function TexCoord2D(const TextureUnit, Index: Cardinal): PVector2;
+    function TexCoord3D(const TextureUnit, Index: Cardinal): PVector3;
+    function TexCoord4D(const TextureUnit, Index: Cardinal): PVector4;
 
     property Attribs: TGeometryAttribList read FAttribs;
 
@@ -308,11 +309,11 @@ type
     function GLSLAttribute(A: TGeometryAttrib; const Offset: PtrUInt = 0): PtrUInt;
 
     function GLSLAttributeFloat(const Name: string; const Index: Cardinal = 0): PSingle;
-    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2Single;
-    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3Single;
-    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4Single;
-    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3Single;
-    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
+    function GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
+    function GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
+    function GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
+    function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
+    function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
 
     { CullBackFaces says if we should enable back-face culling.
       If @true, then we should glEnable(GL_CULL_FACE),
@@ -378,7 +379,7 @@ end;
 constructor TGeometryArrays.Create;
 begin
   inherited;
-  FCoordinateSize := SizeOf(TVector3Single) * 2;
+  FCoordinateSize := SizeOf(TVector3) * 2;
   FAttributeSize := 0;
   FTexCoords := TGeometryTexCoordList.Create;
   FAttribs := TGeometryAttribList.Create;
@@ -419,40 +420,40 @@ begin
     PtrUInt(Result) += PtrUInt(FIndexes.L);
 end;
 
-function TGeometryArrays.Position: PVector3Single;
+function TGeometryArrays.Position: PVector3;
 begin
   { When DataFreed, FCoordinateArray is already nil }
   Result := FCoordinateArray;
 end;
 
-function TGeometryArrays.Position(const Index: Cardinal): PVector3Single;
+function TGeometryArrays.Position(const Index: Cardinal): PVector3;
 begin
   { When DataFreed, FCoordinateArray is already nil }
-  Result := PVector3Single(PtrUInt(FCoordinateArray) + CoordinateSize * Index);
+  Result := PVector3(PtrUInt(FCoordinateArray) + CoordinateSize * Index);
 end;
 
-procedure TGeometryArrays.IncPosition(var P: PVector3Single);
+procedure TGeometryArrays.IncPosition(var P: PVector3);
 begin
-  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3Single) * 2;
+  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
 end;
 
-function TGeometryArrays.Normal: PVector3Single;
-begin
-  { When DataFreed, FCoordinateArray is already nil }
-  Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) +
-    SizeOf(TVector3Single)));
-end;
-
-function TGeometryArrays.Normal(const Index: Cardinal): PVector3Single;
+function TGeometryArrays.Normal: PVector3;
 begin
   { When DataFreed, FCoordinateArray is already nil }
-  Result := PVector3Single(PtrUInt(PtrUInt(FCoordinateArray) +
-    SizeOf(TVector3Single) + CoordinateSize * Index));
+  Result := PVector3(PtrUInt(PtrUInt(FCoordinateArray) +
+    SizeOf(TVector3)));
 end;
 
-procedure TGeometryArrays.IncNormal(var P: PVector3Single);
+function TGeometryArrays.Normal(const Index: Cardinal): PVector3;
 begin
-  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3Single) * 2;
+  { When DataFreed, FCoordinateArray is already nil }
+  Result := PVector3(PtrUInt(PtrUInt(FCoordinateArray) +
+    SizeOf(TVector3) + CoordinateSize * Index));
+end;
+
+procedure TGeometryArrays.IncNormal(var P: PVector3);
+begin
+  PtrUInt(P) += {CoordinateSize} SizeOf(TVector3) * 2;
 end;
 
 procedure TGeometryArrays.AddColor;
@@ -461,20 +462,20 @@ begin
   begin
     FHasColor := true;
     ColorOffset := AttributeSize;
-    FAttributeSize += SizeOf(TVector4Single);
+    FAttributeSize += SizeOf(TVector4);
   end;
 end;
 
-function TGeometryArrays.Color(const Index: Cardinal): PVector4Single;
+function TGeometryArrays.Color(const Index: Cardinal): PVector4;
 begin
   if HasColor then
     { When DataFreed, FAttributeArray is already nil }
-    Result := PVector4Single(PtrUInt(PtrUInt(FAttributeArray) +
+    Result := PVector4(PtrUInt(PtrUInt(FAttributeArray) +
       ColorOffset + Index * AttributeSize)) else
     Result := nil;
 end;
 
-procedure TGeometryArrays.IncColor(var P: PVector4Single);
+procedure TGeometryArrays.IncColor(var P: PVector4);
 begin
   PtrUInt(P) += AttributeSize;
 end;
@@ -590,22 +591,22 @@ begin
     Result := nil;
 end;
 
-function TGeometryArrays.TexCoord2D(const TextureUnit, Index: Cardinal): PVector2Single;
+function TGeometryArrays.TexCoord2D(const TextureUnit, Index: Cardinal): PVector2;
 begin
   Assert(TexCoords[TextureUnit].Dimensions = 2, 'Texture coord allocated but for different dimensions');
-  Result := PVector2Single(TexCoord(TextureUnit, Index));
+  Result := PVector2(TexCoord(TextureUnit, Index));
 end;
 
-function TGeometryArrays.TexCoord3D(const TextureUnit, Index: Cardinal): PVector3Single;
+function TGeometryArrays.TexCoord3D(const TextureUnit, Index: Cardinal): PVector3;
 begin
   Assert(TexCoords[TextureUnit].Dimensions = 3, 'Texture coord allocated but for different dimensions');
-  Result := PVector3Single(TexCoord(TextureUnit, Index));
+  Result := PVector3(TexCoord(TextureUnit, Index));
 end;
 
-function TGeometryArrays.TexCoord4D(const TextureUnit, Index: Cardinal): PVector4Single;
+function TGeometryArrays.TexCoord4D(const TextureUnit, Index: Cardinal): PVector4;
 begin
   Assert(TexCoords[TextureUnit].Dimensions = 4, 'Texture coord allocated but for different dimensions');
-  Result := PVector4Single(TexCoord(TextureUnit, Index));
+  Result := PVector4(TexCoord(TextureUnit, Index));
 end;
 
 const
@@ -617,11 +618,11 @@ procedure TGeometryArrays.AddGLSLAttribute(const AType: TGeometryAttribType;
 const
   AttribSizes: array[TGeometryAttribType] of Cardinal =
   ( SizeOf(Single),
-    SizeOf(TVector2Single),
-    SizeOf(TVector3Single),
-    SizeOf(TVector4Single),
-    SizeOf(TMatrix3Single),
-    SizeOf(TMatrix4Single)
+    SizeOf(TVector2),
+    SizeOf(TVector3),
+    SizeOf(TVector4),
+    SizeOf(TMatrix3),
+    SizeOf(TMatrix4)
   );
 var
   A: TGeometryAttrib;
@@ -709,29 +710,29 @@ begin
   Result := PSingle(GLSLAttribute(atFloat, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2Single;
+function TGeometryArrays.GLSLAttributeVector2(const Name: string; const Index: Cardinal = 0): PVector2;
 begin
-  Result := PVector2Single(GLSLAttribute(atVector2, Name, Index));
+  Result := PVector2(GLSLAttribute(atVector2, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3Single;
+function TGeometryArrays.GLSLAttributeVector3(const Name: string; const Index: Cardinal = 0): PVector3;
 begin
-  Result := PVector3Single(GLSLAttribute(atVector3, Name, Index));
+  Result := PVector3(GLSLAttribute(atVector3, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4Single;
+function TGeometryArrays.GLSLAttributeVector4(const Name: string; const Index: Cardinal = 0): PVector4;
 begin
-  Result := PVector4Single(GLSLAttribute(atVector4, Name, Index));
+  Result := PVector4(GLSLAttribute(atVector4, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3Single;
+function TGeometryArrays.GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
 begin
-  Result := PMatrix3Single(GLSLAttribute(atMatrix3, Name, Index));
+  Result := PMatrix3(GLSLAttribute(atMatrix3, Name, Index));
 end;
 
-function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4Single;
+function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
 begin
-  Result := PMatrix4Single(GLSLAttribute(atMatrix4, Name, Index));
+  Result := PMatrix4(GLSLAttribute(atMatrix4, Name, Index));
 end;
 
 procedure TGeometryArrays.FreeData;

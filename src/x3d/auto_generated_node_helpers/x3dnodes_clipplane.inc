@@ -29,11 +29,11 @@
   private
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
-    function GetPlane: TVector4Single;
-    procedure SetPlane(const Value: TVector4Single);
+    function GetPlane: TVector4;
+    procedure SetPlane(const Value: TVector4);
   public
     property Enabled: boolean read GetEnabled write SetEnabled;
-    property Plane: TVector4Single read GetPlane write SetPlane;
+    property Plane: TVector4 read GetPlane write SetPlane;
 
 {$endif read_interface}
 
@@ -51,12 +51,12 @@ begin
   FdEnabled.Send(Value);
 end;
 
-function TClipPlaneNode.GetPlane: TVector4Single;
+function TClipPlaneNode.GetPlane: TVector4;
 begin
   Result := FdPlane.Value;
 end;
 
-procedure TClipPlaneNode.SetPlane(const Value: TVector4Single);
+procedure TClipPlaneNode.SetPlane(const Value: TVector4);
 begin
   FdPlane.Send(Value);
 end;

@@ -20,7 +20,7 @@ unit CastlePrecalculatedAnimation;
 
 interface
 
-uses SysUtils, Classes, FGL,
+uses SysUtils, Classes,
   X3DNodes, CastleRenderer, CastleSceneCore, CastleScene,
   CastleUtils, CastleBoxes, CastleClassUtils,
   CastleKeysMouse, CastleTimeUtils, CastleFrustum, CastleVectors, Castle3D, X3DTriangles,
@@ -140,35 +140,35 @@ type
       by AOwnsFirstRootNode, but you cannot free it anyway while this is loaded.
 
       See @link(Load) for more information, including the meaning of
-      EqualityEpsilon. }
+      Epsilon. }
     procedure LoadCore(
       GetKeyNodeWithTime: TGetKeyNodeWithTime;
       KeyNodesCount: Cardinal;
       AOwnsFirstRootNode: boolean;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single);
+      const Epsilon: Single);
 
-    function HeightCollision(const Position, GravityUp: TVector3Single;
+    function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function MoveCollision(
-      const OldPos, NewPos: TVector3Single;
+      const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3Single;
+    function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3Single; const Radius: Single;
+    function SphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function BoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3Single;
+    function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -222,7 +222,7 @@ type
         over time, and you don't need TCastlePrecalculatedAnimation to insert any more
         scenes.)
 
-      @param(EqualityEpsilon
+      @param(Epsilon
         This will be used for comparing fields, to decide if two fields
         (and, consequently, nodes) are equal. It will be simply
         passed to TX3DField.Equals.
@@ -237,7 +237,7 @@ type
       AOwnsFirstRootNode: boolean;
       AKeyTimes: TSingleList;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single);
+      const Epsilon: Single);
 
     { Load precalculated animation by playing a single VRML/X3D file with
       events (interpolators, TimeSensor and such working).
@@ -249,7 +249,7 @@ type
 
       @param(ScenesPerTime
         tells with what density should the animation be recorded.
-        See @link(Load) for ScenesPerTime, EqualityEpsilon precise documentation.
+        See @link(Load) for ScenesPerTime, Epsilon precise documentation.
         Note that special value ScenesPerTime = 0 is interpreted here as
         "record only one, initial frame".)
 
@@ -260,7 +260,7 @@ type
       AOwnsRootNode: boolean;
       const ATimeBegin, ATimeEnd: Single;
       ScenesPerTime: Cardinal;
-      const EqualityEpsilon: Single;
+      const Epsilon: Single;
       const ProgressTitle: string);
 
     { Load a dumb animation that consists of only one frame (so actually
@@ -270,7 +270,7 @@ type
       @orderedList(
         @item(KeyNodes list contains one specified node)
         @item(Times contain only one item 0.0)
-        @item(ScenesPerTime and EqualityEpsilon have some unimportant
+        @item(ScenesPerTime and Epsilon have some unimportant
           values --- they are not meaningfull when you have only one scene)
       )
 
@@ -288,7 +288,7 @@ type
 
       If you need more control over loading, for example you want to
       change some parameters at loading (for example, ScenesPerTime
-      and EqualityEpsilon of castle-anim-frames files), you should use
+      and Epsilon of castle-anim-frames files), you should use
       more flexible (and less comfortable to use)
       LoadFromFileToVars class procedure (specialized for castle-anim-frames files)
       or Load3DSequence (if you want to handle any files).
@@ -549,7 +549,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4Single); override;
+      const ParentTransform: TMatrix4); override;
 
     procedure UpdateGeneratedTextures(
       const RenderFunc: TRenderFromViewFunction;
@@ -814,7 +814,7 @@ procedure TCastlePrecalculatedAnimation.LoadCore(
   KeyNodesCount: Cardinal;
   AOwnsFirstRootNode: boolean;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single);
+  const Epsilon: Single);
 var
   SceneStatic: boolean;
   BakedAnimation: TNodeInterpolator.TBakedAnimation;
@@ -831,7 +831,7 @@ begin
   SceneStatic := not (TryFirstSceneDynamic and (KeyNodesCount = 1));
 
   BakedAnimation := TNodeInterpolator.BakeToSequence(GetKeyNodeWithTime, KeyNodesCount,
-    ScenesPerTime, EqualityEpsilon);
+    ScenesPerTime, Epsilon);
   try
     FTimeBegin := BakedAnimation.TimeBegin;
     FTimeEnd := BakedAnimation.TimeEnd;
@@ -870,14 +870,14 @@ procedure TCastlePrecalculatedAnimation.Load(
   AOwnsFirstRootNode: boolean;
   AKeyTimes: TSingleList;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single);
+  const Epsilon: Single);
 begin
   Assert(KeyNodes.Count = AKeyTimes.Count);
   Load_KeyNodes := KeyNodes;
   Load_KeyTimes := AKeyTimes;
 
   LoadCore(@Load_GetKeyNodeWithTime, KeyNodes.Count,
-    AOwnsFirstRootNode, ScenesPerTime, EqualityEpsilon);
+    AOwnsFirstRootNode, ScenesPerTime, Epsilon);
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadFromEvents_GetKeyNodeWithTime(
@@ -908,7 +908,7 @@ procedure TCastlePrecalculatedAnimation.LoadFromEvents(
   AOwnsRootNode: boolean;
   const ATimeBegin, ATimeEnd: Single;
   ScenesPerTime: Cardinal;
-  const EqualityEpsilon: Single;
+  const Epsilon: Single;
   const ProgressTitle: string);
 var
   Count: Cardinal;
@@ -928,14 +928,14 @@ begin
       Progress.Init(Count, ProgressTitle);
       try
         LoadCore(@LoadFromEvents_GetKeyNodeWithTime_Progress, Count,
-          true, 0, EqualityEpsilon);
+          true, 0, Epsilon);
       finally
         Progress.Fini;
       end;
     end else
     begin
       LoadCore(@LoadFromEvents_GetKeyNodeWithTime, Count,
-        true, 0, EqualityEpsilon);
+        true, 0, Epsilon);
     end;
 
     { Although LoadCore sets FTimeEnd already, it may be a little
@@ -976,7 +976,7 @@ var
   Times: TSingleList;
   KeyNodes: TX3DNodeList;
   ScenesPerTime: Cardinal;
-  EqualityEpsilon: Single;
+  Epsilon: Single;
   NewTimeLoop, NewTimeBackwards: boolean;
 begin
   Times := TSingleList.Create;
@@ -985,11 +985,11 @@ begin
     {$warnings off}
     { deliberately using deprecated function in a deprecated unit }
     Load3DSequence(URL, AllowStdIn,
-      KeyNodes, Times, ScenesPerTime, EqualityEpsilon,
+      KeyNodes, Times, ScenesPerTime, Epsilon,
       NewTimeLoop, NewTimeBackwards);
     {$warnings on}
 
-    Load(KeyNodes, true, Times, ScenesPerTime, EqualityEpsilon);
+    Load(KeyNodes, true, Times, ScenesPerTime, Epsilon);
 
     if LoadTime then
     begin
@@ -1206,7 +1206,7 @@ begin
       ValidateBoundingBox;
     Result := FBoundingBox;
   end else
-    Result := EmptyBox3D;
+    Result := TBox3D.Empty;
 end;
 
 procedure TCastlePrecalculatedAnimation.BeforeNodesFree;
@@ -1231,10 +1231,10 @@ var
   BBox: TBox3D;
 begin
   BBox := BoundingBox;
-  Result := 'Bounding box (of the whole animation) : ' + BBox.ToNiceStr;
+  Result := 'Bounding box (of the whole animation) : ' + BBox.ToString;
   if not BBox.IsEmpty then
   begin
-    Result += ', average size : ' + FloatToNiceStr(BBox.AverageSize);
+    Result += Format(', average size : %f', [BBox.AverageSize]);
   end;
   Result += NL;
 end;
@@ -1403,7 +1403,7 @@ end;
 procedure TCastlePrecalculatedAnimation.RenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4Single);
+  const ParentTransform: TMatrix4);
 begin
   if Loaded and GetExists and CastShadowVolumes then
     CurrentScene.RenderShadowVolume(ShadowVolumeRenderer,
@@ -1417,7 +1417,7 @@ end;
 {$define LastAnimScene := TAnimationScene(LastScene)}
 
 function TCastlePrecalculatedAnimation.HeightCollision(
-  const Position, GravityUp: TVector3Single;
+  const Position, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 
@@ -1452,7 +1452,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3Single; out NewPos: TVector3Single;
+  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1478,7 +1478,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.MoveCollision(
-  const OldPos, NewPos: TVector3Single;
+  const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
@@ -1491,7 +1491,7 @@ begin
            IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc) ));
 end;
 
-function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3Single;
+function TCastlePrecalculatedAnimation.SegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -1504,7 +1504,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.SphereCollision(
-  const Pos: TVector3Single; const Radius: Single;
+  const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := Loaded and GetCollides and
@@ -1526,7 +1526,7 @@ begin
 end;
 
 function TCastlePrecalculatedAnimation.RayCollision(
-  const RayOrigin, RayDirection: TVector3Single;
+  const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   NewResult: TRayCollision;

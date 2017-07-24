@@ -64,7 +64,7 @@ begin
   ModelBoxes := Load3D(ApplicationData('boxes.x3dv'));
 
   TransformBoxes := TTransformNode.Create;
-  TransformBoxes.Translation := Vector3Single(-5, 0, 0);
+  TransformBoxes.Translation := Vector3(-5, 0, 0);
   TransformBoxes.FdChildren.Add(ModelBoxes);
 
   MainRoot.FdChildren.Add(TransformBoxes);
@@ -76,7 +76,7 @@ begin
   for I := 0 to 2 do
   begin
     TransformRaptor[I] := TTransformNode.Create;
-    TransformRaptor[I].Translation := Vector3Single(8, (I -1)  * 5, 0);
+    TransformRaptor[I].Translation := Vector3(8, (I -1)  * 5, 0);
     TransformRaptor[I].FdChildren.Add(ModelRaptor);
 
     MainRoot.FdChildren.Add(TransformRaptor[I]);

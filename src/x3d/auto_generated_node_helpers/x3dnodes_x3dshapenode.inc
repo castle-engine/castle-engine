@@ -27,17 +27,17 @@
 {$ifdef read_interface}
 
   private
-    function GetBboxCenter: TVector3Single;
-    procedure SetBboxCenter(const Value: TVector3Single);
-    function GetBboxSize: TVector3Single;
-    procedure SetBboxSize(const Value: TVector3Single);
+    function GetBboxCenter: TVector3;
+    procedure SetBboxCenter(const Value: TVector3);
+    function GetBboxSize: TVector3;
+    procedure SetBboxSize(const Value: TVector3);
     function GetOctreeTriangles: TKambiOctreePropertiesNode;
     procedure SetOctreeTriangles(const Value: TKambiOctreePropertiesNode);
     function GetRender: boolean;
     procedure SetRender(const Value: boolean);
   public
-    property BboxCenter: TVector3Single read GetBboxCenter write SetBboxCenter;
-    property BboxSize: TVector3Single read GetBboxSize write SetBboxSize;
+    property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
+    property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
     property OctreeTriangles: TKambiOctreePropertiesNode read GetOctreeTriangles write SetOctreeTriangles;
     property Render: boolean read GetRender write SetRender;
 
@@ -47,22 +47,22 @@
 
 { TAbstractShapeNode ----------------------------------------------- }
 
-function TAbstractShapeNode.GetBboxCenter: TVector3Single;
+function TAbstractShapeNode.GetBboxCenter: TVector3;
 begin
   Result := FdBboxCenter.Value;
 end;
 
-procedure TAbstractShapeNode.SetBboxCenter(const Value: TVector3Single);
+procedure TAbstractShapeNode.SetBboxCenter(const Value: TVector3);
 begin
   FdBboxCenter.Send(Value);
 end;
 
-function TAbstractShapeNode.GetBboxSize: TVector3Single;
+function TAbstractShapeNode.GetBboxSize: TVector3;
 begin
   Result := FdBboxSize.Value;
 end;
 
-procedure TAbstractShapeNode.SetBboxSize(const Value: TVector3Single);
+procedure TAbstractShapeNode.SetBboxSize(const Value: TVector3);
 begin
   FdBboxSize.Send(Value);
 end;

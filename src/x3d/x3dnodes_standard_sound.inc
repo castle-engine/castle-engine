@@ -88,7 +88,7 @@
   { 3D sound emitter. }
   TSoundNode = class(TAbstractSoundNode)
   private
-    FTransform: TMatrix4Single;
+    FTransform: TMatrix4;
     FTransformScale: Single;
     procedure UpdateSourcePosition;
     procedure EventLocationReceive(
@@ -292,7 +292,7 @@ begin
           Parameters.Looping := Loop;
           Parameters.Importance := Clamped(Round(SoundNode.Priority * 1000), 0, 1000);
           Parameters.Gain := SoundNode.Intensity;
-          Parameters.Position := MatrixMultPoint(SoundNode.FTransform, SoundNode.Location);
+          Parameters.Position := SoundNode.FTransform.MultPoint(SoundNode.Location);
           Parameters.Pitch := SafePitch;
           { We pass min/maxFront as OpenAL reference distance/max distance,
             as their meanings match for distance model = dmLinearDistanceClamped. }
@@ -395,7 +395,7 @@ procedure TSoundNode.CreateNode;
 begin
   inherited;
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3Single(0, 0, 1));
+  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 0, 1));
   AddField(FFdDirection);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -403,7 +403,7 @@ begin
   AddField(FFdIntensity);
   { X3D specification comment: [0,1] }
 
-  FFdLocation := TSFVec3f.Create(Self, 'location', Vector3Single(0, 0, 0));
+  FFdLocation := TSFVec3f.Create(Self, 'location', Vector3(0, 0, 0));
    FdLocation.OnReceive.Add(@EventLocationReceive);
   AddField(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
@@ -437,7 +437,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  FTransform := IdentityMatrix4Single;
+  FTransform := TMatrix4.Identity;
   FTransformScale := 1;
 end;
 
@@ -461,7 +461,7 @@ begin
   begin
     AudioClip := TAudioClipNode(FdSource.Value);
     if AudioClip.Sound <> nil then
-      AudioClip.Sound.Position := MatrixMultPoint(FTransform, FdLocation.Value);
+      AudioClip.Sound.Position := FTransform.MultPoint(FdLocation.Value);
   end;
 end;
 

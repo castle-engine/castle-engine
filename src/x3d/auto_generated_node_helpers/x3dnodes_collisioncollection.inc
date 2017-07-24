@@ -31,27 +31,27 @@
     procedure SetBounce(const Value: Single);
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
-    function GetFrictionCoefficients: TVector2Single;
-    procedure SetFrictionCoefficients(const Value: TVector2Single);
+    function GetFrictionCoefficients: TVector2;
+    procedure SetFrictionCoefficients(const Value: TVector2);
     function GetMinBounceSpeed: Single;
     procedure SetMinBounceSpeed(const Value: Single);
-    function GetSlipFactors: TVector2Single;
-    procedure SetSlipFactors(const Value: TVector2Single);
+    function GetSlipFactors: TVector2;
+    procedure SetSlipFactors(const Value: TVector2);
     function GetSoftnessConstantForceMix: Single;
     procedure SetSoftnessConstantForceMix(const Value: Single);
     function GetSoftnessErrorCorrection: Single;
     procedure SetSoftnessErrorCorrection(const Value: Single);
-    function GetSurfaceSpeed: TVector2Single;
-    procedure SetSurfaceSpeed(const Value: TVector2Single);
+    function GetSurfaceSpeed: TVector2;
+    procedure SetSurfaceSpeed(const Value: TVector2);
   public
     property Bounce: Single read GetBounce write SetBounce;
     property Enabled: boolean read GetEnabled write SetEnabled;
-    property FrictionCoefficients: TVector2Single read GetFrictionCoefficients write SetFrictionCoefficients;
+    property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
     property MinBounceSpeed: Single read GetMinBounceSpeed write SetMinBounceSpeed;
-    property SlipFactors: TVector2Single read GetSlipFactors write SetSlipFactors;
+    property SlipFactors: TVector2 read GetSlipFactors write SetSlipFactors;
     property SoftnessConstantForceMix: Single read GetSoftnessConstantForceMix write SetSoftnessConstantForceMix;
     property SoftnessErrorCorrection: Single read GetSoftnessErrorCorrection write SetSoftnessErrorCorrection;
-    property SurfaceSpeed: TVector2Single read GetSurfaceSpeed write SetSurfaceSpeed;
+    property SurfaceSpeed: TVector2 read GetSurfaceSpeed write SetSurfaceSpeed;
 
 {$endif read_interface}
 
@@ -79,12 +79,12 @@ begin
   FdEnabled.Send(Value);
 end;
 
-function TCollisionCollectionNode.GetFrictionCoefficients: TVector2Single;
+function TCollisionCollectionNode.GetFrictionCoefficients: TVector2;
 begin
   Result := FdFrictionCoefficients.Value;
 end;
 
-procedure TCollisionCollectionNode.SetFrictionCoefficients(const Value: TVector2Single);
+procedure TCollisionCollectionNode.SetFrictionCoefficients(const Value: TVector2);
 begin
   FdFrictionCoefficients.Send(Value);
 end;
@@ -99,12 +99,12 @@ begin
   FdMinBounceSpeed.Send(Value);
 end;
 
-function TCollisionCollectionNode.GetSlipFactors: TVector2Single;
+function TCollisionCollectionNode.GetSlipFactors: TVector2;
 begin
   Result := FdSlipFactors.Value;
 end;
 
-procedure TCollisionCollectionNode.SetSlipFactors(const Value: TVector2Single);
+procedure TCollisionCollectionNode.SetSlipFactors(const Value: TVector2);
 begin
   FdSlipFactors.Send(Value);
 end;
@@ -129,12 +129,12 @@ begin
   FdSoftnessErrorCorrection.Send(Value);
 end;
 
-function TCollisionCollectionNode.GetSurfaceSpeed: TVector2Single;
+function TCollisionCollectionNode.GetSurfaceSpeed: TVector2;
 begin
   Result := FdSurfaceSpeed.Value;
 end;
 
-procedure TCollisionCollectionNode.SetSurfaceSpeed(const Value: TVector2Single);
+procedure TCollisionCollectionNode.SetSurfaceSpeed(const Value: TVector2);
 begin
   FdSurfaceSpeed.Send(Value);
 end;

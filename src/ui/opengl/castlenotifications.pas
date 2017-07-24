@@ -20,8 +20,8 @@ unit CastleNotifications;
 
 interface
 
-uses FGL,
-  CastleUIControls, Classes, SysUtils, CastleUtils, CastleControls,
+uses SysUtils, Classes, Generics.Collections,
+  CastleUIControls, CastleUtils, CastleControls,
   CastleFonts, CastleTimeUtils, CastleVectors, CastleStringUtils,
   CastleColors, CastleRectangles;
 
@@ -51,7 +51,7 @@ type
         Width: Integer;
         Color: TCastleColor;
       end;
-      TNotificationList = class(specialize TFPGObjectList<TNotification>)
+      TNotificationList = class(specialize TObjectList<TNotification>)
         procedure DeleteFirst(DelCount: Integer);
       end;
     var
@@ -144,7 +144,7 @@ var
   I: Integer;
 begin
   { Could be optimized better, but this is simple and works correctly
-    with TFPGObjectList.FreeObjects = true management.
+    with TObjectList.FreeObjects = true management.
     This is called only for really small DelCount values, so no problem. }
   for I := 1 to DelCount do Delete(0);
 end;
@@ -210,7 +210,7 @@ begin
     AddStrings(S);
 
   if CollectHistory then
-    History.AddList(S);
+    History.AddRange(S);
 
   VisibleChange;
 end;

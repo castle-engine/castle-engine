@@ -19,13 +19,13 @@ type
   TColladaController = class
     Name: string;
     Source: string;
-    BoundShapeMatrix: TMatrix4Single;
+    BoundShapeMatrix: TMatrix4;
     BoundShapeMatrixIdentity: boolean;
   end;
 
   { List of Collada controllers. Read from <library_controllers>, used by
     <instance_controller>. }
-  TColladaControllerList = class(specialize TFPGObjectList<TColladaController>)
+  TColladaControllerList = class(specialize TObjectList<TColladaController>)
   public
     { Find a TColladaController with given Name, @nil if not found. }
     function Find(const Name: string): TColladaController;

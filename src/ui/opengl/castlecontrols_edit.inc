@@ -45,7 +45,7 @@
     function Press(const Event: TInputPressRelease): boolean; override;
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-    function CapturesEventsAtPosition(const Position: TVector2Single): boolean; override;
+    function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
 
     { Focused text color. By default it's black. }
     property FocusedColor: TCastleColor read FFocusedColor write SetFocusedColor;
@@ -124,7 +124,7 @@ constructor TCastleEdit.Create(AOwner: TComponent);
 begin
   inherited;
   FFocusedColor := Black;
-  FUnfocusedColor := Vector4Single(0.25, 0.25, 0.25, 1);
+  FUnfocusedColor := Vector4(0.25, 0.25, 0.25, 1);
   FBackgroundColor := White;
   FWidth := DefaultWidth;
   FPadding := DefaultPadding;
@@ -151,7 +151,7 @@ end;
 
 procedure TCastleEdit.SetFocusedColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FFocusedColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FFocusedColor, Value) then
   begin
     FFocusedColor := Value;
     VisibleChange;
@@ -160,7 +160,7 @@ end;
 
 procedure TCastleEdit.SetUnfocusedColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FUnfocusedColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FUnfocusedColor, Value) then
   begin
     FUnfocusedColor := Value;
     VisibleChange;
@@ -169,7 +169,7 @@ end;
 
 procedure TCastleEdit.SetBackgroundColor(const Value: TCastleColor);
 begin
-  if not VectorsPerfectlyEqual(FBackgroundColor, Value) then
+  if not TCastleColor.PerfectlyEquals(FBackgroundColor, Value) then
   begin
     FBackgroundColor := Value;
     VisibleChange;
@@ -344,7 +344,7 @@ begin
   end;
 end;
 
-function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2Single): boolean;
+function TCastleEdit.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   if CaptureAllInput then
     Result := true // always capture

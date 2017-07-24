@@ -27,10 +27,10 @@
 {$ifdef read_interface}
 
   private
-    function GetForce: TVector3Single;
-    procedure SetForce(const Value: TVector3Single);
+    function GetForce: TVector3;
+    procedure SetForce(const Value: TVector3);
   public
-    property Force: TVector3Single read GetForce write SetForce;
+    property Force: TVector3 read GetForce write SetForce;
 
 {$endif read_interface}
 
@@ -38,12 +38,12 @@
 
 { TForcePhysicsModelNode ----------------------------------------------- }
 
-function TForcePhysicsModelNode.GetForce: TVector3Single;
+function TForcePhysicsModelNode.GetForce: TVector3;
 begin
   Result := FdForce.Value;
 end;
 
-procedure TForcePhysicsModelNode.SetForce(const Value: TVector3Single);
+procedure TForcePhysicsModelNode.SetForce(const Value: TVector3);
 begin
   FdForce.Send(Value);
 end;

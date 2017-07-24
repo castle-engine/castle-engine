@@ -27,8 +27,8 @@
 {$ifdef read_interface}
 
   private
-    function GetCenterOfRotation: TVector3Single;
-    procedure SetCenterOfRotation(const Value: TVector3Single);
+    function GetCenterOfRotation: TVector3;
+    procedure SetCenterOfRotation(const Value: TVector3);
     function GetDescription: string;
     procedure SetDescription(const Value: string);
     function GetJump: boolean;
@@ -37,15 +37,15 @@
     procedure SetRetainUserOffsets(const Value: boolean);
     function GetCameraMatrixSendAlsoOnOffscreenRendering: boolean;
     procedure SetCameraMatrixSendAlsoOnOffscreenRendering(const Value: boolean);
-    function GetGravityUp: TVector3Single;
-    procedure SetGravityUp(const Value: TVector3Single);
+    function GetGravityUp: TVector3;
+    procedure SetGravityUp(const Value: TVector3);
   public
-    property CenterOfRotation: TVector3Single read GetCenterOfRotation write SetCenterOfRotation;
+    property CenterOfRotation: TVector3 read GetCenterOfRotation write SetCenterOfRotation;
     property Description: string read GetDescription write SetDescription;
     property Jump: boolean read GetJump write SetJump;
     property RetainUserOffsets: boolean read GetRetainUserOffsets write SetRetainUserOffsets;
     property CameraMatrixSendAlsoOnOffscreenRendering: boolean read GetCameraMatrixSendAlsoOnOffscreenRendering write SetCameraMatrixSendAlsoOnOffscreenRendering;
-    property GravityUp: TVector3Single read GetGravityUp write SetGravityUp;
+    property GravityUp: TVector3 read GetGravityUp write SetGravityUp;
 
 {$endif read_interface}
 
@@ -53,12 +53,12 @@
 
 { TAbstractX3DViewpointNode ----------------------------------------------- }
 
-function TAbstractX3DViewpointNode.GetCenterOfRotation: TVector3Single;
+function TAbstractX3DViewpointNode.GetCenterOfRotation: TVector3;
 begin
   Result := FdCenterOfRotation.Value;
 end;
 
-procedure TAbstractX3DViewpointNode.SetCenterOfRotation(const Value: TVector3Single);
+procedure TAbstractX3DViewpointNode.SetCenterOfRotation(const Value: TVector3);
 begin
   FdCenterOfRotation.Send(Value);
 end;
@@ -103,12 +103,12 @@ begin
   FdCameraMatrixSendAlsoOnOffscreenRendering.Send(Value);
 end;
 
-function TAbstractX3DViewpointNode.GetGravityUp: TVector3Single;
+function TAbstractX3DViewpointNode.GetGravityUp: TVector3;
 begin
   Result := FdGravityUp.Value;
 end;
 
-procedure TAbstractX3DViewpointNode.SetGravityUp(const Value: TVector3Single);
+procedure TAbstractX3DViewpointNode.SetGravityUp(const Value: TVector3);
 begin
   FdGravityUp.Send(Value);
 end;
