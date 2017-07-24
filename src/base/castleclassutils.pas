@@ -384,6 +384,32 @@ procedure CreateIfNeeded(var Component: TComponent;
 var
   { Streams to read/write a standard input/output/error of the program.
 
+    Tip: to read the standard input as a text file,
+    you can use @link(TTextReader) and @link(StdInStream):
+
+    @longCode(#
+    var
+      StdInReader: TTextReader;
+    begin
+      StdInReader := TTextReader.Create(StdInStream, false);
+      try
+        while not StdInReader.Eof do
+          DoSomethingWithInputLine(StdInReader.Readln);
+      finally FreeAndNil(StdinReader) end;
+    end;
+    #)
+
+    The advantage of using @link(TTextReader) above,
+    compared to using the standard Pascal @code(Readln) procedure
+    to read from the standard Pascal @code(Input) text file,
+    is that you can easily modify the above code to read from @italic(any)
+    stream. So, instead of the standard input, you can easily read
+    some stream that decompresses gzip data, or downloads data from
+    the Internet... Actually, the overloaded constructor
+    @link(TTextReader.Create) can accept an URL, like a @code(file://...)
+    or @code(http://...), and will internally use the stream returned
+    by @link(Download) function for this URL.
+
     Notes @bold(only for Windows GUI applications):
 
     @orderedList(
