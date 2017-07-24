@@ -23,7 +23,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
   CastleVectors, CastleBoxes, CastleUtils, CastleScript,
-  CastleClassUtils, Castle3D, CastleFrustum, CastleColors;
+  CastleClassUtils, Castle3D, CastleFrustum;
 
 type
   ECurveFileInvalid = class(Exception);
@@ -32,8 +32,6 @@ type
     for arguments within [TBegin, TEnd]. }
   TCurve = class
   private
-    FColor: TCastleColor;
-    FLineWidth: Single;
     FTBegin, FTEnd: Single;
     FDefaultSegments: Cardinal;
   protected
@@ -138,8 +136,6 @@ type
   TControlPointsCurve = class(TCurve)
   strict private
     FBoundingBox: TBox3D;
-    FControlPointsColor: TCastleColor;
-    FConvexHullColor: TCastleColor;
   strict protected
     { Using these function you can control how Convex Hull (for RenderConvexHull)
       is calculated: CreateConvexHullPoints should return points that must be
@@ -184,6 +180,9 @@ type
       ControlPointsCount: Cardinal);
 
     destructor Destroy; override;
+
+    { Calculate the convex hull. Caller is responsible for freeing the result. }
+    function ConvexHull: TVector3List;
   end;
 
   TControlPointsCurveClass = class of TControlPointsCurve;
@@ -281,7 +280,7 @@ implementation
 uses Math,
   CastleXMLUtils, CastleDownload;
 
-function ConvexHull(Points: TVector3List): TIntegerList; forward;
+function ConvexHullIndexes(Points: TVector3List): TIntegerList; forward;
 
 { TCurve ------------------------------------------------------------ }
 
@@ -296,8 +295,6 @@ begin
   FTBegin := 0;
   FTEnd := 1;
   FDefaultSegments := 10;
-  FLineWidth := 1;
-  FColor := White;
 end;
 
 procedure TCurve.LoadFromElement(const E: TDOMElement);
@@ -521,6 +518,27 @@ procedure TControlPointsCurve.DestroyConvexHullPoints(Points: TVector3List);
 begin
 end;
 
+function TControlPointsCurve.ConvexHull: TVector3List;
+var
+  PotentialConvexHullPoints: TVector3List;
+  Indexes: TIntegerList;
+  I: Integer;
+begin
+  Result := TVector3List.Create;
+
+  PotentialConvexHullPoints := CreateConvexHullPoints;
+  try
+    if PotentialConvexHullPoints.Count <> 0 then
+    begin
+      Indexes := ConvexHullIndexes(PotentialConvexHullPoints);
+      try
+        for I := 0 to Indexes.Count - 1 do
+          Result.Add(PotentialConvexHullPoints.L[Indexes.L[I]]);
+      finally FreeAndNil(Indexes) end;
+    end;
+  finally DestroyConvexHullPoints(PotentialConvexHullPoints) end;
+end;
+
 constructor TControlPointsCurve.Create;
 begin
   inherited;
@@ -528,8 +546,6 @@ begin
   { DON'T call UpdateControlPoints from here - UpdateControlPoints is virtual !
     So we set FBoundingBox by hand. }
   FBoundingBox := TBox3D.Empty;
-  FControlPointsColor := White;
-  FConvexHullColor := White;
 end;
 
 constructor TControlPointsCurve.CreateFromEquation(
@@ -958,7 +974,7 @@ end;
   you want to iterate over these points like (for each i) Points[Result[i]]).
 
   Points.Count must be >= 1. }
-function ConvexHull(Points: TVector3List): TIntegerList;
+function ConvexHullIndexes(Points: TVector3List): TIntegerList;
 
 { this is the Jarvis algorithm, based on description in Cormen's
   "Introduction to alg." }

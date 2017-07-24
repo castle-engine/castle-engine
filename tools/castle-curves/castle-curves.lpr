@@ -190,8 +190,69 @@ type
   end;
 
 procedure TCurvesDisplay.Render;
+
+  { Render curve by dividing it into a given number of line segments. }
+  procedure RenderCurve(const Curve: TCurve; const Segments: Cardinal;
+    const Color: TCastleColor; const LineWidth: Single);
+  {$ifndef OpenGLES} //TODO-es
+  var
+    i: Integer;
+  begin
+    glColorv(Color);
+    RenderContext.LineWidth := LineWidth;
+    glBegin(GL_LINE_STRIP);
+    for i := 0 to Segments do
+      glVertexv(Curve.PointOfSegment(i, Segments));
+    glEnd;
+  {$else}
+  begin
+  {$endif}
+  end;
+
+  procedure RenderControlPoints(const Curve: TControlPointsCurve;
+    const ControlPointsColor: TCastleColor);
+  {$ifndef OpenGLES} //TODO-es
+  var
+    i: Integer;
+  begin
+    glColorv(ControlPointsColor);
+    glBegin(GL_POINTS);
+    for i := 0 to Curve.ControlPoints.Count-1 do
+      glVertexv(Curve.ControlPoints.L[i]);
+    glEnd;
+  {$else}
+  begin
+  {$endif}
+  end;
+
+  { Render convex hull polygon, using ConvexHullColor.
+    Ignores Z-coord of ControlPoints. }
+  procedure RenderConvexHull(const Curve: TControlPointsCurve;
+    const ConvexHullColor: TCastleColor);
+  {$ifndef OpenGLES} //TODO-es
+  var
+    ConvexHull: TVector3List;
+    I: Integer;
+  begin
+    ConvexHull := Curve.ConvexHull;
+    try
+      {$push}
+      {$warnings off}
+      glColorv(ConvexHullColor);
+      {$pop}
+      glBegin(GL_POLYGON);
+      for i := 0 to ConvexHull.Count - 1 do
+        glVertexv(ConvexHull.L[I]);
+      glEnd;
+    finally FreeAndNil(ConvexHull) end;
+  {$else}
+  begin
+  {$endif}
+  end;
+
 var
   I: Integer;
+  Color: TCastleColor;
 begin
   glLoadIdentity;
 
@@ -205,26 +266,19 @@ begin
     { draw convex hull of SelectedCurve }
     if ShowSelectedCurveConvexHull and (SelectedCurve <> -1) then
     begin
-      {$warnings off}
-      Curves[SelectedCurve].ConvexHullColor := ColorConvexHull;
-      Curves[SelectedCurve].RenderConvexHull;
-      {$warnings on}
+      RenderConvexHull(Curves[SelectedCurve], ColorConvexHull);
     end;
 
     { draw all curves and their control points }
     for i := 0 to Curves.Count-1 do
     begin
-      {$warnings off}
-      { this program knowingly uses a lot of deprecated CastleCurves stuff
-        for rendering... }
-      Curves[i].LineWidth := LineWidth;
       if i = SelectedCurve then
-        Curves[i].Color := ColorCurveSelected else
-        Curves[i].Color := ColorCurveNotSelected;
-      Curves[i].ControlPointsColor := Curves[i].Color;
-      if ShowPoints then Curves[i].RenderControlPoints;
-      Curves[i].Render(RenderSegments);
-      {$warnings on}
+        Color := ColorCurveSelected
+      else
+        Color := ColorCurveNotSelected;
+      if ShowPoints then
+        RenderControlPoints(Curves[i], Color);
+      RenderCurve(Curves[i], RenderSegments, Color, LineWidth);
     end;
 
     { draw SelectedPoint }
@@ -248,7 +302,7 @@ begin
 
   if SelectedCurve = -1 then
   begin
-    Curves.Add(TPiecewiseCubicBezier.Create(nil));
+    Curves.Add(TPiecewiseCubicBezier.Create);
     SetSelectedCurve(Curves.Count - 1);
   end;
 
