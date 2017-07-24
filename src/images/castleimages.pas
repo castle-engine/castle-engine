@@ -1428,7 +1428,7 @@ function ListImageExtsShort(OnlyLoadable, OnlySaveable: boolean): string;
 { @groupEnd }
 
 { Guess MIME type from image extension. Empty string if cannot guess. }
-function ImageExtToMimeType(Ext: string): string;
+function ImageExtToMimeType(Ext: string): string; deprecated 'use URIMimeType';
 
 { loading image -------------------------------------------------------------- }
 
@@ -4488,6 +4488,7 @@ end;
 { unit initialization / finalization ----------------------------------------- }
 
 initialization
+  RegisterMimeTypes;
   InitializeImagesFileFilters;
   {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   InitializePNG;

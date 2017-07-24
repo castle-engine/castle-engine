@@ -20,7 +20,8 @@ unit CastleURIUtils;
 
 interface
 
-uses Classes;
+uses Classes,
+  CastleStringUtils;
 
 { Extracts #anchor from URI. On input, URI contains full URI.
   On output, Anchor is removed from URI and saved in Anchor.
@@ -182,10 +183,17 @@ function FilenameToURISafe(FileName: string): string;
   Overloaded version returns also Gzipped to detect whether file contents
   are gzipped.
 
+  The recognition mechanism can be enhanced by adding your own
+  mappings to the @link(URIMimeExtensions).
+
   @groupBegin }
 function URIMimeType(const URI: string): string;
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
 { @groupEnd }
+
+{ Map from an extension to a MIME type, used by @link(URIMimeType).
+  The extension should be lowercase, and includes a leading dot, like @code(.png). }
+function URIMimeExtensions: TStringStringMap;
 
 { Convert URI to a nice form for display (to show in messages and such).
   It makes sure to nicely trim URLs that would be too long/unreadable otherwise
@@ -242,7 +250,7 @@ function URICurrentPath: string;
 implementation
 
 uses SysUtils, URIParser,
-  CastleStringUtils, CastleUtils, CastleDataURI, CastleImages, CastleLog;
+  CastleUtils, CastleDataURI, CastleLog;
 
 procedure URIExtractAnchor(var URI: string; out Anchor: string;
   const RecognizeEvenEscapedHash: boolean);
@@ -583,6 +591,16 @@ begin
   Result := Result + FilenamePart;
 end;
 
+var
+  FURIMimeExtensions: TStringStringMap;
+
+function URIMimeExtensions: TStringStringMap;
+begin
+  if FURIMimeExtensions = nil then
+    FURIMimeExtensions := TStringStringMap.Create;
+  Result := FURIMimeExtensions;
+end;
+
 function URIMimeType(const URI: string; out Gzipped: boolean): string;
 
   function ExtToMimeType(Ext, ExtExt: string): string;
@@ -641,8 +659,8 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.stl' then Result := 'application/x-stl' else
     // Images.
     { Only images that we cannot handle in CastleImages unit are listed below.
-      For handled images, their extensions are mime types are recorded
-      in CastleImages.ImageExtToMimeType unit. }
+      For handled images, their extensions and mime types are recorded
+      by CastleImages inside the URIMimeExtensions. }
     if Ext = '.svg' then Result := 'image/svg+xml' else
     if Ext = '.ico' then Result := 'image/x-icon' else
     if Ext = '.icns' then Result := 'image/icns' else
@@ -712,9 +730,10 @@ function URIMimeType(const URI: string; out Gzipped: boolean): string;
     if Ext = '.xml' then Result := 'application/xml' else
     if Ext = '.castlescript' then Result := 'text/x-castlescript' else
     if Ext = '.kscript'      then Result := 'text/x-castlescript' else
-    if Ext = '.js' then Result := 'application/javascript' else
-      { as a last resort, check CastleImages.ImageExtToMimeType extensions }
-      Result := ImageExtToMimeType(Ext);
+    if Ext = '.js' then Result := 'application/javascript'
+    else
+      { as a last resort, check URIMimeExtensions }
+      URIMimeExtensions.TryGetValue(Ext, Result);
   end;
 
 var
@@ -851,4 +870,6 @@ begin
   Result := FilenameToURISafe(InclPathDelim(GetCurrentDir));
 end;
 
+finalization
+  FreeAndNil(FURIMimeExtensions);
 end.

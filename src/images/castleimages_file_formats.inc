@@ -496,6 +496,18 @@ begin
   Result := '';
 end;
 
+procedure RegisterMimeTypes;
+var
+  I: TImageFormat;
+  E: TImageFormatInfoExtsCount;
+begin
+  for I := Low(I) to High(I) do
+    for E := Low(E) to ImageFormatInfos[I].ExtsCount do
+      URIMimeExtensions.AddOrSetValue(
+        '.' + ImageFormatInfos[I].Exts[E],
+        ImageFormatInfos[I].MimeTypes[1]);
+end;
+
 function MimeTypeToImageFormat(const MimeType: string;
   const OnlyLoadable, OnlySaveable: boolean; out ImgFormat: TImageFormat): boolean;
 var
