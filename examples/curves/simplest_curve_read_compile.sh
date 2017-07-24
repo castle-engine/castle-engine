@@ -8,4 +8,4 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f simplest_curve_read.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg examples/curves_surfaces/simplest_curve_read.lpr
+fpc -dRELEASE @castle-fpc.cfg examples/curves/simplest_curve_read.lpr
