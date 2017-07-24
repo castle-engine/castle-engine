@@ -103,6 +103,19 @@ type
   On Android, URLs that indicate assets (files packaged inside .apk)
   are also supported, as @code(assets:/my_file.png).
 
+  Note if you use a network URL (like http://...) and you read from this
+  stream that you make a @bold(synchronous downloader).
+  Which means that your application will wait until the data arrives
+  from the Internet. This is why http:// support is disabled here
+  by default (see @link(EnableNetwork)).
+  This is sometimes acceptable (e.g. if you're
+  waiting during the "loading" process, and the data just @italic(has)
+  to be downloaded in order to continue), and it's really easy to use
+  (you just download data exactly the same way like you open a local file).
+  But often you may want to instead use @bold(asynchronous downloading)
+  -- we plan to implement it by the class TDownload (see comments
+  in CastleDownload code), but it's not ready yet!
+
   @raises(EDownloadError In case of problems saving this URL.)
 
   @raises(Exception Various TStream instances (used internally by this
@@ -117,6 +130,80 @@ type
 function Download(const URL: string; const Options: TStreamOptions = []): TStream;
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
+
+(* TODO: API for asynchronous downloader is below, not implemented yet.
+
+type
+  TDownloadStatus = (dsWaiting, dsError, dsSuccess);
+
+  { Download an URL asynchronously, without blocking the application.
+    You can register a callback @link(OnFinished) or watch
+    when the @link(Status) property changes to dsError or dsSuccess
+    to detect when this finished downloading.
+
+    It is undefined whether this uses threads or not internally.
+    The methods and properties can be accessed from the main thread, the same thread
+    you use for all Castle Game Engine functions. }
+  TDownload = class
+    { Start the download process. This constructor starts downloading,
+      and immediately returns. }
+    constructor Create(const AURL: string);
+
+    { Event called when we finish downloading.
+      It is called in the main application thread (the same thread
+      you use for all Castle Game Engine functions), so you can handle
+      it without worrying about threading, even if we use threads internally. }
+    property OnFinished: TNotifyEvent read write;
+
+    { Whether we finished the download or not, and if we finished
+      -- whether we finished with an error or a success. }
+    property Status: TDownloadStatus read ;
+
+    { If the @link(Status) is dsError, this contains a detailed error message. }
+    property ErrorMessage: string read ;
+
+    { If the @link(Status) is dsSuccess, this contains the downloaded contents.
+      This stream is owned by default (if ContentOwned) by this TDownload instance,
+      so it will become invalid when the TDownload instance is freed. }
+    property Content: TStream read;
+
+    { Is the @link(Content) owned by this @link(TDownload) instance.
+      Set this to @false to be able to free this TDownload instance
+      (maybe even by setting @link(FreeOnFinish) to @true),
+      and still keep the stream reference.
+      It is your responsibility then to keep and free the @link(Content)
+      stream whenever you want. }
+    property ContentOwned: boolean read;
+
+    { How many bytes were downloaded. }
+    property DownloadedBytes: Int64;
+
+    { How many bytes are total to be downloaded. -1 if unknown.
+      Depending on the server answer, this may be known fairly quickly after
+      starting the download, or if may not be known at all (until we finish
+      the download).
+      It's guaranteed that this is know (not -1) when @link(Status) = dsSuccess,
+      in all other cases always be prepared that this may be equal -1. }
+    property TotalBytes: Int64 read;
+
+    { Automatically free the instance of this class when the download is finished
+      (right after @link(OnFinished) is called). This is useful if you don't
+      want to be bothered with managing the memory usage of this TDownload
+      instance.
+
+      Just like with TThread.FreeOnTerminate, be extremely careful after you
+      have set this property to true: the instance of TDownload
+      may become invalid at any moment (even right after when you have set
+      the FreeOnFinish to @true, in case the contents were already downloaded).
+
+      You should always register the OnFinished callback before setting
+      this to @true, to be notified when the download finishes.
+      The OnFinished callback will be your last chance to get the downloaded
+      data (unless you set FreeOnFinish := @false inside OnFinished
+      implementation, which is allowed). }
+    property FreeOnFinish: boolean read write default false;
+  end;
+*)
 
 { Create a stream to save a given URL, for example create a TFileStream
   to save a file for a @code(file) URL. In other words, perform @italic(upload).
