@@ -520,7 +520,10 @@ function ApplicationData(const Path: string): string;
   var
     ExePath: string;
   begin
+    {$push} // knowingly using deprecated; ExeName should be undeprecated but internal one day
+    {$warnings off}
     ExePath := ExtractFilePath(ExeName);
+    {$pop}
 
     Result := ExePath + 'data' + PathDelim;
     if DirectoryExists(Result) then Exit;

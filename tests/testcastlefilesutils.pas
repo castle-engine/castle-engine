@@ -86,8 +86,11 @@ end;
 procedure TTestOSSpecific.TestExeName;
 begin
   try
+    {$push} // knowingly using deprecated below, for test
+    {$warnings off}
 //    Writeln('ExeName: '+ ExeName);
     ExeName;
+    {$pop}
   except
     on E: EExeNameNotAvailable do
     begin
