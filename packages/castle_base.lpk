@@ -767,7 +767,7 @@ end;"/>
         <UnitName Value="CastleAnalytics"/>
       </Item176>
       <Item177>
-        <Filename Value="../src/services/castlegiftiz.pas"/>
+        <Filename Value="../src/services/opengl/castlegiftiz.pas"/>
         <UnitName Value="CastleGiftiz"/>
       </Item177>
       <Item178>
