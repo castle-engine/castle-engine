@@ -236,14 +236,16 @@ type
       @groupBegin }
     function Contains(const Point: TVector3): boolean; overload;
 
-    { Causes FPC errors about "duplicate ASM label".
+    { Causes FPC errors about "duplicate ASM label",
+      see https://bugs.freepascal.org/view.php?id=32188 .
       Also, it's not really very useful. }
     //function Contains(const Point: TVector3Double): boolean; overload;
 
     { }
     function PointInside(const Point: TVector3): boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
 
-    { Causes FPC errors about "duplicate ASM label".
+    { Causes FPC errors about "duplicate ASM label",
+      see https://bugs.freepascal.org/view.php?id=32188 .
       Also, it's not really very useful. }
     //function PointInside(const Point: TVector3Double): boolean; overload; deprecated 'use Contains method, which is consistent with TRectangle';
     { @groupEnd }
@@ -305,7 +307,8 @@ type
 
     procedure ClampVar(var point: TVector3); overload;
 
-    { Causes FPC errors about "duplicate ASM label".
+    { Causes FPC errors about "duplicate ASM label",
+      see https://bugs.freepascal.org/view.php?id=32188 .
       Also, it's not really very useful. }
     // procedure ClampVar(var point: TVector3Double); overload;
 
@@ -910,6 +913,7 @@ end;
 
 { Causes FPC error:
   Error: Asm: Duplicate label CASTLEBOXES/home/michalis/bin/castle-engineTBOX3D_$__$$_CONTAINS$TGENERICVECTOR3$$BOOLEAN
+  See https://bugs.freepascal.org/view.php?id=32188
 
 function TBox3D.Contains(const Point: TVector3Double): boolean;
 begin
@@ -928,6 +932,7 @@ end;
 
 { Causes FPC error:
   Error: Asm: Duplicate label CASTLEBOXES/home/michalis/bin/castle-engineTBOX3D_$__$$_POINTINSIDE$TGENERICVECTOR3$$BOOLEAN
+  See https://bugs.freepascal.org/view.php?id=32188
 
 function TBox3D.PointInside(const Point: TVector3Double): boolean;
 begin
@@ -1213,6 +1218,7 @@ end;
 
 { Causes FPC errors:
   Error: Asm: Duplicate label CASTLEBOXES/home/michalis/bin/castle-engineTBOX3D_$__$$_CLAMPVAR$TGENERICVECTOR3
+  See https://bugs.freepascal.org/view.php?id=32188
 
 procedure TBox3D.ClampVar(var point: TVector3Double);
 var

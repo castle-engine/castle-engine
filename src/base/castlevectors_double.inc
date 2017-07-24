@@ -39,7 +39,8 @@ function ThreePlanesIntersectionPointDouble(
   ... there seems to be no better way now.
 
   Also, we need to rename functions to XxxDouble, to avoid FPC bugs
-  with "duplicate ASM label".
+  with "duplicate ASM label", see
+  https://bugs.freepascal.org/view.php?id=32188
 }
 
 function MaxAbsVectorCoordDouble(const v: TVector3Double): integer;

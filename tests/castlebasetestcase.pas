@@ -44,7 +44,8 @@ type
     procedure AssertSameValue(const Expected, Actual: Single);
     procedure AssertSameValue(const Expected, Actual: Single; const Epsilon: Single);
 
-    // TODO: Need to have different names to avoid FPC errors "duplicate ASM label"
+    { TODO: Need to have different names to avoid FPC errors "duplicate ASM label",
+      see https://bugs.freepascal.org/view.php?id=32188 }
     procedure AssertVectorEqualsDouble(const Expected, Actual: TVector2Double);
     procedure AssertVectorEqualsDouble(const Expected, Actual: TVector3Double);
     procedure AssertVectorEqualsDouble(const Expected, Actual: TVector4Double);

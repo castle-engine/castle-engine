@@ -246,7 +246,7 @@ type
     procedure SetValue(const Value: TVector4Integer);
     procedure SetValue(const Value: TVector4Byte);
     procedure SetValue(const Value: TGLdouble);
-    // Makes FPC errors: Error: Asm: Duplicate label
+    // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
     // procedure SetValue(const Value: TVector2Double);
     // procedure SetValue(const Value: TVector3Double);
     // procedure SetValue(const Value: TVector4Double);
@@ -572,7 +572,7 @@ type
     procedure SetAttribute(const Name: string; const Value: TVector4Integer); deprecated 'use TGLSLAttribute.SetValue';
     procedure SetAttribute(const Name: string; const Value: TVector4Byte); deprecated 'use TGLSLAttribute.SetValue';
     procedure SetAttribute(const Name: string; const Value: TGLdouble); deprecated 'use TGLSLAttribute.SetValue';
-    // Makes FPC errors: Error: Asm: Duplicate label
+    // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
     // procedure SetAttribute(const Name: string; const Value: TVector2Double); deprecated 'use TGLSLAttribute.SetValue';
     // procedure SetAttribute(const Name: string; const Value: TVector3Double); deprecated 'use TGLSLAttribute.SetValue';
     // procedure SetAttribute(const Name: string; const Value: TVector4Double); deprecated 'use TGLSLAttribute.SetValue';
@@ -1153,7 +1153,7 @@ begin
   end;
 end;
 
-// Makes FPC errors: Error: Asm: Duplicate label
+// Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
 {
 procedure TGLSLAttribute.SetValue(const Value: TVector2Double);
 begin
@@ -2072,7 +2072,7 @@ begin
   Attribute(Name).SetValue(Value);
 end;
 
-// Makes FPC errors: Error: Asm: Duplicate label
+// Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
 {
 procedure TGLSLProgram.SetAttribute(const Name: string; const Value: TVector2Double);
 begin
