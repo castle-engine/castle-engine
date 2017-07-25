@@ -129,7 +129,13 @@ type
     procedure SetCubeMapSides(const Value: TCubeMapSides);
   public
     { Some DDS files specify unknown GPU texture compression.
-      To read them, set this to true and set AutomaticCompressionType. }
+      More precisely, the DxgiFormat is equal DXGI_FORMAT_UNKNOWN
+      (see https://msdn.microsoft.com/en-us/library/windows/desktop/bb173059(v=vs.85).aspx ).
+      This can happen if you used PvrTexTool and compressed to PVRTC2_* formats.
+
+      To be able to read such DDS files anyway,
+      set AutomaticCompression to true and set AutomaticCompressionType
+      as appropriate. }
     class var AutomaticCompression: boolean;
     class var AutomaticCompressionType: TTextureCompression;
 
@@ -681,6 +687,136 @@ begin
   end;
 end;
 
+{ Optimized reading helpers -------------------------------------------------- }
+
+{ A couple of optimized routines for image formats that
+  closely match corresponding Images unit memory format are below.
+  Optimized routines already know the Result memory format (image class)
+  and file format (Header.PixelFormat), they don't have to check them.
+
+  Names for optimized routines follow the naming of DDS ms docs.
+  This means that they are actually inverted in memory,
+  since DDS bit masks should be treated as little-endian.
+  For example for RGB image, RBitMask = $ff0000 means that red is
+  the 3rd (not 1st) byte...)
+
+  That's why DDS format RGB8 must be inverted when writing to TRGBImage.
+  The format matching exactly TRGBImage is actually named BGR8 in DDS.
+
+  The optimized routines are much faster as they don't use TDDSRowReader,
+  so they don't need a temporary row (they load directly into output
+  image memory), they don't need any mask/shift operations for each channel
+  of each pixel (as the pixel format already matches what is needed,
+  eventual swaps BGR<->RGB are fast).
+  Tests shown that optimized versions are 4-7 times faster than
+  if TDDSRowReader would be used to read the same images.
+}
+
+procedure ReadOptimized_G8(const Stream: TStream;
+  const Image: TCastleImage; const RowBytePadding: Integer);
+var
+  Y, Z: Integer;
+begin
+  for Z := 0 to Image.Depth - 1 do
+    for Y := Image.Height - 1 downto 0 do
+    begin
+      Stream.ReadBuffer(Image.RowPtr(Y, Z)^, Image.PixelSize * Image.Width);
+      if RowBytePadding <> 0 then
+        Stream.Seek(RowBytePadding, soFromCurrent);
+    end;
+end;
+
+procedure ReadOptimized_AG8(const Stream: TStream;
+  const Image: TCastleImage; const RowBytePadding: Integer);
+var
+  Y, Z: Integer;
+begin
+  for Z := 0 to Image.Depth - 1 do
+    for Y := Image.Height - 1 downto 0 do
+    begin
+      Stream.ReadBuffer(Image.RowPtr(Y, Z)^, Image.PixelSize * Image.Width);
+      if RowBytePadding <> 0 then
+        Stream.Seek(RowBytePadding, soFromCurrent);
+    end;
+end;
+
+procedure ReadOptimized_RGB8(const Stream: TStream;
+  const Image: TCastleImage; const RowBytePadding: Integer);
+var
+  X, Y, Z: Integer;
+  Row: PVector3Byte;
+begin
+  for Z := 0 to Image.Depth - 1 do
+    for Y := Image.Height - 1 downto 0 do
+    begin
+      Row := Image.RowPtr(Y, Z);
+      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+
+      { Now invert red and blue. (Since all masks are little-endian,
+        RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
+      for X := 0 to Image.Width - 1 do
+      begin
+        SwapValues(Row^.Data[2], Row^.Data[0]);
+        Inc(Row);
+      end;
+
+      if RowBytePadding <> 0 then
+        Stream.Seek(RowBytePadding, soFromCurrent);
+    end;
+end;
+
+procedure ReadOptimized_BGR8(const Stream: TStream;
+  const Image: TCastleImage; const RowBytePadding: Integer);
+var
+  Y, Z: Integer;
+begin
+  for Z := 0 to Image.Depth - 1 do
+    for Y := Image.Height - 1 downto 0 do
+    begin
+      Stream.ReadBuffer(Image.RowPtr(Y, Z)^, Image.PixelSize * Image.Width);
+      if RowBytePadding <> 0 then
+        Stream.Seek(RowBytePadding, soFromCurrent);
+    end;
+end;
+
+procedure ReadOptimized_ARGB8(const Stream: TStream;
+  const Image: TCastleImage; const RowBytePadding: Integer);
+var
+  X, Y, Z: Integer;
+  Row: PVector4Byte;
+begin
+  for Z := 0 to Image.Depth - 1 do
+    for Y := Image.Height - 1 downto 0 do
+    begin
+      Row := Image.RowPtr(Y, Z);
+      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
+
+      { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
+      for X := 0 to Image.Width - 1 do
+      begin
+        SwapValues(Row^.Data[2], Row^.Data[0]);
+        Inc(Row);
+      end;
+
+      if RowBytePadding <> 0 then
+        Stream.Seek(RowBytePadding, soFromCurrent);
+    end;
+end;
+
+procedure ReadOptimized_ABGR8(const Stream: TStream;
+  const Image: TCastleImage; const RowBytePadding: Integer);
+var
+  Y, Z: Integer;
+begin
+  for Z := 0 to Image.Depth - 1 do
+    for Y := Image.Height - 1 downto 0 do
+    begin
+      Stream.ReadBuffer(Image.RowPtr(Y, Z)^, Image.PixelSize * Image.Width);
+      if RowBytePadding <> 0 then
+        Stream.Seek(RowBytePadding, soFromCurrent);
+    end;
+end;
+
 { TCompositeImage ------------------------------------------------------------------ }
 
 constructor TCompositeImage.Create;
@@ -870,6 +1006,20 @@ var
     { Read a single, normal 2D (or 3D) image from DDS file. }
     function ReadImage(const Width, Height, Depth, MipmapLevel: Cardinal): TEncodedImage;
 
+      { Calculate RowBytePadding for an uncompressed image on this mipmap level. }
+      function GetRowBytePadding(const PixelSize: Integer): Integer;
+      begin
+        { Header.PitchOrLinearSize for uncompressed texture may indicate
+          row length (pitch) in bytes. This is useful to indicate padding of lines.
+          I understand that otherwise I should assume lines are not padded? }
+        if (Header.Flags and DDSD_PITCH <> 0) and
+           (Header.PitchOrLinearSize <> 0) and
+           (MipmapLevel = 0) then
+          Result := Max(Header.PitchOrLinearSize - PixelSize * Width, 0)
+        else
+          Result := 0;
+      end;
+
     type
       TUncompressedType = (
         utRGB_AlphaPossible,
@@ -881,128 +1031,6 @@ var
         RowBytePadding: Integer;
         { Within ReadUncompressed, Result is always of TCastleImage class }
         Res: TCastleImage absolute Result;
-
-        { A couple of optimized routines for image formats that
-          closely match corresponding Images unit memory format are below.
-          Optimized routines already know the Result memory format (image class)
-          and file format (Header.PixelFormat), they don't have to check them.
-
-          Names for optimized routines follow the naming of DDS ms docs.
-          This means that they are actually inverted in memory,
-          since DDS bit masks should be treated as little-endian.
-          For example for RGB image, RBitMask = $ff0000 means that red is
-          the 3rd (not 1st) byte...)
-
-          That's why DDS format RGB8 must be inverted when writing to TRGBImage.
-          The format matching exactly TRGBImage is actually named BGR8 in DDS.
-
-          The optimized routines are much faster as they don't use TDDSRowReader,
-          so they don't need a temporary row (they load directly into output
-          image memory), they don't need any mask/shift operations for each channel
-          of each pixel (as the pixel format already matches what is needed,
-          eventual swaps BGR<->RGB are fast).
-          Tests shown that optimized versions are 4-7 times faster than
-          if TDDSRowReader would be used to read the same images.
-        }
-
-        procedure ReadOptimized_G8;
-        var
-          Y, Z: Integer;
-        begin
-          for Z := 0 to Depth - 1 do
-            for Y := Height - 1 downto 0 do
-            begin
-              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
-              if RowBytePadding <> 0 then
-                Stream.Seek(RowBytePadding, soFromCurrent);
-            end;
-        end;
-
-        procedure ReadOptimized_AG8;
-        var
-          Y, Z: Integer;
-        begin
-          for Z := 0 to Depth - 1 do
-            for Y := Height - 1 downto 0 do
-            begin
-              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
-              if RowBytePadding <> 0 then
-                Stream.Seek(RowBytePadding, soFromCurrent);
-            end;
-        end;
-
-        procedure ReadOptimized_RGB8;
-        var
-          X, Y, Z: Integer;
-          Row: PVector3Byte;
-        begin
-          for Z := 0 to Depth - 1 do
-            for Y := Height - 1 downto 0 do
-            begin
-              Row := Res.RowPtr(Y, Z);
-              Stream.ReadBuffer(Row^, Res.PixelSize * Width);
-
-              { Now invert red and blue. (Since all masks are little-endian,
-                RBitMask = $FF0000 means that red is the 3rd (not 1st) byte...) }
-              for X := 0 to Width - 1 do
-              begin
-                SwapValues(Row^.Data[2], Row^.Data[0]);
-                Inc(Row);
-              end;
-
-              if RowBytePadding <> 0 then
-                Stream.Seek(RowBytePadding, soFromCurrent);
-            end;
-        end;
-
-        procedure ReadOptimized_BGR8;
-        var
-          Y, Z: Integer;
-        begin
-          for Z := 0 to Depth - 1 do
-            for Y := Height - 1 downto 0 do
-            begin
-              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
-              if RowBytePadding <> 0 then
-                Stream.Seek(RowBytePadding, soFromCurrent);
-            end;
-        end;
-
-        procedure ReadOptimized_ARGB8;
-        var
-          X, Y, Z: Integer;
-          Row: PVector4Byte;
-        begin
-          for Z := 0 to Depth - 1 do
-            for Y := Height - 1 downto 0 do
-            begin
-              Row := Res.RowPtr(Y, Z);
-              Stream.ReadBuffer(Row^, Res.PixelSize * Width);
-
-              { Now invert ARGB to ABGR. So swap red<->blue, alpha and green are Ok. }
-              for X := 0 to Width - 1 do
-              begin
-                SwapValues(Row^.Data[2], Row^.Data[0]);
-                Inc(Row);
-              end;
-
-              if RowBytePadding <> 0 then
-                Stream.Seek(RowBytePadding, soFromCurrent);
-            end;
-        end;
-
-        procedure ReadOptimized_ABGR8;
-        var
-          Y, Z: Integer;
-        begin
-          for Z := 0 to Depth - 1 do
-            for Y := Height - 1 downto 0 do
-            begin
-              Stream.ReadBuffer(Res.RowPtr(Y, Z)^, Res.PixelSize * Width);
-              if RowBytePadding <> 0 then
-                Stream.Seek(RowBytePadding, soFromCurrent);
-            end;
-        end;
 
         procedure ReadToGrayscale;
         var
@@ -1131,15 +1159,7 @@ var
         Check(Header.PixelFormat.RGBBitCount mod 8 = 0, 'Invalid DDS pixel format: only RGBBitCount being multiple of 8 is supported. Please report with sample image');
         Check(Header.PixelFormat.RGBBitCount > 0, 'Invalid DDS pixel format: RGBBitCount must be non-zero');
 
-        { Header.PitchOrLinearSize for uncompressed texture may indicate
-          row length (pitch) in bytes. This is useful to indicate padding of lines.
-          I understand that otherwise I should assume lines are not padded? }
-        if (Header.Flags and DDSD_PITCH <> 0) and
-           (Header.PitchOrLinearSize <> 0) and
-           (MipmapLevel = 0) then
-          RowBytePadding := Max(Header.PitchOrLinearSize -
-            (Header.PixelFormat.RGBBitCount div 8) * Width, 0) else
-          RowBytePadding := 0;
+        RowBytePadding := GetRowBytePadding(Header.PixelFormat.RGBBitCount div 8);
 
         case UncompressedType of
           utRGB_AlphaPossible:
@@ -1150,11 +1170,11 @@ var
               if (Header.PixelFormat.RBitMask = $ff0000) and
                  (Header.PixelFormat.GBitMask = $00ff00) and
                  (Header.PixelFormat.BBitMask = $0000ff) then
-                ReadOptimized_RGB8 else
+                ReadOptimized_RGB8(Stream, Res, RowBytePadding) else
               if (Header.PixelFormat.RBitMask = $0000ff) and
                  (Header.PixelFormat.GBitMask = $00ff00) and
                  (Header.PixelFormat.BBitMask = $ff0000) then
-                ReadOptimized_BGR8 else
+                ReadOptimized_BGR8(Stream, Res, RowBytePadding) else
                 ReadToRGB;
             end else
             begin
@@ -1167,13 +1187,13 @@ var
                  (Header.PixelFormat.RBitMask = $00ff0000) and
                  (Header.PixelFormat.GBitMask = $0000ff00) and
                  (Header.PixelFormat.BBitMask = $000000ff) then
-                ReadOptimized_ARGB8 else
+                ReadOptimized_ARGB8(Stream, Res, RowBytePadding) else
               if (Header.PixelFormat.RGBBitCount = 32) and
                  (Header.PixelFormat.ABitMask = $ff000000) and
                  (Header.PixelFormat.RBitMask = $000000ff) and
                  (Header.PixelFormat.GBitMask = $0000ff00) and
                  (Header.PixelFormat.BBitMask = $00ff0000) then
-                ReadOptimized_ABGR8 else
+                ReadOptimized_ABGR8(Stream, Res, RowBytePadding) else
                 ReadToRGBAlpha;
             end;
           utGrayscale_AlphaPossible:
@@ -1183,7 +1203,7 @@ var
 
               if (Header.PixelFormat.RGBBitCount = 8) and
                  (Header.PixelFormat.RBitMask = $ff) then
-                ReadOptimized_G8 else
+                ReadOptimized_G8(Stream, Res, RowBytePadding) else
                 ReadToGrayscale;
             end else
             begin
@@ -1194,7 +1214,7 @@ var
               if (Header.PixelFormat.RGBBitCount = 16) and
                  (Header.PixelFormat.ABitMask = $ff00) and
                  (Header.PixelFormat.RBitMask = $00ff) then
-                ReadOptimized_AG8 else
+                ReadOptimized_AG8(Stream, Res, RowBytePadding) else
                 ReadToGrayscaleAlpha;
             end;
           utPureAlpha:
@@ -1311,13 +1331,23 @@ var
           end else
           if Header.PixelFormat.FourCC = 'DX10' then
           begin
-            { Right now, this is only used by PvrTexTool when you compress
-              to PVRTC2_* formats. Unfortunately HeaderDxt10.DxgiFormat is useless
-              in this case, it's still zero. }
-            if AutomaticCompression then
-              ReadCompressed(AutomaticCompressionType) else
-              raise EInvalidDDS.CreateFmt('Unknown texture format in DDS: FourCC is DX10 and DxgiFormat is %d. Assign TCompositeImage.AutomaticCompression and TCompositeImage.AutomaticCompressionType in the engine to override this.',
-                [HeaderDxt10.DxgiFormat]);
+            case HeaderDxt10.DxgiFormat of
+              DXGI_FORMAT_R8G8B8A8_UNORM:
+                begin
+                  Result := TRGBAlphaImage.Create(Width, Height, Depth);
+                  ReadOptimized_ARGB8(Stream, TCastleImage(Result), GetRowBytePadding(4));
+                end;
+              DXGI_FORMAT_UNKNOWN:
+                begin
+                  if AutomaticCompression then
+                    ReadCompressed(AutomaticCompressionType)
+                  else
+                    raise EInvalidDDS.Create('Unknown texture compression format in DDS: FourCC is DX10 and DxgiFormat is zero (unknown). You need to assign TCompositeImage.AutomaticCompression and TCompositeImage.AutomaticCompressionType in the engine to override this.');
+                end;
+              else
+                raise EInvalidDDS.CreateFmt('Unsupported texture compression format in DDS: FourCC is DX10 and DxgiFormat is %d. Please report this (as Castle Game Engine issue), with the affected DDS file, we can possibly fix this DxgiFormat handling.',
+                  [HeaderDxt10.DxgiFormat]);
+            end;
           end else
           if (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_R16F) or
              (LEToN(Header.PixelFormat.FourCCIntLE) = D3DFMT_G16R16F) or
