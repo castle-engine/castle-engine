@@ -40,7 +40,7 @@
   Run with --help for a description of other command-line parameters.
 }
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 uses SysUtils, CastleImages, CastleUtils, CastleFilesUtils, CastleProgress,
   CastleProgressConsole, CastleParameters, CastleURIUtils,
