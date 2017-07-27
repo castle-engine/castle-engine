@@ -214,6 +214,7 @@ begin
         Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
     //WritelnLog('Spine', 'Using curve for translation on bone ' + Bone.Name);
@@ -301,6 +302,7 @@ begin
       NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
     //WritelnLog('Spine', 'Using curve for scale on bone ' + Bone.Name);
@@ -381,6 +383,7 @@ begin
         Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
     //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);

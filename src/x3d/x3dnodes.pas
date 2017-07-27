@@ -2240,7 +2240,7 @@ uses
   {$endif CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
 
   Math, X3DLoad, CastleInternalZStream, X3DCameraUtils,
-  CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode,
+  CastleFilesUtils, StrUtils, CastleURIUtils, CastleUnicode, CastleCurves,
   CastleLog, CastleScriptParser, CastleDataURI, URIParser, CastleDownload,
   CastleNURBS, CastleQuaternions, CastleCameras, CastleXMLUtils, CastleOpenDocument;
 
@@ -6445,7 +6445,8 @@ begin
     Result := B;
 
     if Key[B] > Key[A] then
-      T := (Fraction - Key[A]) / (Key[B] - Key[A]) else
+      T := (Fraction - Key[A]) / (Key[B] - Key[A])
+    else
       T := 0;
   end;
 end;

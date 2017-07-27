@@ -259,6 +259,7 @@ begin
       NC.FdKeyValue.Items.Add(Colors[I]);
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
   end else

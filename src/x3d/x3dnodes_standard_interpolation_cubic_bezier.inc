@@ -14,13 +14,58 @@
 }
 
 {$ifdef read_interface}
+  TAbstractCubicBezierInterpolatorNode = class(TAbstractInterpolatorNode)
+  strict private
+    type
+      TCalculatedCurve2D = array [0..10] of TVector2;
+      TCalculatedCurve2DList = specialize TStructList<TCalculatedCurve2D>;
+    var
+      FCalculatedCurves: TCalculatedCurve2DList;
+      CubicBezierValueWarningDone: boolean;
+
+    { Like KeyRange, but looking at X coordinates of the points in Key array. }
+    class function KeyRangeArray2D(Key: array of TVector2;
+      const Fraction: Single; out T: Single): Integer; static;
+
+    class function CubicBezierPercent(const T: Single;
+      const ControlPoints: TVector4;
+      const Curve: TCalculatedCurve2D): Single; static;
+
+    { For a Bezier curve segment, expressed as 4D vector with the meaning
+      like in Spine "curve" specification (it specifies XY values of
+      2 middle cubic Bezier curve points), calculate the curve. }
+    class procedure CalculatedCurve2D(const KeyValue: TVector4;
+      out Curve: TCalculatedCurve2D); static;
+
+  strict protected
+    { Calculate curve value for the range inside
+      FdControlPoints[ControlPointsIndex]. }
+    function CubicBezierValue(
+      const T: Single; const ControlPointsIndex: Integer): Single;
+
+  public
+    procedure CreateNode; override;
+    destructor Destroy; override;
+
+    private FFdControlPoints: TMFVec4f;
+    public property FdControlPoints: TMFVec4f read FFdControlPoints;
+
+    { Once the FdControlPoints value is settled, call this to precalculate
+      curve parameters. This makes the following interpolation using this node
+      work fast. }
+    procedure OptimizeControlPoints;
+  end;
+
   { Interpolate (animate) a set of 2D positions,
     using cubic Bezier curve instead of linear interpolation.
     See http://castle-engine.sourceforge.net/x3d_implementation_interpolation_extensions.php . }
-  TCubicBezier2DOrientationInterpolatorNode = class(TAbstractInterpolatorNode)
-  private
+  TCubicBezier2DOrientationInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
+
+    { Lerp on angle value in radians. }
+    class function AngleLerp(T, Angle1, Angle2: Single): Single; static;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -28,9 +73,6 @@
 
     private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
-
-    private FFdControlPoints: TMFVec4f;
-    public property FdControlPoints: TMFVec4f read FFdControlPoints;
 
     private FFdAxis: TSFVec3f;
     public property FdAxis: TSFVec3f read FFdAxis;
@@ -43,7 +85,7 @@
   { Interpolate (animate) a set of 3D positions,
     using cubic Bezier curve instead of linear interpolation.
     See http://castle-engine.sourceforge.net/x3d_implementation_interpolation_extensions.php . }
-  TCubicBezierPositionInterpolatorNode = class(TAbstractInterpolatorNode)
+  TCubicBezierPositionInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
   private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
@@ -55,9 +97,6 @@
     private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
-    private FFdControlPoints: TMFVec4f;
-    public property FdControlPoints: TMFVec4f read FFdControlPoints;
-
     { Event out } { }
     private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
@@ -66,8 +105,164 @@
 
 {$ifdef read_implementation}
 
-{ Lerp on angle value in radians. }
-function AngleLerp(T, Angle1, Angle2: Single): Single;
+{ TAbstractCubicBezierInterpolatorNode --------------------------------------- }
+
+class function TAbstractCubicBezierInterpolatorNode.KeyRangeArray2D(
+  Key: array of TVector2;
+  const Fraction: Single; out T: Single): Integer; static;
+var
+  KeyCount, A, B: Integer;
+begin
+  KeyCount := High(Key) + 1;
+
+  Assert(KeyCount > 0);
+  Assert(not IsNan(Fraction));
+
+  if Fraction <= Key[0].Data[0] then
+    Result := 0 else
+  if Fraction >= Key[KeyCount - 1].Data[0] then
+    Result := KeyCount else
+  begin
+    { Then for sure we're between two Key values.
+      Note that we know that KeyCount > 1 (otherwise, Key.First = Key.Last
+      so one of <= or >= comparisons above would occur; we check
+      IsNan(Fraction) at the beginning to eliminate Fraction=NaN case). }
+    Assert(KeyCount > 1);
+
+    { Always A < B.
+      We're considering range from Key[A].X to Key[B].X.
+
+      Remember that we cannot actually depend on the fact that
+      Key values are non-decreasing. They should be non-decreasing,
+      and we have to output correct result only when they are non-decreasing,
+      but we also have to terminate (with any result) in any situation.
+      Reason: Key values are supplied in X3D file, so they may be broken
+      in every possible way. }
+
+    A := 0;
+    B := KeyCount - 1;
+    while B - A > 1 do
+    begin
+      Result := (A + B) div 2;
+      { A < B => (A + B) < 2B => (A + B) div 2 < B => Result < B.
+        Also, Result > A (the only way how Result could be = A
+        would be when B = A + 1, but we eliminated this case by "while"
+        condition".
+
+        This is good, it means A < Result < B, so Result is good candidate
+        for next A or B, it will for sure shorten the distance
+        between A and B. }
+      Assert(A < Result);
+      Assert(Result < B);
+      if Fraction <= Key[Result].Data[0] then
+        B := Result else
+        A := Result;
+    end;
+    Result := B;
+
+    if Key[B].Data[0] > Key[A].Data[0] then
+      T := (Fraction - Key[A].Data[0]) / (Key[B].Data[0] - Key[A].Data[0])
+    else
+      T := 0;
+  end;
+end;
+
+class function TAbstractCubicBezierInterpolatorNode.CubicBezierPercent(
+  const T: Single;
+  const ControlPoints: TVector4;
+  const Curve: TCalculatedCurve2D): Single; static;
+var
+  Range: Integer;
+  FractionBetweenCurvePoints: Single;
+begin
+  { use T as the X value, to search appropriate Y on the curve graph }
+  Range := KeyRangeArray2D(Curve, T, FractionBetweenCurvePoints);
+
+  if Range = 0 then
+    Result := Curve[0].Data[1]
+  else
+  if Range = High(Curve) + 1 then
+    Result := Curve[High(Curve)].Data[1]
+  else
+    Result := Lerp(FractionBetweenCurvePoints,
+      Curve[Range - 1].Data[1],
+      Curve[Range].Data[1]);
+end;
+
+class procedure TAbstractCubicBezierInterpolatorNode.CalculatedCurve2D(
+  const KeyValue: TVector4;
+  out Curve: TCalculatedCurve2D); static;
+var
+  CurvePoints: TCubicBezier2DPoints;
+  I: Integer;
+begin
+  CurvePoints[0] := Vector2(0, 0);
+  CurvePoints[1] := Vector2(KeyValue[0], KeyValue[1]);
+  CurvePoints[2] := Vector2(KeyValue[2], KeyValue[3]);
+  CurvePoints[3] := Vector2(1, 1);
+
+  { calculate Curve in 2D for curve parameter (T parameter of CubicBezier2D())
+    in 0..1 }
+  for I := 0 to High(Curve) do
+    Curve[I] := CubicBezier2D(I / High(Curve), CurvePoints);
+end;
+
+procedure TAbstractCubicBezierInterpolatorNode.OptimizeControlPoints;
+var
+  I: Integer;
+begin
+  FreeAndNil(FCalculatedCurves);
+  FCalculatedCurves := TCalculatedCurve2DList.Create;
+  FCalculatedCurves.Count := FdControlPoints.Items.Count;
+  for I := 0 to FdControlPoints.Items.Count - 1 do
+    CalculatedCurve2D(FdControlPoints.Items.List^[I], FCalculatedCurves.List^[I]);
+end;
+
+procedure TAbstractCubicBezierInterpolatorNode.CreateNode;
+begin
+  inherited;
+
+  FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
+  AddField(FFdControlPoints);
+end;
+
+function TAbstractCubicBezierInterpolatorNode.CubicBezierValue(
+  const T: Single; const ControlPointsIndex: Integer): Single;
+var
+  ControlPointPtr: PVector4;
+  Curve: TCalculatedCurve2D;
+begin
+  { Call CubicBezierPercent, using ready FCalculatedCurves
+    if possible. }
+  ControlPointPtr := FdControlPoints.Items.Ptr(ControlPointsIndex);
+  if (FCalculatedCurves <> nil) and
+     (FCalculatedCurves.Count = FdControlPoints.Count) then
+  begin
+    Result := CubicBezierPercent(T, ControlPointPtr^,
+      FCalculatedCurves.List^[ControlPointsIndex]);
+  end else
+  begin
+    if not CubicBezierValueWarningDone then
+    begin
+      WritelnWarning('Using CubicBezierXxxInterpolator without calling OptimizeControlPoints beforehand, this is slow. Better call OptimizeControlPoints once the FdControlPoints is settled.');
+      // use CubicBezierValueWarningDone to avoid spamming with warnings
+      CubicBezierValueWarningDone := true;
+    end;
+    CalculatedCurve2D(ControlPointPtr^, Curve);
+    Result := CubicBezierPercent(T, ControlPointPtr^, Curve);
+  end;
+end;
+
+destructor TAbstractCubicBezierInterpolatorNode.Destroy;
+begin
+  FreeAndNil(FCalculatedCurves);
+  inherited;
+end;
+
+{ TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
+
+class function TCubicBezier2DOrientationInterpolatorNode.AngleLerp(
+  T, Angle1, Angle2: Single): Single; static;
 begin
   Angle1 := FloatModulo(Angle1, 2 * Pi);
   Angle2 := FloatModulo(Angle2, 2 * Pi);
@@ -84,42 +279,12 @@ begin
     Result := FloatModulo(Lerp(T, Angle1 + 2 * Pi, Angle2), 2 * Pi);
 end;
 
-function CubicBezierPercent(const T: Single;
-  const ControlPoints: TVector4): Single;
-var
-  {CX1, }CY1, {CX2, }CY2: Single;
-begin
-//  CX1 := ControlPoints[0];
-  CY1 := ControlPoints[1];
-//  CX2 := ControlPoints[2];
-  CY2 := ControlPoints[3];
-
-  { TODO: this is just a poor-mans approximation of how to calculate a point
-    on a Bezier curve. We simply use 1 dimension as a curve parameter,
-    which is totally incorrect (we should calculate curve in 2D,
-    with some parameter, and then use T as X; instead we use T as curve
-    parameter directly).
-    But this looks acceptable, and is really better than doing nothing (that is,
-    doing linear, which means returning T).
-
-    The better solution would be to actually precalculate
-    such Bezier curve (Spine C# runtime just precalculates 10 points along
-    the way, and makes linear interpolation between them, it seems). }
-
-  Result := 3 * CY1 * Sqr(1 - T) * T +
-            3 * CY2 * Sqr(T) * (1 - T) +
-                      Sqr(T) * T;
-end;
-
 procedure TCubicBezier2DOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
   FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
   AddField(FFdKeyValue);
-
-  FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
-  AddField(FFdControlPoints);
 
   FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3(0, 0, 1));
   AddField(FFdAxis);
@@ -176,12 +341,14 @@ begin
       OutputValueAngle := KeyValue(KeyCount - 1) else
     begin
       if Range - 1 < FdControlPoints.Items.Count then
-        T := CubicBezierPercent(T, FdControlPoints.Items.L[Range - 1]);
+        T := CubicBezierValue(T, Range - 1);
       OutputValueAngle := AngleLerp(T, KeyValue(Range - 1), KeyValue(Range));
     end;
   end;
   EventValue_Changed.Send(Vector4(FdAxis.Value, OutputValueAngle), Time);
 end;
+
+{ TCubicBezierPositionInterpolatorNode --------------------------------------- }
 
 procedure TCubicBezierPositionInterpolatorNode.CreateNode;
 begin
@@ -190,9 +357,6 @@ begin
   FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
-
-  FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
-  AddField(FFdControlPoints);
 
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
@@ -246,12 +410,14 @@ begin
       OutputValue := KeyValue(KeyCount - 1) else
     begin
       if Range - 1 < FdControlPoints.Items.Count then
-        T := CubicBezierPercent(T, FdControlPoints.Items.L[Range - 1]);
+        T := CubicBezierValue(T, Range - 1);
       OutputValue := Lerp(T, KeyValue(Range - 1), KeyValue(Range));
     end;
   end;
   EventValue_Changed.Send(OutputValue, Time);
 end;
+
+{ registration --------------------------------------------------------------- }
 
 procedure RegisterInterpolationCubicBezierNodes;
 begin
