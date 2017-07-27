@@ -4,7 +4,7 @@
 program TStackProject;
 
 {$MODE DELPHI}
-{$APPTYPE CONSOLE}
+{$IFDEF WINDOWS}{$APPTYPE CONSOLE}{$ENDIF}
 
 uses
   SysUtils,
