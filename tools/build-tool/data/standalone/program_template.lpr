@@ -17,7 +17,7 @@
 { Program to run the game on desktop (standalone) platforms. }
 program ${NAME_PASCAL}_standalone;
 
-{$apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile".

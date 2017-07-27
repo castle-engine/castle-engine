@@ -5,7 +5,7 @@
 program TArrayProjectSingle;
 
 {$MODE DELPHI}
-{$APPTYPE CONSOLE}
+{$IFDEF WINDOWS}{$APPTYPE CONSOLE}{$ENDIF}
 
 uses
   SysUtils, Math, Types, Generics.Collections, Generics.Defaults;

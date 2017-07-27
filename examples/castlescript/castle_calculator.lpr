@@ -4,7 +4,7 @@
   See [http://castle-engine.sourceforge.net/castle_script.php]
   for expression syntax. }
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 program castle_calculator;
 

@@ -15,7 +15,7 @@
 
 { Convert ttf fonts to Pascal units, to embed fonts inside source code. }
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 uses Classes, SysUtils,
   CastleFont2Pascal, CastleUtils, CastleClassUtils, CastleLog,

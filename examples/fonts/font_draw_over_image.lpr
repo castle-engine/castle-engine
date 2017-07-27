@@ -25,7 +25,7 @@
   See also font_from_texture.lpr demo, that draws text directly on screen,
   and instead of the "PrintStrings" calls it uses TCastleLabel components. }
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 program font_draw_over_image;
 

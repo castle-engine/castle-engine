@@ -16,7 +16,7 @@
 { Example of a fully-working 3D FPS game. }
 program fps_game;
 
-{$apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile".

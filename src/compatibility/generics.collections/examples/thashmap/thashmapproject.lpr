@@ -5,7 +5,7 @@
 program THashMapProject;
 
 {$MODE DELPHI}
-{$APPTYPE CONSOLE}
+{$IFDEF WINDOWS}{$APPTYPE CONSOLE}{$ENDIF}
 
 uses
   SysUtils, Generics.Collections, Generics.Defaults;

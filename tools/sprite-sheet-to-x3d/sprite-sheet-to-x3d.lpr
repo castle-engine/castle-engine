@@ -15,7 +15,7 @@
 
 { Convert spritesheets to classic X3D files. }
 
-{$APPTYPE CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
   CastleParameters, CastleImages, CastleStringUtils,
