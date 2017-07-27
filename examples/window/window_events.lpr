@@ -20,7 +20,7 @@
 
 program window_events;
 
-{$apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 uses SysUtils, CastleUtils, CastleGLUtils, CastleNotifications, CastleWindow,
   CastleKeysMouse, CastleStringUtils, CastleColors, Classes, CastleMessages,

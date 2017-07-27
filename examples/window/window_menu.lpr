@@ -28,7 +28,7 @@
 }
 program window_menu;
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 uses SysUtils, CastleVectors, CastleKeysMouse, CastleColors,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils,

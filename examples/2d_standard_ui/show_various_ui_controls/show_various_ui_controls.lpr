@@ -17,7 +17,7 @@
   This is the program code for the standalone version. }
 uses CastleWindow, Game;
 
-{$apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile".

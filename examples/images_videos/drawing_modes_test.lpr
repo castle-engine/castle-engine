@@ -17,7 +17,7 @@
   with various blending modes. }
 program drawing_modes_test;
 
-{$Apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 uses Classes, SysUtils, TypInfo,
   CastleWindow, CastleImages, CastleFilesUtils, CastleControls, CastleUIControls,

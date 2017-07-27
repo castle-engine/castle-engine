@@ -33,7 +33,7 @@
 
 program call_pascal_code_from_3d_model_script;
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 uses CastleUtils, CastleProgress, CastleProgressConsole, CastleLog,
   CastleSceneCore, X3DFields, X3DTime, SysUtils, CastleParameters, CastleStringUtils,

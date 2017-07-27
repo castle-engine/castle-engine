@@ -1,5 +1,5 @@
 {$mode objfpc}{$H+}
-{$apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile".

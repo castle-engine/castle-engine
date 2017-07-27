@@ -16,7 +16,7 @@
 { "Castle Spine" standalone game binary. }
 program castle_spine;
 
-{$apptype GUI}
+{$ifdef Windows}{$apptype GUI}{$endif}
 
 { This adds icons and version info for Windows,
   automatically created by "castle-engine compile".

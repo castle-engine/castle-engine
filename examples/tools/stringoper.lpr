@@ -23,7 +23,7 @@
   If all Ok, exit code is 0 and result is on stdout. }
 program stringoper;
 
-{$apptype CONSOLE}
+{$ifdef Windows}{$apptype CONSOLE}{$endif}
 
 uses SysUtils, CastleUtils, Classes, CastleStringUtils, CastleFilesUtils,
   CastleParameters;
