@@ -61,6 +61,22 @@ type
     function GetRandomSeed: LongInt;
   end;
 
+{ Implementation of MurMur2 hash algorithm
+  to make a cryptographic-unsafe but highly uniform
+  32bit hash from a given string very quickly.
+  It may be used for better initialization of user defined random seeds
+  (e.g. "My New World" sounds much better than 6592202398)
+  or for better sorting/searching of strings.
+  Warning: the hash is deterministic, but the result may be different
+  depending on CPU architecture or endianness (test required).
+
+  @param(InputString The input string)
+  @param(Seed Optional parameter enabling initialization
+    of the algorithm seed different from default)
+  @returns(Unsigned 32-bit integer)
+}
+function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
+
 implementation
 
 uses
@@ -329,6 +345,63 @@ begin
   XorShiftCycle;
   result := LongInt((int64(LongWord(seed))*3) shr 32)-1
 end;
+
+{hashing}
+
+{MurMur algorithm works on any memory region at pointer @param(data)
+ of length @param(len), and the result differ depending on @param(seed)}
+function MurMur2(const data: pointer; const len: integer; const seed: LongWord): LongWord;
+var h, k: LongWord; //MurMur variables
+    p: pointer;
+    i: integer;
+  procedure CycleHash(var x: LongWord); {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
+  const m = $5bd1e995; //MurMur "magic" cycling constant
+        MaxLongWord = $FFFFFFFF;
+  begin
+    x := QWord(x*m) and MaxLongWord //prevent overflows during multiplication;
+  end;
+begin
+  i := len;
+  p := data;
+  h := seed xor i; //init the deterministic seed
+
+  //cycle through all bytes of the string in 32 bit blocks
+  while (i >= 4) do begin
+    k := PLongWord(p)^;   //get next 4 bytes of data and process them
+    CycleHash(k);
+    k := k xor (k shr 24);
+    CycleHash(k);
+
+    CycleHash(h);
+    h := h xor k;         //merge data into hash
+
+    inc(p,4); //advance to next character
+    dec(i,4); //to gain some speed we don't use p>pmax-4 check
+  end;
+
+  //upmix 0..3 final bytes of data to hash
+  if i  = 3 then h := h xor (PByte(p+2)^ shl 16);
+  if i >= 2 then h := h xor (PByte(p+1)^ shl 8);
+  if i >= 1 then begin
+                   h := h xor PByte(p)^;
+                   CycleHash(h);
+                 end;
+
+  //and add a few final mixes
+  h := h xor (h shr 13);
+  CycleHash(h);
+  h := h xor (h shr 15);
+
+  Result := h;
+end;
+
+
+function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
+begin
+  Result := MurMur2(@InputString[1],length(InputString),seed);
+  //@InputString[1] is an untyped pointer to the first character of the string
+end;
+
 
 {$I norqcheckend.inc}
 
