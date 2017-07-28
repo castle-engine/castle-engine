@@ -45,7 +45,7 @@ procedure ProcessShadowMapsReceivers(Model: TX3DNode; Shapes: TShapeTree;
 implementation
 
 uses SysUtils, Generics.Collections,
-  CastleUtils, CastleStringUtils,
+  CastleUtils, CastleStringUtils, CastleRandom,
   CastleBoxes, CastleLog, CastleVectors, CastleRectangles;
 
 const
@@ -103,7 +103,7 @@ begin
     Based on LightUniqueName. }
   LightUniqueName := Light.X3DName;
   if LightUniqueName = '' then
-    LightUniqueName := 'Light' + IntToStr(Random(1000000));
+    LightUniqueName := 'Light' + IntToStr(rnd(1000000));
 
   { create new (or use existing) GeneratedShadowMap node }
 

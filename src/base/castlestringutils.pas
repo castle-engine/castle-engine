@@ -933,7 +933,7 @@ const
 
 implementation
 
-uses Regexpr, StrUtils,
+uses Regexpr, StrUtils, CastleRandom,
   CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
@@ -1091,8 +1091,8 @@ function RandomString: string;
 var i: integer;
 begin
   result := '';
-  for i := 1 to random(10) do result := result+char(byte('A')+Random(26));
-  for i := 1 to 3 do result := result+char(byte('0')+Random(10));
+  for i := 1 to rnd(10) do result := result+char(byte('A')+rnd(26));
+  for i := 1 to 3 do result := result+char(byte('0')+rnd(10));
 end;
 
 procedure StringReplaceAllVar(var S: string;

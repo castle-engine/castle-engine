@@ -927,7 +927,7 @@ var
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleLog;
+uses CastleScriptCoreFunctions, CastleLog, CastleRandom;
 
 { FPC 2.2.2 has bug http://bugs.freepascal.org/view.php?id=12214
   that strongly hits calculating invalid expressions.
@@ -1306,7 +1306,7 @@ end;
 class procedure TCasScriptInteger.HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
-  TCasScriptInteger(AResult).Value := Random( TCasScriptInteger(Arguments[0]).Value );
+  TCasScriptInteger(AResult).Value := rnd( TCasScriptInteger(Arguments[0]).Value );
 end;
 
 class procedure TCasScriptInteger.HandleGreater(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -1660,7 +1660,7 @@ end;
 class procedure TCasScriptFloat.HandleRandom(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
-  TCasScriptFloat(AResult).Value := Random();
+  TCasScriptFloat(AResult).Value := rnd;
 end;
 
 class procedure TCasScriptFloat.HandleCeil(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);

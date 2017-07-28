@@ -2069,7 +2069,7 @@ const
 implementation
 
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
-  X3DLoad, CastleURIUtils, CastleTimeUtils;
+  X3DLoad, CastleURIUtils, CastleTimeUtils, CastleRandom;
 
 { Workaround FPC bug:
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
@@ -5564,7 +5564,7 @@ begin
     FAnimateSkipTicks := Value;
     { randomizing it now desynchronizes the skipped frames across many scenes
       created in a single frame }
-    AnimateSkipNextTicks := Random(FAnimateSkipTicks + 1);
+    AnimateSkipNextTicks := rnd(FAnimateSkipTicks + 1);
   end;
 end;
 
@@ -6825,7 +6825,7 @@ begin
   NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
-  NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
+  NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(rnd(10000));
   NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
@@ -6870,7 +6870,7 @@ begin
 
   NewNavigationNode := MakeCameraNavNode(Version, '', NavigationType, WalkSpeed,
     VisibilityLimit, AvatarSize, HeadlightOn);
-  NewNavigationNode.X3DName := 'NavInfo' + IntToStr(Random(10000));
+  NewNavigationNode.X3DName := 'NavInfo' + IntToStr(rnd(10000));
   NewNavigationNode.Scene := self;
 
   // Connect viewpoint with navigation info

@@ -440,7 +440,8 @@ uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
   CastleInternalOpenAL,
   CastleGL, CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
   CastleGLImages, CastleConfig, CastleResources, CastleShapes,
-  CastleRenderingCamera;
+  CastleRenderingCamera,
+  CastleRandom;
 
 { TPlayerBox ----------------------------------------------------------------- }
 
@@ -868,7 +869,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
             if SwimLastDrownTime = 0.0 then
               Notifications.Show('You''re drowning');
             SwimLastDrownTime := LifeTime;
-            Life := Life - (DrownDamageConst + Random * DrownDamageRandom);
+            Life := Life - (DrownDamageConst + rnd * DrownDamageRandom);
             SoundEngine.Sound(stPlayerDrowning);
           end;
         end;
@@ -930,7 +931,7 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
         begin
           SoundEngine.Sound(stPlayerToxicPain);
           SetLifeCustomFadeOut(Life - (GroundProperty.ToxicDamageConst +
-            Random * GroundProperty.ToxicDamageRandom), Green);
+            rnd * GroundProperty.ToxicDamageRandom), Green);
         end;
       end;
     end;
@@ -1090,7 +1091,7 @@ begin
 
   if (Swimming = psNo) and (FallHeight > FallMinHeightToDamage) then
     Life := Life - Max(0, FallHeight *
-      MapRange(Random, 0.0, 1.0, FallDamageScaleMin, FallDamageScaleMax));
+      MapRange(rnd, 0.0, 1.0, FallDamageScaleMin, FallDamageScaleMax));
 end;
 
 procedure TPlayer.SetLifeCustomFadeOut(const Value: Single;

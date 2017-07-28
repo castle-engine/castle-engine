@@ -231,7 +231,7 @@ type
 
 implementation
 
-uses SysUtils, Math,
+uses SysUtils, Math, CastleRandom,
   CastleSphereSampling, CastleTimeUtils, CastleColors, CastleTextureImages;
 
 { RayDirection calculations ----------------------------------------------------- }
@@ -1077,7 +1077,7 @@ const
         for i := 0 to DirectIllumSamplesCount - 1 do
         begin
           { calculate LightSourceIndiceIndex, LightSourceIndex, LightSource }
-          LightSourceIndiceIndex := Random(LightItems.Count);
+          LightSourceIndiceIndex := rnd(LightItems.Count);
           LightSource := LightItems.Items[LightSourceIndiceIndex];
           if LightSource = IntersectNode then Continue;
 
@@ -1176,7 +1176,7 @@ const
         ruletce jezeli Depth <= 0. (Trzeba o tym pamietac i pozniej podzielic
         przez RROulContinue.) }
 
-      if (Depth > 0) or (Random < RRoulContinue) then
+      if (Depth > 0) or (rnd < RRoulContinue) then
       begin
         { krok sciezki to importance sampling zgodnie z Modified Phong BRDF,
           patrz GlobalIllumComp (66), diffuse samplujemy z gestoscia cos(),
@@ -1215,7 +1215,7 @@ const
 
         { wylosuj jedno z ck : wylosuj zmienna RandomCK z przedzialu 0..WeightsSum
           a potem zbadaj do ktorego z przedzialow Weights[] wpada. Calculate ck. }
-        RandomCK := Random * WeightsSum;
+        RandomCK := rnd * WeightsSum;
         ck := Low(ck);
         while ck < High(ck) do
         begin
@@ -1354,7 +1354,7 @@ var
       for SampleNum := 0 to PrimarySamplesCount - 1 do
       begin
         RaysWindow.PrimaryRay(
-          x + Random - 0.5, y + Random - 0.5,
+          x + rnd - 0.5, y + rnd - 0.5,
           Image.Width, Image.Height, PrimaryRayOrigin, PrimaryRayDirection);
         PixColor += Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
       end;

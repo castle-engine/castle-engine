@@ -814,27 +814,27 @@ end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Single): Single;
 begin
-  Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+  Result := rnd * (RangeEnd - RangeBegin) + RangeBegin;
 end;
 
 function RandomFloatRange(const RangeBegin, RangeEnd: Float): Float;
 begin
-  Result := Random * (RangeEnd - RangeBegin) + RangeBegin;
+  Result := rnd * (RangeEnd - RangeBegin) + RangeBegin;
 end;
 
 function RandomIntRange(const RangeBegin, RangeEnd: Integer): Integer;
 begin
-  Result := RangeBegin + Random(RangeEnd - RangeBegin);
+  Result := RangeBegin + rnd(RangeEnd - RangeBegin);
 end;
 
 function RandomIntRange(const RangeBegin, RangeEnd: Int64): Int64;
 begin
-  Result := RangeBegin + Random(RangeEnd - RangeBegin);
+  Result := RangeBegin + rnd(RangeEnd - RangeBegin);
 end;
 
 function RandomBoolean: boolean;
 begin
-  Result := Random(2) = 0;
+  Result := rnd(2) = 0;
 end;
 
 function RandomPlusMinus: Integer;

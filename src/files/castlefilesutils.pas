@@ -431,7 +431,7 @@ implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
-  CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload;
+  CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload, CastleRandom;
 
 var
   { Initialized once in initialization, afterwards constant.
@@ -907,8 +907,7 @@ begin
       we may load ffmpeg output using image %d pattern, so we don't want to
       accidentaly pick up other images in the temporary directory
       (e.g. leftovers from previous TRangeScreenShot.BeginCapture). }
-    { System.Random, not just Random, to avoid using Random from MacOSAll unit. }
-    IntToStr(System.Random(MaxInt)) + '_';
+    IntToStr(rnd(MaxInt)) + '_';
 
   { Check is it really Ok. }
   if FindFirstFile(Result, '*', true, [], FileInfo) then
