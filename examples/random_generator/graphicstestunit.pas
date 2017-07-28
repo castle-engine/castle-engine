@@ -5,19 +5,12 @@ unit GraphicsTestUnit;
 interface
 
 uses
-  Classes, Forms, {Controls, Graphics,} ExtCtrls{, SysUtils, FileUtil, Dialogs},CastleRandom;
+  Classes, Forms, ExtCtrls, CastleRandom;
 
 type
-
-  { TForm1 }
-
   TForm1 = class(TForm)
     Image1: TImage;
     procedure FormCreate(Sender: TObject);
-  private
-    { private declarations }
-  public
-    { public declarations }
   end;
 
 var
@@ -29,22 +22,20 @@ uses SysUtils;
 
 {$R *.lfm}
 
-{ TForm1 }
-
 procedure TForm1.FormCreate(Sender: TObject);
-var ix, iy: integer;
-    RND: TCastleRandom;
+var ix, iy: Integer;
+    Rnd: TCastleRandom;
 begin
-  RND := TCastleRandom.create;
+  Rnd := TCastleRandom.Create;
   try
-    for ix := 0 to image1.width do
-      for iy := 0 to image1.height do
-        with Image1.canvas do begin
-          brush.color := round(RND.random(255))+256*round(RND.random(255))+65536*round(RND.random(255));
-          fillrect(ix,iy,ix+1,iy+1);
+    for ix := 0 to Image1.Width do
+      for iy := 0 to Image1.Height do
+        with Image1.Canvas do begin
+          Brush.Color := Round(Rnd.random(255))+256*Round(Rnd.Random(255))+65536*Round(Rnd.Random(255));
+          FillRect(ix,iy,ix+1,iy+1);
         end;
   finally
-    FreeAndNil(RND);
+    FreeAndNil(Rnd);
   end;
 end;
 

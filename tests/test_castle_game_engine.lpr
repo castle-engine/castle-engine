@@ -71,7 +71,8 @@ uses
   TestCastleXMLUtils,
   TestCastleCurves,
   TestCastleTimeUtils,
-  TestCastleControls
+  TestCastleControls,
+  TestCastleRandom
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,
