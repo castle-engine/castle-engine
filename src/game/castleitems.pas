@@ -586,7 +586,7 @@ var
 implementation
 
 uses SysUtils, CastleGL, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, CastleCreatures, CastleGLBoxes, CastleRandom;
+  CastleConfig, CastleCreatures, CastleGLBoxes;
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -797,7 +797,7 @@ var
       SoundEngine.Sound(Resource.AttackSoundHit);
       AttackSoundHitDone := true;
     end;
-    Enemy.Hurt(AttackDC + rnd * AttackDR, Attacker.Direction, AttackKD, Attacker);
+    Enemy.Hurt(AttackDC + Random * AttackDR, Attacker.Direction, AttackKD, Attacker);
   end;
 
   procedure ShootAttack;

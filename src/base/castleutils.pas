@@ -42,6 +42,8 @@
   Initialization of this unit does some generally-useful things:
 
   @unorderedList(
+    @item(Calls Randomize (so that you never forget about it).)
+
     @item(Sets DecimalSeparator to '.'.
 
       Delphi and FPC define DecimalSeparator
@@ -76,7 +78,7 @@ interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  Variants, SysUtils, Math, Generics.Collections, CastleRandom;
+  Variants, SysUtils, Math, Generics.Collections;
 
 { Workaround FPC bug:
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
@@ -155,6 +157,8 @@ implementation
 
 initialization
  InitializationOSSpecific;
+
+ Randomize; { required by e.g. GetTempFname }
 
  LocaleDecimalSeparator := DefaultFormatSettings.DecimalSeparator;
  DefaultFormatSettings.DecimalSeparator := '.';

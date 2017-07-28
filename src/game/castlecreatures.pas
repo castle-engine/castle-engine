@@ -1028,7 +1028,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils, CastleRandom,
+uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls, CastleGLBoxes;
 
 var
@@ -1637,7 +1637,7 @@ begin
 
   if FallHeight > Resource.FallMinHeightToDamage then
     Hurt(Max(0,
-      FallHeight * MapRange(rnd, 0.0, 1.0,
+      FallHeight * MapRange(Random, 0.0, 1.0,
         Resource.FallDamageScaleMin,
         Resource.FallDamageScaleMax)),
       TVector3.Zero, 0, nil);
@@ -1773,7 +1773,7 @@ procedure TCreature.AttackHurt(const HurtEnemy: T3DAlive);
 begin
   if HurtEnemy <> nil then
     HurtEnemy.Hurt(Resource.AttackDamageConst +
-      rnd * Resource.AttackDamageRandom, Direction,
+      Random * Resource.AttackDamageRandom, Direction,
       Resource.AttackKnockbackDistance, Self);
 end;
 
@@ -2125,7 +2125,7 @@ var
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
       if (not Gravity) or (I <> World.GravityCoordinate) then
-        AlternativeTarget.Data[I] += rnd * Distance * 2 - Distance;
+        AlternativeTarget.Data[I] += Random * Distance * 2 - Distance;
 
     HasAlternativeTarget := true;
 
@@ -2321,7 +2321,7 @@ var
            (AngleRadBetweenDirectionToTarget <=
              AngleRadBetweenDirectionToTargetToResign) then
         begin
-          if rnd <= ProbabilityToTryAnotherAlternativeTarget then
+          if Random <= ProbabilityToTryAnotherAlternativeTarget then
           begin
             { Try yet another alternative way. }
             InitAlternativeTarget;
@@ -2621,7 +2621,7 @@ begin
   if (not Dead) and
     (Life - Value > Resource.MinLifeLossToHurt * MaxLife) and
     ( (Resource.ChanceToHurt = 1.0) or
-      (rnd < Resource.ChanceToHurt) ) then
+      (Random < Resource.ChanceToHurt) ) then
     SetState(csHurt);
   inherited;
 end;

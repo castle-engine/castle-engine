@@ -421,7 +421,7 @@ function TriangleToNiceStr(const T: TTriangle3): string; deprecated 'use T.ToStr
 
 implementation
 
-uses Math, CastleRandom;
+uses Math;
 
 function Triangle3(const p0, p1, p2: TVector3): TTriangle3;
 begin
@@ -818,8 +818,8 @@ var
   r1Sqrt, r2: Single;
 begin
   { Based on "Global Illumination Compendium" }
-  r1Sqrt := Sqrt(rnd);
-  r2 := rnd;
+  r1Sqrt := Sqrt(Random);
+  r2 := Random;
   Result :=
     (Data[0] * (1 - r1Sqrt) ) +
     (Data[1] * ((1 - r2) * r1Sqrt) ) +

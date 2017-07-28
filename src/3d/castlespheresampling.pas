@@ -120,7 +120,7 @@ implementation
 { Note: Math unit operates of Float type. We try to minimize in some routines
   below conversions Single <-> Float. }
 
-uses Math, CastleRandom;
+uses Math;
 
 function PhiThetaToXYZ(const PhiTheta: TVector2; const SphereRadius: Single): TVector3;
 var
@@ -181,8 +181,8 @@ end;
 
 function RandomHemispherePointConst: TVector2;
 begin
-  result[0] := 2*Pi*rnd;
-  result[1] := ArcCos(rnd);
+  result[0] := 2*Pi*Random;
+  result[1] := ArcCos(Random);
 end;
 
 function RandomHemispherePointConstXYZ: TVector3;
@@ -190,8 +190,8 @@ var
   r1, r2, sqroot: Single;
   cosinus, sinus: Float;
 begin
-  r1 := rnd;
-  r2 := rnd;
+  r1 := Random;
+  r2 := Random;
   SinCos(2*Pi*r1, sinus, cosinus);
   sqroot := Sqrt(1-Sqr(r2));
 
@@ -205,9 +205,9 @@ function RandomHemispherePointCosTheta(
 var
   SqrtR2: Float;
 begin
-  SqrtR2 := Sqrt(rnd);
+  SqrtR2 := Sqrt(Random);
 
-  result[0] := 2*Pi*rnd;
+  result[0] := 2*Pi*Random;
   result[1] := ArcCos(SqrtR2);
   PdfValue := SqrtR2 / Pi;
 end;
@@ -218,8 +218,8 @@ var
   SqRoot, r1, r2: Single;
   SinR1, CosR1: Float;
 begin
-  r1 := rnd;
-  r2 := rnd;
+  r1 := Random;
+  r2 := Random;
   SinCos(2*Pi*r1, SinR1, CosR1);
   SqRoot := Sqrt(1-r2);
 
@@ -234,9 +234,9 @@ function RandomHemispherePointCosThetaExp(const n: Single;
 var
   r2: Float;
 begin
-  r2 := rnd;
+  r2 := Random;
 
-  result[0] := 2*Pi*rnd;
+  result[0] := 2*Pi*Random;
   result[1] := ArcCos(Power(r2, 1/(n+1)));
   PdfValue := (n+1) * Power(r2, n/(n+1)) / 2*Pi;
 end;
@@ -247,8 +247,8 @@ var
   r1, r2, r2Power, r2Root: Single;
   SinR1, CosR1: Float;
 begin
-  r1 := rnd;
-  r2 := rnd;
+  r1 := Random;
+  r2 := Random;
   SinCos(2*Pi*r1, SinR1, CosR1);
   r2Power := Power(r2, 1/(n+1));
   r2Root := Sqrt(1-Sqr(r2Power));
