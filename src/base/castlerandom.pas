@@ -399,11 +399,10 @@ begin
   Result := h;
 end;
 
-
 function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
 begin
-  Result := MurMur2(@InputString[1],length(InputString),seed);
-  //@InputString[1] is an untyped pointer to the first character of the string
+  Result := MurMur2(Pointer(InputString),length(InputString),seed);
+  //Pointer(InputString) is an untyped pointer to the first character of the string
 end;
 
 var GlobalRandom: TCastleRandom;
