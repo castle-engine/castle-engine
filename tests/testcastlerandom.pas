@@ -62,7 +62,7 @@ begin
    is random, and therefore there's always a tiny chance that it'll fail the test}
   sum := 0;
   for i := 0 to n_tests*10 do
-    sum+= RND.random;
+    sum += RND.random;
   //checking random against shot noise
   AssertTrue(abs(sum/(n_tests*10)-0.5) <= 2/sqrt(n_tests*10));
 

@@ -77,6 +77,10 @@ type
 }
 function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
 
+{ Global random function }
+function rnd: single;
+function rnd(N: LongInt): LongInt;
+
 implementation
 
 uses
@@ -402,7 +406,23 @@ begin
   //@InputString[1] is an untyped pointer to the first character of the string
 end;
 
+var GlobalRandom: TCastleRandom;
+
+function rnd: single;
+begin
+  if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
+  Result := GlobalRandom.Random;
+end;
+
+function rnd(N: LongInt): LongInt;
+begin
+  if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
+  Result := GlobalRandom.Random(N);
+end;
 
 {$I norqcheckend.inc}
+
+finalization
+  FreeAndNil(GlobalRandom);
 
 end.
