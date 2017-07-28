@@ -132,15 +132,15 @@ end;
   semi-simultaneous seeding requests by threads. On the other hand, there are
   more comments than the code itself :)
   I hope I've made everything right :) At least formal tests show it is so.}
-var store_64bit_seed: QWord = 0; //this variable stores 64 bit seed for reusing
-   wait_for_seed: boolean = false;
+var Store64bitSeed: QWord = 0; //this variable stores 64 bit seed for reusing
+   WaitForSeed: boolean = false;
 function Get_Randomseed: longint;
-const date_multiplier: QWord = 30000000;  // approximate accuracy of the date
-      date_order: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
+const DateMultiplier: QWord = 30000000;  // approximate accuracy of the date
+      DateOrder: QWord = 80000 * 30000000; // order of the "now*date_multiplier" variable
       {p.s. date_order will be true until year ~2119}
 var c64: QWord; //current seed;
     b64: QWord; //additional seed for multi-threading safety
-  procedure xorshift64; //{$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} //we're using it too many times to inline
+  procedure XorShift64; //{$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} //we're using it too many times to inline
   begin
     c64:=c64 xor (c64 shl 12);
     c64:=c64 xor (c64 shr 25);
@@ -153,11 +153,11 @@ begin
    with equal seed even if they are absolutely simultaneous}
   c64 := PtrUInt(@(c64));
 
-  while wait_for_seed do xorshift64; //do something nearly useful while randomization is buisy
+  while WaitForSeed do XorShift64; //do something nearly useful while randomization is buisy
 
-  wait_for_seed := true;     //prevents another randomization to start until this one is finished
+  WaitForSeed := true;     //prevents another randomization to start until this one is finished
 
-  xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
+  XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;
   {I've made it 6 times, because sometimes values returned by
    xorshift algorithm are not too different,
    but we want them really independent for random seed initialization.
@@ -172,7 +172,7 @@ begin
    because thanks to b64 still we shall get different random values. Just the
    algorithm would not be as optimal as it might be}
 
-  if store_64bit_seed = 0 then begin //if this is the first randomization
+  if Store64bitSeed = 0 then begin //if this is the first randomization
 
     {This random seed initialization follows SysUtils random.
      Actually it is a relatively bad initialization for random numbers
@@ -200,7 +200,7 @@ begin
      as SysUtils.GetTickCount64 is not available in FPC 2.6.4.
      We will switch to SysUtils.GetTickCount64 implementation when the engine will
      no longer need to support FPC 2.6.4. }
-    c64 := gettickcount64;
+    c64 := GetTickCount64;
     {$POP}
     {just to make sure it's not zero. It's not really important here.}
     if c64 = 0 then c64 := 2903758934725;
@@ -208,49 +208,49 @@ begin
     {"Trying to solve the problem" we do the following:}
 
     {make a 64-bit xorshift cycle several times
-     to kill any possible link to gettickcount64}
-    xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;xorshift64;
+     to kill any possible link to GetTickCount64}
+    XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;
     {the same note on quantity of xorshift's as above}
 
     {now we have to make sure adding "now" won't overflow our c64 variable
      and add a few xorshift64-cycles just for fun in case it will.}
-    while (c64 > high(QWord)-date_order) do xorshift64;
+    while (c64 > high(QWord)-DateOrder) do XorShift64;
 
     {to kill a random discretness introduced by gettickcount64 we add "now".
      "now" and gettickcount64 are not independent and, in fact, change
      synchronously. But after several xorshift64-s c64 has no information
      left off gettickcount64 and therefore we introduce an additional
      semi-independent shift into the random seed}
-    c64 += QWord(round(now*date_multiplier));
+    c64 += QWord(Round(Now*DateMultiplier));
     {now we are sure that the player will get a different random seed even
      in case he/she launches the game exactly at the same milisecond since
      the OS startup - different date&time will shift the random seed...
      unless he/she deliberately sets the date&time&tick to some specific value}
 
-    {and another 64-bit xorshift cycle to kill everything left off "now"}
-    xorshift64;
+    {and another 64-bit XorShift cycle to kill everything left off "now"}
+    XorShift64;
   end else
-    c64 := store_64bit_seed; //else - just grab the last seed.
+    c64 := Store64bitSeed; //else - just grab the last seed.
 
   {Now we cycle xorshift64 as we have a decent random c64 variable}
-  xorshift64;
+  XorShift64;
   {and merge another random-variable based on current thread memory allocation}
   c64 := c64 xor b64;
 
   {and finally...}
   repeat
     {cycle everything one more time}
-    xorshift64;
+    XorShift64;
     {leave higher 32-bits of c64 as a true random seed}
     result := longint(c64 shr 32);
   until result<>0;
   {and strictly demand it's not zero!
-   adding a few xorshift64-cycles in case it does.}
+   adding a few XorShift64-cycles in case it does.}
 
   {Eventually, store the final and truly random 64 bit seed for reusing}
-  store_64bit_seed := c64;
+  Store64bitSeed := c64;
   {and release the next thread to continue if any pending...}
-  wait_for_seed := false;
+  WaitForSeed := false;
 end;
 {$ENDIF}
 
@@ -288,15 +288,15 @@ begin
 end;
 
 function TCastleRandom.Random: single;
-const divisor: single = 1/maxint;
+const Divisor: Single = 1/MaxInt;
 begin
   XorShiftCycle;
-  Result := divisor*LongInt(seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
-  //Result := divisor*longint(XorShift shr 1);    // works slower
+  Result := Divisor*LongInt(Seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
+  //Result := Divisor*Longint(XorShift shr 1);    // works slower
 end;
 
-{result := LongWord((int64(seed)*N) shr 32)// := seed mod N; works slower
-//result := longint((int64(xorshift)*N) shr 32) // works slower}
+{Result := LongWord((int64(Seed)*N) shr 32)// := seed mod N; works slower
+//Result := Longint((int64(XorShift)*N) shr 32) // works slower}
 
 // Adding  {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} makes this procedure
 //  +35% effective. But I don't think it's a good idea
@@ -304,7 +304,7 @@ function TCastleRandom.Random(N: LongInt): LongInt;
 begin
   XorShiftCycle;
   if N>1 then
-    Result := LongInt((int64(LongWord(Seed))*N) shr 32)
+    Result := LongInt((Int64(LongWord(Seed))*N) shr 32)
   else
     Result := 0
 end;
@@ -314,7 +314,7 @@ end;
   strange results if exact reproduction of the random sequence is required }
 function TCastleRandom.RandomInt64(N: int64): int64;
 var c64: QWord;
-  procedure xorshift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
+  procedure XorShift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
   begin
     c64:=c64 xor (c64 shl 12);
     c64:=c64 xor (c64 shr 25);
@@ -324,15 +324,15 @@ begin
   {we need to do it even if N=0..1 to cycle 32bit random seed twice as expected}
   c64 := qword(Random32bit) or (qword(Random32bit) shl 32);
   if N > 1 then begin
-    {adding a xorshift64 cycle guarantees us that c64 is truly random
+    {adding a XorShift64 cycle guarantees us that c64 is truly random
      in range 1..high(QWORD)
      but slows down execution by ~10%}
-    xorshift64;
+    XorShift64;
     {in contrast to SysUtils we make it a true 64-bit random, not a fake 63 bit :)
      There can be no overflow here, because N is int64 and it can't be
-     larger than (high(QWORD) div 2), i.e. we can never get "negative" result
+     larger than (High(QWORD) div 2), i.e. we can never get "negative" result
      as the first bit of the result will be always zero}
-    Result := int64(qword(c64) mod qword(N))
+    Result := Int64(QWord(c64) mod QWord(N))
   end
   else
     Result := 0;
@@ -347,17 +347,17 @@ end;
 function TCastleRandom.RandomSign: longint;
 begin
   XorShiftCycle;
-  Result := LongInt((int64(LongWord(Seed))*3) shr 32)-1
+  Result := LongInt((Int64(LongWord(Seed))*3) shr 32)-1
 end;
 
 {hashing}
 
 { MurMur algorithm works on any memory region at pointer Data
   of length Len, and the result differs depending on Seed. }
-function MurMur2(const Data: pointer; const Len: integer; const Seed: LongWord): LongWord;
+function MurMur2(const Data: pointer; const Len: Integer; const Seed: LongWord): LongWord;
 var h, k: LongWord; //MurMur variables
-    p: pointer;
-    i: integer;
+    p: Pointer;
+    i: Integer;
   procedure CycleHash(var x: LongWord); {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   const m = $5bd1e995; //MurMur "magic" cycling constant
         MaxLongWord = $FFFFFFFF;
@@ -401,13 +401,13 @@ end;
 
 function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
 begin
-  Result := MurMur2(Pointer(InputString),length(InputString),seed);
+  Result := MurMur2(Pointer(InputString), length(InputString), Seed);
   //Pointer(InputString) is an untyped pointer to the first character of the string
 end;
 
 var GlobalRandom: TCastleRandom;
 
-function Rnd: single;
+function Rnd: Single;
 begin
   if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
   Result := GlobalRandom.Random;
