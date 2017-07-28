@@ -77,9 +77,9 @@ type
 }
 function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
 
-{ Global random function }
-function rnd: single;
-function rnd(N: LongInt): LongInt;
+{ Global random function. }
+function Rnd: single;
+function Rnd(N: LongInt): LongInt;
 
 implementation
 
@@ -102,7 +102,7 @@ begin
   begin
     Seed := GetRandomSeed;
   end
-  else seed := LongInt(RandomSeed);
+  else Seed := LongInt(RandomSeed);
 end;
 
 //we're not using dev_urandom for now to support identical implementation for different OSes and devices
@@ -119,7 +119,7 @@ begin
    it's 1000 times slower than CastleRandom,
    but provides a perfect seed initialization. }
   AssignFile(dev_rnd, '/dev/urandom');
-  reset(dev_rnd);
+  Reset(dev_rnd);
   repeat
     read(dev_rnd,result);
   until result<>0; // xorshift can't get 0 as a random seed so, we just read /dev/urandom until its not zero
@@ -127,11 +127,11 @@ begin
 end;
 {$ELSE}
 
-{This procedure is relatively complex. However I was trying to solve
- a whole set of problems of random seeding. Including possible
- semi-simultaneous seeding requests by threads. On the other hand, there are
- more comments than the code itself :)
- I hope I've made everything right :) At least formal tests show it is so.}
+{ This procedure is relatively complex. However I was trying to solve
+  a whole set of problems of random seeding. Including possible
+  semi-simultaneous seeding requests by threads. On the other hand, there are
+  more comments than the code itself :)
+  I hope I've made everything right :) At least formal tests show it is so.}
 var store_64bit_seed: QWord = 0; //this variable stores 64 bit seed for reusing
    wait_for_seed: boolean = false;
 function Get_Randomseed: longint;
@@ -260,11 +260,11 @@ begin
     { guarantees initialization with absolutely random number provided by
       native *nix algorithm.
       Yes, /dev/URandom is not as good as /dev/Random in cryptographic understanding
-      but is faster and perfectly enough for a game-oriented random initalization }
-    result := DEV_URANDOM;
+      but is faster and perfectly enough for a game-oriented random initalization. }
+    Result := DEV_URANDOM;
   {$ELSE}
-    { Castle's own random initialization algorithm. Thread-safe and 64-bit quality }
-    result := Get_Randomseed;
+    { Castle's own random initialization algorithm. Thread-safe and 64-bit quality. }
+    Result := Get_Randomseed;
   {$ENDIF}
 end;
 
@@ -272,11 +272,11 @@ procedure TCastleRandom.XorShiftCycle; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
 begin
   { such implementation works a tiny bit faster (+4%) due to better optimization
     by compiler (uses CPU registers instead of a variable) }
-  seed := ((seed xor (seed shl 1)) xor ((seed xor (seed shl 1)) shr 15)) xor
-         (((seed xor (seed shl 1)) xor ((seed xor (seed shl 1)) shr 15)) shl 4);
-  {seed := seed xor (seed shl 1);
-  seed := seed xor (seed shr 15);
-  seed := seed xor (seed shl 4); }
+  Seed := ((Seed xor (Seed shl 1)) xor ((Seed xor (Seed shl 1)) shr 15)) xor
+         (((Seed xor (Seed shl 1)) xor ((Seed xor (Seed shl 1)) shr 15)) shl 4);
+  {Seed := Seed xor (Seed shl 1);
+  Seed := Seed xor (Seed shr 15);
+  Seed := Seed xor (Seed shl 4); }
 end;
 
 { This procedure is slow so it is better to use XorShiftCycle + direct access
@@ -284,15 +284,15 @@ end;
 function TCastleRandom.Random32bit: LongWord; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
 begin
   XorShiftCycle;
-  result := LongWord(seed);
+  Result := LongWord(Seed);
 end;
 
 function TCastleRandom.Random: single;
 const divisor: single = 1/maxint;
 begin
   XorShiftCycle;
-  result := divisor*LongInt(seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
-  //result := divisor*longint(XorShift shr 1);    // works slower
+  Result := divisor*LongInt(seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
+  //Result := divisor*longint(XorShift shr 1);    // works slower
 end;
 
 {result := LongWord((int64(seed)*N) shr 32)// := seed mod N; works slower
@@ -304,9 +304,9 @@ function TCastleRandom.Random(N: LongInt): LongInt;
 begin
   XorShiftCycle;
   if N>1 then
-    result := LongInt((int64(LongWord(seed))*N) shr 32)
+    Result := LongInt((int64(LongWord(Seed))*N) shr 32)
   else
-    result := 0
+    Result := 0
 end;
 
 { Works >10 times slower comparing to 32 bit version. And even slower than float version.
@@ -332,29 +332,29 @@ begin
      There can be no overflow here, because N is int64 and it can't be
      larger than (high(QWORD) div 2), i.e. we can never get "negative" result
      as the first bit of the result will be always zero}
-    result := int64(qword(c64) mod qword(N))
+    Result := int64(qword(c64) mod qword(N))
   end
   else
-    result := 0;
+    Result := 0;
 end;
 
 function TCastleRandom.RandomBoolean: boolean;
 begin
   XorShiftCycle;
-  result := seed and %1 = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...
+  Result := Seed and %1 = 0   //can be %11 to provide for 1/4, %111 - 1/8 probability ...
 end;
 
 function TCastleRandom.RandomSign: longint;
 begin
   XorShiftCycle;
-  result := LongInt((int64(LongWord(seed))*3) shr 32)-1
+  Result := LongInt((int64(LongWord(Seed))*3) shr 32)-1
 end;
 
 {hashing}
 
-{MurMur algorithm works on any memory region at pointer @param(data)
- of length @param(len), and the result differ depending on @param(seed)}
-function MurMur2(const data: pointer; const len: integer; const seed: LongWord): LongWord;
+{ MurMur algorithm works on any memory region at pointer Data
+  of length Len, and the result differs depending on Seed. }
+function MurMur2(const Data: pointer; const Len: integer; const Seed: LongWord): LongWord;
 var h, k: LongWord; //MurMur variables
     p: pointer;
     i: integer;
@@ -365,9 +365,9 @@ var h, k: LongWord; //MurMur variables
     x := QWord(x*m) and MaxLongWord //prevent overflows during multiplication;
   end;
 begin
-  i := len;
-  p := data;
-  h := seed xor i; //init the deterministic seed
+  i := Len;
+  p := Data;
+  h := Seed xor i; //init the deterministic seed
 
   //cycle through all bytes of the string in 32 bit blocks
   while (i >= 4) do begin
@@ -408,13 +408,13 @@ end;
 
 var GlobalRandom: TCastleRandom;
 
-function rnd: single;
+function Rnd: single;
 begin
   if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
   Result := GlobalRandom.Random;
 end;
 
-function rnd(N: LongInt): LongInt;
+function Rnd(N: LongInt): LongInt;
 begin
   if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
   Result := GlobalRandom.Random(N);
