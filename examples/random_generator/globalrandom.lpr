@@ -1,6 +1,6 @@
 program GlobalRandom;
 
-uses castle_base, CastleRandom;
+uses CastleRandom;
 
 var i: Integer;
 begin

@@ -216,6 +216,7 @@ EXAMPLES_BASE_NAMES := \
   tools/texture-font-to-pascal/texture-font-to-pascal \
   tools/castle-curves/castle-curves \
   tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
+  examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test
 
