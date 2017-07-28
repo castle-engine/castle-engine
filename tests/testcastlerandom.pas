@@ -14,7 +14,7 @@
 }
 
 { Test CastleRandom unit. }
-unit testcastlerandom;
+unit TestCastleRandom;
 
 interface
 
@@ -44,29 +44,29 @@ begin
 end;
 
 procedure TTestCastleRandom.TestRandom;
-const n_tests = 10000000;
-var RND: TCastleRandom;
+const NTests = 10000000;
+var Rnd: TCastleRandom;
     i: integer;
-    sum: double;
+    Sum: double;
 begin
-  RND := TCastleRandom.Create;
+  Rnd := TCastleRandom.Create;
 
   //test that random is in 0..1 limits
-  for i := 0 to n_tests do
-    AssertTrue(RND.Random <= 1);
-  for i := 0 to n_tests do
-    AssertTrue(RND.Random > 0);
+  for i := 0 to NTests do
+    AssertTrue(Rnd.Random <= 1);
+  for i := 0 to NTests do
+    AssertTrue(Rnd.Random > 0);
 
   //test random homogeneity
   {p.s. I'm not exactly sure if this is the right way to do, because random
    is random, and therefore there's always a tiny chance that it'll fail the test}
-  sum := 0;
-  for i := 0 to n_tests*10 do
-    sum += RND.random;
+  Sum := 0;
+  for i := 0 to NTests*10 do
+    Sum += Rnd.random;
   //checking random against shot noise
-  AssertTrue(abs(sum/(n_tests*10)-0.5) <= 2/sqrt(n_tests*10));
+  AssertTrue(abs(Sum/(NTests*10)-0.5) <= 2/sqrt(NTests*10));
 
-  FreeAndNil(RND);
+  FreeAndNil(Rnd);
 end;
 
 
