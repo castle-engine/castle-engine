@@ -35,12 +35,12 @@ uses CastleRandom;
 procedure TTestCastleRandom.TestHash;
 begin
   //zero string Hash
-  AssertTrue(StringToHash('')=0);
-  AssertTrue(StringToHash('1')=%01001001001101000010111110101111);
+  AssertTrue(StringToHash('') = 0);
+  AssertTrue(StringToHash('1') = %01001001001101000010111110101111);
   //zero seed Hash
-  AssertTrue(StringToHash('String to hash test')=%11100000010001101011001110011100);
+  AssertTrue(StringToHash('String to hash test') = %11100000010001101011001110011100);
   //seeded hash
-  AssertTrue(StringToHash('String to hash test',$9747b28c)=%01111101100111100000101011011100);
+  AssertTrue(StringToHash('String to hash test',$9747b28c) = %01111101100111100000101011011100);
 end;
 
 procedure TTestCastleRandom.TestRandom;
@@ -53,9 +53,9 @@ begin
 
   //test that random is in 0..1 limits
   for i := 0 to n_tests do
-    AssertTrue(RND.Random<=1);
+    AssertTrue(RND.Random <= 1);
   for i := 0 to n_tests do
-    AssertTrue(RND.Random>0);
+    AssertTrue(RND.Random > 0);
 
   //test random homogeneity
   {p.s. I'm not exactly sure if this is the right way to do, because random
@@ -64,7 +64,7 @@ begin
   for i := 0 to n_tests*10 do
     sum+= RND.random;
   //checking random against shot noise
-  AssertTrue(abs(sum/(n_tests*10)-0.5)<=2/sqrt(n_tests*10));
+  AssertTrue(abs(sum/(n_tests*10)-0.5) <= 2/sqrt(n_tests*10));
 
   FreeAndNil(RND);
 end;
