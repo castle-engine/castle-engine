@@ -23,12 +23,6 @@ interface
 uses Generics.Collections,
   CastleVectors, CastleUtils;
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
-
 type
   { Horizontal position of one control/rectangle
     with respect to another.
@@ -384,7 +378,7 @@ type
 
   PFloatRectangle = ^TFloatRectangle;
 
-  TRectangleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TRectangle>)
+  TRectangleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
@@ -392,7 +386,7 @@ type
     function FindRectangle(const Point: TVector2): Integer; overload;
   end;
 
-  TFloatRectangleList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TFloatRectangle>;
+  TFloatRectangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
   const Width, Height: Cardinal): TRectangle; overload;

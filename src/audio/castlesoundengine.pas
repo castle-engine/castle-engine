@@ -178,7 +178,7 @@ type
     function PlayingOrPaused: boolean;
   end;
 
-  TSoundList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSound>)
+  TSoundList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -347,7 +347,7 @@ type
     References: Cardinal;
   end;
   TSoundBuffersCacheList =
-    {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSoundBuffersCache>;
+    {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundBuffersCache>;
 
   TSoundDevice = class
   private
@@ -359,7 +359,7 @@ type
     property Caption: string read FCaption;
     property NiceName: string read FCaption; deprecated 'use Caption';
   end;
-  TSoundDeviceList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSoundDevice>;
+  TSoundDeviceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundDevice>;
 
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TSoundParameters = class
@@ -784,7 +784,7 @@ type
     DefaultImportance: Cardinal;
   end;
 
-  TSoundInfoList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>;
+  TSoundInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>;
 
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
   TSoundType = record
@@ -1254,10 +1254,10 @@ end;
 
 procedure TSoundList.SortByImportance;
 type
-  TSoundComparer = {$ifdef FPC_OBJFPC}specialize{$endif} TComparer<TSound>;
+  TSoundComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TSound>;
 begin
   Sort(TSoundComparer.Construct(
-    {$ifdef FPC_OBJFPC}@{$endif} IsSmallerByImportance));
+    {$ifdef CASTLE_OBJFPC}@{$endif} IsSmallerByImportance));
 end;
 
 { TSoundAllocator ---------------------------------------------------------- }
@@ -1528,11 +1528,11 @@ begin
   // Config.AddSaveListener(@SaveToConfig);
 
   ApplicationProperties.OnInitializeJavaActivity.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ReinitializeJavaActivity);
+    {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
   ApplicationProperties.OnPause.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ApplicationPause);
+    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
   ApplicationProperties.OnResume.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ApplicationResume);
+    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
 end;
 
 destructor TSoundEngine.Destroy;
@@ -1540,11 +1540,11 @@ begin
   if ApplicationProperties(false) <> nil then
   begin
     ApplicationProperties(false).OnInitializeJavaActivity.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} ReinitializeJavaActivity);
+      {$ifdef CASTLE_OBJFPC}@{$endif} ReinitializeJavaActivity);
     ApplicationProperties(false).OnPause.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} ApplicationPause);
+      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationPause);
     ApplicationProperties(false).OnResume.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} ApplicationResume);
+      {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationResume);
   end;
 
   // automatic loading/saving is more troublesome than it's worth
@@ -2720,7 +2720,7 @@ begin
 
   if FAllocatedSource <> nil then
     FAllocatedSource.OnRelease :=
-      {$ifdef FPC_OBJFPC}@{$endif} AllocatedSourceRelease;
+      {$ifdef CASTLE_OBJFPC}@{$endif} AllocatedSourceRelease;
 end;
 
 procedure TMusicPlayer.SetSound(const Value: TSoundType);

@@ -23,12 +23,6 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
-
 type
   { }
   TFileInfo = record
@@ -46,7 +40,7 @@ type
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
-  TFileInfoList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TFileInfo>;
+  TFileInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFileInfo>;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
@@ -489,7 +483,7 @@ begin
   Helper := TSearchFileHardHelper.Create;
   try
     Helper.Base := Base;
-    FindFiles(Path + '*', false, {$ifdef FPC_OBJFPC}@{$endif}Helper.Callback, []);
+    FindFiles(Path + '*', false, {$ifdef CASTLE_OBJFPC}@{$endif}Helper.Callback, []);
     Result := Helper.IsFound;
     if Result then
       NewBase := Helper.Found;
@@ -519,7 +513,7 @@ begin
   Helper := TFindFirstFileHelper.Create;
   try
     FindFiles(Path, Mask, FindDirectories,
-      {$ifdef FPC_OBJFPC}@{$endif} Helper.Callback, Options);
+      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, Options);
     Result := Helper.IsFound;
     if Result then
       FileInfo := Helper.FoundFile;
