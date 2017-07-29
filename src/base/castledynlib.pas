@@ -29,14 +29,10 @@ uses
 type
   TDynLibHandle = {$ifdef FPC} TLibHandle {$else} HModule {$endif};
 
-{$ifndef FPC}
+
 const
   { Invalid TDynLibHandle value (meaning : LoadLibrary failed) }
-  InvalidDynLibHandle: TDynLibHandle = 0;
-{$else}
-  { Workaround for FPC bug [http://bugs.freepascal.org/view.php?id=6489] }
-{$define InvalidDynLibHandle := DynLibs.NilHandle}
-{$endif}
+  InvalidDynLibHandle: TDynLibHandle {$ifdef FPC} DynLibs.NilHandle {$else} 0 {$endif};
 
 type
   { }

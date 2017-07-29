@@ -21,7 +21,7 @@ type
   TVector4List = class;
 
   { List of @link(TVector2). }
-  TVector2List = class(specialize TStructList<TVector2>)
+  TVector2List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector2>)
   public
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
@@ -37,7 +37,7 @@ type
   end;
 
   { List of @link(TVector3). }
-  TVector3List = class(specialize TStructList<TVector3>)
+  TVector3List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector3>)
   public
     procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
 
@@ -87,59 +87,59 @@ type
   end;
 
   { List of @link(TVector4). }
-  TVector4List = class(specialize TStructList<TVector4>)
+  TVector4List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector4>)
   public
     procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
   { List of @link(TMatrix3). }
-  TMatrix3List = class(specialize TStructList<TMatrix3>)
+  TMatrix3List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
   public
   end;
 
   { List of @link(TMatrix4). }
-  TMatrix4List = class(specialize TStructList<TMatrix4>)
+  TMatrix4List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
   public
   end;
 
   {$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
   { List of @link(TVector2Double). }
-  TVector2DoubleList = class(specialize TStructList<TVector2Double>)
+  TVector2DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector2Double>)
   public
     function ToVector2: TVector2List;
   end;
 
   { List of @link(TVector3Double). }
-  TVector3DoubleList = class(specialize TStructList<TVector3Double>)
+  TVector3DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector3Double>)
   public
     function ToVector3: TVector3List;
   end;
 
   { List of @link(TVector4Double). }
-  TVector4DoubleList = class(specialize TStructList<TVector4Double>)
+  TVector4DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector4Double>)
   public
     function ToVector4: TVector4List;
   end;
 
   { List of @link(TMatrix3Double). }
-  TMatrix3DoubleList = class(specialize TStructList<TMatrix3Double>)
+  TMatrix3DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix3Double>)
   public
     function ToMatrix3: TMatrix3List;
   end;
 
   { List of @link(TMatrix4Double). }
-  TMatrix4DoubleList = class(specialize TStructList<TMatrix4Double>)
+  TMatrix4DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix4Double>)
   public
     function ToMatrix4: TMatrix4List;
   end;
   {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
   { List of @link(TVector2SmallInt). }
-  TVector2SmallIntList = specialize TStructList<TVector2SmallInt>;
+  TVector2SmallIntList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector2SmallInt>;
 
   { List of @link(TVector2Cardinal). }
-  TVector3CardinalList = specialize TStructList<TVector3Cardinal>;
+  TVector3CardinalList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector3Cardinal>;
 
 {$endif read_interface}
 
@@ -154,15 +154,15 @@ begin
   Result := Count > 0;
   if Result then
   begin
-    Min := L[0];
-    Max := L[0];
+    Min := List^[0];
+    Max := List^[0];
     for I := 1 to Count - 1 do
     begin
-      if L[I].Data[0] < Min.Data[0] then Min.Data[0] := L[I].Data[0] else
-      if L[I].Data[0] > Max.Data[0] then Max.Data[0] := L[I].Data[0];
+      if List^[I].Data[0] < Min.Data[0] then Min.Data[0] := List^[I].Data[0] else
+      if List^[I].Data[0] > Max.Data[0] then Max.Data[0] := List^[I].Data[0];
 
-      if L[I].Data[1] < Min.Data[1] then Min.Data[1] := L[I].Data[1] else
-      if L[I].Data[1] > Max.Data[1] then Max.Data[1] := L[I].Data[1];
+      if List^[I].Data[1] < Min.Data[1] then Min.Data[1] := List^[I].Data[1] else
+      if List^[I].Data[1] > Max.Data[1] then Max.Data[1] := List^[I].Data[1];
     end;
   end;
 end;
@@ -174,7 +174,7 @@ var
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
-    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
 end;
 
 procedure TVector2List.AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
@@ -184,7 +184,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector2) * AddCount);
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector2) * AddCount);
 end;
 
 procedure TVector2List.AddListRange(const Source: TVector2List; Index, AddCount: Integer);
@@ -205,7 +205,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I] := -L[I];
+    List^[I] := -List^[I];
 end;
 
 procedure TVector3List.Normalize;
@@ -213,7 +213,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I].NormalizeMe;
+    List^[I].NormalizeMe;
 end;
 
 procedure TVector3List.MultiplyComponents(const V: TVector3);
@@ -221,7 +221,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    L[I] := L[I] * V;
+    List^[I] := List^[I] * V;
 end;
 
 procedure TVector3List.AssignLerp(const Fraction: Single;
@@ -231,7 +231,7 @@ var
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
-    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
 end;
 
 procedure TVector3List.AssignLerpNormalize(const Fraction: Single;
@@ -242,8 +242,8 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
   begin
-    L[I] := Lerp(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
-    L[I].NormalizeMe;
+    List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
+    List^[I].NormalizeMe;
   end;
 end;
 
@@ -254,7 +254,7 @@ var
 begin
   Count := ACount;
   for I := 0 to Count - 1 do
-    L[I] := LerpRgbInHsv(Fraction, V1.L[Index1 + I], V2.L[Index2 + I]);
+    List^[I] := LerpRgbInHsv(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
 end;
 
 function TVector3List.ToVector4(const W: Single): TVector4List;
@@ -264,7 +264,7 @@ begin
   Result := TVector4List.Create;
   Result.Count := Count;
   for I := 0 to Count - 1 do
-    Result.L[I] := Vector4(L[I], W);
+    Result.List^[I] := Vector4(List^[I], W);
 end;
 
 function TVector3List.MergeCloseVertexes(MergeDistance: Single): Cardinal;
@@ -278,10 +278,10 @@ begin
   V1 := L;
   for I := 0 to Count - 1 do
   begin
-    { Find vertexes closer to L[I], and merge them.
+    { Find vertexes closer to List^[I], and merge them.
 
       Note that this is not optimal: we could avoid processing
-      here L[I] that were detected previously (and possibly merged)
+      here List^[I] that were detected previously (and possibly merged)
       as being equal to some previous items. But in practice this seems
       not needed, as there are not many merged vertices in typical situation,
       so time saving would be minimal (and small temporary memory cost
@@ -312,7 +312,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector3) * AddCount);
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector3) * AddCount);
 end;
 
 procedure TVector3List.AddListRange(const Source: TVector3List; Index, AddCount: Integer);
@@ -329,7 +329,7 @@ begin
   OldCount := Count;
   Count := Count + AddCount;
   if Source.Count <> 0 then
-    System.Move(Source.L[Index], L[OldCount], SizeOf(TVector4) * AddCount);
+    System.Move(Source.List^[Index], List^[OldCount], SizeOf(TVector4) * AddCount);
 end;
 
 procedure TVector4List.AddListRange(const Source: TVector4List; Index, AddCount: Integer);

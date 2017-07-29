@@ -417,8 +417,8 @@ type
       preserving it's contents. }
     procedure SetSize(
       const AWidth, AHeight: Cardinal;
-      const ADepth: Cardinal = 1);
-    procedure SetSize(const Source: TCastleImage);
+      const ADepth: Cardinal = 1); overload;
+    procedure SetSize(const Source: TCastleImage); overload;
 
     { Size of TPixel in bytes for this TCastleImage descendant. }
     class function PixelSize: Cardinal; virtual; abstract;
@@ -588,7 +588,7 @@ type
     procedure Clear(const Pixel: TCastleColor); overload;
 
     { Check do all image pixels have the same color. }
-    function IsClear(const Pixel: TVector4Byte): boolean; virtual;
+    function IsClear(const Pixel: TVector4Byte): boolean; overload; virtual;
 
     { Multiply each RGB color by a matrix.
       This is a useful routine for many various conversions of image colors.
@@ -826,9 +826,9 @@ type
     { @groupEnd }
   end;
 
-  TCastleImageList = specialize TObjectList<TCastleImage>;
+  TCastleImageList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TCastleImage>;
 
-  TEncodedImageList = specialize TObjectList<TEncodedImage>;
+  TEncodedImageList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TEncodedImage>;
 
   { Possible compression of textures for GPU. }
   TTextureCompression = (
@@ -1089,15 +1089,15 @@ type
 
     { Draw horizontal line. Must be y1 <= y2, else it is NOOP. }
     procedure HorizontalLine(const x1, x2, y: Integer;
-      const Color: TVector3Byte);
+      const Color: TVector3Byte); overload;
     procedure HorizontalLine(const x1, x2, y: Integer;
-      const Color: TCastleColor);
+      const Color: TCastleColor); overload;
 
     { Draw vertical line. Must be x1 <= x2, else it is NOOP. }
     procedure VerticalLine(const x, y1, y2: Integer;
-      const Color: TVector3Byte);
+      const Color: TVector3Byte); overload;
     procedure VerticalLine(const x, y1, y2: Integer;
-      const Color: TCastleColor);
+      const Color: TCastleColor); overload;
 
     { Create image by merging two images according to a (third) mask image.
       This is a very special constructor.
@@ -1232,11 +1232,11 @@ type
 
     procedure InvertColors; override;
 
-    procedure Clear(const Pixel: TVector4Byte); override;
-    function IsClear(const Pixel: TVector4Byte): boolean; override;
+    procedure Clear(const Pixel: TVector4Byte); overload; override;
+    function IsClear(const Pixel: TVector4Byte): boolean; overload; override;
 
-    procedure Clear(const Pixel: TVector3); reintroduce;
-    function IsClear(const Pixel: TVector3): boolean; reintroduce;
+    procedure Clear(const Pixel: TVector3); overload; reintroduce;
+    function IsClear(const Pixel: TVector3): boolean; overload; reintroduce;
 
     { Converts TRGBFloatImage to TRGBImage.
       Colors in pixels are simply rounded using @link(Vector3Byte).
@@ -2013,8 +2013,8 @@ var
   MakeLine: TMakeLineFunction;
 begin
   case Interpolation of
-    riNearest : MakeLine := @MakeLineNearest;
-    riBilinear: MakeLine := @MakeLineBilinear;
+    riNearest : MakeLine := {$ifdef FPC_OBJFPC}@{$endif} MakeLineNearest;
+    riBilinear: MakeLine := {$ifdef FPC_OBJFPC}@{$endif} MakeLineBilinear;
     else raise EInternalError.Create('Unknown Interpolation for InternalResize');
   end;
 
@@ -2063,7 +2063,7 @@ begin
       InternalResize(PixelSize,
         RawPixels, Rect, Width, Height,
         NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
-        Interpolation, @MixColors, ProgressTitle);
+        Interpolation, {$ifdef FPC_OBJFPC}@{$endif} MixColors, ProgressTitle);
       FreeMemNiling(FRawPixels);
 
       FRawPixels := NewPixels;
@@ -2100,7 +2100,7 @@ begin
         InternalResize(PixelSize,
                  RawPixels,        Rect,        Width,        Height,
           Result.RawPixels, Result.Rect, Result.Width, Result.Height,
-          Interpolation, @MixColors, ProgressTitle);
+          Interpolation, {$ifdef FPC_OBJFPC}@{$endif} MixColors, ProgressTitle);
     except Result.Free; raise end;
   end;
 end;
@@ -2129,7 +2129,7 @@ type
     InternalResize(PixelSize,
       RawPixels, SourceRect, Width, Height,
       NewPixels, DestRect, ResizeWidth, ResizeHeight,
-      Interpolation, @MixColors, '');
+      Interpolation, {$ifdef FPC_OBJFPC}@{$endif} MixColors, '');
   end;
 
 var
@@ -2357,15 +2357,15 @@ end;
 
 procedure TCastleImage.Grayscale;
 begin
-  ModulateRGB(@ColorGrayscaleByte);
+  ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorGrayscaleByte);
 end;
 
 procedure TCastleImage.ConvertToChannelRGB(Channel: Integer);
 begin
   case Channel of
-    0: ModulateRGB(@ColorRedConvertByte);
-    1: ModulateRGB(@ColorGreenConvertByte);
-    2: ModulateRGB(@ColorBlueConvertByte);
+    0: ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorRedConvertByte);
+    1: ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorGreenConvertByte);
+    2: ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorBlueConvertByte);
     else raise EInternalError.Create(
       'ConvertToChannelRGB: Channel must be 0, 1 or 2');
   end;
@@ -2374,9 +2374,9 @@ end;
 procedure TCastleImage.StripToChannelRGB(Channel: Integer);
 begin
   case Channel of
-    0: ModulateRGB(@ColorRedStripByte);
-    1: ModulateRGB(@ColorGreenStripByte);
-    2: ModulateRGB(@ColorBlueStripByte);
+    0: ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorRedStripByte);
+    1: ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorGreenStripByte);
+    2: ModulateRGB({$ifdef FPC_OBJFPC}@{$endif} ColorBlueStripByte);
     else raise EInternalError.Create(
       'StripToChannelRGB: Channel must be 0, 1 or 2');
   end;
@@ -4030,7 +4030,7 @@ end;
 
 type
   { List of TLoadImageEvent methods. }
-  TLoadImageEventList = class(specialize TList<TLoadImageEvent>)
+  TLoadImageEventList = class({$ifdef FPC_OBJFPC}specialize{$endif} TList<TLoadImageEvent>)
     procedure Execute(var URL: string);
   end;
 
