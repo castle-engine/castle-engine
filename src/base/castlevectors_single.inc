@@ -679,8 +679,8 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
   (like scale (-1, 1), common in 2D to flip horizontally).
 
   @groupBegin }
-function Approximate3DScale(const X, Y, Z: Single): Single; overload;
-function Approximate3DScale(const V: TVector3): Single; overload;
+function Approximate3DScale(const X, Y, Z: Single): Single;
+function Approximate3DScale(const V: TVector3): Single;
 { @groupEnd }
 
 {$endif read_interface}
@@ -1960,12 +1960,12 @@ procedure MultMatrixTranslation(var M: TMatrix4;
 var
   NewColumn: TVector4;
 begin
-  NewColumn := M.Columns[3];
+  NewColumn.Data := M.Data[3];
   NewColumn.Data[0] += M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
   NewColumn.Data[1] += M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
   NewColumn.Data[2] += M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
   NewColumn.Data[3] += M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
-  M.Columns[3] := NewColumn;
+  M.Data[3] := NewColumn.Data;
 end;
 
 procedure MultMatricesTranslation(var M, MInvert: TMatrix4;
@@ -1975,12 +1975,12 @@ var
   { OldLastRow may use the same space as NewColumn }
   OldLastRow: TVector4 absolute NewColumn;
 begin
-  NewColumn := M.Columns[3];
+  NewColumn.Data := M.Data[3];
   NewColumn.Data[0] += M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
   NewColumn.Data[1] += M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
   NewColumn.Data[2] += M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
   NewColumn.Data[3] += M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
-  M.Columns[3] := NewColumn;
+  M.Data[3] := NewColumn.Data;
 
   OldLastRow.Data[0] := MInvert.Data[0, 3];
   OldLastRow.Data[1] := MInvert.Data[1, 3];

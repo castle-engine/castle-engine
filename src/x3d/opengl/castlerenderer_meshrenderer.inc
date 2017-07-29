@@ -675,16 +675,16 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
               glLoadMatrix(RenderingCamera.Matrix);
 
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
+              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Row(0));
 
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Rows[1]);
+              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Row(1));
 
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Rows[2]);
+              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Row(2));
 
               glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Rows[3]);
+              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Row(3));
             glPopMatrix;
             Shader.EnableTexGen(TexUnit, tgEye, 0);
             Shader.EnableTexGen(TexUnit, tgEye, 1);

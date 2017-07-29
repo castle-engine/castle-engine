@@ -192,9 +192,9 @@ function StreamToString(Stream: TStream): string;
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean = true); overload;
+  const S: string; const Rewind: boolean = true);
 function MemoryStreamLoadFromString(
-  const S: string; const Rewind: boolean = true): TMemoryStream; overload;
+  const S: string; const Rewind: boolean = true): TMemoryStream;
 
 type
   EStreamNotImplemented = class(Exception);
@@ -246,8 +246,8 @@ type
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
     {$endif}
-    procedure UpdateLineColumn(const C: char); overload;
-    procedure UpdateLineColumn(const Buffer; const BufferCount: Integer); overload;
+    procedure UpdateLineColumn(const C: char);
+    procedure UpdateLineColumn(const Buffer; const BufferCount: Integer);
   public
     constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
     destructor Destroy; override;
@@ -498,11 +498,11 @@ type
       const AItems: array of TObject);
 
     { Add contents of given array to the list. }
-    procedure AddRange(const A: array of TObject); overload;
+    procedure AddRange(const A: array of TObject);
     procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
     { Add contents of other TObjectList instance to the list. }
-    procedure AddRange(AList: Contnrs.TObjectList); overload;
+    procedure AddRange(AList: Contnrs.TObjectList);
     procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
     { Replace first found descendant of ReplaceClass with NewItem.

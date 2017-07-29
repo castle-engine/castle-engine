@@ -397,10 +397,6 @@ type
   strict private
     function GetItems(const AColumn, ARow: TIndex): TGenericScalar; inline;
     procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar); inline;
-    function GetRows(const ARow: TIndex): TGenericVector2; inline;
-    procedure SetRows(const ARow: TIndex; const Value: TGenericVector2); inline;
-    function GetColumns(const AColumn: TIndex): TGenericVector2; inline;
-    procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector2); inline;
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -434,8 +430,7 @@ type
     function ToRawString(const LineIndent: string = ''): string;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    property Rows [const ARow: TIndex]: TGenericVector2 read GetRows write SetRows;
-    property Columns [const AColumn: TIndex]: TGenericVector2 read GetColumns write SetColumns;
+    function Row(const ARow: TIndex): TGenericVector2; inline;
     function Determinant: TGenericScalar;
 
     { Inverse the matrix.
@@ -490,10 +485,6 @@ type
   strict private
     function GetItems(const AColumn, ARow: TIndex): TGenericScalar; inline;
     procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar); inline;
-    function GetRows(const ARow: TIndex): TGenericVector3; inline;
-    procedure SetRows(const ARow: TIndex; const Value: TGenericVector3); inline;
-    function GetColumns(const AColumn: TIndex): TGenericVector3; inline;
-    procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector3); inline;
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -527,8 +518,7 @@ type
     function ToRawString(const LineIndent: string = ''): string;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    property Rows [const ARow: TIndex]: TGenericVector3 read GetRows write SetRows;
-    property Columns [const AColumn: TIndex]: TGenericVector3 read GetColumns write SetColumns;
+    function Row(const ARow: TIndex): TGenericVector3; inline;
     function Determinant: TGenericScalar;
 
     { Inverse the matrix.
@@ -568,10 +558,6 @@ type
   strict private
     function GetItems(const AColumn, ARow: TIndex): TGenericScalar; inline;
     procedure SetItems(const AColumn, ARow: TIndex; const Value: TGenericScalar); inline;
-    function GetRows(const ARow: TIndex): TGenericVector4; inline;
-    procedure SetRows(const ARow: TIndex; const Value: TGenericVector4); inline;
-    function GetColumns(const AColumn: TIndex): TGenericVector4; inline;
-    procedure SetColumns(const AColumn: TIndex; const Value: TGenericVector4); inline;
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
@@ -605,8 +591,7 @@ type
     function ToRawString(const LineIndent: string = ''): string;
 
     property Items [const AColumn, ARow: TIndex]: TGenericScalar read GetItems write SetItems; default;
-    property Rows [const ARow: TIndex]: TGenericVector4 read GetRows write SetRows;
-    property Columns [const AColumn: TIndex]: TGenericVector4 read GetColumns write SetColumns;
+    function Row(const ARow: TIndex): TGenericVector4; inline;
     function Determinant: TGenericScalar;
 
     { Inverse the matrix.
@@ -1402,34 +1387,10 @@ begin
   Data[AColumn, ARow] := Value;
 end;
 
-function TGenericMatrix2.GetRows(const ARow: TIndex): TGenericVector2;
+function TGenericMatrix2.Row(const ARow: TIndex): TGenericVector2;
 begin
   Result.Data[0] := Data[0, ARow];
   Result.Data[1] := Data[1, ARow];
-end;
-
-procedure TGenericMatrix2.SetRows(const ARow: TIndex; const Value: TGenericVector2);
-begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-end;
-
-function TGenericMatrix2.GetColumns(const AColumn: TIndex): TGenericVector2;
-begin
-  {$ifdef FPC_OBJFPC}
-  Result.Data := Data[AColumn];
-  {$else}
-  Result := TGenericVector2(Data[AColumn]); // more dirty, but necessary
-  {$endif}
-end;
-
-procedure TGenericMatrix2.SetColumns(const AColumn: TIndex; const Value: TGenericVector2);
-begin
-  {$ifdef FPC_OBJFPC}
-  Data[AColumn] := Value.Data;
-  {$else}
-  TGenericVector2(Data[AColumn]) := Value; // more dirty, but necessary
-  {$endif}
 end;
 
 function MatrixDet2x2(const a1, a2, b1, b2: TGenericScalar): TGenericScalar;
@@ -1661,36 +1622,11 @@ begin
   Data[AColumn, ARow] := Value;
 end;
 
-function TGenericMatrix3.GetRows(const ARow: TIndex): TGenericVector3;
+function TGenericMatrix3.Row(const ARow: TIndex): TGenericVector3;
 begin
   Result.Data[0] := Data[0, ARow];
   Result.Data[1] := Data[1, ARow];
   Result.Data[2] := Data[2, ARow];
-end;
-
-procedure TGenericMatrix3.SetRows(const ARow: TIndex; const Value: TGenericVector3);
-begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-  Data[2, ARow] := Value.Data[2];
-end;
-
-function TGenericMatrix3.GetColumns(const AColumn: TIndex): TGenericVector3;
-begin
-  {$ifdef FPC_OBJFPC}
-  Result.Data := Data[AColumn];
-  {$else}
-  Result := TGenericVector3(Data[AColumn]); // more dirty, but necessary
-  {$endif}
-end;
-
-procedure TGenericMatrix3.SetColumns(const AColumn: TIndex; const Value: TGenericVector3);
-begin
-  {$ifdef FPC_OBJFPC}
-  Data[AColumn] := Value.Data;
-  {$else}
-  TGenericVector3(Data[AColumn]) := Value; // more dirty, but necessary
-  {$endif}
 end;
 
 function MatrixDet3x3(const a1, a2, a3, b1, b2, b3, c1, c2, c3: TGenericScalar): TGenericScalar;
@@ -2017,38 +1953,12 @@ begin
   Data[AColumn, ARow] := Value;
 end;
 
-function TGenericMatrix4.GetRows(const ARow: TIndex): TGenericVector4;
+function TGenericMatrix4.Row(const ARow: TIndex): TGenericVector4;
 begin
   Result.Data[0] := Data[0, ARow];
   Result.Data[1] := Data[1, ARow];
   Result.Data[2] := Data[2, ARow];
   Result.Data[3] := Data[3, ARow];
-end;
-
-procedure TGenericMatrix4.SetRows(const ARow: TIndex; const Value: TGenericVector4);
-begin
-  Data[0, ARow] := Value.Data[0];
-  Data[1, ARow] := Value.Data[1];
-  Data[2, ARow] := Value.Data[2];
-  Data[3, ARow] := Value.Data[3];
-end;
-
-function TGenericMatrix4.GetColumns(const AColumn: TIndex): TGenericVector4;
-begin
-  {$ifdef FPC_OBJFPC}
-  Result.Data := Data[AColumn];
-  {$else}
-  Result := TGenericVector4(Data[AColumn]); // more dirty, but necessary
-  {$endif}
-end;
-
-procedure TGenericMatrix4.SetColumns(const AColumn: TIndex; const Value: TGenericVector4);
-begin
-  {$ifdef FPC_OBJFPC}
-  Data[AColumn] := Value.Data;
-  {$else}
-  TGenericVector4(Data[AColumn]) := Value; // more dirty, but necessary
-  {$endif}
 end;
 
 function TGenericMatrix4.Determinant: TGenericScalar;

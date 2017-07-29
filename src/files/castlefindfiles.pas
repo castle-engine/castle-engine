@@ -40,7 +40,7 @@ type
     Size: Int64; //< This may be 0 in case of non-local file
   end;
 
-  TFileInfoList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TFileInfo>;
+  TFileInfoList = specialize TStructList<TFileInfo>;
 
   { Called for each file found.
     StopSearch is always initially @false, you can change it to @true to stop
@@ -389,7 +389,7 @@ begin
         StopSearch := false;
         for i := 0 to FileInfos.Count - 1 do
         begin
-          FileProc(FileInfos.List^[i], FileProcData, StopSearch);
+          FileProc(FileInfos.L[i], FileProcData, StopSearch);
           if StopSearch then Break;
         end;
       end;
@@ -483,7 +483,7 @@ begin
   Helper := TSearchFileHardHelper.Create;
   try
     Helper.Base := Base;
-    FindFiles(Path + '*', false, {$ifdef FPC_OBJFPC}@{$endif}Helper.Callback, []);
+    FindFiles(Path + '*', false, @Helper.Callback, []);
     Result := Helper.IsFound;
     if Result then
       NewBase := Helper.Found;
@@ -512,8 +512,7 @@ var
 begin
   Helper := TFindFirstFileHelper.Create;
   try
-    FindFiles(Path, Mask, FindDirectories,
-      {$ifdef FPC_OBJFPC}@{$endif} Helper.Callback, Options);
+    FindFiles(Path, Mask, FindDirectories, @Helper.Callback, Options);
     Result := Helper.IsFound;
     if Result then
       FileInfo := Helper.FoundFile;

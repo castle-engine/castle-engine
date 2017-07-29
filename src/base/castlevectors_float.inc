@@ -57,30 +57,30 @@ type
   PArray_Vector4 = ^TArray_Vector4;
 
 { Construct an initialized TVector2 value. }
-function Vector2(const X, Y: Single): TVector2; overload; inline;
-function Vector2(const V: TVector2Double): TVector2; overload; inline;
+function Vector2(const X, Y: Single): TVector2; inline;
+function Vector2(const V: TVector2Double): TVector2; inline;
 
 { Construct an initialized TVector2Double value. }
 function Vector2Double(const X, Y: Double): TVector2Double; inline;
 
 { Construct an initialized TVector3 value. }
-function Vector3(const X, Y, Z: Single): TVector3; overload; inline;
-function Vector3(const V: TVector2; const Z: Single): TVector3; overload; inline;
-function Vector3(const V: TVector3Double): TVector3; overload; inline;
+function Vector3(const X, Y, Z: Single): TVector3; inline;
+function Vector3(const V: TVector2; const Z: Single): TVector3; inline;
+function Vector3(const V: TVector3Double): TVector3; inline;
 
 { Construct an initialized TVector3Double value. }
-function Vector3Double(const X, Y, Z: Double): TVector3Double; overload; inline;
-function Vector3Double(const V: TVector3): TVector3Double; overload; inline;
+function Vector3Double(const X, Y, Z: Double): TVector3Double; inline;
+function Vector3Double(const V: TVector3): TVector3Double; inline;
 
 { Construct an initialized TVector4 value. }
-function Vector4(const X, Y, Z, W: Single): TVector4; overload; inline;
-function Vector4(const V: TVector3; const W: Single): TVector4; overload; inline;
-function Vector4(const V: TVector2; const Z, W: Single): TVector4; overload; inline;
-function Vector4(const V: TVector4Double): TVector4; overload; inline;
+function Vector4(const X, Y, Z, W: Single): TVector4; inline;
+function Vector4(const V: TVector3; const W: Single): TVector4; inline;
+function Vector4(const V: TVector2; const Z, W: Single): TVector4; inline;
+function Vector4(const V: TVector4Double): TVector4; inline;
 
 { Construct an initialized TVector4Double value. }
-function Vector4Double(const X, Y, Z, W: Double): TVector4Double; overload; inline;
-function Vector4Double(const V: TVector4): TVector4Double; overload; inline;
+function Vector4Double(const X, Y, Z, W: Double): TVector4Double; inline;
+function Vector4Double(const V: TVector4): TVector4Double; inline;
 
 { Convert between Double-precision and Single-precision matrix. }
 function Matrix3(const V: TMatrix3Double): TMatrix3;

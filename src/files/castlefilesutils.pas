@@ -421,9 +421,9 @@ function BundlePath: string;
   If AllowStdIn, then URL = '-' (one dash) is treated specially:
   it means to read contents from standard input (stdin, Input in Pascal). }
 function FileToString(const URL: string;
-  const AllowStdIn: boolean; out MimeType: string): string; overload;
+  const AllowStdIn: boolean; out MimeType: string): string;
 function FileToString(const URL: string;
-  const AllowStdIn: boolean = false): string; overload;
+  const AllowStdIn: boolean = false): string;
 
 procedure StringToFile(const URL, contents: string);
 

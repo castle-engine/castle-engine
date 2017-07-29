@@ -370,29 +370,25 @@ begin
   Result.Data[3] := W;
 end;
 
-(*
-Not used now, see TVector*Integer comments for Lerp.
-
-function Lerp(const A: Single; const V1, V2: TVector2Cardinal): TVector2Cardinal; overload;
+function Lerp(const A: Single; const V1, V2: TVector2Cardinal): TVector2Cardinal;
 begin
   Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
   Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
 end;
 
-function Lerp(const A: Single; const V1, V2: TVector3Cardinal): TVector3Cardinal; overload;
+function Lerp(const A: Single; const V1, V2: TVector3Cardinal): TVector3Cardinal;
 begin
   Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
   Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
   Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Cardinal));
 end;
 
-function Lerp(const A: Single; const V1, V2: TVector4Cardinal): TVector4Cardinal; overload;
+function Lerp(const A: Single; const V1, V2: TVector4Cardinal): TVector4Cardinal;
 begin
   Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
   Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
   Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Cardinal));
   Result.Data[3] := Clamped(Round(V1.Data[3] + A * (V2.Data[3] - V1.Data[3])), 0, High(Cardinal));
 end;
-*)
 
 {$endif read_implementation}

@@ -138,9 +138,9 @@ type
   TArray_Vector4Byte = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
   PArray_Vector4Byte = ^TArray_Vector4Byte;
 
-function Vector2Byte(const X, Y: Byte): TVector2Byte; overload; inline;
-function Vector3Byte(const X, Y, Z: Byte): TVector3Byte; overload; inline;
-function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; overload; inline;
+function Vector2Byte(const X, Y: Byte): TVector2Byte; inline;
+function Vector3Byte(const X, Y, Z: Byte): TVector3Byte; inline;
+function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; inline;
 
 { Convert float vectors into byte vectors.
   Each float component is converted such that float 0.0 (or less)
@@ -148,9 +148,9 @@ function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; overload; inline;
   Values between 0.0 and 1.0 are appropriately (linearly) converted
   into the byte range.
   @groupBegin }
-function Vector2Byte(const V: TVector2): TVector2Byte; overload;
-function Vector3Byte(const V: TVector3): TVector3Byte; overload;
-function Vector4Byte(const V: TVector4): TVector4Byte; overload;
+function Vector2Byte(const V: TVector2): TVector2Byte;
+function Vector3Byte(const V: TVector3): TVector3Byte;
+function Vector4Byte(const V: TVector4): TVector4Byte;
 { @groupEnd }
 
 function Vector2(const V: TVector2Byte): TVector2; overload;

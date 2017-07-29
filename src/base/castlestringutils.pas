@@ -68,10 +68,10 @@ type
     { Add strings from Source list.
       Alias for AddStrings, useful for usage with macros,
       since it's consistent with AddRange in other lists. }
-    procedure AddRange(const Source: TStringList); overload;
+    procedure AddRange(const Source: TStringList);
     procedure AddList(const Source: TStringList); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AddRange(const A: array of string); overload;
+    procedure AddRange(const A: array of string);
     procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
 
     procedure AssignArray(const A: array of string);
@@ -277,8 +277,8 @@ function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boo
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
-function SReadableForm(const s: string): string; overload;
-function SReadableForm(const C: char): string; overload;
+function SReadableForm(const s: string): string;
+function SReadableForm(const C: char): string;
 
 { Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
@@ -394,10 +394,10 @@ function SplitString(const S: string; const Delimiter: char): TCastleStringList;
 { Concatenate the string list with a given Delimiter.
   This is the reverse of SplitString.
   @groupBegin }
-function GlueStrings(const Strings: array of string; const Delimiter: char): string; overload;
-function GlueStrings(const Strings: array of string; const Delimiter: string): string; overload;
-function GlueStrings(const Strings: TStrings; const Delimiter: char): string; overload;
-function GlueStrings(const Strings: TStrings; const Delimiter: string): string; overload;
+function GlueStrings(const Strings: array of string; const Delimiter: char): string;
+function GlueStrings(const Strings: array of string; const Delimiter: string): string;
+function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
+function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
 { @groupEnd }
 
 { Find substring SubText within Text. Returns 0 if not found.
@@ -598,9 +598,9 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   content many times, which is usually not what you want.
 
   That's why you should instead use this function for such situations. }
-function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string; overload;
-function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
-function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
+function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -744,9 +744,9 @@ function SPercentReplace(const InitialFormat: string;
   @groupBegin }
 function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean;
-  out ReplacementsDone: Cardinal): string; overload;
+  out ReplacementsDone: Cardinal): string;
 function FormatNameCounter(const NamePattern: string;
-  const Index: Integer; const AllowOldPercentSyntax: boolean): string; overload;
+  const Index: Integer; const AllowOldPercentSyntax: boolean): string;
 { @groupEnd }
 
 { conversions ------------------------------------------------------------ }
@@ -764,8 +764,8 @@ function IntToStrZPad(n: integer; minLength: integer): string;
 
 { Convert integer to string, inserting additional Separator to visually delimit
   thousands, milions etc. }
-function IntToStrThousands(const Value: Int64; const Separator: char): string; overload;
-function IntToStrThousands(const Value: Int64; const Separator: string): string; overload;
+function IntToStrThousands(const Value: Int64; const Separator: char): string;
+function IntToStrThousands(const Value: Int64; const Separator: string): string;
 
 { Convert integer to string, in base-Base (like base-16) numeral system.
   For digits above '9', we will use upper letters 'A', 'B'...  etc.
@@ -2094,7 +2094,7 @@ begin
     C := TRegExprCounter.Create;
     try
       C.Index := Index;
-      Result := R.Replace(NamePattern, {$ifdef FPC_OBJFPC}@{$endif} C.ReplaceCallback);
+      Result := R.Replace(NamePattern, @C.ReplaceCallback);
       ReplacementsDone := C.ReplacementsDone;
     finally FreeAndNil(C) end;
   finally FreeAndNil(R) end;

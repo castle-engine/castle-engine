@@ -45,8 +45,8 @@ type
     procedure SetURI(const Value: string);
   public
     destructor Destroy; override;
-    class function IsDataURI(const URI: string; out Colon: Integer): boolean; overload;
-    class function IsDataURI(const URI: string): boolean; overload;
+    class function IsDataURI(const URI: string; out Colon: Integer): boolean;
+    class function IsDataURI(const URI: string): boolean;
 
     { Force @link(Stream) and @link(ExtractStream) to return a TMemoryStream,
       that is always seekable and fully buffered in memory.

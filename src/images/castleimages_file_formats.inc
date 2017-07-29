@@ -528,7 +528,7 @@ begin
   Result := false;
 end;
 
-function ImageClassBestForSavingToFormatCore(const Format: TImageFormat): TCastleImageClass;
+function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass;
 begin
   if Format = ifRGBE then
     Result := TRGBFloatImage else
@@ -541,7 +541,7 @@ var
 begin
   if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
     Exit(TRGBImage);
-  Result := ImageClassBestForSavingToFormatCore(Format);
+  Result := ImageClassBestForSavingToFormat(Format);
 end;
 
 function IsImageMimeType(const MimeType: string;

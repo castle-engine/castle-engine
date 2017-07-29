@@ -25,8 +25,7 @@ var
   URL: string;
   Duration: TFloatTime;
 begin
-  ApplicationProperties.OnWarning.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
   { add here InitializeLog('1.0') (from CastleLog unit) to see various info
     about OpenAL and sound loading }
