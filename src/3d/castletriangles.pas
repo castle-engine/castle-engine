@@ -131,7 +131,7 @@ type
     function Barycentric(const Point: TVector3): TVector3;
   end;
 
-  TTriangle3List = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TTriangle3>;
+  TTriangle3List = specialize TStructList<TTriangle3>;
 
   PTriangle3 = ^TTriangle3;
 
@@ -322,7 +322,7 @@ type
     IndexBegin, IndexEnd: Integer;
   end;
 
-  TFaceIndexesList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
+  TFaceIndexesList = specialize TStructList<TFaceIndex>;
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
@@ -405,14 +405,14 @@ function TryTriangleRayCollision(var Intersection: TVector3; var T: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 { @groupEnd }
 
-function TriangleDirection(const p0, p1, p2: TVector3): TVector3; overload;
-function TriangleDir(const p0, p1, p2: TVector3): TVector3; overload; deprecated 'use TriangleDirection';
-function TriangleNormal(const p0, p1, p2: TVector3): TVector3; overload;
-function TrianglePlane(const p0, p1, p2: TVector3): TVector4; overload;
+function TriangleDirection(const p0, p1, p2: TVector3): TVector3;
+function TriangleDir(const p0, p1, p2: TVector3): TVector3; deprecated 'use TriangleDirection';
+function TriangleNormal(const p0, p1, p2: TVector3): TVector3;
+function TrianglePlane(const p0, p1, p2: TVector3): TVector4;
 
-function TriangleDir(const T: TTriangle3): TVector3; overload; deprecated 'use Triangle.Direction';
-function TriangleNormal(const T: TTriangle3): TVector3; overload; deprecated 'use Triangle.Normal';
-function TrianglePlane(const T: TTriangle3): TVector4; overload; deprecated 'use Triangle.Plane';
+function TriangleDir(const T: TTriangle3): TVector3; deprecated 'use Triangle.Direction';
+function TriangleNormal(const T: TTriangle3): TVector3; deprecated 'use Triangle.Normal';
+function TrianglePlane(const T: TTriangle3): TVector4; deprecated 'use Triangle.Plane';
 function TriangleTransform(const T: TTriangle3; const M: TMatrix4): TTriangle3; deprecated 'use Triangle.Transform';
 function TriangleNormPlane(const T: TTriangle3): TVector4; deprecated 'use Triangle.NormalizedPlane';
 function TriangleArea(const T: TTriangle3): Single; deprecated 'use Triangle.Area';
@@ -615,13 +615,12 @@ begin
     "Verts[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
     tylko jednego przypadku. Tak jest optymalniej czasowo. }
   for i := 0 to VertsCount-2 do
-    Result := Result +
-              Verts[i].Data[0] * Verts[i+1].Data[1] -
+    Result += Verts[i].Data[0] * Verts[i+1].Data[1] -
               Verts[i].Data[1] * Verts[i+1].Data[0];
-  Result := Result +
-            Verts[VertsCount-1].Data[0] * Verts[0].Data[1] -
+  Result += Verts[VertsCount-1].Data[0] * Verts[0].Data[1] -
             Verts[VertsCount-1].Data[1] * Verts[0].Data[0];
-  Result := Result / 2;
+
+  Result /= 2;
 end;
 
 function IsPolygon2dCCW(const Verts: array of TVector2): Single;
@@ -630,13 +629,14 @@ begin
 end;
 
 function Polygon2dArea(Verts: PVector2; const VertsCount: Integer): Single;
+{ opieramy sie tutaj na WEWNETRZNEJ IMPLEMENTACJI funkcji IsPolygonCCW:
+  mianowicie wiemy ze, przynajmniej teraz, funkcja ta zwraca pole
+  polygonu CCW lub -pole polygonu CW. }
 begin
   Result := Abs(IsPolygon2dCCW(Verts, VertsCount));
 end;
 
 function Polygon2dArea(const Verts: array of TVector2): Single;
-{ We depend on the (internal) fact that IsPolygonCCW
-  returns an area in case of CCW, or -area in case of CW polygon. }
 begin
   Result := Polygon2dArea(@Verts, High(Verts) + 1);
 end;

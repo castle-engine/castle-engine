@@ -34,7 +34,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
   *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
   (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 type
   { Internal helper type for TCastleSceneCore.
@@ -2075,7 +2075,7 @@ uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
   *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
   (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
+{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 { TX3DBindableStack ----------------------------------------------------- }
 

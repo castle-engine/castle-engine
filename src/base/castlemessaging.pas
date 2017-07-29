@@ -147,16 +147,14 @@ begin
   {$ifdef ANDROID}
   { No point in doing this on non-Android, as only Android communicates
     through it. }
-  ApplicationProperties.OnUpdate.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} Update);
+  ApplicationProperties.OnUpdate.Add(@Update);
   {$endif}
 end;
 
 destructor TMessaging.Destroy;
 begin
   if ApplicationProperties(false) <> nil then
-    ApplicationProperties(false).OnUpdate.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} Update);
+    ApplicationProperties(false).OnUpdate.Remove(@Update);
   FreeAndNil(ToJava);
   FreeAndNil(FromJava);
   FreeAndNil(FOnReceive);

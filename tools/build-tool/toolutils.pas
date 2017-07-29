@@ -72,11 +72,11 @@ procedure RunCommandIndirPassthrough(
   if it's not already an absolute filename.
   Raises exception if command fails (detected by exit code <> 0). }
 procedure RunCommandSimple(
-  const ExeName: string; const Options: array of string); overload;
+  const ExeName: string; const Options: array of string);
 procedure RunCommandSimple(
   const CurDir: string; const ExeName: string; const Options: array of string;
   const OverrideEnvironmentName: string = '';
-  const OverrideEnvironmentValue: string = ''); overload;
+  const OverrideEnvironmentValue: string = '');
 
 var
   { Trivial verbosity global setting. }

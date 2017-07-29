@@ -178,7 +178,7 @@ type
     function PlayingOrPaused: boolean;
   end;
 
-  TSoundList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSound>)
+  TSoundList = class(specialize TObjectList<TSound>)
   public
     { Sort sounds by Used + Importance, descending.
       First all sounds with Used = @true are placed,
@@ -346,8 +346,7 @@ type
     Duration: TFloatTime;
     References: Cardinal;
   end;
-  TSoundBuffersCacheList =
-    {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSoundBuffersCache>;
+  TSoundBuffersCacheList = specialize TObjectList<TSoundBuffersCache>;
 
   TSoundDevice = class
   private
@@ -359,7 +358,7 @@ type
     property Caption: string read FCaption;
     property NiceName: string read FCaption; deprecated 'use Caption';
   end;
-  TSoundDeviceList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSoundDevice>;
+  TSoundDeviceList = specialize TObjectList<TSoundDevice>;
 
   { Parameters to use when playing sound, see @link(TSoundEngine.PlaySound). }
   TSoundParameters = class
@@ -528,8 +527,8 @@ type
       is released only once you call FreeBuffer as many times as you called
       LoadBuffer for it.
       @groupBegin }
-    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+    function LoadBuffer(const URL: string): TSoundBuffer;
     { @groupEnd }
 
     { Free a sound file buffer. Ignored when buffer is zero.
@@ -564,20 +563,20 @@ type
         In advanced cases, you can use it to observe and update the sound
         later.)
     }
-    function PlaySound(const Buffer: TSoundBuffer): TSound; overload;
+    function PlaySound(const Buffer: TSoundBuffer): TSound;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3;
-      const Pitch: Single = 1): TSound; overload;
+      const Pitch: Single = 1): TSound;
     function PlaySound(const Buffer: TSoundBuffer;
       const Spatial, Looping: boolean; const Importance: Cardinal;
       const Gain, MinGain, MaxGain: Single;
       const Position: TVector3;
       const Pitch: Single;
       const ReferenceDistance: Single;
-      const MaxDistance: Single): TSound; overload; deprecated 'use PlaySound that gets TSoundParameters instance';
-    function PlaySound(const Parameters: TSoundParameters): TSound; overload;
+      const MaxDistance: Single): TSound; deprecated 'use PlaySound that gets TSoundParameters instance';
+    function PlaySound(const Parameters: TSoundParameters): TSound;
 
     { Parse parameters in @link(Parameters) and interpret and remove
       recognized options. Internally it uses Parameters.Parse with
@@ -784,16 +783,15 @@ type
     DefaultImportance: Cardinal;
   end;
 
-  TSoundInfoList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TSoundInfo>;
+  TSoundInfoList = specialize TObjectList<TSoundInfo>;
 
   { Unique sound type identifier for sounds used within TRepoSoundEngine. }
-  TSoundType = record
+  TSoundType = object
   private
     { Just an index to TRepoSoundEngine.SoundNames array. }
     Index: Cardinal;
   public
     function Info: TSoundInfo;
-    class operator {$ifdef FPC}={$else}Equals{$endif} (const SoundType1, SoundType2: TSoundType): boolean;
   end;
 
   TMusicPlayer = class;
@@ -1054,6 +1052,8 @@ const
   engine class. Created on first call to this function. }
 function SoundEngine: TRepoSoundEngine;
 
+operator = (const SoundType1, SoundType2: TSoundType): boolean;
+
 implementation
 
 uses DOM, XMLRead, StrUtils, Generics.Defaults,
@@ -1254,10 +1254,9 @@ end;
 
 procedure TSoundList.SortByImportance;
 type
-  TSoundComparer = {$ifdef FPC_OBJFPC}specialize{$endif} TComparer<TSound>;
+  TSoundComparer = specialize TComparer<TSound>;
 begin
-  Sort(TSoundComparer.Construct(
-    {$ifdef FPC_OBJFPC}@{$endif} IsSmallerByImportance));
+  Sort(TSoundComparer.Construct(@IsSmallerByImportance));
 end;
 
 { TSoundAllocator ---------------------------------------------------------- }
@@ -1527,24 +1526,18 @@ begin
   // Config.AddLoadListener(@LoadFromConfig);
   // Config.AddSaveListener(@SaveToConfig);
 
-  ApplicationProperties.OnInitializeJavaActivity.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ReinitializeJavaActivity);
-  ApplicationProperties.OnPause.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ApplicationPause);
-  ApplicationProperties.OnResume.Add(
-    {$ifdef FPC_OBJFPC}@{$endif} ApplicationResume);
+  ApplicationProperties.OnInitializeJavaActivity.Add(@ReinitializeJavaActivity);
+  ApplicationProperties.OnPause.Add(@ApplicationPause);
+  ApplicationProperties.OnResume.Add(@ApplicationResume);
 end;
 
 destructor TSoundEngine.Destroy;
 begin
   if ApplicationProperties(false) <> nil then
   begin
-    ApplicationProperties(false).OnInitializeJavaActivity.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} ReinitializeJavaActivity);
-    ApplicationProperties(false).OnPause.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} ApplicationPause);
-    ApplicationProperties(false).OnResume.Remove(
-      {$ifdef FPC_OBJFPC}@{$endif} ApplicationResume);
+    ApplicationProperties(false).OnInitializeJavaActivity.Remove(@ReinitializeJavaActivity);
+    ApplicationProperties(false).OnPause.Remove(@ApplicationPause);
+    ApplicationProperties(false).OnResume.Remove(@ApplicationResume);
   end;
 
   // automatic loading/saving is more troublesome than it's worth
@@ -2362,8 +2355,7 @@ end;
 
 { TSoundType ----------------------------------------------------------------- }
 
-class operator TSoundType.{$ifdef FPC}={$else}Equals{$endif}
-  (const SoundType1, SoundType2: TSoundType): boolean;
+operator = (const SoundType1, SoundType2: TSoundType): boolean;
 begin
   Result := SoundType1.Index = SoundType2.Index;
 end;
@@ -2719,8 +2711,7 @@ begin
     TVector3.Zero);
 
   if FAllocatedSource <> nil then
-    FAllocatedSource.OnRelease :=
-      {$ifdef FPC_OBJFPC}@{$endif} AllocatedSourceRelease;
+    FAllocatedSource.OnRelease := @AllocatedSourceRelease;
 end;
 
 procedure TMusicPlayer.SetSound(const Value: TSoundType);
