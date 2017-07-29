@@ -425,7 +425,7 @@ type
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TX3DFileItemList = class(specialize TObjectList<TX3DFileItem>)
+  TX3DFileItemList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -579,7 +579,7 @@ type
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TX3DFieldOrEventList = specialize TObjectList<TX3DFieldOrEvent>;
+  TX3DFieldOrEventList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
   TX3DEventReceiveList = class;
   TX3DFieldClass = class of TX3DField;
 
@@ -1033,7 +1033,7 @@ type
     function OnReceive: TX3DEventReceiveList;
   end;
 
-  TX3DFieldList = class(specialize TObjectList<TX3DField>)
+  TX3DFieldList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
   private
     function GetByName(const AName: string): TX3DField;
   public
@@ -1057,7 +1057,7 @@ type
   end;
   TX3DSingleFieldClass = class of TX3DSingleField;
 
-  TX3DSingleFieldList = specialize TObjectList<TX3DSingleField>;
+  TX3DSingleFieldList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DSingleField>;
 
   EX3DMultFieldDifferentCount = class(EX3DError);
 
@@ -3007,7 +3007,7 @@ end;
 
 procedure TX3DFileItemList.SortPositionInParent;
 type
-  TX3DFileItemComparer = specialize TComparer<TX3DFileItem>;
+  TX3DFileItemComparer = {$ifdef FPC_OBJFPC}specialize{$endif} TComparer<TX3DFileItem>;
 begin
   Sort(TX3DFileItemComparer.Construct(@IsSmallerPositionInParent));
 end;
@@ -5689,7 +5689,7 @@ end;
 
 { Note that because of FPC 2.0.2 bug, code below will not compile
   with FPC 2.0.2 in objfpc mode. For objfpc mode I would have to
-  change below Items.Items[I] to Items.L[I],
+  change below Items.Items[I] to Items.List^[I],
   i.e. Items property of my dynamic array classes will not work
   correctly in objfpc mode in FPC 2.0.2.
   Fixed in FPC 2.0.3 and 2.1.1 (revision 2911).
@@ -5797,7 +5797,7 @@ begin
     0: DefaultValuesCount := 0;
     1: begin
          DefaultValuesCount := 1;
-         DefaultValue := Items.L[0];
+         DefaultValue := Items.List^[0];
        end;
     else DefaultValuesCount := -1;
   end;
@@ -5816,7 +5816,7 @@ end;
 function TMF_CLASS.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.L[Index] else
+    Result := Items.List^[Index] else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
     Result := TMF_DYN_DEFAULT_SAFE_VALUE;
@@ -5826,7 +5826,7 @@ end;
 procedure TMF_CLASS.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Items.L[Index] := Value else
+    Items.List^[Index] := Value else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
   end;
@@ -5852,7 +5852,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.L[0]));
+     (DefaultValue = Items.List^[0]));
 end;
 
 function TMF_CLASS.Equals(SecondValue: TX3DField;
@@ -5865,7 +5865,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not (TMF_CLASS(SecondValue).Items.L[I] = Items.L[I]) then
+   if not (TMF_CLASS(SecondValue).Items.List^[I] = Items.List^[I]) then
     Exit(false);
 end;
 }
@@ -5876,7 +5876,7 @@ begin
   Result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-      TMF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Items.L[0]) );
+      TMF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Items.List^[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TX3DField;
@@ -5889,14 +5889,14 @@ begin
 
   if Result then
     for I := 0 to Items.Count - 1 do
-      if not TMF_STATIC_ITEM.Equals(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
+      if not TMF_STATIC_ITEM.Equals(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
         Epsilon) then
        Exit(false);
 end;
 
 function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
 begin
-  Result := Items.L[ItemNum].ToRawString;
+  Result := Items.List^[ItemNum].ToRawString;
 end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -5915,7 +5915,7 @@ begin
   Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.L[I] := Lerp(A, Items1.L[I], Items2.L[I]);
+    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
 end;
 
 function TMF_CLASS.CanAssignLerp: boolean;
@@ -5930,7 +5930,7 @@ begin
   Result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-      TMF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Items.L[0]) );
+      TMF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Items.List^[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TX3DField;
@@ -5943,7 +5943,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not TMF_STATIC_ITEM.Equals(TMF_CLASS(SecondValue).Items.L[I], Items.L[I],
+   if not TMF_STATIC_ITEM.Equals(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
      Epsilon) then
     Exit(false);
 end;
@@ -5953,12 +5953,12 @@ var
   Column: Integer;
   V: TMF_VECTOR;
 begin
-  V.Data := Items.L[ItemNum].Data[0];
+  V.Data := Items.List^[ItemNum].Data[0];
   Result := V.ToRawString;
 
   for Column := 1 to TSF_MATRIX_COLS - 1 do
   begin
-    V.Data := Items.L[ItemNum].Data[Column];
+    V.Data := Items.List^[ItemNum].Data[Column];
     Result += ' ' + V.ToRawString;
   end;
 end;
@@ -5979,7 +5979,7 @@ begin
   Items2 := Val2.Items;
 
   for I := 0 to Items.Count - 1 do
-    Items.L[I] := Lerp(A, Items1.L[I], Items2.L[I]);
+    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
 end;
 
 function TMF_CLASS.CanAssignLerp: boolean;
@@ -5994,7 +5994,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.L[0]) );
+     (DefaultValue = Items.List^[0]) );
 end;
 
 function TMF_CLASS.Equals(SecondValue: TX3DField;
@@ -6007,7 +6007,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not SameValue(TMF_CLASS(SecondValue).Items.L[I], Items.L[I], Epsilon) then
+   if not SameValue(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I], Epsilon) then
     Exit(false);
 end;
 }

@@ -155,7 +155,7 @@ uses CastleUtils, CastleDynLib;
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
   *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
   (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
 
 function OpenALSampleImplementation: boolean;
 begin

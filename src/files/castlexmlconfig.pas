@@ -117,8 +117,8 @@ type
 
       @groupBegin }
     function GetFloat(const APath: string;
-      const ADefaultValue: Float): Float;
-    function GetFloat(const APath: string): Float;
+      const ADefaultValue: Float): Float; overload;
+    function GetFloat(const APath: string): Float; overload;
     procedure SetFloat(const APath: string;
       const AValue: Float);
     procedure SetDeleteFloat(const APath: string;
@@ -129,8 +129,8 @@ type
       @raises(EMissingAttribute Raised by GetFloat(string) (overloaded
         version without the ADefaultValue parameter) if the attribute is missing.) }
     function GetInt64(const APath: string;
-      const ADefaultValue: Int64): Int64;
-    function GetInt64(const APath: string): Int64;
+      const ADefaultValue: Int64): Int64; overload;
+    function GetInt64(const APath: string): Int64; overload;
     procedure SetInt64(const APath: string;
       const AValue: Int64);
     procedure SetDeleteInt64(const APath: string;
@@ -375,12 +375,12 @@ type
     { Read string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
       to current OS newlines. }
-    function GetMultilineText(const APath: string; const DefaultValue: string): string;
+    function GetMultilineText(const APath: string; const DefaultValue: string): string; overload;
 
     { Read @italic(required, non-empty) string from a text content of given element.
       The text may be multiline, line endings are guaranteed to be converted
       to current OS newlines. }
-    function GetMultilineText(const APath: string): string;
+    function GetMultilineText(const APath: string): string; overload;
 
     procedure NotModified;
     procedure MarkModified;
@@ -441,9 +441,9 @@ type
       )
 
       @groupBegin }
-    procedure Load;
-    procedure Load(const AURL: string);
-    procedure Load(const Stream: TStream; const PretendURL: string);
+    procedure Load; overload;
+    procedure Load(const AURL: string); overload;
+    procedure Load(const Stream: TStream; const PretendURL: string); overload;
     procedure LoadFromString(const Data: string; const PretendURL: string);
     { @groupEnd }
 
@@ -461,8 +461,8 @@ type
       )
 
       @groupBegin }
-    procedure Save;
-    procedure Save(const Stream: TStream);
+    procedure Save; overload;
+    procedure Save(const Stream: TStream); overload;
     function SaveToString: string;
     { @groupEnd }
   end;

@@ -67,7 +67,7 @@
 unit CastleImages;
 
 {$include castleconf.inc}
-{$modeswitch nestedprocvars}{$H+}
+{$ifdef FPC_OBJFPC} {$modeswitch nestedprocvars}{$H+} {$endif}
 
 interface
 
@@ -1756,7 +1756,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
   *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
   (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
 
 { parts ---------------------------------------------------------------------- }
 
@@ -2007,17 +2007,34 @@ var
     end;
   end;
 
+{$ifdef FPC_OBJFPC}
+
 type
   TMakeLineFunction = procedure is nested;
 var
   MakeLine: TMakeLineFunction;
 begin
   case Interpolation of
-    riNearest : MakeLine := {$ifdef FPC_OBJFPC}@{$endif} MakeLineNearest;
-    riBilinear: MakeLine := {$ifdef FPC_OBJFPC}@{$endif} MakeLineBilinear;
+    riNearest : MakeLine := @MakeLineNearest;
+    riBilinear: MakeLine := @MakeLineBilinear;
     else raise EInternalError.Create('Unknown Interpolation for InternalResize');
   end;
 
+{$else}
+
+  { In Delphi mode, nested procedural variables are not supported.
+    Just define a local MakeLine procedure. }
+  procedure MakeLine;
+  begin
+    case Interpolation of
+      riNearest : MakeLineNearest;
+      riBilinear: MakeLineBilinear;
+      else raise EInternalError.Create('Unknown Interpolation for InternalResize');
+    end;
+  end;
+
+begin
+{$endif}
   if ProgressTitle = '' then
   begin
     for DestinY := DestinRect.Bottom to DestinRect.Top - 1 do
