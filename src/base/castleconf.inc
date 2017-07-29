@@ -228,12 +228,7 @@
   {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 {$endif}
 
-// Allows to workaround FPC bug in some units, FPC seems to "lose"
-// the fact that FPC_OBJFPC should be defined.
-// It would be cleaner to check for FPC_OBJFPC here,
-// but we cannot, it may be "lost" at this point already.
-// Just undefine this when you want to check with FPC in Delphi mode.
-{$ifdef FPC}
+{$ifdef FPC_OBJFPC}
   {$define FPC_DEFAULTS_TO_OBJFPC}
 {$endif}
 
