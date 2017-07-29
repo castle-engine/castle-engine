@@ -78,12 +78,6 @@ uses SysUtils, Classes, Math, CastleUtils, CastleVectors, CastleRectangles,
   {$ifdef CASTLE_PNG_USING_FCL_IMAGE} , FPReadPNG, CastleInternalFPWritePNG
   {$else} , CastleInternalPng {$endif};
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
-
 type
   TAutoAlphaChannel = (acAuto, acNone, acTest, acBlending);
   { See TCastleImage.AlphaChannel. }
