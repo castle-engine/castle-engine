@@ -78,9 +78,9 @@ begin
     Calculator.Geometry := Geometry;
     Calculator.WasSomeValidIndex := false;
     Result := CalculateBoundingBoxFromIndices(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetIndex,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex,
       State.Transform);
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
@@ -100,9 +100,9 @@ begin
     Calculator.Geometry := Geometry;
     Calculator.WasSomeValidIndex := false;
     Result := CalculateBoundingBoxFromIndices(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetIndex,
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetIndex,
       CoordIndex.Count,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexFromIndex);
     if not Calculator.WasSomeValidIndex then
       Result := TBox3D.Empty;
   finally Calculator.Free end;

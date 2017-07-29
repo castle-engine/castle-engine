@@ -230,10 +230,11 @@
 
 // Allows to workaround FPC bug in some units, FPC seems to "lose"
 // the fact that FPC_OBJFPC should be defined.
-// The cleanest solution seems to just ignore FPC_OBJFPC,
-// and define equivalent symbol (CASTLE_OBJFPC) on our own.
+// It would be cleaner to check for FPC_OBJFPC here,
+// but we cannot, it may be "lost" at this point already.
+// Just undefine this when you want to check with FPC in Delphi mode.
 {$ifdef FPC}
-  {$define CASTLE_OBJFPC}
+  {$define FPC_DEFAULTS_TO_OBJFPC}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

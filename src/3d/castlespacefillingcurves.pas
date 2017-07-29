@@ -195,6 +195,12 @@ implementation
 
 uses CastleUtils;
 
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
+
 const
   { AngleTurn[Angle, Orient] = (definicja)
       if Orient then
@@ -419,7 +425,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  HilbertCurve(true, 0, Level,
-   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef FPC_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function THilbertCurve.SFCName: string;
@@ -442,7 +448,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  PeanoCurve(false, 0, Level,
-   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef FPC_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function TPeanoCurve.SFCName: string;

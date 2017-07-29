@@ -22,26 +22,26 @@ type
   TDoubleList = class;
   TLongIntList = class;
 
-  TWordList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Word>)
+  TWordList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Word>)
   public
     function Max: Word;
     procedure Assign(const Source: TLongIntList);
   end;
 
-  TLongWordList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<LongWord>)
+  TLongWordList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<LongWord>)
   public
     function Max: LongWord;
     procedure Assign(const Source: TLongIntList);
   end;
 
-  TFloatList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Float>)
+  TFloatList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Float>)
     procedure AppendFloats(Floats: TSingleList);
   end;
 
   TArray_Single = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
   PArray_Single = ^TArray_Single;
 
-  TSingleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>)
+  TSingleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Single>)
     procedure AppendFloats(Floats: TFloatList);
     function ToDouble: TDoubleList;
 
@@ -63,19 +63,19 @@ type
     procedure AddListRange(Source: TSingleList; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
-  TDoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Double>)
+  TDoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Double>)
     function ToSingle: TSingleList;
 
     { Assign value from TSingleList, converting to single-precision. }
     procedure Assign(const Source: TSingleList); overload;
   end;
 
-  TCardinalList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Cardinal>)
+  TCardinalList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Cardinal>)
     function BigSum: Int64;
     function Sum: Cardinal;
   end;
 
-  TBooleanList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<boolean>)
+  TBooleanList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<boolean>)
   public
     { Set appropriate item to given value.
       These are useful methods to pass as callback in some situations
@@ -92,7 +92,7 @@ type
   TArray_LongInt = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
   PArray_LongInt = ^TArray_LongInt;
 
-  TLongIntList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<LongInt>)
+  TLongIntList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<LongInt>)
   public
     function Max: LongInt;
     function Sum: LongInt;
@@ -101,7 +101,7 @@ type
     procedure AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
   end;
 
-  TIntegerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Integer>)
+  TIntegerList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<Integer>)
   public
     function Sum: Integer;
   end;

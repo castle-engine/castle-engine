@@ -46,6 +46,12 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils;
 
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
+
 type
   TDynamicStringArray = array of string;
 
@@ -2094,7 +2100,7 @@ begin
     C := TRegExprCounter.Create;
     try
       C.Index := Index;
-      Result := R.Replace(NamePattern, {$ifdef CASTLE_OBJFPC}@{$endif} C.ReplaceCallback);
+      Result := R.Replace(NamePattern, {$ifdef FPC_OBJFPC}@{$endif} C.ReplaceCallback);
       ReplacementsDone := C.ReplacementsDone;
     finally FreeAndNil(C) end;
   finally FreeAndNil(R) end;

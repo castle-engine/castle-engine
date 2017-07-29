@@ -21,7 +21,7 @@ type
   TVector4List = class;
 
   { List of @link(TVector2). }
-  TVector2List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2>)
+  TVector2List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector2>)
   public
     { Calculate minimum and maximum values for both dimensions of
       this set of points. Returns @false when Count = 0. }
@@ -37,7 +37,7 @@ type
   end;
 
   { List of @link(TVector3). }
-  TVector3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3>)
+  TVector3List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector3>)
   public
     procedure AssignNegated(const Source: TVector3List); deprecated 'use Assign and Negate separately';
 
@@ -87,59 +87,59 @@ type
   end;
 
   { List of @link(TVector4). }
-  TVector4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4>)
+  TVector4List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector4>)
   public
     procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
   end;
 
   { List of @link(TMatrix3). }
-  TMatrix3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
+  TMatrix3List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
   public
   end;
 
   { List of @link(TMatrix4). }
-  TMatrix4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
+  TMatrix4List = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
   public
   end;
 
   {$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
   { List of @link(TVector2Double). }
-  TVector2DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2Double>)
+  TVector2DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector2Double>)
   public
     function ToVector2: TVector2List;
   end;
 
   { List of @link(TVector3Double). }
-  TVector3DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3Double>)
+  TVector3DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector3Double>)
   public
     function ToVector3: TVector3List;
   end;
 
   { List of @link(TVector4Double). }
-  TVector4DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4Double>)
+  TVector4DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector4Double>)
   public
     function ToVector4: TVector4List;
   end;
 
   { List of @link(TMatrix3Double). }
-  TMatrix3DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3Double>)
+  TMatrix3DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix3Double>)
   public
     function ToMatrix3: TMatrix3List;
   end;
 
   { List of @link(TMatrix4Double). }
-  TMatrix4DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4Double>)
+  TMatrix4DoubleList = class({$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TMatrix4Double>)
   public
     function ToMatrix4: TMatrix4List;
   end;
   {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
   { List of @link(TVector2SmallInt). }
-  TVector2SmallIntList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2SmallInt>;
+  TVector2SmallIntList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector2SmallInt>;
 
   { List of @link(TVector2Cardinal). }
-  TVector3CardinalList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3Cardinal>;
+  TVector3CardinalList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TVector3Cardinal>;
 
 {$endif read_interface}
 

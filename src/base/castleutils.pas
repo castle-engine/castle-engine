@@ -73,13 +73,18 @@ unit CastleUtils;
 
   So it doesn't seem to be possible to define TStructList correctly in ObjFpc mode. }
 {$mode delphi}
-{$undef CASTLE_OBJFPC}
 
 interface
 
 uses {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
   Variants, SysUtils, Math, Generics.Collections;
+
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
 
 {$define read_interface}
 

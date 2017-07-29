@@ -2888,6 +2888,12 @@ uses CastleLog, CastleGLVersion, CastleURIUtils,
   {$undef read_implementation_uses}
   X3DLoad, Math;
 
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
+
 {$define read_implementation}
 
 {$I castlewindowmenu.inc}
@@ -3960,13 +3966,13 @@ const
     end =
   ( ( pOptions: @GeometryOptions;
       Count: High(GeometryOptions)+1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} GeometryOptionProc),
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} GeometryOptionProc),
     ( pOptions: @ScreenGeometryOptions;
       Count: High(ScreenGeometryOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
     ( pOptions: @DisplayOptions;
       Count: High(DisplayOptions) + 1;
-      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} DisplayOptionProc),
+      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} DisplayOptionProc),
     ( pOptions: nil;
       Count: 0;
       OptionProc: nil)

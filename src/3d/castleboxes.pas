@@ -23,6 +23,12 @@ interface
 uses SysUtils, Generics.Collections,
   CastleVectors, CastleUtils, CastleTriangles, CastleRectangles;
 
+{ Workaround FPC bug:
+  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
+  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
+  (but we're stil in ObjFpc syntax mode). }
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
+
 type
   EBox3DEmpty = class(Exception);
 
@@ -2318,7 +2324,7 @@ begin
     Calculator.VertsStride := VertsStride;
     Calculator.Verts := Verts;
     result := CalculateBoundingBox(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexNotTransform, VertsCount);
   finally Calculator.Free end;
 end;
 
@@ -2335,7 +2341,7 @@ begin
     Calculator.Verts := Verts;
     Calculator.PMatrix := @Transform;
     result := CalculateBoundingBox(
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetVertexTransform, VertsCount);
   finally Calculator.Free end;
 end;
 
@@ -2431,7 +2437,7 @@ begin
     result := CalculateBoundingBoxFromIndices(
       GetVertIndex,
       VertsIndicesCount,
-      {$ifdef CASTLE_OBJFPC} @ {$endif} Calculator.GetTransformed);
+      {$ifdef FPC_OBJFPC} @ {$endif} Calculator.GetTransformed);
   finally Calculator.Free end;
 end;
 

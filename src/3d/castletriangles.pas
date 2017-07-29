@@ -131,7 +131,7 @@ type
     function Barycentric(const Point: TVector3): TVector3;
   end;
 
-  TTriangle3List = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle3>;
+  TTriangle3List = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TTriangle3>;
 
   PTriangle3 = ^TTriangle3;
 
@@ -322,7 +322,7 @@ type
     IndexBegin, IndexEnd: Integer;
   end;
 
-  TFaceIndexesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
+  TFaceIndexesList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
