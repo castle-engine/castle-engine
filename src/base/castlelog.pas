@@ -89,20 +89,20 @@ procedure InitializeLog(const ProgramVersion: string = '';
   on constructing Message.
 
   When no Category, we use ApplicationName as a category. }
-procedure WritelnLog(const Category: string; const Message: string);
-procedure WritelnLog(const Message: string);
+procedure WritelnLog(const Category: string; const Message: string); overload;
+procedure WritelnLog(const Message: string); overload;
 
 { Format and log a message.
   Ignored when log is not initialized (@link(Log) is @false).
   This is a shortcut for @code(WritelnLog(Category, Format(MessageBase, Args))). }
 procedure WritelnLog(const Category: string; const MessageBase: string;
-  const Args: array of const);
+  const Args: array of const); overload;
 procedure WritelnLog(const MessageBase: string;
-  const Args: array of const);
+  const Args: array of const); overload;
 
 { Log message, without appending newline at the end (given Message
   should already contain a final newline). }
-procedure WriteLog(const Category: string; const Message: string);
+procedure WriteLog(const Category: string; const Message: string); overload;
   deprecated 'use WritelnLog, and do not add the final newline yourself to Message';
 
 { Log multiline message.
@@ -126,14 +126,14 @@ procedure WriteLogMultiline(const Category: string; const Message: string); depr
   (like @code(ShowMessage) in Lazarus, or @link(MessageOK) in CastleMessages,
   or @link(TCastleWindowCustom.MessageOK)).
   Or by raising an exception, if you want to be strict about warnings. }
-procedure WritelnWarning(const Category: string; const Message: string);
-procedure WritelnWarning(const Message: string);
+procedure WritelnWarning(const Category: string; const Message: string); overload;
+procedure WritelnWarning(const Message: string); overload;
 
 { A shortcut for @code(WritelnWarning(Category, Format(MessageBase, Args))). }
 procedure WritelnWarning(const Category: string; const MessageBase: string;
-  const Args: array of const);
+  const Args: array of const); overload;
 procedure WritelnWarning(const MessageBase: string;
-  const Args: array of const);
+  const Args: array of const); overload;
 
 var
   { Dump backtrace (call stack) with each log.

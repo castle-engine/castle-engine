@@ -368,10 +368,10 @@ type
   TTextWriter = class(TTextReaderWriter)
   public
     constructor Create(const URL: string); overload;
-    procedure Write(const S: string);
-    procedure Write(const S: string; const Args: array of const);
-    procedure Writeln(const S: string = '');
-    procedure Writeln(const S: string; const Args: array of const);
+    procedure Write(const S: string); overload;
+    procedure Write(const S: string; const Args: array of const); overload;
+    procedure Writeln(const S: string = ''); overload;
+    procedure Writeln(const S: string; const Args: array of const); overload;
   end;
 
 implementation
@@ -574,7 +574,7 @@ end;
 {$endif HAS_FP_HTTP_CLIENT}
 
 { Load FileName to TMemoryStream. }
-function CreateMemoryStream(const FileName: string): TMemoryStream;
+function CreateMemoryStream(const FileName: string): TMemoryStream; overload;
 begin
   Result := TMemoryStream.Create;
   try
@@ -586,7 +586,7 @@ begin
 end;
 
 { Load (and free and nil) Stream to TMemoryStream. }
-function CreateMemoryStream(var Stream: TStream): TMemoryStream;
+function CreateMemoryStream(var Stream: TStream): TMemoryStream; overload;
 begin
   Result := TMemoryStream.Create;
   try

@@ -122,8 +122,8 @@ function ColorBlueStripByte(const Color: TVector3Byte): TVector3Byte;
   and the other as floating-point values (0..1 range).
   @groupBegin }
 function HsvToRgb(const Value: TVector3): TVector3;
-function RgbToHsv(const Value: TVector3): TVector3;
-function RgbToHsv(const Value: TVector3Byte): TVector3;
+function RgbToHsv(const Value: TVector3): TVector3; overload;
+function RgbToHsv(const Value: TVector3Byte): TVector3; overload;
 function HsvToRgbByte(const Value: TVector3): TVector3Byte;
 { @groupEnd }
 
