@@ -117,8 +117,12 @@ type
     Left, Bottom: Integer;
     Width, Height: Cardinal;
 
+    {$ifndef BUGGY_ZERO_CONSTANT}
     const
       Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
+    {$else}
+    class function Empty: TRectangle; static; inline;
+    {$endif}
 
     function IsEmpty: boolean;
 
@@ -420,6 +424,13 @@ begin
   Result.Width := Width;
   Result.Height := Height;
 end;
+
+{$ifdef BUGGY_ZERO_CONSTANT}
+class function TRectangle.Empty: TRectangle;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
 
 function TRectangle.IsEmpty: boolean;
 begin
