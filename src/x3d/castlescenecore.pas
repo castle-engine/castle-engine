@@ -241,7 +241,7 @@ type
     Internal for TCastleSceneCore: list of generated textures
     (GeneratedCubeMapTexture, RenderedTexture and similar nodes)
     along with their shape. }
-  TGeneratedTextureList = class(specialize TStructList<TGeneratedTexture>)
+  TGeneratedTextureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TGeneratedTexture>)
   public
     function IndexOfTextureNode(TextureNode: TX3DNode): Integer;
     function FindTextureNode(TextureNode: TX3DNode): PGeneratedTexture;
@@ -262,11 +262,11 @@ type
   end;
 
   { @exclude }
-  TProximitySensorInstanceList = specialize TObjectList<TProximitySensorInstance>;
+  TProximitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TProximitySensorInstance>;
   { @exclude }
-  TVisibilitySensorInstanceList = specialize TObjectList<TVisibilitySensorInstance>;
+  TVisibilitySensorInstanceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TVisibilitySensorInstance>;
   { @exclude }
-  TVisibilitySensors = class(specialize TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
+  TVisibilitySensors = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TVisibilitySensorNode, TVisibilitySensorInstanceList>)
   public
     destructor Destroy; override;
     { Remove everything are released owned stuff.
@@ -274,7 +274,7 @@ type
       We do not own TVisibilitySensorNode (our Keys list). }
     procedure Clear; reintroduce;
   end;
-  TTimeDependentHandlerList = class(specialize TObjectList<TInternalTimeDependentHandler>)
+  TTimeDependentHandlerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInternalTimeDependentHandler>)
     procedure AddIfNotExists(const Item: TInternalTimeDependentHandler);
   end;
 
@@ -287,7 +287,7 @@ type
     Name: string;
   end;
   PCompiledScriptHandlerInfo = ^TCompiledScriptHandlerInfo;
-  TCompiledScriptHandlerInfoList = specialize TStructList<TCompiledScriptHandlerInfo>;
+  TCompiledScriptHandlerInfoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCompiledScriptHandlerInfo>;
 
   { Possible spatial structures that may be managed by TCastleSceneCore,
     see @link(TCastleSceneCore.Spatial). }
@@ -513,7 +513,7 @@ type
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
   type
-    TAbstractViewpointNodeList = specialize TObjectList<TAbstractViewpointNode>;
+    TAbstractViewpointNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAbstractViewpointNode>;
   var
     FShapesActiveCount: Cardinal;
     FShapesActiveVisibleCount: Cardinal;
@@ -2302,7 +2302,7 @@ end;
 function TGeneratedTextureList.IndexOfTextureNode(TextureNode: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].TextureNode = TextureNode then
+    if List^[Result].TextureNode = TextureNode then
       Exit;
   Result := -1;
 end;
@@ -2381,9 +2381,9 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if (L[I].TextureNode is TGeneratedShadowMapNode) and
-       (TGeneratedShadowMapNode(L[I].TextureNode).FdLight.Value = LightNode) then
-      L[I].Handler.UpdateNeeded := true;
+    if (List^[I].TextureNode is TGeneratedShadowMapNode) and
+       (TGeneratedShadowMapNode(List^[I].TextureNode).FdLight.Value = LightNode) then
+      List^[I].Handler.UpdateNeeded := true;
 end;
 
 { TTransformInstancesList ------------------------------------------------- }
@@ -2650,7 +2650,7 @@ begin
   SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
-      Result += SI.Current.VerticesCount(OverTriangulate);
+      Result := Result + SI.Current.VerticesCount(OverTriangulate);
   finally FreeAndNil(SI) end;
 end;
 
@@ -2662,7 +2662,7 @@ begin
   SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
-      Result += SI.Current.TrianglesCount(OverTriangulate);
+      Result := Result + SI.Current.TrianglesCount(OverTriangulate);
   finally FreeAndNil(SI) end;
 end;
 
@@ -3489,8 +3489,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
     begin
       if List <> nil then
         for I := 0 to List.Count - 1 do
-          if List.L[I].Node = LightNode then
-            LightNode.UpdateLightInstanceState(List.L[I], StateStack.Top);
+          if List.List^[I].Node = LightNode then
+            LightNode.UpdateLightInstanceState(List.List^[I], StateStack.Top);
     end;
 
   var
@@ -3789,9 +3789,9 @@ var
       Format(', node: %s (%s %s) at %s',
       [ ANode.X3DName, ANode.X3DType, ANode.ClassName, PointerToStr(ANode) ]);
     if Field <> nil then
-      S += Format(', field %s (%s)', [ Field.X3DName, Field.X3DType ]);
+      S := S + Format(', field %s (%s)', [ Field.X3DName, Field.X3DType ]);
     if Additional <> '' then
-      S += '. ' + Additional;
+      S := S + '. ' + Additional;
     WritelnLog('X3D changes', S);
   end;
 
@@ -4481,9 +4481,9 @@ begin
   Result := 'Bounding box : ' + BBox.ToString;
   if not BBox.IsEmpty then
   begin
-    Result += Format(', average size : %f', [BBox.AverageSize]);
+    Result := Result + Format(', average size : %f', [BBox.AverageSize]);
   end;
-  Result += NL;
+  Result := Result + NL;
 end;
 
 procedure TCastleSceneCore.EdgesCount(out ManifoldEdges, BorderEdges: Cardinal);
@@ -4496,8 +4496,8 @@ begin
   try
     while SI.GetNext do
     begin
-      ManifoldEdges += SI.Current.InternalShadowVolumes.ManifoldEdges.Count;
-      BorderEdges += SI.Current.InternalShadowVolumes.BorderEdges.Count;
+      ManifoldEdges := ManifoldEdges + SI.Current.InternalShadowVolumes.ManifoldEdges.Count;
+      BorderEdges := BorderEdges + SI.Current.InternalShadowVolumes.BorderEdges.Count;
     end;
   finally FreeAndNil(SI) end;
 end;
@@ -4522,25 +4522,25 @@ begin
   begin
     {$warnings off}
     { deliberately using deprecated function in another deprecated function }
-    Result += InfoTriangleVerticesCounts;
+    Result := Result + InfoTriangleVerticesCounts;
     {$warnings on}
   end;
 
   if ABoundingBox then
   begin
-    if Result <> '' then Result += NL;
+    if Result <> '' then Result := Result + NL;
     {$warnings off}
     { deliberately using deprecated function in another deprecated function }
-    Result += InfoBoundingBox;
+    Result := Result + InfoBoundingBox;
     {$warnings on}
   end;
 
   if AManifoldAndBorderEdges then
   begin
-    if Result <> '' then Result += NL;
+    if Result <> '' then Result := Result + NL;
     {$warnings off}
     { deliberately using deprecated function in another deprecated function }
-    Result += InfoManifoldAndBorderEdges;
+    Result := Result + InfoManifoldAndBorderEdges;
     {$warnings on}
   end;
 end;
@@ -5679,11 +5679,11 @@ procedure TCastleSceneCore.InternalSetTime(
   procedure UpdateTimeDependentHandlersIfVisible;
   begin
     if FAnimateOnlyWhenVisible and (not IsVisibleNow) and (not ResetTime) then
-      FAnimateGatheredTime += TimeIncrease else
+      FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease else
     if (AnimateSkipNextTicks <> 0) and (not ResetTime) then
     begin
       Dec(AnimateSkipNextTicks);
-      FAnimateGatheredTime += TimeIncrease;
+      FAnimateGatheredTime := FAnimateGatheredTime + TimeIncrease;
     end else
     begin
       if ResetTime then
@@ -6010,9 +6010,9 @@ var
   I: Integer;
 begin
   for I := 0 to CompiledScriptHandlers.Count - 1 do
-    if CompiledScriptHandlers.L[I].Name = HandlerName then
+    if CompiledScriptHandlers.List^[I].Name = HandlerName then
     begin
-      CompiledScriptHandlers.L[I].Handler(ReceivedValue, NextEventTime);
+      CompiledScriptHandlers.List^[I].Handler(ReceivedValue, NextEventTime);
       Break;
     end;
 end;
