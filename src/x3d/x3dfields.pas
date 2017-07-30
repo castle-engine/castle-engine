@@ -5797,7 +5797,7 @@ begin
     0: DefaultValuesCount := 0;
     1: begin
          DefaultValuesCount := 1;
-         DefaultValue := Items.List^[0];
+         DefaultValue := Items.L[0];
        end;
     else DefaultValuesCount := -1;
   end;
@@ -5816,7 +5816,7 @@ end;
 function TMF_CLASS.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.List^[Index] else
+    Result := Items.L[Index] else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
     Result := TMF_DYN_DEFAULT_SAFE_VALUE;
@@ -5826,7 +5826,7 @@ end;
 procedure TMF_CLASS.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
 begin
   if (Index >= 0) and (Index < Items.Count) then
-    Items.List^[Index] := Value else
+    Items.L[Index] := Value else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
   end;
@@ -5852,7 +5852,7 @@ begin
   result :=
     ((DefaultValuesCount = 0) and (Count = 0)) or
     ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.List^[0]));
+     (DefaultValue = Items.L[0]));
 end;
 
 function TMF_CLASS.Equals(SecondValue: TX3DField;
@@ -5865,7 +5865,7 @@ begin
 
  if Result then
   for I := 0 to Items.Count - 1 do
-   if not (TMF_CLASS(SecondValue).Items.List^[I] = Items.List^[I]) then
+   if not (TMF_CLASS(SecondValue).Items.L[I] = Items.L[I]) then
     Exit(false);
 end;
 }

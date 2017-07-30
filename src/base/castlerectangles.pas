@@ -826,7 +826,7 @@ end;
 
 class operator TRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TRectangle): TRectangle;
 var
-  Right, Top: Integer;
+  NewRight, NewTop: Integer;
 begin
   if R1.IsEmpty then
     Result := R2 else
@@ -835,28 +835,28 @@ begin
   begin
     Result.Left   := Min(R1.Left  , R2.Left);
     Result.Bottom := Min(R1.Bottom, R2.Bottom);
-    Right := Max(R1.Right   , R2.Right);
-    Top   := Max(R1.Top     , R2.Top);
-    Result.Width  := Right - Result.Left;
-    Result.Height := Top   - Result.Bottom;
+    NewRight := Max(R1.Right   , R2.Right);
+    NewTop   := Max(R1.Top     , R2.Top);
+    Result.Width  := NewRight - Result.Left;
+    Result.Height := NewTop   - Result.Bottom;
   end;
 end;
 
 class operator TRectangle.{$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TRectangle): TRectangle;
 var
-  Right, Top: Integer;
+  NewRight, NewTop: Integer;
 begin
   if R1.IsEmpty or R2.IsEmpty then
     Result := TRectangle.Empty else
   begin
     Result.Left   := Max(R1.Left  , R2.Left);
     Result.Bottom := Max(R1.Bottom, R2.Bottom);
-    Right := Min(R1.Right   , R2.Right);
-    Top   := Min(R1.Top     , R2.Top);
-    if (Right > Result.Left) and (Top > Result.Bottom) then
+    NewRight := Min(R1.Right   , R2.Right);
+    NewTop   := Min(R1.Top     , R2.Top);
+    if (NewRight > Result.Left) and (NewTop > Result.Bottom) then
     begin
-      Result.Width  := Right - Result.Left;
-      Result.Height := Top   - Result.Bottom;
+      Result.Width  := NewRight - Result.Left;
+      Result.Height := NewTop   - Result.Bottom;
     end else
       Result := TRectangle.Empty;
   end;
@@ -1141,7 +1141,7 @@ end;
 
 class operator TFloatRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
 var
-  Right, Top: Single;
+  NewRight, NewTop: Single;
 begin
   if R1.IsEmpty then
     Result := R2 else
@@ -1150,34 +1150,34 @@ begin
   begin
     Result.Left   := Min(R1.Left  , R2.Left);
     Result.Bottom := Min(R1.Bottom, R2.Bottom);
-    Right := Max(R1.Right   , R2.Right);
-    Top   := Max(R1.Top     , R2.Top);
-    Result.Width  := Right - Result.Left;
-    Result.Height := Top   - Result.Bottom;
+    NewRight := Max(R1.Right   , R2.Right);
+    NewTop   := Max(R1.Top     , R2.Top);
+    Result.Width  := NewRight - Result.Left;
+    Result.Height := NewTop   - Result.Bottom;
   end;
 end;
 
 class operator TFloatRectangle.{$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
 var
-  Right, Top: Single;
+  NewRight, NewTop: Single;
 begin
   if R1.IsEmpty or R2.IsEmpty then
     Result := TFloatRectangle.Empty else
   begin
     Result.Left   := Max(R1.Left  , R2.Left);
     Result.Bottom := Max(R1.Bottom, R2.Bottom);
-    Right := Min(R1.Right   , R2.Right);
-    Top   := Min(R1.Top     , R2.Top);
+    NewRight := Min(R1.Right   , R2.Right);
+    NewTop   := Min(R1.Top     , R2.Top);
     { ">=" unline the int version that checks ">".
       For TFloatRectangle, having zero size makes sense. }
-    if (Right >= Result.Left) and (Top >= Result.Bottom) then
+    if (NewRight >= Result.Left) and (NewTop >= Result.Bottom) then
     begin
       { use Max(0, ..) to secure from floating point errors in case equations above
         are true but subtraction yields < 0 due to floating point inaccuracy.
         Not sure is this possible (A >= B and still A - B < 0), probably not,
         but better stay safe when dealing with floating point numbers. }
-      Result.Width  := Max(0, Right - Result.Left);
-      Result.Height := Max(0, Top   - Result.Bottom);
+      Result.Width  := Max(0, NewRight - Result.Left);
+      Result.Height := Max(0, NewTop   - Result.Bottom);
     end else
       Result := TFloatRectangle.Empty;
   end;
