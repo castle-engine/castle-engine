@@ -1220,10 +1220,14 @@ begin
     So we just do "Result.Data[3] +=" instead of "Result.Data[3] -=". }
 
   Result := Plane;
-  Result.Data[3] := Result.Data[3] +
+  Result.Data[3] := Result.Data[3] + (
+    { Use parenthesis to group this expression, this way it's calculated
+      in a similar order to PlaneMove, which increses it's numerical
+      stability. Confirmed by TTestCastleVectors.TestPlaneMoveRandom,
+      if you have these parenthesis you can have smaller epsilon to compare). }
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2];
+    Plane.Data[2] * Move.Data[2]);
 end;
 
 function VectorsSamePlaneDirections(const V1, V2: TVector3;

@@ -855,7 +855,7 @@ begin
     Plane := Vector4(PlaneDir, Random * 100);
     Move := RandomVector;
     // "PlaneAntiMove + PlaneMove" should zero each other out
-    AssertVectorEquals(Plane, PlaneAntiMove(PlaneMove(Plane, Move), Move), 1.0);
+    AssertVectorEquals(Plane, PlaneAntiMove(PlaneMove(Plane, Move), Move), 0.1);
   end;
 end;
 
