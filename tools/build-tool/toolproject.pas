@@ -1366,6 +1366,19 @@ const
       Result += 'safeLoadLibrary("tremolo");' + NL;
   end;
 
+  function SearchPathsStr: string;
+  var
+    S: string;
+  begin
+    Result := '';
+    for S in SearchPaths do
+    begin
+      if Result <> '' then
+        Result := Result + ';';
+      Result := Result + S;
+    end;
+  end;
+
   { Make CamelCase with only safe characters (digits and letters). }
   function MakeCamelCase(S: string): string;
   var
@@ -1418,6 +1431,7 @@ begin
     Macros.Add('AUTHOR'          , NonEmptyAuthor);
     Macros.Add('EXECUTABLE_NAME' , ExecutableName);
     Macros.Add('GAME_UNITS'      , FGameUnits);
+    Macros.Add('SEARCH_PATHS'    , SearchPathsStr);
 
     // Android specific stuff
     AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
