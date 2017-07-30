@@ -24,6 +24,11 @@ interface
 uses CastleVectors;
 
 type
+  { Quaternions are useful to represent rotations in 3D
+    that can be easily applied and combined with other rotations.
+    Note that, while this structure (and some, but not all, of it's methods)
+    can handle @italic(any) quaternion, you are usually interested
+    @italic(only in @bold(unit quaternions), that can represent a 3D rotation). }
   TQuaternion = record
     Data: packed record
       case Integer of
@@ -33,6 +38,13 @@ type
               4-element vector. }
             Vector4: TVector4);
     end;
+
+    const
+      { Quaternion representing @italic("no rotation").
+        Note: this is @italic(not) a quaternion filled with zeros
+        (the @link(Real) component is 1.0), instead this is a unit quaternion
+        that correctly represents @italic("rotation by zero degrees/radians"). }
+      ZeroRotation: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
 
     { Calculate axis (will be normalized) and angle (will be in radians)
       of rotation encoded in unit quaternion Q.
@@ -48,7 +60,9 @@ type
     { Calculate matrix doing rotation described by unit quaternion. }
     function ToRotationMatrix: TMatrix4;
 
-    { Rotate by unit quaternion.
+    { Rotate a point, treating this quaternion as a representation of 3D rotation.
+      For this operation to make sense in 3D, this must be a "unit" quaternion
+      (which is created by a function like @link(QuatFromAxisAngle)).
 
       You can pass here TVector4, which is then understood to be a 3D
       position in homogeneous coordinates.
@@ -57,15 +71,17 @@ type
     function Rotate(const Point: TVector3): TVector3; overload;
     { @groupEnd }
 
-    { Quaternion conjugation. This is just a fancy name for negating Q.Vector.
+    { Quaternion conjugation. This is just a fancy name for negating @link(Vector).
       @groupBegin }
     function Conjugate: TQuaternion;
     procedure ConjugateMe;
     { @groupEnd }
 
-    procedure Normalize;
+    { Make the quaternion normalized. }
+    procedure NormalizeMe;
+    procedure Normalize; deprecated 'use NormalizeMe (consistent with TVector3.NormalizeMe and TQuaternion.ConjugateMe)';
 
-    { Perform normalization, only if the quaternion is detected to be
+    { Perform normalization but only if the quaternion is detected to be
       "significantly unnormalized". It checks if the quaternion needs
       normalization using fast VectorLenSqr, that is quaternion length
       is not needed for the check (sqrt not needed). Only if it's significantly
@@ -89,7 +105,8 @@ type
       So possibly this would trigger incorrect quaternions at some point.
 
       Anyway, this remains mostly a paranoid correctness measure.  }
-    procedure LazyNormalize;
+    procedure LazyNormalizeMe;
+    procedure LazyNormalize; deprecated 'use LazyNormalizeMe';
 
     { Multiply two quaternions.
 
@@ -104,7 +121,8 @@ type
   end;
 
 const
-  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1))
+    deprecated 'use TQuaternion.ZeroRotation';
 
 { Calculate unit quaternion representing rotation around Axis
   by AngleRad angle (in radians).
@@ -268,6 +286,11 @@ begin
 end;
 
 procedure TQuaternion.Normalize;
+begin
+  NormalizeMe;
+end;
+
+procedure TQuaternion.NormalizeMe;
 var
   Len: Single;
 begin
@@ -283,6 +306,11 @@ begin
 end;
 
 procedure TQuaternion.LazyNormalize;
+begin
+  LazyNormalizeMe;
+end;
+
+procedure TQuaternion.LazyNormalizeMe;
 var
   Len: Single;
 begin
@@ -408,7 +436,7 @@ begin
   end else
     Result.Data.Vector4 := Lerp(A, Q1.Data.Vector4, Q2.Data.Vector4);
 
-  Result.Normalize;
+  Result.NormalizeMe;
 end;
 
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;

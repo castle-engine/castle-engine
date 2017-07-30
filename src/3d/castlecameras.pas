@@ -2443,7 +2443,7 @@ begin
 
   FModelBox := TBox3D.Empty;
   FTranslation := TVector3.Zero;
-  FRotations := QuatIdentityRot;
+  FRotations := TQuaternion.ZeroRotation;
   FRotationsAnim := TVector3.Zero;
   FScaleFactor := 1;
   FDragMoveSpeed := 1;
@@ -2594,7 +2594,7 @@ begin
       FRotations := QuatFromAxisAngle(TVector3.One[2],
         FRotationsAnim[2] * RotChange) * FRotations;
 
-    FRotations.LazyNormalize;
+    FRotations.LazyNormalizeMe;
 
     ScheduleVisibleChange;
   end;
