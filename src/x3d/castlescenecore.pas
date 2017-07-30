@@ -30,12 +30,6 @@ uses SysUtils, Classes, Generics.Collections, Contnrs,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
   Castle3D, CastleInternalShadowMaps, CastleProjection;
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
-
 type
   { Internal helper type for TCastleSceneCore.
     @exclude }
@@ -2070,12 +2064,6 @@ implementation
 
 uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
-
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
 
 { TX3DBindableStack ----------------------------------------------------- }
 
@@ -4794,10 +4782,10 @@ begin
       Progress.Init(TrianglesCount(false), ProgressTitle, true);
       try
         TriangleOctreeToAdd := Result;
-        FillOctree({$ifdef FPC_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
+        FillOctree({$ifdef CASTLE_OBJFPC} @ {$endif} AddTriangleToOctreeProgress);
       finally Progress.Fini end;
     end else
-      FillOctree({$ifdef FPC_OBJFPC} @ {$endif} Result.AddItemTriangle);
+      FillOctree({$ifdef CASTLE_OBJFPC} @ {$endif} Result.AddItemTriangle);
   except Result.Free; raise end;
 
   finally Dec(InternalDirty) end;

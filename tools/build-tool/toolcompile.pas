@@ -16,6 +16,8 @@
 { Compiling with FPC. }
 unit ToolCompile;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, ToolArchitectures;
@@ -167,7 +169,7 @@ var
   procedure DeleteFilesRecursive(const Mask: string);
   begin
     FindFiles(Directory, Mask, false,
-      {$ifdef FPC_OBJFPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
+      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
   end;
 
 begin

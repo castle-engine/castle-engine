@@ -425,7 +425,7 @@ type
     function SaveToXml: TSaveToXmlMethod; virtual;
   end;
 
-  TX3DFileItemList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DFileItem>)
+  TX3DFileItemList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DFileItem>)
   public
     procedure SortPositionInParent;
     { Sort all items by PositionInParent and then save them all to stream. }
@@ -579,7 +579,7 @@ type
     procedure SaveToStreamClassicIsClauses(Writer: TX3DWriter);
   end;
 
-  TX3DFieldOrEventList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
+  TX3DFieldOrEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
   TX3DEventReceiveList = class;
   TX3DFieldClass = class of TX3DField;
 
@@ -1033,7 +1033,7 @@ type
     function OnReceive: TX3DEventReceiveList;
   end;
 
-  TX3DFieldList = class({$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
+  TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
   private
     function GetByName(const AName: string): TX3DField;
   public
@@ -1057,7 +1057,7 @@ type
   end;
   TX3DSingleFieldClass = class of TX3DSingleField;
 
-  TX3DSingleFieldList = {$ifdef FPC_OBJFPC}specialize{$endif} TObjectList<TX3DSingleField>;
+  TX3DSingleFieldList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DSingleField>;
 
   EX3DMultFieldDifferentCount = class(EX3DError);
 
@@ -3007,7 +3007,7 @@ end;
 
 procedure TX3DFileItemList.SortPositionInParent;
 type
-  TX3DFileItemComparer = {$ifdef FPC_OBJFPC}specialize{$endif} TComparer<TX3DFileItem>;
+  TX3DFileItemComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TX3DFileItem>;
 begin
   Sort(TX3DFileItemComparer.Construct(@IsSmallerPositionInParent));
 end;
@@ -5686,20 +5686,6 @@ begin
 end;
 
 { multiple value fields ----------------------------------------------------- }
-
-{ Note that because of FPC 2.0.2 bug, code below will not compile
-  with FPC 2.0.2 in objfpc mode. For objfpc mode I would have to
-  change below Items.Items[I] to Items.List^[I],
-  i.e. Items property of my dynamic array classes will not work
-  correctly in objfpc mode in FPC 2.0.2.
-  Fixed in FPC 2.0.3 and 2.1.1 (revision 2911).
-}
-
-{$ifdef FPC_OBJFPC}
-  {$ifdef VER2_0_2}
-    {$fatal This code will not compile with FPC 2.0.2 in objfpc mode}
-  {$endif}
-{$endif}
 
 {$define IMPLEMENT_MF_CLASS:=
 constructor TMF_CLASS.CreateUndefined(AParentNode: TX3DFileItem;
