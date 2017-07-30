@@ -207,8 +207,8 @@ procedure alFreeBuffer(var Buffer: TALuint);
   and pDeviceList is initialized to the null-separated list of
   possible OpenAL devices.
   @groupBegin }
-function EnumerationExtPresent(out pDeviceList: PChar): boolean;
-function EnumerationExtPresent: boolean;
+function EnumerationExtPresent(out pDeviceList: PChar): boolean; overload;
+function EnumerationExtPresent: boolean; overload;
 { @groupEnd }
 
 {$undef read_interface}

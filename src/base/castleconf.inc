@@ -228,4 +228,8 @@
   {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 {$endif}
 
+{$ifdef FPC_OBJFPC}
+  {$define FPC_DEFAULTS_TO_OBJFPC}
+{$endif}
+
 {$endif not CASTLE_CONF_INCLUDED}

@@ -27,7 +27,7 @@ uses Generics.Collections,
   after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
   *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
   (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
+{$ifdef FPC_DEFAULTS_TO_OBJFPC} {$define FPC_OBJFPC} {$endif}
 
 type
   { Complete timestamp for X3D events.
@@ -95,7 +95,7 @@ operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
 {$endif FPC_OBJFPC}
 
 type
-  TX3DTimeList = specialize TStructList<TX3DTime>;
+  TX3DTimeList = {$ifdef FPC_OBJFPC}specialize{$endif} TStructList<TX3DTime>;
 
 implementation
 
