@@ -47,6 +47,8 @@ type
     procedure Test2D;
     procedure TestApproximateScale;
     procedure TestXYZ;
+    procedure TestPlaneMove;
+    procedure TestPlaneMoveRandom;
   end;
 
 function RandomVector: TVector3;
@@ -817,6 +819,46 @@ begin
   AssertEquals(4, V4.W);
 end;
 
+procedure TTestCastleVectors.TestPlaneMove;
+var
+  Plane: TVector4;
+begin
+  Plane := Vector4(1, 0, 0, 10); // x = -10
+  AssertVectorEquals(Vector4(1, 0, 0, 9), PlaneMove(Plane, Vector3(1, 2, 3)));
+
+  Plane := Vector4(1, 0, 0, 10); // x = -10
+  PlaneMoveVar(Plane, Vector3(1, 2, 3));
+  AssertVectorEquals(Vector4(1, 0, 0, 9), Plane);
+
+  Plane := Vector4(0, 1, 0, 10); // y = -10
+  AssertVectorEquals(Vector4(0, 1, 0, 8), PlaneMove(Plane, Vector3(1, 2, 3)));
+
+  Plane := Vector4(0, 1, 0, 10); // y = -10
+  PlaneMoveVar(Plane, Vector3(1, 2, 3));
+  AssertVectorEquals(Vector4(0, 1, 0, 8), Plane);
+
+  Plane := Vector4(0, 1, 0, 8); // y = -10
+  AssertVectorEquals(Vector4(0, 1, 0, 10), PlaneAntiMove(Plane, Vector3(1, 2, 3)));
+end;
+
+procedure TTestCastleVectors.TestPlaneMoveRandom;
+var
+  I: Integer;
+  Plane: TVector4;
+  Move, PlaneDir: TVector3;
+begin
+  for I := 1 to 100 do
+  begin
+    repeat
+      PlaneDir := RandomVector;
+    until not PlaneDir.IsZero;
+    Plane := Vector4(PlaneDir, Random * 100);
+    Move := RandomVector;
+    // "PlaneAntiMove + PlaneMove" should zero each other out
+    AssertVectorEquals(Plane, PlaneAntiMove(PlaneMove(Plane, Move), Move), 1.0);
+  end;
+end;
+
 initialization
- RegisterTest(TTestCastleVectors);
+  RegisterTest(TTestCastleVectors);
 end.
