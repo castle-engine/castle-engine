@@ -650,7 +650,7 @@ var
   NowTime: TTimerResult;
 begin
   Inc(FramesRendered);
-  FrameTimePassed.Value += Timer.Value - RenderStartTime.Value;
+  FrameTimePassed.Value := FrameTimePassed.Value + Timer.Value - RenderStartTime.Value;
 
   NowTime := Timer;
   if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then

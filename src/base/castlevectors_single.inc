@@ -848,10 +848,10 @@ var
   Len: Single;
 begin
   Len := Sqrt( Sqr(V.Data[0]) + Sqr(V.Data[1]) + Sqr(V.Data[2]) );
-  V.Data[0] /= Len;
-  V.Data[1] /= Len;
-  V.Data[2] /= Len;
-  V.Data[3] /= Len;
+  V.Data[0] := V.Data[0] / Len;
+  V.Data[1] := V.Data[1] / Len;
+  V.Data[2] := V.Data[2] / Len;
+  V.Data[3] := V.Data[3] / Len;
 end;
 
 function CosAngleBetweenVectors(const V1, V2: TVector3): Single;
@@ -1199,7 +1199,7 @@ begin
   }
 
   Result := Plane;
-  Result.Data[3] -=
+  Result.Data[3] := Result.Data[3] -
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
     Plane.Data[2] * Move.Data[2];
@@ -1207,7 +1207,7 @@ end;
 
 procedure PlaneMoveVar(var Plane: TVector4; const Move: TVector3);
 begin
-  Plane.Data[3] -=
+  Plane.Data[3] := Plane.Data[3] -
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
     Plane.Data[2] * Move.Data[2];
@@ -1220,7 +1220,7 @@ begin
     So we just do "Result.Data[3] +=" instead of "Result.Data[3] -=". }
 
   Result := Plane;
-  Result.Data[3] +=
+  Result.Data[3] := Result.Data[3] +
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
     Plane.Data[2] * Move.Data[2];
@@ -1961,10 +1961,10 @@ var
   NewColumn: TVector4;
 begin
   NewColumn := M.Columns[3];
-  NewColumn.Data[0] += M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
-  NewColumn.Data[1] += M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
-  NewColumn.Data[2] += M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
-  NewColumn.Data[3] += M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
+  NewColumn.Data[0] := NewColumn.Data[0] + M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
+  NewColumn.Data[1] := NewColumn.Data[1] + M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
+  NewColumn.Data[2] := NewColumn.Data[2] + M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
+  NewColumn.Data[3] := NewColumn.Data[3] + M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
   M.Columns[3] := NewColumn;
 end;
 
@@ -1976,10 +1976,10 @@ var
   OldLastRow: TVector4 absolute NewColumn;
 begin
   NewColumn := M.Columns[3];
-  NewColumn.Data[0] += M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
-  NewColumn.Data[1] += M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
-  NewColumn.Data[2] += M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
-  NewColumn.Data[3] += M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
+  NewColumn.Data[0] := NewColumn.Data[0] + M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
+  NewColumn.Data[1] := NewColumn.Data[1] + M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
+  NewColumn.Data[2] := NewColumn.Data[2] + M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
+  NewColumn.Data[3] := NewColumn.Data[3] + M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
   M.Columns[3] := NewColumn;
 
   OldLastRow.Data[0] := MInvert.Data[0, 3];
@@ -1987,18 +1987,18 @@ begin
   OldLastRow.Data[2] := MInvert.Data[2, 3];
   OldLastRow.Data[3] := MInvert.Data[3, 3];
 
-  MInvert.Data[0, 0] -= Transl.Data[0] * OldLastRow.Data[0];
-  MInvert.Data[1, 0] -= Transl.Data[0] * OldLastRow.Data[1];
-  MInvert.Data[2, 0] -= Transl.Data[0] * OldLastRow.Data[2];
-  MInvert.Data[3, 0] -= Transl.Data[0] * OldLastRow.Data[3];
-  MInvert.Data[0, 1] -= Transl.Data[1] * OldLastRow.Data[0];
-  MInvert.Data[1, 1] -= Transl.Data[1] * OldLastRow.Data[1];
-  MInvert.Data[2, 1] -= Transl.Data[1] * OldLastRow.Data[2];
-  MInvert.Data[3, 1] -= Transl.Data[1] * OldLastRow.Data[3];
-  MInvert.Data[0, 2] -= Transl.Data[2] * OldLastRow.Data[0];
-  MInvert.Data[1, 2] -= Transl.Data[2] * OldLastRow.Data[1];
-  MInvert.Data[2, 2] -= Transl.Data[2] * OldLastRow.Data[2];
-  MInvert.Data[3, 2] -= Transl.Data[2] * OldLastRow.Data[3];
+  MInvert.Data[0, 0] := MInvert.Data[0, 0] - Transl.Data[0] * OldLastRow.Data[0];
+  MInvert.Data[1, 0] := MInvert.Data[1, 0] - Transl.Data[0] * OldLastRow.Data[1];
+  MInvert.Data[2, 0] := MInvert.Data[2, 0] - Transl.Data[0] * OldLastRow.Data[2];
+  MInvert.Data[3, 0] := MInvert.Data[3, 0] - Transl.Data[0] * OldLastRow.Data[3];
+  MInvert.Data[0, 1] := MInvert.Data[0, 1] - Transl.Data[1] * OldLastRow.Data[0];
+  MInvert.Data[1, 1] := MInvert.Data[1, 1] - Transl.Data[1] * OldLastRow.Data[1];
+  MInvert.Data[2, 1] := MInvert.Data[2, 1] - Transl.Data[1] * OldLastRow.Data[2];
+  MInvert.Data[3, 1] := MInvert.Data[3, 1] - Transl.Data[1] * OldLastRow.Data[3];
+  MInvert.Data[0, 2] := MInvert.Data[0, 2] - Transl.Data[2] * OldLastRow.Data[0];
+  MInvert.Data[1, 2] := MInvert.Data[1, 2] - Transl.Data[2] * OldLastRow.Data[1];
+  MInvert.Data[2, 2] := MInvert.Data[2, 2] - Transl.Data[2] * OldLastRow.Data[2];
+  MInvert.Data[3, 2] := MInvert.Data[3, 2] - Transl.Data[2] * OldLastRow.Data[3];
 end;
 
 function TransformToCoords(const V, NewX, NewY, NewZ: TVector3): TVector3;
@@ -2310,31 +2310,31 @@ begin
     treating Result like a 3x3 matrix. The last column and row are already Ok. }
 
   { Expanded Result := Result + (IdentityMatrix3 - Result) * AngleCos; }
-  Result.Data[0, 0] += (1 - Result.Data[0, 0]) * C;
-  Result.Data[1, 0] +=    - Result.Data[1, 0]  * C;
-  Result.Data[2, 0] +=    - Result.Data[2, 0]  * C;
+  Result.Data[0, 0] := Result.Data[0, 0] + (1 - Result.Data[0, 0]) * C;
+  Result.Data[1, 0] := Result.Data[1, 0] +    - Result.Data[1, 0]  * C;
+  Result.Data[2, 0] := Result.Data[2, 0] +    - Result.Data[2, 0]  * C;
 
-  Result.Data[0, 1] +=    - Result.Data[0, 1]  * C;
-  Result.Data[1, 1] += (1 - Result.Data[1, 1]) * C;
-  Result.Data[2, 1] +=    - Result.Data[2, 1]  * C;
+  Result.Data[0, 1] := Result.Data[0, 1] +    - Result.Data[0, 1]  * C;
+  Result.Data[1, 1] := Result.Data[1, 1] + (1 - Result.Data[1, 1]) * C;
+  Result.Data[2, 1] := Result.Data[2, 1] +    - Result.Data[2, 1]  * C;
 
-  Result.Data[0, 2] +=    - Result.Data[0, 2]  * C;
-  Result.Data[1, 2] +=    - Result.Data[1, 2]  * C;
-  Result.Data[2, 2] += (1 - Result.Data[2, 2]) * C;
+  Result.Data[0, 2] := Result.Data[0, 2] +    - Result.Data[0, 2]  * C;
+  Result.Data[1, 2] := Result.Data[1, 2] +    - Result.Data[1, 2]  * C;
+  Result.Data[2, 2] := Result.Data[2, 2] + (1 - Result.Data[2, 2]) * C;
 
-  NormAxis.Data[0] *= S;
-  NormAxis.Data[1] *= S;
-  NormAxis.Data[2] *= S;
+  NormAxis.Data[0] := NormAxis.Data[0] * S;
+  NormAxis.Data[1] := NormAxis.Data[1] * S;
+  NormAxis.Data[2] := NormAxis.Data[2] * S;
 
   { Add M3 (from OpenGL matrix equations) }
-  Result.Data[1, 0] += -NormAxis.Data[2];
-  Result.Data[2, 0] +=  NormAxis.Data[1];
+  Result.Data[1, 0] := Result.Data[1, 0] + -NormAxis.Data[2];
+  Result.Data[2, 0] := Result.Data[2, 0] +  NormAxis.Data[1];
 
-  Result.Data[0, 1] +=  NormAxis.Data[2];
-  Result.Data[2, 1] += -NormAxis.Data[0];
+  Result.Data[0, 1] := Result.Data[0, 1] +  NormAxis.Data[2];
+  Result.Data[2, 1] := Result.Data[2, 1] + -NormAxis.Data[0];
 
-  Result.Data[0, 2] += -NormAxis.Data[1];
-  Result.Data[1, 2] +=  NormAxis.Data[0];
+  Result.Data[0, 2] := Result.Data[0, 2] + -NormAxis.Data[1];
+  Result.Data[1, 2] := Result.Data[1, 2] +  NormAxis.Data[0];
 end;
 
 procedure RotationMatricesRad(const AxisAngle: TVector4;
@@ -2367,36 +2367,36 @@ begin
     treating Matrix like a 3x3 matrix. The last column and row are already Ok. }
 
   { Expanded Matrix := Matrix + (IdentityMatrix3 - Matrix) * AngleCos; }
-  Matrix.Data[0, 0] += (1 - Matrix.Data[0, 0]) * C;
-  Matrix.Data[1, 0] +=    - Matrix.Data[1, 0]  * C;
-  Matrix.Data[2, 0] +=    - Matrix.Data[2, 0]  * C;
+  Matrix.Data[0, 0] := Matrix.Data[0, 0] + (1 - Matrix.Data[0, 0]) * C;
+  Matrix.Data[1, 0] := Matrix.Data[1, 0] +    - Matrix.Data[1, 0]  * C;
+  Matrix.Data[2, 0] := Matrix.Data[2, 0] +    - Matrix.Data[2, 0]  * C;
 
-  Matrix.Data[0, 1] +=    - Matrix.Data[0, 1]  * C;
-  Matrix.Data[1, 1] += (1 - Matrix.Data[1, 1]) * C;
-  Matrix.Data[2, 1] +=    - Matrix.Data[2, 1]  * C;
+  Matrix.Data[0, 1] := Matrix.Data[0, 1] +    - Matrix.Data[0, 1]  * C;
+  Matrix.Data[1, 1] := Matrix.Data[1, 1] + (1 - Matrix.Data[1, 1]) * C;
+  Matrix.Data[2, 1] := Matrix.Data[2, 1] +    - Matrix.Data[2, 1]  * C;
 
-  Matrix.Data[0, 2] +=    - Matrix.Data[0, 2]  * C;
-  Matrix.Data[1, 2] +=    - Matrix.Data[1, 2]  * C;
-  Matrix.Data[2, 2] += (1 - Matrix.Data[2, 2]) * C;
+  Matrix.Data[0, 2] := Matrix.Data[0, 2] +    - Matrix.Data[0, 2]  * C;
+  Matrix.Data[1, 2] := Matrix.Data[1, 2] +    - Matrix.Data[1, 2]  * C;
+  Matrix.Data[2, 2] := Matrix.Data[2, 2] + (1 - Matrix.Data[2, 2]) * C;
 
   { Up to this point, calculated Matrix is also good for InvertedMatrix }
   InvertedMatrix := Matrix;
 
-  NormAxis.Data[0] *= S;
-  NormAxis.Data[1] *= S;
-  NormAxis.Data[2] *= S;
+  NormAxis.Data[0] := NormAxis.Data[0] * S;
+  NormAxis.Data[1] := NormAxis.Data[1] * S;
+  NormAxis.Data[2] := NormAxis.Data[2] * S;
 
   { Now add M3 to Matrix, and subtract M3 from InvertedMatrix.
     That's because for the inverted rotation, AngleSin is negated,
     so the M3 should be subtracted. }
-  V := -NormAxis.Data[2]; Matrix.Data[1, 0] += V; InvertedMatrix.Data[1, 0] -= V;
-  V :=  NormAxis.Data[1]; Matrix.Data[2, 0] += V; InvertedMatrix.Data[2, 0] -= V;
+  V := -NormAxis.Data[2]; Matrix.Data[1, 0] := Matrix.Data[1, 0] + V; InvertedMatrix.Data[1, 0] := InvertedMatrix.Data[1, 0] - V;
+  V :=  NormAxis.Data[1]; Matrix.Data[2, 0] := Matrix.Data[2, 0] + V; InvertedMatrix.Data[2, 0] := InvertedMatrix.Data[2, 0] - V;
 
-  V :=  NormAxis.Data[2]; Matrix.Data[0, 1] += V; InvertedMatrix.Data[0, 1] -= V;
-  V := -NormAxis.Data[0]; Matrix.Data[2, 1] += V; InvertedMatrix.Data[2, 1] -= V;
+  V :=  NormAxis.Data[2]; Matrix.Data[0, 1] := Matrix.Data[0, 1] + V; InvertedMatrix.Data[0, 1] := InvertedMatrix.Data[0, 1] - V;
+  V := -NormAxis.Data[0]; Matrix.Data[2, 1] := Matrix.Data[2, 1] + V; InvertedMatrix.Data[2, 1] := InvertedMatrix.Data[2, 1] - V;
 
-  V := -NormAxis.Data[1]; Matrix.Data[0, 2] += V; InvertedMatrix.Data[0, 2] -= V;
-  V :=  NormAxis.Data[0]; Matrix.Data[1, 2] += V; InvertedMatrix.Data[1, 2] -= V;
+  V := -NormAxis.Data[1]; Matrix.Data[0, 2] := Matrix.Data[0, 2] + V; InvertedMatrix.Data[0, 2] := InvertedMatrix.Data[0, 2] - V;
+  V :=  NormAxis.Data[0]; Matrix.Data[1, 2] := Matrix.Data[1, 2] + V; InvertedMatrix.Data[1, 2] := InvertedMatrix.Data[1, 2] - V;
 end;
 
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4;

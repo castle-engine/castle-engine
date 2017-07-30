@@ -323,7 +323,8 @@ begin
     if V = Value.Data[0] then
     begin
       Result.Data[0] := (Value.Data[1] - Value.Data[2]) / Chroma;
-      if Result.Data[0] < 0 then Result.Data[0] += 6.0;
+      if Result.Data[0] < 0 then
+        Result.Data[0] := Result.Data[0] + 6.0;
     end else
     if V = Value.Data[1] then
       Result.Data[0] := (Value.Data[2] - Value.Data[0]) / Chroma + 2.0 else
@@ -398,16 +399,16 @@ begin
     if HueDiff > 3 then
     begin
       { from hue 1 to hue 2 go down through 0.0 }
-      H2.Data[0] -= 6;
+      H2.Data[0] := H2.Data[0] - 6;
       HOut.Data[0] := H1.Data[0] + A * (H2.Data[0] - H1.Data[0]);
-      if HOut.Data[0] < 0 then HOut.Data[0] += 6;
+      if HOut.Data[0] < 0 then HOut.Data[0] := HOut.Data[0] + 6;
     end else
     if HueDiff < -3 then
     begin
       { from hue 1 to hue 2 go up through 6.0 }
-      H2.Data[0] += 6;
+      H2.Data[0] := H2.Data[0] + 6;
       HOut.Data[0] := H1.Data[0] + A * (H2.Data[0] - H1.Data[0]);
-      if HOut.Data[0] > 6 then HOut.Data[0] -= 6;
+      if HOut.Data[0] > 6 then HOut.Data[0] := HOut.Data[0] - 6;
     end else
       { normal lerp when HueDiff inside [-3, 3] }
       HOut.Data[0] := H1.Data[0] + A * (H2.Data[0] - H1.Data[0]);
@@ -429,7 +430,7 @@ begin
             IntToHex(RoundClamp255(V.Data[2] * 255), 2);
   A := RoundClamp255(V.Data[3] * 255);
   if A <> 255 then
-    Result += IntToHex(A, 2);
+    Result := Result + IntToHex(A, 2);
 end;
 
 function ColorRGBToHex(const V: TCastleColorRGB): string;

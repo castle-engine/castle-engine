@@ -232,8 +232,8 @@ begin
 
   FirstLine := 'Log for "' + ApplicationName + '".';
   if ProgramVersion <> '' then
-    FirstLine += ' Version: ' + ProgramVersion + '.';
-  FirstLine += ' Started on ' + DateTimeToAtStr(Now) + '.';
+    FirstLine := FirstLine + ' Version: ' + ProgramVersion + '.';
+  FirstLine := FirstLine + ' Started on ' + DateTimeToAtStr(Now) + '.';
   WritelnStr(LogStream, FirstLine);
   WritelnStr(LogStream, 'Castle Game Engine version: ' + CastleEngineVersion + '.');
   WritelnStr(LogStream, 'Compiled with: ' + SCompilerDescription + '.');

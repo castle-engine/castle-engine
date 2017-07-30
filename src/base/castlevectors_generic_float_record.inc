@@ -1960,7 +1960,7 @@ begin
   for I := 0 to 3 do { i = rows, j = columns }
     for J := 0 to 3 do
       for K := 0 to 3 do
-        Result.Data[J, I] += M1.Data[K, I] * M2.Data[J, K];
+        Result.Data[J, I] := Result.Data[J, I] + M1.Data[K, I] * M2.Data[J, K];
 *)
 
   { This is code above expanded for speed sake
@@ -2201,9 +2201,9 @@ begin
     if Math.IsZero(Divisor) then
       raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
 
-    Result.Data[0] /= Divisor;
-    Result.Data[1] /= Divisor;
-    Result.Data[2] /= Divisor;
+    Result.Data[0] := Result.Data[0] / Divisor;
+    Result.Data[1] := Result.Data[1] / Divisor;
+    Result.Data[2] := Result.Data[2] / Divisor;
   end;
 end;
 

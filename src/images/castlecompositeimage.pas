@@ -652,7 +652,7 @@ end;
 
 procedure TDDSRowReader.NextPixel;
 begin
-  PtrUInt(Pixel) += PixelByteSize;
+  PtrUInt(Pixel) := PtrUInt(Pixel) + PixelByteSize;
   CalculatePixelValue;
 end;
 

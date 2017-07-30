@@ -471,8 +471,8 @@ function LoadEncodedImageParams(
       Result := '';
       for I := 0 to High(AllowedImageClasses) do
       begin
-        if Result <> '' then Result += ', ';
-        Result += AllowedImageClasses[I].ClassName;
+        if Result <> '' then Result := Result + ', ';
+        Result := Result + AllowedImageClasses[I].ClassName;
       end;
     end;
   end;

@@ -523,56 +523,56 @@ function TRectangle.RemoveLeft(W: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(W, Width);
-  Result.Left += W;
-  Result.Width -= W;
+  Result.Left := Result.Left + W;
+  Result.Width := Result.Width - W;
 end;
 
 function TRectangle.RemoveBottom(H: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(H, Height);
-  Result.Bottom += H;
-  Result.Height -= H;
+  Result.Bottom := Result.Bottom + H;
+  Result.Height := Result.Height - H;
 end;
 
 function TRectangle.RemoveRight(W: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(W, Width);
-  Result.Width -= W;
+  Result.Width := Result.Width - W;
 end;
 
 function TRectangle.RemoveTop(H: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(H, Height);
-  Result.Height -= H;
+  Result.Height := Result.Height - H;
 end;
 
 function TRectangle.GrowLeft(const W: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Left -= Integer(W);
-  Result.Width += W;
+  Result.Left := Result.Left - Integer(W);
+  Result.Width := Result.Width + W;
 end;
 
 function TRectangle.GrowBottom(const H: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Bottom -= Integer(H);
-  Result.Height += H;
+  Result.Bottom := Result.Bottom - Integer(H);
+  Result.Height := Result.Height + H;
 end;
 
 function TRectangle.GrowRight(const W: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Width += W;
+  Result.Width := Result.Width + W;
 end;
 
 function TRectangle.GrowTop(const H: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Height += H;
+  Result.Height := Result.Height + H;
 end;
 
 function TRectangle.LeftPart(W: Cardinal): TRectangle;
@@ -593,7 +593,7 @@ function TRectangle.RightPart(W: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(W, Width);
-  Result.Left += Width - W;
+  Result.Left := Result.Left + Width - W;
   Result.Width := W;
 end;
 
@@ -601,7 +601,7 @@ function TRectangle.TopPart(H: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(H, Height);
-  Result.Bottom += Height - H;
+  Result.Bottom := Result.Bottom + Height - H;
   Result.Height := H;
 end;
 
@@ -763,13 +763,13 @@ begin
   Result := OtherRect.Left + X;
   case ThisPosition of
     hpLeft  : ;
-    hpMiddle: Result -= Width div 2;
-    hpRight : Result -= Width;
+    hpMiddle: Result := Result - Width div 2;
+    hpRight : Result := Result - Width;
   end;
   case OtherPosition of
     hpLeft  : ;
-    hpMiddle: Result += OtherRect.Width div 2;
-    hpRight : Result += OtherRect.Width;
+    hpMiddle: Result := Result + OtherRect.Width div 2;
+    hpRight : Result := Result + OtherRect.Width;
   end;
 end;
 
@@ -782,13 +782,13 @@ begin
   Result := OtherRect.Bottom + Y;
   case ThisPosition of
     vpBottom: ;
-    vpMiddle: Result -= Height div 2;
-    vpTop   : Result -= Height;
+    vpMiddle: Result := Result - Height div 2;
+    vpTop   : Result := Result - Height;
   end;
   case OtherPosition of
     vpBottom: ;
-    vpMiddle: Result += OtherRect.Height div 2;
-    vpTop   : Result += OtherRect.Height;
+    vpMiddle: Result := Result + OtherRect.Height div 2;
+    vpTop   : Result := Result + OtherRect.Height;
   end;
 end;
 
