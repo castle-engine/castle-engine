@@ -233,7 +233,9 @@
 // The cleanest solution seems to just ignore FPC_OBJFPC,
 // and define equivalent symbol (CASTLE_OBJFPC) on our own.
 {$ifdef FPC}
-  {$define CASTLE_OBJFPC}
+  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
+    {$define CASTLE_OBJFPC}
+  {$endif}
 {$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}
