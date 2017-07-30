@@ -681,7 +681,7 @@ var
         if Lights <> nil then
           for i := 0 to Lights.Count - 1 do
             if LightNotBlocked(Lights.List^[i]) then
-              Result += Lights.List^[i].Contribution(Intersection,
+              Result := Result + Lights.List^[i].Contribution(Intersection,
                 IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Add BaseLights contribution, just like other lights.
@@ -717,7 +717,7 @@ var
         for I := 0 to BaseLights.Count - 1 do
           if (Depth = InitialDepth) or
              LightNotBlocked(BaseLights.List^[I]) then
-            Result += BaseLights.List^[I].Contribution(Intersection,
+            Result := Result + BaseLights.List^[I].Contribution(Intersection,
               IntersectNormal, IntersectNode^.State, CamPosition, DiffuseTextureColor);
 
         { Calculate recursively reflected and transmitted rays.
@@ -1148,15 +1148,15 @@ const
             LightSource^.World.Area /
             PointsDistanceSqr(SampleLightPoint, Intersection);
 
-          Result += DirectColor;
+          Result := Result + DirectColor;
         end;
 
         { dopiero tu przemnoz przez 1/LightEmissionArea.
           Podziel tez przez ilosc probek i pomnoz przez ilosc swiatel -
           - w rezultacie spraw zeby wynik przyblizal sume wkladu direct illumination
           wszystkich swiatel. }
-        Result *= LightItems.Count /
-          (LightEmissionArea * DirectIllumSamplesCount);
+        Result := Result * (LightItems.Count /
+          (LightEmissionArea * DirectIllumSamplesCount));
       end;
 
     type
@@ -1210,7 +1210,7 @@ const
           Weights[ck] := Colors[ck][0] +
                          Colors[ck][1] +
                          Colors[ck][2];
-          WeightsSum += Weights[ck];
+          WeightsSum := WeightsSum + Weights[ck];
         end;
 
         { wylosuj jedno z ck : wylosuj zmienna RandomCK z przedzialu 0..WeightsSum
@@ -1220,7 +1220,7 @@ const
         while ck < High(ck) do
         begin
           if RandomCK < Weights[ck] then break;
-          RandomCK -= Weights[ck];
+          RandomCK := RandomCK - Weights[ck];
           Inc(ck);
         end;
 
@@ -1272,17 +1272,17 @@ const
             (czyli pomnoz przez WeightsSum/Weights[ck], wiemy ze mianownik jest
             > SingleEpsilon, sprawdzilismy to juz wczesniej). }
           TracedCol := TracedCol * Colors[ck];
-          TracedCol *= WeightsSum / Weights[ck];
+          TracedCol := TracedCol * (WeightsSum / Weights[ck]);
 
-          Result += TracedCol;
+          Result := Result + TracedCol;
         end;
 
         { dodaj DirectIllumination }
-        Result += DirectIllumination;
+        Result := Result + DirectIllumination;
 
         { Jezeli weszlismy tu dzieki rosyjskiej ruletce (a wiec jezeli Depth <= 0)
           to skaluj Result zeby zapisany tu estymator byl unbiased. }
-        if Depth <= 0 then Result *= 1/RRoulContinue;
+        if Depth <= 0 then Result := Result * (1/RRoulContinue);
       end;
     end;
 
@@ -1322,11 +1322,11 @@ const
       begin
         NonEmissiveColor := TVector3.Zero;
         for i := 0 to NonPrimarySamplesCount-1 do
-          NonEmissiveColor += TraceNonEmissivePart;
-        NonEmissiveColor *= 1 / NonPrimarySamplesCount;
-        Result += NonEmissiveColor;
+          NonEmissiveColor := NonEmissiveColor + TraceNonEmissivePart;
+        NonEmissiveColor := NonEmissiveColor * (1 / NonPrimarySamplesCount);
+        Result := Result + NonEmissiveColor;
       end else
-        Result += TraceNonEmissivePart;
+        Result := Result + TraceNonEmissivePart;
     end;
   end;
 
@@ -1356,9 +1356,9 @@ var
         RaysWindow.PrimaryRay(
           x + Random - 0.5, y + Random - 0.5,
           Image.Width, Image.Height, PrimaryRayOrigin, PrimaryRayDirection);
-        PixColor += Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
+        PixColor := PixColor + Trace(PrimaryRayOrigin, PrimaryRayDirection, MinDepth, nil, false, false);
       end;
-      PixColor *= 1 / PrimarySamplesCount;
+      PixColor := PixColor * (1 / PrimarySamplesCount);
     end;
 
     { zapisz PixColor do Image }
