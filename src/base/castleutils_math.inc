@@ -967,7 +967,7 @@ begin
     Remainder := 0 else
   if Remainder >= B then
   begin
-    Remainder -= B;
+    Remainder := Remainder - B;
     Inc(DivResult);
 
     { Mathematically, we could do above two lines in a loop

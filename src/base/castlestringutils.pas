@@ -90,7 +90,7 @@ type
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
     but this is better if your key/values may be multiline. }
-  TStringStringMap = class(specialize TDictionary<string, string>)
+  TStringStringMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, string>)
   strict private
     function GetItems(const AKey: string): string;
     procedure SetItems(const AKey: string; const AValue: string);
@@ -1361,7 +1361,7 @@ var
 begin
   Result := '';
   for I := 1 to Length(S) do
-    Result += SReadableForm(S[I]);
+    Result := Result + SReadableForm(S[I]);
 end;
 
 function SReadableForm(const C: char): string;
@@ -1471,7 +1471,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to High(Strings) do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function GlueStrings(const Strings: array of string; const Delimiter: string): string;
@@ -1482,7 +1482,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to High(Strings) do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
@@ -1493,7 +1493,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to Strings.Count - 1 do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
@@ -1504,7 +1504,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to Strings.Count - 1 do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
@@ -2367,7 +2367,7 @@ begin
 
     Move(S[SPos], Result[ResultPos], NextSPos - SPos);
 
-    ResultPos += NextSPos - SPos;
+    ResultPos := ResultPos + NextSPos - SPos;
     SPos := NextSPos;
 
     { omit next white-space chunk }

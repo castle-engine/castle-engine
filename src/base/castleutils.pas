@@ -167,7 +167,7 @@ initialization
 
    Fortunately we can fix it by globally changing AllowDirectorySeparators. }
  {$ifndef MSWINDOWS}
- AllowDirectorySeparators -= ['\'];
+ AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
  {$endif}
 finalization
  FinalizationOSSpecific;

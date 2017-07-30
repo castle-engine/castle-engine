@@ -266,7 +266,7 @@ var
 begin
   Result := 0;
   for I := 0 to Count - 1 do
-    Result += Items[I];
+    Result := Result + Items[I];
 end;
 
 { TBooleanList ------------------------------------------------------------ }
@@ -308,7 +308,7 @@ var
 begin
   Result := 0;
   for I := 0 to Count - 1 do
-    Result += Items[I];
+    Result := Result + Items[I];
 end;
 
 procedure TLongIntList.DeleteRange(const Index: Integer; DelCount: Integer);
@@ -344,7 +344,7 @@ var
 begin
   Result := 0;
   for I := 0 to Count - 1 do
-    Result += Items[I];
+    Result := Result + Items[I];
 end;
 
 {$endif}
