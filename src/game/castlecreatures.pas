@@ -1028,7 +1028,7 @@ var
 
 implementation
 
-uses SysUtils, DOM, CastleGL, CastleFilesUtils, CastleGLUtils,
+uses SysUtils, DOM, CastleFilesUtils, CastleGLUtils,
   CastleProgress, CastleGameNotifications, CastleUIControls, CastleGLBoxes;
 
 var
