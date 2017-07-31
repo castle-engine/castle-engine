@@ -784,7 +784,8 @@ type
     property ScaleFromBox: TBox3D {read GetScale} {} write SetScaleFromBox;
   end;
 
-  { A scene that can be added to some T3DCustomTransform to visualize
+  { A scene that can be added to some T3DCustomTransform
+    (as it's child, not transformed any further) to visualize
     the parameters of it's parent (bounding volumes and such).
 
     After constructing it, you must always @link(Attach) it to some
