@@ -761,7 +761,12 @@ type
       read FRemoveDead write FRemoveDead default DefaultRemoveDead;
   end;
 
-  { 3D axis, as an X3D node, to easily visualize debug things. }
+  { 3D axis, as an X3D node, to easily visualize debug things.
+    Create it and add the @link(Root) to your X3D scene graph
+    within some @link(TCastleSceneCore.RootNode).
+    You can change properties like @link(Position) at any time
+    (before and after adding the @link(TCastleSceneCore.RootNode)
+    to some graph). }
   TDebugAxis = class(TComponent)
   strict private
     FShape: TShapeNode;
@@ -779,8 +784,8 @@ type
     property ScaleFromBox: TBox3D {read GetScale} {} write SetScaleFromBox;
   end;
 
-  { A scene that can be added as T3DCustomTransform child to visualize
-    it's parameters (bounding volumes and such).
+  { A scene that can be added to some T3DCustomTransform to visualize
+    the parameters of it's parent (bounding volumes and such).
 
     After constructing it, you must always @link(Attach) it to some
     parent @link(T3DCustomTransform) instance.
