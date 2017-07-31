@@ -28,7 +28,8 @@ program radiance_transfer;
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  CastleVectors, X3DNodes, CastleGL, CastleWindow,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, X3DNodes, CastleWindow,
   CastleClassUtils, CastleUtils, CastleRenderingCamera,
   CastleGLUtils, CastleScene, CastleKeysMouse, CastleSceneManager,
   CastleFilesUtils, CastleLog, CastleSphericalHarmonics, CastleImages,

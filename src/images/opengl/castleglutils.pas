@@ -22,7 +22,8 @@ unit CastleGLUtils;
 interface
 
 uses SysUtils, Math, Matrix, Generics.Collections,
-  CastleImages, CastleGL, CastleUtils, CastleVectors, CastleRectangles,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleImages, CastleUtils, CastleVectors, CastleRectangles,
   CastleColors, CastleProjection;
 
 {$define read_interface}
@@ -147,6 +148,7 @@ procedure CheckGLErrors(const AdditionalComment: string = '');
 procedure GLErrorRaise(ErrorCode: TGLenum);
   {$ifdef OPENGL_CALLBACK_CDECL} cdecl; {$endif}
   {$ifdef OPENGL_CALLBACK_STDCALL} stdcall; {$endif}
+  deprecated 'this function is no longer useful, as you should not use GLU in cross-platform programs';
 
 { ---------------------------------------------------------------------------- }
 
@@ -160,7 +162,7 @@ function glGetInteger(pname: TGLEnum): TGLint;
 function glGetBoolean(pname: TGLEnum): TGLboolean;
 { @groupEnd }
 
-{ ------------------------------------------------------------------------------
+(*------------------------------------------------------------------------------
   Comfortable wrappers around many OpenGL functions.
   Overloaded for our vector types.
 
@@ -169,7 +171,10 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
   function call overhead), by importing these functions from so/dll
   under different names, like
 
-    procedure glVertexv(const V: TVector3); OPENGL_CALL overload; external OpenGLDLL name 'glVertex3fv';
+    procedure glVertexv(const V: TVector3);
+      {$ifdef OPENGL_CDECL} cdecl; {$endif}
+      {$ifdef OPENGL_STDCALL} stdcall; {$endif}
+      overload; external OpenGLDLL name 'glVertex3fv';
 
   But this is problematic: it assumes that TVector3 will be passed
   by reference. Which actually is not guaranteed by a compiler (FPC sometimes
@@ -183,7 +188,7 @@ function glGetBoolean(pname: TGLEnum): TGLboolean;
   The rest of these functions are just deprecated -- because they
   are only for fixed-function pipeline, in immediate mode (and all modern code
   should use VBO).
-}
+*)
 
 {$ifndef OpenGLES}
 
@@ -807,7 +812,11 @@ begin
   result := gluNewQuadric();
   if result = nil then
     raise Exception.Create('gluNewQuadric cannot be created');
+  {$push}
+  {$warnings off}
+  // knowingly using deprecated in another deprecated
   gluQuadricCallback(result, GLU_ERROR, TCallBack(@GLErrorRaise));
+  {$pop}
   gluQuadricTexture(result, Ord(texture));
   gluQuadricNormals(result, normals);
   gluQuadricOrientation(result, orientation);

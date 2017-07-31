@@ -74,7 +74,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleGL, CastleGLUtils, CastleUtils, CastleShapes;
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleUtils, CastleShapes;
 
 { Return vertex Original extruded into infinity, as seen from light
   at position LightPos.

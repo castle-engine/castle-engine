@@ -54,8 +54,10 @@ program terrain;
 
 {$I castleconf.inc}
 
-uses SysUtils, Classes, CastleBoxes, CastleKeysMouse, CastleColors,
-  CastleUtils, CastleWindow, CastleGL, CastleGLUtils, CastleParameters,
+uses SysUtils, Classes,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleBoxes, CastleKeysMouse, CastleColors,
+  CastleUtils, CastleWindow, CastleGLUtils, CastleParameters,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,

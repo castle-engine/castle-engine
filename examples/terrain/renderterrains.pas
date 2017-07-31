@@ -61,7 +61,9 @@ function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3;
 
 implementation
 
-uses CastleGL, CastleGLUtils, CastleUtils, SysUtils;
+uses
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleUtils, SysUtils;
 
 var
   TerrainVbo: TGLuint;

@@ -145,7 +145,8 @@ var
 implementation
 
 uses Math,
-  CastleLog, CastleProgress, CastleGL, CastleGLUtils, CastleWindow,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleLog, CastleProgress, CastleGLUtils, CastleWindow,
   CastleUIControls, CastleGLBoxes, CastleSceneCore,
   RiftData, RiftVideoOptions;
 

@@ -20,7 +20,9 @@ unit CastleGLShadowVolumes;
 
 interface
 
-uses CastleVectors, CastleBoxes, CastleGL, CastleGLUtils, CastleFrustum, Castle3D;
+uses
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleBoxes, CastleGLUtils, CastleFrustum, Castle3D;
 
 type
   TStencilSetupKind = (ssFrontAndBack, ssFront, ssBack);

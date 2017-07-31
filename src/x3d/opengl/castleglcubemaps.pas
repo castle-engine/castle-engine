@@ -20,8 +20,10 @@ unit CastleGLCubeMaps;
 
 interface
 
-uses CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
-  CastleRenderingCamera, CastleGLImages, Castle3D, CastleGL, CastleGLUtils;
+uses
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
+  CastleRenderingCamera, CastleGLImages, Castle3D, CastleGLUtils;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);

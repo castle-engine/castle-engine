@@ -78,7 +78,8 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleGL, CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
 
 type
   { Common class for exceptions related to GLSL programs. }

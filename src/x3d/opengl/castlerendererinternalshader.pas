@@ -525,8 +525,9 @@ type
 
 implementation
 
-uses SysUtils, CastleGL, CastleGLUtils,
-  CastleLog, StrUtils, Castle3D, CastleGLVersion, CastleRenderingCamera,
+uses SysUtils, StrUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleLog, Castle3D, CastleGLVersion, CastleRenderingCamera,
   CastleScreenEffects, CastleInternalX3DLexer;
 
 { TODO: a way to turn off using fixed-function pipeline completely

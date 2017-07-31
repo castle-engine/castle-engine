@@ -499,7 +499,8 @@ uses {$define read_interface_uses}
   { FPC units }
   SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
-  CastleVectors, CastleGL, CastleRectangles, CastleColors,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,

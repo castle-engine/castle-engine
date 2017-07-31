@@ -52,7 +52,8 @@ program plane_mirror_and_shadow;
 {$I castleconf.inc}
 
 uses SysUtils, Classes,
-  CastleVectors, CastleBoxes, X3DNodes, CastleGL, CastleWindow, CastleRenderer,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleBoxes, X3DNodes, CastleWindow, CastleRenderer,
   CastleClassUtils, CastleUtils, X3DLoad, CastleLog,
   CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,

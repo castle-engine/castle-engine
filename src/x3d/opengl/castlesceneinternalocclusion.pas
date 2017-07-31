@@ -50,8 +50,10 @@ procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
 
 implementation
 
-uses SysUtils, CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
-  CastleGLUtils, CastleGL, CastleVectors, CastleGLShaders;
+uses SysUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
+  CastleGLUtils, CastleVectors, CastleGLShaders;
 
 {$ifndef OpenGLES} // TODO-es this whole unit
 

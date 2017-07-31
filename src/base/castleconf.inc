@@ -123,7 +123,11 @@
 {$ifdef ANDROID} {$define OpenGLES} {$endif}
 {$ifdef iOS} {$define OpenGLES} {$endif}
 {$ifdef OpenGLES}
-  {$define CastleGL := CastleGLES20}
+  {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}
+    {$error We do not support Android/iOS for Delphi yet, use FPC/Lazarus to develop for Android/iOS and other OpenGLES platforms}
+  {$else}
+    {$define CastleGL := CastleGLES20}
+  {$endif}
   {$define GLImageUseShaders}
 
   { This is necessary to workaround buggy OpenGLES on Android EMUI 3.1
@@ -145,7 +149,10 @@
   }
   {$define GLIndexesShort}
 {$else}
-  {$define CastleGL := GL, GLU, GLExt}
+  { In our "Delphi test mode", macros are disabled, just like in actual Delphi. }
+  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
+    {$define CastleGL := GL, GLU, GLExt}
+  {$endif}
   { It is possible to test GLImageUseShaders also with non-OpenGLES version.
     All the TGLImageCore and DrawRectangle rendering will go through shaders. }
   { $define GLImageUseShaders}

@@ -32,7 +32,8 @@ procedure Play;
 implementation
 
 uses Math, SysUtils,
-  CastleGL, CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
   CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
   CastleProjection, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
   CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,

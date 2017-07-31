@@ -197,7 +197,8 @@ unit CastleRenderer;
 interface
 
 uses Classes, SysUtils, Generics.Collections,
-  CastleGL, CastleUtils, CastleVectors, X3DFields, X3DNodes,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleUtils, CastleVectors, X3DFields, X3DNodes,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,

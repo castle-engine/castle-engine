@@ -50,7 +50,9 @@ procedure ShapesFilterBlending(
 
 implementation
 
-uses SysUtils, CastleGL, CastleLog, X3DNodes, CastleScene;
+uses SysUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleLog, X3DNodes, CastleScene;
 
 function BlendingFactorNameToStr(S: string;
   out Factor: TBlendingSourceFactor;
