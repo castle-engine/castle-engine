@@ -457,8 +457,16 @@ function IndexedConvexPolygonNormal(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
-var Tri: TTriangle3;
-    i: integer;
+
+  { Like Verts[Indices[I]] but takes into account VertsStride. }
+  function VertsIndices(const I: Integer): PVector3; inline;
+  begin
+    Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
+  end;
+
+var
+  Tri: TTriangle3;
+  I: Integer;
 begin
   { We calculate normal vector as an average of normal vectors of
     polygon's triangles. Not taking into account invalid Indices
@@ -472,27 +480,22 @@ begin
 
   I := 0;
 
-  { Verts_Indices_I = Verts[Indices[I]], but takes into account
-    that Verts is an array with VertsStride. }
-  {$define Verts_Indices_I :=
-    PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride)^}
-
   while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
   { This secures us against polygons with no valid Indices[].
     (including case when IndicesCount = 0). }
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri.Data[0] := Verts_Indices_I;
+  Tri.Data[0] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri.Data[1] := Verts_Indices_I;
+  Tri.Data[1] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri.Data[2] := Verts_Indices_I;
+  Tri.Data[2] := VertsIndices(I)^;
 
   if Tri.IsValid then
     Result := Result + Tri.Normal;
@@ -504,7 +507,7 @@ begin
     if I >= IndicesCount then
       Break;
     Tri.Data[1] := Tri.Data[2];
-    Tri.Data[2] := Verts_Indices_I;
+    Tri.Data[2] := VertsIndices(I)^;
 
     if Tri.IsValid then
       Result := Result + Tri.Normal;
@@ -531,6 +534,13 @@ end;
 function IndexedConvexPolygonArea(
   Indices: PArray_Longint; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+
+  { Like Verts[Indices[I]] but takes into account VertsStride. }
+  function VertsIndices(const I: Integer): PVector3; inline;
+  begin
+    Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
+  end;
+
 var
   Tri: TTriangle3;
   i: integer;
@@ -543,29 +553,24 @@ begin
 
   I := 0;
 
-  { Verts_Indices_I = Verts[Indices[I]], but takes into account
-    that Verts is an array with VertsStride. }
-  {$define Verts_Indices_I :=
-    PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride)^}
-
   while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
   { This secures us against polygons with no valid Indices[].
     (including case when IndicesCount = 0). }
   if I >= IndicesCount then
     Exit;
-  Tri.Data[0] := Verts_Indices_I;
+  Tri.Data[0] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit;
-  Tri.Data[1] := Verts_Indices_I;
+  Tri.Data[1] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit;
-  Tri.Data[2] := Verts_Indices_I;
+  Tri.Data[2] := VertsIndices(I)^;
 
-  Result += Tri.Area;
+  Result := Result + Tri.Area;
 
   repeat
     { find next valid point, which makes another triangle of polygon }
@@ -574,9 +579,9 @@ begin
     if I >= IndicesCount then
       Break;
     Tri.Data[1] := Tri.Data[2];
-    Tri.Data[2] := Verts_Indices_I;
+    Tri.Data[2] := VertsIndices(I)^;
 
-    Result += Tri.Area;
+    Result := Result + Tri.Area;
   until false;
 end;
 
