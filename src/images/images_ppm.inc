@@ -67,7 +67,7 @@ var magic: array[0..1]of char;
     IsBinary: boolean;
     MaxColVal: integer;
     x, y: Cardinal;
-    line: PArray_Vector3Byte;
+    line: PVector3ByteArray;
     ppmline: PByteArray;
     ColSize, LineSize: Cardinal;
     AllocateWidth, AllocateHeight: Cardinal;
@@ -146,7 +146,7 @@ begin
 end;
 
 procedure SavePPM(Img: TEncodedImage; Stream: TStream; Binary: boolean);
-var line: PArray_Vector3Byte;
+var line: PVector3ByteArray;
     x, y: cardinal;
 begin
   if not (Img is TRGBImage) then

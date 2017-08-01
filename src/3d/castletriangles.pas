@@ -257,11 +257,11 @@ type
 
   @groupBegin }
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 { @groupEnd }
@@ -275,10 +275,10 @@ function IndexedConvexPolygonNormal(
 
   @groupBegin }
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
 
@@ -443,7 +443,7 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 begin
@@ -454,7 +454,7 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
 
@@ -523,7 +523,7 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer): Single;
 begin
   Result := IndexedConvexPolygonArea(
@@ -532,7 +532,7 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
+  Indices: PLongintArray; IndicesCount: integer;
   Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
 
   { Like Verts[Indices[I]] but takes into account VertsStride. }

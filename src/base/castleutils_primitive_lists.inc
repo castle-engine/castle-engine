@@ -38,8 +38,8 @@ type
     procedure AppendFloats(Floats: TSingleList);
   end;
 
-  TArray_Single = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
-  PArray_Single = ^TArray_Single;
+  TSingleArray = packed array [0..MaxInt div SizeOf(Single) - 1] of Single;
+  PSingleArray = ^TSingleArray;
 
   TSingleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<Single>)
     procedure AppendFloats(Floats: TFloatList);
@@ -89,8 +89,8 @@ type
     function ToLongInt: TLongIntList;
   end;
 
-  TArray_LongInt = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
-  PArray_LongInt = ^TArray_LongInt;
+  TLongIntArray = packed array [0..MaxInt div SizeOf(LongInt) - 1] of LongInt;
+  PLongIntArray = ^TLongIntArray;
 
   TLongIntList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<LongInt>)
   public

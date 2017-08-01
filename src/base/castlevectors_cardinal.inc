@@ -131,12 +131,12 @@ type
   PVector3Cardinal = ^TVector3Cardinal;
   PVector4Cardinal = ^TVector4Cardinal;
 
-  TArray_Vector2Cardinal = packed array [0..MaxInt div SizeOf(TVector2Cardinal)-1] of TVector2Cardinal;
-  PArray_Vector2Cardinal = ^TArray_Vector2Cardinal;
-  TArray_Vector3Cardinal = packed array [0..MaxInt div SizeOf(TVector3Cardinal)-1] of TVector3Cardinal;
-  PArray_Vector3Cardinal = ^TArray_Vector3Cardinal;
-  TArray_Vector4Cardinal = packed array [0..MaxInt div SizeOf(TVector4Cardinal)-1] of TVector4Cardinal;
-  PArray_Vector4Cardinal = ^TArray_Vector4Cardinal;
+  TVector2CardinalArray = packed array [0..MaxInt div SizeOf(TVector2Cardinal)-1] of TVector2Cardinal;
+  PVector2CardinalArray = ^TVector2CardinalArray;
+  TVector3CardinalArray = packed array [0..MaxInt div SizeOf(TVector3Cardinal)-1] of TVector3Cardinal;
+  PVector3CardinalArray = ^TVector3CardinalArray;
+  TVector4CardinalArray = packed array [0..MaxInt div SizeOf(TVector4Cardinal)-1] of TVector4Cardinal;
+  PVector4CardinalArray = ^TVector4CardinalArray;
 
 function Vector2Cardinal(const X, Y: Cardinal): TVector2Cardinal; inline;
 function Vector3Cardinal(const X, Y, Z: Cardinal): TVector3Cardinal; inline;

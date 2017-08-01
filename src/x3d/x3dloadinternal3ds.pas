@@ -163,8 +163,8 @@ type
       material defined --- for example therack.3ds. }
     FaceMaterialIndex: Integer;
   end;
-  TArray_Face3ds = packed array [0 .. MaxInt div SizeOf(TFace3ds) - 1] of TFace3ds;
-  PArray_Face3ds = ^TArray_Face3ds;
+  TFace3dsArray = packed array [0 .. MaxInt div SizeOf(TFace3ds) - 1] of TFace3ds;
+  PFace3dsArray = ^TFace3dsArray;
 
   { Vertex information from 3DS. }
   TVertex3ds = packed record
@@ -173,8 +173,8 @@ type
       (HasTexCoords is @false). }
     TexCoord: TVector2;
   end;
-  TArray_Vertex3ds = packed array [0 .. MaxInt div SizeOf(TVertex3ds) - 1] of TVertex3ds;
-  PArray_Vertex3ds = ^TArray_Vertex3ds;
+  TVertex3dsArray = packed array [0 .. MaxInt div SizeOf(TVertex3ds) - 1] of TVertex3ds;
+  PVertex3dsArray = ^TVertex3dsArray;
 
   { Triangle mesh. }
   TTrimesh3ds = class(TObject3DS)
@@ -184,8 +184,8 @@ type
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
-    Verts: PArray_Vertex3ds;
-    Faces: PArray_Face3ds;
+    Verts: PVertex3dsArray;
+    Faces: PFace3dsArray;
     { @groupEnd }
     { Do the vertexes have meaningful texture coordinates? }
     property HasTexCoords: boolean read FHasTexCoords;
@@ -1091,7 +1091,7 @@ var
 
   { How many faces have the same material index.
     Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
-  function SameMaterialFacesCount(Faces: PArray_Face3ds; FacesCount: integer;
+  function SameMaterialFacesCount(Faces: PFace3dsArray; FacesCount: integer;
     StartFace: integer): integer;
   var
     I: Integer;

@@ -49,12 +49,12 @@ type
   { 4x4 matrix of floating-point values (Double precision). }
   TMatrix4Double = CastleVectorsInternalDouble.TGenericMatrix4; PMatrix4Double = ^TMatrix4Double;
 
-  TArray_Vector2 = packed array [0..MaxInt div SizeOf(TVector2) - 1] of TVector2;
-  PArray_Vector2 = ^TArray_Vector2;
-  TArray_Vector3 = packed array [0..MaxInt div SizeOf(TVector3) - 1] of TVector3;
-  PArray_Vector3 = ^TArray_Vector3;
-  TArray_Vector4 = packed array [0..MaxInt div SizeOf(TVector4) - 1] of TVector4;
-  PArray_Vector4 = ^TArray_Vector4;
+  TVector2Array = packed array [0..MaxInt div SizeOf(TVector2) - 1] of TVector2;
+  PVector2Array = ^TVector2Array;
+  TVector3Array = packed array [0..MaxInt div SizeOf(TVector3) - 1] of TVector3;
+  PVector3Array = ^TVector3Array;
+  TVector4Array = packed array [0..MaxInt div SizeOf(TVector4) - 1] of TVector4;
+  PVector4Array = ^TVector4Array;
 
 { Construct an initialized TVector2 value. }
 function Vector2(const X, Y: Single): TVector2; overload; inline;

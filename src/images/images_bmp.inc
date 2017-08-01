@@ -38,13 +38,13 @@ type
 
   TRGBQuad = packed record blue, green, red, reserved : byte end;
   //PRGBQuad = ^TRGBQuad;
-  TArray_RGBQuad = packed array[0..MaxInt div SizeOf(TRGBQuad)-1]of TRGBQuad;
-  PArray_RGBQuad = ^TArray_RGBQuad;
+  TRGBQuadArray = packed array[0..MaxInt div SizeOf(TRGBQuad)-1]of TRGBQuad;
+  PRGBQuadArray = ^TRGBQuadArray;
 
   TRGB_BMP24 = packed record b, g, r: byte end; { trojka RGB w zapisie danych 24 bitowej bitmapy }
   PRGB_BMP24 = ^TRGB_BMP24;
-  TArray_RGB_BMP24 = array[0..MaxInt div SizeOf(TRGB_BMP24)-1] of TRGB_BMP24;
-  PArray_RGB_BMP24 = ^TArray_RGB_BMP24;
+  TRGB_BMP24Array = array[0..MaxInt div SizeOf(TRGB_BMP24)-1] of TRGB_BMP24;
+  PRGB_BMP24Array = ^TRGB_BMP24Array;
 
 const
   BI_RGB = 0;
@@ -57,7 +57,7 @@ function LoadBMP(Stream: TStream;
 var fhead: TBitmapFileHeader;
     ihead: TBitmapInfoHeader;
     paletteSize: integer;    { rozmiar palety (0 jesli brak) }
-    palette: PArray_RGBQuad; { odczytana paleta (nil jesli paletteSize = 0) }
+    palette: PRGBQuadArray; { odczytana paleta (nil jesli paletteSize = 0) }
     rowLength: integer;      { dlugosc wiersza (bez 32bit padding !) }
     rownum: integer;
 
@@ -81,8 +81,8 @@ var fhead: TBitmapFileHeader;
 
   var
     bmpi, rgbi: integer;  { bmpi iteruje po bmprow, rgbi iteruje po rgbrow }
-    rgbrow: PArray_Vector3Byte absolute Row;
-    rgbarow: PArray_Vector4Byte absolute Row;
+    rgbrow: PVector3ByteArray absolute Row;
+    rgbarow: PVector4ByteArray absolute Row;
   begin
    bmpi := 0;
    rgbi := 0;
@@ -117,20 +117,20 @@ var fhead: TBitmapFileHeader;
          we only have to swap bgr to rgb }
        for rgbi := 0 to ihead.biWidth-1 do
        begin
-        rgbrow^[rgbi].Data[0] := PArray_RGB_BMP24(bmprow)^[rgbi].r;
-        rgbrow^[rgbi].Data[1] := PArray_RGB_BMP24(bmprow)^[rgbi].g;
-        rgbrow^[rgbi].Data[2] := PArray_RGB_BMP24(bmprow)^[rgbi].b;
+        rgbrow^[rgbi].Data[0] := PRGB_BMP24Array(bmprow)^[rgbi].r;
+        rgbrow^[rgbi].Data[1] := PRGB_BMP24Array(bmprow)^[rgbi].g;
+        rgbrow^[rgbi].Data[2] := PRGB_BMP24Array(bmprow)^[rgbi].b;
        end;
     32:for rgbi := 0 to ihead.biWidth-1 do
        begin
          { We know that for 32, we have TRGBAlphaImage, so we use rgbarow }
          Assert(Result is TRGBAlphaImage);
 
-         rgbarow^[rgbi].Data[0] := PArray_RGBQuad(bmprow)^[rgbi].red;
-         rgbarow^[rgbi].Data[1] := PArray_RGBQuad(bmprow)^[rgbi].green;
-         rgbarow^[rgbi].Data[2] := PArray_RGBQuad(bmprow)^[rgbi].blue;
+         rgbarow^[rgbi].Data[0] := PRGBQuadArray(bmprow)^[rgbi].red;
+         rgbarow^[rgbi].Data[1] := PRGBQuadArray(bmprow)^[rgbi].green;
+         rgbarow^[rgbi].Data[2] := PRGBQuadArray(bmprow)^[rgbi].blue;
          { At least GIMP treats the 4th component as alpha value. }
-         rgbarow^[rgbi].Data[3] := PArray_RGBQuad(bmprow)^[rgbi].reserved;
+         rgbarow^[rgbi].Data[3] := PRGBQuadArray(bmprow)^[rgbi].reserved;
        end;
    end;
   end;

@@ -1054,7 +1054,7 @@ type
     class function ColorComponentsCount: Cardinal; override;
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3Byte;
-    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector3ByteArray;
 
     procedure InvertColors; override;
 
@@ -1149,7 +1149,7 @@ type
     class function ColorComponentsCount: Cardinal; override;
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector4Byte;
-    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector4Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector4ByteArray;
 
     procedure InvertColors; override;
 
@@ -1228,7 +1228,7 @@ type
     class function ColorComponentsCount: Cardinal; override;
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector3;
-    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector3;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector3Array;
 
     procedure InvertColors; override;
 
@@ -1360,7 +1360,7 @@ type
     class function ColorComponentsCount: Cardinal; override;
 
     function PixelPtr(const X, Y: Cardinal; const Z: Cardinal = 0): PVector2Byte;
-    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PArray_Vector2Byte;
+    function RowPtr(const Y: Cardinal; const Z: Cardinal = 0): PVector2ByteArray;
 
     procedure InvertColors; override;
 
@@ -1985,8 +1985,8 @@ var
       if SourceX2 >= SourceRect.Right then
         SourceX2 := SourceRect.Right - 1;
 
-      SourceX1 *= PixelSize;
-      SourceX2 *= PixelSize;
+      SourceX1 := SourceX1 * PixelSize;
+      SourceX2 := SourceX2 * PixelSize;
 
       SourceXFrac := Frac(SourceXFrac);
       Weights.Data[0] := SourceXFrac * SourceYFrac;
@@ -2229,7 +2229,7 @@ function TCastleImage.MakeRotated(Angle: Integer): TCastleImage;
 begin
   { convert Angle to 0..3 range }
   Angle := Angle mod 4;
-  if Angle < 0 then Angle += 4;
+  if Angle < 0 then Angle := Angle + 4;
 
   case Angle of
     1: Rotate90;
@@ -2532,16 +2532,16 @@ begin
   pb := PByte(RawPixels);
   for I := 1 to Size - 1 do
   begin
-    CodeImplementation += Format('%4d,', [pb^]);
+    CodeImplementation := CodeImplementation + Format('%4d,', [pb^]);
     if (i mod 12) = 0 then
     begin
-      CodeImplementation += nl + '    ';
+      CodeImplementation := CodeImplementation + NL + '    ';
       if ShowProgress then Progress.Step;
     end else
-      CodeImplementation += ' ';
+      CodeImplementation := CodeImplementation + ' ';
     Inc(pb);
   end;
-  CodeImplementation += Format('%4d);', [pb^]) + nl + nl;
+  CodeImplementation := CodeImplementation + Format('%4d);', [pb^]) + nl + nl;
 
   if ShowProgress then Progress.Fini;
 
@@ -2772,9 +2772,9 @@ begin
   Result := PVector3Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBImage.RowPtr(const Y, Z: Cardinal): PArray_Vector3Byte;
+function TRGBImage.RowPtr(const Y, Z: Cardinal): PVector3ByteArray;
 begin
-  Result := PArray_Vector3Byte(inherited RowPtr(Y, Z));
+  Result := PVector3ByteArray(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBImage.InvertColors;
@@ -3048,9 +3048,9 @@ begin
   Result := PVector4Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector4Byte;
+function TRGBAlphaImage.RowPtr(const Y, Z: Cardinal): PVector4ByteArray;
 begin
-  Result := PArray_Vector4Byte(inherited RowPtr(Y, Z));
+  Result := PVector4ByteArray(inherited RowPtr(Y, Z));
 end;
 
 procedure TRGBAlphaImage.InvertColors;
@@ -3380,9 +3380,9 @@ begin
   Result := PVector3(inherited PixelPtr(X, Y, Z));
 end;
 
-function TRGBFloatImage.RowPtr(const Y, Z: Cardinal): PArray_Vector3;
+function TRGBFloatImage.RowPtr(const Y, Z: Cardinal): PVector3Array;
 begin
-  Result := PArray_Vector3(inherited RowPtr(Y, Z));
+  Result := PVector3Array(inherited RowPtr(Y, Z));
 end;
 
 function TRGBFloatImage.GetColors(const X, Y, Z: Integer): TCastleColor;
@@ -3772,9 +3772,9 @@ begin
   Result := PVector2Byte(inherited PixelPtr(X, Y, Z));
 end;
 
-function TGrayscaleAlphaImage.RowPtr(const Y, Z: Cardinal): PArray_Vector2Byte;
+function TGrayscaleAlphaImage.RowPtr(const Y, Z: Cardinal): PVector2ByteArray;
 begin
-  Result := PArray_Vector2Byte(inherited RowPtr(Y, Z));
+  Result := PVector2ByteArray(inherited RowPtr(Y, Z));
 end;
 
 procedure TGrayscaleAlphaImage.Clear(const Pixel: TVector4Byte);

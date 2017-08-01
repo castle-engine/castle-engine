@@ -4312,10 +4312,10 @@ procedure TSFImage.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
   w, h, comp: LongWord;
   i: Cardinal;
-  RGBPixels: PArray_Vector3Byte;
-  RGBAlphaPixels: PArray_Vector4Byte;
+  RGBPixels: PVector3ByteArray;
+  RGBAlphaPixels: PVector4ByteArray;
   GrayscalePixels: PByteArray;
-  GrayscaleAlphaPixels: PArray_Vector2Byte;
+  GrayscaleAlphaPixels: PVector2ByteArray;
 begin
   { Note that we should never let Value to be nil too long,
     because even if this method exits with exception, Value should
@@ -4344,19 +4344,19 @@ begin
         end;
       2:begin
           Value := TGrayscaleAlphaImage.Create(w, h);
-          GrayscaleAlphaPixels := PArray_Vector2Byte(Value.RawPixels);
+          GrayscaleAlphaPixels := PVector2ByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
         end;
       3:begin
           Value := TRGBImage.Create(w, h);
-          RGBPixels := PArray_Vector3Byte(Value.RawPixels);
+          RGBPixels := PVector3ByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), RGBPixels^[i]);
         end;
       4:begin
           Value := TRGBAlphaImage.Create(w, h);
-          RGBAlphaPixels := PArray_Vector4Byte(Value.RawPixels);
+          RGBAlphaPixels := PVector4ByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
             DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
         end;

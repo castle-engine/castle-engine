@@ -406,7 +406,7 @@ begin
           begin
             glDrawElements(Mode, Arrays.Counts[I],
               {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First)));
-            First += Arrays.Counts[I];
+            First := First + Arrays.Counts[I];
           end;
       end else
       begin
@@ -415,7 +415,7 @@ begin
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
             glDrawArrays(Mode, First, Arrays.Counts[I]);
-            First += Arrays.Counts[I];
+            First := First + Arrays.Counts[I];
           end;
       end;
 

@@ -109,7 +109,7 @@ begin
   end;
 
   FaceNormal := IndexedConvexPolygonNormal(
-    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    PLongIntArray(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
@@ -120,7 +120,7 @@ begin
     have to be. But this will be a good approximation anyway, usually. }
 
   FaceArea := IndexedConvexPolygonArea(
-    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    PLongIntArray(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }

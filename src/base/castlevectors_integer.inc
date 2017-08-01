@@ -131,12 +131,12 @@ type
   PVector3Integer = ^TVector3Integer;
   PVector4Integer = ^TVector4Integer;
 
-  TArray_Vector2Integer = packed array [0..MaxInt div SizeOf(TVector2Integer)-1] of TVector2Integer;
-  PArray_Vector2Integer = ^TArray_Vector2Integer;
-  TArray_Vector3Integer = packed array [0..MaxInt div SizeOf(TVector3Integer)-1] of TVector3Integer;
-  PArray_Vector3Integer = ^TArray_Vector3Integer;
-  TArray_Vector4Integer = packed array [0..MaxInt div SizeOf(TVector4Integer)-1] of TVector4Integer;
-  PArray_Vector4Integer = ^TArray_Vector4Integer;
+  TVector2IntegerArray = packed array [0..MaxInt div SizeOf(TVector2Integer)-1] of TVector2Integer;
+  PVector2IntegerArray = ^TVector2IntegerArray;
+  TVector3IntegerArray = packed array [0..MaxInt div SizeOf(TVector3Integer)-1] of TVector3Integer;
+  PVector3IntegerArray = ^TVector3IntegerArray;
+  TVector4IntegerArray = packed array [0..MaxInt div SizeOf(TVector4Integer)-1] of TVector4Integer;
+  PVector4IntegerArray = ^TVector4IntegerArray;
 
 function Vector2Integer(const X, Y: Integer): TVector2Integer; inline;
 function Vector3Integer(const X, Y, Z: Integer): TVector3Integer; inline;

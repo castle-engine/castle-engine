@@ -131,12 +131,12 @@ type
   PVector3Byte = ^TVector3Byte;
   PVector4Byte = ^TVector4Byte;
 
-  TArray_Vector2Byte = packed array [0..MaxInt div SizeOf(TVector2Byte)-1] of TVector2Byte;
-  PArray_Vector2Byte = ^TArray_Vector2Byte;
-  TArray_Vector3Byte = packed array [0..MaxInt div SizeOf(TVector3Byte)-1] of TVector3Byte;
-  PArray_Vector3Byte = ^TArray_Vector3Byte;
-  TArray_Vector4Byte = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
-  PArray_Vector4Byte = ^TArray_Vector4Byte;
+  TVector2ByteArray = packed array [0..MaxInt div SizeOf(TVector2Byte)-1] of TVector2Byte;
+  PVector2ByteArray = ^TVector2ByteArray;
+  TVector3ByteArray = packed array [0..MaxInt div SizeOf(TVector3Byte)-1] of TVector3Byte;
+  PVector3ByteArray = ^TVector3ByteArray;
+  TVector4ByteArray = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
+  PVector4ByteArray = ^TVector4ByteArray;
 
 function Vector2Byte(const X, Y: Byte): TVector2Byte; overload; inline;
 function Vector3Byte(const X, Y, Z: Byte): TVector3Byte; overload; inline;

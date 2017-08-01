@@ -32,12 +32,6 @@ type
   TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
   {$endif}
 
-  TArray_PChar = array[0..MaxInt div SizeOf(PChar)-1]of PChar;
-  PArray_PChar=^TArray_PChar;
-
-  TArray_TObject = array[0..MaxInt div SizeOf(Pointer)-1]of TObject;
-  PArray_TObject=^TArray_TObject;
-
   PString = ^AnsiString;
 
   { Pointer to TObject.
