@@ -113,7 +113,7 @@ begin
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
+    PVector3Array(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
     Vector3(0, 0, 0));
 
   { We assume here that polygon is convex, while in fact it doesn't
@@ -124,7 +124,7 @@ begin
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
+    PVector3Array(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
 
   { Split FaceArea into the number of polygon corners. }
   FaceArea /= Length(Indexes);
