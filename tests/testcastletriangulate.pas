@@ -98,7 +98,7 @@ procedure TTestCastleTriangulate.TestTriangulateFace;
       for I := 0 to CountVertexes div 2 - 1 do
         SwapValues(Vertexes[I], Vertexes[CountVertexes - 1 - I]);
 
-     TriangulateFace(nil, CountVertexes, Vertexes, CountVertexes, @Face, 0);
+     TriangulateFace(nil, CountVertexes, PVector3Array(Vertexes), CountVertexes, @Face, 0);
   end;
 
 type

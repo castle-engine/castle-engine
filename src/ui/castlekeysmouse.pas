@@ -551,8 +551,8 @@ type
     { Check is event type correct, and then check if event Key or KeyCharacter
       matches. Always false for AKey = K_None or AKeyCharacter = #0.
       @groupBegin }
-    function IsKey(const AKey: TKey): boolean;
-    function IsKey(const AKeyCharacter: char): boolean;
+    function IsKey(const AKey: TKey): boolean; overload;
+    function IsKey(const AKeyCharacter: char): boolean; overload;
     { @groupEnd }
     function IsMouseButton(const AMouseButton: TMouseButton): boolean;
     function IsMouseWheel(const AMouseWheel: TMouseWheelDirection): boolean;
@@ -809,17 +809,18 @@ begin
 
   { add modifiers description }
   if mkShift in Modifiers then
-    Result += 'Shift+';
+    Result := Result + 'Shift+';
   if mkAlt in Modifiers then
-    Result += 'Alt+';
+    Result := Result + 'Alt+';
   if mkCtrl in Modifiers then
   begin
     if CtrlIsCommand then
-      Result += 'Command+' else
-      Result += 'Ctrl+';
+      Result := Result + 'Command+'
+    else
+      Result := Result + 'Ctrl+';
   end;
 
-  Result += KeyToStrTable[Key];
+  Result := Result + KeyToStrTable[Key];
 end;
 
 function StrToKey(const S: string; const DefaultKey: TKey): TKey;
@@ -849,11 +850,11 @@ begin
  Result := '[';
  for k := Low(k) to High(k) do
   if k in MK then
-   Result += KeyToStr(ModifierKeyToKey[k]) + ',';
+   Result := Result + KeyToStr(ModifierKeyToKey[k]) + ',';
  { we know that Length(result) >= 1 (because Result starts with '[')
    so it's safe to check Result[Length(result)]. }
  if Result[Length(result)] = ',' then SetLength(result, Length(result)-1);
- Result += ']';
+ Result := Result + ']';
 end;
 
 function CharToNiceStr(const C: char; const Modifiers: TModifierKeys;
@@ -869,39 +870,40 @@ begin
   CharactersImplicatingCtrlModifier := [CtrlA .. CtrlZ];
   if BackSpaceTabEnterString then
     { do not show Tab and similar chars as Ctrl+Tab }
-    CharactersImplicatingCtrlModifier -=
+    CharactersImplicatingCtrlModifier := CharactersImplicatingCtrlModifier -
       [CharBackSpace, CharTab, CharEnter];
 
   { add modifiers description }
   if (mkShift in Modifiers) or (C in ['A'..'Z']) then
-    Result += 'Shift+';
+    Result := Result + 'Shift+';
   if mkAlt in Modifiers then
-    Result += 'Alt+';
+    Result := Result + 'Alt+';
   if (mkCtrl in Modifiers) or
      (C in CharactersImplicatingCtrlModifier) then
   begin
     if CtrlIsCommand then
-      Result += 'Command+' else
-      Result += 'Ctrl+';
+      Result := Result + 'Command+'
+    else
+      Result := Result + 'Ctrl+';
   end;
 
   if BackSpaceTabEnterString then
   begin
     case C of
-      CharBackSpace: begin Result += 'BackSpace'; Exit; end;
-      CharTab      : begin Result += 'Tab'      ; Exit; end;
-      CharEnter    : begin Result += 'Enter'    ; Exit; end;
+      CharBackSpace: begin Result := Result + 'BackSpace'; Exit; end;
+      CharTab      : begin Result := Result + 'Tab'      ; Exit; end;
+      CharEnter    : begin Result := Result + 'Enter'    ; Exit; end;
     end;
   end;
 
   case c of
-    CharEscape: Result += 'Esc';
-    ' ' : Result += 'Space';
+    CharEscape: Result := Result + 'Esc';
+    ' ' : Result := Result + 'Space';
     { Show lowercase letters as uppercase, this is standard for showing menu item shortcuts.
       Uppercase letters will be prefixed with Shift+. }
-    'a' .. 'z': Result += Chr(Ord(C) - Ord('a') + Ord('A'));
-    CtrlA .. CtrlZ: Result += Chr(Ord(C) - Ord(CtrlA) + Ord('A')); // we already added Ctrl+ prefix
-    else Result += C;
+    'a' .. 'z': Result := Result + Chr(Ord(C) - Ord('a') + Ord('A'));
+    CtrlA .. CtrlZ: Result := Result + Chr(Ord(C) - Ord(CtrlA) + Ord('A')); // we already added Ctrl+ prefix
+    else Result := Result + C;
   end;
 end;
 

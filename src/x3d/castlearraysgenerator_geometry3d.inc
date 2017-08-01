@@ -180,7 +180,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
+      EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
       @GenerateTriangle, BeginIndex);
   end else
   begin
@@ -208,7 +208,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
+      EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
       @PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
@@ -234,7 +234,7 @@ begin
   if not FaceConvex then
   begin
     TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
+      EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
       @PrepareIndexesTriangle2, BeginIndex);
   end else
   begin

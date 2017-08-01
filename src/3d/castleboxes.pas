@@ -103,13 +103,8 @@ type
     The only exception is the special value TBox3D.Empty.
 
     Note that the box may still have all sizes equal 0. Consider a 3D model with
-    only a single 3D point --- it's not empty, but all the sizes must be 0.
-
-    This is an old-style object (withut any virtual
-    methods). This way there's no need for using constructors / destructors
-    to manage this, you can simply declare TBox3D type and copy / pass around
-    this box to other procedures. }
-  TBox3D = object
+    only a single 3D point --- it's not empty, but all the sizes must be 0. }
+  TBox3D = record
   strict private
     function GetMin: TVector3; inline;
     procedure SetMin(const Value: TVector3); inline;
@@ -157,15 +152,15 @@ type
 
     { Average size of the box.
       @raises(EBox3DEmpty If the Box is empty.) }
-    function AverageSize: Single;
+    function AverageSize: Single; overload;
 
     { Largest size of the box.
       @raises(EBox3DEmpty If the Box is empty.) }
-    function MaxSize: Single;
+    function MaxSize: Single; overload;
 
     { Smallest size of the box.
       @raises(EBox3DEmpty If the Box is empty.) }
-    function MinSize: Single;
+    function MinSize: Single; overload;
 
     { Size in X (width) of the box.
       @raises(EBox3DEmpty If the Box is empty.) }
@@ -245,14 +240,14 @@ type
     { @groupEnd }
 
     { Is the 2D point inside the 2D projection of the box, ignores the Z coord of box. }
-    function Contains2D(const Point: TVector2): boolean;
-    function PointInside2D(const Point: TVector2): boolean; deprecated 'use Contains2d method';
+    function Contains2D(const Point: TVector2): boolean; overload;
+    function PointInside2D(const Point: TVector2): boolean; overload; deprecated 'use Contains2d method';
 
     { Is the 2D point inside the 2D projection of the box.
       2D projection (of point and box) is obtained by rejecting
       the IgnoreIndex coordinate (must be 0, 1 or 2). }
-    function Contains2D(const Point: TVector3; const IgnoreIndex: Integer): boolean;
-    function PointInside2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; deprecated 'use Contains2d method';
+    function Contains2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload;
+    function PointInside2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload; deprecated 'use Contains2D method';
 
     { Sum two TBox3D values. This calculates the smallest box that encloses
       both Box1 and Box2. You can also use + operator. }
@@ -270,7 +265,7 @@ type
 
     { Calculate eight corners of the box.}
     procedure Corners(var AllPoints: TBoxCorners);
-    procedure GetAllPoints(AllPoints: PVector3); deprecated 'use Corners';
+    procedure GetAllPoints(AllPoints: PVector3Array); deprecated 'use Corners';
 
     { Transform the Box by given matrix.
       Since this is still an axis-aligned box, rotating etc. of the box
@@ -506,8 +501,8 @@ type
     function PointMaxDistance(const Point: TVector3;
       const EmptyBoxDistance: Single): Single;
 
-    function Equal(const Box2: TBox3D): boolean;
-    function Equal(const Box2: TBox3D; const Epsilon: Single): boolean;
+    function Equal(const Box2: TBox3D): boolean; overload;
+    function Equal(const Box2: TBox3D; const Epsilon: Single): boolean; overload;
 
     { Diagonal of the box, zero if empty. }
     function Diagonal: Single;
@@ -542,6 +537,10 @@ type
       box will be first. }
     class function CompareBackToFront2D(
       const A, B: TBox3D): Integer; static;
+
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const Box1, Box2: TBox3D): TBox3D;
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const B: TBox3D; const V: TVector3): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const V: TVector3; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
   end;
 
   TBox3DBool = array [boolean] of TVector3;
@@ -555,7 +554,7 @@ const
   EmptyBox3D: TBox3D = (Data: ((Data: (0, 0, 0)), (Data: (-1, -1, -1)))) deprecated 'use TBox3D.Empty';
 
 type
-  TBox3DList = specialize TStructList<TBox3D>;
+  TBox3DList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TBox3D>;
 
 { Construct TBox3D value from a minimum and maximum 3D point. }
 function Box3D(const p0, p1: TVector3): TBox3D;
@@ -565,8 +564,8 @@ function Box3D(const p0, p1: TVector3): TBox3D;
   This is consistent with X3D bboxCenter/Size definition e.g. at X3D Group node,
   see http://www.web3d.org/documents/specifications/19775-1/V3.2/Part01/components/group.html#Group
   @groupBegin }
-function Box3DAroundPoint(const Pt: TVector3; Size: Single): TBox3D;
-function Box3DAroundPoint(const Pt: TVector3; Size: TVector3): TBox3D;
+function Box3DAroundPoint(const Pt: TVector3; Size: Single): TBox3D; overload;
+function Box3DAroundPoint(const Pt: TVector3; Size: TVector3): TBox3D; overload;
 { @groupEnd }
 
 { Calculate bounding box of a set of 3D points.
@@ -638,12 +637,6 @@ function IsCenteredBox3DPlaneCollision(
 { Smallest possible box enclosing a sphere with Center, Radius. }
 function BoundingBox3DFromSphere(const Center: TVector3;
   const Radius: Single): TBox3D;
-
-{$ifdef FPC}
-operator+ (const Box1, Box2: TBox3D): TBox3D;
-operator+ (const B: TBox3D; const V: TVector3): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
-operator+ (const V: TVector3; const B: TBox3D): TBox3D; deprecated 'use TBox3D.Translate. Operator is ambiguous (do we add a point, or translate?)';
-{$endif}
 
 implementation
 
@@ -840,24 +833,24 @@ end;
 
 procedure TBox3D.ExpandMe(const AExpand: Single);
 begin
- Data[0].Data[0] -= AExpand;
- Data[0].Data[1] -= AExpand;
- Data[0].Data[2] -= AExpand;
+ Data[0].Data[0] := Data[0].Data[0] - AExpand;
+ Data[0].Data[1] := Data[0].Data[1] - AExpand;
+ Data[0].Data[2] := Data[0].Data[2] - AExpand;
 
- Data[1].Data[0] += AExpand;
- Data[1].Data[1] += AExpand;
- Data[1].Data[2] += AExpand;
+ Data[1].Data[0] := Data[1].Data[0] + AExpand;
+ Data[1].Data[1] := Data[1].Data[1] + AExpand;
+ Data[1].Data[2] := Data[1].Data[2] + AExpand;
 end;
 
 procedure TBox3D.ExpandMe(const AExpand: TVector3);
 begin
- Data[0].Data[0] -= AExpand.Data[0];
- Data[0].Data[1] -= AExpand.Data[1];
- Data[0].Data[2] -= AExpand.Data[2];
+ Data[0].Data[0] := Data[0].Data[0] - AExpand.Data[0];
+ Data[0].Data[1] := Data[0].Data[1] - AExpand.Data[1];
+ Data[0].Data[2] := Data[0].Data[2] - AExpand.Data[2];
 
- Data[1].Data[0] += AExpand.Data[0];
- Data[1].Data[1] += AExpand.Data[1];
- Data[1].Data[2] += AExpand.Data[2];
+ Data[1].Data[0] := Data[1].Data[0] + AExpand.Data[0];
+ Data[1].Data[1] := Data[1].Data[1] + AExpand.Data[1];
+ Data[1].Data[2] := Data[1].Data[2] + AExpand.Data[2];
 end;
 
 function TBox3D.Grow(const AExpand: Single): TBox3D;
@@ -1024,17 +1017,17 @@ begin
   Result := Size;
 end;
 
-procedure TBox3D.GetAllPoints(AllPoints: PVector3);
+procedure TBox3D.GetAllPoints(AllPoints: PVector3Array);
 begin
-  AllPoints[0] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]);
-  AllPoints[1] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]);
-  AllPoints[2] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]);
-  AllPoints[3] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]);
+  AllPoints^[0] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]);
+  AllPoints^[1] := Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]);
+  AllPoints^[2] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]);
+  AllPoints^[3] := Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]);
 
-  AllPoints[4] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]);
-  AllPoints[5] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]);
-  AllPoints[6] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]);
-  AllPoints[7] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]);
+  AllPoints^[4] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]);
+  AllPoints^[5] := Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]);
+  AllPoints^[6] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]);
+  AllPoints^[7] := Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]);
 end;
 
 procedure TBox3D.Corners(var AllPoints: TBoxCorners);
@@ -1125,12 +1118,12 @@ function TBox3D.Transform(
         B := Matrix.Data[J, I] * Data[1].Data[J];
         if A < B then
         begin
-          Result.Data[0].Data[I] += A;
-          Result.Data[1].Data[I] += B;
+          Result.Data[0].Data[I] := Result.Data[0].Data[I] + A;
+          Result.Data[1].Data[I] := Result.Data[1].Data[I] + B;
         end else
         begin
-          Result.Data[0].Data[I] += B;
-          Result.Data[1].Data[I] += A;
+          Result.Data[0].Data[I] := Result.Data[0].Data[I] + B;
+          Result.Data[1].Data[I] := Result.Data[1].Data[I] + A;
         end;
       end;
     end;
@@ -1794,14 +1787,14 @@ begin
     Ok, that's damn fast, but still a little slower than
     TBox3D.SphereSimpleCollision (that has 1 up to 6 comparisons and additions). }
 
-  if SphereCenter.Data[0] < Data[0].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[0].Data[0]) else
-  if SphereCenter.Data[0] > Data[1].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[1].Data[0]);
+  if SphereCenter.Data[0] < Data[0].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[0].Data[0])) else
+  if SphereCenter.Data[0] > Data[1].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[1].Data[0]));
 
-  if SphereCenter.Data[1] < Data[0].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[0].Data[1]) else
-  if SphereCenter.Data[1] > Data[1].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[1].Data[1]);
+  if SphereCenter.Data[1] < Data[0].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Data[1])) else
+  if SphereCenter.Data[1] > Data[1].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Data[1]));
 
-  if SphereCenter.Data[2] < Data[0].Data[2] then D += Sqr(SphereCenter.Data[2] - Data[0].Data[2]) else
-  if SphereCenter.Data[2] > Data[1].Data[2] then D += Sqr(SphereCenter.Data[2] - Data[1].Data[2]);
+  if SphereCenter.Data[2] < Data[0].Data[2] then D := D + (Sqr(SphereCenter.Data[2] - Data[0].Data[2])) else
+  if SphereCenter.Data[2] > Data[1].Data[2] then D := D + (Sqr(SphereCenter.Data[2] - Data[1].Data[2]));
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1815,11 +1808,11 @@ begin
 
   D := 0;
 
-  if SphereCenter.Data[0] < Data[0].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[0].Data[0]) else
-  if SphereCenter.Data[0] > Data[1].Data[0] then D += Sqr(SphereCenter.Data[0] - Data[1].Data[0]);
+  if SphereCenter.Data[0] < Data[0].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[0].Data[0])) else
+  if SphereCenter.Data[0] > Data[1].Data[0] then D := D + (Sqr(SphereCenter.Data[0] - Data[1].Data[0]));
 
-  if SphereCenter.Data[1] < Data[0].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[0].Data[1]) else
-  if SphereCenter.Data[1] > Data[1].Data[1] then D += Sqr(SphereCenter.Data[1] - Data[1].Data[1]);
+  if SphereCenter.Data[1] < Data[0].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[0].Data[1])) else
+  if SphereCenter.Data[1] > Data[1].Data[1] then D := D + (Sqr(SphereCenter.Data[1] - Data[1].Data[1]));
 
   Result := D <= Sqr(SphereRadius);
 end;
@@ -1916,12 +1909,12 @@ begin
     Dist1 := Sqr(P.Data[I] - Data[1].Data[I]);
     if Dist0 < Dist1 then
     begin
-      MinDistance += Dist0;
-      MaxDistance += Dist1;
+      MinDistance := MinDistance + Dist0;
+      MaxDistance := MaxDistance + Dist1;
     end else
     begin
-      MinDistance += Dist1;
-      MaxDistance += Dist0;
+      MinDistance := MinDistance + Dist1;
+      MaxDistance := MaxDistance + Dist0;
     end;
   end;
 
@@ -2004,9 +1997,9 @@ begin
   for I := 0 to 2 do
   begin
     if Point.Data[I] < Data[0].Data[I] then
-      Result += Sqr(Point.Data[I] - Data[0].Data[I]) else
+      Result := Result + (Sqr(Point.Data[I] - Data[0].Data[I])) else
     if Point.Data[I] > Data[1].Data[I] then
-      Result += Sqr(Point.Data[I] - Data[1].Data[I]);
+      Result := Result + (Sqr(Point.Data[I] - Data[1].Data[I]));
   end;
 
   Result := Sqrt(Result);
@@ -2144,6 +2137,32 @@ begin
     Result :=  0;
 end;
 
+class operator TBox3D.{$ifdef FPC}+{$else}Add{$endif} (const Box1, Box2: TBox3D): TBox3D;
+begin
+  if Box1.IsEmpty then
+    Result := Box2 else
+  if Box2.IsEmpty then
+    Result := Box1 else
+  begin
+    Result.Data[0].Data[0] := CastleUtils.Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
+    Result.Data[1].Data[0] := CastleUtils.Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
+    Result.Data[0].Data[1] := CastleUtils.Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
+    Result.Data[1].Data[1] := CastleUtils.Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
+    Result.Data[0].Data[2] := CastleUtils.Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
+    Result.Data[1].Data[2] := CastleUtils.Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
+  end;
+end;
+
+class operator TBox3D.{$ifdef FPC}+{$else}Add{$endif} (const B: TBox3D; const V: TVector3): TBox3D;
+begin
+  Result := B.Translate(V);
+end;
+
+class operator TBox3D.{$ifdef FPC}+{$else}Add{$endif} (const V: TVector3; const B: TBox3D): TBox3D;
+begin
+  Result := B.Translate(V);
+end;
+
 { Routines ------------------------------------------------------------------- }
 
 function IsCenteredBox3DPlaneCollisionDouble(
@@ -2236,7 +2255,7 @@ begin
   if Size < 0 then
     Exit(TBox3D.Empty);
 
-  Size /= 2;
+  Size := Size / 2;
   Result.Data[0].Data[0] := Pt.Data[0] - Size;
   Result.Data[0].Data[1] := Pt.Data[1] - Size;
   Result.Data[0].Data[2] := Pt.Data[2] - Size;
@@ -2252,7 +2271,7 @@ begin
      (Size.Data[2] < 0) then
     Exit(TBox3D.Empty);
 
-  Size /= 2;
+  Size := Size / 2;
   Result.Data[0].Data[0] := Pt.Data[0] - Size.Data[0];
   Result.Data[0].Data[1] := Pt.Data[1] - Size.Data[1];
   Result.Data[0].Data[2] := Pt.Data[2] - Size.Data[2];
@@ -2446,42 +2465,14 @@ function BoundingBox3DFromSphere(const Center: TVector3;
   const Radius: Single): TBox3D;
 begin
   Result.Data[0] := Center;
-  Result.Data[0].Data[0] -= Radius;
-  Result.Data[0].Data[1] -= Radius;
-  Result.Data[0].Data[2] -= Radius;
+  Result.Data[0].Data[0] := Result.Data[0].Data[0] - Radius;
+  Result.Data[0].Data[1] := Result.Data[0].Data[1] - Radius;
+  Result.Data[0].Data[2] := Result.Data[0].Data[2] - Radius;
 
   Result.Data[1] := Center;
-  Result.Data[1].Data[0] += Radius;
-  Result.Data[1].Data[1] += Radius;
-  Result.Data[1].Data[2] += Radius;
+  Result.Data[1].Data[0] := Result.Data[1].Data[0] + Radius;
+  Result.Data[1].Data[1] := Result.Data[1].Data[1] + Radius;
+  Result.Data[1].Data[2] := Result.Data[1].Data[2] + Radius;
 end;
-
-{$ifdef FPC}
-operator+ (const Box1, Box2: TBox3D): TBox3D;
-begin
-  if Box1.IsEmpty then
-    Result := Box2 else
-  if Box2.IsEmpty then
-    Result := Box1 else
-  begin
-    Result.Data[0].Data[0] := CastleUtils.Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
-    Result.Data[1].Data[0] := CastleUtils.Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
-    Result.Data[0].Data[1] := CastleUtils.Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
-    Result.Data[1].Data[1] := CastleUtils.Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
-    Result.Data[0].Data[2] := CastleUtils.Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
-    Result.Data[1].Data[2] := CastleUtils.Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
-  end;
-end;
-
-operator+ (const B: TBox3D; const V: TVector3): TBox3D;
-begin
-  Result := B.Translate(V);
-end;
-
-operator+ (const V: TVector3; const B: TBox3D): TBox3D;
-begin
-  Result := B.Translate(V);
-end;
-{$endif}
 
 end.

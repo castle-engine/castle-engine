@@ -244,7 +244,7 @@ type
 
 { Calculates normalized normal vector for polygon composed from
   indexed vertices. Polygon is defines as vertices
-  Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
+  Verts^[Indices[0]], Verts^[Indices[1]] ... Verts^[Indices[IndicesCount-1]].
   Returns normal pointing from CCW.
 
   It's secured against invalid indexes on Indices list (that's the only
@@ -258,17 +258,17 @@ type
   @groupBegin }
 function IndexedConvexPolygonNormal(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer;
+  Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 function IndexedConvexPolygonNormal(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 { @groupEnd }
 
 { Surface area of indexed convex polygon.
   Polygon is defines as vertices
-  Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
+  Verts^[Indices[0]], Verts^[Indices[1]] ... Verts^[Indices[IndicesCount-1]].
 
   It's secured against invalid indexes on Indices list (that's the only
   reason why it takes VertsCount parameter, after all): they are ignored.
@@ -276,10 +276,10 @@ function IndexedConvexPolygonNormal(
   @groupBegin }
 function IndexedConvexPolygonArea(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer): Single; overload;
+  Verts: PVector3Array; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
 
 { Are the polygon points ordered CCW (counter-clockwise). When viewed
@@ -292,7 +292,7 @@ function IndexedConvexPolygonArea(
   Returns something > 0 if polygon is CCW, or < 0 when it's not.
   Returns zero when polygon has area 0.
   @groupBegin }
-function IsPolygon2dCCW(Verts: PVector2; const VertsCount: Integer): Single; overload;
+function IsPolygon2dCCW(Verts: PVector2Array; const VertsCount: Integer): Single; overload;
 function IsPolygon2dCCW(const Verts: array of TVector2): Single; overload;
 { @groupEnd }
 
@@ -303,7 +303,7 @@ function IsPolygon2dCCW(const Verts: array of TVector2): Single; overload;
   or line segments.
 
   @groupBegin }
-function Polygon2dArea(Verts: PVector2; const VertsCount: Integer): Single; overload;
+function Polygon2dArea(Verts: PVector2Array; const VertsCount: Integer): Single; overload;
 function Polygon2dArea(const Verts: array of TVector2): Single; overload;
 { @groupEnd }
 
@@ -444,7 +444,7 @@ end;
 
 function IndexedConvexPolygonNormal(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer;
+  Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 begin
   Result := IndexedConvexPolygonNormal(
@@ -455,10 +455,10 @@ end;
 
 function IndexedConvexPolygonNormal(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
 
-  { Like Verts[Indices[I]] but takes into account VertsStride. }
+  { Like Verts^[Indices[I]] but takes into account VertsStride. }
   function VertsIndices(const I: Integer): PVector3; inline;
   begin
     Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
@@ -524,7 +524,7 @@ end;
 
 function IndexedConvexPolygonArea(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer): Single;
+  Verts: PVector3Array; const VertsCount: Integer): Single;
 begin
   Result := IndexedConvexPolygonArea(
     Indices, IndicesCount,
@@ -533,9 +533,9 @@ end;
 
 function IndexedConvexPolygonArea(
   Indices: PLongintArray; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
 
-  { Like Verts[Indices[I]] but takes into account VertsStride. }
+  { Like Verts^[Indices[I]] but takes into account VertsStride. }
   function VertsIndices(const I: Integer): PVector3; inline;
   begin
     Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
@@ -585,7 +585,7 @@ begin
   until false;
 end;
 
-function IsPolygon2dCCW(Verts: PVector2; const VertsCount: Integer): Single;
+function IsPolygon2dCCW(Verts: PVector2Array; const VertsCount: Integer): Single;
 { licz pole polygonu CCW.
 
   Implementacja na podstawie "Graphic Gems II", gem I.1
@@ -616,16 +616,16 @@ begin
   if VertsCount = 0 then Exit;
 
   { licze i = 0..VertsCount-2, potem osobno przypadek gdy i = VertsCount-1.
-    Moglbym ujac je razem, dajac zamiast "Verts[i+1, 1]"
-    "Verts[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
+    Moglbym ujac je razem, dajac zamiast "Verts^[i+1, 1]"
+    "Verts^[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
     tylko jednego przypadku. Tak jest optymalniej czasowo. }
   for i := 0 to VertsCount-2 do
     Result := Result +
-              Verts[i].Data[0] * Verts[i+1].Data[1] -
-              Verts[i].Data[1] * Verts[i+1].Data[0];
+              Verts^[i].Data[0] * Verts^[i+1].Data[1] -
+              Verts^[i].Data[1] * Verts^[i+1].Data[0];
   Result := Result +
-            Verts[VertsCount-1].Data[0] * Verts[0].Data[1] -
-            Verts[VertsCount-1].Data[1] * Verts[0].Data[0];
+            Verts^[VertsCount-1].Data[0] * Verts^[0].Data[1] -
+            Verts^[VertsCount-1].Data[1] * Verts^[0].Data[0];
   Result := Result / 2;
 end;
 
@@ -634,7 +634,7 @@ begin
   Result := IsPolygon2dCCW(@Verts, High(Verts)+1);
 end;
 
-function Polygon2dArea(Verts: PVector2; const VertsCount: Integer): Single;
+function Polygon2dArea(Verts: PVector2Array; const VertsCount: Integer): Single;
 begin
   Result := Abs(IsPolygon2dCCW(Verts, VertsCount));
 end;

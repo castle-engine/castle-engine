@@ -979,7 +979,7 @@ begin
   begin
     Node := Children.Item[I];
     case Node.NodeType of
-      TEXT_NODE: Result += UTF8Encode((Node as TDOMText).Data);
+      TEXT_NODE: Result := Result + UTF8Encode((Node as TDOMText).Data);
       ELEMENT_NODE: raise Exception.CreateFmt(
         'Child elements not allowed within element <%s>, but found %s',
           [TagName, (Node as TDOMElement).TagName]);

@@ -298,10 +298,10 @@ begin
   if Len <> 0 then
   begin
     Len := 1/Len;
-    Data.Vector.Data[0] *= Len;
-    Data.Vector.Data[1] *= Len;
-    Data.Vector.Data[2] *= Len;
-    Data.Real *= Len;
+    Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
+    Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
+    Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+    Data.Real := Data.Real * Len;
   end;
 end;
 
@@ -322,10 +322,10 @@ begin
     if Len <> 0 then
     begin
       Len := 1/Len;
-      Data.Vector.Data[0] *= Len;
-      Data.Vector.Data[1] *= Len;
-      Data.Vector.Data[2] *= Len;
-      Data.Real *= Len;
+      Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
+      Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
+      Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+      Data.Real := Data.Real * Len;
     end;
   end;
 end;
@@ -352,7 +352,7 @@ begin
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);
 
   if NormalizeAxis then
-    SinHalfAngle /= Axis.Length;
+    SinHalfAngle := SinHalfAngle / Axis.Length;
 
   Result.Data.Vector := Axis * SinHalfAngle;
   Result.Data.Real := CosHalfAngle;
