@@ -43,6 +43,9 @@
     function CubicBezierValue(
       const T: Single; const ControlPointsIndex: Integer): Single;
 
+  protected
+    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
+
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -257,6 +260,15 @@ destructor TAbstractCubicBezierInterpolatorNode.Destroy;
 begin
   FreeAndNil(FCalculatedCurves);
   inherited;
+end;
+
+function TAbstractCubicBezierInterpolatorNode.DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode;
+var
+  Res: TAbstractCubicBezierInterpolatorNode;
+begin
+  Result := inherited;
+  Res := Result as TAbstractCubicBezierInterpolatorNode;
+  Res.OptimizeControlPoints;
 end;
 
 { TCubicBezier2DOrientationInterpolatorNode ---------------------------------- }
