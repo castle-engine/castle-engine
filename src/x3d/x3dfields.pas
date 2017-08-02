@@ -1061,6 +1061,9 @@ type
 
   EX3DMultFieldDifferentCount = class(EX3DError);
 
+  {$I x3devents.inc}
+  {$I x3devents_descendants.inc}
+
   { X3D field with a list of values. }
   TX3DMultField = class(TX3DField)
   protected
@@ -1472,18 +1475,23 @@ type
     procedure Send(const AValue: LongInt); override;
   end;
 
-  TSFMatrix3f = class(TX3DSingleField)
+  generic TSFGenericMatrix<
+    TSF_STATIC_ITEM,
+    TSF_VECTOR,
+    TSF_SCALAR,
+    TSF_EVENT> = class(TX3DSingleField)
   private
-    FValue: TMatrix3;
-    DefaultValue: TMatrix3;
+    FValue: TSF_STATIC_ITEM;
+    DefaultValue: TSF_STATIC_ITEM;
     DefaultValueExists: boolean;
+    class function MatrixSize: Integer;
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TMatrix3);
+      const AName: string; const AValue: TSF_STATIC_ITEM);
 
-    property Value: TMatrix3 read FValue write FValue;
+    property Value: TSF_STATIC_ITEM read FValue write FValue;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -1498,69 +1506,37 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TMatrix3); overload;
   end;
 
-  TSFMatrix3d = class(TX3DSingleField)
-  private
-    FValue: TMatrix3Double;
-    DefaultValue: TMatrix3Double;
-    DefaultValueExists: boolean;
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFMatrix3f = class(specialize TSFGenericMatrix<
+    TMatrix3,
+    TVector3,
+    Single,
+    TSFMatrix3fEvent>)
   public
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TMatrix3Double);
-
-    property Value: TMatrix3Double read FValue write FValue;
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TMatrix3Double); overload;
+    procedure Send(const AValue: TMatrix3); overload; virtual;
   end;
 
-  TSFMatrix4f = class(TX3DSingleField)
-  private
-    FValue: TMatrix4;
-    DefaultValue: TMatrix4;
-    DefaultValueExists: boolean;
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFMatrix3d = class(specialize TSFGenericMatrix<
+    TMatrix3Double,
+    TVector3Double,
+    Double,
+    TSFMatrix3dEvent>)
   public
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TMatrix4);
+    class function X3DType: string; override;
+    procedure Send(const AValue: TMatrix3Double); overload; virtual;
+  end;
 
-    property Value: TMatrix4 read FValue write FValue;
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
+  TSFMatrix4f = class(specialize TSFGenericMatrix<
+    TMatrix4,
+    TVector4,
+    Single,
+    TSFMatrix4fEvent>)
+  public
+    class function X3DType: string; override;
+    procedure Send(const AValue: TMatrix4); overload; virtual;
 
     { Return average scale for current matrix Value.
 
@@ -1570,11 +1546,16 @@ type
       (but e.g. will fail miserably (generate nonsense results) when
       looking at some rotation matrices). }
     function TransformScale: Single;
+  end;
 
+  TSFMatrix4d = class(specialize TSFGenericMatrix<
+    TMatrix4Double,
+    TVector4Double,
+    Double,
+    TSFMatrix4dEvent>)
+  public
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TMatrix4); virtual; overload;
+    procedure Send(const AValue: TMatrix4Double); overload; virtual;
   end;
 
   { VRML 1.0 SFMatrix field. }
@@ -1582,38 +1563,6 @@ type
   public
     class function X3DType: string; override;
     procedure Send(const AValue: TMatrix4); override;
-  end;
-
-  TSFMatrix4d = class(TX3DSingleField)
-  private
-    FValue: TMatrix4Double;
-    DefaultValue: TMatrix4Double;
-    DefaultValueExists: boolean;
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
-  public
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TMatrix4Double);
-
-    property Value: TMatrix4Double read FValue write FValue;
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TMatrix4Double); overload;
   end;
 
   TSFRotation = class(TX3DSingleField)
@@ -1741,17 +1690,20 @@ type
     procedure SendEnumValue(const NewValue: Integer);
   end;
 
-  TSFVec2f = class(TX3DSingleField)
+  generic TSFGenericVector<
+    TSF_SCALAR,
+    TSF_STATIC_ITEM,
+    TSF_EVENT> = class(TX3DSingleField)
   protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    Value: TVector2;
+    Value: TSF_STATIC_ITEM;
 
-    DefaultValue: TVector2;
+    DefaultValue: TSF_STATIC_ITEM;
     DefaultValueExists: boolean;
 
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TVector2);
+      const AName: string; const AValue: TSF_STATIC_ITEM);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -1766,42 +1718,26 @@ type
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
 
-    class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TVector2); overload;
   end;
 
-  TSFVec3f = class(TX3DSingleField)
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFVec2f = class(specialize TSFGenericVector<
+    Single,
+    TVector2,
+    TSFVec2fEvent>)
   public
-    Value: TVector3;
-
-    DefaultValue: TVector3;
-    DefaultValueExists: boolean;
-
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TVector3);
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
+    procedure Send(const AValue: TVector2); overload; virtual;
+  end;
 
-    procedure Send(const AValue: TVector3); virtual; overload;
-    { Change only a given component of the vector. }
+  TSFVec3f = class(specialize TSFGenericVector<
+    Single,
+    TVector3,
+    TSFVec3fEvent>)
+  public
+    class function X3DType: string; override;
+    procedure Send(const AValue: TVector3); overload; virtual;
+    { Alternative version of @name, change only a given component of the vector. }
     procedure Send(const Index: Integer; const ComponentValue: Single); overload;
   end;
 
@@ -1809,38 +1745,16 @@ type
   public
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: TVector3); override;
+    procedure Send(const AValue: TVector3); overload; override;
   end;
 
-  TSFVec4f = class(TX3DSingleField)
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFVec4f = class(specialize TSFGenericVector<
+    Single,
+    TVector4,
+    TSFVec4fEvent>)
   public
-    Value: TVector4;
-
-    DefaultValue: TVector4;
-    DefaultValueExists: boolean;
-
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TVector4);
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TVector4); virtual; overload;
+    procedure Send(const AValue: TVector4); overload; virtual;
   end;
 
   TSFColorRGBA = class(TSFVec4f)
@@ -1850,96 +1764,31 @@ type
     procedure Send(const AValue: TVector4); override;
   end;
 
-  TSFVec2d = class(TX3DSingleField)
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFVec2d = class(specialize TSFGenericVector<
+    Double,
+    TVector2Double,
+    TSFVec2dEvent>)
   public
-    Value: TVector2Double;
-
-    DefaultValue: TVector2Double;
-    DefaultValueExists: boolean;
-
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TVector2Double);
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TVector2Double); overload;
+    procedure Send(const AValue: TVector2Double); overload; virtual;
   end;
 
-  TSFVec3d = class(TX3DSingleField)
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFVec3d = class(specialize TSFGenericVector<
+    Double,
+    TVector3Double,
+    TSFVec3dEvent>)
   public
-    Value: TVector3Double;
-
-    DefaultValue: TVector3Double;
-    DefaultValueExists: boolean;
-
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TVector3Double);
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TVector3Double); overload;
+    procedure Send(const AValue: TVector3Double); overload; virtual;
   end;
 
-  TSFVec4d = class(TX3DSingleField)
-  protected
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
+  TSFVec4d = class(specialize TSFGenericVector<
+    Double,
+    TVector4Double,
+    TSFVec4dEvent>)
   public
-    Value: TVector4Double;
-
-    DefaultValue: TVector4Double;
-    DefaultValueExists: boolean;
-
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TVector4Double);
-
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-    function FastEqualsValue(SecondValue: TX3DField): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
     class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure Send(const AValue: TVector4Double); overload;
+    procedure Send(const AValue: TVector4Double); overload; virtual;
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -2800,9 +2649,6 @@ type
     { Return field class for given name. Returns @nil if not found. }
     function X3DTypeToClass(const X3DType: string): TX3DFieldClass;
   end;
-
-  {$I x3devents.inc}
-  {$I x3devents_descendants.inc}
 
 function X3DFieldsManager: TX3DFieldsManager;
 
@@ -4607,11 +4453,9 @@ begin
   Result := TSFInt32Event.Create(AParentNode, AName, AInEvent);
 end;
 
-{ ----------------------------------------------------------------------------
-  Common SF fields based on matrices implementation }
+{ TSFGenericMatrix ---------------------------------------------------------------------------- }
 
-{$define IMPLEMENT_SF_CLASS_USING_MATRICES :=
-constructor TSF_CLASS.Create(AParentNode: TX3DFileItem;
+constructor TSFGenericMatrix.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
   inherited Create(AParentNode, AName);
@@ -4619,15 +4463,27 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+procedure TSFGenericMatrix.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  Column: integer;
+  Column, Row: integer;
 begin
-  for Column := 0 to TSF_MATRIX_COLS - 1 do
-    ParseVector(FValue.Data[Column], Lexer);
+  for Column := 0 to MatrixSize - 1 do
+  begin
+    for Row := 0 to MatrixSize - 1 do
+    begin
+      Lexer.CheckTokenIs(TokenNumbers, 'float number');
+      FValue.Data[Column, Row] := Lexer.TokenFloat;
+      Lexer.NextToken;
+    end;
+
+    // Calling here global ParseVector or ParseFloat causes
+    // Error: Global Generic template references static symtable
+    // with FPC 3.0.2. TODO: test other FPC versions, potentially submit FPC bug.
+    // ParseVector(, Lexer);
+  end;
 end;
 
-procedure TSF_CLASS.SaveToStreamValue(Writer: TX3DWriter);
+procedure TSFGenericMatrix.SaveToStreamValue(Writer: TX3DWriter);
 var
   V: TSF_VECTOR;
   Column: integer;
@@ -4636,7 +4492,7 @@ begin
   Writer.Writeln(V.ToRawString);
 
   Writer.IncIndent;
-  for Column := 1 to TSF_MATRIX_COLS - 1 do
+  for Column := 1 to MatrixSize - 1 do
   begin
     V.Data := FValue.Data[Column];
     Writer.WritelnIndent(V.ToRawString);
@@ -4644,121 +4500,72 @@ begin
   Writer.DecIndent;
 end;
 
-function TSF_CLASS.Equals(SecondValue: TX3DField;
+function TSFGenericMatrix.Equals(SecondValue: TX3DField;
   const Epsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, Epsilon)) and
-    (SecondValue is TSF_CLASS) and
-    TSF_STATIC_ITEM.Equals(TSF_CLASS(SecondValue).FValue, FValue, Epsilon);
+    (SecondValue is TSFGenericMatrix) and
+    TSF_STATIC_ITEM.Equals(TSFGenericMatrix(SecondValue).FValue, FValue, Epsilon);
 end;
 
-function TSF_CLASS.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFGenericMatrix.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
-  Result := (SecondValue is TSF_CLASS) and
-    TSF_STATIC_ITEM.PerfectlyEquals(TSF_CLASS(SecondValue).Value, Value);
+  Result := (SecondValue is TSFGenericMatrix) and
+    TSF_STATIC_ITEM.PerfectlyEquals(TSFGenericMatrix(SecondValue).Value, Value);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+procedure TSFGenericMatrix.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  Value := Lerp(A, (Value1 as TSF_CLASS).Value, (Value2 as TSF_CLASS).Value);
+  Value := TSF_STATIC_ITEM.Lerp(A, (Value1 as TSFGenericMatrix).Value, (Value2 as TSFGenericMatrix).Value);
 end;
 
-function TSF_CLASS.CanAssignLerp: boolean;
+function TSFGenericMatrix.CanAssignLerp: boolean;
 begin
   Result := true;
 end;
 
-procedure TSF_CLASS.Assign(Source: TPersistent);
+procedure TSFGenericMatrix.Assign(Source: TPersistent);
 begin
-  if Source is TSF_CLASS then
+  if Source is TSFGenericMatrix then
   begin
-    FValue := TSF_CLASS(Source).FValue;
+    FValue := TSFGenericMatrix(Source).FValue;
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSF_CLASS.AssignValue(Source: TX3DField);
+procedure TSFGenericMatrix.AssignValue(Source: TX3DField);
 begin
-  if Source is TSF_CLASS then
+  if Source is TSFGenericMatrix then
   begin
     inherited;
-    FValue := TSF_CLASS(Source).FValue;
+    FValue := TSFGenericMatrix(Source).FValue;
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
 
-function TSF_CLASS.EqualsDefaultValue: boolean;
+function TSFGenericMatrix.EqualsDefaultValue: boolean;
 begin
   Result := DefaultValueExists and
     TSF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Value);
 end;
 
-procedure TSF_CLASS.AssignDefaultValueFromValue;
+procedure TSFGenericMatrix.AssignDefaultValueFromValue;
 begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
 end;
 
-procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSF_CLASS.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
-class function TSF_CLASS.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFGenericMatrix.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSF_EVENT.Create(AParentNode, AName, AInEvent);
 end;
-}
 
-{$define TSF_CLASS := TSFMatrix3f}
-{$define TSF_STATIC_ITEM := TMatrix3}
-{$define PSF_STATIC_ITEM := PMatrix3}
-{$define TSF_MATRIX_COLS := 3}
-{$define TSF_VECTOR := TVector3}
-{$define TSF_SCALAR := Single}
-{$define TSF_EVENT := TSFMatrix3fEvent}
-IMPLEMENT_SF_CLASS_USING_MATRICES
-
-{$define TSF_CLASS := TSFMatrix3d}
-{$define TSF_STATIC_ITEM := TMatrix3Double}
-{$define PSF_STATIC_ITEM := PMatrix3Double}
-{$define TSF_MATRIX_COLS := 3}
-{$define TSF_VECTOR := TVector3Double}
-{$define TSF_SCALAR := Double}
-{$define TSF_EVENT := TSFMatrix3dEvent}
-IMPLEMENT_SF_CLASS_USING_MATRICES
-
-{$define TSF_CLASS := TSFMatrix4f}
-{$define TSF_STATIC_ITEM := TMatrix4}
-{$define PSF_STATIC_ITEM := PMatrix4}
-{$define TSF_MATRIX_COLS := 4}
-{$define TSF_VECTOR := TVector4}
-{$define TSF_SCALAR := Single}
-{$define TSF_EVENT := TSFMatrix4fEvent}
-IMPLEMENT_SF_CLASS_USING_MATRICES
-
-{$define TSF_CLASS := TSFMatrix4d}
-{$define TSF_STATIC_ITEM := TMatrix4Double}
-{$define PSF_STATIC_ITEM := PMatrix4Double}
-{$define TSF_MATRIX_COLS := 4}
-{$define TSF_VECTOR := TVector4Double}
-{$define TSF_SCALAR := Double}
-{$define TSF_EVENT := TSFMatrix4dEvent}
-IMPLEMENT_SF_CLASS_USING_MATRICES
-
-{$undef TSF_CLASS}
-{$undef TSF_STATIC_ITEM}
-{$undef PSF_STATIC_ITEM}
-{$undef TSF_MATRIX_COLS}
-{$undef TSF_SCALAR}
-{$undef TSF_EVENT}
+class function TSFGenericMatrix.MatrixSize: Integer;
+begin
+  Result := High(TSF_VECTOR.TIndex) + 1;
+end;
 
 { TSFMatrix3f ------------------------------------------------------------------ }
 
@@ -4767,11 +4574,31 @@ begin
   Result := 'SFMatrix3f';
 end;
 
+procedure TSFMatrix3f.Send(const AValue: TMatrix3);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFMatrix3f.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFMatrix3d ------------------------------------------------------------------ }
 
 class function TSFMatrix3d.X3DType: string;
 begin
   Result := 'SFMatrix3d';
+end;
+
+procedure TSFMatrix3d.Send(const AValue: TMatrix3Double);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFMatrix3d.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFMatrix4f ------------------------------------------------------------------ }
@@ -4793,11 +4620,31 @@ begin
     FValue[2, 2]);
 end;
 
+procedure TSFMatrix4f.Send(const AValue: TMatrix4);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFMatrix4f.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFMatrix4d ------------------------------------------------------------------ }
 
 class function TSFMatrix4d.X3DType: string;
 begin
   Result := 'SFMatrix4d';
+end;
+
+procedure TSFMatrix4d.Send(const AValue: TMatrix4Double);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFMatrix4d.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFMatrix ------------------------------------------------------------------ }
@@ -5187,11 +5034,9 @@ begin
   FDefaultEnumValue := NewDefaultEnumValue;
 end;
 
-{ ----------------------------------------------------------------------------
-  Common SF fields based on vectors implementation }
+{ TSFGenericVector ----------------------------------------------------------- }
 
-{$define IMPLEMENT_SF_CLASS_USING_VECTORS :=
-constructor TSF_CLASS.Create(AParentNode: TX3DFileItem;
+constructor TSFGenericVector.Create(AParentNode: TX3DFileItem;
   const AName: string; const AValue: TSF_STATIC_ITEM);
 begin
   inherited Create(AParentNode, AName);
@@ -5200,130 +5045,90 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-procedure TSF_CLASS.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+procedure TSFGenericVector.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
+var
+  I: Integer;
 begin
-  ParseVector(Value.Data, Lexer);
+  for I := 0 to High(Value.Data) do
+  begin
+    Lexer.CheckTokenIs(TokenNumbers, 'float number');
+    Value.Data[I] := Lexer.TokenFloat;
+    Lexer.NextToken;
+  end;
+
+  // Calling ParseVector or ParseFloat here causes FPC 3.0.2 error
+  // Error: Global Generic template references static symtable
+  // TODO: check on other FPC versions and report.
+  // ParseVector(Value.Data, Lexer);
 end;
 
-procedure TSF_CLASS.SaveToStreamValue(Writer: TX3DWriter);
+procedure TSFGenericVector.SaveToStreamValue(Writer: TX3DWriter);
 begin
   Writer.Write(Value.ToRawString);
 end;
 
-function TSF_CLASS.EqualsDefaultValue: boolean;
+function TSFGenericVector.EqualsDefaultValue: boolean;
 begin
   Result := DefaultValueExists and TSF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Value);
 end;
 
-function TSF_CLASS.Equals(SecondValue: TX3DField;
+function TSFGenericVector.Equals(SecondValue: TX3DField;
   const Epsilon: Double): boolean;
 begin
   Result := (inherited Equals(SecondValue, Epsilon)) and
-    (SecondValue is TSF_CLASS) and
-    TSF_STATIC_ITEM.Equals(TSF_CLASS(SecondValue).Value, Value, Epsilon);
+    (SecondValue is TSFGenericVector) and
+    TSF_STATIC_ITEM.Equals(TSFGenericVector(SecondValue).Value, Value, Epsilon);
 end;
 
-function TSF_CLASS.FastEqualsValue(SecondValue: TX3DField): boolean;
+function TSFGenericVector.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
-  Result := (SecondValue is TSF_CLASS) and
-    TSF_STATIC_ITEM.PerfectlyEquals(TSF_CLASS(SecondValue).Value, Value);
+  Result := (SecondValue is TSFGenericVector) and
+    TSF_STATIC_ITEM.PerfectlyEquals(TSFGenericVector(SecondValue).Value, Value);
 end;
 
-procedure TSF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+procedure TSFGenericVector.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  Value := Lerp(A, (Value1 as TSF_CLASS).Value, (Value2 as TSF_CLASS).Value);
+  Value := TSF_STATIC_ITEM.Lerp(A, (Value1 as TSFGenericVector).Value, (Value2 as TSFGenericVector).Value);
 end;
 
-function TSF_CLASS.CanAssignLerp: boolean;
+function TSFGenericVector.CanAssignLerp: boolean;
 begin
   Result := true;
 end;
 
-procedure TSF_CLASS.Assign(Source: TPersistent);
+procedure TSFGenericVector.Assign(Source: TPersistent);
 begin
-  if Source is TSF_CLASS then
+  if Source is TSFGenericVector then
   begin
-    DefaultValue       := TSF_CLASS(Source).DefaultValue;
-    DefaultValueExists := TSF_CLASS(Source).DefaultValueExists;
-    Value              := TSF_CLASS(Source).Value;
+    DefaultValue       := TSFGenericVector(Source).DefaultValue;
+    DefaultValueExists := TSFGenericVector(Source).DefaultValueExists;
+    Value              := TSFGenericVector(Source).Value;
     VRMLFieldAssignCommon(TX3DField(Source));
   end else
     inherited;
 end;
 
-procedure TSF_CLASS.AssignValue(Source: TX3DField);
+procedure TSFGenericVector.AssignValue(Source: TX3DField);
 begin
-  if Source is TSF_CLASS then
+  if Source is TSFGenericVector then
   begin
     inherited;
-    Value := TSF_CLASS(Source).Value;
+    Value := TSFGenericVector(Source).Value;
   end else
     AssignValueRaiseInvalidClass(Source);
 end;
 
-procedure TSF_CLASS.AssignDefaultValueFromValue;
+procedure TSFGenericVector.AssignDefaultValueFromValue;
 begin
   inherited;
   DefaultValue := Value;
   DefaultValueExists := true;
 end;
 
-procedure TSF_CLASS.Send(const AValue: TSF_STATIC_ITEM);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSF_CLASS.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
-class function TSF_CLASS.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
+class function TSFGenericVector.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSF_EVENT.Create(AParentNode, AName, AInEvent);
 end;
-}
-
-{$define TSF_CLASS := TSFVec2f}
-{$define TSF_SCALAR := Single}
-{$define TSF_STATIC_ITEM := TVector2}
-{$define TSF_EVENT := TSFVec2fEvent}
-IMPLEMENT_SF_CLASS_USING_VECTORS
-
-{$define TSF_CLASS := TSFVec3f}
-{$define TSF_SCALAR := Single}
-{$define TSF_STATIC_ITEM := TVector3}
-{$define TSF_EVENT := TSFVec3fEvent}
-IMPLEMENT_SF_CLASS_USING_VECTORS
-
-{$define TSF_CLASS := TSFVec4f}
-{$define TSF_SCALAR := Single}
-{$define TSF_STATIC_ITEM := TVector4}
-{$define TSF_EVENT := TSFVec4fEvent}
-IMPLEMENT_SF_CLASS_USING_VECTORS
-
-{$define TSF_CLASS := TSFVec2d}
-{$define TSF_SCALAR := Double}
-{$define TSF_STATIC_ITEM := TVector2Double}
-{$define TSF_EVENT := TSFVec2dEvent}
-IMPLEMENT_SF_CLASS_USING_VECTORS
-
-{$define TSF_CLASS := TSFVec3d}
-{$define TSF_SCALAR := Double}
-{$define TSF_STATIC_ITEM := TVector3Double}
-{$define TSF_EVENT := TSFVec3dEvent}
-IMPLEMENT_SF_CLASS_USING_VECTORS
-
-{$define TSF_CLASS := TSFVec4d}
-{$define TSF_SCALAR := Double}
-{$define TSF_STATIC_ITEM := TVector4Double}
-{$define TSF_EVENT := TSFVec4dEvent}
-IMPLEMENT_SF_CLASS_USING_VECTORS
-
-{$undef TSF_CLASS}
-{$undef TSF_SCALAR}
-{$undef TSF_STATIC_ITEM}
-{$undef TSF_EVENT}
 
 { TSFVec2f ------------------------------------------------------------------- }
 
@@ -5332,11 +5137,31 @@ begin
   Result := 'SFVec2f';
 end;
 
+procedure TSFVec2f.Send(const AValue: TVector2);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFVec2f.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFVec3f ------------------------------------------------------------------- }
 
 class function TSFVec3f.X3DType: string;
 begin
   Result := 'SFVec3f';
+end;
+
+procedure TSFVec3f.Send(const AValue: TVector3);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFVec3f.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 procedure TSFVec3f.Send(const Index: Integer; const ComponentValue: Single);
@@ -5377,6 +5202,16 @@ begin
   Result := 'SFVec4f';
 end;
 
+procedure TSFVec4f.Send(const AValue: TVector4);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFVec4f.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFColorRGBA --------------------------------------------------------------- }
 
 class function TSFColorRGBA.X3DType: string;
@@ -5406,6 +5241,16 @@ begin
   Result := 'SFVec2d';
 end;
 
+procedure TSFVec2d.Send(const AValue: TVector2Double);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFVec2d.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFVec3d ------------------------------------------------------------------- }
 
 class function TSFVec3d.X3DType: string;
@@ -5413,11 +5258,31 @@ begin
   Result := 'SFVec3d';
 end;
 
+procedure TSFVec3d.Send(const AValue: TVector3Double);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFVec3d.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFVec4d ------------------------------------------------------------------- }
 
 class function TSFVec4d.X3DType: string;
 begin
   Result := 'SFVec4d';
+end;
+
+procedure TSFVec4d.Send(const AValue: TVector4Double);
+var
+  FieldValue: TX3DField;
+begin
+  FieldValue := TSFVec4d.Create(ParentNode, X3DName, AValue);
+  try
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFBitMask ------------------------------------------------------------ }
