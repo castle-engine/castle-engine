@@ -176,13 +176,13 @@ begin
   if FieldClass.InheritsFrom(TMFMatrix4f) then
     Result := TCasScriptMatrix4fArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix3d) then
-    Result := TCasScriptMatrix3Double.Create(true) else
+    Result := TCasScriptMatrix3d.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix3d) then
-    Result := TCasScriptMatrix3DoubleArray.Create(true) else
+    Result := TCasScriptMatrix3dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFMatrix4d) then
-    Result := TCasScriptMatrix4Double.Create(true) else
+    Result := TCasScriptMatrix4d.Create(true) else
   if FieldClass.InheritsFrom(TMFMatrix4d) then
-    Result := TCasScriptMatrix4DoubleArray.Create(true) else
+    Result := TCasScriptMatrix4dArray.Create(true) else
   if FieldClass.InheritsFrom(TSFImage) {or
      FieldClass.InheritsFrom(TMFImage) }then
     Result := TCasScriptImage.Create(true) else
@@ -271,14 +271,14 @@ procedure X3DCasScriptBeforeExecute(Value: TCasScriptValue;
       TCasScriptMatrix4fArray(Value).Value := TMFMatrix4f(Field).Items else
 
     if Field is TSFMatrix3d then
-      TCasScriptMatrix3Double(Value).Value := TSFMatrix3d(Field).Value else
+      TCasScriptMatrix3d(Value).Value := TSFMatrix3d(Field).Value else
     if Field is TMFMatrix3d then
-      TCasScriptMatrix3DoubleArray(Value).Value := TMFMatrix3d(Field).Items else
+      TCasScriptMatrix3dArray(Value).Value := TMFMatrix3d(Field).Items else
 
     if Field is TSFMatrix4d then
-      TCasScriptMatrix4Double(Value).Value := TSFMatrix4d(Field).Value else
+      TCasScriptMatrix4d(Value).Value := TSFMatrix4d(Field).Value else
     if Field is TMFMatrix4d then
-      TCasScriptMatrix4DoubleArray(Value).Value := TMFMatrix4d(Field).Items else
+      TCasScriptMatrix4dArray(Value).Value := TMFMatrix4d(Field).Items else
 
     if Field is TSFImage then
       TCasScriptImage(Value).Value := TSFImage(Field).Value else
@@ -417,14 +417,14 @@ begin
       TMFMatrix4f(Field).Items := TCasScriptMatrix4fArray(Value).Value else
 
     if Field is TSFMatrix3d then
-      TSFMatrix3d(Field).Value := TCasScriptMatrix3Double(Value).Value else
+      TSFMatrix3d(Field).Value := TCasScriptMatrix3d(Value).Value else
     if Field is TMFMatrix3d then
-      TMFMatrix3d(Field).Items := TCasScriptMatrix3DoubleArray(Value).Value else
+      TMFMatrix3d(Field).Items := TCasScriptMatrix3dArray(Value).Value else
 
     if Field is TSFMatrix4d then
-      TSFMatrix4d(Field).Value := TCasScriptMatrix4Double(Value).Value else
+      TSFMatrix4d(Field).Value := TCasScriptMatrix4d(Value).Value else
     if Field is TMFMatrix4d then
-      TMFMatrix4d(Field).Items := TCasScriptMatrix4DoubleArray(Value).Value else
+      TMFMatrix4d(Field).Items := TCasScriptMatrix4dArray(Value).Value else
 
     if Field is TSFImage then
       TSFImage(Field).Value := TCasScriptImage(Value).Value.MakeCopy else

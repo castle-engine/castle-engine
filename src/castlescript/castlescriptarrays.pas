@@ -122,15 +122,15 @@ type
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix3DoubleArray = class(specialize TCasScriptArray<
+  TCasScriptMatrix3dArray = class(specialize TCasScriptArray<
     TMatrix3DoubleList,
-    TCasScriptMatrix3Double,
+    TCasScriptMatrix3d,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix4DoubleArray = class(specialize TCasScriptArray<
+  TCasScriptMatrix4dArray = class(specialize TCasScriptArray<
     TMatrix4DoubleList,
-    TCasScriptMatrix4Double,
+    TCasScriptMatrix4d,
     TCasScriptArrayFun>)
   end;
 
@@ -559,8 +559,8 @@ initialization
   TCasScriptVec2dArray.RegisterFunctions;
   TCasScriptVec3dArray.RegisterFunctions;
   TCasScriptVec4dArray.RegisterFunctions;
-  TCasScriptMatrix3DoubleArray.RegisterFunctions;
-  TCasScriptMatrix4DoubleArray.RegisterFunctions;
+  TCasScriptMatrix3dArray.RegisterFunctions;
+  TCasScriptMatrix4dArray.RegisterFunctions;
 
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
   FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
