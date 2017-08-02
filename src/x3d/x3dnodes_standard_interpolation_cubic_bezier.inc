@@ -18,7 +18,7 @@
   strict private
     type
       TCalculatedCurve2D = array [0..10] of TVector2;
-      TCalculatedCurve2DList = specialize TStructList<TCalculatedCurve2D>;
+      TCalculatedCurve2DList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCalculatedCurve2D>;
     var
       FCalculatedCurves: TCalculatedCurve2DList;
       CubicBezierValueWarningDone: boolean;
@@ -315,7 +315,7 @@ procedure TCubicBezier2DOrientationInterpolatorNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): Single;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.L[Index] else
+      Result := FdKeyValue.Items.List^[Index] else
       Result := 0;
   end;
 
@@ -384,7 +384,7 @@ procedure TCubicBezierPositionInterpolatorNode.EventSet_FractionReceive(
   function KeyValue(Index: Integer): TVector3;
   begin
     if Index < FdKeyValue.Items.Count then
-      Result := FdKeyValue.Items.L[Index] else
+      Result := FdKeyValue.Items.List^[Index] else
       Result := TVector3.Zero;
   end;
 

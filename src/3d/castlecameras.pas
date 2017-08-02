@@ -157,7 +157,7 @@ type
       if HandleInput then
       begin
         if Container.Pressed[K_Right] then
-          Transform.Position += Vector3(SecondsPassed * 10, 0, 0);
+          Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
         HandleInput := not ExclusiveEvents;
       end;
       #)
@@ -482,8 +482,8 @@ type
 
       Returned Dir and Up must be orthogonal.
       Returned Dir and Up and GravityUp are already normalized. }
-    procedure GetView(out APos, ADir, AUp: TVector3); virtual; abstract;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); virtual; abstract;
+    procedure GetView(out APos, ADir, AUp: TVector3); overload; virtual; abstract;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); overload; virtual; abstract;
 
     { Set camera view from vectors: position, direction, up.
 
@@ -496,9 +496,9 @@ type
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); virtual; abstract;
+      const AdjustUp: boolean = true); overload; virtual; abstract;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); virtual; abstract;
+      const AdjustUp: boolean = true); overload; virtual; abstract;
 
     property Position: TVector3 read GetPositionInternal write SetPosition;
     function GetPosition: TVector3; deprecated 'use Position property';
@@ -2282,7 +2282,7 @@ begin
   inherited;
   if FAnimation then
   begin
-    AnimationCurrentTime += SecondsPassed;
+    AnimationCurrentTime := AnimationCurrentTime + SecondsPassed;
     if AnimationCurrentTime > AnimationEndTime then
     begin
       FAnimation := false;
@@ -2688,13 +2688,13 @@ end;
 
 procedure TExamineCamera.Scale(const ScaleBy: Single);
 begin
-  FScaleFactor *= ScaleBy;
+  FScaleFactor := FScaleFactor * ScaleBy;
   ScheduleVisibleChange;
 end;
 
 procedure TExamineCamera.Move(coord: integer; const MoveDistance: Single);
 begin
-  FTranslation.Data[coord] += MoveDistance;
+  FTranslation.Data[coord] := FTranslation.Data[coord] + MoveDistance;
   ScheduleVisibleChange;
 end;
 
@@ -2715,13 +2715,13 @@ begin
 
   if Abs(X)>5 then   { left / right }
   begin
-    FTranslation.Data[0] += Size * X * MoveSize;
+    FTranslation.Data[0] := FTranslation.Data[0] + (Size * X * MoveSize);
     Moved := true;
   end;
 
   if Abs(Y)>5 then   { up / down }
   begin
-    FTranslation.Data[1] += Size * Y * MoveSize;
+    FTranslation.Data[1] := FTranslation.Data[1] + (Size * Y * MoveSize);
     Moved := true;
   end;
 
@@ -2867,7 +2867,7 @@ begin
     OldTranslation := FTranslation;
     OldPosition := Position;
 
-    FTranslation.Data[2] += Size * Factor;
+    FTranslation.Data[2] := FTranslation.Data[2] + (Size * Factor);
 
     { Cancel zoom in, don't allow to go to the other side of the model too far.
       Note that Box3DPointDistance = 0 when you're inside the box,
@@ -3047,8 +3047,8 @@ begin
   if DoMoving then
   begin
     Size := FModelBox.AverageSize;
-    FTranslation.Data[0] -= DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst);
-    FTranslation.Data[1] -= DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst);
+    FTranslation.Data[0] := FTranslation.Data[0] - (DragMoveSpeed * Size * (Event.OldPosition[0] - Event.Position[0]) / (2*MoveDivConst));
+    FTranslation.Data[1] := FTranslation.Data[1] - (DragMoveSpeed * Size * (Event.OldPosition[1] - Event.Position[1]) / (2*MoveDivConst));
     ScheduleVisibleChange;
     Result := ExclusiveEvents;
   end;
@@ -3378,7 +3378,7 @@ begin
   Result := PreferredHeight;
 
   if IsCrouching then
-    Result *= CrouchHeight;
+    Result := Result * CrouchHeight;
 end;
 
 function TWalkCamera.RealPreferredHeight: Single;
@@ -3416,8 +3416,8 @@ begin
     BobbingModifier := Sin(BobbingModifier * 2 * Pi);
     }
 
-    BobbingModifier *= Result * HeadBobbing;
-    Result += BobbingModifier;
+    BobbingModifier := BobbingModifier * (Result * HeadBobbing);
+    Result := Result + BobbingModifier;
   end;
 end;
 
@@ -3623,14 +3623,14 @@ var
 begin
   Multiplier := MoveSpeed * MoveHorizontalSpeed * SecondsPassed * Multiply;
   if IsJumping then
-    Multiplier *= JumpHorizontalSpeedMultiply;
+    Multiplier := Multiplier * JumpHorizontalSpeedMultiply;
   if Input_Run.IsPressed(Container) then
-    Multiplier *= 2;
+    Multiplier := Multiplier * 2;
 
   { Update HeadBobbingPosition }
   if (not IsJumping) and UseHeadBobbing and (not HeadBobbingAlreadyDone) then
   begin
-    HeadBobbingPosition += SecondsPassed / HeadBobbingTime;
+    HeadBobbingPosition := HeadBobbingPosition + (SecondsPassed / HeadBobbingTime);
     HeadBobbingAlreadyDone := true;
   end;
 
@@ -3652,7 +3652,7 @@ procedure TWalkCamera.MoveVertical(const SecondsPassed: Single; const Multiply: 
   begin
     Multiplier := MoveSpeed * MoveVerticalSpeed * SecondsPassed * Multiply;
     if Input_Run.IsPressed(Container) then
-      Multiplier *= 2;
+      Multiplier := Multiplier * 2;
     Move(PreferredUpVector * Multiplier, false, false);
   end;
 
@@ -3711,7 +3711,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
           1. update FJumpHeight and move Position
           2. or set FIsJumping to false when jump ends }
         ThisJumpHeight := MaxJumpDistance * SecondsPassed / FJumpTime;
-        FJumpHeight += ThisJumpHeight;
+        FJumpHeight := FJumpHeight + ThisJumpHeight;
 
         if FJumpHeight > MaxJumpDistance then
           FIsJumping := false else
@@ -3945,9 +3945,9 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
             end;
 
             if Fde_UpRotate < 0 then
-              Fde_UpRotate -= Fde_VerticalRotateDeviation * SecondsPassed else
+              Fde_UpRotate := Fde_UpRotate - (Fde_VerticalRotateDeviation * SecondsPassed) else
             if Fde_UpRotate > 0 then
-              Fde_UpRotate += Fde_VerticalRotateDeviation * SecondsPassed else
+              Fde_UpRotate := Fde_UpRotate + (Fde_VerticalRotateDeviation * SecondsPassed) else
               Fde_UpRotate := RandomPlusMinus *
                               Fde_VerticalRotateDeviation * SecondsPassed;
 
@@ -3961,7 +3961,7 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
             - changing FallSpeed below is "acceleration"
             And both acceleration and velocity must be time-based. }
           if FallSpeedIncrease <> 1.0 then
-            FFallSpeed *= Power(FallSpeedIncrease, SecondsPassed * 50);
+            FFallSpeed := FFallSpeed * (Power(FallSpeedIncrease, SecondsPassed * 50));
         end;
       end else
         FFalling := false;
@@ -4068,13 +4068,15 @@ procedure TWalkCamera.Update(const SecondsPassed: Single;
         if FracHeadBobbingPosition > 0.5 then
         begin
           if 1 - FracHeadBobbingPosition > SingleEpsilon then
-            HeadBobbingPosition += Min(HeadBobbingGoingDownSpeed * SecondsPassed,
-              1 - FracHeadBobbingPosition);
+            HeadBobbingPosition := HeadBobbingPosition +
+              Min(HeadBobbingGoingDownSpeed * SecondsPassed,
+                  1 - FracHeadBobbingPosition);
         end else
         begin
           if FracHeadBobbingPosition > SingleEpsilon then
-            HeadBobbingPosition -= Min(HeadBobbingGoingDownSpeed * SecondsPassed,
-              FracHeadBobbingPosition);
+            HeadBobbingPosition := HeadBobbingPosition -
+              Min(HeadBobbingGoingDownSpeed * SecondsPassed,
+                  FracHeadBobbingPosition);
         end;
       end;
     end;
@@ -4379,7 +4381,7 @@ begin
 
             How to apply SecondsPassed here ?
             I can't just ignore SecondsPassed, but I can't also write
-              FMoveSpeed *= 10 * SecondsPassed;
+              FMoveSpeed := FMoveSpeed * (10 * SecondsPassed);
             What I want is such continous function that e.g.
               F(FMoveSpeed, 10) = F(F(FMoveSpeed, 1), 1)
             I.e. SecondsPassed = 10 should work just like doing the same change twice.

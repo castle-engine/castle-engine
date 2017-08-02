@@ -381,6 +381,8 @@ type
   end;
 
   PFloatRectangle = ^TFloatRectangle;
+  TFloatRectangleArray = packed array [0..MaxInt div SizeOf(TFloatRectangle) - 1] of TFloatRectangle;
+  PFloatRectangleArray = ^TFloatRectangleArray;
 
   TRectangleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRectangle>)
   public

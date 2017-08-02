@@ -161,14 +161,14 @@ type
       Caption and Name are left empty (they do not have to be set for
       local shortcuts; although you may wish to later assign Name anyway,
       if you use this as sub-component in Lazarus). }
-    constructor Create(AOwner: TComponent); override;
+    constructor Create(AOwner: TComponent); overload; override;
 
     { Flexible constructor that allows to set Group and choose global or local
       shortcut. }
     constructor Create(const AOwner: TComponent;
       const ACaption: string;
       const AName: string;
-      const AGroup: TInputGroup);
+      const AGroup: TInputGroup); overload;
 
     procedure MakeDefault;
 
@@ -199,11 +199,11 @@ type
     { Given a set of currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
     function IsPressed(Pressed: TKeysPressed;
-      const MousePressed: TMouseButtons): boolean;
+      const MousePressed: TMouseButtons): boolean; overload;
 
     { Looking at Container's currently pressed keys and mouse buttons,
       decide whether this input is currently pressed. }
-    function IsPressed(Container: TUIContainer): boolean;
+    function IsPressed(Container: TUIContainer): boolean; overload;
 
     { Check does given Key or ACharacter correspond to this input shortcut.
       If Key = K_None and ACharacter = #0, result is always @false. }
@@ -231,8 +231,8 @@ type
       to use this instead of taking care of them separately. }
     function IsEvent(AKey: TKey; ACharacter: Char;
       AMousePress: boolean; AMouseButton: TMouseButton;
-      AMouseWheel: TMouseWheelDirection): boolean;
-    function IsEvent(const Event: TInputPressRelease): boolean;
+      AMouseWheel: TMouseWheelDirection): boolean; overload;
+    function IsEvent(const Event: TInputPressRelease): boolean; overload;
 
     { Describe the current value (which key, mouse buttons and such) of this
       shortcut. If there is no way to press this shortcut (all properties
@@ -248,8 +248,8 @@ type
       then user will see it as @code('Press "use" key to do something')
       and will know that (s)he should configure the "use" key.
       @groupBegin }
-    function Description(const NoneString: string): string;
-    function Description: string;
+    function Description(const NoneString: string): string; overload;
+    function Description: string; overload;
     { @groupEnd }
 
     { Modifier keys that are relevant to recognize this shortcut. }
@@ -345,7 +345,7 @@ type
         Other TExamineCamera are allowed only when modifiers = []. }
   end;
 
-  TInputShortcutList = class(specialize TObjectList<TInputShortcut>)
+  TInputShortcutList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInputShortcut>)
   public
     { Find shortcut by name, returns @nil if not found. }
     function FindName(const Name: string): TInputShortcut;
@@ -550,26 +550,26 @@ begin
     if (Key1 <> K_None) and (Key2 <> K_None) then
       Result := Format('key "%s" or "%s"', [KeyToStr(Key1), KeyToStr(Key2)]) else
     if Key1 <> K_None then
-      Result += Format('key "%s"', [KeyToStr(Key1)]) else
-      Result += Format('key "%s"', [KeyToStr(Key2)]);
+      Result := Result + (Format('key "%s"', [KeyToStr(Key1)])) else
+      Result := Result + Format('key "%s"', [KeyToStr(Key2)]);
   end;
 
   if Character <> #0 then
   begin
-    if Result <> '' then Result += ' or ';
-    Result += Format('char "%s"', [CharToNiceStr(Character)]);
+    if Result <> '' then Result := Result + ' or ';
+    Result := Result + Format('char "%s"', [CharToNiceStr(Character)]);
   end;
 
   if MouseButtonUse then
   begin
-    if Result <> '' then Result += ' or ';
-    Result += Format('mouse "%s"', [MouseButtonStr[MouseButton]]);
+    if Result <> '' then Result := Result + ' or ';
+    Result := Result + Format('mouse "%s"', [MouseButtonStr[MouseButton]]);
   end;
 
   if MouseWheel <> mwNone then
   begin
-    if Result <> '' then Result += ' or ';
-    Result += Format('wheel "%s"', [MouseWheelDirectionStr[MouseWheel]]);
+    if Result <> '' then Result := Result + ' or ';
+    Result := Result + Format('wheel "%s"', [MouseWheelDirectionStr[MouseWheel]]);
   end;
 
   if Result = '' then
@@ -712,7 +712,7 @@ end;
 
 procedure TInputShortcutList.LoadFromConfig(const Config: TCastleConfig);
 type
-  TInputShortcutComparer = specialize TComparer<TInputShortcut>;
+  TInputShortcutComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TInputShortcut>;
 var
   I: Integer;
   ConflictDescription: string;

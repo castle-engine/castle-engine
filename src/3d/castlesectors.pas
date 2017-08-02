@@ -49,7 +49,7 @@ type
     property Sectors: TSectorList read FSectors;
   end;
 
-  TWaypointList = class(specialize TObjectList<TWaypoint>)
+  TWaypointList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWaypoint>)
   end;
 
   TSector = class
@@ -89,7 +89,7 @@ type
   ESectorNotInitialized = class(Exception);
   EWaypointNotInitialized = class(Exception);
 
-  TSectorList = class(specialize TObjectList<TSector>)
+  TSectorList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSector>)
   public
     { Connect sectors and waypoints into a graph.
       Adds appropriate waypoints to sectors and sectors to waypoints,
@@ -176,7 +176,7 @@ var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.L[I].Contains(Point) then
+    if Boxes.List^[I].Contains(Point) then
       Exit(true);
   Result := false;
 end;
@@ -186,7 +186,7 @@ var
   I: Integer;
 begin
   for I := 0 to Boxes.Count - 1 do
-    if Boxes.L[I].Collision(Box) then
+    if Boxes.List^[I].Collision(Box) then
       Exit(true);
   Result := false;
 end;

@@ -5794,7 +5794,7 @@ end;
 
 procedure TX3DRoute.ResetLastEventTime;
 begin
-  LastEventTime := OldestX3DTime;
+  LastEventTime := TX3DTime.Oldest;
 end;
 
 type

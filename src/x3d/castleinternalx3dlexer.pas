@@ -707,7 +707,7 @@ begin
  fToken := vtString;
  fTokenString := '';
  repeat
-  fTokenString += Stream.ReadUpto(['\', '"']);
+  fTokenString := fTokenString + Stream.ReadUpto(['\', '"']);
   endingChar := Stream.ReadChar;
 
   if endingChar = -1 then
@@ -732,9 +732,9 @@ begin
     begin
       WritelnWarning('X3D', 'Invalid X3D file: Invalid sequence in a string: "\%s". Backslash must be followed by another backslash or double quote, for SFString and MFString (in X3D classic (VRML) encoding) and for MFString (in X3D XML encoding).',
         [Chr(NextChar)]);
-      FTokenString += '\';
+      FTokenString := FTokenString + '\';
     end;
-    FTokenString += Chr(NextChar);
+    FTokenString := FTokenString + Chr(NextChar);
   end;
 
  until endingChar = Ord('"');

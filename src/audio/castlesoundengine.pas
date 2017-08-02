@@ -1989,7 +1989,7 @@ begin
 
           Investigation: I found that sometimes changing the buffer
           of the sound doesn't work immediately. Simple
-            Writeln(SoundInfos.L[Sound].Buffer, ' ',
+            Writeln(SoundInfos.List^[Sound].Buffer, ' ',
               alGetSource1ui(FAllocatedSource.ALSource, AL_BUFFER));
           right after alCommonSourceSetup shows this (may output
           two different values). Then if you wait a little, OpenAL
@@ -2265,12 +2265,12 @@ function TSoundEngine.ParseParametersHelp: string;
       Result := Format('                        Available devices (%d):', [Devices.Count]) + nl;
       for i := 0 to Devices.Count - 1 do
       begin
-        Result += '                          ' + Devices[i].Caption;
+        Result := Result + '                          ' + Devices[i].Caption;
         if Devices[i].Name <> Devices[i].Caption then
-          Result += ' (Real OpenAL name: "' + Devices[i].Name + '")';
+          Result := Result + ' (Real OpenAL name: "' + Devices[i].Name + '")';
         if Devices[i].Name = DefaultDeviceName then
-          Result += ' (Equivalent to default device)';
-        Result += nl;
+          Result := Result + ' (Equivalent to default device)';
+        Result := Result + nl;
       end;
     end;
   end;

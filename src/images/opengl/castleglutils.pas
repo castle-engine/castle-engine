@@ -255,53 +255,16 @@ procedure glTexEnvv(target, pname: TGLEnum; const params: TVector4f); overload;
 
 procedure GLViewport(const Rect: TRectangle);
 
-function GetCurrentColor: TCastleColor; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
-procedure SetCurrentColor(const Value: TCastleColor); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
-
-{ Current color, set by glColorv and used for TCastleFont font printing
-  (in case you use deprecated TCastleFont.Print overloads without
-  explicit colors).
-
-  @deprecated Instead of this, use drawing routines that take
-  Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...)
-  or TGLImage.Color. }
-property CurrentColor: TCastleColor read GetCurrentColor write SetCurrentColor;
-  // deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
-
-{ Projection matrix -------------------------------------------------------- }
-
-function GetProjectionMatrix: TMatrix4;
-procedure SetProjectionMatrix(const Value: TMatrix4);
-
-{ Current projection matrix.
-
-  For OpenGLES, this is merely a global ProjectionMatrix variable.
-  It must be passed to various shaders to honour the projection.
-
-  For desktop OpenGL, setting this also sets fixed-function projection matrix.
-  The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
-  then changed back to GL_MODELVIEW. }
-property ProjectionMatrix: TMatrix4
-  read GetProjectionMatrix write SetProjectionMatrix;
-
-{ Set ProjectionMatrix to given value.
-
-  For PerspectiveProjection, ZFar may have special ZFarInfinity value
-  to create a perspective projection with far plane set at infinity.
-  Useful e.g. for z-fail shadow volumes.
-
-  @groupBegin }
-function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
-function OrthoProjection(const Dimensions: TFloatRectangle;
-  const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4;
-function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
-{ @groupEnd }
-
 var
-  { Viewport size for 2D rendering functions: DrawRectangle and TGLImageCore.Draw.
-    UI container (like TCastleWindowCustom or TCastleControlCustom)
-    must take care to set this before rendering. }
-  Viewport2DSize: TVector2;
+  { Current color, set by glColorv and used for TCastleFont font printing
+    (in case you use deprecated TCastleFont.Print overloads without
+    explicit colors).
+
+    @deprecated Instead of this, use drawing routines that take
+    Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...)
+    or TGLImage.Color. }
+  CurrentColor: TCastleColor
+    deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 
 { ---------------------------------------------------------------------------- }
 
@@ -330,6 +293,7 @@ procedure GLHorizontalLine(x1, x2, y: TGLfloat); deprecated 'use DrawPrimitive2D
 procedure GLDrawArrow(HeadThickness: TGLfloat = 0.4;
   HeadLength: TGLfloat = 0.5); deprecated 'use DrawPrimitive2D to draw shapes';
 
+{$ifdef CASTLE_OBJFPC}
 { Comfortable wrapper for gluNewQuadric. Sets all quadric parameters.
   Sets also the GLU_ERROR callback to ReportGLerror.
   @raises Exception If gluNewQuadric fails (returns nil). }
@@ -349,6 +313,7 @@ procedure CastleGluSphere(
   Normals: TGLenum = GLU_NONE;
   Orientation: TGLenum = GLU_OUTSIDE;
   DrawStyle: TGLenum = GLU_FILL); deprecated 'use TCastleScene to draw 3D stuff';
+{$endif}
 
 { Draw axis (3 lines) around given position.
   Nothing is generated besides vertex positions ---
@@ -359,8 +324,8 @@ procedure glDrawAxisWire(const Position: TVector3; Size: Single); deprecated 'us
   Deprecated, do not use colors like that, instead pass TCastleColor
   to appropriate routines like TCastleFont.Print.
   @groupBegin }
-procedure glColorOpacity(const Color: TVector3; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
-procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorOpacity(const Color: TVector3; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
+procedure glColorOpacity(const Color: TVector3Byte; const Opacity: Single); overload; deprecated 'instead of this, use drawing routines that take Color from parameters or properties, like TCastleFont.Print(X,Y,Color,...) or TGLImage.Color';
 { @groupEnd }
 {$endif}
 
@@ -402,34 +367,13 @@ procedure glFreeBuffer(var Buffer: TGLuint);
   #) }
 procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
 
-{ Draw the 2D GUI stuff (like following GUI images and TCastleFont)
-  with lower-left corner in the X,Y pixel.
-  @groupBegin }
-procedure SetWindowPos(const X, Y: TGLint); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
-procedure SetWindowPos(const Value: TVector2i); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
-procedure SetWindowPosF(const X, Y: TGLfloat); deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
-procedure SetWindowPosZero; deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
-{ @groupEnd }
-
-function GetWindowPos: TVector2i; deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
-
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
   Instead of this, use drawing routines that take position as parameters,
   like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...). }
-property WindowPos: TVector2i read GetWindowPos write SetWindowPos;
-  // deprecated 'instead of this, use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
-
-type
-  { Possible values of @link(DepthRange). }
-  TDepthRange = (drFull, drNear, drFar);
-
-function GetDepthRange: TDepthRange;
-procedure SetDepthRange(const Value: TDepthRange);
-
-{ Use this to operate on OpenGL glDepthRange. For now, our engine has
-  very simple use for this, for TPlayer.RenderOnTop. }
-property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
+var
+  WindowPos: TVector2Integer
+    deprecated 'use drawing routines that take position as parameters, like TGLImageCore.Draw(X,Y) or TCastleFont.Print(X,Y,...)';
 
 type
   TEnableTextureTarget = (etNone, et2D, etCubeMap, et3D);
@@ -497,7 +441,7 @@ begin
   if AdditionalComment <> '' then
     Result := AdditionalComment + nl else
     Result := '';
-  Result += Format('OpenGL error (%d): %s', [ErrorCode, S]);
+  Result := Result + Format('OpenGL error (%d): %s', [ErrorCode, S]);
 end;
 
 constructor EOpenGLError.Create(const AErrorCode: TGLenum; const AdditionalComment: string);
@@ -571,43 +515,38 @@ end;
 
 { ---------------------------------------------------------------------------- }
 
-var
-  FCurrentColor: TCastleColor;
-
-function GetCurrentColor: TCastleColor;
-begin
-  Result := FCurrentColor;
-end;
-
-procedure SetCurrentColor(const Value: TCastleColor);
-begin
-  FCurrentColor := Value;
-end;
-
 {$ifndef OpenGLES}
 
 procedure glColorv(const v: TVector3ub);
 begin
   glColor3ubv(@v);
-  FCurrentColor := Vector4(Vector3(V), 1);
+  {$warnings off} // consciously using deprecated in deprecated
+  CurrentColor := Vector4(Vector3(V), 1);
+  {$warnings on}
 end;
 
 procedure glColorv(const v: TVector4ub);
 begin
   glColor4ubv(@v);
-  FCurrentColor := Vector4(V);
+  {$warnings off} // consciously using deprecated in deprecated
+  CurrentColor := Vector4(V);
+  {$warnings on}
 end;
 
 procedure glColorv(const v: TVector3f);
 begin
   glColor3fv(@v);
-  FCurrentColor := Vector4(V, 1);
+  {$warnings off} // consciously using deprecated in deprecated
+  CurrentColor := Vector4(V, 1);
+  {$warnings on}
 end;
 
 procedure glColorv(const v: TVector4f);
 begin
   glColor4fv(@v);
-  FCurrentColor := V;
+  {$warnings off} // consciously using deprecated in deprecated
+  CurrentColor := V;
+  {$warnings on}
 end;
 
 procedure glTranslatev(const V: TVector3f); begin glTranslatef(V[0], V[1], V[2]); end;
@@ -669,47 +608,6 @@ procedure GLViewport(const Rect: TRectangle);
 begin
   {$ifndef OpenGLES} GL {$else} CastleGLES20 {$endif}
     .glViewport(Rect.Left, Rect.Bottom, Rect.Width, Rect.Height);
-end;
-
-{ projection matrix ---------------------------------------------------------- }
-
-var
-  FProjectionMatrix: TMatrix4;
-
-function GetProjectionMatrix: TMatrix4;
-begin
-  Result := FProjectionMatrix;
-end;
-
-procedure SetProjectionMatrix(const Value: TMatrix4);
-begin
-  FProjectionMatrix := Value;
-
-  {$ifndef OpenGLES}
-  glMatrixMode(GL_PROJECTION);
-  {$warnings off}
-  glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
-  {$warnings on}
-  glMatrixMode(GL_MODELVIEW);
-  {$endif}
-end;
-
-function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
-begin
-  Result := PerspectiveProjectionMatrixDeg(fovy, aspect, ZNear, ZFar);
-  ProjectionMatrix := Result;
-end;
-
-function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
-begin
-  Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
-  ProjectionMatrix := Result;
-end;
-
-function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
-begin
-  Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
-  ProjectionMatrix := Result;
 end;
 
 { Various helpers ------------------------------------------------------------ }
@@ -806,6 +704,7 @@ begin
 end;
 *)
 
+{$ifdef CASTLE_OBJFPC}
 function NewGLUQuadric(texture: boolean; normals: TGLenum;
   orientation: TGLenum; drawStyle: TGLenum): PGLUQuadric;
 begin
@@ -838,10 +737,11 @@ begin
     gluSphere(Q, Radius, Slices, Stacks);
   finally gluDeleteQuadric(Q); end;
 end;
+{$endif CASTLE_OBJFPC}
 
 procedure glDrawAxisWire(const Position: TVector3; Size: Single);
 begin
-  Size /= 2;
+  Size := Size / 2;
   glBegin(GL_LINES);
     glVertexv(Position - Vector3(Size, 0, 0));
     glVertexv(Position + Vector3(Size, 0, 0));
@@ -899,66 +799,6 @@ begin
   glColorMask(Writeable, Writeable, Writeable, Writeable);
 end;
 
-var
-  FWindowPos: TVector2Integer;
-
-procedure SetWindowPosF(const X, Y: TGLfloat);
-begin
-  { Hack, only to somewhat support SetWindowPosF for old programs.
-    SetWindowPosF should not be used in new code. }
-  FWindowPos[0] := Floor(X);
-  FWindowPos[1] := Floor(Y);
-end;
-
-procedure SetWindowPos(const X, Y: TGLint);
-begin
-  FWindowPos[0] := X;
-  FWindowPos[1] := Y;
-end;
-
-procedure SetWindowPos(const Value: TVector2i);
-begin
-  { Deprecated stuff uses other deprecated stuff here, don't warn }
-  {$warnings off}
-  SetWindowPos(Value[0], Value[1]);
-  {$warnings on}
-end;
-
-procedure SetWindowPosZero;
-begin
-  { Deprecated stuff uses other deprecated stuff here, don't warn }
-  {$warnings off}
-  SetWindowPos(0, 0);
-  {$warnings on}
-end;
-
-function GetWindowPos: TVector2i;
-begin
-  Result := FWindowPos;
-end;
-
-var
-  FDepthRange: TDepthRange = drFull;
-
-function GetDepthRange: TDepthRange;
-begin
-  Result := FDepthRange;
-end;
-
-procedure SetDepthRange(const Value: TDepthRange);
-begin
-  if FDepthRange <> Value then
-  begin
-    {$ifdef OpenGLES} {$define glDepthRange := glDepthRangef} {$endif}
-    FDepthRange := Value;
-    case Value of
-      drFull: glDepthRange(0  , 1);
-      drNear: glDepthRange(0  , 0.1);
-      drFar : glDepthRange(0.1, 1);
-    end;
-  end;
-end;
-
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 begin
   Result := true;
@@ -1001,7 +841,11 @@ begin
   { free things created by GLInformationInitialize }
   FreeAndNil(GLVersion);
   {$ifndef OpenGLES}
+  {$ifdef CASTLE_OBJFPC}
+  {$warnings off} // consciously initializing deprecated stuff, to keep it working
   FreeAndNil(GLUVersion);
+  {$warnings on}
+  {$endif CASTLE_OBJFPC}
   {$endif}
   FreeAndNil(GLFeatures);
 end;

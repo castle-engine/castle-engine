@@ -33,7 +33,7 @@ uses CastleVectors, CastleTerrain;
   previous layer) and 2 times larger size.
 
   Uses currently enabled GLSL program (or none), so be sure
-  to assign CurrentProgram before calling this. }
+  to assign TGLSLProgram.Current before calling this. }
 procedure DrawTerrain(Terrain: TTerrain;
   const Subdivision: Cardinal;
   MiddleX, MiddleY: Single; BaseSize: Single;

@@ -29,10 +29,6 @@ interface
 
 uses CastleVectors, CastleInternalOpenAL, Math;
 
-{ Macro below must be named "extdecl", to workaround Lazarus code tools
-  known bug http://bugs.freepascal.org/view.php?id=7431 }
-{$define extdecl := cdecl}
-
 {$ifndef PASDOC}
 {$I castleinternalefx_api.inc}
 {$I castleinternalefx_api_creative.inc}

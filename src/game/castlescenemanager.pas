@@ -618,7 +618,7 @@ type
     property FullSize default true;
   end;
 
-  TCastleAbstractViewportList = class(specialize TObjectList<TCastleAbstractViewport>)
+  TCastleAbstractViewportList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleAbstractViewport>)
   public
     { Does any viewport on the list has shadow volumes all set up? }
     function UsesShadowVolumes: boolean;
@@ -1557,10 +1557,10 @@ begin
   P := GetPlayer;
   if (P <> nil) and (P.Swimming = psUnderWater) then
   begin
-    SickProjectionTime += SecondsPassedScaled;
+    SickProjectionTime := SickProjectionTime + SecondsPassedScaled;
     SinCos(SickProjectionTime * P.SickProjectionSpeed, S, C);
-    DistortFieldOfViewY += C * 0.03;
-    DistortViewAspect += S * 0.03;
+    DistortFieldOfViewY := DistortFieldOfViewY + (C * 0.03);
+    DistortViewAspect := DistortViewAspect + (S * 0.03);
   end;
 end;
 
@@ -1592,7 +1592,7 @@ begin
   { Apply new FProjection values }
   M := FProjection.Matrix(AspectRatio);
   Camera.ProjectionMatrix := M;
-  ProjectionMatrix := M;
+  RenderContext.ProjectionMatrix := M;
 
   { Calculate BackgroundSkySphereRadius here,
     using ProjectionFar that is *not* ZFarInfinity }
@@ -1915,7 +1915,7 @@ begin
         testcase. So temporary set good perspective projection. }
       if FProjection.ProjectionType = ptOrthographic then
       begin
-        SavedProjectionMatrix := ProjectionMatrix;
+        SavedProjectionMatrix := RenderContext.ProjectionMatrix;
         PerspectiveProjection(45, Rect.Width / Rect.Height,
           FProjection.ProjectionNear,
           FProjection.ProjectionFar);
@@ -1924,7 +1924,7 @@ begin
       UsedBackground.Render(BackgroundWireframe, RenderingCamera.Frustum);
 
       if FProjection.ProjectionType = ptOrthographic then
-        ProjectionMatrix := SavedProjectionMatrix;
+        RenderContext.ProjectionMatrix := SavedProjectionMatrix;
     end else
     begin
       Include(ClearBuffers, cbColor);
@@ -2003,7 +2003,7 @@ procedure TCastleAbstractViewport.RenderWithScreenEffectsCore;
       Inc(BoundTextureUnits);
     end;
 
-    CurrentProgram := Shader;
+    TGLSLProgram.Current := Shader;
     Shader.Uniform('screen').SetValue(0);
     if CurrentScreenEffectsNeedDepth then
       Shader.Uniform('screen_depth').SetValue(1);
@@ -2647,7 +2647,7 @@ begin
     "visible change notifications" repeatedly on the same 3D object within
     the same frame. }
   ScheduledVisibleChangeNotification := true;
-  ScheduledVisibleChangeNotificationChanges += Changes;
+  ScheduledVisibleChangeNotificationChanges := ScheduledVisibleChangeNotificationChanges + Changes;
 end;
 
 procedure TCastleSceneManager.GLContextOpen;

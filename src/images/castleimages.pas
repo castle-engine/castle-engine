@@ -2508,11 +2508,11 @@ begin
   NameDepth := ImageName + 'Depth';
   NamePixels := ImageName + 'Pixels';
 
-  CodeInterface +=
+  CodeInterface := CodeInterface +
     'var' +nl+
     '  ' +ImageName+ ': ' +ClassName+ ';' +nl + nl;
 
-  CodeImplementation +=
+  CodeImplementation := CodeImplementation +
     'const' +nl+
     '  ' +NameWidth+ ' = ' +IntToStr(Width)+ ';' +nl+
     '  ' +NameHeight+ ' = ' +IntToStr(Height)+ ';' +nl+
@@ -2545,12 +2545,12 @@ begin
 
   if ShowProgress then Progress.Fini;
 
-  CodeInitialization +=
+  CodeInitialization := CodeInitialization +
     '  ' +ImageName+ ' := ' +ClassName+ '.Create(' +NameWidth+', ' +NameHeight+ ', ' +NameDepth+ ');' +nl+
     '  Move(' +NamePixels+ ', ' +ImageName+ '.RawPixels^, SizeOf(' +NamePixels+ '));' +nl+
     '  ' +ImageName+ '.URL := ''embedded-image:/' +ImageName+ ''';' + nl;
 
-  CodeFinalization +=
+  CodeFinalization := CodeFinalization +
     '  FreeAndNil(' +ImageName+ ');' +nl;
 end;
 

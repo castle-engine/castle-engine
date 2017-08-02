@@ -131,7 +131,7 @@ type
         Composite: TCompositeImage;
         AlphaChannel: TAlphaChannel;
       end;
-      TCachedTextureList = specialize TObjectList<TCachedTexture>;
+      TCachedTextureList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedTexture>;
     var
       CachedTextures: TCachedTextureList;
   public
@@ -139,12 +139,12 @@ type
     destructor Destroy; override;
 
     function TextureImage_IncReference(const URL: string; out Composite: TCompositeImage;
-      out AlphaChannel: TAlphaChannel): TEncodedImage;
+      out AlphaChannel: TAlphaChannel): TEncodedImage; overload;
     function TextureImage_IncReference(const URL: string;
-      out AlphaChannel: TAlphaChannel): TEncodedImage;
+      out AlphaChannel: TAlphaChannel): TEncodedImage; overload;
 
-    procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage);
-    procedure TextureImage_DecReference(var Image: TEncodedImage);
+    procedure TextureImage_DecReference(var Image: TEncodedImage; var Composite: TCompositeImage); overload;
+    procedure TextureImage_DecReference(var Image: TEncodedImage); overload;
 
     function Empty: boolean; override;
   end;

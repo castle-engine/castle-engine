@@ -905,5 +905,5 @@ begin
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);
 
-  CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+  TGLSLProgram.Current := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

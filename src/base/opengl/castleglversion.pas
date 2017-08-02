@@ -219,9 +219,11 @@ var
   GLVersion: TGLVersion;
 
   {$ifndef OpenGLES}
+  {$ifdef CASTLE_OBJFPC}
   { GLU version information.
     This is usually created by CastleGLUtils.GLInformationInitialize. }
-  GLUVersion: TGenericGLVersion;
+  GLUVersion: TGenericGLVersion deprecated 'do not use GLU, or GLUVersion, in new applications; GLU does not exist on non-desktop platforms';
+  {$endif CASTLE_OBJFPC}
   {$endif}
 
 function VendorTypeToStr(const VendorType: TGLVendorType): string;

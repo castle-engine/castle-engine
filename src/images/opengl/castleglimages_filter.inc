@@ -21,15 +21,14 @@ type
   TMinificationFilter = CastleTextureImages.TMinificationFilter;
   TMagnificationFilter = CastleTextureImages.TMagnificationFilter;
 
-  TTextureFilter = object
+  TTextureFilter = record
   public
     Magnification: TMagnificationFilter;
     Minification: TMinificationFilter;
     function NeedsMipmaps: boolean;
     procedure DisableMipmaps;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const V1, V2: TTextureFilter): boolean;
   end;
-
-operator = (const V1, V2: TTextureFilter): boolean;
 
 function TextureFilter(const Minification: TMinificationFilter;
   const Magnification: TMagnificationFilter): TTextureFilter;
@@ -92,7 +91,8 @@ begin
   end;
 end;
 
-operator = (const V1, V2: TTextureFilter): boolean;
+class operator TTextureFilter.{$ifdef FPC}={$else}Equal{$endif}
+  (const V1, V2: TTextureFilter): boolean;
 begin
   Result :=
     (V1.Minification  = V2.Minification ) and

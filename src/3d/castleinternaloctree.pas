@@ -379,10 +379,10 @@ type
 
     constructor Create(AMaxDepth, ALeafCapacity: integer;
       const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-      AItemsInNonLeafNodes: boolean);
+      AItemsInNonLeafNodes: boolean); overload;
     constructor Create(const Limits: TOctreeLimits;
       const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-      AItemsInNonLeafNodes: boolean);
+      AItemsInNonLeafNodes: boolean); overload;
     destructor Destroy; override;
 
     { Traverse octree seeking for nodes that (possibly) collide
@@ -603,7 +603,7 @@ begin
   if StatisticsAdded then
   begin
     if IsLeaf then
-      FParentTree.FTotalItemsInLeafs -= ItemIndices.Count;
+      FParentTree.FTotalItemsInLeafs := FParentTree.FTotalItemsInLeafs - ItemIndices.Count;
     StatisticsRemove;
   end; }
 
@@ -617,7 +617,7 @@ begin
   if IsLeaf then
   begin
     Inc(FParentTree.FTotalLeafNodes);
-    FParentTree.FTotalItemsInLeafs += ItemsIndices.Count;
+    FParentTree.FTotalItemsInLeafs := FParentTree.FTotalItemsInLeafs + ItemsIndices.Count;
   end else
   begin
     Inc(FParentTree.FTotalNonLeafNodes);
@@ -630,7 +630,7 @@ begin
   if IsLeaf then
   begin
     Dec(FParentTree.FTotalLeafNodes);
-    FParentTree.FTotalItemsInLeafs -= ItemsIndices.Count;
+    FParentTree.FTotalItemsInLeafs := FParentTree.FTotalItemsInLeafs - ItemsIndices.Count;
   end else
   begin
     Dec(FParentTree.FTotalNonLeafNodes);
@@ -898,7 +898,7 @@ function TOctree.Statistics: string;
   procedure WritelnStatLine(const Header: string;
     const LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount: Cardinal);
   begin
-    Result += Format(
+    Result := Result + Format(
       '  %-12s%4d leaves (%6d items in leaves), %4d non-leaf nodes.' +nl,
       [Header, LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount]);
   end;
@@ -914,11 +914,11 @@ var
   begin
     if TreeNode.IsLeaf then
     begin
-      Inc(LeafNodes.L[TreeNode.Depth]);
-      ItemsInLeafs.L[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
+      Inc(LeafNodes.List^[TreeNode.Depth]);
+      ItemsInLeafs.List^[TreeNode.Depth] := ItemsInLeafs.List^[TreeNode.Depth] + Cardinal(TreeNode.ItemsCount);
     end else
     begin
-      Inc(NonLeafNodes.L[TreeNode.Depth]);
+      Inc(NonLeafNodes.List^[TreeNode.Depth]);
       for b0 := Low(boolean) to High(boolean) do
         for b1 := Low(boolean) to High(boolean) do
           for b2 := Low(boolean) to High(boolean) do
@@ -951,7 +951,7 @@ begin
       if (NonLeafNodes[I] = 0) then
       begin
         if i < MaxDepth then
-         Result += Format(
+         Result := Result + Format(
            '  No nodes on lower depths (%d ... %d).' + NL, [I+1, MaxDepth]);
         break;
       end;
@@ -963,11 +963,11 @@ begin
 
     WritelnStatLine('SUM :', TotalLeafNodes, TotalItemsInLeafs, TotalNonLeafNodes);
 
-    Result += NL + Format(
+    Result := Result + NL + Format(
       '  Octree constructed with limits: max depth %d, leaf capacity %d.',
       [MaxDepth, LeafCapacity]) + NL;
 
-    Result += StatisticsBonus;
+    Result := Result + StatisticsBonus;
   finally
     FreeAndNil(LeafNodes);
     FreeAndNil(NonLeafNodes);

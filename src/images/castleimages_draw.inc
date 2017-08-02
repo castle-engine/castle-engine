@@ -57,29 +57,29 @@ procedure TCastleImage.DrawFrom(Source: TCastleImage;
 begin
   if X < 0 then
   begin
-    SourceX += -X;
-    SourceWidth -= -X;
+    Dec(SourceX, X);
+    Inc(SourceWidth, X);
     X := 0;
   end;
 
   if Y < 0 then
   begin
-    SourceY += -Y;
-    SourceHeight -= -Y;
+    Dec(SourceY, Y);
+    Inc(SourceHeight, Y);
     Y := 0;
   end;
 
   if SourceX < 0 then
   begin
-    X += -SourceX;
-    SourceWidth -= -SourceX;
+    Dec(X, SourceX);
+    Inc(SourceWidth, SourceX);
     SourceX := 0;
   end;
 
   if SourceY < 0 then
   begin
-    Y += -SourceY;
-    SourceHeight -= -SourceY;
+    Dec(Y, SourceY);
+    Inc(SourceHeight, SourceY);
     SourceY := 0;
   end;
 

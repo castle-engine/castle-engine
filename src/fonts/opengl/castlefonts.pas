@@ -1210,8 +1210,8 @@ begin
     begin
       GLImage.Color := OutlineColor;
       GLImage.Draw(
-        PFloatRectangle(GlyphsScreenRects.List),
-        PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+        PFloatRectangleArray(GlyphsScreenRects.List),
+        PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
     end;
   end;
 
@@ -1245,8 +1245,8 @@ begin
   begin
     GLImage.Color := Color;
     GLImage.Draw(
-      PFloatRectangle(GlyphsScreenRects.List),
-      PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+      PFloatRectangleArray(GlyphsScreenRects.List),
+      PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
   end;
 end;
 
@@ -1433,8 +1433,8 @@ begin
   begin
     GLImage.Color := Color;
     GLImage.Draw(
-      PFloatRectangle(GlyphsScreenRects.List),
-      PFloatRectangle(GlyphsImageRects.List), GlyphsToRender);
+      PFloatRectangleArray(GlyphsScreenRects.List),
+      PFloatRectangleArray(GlyphsImageRects.List), GlyphsToRender);
   end;
 end;
 

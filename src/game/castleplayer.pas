@@ -1404,12 +1404,12 @@ begin
     It should also enable X3D layers. }
 
   if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
-    DepthRange := drNear;
+    RenderContext.DepthRange := drNear;
 
   inherited;
 
   if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
-    DepthRange := drFar;
+    RenderContext.DepthRange := drFar;
 end;
 
 function TPlayer.Middle: TVector3;

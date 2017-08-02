@@ -97,7 +97,7 @@ procedure Save3D(Node: TX3DNode;
 procedure Save3D(Node: TX3DNode;
   const URL: string;
   const Generator: string = '';
-  const Source: string = '');
+  const Source: string = ''); overload;
 { @groupEnd }
 
 function Save3DWillConvertToX3D(Version: TX3DVersion;

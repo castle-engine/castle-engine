@@ -128,7 +128,7 @@ type
     This allows you to track the containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
-  TRayCollision = class(specialize TStructList<TRayCollisionNode>)
+  TRayCollision = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRayCollisionNode>)
   public
     { Distance, in world coordinate system, from the current
       camera to the picked point. The suggested usage is to decide if player
@@ -181,7 +181,7 @@ type
     This allows you to track the containers that contain given collision.
 
     This is never an empty list when returned by XxxCollision method. }
-  TCollisionDetails = class(specialize TStructList<TCollisionDetailsItem>)
+  TCollisionDetails = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCollisionDetailsItem>)
   public
     { Index of node with given Item. }
     function IndexOfItem(const Item: T3D): Integer;
@@ -371,12 +371,12 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload; virtual;
     function MoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload; virtual;
     { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3;
@@ -971,9 +971,9 @@ type
       with your own geometry), and checks collisions with the rest of the world.
       @groupBegin }
     function Height(const MyPosition: TVector3;
-      out AboveHeight: Single): boolean;
+      out AboveHeight: Single): boolean; overload;
     function Height(const MyPosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; overload;
     { @groupEnd }
 
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
@@ -991,9 +991,9 @@ type
       @groupBegin }
     function MoveAllowed(const OldPos, ProposedNewPos: TVector3;
       out NewPos: TVector3;
-      const BecauseOfGravity: boolean): boolean;
+      const BecauseOfGravity: boolean): boolean; overload;
     function MoveAllowed(const OldPos, NewPos: TVector3;
-      const BecauseOfGravity: boolean): boolean;
+      const BecauseOfGravity: boolean): boolean; overload;
     { @groupEnd }
 
     { Cast a ray from myself to the world, see what is hit.
@@ -1248,12 +1248,12 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; virtual; abstract;
+      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
     function WorldMoveAllowed(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; virtual; abstract;
+      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
     function WorldHeight(const Position: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
@@ -1712,9 +1712,9 @@ type
       (preserving the given direction value),
       otherwise we will adjust the direction (preserving the given up value). }
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true);
+      const AdjustUp: boolean = true); overload;
     procedure SetView(const ADir, AUp: TVector3;
-      const AdjustUp: boolean = true);
+      const AdjustUp: boolean = true); overload;
 
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
@@ -2148,7 +2148,7 @@ uses CastleLog;
 function TRayCollision.IndexOfItem(const Item: T3D): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Item = Item then Exit;
+    if List^[Result].Item = Item then Exit;
   Result := -1;
 end;
 
@@ -2157,7 +2157,7 @@ end;
 function TCollisionDetails.IndexOfItem(const Item: T3D): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Item = Item then Exit;
+    if List^[Result].Item = Item then Exit;
   Result := -1;
 end;
 
@@ -2887,9 +2887,9 @@ var
 begin
   Result := inherited;
   if GetChild <> nil then
-    Result += GetChild.PrepareResourcesSteps;
+    Result := Result + GetChild.PrepareResourcesSteps;
   for I := 0 to List.Count - 1 do
-    Result += List[I].PrepareResourcesSteps;
+    Result := Result + List[I].PrepareResourcesSteps;
 end;
 
 function T3DList.Press(const Event: TInputPressRelease): boolean;
@@ -3688,7 +3688,7 @@ begin
       NewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
     { translate calculated NewPos back }
     if Result then
-      NewPos += T;
+      NewPos := NewPos + T;
   end else
   begin
     TransformMatrices(M, MInverse);
@@ -3860,7 +3860,7 @@ begin
     if Result <> nil then
     begin
       LastNode := @(Result.List^[Result.Count - 1]);
-      LastNode^.Point += T;
+      LastNode^.Point := LastNode^.Point + T;
       { untransform the ray }
       LastNode^.RayOrigin := RayOrigin;
       LastNode^.RayDirection := RayDirection;
@@ -3913,7 +3913,7 @@ begin
     besides moving, only rotates around it's own up axis). }
 
   Result := GetTranslation;
-  Result.Data[GC] += Bottom(Gravity, GC, B) + PreferredHeight;
+  Result.Data[GC] := Result.Data[GC] + (Bottom(Gravity, GC, B) + PreferredHeight);
 end;
 
 function T3DCustomTransform.PreferredHeight: Single;
@@ -4026,7 +4026,7 @@ procedure T3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: T
           workarounding it here with this epsilon.
           See TBaseTrianglesOctree.MoveCollision. }
         if not Sphere(RadiusIgnored) then
-          MaximumFallingDistance -= 0.01;
+          MaximumFallingDistance := MaximumFallingDistance - 0.01;
         MinVar(FallingDistance, MaximumFallingDistance);
       end;
 
@@ -4468,13 +4468,13 @@ begin
             begin
               if SphereCollisionAssumeTranslation(NewTranslation,
                 Item.Middle, SphereRadius,
-                @World.CollisionIgnoreItem) then
+                {$ifdef CASTLE_OBJFPC}@{$endif} World.CollisionIgnoreItem) then
                 T3DCustomTransform(Item).Translate(MoveTranslation);
             end else
             begin
               if BoxCollisionAssumeTranslation(NewTranslation,
                 Item.BoundingBox,
-                @World.CollisionIgnoreItem) then
+                {$ifdef CASTLE_OBJFPC}@{$endif} World.CollisionIgnoreItem) then
                 T3DCustomTransform(Item).Translate(MoveTranslation);
             end;
         end;
@@ -4550,7 +4550,7 @@ begin
   UsedSound := SoundEngine.Sound3d(SoundType, SoundPosition, Looping);
 
   if UsedSound <> nil then
-    UsedSound.OnRelease := @SoundRelease;
+    UsedSound.OnRelease := {$ifdef CASTLE_OBJFPC}@{$endif} SoundRelease;
 end;
 
 procedure T3DLinearMoving.GoEndPosition;
@@ -4700,7 +4700,7 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  FLifeTime += SecondsPassed;
+  FLifeTime := FLifeTime + SecondsPassed;
 
   if FKnockbackDistance > 0 then
   begin
@@ -4711,7 +4711,7 @@ begin
       CurrentKnockBackDistance := FKnockbackDistance;
       FKnockbackDistance := 0;
     end else
-      FKnockbackDistance -= CurrentKnockBackDistance;
+      FKnockbackDistance := FKnockbackDistance - CurrentKnockBackDistance;
 
     Move(FLastHurtDirectionGround * CurrentKnockBackDistance, false);
   end;

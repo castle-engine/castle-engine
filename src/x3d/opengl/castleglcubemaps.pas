@@ -174,13 +174,13 @@ begin
   for SHBasis := 0 to High(SHVector) do
     SHVector[SHBasis] := 0;
 
-  SavedProjectionMatrix := ProjectionMatrix;
+  SavedProjectionMatrix := RenderContext.ProjectionMatrix;
   PerspectiveProjection(90, 1, 0.01, 100);
 
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 
-  ProjectionMatrix := SavedProjectionMatrix;
+  RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
   for SHBasis := 0 to High(SHVector) do
   begin
@@ -202,7 +202,7 @@ begin
   RenderingCamera.FromMatrix(
     LookDirMatrix(CapturePoint, CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
     FastLookDirMatrix(CubeMapInfo[Side].Dir, CubeMapInfo[Side].Up),
-    ProjectionMatrix, nil);
+    RenderContext.ProjectionMatrix, nil);
 end;
 
 procedure GLCaptureCubeMapImages(
@@ -241,13 +241,13 @@ begin
     RenderToTexture.Buffer := tbNone;
     RenderToTexture.GLContextOpen;
 
-    SavedProjectionMatrix := ProjectionMatrix;
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
     PerspectiveProjection(90, 1, ProjectionNear, ProjectionFar);
 
     for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
       DrawMap(Side);
 
-    ProjectionMatrix := SavedProjectionMatrix;
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
   finally FreeAndNil(RenderToTexture) end;
 end;
 
@@ -304,13 +304,13 @@ var
 begin
   RenderToTexture.CompleteTextureTarget := GL_TEXTURE_CUBE_MAP;
 
-  SavedProjectionMatrix := ProjectionMatrix;
+  SavedProjectionMatrix := RenderContext.ProjectionMatrix;
   PerspectiveProjection(90, 1, ProjectionNear, ProjectionFar);
 
   for Side := Low(TCubeMapSide) to High(TCubeMapSide) do
     DrawMap(Side);
 
-  ProjectionMatrix := SavedProjectionMatrix;
+  RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 end;
 
 end.

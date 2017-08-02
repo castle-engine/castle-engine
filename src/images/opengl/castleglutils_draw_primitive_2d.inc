@@ -181,31 +181,38 @@ procedure DrawPrimitive2D(const Mode: TPrimitiveMode;
   Only RGB portion of AFadeColor is used. }
 procedure GLFadeRectangleDark(const X1, Y1, X2, Y2: Integer;
   const AFadeColor: TVector3;
-  const FadeIntensity: Single);
+  const FadeIntensity: Single); overload;
 procedure GLFadeRectangleDark(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
-  const FadeIntensity: Single);
+  const FadeIntensity: Single); overload;
 procedure GLFadeRectangleLight(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
   const FadeIntensity: Single);
 procedure GLFadeRectangle(const X1, Y1, X2, Y2: Integer;
   const AFadeColor: TVector3;
-  const FadeIntensity: Single); deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
+  const FadeIntensity: Single); overload; deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
 procedure GLFadeRectangle(const Rect: TRectangle;
   const AFadeColor: TCastleColor;
-  const FadeIntensity: Single); deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
+  const FadeIntensity: Single); overload; deprecated 'use GLFadeRectangleDark, or TCastleFlashEffect with Dark = true';
 
 { Draw a rectangle with blending.
   @deprecated Deprecated, use DrawRectangle instead. }
 procedure GLBlendRectangle(const X1, Y1, X2, Y2: Integer;
   const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor;
-  const Color: TVector4); deprecated 'use DrawRectangle';
+  const Color: TVector4); overload; deprecated 'use DrawRectangle';
 procedure GLBlendRectangle(const Rect: TRectangle;
-  const Color: TVector4); deprecated 'use DrawRectangle';
+  const Color: TVector4); overload; deprecated 'use DrawRectangle';
 
 procedure GLBlendFunction(const SourceFactor: TBlendingSourceFactor;
   const DestinationFactor: TBlendingDestinationFactor);
+
+var
+  { Viewport size for 2D rendering functions, like @link(DrawRectangle),
+    @link(DrawPrimitive2D) and TGLImageCore.Draw.
+    The container (like TCastleWindowCustom or TCastleControlCustom)
+    must take care to set this before rendering. }
+  Viewport2DSize: TVector2;
 
 {$endif read_interface}
 
@@ -368,13 +375,13 @@ begin
   end;
 
   {$ifdef GLImageUseShaders}
-  CurrentProgram := Primitive2DRes.Prog;
+  TGLSLProgram.Current := Primitive2DRes.Prog;
   Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
   Primitive2DRes.UniformViewportSize.SetValue(Viewport2DSize);
   Primitive2DRes.UniformColor.SetValue(Color);
 
   {$else}
-  CurrentProgram := nil;
+  TGLSLProgram.Current := nil;
   glLoadIdentity();
   {$warnings off}
   glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit

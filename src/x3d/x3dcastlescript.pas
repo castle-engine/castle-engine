@@ -488,7 +488,7 @@ procedure TCasScriptX3DValueList.Add(FieldOrEvent: TX3DFieldOrEvent);
 begin
   inherited Add(X3DCasScriptCreateValue(FieldOrEvent));
   FieldOrEvents.Add(FieldOrEvent);
-  FLastEventTimes.Add(OldestX3DTime);
+  FLastEventTimes.Add(TX3DTime.Oldest);
 end;
 
 procedure TCasScriptX3DValueList.BeforeExecute;
@@ -562,7 +562,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    FLastEventTimes.L[I] := OldestX3DTime;
+    FLastEventTimes.L[I] := TX3DTime.Oldest;
 end;
 
 end.

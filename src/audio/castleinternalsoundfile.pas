@@ -440,7 +440,7 @@ begin
     In general, these are invalid WAV files, but let's handle them... }
   if Riff.Header.Len = Stream.Size then
   begin
-    Riff.Header.Len -= SizeOf(TWavChunkHeader);
+    Riff.Header.Len := Riff.Header.Len - SizeOf(TWavChunkHeader);
     WritelnWarning('WAV', 'Invalid WAV file: Riff.Header.Len equals Stream.Size, but it should be <= Stream.Size - SizeOf(TWavChunkHeader). Reading anyway.');
   end;
 

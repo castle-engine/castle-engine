@@ -35,8 +35,8 @@ type
   private
     Frames: array of TSpriteAnimationFrame;
   public
-    constructor Create(const AFrames: array of Cardinal; const FramesPerSecond: Single);
-    constructor Create(const AFrames: array of TSpriteAnimationFrame);
+    constructor Create(const AFrames: array of Cardinal; const FramesPerSecond: Single); overload;
+    constructor Create(const AFrames: array of TSpriteAnimationFrame); overload;
     { Duration, in seconds, of this animation. }
     property Duration: TFloatTime read FDuration;
   end;
@@ -57,7 +57,7 @@ type
   TSprite = class
   private
     type
-      TSpriteAnimations = specialize TObjectList<TSpriteAnimation>;
+      TSpriteAnimations = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSpriteAnimation>;
     var
     FImage: TGLImage;
     FX, FY: Integer;
@@ -117,7 +117,7 @@ type
       @param(APlay Is animation playing? if not then current frame will be displayed.) }
     constructor CreateFrameSize(const AImage: TGLImage;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
-      const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+      const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
 
     { Constructor that takes explicit frame size.
 
@@ -132,7 +132,7 @@ type
     constructor CreateFrameSize(const URL: string;
       const AFrames, AColumns, AFrameWidth, AFrameHeight: Cardinal;
       const ASmoothScaling: Boolean = True;
-      const ATimeLoop: Boolean = True; const APlay: Boolean = False);
+      const ATimeLoop: Boolean = True; const APlay: Boolean = False); overload;
 
     destructor Destroy; override;
 
@@ -167,11 +167,11 @@ type
       The overloaded versions deliberately look and work
       similar to @link(TGLImageCore.Draw) versions.
       @groupBegin }
-    procedure Draw;
-    procedure Draw(const AX, AY: Single);
-    procedure Draw(const AX, AY, DrawWidth, DrawHeight: Single);
-    procedure Draw(const ScreenRectangle: TRectangle);
-    procedure Draw(const ScreenRectangle: TFloatRectangle);
+    procedure Draw; overload;
+    procedure Draw(const AX, AY: Single); overload;
+    procedure Draw(const AX, AY, DrawWidth, DrawHeight: Single); overload;
+    procedure Draw(const ScreenRectangle: TRectangle); overload;
+    procedure Draw(const ScreenRectangle: TFloatRectangle); overload;
     { @groupEnd }
 
     { Draw the sprite, optionally flipped horizontally and/or vertically.
@@ -180,9 +180,9 @@ type
       only on the parameters to these methods.
       @groupBegin }
     procedure DrawFlipped(const ScreenRect: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean);
+      const FlipHorizontal, FlipVertical: boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean);
+      const FlipHorizontal, FlipVertical: boolean); overload;
     { @groupEnd }
 
     { Move sprite to position and rotation. }
@@ -301,8 +301,8 @@ type
         all frames are assumed to take the same time: @code(1 / FramesPerSecond).)
       @returns(The animation index, that can be used with SwitchToAnimation.)
       @groupBegin }
-    function AddAnimation(const AAnimation: TSpriteAnimation): Integer;
-    function AddAnimation(const AnimationFrames: array of Cardinal): Integer;
+    function AddAnimation(const AAnimation: TSpriteAnimation): Integer; overload;
+    function AddAnimation(const AnimationFrames: array of Cardinal): Integer; overload;
     function AddSpriteAnimation(const AnimationFrames: array of TSpriteAnimationFrame): Integer;
       deprecated 'use AddAnimation';
     { @groupEnd }
@@ -329,7 +329,7 @@ type
   end;
 
   { List of sprites. }
-  TSpriteList = specialize TObjectList<TSprite>;
+  TSpriteList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSprite>;
 
 {$endif read_interface}
 
@@ -366,7 +366,7 @@ begin
   for I := 0 to High(AFrames) do
   begin
     Frames[I] := AFrames[I];
-    FDuration += Frames[I].Duration;
+    FDuration := FDuration + Frames[I].Duration;
   end;
 end;
 
@@ -404,7 +404,7 @@ begin
           Stop;
       end else
         Inc(FCustomFrame);
-      FCustomAnimTimestamp += Anim.Frames[FCustomFrame].Duration;
+      FCustomAnimTimestamp := FCustomAnimTimestamp + Anim.Frames[FCustomFrame].Duration;
       FFrame := Anim.Frames[FCustomFrame].Frame;
     end;
   end else

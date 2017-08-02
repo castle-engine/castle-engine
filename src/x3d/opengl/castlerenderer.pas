@@ -1509,9 +1509,9 @@ begin
 
   glTextureImage3d(Result, Image, Filter, Composite);
 
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap[2]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap.Data[2]);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D, Anisotropy);
   {$endif}
@@ -1587,8 +1587,8 @@ begin
   Filter.Minification := minLinear;
   Filter.Magnification := magLinear;
   SetTextureFilter(GL_TEXTURE_2D, Filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
   { OpenGLES: OES_depth_texture allows only GL_UNSIGNED_SHORT
     or GL_UNSIGNED_INT for depth textures. }
@@ -1707,8 +1707,8 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
   if Precision32 then
     InternalFormat := GL_RGB32F_ARB { same thing as GL_RGB_FLOAT32_ATI } else
@@ -2645,7 +2645,7 @@ begin
 
   RenderCleanState(false);
 
-  CurrentProgram := nil;
+  TGLSLProgram.Current := nil;
 end;
 
 {$ifdef USE_VRML_TRIANGULATION}

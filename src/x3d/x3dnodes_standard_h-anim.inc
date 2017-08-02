@@ -47,7 +47,7 @@
     procedure Add(Joint: THAnimJointNode; const Weight: Single);
   end;
   PVertexJoints = ^TVertexJoints;
-  TVertexJointsList = specialize TStructList<TVertexJoints>;
+  TVertexJointsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVertexJoints>;
 
   { Central node for moving the animated humanoid. It contains the skeleton,
     and other information necessary for animation. }
@@ -496,8 +496,8 @@ function THAnimHumanoidNode.AnimateSkin: TMFVec3f;
 
     for J := 0 to VJ.Count - 1 do
     begin
-      WeightSum += VJ.Weights[J];
-      New += VJ.Joints[J].AnimateSkinPoint(VJ.RestPosition) * VJ.Weights[J];
+      WeightSum := WeightSum + VJ.Weights[J];
+      New := New + (VJ.Joints[J].AnimateSkinPoint(VJ.RestPosition) * VJ.Weights[J]);
     end;
 
     { Take the possibility of non-1 weight sum into account.
@@ -519,7 +519,7 @@ begin
   if SkinCoord.Count <> VertexJoints.Count then Exit(nil);
 
   for I := 0 to VertexJoints.Count - 1 do
-    SkinCoord.L[I] := UpdateVertex(VertexJoints.L[I]);
+    SkinCoord.List^[I] := UpdateVertex(VertexJoints.List^[I]);
 end;
 
 procedure THAnimHumanoidNode.AfterTraverse(StateStack: TX3DGraphTraverseStateStack);
@@ -550,8 +550,8 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
 
       for I := 0 to SkinCoord.Count - 1 do
       begin
-        VertexJoints.L[I].RestPosition := SkinCoord.L[I];
-        VertexJoints.L[I].Count := 0; { initially }
+        VertexJoints.List^[I].RestPosition := SkinCoord.List^[I];
+        VertexJoints.List^[I].Count := 0; { initially }
       end;
 
       for I := 0 to FdJoints.Count - 1 do
@@ -574,7 +574,7 @@ procedure THAnimHumanoidNode.ParseAfter(Reader: TX3DReaderNames);
               Weight := Joint.FdSkinCoordWeight.Items[J] else
               Weight := 1;
 
-            VertexJoints.L[CoordIndex].Add(Joint, Weight);
+            VertexJoints.List^[CoordIndex].Add(Joint, Weight);
           end;
         end;
     end;

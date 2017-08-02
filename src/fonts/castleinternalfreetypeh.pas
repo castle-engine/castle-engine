@@ -429,25 +429,25 @@ begin
 
   if FreeTypeLibrary <> nil then
   begin
-    Pointer(FT_Done_Face) := FreeTypeLibrary.Symbol('FT_Done_Face');
-    Pointer(FT_Done_FreeType) := FreeTypeLibrary.Symbol('FT_Done_FreeType');
-    Pointer(FT_Get_Char_Index) := FreeTypeLibrary.Symbol('FT_Get_Char_Index');
-    Pointer(FT_Get_Kerning) := FreeTypeLibrary.Symbol('FT_Get_Kerning');
-    Pointer(FT_Init_FreeType) := FreeTypeLibrary.Symbol('FT_Init_FreeType');
-    Pointer(FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
-    Pointer(FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
-    Pointer(FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
-    Pointer(FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
-    Pointer(FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
-    Pointer(FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');
-    Pointer(FT_Outline_Decompose) := FreeTypeLibrary.Symbol('FT_Outline_Decompose');
-    Pointer(FT_Library_Version) := FreeTypeLibrary.Symbol('FT_Library_Version');
-    Pointer(FT_Get_Glyph) := FreeTypeLibrary.Symbol('FT_Get_Glyph');
-    Pointer(FT_Glyph_Copy) := FreeTypeLibrary.Symbol('FT_Glyph_Copy');
-    Pointer(FT_Glyph_To_Bitmap) := FreeTypeLibrary.Symbol('FT_Glyph_To_Bitmap');
-    Pointer(FT_Glyph_Transform) := FreeTypeLibrary.Symbol('FT_Glyph_Transform');
-    Pointer(FT_Done_Glyph) := FreeTypeLibrary.Symbol('FT_Done_Glyph');
-    Pointer(FT_Glyph_Get_CBox) := FreeTypeLibrary.Symbol('FT_Glyph_Get_CBox');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Done_Face) := FreeTypeLibrary.Symbol('FT_Done_Face');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Done_FreeType) := FreeTypeLibrary.Symbol('FT_Done_FreeType');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Get_Char_Index) := FreeTypeLibrary.Symbol('FT_Get_Char_Index');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Get_Kerning) := FreeTypeLibrary.Symbol('FT_Get_Kerning');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Init_FreeType) := FreeTypeLibrary.Symbol('FT_Init_FreeType');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Load_Char) := FreeTypeLibrary.Symbol('FT_Load_Char');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Load_Glyph) := FreeTypeLibrary.Symbol('FT_Load_Glyph');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_New_Face) := FreeTypeLibrary.Symbol('FT_New_Face');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Set_Char_Size) := FreeTypeLibrary.Symbol('FT_Set_Char_Size');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Set_Pixel_Sizes) := FreeTypeLibrary.Symbol('FT_Set_Pixel_Sizes');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Set_Transform) := FreeTypeLibrary.Symbol('FT_Set_Transform');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Outline_Decompose) := FreeTypeLibrary.Symbol('FT_Outline_Decompose');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Library_Version) := FreeTypeLibrary.Symbol('FT_Library_Version');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Get_Glyph) := FreeTypeLibrary.Symbol('FT_Get_Glyph');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_Copy) := FreeTypeLibrary.Symbol('FT_Glyph_Copy');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_To_Bitmap) := FreeTypeLibrary.Symbol('FT_Glyph_To_Bitmap');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_Transform) := FreeTypeLibrary.Symbol('FT_Glyph_Transform');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Done_Glyph) := FreeTypeLibrary.Symbol('FT_Done_Glyph');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (FT_Glyph_Get_CBox) := FreeTypeLibrary.Symbol('FT_Glyph_Get_CBox');
   end;
 end;
 

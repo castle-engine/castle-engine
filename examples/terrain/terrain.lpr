@@ -423,7 +423,7 @@ begin
 
         if Shader and (GLSLProgram <> nil) then
         begin
-          CurrentProgram := GLSLProgram;
+          TGLSLProgram.Current := GLSLProgram;
 
           glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, GLTexSand);
@@ -456,7 +456,7 @@ begin
             GLSLProgram.SetUniform('fog_color', BackgroundColor.XYZ);
           end;
         end else
-          CurrentProgram := nil;
+          TGLSLProgram.Current := nil;
 
         DrawTerrain(CurrentTerrain, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);

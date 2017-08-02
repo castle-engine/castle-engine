@@ -73,54 +73,54 @@ type
   TX3DTime = record
     Seconds: TFloatTime;
     PlusTicks: Cardinal;
+
+    const
+      Oldest: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
+
+    class operator {$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
   end;
   PX3DTime = ^TX3DTime;
 
   TFloatTime = CastleTimeUtils.TFloatTime;
 
 const
-  OldestX3DTime: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
-
-{$ifdef CASTLE_OBJFPC}
-operator >  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-operator >= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-operator <  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-{$endif CASTLE_OBJFPC}
+  OldestX3DTime: TX3DTime = (Seconds: OldestTime; PlusTicks: 0)
+    deprecated 'use TX3DTime.Oldest';
 
 type
   TX3DTimeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DTime>;
 
 implementation
 
-{$ifdef CASTLE_OBJFPC}
-operator >  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks > Time2.PlusTicks) );
 end;
 
-operator >= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks >= Time2.PlusTicks) );
 end;
 
-operator <  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks < Time2.PlusTicks) );
 end;
 
-operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks <= Time2.PlusTicks) );
 end;
-{$endif CASTLE_OBJFPC}
 
 end.

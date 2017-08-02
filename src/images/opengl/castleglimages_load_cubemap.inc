@@ -17,8 +17,8 @@
 
 {$ifdef read_interface}
 
-function IsCubeMapTextureSized(const Size: Cardinal): boolean;
-function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
+function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
+function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
 
 { Comfortably load all six cube map texture images.
   Think about this as doing glTexImage2D(Side, ...) for each cube side.
@@ -78,7 +78,7 @@ procedure glTextureCubeMap(const TextureIdForProfiler: TGLTextureId;
 { ----------------------------------------------------------------------------
   Adjusting image size for cube map texture. }
 
-function IsCubeMapTextureSized(const Size: Cardinal): boolean;
+function IsCubeMapTextureSized(const Size: Cardinal): boolean; overload;
 begin
   Result :=
     (GLFeatures.TextureCubeMap = gsNone) or
@@ -89,7 +89,7 @@ begin
     );
 end;
 
-function IsCubeMapTextureSized(const R: TEncodedImage): boolean;
+function IsCubeMapTextureSized(const R: TEncodedImage): boolean; overload;
 begin
   Result :=
     (GLFeatures.TextureCubeMap = gsNone) or
@@ -101,7 +101,7 @@ begin
     );
 end;
 
-function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; forward;
+function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; overload; forward;
 
 procedure ResizeForCubeMapTextureSize(var r: TCastleImage);
 var
@@ -115,7 +115,7 @@ begin
   end;
 end;
 
-function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal;
+function ResizeToCubeMapTextureSize(const Size: Cardinal): Cardinal; overload;
 begin
   Result := Size;
   if GLFeatures.TextureCubeMap <> gsNone then
@@ -133,7 +133,7 @@ begin
   end;
 end;
 
-function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage;
+function ResizeToCubeMapTextureSize(const r: TCastleImage): TCastleImage; overload;
 var
   Size: Cardinal;
 begin
@@ -210,7 +210,7 @@ var
     {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
       (Target, Level, ImageInternalFormat, Image.Width, Image.Height,
         0, Image.Size, Image.RawPixels);
-    LoadedSize += Image.Size;
+    LoadedSize := LoadedSize + Image.Size;
   end;
 
 var
@@ -237,7 +237,7 @@ var
         glTexImage2D(Target, Level, ImageInternalFormat,
           Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
           Image.RawPixels);
-        LoadedSize += Image.Size;
+        LoadedSize := LoadedSize + Image.Size;
       finally AfterUnpackImage(Image) end;
     end;
 
@@ -255,6 +255,7 @@ var
   end;
 
   {$ifndef OpenGLES}
+  {$ifdef CASTLE_OBJFPC}
   { Calls gluBuild2DMipmaps for given image.
     Takes care of OpenGL unpacking (alignment etc.).
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
@@ -269,6 +270,7 @@ var
     finally AfterUnpackImage(Image) end;
   end;
   {$endif}
+  {$endif}
 
   procedure LoadMipmapped(const image: TCastleImage);
   begin
@@ -279,7 +281,7 @@ var
       Note: SGIS_generate_mipmap doesn't work on cube map texture,
       testing on ATI Mobility Radeon X1600 (fglrx, Linux, on Mac Book Pro). }
 
-    {$ifdef OpenGLES}
+    {$if defined(OpenGLES) or not defined(CASTLE_OBJFPC)}
     raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
     {$else}
     gluBuild2DMipmapsImage(Image);
@@ -392,12 +394,12 @@ begin
       GenerateMipmap(GL_TEXTURE_CUBE_MAP);
       { TODO: this is cubemap mipmaps size assuming that provided
         cubemap images were already power of 2, and within good dimensions. }
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveX);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeX);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveY);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeY);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(PositiveZ);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(NegativeZ);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveX);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeX);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveY);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeY);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(PositiveZ);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(NegativeZ);
       if Log then
         WritelnLog('Mipmaps', 'Generating mipmaps for cube map by GenerateMipmap (GOOD)');
     end;

@@ -21,7 +21,9 @@ unit CastleSceneInternalShape;
 
 interface
 
-uses X3DNodes, X3DFields, CastleRenderer, CastleGL;
+uses X3DNodes, X3DFields, 
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleRenderer;
 
 type
   { Shape within a scene rendered using OpenGL.

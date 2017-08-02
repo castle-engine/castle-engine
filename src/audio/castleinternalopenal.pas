@@ -61,10 +61,6 @@ uses SysUtils, CastleVectors, CTypes;
   {$linklib pthread}
 {$endif}
 
-{ Macro below must be named "extdecl", to workaround Lazarus code tools
-  known bug http://bugs.freepascal.org/view.php?id=7431 }
-{$define extdecl := cdecl}
-
 {$ifndef PASDOC}
 {$I castleinternalopenal_al.inc}
 {$I castleinternalopenal_alc.inc}
