@@ -1290,6 +1290,8 @@ end;
 
 procedure TTextureFont.SetSize(const Value: Single);
 begin
+  Assert(FFont.Size <> 0);
+  Assert(not IsInfinite(Value));
   Scale := Value / FFont.Size;
 end;
 
