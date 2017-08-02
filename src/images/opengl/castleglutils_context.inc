@@ -64,7 +64,7 @@ type
     But on mobile devices -- the context may get destroyed and created at almost
     any moment. So do not use the instance of @link(RenderContext) to store
     anything you rely on being stored. Instead, use your own variables for this,
-    and only synchronized @link(RenderContext) with you.
+    and only synchronize @link(RenderContext) with your variables.
   }
   TRenderContext = class
   strict private
