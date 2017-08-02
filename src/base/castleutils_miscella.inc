@@ -135,6 +135,31 @@ function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
 { If not TrueValue then RaiseLastOSError. }
 procedure OSCheck(TrueValue: boolean); overload;
 procedure OSCheck(TrueValue: boolean; const Place: string); overload;
+
+type
+  { Descend from this to hide a parameterless constructor.
+
+    In Delphi, if you have multiple overloaded constructors (marked
+    with "overload"), the user can call any constructor of the ancestor
+    class that you have not "obscured" by a new definition.
+    In particular, if all your constructors have some parameters,
+    then user can "bypass" them by calling a parameterless constructor
+    defined by TObject.
+    Descend from this class to disallow this.
+    See
+    https://stackoverflow.com/questions/14003153/how-to-hide-the-inherited-tobject-constructor-while-the-class-has-overloaded-one
+    http://andy.jgknet.de/blog/2011/07/hiding-the-tobject-create-constructor/
+
+    Note that in FPC (in ObjFpc mode) this is not a problem,
+    as the standard overloading (without the "overload" keyword) is more sane:
+    the overloaded constructors obscure the ancestor constructors. }
+  {$warnings off}
+  TNoParameterlessContructor = class
+  strict private
+    constructor Create;
+  end;
+  {$warnings on}
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -269,4 +294,10 @@ begin
     end;
   end;
 end;
+
+constructor TNoParameterlessContructor.Create;
+begin
+  raise Exception.Create('Parameterless constructor of ' + ClassName + ' should never be called');
+end;
+
 {$endif read_implementation}

@@ -66,7 +66,7 @@ uses SysUtils, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleImages, CastleVectors, CastleGLUtils, CastleTimeUtils,
   CastleTextureImages, CastleVideos, CastleCompositeImage, CastleRectangles,
-  CastleGLShaders, CastleColors;
+  CastleGLShaders, CastleColors, CastleUtils;
 
 const
   PixelsImageClasses: array [0..3] of TEncodedImageClass = (
@@ -134,7 +134,7 @@ procedure TexParameterMaxAnisotropy(const target: TGLenum; const Anisotropy: TGL
 implementation
 
 uses Math, Generics.Defaults,
-  CastleUtils, CastleLog, CastleGLVersion,
+  CastleLog, CastleGLVersion,
   CastleApplicationProperties, CastleStringUtils, CastleURIUtils;
 
 function ImageGLFormat(const Img: TCastleImage): TGLenum;

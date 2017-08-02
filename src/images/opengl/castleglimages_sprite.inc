@@ -35,8 +35,8 @@ type
   private
     Frames: array of TSpriteAnimationFrame;
   public
-    constructor Create(const AFrames: array of Cardinal; const FramesPerSecond: Single); overload;
-    constructor Create(const AFrames: array of TSpriteAnimationFrame); overload;
+    constructor CreateConstantFps(const AFrames: array of Cardinal; const FramesPerSecond: Single);
+    constructor Create(const AFrames: array of TSpriteAnimationFrame);
     { Duration, in seconds, of this animation. }
     property Duration: TFloatTime read FDuration;
   end;
@@ -337,7 +337,7 @@ type
 
 { TSpriteAnimation ----------------------------------------------------------- }
 
-constructor TSpriteAnimation.Create(const AFrames: array of Cardinal; const FramesPerSecond: Single);
+constructor TSpriteAnimation.CreateConstantFps(const AFrames: array of Cardinal; const FramesPerSecond: Single);
 var
   I: Integer;
   FrameDuration: Single;
@@ -637,7 +637,8 @@ end;
 function TSprite.AddAnimation(
   const AnimationFrames: array of Cardinal): Integer;
 begin
-  Result := AddAnimation(TSpriteAnimation.Create(AnimationFrames, FramesPerSecond));
+  Result := AddAnimation(
+    TSpriteAnimation.CreateConstantFps(AnimationFrames, FramesPerSecond));
 end;
 
 function TSprite.AddSpriteAnimation(

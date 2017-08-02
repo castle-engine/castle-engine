@@ -40,7 +40,7 @@ type
     regardless of the OpenGL context. This is especially important
     on platforms when the OpenGL context may get lost at any moment,
     like on Android.) }
-  TGLImageCore = class
+  TGLImageCore = class(TNoParameterlessContructor)
   strict private
     type
       TPoint = packed record

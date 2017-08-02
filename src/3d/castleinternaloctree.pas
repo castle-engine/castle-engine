@@ -377,12 +377,9 @@ type
     property OctreeNodeFinalClass: TOctreeNodeClass
       read FOctreeNodeFinalClass;
 
-    constructor Create(AMaxDepth, ALeafCapacity: integer;
-      const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-      AItemsInNonLeafNodes: boolean); overload;
     constructor Create(const Limits: TOctreeLimits;
       const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-      AItemsInNonLeafNodes: boolean); overload;
+      AItemsInNonLeafNodes: boolean);
     destructor Destroy; override;
 
     { Traverse octree seeking for nodes that (possibly) collide
@@ -858,24 +855,16 @@ end;
 
 { TOctree ------------------------------------------------------------ }
 
-constructor TOctree.Create(AMaxDepth, ALeafCapacity: integer;
-  const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-  AItemsInNonLeafNodes: boolean);
-begin
-  inherited Create;
-  FMaxDepth := AMaxDepth;
-  FLeafCapacity := ALeafCapacity;
-  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
-  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
-  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
-end;
-
 constructor TOctree.Create(const Limits: TOctreeLimits;
   const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
   AItemsInNonLeafNodes: boolean);
 begin
-  Create(Limits.MaxDepth, Limits.LeafCapacity,
-    ARootBox, AOctreeNodeFinalClass, AItemsInNonLeafNodes);
+  inherited Create;
+  FMaxDepth := Limits.MaxDepth;
+  FLeafCapacity := Limits.LeafCapacity;
+  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
+  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
+  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
 end;
 
 destructor TOctree.Destroy;
