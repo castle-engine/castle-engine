@@ -330,7 +330,8 @@ begin
 
       if not (
          ( (Model1 is TInlineNode)            and (Model1.Fields[I].X3DName = 'url') ) or
-         Model1.Fields[I].Equals(Model2.Fields[I], Epsilon)
+         Model1.Fields[I].Equals(Model2.Fields[I]
+           { TODO: ignored for now, and maybe for ever: , Epsilon })
          ) then
         raise EModelsStructureDifferent.CreateFmt(
           'Fields "%s" (class "%s") are not equal',
@@ -463,7 +464,8 @@ begin
     end else
     if Model1.Fields[I].CanAssignLerp then
     begin
-      if not Model1.Fields[I].Equals(Model2.Fields[I], Epsilon) then
+      if not Model1.Fields[I].Equals(Model2.Fields[I]
+        { TODO: ignored for now, and maybe for ever: , Epsilon }) then
         Result := false;
     end;
 

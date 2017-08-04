@@ -28,12 +28,31 @@ type
     function MinMax(out Min, Max: TVector2): boolean;
 
     { Assign linear interpolation between two other vector arrays.
-      @seealso TVector3List.AssignLerp }
+      We take ACount items, from V1[Index1 ... Index1 + ACount - 1] and
+      V2[Index2 ... Index2 + ACount - 1], and interpolate between them
+      like normal Lerp functions.
+
+      It's Ok for both V1 and V2 to be the same objects.
+      But their ranges should not overlap, for future optimizations
+      (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TVector2List; Index1, Index2, ACount: Integer);
+      V1, V2: TVector2List; Index1, Index2, ACount: Integer); overload;
+
+    { Assign linear interpolation between two other vector arrays.
+      The resulting array size is minimum from the sizes of V1 and V2. }
+    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector2List); overload;
 
     procedure AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector2List; Index, AddCount: Integer); deprecated 'use AddSubRange';
+
+    { Does the SecondValue have equal length and content.
+      The values are compared with an Epsilon tolerance, as usual for floating-point
+      values. }
+    function Equals(SecondValue: TObject): boolean; override;
+
+    { Does the SecondValue have equal length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector3). }
@@ -59,7 +78,11 @@ type
       But their ranges should not overlap, for future optimizations
       (although it's Ok for current implementation). }
     procedure AssignLerp(const Fraction: Single;
-      V1, V2: TVector3List; Index1, Index2, ACount: Integer);
+      V1, V2: TVector3List; Index1, Index2, ACount: Integer); overload;
+
+    { Assign linear interpolation between two other vector arrays.
+      The resulting array size is minimum from the sizes of V1 and V2. }
+    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector3List);
 
     { Assign linear interpolation between two other vector arrays,
       and normalize resulting vectors.
@@ -84,6 +107,15 @@ type
       set them truly (exactly) equal.
       Returns how many vertex positions were changed. }
     function MergeCloseVertexes(MergeDistance: Single): Cardinal;
+
+    { Does the SecondValue have equal length and content.
+      The values are compared with an Epsilon tolerance, as usual for floating-point
+      values. }
+    function Equals(SecondValue: TObject): boolean; override;
+
+    { Does the SecondValue have equal length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
   end;
 
   { List of @link(TVector4). }
@@ -91,49 +123,54 @@ type
   public
     procedure AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
     procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
+
+    { Assign linear interpolation between two other vector arrays.
+      The resulting array size is minimum from the sizes of V1 and V2. }
+    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector4List);
+
+    { Does the SecondValue have equal length and content.
+      The values are compared with an Epsilon tolerance, as usual for floating-point
+      values. }
+    function Equals(SecondValue: TObject): boolean; override;
+
+    { Does the SecondValue have equal length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
   end;
 
   { List of @link(TMatrix3). }
   TMatrix3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
   public
+    { Assign linear interpolation between two other vector arrays.
+      The resulting array size is minimum from the sizes of V1 and V2. }
+    procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix3List);
+
+    { Does the SecondValue have equal length and content.
+      The values are compared with an Epsilon tolerance, as usual for floating-point
+      values. }
+    function Equals(SecondValue: TObject): boolean; override;
+
+    { Does the SecondValue have equal length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
   end;
 
   { List of @link(TMatrix4). }
   TMatrix4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
   public
-  end;
+    { Assign linear interpolation between two other vector arrays.
+      The resulting array size is minimum from the sizes of V1 and V2. }
+    procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix4List);
 
-  {$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-  { List of @link(TVector2Double). }
-  TVector2DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2Double>)
-  public
-    function ToVector2: TVector2List;
-  end;
+    { Does the SecondValue have equal length and content.
+      The values are compared with an Epsilon tolerance, as usual for floating-point
+      values. }
+    function Equals(SecondValue: TObject): boolean; override;
 
-  { List of @link(TVector3Double). }
-  TVector3DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector3Double>)
-  public
-    function ToVector3: TVector3List;
+    { Does the SecondValue have equal length and content.
+      The values are compared perfectly, without any tolerance for difference. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
   end;
-
-  { List of @link(TVector4Double). }
-  TVector4DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector4Double>)
-  public
-    function ToVector4: TVector4List;
-  end;
-
-  { List of @link(TMatrix3Double). }
-  TMatrix3DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3Double>)
-  public
-    function ToMatrix3: TMatrix3List;
-  end;
-
-  { List of @link(TMatrix4Double). }
-  TMatrix4DoubleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4Double>)
-  public
-    function ToMatrix4: TMatrix4List;
-  end;
-  {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
   { List of @link(TVector2SmallInt). }
   TVector2SmallIntList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TVector2SmallInt>;
@@ -177,6 +214,15 @@ begin
     List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
 end;
 
+procedure TVector2List.AssignLerp(const Fraction: Single; const V1, V2: TVector2List);
+var
+  I: Integer;
+begin
+  Count := Min(V1.Count, V2.Count);
+  for I := 0 to Count - 1 do
+    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+end;
+
 procedure TVector2List.AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
 var
   OldCount: Integer;
@@ -190,6 +236,42 @@ end;
 procedure TVector2List.AddListRange(const Source: TVector2List; Index, AddCount: Integer);
 begin
   AddSubRange(Source, Index, AddCount);
+end;
+
+function TVector2List.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector2List;
+  if Result then
+  begin
+    Result := Count = TVector2List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector2.Equals(TVector2List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
+end;
+
+function TVector2List.PerfectlyEquals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector2List;
+  if Result then
+  begin
+    Result := Count = TVector2List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector2.PerfectlyEquals(TVector2List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
 end;
 
 { TVector3List ----------------------------------------------------- }
@@ -232,6 +314,15 @@ begin
   Count := ACount;
   for I := 0 to Count - 1 do
     List^[I] := Lerp(Fraction, V1.List^[Index1 + I], V2.List^[Index2 + I]);
+end;
+
+procedure TVector3List.AssignLerp(const Fraction: Single; const V1, V2: TVector3List);
+var
+  I: Integer;
+begin
+  Count := Min(V1.Count, V2.Count);
+  for I := 0 to Count - 1 do
+    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
 
 procedure TVector3List.AssignLerpNormalize(const Fraction: Single;
@@ -320,6 +411,42 @@ begin
   AddSubRange(Source, Index, AddCount);
 end;
 
+function TVector3List.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector3List;
+  if Result then
+  begin
+    Result := Count = TVector3List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector3.Equals(TVector3List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
+end;
+
+function TVector3List.PerfectlyEquals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector3List;
+  if Result then
+  begin
+    Result := Count = TVector3List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector3.PerfectlyEquals(TVector3List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
+end;
+
 { TVector4List ----------------------------------------------------- }
 
 procedure TVector4List.AddSubRange(const Source: TVector4List; Index, AddCount: Integer);
@@ -337,108 +464,143 @@ begin
   AddSubRange(Source, Index, AddCount);
 end;
 
-{$ifndef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-
-{ TVector2DoubleList ----------------------------------------------------- }
-
-function TVector2DoubleList.ToVector2: TVector2List;
+procedure TVector4List.AssignLerp(const Fraction: Single; const V1, V2: TVector4List);
 var
   I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
 begin
-  Result := TVector2List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 2 - 1 do
+  Count := Min(V1.Count, V2.Count);
+  for I := 0 to Count - 1 do
+    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+end;
+
+function TVector4List.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TVector4List;
+  if Result then
   begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
+    Result := Count = TVector4List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector4.Equals(TVector4List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
   end;
 end;
 
-{ TVector3DoubleList ----------------------------------------------------- }
-
-function TVector3DoubleList.ToVector3: TVector3List;
+function TVector4List.PerfectlyEquals(SecondValue: TObject): boolean;
 var
   I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
 begin
-  Result := TVector3List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 3 - 1 do
+  Result := SecondValue is TVector4List;
+  if Result then
   begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
+    Result := Count = TVector4List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TVector4.PerfectlyEquals(TVector4List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
   end;
 end;
 
-{ TVector4DoubleList ----------------------------------------------------- }
+{ TMatrix3List --------------------------------------------------------------- }
 
-function TVector4DoubleList.ToVector4: TVector4List;
+procedure TMatrix3List.AssignLerp(const Fraction: Single; const V1, V2: TMatrix3List);
 var
   I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
 begin
-  Result := TVector4List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 4 - 1 do
+  Count := Min(V1.Count, V2.Count);
+  for I := 0 to Count - 1 do
+    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+end;
+
+function TMatrix3List.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TMatrix3List;
+  if Result then
   begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
+    Result := Count = TMatrix3List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TMatrix3.Equals(TMatrix3List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
   end;
 end;
 
-{ TMatrix3DoubleList ----------------------------------------------------- }
-
-function TMatrix3DoubleList.ToMatrix3: TMatrix3List;
+function TMatrix3List.PerfectlyEquals(SecondValue: TObject): boolean;
 var
   I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
 begin
-  Result := TMatrix3List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 3 * 3 - 1 do
+  Result := SecondValue is TMatrix3List;
+  if Result then
   begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
+    Result := Count = TMatrix3List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TMatrix3.PerfectlyEquals(TMatrix3List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
   end;
 end;
 
-{ TMatrix4DoubleList ----------------------------------------------------- }
+{ TMatrix4List --------------------------------------------------------------- }
 
-function TMatrix4DoubleList.ToMatrix4: TMatrix4List;
+procedure TMatrix4List.AssignLerp(const Fraction: Single; const V1, V2: TMatrix4List);
 var
   I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
 begin
-  Result := TMatrix4List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 4 * 4 - 1 do
+  Count := Min(V1.Count, V2.Count);
+  for I := 0 to Count - 1 do
+    List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
+end;
+
+function TMatrix4List.Equals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TMatrix4List;
+  if Result then
   begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
+    Result := Count = TMatrix4List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TMatrix4.Equals(TMatrix4List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
   end;
 end;
 
-{$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+function TMatrix4List.PerfectlyEquals(SecondValue: TObject): boolean;
+var
+  I: Integer;
+begin
+  Result := SecondValue is TMatrix4List;
+  if Result then
+  begin
+    Result := Count = TMatrix4List(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if not TMatrix4.PerfectlyEquals(TMatrix4List(SecondValue).List^[I], List^[I]) then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
+end;
 
 {$endif read_implementation}

@@ -784,18 +784,13 @@ type
       should override this like
 
       @longCode(#
-        Result := (inherited Equals(SecondValue, Epsilon)) and
+        Result := (inherited Equals(SecondValue)) and
           (SecondValue is TMyType) and
           (TMyType(SecondValue).MyProperty = MyProperty);
       #)
 
-      For varius floating-point fields in this unit:
-      we compare each float using Epsilon,
-      i.e. if the difference is < Epsilon then the floats
-      are assumed equal. Pass Epsilon = 0.0
-      to perform *exact* comparison (this case will be optimized
-      in implementation, by using routines like CompareMem
-      instead of comparing float-by-float).
+      The floating-point fields may be compared with a small epsilon
+      tolerance by this method.
 
       Note that this *doesn't* compare the default values of two fields
       instances. This compares only the current values of two fields
@@ -803,8 +798,7 @@ type
       parsing (like names for TSFEnum and TSFBitMask) or allowed
       future values (like TSFFloat.MustBeNonnegative).
     }
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; virtual; reintroduce;
+    function Equals(SecondValue: TX3DField): boolean; virtual; reintroduce;
 
     { Compare value of this field, with other field, fast.
 
@@ -1084,74 +1078,6 @@ type
     procedure CheckCountEqual(SecondValue: TX3DMultField);
   end;
 
-  { X3D field with a list of values.
-
-    @italic(Design note): The MF field classes can keep their items
-    in compact lists, e.g. Generics.Collections.TList<T>.
-    This allows speed (the TList<T> has trivial cache-friendly layout).
-    That's why TX3DSimpleMultField is not a descendant of TX3DSingleFieldsList,
-    as then we would have a list of references, which could be quite memory-consuming
-    (imagine a milion vertexes in MFVec3f, which is absolutely possible)
-    and not cache friendly. }
-  TX3DSimpleMultField = class(TX3DMultField)
-  private
-    InvalidIndexWarnings: Cardinal;
-  protected
-    fItemClass: TX3DSingleFieldClass;
-
-    { This creates new instance of class ItemClass. It doesn't have to
-      have initialized value (in other words, it can be created by
-      CreateUndefined), since we'll call his Parse method immediately.
-      Default implementation in this class uses simply ItemClass.CreateUndefined. }
-    function CreateItemBeforeParse: TX3DSingleField; virtual;
-
-    { Add Item at the end of RawItems. It's guaranteed that Item
-      passes here will be of class ItemClass. You should copy
-      Item contents as appropriate (remember that Item instance itself
-      may be freed soon, so copy contents, not only some reference). }
-    procedure RawItemsAdd(Item: TX3DSingleField); virtual abstract;
-
-    procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
-  protected
-    { SaveToStreamValue overriden for MF fields. This class handles
-      SaveToStreamValue fully, no need to override it again in
-      descendants. }
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
-
-    { RawItemToString(i) must change RawItems[i] into a string that can be used to
-      store this is text stream. In descendants, you have to override this. }
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; virtual; abstract;
-
-    { This says when we should do newline when writing this field into a stream.
-      It's has purely aesthetical meaning, nothing more.
-      In this class SaveToStreamDoNewLineAfterRawItem always returns @true
-      (although SaveToStreamValue may sometimes ignore it, if it knows better). }
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; virtual;
-
-    procedure Clear; virtual; abstract;
-
-    function GetCapacity: SizeInt; virtual; abstract;
-    procedure SetCapacity(const Value: SizeInt); virtual; abstract;
-    property Capacity: SizeInt read GetCapacity write SetCapacity;
-  public
-    { A corresponding SF field class. All items that will be passed
-      to RawItemsAdd will be of this class. }
-    property ItemClass: TX3DSingleFieldClass read fItemClass;
-
-    { Parse MF field. This class handles parsing fully, usually no need to
-      override this more in descendants. It uses ItemClass.Parse method. }
-    procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
-
-    { Checks equality between this and SecondValue field.
-      In addition to inherited(Equals), this also checks that
-      Count and ItemClass are equal. All descendants must check
-      for equality every item on SecondValue.Items[I] and Items[I]. }
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader); override;
-  end;
-
 { ---------------------------------------------------------------------------- }
 { @section(Single value fields) }
 
@@ -1212,8 +1138,7 @@ type
 
     destructor Destroy; override;
 
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -1234,8 +1159,7 @@ type
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
@@ -1276,8 +1200,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -1322,8 +1245,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
@@ -1363,8 +1285,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
@@ -1420,8 +1341,7 @@ type
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
@@ -1454,8 +1374,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
@@ -1478,7 +1397,6 @@ type
   generic TSFGenericMatrix<
     TSF_STATIC_ITEM,
     TSF_VECTOR,
-    TSF_SCALAR,
     TSF_EVENT> = class(TX3DSingleField)
   private
     FValue: TSF_STATIC_ITEM;
@@ -1496,8 +1414,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
@@ -1512,7 +1429,6 @@ type
   TSFMatrix3f = class(specialize TSFGenericMatrix<
     TMatrix3,
     TVector3,
-    Single,
     TSFMatrix3fEvent>)
   public
     class function X3DType: string; override;
@@ -1522,7 +1438,6 @@ type
   TSFMatrix3d = class(specialize TSFGenericMatrix<
     TMatrix3Double,
     TVector3Double,
-    Double,
     TSFMatrix3dEvent>)
   public
     class function X3DType: string; override;
@@ -1532,7 +1447,6 @@ type
   TSFMatrix4f = class(specialize TSFGenericMatrix<
     TMatrix4,
     TVector4,
-    Single,
     TSFMatrix4fEvent>)
   public
     class function X3DType: string; override;
@@ -1551,7 +1465,6 @@ type
   TSFMatrix4d = class(specialize TSFGenericMatrix<
     TMatrix4Double,
     TVector4Double,
-    Double,
     TSFMatrix4dEvent>)
   public
     class function X3DType: string; override;
@@ -1604,8 +1517,7 @@ type
     { Rotate point Pt around Self. }
     function RotatedPoint(const pt: TVector3): TVector3;
 
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function EqualsDefaultValue: boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
@@ -1642,8 +1554,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure Assign(Source: TPersistent); override;
@@ -1691,7 +1602,6 @@ type
   end;
 
   generic TSFGenericVector<
-    TSF_SCALAR,
     TSF_STATIC_ITEM,
     TSF_EVENT> = class(TX3DSingleField)
   protected
@@ -1708,8 +1618,7 @@ type
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
+    function Equals(SecondValue: TX3DField): boolean; override;
     function FastEqualsValue(SecondValue: TX3DField): boolean; override;
 
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
@@ -1722,7 +1631,6 @@ type
   end;
 
   TSFVec2f = class(specialize TSFGenericVector<
-    Single,
     TVector2,
     TSFVec2fEvent>)
   public
@@ -1731,7 +1639,6 @@ type
   end;
 
   TSFVec3f = class(specialize TSFGenericVector<
-    Single,
     TVector3,
     TSFVec3fEvent>)
   public
@@ -1749,7 +1656,6 @@ type
   end;
 
   TSFVec4f = class(specialize TSFGenericVector<
-    Single,
     TVector4,
     TSFVec4fEvent>)
   public
@@ -1765,7 +1671,6 @@ type
   end;
 
   TSFVec2d = class(specialize TSFGenericVector<
-    Double,
     TVector2Double,
     TSFVec2dEvent>)
   public
@@ -1774,7 +1679,6 @@ type
   end;
 
   TSFVec3d = class(specialize TSFGenericVector<
-    Double,
     TVector3Double,
     TSFVec3dEvent>)
   public
@@ -1783,7 +1687,6 @@ type
   end;
 
   TSFVec4d = class(specialize TSFGenericVector<
-    Double,
     TVector4Double,
     TSFVec4dEvent>)
   public
@@ -1791,847 +1694,8 @@ type
     procedure Send(const AValue: TVector4Double); overload; virtual;
   end;
 
-{ ---------------------------------------------------------------------------- }
-{ @section(Multiple value (MF) fields)
-
-  General implementation comments for MF fields:
-
-    Field DefaultValuesCount may have three valid values (for now):
-    -1 (means "no default value for this field")
-    0 (means "default value of this field is empty")
-    1 (means "default value of this field is one-item array with DefaultValue").
-
-    As you can see, it's not possible to express default values with more
-    than one item. That's OK, because nodes from VRML 1.0 and 2.0 specifications
-    never have such field (and VRML 2.0 prototypes (that have user-defined
-    default field values) actually don't need it). So, for now, more flexible
-    DefaultValuesCount is not needed.
-
-    CreateUndefined sets DefaultValuesCount to -1.
-}
-
-  { }
-  TMFBool = class(TX3DSimpleMultField)
-  private
-    RawItems: TBooleanList;
-    DefaultValuesCount: Integer;
-    DefaultValue: boolean;
-    function GetItems: TBooleanList;
-    procedure SetItems(const Value: TBooleanList);
-    function GetItemsSafe(Index: Integer): boolean;
-    procedure SetItemsSafe(Index: Integer; const Value: boolean);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TBooleanList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
-      const InitialContent: array of boolean);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return false, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: boolean
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of boolean); overload;
-  end;
-
-  TMFLong = class(TX3DSimpleMultField)
-  private
-    RawItems: TLongIntList;
-    DefaultValuesCount: integer;
-    DefaultValue: Longint;
-    FSaveToStreamLineUptoNegative: boolean;
-    WrongVertexIndexWarnings: Integer;
-    function GetItemsSafe(Index: Integer): LongInt;
-    procedure SetItemsSafe(Index: Integer; const Value: LongInt);
-    function GetItems: TLongIntList;
-    procedure SetItems(const Value: TLongIntList);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
-  public
-    { When saving to VRML/X3D classic encoding,
-      make newline after each negative value on the list.
-      This makes a nice output for fields like IndexedFaceSet.coordIndex. }
-    property SaveToStreamLineUptoNegative: boolean
-      read FSaveToStreamLineUptoNegative write FSaveToStreamLineUptoNegative
-      default false;
-
-    property Items: TLongintList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of Longint);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: LongInt
-      read GetItemsSafe write SetItemsSafe;
-
-    { Call WritelnWarning reporting that an invalid vertex index
-      is caused from this field. This simply calls WritelnWarning
-      formatting appropriate message.
-
-      Additionally this guards
-      us against producing too many warnings from the same field.
-      When a given threshold will be reached, further
-      WritelnWarning_WrongVertexIndex calls for this field instance
-      will be simply ignored. This is a good thing, as some invalid models
-      have really an incredible amount of invalid indexes, and the very
-      amount of lines printed on console makes viewing these invalid files
-      (at least, the valid parts of them) impossible.
-
-      Example test cases:
-      content/examples/Basic/HumanoidAnimation/AllenStandShootRifleM24.x3d
-      and
-      content/examples/Basic/HumanoidAnimation/NancyDiving.x3dv
-      from http://www.web3d.org/ example models. }
-    procedure WritelnWarning_WrongVertexIndex(
-      const GeometryX3DType: string;
-      const VertexNum: Integer; const CoordCount: Integer);
-
-    procedure Send(const AValue: array of LongInt); virtual; overload;
-  end;
-
-  TMFInt32 = class(TMFLong)
-  public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: array of LongInt); override;
-  end;
-
-  TMFMatrix3f = class(TX3DSimpleMultField)
-  private
-    RawItems: TMatrix3List;
-    DefaultValuesCount: integer;
-    DefaultValue: TMatrix3;
-    function GetItems: TMatrix3List;
-    procedure SetItems(const Value: TMatrix3List);
-    function GetItemsSafe(Index: Integer): TMatrix3;
-    procedure SetItemsSafe(Index: Integer; const Value: TMatrix3);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TMatrix3List read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TMatrix3);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TMatrix3
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TMatrix3); overload;
-  end;
-
-  TMFMatrix3d = class(TX3DSimpleMultField)
-  private
-    RawItems: TMatrix3DoubleList;
-    DefaultValuesCount: integer;
-    DefaultValue: TMatrix3Double;
-    function GetItems: TMatrix3DoubleList;
-    procedure SetItems(const Value: TMatrix3DoubleList);
-    function GetItemsSafe(Index: Integer): TMatrix3Double;
-    procedure SetItemsSafe(Index: Integer; const Value: TMatrix3Double);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TMatrix3DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TMatrix3Double);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TMatrix3Double
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TMatrix3Double); overload;
-  end;
-
-  TMFMatrix4f = class(TX3DSimpleMultField)
-  private
-    RawItems: TMatrix4List;
-    DefaultValuesCount: integer;
-    DefaultValue: TMatrix4;
-    function GetItems: TMatrix4List;
-    procedure SetItems(const Value: TMatrix4List);
-    function GetItemsSafe(Index: Integer): TMatrix4;
-    procedure SetItemsSafe(Index: Integer; const Value: TMatrix4);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TMatrix4List read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TMatrix4);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TMatrix4
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TMatrix4); overload;
-  end;
-
-  TMFMatrix4d = class(TX3DSimpleMultField)
-  private
-    RawItems: TMatrix4DoubleList;
-    DefaultValuesCount: integer;
-    DefaultValue: TMatrix4Double;
-    function GetItems: TMatrix4DoubleList;
-    procedure SetItems(const Value: TMatrix4DoubleList);
-    function GetItemsSafe(Index: Integer): TMatrix4Double;
-    procedure SetItemsSafe(Index: Integer; const Value: TMatrix4Double);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TMatrix4DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TMatrix4Double);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return identity matrix, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TMatrix4Double
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TMatrix4Double); overload;
-  end;
-
-  TMFVec2f = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector2List;
-    DefaultValuesCount: integer;
-    DefaultValue: TVector2;
-    function GetItemsSafe(Index: Integer): TVector2;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector2);
-    function GetItems: TVector2List;
-    procedure SetItems(const Value: TVector2List);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector2List read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TVector2);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector2
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector2); overload;
-  end;
-
-  TMFVec3f = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector3List;
-    DefaultValuesCount: integer;
-    DefaultValue: TVector3;
-    function GetItemsSafe(Index: Integer): TVector3;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector3);
-    function GetItems: TVector3List;
-    procedure SetItems(const Value: TVector3List);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector3List read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TVector3);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector3
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector3); virtual; overload;
-  end;
-
-  TMFColor = class(TMFVec3f)
-  public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: array of TVector3); override;
-  end;
-
-  TMFVec4f = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector4List;
-    DefaultValuesCount: integer;
-    DefaultValue: TVector4;
-    function GetItemsSafe(Index: Integer): TVector4;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector4);
-    function GetItems: TVector4List;
-    procedure SetItems(const Value: TVector4List);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector4List read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TVector4);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return (0, 0, 0, 1) vector, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector4
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector4); virtual; overload;
-  end;
-
-  TMFColorRGBA = class(TMFVec4f)
-  public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: array of TVector4); override;
-  end;
-
-  TMFVec2d = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector2DoubleList;
-    DefaultValuesCount: integer;
-    DefaultValue: TVector2Double;
-    function GetItems: TVector2DoubleList;
-    procedure SetItems(const Value: TVector2DoubleList);
-    function GetItemsSafe(Index: Integer): TVector2Double;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector2Double);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector2DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TVector2Double);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector2Double
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector2Double); overload;
-  end;
-
-  TMFVec3d = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector3DoubleList;
-    DefaultValuesCount: integer;
-    DefaultValue: TVector3Double;
-    function GetItems: TVector3DoubleList;
-    procedure SetItems(const Value: TVector3DoubleList);
-    function GetItemsSafe(Index: Integer): TVector3Double;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector3Double);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector3DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TVector3Double);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero vector, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector3Double
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector3Double); overload;
-  end;
-
-  TMFVec4d = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector4DoubleList;
-    DefaultValuesCount: integer;
-    DefaultValue: TVector4Double;
-    function GetItems: TVector4DoubleList;
-    procedure SetItems(const Value: TVector4DoubleList);
-    function GetItemsSafe(Index: Integer): TVector4Double;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector4Double);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector4DoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of TVector4Double);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return (0, 0, 0, 1), Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector4Double
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector4Double); overload;
-  end;
-
-  TMFRotation = class(TX3DSimpleMultField)
-  private
-    RawItems: TVector4List;
-    DefaultValuesCount: Integer;
-    DefaultValue: TVector4;
-    function GetItems: TVector4List;
-    procedure SetItems(const Value: TVector4List);
-    function GetItemsSafe(Index: Integer): TVector4;
-    procedure SetItemsSafe(Index: Integer; const Value: TVector4);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
-  public
-    property Items: TVector4List read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
-      const InitialContent: array of TVector4);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return DefaultRotation, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TVector4
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of TVector4); overload;
-  end;
-
-  TMFFloat = class(TX3DSimpleMultField)
-  private
-    RawItems: TSingleList;
-    DefaultValuesCount: integer;
-    DefaultValue: Single;
-    FAngle: boolean;
-    function GetItems: TSingleList;
-    procedure SetItems(const Value: TSingleList);
-    function GetItemsSafe(Index: Integer): Single;
-    procedure SetItemsSafe(Index: Integer; const Value: Single);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
-    function CreateItemBeforeParse: TX3DSingleField; override;
-  public
-    { Value represents an angle. When reading from X3D 3.3 file, we will
-      make sure it's expressed in radians, honoring optional "UNIT angle ..."
-      declaration in X3D file. }
-    property Angle: boolean read FAngle write FAngle default false;
-
-    property Items: TSingleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
-      const InitialContent: array of Single);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: Single
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of Single); overload;
-  end;
-
-  TMFDouble = class(TX3DSimpleMultField)
-  private
-    RawItems: TDoubleList;
-    DefaultValuesCount: integer;
-    DefaultValue: Double;
-    function GetItems: TDoubleList;
-    procedure SetItems(const Value: TDoubleList);
-    function GetItemsSafe(Index: Integer): Double;
-    procedure SetItemsSafe(Index: Integer; const Value: Double);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; override;
-    function SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean; override;
-  public
-    property Items: TDoubleList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
-      const InitialContent: array of Double);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); override;
-    function CanAssignLerp: boolean; override;
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return zero, Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: Double
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of Double); overload;
-  end;
-
-  TMFTime = class(TMFDouble)
-  public
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-  end;
-
-  TMFString = class(TX3DSimpleMultField)
-  private
-    RawItems: TCastleStringList;
-    DefaultValuesCount: Integer;
-    DefaultValue: string;
-    function GetItems: TCastleStringList;
-    procedure SetItems(const Value: TCastleStringList);
-    function GetItemsSafe(Index: Integer): string;
-    procedure SetItemsSafe(Index: Integer; const Value: string);
-  protected
-    function GetCount: SizeInt; override;
-    procedure SetCount(const Value: SizeInt); override;
-    function GetCapacity: SizeInt; override;
-    procedure SetCapacity(const Value: SizeInt); override;
-    procedure Clear; override;
-    function RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string; override;
-    procedure SaveToStreamValue(Writer: TX3DWriter); override;
-  public
-    property Items: TCastleStringList read GetItems write SetItems;
-    procedure RawItemsAdd(Item: TX3DSingleField); override;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const InitialContent: array of string);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    destructor Destroy; override;
-
-    function EqualsDefaultValue: boolean; override;
-    function Equals(SecondValue: TX3DField;
-      const Epsilon: Double): boolean; override;
-
-    procedure Assign(Source: TPersistent); override;
-    procedure AssignValue(Source: TX3DField); override;
-    procedure AssignDefaultValueFromValue; override;
-
-    class function X3DType: string; override;
-    class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-
-    procedure ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader); override;
-    function SaveToXmlValue: TSaveToXmlMethod; override;
-
-    { Access Items[] checking for range errors.
-      In case of errors, Get will return '', Set will do nothing,
-      and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: string
-      read GetItemsSafe write SetItemsSafe;
-
-    procedure Send(const AValue: array of string); overload;
-  end;
+  {$I castlefields_x3dsimplemultfield.inc}
+  {$I castlefields_x3dsimplemultfield_descendants.inc}
 
   { Stores information about available VRML/X3D field classes.
     The only use for now is to make a mapping from VRML/X3D field name to
@@ -3255,8 +2319,7 @@ begin
   Result := false;
 end;
 
-function TX3DField.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TX3DField.Equals(SecondValue: TX3DField): boolean;
 begin
   Result := SecondValue.X3DName = X3DName;
 end;
@@ -3496,168 +2559,6 @@ begin
         SecondValue.Count ]);
 end;
 
-{ TX3DSimpleMultField ------------------------------------------------------- }
-
-function TX3DSimpleMultField.CreateItemBeforeParse: TX3DSingleField;
-begin
-  result := ItemClass.CreateUndefined(ParentNode, '', false);
-end;
-
-procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
-var
-  SingleItem: TX3DSingleField;
-begin
-  Clear;
-
-  SingleItem := nil;
-  try
-    SingleItem := CreateItemBeforeParse;
-
-    if Lexer.Token = vtOpenSqBracket then
-    begin
-      Lexer.NextToken;
-
-      { List size may be increased rapidly during parsing.
-        Prepare for it by allocating some size in advance. }
-      Capacity := 64;
-
-      while Lexer.Token <> vtCloseSqBracket do
-      { we always look now at "]" or next single value }
-      begin
-        SingleItem.ParseValue(Lexer, Reader);
-        RawItemsAdd(SingleItem);
-
-        if Lexer.Token = vtCloseSqBracket then break;
-
-        if Lexer.Version.Major < 2 then
-        begin
-          Lexer.CheckTokenIs(vtComma);
-          Lexer.NextToken;
-        end;
-      end;
-
-      { Our handling of commas is specified by VRML 1.0 spec:
-        - When the list has no items, "[]" is allowed but "[,]" is not.
-        - When there are some items on the list, the last item *may*
-          be followed by a comma.
-        For VRML >= 2.0 this all doesn't matter, comma is just a whitespace
-        and Lexer will never return such token. }
-
-      Lexer.NextToken;
-    end else
-    begin
-      { one single field - not enclosed in [] brackets }
-      SingleItem.ParseValue(Lexer, Reader);
-      RawItemsAdd(SingleItem);
-    end;
-
-  finally FreeAndNil(SingleItem) end;
-end;
-
-procedure TX3DSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
-var
-  SingleItem: TX3DSingleField;
-begin
-  { This is much easier and simpler in XML encoding than it was
-    in classic encoding. We don't have to check for [ and ] tokens,
-    comma is ignored (it was only for VRML 1.0 anyway), we just read
-    single values up to the end of stream. }
-
-  Clear;
-
-  SingleItem := CreateItemBeforeParse;
-  try
-    { List size may be increased rapidly during parsing.
-      Prepare for it by allocating some size in advance. }
-    Capacity := 64;
-
-    while Lexer.Token <> vtEnd do
-    begin
-      SingleItem.ParseValue(Lexer, Reader);
-      RawItemsAdd(SingleItem);
-    end;
-  finally FreeAndNil(SingleItem) end;
-end;
-
-procedure TX3DSimpleMultField.SaveToStreamValue(Writer: TX3DWriter);
-var
-  i: integer;
-  WriteIndentNextTime: boolean;
-  IndentMultiValueFields: boolean;
-begin
-  case Writer.Encoding of
-    xeClassic:
-      { The general "for I := ..." code below can handle correctly any RawItems.Count
-        value. But for aesthetics, i.e. more clear output for humans,
-        I handle the RawItems.Count = 0 and 1 cases separately. }
-      case Count of
-        0: Writer.Write('[]');
-        1: Writer.Write(RawItemToString(0, Writer.Encoding));
-        else
-          begin
-            Writer.Writeln('[');
-            Writer.IncIndent;
-
-            { For really long fields, writing indentation before each item
-              can cost a significant disk space. So do not indent when
-              there are many items. }
-            IndentMultiValueFields := Count <= 10;
-
-            WriteIndentNextTime := IndentMultiValueFields;
-            for i := 0 to Count-1 do
-            begin
-              if WriteIndentNextTime then Writer.WriteIndent('');
-              Writer.Write(RawItemToString(i, Writer.Encoding) +',');
-              { After the last item we always write newline,
-                no matter what's SaveToStreamDoNewLineAfterRawItem }
-              if (i = Count - 1) or
-                 SaveToStreamDoNewLineAfterRawItem(i) then
-                begin Writer.Writeln; WriteIndentNextTime := IndentMultiValueFields end else
-                begin Writer.Write(' '); WriteIndentNextTime := false; end;
-            end;
-
-            Writer.DecIndent;
-            Writer.WriteIndent(']');
-          end;
-      end;
-    xeXML:
-      for I := 0 to Count - 1 do
-      begin
-        Writer.Write(RawItemToString(I, Writer.Encoding));
-        if I <> Count - 1 then
-          Writer.Write(' ');
-      end;
-    else raise EInternalError.Create('TX3DSimpleMultField.SaveToStreamValue Encoding?');
-  end;
-end;
-
-function TX3DSimpleMultField.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
-begin
-  result := true;
-end;
-
-function TX3DSimpleMultField.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
-begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
-    (SecondValue is TX3DSimpleMultField) and
-    (TX3DSimpleMultField(SecondValue).Count = Count) and
-    (TX3DSimpleMultField(SecondValue).ItemClass = ItemClass);
-end;
-
-procedure TX3DSimpleMultField.WritelnWarning_InvalidIndex(
-  const Index, ACount: Integer);
-const
-  MaxInvalidIndexWarnings = 10;
-begin
-  Inc(InvalidIndexWarnings);
-  if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, X3DType, Index, ACount])) else
-  if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [NiceName, X3DType, InvalidIndexWarnings]));
-end;
-
 { simple helpful parsing functions ---------------------------------------- }
 
 { This returns Float, not just Single, because it's used by
@@ -3753,10 +2654,9 @@ begin
   result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFBool.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFBool.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFBool) and
     (TSFBool(SecondValue).Value = Value);
 end;
@@ -3858,13 +2758,12 @@ begin
   result := DefaultValueExists and (DefaultValue = Value)
 end;
 
-function TSFFloat.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFFloat.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFFloat) and
     (TSFFloat(SecondValue).MustBeNonnegative = MustBeNonnegative) and
-    SameValue(TSFFloat(SecondValue).Value, Value, Epsilon);
+    SameValue(TSFFloat(SecondValue).Value, Value);
 end;
 
 function TSFFloat.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -3966,12 +2865,11 @@ begin
   Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFDouble.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFDouble.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFDouble) and
-    SameValue(TSFDouble(SecondValue).Value, Value, Epsilon);
+    SameValue(TSFDouble(SecondValue).Value, Value);
 end;
 
 function TSFDouble.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -4271,10 +3169,9 @@ begin
   end;
 end;
 
-function TSFImage.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFImage.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFImage) and
     { TODO: compare values
     (TSFImage(SecondValue).Value = Value) }true;
@@ -4364,12 +3261,11 @@ begin
   result := DefaultValueExists and (DefaultValue = Value)
 end;
 
-function TSFLong.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFLong.Equals(SecondValue: TX3DField): boolean;
 begin
   { Note that this means that SFInt32 and SFLong will actually be considered
     equal. That's Ok, we want this. }
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFLong) and
     (TSFLong(SecondValue).MustBeNonnegative = MustBeNonnegative) and
     (TSFLong(SecondValue).Value = Value);
@@ -4500,18 +3396,17 @@ begin
   Writer.DecIndent;
 end;
 
-function TSFGenericMatrix.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFGenericMatrix.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFGenericMatrix) and
-    TSF_STATIC_ITEM.Equals(TSFGenericMatrix(SecondValue).FValue, FValue, Epsilon);
+    TSF_STATIC_ITEM.Equals(TSFGenericMatrix(SecondValue).FValue, FValue);
 end;
 
 function TSFGenericMatrix.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFGenericMatrix) and
-    TSF_STATIC_ITEM.PerfectlyEquals(TSFGenericMatrix(SecondValue).Value, Value);
+    TSF_STATIC_ITEM.PerfectlyEquals(TSFGenericMatrix(SecondValue).Value, FValue);
 end;
 
 procedure TSFGenericMatrix.AssignLerp(const A: Double; Value1, Value2: TX3DField);
@@ -4744,13 +3639,12 @@ begin
   end;
 end;
 
-function TSFRotation.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFRotation.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFRotation) and
-    TVector3.Equals(TSFRotation(SecondValue).Axis, Axis, Epsilon) and
-    SameValue(TSFRotation(SecondValue).RotationRad, RotationRad, Epsilon);
+    TVector3.Equals(TSFRotation(SecondValue).Axis, Axis) and
+    SameValue(TSFRotation(SecondValue).RotationRad, RotationRad);
 end;
 
 function TSFRotation.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -4861,10 +3755,9 @@ begin
   Result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFString.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFString.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFString) and
     (TSFString(SecondValue).Value = Value);
 end;
@@ -5072,12 +3965,11 @@ begin
   Result := DefaultValueExists and TSF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Value);
 end;
 
-function TSFGenericVector.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFGenericVector.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFGenericVector) and
-    TSF_STATIC_ITEM.Equals(TSFGenericVector(SecondValue).Value, Value, Epsilon);
+    TSF_STATIC_ITEM.Equals(TSFGenericVector(SecondValue).Value, Value);
 end;
 
 function TSFGenericVector.FastEqualsValue(SecondValue: TX3DField): boolean;
@@ -5405,10 +4297,9 @@ begin
   end;
 end;
 
-function TSFBitMask.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFBitMask.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFBitMask) and
     (TSFBitMask(SecondValue).FFlagNames.Equals(FFlagNames)) and
     (TSFBitMask(SecondValue).FFlags = FFlags) and
@@ -5496,10 +4387,9 @@ begin
   result := DefaultValueExists and (DefaultValue = Value);
 end;
 
-function TSFEnum.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
+function TSFEnum.Equals(SecondValue: TX3DField): boolean;
 begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
+  Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFEnum) and
     (TSFEnum(SecondValue).FEnumNames.Equals(FEnumNames)) and
     (TSFEnum(SecondValue).Value = Value);
@@ -5550,823 +4440,10 @@ begin
   finally FreeAndNil(FieldValue) end;
 end;
 
-{ multiple value fields ----------------------------------------------------- }
+{ includes ------------------------------------------------------------------- }
 
-{$define IMPLEMENT_MF_CLASS:=
-constructor TMF_CLASS.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
-begin
-  inherited;
-  FItemClass := TMF_CLASS_ITEM;
-  RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
-  DefaultValuesCount := -1;
-end;
-
-constructor TMF_CLASS.Create(AParentNode: TX3DFileItem; const AName: string;
-  const InitialContent: array of TMF_STATIC_ITEM);
-begin
-  inherited Create(AParentNode, AName);
-  Items.AddRange(InitialContent);
-  AssignDefaultValueFromValue;
-end;
-
-destructor TMF_CLASS.Destroy;
-begin
-  FreeAndNil(RawItems);
-  inherited;
-end;
-
-function TMF_CLASS.GetCount: SizeInt;
-begin
-  Result := RawItems.Count;
-end;
-
-procedure TMF_CLASS.SetCount(const Value: SizeInt);
-begin
-  RawItems.Count := Value;
-end;
-
-function TMF_CLASS.GetCapacity: SizeInt;
-begin
-  Result := RawItems.Capacity;
-end;
-
-procedure TMF_CLASS.SetCapacity(const Value: SizeInt);
-begin
-  RawItems.Capacity := Value;
-end;
-
-procedure TMF_CLASS.Clear;
-begin
-  RawItems.Clear;
-end;
-
-function TMF_CLASS.GetItems: TMF_DYN_STATIC_ITEM_ARRAY;
-begin
-  Result := TMF_DYN_STATIC_ITEM_ARRAY(RawItems)
-end;
-
-procedure TMF_CLASS.SetItems(const Value: TMF_DYN_STATIC_ITEM_ARRAY);
-begin
-  TMF_DYN_STATIC_ITEM_ARRAY(RawItems).Assign(Value);
-end;
-
-procedure TMF_CLASS.RawItemsAdd(Item: TX3DSingleField);
-begin
-  Items.Add(TMF_CLASS_ITEM(Item).Value);
-end;
-
-procedure TMF_CLASS.Assign(Source: TPersistent);
-begin
-  if Source is TMF_CLASS then
-  begin
-    DefaultValuesCount := TMF_CLASS(Source).DefaultValuesCount;
-    DefaultValue       := TMF_CLASS(Source).DefaultValue;
-    Items.Assign(TMF_CLASS(Source).Items);
-    VRMLFieldAssignCommon(TX3DField(Source));
-  end else
-    inherited;
-end;
-
-procedure TMF_CLASS.AssignValue(Source: TX3DField);
-begin
-  if Source is TMF_CLASS then
-  begin
-    inherited;
-    Items.Assign(TMF_CLASS(Source).Items);
-  end else
-    AssignValueRaiseInvalidClass(Source);
-end;
-
-procedure TMF_CLASS.AssignDefaultValueFromValue;
-begin
-  inherited;
-
-  (* initialize default value of the field: DefaultValuesCount, and (only
-     in case of DefaultValuesCount = 1 for now) initialize also DefaultValue *)
-  case Items.Count of
-    0: DefaultValuesCount := 0;
-    1: begin
-         DefaultValuesCount := 1;
-         DefaultValue := Items.L[0];
-       end;
-    else DefaultValuesCount := -1;
-  end;
-end;
-
-procedure TMF_CLASS.Send(const AValue: array of TMF_STATIC_ITEM);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TMF_CLASS.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
-function TMF_CLASS.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Result := Items.L[Index] else
-  begin
-    WritelnWarning_InvalidIndex(Index, Count);
-    Result := TMF_DYN_DEFAULT_SAFE_VALUE;
-  end;
-end;
-
-procedure TMF_CLASS.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
-begin
-  if (Index >= 0) and (Index < Items.Count) then
-    Items.L[Index] := Value else
-  begin
-    WritelnWarning_InvalidIndex(Index, Count);
-  end;
-end;
-
-class function TMF_CLASS.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
-begin
-  Result := TMF_EVENT.Create(AParentNode, AName, AInEvent);
-end;
-}
-
-{ Choose one of macros IMPLEMENT_MF_CLASS_USING_* to specify
-  which comparison operator is suitable for given field type.
-
-  For some types operator "=" may not be available, like for vectors
-  (where it would be unsure what it does --- precise or epsilon comparison?).
-  Then using other comparison, like CompareMem, may be suitable.
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_EQUALITY_OP:=
-function TMF_CLASS.EqualsDefaultValue: boolean;
-begin
-  result :=
-    ((DefaultValuesCount = 0) and (Count = 0)) or
-    ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.L[0]));
-end;
-
-function TMF_CLASS.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
-var
-  I: Integer;
-begin
- Result := (inherited Equals(SecondValue, Epsilon)) and
-   (SecondValue is TMF_CLASS);
-
- if Result then
-  for I := 0 to Items.Count - 1 do
-   if not (TMF_CLASS(SecondValue).Items.L[I] = Items.L[I]) then
-    Exit(false);
-end;
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_VECTORS:=
-function TMF_CLASS.EqualsDefaultValue: boolean;
-begin
-  Result :=
-    ((DefaultValuesCount = 0) and (Count = 0)) or
-    ((DefaultValuesCount = 1) and (Count = 1) and
-      TMF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Items.List^[0]) );
-end;
-
-function TMF_CLASS.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
-var
-  I: Integer;
-begin
-  Result := (inherited Equals(SecondValue, Epsilon)) and
-    (SecondValue is TMF_CLASS);
-
-  if Result then
-    for I := 0 to Items.Count - 1 do
-      if not TMF_STATIC_ITEM.Equals(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
-        Epsilon) then
-       Exit(false);
-end;
-
-function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := Items.List^[ItemNum].ToRawString;
-end;
-
-procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
-var
-  I: Integer;
-  Val1, Val2: TMF_CLASS;
-  Items1, Items2: TMF_DYN_STATIC_ITEM_ARRAY;
-begin
-  Val1 := Value1 as TMF_CLASS;
-  Val2 := Value2 as TMF_CLASS;
-
-  Val1.CheckCountEqual(Val2);
-  Items.Count := Val1.Items.Count;
-
-  Items1 := Val1.Items;
-  Items2 := Val2.Items;
-
-  for I := 0 to Items.Count - 1 do
-    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
-end;
-
-function TMF_CLASS.CanAssignLerp: boolean;
-begin
-  Result := true;
-end;
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_MATRICES:=
-function TMF_CLASS.EqualsDefaultValue: boolean;
-begin
-  Result :=
-    ((DefaultValuesCount = 0) and (Count = 0)) or
-    ((DefaultValuesCount = 1) and (Count = 1) and
-      TMF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Items.List^[0]) );
-end;
-
-function TMF_CLASS.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
-var
-  I: Integer;
-begin
- Result := (inherited Equals(SecondValue, Epsilon)) and
-   (SecondValue is TMF_CLASS);
-
- if Result then
-  for I := 0 to Items.Count - 1 do
-   if not TMF_STATIC_ITEM.Equals(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I],
-     Epsilon) then
-    Exit(false);
-end;
-
-function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
-var
-  Column: Integer;
-  V: TMF_VECTOR;
-begin
-  V.Data := Items.List^[ItemNum].Data[0];
-  Result := V.ToRawString;
-
-  for Column := 1 to TSF_MATRIX_COLS - 1 do
-  begin
-    V.Data := Items.List^[ItemNum].Data[Column];
-    Result += ' ' + V.ToRawString;
-  end;
-end;
-
-procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
-var
-  I: Integer;
-  Val1, Val2: TMF_CLASS;
-  Items1, Items2: TMF_DYN_STATIC_ITEM_ARRAY;
-begin
-  Val1 := Value1 as TMF_CLASS;
-  Val2 := Value2 as TMF_CLASS;
-
-  Val1.CheckCountEqual(Val2);
-  Items.Count := Val1.Items.Count;
-
-  Items1 := Val1.Items;
-  Items2 := Val2.Items;
-
-  for I := 0 to Items.Count - 1 do
-    Items.List^[I] := Lerp(A, Items1.List^[I], Items2.List^[I]);
-end;
-
-function TMF_CLASS.CanAssignLerp: boolean;
-begin
-  Result := true;
-end;
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL:=
-function TMF_CLASS.EqualsDefaultValue: boolean;
-begin
-  result :=
-    ((DefaultValuesCount = 0) and (Count = 0)) or
-    ((DefaultValuesCount = 1) and (Count = 1) and
-     (DefaultValue = Items.List^[0]) );
-end;
-
-function TMF_CLASS.Equals(SecondValue: TX3DField;
-  const Epsilon: Double): boolean;
-var
-  I: Integer;
-begin
- Result := (inherited Equals(SecondValue, Epsilon)) and
-   (SecondValue is TMF_CLASS);
-
- if Result then
-  for I := 0 to Items.Count - 1 do
-   if not SameValue(TMF_CLASS(SecondValue).Items.List^[I], Items.List^[I], Epsilon) then
-    Exit(false);
-end;
-}
-
-{$define TMF_CLASS := TMFBool}
-{$define TMF_STATIC_ITEM := boolean}
-{$define TMF_CLASS_ITEM := TSFBool}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TBooleanList}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := false}
-{$define TMF_EVENT := TMFBoolEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
-
-{$define TMF_CLASS := TMFLong}
-{$define TMF_STATIC_ITEM := Longint}
-{$define TMF_CLASS_ITEM := TSFLong}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TLongintList}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
-{$define TMF_EVENT := TMFLongEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
-
-{$define TMF_CLASS := TMFVec2f}
-{$define TMF_STATIC_ITEM := TVector2}
-{$define TMF_CLASS_ITEM := TSFVec2f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector2List}
-{$define TMF_SCALAR := Single}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TVector2.Zero}
-{$define TMF_EVENT := TMFVec2fEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec3f}
-{$define TMF_STATIC_ITEM := TVector3}
-{$define TMF_CLASS_ITEM := TSFVec3f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector3List}
-{$define TMF_SCALAR := Single}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TVector3.Zero}
-{$define TMF_EVENT := TMFVec3fEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec4f}
-{$define TMF_STATIC_ITEM := TVector4}
-{$define TMF_CLASS_ITEM := TSFVec4f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector4List}
-{$define TMF_SCALAR := Single}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := Vector4(0, 0, 0, 1)}
-{$define TMF_EVENT := TMFVec4fEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec2d}
-{$define TMF_STATIC_ITEM := TVector2Double}
-{$define TMF_CLASS_ITEM := TSFVec2d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector2DoubleList}
-{$define TMF_SCALAR := Double}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TVector2Double.Zero}
-{$define TMF_EVENT := TMFVec2dEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec3d}
-{$define TMF_STATIC_ITEM := TVector3Double}
-{$define TMF_CLASS_ITEM := TSFVec3d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector3DoubleList}
-{$define TMF_SCALAR := Double}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TVector3Double.Zero}
-{$define TMF_EVENT := TMFVec3dEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec4d}
-{$define TMF_STATIC_ITEM := TVector4Double}
-{$define TMF_CLASS_ITEM := TSFVec4d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector4DoubleList}
-{$define TMF_SCALAR := Double}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := Vector4Double(0, 0, 0, 1)}
-{$define TMF_EVENT := TMFVec4dEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFRotation}
-{$define TMF_STATIC_ITEM := TVector4}
-{$define TMF_CLASS_ITEM := TSFRotation}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TVector4List}
-{$define TMF_SCALAR := Single}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := DefaultRotation}
-{$define TMF_EVENT := TMFRotationEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFFloat}
-{$define TMF_STATIC_ITEM := Single}
-{$define TMF_CLASS_ITEM := TSFFloat}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TSingleList}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
-{$define TMF_EVENT := TMFFloatEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
-
-{$define TMF_CLASS := TMFDouble}
-{$define TMF_STATIC_ITEM := Double}
-{$define TMF_CLASS_ITEM := TSFDouble}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TDoubleList}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := 0}
-{$define TMF_EVENT := TMFDoubleEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_FLOATS_EQUAL
-
-{$define TMF_CLASS := TMFString}
-{$define TMF_STATIC_ITEM := string}
-{$define TMF_CLASS_ITEM := TSFString}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TCastleStringList}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := ''}
-{$define TMF_EVENT := TMFStringEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_EQUALITY_OP
-
-{$define TMF_CLASS := TMFMatrix3f}
-{$define TMF_STATIC_ITEM := TMatrix3}
-{$define TMF_CLASS_ITEM := TSFMatrix3f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix3List}
-{$define TMF_VECTOR := TVector3}
-{$define TMF_SCALAR := Single}
-{$define TSF_MATRIX_COLS := 3}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TMatrix3.Identity}
-{$define TMF_EVENT := TMFMatrix3fEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{$define TMF_CLASS := TMFMatrix3d}
-{$define TMF_STATIC_ITEM := TMatrix3Double}
-{$define TMF_CLASS_ITEM := TSFMatrix3d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix3DoubleList}
-{$define TMF_VECTOR := TVector3Double}
-{$define TMF_SCALAR := Double}
-{$define TSF_MATRIX_COLS := 3}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TMatrix3Double.Identity}
-{$define TMF_EVENT := TMFMatrix3dEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{$define TMF_CLASS := TMFMatrix4f}
-{$define TMF_STATIC_ITEM := TMatrix4}
-{$define TMF_CLASS_ITEM := TSFMatrix4f}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix4List}
-{$define TMF_VECTOR := TVector4}
-{$define TMF_SCALAR := Single}
-{$define TSF_MATRIX_COLS := 4}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TMatrix4.Identity}
-{$define TMF_EVENT := TMFMatrix4fEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{$define TMF_CLASS := TMFMatrix4d}
-{$define TMF_STATIC_ITEM := TMatrix4Double}
-{$define TMF_CLASS_ITEM := TSFMatrix4d}
-{$define TMF_DYN_STATIC_ITEM_ARRAY := TMatrix4DoubleList}
-{$define TMF_VECTOR := TVector4Double}
-{$define TMF_SCALAR := Double}
-{$define TSF_MATRIX_COLS := 4}
-{$define TMF_DYN_DEFAULT_SAFE_VALUE := TMatrix4Double.Identity}
-{$define TMF_EVENT := TMFMatrix4dEvent}
-IMPLEMENT_MF_CLASS
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{ TMFBool ------------------------------------------------------------------ }
-
-function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := BoolKeywords[Encoding][Items[ItemNum]];
-end;
-
-class function TMFBool.X3DType: string;
-begin
-  Result := 'MFBool';
-end;
-
-{ TMFLong -------------------------------------------------------------------- }
-
-function TMFLong.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
-begin
-  Result := SaveToStreamLineUptoNegative and (Items[ItemNum] < 0);
-end;
-
-function TMFLong.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := IntToStr(Items[ItemNum])
-end;
-
-class function TMFLong.X3DType: string;
-begin
-  Result := 'MFLong';
-end;
-
-procedure TMFLong.WritelnWarning_WrongVertexIndex(
-  const GeometryX3DType: string;
-  const VertexNum: Integer; const CoordCount: Integer);
-const
-  MaxWrongVertexIndexWarnings = 10;
-begin
-  Inc(WrongVertexIndexWarnings);
-  if WrongVertexIndexWarnings < MaxWrongVertexIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s (not enouch points in Coordinate node defined: index is %d, we have only %d vertices)',
-      [GeometryX3DType, VertexNum, CoordCount])) else
-  if WrongVertexIndexWarnings = MaxWrongVertexIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Wrong vertex index in indexed node %s reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [GeometryX3DType, WrongVertexIndexWarnings]));
-end;
-
-{ TMFInt32 ------------------------------------------------------------------- }
-
-class function TMFInt32.X3DType: string;
-begin
-  Result := 'MFInt32';
-end;
-
-procedure TMFInt32.Send(const AValue: array of LongInt);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TMFInt32.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
-class function TMFInt32.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
-begin
-  Result := TMFInt32Event.Create(AParentNode, AName, AInEvent);
-end;
-
-{ TMFMatrix3f ------------------------------------------------------------------- }
-
-class function TMFMatrix3f.X3DType: string;
-begin
-  Result := 'MFMatrix3f';
-end;
-
-{ TMFMatrix3d ------------------------------------------------------------------- }
-
-class function TMFMatrix3d.X3DType: string;
-begin
-  Result := 'MFMatrix3d';
-end;
-
-{ TMFMatrix4f ------------------------------------------------------------------- }
-
-class function TMFMatrix4f.X3DType: string;
-begin
-  Result := 'MFMatrix4f';
-end;
-
-{ TMFMatrix4d ------------------------------------------------------------------- }
-
-class function TMFMatrix4d.X3DType: string;
-begin
-  Result := 'MFMatrix4d';
-end;
-
-{ TMFVec2f ------------------------------------------------------------------- }
-
-class function TMFVec2f.X3DType: string;
-begin
-  Result := 'MFVec2f';
-end;
-
-{ TMFVec3f ------------------------------------------------------------------- }
-
-class function TMFVec3f.X3DType: string;
-begin
-  Result := 'MFVec3f';
-end;
-
-{ TMFColor ------------------------------------------------------------------- }
-
-class function TMFColor.X3DType: string;
-begin
-  Result := 'MFColor';
-end;
-
-procedure TMFColor.Send(const AValue: array of TVector3);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TMFColor.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
-class function TMFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
-begin
-  Result := TMFColorEvent.Create(AParentNode, AName, AInEvent);
-end;
-
-{ TMFVec4f ------------------------------------------------------------------- }
-
-class function TMFVec4f.X3DType: string;
-begin
-  Result := 'MFVec4f';
-end;
-
-{ TMFColorRGBA --------------------------------------------------------------- }
-
-class function TMFColorRGBA.X3DType: string;
-begin
-  Result := 'MFColorRGBA';
-end;
-
-procedure TMFColorRGBA.Send(const AValue: array of TVector4);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TMFColorRGBA.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
-class function TMFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
-begin
-  Result := TMFColorRGBAEvent.Create(AParentNode, AName, AInEvent);
-end;
-
-{ TMFVec2d ------------------------------------------------------------------- }
-
-class function TMFVec2d.X3DType: string;
-begin
-  Result := 'MFVec2d';
-end;
-
-{ TMFVec3d ------------------------------------------------------------------- }
-
-class function TMFVec3d.X3DType: string;
-begin
-  Result := 'MFVec3d';
-end;
-
-{ TMFVec4d ------------------------------------------------------------------- }
-
-class function TMFVec4d.X3DType: string;
-begin
-  Result := 'MFVec4d';
-end;
-
-{ TMFRotation ---------------------------------------------------------------- }
-
-class function TMFRotation.X3DType: string;
-begin
-  Result := 'MFRotation';
-end;
-
-{ TMFFloat ------------------------------------------------------------------- }
-
-function TMFFloat.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
-begin
-  Result := false;
-end;
-
-function TMFFloat.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := Format('%g', [Items[ItemNum]]);
-end;
-
-procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TX3DField);
-var
-  I: Integer;
-  Val1, Val2: TMFFloat;
-begin
-  Val1 := Value1 as TMFFloat;
-  Val2 := Value2 as TMFFloat;
-
-  Val1.CheckCountEqual(Val2);
-  Items.Count := Val1.Items.Count;
-
-  for I := 0 to Items.Count - 1 do
-    Items[I] := Lerp(A, Val1.Items[I], Val2.Items[I]);
-end;
-
-function TMFFloat.CanAssignLerp: boolean;
-begin
-  Result := true;
-end;
-
-class function TMFFloat.X3DType: string;
-begin
-  Result := 'MFFloat';
-end;
-
-function TMFFloat.CreateItemBeforeParse: TX3DSingleField;
-begin
-  Result := inherited;
-  { Assign our Angle to single item used for parsing.
-    This way float values on MFFloat fields will be correctly converted to radians,
-    important e.g. for Background.skyAngle,groundAngle. }
-  (Result as TSFFloat).Angle := Angle;
-end;
-
-{ TMFDouble -------------------------------------------------------------------- }
-
-function TMFDouble.SaveToStreamDoNewLineAfterRawItem(ItemNum: integer): boolean;
-begin
-  Result := false;
-end;
-
-function TMFDouble.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := Format('%g', [Items[ItemNum]]);
-end;
-
-procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TX3DField);
-var
-  I: Integer;
-  Val1, Val2: TMFDouble;
-begin
-  Val1 := Value1 as TMFDouble;
-  Val2 := Value2 as TMFDouble;
-
-  Val1.CheckCountEqual(Val2);
-  Items.Count := Val1.Items.Count;
-
-  for I := 0 to Items.Count - 1 do
-    Items[I] := Lerp(A, Val1.Items[I], Val2.Items[I]);
-end;
-
-function TMFDouble.CanAssignLerp: boolean;
-begin
-  Result := true;
-end;
-
-class function TMFDouble.X3DType: string;
-begin
-  Result := 'MFDouble';
-end;
-
-{ TMFTime -------------------------------------------------------------------- }
-
-class function TMFTime.X3DType: string;
-begin
-  Result := 'MFTime';
-end;
-
-class function TMFTime.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
-begin
-  Result := TMFTimeEvent.Create(AParentNode, AName, AInEvent);
-end;
-
-{ TMFString ------------------------------------------------------------------ }
-
-function TMFString.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
-begin
-  case Encoding of
-    xeClassic: Result := StringToX3DClassic(Items[ItemNum]);
-    xeXML    : Result := StringToX3DXmlMulti(Items[ItemNum]);
-    else raise EInternalError.Create('TMFString.RawItemToString Encoding?');
-  end;
-end;
-
-class function TMFString.X3DType: string;
-begin
-  Result := 'MFString';
-end;
-
-procedure TMFString.ParseXMLAttribute(const AttributeValue: string; Reader: TX3DReader);
-var
-  Lexer: TX3DLexer;
-begin
-  { For MFString, it's very common that normal parsing fails because
-    of missing double quotes, even in models from
-    http://www.web3d.org/x3d/content/examples/Basic/
-    Although specification clearly says that MFString
-    components should always be enclosed within double
-    quotes. We just do what Xj3D seems to do, that is
-    we handle this as a single string (producing a warning). }
-
-  try
-    Lexer := TX3DLexer.CreateForPartialStream(AttributeValue, Reader.Version);
-    try
-      ParseXMLAttributeLexer(Lexer, Reader);
-    finally FreeAndNil(Lexer) end;
-
-    { Surround in try..except both CreateForPartialStream and ParseXMLAttributeLexer,
-      as CreateForPartialStream can already cause exception in case of
-      demo-models/x3d/test_single_quotes_mfstring.x3d . }
-  except
-    on E: Exception do
-    begin
-      WritelnWarning('VRML/X3D', 'Error when reading MFString field "' + X3DName + '" value. Possibly missing double quotes (treating as a single string): ' + E.Message);
-      Items.Count := 0;
-      Items.Add(AttributeValue);
-    end;
-  end;
-end;
-
-function TMFString.SaveToXmlValue: TSaveToXmlMethod;
-begin
-  Result := sxAttributeCustomQuotes;
-end;
-
-procedure TMFString.SaveToStreamValue(Writer: TX3DWriter);
-begin
-  { MFString in XML encoding is surrounded by single quotes }
-  if Writer.Encoding = xeXML then Writer.Write('''');
-  inherited;
-  if Writer.Encoding = xeXML then Writer.Write('''');
-end;
+{$I castlefields_x3dsimplemultfield.inc}
+{$I castlefields_x3dsimplemultfield_descendants.inc}
 
 { TX3DFieldsManager --------------------------------------------------------- }
 

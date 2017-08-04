@@ -75,8 +75,27 @@ type
     procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
 
     procedure AssignArray(const A: array of string);
-    function Equal(List: TCastleStringList): boolean; overload;
-    function Equal(const A: array of string): boolean; overload;
+
+    { Does another string list have equal length and content.
+
+      Any other TStrings descendant may be equal to this instance,
+      we don't require it to be a TCastleStringList instance.
+      We also don't check all the properties, like Delimiter or such.
+      We only compare the contents: count, and actual strings.
+
+      The comparison is case-sensitive, or not, depending on the value
+      of CaseSensitive property of this list. }
+    function Equals(SecondValue: TObject): boolean; override; overload;
+
+    function Equals(const A: array of string): boolean; overload;
+
+    { Does the SecondValue have equal length and content.
+
+      This method does the same thing as @link(Equals).
+      It is defined for consistency -- on some lists, like @link(TSingleList),
+      there is an important difference between Equals (compares with some
+      epsilon tolerance) and PerfectlyEquals. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
 
     { Reverse the order of items on the array. }
     procedure Reverse;
@@ -1011,18 +1030,25 @@ begin
     Exchange(I, Count - 1 - I);
 end;
 
-function TCastleStringList.Equal(List: TCastleStringList): boolean;
+function TCastleStringList.Equals(SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
-  if List.Count <> Count then Exit(false);
-  for I := 0 to Count - 1 do
-    if DoCompareText(List[I], Strings[I]) <> 0 then
-      Exit(false);
-  Result := true;
+  Result := SecondValue is TStrings;
+  if Result then
+  begin
+    Result := Count = TStrings(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if DoCompareText(Strings[I], TStrings(SecondValue)[I]) <> 0 then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
 end;
 
-function TCastleStringList.Equal(const A: array of string): boolean;
+function TCastleStringList.Equals(const A: array of string): boolean;
 var
   I: Integer;
 begin
@@ -1031,6 +1057,11 @@ begin
     if DoCompareText(A[I], Strings[I]) <> 0 then
       Exit(false);
   Result := true;
+end;
+
+function TCastleStringList.PerfectlyEquals(SecondValue: TObject): boolean;
+begin
+  Result := Equals(SecondValue);
 end;
 
 function TCastleStringList.GetL(const Index: Integer): string;
