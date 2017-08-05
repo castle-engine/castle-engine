@@ -370,6 +370,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure Send(const AValue: TItem); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
@@ -381,7 +382,6 @@
     TSFMatrix3fEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TMatrix3); overload; virtual;
   end;
 
   { X3D field containing a 3x3 matrix with Double precision. }
@@ -391,7 +391,6 @@
     TSFMatrix3dEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TMatrix3Double); overload; virtual;
   end;
 
   { X3D field containing a 4x4 matrix with Single precision. }
@@ -401,7 +400,6 @@
     TSFMatrix4fEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TMatrix4); overload; virtual;
 
     { Return average scale for current matrix Value.
 
@@ -420,7 +418,6 @@
     TSFMatrix4dEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TMatrix4Double); overload; virtual;
   end;
 
   { VRML 1.0 SFMatrix field.
@@ -428,7 +425,6 @@
   TSFMatrix = class(TSFMatrix4f)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TMatrix4); override;
   end;
 
   { X3D field representing a 3D rotation around an arbitrary axis. }
@@ -582,6 +578,7 @@
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
+    procedure Send(const AValue: TItem); overload;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
   end;
@@ -592,7 +589,6 @@
     TSFVec2fEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TVector2); overload; virtual;
   end;
 
   { X3D field containing a 3D vector with Single precision. }
@@ -601,7 +597,6 @@
     TSFVec3fEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TVector3); overload; virtual;
     { Alternative version of @name, change only a given component of the vector. }
     procedure Send(const Index: Integer; const ComponentValue: Single); overload;
   end;
@@ -611,7 +606,6 @@
   public
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: TVector3); overload; override;
   end;
 
   { X3D field containing a 4D vector with Single precision. }
@@ -620,7 +614,6 @@
     TSFVec4fEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TVector4); overload; virtual;
   end;
 
   { X3D field containing an RGBA color (with an alpha). }
@@ -628,7 +621,6 @@
   public
     class function X3DType: string; override;
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
-    procedure Send(const AValue: TVector4); override;
   end;
 
   { X3D field containing a 2D vector with Double precision. }
@@ -637,7 +629,6 @@
     TSFVec2dEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TVector2Double); overload; virtual;
   end;
 
   { X3D field containing a 3D vector with Double precision. }
@@ -646,7 +637,6 @@
     TSFVec3dEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TVector3Double); overload; virtual;
   end;
 
   { X3D field containing a 4D vector with Double precision. }
@@ -655,7 +645,6 @@
     TSFVec4dEvent>)
   public
     class function X3DType: string; override;
-    procedure Send(const AValue: TVector4Double); overload; virtual;
   end;
 
 {$endif read_interface}
@@ -1475,6 +1464,18 @@ begin
   Result := High(TItemColumn.TIndex) + 1;
 end;
 
+procedure TSFGenericMatrix.Send(const AValue: TItem);
+var
+  FieldValue: TSFGenericMatrix;
+begin
+  FieldValue := TSFGenericMatrix(
+    TX3DFieldClass(ClassType).CreateUndefined(ParentNode, X3DName, true));
+  try
+    FieldValue.Value := AValue;
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFMatrix3f ------------------------------------------------------------------ }
 
 class function TSFMatrix3f.X3DType: string;
@@ -1482,31 +1483,11 @@ begin
   Result := 'SFMatrix3f';
 end;
 
-procedure TSFMatrix3f.Send(const AValue: TMatrix3);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFMatrix3f.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFMatrix3d ------------------------------------------------------------------ }
 
 class function TSFMatrix3d.X3DType: string;
 begin
   Result := 'SFMatrix3d';
-end;
-
-procedure TSFMatrix3d.Send(const AValue: TMatrix3Double);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFMatrix3d.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFMatrix4f ------------------------------------------------------------------ }
@@ -1528,16 +1509,6 @@ begin
     Value[2, 2]);
 end;
 
-procedure TSFMatrix4f.Send(const AValue: TMatrix4);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFMatrix4f.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFMatrix4d ------------------------------------------------------------------ }
 
 class function TSFMatrix4d.X3DType: string;
@@ -1545,31 +1516,11 @@ begin
   Result := 'SFMatrix4d';
 end;
 
-procedure TSFMatrix4d.Send(const AValue: TMatrix4Double);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFMatrix4d.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFMatrix ------------------------------------------------------------------ }
 
 class function TSFMatrix.X3DType: string;
 begin
   Result := 'SFMatrix';
-end;
-
-procedure TSFMatrix.Send(const AValue: TMatrix4);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFMatrix.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFRotation ---------------------------------------------------------------- }
@@ -2035,6 +1986,18 @@ begin
   Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;
 
+procedure TSFGenericVector.Send(const AValue: TItem);
+var
+  FieldValue: TSFGenericVector;
+begin
+  FieldValue := TSFGenericVector(
+    TX3DFieldClass(ClassType).CreateUndefined(ParentNode, X3DName, true));
+  try
+    FieldValue.Value := AValue;
+    Send(FieldValue);
+  finally FreeAndNil(FieldValue) end;
+end;
+
 { TSFVec2f ------------------------------------------------------------------- }
 
 class function TSFVec2f.X3DType: string;
@@ -2042,31 +2005,11 @@ begin
   Result := 'SFVec2f';
 end;
 
-procedure TSFVec2f.Send(const AValue: TVector2);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFVec2f.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFVec3f ------------------------------------------------------------------- }
 
 class function TSFVec3f.X3DType: string;
 begin
   Result := 'SFVec3f';
-end;
-
-procedure TSFVec3f.Send(const AValue: TVector3);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFVec3f.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
 end;
 
 procedure TSFVec3f.Send(const Index: Integer; const ComponentValue: Single);
@@ -2085,16 +2028,6 @@ begin
   Result := 'SFColor';
 end;
 
-procedure TSFColor.Send(const AValue: TVector3);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFColor.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 class function TSFColor.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
   Result := TSFColorEvent.Create(AParentNode, AName, AInEvent);
@@ -2107,31 +2040,11 @@ begin
   Result := 'SFVec4f';
 end;
 
-procedure TSFVec4f.Send(const AValue: TVector4);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFVec4f.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFColorRGBA --------------------------------------------------------------- }
 
 class function TSFColorRGBA.X3DType: string;
 begin
   Result := 'SFColorRGBA';
-end;
-
-procedure TSFColorRGBA.Send(const AValue: TVector4);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFColorRGBA.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
 end;
 
 class function TSFColorRGBA.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
@@ -2146,16 +2059,6 @@ begin
   Result := 'SFVec2d';
 end;
 
-procedure TSFVec2d.Send(const AValue: TVector2Double);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFVec2d.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFVec3d ------------------------------------------------------------------- }
 
 class function TSFVec3d.X3DType: string;
@@ -2163,31 +2066,11 @@ begin
   Result := 'SFVec3d';
 end;
 
-procedure TSFVec3d.Send(const AValue: TVector3Double);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFVec3d.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
-end;
-
 { TSFVec4d ------------------------------------------------------------------- }
 
 class function TSFVec4d.X3DType: string;
 begin
   Result := 'SFVec4d';
-end;
-
-procedure TSFVec4d.Send(const AValue: TVector4Double);
-var
-  FieldValue: TX3DField;
-begin
-  FieldValue := TSFVec4d.Create(ParentNode, X3DName, AValue);
-  try
-    Send(FieldValue);
-  finally FreeAndNil(FieldValue) end;
 end;
 
 { TSFBitMask ------------------------------------------------------------ }

@@ -249,12 +249,14 @@ type
     function Contains2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload;
     function PointInside2D(const Point: TVector3; const IgnoreIndex: Integer): boolean; overload; deprecated 'use Contains2D method';
 
-    { Sum two TBox3D values. This calculates the smallest box that encloses
-      both Box1 and Box2. You can also use + operator. }
-    procedure Add(const box2: TBox3D); overload;
+    { Add another box to our box.
+      This calculates the smallest box that encloses both the current box,
+      and Box2. Doing @code(MyBox.Include(AnotherBox)) is equivalent to doing
+      @code(MyBox := MyBox + AnotherBox). }
+    procedure Include(const box2: TBox3D); overload;
 
     { Make box larger, if necessary, to contain given Point. }
-    procedure Add(const Point: TVector3); overload;
+    procedure Include(const Point: TVector3); overload;
 
     { Three box sizes. }
     function Sizes: TVector3; deprecated 'use Size';
@@ -971,7 +973,7 @@ begin
   Result := Contains2D(Point, IgnoreIndex);
 end;
 
-procedure TBox3D.Add(const box2: TBox3D);
+procedure TBox3D.Include(const box2: TBox3D);
 begin
   if Box2.IsEmpty then
     Exit else
@@ -987,7 +989,7 @@ begin
   end;
 end;
 
-procedure TBox3D.Add(const Point: TVector3);
+procedure TBox3D.Include(const Point: TVector3);
 begin
   if IsEmpty then
   begin
@@ -2088,7 +2090,7 @@ begin
   Corners(C);
   Result := FloatRectangle(ProjectPoint(C[0]), 0, 0);
   for I := 1 to 7 do
-    Result := Result.Add(ProjectPoint(C[I]));
+    Result := Result.Include(ProjectPoint(C[I]));
 end;
 
 class function TBox3D.CompareBackToFront3D(

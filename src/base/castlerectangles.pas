@@ -362,7 +362,7 @@ type
     function ScaleAround0(const Factor: Single): TFloatRectangle;
 
     { Return larger rectangle, so that it includes given point. }
-    function Add(const P: TVector2): TFloatRectangle;
+    function Include(const P: TVector2): TFloatRectangle;
 
     { Convert to a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
@@ -1097,7 +1097,7 @@ begin
   end;
 end;
 
-function TFloatRectangle.Add(const P: TVector2): TFloatRectangle;
+function TFloatRectangle.Include(const P: TVector2): TFloatRectangle;
 begin
   if IsEmpty then
   begin

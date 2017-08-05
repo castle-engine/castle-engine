@@ -2638,7 +2638,7 @@ begin
   SI := TShapeTreeIterator.Create(Shapes, true);
   try
     while SI.GetNext do
-      Result.Add(SI.Current.BoundingBox);
+      Result.Include(SI.Current.BoundingBox);
   finally FreeAndNil(SI) end;
 end;
 

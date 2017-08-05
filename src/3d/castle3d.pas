@@ -2829,10 +2829,10 @@ begin
   begin
     if (GetChild <> nil) and
        (not GetChild.InternalExcludeFromParentBoundingVolume) then
-      Result.Add(GetChild.BoundingBox);
+      Result.Include(GetChild.BoundingBox);
     for I := 0 to List.Count - 1 do
       if not List[I].InternalExcludeFromParentBoundingVolume then
-        Result.Add(List[I].BoundingBox);
+        Result.Include(List[I].BoundingBox);
   end;
 end;
 

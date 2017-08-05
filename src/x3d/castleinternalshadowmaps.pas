@@ -403,12 +403,12 @@ procedure TLightList.ShapeAdd(Shape: TShape);
       Shape.Node.FdAppearance.Value := TAppearanceNode.Create;
     Shape.Node.Appearance.FdTextureTransform.Value := TextureTransform;
 
-    Light^.ShadowReceiversBox.Add(Shape.BoundingBox);
+    Light^.ShadowReceiversBox.Include(Shape.BoundingBox);
   end;
 
   procedure HandleShadowCaster;
   begin
-    ShadowCastersBox.Add(Shape.BoundingBox);
+    ShadowCastersBox.Include(Shape.BoundingBox);
   end;
 
 var

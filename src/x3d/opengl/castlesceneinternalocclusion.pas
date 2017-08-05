@@ -241,7 +241,7 @@ var
     begin
       Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
       if Shape.RenderedFrameId <> FrameId then
-        Box.Add(Shape.BoundingBox);
+        Box.Include(Shape.BoundingBox);
     end;
 
     glDrawBox3DSimple(Box);

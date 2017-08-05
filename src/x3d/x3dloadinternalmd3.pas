@@ -464,7 +464,7 @@ var
       Inc(V);
     end;
 
-    SceneBox.Add(CalculateBoundingBox(Result.FdPoint.Items));
+    SceneBox.Include(CalculateBoundingBox(Result.FdPoint.Items));
   end;
 
   function MakeTextureCoordinates(

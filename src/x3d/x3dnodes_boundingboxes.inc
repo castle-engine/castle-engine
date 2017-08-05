@@ -494,7 +494,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := FdCrossSection.Items.Ptr(J);
-        Result.Add(Transform.MultPoint(
+        Result.Include(Transform.MultPoint(
           Vector3(Point2d^[0], 0, Point2d^[1])));
       end;
     end;
@@ -521,7 +521,7 @@ begin
       for J := 0 to FdCrossSection.Count - 1 do
       begin
         Point2d := FdCrossSection.Items.Ptr(J);
-        Result.Add(State.Transform.MultPoint(
+        Result.Include(State.Transform.MultPoint(
           Transform.MultPoint(
             Vector3(Point2d^[0], 0, Point2d^[1]))));
       end;

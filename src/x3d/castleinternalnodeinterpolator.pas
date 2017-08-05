@@ -845,7 +845,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and
              FrameElement.AttributeVector3('bounding_box_size', FrameBoxSize) then
           begin
-            Result.BoundingBox.Add(Box3DAroundPoint(FrameBoxCenter, FrameBoxSize));
+            Result.BoundingBox.Include(Box3DAroundPoint(FrameBoxCenter, FrameBoxSize));
           end;
 
           Result.KeyNodes.Add(NewNode);
