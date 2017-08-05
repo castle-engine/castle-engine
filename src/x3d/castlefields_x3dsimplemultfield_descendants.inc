@@ -322,18 +322,8 @@ end;
 
 {$define IMPLEMENT_MF_CLASS_USING_MATRICES:=
 function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
-var
-  Column: Integer;
-  V: TMF_VECTOR;
 begin
-  V.Data := Items.List^[ItemNum].Data[0];
-  Result := V.ToRawString;
-
-  for Column := 1 to TSF_MATRIX_COLS - 1 do
-  begin
-    V.Data := Items.List^[ItemNum].Data[Column];
-    Result += ' ' + V.ToRawString;
-  end;
+  Result := Items.List^[ItemNum].ToRawString;
 end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
