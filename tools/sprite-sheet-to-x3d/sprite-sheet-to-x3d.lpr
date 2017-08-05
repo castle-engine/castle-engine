@@ -17,6 +17,8 @@
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
+{$I castleconf.inc}
+
 uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
   CastleParameters, CastleImages, CastleStringUtils,
   CastleVectors, CastleUtils, CastleClassUtils, X3DNodes,
