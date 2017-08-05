@@ -39,7 +39,7 @@ type
   TTriangleOctree = class;
 
   TTriangleOctreeNode = class(TBaseTrianglesOctreeNode)
-  strict protected
+  protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
@@ -166,7 +166,7 @@ type
     that keeps triangle geometry in 3D space, and links to parent
     VRML/X3D Shapes and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
-  strict protected
+  protected
     function StatisticsBonus: string; override;
   public
     { All our triangles.
