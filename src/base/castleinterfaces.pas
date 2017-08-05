@@ -33,8 +33,11 @@
   See http://michalis.ii.uni.wroc.pl/~michalis/modern_pascal_introduction/modern_pascal_introduction.html
   about interfaces. }
 
-{ Utilities for interfaces. }
-unit CastleInterfaces deprecated 'this unit will be removed at some point, and Castle Game Engine will use CORBA interfaces only';
+{ Utilities for interfaces.
+
+  @deprecated
+  This unit will be removed at some point, and Castle Game Engine will use CORBA interfaces only. }
+unit CastleInterfaces;
 
 {$I castleconf.inc}
 
