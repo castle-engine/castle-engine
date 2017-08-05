@@ -3364,17 +3364,4 @@ begin
   AddRange(Source);
 end;
 
-procedure X3DNodeList_FreeUnusedAndNil(var List: TX3DNodeList);
-var
-  I: Integer;
-begin
-  if List <> nil then
-  begin
-    for I := 0 to List.Count - 1 do
-      if List.Items[I].VRML1ParentsCount + List.Items[I].ParentFieldsCount = 0 then
-        List.Items[I].Free;
-    FreeAndNil(List);
-  end;
-end;
-
 {$endif read_implementation}
