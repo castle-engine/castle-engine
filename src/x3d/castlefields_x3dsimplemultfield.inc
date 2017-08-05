@@ -26,13 +26,13 @@
     (imagine a milion vertexes in MFVec3f, which is absolutely possible)
     and not cache friendly. }
   generic TX3DSimpleMultField<
-    TMF_STATIC_ITEM,
-    TMF_CLASS_ITEM,
-    TMF_DYN_STATIC_ITEM_ARRAY,
-    TMF_EVENT> = class(TX3DMultField)
-  private
+    TItem,
+    TSingleField,
+    TItemList,
+    TEvent> = class(TX3DMultField)
+  strict private
     InvalidIndexWarnings: Cardinal;
-    RawItems: TMF_DYN_STATIC_ITEM_ARRAY;
+    FItems: TItemList;
 
     { DefaultValuesCount may have three valid values (for now):
       -1 (means "no default value for this field")
@@ -47,23 +47,18 @@
 
       CreateUndefined sets DefaultValuesCount to -1. }
     DefaultValuesCount: Integer;
-    DefaultValue: TMF_STATIC_ITEM;
-    function GetItems: TMF_DYN_STATIC_ITEM_ARRAY;
-    procedure SetItems(const Value: TMF_DYN_STATIC_ITEM_ARRAY);
-    function GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
-    procedure SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
-  protected
+    DefaultValue: TItem;
+    function GetItems: TItemList;
+    procedure SetItems(const Value: TItemList);
+    function GetItemsSafe(Index: Integer): TItem;
+    procedure SetItemsSafe(Index: Integer; const Value: TItem);
+  strict protected
     { Create new instance of a corresponding single-value field. It doesn't need to
       have initialized value (so it can be created by
       CreateUndefined), since we'll call his Parse method immediately.
       Default implementation in this class uses simply
-      calls TMF_CLASS_ITEM.CreateUndefined. }
-    function CreateItemBeforeParse: TMF_CLASS_ITEM; virtual;
-
-    { Add Item at the end of RawItems. You should copy
-      Item contents as appropriate (remember that Item instance itself
-      may be freed soon, so copy contents, not only some reference). }
-    procedure RawItemsAdd(Item: TMF_CLASS_ITEM);
+      calls TSingleField.CreateUndefined. }
+    function CreateItemBeforeParse: TSingleField; virtual;
 
     procedure WritelnWarning_InvalidIndex(const Index, ACount: Integer);
 
@@ -75,7 +70,7 @@
       descendants. }
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
 
-    { RawItemToString(i) must change RawItems[i] into a string that can be used to
+    { RawItemToString(i) must change FItems[i] into a string that can be used to
       store this is text stream. In descendants, you have to override this. }
     function RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string; virtual; abstract;
 
@@ -92,12 +87,12 @@
   public
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
-      const InitialContent: array of TMF_STATIC_ITEM);
+      const InitialContent: array of TItem);
     constructor CreateUndefined(AParentNode: TX3DFileItem;
       const AName: string; const AExposed: boolean); override;
     destructor Destroy; override;
 
-    property Items: TMF_DYN_STATIC_ITEM_ARRAY read GetItems write SetItems;
+    property Items: TItemList read GetItems write SetItems;
 
     { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
@@ -105,7 +100,7 @@
     procedure AssignDefaultValueFromValue; override;
 
     { Parse MF field. This class handles parsing fully, usually no need to
-      override this more in descendants. It uses TMF_CLASS_ITEM.Parse method. }
+      override this more in descendants. It uses TSingleField.Parse method. }
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
     { Checks equality between this and SecondValue field.
@@ -121,11 +116,11 @@
     { Access Items[] checking for range errors.
       In case of errors, Get will return false, Set will do nothing,
       and both will produce clear WritelnWarning. }
-    property ItemsSafe[Index: Integer]: TMF_STATIC_ITEM read GetItemsSafe write SetItemsSafe;
+    property ItemsSafe[Index: Integer]: TItem read GetItemsSafe write SetItemsSafe;
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
-    procedure Send(const AValue: array of TMF_STATIC_ITEM); virtual; overload;
+    procedure Send(const AValue: array of TItem); virtual; overload;
   end;
 
 {$endif read_interface}
@@ -134,14 +129,14 @@
 
 { TX3DSimpleMultField ------------------------------------------------------- }
 
-function TX3DSimpleMultField.CreateItemBeforeParse: TMF_CLASS_ITEM;
+function TX3DSimpleMultField.CreateItemBeforeParse: TSingleField;
 begin
-  result := TMF_CLASS_ITEM.CreateUndefined(ParentNode, '', false);
+  result := TSingleField.CreateUndefined(ParentNode, '', false);
 end;
 
 procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  SingleItem: TMF_CLASS_ITEM;
+  SingleItem: TSingleField;
 begin
   Clear;
 
@@ -161,7 +156,7 @@ begin
       { we always look now at "]" or next single value }
       begin
         SingleItem.ParseValue(Lexer, Reader);
-        RawItemsAdd(SingleItem);
+        Items.Add(SingleItem.Value);
 
         if Lexer.Token = vtCloseSqBracket then break;
 
@@ -184,7 +179,7 @@ begin
     begin
       { one single field - not enclosed in [] brackets }
       SingleItem.ParseValue(Lexer, Reader);
-      RawItemsAdd(SingleItem);
+      Items.Add(SingleItem.Value);
     end;
 
   finally FreeAndNil(SingleItem) end;
@@ -192,7 +187,7 @@ end;
 
 procedure TX3DSimpleMultField.ParseXMLAttributeLexer(Lexer: TX3DLexer; Reader: TX3DReader);
 var
-  SingleItem: TMF_CLASS_ITEM;
+  SingleItem: TSingleField;
 begin
   { This is much easier and simpler in XML encoding than it was
     in classic encoding. We don't have to check for [ and ] tokens,
@@ -210,7 +205,7 @@ begin
     while Lexer.Token <> vtEnd do
     begin
       SingleItem.ParseValue(Lexer, Reader);
-      RawItemsAdd(SingleItem);
+      Items.Add(SingleItem.Value);
     end;
   finally FreeAndNil(SingleItem) end;
 end;
@@ -223,9 +218,9 @@ var
 begin
   case Writer.Encoding of
     xeClassic:
-      { The general "for I := ..." code below can handle correctly any RawItems.Count
+      { The general "for I := ..." code below can handle correctly any FItems.Count
         value. But for aesthetics, i.e. more clear output for humans,
-        I handle the RawItems.Count = 0 and 1 cases separately. }
+        I handle the FItems.Count = 0 and 1 cases separately. }
       case Count of
         0: Writer.Write('[]');
         1: Writer.Write(RawItemToString(0, Writer.Encoding));
@@ -282,7 +277,7 @@ end;
 
 function TX3DSimpleMultField.EqualsDefaultValue: boolean;
 var
-  Tmp: TMF_DYN_STATIC_ITEM_ARRAY;
+  Tmp: TItemList;
 begin
   Result := Count = DefaultValuesCount;
 
@@ -290,7 +285,7 @@ begin
   begin
     if DefaultValuesCount = 1 then
     begin
-      Tmp := TMF_DYN_STATIC_ITEM_ARRAY.Create;
+      Tmp := TItemList.Create;
       try
         Tmp.Add(DefaultValue);
         Result := Tmp.PerfectlyEquals(Items);
@@ -319,12 +314,12 @@ constructor TX3DSimpleMultField.CreateUndefined(AParentNode: TX3DFileItem;
   const AName: string; const AExposed: boolean);
 begin
   inherited;
-  RawItems := TMF_DYN_STATIC_ITEM_ARRAY.Create;
+  FItems := TItemList.Create;
   DefaultValuesCount := -1;
 end;
 
 constructor TX3DSimpleMultField.Create(AParentNode: TX3DFileItem; const AName: string;
-  const InitialContent: array of TMF_STATIC_ITEM);
+  const InitialContent: array of TItem);
 begin
   inherited Create(AParentNode, AName);
   Items.AddRange(InitialContent);
@@ -333,48 +328,43 @@ end;
 
 destructor TX3DSimpleMultField.Destroy;
 begin
-  FreeAndNil(RawItems);
+  FreeAndNil(FItems);
   inherited;
 end;
 
 function TX3DSimpleMultField.GetCount: SizeInt;
 begin
-  Result := RawItems.Count;
+  Result := FItems.Count;
 end;
 
 procedure TX3DSimpleMultField.SetCount(const Value: SizeInt);
 begin
-  RawItems.Count := Value;
+  FItems.Count := Value;
 end;
 
 function TX3DSimpleMultField.GetCapacity: SizeInt;
 begin
-  Result := RawItems.Capacity;
+  Result := FItems.Capacity;
 end;
 
 procedure TX3DSimpleMultField.SetCapacity(const Value: SizeInt);
 begin
-  RawItems.Capacity := Value;
+  FItems.Capacity := Value;
 end;
 
 procedure TX3DSimpleMultField.Clear;
 begin
-  RawItems.Clear;
+  FItems.Clear;
 end;
 
-function TX3DSimpleMultField.GetItems: TMF_DYN_STATIC_ITEM_ARRAY;
+function TX3DSimpleMultField.GetItems: TItemList;
 begin
-  Result := TMF_DYN_STATIC_ITEM_ARRAY(RawItems);
+  Result := TItemList(FItems);
 end;
 
-procedure TX3DSimpleMultField.SetItems(const Value: TMF_DYN_STATIC_ITEM_ARRAY);
+procedure TX3DSimpleMultField.SetItems(const Value: TItemList);
 begin
-  TMF_DYN_STATIC_ITEM_ARRAY(RawItems).Assign(Value);
-end;
-
-procedure TX3DSimpleMultField.RawItemsAdd(Item: TMF_CLASS_ITEM);
-begin
-  Items.Add(Item.Value);
+  TItemList(FItems).Assign(Value);
 end;
 
 procedure TX3DSimpleMultField.Assign(Source: TPersistent);
@@ -415,17 +405,17 @@ begin
   end;
 end;
 
-function TX3DSimpleMultField.GetItemsSafe(Index: Integer): TMF_STATIC_ITEM;
+function TX3DSimpleMultField.GetItemsSafe(Index: Integer): TItem;
 begin
   if (Index >= 0) and (Index < Items.Count) then
     Result := Items.L[Index] else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
-    Result := Default(TMF_STATIC_ITEM);
+    Result := Default(TItem);
   end;
 end;
 
-procedure TX3DSimpleMultField.SetItemsSafe(Index: Integer; const Value: TMF_STATIC_ITEM);
+procedure TX3DSimpleMultField.SetItemsSafe(Index: Integer; const Value: TItem);
 begin
   if (Index >= 0) and (Index < Items.Count) then
     Items.L[Index] := Value else
@@ -436,10 +426,10 @@ end;
 
 class function TX3DSimpleMultField.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
-  Result := TMF_EVENT.Create(AParentNode, AName, AInEvent);
+  Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;
 
-procedure TX3DSimpleMultField.Send(const AValue: array of TMF_STATIC_ITEM);
+procedure TX3DSimpleMultField.Send(const AValue: array of TItem);
 // This works in FPC (Delphi and ObjFpc mode), but doesn't in actual Delphi:
 // type
 //   TMyClass = TX3DSimpleMultField {$ifndef CASTLE_OBJFPC}<...>{$endif};

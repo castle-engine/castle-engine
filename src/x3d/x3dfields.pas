@@ -614,7 +614,7 @@ type
         (or AssignLerp, where available).))
   }
   TX3DField = class(TX3DFieldOrEvent)
-  private
+  strict private
     FExposed: boolean;
     FExposedEvents: array [boolean] of TX3DEvent;
     FChangesAlways: TX3DChanges;
@@ -624,7 +624,7 @@ type
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
-  protected
+  strict protected
     { Save field value to a stream. Must be overriden for each specific
       field.
 
@@ -1058,7 +1058,7 @@ type
 
   { X3D field with a list of values. }
   TX3DMultField = class(TX3DField)
-  protected
+  strict protected
     { Get or set the number of items, see @link(Count).
       @groupBegin }
     function GetCount: SizeInt; virtual; abstract;
@@ -1393,12 +1393,12 @@ type
     TSF_STATIC_ITEM,
     TSF_VECTOR,
     TSF_EVENT> = class(TX3DSingleField)
-  private
+  strict private
     FValue: TSF_STATIC_ITEM;
     DefaultValue: TSF_STATIC_ITEM;
     DefaultValueExists: boolean;
     class function MatrixSize: Integer;
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     constructor Create(AParentNode: TX3DFileItem;
@@ -1599,7 +1599,7 @@ type
   generic TSFGenericVector<
     TSF_STATIC_ITEM,
     TSF_EVENT> = class(TX3DSingleField)
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     Value: TSF_STATIC_ITEM;
@@ -3492,9 +3492,9 @@ begin
     translation matrices.
     Fails awfully on rotation (and possibly many other) matrices. }
   Result := Approximate3DScale(
-    FValue[0, 0],
-    FValue[1, 1],
-    FValue[2, 2]);
+    Value[0, 0],
+    Value[1, 1],
+    Value[2, 2]);
 end;
 
 procedure TSFMatrix4f.Send(const AValue: TMatrix4);
