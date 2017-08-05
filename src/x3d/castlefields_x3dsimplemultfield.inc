@@ -99,6 +99,7 @@
 
     property Items: TMF_DYN_STATIC_ITEM_ARRAY read GetItems write SetItems;
 
+    { Copy another field value, default value and other properties. }
     procedure Assign(Source: TPersistent); override;
     procedure AssignValue(Source: TX3DField); override;
     procedure AssignDefaultValueFromValue; override;
@@ -363,12 +364,9 @@ end;
 
 function TX3DSimpleMultField.GetItems: TMF_DYN_STATIC_ITEM_ARRAY;
 begin
-  Result := TMF_DYN_STATIC_ITEM_ARRAY(RawItems)
+  Result := TMF_DYN_STATIC_ITEM_ARRAY(RawItems);
 end;
 
-// TODO: better names for TMF_ TSF_ macros
-
-// TODO: unused?
 procedure TX3DSimpleMultField.SetItems(const Value: TMF_DYN_STATIC_ITEM_ARRAY);
 begin
   TMF_DYN_STATIC_ITEM_ARRAY(RawItems).Assign(Value);
@@ -444,7 +442,7 @@ end;
 procedure TX3DSimpleMultField.Send(const AValue: array of TMF_STATIC_ITEM);
 // This works in FPC (Delphi and ObjFpc mode), but doesn't in actual Delphi:
 // type
-//   TMyClass = TX3DSimpleMultField {$ifndef CASTLE_OBJFPC}<...TODO...>{$endif};
+//   TMyClass = TX3DSimpleMultField {$ifndef CASTLE_OBJFPC}<...>{$endif};
 //   TMyClassClass = class of TMyClass;
 var
   FieldValue: TX3DSimpleMultField;
