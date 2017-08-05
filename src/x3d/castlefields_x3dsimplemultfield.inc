@@ -411,7 +411,17 @@ begin
     Result := Items.L[Index] else
   begin
     WritelnWarning_InvalidIndex(Index, Count);
+    {$ifdef VER3_0_0}
+    { Otherwise, the Default() crashes FPC 3.0.0.
+      The output seems truncated, without any error message:
+
+        Compiling /home/michalis/sources/castle-engine/castle-engine/src/castlescript/castlescriptvectors.pas
+        Compiling /hoError: /home/michalis/installed/fpclazarus/3.0.0/fpc/bin/x86_64-linux/ppcx64 can't be executed, error message: Failed to execute "/home/michalis/installed/fpclazarus/3.0.0/fpc/bin/x86_64-linux/ppcx64", error code: -11
+    }
+    FillChar(Result, SizeOf(Result), 0);
+    {$else}
     Result := Default(TItem);
+    {$endif}
   end;
 end;
 
