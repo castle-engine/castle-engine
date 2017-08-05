@@ -713,9 +713,12 @@ begin
 end;
 
 class operator TGenericVector2. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector2; const Scalar: TGenericScalar): TGenericVector2;
+var
+  ScalarInv: TGenericScalar;
 begin
-  Result.Data[0] := V.Data[0] / Scalar;
-  Result.Data[1] := V.Data[1] / Scalar;
+  ScalarInv := 1 / Scalar; // multiplication is faster than division, so invert once
+  Result.Data[0] := V.Data[0] * ScalarInv;
+  Result.Data[1] := V.Data[1] * ScalarInv;
 end;
 
 procedure TGenericVector2.Init(const X, Y: TGenericScalar);
@@ -763,8 +766,9 @@ begin
     Result.Data := Data
   else
   begin
-    Result.Data[0] := Data[0] / L;
-    Result.Data[1] := Data[1] / L;
+    L := 1 / L;
+    Result.Data[0] := Data[0] * L;
+    Result.Data[1] := Data[1] * L;
   end;
 end;
 
@@ -775,8 +779,9 @@ begin
   L := Length;
   if L <> 0 then
   begin
-    Data[0] := Data[0] / L;
-    Data[1] := Data[1] / L;
+    L := 1 / L;
+    Data[0] := Data[0] * L;
+    Data[1] := Data[1] * L;
   end;
 end;
 
@@ -911,10 +916,13 @@ begin
 end;
 
 class operator TGenericVector3. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector3; const Scalar: TGenericScalar): TGenericVector3;
+var
+  ScalarInv: TGenericScalar;
 begin
-  Result.Data[0] := V.Data[0] / Scalar;
-  Result.Data[1] := V.Data[1] / Scalar;
-  Result.Data[2] := V.Data[2] / Scalar;
+  ScalarInv := 1 / Scalar; // multiplication is faster than division, so invert once
+  Result.Data[0] := V.Data[0] * ScalarInv;
+  Result.Data[1] := V.Data[1] * ScalarInv;
+  Result.Data[2] := V.Data[2] * ScalarInv;
 end;
 
 procedure TGenericVector3.Init(const X, Y, Z: TGenericScalar);
@@ -963,9 +971,10 @@ begin
     Result.Data := Data
   else
   begin
-    Result.Data[0] := Data[0] / L;
-    Result.Data[1] := Data[1] / L;
-    Result.Data[2] := Data[2] / L;
+    L := 1 / L;
+    Result.Data[0] := Data[0] * L;
+    Result.Data[1] := Data[1] * L;
+    Result.Data[2] := Data[2] * L;
   end;
 end;
 
@@ -976,9 +985,10 @@ begin
   L := Length;
   if L <> 0 then
   begin
-    Data[0] := Data[0] / L;
-    Data[1] := Data[1] / L;
-    Data[2] := Data[2] / L;
+    L := 1 / L;
+    Data[0] := Data[0] * L;
+    Data[1] := Data[1] * L;
+    Data[2] := Data[2] * L;
   end;
 end;
 
@@ -1148,11 +1158,14 @@ begin
 end;
 
 class operator TGenericVector4. {$ifdef FPC}/{$else}Divide{$endif} (const V: TGenericVector4; const Scalar: TGenericScalar): TGenericVector4;
+var
+  ScalarInv: TGenericScalar;
 begin
-  Result.Data[0] := V.Data[0] / Scalar;
-  Result.Data[1] := V.Data[1] / Scalar;
-  Result.Data[2] := V.Data[2] / Scalar;
-  Result.Data[3] := V.Data[3] / Scalar;
+  ScalarInv := 1 / Scalar; // multiplication is faster than division, so invert once
+  Result.Data[0] := V.Data[0] * ScalarInv;
+  Result.Data[1] := V.Data[1] * ScalarInv;
+  Result.Data[2] := V.Data[2] * ScalarInv;
+  Result.Data[3] := V.Data[3] * ScalarInv;
 end;
 
 procedure TGenericVector4.Init(const X, Y, Z, W: TGenericScalar);
@@ -1287,10 +1300,13 @@ begin
 end;
 
 function TGenericVector4.ToPosition: TGenericVector3;
+var
+  Inv: TGenericScalar;
 begin
-  Result.Data[0] := Data[0] / Data[3];
-  Result.Data[1] := Data[1] / Data[3];
-  Result.Data[2] := Data[2] / Data[3];
+  Inv := 1 / Data[3];
+  Result.Data[0] := Data[0] * Inv;
+  Result.Data[1] := Data[1] * Inv;
+  Result.Data[2] := Data[2] * Inv;
 end;
 
 function TGenericVector4.XYZ: TGenericVector3;
@@ -2201,9 +2217,10 @@ begin
     if Math.IsZero(Divisor) then
       raise ETransformedResultInvalid.Create('3D point transformed by 4x4 matrix to a direction');
 
-    Result.Data[0] := Result.Data[0] / Divisor;
-    Result.Data[1] := Result.Data[1] / Divisor;
-    Result.Data[2] := Result.Data[2] / Divisor;
+    Divisor := 1 / Divisor;
+    Result.Data[0] := Result.Data[0] * Divisor;
+    Result.Data[1] := Result.Data[1] * Divisor;
+    Result.Data[2] := Result.Data[2] * Divisor;
   end;
 end;
 

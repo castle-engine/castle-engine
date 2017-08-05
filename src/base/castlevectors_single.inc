@@ -848,10 +848,11 @@ var
   Len: Single;
 begin
   Len := Sqrt( Sqr(V.Data[0]) + Sqr(V.Data[1]) + Sqr(V.Data[2]) );
-  V.Data[0] := V.Data[0] / Len;
-  V.Data[1] := V.Data[1] / Len;
-  V.Data[2] := V.Data[2] / Len;
-  V.Data[3] := V.Data[3] / Len;
+  Len := 1 / Len;
+  V.Data[0] := V.Data[0] * Len;
+  V.Data[1] := V.Data[1] * Len;
+  V.Data[2] := V.Data[2] * Len;
+  V.Data[3] := V.Data[3] * Len;
 end;
 
 function CosAngleBetweenVectors(const V1, V2: TVector3): Single;
@@ -934,12 +935,12 @@ var
   sinAngle, cosAngle: Float;
 begin
   SinCos(Angle, sinAngle, cosAngle);
-  l := Axis.Length;
 
   { normalize and decompose Axis vector }
-  x := Axis.Data[0]/l;
-  y := Axis.Data[1]/l;
-  z := Axis.Data[2]/l;
+  L := 1 / Axis.Length;
+  x := Axis.Data[0] * L;
+  y := Axis.Data[1] * L;
+  z := Axis.Data[2] * L;
 
   Result.Data[0] := (cosAngle + (1 - cosAngle) * x * x)     * Point.Data[0]
                  + ((1 - cosAngle) * x * y - z * sinAngle)  * Point.Data[1]
