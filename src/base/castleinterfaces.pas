@@ -26,7 +26,7 @@
   with newer FPC.
   When IINTERFACE_STDCALL is not defined, it means to use cdecl. }
 {$ifdef OLD_IINTERFACE_METHODS} {$define IINTERFACE_STDCALL} {$endif}
-{$ifdef WINDOWS}                {$define IINTERFACE_STDCALL} {$endif}
+{$ifdef MSWINDOWS}              {$define IINTERFACE_STDCALL} {$endif}
 
 { TODO: We should switch to use CORBA interfaces, instead of COM,
   and then this unit, and classes inside, should not be needed anymore.
@@ -34,7 +34,7 @@
   about interfaces. }
 
 { Utilities for interfaces. }
-unit CastleInterfaces;
+unit CastleInterfaces deprecated 'this unit will be removed at some point, and Castle Game Engine will use CORBA interfaces only';
 
 {$I castleconf.inc}
 

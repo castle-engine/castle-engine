@@ -16,7 +16,7 @@
 { Create and edit curves.
   Docs are at https://github.com/castle-engine/castle-engine/wiki/Curves-tool }
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,

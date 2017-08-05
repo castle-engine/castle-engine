@@ -21,7 +21,7 @@
   UIFont with your own font from MyFontFile.ttf.
 }
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 program test_font_break;
 

@@ -15,7 +15,7 @@
 
 { Convert spritesheets to classic X3D files. }
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
   CastleParameters, CastleImages, CastleStringUtils,
@@ -35,8 +35,8 @@ type
     AX, AY: single;     { Anchor }
   end;
 
-  TFrameList = specialize TList<TFrame>;
-  TAnimations = class(specialize TDictionary<string, TFrameList>)
+  TFrameList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TFrame>;
+  TAnimations = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TFrameList>)
     destructor Destroy; override;
   end;
 

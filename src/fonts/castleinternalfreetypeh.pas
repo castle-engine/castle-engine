@@ -406,7 +406,7 @@ end;
 procedure LoadFreeTypeLibrary;
 begin
   // Windows
-  {$ifdef windows}
+  {$ifdef MSWINDOWS}
     {$define ft_found_platform}
     FreeTypeLibrary := TDynLib.Load('freetype-6.dll', false);
   {$endif}

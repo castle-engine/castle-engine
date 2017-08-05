@@ -24,7 +24,7 @@
     Font data is supplied as a ttf file (see data/DejaVuSans.ttf).
 }
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 program font_from_texture;
 

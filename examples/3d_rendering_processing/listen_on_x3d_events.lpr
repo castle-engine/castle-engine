@@ -29,7 +29,7 @@
 
   Logs TouchSensor clicks on the console. }
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses Classes,SysUtils,
   X3DNodes, X3DFields, X3DTIme, CastleWindow, CastleSceneCore, CastleScene;

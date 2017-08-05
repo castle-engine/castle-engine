@@ -24,7 +24,7 @@
 }
 program scene_manager_demos;
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses CastleUtils, CastleWindow, CastleVectors, CastleLog, Castle3D,
   CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties;

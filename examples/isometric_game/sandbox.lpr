@@ -1,6 +1,6 @@
 program SandBox;
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses
   { standard units }

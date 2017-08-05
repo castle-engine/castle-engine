@@ -461,11 +461,11 @@ begin
   FFglrx := {$ifdef LINUX} VendorType = gvATI {$else} false {$endif};
 
   FBuggyGenerateMipmap := (Mesa and (not VendorVersionAtLeast(7, 5, 0)))
-                          {$ifdef WINDOWS} or (VendorType = gvIntel) {$endif};
+                          {$ifdef MSWINDOWS} or (VendorType = gvIntel) {$endif};
 
-  FBuggyFBOCubeMap := {$ifdef WINDOWS} VendorType = gvIntel {$else} false {$endif};
+  FBuggyFBOCubeMap := {$ifdef MSWINDOWS} VendorType = gvIntel {$else} false {$endif};
 
-  FBuggyGenerateCubeMap := {$ifdef WINDOWS} ((VendorType = gvIntel) and SameText(Renderer, 'Intel(R) HD Graphics 4000')) {$else} false {$endif};
+  FBuggyGenerateCubeMap := {$ifdef MSWINDOWS} ((VendorType = gvIntel) and SameText(Renderer, 'Intel(R) HD Graphics 4000')) {$else} false {$endif};
   { On which fglrx versions does this occur?
 
     - On Catalyst 8.12 (fglrx 8.561) all seems to work fine
@@ -490,7 +490,7 @@ begin
     FBuggyLightModelTwoSideMessage := 'Detected fglrx (ATI proprietary Linux drivers) version >= 9.x. ' + 'Setting GL_LIGHT_MODEL_TWO_SIDE to GL_TRUE may cause nasty bugs on some shaders (see http://sourceforge.net/apps/phpbb/vrmlengine/viewtopic.php?f=3&t=14), so disabling two-sided lighting.' else
     FBuggyLightModelTwoSideMessage := '';
 
-  FBuggyVBO := {$ifdef WINDOWS}
+  FBuggyVBO := {$ifdef MSWINDOWS}
     { See demo_models/x3d/background_test_mobile_intel_gpu_bugs.x3d }
     (Vendor = 'Intel') and
     (Renderer = 'Intel Cantiga') and
@@ -518,7 +518,7 @@ begin
    { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }
   FBuggyFBOMultiSampling :=
-    {$ifdef WINDOWS} ((VendorType = gvATI) and
+    {$ifdef MSWINDOWS} ((VendorType = gvATI) and
       (IsPrefix('AMD Radeon HD 6', Renderer) or IsPrefix('AMD Radeon HD6', Renderer)))
     or ((VendorType = gvIntel) and (not VendorVersionAtLeast(9, 18, 10)))
     {$else} false {$endif};
