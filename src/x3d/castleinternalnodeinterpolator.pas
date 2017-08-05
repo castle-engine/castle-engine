@@ -237,6 +237,7 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
 
 var
   I: Integer;
+  MF1, MF2: TX3DMultField;
 begin
   { Yes, Model1 and Model2 must have *exactly* the same classes. }
   if Model1.ClassType <> Model2.ClassType then
@@ -302,16 +303,15 @@ begin
     begin
       if Model1.Fields[I] is TX3DMultField then
       begin
-        try
-          (Model1.Fields[I] as TX3DMultField).CheckCountEqual
-            (Model2.Fields[I] as TX3DMultField);
-        except
-          (* Translate EX3DMultFieldDifferentCount exception
-             (may be raised by TX3DMultField.CheckCountEqual above)
-             to EModelsStructureDifferent. *)
-          on E: EX3DMultFieldDifferentCount do
-            raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
-        end;
+        MF1 := Model1.Fields[I] as TX3DMultField;
+        MF2 := Model2.Fields[I] as TX3DMultField;
+        if MF1.Count <> MF2.Count then
+          raise EModelsStructureDifferent.CreateFmt(
+            'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
+            [ MF1.X3DName,
+              MF2.X3DName,
+              MF1.Count,
+              MF2.Count ]);
       end;
       { Else we have single-value field that can lerp.
         No need to check anything in this case,

@@ -39,7 +39,7 @@ type
       V1, V2: TVector2List; Index1, Index2, ACount: Integer); overload;
 
     { Assign linear interpolation between two other vector arrays.
-      The resulting array size is minimum from the sizes of V1 and V2. }
+      @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TVector2List); overload;
 
     procedure AddSubRange(const Source: TVector2List; Index, AddCount: Integer);
@@ -81,7 +81,7 @@ type
       V1, V2: TVector3List; Index1, Index2, ACount: Integer); overload;
 
     { Assign linear interpolation between two other vector arrays.
-      The resulting array size is minimum from the sizes of V1 and V2. }
+      @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TVector3List);
 
     { Assign linear interpolation between two other vector arrays,
@@ -125,7 +125,7 @@ type
     procedure AddListRange(const Source: TVector4List; Index, AddCount: Integer); deprecated 'use AddSubRange';
 
     { Assign linear interpolation between two other vector arrays.
-      The resulting array size is minimum from the sizes of V1 and V2. }
+      @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TVector4List);
 
     { Does the SecondValue have equal length and content.
@@ -142,7 +142,7 @@ type
   TMatrix3List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix3>)
   public
     { Assign linear interpolation between two other vector arrays.
-      The resulting array size is minimum from the sizes of V1 and V2. }
+      @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix3List);
 
     { Does the SecondValue have equal length and content.
@@ -159,7 +159,7 @@ type
   TMatrix4List = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMatrix4>)
   public
     { Assign linear interpolation between two other vector arrays.
-      The resulting array size is minimum from the sizes of V1 and V2. }
+      @raises EListsDifferentCount If V1 and V2 have different count. }
     procedure AssignLerp(const Fraction: Single; const V1, V2: TMatrix4List);
 
     { Does the SecondValue have equal length and content.
@@ -218,7 +218,11 @@ procedure TVector2List.AssignLerp(const Fraction: Single; const V1, V2: TVector2
 var
   I: Integer;
 begin
-  Count := Min(V1.Count, V2.Count);
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+
+  Count := V1.Count;
   for I := 0 to Count - 1 do
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
@@ -320,7 +324,11 @@ procedure TVector3List.AssignLerp(const Fraction: Single; const V1, V2: TVector3
 var
   I: Integer;
 begin
-  Count := Min(V1.Count, V2.Count);
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+
+  Count := V1.Count;
   for I := 0 to Count - 1 do
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
@@ -468,7 +476,11 @@ procedure TVector4List.AssignLerp(const Fraction: Single; const V1, V2: TVector4
 var
   I: Integer;
 begin
-  Count := Min(V1.Count, V2.Count);
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+
+  Count := V1.Count;
   for I := 0 to Count - 1 do
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
@@ -515,7 +527,11 @@ procedure TMatrix3List.AssignLerp(const Fraction: Single; const V1, V2: TMatrix3
 var
   I: Integer;
 begin
-  Count := Min(V1.Count, V2.Count);
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+
+  Count := V1.Count;
   for I := 0 to Count - 1 do
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;
@@ -562,7 +578,11 @@ procedure TMatrix4List.AssignLerp(const Fraction: Single; const V1, V2: TMatrix4
 var
   I: Integer;
 begin
-  Count := Min(V1.Count, V2.Count);
+  if V1.Count <> V2.Count then
+    raise EListsDifferentCount.CreateFmt('Different lists length: %d and %d, cannot do AssignLerp on the lists',
+      [V1.Count, V2.Count]);
+
+  Count := V1.Count;
   for I := 0 to Count - 1 do
     List^[I] := Lerp(Fraction, V1.List^[I], V2.List^[I]);
 end;

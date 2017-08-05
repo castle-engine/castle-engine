@@ -310,7 +310,6 @@ end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  (Value1 as TMF_CLASS).CheckCountEqual(Value2 as TMF_CLASS);
   Items.AssignLerp(A, (Value1 as TMF_CLASS).Items, (Value2 as TMF_CLASS).Items);
 end;
 
@@ -328,7 +327,6 @@ end;
 
 procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  (Value1 as TMF_CLASS).CheckCountEqual(Value2 as TMF_CLASS);
   Items.AssignLerp(A, (Value1 as TMF_CLASS).Items, (Value2 as TMF_CLASS).Items);
 end;
 
@@ -550,7 +548,6 @@ end;
 
 procedure TMFFloat.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  (Value1 as TMFFloat).CheckCountEqual(Value2 as TMFFloat);
   Items.AssignLerp(A, (Value1 as TMFFloat).Items, (Value2 as TMFFloat).Items);
 end;
 
@@ -587,7 +584,6 @@ end;
 
 procedure TMFDouble.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  (Value1 as TMFDouble).CheckCountEqual(Value2 as TMFDouble);
   Items.AssignLerp(A, (Value1 as TMFDouble).Items, (Value2 as TMFDouble).Items);
 end;
 

@@ -928,10 +928,10 @@ type
           are equal or descendant of target (Self) class.)
 
         @item(For multiple-value fields, counts of Value1 and Value2
-          must be equal, or EX3DMultFieldDifferentCount will be raised.)
+          must be equal, or EListsDifferentCount will be raised.)
       )
 
-      @raises(EX3DMultFieldDifferentCount When field is multiple-value
+      @raises(EListsDifferentCount When field is multiple-value
         field and Value1.Count <> Value2.Count.)
     }
     procedure AssignLerp(const A: Double; Value1, Value2: TX3DField); virtual;
@@ -1053,8 +1053,6 @@ type
 
   TX3DSingleFieldList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DSingleField>;
 
-  EX3DMultFieldDifferentCount = class(EX3DError);
-
   {$I x3devents.inc}
   {$I x3devents_descendants.inc}
 
@@ -1073,9 +1071,6 @@ type
       values (see SetCount documentation of particular descendant for docs).
       So you usually want to initialize them afterwards to something correct. }
     property Count: SizeInt read GetCount write SetCount;
-
-    { If SecondValue.Count <> Count, raises EX3DMultFieldDifferentCount }
-    procedure CheckCountEqual(SecondValue: TX3DMultField);
   end;
 
 { ---------------------------------------------------------------------------- }
@@ -2544,19 +2539,6 @@ begin
   begin
     Event := Items[Result].ExposedEvents[InEvent];
   end;
-end;
-
-{ TX3DMultField ------------------------------------------------------------- }
-
-procedure TX3DMultField.CheckCountEqual(SecondValue: TX3DMultField);
-begin
-  if SecondValue.Count <> Count then
-    raise EX3DMultFieldDifferentCount.CreateFmt(
-      'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
-      [ X3DName,
-        SecondValue.X3DName,
-        Count,
-        SecondValue.Count ]);
 end;
 
 { simple helpful parsing functions ---------------------------------------- }
