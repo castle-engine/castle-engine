@@ -87,7 +87,7 @@
 { $H+}
 { $macro on}
 
-{ Unfortunately, it seems that this can only be specified here, not on the command-line. }
+{ This can only be specified here, not on the command-line. }
 {$writeableconst off}
 {$modeswitch advancedrecords}
 

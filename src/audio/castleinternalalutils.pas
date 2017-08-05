@@ -316,13 +316,11 @@ end;
 
 function alGetSource1ui(SourceName: TALuint; Attribute: TALenum): TALuint;
 begin
- { niestety, nie ma normalnej metody na pobranie TALuint. Mozna pobrac tylko
-   int (signed). Zgaduje ze nalezy wiec pobrac po prostu wartosc uzywajac
-   takiej samej procedury jakbysmy chcieli pobrac int (signed) i olac
-   wszelkie checki na zakres. W przypadku ponizej Pascal nie wykona zadnych
-   checkow bo przekazujemy ponizej tylko pointer. }
- Assert(SizeOf(TALint) = SizeOf(TALuint));
- alGetSourcei(SourceName, Attribute, @result);
+  { OpenAL doesn't have a function to get unsigned TALuint.
+    You should get signed TALint, and just ignore range checks
+    (which is done below, since we just pass a pointer). }
+  Assert(SizeOf(TALint) = SizeOf(TALuint));
+  alGetSourcei(SourceName, Attribute, @result);
 end;
 
 function alGetSource3f(SourceName: TALuint; Attribute: TALenum): TALVector3f;
