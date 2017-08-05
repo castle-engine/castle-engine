@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetUTessellation: Integer;
     procedure SetUTessellation(const Value: Integer);
     function GetVTessellation: Integer;

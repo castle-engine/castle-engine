@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetProfileCurve: TAbstractNurbsControlCurveNode;
     procedure SetProfileCurve(const Value: TAbstractNurbsControlCurveNode);
     function GetTrajectoryCurve: TAbstractNurbsControlCurveNode;

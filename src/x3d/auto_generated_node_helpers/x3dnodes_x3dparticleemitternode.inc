@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetSpeed: Single;
     procedure SetSpeed(const Value: Single);
     function GetVariation: Single;

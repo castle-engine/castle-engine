@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBottom: boolean;
     procedure SetBottom(const Value: boolean);
     function GetBottomRadius: Single;

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAxisOfRotation: TVector3;
     procedure SetAxisOfRotation(const Value: TVector3);
   public

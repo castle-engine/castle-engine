@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetSurface: TAbstractGeometryNode;
     procedure SetSurface(const Value: TAbstractGeometryNode);
   public

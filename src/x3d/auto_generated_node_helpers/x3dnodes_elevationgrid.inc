@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCcw: boolean;
     procedure SetCcw(const Value: boolean);
     function GetColorPerVertex: boolean;

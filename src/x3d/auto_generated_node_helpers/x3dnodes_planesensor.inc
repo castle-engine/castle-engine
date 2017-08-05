@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAxisRotation: TVector4;
     procedure SetAxisRotation(const Value: TVector4);
     function GetMaxPosition: TVector2;

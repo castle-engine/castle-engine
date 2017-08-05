@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetHorizontal: boolean;
     procedure SetHorizontal(const Value: boolean);
     function GetLanguage: string;

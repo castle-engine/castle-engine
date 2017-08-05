@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDescription: string;
     procedure SetDescription(const Value: string);
     function GetPitch: Single;

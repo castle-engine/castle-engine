@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetLoop: boolean;
     procedure SetLoop(const Value: boolean);
     function GetPauseTime: TFloatTime;

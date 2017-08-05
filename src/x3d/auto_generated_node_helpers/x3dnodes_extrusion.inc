@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBeginCap: boolean;
     procedure SetBeginCap(const Value: boolean);
     function GetCcw: boolean;

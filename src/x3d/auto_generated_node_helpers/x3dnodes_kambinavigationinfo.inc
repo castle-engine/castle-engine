@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTimeOriginAtLoad: boolean;
     procedure SetTimeOriginAtLoad(const Value: boolean);
     function GetOctreeRendering: TKambiOctreePropertiesNode;

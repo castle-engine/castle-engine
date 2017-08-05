@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetIntegerKey: Integer;
     procedure SetIntegerKey(const Value: Integer);
   public

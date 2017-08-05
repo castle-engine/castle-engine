@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetLevel: Integer;
     procedure SetLevel(const Value: Integer);
     function GetLogFile: string;

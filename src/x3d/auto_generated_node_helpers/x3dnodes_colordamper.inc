@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetInitialDestination: TCastleColorRGB;
     procedure SetInitialDestination(const Value: TCastleColorRGB);
     function GetInitialValue: TCastleColorRGB;

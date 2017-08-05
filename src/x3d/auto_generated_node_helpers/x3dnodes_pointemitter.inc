@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
     function GetPosition: TVector3;

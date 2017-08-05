@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetInnerRadius: Single;
     procedure SetInnerRadius(const Value: Single);
     function GetOuterRadius: Single;

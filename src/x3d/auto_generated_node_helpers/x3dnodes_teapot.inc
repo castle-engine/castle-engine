@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
     function GetManifold: boolean;

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetActiveLayer: Integer;
     procedure SetActiveLayer(const Value: Integer);
   public

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAnisotropicDegree: Single;
     procedure SetAnisotropicDegree(const Value: Single);
     function GetBorderColor: TCastleColor;

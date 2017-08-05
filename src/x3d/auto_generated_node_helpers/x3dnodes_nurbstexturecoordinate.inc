@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetUDimension: Integer;
     procedure SetUDimension(const Value: Integer);
     function GetUOrder: Integer;

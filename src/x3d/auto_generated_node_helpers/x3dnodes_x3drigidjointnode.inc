@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBody1: TRigidBodyNode;
     procedure SetBody1(const Value: TRigidBodyNode);
     function GetBody2: TRigidBodyNode;

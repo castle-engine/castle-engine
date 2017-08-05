@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBounce: Single;
     procedure SetBounce(const Value: Single);
     function GetEnabled: boolean;

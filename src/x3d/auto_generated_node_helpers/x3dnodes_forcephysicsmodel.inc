@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetForce: TVector3;
     procedure SetForce(const Value: TVector3);
   public

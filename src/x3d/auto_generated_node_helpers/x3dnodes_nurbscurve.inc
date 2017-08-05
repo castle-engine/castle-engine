@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTessellation: Integer;
     procedure SetTessellation(const Value: Integer);
     function GetClosed: boolean;

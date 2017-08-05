@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetClosed: boolean;
     procedure SetClosed(const Value: boolean);
     function GetNormalizeVelocity: boolean;

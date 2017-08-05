@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetYScale: Single;
     procedure SetYScale(const Value: Single);
     function GetCcw: boolean;

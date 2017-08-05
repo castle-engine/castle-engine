@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAnchorPoint: TVector3;
     procedure SetAnchorPoint(const Value: TVector3);
   public

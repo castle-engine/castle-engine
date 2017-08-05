@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetFilled: boolean;
     procedure SetFilled(const Value: boolean);
     function GetHatchColor: TCastleColorRGB;

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetFieldOfView: Single;
     procedure SetFieldOfView(const Value: Single);
     function GetHeadlight: boolean;

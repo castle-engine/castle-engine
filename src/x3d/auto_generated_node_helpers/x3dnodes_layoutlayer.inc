@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetLayout: TAbstractLayoutNode;
     procedure SetLayout(const Value: TAbstractLayoutNode);
   public

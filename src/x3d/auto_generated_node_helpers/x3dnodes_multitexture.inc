@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAlpha: Single;
     procedure SetAlpha(const Value: Single);
     function GetColor: TCastleColorRGB;

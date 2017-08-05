@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAutoOffset: boolean;
     procedure SetAutoOffset(const Value: boolean);
   public

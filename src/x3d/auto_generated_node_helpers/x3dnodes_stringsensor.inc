@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDeletionAllowed: boolean;
     procedure SetDeletionAllowed(const Value: boolean);
   public

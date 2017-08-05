@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTimeOut: TFloatTime;
     procedure SetTimeOut(const Value: TFloatTime);
   public

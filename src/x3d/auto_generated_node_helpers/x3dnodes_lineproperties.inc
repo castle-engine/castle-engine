@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetApplied: boolean;
     procedure SetApplied(const Value: boolean);
     function GetLinewidthScaleFactor: Single;

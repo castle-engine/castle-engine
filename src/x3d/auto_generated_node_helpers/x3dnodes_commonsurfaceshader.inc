@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAlphaFactor: Single;
     procedure SetAlphaFactor(const Value: Single);
     function GetAlphaTextureId: Integer;

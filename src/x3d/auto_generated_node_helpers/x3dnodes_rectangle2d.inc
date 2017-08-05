@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetSize: TVector2;
     procedure SetSize(const Value: TVector2);
   public

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCenterOfMass: TVector3;
     procedure SetCenterOfMass(const Value: TVector3);
     function GetMass: Single;

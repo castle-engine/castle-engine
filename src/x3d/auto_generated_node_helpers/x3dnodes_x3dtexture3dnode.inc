@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
   public

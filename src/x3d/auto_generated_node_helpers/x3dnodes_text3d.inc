@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetMaxExtent: Single;
     procedure SetMaxExtent(const Value: Single);
     function GetDepth: Single;

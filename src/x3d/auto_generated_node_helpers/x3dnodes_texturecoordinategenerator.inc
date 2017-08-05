@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetMode: string;
     procedure SetMode(const Value: string);
   public

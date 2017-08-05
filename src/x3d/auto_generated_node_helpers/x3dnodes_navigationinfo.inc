@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetHeadlight: boolean;
     procedure SetHeadlight(const Value: boolean);
     function GetSpeed: Single;

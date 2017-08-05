@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetLoad: boolean;
     procedure SetLoad(const Value: boolean);
     function GetBboxCenter: TVector3;

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCreateParticles: boolean;
     procedure SetCreateParticles(const Value: boolean);
     function GetEnabled: boolean;

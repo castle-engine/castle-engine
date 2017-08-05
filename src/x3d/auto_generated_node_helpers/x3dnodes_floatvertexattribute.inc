@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetNumComponents: Integer;
     procedure SetNumComponents(const Value: Integer);
   public

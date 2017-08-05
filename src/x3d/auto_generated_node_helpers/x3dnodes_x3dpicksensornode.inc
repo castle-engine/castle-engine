@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetPickingGeometry: TAbstractGeometryNode;
     procedure SetPickingGeometry(const Value: TAbstractGeometryNode);
   public

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTitle: string;
     procedure SetTitle(const Value: string);
   public

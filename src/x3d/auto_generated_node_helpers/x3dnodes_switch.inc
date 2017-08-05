@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetWhichChoice: Integer;
     procedure SetWhichChoice(const Value: Integer);
   public

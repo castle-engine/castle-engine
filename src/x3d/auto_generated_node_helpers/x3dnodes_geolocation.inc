@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetGeoCoords: TVector3Double;
     procedure SetGeoCoords(const Value: TVector3Double);
     function GetGeoOrigin: TGeoOriginNode;

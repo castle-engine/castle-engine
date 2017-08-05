@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetMaxDepth: Integer;
     procedure SetMaxDepth(const Value: Integer);
     function GetLeafCapacity: Integer;

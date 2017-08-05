@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetMatrix: TMatrix4;
     procedure SetMatrix(const Value: TMatrix4);
   public

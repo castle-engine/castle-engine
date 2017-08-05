@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBboxCenter: TVector3;
     procedure SetBboxCenter(const Value: TVector3);
     function GetBboxSize: TVector3;

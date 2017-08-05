@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetPickable: boolean;
     procedure SetPickable(const Value: boolean);
   public

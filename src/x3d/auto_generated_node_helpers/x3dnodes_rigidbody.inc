@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAngularDampingFactor: Single;
     procedure SetAngularDampingFactor(const Value: Single);
     function GetAngularVelocity: TVector3;

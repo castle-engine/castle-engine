@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTau: TFloatTime;
     procedure SetTau(const Value: TFloatTime);
     function GetTolerance: Single;

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCategory: Integer;
     procedure SetCategory(const Value: Integer);
     function GetCountry: Integer;

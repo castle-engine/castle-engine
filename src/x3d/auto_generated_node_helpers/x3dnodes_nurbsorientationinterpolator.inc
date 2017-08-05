@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public

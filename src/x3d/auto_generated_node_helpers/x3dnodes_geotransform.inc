@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetGeoCenter: TVector3Double;
     procedure SetGeoCenter(const Value: TVector3Double);
     function GetRotation: TVector4;

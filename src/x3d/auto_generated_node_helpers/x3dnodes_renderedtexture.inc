@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetViewpoint: TAbstractX3DViewpointNode;
     procedure SetViewpoint(const Value: TAbstractX3DViewpointNode);
     function GetRepeatR: boolean;

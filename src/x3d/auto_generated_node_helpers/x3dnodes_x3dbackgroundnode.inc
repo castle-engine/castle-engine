@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
   public
