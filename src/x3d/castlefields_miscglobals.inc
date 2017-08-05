@@ -18,15 +18,15 @@
 
 { Decode color from integer value, following VRML/X3D SFImage specification.
   @groupBegin }
-procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
-procedure DecodeImageColor(const Pixel: LongWord; var GA: TVector2Byte);
-procedure DecodeImageColor(const Pixel: LongWord; var RGB: TVector3Byte);
-procedure DecodeImageColor(const Pixel: LongWord; var RGBA: TVector4Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var G: Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var GA: TVector2Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var RGB: TVector3Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var RGBA: TVector4Byte);
 
-procedure DecodeImageColor(const Pixel: LongInt; var G: Byte);
-procedure DecodeImageColor(const Pixel: LongInt; var GA: TVector2Byte);
-procedure DecodeImageColor(const Pixel: LongInt; var RGB: TVector3Byte);
-procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var G: Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var GA: TVector2Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var RGB: TVector3Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 { @groupEnd }
 
 const
@@ -74,25 +74,25 @@ function X3DChangesToStr(const Changes: TX3DChanges): string;
 
 {$ifdef read_implementation}
 
-procedure DecodeImageColor(const Pixel: LongWord; var G: Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var G: Byte);
 begin
   G := Pixel and $FF;
 end;
 
-procedure DecodeImageColor(const Pixel: LongWord; var GA: TVector2Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var GA: TVector2Byte);
 begin
   GA[0] := (pixel shr 8) and $FF;
   GA[1] := pixel and $FF;
 end;
 
-procedure DecodeImageColor(const Pixel: LongWord; var RGB: TVector3Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var RGB: TVector3Byte);
 begin
   RGB[0] := (pixel shr 16) and $FF;
   RGB[1] := (pixel shr 8) and $FF;
   RGB[2] := pixel and $FF;
 end;
 
-procedure DecodeImageColor(const Pixel: LongWord; var RGBA: TVector4Byte);
+procedure DecodeX3DColor(const Pixel: LongWord; var RGBA: TVector4Byte);
 begin
   RGBA[0] := (pixel shr 24) and $FF;
   RGBA[1] := (pixel shr 16) and $FF;
@@ -102,31 +102,31 @@ end;
 
 { We have to turn range checking off, because converting from LongInt
   to LongWord below may cause range check errors. Yes, we want to
-  directly treat LongInt as 4 bytes here, because DecodeImageColor
+  directly treat LongInt as 4 bytes here, because DecodeX3DColor
   works on separate bytes. See
   http://castle-engine.sourceforge.net/x3d_implementation_texturing3d.php
   comments about PixelTexture3D. }
 
 {$include norqcheckbegin.inc}
 
-procedure DecodeImageColor(const Pixel: LongInt; var G: Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var G: Byte);
 begin
-  DecodeImageColor(LongWord(Pixel), G);
+  DecodeX3DColor(LongWord(Pixel), G);
 end;
 
-procedure DecodeImageColor(const Pixel: LongInt; var GA: TVector2Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var GA: TVector2Byte);
 begin
-  DecodeImageColor(LongWord(Pixel), GA);
+  DecodeX3DColor(LongWord(Pixel), GA);
 end;
 
-procedure DecodeImageColor(const Pixel: LongInt; var RGB: TVector3Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var RGB: TVector3Byte);
 begin
-  DecodeImageColor(LongWord(Pixel), RGB);
+  DecodeX3DColor(LongWord(Pixel), RGB);
 end;
 
-procedure DecodeImageColor(const Pixel: LongInt; var RGBA: TVector4Byte);
+procedure DecodeX3DColor(const Pixel: LongInt; var RGBA: TVector4Byte);
 begin
-  DecodeImageColor(LongWord(Pixel), RGBA);
+  DecodeX3DColor(LongWord(Pixel), RGBA);
 end;
 
 {$include norqcheckend.inc}

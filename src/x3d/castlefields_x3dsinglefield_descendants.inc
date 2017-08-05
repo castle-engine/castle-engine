@@ -1067,7 +1067,7 @@ begin
     because even if this method exits with exception, Value should
     always remain non-nil.
     That's why I'm doing below Value.Empty instead of FreeAndNil(Value).
-    This way if e.g. TRGBImage.Create with out of mem exception,
+    This way if e.g. TRGBImage.Create will raise "out of memory" exception,
     Value will still remain non-nil.
   }
 
@@ -1086,25 +1086,25 @@ begin
           Value := TGrayscaleImage.Create(w, h);
           GrayscalePixels := PByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
-            DecodeImageColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
+            DecodeX3DColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
         end;
       2:begin
           Value := TGrayscaleAlphaImage.Create(w, h);
           GrayscaleAlphaPixels := PVector2ByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
-            DecodeImageColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
+            DecodeX3DColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
         end;
       3:begin
           Value := TRGBImage.Create(w, h);
           RGBPixels := PVector3ByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
-            DecodeImageColor(ParseLongWord(Lexer), RGBPixels^[i]);
+            DecodeX3DColor(ParseLongWord(Lexer), RGBPixels^[i]);
         end;
       4:begin
           Value := TRGBAlphaImage.Create(w, h);
           RGBAlphaPixels := PVector4ByteArray(Value.RawPixels);
           for i := 0 to W * H - 1 do
-            DecodeImageColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
+            DecodeX3DColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
         end;
       else raise EX3DParserError.Create(Lexer, Format('Invalid components count'+
              ' for SFImage : is %d, should be 1, 2, 3 or 4.',[comp]));

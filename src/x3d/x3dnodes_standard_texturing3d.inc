@@ -503,7 +503,7 @@ begin
          G := TGrayscaleImage(FTextureImage).GrayscalePixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], G^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], G^);
            Inc(G);
          end;
        end;
@@ -512,7 +512,7 @@ begin
          GA := TGrayscaleAlphaImage(FTextureImage).GrayscaleAlphaPixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], GA^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], GA^);
            Inc(GA);
          end;
        end;
@@ -521,7 +521,7 @@ begin
          RGB := TRGBImage(FTextureImage).RGBPixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], RGB^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], RGB^);
            Inc(RGB);
          end;
        end;
@@ -530,7 +530,7 @@ begin
          RGBA := TRGBAlphaImage(FTextureImage).AlphaPixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], RGBA^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], RGBA^);
            Inc(RGBA);
          end;
        end;
