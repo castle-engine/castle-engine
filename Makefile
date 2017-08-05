@@ -266,6 +266,14 @@ examples-laz:
 	lazbuild packages/castle_components.lpk
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
+# Compile only Lazarus-specific examples (that depend on LCL)
+.PHONY: examples-only-laz
+examples-only-laz:
+	lazbuild packages/castle_base.lpk
+	lazbuild packages/castle_window.lpk
+	lazbuild packages/castle_components.lpk
+	$(foreach NAME,$(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
+
 # cleaning ------------------------------------------------------------
 
 .PHONY: clean cleanmore cleanall
