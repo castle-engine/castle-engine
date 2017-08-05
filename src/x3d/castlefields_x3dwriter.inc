@@ -18,7 +18,7 @@
   TX3DEvent = class;
 
   { Writer of VRML/X3D to stream. }
-  TX3DWriter = {abstact} class
+  TX3DWriter = class abstract
   strict private
     Indent: string;
     DoDiscardNextIndent: boolean;
