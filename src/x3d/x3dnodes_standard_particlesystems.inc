@@ -19,16 +19,16 @@
   public
     procedure CreateNode; override;
 
-    private FFdSpeed: TSFFloat;
+    strict private FFdSpeed: TSFFloat;
     public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdVariation: TSFFloat;
+    strict private FFdVariation: TSFFloat;
     public property FdVariation: TSFFloat read FFdVariation;
 
-    private FFdMass: TSFFloat;
+    strict private FFdMass: TSFFloat;
     public property FdMass: TSFFloat read FFdMass;
 
-    private FFdSurfaceArea: TSFFloat;
+    strict private FFdSurfaceArea: TSFFloat;
     public property FdSurfaceArea: TSFFloat read FFdSurfaceArea;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dparticleemitternode.inc}
@@ -38,7 +38,7 @@
   public
     procedure CreateNode; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dparticlephysicsmodelnode.inc}
@@ -50,7 +50,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdGeometry: TSFNode;
+    strict private FFdGeometry: TSFNode;
     public property FdGeometry: TSFNode read FFdGeometry;
 
     {$I auto_generated_node_helpers/x3dnodes_boundedphysicsmodel.inc}
@@ -62,13 +62,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAngle: TSFFloat;
+    strict private FFdAngle: TSFFloat;
     public property FdAngle: TSFFloat read FFdAngle;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
     {$I auto_generated_node_helpers/x3dnodes_coneemitter.inc}
@@ -80,7 +80,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
     {$I auto_generated_node_helpers/x3dnodes_explosionemitter.inc}
@@ -92,7 +92,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdForce: TSFVec3f;
+    strict private FFdForce: TSFVec3f;
     public property FdForce: TSFVec3f read FFdForce;
 
     {$I auto_generated_node_helpers/x3dnodes_forcephysicsmodel.inc}
@@ -104,47 +104,47 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCreateParticles: TSFBool;
+    strict private FFdCreateParticles: TSFBool;
     public property FdCreateParticles: TSFBool read FFdCreateParticles;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdLifetimeVariation: TSFFloat;
+    strict private FFdLifetimeVariation: TSFFloat;
     public property FdLifetimeVariation: TSFFloat read FFdLifetimeVariation;
 
-    private FFdMaxParticles: TSFInt32;
+    strict private FFdMaxParticles: TSFInt32;
     public property FdMaxParticles: TSFInt32 read FFdMaxParticles;
 
-    private FFdParticleLifetime: TSFFloat;
+    strict private FFdParticleLifetime: TSFFloat;
     public property FdParticleLifetime: TSFFloat read FFdParticleLifetime;
 
-    private FFdParticleSize: TSFVec2f;
+    strict private FFdParticleSize: TSFVec2f;
     public property FdParticleSize: TSFVec2f read FFdParticleSize;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
-    private FFdColorRamp: TSFNode;
+    strict private FFdColorRamp: TSFNode;
     public property FdColorRamp: TSFNode read FFdColorRamp;
 
-    private FFdColorKey: TMFFloat;
+    strict private FFdColorKey: TMFFloat;
     public property FdColorKey: TMFFloat read FFdColorKey;
 
-    private FFdEmitter: TSFNode;
+    strict private FFdEmitter: TSFNode;
     public property FdEmitter: TSFNode read FFdEmitter;
 
-    private FFdGeometryType: TSFString;
+    strict private FFdGeometryType: TSFString;
     public property FdGeometryType: TSFString read FFdGeometryType;
 
-    private FFdPhysics: TMFNode;
+    strict private FFdPhysics: TMFNode;
     public property FdPhysics: TMFNode read FFdPhysics;
 
-    private FFdTexCoordRamp: TSFNode;
+    strict private FFdTexCoordRamp: TSFNode;
     public property FdTexCoordRamp: TSFNode read FFdTexCoordRamp;
 
-    private FFdTexCoordKey: TMFFloat;
+    strict private FFdTexCoordKey: TMFFloat;
     public property FdTexCoordKey: TMFFloat read FFdTexCoordKey;
 
     {$I auto_generated_node_helpers/x3dnodes_particlesystem.inc}
@@ -156,10 +156,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
     {$I auto_generated_node_helpers/x3dnodes_pointemitter.inc}
@@ -172,16 +172,16 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_coordinate: TSFInt32Event;
+    strict private FEventSet_coordinate: TSFInt32Event;
     public property EventSet_coordinate: TSFInt32Event read FEventSet_coordinate;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
     {$I auto_generated_node_helpers/x3dnodes_polylineemitter.inc}
@@ -194,13 +194,13 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_coordinate: TSFInt32Event;
+    strict private FEventSet_coordinate: TSFInt32Event;
     public property EventSet_coordinate: TSFInt32Event read FEventSet_coordinate;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdSurface: TSFNode;
+    strict private FFdSurface: TSFNode;
     public property FdSurface: TSFNode read FFdSurface;
 
     {$I auto_generated_node_helpers/x3dnodes_surfaceemitter.inc}
@@ -213,19 +213,19 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_coordinate: TSFInt32Event;
+    strict private FEventSet_coordinate: TSFInt32Event;
     public property EventSet_coordinate: TSFInt32Event read FEventSet_coordinate;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdInternal: TSFBool;
+    strict private FFdInternal: TSFBool;
     public property FdInternal: TSFBool read FFdInternal;
 
     {$I auto_generated_node_helpers/x3dnodes_volumeemitter.inc}
@@ -237,16 +237,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdGustiness: TSFFloat;
+    strict private FFdGustiness: TSFFloat;
     public property FdGustiness: TSFFloat read FFdGustiness;
 
-    private FFdSpeed: TSFFloat;
+    strict private FFdSpeed: TSFFloat;
     public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdTurbulence: TSFFloat;
+    strict private FFdTurbulence: TSFFloat;
     public property FdTurbulence: TSFFloat read FFdTurbulence;
 
     {$I auto_generated_node_helpers/x3dnodes_windphysicsmodel.inc}

@@ -27,7 +27,7 @@
     Much of the X3D language is about describing how geometry nodes are displayed
     (materials, transformations, lighting). }
   TAbstractGeometryNode = class(TAbstractNode)
-  private
+  strict private
     HasBounds2DST: boolean;
     Bounds2DS, Bounds2DT: Integer;
     FIgnoredSolid: boolean; {< keeps value of Solid property when FdSolid is nil }
@@ -415,37 +415,37 @@
   public
     procedure CreateNode; override;
 
-    private FFdAttrib: TMFNode;
+    strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdFogCoord: TSFNode;
+    strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdNormal: TSFNode;
+    strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdColorPerVertex: TSFBool;
+    strict private FFdColorPerVertex: TSFBool;
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdNormalPerVertex: TSFBool;
+    strict private FFdNormalPerVertex: TSFBool;
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdRadianceTransfer: TMFVec3f;
+    strict private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
     { Access the coordinate node, and inside this node access it's points list. }
@@ -497,10 +497,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdPlane: TSFVec4f;
+    strict private FFdPlane: TSFVec4f;
     public property FdPlane: TSFVec4f read FFdPlane;
 
     {$I auto_generated_node_helpers/x3dnodes_clipplane.inc}
@@ -513,7 +513,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdColor: TMFColor;
+    strict private FFdColor: TMFColor;
     public property FdColor: TMFColor read FFdColor;
 
     {$I auto_generated_node_helpers/x3dnodes_color.inc}
@@ -526,7 +526,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdColor: TMFColorRGBA;
+    strict private FFdColor: TMFColorRGBA;
     public property FdColor: TMFColorRGBA read FFdColor;
 
     {$I auto_generated_node_helpers/x3dnodes_colorrgba.inc}
@@ -540,7 +540,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec3f;
+    strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
 
     function CoordCount: Cardinal; override;
@@ -550,7 +550,7 @@
 
   { Geometry formed by constructing polylines from 3D vertices. }
   TIndexedLineSetNode = class(TAbstractX3DGeometryNode)
-  private
+  strict private
     procedure EventSet_ColorIndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventSet_CoordIndexReceive(
@@ -561,32 +561,32 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_colorIndex: TMFInt32Event;
+    strict private FEventSet_colorIndex: TMFInt32Event;
     public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 
     { Event in } { }
-    private FEventSet_coordIndex: TMFInt32Event;
+    strict private FEventSet_coordIndex: TMFInt32Event;
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
-    private FFdAttrib: TMFNode;
+    strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdFogCoord: TSFNode;
+    strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdColorIndex: TMFInt32;
+    strict private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
 
-    private FFdColorPerVertex: TSFBool;
+    strict private FFdColorPerVertex: TSFBool;
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -610,7 +610,7 @@
 
   { Triangles that form a fan shape around the first vertex. }
   TIndexedTriangleFanSetNode = class(TAbstractComposedGeometryNode)
-  private
+  strict private
     procedure EventSet_IndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -619,10 +619,10 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_index: TMFInt32Event;
+    strict private FEventSet_index: TMFInt32Event;
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 
-    private FFdIndex: TMFInt32;
+    strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
@@ -639,7 +639,7 @@
 
   { A collection of triangles. }
   TIndexedTriangleSetNode = class(TAbstractComposedGeometryNode)
-  private
+  strict private
     procedure EventSet_IndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -648,10 +648,10 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_index: TMFInt32Event;
+    strict private FEventSet_index: TMFInt32Event;
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 
-    private FFdIndex: TMFInt32;
+    strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
@@ -668,7 +668,7 @@
 
   { Strips of triangles. }
   TIndexedTriangleStripSetNode = class(TAbstractComposedGeometryNode)
-  private
+  strict private
     procedure EventSet_IndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -677,10 +677,10 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_index: TMFInt32Event;
+    strict private FEventSet_index: TMFInt32Event;
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 
-    private FFdIndex: TMFInt32;
+    strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;
@@ -704,19 +704,19 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAttrib: TMFNode;
+    strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdFogCoord: TSFNode;
+    strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdVertexCount: TMFInt32;
+    strict private FFdVertexCount: TMFInt32;
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
 
     function Coord(State: TX3DGraphTraverseState;
@@ -748,7 +748,7 @@
 
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdVector: TMFVec3f;
+    strict private FFdVector: TMFVec3f;
     public property FdVector: TMFVec3f read FFdVector;
 
     {$I auto_generated_node_helpers/x3dnodes_normal.inc}
@@ -763,16 +763,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAttrib: TMFNode;
+    strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdFogCoord: TSFNode;
+    strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -802,7 +802,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFanCount: TMFInt32;
+    strict private FFdFanCount: TMFInt32;
     public property FdFanCount: TMFInt32 read FFdFanCount;
 
     function CoordRangesCounts(out RangeCount: TLongIntList;
@@ -847,7 +847,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdStripCount: TMFInt32;
+    strict private FFdStripCount: TMFInt32;
     public property FdStripCount: TMFInt32 read FFdStripCount;
 
     function CoordRangesCounts(out RangeCount: TLongIntList;

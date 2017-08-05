@@ -35,14 +35,14 @@
   public
     procedure CreateNode; override;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
-    private FFdPitch: TSFFloat;
+    strict private FFdPitch: TSFFloat;
     public property FdPitch: TSFFloat read FFdPitch;
 
     { Event out } { }
-    private FEventDuration_changed: TSFTimeEvent;
+    strict private FEventDuration_changed: TSFTimeEvent;
     public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
     { Pitch, corrected to always be > 0. }
@@ -53,11 +53,10 @@
 
   { Buffer for sound data, which can be played by the @link(TSoundNode). }
   TAudioClipNode = class(TAbstractSoundSourceNode, IAbstractUrlObject)
-  private
+  strict private
     FBufferLoaded: boolean;
     Buffer: TSoundBuffer;
     FDuration: TFloatTime;
-    Sound: TSound;
     InsideLoadBuffer: Cardinal;
     procedure SetBufferLoaded(const Value: boolean);
     procedure SoundRelease(ASound: TSound);
@@ -69,6 +68,8 @@
     { Did we attempt loading Buffer. You still have to check Buffer <> 0 to know
       if it's successfully loaded. }
     property BufferLoaded: boolean read FBufferLoaded write SetBufferLoaded;
+  private
+    Sound: TSound;
   protected
     procedure ParseAfter(Reader: TX3DReaderNames); override;
     procedure BeforeTraverse(StateStack: TX3DGraphTraverseStateStack); override;
@@ -79,7 +80,7 @@
     class function URNMatching(const URN: string): boolean; override;
     function GetCycleInterval: TFloatTime; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     {$I auto_generated_node_helpers/x3dnodes_audioclip.inc}
@@ -101,34 +102,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdIntensity: TSFFloat;
+    strict private FFdIntensity: TSFFloat;
     public property FdIntensity: TSFFloat read FFdIntensity;
 
-    private FFdLocation: TSFVec3f;
+    strict private FFdLocation: TSFVec3f;
     public property FdLocation: TSFVec3f read FFdLocation;
 
-    private FFdMaxBack: TSFFloat;
+    strict private FFdMaxBack: TSFFloat;
     public property FdMaxBack: TSFFloat read FFdMaxBack;
 
-    private FFdMaxFront: TSFFloat;
+    strict private FFdMaxFront: TSFFloat;
     public property FdMaxFront: TSFFloat read FFdMaxFront;
 
-    private FFdMinBack: TSFFloat;
+    strict private FFdMinBack: TSFFloat;
     public property FdMinBack: TSFFloat read FFdMinBack;
 
-    private FFdMinFront: TSFFloat;
+    strict private FFdMinFront: TSFFloat;
     public property FdMinFront: TSFFloat read FFdMinFront;
 
-    private FFdPriority: TSFFloat;
+    strict private FFdPriority: TSFFloat;
     public property FdPriority: TSFFloat read FFdPriority;
 
-    private FFdSource: TSFNode;
+    strict private FFdSource: TSFNode;
     public property FdSource: TSFNode read FFdSource;
 
-    private FFdSpatialize: TSFBool;
+    strict private FFdSpatialize: TSFBool;
     public property FdSpatialize: TSFBool read FFdSpatialize;
 
     {$I auto_generated_node_helpers/x3dnodes_sound.inc}

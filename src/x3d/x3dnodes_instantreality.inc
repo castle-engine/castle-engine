@@ -36,7 +36,7 @@
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdMatrix: TSFMatrix4f;
+    strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
     {$I auto_generated_node_helpers/x3dnodes_matrixtransform.inc}
@@ -53,16 +53,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSize: TSFVec3f;
+    strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdManifold: TSFBool;
+    strict private FFdManifold: TSFBool;
     public property FdManifold: TSFBool read FFdManifold;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -78,7 +78,7 @@
   { X3D events logging.
     See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_logger . }
   TLoggerNode = class(TAbstractChildNode)
-  private
+  strict private
     WriteStream: TStream;
     OwnsWriteStream: boolean;
     WriteStreamInitialized: boolean;
@@ -90,23 +90,23 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdLevel: TSFInt32;
+    strict private FFdLevel: TSFInt32;
     public property FdLevel: TSFInt32 read FFdLevel;
 
-    private FFdLogFile: TSFString;
+    strict private FFdLogFile: TSFString;
     public property FdLogFile: TSFString read FFdLogFile;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FEventWrite: TXFAnyEvent;
+    strict private FEventWrite: TXFAnyEvent;
     public property EventWrite: TXFAnyEvent read FEventWrite;
 
     {$I auto_generated_node_helpers/x3dnodes_logger.inc}
   end;
 
   TConverterNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventInReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -114,15 +114,15 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event in } { }
-    private FEventIn: TXFAnyEvent;
+    strict private FEventIn: TXFAnyEvent;
     public property EventIn: TXFAnyEvent read FEventIn;
 
     { Event out } { }
-    private FEventOut: TXFAnyEvent;
+    strict private FEventOut: TXFAnyEvent;
     public property EventOut: TXFAnyEvent read FEventOut;
   end;
 
@@ -143,84 +143,84 @@
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
 
-    private FFdViewpoint: TSFNode;
+    strict private FFdViewpoint: TSFNode;
     public property FdViewpoint: TSFNode read FFdViewpoint;
 
-    private FFdBackground: TSFNode;
+    strict private FFdBackground: TSFNode;
     public property FdBackground: TSFNode read FFdBackground;
 
-    private FFdFog: TSFNode;
+    strict private FFdFog: TSFNode;
     public property FdFog: TSFNode read FFdFog;
 
-    private FFdEnvironment: TSFNode;
+    strict private FFdEnvironment: TSFNode;
     public property FdEnvironment: TSFNode read FFdEnvironment;
 
-    private FFdScene: TSFNode;
+    strict private FFdScene: TSFNode;
     public property FdScene: TSFNode read FFdScene;
 
-    private FFdDimensions: TMFInt32;
+    strict private FFdDimensions: TMFInt32;
     public property FdDimensions: TMFInt32 read FFdDimensions;
 
-    private FFdDepthMap: TMFBool;
+    strict private FFdDepthMap: TMFBool;
     public property FdDepthMap: TMFBool read FFdDepthMap;
 
-    private FFdForeground: TSFNode;
+    strict private FFdForeground: TSFNode;
     public property FdForeground: TSFNode read FFdForeground;
 
-    private FFdZOffset: TMFInt32;
+    strict private FFdZOffset: TMFInt32;
     public property FdZOffset: TMFInt32 read FFdZOffset;
 
-    private FFdTargets: TMFNode;
+    strict private FFdTargets: TMFNode;
     public property FdTargets: TMFNode read FFdTargets;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
     { Event out } { }
-    private FEventViewing: TSFMatrix4fEvent;
+    strict private FEventViewing: TSFMatrix4fEvent;
     public property EventViewing: TSFMatrix4fEvent read FEventViewing;
 
     { Event out } { }
-    private FEventProjection: TSFMatrix4fEvent;
+    strict private FEventProjection: TSFMatrix4fEvent;
     public property EventProjection: TSFMatrix4fEvent read FEventProjection;
 
-    private FFdUpdate: TSFTextureUpdate;
+    strict private FFdUpdate: TSFTextureUpdate;
     public property FdUpdate: TSFTextureUpdate read FFdUpdate;
 
-    private FFdFrameBufferMode: TSFString;
+    strict private FFdFrameBufferMode: TSFString;
     public property FdFrameBufferMode: TSFString read FFdFrameBufferMode;
 
-    private FFdExcludeNodes: TMFNode;
+    strict private FFdExcludeNodes: TMFNode;
     public property FdExcludeNodes: TMFNode read FFdExcludeNodes;
 
-    private FFdTriggerName: TSFString;
+    strict private FFdTriggerName: TSFString;
     public property FdTriggerName: TSFString read FFdTriggerName;
 
     { Event in } { }
-    private FEventTriggerSlot: TSFTimeEvent;
+    strict private FEventTriggerSlot: TSFTimeEvent;
     public property EventTriggerSlot: TSFTimeEvent read FEventTriggerSlot;
 
     { Event out } { }
-    private FEventImage_changed: TSFImageEvent;
+    strict private FEventImage_changed: TSFImageEvent;
     public property EventImage_changed: TSFImageEvent read FEventImage_changed;
 
-    private FFdTextureProperties: TSFNode;
+    strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     { Texture properties (how the texture behaves when sampled, and such). }
     property TextureProperties: TTexturePropertiesNode
       read GetTextureProperties write SetTextureProperties;
 
-    private FFdRepeatS: TSFBool;
+    strict private FFdRepeatS: TSFBool;
     public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdRepeatT: TSFBool;
+    strict private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
 
-    private FFdRepeatR: TSFBool;
+    strict private FFdRepeatR: TSFBool;
     public property FdRepeatR: TSFBool read FFdRepeatR;
 
     { Event out } { }
-    private FEventRendering: TSFBoolEvent;
+    strict private FEventRendering: TSFBoolEvent;
     public property EventRendering: TSFBoolEvent read FEventRendering;
 
     {$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
@@ -232,10 +232,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSize: TSFVec2f;
+    strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -245,7 +245,7 @@
 
   { Utility for setting and observing a boolean value in various ways. }
   TTogglerNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventStatusReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventNotStatusReceive(
@@ -261,37 +261,37 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdStatus: TSFBool;
+    strict private FFdStatus: TSFBool;
     public property FdStatus: TSFBool read FFdStatus;
 
-    private FFdNotStatus: TSFBool;
+    strict private FFdNotStatus: TSFBool;
     public property FdNotStatus: TSFBool read FFdNotStatus;
 
     { Event in } { }
-    private FEventToggle: TXFAnyEvent;
+    strict private FEventToggle: TXFAnyEvent;
     public property EventToggle: TXFAnyEvent read FEventToggle;
 
     { Event in } { }
-    private FEventSet: TXFAnyEvent;
+    strict private FEventSet: TXFAnyEvent;
     public property EventSet: TXFAnyEvent read FEventSet;
 
     { Event in } { }
-    private FEventReset: TXFAnyEvent;
+    strict private FEventReset: TXFAnyEvent;
     public property EventReset: TXFAnyEvent read FEventReset;
 
     { Event out } { }
-    private FEventChanged: TSFBoolEvent;
+    strict private FEventChanged: TSFBoolEvent;
     public property EventChanged: TSFBoolEvent read FEventChanged;
 
     { Event out } { }
-    private FEventOn: TSFBoolEvent;
+    strict private FEventOn: TSFBoolEvent;
     public property EventOn: TSFBoolEvent read FEventOn;
 
     { Event out } { }
-    private FEventOff: TSFBoolEvent;
+    strict private FEventOff: TSFBoolEvent;
     public property EventOff: TSFBoolEvent read FEventOff;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     {$I auto_generated_node_helpers/x3dnodes_toggler.inc}
@@ -303,7 +303,7 @@
   strict private
     type
       TCommonSurfaceShaderInfo = class(TMaterialInfo)
-      private
+      strict private
         FNode: TCommonSurfaceShaderNode;
       public
         constructor Create(Node: TCommonSurfaceShaderNode);
@@ -333,214 +333,214 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAlphaFactor: TSFFloat;
+    strict private FFdAlphaFactor: TSFFloat;
     public property FdAlphaFactor: TSFFloat read FFdAlphaFactor;
 
-    private FFdAlphaTextureId: TSFInt32;
+    strict private FFdAlphaTextureId: TSFInt32;
     public property FdAlphaTextureId: TSFInt32 read FFdAlphaTextureId;
 
-    private FFdAlphaTextureCoordinatesId: TSFInt32;
+    strict private FFdAlphaTextureCoordinatesId: TSFInt32;
     public property FdAlphaTextureCoordinatesId: TSFInt32 read FFdAlphaTextureCoordinatesId;
 
-    private FFdAlphaTextureChannelMask: TSFString;
+    strict private FFdAlphaTextureChannelMask: TSFString;
     public property FdAlphaTextureChannelMask: TSFString read FFdAlphaTextureChannelMask;
 
-    private FFdAlphaTexture: TSFNode;
+    strict private FFdAlphaTexture: TSFNode;
     public property FdAlphaTexture: TSFNode read FFdAlphaTexture;
 
-    private FFdAmbientFactor: TSFVec3f;
+    strict private FFdAmbientFactor: TSFVec3f;
     public property FdAmbientFactor: TSFVec3f read FFdAmbientFactor;
 
-    private FFdAmbientTextureId: TSFInt32;
+    strict private FFdAmbientTextureId: TSFInt32;
     public property FdAmbientTextureId: TSFInt32 read FFdAmbientTextureId;
 
-    private FFdAmbientTextureCoordinatesId: TSFInt32;
+    strict private FFdAmbientTextureCoordinatesId: TSFInt32;
     public property FdAmbientTextureCoordinatesId: TSFInt32 read FFdAmbientTextureCoordinatesId;
 
-    private FFdAmbientTextureChannelMask: TSFString;
+    strict private FFdAmbientTextureChannelMask: TSFString;
     public property FdAmbientTextureChannelMask: TSFString read FFdAmbientTextureChannelMask;
 
-    private FFdAmbientTexture: TSFNode;
+    strict private FFdAmbientTexture: TSFNode;
     public property FdAmbientTexture: TSFNode read FFdAmbientTexture;
 
-    private FFdDiffuseFactor: TSFVec3f;
+    strict private FFdDiffuseFactor: TSFVec3f;
     public property FdDiffuseFactor: TSFVec3f read FFdDiffuseFactor;
 
-    private FFdDiffuseTextureId: TSFInt32;
+    strict private FFdDiffuseTextureId: TSFInt32;
     public property FdDiffuseTextureId: TSFInt32 read FFdDiffuseTextureId;
 
-    private FFdDiffuseTextureCoordinatesId: TSFInt32;
+    strict private FFdDiffuseTextureCoordinatesId: TSFInt32;
     public property FdDiffuseTextureCoordinatesId: TSFInt32 read FFdDiffuseTextureCoordinatesId;
 
-    private FFdDiffuseTextureChannelMask: TSFString;
+    strict private FFdDiffuseTextureChannelMask: TSFString;
     public property FdDiffuseTextureChannelMask: TSFString read FFdDiffuseTextureChannelMask;
 
-    private FFdDiffuseTexture: TSFNode;
+    strict private FFdDiffuseTexture: TSFNode;
     public property FdDiffuseTexture: TSFNode read FFdDiffuseTexture;
 
-    private FFdDiffuseDisplacementTexture: TSFNode;
+    strict private FFdDiffuseDisplacementTexture: TSFNode;
     public property FdDiffuseDisplacementTexture: TSFNode read FFdDiffuseDisplacementTexture;
 
-    private FFdDisplacementAxis: TSFString;
+    strict private FFdDisplacementAxis: TSFString;
     public property FdDisplacementAxis: TSFString read FFdDisplacementAxis;
 
-    private FFdDisplacementFactor: TSFFloat;
+    strict private FFdDisplacementFactor: TSFFloat;
     public property FdDisplacementFactor: TSFFloat read FFdDisplacementFactor;
 
-    private FFdDisplacementTextureId: TSFInt32;
+    strict private FFdDisplacementTextureId: TSFInt32;
     public property FdDisplacementTextureId: TSFInt32 read FFdDisplacementTextureId;
 
-    private FFdDisplacementTextureCoordinatesId: TSFInt32;
+    strict private FFdDisplacementTextureCoordinatesId: TSFInt32;
     public property FdDisplacementTextureCoordinatesId: TSFInt32 read FFdDisplacementTextureCoordinatesId;
 
-    private FFdDisplacementTexture: TSFNode;
+    strict private FFdDisplacementTexture: TSFNode;
     public property FdDisplacementTexture: TSFNode read FFdDisplacementTexture;
 
-    private FFdEmissiveFactor: TSFVec3f;
+    strict private FFdEmissiveFactor: TSFVec3f;
     public property FdEmissiveFactor: TSFVec3f read FFdEmissiveFactor;
 
-    private FFdEmissiveTextureId: TSFInt32;
+    strict private FFdEmissiveTextureId: TSFInt32;
     public property FdEmissiveTextureId: TSFInt32 read FFdEmissiveTextureId;
 
-    private FFdEmissiveTextureCoordinatesId: TSFInt32;
+    strict private FFdEmissiveTextureCoordinatesId: TSFInt32;
     public property FdEmissiveTextureCoordinatesId: TSFInt32 read FFdEmissiveTextureCoordinatesId;
 
-    private FFdEmissiveTextureChannelMask: TSFString;
+    strict private FFdEmissiveTextureChannelMask: TSFString;
     public property FdEmissiveTextureChannelMask: TSFString read FFdEmissiveTextureChannelMask;
 
-    private FFdEmissiveTexture: TSFNode;
+    strict private FFdEmissiveTexture: TSFNode;
     public property FdEmissiveTexture: TSFNode read FFdEmissiveTexture;
 
-    private FFdEnvironmentFactor: TSFVec3f;
+    strict private FFdEnvironmentFactor: TSFVec3f;
     public property FdEnvironmentFactor: TSFVec3f read FFdEnvironmentFactor;
 
-    private FFdEnvironmentTextureId: TSFInt32;
+    strict private FFdEnvironmentTextureId: TSFInt32;
     public property FdEnvironmentTextureId: TSFInt32 read FFdEnvironmentTextureId;
 
-    private FFdEnvironmentTextureCoordinatesId: TSFInt32;
+    strict private FFdEnvironmentTextureCoordinatesId: TSFInt32;
     public property FdEnvironmentTextureCoordinatesId: TSFInt32 read FFdEnvironmentTextureCoordinatesId;
 
-    private FFdEnvironmentTextureChannelMask: TSFString;
+    strict private FFdEnvironmentTextureChannelMask: TSFString;
     public property FdEnvironmentTextureChannelMask: TSFString read FFdEnvironmentTextureChannelMask;
 
-    private FFdEnvironmentTexture: TSFNode;
+    strict private FFdEnvironmentTexture: TSFNode;
     public property FdEnvironmentTexture: TSFNode read FFdEnvironmentTexture;
 
-    private FFdMultiDiffuseAlphaTexture: TSFNode;
+    strict private FFdMultiDiffuseAlphaTexture: TSFNode;
     public property FdMultiDiffuseAlphaTexture: TSFNode read FFdMultiDiffuseAlphaTexture;
 
-    private FFdMultiEmmisiveAmbientIntensityTexture: TSFNode;
+    strict private FFdMultiEmmisiveAmbientIntensityTexture: TSFNode;
     public property FdMultiEmmisiveAmbientIntensityTexture: TSFNode read FFdMultiEmmisiveAmbientIntensityTexture;
 
-    private FFdMultiSpecularShininessTexture: TSFNode;
+    strict private FFdMultiSpecularShininessTexture: TSFNode;
     public property FdMultiSpecularShininessTexture: TSFNode read FFdMultiSpecularShininessTexture;
 
-    private FFdMultiVisibilityTexture: TSFNode;
+    strict private FFdMultiVisibilityTexture: TSFNode;
     public property FdMultiVisibilityTexture: TSFNode read FFdMultiVisibilityTexture;
 
-    private FFdNormalFormat: TSFStringEnum;
+    strict private FFdNormalFormat: TSFStringEnum;
     public property FdNormalFormat: TSFStringEnum read FFdNormalFormat;
 
-    private FFdNormalSpace: TSFStringEnum;
+    strict private FFdNormalSpace: TSFStringEnum;
     public property FdNormalSpace: TSFStringEnum read FFdNormalSpace;
 
-    private FFdNormalTextureId: TSFInt32;
+    strict private FFdNormalTextureId: TSFInt32;
     public property FdNormalTextureId: TSFInt32 read FFdNormalTextureId;
 
-    private FFdNormalTextureCoordinatesId: TSFInt32;
+    strict private FFdNormalTextureCoordinatesId: TSFInt32;
     public property FdNormalTextureCoordinatesId: TSFInt32 read FFdNormalTextureCoordinatesId;
 
-    private FFdNormalTextureChannelMask: TSFString;
+    strict private FFdNormalTextureChannelMask: TSFString;
     public property FdNormalTextureChannelMask: TSFString read FFdNormalTextureChannelMask;
 
-    private FFdNormalScale: TSFVec3f;
+    strict private FFdNormalScale: TSFVec3f;
     public property FdNormalScale: TSFVec3f read FFdNormalScale;
 
-    private FFdNormalBias: TSFVec3f;
+    strict private FFdNormalBias: TSFVec3f;
     public property FdNormalBias: TSFVec3f read FFdNormalBias;
 
-    private FFdNormalTexture: TSFNode;
+    strict private FFdNormalTexture: TSFNode;
     public property FdNormalTexture: TSFNode read FFdNormalTexture;
 
-    private FFdNormalTextureParallaxHeight: TSFFloat;
+    strict private FFdNormalTextureParallaxHeight: TSFFloat;
     public property FdNormalTextureParallaxHeight: TSFFloat read FFdNormalTextureParallaxHeight;
 
-    private FFdReflectionFactor: TSFVec3f;
+    strict private FFdReflectionFactor: TSFVec3f;
     public property FdReflectionFactor: TSFVec3f read FFdReflectionFactor;
 
-    private FFdReflectionTextureId: TSFInt32;
+    strict private FFdReflectionTextureId: TSFInt32;
     public property FdReflectionTextureId: TSFInt32 read FFdReflectionTextureId;
 
-    private FFdReflectionTextureCoordinatesId: TSFInt32;
+    strict private FFdReflectionTextureCoordinatesId: TSFInt32;
     public property FdReflectionTextureCoordinatesId: TSFInt32 read FFdReflectionTextureCoordinatesId;
 
-    private FFdReflectionTextureChannelMask: TSFString;
+    strict private FFdReflectionTextureChannelMask: TSFString;
     public property FdReflectionTextureChannelMask: TSFString read FFdReflectionTextureChannelMask;
 
-    private FFdReflectionTexture: TSFNode;
+    strict private FFdReflectionTexture: TSFNode;
     public property FdReflectionTexture: TSFNode read FFdReflectionTexture;
 
-    private FFdShininessFactor: TSFFloat;
+    strict private FFdShininessFactor: TSFFloat;
     public property FdShininessFactor: TSFFloat read FFdShininessFactor;
 
-    private FFdShininessTextureId: TSFInt32;
+    strict private FFdShininessTextureId: TSFInt32;
     public property FdShininessTextureId: TSFInt32 read FFdShininessTextureId;
 
-    private FFdShininessTextureCoordinatesId: TSFInt32;
+    strict private FFdShininessTextureCoordinatesId: TSFInt32;
     public property FdShininessTextureCoordinatesId: TSFInt32 read FFdShininessTextureCoordinatesId;
 
-    private FFdShininessTextureChannelMask: TSFString;
+    strict private FFdShininessTextureChannelMask: TSFString;
     public property FdShininessTextureChannelMask: TSFString read FFdShininessTextureChannelMask;
 
-    private FFdShininessTexture: TSFNode;
+    strict private FFdShininessTexture: TSFNode;
     public property FdShininessTexture: TSFNode read FFdShininessTexture;
 
-    private FFdSpecularFactor: TSFVec3f;
+    strict private FFdSpecularFactor: TSFVec3f;
     public property FdSpecularFactor: TSFVec3f read FFdSpecularFactor;
 
-    private FFdSpecularTextureId: TSFInt32;
+    strict private FFdSpecularTextureId: TSFInt32;
     public property FdSpecularTextureId: TSFInt32 read FFdSpecularTextureId;
 
-    private FFdSpecularTextureCoordinatesId: TSFInt32;
+    strict private FFdSpecularTextureCoordinatesId: TSFInt32;
     public property FdSpecularTextureCoordinatesId: TSFInt32 read FFdSpecularTextureCoordinatesId;
 
-    private FFdSpecularTextureChannelMask: TSFString;
+    strict private FFdSpecularTextureChannelMask: TSFString;
     public property FdSpecularTextureChannelMask: TSFString read FFdSpecularTextureChannelMask;
 
-    private FFdSpecularTexture: TSFNode;
+    strict private FFdSpecularTexture: TSFNode;
     public property FdSpecularTexture: TSFNode read FFdSpecularTexture;
 
-    private FFdTransmissionFactor: TSFVec3f;
+    strict private FFdTransmissionFactor: TSFVec3f;
     public property FdTransmissionFactor: TSFVec3f read FFdTransmissionFactor;
 
-    private FFdTransmissionTextureId: TSFInt32;
+    strict private FFdTransmissionTextureId: TSFInt32;
     public property FdTransmissionTextureId: TSFInt32 read FFdTransmissionTextureId;
 
-    private FFdTransmissionTextureCoordinatesId: TSFInt32;
+    strict private FFdTransmissionTextureCoordinatesId: TSFInt32;
     public property FdTransmissionTextureCoordinatesId: TSFInt32 read FFdTransmissionTextureCoordinatesId;
 
-    private FFdTransmissionTextureChannelMask: TSFString;
+    strict private FFdTransmissionTextureChannelMask: TSFString;
     public property FdTransmissionTextureChannelMask: TSFString read FFdTransmissionTextureChannelMask;
 
-    private FFdTransmissionTexture: TSFNode;
+    strict private FFdTransmissionTexture: TSFNode;
     public property FdTransmissionTexture: TSFNode read FFdTransmissionTexture;
 
-    private FFdTangentTextureCoordinatesId: TSFInt32;
+    strict private FFdTangentTextureCoordinatesId: TSFInt32;
     public property FdTangentTextureCoordinatesId: TSFInt32 read FFdTangentTextureCoordinatesId;
 
-    private FFdBinormalTextureCoordinatesId: TSFInt32;
+    strict private FFdBinormalTextureCoordinatesId: TSFInt32;
     public property FdBinormalTextureCoordinatesId: TSFInt32 read FFdBinormalTextureCoordinatesId;
 
-    private FFdInvertAlphaTexture: TSFBool;
+    strict private FFdInvertAlphaTexture: TSFBool;
     public property FdInvertAlphaTexture: TSFBool read FFdInvertAlphaTexture;
 
-    private FFdRelativeIndexOfRefraction: TSFFloat;
+    strict private FFdRelativeIndexOfRefraction: TSFFloat;
     public property FdRelativeIndexOfRefraction: TSFFloat read FFdRelativeIndexOfRefraction;
 
-    private FFdFresnelBlend: TSFFloat;
+    strict private FFdFresnelBlend: TSFFloat;
     public property FdFresnelBlend: TSFFloat read FFdFresnelBlend;
 
-    private FFdTextureTransformEnabled: TMFBool;
+    strict private FFdTextureTransformEnabled: TMFBool;
     public property FdTextureTransformEnabled: TMFBool read FFdTextureTransformEnabled;
 
     { Shininess expressed an an exponent for shading equations.
@@ -1093,7 +1093,7 @@ end;
 
 type
   TSFBoolIgnorable = class(TSFBool)
-  protected
+  strict protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;

@@ -18,7 +18,7 @@
   { Container tracking VRML/X3D node and prototype names during parsing.
     Used by both classic and XML VRML/X3D readers. }
   TX3DReaderNames = class(TX3DReader)
-  private
+  strict private
     FNodes: TX3DNodeNames;
     FPrototypes: TX3DPrototypeNames;
     FImported: TX3DNodeNames;

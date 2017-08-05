@@ -41,13 +41,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
-    private FFdParameter: TMFString;
+    strict private FFdParameter: TMFString;
     public property FdParameter: TMFString read FFdParameter;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     { Load the document, world and/or viewpoint referenced by this Anchor node.
@@ -107,7 +107,7 @@
 
   { Embed another X3D scene into the current scene. }
   TInlineNode = class(TAbstractGroupingNode, IAbstractBoundedObject, IAbstractUrlObject)
-  private
+  strict private
     procedure EventLoadReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventUrlReceive(
@@ -128,23 +128,24 @@
       called when LoadInlined was called on the already-loaded node with
       CanReload = @false. }
     procedure AfterLoadInlined; virtual;
-    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
     procedure ParseAfter(Reader: TX3DReaderNames); override;
+  protected
+    function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdLoad: TSFBool;
+    strict private FFdLoad: TSFBool;
     public property FdLoad: TSFBool read FFdLoad;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     class function VRML1ChildrenSaveToStream: boolean; override;
@@ -210,7 +211,7 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventChildren: TMFNodeEvent;
+    strict private FEventChildren: TMFNodeEvent;
     public property EventChildren: TMFNodeEvent read FEventChildren;
   end;
 
@@ -221,22 +222,22 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTimeOut: TSFTime;
+    strict private FFdTimeOut: TSFTime;
     public property FdTimeOut: TSFTime read FFdTimeOut;
 
-    private FFdWatchList: TMFNode;
+    strict private FFdWatchList: TMFNode;
     public property FdWatchList: TMFNode read FFdWatchList;
 
     { Event out } { }
-    private FEventIsLoaded: TSFBoolEvent;
+    strict private FEventIsLoaded: TSFBoolEvent;
     public property EventIsLoaded: TSFBoolEvent read FEventIsLoaded;
 
     { Event out } { }
-    private FEventLoadTime: TSFTimeEvent;
+    strict private FEventLoadTime: TSFTimeEvent;
     public property EventLoadTime: TSFTimeEvent read FEventLoadTime;
 
     { Event out } { }
-    private FEventProgress: TSFFloatEvent;
+    strict private FEventProgress: TSFFloatEvent;
     public property EventProgress: TSFFloatEvent read FEventProgress;
 
     {$I auto_generated_node_helpers/x3dnodes_loadsensor.inc}

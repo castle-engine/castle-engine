@@ -26,7 +26,7 @@ type
     Accepted geometry types are TIndexedFaceSetNode and TIndexedLineSetNode,
     as only such may be created for Collada primitives. }
   TColladaIndexes = class
-  private
+  strict private
     Ints: TIntegersParser;
     FGeometry: TAbstractGeometryNode;
     FInputsCount, FCoordIndexOffset, FTexCoordIndexOffset, FNormalIndexOffset: Integer;

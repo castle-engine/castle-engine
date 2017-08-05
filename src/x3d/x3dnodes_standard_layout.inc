@@ -28,22 +28,22 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAlign: TMFString;
+    strict private FFdAlign: TMFString;
     public property FdAlign: TMFString read FFdAlign;
 
-    private FFdOffset: TMFFloat;
+    strict private FFdOffset: TMFFloat;
     public property FdOffset: TMFFloat read FFdOffset;
 
-    private FFdOffsetUnits: TMFString;
+    strict private FFdOffsetUnits: TMFString;
     public property FdOffsetUnits: TMFString read FFdOffsetUnits;
 
-    private FFdScaleMode: TMFString;
+    strict private FFdScaleMode: TMFString;
     public property FdScaleMode: TMFString read FFdScaleMode;
 
-    private FFdSize: TMFFloat;
+    strict private FFdSize: TMFFloat;
     public property FdSize: TMFFloat read FFdSize;
 
-    private FFdSizeUnits: TMFString;
+    strict private FFdSizeUnits: TMFString;
     public property FdSizeUnits: TMFString read FFdSizeUnits;
 
     {$I auto_generated_node_helpers/x3dnodes_layout.inc}
@@ -55,10 +55,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdLayout: TSFNode;
+    strict private FFdLayout: TSFNode;
     public property FdLayout: TSFNode read FFdLayout;
 
-    private FFdViewport: TSFNode;
+    strict private FFdViewport: TSFNode;
     public property FdViewport: TSFNode read FFdViewport;
 
     {$I auto_generated_node_helpers/x3dnodes_layoutgroup.inc}
@@ -71,17 +71,17 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventAddChildren: TMFNodeEvent;
+    strict private FEventAddChildren: TMFNodeEvent;
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     { Event in } { }
-    private FEventRemoveChildren: TMFNodeEvent;
+    strict private FEventRemoveChildren: TMFNodeEvent;
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdLayout: TSFNode;
+    strict private FFdLayout: TSFNode;
     public property FdLayout: TSFNode read FFdLayout;
 
     {$I auto_generated_node_helpers/x3dnodes_layoutlayer.inc}
@@ -93,31 +93,31 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFamily: TMFString;
+    strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
 
-    private FFdHorizontal: TSFBool;
+    strict private FFdHorizontal: TSFBool;
     public property FdHorizontal: TSFBool read FFdHorizontal;
 
-    private FFdJustify: TMFString;
+    strict private FFdJustify: TMFString;
     public property FdJustify: TMFString read FFdJustify;
 
-    private FFdLanguage: TSFString;
+    strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
-    private FFdLeftToRight: TSFBool;
+    strict private FFdLeftToRight: TSFBool;
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
 
-    private FFdPointSize: TSFFloat;
+    strict private FFdPointSize: TSFFloat;
     public property FdPointSize: TSFFloat read FFdPointSize;
 
-    private FFdSpacing: TSFFloat;
+    strict private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
-    private FFdStyle: TSFString;
+    strict private FFdStyle: TSFString;
     public property FdStyle: TSFString read FFdStyle;
 
-    private FFdTopToBottom: TSFBool;
+    strict private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 
     {$I auto_generated_node_helpers/x3dnodes_screenfontstyle.inc}

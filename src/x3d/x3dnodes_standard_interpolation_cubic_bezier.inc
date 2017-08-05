@@ -50,7 +50,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdControlPoints: TMFVec4f;
+    strict private FFdControlPoints: TMFVec4f;
     public property FdControlPoints: TMFVec4f read FFdControlPoints;
 
     { Once the FdControlPoints value is settled, call this to precalculate
@@ -74,14 +74,14 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdKeyValue: TMFFloat;
+    strict private FFdKeyValue: TMFFloat;
     public property FdKeyValue: TMFFloat read FFdKeyValue;
 
-    private FFdAxis: TSFVec3f;
+    strict private FFdAxis: TSFVec3f;
     public property FdAxis: TSFVec3f read FFdAxis;
 
     { Event out } { }
-    private FEventValue_changed: TSFRotationEvent;
+    strict private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
   end;
 
@@ -89,7 +89,7 @@
     using cubic Bezier curve instead of linear interpolation.
     See http://castle-engine.sourceforge.net/x3d_implementation_interpolation_extensions.php . }
   TCubicBezierPositionInterpolatorNode = class(TAbstractCubicBezierInterpolatorNode)
-  private
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -97,11 +97,11 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdKeyValue: TMFVec3f;
+    strict private FFdKeyValue: TMFVec3f;
     public property FdKeyValue: TMFVec3f read FFdKeyValue;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec3fEvent;
+    strict private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
   end;
 {$endif read_interface}

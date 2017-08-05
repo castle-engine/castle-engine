@@ -32,7 +32,7 @@
 
 type
   TGI_BBox_Calculator = class
-  private
+  public
     Coord: TMFVec3f;
     CoordIndex: TMFLong;
     Geometry: TAbstractGeometryNode;

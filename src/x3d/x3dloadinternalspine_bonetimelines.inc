@@ -17,7 +17,7 @@
 
 {$ifdef read_interface}
   TBoneTimeline = class abstract
-  private
+  strict private
     FMaxTime: Single;
   public
     Bone: TBone;

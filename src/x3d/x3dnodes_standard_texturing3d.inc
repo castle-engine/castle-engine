@@ -36,16 +36,16 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdRepeatS: TSFBool;
+    strict private FFdRepeatS: TSFBool;
     public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdRepeatT: TSFBool;
+    strict private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
 
-    private FFdRepeatR: TSFBool;
+    strict private FFdRepeatR: TSFBool;
     public property FdRepeatR: TSFBool read FFdRepeatR;
 
-    private FFdTextureProperties: TSFNode;
+    strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
     { Texture properties (how the texture behaves when sampled, and such). }
     property TextureProperties: TTexturePropertiesNode
@@ -78,16 +78,16 @@
 
   { 3D texture defined as a collection of 2D texture sources at various depths. }
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
-  private
+  strict private
     FAlphaChannelData: TAlphaChannel;
-  protected
+  strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTexture: TMFNode;
+    strict private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
 
     procedure LoadTextureData; override;
@@ -107,7 +107,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
@@ -115,16 +115,16 @@
 
   { 3D texture defined as an explicit array of pixel values inside the X3D file. }
   TPixelTexture3DNode = class(TAbstractTexture3DNode)
-  private
+  strict private
     FAlphaChannelData: TAlphaChannel;
-  protected
+  strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdImage: TMFInt32;
+    strict private FFdImage: TMFInt32;
     public property FdImage: TMFInt32 read FFdImage;
 
     procedure LoadTextureData; override;
@@ -139,7 +139,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec3f;
+    strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
@@ -152,7 +152,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec4f;
+    strict private FFdPoint: TMFVec4f;
     public property FdPoint: TMFVec4f read FFdPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
@@ -166,7 +166,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdMatrix: TSFMatrix4f;
+    strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
     function TransformMatrix: TMatrix4; override;
@@ -182,16 +182,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     function TransformMatrix: TMatrix4; override;

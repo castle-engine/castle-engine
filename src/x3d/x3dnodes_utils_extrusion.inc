@@ -22,7 +22,7 @@ type
    this by TExtrusionNode.BoundingBox calculation,
    TExtrusionNode.Triangulate etc. }
   TVRMLExtrusion = class
-  private
+  strict private
     FHigh: Integer;
     FNode: TExtrusionNode;
     FSpineClosed, FCrossSectionClosed: boolean;

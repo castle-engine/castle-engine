@@ -19,18 +19,18 @@
   public
     procedure CreateNode; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdSize: TSFVec3f;
+    strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
 
     { Event out } { }
-    private FEventEnterTime: TSFTimeEvent;
+    strict private FEventEnterTime: TSFTimeEvent;
     public property EventEnterTime: TSFTimeEvent read FEventEnterTime;
 
     { Event out } { }
-    private FEventExitTime: TSFTimeEvent;
+    strict private FEventExitTime: TSFTimeEvent;
     public property EventExitTime: TSFTimeEvent read FEventExitTime;
 
     {$I auto_generated_node_helpers/x3dnodes_x3denvironmentalsensornode.inc}
@@ -46,15 +46,15 @@
     function TransformationChange: TNodeTransformationChange; override;
 
     { Event out } { }
-    private FEventCenterOfRotation_changed: TSFVec3fEvent;
+    strict private FEventCenterOfRotation_changed: TSFVec3fEvent;
     public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
 
     { Event out } { }
-    private FEventOrientation_changed: TSFRotationEvent;
+    strict private FEventOrientation_changed: TSFRotationEvent;
     public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
     { Event out } { }
-    private FEventPosition_changed: TSFVec3fEvent;
+    strict private FEventPosition_changed: TSFVec3fEvent;
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
     {$I auto_generated_node_helpers/x3dnodes_proximitysensor.inc}
@@ -69,15 +69,15 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTargetObject: TSFNode;
+    strict private FFdTargetObject: TSFNode;
     public property FdTargetObject: TSFNode read FFdTargetObject;
 
     { Event out } { }
-    private FEventOrientation_changed: TSFRotationEvent;
+    strict private FEventOrientation_changed: TSFRotationEvent;
     public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
     { Event out } { }
-    private FEventPosition_changed: TSFVec3fEvent;
+    strict private FEventPosition_changed: TSFVec3fEvent;
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
     {$I auto_generated_node_helpers/x3dnodes_transformsensor.inc}
@@ -85,7 +85,7 @@
 
   { Detects visibility changes of a rectangular box as the user navigates the world. }
   TVisibilitySensorNode = class(TAbstractEnvironmentalSensorNode)
-  private
+  strict private
     FIsActive: boolean;
   public
     procedure CreateNode; override;

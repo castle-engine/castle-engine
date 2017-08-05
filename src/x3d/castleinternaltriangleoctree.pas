@@ -39,7 +39,7 @@ type
   TTriangleOctree = class;
 
   TTriangleOctreeNode = class(TBaseTrianglesOctreeNode)
-  protected
+  strict protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
@@ -79,7 +79,7 @@ type
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
-  private
+  strict private
     function GetItems(ItemIndex: integer): PTriangle;
   public
     function ParentTree: TTriangleOctree;
@@ -166,7 +166,7 @@ type
     that keeps triangle geometry in 3D space, and links to parent
     VRML/X3D Shapes and such. }
   TTriangleOctree = class(TBaseTrianglesOctree)
-  protected
+  strict protected
     function StatisticsBonus: string; override;
   public
     { All our triangles.

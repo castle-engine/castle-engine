@@ -23,7 +23,7 @@
   public
     procedure CreateNode; override;
 
-    private FFdControlPoint: TMFVec2d;
+    strict private FFdControlPoint: TMFVec2d;
     public property FdControlPoint: TMFVec2d read FFdControlPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnurbscontrolcurvenode.inc}
@@ -55,46 +55,46 @@
       out ACoord: TMFVec3f): boolean; override;
     function SolidField: TSFBool; override;
 
-    private FFdControlPoint: TSFNode;
+    strict private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdUTessellation: TSFInt32;
+    strict private FFdUTessellation: TSFInt32;
     public property FdUTessellation: TSFInt32 read FFdUTessellation;
 
-    private FFdVTessellation: TSFInt32;
+    strict private FFdVTessellation: TSFInt32;
     public property FdVTessellation: TSFInt32 read FFdVTessellation;
 
-    private FFdWeight: TMFDouble;
+    strict private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdUClosed: TSFBool;
+    strict private FFdUClosed: TSFBool;
     public property FdUClosed: TSFBool read FFdUClosed;
 
-    private FFdUDimension: TSFInt32;
+    strict private FFdUDimension: TSFInt32;
     public property FdUDimension: TSFInt32 read FFdUDimension;
 
-    private FFdUKnot: TMFDouble;
+    strict private FFdUKnot: TMFDouble;
     public property FdUKnot: TMFDouble read FFdUKnot;
 
-    private FFdUOrder: TSFInt32;
+    strict private FFdUOrder: TSFInt32;
     public property FdUOrder: TSFInt32 read FFdUOrder;
 
-    private FFdVClosed: TSFBool;
+    strict private FFdVClosed: TSFBool;
     public property FdVClosed: TSFBool read FFdVClosed;
 
-    private FFdVDimension: TSFInt32;
+    strict private FFdVDimension: TSFInt32;
     public property FdVDimension: TSFInt32 read FFdVDimension;
 
-    private FFdVKnot: TMFDouble;
+    strict private FFdVKnot: TMFDouble;
     public property FdVKnot: TMFDouble read FFdVKnot;
 
-    private FFdVOrder: TSFInt32;
+    strict private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnurbssurfacegeometrynode.inc}
@@ -115,14 +115,14 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     { Event in } { }
-    private FEventAddChildren: TMFNodeEvent;
+    strict private FEventAddChildren: TMFNodeEvent;
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     { Event in } { }
-    private FEventRemoveChildren: TMFNodeEvent;
+    strict private FEventRemoveChildren: TMFNodeEvent;
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
     {$I auto_generated_node_helpers/x3dnodes_contour2d.inc}
@@ -146,7 +146,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec3d;
+    strict private FFdPoint: TMFVec3d;
     public property FdPoint: TMFVec3d read FFdPoint;
 
     function CoordCount: Cardinal; override;
@@ -163,22 +163,22 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdControlPoint: TSFNode;
+    strict private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdTessellation: TSFInt32;
+    strict private FFdTessellation: TSFInt32;
     public property FdTessellation: TSFInt32 read FFdTessellation;
 
-    private FFdWeight: TMFDouble;
+    strict private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
-    private FFdClosed: TSFBool;
+    strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdKnot: TMFDouble;
+    strict private FFdKnot: TMFDouble;
     public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdOrder: TSFInt32;
+    strict private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
@@ -207,19 +207,19 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTessellation: TSFInt32;
+    strict private FFdTessellation: TSFInt32;
     public property FdTessellation: TSFInt32 read FFdTessellation;
 
-    private FFdWeight: TMFDouble;
+    strict private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
-    private FFdClosed: TSFBool;
+    strict private FFdClosed: TSFBool;
     public property FdClosed: TSFBool read FFdClosed;
 
-    private FFdKnot: TMFDouble;
+    strict private FFdKnot: TMFDouble;
     public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdOrder: TSFInt32;
+    strict private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbscurve2d.inc}
@@ -227,7 +227,7 @@
 
   { Interpolate (animate) orientations as tangent vectors of the 3D NURBS curve. }
   TNurbsOrientationInterpolatorNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
@@ -238,23 +238,23 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_fraction: TSFFloatEvent;
+    strict private FEventSet_fraction: TSFFloatEvent;
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
-    private FFdControlPoint: TSFNode;
+    strict private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdKnot: TMFDouble;
+    strict private FFdKnot: TMFDouble;
     public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdOrder: TSFInt32;
+    strict private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
 
-    private FFdWeight: TMFDouble;
+    strict private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
     { Event out } { }
-    private FEventValue_changed: TSFRotationEvent;
+    strict private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbsorientationinterpolator.inc}
@@ -272,7 +272,7 @@
 
   { Interpolate (animate) positions along the 3D NURBS curve. }
   TNurbsPositionInterpolatorNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
@@ -283,23 +283,23 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_fraction: TSFFloatEvent;
+    strict private FEventSet_fraction: TSFFloatEvent;
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
-    private FFdControlPoint: TSFNode;
+    strict private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdKnot: TMFDouble;
+    strict private FFdKnot: TMFDouble;
     public property FdKnot: TMFDouble read FFdKnot;
 
-    private FFdOrder: TSFInt32;
+    strict private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
 
-    private FFdWeight: TMFDouble;
+    strict private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec3fEvent;
+    strict private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
@@ -317,11 +317,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventAddGeometry: TMFNodeEvent;
+    strict private FEventAddGeometry: TMFNodeEvent;
     public property EventAddGeometry: TMFNodeEvent read FEventAddGeometry;
 
     { Event in } { }
-    private FEventRemoveGeometry: TMFNodeEvent;
+    strict private FEventRemoveGeometry: TMFNodeEvent;
     public property EventRemoveGeometry: TMFNodeEvent read FEventRemoveGeometry;
 
     { Implementation note: Fdgeometry is not enumerated in DirectEnumerateActive,
@@ -329,16 +329,16 @@
       Children here have to be placed elsewhere, in some Shape,
       to actually get enumerated as "active". }
     { }
-    private FFdGeometry: TMFNode;
+    strict private FFdGeometry: TMFNode;
     public property FdGeometry: TMFNode read FFdGeometry;
 
-    private FFdTessellationScale: TSFFloat;
+    strict private FFdTessellationScale: TSFFloat;
     public property FdTessellationScale: TSFFloat read FFdTessellationScale;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbsset.inc}
@@ -347,7 +347,7 @@
   { Interpolate (animate) by sampling a position and normal at 3D NURBS surface
     from an input 2D surface parameters. }
   TNurbsSurfaceInterpolatorNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   protected
@@ -358,39 +358,39 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_fraction: TSFVec2fEvent;
+    strict private FEventSet_fraction: TSFVec2fEvent;
     public property EventSet_fraction: TSFVec2fEvent read FEventSet_fraction;
 
-    private FFdControlPoint: TSFNode;
+    strict private FFdControlPoint: TSFNode;
     public property FdControlPoint: TSFNode read FFdControlPoint;
 
-    private FFdWeight: TMFDouble;
+    strict private FFdWeight: TMFDouble;
     public property FdWeight: TMFDouble read FFdWeight;
 
     { Event out } { }
-    private FEventPosition_changed: TSFVec3fEvent;
+    strict private FEventPosition_changed: TSFVec3fEvent;
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
     { Event out } { }
-    private FEventNormal_changed: TSFVec3fEvent;
+    strict private FEventNormal_changed: TSFVec3fEvent;
     public property EventNormal_changed: TSFVec3fEvent read FEventNormal_changed;
 
-    private FFdUDimension: TSFInt32;
+    strict private FFdUDimension: TSFInt32;
     public property FdUDimension: TSFInt32 read FFdUDimension;
 
-    private FFdUKnot: TMFDouble;
+    strict private FFdUKnot: TMFDouble;
     public property FdUKnot: TMFDouble read FFdUKnot;
 
-    private FFdUOrder: TSFInt32;
+    strict private FFdUOrder: TSFInt32;
     public property FdUOrder: TSFInt32 read FFdUOrder;
 
-    private FFdVDimension: TSFInt32;
+    strict private FFdVDimension: TSFInt32;
     public property FdVDimension: TSFInt32 read FFdVDimension;
 
-    private FFdVKnot: TMFDouble;
+    strict private FFdVKnot: TMFDouble;
     public property FdVKnot: TMFDouble read FFdVKnot;
 
-    private FFdVOrder: TSFInt32;
+    strict private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbssurfaceinterpolator.inc}
@@ -408,16 +408,16 @@
     class function URNMatching(const URN: string): boolean; override;
     function SolidField: TSFBool; override;
 
-    private FFdCrossSectionCurve: TSFNode;
+    strict private FFdCrossSectionCurve: TSFNode;
     public property FdCrossSectionCurve: TSFNode read FFdCrossSectionCurve;
 
-    private FFdTrajectoryCurve: TSFNode;
+    strict private FFdTrajectoryCurve: TSFNode;
     public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -442,16 +442,16 @@
     class function URNMatching(const URN: string): boolean; override;
     function SolidField: TSFBool; override;
 
-    private FFdProfileCurve: TSFNode;
+    strict private FFdProfileCurve: TSFNode;
     public property FdProfileCurve: TSFNode read FFdProfileCurve;
 
-    private FFdTrajectoryCurve: TSFNode;
+    strict private FFdTrajectoryCurve: TSFNode;
     public property FdTrajectoryCurve: TSFNode read FFdTrajectoryCurve;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -473,28 +473,28 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdControlPoint: TMFVec2f;
+    strict private FFdControlPoint: TMFVec2f;
     public property FdControlPoint: TMFVec2f read FFdControlPoint;
 
-    private FFdWeight: TMFFloat;
+    strict private FFdWeight: TMFFloat;
     public property FdWeight: TMFFloat read FFdWeight;
 
-    private FFdUDimension: TSFInt32;
+    strict private FFdUDimension: TSFInt32;
     public property FdUDimension: TSFInt32 read FFdUDimension;
 
-    private FFdUKnot: TMFDouble;
+    strict private FFdUKnot: TMFDouble;
     public property FdUKnot: TMFDouble read FFdUKnot;
 
-    private FFdUOrder: TSFInt32;
+    strict private FFdUOrder: TSFInt32;
     public property FdUOrder: TSFInt32 read FFdUOrder;
 
-    private FFdVDimension: TSFInt32;
+    strict private FFdVDimension: TSFInt32;
     public property FdVDimension: TSFInt32 read FFdVDimension;
 
-    private FFdVKnot: TMFDouble;
+    strict private FFdVKnot: TMFDouble;
     public property FdVKnot: TMFDouble read FFdVKnot;
 
-    private FFdVOrder: TSFInt32;
+    strict private FFdVOrder: TSFInt32;
     public property FdVOrder: TSFInt32 read FFdVOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbstexturecoordinate.inc}
@@ -514,14 +514,14 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventAddTrimmingContour: TMFNodeEvent;
+    strict private FEventAddTrimmingContour: TMFNodeEvent;
     public property EventAddTrimmingContour: TMFNodeEvent read FEventAddTrimmingContour;
 
     { Event in } { }
-    private FEventRemoveTrimmingContour: TMFNodeEvent;
+    strict private FEventRemoveTrimmingContour: TMFNodeEvent;
     public property EventRemoveTrimmingContour: TMFNodeEvent read FEventRemoveTrimmingContour;
 
-    private FFdTrimmingContour: TMFNode;
+    strict private FFdTrimmingContour: TMFNode;
     public property FdTrimmingContour: TMFNode read FFdTrimmingContour;
 
     function Proxy(var State: TX3DGraphTraverseState;

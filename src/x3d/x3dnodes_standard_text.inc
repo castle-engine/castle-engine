@@ -64,39 +64,39 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFamily: TMFString;
+    strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
     property Family: TX3DFontFamily read GetFamily write SetFamily;
 
-    private FFdHorizontal: TSFBool;
+    strict private FFdHorizontal: TSFBool;
     public property FdHorizontal: TSFBool read FFdHorizontal;
 
-    private FFdJustify: TMFString;
+    strict private FFdJustify: TMFString;
     public property FdJustify: TMFString read FFdJustify;
     property Justify: TX3DFontJustify read GetJustify write SetJustify;
     property JustifyMinor: TX3DFontJustify read GetJustifyMinor write SetJustifyMinor;
 
-    private FFdLanguage: TSFString;
+    strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
-    private FFdLeftToRight: TSFBool;
+    strict private FFdLeftToRight: TSFBool;
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
 
-    private FFdSize: TSFFloat;
+    strict private FFdSize: TSFFloat;
     public property FdSize: TSFFloat read FFdSize;
 
-    private FFdSpacing: TSFFloat;
+    strict private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
-    private FFdStyle: TSFString;
+    strict private FFdStyle: TSFString;
     public property FdStyle: TSFString read FFdStyle;
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
 
-    private FFdTopToBottom: TSFBool;
+    strict private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 
-    private FFdBlending: TSFBool;
+    strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
     property Blending: boolean read GetBlending write SetBlending;
 
@@ -144,34 +144,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFontStyle: TSFNode;
+    strict private FFdFontStyle: TSFNode;
     public property FdFontStyle: TSFNode read FFdFontStyle;
 
-    private FFdLength: TMFFloat;
+    strict private FFdLength: TMFFloat;
     public property FdLength: TMFFloat read FFdLength;
 
-    private FFdMaxExtent: TSFFloat;
+    strict private FFdMaxExtent: TSFFloat;
     public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
-    private FFdString: TMFString;
+    strict private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
 
     { Event out } { }
-    private FEventLineBounds: TMFVec2fEvent;
+    strict private FEventLineBounds: TMFVec2fEvent;
     public property EventLineBounds: TMFVec2fEvent read FEventLineBounds;
 
     { Event out } { }
-    private FEventOrigin: TSFVec3fEvent;
+    strict private FEventOrigin: TSFVec3fEvent;
     public property EventOrigin: TSFVec3fEvent read FEventOrigin;
 
     { Event out } { }
-    private FEventTextBounds: TSFVec2fEvent;
+    strict private FEventTextBounds: TSFVec2fEvent;
     public property EventTextBounds: TSFVec2fEvent read FEventTextBounds;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 

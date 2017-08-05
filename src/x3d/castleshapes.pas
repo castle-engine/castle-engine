@@ -129,7 +129,7 @@ type
     all the geometry nodes (TAbstractGeometryNode) along with their state
     (TX3DGraphTraverseState) as leafs (TShape). }
   TShapeTree = class
-  private
+  strict private
     FParentScene: TObject;
   public
     constructor Create(AParentScene: TObject);
@@ -201,7 +201,7 @@ type
     All you have to do is to call appropriate @code(Changed*)
     methods of @link(TCastleSceneCore). }
   TShape = class(TShapeTree)
-  private
+  strict private
   type
     TShapeValidities = set of (svLocalBBox, svBBox,
       svVerticesCountNotOver,  svVerticesCountOver,
@@ -252,7 +252,7 @@ type
       freeing eventual instances created by Proxy methods.
       Next Geometry() or State() call will cause Proxy to be recalculated. }
     procedure FreeProxy;
-  private
+  strict private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
       const Position: TTriangle3;
@@ -260,7 +260,7 @@ type
       const Face: TFaceIndex);
     function CreateTriangleOctree(const ALimits: TOctreeLimits;
       const ProgressTitle: string): TTriangleOctree;
-  private
+  strict private
     FTriangleOctreeLimits: TOctreeLimits;
     FTriangleOctreeProgressTitle: string;
 
@@ -271,7 +271,7 @@ type
 
     function OverrideOctreeLimits(
       const BaseLimits: TOctreeLimits): TOctreeLimits;
-  private
+  strict private
     {$ifdef SHAPE_OCTREE_USE_MAILBOX}
     { Mailbox, for speeding up collision queries.
       @groupBegin }
@@ -630,7 +630,7 @@ type
     one parent TShapeTree. (VRML node's parenting mechanism is more
     complicated than this, because of DEF/USE mechanism.) }
   TShapeTreeGroup = class(TShapeTree)
-  private
+  strict private
     FChildren: TShapeTreeList;
   public
     constructor Create(AParentScene: TObject);
@@ -674,7 +674,7 @@ type
     nodes after Switch). Actually, it even has a SwitchNode link that is
     used to decide which child to choose (using SwitchNode.FdWhichChoice).  }
   TShapeTreeSwitch = class(TShapeTreeGroup)
-  private
+  strict private
     FSwitchNode: TSwitchNode;
   public
     property SwitchNode: TSwitchNode read FSwitchNode write FSwitchNode;
@@ -699,7 +699,7 @@ type
     and similar nodes (MatrixTransform and some H-Anim nodes also act
     as a transformation node and also may be handled by this). }
   TShapeTreeTransform = class(TShapeTreeGroup)
-  private
+  strict private
     FTransformNode: TX3DNode;
     FTransformState: TX3DGraphTraverseState;
   public
@@ -737,7 +737,7 @@ type
     parent scene has CameraPosition and such, and parent scene
     knows whether to initiate level_changes event sending.) }
   TShapeTreeLOD = class(TShapeTreeGroup)
-  private
+  strict private
     FLODNode: TAbstractLODNode;
     FLODInvertedTransform: TMatrix4;
     FLevel: Cardinal;
@@ -779,7 +779,7 @@ type
   end;
 
   TProximitySensorInstance = class(TShapeTree)
-  private
+  strict private
     FNode: TProximitySensorNode;
   public
     InvertedTransform: TMatrix4;
@@ -799,7 +799,7 @@ type
   end;
 
   TVisibilitySensorInstance = class(TShapeTree)
-  private
+  strict private
     FNode: TVisibilitySensorNode;
   public
     { Bounding box of this visibility sensor instance,
@@ -827,7 +827,7 @@ type
     Tree.Traverse. Sometimes it's easier to write code using this iterator
     than to create callbacks and use TShapeTree.Traverse. }
   TShapeTreeIterator = class
-  private
+  strict private
     FCurrent: TShape;
     {$ifdef SHAPE_ITERATOR_SOPHISTICATED}
     Info: Pointer;

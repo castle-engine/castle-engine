@@ -761,7 +761,7 @@ begin
     WritelnVerbose('Node does not have any helpers (for now), generating empty include file: ' + Node.X3DType);
 
   if OutputPrivateInterface <> '' then
-    OutputPrivateInterface := '  private' + NL + OutputPrivateInterface;
+    OutputPrivateInterface := '  strict private' + NL + OutputPrivateInterface;
   if OutputPublicInterface <> '' then
     OutputPublicInterface := '  public' + NL + OutputPublicInterface;
 
@@ -867,7 +867,7 @@ begin
       OutputInterface +=
         NL +
         '    { Event ' + EventInOrOut + ' } { }' + NL +
-        '    private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       OutputImplementation +=
@@ -883,7 +883,7 @@ begin
     begin
       OutputInterface +=
         NL +
-        '    private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry]; // TODO: adjust if necessary' + NL;

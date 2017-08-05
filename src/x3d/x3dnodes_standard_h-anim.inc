@@ -22,16 +22,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdDisplacements: TMFVec3f;
+    strict private FFdDisplacements: TMFVec3f;
     public property FdDisplacements: TMFVec3f read FFdDisplacements;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdWeight: TSFFloat;
+    strict private FFdWeight: TSFFloat;
     public property FdWeight: TSFFloat read FFdWeight;
 
     {$I auto_generated_node_helpers/x3dnodes_hanimdisplacer.inc}
@@ -52,7 +52,7 @@
   { Central node for moving the animated humanoid. It contains the skeleton,
     and other information necessary for animation. }
   THAnimHumanoidNode = class(TAbstractChildNode, IAbstractBoundedObject, ITransformNode)
-  private
+  strict private
     VertexJoints: TVertexJointsList;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
@@ -66,58 +66,58 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdInfo: TMFString;
+    strict private FFdInfo: TMFString;
     public property FdInfo: TMFString read FFdInfo;
 
-    private FFdJoints: TMFNode;
+    strict private FFdJoints: TMFNode;
     public property FdJoints: TMFNode read FFdJoints;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdSegments: TMFNode;
+    strict private FFdSegments: TMFNode;
     public property FdSegments: TMFNode read FFdSegments;
 
-    private FFdSites: TMFNode;
+    strict private FFdSites: TMFNode;
     public property FdSites: TMFNode read FFdSites;
 
-    private FFdSkeleton: TMFNode;
+    strict private FFdSkeleton: TMFNode;
     public property FdSkeleton: TMFNode read FFdSkeleton;
 
-    private FFdSkin: TMFNode;
+    strict private FFdSkin: TMFNode;
     public property FdSkin: TMFNode read FFdSkin;
 
-    private FFdSkinCoord: TSFNode;
+    strict private FFdSkinCoord: TSFNode;
     public property FdSkinCoord: TSFNode read FFdSkinCoord;
 
-    private FFdSkinNormal: TSFNode;
+    strict private FFdSkinNormal: TSFNode;
     public property FdSkinNormal: TSFNode read FFdSkinNormal;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdVersion: TSFString;
+    strict private FFdVersion: TSFString;
     public property FdVersion: TSFString read FFdVersion;
 
-    private FFdViewpoints: TMFNode;
+    strict private FFdViewpoints: TMFNode;
     public property FdViewpoints: TMFNode read FFdViewpoints;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     { Change the skin (in skinCoord), to follow the animation of joints.
@@ -137,9 +137,10 @@
   { Joint of an animated humanoid.
     Joints are organized in a hierarchy, like bones. }
   THAnimJointNode = class(TAbstractX3DGroupingNode, ITransformNode)
-  private
+  strict private
     AnimateSkinTransform: TMatrix4;
     RestCenter: TVector3;
+  private
     { Animate point, based on it's rest position.
 
       We used, at one point, to apply here a relative change since last position.
@@ -165,43 +166,43 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdDisplacers: TMFNode;
+    strict private FFdDisplacers: TMFNode;
     public property FdDisplacers: TMFNode read FFdDisplacers;
 
-    private FFdLimitOrientation: TSFRotation;
+    strict private FFdLimitOrientation: TSFRotation;
     public property FdLimitOrientation: TSFRotation read FFdLimitOrientation;
 
-    private FFdLlimit: TMFFloat;
+    strict private FFdLlimit: TMFFloat;
     public property FdLlimit: TMFFloat read FFdLlimit;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdSkinCoordIndex: TMFInt32;
+    strict private FFdSkinCoordIndex: TMFInt32;
     public property FdSkinCoordIndex: TMFInt32 read FFdSkinCoordIndex;
 
-    private FFdSkinCoordWeight: TMFFloat;
+    strict private FFdSkinCoordWeight: TMFFloat;
     public property FdSkinCoordWeight: TMFFloat read FFdSkinCoordWeight;
 
-    private FFdStiffness: TMFFloat;
+    strict private FFdStiffness: TMFFloat;
     public property FdStiffness: TMFFloat read FFdStiffness;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdUlimit: TMFFloat;
+    strict private FFdUlimit: TMFFloat;
     public property FdUlimit: TMFFloat read FFdUlimit;
 
     {$I auto_generated_node_helpers/x3dnodes_hanimjoint.inc}
@@ -219,22 +220,22 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenterOfMass: TSFVec3f;
+    strict private FFdCenterOfMass: TSFVec3f;
     public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
 
-    private FFdCoord: TSFNode;
+    strict private FFdCoord: TSFNode;
     public property FdCoord: TSFNode read FFdCoord;
 
-    private FFdDisplacers: TMFNode;
+    strict private FFdDisplacers: TMFNode;
     public property FdDisplacers: TMFNode read FFdDisplacers;
 
-    private FFdMass: TSFFloat;
+    strict private FFdMass: TSFFloat;
     public property FdMass: TSFFloat read FFdMass;
 
-    private FFdMomentsOfInertia: TMFFloat;
+    strict private FFdMomentsOfInertia: TMFFloat;
     public property FdMomentsOfInertia: TMFFloat read FFdMomentsOfInertia;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
     { Segment.rotation, scale, translation are extensions of Blaxxun
@@ -243,13 +244,13 @@
       suggests.
       They are not conforming to HAnim 1.0 or 200x specification. }
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     {$I auto_generated_node_helpers/x3dnodes_hanimsegment.inc}
@@ -267,22 +268,22 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     {$I auto_generated_node_helpers/x3dnodes_hanimsite.inc}

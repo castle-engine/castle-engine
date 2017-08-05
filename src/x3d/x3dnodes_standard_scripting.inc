@@ -19,7 +19,7 @@
 
   { Abstract node type for all scripting nodes. }
   TAbstractScriptNode = class(TAbstractChildNode, IAbstractUrlObject)
-  private
+  strict private
     FInitialized: boolean;
     procedure SetInitialized(const Value: boolean);
   private
@@ -38,7 +38,7 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     { Initialize / shutdown of the script. Read this to know current
@@ -69,7 +69,7 @@
 
   { Program behaviour in a scene using scripts. }
   TScriptNode = class(TAbstractScriptNode)
-  private
+  strict private
     procedure IDeclEventReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -77,10 +77,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDirectOutput: TSFBool;
+    strict private FFdDirectOutput: TSFBool;
     public property FdDirectOutput: TSFBool read FFdDirectOutput;
 
-    private FFdMustEvaluate: TSFBool;
+    strict private FFdMustEvaluate: TSFBool;
     public property FdMustEvaluate: TSFBool read FFdMustEvaluate;
 
     procedure PostAddInterfaceDeclaration(IDecl: TX3DInterfaceDeclaration); override;

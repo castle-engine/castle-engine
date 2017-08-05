@@ -22,13 +22,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdEndAngle: TSFFloat;
+    strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdStartAngle: TSFFloat;
+    strict private FFdStartAngle: TSFFloat;
     public property FdStartAngle: TSFFloat read FFdStartAngle;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -49,19 +49,19 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdClosureType: TSFString;
+    strict private FFdClosureType: TSFString;
     public property FdClosureType: TSFString read FFdClosureType;
 
-    private FFdEndAngle: TSFFloat;
+    strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdStartAngle: TSFFloat;
+    strict private FFdStartAngle: TSFFloat;
     public property FdStartAngle: TSFFloat read FFdStartAngle;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -81,10 +81,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
@@ -103,13 +103,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdInnerRadius: TSFFloat;
+    strict private FFdInnerRadius: TSFFloat;
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
 
-    private FFdOuterRadius: TSFFloat;
+    strict private FFdOuterRadius: TSFFloat;
     public property FdOuterRadius: TSFFloat read FFdOuterRadius;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -130,7 +130,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdLineSegments: TMFVec2f;
+    strict private FFdLineSegments: TMFVec2f;
     { Polyline segments.
       In VRML 97 it is called "point", in X3D it is "lineSegments". }
     public property FdLineSegments: TMFVec2f read FFdLineSegments;
@@ -153,7 +153,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec2f;
+    strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -173,10 +173,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSize: TSFVec2f;
+    strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -194,10 +194,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdVertices: TMFVec2f;
+    strict private FFdVertices: TMFVec2f;
     public property FdVertices: TMFVec2f read FFdVertices;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;

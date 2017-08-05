@@ -21,19 +21,19 @@
   public
     procedure CreateNode; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollidablenode.inc}
@@ -43,13 +43,13 @@
   public
     procedure CreateNode; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnbodycollisionspacenode.inc}
@@ -59,13 +59,13 @@
   public
     procedure CreateNode; override;
 
-    private FFdBody1: TSFNode;
+    strict private FFdBody1: TSFNode;
     public property FdBody1: TSFNode read FFdBody1;
 
-    private FFdBody2: TSFNode;
+    strict private FFdBody2: TSFNode;
     public property FdBody2: TSFNode read FFdBody2;
 
-    private FFdForceOutput: TMFString;
+    strict private FFdForceOutput: TMFString;
     public property FdForceOutput: TMFString read FFdForceOutput;
 
     {$I auto_generated_node_helpers/x3dnodes_x3drigidjointnode.inc}
@@ -77,15 +77,15 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAnchorPoint: TSFVec3f;
+    strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
 
     { Event out } { }
-    private FEventBody1AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     { Event out } { }
-    private FEventBody2AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_balljoint.inc}
@@ -97,7 +97,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCollidable: TSFNode;
+    strict private FFdCollidable: TSFNode;
     public property FdCollidable: TSFNode read FFdCollidable;
 
     {$I auto_generated_node_helpers/x3dnodes_collidableoffset.inc}
@@ -109,7 +109,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdShape: TSFNode;
+    strict private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
 
     {$I auto_generated_node_helpers/x3dnodes_collidableshape.inc}
@@ -121,34 +121,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAppliedParameters: TMFString;
+    strict private FFdAppliedParameters: TMFString;
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
 
-    private FFdBounce: TSFFloat;
+    strict private FFdBounce: TSFFloat;
     public property FdBounce: TSFFloat read FFdBounce;
 
-    private FFdCollidables: TMFNode;
+    strict private FFdCollidables: TMFNode;
     public property FdCollidables: TMFNode read FFdCollidables;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdFrictionCoefficients: TSFVec2f;
+    strict private FFdFrictionCoefficients: TSFVec2f;
     public property FdFrictionCoefficients: TSFVec2f read FFdFrictionCoefficients;
 
-    private FFdMinBounceSpeed: TSFFloat;
+    strict private FFdMinBounceSpeed: TSFFloat;
     public property FdMinBounceSpeed: TSFFloat read FFdMinBounceSpeed;
 
-    private FFdSlipFactors: TSFVec2f;
+    strict private FFdSlipFactors: TSFVec2f;
     public property FdSlipFactors: TSFVec2f read FFdSlipFactors;
 
-    private FFdSoftnessConstantForceMix: TSFFloat;
+    strict private FFdSoftnessConstantForceMix: TSFFloat;
     public property FdSoftnessConstantForceMix: TSFFloat read FFdSoftnessConstantForceMix;
 
-    private FFdSoftnessErrorCorrection: TSFFloat;
+    strict private FFdSoftnessErrorCorrection: TSFFloat;
     public property FdSoftnessErrorCorrection: TSFFloat read FFdSoftnessErrorCorrection;
 
-    private FFdSurfaceSpeed: TSFVec2f;
+    strict private FFdSurfaceSpeed: TSFVec2f;
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
 
     {$I auto_generated_node_helpers/x3dnodes_collisioncollection.inc}
@@ -160,15 +160,15 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCollider: TSFNode;
+    strict private FFdCollider: TSFNode;
     public property FdCollider: TSFNode read FFdCollider;
 
     { Event out } { }
-    private FEventIntersections: TMFNodeEvent;
+    strict private FEventIntersections: TMFNodeEvent;
     public property EventIntersections: TMFNodeEvent read FEventIntersections;
 
     { Event out } { }
-    private FEventContacts: TMFNodeEvent;
+    strict private FEventContacts: TMFNodeEvent;
     public property EventContacts: TMFNodeEvent read FEventContacts;
 
     {$I auto_generated_node_helpers/x3dnodes_collisionsensor.inc}
@@ -180,10 +180,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCollidables: TMFNode;
+    strict private FFdCollidables: TMFNode;
     public property FdCollidables: TMFNode read FFdCollidables;
 
-    private FFdUseGeometry: TSFBool;
+    strict private FFdUseGeometry: TSFBool;
     public property FdUseGeometry: TSFBool read FFdUseGeometry;
 
     {$I auto_generated_node_helpers/x3dnodes_collisionspace.inc}
@@ -195,52 +195,52 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAppliedParameters: TMFString;
+    strict private FFdAppliedParameters: TMFString;
     public property FdAppliedParameters: TMFString read FFdAppliedParameters;
 
-    private FFdBody1: TSFNode;
+    strict private FFdBody1: TSFNode;
     public property FdBody1: TSFNode read FFdBody1;
 
-    private FFdBody2: TSFNode;
+    strict private FFdBody2: TSFNode;
     public property FdBody2: TSFNode read FFdBody2;
 
-    private FFdBounce: TSFFloat;
+    strict private FFdBounce: TSFFloat;
     public property FdBounce: TSFFloat read FFdBounce;
 
-    private FFdContactNormal: TSFVec3f;
+    strict private FFdContactNormal: TSFVec3f;
     public property FdContactNormal: TSFVec3f read FFdContactNormal;
 
-    private FFdDepth: TSFFloat;
+    strict private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
-    private FFdFrictionCoefficients: TSFVec2f;
+    strict private FFdFrictionCoefficients: TSFVec2f;
     public property FdFrictionCoefficients: TSFVec2f read FFdFrictionCoefficients;
 
-    private FFdFrictionDirection: TSFVec3f;
+    strict private FFdFrictionDirection: TSFVec3f;
     public property FdFrictionDirection: TSFVec3f read FFdFrictionDirection;
 
-    private FFdGeometry1: TSFNode;
+    strict private FFdGeometry1: TSFNode;
     public property FdGeometry1: TSFNode read FFdGeometry1;
 
-    private FFdGeometry2: TSFNode;
+    strict private FFdGeometry2: TSFNode;
     public property FdGeometry2: TSFNode read FFdGeometry2;
 
-    private FFdMinbounceSpeed: TSFFloat;
+    strict private FFdMinbounceSpeed: TSFFloat;
     public property FdMinbounceSpeed: TSFFloat read FFdMinbounceSpeed;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
-    private FFdSlipCoefficients: TSFVec2f;
+    strict private FFdSlipCoefficients: TSFVec2f;
     public property FdSlipCoefficients: TSFVec2f read FFdSlipCoefficients;
 
-    private FFdSoftnessConstantForceMix: TSFFloat;
+    strict private FFdSoftnessConstantForceMix: TSFFloat;
     public property FdSoftnessConstantForceMix: TSFFloat read FFdSoftnessConstantForceMix;
 
-    private FFdSoftnessErrorCorrection: TSFFloat;
+    strict private FFdSoftnessErrorCorrection: TSFFloat;
     public property FdSoftnessErrorCorrection: TSFFloat read FFdSoftnessErrorCorrection;
 
-    private FFdSurfaceSpeed: TSFVec2f;
+    strict private FFdSurfaceSpeed: TSFVec2f;
     public property FdSurfaceSpeed: TSFVec2f read FFdSurfaceSpeed;
 
     {$I auto_generated_node_helpers/x3dnodes_contact.inc}
@@ -252,78 +252,78 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAnchorPoint: TSFVec3f;
+    strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
 
-    private FFdAxis1: TSFVec3f;
+    strict private FFdAxis1: TSFVec3f;
     public property FdAxis1: TSFVec3f read FFdAxis1;
 
-    private FFdAxis2: TSFVec3f;
+    strict private FFdAxis2: TSFVec3f;
     public property FdAxis2: TSFVec3f read FFdAxis2;
 
-    private FFdDesiredAngularVelocity1: TSFFloat;
+    strict private FFdDesiredAngularVelocity1: TSFFloat;
     public property FdDesiredAngularVelocity1: TSFFloat read FFdDesiredAngularVelocity1;
 
-    private FFdDesiredAngularVelocity2: TSFFloat;
+    strict private FFdDesiredAngularVelocity2: TSFFloat;
     public property FdDesiredAngularVelocity2: TSFFloat read FFdDesiredAngularVelocity2;
 
-    private FFdMaxAngle1: TSFFloat;
+    strict private FFdMaxAngle1: TSFFloat;
     public property FdMaxAngle1: TSFFloat read FFdMaxAngle1;
 
-    private FFdMaxTorque1: TSFFloat;
+    strict private FFdMaxTorque1: TSFFloat;
     public property FdMaxTorque1: TSFFloat read FFdMaxTorque1;
 
-    private FFdMaxTorque2: TSFFloat;
+    strict private FFdMaxTorque2: TSFFloat;
     public property FdMaxTorque2: TSFFloat read FFdMaxTorque2;
 
-    private FFdMinAngle1: TSFFloat;
+    strict private FFdMinAngle1: TSFFloat;
     public property FdMinAngle1: TSFFloat read FFdMinAngle1;
 
-    private FFdStopBounce1: TSFFloat;
+    strict private FFdStopBounce1: TSFFloat;
     public property FdStopBounce1: TSFFloat read FFdStopBounce1;
 
-    private FFdStopConstantForceMix1: TSFFloat;
+    strict private FFdStopConstantForceMix1: TSFFloat;
     public property FdStopConstantForceMix1: TSFFloat read FFdStopConstantForceMix1;
 
-    private FFdStopErrorCorrection1: TSFFloat;
+    strict private FFdStopErrorCorrection1: TSFFloat;
     public property FdStopErrorCorrection1: TSFFloat read FFdStopErrorCorrection1;
 
-    private FFdSuspensionErrorCorrection: TSFFloat;
+    strict private FFdSuspensionErrorCorrection: TSFFloat;
     public property FdSuspensionErrorCorrection: TSFFloat read FFdSuspensionErrorCorrection;
 
-    private FFdSuspensionForce: TSFFloat;
+    strict private FFdSuspensionForce: TSFFloat;
     public property FdSuspensionForce: TSFFloat read FFdSuspensionForce;
 
     { Event out } { }
-    private FEventBody1AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     { Event out } { }
-    private FEventBody1Axis: TSFVec3fEvent;
+    strict private FEventBody1Axis: TSFVec3fEvent;
     public property EventBody1Axis: TSFVec3fEvent read FEventBody1Axis;
 
     { Event out } { }
-    private FEventBody2AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
     { Event out } { }
-    private FEventBody2Axis: TSFVec3fEvent;
+    strict private FEventBody2Axis: TSFVec3fEvent;
     public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
 
     { Event out } { }
-    private FEventHinge1Angle: TSFFloatEvent;
+    strict private FEventHinge1Angle: TSFFloatEvent;
     public property EventHinge1Angle: TSFFloatEvent read FEventHinge1Angle;
 
     { Event out } { }
-    private FEventHinge1AngleRate: TSFFloatEvent;
+    strict private FEventHinge1AngleRate: TSFFloatEvent;
     public property EventHinge1AngleRate: TSFFloatEvent read FEventHinge1AngleRate;
 
     { Event out } { }
-    private FEventHinge2Angle: TSFFloatEvent;
+    strict private FEventHinge2Angle: TSFFloatEvent;
     public property EventHinge2Angle: TSFFloatEvent read FEventHinge2Angle;
 
     { Event out } { }
-    private FEventHinge2AngleRate: TSFFloatEvent;
+    strict private FEventHinge2AngleRate: TSFFloatEvent;
     public property EventHinge2AngleRate: TSFFloatEvent read FEventHinge2AngleRate;
 
     {$I auto_generated_node_helpers/x3dnodes_doubleaxishingejoint.inc}
@@ -335,79 +335,79 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAxis1Angle: TSFFloat;
+    strict private FFdAxis1Angle: TSFFloat;
     public property FdAxis1Angle: TSFFloat read FFdAxis1Angle;
 
-    private FFdAxis1Torque: TSFFloat;
+    strict private FFdAxis1Torque: TSFFloat;
     public property FdAxis1Torque: TSFFloat read FFdAxis1Torque;
 
-    private FFdAxis2Angle: TSFFloat;
+    strict private FFdAxis2Angle: TSFFloat;
     public property FdAxis2Angle: TSFFloat read FFdAxis2Angle;
 
-    private FFdAxis2Torque: TSFFloat;
+    strict private FFdAxis2Torque: TSFFloat;
     public property FdAxis2Torque: TSFFloat read FFdAxis2Torque;
 
-    private FFdAxis3Angle: TSFFloat;
+    strict private FFdAxis3Angle: TSFFloat;
     public property FdAxis3Angle: TSFFloat read FFdAxis3Angle;
 
-    private FFdAxis3Torque: TSFFloat;
+    strict private FFdAxis3Torque: TSFFloat;
     public property FdAxis3Torque: TSFFloat read FFdAxis3Torque;
 
-    private FFdEnabledAxes: TSFInt32;
+    strict private FFdEnabledAxes: TSFInt32;
     public property FdEnabledAxes: TSFInt32 read FFdEnabledAxes;
 
-    private FFdMotor1Axis: TSFVec3f;
+    strict private FFdMotor1Axis: TSFVec3f;
     public property FdMotor1Axis: TSFVec3f read FFdMotor1Axis;
 
-    private FFdMotor2Axis: TSFVec3f;
+    strict private FFdMotor2Axis: TSFVec3f;
     public property FdMotor2Axis: TSFVec3f read FFdMotor2Axis;
 
-    private FFdMotor3Axis: TSFVec3f;
+    strict private FFdMotor3Axis: TSFVec3f;
     public property FdMotor3Axis: TSFVec3f read FFdMotor3Axis;
 
-    private FFdStop1Bounce: TSFFloat;
+    strict private FFdStop1Bounce: TSFFloat;
     public property FdStop1Bounce: TSFFloat read FFdStop1Bounce;
 
-    private FFdStop1ErrorCorrection: TSFFloat;
+    strict private FFdStop1ErrorCorrection: TSFFloat;
     public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
 
-    private FFdStop2Bounce: TSFFloat;
+    strict private FFdStop2Bounce: TSFFloat;
     public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
 
-    private FFdStop2ErrorCorrection: TSFFloat;
+    strict private FFdStop2ErrorCorrection: TSFFloat;
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
 
-    private FFdStop3Bounce: TSFFloat;
+    strict private FFdStop3Bounce: TSFFloat;
     public property FdStop3Bounce: TSFFloat read FFdStop3Bounce;
 
-    private FFdStop3ErrorCorrection: TSFFloat;
+    strict private FFdStop3ErrorCorrection: TSFFloat;
     public property FdStop3ErrorCorrection: TSFFloat read FFdStop3ErrorCorrection;
 
     { Event out } { }
-    private FEventMotor1Angle: TSFFloatEvent;
+    strict private FEventMotor1Angle: TSFFloatEvent;
     public property EventMotor1Angle: TSFFloatEvent read FEventMotor1Angle;
 
     { Event out } { }
-    private FEventMotor1AngleRate: TSFFloatEvent;
+    strict private FEventMotor1AngleRate: TSFFloatEvent;
     public property EventMotor1AngleRate: TSFFloatEvent read FEventMotor1AngleRate;
 
     { Event out } { }
-    private FEventMotor2Angle: TSFFloatEvent;
+    strict private FEventMotor2Angle: TSFFloatEvent;
     public property EventMotor2Angle: TSFFloatEvent read FEventMotor2Angle;
 
     { Event out } { }
-    private FEventMotor2AngleRate: TSFFloatEvent;
+    strict private FEventMotor2AngleRate: TSFFloatEvent;
     public property EventMotor2AngleRate: TSFFloatEvent read FEventMotor2AngleRate;
 
     { Event out } { }
-    private FEventMotor3Angle: TSFFloatEvent;
+    strict private FEventMotor3Angle: TSFFloatEvent;
     public property EventMotor3Angle: TSFFloatEvent read FEventMotor3Angle;
 
     { Event out } { }
-    private FEventMotor3AngleRate: TSFFloatEvent;
+    strict private FEventMotor3AngleRate: TSFFloatEvent;
     public property EventMotor3AngleRate: TSFFloatEvent read FEventMotor3AngleRate;
 
-    private FFdAutoCalc: TSFBool;
+    strict private FFdAutoCalc: TSFBool;
     public property FdAutoCalc: TSFBool read FFdAutoCalc;
 
     {$I auto_generated_node_helpers/x3dnodes_motorjoint.inc}
@@ -419,73 +419,73 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAngularDampingFactor: TSFFloat;
+    strict private FFdAngularDampingFactor: TSFFloat;
     public property FdAngularDampingFactor: TSFFloat read FFdAngularDampingFactor;
 
-    private FFdAngularVelocity: TSFVec3f;
+    strict private FFdAngularVelocity: TSFVec3f;
     public property FdAngularVelocity: TSFVec3f read FFdAngularVelocity;
 
-    private FFdAutoDamp: TSFBool;
+    strict private FFdAutoDamp: TSFBool;
     public property FdAutoDamp: TSFBool read FFdAutoDamp;
 
-    private FFdAutoDisable: TSFBool;
+    strict private FFdAutoDisable: TSFBool;
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
 
-    private FFdCenterOfMass: TSFVec3f;
+    strict private FFdCenterOfMass: TSFVec3f;
     public property FdCenterOfMass: TSFVec3f read FFdCenterOfMass;
 
-    private FFdDisableAngularSpeed: TSFFloat;
+    strict private FFdDisableAngularSpeed: TSFFloat;
     public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
 
-    private FFdDisableLinearSpeed: TSFFloat;
+    strict private FFdDisableLinearSpeed: TSFFloat;
     public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
 
-    private FFdDisableTime: TSFFloat;
+    strict private FFdDisableTime: TSFFloat;
     public property FdDisableTime: TSFFloat read FFdDisableTime;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdFiniteRotationAxis: TSFVec3f;
+    strict private FFdFiniteRotationAxis: TSFVec3f;
     public property FdFiniteRotationAxis: TSFVec3f read FFdFiniteRotationAxis;
 
-    private FFdFixed: TSFBool;
+    strict private FFdFixed: TSFBool;
     public property FdFixed: TSFBool read FFdFixed;
 
-    private FFdForces: TMFVec3f;
+    strict private FFdForces: TMFVec3f;
     public property FdForces: TMFVec3f read FFdForces;
 
-    private FFdGeometry: TMFNode;
+    strict private FFdGeometry: TMFNode;
     public property FdGeometry: TMFNode read FFdGeometry;
 
-    private FFdInertia: TSFMatrix3f;
+    strict private FFdInertia: TSFMatrix3f;
     public property FdInertia: TSFMatrix3f read FFdInertia;
 
-    private FFdLinearDampingFactor: TSFFloat;
+    strict private FFdLinearDampingFactor: TSFFloat;
     public property FdLinearDampingFactor: TSFFloat read FFdLinearDampingFactor;
 
-    private FFdLinearVelocity: TSFVec3f;
+    strict private FFdLinearVelocity: TSFVec3f;
     public property FdLinearVelocity: TSFVec3f read FFdLinearVelocity;
 
-    private FFdMass: TSFFloat;
+    strict private FFdMass: TSFFloat;
     public property FdMass: TSFFloat read FFdMass;
 
-    private FFdMassDensityModel: TSFNode;
+    strict private FFdMassDensityModel: TSFNode;
     public property FdMassDensityModel: TSFNode read FFdMassDensityModel;
 
-    private FFdOrientation: TSFRotation;
+    strict private FFdOrientation: TSFRotation;
     public property FdOrientation: TSFRotation read FFdOrientation;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
-    private FFdTorques: TMFVec3f;
+    strict private FFdTorques: TMFVec3f;
     public property FdTorques: TMFVec3f read FFdTorques;
 
-    private FFdUseFiniteRotation: TSFBool;
+    strict private FFdUseFiniteRotation: TSFBool;
     public property FdUseFiniteRotation: TSFBool read FFdUseFiniteRotation;
 
-    private FFdUseGlobalGravity: TSFBool;
+    strict private FFdUseGlobalGravity: TSFBool;
     public property FdUseGlobalGravity: TSFBool read FFdUseGlobalGravity;
 
     {$I auto_generated_node_helpers/x3dnodes_rigidbody.inc}
@@ -498,52 +498,52 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_contacts: TMFNodeEvent;
+    strict private FEventSet_contacts: TMFNodeEvent;
     public property EventSet_contacts: TMFNodeEvent read FEventSet_contacts;
 
-    private FFdAutoDisable: TSFBool;
+    strict private FFdAutoDisable: TSFBool;
     public property FdAutoDisable: TSFBool read FFdAutoDisable;
 
-    private FFdBodies: TMFNode;
+    strict private FFdBodies: TMFNode;
     public property FdBodies: TMFNode read FFdBodies;
 
-    private FFdConstantForceMix: TSFFloat;
+    strict private FFdConstantForceMix: TSFFloat;
     public property FdConstantForceMix: TSFFloat read FFdConstantForceMix;
 
-    private FFdContactSurfaceThickness: TSFFloat;
+    strict private FFdContactSurfaceThickness: TSFFloat;
     public property FdContactSurfaceThickness: TSFFloat read FFdContactSurfaceThickness;
 
-    private FFdDisableAngularSpeed: TSFFloat;
+    strict private FFdDisableAngularSpeed: TSFFloat;
     public property FdDisableAngularSpeed: TSFFloat read FFdDisableAngularSpeed;
 
-    private FFdDisableLinearSpeed: TSFFloat;
+    strict private FFdDisableLinearSpeed: TSFFloat;
     public property FdDisableLinearSpeed: TSFFloat read FFdDisableLinearSpeed;
 
-    private FFdDisableTime: TSFFloat;
+    strict private FFdDisableTime: TSFFloat;
     public property FdDisableTime: TSFFloat read FFdDisableTime;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdErrorCorrection: TSFFloat;
+    strict private FFdErrorCorrection: TSFFloat;
     public property FdErrorCorrection: TSFFloat read FFdErrorCorrection;
 
-    private FFdGravity: TSFVec3f;
+    strict private FFdGravity: TSFVec3f;
     public property FdGravity: TSFVec3f read FFdGravity;
 
-    private FFdIterations: TSFInt32;
+    strict private FFdIterations: TSFInt32;
     public property FdIterations: TSFInt32 read FFdIterations;
 
-    private FFdJoints: TMFNode;
+    strict private FFdJoints: TMFNode;
     public property FdJoints: TMFNode read FFdJoints;
 
-    private FFdMaxCorrectionSpeed: TSFFloat;
+    strict private FFdMaxCorrectionSpeed: TSFFloat;
     public property FdMaxCorrectionSpeed: TSFFloat read FFdMaxCorrectionSpeed;
 
-    private FFdPreferAccuracy: TSFBool;
+    strict private FFdPreferAccuracy: TSFBool;
     public property FdPreferAccuracy: TSFBool read FFdPreferAccuracy;
 
-    private FFdCollider: TSFNode;
+    strict private FFdCollider: TSFNode;
     public property FdCollider: TSFNode read FFdCollider;
 
     {$I auto_generated_node_helpers/x3dnodes_rigidbodycollection.inc}
@@ -555,38 +555,38 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAnchorPoint: TSFVec3f;
+    strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
 
-    private FFdAxis: TSFVec3f;
+    strict private FFdAxis: TSFVec3f;
     public property FdAxis: TSFVec3f read FFdAxis;
 
-    private FFdMaxAngle: TSFFloat;
+    strict private FFdMaxAngle: TSFFloat;
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
 
-    private FFdMinAngle: TSFFloat;
+    strict private FFdMinAngle: TSFFloat;
     public property FdMinAngle: TSFFloat read FFdMinAngle;
 
-    private FFdStopBounce: TSFFloat;
+    strict private FFdStopBounce: TSFFloat;
     public property FdStopBounce: TSFFloat read FFdStopBounce;
 
-    private FFdStopErrorCorrection: TSFFloat;
+    strict private FFdStopErrorCorrection: TSFFloat;
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
 
     { Event out } { }
-    private FEventAngle: TSFFloatEvent;
+    strict private FEventAngle: TSFFloatEvent;
     public property EventAngle: TSFFloatEvent read FEventAngle;
 
     { Event out } { }
-    private FEventAngleRate: TSFFloatEvent;
+    strict private FEventAngleRate: TSFFloatEvent;
     public property EventAngleRate: TSFFloatEvent read FEventAngleRate;
 
     { Event out } { }
-    private FEventBody1AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     { Event out } { }
-    private FEventBody2AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_singleaxishingejoint.inc}
@@ -598,30 +598,30 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAxis: TSFVec3f;
+    strict private FFdAxis: TSFVec3f;
     public property FdAxis: TSFVec3f read FFdAxis;
 
-    private FFdMaxSeparation: TSFFloat;
+    strict private FFdMaxSeparation: TSFFloat;
     public property FdMaxSeparation: TSFFloat read FFdMaxSeparation;
 
-    private FFdMinSeparation: TSFFloat;
+    strict private FFdMinSeparation: TSFFloat;
     public property FdMinSeparation: TSFFloat read FFdMinSeparation;
 
-    private FFdSliderForce: TSFFloat;
+    strict private FFdSliderForce: TSFFloat;
     public property FdSliderForce: TSFFloat read FFdSliderForce;
 
-    private FFdStopBounce: TSFFloat;
+    strict private FFdStopBounce: TSFFloat;
     public property FdStopBounce: TSFFloat read FFdStopBounce;
 
-    private FFdStopErrorCorrection: TSFFloat;
+    strict private FFdStopErrorCorrection: TSFFloat;
     public property FdStopErrorCorrection: TSFFloat read FFdStopErrorCorrection;
 
     { Event out } { }
-    private FEventSeparation: TSFFloatEvent;
+    strict private FEventSeparation: TSFFloatEvent;
     public property EventSeparation: TSFFloatEvent read FEventSeparation;
 
     { Event out } { }
-    private FEventSeparationRate: TSFFloatEvent;
+    strict private FEventSeparationRate: TSFFloatEvent;
     public property EventSeparationRate: TSFFloatEvent read FEventSeparationRate;
 
     {$I auto_generated_node_helpers/x3dnodes_sliderjoint.inc}
@@ -633,41 +633,41 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAnchorPoint: TSFVec3f;
+    strict private FFdAnchorPoint: TSFVec3f;
     public property FdAnchorPoint: TSFVec3f read FFdAnchorPoint;
 
-    private FFdAxis1: TSFVec3f;
+    strict private FFdAxis1: TSFVec3f;
     public property FdAxis1: TSFVec3f read FFdAxis1;
 
-    private FFdAxis2: TSFVec3f;
+    strict private FFdAxis2: TSFVec3f;
     public property FdAxis2: TSFVec3f read FFdAxis2;
 
-    private FFdStopBounce1: TSFFloat;
+    strict private FFdStopBounce1: TSFFloat;
     public property FdStopBounce1: TSFFloat read FFdStopBounce1;
 
-    private FFdStop1ErrorCorrection: TSFFloat;
+    strict private FFdStop1ErrorCorrection: TSFFloat;
     public property FdStop1ErrorCorrection: TSFFloat read FFdStop1ErrorCorrection;
 
-    private FFdStop2Bounce: TSFFloat;
+    strict private FFdStop2Bounce: TSFFloat;
     public property FdStop2Bounce: TSFFloat read FFdStop2Bounce;
 
-    private FFdStop2ErrorCorrection: TSFFloat;
+    strict private FFdStop2ErrorCorrection: TSFFloat;
     public property FdStop2ErrorCorrection: TSFFloat read FFdStop2ErrorCorrection;
 
     { Event out } { }
-    private FEventBody1AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody1AnchorPoint: TSFVec3fEvent;
     public property EventBody1AnchorPoint: TSFVec3fEvent read FEventBody1AnchorPoint;
 
     { Event out } { }
-    private FEventBody1Axis: TSFVec3fEvent;
+    strict private FEventBody1Axis: TSFVec3fEvent;
     public property EventBody1Axis: TSFVec3fEvent read FEventBody1Axis;
 
     { Event out } { }
-    private FEventBody2AnchorPoint: TSFVec3fEvent;
+    strict private FEventBody2AnchorPoint: TSFVec3fEvent;
     public property EventBody2AnchorPoint: TSFVec3fEvent read FEventBody2AnchorPoint;
 
     { Event out } { }
-    private FEventBody2Axis: TSFVec3fEvent;
+    strict private FEventBody2Axis: TSFVec3fEvent;
     public property EventBody2Axis: TSFVec3fEvent read FEventBody2Axis;
 
     {$I auto_generated_node_helpers/x3dnodes_universaljoint.inc}

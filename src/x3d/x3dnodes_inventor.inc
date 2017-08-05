@@ -35,10 +35,10 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdAxis: TSFEnum;
+    strict private FFdAxis: TSFEnum;
     public property FdAxis: TSFEnum read FFdAxis;
 
-    private FFdAngle: TSFFloat;
+    strict private FFdAngle: TSFFloat;
     public property FdAngle: TSFFloat read FFdAngle;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;

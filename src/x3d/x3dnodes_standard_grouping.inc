@@ -19,7 +19,7 @@
     so it can be inserted as child of another grouping node.
     So, you can create a hierarchy of nodes with any depth. }
   TAbstractGroupingNode = class(TAbstractChildNode)
-  private
+  strict private
     BeforeTraversePushedState: boolean;
   protected
     { If @true (default implementation in this class), then this really
@@ -52,7 +52,7 @@
 
   { Base node that contains children nodes, in X3D and VRML 2.0. }
   TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
-  private
+  strict private
     procedure EventAddChildrenReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventRemoveChildrenReceive(
@@ -61,23 +61,23 @@
     procedure CreateNode; override;
 
     { Event in } { }
-    private FEventAddChildren: TMFNodeEvent;
+    strict private FEventAddChildren: TMFNodeEvent;
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     { Event in } { }
-    private FEventRemoveChildren: TMFNodeEvent;
+    strict private FEventRemoveChildren: TMFNodeEvent;
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-    private FFdRender: TSFBool;
+    strict private FFdRender: TSFBool;
     { This is an extension from InstantReality, see
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
@@ -136,15 +136,16 @@
     is returned by the parser. Like parsed VRML/X3D version, X3D profile,
     some namespace information (exported names and such). }
   TX3DRootNode = class(TGroupNode)
-  private
+  strict private
     FHasForceVersion: boolean;
     FSaveAsRootNode: boolean;
     FProfile: string;
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
+    FScale: Single;
+  private
     FPrototypeNames: TX3DPrototypeNames;
     FExportedNames, FImportedNames: TX3DNodeNames;
-    FScale: Single;
     procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
@@ -257,13 +258,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
@@ -287,7 +288,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdWhichChoice: TSFInt32;
+    strict private FFdWhichChoice: TSFInt32;
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -314,7 +315,7 @@
 
   { Grouping node that transforms (moves, rotates, scales) it's children. }
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
-  private
+  strict private
     //WarningNegativeScaleDone: boolean;
   protected
     { }
@@ -328,19 +329,19 @@
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     {$I auto_generated_node_helpers/x3dnodes_transform.inc}

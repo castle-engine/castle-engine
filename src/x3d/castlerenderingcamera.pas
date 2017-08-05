@@ -52,7 +52,7 @@ type
 
   { Current camera used for rendering. }
   TRenderingCamera = class
-  private
+  strict private
     FOnChanged: TCameraChangedEventList;
     FTarget: TRenderTarget;
   public

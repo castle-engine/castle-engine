@@ -25,23 +25,23 @@
   public
     procedure CreateNode; override;
 
-    private FFdObjectType: TMFString;
+    strict private FFdObjectType: TMFString;
     public property FdObjectType: TMFString read FFdObjectType;
 
-    private FFdPickingGeometry: TSFNode;
+    strict private FFdPickingGeometry: TSFNode;
     public property FdPickingGeometry: TSFNode read FFdPickingGeometry;
 
-    private FFdPickTarget: TMFNode;
+    strict private FFdPickTarget: TMFNode;
     public property FdPickTarget: TMFNode read FFdPickTarget;
 
     { Event out } { }
-    private FEventPickedGeometry: TMFNodeEvent;
+    strict private FEventPickedGeometry: TMFNodeEvent;
     public property EventPickedGeometry: TMFNodeEvent read FEventPickedGeometry;
 
-    private FFdIntersectionType: TSFString;
+    strict private FFdIntersectionType: TSFString;
     public property FdIntersectionType: TSFString read FFdIntersectionType;
 
-    private FFdSortOrder: TSFString;
+    strict private FFdSortOrder: TSFString;
     public property FdSortOrder: TSFString read FFdSortOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dpicksensornode.inc}
@@ -54,15 +54,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventPickedNormal: TMFVec3fEvent;
+    strict private FEventPickedNormal: TMFVec3fEvent;
     public property EventPickedNormal: TMFVec3fEvent read FEventPickedNormal;
 
     { Event out } { }
-    private FEventPickedPoint: TMFVec3fEvent;
+    strict private FEventPickedPoint: TMFVec3fEvent;
     public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
 
     { Event out } { }
-    private FEventPickedTextureCoordinate: TMFVec3fEvent;
+    strict private FEventPickedTextureCoordinate: TMFVec3fEvent;
     public property EventPickedTextureCoordinate: TMFVec3fEvent read FEventPickedTextureCoordinate;
 
     {$I auto_generated_node_helpers/x3dnodes_linepicksensor.inc}
@@ -74,10 +74,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdObjectType: TMFString;
+    strict private FFdObjectType: TMFString;
     public property FdObjectType: TMFString read FFdObjectType;
 
-    private FFdPickable: TSFBool;
+    strict private FFdPickable: TSFBool;
     public property FdPickable: TSFBool read FFdPickable;
 
     {$I auto_generated_node_helpers/x3dnodes_pickablegroup.inc}
@@ -90,7 +90,7 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventPickedPoint: TMFVec3fEvent;
+    strict private FEventPickedPoint: TMFVec3fEvent;
     public property EventPickedPoint: TMFVec3fEvent read FEventPickedPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_pointpicksensor.inc}

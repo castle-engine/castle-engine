@@ -20,18 +20,18 @@
     procedure CreateNode; override;
 
     { Event in } { }
-    private FEventActivate: TSFBoolEvent;
+    strict private FEventActivate: TSFBoolEvent;
     public property EventActivate: TSFBoolEvent read FEventActivate;
 
     { Event out } { }
-    private FEventIsSelected: TSFBoolEvent;
+    strict private FEventIsSelected: TSFBoolEvent;
     public property EventIsSelected: TSFBoolEvent read FEventIsSelected;
 
     { Event out } { }
-    private FEventIsValid: TSFBoolEvent;
+    strict private FEventIsValid: TSFBoolEvent;
     public property EventIsValid: TSFBoolEvent read FEventIsValid;
 
-    private FFdLanguage: TSFString;
+    strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
@@ -43,7 +43,7 @@
   public
     procedure CreateNode; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dvertexattributenode.inc}
@@ -63,7 +63,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdParts: TMFNode;
+    strict private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
 
     {$I auto_generated_node_helpers/x3dnodes_composedshader.inc}
@@ -76,10 +76,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdValue: TMFFloat;
+    strict private FFdValue: TMFFloat;
     public property FdValue: TMFFloat read FFdValue;
 
-    private FFdNumComponents: TSFInt32;
+    strict private FFdNumComponents: TSFInt32;
     public property FdNumComponents: TSFInt32 read FFdNumComponents;
 
     {$I auto_generated_node_helpers/x3dnodes_floatvertexattribute.inc}
@@ -92,7 +92,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdValue: TMFMatrix3f;
+    strict private FFdValue: TMFMatrix3f;
     public property FdValue: TMFMatrix3f read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_matrix3vertexattribute.inc}
@@ -105,7 +105,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdValue: TMFMatrix4f;
+    strict private FFdValue: TMFMatrix4f;
     public property FdValue: TMFMatrix4f read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_matrix4vertexattribute.inc}
@@ -119,7 +119,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     {$I auto_generated_node_helpers/x3dnodes_packagedshader.inc}
@@ -135,7 +135,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPrograms: TMFNode;
+    strict private FFdPrograms: TMFNode;
     public property FdPrograms: TMFNode read FFdPrograms;
 
     {$I auto_generated_node_helpers/x3dnodes_programshader.inc}
@@ -144,7 +144,7 @@
   { OpenGL Shading Language (GLSL) shader part,
     used inside @link(TComposedShaderNode). }
   TShaderPartNode = class(TAbstractNode, IAbstractUrlObject)
-  private
+  strict private
     ContentsCached: boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
@@ -156,10 +156,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    private FFdType: TSFStringEnum;
+    strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
 
     { Shader type. }
@@ -183,10 +183,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    private FFdType: TSFStringEnum;
+    strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
 
     {$I auto_generated_node_helpers/x3dnodes_shaderprogram.inc}

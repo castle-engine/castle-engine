@@ -28,62 +28,62 @@
     class function ClassX3DType: string; override;
 
     { Event in } { }
-    private FEventaddChildren: TMFNodeEvent;
+    strict private FEventaddChildren: TMFNodeEvent;
     public property EventaddChildren: TMFNodeEvent read FEventaddChildren;
 
     { Event in } { }
-    private FEventremoveChildren: TMFNodeEvent;
+    strict private FEventremoveChildren: TMFNodeEvent;
     public property EventremoveChildren: TMFNodeEvent read FEventremoveChildren;
 
-    private FFdchildren: TMFNode;
+    strict private FFdchildren: TMFNode;
     public property Fdchildren: TMFNode read FFdchildren;
 
-    private FFdcontrolPoint: TMFVec3f;
+    strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
 
-    private FFdinputCoord: TMFNode;
+    strict private FFdinputCoord: TMFNode;
     public property FdinputCoord: TMFNode read FFdinputCoord;
 
-    private FFdinputTransform: TMFNode;
+    strict private FFdinputTransform: TMFNode;
     public property FdinputTransform: TMFNode read FFdinputTransform;
 
-    private FFdoutputCoord: TMFNode;
+    strict private FFdoutputCoord: TMFNode;
     public property FdoutputCoord: TMFNode read FFdoutputCoord;
 
-    private FFdweight: TMFFloat;
+    strict private FFdweight: TMFFloat;
     public property Fdweight: TMFFloat read FFdweight;
 
-    private FFdbboxCenter: TSFVec3f;
+    strict private FFdbboxCenter: TSFVec3f;
     public property FdbboxCenter: TSFVec3f read FFdbboxCenter;
 
-    private FFdbboxSize: TSFVec3f;
+    strict private FFdbboxSize: TSFVec3f;
     public property FdbboxSize: TSFVec3f read FFdbboxSize;
 
-    private FFduDimension: TSFInt32;
+    strict private FFduDimension: TSFInt32;
     public property FduDimension: TSFInt32 read FFduDimension;
 
-    private FFduKnot: TMFFloat;
+    strict private FFduKnot: TMFFloat;
     public property FduKnot: TMFFloat read FFduKnot;
 
-    private FFduOrder: TSFInt32;
+    strict private FFduOrder: TSFInt32;
     public property FduOrder: TSFInt32 read FFduOrder;
 
-    private FFdvDimension: TSFInt32;
+    strict private FFdvDimension: TSFInt32;
     public property FdvDimension: TSFInt32 read FFdvDimension;
 
-    private FFdvKnot: TMFFloat;
+    strict private FFdvKnot: TMFFloat;
     public property FdvKnot: TMFFloat read FFdvKnot;
 
-    private FFdvOrder: TSFInt32;
+    strict private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
-    private FFdwDimension: TSFInt32;
+    strict private FFdwDimension: TSFInt32;
     public property FdwDimension: TSFInt32 read FFdwDimension;
 
-    private FFdwKnot: TMFFloat;
+    strict private FFdwKnot: TMFFloat;
     public property FdwKnot: TMFFloat read FFdwKnot;
 
-    private FFdwOrder: TSFInt32;
+    strict private FFdwOrder: TSFInt32;
     public property FdwOrder: TSFInt32 read FFdwOrder;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -96,19 +96,19 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdcontrolPoint: TMFVec3f;
+    strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
 
-    private FFdweight: TMFFloat;
+    strict private FFdweight: TMFFloat;
     public property Fdweight: TMFFloat read FFdweight;
 
-    private FFdtessellation: TSFInt32;
+    strict private FFdtessellation: TSFInt32;
     public property Fdtessellation: TSFInt32 read FFdtessellation;
 
-    private FFdknot: TMFFloat;
+    strict private FFdknot: TMFFloat;
     public property Fdknot: TMFFloat read FFdknot;
 
-    private FFdorder: TSFInt32;
+    strict private FFdorder: TSFInt32;
     public property Fdorder: TSFInt32 read FFdorder;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -134,7 +134,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdtessellationScale: TSFFloat;
+    strict private FFdtessellationScale: TSFFloat;
     public property FdtessellationScale: TSFFloat read FFdtessellationScale;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -142,7 +142,7 @@
 
   { Interpolate (animate) positions along the 3D NURBS curve. }
   TNurbsPositionInterpolatorNode_2 = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -150,26 +150,26 @@
     class function ClassX3DType: string; override;
 
     { Event in } { }
-    private FEventset_fraction: TSFFloatEvent;
+    strict private FEventset_fraction: TSFFloatEvent;
     public property Eventset_fraction: TSFFloatEvent read FEventset_fraction;
 
-    private FFddimension: TSFInt32;
+    strict private FFddimension: TSFInt32;
     public property Fddimension: TSFInt32 read FFddimension;
 
-    private FFdkeyValue: TMFVec3f;
+    strict private FFdkeyValue: TMFVec3f;
     public property FdkeyValue: TMFVec3f read FFdkeyValue;
 
-    private FFdkeyWeight: TMFFloat;
+    strict private FFdkeyWeight: TMFFloat;
     public property FdkeyWeight: TMFFloat read FFdkeyWeight;
 
-    private FFdknot: TMFFloat;
+    strict private FFdknot: TMFFloat;
     public property Fdknot: TMFFloat read FFdknot;
 
-    private FFdorder: TSFInt32;
+    strict private FFdorder: TSFInt32;
     public property Fdorder: TSFInt32 read FFdorder;
 
     { Event out } { }
-    private FEventvalue_changed: TSFVec3fEvent;
+    strict private FEventvalue_changed: TSFVec3fEvent;
     public property Eventvalue_changed: TSFVec3fEvent read FEventvalue_changed;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -183,43 +183,43 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdcontrolPoint: TMFVec3f;
+    strict private FFdcontrolPoint: TMFVec3f;
     public property FdcontrolPoint: TMFVec3f read FFdcontrolPoint;
 
-    private FFdtexCoord: TSFNode;
+    strict private FFdtexCoord: TSFNode;
     public property FdtexCoord: TSFNode read FFdtexCoord;
 
-    private FFduTessellation: TSFInt32;
+    strict private FFduTessellation: TSFInt32;
     public property FduTessellation: TSFInt32 read FFduTessellation;
 
-    private FFdvTessellation: TSFInt32;
+    strict private FFdvTessellation: TSFInt32;
     public property FdvTessellation: TSFInt32 read FFdvTessellation;
 
-    private FFdweight: TMFFloat;
+    strict private FFdweight: TMFFloat;
     public property Fdweight: TMFFloat read FFdweight;
 
-    private FFdccw: TSFBool;
+    strict private FFdccw: TSFBool;
     public property Fdccw: TSFBool read FFdccw;
 
-    private FFdsolid: TSFBool;
+    strict private FFdsolid: TSFBool;
     public property Fdsolid: TSFBool read FFdsolid;
 
-    private FFduDimension: TSFInt32;
+    strict private FFduDimension: TSFInt32;
     public property FduDimension: TSFInt32 read FFduDimension;
 
-    private FFduKnot: TMFFloat;
+    strict private FFduKnot: TMFFloat;
     public property FduKnot: TMFFloat read FFduKnot;
 
-    private FFduOrder: TSFInt32;
+    strict private FFduOrder: TSFInt32;
     public property FduOrder: TSFInt32 read FFduOrder;
 
-    private FFdvDimension: TSFInt32;
+    strict private FFdvDimension: TSFInt32;
     public property FdvDimension: TSFInt32 read FFdvDimension;
 
-    private FFdvKnot: TMFFloat;
+    strict private FFdvKnot: TMFFloat;
     public property FdvKnot: TMFFloat read FFdvKnot;
 
-    private FFdvOrder: TSFInt32;
+    strict private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -244,28 +244,28 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdcontrolPoint: TMFVec2f;
+    strict private FFdcontrolPoint: TMFVec2f;
     public property FdcontrolPoint: TMFVec2f read FFdcontrolPoint;
 
-    private FFdweight: TMFFloat;
+    strict private FFdweight: TMFFloat;
     public property Fdweight: TMFFloat read FFdweight;
 
-    private FFduDimension: TSFInt32;
+    strict private FFduDimension: TSFInt32;
     public property FduDimension: TSFInt32 read FFduDimension;
 
-    private FFduKnot: TMFFloat;
+    strict private FFduKnot: TMFFloat;
     public property FduKnot: TMFFloat read FFduKnot;
 
-    private FFduOrder: TSFInt32;
+    strict private FFduOrder: TSFInt32;
     public property FduOrder: TSFInt32 read FFduOrder;
 
-    private FFdvDimension: TSFInt32;
+    strict private FFdvDimension: TSFInt32;
     public property FdvDimension: TSFInt32 read FFdvDimension;
 
-    private FFdvKnot: TMFFloat;
+    strict private FFdvKnot: TMFFloat;
     public property FdvKnot: TMFFloat read FFdvKnot;
 
-    private FFdvOrder: TSFInt32;
+    strict private FFdvOrder: TSFInt32;
     public property FdvOrder: TSFInt32 read FFdvOrder;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -279,17 +279,17 @@
     class function ClassX3DType: string; override;
 
     { Event in } { }
-    private FEventaddTrimmingContour: TMFNodeEvent;
+    strict private FEventaddTrimmingContour: TMFNodeEvent;
     public property EventaddTrimmingContour: TMFNodeEvent read FEventaddTrimmingContour;
 
     { Event in } { }
-    private FEventremoveTrimmingContour: TMFNodeEvent;
+    strict private FEventremoveTrimmingContour: TMFNodeEvent;
     public property EventremoveTrimmingContour: TMFNodeEvent read FEventremoveTrimmingContour;
 
-    private FFdtrimmingContour: TMFNode;
+    strict private FFdtrimmingContour: TMFNode;
     public property FdtrimmingContour: TMFNode read FFdtrimmingContour;
 
-    private FFdsurface: TSFNode;
+    strict private FFdsurface: TSFNode;
     public property Fdsurface: TSFNode read FFdsurface;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -314,14 +314,14 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean; override;
 
     { Event in } { }
-    private FEventAddChildren: TMFNodeEvent;
+    strict private FEventAddChildren: TMFNodeEvent;
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     { Event in } { }
-    private FEventRemoveChildren: TMFNodeEvent;
+    strict private FEventRemoveChildren: TMFNodeEvent;
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;

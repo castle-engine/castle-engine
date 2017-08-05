@@ -41,7 +41,7 @@
 
   { Generate events when user key presses or releases keys on the keyboard. }
   TKeySensorNode = class(TAbstractKeyDeviceSensorNode)
-  private
+  strict private
     AltKey, ControlKey, ShiftKey: boolean;
   public
     procedure CreateNode; override;
@@ -49,31 +49,31 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventActionKeyPress: TSFInt32Event;
+    strict private FEventActionKeyPress: TSFInt32Event;
     public property EventActionKeyPress: TSFInt32Event read FEventActionKeyPress;
 
     { Event out } { }
-    private FEventActionKeyRelease: TSFInt32Event;
+    strict private FEventActionKeyRelease: TSFInt32Event;
     public property EventActionKeyRelease: TSFInt32Event read FEventActionKeyRelease;
 
     { Event out } { }
-    private FEventAltKey: TSFBoolEvent;
+    strict private FEventAltKey: TSFBoolEvent;
     public property EventAltKey: TSFBoolEvent read FEventAltKey;
 
     { Event out } { }
-    private FEventControlKey: TSFBoolEvent;
+    strict private FEventControlKey: TSFBoolEvent;
     public property EventControlKey: TSFBoolEvent read FEventControlKey;
 
     { Event out } { }
-    private FEventKeyPress: TSFStringEvent;
+    strict private FEventKeyPress: TSFStringEvent;
     public property EventKeyPress: TSFStringEvent read FEventKeyPress;
 
     { Event out } { }
-    private FEventKeyRelease: TSFStringEvent;
+    strict private FEventKeyRelease: TSFStringEvent;
     public property EventKeyRelease: TSFStringEvent read FEventKeyRelease;
 
     { Event out } { }
-    private FEventShiftKey: TSFBoolEvent;
+    strict private FEventShiftKey: TSFBoolEvent;
     public property EventShiftKey: TSFBoolEvent read FEventShiftKey;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;
@@ -85,7 +85,7 @@
   { Generates events as the user inputs a longer string on the keyboard,
     useful for example to simulate "input fields" in 3D. }
   TStringSensorNode = class(TAbstractKeyDeviceSensorNode)
-  private
+  strict private
     EnteredText: string;
     Active: boolean;
   public
@@ -93,15 +93,15 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDeletionAllowed: TSFBool;
+    strict private FFdDeletionAllowed: TSFBool;
     public property FdDeletionAllowed: TSFBool read FFdDeletionAllowed;
 
     { Event out } { }
-    private FEventEnteredText: TSFStringEvent;
+    strict private FEventEnteredText: TSFStringEvent;
     public property EventEnteredText: TSFStringEvent read FEventEnteredText;
 
     { Event out } { }
-    private FEventFinalText: TSFStringEvent;
+    strict private FEventFinalText: TSFStringEvent;
     public property EventFinalText: TSFStringEvent read FEventFinalText;
 
     procedure KeyDown(Key: TKey; C: char; const Time: TX3DTime); override;

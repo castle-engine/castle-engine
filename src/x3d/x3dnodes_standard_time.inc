@@ -172,7 +172,7 @@
   { Time field, that ignores it's input event when parent time-dependent node
     is active. }
   TSFTimeIgnoreWhenActive = class(TSFTime)
-  protected
+  strict protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
@@ -183,7 +183,7 @@
   { Time field, that ignores it's input event when parent time-dependent node
     is active and setting to value <= startTime. }
   TSFStopTime = class(TSFTime)
-  protected
+  strict protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
     procedure ExposedEventReceive(Event: TX3DEvent; AValue: TX3DField;
       const Time: TX3DTime); override;
@@ -193,42 +193,42 @@
 
   { Abstract node from which most (but not all) time-dependent nodes are derived. }
   TAbstractTimeDependentNode = class(TAbstractChildNode, IAbstractTimeDependentNode)
-  private
+  strict private
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     { To satify IAbstractTimeDependentNode }
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
-  protected
+  strict protected
     { CycleInterval that is always > 0. }
     function SafeCycleInterval: TFloatTime;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdLoop: TSFBool;
+    strict private FFdLoop: TSFBool;
     public property FdLoop: TSFBool read FFdLoop;
 
-    private FFdPauseTime: TSFTime;
+    strict private FFdPauseTime: TSFTime;
     public property FdPauseTime: TSFTime read FFdPauseTime;
 
-    private FFdResumeTime: TSFTime;
+    strict private FFdResumeTime: TSFTime;
     public property FdResumeTime: TSFTime read FFdResumeTime;
 
-    private FFdStartTime: TSFTimeIgnoreWhenActive;
+    strict private FFdStartTime: TSFTimeIgnoreWhenActive;
     public property FdStartTime: TSFTimeIgnoreWhenActive read FFdStartTime;
 
-    private FFdStopTime: TSFStopTime;
+    strict private FFdStopTime: TSFStopTime;
     public property FdStopTime: TSFStopTime read FFdStopTime;
 
     { Event out } { }
-    private FEventElapsedTime: TSFTimeEvent;
+    strict private FEventElapsedTime: TSFTimeEvent;
     public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     { Event out } { }
-    private FEventIsPaused: TSFBoolEvent;
+    strict private FEventIsPaused: TSFBoolEvent;
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
     { Internal time-dependent logic handler. }
@@ -299,7 +299,7 @@
 
   { Generate events as time passes. }
   TTimeSensorNode = class(TAbstractTimeDependentNode, IAbstractSensorNode)
-  private
+  strict private
     FakingTime: Integer;
     procedure EventElapsedTimeReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -310,24 +310,24 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCycleInterval: TSFTimeIgnoreWhenActive;
+    strict private FFdCycleInterval: TSFTimeIgnoreWhenActive;
     public property FdCycleInterval: TSFTimeIgnoreWhenActive read FFdCycleInterval;
     function GetCycleInterval: TFloatTime; override;
     property CycleInterval: TFloatTime read GetCycleInterval write SetCycleInterval;
 
     { Event out } { }
-    private FEventCycleTime: TSFTimeEvent;
+    strict private FEventCycleTime: TSFTimeEvent;
     public property EventCycleTime: TSFTimeEvent read FEventCycleTime;
 
     { Event out } { }
-    private FEventFraction_changed: TSFFloatEvent;
+    strict private FEventFraction_changed: TSFFloatEvent;
     public property EventFraction_changed: TSFFloatEvent read FEventFraction_changed;
 
     { Event out } { }
-    private FEventTime: TSFTimeEvent;
+    strict private FEventTime: TSFTimeEvent;
     public property EventTime: TSFTimeEvent read FEventTime;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Send TimeSensor output events, without actually activating the TimeSensor.

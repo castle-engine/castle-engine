@@ -26,7 +26,7 @@
   end;
 
   TSlotTimeline = class
-  private
+  strict private
     FMaxTime: Single;
   public
     Slot: TSlot;

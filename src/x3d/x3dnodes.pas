@@ -426,7 +426,7 @@ type
     But we want to still handle VRML 1.0, 100% correctly, so here we are:
     this class contains whole state needed for any VRML/X3D version. }
   TX3DGraphTraverseState = class
-  private
+  strict private
     FVRML1State: TVRML1State;
     procedure CommonCreate;
   public
@@ -660,7 +660,7 @@ type
     if you execute Traverse while being inside other Traverse, you
     must first finish innermost Traverse before continuing with the outer. }
   TX3DGraphTraverseStateStack = class
-  private
+  strict private
     Items: array of TX3DGraphTraverseState;
     ItemsAllocated: Cardinal;
     procedure GrowItems;
@@ -765,7 +765,7 @@ type
     Includes all TTexturesVideosCache resources (texture, movie
     data) and adds cache for 3D models. }
   TX3DNodesCache = class(TTexturesVideosCache)
-  private
+  strict private
     CachedNodes: TCachedNodeList;
     InsideFree3DNodeDelete: boolean;
   public
@@ -794,7 +794,7 @@ type
 {$I x3dnodes_generatedtextures.inc}
 
   TX3DNodeClassesList = class(TList)
-  private
+  strict private
     function GetItems(Index: Integer): TX3DNodeClass;
     procedure SetItems(Index: Integer; Value: TX3DNodeClass);
   public
@@ -853,7 +853,7 @@ type
     procedure SetWeakLink(const AValue: boolean);
     procedure WarningIfUnusedWeakLink;
     procedure DestructionNotification(Node: TX3DNode);
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
   public
@@ -1019,7 +1019,7 @@ type
     AllowedChildrenClasses: TX3DNodeClassesList;
     AllowedChildrenInterface: TGUID;
     function GetItems(const Index: Integer): TX3DNode;
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function SaveToXmlValue: TSaveToXmlMethod; override;
     { Get or set the number of items.
@@ -1200,7 +1200,7 @@ type
     Always use CreateUnknown constructor, this way we can safely assume
     that X3DType is always correctly set. }
   TX3DUnknownNode = class(TX3DNode)
-  private
+  strict private
     fX3DType: string;
   protected
     function DeepCopyCreate(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
@@ -1236,7 +1236,7 @@ type
     instance, like Name, field class type, out or in (in case of event),
     exposed or not (in case of field), IsClauseNames. }
   TX3DInterfaceDeclaration = class(TX3DFileItem)
-  private
+  strict private
     FFieldOrEvent: TX3DFieldOrEvent;
 
     { kept in synch with FFieldOrEvent by SetFieldOrEvent }
@@ -1244,7 +1244,7 @@ type
     FEvent: TX3DEvent;
 
     procedure SetFieldOrEvent(const Value: TX3DFieldOrEvent);
-  private
+  strict private
     FParentNode: TX3DNode;
   public
     constructor Create(AParentNode: TX3DNode);
@@ -1383,7 +1383,7 @@ type
     This node cannot be created by standard Create method,
     always use CreatePrototypeNode. }
   TX3DPrototypeNode = class(TX3DNode)
-  private
+  strict private
     FPrototype: TX3DPrototypeBase;
 
     function PrepareInstantiateIsClause(Node, Child: TX3DNode): Pointer;
@@ -1565,7 +1565,7 @@ type
   TX3DPrototypeBaseList = class(specialize TObjectList<TX3DPrototypeBase>);
 
   TX3DPrototype = class(TX3DPrototypeBase)
-  private
+  strict private
     FNode: TX3DRootNode;
   public
     destructor Destroy; override;
@@ -1579,7 +1579,7 @@ type
   end;
 
   TX3DExternalPrototype = class(TX3DPrototypeBase)
-  private
+  strict private
     FURLList: TMFString;
 
     { FReferencedPrototype has links to other parts of the VRML graph.
@@ -1618,7 +1618,7 @@ type
   { Route makes a connection between two X3D events,
     making the @italic(destination) event occur when the @italic(source) event happened. }
   TX3DRoute = class(TX3DFileItem)
-  private
+  strict private
     FSourceNode: TX3DNode;
     FSourceEvent: TX3DEvent;
 
@@ -1824,7 +1824,7 @@ type
 
   { List to track node names while parsing VRML/X3D file. }
   TX3DNodeNames = class(specialize TStructList<TX3DNodeNameRec>)
-  private
+  strict private
     FAutoRemove: boolean;
     procedure DestructionNotification(Node: TX3DNode);
     function IndexOfNode(Node: TX3DNode): Integer;
@@ -1918,7 +1918,7 @@ type
   ENodesManagerError = class(EX3DError);
   ENodeClassRegisterError = class(ENodesManagerError);
   TNodesManager = class
-  private
+  strict private
     { Strings[] is ClassX3DType. Objects[] is the actual class
       (typecast to TX3DNodeClass is safe). }
     FRegistered: TStringList;

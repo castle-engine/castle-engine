@@ -45,7 +45,7 @@
 
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
-  private
+  strict private
     function GetGeometry: TAbstractX3DGeometryNode;
     procedure SetGeometry(const Value: TAbstractX3DGeometryNode);
     function GetAppearance: TAppearanceNode;
@@ -75,24 +75,24 @@
 
     procedure CreateNode; override;
 
-    private FFdAppearance: TSFNode;
+    strict private FFdAppearance: TSFNode;
     public property FdAppearance: TSFNode read FFdAppearance;
 
-    private FFdGeometry: TSFNode;
+    strict private FFdGeometry: TSFNode;
     public property FdGeometry: TSFNode read FFdGeometry;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     { Whether to render this shape.
       See http://castle-engine.sourceforge.net/x3d_implementation_shape_extensions.php }
-    private FFdRender: TSFBool;
+    strict private FFdRender: TSFBool;
     public property FdRender: TSFBool read FFdRender;
 
-    private FFdShading: TSFShading;
+    strict private FFdShading: TSFShading;
     public property FdShading: TSFShading read FFdShading;
     property Shading: TShading read GetShading write SetShading;
 
@@ -138,7 +138,7 @@
     property LineProperties: TLinePropertiesNode
       read GetLineProperties write SetLineProperties;
 
-    private FFdOctreeTriangles: TSFNode;
+    strict private FFdOctreeTriangles: TSFNode;
     public property FdOctreeTriangles: TSFNode read FFdOctreeTriangles;
 
     { Find a suitable CommonSurfaceShader to be used when rendering this shape,
@@ -149,7 +149,7 @@
   end;
 
   TMFNodeShaders = class(TMFNode)
-  protected
+  strict protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     { Returns Items[Index], if it's a shader node suitable
@@ -167,7 +167,7 @@
     To make the geometry lit, you can just set there a default
     material created by @code(TMaterialNode.Create). }
   TAppearanceNode = class(TAbstractAppearanceNode)
-  private
+  strict private
     function GetTexture: TAbstractTextureNode;
     procedure SetTexture(const Value: TAbstractTextureNode);
     function GetMaterial: TMaterialNode;
@@ -182,40 +182,40 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFillProperties: TSFNode;
+    strict private FFdFillProperties: TSFNode;
     public property FdFillProperties: TSFNode read FFdFillProperties;
 
-    private FFdLineProperties: TSFNode;
+    strict private FFdLineProperties: TSFNode;
     public property FdLineProperties: TSFNode read FFdLineProperties;
 
-    private FFdMaterial: TSFNode;
+    strict private FFdMaterial: TSFNode;
     public property FdMaterial: TSFNode read FFdMaterial;
 
-    private FFdShaders: TMFNodeShaders;
+    strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
 
-    private FFdTexture: TSFNode;
+    strict private FFdTexture: TSFNode;
     public property FdTexture: TSFNode read FFdTexture;
 
-    private FFdTextureTransform: TSFNode;
+    strict private FFdTextureTransform: TSFNode;
     public property FdTextureTransform: TSFNode read FFdTextureTransform;
 
-    private FFdReceiveShadows: TMFNode;
+    strict private FFdReceiveShadows: TMFNode;
     public property FdReceiveShadows: TMFNode read FFdReceiveShadows;
 
-    private FFdShadowCaster: TSFBool;
+    strict private FFdShadowCaster: TSFBool;
     public property FdShadowCaster: TSFBool read FFdShadowCaster;
 
-    private FFdEffects: TMFNode;
+    strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
-    private FFdNormalMap: TSFNode;
+    strict private FFdNormalMap: TSFNode;
     public property FdNormalMap: TSFNode read FFdNormalMap;
 
-    private FFdHeightMap: TSFNode;
+    strict private FFdHeightMap: TSFNode;
     public property FdHeightMap: TSFNode read FFdHeightMap;
 
-    private FFdHeightMapScale: TSFFloat;
+    strict private FFdHeightMapScale: TSFFloat;
     public property FdHeightMapScale: TSFFloat read FFdHeightMapScale;
 
     { blendMode property.
@@ -224,7 +224,7 @@
       See [http://www.instantreality.org/documentation/nodetype/ManagedAppearance/]
       and [http://www.instantreality.org/documentation/nodetype/BlendMode/].
       It allows you to use BlendMode nodes, which I consider very useful. }
-    private FFdBlendMode: TSFNode;
+    strict private FFdBlendMode: TSFNode;
     public property FdBlendMode: TSFNode read FFdBlendMode;
 
     { The texture of this appearance.
@@ -275,16 +275,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFilled: TSFBool;
+    strict private FFdFilled: TSFBool;
     public property FdFilled: TSFBool read FFdFilled;
 
-    private FFdHatchColor: TSFColor;
+    strict private FFdHatchColor: TSFColor;
     public property FdHatchColor: TSFColor read FFdHatchColor;
 
-    private FFdHatched: TSFBool;
+    strict private FFdHatched: TSFBool;
     public property FdHatched: TSFBool read FFdHatched;
 
-    private FFdHatchStyle: TSFInt32;
+    strict private FFdHatchStyle: TSFInt32;
     public property FdHatchStyle: TSFInt32 read FFdHatchStyle;
 
     {$I auto_generated_node_helpers/x3dnodes_fillproperties.inc}
@@ -308,16 +308,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdApplied: TSFBool;
+    strict private FFdApplied: TSFBool;
     public property FdApplied: TSFBool read FFdApplied;
 
-    private FFdLinetype: TSFInt32;
+    strict private FFdLinetype: TSFInt32;
     public property FdLinetype: TSFInt32 read FFdLinetype;
 
     { Line type (pattern). }
     property LineType: TLineType read GetLineType write SetLineType default ltSolid;
 
-    private FFdLinewidthScaleFactor: TSFFloat;
+    strict private FFdLinewidthScaleFactor: TSFFloat;
     public property FdLinewidthScaleFactor: TSFFloat read FFdLinewidthScaleFactor;
 
     {$I auto_generated_node_helpers/x3dnodes_lineproperties.inc}
@@ -327,7 +327,7 @@
     This hides differences between VRML 1.0 Material,
     X3D and VRML 2.0 Material and CommonSurfaceShader. }
   TMaterialInfo = class
-  protected
+  strict protected
     { Calculate physical material properties using standard VRML material
       fields. See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_material_phong_brdf_fields].
 
@@ -397,7 +397,7 @@
   strict private
     type
       TX3DMaterialInfo = class(TMaterialInfo)
-      private
+      strict private
         FNode: TMaterialNode;
       public
         constructor Create(Node: TMaterialNode);
@@ -426,30 +426,30 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAmbientIntensity: TSFFloat;
+    strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFdDiffuseColor: TSFColor;
+    strict private FFdDiffuseColor: TSFColor;
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
 
-    private FFdEmissiveColor: TSFColor;
+    strict private FFdEmissiveColor: TSFColor;
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
 
-    private FFdShininess: TSFFloat;
+    strict private FFdShininess: TSFFloat;
     public property FdShininess: TSFFloat read FFdShininess;
 
-    private FFdSpecularColor: TSFColor;
+    strict private FFdSpecularColor: TSFColor;
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
 
-    private FFdTransparency: TSFFloat;
+    strict private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
-    private FFdFogImmune: TSFBool;
+    strict private FFdFogImmune: TSFBool;
     { Make the object not affected by fog.
       This is a Castle Game Engine extension, not present in X3D standard. }
     public property FdFogImmune: TSFBool read FFdFogImmune;
 
-    private FFdMirror: TSFFloat;
+    strict private FFdMirror: TSFFloat;
     { Make the object a mirror.
       Right now used only by the classic ray-tracer, not by interactive renderer.
       This is a Castle Game Engine extension, not present in X3D standard. }
@@ -492,22 +492,22 @@
       other colors to black. }
     procedure ForcePureEmissive;
 
-    private FFdReflSpecular: TMFColor;
+    strict private FFdReflSpecular: TMFColor;
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
 
-    private FFdReflDiffuse: TMFColor;
+    strict private FFdReflDiffuse: TMFColor;
     public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
 
-    private FFdTransSpecular: TMFColor;
+    strict private FFdTransSpecular: TMFColor;
     public property FdTransSpecular: TMFColor read FFdTransSpecular;
 
-    private FFdTransDiffuse: TMFColor;
+    strict private FFdTransDiffuse: TMFColor;
     public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
 
-    private FFdReflSpecularExp: TSFFloat;
+    strict private FFdReflSpecularExp: TSFFloat;
     public property FdReflSpecularExp: TSFFloat read FFdReflSpecularExp;
 
-    private FFdTransSpecularExp: TSFFloat;
+    strict private FFdTransSpecularExp: TSFFloat;
     public property FdTransSpecularExp: TSFFloat read FFdTransSpecularExp;
 
     {$I auto_generated_node_helpers/x3dnodes_material.inc}
@@ -533,43 +533,43 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAmbientIntensity: TSFFloat;
+    strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFdBackAmbientIntensity: TSFFloat;
+    strict private FFdBackAmbientIntensity: TSFFloat;
     public property FdBackAmbientIntensity: TSFFloat read FFdBackAmbientIntensity;
 
-    private FFdBackDiffuseColor: TSFColor;
+    strict private FFdBackDiffuseColor: TSFColor;
     public property FdBackDiffuseColor: TSFColor read FFdBackDiffuseColor;
 
-    private FFdBackEmissiveColor: TSFColor;
+    strict private FFdBackEmissiveColor: TSFColor;
     public property FdBackEmissiveColor: TSFColor read FFdBackEmissiveColor;
 
-    private FFdBackShininess: TSFFloat;
+    strict private FFdBackShininess: TSFFloat;
     public property FdBackShininess: TSFFloat read FFdBackShininess;
 
-    private FFdBackSpecularColor: TSFColor;
+    strict private FFdBackSpecularColor: TSFColor;
     public property FdBackSpecularColor: TSFColor read FFdBackSpecularColor;
 
-    private FFdBackTransparency: TSFFloat;
+    strict private FFdBackTransparency: TSFFloat;
     public property FdBackTransparency: TSFFloat read FFdBackTransparency;
 
-    private FFdDiffuseColor: TSFColor;
+    strict private FFdDiffuseColor: TSFColor;
     public property FdDiffuseColor: TSFColor read FFdDiffuseColor;
 
-    private FFdEmissiveColor: TSFColor;
+    strict private FFdEmissiveColor: TSFColor;
     public property FdEmissiveColor: TSFColor read FFdEmissiveColor;
 
-    private FFdShininess: TSFFloat;
+    strict private FFdShininess: TSFFloat;
     public property FdShininess: TSFFloat read FFdShininess;
 
-    private FFdSeparateBackColor: TSFBool;
+    strict private FFdSeparateBackColor: TSFBool;
     public property FdSeparateBackColor: TSFBool read FFdSeparateBackColor;
 
-    private FFdSpecularColor: TSFColor;
+    strict private FFdSpecularColor: TSFColor;
     public property FdSpecularColor: TSFColor read FFdSpecularColor;
 
-    private FFdTransparency: TSFFloat;
+    strict private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
     {$I auto_generated_node_helpers/x3dnodes_twosidedmaterial.inc}

@@ -21,18 +21,18 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSize: TSFVec3f;
+    strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdDivisions: TSFInt32;
+    strict private FFdDivisions: TSFInt32;
     public property FdDivisions: TSFInt32 read FFdDivisions;
     function CalculateDivisions: Cardinal;
 
@@ -58,31 +58,31 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdBottom: TSFBool;
+    strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
 
-    private FFdBottomRadius: TSFFloat;
+    strict private FFdBottomRadius: TSFFloat;
     public property FdBottomRadius: TSFFloat read FFdBottomRadius;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdSide: TSFBool;
+    strict private FFdSide: TSFBool;
     public property FdSide: TSFBool read FFdSide;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
-    private FFdStacks: TSFInt32;
+    strict private FFdStacks: TSFInt32;
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
@@ -111,34 +111,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdBottom: TSFBool;
+    strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSide: TSFBool;
+    strict private FFdSide: TSFBool;
     public property FdSide: TSFBool read FFdSide;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTop: TSFBool;
+    strict private FFdTop: TSFBool;
     public property FdTop: TSFBool read FFdTop;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
-    private FFdStacks: TSFInt32;
+    strict private FFdStacks: TSFInt32;
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
@@ -161,7 +161,7 @@
   { Uniform rectangular grid of varying height above the Y=0 plane,
     aka "height map". }
   TElevationGridNode = class(TAbstractX3DGeometryNode)
-  private
+  strict private
     procedure EventSet_HeightReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -170,52 +170,52 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_height: TMFFloatEvent;
+    strict private FEventSet_height: TMFFloatEvent;
     public property EventSet_height: TMFFloatEvent read FEventSet_height;
 
-    private FFdAttrib: TMFNode;
+    strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdFogCoord: TSFNode;
+    strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdNormal: TSFNode;
+    strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdColorPerVertex: TSFBool;
+    strict private FFdColorPerVertex: TSFBool;
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdHeight: TMFFloat;
+    strict private FFdHeight: TMFFloat;
     public property FdHeight: TMFFloat read FFdHeight;
 
-    private FFdNormalPerVertex: TSFBool;
+    strict private FFdNormalPerVertex: TSFBool;
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdXDimension: TSFInt32;
+    strict private FFdXDimension: TSFInt32;
     public property FdXDimension: TSFInt32 read FFdXDimension;
 
-    private FFdXSpacing: TSFFloat;
+    strict private FFdXSpacing: TSFFloat;
     public property FdXSpacing: TSFFloat read FFdXSpacing;
 
-    private FFdZDimension: TSFInt32;
+    strict private FFdZDimension: TSFInt32;
     public property FdZDimension: TSFInt32 read FFdZDimension;
 
-    private FFdZSpacing: TSFFloat;
+    strict private FFdZSpacing: TSFFloat;
     public property FdZSpacing: TSFFloat read FFdZSpacing;
 
     { This checks whether xDimension and zDimension are >= 2,
@@ -248,7 +248,7 @@
   TExtrusionNode = class(TAbstractX3DGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-  private
+  strict private
     procedure Eventset_crossSectionReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_orientationReceive(
@@ -263,52 +263,52 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_crossSection: TMFVec2fEvent;
+    strict private FEventSet_crossSection: TMFVec2fEvent;
     public property EventSet_crossSection: TMFVec2fEvent read FEventSet_crossSection;
 
     { Event in } { }
-    private FEventSet_orientation: TMFRotationEvent;
+    strict private FEventSet_orientation: TMFRotationEvent;
     public property EventSet_orientation: TMFRotationEvent read FEventSet_orientation;
 
     { Event in } { }
-    private FEventSet_scale: TMFVec2fEvent;
+    strict private FEventSet_scale: TMFVec2fEvent;
     public property EventSet_scale: TMFVec2fEvent read FEventSet_scale;
 
     { Event in } { }
-    private FEventSet_spine: TMFVec3fEvent;
+    strict private FEventSet_spine: TMFVec3fEvent;
     public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
 
-    private FFdBeginCap: TSFBool;
+    strict private FFdBeginCap: TSFBool;
     public property FdBeginCap: TSFBool read FFdBeginCap;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdConvex: TSFBool;
+    strict private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdCrossSection: TMFVec2f;
+    strict private FFdCrossSection: TMFVec2f;
     public property FdCrossSection: TMFVec2f read FFdCrossSection;
 
-    private FFdEndCap: TSFBool;
+    strict private FFdEndCap: TSFBool;
     public property FdEndCap: TSFBool read FFdEndCap;
 
-    private FFdOrientation: TMFRotation;
+    strict private FFdOrientation: TMFRotation;
     public property FdOrientation: TMFRotation read FFdOrientation;
 
-    private FFdScale: TMFVec2f;
+    strict private FFdScale: TMFVec2f;
     public property FdScale: TMFVec2f read FFdScale;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdSpine: TMFVec3f;
+    strict private FFdSpine: TMFVec3f;
     public property FdSpine: TMFVec3f read FFdSpine;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
@@ -346,7 +346,7 @@
     This is probably the most universal, and most often used,
     geometry node in X3D. }
   TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
-  private
+  strict private
     procedure Eventset_colorIndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_coordIndexReceive(
@@ -361,38 +361,38 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_colorIndex: TMFInt32Event;
+    strict private FEventSet_colorIndex: TMFInt32Event;
     public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 
     { Event in } { }
-    private FEventSet_coordIndex: TMFInt32Event;
+    strict private FEventSet_coordIndex: TMFInt32Event;
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     { Event in } { }
-    private FEventSet_normalIndex: TMFInt32Event;
+    strict private FEventSet_normalIndex: TMFInt32Event;
     public property EventSet_normalIndex: TMFInt32Event read FEventSet_normalIndex;
 
     { Event in } { }
-    private FEventSet_texCoordIndex: TMFInt32Event;
+    strict private FEventSet_texCoordIndex: TMFInt32Event;
     public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
 
-    private FFdColorIndex: TMFInt32;
+    strict private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
 
-    private FFdConvex: TSFBool;
+    strict private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
     function ConvexField: TSFBool; override;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdNormalIndex: TMFInt32;
+    strict private FFdNormalIndex: TMFInt32;
     public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
 
-    private FFdTexCoordIndex: TMFInt32;
+    strict private FFdTexCoordIndex: TMFInt32;
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -418,22 +418,22 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
-    private FFdStacks: TSFInt32;
+    strict private FFdStacks: TSFInt32;
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 

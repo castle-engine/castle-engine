@@ -26,7 +26,7 @@
   public
     procedure CreateNode; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dproductstructurechildnode.inc}
@@ -41,7 +41,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
     {$I auto_generated_node_helpers/x3dnodes_cadassembly.inc}
@@ -56,13 +56,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdShape: TSFNode;
+    strict private FFdShape: TSFNode;
     public property FdShape: TSFNode read FFdShape;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_cadface.inc}
@@ -77,10 +77,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdVisible: TMFBool;
+    strict private FFdVisible: TMFBool;
     public property FdVisible: TMFBool read FFdVisible;
 
     {$I auto_generated_node_helpers/x3dnodes_cadlayer.inc}
@@ -97,22 +97,22 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     {$I auto_generated_node_helpers/x3dnodes_cadpart.inc}
@@ -126,10 +126,10 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_index: TMFInt32Event;
+    strict private FEventSet_index: TMFInt32Event;
     public property EventSet_index: TMFInt32Event read FEventSet_index;
 
-    private FFdIndex: TMFInt32;
+    strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
     function CoordIndex: TMFLong; override;

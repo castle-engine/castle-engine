@@ -51,18 +51,18 @@
     destructor Destroy; override;
     class function ClassX3DType: string; override;
 
-    private FFdString: TMFString;
+    strict private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
 
-    private FFdSpacing: TSFFloat;
+    strict private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
     { Text justification.
       Use constants like JUSTIFICATION_LEFT and so on with this. }
-    private FFdJustification: TSFEnum;
+    strict private FFdJustification: TSFEnum;
     public property FdJustification: TSFEnum read FFdJustification;
 
-    private FFdWidth: TMFFloat;
+    strict private FFdWidth: TMFFloat;
     public property FdWidth: TMFFloat read FFdWidth;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -84,13 +84,13 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdParts: TSFBitMask;
+    strict private FFdParts: TSFBitMask;
     public property FdParts: TSFBitMask read FFdParts;
 
-    private FFdBottomRadius: TSFFloat;
+    strict private FFdBottomRadius: TSFFloat;
     public property FdBottomRadius: TSFFloat read FFdBottomRadius;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -110,13 +110,13 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdWidth: TSFFloat;
+    strict private FFdWidth: TSFFloat;
     public property FdWidth: TSFFloat read FFdWidth;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdDepth: TSFFloat;
+    strict private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -136,13 +136,13 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdParts: TSFBitMask;
+    strict private FFdParts: TSFBitMask;
     public property FdParts: TSFBitMask read FFdParts;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -164,16 +164,16 @@
   public
     procedure CreateNode; override;
 
-    private FFdCoordIndex: TMFLong;
+    strict private FFdCoordIndex: TMFLong;
     public property FdCoordIndex: TMFLong read FFdCoordIndex;
 
-    private FFdMaterialIndex: TMFLong;
+    strict private FFdMaterialIndex: TMFLong;
     public property FdMaterialIndex: TMFLong read FFdMaterialIndex;
 
-    private FFdNormalIndex: TMFLong;
+    strict private FFdNormalIndex: TMFLong;
     public property FdNormalIndex: TMFLong read FFdNormalIndex;
 
-    private FFdTextureCoordIndex: TMFLong;
+    strict private FFdTextureCoordIndex: TMFLong;
     public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
 
     function Coord(State: TX3DGraphTraverseState;
@@ -198,7 +198,7 @@
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    private FFdRadianceTransfer: TMFVec3f;
+    strict private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
     function TexCoord(State: TX3DGraphTraverseState;
@@ -220,17 +220,17 @@
   end;
 
   TPointSetNode_1 = class(TAbstractGeometryNode_1)
-  private
+  strict private
     CoordSubrange: TMFVec3f;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
     class function ClassX3DType: string; override;
 
-    private FFdStartIndex: TSFLong;
+    strict private FFdStartIndex: TSFLong;
     public property FdStartIndex: TSFLong read FFdStartIndex;
 
-    private FFdNumPoints: TSFLong;
+    strict private FFdNumPoints: TSFLong;
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
     function Coord(State: TX3DGraphTraverseState;
@@ -245,7 +245,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -265,7 +265,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdPoint: TMFVec3f;
+    strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
   end;
 
@@ -277,16 +277,16 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdSize: TSFFloat;
+    strict private FFdSize: TSFFloat;
     public property FdSize: TSFFloat read FFdSize;
 
-    private FFdFamily: TSFEnum;
+    strict private FFdFamily: TSFEnum;
     public property FdFamily: TSFEnum read FFdFamily;
 
-    private FFdStyle: TSFBitMask;
+    strict private FFdStyle: TSFBitMask;
     public property FdStyle: TSFBitMask read FFdStyle;
 
-    private FFdBlending: TSFBool;
+    strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
     property Blending: boolean read GetBlending write SetBlending;
 
@@ -303,7 +303,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdString: TSFString;
+    strict private FFdString: TSFString;
     public property FdString: TSFString read FFdString;
   end;
 
@@ -314,10 +314,10 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdRange: TMFFloat;
+    strict private FFdRange: TMFFloat;
     public property FdRange: TMFFloat read FFdRange;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -328,7 +328,7 @@
   strict private
     type
       TMaterialInfo_1 = class(TMaterialInfo)
-      private
+      strict private
         FNode: TMaterialNode_1;
         FIndex: Integer;
       public
@@ -357,47 +357,47 @@
     destructor Destroy; override;
     class function ClassX3DType: string; override;
 
-    private FFdAmbientColor: TMFColor;
+    strict private FFdAmbientColor: TMFColor;
     public property FdAmbientColor: TMFColor read FFdAmbientColor;
 
-    private FFdDiffuseColor: TMFColor;
+    strict private FFdDiffuseColor: TMFColor;
     public property FdDiffuseColor: TMFColor read FFdDiffuseColor;
 
-    private FFdSpecularColor: TMFColor;
+    strict private FFdSpecularColor: TMFColor;
     public property FdSpecularColor: TMFColor read FFdSpecularColor;
 
-    private FFdEmissiveColor: TMFColor;
+    strict private FFdEmissiveColor: TMFColor;
     public property FdEmissiveColor: TMFColor read FFdEmissiveColor;
 
-    private FFdShininess: TMFFloat;
+    strict private FFdShininess: TMFFloat;
     public property FdShininess: TMFFloat read FFdShininess;
 
-    private FFdTransparency: TMFFloat;
+    strict private FFdTransparency: TMFFloat;
     public property FdTransparency: TMFFloat read FFdTransparency;
 
     { Fields used by ray-tracers. } { }
-    private FFdMirror: TMFFloat;
+    strict private FFdMirror: TMFFloat;
     public property FdMirror: TMFFloat read FFdMirror;
 
-    private FFdReflSpecular: TMFColor;
+    strict private FFdReflSpecular: TMFColor;
     public property FdReflSpecular: TMFColor read FFdReflSpecular;
 
-    private FFdReflDiffuse: TMFColor;
+    strict private FFdReflDiffuse: TMFColor;
     public property FdReflDiffuse: TMFColor read FFdReflDiffuse;
 
-    private FFdTransSpecular: TMFColor;
+    strict private FFdTransSpecular: TMFColor;
     public property FdTransSpecular: TMFColor read FFdTransSpecular;
 
-    private FFdTransDiffuse: TMFColor;
+    strict private FFdTransDiffuse: TMFColor;
     public property FdTransDiffuse: TMFColor read FFdTransDiffuse;
 
-    private FFdReflSpecularExp: TMFFloat;
+    strict private FFdReflSpecularExp: TMFFloat;
     public property FdReflSpecularExp: TMFFloat read FFdReflSpecularExp;
 
-    private FFdTransSpecularExp: TMFFloat;
+    strict private FFdTransSpecularExp: TMFFloat;
     public property FdTransSpecularExp: TMFFloat read FFdTransSpecularExp;
 
-    private FFdFogImmune: TSFBool;
+    strict private FFdFogImmune: TSFBool;
     public property FdFogImmune: TSFBool read FFdFogImmune;
 
     { Easily extract VRML 1.0 material properties.
@@ -459,7 +459,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdValue: TSFEnum;
+    strict private FFdValue: TSFEnum;
     public property FdValue: TSFEnum read FFdValue;
   end;
 
@@ -467,7 +467,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdValue: TSFEnum;
+    strict private FFdValue: TSFEnum;
     public property FdValue: TSFEnum read FFdValue;
   end;
 
@@ -491,25 +491,25 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdFilename: TSFString;
+    strict private FFdFilename: TSFString;
     public property FdFilename: TSFString read FFdFilename;
 
-    private FFdImage: TSFImage;
+    strict private FFdImage: TSFImage;
     public property FdImage: TSFImage read FFdImage;
 
-    private FFdWrapS: TSFEnum;
+    strict private FFdWrapS: TSFEnum;
     public property FdWrapS: TSFEnum read FFdWrapS;
 
-    private FFdWrapT: TSFEnum;
+    strict private FFdWrapT: TSFEnum;
     public property FdWrapT: TSFEnum read FFdWrapT;
 
     { Ignored fields, some unknown extensions to VRML 1.0 spec.
       Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
       @groupBegin }
-    private FFdModel: TSFEnum;
+    strict private FFdModel: TSFEnum;
     public property FdModel: TSFEnum read FFdModel;
 
-    private FFdBlendColor: TSFVec3f;
+    strict private FFdBlendColor: TSFVec3f;
     public property FdBlendColor: TSFVec3f read FFdBlendColor;
     { @groupEnd }
 
@@ -523,16 +523,16 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdTranslation: TSFVec2f;
+    strict private FFdTranslation: TSFVec2f;
     public property FdTranslation: TSFVec2f read FFdTranslation;
 
-    private FFdRotation: TSFFloat;
+    strict private FFdRotation: TSFFloat;
     public property FdRotation: TSFFloat read FFdRotation;
 
-    private FFdScaleFactor: TSFVec2f;
+    strict private FFdScaleFactor: TSFVec2f;
     public property FdScaleFactor: TSFVec2f read FFdScaleFactor;
 
-    private FFdCenter: TSFVec2f;
+    strict private FFdCenter: TSFVec2f;
     public property FdCenter: TSFVec2f read FFdCenter;
 
     function TextureMatrixTransformation: TMatrix4;
@@ -542,7 +542,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdPoint: TMFVec2f;
+    strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
   end;
 
@@ -554,16 +554,16 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdVertexOrdering: TSFEnum;
+    strict private FFdVertexOrdering: TSFEnum;
     public property FdVertexOrdering: TSFEnum read FFdVertexOrdering;
 
-    private FFdShapeType: TSFEnum;
+    strict private FFdShapeType: TSFEnum;
     public property FdShapeType: TSFEnum read FFdShapeType;
 
-    private FFdFaceType: TSFEnum;
+    strict private FFdFaceType: TSFEnum;
     public property FdFaceType: TSFEnum read FFdFaceType;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
   end;
 
@@ -582,7 +582,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdMatrix: TSFMatrix;
+    strict private FFdMatrix: TSFMatrix;
     public property FdMatrix: TSFMatrix read FFdMatrix;
 
     { Returns simply FdMatrix as transformation. Inverse is also calculated
@@ -610,7 +610,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
@@ -621,7 +621,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdScaleFactor: TSFVec3f;
+    strict private FFdScaleFactor: TSFVec3f;
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
@@ -633,19 +633,19 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScaleFactor: TSFVec3f;
+    strict private FFdScaleFactor: TSFVec3f;
     public property FdScaleFactor: TSFVec3f read FFdScaleFactor;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
@@ -659,7 +659,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     procedure Transformation(out Matrix, InvertedMatrix: TMatrix4); override;
@@ -673,19 +673,19 @@
   public
     procedure CreateNode; override;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
-    private FFdFocalDistance: TSFFloat;
+    strict private FFdFocalDistance: TSFFloat;
     public property FdFocalDistance: TSFFloat read FFdFocalDistance;
 
     { Ignored fields, some unknown extensions to VRML 1.0 spec.
       Some models ([http://www-vrl.umich.edu/sel_prj/EECS498/]) use them.
       @groupBegin }
-    private FFdNearDistance: TSFFloat;
+    strict private FFdNearDistance: TSFFloat;
     public property FdNearDistance: TSFFloat read FFdNearDistance;
 
-    private FFdFarDistance: TSFFloat;
+    strict private FFdFarDistance: TSFFloat;
     public property FdFarDistance: TSFFloat read FFdFarDistance;
     { @groupEnd }
   end;
@@ -697,7 +697,7 @@
     class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
   end;
 
@@ -708,7 +708,7 @@
     class function ClassX3DType: string; override;
     class function ProjectionType: TProjectionType; override;
 
-    private FFdHeightAngle: TSFFloat;
+    strict private FFdHeightAngle: TSFFloat;
     public property FdHeightAngle: TSFFloat read FFdHeightAngle;
   end;
 
@@ -741,13 +741,13 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdDropOffRate: TSFFloat;
+    strict private FFdDropOffRate: TSFFloat;
     public property FdDropOffRate: TSFFloat read FFdDropOffRate;
 
-    private FFdCutOffAngle: TSFFloat;
+    strict private FFdCutOffAngle: TSFFloat;
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
 
     { Spot exponent (based on dropOffRate).
@@ -807,7 +807,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdRenderCulling: TSFEnum;
+    strict private FFdRenderCulling: TSFEnum;
     public property FdRenderCulling: TSFEnum read FFdRenderCulling;
   end;
 
@@ -818,7 +818,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdWhichChild: TSFLong;
+    strict private FFdWhichChild: TSFLong;
     public property FdWhichChild: TSFLong read FFdWhichChild;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -826,7 +826,7 @@
   end;
 
   TTransformSeparatorNode_1 = class(TAbstractChildNode)
-  private
+  strict private
     OriginalTransform, OriginalInvertedTransform: TMatrix4;
     OriginalTransformScale: Single;
   protected
@@ -841,13 +841,13 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
-    private FFdMap: TSFEnum;
+    strict private FFdMap: TSFEnum;
     public property FdMap: TSFEnum read FFdMap;
   end;
 
@@ -865,7 +865,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdSeparate: TSFBool;
+    strict private FFdSeparate: TSFBool;
     public property FdSeparate: TSFBool read FFdSeparate;
   end;
 {$endif read_interface}
@@ -2633,8 +2633,8 @@ begin
   FdUrl.AssignDefaultValueFromValue;
 
   { bboxSize is (0, 0, 0) in VRMl 1.0 (in VRML 2.0/X3D it's (-1, -1, -1)) }
-  FFdBboxSize.Value := Vector3(0, 0, 0);
-  FFdBboxSize.AssignDefaultValueFromValue;
+  FdBboxSize.Value := Vector3(0, 0, 0);
+  FdBboxSize.AssignDefaultValueFromValue;
 
   FFdSeparate := TSFBool.Create(Self, 'separate', true);
    FdSeparate.ChangesAlways := [chEverything];

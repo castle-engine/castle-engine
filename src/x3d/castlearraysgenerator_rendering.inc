@@ -35,7 +35,7 @@ type
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     TriFaceNormal: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
@@ -51,7 +51,7 @@ type
 
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     TriFaceNormal: TVector3;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -76,7 +76,7 @@ type
     the same thing as IndexedTriangleStripSet, only defined more in
     Inventor/VRML 1.0 conventions). }
   TTriangleStripSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     TriFaceNormal: TVector3;
     VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
     procedure PrepareIndexesCoordsRange(
@@ -98,7 +98,7 @@ type
 
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
   TQuadSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     QuadFaceNormal: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
@@ -115,7 +115,7 @@ type
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
     LineSet (VRML >= 2.0, although specification only since X3D). }
   TAbstractLineSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
