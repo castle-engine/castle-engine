@@ -24,7 +24,7 @@
     procedure SetTextureLoaded(const Value: boolean);
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
-  protected
+  strict protected
     { This does the actual loading of texture data.
 
       You can assume here that texture is not loaded now,
@@ -97,10 +97,11 @@
 
   { 3D texture loaded from a single file like DDS. }
   TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
-  private
+  strict private
     FAlphaChannelData: TAlphaChannel;
-  protected
+  strict protected
     function AlphaChannelData: TAlphaChannel; override;
+    procedure LoadTextureData; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -108,8 +109,6 @@
 
     private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
-
-    procedure LoadTextureData; override;
 
     {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
   end;

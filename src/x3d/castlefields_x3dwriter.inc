@@ -19,7 +19,7 @@
 
   { Writer of VRML/X3D to stream. }
   TX3DWriter = {abstact} class
-  private
+  strict private
     Indent: string;
     DoDiscardNextIndent: boolean;
     FEncoding: TX3DEncoding;

@@ -46,7 +46,7 @@ type
   TRayTracerKind = (rtkClassic, rtkPathTracer);
 
   TRayTracer = class
-  protected
+  strict protected
     procedure AppendStats(const Stats: TStrings; const RenderingTime: Single); virtual;
   public
     { Scene to render.

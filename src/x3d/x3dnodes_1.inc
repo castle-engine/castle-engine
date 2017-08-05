@@ -472,7 +472,7 @@
   end;
 
   TTexture2Node_1 = class(TAbstractTexture2DNode)
-  protected
+  strict protected
     function GetRepeatS: boolean; override;
     function GetRepeatT: boolean; override;
     procedure SetRepeatS(const Value: boolean); override;

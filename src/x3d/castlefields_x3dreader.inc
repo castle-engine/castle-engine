@@ -19,9 +19,10 @@
     Common knowledge for both classic and XML reader.
     X3DNodes unit extends this into TX3DReaderNames. }
   TX3DReader = class
-  private
+  strict private
     FVersion: TX3DVersion;
     FBaseUrl: string;
+  private
     AngleConversionFactor: Float;
   public
     LengthConversionFactor: Float;

@@ -462,7 +462,7 @@
   end;
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
-  private
+  strict private
     function GetByName(const AName: string): TX3DField;
   public
     { Access field by name.

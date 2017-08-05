@@ -27,7 +27,7 @@
   private
     function GetAlphaChannelField: TAutoAlphaChannel;
     procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
-  protected
+  strict protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
       Actually set only when image data is loaded
@@ -108,7 +108,7 @@
 
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
-  protected
+  strict protected
     FTextureUsedFullUrl: string;
 
     { Loads texture data (image or video file).
@@ -269,7 +269,7 @@
 
   { Texture image loaded from a file. }
   TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
-  protected
+  strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
@@ -287,12 +287,12 @@
   { Movie file, that can be played and displayed as a texture. }
   TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractSoundSourceNode,
     IAbstractUrlObject, IAbstractTimeDependentNode)
-  private
+  strict private
     FDuration: TFloatTime;
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     function GetCycleInterval: TFloatTime;
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
-  protected
+  strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
@@ -458,7 +458,7 @@
     so it may be more compact than PixelTexture.
   }
   TPixelTextureNode = class(TAbstractX3DTexture2DNode)
-  protected
+  strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;

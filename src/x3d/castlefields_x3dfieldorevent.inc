@@ -17,21 +17,12 @@
 
   { Base class for VRML/X3D field or event. }
   TX3DFieldOrEvent = class(TX3DFileItem)
-  private
+  strict private
     { To optimize memory usage (which may really be huge in case of VRML/X3D
       with many nodes, esp. when VRML/X3D uses a lot of prototypes),
       this is only created when needed (when it is not empty).
       Otherwise it is @nil. }
     FIsClauseNames: TCastleStringList;
-
-    FX3DName: string;
-
-    { A really simple (but good enough for now) implementation of
-      AddAlternativeName:
-      - there are only 0 (none), 1, 2, and 3 VRML major versions
-      - each VRML major version has exactly one alt name
-      - alt name is never '' ('' means that alt name doesn't exist) }
-    FAlternativeNames: array [0..3] of string;
 
     FParentNode: TX3DFileItem;
     FParentInterfaceDeclaration: TX3DFileItem;
@@ -40,7 +31,16 @@
 
     { Return FIsClauseNames, initializing it if necessary to not be nil. }
     function IsClauseNamesCreate: TCastleStringList;
-  protected
+  private
+    FX3DName: string;
+
+    { A really simple (but good enough for now) implementation of
+      AddAlternativeName:
+      - there are only 0 (none), 1, 2, and 3 VRML major versions
+      - each VRML major version has exactly one alt name
+      - alt name is never '' ('' means that alt name doesn't exist) }
+    FAlternativeNames: array [0..3] of string;
+  strict protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
     constructor Create(AParentNode: TX3DFileItem; const AX3DName: string);

@@ -28,7 +28,7 @@
 
   { X3D event. }
   TX3DEvent = class(TX3DFieldOrEvent)
-  private
+  strict private
     FFieldClass: TX3DFieldClass;
     FInEvent: boolean;
     FOnReceive: TX3DEventReceiveList;
@@ -148,7 +148,7 @@
   end;
 
   TX3DEventList = class(specialize TObjectList<TX3DEvent>)
-  private
+  strict private
     function GetByName(const AName: string): TX3DEvent;
   public
     { Access event by name.

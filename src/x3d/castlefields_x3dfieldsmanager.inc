@@ -19,7 +19,7 @@
     The only use for now is to make a mapping from VRML/X3D field name to
     actual class (needed by VRML/X3D interface declarations). }
   TX3DFieldsManager = class
-  private
+  strict private
     Registered: TStringList;
   public
     constructor Create;

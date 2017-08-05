@@ -20,7 +20,7 @@
     where a number of "flags" can be "on" or "off".
     @deprecated This is deprecated, as VRML 1.0 is an ancient format now. }
   TSFBitMask = class(TX3DSingleField)
-  private
+  strict private
     fAllString, fNoneString: string;
     fFlagNames: TStringList;
 
@@ -32,7 +32,7 @@
     function GetFlags(i: integer): boolean;
     procedure SetFlags(i: integer; value: boolean);
     function GetFlagNames(i: integer): string;
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Value of this field. You can use Index from the range 0 .. FlagsCount - 1. }
@@ -86,7 +86,7 @@
 
   { X3D field containing a single boolean value. }
   TSFBool = class(TX3DSingleField)
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     Value: boolean;
@@ -115,10 +115,10 @@
     which means that you choose one (named) value from a set of possible values.
     @deprecated This is deprecated, as VRML 1.0 is an ancient format now. }
   TSFEnum = class(TX3DSingleField)
-  private
+  strict private
     FEnumNames: TStringList;
     function GetEnumNames(i: integer): string;
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Value between 0 .. EnumCount - 1. By default 0. }
@@ -154,12 +154,12 @@
 
   { X3D field containing a floating-point value with Single precision. }
   TSFFloat = class(TX3DSingleField)
-  private
+  strict private
     FMustBeNonnegative: boolean;
     FValue: Single;
     FAngle: boolean;
     procedure SetValue(const AValue: Single);
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     DefaultValue: Single;
@@ -204,11 +204,11 @@
 
   { X3D field containing a floating-point value with Double precision. }
   TSFDouble = class(TX3DSingleField)
-  private
+  strict private
     FValue: Double;
     FAngle: boolean;
     procedure SetValue(const AValue: Double);
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     DefaultValue: Double;
@@ -255,7 +255,7 @@
   strict private
     FValue: TCastleImage;
     procedure SetValue(const AValue: TCastleImage);
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     { Current image, expressed as the @link(TCastleImage) instance.
@@ -296,11 +296,11 @@
 
   { X3D field containing an single integer 32-bit value. }
   TSFLong = class(TX3DSingleField)
-  private
+  strict private
     FMustBeNonnegative: boolean;
     FValue: Longint;
     procedure SetValue(const AValue: Longint);
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     DefaultValue: Longint;
@@ -433,11 +433,11 @@
 
   { X3D field representing a 3D rotation around an arbitrary axis. }
   TSFRotation = class(TX3DSingleField)
-  private
+  strict private
     DefaultAxis: TVector3;
     DefaultRotationRad: Single;
     DefaultValueExists: boolean;
-  protected
+  strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
     function GetValue: TVector4;
     procedure SetValue(const AValue: TVector4);
@@ -489,11 +489,11 @@
 
   { X3D field containing a single string. }
   TSFString = class(TX3DSingleField)
-  private
+  strict private
     FValue: string;
     FDefaultValue: string;
     FDefaultValueExists: boolean;
-  protected
+  strict protected
     procedure SetValue(const NewValue: string); virtual;
     procedure SetDefaultValue(const NewDefaultValue: string); virtual;
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
@@ -533,13 +533,13 @@
     Access the EnumValue to get / set the field value as an integer,
     which is an index to ValueNames array. }
   TSFStringEnum = class(TSFString)
-  private
+  strict private
     FEnumNames: TStringList;
     FEnumValue: Integer;
     FDefaultEnumValue: Integer;
     procedure SetEnumValue(const NewEnumValue: Integer);
     procedure SetDefaultEnumValue(const NewDefaultEnumValue: Integer);
-  protected
+  strict protected
     function StringToEnumValue(const NewValue: string): Integer;
     procedure SetValue(const NewValue: string); override;
     procedure SetDefaultValue(const NewDefaultValue: string); override;
