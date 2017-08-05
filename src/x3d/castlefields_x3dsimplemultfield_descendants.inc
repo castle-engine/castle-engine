@@ -294,89 +294,6 @@
 
 {$ifdef read_implementation}
 
-{ Choose one of macros IMPLEMENT_MF_CLASS_USING_* to specify
-  which comparison operator is suitable for given field type.
-
-  For some types operator "=" may not be available, like for vectors
-  (where it would be unsure what it does --- precise or epsilon comparison?).
-  Then using other comparison, like CompareMem, may be suitable.
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_VECTORS:=
-function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := Items.List^[ItemNum].ToRawString;
-end;
-
-procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
-begin
-  Items.AssignLerp(A, (Value1 as TMF_CLASS).Items, (Value2 as TMF_CLASS).Items);
-end;
-
-function TMF_CLASS.CanAssignLerp: boolean;
-begin
-  Result := true;
-end;
-}
-
-{$define IMPLEMENT_MF_CLASS_USING_MATRICES:=
-function TMF_CLASS.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
-begin
-  Result := Items.List^[ItemNum].ToRawString;
-end;
-
-procedure TMF_CLASS.AssignLerp(const A: Double; Value1, Value2: TX3DField);
-begin
-  Items.AssignLerp(A, (Value1 as TMF_CLASS).Items, (Value2 as TMF_CLASS).Items);
-end;
-
-function TMF_CLASS.CanAssignLerp: boolean;
-begin
-  Result := true;
-end;
-}
-
-{$define TMF_CLASS := TMFVec2f}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec3f}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec4f}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec2d}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec3d}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFVec4d}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFRotation}
-IMPLEMENT_MF_CLASS_USING_VECTORS
-
-{$define TMF_CLASS := TMFMatrix3f}
-{$define TMF_VECTOR := TVector3}
-{$define TSF_MATRIX_COLS := 3}
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{$define TMF_CLASS := TMFMatrix3d}
-{$define TMF_VECTOR := TVector3Double}
-{$define TSF_MATRIX_COLS := 3}
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{$define TMF_CLASS := TMFMatrix4f}
-{$define TMF_VECTOR := TVector4}
-{$define TSF_MATRIX_COLS := 4}
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
-{$define TMF_CLASS := TMFMatrix4d}
-{$define TMF_VECTOR := TVector4Double}
-{$define TSF_MATRIX_COLS := 4}
-IMPLEMENT_MF_CLASS_USING_MATRICES
-
 { TMFBool ------------------------------------------------------------------ }
 
 function TMFBool.RawItemToString(ItemNum: integer; const Encoding: TX3DEncoding): string;
@@ -440,11 +357,41 @@ begin
   Result := 'MFMatrix3f';
 end;
 
+function TMFMatrix3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFMatrix3f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFMatrix3f).Items, (Value2 as TMFMatrix3f).Items);
+end;
+
+function TMFMatrix3f.CanAssignLerp: boolean;
+begin
+  Result := true;
+end;
+
 { TMFMatrix3d ------------------------------------------------------------------- }
 
 class function TMFMatrix3d.X3DType: string;
 begin
   Result := 'MFMatrix3d';
+end;
+
+function TMFMatrix3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFMatrix3d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFMatrix3d).Items, (Value2 as TMFMatrix3d).Items);
+end;
+
+function TMFMatrix3d.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 { TMFMatrix4f ------------------------------------------------------------------- }
@@ -454,11 +401,41 @@ begin
   Result := 'MFMatrix4f';
 end;
 
+function TMFMatrix4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFMatrix4f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFMatrix4f).Items, (Value2 as TMFMatrix4f).Items);
+end;
+
+function TMFMatrix4f.CanAssignLerp: boolean;
+begin
+  Result := true;
+end;
+
 { TMFMatrix4d ------------------------------------------------------------------- }
 
 class function TMFMatrix4d.X3DType: string;
 begin
   Result := 'MFMatrix4d';
+end;
+
+function TMFMatrix4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFMatrix4d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFMatrix4d).Items, (Value2 as TMFMatrix4d).Items);
+end;
+
+function TMFMatrix4d.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 { TMFVec2f ------------------------------------------------------------------- }
@@ -468,11 +445,41 @@ begin
   Result := 'MFVec2f';
 end;
 
+function TMFVec2f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec2f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFVec2f).Items, (Value2 as TMFVec2f).Items);
+end;
+
+function TMFVec2f.CanAssignLerp: boolean;
+begin
+  Result := true;
+end;
+
 { TMFVec3f ------------------------------------------------------------------- }
 
 class function TMFVec3f.X3DType: string;
 begin
   Result := 'MFVec3f';
+end;
+
+function TMFVec3f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec3f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFVec3f).Items, (Value2 as TMFVec3f).Items);
+end;
+
+function TMFVec3f.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 { TMFColor ------------------------------------------------------------------- }
@@ -494,6 +501,21 @@ begin
   Result := 'MFVec4f';
 end;
 
+function TMFVec4f.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec4f.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFVec4f).Items, (Value2 as TMFVec4f).Items);
+end;
+
+function TMFVec4f.CanAssignLerp: boolean;
+begin
+  Result := true;
+end;
+
 { TMFColorRGBA --------------------------------------------------------------- }
 
 class function TMFColorRGBA.X3DType: string;
@@ -513,11 +535,41 @@ begin
   Result := 'MFVec2d';
 end;
 
+function TMFVec2d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec2d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFVec2d).Items, (Value2 as TMFVec2d).Items);
+end;
+
+function TMFVec2d.CanAssignLerp: boolean;
+begin
+  Result := true;
+end;
+
 { TMFVec3d ------------------------------------------------------------------- }
 
 class function TMFVec3d.X3DType: string;
 begin
   Result := 'MFVec3d';
+end;
+
+function TMFVec3d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec3d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFVec3d).Items, (Value2 as TMFVec3d).Items);
+end;
+
+function TMFVec3d.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 { TMFVec4d ------------------------------------------------------------------- }
@@ -527,11 +579,41 @@ begin
   Result := 'MFVec4d';
 end;
 
+function TMFVec4d.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFVec4d.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFVec4d).Items, (Value2 as TMFVec4d).Items);
+end;
+
+function TMFVec4d.CanAssignLerp: boolean;
+begin
+  Result := true;
+end;
+
 { TMFRotation ---------------------------------------------------------------- }
 
 class function TMFRotation.X3DType: string;
 begin
   Result := 'MFRotation';
+end;
+
+function TMFRotation.RawItemToString(ItemNum: Integer; const Encoding: TX3DEncoding): string;
+begin
+  Result := Items.List^[ItemNum].ToRawString;
+end;
+
+procedure TMFRotation.AssignLerp(const A: Double; Value1, Value2: TX3DField);
+begin
+  Items.AssignLerp(A, (Value1 as TMFRotation).Items, (Value2 as TMFRotation).Items);
+end;
+
+function TMFRotation.CanAssignLerp: boolean;
+begin
+  Result := true;
 end;
 
 { TMFFloat ------------------------------------------------------------------- }
