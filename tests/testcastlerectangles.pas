@@ -161,47 +161,47 @@ var
 begin
   R := TFloatRectangle.Empty;
 
-  R.Add(Vector2(10, 20)); // without assignment, R.Add does nothing
+  R.Include(Vector2(10, 20)); // without assignment, R.Add does nothing
   AssertTrue(R.IsEmpty);
 
-  R := R.Add(Vector2(10, 20));
+  R := R.Include(Vector2(10, 20));
   AssertFalse(R.IsEmpty);
   AssertSameValue(10, R.Left);
   AssertSameValue(20, R.Bottom);
   AssertSameValue(0, R.Width);
   AssertSameValue(0, R.Height);
 
-  R.Add(Vector2(0, 40)); // without assignment, R.Add does nothing
+  R.Include(Vector2(0, 40)); // without assignment, R.Add does nothing
   AssertSameValue(10, R.Left);
   AssertSameValue(20, R.Bottom);
   AssertSameValue(0, R.Width);
   AssertSameValue(0, R.Height);
 
-  R := R.Add(Vector2(0, 40));
+  R := R.Include(Vector2(0, 40));
   AssertSameValue(0, R.Left);
   AssertSameValue(20, R.Bottom);
   AssertSameValue(10, R.Width);
   AssertSameValue(20, R.Height);
 
-  R := R.Add(Vector2(5, 30)); // does not change R, since already inside
+  R := R.Include(Vector2(5, 30)); // does not change R, since already inside
   AssertSameValue(0, R.Left);
   AssertSameValue(20, R.Bottom);
   AssertSameValue(10, R.Width);
   AssertSameValue(20, R.Height);
 
-  R := R.Add(Vector2(-10, 30)); // changes R only horizontally
+  R := R.Include(Vector2(-10, 30)); // changes R only horizontally
   AssertSameValue(-10, R.Left);
   AssertSameValue(20, R.Bottom);
   AssertSameValue(20, R.Width);
   AssertSameValue(20, R.Height);
 
-  R := R.Add(Vector2(5, -50)); // changes R only vertically
+  R := R.Include(Vector2(5, -50)); // changes R only vertically
   AssertSameValue(-10, R.Left);
   AssertSameValue(-50, R.Bottom);
   AssertSameValue(20, R.Width);
   AssertSameValue(90, R.Height);
 
-  R := R.Add(Vector2(5, -25)); // should not change R
+  R := R.Include(Vector2(5, -25)); // should not change R
   AssertSameValue(-10, R.Left);
   AssertSameValue(-50, R.Bottom);
   AssertSameValue(20, R.Width);
