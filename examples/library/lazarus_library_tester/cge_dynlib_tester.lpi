@@ -57,7 +57,6 @@
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir);..\..\..\src\base"/>
-      <OtherUnitFiles Value="..\..\..\src\library"/>
       <UnitOutputDirectory Value="lib\$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>
@@ -77,7 +76,6 @@
         <ShowHints Value="False"/>
       </Verbosity>
       <ConfigFile>
-        <CustomConfigFile Value="True"/>
         <ConfigFilePath Value="..\..\..\castle-fpc.cfg"/>
       </ConfigFile>
     </Other>
