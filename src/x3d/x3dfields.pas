@@ -1390,21 +1390,21 @@ type
   end;
 
   generic TSFGenericMatrix<
-    TSF_STATIC_ITEM,
-    TSF_VECTOR,
-    TSF_EVENT> = class(TX3DSingleField)
+    TItem,
+    TItemColumn,
+    TEvent> = class(TX3DSingleField)
   strict private
-    FValue: TSF_STATIC_ITEM;
-    DefaultValue: TSF_STATIC_ITEM;
+    FValue: TItem;
+    DefaultValue: TItem;
     DefaultValueExists: boolean;
     class function MatrixSize: Integer;
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TSF_STATIC_ITEM);
+      const AName: string; const AValue: TItem);
 
-    property Value: TSF_STATIC_ITEM read FValue write FValue;
+    property Value: TItem read FValue write FValue;
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -1597,18 +1597,18 @@ type
   end;
 
   generic TSFGenericVector<
-    TSF_STATIC_ITEM,
-    TSF_EVENT> = class(TX3DSingleField)
+    TItem,
+    TEvent> = class(TX3DSingleField)
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    Value: TSF_STATIC_ITEM;
+    Value: TItem;
 
-    DefaultValue: TSF_STATIC_ITEM;
+    DefaultValue: TItem;
     DefaultValueExists: boolean;
 
     constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TSF_STATIC_ITEM);
+      const AName: string; const AValue: TItem);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -3334,7 +3334,7 @@ end;
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
 
 constructor TSFGenericMatrix.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TSF_STATIC_ITEM);
+  const AName: string; const AValue: TItem);
 begin
   inherited Create(AParentNode, AName);
   FValue := AValue;
@@ -3363,7 +3363,7 @@ end;
 
 procedure TSFGenericMatrix.SaveToStreamValue(Writer: TX3DWriter);
 var
-  V: TSF_VECTOR;
+  V: TItemColumn;
   Column: integer;
 begin
   V.Data := FValue.Data[0];
@@ -3382,18 +3382,18 @@ function TSFGenericMatrix.Equals(SecondValue: TX3DField): boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFGenericMatrix) and
-    TSF_STATIC_ITEM.Equals(TSFGenericMatrix(SecondValue).FValue, FValue);
+    TItem.Equals(TSFGenericMatrix(SecondValue).FValue, FValue);
 end;
 
 function TSFGenericMatrix.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFGenericMatrix) and
-    TSF_STATIC_ITEM.PerfectlyEquals(TSFGenericMatrix(SecondValue).Value, FValue);
+    TItem.PerfectlyEquals(TSFGenericMatrix(SecondValue).Value, FValue);
 end;
 
 procedure TSFGenericMatrix.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  Value := TSF_STATIC_ITEM.Lerp(A, (Value1 as TSFGenericMatrix).Value, (Value2 as TSFGenericMatrix).Value);
+  Value := TItem.Lerp(A, (Value1 as TSFGenericMatrix).Value, (Value2 as TSFGenericMatrix).Value);
 end;
 
 function TSFGenericMatrix.CanAssignLerp: boolean;
@@ -3424,7 +3424,7 @@ end;
 function TSFGenericMatrix.EqualsDefaultValue: boolean;
 begin
   Result := DefaultValueExists and
-    TSF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Value);
+    TItem.PerfectlyEquals(DefaultValue, Value);
 end;
 
 procedure TSFGenericMatrix.AssignDefaultValueFromValue;
@@ -3436,12 +3436,12 @@ end;
 
 class function TSFGenericMatrix.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
-  Result := TSF_EVENT.Create(AParentNode, AName, AInEvent);
+  Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 class function TSFGenericMatrix.MatrixSize: Integer;
 begin
-  Result := High(TSF_VECTOR.TIndex) + 1;
+  Result := High(TItemColumn.TIndex) + 1;
 end;
 
 { TSFMatrix3f ------------------------------------------------------------------ }
@@ -3912,7 +3912,7 @@ end;
 { TSFGenericVector ----------------------------------------------------------- }
 
 constructor TSFGenericVector.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TSF_STATIC_ITEM);
+  const AName: string; const AValue: TItem);
 begin
   inherited Create(AParentNode, AName);
 
@@ -3944,25 +3944,25 @@ end;
 
 function TSFGenericVector.EqualsDefaultValue: boolean;
 begin
-  Result := DefaultValueExists and TSF_STATIC_ITEM.PerfectlyEquals(DefaultValue, Value);
+  Result := DefaultValueExists and TItem.PerfectlyEquals(DefaultValue, Value);
 end;
 
 function TSFGenericVector.Equals(SecondValue: TX3DField): boolean;
 begin
   Result := (inherited Equals(SecondValue)) and
     (SecondValue is TSFGenericVector) and
-    TSF_STATIC_ITEM.Equals(TSFGenericVector(SecondValue).Value, Value);
+    TItem.Equals(TSFGenericVector(SecondValue).Value, Value);
 end;
 
 function TSFGenericVector.FastEqualsValue(SecondValue: TX3DField): boolean;
 begin
   Result := (SecondValue is TSFGenericVector) and
-    TSF_STATIC_ITEM.PerfectlyEquals(TSFGenericVector(SecondValue).Value, Value);
+    TItem.PerfectlyEquals(TSFGenericVector(SecondValue).Value, Value);
 end;
 
 procedure TSFGenericVector.AssignLerp(const A: Double; Value1, Value2: TX3DField);
 begin
-  Value := TSF_STATIC_ITEM.Lerp(A, (Value1 as TSFGenericVector).Value, (Value2 as TSFGenericVector).Value);
+  Value := TItem.Lerp(A, (Value1 as TSFGenericVector).Value, (Value2 as TSFGenericVector).Value);
 end;
 
 function TSFGenericVector.CanAssignLerp: boolean;
@@ -4001,7 +4001,7 @@ end;
 
 class function TSFGenericVector.CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent;
 begin
-  Result := TSF_EVENT.Create(AParentNode, AName, AInEvent);
+  Result := TEvent.Create(AParentNode, AName, AInEvent);
 end;
 
 { TSFVec2f ------------------------------------------------------------------- }
