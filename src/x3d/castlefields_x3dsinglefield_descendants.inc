@@ -342,7 +342,8 @@
   end;
 
   { Generic class for an X3D field containing a single matrix value. }
-  generic TSFGenericMatrix<
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TSFGenericMatrix<
     TItem,
     TItemColumn,
     TEvent> = class(TX3DSingleField)
@@ -376,7 +377,7 @@
   end;
 
   { X3D field containing a 3x3 matrix with Single precision. }
-  TSFMatrix3f = class(specialize TSFGenericMatrix<
+  TSFMatrix3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3,
     TVector3,
     TSFMatrix3fEvent>)
@@ -385,7 +386,7 @@
   end;
 
   { X3D field containing a 3x3 matrix with Double precision. }
-  TSFMatrix3d = class(specialize TSFGenericMatrix<
+  TSFMatrix3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix3Double,
     TVector3Double,
     TSFMatrix3dEvent>)
@@ -394,7 +395,7 @@
   end;
 
   { X3D field containing a 4x4 matrix with Single precision. }
-  TSFMatrix4f = class(specialize TSFGenericMatrix<
+  TSFMatrix4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4,
     TVector4,
     TSFMatrix4fEvent>)
@@ -412,7 +413,7 @@
   end;
 
   { X3D field containing a 4x4 matrix with Double precision. }
-  TSFMatrix4d = class(specialize TSFGenericMatrix<
+  TSFMatrix4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericMatrix<
     TMatrix4Double,
     TVector4Double,
     TSFMatrix4dEvent>)
@@ -553,7 +554,8 @@
   end;
 
   { X3D field containing a vector. }
-  generic TSFGenericVector<
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TSFGenericVector<
     TItem,
     TEvent> = class(TX3DSingleField)
   strict protected
@@ -584,7 +586,7 @@
   end;
 
   { X3D field containing a 2D vector with Single precision. }
-  TSFVec2f = class(specialize TSFGenericVector<
+  TSFVec2f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
     TVector2,
     TSFVec2fEvent>)
   public
@@ -592,7 +594,7 @@
   end;
 
   { X3D field containing a 3D vector with Single precision. }
-  TSFVec3f = class(specialize TSFGenericVector<
+  TSFVec3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
     TVector3,
     TSFVec3fEvent>)
   public
@@ -609,7 +611,7 @@
   end;
 
   { X3D field containing a 4D vector with Single precision. }
-  TSFVec4f = class(specialize TSFGenericVector<
+  TSFVec4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
     TVector4,
     TSFVec4fEvent>)
   public
@@ -624,7 +626,7 @@
   end;
 
   { X3D field containing a 2D vector with Double precision. }
-  TSFVec2d = class(specialize TSFGenericVector<
+  TSFVec2d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
     TVector2Double,
     TSFVec2dEvent>)
   public
@@ -632,7 +634,7 @@
   end;
 
   { X3D field containing a 3D vector with Double precision. }
-  TSFVec3d = class(specialize TSFGenericVector<
+  TSFVec3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
     TVector3Double,
     TSFVec3dEvent>)
   public
@@ -640,7 +642,7 @@
   end;
 
   { X3D field containing a 4D vector with Double precision. }
-  TSFVec4d = class(specialize TSFGenericVector<
+  TSFVec4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TSFGenericVector<
     TVector4Double,
     TSFVec4dEvent>)
   public
@@ -804,7 +806,7 @@ procedure TSFFloat.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Value := ParseFloat(Lexer);
   if Angle then
-    FValue *= Reader.AngleConversionFactor;
+    FValue := FValue * Reader.AngleConversionFactor;
 end;
 
 procedure TSFFloat.SaveToStreamValue(Writer: TX3DWriter);
@@ -911,7 +913,7 @@ procedure TSFDouble.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
 begin
   Value := ParseFloat(Lexer);
   if Angle then
-    FValue *= Reader.AngleConversionFactor;
+    FValue := FValue * Reader.AngleConversionFactor;
 end;
 
 procedure TSFDouble.SaveToStreamValue(Writer: TX3DWriter);

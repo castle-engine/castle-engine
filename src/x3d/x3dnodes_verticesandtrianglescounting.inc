@@ -61,15 +61,16 @@ end;
 function Cone_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   const Sides, Bottom: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
- result := 0;
- if Sides then
- begin
-  if OverTriangulate then
-   result += Slices * ((Stacks - 1) * 2 + 1) else
-   result += Slices;
- end;
- if Bottom then
-  result += Slices;
+  result := 0;
+  if Sides then
+  begin
+    if OverTriangulate then
+      result := result + (Slices * ((Stacks - 1) * 2 + 1))
+    else
+      result := result + Slices;
+  end;
+  if Bottom then
+    result := result + Slices;
 end;
 
 function TConeNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -112,15 +113,16 @@ end;
 function Cylinder_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   const Bottom, Side, Top: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
- result := 0;
- if Side then
- begin
-  if OverTriangulate then
-   result += 2 * Slices * Stacks else
-   result += 2 * Slices;
- end;
- if Top then result += Slices;
- if Bottom then result += Slices;
+  result := 0;
+  if Side then
+  begin
+    if OverTriangulate then
+      result := result + (2 * Slices * Stacks)
+    else
+      result := result + (2 * Slices);
+  end;
+  if Top then result := result + Slices;
+  if Bottom then result := result + Slices;
 end;
 
 function TCylinderNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -155,10 +157,10 @@ begin
   begin
     EndIndex := BeginIndex;
     while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items.L[EndIndex] <> -1) do
+          (CoordIndex.Items.List^[EndIndex] <> -1) do
       Inc(EndIndex);
 
-    result += Cardinal(Max(EndIndex - BeginIndex - 2, 0));
+    result := result + (Cardinal(Max(EndIndex - BeginIndex - 2, 0)));
     BeginIndex := EndIndex + 1;
   end;
 end;
@@ -262,9 +264,9 @@ begin
     if FdCrossSection.Count >= 2 then
     begin
       if FdBeginCap.Value then
-        Result += Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0);
+        Result := Result + (Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0));
       if FdEndCap.Value then
-        Result += Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0);
+        Result := Result + (Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0));
     end;
   finally FreeAndNil(E) end;
 end;

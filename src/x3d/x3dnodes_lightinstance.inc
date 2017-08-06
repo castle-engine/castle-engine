@@ -92,7 +92,7 @@
   end;
   PLightInstance = ^TLightInstance;
 
-  TLightInstancesList = class(specialize TStructList<TLightInstance>)
+  TLightInstancesList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TLightInstance>)
   public
     { Find given light node. Return -1 if not found. }
     function IndexOfNode(Node: TAbstractLightNode): integer;
@@ -136,7 +136,7 @@ end;
 function TLightInstancesList.IndexOfNode(Node: TAbstractLightNode): integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Node = Node then
+    if List^[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -174,7 +174,7 @@ begin
     (TLightInstancesList(SecondValue).Count = Count);
   if Result then
     for I := 0 to Count - 1 do
-      if not LightInstanceEquals(L[I], TLightInstancesList(SecondValue).L[I]) then
+      if not LightInstanceEquals(List^[I], TLightInstancesList(SecondValue).List^[I]) then
         Exit(false);
 end;
 
@@ -187,8 +187,8 @@ begin
   Count := Count + AList.Count;
   for I := 0 to AList.Count - 1 do
   begin
-    L[OldCount + I] := AList.L[I];
-    L[OldCount + I].WorldCoordinates := true;
+    List^[OldCount + I] := AList.List^[I];
+    List^[OldCount + I].WorldCoordinates := true;
   end;
 end;
 

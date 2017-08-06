@@ -81,7 +81,7 @@
     V: TVector2; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
-  TSkinnedMeshVertexBoneList = specialize TObjectList<TSkinnedMeshVertexBone>;
+  TSkinnedMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertexBone>;
 
   TSkinnedMeshVertex = class
     Bones: TSkinnedMeshVertexBoneList;
@@ -91,7 +91,7 @@
       Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
   end;
 
-  TSkinnedMeshVertexList = class(specialize TObjectList<TSkinnedMeshVertex>)
+  TSkinnedMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertex>)
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
@@ -103,7 +103,7 @@
     procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
-  TAttachmentList = class(specialize TObjectList<TAttachment>)
+  TAttachmentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
     function Find(const SlotName, AttachmentName: string;
@@ -439,7 +439,7 @@ begin
       Break;
     end;
 
-    I += 1 + BonesCount * 4;
+    I := I + 1 + BonesCount * 4;
   end;
 end;
 
@@ -485,7 +485,7 @@ begin
     for J := 0 to Weights[I].Bones.Count - 1 do
     begin
       VB := Weights[I].Bones[J];
-      V += VB.Bone.ToWorldSpace(VB.V) * VB.Weight;
+      V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
     end;
     Vertices[I] := V;
   end;
@@ -500,7 +500,7 @@ begin
 
   List := Coord.FdPoint.Items;
   for I := 0 to List.Count - 1 do
-    List.L[I] := Bone.ToLocalSpace(List.L[I]);
+    List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
 end;
 
 { TAttachmentList ------------------------------------------------------------ }

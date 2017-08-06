@@ -18,7 +18,7 @@
 {$ifdef read_interface}
   TSlotList = class;
 
-  TMaterialNodeList = specialize TObjectList<TMaterialNode>;
+  TMaterialNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMaterialNode>;
 
   TSlotsAnimated = class
     Attachment: TSlotList;
@@ -29,8 +29,8 @@
     procedure Assign(const Source: TSlotsAnimated);
   end;
 
-  TColorInterpolatorNodeList = specialize TObjectList<TColorInterpolatorNode>;
-  TScalarInterpolatorNodeList = specialize TObjectList<TScalarInterpolatorNode>;
+  TColorInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColorInterpolatorNode>;
+  TScalarInterpolatorNodeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TScalarInterpolatorNode>;
 
   TSlot = class
   public
@@ -70,7 +70,7 @@
       const ContainerForResetNode: TAbstractX3DGroupingNode);
   end;
 
-  TSlotList = class(specialize TObjectList<TSlot>)
+  TSlotList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlot>)
     { Find slot by name.
       @raises ESpineReadError If slot does not exist. }
     function Find(const SlotName: string): TSlot;

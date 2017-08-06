@@ -112,7 +112,7 @@ type
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
   end;
 
-  TMaterial3dsList = class(specialize TObjectList<TMaterial3ds>)
+  TMaterial3dsList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMaterial3ds>)
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
@@ -228,9 +228,9 @@ type
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
-  TTrimesh3dsList = specialize TObjectList<TTrimesh3ds>;
-  TCamera3dsList = specialize TObjectList<TCamera3ds>;
-  TLight3dsList = specialize TObjectList<TLight3ds>;
+  TTrimesh3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTrimesh3ds>;
+  TCamera3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCamera3ds>;
+  TLight3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLight3ds>;
 
   { 3DS loader. }
   TScene3DS = class
@@ -408,7 +408,7 @@ end;
 
   Overloaded version with 4 components always returns alpha = 1. }
 function TryReadColorInSubchunks(var Col: TVector3;
-  Stream: TStream; EndPos: Int64): boolean;
+  Stream: TStream; EndPos: Int64): boolean; overload;
 var
   h: TChunkHeader;
   hEnd: Int64;
@@ -450,7 +450,7 @@ begin
 end;
 
 function TryReadColorInSubchunks(var Col: TVector4;
-  Stream: TStream; EndPos: Int64): boolean;
+  Stream: TStream; EndPos: Int64): boolean; overload;
 var
   Col3Single: TVector3;
 begin
@@ -1141,7 +1141,7 @@ begin
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
-          Coord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].Pos;
+          Coord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].Pos;
 
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
@@ -1149,7 +1149,7 @@ begin
           TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
-            TexCoord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].TexCoord;
+            TexCoord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].TexCoord;
         end else
           TexCoord := nil;
 
@@ -1182,10 +1182,10 @@ begin
           begin
             with IFS.FdCoordIndex.Items do
             begin
-              L[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
-              L[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
-              L[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
-              L[FaceNum * 4 + 3] := -1;
+              List^[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              List^[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              List^[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              List^[FaceNum * 4 + 3] := -1;
             end;
             Inc(J);
           end;

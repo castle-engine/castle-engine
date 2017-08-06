@@ -299,7 +299,7 @@ end;
 function ParseStatements(
   Lexer: TX3DLexer; Reader: TX3DReaderNames;
   const EndToken: TX3DToken;
-  FileTopLevel: boolean): TX3DRootNode;
+  FileTopLevel: boolean): TX3DRootNode; overload;
 var
   PositionInParent: Integer;
 
@@ -640,13 +640,13 @@ function InterfaceDeclarationKeywords(
 begin
   Result := [];
   if atInputOnly in AccessTypes then
-    Result += [vkEventIn, vkInputOnly];
+    Result := Result + [vkEventIn, vkInputOnly];
   if atOutputOnly in AccessTypes then
-    Result += [vkEventOut, vkOutputOnly];
+    Result := Result + [vkEventOut, vkOutputOnly];
   if atInitializeOnly in AccessTypes then
-    Result += [vkField, vkInitializeOnly];
+    Result := Result + [vkField, vkInitializeOnly];
   if atInputOutput in AccessTypes then
-    Result += [vkExposedField, vkInputOutput];
+    Result := Result + [vkExposedField, vkInputOutput];
 end;
 
 {$endif read_implementation}

@@ -550,8 +550,27 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TGeoElevationGridNode}
-GeometryNotImplemented
+
+function TGeoElevationGridNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TGeoElevationGridNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TGeoElevationGridNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TGeoElevationGridNode not implemented. }
+  Result := 0;
+end;
+
+function TGeoElevationGridNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TGeoElevationGridNode not implemented. }
+  Result := 0;
+end;
 
 procedure TGeoLocationNode.CreateNode;
 begin

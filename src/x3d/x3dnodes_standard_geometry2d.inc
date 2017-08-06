@@ -249,8 +249,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TArc2DNode}
-GeometryNotImplemented
+function TArc2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TArc2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TArc2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArc2DNode not implemented. }
+  Result := 0;
+end;
+
+function TArc2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArc2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TArcClose2DNode.CreateNode;
 begin
@@ -299,8 +317,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TArcClose2DNode}
-GeometryNotImplemented
+function TArcClose2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TArcClose2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TArcClose2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArcClose2DNode not implemented. }
+  Result := 0;
+end;
+
+function TArcClose2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArcClose2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TCircle2DNode.CreateNode;
 begin
@@ -408,8 +444,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TDisk2DNode}
-GeometryNotImplemented
+function TDisk2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TDisk2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TDisk2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TDisk2DNode not implemented. }
+  Result := 0;
+end;
+
+function TDisk2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TDisk2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TPolyline2DNode.CreateNode;
 begin
@@ -436,8 +490,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TPolyline2DNode}
-GeometryNotImplemented
+function TPolyline2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TPolyline2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TPolyline2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolyline2DNode not implemented. }
+  Result := 0;
+end;
+
+function TPolyline2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolyline2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TPolypoint2DNode.CreateNode;
 begin
@@ -460,8 +532,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TPolypoint2DNode}
-GeometryNotImplemented
+function TPolypoint2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TPolypoint2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TPolypoint2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolypoint2DNode not implemented. }
+  Result := 0;
+end;
+
+function TPolypoint2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolypoint2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TRectangle2DNode.CreateNode;
 begin
@@ -562,8 +652,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TTriangleSet2DNode}
-GeometryNotImplemented
+function TTriangleSet2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TTriangleSet2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TTriangleSet2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TTriangleSet2DNode not implemented. }
+  Result := 0;
+end;
+
+function TTriangleSet2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TTriangleSet2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure RegisterGeometry2DNodes;
 begin

@@ -36,8 +36,8 @@ type
     destructor Destroy; override;
     procedure BeginElement(const PElement: TDOMElement);
     function ReadVertex(out Index: TIndex): boolean;
-    function ReadAddVertex(out Index: TIndex): boolean;
-    function ReadAddVertex: boolean;
+    function ReadAddVertex(out Index: TIndex): boolean; overload;
+    function ReadAddVertex: boolean; overload;
     procedure AddVertex(const Index: TIndex);
     procedure PolygonEnd;
   end;

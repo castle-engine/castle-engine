@@ -206,11 +206,12 @@ const
       NextApos := PosEx('''', Text, FTextPos + 1);
       if NextApos = 0 then
         raise ECasScriptLexerError.Create(Self, 'Unfinished string');
-      FTokenString += CopyPos(Text, FTextPos + 1, NextApos - 1);
+      FTokenString := FTokenString + CopyPos(Text, FTextPos + 1, NextApos - 1);
       FTextPos := NextApos + 1;
 
       if SCharIs(Text, FTextPos, '''') then
-        FTokenString += '''' else
+        FTokenString := FTokenString + ''''
+      else
         Break;
     until false;
   end;
@@ -408,12 +409,12 @@ function TCasScriptLexer.TokenDescription: string;
 begin
   Result := TokenShortDescription[Token];
   case Token of
-    tokInteger: Result += Format(' %d', [TokenInteger]);
-    tokFloat: Result += Format(' %g', [TokenFloat]);
-    tokBoolean: Result += Format(' %s', [BoolToStr(TokenBoolean, true)]);
-    tokString: Result += Format(' ''%s''', [TokenString]);
-    tokIdentifier: Result += Format(' %s', [TokenString]);
-    tokFuncName: Result += Format(' %s', [TokenFunctionClass.Name]);
+    tokInteger: Result := Result + Format(' %d', [TokenInteger]);
+    tokFloat: Result := Result + Format(' %g', [TokenFloat]);
+    tokBoolean: Result := Result + Format(' %s', [BoolToStr(TokenBoolean, true)]);
+    tokString: Result := Result + Format(' ''%s''', [TokenString]);
+    tokIdentifier: Result := Result + Format(' %s', [TokenString]);
+    tokFuncName: Result := Result + Format(' %s', [TokenFunctionClass.Name]);
   end;
 end;
 

@@ -51,7 +51,7 @@ type
     constructor Create(const AName: string);
   end;
 
-  TWavefrontMaterialList = class(specialize TObjectList<TWavefrontMaterial>)
+  TWavefrontMaterialList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontMaterial>)
     { Find material with given name, @nil if not found. }
     function TryFindName(const Name: string): TWavefrontMaterial;
   end;
@@ -68,7 +68,7 @@ type
     destructor Destroy; override;
   end;
 
-  TWavefrontFaceList = specialize TObjectList<TWavefrontFace>;
+  TWavefrontFaceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TWavefrontFace>;
 
   { 3D model in OBJ file format. }
   TObject3DOBJ = class
@@ -204,7 +204,7 @@ var
             IndexList.Add(Index - 1) else
           if Index < 0 then
           begin
-            Index += Integer(Count);
+            Index := Index + Integer(Count);
             if Index < 0 then
               raise EInvalidOBJFile.Create('Invalid OBJ: Index is < 0 after summing with current count');
             IndexList.Add(Index);

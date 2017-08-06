@@ -22,7 +22,7 @@
   end;
   PClipPlane = ^TClipPlane;
 
-  TClipPlaneList = class(specialize TStructList<TClipPlane>)
+  TClipPlaneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TClipPlane>)
   public
     { Find record with given TClipPlaneNode, returns -1 if not found. }
     function IndexOfNode(Node: TClipPlaneNode): Integer;
@@ -38,7 +38,7 @@
 function TClipPlaneList.IndexOfNode(Node: TClipPlaneNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Node = Node then
+    if List^[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -54,8 +54,10 @@ begin
 
   if Result then
     for I := 0 to Count - 1 do
-      if (L[I].Node <> TClipPlaneList(SecondValue).L[I].Node) or
-         TMatrix4.PerfectlyEquals(L[I].Transform, TClipPlaneList(SecondValue).L[I].Transform) then
+      if (List^[I].Node <> TClipPlaneList(SecondValue).List^[I].Node) or
+         TMatrix4.PerfectlyEquals(
+           List^[I].Transform,
+           TClipPlaneList(SecondValue).List^[I].Transform) then
         Exit(false);
 end;
 

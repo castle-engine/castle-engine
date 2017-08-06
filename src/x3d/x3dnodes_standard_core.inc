@@ -15,7 +15,6 @@
 
 {$ifdef read_interface}
 
-type
   { Interface for a base X3D node that can have some metadata. }
   IAbstractNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']

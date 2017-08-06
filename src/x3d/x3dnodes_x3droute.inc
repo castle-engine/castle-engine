@@ -125,13 +125,13 @@
 
       @groupBegin }
     procedure SetSourceDirectly(
-      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent);
+      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent); overload;
 
     procedure SetDestinationDirectly(
-      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent);
+      const NewNode: TX3DNode; const FieldOrEvent: TX3DFieldOrEvent); overload;
 
-    procedure SetSourceDirectly(const FieldOrEvent: TX3DFieldOrEvent);
-    procedure SetDestinationDirectly(const FieldOrEvent: TX3DFieldOrEvent);
+    procedure SetSourceDirectly(const FieldOrEvent: TX3DFieldOrEvent); overload;
+    procedure SetDestinationDirectly(const FieldOrEvent: TX3DFieldOrEvent); overload;
     { @groupEnd }
 
     { Parse the route (classic VRML encoding).
@@ -275,12 +275,12 @@ procedure TX3DRoute.UnsetEnding(
   RemoveFromDestructionNotification: boolean);
 begin
   if (Event <> nil) and (not DestEnding) then
-    Event.OnReceive.Remove(@EventReceive);
+    Event.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
 
   if Node <> nil then
   begin
     if RemoveFromDestructionNotification then
-      Node.RemoveDestructionNotification(@DestructionNotification);
+      Node.RemoveDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
     Node := nil;
   end;
 
@@ -361,7 +361,7 @@ begin
         DestinationEvent.X3DName, DestinationEvent.FieldClass.X3DType ]);
 
   if (Event <> nil) and (not DestEnding) then
-    Event.OnReceive.Add(@EventReceive);
+    Event.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
 end;
 
 procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;
@@ -394,7 +394,7 @@ begin
         PrototypeInstanceSourceNode. }
     end;
 
-    Node.AddDestructionNotification(@DestructionNotification);
+    Node.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
 
     FieldOrEvent := Node.FieldOrEvent(FieldOrEventName);
     if FieldOrEvent = nil then
@@ -436,7 +436,7 @@ begin
 
   try
     Node := NewNode;
-    Node.AddDestructionNotification(@DestructionNotification);
+    Node.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
 
     SetEndingInternal(Node, FieldOrEvent, Event, DestEnding);
   except

@@ -24,7 +24,7 @@ type
     destructor Destroy; override;
   end;
 
-  TColladaGeometryList = class (specialize TObjectList<TColladaGeometry>)
+  TColladaGeometryList = class ({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaGeometry>)
   public
     { Find item with given Name, @nil if not found. }
     function Find(const Name: string): TColladaGeometry;
@@ -239,7 +239,7 @@ var
             ' less than declated in the count attribute');
           Break;
         end;
-        Source.Floats.L[I] := StrToFloat(Token);
+        Source.Floats.List^[I] := StrToFloat(Token);
       end;
 
       Technique := SourceElement.ChildElement('technique_common', false);

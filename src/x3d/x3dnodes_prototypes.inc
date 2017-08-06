@@ -615,7 +615,7 @@ begin
   for I := 0 to Child.EventsCount - 1 do
     ExpandEvent(Child.Events[I]);
 
-  Child.DirectEnumerateAll(@Self.InstantiateIsClauses);
+  Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.InstantiateIsClauses);
 end;
 
 function TX3DPrototypeNode.PrepareInstantiateIsClause(
@@ -625,7 +625,7 @@ begin
   if not Child.NeedsInstantiateIsClause then
   begin
     Child.NeedsInstantiateIsClause := true;
-    Child.DirectEnumerateAll(@Self.PrepareInstantiateIsClause);
+    Child.DirectEnumerateAll({$ifdef CASTLE_OBJFPC}@{$endif} Self.PrepareInstantiateIsClause);
   end;
 end;
 

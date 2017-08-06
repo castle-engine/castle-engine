@@ -16,22 +16,23 @@
 {$ifdef read_interface}
 
   { X3D field with a list of values.
-    This is an ancestor of most multiple-value X3D fields.
-
-    @italic(Design note): The MF field classes can keep their items
-    in compact lists, e.g. Generics.Collections.TList<T>.
-    This allows speed (the TList<T> has trivial cache-friendly layout).
-    That's why TX3DSimpleMultField is not a descendant of TX3DSingleFieldsList,
-    as then we would have a list of references, which could be quite memory-consuming
-    (imagine a milion vertexes in MFVec3f, which is absolutely possible)
-    and not cache friendly. }
-  generic TX3DSimpleMultField<
+    This is an ancestor of most multiple-value X3D fields. }
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TX3DSimpleMultField<
     TItem,
     TSingleField,
     TItemList,
     TEvent> = class(TX3DMultField)
   strict private
-    InvalidIndexWarnings: Cardinal;
+    WarningDoneInvalidIndex: boolean;
+
+    { Items are kept in a TItemList, that may be an efficient
+      Generics.Collections.TList<T>.
+      This allows speed (the TList<T> has trivial cache-friendly layout).
+      That's why TX3DSimpleMultField is not a descendant of TX3DSingleFieldsList,
+      as then we would have a list of references, which could be quite memory-consuming
+      (imagine a milion vertexes in MFVec3f, which is absolutely possible)
+      and not cache friendly. }
     FItems: TItemList;
 
     { DefaultValuesCount may have three valid values (for now):
@@ -299,15 +300,13 @@ end;
 
 procedure TX3DSimpleMultField.WritelnWarning_InvalidIndex(
   const Index, ACount: Integer);
-const
-  MaxInvalidIndexWarnings = 10;
 begin
-  Inc(InvalidIndexWarnings);
-  if InvalidIndexWarnings < MaxInvalidIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s): index is %d, but we have only %d items', [NiceName, X3DType, Index, ACount])) else
-  if InvalidIndexWarnings = MaxInvalidIndexWarnings then
-    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s) reported for the %dth time. Further warnings regarding this field will not be reported (to avoid wasting time on printing countless warnings...)',
-      [NiceName, X3DType, InvalidIndexWarnings]));
+  if not WarningDoneInvalidIndex then
+  begin
+    WarningDoneInvalidIndex := true;
+    WritelnWarning('VRML/X3D', Format('Invalid index for field %s (%s)',
+      [NiceName, X3DType]));
+  end;
 end;
 
 constructor TX3DSimpleMultField.CreateUndefined(AParentNode: TX3DFileItem;
@@ -399,7 +398,7 @@ begin
     0: DefaultValuesCount := 0;
     1: begin
          DefaultValuesCount := 1;
-         DefaultValue := Items.L[0];
+         DefaultValue := Items[0];
        end;
     else DefaultValuesCount := -1;
   end;

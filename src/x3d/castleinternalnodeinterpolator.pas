@@ -64,7 +64,7 @@ type
         procedure FreeKeyNodesContents;
       end;
 
-      TAnimationList = class(specialize TObjectList<TAnimation>)
+      TAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>)
         { Call TAnimation.FreeKeyNodesContents on all the items. }
         procedure FreeKeyNodesContents;
       end;
@@ -103,7 +103,7 @@ type
         function Duration: Single;
       end;
 
-      TBakedAnimationList = class(specialize TObjectList<TBakedAnimation>)
+      TBakedAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBakedAnimation>)
         procedure FreeNodesContents;
       end;
 
@@ -1099,7 +1099,8 @@ begin
         Animation := Animations[I];
         LoadToX3D_KeyNodes := Animation.KeyNodes;
         LoadToX3D_KeyTimes := Animation.KeyTimes;
-        BakedAnimation := BakeToSequence(@LoadToX3D_GetKeyNodeWithTime,
+        BakedAnimation := BakeToSequence(
+          {$ifdef CASTLE_OBJFPC}@{$endif} LoadToX3D_GetKeyNodeWithTime,
           Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.Epsilon);
         BakedAnimation.Name := Animation.Name;
         BakedAnimation.Loop := Animation.Loop;

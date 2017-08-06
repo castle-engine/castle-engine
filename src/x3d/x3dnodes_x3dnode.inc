@@ -1043,7 +1043,7 @@
     function NiceName: string;
   end;
 
-  TX3DNodeList = class(specialize TObjectList<TX3DNode>)
+  TX3DNodeList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DNode>)
     { Find node by name, @nil if not found.
 
       For empty node name, always returns @nil. This follows the definition
@@ -2833,7 +2833,7 @@ begin
       end;
     end else
     begin
-      Result += VRML1Children[I].EnumerateReplaceChildren(Func);
+      Result := Result + VRML1Children[I].EnumerateReplaceChildren(Func);
       Inc(I);
     end;
   end;
@@ -2852,7 +2852,7 @@ begin
           Inc(Result);
         end else
         begin
-          Result += SF.Value.EnumerateReplaceChildren(Func);
+          Result := Result + SF.Value.EnumerateReplaceChildren(Func);
         end;
       end;
     end;
@@ -2877,7 +2877,7 @@ begin
           end;
         end else
         begin
-          Result += MF.Items[J].EnumerateReplaceChildren(Func);
+          Result := Result + MF.Items[J].EnumerateReplaceChildren(Func);
           Inc(J);
         end;
       end;
@@ -3163,7 +3163,7 @@ function TX3DNode.NiceName: string;
 begin
   Result := X3DType;
   if X3DName <> '' then
-    Result += '(' + X3DName + ')';
+    Result := Result + '(' + X3DName + ')';
 end;
 
 function TX3DNode.GetFields(const Index: Integer): TX3DField;

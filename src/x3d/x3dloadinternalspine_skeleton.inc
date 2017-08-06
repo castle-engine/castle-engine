@@ -127,8 +127,8 @@ var
     begin
       S := Format('%s available skins: %d', [BaseUrl, Skins.Count]) + NL;
       for I := 0 to Skins.Count - 1 do
-        S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
-      S += Format('Using skin: %s', [CurrentSkin.Name]);
+        S := S + (Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL);
+      S := S + Format('Using skin: %s', [CurrentSkin.Name]);
       WritelnLogMultiline('Spine', S);
     end;
   end;

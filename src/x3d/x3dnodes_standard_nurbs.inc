@@ -1695,8 +1695,26 @@ begin
   if Result <> nil then Exit;
 end;
 
-{$define TGeometryNotImplemented := TNurbsSweptSurfaceNode}
-GeometryNotImplemented
+function TNurbsSweptSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TNurbsSweptSurfaceNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TNurbsSweptSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TNurbsSweptSurfaceNode not implemented. }
+  Result := 0;
+end;
+
+function TNurbsSweptSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TNurbsSweptSurfaceNode not implemented. }
+  Result := 0;
+end;
 
 function TNurbsSweptSurfaceNode.SolidField: TSFBool;
 begin
@@ -1746,8 +1764,26 @@ begin
   if Result <> nil then Exit;
 end;
 
-{$define TGeometryNotImplemented := TNurbsSwungSurfaceNode}
-GeometryNotImplemented
+function TNurbsSwungSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TNurbsSwungSurfaceNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TNurbsSwungSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TNurbsSwungSurfaceNode not implemented. }
+  Result := 0;
+end;
+
+function TNurbsSwungSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TNurbsSwungSurfaceNode not implemented. }
+  Result := 0;
+end;
 
 function TNurbsSwungSurfaceNode.SolidField: TSFBool;
 begin

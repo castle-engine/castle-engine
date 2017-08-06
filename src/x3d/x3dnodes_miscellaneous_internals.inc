@@ -28,24 +28,4 @@ resourcestring
     'Expected field type name (like SFVec2f etc.) but found %s';
   SLoadError        = 'Error %s when loading %s from URL "%s": %s';
 
-{$define GeometryNotImplemented :=
-  function TGeometryNotImplemented.LocalBoundingBox(State: TX3DGraphTraverseState;
-    ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
-  begin
-    Result := TBox3D.Empty;
-  end;
-
-  function TGeometryNotImplemented.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-    ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-  begin
-    Result := 0;
-  end;
-
-  function TGeometryNotImplemented.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
-    ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
-  begin
-    Result := 0;
-  end;
-}
-
 {$endif read_implementation}

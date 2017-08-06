@@ -166,12 +166,14 @@ begin
   {$endif}
 
   { Factors += diffuse factor }
-  Factors += (MaterialDiffuseColor * DiffuseTextureColor) *
+  Factors := Factors +
+    (MaterialDiffuseColor * DiffuseTextureColor) *
     (Node.FdIntensity.Value * TVector3.DotProduct(Normal, LightDirNorm));
 
   {$ifndef CAMERA_INDEP}
   { Factors += specular factor }
-  Factors += MaterialSpecularColor *
+  Factors := Factors +
+    MaterialSpecularColor *
     (Node.FdIntensity.Value *
       Power( Max(TVector3.DotProduct(Normal, CameraAndLightHalfway), Single(0.0)),
         MaterialShininessExp));

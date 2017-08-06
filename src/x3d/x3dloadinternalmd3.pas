@@ -37,14 +37,14 @@ type
   TMd3Triangle = record
     Indexes: array [0..2] of LongWord;
   end;
-  TMd3TriangleList = specialize TStructList<TMd3Triangle>;
+  TMd3TriangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMd3Triangle>;
 
   TMd3Vertex = record
     Position: array [0..2] of SmallInt;
     Normal: SmallInt;
   end;
   PMd3Vertex = ^TMd3Vertex;
-  TMd3VertexList = specialize TStructList<TMd3Vertex>;
+  TMd3VertexList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TMd3Vertex>;
 
   TMd3TexCoord = TVector2;
   TMd3TexCoordList = TVector2List;
@@ -77,7 +77,7 @@ type
     VertexesInFrameCount: Cardinal;
   end;
 
-  TMd3SurfaceList = specialize TObjectList<TMd3Surface>;
+  TMd3SurfaceList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMd3Surface>;
 
   { MD3 (Quake3 engine model format) reader. }
   TObject3DMD3 = class
@@ -100,7 +100,7 @@ type
       that if you created it, you should also free it, this class will not
       do it for you. You can free Stream right after constructor finished
       it's work. }
-    constructor Create(Stream: TStream; const ATextureURL: string);
+    constructor CreateStream(Stream: TStream; const ATextureURL: string);
 
     destructor Destroy; override;
 
@@ -257,7 +257,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetXYZNormal;
     for I := 0 to Vertexes.Count - 1 do
     begin
-      Stream.ReadBuffer(Vertexes.L[I], SizeOf(TMd3Vertex));
+      Stream.ReadBuffer(Vertexes.List^[I], SizeOf(TMd3Vertex));
     end;
   end;
 
@@ -267,7 +267,7 @@ begin
     Stream.Position := SurfaceStart + Surface.OffsetST;
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Stream.ReadBuffer(TextureCoords.L[I], SizeOf(TMd3TexCoord));
+      Stream.ReadBuffer(TextureCoords.List^[I], SizeOf(TMd3TexCoord));
     end;
   end;
 
@@ -286,11 +286,11 @@ begin
 
   Stream := Download(URL);
   try
-    Create(Stream, ATextureURL);
+    CreateStream(Stream, ATextureURL);
   finally Stream.Free end;
 end;
 
-constructor TObject3DMD3.Create(Stream: TStream; const ATextureURL: string);
+constructor TObject3DMD3.CreateStream(Stream: TStream; const ATextureURL: string);
 var
   Header: TMd3Header;
   Frame: TMd3Frame;
@@ -457,7 +457,7 @@ var
     V := Vertexes.Ptr(VertexesInFrameCount * FrameNumber);
     for I := 0 to VertexesInFrameCount - 1 do
     begin
-      Result.FdPoint.Items.L[I] := Vector3(
+      Result.FdPoint.Items.List^[I] := Vector3(
         V^.Position[0] * Md3XyzScale,
         V^.Position[1] * Md3XyzScale,
         V^.Position[2] * Md3XyzScale);
@@ -478,7 +478,7 @@ var
     V := TextureCoords.L;
     for I := 0 to TextureCoords.Count - 1 do
     begin
-      Result.FdPoint.Items.L[I] := Vector2(V^[0], 1-V^[1]);
+      Result.FdPoint.Items.List^[I] := Vector2(V^[0], 1-V^[1]);
       Inc(V);
     end;
   end;
@@ -494,15 +494,15 @@ var
     Result.FdTexCoordIndex.Items.Count := Triangles.Count * 4;
     for I := 0 to Triangles.Count - 1 do
     begin
-      Result.FdCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
-      Result.FdCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
-      Result.FdCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
-      Result.FdCoordIndex.Items.L[I*4 + 3] := -1;
+      Result.FdCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
+      Result.FdCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
+      Result.FdCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
+      Result.FdCoordIndex.Items.List^[I*4 + 3] := -1;
 
-      Result.FdTexCoordIndex.Items.L[I*4 + 0] := Triangles.L[I].Indexes[0];
-      Result.FdTexCoordIndex.Items.L[I*4 + 1] := Triangles.L[I].Indexes[1];
-      Result.FdTexCoordIndex.Items.L[I*4 + 2] := Triangles.L[I].Indexes[2];
-      Result.FdTexCoordIndex.Items.L[I*4 + 3] := -1;
+      Result.FdTexCoordIndex.Items.List^[I*4 + 0] := Triangles.List^[I].Indexes[0];
+      Result.FdTexCoordIndex.Items.List^[I*4 + 1] := Triangles.List^[I].Indexes[1];
+      Result.FdTexCoordIndex.Items.List^[I*4 + 2] := Triangles.List^[I].Indexes[2];
+      Result.FdTexCoordIndex.Items.List^[I*4 + 3] := -1;
     end;
   end;
 

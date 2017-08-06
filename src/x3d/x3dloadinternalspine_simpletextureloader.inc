@@ -15,7 +15,7 @@
 
 type
   { Texture nodes, indexed by attachment name. }
-  TImageTextureNodeMap = specialize TDictionary<string, TImageTextureNode>;
+  TImageTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TImageTextureNode>;
 
   { Spine simple texture loader (without atlas).
     Reads each region attachment as a single texture file,

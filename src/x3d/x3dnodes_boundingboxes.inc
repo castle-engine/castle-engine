@@ -48,7 +48,7 @@ begin
   if Index < Coord.Count then
   begin
     WasSomeValidIndex := true;
-    Result := Coord.Items.L[Index];
+    Result := Coord.Items.List^[Index];
   end else
   begin
     CoordIndex.WritelnWarning_WrongVertexIndex(
@@ -62,7 +62,7 @@ begin
   { nie musimy sprawdzac czy indexNum jest dobry -
     CalculateBoundingBoxFromIndices bedzie pytalo tylko o indeksy between
     0..VertIndices.Count-1 }
-  Result := CoordIndex.Items.L[IndexNum];
+  Result := CoordIndex.Items.List^[IndexNum];
 end;
 
 function IndexedCoords_BoundingBox(Geometry: TAbstractGeometryNode;
@@ -220,8 +220,8 @@ begin
     fjEnd   : begin MaxY :=   Strings.Count / 2; MinY := 0; end;
     else raise EInternalError.Create('Text_LocalBoundingBox: Invalid FontStyle JustifyMinor value');
   end;
-  MinY *= Size * Spacing;
-  MaxY *= Size * Spacing;
+  MinY := MinY * (Size * Spacing);
+  MaxY := MaxY * (Size * Spacing);
 
   Result := Box3D(
     Vector3(MinX, MinY, 0),
@@ -460,12 +460,12 @@ begin
     Result.Data[1].Data[2] := FdZSpacing.Value * (FdZDimension.Value - 1);
 
     { now calculate Result[0].Data[1] and Result[1].Data[1] }
-    Y := FdHeight.Items.L[0];
+    Y := FdHeight.Items.List^[0];
     Result.Data[0].Data[1] := Y;
     Result.Data[1].Data[1] := Y;
     for I := 1 to FdXDimension.Value * FdZDimension.Value - 1 do
     begin
-      Y := FdHeight.Items.L[I];
+      Y := FdHeight.Items.List^[I];
       MinVar(Result.Data[0].Data[1], Y);
       MaxVar(Result.Data[1].Data[1], Y);
     end;

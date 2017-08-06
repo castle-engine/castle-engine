@@ -59,11 +59,11 @@
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
     function ToWorldSpace(const V: TVector2): TVector2;
-    function ToLocalSpace(V: TVector2): TVector2;
-    function ToLocalSpace(const V: TVector3): TVector3;
+    function ToLocalSpace(V: TVector2): TVector2; overload;
+    function ToLocalSpace(const V: TVector3): TVector3; overload;
   end;
 
-  TBoneList = class(specialize TObjectList<TBone>)
+  TBoneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
@@ -252,11 +252,11 @@ begin
     WorldXY := Vector2(
       WorldXY[0] * Parent.WorldMatrix[0, 0] + WorldXY[1] * Parent.WorldMatrix[0, 1],
       WorldXY[0] * Parent.WorldMatrix[1, 0] + WorldXY[1] * Parent.WorldMatrix[1, 1]);
-    WorldXY += Parent.WorldXY;
+    WorldXY := WorldXY + Parent.WorldXY;
     if InheritScale then
       WorldScale := WorldScale * Parent.WorldScale;
     if InheritRotation then
-      WorldRotation += Parent.WorldRotation;
+      WorldRotation := WorldRotation + Parent.WorldRotation;
   end;
 
   SinCos(DegToRad(WorldRotation), S, C);
@@ -277,12 +277,12 @@ begin
   Result := Vector2(
     V[0] * WorldMatrix[0, 0] + V[1] * WorldMatrix[0, 1],
     V[0] * WorldMatrix[1, 0] + V[1] * WorldMatrix[1, 1]);
-  Result += WorldXY;
+  Result := Result + WorldXY;
 end;
 
 function TBone.ToLocalSpace(V: TVector2): TVector2;
 begin
-  V -= WorldXY;
+  V := V - WorldXY;
   Result := Vector2(
     V[0] * WorldMatrixInverse[0, 0] + V[1] * WorldMatrixInverse[0, 1],
     V[0] * WorldMatrixInverse[1, 0] + V[1] * WorldMatrixInverse[1, 1]);

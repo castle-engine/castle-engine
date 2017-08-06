@@ -70,7 +70,7 @@ type
     function BoundingBox: TBox3D; virtual; abstract;
   end;
 
-  TCurveList = class(specialize TObjectList<TCurve>)
+  TCurveList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCurve>)
   public
     { Load curves definitions from a simple XML file.
       Hint: use https://github.com/castle-engine/castle-engine/wiki/Curves-tool to design curves
@@ -187,7 +187,7 @@ type
 
   TControlPointsCurveClass = class of TControlPointsCurve;
 
-  TControlPointsCurveList = specialize TObjectList<TControlPointsCurve>;
+  TControlPointsCurveList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TControlPointsCurve>;
 
   TCubicBezier2DPoints = array [0..3] of TVector2;
   TCubicBezier3DPoints = array [0..3] of TVector3;
@@ -533,7 +533,7 @@ begin
       Indexes := ConvexHullIndexes(PotentialConvexHullPoints);
       try
         for I := 0 to Indexes.Count - 1 do
-          Result.Add(PotentialConvexHullPoints.L[Indexes.L[I]]);
+          Result.Add(PotentialConvexHullPoints.List^[Indexes.List^[I]]);
       finally FreeAndNil(Indexes) end;
     end;
   finally DestroyConvexHullPoints(PotentialConvexHullPoints) end;
@@ -558,7 +558,7 @@ begin
   TEnd := CasScriptCurve.TEnd;
   ControlPoints.Count := ControlPointsCount;
   for i := 0 to ControlPointsCount-1 do
-    ControlPoints.L[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
+    ControlPoints.List^[i] := CasScriptCurve.PointOfSegment(i, ControlPointsCount-1);
   UpdateControlPoints;
 end;
 
@@ -627,7 +627,7 @@ begin
     Exit(Lerp(T01, ControlPoints.Items[0], ControlPoints.Items[1]));
 
   FloatDivMod(T01, 1 / (ControlPoints.Count - 1), IndexBefore, TInsidePiece);
-  TInsidePiece *= ControlPoints.Count - 1; // make TInsidePiece in 0..1 range
+  TInsidePiece := TInsidePiece * (ControlPoints.Count - 1); // make TInsidePiece in 0..1 range
 
   { fix IndexBefore (together with TInsidePiece, synchronized)
     to be within [0, ControlPoints.Count - 2] range.
@@ -640,8 +640,8 @@ begin
     IndexBeforeChange := -IndexBefore;
   if IndexBeforeChange <> 0 then
   begin
-    IndexBefore += IndexBeforeChange;
-    TInsidePiece -= IndexBeforeChange;
+    IndexBefore := IndexBefore + IndexBeforeChange;
+    TInsidePiece := TInsidePiece - IndexBeforeChange;
   end;
   Assert(IndexBefore >= 0);
   Assert(IndexBefore <= ControlPoints.Count - 2);
@@ -697,8 +697,8 @@ procedure TPiecewiseCubicBezier.UpdateControlPoints;
 
       for I := 1 to ControlPoints.Count - 1 do
       begin
-        PointBegin := ControlPoints.L[I - 1];
-        PointEnd   := ControlPoints.L[I];
+        PointBegin := ControlPoints.List^[I - 1];
+        PointEnd   := ControlPoints.List^[I];
         BezierCurves[I - 1][0] := PointBegin;
         BezierCurves[I - 1][1] := PointBegin + S[I -1] / 3;
         BezierCurves[I - 1][2] := PointEnd   - S[I   ] / 3;
@@ -819,10 +819,10 @@ function CalculateSpline(const X: Single; const Loop: boolean;
 
     // TODO: make binary search
     I := 1;
-    while (I + 1 < C) and (X > Arguments.L[I]) do Inc(I);
+    while (I + 1 < C) and (X > Arguments.List^[I]) do Inc(I);
 
     Result := SegmentFunction(I,
-      (X - Arguments.L[I - 1]) / (Arguments.L[I] - Arguments.L[I - 1]));
+      (X - Arguments.List^[I - 1]) / (Arguments.List^[I] - Arguments.List^[I - 1]));
   end;
 
 var
@@ -834,23 +834,23 @@ begin
   if C = 0 then
     Result := 0 else
   begin
-    FirstArg := Arguments.L[0];
+    FirstArg := Arguments.List^[0];
     if C = 1 then
       Result := FirstArg else
     begin
-      LastArg := Arguments.L[C - 1];
+      LastArg := Arguments.List^[C - 1];
       Len := LastArg - FirstArg;
       if X < FirstArg then
       begin
         if Loop then
           Result := CalculateInRange(X + Ceil((FirstArg - X) / Len) * Len) else
-          Result := Values.L[0];
+          Result := Values.List^[0];
       end else
       if X > LastArg then
       begin
         if Loop then
           Result := CalculateInRange(X - Ceil((X - LastArg) / Len) * Len) else
-          Result := Values.L[C - 1];
+          Result := Values.List^[C - 1];
       end else
         Result := CalculateInRange(X);
     end;
@@ -882,24 +882,24 @@ function CatmullRomSpline(const X: Single; const Loop: boolean;
   begin
     C := Arguments.Count;
 
-    V1 := Values.L[I - 1];
-    V2 := Values.L[I];
+    V1 := Values.List^[I - 1];
+    V2 := Values.List^[I];
 
     if I - 2 = -1 then
     begin
       if Loop then
-        V0 := Values.L[C - 2] else // not Values.L[C - 1], as first and last values are usually equal
-        V0 := Values.L[0];
+        V0 := Values.List^[C - 2] else // not Values.List^[C - 1], as first and last values are usually equal
+        V0 := Values.List^[0];
     end else
-      V0 := Values.L[I - 2];
+      V0 := Values.List^[I - 2];
 
     if I + 1 = C then
     begin
       if Loop then
-        V3 := Values.L[1] else // not Values.L[C - 1], as first and last values are usually equal
-        V3 := Values.L[C - 1];
+        V3 := Values.List^[1] else // not Values.List^[C - 1], as first and last values are usually equal
+        V3 := Values.List^[C - 1];
     end else
-      V3 := Values.L[I + 1];
+      V3 := Values.List^[I + 1];
 
     Result := CatmullRom(V0, V1, V2, V3, XInSegment);
   end;
@@ -907,7 +907,8 @@ function CatmullRomSpline(const X: Single; const Loop: boolean;
 begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('CatmullRomSpline: Arguments and Values lists must have equal count');
-  Result := CalculateSpline(X, Loop, Arguments, Values, @CatmullRomSegment);
+  Result := CalculateSpline(X, Loop, Arguments, Values,
+    {$ifdef CASTLE_OBJFPC}@{$endif} CatmullRomSegment);
 end;
 
 function Hermite(const V0, V1, Tangent0, Tangent1, X: Single): Single;
@@ -930,15 +931,16 @@ function HermiteSpline(const X: Single; const Loop: boolean;
   function HermiteSegment(const I: Integer; const XInSegment: Single): Single;
   begin
     Result := Hermite(
-      Values  .L[I - 1], Values  .L[I],
-      Tangents.L[I - 1], Tangents.L[I], XInSegment);
+      Values  .List^[I - 1], Values  .List^[I],
+      Tangents.List^[I - 1], Tangents.List^[I], XInSegment);
   end;
 
 begin
   if (Arguments.Count <> Values.Count) or
      (Arguments.Count <> Tangents.Count) then
     raise Exception.Create('HermiteSpline: Arguments and Values and Tangents lists must have equal count');
-  Result := CalculateSpline(X, Loop, Arguments, Values, @HermiteSegment);
+  Result := CalculateSpline(X, Loop, Arguments, Values,
+    {$ifdef CASTLE_OBJFPC}@{$endif} HermiteSegment);
 end;
 
 function HermiteTense(const V0, V1, X: Single): Single;
@@ -958,13 +960,14 @@ function HermiteTenseSpline(const X: Single; const Loop: boolean;
   function HermiteTenseSegment(const I: Integer; const XInSegment: Single): Single;
   begin
     Result := HermiteTense(
-      Values.L[I - 1], Values.L[I], XInSegment);
+      Values.List^[I - 1], Values.List^[I], XInSegment);
   end;
 
 begin
   if Arguments.Count <> Values.Count then
     raise Exception.Create('HermiteTenseSpline: Arguments and Values lists must have equal count');
-  Result := CalculateSpline(X, Loop, Arguments, Values, @HermiteTenseSegment);
+  Result := CalculateSpline(X, Loop, Arguments, Values,
+    {$ifdef CASTLE_OBJFPC}@{$endif} HermiteTenseSegment);
 end;
 
 { Calculate the convex hull ignoring Z coordinates of pixels.
@@ -1001,18 +1004,18 @@ var InResult: TBooleanList;
    for i := 0 to Points.Count-1 do
     if not InResult[i] then
     begin
-     if SameValue(Points.L[i][1], Points.L[Start][1]) then
+     if SameValue(Points.List^[i][1], Points.List^[Start][1]) then
      begin
-      if RightSide = (Points.L[i][0] > Points.L[Start][0]) then
+      if RightSide = (Points.List^[i][0] > Points.List^[Start][0]) then
       begin
        MaxCotanAngle := MaxSingle;
        MaxCotanAngleI := i;
       end;
      end else
-     if RightSide = (Points.L[i][1] > Points.L[Start][1]) then
+     if RightSide = (Points.List^[i][1] > Points.List^[Start][1]) then
      begin
-      ThisCotan:=(Points.L[i][0] - Points.L[Start][0]) /
-                 (Points.L[i][1] - Points.L[Start][1]);
+      ThisCotan:=(Points.List^[i][0] - Points.List^[Start][0]) /
+                 (Points.List^[i][1] - Points.List^[Start][1]);
       if ThisCotan > MaxCotanAngle then
       begin
        MaxCotanAngle := ThisCotan;
@@ -1037,12 +1040,12 @@ begin
  Assert(Points.Count >= 1);
 
  { find i0, index of lowest point in Points }
- MinY := Points.L[0][1];
+ MinY := Points.List^[0][1];
  i0 := 0;
  for i := 1 to Points.Count-1 do
-  if Points.L[i][1] < MinY then
+  if Points.List^[i][1] < MinY then
   begin
-   MinY := Points.L[i][1];
+   MinY := Points.List^[i][1];
    i0 := i;
   end;
 

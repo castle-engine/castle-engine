@@ -25,7 +25,7 @@
   PX3DNodeNameRec = ^TX3DNodeNameRec;
 
   { List to track node names while parsing VRML/X3D file. }
-  TX3DNodeNames = class(specialize TStructList<TX3DNodeNameRec>)
+  TX3DNodeNames = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DNodeNameRec>)
   strict private
     FAutoRemove: boolean;
     procedure DestructionNotification(Node: TX3DNode);
@@ -111,7 +111,7 @@ begin
   inherited Create;
   FAutoRemove := AAutoRemove;
   if AutoRemove then
-    AnyNodeDestructionNotifications.Add(@DestructionNotification);
+    AnyNodeDestructionNotifications.Add({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
 end;
 
 destructor TX3DNodeNames.Destroy;
@@ -122,14 +122,14 @@ begin
     unit finalization, because Application owns Window that owns Scene).
     So secure from AnyNodeDestructionNotifications being nil. }
   if AutoRemove and (AnyNodeDestructionNotifications <> nil) then
-    AnyNodeDestructionNotifications.Remove(@DestructionNotification);
+    AnyNodeDestructionNotifications.Remove({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification);
   inherited;
 end;
 
 function TX3DNodeNames.IndexOfNode(Node: TX3DNode): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Node = Node then
+    if List^[Result].Node = Node then
       Exit;
   Result := -1;
 end;
@@ -137,7 +137,7 @@ end;
 function TX3DNodeNames.IndexOfName(const Name: string): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Name = Name then
+    if List^[Result].Name = Name then
       Exit;
   Result := -1;
 end;
@@ -180,8 +180,8 @@ begin
   I := IndexOfName(Name);
   if I <> -1 then
   begin
-    Result := L[I].Node;
-    NodeFinished := L[I].Finished;
+    Result := List^[I].Node;
+    NodeFinished := List^[I].Finished;
   end else
     Result := nil;
 end;

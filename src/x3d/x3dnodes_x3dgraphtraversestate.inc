@@ -271,10 +271,10 @@
       like a TX3DGraphTraverseState right after creating. }
     procedure PushClear;
     { Push a copy of current top on the stack. }
-    procedure Push;
+    procedure Push; overload;
     { Push a copy of given Item on the stack.
       We copy by TX3DGraphTraverseState.Assign, we don't copy the reference. }
-    procedure Push(const Item: TX3DGraphTraverseState);
+    procedure Push(const Item: TX3DGraphTraverseState); overload;
     procedure Pop;
 
     { Peek at the top of the stack. }

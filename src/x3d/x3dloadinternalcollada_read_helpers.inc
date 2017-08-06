@@ -44,7 +44,7 @@ end;
   or when text cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
 function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Float): boolean;
+  var Value: Float): boolean; overload;
 var
   Child: TDOMElement;
 begin
@@ -57,7 +57,7 @@ begin
 end;
 
 function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Single): boolean;
+  var Value: Single): boolean; overload;
 var
   ValueFloat: Float;
 begin

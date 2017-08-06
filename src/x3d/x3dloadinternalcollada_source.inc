@@ -58,7 +58,7 @@ type
     function AssignToVectorST(const Value: TVector2List): boolean;
   end;
 
-  TColladaSourceList = class(specialize TObjectList<TColladaSource>)
+  TColladaSourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaSource>)
   public
     { Find a TColladaSource with given Name, @nil if not found. }
     function Find(const Name: string): TColladaSource;
@@ -130,9 +130,9 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.L[I][0] := Floats.L[Offset + Stride * I + XIndex];
-    Value.L[I][1] := Floats.L[Offset + Stride * I + YIndex];
-    Value.L[I][2] := Floats.L[Offset + Stride * I + ZIndex];
+    Value.List^[I][0] := Floats.List^[Offset + Stride * I + XIndex];
+    Value.List^[I][1] := Floats.List^[Offset + Stride * I + YIndex];
+    Value.List^[I][2] := Floats.List^[Offset + Stride * I + ZIndex];
   end;
 end;
 
@@ -184,8 +184,8 @@ begin
   Value.Count := Count;
   for I := 0 to Count - 1 do
   begin
-    Value.L[I][0] := Floats.L[Offset + Stride * I + SIndex];
-    Value.L[I][1] := Floats.L[Offset + Stride * I + TIndex];
+    Value.List^[I][0] := Floats.List^[Offset + Stride * I + SIndex];
+    Value.List^[I][1] := Floats.List^[Offset + Stride * I + TIndex];
   end;
 end;
 

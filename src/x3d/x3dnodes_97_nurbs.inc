@@ -847,8 +847,28 @@ begin
     (URN = URNVRML97Nodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TTrimmedSurfaceNode}
-GeometryNotImplemented
+function TTrimmedSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TTrimmedSurfaceNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TTrimmedSurfaceNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TTrimmedSurfaceNode not implemented. }
+  Result := 0;
+end;
+
+function TTrimmedSurfaceNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TTrimmedSurfaceNode not implemented. }
+  Result := 0;
+end;
+
+{ TContour2DNode_2 ----------------------------------------------------------- }
 
 procedure TContour2DNode_2.CreateNode;
 begin
@@ -891,8 +911,26 @@ begin
   if Result <> nil then Exit;
 end;
 
-{$define TGeometryNotImplemented := TContour2DNode_2}
-GeometryNotImplemented
+function TContour2DNode_2.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TContour2DNode_2 not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TContour2DNode_2.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TContour2DNode_2 not implemented. }
+  Result := 0;
+end;
+
+function TContour2DNode_2.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TContour2DNode_2 not implemented. }
+  Result := 0;
+end;
 
 procedure RegisterVRML97NodesNurbs;
 begin

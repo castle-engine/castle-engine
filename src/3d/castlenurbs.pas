@@ -63,7 +63,7 @@ function ActualTessellation(const Tessellation: Integer;
   orientations by X3D NurbsOrientationInterpolator node.
 
   @groupBegin }
-function NurbsCurvePoint(const Points: PVector3;
+function NurbsCurvePoint(const Points: PVector3Array;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
@@ -126,14 +126,14 @@ procedure NurbsKnotIfNeeded(Knot: TDoubleList;
   const Dimension, Order: Cardinal; const Kind: TNurbsKnotKind);
 
 function NurbsBoundingBox(Point: TVector3List;
-  Weight: TDoubleList): TBox3D;
+  Weight: TDoubleList): TBox3D; overload;
 function NurbsBoundingBox(Point: TVector3List;
-  Weight: TSingleList): TBox3D;
+  Weight: TSingleList): TBox3D; overload;
 
 function NurbsBoundingBox(Point: TVector3List;
-  Weight: TDoubleList; const Transform: TMatrix4): TBox3D;
+  Weight: TDoubleList; const Transform: TMatrix4): TBox3D; overload;
 function NurbsBoundingBox(Point: TVector3List;
-  Weight: TSingleList; const Transform: TMatrix4): TBox3D;
+  Weight: TSingleList; const Transform: TMatrix4): TBox3D; overload;
 
 implementation
 
@@ -154,7 +154,7 @@ function NurbsCurvePoint(const Points: TVector3List;
   Knot, Weight: TDoubleList;
   Tangent: PVector3): TVector3;
 begin
-  Result := NurbsCurvePoint(Points.L, Points.Count,
+  Result := NurbsCurvePoint(PVector3Array(Points.List), Points.Count,
     U, Order, Knot, Weight, Tangent);
 end;
 
@@ -162,7 +162,7 @@ end;
 
 { Dummy implementations }
 
-function NurbsCurvePoint(const Points: PVector3;
+function NurbsCurvePoint(const Points: PVector3Array;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
@@ -280,7 +280,7 @@ begin
   FreeAndNil(right);
 end;
 
-function NurbsCurvePoint(const Points: PVector3;
+function NurbsCurvePoint(const Points: PVector3Array;
   const PointsCount: Cardinal; const U: Single;
   const Order: Cardinal;
   Knot, Weight: TDoubleList;
@@ -311,21 +311,21 @@ begin
 
   for i := 0 to order-1 do
   begin
-    index := span-order+1+i;
-    Result += Points[index] * basis[i];
-    du += Points[index] * deriv[i];
+    index := span - order + 1 + i;
+    Result := Result + (Points^[index] * basis[i]);
+    du := du + (Points^[index] * deriv[i]);
     if UseWeight then
     begin
-      w += weight[index] * basis[i];
-      duw += weight[index] * deriv[i];
+      w := w + (weight[index] * basis[i]);
+      duw := duw + (weight[index] * deriv[i]);
     end else
     begin
-      w += basis[i];
-      duw += deriv[i];
+      w := w + basis[i];
+      duw := duw + deriv[i];
     end;
   end;
 
-  Result /= w;
+  Result := Result / w;
 
   if Tangent <> nil then
   begin
@@ -387,29 +387,29 @@ begin
       dugain := uDeriv[i] * vBasis[j];
       dvgain := uBasis[i] * vDeriv[j];
 
-      P := Points.L[index];
+      P := Points.List^[index];
 
-      Result += P * gain;
+      Result := Result + (P * gain);
 
-      du += P * dugain;
-      dv += P * dvgain;
+      du := du + (P * dugain);
+      dv := dv + (P * dvgain);
       if UseWeight then
       begin
-        w += weight[index] * gain;
-        duw += weight[index] * dugain;
-        dvw += weight[index] * dvgain;
+        w := w + (weight[index] * gain);
+        duw := duw + (weight[index] * dugain);
+        dvw := dvw + (weight[index] * dvgain);
       end else
       begin
-        w += gain;
-        duw += dugain;
-        dvw += dvgain;
+        w := w + gain;
+        duw := duw + dugain;
+        dvw := dvw + dvgain;
       end;
       Inc(index);
     end;
-    index += uDimension - uOrder;
+    index := index + (uDimension - uOrder);
   end;
 
-  Result /= w;
+  Result := Result / w;
 
   if Normal <> nil then
   begin
@@ -440,19 +440,19 @@ begin
       nkPeriodicUniform:
         begin
           for I := 0 to Knot.Count - 1 do
-            Knot.L[I] := I;
+            Knot.List^[I] := I;
         end;
       nkEndpointUniform:
         begin
           for I := 0 to Order - 1 do
           begin
-            Knot.L[I] := 0;
-            Knot.L[Cardinal(I) + Dimension] := Dimension - Order + 1;
+            Knot.List^[I] := 0;
+            Knot.List^[Cardinal(I) + Dimension] := Dimension - Order + 1;
           end;
           for I := 0 to Dimension - Order - 1 do
-            Knot.L[Cardinal(I) + Order] := I + 1;
+            Knot.List^[Cardinal(I) + Order] := I + 1;
           for I := 0 to Order + Dimension - 1 do
-            Knot.L[I] /= Dimension - Order + 1;
+            Knot.List^[I] := Knot.List^[I] / (Dimension - Order + 1);
         end;
       else raise EInternalError.Create('NurbsKnotIfNeeded 594');
     end;
@@ -471,16 +471,16 @@ begin
     if Point.Count = 0 then
       Result := TBox3D.Empty else
     begin
-      W := Weight.L[0];
+      W := Weight.List^[0];
       if W = 0 then W := 1;
 
-      Result.Data[0] := Point.L[0] / W;
+      Result.Data[0] := Point.List^[0] / W;
       Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
       begin
         V := Point.Ptr(I);
-        W := Weight.L[I];
+        W := Weight.List^[I];
         if W = 0 then W := 1;
 
         MinVar(Result.Data[0].Data[0], V^.Data[0] / W);
@@ -522,18 +522,18 @@ begin
     if Point.Count = 0 then
       Result := TBox3D.Empty else
     begin
-      W := Weight.L[0];
+      W := Weight.List^[0];
       if W = 0 then W := 1;
 
-      Result.Data[0] := Transform.MultPoint(Point.L[0] / W);
+      Result.Data[0] := Transform.MultPoint(Point.List^[0] / W);
       Result.Data[1] := Result.Data[0];
 
       for I := 1 to Point.Count - 1 do
       begin
-        W := Weight.L[I];
+        W := Weight.List^[I];
         if W = 0 then W := 1;
 
-        V := Transform.MultPoint(Point.L[I] / W);
+        V := Transform.MultPoint(Point.List^[I] / W);
 
         MinVar(Result.Data[0].Data[0], V[0]);
         MinVar(Result.Data[0].Data[1], V[1]);
