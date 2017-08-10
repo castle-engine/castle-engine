@@ -1494,7 +1494,7 @@ type
     ParentInfo := @ParentInfoForChildren;
     try
       Result := Child.DirectEnumerateActiveForTraverse(
-        @EnumerateChildrenFunction, StateStack);
+        {$ifdef CASTLE_OBJFPC}@{$endif} EnumerateChildrenFunction, StateStack);
     finally
       ParentInfo := ParentInfoForChildren.ParentInfo;
     end;
@@ -2101,7 +2101,7 @@ type
   begin
     Result := nil;
     Proc(Child);
-    Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(
@@ -2130,7 +2130,7 @@ type
   begin
     Result := nil;
     if Child is NodeClass then Proc(Child);
-    Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(nodeClass: TX3DNodeClass;
@@ -2163,7 +2163,7 @@ type
     if (Child is NodeClass) and
        (Child.X3DName = SeekNodeName) then
       Proc(Child);
-    Child.DirectEnumerate(@Self.EnumerateChildrenFunction, OnlyActive);
+    Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.EnumerateChildrenFunction, OnlyActive);
   end;
 
 procedure TX3DNode.EnumerateNodes(NodeClass: TX3DNodeClass;
@@ -2195,7 +2195,7 @@ type
     Result := Proc(Child);
     if Result <> nil then Exit;
 
-    Result := Child.DirectEnumerate(@Self.Callback, OnlyActive);
+    Result := Child.DirectEnumerate({$ifdef CASTLE_OBJFPC}@{$endif} Self.Callback, OnlyActive);
   end;
 
 function TX3DNode.SearchNodes(
@@ -2231,7 +2231,7 @@ begin
   Helper := TFindNodeHelper.Create;
   try
     Helper.NodeClass := FindClass;
-    Result := TX3DNode(SearchNodes(@Helper.Callback, OnlyActive));
+    Result := TX3DNode(SearchNodes({$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, OnlyActive));
   finally FreeAndNil(Helper) end;
 end;
 
@@ -2265,7 +2265,7 @@ begin
   try
     Helper.NodeClass := FindClass;
     Helper.NodeName := FindName;
-    Result := TX3DNode(SearchNodes(@Helper.Callback, OnlyActive));
+    Result := TX3DNode(SearchNodes({$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, OnlyActive));
   finally FreeAndNil(Helper) end;
 end;
 
@@ -2304,7 +2304,7 @@ function TX3DNode.TryFindNodeState(
 var
   Res: TTryFindNodeStateResult;
 begin
-  Res := TTryFindNodeStateResult(Traverse(NodeClass, @TryFindNodeStateTraverse));
+  Res := TTryFindNodeStateResult(Traverse(NodeClass, {$ifdef CASTLE_OBJFPC}@{$endif} TryFindNodeStateTraverse));
   Result := Res <> nil;
   if Result then
   begin
@@ -2341,7 +2341,8 @@ function TX3DNode.TryFindNodeTransform(
 var
   Res: TTryFindNodeTransformResult;
 begin
-  Res := TTryFindNodeTransformResult(Traverse(NodeClass, @TryFindNodeTransformTraverse));
+  Res := TTryFindNodeTransformResult(Traverse(NodeClass,
+    {$ifdef CASTLE_OBJFPC}@{$endif} TryFindNodeTransformTraverse));
   Result := Res <> nil;
   if Result then
   begin
@@ -2437,7 +2438,7 @@ begin
   Helper := TIsNodePresentHelper.Create;
   try
     Helper.SeekNode := Node;
-    Result := SearchNodes(@Helper.Callback, OnlyActive) <> nil;
+    Result := SearchNodes({$ifdef CASTLE_OBJFPC}@{$endif} Helper.Callback, OnlyActive) <> nil;
   finally FreeAndNil(Helper) end;
 end;
 
@@ -2457,7 +2458,7 @@ var
 begin
   C := TNodesCountHelper.Create;
   try
-    EnumerateNodes(NodeClass, @C.CountNode, CountOnlyActiveNodes);
+    EnumerateNodes(NodeClass, {$ifdef CASTLE_OBJFPC}@{$endif} C.CountNode, CountOnlyActiveNodes);
     result := C.Counter;
   finally C.Free end;
 end;
@@ -2907,7 +2908,7 @@ begin
   try
     Helper.Wildcard := Wildcard;
     Helper.IgnoreCase := IgnoreCase;
-    Result := EnumerateReplaceChildren(@Helper.DoIt);
+    Result := EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} Helper.DoIt);
   finally FreeAndNil(Helper) end;
 end;
 

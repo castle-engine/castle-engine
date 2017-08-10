@@ -1382,11 +1382,11 @@ begin
 
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   AddEvent(FEventSet_colorIndex);
-  Eventset_colorIndex.OnReceive.Add(@EventSet_ColorIndexReceive);
+  Eventset_colorIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_ColorIndexReceive);
 
   FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   AddEvent(FEventSet_coordIndex);
-  Eventset_coordIndex.OnReceive.Add(@EventSet_CoordIndexReceive);
+  Eventset_coordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_CoordIndexReceive);
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
@@ -1500,7 +1500,7 @@ begin
 
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   AddEvent(FEventSet_index);
-  Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
+  Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);
    FdIndex.Exposed := false;
@@ -1538,7 +1538,7 @@ begin
 
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   AddEvent(FEventSet_index);
-  Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
+  Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);
    FdIndex.Exposed := false;
@@ -1576,7 +1576,7 @@ begin
 
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   AddEvent(FEventSet_index);
-  Eventset_index.OnReceive.Add(@EventSet_IndexReceive);
+  Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
   FFdIndex := TMFInt32.Create(Self, 'index', []);
    FdIndex.Exposed := false;

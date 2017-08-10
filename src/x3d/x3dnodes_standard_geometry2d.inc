@@ -395,12 +395,12 @@ begin
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
 
-      C.FdPoint.Items.L[I] := Vector3(
+      C.FdPoint.Items.List^[I] := Vector3(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value, 0);
     end;
     { close the circle }
-    C.FdPoint.Items.L[SlicesNow] := C.FdPoint.Items.L[0];
+    C.FdPoint.Items.List^[SlicesNow] := C.FdPoint.Items.List^[0];
 
     LineSet.FdVertexCount.Items.Add(SlicesNow + 1);
   except FreeAndNil(Result); raise end;
@@ -599,17 +599,17 @@ begin
 
     { calculate Coord, TexCoord contents }
 
-    Coord.FdPoint.Items.L[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[0] := Vector2(0, 0);
+    Coord.FdPoint.Items.List^[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[0] := Vector2(0, 0);
 
-    Coord.FdPoint.Items.L[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[1] := Vector2(1, 0);
+    Coord.FdPoint.Items.List^[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[1] := Vector2(1, 0);
 
-    Coord.FdPoint.Items.L[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[2] := Vector2(1, 1);
+    Coord.FdPoint.Items.List^[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[2] := Vector2(1, 1);
 
-    Coord.FdPoint.Items.L[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[3] := Vector2(0, 1);
+    Coord.FdPoint.Items.List^[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[3] := Vector2(0, 1);
 
     QuadSet.FdSolid.Value := Solid;
   except FreeAndNil(Result); raise end;

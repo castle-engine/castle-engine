@@ -177,8 +177,8 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [urn] }
 
-  EventIsActive.OnReceive.Add(@UpdatePlayingEvent);
-  EventIsPaused.OnReceive.Add(@UpdatePlayingEvent);
+  EventIsActive.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
+  EventIsPaused.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
 
   { Although X3D XML encoding spec says that "children" is default
     containerField, common sense says it should be "source".
@@ -188,7 +188,7 @@ begin
 
   FDuration := -1;
 
-  SoundEngine.OnOpenClose.Add(@ALOpenClose);
+  SoundEngine.OnOpenClose.Add({$ifdef CASTLE_OBJFPC}@{$endif} ALOpenClose);
 end;
 
 destructor TAudioClipNode.Destroy;
@@ -199,7 +199,7 @@ begin
     Assert(Sound = nil);
   end;
   BufferLoaded := false;
-  SoundEngine.OnOpenClose.Remove(@ALOpenClose);
+  SoundEngine.OnOpenClose.Remove({$ifdef CASTLE_OBJFPC}@{$endif} ALOpenClose);
   inherited;
 end;
 
@@ -303,7 +303,7 @@ begin
           Sound := SoundEngine.PlaySound(Parameters);
         finally FreeAndNil(Parameters) end;
         if Sound <> nil then
-          Sound.OnRelease := @SoundRelease;
+          Sound.OnRelease := {$ifdef CASTLE_OBJFPC}@{$endif} SoundRelease;
       end;
     end;
   end else
@@ -405,7 +405,7 @@ begin
   { X3D specification comment: [0,1] }
 
   FFdLocation := TSFVec3f.Create(Self, 'location', Vector3(0, 0, 0));
-   FdLocation.OnReceive.Add(@EventLocationReceive);
+   FdLocation.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventLocationReceive);
   AddField(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
 

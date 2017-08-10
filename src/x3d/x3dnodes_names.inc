@@ -58,7 +58,7 @@
     procedure Bind(Node: TX3DNode; const NodeFinished: boolean; const BindToName: string); overload;
 
     { Find node bound to given name. @nil if none. }
-    function Bound(const Name: string; out NodeFinished: boolean): TX3DNode;
+    function Bound(const Name: string; out NodeFinished: boolean): TX3DNode; overload;
 
     { Check is Node bound in the current namespace.
       @false means that node is not within this namespace,
@@ -68,7 +68,7 @@
       else. So this assumes that node can only be bound (if at all)
       only to it's own name, which is true during parsing
       (when nothing can change in the middle of parsing). }
-    function Bound(Node: TX3DNode): boolean;
+    function Bound(Node: TX3DNode): boolean; overload;
 
     function DeepCopy(CopyState: TX3DNodeDeepCopyState): TX3DNodeNames;
   end;

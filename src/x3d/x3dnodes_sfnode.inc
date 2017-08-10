@@ -283,7 +283,7 @@ procedure TSFNode.WarningIfChildNotAllowed(Child: TX3DNode);
     S := Format('Node "%s" is not allowed in the field "%s"',
       [Child.X3DType, X3DName]);
     if ParentNode <> nil then
-      S += Format(' of the node "%s"', [ParentNode.X3DType]);
+      S := S + Format(' of the node "%s"', [ParentNode.X3DType]);
     WritelnWarning('VRML/X3D', S);
   end;
 
@@ -461,7 +461,7 @@ begin
     if FValue <> nil then
     begin
       if WeakLink then
-        FValue.RemoveDestructionNotification(@DestructionNotification)
+        FValue.RemoveDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification)
       else
         FValue.RemoveParentField(Self);
     end;
@@ -471,7 +471,7 @@ begin
     if AValue <> nil then
     begin
       if WeakLink then
-        FValue.AddDestructionNotification(@DestructionNotification)
+        FValue.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification)
       else
         FValue.AddParentField(Self);
     end;
@@ -485,7 +485,7 @@ begin
     if FDefaultValue <> nil then
     begin
       if WeakLink then
-        FDefaultValue.RemoveDestructionNotification(@DestructionNotification)
+        FDefaultValue.RemoveDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification)
       else
         FDefaultValue.RemoveParentField(Self);
     end;
@@ -495,7 +495,7 @@ begin
     if ADefaultValue <> nil then
     begin
       if WeakLink then
-        FDefaultValue.AddDestructionNotification(@DestructionNotification)
+        FDefaultValue.AddDestructionNotification({$ifdef CASTLE_OBJFPC}@{$endif} DestructionNotification)
       else
         FDefaultValue.AddParentField(Self);
     end;

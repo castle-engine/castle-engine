@@ -606,7 +606,7 @@ var
       fjEnd   : Result := Strings.Count     - (I + 1);
       else raise EInternalError.Create('StringPosY: Invalid font JustifyMinor value');
     end;
-    Result *= Font.RowHeight * Spacing;
+    Result := Result * (Font.RowHeight * Spacing);
   end;
 
 var
@@ -662,15 +662,15 @@ var
           case Justify of
             fjBegin, fjFirst:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2(
+                LineBounds.Items.List^[I] := Vector2(
                   TextWidths[I] * XScale, FinalRowHeight);
             fjMiddle:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2(
+                LineBounds.Items.List^[I] := Vector2(
                   (MaxTextWidth + TextWidths[I]) * XScale / 2, FinalRowHeight);
             fjEnd   :
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2(
+                LineBounds.Items.List^[I] := Vector2(
                   MaxTextWidth * XScale, FinalRowHeight);
             else raise EInternalError.Create('Invalid font justify value');
           end;
@@ -733,10 +733,10 @@ var
           CoordX1 := CoordX0 + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
           CoordY1 := CoordY0 + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
 
-          CoordX0 *= XScale;
-          CoordX1 *= XScale;
-          CoordY0 *= YScale;
-          CoordY1 *= YScale;
+          CoordX0 := CoordX0 * XScale;
+          CoordX1 := CoordX1 * XScale;
+          CoordY0 := CoordY0 * YScale;
+          CoordY1 := CoordY1 * YScale;
 
           OutCoord.Items.Add(Vector3(CoordX0, CoordY0, 0));
           OutCoord.Items.Add(Vector3(CoordX1, CoordY0, 0));
@@ -775,8 +775,8 @@ var
             OutExtraTexCoord.Items.Add(Vector2(ExtraTexX0, ExtraTexY1));
           end;
         end;
-        X += G.AdvanceX;
-        Y += G.AdvanceY;
+        X := X + G.AdvanceX;
+        Y := Y + G.AdvanceY;
       end;
 
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -796,8 +796,8 @@ begin
     MaxTextWidth := 0;
     for I := 0 to TextWidths.Count - 1 do
     begin
-      TextWidths.L[I] := Font.TextWidth(Strings[I]);
-      MaxVar(MaxTextWidth, TextWidths.L[I]);
+      TextWidths.List^[I] := Font.TextWidth(Strings[I]);
+      MaxVar(MaxTextWidth, TextWidths.List^[I]);
     end;
 
     if Strings.Count <> 0 then

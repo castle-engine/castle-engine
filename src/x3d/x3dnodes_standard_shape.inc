@@ -1373,7 +1373,7 @@ begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
     CalculateReflSpecular(Result) else
-    Result := A.L[0];
+    Result := A.List^[0];
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflDiffuse: TVector3;
@@ -1383,7 +1383,7 @@ begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
     CalculateReflDiffuse(Result) else
-    Result := A.L[0];
+    Result := A.List^[0];
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransSpecular: TVector3;
@@ -1393,7 +1393,7 @@ begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
     CalculateTransSpecular(Result) else
-    Result := A.L[0];
+    Result := A.List^[0];
 end;
 
 function TMaterialNode.TX3DMaterialInfo.TransDiffuse: TVector3;
@@ -1403,7 +1403,7 @@ begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
     CalculateTransDiffuse(Result) else
-    Result := A.L[0];
+    Result := A.List^[0];
 end;
 
 function TMaterialNode.TX3DMaterialInfo.ReflSpecularExp: Single;

@@ -104,7 +104,7 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  TStringLongIntMap = class(specialize TDictionary<string, LongInt>)
+  TStringLongIntMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, LongInt>)
   strict private
     function GetItems(const AKey: string): LongInt;
     procedure SetItems(const AKey: string; const AValue: LongInt);
@@ -240,8 +240,8 @@
       works (is recognized by models that Inline this one).
 
       @groupBegin }
-    procedure ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string);
-    procedure ManuallyExportNode(const Node: TX3DNode);
+    procedure ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string); overload;
+    procedure ManuallyExportNode(const Node: TX3DNode); overload;
     { @groupEnd }
   end;
 
@@ -502,7 +502,7 @@ begin
     if Self is TAnchorNode then
       Enumerator.AddPointingDeviceSensor(Self);
 
-    DirectEnumerateActive(@Enumerator.EnumerateChildrenFunction);
+    DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -525,11 +525,11 @@ begin
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
   AddEvent(FEventAddChildren);
-  EventaddChildren.OnReceive.Add(@EventAddChildrenReceive);
+  EventaddChildren.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventAddChildrenReceive);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventRemoveChildren);
-  EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
+  EventRemoveChildren.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
    FdChildren.ChangesAlways := [chEverything];
@@ -785,7 +785,7 @@ begin
     ScalingMatrices(Vector3(Scale, Scale, Scale), true, M, IM);
     State.Transform := State.Transform * M;
     State.InvertedTransform := IM * State.InvertedTransform;
-    State.TransformScale *= Scale;
+    State.TransformScale := State.TransformScale * Scale;
   end;
 end;
 
@@ -967,7 +967,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
-  State.TransformScale *= Approximate3DScale(Scale);
+  State.TransformScale := State.TransformScale * Approximate3DScale(Scale);
 end;
 
 procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);

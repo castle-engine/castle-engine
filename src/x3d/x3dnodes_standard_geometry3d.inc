@@ -740,7 +740,7 @@ begin
 
   FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
   AddEvent(FEventSet_height);
-  Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
+  Eventset_height.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
@@ -883,19 +883,19 @@ begin
 
   FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
   AddEvent(FEventSet_crossSection);
-  Eventset_crossSection.OnReceive.Add(@EventSet_crossSectionReceive);
+  Eventset_crossSection.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
 
   FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
   AddEvent(FEventSet_orientation);
-  Eventset_orientation.OnReceive.Add(@EventSet_orientationReceive);
+  Eventset_orientation.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
 
   FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
   AddEvent(FEventSet_scale);
-  Eventset_scale.OnReceive.Add(@EventSet_scaleReceive);
+  Eventset_scale.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
 
   FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
   AddEvent(FEventSet_spine);
-  Eventset_spine.OnReceive.Add(@EventSet_spineReceive);
+  Eventset_spine.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
 
   FFdBeginCap := TSFBool.Create(Self, 'beginCap', true);
    FdBeginCap.Exposed := false;
@@ -972,9 +972,9 @@ end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
 begin
-  Result[0] := FdCrossSection.Items.L[Index][0];
+  Result[0] := FdCrossSection.Items.List^[Index][0];
   Result[1] := 0;
-  Result[2] := FdCrossSection.Items.L[Index][1];
+  Result[2] := FdCrossSection.Items.List^[Index][1];
 end;
 
 function TExtrusionNode.SpineClosed: boolean;
@@ -1051,8 +1051,8 @@ var
     if TexCoords <> nil then
     begin
       if SpecialTex then
-        IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
-        IFS.FdTexCoordIndex.Items.L[Index] :=
+        IFS.FdTexCoordIndex.Items.List^[Index] := SpecialTexIndex else
+        IFS.FdTexCoordIndex.Items.List^[Index] :=
           SpineIndex * FdCrossSection.Count + CrossSectionIndex;
     end;
 
@@ -1070,7 +1070,7 @@ var
        E.CrossSectionClosed then
       CrossSectionIndex := 0;
 
-    IFS.FdCoordIndex.Items.L[Index] :=
+    IFS.FdCoordIndex.Items.List^[Index] :=
       SpineIndex * FdCrossSection.Count + CrossSectionIndex;
 
     Inc(Index);
@@ -1078,9 +1078,9 @@ var
 
   procedure NextIndexFaceDelimiter;
   begin
-    IFS.FdCoordIndex.Items.L[Index] := -1;
+    IFS.FdCoordIndex.Items.List^[Index] := -1;
     if TexCoords <> nil then
-      IFS.FdTexCoordIndex.Items.L[Index] := -1;
+      IFS.FdTexCoordIndex.Items.List^[Index] := -1;
     Inc(Index);
   end;
 
@@ -1126,7 +1126,7 @@ begin
         E.SpineTransformVar(I, LastY, LastZ, Transform);
         for J := 0 to FdCrossSection.Count - 1 do
         begin
-          CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
+          CoordNode.FdPoint.Items.List^[I * FdCrossSection.Count + J] :=
             Transform.MultPoint(CrossSection3D(J));
         end;
       end;
@@ -1149,12 +1149,12 @@ begin
       begin
         Len := SidesCount;
         if FdBeginCap.Value or FdEndCap.Value then
-          Len += FdCrossSection.Count;
+          Len := Len + FdCrossSection.Count;
         TexCoords.Count := Len;
 
         for I := 0 to E.High do
           for J := 0 to FdCrossSection.Count - 1 do
-            TexCoords.L[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
+            TexCoords.List^[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
 
         { calculate TexCapsTranslation, TexCapsScale }
         if FdBeginCap.Value or FdEndCap.Value then
@@ -1186,9 +1186,9 @@ begin
 
           for I := 0 to FdCrossSection.Count - 1 do
           begin
-            TexCoordNode.FdPoint.Items.L[
+            TexCoordNode.FdPoint.Items.List^[
               SidesCount + I] :=
-                (FdCrossSection.Items.L[I] +
+                (FdCrossSection.Items.List^[I] +
                  Vector2(TexCapsTranslation, TexCapsTranslation))
                 * TexCapsScale;
           end;
@@ -1201,9 +1201,9 @@ begin
         Len := 5 * E.High * (FdCrossSection.Count - 1) else
         Len := 0; { E.High may be -1, then Len should remain 0 }
       if FdBeginCap.Value then
-        Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
+        Len := Len + (FdCrossSection.Count + 1 - E.CrossSectionOmit);
       if FdEndCap.Value then
-        Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
+        Len := Len + (FdCrossSection.Count + 1 - E.CrossSectionOmit);
       IFS.FdCoordIndex.Items.Count := Len;
       if TexCoords <> nil then
         IFS.FdTexCoordIndex.Items.Count := Len;
@@ -1331,19 +1331,19 @@ begin
 
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   AddEvent(FEventSet_colorIndex);
-  Eventset_colorIndex.OnReceive.Add(@EventSet_colorIndexReceive);
+  Eventset_colorIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
 
   FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   AddEvent(FEventSet_coordIndex);
-  Eventset_coordIndex.OnReceive.Add(@EventSet_coordIndexReceive);
+  Eventset_coordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
 
   FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
   AddEvent(FEventSet_normalIndex);
-  Eventset_normalIndex.OnReceive.Add(@EventSet_normalIndexReceive);
+  Eventset_normalIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
 
   FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
   AddEvent(FEventSet_texCoordIndex);
-  Eventset_texCoordIndex.OnReceive.Add(@EventSet_texCoordIndexReceive);
+  Eventset_texCoordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
 
   FFdColorIndex := TMFInt32.Create(Self, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;

@@ -352,9 +352,9 @@
       and they should drive the rest of animation.
 
       @groupBegin }
-    procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean);
+    procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean); overload;
     procedure FakeTime(const TimeInAnimation: TFloatTime; const ALoop: boolean;
-      const TimeOfEvents: TX3DTime);
+      const TimeOfEvents: TX3DTime); overload;
     { @groupEnd }
 
     {$I auto_generated_node_helpers/x3dnodes_timesensor.inc}
@@ -879,7 +879,7 @@ begin
   FInternalTimeDependentHandler.EventElapsedTime := EventElapsedTime;
   { descendants should set FInternalTimeDependentHandler.EventCycleTime }
   { descendants should override GetCycleInterval }
-  FInternalTimeDependentHandler.OnCycleInterval := @GetCycleInterval;
+  FInternalTimeDependentHandler.OnCycleInterval := {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
 end;
 
 destructor TAbstractTimeDependentNode.Destroy;
@@ -950,7 +950,7 @@ begin
   InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }
-  EventElapsedTime.OnReceive.Add(@EventElapsedTimeReceive);
+  EventElapsedTime.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
 end;
 
 function TTimeSensorNode.GetCycleInterval: TFloatTime;
@@ -1005,7 +1005,7 @@ begin
   if FakeX3DTime.PlusTicks <> High(FakeX3DTime.PlusTicks) then
     Inc(FakeX3DTime.PlusTicks) else
   begin
-    FakeX3DTime.Seconds += 1;
+    FakeX3DTime.Seconds := FakeX3DTime.Seconds + 1;
     FakeX3DTime.PlusTicks := 0;
   end;
 

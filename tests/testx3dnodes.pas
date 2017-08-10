@@ -20,10 +20,11 @@ unit TestX3DNodes;
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase,
+  CastleVectors, X3DNodes;
 
 type
-  TTestX3DNodes = class(TTestCase)
+  TTestX3DNodes = class(TCastleBaseTestCase)
   private
     procedure WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
   published
@@ -95,6 +96,7 @@ type
     procedure TestFontStyle;
     procedure TestWeakLinkUnusedWarning;
     procedure TestKeepExisting;
+    procedure TestAttenuation;
   end;
 
 implementation
@@ -2058,6 +2060,27 @@ begin
   { This *will* cause SIGSEGV without KeepExisting := 1 above.
     But it will work fine with KeepExisting := 1 above. }
   FreeAndNil(TextureProperties);
+end;
+
+procedure TTestX3DNodes.TestAttenuation;
+var
+  L: TPointLightNode;
+begin
+  L := TPointLightNode.Create;
+  try
+    AssertFalse(L.DistanceNeededForAttenuation);
+    AssertEquals(1, L.CalculateAttenuation(123));
+
+    { VRML 97 specification says that attenuation = (0, 0, 0) should
+      behave like (1, 0, 0). }
+    L.Attenuation := TVector3.Zero;
+    AssertFalse(L.DistanceNeededForAttenuation);
+    AssertEquals(1, L.CalculateAttenuation(123));
+
+    L.Attenuation := Vector3(1, 1, 1);
+    AssertTrue(L.DistanceNeededForAttenuation);
+    AssertSameValue(1 / (1 + 5 + Sqr(5)), L.CalculateAttenuation(5), 0.001);
+  finally FreeAndNil(L) end;
 end;
 
 initialization

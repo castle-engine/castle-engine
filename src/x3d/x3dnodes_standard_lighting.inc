@@ -293,7 +293,6 @@
       @groupBegin }
     function DistanceNeededForAttenuation: boolean;
     function CalculateAttenuation(const DistanceToLight: Single): Single; overload;
-    function CalculateAttenuation(const DistanceToLight: Double): Double; overload;
     { @groupEnd }
 
     { Is attenuation relevant. When @false, you know that @link(Attenuation)
@@ -835,36 +834,19 @@ begin
   LightInstance.Radius := FdRadius.Value * LightInstance.TransformScale;
 end;
 
-{$define ATTENUATION_IMPLEMENTATION:=
-begin
- (* moglibysmy tu nie badac czy DistanceNeededForAttenuation i zawsze
-    robic wersje pelna (bo przeciez
-      FdAttenuation.Value[1] * DistanceToLight +
-      FdAttenuation.Value[2] * Sqr(DistanceToLight)
-    i tak bedzie = 0 gdy FdAttenuation.Value[1] = FdAttenuation.Value[2] = 0.
-    Ale wydaje mi sie ze tak jest szybciej - testowanie kosztuje nas
-    troszke czasu ale mozemy sobie w ten sposob ocalic 2 x mnozenie i dodawanie. *)
-
- (* we check whether attenuation = (0, 0, 0). VRML 97 spec says that specifying
-    (0, 0, 0) should be equal to specifying (1, 0, 0). (well, we avoid
-    division by zero possibility this way so it's quite sensible, even
-    if it wastes some time) *)
- if (FdAttenuation.Value[0] = 0) and
-    (FdAttenuation.Value[1] = 0) and
-    (FdAttenuation.Value[2] = 0) then result := 1;
-
- if DistanceNeededForAttenuation then
-  result := 1/ CastleUtils.max(FdAttenuation.Value[0] +
-                   FdAttenuation.Value[1] * DistanceToLight +
-                   FdAttenuation.Value[2] * Sqr(DistanceToLight), Single(1.0)) else
-  result := 1/ CastleUtils.max(FdAttenuation.Value[0], Single(1.0));
-end;}
-
 function TAbstractPositionalLightNode.CalculateAttenuation(const DistanceToLight: Single): Single;
-ATTENUATION_IMPLEMENTATION
-
-function TAbstractPositionalLightNode.CalculateAttenuation(const DistanceToLight: Double): Double;
-ATTENUATION_IMPLEMENTATION
+begin
+  { We don't really need to check DistanceNeededForAttenuation here.
+    But it may be more optimal, since it's often false,
+    and then we don't need to do 2x multiplications and 1x addition. }
+  if DistanceNeededForAttenuation then
+    result := 1/ CastleUtils.max(
+      FdAttenuation.Value[0] +
+      FdAttenuation.Value[1] * DistanceToLight +
+      FdAttenuation.Value[2] * Sqr(DistanceToLight), 1.0) else
+    result := 1/ CastleUtils.max(
+      FdAttenuation.Value[0], 1.0);
+end;
 
 function TAbstractPositionalLightNode.PositionAndDirection: TVector4;
 begin

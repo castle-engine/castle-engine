@@ -118,7 +118,7 @@ begin
    PosLightNode := TAbstractPositionalLightNode(Node);
    if PosLightNode.DistanceNeededForAttenuation then
     Attenuat := PosLightNode.CalculateAttenuation( PointsDistance(Point, Location) ) else
-    Attenuat := PosLightNode.CalculateAttenuation( Single(0.0) );
+    Attenuat := PosLightNode.CalculateAttenuation( 0.0 );
   end else
    Attenuat := 1;
 
