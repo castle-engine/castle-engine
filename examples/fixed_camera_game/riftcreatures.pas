@@ -483,8 +483,8 @@ begin
 
   { Update children 3D objects *after* updating our own transformation,
     this way they are always synchronized when displaying.
-    Otherwise, the FTargetVisualize has a bit of "shaking", as the TDebug3D
-    transformation is updated with 1-frame delay. }
+    Otherwise, the FTargetVisualize would have a bit of "shaking",
+    because the TDebug3D transformation would be updated with 1-frame delay. }
   inherited;
 end;
 

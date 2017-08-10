@@ -471,10 +471,8 @@ type
   TItemOnWorld = class(T3DOrient)
   private
     type
-      { A scene that can be added to TItemOnWorld
-        (as it's child, not transformed any further) to visualize
-        the parameters of it's parent (bounding volumes and such).
-
+      { A debug visualization that can be added to TItemOnWorld
+        to visualize the parameters of it's parent (bounding volumes and such).
         See @link(TDebug3D) for usage details. }
       TItemDebug3D = class(TDebug3D)
       strict private
