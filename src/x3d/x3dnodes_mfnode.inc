@@ -303,12 +303,16 @@ end;
 
 procedure TMFNode.Add(Node: TX3DNode);
 begin
+  if Node = nil then
+    raise EX3DError.Create('Cannot add nil node to an MFNode field ' + NiceName);
   Items.Add(Node);
   Node.AddParentField(Self);
 end;
 
 procedure TMFNode.Add(Position: Integer; Node: TX3DNode);
 begin
+  if Node = nil then
+    raise EX3DError.Create('Cannot add nil node to an MFNode field ' + NiceName);
   Items.Insert(Position, Node);
   Node.AddParentField(Self);
 end;
