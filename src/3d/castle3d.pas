@@ -1327,8 +1327,6 @@ type
     { Can we use simple GetTranslation instead of full TransformMatricesMult.
       Returning @true allows optimization in some cases. }
     function OnlyTranslation: boolean; virtual;
-    function Transform: TMatrix4;
-    function TransformInverse: TMatrix4;
 
     { Transformation matrix.
       You can override this to derive transformation using anything,
@@ -1488,6 +1486,13 @@ type
       approach, and then ignore MiddleHeight completely. }
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
+
+    { Transformation (from local to global) as a matrix. }
+    function Transform: TMatrix4;
+
+    { Inverse transformation as a matrix, thus transforming from global to local
+      coordinate system. }
+    function InverseTransform: TMatrix4;
 
     { Translation (move) the children. Zero by default.
       @seealso T3DTransform.Translation }
@@ -2108,7 +2113,7 @@ const
 
 { Apply transformation to a matrix.
   Calculates at the same time transformation matrix, and it's inverse,
-  and multiplies given Transform, TransformInverse appropriately.
+  and multiplies given Transform, InverseTransform appropriately.
   The precise meaning of Center, Translation and such parameters
   follows exactly the X3D Transform node definition (see
   http://www.web3d.org/files/specifications/19775-1/V3.2/Part01/components/group.html#Transform ).
@@ -2118,7 +2123,7 @@ const
     specify the rotation axis (does not need to be normalized, but must be non-zero),
     and the last component is the rotation angle @italic(in radians).)
 }
-procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4;
+procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const Center: TVector3;
   const Rotation: TVector4;
   const Scale: TVector3;
@@ -3368,7 +3373,7 @@ end;
 
 { TransformMatricesMult ------------------------------------------------------ }
 
-procedure TransformMatricesMult(var Transform, TransformInverse: TMatrix4;
+procedure TransformMatricesMult(var Transform, InverseTransform: TMatrix4;
   const Center: TVector3;
   const Rotation: TVector4;
   const Scale: TVector3;
@@ -3378,10 +3383,10 @@ var
   M, IM: TMatrix4;
   MRotateScaleOrient, IMRotateScaleOrient: TMatrix4;
 begin
-  { To make TransformInverse, we multiply inverted matrices in inverted order
+  { To make InverseTransform, we multiply inverted matrices in inverted order
     below. }
 
-  MultMatricesTranslation(Transform, TransformInverse, Translation + Center);
+  MultMatricesTranslation(Transform, InverseTransform, Translation + Center);
 
   { We avoid using RotationMatricesRad when angle = 0, since this
     is often the case, and it makes TransformState much faster
@@ -3392,7 +3397,7 @@ begin
       identity in this case. }
     RotationMatricesRad(Rotation, M, IM);
     Transform := Transform * M;
-    TransformInverse := IM * TransformInverse;
+    InverseTransform := IM * InverseTransform;
   end;
 
   if (Scale[0] <> 1) or
@@ -3403,30 +3408,30 @@ begin
     begin
       RotationMatricesRad(ScaleOrientation, MRotateScaleOrient, IMRotateScaleOrient);
       Transform := Transform * MRotateScaleOrient;
-      TransformInverse := IMRotateScaleOrient * TransformInverse;
+      InverseTransform := IMRotateScaleOrient * InverseTransform;
     end;
 
     { For scaling, we explicitly request that if ScalingFactor contains
       zero, IM will be forced to be identity (the 2nd param to ScalingMatrices
       is "true"). That's because X3D allows
-      scaling factor to have 0 components (we need TransformInverse only
+      scaling factor to have 0 components (we need InverseTransform only
       for special tricks). }
 
     ScalingMatrices(Scale, true, M, IM);
     Transform := Transform * M;
-    TransformInverse := IM * TransformInverse;
+    InverseTransform := IM * InverseTransform;
 
     if ScaleOrientation[3] <> 0 then
     begin
       { That's right, we reuse MRotateScaleOrient and IMRotateScaleOrient
         matrices below. Since we want to reverse them now, so normal
-        Transform is multiplied by IM and TransformInverse is multiplied by M. }
+        Transform is multiplied by IM and InverseTransform is multiplied by M. }
       Transform := Transform * IMRotateScaleOrient;
-      TransformInverse := MRotateScaleOrient * TransformInverse;
+      InverseTransform := MRotateScaleOrient * InverseTransform;
     end;
   end;
 
-  MultMatricesTranslation(Transform, TransformInverse, -Center);
+  MultMatricesTranslation(Transform, InverseTransform, -Center);
 end;
 
 { T3DWorld ------------------------------------------------------------------- }
@@ -3514,7 +3519,7 @@ begin
   TransformMatrices(Result, Dummy); // TODO: optimize, if needed?
 end;
 
-function T3DCustomTransform.TransformInverse: TMatrix4;
+function T3DCustomTransform.InverseTransform: TMatrix4;
 var
   Dummy: TMatrix4;
 begin
@@ -3554,7 +3559,8 @@ end;
 function T3DCustomTransform.BoundingBox: TBox3D;
 begin
   if OnlyTranslation then
-    Result := LocalBoundingBox.Translate(GetTranslation) else
+    Result := LocalBoundingBox.Translate(GetTranslation)
+  else
     Result := LocalBoundingBox.Transform(Transform);
 end;
 
@@ -3649,7 +3655,7 @@ begin
       Position - GetTranslation, GravityUp, TrianglesToIgnoreFunc,
       AboveHeight, AboveGround) else
   begin
-    MInverse := TransformInverse;
+    MInverse := InverseTransform;
     Result := inherited HeightCollision(
       MInverse.MultPoint(Position),
       MInverse.MultDirection(GravityUp), TrianglesToIgnoreFunc,
@@ -3733,7 +3739,7 @@ begin
       NewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
   end else
   begin
-    MInverse := TransformInverse;
+    MInverse := InverseTransform;
     Result := inherited MoveCollision(
       MInverse.MultPoint(OldPos),
       MInverse.MultPoint(NewPos),
@@ -3760,7 +3766,7 @@ begin
     Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, ALineOfSight);
   end else
   begin
-    MInverse := TransformInverse;
+    MInverse := InverseTransform;
     Result := inherited SegmentCollision(
       MInverse.MultPoint(Pos1),
       MInverse.MultPoint(Pos2), TrianglesToIgnoreFunc, ALineOfSight);
@@ -3779,7 +3785,7 @@ begin
     Result := inherited SphereCollision(
       Pos - GetTranslation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
-      TransformInverse.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
+      InverseTransform.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.SphereCollision2D(
@@ -3795,7 +3801,7 @@ begin
     Result := inherited SphereCollision2D(
       Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc, Details) else
     Result := inherited SphereCollision2D(
-      TransformInverse.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc, Details);
+      InverseTransform.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc, Details);
 end;
 
 function T3DCustomTransform.PointCollision2D(
@@ -3810,7 +3816,7 @@ begin
     Result := inherited PointCollision2D(
       Point - GetTranslation2D, TrianglesToIgnoreFunc) else
     Result := inherited PointCollision2D(
-      TransformInverse.MultPoint(Point), TrianglesToIgnoreFunc);
+      InverseTransform.MultPoint(Point), TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.BoxCollision(
@@ -3825,14 +3831,14 @@ begin
     Result := inherited BoxCollision(
       Box.AntiTranslate(GetTranslation), TrianglesToIgnoreFunc) else
     Result := inherited BoxCollision(
-      Box.Transform(TransformInverse), TrianglesToIgnoreFunc);
+      Box.Transform(InverseTransform), TrianglesToIgnoreFunc);
 end;
 
 function T3DCustomTransform.OutsideToLocal(const Pos: TVector3): TVector3;
 begin
   if OnlyTranslation then
     Result := Pos - GetTranslation else
-    Result := TransformInverse.MultPoint(Pos);
+    Result := InverseTransform.MultPoint(Pos);
 end;
 
 function T3DCustomTransform.LocalToOutside(const Pos: TVector3): TVector3;

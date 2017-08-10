@@ -475,30 +475,22 @@ type
         (as it's child, not transformed any further) to visualize
         the parameters of it's parent (bounding volumes and such).
 
-        After constructing it, you must always @link(Attach) it to some
-        parent @link(TItemOnWorld) instance.
-        It will insert this scene as a child of indicated parent,
-        and also it will follow the parent parameters then (updating
-        itself in every Update, looking at parent properties). }
-      TDebug3D = class(TCastleScene)
+        See @link(TDebug3D) for usage details. }
+      TItemDebug3D = class(TDebug3D)
       strict private
-        FBox: TDebugBox;
         FBoxRotated: TDebugBox;
-        FMiddleAxis: TDebugAxis;
-        FOuterTransform: TTransformNode;
-        FTransform: TTransformNode;
         FParent: TItemOnWorld;
-        procedure UpdateParent;
+      strict protected
+        procedure Initialize; override;
+        procedure Update; override;
       public
-        constructor Create(AOwner: TComponent); override;
         procedure Attach(const AParent: TItemOnWorld);
-        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
 
     var
       FItem: TInventoryItem;
       ItemRotation, LifeTime: Single;
-      FDebug3D: TDebug3D;
+      FDebug3D: TItemDebug3D;
     function BoundingBoxRotated: TBox3D;
   protected
     function GetChild: T3D; override;
@@ -1095,75 +1087,33 @@ begin
   CheckDepleted(Item);
 end;
 
-{ TItemOnWorld.TDebug3D -------------------------------------------------------- }
+{ TItemOnWorld.TItemDebug3D -------------------------------------------------------- }
 
-constructor TItemOnWorld.TDebug3D.Create(AOwner: TComponent);
-var
-  Root: TX3DRootNode;
+procedure TItemOnWorld.TItemDebug3D.Initialize;
 begin
   inherited;
 
-  FBox := TDebugBox.Create(Self, GrayRGB);
   FBoxRotated := TDebugBox.Create(Self, GrayRGB);
-  FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
+  WorldSpace.FdChildren.Add(FBoxRotated.Root);
 
-  FTransform := TTransformNode.Create;
-  FTransform.FdChildren.Add(FBox.Root);
-  FTransform.FdChildren.Add(FBoxRotated.Root);
-  FTransform.FdChildren.Add(FMiddleAxis.Root);
-
-  FOuterTransform := TTransformNode.Create;
-  FOuterTransform.FdChildren.Add(FTransform);
-
-  Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(FOuterTransform);
-
-  Load(Root, true);
-  Collides := false;
-  Pickable := false;
-  CastShadowVolumes := false;
-  ExcludeFromStatistics := true;
-  InternalExcludeFromParentBoundingVolume := true;
+  ChangedScene;
 end;
 
-procedure TItemOnWorld.TDebug3D.Attach(const AParent: TItemOnWorld);
+procedure TItemOnWorld.TItemDebug3D.Attach(const AParent: TItemOnWorld);
 begin
   FParent := AParent;
-  FParent.Add(Self);
-
-  { call Update explicitly for the 1st time, to initialize everything now }
-  UpdateParent;
+  inherited Attach(AParent);
 end;
 
-procedure TItemOnWorld.TDebug3D.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-begin
-  inherited;
-  if FParent <> nil then // do not update if not attached to parent
-    UpdateParent;
-end;
-
-procedure TItemOnWorld.TDebug3D.UpdateParent;
+procedure TItemOnWorld.TItemDebug3D.Update;
 var
   BBoxRotated: TBox3D;
 begin
-  { resign when FParent.World unset, then Middle and PreferredHeight
-    cannot be calculated yet }
-  if FParent.World = nil then Exit;
-
-  // update FOuterTransform, FTransform to cancel parent's transformation
-  FOuterTransform.Rotation := RotationNegate(FParent.Rotation);
-  FTransform.Translation := -FParent.Translation;
-
-  // show FParent.BoundingBox
-  FBox.Box := FParent.BoundingBox;
+  inherited;
 
   // show FParent.BoundingBoxRotated
   BBoxRotated := FParent.BoundingBoxRotated;
   FBoxRotated.Box := BBoxRotated;
-
-  // show FParent.Middle
-  FMiddleAxis.Position := FParent.Middle;
-  FMiddleAxis.ScaleFromBox := BBoxRotated;
 end;
 
 { TItemOnWorld ------------------------------------------------------------ }
@@ -1174,6 +1124,9 @@ begin
 
   CollidesWithMoving := true;
   Gravity := true;
+
+  FDebug3D := TItemDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
@@ -1199,20 +1152,6 @@ begin
 end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-
-  procedure UpdateDebug3D;
-  begin
-    if RenderDebug3D and (FDebug3D = nil) then
-    begin
-      { create FDebug3D on demand }
-      FDebug3D := TDebug3D.Create(Self);
-      FDebug3D.Attach(Self);
-    end;
-
-    if FDebug3D <> nil then
-      FDebug3D.Exists := RenderDebug3D;
-  end;
-
 var
   DirectionZero, U: TVector3;
 begin
@@ -1231,7 +1170,7 @@ begin
   DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
 
-  UpdateDebug3D;
+  FDebug3D.Exists := RenderDebug3D;
 
   if AutoPick and
      (World.Player <> nil) and

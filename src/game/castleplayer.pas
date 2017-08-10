@@ -94,28 +94,6 @@ type
         function BoundingBox: TBox3D; override;
       end;
 
-      { A scene that can be added to TPlayer
-        (as it's child, not transformed any further) to visualize
-        the parameters of it's parent (bounding volumes and such).
-
-        After constructing it, you must always @link(Attach) it to some
-        parent @link(TPlayer) instance.
-        It will insert this scene as a child of indicated parent,
-        and also it will follow the parent parameters then (updating
-        itself in every Update, looking at parent properties). }
-      TDebug3D = class(TCastleScene)
-      strict private
-        FBox: TDebugBox;
-        FOuterTransform: TTransformNode;
-        FTransform: TTransformNode;
-        FParent: TPlayer;
-        procedure UpdateParent;
-      public
-        constructor Create(AOwner: TComponent); override;
-        procedure Attach(const AParent: TPlayer);
-        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-      end;
-
     var
       FBox: TBox;
       FDebug3D: TDebug3D;
@@ -505,63 +483,6 @@ begin
     Result := TBox3D.Empty;
 end;
 
-{ TPlayer.TDebug3D -------------------------------------------------------- }
-
-constructor TPlayer.TDebug3D.Create(AOwner: TComponent);
-var
-  Root: TX3DRootNode;
-begin
-  inherited;
-
-  FBox := TDebugBox.Create(Self, GrayRGB);
-
-  FTransform := TTransformNode.Create;
-  FTransform.FdChildren.Add(FBox.Root);
-
-  FOuterTransform := TTransformNode.Create;
-  FOuterTransform.FdChildren.Add(FTransform);
-
-  Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(FOuterTransform);
-
-  Load(Root, true);
-  Collides := false;
-  Pickable := false;
-  CastShadowVolumes := false;
-  ExcludeFromStatistics := true;
-  InternalExcludeFromParentBoundingVolume := true;
-end;
-
-procedure TPlayer.TDebug3D.Attach(const AParent: TPlayer);
-begin
-  FParent := AParent;
-  FParent.Add(Self);
-
-  { call Update explicitly for the 1st time, to initialize everything now }
-  UpdateParent;
-end;
-
-procedure TPlayer.TDebug3D.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-begin
-  inherited;
-  if FParent <> nil then // do not update if not attached to parent
-    UpdateParent;
-end;
-
-procedure TPlayer.TDebug3D.UpdateParent;
-begin
-  { resign when FParent.World unset, then Middle and PreferredHeight
-    cannot be calculated yet }
-  if FParent.World = nil then Exit;
-
-  // update FOuterTransform, FTransform to cancel parent's transformation
-  FOuterTransform.Rotation := RotationNegate(FParent.Rotation);
-  FTransform.Translation := -FParent.Translation;
-
-  // show FParent.Box
-  FBox.Box := FParent.BoundingBox;
-end;
-
 { TPlayer -------------------------------------------------------------------- }
 
 constructor TPlayer.Create(AOwner: TComponent);
@@ -607,6 +528,9 @@ begin
     we also call it here to be sure that right after TPlayer constructor
     finished, Camera has already good values. }
   UpdateCamera;
+
+  FDebug3D := TDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 end;
 
 destructor TPlayer.Destroy;
@@ -1105,19 +1029,6 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
       (FootstepsSoundPlaying <> stNone));
   end;
 
-  procedure UpdateDebug3D;
-  begin
-    if EnableDebug3D and RenderDebug3D and (FDebug3D = nil) then
-    begin
-      { create FDebug3D on demand }
-      FDebug3D := TDebug3D.Create(Self);
-      FDebug3D.Attach(Self);
-    end;
-
-    if FDebug3D <> nil then
-      FDebug3D.Exists := EnableDebug3D and RenderDebug3D;
-  end;
-
 const
   FadeOutSpeed = 2.0;
 begin
@@ -1147,7 +1058,8 @@ begin
   UpdateIsOnTheGround;
   UpdateToxic;
   UpdateFootstepsSoundPlaying;
-  UpdateDebug3D;
+
+  FDebug3D.Exists := EnableDebug3D and RenderDebug3D;
 end;
 
 procedure TPlayer.FadeOut(const Color: TCastleColor);

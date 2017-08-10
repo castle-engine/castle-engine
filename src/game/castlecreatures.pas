@@ -776,7 +776,7 @@ type
     FDebugCaptionsText: TTextNode;
     FDebugCaptionsFontStyle: TFontStyleNode;
 
-    FDebug3D: TDebug3DCustomTransform;
+    FDebug3D: TDebug3D;
 
     { Calculated @link(Radius) suitable for this creature.
       This is cached result of @link(TCreatureResource.Radius). }
@@ -1361,6 +1361,9 @@ begin
   MaxLife := AMaxLife;
   FSoundDieEnabled := true;
   UsedSounds := TSoundList.Create(false);
+
+  FDebug3D := TDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 end;
 
 function TCreature.GetExists: boolean;
@@ -1459,19 +1462,6 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     end;
   end;
 
-  procedure UpdateDebug3D;
-  begin
-    if RenderDebug3D and (FDebug3D = nil) then
-    begin
-      { create FDebug3D on demand }
-      FDebug3D := TDebug3DCustomTransform.Create(Self);
-      FDebug3D.Attach(Self);
-    end;
-
-    if FDebug3D <> nil then
-      FDebug3D.Exists := RenderDebug3D;
-  end;
-
   procedure UpdateDebugCaptions;
   var
     Root: TX3DRootNode;
@@ -1550,7 +1540,7 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
-  UpdateDebug3D;
+  FDebug3D.Exists := RenderDebug3D;
   UpdateDebugCaptions;
 end;
 
@@ -2300,8 +2290,8 @@ var
       if FDebug3DAlternativeTargetAxis = nil then
       begin
         FDebug3DAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
-        FDebug3D.RootTransform.FdChildren.Add(FDebug3DAlternativeTargetAxis.Root);
-        FDebug3D.ChangedAll;
+        FDebug3D.WorldSpace.FdChildren.Add(FDebug3DAlternativeTargetAxis.Root);
+        FDebug3D.ChangedScene;
       end;
 
       FDebug3DAlternativeTargetAxis.Render := HasAlternativeTarget;
@@ -2311,8 +2301,8 @@ var
       if FDebug3DLastSensedEnemyAxis = nil then
       begin
         FDebug3DLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
-        FDebug3D.RootTransform.FdChildren.Add(FDebug3DLastSensedEnemyAxis.Root);
-        FDebug3D.ChangedAll;
+        FDebug3D.WorldSpace.FdChildren.Add(FDebug3DLastSensedEnemyAxis.Root);
+        FDebug3D.ChangedScene;
       end;
 
       FDebug3DLastSensedEnemyAxis.Render := HasLastSensedEnemy;

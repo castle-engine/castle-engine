@@ -5292,7 +5292,7 @@ begin
             begin
               TouchSensor.EventHitPoint_Changed.Send(
                 { hitPoint_changed event wants a point in local coords,
-                  we can get this by InverseTransform. }
+                  we can get this by InvertedTransform. }
                 OverItem^.State.InvertedTransform.MultPoint(Pick.Point), NextEventTime);
 
               {$ifndef CONSERVE_TRIANGLE_MEMORY}

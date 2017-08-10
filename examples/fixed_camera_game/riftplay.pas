@@ -63,7 +63,6 @@ type
   TGameSceneManager = class(TRiftSceneManager)
     function CalculateProjection: TProjection; override;
     procedure Render3D(const Params: TRenderParams); override;
-    procedure RenderShadowVolume; override;
     function MainLightForShadows(out AMainLightPosition: TVector4): boolean; override;
   end;
 
@@ -107,7 +106,7 @@ begin
      Params.ShadowVolumesReceivers and
      (DebugDisplay <> ddOnly3D) then
   begin
-    SavedProjectionMatrix := ProjectionMatrix;
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
       OrthoProjection(FloatRectangle(Window.Rect)); // need 2D projection
       {$ifndef OpenGLES}
       { TGLImage.Draw will reset modelview matrix
@@ -122,7 +121,7 @@ begin
       {$ifndef OpenGLES}
       glPopMatrix;
       {$endif}
-    ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix; // restore 3D projection
   end;
 
   { Render the 3D characters, both to depth and color buffers. }
@@ -158,12 +157,6 @@ begin
       H.Node.Color := H.Node.FdColor.DefaultValue;
     end;
   end;
-end;
-
-procedure TGameSceneManager.RenderShadowVolume;
-begin
-  if not DebugNoCreatures then
-    RiftPlay.Player.RenderShadowVolume(ShadowVolumeRenderer, true, TMatrix4.Identity);
 end;
 
 function TGameSceneManager.MainLightForShadows(
@@ -255,17 +248,8 @@ begin
 end;
 
 procedure Update(Container: TUIContainer);
-var
-  Remove: TRemoveType;
 begin
   WorldTime += Window.Fps.UpdateSecondsPassed;
-
-  if not DebugNoCreatures then
-  begin
-    Remove := rtNone;
-    Player.Update(Window.Fps.UpdateSecondsPassed, Remove);
-    { for now resulting Remove ignored }
-  end;
 end;
 
 procedure InitLocation;
@@ -327,7 +311,11 @@ begin
     Locations.Load(SceneManager.BaseLights);
     CreaturesKinds.Load(SceneManager.BaseLights);
 
-    Player := TPlayer.Create(PlayerKind);
+    if not DebugNoCreatures then
+    begin
+      Player := TPlayer.Create(PlayerKind);
+      SceneManager.Items.Add(Player);
+    end;
 
     SavedMode := TGLMode.CreateReset(Window, nil, nil, @NoClose);
     try

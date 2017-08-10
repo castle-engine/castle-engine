@@ -23,6 +23,8 @@ uses Classes,
 
 type
   { 3D axis, as an X3D node, to easily visualize debug things.
+    This is useful in connection with your custom TDebug3D descendants,
+    to show an axis to visualize something.
 
     Create it and add the @link(Root) to your X3D scene graph
     within some @link(TCastleSceneCore.RootNode).
@@ -51,6 +53,9 @@ type
     This is a ready construction using X3D TBoxNode, TShapeNode, TTransformNode
     to give you a comfortable box visualization.
 
+    This is useful in connection with your custom TDebug3D descendants,
+    to show an axis to visualize something.
+
     Create it and add the @link(Root) to your X3D scene graph
     within some @link(TCastleSceneCore.RootNode).
     You can change properties like @link(Box) at any time
@@ -71,6 +76,9 @@ type
   { 3D sphere, as an X3D node, to easily visualize debug things.
     This is a ready construction using X3D TSphereNode, TShapeNode, TTransformNode
     to give you a comfortable sphere visualization.
+
+    This is useful in connection with your custom TDebug3D descendants,
+    to show an axis to visualize something.
 
     Create it and add the @link(Root) to your X3D scene graph
     within some @link(TCastleSceneCore.RootNode).
@@ -94,33 +102,56 @@ type
     property Radius: Single {read GetRadius} {} write SetRadius;
   end;
 
-  { A scene that can be added to some T3DCustomTransform
-    (as it's child, not transformed any further) to visualize
-    the parameters of it's parent (bounding volumes and such).
+  { Visualization of a bounding volume (and maybe other properties)
+    of a T3DCustomTransform instance.
+    After constructing this, call @link(Attach) to attach this to some
+    @link(T3DCustomTransform) instance.
 
-    After constructing it, you must always @link(Attach) it to some
-    parent @link(T3DCustomTransform) instance.
-    It will insert this scene as a child of indicated parent,
-    and also it will follow the parent parameters then (updating
-    itself in every Update, looking at parent properties). }
-  TDebug3DCustomTransform = class(TCastleScene)
+    Then set @link(Exists) to control whether the debug visualization
+    should actually be shown. We take care to only actually construct
+    internal TCastleScene when the @link(Exists) becomes @true,
+    so you can construct TDebug3D instance always, even in release mode --
+    it does not take up resources if never visible. }
+  TDebug3D = class(TComponent)
   strict private
-    FBox: TDebugBox;
-    FSphere: TDebugSphere;
-    FMiddleAxis: TDebugAxis;
-    FOuterTransform: TTransformNode;
-    FTransform: TTransformNode;
-    FParent: T3DCustomTransform;
-    procedure UpdateParent;
+    type
+      TInternalScene = class(TCastleScene)
+        Container: TDebug3D;
+        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+      end;
+    var
+      FBox: TDebugBox;
+      FTransform: TMatrixTransformNode;
+      FWorldSpace: TAbstractX3DGroupingNode;
+      FSphere: TDebugSphere;
+      FMiddleAxis: TDebugAxis;
+      FParent: T3DCustomTransform;
+      FScene: TInternalScene;
+      FExists: boolean;
+    procedure UpdateSafe;
+    procedure SetExists(const Value: boolean);
+  strict protected
+    { Called when internal scene is constructed.
+      You can override it in desdendants to e.g. add more stuff to WorldSpace. }
+    procedure Initialize; virtual;
+
+    { Called continuosly when internal scene should be updated.
+      You can override it in desdendants to e.g. update the things you added
+      in @link(Initialize). }
+    procedure Update; virtual;
   public
-    constructor Create(AOwner: TComponent); override;
     procedure Attach(const AParent: T3DCustomTransform);
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    { Add things that are expressed in world-space under this transform. }
-    property RootTransform: TTransformNode read FTransform;
+    { Is the debug visualization visible. }
+    property Exists: boolean read FExists write SetExists default false;
+    { Add additional things that are expressed in world-space under this transform.
+      Be sure to call @link(ChangedScene) afterwards. }
+    property WorldSpace: TAbstractX3DGroupingNode read FWorldSpace;
+    procedure ChangedScene;
   end;
 
 implementation
+
+uses CastleLog;
 
 { TDebugAxis ----------------------------------------------------------------- }
 
@@ -242,69 +273,91 @@ begin
   FGeometry.Radius := Value;
 end;
 
-{ TDebug3DCustomTransform ---------------------------------------------------- }
+{ TDebug3D.TInternalScene ---------------------------------------------------- }
 
-constructor TDebug3DCustomTransform.Create(AOwner: TComponent);
+procedure TDebug3D.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+begin
+  inherited;
+  Container.UpdateSafe;
+end;
+
+{ TDebug3D ---------------------------------------------------- }
+
+procedure TDebug3D.Initialize;
 var
   Root: TX3DRootNode;
 begin
-  inherited;
+  FTransform := TMatrixTransformNode.Create;
+  FWorldSpace := FTransform;
 
   FBox := TDebugBox.Create(Self, GrayRGB);
+  WorldSpace.FdChildren.Add(FBox.Root);
+
   FSphere := TDebugSphere.Create(Self, GrayRGB);
+  WorldSpace.FdChildren.Add(FSphere.Root);
+
   FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
-
-  FTransform := TTransformNode.Create;
-  FTransform.FdChildren.Add(FBox.Root);
-  FTransform.FdChildren.Add(FSphere.Root);
-  FTransform.FdChildren.Add(FMiddleAxis.Root);
-
-  FOuterTransform := TTransformNode.Create;
-  FOuterTransform.FdChildren.Add(FTransform);
+  WorldSpace.FdChildren.Add(FMiddleAxis.Root);
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(FOuterTransform);
+  Root.FdChildren.Add(FTransform);
 
-  Load(Root, true);
-  Collides := false;
-  Pickable := false;
-  CastShadowVolumes := false;
-  ExcludeFromStatistics := true;
-  InternalExcludeFromParentBoundingVolume := true;
+  FScene := TInternalScene.Create(Self);
+  FScene.Container := Self;
+  FScene.Load(Root, true);
+  FScene.Collides := false;
+  FScene.Pickable := false;
+  FScene.CastShadowVolumes := false;
+  FScene.ExcludeFromStatistics := true;
+  FScene.InternalExcludeFromParentBoundingVolume := true;
+  FScene.Exists := FExists;
 end;
 
-procedure TDebug3DCustomTransform.Attach(const AParent: T3DCustomTransform);
+procedure TDebug3D.Attach(const AParent: T3DCustomTransform);
 begin
+  if FScene = nil then
+    Initialize;
+
   FParent := AParent;
-  FParent.Add(Self);
-
-  { call Update explicitly for the 1st time, to initialize everything now }
-  UpdateParent;
+  FParent.Add(FScene);
+  UpdateSafe;
 end;
 
-procedure TDebug3DCustomTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TDebug3D.SetExists(const Value: boolean);
 begin
-  inherited;
-  if FParent <> nil then // do not update if not attached to parent
-    UpdateParent;
+  if FExists <> Value then
+  begin
+    FExists := Value;
+    if FScene <> nil then
+      FScene.Exists := Value;
+    if Value then
+      UpdateSafe;
+  end;
 end;
 
-procedure TDebug3DCustomTransform.UpdateParent;
+procedure TDebug3D.UpdateSafe;
+begin
+  if Exists and
+     (FParent <> nil) and
+     { resign when FParent.World unset,
+       as then FParent.Middle and FParent.PreferredHeight cannot be calculated }
+     (FParent.World <> nil) then
+  begin
+    if FScene = nil then
+      Initialize;
+    Update;
+  end;
+end;
+
+procedure TDebug3D.Update;
 var
-  BBox: TBox3D;
   R: Single;
 begin
-  { resign when FParent.World unset, then Middle and PreferredHeight
-    cannot be calculated yet }
-  if FParent.World = nil then Exit;
-
-  // update FOuterTransform, FTransform to cancel parent's transformation
-  FOuterTransform.Rotation := RotationNegate(FParent.Rotation);
-  FTransform.Translation := -FParent.Translation;
+  // update FTransform to cancel parent's transformation
+  FTransform.Matrix := FParent.InverseTransform;
 
   // show FParent.BoundingBox
-  BBox := FParent.BoundingBox;
-  FBox.Box := BBox;
+  FBox.Box := FParent.BoundingBox;
 
   // show FParent.Sphere
   FSphere.Render := FParent.Sphere(R);
@@ -316,7 +369,12 @@ begin
 
   // show FParent.Middle
   FMiddleAxis.Position := FParent.Middle;
-  FMiddleAxis.ScaleFromBox := BBox;
+  FMiddleAxis.ScaleFromBox := FParent.BoundingBox;
+end;
+
+procedure TDebug3D.ChangedScene;
+begin
+  FScene.ChangedAll;
 end;
 
 end.

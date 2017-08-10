@@ -30,8 +30,8 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
-  RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
-  CastleColors;
+  CastleTimeUtils, X3DNodes, CastleColors, CastleDebug3D,
+  RiftWindow, RiftGame, RiftLoadable;
 
 type
   TCreatureState = (csStand, csBored, csWalk);
@@ -86,7 +86,7 @@ type
   TCreature = class(T3DOrient)
   private
     FKind: TCreatureKind;
-
+    FDebug3D: TDebug3D;
     FState: TCreatureState;
     procedure SetState(const Value: TCreatureState);
   private
@@ -115,26 +115,19 @@ type
     { This is called from @link(Update) when no state change is scheduled.
       Usually, you want to implement AI here, not directly in Update. }
     procedure UpdateNoStateChangeScheduled(const SecondsPassed: Single); virtual;
-
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
   TPlayer = class(TCreature)
   private
     { This is set and used only if csWalk }
     WantsToWalkPos, WantsToWalkDir: TVector3;
-
-    TargetVisualize: TCastleScene;
+    FTargetVisualize: TTransformNode;
+    FTargetVisualizeShape: TShapeNode;
   public
     constructor Create(AKind: TCreatureKind);
     destructor Destroy; override;
-
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    procedure GLContextClose; override;
-
     procedure LocationChanged;
-
     procedure WantsToWalk(const Value: TVector3);
   end;
 
@@ -278,6 +271,9 @@ begin
   FKind := AKind;
 
   RandomizeStandTimeToBeBored;
+
+  FDebug3D := TDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
@@ -350,6 +346,10 @@ end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
+  inherited;
+
+  FDebug3D.Exists := DebugRenderBoundingGeometry;
+
   if ScheduledTransitionBegin then
   begin
     if WorldTime > ScheduledTransitionBeginTime then
@@ -374,74 +374,36 @@ begin
   end;
 end;
 
-procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-  inherited;
-
-  {$ifndef OpenGLES} //TODO-es
-  if DebugRenderBoundingGeometry and
-    (not Params.Transparent) and Params.ShadowVolumesReceivers then
-  begin
-    if not Params.RenderTransformIdentity then
-    begin
-      glPushMatrix;
-      glMultMatrix(Params.RenderTransform);
-    end;
-
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glEnable(GL_DEPTH_TEST);
-      glColorv(Gray);
-
-      glDrawBox3DWire(BoundingBox);
-    glPopAttrib;
-
-    if not Params.RenderTransformIdentity then
-      glPopMatrix;
-  end;
-  {$endif}
-end;
-
 { TPlayer -------------------------------------------------------------------- }
 
 constructor TPlayer.Create(AKind: TCreatureKind);
 
-  function CreateTargetVisualize: TCastleScene;
+  procedure CreateTargetVisualize;
   var
-    Root: TX3DRootNode;
-    Shape: TShapeNode;
     Sphere: TSphereNode;
   begin
     Sphere := TSphereNode.Create;
     Sphere.Radius := 0.1;
 
-    Shape := TShapeNode.Create;
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := RedRGB;
-    Shape.Geometry := Sphere;
+    FTargetVisualizeShape := TShapeNode.Create;
+    FTargetVisualizeShape.Material := TMaterialNode.Create;
+    FTargetVisualizeShape.Material.DiffuseColor := RedRGB;
+    FTargetVisualizeShape.Geometry := Sphere;
 
-    Root := TX3DRootNode.Create;
-    Root.FdChildren.Add(Shape);
-
-    Result := TCastleScene.Create(nil);
-    Result.Load(Root, true);
+    FTargetVisualize := TTransformNode.Create;
+    FTargetVisualize.FdChildren.Add(FTargetVisualizeShape);
   end;
 
 begin
   inherited;
-  TargetVisualize := CreateTargetVisualize;
+  CreateTargetVisualize;
+  FDebug3D.WorldSpace.FdChildren.Add(FTargetVisualize);
+  FDebug3D.ChangedScene;
 end;
 
 destructor TPlayer.Destroy;
 begin
-  FreeAndNil(TargetVisualize);
   inherited;
-end;
-
-procedure TPlayer.GLContextClose;
-begin
-  if TargetVisualize <> nil then
-    FreeAndNil(TargetVisualize);
 end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -490,8 +452,6 @@ var
 var
   IsTargetPos, IsTargetDir: boolean;
 begin
-  inherited;
-
   if (not ScheduledTransitionBegin) and (State = csWalk) then
   begin
     { Do walking. If walking ends (because target reached, or can't reach target),
@@ -517,6 +477,15 @@ begin
       Rotate else
       Move;
   end;
+
+  FTargetVisualizeShape.Render := DebugRenderWantsToWalk and (State = csWalk);
+  FTargetVisualize.Translation := WantsToWalkPos;
+
+  { Update children 3D objects *after* updating our own transformation,
+    this way they are always synchronized when displaying.
+    Otherwise, the FTargetVisualize has a bit of "shaking", as the TDebug3D
+    transformation is updated with 1-frame delay. }
+  inherited;
 end;
 
 procedure TPlayer.LocationChanged;
@@ -524,21 +493,6 @@ begin
   FState := csStand;
   ScheduledTransitionBegin := false;
   CurrentStateStartTime := WorldTime;
-end;
-
-procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-  inherited;
-
-  if DebugRenderWantsToWalk and (State = csWalk) then
-  begin
-    {$ifndef OpenGLES} //TODO-es
-    glPushMatrix();
-      glTranslatev(WantsToWalkPos);
-      TargetVisualize.Render(Frustum.Move(-WantsToWalkPos), Params);
-    glPopMatrix();
-    {$endif}
-  end;
 end;
 
 procedure TPlayer.WantsToWalk(const Value: TVector3);
