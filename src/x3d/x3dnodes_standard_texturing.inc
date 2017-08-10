@@ -978,7 +978,8 @@ begin
   FInternalTimeDependentHandler.EventisActive:= EventisActive;
   FInternalTimeDependentHandler.EventisPaused := EventisPaused;
   FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
-  FInternalTimeDependentHandler.OnCycleInterval := @GetCycleInterval;
+  FInternalTimeDependentHandler.OnCycleInterval :=
+    {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
 end;
 
 function TMovieTextureNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
