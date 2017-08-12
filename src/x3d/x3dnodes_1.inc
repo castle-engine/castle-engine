@@ -1476,12 +1476,12 @@ begin
 end;
 
 { Functions below return MatNum Material property. If there doesn't exist
-  enouch properties defined, thay return the last defined. This is useful :
+  enough properties defined, they return the last defined. This is useful :
   for example you can give one ambient, specular, emissive color and
   define multiple diffuseColors and then you can use multiple materials
   without defining multiple values for each field.
 
-  VRML specification doesn't state clearly what to do when thare are not enouch
+  VRML specification doesn't state clearly what to do when thare are not enough
   material properties - there was an idea of "cycling" mechanism but was
   later deprecated. So I use the mechanism below - returning to the last defined
   property number. }
