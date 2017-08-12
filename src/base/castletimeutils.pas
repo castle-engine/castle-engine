@@ -205,7 +205,20 @@ type
   and friends that try to measure only CPU time used by the current process.
 
   Call Timer twice, and calculate the difference (in seconds)
-  using the TimerSeconds. }
+  using the TimerSeconds. Like this:
+
+  @longCode(#
+  var
+    TimeStart: TTimerResult;
+    Seconds: TFloatTime;
+  begin
+    TimeStart := Timer;
+    // ...  do something time-consuming ...
+    Seconds := TimerSeconds(Timer, TimeStart);
+    Writeln('Seconds passed: ', Seconds:1:2);
+  end;
+  #)
+}
 function Timer: TTimerResult;
 
 { Subtract two times obtained from @link(Timer),
