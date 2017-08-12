@@ -238,16 +238,22 @@ procedure TCreatureKindList.Load(const BaseLights: TLightInstancesList);
 var
   I: Integer;
   ProgressCount: Cardinal;
+  TimeBegin: TProcessTimerResult;
 begin
   ProgressCount := 0;
   for I := 0 to Count - 1 do
     ProgressCount += Items[I].LoadSteps;
+
+  TimeBegin := ProcessTimer;
 
   Progress.Init(ProgressCount, 'Loading creatures');
   try
     for I := 0 to Count - 1 do
       Items[I].Load(BaseLights);
   finally Progress.Fini end;
+
+  WritelnLog('Creatures', Format('Creatures loading time: %f seconds',
+    [ProcessTimerSeconds(ProcessTimer, TimeBegin)]));
 end;
 
 procedure TCreatureKindList.UnLoad;
