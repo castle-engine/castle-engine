@@ -603,22 +603,23 @@ end;
 
 procedure TMatrixTransformNode.ApplyTransform(State: TX3DGraphTraverseState);
 var
-  InvertedMatrix: TMatrix4;
+  Natrix, InvertedMatrix: TMatrix4;
 begin
   inherited;
 
+  Natrix := FdMatrix.Value;
+
   { Inherited TAbstractGroupingNode already saved State.Transform and such. }
+  State.Transform := State.Transform * Matrix;
 
-  State.Transform := State.Transform * FdMatrix.Value;
-
-  if FdMatrix.Value.TryInverse(InvertedMatrix) then
+  if TryInverseHarder(Matrix, InvertedMatrix) then
   begin
     State.InvertedTransform := InvertedMatrix * State.InvertedTransform;
   end else
   begin
     if Log then
       WritelnLogMultiline('Matrix',
-        'Cannot invert matrix:' + NL + FdMatrix.Value.ToRawString('  '));
+        'Cannot invert matrix:' + NL + Matrix.ToRawString('  '));
 
     { When determinant is zero, we treat inverted matrix
       like identity (like in TMatrixTransformNode_1.Transformation).

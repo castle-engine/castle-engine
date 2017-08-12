@@ -2025,7 +2025,7 @@ procedure TMatrixTransformNode_1.Transformation(
 begin
   Matrix := FdMatrix.Value;
 
-  if not Matrix.TryInverse(InvertedMatrix) then
+  if not TryInverseHarder(Matrix, InvertedMatrix) then
   begin
     if Log then
       WritelnLogMultiline('Matrix',
