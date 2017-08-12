@@ -1561,13 +1561,13 @@ end;
 function TAbstractMaterial1Generator.GetMaterial1Color(
   const MaterialIndex: Integer): TVector4;
 var
-  M: TMaterialNode_1;
+  M: TMaterialInfo;
 begin
-  M := State.VRML1State.Material;
+  M := State.VRML1State.Material.MaterialInfo(MaterialIndex);
   if M.PureEmissive then
-    Result := M.EmissiveColor4Single(MaterialIndex)
+    Result := Vector4(M.EmissiveColor, M.Opacity)
   else
-    Result := M.DiffuseColor4Single(MaterialIndex);
+    Result := Vector4(M.DiffuseColor, M.Opacity);
 end;
 
 procedure TAbstractMaterial1Generator.GenerateVertex(IndexNum: Integer);

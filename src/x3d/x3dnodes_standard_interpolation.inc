@@ -383,7 +383,11 @@ end;
 
 { TAbstractSingleInterpolatorNode -------------------------------------------- }
 
-function TAbstractSingleInterpolatorNode.KeyValue(Index: Integer): TInterpolatedValue;
+function TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TInterpolatedValue,
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  KeyValue(Index: Integer): TInterpolatedValue;
 begin
   if Index < FdKeyValue.Items.Count then
     Result := FdKeyValue.Items.List^[Index]
@@ -391,8 +395,11 @@ begin
     Result := InterpolatorDefault;
 end;
 
-procedure TAbstractSingleInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TInterpolatedValue,
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   T: Single;
   OutputValue: TInterpolatedValue;
@@ -422,7 +429,11 @@ begin
   EventValue_Changed.Send(OutputValue, Time);
 end;
 
-procedure TAbstractSingleInterpolatorNode.CreateNode;
+procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TInterpolatedValue,
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  CreateNode;
 begin
   inherited;
 
@@ -438,7 +449,11 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-function TAbstractSingleInterpolatorNode.InterpolatorDefault: TInterpolatedValue;
+function TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TInterpolatedValue,
+  TKeyValue,
+  TKeyValueEvent>{$endif}
+  .InterpolatorDefault: TInterpolatedValue;
 begin
   FillChar(Result, SizeOf(Result), 0);
 end;
@@ -451,7 +466,10 @@ end;
 
 { TAbstractArrayInterpolatorNode --------------------------------------------- }
 
-function TAbstractArrayInterpolatorNode.KeyValue(const Index, KeyCount: Integer): TKeyValue;
+function TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  KeyValue(const Index, KeyCount: Integer): TKeyValue;
 var
   FrameValues: Integer;
 begin
@@ -472,8 +490,10 @@ begin
       [X3DType]));
 end;
 
-function TAbstractArrayInterpolatorNode.KeyValueLerp(const T: Single;
-  const Index1, Index2, KeyCount: Integer): TKeyValue;
+function TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  KeyValueLerp(const T: Single; const Index1, Index2, KeyCount: Integer): TKeyValue;
 var
   FrameValues: Integer;
 begin
@@ -492,8 +512,10 @@ begin
       [X3DType]));
 end;
 
-procedure TAbstractArrayInterpolatorNode.EventSet_FractionReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   KeyCount: Integer;
   T: Single;
@@ -530,7 +552,10 @@ begin
   end;
 end;
 
-procedure TAbstractArrayInterpolatorNode.CreateNode;
+procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  CreateNode;
 begin
   inherited;
 
@@ -546,8 +571,10 @@ begin
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
-procedure TAbstractArrayInterpolatorNode.InterpolatorLerp(
-  const Target: TKeyValue;
+procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
+  TKeyValue,
+  TKeyValueEvent>{$endif} .
+  InterpolatorLerp(const Target: TKeyValue;
   const Fraction: Single; const F1, F2: TKeyValue;
   const Index1, Index2, ACount: Integer);
 begin

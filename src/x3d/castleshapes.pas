@@ -1158,8 +1158,10 @@ var
 
   function MaterialOpacity: Single;
   begin
+    // TODO: maybe this should take S.ShapeNode.CommonSurfaceShader into account?
+    // And just use S.MaterialInfo or such?
     if G is TAbstractGeometryNode_1 then
-      Result := S.VRML1State.Material.Opacity(0) else
+      Result := S.VRML1State.Material.MaterialInfo(0).Opacity else
     if (S.ShapeNode <> nil) and
        (S.ShapeNode.Material <> nil) then
       Result := S.ShapeNode.Material.Opacity else

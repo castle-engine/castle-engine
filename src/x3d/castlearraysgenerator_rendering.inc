@@ -143,6 +143,8 @@ type
 { TPointSet_1Generator -------------------------------------------------------- }
 
 procedure TPointSet_1Generator.GenerateCoordinateBegin;
+var
+  M: TMaterialInfo;
 begin
   inherited;
 
@@ -156,7 +158,8 @@ begin
   { Render_BindMaterial_1 set unlit color to emissiveColor,
     so correct it now to diffuseColor. }
   Arrays.HasDefaultColor := true;
-  Arrays.DefaultColor := State.VRML1State.Material.DiffuseColor4Single(0);
+  M := State.VRML1State.Material.MaterialInfo(0);
+  Arrays.DefaultColor := Vector4(M.DiffuseColor, M.Opacity);
 end;
 
 procedure TPointSet_1Generator.PrepareIndexesPrimitives;

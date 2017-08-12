@@ -327,6 +327,8 @@
     This hides differences between VRML 1.0 Material,
     X3D and VRML 2.0 Material and CommonSurfaceShader. }
   TMaterialInfo = class
+  strict private
+    FNode: TX3DNode;
   strict protected
     { Calculate physical material properties using standard VRML material
       fields. See [http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_material_phong_brdf_fields].
@@ -370,15 +372,42 @@
       DefaultReflSpecularExp = 1000000;
       DefaultTransSpecularExp = 1000000;
 
+    constructor Create(ANode: TX3DNode);
+
+    { Associated material node
+      (TMaterialNode, TMaterialNode_1, TCommonSurfaceShaderNode). }
+    property Node: TX3DNode read FNode;
+
     function AmbientColor: TVector3; virtual; abstract;
     function DiffuseColor: TVector3; virtual; abstract;
     function SpecularColor: TVector3; virtual; abstract;
     function EmissiveColor: TVector3; virtual; abstract;
+
+    { Only the emissiveColor is not black (zero),
+      which means that the material behaves like unlit.
+
+      This checks that ambient and diffuse and specular colors are all zero.
+      It's an important information about the material sometimes.
+      We can optimize this case when rendering. }
+    function PureEmissive: boolean;
+
     function Shininess: Single; virtual; abstract;
+
+    { Shininess exponent for Phong lighting equations.
+
+      Remember that the X3D @link(Shininess) field is "normalized",
+      which means that it has to be multiplied by 128.0 to get
+      actual exponent for lighting equations.
+      This function returns the real exponent
+      (already multiplied by 128.0, if necessary). }
     function ShininessExp: Single;
+
     function ReflectionColor: TVector3; virtual; abstract;
     function TransmissionColor: TVector3; virtual;
     function Transparency: Single; virtual; abstract;
+
+    { Opacity is just @code(1 - Transparency). }
+    function Opacity: Single;
 
     function ReflSpecular: TVector3; virtual; abstract;
     function ReflDiffuse: TVector3; virtual; abstract;
@@ -400,7 +429,7 @@
       strict private
         FNode: TMaterialNode;
       public
-        constructor Create(Node: TMaterialNode);
+        constructor Create(ANode: TMaterialNode);
 
         function AmbientColor: TVector3; override;
         function DiffuseColor: TVector3; override;
@@ -1288,6 +1317,12 @@ end;
 
 { TMaterialInfo ---------------------------------------------------------- }
 
+constructor TMaterialInfo.Create(ANode: TX3DNode);
+begin
+  inherited Create;
+  FNode := ANode;
+end;
+
 procedure TMaterialInfo.CalculateReflSpecular(out V: TVector3);
 begin
   V := ReflectionColor;
@@ -1310,6 +1345,11 @@ end;
 
 function TMaterialInfo.ShininessExp: Single;
 begin
+  { According to VRML / X3D specification, shininess must be within 0..1 range,
+    so it maps nicely to 0..128 range for OpenGL's exponent.
+    We do clamp to 0..128 since using values outside this range makes
+    OpenGL errors in fixed-function pipeline. }
+
   Result := Clamped(Shininess * 128.0, 0.0, 128.0);
 end;
 
@@ -1319,12 +1359,25 @@ begin
   Result := Vector3(Transparency, Transparency, Transparency);
 end;
 
+function TMaterialInfo.PureEmissive: boolean;
+begin
+  Result :=
+    AmbientColor.IsPerfectlyZero and
+    DiffuseColor.IsPerfectlyZero and
+    SpecularColor.IsPerfectlyZero;
+end;
+
+function TMaterialInfo.Opacity: Single;
+begin
+  Result := 1 - Transparency;
+end;
+
 { TMaterialNode.TX3DMaterialInfo -------------------------------------------------------- }
 
-constructor TMaterialNode.TX3DMaterialInfo.Create(Node: TMaterialNode);
+constructor TMaterialNode.TX3DMaterialInfo.Create(ANode: TMaterialNode);
 begin
-  inherited Create;
-  FNode := Node;
+  inherited Create(ANode);
+  FNode := ANode;
 end;
 
 function TMaterialNode.TX3DMaterialInfo.AmbientColor: TVector3;

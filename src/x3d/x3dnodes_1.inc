@@ -332,7 +332,7 @@
         FNode: TMaterialNode_1;
         FIndex: Integer;
       public
-        constructor Create(Node: TMaterialNode_1; const Index: Integer);
+        constructor Create(ANode: TMaterialNode_1; const Index: Integer);
 
         function AmbientColor: TVector3; override;
         function DiffuseColor: TVector3; override;
@@ -351,7 +351,7 @@
         function TransSpecularExp: Single; override;
       end;
     var
-      FMaterialInfo: TMaterialInfo_1;
+      FMaterialInfo: array of TMaterialInfo_1;
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -400,38 +400,6 @@
     strict private FFdFogImmune: TSFBool;
     public property FdFogImmune: TSFBool read FFdFogImmune;
 
-    { Easily extract VRML 1.0 material properties.
-      These methods secure you from accessing non-existing material index
-      (will return the last existing value, or default value if field is empty).
-
-      Functions returning TVector4 add Opacity at the last component.
-
-      Transparency and Opacity are in [0 .. 1] range.
-      Opacity = 1 - Transparency.
-
-      ShininessExp is the @italic(not normalized) shininess exponent
-      for Phong lighting equations. Normal VRML/X3D shininess field
-      is "normalized", that is it has to be multiplied by 128 to get
-      actual exponent for lighting equations.
-      @groupBegin }
-    function AmbientColor3Single(MatNum: integer): TVector3;
-    function AmbientColor4Single(MatNum: integer): TVector4;
-    function DiffuseColor3Single(MatNum: integer): TVector3;
-    function DiffuseColor4Single(MatNum: integer): TVector4;
-    function SpecularColor3Single(MatNum: integer): TVector3;
-    function SpecularColor4Single(MatNum: integer): TVector4;
-    function EmissiveColor3Single(MatNum: integer): TVector3;
-    function EmissiveColor4Single(MatNum: integer): TVector4;
-    function Transparency(MatNum: integer): Single;
-    function Opacity(MatNum: integer): Single;
-    function Shininess(MatNum: integer): Single;
-    function ShininessExp(MatNum: integer): Single;
-
-    function Mirror(MatNum: integer): Single;
-    function ReflSpecularExp (MatNum: integer): Single;
-    function TransSpecularExp(MatNum: integer): Single;
-    { @groupEnd }
-
     { Only the emissive color is not black (zero).
       This detects a special case described in VRML 1.0 specification:
       when ambient, diffuse and specular are all empty (no values),
@@ -452,7 +420,7 @@
       It is automatically updated when properties of this material change.
       Do not free it yourself, it will be automatically freed when
       this node is freed. }
-    function MaterialInfo: TMaterialInfo;
+    function MaterialInfo(const AIndex: Integer = 0): TMaterialInfo;
   end;
 
   TMaterialBindingNode_1 = class(TAbstractChildNode)
@@ -1152,7 +1120,7 @@ begin
     BIND_PER_PART_INDEXED,
     BIND_PER_FACE_INDEXED:
       Result := (FdNormalIndex.Count <> 0) and
-                (FdNormalIndex.Items.L[0] >= 0);
+                (FdNormalIndex.Items.List^[0] >= 0);
     else
       Result := true;
   end;
@@ -1465,139 +1433,17 @@ begin
 end;
 
 destructor TMaterialNode_1.Destroy;
+var
+  I: Integer;
 begin
-  FreeAndNil(FMaterialInfo);
+  for I := 0 to Length(FMaterialInfo) - 1 do
+    FreeAndNil(FMaterialInfo[I]);
   inherited;
 end;
 
 class function TMaterialNode_1.ClassX3DType: string;
 begin
   Result := 'Material';
-end;
-
-{ Functions below return MatNum Material property. If there doesn't exist
-  enough properties defined, they return the last defined. This is useful :
-  for example you can give one ambient, specular, emissive color and
-  define multiple diffuseColors and then you can use multiple materials
-  without defining multiple values for each field.
-
-  VRML specification doesn't state clearly what to do when thare are not enough
-  material properties - there was an idea of "cycling" mechanism but was
-  later deprecated. So I use the mechanism below - returning to the last defined
-  property number. }
-
-{$define MATERIAL_FUNCTION_3_SINGLE:=
-function TMaterialNode_1.MATERIAL_FUNCTION_NAME_3(MatNum: integer): TVector3;
-begin
-  if MATERIAL_FUNCTION_FIELD.Count = 0 then
-    Result := MATERIAL_FUNCTION_DEFAULT else
-    Result := MATERIAL_FUNCTION_FIELD.Items.L[
-      min(MatNum, MATERIAL_FUNCTION_FIELD.Count - 1)];
-end;
-
-function TMaterialNode_1.MATERIAL_FUNCTION_NAME_4(MatNum: integer): TVector4;
-var Result3: TVector3 absolute Result;
-begin
-  Result3 := MATERIAL_FUNCTION_NAME_3(MatNum);
-  Result[3] := Opacity(MatNum);
-end;
-}
-
-  {$define MATERIAL_FUNCTION_FIELD := FdAmbientColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultAmbientColor}
-  {$define MATERIAL_FUNCTION_NAME_3 := AmbientColor3Single}
-  {$define MATERIAL_FUNCTION_NAME_4 := AmbientColor4Single}
-  MATERIAL_FUNCTION_3_SINGLE
-
-  {$define MATERIAL_FUNCTION_FIELD := FdDiffuseColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultDiffuseColor}
-  {$define MATERIAL_FUNCTION_NAME_3 := DiffuseColor3Single}
-  {$define MATERIAL_FUNCTION_NAME_4 := DiffuseColor4Single}
-  MATERIAL_FUNCTION_3_SINGLE
-
-  {$define MATERIAL_FUNCTION_FIELD := FdSpecularColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultSpecularColor}
-  {$define MATERIAL_FUNCTION_NAME_3 := SpecularColor3Single}
-  {$define MATERIAL_FUNCTION_NAME_4 := SpecularColor4Single}
-  MATERIAL_FUNCTION_3_SINGLE
-
-  {$define MATERIAL_FUNCTION_FIELD := FdEmissiveColor}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultEmissiveColor}
-  {$define MATERIAL_FUNCTION_NAME_3 := EmissiveColor3Single}
-  {$define MATERIAL_FUNCTION_NAME_4 := EmissiveColor4Single}
-  MATERIAL_FUNCTION_3_SINGLE
-
-{$undef MATERIAL_FUNCTION_3_SINGLE}
-{$undef MATERIAL_FUNCTION_FIELD}
-{$undef MATERIAL_FUNCTION_DEFAULT}
-{$undef MATERIAL_FUNCTION_NAME_3}
-{$undef MATERIAL_FUNCTION_NAME_4}
-
-{$define MATERIAL_FUNCTION_SINGLE:=
-function TMaterialNode_1.MATERIAL_FUNCTION_NAME(MatNum: integer): Single;
-begin
- if MATERIAL_FUNCTION_FIELD.Count = 0 then
-  Result := MATERIAL_FUNCTION_DEFAULT else
-  Result := MATERIAL_FUNCTION_FIELD.Items.L[
-    min(MatNum, MATERIAL_FUNCTION_FIELD.Count-1)];
-end;}
-
-  {$define MATERIAL_FUNCTION_NAME := Transparency}
-  {$define MATERIAL_FUNCTION_FIELD := FdTransparency}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultTransparency}
-  MATERIAL_FUNCTION_SINGLE
-
-  {$define MATERIAL_FUNCTION_NAME := Mirror}
-  {$define MATERIAL_FUNCTION_FIELD := FdMirror}
-  {$define MATERIAL_FUNCTION_DEFAULT := 0.0}
-  MATERIAL_FUNCTION_SINGLE
-
-  {$define MATERIAL_FUNCTION_NAME := ReflSpecularExp}
-  {$define MATERIAL_FUNCTION_FIELD := FdReflSpecularExp}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultReflSpecularExp}
-  MATERIAL_FUNCTION_SINGLE
-
-  {$define MATERIAL_FUNCTION_NAME := TransSpecularExp}
-  {$define MATERIAL_FUNCTION_FIELD := FdTransSpecularExp}
-  {$define MATERIAL_FUNCTION_DEFAULT := TMaterialInfo.DefaultTransSpecularExp}
-  MATERIAL_FUNCTION_SINGLE
-
-{$undef MATERIAL_FUNCTION_NAME}
-{$undef MATERIAL_FUNCTION_FIELD}
-{$undef MATERIAL_FUNCTION_DEFAULT}
-{$undef MATERIAL_FUNCTION_SINGLE}
-
-function TMaterialNode_1.Opacity(MatNum: integer): Single;
-begin
-  Result := 1 - Transparency(MatNum);
-end;
-
-function TMaterialNode_1.Shininess(MatNum: integer): Single;
-begin
-  if FdShininess.Count = 0 then
-    Result := TMaterialInfo.DefaultShininess
-  else
-    Result := FdShininess.Items.L[min(MatNum, FdShininess.Count-1)];
-end;
-
-function TMaterialNode_1.ShininessExp(MatNum: integer): Single;
-begin
-  Result := Shininess(MatNum);
-
-  { According to VRML specification, shininess must be within 0..1 range,
-    and it maps uniformly to 0..128 range for OpenGL's exponent.
-    That's fine. We do clamp to 0..128 if for whatever small floating
-    point errors we'll get outside the range allowed by OpenGL,
-    and to secure against incorrect negative shininess values in VRML.
-
-    To encompass various incorrect VRML files we assume that
-    shininess > 2 means that someone didn't grok the VRML spec,
-    and stored actual exponent in VRML file.
-    This unfortunately happens, see e.g. helix.wrl test. }
-
-  if Result > 2 then
-    Result := Clamped(Result,         0.0, 128.0) else
-    Result := Clamped(Result * 128.0, 0.0, 128.0);
 end;
 
 function TMaterialNode_1.PureEmissive: boolean;
@@ -1620,62 +1466,102 @@ begin
   Result := Version.Major <= 1;
 end;
 
-function TMaterialNode_1.MaterialInfo: TMaterialInfo;
+function TMaterialNode_1.MaterialInfo(const AIndex: Integer): TMaterialInfo;
 begin
-  if FMaterialInfo = nil then
-    { Using different Index than 0 below turned out not to be useful.
-      And it prevents easily caching FMaterialInfo (we would need an array).
-      So we always pass Index = 0 now. }
-    FMaterialInfo := TMaterialInfo_1.Create(Self, 0);
-  Result := FMaterialInfo;
+  if AIndex >= Length(FMaterialInfo) then
+    SetLength(FMaterialInfo, AIndex + 1);
+  if FMaterialInfo[AIndex] = nil then
+    FMaterialInfo[AIndex] := TMaterialInfo_1.Create(Self, AIndex);
+  Result := FMaterialInfo[AIndex];
 end;
 
 { TMaterialInfo_1 --------------------------------------------------------- }
 
-constructor TMaterialNode_1.TMaterialInfo_1.Create(Node: TMaterialNode_1; const Index: Integer);
+constructor TMaterialNode_1.TMaterialInfo_1.Create(ANode: TMaterialNode_1; const Index: Integer);
 begin
-  inherited Create;
-  FNode := Node;
+  inherited Create(ANode);
+  FNode := ANode;
   FIndex := Index;
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.AmbientColor: TVector3;
+var
+  A: TVector3List;
 begin
-  Result := FNode.AmbientColor3Single(FIndex);
+  A := FNode.FdAmbientColor.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultAmbientColor
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.DiffuseColor: TVector3;
+var
+  A: TVector3List;
 begin
-  Result := FNode.DiffuseColor3Single(FIndex);
+  A := FNode.FdDiffuseColor.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultDiffuseColor
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.SpecularColor: TVector3;
+var
+  A: TVector3List;
 begin
-  Result := FNode.SpecularColor3Single(FIndex);
+  A := FNode.FdSpecularColor.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultSpecularColor
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.EmissiveColor: TVector3;
+var
+  A: TVector3List;
 begin
-  Result := FNode.EmissiveColor3Single(FIndex);
+  A := FNode.FdEmissiveColor.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultEmissiveColor
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.Shininess: Single;
+var
+  A: TSingleList;
 begin
-  Result := FNode.Shininess(FIndex);
+  A := FNode.FdShininess.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultShininess
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflectionColor: TVector3;
+var
+  A: TSingleList;
+  M: Single;
 begin
-  Result := Vector3(
-    FNode.Mirror(FIndex),
-    FNode.Mirror(FIndex),
-    FNode.Mirror(FIndex)
-  );
+  A := FNode.FdMirror.Items;
+  if A.Count = 0 then
+    M := 0.0 // TMaterialInfo.DefaultReflectionColor[0, 1 or 2]
+  else
+    M := A.List^[Min(FIndex, A.Count - 1)];
+
+  Result := Vector3(M, M, M);
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.Transparency: Single;
+var
+  A: TSingleList;
 begin
-  Result := FNode.Transparency(FIndex);
+  A := FNode.FdTransparency.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultTransparency
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflSpecular: TVector3;
@@ -1684,8 +1570,9 @@ var
 begin
   A := FNode.FdReflSpecular.Items;
   if A.Count = 0 then
-    CalculateReflSpecular(Result) else
-    Result := A.L[Min(FIndex, A.Count - 1)];
+    CalculateReflSpecular(Result)
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflDiffuse: TVector3;
@@ -1694,8 +1581,9 @@ var
 begin
   A := FNode.FdReflDiffuse.Items;
   if A.Count = 0 then
-    CalculateReflDiffuse(Result) else
-    Result := A.L[Min(FIndex, A.Count - 1)];
+    CalculateReflDiffuse(Result)
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.TransSpecular: TVector3;
@@ -1704,8 +1592,9 @@ var
 begin
   A := FNode.FdTransSpecular.Items;
   if A.Count = 0 then
-    CalculateTransSpecular(Result) else
-    Result := A.L[Min(FIndex, A.Count - 1)];
+    CalculateTransSpecular(Result)
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.TransDiffuse: TVector3;
@@ -1714,18 +1603,31 @@ var
 begin
   A := FNode.FdTransDiffuse.Items;
   if A.Count = 0 then
-    CalculateTransDiffuse(Result) else
-    Result := A.L[Min(FIndex, A.Count - 1)];
+    CalculateTransDiffuse(Result)
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.ReflSpecularExp: Single;
+var
+  A: TSingleList;
 begin
-  Result := FNode.ReflSpecularExp(FIndex);
+  A := FNode.FdReflSpecularExp.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultReflSpecularExp
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 function TMaterialNode_1.TMaterialInfo_1.TransSpecularExp: Single;
+var
+  A: TSingleList;
 begin
-  Result := FNode.TransSpecularExp(FIndex);
+  A := FNode.FdTransSpecularExp.Items;
+  if A.Count = 0 then
+    Result := TMaterialInfo.DefaultTransSpecularExp
+  else
+    Result := A.List^[Min(FIndex, A.Count - 1)];
 end;
 
 { TMaterialBindingNode_1 ----------------------------------------------------- }
@@ -1839,7 +1741,8 @@ begin
   if FdFilename.Value <> '' then
   begin
     Result := 'file "' +PathFromBaseUrl(FdFilename.Value) +'"';
-    if not FdImage.Value.IsEmpty then Result += ' (and '+InlinedDescr+')';
+    if not FdImage.Value.IsEmpty then
+      Result := Result + (' (and '+InlinedDescr+')');
   end else
   if not FdImage.Value.IsEmpty then
     Result := InlinedDescr else
@@ -2003,7 +1906,7 @@ begin
   StateStack.Top.Transform := StateStack.Top.Transform * M;
   StateStack.Top.InvertedTransform := IM * StateStack.Top.InvertedTransform;
 
-  StateStack.Top.TransformScale *= TransformScale;
+  StateStack.Top.TransformScale := StateStack.Top.TransformScale * TransformScale;
 end;
 
 procedure TMatrixTransformNode_1.CreateNode;
@@ -2502,7 +2405,7 @@ begin
   Enumerator := TVRML1SeparatorEnumerator.Create;
   try
     Enumerator.State := StateStack.Top;
-    DirectEnumerateActive(@Enumerator.Enumerate);
+    DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.Enumerate);
   finally FreeAndNil(Enumerator) end;
 end;
 

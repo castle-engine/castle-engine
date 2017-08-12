@@ -330,7 +330,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -492,7 +492,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 class function TFogNode.ClassX3DType: string;
@@ -624,7 +624,7 @@ begin
         - Distance = FogVolumetricVisibilityStart + X -> X
           (so that Distance = FogVolumetricVisibilityStart +
           FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
-      Distance -= FogVolumetricVisibilityStart;
+      Distance := Distance - FogVolumetricVisibilityStart;
 
       { When Distance < 0 our intention is to have no fog.
         So Distance < 0 should be equivalent to Distance = 0. }

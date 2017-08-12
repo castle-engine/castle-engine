@@ -75,7 +75,10 @@ procedure RenderMaterialsBegin;
   procedure Material_1(M: TMaterialNode_1);
   var
     UnlitColor: TVector3;
+    I: TMaterialInfo;
   begin
+    I := M.MaterialInfo(0);
+
     { Usually, UnlitColor should be from EmissiveColor3Single.
 
       However, IndexedLineSet in VRML 1.0 is an exception.
@@ -93,18 +96,18 @@ procedure RenderMaterialsBegin;
       Admittedly, I'm doing it all by just guessing what user may want...
       VRML 1.0 spec doesn't specify here what should really be done, i.e. what
       unlit color should be used. }
-    if (Shape.Geometry is TIndexedLineSetNode_1) and (not M.PureEmissive) then
-      UnlitColor := M.DiffuseColor3Single(0) else
-      UnlitColor := M.EmissiveColor3Single(0);
+    if (Shape.Geometry is TIndexedLineSetNode_1) and (not I.PureEmissive) then
+      UnlitColor := I.DiffuseColor else
+      UnlitColor := I.EmissiveColor;
 
     RenderMaterial(
-      M.AmbientColor3Single(0),
-      M.DiffuseColor3Single(0),
-      M.SpecularColor3Single(0),
-      M.EmissiveColor3Single(0),
+      I.AmbientColor,
+      I.DiffuseColor,
+      I.SpecularColor,
+      I.EmissiveColor,
       UnlitColor,
-      M.ShininessExp(0),
-      M.Opacity(0));
+      I.ShininessExp,
+      I.Opacity);
   end;
 
   { Sets current OpenGL material and color properties for VRML >= 2.0 material.

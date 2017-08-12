@@ -503,7 +503,7 @@ begin
   FFdDescription := TSFString.Create(Self, 'description', '');
   AddField(FFdDescription);
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 procedure TAbstractViewpointNode.GetView(
@@ -513,7 +513,7 @@ begin
 
   if FdDirection.Items.Count > 0 then
   begin
-    CamDir := FdDirection.Items.L[0];
+    CamDir := FdDirection.Items.List^[0];
     if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
@@ -524,7 +524,7 @@ begin
 
   if FdUp.Items.Count > 0 then
   begin
-    CamUp := FdUp.Items.L[0];
+    CamUp := FdUp.Items.List^[0];
     if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
@@ -1023,7 +1023,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 class function TNavigationInfoNode.ClassX3DType: string;

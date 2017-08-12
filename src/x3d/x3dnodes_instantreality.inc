@@ -306,7 +306,7 @@
       strict private
         FNode: TCommonSurfaceShaderNode;
       public
-        constructor Create(Node: TCommonSurfaceShaderNode);
+        constructor Create(ANode: TCommonSurfaceShaderNode);
 
         function AmbientColor: TVector3; override;
         function DiffuseColor: TVector3; override;
@@ -626,7 +626,7 @@ begin
       So no need to multiply State.InvertedTransform by anything. }
   end;
 
-  State.TransformScale *= FdMatrix.TransformScale;
+  State.TransformScale := State.TransformScale * FdMatrix.TransformScale;
 end;
 
 function TMatrixTransformNode.TransformationChange: TNodeTransformationChange;
@@ -755,7 +755,7 @@ begin
 
   FEventWrite := TXFAnyEvent.Create(Self, 'write', true);
   AddEvent(FEventWrite);
-  FEventWrite.OnReceive.Add(@EventWriteReceive);
+  FEventWrite.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);
 end;
 
 destructor TLoggerNode.Destroy;
@@ -798,7 +798,7 @@ procedure TLoggerNode.EventWriteReceive(
 
       if (FdLevel.Value >= 3) and (Value.ParentNode <> nil) then
       begin
-        S += Format(' Sending node: "%s" (%s).',
+        S := S + Format(' Sending node: "%s" (%s).',
           [(Value.ParentNode as TX3DNode).X3DName,
            (Value.ParentNode as TX3DNode).X3DType]);
       end;
@@ -893,7 +893,7 @@ begin
 
   FEventIn := TXFAnyEvent.Create(Self, 'in', true);
   AddEvent(FEventIn);
-  FEventIn.OnReceive.Add(@EventInReceive);
+  FEventIn.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventInReceive);
 
   FEventOut := TXFAnyEvent.Create(Self, 'out', true);
   AddEvent(FEventOut);
@@ -1121,23 +1121,23 @@ begin
   inherited;
 
   FFdStatus := TSFBoolIgnorable.Create(Self, 'status', false);
-   FdStatus.OnReceive.Add(@EventStatusReceive);
+   FdStatus.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventStatusReceive);
   AddField(FFdStatus);
 
   FFdNotStatus := TSFBoolIgnorable.Create(Self, 'notStatus', true);
-   FdNotstatus.OnReceive.Add(@EventNotStatusReceive);
+   FdNotstatus.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventNotStatusReceive);
   AddField(FFdNotStatus);
 
   FEventToggle := TXFAnyEvent.Create(Self, 'toggle', true);
-  FEventToggle.OnReceive.Add(@EventToggleReceive);
+  FEventToggle.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventToggleReceive);
   AddEvent(FEventToggle);
 
   FEventSet := TXFAnyEvent.Create(Self, 'set', true);
-   EventSet.OnReceive.Add(@EventSetReceive);
+   EventSet.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSetReceive);
   AddEvent(FEventSet);
 
   FEventReset := TXFAnyEvent.Create(Self, 'reset', true);
-   EventReset.OnReceive.Add(@EventResetReceive);
+   EventReset.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventResetReceive);
   AddEvent(FEventReset);
 
   FEventChanged := TSFBoolEvent.Create(Self, 'changed', false);
@@ -1219,10 +1219,10 @@ end;
 
 { TCommonSurfaceShaderInfo --------------------------------------------------- }
 
-constructor TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Create(Node: TCommonSurfaceShaderNode);
+constructor TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.Create(ANode: TCommonSurfaceShaderNode);
 begin
-  inherited Create;
-  FNode := Node;
+  inherited Create(ANode);
+  FNode := ANode;
 end;
 
 function TCommonSurfaceShaderNode.TCommonSurfaceShaderInfo.AmbientColor: TVector3;

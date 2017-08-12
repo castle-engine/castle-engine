@@ -555,7 +555,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TNurbsPositionInterpolatorNode_2.ClassX3DType: string;

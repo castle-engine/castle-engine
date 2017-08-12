@@ -471,7 +471,7 @@ begin
       OriginalIntersection, LocalIntersection, TVector3.One[1]);
 
     { add offset, and clamp by min/maxAngle }
-    RotationAngle += FdOffset.Value;
+    RotationAngle := RotationAngle + FdOffset.Value;
     if FdMinAngle.Value <= FdMaxAngle.Value then
       ClampVar(RotationAngle, FdMinAngle.Value, FdMaxAngle.Value);
 
@@ -635,7 +635,7 @@ begin
     Translation[1] := TVector3.DotProduct(TranslationGlobal, PlaneY);
     Translation[2] := 0;
 
-    Translation += FdOffset.Value;
+    Translation := Translation + FdOffset.Value;
 
     if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
       ClampVar(Translation.Data[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);

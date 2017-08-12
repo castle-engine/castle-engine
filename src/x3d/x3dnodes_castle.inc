@@ -556,7 +556,7 @@ begin
       Exit;
     end;
 
-  VRML1Children[0].EnumerateReplaceChildren(@DoReplaceNodes);
+  VRML1Children[0].EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} DoReplaceNodes);
 end;
 
 procedure TKambiInlineNode.DoReplaceNodes(ParentNode: TX3DNode;
@@ -854,7 +854,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chEverything];
-   FdUrl.OnReceive.Add(@EventUrlReceive);
+   FdUrl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
 
   DefaultContainerField := 'parts';

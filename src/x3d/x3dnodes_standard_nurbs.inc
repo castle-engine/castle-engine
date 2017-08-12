@@ -815,7 +815,7 @@ begin
   { calculate result Coordinate.point field }
   ResultCoord.FdPoint.Items.Count := Tess;
   for I := 0 to Tess - 1 do
-    ResultCoord.FdPoint.Items.L[I] :=
+    ResultCoord.FdPoint.Items.List^[I] :=
       NurbsCurvePoint(ControlPoint,
         Knot.First + Increase * I,
         Order, Knot, Weight, nil);
@@ -959,7 +959,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TNurbsOrientationInterpolatorNode.ClassX3DType: string;
@@ -1076,8 +1076,8 @@ const
     begin
       for J := 0 to VDimension - 1 do
         if not TVector3.Equals(
-          ControlPoint.L[                 J * UDimension],
-          ControlPoint.L[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
+          ControlPoint.List^[                 J * UDimension],
+          ControlPoint.List^[UDimension - 1 + J * UDimension], ClosedCheckEpsilon) then
         begin
           Result := false;
           Break;
@@ -1095,8 +1095,8 @@ const
     begin
       for I := 0 to UDimension - 1 do
         if not TVector3.Equals(
-          ControlPoint.L[I                                ],
-          ControlPoint.L[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
+          ControlPoint.List^[I                                ],
+          ControlPoint.List^[I + (VDimension - 1) * UDimension], ClosedCheckEpsilon) then
         begin
           Result := false;
           Break;
@@ -1213,7 +1213,7 @@ begin
   for I := 0 to UTess - 1 do
     for J := 0 to VTess - 1 do
     begin
-      ResultCoord.L[I + J * UTess] :=
+      ResultCoord.List^[I + J * UTess] :=
         NurbsSurfacePoint(ControlPoint,
           UDimension,
           VDimension,
@@ -1226,8 +1226,8 @@ begin
           Weight,
           @Normal);
       if Ccw then
-        ResultNormal.L[I + J * UTess] := Normal else
-        ResultNormal.L[I + J * UTess] := -Normal;
+        ResultNormal.List^[I + J * UTess] := Normal else
+        ResultNormal.List^[I + J * UTess] := -Normal;
     end;
 
   { For now, don't use normal values --- they are nonsense at the edges
@@ -1243,10 +1243,10 @@ begin
     begin
       { This order (important for solid = TRUE values) is compatible
         with white dune and octagaplayer. }
-      ResultIndex.L[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
-      ResultIndex.L[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
-      ResultIndex.L[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
-      ResultIndex.L[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
+      ResultIndex.List^[NextIndex] := MakeIndex(I  , J  ); Inc(NextIndex);
+      ResultIndex.List^[NextIndex] := MakeIndex(I-1, J  ); Inc(NextIndex);
+      ResultIndex.List^[NextIndex] := MakeIndex(I-1, J-1); Inc(NextIndex);
+      ResultIndex.List^[NextIndex] := MakeIndex(I  , J-1); Inc(NextIndex);
     end;
   Assert(NextIndex = Cardinal(ResultIndex.Count));
 
@@ -1266,7 +1266,7 @@ begin
     ResultTexCoord.Count := UTess * VTess;
     for I := 0 to UTess - 1 do
       for J := 0 to VTess - 1 do
-        ResultTexCoord.L[I + J * UTess] := Vector2(
+        ResultTexCoord.List^[I + J * UTess] := Vector2(
           I / (UTess - 1),
           J / (VTess - 1));
   end;
@@ -1398,7 +1398,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TNurbsPositionInterpolatorNode.ClassX3DType: string;
@@ -1555,7 +1555,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TNurbsSurfaceInterpolatorNode.ClassX3DType: string;

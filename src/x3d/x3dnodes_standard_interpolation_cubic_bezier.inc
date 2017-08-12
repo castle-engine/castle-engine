@@ -306,7 +306,8 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TCubicBezier2DOrientationInterpolatorNode.ClassX3DType: string;
@@ -375,7 +376,8 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
 class function TCubicBezierPositionInterpolatorNode.ClassX3DType: string;
