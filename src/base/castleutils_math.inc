@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Very basic operations on numbers.
-  Also things related to setting 8087 Control Word. }
+{ Basic operations on numbers. }
 
 {$ifdef read_interface}
 
