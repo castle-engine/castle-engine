@@ -217,6 +217,10 @@ type
   protected
     function CoreExecute: TCasScriptValue; override;
   public
+    { Internal note: don't make this constructor overloaded with Delphi
+      "overload" keyword, descendants depend that this class hides
+      the parameter-less constructor of ancestors. }
+    { }
     constructor Create(const AWriteable: boolean); virtual;
 
     { Is this value writeable.
