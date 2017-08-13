@@ -431,7 +431,7 @@ type
           (actually this part is easy, you can detect it by looking at the matrix
           even, so check whether appropriate numbers are zero).
           And then PointCollision2D will change to LineCollision,
-          and SphereCollision2D will change to something like ExtrudedCirleCollision,
+          and SphereCollision2D will change to something like ExtrudedCircleCollision,
           @italic(only when necessary).)
       )
     }
@@ -1339,7 +1339,16 @@ type
       For example, a combination of translations, rotations, scaling is Ok. }
     procedure TransformMatricesMult(var M, MInverse: TMatrix4); virtual;
     procedure TransformMatrices(out M, MInverse: TMatrix4);
+
+    { Average value of 3D scale in @link(GetScale).
+      It is not calculated as a simple average, it's a little smarter
+      to prevent from weird results sometimes, see @link(Approximate3DScale). }
     function AverageScale: Single;
+
+    { Average value of 2D scale, from XY components of @link(GetScale).
+      It is not calculated as a simple average, it's a little smarter
+      to prevent from weird results sometimes, see @link(Approximate2DScale). }
+    function AverageScale2D: Single;
 
     function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -3546,6 +3555,11 @@ begin
   Result := Approximate3DScale(GetScale);
 end;
 
+function T3DCustomTransform.AverageScale2D: Single;
+begin
+  Result := Approximate2DScale(GetScale.XY);
+end;
+
 { We assume in all methods below that OnlyTranslation is the most common case,
   and then that GetTranslation = 0,0,0 is the most common case.
   This is true for many 3D objects. And for only translation,
@@ -3801,7 +3815,7 @@ begin
     Result := inherited SphereCollision2D(
       Pos - GetTranslation2D, Radius, TrianglesToIgnoreFunc, Details) else
     Result := inherited SphereCollision2D(
-      InverseTransform.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc, Details);
+      InverseTransform.MultPoint(Pos), Radius / AverageScale2D, TrianglesToIgnoreFunc, Details);
 end;
 
 function T3DCustomTransform.PointCollision2D(

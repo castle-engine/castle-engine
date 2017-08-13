@@ -670,17 +670,20 @@ function RotationNegate(const Rotation: TVector4): TVector4;
   AngleRad is in radians. }
 function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
 
-{ When you really, really must approximate a 3D scale by a single float.
-  If your algorithm cannot handle non-uniform 3D scale,
-  you have to approximate 3D scale by a single float.
+{ When you really, really must approximate a 3D or 2D scale by a single float.
+  E.g. if your algorithm cannot handle non-uniform 3D or 2D scale,
+  you have to approximate 3D or 2D scale by a single float.
 
-  This is similar to an average of X, Y, Z, but it additionally
+  This is similar to an average of X, Y (and Z, in 3D), but it additionally
   secures in case some of X, Y, Z are negative and some are positive
   (like scale (-1, 1), common in 2D to flip horizontally).
 
   @groupBegin }
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
 function Approximate3DScale(const V: TVector3): Single; overload;
+
+function Approximate2DScale(const X, Y: Single): Single;
+function Approximate2DScale(const V: TVector2): Single;
 { @groupEnd }
 
 {$endif read_interface}
@@ -2449,13 +2452,30 @@ begin
       an average of absolute values. This way a scale like (-1, 1, 1),
       that flips X but preserves size, results in 1 (not 1/3).
       Bug reproduce: escape with mirrored map parts. }
-    Result := (Abs(X) + Abs(Y) + Abs(Z)) / 3 else
+    Result := (Abs(X) + Abs(Y) + Abs(Z)) / 3
+  else
     Result := (    X  +     Y  +     Z ) / 3;
 end;
 
 function Approximate3DScale(const V: TVector3): Single;
 begin
   Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
+end;
+
+function Approximate2DScale(const X, Y: Single): Single;
+begin
+  if (X * Y < 0) then
+    { If X and Y have opposite signs, it's better to make
+      an average of absolute values. This way a scale like (-1, 1),
+      that flips X but preserves Y, results in 1 (not 0). }
+    Result := (Abs(X) + Abs(Y)) / 2
+  else
+    Result := (    X  +     Y ) / 2;
+end;
+
+function Approximate2DScale(const V: TVector2): Single;
+begin
+  Result := Approximate2DScale(V.Data[0], V.Data[1]);
 end;
 
 {$endif read_implementation}

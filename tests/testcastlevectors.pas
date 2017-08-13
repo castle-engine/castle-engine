@@ -784,6 +784,10 @@ begin
   AssertSameValue(7/3, Approximate3DScale(1, 3, 3), Epsilon);
   AssertSameValue(-7/3, Approximate3DScale(-1, -3, -3), Epsilon);
   AssertSameValue(1, Approximate3DScale(-1, 1, 1), Epsilon);
+
+  AssertSameValue(2, Approximate2DScale(2, 2), Epsilon);
+  AssertSameValue(-2, Approximate2DScale(-2, -2), Epsilon);
+  AssertSameValue(1, Approximate2DScale(-1, 1), Epsilon);
 end;
 
 procedure TTestCastleVectors.TestXYZ;
