@@ -279,12 +279,9 @@ procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
       as bone timeline is relative to setup pose }
     Result[0] := InitialScale[0] * KeyScale[0];
     Result[1] := InitialScale[1] * KeyScale[1];
-    { don't just set Result[2] to 1, instead set it to average of X and Y scales.
-      This will work better for collisions. At least in case of uniform scale
-      (when scale X and Y are equal), this way Approximate3DScale will return
-      the same value (equal to all X, Y an Z), which will make collision routines
-      work Ok. }
-    Result[2] := (Result[0] + Result[1]) / 2;
+    { This must be 1.0, not something like (Result[0] + Result[1]) / 2,
+      since scaling in Z will move the bone in front/back of the other bones. }
+    Result[2] := 1.0;
   end;
 
 var
