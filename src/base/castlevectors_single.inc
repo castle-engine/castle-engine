@@ -682,8 +682,8 @@ function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
 function Approximate3DScale(const X, Y, Z: Single): Single; overload;
 function Approximate3DScale(const V: TVector3): Single; overload;
 
-function Approximate2DScale(const X, Y: Single): Single;
-function Approximate2DScale(const V: TVector2): Single;
+function Approximate2DScale(const X, Y: Single): Single; overload;
+function Approximate2DScale(const V: TVector2): Single; overload;
 { @groupEnd }
 
 {$endif read_interface}
