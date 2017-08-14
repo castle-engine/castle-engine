@@ -394,7 +394,11 @@ begin
   begin
     Result := Matrix4Double(M).TryInverse(MInverseDouble);
     if Result then
+    begin
+      // WritelnLogMultiline('TryInverseHarder', 'Failed to inverse matrix in Single-precision, but managed to inverse in Double-precision.' + NL +
+      //   M.ToRawString);
       MInverse := Matrix4(MInverseDouble);
+    end;
   end;
 end;
 

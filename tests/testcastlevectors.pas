@@ -49,6 +49,7 @@ type
     procedure TestXYZ;
     procedure TestPlaneMove;
     procedure TestPlaneMoveRandom;
+    procedure TestTryInverseHarder;
   end;
 
 function RandomVector: TVector3;
@@ -861,6 +862,36 @@ begin
     // "PlaneAntiMove + PlaneMove" should zero each other out
     AssertVectorEquals(Plane, PlaneAntiMove(PlaneMove(Plane, Move), Move), 1.0);
   end;
+end;
+
+procedure TTestCastleVectors.TestTryInverseHarder;
+var
+  M, M2: TMatrix4;
+begin
+  // used in gate_backround in castle-game demo
+
+  M[0, 0] := -0.001710;
+  M[1, 0] := -0.004698;
+  M[2, 0] :=  0.000000;
+  M[3, 0] :=  0.000000;
+
+  M[0, 1] :=  0.004698;
+  M[1, 1] := -0.001710;
+  M[2, 1] :=  0.000000;
+  M[3, 1] :=  0.000000;
+
+  M[0, 2] := 0.000000;
+  M[1, 2] := 0.000000;
+  M[2, 2] := 0.005000;
+  M[3, 2] := 0.000000;
+
+  M[0, 3] := -79.753189;
+  M[1, 3] := -70.291077;
+  M[2, 3] :=   0.182218;
+  M[3, 3] :=   1.000000;
+
+  AssertFalse(M.TryInverse(M2));
+  AssertTrue(TryInverseHarder(M, M2));
 end;
 
 initialization
