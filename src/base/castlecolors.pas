@@ -170,7 +170,8 @@ uses SysUtils, CastleUtils, CastleStringUtils;
 
 { grayscale ------------------------------------------------------------------ }
 
-const
+function GrayscaleValue(const v: TCastleColor): Single;
+begin
   { Weights to change RGB color to grayscale.
 
     Grayscale color is just a color with red = green = blue.
@@ -180,51 +181,33 @@ const
     and least sensitive to blue, it's better to calculate this
     with some non-uniform weights.
 
-    These weights copied from libpng manual.
+    These weights are copied from libpng manual. }
 
-    For GrayscaleByte, they should be used like
-
-    @longCode(#
-      (R * GrayscaleValuesByte[0] +
-       G * GrayscaleValuesByte[1] +
-       B * GrayscaleValuesByte[2]) div 256
-    #)
-
-    GrayscaleValuesByte[] are declared as Word type to force implicit conversion
-    in above expression from Byte to Word, since you have to use Word range
-    to temporarily hold Byte * Byte multiplication in expression above.
-
-    @groupBegin }
-  GrayscaleValuesFloat: array [0..2] of Float = (0.212671, 0.715160, 0.072169);
-  GrayscaleValuesByte: array [0..2] of Word = (54, 183, 19);
-  { @groupEnd }
-
-function GrayscaleValue(const v: TCastleColor): Single;
-begin
-  result := (GrayscaleValuesFloat[0] * V.Data[0]+
-             GrayscaleValuesFloat[1] * V.Data[1]+
-             GrayscaleValuesFloat[2] * V.Data[2]);
+  result := (0.212671 * V.Data[0]+
+             0.715160 * V.Data[1]+
+             0.072169 * V.Data[2]);
 end;
 
 function GrayscaleValue(const v: TCastleColorRGB): Single;
 begin
-  result := GrayscaleValuesFloat[0] * V.Data[0]+
-            GrayscaleValuesFloat[1] * V.Data[1]+
-            GrayscaleValuesFloat[2] * V.Data[2];
+  result := 0.212671 * V.Data[0]+
+            0.715160 * V.Data[1]+
+            0.072169 * V.Data[2];
 end;
 
 function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
-  result := (GrayscaleValuesByte[0] * V.Data[0]+
-             GrayscaleValuesByte[1] * V.Data[1]+
-             GrayscaleValuesByte[2] * V.Data[2]) div 256;
+  // force multiplication as Word
+  result := (Word(54 ) * V.Data[0]+
+             Word(183) * V.Data[1]+
+             Word(19 ) * V.Data[2]) div 256;
 end;
 
 function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
-  result := (GrayscaleValuesByte[0] * V.Data[0]+
-             GrayscaleValuesByte[1] * V.Data[1]+
-             GrayscaleValuesByte[2] * V.Data[2]) div 256;
+  result := (Word(54 ) * V.Data[0]+
+             Word(183) * V.Data[1]+
+             Word(19 ) * V.Data[2]) div 256;
 end;
 
 function Grayscale(const v: TCastleColor): TCastleColor;

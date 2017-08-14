@@ -657,9 +657,9 @@ function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Si
 function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3;
-  out Matrix, InvertedMatrix: TMatrix4);
+  out Matrix, InvertedMatrix: TMatrix4); overload;
 procedure RotationMatricesRad(const AxisAngle: TVector4;
-  out Matrix, InvertedMatrix: TMatrix4);
+  out Matrix, InvertedMatrix: TMatrix4); overload;
 { @groupEnd }
 
 { Negate a rotation expressed as axis-angle (3 components for axis, 1 for angle).

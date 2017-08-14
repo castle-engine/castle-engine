@@ -32,7 +32,7 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector2Byte = (Data: (0, 0));
     {$endif}
@@ -49,7 +49,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Byte; static; inline;
     {$endif}
   end;
@@ -67,7 +67,7 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector3Byte = (Data: (0, 0, 0));
     {$endif}
@@ -85,7 +85,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Byte; static; inline;
     {$endif}
   end;
@@ -103,7 +103,7 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector4Byte = (Data: (0, 0, 0, 0));
     {$endif}
@@ -122,7 +122,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Byte; static;
     {$endif}
   end;
@@ -221,7 +221,7 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Byte.Zero: TVector2Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -288,7 +288,7 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Byte.Zero: TVector3Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -359,7 +359,7 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Byte.Zero: TVector4Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);

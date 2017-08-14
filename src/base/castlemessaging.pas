@@ -32,7 +32,7 @@ type
   TMessageReceivedEvent = function (const Received: TCastleStringList): boolean of object;
 
   { Used by TMessaging to manage a list of listeners. }
-  TMessageReceivedEventList = class(specialize TList<TMessageReceivedEvent>)
+  TMessageReceivedEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TMessageReceivedEvent>)
   public
     procedure ExecuteAll(const Received: TCastleStringList);
   end;
@@ -232,7 +232,8 @@ end;
 
 class function TMessaging.BoolToStr(const Value: boolean): string;
 begin
-  Result := SysUtils.BoolToStr(Value, 'true', 'false');
+  Result := {$ifdef FPC} SysUtils.BoolToStr {$else} Iff {$endif}
+    (Value, 'true', 'false');
 end;
 
 class function TMessaging.TimeToStr(const Value: TFloatTime): string;

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$interfaces com}
+{$ifdef FPC} {$interfaces com} {$endif}
 
 { In FPC > 2.4.2, IInterface methods signature changed.
   See

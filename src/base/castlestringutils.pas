@@ -61,6 +61,10 @@ type
     procedure SetCount(const Value: Integer);
     function GetL(const Index: Integer): string;
     procedure SetL(const Index: Integer; const S: string);
+  {$ifndef FPC}
+  protected
+    function DoCompareText(const A, B: string): Integer;
+  {$endif}
   public
     constructor Create;
     property Count: Integer read GetCount write SetCount;
@@ -85,7 +89,10 @@ type
 
       The comparison is case-sensitive, or not, depending on the value
       of CaseSensitive property of this list. }
-    function Equals(SecondValue: TObject): boolean; override; overload;
+    function Equals(SecondValue: TObject): boolean;
+      // In Delphi, they have non-virtual TStringList.Equals that hides virtual TObject.Equals...
+      {$ifdef FPC} override; {$endif}
+      overload;
 
     function Equals(const A: array of string): boolean; overload;
 
@@ -103,7 +110,7 @@ type
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
       that work for both TCastleStringList and TStructList. }
-    property L[Index: Integer]: string read GetL write SetL;
+    property L[const Index: Integer]: string read GetL write SetL;
   end;
 
   { String-to-string map. Note that in simple cases you can also
@@ -145,7 +152,7 @@ type
   TSetOfChars = SysUtils.TSysCharSet;
 
 const
-  AllChars = [Low(Char) .. High(Char)];
+  AllChars = [Low(AnsiChar) .. High(AnsiChar)];
   DefaultWordBorders = AllChars - ['a'..'z', 'A'..'Z', '0'..'9', '_'];
   WhiteSpaces = [' ', #9, #10, #13];
   SimpleAsciiCharacters = [#32 .. #126];
@@ -550,6 +557,7 @@ function TryDeFormat(Data: string; const Format: string;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
+{$ifdef FPC}
 { Extract file extensions from a file filter usually specified
   a TOpenDialog.Filter value.
 
@@ -562,6 +570,7 @@ function TryDeFormat(Data: string; const Format: string;
   filenames. For example above, we would set Extensions to array
   with two items: @code(['.ext1', '.ext2']). }
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
+  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
 
 { Extract file filter name, from a file filter usually specified
   a TOpenDialog.Filter value.
@@ -578,6 +587,7 @@ procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
   semicolons, extensions within parenthesis on the left of "|" may
   be separated by semicolons ";" or colons ",". }
 function GetFileFilterName(const FileFilter: string): string;
+  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
 
 { Search in FileFilter for the bar character "|", and return everything
   after it. This is a simple basis for GetFileFilterExts.
@@ -586,10 +596,12 @@ function GetFileFilterName(const FileFilter: string): string;
   file filter without "|" is treated as just a filter name, without
   any extensions). }
 function GetFileFilterExtsStr(const FileFilter: string): string;
+  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
+{$endif}
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
-  replacements at once. This is just like StrUtils.StringsReplace nowadays.
+  replacements at once. This is just like StrUtils.StringsReplace in FPC.
 
   Patterns and Values arrays must have equal length.
   Patterns[0] will be replaced with Values[0], Patterns[1] with Values[0] etc.
@@ -952,7 +964,7 @@ const
 
 implementation
 
-uses Regexpr, StrUtils,
+uses {$ifdef FPC} Regexpr {$else} RegularExpressions {$endif}, StrUtils,
   CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
@@ -1030,6 +1042,16 @@ begin
     Exchange(I, Count - 1 - I);
 end;
 
+{$ifndef FPC}
+function TCastleStringList.DoCompareText(const A, B: string): Integer;
+begin
+  if CaseSensitive then
+    Result := AnsiCompareStr(A, B)
+  else
+    Result := AnsiCompareText(A, B);
+end;
+{$endif}
+
 function TCastleStringList.Equals(SecondValue: TObject): boolean;
 var
   I: Integer;
@@ -1099,7 +1121,7 @@ end;
 
 procedure TStringStringMap.Assign(const Source: TStringStringMap);
 var
-  Pair: TDictionaryPair;
+  Pair: {$ifdef FPC} TDictionaryPair {$else} TPair<string, string> {$endif};
 begin
   Clear;
   for Pair in Source do
@@ -1786,13 +1808,16 @@ begin
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
 
+{$ifdef FPC}
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
 var
   p, SeekPos: integer;
   ExtsStr, filemask: string;
 begin
   Extensions.Clear;
+  {$warnings off} // using deprecated in deprecated
   ExtsStr := GetFileFilterExtsStr(FileFilter);
+  {$warnings on}
   SeekPos := 1;
   repeat
     filemask := NextToken(ExtsStr, SeekPos,[';']);
@@ -1875,6 +1900,7 @@ begin
     result := SEnding(FileFilter, p+1) else
     result := '';
 end;
+{$endif}
 
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;
@@ -2103,12 +2129,17 @@ type
   private
     Index: Integer;
     ReplacementsDone: Cardinal;
-    function ReplaceCallback(ARegExpr : TRegExpr): string;
+    function ReplaceCallback(
+      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
   end;
 
-function TRegExprCounter.ReplaceCallback(ARegExpr : TRegExpr): string;
+function TRegExprCounter.ReplaceCallback(
+  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+var
+  MatchedText: string;
 begin
-  Result := IntToStrZPad(Index, StrToInt(ARegExpr.Match[1]));
+  MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Value {$endif};
+  Result := IntToStrZPad(Index, StrToInt(MatchedText));
   Inc(ReplacementsDone);
 end;
 
@@ -2116,12 +2147,16 @@ function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean;
   out ReplacementsDone: Cardinal): string;
 var
-  R: TRegExpr;
+  R: {$ifdef FPC} TRegExpr {$else} TRegEx {$endif};
   C: TRegExprCounter;
 begin
+  {$ifdef FPC}
   R := TRegExpr.Create;
+  R.Expression := '@counter\(([\d]+)\)';
+  {$else}
+  R := TRegEx.Create('@counter\(([\d]+)\)');
+  {$endif}
   try
-    R.Expression := '@counter\(([\d]+)\)';
     C := TRegExprCounter.Create;
     try
       C.Index := Index;

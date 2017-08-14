@@ -39,19 +39,6 @@ procedure InfoBox   (const Text:string; const caption:string ='Information'; par
 procedure WarningBox(const Text:string; const caption:string ='Warning'    ; parent:HWND =0); deprecated;
 { @groupEnd }
 
-type
-  { Handling WMSizing message is a way to force minimum/maximum form
-    sizes under WinAPI. }
-  TWMSizing=record
-    Msg: Cardinal;    {< wm_SIZING }
-    fwSide: Longint;  {< const WMSZ_xxx }
-    lprc: PRect;      {< rectangle with window sizes }
-    Result: LongBool; {< should return longbool(true) }
-  end;
-function WMSizingHandler(lParm:LPARAM; wParm:WPARAM; minWidth,minHeight, maxWidth,maxHeight:integer):LRESULT; overload;
-procedure WMSizingHandler(var Msg:TWMSizing; minWidth,minHeight, maxWidth,maxHeight:integer); overload;
-procedure WMSizingHandler(var Msg:TWMSizing; minWidth,minHeight:integer); overload;
-
 { WinAPI ChangeDisplaySettings declaration. (Was wrong/missing in old
   FPC versions? TODO: check and probably remove this.) }
 function ChangeDisplaySettings(lpDevMode:PDEVMODE; dwFlags:DWORD):longint;
@@ -77,63 +64,6 @@ end;
 procedure WarningBox(const Text:string; const caption:string;parent:HWND);
 begin
  MessageBox(parent,PChar(Text),PChar(caption),MB_OK or MB_ICONWARNING or MB_TASKMODAL);
-end;
-
-{ minX / minY / maxX / maxY : WM_SIZING handler -----------------------------
-
- Dodaj do formularza proc.
-   procedure WMSizing(var Msg:TWMSizing); message wm_Sizing;
- i zapisz ja jako
-   procedure TForm1.WMSizing(var Msg:TWMSizing);
-   begin
-    WMSizingHandler(msg,100,200, 400,400);
-   end;
- gdzie liczby 100 i 200 sa przykladowe. Otrzymasz formularz ktory nie moze byc resizowany
- do rozmiartu mniejszego od 100 x 200 ani wiekszego niz 400x400.
- Uwaga 1 : to nie ma wplywu na rozmiar formularza po "maximize" przez usera -
-           - user moze tym maximizem przekroczyc maxy lub miny (jesli ustawiles miny
-           na wieksze niz rozmiar ekranu...); jesli chcesz miec pewnosc, wylacz userowi
-           mozliwosc maximize'a
-       2 : to nie ma wplywu na rozmiar formularza jaki sam nadajesz (programowo).
-           Ustaw wiec dobre wartosci poczatkowe i nie ustawiaj sam zlych rozmiarow
-           formularzowi.
-}
-
-function WMSizingHandler(lParm:LPARAM; wParm:WPARAM; minWidth,minHeight, maxWidth,maxHeight:integer):LRESULT;
-var msg:TWMSizing;
-begin
- msg.Msg:=WM_SIZING;
- msg.fwSide:=wParm;
- msg.lprc:=PRect(lParm);
- WMSizingHandler(msg, minWidth,minHeight, maxWidth,maxHeight);
- result:=LRESULT(msg.Result);
-end;
-
-procedure WMSizingHandler(var Msg:TWMSizing; minWidth,minHeight, maxWidth,maxHeight:integer); overload;
-var w,h:integer;
-begin
- assert(minWidth<=maxWidth);
- assert(minHeight<=maxHeight);
- with msg.lprc^ do
- begin
-  w:=right-left;
-  if w<minWidth then right:=left+minWidth else
-   if w>maxWidth then right:=left+maxWidth;
-  h:=bottom-top;
-  if h<minHeight then bottom:=top+minHeight else
-   if h>maxHeight then bottom:=top+maxHeight;
- end;
- msg.result:=true;
-end;
-
-procedure WMSizingHandler(var Msg:TWMSizing; minWidth,minHeight :integer);
-begin
- with msg.lprc^ do
- begin
-  if right-left<minWidth then right:=left+minWidth;
-  if bottom-top<minHeight then bottom:=top+minHeight;
- end;
- msg.result:=true;
 end;
 
 function DispChangeToStr(L: LongInt): string;

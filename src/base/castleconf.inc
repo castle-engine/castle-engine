@@ -36,9 +36,37 @@
 {$ifndef CASTLE_CONF_INCLUDED}
 {$define CASTLE_CONF_INCLUDED}
 
+{ Compiler version check ----------------------------------------------------- }
+
 {$ifndef FPC}
-  {$error You have to use FPC (Free Pascal Compiler) to compile Castle Game Engine. The engine is not suitable for Delphi or other Pascal compilers. (But patches to change this are welcome. Michalis doesn't care about Delphi, but if someone else wants to step up and fix Delphi compatibility --- go for it.)}
+  {$if CompilerVersion < 30}
+    // 30 is Delphi 10 Seattle, see http://delphi.wikia.com/wiki/CompilerVersion_Constant
+    {$error Use FPC (Free Pascal Compiler) or Delphi >= 10 to compile Castle Game Engine. The older Delphi versions are not supported. Patches to fix older Delphi versions are welcome, although some really old Delphi versions may be out of reach (e.g. we need Delphi >= 2009 for generics).}
+  {$endif}
 {$endif}
+
+{$ifdef VER2}
+  {$fatal FPC 2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php}
+{$endif}
+
+{ Configure syntax ----------------------------------------------------------- }
+
+{ These should be set on the command-line always.
+  - NOT setting them here forces the user to use correct compilation method
+    for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
+    instead of hacking something, which is GOOD.
+  - Also, not setting them allows to check compilation of the engine without macros
+    and in Delphi mode, which is useful to keep Delphi compatibility.
+}
+{ $mode objfpc}
+{ $H+}
+{ $macro on}
+
+{ For FPC, these can only be specified here, not on the FPC command-line. }
+{$writeableconst off}
+{$ifdef FPC} {$modeswitch advancedrecords} {$endif}
+
+{ Define various necessary things -------------------------------------------- }
 
 { Configurable: define CASTLE_ENGINE_LGPL to compile only
   components available on permissive LGPL (see
@@ -63,8 +91,10 @@
   Exception to the above is Linux on x86-64, that allows to use normal Extended.
   Maybe Darwin on x86-64 also?
 *)
-{$ifndef FPC_HAS_TYPE_EXTENDED}
-  {$define EXTENDED_EQUALS_DOUBLE}
+{$ifdef FPC}
+  {$ifndef FPC_HAS_TYPE_EXTENDED}
+    {$define EXTENDED_EQUALS_DOUBLE}
+  {$endif}
 {$endif}
 
 { We do *not* define inline functions/methods when compiling from
@@ -74,29 +104,13 @@
   {$define SUPPORTS_INLINE}
 {$endif}
 
-{$ifdef VER2} {$fatal FPC 2.x is not supported anymore, see https://castle-engine.sourceforge.io/fpc_and_lazarus.php} {$endif}
-
-{ These should be set on the command-line always.
-  - NOT setting them here forces the user to use correct compilation method
-    for the engine (like using castle-fpc.cfg or the build tool or Lazarus package)
-    instead of hacking something, which is GOOD.
-  - Also, not setting them allows to check compilation of the engine without macros
-    and in Delphi mode, which is useful to keep Delphi compatibility.
-}
-{ $mode objfpc}
-{ $H+}
-{ $macro on}
-
-{ This can only be specified here, not on the command-line. }
-{$writeableconst off}
-{$modeswitch advancedrecords}
-
 {$define TOBJECT_HAS_EQUALS}
-{$ifdef VER2_0}   {$undef TOBJECT_HAS_EQUALS} {$endif}
-{$ifdef VER2_2_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
-{$ifdef VER2_2_2} {$undef TOBJECT_HAS_EQUALS} {$endif}
-{$ifdef VER2_2_4} {$undef TOBJECT_HAS_EQUALS} {$endif}
-{$ifdef VER2_4_0} {$undef TOBJECT_HAS_EQUALS} {$endif}
+
+{ Define CPU32/64, like FPC. }
+{$ifndef FPC}
+  {$ifdef CPU32BITS} {$define CPU32} {$endif}
+  {$ifdef CPU64BITS} {$define CPU64} {$endif}
+{$endif}
 
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
   {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUARM64)))}
@@ -110,6 +124,38 @@
 {$define ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
 {$ifdef ANDROID}
   {$undef ALLOW_DLOPEN_FROM_UNIT_INITIALIZATION}
+{$endif}
+
+// This serves two purposes:
+// - Declaring something like TVector3.Zero (constant filled with zeros,
+//   inside a record, which type is the same record)
+//   causes internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
+//   so already fixed in FPC).
+// - Declaring something like TVector3.Zero or TVector3.One
+//   (any constant inside a record, which type is the same record)
+//   is not allowed in Delphi, causes error that type is not completely defined.
+{$ifdef FPC}
+  {$define ENABLE_SELF_RECORD_CONSTANTS}
+  {$ifdef VER3_0}
+    {$ifndef VER3_0_0}
+      {$undef ENABLE_SELF_RECORD_CONSTANTS}
+    {$endif}
+  {$endif}
+{$endif}
+
+// Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
+{$ifdef VER3_0_0}
+  {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
+{$endif}
+
+// Allows to workaround FPC bug in some units, FPC seems to "lose"
+// the fact that FPC_OBJFPC should be defined.
+// The cleanest solution seems to just ignore FPC_OBJFPC,
+// and define equivalent symbol (CASTLE_OBJFPC) on our own.
+{$ifdef FPC}
+  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
+    {$define CASTLE_OBJFPC}
+  {$endif}
 {$endif}
 
 { OpenGL ES ------------------------------------------------------------------ }
@@ -202,9 +248,10 @@
 { FpHttpClient --------------------------------------------------------------- }
 
 { Keep HAS_FP_HTTP_CLIENT defined for all platforms that have
-  FpHttpClient implemented. }
+  FpHttpClient implemented, if you use FPC. }
 {$define HAS_FP_HTTP_CLIENT}
 {$ifdef ANDROID} {$undef HAS_FP_HTTP_CLIENT} {$endif}
+{$ifndef FPC} {$undef HAS_FP_HTTP_CLIENT} {$endif}
 
 { Embedded stuff ------------------------------------------------------------- }
 
@@ -218,31 +265,5 @@
   Undefine this to conserve around 0.7 MB in exe size.
   All the Text X3D nodes will use standard sans non-bold, non-italic font. }
 {$define CASTLE_EMBED_ALL_3D_FONT_VARIATIONS}
-
-{ others --------------------------------------------------------------------- }
-
-// We have a construction in CastleVectors and friends that causes
-// internal error in FPC 3.0.2, 3.0.4 (not in 3.0.0 or 3.1.1,
-// so already fixed in FPC).
-{$ifdef VER3_0}
-  {$ifndef VER3_0_0}
-    {$define BUGGY_ZERO_CONSTANT}
-  {$endif}
-{$endif}
-
-// Workaround FPC 3.0.0 bug (not present in 3.0.2, 3.0.4, 3.1.1 -- so already fixed).
-{$ifdef VER3_0_0}
-  {$define BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
-{$endif}
-
-// Allows to workaround FPC bug in some units, FPC seems to "lose"
-// the fact that FPC_OBJFPC should be defined.
-// The cleanest solution seems to just ignore FPC_OBJFPC,
-// and define equivalent symbol (CASTLE_OBJFPC) on our own.
-{$ifdef FPC}
-  {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
-    {$define CASTLE_OBJFPC}
-  {$endif}
-{$endif}
 
 {$endif not CASTLE_CONF_INCLUDED}

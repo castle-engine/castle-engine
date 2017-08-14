@@ -682,10 +682,10 @@ procedure TCastleApplication.CreateBackend;
 const
   { Under Kylix, capital letters are XK_?  and lower are XK_l?.
     Under FPC,           ...     are XKc_?    ...    are XK_?. }
-  XK_a_lower = {$ifdef DELPHI} XK_la {$endif} {$ifdef FPC} XK_a {$endif};
-  XK_z_lower = {$ifdef DELPHI} XK_lz {$endif} {$ifdef FPC} XK_z {$endif};
-  XK_a_upper = {$ifdef DELPHI} XK_a {$endif} {$ifdef FPC} XKc_a {$endif};
-  XK_z_upper = {$ifdef DELPHI} XK_z {$endif} {$ifdef FPC} XKc_z {$endif};
+  XK_a_lower = {$ifdef DCC} XK_la {$endif} {$ifdef FPC} XK_a {$endif};
+  XK_z_lower = {$ifdef DCC} XK_lz {$endif} {$ifdef FPC} XK_z {$endif};
+  XK_a_upper = {$ifdef DCC} XK_a {$endif} {$ifdef FPC} XKc_a {$endif};
+  XK_z_upper = {$ifdef DCC} XK_z {$endif} {$ifdef FPC} XKc_z {$endif};
 var
   b: byte;
 begin

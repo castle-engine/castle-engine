@@ -52,18 +52,21 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
+    class function GetOne(const Index: TIndex): TGenericVector2; inline; static;
+    {$endif}
   public
     var
       Data: array [TIndex] of TGenericScalar;
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
-      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero: TGenericVector2 = (Data: (0, 0));
-      {$endif}
       { Vectors with a single component equal 1, others equal 0. }
       One: array [TIndex] of TGenericVector2 = (
         (Data: (1, 0)),
         (Data: (0, 1))
       );
+    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector2): TGenericVector2; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector2): TGenericVector2; inline;
@@ -123,8 +126,8 @@ type
     function IsPerfectlyZero: boolean;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector2): boolean; static; overload; inline;
-    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean; static; overload; inline;
+    class function Equals(const V1, V2: TGenericVector2): boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector2; const Epsilon: TGenericScalar): boolean; overload; inline; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static; inline;
@@ -133,8 +136,9 @@ type
       @seealso @link(TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericVector2; static; inline;
+    class property One [const Index: TIndex]: TGenericVector2 read GetOne;
     {$endif}
   end;
 
@@ -161,19 +165,22 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
+    class function GetOne(const Index: TIndex): TGenericVector3; inline; static;
+    {$endif}
   public
     var
       Data: array [TIndex] of TGenericScalar;
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
-      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero: TGenericVector3 = (Data: (0, 0, 0));
-      {$endif}
       { Vectors with a single component equal 1, others equal 0. }
       One: array [TIndex] of TGenericVector3 = (
         (Data: (1, 0, 0)),
         (Data: (0, 1, 0)),
         (Data: (0, 0, 1))
       );
+    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector3): TGenericVector3; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector3): TGenericVector3; inline;
@@ -255,8 +262,8 @@ type
     function IsPerfectlyZero: boolean; inline;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector3): boolean; static; overload; inline;
-    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean; static; overload; inline;
+    class function Equals(const V1, V2: TGenericVector3): boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector3; const Epsilon: TGenericScalar): boolean; overload; inline; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector3): boolean; static; inline;
@@ -277,8 +284,9 @@ type
       ) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector3): TGenericVector3; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericVector3; static; inline;
+    class property One [const Index: TIndex]: TGenericVector3 read GetOne;
     {$endif}
   end;
 
@@ -293,13 +301,15 @@ type
     procedure SetItems(const Index: TIndex; const Value: TGenericScalar); inline;
     function GetItemsInt(const Index: Integer): TGenericScalar; inline;
     procedure SetItemsInt(const Index: Integer; const Value: TGenericScalar); inline;
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
+    class function GetOne(const Index: TIndex): TGenericVector4; inline; static;
+    {$endif}
   public
     var
       Data: array [TIndex] of TGenericScalar;
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
-      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero: TGenericVector4 = (Data: (0, 0, 0, 0));
-      {$endif}
       { Vectors with a single component equal 1, others equal 0. }
       One: array [TIndex] of TGenericVector4 = (
         (Data: (1, 0, 0, 0)),
@@ -307,6 +317,7 @@ type
         (Data: (0, 0, 1, 0)),
         (Data: (0, 0, 0, 1))
       );
+    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericVector4): TGenericVector4; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericVector4): TGenericVector4; inline;
@@ -366,8 +377,8 @@ type
     function IsPerfectlyZero: boolean; inline;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const V1, V2: TGenericVector4): boolean; static; overload; inline;
-    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean; static; overload; inline;
+    class function Equals(const V1, V2: TGenericVector4): boolean; overload; inline; static;
+    class function Equals(const V1, V2: TGenericVector4; const Epsilon: TGenericScalar): boolean; overload; inline; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const V1, V2: TGenericVector4): boolean; static; inline;
@@ -383,8 +394,9 @@ type
       @seealso @link(TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericVector4; static; inline;
+    class property One [const Index: TIndex]: TGenericVector4 read GetOne;
     {$endif}
   end;
 
@@ -404,11 +416,11 @@ type
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
-      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero    : TGenericMatrix2 = (Data: ((0, 0), (0, 0)));
-      {$endif}
       Identity: TGenericMatrix2 = (Data: ((1, 0), (0, 1)));
+    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix2): TGenericMatrix2; inline;
@@ -451,8 +463,8 @@ type
     function Transpose: TGenericMatrix2;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const M1, M2: TGenericMatrix2): boolean; static; overload;
-    class function Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix2): boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix2; const Epsilon: TGenericScalar): boolean; overload; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean; static;
@@ -461,8 +473,9 @@ type
       @seealso @link(TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix2): TGenericMatrix2; static;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericMatrix2; static;
+    class function Identity: TGenericMatrix2; static;
     {$endif}
   end;
 
@@ -497,11 +510,11 @@ type
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
-      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero    : TGenericMatrix3 = (Data: ((0, 0, 0), (0, 0, 0), (0, 0, 0)));
-      {$endif}
       Identity: TGenericMatrix3 = (Data: ((1, 0, 0), (0, 1, 0), (0, 0, 1)));
+    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix3): TGenericMatrix3; inline;
@@ -544,8 +557,8 @@ type
     function Transpose: TGenericMatrix3;
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const M1, M2: TGenericMatrix3): boolean; static; overload;
-    class function Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix3): boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix3; const Epsilon: TGenericScalar): boolean; overload; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean; static;
@@ -554,8 +567,9 @@ type
       @seealso @link(TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix3): TGenericMatrix3; static;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericMatrix3; static;
+    class function Identity: TGenericMatrix3; static;
     {$endif}
   end;
 
@@ -575,11 +589,11 @@ type
   public
     var
       Data: array [TIndex, TIndex] of TGenericScalar;
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
-      {$ifndef BUGGY_ZERO_CONSTANT}
       Zero    : TGenericMatrix4 = (Data: ((0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0), (0, 0, 0, 0)));
-      {$endif}
       Identity: TGenericMatrix4 = (Data: ((1, 0, 0, 0), (0, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 1)));
+    {$endif}
 
     class operator {$ifdef FPC}+{$else}Add{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; inline;
     class operator {$ifdef FPC}-{$else}Subtract{$endif} (const A, B: TGenericMatrix4): TGenericMatrix4; inline;
@@ -654,8 +668,8 @@ type
     { @groupEnd }
 
     { Compare two vectors, with epsilon to tolerate slightly different floats. }
-    class function Equals(const M1, M2: TGenericMatrix4): boolean; static; overload;
-    class function Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): boolean; static; overload;
+    class function Equals(const M1, M2: TGenericMatrix4): boolean; overload; static;
+    class function Equals(const M1, M2: TGenericMatrix4; const Epsilon: TGenericScalar): boolean; overload; static;
 
     { Compare two vectors using exact comparison (like the "=" operator to compare floats). }
     class function PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean; static;
@@ -664,8 +678,9 @@ type
       @seealso @link(TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix4): TGenericMatrix4; static;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TGenericMatrix4; static;
+    class function Identity: TGenericMatrix4; static;
     {$endif}
   end;
 
@@ -864,10 +879,16 @@ begin
   Result.Data[1] := V1.Data[1] + A * (V2.Data[1] - V1.Data[1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericVector2.Zero: TGenericVector2;
 begin
   FillChar(Result, SizeOf(Result), 0);
+end;
+
+class function TGenericVector2.GetOne(const Index: TIndex): TGenericVector2;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result[Index] := 1.0;
 end;
 {$endif}
 
@@ -1100,10 +1121,16 @@ begin
   Result.Data[2] := V1.Data[2] + A * (V2.Data[2] - V1.Data[2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericVector3.Zero: TGenericVector3;
 begin
   FillChar(Result, SizeOf(Result), 0);
+end;
+
+class function TGenericVector3.GetOne(const Index: TIndex): TGenericVector3;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result[Index] := 1.0;
 end;
 {$endif}
 
@@ -1324,10 +1351,16 @@ begin
   Result.Data[3] := V1.Data[3] + A * (V2.Data[3] - V1.Data[3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericVector4.Zero: TGenericVector4;
 begin
   FillChar(Result, SizeOf(Result), 0);
+end;
+
+class function TGenericVector4.GetOne(const Index: TIndex): TGenericVector4;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result[Index] := 1.0;
 end;
 {$endif}
 
@@ -1543,10 +1576,17 @@ begin
   Result.Data[1, 1] := M1.Data[1, 1] + A * (M2.Data[1, 1] - M1.Data[1, 1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericMatrix2.Zero: TGenericMatrix2;
 begin
   FillChar(Result, SizeOf(Result), 0);
+end;
+
+class function TGenericMatrix2.Identity: TGenericMatrix2;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result[0, 0] := 1;
+  Result[1, 1] := 1;
 end;
 {$endif}
 
@@ -1823,10 +1863,18 @@ begin
   Result.Data[2, 2] := M1.Data[2, 2] + A * (M2.Data[2, 2] - M1.Data[2, 2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericMatrix3.Zero: TGenericMatrix3;
 begin
   FillChar(Result, SizeOf(Result), 0);
+end;
+
+class function TGenericMatrix3.Identity: TGenericMatrix3;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result[0, 0] := 1;
+  Result[1, 1] := 1;
+  Result[2, 2] := 1;
 end;
 {$endif}
 
@@ -2354,10 +2402,19 @@ begin
   Result.Data[3, 3] := M1.Data[3, 3] + A * (M2.Data[3, 3] - M1.Data[3, 3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TGenericMatrix4.Zero: TGenericMatrix4;
 begin
   FillChar(Result, SizeOf(Result), 0);
+end;
+
+class function TGenericMatrix4.Identity: TGenericMatrix4;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result[0, 0] := 1;
+  Result[1, 1] := 1;
+  Result[2, 2] := 1;
+  Result[3, 3] := 1;
 end;
 {$endif}
 

@@ -32,7 +32,7 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector2Cardinal = (Data: (0, 0));
     {$endif}
@@ -49,7 +49,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Cardinal; static; inline;
     {$endif}
   end;
@@ -67,7 +67,7 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector3Cardinal = (Data: (0, 0, 0));
     {$endif}
@@ -85,7 +85,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Cardinal; static; inline;
     {$endif}
   end;
@@ -103,7 +103,7 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector4Cardinal = (Data: (0, 0, 0, 0));
     {$endif}
@@ -122,7 +122,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Cardinal; static; inline;
     {$endif}
   end;
@@ -202,7 +202,7 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Cardinal.Zero: TVector2Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -269,7 +269,7 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Cardinal.Zero: TVector3Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -340,7 +340,7 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Cardinal.Zero: TVector4Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);

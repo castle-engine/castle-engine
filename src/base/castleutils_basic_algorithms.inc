@@ -17,6 +17,11 @@
 
 {$ifdef read_interface}
 
+type
+  { }
+  TIsSmallerFunc = function (const A, B, Data: Pointer): boolean;
+  TIsSmallerFuncByObject = function (const A, B: Pointer): boolean of object;
+
 const
   { CountToUseSimpleSort internal comments:
     The real best value depends on the processor, compiler (FPC/Delphi,
@@ -100,17 +105,21 @@ procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
+  deprecated 'use Generics.Collections lists and their Sort method';
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFunc; IsSmallerFuncData: Pointer;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
+  deprecated 'use Generics.Collections lists and their Sort method';
 
 procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
+  deprecated 'use Generics.Collections lists and their Sort method';
 procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
   IsSmallerFunc: TIsSmallerFuncByObject; FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer = DefaultCountToUseSimpleSort); overload;
+  deprecated 'use Generics.Collections lists and their Sort method';
 { @groupEnd }
 
 {$endif read_interface}
@@ -122,8 +131,10 @@ procedure Sort(Arr: pointer; ArrRecordSize: Cardinal;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer);
 begin
- Sort(Arr, ArrRecordSize, ArrRecordSize, IsSmallerFunc, IsSmallerFuncData,
-   FirstIndex, LastIndex, CountToUseSimpleSort);
+  {$warnings off} // using deprecated in deprecated
+  Sort(Arr, ArrRecordSize, ArrRecordSize, IsSmallerFunc, IsSmallerFuncData,
+    FirstIndex, LastIndex, CountToUseSimpleSort);
+  {$warnings off}
 end;
 
 procedure Sort(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;
@@ -137,8 +148,10 @@ procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal;
   FirstIndex, LastIndex: integer;
   CountToUseSimpleSort: Integer);
 begin
- SortByObject(Arr, ArrRecordSize, ArrRecordSize, IsSmallerFunc,
-   FirstIndex, LastIndex, CountToUseSimpleSort);
+  {$warnings off} // using deprecated in deprecated
+  SortByObject(Arr, ArrRecordSize, ArrRecordSize, IsSmallerFunc,
+    FirstIndex, LastIndex, CountToUseSimpleSort);
+  {$warnings on}
 end;
 
 procedure SortByObject(Arr: pointer; ArrRecordSize: Cardinal; ArrStride: integer;

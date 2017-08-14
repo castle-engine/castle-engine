@@ -20,27 +20,12 @@
 { OS constants ---------------------------------------- }
 
 const
-  { New line. Short name for LineEnding. }
+  { New line sequence, suitable for current OS. Short name for LineEnding. }
   NL = LineEnding;
 
-{ basic types ---------------------------------------- }
+{ basic exceptions ---------------------------------------- }
 
 type
-  {$ifdef FPC}
-  { }
-  PByteArray = ^TByteArray;
-  TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
-  {$endif}
-
-  PString = ^AnsiString;
-
-  { Pointer to TObject.
-    Don't call this PObject or PTObject to avoid possible name clashes
-    with other units (pointers are often used in situations that prevent
-    good type-checking, so better to avoid name clashes to avoid some
-    nasty errors). }
-  PtrObject = ^TObject;
-
   { Internal error in the program. Something that definitely should not
     happen and indicates a bug that should be reported.
 
@@ -76,12 +61,7 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
     end;
   #) }
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
-
 function ArrayPosText(const A: string; const Arr: array of string;
-  IgnoreCase: boolean = true): Integer; overload;
-
-function PArrayPosStr(const A: string; Arr: PString; ArrCount: Integer): Integer; overload;
-function PArrayPosText(const A: string; Arr: PString; ArrCount: Integer;
   IgnoreCase: boolean = true): Integer; overload;
 
 { Iff functions ------------------------------------------------------------- }
@@ -191,42 +171,25 @@ end;
 function ArrayPosStr(const A: string; const Arr: array of string): Integer;
 begin
   for Result := 0 to High(Arr) do
-    if Arr[result] = A then Exit;
+    if Arr[Result] = A then
+      Exit;
   Result := -1;
 end;
 
 function ArrayPosText(const A: string; const Arr: array of string;
   IgnoreCase: boolean): Integer;
+var
+  AA: string;
 begin
-  Result := PArrayPosText(A, @Arr, High(Arr)+1, IgnoreCase);
-end;
-
-function PArrayPosStr(const A: string; Arr: PString; ArrCount: Integer): Integer;
-begin
- for result := 0 to ArrCount-1 do
- begin
-  if Arr^=A then exit;
-  Inc(Arr);
- end;
- result := -1;
-end;
-
-function PArrayPosText(const A: string; Arr: PString; ArrCount: Integer;
-  IgnoreCase: boolean): Integer;
-var AA: string;
-begin
- if IgnoreCase then
- begin
-  AA := AnsiUpperCase(A);
-  for result := 0 to ArrCount-1 do
-   begin if AnsiUpperCase(Arr^) = AA then exit; Inc(Arr) end;
-  result := -1;
- end else
- begin
-  for result := 0 to ArrCount-1 do
-   begin if Arr^=A then exit; Inc(Arr) end;
-  result := -1;
- end;
+  if IgnoreCase then
+  begin
+    AA := AnsiUpperCase(A);
+    for Result := 0 to High(Arr) do
+      if AnsiUpperCase(Arr[Result]) = AA then
+        Exit;
+    Result := -1;
+  end else
+    Result := ArrayPosStr(A, Arr);
 end;
 
 { Iff functions ------------------------------------------------------------- }
@@ -252,17 +215,19 @@ begin
   Result :=
     {$ifdef FPC}
       'FPC ' + SFPCVersion
-    {$else} {$ifdef DELPHI}
-      {$ifdef WIN32} 'Delphi'
-        {$ifdef VER140} + ' 6' {$endif}
-        {$ifdef VER150} + ' 7' {$endif}
-      {$else} 'Kylix'
-      {$endif}
-    {$else} {$ifdef __GPC__}
-      'GNU Pascal'
     {$else}
-      'Unrecognized compiler'
-    {$endif} {$endif} {$endif} ;
+
+    {$ifdef DCC}
+    'Delphi'
+    {$else}
+
+    {$ifdef __GPC__}
+    'GNU Pascal'
+    {$else}
+
+    'Unrecognized compiler'
+
+    {$endif} {$endif} {$endif};
 end;
 
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;

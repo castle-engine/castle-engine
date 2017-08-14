@@ -137,7 +137,7 @@ type
     function Sum: LongInt;
     procedure DeleteRange(const Index: Integer; DelCount: Integer = 1);
     { Add given Item a number of times to the list. }
-    procedure AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
+    procedure AddDuplicate(const Item: LongInt; const DuplicateCount: SizeInt);
 
     { Does the SecondValue have equal length and content. }
     function Equals(SecondValue: TObject): boolean; override;
@@ -177,8 +177,8 @@ var
   Dest: PWord;
 begin
   Count := Source.Count;
-  Src := Source.L;
-  Dest := L;
+  Src := PLongInt(Source.L);
+  Dest := PWord(L);
   for I := 0 to Count - 1 do
   begin
     Dest^ := Src^;
@@ -241,8 +241,8 @@ var
   Dest: PSingle;
 begin
   Count := Source.Count;
-  Src := Source.L;
-  Dest := L;
+  Src := PDouble(Source.L);
+  Dest := PSingle(L);
   for I := 0 to Count - 1 do
   begin
     Dest^ := Src^;
@@ -340,8 +340,8 @@ var
   Dest: PDouble;
 begin
   Count := Source.Count;
-  Src := Source.L;
-  Dest := L;
+  Src := PSingle(Source.L);
+  Dest := PDouble(L);
   for I := 0 to Count - 1 do
   begin
     Dest^ := Src^;
@@ -497,7 +497,7 @@ begin
   Count := Count - DelCount;
 end;
 
-procedure TLongIntList.AddDuplicate(const Item: LongInt; const DuplicateCount: Cardinal);
+procedure TLongIntList.AddDuplicate(const Item: LongInt; const DuplicateCount: SizeInt);
 var
   I, C: Integer;
 begin

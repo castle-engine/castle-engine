@@ -258,8 +258,11 @@ begin
       AndroidLog(alInfo, S);
     {$else}
     // we know that LogStream <> nil when FLog = true
+    {$ifdef FPC}
     if BacktraceOnLog then
-      WriteStr(LogStream, S + DumpStackToString(Get_Frame) + NL) else
+      WriteStr(LogStream, S + DumpStackToString(Get_Frame) + NL)
+    else
+    {$endif}
       WriteStr(LogStream, S);
     {$endif}
   end;
@@ -348,6 +351,7 @@ begin
   WritelnWarning(ApplicationName, MessageBase, Args);
 end;
 
+initialization
 finalization
   if LogStreamOwned then
   begin

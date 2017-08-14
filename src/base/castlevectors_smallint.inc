@@ -31,7 +31,7 @@ type
   public
     var
       Data: array [TIndex] of SmallInt;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector2SmallInt = (Data: (0, 0));
     {$endif}
@@ -46,7 +46,7 @@ type
     property X: SmallInt index 0 read GetItemsInt write SetItemsInt;
     property Y: SmallInt index 1 read GetItemsInt write SetItemsInt;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2SmallInt; static; inline;
     {$endif}
   end;
@@ -104,7 +104,7 @@ begin
   Data[Index] := Value;
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2SmallInt.Zero: TVector2SmallInt;
 begin
   FillChar(Result, SizeOf(Result), 0);

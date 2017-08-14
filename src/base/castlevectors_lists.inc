@@ -82,7 +82,7 @@ type
 
     { Assign linear interpolation between two other vector arrays.
       @raises EListsDifferentCount If V1 and V2 have different count. }
-    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector3List);
+    procedure AssignLerp(const Fraction: Single; const V1, V2: TVector3List); overload;
 
     { Assign linear interpolation between two other vector arrays,
       and normalize resulting vectors.

@@ -23,7 +23,8 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  SysUtils, Math;
+  SysUtils, Math,
+  CastleUtils;
 
 type
   { Time in seconds. This is used throughout my engine to represent time
@@ -46,8 +47,13 @@ const
   OldestTime = -MaxDouble;
 
 type
+  { @deprecated
+    To measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds }
   TMilisecTime = QWord
-    deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
+    {$ifdef FPC}
+    // This works in Delphi too, but is too noisy
+    deprecated 'To measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds'
+    {$endif};
 
 { Check is SecondTime larger by at least TimeDelay than FirstTime.
 
@@ -111,7 +117,7 @@ function DateTimeToAtStr(DateTime: TDateTime): string;
 type
   { Current time from @link(ProcessTimer).
     If possible, this measures only the CPU usage local to this process. }
-  TProcessTimerResult = object
+  TProcessTimerResult = record
   private
     Value:
       {$ifdef UNIX} clock_t {$endif}
@@ -191,7 +197,7 @@ function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use
 
 type
   { Current time from @link(Timer). }
-  TTimerResult = object
+  TTimerResult = record
   private
     { The type of this could be platform-dependent. But for now, all platforms
       are happy with Int64. }
@@ -712,7 +718,7 @@ begin
   begin
     FUpdateSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
     if MaxSensibleSecondsPassed > 0 then
-      FUpdateSecondsPassed := Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
+      FUpdateSecondsPassed := CastleUtils.Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
   end;
 
   FUpdateStartTime := NewUpdateStartTime;

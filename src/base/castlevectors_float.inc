@@ -247,8 +247,8 @@ function Matrix3(const V: TMatrix3Double): TMatrix3;
 var
   I, J: Integer;
 begin
-  for I in TMatrix3.TIndex do
-    for J in TMatrix3.TIndex do
+  for I := 0 to 2 do
+    for J := 0 to 2 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -256,8 +256,8 @@ function Matrix4(const V: TMatrix4Double): TMatrix4;
 var
   I, J: Integer;
 begin
-  for I in TMatrix4.TIndex do
-    for J in TMatrix4.TIndex do
+  for I := 0 to 3 do
+    for J := 0 to 3 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -265,8 +265,8 @@ function Matrix3Double(const V: TMatrix3): TMatrix3Double;
 var
   I, J: Integer;
 begin
-  for I in TMatrix3.TIndex do
-    for J in TMatrix3.TIndex do
+  for I := 0 to 2 do
+    for J := 0 to 2 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -274,8 +274,8 @@ function Matrix4Double(const V: TMatrix4): TMatrix4Double;
 var
   I, J: Integer;
 begin
-  for I in TMatrix4.TIndex do
-    for J in TMatrix4.TIndex do
+  for I := 0 to 3 do
+    for J := 0 to 3 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 

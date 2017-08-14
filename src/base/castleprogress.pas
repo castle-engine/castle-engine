@@ -70,11 +70,11 @@ type
       0 means the middle of progress bar is at the bottom of the image,
       1 means at the top. 0.5 indicates the middle, and it's the default. }
     property BarYPosition: Single read FBarYPosition write FBarYPosition
-      default DefaultBarYPosition;
+      {$ifdef FPC} default DefaultBarYPosition {$endif};
 
     { Deprecated name for BarYPosition. }
     property ImageBarYPosition: Single read FBarYPosition write FBarYPosition
-      default DefaultBarYPosition; deprecated;
+      {$ifdef FPC} default DefaultBarYPosition; deprecated {$endif};
 
     { Show progress bar. }
     procedure Init(Progress: TProgress); virtual; abstract;

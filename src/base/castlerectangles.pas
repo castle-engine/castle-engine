@@ -117,7 +117,7 @@ type
     Left, Bottom: Integer;
     Width, Height: Cardinal;
 
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
     {$else}
@@ -155,8 +155,8 @@ type
       In case of shrinking, we protect from shrinking too much:
       the resulting width or height is set to zero (which makes a valid
       and empty rectangle) if shrinking too much. }
-    function Grow(const Delta: Integer): TRectangle;
-    function Grow(const DeltaX, DeltaY: Integer): TRectangle;
+    function Grow(const Delta: Integer): TRectangle; overload;
+    function Grow(const DeltaX, DeltaY: Integer): TRectangle; overload;
 
     { Returns the rectangle with a number of pixels from given
       side removed. Returns an empty rectangle if you try to remove too much.
@@ -310,8 +310,12 @@ type
     Left, Bottom: Single;
     Width, Height: Single;
 
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: -1; Height: -1);
+    {$else}
+    class function Empty: TFloatRectangle; static; inline;
+    {$endif}
 
     function IsEmpty: boolean;
 
@@ -345,8 +349,8 @@ type
       In case of shrinking, we protect from shrinking too much:
       the resulting width or height is set to zero (which makes a valid
       and empty rectangle) if shrinking too much. }
-    function Grow(const Delta: Single): TFloatRectangle;
-    function Grow(const DeltaX, DeltaY: Single): TFloatRectangle;
+    function Grow(const Delta: Single): TFloatRectangle; overload;
+    function Grow(const DeltaX, DeltaY: Single): TFloatRectangle; overload;
 
     function ToString: string;
 
@@ -427,7 +431,7 @@ begin
   Result.Height := Height;
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TRectangle.Empty: TRectangle;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -846,10 +850,10 @@ begin
   if R2.IsEmpty then
     Result := R1 else
   begin
-    Result.Left   := Min(R1.Left  , R2.Left);
-    Result.Bottom := Min(R1.Bottom, R2.Bottom);
-    NewRight := Max(R1.Right   , R2.Right);
-    NewTop   := Max(R1.Top     , R2.Top);
+    Result.Left   := CastleUtils.Min(R1.Left  , R2.Left);
+    Result.Bottom := CastleUtils.Min(R1.Bottom, R2.Bottom);
+    NewRight := CastleUtils.Max(R1.Right   , R2.Right);
+    NewTop   := CastleUtils.Max(R1.Top     , R2.Top);
     Result.Width  := NewRight - Result.Left;
     Result.Height := NewTop   - Result.Bottom;
   end;
@@ -862,10 +866,10 @@ begin
   if R1.IsEmpty or R2.IsEmpty then
     Result := TRectangle.Empty else
   begin
-    Result.Left   := Max(R1.Left  , R2.Left);
-    Result.Bottom := Max(R1.Bottom, R2.Bottom);
-    NewRight := Min(R1.Right   , R2.Right);
-    NewTop   := Min(R1.Top     , R2.Top);
+    Result.Left   := CastleUtils.Max(R1.Left  , R2.Left);
+    Result.Bottom := CastleUtils.Max(R1.Bottom, R2.Bottom);
+    NewRight := CastleUtils.Min(R1.Right   , R2.Right);
+    NewTop   := CastleUtils.Min(R1.Top     , R2.Top);
     if (NewRight > Result.Left) and (NewTop > Result.Bottom) then
     begin
       Result.Width  := NewRight - Result.Left;
@@ -901,6 +905,15 @@ begin
   Result.Width  := Width;
   Result.Height := Height;
 end;
+
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
+class function TFloatRectangle.Empty: TFloatRectangle;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.Width := -1;
+  Result.Height := -1;
+end;
+{$endif}
 
 function TFloatRectangle.IsEmpty: boolean;
 begin
@@ -1161,10 +1174,10 @@ begin
   if R2.IsEmpty then
     Result := R1 else
   begin
-    Result.Left   := Min(R1.Left  , R2.Left);
-    Result.Bottom := Min(R1.Bottom, R2.Bottom);
-    NewRight := Max(R1.Right   , R2.Right);
-    NewTop   := Max(R1.Top     , R2.Top);
+    Result.Left   := CastleUtils.Min(R1.Left  , R2.Left);
+    Result.Bottom := CastleUtils.Min(R1.Bottom, R2.Bottom);
+    NewRight := CastleUtils.Max(R1.Right   , R2.Right);
+    NewTop   := CastleUtils.Max(R1.Top     , R2.Top);
     Result.Width  := NewRight - Result.Left;
     Result.Height := NewTop   - Result.Bottom;
   end;
@@ -1177,10 +1190,10 @@ begin
   if R1.IsEmpty or R2.IsEmpty then
     Result := TFloatRectangle.Empty else
   begin
-    Result.Left   := Max(R1.Left  , R2.Left);
-    Result.Bottom := Max(R1.Bottom, R2.Bottom);
-    NewRight := Min(R1.Right   , R2.Right);
-    NewTop   := Min(R1.Top     , R2.Top);
+    Result.Left   := CastleUtils.Max(R1.Left  , R2.Left);
+    Result.Bottom := CastleUtils.Max(R1.Bottom, R2.Bottom);
+    NewRight := CastleUtils.Min(R1.Right   , R2.Right);
+    NewTop   := CastleUtils.Min(R1.Top     , R2.Top);
     { ">=" unline the int version that checks ">".
       For TFloatRectangle, having zero size makes sense. }
     if (NewRight >= Result.Left) and (NewTop >= Result.Bottom) then
@@ -1189,8 +1202,8 @@ begin
         are true but subtraction yields < 0 due to floating point inaccuracy.
         Not sure is this possible (A >= B and still A - B < 0), probably not,
         but better stay safe when dealing with floating point numbers. }
-      Result.Width  := Max(0, NewRight - Result.Left);
-      Result.Height := Max(0, NewTop   - Result.Bottom);
+      Result.Width  := CastleUtils.Max(0, NewRight - Result.Left);
+      Result.Height := CastleUtils.Max(0, NewTop   - Result.Bottom);
     end else
       Result := TFloatRectangle.Empty;
   end;

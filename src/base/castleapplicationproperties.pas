@@ -27,7 +27,7 @@ uses Generics.Collections,
 type
   TGLContextEvent = procedure;
 
-  TGLContextEventList = class(specialize TList<TGLContextEvent>)
+  TGLContextEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TGLContextEvent>)
   public
     { Call all items, first to last. }
     procedure ExecuteForward;
@@ -37,7 +37,7 @@ type
 
   TWarningEvent = procedure (Sender: TObject; const Category, Message: string) of object;
 
-  TWarningEventList = class(specialize TList<TWarningEvent>)
+  TWarningEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TWarningEvent>)
   public
     procedure ExecuteAll(Sender: TObject; const Category, Message: string);
   end;
@@ -287,6 +287,7 @@ begin
   WarningWrite(ApplicationName + ': ' + Category + ' warning: ' + Message);
 end;
 
+initialization
 finalization
   FreeAndNil(FApplicationProperties);
 end.

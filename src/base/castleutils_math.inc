@@ -1057,14 +1057,42 @@ begin
   Result := Result * Result * (3.0 - 2.0 * Result);
 end;
 
+{ Use Swap32 / Swap64 names, instead of overloading one name like Swap
+  or SwapEndian, to avoid easy mistakes. }
+
+function Swap32(Value: LongWord): LongWord;
+begin
+  {$ifndef FPC}
+  // see
+  // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
+  // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
+  Result := Swap(Word(Value)) shl 16 + Swap(Word(Value shr 16));
+  {$else}
+  Result := SwapEndian(Value);
+  {$endif}
+end;
+
+function Swap64(Value: QWord): QWord;
+begin
+  {$ifndef FPC}
+  // see
+  // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
+  // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
+  Result := Swap32(LongWord(Value));
+  Result := (Result shl 32) or Swap32(LongWord(Value shr 32));
+  {$else}
+  Result := SwapEndian(Value);
+  {$endif}
+end;
+
 function SwapEndian(const Value: Single): Single;
 begin
-  PLongWord(@Result)^ := SwapEndian(PLongWord(@Value)^);
+  PLongWord(@Result)^ := Swap32(PLongWord(@Value)^);
 end;
 
 function SwapEndian(const Value: Double): Double;
 begin
-  PQWord(@Result)^ := SwapEndian(PQWord(@Value)^);
+  PQWord(@Result)^ := Swap64(PQWord(@Value)^);
 end;
 
 function NtoLE(const Value: Single): Single;
