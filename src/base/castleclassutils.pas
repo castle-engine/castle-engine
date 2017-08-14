@@ -570,7 +570,7 @@ function DumpExceptionBackTraceToString: string;
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils {$ifdef FPC}, StreamIO {$endif};
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif};
 
 { TStrings helpers ------------------------------------------------------- }
 

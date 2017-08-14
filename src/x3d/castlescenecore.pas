@@ -2062,7 +2062,8 @@ const
 
 implementation
 
-uses X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
+uses Math,
+  X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
 
 { TX3DBindableStack ----------------------------------------------------- }

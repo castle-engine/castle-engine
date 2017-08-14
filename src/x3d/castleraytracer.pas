@@ -556,11 +556,7 @@ var
       ReflRayDirection, ReflColor: TVector3;
       MaterialReflection: Single;
     begin
-      MaterialReflection := Max(
-        MaterialReflectionColor[0],
-        MaterialReflectionColor[1],
-        MaterialReflectionColor[2]
-      );
+      MaterialReflection := MaterialReflectionColor.Max;
       if MaterialReflection > 0 then
       begin
         ReflRayDirection := ReflectedRayDirection(RayDirection.Normalize,

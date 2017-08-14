@@ -289,9 +289,9 @@ function RgbToHsv(const Value: TVector3): TVector3;
 var
   Chroma, V: Single;
 begin
-  V := Max(Value.Data[0], Value.Data[1], Value.Data[2]);
+  V := Value.Max;
   Result.Data[2] := V;
-  Chroma := V - Min(Value.Data[0], Value.Data[1], Value.Data[2]);
+  Chroma := V - Value.Min;
 
   { Chroma and V are now in the same range as RGB components.
     Which means 0..1 right now, so already Ok. }

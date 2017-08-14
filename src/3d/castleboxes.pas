@@ -642,6 +642,8 @@ function BoundingBox3DFromSphere(const Center: TVector3;
 
 implementation
 
+uses Math;
+
 // Internal IsCenteredBox3DPlaneCollision alternative with Double-precision.
 function IsCenteredBox3DPlaneCollisionDouble(
   const BoxHalfSize: TVector3Double;
@@ -760,10 +762,11 @@ end;
 function TBox3D.MaxSize: Single;
 begin
   CheckNonEmpty;
-  Result := CastleUtils.Max(
-     Data[1].Data[0] - Data[0].Data[0],
-     Data[1].Data[1] - Data[0].Data[1],
-     Data[1].Data[2] - Data[0].Data[2]);
+  Result := MaxValue([
+    Data[1].Data[0] - Data[0].Data[0],
+    Data[1].Data[1] - Data[0].Data[1],
+    Data[1].Data[2] - Data[0].Data[2]
+  ]);
 end;
 
 function TBox3D.MaxSize(const AllowZero: boolean;
@@ -772,10 +775,11 @@ begin
   if IsEmpty then
     Result := EmptyBoxSize else
   begin
-    Result := CastleUtils.Max(
+    Result := MaxValue([
       Data[1].Data[0] - Data[0].Data[0],
       Data[1].Data[1] - Data[0].Data[1],
-      Data[1].Data[2] - Data[0].Data[2]);
+      Data[1].Data[2] - Data[0].Data[2]
+    ]);
     if (not AllowZero) and (Result = 0) then
       Result := EmptyBoxSize;
   end;
@@ -800,19 +804,20 @@ end;
 
 function TBox3D.MinSize: Single;
 begin
- CheckNonEmpty;
+  CheckNonEmpty;
 
- Result := CastleUtils.Min(
-   Data[1].Data[0] - Data[0].Data[0],
-   Data[1].Data[1] - Data[0].Data[1],
-   Data[1].Data[2] - Data[0].Data[2]);
+  Result := MinValue([
+    Data[1].Data[0] - Data[0].Data[0],
+    Data[1].Data[1] - Data[0].Data[1],
+    Data[1].Data[2] - Data[0].Data[2]
+  ]);
 
- { Another version is below (but this is slower without any benefit...)
+  { Another version is below (but this is slower without any benefit...)
 
-   var sizes: TVector3;
-     sizes := Box3DSizes(box);
-     result := sizes[MaxVectorCoord(sizes)];
- }
+    var sizes: TVector3;
+      sizes := Box3DSizes(box);
+      result := sizes[MaxVectorCoord(sizes)];
+  }
 end;
 
 function TBox3D.SizeX: Single;
@@ -1697,20 +1702,18 @@ end;
 function TBox3D.Radius: Single;
 begin
   if IsEmpty then
-    Result := 0 else
-    Result := Sqrt(CastleUtils.Max(
-      CastleUtils.Max(CastleUtils.Max(
-              (Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr),
-              (Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr)),
-          CastleUtils.Max(
-              (Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr),
-              (Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr))),
-      CastleUtils.Max(CastleUtils.Max(
-              (Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr),
-              (Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr)),
-          CastleUtils.Max(
-              (Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr),
-              (Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr)))));
+    Result := 0
+  else
+    Result := Sqrt(MaxValue([
+      Vector3(Data[0].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr,
+      Vector3(Data[1].Data[0], Data[0].Data[1], Data[0].Data[2]).LengthSqr,
+      Vector3(Data[1].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr,
+      Vector3(Data[0].Data[0], Data[1].Data[1], Data[0].Data[2]).LengthSqr,
+      Vector3(Data[0].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr,
+      Vector3(Data[1].Data[0], Data[0].Data[1], Data[1].Data[2]).LengthSqr,
+      Vector3(Data[1].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr,
+      Vector3(Data[0].Data[0], Data[1].Data[1], Data[1].Data[2]).LengthSqr
+    ]));
 end;
 
 function TBox3D.Radius2D(const IgnoreIndex: Integer): Single;
@@ -1719,27 +1722,24 @@ begin
     Result := 0 else
   begin
     case IgnoreIndex of
-      0: Result := CastleUtils.Max(
-           CastleUtils.Max(
-               (Vector2(Data[0].Data[1], Data[0].Data[2]).LengthSqr),
-               (Vector2(Data[1].Data[1], Data[0].Data[2]).LengthSqr)),
-           CastleUtils.Max(
-               (Vector2(Data[1].Data[1], Data[1].Data[2]).LengthSqr),
-               (Vector2(Data[0].Data[1], Data[1].Data[2]).LengthSqr)));
-      1: Result := CastleUtils.Max(
-           CastleUtils.Max(
-               (Vector2(Data[0].Data[2], Data[0].Data[0]).LengthSqr),
-               (Vector2(Data[1].Data[2], Data[0].Data[0]).LengthSqr)),
-           CastleUtils.Max(
-               (Vector2(Data[1].Data[2], Data[1].Data[0]).LengthSqr),
-               (Vector2(Data[0].Data[2], Data[1].Data[0]).LengthSqr)));
-      2: Result := CastleUtils.Max(
-           CastleUtils.Max(
-               (Vector2(Data[0].Data[0], Data[0].Data[1]).LengthSqr),
-               (Vector2(Data[1].Data[0], Data[0].Data[1]).LengthSqr)),
-           CastleUtils.Max(
-               (Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr),
-               (Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr)));
+      0: Result := MaxValue([
+           Vector2(Data[0].Data[1], Data[0].Data[2]).LengthSqr,
+           Vector2(Data[1].Data[1], Data[0].Data[2]).LengthSqr,
+           Vector2(Data[1].Data[1], Data[1].Data[2]).LengthSqr,
+           Vector2(Data[0].Data[1], Data[1].Data[2]).LengthSqr
+         ]);
+      1: Result := MaxValue([
+           Vector2(Data[0].Data[2], Data[0].Data[0]).LengthSqr,
+           Vector2(Data[1].Data[2], Data[0].Data[0]).LengthSqr,
+           Vector2(Data[1].Data[2], Data[1].Data[0]).LengthSqr,
+           Vector2(Data[0].Data[2], Data[1].Data[0]).LengthSqr
+         ]);
+      2: Result := MaxValue([
+           Vector2(Data[0].Data[0], Data[0].Data[1]).LengthSqr,
+           Vector2(Data[1].Data[0], Data[0].Data[1]).LengthSqr,
+           Vector2(Data[1].Data[0], Data[1].Data[1]).LengthSqr,
+           Vector2(Data[0].Data[0], Data[1].Data[1]).LengthSqr
+         ]);
       else RaiseRadius2DInvalidIgnoreIndex;
     end;
 
@@ -2146,12 +2146,12 @@ begin
   if Box2.IsEmpty then
     Result := Box1 else
   begin
-    Result.Data[0].Data[0] := CastleUtils.Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
-    Result.Data[1].Data[0] := CastleUtils.Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
-    Result.Data[0].Data[1] := CastleUtils.Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
-    Result.Data[1].Data[1] := CastleUtils.Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
-    Result.Data[0].Data[2] := CastleUtils.Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
-    Result.Data[1].Data[2] := CastleUtils.Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
+    Result.Data[0].Data[0] := Math.Min(Box1.Data[0].Data[0], Box2.Data[0].Data[0]);
+    Result.Data[1].Data[0] := Math.Max(Box1.Data[1].Data[0], Box2.Data[1].Data[0]);
+    Result.Data[0].Data[1] := Math.Min(Box1.Data[0].Data[1], Box2.Data[0].Data[1]);
+    Result.Data[1].Data[1] := Math.Max(Box1.Data[1].Data[1], Box2.Data[1].Data[1]);
+    Result.Data[0].Data[2] := Math.Min(Box1.Data[0].Data[2], Box2.Data[0].Data[2]);
+    Result.Data[1].Data[2] := Math.Max(Box1.Data[1].Data[2], Box2.Data[1].Data[2]);
   end;
 end;
 

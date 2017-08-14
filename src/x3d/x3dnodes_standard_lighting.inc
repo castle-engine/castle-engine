@@ -840,11 +840,11 @@ begin
     But it may be more optimal, since it's often false,
     and then we don't need to do 2x multiplications and 1x addition. }
   if DistanceNeededForAttenuation then
-    result := 1/ CastleUtils.max(
+    Result := 1 / Max(
       FdAttenuation.Value[0] +
       FdAttenuation.Value[1] * DistanceToLight +
       FdAttenuation.Value[2] * Sqr(DistanceToLight), 1.0) else
-    result := 1/ CastleUtils.max(
+    Result := 1 / Max(
       FdAttenuation.Value[0], 1.0);
 end;
 

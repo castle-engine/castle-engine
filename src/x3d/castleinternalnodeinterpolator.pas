@@ -178,7 +178,7 @@ type
 
 implementation
 
-uses SysUtils, XMLRead, DOM,
+uses SysUtils, XMLRead, DOM, Math,
   CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
   CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
 
@@ -652,6 +652,7 @@ begin
   for I := 0 to Count - 1 do
     Items[I].FreeNodesContents;
 end;
+
 { TNodeInterpolator ---------------------------------------------------------- }
 
 class function TNodeInterpolator.BakeToSequence(

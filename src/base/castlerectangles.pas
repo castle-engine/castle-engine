@@ -850,10 +850,10 @@ begin
   if R2.IsEmpty then
     Result := R1 else
   begin
-    Result.Left   := CastleUtils.Min(R1.Left  , R2.Left);
-    Result.Bottom := CastleUtils.Min(R1.Bottom, R2.Bottom);
-    NewRight := CastleUtils.Max(R1.Right   , R2.Right);
-    NewTop   := CastleUtils.Max(R1.Top     , R2.Top);
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    NewRight := Max(R1.Right   , R2.Right);
+    NewTop   := Max(R1.Top     , R2.Top);
     Result.Width  := NewRight - Result.Left;
     Result.Height := NewTop   - Result.Bottom;
   end;
@@ -866,10 +866,10 @@ begin
   if R1.IsEmpty or R2.IsEmpty then
     Result := TRectangle.Empty else
   begin
-    Result.Left   := CastleUtils.Max(R1.Left  , R2.Left);
-    Result.Bottom := CastleUtils.Max(R1.Bottom, R2.Bottom);
-    NewRight := CastleUtils.Min(R1.Right   , R2.Right);
-    NewTop   := CastleUtils.Min(R1.Top     , R2.Top);
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    NewRight := Min(R1.Right   , R2.Right);
+    NewTop   := Min(R1.Top     , R2.Top);
     if (NewRight > Result.Left) and (NewTop > Result.Bottom) then
     begin
       Result.Width  := NewRight - Result.Left;
@@ -1174,10 +1174,10 @@ begin
   if R2.IsEmpty then
     Result := R1 else
   begin
-    Result.Left   := CastleUtils.Min(R1.Left  , R2.Left);
-    Result.Bottom := CastleUtils.Min(R1.Bottom, R2.Bottom);
-    NewRight := CastleUtils.Max(R1.Right   , R2.Right);
-    NewTop   := CastleUtils.Max(R1.Top     , R2.Top);
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    NewRight := Max(R1.Right   , R2.Right);
+    NewTop   := Max(R1.Top     , R2.Top);
     Result.Width  := NewRight - Result.Left;
     Result.Height := NewTop   - Result.Bottom;
   end;
@@ -1190,10 +1190,10 @@ begin
   if R1.IsEmpty or R2.IsEmpty then
     Result := TFloatRectangle.Empty else
   begin
-    Result.Left   := CastleUtils.Max(R1.Left  , R2.Left);
-    Result.Bottom := CastleUtils.Max(R1.Bottom, R2.Bottom);
-    NewRight := CastleUtils.Min(R1.Right   , R2.Right);
-    NewTop   := CastleUtils.Min(R1.Top     , R2.Top);
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    NewRight := Min(R1.Right   , R2.Right);
+    NewTop   := Min(R1.Top     , R2.Top);
     { ">=" unline the int version that checks ">".
       For TFloatRectangle, having zero size makes sense. }
     if (NewRight >= Result.Left) and (NewTop >= Result.Bottom) then
@@ -1202,8 +1202,8 @@ begin
         are true but subtraction yields < 0 due to floating point inaccuracy.
         Not sure is this possible (A >= B and still A - B < 0), probably not,
         but better stay safe when dealing with floating point numbers. }
-      Result.Width  := CastleUtils.Max(0, NewRight - Result.Left);
-      Result.Height := CastleUtils.Max(0, NewTop   - Result.Bottom);
+      Result.Width  := Max(0, NewRight - Result.Left);
+      Result.Height := Max(0, NewTop   - Result.Bottom);
     end else
       Result := TFloatRectangle.Empty;
   end;

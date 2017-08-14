@@ -280,8 +280,9 @@ type
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras, CastleQuaternions,
-  CastleColors;
+uses Math,
+  CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras,
+  CastleQuaternions, CastleColors;
 
 { TCasScriptVec ---------------------------------------------------------- }
 

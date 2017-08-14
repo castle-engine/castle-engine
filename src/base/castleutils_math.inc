@@ -58,45 +58,6 @@ procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$if
 {$endif}
 { @groupEnd }
 
-{ Return minimum / maximum from 2 / 3 items.
-  @groupBegin }
-function min(const a, b: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-
-function min(const a, b, c: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-
-function max(const a, b: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function max(const a, b: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-
-function max(const a, b, c: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function max(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-{ @groupEnd }
-
 { Update value of A to be a minimum of A, B.
   Works like @code(A := Min(A, B)), but is marginally faster,
   since you don't have to do anything when A is already smaller.
@@ -420,42 +381,6 @@ procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);   begin if X <= 
 procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-{$endif}
-
-function Min(const a, b: Int64): Int64;       begin if A < B then Result := A else Result := B end;
-function Min(const a, b: integer): integer;   begin if A < B then Result := A else Result := B end;
-function Min(const a, b: cardinal): cardinal; begin if A < B then Result := A else Result := B end;
-function Min(const a, b: Single): Single;     begin if A < B then Result := A else Result := B end;
-function Min(const a, b: Double): Double;     begin if A < B then Result := A else Result := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Min(const a, b: Extended): Extended; begin if A < B then Result := A else Result := B end;
-{$endif}
-
-function Max(const a, b: Int64): Int64;       begin if A > B then Result := A else Result := B end;
-function Max(const a, b: integer): integer;   begin if A > B then Result := A else Result := B end;
-function Max(const a, b: cardinal): cardinal; begin if A > B then Result := A else Result := B end;
-function Max(const a, b: Single): Single;     begin if A > B then Result := A else Result := B end;
-function Max(const a, b: Double): Double;     begin if A > B then Result := A else Result := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Max(const a, b: Extended): Extended; begin if A > B then Result := A else Result := B end;
-{$endif}
-
-function Min(const a, b, c: Int64): Int64;       begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: integer): integer;   begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: cardinal): cardinal; begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: Single): Single;     begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: Double): Double;     begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Min(const a, b, c: Extended): Extended; begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-{$endif}
-
-function Max(const a, b, c: Int64): Int64;       begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: integer): integer;   begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: cardinal): cardinal; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: Single): Single;     begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: Double): Double;     begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Max(const a, b, c: Extended): Extended; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
 {$endif}
 
 procedure MinVar(var a: Word    ; const b: Word    ); begin if B < A then A := B end;

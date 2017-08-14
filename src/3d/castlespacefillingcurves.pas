@@ -193,7 +193,8 @@ function AllSFCurveClassesNames: string;
 
 implementation
 
-uses CastleUtils;
+uses Math,
+  CastleUtils;
 
 const
   { AngleTurn[Angle, Orient] = (definicja)

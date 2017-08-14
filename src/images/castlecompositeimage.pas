@@ -256,7 +256,8 @@ const
 
 implementation
 
-uses SysUtils, CastleUtils, CastleClassUtils, CastleLog, CastleStringUtils,
+uses SysUtils, Math,
+  CastleUtils, CastleClassUtils, CastleLog, CastleStringUtils,
   CastleVectors, CastleDownload, CastleURIUtils;
 
 { ----------------------------------------------------------------------------

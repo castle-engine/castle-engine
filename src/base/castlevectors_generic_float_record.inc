@@ -250,6 +250,12 @@ type
     { Absolute value on all components. }
     function Abs: TGenericVector3; inline;
 
+    { Smallest component. }
+    function Min: TGenericScalar;
+
+    { Largest component. }
+    function Max: TGenericScalar;
+
     { Average from all components. }
     function Average: TGenericScalar; inline;
 
@@ -1055,6 +1061,16 @@ begin
   Result.Data[0] := System.Abs(Data[0]);
   Result.Data[1] := System.Abs(Data[1]);
   Result.Data[2] := System.Abs(Data[2]);
+end;
+
+function TGenericVector3.Min: TGenericScalar;
+begin
+  Result := MinValue(Data);
+end;
+
+function TGenericVector3.Max: TGenericScalar;
+begin
+  Result := MaxValue(Data);
 end;
 
 function TGenericVector3.Average: TGenericScalar;

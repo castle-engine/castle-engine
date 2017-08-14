@@ -1736,8 +1736,8 @@ begin
   Closest := PointOnLineClosestToPoint(pos1, pos2 - pos1, point);
   if IsPointOnSegmentLineWithinSegment(Closest, pos1, pos2) then
     Result := PointsDistanceSqr(Closest, point) else
-    Result := CastleUtils.min(PointsDistanceSqr(pos1, point),
-                              PointsDistanceSqr(pos2, point));
+    Result := Min(PointsDistanceSqr(pos1, point),
+                  PointsDistanceSqr(pos2, point));
 end;
 
 function PlaneTransform(const Plane: TVector4; const Matrix: TMatrix4): TVector4;

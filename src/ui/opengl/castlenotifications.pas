@@ -130,7 +130,8 @@ procedure Register;
 
 implementation
 
-uses CastleLog;
+uses Math,
+  CastleLog;
 
 procedure Register;
 begin

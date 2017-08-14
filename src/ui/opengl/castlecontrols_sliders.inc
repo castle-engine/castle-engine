@@ -301,16 +301,16 @@ begin
   if Event.IsKey(K_Right) then
   begin
     if MultipleOf <> 0 then
-      Value := CastleUtils.Min(Max, Value + MultipleOf) else
-      Value := CastleUtils.Min(Max, Value + ValueChange);
+      Value := Math.Min(Max, Value + MultipleOf) else
+      Value := Math.Min(Max, Value + ValueChange);
     DoChange;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(K_Left) then
   begin
     if MultipleOf <> 0 then
-      Value := CastleUtils.Max(Min, Value - MultipleOf) else
-      Value := CastleUtils.Max(Min, Value - ValueChange);
+      Value := Math.Max(Min, Value - MultipleOf) else
+      Value := Math.Max(Min, Value - ValueChange);
     DoChange;
     Result := ExclusiveEvents;
   end else
@@ -431,13 +431,13 @@ begin
 
   if Event.IsKey(K_Right) then
   begin
-    Value := CastleUtils.Min(Max, Value + ValueChange);
+    Value := Math.Min(Max, Value + ValueChange);
     DoChange;
     Result := ExclusiveEvents;
   end else
   if Event.IsKey(K_Left) then
   begin
-    Value := CastleUtils.Max(Min, Value - ValueChange);
+    Value := Math.Max(Min, Value - ValueChange);
     DoChange;
     Result := ExclusiveEvents;
   end else

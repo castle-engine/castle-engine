@@ -718,7 +718,7 @@ begin
   begin
     FUpdateSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
     if MaxSensibleSecondsPassed > 0 then
-      FUpdateSecondsPassed := CastleUtils.Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
+      FUpdateSecondsPassed := Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
   end;
 
   FUpdateStartTime := NewUpdateStartTime;

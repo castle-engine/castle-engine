@@ -83,8 +83,8 @@ begin
     SourceY := 0;
   end;
 
-  SourceWidth  := Min(SourceWidth , Width  - X, Source.Width );
-  SourceHeight := Min(SourceHeight, Height - Y, Source.Height);
+  SourceWidth  := MinIntValue([SourceWidth , Width  - X, Source.Width ]);
+  SourceHeight := MinIntValue([SourceHeight, Height - Y, Source.Height]);
 
   if (SourceWidth > 0) and
      (SourceHeight > 0) and

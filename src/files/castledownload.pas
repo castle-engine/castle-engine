@@ -377,7 +377,7 @@ type
 implementation
 
 uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
-  CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils
+  CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils, Math
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }

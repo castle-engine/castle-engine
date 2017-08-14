@@ -267,7 +267,7 @@ var
 
 implementation
 
-uses SysUtils, XMLRead, StrUtils,
+uses SysUtils, XMLRead, StrUtils, Math,
   CastleXMLUtils, CastleFilesUtils, X3DNodes,
   CastleURIUtils, CastleDownload, CastleLog;
 

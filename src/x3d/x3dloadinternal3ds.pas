@@ -27,7 +27,7 @@ function Load3DS(const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, Math,
   CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
   X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
   CastleStreamUtils;

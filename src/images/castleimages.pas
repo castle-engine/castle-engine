@@ -3986,7 +3986,7 @@ var
   Mantissa: Extended;
   Exponent: Integer;
 begin
-  MaxVal := CastleUtils.max(v.Data[0], CastleUtils.max(v.Data[1], v.Data[2]));
+  MaxVal := V.Max;
 
   { rozpatrujemy tu nie tylko przypadek gdy liczba jest = 0 ale takze
     gdy jest bliska zeru. To jest standardowe zachowanie, ale uwaga -
