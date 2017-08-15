@@ -578,7 +578,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
   var
     SavedProjectionMatrix: TMatrix4;
   begin
-    SavedProjectionMatrix := ProjectionMatrix;
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
     OrthoProjection(FloatRectangle(Window.Rect));
 
     glPushMatrix;
@@ -610,7 +610,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
 
     glPopMatrix;
 
-    ProjectionMatrix := SavedProjectionMatrix;
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
   end;
 
 var

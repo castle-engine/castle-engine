@@ -239,8 +239,8 @@ var
     var
       SavedProjectionMatrix: TMatrix4;
     begin
-      SavedProjectionMatrix := ProjectionMatrix;
-      ProjectionMatrix := TMatrix4.Identity;
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      RenderContext.ProjectionMatrix := TMatrix4.Identity;
 
       glPushMatrix;
         glLoadIdentity;
@@ -257,7 +257,7 @@ var
         glPopAttrib;
       glPopMatrix;
 
-      ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
     end;
 
   begin
