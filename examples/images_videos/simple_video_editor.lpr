@@ -23,7 +23,8 @@ program simple_video_editor;
   info on stdout anyway. }
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses CastleUtils, SysUtils, CastleWindow, CastleGLImages, CastleControls,
+uses SysUtils, Math,
+  CastleUtils, CastleWindow, CastleGLImages, CastleControls,
   CastleVideos, CastleStringUtils, CastleMessages, CastleColors,
   CastleParameters, CastleGLUtils, CastleVectors, Classes, CastleProgress,
   CastleWindowProgress, CastleTimeUtils, CastleKeysMouse, CastleURIUtils,

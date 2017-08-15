@@ -362,8 +362,8 @@ procedure TTestCastleUtils.TestMinMax;
 begin
   AssertTrue(Min(345, 789) = 345);
   AssertTrue(Max(345, 789) = 789);
-  AssertTrue(Min(345, 123, 789) = 123);
-  AssertTrue(Max(345, 123, 789) = 789);
+  AssertTrue(MinValue([345, 123, 789]) = 123);
+  AssertTrue(MaxValue([345, 123, 789]) = 789);
 end;
 
 type
