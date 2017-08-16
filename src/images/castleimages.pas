@@ -505,7 +505,7 @@ type
 
       Remember that resizing may change RawPixels pointer, so all pointers
       that you aquired using functions like
-      RawPixels, RGBPixels, AlphaPixels, RowPtr, PixelPtr
+      RawPixels, Pixels, PixelsArray, RowPtr, PixelPtr
       may be invalid after calling Resize.
 
       If ProgressTitle <> '' this will call Progress.Init/Step/Fini
@@ -1037,7 +1037,8 @@ type
   { Image with pixel represented as a TVector3Byte (red, green, blue). }
   TRGBImage = class(TCastleImage)
   private
-    function GetRGBPixels: PVector3Byte;
+    function GetPixels: PVector3Byte;
+    function GetPixelsArray: PVector3ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     function ToFpImage: TInternalCastleFpImage; override;
   protected
@@ -1047,8 +1048,11 @@ type
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
-    { This is the same pointer as RawPixels, only typecasted to PVector3Byte }
-    property RGBPixels: PVector3Byte read GetRGBPixels;
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector3Byte. }
+    property Pixels: PVector3Byte read GetPixels;
+    property RGBPixels: PVector3Byte read GetPixels; deprecated 'use Pixels';
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector3ByteArray. }
+    property PixelsArray: PVector3ByteArray read GetPixelsArray;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
@@ -1132,7 +1136,8 @@ type
   TRGBAlphaImage = class(TCastleImage)
   private
     FPremultipliedAlpha: boolean;
-    function GetAlphaPixels: PVector4Byte;
+    function GetPixels: PVector4Byte;
+    function GetPixelsArray: PVector4ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     function ToFpImage: TInternalCastleFpImage; override;
   protected
@@ -1142,8 +1147,11 @@ type
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
-    { This is the same pointer as RawPixels, only typecasted to PVector4Byte }
-    property AlphaPixels: PVector4Byte read GetAlphaPixels;
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector4Byte. }
+    property Pixels: PVector4Byte read GetPixels;
+    property AlphaPixels: PVector4Byte read GetPixels; deprecated 'use Pixels';
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector4ByteArray. }
+    property PixelsArray: PVector4ByteArray read GetPixelsArray;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
@@ -1264,7 +1272,8 @@ type
   private
     FTreatAsAlpha: boolean;
     FColorWhenTreatedAsAlpha: TVector3Byte;
-    function GetGrayscalePixels: PByte;
+    function GetPixels: PByte;
+    function GetPixelsArray: PByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     function ToFpImage: TInternalCastleFpImage; override;
   protected
@@ -1274,8 +1283,11 @@ type
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
-    { This is the same pointer as RawPixels, only typecasted to PByte }
-    property GrayscalePixels: PByte read GetGrayscalePixels;
+    { Pointer to pixels. Same as RawPixels, only typecasted to PByte. }
+    property Pixels: PByte read GetPixels;
+    property GrayscalePixels: PByte read GetPixels; deprecated 'use Pixels';
+    { Pointer to pixels. Same as RawPixels, only typecasted to PByteArray. }
+    property PixelsArray: PByteArray read GetPixelsArray;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
@@ -1343,7 +1355,8 @@ type
     Each pixel is two bytes: grayscale + alpha. }
   TGrayscaleAlphaImage = class(TCastleImage)
   private
-    function GetGrayscaleAlphaPixels: PVector2Byte;
+    function GetPixels: PVector2Byte;
+    function GetPixelsArray: PVector2ByteArray;
     procedure FromFpImage(const FPImage: TInternalCastleFpImage); override;
     function ToFpImage: TInternalCastleFpImage; override;
   protected
@@ -1353,8 +1366,11 @@ type
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
-    { This is the same pointer as RawPixels, only typecasted to PVector2Byte }
-    property GrayscaleAlphaPixels: PVector2Byte read GetGrayscaleAlphaPixels;
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector2Byte. }
+    property Pixels: PVector2Byte read GetPixels;
+    property GrayscaleAlphaPixels: PVector2Byte read GetPixels; deprecated 'use Pixels';
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector2ByteArray. }
+    property PixelsArray: PVector2ByteArray read GetPixelsArray;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
@@ -2734,10 +2750,10 @@ begin
   ReplaceWhiteImage.Resize(MapImage.Width, MapImage.Height);
   ReplaceBlackImage.Resize(MapImage.Width, MapImage.Height);
 
-  Map := MapImage.RGBPixels;
-  White := ReplaceWhiteImage.RGBPixels;
-  Black := ReplaceBlackImage.RGBPixels;
-  Res := RGBPixels;
+  Map := MapImage.Pixels;
+  White := ReplaceWhiteImage.Pixels;
+  Black := ReplaceBlackImage.Pixels;
+  Res := Pixels;
 
   for i := 1 to Width * Height * Depth do
   begin
@@ -2752,9 +2768,14 @@ begin
   end;
 end;
 
-function TRGBImage.GetRGBPixels: PVector3Byte;
+function TRGBImage.GetPixels: PVector3Byte;
 begin
   Result := PVector3Byte(RawPixels);
+end;
+
+function TRGBImage.GetPixelsArray: PVector3ByteArray;
+begin
+  Result := PVector3ByteArray(RawPixels);
 end;
 
 class function TRGBImage.PixelSize: Cardinal;
@@ -2782,7 +2803,7 @@ var
   i: Cardinal;
   prgb: PVector3Byte;
 begin
-  prgb := RGBPixels;
+  prgb := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     prgb^.Data[0] := High(byte)-prgb^.Data[0];
@@ -2818,7 +2839,7 @@ var
   P: PVector3Byte;
   I: Cardinal;
 begin
-  P := RGBPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     Move(Pixel, P^, SizeOf(TVector3Byte));
@@ -2831,7 +2852,7 @@ var
   P: PVector3Byte;
   I: Cardinal;
 begin
-  P := RGBPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     if not CompareMem(@Pixel, P, SizeOf(TVector3Byte)) then
@@ -2859,8 +2880,8 @@ var
   i: Cardinal;
 begin
   Result := TRGBAlphaImage.Create(Width, Height, Depth);
-  pi := RGBPixels;
-  pa := Result.AlphaPixels;
+  pi := Pixels;
+  pa := Result.Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     Move(pi^, pa^, SizeOf(TVector3Byte));
@@ -2878,7 +2899,7 @@ var
 begin
   result := TRGBFloatImage.Create(Width, Height, Depth);
   try
-    PByte := RGBPixels;
+    PByte := Pixels;
     PFloat := Result.RGBFloatPixels;
     for i := 1 to Width * Height * Depth do
     begin
@@ -2897,8 +2918,8 @@ var
 begin
   Result := TGrayscaleImage.Create(Width, Height, Depth);
   try
-    pRGB := RGBPixels;
-    pGrayscale := Result.GrayscalePixels;
+    pRGB := Pixels;
+    pGrayscale := Result.Pixels;
     for i := 1 to Width * Height * Depth do
     begin
       pGrayscale^ := GrayscaleValue(pRGB^);
@@ -2951,8 +2972,8 @@ var
 begin
   LerpSimpleCheckConditions(SecondImage);
 
-  SelfPtr := RGBPixels;
-  SecondPtr := TRGBImage(SecondImage).RGBPixels;
+  SelfPtr := Pixels;
+  SecondPtr := TRGBImage(SecondImage).Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
@@ -2998,8 +3019,8 @@ begin
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
-    SelfPtr := RGBPixels;
-    RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
+    SelfPtr := Pixels;
+    RgbaPtr := TRGBAlphaImage(Source).Pixels;
     for I := 1 to Width * Height * Depth do
     begin
       Move(RgbaPtr^, SelfPtr^, SizeOf(TVector3Byte));
@@ -3012,7 +3033,7 @@ begin
   if Source is TRGBFloatImage then
   begin
     SetSize(Source);
-    SelfPtr := RGBPixels;
+    SelfPtr := Pixels;
     FloatPtr := TRGBFloatImage(Source).RGBFloatPixels;
     for I := 1 to Width * Height * Depth do
     begin
@@ -3028,9 +3049,14 @@ end;
 
 { TRGBAlphaImage ------------------------------------------------------------ }
 
-function TRGBAlphaImage.GetAlphaPixels: PVector4Byte;
+function TRGBAlphaImage.GetPixels: PVector4Byte;
 begin
   Result := PVector4Byte(RawPixels);
+end;
+
+function TRGBAlphaImage.GetPixelsArray: PVector4ByteArray;
+begin
+  Result := PVector4ByteArray(RawPixels);
 end;
 
 class function TRGBAlphaImage.PixelSize: Cardinal;
@@ -3058,7 +3084,7 @@ var
   i: Cardinal;
   palpha: PVector4Byte;
 begin
-  palpha := AlphaPixels;
+  palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     palpha^.Data[0] := High(byte)-palpha^.Data[0];
@@ -3100,7 +3126,7 @@ var
   i: Cardinal;
   palpha: PVector4Byte;
 begin
-  palpha := AlphaPixels;
+  palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     palpha^.Data[3] := Alpha;
@@ -3127,7 +3153,7 @@ var
   pa: PVector4Byte;
   i: Cardinal;
 begin
-  pa := AlphaPixels;
+  pa := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     if EqualRGB(AlphaColor, PVector3Byte(pa)^, Tolerance) then
@@ -3151,9 +3177,9 @@ begin
 
   SetSize(RGB);
 
-  PtrAlpha := AlphaPixels;
-  PtrRGB := RGB.RGBPixels;
-  PtrGrayscale := AGrayscale.GrayscalePixels;
+  PtrAlpha := Pixels;
+  PtrRGB := RGB.Pixels;
+  PtrGrayscale := AGrayscale.Pixels;
 
   for I := 1 to Width * Height * Depth do
   begin
@@ -3177,7 +3203,7 @@ var
   PtrAlpha: PVector4Byte;
   I: Cardinal;
 begin
-  PtrAlpha := AlphaPixels;
+  PtrAlpha := Pixels;
 
   for I := 1 to Width * Height * Depth do
   begin
@@ -3198,8 +3224,8 @@ var
 begin
   LerpSimpleCheckConditions(SecondImage);
 
-  SelfPtr := AlphaPixels;
-  SecondPtr := TRGBAlphaImage(SecondImage).AlphaPixels;
+  SelfPtr := Pixels;
+  SecondPtr := TRGBAlphaImage(SecondImage).Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
@@ -3264,7 +3290,7 @@ begin
   if not FPremultipliedAlpha then
   begin
     FPremultipliedAlpha := true;
-    P := AlphaPixels;
+    P := Pixels;
     for I := 1 to Width * Height * Depth do
     begin
       P^.Data[0] := Clamped(Round(P^.Data[0] * P^.Data[3] / 255), 0, 255);
@@ -3550,9 +3576,14 @@ end;
 
 { TGrayscaleImage ------------------------------------------------------------ }
 
-function TGrayscaleImage.GetGrayscalePixels: PByte;
+function TGrayscaleImage.GetPixels: PByte;
 begin
   Result := PByte(RawPixels);
+end;
+
+function TGrayscaleImage.GetPixelsArray: PByteArray;
+begin
+  Result := PByteArray(RawPixels);
 end;
 
 class function TGrayscaleImage.PixelSize: Cardinal;
@@ -3600,7 +3631,7 @@ var
   P: PByte;
   I: Cardinal;
 begin
-  P := GrayscalePixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     P^ := P^ shr 1;
@@ -3616,8 +3647,8 @@ var
 begin
   LerpSimpleCheckConditions(SecondImage);
 
-  SelfPtr := GrayscalePixels;
-  SecondPtr := TGrayscaleImage(SecondImage).GrayscalePixels;
+  SelfPtr := Pixels;
+  SecondPtr := TGrayscaleImage(SecondImage).Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Clamped(Round(Lerp(Value, SelfPtr^, SecondPtr^)), 0, High(Byte));
@@ -3648,8 +3679,8 @@ var
   I: Cardinal;
 begin
   Result := TGrayscaleAlphaImage.Create(Width, Height, Depth);
-  pg := GrayscalePixels;
-  pa := Result.GrayscaleAlphaPixels;
+  pg := Pixels;
+  pa := Result.Pixels;
 
   if TreatAsAlpha then
   begin
@@ -3681,7 +3712,7 @@ begin
   if not TreatAsAlpha then
     Exit(inherited AlphaChannel(AlphaTolerance));
 
-  PtrAlpha := GrayscalePixels;
+  PtrAlpha := Pixels;
 
   for I := 1 to Width * Height * Depth do
   begin
@@ -3704,8 +3735,8 @@ begin
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
-    SelfPtr := GrayscalePixels;
-    RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
+    SelfPtr := Pixels;
+    RgbaPtr := TRGBAlphaImage(Source).Pixels;
     for I := 1 to Width * Height * Depth do
     begin
       SelfPtr^ := GrayscaleValue(RgbPtr^);
@@ -3723,7 +3754,7 @@ var
   I: Cardinal;
   P: PByte;
 begin
-  P := GrayscalePixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     P^ := High(Byte)-P^;
@@ -3752,9 +3783,14 @@ end;
 
 { TGrayscaleAlphaImage ------------------------------------------------------------ }
 
-function TGrayscaleAlphaImage.GetGrayscaleAlphaPixels: PVector2Byte;
+function TGrayscaleAlphaImage.GetPixels: PVector2Byte;
 begin
   Result := PVector2Byte(RawPixels);
+end;
+
+function TGrayscaleAlphaImage.GetPixelsArray: PVector2ByteArray;
+begin
+  Result := PVector2ByteArray(RawPixels);
 end;
 
 class function TGrayscaleAlphaImage.PixelSize: Cardinal;
@@ -3792,7 +3828,7 @@ var
   P: PVector2Byte;
   I: Cardinal;
 begin
-  P := GrayscaleAlphaPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     Move(Pixel, P^, SizeOf(Pixel));
@@ -3805,7 +3841,7 @@ var
   P: PVector2Byte;
   I: Cardinal;
 begin
-  P := GrayscaleAlphaPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     if not CompareMem(@Pixel, P, SizeOf(Pixel)) then
@@ -3829,7 +3865,7 @@ var
   PtrAlpha: PVector2Byte;
   I: Cardinal;
 begin
-  PtrAlpha := GrayscaleAlphaPixels;
+  PtrAlpha := Pixels;
 
   for I := 1 to Width * Height * Depth do
   begin
@@ -3850,8 +3886,8 @@ var
 begin
   LerpSimpleCheckConditions(SecondImage);
 
-  SelfPtr := GrayscaleAlphaPixels;
-  SecondPtr := TGrayscaleAlphaImage(SecondImage).GrayscaleAlphaPixels;
+  SelfPtr := Pixels;
+  SecondPtr := TGrayscaleAlphaImage(SecondImage).Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
@@ -3890,8 +3926,8 @@ begin
   if Source is TRGBAlphaImage then
   begin
     SetSize(Source);
-    SelfPtr := GrayscaleAlphaPixels;
-    RgbaPtr := TRGBAlphaImage(Source).AlphaPixels;
+    SelfPtr := Pixels;
+    RgbaPtr := TRGBAlphaImage(Source).Pixels;
     for I := 1 to Width * Height * Depth do
     begin
       SelfPtr^.Data[0] := GrayscaleValue(RgbPtr^);
@@ -3910,7 +3946,7 @@ var
   I: Cardinal;
   P: PVector2Byte;
 begin
-  P := GrayscaleAlphaPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     P^.Data[0] := High(Byte)-P^.Data[0];

@@ -1086,25 +1086,25 @@ begin
     case comp of
       1:begin
           Value := TGrayscaleImage.Create(w, h);
-          GrayscalePixels := PByteArray(Value.RawPixels);
+          GrayscalePixels := TGrayscaleImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
             DecodeX3DColor(ParseLongWord(Lexer), GrayscalePixels^[I]);
         end;
       2:begin
           Value := TGrayscaleAlphaImage.Create(w, h);
-          GrayscaleAlphaPixels := PVector2ByteArray(Value.RawPixels);
+          GrayscaleAlphaPixels := TGrayscaleAlphaImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
             DecodeX3DColor(ParseLongWord(Lexer), GrayscaleAlphaPixels^[i]);
         end;
       3:begin
           Value := TRGBImage.Create(w, h);
-          RGBPixels := PVector3ByteArray(Value.RawPixels);
+          RGBPixels := TRGBImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
             DecodeX3DColor(ParseLongWord(Lexer), RGBPixels^[i]);
         end;
       4:begin
           Value := TRGBAlphaImage.Create(w, h);
-          RGBAlphaPixels := PVector4ByteArray(Value.RawPixels);
+          RGBAlphaPixels := TRGBAlphaImage(Value).PixelsArray;
           for i := 0 to W * H - 1 do
             DecodeX3DColor(ParseLongWord(Lexer), RGBAlphaPixels^[i]);
         end;
@@ -1136,7 +1136,7 @@ begin
     begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
-        pixel := TGrayscaleImage(Value).GrayscalePixels[i];
+        pixel := TGrayscaleImage(Value).PixelsArray^[i];
         Writer.Write(Format('0x%.2x ', [pixel]));
       end;
     end else
@@ -1144,7 +1144,7 @@ begin
     begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
-        ga := TGrayscaleAlphaImage(Value).GrayscaleAlphaPixels[i];
+        ga := TGrayscaleAlphaImage(Value).PixelsArray^[i];
         pixel := (ga[0] shl 8) or ga[1];
         Writer.Write(Format('0x%.4x ', [pixel]));
       end;
@@ -1153,7 +1153,7 @@ begin
     begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
-        rgb := TRGBImage(Value).RGBPixels[i];
+        rgb := TRGBImage(Value).PixelsArray^[i];
         pixel := (rgb[0] shl 16) or (rgb[1] shl 8) or rgb[2];
         Writer.Write(Format('0x%.6x ', [pixel]));
       end;
@@ -1162,7 +1162,7 @@ begin
     begin
       for i := 0 to Value.Width * Value.Height - 1 do
       begin
-        rgba := TRGBAlphaImage(Value).AlphaPixels[i];
+        rgba := TRGBAlphaImage(Value).PixelsArray^[i];
         pixel := (rgba[0] shl 24) or (rgba[1] shl 16) or (rgba[2] shl 8) or rgba[3];
         Writer.Write(Format('0x%.8x ', [pixel]));
       end;

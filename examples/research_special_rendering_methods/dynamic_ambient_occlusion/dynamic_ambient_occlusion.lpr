@@ -62,7 +62,7 @@ type
     Position, Normal: TVector3;
   end;
   PAOElement = ^TAOElement;
-  TAOElementList = specialize TStructList<TAOElement>;
+  TAOElementList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TAOElement>;
 
 var
   Elements: TAOElementList;
@@ -127,7 +127,7 @@ begin
     PVector3Array(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
 
   { Split FaceArea into the number of polygon corners. }
-  FaceArea /= Length(Indexes);
+  FaceArea := FaceArea / Length(Indexes);
 
   for I := 0 to Length(Indexes) - 1 do
     if DirectIndexes[I] >= 0 then
@@ -135,7 +135,7 @@ begin
       ShapeElements[DirectIndexes[I]].Normal :=
         ShapeElements[DirectIndexes[I]].Normal + FaceNormal;
       { Split FaceArea into the number of polygon corners. }
-      ShapeElements[DirectIndexes[I]].Area += FaceArea;
+      ShapeElements[DirectIndexes[I]].Area := ShapeElements[DirectIndexes[I]].Area + FaceArea;
     end;
 end;
 
@@ -384,8 +384,8 @@ begin
   ElementsNormalTex := TRGBImage.Create(ElementsTexSize, ElementsTexSize);
 
   { fill textures }
-  PositionArea := ElementsPositionAreaTex.AlphaPixels;
-  Normal := ElementsNormalTex.RGBPixels;
+  PositionArea := ElementsPositionAreaTex.Pixels;
+  Normal := ElementsNormalTex.Pixels;
   Element := PAOElement(Elements.List);
   for I := 0 to Elements.Count - 1 do
   begin
@@ -487,7 +487,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(1, 1, 0, 1));
       end else
       begin
-        ElementIntensity := ElementsIntensityTex.GrayscalePixels;
+        ElementIntensity := ElementsIntensityTex.Pixels;
       end;
 
       Q := NewGLUQuadric(false, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
@@ -693,10 +693,10 @@ begin
   if ElemIndex = -1 then
     Color := TVector3.Zero { element invalid, probably separate vertex } else
   begin
-    Intensity := FullRenderIntensityTex.GrayscalePixels[ElemIndex]/255;
-    Color.Data[0] *= Intensity;
-    Color.Data[1] *= Intensity;
-    Color.Data[2] *= Intensity;
+    Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
+    Color.Data[0] := Color.Data[0] * Intensity;
+    Color.Data[1] := Color.Data[1] * Intensity;
+    Color.Data[2] := Color.Data[2] * Intensity;
   end;
 end;
 
@@ -802,12 +802,12 @@ procedure Update(Container: TUIContainer);
 begin
   if Window.Pressed.Characters['s'] then
   begin
-    ShadowScale *= Power(1.1, Window.Fps.UpdateSecondsPassed * 20);
+    ShadowScale := ShadowScale * (Power(1.1, Window.Fps.UpdateSecondsPassed * 20));
     Window.Invalidate;
   end;
   if Window.Pressed.Characters['S'] then
   begin
-    ShadowScale *= Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20);
+    ShadowScale := ShadowScale * (Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20));
     Window.Invalidate;
   end;
 end;

@@ -155,9 +155,9 @@ procedure SHVectorGLCapture(
 
       for I := 0 to Sqr(CubeMapSize) - 1 do
         for SHBasis := 0 to High(SHVector) do
-          SHVector[SHBasis] += (Map.GrayscalePixels[I]/255) *
+          SHVector[SHBasis] := SHVector[SHBasis] + ((Map.Pixels[I]/255) *
             ScaleColor *
-            SHBasisMap[SHBasis, Side, I];
+            SHBasisMap[SHBasis, Side, I]);
     finally FreeAndNil(Map) end;
   end;
 

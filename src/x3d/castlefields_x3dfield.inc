@@ -606,8 +606,11 @@ begin
     if Exposed then
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Add(@ExposedEventReceive) else
-        FExposedEvents[true].OnReceive.Remove(@ExposedEventReceive);
+        FExposedEvents[true].OnReceive.Add(
+          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive)
+      else
+        FExposedEvents[true].OnReceive.Remove(
+          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
     end;
   end;
 end;
@@ -646,11 +649,13 @@ begin
         end;
 
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Add(@ExposedEventReceive);
+        FExposedEvents[true].OnReceive.Add(
+          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
     end else
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Remove(@ExposedEventReceive);
+        FExposedEvents[true].OnReceive.Remove(
+          {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
       FreeAndNil(FExposedEvents[true]);

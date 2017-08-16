@@ -268,8 +268,8 @@ begin
   AssertEquals(Expected.Width, Actual.Width);
   AssertEquals(Expected.Height, Actual.Height);
   AssertEquals(Expected.Depth, Actual.Depth);
-  ExpectedPtr := Expected.AlphaPixels;
-  ActualPtr := Actual.AlphaPixels;
+  ExpectedPtr := Expected.Pixels;
+  ActualPtr := Actual.Pixels;
   for I := 1 to Actual.Width * Actual.Height * Actual.Depth do
   begin
     AssertVectorEquals(ExpectedPtr^, ActualPtr^);

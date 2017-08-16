@@ -500,7 +500,7 @@ begin
     0: { 0 components is allowed by the spec, and results in an empty image };
     1: begin
          FTextureImage := TGrayscaleImage.Create(Width, Height, Depth);
-         G := TGrayscaleImage(FTextureImage).GrayscalePixels;
+         G := TGrayscaleImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
            DecodeX3DColor(FdImage.Items.Items[4 + I], G^);
@@ -509,7 +509,7 @@ begin
        end;
     2: begin
          FTextureImage := TGrayscaleAlphaImage.Create(Width, Height, Depth);
-         GA := TGrayscaleAlphaImage(FTextureImage).GrayscaleAlphaPixels;
+         GA := TGrayscaleAlphaImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
            DecodeX3DColor(FdImage.Items.Items[4 + I], GA^);
@@ -518,7 +518,7 @@ begin
        end;
     3: begin
          FTextureImage := TRGBImage.Create(Width, Height, Depth);
-         RGB := TRGBImage(FTextureImage).RGBPixels;
+         RGB := TRGBImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
            DecodeX3DColor(FdImage.Items.Items[4 + I], RGB^);
@@ -527,7 +527,7 @@ begin
        end;
     4: begin
          FTextureImage := TRGBAlphaImage.Create(Width, Height, Depth);
-         RGBA := TRGBAlphaImage(FTextureImage).AlphaPixels;
+         RGBA := TRGBAlphaImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
            DecodeX3DColor(FdImage.Items.Items[4 + I], RGBA^);

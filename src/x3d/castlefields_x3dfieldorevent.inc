@@ -283,12 +283,12 @@ begin
   Result := '';
 
   if ParentNode <> nil then
-    Result += TX3DNode(ParentNode).NiceName + '.';
+    Result := Result + TX3DNode(ParentNode).NiceName + '.';
 
   if X3DName <> '' then
-    Result += X3DName
+    Result := Result + X3DName
   else
-    Result += '<not named field>';
+    Result := Result + '<not named field>';
 end;
 
 procedure TX3DFieldOrEvent.SaveToStreamClassicIsClauses(Writer: TX3DWriter);

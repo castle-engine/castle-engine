@@ -82,8 +82,8 @@
       or if ParentNode.Scene is @nil (which may happen only if events
       processing is not turned on, that is TCastleSceneCore.ProcessEvents is @false)
       then event is not send. }
-    procedure Send(Field: TX3DField; const Time: TX3DTime);
-    procedure Send(Field: TX3DField);
+    procedure Send(Field: TX3DField; const Time: TX3DTime); overload;
+    procedure Send(Field: TX3DField); overload;
 
     { Notifications about receiving an item. For input fields,
       these are used by node itself to listen to events send to it.
