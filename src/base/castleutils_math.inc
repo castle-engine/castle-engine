@@ -329,6 +329,8 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
   read from a file
 
   @groupBegin }
+function Swap32(Value: LongWord): LongWord;
+function Swap64(Value: QWord): QWord;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
 

@@ -1,11 +1,12 @@
-function LoadDDS(Stream: TStream;
-  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+function LoadComposite(Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass;
+  const FakeURL: string): TEncodedImage;
 var
   Composite: TCompositeImage;
 begin
   Composite := TCompositeImage.Create;
   try
-    Composite.LoadFromStream(Stream);
+    Composite.LoadFromStream(Stream, FakeURL);
 
     { After successfully loading, Composite should always contain at least one image }
     Assert(Composite.Images.Count >= 1);
@@ -20,7 +21,19 @@ begin
   finally FreeAndNil(Composite) end;
 end;
 
-procedure SaveDDS(Img: TEncodedImage; Stream: TStream);
+function LoadDDS(Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  Result := LoadComposite(Stream, AllowedImageClasses, '.dds');
+end;
+
+function LoadKTX(Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
+begin
+  Result := LoadComposite(Stream, AllowedImageClasses, '.ktx');
+end;
+
+procedure SaveComposite(Img: TEncodedImage; Stream: TStream; const MimeType: string);
 var
   Composite: TCompositeImage;
 begin
@@ -36,6 +49,11 @@ begin
 
     Composite.OwnsFirstImage := false;
 
-    Composite.SaveToStream(Stream);
+    Composite.SaveToStream(Stream, MimeType);
   finally FreeAndNil(Composite) end;
+end;
+
+procedure SaveDDS(Img: TEncodedImage; Stream: TStream);
+begin
+  SaveComposite(Img, Stream, 'image/x-dds');
 end;

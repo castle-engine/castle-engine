@@ -1224,13 +1224,17 @@ type
   { Image with high-precision RGB colors encoded as 3 floats. }
   TRGBFloatImage = class(TCastleImage)
   private
-    function GetRGBFloatPixels: PVector3;
+    function GetPixels: PVector3;
+    function GetPixelsArray: PVector3Array;
   protected
     function GetColors(const X, Y, Z: Integer): TCastleColor; override;
     procedure SetColors(const X, Y, Z: Integer; const C: TCastleColor); override;
   public
-    { This is the same pointer as RawPixels, only typecasted to PVector3 }
-    property RGBFloatPixels: PVector3 read GetRGBFloatPixels;
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector3. }
+    property Pixels: PVector3 read GetPixels;
+    property RGBFloatPixels: PVector3 read GetPixels; deprecated 'use Pixels';
+    { Pointer to pixels. Same as RawPixels, only typecasted to PVector3Array. }
+    property PixelsArray: PVector3Array read GetPixelsArray;
 
     class function PixelSize: Cardinal; override;
     class function ColorComponentsCount: Cardinal; override;
@@ -2900,7 +2904,7 @@ begin
   result := TRGBFloatImage.Create(Width, Height, Depth);
   try
     PByte := Pixels;
-    PFloat := Result.RGBFloatPixels;
+    PFloat := Result.Pixels;
     for i := 1 to Width * Height * Depth do
     begin
       PFloat^ := Vector3(PByte^);
@@ -3034,7 +3038,7 @@ begin
   begin
     SetSize(Source);
     SelfPtr := Pixels;
-    FloatPtr := TRGBFloatImage(Source).RGBFloatPixels;
+    FloatPtr := TRGBFloatImage(Source).Pixels;
     for I := 1 to Width * Height * Depth do
     begin
       SelfPtr^ := Vector3Byte(FloatPtr^);
@@ -3386,9 +3390,14 @@ end;
 
 { TRGBFloatImage ------------------------------------------------------------ }
 
-function TRGBFloatImage.GetRGBFloatPixels: PVector3;
+function TRGBFloatImage.GetPixels: PVector3;
 begin
   Result := PVector3(RawPixels);
+end;
+
+function TRGBFloatImage.GetPixelsArray: PVector3Array;
+begin
+  Result := PVector3Array(RawPixels);
 end;
 
 class function TRGBFloatImage.PixelSize: Cardinal;
@@ -3453,7 +3462,7 @@ var
   P: PVector3;
   I: Cardinal;
 begin
-  P := RGBFloatPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     Move(Pixel, P^, SizeOf(TVector3));
@@ -3466,7 +3475,7 @@ var
   P: PVector3;
   I: Cardinal;
 begin
-  P := RGBFloatPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     if not CompareMem(@Pixel, P, SizeOf(TVector3)) then
@@ -3490,7 +3499,7 @@ var
   pFloat: PVector3;
   i: Cardinal;
 begin
-  PFloat := RGBFloatPixels;
+  PFloat := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     PFloat^ := PFloat^ * Scale;
@@ -3510,7 +3519,7 @@ var
   pFloat: PVector3;
   i: Cardinal;
 begin
-  PFloat := RGBFloatPixels;
+  PFloat := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
     PFloat^ := VectorPowerComponents(PFloat^, Exp);
@@ -3526,8 +3535,8 @@ var
 begin
   LerpSimpleCheckConditions(SecondImage);
 
-  SelfPtr := RGBFloatPixels;
-  SecondPtr := TRGBFloatImage(SecondImage).RGBFloatPixels;
+  SelfPtr := Pixels;
+  SecondPtr := TRGBFloatImage(SecondImage).Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     SelfPtr^ := Lerp(Value, SelfPtr^, SecondPtr^);
@@ -3564,7 +3573,7 @@ var
   I: Cardinal;
   P: PVector3;
 begin
-  P := RGBFloatPixels;
+  P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
     P^.Data[0] := Max(1-P^.Data[0], 0.0);

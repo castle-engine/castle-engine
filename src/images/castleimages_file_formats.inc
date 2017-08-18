@@ -45,6 +45,7 @@ type
       See also TCompositeImage class in CastleCompositeImage unit,
       that exposes even more features of the DDS image format. }
     ifDDS,
+    ifKTX,
 
     { High-dynamic range image format, originally used by Radiance.
       See e.g. the pfilt and ximage programs from the Radiance package
@@ -164,6 +165,8 @@ function LoadRGBE(Stream: TStream;
   If you want to investigate other images in DDS, you have to use TCompositeImage
   class. }
 function LoadDDS(Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+function LoadKTX(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Saving image (format-specific) --------------------------------------------
@@ -399,6 +402,14 @@ const
       ExtsCount: 1; Exts: ('dds', '', '');
       Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
       Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
+
+    { Khronos KTX } { }
+    ( FormatName: 'Khronos KTX image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/ktx', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('ktx', '', '');
+      Load: @LoadKTX; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
+      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
 
     { Image formats not well known. }
 
