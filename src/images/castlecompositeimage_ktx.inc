@@ -515,6 +515,18 @@ begin
       ImageSize := Swap32(ImageSize);
 
     ReadOneImage(Stream);
+
+    // TODO: read mipmaps
+    //WritelnLog('KTX', 'Mipmap levels: %d', [Header.NumberOfMipmapLevels]);
+
+    { TODO: For now, we don't support cubemaps.
+      But we can read multiple images in case of NumberOfArrayElements > 1. }
+    if (Header.NumberOfFaces <= 1) and
+       (Header.NumberOfArrayElements > 1) then
+    begin
+      for I := 1 to Header.NumberOfArrayElements - 1 do
+        ReadOneImage(Stream);
+    end;
   except
     { EReadError is raised by Stream.ReadBuffer when it can't read
       specified number of bytes }
