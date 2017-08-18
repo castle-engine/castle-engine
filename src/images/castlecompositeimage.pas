@@ -178,9 +178,12 @@ type
       const Level: Cardinal = 0): TEncodedImage;
 
     { Load composite (KTX or DDS) image from any TStream.
-      The image type is recognized from the URL extension.
+      The image type is recognized from the MimeType extension,
+      or (if empty) from URL,
+      so make sure that you provide at least one of these parameters.
       @raises(EInvalidCompositeImage In case of any error in the file data.) }
-    procedure LoadFromStream(Stream: TStream; const URL: string);
+    procedure LoadFromStream(Stream: TStream; const URL: string;
+      MimeType: string = '');
 
     procedure LoadFromFile(const URL: string);
 
@@ -310,20 +313,24 @@ begin
     Result := FImages[Index];
 end;
 
-procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string);
+procedure TCompositeImage.LoadFromStream(Stream: TStream; const URL: string;
+  MimeType: string);
 var
   Handler: TCompositeFormatHandler;
 begin
   Close;
 
-  if URIMimeType(URL) = 'image/x-dds' then
+  if MimeType = '' then
+    MimeType := URIMimeType(URL);
+
+  if MimeType = 'image/x-dds' then
     Handler := TDDSHandler.Create(Self)
   else
-  if URIMimeType(URL) = 'image/ktx' then
+  if MimeType = 'image/ktx' then
     Handler := TKTXHandler.Create(Self)
   else
-    raise EInvalidCompositeImage.CreateFmt('Cannot recognize composite image file type: %s',
-      [URL]);
+    raise EInvalidCompositeImage.CreateFmt('Cannot recognize composite image MIME type: %s',
+      [MimeType]);
 
   try
     Handler.LoadFromStream(Stream, URL);

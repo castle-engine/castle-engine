@@ -1,12 +1,12 @@
 function LoadComposite(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass;
-  const FakeURL: string): TEncodedImage;
+  const MimeType: string): TEncodedImage;
 var
   Composite: TCompositeImage;
 begin
   Composite := TCompositeImage.Create;
   try
-    Composite.LoadFromStream(Stream, FakeURL);
+    Composite.LoadFromStream(Stream, '', MimeType);
 
     { After successfully loading, Composite should always contain at least one image }
     Assert(Composite.Images.Count >= 1);
@@ -24,13 +24,13 @@ end;
 function LoadDDS(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadComposite(Stream, AllowedImageClasses, '.dds');
+  Result := LoadComposite(Stream, AllowedImageClasses, 'image/x-dds');
 end;
 
 function LoadKTX(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage;
 begin
-  Result := LoadComposite(Stream, AllowedImageClasses, '.ktx');
+  Result := LoadComposite(Stream, AllowedImageClasses, 'image/ktx');
 end;
 
 procedure SaveComposite(Img: TEncodedImage; Stream: TStream; const MimeType: string);

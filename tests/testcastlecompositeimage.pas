@@ -71,7 +71,7 @@ procedure TTestCastleCompositeImage.TestLoadSave;
       Composite.LoadFromFile(FileName);
 
       { save to stream without flattening }
-      Composite.SaveToStream(StreamNoFlatten);
+      Composite.SaveToStream(StreamNoFlatten, 'image/x-dds');
 
       { flatten (making sure it actually did something: changed Composite.Images.Count) }
       OldImagesCount := Composite.Images.Count;
@@ -81,7 +81,7 @@ procedure TTestCastleCompositeImage.TestLoadSave;
         AssertTrue(OldImagesCount = Cardinal(Composite.Images.Count));
 
       { save to stream with flattening }
-      Composite.SaveToStream(StreamFlatten);
+      Composite.SaveToStream(StreamFlatten, 'image/x-dds');
 
       { compare saved with and without flattening: saved image should
         be exactly the same. }
@@ -103,11 +103,11 @@ procedure TTestCastleCompositeImage.TestLoadSave;
       { compare with what is loaded from StreamNoFlatten and StreamFlatten:
         they both should be equal to current Composite. }
       StreamNoFlatten.Position := 0;
-      Composite2.LoadFromStream(StreamNoFlatten);
+      Composite2.LoadFromStream(StreamNoFlatten, '', 'image/x-dds');
       AssertCompositeEqual(Composite, Composite2);
 
       StreamFlatten.Position := 0;
-      Composite2.LoadFromStream(StreamFlatten);
+      Composite2.LoadFromStream(StreamFlatten, '', 'image/x-dds');
       AssertCompositeEqual(Composite, Composite2);
     finally
       FreeAndNil(Composite);
@@ -140,15 +140,15 @@ procedure TTestCastleCompositeImage.TestLoadSaveS3TC;
       AssertTrue(Composite.Images[0] is TGPUCompressedImage);
 
       { save Composite into Stream1 }
-      Composite.SaveToStream(Stream1);
+      Composite.SaveToStream(Stream1, 'image/x-dds');
 
       { load Stream1 into Composite }
       Stream1.Position := 0;
-      Composite.LoadFromStream(Stream1);
+      Composite.LoadFromStream(Stream1, '', 'image/x-dds');
       AssertTrue(Composite.Images[0] is TGPUCompressedImage);
 
       { save Composite into Stream2 }
-      Composite.SaveToStream(Stream2);
+      Composite.SaveToStream(Stream2, 'image/x-dds');
 
       { Test that both save and load do appropriate vertical flip.
         If only one would do vertical flip, streams would differ.
