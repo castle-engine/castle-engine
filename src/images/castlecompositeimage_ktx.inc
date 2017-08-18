@@ -20,80 +20,152 @@
 type
   TKTXHandler = class(TCompositeFormatHandler)
   strict private
-    class procedure ReadG(const Stream: TStream;
-      const Image: TGrayscaleImage; const RowBytePadding: Integer); static;
-    class procedure ReadAG(const Stream: TStream;
-      const Image: TGrayscaleAlphaImage; const RowBytePadding: Integer); static;
-    class procedure ReadRGB(const Stream: TStream;
-      const Image: TRGBImage; const RowBytePadding: Integer); static;
-    class procedure ReadBGR(const Stream: TStream;
-      const Image: TRGBImage; const RowBytePadding: Integer); static;
-    class procedure ReadRGBA(const Stream: TStream;
-      const Image: TRGBAlphaImage); static;
-    class procedure ReadBGRA(const Stream: TStream;
-      const Image: TRGBAlphaImage); static;
-    class procedure ReadFloatImage(const Stream: TStream;
-      const Image: TRGBFloatImage); static;
+    const
+      // See https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/
+      CorrectFileId: array [0..11] of Byte =
+      ($AB, $4B, $54, $58, $20, $31, $31, $BB, $0D, $0A, $1A, $0A);
+
+    type
+      TKTXHeader = record
+        FileId: array [0..High(CorrectFileId)] of Byte;
+        Endianness,
+        GlType,
+        GlTypeSize,
+        GlFormat,
+        GlInternalFormat,
+        GlBaseInternalFormat,
+        Width,
+        Height,
+        Depth,
+        NumberOfArrayElements,
+        NumberOfFaces,
+        NumberOfMipmapLevels,
+        BytesOfKeyValueData: LongWord;
+      end;
+    const
+      // See /usr/include/GL/gl.h , /usr/include/GL/glext.h
+      //GL_BYTE           = $1400;
+      GL_UNSIGNED_BYTE  = $1401;
+      //GL_SHORT          = $1402;
+      //GL_UNSIGNED_SHORT = $1403;
+      //GL_INT            = $1404;
+      //GL_UNSIGNED_INT   = $1405;
+      GL_FLOAT          = $1406;
+      //GL_DOUBLE         = $140A;
+      GL_HALF_FLOAT     = $140B;
+
+      GL_RED             = $1903;
+      //GL_GREEN           = $1904;
+      //GL_BLUE            = $1905;
+      //GL_ALPHA           = $1906;
+      GL_RGB             = $1907;
+      GL_RGBA            = $1908;
+      //GL_LUMINANCE       = $1909;
+      //GL_LUMINANCE_ALPHA = $190A;
+
+      GL_BGR            = $80E0;
+      GL_BGRA           = $80E1;
+
+      //GL_R16F           = $822D;
+      GL_R32F           = $822E;
+
+    var
+      Header: TKTXHeader;
+      SwapEndianness: boolean;
+      RowsTopToBottom, SlicesFrontToBack: boolean;
+
+    procedure ReadKeyValues(const Stream: TStream);
+    procedure ReadOrientation(const Value: string);
+
+    { The KTX specification says
+      "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4." }
+    function RowBytePadding(const Image: TCastleImage): Integer;
+
+    procedure ReadOneImage(const Stream: TStream);
+
+    { Optionally invert Y, depending on RowsTopToBottom. }
+    function TargetY(const Y: Integer): Integer;
+
+    procedure ReadG(const Stream: TStream;
+      const Image: TGrayscaleImage; const ARowBytePadding: Integer);
+    procedure ReadAG(const Stream: TStream;
+      const Image: TGrayscaleAlphaImage; const ARowBytePadding: Integer);
+    procedure ReadRGB(const Stream: TStream;
+      const Image: TRGBImage; const ARowBytePadding: Integer);
+    procedure ReadBGR(const Stream: TStream;
+      const Image: TRGBImage; const ARowBytePadding: Integer);
+    procedure ReadRGBA(const Stream: TStream;
+      const Image: TRGBAlphaImage);
+    procedure ReadBGRA(const Stream: TStream;
+      const Image: TRGBAlphaImage);
+    procedure ReadFloatImage(const Stream: TStream;
+      const Image: TRGBFloatImage);
   public
     procedure LoadFromStream(const Stream: TStream; const URL: string); override;
   end;
 
-// TODO: detect when rows are inverted in KTX by looking at header
+function TKTXHandler.TargetY(const Y: Integer): Integer;
+begin
+  if RowsTopToBottom then
+    Result := Height - Y - 1
+  else
+    Result := Y;
+end;
 
-class procedure TKTXHandler.ReadG(const Stream: TStream;
-  const Image: TGrayscaleImage; const RowBytePadding: Integer);
+procedure TKTXHandler.ReadG(const Stream: TStream;
+  const Image: TGrayscaleImage; const ARowBytePadding: Integer);
 var
   Y, Z: Integer;
 begin
   for Z := 0 to Image.Depth - 1 do
-    for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+    for Y := 0 to Image.Height - 1 do
     begin
-      Stream.ReadBuffer(Image.RowPtr(Y, Z)^, Image.PixelSize * Image.Width);
-      if RowBytePadding <> 0 then
-        Stream.Seek(RowBytePadding, soFromCurrent);
+      Stream.ReadBuffer(Image.RowPtr(TargetY(Y), Z)^, Image.PixelSize * Image.Width);
+      if ARowBytePadding <> 0 then
+        Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
 end;
 
-class procedure TKTXHandler.ReadAG(const Stream: TStream;
-  const Image: TGrayscaleAlphaImage; const RowBytePadding: Integer);
+procedure TKTXHandler.ReadAG(const Stream: TStream;
+  const Image: TGrayscaleAlphaImage; const ARowBytePadding: Integer);
 var
   Y, Z: Integer;
 begin
   for Z := 0 to Image.Depth - 1 do
-    for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+    for Y := 0 to Image.Height - 1 do
     begin
-      Stream.ReadBuffer(Image.RowPtr(Y, Z)^, Image.PixelSize * Image.Width);
-      if RowBytePadding <> 0 then
-        Stream.Seek(RowBytePadding, soFromCurrent);
+      Stream.ReadBuffer(Image.RowPtr(TargetY(Y), Z)^, Image.PixelSize * Image.Width);
+      if ARowBytePadding <> 0 then
+        Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
 end;
 
-class procedure TKTXHandler.ReadRGB(const Stream: TStream;
-  const Image: TRGBImage; const RowBytePadding: Integer);
+procedure TKTXHandler.ReadRGB(const Stream: TStream;
+  const Image: TRGBImage; const ARowBytePadding: Integer);
 var
   Y, Z: Integer;
   Row: PVector3ByteArray;
 begin
   for Z := 0 to Image.Depth - 1 do
-    for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+    for Y := 0 to Image.Height - 1 do
     begin
-      Row := Image.RowPtr(Y, Z);
+      Row := Image.RowPtr(TargetY(Y), Z);
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
-      if RowBytePadding <> 0 then
-        Stream.Seek(RowBytePadding, soFromCurrent);
+      if ARowBytePadding <> 0 then
+        Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
 end;
 
-class procedure TKTXHandler.ReadBGR(const Stream: TStream;
-  const Image: TRGBImage; const RowBytePadding: Integer);
+procedure TKTXHandler.ReadBGR(const Stream: TStream;
+  const Image: TRGBImage; const ARowBytePadding: Integer);
 var
   X, Y, Z: Integer;
   Row: PVector3Byte;
 begin
   for Z := 0 to Image.Depth - 1 do
-    for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+    for Y := 0 to Image.Height - 1 do
     begin
-      Row := PVector3Byte(Image.RowPtr(Y, Z));
+      Row := PVector3Byte(Image.RowPtr(TargetY(Y), Z));
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       { Now invert red and blue. }
       for X := 0 to Image.Width - 1 do
@@ -101,35 +173,35 @@ begin
         SwapValues(Row^.Data[2], Row^.Data[0]);
         Inc(Row);
       end;
-      if RowBytePadding <> 0 then
-        Stream.Seek(RowBytePadding, soFromCurrent);
+      if ARowBytePadding <> 0 then
+        Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
 end;
 
-class procedure TKTXHandler.ReadRGBA(const Stream: TStream;
+procedure TKTXHandler.ReadRGBA(const Stream: TStream;
   const Image: TRGBAlphaImage);
 var
   Y, Z: Integer;
   Row: PVector4ByteArray;
 begin
   for Z := 0 to Image.Depth - 1 do
-    for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+    for Y := 0 to Image.Height - 1 do
     begin
-      Row := Image.RowPtr(Y, Z);
+      Row := Image.RowPtr(TargetY(Y), Z);
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
     end;
 end;
 
-class procedure TKTXHandler.ReadBGRA(const Stream: TStream;
+procedure TKTXHandler.ReadBGRA(const Stream: TStream;
   const Image: TRGBAlphaImage);
 var
   X, Y, Z: Integer;
   Row: PVector4Byte;
 begin
   for Z := 0 to Image.Depth - 1 do
-    for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+    for Y := 0 to Image.Height - 1 do
     begin
-      Row := PVector4Byte(Image.RowPtr(Y, Z));
+      Row := PVector4Byte(Image.RowPtr(TargetY(Y), Z));
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       { Now invert red and blue. }
       for X := 0 to Image.Width - 1 do
@@ -140,7 +212,7 @@ begin
     end;
 end;
 
-class procedure TKTXHandler.ReadFloatImage(const Stream: TStream;
+procedure TKTXHandler.ReadFloatImage(const Stream: TStream;
   const Image: TRGBFloatImage);
 var
   Floats: TSingleList;
@@ -156,9 +228,9 @@ begin
 
     // move Floats data to Image.Pixels
     for Z := 0 to Image.Depth - 1 do
-      for Y := Image.Height - 1 downto 0 do // rows in KTX are usually inverted
+      for Y := 0 to Image.Height - 1 do
       begin
-        Pixel := PVector3(Image.RowPtr(Y, Z));
+        Pixel := PVector3(Image.RowPtr(TargetY(Y), Z));
         for X := 0 to Image.Width - 1 do
         begin
           Pixel^[0] := PixelSource^;
@@ -171,144 +243,165 @@ begin
   finally FreeAndNil(Floats) end;
 end;
 
-procedure TKTXHandler.LoadFromStream(const Stream: TStream; const URL: string);
-const
-  // See https://www.khronos.org/opengles/sdk/tools/KTX/file_format_spec/
-  CorrectFileId: array [0..11] of Byte =
-  ($AB, $4B, $54, $58, $20, $31, $31, $BB, $0D, $0A, $1A, $0A);
-
-type
-  TKTXHeader = record
-    FileId: array [0..High(CorrectFileId)] of Byte;
-    Endianness,
-    GlType,
-    GlTypeSize,
-    GlFormat,
-    GlInternalFormat,
-    GlBaseInternalFormat,
-    Width,
-    Height,
-    Depth,
-    NumberOfArrayElements,
-    NumberOfFaces,
-    NumberOfMipmapLevels,
-    BytesOfKeyValueData: LongWord;
-  end;
-const
-  // See /usr/include/GL/gl.h , /usr/include/GL/glext.h
-  GL_BYTE           = $1400;
-  GL_UNSIGNED_BYTE  = $1401;
-  GL_SHORT          = $1402;
-  GL_UNSIGNED_SHORT = $1403;
-  GL_INT            = $1404;
-  GL_UNSIGNED_INT   = $1405;
-  GL_FLOAT          = $1406;
-  GL_DOUBLE         = $140A;
-  GL_HALF_FLOAT     = $140B;
-
-  GL_RED             = $1903;
-  GL_GREEN           = $1904;
-  GL_BLUE            = $1905;
-  GL_ALPHA           = $1906;
-  GL_RGB             = $1907;
-  GL_RGBA            = $1908;
-  GL_LUMINANCE       = $1909;
-  GL_LUMINANCE_ALPHA = $190A;
-
-  GL_BGR            = $80E0;
-  GL_BGRA           = $80E1;
-
-  GL_R16F           = $822D;
-  GL_R32F           = $822E;
-
-  { The KTX specification says
-    "Uncompressed texture data matches a GL_UNPACK_ALIGNMENT of 4." }
-  function RowBytePadding(const Image: TCastleImage): Integer;
+procedure TKTXHandler.ReadOrientation(const Value: string);
+begin
+  if Value = 'S=r,T=d' then
   begin
-    Result := Image.PixelSize * Image.Width mod 4;
-    if Result <> 0 then
-      Result := 4 - Result;
-  end;
-
-  procedure ReadOneImage(const Header: TKTXHeader);
-  var
-    RGBAImage: TRGBAlphaImage;
-    RGBImage: TRGBImage;
-    RGBFloatImage: TRGBFloatImage;
+    RowsTopToBottom := true;
+    SlicesFrontToBack := false;
+  end else
+  if Value = 'S=r,T=u' then
   begin
-    if (Header.GlType = GL_UNSIGNED_BYTE) and
-       (Header.GlTypeSize = 1) and
-       (Header.GlFormat = GL_BGRA) and
-       (Header.GlInternalFormat = GL_BGRA) and
-       (Header.GlBaseInternalFormat = GL_BGRA) then
-    begin
-      RGBAImage := TRGBAlphaImage.Create(Width, Height, Depth);
-      // when Image.PixelSize is 4, there is never any padding
-      Assert(RowBytePadding(RGBAImage) = 0);
-      Images.Add(RGBAImage);
-      ReadBGRA(Stream, RGBAImage);
-    end else
-    if (Header.GlType = GL_UNSIGNED_BYTE) and
-       (Header.GlTypeSize = 1) and
-       (Header.GlFormat = GL_RGBA) and
-       (Header.GlInternalFormat = GL_RGBA) and
-       (Header.GlBaseInternalFormat = GL_RGBA) then
-    begin
-      RGBAImage := TRGBAlphaImage.Create(Width, Height, Depth);
-      // when Image.PixelSize is 4, there is never any padding
-      Assert(RowBytePadding(RGBAImage) = 0);
-      Images.Add(RGBAImage);
-      ReadRGBA(Stream, RGBAImage);
-    end else
-    if (Header.GlType = GL_UNSIGNED_BYTE) and
-       (Header.GlTypeSize = 1) and
-       (Header.GlFormat = GL_BGR) and
-       (Header.GlInternalFormat = GL_BGR) and
-       (Header.GlBaseInternalFormat = GL_BGR) then
-    begin
-      RGBImage := TRGBImage.Create(Width, Height, Depth);
-      Images.Add(RGBImage);
-      ReadBGR(Stream, RGBImage, RowBytePadding(RGBImage));
-    end else
-    if (Header.GlType = GL_UNSIGNED_BYTE) and
-       (Header.GlTypeSize = 1) and
-       (Header.GlFormat = GL_RGB) and
-       (Header.GlInternalFormat = GL_RGB) and
-       (Header.GlBaseInternalFormat = GL_RGB) then
-    begin
-      RGBImage := TRGBImage.Create(Width, Height, Depth);
-      Images.Add(RGBImage);
-      ReadRGB(Stream, RGBImage, RowBytePadding(RGBImage));
-    end else
-    if (Header.GlType = GL_FLOAT) and
-       (Header.GlTypeSize = 4) and
-       (Header.GlFormat = GL_RED) and
-       (Header.GlInternalFormat = GL_R32F) and
-       (Header.GlBaseInternalFormat = GL_RED) then
-    begin
-      RGBFloatImage := TRGBFloatImage.Create(Width, Height, Depth);
-      // when Image.PixelSize is 4, there is never any padding
-      Assert(RowBytePadding(RGBFloatImage) = 0);
-      Images.Add(RGBFloatImage);
-      ReadFloatImage(Stream, RGBFloatImage);
-    end else
-    if Header.GlType = GL_HALF_FLOAT then
-    begin
-      raise EInvalidKTX.Create('Cannot handle KTX with half-float (16-bit floats) data');
-    end else
-    begin
-      raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType %d, glTypeSize %d, glFormat %d, glInternalFormat %d, glBaseInternalFormat %d',
-        [Header.GlType,
-         Header.GlTypeSize,
-         Header.GlFormat,
-         Header.GlInternalFormat,
-         Header.GlBaseInternalFormat]);
-    end;
-  end;
+    RowsTopToBottom := false;
+    SlicesFrontToBack := false;
+  end else
+  if Value = 'S=r,T=d,R=i' then
+  begin
+    RowsTopToBottom := true;
+    SlicesFrontToBack := true;
+  end else
+  if Value = 'S=r,T=u,R=o' then
+  begin
+    RowsTopToBottom := false;
+    SlicesFrontToBack := false;
+  end else
+    WritelnWarning('KTX', 'Unrecognized KTX orientation "%s"', [Value]);
 
+  WritelnLog('KTX', 'Got KTX orientation "%s". RowsTopToBottom: %s, SlicesFrontToBack: %s.',
+    [Value,
+     BoolToStr(RowsTopToBottom, true),
+     BoolToStr(SlicesFrontToBack, true)
+    ]);
+end;
+
+procedure TKTXHandler.ReadKeyValues(const Stream: TStream);
 var
-  Header: TKTXHeader;
-  SwapEndianness: boolean;
+  RemainingToRead, KeyAndValueByteSize, ValuePadding: LongWord;
+  KeyAndValue: array of AnsiChar;
+  Key, Value: AnsiString;
+begin
+  RemainingToRead := Header.BytesOfKeyValueData;
+  while RemainingToRead > 0 do
+  begin
+    Stream.ReadBuffer(KeyAndValueByteSize, SizeOf(KeyAndValueByteSize));
+    if SwapEndianness then
+      KeyAndValueByteSize := Swap32(KeyAndValueByteSize);
+    if KeyAndValueByteSize > 0 then
+    begin
+      SetLength(KeyAndValue, KeyAndValueByteSize);
+      Stream.ReadBuffer(KeyAndValue[0], KeyAndValueByteSize);
+      ValuePadding := 3 - ((KeyAndValueByteSize + 3) mod 4);
+      if ValuePadding <> 0 then
+        Stream.Seek(ValuePadding, soFromCurrent);
+
+      Key := PChar(@(KeyAndValue[0]));
+      SetLength(Value, KeyAndValueByteSize - Length(Key) - 1);
+      if Length(Value) > 0 then
+      begin
+        // check is Value NULL-terminated
+        if KeyAndValue[KeyAndValueByteSize - 1] = #0 then
+          SetLength(Value, Length(Value) - 1);
+        Move(KeyAndValue[Length(Key) + 1], Value[1], Length(Value));
+      end;
+
+      { Compare ignoring case, as specification recommends using
+        'KTXorientation' (as samples in https://github.com/KhronosGroup/KTX
+        follow it), but PowerVR texture tools write 'KTXOrientation' }
+      if SameText(Key, 'KTXorientation') then
+        ReadOrientation(Value);
+    end else
+      ValuePadding := 0;
+
+    RemainingToRead := RemainingToRead -
+      (SizeOf(KeyAndValueByteSize) + KeyAndValueByteSize + ValuePadding);
+  end;
+end;
+
+function TKTXHandler.RowBytePadding(const Image: TCastleImage): Integer;
+begin
+  Result := Image.PixelSize * Image.Width mod 4;
+  if Result <> 0 then
+    Result := 4 - Result;
+end;
+
+procedure TKTXHandler.ReadOneImage(const Stream: TStream);
+var
+  RGBAImage: TRGBAlphaImage;
+  RGBImage: TRGBImage;
+  RGBFloatImage: TRGBFloatImage;
+begin
+  if (Header.GlType = GL_UNSIGNED_BYTE) and
+     (Header.GlTypeSize = 1) and
+     (Header.GlFormat = GL_BGRA) and
+     (Header.GlInternalFormat = GL_BGRA) and
+     (Header.GlBaseInternalFormat = GL_BGRA) then
+  begin
+    RGBAImage := TRGBAlphaImage.Create(Width, Height, Depth);
+    // when Image.PixelSize is 4, there is never any padding
+    Assert(RowBytePadding(RGBAImage) = 0);
+    Images.Add(RGBAImage);
+    ReadBGRA(Stream, RGBAImage);
+  end else
+  if (Header.GlType = GL_UNSIGNED_BYTE) and
+     (Header.GlTypeSize = 1) and
+     (Header.GlFormat = GL_RGBA) and
+     (Header.GlInternalFormat = GL_RGBA) and
+     (Header.GlBaseInternalFormat = GL_RGBA) then
+  begin
+    RGBAImage := TRGBAlphaImage.Create(Width, Height, Depth);
+    // when Image.PixelSize is 4, there is never any padding
+    Assert(RowBytePadding(RGBAImage) = 0);
+    Images.Add(RGBAImage);
+    ReadRGBA(Stream, RGBAImage);
+  end else
+  if (Header.GlType = GL_UNSIGNED_BYTE) and
+     (Header.GlTypeSize = 1) and
+     (Header.GlFormat = GL_BGR) and
+     (Header.GlInternalFormat = GL_BGR) and
+     (Header.GlBaseInternalFormat = GL_BGR) then
+  begin
+    RGBImage := TRGBImage.Create(Width, Height, Depth);
+    Images.Add(RGBImage);
+    ReadBGR(Stream, RGBImage, RowBytePadding(RGBImage));
+  end else
+  if (Header.GlType = GL_UNSIGNED_BYTE) and
+     (Header.GlTypeSize = 1) and
+     (Header.GlFormat = GL_RGB) and
+     (Header.GlInternalFormat = GL_RGB) and
+     (Header.GlBaseInternalFormat = GL_RGB) then
+  begin
+    RGBImage := TRGBImage.Create(Width, Height, Depth);
+    Images.Add(RGBImage);
+    ReadRGB(Stream, RGBImage, RowBytePadding(RGBImage));
+  end else
+  if (Header.GlType = GL_FLOAT) and
+     (Header.GlTypeSize = 4) and
+     (Header.GlFormat = GL_RED) and
+     (Header.GlInternalFormat = GL_R32F) and
+     (Header.GlBaseInternalFormat = GL_RED) then
+  begin
+    RGBFloatImage := TRGBFloatImage.Create(Width, Height, Depth);
+    // when Image.PixelSize is 4, there is never any padding
+    Assert(RowBytePadding(RGBFloatImage) = 0);
+    Images.Add(RGBFloatImage);
+    ReadFloatImage(Stream, RGBFloatImage);
+  end else
+  if Header.GlType = GL_HALF_FLOAT then
+  begin
+    raise EInvalidKTX.Create('Cannot handle KTX with half-float (16-bit floats) data');
+  end else
+  begin
+    raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType %d, glTypeSize %d, glFormat %d, glInternalFormat %d, glBaseInternalFormat %d',
+      [Header.GlType,
+       Header.GlTypeSize,
+       Header.GlFormat,
+       Header.GlInternalFormat,
+       Header.GlBaseInternalFormat]);
+  end;
+end;
+
+procedure TKTXHandler.LoadFromStream(const Stream: TStream; const URL: string);
+var
   I: Integer;
   ImageSize: LongWord;
 begin
@@ -344,14 +437,19 @@ begin
     Height := Header.Height;
     Depth := Max(1, Header.Depth);
 
+    RowsTopToBottom := false;
+    SlicesFrontToBack := false;
+
     // Skip BytesOfKeyValueData
-    Stream.Seek(Header.BytesOfKeyValueData, soFromCurrent);
+    //Stream.Seek(Header.BytesOfKeyValueData, soFromCurrent);
+
+    ReadKeyValues(Stream);
 
     Stream.ReadBuffer(ImageSize, SizeOf(ImageSize));
     if SwapEndianness then
       ImageSize := Swap32(ImageSize);
 
-    ReadOneImage(Header);
+    ReadOneImage(Stream);
   except
     { EReadError is raised by Stream.ReadBuffer when it can't read
       specified number of bytes }
