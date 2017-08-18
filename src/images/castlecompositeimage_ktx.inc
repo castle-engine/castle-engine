@@ -47,7 +47,7 @@ type
       //GL_BYTE           = $1400;
       GL_UNSIGNED_BYTE  = $1401;
       //GL_SHORT          = $1402;
-      //GL_UNSIGNED_SHORT = $1403;
+      GL_UNSIGNED_SHORT = $1403;
       //GL_INT            = $1404;
       //GL_UNSIGNED_INT   = $1405;
       GL_FLOAT          = $1406;
@@ -60,14 +60,18 @@ type
       //GL_ALPHA           = $1906;
       GL_RGB             = $1907;
       GL_RGBA            = $1908;
-      //GL_LUMINANCE       = $1909;
+      GL_LUMINANCE       = $1909;
       //GL_LUMINANCE_ALPHA = $190A;
 
+      GL_LUMINANCE8_EXT = $8040;
       GL_BGR            = $80E0;
       GL_BGRA           = $80E1;
 
+      GL_RED_INTEGER    = $8D94;
+
       //GL_R16F           = $822D;
       GL_R32F           = $822E;
+      GL_R16UI          = $8234;
 
     var
       Header: TKTXHeader;
@@ -87,6 +91,8 @@ type
     function TargetY(const Y: Integer): Integer;
 
     procedure ReadG(const Stream: TStream;
+      const Image: TGrayscaleImage; const ARowBytePadding: Integer);
+    procedure ReadG16(const Stream: TStream;
       const Image: TGrayscaleImage; const ARowBytePadding: Integer);
     procedure ReadAG(const Stream: TStream;
       const Image: TGrayscaleAlphaImage; const ARowBytePadding: Integer);
@@ -124,6 +130,31 @@ begin
       if ARowBytePadding <> 0 then
         Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
+end;
+
+procedure TKTXHandler.ReadG16(const Stream: TStream;
+  const Image: TGrayscaleImage; const ARowBytePadding: Integer);
+var
+  RowData: TWordList;
+  TargetRow: PByteArray;
+  X, Y, Z: Integer;
+begin
+  RowData := TWordList.Create;
+  try
+    RowData.Count := Image.Width;
+
+    for Z := 0 to Image.Depth - 1 do
+      for Y := 0 to Image.Height - 1 do
+      begin
+        Stream.ReadBuffer(RowData.List^, Image.Width * SizeOf(Word));
+        { convert row of Words to Bytes }
+        TargetRow := Image.RowPtr(TargetY(Y), Z);
+        for X := 0 to Image.Width - 1 do
+          TargetRow^[X] := RowData.List^[X] shr 8;
+         if ARowBytePadding <> 0 then
+           Stream.Seek(ARowBytePadding, soFromCurrent);
+       end;
+  finally FreeAndNil(RowData) end;
 end;
 
 procedure TKTXHandler.ReadAG(const Stream: TStream;
@@ -326,10 +357,31 @@ end;
 
 procedure TKTXHandler.ReadOneImage(const Stream: TStream);
 var
+  GrayImage: TGrayscaleImage;
   RGBAImage: TRGBAlphaImage;
   RGBImage: TRGBImage;
   RGBFloatImage: TRGBFloatImage;
 begin
+  if (Header.GlType = GL_UNSIGNED_BYTE) and
+     (Header.GlTypeSize = 1) and
+     (Header.GlFormat = GL_LUMINANCE) and
+     (Header.GlInternalFormat = GL_LUMINANCE8_EXT) and
+     (Header.GlBaseInternalFormat = GL_LUMINANCE) then
+  begin
+    GrayImage := TGrayscaleImage.Create(Width, Height, Depth);
+    Images.Add(GrayImage);
+    ReadG(Stream, GrayImage, RowBytePadding(GrayImage));
+  end else
+  if (Header.GlType = GL_UNSIGNED_SHORT) and
+     (Header.GlTypeSize = 2) and
+     (Header.GlFormat = GL_RED_INTEGER) and
+     (Header.GlInternalFormat = GL_R16UI) and
+     (Header.GlBaseInternalFormat = GL_RED_INTEGER) then
+  begin
+    GrayImage := TGrayscaleImage.Create(Width, Height, Depth);
+    Images.Add(GrayImage);
+    ReadG16(Stream, GrayImage, RowBytePadding(GrayImage));
+  end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
      (Header.GlFormat = GL_BGRA) and
@@ -391,7 +443,7 @@ begin
     raise EInvalidKTX.Create('Cannot handle KTX with half-float (16-bit floats) data');
   end else
   begin
-    raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType %d, glTypeSize %d, glFormat %d, glInternalFormat %d, glBaseInternalFormat %d',
+    raise EInvalidKTX.CreateFmt('Cannot handle this KTX data type: glType 0x%.4x, glTypeSize %d, glFormat 0x%.4x, glInternalFormat 0x%.4x, glBaseInternalFormat 0x%.4x',
       [Header.GlType,
        Header.GlTypeSize,
        Header.GlFormat,
