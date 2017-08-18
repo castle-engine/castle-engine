@@ -67,11 +67,13 @@ type
       GL_BGR            = $80E0;
       GL_BGRA           = $80E1;
 
-      GL_RED_INTEGER    = $8D94;
-
+      GL_RG8            = $822B;
+      GL_RG             = $8227;
       //GL_R16F           = $822D;
       GL_R32F           = $822E;
       GL_R16UI          = $8234;
+
+      GL_RED_INTEGER    = $8D94;
 
     var
       Header: TKTXHeader;
@@ -94,7 +96,7 @@ type
       const Image: TGrayscaleImage; const ARowBytePadding: Integer);
     procedure ReadG16(const Stream: TStream;
       const Image: TGrayscaleImage; const ARowBytePadding: Integer);
-    procedure ReadAG(const Stream: TStream;
+    procedure ReadGA(const Stream: TStream;
       const Image: TGrayscaleAlphaImage; const ARowBytePadding: Integer);
     procedure ReadRGB(const Stream: TStream;
       const Image: TRGBImage; const ARowBytePadding: Integer);
@@ -157,7 +159,7 @@ begin
   finally FreeAndNil(RowData) end;
 end;
 
-procedure TKTXHandler.ReadAG(const Stream: TStream;
+procedure TKTXHandler.ReadGA(const Stream: TStream;
   const Image: TGrayscaleAlphaImage; const ARowBytePadding: Integer);
 var
   Y, Z: Integer;
@@ -358,6 +360,7 @@ end;
 procedure TKTXHandler.ReadOneImage(const Stream: TStream);
 var
   GrayImage: TGrayscaleImage;
+  GrayAlphaImage: TGrayscaleAlphaImage;
   RGBAImage: TRGBAlphaImage;
   RGBImage: TRGBImage;
   RGBFloatImage: TRGBFloatImage;
@@ -381,6 +384,16 @@ begin
     GrayImage := TGrayscaleImage.Create(Width, Height, Depth);
     Images.Add(GrayImage);
     ReadG16(Stream, GrayImage, RowBytePadding(GrayImage));
+  end else
+  if (Header.GlType = GL_UNSIGNED_BYTE) and
+     (Header.GlTypeSize = 1) and
+     (Header.GlFormat = GL_RG) and
+     (Header.GlInternalFormat = GL_RG8) and
+     (Header.GlBaseInternalFormat = GL_RG) then
+  begin
+    GrayAlphaImage := TGrayscaleAlphaImage.Create(Width, Height, Depth);
+    Images.Add(GrayAlphaImage);
+    ReadGA(Stream, GrayAlphaImage, RowBytePadding(GrayAlphaImage));
   end else
   if (Header.GlType = GL_UNSIGNED_BYTE) and
      (Header.GlTypeSize = 1) and
