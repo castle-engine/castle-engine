@@ -647,7 +647,7 @@ begin
     Scene.BeforeNodesFree;
 
   for N in Children do
-    FdChildren.Items.Remove(N);
+    FdChildren.Remove(N);
 
   if Scene <> nil then
     Scene.ChangedAll;

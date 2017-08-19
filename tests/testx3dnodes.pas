@@ -98,14 +98,15 @@ type
     procedure TestWeakLinkUnusedWarning;
     procedure TestKeepExisting;
     procedure TestAttenuation;
+    procedure TestAddChildren;
   end;
 
 implementation
 
 uses Generics.Collections,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
-  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, CastleApplicationProperties,
-  CastleTextureImages;
+  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime,
+  CastleApplicationProperties, CastleTextureImages;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -2082,6 +2083,60 @@ begin
     AssertTrue(L.DistanceNeededForAttenuation);
     AssertSameValue(1 / (1 + 5 + Sqr(5)), L.CalculateAttenuation(5), 0.001);
   finally FreeAndNil(L) end;
+end;
+
+procedure TTestX3DNodes.TestAddChildren;
+var
+  M: TMaterialNode;
+  S: TShapeNode;
+  G: TGroupNode;
+  FieldToSend: TMFNode;
+begin
+  G := TGroupNode.Create;
+  try
+    AssertEquals(0, G.FdChildren.Count);
+
+    // adding using AddChildren method works
+
+    S := TShapeNode.Create;
+    G.AddChildren([S, S]);
+    AssertEquals(1, G.FdChildren.Count);
+    G.AddChildren([S, S, S]);
+    AssertEquals(1, G.FdChildren.Count);
+    // only one instance of TShapeNode is added
+
+    S := TShapeNode.Create;
+    G.AddChildren([S, S]);
+    AssertEquals(2, G.FdChildren.Count);
+
+    S := TShapeNode.Create;
+    G.AddChildren(S);
+    AssertEquals(3, G.FdChildren.Count);
+    G.RemoveChildren(S);
+    AssertEquals(2, G.FdChildren.Count);
+
+    FieldToSend := TMFNode.CreateUndefined(nil, 'temporary', false);
+    try
+      S := TShapeNode.Create;
+      FieldToSend.Add(S);
+      S := TShapeNode.Create;
+      FieldToSend.Add(S);
+      G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
+
+      // adding through EventAddChildren works
+      AssertEquals(4, G.FdChildren.Count);
+    finally FreeAndNil(FieldToSend) end;
+
+    FieldToSend := TMFNode.CreateUndefined(nil, 'temporary', false);
+    try
+      M := TMaterialNode.Create;
+      FieldToSend.Add(M);
+      G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
+
+      // adding Material is ignored, not a child node
+      AssertEquals(4, G.FdChildren.Count);
+    finally FreeAndNil(FieldToSend) end;
+  finally FreeAndNil(G) end;
 end;
 
 initialization
