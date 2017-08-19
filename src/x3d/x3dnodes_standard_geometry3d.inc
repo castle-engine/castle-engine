@@ -993,8 +993,11 @@ var
 begin
   CrossSectionPoints := FdCrossSection.Items;
   Result := (CrossSectionPoints.Count <> 0) and
-    TVector2.PerfectlyEquals(CrossSectionPoints.Last,
-                             CrossSectionPoints.First);
+    // Makes Internal Error with FPC 3.0.2 on Linux x86_64.
+    // TVector2.PerfectlyEquals(CrossSectionPoints.Last,
+    //                          CrossSectionPoints.First);
+    TVector2.PerfectlyEquals(CrossSectionPoints[CrossSectionPoints.Count - 1],
+                             CrossSectionPoints[0]);
 end;
 
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
