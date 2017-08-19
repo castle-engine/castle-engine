@@ -853,7 +853,7 @@ type
     property CollidesWithMoving default true;
   end;
 
-  TCreatureList = class(specialize TObjectList<TCreature>)
+  TCreatureList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreature>)
   end;
 
   { Creature using TWalkAttackCreatureResource. }
@@ -1483,10 +1483,10 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
       FDebugCaptionsShape.Geometry := FDebugCaptionsText;
 
       FDebugCaptionsTransform := TMatrixTransformNode.Create;
-      FDebugCaptionsTransform.FdChildren.Add(FDebugCaptionsShape);
+      FDebugCaptionsTransform.AddChildren(FDebugCaptionsShape);
 
       Root := TX3DRootNode.Create;
-      Root.FdChildren.Add(FDebugCaptionsTransform);
+      Root.AddChildren(FDebugCaptionsTransform);
 
       FDebugCaptions := TCastleScene.Create(Self);
       FDebugCaptions.Load(Root, true);
@@ -1917,7 +1917,7 @@ var
       move in gravity (UpIndex) direction. }
     for I := 0 to 2 do
       if (not Gravity) or (I <> World.GravityCoordinate) then
-        AlternativeTarget.Data[I] += Random * Distance * 2 - Distance;
+        AlternativeTarget.Data[I] := AlternativeTarget.Data[I] + (Random * Distance * 2 - Distance);
 
     HasAlternativeTarget := true;
 
@@ -2291,7 +2291,7 @@ var
       if FDebug3DAlternativeTargetAxis = nil then
       begin
         FDebug3DAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
-        FDebug3D.WorldSpace.FdChildren.Add(FDebug3DAlternativeTargetAxis.Root);
+        FDebug3D.WorldSpace.AddChildren(FDebug3DAlternativeTargetAxis.Root);
         FDebug3D.ChangedScene;
       end;
 
@@ -2302,7 +2302,7 @@ var
       if FDebug3DLastSensedEnemyAxis = nil then
       begin
         FDebug3DLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
-        FDebug3D.WorldSpace.FdChildren.Add(FDebug3DLastSensedEnemyAxis.Root);
+        FDebug3D.WorldSpace.AddChildren(FDebug3DLastSensedEnemyAxis.Root);
         FDebug3D.ChangedScene;
       end;
 
@@ -2451,7 +2451,7 @@ var
     begin
       if B.Translate(Direction * DistanceLength).Collision(EB) then
         Exit(true);
-      DistanceLength += DistanceIncrease;
+      DistanceLength := DistanceLength + DistanceIncrease;
     end;
 
     { Check one last time for Resource.AttackMaxDistance }

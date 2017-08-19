@@ -74,7 +74,7 @@
     function DoingSomething: boolean; override;
   end;
 
-  TBoneTimelineList = class(specialize TObjectList<TBoneTimeline>)
+  TBoneTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBoneTimeline>)
   end;
 {$endif}
 
@@ -167,7 +167,7 @@ begin
     Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
 
   NodeUsedAsChild := true;
-  Container.FdChildren.Add(Node);
+  Container.AddChildren(Node);
 end;
 
 { TBoneTimelineVector2 ------------------------------------------------------- }

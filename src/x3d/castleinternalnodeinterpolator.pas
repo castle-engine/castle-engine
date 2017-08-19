@@ -911,7 +911,7 @@ var
     differently at higher level (because this is a switch, so it should
     block leaking anyway, but probably Switch for X3D doesn't work for VRML 1.0
     so well...). But it's obsolete VRML 1.0, so the hack is acceptable:) }
-  function WrapRootNode(const RootNode: TX3DRootNode): TX3DNode;
+  function WrapRootNode(const RootNode: TX3DRootNode): TAbstractChildNode;
   begin
     if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
     begin
@@ -932,7 +932,7 @@ var
     const BakedAnimation: TBakedAnimation;
     const AnimationIndex: Integer;
     const RootNode: TX3DRootNode;
-    const SwitchChooseAnimation: TSwitchNode): TX3DNode;
+    const SwitchChooseAnimation: TSwitchNode): TAbstractChildNode;
   var
     AnimationX3DName: string;
 
@@ -944,12 +944,12 @@ var
     begin
       BooleanFilter := TBooleanFilterNode.Create(
         AnimationX3DName + '_BooleanFilter', BaseUrl);
-      RootNode.FdChildren.Add(BooleanFilter);
+      RootNode.AddChildren(BooleanFilter);
 
       IntegerTrigger := TIntegerTriggerNode.Create(
         AnimationX3DName + '_IntegerTrigger', BaseUrl);
       IntegerTrigger.IntegerKey := AnimationIndex;
-      RootNode.FdChildren.Add(IntegerTrigger);
+      RootNode.AddChildren(IntegerTrigger);
 
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(TimeSensor.EventIsActive);
@@ -1008,15 +1008,15 @@ var
         IntSequencer.FdKeyValue.Items[I] := I;
       end;
     end;
-    Group.FdChildren.Add(IntSequencer);
+    Group.AddChildren(IntSequencer);
 
     Switch := TSwitchNode.Create(
       AnimationX3DName + '_Switch_ChooseAnimationFrame', BaseUrl);
     for I := 0 to NodesCount - 1 do
-      Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
+      Switch.AddChildren(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
     { we set whichChoice to 0 to see something before you run the animation }
     Switch.WhichChoice := 0;
-    Group.FdChildren.Add(Switch);
+    Group.AddChildren(Switch);
 
     { Name of the TimeSensor is important, this is the animation name,
       so don't append there anything ugly like '_TimeSensor'.
@@ -1028,7 +1028,7 @@ var
     else
       TimeSensor.CycleInterval := BakedAnimation.Duration;
     TimeSensor.Loop := BakedAnimation.Loop;
-    RootNode.FdChildren.Add(TimeSensor);
+    RootNode.AddChildren(TimeSensor);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
@@ -1069,13 +1069,13 @@ begin
   SwitchChooseAnimation := TSwitchNode.Create('ChooseAnimation', BaseUrl);
   for I := 0 to BakedAnimations.Count - 1 do
   begin
-    SwitchChooseAnimation.FdChildren.Add(
+    SwitchChooseAnimation.AddChildren(
       ConvertOneAnimation(BakedAnimations[I], I, Result, SwitchChooseAnimation));
   end;
   { we set whichChoice to 0 to see something before you run the animation }
   SwitchChooseAnimation.WhichChoice := 0;
 
-  Result.FdChildren.Add(SwitchChooseAnimation);
+  Result.AddChildren(SwitchChooseAnimation);
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;

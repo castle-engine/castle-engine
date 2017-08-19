@@ -64,21 +64,21 @@ begin
   Result := TX3DRootNode.Create;
 
   Mat := TMaterialNode.Create;
-  Mat.FdDiffuseColor.Value := Vector3(1, 1, 0);
+  Mat.DiffuseColor := Vector3(1, 1, 0);
 
   Shape := TShapeNode.Create;
-  Shape.FdAppearance.Value := TAppearanceNode.Create;
+  Shape.Appearance := TAppearanceNode.Create;
   Shape.Appearance.FdMaterial.Value := Mat;
-  Shape.FdGeometry.Value := TBoxNode.Create;
+  Shape.Geometry := TBoxNode.Create;
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J] := TTransformNode.Create;
-      Transform[I, J].FdTranslation.Value := Vector3(I * 2, J * 2, 0);
-      Transform[I, J].FdChildren.Add(Shape);
+      Transform[I, J].Translation := Vector3(I * 2, J * 2, 0);
+      Transform[I, J].AddChildren(Shape);
 
-      Result.FdChildren.Add(Transform[I, J]);
+      Result.AddChildren(Transform[I, J]);
     end;
 end;
 

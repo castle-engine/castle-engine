@@ -198,7 +198,7 @@ begin
       { assign some Material only to make it lit }
       Shape.Material := TMaterialNode.Create('', URL);
       Shape.Geometry := TriangleSet;
-      Result.FdChildren.Add(Shape);
+      Result.AddChildren(Shape);
 
       { actually read the file, filling Coordinate and Normal nodes }
 

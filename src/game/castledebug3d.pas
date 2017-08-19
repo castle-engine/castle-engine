@@ -177,7 +177,7 @@ begin
   FShape.Material.EmissiveColor := Color;
 
   FTransform := TTransformNode.Create;
-  FTransform.FdChildren.Add(FShape);
+  FTransform.AddChildren(FShape);
 end;
 
 function TDebugAxis.GetRender: boolean;
@@ -219,7 +219,7 @@ begin
   FShape.Material.EmissiveColor := Color;
 
   FTransform := TTransformNode.Create;
-  FTransform.FdChildren.Add(FShape);
+  FTransform.AddChildren(FShape);
 end;
 
 procedure TDebugBox.SetBox(const Value: TBox3D);
@@ -250,7 +250,7 @@ begin
   FShape.Material.EmissiveColor := Color;
 
   FTransform := TTransformNode.Create;
-  FTransform.FdChildren.Add(FShape);
+  FTransform.AddChildren(FShape);
 end;
 
 function TDebugSphere.GetRender: boolean;
@@ -291,16 +291,16 @@ begin
   FWorldSpace := FTransform;
 
   FBox := TDebugBox.Create(Self, GrayRGB);
-  WorldSpace.FdChildren.Add(FBox.Root);
+  WorldSpace.AddChildren(FBox.Root);
 
   FSphere := TDebugSphere.Create(Self, GrayRGB);
-  WorldSpace.FdChildren.Add(FSphere.Root);
+  WorldSpace.AddChildren(FSphere.Root);
 
   FMiddleAxis := TDebugAxis.Create(Self, YellowRGB);
-  WorldSpace.FdChildren.Add(FMiddleAxis.Root);
+  WorldSpace.AddChildren(FMiddleAxis.Root);
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(FTransform);
+  Root.AddChildren(FTransform);
 
   FScene := TInternalScene.Create(Self);
   FScene.Container := Self;

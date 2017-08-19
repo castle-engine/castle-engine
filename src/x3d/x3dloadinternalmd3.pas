@@ -542,12 +542,12 @@ begin
     Texture := nil;
 
   for I := 0 to Md3.Surfaces.Count - 1 do
-    Result.FdChildren.Add(MakeShape(Md3.Surfaces[I]));
+    Result.AddChildren(MakeShape(Md3.Surfaces[I]));
 
   { MD3 files have no camera. I add camera here, just to force GravityUp
     to be in +Z, since this is the convention used in all MD3 files that
     I saw (so I guess that Quake3 engine generally uses this convention). }
-  Result.FdChildren.Add(CameraNodeForWholeScene(cvVrml2_X3d,
+  Result.AddChildren(CameraNodeForWholeScene(cvVrml2_X3d,
     BaseUrl, SceneBox, 0, 2, false, true));
 
   if Texture <> nil then

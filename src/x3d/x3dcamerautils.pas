@@ -53,11 +53,11 @@ function MakeCameraStr(const Version: TX3DCameraVersion;
   the returned node. }
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
-  const Position, Direction, Up, GravityUp: TVector3): TX3DNode;
+  const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode;
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
   const Position, Direction, Up, GravityUp: TVector3;
-  out ViewpointNode: TAbstractViewpointNode): TX3DNode;
+  out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode;
 
 { Make camera node (like MakeCameraNode) that makes the whole box
   nicely visible (like CameraViewpointForWholeScene). }
@@ -65,7 +65,7 @@ function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
   const BaseUrl: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
-  const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
+  const WantedDirectionPositive, WantedUpPositive: boolean): TAbstractChildNode;
 
 function MakeCameraNavNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
@@ -209,7 +209,7 @@ end;
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
   const Position, Direction, Up, GravityUp: TVector3;
-  out ViewpointNode: TAbstractViewpointNode): TX3DNode;
+  out ViewpointNode: TAbstractViewpointNode): TAbstractChildNode;
 var
   RotationVectorForGravity: TVector3;
   AngleForGravity: Single;
@@ -278,7 +278,7 @@ begin
           ViewpointNode.Position := TVector3.Zero;
           ViewpointNode.Orientation := Orientation;
 
-          Transform_2.FdChildren.Add(ViewpointNode);
+          Transform_2.AddChildren(ViewpointNode);
 
           Result := Transform_2;
         end;
@@ -289,7 +289,7 @@ end;
 
 function MakeCameraNode(const Version: TX3DCameraVersion;
   const BaseUrl: string;
-  const Position, Direction, Up, GravityUp: TVector3): TX3DNode;
+  const Position, Direction, Up, GravityUp: TVector3): TAbstractChildNode;
 var
   ViewpointNode: TAbstractViewpointNode;
 begin
@@ -301,7 +301,7 @@ function CameraNodeForWholeScene(const Version: TX3DCameraVersion;
   const BaseUrl: string;
   const Box: TBox3D;
   const WantedDirection, WantedUp: Integer;
-  const WantedDirectionPositive, WantedUpPositive: boolean): TX3DNode;
+  const WantedDirectionPositive, WantedUpPositive: boolean): TAbstractChildNode;
 var
   Position, Direction, Up, GravityUp: TVector3;
 begin

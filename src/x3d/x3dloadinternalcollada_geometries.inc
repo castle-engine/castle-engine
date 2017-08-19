@@ -134,8 +134,8 @@ begin
   begin
     Primitive := Geometry.Primitives[I];
     Shape := TShapeNode.Create('', BaseUrl);
-    Group.FdChildren.Add(Shape);
-    Shape.FdGeometry.Value := Primitive.X3DGeometry;
+    Group.AddChildren(Shape);
+    Shape.Geometry := Primitive.X3DGeometry;
     Shape.Appearance := MaterialToX3D(Primitive.Material, InstantiatingElement);
   end;
 end;

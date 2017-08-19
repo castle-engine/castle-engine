@@ -1011,7 +1011,7 @@ var
 
   procedure AddViewpoints;
   var
-    Viewpoint: TX3DNode;
+    Viewpoint: TAbstractChildNode;
     I: Integer;
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
@@ -1022,7 +1022,7 @@ var
         O3ds.Cameras[I].Up,
         O3ds.Cameras[I].Up { GravityUp equals Up });
       Viewpoint.X3DName := ViewpointVRMLName(O3ds.Cameras[I].Name);
-      Result.FdChildren.Add(Viewpoint);
+      Result.AddChildren(Viewpoint);
 
       { TODO: use other 3ds camera fields }
     end;
@@ -1037,7 +1037,7 @@ var
     begin
       Light := TPointLightNode.Create(LightVRMLName(
         O3ds.Lights[I].Name), BaseUrl);
-      Result.FdChildren.Add(Light);
+      Result.AddChildren(Light);
 
       Light.IsOn := O3ds.Lights[I].Enabled;
       Light.Location := O3ds.Lights[I].Pos;
@@ -1172,7 +1172,7 @@ begin
           if FaceMaterialNum <> -1 then
             Shape.Appearance := TAppearanceNode(Appearances[FaceMaterialNum]);
 
-          Result.FdChildren.Add(Shape);
+          Result.AddChildren(Shape);
 
           ThisMaterialFacesCount := SameMaterialFacesCount(Trimesh3ds.Faces,
             Trimesh3ds.FacesCount, J);

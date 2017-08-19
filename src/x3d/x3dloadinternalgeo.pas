@@ -203,7 +203,7 @@ begin
       Result.ForceVersion := X3DVersion;
 
       Shape := TShapeNode.Create('', BaseUrl);
-      result.FdChildren.Add(Shape);
+      result.AddChildren(Shape);
       Shape.Material := TMaterialNode.Create('', BaseUrl);
 
       faces := TIndexedFaceSetNode.Create('', BaseUrl);

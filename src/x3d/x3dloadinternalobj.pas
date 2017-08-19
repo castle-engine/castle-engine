@@ -559,7 +559,7 @@ begin
         FacesWithMaterial := Obj.Faces[I].Material;
 
         Shape := TShapeNode.Create('', BaseUrl);
-        Result.FdChildren.Add(Shape);
+        Result.AddChildren(Shape);
 
         if FacesWithMaterial <> nil then
         begin

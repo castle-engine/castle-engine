@@ -89,7 +89,7 @@ begin
   Shape.FdGeometry.Value := SphereNode;
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(Shape);
+  Root.AddChildren(Shape);
 
   Load(Root, true);
 end;

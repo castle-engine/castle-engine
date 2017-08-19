@@ -77,7 +77,7 @@ type
     property ReceiveShadowVolumes: boolean read FReceiveShadowVolumes;
   end;
 
-  TCreatureKindList = class(specialize TObjectList<TCreatureKind>)
+  TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
     procedure Load(const BaseLights: TLightInstancesList);
     procedure UnLoad;
@@ -242,7 +242,7 @@ var
 begin
   ProgressCount := 0;
   for I := 0 to Count - 1 do
-    ProgressCount += Items[I].LoadSteps;
+    ProgressCount := ProgressCount + Items[I].LoadSteps;
 
   TimeBegin := ProcessTimer;
 
@@ -324,7 +324,7 @@ begin
 
       { Now at ScheduledTransitionBeginTime the animation was in starting
         position, and this is the time <= now. }
-      ScheduledTransitionBeginTime += Kind.Animations[FState].Duration;
+      ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
 
       { Now at ScheduledTransitionBeginTime animation will end !
         This is good time to switch... unless it already occurred
@@ -335,7 +335,7 @@ begin
         So we correct it. If there were no floating point errors inside
         RoundFloatDown, loop below should execute at most once. }
       while ScheduledTransitionBeginTime < WorldTime do
-        ScheduledTransitionBeginTime += Kind.Animations[FState].Duration;
+        ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
     end;
   end;
 end;
@@ -397,13 +397,13 @@ constructor TPlayer.Create(AKind: TCreatureKind);
     FTargetVisualizeShape.Geometry := Sphere;
 
     FTargetVisualize := TTransformNode.Create;
-    FTargetVisualize.FdChildren.Add(FTargetVisualizeShape);
+    FTargetVisualize.AddChildren(FTargetVisualizeShape);
   end;
 
 begin
   inherited;
   CreateTargetVisualize;
-  FDebug3D.WorldSpace.FdChildren.Add(FTargetVisualize);
+  FDebug3D.WorldSpace.AddChildren(FTargetVisualize);
   FDebug3D.ChangedScene;
 end;
 

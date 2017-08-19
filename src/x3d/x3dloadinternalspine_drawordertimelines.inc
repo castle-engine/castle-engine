@@ -91,7 +91,7 @@ begin
   end;
 
   NodeUsedAsChild := true;
-  Container.FdChildren.Add(Node);
+  Container.AddChildren(Node);
 
   { Note: in other anims, we checked Time.Count > 1 now.
     For this, it seems Ok for Time.Count = 1 ? }

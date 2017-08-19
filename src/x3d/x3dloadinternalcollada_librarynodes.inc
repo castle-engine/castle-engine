@@ -44,14 +44,14 @@ procedure ReadInstanceNode(ParentGroup: TAbstractX3DGroupingNode;
   InstantiatingElement: TDOMElement);
 var
   Id: string;
-  Node: TX3DNode;
+  Node: TAbstractChildNode;
   J: Integer;
 begin
   if InstantiatingElement.AttributeString('url', Id) and
      SCharIs(Id, 1, '#') then
   begin
     Delete(Id, 1, 1);
-    Node := LibraryNodesSwitch.FdChildren.Items.FindName(Id);
+    Node := LibraryNodesSwitch.FdChildren.Items.FindName(Id) as TAbstractChildNode;
 
     { try to load required node on-demand from LibraryNodesAvailable }
     if Node = nil then
@@ -64,7 +64,7 @@ begin
           begin
             LibraryNodesAvailable.List^[J].Handled := true;
             ReadNodeElement(LibraryNodesSwitch, LibraryNodesAvailable.List^[J].Element);
-            Node := LibraryNodesSwitch.FdChildren.Items.FindName(Id);
+            Node := LibraryNodesSwitch.FdChildren.Items.FindName(Id) as TAbstractChildNode;
             break;
           end;
       end;
@@ -73,7 +73,7 @@ begin
     if Node = nil then
       WritelnWarning('Collada', Format('<node> instantiates non-existing element "%s"',
         [Id])) else
-      ParentGroup.FdChildren.Add(Node);
+      ParentGroup.AddChildren(Node);
   end else
     WritelnWarning('Collada', Format('Element <%s> missing url attribute (that has to start with #)',
       [InstantiatingElement.TagName]));
@@ -96,7 +96,7 @@ begin
       converting. }
 
     LibraryNodesSwitch := TSwitchNode.Create('collada_library_nodes', BaseUrl);
-    ResultModel.FdChildren.Add(LibraryNodesSwitch);
+    ResultModel.AddChildren(LibraryNodesSwitch);
   end;
 
   LibraryNodesAvailable := TNodeAvailableInLibraryList.Create;

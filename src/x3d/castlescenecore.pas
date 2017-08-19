@@ -6791,7 +6791,7 @@ var
   Up: TVector3;
   GravityUp: TVector3;
   Version: TX3DCameraVersion;
-  NewViewNode: TX3DNode;
+  NewViewNode: TAbstractChildNode;
   NewViewpointNode: TAbstractViewpointNode;
   NavigationType: string;
   Walk: TWalkCamera;
@@ -6869,11 +6869,11 @@ begin
 
   // Add both nodes to the scene
   NewGroupNode := TGroupNode.Create;
-  NewGroupNode.FdChildren.Add(NewViewNode);
-  NewGroupNode.FdChildren.Add(NewNavigationNode);
+  NewGroupNode.AddChildren(NewViewNode);
+  NewGroupNode.AddChildren(NewNavigationNode);
   NewGroupNode.AddRoute(NewRoute);
 
-  RootNode.FdChildren.Add(NewGroupNode);
+  RootNode.AddChildren(NewGroupNode);
   { The 100% safe version would now call RootNode.FdChildren.Changed,
     and it would automatically refresh FViewpointsArray.
     But RootNode.FdChildren.Changed is a little costly, it processes the whole

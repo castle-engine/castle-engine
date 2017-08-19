@@ -860,7 +860,7 @@ begin
     ProxyShape.Geometry := ProxyBox;
 
     ProxyTransform.Translation := Box.Center;
-    ProxyTransform.FdChildren.Add(ProxyShape);
+    ProxyTransform.AddChildren(ProxyShape);
   end;
   Proxy := ProxyTransform;
 

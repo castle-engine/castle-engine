@@ -49,7 +49,7 @@
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractGeometryNode; virtual;
+      const TexRotated: boolean): TAbstractX3DGeometryNode; virtual;
   end;
 
   TAbstractMeshAttachment = class(TRegionAttachment)
@@ -69,7 +69,7 @@
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractGeometryNode; override;
+      const TexRotated: boolean): TAbstractX3DGeometryNode; override;
   end;
 
   TMeshAttachment = class(TAbstractMeshAttachment)
@@ -203,12 +203,12 @@ begin
   Node := TTransformNode.Create(
     Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
-  Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
-  Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
-  Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));
+  Node.Translation := Vector3(XY[0], XY[1], 0);
+  Node.Scale := Vector3(Scale[0], Scale[1], 1);
+  Node.Rotation := Vector4(0, 0, 1, DegToRad(Rotation));
 
   Shape := TShapeNode.Create('', BaseUrl);
-  Node.FdChildren.Add(Shape);
+  Node.AddChildren(Shape);
 
   Shape.Appearance := TAppearanceNode.Create('', BaseUrl);
   AtlasRegionName := Name;
@@ -217,20 +217,19 @@ begin
   Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
     TexCoord, TexRect, TexRotated);
   if Shape.Appearance.Texture <> nil then
-    Shape.FdGeometry.Value := BuildGeometry(BaseUrl,
-      TexCoord, TexRect, TexRotated);
+    Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
   Shape.Material := TMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
   Shape.Material.ForcePureEmissive;
-  Shape.Material.FdEmissiveColor.Value := Vector3(1, 1, 1);
+  Shape.Material.EmissiveColor := Vector3(1, 1, 1);
   Material := Shape.Material;
 end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-  const TexRotated: boolean): TAbstractGeometryNode;
+  const TexRotated: boolean): TAbstractX3DGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
@@ -306,7 +305,7 @@ end;
 
 function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-  const TexRotated: boolean): TAbstractGeometryNode;
+  const TexRotated: boolean): TAbstractX3DGeometryNode;
 var
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;

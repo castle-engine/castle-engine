@@ -16,7 +16,7 @@
 {$ifdef read_implementation_nested}
 
 var
-  Lights: TX3DNodeList;
+  Lights: TX3DChildrenList;
 
 { Read <library_lights> (Collada 1.4.x). Fills Lights list. }
 procedure ReadLibraryLights(LibraryE: TDOMElement);

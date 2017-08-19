@@ -67,7 +67,7 @@ begin
   TimeSensor := TTimeSensorNode.Create('AnimTimeSensor');
   TimeSensor.Loop := Loop;
   TimeSensor.CycleInterval := CycleInterval;
-  Node.FdChildren.Add(TimeSensor);
+  Node.AddChildren(TimeSensor);
 
   Route := TX3DRoute.Create;
   Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
@@ -119,7 +119,7 @@ begin
       Writeln('Coordinate node ', CoordinateNodeName, ' found OK (', CoordCount, ' vertexes).');
 
       OutputInterp := TCoordinateInterpolatorNode.Create('AnimInterpolator', '');
-      OutputX3d.FdChildren.Add(OutputInterp);
+      OutputX3d.AddChildren(OutputInterp);
 
       OutputInterp.FdKeyValue.Items.Count := 0;
       OutputInterp.FdKeyValue.Items.Capacity := CoordCount * Anim.ScenesCount;

@@ -207,7 +207,7 @@ begin
 
   { and finally add everything to the Root node }
   Root := TX3DRootNode.Create('', '');
-  Root.FdChildren.Add(shape);
+  Root.AddChildren(shape);
 
   { Initialize Castle Window }
 

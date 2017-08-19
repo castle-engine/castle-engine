@@ -497,7 +497,7 @@ begin
 
   GLSLProgram.DetachAllShaders;
   Prefix := '#define HEIGHT_IS_Z' + NL;
-  if Fog then Prefix += '#define FOG' + NL;
+  if Fog then Prefix := Prefix + ('#define FOG' + NL);
   GLSLProgram.AttachVertexShader(Prefix + FileToString(ApplicationData('terrain.vs')));
   GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('terrain.fs')));
   { For this test program, we eventually allow shader to run in software.
@@ -586,7 +586,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     try
       Shape := CurrentTerrain.CreateNode(CountSteps, Size, XRange, ZRange,
         @ColorFromHeight);
-      Root.FdChildren.Add(Shape);
+      Root.AddChildren(Shape);
 
       if AddShadersTextures then
       begin

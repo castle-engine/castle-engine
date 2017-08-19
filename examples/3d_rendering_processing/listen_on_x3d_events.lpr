@@ -84,8 +84,8 @@ begin
   TouchSensor.EventIsActive.OnReceive.Add(@EventListener.ReceivedIsActive);
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(Shape);
-  Root.FdChildren.Add(TouchSensor);
+  Root.AddChildren(Shape);
+  Root.AddChildren(TouchSensor);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(Root, true);

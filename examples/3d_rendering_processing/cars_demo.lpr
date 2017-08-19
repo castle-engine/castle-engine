@@ -97,7 +97,7 @@ begin
 
   Transform1 := TTransformNode.Create('box_1_transform');
   Transform1.Translation := Vector3(RoadBox.Min.X, WallHeight / 2, RoadBox.Center.Z);
-  Transform1.FdChildren.Add(Shape1);
+  Transform1.AddChildren(Shape1);
 
   Box2 := TBoxNode.Create('box_2_geometry');
   Box2.Size := Vector3(0.5, WallHeight, RoadBox.Size.Z);
@@ -110,11 +110,11 @@ begin
 
   Transform2 := TTransformNode.Create('box_2_transform');
   Transform2.Translation := Vector3(RoadBox.Max.X, WallHeight / 2, RoadBox.Center.Z);
-  Transform2.FdChildren.Add(Shape2);
+  Transform2.AddChildren(Shape2);
 
   RootNode := TX3DRootNode.Create;
-  RootNode.FdChildren.Add(Transform1);
-  RootNode.FdChildren.Add(Transform2);
+  RootNode.AddChildren(Transform1);
+  RootNode.AddChildren(Transform2);
 
   Result := TCastleScene.Create(Application);
   Result.Load(RootNode, true);

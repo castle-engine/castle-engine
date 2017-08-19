@@ -300,13 +300,13 @@ begin
       Inc(j);
     end;
     { Put everything into the scene. }
-    Root.FdChildren.Add(Shape);
+    Root.AddChildren(Shape);
     for j := 0 to Animations.Count-1 do
-      Root.FdChildren.Add(TimeSensorArray[j]);
+      Root.AddChildren(TimeSensorArray[j]);
     for j := 0 to Animations.Count-1 do
     begin
-      Root.FdChildren.Add(CoordInterpArray[j]);
-      Root.FdChildren.Add(TexCoordInterpArray[j]);
+      Root.AddChildren(CoordInterpArray[j]);
+      Root.AddChildren(TexCoordInterpArray[j]);
     end;
     Save3D(Root, SSOutput);
   finally

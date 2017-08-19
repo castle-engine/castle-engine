@@ -165,7 +165,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     ResetAttachment.FdForceContinousValue_Changed.Value := true;
     ResetAttachment.FdKey.Items.Add(0);
     ResetAttachment.FdKeyValue.Items.Add(SwitchNode.FdWhichChoice.Value);
-    ContainerForResetNode.FdChildren.Add(ResetAttachment);
+    ContainerForResetNode.AddChildren(ResetAttachment);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetAttachment.EventValue_changed);
@@ -187,7 +187,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       ColInterp := TColorInterpolatorNode.Create('SlotReset_color_' + ToX3DName(Name));
       ColInterp.FdKey.Items.Add(0);
       ColInterp.FdKeyValue.Items.Add(Color.XYZ);
-      ContainerForResetNode.FdChildren.Add(ColInterp);
+      ContainerForResetNode.AddChildren(ColInterp);
       ResetColor1.Add(ColInterp);
 
       Route := TX3DRoute.Create;
@@ -198,7 +198,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
       ScalarInterp := TScalarInterpolatorNode.Create('SlotReset_alpha_' + ToX3DName(Name));
       ScalarInterp.FdKey.Items.Add(0);
       ScalarInterp.FdKeyValue.Items.Add(1 - Color[3]);
-      ContainerForResetNode.FdChildren.Add(ScalarInterp);
+      ContainerForResetNode.AddChildren(ScalarInterp);
       ResetColor2.Add(ScalarInterp);
 
       Route := TX3DRoute.Create;
@@ -217,7 +217,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
     ResetDrawOrder := TPositionInterpolatorNode.Create('SlotReset_draworder_' + ToX3DName(Name));
     ResetDrawOrder.FdKey.Items.Add(0);
     ResetDrawOrder.FdKeyValue.Items.Add(Node.FdTranslation.Value);
-    ContainerForResetNode.FdChildren.Add(ResetDrawOrder);
+    ContainerForResetNode.AddChildren(ResetDrawOrder);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetDrawOrder.EventValue_changed);
@@ -226,7 +226,7 @@ procedure TSlot.BuildNodes(const BaseUrl: string;
   end;
 
   { Node for a single AttachmentName. Never @nil. }
-  function AttachmentNode(const AttachmentName: string): TX3DNode;
+  function AttachmentNode(const AttachmentName: string): TAbstractChildNode;
   var
     A: TAttachment;
   begin
@@ -260,17 +260,17 @@ var
 begin
   Node := TTransformNode.Create('SlotTransform_' + ToX3DName(Name), BaseUrl);
   Node.FdTranslation.Value := Vector3(0, 0, DrawOrder * DrawOrderZ);
-  Bone.Node.FdChildren.Add(Node);
+  Bone.Node.AddChildren(Node);
   NodeUsedAsChild := true;
 
   SwitchNode := TSwitchNode.Create('SlotSwitch_' + ToX3DName(Name), BaseUrl);
   SwitchNode.FdWhichChoice.Value := 0;
-  Node.FdChildren.Add(SwitchNode);
+  Node.AddChildren(SwitchNode);
 
   Materials.Clear;
 
   for I := 0 to AttachmentNames.Count - 1 do
-    SwitchNode.FdChildren.Add(AttachmentNode(AttachmentNames[I]));
+    SwitchNode.AddChildren(AttachmentNode(AttachmentNames[I]));
 
   AddResetAttachment;
   AddResetColor;

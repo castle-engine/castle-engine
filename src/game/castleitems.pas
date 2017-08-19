@@ -429,7 +429,7 @@ type
     @link(T3DAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
-  TInventory = class(specialize TObjectList<TInventoryItem>)
+  TInventory = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAliveWithInventory;
   protected
@@ -754,7 +754,7 @@ begin
 
   Result := Resource.CreateItem(QuantitySplit);
 
-  FQuantity -= QuantitySplit;
+  FQuantity := FQuantity - QuantitySplit;
 end;
 
 function TInventoryItem.PutOnWorld(const AWorld: T3DWorld;
@@ -1092,7 +1092,7 @@ begin
   inherited;
 
   FBoxRotated := TDebugBox.Create(Self, GrayRGB);
-  WorldSpace.FdChildren.Add(FBoxRotated.Root);
+  WorldSpace.AddChildren(FBoxRotated.Root);
 
   ChangedScene;
 end;
@@ -1156,14 +1156,14 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
 
   { LifeTime is used to choose animation frame in GetChild.
     So the item constantly changes, even when it's
     transformation (things taken into account in T3DOrient) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  ItemRotation += RotationSpeed * SecondsPassed;
+  ItemRotation := ItemRotation + (RotationSpeed * SecondsPassed);
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);

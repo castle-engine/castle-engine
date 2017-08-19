@@ -139,11 +139,11 @@ begin
   { add NavigationInfo indicating blendingSort = 2D }
   NavigationInfo := TNavigationInfoNode.Create('', BaseUrl);
   NavigationInfo.BlendingSort := obs2D;
-  Container.FdChildren.Add(NavigationInfo);
+  Container.AddChildren(NavigationInfo);
 
   Bones.BuildNodes(BaseUrl, BonesAnimated);
   Root.NodeUsedAsChild := true;
-  Container.FdChildren.Add(Root.Node);
+  Container.AddChildren(Root.Node);
   Skins.BuildNodes(BaseUrl, TextureLoader);
 
   CurrentSkin := nil;

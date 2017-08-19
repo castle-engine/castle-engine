@@ -71,12 +71,12 @@ begin
 
   IndexedFaceSetShapeTranslated := TTransformNode.Create;
   IndexedFaceSetShapeTranslated.Translation := Vector3(2, 0, 0);
-  IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
+  IndexedFaceSetShapeTranslated.AddChildren(IndexedFaceSetShape);
 
   Root := TX3DRootNode.Create;
   try
-    Root.FdChildren.Add(SphereShape);
-    Root.FdChildren.Add(IndexedFaceSetShapeTranslated);
+    Root.AddChildren(SphereShape);
+    Root.AddChildren(IndexedFaceSetShapeTranslated);
 
     { The Root holds now a tree of your VRML/X3D nodes, thus describing
       your 3D object. You can do whatever you want with it:

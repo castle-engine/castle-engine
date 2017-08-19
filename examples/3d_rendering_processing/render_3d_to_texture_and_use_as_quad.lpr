@@ -153,7 +153,7 @@ begin
   Shape.Geometry := QuadSet;
 
   Result := TX3DRootNode.Create;
-  Result.FdChildren.Add(Shape);
+  Result.AddChildren(Shape);
 end;
 
 var

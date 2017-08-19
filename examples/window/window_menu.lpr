@@ -100,10 +100,10 @@ begin
 
   Transform := TTransformNode.Create;
   Transform.FdTranslation.Value := Translation;
-  Transform.FdChildren.Add(Shape);
+  Transform.AddChildren(Shape);
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(Transform);
+  Root.AddChildren(Transform);
 
   Scene := TCastleScene.Create(nil);
   Scene.Load(Root, true);

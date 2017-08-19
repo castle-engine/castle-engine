@@ -16,6 +16,7 @@
 unit TestX3DNodes;
 
 {$I tests.inc}
+{$I castleconf.inc}
 
 interface
 
@@ -164,7 +165,7 @@ type
     Integer: Int64; //< for vtInteger
   end;
 
-  TX3DTokenInfoList = class(specialize TObjectList<TX3DTokenInfo>)
+  TX3DTokenInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
     procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
@@ -1732,8 +1733,8 @@ const
     Touch.FdDescription.Value := ValidString;
 
     Result := TX3DRootNode.Create;
-    Result.FdChildren.Add(Shape);
-    Result.FdChildren.Add(Touch);
+    Result.AddChildren(Shape);
+    Result.AddChildren(Touch);
   end;
 
   procedure Assertions(Node: TX3DRootNode);

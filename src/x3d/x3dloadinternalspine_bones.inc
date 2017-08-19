@@ -181,7 +181,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     ResetTranslation := TPositionInterpolatorNode.Create('BoneReset_translate_' + ToX3DName(Name));
     ResetTranslation.FdKey.Items.Add(0);
     ResetTranslation.FdKeyValue.Items.Add(Node.FdTranslation.Value);
-    Node.FdChildren.Add(ResetTranslation);
+    Node.AddChildren(ResetTranslation);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetTranslation.EventValue_changed);
@@ -198,7 +198,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     ResetScale := TPositionInterpolatorNode.Create('BoneReset_scale_' + ToX3DName(Name));
     ResetScale.FdKey.Items.Add(0);
     ResetScale.FdKeyValue.Items.Add(Node.FdScale.Value);
-    Node.FdChildren.Add(ResetScale);
+    Node.AddChildren(ResetScale);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetScale.EventValue_changed);
@@ -215,7 +215,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     ResetRotation := TCubicBezier2DOrientationInterpolatorNode.Create('BoneReset_rotate_' + ToX3DName(Name));
     ResetRotation.FdKey.Items.Add(0);
     ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value[3]);
-    Node.FdChildren.Add(ResetRotation);
+    Node.AddChildren(ResetRotation);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetRotation.EventValue_changed);
@@ -231,7 +231,7 @@ begin
   if Parent <> nil then
   begin
     NodeUsedAsChild := true;
-    Parent.Node.FdChildren.Add(Node);
+    Parent.Node.AddChildren(Node);
   end;
 
   AddResetTranslation;
