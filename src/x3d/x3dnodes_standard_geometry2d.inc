@@ -16,7 +16,7 @@
 {$ifdef read_interface}
   { Circular arc in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TArc2DNode = class(TAbstractX3DGeometryNode)
+  TArc2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -43,7 +43,7 @@
 
   { Closed circular arc in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TArcClose2DNode = class(TAbstractX3DGeometryNode)
+  TArcClose2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -75,7 +75,7 @@
   end;
 
   { Circle in 2D. }
-  TCircle2DNode = class(TAbstractX3DGeometryNode)
+  TCircle2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -97,7 +97,7 @@
 
   { Disc (filled circle) in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TDisk2DNode = class(TAbstractX3DGeometryNode)
+  TDisk2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -124,7 +124,7 @@
 
   { Series of contiguous line segments in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TPolyline2DNode = class(TAbstractX3DGeometryNode)
+  TPolyline2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -147,7 +147,7 @@
 
   { Set of vertices in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TPolypoint2DNode = class(TAbstractX3DGeometryNode)
+  TPolypoint2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -167,7 +167,7 @@
   end;
 
   { Rectangle in 2D. }
-  TRectangle2DNode = class(TAbstractX3DGeometryNode)
+  TRectangle2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -188,7 +188,7 @@
 
   { Set of triangles in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TTriangleSet2DNode = class(TAbstractX3DGeometryNode)
+  TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

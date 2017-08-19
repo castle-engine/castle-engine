@@ -15,7 +15,7 @@
 
 {$ifdef read_interface}
   { Rectangular box. }
-  TBoxNode = class(TAbstractX3DGeometryNode)
+  TBoxNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -50,7 +50,7 @@
   end;
 
   { Cone. }
-  TConeNode = class(TAbstractX3DGeometryNode)
+  TConeNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -103,7 +103,7 @@
   TConeNode_2 = TConeNode;
 
   { Cylinder. }
-  TCylinderNode = class(TAbstractX3DGeometryNode)
+  TCylinderNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -160,7 +160,7 @@
 
   { Uniform rectangular grid of varying height above the Y=0 plane,
     aka "height map". }
-  TElevationGridNode = class(TAbstractX3DGeometryNode)
+  TElevationGridNode = class(TAbstractGeometryNode)
   strict private
     procedure EventSet_HeightReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -245,7 +245,7 @@
   end;
 
   { 2D cross-section shape extruded along a 3D spine. }
-  TExtrusionNode = class(TAbstractX3DGeometryNode)
+  TExtrusionNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   strict private
@@ -412,7 +412,7 @@
   TIndexedFaceSetNode_2 = TIndexedFaceSetNode;
 
   { Sphere. }
-  TSphereNode = class(TAbstractX3DGeometryNode)
+  TSphereNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

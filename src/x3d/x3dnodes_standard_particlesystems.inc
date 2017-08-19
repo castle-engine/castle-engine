@@ -294,7 +294,7 @@ procedure TBoundedPhysicsModelNode.CreateNode;
 begin
   inherited;
 
-  FFdGeometry := TSFNode.Create(Self, 'geometry', [TAbstractX3DGeometryNode]);
+  FFdGeometry := TSFNode.Create(Self, 'geometry', [TAbstractGeometryNode]);
   AddField(FFdGeometry);
 end;
 
@@ -511,7 +511,7 @@ begin
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdSurface := TSFNode.Create(Self, 'surface', [TAbstractX3DGeometryNode]);
+  FFdSurface := TSFNode.Create(Self, 'surface', [TAbstractGeometryNode]);
   FFdSurface.Exposed := false;
   AddField(FFdSurface);
 end;

@@ -31,7 +31,7 @@
 
   { Base type for all geometry node types that are created parametrically
     and use control points to describe the final shape of the surface. }
-  TAbstractParametricGeometryNode = class(TAbstractX3DGeometryNode)
+  TAbstractParametricGeometryNode = class(TAbstractGeometryNode)
     {$I auto_generated_node_helpers/x3dnodes_x3dparametricgeometrynode.inc}
   end;
 
@@ -103,7 +103,7 @@
   { Groups a set of curve segments for a composite contour, for X3D.
 
     X3D cannot share implementation with VRML 2.0 version (TContour2DNode_2),
-    since for VRML 2.0 this is a valid geometry node (TAbstractX3DGeometryNode
+    since for VRML 2.0 this is a valid geometry node (TAbstractGeometryNode
     descendant). }
   TContour2DNode = class(TAbstractNode)
   protected

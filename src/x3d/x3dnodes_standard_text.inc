@@ -132,7 +132,7 @@
   TPixelTextureNode = class;
 
   { Multiline text, visualized as a set of flat and textured polygons. }
-  TTextNode = class(TAbstractX3DGeometryNode)
+  TTextNode = class(TAbstractGeometryNode)
   strict private
     FFontTextureNode: TPixelTextureNode;
     function Font: TTextureFontData;

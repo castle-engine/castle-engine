@@ -46,8 +46,8 @@
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
   strict private
-    function GetGeometry: TAbstractX3DGeometryNode;
-    procedure SetGeometry(const Value: TAbstractX3DGeometryNode);
+    function GetGeometry: TAbstractGeometryNode;
+    procedure SetGeometry(const Value: TAbstractGeometryNode);
     function GetAppearance: TAppearanceNode;
     procedure SetAppearance(const Value: TAppearanceNode);
     function GetMaterial: TMaterialNode;
@@ -100,7 +100,7 @@
     procedure AfterTraverse(StateStack: TX3DGraphTraverseStateStack); override;
 
     { Geometry of this shape. }
-    property Geometry: TAbstractX3DGeometryNode read GetGeometry write SetGeometry;
+    property Geometry: TAbstractGeometryNode read GetGeometry write SetGeometry;
 
     { Apperance of this shape.
 
@@ -659,7 +659,7 @@ begin
    FdAppearance.ChangesAlways := [chEverything];
   AddField(FFdAppearance);
 
-  FFdGeometry := TSFNode.Create(Self, 'geometry', [TAbstractX3DGeometryNode]);
+  FFdGeometry := TSFNode.Create(Self, 'geometry', [TAbstractGeometryNode]);
    FdGeometry.ChangesAlways := [chEverything];
   AddField(FFdGeometry);
 
@@ -716,15 +716,15 @@ begin
   inherited;
 end;
 
-function TAbstractShapeNode.GetGeometry: TAbstractX3DGeometryNode;
+function TAbstractShapeNode.GetGeometry: TAbstractGeometryNode;
 begin
-  if FdGeometry.Value is TAbstractX3DGeometryNode then
-    Result := TAbstractX3DGeometryNode(FdGeometry.Value)
+  if FdGeometry.Value is TAbstractGeometryNode then
+    Result := TAbstractGeometryNode(FdGeometry.Value)
   else
     Result := nil;
 end;
 
-procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractX3DGeometryNode);
+procedure TAbstractShapeNode.SetGeometry(const Value: TAbstractGeometryNode);
 begin
   FdGeometry.Send(Value);
 end;

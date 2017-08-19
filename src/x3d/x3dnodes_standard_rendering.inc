@@ -23,9 +23,7 @@
 
   ENotCoordinateBasedNode = class(EX3DError);
 
-  { Geometry nodes are the only nodes that produce something visible.
-    Much of the X3D language is about describing how geometry nodes are displayed
-    (materials, transformations, lighting). }
+  { Base node for a visible geometry in X3D. }
   TAbstractGeometryNode = class(TAbstractNode)
   strict private
     HasBounds2DST: boolean;
@@ -388,6 +386,60 @@
     { Is backface culling used. }
     property Solid: boolean read GetSolid write SetSolid;
 
+    { Create an instance of this geometry node,
+      and make it a child of a new shape node (TShapeNode).
+      This way you get a ready shape that can be used inside the X3D scene graph
+      to show this geometry.
+
+      You usually want to add the resulting Shape node to some scene,
+      e.g. like this:
+
+      @longCode(#
+      Box := TBoxNode.CreateShape(Shape);
+
+      Root := TX3DRootNode.Create;
+      Root.AddChildren(Shape);
+
+      Scene := TCastleScene.Create(nil);
+      Scene.Load(Root, true);
+      #)
+
+      Remember that once the node is a children of another node,
+      then this node will be automatically freed.
+      So you should not free the resulting geometry node.
+      Instead, free the resulting Shape node,
+      or add it to some scene, as shown above.
+    }
+    constructor CreateShape(out Shape: TShapeNode);
+
+    { Create an instance of this geometry node,
+      and make it a child of a new shape node (TShapeNode),
+      and make it a child of a new transform node (TTransformNode).
+      This way you get a ready transformation that can be used inside
+      the X3D scene graph to show and transform this geometry.
+
+      You usually want to add the resulting Transform node to some scene,
+      e.g. like this:
+
+      @longCode(#
+      Box := TBoxNode.CreateTransform(Shape, Transform);
+
+      Root := TX3DRootNode.Create;
+      Root.AddChildren(Transform);
+
+      Scene := TCastleScene.Create(nil);
+      Scene.Load(Root, true);
+      #)
+
+      Remember that once the node is a children of another node,
+      then this node will be automatically freed.
+      So you should not free the resulting geometry node
+      or Shape node.
+      Instead, free the resulting Transform node,
+      or add it to some scene, as shown above.
+    }
+    constructor CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
+
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
 
@@ -396,9 +448,7 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometricpropertynode.inc}
   end;
 
-  { Base node for a visible geometry in X3D. }
-  TAbstractX3DGeometryNode = class(TAbstractGeometryNode)
-  end;
+  TAbstractX3DGeometryNode = TAbstractGeometryNode deprecated 'use TAbstractGeometryNode';
 
   { Base node for color specifications. }
   TAbstractColorNode = class(TAbstractGeometricPropertyNode)
@@ -409,7 +459,7 @@
   end;
 
   { Base node type for all composed 3D geometry. }
-  TAbstractComposedGeometryNode = class(TAbstractX3DGeometryNode)
+  TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -549,7 +599,7 @@
   end;
 
   { Geometry formed by constructing polylines from 3D vertices. }
-  TIndexedLineSetNode = class(TAbstractX3DGeometryNode)
+  TIndexedLineSetNode = class(TAbstractGeometryNode)
   strict private
     procedure EventSet_ColorIndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
@@ -696,7 +746,7 @@
   end;
 
   { Lines. }
-  TLineSetNode = class(TAbstractX3DGeometryNode)
+  TLineSetNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -755,7 +805,7 @@
   end;
 
   { Points. }
-  TPointSetNode = class(TAbstractX3DGeometryNode)
+  TPointSetNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -877,6 +927,25 @@ begin
   { to make notes with and without FdSolid behave consistent }
   FIgnoredSolid := true;
   FIgnoredConvex := true;
+end;
+
+constructor TAbstractGeometryNode.CreateShape(out Shape: TShapeNode);
+begin
+  Create;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Self;
+end;
+
+constructor TAbstractGeometryNode.CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
+begin
+  Create;
+
+  Shape := TShapeNode.Create;
+  Shape.Geometry := Self;
+
+  Transform := TTransformNode.Create;
+  Transform.AddChildren(Shape);
 end;
 
 function TAbstractGeometryNode.Coord(State: TX3DGraphTraverseState;

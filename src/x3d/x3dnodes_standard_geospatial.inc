@@ -58,7 +58,7 @@
 
   { Elevation grid expressed in geo-centric coordinates.
     @bold(Rendering of this node is not implemented yet.) }
-  TGeoElevationGridNode = class(TAbstractX3DGeometryNode)
+  TGeoElevationGridNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

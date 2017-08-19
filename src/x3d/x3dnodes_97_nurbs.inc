@@ -91,7 +91,7 @@
 
   { Visible NURBS curve in 3D, in VRML 2.0.
     @bold(Not implemented.) }
-  TNurbsCurveNode_2 = class(TAbstractX3DGeometryNode)
+  TNurbsCurveNode_2 = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -178,7 +178,7 @@
   end;
 
   { Visible NURBS 3D surface, for VRML 2.0. }
-  TNurbsSurfaceNode = class(TAbstractX3DGeometryNode)
+  TNurbsSurfaceNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -273,7 +273,7 @@
 
   { NURBS surface that is trimmed by a set of trimming loops.
     @bold(Rendering of this node is not implemented yet.) }
-  TTrimmedSurfaceNode = class(TAbstractX3DGeometryNode)
+  TTrimmedSurfaceNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -304,7 +304,7 @@
 
   { 2D curve composed from NURBS curves and straight segments, for VRML 2.0.
     @bold(Not implemented yet.) }
-  TContour2DNode_2 = class(TAbstractX3DGeometryNode)
+  TContour2DNode_2 = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public

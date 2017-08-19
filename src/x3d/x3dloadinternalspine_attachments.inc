@@ -49,7 +49,7 @@
     procedure BuildNodes(const BaseUrl: string; const TextureLoader: TTextureLoader); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractX3DGeometryNode; virtual;
+      const TexRotated: boolean): TAbstractGeometryNode; virtual;
   end;
 
   TAbstractMeshAttachment = class(TRegionAttachment)
@@ -69,7 +69,7 @@
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
     function BuildGeometry(const BaseUrl: string;
       const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-      const TexRotated: boolean): TAbstractX3DGeometryNode; override;
+      const TexRotated: boolean): TAbstractGeometryNode; override;
   end;
 
   TMeshAttachment = class(TAbstractMeshAttachment)
@@ -229,7 +229,7 @@ end;
 
 function TRegionAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-  const TexRotated: boolean): TAbstractX3DGeometryNode;
+  const TexRotated: boolean): TAbstractGeometryNode;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
@@ -305,7 +305,7 @@ end;
 
 function TAbstractMeshAttachment.BuildGeometry(const BaseUrl: string;
   const TexCoord: TQuadTexCoord; const TexRect: TQuadTexRect;
-  const TexRotated: boolean): TAbstractX3DGeometryNode;
+  const TexRotated: boolean): TAbstractGeometryNode;
 var
   TexCoordNode: TTextureCoordinateNode;
   I: Integer;

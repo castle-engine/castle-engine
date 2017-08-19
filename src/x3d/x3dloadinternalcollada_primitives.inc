@@ -26,7 +26,7 @@ type
       name (inside geometry) corresponds to which material name on Materials
       list. }
     Material: string;
-    X3DGeometry: TAbstractX3DGeometryNode;
+    X3DGeometry: TAbstractGeometryNode;
     destructor Destroy; override;
   end;
 

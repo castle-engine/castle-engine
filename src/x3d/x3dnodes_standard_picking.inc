@@ -125,7 +125,7 @@ begin
   AddField(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdPickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TAbstractX3DGeometryNode]);
+  FFdPickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TAbstractGeometryNode]);
   AddField(FFdPickingGeometry);
 
   { X3D specification (edition 2) specifies X3DInlineNode as 3rd value on

@@ -45,7 +45,7 @@
 
   { Teapot geometry, useful for testing purposes.
     See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_teapot . }
-  TTeapotNode = class(TAbstractX3DGeometryNode)
+  TTeapotNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -226,7 +226,7 @@
     {$I auto_generated_node_helpers/x3dnodes_renderedtexture.inc}
   end;
 
-  TPlaneNode = class(TAbstractX3DGeometryNode)
+  TPlaneNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;

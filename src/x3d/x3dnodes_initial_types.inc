@@ -57,6 +57,8 @@
   TX3DPrototypeNames = class;
   TX3DInterfaceDeclarationList = class;
   TX3DGraphTraverseStateStack = class;
+  TShapeNode = class;
+  TTransformNode = class;
 
   TX3DNodeClass = class of TX3DNode;
 

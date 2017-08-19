@@ -595,11 +595,11 @@ begin
 
     for I := 0 to AllowedGeometryNodes.Count - 1 do
     try
-      AssertTrue(AllowedGeometryNodes[I].InheritsFrom(TAbstractX3DGeometryNode));
+      AssertTrue(AllowedGeometryNodes[I].InheritsFrom(TAbstractGeometryNode));
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TAbstractX3DGeometryNode');
+        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TAbstractGeometryNode');
         raise;
       end;
     end;
