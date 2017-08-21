@@ -151,7 +151,7 @@ procedure CalculateElements;
   begin
     Shapes[ShapeIndex].Shape := Shape;
 
-    if Shape.Geometry.Coord(Shape.State, Coord) and (Coord <> nil) then
+    if Shape.Geometry.InternalCoord(Shape.State, Coord) and (Coord <> nil) then
     begin
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
@@ -179,8 +179,8 @@ procedure CalculateElements;
       Calculator := TElementsCalculator.Create;
       try
         Calculator.Coord := Coord.Items;
-        if Shape.Geometry.CoordIndex <> nil then
-          Calculator.CoordIndex := Shape.Geometry.CoordIndex.Items else
+        if Shape.Geometry.CoordIndexField <> nil then
+          Calculator.CoordIndex := Shape.Geometry.CoordIndexField.Items else
           Calculator.CoordIndex := nil;
         Calculator.ShapeElements := ShapeElements;
         Shape.Geometry.InternalCoordPolygons(Shape.State, @Calculator.Polygon);
