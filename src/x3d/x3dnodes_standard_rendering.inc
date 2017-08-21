@@ -207,7 +207,7 @@
 
       Override this for descendants that have some kind of "coordIndex"
       or "index" field used to index @link(Coord) array. }
-    function CoordIndex: TMFLong; virtual;
+    function CoordIndexField: TMFLong; virtual;
 
     { Returns an information how to split @link(Coord) array into ranges.
 
@@ -648,7 +648,7 @@
 
     function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
@@ -675,7 +675,7 @@
     strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
     procedure CoordPolygons(
       State: TX3DGraphTraverseState;
@@ -704,7 +704,7 @@
     strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
     procedure CoordPolygons(
       State: TX3DGraphTraverseState;
@@ -733,7 +733,7 @@
     strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
     procedure CoordPolygons(
       State: TX3DGraphTraverseState;
@@ -961,7 +961,7 @@ begin
       [X3DType]);
 end;
 
-function TAbstractGeometryNode.CoordIndex: TMFLong;
+function TAbstractGeometryNode.CoordIndexField: TMFLong;
 begin
   Result := nil;
 end;
@@ -990,15 +990,15 @@ begin
   if C = nil then
     Exit;
 
-  if CoordIndex <> nil then
+  if CoordIndexField <> nil then
   begin
     BeginIndex := 0;
     RangeNumber := 0;
-    while BeginIndex < CoordIndex.Count do
+    while BeginIndex < CoordIndexField.Count do
     begin
       EndIndex := BeginIndex;
-      while (EndIndex < CoordIndex.Count) and
-            (CoordIndex.Items.Items[EndIndex] >= 0) do
+      while (EndIndex < CoordIndexField.Count) and
+            (CoordIndexField.Items.Items[EndIndex] >= 0) do
         Inc(EndIndex);
       CoordRangeHandler(RangeNumber, BeginIndex, EndIndex);
       Inc(RangeNumber);
@@ -1538,7 +1538,7 @@ begin
   Result := FdAttrib;
 end;
 
-function TIndexedLineSetNode.CoordIndex: TMFLong;
+function TIndexedLineSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdCoordIndex;
 end;
@@ -1589,7 +1589,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TIndexedTriangleFanSetNode.CoordIndex: TMFLong;
+function TIndexedTriangleFanSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
 end;
@@ -1627,7 +1627,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TIndexedTriangleSetNode.CoordIndex: TMFLong;
+function TIndexedTriangleSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
 end;
@@ -1665,7 +1665,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TIndexedTriangleStripSetNode.CoordIndex: TMFLong;
+function TIndexedTriangleStripSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
 end;

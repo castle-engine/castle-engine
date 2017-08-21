@@ -145,7 +145,7 @@ procedure TIndexedTriangleSetNode.CoordPolygons(
   PolygonHandler: TIndexedPolygonHandler);
 begin
   if Coordinates(State) <> nil then
-    TriangleSetPolygonizer(CoordIndex.Count, PolygonHandler);
+    TriangleSetPolygonizer(CoordIndexField.Count, PolygonHandler);
 end;
 
 procedure TTriangleSetNode.CoordPolygons(
@@ -180,7 +180,7 @@ procedure TIndexedQuadSetNode.CoordPolygons(
   PolygonHandler: TIndexedPolygonHandler);
 begin
   if Coordinates(State) <> nil then
-    QuadSetPolygonizer(CoordIndex.Count, PolygonHandler);
+    QuadSetPolygonizer(CoordIndexField.Count, PolygonHandler);
 end;
 
 procedure TQuadSetNode.CoordPolygons(

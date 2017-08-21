@@ -1790,7 +1790,7 @@ begin
     G := Geometry(OverTriangulate);
     S := State(OverTriangulate);
 
-    FNormals := CreateFlatNormals(G.CoordIndex.Items,
+    FNormals := CreateFlatNormals(G.CoordIndexField.Items,
       G.Coordinates(S).Items, true, G.Convex);
     FNormalsCached := ncFlat;
     FNormalsOverTriangulate := OverTriangulate;
@@ -1821,7 +1821,7 @@ begin
     G := Geometry(OverTriangulate);
     S := State(OverTriangulate);
 
-    FNormals := CreateNormals(G.CoordIndex.Items,
+    FNormals := CreateNormals(G.CoordIndexField.Items,
       G.Coordinates(S).Items, CreaseAngle, true, G.Convex);
     FNormalsCached := ncCreaseAngle;
     FNormalsOverTriangulate := OverTriangulate;

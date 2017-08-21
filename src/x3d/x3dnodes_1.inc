@@ -178,7 +178,7 @@
 
     function Coord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
   end;
 
   { Common base class for VRML 1.0 indexed polygon nodes
@@ -1069,7 +1069,7 @@ begin
   ACoord := State.VRML1State.Coordinate3.FdPoint;
 end;
 
-function TAbstractIndexedNode_1.CoordIndex: TMFLong;
+function TAbstractIndexedNode_1.CoordIndexField: TMFLong;
 begin
   Result := FdCoordIndex;
 end;

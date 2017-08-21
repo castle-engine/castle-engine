@@ -120,7 +120,7 @@ begin
         end;
 
       { generate quads indexes }
-      CoordIndexes := IFS.CoordIndex.Items;
+      CoordIndexes := IFS.CoordIndexField.Items;
       CoordIndexes.Count := (XDim - 1) * (ZDim - 1) * 8;
       NextIndex := 0;
       for J := 1 to ZDim - 1 do

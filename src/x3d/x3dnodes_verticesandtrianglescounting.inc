@@ -278,7 +278,7 @@ function TIndexedTriangleSetNode.TrianglesCount(
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   if Coordinates(State) <> nil then
-    Result := CoordIndex.Count div 3 else
+    Result := CoordIndexField.Count div 3 else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
       So we don't worry about this case. }

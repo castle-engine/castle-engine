@@ -139,8 +139,8 @@ begin
   begin
     if C <> nil then
     begin
-      if CoordIndex <> nil then
-        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndex) else
+      if CoordIndexField <> nil then
+        Result := IndexedCoords_BoundingBox(Self, State, C, CoordIndexField) else
         Result := Coords_BoundingBox(State, C);
     end else
       Result := TBox3D.Empty;
@@ -168,8 +168,8 @@ begin
   begin
     if C <> nil then
     begin
-      if CoordIndex <> nil then
-        Result := IndexedCoords_LocalBoundingBox(Self, State, C, CoordIndex) else
+      if CoordIndexField <> nil then
+        Result := IndexedCoords_LocalBoundingBox(Self, State, C, CoordIndexField) else
         Result := Coords_LocalBoundingBox(State, C);
     end else
       Result := TBox3D.Empty;

@@ -723,7 +723,7 @@ begin
 
   Check(Geometry.Coord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
-  FCoordIndex := Geometry.CoordIndex;
+  FCoordIndex := Geometry.CoordIndexField;
 end;
 
 procedure TArraysGenerator.WarningShadingProblems(

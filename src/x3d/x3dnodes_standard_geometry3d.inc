@@ -398,7 +398,7 @@
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
     procedure CoordPolygons(
       State: TX3DGraphTraverseState;
@@ -1406,7 +1406,7 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TIndexedFaceSetNode.CoordIndex: TMFLong;
+function TIndexedFaceSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdCoordIndex;
 end;

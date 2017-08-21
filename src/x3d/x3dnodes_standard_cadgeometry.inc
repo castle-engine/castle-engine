@@ -132,7 +132,7 @@
     strict private FFdIndex: TMFInt32;
     public property FdIndex: TMFInt32 read FFdIndex;
 
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
     procedure CoordPolygons(
       State: TX3DGraphTraverseState;
@@ -366,7 +366,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TIndexedQuadSetNode.CoordIndex: TMFLong;
+function TIndexedQuadSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdIndex;
 end;

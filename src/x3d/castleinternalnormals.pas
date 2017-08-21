@@ -362,8 +362,8 @@ begin
     try
       Calculator.Convex := Node.Convex;
       Calculator.Coord := C.Items;
-      if Node.CoordIndex <> nil then
-        Calculator.CoordIndex := Node.CoordIndex.Items else
+      if Node.CoordIndexField <> nil then
+        Calculator.CoordIndex := Node.CoordIndexField.Items else
         Calculator.CoordIndex := nil;
       Calculator.Normals := Result;
       Node.CoordPolygons(State, @Calculator.Polygon);
