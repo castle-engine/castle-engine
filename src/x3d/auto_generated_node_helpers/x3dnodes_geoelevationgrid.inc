@@ -65,6 +65,10 @@
     property CreaseAngle: Double read GetCreaseAngle write SetCreaseAngle;
     property GeoGridOrigin: TVector3Double read GetGeoGridOrigin write SetGeoGridOrigin;
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
+    procedure SetHeight(const Value: array of Double);
+    procedure SetHeight(const Value: TDoubleList);
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
     property XDimension: Integer read GetXDimension write SetXDimension;
     property XSpacing: Double read GetXSpacing write SetXSpacing;
@@ -177,6 +181,26 @@ end;
 procedure TGeoElevationGridNode.SetGeoOrigin(const Value: TGeoOriginNode);
 begin
   FdGeoOrigin.Send(Value);
+end;
+
+procedure TGeoElevationGridNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoElevationGridNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoElevationGridNode.SetHeight(const Value: array of Double);
+begin
+  FdHeight.Send(Value);
+end;
+
+procedure TGeoElevationGridNode.SetHeight(const Value: TDoubleList);
+begin
+  FdHeight.Send(Value);
 end;
 
 function TGeoElevationGridNode.GetNormalPerVertex: boolean;

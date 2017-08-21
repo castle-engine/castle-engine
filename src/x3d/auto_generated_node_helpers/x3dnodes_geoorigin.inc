@@ -33,6 +33,8 @@
     procedure SetRotateYUp(const Value: boolean);
   public
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
     property RotateYUp: boolean read GetRotateYUp write SetRotateYUp;
 
 {$endif read_interface}
@@ -49,6 +51,16 @@ end;
 procedure TGeoOriginNode.SetGeoCoords(const Value: TVector3Double);
 begin
   FdGeoCoords.Send(Value);
+end;
+
+procedure TGeoOriginNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoOriginNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
 end;
 
 function TGeoOriginNode.GetRotateYUp: boolean;

@@ -26,11 +26,84 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetBackUrl(const Value: array of string);
+    procedure SetBackUrl(const Value: TCastleStringList);
+    procedure SetBottomUrl(const Value: array of string);
+    procedure SetBottomUrl(const Value: TCastleStringList);
+    procedure SetFrontUrl(const Value: array of string);
+    procedure SetFrontUrl(const Value: TCastleStringList);
+    procedure SetLeftUrl(const Value: array of string);
+    procedure SetLeftUrl(const Value: TCastleStringList);
+    procedure SetRightUrl(const Value: array of string);
+    procedure SetRightUrl(const Value: TCastleStringList);
+    procedure SetTopUrl(const Value: array of string);
+    procedure SetTopUrl(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TBackgroundNode ----------------------------------------------- }
+
+procedure TBackgroundNode.SetBackUrl(const Value: array of string);
+begin
+  FdBackUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetBackUrl(const Value: TCastleStringList);
+begin
+  FdBackUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetBottomUrl(const Value: array of string);
+begin
+  FdBottomUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetBottomUrl(const Value: TCastleStringList);
+begin
+  FdBottomUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetFrontUrl(const Value: array of string);
+begin
+  FdFrontUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetFrontUrl(const Value: TCastleStringList);
+begin
+  FdFrontUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetLeftUrl(const Value: array of string);
+begin
+  FdLeftUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetLeftUrl(const Value: TCastleStringList);
+begin
+  FdLeftUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetRightUrl(const Value: array of string);
+begin
+  FdRightUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetRightUrl(const Value: TCastleStringList);
+begin
+  FdRightUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetTopUrl(const Value: array of string);
+begin
+  FdTopUrl.Send(Value);
+end;
+
+procedure TBackgroundNode.SetTopUrl(const Value: TCastleStringList);
+begin
+  FdTopUrl.Send(Value);
+end;
 
 {$endif read_implementation}

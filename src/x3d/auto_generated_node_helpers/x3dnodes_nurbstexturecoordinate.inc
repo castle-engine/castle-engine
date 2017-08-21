@@ -36,9 +36,17 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    procedure SetControlPoint(const Value: array of TVector2);
+    procedure SetControlPoint(const Value: TVector2List);
+    procedure SetWeight(const Value: array of Single);
+    procedure SetWeight(const Value: TSingleList);
     property UDimension: Integer read GetUDimension write SetUDimension;
+    procedure SetUKnot(const Value: array of Double);
+    procedure SetUKnot(const Value: TDoubleList);
     property UOrder: Integer read GetUOrder write SetUOrder;
     property VDimension: Integer read GetVDimension write SetVDimension;
+    procedure SetVKnot(const Value: array of Double);
+    procedure SetVKnot(const Value: TDoubleList);
     property VOrder: Integer read GetVOrder write SetVOrder;
 
 {$endif read_interface}
@@ -46,6 +54,26 @@
 {$ifdef read_implementation}
 
 { TNurbsTextureCoordinateNode ----------------------------------------------- }
+
+procedure TNurbsTextureCoordinateNode.SetControlPoint(const Value: array of TVector2);
+begin
+  FdControlPoint.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetControlPoint(const Value: TVector2List);
+begin
+  FdControlPoint.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetWeight(const Value: array of Single);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetWeight(const Value: TSingleList);
+begin
+  FdWeight.Send(Value);
+end;
 
 function TNurbsTextureCoordinateNode.GetUDimension: Integer;
 begin
@@ -55,6 +83,16 @@ end;
 procedure TNurbsTextureCoordinateNode.SetUDimension(const Value: Integer);
 begin
   FdUDimension.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetUKnot(const Value: array of Double);
+begin
+  FdUKnot.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetUKnot(const Value: TDoubleList);
+begin
+  FdUKnot.Send(Value);
 end;
 
 function TNurbsTextureCoordinateNode.GetUOrder: Integer;
@@ -75,6 +113,16 @@ end;
 procedure TNurbsTextureCoordinateNode.SetVDimension(const Value: Integer);
 begin
   FdVDimension.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetVKnot(const Value: array of Double);
+begin
+  FdVKnot.Send(Value);
+end;
+
+procedure TNurbsTextureCoordinateNode.SetVKnot(const Value: TDoubleList);
+begin
+  FdVKnot.Send(Value);
 end;
 
 function TNurbsTextureCoordinateNode.GetVOrder: Integer;

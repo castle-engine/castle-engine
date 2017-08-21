@@ -58,6 +58,8 @@
     function GetSurfaceSpeed: TVector2;
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
+    procedure SetAppliedParameters(const Value: array of string);
+    procedure SetAppliedParameters(const Value: TCastleStringList);
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
     property Bounce: Single read GetBounce write SetBounce;
@@ -79,6 +81,16 @@
 {$ifdef read_implementation}
 
 { TContactNode ----------------------------------------------- }
+
+procedure TContactNode.SetAppliedParameters(const Value: array of string);
+begin
+  FdAppliedParameters.Send(Value);
+end;
+
+procedure TContactNode.SetAppliedParameters(const Value: TCastleStringList);
+begin
+  FdAppliedParameters.Send(Value);
+end;
 
 function TContactNode.GetBody1: TRigidBodyNode;
 begin

@@ -30,6 +30,8 @@
     function GetPickingGeometry: TAbstractGeometryNode;
     procedure SetPickingGeometry(const Value: TAbstractGeometryNode);
   public
+    procedure SetObjectType(const Value: array of string);
+    procedure SetObjectType(const Value: TCastleStringList);
     property PickingGeometry: TAbstractGeometryNode read GetPickingGeometry write SetPickingGeometry;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TAbstractPickSensorNode ----------------------------------------------- }
+
+procedure TAbstractPickSensorNode.SetObjectType(const Value: array of string);
+begin
+  FdObjectType.Send(Value);
+end;
+
+procedure TAbstractPickSensorNode.SetObjectType(const Value: TCastleStringList);
+begin
+  FdObjectType.Send(Value);
+end;
 
 function TAbstractPickSensorNode.GetPickingGeometry: TAbstractGeometryNode;
 begin

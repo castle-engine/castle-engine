@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetValue(const Value: array of TMatrix3);
+    procedure SetValue(const Value: TMatrix3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TMatrix3VertexAttributeNode ----------------------------------------------- }
+
+procedure TMatrix3VertexAttributeNode.SetValue(const Value: array of TMatrix3);
+begin
+  FdValue.Send(Value);
+end;
+
+procedure TMatrix3VertexAttributeNode.SetValue(const Value: TMatrix3List);
+begin
+  FdValue.Send(Value);
+end;
 
 {$endif read_implementation}

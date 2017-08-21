@@ -31,6 +31,8 @@
     procedure SetNameField(const Value: string);
   public
     property NameField: string read GetNameField write SetNameField;
+    procedure SetVisible(const Value: array of boolean);
+    procedure SetVisible(const Value: TBooleanList);
 
 {$endif read_interface}
 
@@ -46,6 +48,16 @@ end;
 procedure TCADLayerNode.SetNameField(const Value: string);
 begin
   FdName.Send(Value);
+end;
+
+procedure TCADLayerNode.SetVisible(const Value: array of boolean);
+begin
+  FdVisible.Send(Value);
+end;
+
+procedure TCADLayerNode.SetVisible(const Value: TBooleanList);
+begin
+  FdVisible.Send(Value);
 end;
 
 {$endif read_implementation}

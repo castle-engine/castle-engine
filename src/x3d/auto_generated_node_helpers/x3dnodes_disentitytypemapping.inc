@@ -42,6 +42,8 @@
     function GetSubcategory: Integer;
     procedure SetSubcategory(const Value: Integer);
   public
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
     property Category: Integer read GetCategory write SetCategory;
     property Country: Integer read GetCountry write SetCountry;
     property Domain: Integer read GetDomain write SetDomain;
@@ -55,6 +57,16 @@
 {$ifdef read_implementation}
 
 { TDISEntityTypeMappingNode ----------------------------------------------- }
+
+procedure TDISEntityTypeMappingNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TDISEntityTypeMappingNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
+end;
 
 function TDISEntityTypeMappingNode.GetCategory: Integer;
 begin

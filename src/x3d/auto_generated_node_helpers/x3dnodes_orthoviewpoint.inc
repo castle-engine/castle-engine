@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetFieldOfView(const Value: array of Single);
+    procedure SetFieldOfView(const Value: TSingleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TOrthoViewpointNode ----------------------------------------------- }
+
+procedure TOrthoViewpointNode.SetFieldOfView(const Value: array of Single);
+begin
+  FdFieldOfView.Send(Value);
+end;
+
+procedure TOrthoViewpointNode.SetFieldOfView(const Value: TSingleList);
+begin
+  FdFieldOfView.Send(Value);
+end;
 
 {$endif read_implementation}

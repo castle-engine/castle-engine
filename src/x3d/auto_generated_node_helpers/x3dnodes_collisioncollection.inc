@@ -44,6 +44,8 @@
     function GetSurfaceSpeed: TVector2;
     procedure SetSurfaceSpeed(const Value: TVector2);
   public
+    procedure SetAppliedParameters(const Value: array of string);
+    procedure SetAppliedParameters(const Value: TCastleStringList);
     property Bounce: Single read GetBounce write SetBounce;
     property Enabled: boolean read GetEnabled write SetEnabled;
     property FrictionCoefficients: TVector2 read GetFrictionCoefficients write SetFrictionCoefficients;
@@ -58,6 +60,16 @@
 {$ifdef read_implementation}
 
 { TCollisionCollectionNode ----------------------------------------------- }
+
+procedure TCollisionCollectionNode.SetAppliedParameters(const Value: array of string);
+begin
+  FdAppliedParameters.Send(Value);
+end;
+
+procedure TCollisionCollectionNode.SetAppliedParameters(const Value: TCastleStringList);
+begin
+  FdAppliedParameters.Send(Value);
+end;
 
 function TCollisionCollectionNode.GetBounce: Single;
 begin

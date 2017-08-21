@@ -49,6 +49,8 @@
     procedure SetBboxSize(const Value: TVector3);
   public
     property Center: TVector3 read GetCenter write SetCenter;
+    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: TCastleStringList);
     property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4 read GetRotation write SetRotation;
     property Scale: TVector3 read GetScale write SetScale;
@@ -73,6 +75,16 @@ end;
 procedure THAnimHumanoidNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetInfo(const Value: array of string);
+begin
+  FdInfo.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetInfo(const Value: TCastleStringList);
+begin
+  FdInfo.Send(Value);
 end;
 
 function THAnimHumanoidNode.GetNameField: string;

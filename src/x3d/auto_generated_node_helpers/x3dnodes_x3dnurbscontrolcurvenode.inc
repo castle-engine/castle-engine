@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetControlPoint(const Value: array of TVector2Double);
+    procedure SetControlPoint(const Value: TVector2DoubleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractNurbsControlCurveNode ----------------------------------------------- }
+
+procedure TAbstractNurbsControlCurveNode.SetControlPoint(const Value: array of TVector2Double);
+begin
+  FdControlPoint.Send(Value);
+end;
+
+procedure TAbstractNurbsControlCurveNode.SetControlPoint(const Value: TVector2DoubleList);
+begin
+  FdControlPoint.Send(Value);
+end;
 
 {$endif read_implementation}

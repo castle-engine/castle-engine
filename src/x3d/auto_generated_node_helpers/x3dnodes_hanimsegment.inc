@@ -39,6 +39,8 @@
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
     property Mass: Single read GetMass write SetMass;
+    procedure SetMomentsOfInertia(const Value: array of Single);
+    procedure SetMomentsOfInertia(const Value: TSingleList);
     property NameField: string read GetNameField write SetNameField;
 
 {$endif read_interface}
@@ -78,6 +80,16 @@ end;
 procedure THAnimSegmentNode.SetMass(const Value: Single);
 begin
   FdMass.Send(Value);
+end;
+
+procedure THAnimSegmentNode.SetMomentsOfInertia(const Value: array of Single);
+begin
+  FdMomentsOfInertia.Send(Value);
+end;
+
+procedure THAnimSegmentNode.SetMomentsOfInertia(const Value: TSingleList);
+begin
+  FdMomentsOfInertia.Send(Value);
 end;
 
 function THAnimSegmentNode.GetNameField: string;

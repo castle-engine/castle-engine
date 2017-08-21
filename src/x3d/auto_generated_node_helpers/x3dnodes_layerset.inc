@@ -31,6 +31,8 @@
     procedure SetActiveLayer(const Value: Integer);
   public
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
+    procedure SetOrder(const Value: array of LongInt);
+    procedure SetOrder(const Value: TLongIntList);
 
 {$endif read_interface}
 
@@ -46,6 +48,16 @@ end;
 procedure TLayerSetNode.SetActiveLayer(const Value: Integer);
 begin
   FdActiveLayer.Send(Value);
+end;
+
+procedure TLayerSetNode.SetOrder(const Value: array of LongInt);
+begin
+  FdOrder.Send(Value);
+end;
+
+procedure TLayerSetNode.SetOrder(const Value: TLongIntList);
+begin
+  FdOrder.Send(Value);
 end;
 
 {$endif read_implementation}

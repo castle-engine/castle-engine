@@ -53,6 +53,14 @@
     property SpecularColor: TCastleColorRGB read GetSpecularColor write SetSpecularColor;
     property Transparency: Single read GetTransparency write SetTransparency;
     property Mirror: Single read GetMirror write SetMirror;
+    procedure SetReflSpecular(const Value: array of TCastleColorRGB);
+    procedure SetReflSpecular(const Value: TVector3List);
+    procedure SetReflDiffuse(const Value: array of TCastleColorRGB);
+    procedure SetReflDiffuse(const Value: TVector3List);
+    procedure SetTransSpecular(const Value: array of TCastleColorRGB);
+    procedure SetTransSpecular(const Value: TVector3List);
+    procedure SetTransDiffuse(const Value: array of TCastleColorRGB);
+    procedure SetTransDiffuse(const Value: TVector3List);
     property ReflSpecularExp: Single read GetReflSpecularExp write SetReflSpecularExp;
     property TransSpecularExp: Single read GetTransSpecularExp write SetTransSpecularExp;
 
@@ -130,6 +138,46 @@ end;
 procedure TMaterialNode.SetMirror(const Value: Single);
 begin
   FdMirror.Send(Value);
+end;
+
+procedure TMaterialNode.SetReflSpecular(const Value: array of TCastleColorRGB);
+begin
+  FdReflSpecular.Send(Value);
+end;
+
+procedure TMaterialNode.SetReflSpecular(const Value: TVector3List);
+begin
+  FdReflSpecular.Send(Value);
+end;
+
+procedure TMaterialNode.SetReflDiffuse(const Value: array of TCastleColorRGB);
+begin
+  FdReflDiffuse.Send(Value);
+end;
+
+procedure TMaterialNode.SetReflDiffuse(const Value: TVector3List);
+begin
+  FdReflDiffuse.Send(Value);
+end;
+
+procedure TMaterialNode.SetTransSpecular(const Value: array of TCastleColorRGB);
+begin
+  FdTransSpecular.Send(Value);
+end;
+
+procedure TMaterialNode.SetTransSpecular(const Value: TVector3List);
+begin
+  FdTransSpecular.Send(Value);
+end;
+
+procedure TMaterialNode.SetTransDiffuse(const Value: array of TCastleColorRGB);
+begin
+  FdTransDiffuse.Send(Value);
+end;
+
+procedure TMaterialNode.SetTransDiffuse(const Value: TVector3List);
+begin
+  FdTransDiffuse.Send(Value);
 end;
 
 function TMaterialNode.GetReflSpecularExp: Single;

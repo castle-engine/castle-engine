@@ -32,6 +32,10 @@
     function GetDepth: Single;
     procedure SetDepth(const Value: Single);
   public
+    procedure SetString(const Value: array of string);
+    procedure SetString(const Value: TCastleStringList);
+    procedure SetLength(const Value: array of Single);
+    procedure SetLength(const Value: TSingleList);
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
     property Depth: Single read GetDepth write SetDepth;
 
@@ -40,6 +44,26 @@
 {$ifdef read_implementation}
 
 { TText3DNode ----------------------------------------------- }
+
+procedure TText3DNode.SetString(const Value: array of string);
+begin
+  FdString.Send(Value);
+end;
+
+procedure TText3DNode.SetString(const Value: TCastleStringList);
+begin
+  FdString.Send(Value);
+end;
+
+procedure TText3DNode.SetLength(const Value: array of Single);
+begin
+  FdLength.Send(Value);
+end;
+
+procedure TText3DNode.SetLength(const Value: TSingleList);
+begin
+  FdLength.Send(Value);
+end;
 
 function TText3DNode.GetMaxExtent: Single;
 begin

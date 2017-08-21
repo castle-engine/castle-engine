@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of TVector4);
+    procedure SetKeyValue(const Value: TVector4List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TOrientationInterpolatorNode ----------------------------------------------- }
+
+procedure TOrientationInterpolatorNode.SetKeyValue(const Value: array of TVector4);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TOrientationInterpolatorNode.SetKeyValue(const Value: TVector4List);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

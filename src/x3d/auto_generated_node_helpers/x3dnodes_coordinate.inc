@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetPoint(const Value: array of TVector3);
+    procedure SetPoint(const Value: TVector3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TCoordinateNode ----------------------------------------------- }
+
+procedure TCoordinateNode.SetPoint(const Value: array of TVector3);
+begin
+  FdPoint.Send(Value);
+end;
+
+procedure TCoordinateNode.SetPoint(const Value: TVector3List);
+begin
+  FdPoint.Send(Value);
+end;
 
 {$endif read_implementation}

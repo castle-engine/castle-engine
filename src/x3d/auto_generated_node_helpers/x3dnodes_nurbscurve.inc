@@ -38,7 +38,11 @@
   public
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     property Tessellation: Integer read GetTessellation write SetTessellation;
+    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: TDoubleList);
     property Closed: boolean read GetClosed write SetClosed;
+    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: TDoubleList);
     property Order: Integer read GetOrder write SetOrder;
 
 {$endif read_interface}
@@ -70,6 +74,16 @@ begin
   FdTessellation.Send(Value);
 end;
 
+procedure TNurbsCurveNode.SetWeight(const Value: array of Double);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TNurbsCurveNode.SetWeight(const Value: TDoubleList);
+begin
+  FdWeight.Send(Value);
+end;
+
 function TNurbsCurveNode.GetClosed: boolean;
 begin
   Result := FdClosed.Value;
@@ -78,6 +92,16 @@ end;
 procedure TNurbsCurveNode.SetClosed(const Value: boolean);
 begin
   FdClosed.Send(Value);
+end;
+
+procedure TNurbsCurveNode.SetKnot(const Value: array of Double);
+begin
+  FdKnot.Send(Value);
+end;
+
+procedure TNurbsCurveNode.SetKnot(const Value: TDoubleList);
+begin
+  FdKnot.Send(Value);
 end;
 
 function TNurbsCurveNode.GetOrder: Integer;

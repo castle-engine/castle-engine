@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetColor(const Value: array of TCastleColor);
+    procedure SetColor(const Value: TVector4List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TColorRGBANode ----------------------------------------------- }
+
+procedure TColorRGBANode.SetColor(const Value: array of TCastleColor);
+begin
+  FdColor.Send(Value);
+end;
+
+procedure TColorRGBANode.SetColor(const Value: TVector4List);
+begin
+  FdColor.Send(Value);
+end;
 
 {$endif read_implementation}

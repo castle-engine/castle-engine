@@ -33,7 +33,11 @@
     procedure SetOrder(const Value: Integer);
   public
     property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
+    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: TDoubleList);
     property Order: Integer read GetOrder write SetOrder;
+    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: TDoubleList);
 
 {$endif read_interface}
 
@@ -54,6 +58,16 @@ begin
   FdControlPoint.Send(Value);
 end;
 
+procedure TNurbsPositionInterpolatorNode.SetKnot(const Value: array of Double);
+begin
+  FdKnot.Send(Value);
+end;
+
+procedure TNurbsPositionInterpolatorNode.SetKnot(const Value: TDoubleList);
+begin
+  FdKnot.Send(Value);
+end;
+
 function TNurbsPositionInterpolatorNode.GetOrder: Integer;
 begin
   Result := FdOrder.Value;
@@ -62,6 +76,16 @@ end;
 procedure TNurbsPositionInterpolatorNode.SetOrder(const Value: Integer);
 begin
   FdOrder.Send(Value);
+end;
+
+procedure TNurbsPositionInterpolatorNode.SetWeight(const Value: array of Double);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TNurbsPositionInterpolatorNode.SetWeight(const Value: TDoubleList);
+begin
+  FdWeight.Send(Value);
 end;
 
 {$endif read_implementation}

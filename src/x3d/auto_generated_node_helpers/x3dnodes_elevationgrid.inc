@@ -59,6 +59,8 @@
     property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+    procedure SetHeight(const Value: array of Single);
+    procedure SetHeight(const Value: TSingleList);
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
     property XDimension: Integer read GetXDimension write SetXDimension;
     property XSpacing: Single read GetXSpacing write SetXSpacing;
@@ -151,6 +153,16 @@ end;
 procedure TElevationGridNode.SetCreaseAngle(const Value: Single);
 begin
   FdCreaseAngle.Send(Value);
+end;
+
+procedure TElevationGridNode.SetHeight(const Value: array of Single);
+begin
+  FdHeight.Send(Value);
+end;
+
+procedure TElevationGridNode.SetHeight(const Value: TSingleList);
+begin
+  FdHeight.Send(Value);
 end;
 
 function TElevationGridNode.GetNormalPerVertex: boolean;

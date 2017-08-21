@@ -26,11 +26,36 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetInitialDestination(const Value: array of TVector3);
+    procedure SetInitialDestination(const Value: TVector3List);
+    procedure SetInitialValue(const Value: array of TVector3);
+    procedure SetInitialValue(const Value: TVector3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TCoordinateDamperNode ----------------------------------------------- }
+
+procedure TCoordinateDamperNode.SetInitialDestination(const Value: array of TVector3);
+begin
+  FdInitialDestination.Send(Value);
+end;
+
+procedure TCoordinateDamperNode.SetInitialDestination(const Value: TVector3List);
+begin
+  FdInitialDestination.Send(Value);
+end;
+
+procedure TCoordinateDamperNode.SetInitialValue(const Value: array of TVector3);
+begin
+  FdInitialValue.Send(Value);
+end;
+
+procedure TCoordinateDamperNode.SetInitialValue(const Value: TVector3List);
+begin
+  FdInitialValue.Send(Value);
+end;
 
 {$endif read_implementation}

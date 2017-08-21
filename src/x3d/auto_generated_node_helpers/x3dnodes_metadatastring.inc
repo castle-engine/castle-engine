@@ -34,6 +34,8 @@
   public
     property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
+    procedure SetValue(const Value: array of string);
+    procedure SetValue(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -59,6 +61,16 @@ end;
 procedure TMetadataStringNode.SetReference(const Value: string);
 begin
   FdReference.Send(Value);
+end;
+
+procedure TMetadataStringNode.SetValue(const Value: array of string);
+begin
+  FdValue.Send(Value);
+end;
+
+procedure TMetadataStringNode.SetValue(const Value: TCastleStringList);
+begin
+  FdValue.Send(Value);
 end;
 
 {$endif read_implementation}

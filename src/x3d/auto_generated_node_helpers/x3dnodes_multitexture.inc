@@ -34,6 +34,12 @@
   public
     property Alpha: Single read GetAlpha write SetAlpha;
     property Color: TCastleColorRGB read GetColor write SetColor;
+    procedure SetFunction(const Value: array of string);
+    procedure SetFunction(const Value: TCastleStringList);
+    procedure SetMode(const Value: array of string);
+    procedure SetMode(const Value: TCastleStringList);
+    procedure SetSource(const Value: array of string);
+    procedure SetSource(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -59,6 +65,36 @@ end;
 procedure TMultiTextureNode.SetColor(const Value: TCastleColorRGB);
 begin
   FdColor.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetFunction(const Value: array of string);
+begin
+  FdFunction.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetFunction(const Value: TCastleStringList);
+begin
+  FdFunction.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetMode(const Value: array of string);
+begin
+  FdMode.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetMode(const Value: TCastleStringList);
+begin
+  FdMode.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetSource(const Value: array of string);
+begin
+  FdSource.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetSource(const Value: TCastleStringList);
+begin
+  FdSource.Send(Value);
 end;
 
 {$endif read_implementation}

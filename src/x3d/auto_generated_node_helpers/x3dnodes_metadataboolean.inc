@@ -34,6 +34,8 @@
   public
     property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
+    procedure SetValue(const Value: array of boolean);
+    procedure SetValue(const Value: TBooleanList);
 
 {$endif read_interface}
 
@@ -59,6 +61,16 @@ end;
 procedure TMetadataBooleanNode.SetReference(const Value: string);
 begin
   FdReference.Send(Value);
+end;
+
+procedure TMetadataBooleanNode.SetValue(const Value: array of boolean);
+begin
+  FdValue.Send(Value);
+end;
+
+procedure TMetadataBooleanNode.SetValue(const Value: TBooleanList);
+begin
+  FdValue.Send(Value);
 end;
 
 {$endif read_implementation}

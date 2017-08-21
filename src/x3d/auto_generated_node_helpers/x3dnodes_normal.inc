@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetVector(const Value: array of TVector3);
+    procedure SetVector(const Value: TVector3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TNormalNode ----------------------------------------------- }
+
+procedure TNormalNode.SetVector(const Value: array of TVector3);
+begin
+  FdVector.Send(Value);
+end;
+
+procedure TNormalNode.SetVector(const Value: TVector3List);
+begin
+  FdVector.Send(Value);
+end;
 
 {$endif read_implementation}

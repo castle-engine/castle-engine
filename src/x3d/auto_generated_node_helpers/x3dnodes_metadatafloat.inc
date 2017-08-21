@@ -34,6 +34,8 @@
   public
     property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
+    procedure SetValue(const Value: array of Single);
+    procedure SetValue(const Value: TSingleList);
 
 {$endif read_interface}
 
@@ -59,6 +61,16 @@ end;
 procedure TMetadataFloatNode.SetReference(const Value: string);
 begin
   FdReference.Send(Value);
+end;
+
+procedure TMetadataFloatNode.SetValue(const Value: array of Single);
+begin
+  FdValue.Send(Value);
+end;
+
+procedure TMetadataFloatNode.SetValue(const Value: TSingleList);
+begin
+  FdValue.Send(Value);
 end;
 
 {$endif read_implementation}

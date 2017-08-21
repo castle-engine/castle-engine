@@ -30,6 +30,8 @@
     function GetTextureProperties: TTexturePropertiesNode;
     procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TImageCubeMapTextureNode ----------------------------------------------- }
+
+procedure TImageCubeMapTextureNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TImageCubeMapTextureNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
+end;
 
 function TImageCubeMapTextureNode.GetTextureProperties: TTexturePropertiesNode;
 begin

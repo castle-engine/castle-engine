@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetImage(const Value: array of LongInt);
+    procedure SetImage(const Value: TLongIntList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TPixelTexture3DNode ----------------------------------------------- }
+
+procedure TPixelTexture3DNode.SetImage(const Value: array of LongInt);
+begin
+  FdImage.Send(Value);
+end;
+
+procedure TPixelTexture3DNode.SetImage(const Value: TLongIntList);
+begin
+  FdImage.Send(Value);
+end;
 
 {$endif read_implementation}

@@ -131,6 +131,16 @@
     property Address: string read GetAddress write SetAddress;
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
     property ArticulationParameterCount: Integer read GetArticulationParameterCount write SetArticulationParameterCount;
+    procedure SetArticulationParameterDesignatorArray(const Value: array of LongInt);
+    procedure SetArticulationParameterDesignatorArray(const Value: TLongIntList);
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt);
+    procedure SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList);
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt);
+    procedure SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList);
+    procedure SetArticulationParameterTypeArray(const Value: array of LongInt);
+    procedure SetArticulationParameterTypeArray(const Value: TLongIntList);
+    procedure SetArticulationParameterArray(const Value: array of Single);
+    procedure SetArticulationParameterArray(const Value: TSingleList);
     property Center: TVector3 read GetCenter write SetCenter;
     property CollisionType: Integer read GetCollisionType write SetCollisionType;
     property DeadReckoning: Integer read GetDeadReckoning write SetDeadReckoning;
@@ -213,6 +223,56 @@ end;
 procedure TEspduTransformNode.SetArticulationParameterCount(const Value: Integer);
 begin
   FdArticulationParameterCount.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterDesignatorArray(const Value: array of LongInt);
+begin
+  FdArticulationParameterDesignatorArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterDesignatorArray(const Value: TLongIntList);
+begin
+  FdArticulationParameterDesignatorArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterChangeIndicatorArray(const Value: array of LongInt);
+begin
+  FdArticulationParameterChangeIndicatorArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterChangeIndicatorArray(const Value: TLongIntList);
+begin
+  FdArticulationParameterChangeIndicatorArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterIdPartAttachedToArray(const Value: array of LongInt);
+begin
+  FdArticulationParameterIdPartAttachedToArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterIdPartAttachedToArray(const Value: TLongIntList);
+begin
+  FdArticulationParameterIdPartAttachedToArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterTypeArray(const Value: array of LongInt);
+begin
+  FdArticulationParameterTypeArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterTypeArray(const Value: TLongIntList);
+begin
+  FdArticulationParameterTypeArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterArray(const Value: array of Single);
+begin
+  FdArticulationParameterArray.Send(Value);
+end;
+
+procedure TEspduTransformNode.SetArticulationParameterArray(const Value: TSingleList);
+begin
+  FdArticulationParameterArray.Send(Value);
 end;
 
 function TEspduTransformNode.GetCenter: TVector3;

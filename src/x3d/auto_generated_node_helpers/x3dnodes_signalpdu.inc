@@ -68,6 +68,8 @@
   public
     property Address: string read GetAddress write SetAddress;
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+    procedure SetData(const Value: array of LongInt);
+    procedure SetData(const Value: TLongIntList);
     property DataLength: Integer read GetDataLength write SetDataLength;
     property EncodingScheme: Integer read GetEncodingScheme write SetEncodingScheme;
     property EntityID: Integer read GetEntityID write SetEntityID;
@@ -110,6 +112,16 @@ end;
 procedure TSignalPduNode.SetApplicationID(const Value: Integer);
 begin
   FdApplicationID.Send(Value);
+end;
+
+procedure TSignalPduNode.SetData(const Value: array of LongInt);
+begin
+  FdData.Send(Value);
+end;
+
+procedure TSignalPduNode.SetData(const Value: TLongIntList);
+begin
+  FdData.Send(Value);
 end;
 
 function TSignalPduNode.GetDataLength: Integer;

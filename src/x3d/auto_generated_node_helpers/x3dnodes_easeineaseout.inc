@@ -26,11 +26,36 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetEaseInEaseOut(const Value: array of TVector2);
+    procedure SetEaseInEaseOut(const Value: TVector2List);
+    procedure SetKey(const Value: array of Single);
+    procedure SetKey(const Value: TSingleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TEaseInEaseOutNode ----------------------------------------------- }
+
+procedure TEaseInEaseOutNode.SetEaseInEaseOut(const Value: array of TVector2);
+begin
+  FdEaseInEaseOut.Send(Value);
+end;
+
+procedure TEaseInEaseOutNode.SetEaseInEaseOut(const Value: TVector2List);
+begin
+  FdEaseInEaseOut.Send(Value);
+end;
+
+procedure TEaseInEaseOutNode.SetKey(const Value: array of Single);
+begin
+  FdKey.Send(Value);
+end;
+
+procedure TEaseInEaseOutNode.SetKey(const Value: TSingleList);
+begin
+  FdKey.Send(Value);
+end;
 
 {$endif read_implementation}

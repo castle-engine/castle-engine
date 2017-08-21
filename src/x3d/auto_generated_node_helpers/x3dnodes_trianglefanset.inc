@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetFanCount(const Value: array of LongInt);
+    procedure SetFanCount(const Value: TLongIntList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTriangleFanSetNode ----------------------------------------------- }
+
+procedure TTriangleFanSetNode.SetFanCount(const Value: array of LongInt);
+begin
+  FdFanCount.Send(Value);
+end;
+
+procedure TTriangleFanSetNode.SetFanCount(const Value: TLongIntList);
+begin
+  FdFanCount.Send(Value);
+end;
 
 {$endif read_implementation}

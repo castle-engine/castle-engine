@@ -52,6 +52,8 @@
     property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    procedure SetRadianceTransfer(const Value: array of TVector3);
+    procedure SetRadianceTransfer(const Value: TVector3List);
 
 {$endif read_interface}
 
@@ -152,6 +154,16 @@ end;
 procedure TAbstractComposedGeometryNode.SetNormalPerVertex(const Value: boolean);
 begin
   FdNormalPerVertex.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetRadianceTransfer(const Value: array of TVector3);
+begin
+  FdRadianceTransfer.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetRadianceTransfer(const Value: TVector3List);
+begin
+  FdRadianceTransfer.Send(Value);
 end;
 
 {$endif read_implementation}

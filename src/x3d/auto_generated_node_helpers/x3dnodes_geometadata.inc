@@ -26,11 +26,36 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetSummary(const Value: array of string);
+    procedure SetSummary(const Value: TCastleStringList);
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TGeoMetadataNode ----------------------------------------------- }
+
+procedure TGeoMetadataNode.SetSummary(const Value: array of string);
+begin
+  FdSummary.Send(Value);
+end;
+
+procedure TGeoMetadataNode.SetSummary(const Value: TCastleStringList);
+begin
+  FdSummary.Send(Value);
+end;
+
+procedure TGeoMetadataNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TGeoMetadataNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
+end;
 
 {$endif read_implementation}

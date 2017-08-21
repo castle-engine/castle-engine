@@ -34,6 +34,8 @@
   public
     property GeoCoords: TVector3Double read GetGeoCoords write SetGeoCoords;
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -62,6 +64,16 @@ end;
 procedure TGeoLocationNode.SetGeoOrigin(const Value: TGeoOriginNode);
 begin
   FdGeoOrigin.Send(Value);
+end;
+
+procedure TGeoLocationNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoLocationNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
 end;
 
 {$endif read_implementation}

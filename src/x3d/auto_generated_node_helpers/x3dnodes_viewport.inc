@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetClipBoundary(const Value: array of Single);
+    procedure SetClipBoundary(const Value: TSingleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TViewportNode ----------------------------------------------- }
+
+procedure TViewportNode.SetClipBoundary(const Value: array of Single);
+begin
+  FdClipBoundary.Send(Value);
+end;
+
+procedure TViewportNode.SetClipBoundary(const Value: TSingleList);
+begin
+  FdClipBoundary.Send(Value);
+end;
 
 {$endif read_implementation}

@@ -53,8 +53,12 @@
     property ParticleLifetime: Single read GetParticleLifetime write SetParticleLifetime;
     property ParticleSize: TVector2 read GetParticleSize write SetParticleSize;
     property ColorRamp: TAbstractColorNode read GetColorRamp write SetColorRamp;
+    procedure SetColorKey(const Value: array of Single);
+    procedure SetColorKey(const Value: TSingleList);
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
+    procedure SetTexCoordKey(const Value: array of Single);
+    procedure SetTexCoordKey(const Value: TSingleList);
 
 {$endif read_interface}
 
@@ -135,6 +139,16 @@ begin
   FdColorRamp.Send(Value);
 end;
 
+procedure TParticleSystemNode.SetColorKey(const Value: array of Single);
+begin
+  FdColorKey.Send(Value);
+end;
+
+procedure TParticleSystemNode.SetColorKey(const Value: TSingleList);
+begin
+  FdColorKey.Send(Value);
+end;
+
 function TParticleSystemNode.GetEmitter: TAbstractParticleEmitterNode;
 begin
   if FdEmitter.Value is TAbstractParticleEmitterNode then
@@ -159,6 +173,16 @@ end;
 procedure TParticleSystemNode.SetTexCoordRamp(const Value: TTextureCoordinateNode);
 begin
   FdTexCoordRamp.Send(Value);
+end;
+
+procedure TParticleSystemNode.SetTexCoordKey(const Value: array of Single);
+begin
+  FdTexCoordKey.Send(Value);
+end;
+
+procedure TParticleSystemNode.SetTexCoordKey(const Value: TSingleList);
+begin
+  FdTexCoordKey.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -46,6 +46,8 @@
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
     property Translation: TVector3 read GetTranslation write SetTranslation;
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -114,6 +116,16 @@ end;
 procedure TGeoTransformNode.SetGeoOrigin(const Value: TGeoOriginNode);
 begin
   FdGeoOrigin.Send(Value);
+end;
+
+procedure TGeoTransformNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoTransformNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
 end;
 
 {$endif read_implementation}

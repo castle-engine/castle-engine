@@ -36,6 +36,8 @@
   public
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
     property Direction: TVector3 read GetDirection write SetDirection;
+    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: TLongIntList);
     property Internal: boolean read GetInternal write SetInternal;
 
 {$endif read_interface}
@@ -65,6 +67,16 @@ end;
 procedure TVolumeEmitterNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
+end;
+
+procedure TVolumeEmitterNode.SetCoordIndex(const Value: array of LongInt);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
+procedure TVolumeEmitterNode.SetCoordIndex(const Value: TLongIntList);
+begin
+  FdCoordIndex.Send(Value);
 end;
 
 function TVolumeEmitterNode.GetInternal: boolean;

@@ -37,6 +37,8 @@
     property Color: TAbstractColorNode read GetColor write SetColor;
     property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+    procedure SetVertexCount(const Value: array of LongInt);
+    procedure SetVertexCount(const Value: TLongIntList);
 
 {$endif read_interface}
 
@@ -81,6 +83,16 @@ end;
 procedure TLineSetNode.SetFogCoord(const Value: TFogCoordinateNode);
 begin
   FdFogCoord.Send(Value);
+end;
+
+procedure TLineSetNode.SetVertexCount(const Value: array of LongInt);
+begin
+  FdVertexCount.Send(Value);
+end;
+
+procedure TLineSetNode.SetVertexCount(const Value: TLongIntList);
+begin
+  FdVertexCount.Send(Value);
 end;
 
 {$endif read_implementation}

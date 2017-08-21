@@ -229,6 +229,8 @@
     property InvertAlphaTexture: boolean read GetInvertAlphaTexture write SetInvertAlphaTexture;
     property RelativeIndexOfRefraction: Single read GetRelativeIndexOfRefraction write SetRelativeIndexOfRefraction;
     property FresnelBlend: Single read GetFresnelBlend write SetFresnelBlend;
+    procedure SetTextureTransformEnabled(const Value: array of boolean);
+    procedure SetTextureTransformEnabled(const Value: TBooleanList);
 
 {$endif read_interface}
 
@@ -952,6 +954,16 @@ end;
 procedure TCommonSurfaceShaderNode.SetFresnelBlend(const Value: Single);
 begin
   FdFresnelBlend.Send(Value);
+end;
+
+procedure TCommonSurfaceShaderNode.SetTextureTransformEnabled(const Value: array of boolean);
+begin
+  FdTextureTransformEnabled.Send(Value);
+end;
+
+procedure TCommonSurfaceShaderNode.SetTextureTransformEnabled(const Value: TBooleanList);
+begin
+  FdTextureTransformEnabled.Send(Value);
 end;
 
 {$endif read_implementation}

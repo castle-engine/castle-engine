@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of TVector2);
+    procedure SetKeyValue(const Value: TVector2List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TCoordinateInterpolator2DNode ----------------------------------------------- }
+
+procedure TCoordinateInterpolator2DNode.SetKeyValue(const Value: array of TVector2);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TCoordinateInterpolator2DNode.SetKeyValue(const Value: TVector2List);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

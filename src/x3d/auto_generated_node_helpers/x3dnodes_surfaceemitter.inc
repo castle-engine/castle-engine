@@ -30,6 +30,8 @@
     function GetSurface: TAbstractGeometryNode;
     procedure SetSurface(const Value: TAbstractGeometryNode);
   public
+    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: TLongIntList);
     property Surface: TAbstractGeometryNode read GetSurface write SetSurface;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TSurfaceEmitterNode ----------------------------------------------- }
+
+procedure TSurfaceEmitterNode.SetCoordIndex(const Value: array of LongInt);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
+procedure TSurfaceEmitterNode.SetCoordIndex(const Value: TLongIntList);
+begin
+  FdCoordIndex.Send(Value);
+end;
 
 function TSurfaceEmitterNode.GetSurface: TAbstractGeometryNode;
 begin

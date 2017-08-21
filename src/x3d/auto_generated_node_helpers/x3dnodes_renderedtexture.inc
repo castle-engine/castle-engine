@@ -34,15 +34,29 @@
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
   public
+    procedure SetDimensions(const Value: array of LongInt);
+    procedure SetDimensions(const Value: TLongIntList);
     property Viewpoint: TAbstractX3DViewpointNode read GetViewpoint write SetViewpoint;
     property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
+    procedure SetDepthMap(const Value: array of boolean);
+    procedure SetDepthMap(const Value: TBooleanList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TRenderedTextureNode ----------------------------------------------- }
+
+procedure TRenderedTextureNode.SetDimensions(const Value: array of LongInt);
+begin
+  FdDimensions.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetDimensions(const Value: TLongIntList);
+begin
+  FdDimensions.Send(Value);
+end;
 
 function TRenderedTextureNode.GetViewpoint: TAbstractX3DViewpointNode;
 begin
@@ -78,6 +92,16 @@ end;
 procedure TRenderedTextureNode.SetRepeatR(const Value: boolean);
 begin
   FdRepeatR.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetDepthMap(const Value: array of boolean);
+begin
+  FdDepthMap.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetDepthMap(const Value: TBooleanList);
+begin
+  FdDepthMap.Send(Value);
 end;
 
 {$endif read_implementation}

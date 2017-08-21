@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetPoint(const Value: array of TVector2);
+    procedure SetPoint(const Value: TVector2List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TPolypoint2DNode ----------------------------------------------- }
+
+procedure TPolypoint2DNode.SetPoint(const Value: array of TVector2);
+begin
+  FdPoint.Send(Value);
+end;
+
+procedure TPolypoint2DNode.SetPoint(const Value: TVector2List);
+begin
+  FdPoint.Send(Value);
+end;
 
 {$endif read_implementation}
