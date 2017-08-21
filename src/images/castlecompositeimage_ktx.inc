@@ -278,25 +278,29 @@ end;
 
 procedure TKTXHandler.ReadOrientation(const Value: string);
 begin
-  if Value = 'S=r,T=d' then
+  if (Value = 'S=r,T=d') or
+     (Value = 'S=r,T=d,R=o') then
   begin
     RowsTopToBottom := true;
     SlicesFrontToBack := false;
   end else
-  if Value = 'S=r,T=u' then
+  if (Value = 'S=r,T=u') or
+     (Value = 'S=r,T=u,R=o') then
   begin
     RowsTopToBottom := false;
     SlicesFrontToBack := false;
+  end else
+  { This orientation is not adviced by KTX specification,
+    but is used by PowerVR texture tools if you do "vertical flip" at encoding. }
+  if Value = 'S=r,T=u,R=i' then
+  begin
+    RowsTopToBottom := false;
+    SlicesFrontToBack := true;
   end else
   if Value = 'S=r,T=d,R=i' then
   begin
     RowsTopToBottom := true;
     SlicesFrontToBack := true;
-  end else
-  if Value = 'S=r,T=u,R=o' then
-  begin
-    RowsTopToBottom := false;
-    SlicesFrontToBack := false;
   end else
     WritelnWarning('KTX', 'Unrecognized KTX orientation "%s"', [Value]);
 
