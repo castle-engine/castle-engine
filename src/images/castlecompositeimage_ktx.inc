@@ -92,6 +92,9 @@ type
     { Optionally invert Y, depending on RowsTopToBottom. }
     function TargetY(const Y: Integer): Integer;
 
+    { Optionally invert Z, depending on SlicesFrontToBack. }
+    function TargetZ(const Z: Integer): Integer;
+
     procedure ReadG(const Stream: TStream;
       const Image: TGrayscaleImage; const ARowBytePadding: Integer);
     procedure ReadG16(const Stream: TStream;
@@ -120,15 +123,25 @@ begin
     Result := Y;
 end;
 
+function TKTXHandler.TargetZ(const Z: Integer): Integer;
+begin
+  if SlicesFrontToBack then
+    Result := Depth - Z - 1
+  else
+    Result := Z;
+end;
+
 procedure TKTXHandler.ReadG(const Stream: TStream;
   const Image: TGrayscaleImage; const ARowBytePadding: Integer);
 var
   Y, Z: Integer;
+  Row: PByteArray;
 begin
   for Z := 0 to Image.Depth - 1 do
     for Y := 0 to Image.Height - 1 do
     begin
-      Stream.ReadBuffer(Image.RowPtr(TargetY(Y), Z)^, Image.PixelSize * Image.Width);
+      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
+      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       if ARowBytePadding <> 0 then
         Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
@@ -150,7 +163,7 @@ begin
       begin
         Stream.ReadBuffer(RowData.List^, Image.Width * SizeOf(Word));
         { convert row of Words to Bytes }
-        TargetRow := Image.RowPtr(TargetY(Y), Z);
+        TargetRow := Image.RowPtr(TargetY(Y), TargetZ(Z));
         for X := 0 to Image.Width - 1 do
           TargetRow^[X] := RowData.List^[X] shr 8;
          if ARowBytePadding <> 0 then
@@ -163,11 +176,13 @@ procedure TKTXHandler.ReadGA(const Stream: TStream;
   const Image: TGrayscaleAlphaImage; const ARowBytePadding: Integer);
 var
   Y, Z: Integer;
+  Row: PVector2ByteArray;
 begin
   for Z := 0 to Image.Depth - 1 do
     for Y := 0 to Image.Height - 1 do
     begin
-      Stream.ReadBuffer(Image.RowPtr(TargetY(Y), Z)^, Image.PixelSize * Image.Width);
+      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
+      Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       if ARowBytePadding <> 0 then
         Stream.Seek(ARowBytePadding, soFromCurrent);
     end;
@@ -182,7 +197,7 @@ begin
   for Z := 0 to Image.Depth - 1 do
     for Y := 0 to Image.Height - 1 do
     begin
-      Row := Image.RowPtr(TargetY(Y), Z);
+      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       if ARowBytePadding <> 0 then
         Stream.Seek(ARowBytePadding, soFromCurrent);
@@ -198,7 +213,7 @@ begin
   for Z := 0 to Image.Depth - 1 do
     for Y := 0 to Image.Height - 1 do
     begin
-      Row := PVector3Byte(Image.RowPtr(TargetY(Y), Z));
+      Row := PVector3Byte(Image.RowPtr(TargetY(Y), TargetZ(Z)));
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       { Now invert red and blue. }
       for X := 0 to Image.Width - 1 do
@@ -220,7 +235,7 @@ begin
   for Z := 0 to Image.Depth - 1 do
     for Y := 0 to Image.Height - 1 do
     begin
-      Row := Image.RowPtr(TargetY(Y), Z);
+      Row := Image.RowPtr(TargetY(Y), TargetZ(Z));
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
     end;
 end;
@@ -234,7 +249,7 @@ begin
   for Z := 0 to Image.Depth - 1 do
     for Y := 0 to Image.Height - 1 do
     begin
-      Row := PVector4Byte(Image.RowPtr(TargetY(Y), Z));
+      Row := PVector4Byte(Image.RowPtr(TargetY(Y), TargetZ(Z)));
       Stream.ReadBuffer(Row^, Image.PixelSize * Image.Width);
       { Now invert red and blue. }
       for X := 0 to Image.Width - 1 do
@@ -263,7 +278,7 @@ begin
     for Z := 0 to Image.Depth - 1 do
       for Y := 0 to Image.Height - 1 do
       begin
-        Pixel := PVector3(Image.RowPtr(TargetY(Y), Z));
+        Pixel := PVector3(Image.RowPtr(TargetY(Y), TargetZ(Z)));
         for X := 0 to Image.Width - 1 do
         begin
           Pixel^[0] := PixelSource^;
