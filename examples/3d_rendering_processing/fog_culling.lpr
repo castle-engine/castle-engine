@@ -35,7 +35,7 @@ uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
   CastleProgress, CastleProgressConsole, CastleFilesUtils, Castle3D,
   CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleControls, CastleColors;
 
 var
   Window: TCastleWindowCustom;
@@ -47,7 +47,6 @@ type
     function TestFogVisibility(Shape: TShape): boolean;
   protected
     procedure Render3D(const Params: TRenderParams); override;
-    procedure RenderFromViewEverything; override;
   end;
 
 var
@@ -72,16 +71,9 @@ var
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
   if FogCulling then
-    Scene.Render(@TestFogVisibility, RenderingCamera.Frustum, Params) else
+    Scene.Render(@TestFogVisibility, RenderingCamera.Frustum, Params)
+  else
     inherited;
-end;
-
-procedure TMySceneManager.RenderFromViewEverything;
-begin
-  inherited;
-  Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
-    [ Statistics.ShapesRendered, Statistics.ShapesVisible,
-      BoolToStr(FogCulling, true) ]));
 end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
@@ -105,6 +97,19 @@ begin
   end;
 end;
 
+procedure Render(Container: TUIContainer);
+begin
+  UIFont.Outline := 1;
+  UIFont.OutlineColor := Black;
+  UIFont.PrintStrings(10, 10, Yellow,
+    [ Format('Rendered Shapes: %d / %d',
+       [SceneManager.Statistics.ShapesRendered,
+        SceneManager.Statistics.ShapesVisible]),
+      Format('Fog culling: %s (toggle using the "F" key)',
+       [BoolToStr(FogCulling, true)])
+    ], false, 0);
+end;
+
 begin
   Parameters.CheckHigh(0);
 
@@ -126,6 +131,7 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
   Window.OnPress := @Press;
+  Window.OnRender := @Render;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.
