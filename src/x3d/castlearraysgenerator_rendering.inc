@@ -274,7 +274,7 @@ begin
     ColorIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -418,7 +418,7 @@ begin
     ColorIndex := TIndexedTriangleFanSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -630,7 +630,7 @@ begin
     ColorIndex := TIndexedTriangleStripSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -822,7 +822,7 @@ begin
   { Normals are done exactly like for [Indexed]TriangleSet, except
     we have quads now. }
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;

@@ -513,7 +513,7 @@
       The vectors are taken from the Normal node inside our FdNormal field.
       In case of problems (no Normal node specified, invalid node specified etc.)
       returns @nil. }
-    function NormalItems: TVector3List;
+    function InternalNormal: TVector3List;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
   end;
@@ -1294,7 +1294,7 @@ begin
   Result := FdAttrib;
 end;
 
-function TAbstractComposedGeometryNode.NormalItems: TVector3List;
+function TAbstractComposedGeometryNode.InternalNormal: TVector3List;
 begin
   if (FdNormal.Value <> nil) and
      (FdNormal.Value is TNormalNode) then

@@ -335,7 +335,7 @@ begin
 
   TexCoordIndex := ANode.FdTexCoordIndex;
 
-  Normals := ANode.NormalItems;
+  Normals := ANode.InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := ANode.FdCcw.Value;
