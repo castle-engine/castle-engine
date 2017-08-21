@@ -185,7 +185,8 @@ type
     procedure LoadFromStream(Stream: TStream; const URL: string;
       MimeType: string = '');
 
-    procedure LoadFromFile(const URL: string);
+    { Load composite (KTX or DDS) image from this URL. }
+    procedure LoadFromFile(URL: string);
 
     procedure SaveToStream(Stream: TStream; const MimeType: string);
     procedure SaveToFile(const URL: string);
@@ -245,8 +246,9 @@ type
     procedure DecompressTexture;
 
     { Does this URL look like it contains composite (KTX, DDS...) contents.
-      Guesses looking at filename extension. }
-    class function MatchesURL(const URL: string): boolean;
+      Guesses by processing the URL with @link(ProcessImageUrl)
+      and then looking at final filename extension. }
+    class function MatchesURL(URL: string): boolean;
 
     procedure AddCubeMapImages(const AImages: TCubeMapImages);
   end;
@@ -337,10 +339,12 @@ begin
   finally FreeAndNil(Handler) end;
 end;
 
-procedure TCompositeImage.LoadFromFile(const URL: string);
+procedure TCompositeImage.LoadFromFile(URL: string);
 var
   S: TStream;
 begin
+  URL := ProcessImageUrl(URL);
+
   S := Download(URL, [soForceMemoryStream]);
   try
     LoadFromStream(S, URL);
@@ -377,8 +381,10 @@ begin
   finally FreeAndNil(S) end;
 end;
 
-class function TCompositeImage.MatchesURL(const URL: string): boolean;
+class function TCompositeImage.MatchesURL(URL: string): boolean;
 begin
+  URL := ProcessImageUrl(URL);
+
   Result :=
     (URIMimeType(URL) = 'image/x-dds') or
     (URIMimeType(URL) = 'image/ktx');

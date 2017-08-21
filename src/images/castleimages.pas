@@ -1724,11 +1724,16 @@ var
     the renderer (like OpenGL context). }
   SupportedTextureCompression: TTextureCompressions;
 
-{ All URLs loaded by LoadImage and LoadEncodedImage are processed
-  by this event. This allows to globally modify / observe your images paths,
+{ All image URLs are processed by this event before loading.
+  This allows to globally modify / observe your images paths,
   e.g. to use GPU compressed alternative versions.
 
-  This is automatically used by @link(TMaterialProperties MaterialProperties)
+  The URL processing is automatically used by
+  @link(LoadImage), @link(LoadEncodedImage),
+  @link(TCompositeImage.LoadFromFile).
+
+  The URL processing is automatically registered by
+  @link(TMaterialProperties MaterialProperties)
   to automatically use GPU compressed textures.
   See http://castle-engine.sourceforge.net/creating_data_material_properties.php .
   You can also use it yourself, instead or in addition
@@ -1772,6 +1777,10 @@ procedure AddLoadImageListener(const Event: TLoadImageEvent);
 
 { Remove listener added by @link(AddLoadImageListener). }
 procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
+
+{ Process URL through events registered by @link(AddLoadImageListener).
+  This is used internally by the engine. }
+function ProcessImageUrl(const URL: string): string;
 
 {$undef read_interface}
 
@@ -4548,6 +4557,12 @@ end;
 procedure RemoveLoadImageListener(const Event: TLoadImageEvent);
 begin
   LoadImageEvents.Remove(Event);
+end;
+
+function ProcessImageUrl(const URL: string): string;
+begin
+  Result := URL;
+  LoadImageEvents.Execute(Result);
 end;
 
 { unit initialization / finalization ----------------------------------------- }
