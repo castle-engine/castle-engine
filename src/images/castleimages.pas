@@ -1660,12 +1660,21 @@ type
     AlphaChannel: TAlphaChannel;
 
     { When generating to DDS (that has reverted row order with respect to OpenGL),
-      most of the compressed textures should flipped before.
+      most of the compressed textures should be stored as flipped.
       When reading, we except them to be already flipped.
-      The exceptions are DXT* formats, that are read correctly (unflipped)
+      When loading to OpenGL, they will effectively be flipped again
+      (since OpenGL expects bottom-to-top order, while we load it
+      image in top-to-bottom order), thus making the image correct.
+
+      The exceptions are DXT* formats, that we can read correctly (unflipped)
       from DDS.
 
-      This is only a limitation of the DDS format, irrelevant for future KTX. }
+      This is only a limitation of the DDS format.
+
+      For KTX, we can generate KTX images using PowerVR Texture Tools
+      that already have a correct (bottom-to-top) orientation.
+      So we can have textures compressed to PVRTC1_4bpp_RGB
+      with correct orientation. }
     DDSFlipped: boolean;
   end;
 
