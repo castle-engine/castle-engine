@@ -193,7 +193,7 @@ begin
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
     Coord := TCoordinateNode.Create('coord');
-    Coord.FdPoint.Items.AddRange([
+    Coord.SetPoint([
         Vector3(-128, -128, 0),
         Vector3(128, -128, 0),
         Vector3(128, 128, 0),
@@ -201,7 +201,7 @@ begin
         Vector3(128, 128, 0),
         Vector3(-128, 128, 0)]);
     TexCoord := TTextureCoordinateNode.Create('texcoord');
-    TexCoord.FdPoint.Items.AddRange([
+    TexCoord.SetPoint([
          Vector2(0, 0),
          Vector2(1, 0),
          Vector2(1, 1),

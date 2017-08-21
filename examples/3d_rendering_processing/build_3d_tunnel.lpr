@@ -182,8 +182,8 @@ begin
   RND := TCastleRandom.Create;
 
   { initialize TCoordinateNode and TIndexedFaceSetNode}
-  Coords := TCoordinateNode.Create('', '');
-  Geometry := TIndexedFaceSetNode.Create('', '');
+  Coords := TCoordinateNode.Create;
+  Geometry := TIndexedFaceSetNode.Create;
 
   { generate the passage }
   generatemap;
@@ -192,21 +192,21 @@ begin
   Geometry.Coord := Coords;
 
   { create some simple material }
-  Material := TMaterialNode.Create('', '');
+  Material := TMaterialNode.Create;
   Material.DiffuseColor := Vector3(1, 0.9, 0.9);
   material.AmbientIntensity := 2;
 
   { and add it to Appearance node }
-  Appearance := TAppearanceNode.Create('', '');
-  Appearance.FdMaterial.Value := Material;
+  Appearance := TAppearanceNode.Create;
+  Appearance.Material := Material;
 
   { pack everything inside the Shape (geometry + appearance) }
-  Shape := TShapeNode.Create('', '');
+  Shape := TShapeNode.Create;
   Shape.Geometry := Geometry;
   Shape.Appearance := Appearance;
 
   { and finally add everything to the Root node }
-  Root := TX3DRootNode.Create('', '');
+  Root := TX3DRootNode.Create;
   Root.AddChildren(shape);
 
   { Initialize Castle Window }

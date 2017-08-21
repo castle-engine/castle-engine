@@ -62,7 +62,7 @@ uses SysUtils, Classes,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
-  CastleRectangles, CastleControls;
+  CastleRectangles, CastleControls, CastleShaders;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -596,11 +596,11 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
         { Add shader. Setup everything, like for rendering (without fog). }
         TexSand := TImageTextureNode.Create;
-        TexSand.FdUrl.Items.Add('textures/sand.png');
+        TexSand.SetUrl(['textures/sand.png']);
         TexBread := TImageTextureNode.Create;
-        TexBread.FdUrl.Items.Add('textures/bread.png');
+        TexBread.SetUrl(['textures/bread.png']);
         TexRock := TImageTextureNode.Create;
-        TexRock.FdUrl.Items.Add('textures/rock_d01.png');
+        TexRock.SetUrl(['textures/rock_d01.png']);
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_sand', [], TexSand));
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_bread', [], TexBread));
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_rock', [], TexRock));
@@ -613,13 +613,13 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
-        Part.FdType.Value := 'FRAGMENT';
-        Part.FdUrl.Items.Add('terrain.fs');
+        Part.ShaderType := stFragment;
+        Part.SetUrl(['terrain.fs']);
 
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
-        Part.FdType.Value := 'VERTEX';
-        Part.FdUrl.Items.Add('terrain.vs');
+        Part.ShaderType := stVertex;
+        Part.SetUrl(['terrain.vs']);
       end;
 
       Save3D(Root, URL, 'terrain', '', xeClassic);

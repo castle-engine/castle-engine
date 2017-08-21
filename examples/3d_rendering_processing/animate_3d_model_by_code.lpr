@@ -59,14 +59,12 @@ begin
     below). It's most natural to just use Scene.Time property for this.
     (Scene.Time is already incremented for us by SceneManager.) }
 
-  TransformBox2.FdRotation.RotationRad := Scene.Time;
-  TransformBox2.FdRotation.Changed;
+  { change rotation angles (4th component of the vector),
+    leaving the rotation axis (XYZ components) unchanged. }
 
-  TransformBox3.FdRotation.RotationRad := Scene.Time * 2;
-  TransformBox3.FdRotation.Changed;
-
-  TransformBox4.FdRotation.RotationRad := Scene.Time * 4;
-  TransformBox4.FdRotation.Changed;
+  TransformBox2.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time);
+  TransformBox3.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time * 2);
+  TransformBox4.Rotation := Vector4(TransformBox2.Rotation.XYZ, Scene.Time * 4);
 end;
 
 begin
