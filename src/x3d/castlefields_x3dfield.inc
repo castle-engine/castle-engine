@@ -19,10 +19,10 @@
 
   { Base class for all VRML/X3D fields.
 
-    Common notes for all descendants: most of them expose field or property
-    "Value", this is (surprise, surprise!) the value of the field.
+    Common notes for all descendants: most of them expose a field or property
+    "Value", which specifies the current value of the field.
     Many of them also expose DefaultValue and DefaultValueExists
-    fields/properties, these should be the default VRML value for this field.
+    fields/properties, these should be the default X3D value for this field.
     You can even change DefaultValue after the object is created.
 
     Most of descendants include constructor that initializes
@@ -58,6 +58,8 @@
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
+  private
+    function SendsByEvent: boolean;
   strict protected
     { Save field value to a stream. Must be overriden for each specific
       field.
@@ -576,12 +578,19 @@ begin
   Result := ChangesAlways;
 end;
 
+function TX3DField.SendsByEvent: boolean;
+begin
+  Result :=
+    Exposed and
+    (ParentNode <> nil) and
+    ((ParentNode as TX3DNode).Scene <> nil);
+end;
+
 procedure TX3DField.Send(Value: TX3DField);
 var
   ValuePossiblyChanged: boolean;
 begin
-  if Exposed and (ParentNode <> nil) and
-    ( (ParentNode as TX3DNode).Scene <> nil ) then
+  if SendsByEvent then
   begin
     EventIn.Send(Value, TX3DNode(ParentNode).Scene.NextEventTime);
   end else

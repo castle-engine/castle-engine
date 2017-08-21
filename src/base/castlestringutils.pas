@@ -78,7 +78,8 @@ type
     procedure AddRange(const A: array of string); overload;
     procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AssignArray(const A: array of string);
+    procedure AssignArray(const A: array of string); deprecated 'use Assign';
+    procedure Assign(const A: array of string); overload;
 
     { Does another string list have equal length and content.
 
@@ -1026,6 +1027,11 @@ begin
 end;
 
 procedure TCastleStringList.AssignArray(const A: array of string);
+begin
+  Assign(A);
+end;
+
+procedure TCastleStringList.Assign(const A: array of string);
 begin
   Clear;
   AddRange(A);
