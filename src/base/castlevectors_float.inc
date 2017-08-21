@@ -286,8 +286,8 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[0] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[1] := StrToFloat(NextToken(S, SPosition, OnlyNums));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
@@ -297,9 +297,9 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[2] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[0] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[1] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[2] := StrToFloat(NextToken(S, SPosition, OnlyNums));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 
@@ -313,10 +313,10 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[2] := StrToFloat(NextToken(S, SPosition));
-  Result.Data[3] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[0] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[1] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[2] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[3] := StrToFloat(NextToken(S, SPosition, OnlyNums));
   if NextToken(s, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
