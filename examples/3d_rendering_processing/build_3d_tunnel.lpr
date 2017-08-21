@@ -65,7 +65,6 @@ var
   last_sect, next_sect: TSection;
   core_section: TSection;
   nindex: integer;   // global indexes of vertexes
-  RND: TCastleRandom; //random number generator
 
 { Creates a shape of the section.
   Section is created with center point at 0,0,0.
@@ -135,14 +134,14 @@ begin
   for j := 1 to MaxSections do
   begin
     { determine next section parameters }
-    next_sect.angle := last_sect.angle+(RND.random-0.5)/10;
+    next_sect.angle := last_sect.angle+(Rand.Random-0.5)/10;
     next_sect.median[0] := last_sect.median[0]+sin(next_sect.angle);
-    next_sect.median[1] := last_sect.median[1]-(RND.random-0.5)/3;
+    next_sect.median[1] := last_sect.median[1]-(Rand.Random-0.5)/3;
     next_sect.median[2] := last_sect.median[2]-cos(next_sect.angle);
-    next_sect.width := last_sect.width+(RND.random-0.5)/3;
+    next_sect.width := last_sect.width+(Rand.Random-0.5)/3;
     if next_sect.width < 1 then next_sect.width:=1;
     if next_sect.width > 3 then next_sect.width:=3;
-    next_sect.height := last_sect.height+(RND.random-0.5)/3;
+    next_sect.height := last_sect.height+(Rand.Random-0.5)/3;
     if next_sect.height < 2 then next_sect.height:=2;
     if next_sect.height > 5 then next_sect.height:=5;
     { now create the section }
@@ -167,8 +166,8 @@ begin
   last_sect.median[0] := 0;
   last_sect.median[1] := -2;
   last_sect.median[2] := 2;
-  last_sect.width := 1+RND.random*2;
-  last_sect.height := 2+RND.random*2;
+  last_sect.width := 1+Rand.Random*2;
+  last_sect.height := 2+Rand.Random*2;
   last_sect.angle := 0;
   //and generate the section
   create_section;
@@ -178,9 +177,6 @@ begin
 end;
 
 begin
-  { initialize random number generator }
-  RND := TCastleRandom.Create;
-
   { initialize TCoordinateNode and TIndexedFaceSetNode}
   Coords := TCoordinateNode.Create;
   Geometry := TIndexedFaceSetNode.Create;
@@ -242,6 +238,4 @@ begin
   { finally run the application }
 
   Window.OpenAndRun;
-
-  FreeAndNil(RND);
 end.
