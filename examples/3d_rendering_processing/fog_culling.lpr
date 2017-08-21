@@ -30,6 +30,8 @@
 
 program fog_culling;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+
 uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleLog,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
@@ -119,7 +121,6 @@ begin
   Window.Controls.InsertFront(SceneManager);
 
   Scene := TCastleScene.Create(Application);
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Scene.Load(ApplicationData('fog_culling_final.x3dv'));
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);
