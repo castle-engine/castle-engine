@@ -29,8 +29,11 @@
   strict private
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
+    property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}
 
@@ -46,6 +49,19 @@ end;
 procedure TAbstractTexture3DNode.SetRepeatR(const Value: boolean);
 begin
   FdRepeatR.Send(Value);
+end;
+
+function TAbstractTexture3DNode.GetTextureProperties: TTexturePropertiesNode;
+begin
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractTexture3DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
 end;
 
 {$endif read_implementation}

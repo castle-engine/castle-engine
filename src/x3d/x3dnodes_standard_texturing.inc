@@ -105,9 +105,6 @@
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
-
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   strict protected
     FTextureUsedFullUrl: string;
 
@@ -235,9 +232,8 @@
 
     strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
 
   { X3D texture that is 2D and can be loaded (from file or some other stream). }
@@ -255,8 +251,6 @@
 
     strict private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
 
   { Base for all nodes which specify a transformation of texture coordinates. }
@@ -783,19 +777,6 @@ begin
   FTextureUsedFullUrl := '';
 
   WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [X3DType]));
-end;
-
-function TAbstractTexture2DNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractTexture2DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
 end;
 
 function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannel;

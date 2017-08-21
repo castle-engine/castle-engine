@@ -29,10 +29,13 @@
   strict private
     function GetViewpoint: TAbstractX3DViewpointNode;
     procedure SetViewpoint(const Value: TAbstractX3DViewpointNode);
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
   public
     property Viewpoint: TAbstractX3DViewpointNode read GetViewpoint write SetViewpoint;
+    property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
 
 {$endif read_interface}
@@ -52,6 +55,19 @@ end;
 procedure TRenderedTextureNode.SetViewpoint(const Value: TAbstractX3DViewpointNode);
 begin
   FdViewpoint.Send(Value);
+end;
+
+function TRenderedTextureNode.GetTextureProperties: TTexturePropertiesNode;
+begin
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
 end;
 
 function TRenderedTextureNode.GetRepeatR: boolean;

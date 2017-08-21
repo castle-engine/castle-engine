@@ -26,8 +26,6 @@
   TComposedCubeMapTextureNode = class(TAbstractEnvironmentTextureNode)
   strict private
     FAlphaChannelData: TAlphaChannel;
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
@@ -55,9 +53,6 @@
 
     strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
 
     { Make sure all 6 sides are loaded.
       Make sure that all 6 fields for each cube map side are assigned,
@@ -82,8 +77,6 @@
     FGeneratedTextureHandler: TGeneratedTextureHandler;
     function GetUpdate: TTextureUpdate;
     procedure SetUpdate(const Value: TTextureUpdate);
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -103,9 +96,6 @@
 
     strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
 
     { Bias from shape center to the point from which we make GeneratedCubeMapTexture.
       TODO: for now in world space, should be in shape space. }
@@ -122,8 +112,6 @@
   TImageCubeMapTextureNode = class(TAbstractEnvironmentTextureNode, IAbstractUrlObject)
   strict private
     FAlphaChannelData: TAlphaChannel;
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
@@ -136,9 +124,6 @@
 
     strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
 
     { Load cube environment map from a composite (DDS, KTX...) image.
 
@@ -257,19 +242,6 @@ begin
   Result := FAlphaChannelData;
 end;
 
-function TComposedCubeMapTextureNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TComposedCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
-end;
-
 procedure TGeneratedCubeMapTextureNode.CreateNode;
 begin
   inherited;
@@ -321,19 +293,6 @@ end;
 procedure TGeneratedCubeMapTextureNode.SetUpdate(const Value: TTextureUpdate);
 begin
   FdUpdate.Send(Value);
-end;
-
-function TGeneratedCubeMapTextureNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TGeneratedCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
 end;
 
 procedure TImageCubeMapTextureNode.CreateNode;
@@ -420,19 +379,6 @@ end;
 function TImageCubeMapTextureNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
-end;
-
-function TImageCubeMapTextureNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TImageCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
 end;
 
 procedure RegisterCubeMapTexturingNodes;

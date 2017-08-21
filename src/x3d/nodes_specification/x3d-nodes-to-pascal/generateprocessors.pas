@@ -586,9 +586,7 @@ begin
      (Field.X3DName = 'linetype') or
 
      ( (Field.X3DType = 'SFNode') and
-       ( (Field.X3DName = 'textureProperties') or
-         (Field.X3DName = 'controlPoint')
-       )
+       (Field.X3DName = 'controlPoint')
      ) or
 
      (Node.X3DType + '.' + Field.X3DName = 'Viewpoint.position') or

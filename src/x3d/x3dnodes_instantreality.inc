@@ -131,8 +131,6 @@
   TRenderedTextureNode = class(TAbstractTextureNode)
   strict private
     FGeneratedTextureHandler: TGeneratedTextureHandler;
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     procedure CreateNode; override;
     destructor Destroy; override;
@@ -206,9 +204,6 @@
 
     strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
 
     strict private FFdRepeatS: TSFBool;
     public property FdRepeatS: TSFBool read FFdRepeatS;
@@ -1039,19 +1034,6 @@ class function TRenderedTextureNode.URNMatching(const URN: string): boolean;
 begin
   Result := (inherited URNMatching(URN)) or
     URNMatchingCastle(URN, ClassX3DType);
-end;
-
-function TRenderedTextureNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TRenderedTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
 end;
 
 procedure TPlaneNode.CreateNode;

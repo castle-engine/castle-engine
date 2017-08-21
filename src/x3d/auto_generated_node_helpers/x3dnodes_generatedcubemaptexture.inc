@@ -29,8 +29,11 @@
   strict private
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     property Size: Integer read GetSize write SetSize;
+    property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}
 
@@ -46,6 +49,19 @@ end;
 procedure TGeneratedCubeMapTextureNode.SetSize(const Value: Integer);
 begin
   FdSize.Send(Value);
+end;
+
+function TGeneratedCubeMapTextureNode.GetTextureProperties: TTexturePropertiesNode;
+begin
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeneratedCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
 end;
 
 {$endif read_implementation}
