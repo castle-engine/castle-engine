@@ -155,6 +155,7 @@ const
   AllChars = [Low(AnsiChar) .. High(AnsiChar)];
   DefaultWordBorders = AllChars - ['a'..'z', 'A'..'Z', '0'..'9', '_'];
   WhiteSpaces = [' ', #9, #10, #13];
+  OnlyNums = AllChars - ['0'..'9', '.', '-','+','e','E'];
   SimpleAsciiCharacters = [#32 .. #126];
 
 function RandomString: string;
