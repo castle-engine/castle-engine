@@ -233,21 +233,15 @@ function TRegionAttachment.BuildGeometry(const BaseUrl: string;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
-  I: Integer;
   Faces: TIndexedFaceSetNode;
   Rect: array [0..1] of TVector2;
 begin
   Faces := TIndexedFaceSetNode.Create('', BaseUrl);
   Result := Faces;
 
-  Faces.FdCreaseAngle.Value := 0; // optimization: do not try to smooth normals, no point
-  Faces.FdSolid.Value := false;
-  Faces.FdCoordIndex.Items.Clear;
-
-  Faces.FdCoordIndex.Items.Add(0);
-  Faces.FdCoordIndex.Items.Add(1);
-  Faces.FdCoordIndex.Items.Add(2);
-  Faces.FdCoordIndex.Items.Add(3);
+  Faces.CreaseAngle := 0; // optimization: do not try to smooth normals, no point
+  Faces.Solid := false;
+  Faces.SetCoordIndex([0, 1, 2, 3]);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   Rect[0] := Vector2(
@@ -256,16 +250,20 @@ begin
   Rect[1] := Vector2(
     MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2),
     MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2));
-  Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[0][1], 0));
-  Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[0][1], 0));
-  Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[1][1], 0));
-  Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[1][1], 0));
+  Coord.SetPoint([
+    Vector3(Rect[0][0], Rect[0][1], 0),
+    Vector3(Rect[1][0], Rect[0][1], 0),
+    Vector3(Rect[1][0], Rect[1][1], 0),
+    Vector3(Rect[0][0], Rect[1][1], 0)]);
   Faces.Coord := Coord;
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
-  for I := 0 to 3 do
-    TexCoordNode.FdPoint.Items.Add(TexCoord[I]);
-  Faces.FdTexCoord.Value := TexCoordNode;
+  TexCoordNode.SetPoint([
+    TexCoord[0],
+    TexCoord[1],
+    TexCoord[2],
+    TexCoord[3]]);
+  Faces.TexCoord := TexCoordNode;
 end;
 
 { TAbstractMeshAttachment ---------------------------------------------------- }

@@ -537,7 +537,7 @@ begin
   if Md3.TextureURL <> '' then
   begin
     Texture := TImageTextureNode.Create('', BaseUrl);
-    Texture.FdUrl.Items.Add(Md3.TextureURL);
+    Texture.SetUrl([Md3.TextureURL]);
   end else
     Texture := nil;
 

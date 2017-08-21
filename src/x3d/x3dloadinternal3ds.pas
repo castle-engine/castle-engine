@@ -1064,8 +1064,7 @@ var
     if Material.TextureMap1.Exists then
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
-      Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
-        Material.TextureMap1.MapURL));
+      Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMap1.MapURL)]);
       Result.Texture := Tex;
 
       TexTransform := TTextureTransformNode.Create('', BaseUrl);
@@ -1075,8 +1074,7 @@ var
       if Material.TextureMapBump.Exists then
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
-        Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
-          Material.TextureMapBump.MapURL));
+        Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMapBump.MapURL)]);
         Result.NormalMap := Tex;
 
         { We don't have separate TextureTransform for bump map.

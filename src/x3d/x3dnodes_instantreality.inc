@@ -684,8 +684,9 @@ begin
     CoordNode := TCoordinateNode.Create('', BaseUrl);
     IFS.FdCoord.Value := CoordNode;
     if FdManifold.Value then
-      CoordNode.FdPoint.Items.Assign(TeapotManifoldCoord) else
-      CoordNode.FdPoint.Items.Assign(TeapotCoord);
+      CoordNode.SetPoint(TeapotManifoldCoord)
+    else
+      CoordNode.SetPoint(TeapotCoord);
 
     { Scale Coords according to "size" field.
       Assumes that original coords are good for default size (3, 3, 3). }

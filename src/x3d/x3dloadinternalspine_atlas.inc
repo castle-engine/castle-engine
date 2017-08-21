@@ -143,7 +143,7 @@ var
   I, ReferenceImageWidth, ReferenceImageHeight: Integer;
 begin
   Node := TImageTextureNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
-  Node.FdUrl.Items.Add(TextureURL);
+  Node.SetUrl([TextureURL]);
   Node.RepeatS := IsRepeat;
   Node.RepeatT := IsRepeat;
 

@@ -160,15 +160,15 @@ begin
   inherited Create(AOwner);
 
   FCoord := TCoordinateNode.Create;
-  FCoord.FdPoint.Items.AddRange([
+  FCoord.SetPoint([
     Vector3(-1,  0,  0), Vector3(1, 0, 0),
     Vector3( 0, -1,  0), Vector3(0, 1, 0),
     Vector3( 0,  0, -1), Vector3(0, 0, 1)
   ]);
 
   FGeometry := TLineSetNode.Create;
-  FGeometry.FdVertexCount.Items.AddRange([2, 2, 2]);
-  FGeometry.FdCoord.Value := FCoord;
+  FGeometry.SetVertexCount([2, 2, 2]);
+  FGeometry.Coord := FCoord;
 
   FShape := TShapeNode.Create;
   FShape.Geometry := FGeometry;

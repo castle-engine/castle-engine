@@ -52,7 +52,7 @@ begin
   if not Nodes.TryGetValue(AttachmentName, Result) then
   begin
     Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
-    Result.FdUrl.Items.Add('images/' + AttachmentName + '.png');
+    Result.SetUrl(['images/' + AttachmentName + '.png']);
     Result.RepeatS := false;
     Result.RepeatT := false;
 
