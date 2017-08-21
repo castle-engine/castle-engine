@@ -513,12 +513,6 @@
       The vectors are taken from the Normal node inside our FdNormal field.
       In case of problems (no Normal node specified, invalid node specified etc.)
       returns @nil. }
-    function InternalNormal: TMFVec3f;
-
-    { Returns normal vectors that are specified explicitly.
-      The vectors are taken from the Normal node inside our FdNormal field.
-      In case of problems (no Normal node specified, invalid node specified etc.)
-      returns @nil. }
     function NormalItems: TVector3List;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dcomposedgeometrynode.inc}
@@ -1298,14 +1292,6 @@ end;
 function TAbstractComposedGeometryNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
-end;
-
-function TAbstractComposedGeometryNode.InternalNormal: TMFVec3f;
-begin
-  if (FdNormal.Value <> nil) and
-     (FdNormal.Value is TNormalNode) then
-    Result := TNormalNode(FdNormal.Value).FdVector else
-    Result := nil;
 end;
 
 function TAbstractComposedGeometryNode.NormalItems: TVector3List;
