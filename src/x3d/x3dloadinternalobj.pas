@@ -519,25 +519,25 @@ var
       MatOBJNameToX3DName(Material.Name), BaseUrl);
 
     Mat := TMaterialNode.Create('', BaseUrl);
-    Result.FdMaterial.Value := Mat;
-    Mat.FdAmbientIntensity.Value := AmbientIntensity(
+    Result.Material := Mat;
+    Mat.AmbientIntensity := AmbientIntensity(
       Material.AmbientColor, Material.DiffuseColor);
-    Mat.FdDiffuseColor.Value := Material.DiffuseColor;
-    Mat.FdSpecularColor.Value := Material.SpecularColor;
-    Mat.FdTransparency.Value := 1 - Material.Opacity;
-    Mat.FdShininess.Value := Material.SpecularExponent / 128.0;
+    Mat.DiffuseColor := Material.DiffuseColor;
+    Mat.SpecularColor := Material.SpecularColor;
+    Mat.Transparency := 1 - Material.Opacity;
+    Mat.Shininess := Material.SpecularExponent / 128.0;
 
     if Material.DiffuseTextureURL <> '' then
     begin
       Texture := TImageTextureNode.Create('', BaseUrl);
-      Result.FdTexture.Value := Texture;
-      Texture.FdUrl.Items.Add(SearchTextureFile(BaseUrl, Material.DiffuseTextureURL));
+      Result.Texture := Texture;
+      Texture.SetUrl([SearchTextureFile(BaseUrl, Material.DiffuseTextureURL)]);
 
       if Material.BumpTextureURL <> '' then
       begin
         Texture := TImageTextureNode.Create('', BaseUrl);
-        Result.FdNormalMap.Value := Texture;
-        Texture.FdUrl.Items.Add(SearchTextureFile(BaseUrl, Material.BumpTextureURL));
+        Result.NormalMap := Texture;
+        Texture.SetUrl([SearchTextureFile(BaseUrl, Material.BumpTextureURL)]);
       end;
     end;
   end;
