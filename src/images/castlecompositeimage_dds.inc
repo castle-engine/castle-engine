@@ -1134,7 +1134,11 @@ var
     begin
       if (not IsPowerOf2(Width)) or
          (not IsPowerOf2(Height)) then
-        raise EInvalidDDS.CreateFmt('DDS image has mipmaps, but width or height are not a power of 2: %d x %d', [Width, Height]);
+      begin
+        { nvcompress can generate such DDS files, if you input a non-power-of-two image }
+        WritelnWarning('DDS image has mipmaps, but width or height are not a power of 2: %d x %d. We will ignore these mipmaps, since we cannot determine their size', [Width, Height]);
+        Composite.FMipmaps := false;
+      end;
     end;
 
     case Composite.CompositeType of
