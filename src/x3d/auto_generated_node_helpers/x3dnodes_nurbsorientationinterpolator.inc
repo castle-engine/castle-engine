@@ -27,9 +27,12 @@
 {$ifdef read_interface}
 
   strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     property Order: Integer read GetOrder write SetOrder;
 
 {$endif read_interface}
@@ -37,6 +40,19 @@
 {$ifdef read_implementation}
 
 { TNurbsOrientationInterpolatorNode ----------------------------------------------- }
+
+function TNurbsOrientationInterpolatorNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsOrientationInterpolatorNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
 
 function TNurbsOrientationInterpolatorNode.GetOrder: Integer;
 begin

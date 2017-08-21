@@ -27,6 +27,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetUDimension: Integer;
     procedure SetUDimension(const Value: Integer);
     function GetUOrder: Integer;
@@ -36,6 +38,7 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     property UDimension: Integer read GetUDimension write SetUDimension;
     property UOrder: Integer read GetUOrder write SetUOrder;
     property VDimension: Integer read GetVDimension write SetVDimension;
@@ -46,6 +49,19 @@
 {$ifdef read_implementation}
 
 { TNurbsSurfaceInterpolatorNode ----------------------------------------------- }
+
+function TNurbsSurfaceInterpolatorNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
 
 function TNurbsSurfaceInterpolatorNode.GetUDimension: Integer;
 begin

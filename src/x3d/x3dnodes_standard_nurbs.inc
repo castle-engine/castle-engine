@@ -829,17 +829,17 @@ end;
 function TNurbsCurveNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  ControlPoint: TVector3List;
+  ControlPointList: TVector3List;
 begin
   Result := TLineSetNode.Create(X3DName, BaseUrl);
   try
     { TODO: we should handle here all TAbstractCoordinateNode }
-    if (FdControlPoint.Value <> nil) and
-       (FdControlPoint.Value is TCoordinateNode) then
-      ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
+    if ControlPoint is TCoordinateNode then
+      ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+    else
       Exit;
 
-    NurbsCurveProxy(TLineSetNode(Result), ControlPoint, FdTessellation.Value,
+    NurbsCurveProxy(TLineSetNode(Result), ControlPointList, FdTessellation.Value,
       FdOrder.Value, FdKnot.Items, FdWeight.Items);
   except FreeAndNil(Result); raise end;
 end;
@@ -982,7 +982,7 @@ end;
 procedure TNurbsOrientationInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  ControlPoint: TVector3List;
+  ControlPointList: TVector3List;
   Knot: TDoubleList;
   Tangent: TVector3;
   Orientation: TVector4;
@@ -990,12 +990,12 @@ begin
   if not EventValue_Changed.SendNeeded then Exit;
 
   { TODO: we should handle here all TAbstractCoordinateNode }
-  if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TCoordinateNode) then
-    ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
+  if ControlPoint is TCoordinateNode then
+    ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+  else
     Exit;
 
-  if ControlPoint.Count = 0 then Exit;
+  if ControlPointList.Count = 0 then Exit;
 
   if FdOrder.Value < 2 then
   begin
@@ -1004,15 +1004,15 @@ begin
   end;
 
   { We can be sure now that
-    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have ControlPointList, non-nil, with at least 1 point.
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
   Knot := TDoubleList.Create;
   Knot.Assign(FdKnot.Items);
-  NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
+  NurbsKnotIfNeeded(Knot, ControlPointList.Count, FdOrder.Value, nkEndpointUniform);
 
-  NurbsCurvePoint(ControlPoint,
+  NurbsCurvePoint(ControlPointList,
     (Value as TSFFloat).Value,
     FdOrder.Value, Knot, FdWeight.Items, @Tangent);
 
@@ -1278,17 +1278,16 @@ end;
 function TAbstractNurbsSurfaceGeometryNode.Proxy(var State: TX3DGraphTraverseState;
   const OverTriangulate: boolean): TAbstractGeometryNode;
 var
-  ControlPoint: TVector3List;
+  ControlPointList: TVector3List;
 begin
   Result := TIndexedQuadSetNode.Create(X3DName, BaseUrl);
   try
     { TODO: we should handle here all TAbstractCoordinateNode }
-    if (FdControlPoint.Value <> nil) and
-       (FdControlPoint.Value is TCoordinateNode) then
+    if ControlPoint <> nil then
     begin
-      ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items;
+      ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items;
       NurbsPatchSurfaceProxy(TIndexedQuadSetNode(Result),
-        ControlPoint,
+        ControlPointList,
         FdUTessellation.Value,
         FdVTessellation.Value,
         FdUDimension.Value,
@@ -1305,7 +1304,7 @@ begin
         FdTexCoord.Value);
     end;
 
-    { Note: In case of null / invalid / unhandled FdControlPoint.Value,
+    { Note: In case of null / invalid / unhandled ControlPoint,
       we still return valid (just empty) IndexedQuadSet node. }
   except FreeAndNil(Result); raise end;
 end;
@@ -1426,18 +1425,18 @@ end;
 procedure TNurbsPositionInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  ControlPoint: TVector3List;
+  ControlPointList: TVector3List;
   Knot: TDoubleList;
   OutputValue: TVector3;
 begin
   if not EventValue_Changed.SendNeeded then Exit;
 
-  if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TCoordinateNode) then
-    ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
+  if ControlPoint <> nil then
+    ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+  else
     Exit;
 
-  if ControlPoint.Count = 0 then Exit;
+  if ControlPointList.Count = 0 then Exit;
 
   if FdOrder.Value < 2 then
   begin
@@ -1446,15 +1445,15 @@ begin
   end;
 
   { We can be sure now that
-    - we have ControlPoint, non-nil, with at least 1 point.
+    - we have ControlPointList, non-nil, with at least 1 point.
     - we have Order >= 2 }
 
   { calculate correct Knot vector }
   Knot := TDoubleList.Create;
   Knot.Assign(FdKnot.Items);
-  NurbsKnotIfNeeded(Knot, ControlPoint.Count, FdOrder.Value, nkEndpointUniform);
+  NurbsKnotIfNeeded(Knot, ControlPointList.Count, FdOrder.Value, nkEndpointUniform);
 
-  OutputValue := NurbsCurvePoint(ControlPoint, (Value as TSFFloat).Value,
+  OutputValue := NurbsCurvePoint(ControlPointList, (Value as TSFFloat).Value,
     FdOrder.Value, Knot, FdWeight.Items, nil);
 
   FreeAndNil(Knot);
@@ -1578,7 +1577,7 @@ end;
 procedure TNurbsSurfaceInterpolatorNode.EventSet_FractionReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
-  ControlPoint: TVector3List;
+  ControlPointList: TVector3List;
   OutputNormal: TVector3;
   OutputPosition: TVector3;
   UKnot, VKnot: TDoubleList;
@@ -1587,18 +1586,18 @@ begin
           EventNormal_Changed.SendNeeded) then Exit;
 
   { TODO: we should handle here all TAbstractCoordinateNode }
-  if (FdControlPoint.Value <> nil) and
-     (FdControlPoint.Value is TCoordinateNode) then
-    ControlPoint := TCoordinateNode(FdControlPoint.Value).FdPoint.Items else
+  if ControlPoint <> nil then
+    ControlPointList := TCoordinateNode(ControlPoint).FdPoint.Items
+  else
     Exit;
 
-  if ControlPoint.Count = 0 then Exit;
+  if ControlPointList.Count = 0 then Exit;
 
   if FdUDimension.Value * FdVDimension.Value <>
-     Integer(ControlPoint.Count) then
+     Integer(ControlPointList.Count) then
   begin
     WritelnWarning('VRML/X3D', Format('Number of coordinates in NurbsSurfaceInterpolator.controlPoint (%d) doesn''t match uDimension * vDimension (%d * %d = %d)',
-      [ ControlPoint.Count,
+      [ ControlPointList.Count,
         FdUDimension.Value,  FdVDimension.Value,
         FdUDimension.Value * FdVDimension.Value ]));
     Exit;
@@ -1619,8 +1618,8 @@ begin
   end;
 
   { We can be sure now that we have
-    - correct ControlPoint, non-nil, with at least 1 point.
-    - uDimension, vDimension match ControlPoint count, and are > 0.
+    - correct ControlPointList, non-nil, with at least 1 point.
+    - uDimension, vDimension match ControlPointList count, and are > 0.
     - we have Order >= 2.
   }
 
@@ -1633,7 +1632,7 @@ begin
   NurbsKnotIfNeeded(VKnot, FdVDimension.Value, FdVOrder.Value, nkEndpointUniform);
 
   OutputPosition :=
-    NurbsSurfacePoint(ControlPoint,
+    NurbsSurfacePoint(ControlPointList,
       FdUDimension.Value,
       FdVDimension.Value,
       (Value as TSFVec2f).Value[0],

@@ -27,6 +27,8 @@
 {$ifdef read_interface}
 
   strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetUTessellation: Integer;
     procedure SetUTessellation(const Value: Integer);
     function GetVTessellation: Integer;
@@ -44,6 +46,7 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     property UTessellation: Integer read GetUTessellation write SetUTessellation;
     property VTessellation: Integer read GetVTessellation write SetVTessellation;
     property UClosed: boolean read GetUClosed write SetUClosed;
@@ -58,6 +61,19 @@
 {$ifdef read_implementation}
 
 { TAbstractNurbsSurfaceGeometryNode ----------------------------------------------- }
+
+function TAbstractNurbsSurfaceGeometryNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
 
 function TAbstractNurbsSurfaceGeometryNode.GetUTessellation: Integer;
 begin
