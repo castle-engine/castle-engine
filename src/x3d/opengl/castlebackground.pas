@@ -201,8 +201,8 @@ var
       TexCoord.FdPoint.Send(TexCoords);
 
       QuadSet := TQuadSetNode.Create('', Node.BaseUrl);
-      QuadSet.FdCoord.Value := Coord;
-      QuadSet.FdTexCoord.Value := TexCoord;
+      QuadSet.Coord := Coord;
+      QuadSet.TexCoord := TexCoord;
 
       Appearance := TAppearanceNode.Create('', Node.BaseUrl);
       Appearance.FdShaders.AssignValue(Node.FdShaders);

@@ -1158,8 +1158,8 @@ begin
         while J < Trimesh3ds.FacesCount do
         begin
           IFS := TIndexedFaceSetNode.Create('', BaseUrl);
-          IFS.FdTexCoord.Value := TexCoord;
-          IFS.FdCoord.Value := Coord;
+          IFS.TexCoord := TexCoord;
+          IFS.Coord := Coord;
           { We don't support 3DS smoothing groups.
             So instead assign some sensible non-zero crease angle. }
           IFS.CreaseAngle := NiceCreaseAngle;

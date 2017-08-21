@@ -260,7 +260,7 @@ begin
   Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[0][1], 0));
   Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[1][1], 0));
   Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[1][1], 0));
-  Faces.FdCoord.Value := Coord;
+  Faces.Coord := Coord;
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to 3 do
@@ -324,7 +324,7 @@ begin
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
     Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
-  Faces.FdCoord.Value := Coord;
+  Faces.Coord := Coord;
 
   { We do not guarantee correct rendering when model used
     atlas "whitespace compression" by Spine, and used mesh attachment types.

@@ -141,7 +141,7 @@ begin
     ]);
 
   QuadSet := TQuadSetNode.Create;
-  QuadSet.FdCoord.Value := Coordinate;
+  QuadSet.Coord := Coordinate;
   QuadSet.Solid := false; // see from both sides?
 
   { In real usecases, you could now assing explicit texture

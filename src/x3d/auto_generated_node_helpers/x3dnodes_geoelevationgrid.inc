@@ -27,6 +27,12 @@
 {$ifdef read_interface}
 
   strict private
+    function GetColor: TAbstractColorNode;
+    procedure SetColor(const Value: TAbstractColorNode);
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
+    function GetTexCoord: TAbstractTextureCoordinateNode;
+    procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
     function GetYScale: Single;
     procedure SetYScale(const Value: Single);
     function GetCcw: boolean;
@@ -50,6 +56,9 @@
     function GetZSpacing: Double;
     procedure SetZSpacing(const Value: Double);
   public
+    property Color: TAbstractColorNode read GetColor write SetColor;
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+    property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
     property YScale: Single read GetYScale write SetYScale;
     property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
@@ -67,6 +76,45 @@
 {$ifdef read_implementation}
 
 { TGeoElevationGridNode ----------------------------------------------- }
+
+function TGeoElevationGridNode.GetColor: TAbstractColorNode;
+begin
+  if FdColor.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColor.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoElevationGridNode.SetColor(const Value: TAbstractColorNode);
+begin
+  FdColor.Send(Value);
+end;
+
+function TGeoElevationGridNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoElevationGridNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
+function TGeoElevationGridNode.GetTexCoord: TAbstractTextureCoordinateNode;
+begin
+  if FdTexCoord.Value is TAbstractTextureCoordinateNode then
+    Result := TAbstractTextureCoordinateNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TGeoElevationGridNode.SetTexCoord(const Value: TAbstractTextureCoordinateNode);
+begin
+  FdTexCoord.Send(Value);
+end;
 
 function TGeoElevationGridNode.GetYScale: Single;
 begin

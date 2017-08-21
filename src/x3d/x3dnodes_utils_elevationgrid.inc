@@ -85,7 +85,7 @@ begin
     if IsNotEmpty then
     begin
       CoordNode := TCoordinateNode.Create('', BaseUrl);
-      IFS.FdCoord.Value := CoordNode;
+      IFS.Coord := CoordNode;
       Coords := CoordNode.FdPoint.Items;
 
       { calculate TexCoordProvided, set IFS.FdTexCoord, maybe set TexCoords }

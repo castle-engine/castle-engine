@@ -846,10 +846,10 @@ begin
     FaceSet.Solid := Solid;
 
     CoordNode := TCoordinateNode.Create('', BaseUrl);
-    FaceSet.FdCoord.Value := CoordNode;
+    FaceSet.Coord := CoordNode;
 
     MultiTexCoordNode := TMultiTextureCoordinateNode.Create('', BaseUrl);
-    FaceSet.FdTexCoord.Value := MultiTexCoordNode;
+    FaceSet.TexCoord := MultiTexCoordNode;
 
     TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
     MultiTexCoordNode.FdTexCoord.Add(TexCoordNode);

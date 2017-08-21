@@ -27,9 +27,18 @@
 {$ifdef read_interface}
 
   strict private
+    function GetColor: TAbstractColorNode;
+    procedure SetColor(const Value: TAbstractColorNode);
+    function GetCoord: TAbstractCoordinateNode;
+    procedure SetCoord(const Value: TAbstractCoordinateNode);
+    function GetFogCoord: TFogCoordinateNode;
+    procedure SetFogCoord(const Value: TFogCoordinateNode);
     function GetColorPerVertex: boolean;
     procedure SetColorPerVertex(const Value: boolean);
   public
+    property Color: TAbstractColorNode read GetColor write SetColor;
+    property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+    property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
 
 {$endif read_interface}
@@ -37,6 +46,45 @@
 {$ifdef read_implementation}
 
 { TIndexedLineSetNode ----------------------------------------------- }
+
+function TIndexedLineSetNode.GetColor: TAbstractColorNode;
+begin
+  if FdColor.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColor.Value)
+  else
+    Result := nil;
+end;
+
+procedure TIndexedLineSetNode.SetColor(const Value: TAbstractColorNode);
+begin
+  FdColor.Send(Value);
+end;
+
+function TIndexedLineSetNode.GetCoord: TAbstractCoordinateNode;
+begin
+  if FdCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TIndexedLineSetNode.SetCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdCoord.Send(Value);
+end;
+
+function TIndexedLineSetNode.GetFogCoord: TFogCoordinateNode;
+begin
+  if FdFogCoord.Value is TFogCoordinateNode then
+    Result := TFogCoordinateNode(FdFogCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TIndexedLineSetNode.SetFogCoord(const Value: TFogCoordinateNode);
+begin
+  FdFogCoord.Send(Value);
+end;
 
 function TIndexedLineSetNode.GetColorPerVertex: boolean;
 begin

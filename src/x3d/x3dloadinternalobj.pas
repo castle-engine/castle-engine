@@ -579,24 +579,24 @@ begin
           This is natural, and there's no reason for now to do anything else. }
 
         Faces := TIndexedFaceSetNode.Create('', BaseUrl);
-        Shape.FdGeometry.Value := Faces;
-        Faces.FdCreaseAngle.Value := NiceCreaseAngle;
+        Shape.Geometry := Faces;
+        Faces.CreaseAngle := NiceCreaseAngle;
         { faces may be concave, see https://sourceforge.net/p/castle-engine/tickets/20
           and https://sourceforge.net/p/castle-engine/tickets/19/ }
-        Faces.FdConvex.Value := false;
-        Faces.FdSolid.Value := false;
-        Faces.FdCoord.Value := Coord;
+        Faces.Convex := false;
+        Faces.Solid := false;
+        Faces.Coord := Coord;
         Faces.FdCoordIndex.Items.Clear;
         Faces.FdCoordIndex.Items.Capacity := IndicesCapacity;
         if FacesWithTexCoord then
         begin
-          Faces.FdTexCoord.Value := TexCoord;
+          Faces.TexCoord := TexCoord;
           Faces.FdTexCoordIndex.Items.Clear;
           Faces.FdTexCoordIndex.Items.Capacity := IndicesCapacity;
         end;
         if FacesWithNormal then
         begin
-          Faces.FdNormal.Value := Normal;
+          Faces.Normal := Normal;
           Faces.FdNormalIndex.Items.Clear;
           Faces.FdNormalIndex.Items.Capacity := IndicesCapacity;
         end;

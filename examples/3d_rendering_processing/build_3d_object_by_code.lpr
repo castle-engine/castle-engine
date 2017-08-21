@@ -63,7 +63,7 @@ begin
     { Two quad faces. These are just indexes for
       the array placed in IndexedFaceSet.FdCoordinate array. }
     [0, 1, 2, 3, 0, -1, 4, 5, 6, 7, 4]);
-  IndexedFaceSet.FdCoord.Value := IndexedFaceSetCoordinate;
+  IndexedFaceSet.Coord := IndexedFaceSetCoordinate;
 
   IndexedFaceSetShape := TShapeNode.Create;
   IndexedFaceSetShape.Appearance := Appearance;

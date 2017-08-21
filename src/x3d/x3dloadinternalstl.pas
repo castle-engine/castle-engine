@@ -188,11 +188,11 @@ begin
         http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/rendering.html#TriangleSet
         Just a list of vertexes, each 3 vertexes make a triangle. }
       TriangleSet := TTriangleSetNode.Create('', URL);
-      TriangleSet.FdCoord.Value := Coordinate;
+      TriangleSet.Coord := Coordinate;
       { TODO: NormalPerVertex := true on TriangleSet not supported (would allow
         to be more compact) }
       TriangleSet.NormalPerVertex := false;
-      TriangleSet.FdNormal.Value := Normal;
+      TriangleSet.Normal := Normal;
 
       Shape := TShapeNode.Create('', URL);
       { assign some Material only to make it lit }

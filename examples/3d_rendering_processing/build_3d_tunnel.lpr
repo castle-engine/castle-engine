@@ -189,12 +189,12 @@ begin
   generatemap;
 
   { merge Coords and Geometry }
-  Geometry.FdCoord.Value := Coords;
+  Geometry.Coord := Coords;
 
   { create some simple material }
   Material := TMaterialNode.Create('', '');
-  Material.FdDiffuseColor.value := Vector3(1, 0.9, 0.9);
-  material.FdAmbientIntensity.value := 2;
+  Material.DiffuseColor := Vector3(1, 0.9, 0.9);
+  material.AmbientIntensity := 2;
 
   { and add it to Appearance node }
   Appearance := TAppearanceNode.Create('', '');
@@ -202,7 +202,7 @@ begin
 
   { pack everything inside the Shape (geometry + appearance) }
   Shape := TShapeNode.Create('', '');
-  Shape.FdGeometry.Value := Geometry;
+  Shape.Geometry := Geometry;
   Shape.Appearance := Appearance;
 
   { and finally add everything to the Root node }

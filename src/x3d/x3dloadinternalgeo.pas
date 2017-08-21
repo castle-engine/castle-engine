@@ -220,7 +220,7 @@ begin
       end;
 
       verts := TCoordinateNode.Create('', BaseUrl);
-      faces.FdCoord.Value := verts;
+      faces.Coord := verts;
       verts.FdPoint.Items.Assign(geo.Verts);
     except result.Free; raise end;
   finally geo.Free end;

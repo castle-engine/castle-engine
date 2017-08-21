@@ -26,11 +26,61 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetColor: TAbstractColorNode;
+    procedure SetColor(const Value: TAbstractColorNode);
+    function GetCoord: TAbstractCoordinateNode;
+    procedure SetCoord(const Value: TAbstractCoordinateNode);
+    function GetFogCoord: TFogCoordinateNode;
+    procedure SetFogCoord(const Value: TFogCoordinateNode);
+  public
+    property Color: TAbstractColorNode read GetColor write SetColor;
+    property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+    property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLineSetNode ----------------------------------------------- }
+
+function TLineSetNode.GetColor: TAbstractColorNode;
+begin
+  if FdColor.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColor.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLineSetNode.SetColor(const Value: TAbstractColorNode);
+begin
+  FdColor.Send(Value);
+end;
+
+function TLineSetNode.GetCoord: TAbstractCoordinateNode;
+begin
+  if FdCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLineSetNode.SetCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdCoord.Send(Value);
+end;
+
+function TLineSetNode.GetFogCoord: TFogCoordinateNode;
+begin
+  if FdFogCoord.Value is TFogCoordinateNode then
+    Result := TFogCoordinateNode(FdFogCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TLineSetNode.SetFogCoord(const Value: TFogCoordinateNode);
+begin
+  FdFogCoord.Send(Value);
+end;
 
 {$endif read_implementation}

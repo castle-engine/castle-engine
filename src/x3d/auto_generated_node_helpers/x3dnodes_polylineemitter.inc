@@ -27,9 +27,12 @@
 {$ifdef read_interface}
 
   strict private
+    function GetCoord: TAbstractCoordinateNode;
+    procedure SetCoord(const Value: TAbstractCoordinateNode);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
   public
+    property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
     property Direction: TVector3 read GetDirection write SetDirection;
 
 {$endif read_interface}
@@ -37,6 +40,19 @@
 {$ifdef read_implementation}
 
 { TPolylineEmitterNode ----------------------------------------------- }
+
+function TPolylineEmitterNode.GetCoord: TAbstractCoordinateNode;
+begin
+  if FdCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TPolylineEmitterNode.SetCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdCoord.Send(Value);
+end;
 
 function TPolylineEmitterNode.GetDirection: TVector3;
 begin

@@ -511,11 +511,11 @@ var
     IFS: TIndexedFaceSetNode;
   begin
     IFS := MakeIndexes(Surface.Triangles);
-    IFS.FdCoord.Value := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
-    IFS.FdTexCoord.Value := MakeTextureCoordinates(Surface.TextureCoords);
+    IFS.Coord := MakeCoordinates(Surface.Vertexes, Surface.VertexesInFrameCount);
+    IFS.TexCoord := MakeTextureCoordinates(Surface.TextureCoords);
 
     Result := TShapeNode.Create(ToX3DName(Surface.Name), BaseUrl);
-    Result.FdGeometry.Value := IFS;
+    Result.Geometry := IFS;
     Result.Material := TMaterialNode.Create('', BaseUrl);
     Result.Texture := Texture;
   end;
