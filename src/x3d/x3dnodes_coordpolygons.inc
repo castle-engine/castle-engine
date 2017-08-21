@@ -1,5 +1,5 @@
 type
-  { Common utility class for nodes that implement CoordPolygons
+  { Common utility class for nodes that implement InternalCoordPolygons
     by calling MakeCoordRanges,
     and then doing the work inside HandleCoordRange. }
   TCoordRangePolygonizer = class
@@ -33,7 +33,7 @@ begin
   end;
 end;
 
-procedure TIndexedTriangleFanSetNode.CoordPolygons(
+procedure TIndexedTriangleFanSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -42,11 +42,11 @@ begin
   Polygonizer := TTriangleFanSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TTriangleFanSetNode.CoordPolygons(
+procedure TTriangleFanSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -55,7 +55,7 @@ begin
   Polygonizer := TTriangleFanSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -85,7 +85,7 @@ begin
   end;
 end;
 
-procedure TIndexedTriangleStripSetNode.CoordPolygons(
+procedure TIndexedTriangleStripSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -94,11 +94,11 @@ begin
   Polygonizer := TTriangleStripSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TTriangleStripSetNode.CoordPolygons(
+procedure TTriangleStripSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -107,11 +107,11 @@ begin
   Polygonizer := TTriangleStripSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TIndexedTriangleMeshNode_1.CoordPolygons(
+procedure TIndexedTriangleMeshNode_1.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -120,7 +120,7 @@ begin
   Polygonizer := TTriangleStripSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
@@ -140,21 +140,21 @@ begin
   end;
 end;
 
-procedure TIndexedTriangleSetNode.CoordPolygons(
+procedure TIndexedTriangleSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
-  if Coordinates(State) <> nil then
+  if InternalCoordinates(State) <> nil then
     TriangleSetPolygonizer(CoordIndexField.Count, PolygonHandler);
 end;
 
-procedure TTriangleSetNode.CoordPolygons(
+procedure TTriangleSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   ACoord: TMFVec3f;
 begin
-  ACoord := Coordinates(State);
+  ACoord := InternalCoordinates(State);
   if ACoord <> nil then
     TriangleSetPolygonizer(ACoord.Count, PolygonHandler);
 end;
@@ -175,21 +175,21 @@ begin
   end;
 end;
 
-procedure TIndexedQuadSetNode.CoordPolygons(
+procedure TIndexedQuadSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
-  if Coordinates(State) <> nil then
+  if InternalCoordinates(State) <> nil then
     QuadSetPolygonizer(CoordIndexField.Count, PolygonHandler);
 end;
 
-procedure TQuadSetNode.CoordPolygons(
+procedure TQuadSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
   ACoord: TMFVec3f;
 begin
-  ACoord := Coordinates(State);
+  ACoord := InternalCoordinates(State);
   if ACoord <> nil then
     QuadSetPolygonizer(ACoord.Count, PolygonHandler);
 end;
@@ -216,7 +216,7 @@ begin
   Polygon(Indexes);
 end;
 
-procedure TIndexedFaceSetNode_1.CoordPolygons(
+procedure TIndexedFaceSetNode_1.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -225,11 +225,11 @@ begin
   Polygonizer := TIndexedFaceSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;
 
-procedure TIndexedFaceSetNode.CoordPolygons(
+procedure TIndexedFaceSetNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 var
@@ -238,6 +238,6 @@ begin
   Polygonizer := TIndexedFaceSetPolygonizer.Create;
   try
     Polygonizer.Polygon := PolygonHandler;
-    MakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
+    InternalMakeCoordRanges(State, {$ifdef CASTLE_OBJFPC}@{$endif} Polygonizer.HandleCoordRange);
   finally FreeAndNil(Polygonizer) end;
 end;

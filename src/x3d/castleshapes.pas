@@ -526,7 +526,7 @@ type
       and having Geometry.CoordIndex <> @nil.
 
       For NormalsSmooth, also Geometry.CoordIndex = @nil is allowed,
-      but make sure that Geometry.CoordPolygons is available.
+      but make sure that Geometry.InternalCoordPolygons is available.
       See CreateSmoothNormalsCoordinateNode.
 
       @unorderedList(
@@ -1618,7 +1618,7 @@ begin
       of triangles.  }
     Result := AllMaterialsTransparent(State.VRML1State.Material);
 
-  if Geometry.ColorRGBA <> nil then
+  if Geometry.InternalColorRGBA <> nil then
     Result := true;
 
   { If texture exists with full range alpha channel then use blending.
@@ -1791,7 +1791,7 @@ begin
     S := State(OverTriangulate);
 
     FNormals := CreateFlatNormals(G.CoordIndexField.Items,
-      G.Coordinates(S).Items, true, G.Convex);
+      G.InternalCoordinates(S).Items, true, G.Convex);
     FNormalsCached := ncFlat;
     FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
@@ -1822,7 +1822,7 @@ begin
     S := State(OverTriangulate);
 
     FNormals := CreateNormals(G.CoordIndexField.Items,
-      G.Coordinates(S).Items, CreaseAngle, true, G.Convex);
+      G.InternalCoordinates(S).Items, CreaseAngle, true, G.Convex);
     FNormalsCached := ncCreaseAngle;
     FNormalsOverTriangulate := OverTriangulate;
     FNormalsCreaseAngle := CreaseAngle;

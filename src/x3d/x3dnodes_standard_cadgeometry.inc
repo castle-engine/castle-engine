@@ -134,7 +134,7 @@
 
     function CoordIndexField: TMFLong; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -151,7 +151,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 

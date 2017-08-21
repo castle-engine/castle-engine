@@ -487,7 +487,7 @@ begin
   Result := false;
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TNurbsCurveNode_2.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -495,7 +495,7 @@ begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items);
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TNurbsCurveNode_2.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -735,7 +735,7 @@ begin
   Result := false;
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TNurbsSurfaceNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -743,7 +743,7 @@ begin
   Result := NurbsBoundingBox(FdControlPoint.Items, FdWeight.Items);
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TNurbsSurfaceNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;

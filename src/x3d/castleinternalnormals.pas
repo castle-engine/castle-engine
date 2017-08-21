@@ -80,7 +80,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
   const FromCCW, Convex: boolean): TVector3List;
 
 { Calculate always smooth normals per-vertex, for VRML/X3D coordinate-based
-  node. We use TAbstractGeometryNode.CoordPolygons for this, so the node class
+  node. We use TAbstractGeometryNode.InternalCoordPolygons for this, so the node class
   must implement it.
 
   Note that the result is not a compatible replacement for CreateNormals,
@@ -349,7 +349,7 @@ var
   Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;
 begin
-  C := Node.Coordinates(State);
+  C := Node.InternalCoordinates(State);
 
   { Node coordinate-based, but specified with empty coord }
   if C = nil then Exit(nil);
@@ -366,7 +366,7 @@ begin
         Calculator.CoordIndex := Node.CoordIndexField.Items else
         Calculator.CoordIndex := nil;
       Calculator.Normals := Result;
-      Node.CoordPolygons(State, @Calculator.Polygon);
+      Node.InternalCoordPolygons(State, @Calculator.Polygon);
     finally FreeAndNil(Calculator) end;
 
     Result.Normalize;

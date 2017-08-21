@@ -51,7 +51,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function SolidField: TSFBool; override;
 
@@ -192,7 +192,7 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D; override;
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
     {$I auto_generated_node_helpers/x3dnodes_nurbscurve.inc}
@@ -849,11 +849,11 @@ begin
   Result := false;
 end;
 
-{ Although our BoundingBox and LocalBoundingBox do not rely on Coord()
+{ Although our BoundingBox and LocalBoundingBox do not rely on InternalCoord()
   override, it is still necessary to react to animation of Coordinate node
   points, see
   http://www.web3d.org/x3d/content/examples/Basic/NURBS/_pages/page01.html }
-function TNurbsCurveNode.Coord(State: TX3DGraphTraverseState;
+function TNurbsCurveNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -863,7 +863,7 @@ begin
     ACoord := nil;
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TNurbsCurveNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -874,7 +874,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TNurbsCurveNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -1315,11 +1315,11 @@ begin
   Result := false;
 end;
 
-{ Although our BoundingBox and LocalBoundingBox do not rely on Coord()
+{ Although our BoundingBox and LocalBoundingBox do not rely on InternalCoord()
   override, it is still necessary to react to animation of Coordinate node
   points, see
   http://www.web3d.org/x3d/content/examples/Basic/NURBS/_pages/page01.html }
-function TAbstractNurbsSurfaceGeometryNode.Coord(State: TX3DGraphTraverseState;
+function TAbstractNurbsSurfaceGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1329,7 +1329,7 @@ begin
     ACoord := nil;
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TAbstractNurbsSurfaceGeometryNode.LocalBoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
@@ -1340,7 +1340,7 @@ begin
     Result := TBox3D.Empty;
 end;
 
-{ We cannot simply override Coord() and let bounding box be calculated
+{ We cannot simply override InternalCoord() and let bounding box be calculated
   based on it. It would fail for curves with weigths. }
 function TAbstractNurbsSurfaceGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;

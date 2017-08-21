@@ -183,7 +183,7 @@ procedure CalculateElements;
           Calculator.CoordIndex := Shape.Geometry.CoordIndex.Items else
           Calculator.CoordIndex := nil;
         Calculator.ShapeElements := ShapeElements;
-        Shape.Geometry.CoordPolygons(Shape.State, @Calculator.Polygon);
+        Shape.Geometry.InternalCoordPolygons(Shape.State, @Calculator.Polygon);
       finally FreeAndNil(Calculator) end;
 
       { Normalize all new normals }

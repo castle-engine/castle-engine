@@ -135,7 +135,7 @@ function TAbstractGeometryNode.BoundingBox(State: TX3DGraphTraverseState;
 var
   C: TMFVec3f;
 begin
-  if Coord(State, C) then
+  if InternalCoord(State, C) then
   begin
     if C <> nil then
     begin
@@ -164,7 +164,7 @@ var
   NewState: TX3DGraphTraverseState;
   C: TMFVec3f;
 begin
-  if Coord(State, C) then
+  if InternalCoord(State, C) then
   begin
     if C <> nil then
     begin

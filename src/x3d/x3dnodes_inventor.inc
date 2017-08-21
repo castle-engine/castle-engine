@@ -20,11 +20,11 @@
   TIndexedTriangleMeshNode_1 = class(TIndexedFacesOrTrianglesNode_1)
     class function ClassX3DType: string; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
-    function TexCoord(State: TX3DGraphTraverseState;
+    function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
   end;
 
@@ -52,7 +52,7 @@ begin
   result := 'IndexedTriangleMesh';
 end;
 
-function TIndexedTriangleMeshNode_1.TexCoord(State: TX3DGraphTraverseState;
+function TIndexedTriangleMeshNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;

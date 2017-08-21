@@ -176,7 +176,7 @@
     strict private FFdTextureCoordIndex: TMFLong;
     public property FdTextureCoordIndex: TMFLong read FFdTextureCoordIndex;
 
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
   end;
@@ -194,14 +194,14 @@
 
     class function ClassX3DType: string; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
     strict private FFdRadianceTransfer: TMFVec3f;
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
-    function TexCoord(State: TX3DGraphTraverseState;
+    function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
   end;
 
@@ -210,7 +210,7 @@
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
 
-    function TexCoord(State: TX3DGraphTraverseState;
+    function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; override;
 
     { Do we have enough normals information to render this node lit.
@@ -233,7 +233,7 @@
     strict private FFdNumPoints: TSFLong;
     public property FdNumPoints: TSFLong read FFdNumPoints;
 
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -1062,7 +1062,7 @@ begin
   AddField(FFdTextureCoordIndex);
 end;
 
-function TAbstractIndexedNode_1.Coord(State: TX3DGraphTraverseState;
+function TAbstractIndexedNode_1.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1088,7 +1088,7 @@ begin
   Result := 'IndexedFaceSet';
 end;
 
-function TIndexedFaceSetNode_1.TexCoord(State: TX3DGraphTraverseState;
+function TIndexedFaceSetNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
@@ -1100,7 +1100,7 @@ begin
   Result := 'IndexedLineSet';
 end;
 
-function TIndexedLineSetNode_1.TexCoord(State: TX3DGraphTraverseState;
+function TIndexedLineSetNode_1.InternalTexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := true;
@@ -1156,7 +1156,7 @@ begin
   Result := 'PointSet';
 end;
 
-function TPointSetNode_1.Coord(State: TX3DGraphTraverseState;
+function TPointSetNode_1.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 
   procedure CalculateRange(CoordsCount: Cardinal;

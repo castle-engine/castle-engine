@@ -46,6 +46,24 @@
     procedure SetSolid(const Value: boolean);
     function GetConvex: boolean;
     procedure SetConvex(const Value: boolean);
+  protected
+    { Returns an information how to split @link(InternalCoord) array into ranges.
+
+      When CoordIndex = @nil, then if the node's @link(InternalCoord) array
+      can be divided into some "ranges", we will use this information.
+      This is used (and should be overridden) for X3D non-indexed nodes,
+      like fanCount or stripCount or vertexCount.
+
+      What precisely is a "range of coordinates" is not specified
+      here. It may be a line stip, or one triangle strip, etc. ---
+      depending on the descendant.
+
+      Returns @true if this is available. In this case, RangeCount must
+      be set to something <> nil, and the rest of returned variables
+      are mainly to generate proper warnings by MakeCoordRanges. }
+    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; virtual;
   public
     { Constructor for node.
       Only sets DefaultContainerField to 'geometry', since this is valid
@@ -69,7 +87,7 @@
 
       @orderedList(
         @item(
-          For nodes based on coordinates (when @link(Coord) returns @true),
+          For nodes based on coordinates (when @link(InternalCoord) returns @true),
           LocalBoundingBox and BoundingBox
           already have optimal and correct implementation in this class.
           Using Coord and CoordIndex, no other information is needed.)
@@ -147,7 +165,7 @@
 
       @italic(Notes for descendants implementors:)
 
-      For coordinate-based nodes (when @link(Coord) returns @true),
+      For coordinate-based nodes (when @link(InternalCoord) returns @true),
       VerticesCount is already implemented in this class.
       Using Coord method, no other information is needed.
 
@@ -185,58 +203,40 @@
 
       For VRML 1.0, coord may be taken from State, that's why we have to
       pass current traverse state here. }
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; virtual;
 
     { Return node's list of coordinates, raising exception if node
       is not based on coordinates.
 
-      This is just like the @link(Coord) method,
+      This is just like the @link(InternalCoord) method,
       except it simply returns the coordinates, not the boolean result.
-      If virtual @link(Coord) returns @false (indicating the node
+      If virtual @link(InternalCoord) returns @false (indicating the node
       is not coordinate-based) this raises ENotCoordinateBasedNode.
 
       @raises(ENotCoordinateBasedNode If node is not coordinate-based,
-        that is @link(Coord) returns false.)
+        that is @link(InternalCoord) returns false.)
     }
-    function Coordinates(State: TX3DGraphTraverseState): TMFVec3f;
+    function InternalCoordinates(State: TX3DGraphTraverseState): TMFVec3f;
 
     { Node's list of coordinate indexes.
 
       In base TAbstractGeometryNode class this always returns @nil.
 
       Override this for descendants that have some kind of "coordIndex"
-      or "index" field used to index @link(Coord) array. }
+      or "index" field used to index @link(InternalCoord) array. }
     function CoordIndexField: TMFLong; virtual;
 
-    { Returns an information how to split @link(Coord) array into ranges.
-
-      When CoordIndex = @nil, then if the node's @link(Coord) array
-      can be divided into some "ranges", we will use this information.
-      This is used (and should be overridden) for X3D non-indexed nodes,
-      like fanCount or stripCount or vertexCount.
-
-      What precisely is a "range of coordinates" is not specified
-      here. It may be a line stip, or one triangle strip, etc. ---
-      depending on the descendant.
-
-      Returns @true if this is available. In this case, RangeCount must
-      be set to something <> nil, and the rest of returned variables
-      are mainly to generate proper warnings by MakeCoordRanges. }
-    function CoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; virtual;
-
-    { Splits @link(Coord) array into ranges.
+    { Splits @link(InternalCoord) array into ranges.
 
       If CoordIndex is assigned, then a "range of coordinates" is
       just a range of non-negative indexes within CoordIndex.
-      Otherwise (when CoordIndex = @nil), CoordRangesCounts must
+      Otherwise (when CoordIndex = @nil), InternalCoordRangesCounts must
       return @true and we will use RangeCount to split coordinates.
 
       Call this only for nodes with coordinates, that is only when
-      @link(Coord) returns @true. }
-    procedure MakeCoordRanges(
+      @link(InternalCoord) returns @true. }
+    procedure InternalMakeCoordRanges(
       State: TX3DGraphTraverseState;
       CoordRangeHandler: TCoordRangeHandler);
 
@@ -248,10 +248,10 @@
       according to generated PolygonHandler indexes.
 
       In this class this does nothing. Some, but not all, coordinate-based
-      nodes (the ones when @link(Coord) returns @true) override this.
+      nodes (the ones when @link(InternalCoord) returns @true) override this.
       So currently, whether this is implemented is coordinated with
       CastleInternalNormals and such internal needs. }
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); virtual;
 
@@ -266,7 +266,7 @@
 
       In base TAbstractGeometryNode class this looks at TexCoordField,
       eventually returns @false. }
-    function TexCoord(State: TX3DGraphTraverseState;
+    function InternalTexCoord(State: TX3DGraphTraverseState;
       out ATexCoord: TX3DNode): boolean; virtual;
 
     { Node's texCoord field, or @nil if not available.
@@ -329,11 +329,11 @@
       since "color" field may contain only one of them.
 
       @groupBegin }
-    function Color: TMFVec3f;
-    function ColorRGBA: TMFColorRGBA;
+    function InternalColor: TMFVec3f;
+    function InternalColorRGBA: TMFColorRGBA;
     { @groupEnd }
 
-    function FogCoord: TMFFloat; virtual;
+    function InternalFogCoord: TMFFloat; virtual;
     function AttribField: TMFNode; virtual;
 
     function ColorField: TSFNode; virtual;
@@ -499,7 +499,7 @@
     public property FdRadianceTransfer: TMFVec3f read FFdRadianceTransfer;
 
     { Access the coordinate node, and inside this node access it's points list. }
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
     function TexCoordField: TSFNode; override;
@@ -507,7 +507,7 @@
     function SolidField: TSFBool; override;
     function AttribField: TMFNode; override;
 
-    function FogCoord: TMFFloat; override;
+    function InternalFogCoord: TMFFloat; override;
 
     { Returns normal vectors that are specified explicitly.
       The vectors are taken from the Normal node inside our FdNormal field.
@@ -646,12 +646,12 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
 
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
     function CoordIndexField: TMFLong; override;
 
     function ColorField: TSFNode; override;
-    function FogCoord: TMFFloat; override;
+    function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
@@ -677,7 +677,7 @@
 
     function CoordIndexField: TMFLong; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -706,7 +706,7 @@
 
     function CoordIndexField: TMFLong; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -735,7 +735,7 @@
 
     function CoordIndexField: TMFLong; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -749,6 +749,9 @@
   TLineSetNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
+    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -769,15 +772,11 @@
     strict private FFdVertexCount: TMFInt32;
     public property FdVertexCount: TMFInt32 read FFdVertexCount;
 
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
-    function CoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; override;
-
     function ColorField: TSFNode; override;
-    function FogCoord: TMFFloat; override;
+    function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -832,11 +831,11 @@
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
     function Lit(State: TX3DGraphTraverseState): boolean; override;
 
-    function Coord(State: TX3DGraphTraverseState;
+    function InternalCoord(State: TX3DGraphTraverseState;
       out ACoord: TMFVec3f): boolean; override;
 
     function ColorField: TSFNode; override;
-    function FogCoord: TMFFloat; override;
+    function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
 
     {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
@@ -847,6 +846,10 @@
     In constrast to @link(TIndexedTriangleFanSetNode), this doesn't use indexes
     to compose vertexes into triangles. }
   TTriangleFanSetNode = class(TAbstractComposedGeometryNode)
+  protected
+    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -855,11 +858,7 @@
     strict private FFdFanCount: TMFInt32;
     public property FdFanCount: TMFInt32 read FFdFanCount;
 
-    function CoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; override;
-
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -878,7 +877,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -892,6 +891,10 @@
     In constrast to @link(TIndexedTriangleStripSetNode), this doesn't use indexes
     to compose vertexes into triangles. }
   TTriangleStripSetNode = class(TAbstractComposedGeometryNode)
+  protected
+    function InternalCoordRangesCounts(out RangeCount: TLongIntList;
+      out SRanges, SRangeName: string;
+      out RangeMinimumCount: Cardinal): boolean; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -900,11 +903,7 @@
     strict private FFdStripCount: TMFInt32;
     public property FdStripCount: TMFInt32 read FFdStripCount;
 
-    function CoordRangesCounts(out RangeCount: TLongIntList;
-      out SRanges, SRangeName: string;
-      out RangeMinimumCount: Cardinal): boolean; override;
-
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -948,15 +947,15 @@ begin
   Transform.AddChildren(Shape);
 end;
 
-function TAbstractGeometryNode.Coord(State: TX3DGraphTraverseState;
+function TAbstractGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := false;
 end;
 
-function TAbstractGeometryNode.Coordinates(State: TX3DGraphTraverseState): TMFVec3f;
+function TAbstractGeometryNode.InternalCoordinates(State: TX3DGraphTraverseState): TMFVec3f;
 begin
-  if not Coord(State, Result) then
+  if not InternalCoord(State, Result) then
     raise ENotCoordinateBasedNode.CreateFmt('Node %s is not a coordinate-based node',
       [X3DType]);
 end;
@@ -966,7 +965,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.CoordRangesCounts(
+function TAbstractGeometryNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -974,7 +973,7 @@ begin
   Result := false;
 end;
 
-procedure TAbstractGeometryNode.MakeCoordRanges(
+procedure TAbstractGeometryNode.InternalMakeCoordRanges(
   State: TX3DGraphTraverseState;
   CoordRangeHandler: TCoordRangeHandler);
 var
@@ -985,7 +984,7 @@ var
   RangeMinimumCount: Cardinal;
   C: TMFVec3f;
 begin
-  C := Coordinates(State);
+  C := InternalCoordinates(State);
 
   if C = nil then
     Exit;
@@ -1006,9 +1005,9 @@ begin
     end;
   end else
   begin
-    if not CoordRangesCounts(RangeCount, SRanges, SRangeName,
+    if not InternalCoordRangesCounts(RangeCount, SRanges, SRangeName,
       RangeMinimumCount) then
-      raise EInternalError.CreateFmt('%s.MakeCoordRanges: either CoordIndex or CoordRangesCounts must be defined to split coordinates', [ClassName]);
+      raise EInternalError.CreateFmt('%s.InternalMakeCoordRanges: either CoordIndex or InternalCoordRangesCounts must be defined to split coordinates', [ClassName]);
     EndIndex := 0;
     if RangeCount.Count > 0 then
       for RangeNumber := 0 to RangeCount.Count - 1 do
@@ -1031,14 +1030,14 @@ begin
   end;
 end;
 
-procedure TAbstractGeometryNode.CoordPolygons(
+procedure TAbstractGeometryNode.InternalCoordPolygons(
   State: TX3DGraphTraverseState;
   PolygonHandler: TIndexedPolygonHandler);
 begin
   { Nothing to do in this class. }
 end;
 
-function TAbstractGeometryNode.TexCoord(State: TX3DGraphTraverseState;
+function TAbstractGeometryNode.InternalTexCoord(State: TX3DGraphTraverseState;
   out ATexCoord: TX3DNode): boolean;
 begin
   Result := TexCoordField <> nil;
@@ -1065,7 +1064,7 @@ begin
   Result := true;
 end;
 
-function TAbstractGeometryNode.FogCoord: TMFFloat;
+function TAbstractGeometryNode.InternalFogCoord: TMFFloat;
 begin
   Result := nil;
 end;
@@ -1172,7 +1171,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.Color: TMFVec3f;
+function TAbstractGeometryNode.InternalColor: TMFVec3f;
 var
   F: TSFNode;
 begin
@@ -1184,7 +1183,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractGeometryNode.ColorRGBA: TMFColorRGBA;
+function TAbstractGeometryNode.InternalColorRGBA: TMFColorRGBA;
 var
   F: TSFNode;
 begin
@@ -1263,7 +1262,7 @@ begin
   AddField(FFdRadianceTransfer);
 end;
 
-function TAbstractComposedGeometryNode.Coord(State: TX3DGraphTraverseState;
+function TAbstractComposedGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1288,7 +1287,7 @@ begin
   Result := FdSolid;
 end;
 
-function TAbstractComposedGeometryNode.FogCoord: TMFFloat;
+function TAbstractComposedGeometryNode.InternalFogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
@@ -1510,7 +1509,7 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TIndexedLineSetNode.Coord(State: TX3DGraphTraverseState;
+function TIndexedLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1525,7 +1524,7 @@ begin
   Result := FdColor;
 end;
 
-function TIndexedLineSetNode.FogCoord: TMFFloat;
+function TIndexedLineSetNode.InternalFogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
@@ -1714,7 +1713,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TLineSetNode.Coord(State: TX3DGraphTraverseState;
+function TLineSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1729,7 +1728,7 @@ begin
   Result := FdColor;
 end;
 
-function TLineSetNode.FogCoord: TMFFloat;
+function TLineSetNode.InternalFogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
@@ -1742,7 +1741,7 @@ begin
   Result := FdAttrib;
 end;
 
-function TLineSetNode.CoordRangesCounts(
+function TLineSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -1837,7 +1836,7 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TPointSetNode.Coord(State: TX3DGraphTraverseState;
+function TPointSetNode.InternalCoord(State: TX3DGraphTraverseState;
   out ACoord: TMFVec3f): boolean;
 begin
   Result := true;
@@ -1852,7 +1851,7 @@ begin
   Result := FdColor;
 end;
 
-function TPointSetNode.FogCoord: TMFFloat;
+function TPointSetNode.InternalFogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
@@ -1906,7 +1905,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TTriangleFanSetNode.CoordRangesCounts(
+function TTriangleFanSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;
@@ -1955,7 +1954,7 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-function TTriangleStripSetNode.CoordRangesCounts(
+function TTriangleStripSetNode.InternalCoordRangesCounts(
   out RangeCount: TLongIntList;
   out SRanges, SRangeName: string;
   out RangeMinimumCount: Cardinal): boolean;

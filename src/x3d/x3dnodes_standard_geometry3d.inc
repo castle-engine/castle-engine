@@ -226,7 +226,7 @@
     function IsNotEmpty: boolean;
 
     function ColorField: TSFNode; override;
-    function FogCoord: TMFFloat; override;
+    function InternalFogCoord: TMFFloat; override;
     function AttribField: TMFNode; override;
     function SolidField: TSFBool; override;
 
@@ -400,7 +400,7 @@
 
     function CoordIndexField: TMFLong; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -850,7 +850,7 @@ begin
   Result := FdColor;
 end;
 
-function TElevationGridNode.FogCoord: TMFFloat;
+function TElevationGridNode.InternalFogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then

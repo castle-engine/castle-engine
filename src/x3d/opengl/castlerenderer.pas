@@ -3168,7 +3168,7 @@ var
   var
     TexCoord: TX3DNode;
   begin
-    if Shape.Geometry.TexCoord(Shape.State, TexCoord) and
+    if Shape.Geometry.InternalTexCoord(Shape.State, TexCoord) and
        (TexCoord <> nil) then
     begin
       if TexCoord is TMultiTextureCoordinateNode then

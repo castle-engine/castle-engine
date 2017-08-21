@@ -3839,12 +3839,12 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if (SI.Current.Geometry.Coord(SI.Current.State, Coord) and
+        if (SI.Current.Geometry.InternalCoord(SI.Current.State, Coord) and
             (Coord = Field)) or
            { Change to OriginalGeometry.Coord should also be reported,
              since it may cause FreeProxy for shape. This is necessary
              for animation of NURBS controlPoint to work. }
-           (SI.Current.OriginalGeometry.Coord(SI.Current.State, Coord) and
+           (SI.Current.OriginalGeometry.InternalCoord(SI.Current.State, Coord) and
             (Coord = Field)) then
           SI.Current.Changed(false, Changes);
 
@@ -4028,7 +4028,7 @@ var
     SI := TShapeTreeIterator.Create(Shapes, false);
     try
       while SI.GetNext do
-        if SI.Current.Geometry.TexCoord(SI.Current.State, TexCoord) and
+        if SI.Current.Geometry.InternalTexCoord(SI.Current.State, TexCoord) and
            (TexCoord = ANode) then
           SI.Current.Changed(false, Changes);
     finally FreeAndNil(SI) end;

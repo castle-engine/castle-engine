@@ -262,8 +262,8 @@ constructor TTriangleSetGenerator.Create(AShape: TShape; AOverTriangulate: boole
 begin
   inherited;
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -406,8 +406,8 @@ constructor TTriangleFanSetGenerator.Create(AShape: TShape; AOverTriangulate: bo
 begin
   inherited;
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -479,7 +479,7 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
@@ -506,7 +506,7 @@ end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -618,8 +618,8 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -703,7 +703,7 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
@@ -730,7 +730,7 @@ end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -807,8 +807,8 @@ constructor TQuadSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited;
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -1031,7 +1031,7 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordsRange(
@@ -1046,7 +1046,7 @@ end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
@@ -1086,8 +1086,8 @@ begin
   begin
     NodeILS := Geometry as TIndexedLineSetNode;
 
-    Color := NodeILS.Color;
-    ColorRGBA := NodeILS.ColorRGBA;
+    Color := NodeILS.InternalColor;
+    ColorRGBA := NodeILS.InternalColorRGBA;
     ColorPerVertex := NodeILS.FdColorPerVertex.Value;
     ColorIndex := NodeILS.FdColorIndex;
   end else
@@ -1095,8 +1095,8 @@ begin
     Assert(Geometry is TLineSetNode);
     NodeLS := Geometry as TLineSetNode;
 
-    Color := NodeLS.Color;
-    ColorRGBA := NodeLS.ColorRGBA;
+    Color := NodeLS.InternalColor;
+    ColorRGBA := NodeLS.InternalColorRGBA;
     ColorPerVertex := true; { always true for LineSet }
   end;
 end;
