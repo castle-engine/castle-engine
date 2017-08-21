@@ -573,7 +573,8 @@ begin
       raise EInvalidKTX.Create('Invalid KTX endianess');
 
     Width := Header.Width;
-    Height := Header.Height;
+    // by using Max(1, ...) for Height we should support 1D textures too
+    Height := Max(1, Header.Height);
     Depth := Max(1, Header.Depth);
 
     RowsTopToBottom := false;
