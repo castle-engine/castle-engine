@@ -334,7 +334,7 @@
     { @groupEnd }
 
     function FogCoord: TMFFloat; virtual;
-    function Attrib: TMFNode; virtual;
+    function AttribField: TMFNode; virtual;
 
     function ColorField: TSFNode; virtual;
 
@@ -505,7 +505,7 @@
     function TexCoordField: TSFNode; override;
     function ColorField: TSFNode; override;
     function SolidField: TSFBool; override;
-    function Attrib: TMFNode; override;
+    function AttribField: TMFNode; override;
 
     function FogCoord: TMFFloat; override;
 
@@ -652,7 +652,7 @@
 
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
-    function Attrib: TMFNode; override;
+    function AttribField: TMFNode; override;
 
     {$I auto_generated_node_helpers/x3dnodes_indexedlineset.inc}
   end;
@@ -778,7 +778,7 @@
 
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
-    function Attrib: TMFNode; override;
+    function AttribField: TMFNode; override;
 
     function TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
       ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal; override;
@@ -837,7 +837,7 @@
 
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
-    function Attrib: TMFNode; override;
+    function AttribField: TMFNode; override;
 
     {$I auto_generated_node_helpers/x3dnodes_pointset.inc}
   end;
@@ -1070,7 +1070,7 @@ begin
   Result := nil;
 end;
 
-function TAbstractGeometryNode.Attrib: TMFNode;
+function TAbstractGeometryNode.AttribField: TMFNode;
 begin
   Result := nil;
 end;
@@ -1296,7 +1296,7 @@ begin
     Result := nil;
 end;
 
-function TAbstractComposedGeometryNode.Attrib: TMFNode;
+function TAbstractComposedGeometryNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
 end;
@@ -1533,7 +1533,7 @@ begin
     Result := nil;
 end;
 
-function TIndexedLineSetNode.Attrib: TMFNode;
+function TIndexedLineSetNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
 end;
@@ -1737,7 +1737,7 @@ begin
     Result := nil;
 end;
 
-function TLineSetNode.Attrib: TMFNode;
+function TLineSetNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
 end;
@@ -1860,7 +1860,7 @@ begin
     Result := nil;
 end;
 
-function TPointSetNode.Attrib: TMFNode;
+function TPointSetNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
 end;

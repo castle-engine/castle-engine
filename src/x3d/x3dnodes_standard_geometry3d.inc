@@ -227,7 +227,7 @@
 
     function ColorField: TSFNode; override;
     function FogCoord: TMFFloat; override;
-    function Attrib: TMFNode; override;
+    function AttribField: TMFNode; override;
     function SolidField: TSFBool; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -858,7 +858,7 @@ begin
     Result := nil;
 end;
 
-function TElevationGridNode.Attrib: TMFNode;
+function TElevationGridNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
 end;

@@ -2047,7 +2047,7 @@ var
 begin
   inherited;
 
-  A := Geometry.Attrib;
+  A := Geometry.AttribField;
   if A <> nil then
     for I := 0 to A.Count - 1 do
       if A[I] is TAbstractVertexAttributeNode then
