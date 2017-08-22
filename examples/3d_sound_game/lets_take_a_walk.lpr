@@ -61,7 +61,9 @@ var
   stRatSound, stRatSqueak, stKaboom, stCricket: TSoundType;
   RatSound: TSound;
 
+  HelpMessage: TCastleLabel;
   MuteImage: TCastleImageControl;
+  Crosshair: TCastleCrosshair;
 
 { TNT ------------------------------------------------------------------------ }
 
@@ -195,25 +197,6 @@ const
   Version = '1.2.4';
   DisplayApplicationName = 'lets_take_a_walk';
 
-procedure ShowHelpMessage;
-const
-  HelpMessage =
-    'Movement:' + NL +
-    '  A W S D and Arrow keys = move and rotate' + NL +
-    '  Space = jump' + NL +
-    '  C = crouch' + NL +
-    '  And see the rest of default "The Castle" game key shortcuts.' + NL +
-    '' + NL +
-    'Other:' + NL +
-    '  F1 = show this help' + NL +
-    '  Escape = exit' + NL +
-    '  F5 = save screen to file lets_take_a_walk_<int>.png' + NL +
-    '  F11 = toggle fullscreen mode';
-begin
-  MessageOK(Window, HelpMessage + nl +
-    SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, false));
-end;
-
 { window callbacks ----------------------------------------------------------- }
 
 procedure Close(Container: TUIContainer);
@@ -244,7 +227,13 @@ begin
     case Event.Key of
       K_T : (SceneManager.MainScene.Event('MyScript', 'forceThunderNow')
               as TSFBoolEvent).Send(true);
-      K_F1: ShowHelpMessage;
+      K_F1: HelpMessage.Exists := not HelpMessage.Exists;
+      K_F4:
+        begin
+          Player.Camera.MouseLook := not Player.Camera.MouseLook;
+          // crosshair makes sense only with mouse look
+          Crosshair.Exists := Player.Camera.MouseLook;
+        end;
       K_F5: Window.SaveScreen(FileNameAutoInc('lets_take_a_walk_screen_%d.png'));
     end;
 end;
@@ -323,6 +312,31 @@ begin
   MuteImage.Anchor(vpTop, -20);
   MuteImage.Exists := false; // don't show it on initial progress
   Window.Controls.InsertFront(MuteImage);
+
+  Crosshair := TCastleCrosshair.Create(Application);
+  Crosshair.Exists := false;
+  Window.Controls.InsertFront(Crosshair);
+
+  HelpMessage := TCastleLabel.Create(Application);
+  HelpMessage.Caption :=
+    'Movement:' + NL +
+    '  A W S D and Arrow keys = move and rotate' + NL +
+    '  Space = jump' + NL +
+    '  C = crouch' + NL +
+    '  And see the rest of default "The Castle" game key shortcuts.' + NL +
+    '' + NL +
+    'Other:' + NL +
+    '  F1 = toggle this help' + NL +
+    '  F4 = toggle mouse look' + NL +
+    '  F5 = save screen to file lets_take_a_walk_<int>.png' + NL +
+    '  F11 = toggle fullscreen mode' + NL +
+    '  Escape = exit';
+  HelpMessage.Anchor(hpLeft, 10);
+  HelpMessage.Anchor(vpTop, -10);
+  HelpMessage.Frame := true;
+  HelpMessage.FrameColor := Vector4(0.25, 0.25, 0.25, 1);
+  HelpMessage.Padding := 10;
+  Window.Controls.InsertFront(HelpMessage);
 
   { open window, to have OpenGL context }
   Window.Open;
