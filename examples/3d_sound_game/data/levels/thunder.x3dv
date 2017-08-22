@@ -8,7 +8,7 @@ PROTO Thunder [
   inputOutput SFColor color 1 1 1
   inputOutput SFVec3f direction 0 0 -1
   # URL to the thunder sound
-  inputOutput MFString soundUrl "../../sounds/thunder.wav"
+  inputOutput MFString soundUrl "../sounds/thunder.wav"
   # Times of the thunder effect.
   # During a single thunder effect:
   # - light blinks between 0 .. blink1Duration,

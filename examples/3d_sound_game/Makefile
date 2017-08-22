@@ -1,11 +1,10 @@
-# Note about file_to_pascal_string: it's another program of mine,
-# you can get it from pasdoc [http://pasdoc.sourceforge.net/] sources.
-help_message.inc: help_message.txt
-	file_to_pascal_string help_message.txt help_message.inc
+# This Makefile uses castle-engine build tool for most operations.
+# See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
 
-# Simple install.
-# You may as well symlink data to /usr/local/share/lets_take_a_walk,
-# for system-wide install.
-install:
-	rm -f $(HOME)/.local/share/lets_take_a_walk
-	ln -s $(shell pwd)/data $(HOME)/.local/share/lets_take_a_walk
+.PHONY: standalone
+standalone:
+	castle-engine compile $(CASTLE_ENGINE_TOOL_OPTIONS)
+
+.PHONY: clean
+clean:
+	castle-engine clean

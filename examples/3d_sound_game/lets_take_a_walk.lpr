@@ -197,7 +197,18 @@ const
 
 procedure ShowHelpMessage;
 const
-  HelpMessage = {$I help_message.inc};
+  HelpMessage =
+    'Movement:' + NL +
+    '  A W S D and Arrow keys = move and rotate' + NL +
+    '  Space = jump' + NL +
+    '  C = crouch' + NL +
+    '  And see the rest of default "The Castle" game key shortcuts.' + NL +
+    '' + NL +
+    'Other:' + NL +
+    '  F1 = show this help' + NL +
+    '  Escape = exit' + NL +
+    '  F5 = save screen to file lets_take_a_walk_<int>.png' + NL +
+    '  F11 = toggle fullscreen mode';
 begin
   MessageOK(Window, HelpMessage + nl +
     SCastleEngineProgramHelpSuffix(DisplayApplicationName, Version, false));
@@ -209,7 +220,8 @@ procedure Close(Container: TUIContainer);
 begin
   { in case no TNT actually exists in scene at closing time (you managed
     to explode them all), be sure to clean the OpenGL resources inside TntScene. }
-  TntScene.GLContextClose;
+  if TntScene <> nil then
+    TntScene.GLContextClose;
 end;
 
 procedure Update(Container: TUIContainer);

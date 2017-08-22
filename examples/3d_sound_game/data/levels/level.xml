@@ -2,7 +2,7 @@
 <level
   name="base"
   type="Level"
-  scene="base.x3dv"
+  scene="base_level_final.x3dv"
   title="Base"
   placeholders="blender"
 />
