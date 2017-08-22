@@ -96,6 +96,9 @@ function Matrix4Double(const V: TMatrix4): TMatrix4Double;
 function Vector2FromStr(const S: string): TVector2;
 function Vector3FromStr(const S: string): TVector3;
 function Vector4FromStr(const S: string): TVector4;
+
+
+function Vector3FromStrPermissive(const S: string): TVector3;
 { @groupEnd }
 
 { Linear interpolation between two vector values.
@@ -286,13 +289,29 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition, OnlyNums));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
   if NextToken(S, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
 
 function Vector3FromStr(const s: string): TVector3;
+var
+  SPosition: Integer;
+begin
+  SPosition := 1;
+  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[2] := StrToFloat(NextToken(S, SPosition));
+  if NextToken(S, SPosition) <> '' then
+    raise EConvertError.Create('Expected end of data when reading vector from string');
+
+  { This could also be implemented by DeFormat, but this is faster
+    (which is important for e.g. reading 3D data where this function may be used
+    often) }
+end;
+
+function Vector3FromStrPermissive(const s: string): TVector3;
 var
   SPosition: Integer;
 begin
@@ -313,10 +332,10 @@ var
   SPosition: Integer;
 begin
   SPosition := 1;
-  Result.Data[0] := StrToFloat(NextToken(S, SPosition, OnlyNums));
-  Result.Data[1] := StrToFloat(NextToken(S, SPosition, OnlyNums));
-  Result.Data[2] := StrToFloat(NextToken(S, SPosition, OnlyNums));
-  Result.Data[3] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+  Result.Data[0] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[1] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[2] := StrToFloat(NextToken(S, SPosition));
+  Result.Data[3] := StrToFloat(NextToken(S, SPosition));
   if NextToken(s, SPosition) <> '' then
     raise EConvertError.Create('Expected end of data when reading vector from string');
 end;
