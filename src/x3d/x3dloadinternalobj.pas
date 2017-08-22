@@ -306,7 +306,7 @@ var
       if SameText(FirstToken, 'xyz') or SameText(FirstToken, 'spectral') then
         { we can't interpret other colors than RGB, so we silently ignore them }
         Result := Vector3(1, 1, 1) else
-        Result := Vector3FromStr(Line);
+        Result := Vector3FromStrPermissive(Line);
     end;
 
     procedure CheckIsMaterial(const AttributeName: string);
@@ -440,10 +440,10 @@ begin
 
       { specialized token line parsing }
       case ArrayPosText(lineTok, ['v', 'vt', 'f', 'vn', 'g', 'mtllib', 'usemtl']) of
-        0: Verts.Add(Vector3FromStr(lineAfterMarker));
+        0: Verts.Add(Vector3FromStrPermissive(lineAfterMarker));
         1: TexCoords.Add(ReadTexCoordFromOBJLine(lineAfterMarker));
         2: ReadFacesFromOBJLine(lineAfterMarker, UsedMaterial);
-        3: Normals.Add(Vector3FromStr(lineAfterMarker));
+        3: Normals.Add(Vector3FromStrPermissive(lineAfterMarker));
         4: {GroupName := LineAfterMarker};
         5: ReadMaterials(LineAfterMarker);
         6: begin
@@ -528,6 +528,8 @@ var
   FacesWithMaterial: TWavefrontMaterial;
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
+  ttt:single;
+    Time: cardinal;
 begin
   BaseUrl := AbsoluteURI(URL);
   Appearances := nil;
@@ -540,11 +542,25 @@ begin
     Coord := TCoordinateNode.Create('ObjCoordinates',BaseUrl);
     TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates', BaseUrl);
     Normal := TNormalNode.Create('ObjNormals', BaseUrl);
+	
+	Time:=GetTickCount;
 
     Obj := TObject3DOBJ.Create(URL,
       Coord.FdPoint.Items,
       TexCoord.FdPoint.Items,
       Normal.FdVector.Items);
+	  
+	  
+		   ttt:=GetTickCount-Time;
+		   ttt:=ttt/1000;
+      {
+  writeln(
+  format('obj load time %.2fs',
+       [ttt
+       ]
+       )
+  );
+       }
     try
       Appearances := TX3DNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;
