@@ -138,15 +138,15 @@ begin
       Assert(NextIndex = CoordIndexes.Count);
     end;
 
-    IFS.FdSolid.Value := FdSolid.Value;
-    IFS.FdCcw.Value := FdCcw.Value;
+    IFS.Solid := Solid;
+    IFS.Ccw := Ccw;
     { We order our coords such that we can simply copy normal/color nodes }
-    IFS.FdNormalPerVertex.Value := FdNormalPerVertex.Value;
-    IFS.FdNormal.Value := FdNormal.Value;
-    IFS.FdColorPerVertex.Value := FdColorPerVertex.Value;
-    IFS.FdColor.Value := FdColor.Value;
-    IFS.FdCreaseAngle.Value := FdCreaseAngle.Value;
-    IFS.FdFogCoord.Value := FdFogCoord.Value;
+    IFS.NormalPerVertex := NormalPerVertex;
+    IFS.Normal := Normal;
+    IFS.ColorPerVertex := ColorPerVertex;
+    IFS.Color := Color;
+    IFS.CreaseAngle := CreaseAngle;
+    IFS.FogCoord := FogCoord;
     IFS.FdAttrib.AssignValue(FdAttrib);
   except FreeAndNil(Result); raise end;
 end;

@@ -313,11 +313,9 @@ begin
   Faces := TIndexedTriangleSetNode.Create('', BaseUrl);
   Result := Faces;
 
-  Faces.FdNormalPerVertex.Value := false; // optimization: do not try to smooth normals, no point
-  Faces.FdSolid.Value := false;
-  Faces.FdIndex.Items.Clear;
-
-  Faces.FdIndex.Items.Assign(Triangles);
+  Faces.NormalPerVertex := false; // optimization: do not try to smooth normals, no point
+  Faces.Solid := false;
+  Faces.SetIndex(Triangles);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
