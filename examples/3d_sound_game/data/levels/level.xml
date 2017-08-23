@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<level
+  name="base"
+  type="Level"
+  scene="base_level_final.x3dv"
+  title="Base"
+  placeholders="blender"
+/>

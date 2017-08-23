@@ -15,16 +15,12 @@
 
 unit TestCastleParameters;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, SysUtils, fpcunit, testutils, testregistry,
   CastleParameters, CastleUtils;
-
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
 
 type
   TParsedOption = record
@@ -75,7 +71,7 @@ begin
  result := TParsedOptionList.Create;
  try
   Parameters.Parse(Options, OptionsCount,
-    {$ifdef FPC_OBJFPC} @ {$endif} ParseNextParam, result,
+    {$ifdef CASTLE_OBJFPC} @ {$endif} ParseNextParam, result,
     ParseOnlyKnownLongOptions);
  except result.Free; raise end;
 end;

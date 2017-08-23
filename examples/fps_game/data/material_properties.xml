@@ -12,4 +12,40 @@
   <!-- Uncomment this to have bump mapping for "concrete" texture. -->
   <!-- property texture_base_name="concrete"
     normal_map="example_level/textures/concrete-normalmap.png" / -->
+
+  <!-- Automatically compress textures.
+    Most of them to DXT1 (without alpha),
+    some of them to DXT5 (with smooth alpha).
+
+    Note that the engine assumes that *all* DXT5 textures should
+    use blending when rendering (since we cannot detect alpha channel
+    type in a compressed data). So *you cannot* just blindly compress
+    everything to DXT5 or to DXT1, you have to choose, like we show
+    below.
+
+    Run "castle-engine auto-generate-textures" to create or update the DDS files
+    with compressed textures. You will need to install first:
+    - build tool: https://github.com/castle-engine/castle-engine/wiki/Build-Tool
+    - one of the supported tools to compress to DXT5, see
+      https://castle-engine.sourceforge.io/creating_data_material_properties.php#section_texture_compression
+      We advice the "NVidia Texture Tools" (libnvtt-bin package on Linux).
+
+    The Castle Game Engine will automatically use the compressed textures.
+  -->
+  <auto_generated_textures>
+    <compress>
+      <format name="DXT1_RGB" />
+    </compress>
+
+    <include path="example_level/textures/*" recursive="True" />
+    <include path="example_level/sky/*" recursive="True" />
+    <exclude path="example_level/textures/brushwalker437.png" recursive="True" />
+  </auto_generated_textures>
+
+  <auto_generated_textures>
+    <compress>
+      <format name="DXT5" />
+    </compress>
+    <include path="example_level/textures/brushwalker437.png" />
+  </auto_generated_textures>
 </properties>

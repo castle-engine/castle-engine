@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Very basic operations on numbers.
-  Also things related to setting 8087 Control Word. }
+{ Basic operations on numbers. }
 
 {$ifdef read_interface}
 
@@ -56,45 +55,6 @@ procedure OrderUp(x, y: Single;   var Smaller, Larger: Single  ); overload; {$if
 procedure OrderUp(x, y: Double;   var Smaller, Larger: Double  ); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-{ @groupEnd }
-
-{ Return minimum / maximum from 2 / 3 items.
-  @groupBegin }
-function min(const a, b: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-
-function min(const a, b, c: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function min(const a, b, c: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function min(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-
-function max(const a, b: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function max(const a, b: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$endif}
-
-function max(const a, b, c: Int64   ): Int64   ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: integer ): integer ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: cardinal): cardinal; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: Single  ): Single  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-function max(const a, b, c: Double  ): Double  ; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function max(const a, b, c: Extended): Extended; overload; {$ifdef SUPPORTS_INLINE} inline; {$endif}
 {$endif}
 { @groupEnd }
 
@@ -369,6 +329,8 @@ function SmoothStep(const Edge0, Edge1, X: Single): Single;
   read from a file
 
   @groupBegin }
+function Swap32(Value: LongWord): LongWord;
+function Swap64(Value: QWord): QWord;
 function SwapEndian(const Value: Single): Single; overload;
 function SwapEndian(const Value: Double): Double; overload;
 
@@ -421,42 +383,6 @@ procedure OrderUp(x, y: Single;   var Smaller, Larger: Single);   begin if X <= 
 procedure OrderUp(x, y: Double;   var Smaller, Larger: Double);   begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
 {$ifndef EXTENDED_EQUALS_DOUBLE}
 procedure OrderUp(x, y: Extended; var Smaller, Larger: Extended); begin if X <= Y then begin Smaller := X; Larger := Y end else begin Smaller := Y; Larger := X end; end;
-{$endif}
-
-function Min(const a, b: Int64): Int64;       begin if A < B then Result := A else Result := B end;
-function Min(const a, b: integer): integer;   begin if A < B then Result := A else Result := B end;
-function Min(const a, b: cardinal): cardinal; begin if A < B then Result := A else Result := B end;
-function Min(const a, b: Single): Single;     begin if A < B then Result := A else Result := B end;
-function Min(const a, b: Double): Double;     begin if A < B then Result := A else Result := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Min(const a, b: Extended): Extended; begin if A < B then Result := A else Result := B end;
-{$endif}
-
-function Max(const a, b: Int64): Int64;       begin if A > B then Result := A else Result := B end;
-function Max(const a, b: integer): integer;   begin if A > B then Result := A else Result := B end;
-function Max(const a, b: cardinal): cardinal; begin if A > B then Result := A else Result := B end;
-function Max(const a, b: Single): Single;     begin if A > B then Result := A else Result := B end;
-function Max(const a, b: Double): Double;     begin if A > B then Result := A else Result := B end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Max(const a, b: Extended): Extended; begin if A > B then Result := A else Result := B end;
-{$endif}
-
-function Min(const a, b, c: Int64): Int64;       begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: integer): integer;   begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: cardinal): cardinal; begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: Single): Single;     begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-function Min(const a, b, c: Double): Double;     begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Min(const a, b, c: Extended): Extended; begin if A < B then begin if C < A then result := C else result := A end else begin if C < B then result := C else result := B end; end;
-{$endif}
-
-function Max(const a, b, c: Int64): Int64;       begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: integer): integer;   begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: cardinal): cardinal; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: Single): Single;     begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-function Max(const a, b, c: Double): Double;     begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
-{$ifndef EXTENDED_EQUALS_DOUBLE}
-function Max(const a, b, c: Extended): Extended; begin if A > B then begin if C > A then Result := C else Result := A end else begin if C > B then Result := C else Result := B end; end;
 {$endif}
 
 procedure MinVar(var a: Word    ; const b: Word    ); begin if B < A then A := B end;
@@ -967,7 +893,7 @@ begin
     Remainder := 0 else
   if Remainder >= B then
   begin
-    Remainder -= B;
+    Remainder := Remainder - B;
     Inc(DivResult);
 
     { Mathematically, we could do above two lines in a loop
@@ -1058,14 +984,42 @@ begin
   Result := Result * Result * (3.0 - 2.0 * Result);
 end;
 
+{ Use Swap32 / Swap64 names, instead of overloading one name like Swap
+  or SwapEndian, to avoid easy mistakes. }
+
+function Swap32(Value: LongWord): LongWord;
+begin
+  {$ifndef FPC}
+  // see
+  // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
+  // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
+  Result := Swap(Word(Value)) shl 16 + Swap(Word(Value shr 16));
+  {$else}
+  Result := SwapEndian(Value);
+  {$endif}
+end;
+
+function Swap64(Value: QWord): QWord;
+begin
+  {$ifndef FPC}
+  // see
+  // https://stackoverflow.com/questions/3065335/how-to-convert-big-endian-numbers-to-native-numbers-delphi
+  // https://stackoverflow.com/questions/2882434/how-to-convert-big-endian-and-how-to-flip-the-highest-bit
+  Result := Swap32(LongWord(Value));
+  Result := (Result shl 32) or Swap32(LongWord(Value shr 32));
+  {$else}
+  Result := SwapEndian(Value);
+  {$endif}
+end;
+
 function SwapEndian(const Value: Single): Single;
 begin
-  PLongWord(@Result)^ := SwapEndian(PLongWord(@Value)^);
+  PLongWord(@Result)^ := Swap32(PLongWord(@Value)^);
 end;
 
 function SwapEndian(const Value: Double): Double;
 begin
-  PQWord(@Result)^ := SwapEndian(PQWord(@Value)^);
+  PQWord(@Result)^ := Swap64(PQWord(@Value)^);
 end;
 
 function NtoLE(const Value: Single): Single;

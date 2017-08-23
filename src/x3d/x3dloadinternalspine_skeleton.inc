@@ -127,8 +127,8 @@ var
     begin
       S := Format('%s available skins: %d', [BaseUrl, Skins.Count]) + NL;
       for I := 0 to Skins.Count - 1 do
-        S += Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL;
-      S += Format('Using skin: %s', [CurrentSkin.Name]);
+        S := S + (Format('  Available skin %d: %s', [I, Skins[I].Name]) + NL);
+      S := S + Format('Using skin: %s', [CurrentSkin.Name]);
       WritelnLogMultiline('Spine', S);
     end;
   end;
@@ -139,11 +139,11 @@ begin
   { add NavigationInfo indicating blendingSort = 2D }
   NavigationInfo := TNavigationInfoNode.Create('', BaseUrl);
   NavigationInfo.BlendingSort := obs2D;
-  Container.FdChildren.Add(NavigationInfo);
+  Container.AddChildren(NavigationInfo);
 
   Bones.BuildNodes(BaseUrl, BonesAnimated);
   Root.NodeUsedAsChild := true;
-  Container.FdChildren.Add(Root.Node);
+  Container.AddChildren(Root.Node);
   Skins.BuildNodes(BaseUrl, TextureLoader);
 
   CurrentSkin := nil;

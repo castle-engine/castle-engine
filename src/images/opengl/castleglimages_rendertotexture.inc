@@ -321,7 +321,7 @@ end;
   after UnbindFramebuffer, and you are in another single-buffered FBO,
   OpenGL (at least NVidia and fglrx) will (rightly) report OpenGL
   "invalid enum" error. }
-procedure UnbindFramebuffer(out PreviousFboDefaultBuffer: TGLenum);
+procedure UnbindFramebuffer(out PreviousFboDefaultBuffer: TGLenum); overload;
 var
   PreviousFbo: TGLuint;
 begin
@@ -348,7 +348,7 @@ begin
   end;
 end;
 
-procedure UnbindFramebuffer;
+procedure UnbindFramebuffer; overload;
 var
   PreviousFboDefaultBuffer: TGLenum;
 begin

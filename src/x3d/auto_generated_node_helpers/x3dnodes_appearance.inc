@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetFillProperties: TFillPropertiesNode;
     procedure SetFillProperties(const Value: TFillPropertiesNode);
     function GetLineProperties: TLinePropertiesNode;

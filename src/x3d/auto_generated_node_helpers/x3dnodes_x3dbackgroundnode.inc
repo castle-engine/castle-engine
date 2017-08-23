@@ -26,10 +26,18 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTransparency: Single;
     procedure SetTransparency(const Value: Single);
   public
+    procedure SetGroundAngle(const Value: array of Single);
+    procedure SetGroundAngle(const Value: TSingleList);
+    procedure SetGroundColor(const Value: array of TCastleColorRGB);
+    procedure SetGroundColor(const Value: TVector3List);
+    procedure SetSkyAngle(const Value: array of Single);
+    procedure SetSkyAngle(const Value: TSingleList);
+    procedure SetSkyColor(const Value: array of TCastleColorRGB);
+    procedure SetSkyColor(const Value: TVector3List);
     property Transparency: Single read GetTransparency write SetTransparency;
 
 {$endif read_interface}
@@ -37,6 +45,46 @@
 {$ifdef read_implementation}
 
 { TAbstractBackgroundNode ----------------------------------------------- }
+
+procedure TAbstractBackgroundNode.SetGroundAngle(const Value: array of Single);
+begin
+  FdGroundAngle.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetGroundAngle(const Value: TSingleList);
+begin
+  FdGroundAngle.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetGroundColor(const Value: array of TCastleColorRGB);
+begin
+  FdGroundColor.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetGroundColor(const Value: TVector3List);
+begin
+  FdGroundColor.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetSkyAngle(const Value: array of Single);
+begin
+  FdSkyAngle.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetSkyAngle(const Value: TSingleList);
+begin
+  FdSkyAngle.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetSkyColor(const Value: array of TCastleColorRGB);
+begin
+  FdSkyColor.Send(Value);
+end;
+
+procedure TAbstractBackgroundNode.SetSkyColor(const Value: TVector3List);
+begin
+  FdSkyColor.Send(Value);
+end;
 
 function TAbstractBackgroundNode.GetTransparency: Single;
 begin

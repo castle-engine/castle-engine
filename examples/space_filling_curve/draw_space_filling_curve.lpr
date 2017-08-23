@@ -34,7 +34,7 @@
 }
 program draw_space_filling_curve;
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, CastleWindow, CastleUtils, CastleGLUtils, CastleParameters,
   CastleImages, CastleVectors, Math, CastleSpaceFillingCurves, CastleStringUtils, CastleGLImages,

@@ -26,11 +26,15 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDescription: string;
     procedure SetDescription(const Value: string);
   public
     property Description: string read GetDescription write SetDescription;
+    procedure SetParameter(const Value: array of string);
+    procedure SetParameter(const Value: TCastleStringList);
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -46,6 +50,26 @@ end;
 procedure TAnchorNode.SetDescription(const Value: string);
 begin
   FdDescription.Send(Value);
+end;
+
+procedure TAnchorNode.SetParameter(const Value: array of string);
+begin
+  FdParameter.Send(Value);
+end;
+
+procedure TAnchorNode.SetParameter(const Value: TCastleStringList);
+begin
+  FdParameter.Send(Value);
+end;
+
+procedure TAnchorNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TAnchorNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
 end;
 
 {$endif read_implementation}

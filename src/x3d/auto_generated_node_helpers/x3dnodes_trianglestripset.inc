@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetStripCount(const Value: array of LongInt);
+    procedure SetStripCount(const Value: TLongIntList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTriangleStripSetNode ----------------------------------------------- }
+
+procedure TTriangleStripSetNode.SetStripCount(const Value: array of LongInt);
+begin
+  FdStripCount.Send(Value);
+end;
+
+procedure TTriangleStripSetNode.SetStripCount(const Value: TLongIntList);
+begin
+  FdStripCount.Send(Value);
+end;
 
 {$endif read_implementation}

@@ -64,7 +64,7 @@ type
 
       Note that the returned Value may be empty, even when this returns @true,
       if the value is explicitly set to empty in XML (by @code(xxx="") in XML). }
-    function AttributeString(const AttrName: string; var Value: string): boolean;
+    function AttributeString(const AttrName: string; var Value: string): boolean; overload;
 
     { Read from Element attribute value as URL and returns @true,
       or (if there is no such attribute) returns @false
@@ -72,27 +72,27 @@ type
 
       Returned URL is always absolute. The value in file may be a relative URL,
       it is resolved with respect to BaseUrl, that must be absolute. }
-    function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean;
+    function AttributeURL(const AttrName: string; const BaseUrl: string; var URL: string): boolean; overload;
 
     { Read from Element attribute value as Cardinal and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean;
+    function AttributeCardinal(const AttrName: string; var Value: Cardinal): boolean; overload;
 
     { Read from Element attribute value as Integer and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeInteger(const AttrName: string; var Value: Integer): boolean;
+    function AttributeInteger(const AttrName: string; var Value: Integer): boolean; overload;
 
     { Read from Element attribute value as Int64 and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeInt64(const AttrName: string; var Value: Int64): boolean;
+    function AttributeInt64(const AttrName: string; var Value: Int64): boolean; overload;
 
     { Read from Element attribute value as Single and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeSingle(const AttrName: string; var Value: Single): boolean;
+    function AttributeSingle(const AttrName: string; var Value: Single): boolean; overload;
 
     { Read from Element attribute value as Float and returns @true,
       or (if there is no such attribute) returns @false
@@ -103,7 +103,7 @@ type
       It can read expressions like @code("3.0 * 2.0") or @code("sin(2.0)").
       Use CastleScriptXML unit to introduce
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression). }
-    function AttributeFloat(const AttrName: string; var Value: Float): boolean;
+    function AttributeFloat(const AttrName: string; var Value: Float): boolean; overload;
 
     { Read from Element attribute value as Boolean and returns @true,
       or (if there is no such attribute) returns @false
@@ -115,31 +115,31 @@ type
       If attribute exists but it's value
       is not @code(true) or @code(false), then returns @false and doesn't
       modify Value paramater. So behaves just like the attribute didn't exist. }
-    function AttributeBoolean(const AttrName: string; var Value: boolean): boolean;
+    function AttributeBoolean(const AttrName: string; var Value: boolean): boolean; overload;
 
     { Read from Element attribute value as color and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean;
+    function AttributeColor(const AttrName: string; var Value: TCastleColor): boolean; overload;
 
     { Read from Element attribute value as RGB color and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value. }
-    function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean;
+    function AttributeColorRGB(const AttrName: string; var Value: TCastleColorRGB): boolean; overload;
 
     { Read from Element attribute as a 2D vector (2 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector2(const AttrName: string; var Value: TVector2): boolean;
+    function AttributeVector2(const AttrName: string; var Value: TVector2): boolean; overload;
 
     { Read from Element attribute as a 3D vector (3 floats), and returns @true,
       or (if there is no such attribute) returns @false
       and does not modify Value.
 
       @raises EConvertError If the attribute exists in XML, but has invalid format. }
-    function AttributeVector3(const AttrName: string; var Value: TVector3): boolean;
+    function AttributeVector3(const AttrName: string; var Value: TVector3): boolean; overload;
 
     { ------------------------------------------------------------------------
       Get a required attribute, returns value (exception if not found). }
@@ -155,34 +155,34 @@ type
       exists, but it may still be empty.
 
       @raises EDOMAttributeMissing }
-    function AttributeString(const AttrName: string): string;
+    function AttributeString(const AttrName: string): string; overload;
 
     { Retrieves from Element given attribute as an absolute URL,
       raises EDOMAttributeMissing if missing.
       Returned URL is always absolute. The value in file may be a relative URL,
       it is resolved with respect to BaseUrl, that must be absolute.
       @raises EDOMAttributeMissing }
-    function AttributeURL(const AttrName: string; const BaseUrl: string): string;
+    function AttributeURL(const AttrName: string; const BaseUrl: string): string; overload;
 
     { Retrieves from Element given attribute as a Cardinal,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeCardinal(const AttrName: string): Cardinal;
+    function AttributeCardinal(const AttrName: string): Cardinal; overload;
 
     { Retrieves from Element given attribute as an Integer,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeInteger(const AttrName: string): Integer;
+    function AttributeInteger(const AttrName: string): Integer; overload;
 
     { Retrieves from Element given attribute as an Int64,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeInt64(const AttrName: string): Int64;
+    function AttributeInt64(const AttrName: string): Int64; overload;
 
     { Retrieves from Element given attribute as a Single,
       raises EDOMAttributeMissing if missing.
       @raises EDOMAttributeMissing }
-    function AttributeSingle(const AttrName: string): Single;
+    function AttributeSingle(const AttrName: string): Single; overload;
 
     { Retrieves from Element given attribute as a Float,
       raises EDOMAttributeMissing if missing.
@@ -194,7 +194,7 @@ type
       necessary class helper for this, see @link(TDOMElementScriptHelper.AttributeFloatExpression).
 
       @raises EDOMAttributeMissing }
-    function AttributeFloat(const AttrName: string): Float;
+    function AttributeFloat(const AttrName: string): Float; overload;
 
     { Retrieves from Element given attribute as a boolean,
       raises EDOMAttributeMissing if missing or has invalid value.
@@ -207,27 +207,27 @@ type
       So behaves just like the attribute didn't exist.
 
       @raises EDOMAttributeMissing }
-    function AttributeBoolean(const AttrName: string): boolean;
+    function AttributeBoolean(const AttrName: string): boolean; overload;
 
     { Retrieves from Element given attribute as a color,
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeColor(const AttrName: string): TCastleColor;
+    function AttributeColor(const AttrName: string): TCastleColor; overload;
 
     { Retrieves from Element given attribute as an RGB color,
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeColorRGB(const AttrName: string): TCastleColorRGB;
+    function AttributeColorRGB(const AttrName: string): TCastleColorRGB; overload;
 
     { Retrieves from Element given attribute as a 2D vector (2 floats),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector2(const AttrName: string): TVector2;
+    function AttributeVector2(const AttrName: string): TVector2; overload;
 
     { Retrieves from Element given attribute as a 3D vector (3 floats),
       raises EDOMAttributeMissing if missing or has invalid format.
       @raises EDOMAttributeMissing }
-    function AttributeVector3(const AttrName: string): TVector3;
+    function AttributeVector3(const AttrName: string): TVector3; overload;
 
     { ------------------------------------------------------------------------
       Get an optional attribute, returns attribute or a default value. }
@@ -279,27 +279,27 @@ type
 
     { Set the attribute as string. Equivalent to standard SetAttribute in DOM unit,
       but provided here for consistency with other AttributeSet overloads. }
-    procedure AttributeSet(const AttrName: string; const Value: string);
+    procedure AttributeSet(const AttrName: string; const Value: string); overload;
 
     { Set the attribute as boolean,
       such that it's readable back by @link(AttributeBoolean) and @link(AttributeBooleanDef). }
-    procedure AttributeSet(const AttrName: string; const Value: boolean);
+    procedure AttributeSet(const AttrName: string; const Value: boolean); overload;
 
     { Set the attribute as Integer,
       such that it's readable back by @link(AttributeInteger) and @link(AttributeIntegerDef). }
-    procedure AttributeSet(const AttrName: string; const Value: Integer);
+    procedure AttributeSet(const AttrName: string; const Value: Integer); overload;
 
     { Set the attribute as Int64,
       such that it's readable back by @link(AttributeInt64) and @link(AttributeInt64Def). }
-    procedure AttributeSet(const AttrName: string; const Value: Int64);
+    procedure AttributeSet(const AttrName: string; const Value: Int64); overload;
 
     { Set the attribute as Cardinal,
       such that it's readable back by @link(AttributeCardinal) and @link(AttributeCardinalDef). }
-    procedure AttributeSet(const AttrName: string; const Value: Cardinal);
+    procedure AttributeSet(const AttrName: string; const Value: Cardinal); overload;
 
     { Set the attribute as Int64,
       such that it's readable back by @link(AttributeSingle) and @link(AttributeSingleDef). }
-    procedure AttributeSet(const AttrName: string; const Value: Single);
+    procedure AttributeSet(const AttrName: string; const Value: Single); overload;
 
     { Other methods ---------------------------------------------------------- }
 
@@ -343,7 +343,7 @@ type
         finally FreeAndNil(I) end;
       end;
       #) }
-    function ChildrenIterator: TXMLElementIterator;
+    function ChildrenIterator: TXMLElementIterator; overload;
 
     { Iterator over all children elements named ChildName. Use like this:
 
@@ -360,7 +360,7 @@ type
         finally FreeAndNil(I) end;
       end;
       #) }
-    function ChildrenIterator(const ChildName: string): TXMLElementIterator;
+    function ChildrenIterator(const ChildName: string): TXMLElementIterator; overload;
 
     { The text data contained in this element.
 
@@ -570,12 +570,12 @@ procedure FreeChildNodes(const ChildNodes: TDOMNodeList);
 { Replacements for standard ReadXMLFile and WriteXMLFile that operate on URLs.
   Optionally they can encrypt / decrypt content using BlowFish.
   @groupBegin }
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String);
-procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
-function URLReadXML(const URL: String): TXMLDocument;
-function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument;
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String);
-procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string);
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String); overload;
+procedure URLReadXML(out Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
+function URLReadXML(const URL: String): TXMLDocument; overload;
+function URLReadXML(const URL: String; const BlowFishKeyPhrase: string): TXMLDocument; overload;
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String); overload;
+procedure URLWriteXML(Doc: TXMLDocument; const URL: String; const BlowFishKeyPhrase: string); overload;
 { @groupEnd }
 
 implementation
@@ -979,7 +979,7 @@ begin
   begin
     Node := Children.Item[I];
     case Node.NodeType of
-      TEXT_NODE: Result += UTF8Encode((Node as TDOMText).Data);
+      TEXT_NODE: Result := Result + UTF8Encode((Node as TDOMText).Data);
       ELEMENT_NODE: raise Exception.CreateFmt(
         'Child elements not allowed within element <%s>, but found %s',
           [TagName, (Node as TDOMElement).TagName]);

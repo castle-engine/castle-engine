@@ -657,9 +657,9 @@ function RotationMatrixRad(const AngleRad: Single; const AxisX, AxisY, AxisZ: Si
 function RotationMatrixDeg(const AngleDeg: Single; const AxisX, AxisY, AxisZ: Single): TMatrix4; overload;
 
 procedure RotationMatricesRad(const AngleRad: Single; const Axis: TVector3;
-  out Matrix, InvertedMatrix: TMatrix4);
+  out Matrix, InvertedMatrix: TMatrix4); overload;
 procedure RotationMatricesRad(const AxisAngle: TVector4;
-  out Matrix, InvertedMatrix: TMatrix4);
+  out Matrix, InvertedMatrix: TMatrix4); overload;
 { @groupEnd }
 
 { Negate a rotation expressed as axis-angle (3 components for axis, 1 for angle).
@@ -670,17 +670,20 @@ function RotationNegate(const Rotation: TVector4): TVector4;
   AngleRad is in radians. }
 function RotatePoint2D(const Point: TVector2; const AngleRad: Single): TVector2;
 
-{ When you really, really must approximate a 3D scale by a single float.
-  If your algorithm cannot handle non-uniform 3D scale,
-  you have to approximate 3D scale by a single float.
+{ When you really, really must approximate a 3D or 2D scale by a single float.
+  E.g. if your algorithm cannot handle non-uniform 3D or 2D scale,
+  you have to approximate 3D or 2D scale by a single float.
 
-  This is similar to an average of X, Y, Z, but it additionally
+  This is similar to an average of X, Y (and Z, in 3D), but it additionally
   secures in case some of X, Y, Z are negative and some are positive
   (like scale (-1, 1), common in 2D to flip horizontally).
 
   @groupBegin }
-function Approximate3DScale(const X, Y, Z: Single): Single;
-function Approximate3DScale(const V: TVector3): Single;
+function Approximate3DScale(const X, Y, Z: Single): Single; overload;
+function Approximate3DScale(const V: TVector3): Single; overload;
+
+function Approximate2DScale(const X, Y: Single): Single; overload;
+function Approximate2DScale(const V: TVector2): Single; overload;
 { @groupEnd }
 
 {$endif read_interface}
@@ -848,10 +851,11 @@ var
   Len: Single;
 begin
   Len := Sqrt( Sqr(V.Data[0]) + Sqr(V.Data[1]) + Sqr(V.Data[2]) );
-  V.Data[0] /= Len;
-  V.Data[1] /= Len;
-  V.Data[2] /= Len;
-  V.Data[3] /= Len;
+  Len := 1 / Len;
+  V.Data[0] := V.Data[0] * Len;
+  V.Data[1] := V.Data[1] * Len;
+  V.Data[2] := V.Data[2] * Len;
+  V.Data[3] := V.Data[3] * Len;
 end;
 
 function CosAngleBetweenVectors(const V1, V2: TVector3): Single;
@@ -934,12 +938,12 @@ var
   sinAngle, cosAngle: Float;
 begin
   SinCos(Angle, sinAngle, cosAngle);
-  l := Axis.Length;
 
   { normalize and decompose Axis vector }
-  x := Axis.Data[0]/l;
-  y := Axis.Data[1]/l;
-  z := Axis.Data[2]/l;
+  L := 1 / Axis.Length;
+  x := Axis.Data[0] * L;
+  y := Axis.Data[1] * L;
+  z := Axis.Data[2] * L;
 
   Result.Data[0] := (cosAngle + (1 - cosAngle) * x * x)     * Point.Data[0]
                  + ((1 - cosAngle) * x * y - z * sinAngle)  * Point.Data[1]
@@ -1199,18 +1203,18 @@ begin
   }
 
   Result := Plane;
-  Result.Data[3] -=
+  Result.Data[3] := Result.Data[3] - (
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2];
+    Plane.Data[2] * Move.Data[2]);
 end;
 
 procedure PlaneMoveVar(var Plane: TVector4; const Move: TVector3);
 begin
-  Plane.Data[3] -=
+  Plane.Data[3] := Plane.Data[3] - (
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2];
+    Plane.Data[2] * Move.Data[2]);
 end;
 
 function PlaneAntiMove(const Plane: TVector4;
@@ -1220,10 +1224,14 @@ begin
     So we just do "Result.Data[3] +=" instead of "Result.Data[3] -=". }
 
   Result := Plane;
-  Result.Data[3] +=
+  Result.Data[3] := Result.Data[3] + (
+    { Use parenthesis to group this expression, this way it's calculated
+      in a similar order to PlaneMove, which increses it's numerical
+      stability. Confirmed by TTestCastleVectors.TestPlaneMoveRandom,
+      if you have these parenthesis you can have smaller epsilon to compare). }
     Plane.Data[0] * Move.Data[0] +
     Plane.Data[1] * Move.Data[1] +
-    Plane.Data[2] * Move.Data[2];
+    Plane.Data[2] * Move.Data[2]);
 end;
 
 function VectorsSamePlaneDirections(const V1, V2: TVector3;
@@ -1728,8 +1736,8 @@ begin
   Closest := PointOnLineClosestToPoint(pos1, pos2 - pos1, point);
   if IsPointOnSegmentLineWithinSegment(Closest, pos1, pos2) then
     Result := PointsDistanceSqr(Closest, point) else
-    Result := CastleUtils.min(PointsDistanceSqr(pos1, point),
-                              PointsDistanceSqr(pos2, point));
+    Result := Min(PointsDistanceSqr(pos1, point),
+                  PointsDistanceSqr(pos2, point));
 end;
 
 function PlaneTransform(const Plane: TVector4; const Matrix: TMatrix4): TVector4;
@@ -1960,12 +1968,12 @@ procedure MultMatrixTranslation(var M: TMatrix4;
 var
   NewColumn: TVector4;
 begin
-  NewColumn.Data := M.Data[3];
-  NewColumn.Data[0] += M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
-  NewColumn.Data[1] += M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
-  NewColumn.Data[2] += M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
-  NewColumn.Data[3] += M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
-  M.Data[3] := NewColumn.Data;
+  NewColumn := M.Columns[3];
+  NewColumn.Data[0] := NewColumn.Data[0] + (M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2]);
+  NewColumn.Data[1] := NewColumn.Data[1] + (M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2]);
+  NewColumn.Data[2] := NewColumn.Data[2] + (M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2]);
+  NewColumn.Data[3] := NewColumn.Data[3] + (M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2]);
+  M.Columns[3] := NewColumn;
 end;
 
 procedure MultMatricesTranslation(var M, MInvert: TMatrix4;
@@ -1975,30 +1983,30 @@ var
   { OldLastRow may use the same space as NewColumn }
   OldLastRow: TVector4 absolute NewColumn;
 begin
-  NewColumn.Data := M.Data[3];
-  NewColumn.Data[0] += M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2];
-  NewColumn.Data[1] += M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2];
-  NewColumn.Data[2] += M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2];
-  NewColumn.Data[3] += M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2];
-  M.Data[3] := NewColumn.Data;
+  NewColumn := M.Columns[3];
+  NewColumn.Data[0] := NewColumn.Data[0] + (M.Data[0, 0] * Transl.Data[0] + M.Data[1, 0] * Transl.Data[1] + M.Data[2, 0] * Transl.Data[2]);
+  NewColumn.Data[1] := NewColumn.Data[1] + (M.Data[0, 1] * Transl.Data[0] + M.Data[1, 1] * Transl.Data[1] + M.Data[2, 1] * Transl.Data[2]);
+  NewColumn.Data[2] := NewColumn.Data[2] + (M.Data[0, 2] * Transl.Data[0] + M.Data[1, 2] * Transl.Data[1] + M.Data[2, 2] * Transl.Data[2]);
+  NewColumn.Data[3] := NewColumn.Data[3] + (M.Data[0, 3] * Transl.Data[0] + M.Data[1, 3] * Transl.Data[1] + M.Data[2, 3] * Transl.Data[2]);
+  M.Columns[3] := NewColumn;
 
   OldLastRow.Data[0] := MInvert.Data[0, 3];
   OldLastRow.Data[1] := MInvert.Data[1, 3];
   OldLastRow.Data[2] := MInvert.Data[2, 3];
   OldLastRow.Data[3] := MInvert.Data[3, 3];
 
-  MInvert.Data[0, 0] -= Transl.Data[0] * OldLastRow.Data[0];
-  MInvert.Data[1, 0] -= Transl.Data[0] * OldLastRow.Data[1];
-  MInvert.Data[2, 0] -= Transl.Data[0] * OldLastRow.Data[2];
-  MInvert.Data[3, 0] -= Transl.Data[0] * OldLastRow.Data[3];
-  MInvert.Data[0, 1] -= Transl.Data[1] * OldLastRow.Data[0];
-  MInvert.Data[1, 1] -= Transl.Data[1] * OldLastRow.Data[1];
-  MInvert.Data[2, 1] -= Transl.Data[1] * OldLastRow.Data[2];
-  MInvert.Data[3, 1] -= Transl.Data[1] * OldLastRow.Data[3];
-  MInvert.Data[0, 2] -= Transl.Data[2] * OldLastRow.Data[0];
-  MInvert.Data[1, 2] -= Transl.Data[2] * OldLastRow.Data[1];
-  MInvert.Data[2, 2] -= Transl.Data[2] * OldLastRow.Data[2];
-  MInvert.Data[3, 2] -= Transl.Data[2] * OldLastRow.Data[3];
+  MInvert.Data[0, 0] := MInvert.Data[0, 0] - Transl.Data[0] * OldLastRow.Data[0];
+  MInvert.Data[1, 0] := MInvert.Data[1, 0] - Transl.Data[0] * OldLastRow.Data[1];
+  MInvert.Data[2, 0] := MInvert.Data[2, 0] - Transl.Data[0] * OldLastRow.Data[2];
+  MInvert.Data[3, 0] := MInvert.Data[3, 0] - Transl.Data[0] * OldLastRow.Data[3];
+  MInvert.Data[0, 1] := MInvert.Data[0, 1] - Transl.Data[1] * OldLastRow.Data[0];
+  MInvert.Data[1, 1] := MInvert.Data[1, 1] - Transl.Data[1] * OldLastRow.Data[1];
+  MInvert.Data[2, 1] := MInvert.Data[2, 1] - Transl.Data[1] * OldLastRow.Data[2];
+  MInvert.Data[3, 1] := MInvert.Data[3, 1] - Transl.Data[1] * OldLastRow.Data[3];
+  MInvert.Data[0, 2] := MInvert.Data[0, 2] - Transl.Data[2] * OldLastRow.Data[0];
+  MInvert.Data[1, 2] := MInvert.Data[1, 2] - Transl.Data[2] * OldLastRow.Data[1];
+  MInvert.Data[2, 2] := MInvert.Data[2, 2] - Transl.Data[2] * OldLastRow.Data[2];
+  MInvert.Data[3, 2] := MInvert.Data[3, 2] - Transl.Data[2] * OldLastRow.Data[3];
 end;
 
 function TransformToCoords(const V, NewX, NewY, NewZ: TVector3): TVector3;
@@ -2310,31 +2318,31 @@ begin
     treating Result like a 3x3 matrix. The last column and row are already Ok. }
 
   { Expanded Result := Result + (IdentityMatrix3 - Result) * AngleCos; }
-  Result.Data[0, 0] += (1 - Result.Data[0, 0]) * C;
-  Result.Data[1, 0] +=    - Result.Data[1, 0]  * C;
-  Result.Data[2, 0] +=    - Result.Data[2, 0]  * C;
+  Result.Data[0, 0] := Result.Data[0, 0] + (1 - Result.Data[0, 0]) * C;
+  Result.Data[1, 0] := Result.Data[1, 0] +    - Result.Data[1, 0]  * C;
+  Result.Data[2, 0] := Result.Data[2, 0] +    - Result.Data[2, 0]  * C;
 
-  Result.Data[0, 1] +=    - Result.Data[0, 1]  * C;
-  Result.Data[1, 1] += (1 - Result.Data[1, 1]) * C;
-  Result.Data[2, 1] +=    - Result.Data[2, 1]  * C;
+  Result.Data[0, 1] := Result.Data[0, 1] +    - Result.Data[0, 1]  * C;
+  Result.Data[1, 1] := Result.Data[1, 1] + (1 - Result.Data[1, 1]) * C;
+  Result.Data[2, 1] := Result.Data[2, 1] +    - Result.Data[2, 1]  * C;
 
-  Result.Data[0, 2] +=    - Result.Data[0, 2]  * C;
-  Result.Data[1, 2] +=    - Result.Data[1, 2]  * C;
-  Result.Data[2, 2] += (1 - Result.Data[2, 2]) * C;
+  Result.Data[0, 2] := Result.Data[0, 2] +    - Result.Data[0, 2]  * C;
+  Result.Data[1, 2] := Result.Data[1, 2] +    - Result.Data[1, 2]  * C;
+  Result.Data[2, 2] := Result.Data[2, 2] + (1 - Result.Data[2, 2]) * C;
 
-  NormAxis.Data[0] *= S;
-  NormAxis.Data[1] *= S;
-  NormAxis.Data[2] *= S;
+  NormAxis.Data[0] := NormAxis.Data[0] * S;
+  NormAxis.Data[1] := NormAxis.Data[1] * S;
+  NormAxis.Data[2] := NormAxis.Data[2] * S;
 
   { Add M3 (from OpenGL matrix equations) }
-  Result.Data[1, 0] += -NormAxis.Data[2];
-  Result.Data[2, 0] +=  NormAxis.Data[1];
+  Result.Data[1, 0] := Result.Data[1, 0] + -NormAxis.Data[2];
+  Result.Data[2, 0] := Result.Data[2, 0] +  NormAxis.Data[1];
 
-  Result.Data[0, 1] +=  NormAxis.Data[2];
-  Result.Data[2, 1] += -NormAxis.Data[0];
+  Result.Data[0, 1] := Result.Data[0, 1] +  NormAxis.Data[2];
+  Result.Data[2, 1] := Result.Data[2, 1] + -NormAxis.Data[0];
 
-  Result.Data[0, 2] += -NormAxis.Data[1];
-  Result.Data[1, 2] +=  NormAxis.Data[0];
+  Result.Data[0, 2] := Result.Data[0, 2] + -NormAxis.Data[1];
+  Result.Data[1, 2] := Result.Data[1, 2] +  NormAxis.Data[0];
 end;
 
 procedure RotationMatricesRad(const AxisAngle: TVector4;
@@ -2367,36 +2375,36 @@ begin
     treating Matrix like a 3x3 matrix. The last column and row are already Ok. }
 
   { Expanded Matrix := Matrix + (IdentityMatrix3 - Matrix) * AngleCos; }
-  Matrix.Data[0, 0] += (1 - Matrix.Data[0, 0]) * C;
-  Matrix.Data[1, 0] +=    - Matrix.Data[1, 0]  * C;
-  Matrix.Data[2, 0] +=    - Matrix.Data[2, 0]  * C;
+  Matrix.Data[0, 0] := Matrix.Data[0, 0] + (1 - Matrix.Data[0, 0]) * C;
+  Matrix.Data[1, 0] := Matrix.Data[1, 0] +    - Matrix.Data[1, 0]  * C;
+  Matrix.Data[2, 0] := Matrix.Data[2, 0] +    - Matrix.Data[2, 0]  * C;
 
-  Matrix.Data[0, 1] +=    - Matrix.Data[0, 1]  * C;
-  Matrix.Data[1, 1] += (1 - Matrix.Data[1, 1]) * C;
-  Matrix.Data[2, 1] +=    - Matrix.Data[2, 1]  * C;
+  Matrix.Data[0, 1] := Matrix.Data[0, 1] +    - Matrix.Data[0, 1]  * C;
+  Matrix.Data[1, 1] := Matrix.Data[1, 1] + (1 - Matrix.Data[1, 1]) * C;
+  Matrix.Data[2, 1] := Matrix.Data[2, 1] +    - Matrix.Data[2, 1]  * C;
 
-  Matrix.Data[0, 2] +=    - Matrix.Data[0, 2]  * C;
-  Matrix.Data[1, 2] +=    - Matrix.Data[1, 2]  * C;
-  Matrix.Data[2, 2] += (1 - Matrix.Data[2, 2]) * C;
+  Matrix.Data[0, 2] := Matrix.Data[0, 2] +    - Matrix.Data[0, 2]  * C;
+  Matrix.Data[1, 2] := Matrix.Data[1, 2] +    - Matrix.Data[1, 2]  * C;
+  Matrix.Data[2, 2] := Matrix.Data[2, 2] + (1 - Matrix.Data[2, 2]) * C;
 
   { Up to this point, calculated Matrix is also good for InvertedMatrix }
   InvertedMatrix := Matrix;
 
-  NormAxis.Data[0] *= S;
-  NormAxis.Data[1] *= S;
-  NormAxis.Data[2] *= S;
+  NormAxis.Data[0] := NormAxis.Data[0] * S;
+  NormAxis.Data[1] := NormAxis.Data[1] * S;
+  NormAxis.Data[2] := NormAxis.Data[2] * S;
 
   { Now add M3 to Matrix, and subtract M3 from InvertedMatrix.
     That's because for the inverted rotation, AngleSin is negated,
     so the M3 should be subtracted. }
-  V := -NormAxis.Data[2]; Matrix.Data[1, 0] += V; InvertedMatrix.Data[1, 0] -= V;
-  V :=  NormAxis.Data[1]; Matrix.Data[2, 0] += V; InvertedMatrix.Data[2, 0] -= V;
+  V := -NormAxis.Data[2]; Matrix.Data[1, 0] := Matrix.Data[1, 0] + V; InvertedMatrix.Data[1, 0] := InvertedMatrix.Data[1, 0] - V;
+  V :=  NormAxis.Data[1]; Matrix.Data[2, 0] := Matrix.Data[2, 0] + V; InvertedMatrix.Data[2, 0] := InvertedMatrix.Data[2, 0] - V;
 
-  V :=  NormAxis.Data[2]; Matrix.Data[0, 1] += V; InvertedMatrix.Data[0, 1] -= V;
-  V := -NormAxis.Data[0]; Matrix.Data[2, 1] += V; InvertedMatrix.Data[2, 1] -= V;
+  V :=  NormAxis.Data[2]; Matrix.Data[0, 1] := Matrix.Data[0, 1] + V; InvertedMatrix.Data[0, 1] := InvertedMatrix.Data[0, 1] - V;
+  V := -NormAxis.Data[0]; Matrix.Data[2, 1] := Matrix.Data[2, 1] + V; InvertedMatrix.Data[2, 1] := InvertedMatrix.Data[2, 1] - V;
 
-  V := -NormAxis.Data[1]; Matrix.Data[0, 2] += V; InvertedMatrix.Data[0, 2] -= V;
-  V :=  NormAxis.Data[0]; Matrix.Data[1, 2] += V; InvertedMatrix.Data[1, 2] -= V;
+  V := -NormAxis.Data[1]; Matrix.Data[0, 2] := Matrix.Data[0, 2] + V; InvertedMatrix.Data[0, 2] := InvertedMatrix.Data[0, 2] - V;
+  V :=  NormAxis.Data[0]; Matrix.Data[1, 2] := Matrix.Data[1, 2] + V; InvertedMatrix.Data[1, 2] := InvertedMatrix.Data[1, 2] - V;
 end;
 
 function RotationMatrixDeg(const AngleDeg: Single; const Axis: TVector3): TMatrix4;
@@ -2444,13 +2452,30 @@ begin
       an average of absolute values. This way a scale like (-1, 1, 1),
       that flips X but preserves size, results in 1 (not 1/3).
       Bug reproduce: escape with mirrored map parts. }
-    Result := (Abs(X) + Abs(Y) + Abs(Z)) / 3 else
+    Result := (Abs(X) + Abs(Y) + Abs(Z)) / 3
+  else
     Result := (    X  +     Y  +     Z ) / 3;
 end;
 
 function Approximate3DScale(const V: TVector3): Single;
 begin
   Result := Approximate3DScale(V.Data[0], V.Data[1], V.Data[2]);
+end;
+
+function Approximate2DScale(const X, Y: Single): Single;
+begin
+  if (X * Y < 0) then
+    { If X and Y have opposite signs, it's better to make
+      an average of absolute values. This way a scale like (-1, 1),
+      that flips X but preserves Y, results in 1 (not 0). }
+    Result := (Abs(X) + Abs(Y)) / 2
+  else
+    Result := (    X  +     Y ) / 2;
+end;
+
+function Approximate2DScale(const V: TVector2): Single;
+begin
+  Result := Approximate2DScale(V.Data[0], V.Data[1]);
 end;
 
 {$endif read_implementation}

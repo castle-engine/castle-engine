@@ -26,13 +26,18 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetCoord: TAbstractCoordinateNode;
+    procedure SetCoord(const Value: TAbstractCoordinateNode);
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
     function GetInternal: boolean;
     procedure SetInternal(const Value: boolean);
   public
+    property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
     property Direction: TVector3 read GetDirection write SetDirection;
+    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: TLongIntList);
     property Internal: boolean read GetInternal write SetInternal;
 
 {$endif read_interface}
@@ -40,6 +45,19 @@
 {$ifdef read_implementation}
 
 { TVolumeEmitterNode ----------------------------------------------- }
+
+function TVolumeEmitterNode.GetCoord: TAbstractCoordinateNode;
+begin
+  if FdCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TVolumeEmitterNode.SetCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdCoord.Send(Value);
+end;
 
 function TVolumeEmitterNode.GetDirection: TVector3;
 begin
@@ -49,6 +67,16 @@ end;
 procedure TVolumeEmitterNode.SetDirection(const Value: TVector3);
 begin
   FdDirection.Send(Value);
+end;
+
+procedure TVolumeEmitterNode.SetCoordIndex(const Value: array of LongInt);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
+procedure TVolumeEmitterNode.SetCoordIndex(const Value: TLongIntList);
+begin
+  FdCoordIndex.Send(Value);
 end;
 
 function TVolumeEmitterNode.GetInternal: boolean;

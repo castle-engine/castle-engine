@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAxis1Angle: Single;
     procedure SetAxis1Angle(const Value: Single);
     function GetAxis1Torque: Single;

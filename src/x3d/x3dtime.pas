@@ -23,12 +23,6 @@ interface
 uses Generics.Collections,
   CastleUtils, CastleTimeUtils;
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
-
 type
   { Complete timestamp for X3D events.
     For most purposes, you're interested only in it's @link(Seconds) field,
@@ -79,54 +73,54 @@ type
   TX3DTime = record
     Seconds: TFloatTime;
     PlusTicks: Cardinal;
+
+    const
+      Oldest: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
+
+    class operator {$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): boolean;
+    class operator {$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
   end;
   PX3DTime = ^TX3DTime;
 
   TFloatTime = CastleTimeUtils.TFloatTime;
 
 const
-  OldestX3DTime: TX3DTime = (Seconds: OldestTime; PlusTicks: 0);
-
-{$ifdef FPC_OBJFPC}
-operator >  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-operator >= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-operator <  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
-{$endif FPC_OBJFPC}
+  OldestX3DTime: TX3DTime = (Seconds: OldestTime; PlusTicks: 0)
+    deprecated 'use TX3DTime.Oldest';
 
 type
-  TX3DTimeList = specialize TStructList<TX3DTime>;
+  TX3DTimeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TX3DTime>;
 
 implementation
 
-{$ifdef FPC_OBJFPC}
-operator >  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}>{$else}GreaterThan{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks > Time2.PlusTicks) );
 end;
 
-operator >= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}>={$else}GreaterThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds > Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks >= Time2.PlusTicks) );
 end;
 
-operator <  (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}<{$else}LessThan{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks < Time2.PlusTicks) );
 end;
 
-operator <= (const Time1: TX3DTime; const Time2: TX3DTime): boolean;
+class operator TX3DTime.{$ifdef FPC}<={$else}LessThanOrEqual{$endif} (const Time1, Time2: TX3DTime): boolean;
 begin
   Result := (Time1.Seconds < Time2.Seconds) or
     ( (Time1.Seconds = Time2.Seconds) and
       (Time1.PlusTicks <= Time2.PlusTicks) );
 end;
-{$endif FPC_OBJFPC}
 
 end.

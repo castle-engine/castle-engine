@@ -30,32 +30,32 @@
     procedure CreateNode; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdOrientation: TSFRotation;
+    strict private FFdOrientation: TSFRotation;
     public property FdOrientation: TSFRotation read FFdOrientation;
     property Orientation: TVector4 read GetOrientation write SetOrientation;
 
-    private FFdDirection: TMFVec3f;
+    strict private FFdDirection: TMFVec3f;
     public property FdDirection: TMFVec3f read FFdDirection;
 
-    private FFdUp: TMFVec3f;
+    strict private FFdUp: TMFVec3f;
     public property FdUp: TMFVec3f read FFdUp;
 
-    private FFdGravityUp: TSFVec3f;
+    strict private FFdGravityUp: TSFVec3f;
     public property FdGravityUp: TSFVec3f read FFdGravityUp;
 
-    private FEventCameraMatrix: TSFMatrix4fEvent;
+    strict private FEventCameraMatrix: TSFMatrix4fEvent;
     public property EventCameraMatrix: TSFMatrix4fEvent read FEventCameraMatrix;
 
-    private FEventCameraInverseMatrix: TSFMatrix4fEvent;
+    strict private FEventCameraInverseMatrix: TSFMatrix4fEvent;
     public property EventCameraInverseMatrix: TSFMatrix4fEvent read FEventCameraInverseMatrix;
 
-    private FEventCameraRotationMatrix: TSFMatrix3fEvent;
+    strict private FEventCameraRotationMatrix: TSFMatrix3fEvent;
     public property EventCameraRotationMatrix: TSFMatrix3fEvent read FEventCameraRotationMatrix;
 
-    private FEventCameraRotationInverseMatrix: TSFMatrix3fEvent;
+    strict private FEventCameraRotationInverseMatrix: TSFMatrix3fEvent;
     public property EventCameraRotationInverseMatrix: TSFMatrix3fEvent read FEventCameraRotationInverseMatrix;
 
-    private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
+    strict private FFdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool;
     public property FdCameraMatrixSendAlsoOnOffscreenRendering: TSFBool read FFdCameraMatrixSendAlsoOnOffscreenRendering;
 
     { Position of the viewpoint. }
@@ -86,7 +86,7 @@
       Returned CamDir, CamUp, GravityUp are @italic(always normalized). }
     procedure GetView(out CamPos, CamDir, CamUp, GravityUp: TVector3);
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
     { Description generated smart (trying to use FdDescription field,
@@ -102,13 +102,13 @@
   public
     procedure CreateNode; override;
 
-    private FFdCenterOfRotation: TSFVec3f;
+    strict private FFdCenterOfRotation: TSFVec3f;
     public property FdCenterOfRotation: TSFVec3f read FFdCenterOfRotation;
 
-    private FFdJump: TSFBool;
+    strict private FFdJump: TSFBool;
     public property FdJump: TSFBool read FFdJump;
 
-    private FFdRetainUserOffsets: TSFBool;
+    strict private FFdRetainUserOffsets: TSFBool;
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
 
     { Matrices for projecting texture from this viewpoint,
@@ -127,7 +127,7 @@
   { Grouping node that transforms the coordinate system of its children
     so that they always turn towards the viewer. }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
-  private
+  strict private
     FCameraPosition, FCameraDirection, FCameraUp: TVector3;
     FCameraViewKnown: boolean;
   protected
@@ -146,7 +146,7 @@
 
     procedure CameraChanged(const APosition, ADirection, AUp: TVector3);
 
-    private FFdAxisOfRotation: TSFVec3f;
+    strict private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
 
     {$I auto_generated_node_helpers/x3dnodes_billboard.inc}
@@ -165,18 +165,18 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event out } { }
-    private FEventCollideTime: TSFTimeEvent;
+    strict private FEventCollideTime: TSFTimeEvent;
     public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
-    private FFdProxy: TSFNode;
+    strict private FFdProxy: TSFNode;
     public property FdProxy: TSFNode read FFdProxy;
 
     { Setup this Collision node to show VisibleNode, but collide as
@@ -229,19 +229,19 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
     property Center: TVector3 read GetCenter write SetCenter;
 
-    private FFdRange: TMFFloat;
+    strict private FFdRange: TMFFloat;
     public property FdRange: TMFFloat read FFdRange;
 
-    private FFdForceTransitions: TSFBool;
+    strict private FFdForceTransitions: TSFBool;
     public property FdForceTransitions: TSFBool read FFdForceTransitions;
     property ForceTransitions: boolean read GetForceTransitions write SetForceTransitions;
 
     { Event out } { }
-    private FEventLevel_changed: TSFInt32Event;
+    strict private FEventLevel_changed: TSFInt32Event;
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
     function TransformationChange: TNodeTransformationChange; override;
@@ -274,7 +274,7 @@
 
   { Describe the physical characteristics of the viewer's avatar and navigation. }
   TNavigationInfoNode = class(TAbstractBindableNode)
-  private
+  strict private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetBlendingSort: TOptionalBlendingSort;
@@ -284,34 +284,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAvatarSize: TMFFloat;
+    strict private FFdAvatarSize: TMFFloat;
     public property FdAvatarSize: TMFFloat read FFdAvatarSize;
 
-    private FFdHeadlight: TSFBool;
+    strict private FFdHeadlight: TSFBool;
     public property FdHeadlight: TSFBool read FFdHeadlight;
 
-    private FFdSpeed: TSFFloat;
+    strict private FFdSpeed: TSFFloat;
     public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdTransitionTime: TSFTime;
+    strict private FFdTransitionTime: TSFTime;
     public property FdTransitionTime: TSFTime read FFdTransitionTime;
 
-    private FFdTransitionType: TMFString;
+    strict private FFdTransitionType: TMFString;
     public property FdTransitionType: TMFString read FFdTransitionType;
 
-    private FFdType: TMFString;
+    strict private FFdType: TMFString;
     public property FdType: TMFString read FFdType;
 
-    private FFdVisibilityLimit: TSFFloat;
+    strict private FFdVisibilityLimit: TSFFloat;
     public property FdVisibilityLimit: TSFFloat read FFdVisibilityLimit;
 
-    private FFdBlendingSort: TSFStringEnum;
+    strict private FFdBlendingSort: TSFStringEnum;
     public property FdBlendingSort: TSFStringEnum read FFdBlendingSort;
     property BlendingSort: TOptionalBlendingSort
       read GetBlendingSort write SetBlendingSort;
 
     { Event out } { }
-    private FEventTransitionComplete: TSFBoolEvent;
+    strict private FEventTransitionComplete: TSFBoolEvent;
     public property EventTransitionComplete: TSFBoolEvent read FEventTransitionComplete;
 
     {$I auto_generated_node_helpers/x3dnodes_navigationinfo.inc}
@@ -330,7 +330,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFieldOfView: TMFFloat;
+    strict private FFdFieldOfView: TMFFloat;
     public property FdFieldOfView: TMFFloat read FFdFieldOfView;
 
     { Field of view determines how much you see in the camera.
@@ -358,7 +358,7 @@
     { Field of view - maximum Y. 1 by default. @seealso FieldOfView }
     property FieldOfViewMaxY: Single index 3 read GetFieldOfView write SetFieldOfView;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
     class function ProjectionType: TProjectionType; override;
@@ -384,10 +384,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFieldOfView: TSFFloat;
+    strict private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
 
-    private FFdPosition: TSFVec3f;
+    strict private FFdPosition: TSFVec3f;
     public property FdPosition: TSFVec3f read FFdPosition;
 
     class function ProjectionType: TProjectionType; override;
@@ -431,22 +431,22 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
-    private FFdDisplayed: TSFBool;
+    strict private FFdDisplayed: TSFBool;
     public property FdDisplayed: TSFBool read FFdDisplayed;
 
-    private FFdRetainUserOffsets: TSFBool;
+    strict private FFdRetainUserOffsets: TSFBool;
     public property FdRetainUserOffsets: TSFBool read FFdRetainUserOffsets;
 
-    private FFdSize: TSFVec3f;
+    strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
 
     { Description generated smart (trying to use FdDescription field,
@@ -503,7 +503,7 @@ begin
   FFdDescription := TSFString.Create(Self, 'description', '');
   AddField(FFdDescription);
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 procedure TAbstractViewpointNode.GetView(
@@ -513,7 +513,7 @@ begin
 
   if FdDirection.Items.Count > 0 then
   begin
-    CamDir := FdDirection.Items.L[0];
+    CamDir := FdDirection.Items.List^[0];
     if CamDir.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "direction" must not be zero, assuming defaults');
@@ -524,7 +524,7 @@ begin
 
   if FdUp.Items.Count > 0 then
   begin
-    CamUp := FdUp.Items.L[0];
+    CamUp := FdUp.Items.List^[0];
     if CamUp.IsZero then
     begin
       WritelnWarning('VRML/X3D', 'Viewpoint "up" must not be zero, assuming defaults');
@@ -860,7 +860,7 @@ begin
     ProxyShape.Geometry := ProxyBox;
 
     ProxyTransform.Translation := Box.Center;
-    ProxyTransform.FdChildren.Add(ProxyShape);
+    ProxyTransform.AddChildren(ProxyShape);
   end;
   Proxy := ProxyTransform;
 
@@ -1023,7 +1023,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 class function TNavigationInfoNode.ClassX3DType: string;

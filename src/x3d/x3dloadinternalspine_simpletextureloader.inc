@@ -15,7 +15,7 @@
 
 type
   { Texture nodes, indexed by attachment name. }
-  TImageTextureNodeMap = specialize TDictionary<string, TImageTextureNode>;
+  TImageTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TImageTextureNode>;
 
   { Spine simple texture loader (without atlas).
     Reads each region attachment as a single texture file,
@@ -52,7 +52,7 @@ begin
   if not Nodes.TryGetValue(AttachmentName, Result) then
   begin
     Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
-    Result.FdUrl.Items.Add('images/' + AttachmentName + '.png');
+    Result.SetUrl(['images/' + AttachmentName + '.png']);
     Result.RepeatS := false;
     Result.RepeatT := false;
 

@@ -26,11 +26,84 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetAlign(const Value: array of string);
+    procedure SetAlign(const Value: TCastleStringList);
+    procedure SetOffset(const Value: array of Single);
+    procedure SetOffset(const Value: TSingleList);
+    procedure SetOffsetUnits(const Value: array of string);
+    procedure SetOffsetUnits(const Value: TCastleStringList);
+    procedure SetScaleMode(const Value: array of string);
+    procedure SetScaleMode(const Value: TCastleStringList);
+    procedure SetSize(const Value: array of Single);
+    procedure SetSize(const Value: TSingleList);
+    procedure SetSizeUnits(const Value: array of string);
+    procedure SetSizeUnits(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLayoutNode ----------------------------------------------- }
+
+procedure TLayoutNode.SetAlign(const Value: array of string);
+begin
+  FdAlign.Send(Value);
+end;
+
+procedure TLayoutNode.SetAlign(const Value: TCastleStringList);
+begin
+  FdAlign.Send(Value);
+end;
+
+procedure TLayoutNode.SetOffset(const Value: array of Single);
+begin
+  FdOffset.Send(Value);
+end;
+
+procedure TLayoutNode.SetOffset(const Value: TSingleList);
+begin
+  FdOffset.Send(Value);
+end;
+
+procedure TLayoutNode.SetOffsetUnits(const Value: array of string);
+begin
+  FdOffsetUnits.Send(Value);
+end;
+
+procedure TLayoutNode.SetOffsetUnits(const Value: TCastleStringList);
+begin
+  FdOffsetUnits.Send(Value);
+end;
+
+procedure TLayoutNode.SetScaleMode(const Value: array of string);
+begin
+  FdScaleMode.Send(Value);
+end;
+
+procedure TLayoutNode.SetScaleMode(const Value: TCastleStringList);
+begin
+  FdScaleMode.Send(Value);
+end;
+
+procedure TLayoutNode.SetSize(const Value: array of Single);
+begin
+  FdSize.Send(Value);
+end;
+
+procedure TLayoutNode.SetSize(const Value: TSingleList);
+begin
+  FdSize.Send(Value);
+end;
+
+procedure TLayoutNode.SetSizeUnits(const Value: array of string);
+begin
+  FdSizeUnits.Send(Value);
+end;
+
+procedure TLayoutNode.SetSizeUnits(const Value: TCastleStringList);
+begin
+  FdSizeUnits.Send(Value);
+end;
 
 {$endif read_implementation}

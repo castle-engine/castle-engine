@@ -20,33 +20,12 @@
 { OS constants ---------------------------------------- }
 
 const
-  { New line. Short name for LineEnding. }
+  { New line sequence, suitable for current OS. Short name for LineEnding. }
   NL = LineEnding;
 
-{ basic types ---------------------------------------- }
+{ basic exceptions ---------------------------------------- }
 
 type
-  {$ifdef FPC}
-  { }
-  PByteArray = ^TByteArray;
-  TByteArray = array[0..MaxInt div SizeOf(Byte)-1] of Byte;
-  {$endif}
-
-  TArray_PChar = array[0..MaxInt div SizeOf(PChar)-1]of PChar;
-  PArray_PChar=^TArray_PChar;
-
-  TArray_TObject = array[0..MaxInt div SizeOf(Pointer)-1]of TObject;
-  PArray_TObject=^TArray_TObject;
-
-  PString = ^AnsiString;
-
-  { Pointer to TObject.
-    Don't call this PObject or PTObject to avoid possible name clashes
-    with other units (pointers are often used in situations that prevent
-    good type-checking, so better to avoid name clashes to avoid some
-    nasty errors). }
-  PtrObject = ^TObject;
-
   { Internal error in the program. Something that definitely should not
     happen and indicates a bug that should be reported.
 
@@ -82,12 +61,7 @@ procedure Check(TrueValue: boolean; const ErrMessage: string = 'Check failed');
     end;
   #) }
 function ArrayPosStr(const A: string; const Arr: array of string): Integer; overload;
-
 function ArrayPosText(const A: string; const Arr: array of string;
-  IgnoreCase: boolean = true): Integer; overload;
-
-function PArrayPosStr(const A: string; Arr: PString; ArrCount: Integer): Integer; overload;
-function PArrayPosText(const A: string; Arr: PString; ArrCount: Integer;
   IgnoreCase: boolean = true): Integer; overload;
 
 { Iff functions ------------------------------------------------------------- }
@@ -141,6 +115,31 @@ function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
 { If not TrueValue then RaiseLastOSError. }
 procedure OSCheck(TrueValue: boolean); overload;
 procedure OSCheck(TrueValue: boolean; const Place: string); overload;
+
+type
+  { Descend from this to hide a parameterless constructor.
+
+    In Delphi, if you have multiple overloaded constructors (marked
+    with "overload"), the user can call any constructor of the ancestor
+    class that you have not "obscured" by a new definition.
+    In particular, if all your constructors have some parameters,
+    then user can "bypass" them by calling a parameterless constructor
+    defined by TObject.
+    Descend from this class to disallow this.
+    See
+    https://stackoverflow.com/questions/14003153/how-to-hide-the-inherited-tobject-constructor-while-the-class-has-overloaded-one
+    http://andy.jgknet.de/blog/2011/07/hiding-the-tobject-create-constructor/
+
+    Note that in FPC (in ObjFpc mode) this is not a problem,
+    as the standard overloading (without the "overload" keyword) is more sane:
+    the overloaded constructors obscure the ancestor constructors. }
+  {$warnings off}
+  TNoParameterlessContructor = class
+  strict private
+    constructor Create;
+  end;
+  {$warnings on}
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -172,42 +171,25 @@ end;
 function ArrayPosStr(const A: string; const Arr: array of string): Integer;
 begin
   for Result := 0 to High(Arr) do
-    if Arr[result] = A then Exit;
+    if Arr[Result] = A then
+      Exit;
   Result := -1;
 end;
 
 function ArrayPosText(const A: string; const Arr: array of string;
   IgnoreCase: boolean): Integer;
+var
+  AA: string;
 begin
-  Result := PArrayPosText(A, @Arr, High(Arr)+1, IgnoreCase);
-end;
-
-function PArrayPosStr(const A: string; Arr: PString; ArrCount: Integer): Integer;
-begin
- for result := 0 to ArrCount-1 do
- begin
-  if Arr^=A then exit;
-  Inc(Arr);
- end;
- result := -1;
-end;
-
-function PArrayPosText(const A: string; Arr: PString; ArrCount: Integer;
-  IgnoreCase: boolean): Integer;
-var AA: string;
-begin
- if IgnoreCase then
- begin
-  AA := AnsiUpperCase(A);
-  for result := 0 to ArrCount-1 do
-   begin if AnsiUpperCase(Arr^) = AA then exit; Inc(Arr) end;
-  result := -1;
- end else
- begin
-  for result := 0 to ArrCount-1 do
-   begin if Arr^=A then exit; Inc(Arr) end;
-  result := -1;
- end;
+  if IgnoreCase then
+  begin
+    AA := AnsiUpperCase(A);
+    for Result := 0 to High(Arr) do
+      if AnsiUpperCase(Arr[Result]) = AA then
+        Exit;
+    Result := -1;
+  end else
+    Result := ArrayPosStr(A, Arr);
 end;
 
 { Iff functions ------------------------------------------------------------- }
@@ -233,17 +215,19 @@ begin
   Result :=
     {$ifdef FPC}
       'FPC ' + SFPCVersion
-    {$else} {$ifdef DELPHI}
-      {$ifdef WIN32} 'Delphi'
-        {$ifdef VER140} + ' 6' {$endif}
-        {$ifdef VER150} + ' 7' {$endif}
-      {$else} 'Kylix'
-      {$endif}
-    {$else} {$ifdef __GPC__}
-      'GNU Pascal'
     {$else}
-      'Unrecognized compiler'
-    {$endif} {$endif} {$endif} ;
+
+    {$ifdef DCC}
+    'Delphi'
+    {$else}
+
+    {$ifdef __GPC__}
+    'GNU Pascal'
+    {$else}
+
+    'Unrecognized compiler'
+
+    {$endif} {$endif} {$endif};
 end;
 
 function SCastleEngineProgramHelpSuffix(const DisplayApplicationName: string;
@@ -275,4 +259,10 @@ begin
     end;
   end;
 end;
+
+constructor TNoParameterlessContructor.Create;
+begin
+  raise Exception.Create('Parameterless constructor of ' + ClassName + ' should never be called');
+end;
+
 {$endif read_implementation}

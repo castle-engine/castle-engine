@@ -266,6 +266,7 @@ procedure TFontFamily.SetSize(const Value: Single);
 begin
   if FSize <> Value then
   begin
+    Assert(not IsInfinite(Value));
     FSize := Value;
     InvalidateMeasure;
   end;

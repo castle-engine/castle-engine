@@ -94,7 +94,7 @@ type
     The rectangle is empty (@link(Contains) will always answer @false)
     when either Width or Height are zero. Neither Width nor Height can ever
     be negative. }
-  TRectangle = object
+  TRectangle = record
   private
     function GetRight: Integer;
     function GetTop: Integer;
@@ -117,14 +117,18 @@ type
     Left, Bottom: Integer;
     Width, Height: Cardinal;
 
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Empty: TRectangle = (Left: 0; Bottom: 0; Width: 0; Height: 0);
+    {$else}
+    class function Empty: TRectangle; static; inline;
+    {$endif}
 
     function IsEmpty: boolean;
 
-    function Contains(const X, Y: Integer): boolean;
-    function Contains(const Point: TVector2): boolean;
-    function Contains(const Point: TVector2Integer): boolean;
+    function Contains(const X, Y: Integer): boolean; overload;
+    function Contains(const Point: TVector2): boolean; overload;
+    function Contains(const Point: TVector2Integer): boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -151,8 +155,8 @@ type
       In case of shrinking, we protect from shrinking too much:
       the resulting width or height is set to zero (which makes a valid
       and empty rectangle) if shrinking too much. }
-    function Grow(const Delta: Integer): TRectangle;
-    function Grow(const DeltaX, DeltaY: Integer): TRectangle;
+    function Grow(const Delta: Integer): TRectangle; overload;
+    function Grow(const DeltaX, DeltaY: Integer): TRectangle; overload;
 
     { Returns the rectangle with a number of pixels from given
       side removed. Returns an empty rectangle if you try to remove too much.
@@ -245,12 +249,12 @@ type
       const ThisPosition: THorizontalPosition;
       const OtherRect: TRectangle;
       const OtherPosition: THorizontalPosition;
-      const X: Integer = 0): Integer;
+      const X: Integer = 0): Integer; overload;
     function Align(
       const ThisPosition: THorizontalPosition;
       const OtherRect: TRectangle;
       const OtherPosition: THorizontalPosition;
-      const X: Integer = 0): TRectangle;
+      const X: Integer = 0): TRectangle; overload;
 
     { Align this rectangle within other rectangle by calculating new value
       for @link(Bottom). }
@@ -258,12 +262,12 @@ type
       const ThisPosition: TVerticalPosition;
       const OtherRect: TRectangle;
       const OtherPosition: TVerticalPosition;
-      const Y: Integer = 0): Integer;
+      const Y: Integer = 0): Integer; overload;
     function Align(
       const ThisPosition: TVerticalPosition;
       const OtherRect: TRectangle;
       const OtherPosition: TVerticalPosition;
-      const Y: Integer = 0): TRectangle;
+      const Y: Integer = 0): TRectangle; overload;
 
     function ToString: string;
 
@@ -272,6 +276,13 @@ type
 
     { Does it have any common part with another rectangle. }
     function Collides(const R: TRectangle): boolean;
+
+    { Sum of the two rectangles is a bounding rectangle -
+      a smallest rectangle that contains them both. }
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TRectangle): TRectangle;
+
+    { Common part of the two rectangles. }
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TRectangle): TRectangle;
   end;
 
   { 2D rectangle with @bold(float) coordinates.
@@ -286,7 +297,7 @@ type
     In case of float bounding box (@link(TBox3D)) or float rectangle
     (@name), having a zero size makes sense, and it still is something non-empty
     (a single 2D or 3D point has zero size, but it also still has a position). }
-  TFloatRectangle = object
+  TFloatRectangle = record
   private
     function GetRight: Single;
     function GetTop: Single;
@@ -299,13 +310,17 @@ type
     Left, Bottom: Single;
     Width, Height: Single;
 
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Empty: TFloatRectangle = (Left: 0; Bottom: 0; Width: -1; Height: -1);
+    {$else}
+    class function Empty: TFloatRectangle; static; inline;
+    {$endif}
 
     function IsEmpty: boolean;
 
-    function Contains(const X, Y: Single): boolean;
-    function Contains(const Point: TVector2): boolean;
+    function Contains(const X, Y: Single): boolean; overload;
+    function Contains(const Point: TVector2): boolean; overload;
 
     { Right and top coordinates of the rectangle.
       @code(Right) is simply the @code(Left + Width),
@@ -334,8 +349,8 @@ type
       In case of shrinking, we protect from shrinking too much:
       the resulting width or height is set to zero (which makes a valid
       and empty rectangle) if shrinking too much. }
-    function Grow(const Delta: Single): TFloatRectangle;
-    function Grow(const DeltaX, DeltaY: Single): TFloatRectangle;
+    function Grow(const Delta: Single): TFloatRectangle; overload;
+    function Grow(const DeltaX, DeltaY: Single): TFloatRectangle; overload;
 
     function ToString: string;
 
@@ -351,7 +366,7 @@ type
     function ScaleAround0(const Factor: Single): TFloatRectangle;
 
     { Return larger rectangle, so that it includes given point. }
-    function Add(const P: TVector2): TFloatRectangle;
+    function Include(const P: TVector2): TFloatRectangle;
 
     { Convert to a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
@@ -360,37 +375,37 @@ type
     { Convert from a 4D vector, like expected by X3D fields
       OrthoViewpoint.fieldOfView or DirectionalLight.projectionRectangle. }
     class function FromX3DVector(const V: TVector4): TFloatRectangle; static;
+
+    { Sum of the two rectangles is a bounding rectangle -
+      a smallest rectangle that contains them both. }
+    class operator {$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
+
+    { Common part of the two rectangles. }
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
   end;
 
   PFloatRectangle = ^TFloatRectangle;
+  TFloatRectangleArray = packed array [0..MaxInt div SizeOf(TFloatRectangle) - 1] of TFloatRectangle;
+  PFloatRectangleArray = ^TFloatRectangleArray;
 
-  TRectangleList = class(specialize TStructList<TRectangle>)
+  TRectangleList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRectangle>)
   public
     { Index of the first rectangle that contains point (X, Y).
       Returns -1 if not found. }
-    function FindRectangle(const X, Y: Integer): Integer;
-    function FindRectangle(const Point: TVector2): Integer;
+    function FindRectangle(const X, Y: Integer): Integer; overload;
+    function FindRectangle(const Point: TVector2): Integer; overload;
   end;
 
-  TFloatRectangleList = specialize TStructList<TFloatRectangle>;
+  TFloatRectangleList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFloatRectangle>;
 
 function Rectangle(const Left, Bottom: Integer;
-  const Width, Height: Cardinal): TRectangle;
+  const Width, Height: Cardinal): TRectangle; overload;
 function Rectangle(const LeftBottom: TVector2Integer;
-  const Width, Height: Cardinal): TRectangle;
-function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
-function FloatRectangle(const R: TRectangle): TFloatRectangle;
+  const Width, Height: Cardinal): TRectangle; overload;
+function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle; overload;
+function FloatRectangle(const R: TRectangle): TFloatRectangle; overload;
 function FloatRectangle(const LeftBottom: TVector2;
-  const Width, Height: Single): TFloatRectangle;
-
-{ Sum of the two rectangles is a bounding rectangle -
-  a smallest rectangle that contains them both. }
-operator+ (const R1, R2: TRectangle): TRectangle;
-operator+ (const R1, R2: TFloatRectangle): TFloatRectangle;
-
-{ Common part of the two rectangles. }
-operator* (const R1, R2: TRectangle): TRectangle;
-operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
+  const Width, Height: Single): TFloatRectangle; overload;
 
 implementation
 
@@ -415,6 +430,13 @@ begin
   Result.Width := Width;
   Result.Height := Height;
 end;
+
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
+class function TRectangle.Empty: TRectangle;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+end;
+{$endif}
 
 function TRectangle.IsEmpty: boolean;
 begin
@@ -507,56 +529,56 @@ function TRectangle.RemoveLeft(W: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(W, Width);
-  Result.Left += W;
-  Result.Width -= W;
+  Result.Left := Result.Left + W;
+  Result.Width := Result.Width - W;
 end;
 
 function TRectangle.RemoveBottom(H: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(H, Height);
-  Result.Bottom += H;
-  Result.Height -= H;
+  Result.Bottom := Result.Bottom + H;
+  Result.Height := Result.Height - H;
 end;
 
 function TRectangle.RemoveRight(W: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(W, Width);
-  Result.Width -= W;
+  Result.Width := Result.Width - W;
 end;
 
 function TRectangle.RemoveTop(H: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(H, Height);
-  Result.Height -= H;
+  Result.Height := Result.Height - H;
 end;
 
 function TRectangle.GrowLeft(const W: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Left -= Integer(W);
-  Result.Width += W;
+  Result.Left := Result.Left - Integer(W);
+  Result.Width := Result.Width + W;
 end;
 
 function TRectangle.GrowBottom(const H: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Bottom -= Integer(H);
-  Result.Height += H;
+  Result.Bottom := Result.Bottom - Integer(H);
+  Result.Height := Result.Height + H;
 end;
 
 function TRectangle.GrowRight(const W: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Width += W;
+  Result.Width := Result.Width + W;
 end;
 
 function TRectangle.GrowTop(const H: Cardinal): TRectangle;
 begin
   Result := Self;
-  Result.Height += H;
+  Result.Height := Result.Height + H;
 end;
 
 function TRectangle.LeftPart(W: Cardinal): TRectangle;
@@ -577,7 +599,7 @@ function TRectangle.RightPart(W: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(W, Width);
-  Result.Left += Width - W;
+  Result.Left := Result.Left + Width - W;
   Result.Width := W;
 end;
 
@@ -585,7 +607,7 @@ function TRectangle.TopPart(H: Cardinal): TRectangle;
 begin
   Result := Self;
   MinVar(H, Height);
-  Result.Bottom += Height - H;
+  Result.Bottom := Result.Bottom + Height - H;
   Result.Height := H;
 end;
 
@@ -747,13 +769,13 @@ begin
   Result := OtherRect.Left + X;
   case ThisPosition of
     hpLeft  : ;
-    hpMiddle: Result -= Width div 2;
-    hpRight : Result -= Width;
+    hpMiddle: Result := Result - Width div 2;
+    hpRight : Result := Result - Width;
   end;
   case OtherPosition of
     hpLeft  : ;
-    hpMiddle: Result += OtherRect.Width div 2;
-    hpRight : Result += OtherRect.Width;
+    hpMiddle: Result := Result + OtherRect.Width div 2;
+    hpRight : Result := Result + OtherRect.Width;
   end;
 end;
 
@@ -766,13 +788,13 @@ begin
   Result := OtherRect.Bottom + Y;
   case ThisPosition of
     vpBottom: ;
-    vpMiddle: Result -= Height div 2;
-    vpTop   : Result -= Height;
+    vpMiddle: Result := Result - Height div 2;
+    vpTop   : Result := Result - Height;
   end;
   case OtherPosition of
     vpBottom: ;
-    vpMiddle: Result += OtherRect.Height div 2;
-    vpTop   : Result += OtherRect.Height;
+    vpMiddle: Result := Result + OtherRect.Height div 2;
+    vpTop   : Result := Result + OtherRect.Height;
   end;
 end;
 
@@ -819,6 +841,44 @@ begin
           (R.Top   - 1 <   Bottom)));
 end;
 
+class operator TRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TRectangle): TRectangle;
+var
+  NewRight, NewTop: Integer;
+begin
+  if R1.IsEmpty then
+    Result := R2 else
+  if R2.IsEmpty then
+    Result := R1 else
+  begin
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    NewRight := Max(R1.Right   , R2.Right);
+    NewTop   := Max(R1.Top     , R2.Top);
+    Result.Width  := NewRight - Result.Left;
+    Result.Height := NewTop   - Result.Bottom;
+  end;
+end;
+
+class operator TRectangle.{$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TRectangle): TRectangle;
+var
+  NewRight, NewTop: Integer;
+begin
+  if R1.IsEmpty or R2.IsEmpty then
+    Result := TRectangle.Empty else
+  begin
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    NewRight := Min(R1.Right   , R2.Right);
+    NewTop   := Min(R1.Top     , R2.Top);
+    if (NewRight > Result.Left) and (NewTop > Result.Bottom) then
+    begin
+      Result.Width  := NewRight - Result.Left;
+      Result.Height := NewTop   - Result.Bottom;
+    end else
+      Result := TRectangle.Empty;
+  end;
+end;
+
 { TFloatRectangle ----------------------------------------------------------------- }
 
 function FloatRectangle(const Left, Bottom, Width, Height: Single): TFloatRectangle;
@@ -845,6 +905,15 @@ begin
   Result.Width  := Width;
   Result.Height := Height;
 end;
+
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
+class function TFloatRectangle.Empty: TFloatRectangle;
+begin
+  FillChar(Result, SizeOf(Result), 0);
+  Result.Width := -1;
+  Result.Height := -1;
+end;
+{$endif}
 
 function TFloatRectangle.IsEmpty: boolean;
 begin
@@ -1041,7 +1110,7 @@ begin
   end;
 end;
 
-function TFloatRectangle.Add(const P: TVector2): TFloatRectangle;
+function TFloatRectangle.Include(const P: TVector2): TFloatRectangle;
 begin
   if IsEmpty then
   begin
@@ -1096,12 +1165,56 @@ begin
   Result.Height := V.Data[3] - V.Data[1];
 end;
 
+class operator TFloatRectangle.{$ifdef FPC}+{$else}Add{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
+var
+  NewRight, NewTop: Single;
+begin
+  if R1.IsEmpty then
+    Result := R2 else
+  if R2.IsEmpty then
+    Result := R1 else
+  begin
+    Result.Left   := Min(R1.Left  , R2.Left);
+    Result.Bottom := Min(R1.Bottom, R2.Bottom);
+    NewRight := Max(R1.Right   , R2.Right);
+    NewTop   := Max(R1.Top     , R2.Top);
+    Result.Width  := NewRight - Result.Left;
+    Result.Height := NewTop   - Result.Bottom;
+  end;
+end;
+
+class operator TFloatRectangle.{$ifdef FPC}*{$else}Multiply{$endif} (const R1, R2: TFloatRectangle): TFloatRectangle;
+var
+  NewRight, NewTop: Single;
+begin
+  if R1.IsEmpty or R2.IsEmpty then
+    Result := TFloatRectangle.Empty else
+  begin
+    Result.Left   := Max(R1.Left  , R2.Left);
+    Result.Bottom := Max(R1.Bottom, R2.Bottom);
+    NewRight := Min(R1.Right   , R2.Right);
+    NewTop   := Min(R1.Top     , R2.Top);
+    { ">=" unline the int version that checks ">".
+      For TFloatRectangle, having zero size makes sense. }
+    if (NewRight >= Result.Left) and (NewTop >= Result.Bottom) then
+    begin
+      { use Max(0, ..) to secure from floating point errors in case equations above
+        are true but subtraction yields < 0 due to floating point inaccuracy.
+        Not sure is this possible (A >= B and still A - B < 0), probably not,
+        but better stay safe when dealing with floating point numbers. }
+      Result.Width  := Max(0, NewRight - Result.Left);
+      Result.Height := Max(0, NewTop   - Result.Bottom);
+    end else
+      Result := TFloatRectangle.Empty;
+  end;
+end;
+
 { TRectangleList -------------------------------------------------------------- }
 
 function TRectangleList.FindRectangle(const X, Y: Integer): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Contains(X, Y) then
+    if List^[Result].Contains(X, Y) then
       Exit;
   Result := -1;
 end;
@@ -1109,93 +1222,9 @@ end;
 function TRectangleList.FindRectangle(const Point: TVector2): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].Contains(Point) then
+    if List^[Result].Contains(Point) then
       Exit;
   Result := -1;
-end;
-
-{ operators ------------------------------------------------------------------ }
-
-operator+ (const R1, R2: TRectangle): TRectangle;
-var
-  Right, Top: Integer;
-begin
-  if R1.IsEmpty then
-    Result := R2 else
-  if R2.IsEmpty then
-    Result := R1 else
-  begin
-    Result.Left   := Min(R1.Left  , R2.Left);
-    Result.Bottom := Min(R1.Bottom, R2.Bottom);
-    Right := Max(R1.Right   , R2.Right);
-    Top   := Max(R1.Top     , R2.Top);
-    Result.Width  := Right - Result.Left;
-    Result.Height := Top   - Result.Bottom;
-  end;
-end;
-
-operator+ (const R1, R2: TFloatRectangle): TFloatRectangle;
-var
-  Right, Top: Single;
-begin
-  if R1.IsEmpty then
-    Result := R2 else
-  if R2.IsEmpty then
-    Result := R1 else
-  begin
-    Result.Left   := Min(R1.Left  , R2.Left);
-    Result.Bottom := Min(R1.Bottom, R2.Bottom);
-    Right := Max(R1.Right   , R2.Right);
-    Top   := Max(R1.Top     , R2.Top);
-    Result.Width  := Right - Result.Left;
-    Result.Height := Top   - Result.Bottom;
-  end;
-end;
-
-operator* (const R1, R2: TRectangle): TRectangle;
-var
-  Right, Top: Integer;
-begin
-  if R1.IsEmpty or R2.IsEmpty then
-    Result := TRectangle.Empty else
-  begin
-    Result.Left   := Max(R1.Left  , R2.Left);
-    Result.Bottom := Max(R1.Bottom, R2.Bottom);
-    Right := Min(R1.Right   , R2.Right);
-    Top   := Min(R1.Top     , R2.Top);
-    if (Right > Result.Left) and (Top > Result.Bottom) then
-    begin
-      Result.Width  := Right - Result.Left;
-      Result.Height := Top   - Result.Bottom;
-    end else
-      Result := TRectangle.Empty;
-  end;
-end;
-
-operator* (const R1, R2: TFloatRectangle): TFloatRectangle;
-var
-  Right, Top: Single;
-begin
-  if R1.IsEmpty or R2.IsEmpty then
-    Result := TFloatRectangle.Empty else
-  begin
-    Result.Left   := Max(R1.Left  , R2.Left);
-    Result.Bottom := Max(R1.Bottom, R2.Bottom);
-    Right := Min(R1.Right   , R2.Right);
-    Top   := Min(R1.Top     , R2.Top);
-    { ">=" unline the int version that checks ">".
-      For TFloatRectangle, having zero size makes sense. }
-    if (Right >= Result.Left) and (Top >= Result.Bottom) then
-    begin
-      { use Max(0, ..) to secure from floating point errors in case equations above
-        are true but subtraction yields < 0 due to floating point inaccuracy.
-        Not sure is this possible (A >= B and still A - B < 0), probably not,
-        but better stay safe when dealing with floating point numbers. }
-      Result.Width  := Max(0, Right - Result.Left);
-      Result.Height := Max(0, Top   - Result.Bottom);
-    end else
-      Result := TFloatRectangle.Empty;
-  end;
 end;
 
 end.

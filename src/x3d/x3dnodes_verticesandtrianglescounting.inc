@@ -29,7 +29,7 @@ function TAbstractGeometryNode.VerticesCount(
 var
   C: TMFVec3f;
 begin
-  if Coord(State, C) then
+  if InternalCoord(State, C) then
   begin
     if C <> nil then
       Result := C.Count else
@@ -61,15 +61,16 @@ end;
 function Cone_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   const Sides, Bottom: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
- result := 0;
- if Sides then
- begin
-  if OverTriangulate then
-   result += Slices * ((Stacks - 1) * 2 + 1) else
-   result += Slices;
- end;
- if Bottom then
-  result += Slices;
+  result := 0;
+  if Sides then
+  begin
+    if OverTriangulate then
+      result := result + (Slices * ((Stacks - 1) * 2 + 1))
+    else
+      result := result + Slices;
+  end;
+  if Bottom then
+    result := result + Slices;
 end;
 
 function TConeNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -112,15 +113,16 @@ end;
 function Cylinder_TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   const Bottom, Side, Top: boolean; const Slices, Stacks: Cardinal): Cardinal;
 begin
- result := 0;
- if Side then
- begin
-  if OverTriangulate then
-   result += 2 * Slices * Stacks else
-   result += 2 * Slices;
- end;
- if Top then result += Slices;
- if Bottom then result += Slices;
+  result := 0;
+  if Side then
+  begin
+    if OverTriangulate then
+      result := result + (2 * Slices * Stacks)
+    else
+      result := result + (2 * Slices);
+  end;
+  if Top then result := result + Slices;
+  if Bottom then result := result + Slices;
 end;
 
 function TCylinderNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -155,10 +157,10 @@ begin
   begin
     EndIndex := BeginIndex;
     while (EndIndex < CoordIndex.Count) and
-          (CoordIndex.Items.L[EndIndex] <> -1) do
+          (CoordIndex.Items.List^[EndIndex] <> -1) do
       Inc(EndIndex);
 
-    result += Cardinal(Max(EndIndex - BeginIndex - 2, 0));
+    result := result + (Cardinal(Max(EndIndex - BeginIndex - 2, 0)));
     BeginIndex := EndIndex + 1;
   end;
 end;
@@ -167,14 +169,14 @@ function TIndexedFacesOrTrianglesNode_1.TrianglesCount(State: TX3DGraphTraverseS
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex, Coordinates(State));
+    FdCoordIndex, InternalCoordinates(State));
 end;
 
 function TIndexedFaceSetNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdCoordIndex, Coordinates(State));
+    FdCoordIndex, InternalCoordinates(State));
 end;
 
 function TIndexedLineSetNode_1.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
@@ -262,9 +264,9 @@ begin
     if FdCrossSection.Count >= 2 then
     begin
       if FdBeginCap.Value then
-        Result += Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0);
+        Result := Result + (Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0));
       if FdEndCap.Value then
-        Result += Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0);
+        Result := Result + (Max(FdCrossSection.Count - 2 - Integer(E.CrossSectionOmit), 0));
     end;
   finally FreeAndNil(E) end;
 end;
@@ -275,8 +277,8 @@ function TIndexedTriangleSetNode.TrianglesCount(
   State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  if Coordinates(State) <> nil then
-    Result := CoordIndex.Count div 3 else
+  if InternalCoordinates(State) <> nil then
+    Result := CoordIndexField.Count div 3 else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
       So we don't worry about this case. }
@@ -289,7 +291,7 @@ function TTriangleSetNode.TrianglesCount(
 var
   ACoord: TMFVec3f;
 begin
-  ACoord := Coordinates(State);
+  ACoord := InternalCoordinates(State);
   if ACoord <> nil then
     Result := ACoord.Count div 3 else
     Result := 0;
@@ -300,14 +302,14 @@ function TIndexedTriangleFanSetNode.TrianglesCount(
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdIndex, Coordinates(State));
+    FdIndex, InternalCoordinates(State));
 end;
 
 function TTriangleFanSetNode.TrianglesCount(
   State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  if Coordinates(State) <> nil then
+  if InternalCoordinates(State) <> nil then
     { For each fan, add it's count - 2. }
     Result := FdFanCount.Items.Sum - FdFanCount.Items.Count * 2 else
     Result := 0;
@@ -318,14 +320,14 @@ function TIndexedTriangleStripSetNode.TrianglesCount(
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
   Result := IndexedPolygons_TrianglesCount(State, OverTriangulate,
-    FdIndex, Coordinates(State));
+    FdIndex, InternalCoordinates(State));
 end;
 
 function TTriangleStripSetNode.TrianglesCount(
   State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  if Coordinates(State) <> nil then
+  if InternalCoordinates(State) <> nil then
     { For each strip, add it's count - 2. }
     Result := FdStripCount.Items.Sum - FdStripCount.Items.Count * 2 else
     Result := 0;
@@ -335,7 +337,7 @@ function TIndexedQuadSetNode.TrianglesCount(
   State: TX3DGraphTraverseState; OverTriangulate: boolean;
   ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
 begin
-  if Coordinates(State) <> nil then
+  if InternalCoordinates(State) <> nil then
     Result := 2 * (FdIndex.Count div 4) else
     { If Coord is non-nil but has not enough items as indexed by
       CoordIndex, it's invalid according to X3D spec.
@@ -349,7 +351,7 @@ function TQuadSetNode.TrianglesCount(
 var
   ACoord: TMFVec3f;
 begin
-  ACoord := Coordinates(State);
+  ACoord := InternalCoordinates(State);
   if ACoord <> nil then
     Result := 2 * (ACoord.Count div 4) else
     Result := 0;

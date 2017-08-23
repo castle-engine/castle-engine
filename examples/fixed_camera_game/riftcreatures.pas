@@ -30,8 +30,8 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
-  RiftWindow, RiftGame, RiftLoadable, CastleTimeUtils, X3DNodes,
-  CastleColors;
+  CastleTimeUtils, X3DNodes, CastleColors, CastleDebug3D,
+  RiftWindow, RiftGame, RiftLoadable;
 
 type
   TCreatureState = (csStand, csBored, csWalk);
@@ -77,7 +77,7 @@ type
     property ReceiveShadowVolumes: boolean read FReceiveShadowVolumes;
   end;
 
-  TCreatureKindList = class(specialize TObjectList<TCreatureKind>)
+  TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
     procedure Load(const BaseLights: TLightInstancesList);
     procedure UnLoad;
@@ -86,7 +86,7 @@ type
   TCreature = class(T3DOrient)
   private
     FKind: TCreatureKind;
-
+    FDebug3D: TDebug3D;
     FState: TCreatureState;
     procedure SetState(const Value: TCreatureState);
   private
@@ -115,26 +115,19 @@ type
     { This is called from @link(Update) when no state change is scheduled.
       Usually, you want to implement AI here, not directly in Update. }
     procedure UpdateNoStateChangeScheduled(const SecondsPassed: Single); virtual;
-
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
   TPlayer = class(TCreature)
   private
     { This is set and used only if csWalk }
     WantsToWalkPos, WantsToWalkDir: TVector3;
-
-    TargetVisualize: TCastleScene;
+    FTargetVisualize: TTransformNode;
+    FTargetVisualizeShape: TShapeNode;
   public
     constructor Create(AKind: TCreatureKind);
     destructor Destroy; override;
-
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    procedure GLContextClose; override;
-
     procedure LocationChanged;
-
     procedure WantsToWalk(const Value: TVector3);
   end;
 
@@ -145,7 +138,8 @@ var
 implementation
 
 uses Math,
-  CastleLog, CastleProgress, CastleGL, CastleGLUtils, CastleWindow,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleLog, CastleProgress, CastleGLUtils, CastleWindow,
   CastleUIControls, CastleGLBoxes, CastleSceneCore,
   RiftData, RiftVideoOptions;
 
@@ -244,16 +238,22 @@ procedure TCreatureKindList.Load(const BaseLights: TLightInstancesList);
 var
   I: Integer;
   ProgressCount: Cardinal;
+  TimeBegin: TProcessTimerResult;
 begin
   ProgressCount := 0;
   for I := 0 to Count - 1 do
-    ProgressCount += Items[I].LoadSteps;
+    ProgressCount := ProgressCount + Items[I].LoadSteps;
+
+  TimeBegin := ProcessTimer;
 
   Progress.Init(ProgressCount, 'Loading creatures');
   try
     for I := 0 to Count - 1 do
       Items[I].Load(BaseLights);
   finally Progress.Fini end;
+
+  WritelnLog('Creatures', Format('Creatures loading time: %f seconds',
+    [ProcessTimerSeconds(ProcessTimer, TimeBegin)]));
 end;
 
 procedure TCreatureKindList.UnLoad;
@@ -277,6 +277,9 @@ begin
   FKind := AKind;
 
   RandomizeStandTimeToBeBored;
+
+  FDebug3D := TDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
@@ -321,7 +324,7 @@ begin
 
       { Now at ScheduledTransitionBeginTime the animation was in starting
         position, and this is the time <= now. }
-      ScheduledTransitionBeginTime += Kind.Animations[FState].Duration;
+      ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
 
       { Now at ScheduledTransitionBeginTime animation will end !
         This is good time to switch... unless it already occurred
@@ -332,7 +335,7 @@ begin
         So we correct it. If there were no floating point errors inside
         RoundFloatDown, loop below should execute at most once. }
       while ScheduledTransitionBeginTime < WorldTime do
-        ScheduledTransitionBeginTime += Kind.Animations[FState].Duration;
+        ScheduledTransitionBeginTime := ScheduledTransitionBeginTime + Kind.Animations[FState].Duration;
     end;
   end;
 end;
@@ -349,6 +352,10 @@ end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
+  inherited;
+
+  FDebug3D.Exists := DebugRenderBoundingGeometry;
+
   if ScheduledTransitionBegin then
   begin
     if WorldTime > ScheduledTransitionBeginTime then
@@ -373,74 +380,36 @@ begin
   end;
 end;
 
-procedure TCreature.Render(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-  inherited;
-
-  {$ifndef OpenGLES} //TODO-es
-  if DebugRenderBoundingGeometry and
-    (not Params.Transparent) and Params.ShadowVolumesReceivers then
-  begin
-    if not Params.RenderTransformIdentity then
-    begin
-      glPushMatrix;
-      glMultMatrix(Params.RenderTransform);
-    end;
-
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glEnable(GL_DEPTH_TEST);
-      glColorv(Gray);
-
-      glDrawBox3DWire(BoundingBox);
-    glPopAttrib;
-
-    if not Params.RenderTransformIdentity then
-      glPopMatrix;
-  end;
-  {$endif}
-end;
-
 { TPlayer -------------------------------------------------------------------- }
 
 constructor TPlayer.Create(AKind: TCreatureKind);
 
-  function CreateTargetVisualize: TCastleScene;
+  procedure CreateTargetVisualize;
   var
-    Root: TX3DRootNode;
-    Shape: TShapeNode;
     Sphere: TSphereNode;
   begin
     Sphere := TSphereNode.Create;
     Sphere.Radius := 0.1;
 
-    Shape := TShapeNode.Create;
-    Shape.Material := TMaterialNode.Create;
-    Shape.Material.DiffuseColor := RedRGB;
-    Shape.Geometry := Sphere;
+    FTargetVisualizeShape := TShapeNode.Create;
+    FTargetVisualizeShape.Material := TMaterialNode.Create;
+    FTargetVisualizeShape.Material.DiffuseColor := RedRGB;
+    FTargetVisualizeShape.Geometry := Sphere;
 
-    Root := TX3DRootNode.Create;
-    Root.FdChildren.Add(Shape);
-
-    Result := TCastleScene.Create(nil);
-    Result.Load(Root, true);
+    FTargetVisualize := TTransformNode.Create;
+    FTargetVisualize.AddChildren(FTargetVisualizeShape);
   end;
 
 begin
   inherited;
-  TargetVisualize := CreateTargetVisualize;
+  CreateTargetVisualize;
+  FDebug3D.WorldSpace.AddChildren(FTargetVisualize);
+  FDebug3D.ChangedScene;
 end;
 
 destructor TPlayer.Destroy;
 begin
-  FreeAndNil(TargetVisualize);
   inherited;
-end;
-
-procedure TPlayer.GLContextClose;
-begin
-  if TargetVisualize <> nil then
-    FreeAndNil(TargetVisualize);
 end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -489,8 +458,6 @@ var
 var
   IsTargetPos, IsTargetDir: boolean;
 begin
-  inherited;
-
   if (not ScheduledTransitionBegin) and (State = csWalk) then
   begin
     { Do walking. If walking ends (because target reached, or can't reach target),
@@ -516,6 +483,15 @@ begin
       Rotate else
       Move;
   end;
+
+  FTargetVisualizeShape.Render := DebugRenderWantsToWalk and (State = csWalk);
+  FTargetVisualize.Translation := WantsToWalkPos;
+
+  { Update children 3D objects *after* updating our own transformation,
+    this way they are always synchronized when displaying.
+    Otherwise, the FTargetVisualize would have a bit of "shaking",
+    because the TDebug3D transformation would be updated with 1-frame delay. }
+  inherited;
 end;
 
 procedure TPlayer.LocationChanged;
@@ -523,21 +499,6 @@ begin
   FState := csStand;
   ScheduledTransitionBegin := false;
   CurrentStateStartTime := WorldTime;
-end;
-
-procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-  inherited;
-
-  if DebugRenderWantsToWalk and (State = csWalk) then
-  begin
-    {$ifndef OpenGLES} //TODO-es
-    glPushMatrix();
-      glTranslatev(WantsToWalkPos);
-      TargetVisualize.Render(Frustum.Move(-WantsToWalkPos), Params);
-    glPopMatrix();
-    {$endif}
-  end;
 end;
 
 procedure TPlayer.WantsToWalk(const Value: TVector3);

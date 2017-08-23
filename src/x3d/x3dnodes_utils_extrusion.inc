@@ -22,7 +22,7 @@ type
    this by TExtrusionNode.BoundingBox calculation,
    TExtrusionNode.Triangulate etc. }
   TVRMLExtrusion = class
-  private
+  strict private
     FHigh: Integer;
     FNode: TExtrusionNode;
     FSpineClosed, FCrossSectionClosed: boolean;
@@ -157,8 +157,8 @@ begin
     Also, High checked that we have at least one scale. }
 
   if Node.FdScale.Count < Node.FdSpine.Count then
-    Scale := Node.FdScale.Items.L[0] else
-    Scale := Node.FdScale.Items.L[Spine];
+    Scale := Node.FdScale.Items.List^[0] else
+    Scale := Node.FdScale.Items.List^[Spine];
 end;
 
 procedure TVRMLExtrusion.SpineOrientationVar(Spine: Cardinal;
@@ -169,8 +169,8 @@ begin
     Also, High checked that we have at least one orientation. }
 
   if Node.FdOrientation.Count < Node.FdSpine.Count then
-    Orientation := Node.FdOrientation.Items.L[0] else
-    Orientation := Node.FdOrientation.Items.L[Spine];
+    Orientation := Node.FdOrientation.Items.List^[0] else
+    Orientation := Node.FdOrientation.Items.List^[Spine];
 end;
 
 procedure TVRMLExtrusion.SpineTransformVar(Spine: Cardinal;
@@ -193,8 +193,8 @@ var
         This follows X3D / VRML spec ("If the Z-axis of the
         first point is undefined..."). }
       Z := TVector3.CrossProduct(
-        (SpinePoints.L[I + 1] - SpinePoints.L[I]),
-        (SpinePoints.L[I - 1] - SpinePoints.L[I]));
+        (SpinePoints.List^[I + 1] - SpinePoints.List^[I]),
+        (SpinePoints.List^[I - 1] - SpinePoints.List^[I]));
       if not Z.IsZero then
       begin
         Result := true;
@@ -213,7 +213,7 @@ var
   begin
     for I := 1 to High do
     begin
-      Y := (SpinePoints.L[I] - SpinePoints.L[I - 1]);
+      Y := (SpinePoints.List^[I] - SpinePoints.List^[I - 1]);
       if not Y.IsZero then
       begin
         Y.NormalizeMe;
@@ -276,15 +276,15 @@ var
   procedure CalculateYZForClosed(out Y, Z: TVector3);
   begin
     { Same for Spine = 0 and High, as this is the same point actually. }
-    Y := SpinePoints.L[1] - SpinePoints.L[High - 1];
+    Y := SpinePoints.List^[1] - SpinePoints.List^[High - 1];
 
     if not Y.IsZero then
       Y.NormalizeMe else
       FindFirstNonCoincident(Y);
 
     Z := TVector3.CrossProduct(
-      (SpinePoints.L[1] - SpinePoints.L[0]),
-      (SpinePoints.L[High - 1] - SpinePoints.L[0]));
+      (SpinePoints.List^[1] - SpinePoints.List^[0]),
+      (SpinePoints.List^[High - 1] - SpinePoints.List^[0]));
 
     if not Z.IsZero then
       Z.NormalizeMe else
@@ -312,7 +312,7 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := (SpinePoints.L[1] - SpinePoints.L[0]);
+      Y := (SpinePoints.List^[1] - SpinePoints.List^[0]);
       if not Y.IsZero then
         Y.NormalizeMe else
         FindFirstNonCoincident(Y);
@@ -327,7 +327,7 @@ begin
     if SpineClosed then
       CalculateYZForClosed(Y, Z) else
     begin
-      Y := (SpinePoints.L[High] - SpinePoints.L[High - 1]);
+      Y := (SpinePoints.List^[High] - SpinePoints.List^[High - 1]);
       if not Y.IsZero then
         Y.NormalizeMe else
         Y := LastY;
@@ -340,15 +340,15 @@ begin
       in this case, and that's good. This is the most common case
       for this routine. }
 
-    Y := (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine - 1]);
+    Y := (SpinePoints.List^[Spine + 1] - SpinePoints.List^[Spine - 1]);
 
     if not Y.IsZero then
       Y.NormalizeMe else
       Y := LastY;
 
     Z := TVector3.CrossProduct(
-      (SpinePoints.L[Spine + 1] - SpinePoints.L[Spine]),
-      (SpinePoints.L[Spine - 1] - SpinePoints.L[Spine]));
+      (SpinePoints.List^[Spine + 1] - SpinePoints.List^[Spine]),
+      (SpinePoints.List^[Spine - 1] - SpinePoints.List^[Spine]));
 
     if not Z.IsZero then
       Z.NormalizeMe else
@@ -367,7 +367,7 @@ begin
   SpineOrientationVar(Spine, Orientation);
 
   Transform :=
-    TransformToCoordsMatrix(SpinePoints.L[Spine], X, Y, Z) *
+    TransformToCoordsMatrix(SpinePoints.List^[Spine], X, Y, Z) *
     RotationMatrixRad(Orientation[3],
       Orientation[0], Orientation[1], Orientation[2]) *
     ScalingMatrix(Vector3(Scale[0], 1, Scale[1]));

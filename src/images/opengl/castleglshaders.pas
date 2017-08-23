@@ -78,7 +78,8 @@ unit CastleGLShaders;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleGL, CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
 
 type
   { Common class for exceptions related to GLSL programs. }
@@ -158,27 +159,27 @@ type
       @link(TGLSLProgram.Uniform).
 
       @groupBegin }
-    procedure SetValue(const Value: boolean        ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TGLint         ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector2Integer; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector3Integer; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector4Integer; const ForceException: boolean = false);
-    procedure SetValue(const Value: TGLfloat       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector2       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector3       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector4       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix2       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix3       ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix4       ; const ForceException: boolean = false);
+    procedure SetValue(const Value: boolean        ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TGLint         ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector2Integer; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector3Integer; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector4Integer; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TGLfloat       ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector2       ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector3       ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector4       ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TMatrix2       ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TMatrix3       ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TMatrix4       ; const ForceException: boolean = false); overload;
 
-    procedure SetValue(const Value: TBooleanList; const ForceException: boolean = false);
-    procedure SetValue(const Value: TLongIntList; const ForceException: boolean = false);
-    procedure SetValue(const Value: TSingleList ; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector2List; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector3List; const ForceException: boolean = false);
-    procedure SetValue(const Value: TVector4List; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix3List; const ForceException: boolean = false);
-    procedure SetValue(const Value: TMatrix4List; const ForceException: boolean = false);
+    procedure SetValue(const Value: TBooleanList; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TLongIntList; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TSingleList ; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector2List; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector3List; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TVector4List; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TMatrix3List; const ForceException: boolean = false); overload;
+    procedure SetValue(const Value: TMatrix4List; const ForceException: boolean = false); overload;
     { @groupEnd }
   end;
 
@@ -227,7 +228,7 @@ type
 
       OpenGL forces some constraints on using this, see SetUniform.
       In short: use this only after linking the program.
-      The program is automatically enabled (set as @link(CurrentProgram)) by this.
+      The program is automatically enabled (set as @link(TGLSLProgram.Current)) by this.
       And note that attributes declared but not actually used in shader code
       may be eliminated, use DebugInfo to see which attributes are actually
       used (@italic(active) in OpenGL terminology).
@@ -236,16 +237,16 @@ type
       attribute arrays, by EnableArray.
 
       @groupBegin }
-    procedure SetValue(const Value: TGLfloat);
-    procedure SetValue(const Value: TVector2);
-    procedure SetValue(const Value: TVector3);
-    procedure SetValue(const Value: TVector4);
-    procedure SetValue(const Value: TMatrix3);
-    procedure SetValue(const Value: TMatrix4);
+    procedure SetValue(const Value: TGLfloat); overload;
+    procedure SetValue(const Value: TVector2); overload;
+    procedure SetValue(const Value: TVector3); overload;
+    procedure SetValue(const Value: TVector4); overload;
+    procedure SetValue(const Value: TMatrix3); overload;
+    procedure SetValue(const Value: TMatrix4); overload;
     {$ifndef OpenGLES}
-    procedure SetValue(const Value: TVector4Integer);
-    procedure SetValue(const Value: TVector4Byte);
-    procedure SetValue(const Value: TGLdouble);
+    procedure SetValue(const Value: TVector4Integer); overload;
+    procedure SetValue(const Value: TVector4Byte); overload;
+    procedure SetValue(const Value: TGLdouble); overload;
     // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
     // procedure SetValue(const Value: TVector2Double);
     // procedure SetValue(const Value: TVector3Double);
@@ -254,7 +255,7 @@ type
     { @groupEnd }
   end;
 
-  TGLSLAttributeList = specialize TList<TGLSLAttribute>;
+  TGLSLAttributeList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TGLSLAttribute>;
 
   { Easily handle program in GLSL (OpenGL Shading Language). }
   TGLSLProgram = class
@@ -271,6 +272,12 @@ type
 
     FUniformNotFoundAction: TUniformNotFoundAction;
     FUniformTypeMismatchAction: TUniformTypeMismatchAction;
+
+    class var
+      FCurrent: TGLSLProgram;
+
+    class function GetCurrent: TGLSLProgram; static;
+    class procedure SetCurrent(const Value: TGLSLProgram); static;
   public
     constructor Create;
     destructor Destroy; override;
@@ -295,7 +302,7 @@ type
     procedure AttachVertexShader(const S: string);
     procedure AttachGeometryShader(const S: string);
     procedure AttachFragmentShader(const S: string);
-    procedure AttachShader(const ShaderType: TShaderType; const S: string);
+    procedure AttachShader(const ShaderType: TShaderType; const S: string); overload;
     { @groupEnd }
 
     { Attach multiple shader parts for given type.
@@ -309,7 +316,7 @@ type
       http://www.khronos.org/opengles/sdk/docs/man/xhtml/glAttachShader.xml ).
       So we simply concatenate the shaders into one. }
     procedure AttachShader(const ShaderType: TShaderType;
-      const Parts: TStrings);
+      const Parts: TStrings); overload;
 
     procedure DetachAllShaders;
 
@@ -319,14 +326,14 @@ type
       @raises(EGLSLProgramLinkError If the program cannot be linked,
         exception message contains precise description from OpenGL where
         the error is.) }
-    procedure Link; virtual;
-    procedure Link(Ignored: boolean); deprecated 'use parameterless Link method';
+    procedure Link; overload; virtual;
+    procedure Link(Ignored: boolean); overload; deprecated 'use parameterless Link method';
 
-    { Enable (use) this program. Shortcut for @code(CurrentProgram := Self). }
+    { Enable (use) this program. Shortcut for @code(TGLSLProgram.Current := Self). }
     procedure Enable;
 
     { Disable this program (use the fixed function pipeline).
-      Shortcut for @code(CurrentProgram := nil). }
+      Shortcut for @code(TGLSLProgram.Current := nil). }
     class procedure Disable;
 
     { Override this to set uniform values, in particular to
@@ -421,8 +428,8 @@ type
         property) is uaException.)
 
       @groupBegin }
-    function Uniform(const Name: string): TGLSLUniform;
-    function Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform;
+    function Uniform(const Name: string): TGLSLUniform; overload;
+    function Uniform(const Name: string; const AUniformNotFoundAction: TUniformNotFoundAction): TGLSLUniform; overload;
     { @groupEnd }
 
     { Set appropriate uniform variable value.
@@ -436,7 +443,7 @@ type
 
         @item(This GLSL program must be currently enabled for this to work.
           So calling this automatically calls @link(Enable)
-          and sets @link(CurrentProgram).
+          and sets @link(TGLSLProgram.Current).
 
           This is required by OpenGL glUniform*
           commands. glGetUniformLocation take program id as parameter, so they
@@ -469,27 +476,27 @@ type
         may be comfortably catched by an umbrella class EGLSLUniformInvalid.)
 
       @groupBegin }
-    procedure SetUniform(const Name: string; const Value: boolean        ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TGLint         ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TGLfloat       ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector2 ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector3 ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector4 ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix2 ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix3 ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix4 ; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: boolean        ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TGLint         ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2Integer; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3Integer; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4Integer; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TGLfloat       ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2 ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3 ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4 ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix2 ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix3 ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix4 ; const ForceException: boolean = false); overload;
 
-    procedure SetUniform(const Name: string; const Value: TBooleanList      ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TLongIntList      ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TSingleList       ; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector2List; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector3List; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TVector4List; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix3List; const ForceException: boolean = false);
-    procedure SetUniform(const Name: string; const Value: TMatrix4List; const ForceException: boolean = false);
+    procedure SetUniform(const Name: string; const Value: TBooleanList      ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TLongIntList      ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TSingleList       ; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector2List; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector3List; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TVector4List; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix3List; const ForceException: boolean = false); overload;
+    procedure SetUniform(const Name: string; const Value: TMatrix4List; const ForceException: boolean = false); overload;
     { @groupEnd }
 
     { Get the attribute instance. It can be used to make repeated
@@ -543,7 +550,7 @@ type
 
       OpenGL forces some constraints on using this, see SetUniform.
       In short: use this only after linking the program.
-      The program is automatically enabled (set as @link(CurrentProgram)) by this.
+      The program is automatically enabled (set as @link(TGLSLProgram.Current)) by this.
       And note that attributes declared but not actually used in shader code
       may be eliminated, use DebugInfo to see which attributes are actually
       used (@italic(active) in OpenGL terminology).
@@ -562,31 +569,41 @@ type
         call CheckGLErrors from time to time to catch them.)
 
       @groupBegin }
-    procedure SetAttribute(const Name: string; const Value: TGLfloat); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector2); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector3); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector4); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TMatrix3); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TMatrix4); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TGLfloat); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector2); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector3); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector4); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TMatrix3); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TMatrix4); overload; deprecated 'use TGLSLAttribute.SetValue';
     {$ifndef OpenGLES}
-    procedure SetAttribute(const Name: string; const Value: TVector4Integer); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TVector4Byte); deprecated 'use TGLSLAttribute.SetValue';
-    procedure SetAttribute(const Name: string; const Value: TGLdouble); deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector4Integer); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TVector4Byte); overload; deprecated 'use TGLSLAttribute.SetValue';
+    procedure SetAttribute(const Name: string; const Value: TGLdouble); overload; deprecated 'use TGLSLAttribute.SetValue';
     // Makes FPC errors: Error: Asm: Duplicate label, see https://bugs.freepascal.org/view.php?id=32188
     // procedure SetAttribute(const Name: string; const Value: TVector2Double); deprecated 'use TGLSLAttribute.SetValue';
     // procedure SetAttribute(const Name: string; const Value: TVector3Double); deprecated 'use TGLSLAttribute.SetValue';
     // procedure SetAttribute(const Name: string; const Value: TVector4Double); deprecated 'use TGLSLAttribute.SetValue';
     {$endif}
     { @groupEnd }
+
+    { Currently enabled GLSL program.
+      @nil if fixed-function pipeline should be used.
+      Setting this property encapsulates the OpenGL glUseProgram
+      (or equivalent ARB extension), additionally preventing redundant glUseProgram
+      calls. }
+    class property Current: TGLSLProgram read GetCurrent write SetCurrent;
   end;
 
-  TGLSLProgramList = specialize TObjectList<TGLSLProgram>;
+  TGLSLProgramList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TGLSLProgram>;
 
 var
   LogShaders: boolean;
 
+{$ifdef CASTLE_OBJFPC}
 function GetCurrentProgram: TGLSLProgram;
+  deprecated 'use TGLSLProgram.Current';
 procedure SetCurrentProgram(const Value: TGLSLProgram);
+  deprecated 'use TGLSLProgram.Current';
 
 { Currently enabled GLSL program.
   @nil if fixed-function pipeline should be used.
@@ -595,6 +612,7 @@ procedure SetCurrentProgram(const Value: TGLSLProgram);
   calls. }
 property CurrentProgram: TGLSLProgram
   read GetCurrentProgram write SetCurrentProgram;
+{$endif CASTLE_OBJFPC}
 
 implementation
 
@@ -651,49 +669,14 @@ begin
 end;
 {$endif}
 
-var
-  FCurrentProgram: TGLSLProgram;
-
 function GetCurrentProgram: TGLSLProgram;
 begin
-  Result := FCurrentProgram;
+  Result := TGLSLProgram.Current;
 end;
 
 procedure SetCurrentProgram(const Value: TGLSLProgram);
 begin
-  if FCurrentProgram <> Value then
-  begin
-    FCurrentProgram := Value;
-
-    if Value <> nil then
-    begin
-      case TGLSLProgram.ClassSupport of
-        {$ifndef ForceStandardGLSLApi}
-        gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
-        {$endif}
-        gsStandard : glUseProgram         (Value.ProgramId);
-      end;
-    end else
-    begin
-      case TGLSLProgram.ClassSupport of
-        {$ifndef ForceStandardGLSLApi}
-        gsExtension:
-          begin
-            glUseProgramObjectARB(GLhandleARB(0));
-            { Workaround for fglrx bug (Radeon X1600 (chantal)).
-              Reproduce: open demo_models/x3d/anchor_test.x3dv,
-              and switch in view3dscene "Shaders -> Enable For Everything".
-              Text should be still rendered without shaders in this case
-              (we cannot currently render text through shaders).
-              Without the hack below, the shader from sphere would remain
-              active and text would look black. }
-            if GLVersion.Fglrx then glUseProgramObjectARB(GLhandleARB(0));
-          end;
-        {$endif}
-        gsStandard    : glUseProgram         (0);
-      end;
-    end;
-  end;
+  TGLSLProgram.Current := Value;
 end;
 
 { TGLSLUniform --------------------------------------------------------------- }
@@ -1569,24 +1552,24 @@ begin
   S := TStringList.Create;
   try
     GetActiveUniforms(S);
-    Result += NL + 'Active uniforms:' + NL + S.Text;
+    Result := Result + NL + 'Active uniforms:' + NL + S.Text;
 
     S.Clear;
     GetActiveAttribs(S);
-    Result += NL + 'Active attribs:' + NL + S.Text;
+    Result := Result +  NL + 'Active attribs:' + NL + S.Text ;
   finally FreeAndNil(S) end;
 
   for I := 0 to ShaderIds.Count - 1 do
   begin
-    Result += NL + Format('Shader number %d (OpenGL id %d) log:',
+    Result := Result +  NL + Format('Shader number %d (OpenGL id %d) log:',
       [I, ShaderIds[I]]) + NL +
-      ShaderInfoLog(ShaderIds[I]);
+      ShaderInfoLog(ShaderIds[I]) ;
   end;
 
-  Result += NL + 'Program info log:' + NL + ProgramInfoLog;
+  Result := Result +  NL + 'Program info log:' + NL + ProgramInfoLog ;
 
-  Result += NL + 'Program detected as running in hardware: ' +
-    BoolToStr(RunningInHardware, true);
+  Result := Result + NL + 'Program detected as running in hardware: ' +
+    BoolToStr(RunningInHardware, true) ;
 end;
 
 procedure TGLSLProgram.AttachShader(const ShaderType: TShaderType; const S: string);
@@ -1722,7 +1705,7 @@ begin
   {$ifdef OpenGLES}
   Concatenated := '';
   for I := 0 to Parts.Count - 1 do
-    Concatenated += Parts[I] + NL;
+    Concatenated := Concatenated +  Parts[I] + NL ;
   if Trim(Concatenated) <> '' then
     AttachShader(ShaderType, Concatenated);
   {$else}
@@ -1813,12 +1796,12 @@ end;
 
 procedure TGLSLProgram.Enable;
 begin
-  CurrentProgram := Self;
+  Current := Self;
 end;
 
 class procedure TGLSLProgram.Disable;
 begin
-  CurrentProgram := nil;
+  Current := nil;
 end;
 
 function TGLSLProgram.SetupUniforms(var BoundTextureUnits: Cardinal): boolean;
@@ -2112,6 +2095,48 @@ begin
       {$endif}
       gsStandard : glDisableVertexAttribArray   (Location);
     end;
+end;
+
+class function TGLSLProgram.GetCurrent: TGLSLProgram;
+begin
+  Result := FCurrent;
+end;
+
+class procedure TGLSLProgram.SetCurrent(const Value: TGLSLProgram);
+begin
+  if FCurrent <> Value then
+  begin
+    FCurrent := Value;
+
+    if Value <> nil then
+    begin
+      case TGLSLProgram.ClassSupport of
+        {$ifndef ForceStandardGLSLApi}
+        gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
+        {$endif}
+        gsStandard : glUseProgram         (Value.ProgramId);
+      end;
+    end else
+    begin
+      case TGLSLProgram.ClassSupport of
+        {$ifndef ForceStandardGLSLApi}
+        gsExtension:
+          begin
+            glUseProgramObjectARB(GLhandleARB(0));
+            { Workaround for fglrx bug (Radeon X1600 (chantal)).
+              Reproduce: open demo_models/x3d/anchor_test.x3dv,
+              and switch in view3dscene "Shaders -> Enable For Everything".
+              Text should be still rendered without shaders in this case
+              (we cannot currently render text through shaders).
+              Without the hack below, the shader from sphere would remain
+              active and text would look black. }
+            if GLVersion.Fglrx then glUseProgramObjectARB(GLhandleARB(0));
+          end;
+        {$endif}
+        gsStandard    : glUseProgram         (0);
+      end;
+    end;
+  end;
 end;
 
 end.

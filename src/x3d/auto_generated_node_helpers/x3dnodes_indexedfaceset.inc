@@ -26,20 +26,38 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetConvex: boolean;
     procedure SetConvex(const Value: boolean);
     function GetCreaseAngle: Single;
     procedure SetCreaseAngle(const Value: Single);
   public
+    procedure SetColorIndex(const Value: array of LongInt);
+    procedure SetColorIndex(const Value: TLongIntList);
     property Convex: boolean read GetConvex write SetConvex;
+    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: TLongIntList);
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+    procedure SetNormalIndex(const Value: array of LongInt);
+    procedure SetNormalIndex(const Value: TLongIntList);
+    procedure SetTexCoordIndex(const Value: array of LongInt);
+    procedure SetTexCoordIndex(const Value: TLongIntList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TIndexedFaceSetNode ----------------------------------------------- }
+
+procedure TIndexedFaceSetNode.SetColorIndex(const Value: array of LongInt);
+begin
+  FdColorIndex.Send(Value);
+end;
+
+procedure TIndexedFaceSetNode.SetColorIndex(const Value: TLongIntList);
+begin
+  FdColorIndex.Send(Value);
+end;
 
 function TIndexedFaceSetNode.GetConvex: boolean;
 begin
@@ -51,6 +69,16 @@ begin
   FdConvex.Send(Value);
 end;
 
+procedure TIndexedFaceSetNode.SetCoordIndex(const Value: array of LongInt);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
+procedure TIndexedFaceSetNode.SetCoordIndex(const Value: TLongIntList);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
 function TIndexedFaceSetNode.GetCreaseAngle: Single;
 begin
   Result := FdCreaseAngle.Value;
@@ -59,6 +87,26 @@ end;
 procedure TIndexedFaceSetNode.SetCreaseAngle(const Value: Single);
 begin
   FdCreaseAngle.Send(Value);
+end;
+
+procedure TIndexedFaceSetNode.SetNormalIndex(const Value: array of LongInt);
+begin
+  FdNormalIndex.Send(Value);
+end;
+
+procedure TIndexedFaceSetNode.SetNormalIndex(const Value: TLongIntList);
+begin
+  FdNormalIndex.Send(Value);
+end;
+
+procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: array of LongInt);
+begin
+  FdTexCoordIndex.Send(Value);
+end;
+
+procedure TIndexedFaceSetNode.SetTexCoordIndex(const Value: TLongIntList);
+begin
+  FdTexCoordIndex.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -15,24 +15,24 @@
 
 {$ifdef read_interface}
   { Rectangular box. }
-  TBoxNode = class(TAbstractX3DGeometryNode)
+  TBoxNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSize: TSFVec3f;
+    strict private FFdSize: TSFVec3f;
     public property FdSize: TSFVec3f read FFdSize;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdDivisions: TSFInt32;
+    strict private FFdDivisions: TSFInt32;
     public property FdDivisions: TSFInt32 read FFdDivisions;
     function CalculateDivisions: Cardinal;
 
@@ -50,7 +50,7 @@
   end;
 
   { Cone. }
-  TConeNode = class(TAbstractX3DGeometryNode)
+  TConeNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -58,31 +58,31 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdBottom: TSFBool;
+    strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
 
-    private FFdBottomRadius: TSFFloat;
+    strict private FFdBottomRadius: TSFFloat;
     public property FdBottomRadius: TSFFloat read FFdBottomRadius;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdSide: TSFBool;
+    strict private FFdSide: TSFBool;
     public property FdSide: TSFBool read FFdSide;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
-    private FFdStacks: TSFInt32;
+    strict private FFdStacks: TSFInt32;
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
@@ -103,7 +103,7 @@
   TConeNode_2 = TConeNode;
 
   { Cylinder. }
-  TCylinderNode = class(TAbstractX3DGeometryNode)
+  TCylinderNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
   public
@@ -111,34 +111,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdBottom: TSFBool;
+    strict private FFdBottom: TSFBool;
     public property FdBottom: TSFBool read FFdBottom;
 
-    private FFdHeight: TSFFloat;
+    strict private FFdHeight: TSFFloat;
     public property FdHeight: TSFFloat read FFdHeight;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSide: TSFBool;
+    strict private FFdSide: TSFBool;
     public property FdSide: TSFBool read FFdSide;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTop: TSFBool;
+    strict private FFdTop: TSFBool;
     public property FdTop: TSFBool read FFdTop;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
-    private FFdStacks: TSFInt32;
+    strict private FFdStacks: TSFInt32;
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
@@ -160,8 +160,8 @@
 
   { Uniform rectangular grid of varying height above the Y=0 plane,
     aka "height map". }
-  TElevationGridNode = class(TAbstractX3DGeometryNode)
-  private
+  TElevationGridNode = class(TAbstractGeometryNode)
+  strict private
     procedure EventSet_HeightReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   public
@@ -170,52 +170,52 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_height: TMFFloatEvent;
+    strict private FEventSet_height: TMFFloatEvent;
     public property EventSet_height: TMFFloatEvent read FEventSet_height;
 
-    private FFdAttrib: TMFNode;
+    strict private FFdAttrib: TMFNode;
     public property FdAttrib: TMFNode read FFdAttrib;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdFogCoord: TSFNode;
+    strict private FFdFogCoord: TSFNode;
     public property FdFogCoord: TSFNode read FFdFogCoord;
 
-    private FFdNormal: TSFNode;
+    strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdColorPerVertex: TSFBool;
+    strict private FFdColorPerVertex: TSFBool;
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdHeight: TMFFloat;
+    strict private FFdHeight: TMFFloat;
     public property FdHeight: TMFFloat read FFdHeight;
 
-    private FFdNormalPerVertex: TSFBool;
+    strict private FFdNormalPerVertex: TSFBool;
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdXDimension: TSFInt32;
+    strict private FFdXDimension: TSFInt32;
     public property FdXDimension: TSFInt32 read FFdXDimension;
 
-    private FFdXSpacing: TSFFloat;
+    strict private FFdXSpacing: TSFFloat;
     public property FdXSpacing: TSFFloat read FFdXSpacing;
 
-    private FFdZDimension: TSFInt32;
+    strict private FFdZDimension: TSFInt32;
     public property FdZDimension: TSFInt32 read FFdZDimension;
 
-    private FFdZSpacing: TSFFloat;
+    strict private FFdZSpacing: TSFFloat;
     public property FdZSpacing: TSFFloat read FFdZSpacing;
 
     { This checks whether xDimension and zDimension are >= 2,
@@ -226,8 +226,8 @@
     function IsNotEmpty: boolean;
 
     function ColorField: TSFNode; override;
-    function FogCoord: TMFFloat; override;
-    function Attrib: TMFNode; override;
+    function InternalFogCoord: TMFFloat; override;
+    function AttribField: TMFNode; override;
     function SolidField: TSFBool; override;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -245,10 +245,10 @@
   end;
 
   { 2D cross-section shape extruded along a 3D spine. }
-  TExtrusionNode = class(TAbstractX3DGeometryNode)
+  TExtrusionNode = class(TAbstractGeometryNode)
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
-  private
+  strict private
     procedure Eventset_crossSectionReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_orientationReceive(
@@ -263,52 +263,52 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_crossSection: TMFVec2fEvent;
+    strict private FEventSet_crossSection: TMFVec2fEvent;
     public property EventSet_crossSection: TMFVec2fEvent read FEventSet_crossSection;
 
     { Event in } { }
-    private FEventSet_orientation: TMFRotationEvent;
+    strict private FEventSet_orientation: TMFRotationEvent;
     public property EventSet_orientation: TMFRotationEvent read FEventSet_orientation;
 
     { Event in } { }
-    private FEventSet_scale: TMFVec2fEvent;
+    strict private FEventSet_scale: TMFVec2fEvent;
     public property EventSet_scale: TMFVec2fEvent read FEventSet_scale;
 
     { Event in } { }
-    private FEventSet_spine: TMFVec3fEvent;
+    strict private FEventSet_spine: TMFVec3fEvent;
     public property EventSet_spine: TMFVec3fEvent read FEventSet_spine;
 
-    private FFdBeginCap: TSFBool;
+    strict private FFdBeginCap: TSFBool;
     public property FdBeginCap: TSFBool read FFdBeginCap;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdConvex: TSFBool;
+    strict private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdCrossSection: TMFVec2f;
+    strict private FFdCrossSection: TMFVec2f;
     public property FdCrossSection: TMFVec2f read FFdCrossSection;
 
-    private FFdEndCap: TSFBool;
+    strict private FFdEndCap: TSFBool;
     public property FdEndCap: TSFBool read FFdEndCap;
 
-    private FFdOrientation: TMFRotation;
+    strict private FFdOrientation: TMFRotation;
     public property FdOrientation: TMFRotation read FFdOrientation;
 
-    private FFdScale: TMFVec2f;
+    strict private FFdScale: TMFVec2f;
     public property FdScale: TMFVec2f read FFdScale;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdSpine: TMFVec3f;
+    strict private FFdSpine: TMFVec3f;
     public property FdSpine: TMFVec3f read FFdSpine;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
@@ -346,7 +346,7 @@
     This is probably the most universal, and most often used,
     geometry node in X3D. }
   TIndexedFaceSetNode = class(TAbstractComposedGeometryNode)
-  private
+  strict private
     procedure Eventset_colorIndexReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure Eventset_coordIndexReceive(
@@ -361,46 +361,46 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_colorIndex: TMFInt32Event;
+    strict private FEventSet_colorIndex: TMFInt32Event;
     public property EventSet_colorIndex: TMFInt32Event read FEventSet_colorIndex;
 
     { Event in } { }
-    private FEventSet_coordIndex: TMFInt32Event;
+    strict private FEventSet_coordIndex: TMFInt32Event;
     public property EventSet_coordIndex: TMFInt32Event read FEventSet_coordIndex;
 
     { Event in } { }
-    private FEventSet_normalIndex: TMFInt32Event;
+    strict private FEventSet_normalIndex: TMFInt32Event;
     public property EventSet_normalIndex: TMFInt32Event read FEventSet_normalIndex;
 
     { Event in } { }
-    private FEventSet_texCoordIndex: TMFInt32Event;
+    strict private FEventSet_texCoordIndex: TMFInt32Event;
     public property EventSet_texCoordIndex: TMFInt32Event read FEventSet_texCoordIndex;
 
-    private FFdColorIndex: TMFInt32;
+    strict private FFdColorIndex: TMFInt32;
     public property FdColorIndex: TMFInt32 read FFdColorIndex;
 
-    private FFdConvex: TSFBool;
+    strict private FFdConvex: TSFBool;
     public property FdConvex: TSFBool read FFdConvex;
     function ConvexField: TSFBool; override;
 
-    private FFdCoordIndex: TMFInt32;
+    strict private FFdCoordIndex: TMFInt32;
     public property FdCoordIndex: TMFInt32 read FFdCoordIndex;
 
-    private FFdCreaseAngle: TSFFloat;
+    strict private FFdCreaseAngle: TSFFloat;
     public property FdCreaseAngle: TSFFloat read FFdCreaseAngle;
 
-    private FFdNormalIndex: TMFInt32;
+    strict private FFdNormalIndex: TMFInt32;
     public property FdNormalIndex: TMFInt32 read FFdNormalIndex;
 
-    private FFdTexCoordIndex: TMFInt32;
+    strict private FFdTexCoordIndex: TMFInt32;
     public property FdTexCoordIndex: TMFInt32 read FFdTexCoordIndex;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
       override;
 
-    function CoordIndex: TMFLong; override;
+    function CoordIndexField: TMFLong; override;
 
-    procedure CoordPolygons(
+    procedure InternalCoordPolygons(
       State: TX3DGraphTraverseState;
       PolygonHandler: TIndexedPolygonHandler); override;
 
@@ -412,28 +412,28 @@
   TIndexedFaceSetNode_2 = TIndexedFaceSetNode;
 
   { Sphere. }
-  TSphereNode = class(TAbstractX3DGeometryNode)
+  TSphereNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
     function SolidField: TSFBool; override;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
-    private FFdStacks: TSFInt32;
+    strict private FFdStacks: TSFInt32;
     public property FdStacks: TSFInt32 read FFdStacks;
     function CalculateStacks: Cardinal;
 
@@ -740,7 +740,7 @@ begin
 
   FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
   AddEvent(FEventSet_height);
-  Eventset_height.OnReceive.Add(@EventSet_HeightReceive);
+  Eventset_height.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
 
   FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
@@ -850,7 +850,7 @@ begin
   Result := FdColor;
 end;
 
-function TElevationGridNode.FogCoord: TMFFloat;
+function TElevationGridNode.InternalFogCoord: TMFFloat;
 begin
   if (FdFogCoord.Value <> nil) and
      (FdFogCoord.Value is TFogCoordinateNode) then
@@ -858,7 +858,7 @@ begin
     Result := nil;
 end;
 
-function TElevationGridNode.Attrib: TMFNode;
+function TElevationGridNode.AttribField: TMFNode;
 begin
   Result := FdAttrib;
 end;
@@ -883,19 +883,19 @@ begin
 
   FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
   AddEvent(FEventSet_crossSection);
-  Eventset_crossSection.OnReceive.Add(@EventSet_crossSectionReceive);
+  Eventset_crossSection.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
 
   FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
   AddEvent(FEventSet_orientation);
-  Eventset_orientation.OnReceive.Add(@EventSet_orientationReceive);
+  Eventset_orientation.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
 
   FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
   AddEvent(FEventSet_scale);
-  Eventset_scale.OnReceive.Add(@EventSet_scaleReceive);
+  Eventset_scale.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
 
   FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
   AddEvent(FEventSet_spine);
-  Eventset_spine.OnReceive.Add(@EventSet_spineReceive);
+  Eventset_spine.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
 
   FFdBeginCap := TSFBool.Create(Self, 'beginCap', true);
    FdBeginCap.Exposed := false;
@@ -972,9 +972,9 @@ end;
 
 function TExtrusionNode.CrossSection3D(Index: integer): TVector3;
 begin
-  Result[0] := FdCrossSection.Items.L[Index][0];
+  Result[0] := FdCrossSection.Items.List^[Index][0];
   Result[1] := 0;
-  Result[2] := FdCrossSection.Items.L[Index][1];
+  Result[2] := FdCrossSection.Items.List^[Index][1];
 end;
 
 function TExtrusionNode.SpineClosed: boolean;
@@ -993,8 +993,11 @@ var
 begin
   CrossSectionPoints := FdCrossSection.Items;
   Result := (CrossSectionPoints.Count <> 0) and
-    TVector2.PerfectlyEquals(CrossSectionPoints.Last,
-                             CrossSectionPoints.First);
+    // Makes Internal Error with FPC 3.0.2 on Linux x86_64.
+    // TVector2.PerfectlyEquals(CrossSectionPoints.Last,
+    //                          CrossSectionPoints.First);
+    TVector2.PerfectlyEquals(CrossSectionPoints[CrossSectionPoints.Count - 1],
+                             CrossSectionPoints[0]);
 end;
 
 function TExtrusionNode.Proxy(var State: TX3DGraphTraverseState;
@@ -1051,8 +1054,8 @@ var
     if TexCoords <> nil then
     begin
       if SpecialTex then
-        IFS.FdTexCoordIndex.Items.L[Index] := SpecialTexIndex else
-        IFS.FdTexCoordIndex.Items.L[Index] :=
+        IFS.FdTexCoordIndex.Items.List^[Index] := SpecialTexIndex else
+        IFS.FdTexCoordIndex.Items.List^[Index] :=
           SpineIndex * FdCrossSection.Count + CrossSectionIndex;
     end;
 
@@ -1070,7 +1073,7 @@ var
        E.CrossSectionClosed then
       CrossSectionIndex := 0;
 
-    IFS.FdCoordIndex.Items.L[Index] :=
+    IFS.FdCoordIndex.Items.List^[Index] :=
       SpineIndex * FdCrossSection.Count + CrossSectionIndex;
 
     Inc(Index);
@@ -1078,9 +1081,9 @@ var
 
   procedure NextIndexFaceDelimiter;
   begin
-    IFS.FdCoordIndex.Items.L[Index] := -1;
+    IFS.FdCoordIndex.Items.List^[Index] := -1;
     if TexCoords <> nil then
-      IFS.FdTexCoordIndex.Items.L[Index] := -1;
+      IFS.FdTexCoordIndex.Items.List^[Index] := -1;
     Inc(Index);
   end;
 
@@ -1126,7 +1129,7 @@ begin
         E.SpineTransformVar(I, LastY, LastZ, Transform);
         for J := 0 to FdCrossSection.Count - 1 do
         begin
-          CoordNode.FdPoint.Items.L[I * FdCrossSection.Count + J] :=
+          CoordNode.FdPoint.Items.List^[I * FdCrossSection.Count + J] :=
             Transform.MultPoint(CrossSection3D(J));
         end;
       end;
@@ -1149,12 +1152,12 @@ begin
       begin
         Len := SidesCount;
         if FdBeginCap.Value or FdEndCap.Value then
-          Len += FdCrossSection.Count;
+          Len := Len + FdCrossSection.Count;
         TexCoords.Count := Len;
 
         for I := 0 to E.High do
           for J := 0 to FdCrossSection.Count - 1 do
-            TexCoords.L[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
+            TexCoords.List^[I * FdCrossSection.Count + J] := SideTexCoord(I, J);
 
         { calculate TexCapsTranslation, TexCapsScale }
         if FdBeginCap.Value or FdEndCap.Value then
@@ -1186,9 +1189,9 @@ begin
 
           for I := 0 to FdCrossSection.Count - 1 do
           begin
-            TexCoordNode.FdPoint.Items.L[
+            TexCoordNode.FdPoint.Items.List^[
               SidesCount + I] :=
-                (FdCrossSection.Items.L[I] +
+                (FdCrossSection.Items.List^[I] +
                  Vector2(TexCapsTranslation, TexCapsTranslation))
                 * TexCapsScale;
           end;
@@ -1201,9 +1204,9 @@ begin
         Len := 5 * E.High * (FdCrossSection.Count - 1) else
         Len := 0; { E.High may be -1, then Len should remain 0 }
       if FdBeginCap.Value then
-        Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
+        Len := Len + (FdCrossSection.Count + 1 - E.CrossSectionOmit);
       if FdEndCap.Value then
-        Len += FdCrossSection.Count + 1 - E.CrossSectionOmit;
+        Len := Len + (FdCrossSection.Count + 1 - E.CrossSectionOmit);
       IFS.FdCoordIndex.Items.Count := Len;
       if TexCoords <> nil then
         IFS.FdTexCoordIndex.Items.Count := Len;
@@ -1331,19 +1334,19 @@ begin
 
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   AddEvent(FEventSet_colorIndex);
-  Eventset_colorIndex.OnReceive.Add(@EventSet_colorIndexReceive);
+  Eventset_colorIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
 
   FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   AddEvent(FEventSet_coordIndex);
-  Eventset_coordIndex.OnReceive.Add(@EventSet_coordIndexReceive);
+  Eventset_coordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
 
   FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
   AddEvent(FEventSet_normalIndex);
-  Eventset_normalIndex.OnReceive.Add(@EventSet_normalIndexReceive);
+  Eventset_normalIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
 
   FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
   AddEvent(FEventSet_texCoordIndex);
-  Eventset_texCoordIndex.OnReceive.Add(@EventSet_texCoordIndexReceive);
+  Eventset_texCoordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
 
   FFdColorIndex := TMFInt32.Create(Self, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
@@ -1403,7 +1406,7 @@ begin
   Result := Version.Major >= 2;
 end;
 
-function TIndexedFaceSetNode.CoordIndex: TMFLong;
+function TIndexedFaceSetNode.CoordIndexField: TMFLong;
 begin
   Result := FdCoordIndex;
 end;

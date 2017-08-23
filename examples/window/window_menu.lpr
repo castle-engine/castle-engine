@@ -28,7 +28,7 @@
 }
 program window_menu;
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses SysUtils, CastleVectors, CastleKeysMouse, CastleColors,
   CastleWindow, CastleGLUtils, CastleMessages, CastleStringUtils,
@@ -83,27 +83,27 @@ begin
     Vector3(   0,  0.5, 0)]);
 
   GeometryRect := TQuadSetNode.Create;
-  GeometryRect.FdCoord.Value := CoordRect;
+  GeometryRect.Coord := CoordRect;
 
   GeometryTriangle := TTriangleSetNode.Create;
-  GeometryTriangle.FdCoord.Value := CoordTriangle;
+  GeometryTriangle.Coord := CoordTriangle;
 
   Material := TMaterialNode.Create;
-  Material.FdDiffuseColor.Value := Colors[0]; // initial value
+  Material.DiffuseColor := Colors[0]; // initial value
 
   Appearance := TAppearanceNode.Create;
-  Appearance.FdMaterial.Value := Material;
+  Appearance.Material := Material;
 
   Shape := TShapeNode.Create;
-  Shape.FdGeometry.Value := GeometryTriangle; // initial value
+  Shape.Geometry := GeometryTriangle; // initial value
   Shape.Appearance := Appearance;
 
   Transform := TTransformNode.Create;
-  Transform.FdTranslation.Value := Translation;
-  Transform.FdChildren.Add(Shape);
+  Transform.Translation := Translation;
+  Transform.AddChildren(Shape);
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(Transform);
+  Root.AddChildren(Transform);
 
   Scene := TCastleScene.Create(nil);
   Scene.Load(Root, true);
@@ -136,9 +136,9 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
       SRemoveMnemonics(Item.Caption) + '" be checked ?');
     if Item.Checked then
       case Item.IntData of
-        25: begin Translation[0] := -0.5; Transform.FdTranslation.Send(Translation); end;
-        26: begin Translation[0] :=  0.0; Transform.FdTranslation.Send(Translation); end;
-        27: begin Translation[0] :=  0.5; Transform.FdTranslation.Send(Translation); end;
+        25: begin Translation[0] := -0.5; Transform.Translation := Translation; end;
+        26: begin Translation[0] :=  0.0; Transform.Translation := Translation; end;
+        27: begin Translation[0] :=  0.5; Transform.Translation := Translation; end;
       end;
   end;
 
@@ -148,7 +148,7 @@ begin
   Writeln('You clicked menu item "', SRemoveMnemonics(Item.Caption),
     '" with SmallId ', Item.SmallId);
   case Item.IntData of
-    0..High(Colors): Material.FdDiffuseColor.Send(Colors[Item.IntData]);
+    0..High(Colors): Material.DiffuseColor := Colors[Item.IntData];
     10: begin
           Shape.FdGeometry.Value := GeometryRect;
           Shape.FdGeometry.Changed;
@@ -159,9 +159,9 @@ begin
         end;
     20: Window.Close;
 
-    21: begin Translation[1] :=  0.5; Transform.FdTranslation.Send(Translation); end;
-    22: begin Translation[1] :=    0; Transform.FdTranslation.Send(Translation); end;
-    23: begin Translation[1] := -0.5; Transform.FdTranslation.Send(Translation); end;
+    21: begin Translation[1] :=  0.5; Transform.Translation := Translation; end;
+    22: begin Translation[1] :=    0; Transform.Translation := Translation; end;
+    23: begin Translation[1] := -0.5; Transform.Translation := Translation; end;
 
     25..27: ChangeChecked(Item as TMenuItemRadio);
 

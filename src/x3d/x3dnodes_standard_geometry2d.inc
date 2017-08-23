@@ -16,19 +16,19 @@
 {$ifdef read_interface}
   { Circular arc in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TArc2DNode = class(TAbstractX3DGeometryNode)
+  TArc2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdEndAngle: TSFFloat;
+    strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdStartAngle: TSFFloat;
+    strict private FFdStartAngle: TSFFloat;
     public property FdStartAngle: TSFFloat read FFdStartAngle;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -43,25 +43,25 @@
 
   { Closed circular arc in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TArcClose2DNode = class(TAbstractX3DGeometryNode)
+  TArcClose2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdClosureType: TSFString;
+    strict private FFdClosureType: TSFString;
     public property FdClosureType: TSFString read FFdClosureType;
 
-    private FFdEndAngle: TSFFloat;
+    strict private FFdEndAngle: TSFFloat;
     public property FdEndAngle: TSFFloat read FFdEndAngle;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdStartAngle: TSFFloat;
+    strict private FFdStartAngle: TSFFloat;
     public property FdStartAngle: TSFFloat read FFdStartAngle;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -75,16 +75,16 @@
   end;
 
   { Circle in 2D. }
-  TCircle2DNode = class(TAbstractX3DGeometryNode)
+  TCircle2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
 
-    private FFdSlices: TSFInt32;
+    strict private FFdSlices: TSFInt32;
     public property FdSlices: TSFInt32 read FFdSlices;
     function CalculateSlices: Cardinal;
 
@@ -97,19 +97,19 @@
 
   { Disc (filled circle) in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TDisk2DNode = class(TAbstractX3DGeometryNode)
+  TDisk2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdInnerRadius: TSFFloat;
+    strict private FFdInnerRadius: TSFFloat;
     public property FdInnerRadius: TSFFloat read FFdInnerRadius;
 
-    private FFdOuterRadius: TSFFloat;
+    strict private FFdOuterRadius: TSFFloat;
     public property FdOuterRadius: TSFFloat read FFdOuterRadius;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -124,13 +124,13 @@
 
   { Series of contiguous line segments in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TPolyline2DNode = class(TAbstractX3DGeometryNode)
+  TPolyline2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdLineSegments: TMFVec2f;
+    strict private FFdLineSegments: TMFVec2f;
     { Polyline segments.
       In VRML 97 it is called "point", in X3D it is "lineSegments". }
     public property FdLineSegments: TMFVec2f read FFdLineSegments;
@@ -147,13 +147,13 @@
 
   { Set of vertices in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TPolypoint2DNode = class(TAbstractX3DGeometryNode)
+  TPolypoint2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec2f;
+    strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -167,16 +167,16 @@
   end;
 
   { Rectangle in 2D. }
-  TRectangle2DNode = class(TAbstractX3DGeometryNode)
+  TRectangle2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSize: TSFVec2f;
+    strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function Proxy(var State: TX3DGraphTraverseState;
@@ -188,16 +188,16 @@
 
   { Set of triangles in 2D.
     @bold(Rendering of this node is not implemented yet.) }
-  TTriangleSet2DNode = class(TAbstractX3DGeometryNode)
+  TTriangleSet2DNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdVertices: TMFVec2f;
+    strict private FFdVertices: TMFVec2f;
     public property FdVertices: TMFVec2f read FFdVertices;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -249,8 +249,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TArc2DNode}
-GeometryNotImplemented
+function TArc2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TArc2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TArc2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArc2DNode not implemented. }
+  Result := 0;
+end;
+
+function TArc2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArc2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TArcClose2DNode.CreateNode;
 begin
@@ -299,8 +317,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TArcClose2DNode}
-GeometryNotImplemented
+function TArcClose2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TArcClose2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TArcClose2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArcClose2DNode not implemented. }
+  Result := 0;
+end;
+
+function TArcClose2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TArcClose2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TCircle2DNode.CreateNode;
 begin
@@ -359,12 +395,12 @@ begin
     begin
       SinCos((I / SlicesNow) * 2 * Pi, AngleSin, AngleCos);
 
-      C.FdPoint.Items.L[I] := Vector3(
+      C.FdPoint.Items.List^[I] := Vector3(
         AngleSin * FdRadius.Value,
         AngleCos * FdRadius.Value, 0);
     end;
     { close the circle }
-    C.FdPoint.Items.L[SlicesNow] := C.FdPoint.Items.L[0];
+    C.FdPoint.Items.List^[SlicesNow] := C.FdPoint.Items.List^[0];
 
     LineSet.FdVertexCount.Items.Add(SlicesNow + 1);
   except FreeAndNil(Result); raise end;
@@ -408,8 +444,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TDisk2DNode}
-GeometryNotImplemented
+function TDisk2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TDisk2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TDisk2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TDisk2DNode not implemented. }
+  Result := 0;
+end;
+
+function TDisk2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TDisk2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TPolyline2DNode.CreateNode;
 begin
@@ -436,8 +490,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TPolyline2DNode}
-GeometryNotImplemented
+function TPolyline2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TPolyline2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TPolyline2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolyline2DNode not implemented. }
+  Result := 0;
+end;
+
+function TPolyline2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolyline2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TPolypoint2DNode.CreateNode;
 begin
@@ -460,8 +532,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TPolypoint2DNode}
-GeometryNotImplemented
+function TPolypoint2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TPolypoint2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TPolypoint2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolypoint2DNode not implemented. }
+  Result := 0;
+end;
+
+function TPolypoint2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TPolypoint2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure TRectangle2DNode.CreateNode;
 begin
@@ -509,17 +599,17 @@ begin
 
     { calculate Coord, TexCoord contents }
 
-    Coord.FdPoint.Items.L[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[0] := Vector2(0, 0);
+    Coord.FdPoint.Items.List^[0] := Vector3(-Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[0] := Vector2(0, 0);
 
-    Coord.FdPoint.Items.L[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[1] := Vector2(1, 0);
+    Coord.FdPoint.Items.List^[1] := Vector3( Size[0] / 2, -Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[1] := Vector2(1, 0);
 
-    Coord.FdPoint.Items.L[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[2] := Vector2(1, 1);
+    Coord.FdPoint.Items.List^[2] := Vector3( Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[2] := Vector2(1, 1);
 
-    Coord.FdPoint.Items.L[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
-    TexCoord.FdPoint.Items.L[3] := Vector2(0, 1);
+    Coord.FdPoint.Items.List^[3] := Vector3(-Size[0] / 2,  Size[1] / 2, 0);
+    TexCoord.FdPoint.Items.List^[3] := Vector2(0, 1);
 
     QuadSet.FdSolid.Value := Solid;
   except FreeAndNil(Result); raise end;
@@ -562,8 +652,26 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TTriangleSet2DNode}
-GeometryNotImplemented
+function TTriangleSet2DNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TTriangleSet2DNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TTriangleSet2DNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TTriangleSet2DNode not implemented. }
+  Result := 0;
+end;
+
+function TTriangleSet2DNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TTriangleSet2DNode not implemented. }
+  Result := 0;
+end;
 
 procedure RegisterGeometry2DNodes;
 begin

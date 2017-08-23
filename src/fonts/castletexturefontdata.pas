@@ -53,7 +53,7 @@ type
         ImageX, ImageY: Cardinal;
       end;
       { Map Unicode code to a TGlyph representation. }
-      TGlyphDictionary = class(specialize TDictionary<TUnicodeChar, TGlyph>)
+      TGlyphDictionary = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TUnicodeChar, TGlyph>)
       strict private
         FOwnsGlyphs: boolean;
         function GetItems(const AKey: TUnicodeChar): TGlyph;
@@ -345,12 +345,12 @@ begin
 
     if GlyphsCount <> 0 then
     begin
-      MaxWidth += GlyphPadding;
-      MaxHeight += GlyphPadding;
+      MaxWidth := MaxWidth + GlyphPadding;
+      MaxHeight := MaxHeight + GlyphPadding;
 
       ImageSize := 8;
       while (ImageSize div MaxHeight) * (ImageSize div MaxWidth) < GlyphsCount do
-        ImageSize *= 2;
+        ImageSize := ImageSize * 2;
 
       WritelnLog('Font', 'Creating image %dx%d to store glyphs of font "%s" (%d glyphs, max glyph size (including %d pixel padding) is %dx%d)',
         [ImageSize, ImageSize, URL, GlyphsCount, GlyphPadding, MaxWidth, MaxHeight]);
@@ -372,11 +372,11 @@ begin
 
           GetGlyphData(C, ImageX, ImageY);
 
-          ImageX += MaxWidth;
+          ImageX := ImageX + MaxWidth;
           if ImageX + MaxWidth >= ImageSize then
           begin
             ImageX := 0;
-            ImageY += MaxHeight;
+            ImageY := ImageY + MaxHeight;
           end;
         end;
       end;
@@ -465,7 +465,7 @@ begin
 
     G := Glyph(C);
     if G <> nil then
-      Result += G.AdvanceX;
+      Result := Result + G.AdvanceX;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);
   end;
@@ -519,8 +519,8 @@ begin
     G := Glyph(C);
     if G <> nil then
     begin
-      Result.Data[0] += G.AdvanceX;
-      Result.Data[1] += G.AdvanceY;
+      Result.Data[0] := Result.Data[0] + G.AdvanceX;
+      Result.Data[1] := Result.Data[1] + G.AdvanceY;
     end;
 
     C := UTF8CharacterToUnicode(TextPtr, CharLen);

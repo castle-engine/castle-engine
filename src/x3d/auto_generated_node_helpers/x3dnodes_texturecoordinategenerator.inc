@@ -26,11 +26,13 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetMode: string;
     procedure SetMode(const Value: string);
   public
     property Mode: string read GetMode write SetMode;
+    procedure SetParameter(const Value: array of Single);
+    procedure SetParameter(const Value: TSingleList);
 
 {$endif read_interface}
 
@@ -46,6 +48,16 @@ end;
 procedure TTextureCoordinateGeneratorNode.SetMode(const Value: string);
 begin
   FdMode.Send(Value);
+end;
+
+procedure TTextureCoordinateGeneratorNode.SetParameter(const Value: array of Single);
+begin
+  FdParameter.Send(Value);
+end;
+
+procedure TTextureCoordinateGeneratorNode.SetParameter(const Value: TSingleList);
+begin
+  FdParameter.Send(Value);
 end;
 
 {$endif read_implementation}

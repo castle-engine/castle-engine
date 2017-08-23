@@ -24,7 +24,12 @@ interface
 uses CastleVectors;
 
 type
-  TQuaternion = object
+  { Quaternions are useful to represent rotations in 3D
+    that can be easily applied and combined with other rotations.
+    Note that, while this structure (and some, but not all, of it's methods)
+    can handle @italic(any) quaternion, you are usually interested
+    @italic(only in @bold(unit quaternions), that can represent a 3D rotation). }
+  TQuaternion = record
     Data: packed record
       case Integer of
         0: (Vector: TVector3;
@@ -34,21 +39,30 @@ type
             Vector4: TVector4);
     end;
 
+    const
+      { Quaternion representing @italic("no rotation").
+        Note: this is @italic(not) a quaternion filled with zeros
+        (the @link(Real) component is 1.0), instead this is a unit quaternion
+        that correctly represents @italic("rotation by zero degrees/radians"). }
+      ZeroRotation: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+
     { Calculate axis (will be normalized) and angle (will be in radians)
       of rotation encoded in unit quaternion Q.
       This is the reverse of QuatFromAxisAngle. }
-    procedure ToAxisAngle(out Axis: TVector3; out AngleRad: Single);
+    procedure ToAxisAngle(out Axis: TVector3; out AngleRad: Single); overload;
 
     { Convert quaternion to a rotation axis and angle encoded in 4D vector.
       Axis is normalized if quaternion was also normalized
       (which is true if working with rotation quaternions).
       Angle is in radians. }
-    function ToAxisAngle: TVector4;
+    function ToAxisAngle: TVector4; overload;
 
     { Calculate matrix doing rotation described by unit quaternion. }
     function ToRotationMatrix: TMatrix4;
 
-    { Rotate by unit quaternion.
+    { Rotate a point, treating this quaternion as a representation of 3D rotation.
+      For this operation to make sense in 3D, this must be a "unit" quaternion
+      (which is created by a function like @link(QuatFromAxisAngle)).
 
       You can pass here TVector4, which is then understood to be a 3D
       position in homogeneous coordinates.
@@ -57,15 +71,17 @@ type
     function Rotate(const Point: TVector3): TVector3; overload;
     { @groupEnd }
 
-    { Quaternion conjugation. This is just a fancy name for negating Q.Vector.
+    { Quaternion conjugation. This is just a fancy name for negating @link(Vector).
       @groupBegin }
     function Conjugate: TQuaternion;
     procedure ConjugateMe;
     { @groupEnd }
 
-    procedure Normalize;
+    { Make the quaternion normalized. }
+    procedure NormalizeMe;
+    procedure Normalize; deprecated 'use NormalizeMe (consistent with TVector3.NormalizeMe and TQuaternion.ConjugateMe)';
 
-    { Perform normalization, only if the quaternion is detected to be
+    { Perform normalization but only if the quaternion is detected to be
       "significantly unnormalized". It checks if the quaternion needs
       normalization using fast VectorLenSqr, that is quaternion length
       is not needed for the check (sqrt not needed). Only if it's significantly
@@ -89,11 +105,24 @@ type
       So possibly this would trigger incorrect quaternions at some point.
 
       Anyway, this remains mostly a paranoid correctness measure.  }
-    procedure LazyNormalize;
+    procedure LazyNormalizeMe;
+    procedure LazyNormalize; deprecated 'use LazyNormalizeMe';
+
+    { Multiply two quaternions.
+
+      Geometric interpretation: If these are unit quaternions representing
+      rotations, multiplying them calculates one rotation that has the same
+      effect as rotating by Q2 and then by Q1.
+
+      Normal of result is equal to norm of Q1 * norm of Q2 (in particular,
+      multiplying unit quaternions (used for rotations) yields another unit
+      quaternion for sure). }
+    class operator {$ifdef FPC}*{$else}Multiply{$endif} (const Q1, Q2: TQuaternion): TQuaternion;
   end;
 
 const
-  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
+  QuatIdentityRot: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1))
+    deprecated 'use TQuaternion.ZeroRotation';
 
 { Calculate unit quaternion representing rotation around Axis
   by AngleRad angle (in radians).
@@ -103,20 +132,9 @@ const
   get non-normalized quaternion that doesn't represent rotation,
   and is usually useless for us. }
 function QuatFromAxisAngle(const Axis: TVector3;
-  const AngleRad: Single; const NormalizeAxis: boolean = false): TQuaternion;
+  const AngleRad: Single; const NormalizeAxis: boolean = false): TQuaternion; overload;
 function QuatFromAxisAngle(const AxisAngle: TVector4;
-  const NormalizeAxis: boolean = false): TQuaternion;
-
-{ Multiply two quaternions.
-
-  Geometric interpretation: If these are unit quaternions representing
-  rotations, multiplying them calculates one rotation that has the same
-  effect as rotating by Q2 and then by Q1.
-
-  Normal of result is equal to norm of Q1 * norm of Q2 (in particular,
-  multiplying unit quaternions (used for rotations) yields another unit
-  quaternion for sure). }
-operator* (const Q1, Q2: TQuaternion): TQuaternion;
+  const NormalizeAxis: boolean = false): TQuaternion; overload;
 
 { Interpolate between two rotations, along the shortest path on the unit sphere,
   with constant speed.
@@ -128,8 +146,8 @@ operator* (const Q1, Q2: TQuaternion): TQuaternion;
   This is nice e.g. to interpolate VRML/X3D rotations.
 
   @groupBegin }
-function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion;
-function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4;
+function SLerp(const A: Single; const Q1, Q2: TQuaternion): TQuaternion; overload;
+function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4; overload;
 { @groupEnd }
 
 { Interpolate between two rotations, along the straightest path on the unit sphere.
@@ -153,9 +171,9 @@ function SLerp(const A: Single; const Rot1, Rot2: TVector4): TVector4;
 
   @groupBegin }
 function NLerp(const A: Single; const Q1, Q2: TQuaternion;
-  const ForceShortestPath: boolean = true): TQuaternion;
+  const ForceShortestPath: boolean = true): TQuaternion; overload;
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;
-  const ForceShortestPath: boolean = true): TVector4;
+  const ForceShortestPath: boolean = true): TVector4; overload;
 { @groupEnd }
 
 implementation
@@ -268,6 +286,11 @@ begin
 end;
 
 procedure TQuaternion.Normalize;
+begin
+  NormalizeMe;
+end;
+
+procedure TQuaternion.NormalizeMe;
 var
   Len: Single;
 begin
@@ -275,14 +298,19 @@ begin
   if Len <> 0 then
   begin
     Len := 1/Len;
-    Data.Vector.Data[0] *= Len;
-    Data.Vector.Data[1] *= Len;
-    Data.Vector.Data[2] *= Len;
-    Data.Real *= Len;
+    Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
+    Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
+    Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+    Data.Real := Data.Real * Len;
   end;
 end;
 
 procedure TQuaternion.LazyNormalize;
+begin
+  LazyNormalizeMe;
+end;
+
+procedure TQuaternion.LazyNormalizeMe;
 var
   Len: Single;
 begin
@@ -294,12 +322,23 @@ begin
     if Len <> 0 then
     begin
       Len := 1/Len;
-      Data.Vector.Data[0] *= Len;
-      Data.Vector.Data[1] *= Len;
-      Data.Vector.Data[2] *= Len;
-      Data.Real *= Len;
+      Data.Vector.Data[0] := Data.Vector.Data[0] * Len;
+      Data.Vector.Data[1] := Data.Vector.Data[1] * Len;
+      Data.Vector.Data[2] := Data.Vector.Data[2] * Len;
+      Data.Real := Data.Real * Len;
     end;
   end;
+end;
+
+class operator TQuaternion.{$ifdef FPC}*{$else}Multiply{$endif} (const Q1, Q2: TQuaternion): TQuaternion;
+begin
+  Result.Data.Vector :=
+    TVector3.CrossProduct(Q1.Data.Vector, Q2.Data.Vector) +
+    (Q1.Data.Vector * Q2.Data.Real) +
+    (Q2.Data.Vector * Q1.Data.Real);
+
+  Result.Data.Real := Q1.Data.Real * Q2.Data.Real -
+    TVector3.DotProduct(Q1.Data.Vector, Q2.Data.Vector);
 end;
 
 { routines ------------------------------------------------------------------- }
@@ -313,7 +352,7 @@ begin
   SinCos(AngleRad / 2, SinHalfAngle, CosHalfAngle);
 
   if NormalizeAxis then
-    SinHalfAngle /= Axis.Length;
+    SinHalfAngle := SinHalfAngle / Axis.Length;
 
   Result.Data.Vector := Axis * SinHalfAngle;
   Result.Data.Real := CosHalfAngle;
@@ -325,17 +364,6 @@ var
   Axis: TVector3 absolute AxisAngle;
 begin
   Result := QuatFromAxisAngle(Axis, AxisAngle.Data[3], NormalizeAxis);
-end;
-
-operator* (const Q1, Q2: TQuaternion): TQuaternion;
-begin
-  Result.Data.Vector :=
-    TVector3.CrossProduct(Q1.Data.Vector, Q2.Data.Vector) +
-    (Q1.Data.Vector * Q2.Data.Real) +
-    (Q2.Data.Vector * Q1.Data.Real);
-
-  Result.Data.Real := Q1.Data.Real * Q2.Data.Real -
-    TVector3.DotProduct(Q1.Data.Vector, Q2.Data.Vector);
 end;
 
 { For SLerp and NLerp implementations, see
@@ -408,7 +436,7 @@ begin
   end else
     Result.Data.Vector4 := Lerp(A, Q1.Data.Vector4, Q2.Data.Vector4);
 
-  Result.Normalize;
+  Result.NormalizeMe;
 end;
 
 function NLerp(const A: Single; const Rot1, Rot2: TVector4;

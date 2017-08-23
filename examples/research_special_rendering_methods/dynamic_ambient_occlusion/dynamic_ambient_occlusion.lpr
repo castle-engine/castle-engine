@@ -29,7 +29,8 @@ program dynamic_ambient_occlusion;
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  CastleVectors, CastleGL, CastleWindow, CastleTriangles,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleWindow, CastleTriangles,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
   CastleGLUtils, CastleSceneCore, CastleScene, Castle3D, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
@@ -61,7 +62,7 @@ type
     Position, Normal: TVector3;
   end;
   PAOElement = ^TAOElement;
-  TAOElementList = specialize TStructList<TAOElement>;
+  TAOElementList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TAOElement>;
 
 var
   Elements: TAOElementList;
@@ -108,25 +109,25 @@ begin
   end;
 
   FaceNormal := IndexedConvexPolygonNormal(
-    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    PLongIntArray(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate normals in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
+    PVector3Array(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement),
     Vector3(0, 0, 0));
 
   { We assume here that polygon is convex, while in fact it doesn't
     have to be. But this will be a good approximation anyway, usually. }
 
   FaceArea := IndexedConvexPolygonArea(
-    PArray_LongInt(DirectIndexes), Length(DirectIndexes),
+    PLongIntArray(DirectIndexes), Length(DirectIndexes),
     { I pass ShapeElements, not Coord.List, pointer here,
       to calculate area in world-coordinates (that are
       in ShapeElements[*].Position). }
-    PVector3(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
+    PVector3Array(Addr(ShapeElements[0].Position)), Coord.Count, SizeOf(TAOElement));
 
   { Split FaceArea into the number of polygon corners. }
-  FaceArea /= Length(Indexes);
+  FaceArea := FaceArea / Length(Indexes);
 
   for I := 0 to Length(Indexes) - 1 do
     if DirectIndexes[I] >= 0 then
@@ -134,7 +135,7 @@ begin
       ShapeElements[DirectIndexes[I]].Normal :=
         ShapeElements[DirectIndexes[I]].Normal + FaceNormal;
       { Split FaceArea into the number of polygon corners. }
-      ShapeElements[DirectIndexes[I]].Area += FaceArea;
+      ShapeElements[DirectIndexes[I]].Area := ShapeElements[DirectIndexes[I]].Area + FaceArea;
     end;
 end;
 
@@ -150,7 +151,7 @@ procedure CalculateElements;
   begin
     Shapes[ShapeIndex].Shape := Shape;
 
-    if Shape.Geometry.Coord(Shape.State, Coord) and (Coord <> nil) then
+    if Shape.Geometry.InternalCoord(Shape.State, Coord) and (Coord <> nil) then
     begin
       { Grow Elements array }
       ShapeElementIndex := Elements.Count;
@@ -178,11 +179,11 @@ procedure CalculateElements;
       Calculator := TElementsCalculator.Create;
       try
         Calculator.Coord := Coord.Items;
-        if Shape.Geometry.CoordIndex <> nil then
-          Calculator.CoordIndex := Shape.Geometry.CoordIndex.Items else
+        if Shape.Geometry.CoordIndexField <> nil then
+          Calculator.CoordIndex := Shape.Geometry.CoordIndexField.Items else
           Calculator.CoordIndex := nil;
         Calculator.ShapeElements := ShapeElements;
-        Shape.Geometry.CoordPolygons(Shape.State, @Calculator.Polygon);
+        Shape.Geometry.InternalCoordPolygons(Shape.State, @Calculator.Polygon);
       finally FreeAndNil(Calculator) end;
 
       { Normalize all new normals }
@@ -383,8 +384,8 @@ begin
   ElementsNormalTex := TRGBImage.Create(ElementsTexSize, ElementsTexSize);
 
   { fill textures }
-  PositionArea := ElementsPositionAreaTex.AlphaPixels;
-  Normal := ElementsNormalTex.RGBPixels;
+  PositionArea := ElementsPositionAreaTex.Pixels;
+  Normal := ElementsNormalTex.Pixels;
   Element := PAOElement(Elements.List);
   for I := 0 to Elements.Count - 1 do
   begin
@@ -486,7 +487,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
         glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Vector4(1, 1, 0, 1));
       end else
       begin
-        ElementIntensity := ElementsIntensityTex.GrayscalePixels;
+        ElementIntensity := ElementsIntensityTex.Pixels;
       end;
 
       Q := NewGLUQuadric(false, GLU_FLAT, GLU_OUTSIDE, GLU_FILL);
@@ -577,7 +578,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
   var
     SavedProjectionMatrix: TMatrix4;
   begin
-    SavedProjectionMatrix := ProjectionMatrix;
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
     OrthoProjection(FloatRectangle(Window.Rect));
 
     glPushMatrix;
@@ -609,7 +610,7 @@ procedure TMySceneManager.RenderFromView3D(const Params: TRenderParams);
 
     glPopMatrix;
 
-    ProjectionMatrix := SavedProjectionMatrix;
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
   end;
 
 var
@@ -692,10 +693,10 @@ begin
   if ElemIndex = -1 then
     Color := TVector3.Zero { element invalid, probably separate vertex } else
   begin
-    Intensity := FullRenderIntensityTex.GrayscalePixels[ElemIndex]/255;
-    Color.Data[0] *= Intensity;
-    Color.Data[1] *= Intensity;
-    Color.Data[2] *= Intensity;
+    Intensity := FullRenderIntensityTex.Pixels[ElemIndex]/255;
+    Color.Data[0] := Color.Data[0] * Intensity;
+    Color.Data[1] := Color.Data[1] * Intensity;
+    Color.Data[2] := Color.Data[2] * Intensity;
   end;
 end;
 
@@ -801,12 +802,12 @@ procedure Update(Container: TUIContainer);
 begin
   if Window.Pressed.Characters['s'] then
   begin
-    ShadowScale *= Power(1.1, Window.Fps.UpdateSecondsPassed * 20);
+    ShadowScale := ShadowScale * (Power(1.1, Window.Fps.UpdateSecondsPassed * 20));
     Window.Invalidate;
   end;
   if Window.Pressed.Characters['S'] then
   begin
-    ShadowScale *= Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20);
+    ShadowScale := ShadowScale * (Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20));
     Window.Invalidate;
   end;
 end;

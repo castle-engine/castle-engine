@@ -26,11 +26,29 @@
 
 {$ifdef read_interface}
 
+  strict private
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
+  public
+    property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractTexture2DNode ----------------------------------------------- }
+
+function TAbstractTexture2DNode.GetTextureProperties: TTexturePropertiesNode;
+begin
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractTexture2DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
+end;
 
 {$endif read_implementation}

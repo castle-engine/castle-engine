@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of LongInt);
+    procedure SetKeyValue(const Value: TLongIntList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TIntegerSequencerNode ----------------------------------------------- }
+
+procedure TIntegerSequencerNode.SetKeyValue(const Value: array of LongInt);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TIntegerSequencerNode.SetKeyValue(const Value: TLongIntList);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

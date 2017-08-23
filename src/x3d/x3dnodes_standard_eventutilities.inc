@@ -17,16 +17,16 @@
   { Base node type from which all sequencers (like @link(TIntegerSequencerNode)
     and @link(TBooleanSequencerNode)) are derived. }
   TAbstractSequencerNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_FractionReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure EventNextReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
     procedure EventPreviousReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
-  private
+  strict private
     FCurrentKeyRange: Integer;
-  protected
+  strict protected
     { Analogous to TAbstractInterpolatorNode.KeyRange. }
     function KeyRange(const Fraction: Single): Integer;
 
@@ -58,21 +58,21 @@
     procedure CreateNode; override;
 
     { Event in } { }
-    private FEventNext: TSFBoolEvent;
+    strict private FEventNext: TSFBoolEvent;
     public property EventNext: TSFBoolEvent read FEventNext;
 
     { Event in } { }
-    private FEventPrevious: TSFBoolEvent;
+    strict private FEventPrevious: TSFBoolEvent;
     public property EventPrevious: TSFBoolEvent read FEventPrevious;
 
     { Event in } { }
-    private FEventSet_fraction: TSFFloatEvent;
+    strict private FEventSet_fraction: TSFFloatEvent;
     public property EventSet_fraction: TSFFloatEvent read FEventSet_fraction;
 
-    private FFdKey: TMFFloat;
+    strict private FFdKey: TMFFloat;
     public property FdKey: TMFFloat read FFdKey;
 
-    private FFdForceContinousValue_Changed: TSFBool;
+    strict private FFdForceContinousValue_Changed: TSFBool;
     public property FdForceContinousValue_Changed: TSFBool read FFdForceContinousValue_Changed;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dsequencernode.inc}
@@ -89,7 +89,7 @@
   { Filters boolean events, allowing for selective routing
     of TRUE or FALSE values and negation. }
   TBooleanFilterNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -98,19 +98,19 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_boolean: TSFBoolEvent;
+    strict private FEventSet_boolean: TSFBoolEvent;
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     { Event out } { }
-    private FEventInputFalse: TSFBoolEvent;
+    strict private FEventInputFalse: TSFBoolEvent;
     public property EventInputFalse: TSFBoolEvent read FEventInputFalse;
 
     { Event out } { }
-    private FEventInputNegate: TSFBoolEvent;
+    strict private FEventInputNegate: TSFBoolEvent;
     public property EventInputNegate: TSFBoolEvent read FEventInputNegate;
 
     { Event out } { }
-    private FEventInputTrue: TSFBoolEvent;
+    strict private FEventInputTrue: TSFBoolEvent;
     public property EventInputTrue: TSFBoolEvent read FEventInputTrue;
 
     {$I auto_generated_node_helpers/x3dnodes_booleanfilter.inc}
@@ -118,7 +118,7 @@
 
   { Generate sequential boolean events. }
   TBooleanSequencerNode = class(TAbstractSequencerNode)
-  protected
+  strict protected
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TX3DTime); override;
   public
@@ -126,11 +126,11 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdKeyValue: TMFBool;
+    strict private FFdKeyValue: TMFBool;
     public property FdKeyValue: TMFBool read FFdKeyValue;
 
     { Event out } { }
-    private FEventValue_changed: TSFBoolEvent;
+    strict private FEventValue_changed: TSFBoolEvent;
     public property EventValue_changed: TSFBoolEvent read FEventValue_changed;
 
     {$I auto_generated_node_helpers/x3dnodes_booleansequencer.inc}
@@ -138,7 +138,7 @@
 
   { Stores a boolean value for toggling on/off. }
   TBooleanToggleNode = class(TAbstractChildNode)
-  private
+  strict private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -147,10 +147,10 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_boolean: TSFBoolEvent;
+    strict private FEventSet_boolean: TSFBoolEvent;
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
-    private FFdToggle: TSFBool;
+    strict private FFdToggle: TSFBool;
     public property FdToggle: TSFBool read FFdToggle;
 
     {$I auto_generated_node_helpers/x3dnodes_booleantoggle.inc}
@@ -158,7 +158,7 @@
 
   { Trigger node that generates Boolean events upon receiving time events. }
   TBooleanTriggerNode = class(TAbstractTriggerNode)
-  private
+  strict private
     procedure EventSet_triggerTimeReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -167,11 +167,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_triggerTime: TSFTimeEvent;
+    strict private FEventSet_triggerTime: TSFTimeEvent;
     public property EventSet_triggerTime: TSFTimeEvent read FEventSet_triggerTime;
 
     { Event out } { }
-    private FEventTriggerTrue: TSFBoolEvent;
+    strict private FEventTriggerTrue: TSFBoolEvent;
     public property EventTriggerTrue: TSFBoolEvent read FEventTriggerTrue;
 
     {$I auto_generated_node_helpers/x3dnodes_booleantrigger.inc}
@@ -181,7 +181,7 @@
     For example, it can be driven by a TimeSensor and iterate over a series
     of nodes by animating Switch.whichChoice. }
   TIntegerSequencerNode = class(TAbstractSequencerNode)
-  protected
+  strict protected
     procedure SendValueChanged(const ValueIndex: Integer;
       const Time: TX3DTime); override;
   public
@@ -189,11 +189,11 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdKeyValue: TMFInt32;
+    strict private FFdKeyValue: TMFInt32;
     public property FdKeyValue: TMFInt32 read FFdKeyValue;
 
     { Event out } { }
-    private FEventValue_changed: TSFInt32Event;
+    strict private FEventValue_changed: TSFInt32Event;
     public property EventValue_changed: TSFInt32Event read FEventValue_changed;
 
     {$I auto_generated_node_helpers/x3dnodes_integersequencer.inc}
@@ -201,7 +201,7 @@
 
   { Generate an integer upon receiving any boolean value. }
   TIntegerTriggerNode = class(TAbstractTriggerNode)
-  private
+  strict private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -210,14 +210,14 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_boolean: TSFBoolEvent;
+    strict private FEventSet_boolean: TSFBoolEvent;
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
-    private FFdIntegerKey: TSFInt32;
+    strict private FFdIntegerKey: TSFInt32;
     public property FdIntegerKey: TSFInt32 read FFdIntegerKey;
 
     { Event out } { }
-    private FEventTriggerValue: TSFInt32Event;
+    strict private FEventTriggerValue: TSFInt32Event;
     public property EventTriggerValue: TSFInt32Event read FEventTriggerValue;
 
     {$I auto_generated_node_helpers/x3dnodes_integertrigger.inc}
@@ -225,7 +225,7 @@
 
   { Generate time events upon receiving any boolean value. }
   TTimeTriggerNode = class(TAbstractTriggerNode)
-  private
+  strict private
     procedure EventSet_BooleanReceive(Event: TX3DEvent; Value: TX3DField;
       const Time: TX3DTime);
   public
@@ -234,11 +234,11 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_boolean: TSFBoolEvent;
+    strict private FEventSet_boolean: TSFBoolEvent;
     public property EventSet_boolean: TSFBoolEvent read FEventSet_boolean;
 
     { Event out } { }
-    private FEventTriggerTime: TSFTimeEvent;
+    strict private FEventTriggerTime: TSFTimeEvent;
     public property EventTriggerTime: TSFTimeEvent read FEventTriggerTime;
 
     {$I auto_generated_node_helpers/x3dnodes_timetrigger.inc}
@@ -255,15 +255,15 @@ begin
 
   FEventNext := TSFBoolEvent.Create(Self, 'next', true);
   AddEvent(FEventNext);
-  EventNext.OnReceive.Add(@EventNextReceive);
+  EventNext.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventNextReceive);
 
   FEventPrevious := TSFBoolEvent.Create(Self, 'previous', true);
   AddEvent(FEventPrevious);
-  EventPrevious.OnReceive.Add(@EventPreviousReceive);
+  EventPrevious.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventPreviousReceive);
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventSet_fraction);
-  EventSet_Fraction.OnReceive.Add(@EventSet_FractionReceive);
+  EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 
   FFdKey := TMFFloat.Create(Self, 'key', []);
   AddField(FFdKey);
@@ -383,7 +383,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
+  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
   FEventInputFalse := TSFBoolEvent.Create(Self, 'inputFalse', false);
   AddEvent(FEventInputFalse);
@@ -459,7 +459,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
+  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
   FFdToggle := TSFBool.Create(Self, 'toggle', false);
   AddField(FFdToggle);
@@ -494,7 +494,7 @@ begin
 
   FEventSet_triggerTime := TSFTimeEvent.Create(Self, 'set_triggerTime', true);
   AddEvent(FEventSet_triggerTime);
-  FEventSet_triggerTime.OnReceive.Add(@EventSet_triggerTimeReceive);
+  FEventSet_triggerTime.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_triggerTimeReceive);
 
   FEventTriggerTrue := TSFBoolEvent.Create(Self, 'triggerTrue', false);
   AddEvent(FEventTriggerTrue);
@@ -559,7 +559,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add(@EventSet_booleanReceive);
+  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
@@ -596,7 +596,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add(@EventSet_BooleanReceive);
+  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
   FEventTriggerTime := TSFTimeEvent.Create(Self, 'triggerTime', false);
   AddEvent(FEventTriggerTime);

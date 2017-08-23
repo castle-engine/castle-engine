@@ -61,6 +61,10 @@ type
     procedure SetCount(const Value: Integer);
     function GetL(const Index: Integer): string;
     procedure SetL(const Index: Integer; const S: string);
+  {$ifndef FPC}
+  protected
+    function DoCompareText(const A, B: string): Integer;
+  {$endif}
   public
     constructor Create;
     property Count: Integer read GetCount write SetCount;
@@ -68,15 +72,38 @@ type
     { Add strings from Source list.
       Alias for AddStrings, useful for usage with macros,
       since it's consistent with AddRange in other lists. }
-    procedure AddRange(const Source: TStringList);
+    procedure AddRange(const Source: TStringList); overload;
     procedure AddList(const Source: TStringList); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AddRange(const A: array of string);
+    procedure AddRange(const A: array of string); overload;
     procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
 
-    procedure AssignArray(const A: array of string);
-    function Equal(List: TCastleStringList): boolean; overload;
-    function Equal(const A: array of string): boolean; overload;
+    procedure AssignArray(const A: array of string); deprecated 'use Assign';
+    procedure Assign(const A: array of string); overload;
+
+    { Does another string list have equal length and content.
+
+      Any other TStrings descendant may be equal to this instance,
+      we don't require it to be a TCastleStringList instance.
+      We also don't check all the properties, like Delimiter or such.
+      We only compare the contents: count, and actual strings.
+
+      The comparison is case-sensitive, or not, depending on the value
+      of CaseSensitive property of this list. }
+    function Equals(SecondValue: TObject): boolean;
+      // In Delphi, they have non-virtual TStringList.Equals that hides virtual TObject.Equals...
+      {$ifdef FPC} override; {$endif}
+      overload;
+
+    function Equals(const A: array of string): boolean; overload;
+
+    { Does the SecondValue have equal length and content.
+
+      This method does the same thing as @link(Equals).
+      It is defined for consistency -- on some lists, like @link(TSingleList),
+      there is an important difference between Equals (compares with some
+      epsilon tolerance) and PerfectlyEquals. }
+    function PerfectlyEquals(SecondValue: TObject): boolean;
 
     { Reverse the order of items on the array. }
     procedure Reverse;
@@ -84,13 +111,13 @@ type
     { Access strings. This is exactly equivalent to just using standard
       TStringList.Strings property, and is useful only for implementing macros
       that work for both TCastleStringList and TStructList. }
-    property L[Index: Integer]: string read GetL write SetL;
+    property L[const Index: Integer]: string read GetL write SetL;
   end;
 
   { String-to-string map. Note that in simple cases you can also
     use standard TStringList functionality (see it's properties Names, Values),
     but this is better if your key/values may be multiline. }
-  TStringStringMap = class(specialize TDictionary<string, string>)
+  TStringStringMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, string>)
   strict private
     function GetItems(const AKey: string): string;
     procedure SetItems(const AKey: string; const AValue: string);
@@ -126,7 +153,7 @@ type
   TSetOfChars = SysUtils.TSysCharSet;
 
 const
-  AllChars = [Low(Char) .. High(Char)];
+  AllChars = [Low(AnsiChar) .. High(AnsiChar)];
   DefaultWordBorders = AllChars - ['a'..'z', 'A'..'Z', '0'..'9', '_'];
   WhiteSpaces = [' ', #9, #10, #13];
   SimpleAsciiCharacters = [#32 .. #126];
@@ -277,8 +304,8 @@ function SCharIs(const s: string; index: integer; const chars: TSetOfChars): boo
 { Replace typically unreadable characters in string S with #number notation.
   Useful for printing strings with some unprintable chars for
   debugging purposes. }
-function SReadableForm(const s: string): string;
-function SReadableForm(const C: char): string;
+function SReadableForm(const s: string): string; overload;
+function SReadableForm(const C: char): string; overload;
 
 { Return S[StartPosition..EndPosition].
   This is similar to standard Copy procedure,
@@ -394,10 +421,10 @@ function SplitString(const S: string; const Delimiter: char): TCastleStringList;
 { Concatenate the string list with a given Delimiter.
   This is the reverse of SplitString.
   @groupBegin }
-function GlueStrings(const Strings: array of string; const Delimiter: char): string;
-function GlueStrings(const Strings: array of string; const Delimiter: string): string;
-function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
-function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
+function GlueStrings(const Strings: array of string; const Delimiter: char): string; overload;
+function GlueStrings(const Strings: array of string; const Delimiter: string): string; overload;
+function GlueStrings(const Strings: TStrings; const Delimiter: char): string; overload;
+function GlueStrings(const Strings: TStrings; const Delimiter: string): string; overload;
 { @groupEnd }
 
 { Find substring SubText within Text. Returns 0 if not found.
@@ -531,6 +558,7 @@ function TryDeFormat(Data: string; const Format: string;
   const IgnoreCase: boolean = true;
   const RelaxedWhitespaceChecking: boolean = true): integer; overload;
 
+{$ifdef FPC}
 { Extract file extensions from a file filter usually specified
   a TOpenDialog.Filter value.
 
@@ -543,6 +571,7 @@ function TryDeFormat(Data: string; const Format: string;
   filenames. For example above, we would set Extensions to array
   with two items: @code(['.ext1', '.ext2']). }
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
+  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
 
 { Extract file filter name, from a file filter usually specified
   a TOpenDialog.Filter value.
@@ -559,6 +588,7 @@ procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
   semicolons, extensions within parenthesis on the left of "|" may
   be separated by semicolons ";" or colons ",". }
 function GetFileFilterName(const FileFilter: string): string;
+  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
 
 { Search in FileFilter for the bar character "|", and return everything
   after it. This is a simple basis for GetFileFilterExts.
@@ -567,10 +597,12 @@ function GetFileFilterName(const FileFilter: string): string;
   file filter without "|" is treated as just a filter name, without
   any extensions). }
 function GetFileFilterExtsStr(const FileFilter: string): string;
+  deprecated 'use TFileFilter and TFileFilterList, and then you will not have to deconstruct your filters back from string';
+{$endif}
 
 { Replace all strings in Patterns with corresponding strings in Values.
   This is similar to standard StringReplace, but this does many
-  replacements at once. This is just like StrUtils.StringsReplace nowadays.
+  replacements at once. This is just like StrUtils.StringsReplace in FPC.
 
   Patterns and Values arrays must have equal length.
   Patterns[0] will be replaced with Values[0], Patterns[1] with Values[0] etc.
@@ -598,9 +630,9 @@ function GetFileFilterExtsStr(const FileFilter: string): string;
   content many times, which is usually not what you want.
 
   That's why you should instead use this function for such situations. }
-function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string;
-function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string;
-function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string;
+function SReplacePatterns(const s: string; const patterns, values: array of string; const IgnoreCase: boolean): string; overload;
+function SReplacePatterns(const s: string; const patterns, values: TStrings; const IgnoreCase: boolean): string; overload;
+function SReplacePatterns(const s: string; const Parameters: TStringStringMap; const IgnoreCase: boolean): string; overload;
 
 function SCharsCount(const s: string; c: char): Cardinal; overload;
 function SCharsCount(const s: string; const Chars: TSetOfChars): Cardinal; overload;
@@ -744,9 +776,9 @@ function SPercentReplace(const InitialFormat: string;
   @groupBegin }
 function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean;
-  out ReplacementsDone: Cardinal): string;
+  out ReplacementsDone: Cardinal): string; overload;
 function FormatNameCounter(const NamePattern: string;
-  const Index: Integer; const AllowOldPercentSyntax: boolean): string;
+  const Index: Integer; const AllowOldPercentSyntax: boolean): string; overload;
 { @groupEnd }
 
 { conversions ------------------------------------------------------------ }
@@ -764,8 +796,8 @@ function IntToStrZPad(n: integer; minLength: integer): string;
 
 { Convert integer to string, inserting additional Separator to visually delimit
   thousands, milions etc. }
-function IntToStrThousands(const Value: Int64; const Separator: char): string;
-function IntToStrThousands(const Value: Int64; const Separator: string): string;
+function IntToStrThousands(const Value: Int64; const Separator: char): string; overload;
+function IntToStrThousands(const Value: Int64; const Separator: string): string; overload;
 
 { Convert integer to string, in base-Base (like base-16) numeral system.
   For digits above '9', we will use upper letters 'A', 'B'...  etc.
@@ -933,7 +965,7 @@ const
 
 implementation
 
-uses Regexpr, StrUtils,
+uses {$ifdef FPC} Regexpr {$else} RegularExpressions {$endif}, StrUtils,
   CastleLog;
 
 { TStringsHelper ------------------------------------------------------------- }
@@ -996,6 +1028,11 @@ end;
 
 procedure TCastleStringList.AssignArray(const A: array of string);
 begin
+  Assign(A);
+end;
+
+procedure TCastleStringList.Assign(const A: array of string);
+begin
   Clear;
   AddRange(A);
 end;
@@ -1011,18 +1048,35 @@ begin
     Exchange(I, Count - 1 - I);
 end;
 
-function TCastleStringList.Equal(List: TCastleStringList): boolean;
+{$ifndef FPC}
+function TCastleStringList.DoCompareText(const A, B: string): Integer;
+begin
+  if CaseSensitive then
+    Result := AnsiCompareStr(A, B)
+  else
+    Result := AnsiCompareText(A, B);
+end;
+{$endif}
+
+function TCastleStringList.Equals(SecondValue: TObject): boolean;
 var
   I: Integer;
 begin
-  if List.Count <> Count then Exit(false);
-  for I := 0 to Count - 1 do
-    if DoCompareText(List[I], Strings[I]) <> 0 then
-      Exit(false);
-  Result := true;
+  Result := SecondValue is TStrings;
+  if Result then
+  begin
+    Result := Count = TStrings(SecondValue).Count;
+    if Result then
+      for I := 0 to Count - 1 do
+        if DoCompareText(Strings[I], TStrings(SecondValue)[I]) <> 0 then
+        begin
+          Result := false;
+          Exit;
+        end;
+  end;
 end;
 
-function TCastleStringList.Equal(const A: array of string): boolean;
+function TCastleStringList.Equals(const A: array of string): boolean;
 var
   I: Integer;
 begin
@@ -1031,6 +1085,11 @@ begin
     if DoCompareText(A[I], Strings[I]) <> 0 then
       Exit(false);
   Result := true;
+end;
+
+function TCastleStringList.PerfectlyEquals(SecondValue: TObject): boolean;
+begin
+  Result := Equals(SecondValue);
 end;
 
 function TCastleStringList.GetL(const Index: Integer): string;
@@ -1068,7 +1127,7 @@ end;
 
 procedure TStringStringMap.Assign(const Source: TStringStringMap);
 var
-  Pair: TDictionaryPair;
+  Pair: {$ifdef FPC} TDictionaryPair {$else} TPair<string, string> {$endif};
 begin
   Clear;
   for Pair in Source do
@@ -1361,7 +1420,7 @@ var
 begin
   Result := '';
   for I := 1 to Length(S) do
-    Result += SReadableForm(S[I]);
+    Result := Result + SReadableForm(S[I]);
 end;
 
 function SReadableForm(const C: char): string;
@@ -1471,7 +1530,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to High(Strings) do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function GlueStrings(const Strings: array of string; const Delimiter: string): string;
@@ -1482,7 +1541,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to High(Strings) do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function GlueStrings(const Strings: TStrings; const Delimiter: char): string;
@@ -1493,7 +1552,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to Strings.Count - 1 do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function GlueStrings(const Strings: TStrings; const Delimiter: string): string;
@@ -1504,7 +1563,7 @@ begin
     Exit('');
   Result := Strings[0];
   for I := 1 to Strings.Count - 1 do
-    Result += Delimiter + Strings[I];
+    Result := Result + Delimiter + Strings[I];
 end;
 
 function FindPos(const SubText, Text: string; StartPosition, Count: integer; const Options: TSearchOptions; const WordBorders: TSetOfChars): integer;
@@ -1755,13 +1814,16 @@ begin
     'data ''%s'' too long - unexpected end of format ''%s''', [Data, Format]);
 end;
 
+{$ifdef FPC}
 procedure GetFileFilterExts(const FileFilter: string; Extensions: TStringList);
 var
   p, SeekPos: integer;
   ExtsStr, filemask: string;
 begin
   Extensions.Clear;
+  {$warnings off} // using deprecated in deprecated
   ExtsStr := GetFileFilterExtsStr(FileFilter);
+  {$warnings on}
   SeekPos := 1;
   repeat
     filemask := NextToken(ExtsStr, SeekPos,[';']);
@@ -1844,6 +1906,7 @@ begin
     result := SEnding(FileFilter, p+1) else
     result := '';
 end;
+{$endif}
 
 function SReplacePatterns(const S: string;
   const Patterns, Values: array of string; const IgnoreCase: boolean): string;
@@ -2072,12 +2135,17 @@ type
   private
     Index: Integer;
     ReplacementsDone: Cardinal;
-    function ReplaceCallback(ARegExpr : TRegExpr): string;
+    function ReplaceCallback(
+      {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
   end;
 
-function TRegExprCounter.ReplaceCallback(ARegExpr : TRegExpr): string;
+function TRegExprCounter.ReplaceCallback(
+  {$ifdef FPC} ARegExpr: TRegExpr {$else} const Match: TMatch {$endif}): string;
+var
+  MatchedText: string;
 begin
-  Result := IntToStrZPad(Index, StrToInt(ARegExpr.Match[1]));
+  MatchedText := {$ifdef FPC} ARegExpr.Match[1] {$else} Match.Value {$endif};
+  Result := IntToStrZPad(Index, StrToInt(MatchedText));
   Inc(ReplacementsDone);
 end;
 
@@ -2085,16 +2153,20 @@ function FormatNameCounter(const NamePattern: string;
   const Index: Integer; const AllowOldPercentSyntax: boolean;
   out ReplacementsDone: Cardinal): string;
 var
-  R: TRegExpr;
+  R: {$ifdef FPC} TRegExpr {$else} TRegEx {$endif};
   C: TRegExprCounter;
 begin
+  {$ifdef FPC}
   R := TRegExpr.Create;
+  R.Expression := '@counter\(([\d]+)\)';
+  {$else}
+  R := TRegEx.Create('@counter\(([\d]+)\)');
+  {$endif}
   try
-    R.Expression := '@counter\(([\d]+)\)';
     C := TRegExprCounter.Create;
     try
       C.Index := Index;
-      Result := R.Replace(NamePattern, @C.ReplaceCallback);
+      Result := R.Replace(NamePattern, {$ifdef CASTLE_OBJFPC}@{$endif} C.ReplaceCallback);
       ReplacementsDone := C.ReplacementsDone;
     finally FreeAndNil(C) end;
   finally FreeAndNil(R) end;
@@ -2367,7 +2439,7 @@ begin
 
     Move(S[SPos], Result[ResultPos], NextSPos - SPos);
 
-    ResultPos += NextSPos - SPos;
+    ResultPos := ResultPos + NextSPos - SPos;
     SPos := NextSPos;
 
     { omit next white-space chunk }

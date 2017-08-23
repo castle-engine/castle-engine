@@ -147,22 +147,22 @@ type
       function CreateGlyph (c : TUnicodeChar) : PMgrGlyph;
       procedure MakeTransformation (angle:real; out Transformation:FT_Matrix);
       procedure InitMakeString (FontID, Size:integer);
-      function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
-      function MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+      function MakeString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps; overload;
+      function MakeString (FontId:integer; Text:string; Size:integer) : TStringBitmaps; overload;
     public
       { @raises EFreeTypeLibraryNotFound }
       constructor Create;
       destructor destroy; override;
-      function RequestFont (afilename:string) : integer;
-      function RequestFont (afilename:string; anindex:integer) : integer;
+      function RequestFont (afilename:string) : integer; overload;
+      function RequestFont (afilename:string; anindex:integer) : integer; overload;
       function GetFreeTypeFont (aFontID:integer) : PFT_Face;
-      function GetString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+      function GetString (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps; overload;
       // Black and white
-      function GetStringGray (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps;
+      function GetStringGray (FontId:integer; Text:string; size:integer; angle:real) : TStringBitmaps; overload;
       // Anti Aliased gray scale
-      function GetString (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+      function GetString (FontId:integer; Text:string; Size:integer) : TStringBitmaps; overload;
       // Black and white, following the direction of the font (left to right, top to bottom, ...)
-      function GetStringGray (FontId:integer; Text:string; Size:integer) : TStringBitmaps;
+      function GetStringGray (FontId:integer; Text:string; Size:integer) : TStringBitmaps; overload;
       // Anti Aliased gray scale, following the direction of the font (left to right, top to bottom, ...)
       property SearchPath : string read GetSearchPath write SetSearchPath;
       property DefaultExtention : string read FExtention write SetExtention;

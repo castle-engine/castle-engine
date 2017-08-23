@@ -16,11 +16,12 @@
 { Create and edit curves.
   Docs are at https://github.com/castle-engine/castle-engine/wiki/Curves-tool }
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 {$I castleconf.inc}
 
 uses SysUtils, Classes, Math,
-  CastleGL, CastleWindow, CastleImages, CastleGLUtils, CastleLog,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleWindow, CastleImages, CastleGLUtils, CastleLog,
   CastleUtils, CastleMessages, CastleCurves, CastleVectors, CastleFonts,
   CastleKeysMouse, CastleParameters, CastleClassUtils,
   CastleFilesUtils, CastleStringUtils, CastleColors, CastleURIUtils,

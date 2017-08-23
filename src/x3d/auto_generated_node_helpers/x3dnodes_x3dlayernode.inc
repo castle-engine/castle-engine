@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetIsPickable: boolean;
     procedure SetIsPickable(const Value: boolean);
     function GetViewport: TAbstractViewportNode;

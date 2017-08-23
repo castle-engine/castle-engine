@@ -760,7 +760,7 @@ var
 begin
   { calculate TextureSlotsUsed }
   InitialTextureSlotsUsed := TextureSlotsUsed;
-  TextureSlotsUsed += TextureNode.FdTexture.Count;
+  TextureSlotsUsed := TextureSlotsUsed + TextureNode.FdTexture.Count;
   MinVar(TextureSlotsUsed, TextureUnitsCount);
   if not GLFeatures.UseMultiTexturing then
     MinVar(TextureSlotsUsed, 1);
@@ -890,8 +890,8 @@ begin
   HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
-  TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap[1] := TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.RepeatS);
+  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
@@ -972,8 +972,8 @@ begin
   HandleTextureProperties(TextureNode.TextureProperties,
     Filter, Anisotropy, GUITexture);
 
-  TextureWrap[0] := TextureRepeatToGL(TextureNode.RepeatS);
-  TextureWrap[1] := TextureRepeatToGL(TextureNode.RepeatT);
+  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.RepeatS);
+  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.RepeatT);
 
   SetTextureRGBFromImage(TextureNode.TextureVideo.Items[0]);
 
@@ -1078,8 +1078,8 @@ begin
     NeedsMipmaps := false;
   end;
 
-  TextureWrap[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
-  TextureWrap[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
+  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
+  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
 
   { calculate Width, Height }
   if TextureNode.FdDimensions.Items.Count - 1 >= 0 then
@@ -1362,12 +1362,12 @@ begin
 
     glViewport(Rectangle(0, 0, Width, Height));
 
-    SavedProjectionMatrix := ProjectionMatrix;
-    ProjectionMatrix := NewProjectionMatrix;
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+    RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
     Render;
 
-    ProjectionMatrix := SavedProjectionMatrix;
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
   RenderToTexture.RenderEnd;
 
@@ -1716,9 +1716,9 @@ begin
     Filter, Anisotropy, GUITexture);
 
   { calculate TextureWrap }
-  TextureWrap[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
-  TextureWrap[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
-  TextureWrap[2] := TextureRepeatToGL(TextureNode.FdRepeatR.Value);
+  TextureWrap.Data[0] := TextureRepeatToGL(TextureNode.FdRepeatS.Value);
+  TextureWrap.Data[1] := TextureRepeatToGL(TextureNode.FdRepeatT.Value);
+  TextureWrap.Data[2] := TextureRepeatToGL(TextureNode.FdRepeatR.Value);
 
   SetTextureRGBFromImage(TextureNode.TextureImage);
 
@@ -1806,8 +1806,8 @@ begin
   { At least in case of float textures for VSM, CLAMP_TO_EDGE is needed
     (instead of standard clamp to border). Didn't see any difference
     for depth textures. }
-  TextureWrap[0] := GLFeatures.CLAMP_TO_EDGE;
-  TextureWrap[1] := GLFeatures.CLAMP_TO_EDGE;
+  TextureWrap.Data[0] := GLFeatures.CLAMP_TO_EDGE;
+  TextureWrap.Data[1] := GLFeatures.CLAMP_TO_EDGE;
 
   { calculate Filter, NeedsMipmaps }
   Filter.Magnification := magLinear;
@@ -1906,12 +1906,12 @@ begin
 
     glViewport(Rectangle(0, 0, Size, Size));
 
-    SavedProjectionMatrix := ProjectionMatrix;
-    ProjectionMatrix := NewProjectionMatrix;
+    SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+    RenderContext.ProjectionMatrix := NewProjectionMatrix;
 
-      { fix DepthRange in case was changed by TPlayer.RenderOnTop }
-      SavedDepthRange := DepthRange;
-      DepthRange := drFull;
+      { fix RenderContext.DepthRange in case was changed by TPlayer.RenderOnTop }
+      SavedDepthRange := RenderContext.DepthRange;
+      RenderContext.DepthRange := drFull;
 
       {$ifndef OpenGLES} // TODO-es
       glPushAttrib(GL_POLYGON_BIT);
@@ -1933,9 +1933,9 @@ begin
       glPopAttrib;
       {$endif}
 
-      DepthRange := SavedDepthRange;
+      RenderContext.DepthRange := SavedDepthRange;
 
-    ProjectionMatrix := SavedProjectionMatrix;
+    RenderContext.ProjectionMatrix := SavedProjectionMatrix;
 
   RenderToTexture.RenderEnd;
 

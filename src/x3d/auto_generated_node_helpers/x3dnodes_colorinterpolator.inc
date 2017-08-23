@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of TCastleColorRGB);
+    procedure SetKeyValue(const Value: TVector3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TColorInterpolatorNode ----------------------------------------------- }
+
+procedure TColorInterpolatorNode.SetKeyValue(const Value: array of TCastleColorRGB);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TColorInterpolatorNode.SetKeyValue(const Value: TVector3List);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

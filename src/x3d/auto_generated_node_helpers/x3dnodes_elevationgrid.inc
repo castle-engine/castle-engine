@@ -26,7 +26,15 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetColor: TAbstractColorNode;
+    procedure SetColor(const Value: TAbstractColorNode);
+    function GetFogCoord: TFogCoordinateNode;
+    procedure SetFogCoord(const Value: TFogCoordinateNode);
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
+    function GetTexCoord: TAbstractTextureCoordinateNode;
+    procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
     function GetCcw: boolean;
     procedure SetCcw(const Value: boolean);
     function GetColorPerVertex: boolean;
@@ -44,9 +52,15 @@
     function GetZSpacing: Single;
     procedure SetZSpacing(const Value: Single);
   public
+    property Color: TAbstractColorNode read GetColor write SetColor;
+    property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+    property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
     property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+    procedure SetHeight(const Value: array of Single);
+    procedure SetHeight(const Value: TSingleList);
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
     property XDimension: Integer read GetXDimension write SetXDimension;
     property XSpacing: Single read GetXSpacing write SetXSpacing;
@@ -58,6 +72,58 @@
 {$ifdef read_implementation}
 
 { TElevationGridNode ----------------------------------------------- }
+
+function TElevationGridNode.GetColor: TAbstractColorNode;
+begin
+  if FdColor.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColor.Value)
+  else
+    Result := nil;
+end;
+
+procedure TElevationGridNode.SetColor(const Value: TAbstractColorNode);
+begin
+  FdColor.Send(Value);
+end;
+
+function TElevationGridNode.GetFogCoord: TFogCoordinateNode;
+begin
+  if FdFogCoord.Value is TFogCoordinateNode then
+    Result := TFogCoordinateNode(FdFogCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TElevationGridNode.SetFogCoord(const Value: TFogCoordinateNode);
+begin
+  FdFogCoord.Send(Value);
+end;
+
+function TElevationGridNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TElevationGridNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
+function TElevationGridNode.GetTexCoord: TAbstractTextureCoordinateNode;
+begin
+  if FdTexCoord.Value is TAbstractTextureCoordinateNode then
+    Result := TAbstractTextureCoordinateNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TElevationGridNode.SetTexCoord(const Value: TAbstractTextureCoordinateNode);
+begin
+  FdTexCoord.Send(Value);
+end;
 
 function TElevationGridNode.GetCcw: boolean;
 begin
@@ -87,6 +153,16 @@ end;
 procedure TElevationGridNode.SetCreaseAngle(const Value: Single);
 begin
   FdCreaseAngle.Send(Value);
+end;
+
+procedure TElevationGridNode.SetHeight(const Value: array of Single);
+begin
+  FdHeight.Send(Value);
+end;
+
+procedure TElevationGridNode.SetHeight(const Value: TSingleList);
+begin
+  FdHeight.Send(Value);
 end;
 
 function TElevationGridNode.GetNormalPerVertex: boolean;

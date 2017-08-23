@@ -30,7 +30,7 @@ type
     const RenderingCamera: TRenderingCamera;
     Viewpoint: TAbstractViewpointNode) of object;
 
-  TCameraChangedEventList = class(specialize TList<TCameraChangedEvent>)
+  TCameraChangedEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TCameraChangedEvent>)
   public
     { This calls all functions (all Items). }
     procedure ExecuteAll(const RenderingCamera: TRenderingCamera;
@@ -52,7 +52,7 @@ type
 
   { Current camera used for rendering. }
   TRenderingCamera = class
-  private
+  strict private
     FOnChanged: TCameraChangedEventList;
     FTarget: TRenderTarget;
   public

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetStatus: boolean;
     procedure SetStatus(const Value: boolean);
     function GetNotStatus: boolean;

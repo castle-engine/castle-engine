@@ -21,10 +21,10 @@
   public
     procedure CreateNode; override;
 
-    private FFdIsPickable: TSFBool;
+    strict private FFdIsPickable: TSFBool;
     public property FdIsPickable: TSFBool read FFdIsPickable;
 
-    private FFdViewport: TSFNode;
+    strict private FFdViewport: TSFNode;
     public property FdViewport: TSFNode read FFdViewport;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dlayernode.inc}
@@ -44,14 +44,14 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventAddChildren: TMFNodeEvent;
+    strict private FEventAddChildren: TMFNodeEvent;
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     { Event in } { }
-    private FEventRemoveChildren: TMFNodeEvent;
+    strict private FEventRemoveChildren: TMFNodeEvent;
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
     {$I auto_generated_node_helpers/x3dnodes_layer.inc}
@@ -63,13 +63,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdActiveLayer: TSFInt32;
+    strict private FFdActiveLayer: TSFInt32;
     public property FdActiveLayer: TSFInt32 read FFdActiveLayer;
 
-    private FFdLayers: TMFNode;
+    strict private FFdLayers: TMFNode;
     public property FdLayers: TMFNode read FFdLayers;
 
-    private FFdOrder: TMFInt32;
+    strict private FFdOrder: TMFInt32;
     public property FdOrder: TMFInt32 read FFdOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_layerset.inc}
@@ -81,7 +81,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdClipBoundary: TMFFloat;
+    strict private FFdClipBoundary: TMFFloat;
     public property FdClipBoundary: TMFFloat read FFdClipBoundary;
 
     {$I auto_generated_node_helpers/x3dnodes_viewport.inc}

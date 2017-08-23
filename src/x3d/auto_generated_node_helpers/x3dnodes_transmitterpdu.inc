@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAddress: string;
     procedure SetAddress(const Value: string);
     function GetAntennaLocation: TVector3;

@@ -16,6 +16,8 @@
 { Simply load and play sound file using OpenAL. }
 program alplay;
 
+{$I castleconf.inc}
+
 uses SysUtils, CastleUtils,
   CastleLog, CastleSoundEngine, CastleParameters, CastleTimeUtils, CastleVectors,
   CastleApplicationProperties;
@@ -25,7 +27,8 @@ var
   URL: string;
   Duration: TFloatTime;
 begin
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  ApplicationProperties.OnWarning.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} ApplicationProperties.WriteWarningOnConsole);
 
   { add here InitializeLog('1.0') (from CastleLog unit) to see various info
     about OpenAL and sound loading }

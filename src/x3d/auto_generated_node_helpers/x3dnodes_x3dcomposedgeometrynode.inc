@@ -26,7 +26,17 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetColor: TAbstractColorNode;
+    procedure SetColor(const Value: TAbstractColorNode);
+    function GetCoord: TAbstractCoordinateNode;
+    procedure SetCoord(const Value: TAbstractCoordinateNode);
+    function GetFogCoord: TFogCoordinateNode;
+    procedure SetFogCoord(const Value: TFogCoordinateNode);
+    function GetNormal: TAbstractNormalNode;
+    procedure SetNormal(const Value: TAbstractNormalNode);
+    function GetTexCoord: TAbstractTextureCoordinateNode;
+    procedure SetTexCoord(const Value: TAbstractTextureCoordinateNode);
     function GetCcw: boolean;
     procedure SetCcw(const Value: boolean);
     function GetColorPerVertex: boolean;
@@ -34,15 +44,87 @@
     function GetNormalPerVertex: boolean;
     procedure SetNormalPerVertex(const Value: boolean);
   public
+    property Color: TAbstractColorNode read GetColor write SetColor;
+    property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
+    property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
+    property Normal: TAbstractNormalNode read GetNormal write SetNormal;
+    property TexCoord: TAbstractTextureCoordinateNode read GetTexCoord write SetTexCoord;
     property Ccw: boolean read GetCcw write SetCcw;
     property ColorPerVertex: boolean read GetColorPerVertex write SetColorPerVertex;
     property NormalPerVertex: boolean read GetNormalPerVertex write SetNormalPerVertex;
+    procedure SetRadianceTransfer(const Value: array of TVector3);
+    procedure SetRadianceTransfer(const Value: TVector3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TAbstractComposedGeometryNode ----------------------------------------------- }
+
+function TAbstractComposedGeometryNode.GetColor: TAbstractColorNode;
+begin
+  if FdColor.Value is TAbstractColorNode then
+    Result := TAbstractColorNode(FdColor.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractComposedGeometryNode.SetColor(const Value: TAbstractColorNode);
+begin
+  FdColor.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetCoord: TAbstractCoordinateNode;
+begin
+  if FdCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractComposedGeometryNode.SetCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdCoord.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetFogCoord: TFogCoordinateNode;
+begin
+  if FdFogCoord.Value is TFogCoordinateNode then
+    Result := TFogCoordinateNode(FdFogCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractComposedGeometryNode.SetFogCoord(const Value: TFogCoordinateNode);
+begin
+  FdFogCoord.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetNormal: TAbstractNormalNode;
+begin
+  if FdNormal.Value is TAbstractNormalNode then
+    Result := TAbstractNormalNode(FdNormal.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractComposedGeometryNode.SetNormal(const Value: TAbstractNormalNode);
+begin
+  FdNormal.Send(Value);
+end;
+
+function TAbstractComposedGeometryNode.GetTexCoord: TAbstractTextureCoordinateNode;
+begin
+  if FdTexCoord.Value is TAbstractTextureCoordinateNode then
+    Result := TAbstractTextureCoordinateNode(FdTexCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractComposedGeometryNode.SetTexCoord(const Value: TAbstractTextureCoordinateNode);
+begin
+  FdTexCoord.Send(Value);
+end;
 
 function TAbstractComposedGeometryNode.GetCcw: boolean;
 begin
@@ -72,6 +154,16 @@ end;
 procedure TAbstractComposedGeometryNode.SetNormalPerVertex(const Value: boolean);
 begin
   FdNormalPerVertex.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetRadianceTransfer(const Value: array of TVector3);
+begin
+  FdRadianceTransfer.Send(Value);
+end;
+
+procedure TAbstractComposedGeometryNode.SetRadianceTransfer(const Value: TVector3List);
+begin
+  FdRadianceTransfer.Send(Value);
 end;
 
 {$endif read_implementation}

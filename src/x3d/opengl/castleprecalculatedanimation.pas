@@ -1195,7 +1195,7 @@ function TCastlePrecalculatedAnimation.BoundingBox: TBox3D;
   begin
     FBoundingBox := FScenes[0].BoundingBox;
     for I := 1 to FScenes.Count - 1 do
-      FBoundingBox.Add(FScenes[I].BoundingBox);
+      FBoundingBox.Include(FScenes[I].BoundingBox);
     ValidBoundingBox := true;
   end;
 

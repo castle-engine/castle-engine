@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of Single);
+    procedure SetKeyValue(const Value: TSingleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TScalarInterpolatorNode ----------------------------------------------- }
+
+procedure TScalarInterpolatorNode.SetKeyValue(const Value: array of Single);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TScalarInterpolatorNode.SetKeyValue(const Value: TSingleList);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

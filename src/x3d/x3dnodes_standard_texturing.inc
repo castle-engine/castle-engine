@@ -24,10 +24,10 @@
 
   { Base for all nodes which specify sources for texture images. }
   TAbstractTextureNode = class(TAbstractAppearanceChildNode)
-  private
+  strict private
     function GetAlphaChannelField: TAutoAlphaChannel;
     procedure SetAlphaChannelField(const Value: TAutoAlphaChannel);
-  protected
+  strict protected
     { Alpha channel detected from image contents (or children nodes),
       ignoring our FdAlphaChannel field.
       Actually set only when image data is loaded
@@ -49,10 +49,10 @@
       Override to say something more descriptive. }
     function TextureDescription: string; virtual;
 
-    private FFdEffects: TMFNode;
+    strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
-    private FFdCrossOrigin: TSFString;
+    strict private FFdCrossOrigin: TSFString;
     public property FdCrossOrigin: TSFString read FFdCrossOrigin;
 
     { Alpha channel of the loaded texture data.
@@ -60,7 +60,7 @@
       (see http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_alpha_channel_detection ) }
     function AlphaChannelFinal: TAlphaChannel;
 
-    private FFdAlphaChannel: TSFStringEnum;
+    strict private FFdAlphaChannel: TSFStringEnum;
     public property FdAlphaChannel: TSFStringEnum read FFdAlphaChannel;
     property AlphaChannelField: TAutoAlphaChannel read GetAlphaChannelField write SetAlphaChannelField;
 
@@ -105,10 +105,7 @@
     FIsTextureLoaded: boolean;
     procedure SetIsTextureLoaded(Value: boolean);
     procedure FreeAndNilTextureData;
-
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
-  protected
+  strict protected
     FTextureUsedFullUrl: string;
 
     { Loads texture data (image or video file).
@@ -233,16 +230,15 @@
       user), it's cutted. }
     property TextureUsedFullUrl: string read FTextureUsedFullUrl;
 
-    private FFdTextureProperties: TSFNode;
+    strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
+
+    {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
 
   { X3D texture that is 2D and can be loaded (from file or some other stream). }
   TAbstractX3DTexture2DNode = class(TAbstractTexture2DNode)
-  protected
+  strict protected
     function GetRepeatS: boolean; override;
     function GetRepeatT: boolean; override;
     procedure SetRepeatS(const Value: boolean); override;
@@ -250,13 +246,11 @@
   public
     procedure CreateNode; override;
 
-    private FFdRepeatS: TSFBool;
+    strict private FFdRepeatS: TSFBool;
     public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdRepeatT: TSFBool;
+    strict private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
-
-    {$I auto_generated_node_helpers/x3dnodes_x3dtexture2dnode.inc}
   end;
 
   { Base for all nodes which specify a transformation of texture coordinates. }
@@ -269,14 +263,14 @@
 
   { Texture image loaded from a file. }
   TImageTextureNode = class(TAbstractX3DTexture2DNode, IAbstractUrlObject)
-  protected
+  strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     function TextureDescription: string; override;
@@ -287,12 +281,12 @@
   { Movie file, that can be played and displayed as a texture. }
   TMovieTextureNode = class(TAbstractX3DTexture2DNode, IAbstractSoundSourceNode,
     IAbstractUrlObject, IAbstractTimeDependentNode)
-  private
+  strict private
     FDuration: TFloatTime;
     FInternalTimeDependentHandler: TInternalTimeDependentHandler;
     function GetCycleInterval: TFloatTime;
     function GetInternalTimeDependentHandler: TInternalTimeDependentHandler;
-  protected
+  strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
@@ -301,44 +295,44 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
-    private FFdLoop: TSFBool;
+    strict private FFdLoop: TSFBool;
     public property FdLoop: TSFBool read FFdLoop;
 
-    private FFdPauseTime: TSFTime;
+    strict private FFdPauseTime: TSFTime;
     public property FdPauseTime: TSFTime read FFdPauseTime;
 
-    private FFdResumeTime: TSFTime;
+    strict private FFdResumeTime: TSFTime;
     public property FdResumeTime: TSFTime read FFdResumeTime;
 
-    private FFdSpeed: TSFFloat;
+    strict private FFdSpeed: TSFFloat;
     public property FdSpeed: TSFFloat read FFdSpeed;
 
-    private FFdStartTime: TSFTime;
+    strict private FFdStartTime: TSFTime;
     public property FdStartTime: TSFTime read FFdStartTime;
 
-    private FFdStopTime: TSFTime;
+    strict private FFdStopTime: TSFTime;
     public property FdStopTime: TSFTime read FFdStopTime;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     { Event out } { }
-    private FEventDuration_changed: TSFTimeEvent;
+    strict private FEventDuration_changed: TSFTimeEvent;
     public property EventDuration_changed: TSFTimeEvent read FEventDuration_changed;
 
     { Event out } { }
-    private FEventElapsedTime: TSFTimeEvent;
+    strict private FEventElapsedTime: TSFTimeEvent;
     public property EventElapsedTime: TSFTimeEvent read FEventElapsedTime;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     { Event out } { }
-    private FEventIsPaused: TSFBoolEvent;
+    strict private FEventIsPaused: TSFBoolEvent;
     public property EventIsPaused: TSFBoolEvent read FEventIsPaused;
 
     function TextureDescription: string; override;
@@ -379,22 +373,22 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAlpha: TSFFloat;
+    strict private FFdAlpha: TSFFloat;
     public property FdAlpha: TSFFloat read FFdAlpha;
 
-    private FFdColor: TSFColor;
+    strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
 
-    private FFdFunction: TMFString;
+    strict private FFdFunction: TMFString;
     public property FdFunction: TMFString read FFdFunction;
 
-    private FFdMode: TMFString;
+    strict private FFdMode: TMFString;
     public property FdMode: TMFString read FFdMode;
 
-    private FFdSource: TMFString;
+    strict private FFdSource: TMFString;
     public property FdSource: TMFString read FFdSource;
 
-    private FFdTexture: TMFNode;
+    strict private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
 
     function AlphaChannelData: TAlphaChannel; override;
@@ -410,7 +404,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTexCoord: TMFNode;
+    strict private FFdTexCoord: TMFNode;
     public property FdTexCoord: TMFNode read FFdTexCoord;
 
     {$I auto_generated_node_helpers/x3dnodes_multitexturecoordinate.inc}
@@ -424,7 +418,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTextureTransform: TMFNode;
+    strict private FFdTextureTransform: TMFNode;
     public property FdTextureTransform: TMFNode read FFdTextureTransform;
 
     { For MultiTextureTransform, this always raises an internal error.
@@ -458,14 +452,14 @@
     so it may be more compact than PixelTexture.
   }
   TPixelTextureNode = class(TAbstractX3DTexture2DNode)
-  protected
+  strict protected
     procedure LoadTextureData(out WasCacheUsed: boolean); override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdImage: TSFImage;
+    strict private FFdImage: TSFImage;
     public property FdImage: TSFImage read FFdImage;
 
     function TextureDescription: string; override;
@@ -480,7 +474,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec2f;
+    strict private FFdPoint: TMFVec2f;
     public property FdPoint: TMFVec2f read FFdPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinate.inc}
@@ -493,13 +487,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdMode: TSFString;
+    strict private FFdMode: TSFString;
     public property FdMode: TSFString read FFdMode;
 
-    private FFdParameter: TMFFloat;
+    strict private FFdParameter: TMFFloat;
     public property FdParameter: TMFFloat read FFdParameter;
 
-    private FFdProjectedLight: TSFNode;
+    strict private FFdProjectedLight: TSFNode;
     public property FdProjectedLight: TSFNode read FFdProjectedLight;
 
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinategenerator.inc}
@@ -524,40 +518,40 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAnisotropicDegree: TSFFloat;
+    strict private FFdAnisotropicDegree: TSFFloat;
     public property FdAnisotropicDegree: TSFFloat read FFdAnisotropicDegree;
 
-    private FFdBorderColor: TSFColorRGBA;
+    strict private FFdBorderColor: TSFColorRGBA;
     public property FdBorderColor: TSFColorRGBA read FFdBorderColor;
 
-    private FFdBorderWidth: TSFInt32;
+    strict private FFdBorderWidth: TSFInt32;
     public property FdBorderWidth: TSFInt32 read FFdBorderWidth;
 
-    private FFdBoundaryModeS: TSFString;
+    strict private FFdBoundaryModeS: TSFString;
     public property FdBoundaryModeS: TSFString read FFdBoundaryModeS;
 
-    private FFdBoundaryModeT: TSFString;
+    strict private FFdBoundaryModeT: TSFString;
     public property FdBoundaryModeT: TSFString read FFdBoundaryModeT;
 
-    private FFdBoundaryModeR: TSFString;
+    strict private FFdBoundaryModeR: TSFString;
     public property FdBoundaryModeR: TSFString read FFdBoundaryModeR;
 
-    private FFdMagnificationFilter: TSFString;
+    strict private FFdMagnificationFilter: TSFString;
     public property FdMagnificationFilter: TSFString read FFdMagnificationFilter;
 
-    private FFdMinificationFilter: TSFString;
+    strict private FFdMinificationFilter: TSFString;
     public property FdMinificationFilter: TSFString read FFdMinificationFilter;
 
-    private FFdTextureCompression: TSFString;
+    strict private FFdTextureCompression: TSFString;
     public property FdTextureCompression: TSFString read FFdTextureCompression;
 
-    private FFdTexturePriority: TSFFloat;
+    strict private FFdTexturePriority: TSFFloat;
     public property FdTexturePriority: TSFFloat read FFdTexturePriority;
 
-    private FFdGenerateMipMaps: TSFBool;
+    strict private FFdGenerateMipMaps: TSFBool;
     public property FdGenerateMipMaps: TSFBool read FFdGenerateMipMaps;
 
-    private FFdGUITexture: TSFBool;
+    strict private FFdGUITexture: TSFBool;
     public property FdGUITexture: TSFBool read FFdGUITexture;
 
     property MagnificationFilter: TAutoMagnificationFilter
@@ -577,16 +571,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCenter: TSFVec2f;
+    strict private FFdCenter: TSFVec2f;
     public property FdCenter: TSFVec2f read FFdCenter;
 
-    private FFdRotation: TSFFloat;
+    strict private FFdRotation: TSFFloat;
     public property FdRotation: TSFFloat read FFdRotation;
 
-    private FFdScale: TSFVec2f;
+    strict private FFdScale: TSFVec2f;
     public property FdScale: TSFVec2f read FFdScale;
 
-    private FFdTranslation: TSFVec2f;
+    strict private FFdTranslation: TSFVec2f;
     public property FdTranslation: TSFVec2f read FFdTranslation;
 
     function TransformMatrix: TMatrix4; override;
@@ -785,19 +779,6 @@ begin
   WritelnWarning('VRML/X3D', Format('Loading textures from "%s" node not implemented', [X3DType]));
 end;
 
-function TAbstractTexture2DNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractTexture2DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
-end;
-
 function TAbstractTexture2DNode.AlphaChannelData: TAlphaChannel;
 begin
   Result := FAlphaChannelData;
@@ -978,7 +959,8 @@ begin
   FInternalTimeDependentHandler.EventisActive:= EventisActive;
   FInternalTimeDependentHandler.EventisPaused := EventisPaused;
   FInternalTimeDependentHandler.EventelapsedTime := EventelapsedTime;
-  FInternalTimeDependentHandler.OnCycleInterval := @GetCycleInterval;
+  FInternalTimeDependentHandler.OnCycleInterval :=
+    {$ifdef CASTLE_OBJFPC}@{$endif} GetCycleInterval;
 end;
 
 function TMovieTextureNode.GetInternalTimeDependentHandler: TInternalTimeDependentHandler;

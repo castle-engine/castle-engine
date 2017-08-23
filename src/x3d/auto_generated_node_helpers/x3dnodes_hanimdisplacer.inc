@@ -26,12 +26,16 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetNameField: string;
     procedure SetNameField(const Value: string);
     function GetWeight: Single;
     procedure SetWeight(const Value: Single);
   public
+    procedure SetCoordIndex(const Value: array of LongInt);
+    procedure SetCoordIndex(const Value: TLongIntList);
+    procedure SetDisplacements(const Value: array of TVector3);
+    procedure SetDisplacements(const Value: TVector3List);
     property NameField: string read GetNameField write SetNameField;
     property Weight: Single read GetWeight write SetWeight;
 
@@ -40,6 +44,26 @@
 {$ifdef read_implementation}
 
 { THAnimDisplacerNode ----------------------------------------------- }
+
+procedure THAnimDisplacerNode.SetCoordIndex(const Value: array of LongInt);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
+procedure THAnimDisplacerNode.SetCoordIndex(const Value: TLongIntList);
+begin
+  FdCoordIndex.Send(Value);
+end;
+
+procedure THAnimDisplacerNode.SetDisplacements(const Value: array of TVector3);
+begin
+  FdDisplacements.Send(Value);
+end;
+
+procedure THAnimDisplacerNode.SetDisplacements(const Value: TVector3List);
+begin
+  FdDisplacements.Send(Value);
+end;
 
 function THAnimDisplacerNode.GetNameField: string;
 begin

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$interfaces com}
+{$ifdef FPC} {$interfaces com} {$endif}
 
 { In FPC > 2.4.2, IInterface methods signature changed.
   See
@@ -26,14 +26,17 @@
   with newer FPC.
   When IINTERFACE_STDCALL is not defined, it means to use cdecl. }
 {$ifdef OLD_IINTERFACE_METHODS} {$define IINTERFACE_STDCALL} {$endif}
-{$ifdef WINDOWS}                {$define IINTERFACE_STDCALL} {$endif}
+{$ifdef MSWINDOWS}              {$define IINTERFACE_STDCALL} {$endif}
 
 { TODO: We should switch to use CORBA interfaces, instead of COM,
   and then this unit, and classes inside, should not be needed anymore.
   See http://michalis.ii.uni.wroc.pl/~michalis/modern_pascal_introduction/modern_pascal_introduction.html
   about interfaces. }
 
-{ Utilities for interfaces. }
+{ Utilities for interfaces.
+
+  @deprecated
+  This unit will be removed at some point, and Castle Game Engine will use CORBA interfaces only. }
 unit CastleInterfaces;
 
 {$I castleconf.inc}

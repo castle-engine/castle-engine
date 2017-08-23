@@ -201,8 +201,8 @@ var
       TexCoord.FdPoint.Send(TexCoords);
 
       QuadSet := TQuadSetNode.Create('', Node.BaseUrl);
-      QuadSet.FdCoord.Value := Coord;
-      QuadSet.FdTexCoord.Value := TexCoord;
+      QuadSet.Coord := Coord;
+      QuadSet.TexCoord := TexCoord;
 
       Appearance := TAppearanceNode.Create('', Node.BaseUrl);
       Appearance.FdShaders.AssignValue(Node.FdShaders);
@@ -225,7 +225,7 @@ var
       Shape.FdGeometry.Value := QuadSet;
       Shape.Appearance := Appearance;
 
-      MatrixTransform.FdChildren.Add(Shape);
+      MatrixTransform.AddChildren(Shape);
     end;
 
   var
@@ -269,7 +269,7 @@ var
       Shape := TShapeNode.Create('', Node.BaseUrl);
       Shape.FdGeometry.Value := Geometry;
 
-      MatrixTransform.FdChildren.Add(Shape);
+      MatrixTransform.AddChildren(Shape);
     end;
   end;
 
@@ -331,23 +331,23 @@ const
 
     StackCircleCalc(CircleAngle, CircleY, CircleRadius);
 
-    SphereCoord.Items.L[Start] := StackTipCalc(TipAngle);
-    SphereColor.Items.L[Start] := TipColor;
+    SphereCoord.Items.List^[Start] := StackTipCalc(TipAngle);
+    SphereColor.Items.List^[Start] := TipColor;
     Inc(Next);
 
     for I := 0 to Slices - 1 do
     begin
-      SphereCoord.Items.L[Next] := CirclePoint(CircleY, CircleRadius, I);
-      SphereColor.Items.L[Next] := CircleColor;
+      SphereCoord.Items.List^[Next] := CirclePoint(CircleY, CircleRadius, I);
+      SphereColor.Items.List^[Next] := CircleColor;
       Inc(Next);
 
-      SphereCoordIndex.Items.L[NextIndex    ] := Start;
-      SphereCoordIndex.Items.L[NextIndex + 1] := Start + 1 + I;
+      SphereCoordIndex.Items.List^[NextIndex    ] := Start;
+      SphereCoordIndex.Items.List^[NextIndex + 1] := Start + 1 + I;
       if I <> Slices - 1 then
-        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 2 + I else
-        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 1;
-      SphereCoordIndex.Items.L[NextIndex + 3] := -1;
-      NextIndex += 4;
+        SphereCoordIndex.Items.List^[NextIndex + 2] := Start + 2 + I else
+        SphereCoordIndex.Items.List^[NextIndex + 2] := Start + 1;
+      SphereCoordIndex.Items.List^[NextIndex + 3] := -1;
+      NextIndex := NextIndex + 4;
     end;
   end;
 
@@ -371,23 +371,23 @@ const
 
     for I := 0 to Slices - 1 do
     begin
-      SphereCoord.Items.L[Next] := CirclePoint(CircleY, CircleRadius, I);
-      SphereColor.Items.L[Next] := CircleColor;
+      SphereCoord.Items.List^[Next] := CirclePoint(CircleY, CircleRadius, I);
+      SphereColor.Items.List^[Next] := CircleColor;
       Inc(Next);
 
-      SphereCoordIndex.Items.L[NextIndex    ] := Start + I;
+      SphereCoordIndex.Items.List^[NextIndex    ] := Start + I;
       if I <> Slices - 1 then
       begin
-        SphereCoordIndex.Items.L[NextIndex + 1] := Start + 1 + I;
-        SphereCoordIndex.Items.L[NextIndex + 2] := Start + 1 + I - Slices;
+        SphereCoordIndex.Items.List^[NextIndex + 1] := Start + 1 + I;
+        SphereCoordIndex.Items.List^[NextIndex + 2] := Start + 1 + I - Slices;
       end else
       begin
-        SphereCoordIndex.Items.L[NextIndex + 1] := Start;
-        SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices;
+        SphereCoordIndex.Items.List^[NextIndex + 1] := Start;
+        SphereCoordIndex.Items.List^[NextIndex + 2] := Start - Slices;
       end;
-      SphereCoordIndex.Items.L[NextIndex + 3] := Start + I - Slices;
-      SphereCoordIndex.Items.L[NextIndex + 4] := -1;
-      NextIndex += 5;
+      SphereCoordIndex.Items.List^[NextIndex + 3] := Start + I - Slices;
+      SphereCoordIndex.Items.List^[NextIndex + 4] := -1;
+      NextIndex := NextIndex + 5;
     end;
   end;
 
@@ -405,18 +405,18 @@ const
     NextIndex := StartIndex;
     SphereCoordIndex.Count := SphereCoordIndex.Count + Slices * 4;
 
-    SphereCoord.Items.L[Start] := StackTipCalc(TipAngle);
-    SphereColor.Items.L[Start] := TipColor;
+    SphereCoord.Items.List^[Start] := StackTipCalc(TipAngle);
+    SphereColor.Items.List^[Start] := TipColor;
 
     for I := 0 to Slices - 1 do
     begin
-      SphereCoordIndex.Items.L[NextIndex    ] := Start;
+      SphereCoordIndex.Items.List^[NextIndex    ] := Start;
       if I <> Slices - 1 then
-        SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices + I + 1 else
-        SphereCoordIndex.Items.L[NextIndex + 1] := Start - Slices;
-      SphereCoordIndex.Items.L[NextIndex + 2] := Start - Slices + I;
-      SphereCoordIndex.Items.L[NextIndex + 3] := -1;
-      NextIndex += 4;
+        SphereCoordIndex.Items.List^[NextIndex + 1] := Start - Slices + I + 1 else
+        SphereCoordIndex.Items.List^[NextIndex + 1] := Start - Slices;
+      SphereCoordIndex.Items.List^[NextIndex + 2] := Start - Slices + I;
+      SphereCoordIndex.Items.List^[NextIndex + 3] := -1;
+      NextIndex := NextIndex + 4;
     end;
   end;
 
@@ -522,7 +522,7 @@ begin
 
   MatrixTransform := TMatrixTransformNode.Create('', Node.BaseUrl);
   MatrixTransform.FdMatrix.Value := Node.TransformRotation;
-  RootNode.FdChildren.Add(MatrixTransform);
+  RootNode.AddChildren(MatrixTransform);
 
   RenderSky;
   RenderGround;

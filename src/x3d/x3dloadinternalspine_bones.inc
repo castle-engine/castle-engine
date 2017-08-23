@@ -59,11 +59,11 @@
     procedure BuildNodes(const BaseUrl: string;
       const BonesAnimated: TBonesAnimated);
     function ToWorldSpace(const V: TVector2): TVector2;
-    function ToLocalSpace(V: TVector2): TVector2;
-    function ToLocalSpace(const V: TVector3): TVector3;
+    function ToLocalSpace(V: TVector2): TVector2; overload;
+    function ToLocalSpace(const V: TVector3): TVector3; overload;
   end;
 
-  TBoneList = class(specialize TObjectList<TBone>)
+  TBoneList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBone>)
     { Find bone by name.
       @raises ESpineReadError If bone does not exist. }
     function Find(const BoneName: string): TBone;
@@ -181,7 +181,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     ResetTranslation := TPositionInterpolatorNode.Create('BoneReset_translate_' + ToX3DName(Name));
     ResetTranslation.FdKey.Items.Add(0);
     ResetTranslation.FdKeyValue.Items.Add(Node.FdTranslation.Value);
-    Node.FdChildren.Add(ResetTranslation);
+    Node.AddChildren(ResetTranslation);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetTranslation.EventValue_changed);
@@ -198,7 +198,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     ResetScale := TPositionInterpolatorNode.Create('BoneReset_scale_' + ToX3DName(Name));
     ResetScale.FdKey.Items.Add(0);
     ResetScale.FdKeyValue.Items.Add(Node.FdScale.Value);
-    Node.FdChildren.Add(ResetScale);
+    Node.AddChildren(ResetScale);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetScale.EventValue_changed);
@@ -215,7 +215,7 @@ procedure TBone.BuildNodes(const BaseUrl: string;
     ResetRotation := TCubicBezier2DOrientationInterpolatorNode.Create('BoneReset_rotate_' + ToX3DName(Name));
     ResetRotation.FdKey.Items.Add(0);
     ResetRotation.FdKeyValue.Items.Add(Node.FdRotation.Value[3]);
-    Node.FdChildren.Add(ResetRotation);
+    Node.AddChildren(ResetRotation);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(ResetRotation.EventValue_changed);
@@ -231,7 +231,7 @@ begin
   if Parent <> nil then
   begin
     NodeUsedAsChild := true;
-    Parent.Node.FdChildren.Add(Node);
+    Parent.Node.AddChildren(Node);
   end;
 
   AddResetTranslation;
@@ -252,11 +252,11 @@ begin
     WorldXY := Vector2(
       WorldXY[0] * Parent.WorldMatrix[0, 0] + WorldXY[1] * Parent.WorldMatrix[0, 1],
       WorldXY[0] * Parent.WorldMatrix[1, 0] + WorldXY[1] * Parent.WorldMatrix[1, 1]);
-    WorldXY += Parent.WorldXY;
+    WorldXY := WorldXY + Parent.WorldXY;
     if InheritScale then
       WorldScale := WorldScale * Parent.WorldScale;
     if InheritRotation then
-      WorldRotation += Parent.WorldRotation;
+      WorldRotation := WorldRotation + Parent.WorldRotation;
   end;
 
   SinCos(DegToRad(WorldRotation), S, C);
@@ -277,12 +277,12 @@ begin
   Result := Vector2(
     V[0] * WorldMatrix[0, 0] + V[1] * WorldMatrix[0, 1],
     V[0] * WorldMatrix[1, 0] + V[1] * WorldMatrix[1, 1]);
-  Result += WorldXY;
+  Result := Result + WorldXY;
 end;
 
 function TBone.ToLocalSpace(V: TVector2): TVector2;
 begin
-  V -= WorldXY;
+  V := V - WorldXY;
   Result := Vector2(
     V[0] * WorldMatrixInverse[0, 0] + V[1] * WorldMatrixInverse[0, 1],
     V[0] * WorldMatrixInverse[1, 0] + V[1] * WorldMatrixInverse[1, 1]);

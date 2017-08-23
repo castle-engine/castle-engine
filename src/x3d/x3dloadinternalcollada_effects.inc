@@ -16,7 +16,7 @@
 {$ifdef read_interface}
 
 type
-  TStringTextureNodeMap = specialize TDictionary<string, TAbstractTextureNode>;
+  TStringTextureNodeMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TAbstractTextureNode>;
 
   TColladaEffect = class
     Appearance: TAppearanceNode;
@@ -40,7 +40,7 @@ begin
 end;
 
 type
-  TColladaEffectList = class(specialize TObjectList<TColladaEffect>)
+  TColladaEffectList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaEffect>)
     { Find a TColladaEffect with given Name, @nil if not found. }
     function Find(const Name: string): TColladaEffect;
   end;
@@ -216,12 +216,12 @@ var
           end else
           if I.Current.TagName = 'transparent' then
           begin
-            Transparency *= ReadColor(I.Current).Average;
+            Transparency := Transparency * ReadColor(I.Current).Average;
             HasTransparency := true;
           end else
           if I.Current.TagName = 'transparency' then
           begin
-            Transparency *= ReadFloatOrParam(I.Current);
+            Transparency := Transparency * ReadFloatOrParam(I.Current);
             HasTransparency := true;
           end else
           if I.Current.TagName = 'index_of_refraction' then

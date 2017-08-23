@@ -26,11 +26,36 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetInitialDestination(const Value: array of TVector2);
+    procedure SetInitialDestination(const Value: TVector2List);
+    procedure SetInitialValue(const Value: array of TVector2);
+    procedure SetInitialValue(const Value: TVector2List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTexCoordDamper2DNode ----------------------------------------------- }
+
+procedure TTexCoordDamper2DNode.SetInitialDestination(const Value: array of TVector2);
+begin
+  FdInitialDestination.Send(Value);
+end;
+
+procedure TTexCoordDamper2DNode.SetInitialDestination(const Value: TVector2List);
+begin
+  FdInitialDestination.Send(Value);
+end;
+
+procedure TTexCoordDamper2DNode.SetInitialValue(const Value: array of TVector2);
+begin
+  FdInitialValue.Send(Value);
+end;
+
+procedure TTexCoordDamper2DNode.SetInitialValue(const Value: TVector2List);
+begin
+  FdInitialValue.Send(Value);
+end;
 
 {$endif read_implementation}

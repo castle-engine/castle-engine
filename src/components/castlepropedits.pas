@@ -106,7 +106,7 @@ begin
     Shape.Material.DiffuseColor := YellowRGB;
 
     Root := TX3DRootNode.Create;
-    Root.FdChildren.Add(Shape);
+    Root.AddChildren(Shape);
 
     Scene := TCastleScene.Create(Items);
     Scene.Load(Root, true);

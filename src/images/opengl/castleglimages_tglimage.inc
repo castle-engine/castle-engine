@@ -40,14 +40,15 @@ type
     regardless of the OpenGL context. This is especially important
     on platforms when the OpenGL context may get lost at any moment,
     like on Android.) }
-  TGLImageCore = class
+  TGLImageCore = class(TNoParameterlessContructor)
   strict private
     type
       TPoint = packed record
         Position: TVector2SmallInt;
         TexCoord: TVector2;
       end;
-      PPoint = ^TPoint;
+      TPointArray = packed array [0..MaxInt div SizeOf(TPoint) - 1] of TPoint;
+      PPointArray = ^TPointArray;
 
       {$ifdef GLImageUseShaders}
       TColorTreatment = (
@@ -140,9 +141,9 @@ type
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor Create(const Image: TEncodedImage;
-      const ASmoothScaling: boolean);
+      const ASmoothScaling: boolean); overload;
 
-    constructor Create(const Image: TEncodedImage); deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
+    constructor Create(const Image: TEncodedImage); overload; deprecated 'use Create(Image, ASmoothScaling) and specify ASmoothScaling explicitly';
 
     { Load image from disk, and prepare for drawing.
 
@@ -161,7 +162,7 @@ type
         to just set the initial value correctly.)
     }
     constructor Create(const URL: string;
-      const ASmoothScaling: boolean = true);
+      const ASmoothScaling: boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -203,7 +204,7 @@ type
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riBilinear);
+      const Interpolation: TResizeInterpolation = riBilinear); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -236,7 +237,7 @@ type
     }
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
-      const ASmoothScaling: boolean);
+      const ASmoothScaling: boolean); overload;
 
     destructor Destroy; override;
 
@@ -352,17 +353,17 @@ type
       const ImageX, ImageY, ImageWidth, ImageHeight: Single); overload;
     procedure Draw(const ScreenRect, ImageRect: TRectangle); overload;
 
-    procedure Draw(ScreenRects, ImageRects: PFloatRectangle;
+    procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
       const Count: Integer); overload; virtual;
     { @groupEnd }
 
     procedure DrawFlipped(const ScreenRect: TRectangle;
-      const FlipHorizontal, FlipVertical: boolean);
+      const FlipHorizontal, FlipVertical: boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean);
+      const FlipHorizontal, FlipVertical: boolean); overload;
     procedure DrawFlipped(const ScreenRect: TFloatRectangle;
       ImageRect: TFloatRectangle;
-      const FlipHorizontal, FlipVertical: boolean);
+      const FlipHorizontal, FlipVertical: boolean); overload;
 
     { In case of @link(Draw3x3) the corners
       on screen are scaled by this amount. This is especially useful
@@ -389,11 +390,11 @@ type
       )
     }
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer);
+      const CornerTop, CornerRight, CornerBottom, CornerLeft: Integer); overload;
     procedure Draw3x3(const X, Y, DrawWidth, DrawHeight: Single;
-      const Corner: TVector4Integer);
+      const Corner: TVector4Integer); overload;
     procedure Draw3x3(const ScreenRect: TRectangle;
-      const Corner: TVector4Integer);
+      const Corner: TVector4Integer); overload;
 
     (* Commented out for now: using Draw3x3 with
        CornerTop = CornerBottom = 0 should have the same effect?
@@ -519,7 +520,7 @@ type
       @raises(EImageClassNotSupportedForOpenGL When Image class is not supported
         by OpenGL.) }
     constructor Create(const AImage: TEncodedImage; const ASmoothScaling: boolean;
-      const AOwnsImage: boolean);
+      const AOwnsImage: boolean); overload;
 
     { Prepare image for drawing.
 
@@ -536,7 +537,7 @@ type
 
       Or use TGLImageCore class. }
     constructor Create(const AImage: TEncodedImage;
-      const ASmoothScaling: boolean);
+      const ASmoothScaling: boolean); overload;
       deprecated 'this constructor overload is provided only for compatibility, better keep the image instance lifetime guaranteed and use the constructor with AOwnsImage parameter';
 
     { Load image from disk, and prepare for drawing.
@@ -556,7 +557,7 @@ type
         to just set the initial value correctly.)
     }
     constructor Create(const URL: string;
-      const ASmoothScaling: boolean = true);
+      const ASmoothScaling: boolean = true); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -598,7 +599,7 @@ type
       const LoadAsClass: array of TEncodedImageClass;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riBilinear);
+      const Interpolation: TResizeInterpolation = riBilinear); overload;
 
     { Load image from disk, and prepare for drawing.
 
@@ -631,7 +632,7 @@ type
     }
     constructor Create(const URL: string;
       const LoadAsClass: array of TEncodedImageClass;
-      const ASmoothScaling: boolean);
+      const ASmoothScaling: boolean); overload;
 
     destructor Destroy; override;
 
@@ -640,7 +641,7 @@ type
 
     procedure Load(const AImage: TEncodedImage); override;
     procedure PrepareResources; override;
-    procedure Draw(ScreenRects, ImageRects: PFloatRectangle;
+    procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
       const Count: Integer); override;
   end;
 
@@ -668,10 +669,10 @@ type
     function GetHeight: Cardinal; override;
   public
     constructor Create(const AURL: string;
-      const ASmoothScaling: boolean = true);
+      const ASmoothScaling: boolean = true); overload;
     destructor Destroy; override;
     procedure PrepareResources; override;
-    procedure Draw(ScreenRects, ImageRects: PFloatRectangle;
+    procedure Draw(ScreenRects, ImageRects: PFloatRectangleArray;
       const Count: Integer); override;
   end;
 
@@ -1017,7 +1018,7 @@ begin
 end;
 
 procedure TGLImageCore.Draw(
-  ScreenRects, ImageRects: PFloatRectangle; const Count: Integer);
+  ScreenRects, ImageRects: PFloatRectangleArray; const Count: Integer);
 var
   ShiftX, ShiftY: Single;
 
@@ -1032,7 +1033,7 @@ var
   end;
 
   procedure SetupQuadPoints(const ScreenRect, ImageRect: TFloatRectangle;
-    QuadPoints: PPoint);
+    QuadPoints: PPointArray);
   var
     TexX0, TexY0, TexX1, TexY1: Single;
     X0, Y0, X1, Y1: Int64;
@@ -1061,14 +1062,14 @@ var
        (Y1 > High(SmallInt)) then
       Exit;
 
-    QuadPoints[0].TexCoord := Vector2(TexX0, TexY0);
-    QuadPoints[0].Position := Vector2SmallInt( X0,    Y0);
-    QuadPoints[1].TexCoord := Vector2(TexX1, TexY0);
-    QuadPoints[1].Position := Vector2SmallInt( X1,    Y0);
-    QuadPoints[2].TexCoord := Vector2(TexX1, TexY1);
-    QuadPoints[2].Position := Vector2SmallInt( X1,    Y1);
-    QuadPoints[3].TexCoord := Vector2(TexX0, TexY1);
-    QuadPoints[3].Position := Vector2SmallInt( X0,    Y1);
+    QuadPoints^[0].TexCoord := Vector2(TexX0, TexY0);
+    QuadPoints^[0].Position := Vector2SmallInt( X0,    Y0);
+    QuadPoints^[1].TexCoord := Vector2(TexX1, TexY0);
+    QuadPoints^[1].Position := Vector2SmallInt( X1,    Y0);
+    QuadPoints^[2].TexCoord := Vector2(TexX1, TexY1);
+    QuadPoints^[2].Position := Vector2SmallInt( X1,    Y1);
+    QuadPoints^[3].TexCoord := Vector2(TexX0, TexY1);
+    QuadPoints^[3].Position := Vector2SmallInt( X0,    Y1);
 
     if FRotation <> 0 then
     begin
@@ -1081,10 +1082,10 @@ var
         ShiftX := ScreenRect.Left   + FCenterX * ScreenRect.Width;
         ShiftY := ScreenRect.Bottom + FCenterY * ScreenRect.Height;
       end;
-      QuadPoints[0].Position := RotatePoint2DAroundShift(QuadPoints[0].Position);
-      QuadPoints[1].Position := RotatePoint2DAroundShift(QuadPoints[1].Position);
-      QuadPoints[2].Position := RotatePoint2DAroundShift(QuadPoints[2].Position);
-      QuadPoints[3].Position := RotatePoint2DAroundShift(QuadPoints[3].Position);
+      QuadPoints^[0].Position := RotatePoint2DAroundShift(QuadPoints^[0].Position);
+      QuadPoints^[1].Position := RotatePoint2DAroundShift(QuadPoints^[1].Position);
+      QuadPoints^[2].Position := RotatePoint2DAroundShift(QuadPoints^[2].Position);
+      QuadPoints^[3].Position := RotatePoint2DAroundShift(QuadPoints^[3].Position);
     end;
   end;
 
@@ -1097,8 +1098,8 @@ var
 begin
   if (Count = 0) or
      ((Count = 1) and
-      ((ScreenRects[0].Width = 0) or
-       (ScreenRects[0].Height = 0))) then
+      ((ScreenRects^[0].Width = 0) or
+       (ScreenRects^[0].Height = 0))) then
     Exit;
 
   if Texture = 0 then
@@ -1134,11 +1135,7 @@ begin
   { calculate Point contents }
   SetLength(Points, Count * 4);
   for I := 0 to Count - 1 do
-  begin
-    SetupQuadPoints(ScreenRects^, ImageRects^, @Points[I * 4]);
-    Inc(ScreenRects);
-    Inc(ImageRects);
-  end;
+    SetupQuadPoints(ScreenRects^[I], ImageRects^[I], @Points[I * 4]);
 
   if GLFeatures.VertexBufferObject then
   begin
@@ -1164,7 +1161,7 @@ begin
     ColorTreatment := ctPureTexture;
 
   Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
-  CurrentProgram := Prog.Prog;
+  TGLSLProgram.Current := Prog.Prog;
   Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
     SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
   Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
@@ -1175,7 +1172,7 @@ begin
   if Clip then
     Prog.UniformClipLine.SetValue(ClipLine);
   {$else}
-  CurrentProgram := nil;
+  TGLSLProgram.Current := nil;
   glLoadIdentity();
   glColorv(Color);
 
@@ -1565,7 +1562,8 @@ begin
   inherited Create(AImage, ASmoothScaling);
   // note that above Create will call virtual Load() which will already set our FImage
   FOwnsImage := AOwnsImage;
-  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+  ApplicationProperties.OnGLContextCloseObject.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
 end;
 
 constructor TGLImage.Create(const AImage: TEncodedImage;
@@ -1611,7 +1609,8 @@ begin
     FreeAndNil(FImage) else
     FImage := nil;
   if ApplicationProperties <> nil then
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove(
+      {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
   inherited;
 end;
 
@@ -1634,7 +1633,7 @@ begin
     Load(AImage);
 end;
 
-procedure TGLImage.Draw(ScreenRects, ImageRects: PFloatRectangle;
+procedure TGLImage.Draw(ScreenRects, ImageRects: PFloatRectangleArray;
   const Count: Integer);
 begin
   // we load on demand, so do PrepareResources always
@@ -1670,17 +1669,19 @@ constructor TGLImageOnDemand.Create(const AURL: string;
 begin
   inherited Create(nil, ASmoothScaling);
   FURL := AURL;
-  ApplicationProperties.OnGLContextCloseObject.Add(@GLContextCloseEvent);
+  ApplicationProperties.OnGLContextCloseObject.Add(
+    {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
 end;
 
 destructor TGLImageOnDemand.Destroy;
 begin
   if ApplicationProperties <> nil then
-    ApplicationProperties.OnGLContextCloseObject.Remove(@GLContextCloseEvent);
+    ApplicationProperties.OnGLContextCloseObject.Remove(
+      {$ifdef CASTLE_OBJFPC}@{$endif} GLContextCloseEvent);
   inherited;
 end;
 
-procedure TGLImageOnDemand.Draw(ScreenRects, ImageRects: PFloatRectangle;
+procedure TGLImageOnDemand.Draw(ScreenRects, ImageRects: PFloatRectangleArray;
   const Count: Integer);
 begin
   // we load on demand, so do PrepareResources always

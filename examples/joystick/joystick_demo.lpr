@@ -18,7 +18,7 @@
 
 program joystick_demo;
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils,
   CastleVectors, CastleWindow, CastleControls, CastleOnScreenMenu,

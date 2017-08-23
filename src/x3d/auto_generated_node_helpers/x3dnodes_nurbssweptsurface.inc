@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCrossSectionCurve: TAbstractNurbsControlCurveNode;
     procedure SetCrossSectionCurve(const Value: TAbstractNurbsControlCurveNode);
     function GetTrajectoryCurve: TNurbsCurveNode;

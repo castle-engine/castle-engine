@@ -133,19 +133,19 @@ begin
   Appearance.Texture := Texture;
 
   Coordinate := TCoordinateNode.Create;
-  Coordinate.FdPoint.Items.AddRange(
-    [Vector3(0, 0, 0),
-     Vector3(1, 0, 0),
-     Vector3(1, 1, 0),
-     Vector3(0, 1, 0)
-    ]);
+  Coordinate.SetPoint([
+    Vector3(0, 0, 0),
+    Vector3(1, 0, 0),
+    Vector3(1, 1, 0),
+    Vector3(0, 1, 0)
+  ]);
 
   QuadSet := TQuadSetNode.Create;
-  QuadSet.FdCoord.Value := Coordinate;
+  QuadSet.Coord := Coordinate;
   QuadSet.Solid := false; // see from both sides?
 
   { In real usecases, you could now assing explicit texture
-    coordinates to QuadSet.FdTexCoord, instead of using the default
+    coordinates to QuadSet.TexCoord, instead of using the default
     calculated tex coordinates. }
 
   Shape := TShapeNode.Create;
@@ -153,7 +153,7 @@ begin
   Shape.Geometry := QuadSet;
 
   Result := TX3DRootNode.Create;
-  Result.FdChildren.Add(Shape);
+  Result.AddChildren(Shape);
 end;
 
 var

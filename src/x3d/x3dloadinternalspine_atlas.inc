@@ -31,7 +31,7 @@ type
     procedure CalculateTexCoord(const ImageWidth, ImageHeight: Integer);
   end;
 
-  TAtlasRegionList = specialize TObjectList<TAtlasRegion>;
+  TAtlasRegionList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAtlasRegion>;
 
   TAtlasPage = class
   public
@@ -48,7 +48,7 @@ type
     procedure BuildNodes(const BaseUrl: string);
   end;
 
-  TAtlasPageList = specialize TObjectList<TAtlasPage>;
+  TAtlasPageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAtlasPage>;
 
   TAtlas = class(TTextureLoader)
     Pages: TAtlasPageList;
@@ -143,7 +143,7 @@ var
   I, ReferenceImageWidth, ReferenceImageHeight: Integer;
 begin
   Node := TImageTextureNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
-  Node.FdUrl.Items.Add(TextureURL);
+  Node.SetUrl([TextureURL]);
   Node.RepeatS := IsRepeat;
   Node.RepeatT := IsRepeat;
 

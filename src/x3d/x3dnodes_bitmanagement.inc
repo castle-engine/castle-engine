@@ -33,16 +33,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTranslation: TSFVec2f;
+    strict private FFdTranslation: TSFVec2f;
     public property FdTranslation: TSFVec2f read FFdTranslation;
 
-    private FFdSize: TSFVec2f;
+    strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdBackground: TSFNode;
+    strict private FFdBackground: TSFNode;
     public property FdBackground: TSFNode read FFdBackground;
 
-    private FFdViewport: TSFNode;
+    strict private FFdViewport: TSFNode;
     public property FdViewport: TSFNode read FFdViewport;
   end;
 
@@ -53,35 +53,35 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventAddChildrenLayer: TMFNodeEvent;
+    strict private FEventAddChildrenLayer: TMFNodeEvent;
     public property EventAddChildrenLayer: TMFNodeEvent read FEventAddChildrenLayer;
 
     { Event in } { }
-    private FEventRemoveChildrenLayer: TMFNodeEvent;
+    strict private FEventRemoveChildrenLayer: TMFNodeEvent;
     public property EventRemoveChildrenLayer: TMFNodeEvent read FEventRemoveChildrenLayer;
 
-    private FFdChildrenLayer: TMFNode;
+    strict private FFdChildrenLayer: TMFNode;
     public property FdChildrenLayer: TMFNode read FFdChildrenLayer;
 
-    private FFdTranslation: TSFVec2f;
+    strict private FFdTranslation: TSFVec2f;
     public property FdTranslation: TSFVec2f read FFdTranslation;
 
-    private FFdDepth: TSFInt32;
+    strict private FFdDepth: TSFInt32;
     public property FdDepth: TSFInt32 read FFdDepth;
 
-    private FFdSize: TSFVec2f;
+    strict private FFdSize: TSFVec2f;
     public property FdSize: TSFVec2f read FFdSize;
 
-    private FFdBackground: TSFNode;
+    strict private FFdBackground: TSFNode;
     public property FdBackground: TSFNode read FFdBackground;
 
-    private FFdFog: TSFNode;
+    strict private FFdFog: TSFNode;
     public property FdFog: TSFNode read FFdFog;
 
-    private FFdNavigationInfo: TSFNode;
+    strict private FFdNavigationInfo: TSFNode;
     public property FdNavigationInfo: TSFNode read FFdNavigationInfo;
 
-    private FFdViewpoint: TSFNode;
+    strict private FFdViewpoint: TSFNode;
     public property FdViewpoint: TSFNode read FFdViewpoint;
   end;
 
@@ -91,31 +91,31 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdEventsProcessed: TSFBool;
+    strict private FFdEventsProcessed: TSFBool;
     public property FdEventsProcessed: TSFBool read FFdEventsProcessed;
 
     { Event out } { }
-    private FEventClient: TSFVec2fEvent;
+    strict private FEventClient: TSFVec2fEvent;
     public property EventClient: TSFVec2fEvent read FEventClient;
 
     { Event out } { }
-    private FEventPosition: TSFVec2fEvent;
+    strict private FEventPosition: TSFVec2fEvent;
     public property EventPosition: TSFVec2fEvent read FEventPosition;
 
     { Event out } { }
-    private FEventLButton: TSFBoolEvent;
+    strict private FEventLButton: TSFBoolEvent;
     public property EventLButton: TSFBoolEvent read FEventLButton;
 
     { Event out } { }
-    private FEventMButton: TSFBoolEvent;
+    strict private FEventMButton: TSFBoolEvent;
     public property EventMButton: TSFBoolEvent read FEventMButton;
 
     { Event out } { }
-    private FEventRButton: TSFBoolEvent;
+    strict private FEventRButton: TSFBoolEvent;
     public property EventRButton: TSFBoolEvent read FEventRButton;
 
     { Event out } { }
-    private FEventMouseWheel: TSFFloatEvent;
+    strict private FEventMouseWheel: TSFFloatEvent;
     public property EventMouseWheel: TSFFloatEvent read FEventMouseWheel;
   end;
 

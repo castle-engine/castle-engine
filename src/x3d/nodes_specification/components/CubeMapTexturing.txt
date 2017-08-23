@@ -8,6 +8,7 @@ ComposedCubeMapTexture : X3DEnvironmentTextureNode {
   SFNode [in,out] left     NULL [X3DTexture2DNode]
   SFNode [in,out] right    NULL [X3DTexture2DNode]
   SFNode [in,out] top      NULL [X3DTexture2DNode]
+  SFNode   []       textureProperties NULL [TextureProperties]
 }
 
 GeneratedCubeMapTexture : X3DEnvironmentTextureNode {

@@ -74,7 +74,8 @@ type
 implementation
 
 uses SysUtils,
-  CastleVectors, CastleGL;
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors;
 
 procedure ControlRenderBegin(const ViewportRect: TRectangle);
 begin

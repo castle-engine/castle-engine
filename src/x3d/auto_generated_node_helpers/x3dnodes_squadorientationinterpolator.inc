@@ -26,10 +26,12 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetNormalizeVelocity: boolean;
     procedure SetNormalizeVelocity(const Value: boolean);
   public
+    procedure SetKeyValue(const Value: array of TVector4);
+    procedure SetKeyValue(const Value: TVector4List);
     property NormalizeVelocity: boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TSquadOrientationInterpolatorNode ----------------------------------------------- }
+
+procedure TSquadOrientationInterpolatorNode.SetKeyValue(const Value: array of TVector4);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TSquadOrientationInterpolatorNode.SetKeyValue(const Value: TVector4List);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 function TSquadOrientationInterpolatorNode.GetNormalizeVelocity: boolean;
 begin

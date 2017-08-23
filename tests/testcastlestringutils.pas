@@ -248,25 +248,25 @@ begin
    sarr.AddRange(twoStrings);
    sarr.Add('trzy?');
 
-   AssertTrue(not sarr.Equal(['foo bar xyz', '', '']));
-   AssertTrue(sarr.Equal(['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
+   AssertTrue(not sarr.Equals(['foo bar xyz', '', '']));
+   AssertTrue(sarr.Equals(['foo bar xyz', '', '', 'raz', 'dwa', 'trzy?']));
 
    sarr.Reverse;
-   AssertTrue(sarr.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+   AssertTrue(sarr.Equals(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
    sarr2 := TCastleStringList.Create;
    try
     sarr2.Add('blah');
-    AssertTrue(sarr2.Equal(['blah']));
+    AssertTrue(sarr2.Equals(['blah']));
     sarr2.Assign(sarr);
-    AssertTrue(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+    AssertTrue(sarr2.Equals(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
 
     {sortuj ustalone 6 stringow}
     sarr.Sort;
-    AssertTrue(sarr.Equal(['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
+    AssertTrue(sarr.Equals(['', '', 'dwa', 'foo bar xyz', 'raz', 'trzy?']));
 
     { sprawdz ze kolejnosc na sarr2 pozostala niezmieniona }
-    AssertTrue(sarr2.Equal(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
+    AssertTrue(sarr2.Equals(['trzy?', 'dwa', 'raz', '', '', 'foo bar xyz']));
    finally sarr2.Free end;
 
    {dodaj losowe stringi, sortuj, sprawdz}

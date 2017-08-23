@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetNameField: string;
     procedure SetNameField(const Value: string);
     function GetReference: string;
@@ -34,6 +34,8 @@
   public
     property NameField: string read GetNameField write SetNameField;
     property Reference: string read GetReference write SetReference;
+    procedure SetValue(const Value: array of Double);
+    procedure SetValue(const Value: TDoubleList);
 
 {$endif read_interface}
 
@@ -59,6 +61,16 @@ end;
 procedure TMetadataDoubleNode.SetReference(const Value: string);
 begin
   FdReference.Send(Value);
+end;
+
+procedure TMetadataDoubleNode.SetValue(const Value: array of Double);
+begin
+  FdValue.Send(Value);
+end;
+
+procedure TMetadataDoubleNode.SetValue(const Value: TDoubleList);
+begin
+  FdValue.Send(Value);
 end;
 
 {$endif read_implementation}

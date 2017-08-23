@@ -44,7 +44,7 @@ end;
   or when text cannot be converted to float.
   In this case, Value is guaranteed not to be modified. }
 function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Float): boolean;
+  var Value: Float): boolean; overload;
 var
   Child: TDOMElement;
 begin
@@ -57,7 +57,7 @@ begin
 end;
 
 function ReadChildFloat(Element: TDOMElement; const ChildTagName: string;
-  var Value: Single): boolean;
+  var Value: Single): boolean; overload;
 var
   ValueFloat: Float;
 begin
@@ -104,10 +104,10 @@ end;
 
 { Read <instance_*>, adding resulting X3D nodes into ParentGroup. }
 procedure ReadInstance(ParentGroup: TAbstractX3DGroupingNode;
-  InstantiatingElement: TDOMElement; List: TX3DNodeList);
+  InstantiatingElement: TDOMElement; List: TX3DChildrenList);
 var
   Id: string;
-  Node: TX3DNode;
+  Node: TAbstractChildNode;
 begin
   if InstantiatingElement.AttributeString('url', Id) and
      SCharIs(Id, 1, '#') then
@@ -117,7 +117,7 @@ begin
     if Node = nil then
       WritelnWarning('Collada', Format('<node> instantiates non-existing element "%s"',
         [Id])) else
-      ParentGroup.FdChildren.Add(Node);
+      ParentGroup.AddChildren(Node);
   end else
     WritelnWarning('Collada', Format('Element <%s> missing url attribute (that has to start with #)',
       [InstantiatingElement.TagName]));

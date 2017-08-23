@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TShaderProgramNode ----------------------------------------------- }
+
+procedure TShaderProgramNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TShaderProgramNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
+end;
 
 {$endif read_implementation}

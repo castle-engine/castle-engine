@@ -16,7 +16,7 @@
 { Demo of TCastleTimer and TCastleFlashEffect. }
 program timer_test;
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses Math,
   CastleColors, CastleWindow, CastleControls, CastleFlashEffect;

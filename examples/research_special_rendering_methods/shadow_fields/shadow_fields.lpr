@@ -44,7 +44,9 @@ program shadow_fields;
 
 {$I castleconf.inc}
 
-uses SysUtils, CastleGL, CastleGLUtils, CastleVectors, CastleBoxes, CastleColors,
+uses SysUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleVectors, CastleBoxes, CastleColors,
   CastleWindow, CastleScene, CastleCameras, CastleLog, CastleParameters,
   ShadowFields, CastleUtils, CastleCubeMaps, X3DNodes, CastleSceneManager,
   CastleSphericalHarmonics, CastleGLCubeMaps, CastleMessages, CastleShapes,
@@ -150,8 +152,9 @@ procedure TMySceneManager.RenderFromViewEverything;
       begin
         for Side := Low(Side) to High(Side) do
         begin
-          SetWindowPos(CubeMapInfo[Side].ScreenX * CubeMapSize * Scale + ShiftX,
-                       CubeMapInfo[Side].ScreenY * CubeMapSize * Scale + ShiftY);
+          WindowPos := Vector2Integer(
+            CubeMapInfo[Side].ScreenX * CubeMapSize * Scale + ShiftX,
+            CubeMapInfo[Side].ScreenY * CubeMapSize * Scale + ShiftY);
           { Since ordering of bytes in our env maps is matching OpenGL
             pixel ordering, I can just draw these like TGrayscaleImage
             by glDrawPixels. }

@@ -26,17 +26,31 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetGeoOrigin: TGeoOriginNode;
     procedure SetGeoOrigin(const Value: TGeoOriginNode);
   public
+    procedure SetKeyValue(const Value: array of TVector3Double);
+    procedure SetKeyValue(const Value: TVector3DoubleList);
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TGeoPositionInterpolatorNode ----------------------------------------------- }
+
+procedure TGeoPositionInterpolatorNode.SetKeyValue(const Value: array of TVector3Double);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TGeoPositionInterpolatorNode.SetKeyValue(const Value: TVector3DoubleList);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 function TGeoPositionInterpolatorNode.GetGeoOrigin: TGeoOriginNode;
 begin
@@ -49,6 +63,16 @@ end;
 procedure TGeoPositionInterpolatorNode.SetGeoOrigin(const Value: TGeoOriginNode);
 begin
   FdGeoOrigin.Send(Value);
+end;
+
+procedure TGeoPositionInterpolatorNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoPositionInterpolatorNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
 end;
 
 {$endif read_implementation}

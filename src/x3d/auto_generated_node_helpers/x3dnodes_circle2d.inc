@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetRadius: Single;
     procedure SetRadius(const Value: Single);
     function GetSlices: Integer;

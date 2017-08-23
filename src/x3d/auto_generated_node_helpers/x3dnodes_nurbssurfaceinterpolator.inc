@@ -26,7 +26,9 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetUDimension: Integer;
     procedure SetUDimension(const Value: Integer);
     function GetUOrder: Integer;
@@ -36,9 +38,16 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
+    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: TDoubleList);
     property UDimension: Integer read GetUDimension write SetUDimension;
+    procedure SetUKnot(const Value: array of Double);
+    procedure SetUKnot(const Value: TDoubleList);
     property UOrder: Integer read GetUOrder write SetUOrder;
     property VDimension: Integer read GetVDimension write SetVDimension;
+    procedure SetVKnot(const Value: array of Double);
+    procedure SetVKnot(const Value: TDoubleList);
     property VOrder: Integer read GetVOrder write SetVOrder;
 
 {$endif read_interface}
@@ -46,6 +55,29 @@
 {$ifdef read_implementation}
 
 { TNurbsSurfaceInterpolatorNode ----------------------------------------------- }
+
+function TNurbsSurfaceInterpolatorNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetWeight(const Value: array of Double);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetWeight(const Value: TDoubleList);
+begin
+  FdWeight.Send(Value);
+end;
 
 function TNurbsSurfaceInterpolatorNode.GetUDimension: Integer;
 begin
@@ -55,6 +87,16 @@ end;
 procedure TNurbsSurfaceInterpolatorNode.SetUDimension(const Value: Integer);
 begin
   FdUDimension.Send(Value);
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetUKnot(const Value: array of Double);
+begin
+  FdUKnot.Send(Value);
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetUKnot(const Value: TDoubleList);
+begin
+  FdUKnot.Send(Value);
 end;
 
 function TNurbsSurfaceInterpolatorNode.GetUOrder: Integer;
@@ -75,6 +117,16 @@ end;
 procedure TNurbsSurfaceInterpolatorNode.SetVDimension(const Value: Integer);
 begin
   FdVDimension.Send(Value);
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetVKnot(const Value: array of Double);
+begin
+  FdVKnot.Send(Value);
+end;
+
+procedure TNurbsSurfaceInterpolatorNode.SetVKnot(const Value: TDoubleList);
+begin
+  FdVKnot.Send(Value);
 end;
 
 function TNurbsSurfaceInterpolatorNode.GetVOrder: Integer;

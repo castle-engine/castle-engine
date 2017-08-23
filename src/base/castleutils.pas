@@ -72,45 +72,21 @@ unit CastleUtils;
   Fixed in FPC 3.1.1 already, but CGE needs to work with FPC 3.0.0 and 3.0.2 too.
 
   So it doesn't seem to be possible to define TStructList correctly in ObjFpc mode. }
-{$mode delphi}
+{$ifdef FPC} {$mode delphi} {$endif}
+{$undef CASTLE_OBJFPC}
 
 interface
 
-uses {$ifdef MSWINDOWS} Windows, {$endif}
+uses {$ifdef MSWINDOWS} Windows, {$ifndef FPC} ShlObj, {$endif} {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
   Variants, SysUtils, Math, Generics.Collections;
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
-
 {$define read_interface}
-
-{ @section(Very very basic types that are needed by many included files) }
-
-type
-  { }
-  TIsSmallerFunc = function (const A, B, Data: Pointer): boolean;
-  TIsSmallerFuncByObject = function (const A, B: Pointer): boolean of object;
-
-  Float = Math.Float;
-  PFloat = Math.PFloat;
-
-  PCardinal = ^Cardinal;
-  PLongWord = ^LongWord;
-  PShortint = ^Shortint;
-
-  {$ifdef FPC}
-  { Pointer to a boolean.
-    Defined as ^Byte in some Delphi Windows unit,
-    for FPC 1.0.x PBoolean is not available at all. }
-  PBoolean = ^Boolean;
-  {$endif}
 
 { include everything }
 
+{$I castleutils_types.inc}
+{$I castleutils_delphi_compatibility.inc}
 {$I castleutils_basic_algorithms.inc}
 {$I castleutils_miscella.inc}
 {$I castleutils_struct_list.inc}
@@ -133,6 +109,8 @@ implementation
 
 {$define read_implementation}
 
+{$I castleutils_types.inc}
+{$I castleutils_delphi_compatibility.inc}
 {$I castleutils_basic_algorithms.inc}
 {$I castleutils_miscella.inc}
 {$I castleutils_struct_list.inc}
@@ -160,8 +138,10 @@ initialization
 
  Randomize; { required by e.g. GetTempFname }
 
- LocaleDecimalSeparator := DefaultFormatSettings.DecimalSeparator;
- DefaultFormatSettings.DecimalSeparator := '.';
+ LocaleDecimalSeparator :=
+   {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}.DecimalSeparator;
+ {$ifdef FPC} DefaultFormatSettings {$else} FormatSettings {$endif}
+   .DecimalSeparator := '.';
 
  { FPC includes backslash in AllowDirectorySeparators also on non-Windows,
    so backslash will be considered as directory separator by
@@ -172,7 +152,7 @@ initialization
 
    Fortunately we can fix it by globally changing AllowDirectorySeparators. }
  {$ifndef MSWINDOWS}
- AllowDirectorySeparators -= ['\'];
+ AllowDirectorySeparators := AllowDirectorySeparators - ['\'];
  {$endif}
 finalization
  FinalizationOSSpecific;

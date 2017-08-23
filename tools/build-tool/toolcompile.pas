@@ -16,6 +16,8 @@
 { Compiling with FPC. }
 unit ToolCompile;
 
+{$I castleconf.inc}
+
 interface
 
 uses Classes, ToolArchitectures;
@@ -166,7 +168,8 @@ var
 
   procedure DeleteFilesRecursive(const Mask: string);
   begin
-    FindFiles(Directory, Mask, false, @Helper.DeleteFoundFile, [ffRecursive]);
+    FindFiles(Directory, Mask, false,
+      {$ifdef CASTLE_OBJFPC}@{$endif} Helper.DeleteFoundFile, [ffRecursive]);
   end;
 
 begin
@@ -374,9 +377,20 @@ begin
     FpcOptions.Add('-l');
     FpcOptions.Add('-vwn');
     FpcOptions.Add('-Ci');
-    FpcOptions.Add('-Mobjfpc');
-    FpcOptions.Add('-Sm');
-    FpcOptions.Add('-Sc');
+    if GetEnvironmentVariable('CASTLE_ENGINE_TEST_DELPHI_MODE') = 'true' then
+    begin
+      FpcOptions.Add('-Mdelphi');
+      FpcOptions.Add('-Sm-');
+      FpcOptions.Add('-Sc-');
+      // Also define it, to allow eventually doing
+      // {$ifdef CASTLE_ENGINE_TEST_DELPHI_MODE}... in code.
+      FpcOptions.Add('-dCASTLE_ENGINE_TEST_DELPHI_MODE');
+    end else
+    begin
+      FpcOptions.Add('-Mobjfpc');
+      FpcOptions.Add('-Sm');
+      FpcOptions.Add('-Sc');
+    end;
     FpcOptions.Add('-Sg');
     FpcOptions.Add('-Si');
     FpcOptions.Add('-Sh');

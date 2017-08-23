@@ -35,7 +35,7 @@ type
 
   { Generator for X3D IndexedTriangleSet and TriangleSet nodes. }
   TTriangleSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     TriFaceNormal: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
@@ -51,7 +51,7 @@ type
 
   { Generator for X3D IndexedTriangleFanSet and TriangleFanSet node. }
   TTriangleFanSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     TriFaceNormal: TVector3;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
@@ -76,7 +76,7 @@ type
     the same thing as IndexedTriangleStripSet, only defined more in
     Inventor/VRML 1.0 conventions). }
   TTriangleStripSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     TriFaceNormal: TVector3;
     VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
     procedure PrepareIndexesCoordsRange(
@@ -98,7 +98,7 @@ type
 
   { Generator for X3D IndexedQuadSet and QuadSet nodes. }
   TQuadSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     QuadFaceNormal: TVector3;
   protected
     procedure GenerateVertex(IndexNum: Integer); override;
@@ -115,7 +115,7 @@ type
   { Common class for IndexedLineSet (VRML <= 1.0 and >= 2.0) and
     LineSet (VRML >= 2.0, although specification only since X3D). }
   TAbstractLineSetGenerator = class(TAbstractCompleteGenerator)
-  private
+  strict private
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
@@ -143,6 +143,8 @@ type
 { TPointSet_1Generator -------------------------------------------------------- }
 
 procedure TPointSet_1Generator.GenerateCoordinateBegin;
+var
+  M: TMaterialInfo;
 begin
   inherited;
 
@@ -156,7 +158,8 @@ begin
   { Render_BindMaterial_1 set unlit color to emissiveColor,
     so correct it now to diffuseColor. }
   Arrays.HasDefaultColor := true;
-  Arrays.DefaultColor := State.VRML1State.Material.DiffuseColor4Single(0);
+  M := State.VRML1State.Material.MaterialInfo(0);
+  Arrays.DefaultColor := Vector4(M.DiffuseColor, M.Opacity);
 end;
 
 procedure TPointSet_1Generator.PrepareIndexesPrimitives;
@@ -259,8 +262,8 @@ constructor TTriangleSetGenerator.Create(AShape: TShape; AOverTriangulate: boole
 begin
   inherited;
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -271,7 +274,7 @@ begin
     ColorIndex := TIndexedTriangleSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -403,8 +406,8 @@ constructor TTriangleFanSetGenerator.Create(AShape: TShape; AOverTriangulate: bo
 begin
   inherited;
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -415,7 +418,7 @@ begin
     ColorIndex := TIndexedTriangleFanSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -476,7 +479,7 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.PrepareIndexesCoordsRange(
@@ -503,7 +506,7 @@ end;
 
 procedure TTriangleFanSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 procedure TTriangleFanSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -615,8 +618,8 @@ begin
 
   { Rest of this constructor initializes for X3D [Indexed]TriangleStripSet }
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -627,7 +630,7 @@ begin
     ColorIndex := TIndexedTriangleStripSetNode(Geometry).FdIndex;
   end;
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -700,7 +703,7 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.PrepareIndexesCoordsRange(
@@ -727,7 +730,7 @@ end;
 
 procedure TTriangleStripSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 procedure TTriangleStripSetGenerator.GenerateVertex(IndexNum: Integer);
@@ -804,8 +807,8 @@ constructor TQuadSetGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited;
 
-  Color := Geometry.Color;
-  ColorRGBA := Geometry.ColorRGBA;
+  Color := Geometry.InternalColor;
+  ColorRGBA := Geometry.InternalColorRGBA;
   { According to X3D spec, "the value of the colorPerVertex field
     is ignored and always treated as TRUE" }
   ColorPerVertex := true;
@@ -819,7 +822,7 @@ begin
   { Normals are done exactly like for [Indexed]TriangleSet, except
     we have quads now. }
 
-  Normals := (Geometry as TAbstractComposedGeometryNode).NormalItems;
+  Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
@@ -1028,7 +1031,7 @@ begin
   Arrays.Counts := TCardinalList.Create;
   if CoordIndex <> nil then
     IndexesFromCoordIndex := TGeometryIndexList.Create;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange);
 end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordsRange(
@@ -1043,7 +1046,7 @@ end;
 
 procedure TAbstractLineSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 { TIndexedLineSet_1Generator -------------------------------------------------- }
@@ -1083,8 +1086,8 @@ begin
   begin
     NodeILS := Geometry as TIndexedLineSetNode;
 
-    Color := NodeILS.Color;
-    ColorRGBA := NodeILS.ColorRGBA;
+    Color := NodeILS.InternalColor;
+    ColorRGBA := NodeILS.InternalColorRGBA;
     ColorPerVertex := NodeILS.FdColorPerVertex.Value;
     ColorIndex := NodeILS.FdColorIndex;
   end else
@@ -1092,8 +1095,8 @@ begin
     Assert(Geometry is TLineSetNode);
     NodeLS := Geometry as TLineSetNode;
 
-    Color := NodeLS.Color;
-    ColorRGBA := NodeLS.ColorRGBA;
+    Color := NodeLS.InternalColor;
+    ColorRGBA := NodeLS.InternalColorRGBA;
     ColorPerVertex := true; { always true for LineSet }
   end;
 end;

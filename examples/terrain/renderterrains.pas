@@ -33,7 +33,7 @@ uses CastleVectors, CastleTerrain;
   previous layer) and 2 times larger size.
 
   Uses currently enabled GLSL program (or none), so be sure
-  to assign CurrentProgram before calling this. }
+  to assign TGLSLProgram.Current before calling this. }
 procedure DrawTerrain(Terrain: TTerrain;
   const Subdivision: Cardinal;
   MiddleX, MiddleY: Single; BaseSize: Single;
@@ -61,7 +61,9 @@ function ColorFromHeight(Terrain: TTerrain; Height: Single): TVector3;
 
 implementation
 
-uses CastleGL, CastleGLUtils, CastleUtils, SysUtils;
+uses
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleGLUtils, CastleUtils, SysUtils;
 
 var
   TerrainVbo: TGLuint;

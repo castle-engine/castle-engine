@@ -22,9 +22,7 @@
     FTextureImage: TEncodedImage;
     FTextureComposite: TCompositeImage;
     procedure SetTextureLoaded(const Value: boolean);
-    function GetTextureProperties: TTexturePropertiesNode;
-    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
-  protected
+  strict protected
     { This does the actual loading of texture data.
 
       You can assume here that texture is not loaded now,
@@ -36,20 +34,17 @@
     procedure CreateNode; override;
     destructor Destroy; override;
 
-    private FFdRepeatS: TSFBool;
+    strict private FFdRepeatS: TSFBool;
     public property FdRepeatS: TSFBool read FFdRepeatS;
 
-    private FFdRepeatT: TSFBool;
+    strict private FFdRepeatT: TSFBool;
     public property FdRepeatT: TSFBool read FFdRepeatT;
 
-    private FFdRepeatR: TSFBool;
+    strict private FFdRepeatR: TSFBool;
     public property FdRepeatR: TSFBool read FFdRepeatR;
 
-    private FFdTextureProperties: TSFNode;
+    strict private FFdTextureProperties: TSFNode;
     public property FdTextureProperties: TSFNode read FFdTextureProperties;
-    { Texture properties (how the texture behaves when sampled, and such). }
-    property TextureProperties: TTexturePropertiesNode
-      read GetTextureProperties write SetTextureProperties;
 
     { Load and unload 3D texture.
 
@@ -78,16 +73,16 @@
 
   { 3D texture defined as a collection of 2D texture sources at various depths. }
   TComposedTexture3DNode = class(TAbstractTexture3DNode)
-  private
+  strict private
     FAlphaChannelData: TAlphaChannel;
-  protected
+  strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTexture: TMFNode;
+    strict private FFdTexture: TMFNode;
     public property FdTexture: TMFNode read FFdTexture;
 
     procedure LoadTextureData; override;
@@ -97,35 +92,34 @@
 
   { 3D texture loaded from a single file like DDS. }
   TImageTexture3DNode = class(TAbstractTexture3DNode, IAbstractUrlObject)
-  private
+  strict private
     FAlphaChannelData: TAlphaChannel;
-  protected
+  strict protected
     function AlphaChannelData: TAlphaChannel; override;
+    procedure LoadTextureData; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
-
-    procedure LoadTextureData; override;
 
     {$I auto_generated_node_helpers/x3dnodes_imagetexture3d.inc}
   end;
 
   { 3D texture defined as an explicit array of pixel values inside the X3D file. }
   TPixelTexture3DNode = class(TAbstractTexture3DNode)
-  private
+  strict private
     FAlphaChannelData: TAlphaChannel;
-  protected
+  strict protected
     function AlphaChannelData: TAlphaChannel; override;
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdImage: TMFInt32;
+    strict private FFdImage: TMFInt32;
     public property FdImage: TMFInt32 read FFdImage;
 
     procedure LoadTextureData; override;
@@ -140,7 +134,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec3f;
+    strict private FFdPoint: TMFVec3f;
     public property FdPoint: TMFVec3f read FFdPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinate3d.inc}
@@ -153,7 +147,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec4f;
+    strict private FFdPoint: TMFVec4f;
     public property FdPoint: TMFVec4f read FFdPoint;
 
     {$I auto_generated_node_helpers/x3dnodes_texturecoordinate4d.inc}
@@ -167,7 +161,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdMatrix: TSFMatrix4f;
+    strict private FFdMatrix: TSFMatrix4f;
     public property FdMatrix: TSFMatrix4f read FFdMatrix;
 
     function TransformMatrix: TMatrix4; override;
@@ -183,16 +177,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     function TransformMatrix: TMatrix4; override;
@@ -252,19 +246,6 @@ begin
 
     FTextureLoaded := Value;
   end;
-end;
-
-function TAbstractTexture3DNode.GetTextureProperties: TTexturePropertiesNode;
-begin
-  if FdTextureProperties.Value is TTexturePropertiesNode then
-    Result := TTexturePropertiesNode(FdTextureProperties.Value)
-  else
-    Result := nil;
-end;
-
-procedure TAbstractTexture3DNode.SetTextureProperties(const Value: TTexturePropertiesNode);
-begin
-  FdTextureProperties.Send(Value);
 end;
 
 procedure TComposedTexture3DNode.CreateNode;
@@ -501,37 +482,37 @@ begin
     0: { 0 components is allowed by the spec, and results in an empty image };
     1: begin
          FTextureImage := TGrayscaleImage.Create(Width, Height, Depth);
-         G := TGrayscaleImage(FTextureImage).GrayscalePixels;
+         G := TGrayscaleImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], G^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], G^);
            Inc(G);
          end;
        end;
     2: begin
          FTextureImage := TGrayscaleAlphaImage.Create(Width, Height, Depth);
-         GA := TGrayscaleAlphaImage(FTextureImage).GrayscaleAlphaPixels;
+         GA := TGrayscaleAlphaImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], GA^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], GA^);
            Inc(GA);
          end;
        end;
     3: begin
          FTextureImage := TRGBImage.Create(Width, Height, Depth);
-         RGB := TRGBImage(FTextureImage).RGBPixels;
+         RGB := TRGBImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], RGB^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], RGB^);
            Inc(RGB);
          end;
        end;
     4: begin
          FTextureImage := TRGBAlphaImage.Create(Width, Height, Depth);
-         RGBA := TRGBAlphaImage(FTextureImage).AlphaPixels;
+         RGBA := TRGBAlphaImage(FTextureImage).Pixels;
          for I := 0 to Width * Height * Depth - 1 do
          begin
-           DecodeImageColor(FdImage.Items.Items[4 + I], RGBA^);
+           DecodeX3DColor(FdImage.Items.Items[4 + I], RGBA^);
            Inc(RGBA);
          end;
        end;

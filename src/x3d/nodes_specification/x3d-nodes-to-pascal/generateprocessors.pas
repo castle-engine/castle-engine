@@ -60,9 +60,15 @@ type
     destructor Destroy; override;
     function AccessType: TX3DAccessType;
     function PascalClass: string;
-    { The type for a helper property, which can be something simple
-      like "Single" for SFFloat. Can be '' if no helper property. }
+
+    { Type of a helper property to get and set this field.
+      It can be something simple like 'Single' for SFFloat.
+      Can be '' if no helper property. }
     function PascalHelperType: string;
+
+    { Types of a helper public setter method to set this field. }
+    procedure PascalSetterTypes(const Names: TCastleStringList);
+
     function IsNode: boolean;
   end;
 
@@ -273,9 +279,113 @@ begin
     Result := 'TMatrix3' else
   if X3DType = 'SFMatrix4f' then
     Result := 'TMatrix4' else
+  if X3DType = 'SFMatrix3d' then
+    Result := 'TMatrix3Double' else
+  if X3DType = 'SFMatrix4d' then
+    Result := 'TMatrix4Double' else
+
 //  if X3DType = 'SFNode' then // nope, because these should be typed accordingly in ObjectPascal
 //    Result := 'TXxx' else
     Result := '';
+end;
+
+procedure TX3DFieldInformation.PascalSetterTypes(const Names: TCastleStringList);
+begin
+  if X3DType = 'MFFloat' then
+  begin
+    Names.Add('array of Single');
+    Names.Add('TSingleList');
+  end else
+  if X3DType = 'MFDouble' then
+  begin
+    Names.Add('array of Double');
+    Names.Add('TDoubleList');
+  end else
+  if X3DType = 'MFTime' then
+  begin
+    Names.Add('array of TFloatTime');
+    Names.Add('TDoubleList');
+  end else
+  if X3DType = 'MFVec2f' then
+  begin
+    Names.Add('array of TVector2');
+    Names.Add('TVector2List');
+  end else
+  if X3DType = 'MFVec3f' then
+  begin
+    Names.Add('array of TVector3');
+    Names.Add('TVector3List');
+  end else
+  if X3DType = 'MFVec4f' then
+  begin
+    Names.Add('array of TVector4');
+    Names.Add('TVector4List');
+  end else
+  if X3DType = 'MFVec2d' then
+  begin
+    Names.Add('array of TVector2Double');
+    Names.Add('TVector2DoubleList');
+  end else
+  if X3DType = 'MFVec3d' then
+  begin
+    Names.Add('array of TVector3Double');
+    Names.Add('TVector3DoubleList');
+  end else
+  if X3DType = 'MFVec4d' then
+  begin
+    Names.Add('array of TVector4Double');
+    Names.Add('TVector4DoubleList');
+  end else
+  if X3DType = 'MFInt32' then
+  begin
+    Names.Add('array of LongInt');
+    Names.Add('TLongIntList');
+  end else
+  if X3DType = 'MFBool' then
+  begin
+    Names.Add('array of boolean');
+    Names.Add('TBooleanList');
+  end else
+  if X3DType = 'MFRotation' then
+  begin
+    Names.Add('array of TVector4');
+    Names.Add('TVector4List');
+  end else
+  if X3DType = 'MFColor' then
+  begin
+    Names.Add('array of TCastleColorRGB');
+    Names.Add('TVector3List');
+  end else
+  if X3DType = 'MFColorRGBA' then
+  begin
+    Names.Add('array of TCastleColor');
+    Names.Add('TVector4List');
+  end else
+  if X3DType = 'MFString' then
+  begin
+    Names.Add('array of string');
+    Names.Add('TCastleStringList');
+  end else
+  if X3DType = 'MFMatrix3f' then
+  begin
+    Names.Add('array of TMatrix3');
+    Names.Add('TMatrix3List');
+  end else
+  if X3DType = 'MFMatrix4f' then
+  begin
+    Names.Add('array of TMatrix4');
+    Names.Add('TMatrix4List');
+  end else
+  if X3DType = 'MFMatrix3d' then
+  begin
+    Names.Add('array of TMatrix3Double');
+    Names.Add('TMatrix3DoubleList');
+  end else
+  if X3DType = 'MFMatrix4d' then
+  begin
+    Names.Add('array of TMatrix4Double');
+    Names.Add('TMatrix4DoubleList');
+  end;
 end;
 
 { TProcessor ----------------------------------------------------------------- }
@@ -575,7 +685,8 @@ end;
 procedure THelperProcessor.NodeField(const Node: TX3DNodeInformation;
   const Field: TX3DFieldInformation);
 var
-  AllowedPascalClass: string;
+  AllowedPascalClass, SetterType: string;
+  SetterTypes: TCastleStringList;
 begin
   if Field.IsEnumString then
     Exit;
@@ -584,18 +695,6 @@ begin
      (Field.X3DName = 'repeatT') or
      (Field.X3DName = 'cycleInterval') or
      (Field.X3DName = 'linetype') or
-
-     ( (Field.X3DType = 'SFNode') and
-       ( (Field.X3DName = 'coord') or
-         (Field.X3DName = 'fogCoord') or
-         (Field.X3DName = 'texCoord') or
-         (Field.X3DName = 'attrib') or
-         (Field.X3DName = 'color') or
-         (Field.X3DName = 'normal') or
-         (Field.X3DName = 'textureProperties') or
-         (Field.X3DName = 'controlPoint')
-       )
-     ) or
 
      (Node.X3DType + '.' + Field.X3DName = 'Viewpoint.position') or
      (Node.X3DType + '.' + Field.X3DName = 'OrthoViewpoint.position') or
@@ -609,6 +708,14 @@ begin
      (Node.X3DType + '.' + Field.X3DName = 'Appearance.texture') or
      (Node.X3DType + '.' + Field.X3DName = 'Text.fontStyle') or
      (Node.X3DType + '.' + Field.X3DName = 'HAnimHumanoid.skinCoord') or
+     (Node.X3DType + '.' + Field.X3DName = 'FontStyle.family') or
+     (Node.X3DType + '.' + Field.X3DName = 'FontStyle.justify') or
+     // ScreenFontStyle does not have better helpers yet, but it will, just like FontStyle
+     (Node.X3DType + '.' + Field.X3DName = 'ScreenFontStyle.family') or
+     (Node.X3DType + '.' + Field.X3DName = 'ScreenFontStyle.justify') or
+     // These are deprecated, and a bit confusing (these are arrays that should have 0 or 1 items, to override "orientation")
+     (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.direction') or
+     (Node.X3DType + '.' + Field.X3DName = 'X3DViewpointNode.up') or
 
      false // keep this line, to allow easily rearranging lines above
 
@@ -665,25 +772,41 @@ begin
     end;
   end else
   begin
-    if Field.PascalHelperType = '' then
-      Exit;
+    if Field.PascalHelperType <> '' then
+    begin
+      OutputPrivateInterface +=
+        '    function Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
+        '    procedure Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL;
+      OutputPublicInterface +=
+        '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
+      OutputImplementation +=
+        'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
+        'begin' + NL +
+        '  Result := ' + Field.PascalNamePrefixed + '.Value;' + NL +
+        'end;' + NL +
+        NL +
+        'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
+        'begin' + NL +
+        '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
+        'end;' + NL +
+        NL;
+    end;
 
-    OutputPrivateInterface +=
-      '    function Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
-      '    procedure Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL;
-    OutputPublicInterface +=
-      '    property ' + Field.PascalName + ': ' + Field.PascalHelperType + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
-    OutputImplementation +=
-      'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + Field.PascalHelperType + ';' + NL +
-      'begin' + NL +
-      '  Result := ' + Field.PascalNamePrefixed + '.Value;' + NL +
-      'end;' + NL +
-      NL +
-      'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + Field.PascalHelperType + ');' + NL +
-      'begin' + NL +
-      '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
-      'end;' + NL +
-      NL;
+    SetterTypes := TCastleStringList.Create;
+    try
+      Field.PascalSetterTypes(SetterTypes);
+      for SetterType in SetterTypes do
+      begin
+        OutputPublicInterface +=
+          '    procedure Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL;
+        OutputImplementation +=
+          'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + SetterType + ');' + NL +
+          'begin' + NL +
+          '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
+          'end;' + NL +
+          NL;
+      end;
+    finally FreeAndNil(SetterTypes) end;
   end;
 end;
 
@@ -761,23 +884,21 @@ begin
     WritelnVerbose('Node does not have any helpers (for now), generating empty include file: ' + Node.X3DType);
 
   if OutputPrivateInterface <> '' then
-    OutputPrivateInterface := '  private' + NL + OutputPrivateInterface;
+    OutputPrivateInterface := '  strict private' + NL + OutputPrivateInterface;
   if OutputPublicInterface <> '' then
     OutputPublicInterface := '  public' + NL + OutputPublicInterface;
 
   // no helpers for interfaces
-  if Node.IsInterface then
-    Exit;
-
-  GenerateOutput(
-    // '  ' + Node.PascalType + 'Helper = class helper for ' + Node.PascalType + NL +
-    OutputPrivateInterface +
-    OutputPublicInterface +
-    // '  end;' + NL +
-    NL,
-    '{ ' + Node.PascalType + ' ----------------------------------------------- }' + NL +
-    NL +
-    OutputImplementation);
+  if not Node.IsInterface then
+    GenerateOutput(
+      // '  ' + Node.PascalType + 'Helper = class helper for ' + Node.PascalType + NL +
+      OutputPrivateInterface +
+      OutputPublicInterface +
+      // '  end;' + NL +
+      NL,
+      '{ ' + Node.PascalType + ' ----------------------------------------------- }' + NL +
+      NL +
+      OutputImplementation);
 
   OutputPrivateInterface := '';
   OutputPublicInterface := '';
@@ -867,7 +988,7 @@ begin
       OutputInterface +=
         NL +
         '    { Event ' + EventInOrOut + ' } { }' + NL +
-        '    private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       OutputImplementation +=
@@ -883,7 +1004,7 @@ begin
     begin
       OutputInterface +=
         NL +
-        '    private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
+        '    strict private F' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ';' + NL +
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry]; // TODO: adjust if necessary' + NL;

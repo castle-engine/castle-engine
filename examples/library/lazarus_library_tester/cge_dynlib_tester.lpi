@@ -77,7 +77,6 @@
         <ShowHints Value="False"/>
       </Verbosity>
       <ConfigFile>
-        <CustomConfigFile Value="True"/>
         <ConfigFilePath Value="..\..\..\castle-fpc.cfg"/>
       </ConfigFile>
     </Other>

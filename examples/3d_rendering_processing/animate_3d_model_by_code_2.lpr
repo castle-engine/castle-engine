@@ -40,6 +40,7 @@ var
 procedure Update(Container: TUIContainer);
 var
   I, J: Integer;
+  T: TVector3;
 begin
   { We want to keep track of current time here (for calculating
     below). It's most natural to just use Scene.Time property for this.
@@ -48,10 +49,11 @@ begin
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
-      Transform[I, J].FdTranslation.Value[2] := 2 *
+      T := Transform[I, J].Translation;
+      T[2] := 2 *
         Sin(I / 2 + Scene.Time) *
         Cos(J / 2 + Scene.Time);
-      Transform[I, J].FdTranslation.Changed;
+      Transform[I, J].Translation := T;
     end;
 end;
 
@@ -64,21 +66,21 @@ begin
   Result := TX3DRootNode.Create;
 
   Mat := TMaterialNode.Create;
-  Mat.FdDiffuseColor.Value := Vector3(1, 1, 0);
+  Mat.DiffuseColor := Vector3(1, 1, 0);
 
   Shape := TShapeNode.Create;
-  Shape.FdAppearance.Value := TAppearanceNode.Create;
-  Shape.Appearance.FdMaterial.Value := Mat;
-  Shape.FdGeometry.Value := TBoxNode.Create;
+  Shape.Appearance := TAppearanceNode.Create;
+  Shape.Appearance.Material := Mat;
+  Shape.Geometry := TBoxNode.Create;
 
   for I := 0 to XCount - 1 do
     for J := 0 to YCount - 1 do
     begin
       Transform[I, J] := TTransformNode.Create;
-      Transform[I, J].FdTranslation.Value := Vector3(I * 2, J * 2, 0);
-      Transform[I, J].FdChildren.Add(Shape);
+      Transform[I, J].Translation := Vector3(I * 2, J * 2, 0);
+      Transform[I, J].AddChildren(Shape);
 
-      Result.FdChildren.Add(Transform[I, J]);
+      Result.AddChildren(Transform[I, J]);
     end;
 end;
 

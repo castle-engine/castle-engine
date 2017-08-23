@@ -25,31 +25,9 @@ interface
 
 uses CastleUtils, CastleVectors;
 
-type
-  TVector2DoubleList = class(specialize TStructList<TVector2Double>)
-  public
-    function ToVector2: TVector2List;
-  end;
-
-  TVector3DoubleList = class(specialize TStructList<TVector3Double>)
-  public
-    function ToVector3: TVector3List;
-  end;
-
-  TVector4DoubleList = class(specialize TStructList<TVector4Double>)
-  public
-    function ToVector4: TVector4List;
-  end;
-
-  TMatrix3DoubleList = class(specialize TStructList<TMatrix3Double>)
-  public
-    function ToMatrix3: TMatrix3List;
-  end;
-
-  TMatrix4DoubleList = class(specialize TStructList<TMatrix4Double>)
-  public
-    function ToMatrix4: TMatrix4List;
-  end;
+{$define read_interface}
+{$I castlevectors_lists_double.inc}
+{$undef read_interface}
 
 {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
@@ -57,105 +35,9 @@ implementation
 
 {$ifdef BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 
-{ TVector2DoubleList ----------------------------------------------------- }
-
-function TVector2DoubleList.ToVector2: TVector2List;
-var
-  I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
-begin
-  Result := TVector2List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 2 - 1 do
-  begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
-  end;
-end;
-
-{ TVector3DoubleList ----------------------------------------------------- }
-
-function TVector3DoubleList.ToVector3: TVector3List;
-var
-  I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
-begin
-  Result := TVector3List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 3 - 1 do
-  begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
-  end;
-end;
-
-{ TVector4DoubleList ----------------------------------------------------- }
-
-function TVector4DoubleList.ToVector4: TVector4List;
-var
-  I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
-begin
-  Result := TVector4List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 4 - 1 do
-  begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
-  end;
-end;
-
-{ TMatrix3DoubleList ----------------------------------------------------- }
-
-function TMatrix3DoubleList.ToMatrix3: TMatrix3List;
-var
-  I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
-begin
-  Result := TMatrix3List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 3 * 3 - 1 do
-  begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
-  end;
-end;
-
-{ TMatrix4DoubleList ----------------------------------------------------- }
-
-function TMatrix4DoubleList.ToMatrix4: TMatrix4List;
-var
-  I: Integer;
-  Source: PDouble;
-  Dest: PSingle;
-begin
-  Result := TMatrix4List.Create;
-  Result.Count := Count;
-  Source := PDouble(L);
-  Dest := PSingle(Result.L);
-  for I := 0 to Count * 4 * 4 - 1 do
-  begin
-    Dest^ := Source^;
-    Inc(Source);
-    Inc(Dest);
-  end;
-end;
+{$define read_implementation}
+{$I castlevectors_lists_double.inc}
+{$undef read_implementation}
 
 {$endif BUGGY_CASTLE_VECTORS_DOUBLE_ARRAYS}
 

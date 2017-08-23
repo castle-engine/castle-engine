@@ -86,15 +86,15 @@ function XmuLookupStandardColormap(dpy: PDisplay; screen: integer;
 implementation
 
 type
-  TArray_PChar = packed array[0..High(Word)]of PChar;
-  PArray_PChar=^TArray_PChar;
+  TPCharArray = packed array[0..High(Word)]of PChar;
+  PPCharArray=^TPCharArray;
 
 procedure CreateArgCV(out argc_ret: Longint; out argv_ret: PPChar);
 { Na podstawie ParamCount i ParamStr konstruujemy argc i argv
   aby udawaly parametry main () z ANSI C.
   Zawsze zwalniaj potem z pamieci argv przez DestroyArgV. }
 var i: Integer;
-    argv: PArray_PChar absolute argv_ret;
+    argv: PPCharArray absolute argv_ret;
 begin
  argc_ret := ParamCount+1;
  GetMem(Pointer(argv),(argc_ret+1)*SizeOf(PChar));
@@ -105,7 +105,7 @@ end;
 
 procedure DestroyArgV(var argv_ret: PPChar);
 var i: integer;
-    argv: PArray_PChar absolute argv_ret;
+    argv: PPCharArray absolute argv_ret;
 begin
  for i := 0 to ParamCount do StrDispose(argv^[i]);
  FreeMemNiling(Pointer(argv));

@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of TVector3);
+    procedure SetKeyValue(const Value: TVector3List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TNormalInterpolatorNode ----------------------------------------------- }
+
+procedure TNormalInterpolatorNode.SetKeyValue(const Value: array of TVector3);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TNormalInterpolatorNode.SetKeyValue(const Value: TVector3List);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

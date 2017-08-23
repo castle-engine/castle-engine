@@ -23,7 +23,7 @@
 { Main program file on standalone. }
 program rift;
 
-{$IFDEF Windows}{$apptype GUI}{$ENDIF}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, CastleWindowProgress,

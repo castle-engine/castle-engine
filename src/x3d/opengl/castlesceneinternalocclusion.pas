@@ -50,8 +50,10 @@ procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
 
 implementation
 
-uses SysUtils, CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
-  CastleGLUtils, CastleGL, CastleVectors, CastleGLShaders;
+uses SysUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
+  CastleGLUtils, CastleVectors, CastleGLShaders;
 
 {$ifndef OpenGLES} // TODO-es this whole unit
 
@@ -83,7 +85,7 @@ const
 begin
   if Box.IsEmpty then Exit;
 
-  CurrentProgram := nil;
+  TGLSLProgram.Current := nil;
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Box.Data[0];
@@ -239,7 +241,7 @@ var
     begin
       Shape := TGLShape(Scene.InternalOctreeRendering.ShapesList[Node.ItemsIndices.L[I]]);
       if Shape.RenderedFrameId <> FrameId then
-        Box.Add(Shape.BoundingBox);
+        Box.Include(Shape.BoundingBox);
     end;
 
     glDrawBox3DSimple(Box);

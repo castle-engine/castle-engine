@@ -79,7 +79,7 @@ type
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
-  private
+  strict private
     function GetItems(ItemIndex: integer): PTriangle;
   public
     function ParentTree: TTriangleOctree;

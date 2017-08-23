@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TImageTexture3DNode ----------------------------------------------- }
+
+procedure TImageTexture3DNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TImageTexture3DNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
+end;
 
 {$endif read_implementation}

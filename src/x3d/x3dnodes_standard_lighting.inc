@@ -35,7 +35,7 @@
     But most of the fields behave identically, they only have different
     default values. }
   TAbstractLightNode = class(TAbstractChildNode)
-  private
+  strict private
     FTransform, FInvertedTransform: TMatrix4;
   strict private
     function  GetProjectionSceneLocation: TVector3;
@@ -52,50 +52,50 @@
   public
     procedure CreateNode; override;
 
-    private FFdOn: TSFBool;
+    strict private FFdOn: TSFBool;
     public property FdOn: TSFBool read FFdOn;
 
-    private FFdIntensity: TSFFloat;
+    strict private FFdIntensity: TSFFloat;
     public property FdIntensity: TSFFloat read FFdIntensity;
 
-    private FFdColor: TSFColor;
+    strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
 
-    private FFdAmbientIntensity: TSFFloat;
+    strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFdGlobal: TSFBool;
+    strict private FFdGlobal: TSFBool;
     public property FdGlobal: TSFBool read FFdGlobal;
 
-    private FFdShadowVolumes: TSFBool;
+    strict private FFdShadowVolumes: TSFBool;
     public property FdShadowVolumes: TSFBool read FFdShadowVolumes;
 
-    private FFdShadowVolumesMain: TSFBool;
+    strict private FFdShadowVolumesMain: TSFBool;
     public property FdShadowVolumesMain: TSFBool read FFdShadowVolumesMain;
 
-    private FFdShowProxyGeometry: TSFBool;
+    strict private FFdShowProxyGeometry: TSFBool;
     { showProxyGeometry field is an InstantReality extension, see
       [http://instant-reality.com/documentation/nodetype/Light/]. }
     public property FdShowProxyGeometry: TSFBool read FFdShowProxyGeometry;
 
-    private FFdProjectionNear: TSFFloat;
+    strict private FFdProjectionNear: TSFFloat;
     { projectionNear / projectionFar / up are Kambi extensions, see
       [http://castle-engine.sourceforge.net/x3d_extensions_shadow_maps.php#section_light_parameters] }
     public property FdProjectionNear: TSFFloat read FFdProjectionNear;
 
-    private FFdProjectionFar: TSFFloat;
+    strict private FFdProjectionFar: TSFFloat;
     public property FdProjectionFar: TSFFloat read FFdProjectionFar;
 
-    private FFdUp: TSFVec3f;
+    strict private FFdUp: TSFVec3f;
     public property FdUp: TSFVec3f read FFdUp;
 
-    private FFdDefaultShadowMap: TSFNode;
+    strict private FFdDefaultShadowMap: TSFNode;
     public property FdDefaultShadowMap: TSFNode read FFdDefaultShadowMap;
 
-    private FFdShadows: TSFBool;
+    strict private FFdShadows: TSFBool;
     public property FdShadows: TSFBool read FFdShadows;
 
-    private FFdEffects: TMFNode;
+    strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
     { Transformation of this light node.
@@ -206,7 +206,7 @@
 
   { Base class for all directional lights. }
   TAbstractDirectionalLightNode = class(TAbstractLightNode)
-  private
+  strict private
     function GetDirection: TVector3;
     procedure SetDirection(const Value: TVector3);
     function GetProjectionRectangle: TVector4;
@@ -222,15 +222,15 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
     property Direction: TVector3 read GetDirection write SetDirection;
 
-    private FFdProjectionRectangle: TSFVec4f;
+    strict private FFdProjectionRectangle: TSFVec4f;
     public property FdProjectionRectangle: TSFVec4f read FFdProjectionRectangle;
     property ProjectionRectangle: TVector4 read GetProjectionRectangle write SetProjectionRectangle;
 
-    private FFdProjectionLocation: TSFVec3f;
+    strict private FFdProjectionLocation: TSFVec3f;
     public property FdProjectionLocation: TSFVec3f read FFdProjectionLocation;
     property ProjectionLocation: TVector3 read GetProjectionLocation write SetProjectionLocation;
 
@@ -246,7 +246,7 @@
 
   { Base class for all positional lights. }
   TAbstractPositionalLightNode = class(TAbstractLightNode)
-  private
+  strict private
     function GetAttenuation: TVector3;
     procedure SetAttenuation(const Value: TVector3);
     function GetLocation: TVector3;
@@ -258,11 +258,11 @@
   public
     procedure CreateNode; override;
 
-    private FFdAttenuation: TSFVec3f;
+    strict private FFdAttenuation: TSFVec3f;
     public property FdAttenuation: TSFVec3f read FFdAttenuation;
     property Attenuation: TVector3 read GetAttenuation write SetAttenuation;
 
-    private FFdLocation: TSFVec3f;
+    strict private FFdLocation: TSFVec3f;
     public property FdLocation: TSFVec3f read FFdLocation;
     property Location: TVector3 read GetLocation write SetLocation;
 
@@ -293,14 +293,13 @@
       @groupBegin }
     function DistanceNeededForAttenuation: boolean;
     function CalculateAttenuation(const DistanceToLight: Single): Single; overload;
-    function CalculateAttenuation(const DistanceToLight: Double): Double; overload;
     { @groupEnd }
 
     { Is attenuation relevant. When @false, you know that @link(Attenuation)
       function always returns 1, so there's no point in using it at all. }
     function HasAttenuation: boolean;
 
-    private FFdRadius: TSFFloat;
+    strict private FFdRadius: TSFFloat;
     public property FdRadius: TSFFloat read FFdRadius;
     property Radius: Single read GetRadius write SetRadius;
 
@@ -365,16 +364,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdBeamWidth: TSFFloat;
+    strict private FFdBeamWidth: TSFFloat;
     public property FdBeamWidth: TSFFloat read FFdBeamWidth;
 
-    private FFdCutOffAngle: TSFFloat;
+    strict private FFdCutOffAngle: TSFFloat;
     public property FdCutOffAngle: TSFFloat read FFdCutOffAngle;
 
-    private FFdDirection: TSFVec3f;
+    strict private FFdDirection: TSFVec3f;
     public property FdDirection: TSFVec3f read FFdDirection;
 
-    private FFdProjectionAngle: TSFFloat;
+    strict private FFdProjectionAngle: TSFFloat;
     public property FdProjectionAngle: TSFFloat read FFdProjectionAngle;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -835,36 +834,19 @@ begin
   LightInstance.Radius := FdRadius.Value * LightInstance.TransformScale;
 end;
 
-{$define ATTENUATION_IMPLEMENTATION:=
-begin
- (* moglibysmy tu nie badac czy DistanceNeededForAttenuation i zawsze
-    robic wersje pelna (bo przeciez
-      FdAttenuation.Value[1] * DistanceToLight +
-      FdAttenuation.Value[2] * Sqr(DistanceToLight)
-    i tak bedzie = 0 gdy FdAttenuation.Value[1] = FdAttenuation.Value[2] = 0.
-    Ale wydaje mi sie ze tak jest szybciej - testowanie kosztuje nas
-    troszke czasu ale mozemy sobie w ten sposob ocalic 2 x mnozenie i dodawanie. *)
-
- (* we check whether attenuation = (0, 0, 0). VRML 97 spec says that specifying
-    (0, 0, 0) should be equal to specifying (1, 0, 0). (well, we avoid
-    division by zero possibility this way so it's quite sensible, even
-    if it wastes some time) *)
- if (FdAttenuation.Value[0] = 0) and
-    (FdAttenuation.Value[1] = 0) and
-    (FdAttenuation.Value[2] = 0) then result := 1;
-
- if DistanceNeededForAttenuation then
-  result := 1/ CastleUtils.max(FdAttenuation.Value[0] +
-                   FdAttenuation.Value[1] * DistanceToLight +
-                   FdAttenuation.Value[2] * Sqr(DistanceToLight), Single(1.0)) else
-  result := 1/ CastleUtils.max(FdAttenuation.Value[0], Single(1.0));
-end;}
-
 function TAbstractPositionalLightNode.CalculateAttenuation(const DistanceToLight: Single): Single;
-ATTENUATION_IMPLEMENTATION
-
-function TAbstractPositionalLightNode.CalculateAttenuation(const DistanceToLight: Double): Double;
-ATTENUATION_IMPLEMENTATION
+begin
+  { We don't really need to check DistanceNeededForAttenuation here.
+    But it may be more optimal, since it's often false,
+    and then we don't need to do 2x multiplications and 1x addition. }
+  if DistanceNeededForAttenuation then
+    Result := 1 / Max(
+      FdAttenuation.Value[0] +
+      FdAttenuation.Value[1] * DistanceToLight +
+      FdAttenuation.Value[2] * Sqr(DistanceToLight), 1.0) else
+    Result := 1 / Max(
+      FdAttenuation.Value[0], 1.0);
+end;
 
 function TAbstractPositionalLightNode.PositionAndDirection: TVector4;
 begin

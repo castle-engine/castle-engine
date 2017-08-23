@@ -181,7 +181,6 @@ EXAMPLES_BASE_NAMES := \
   examples/3d_rendering_processing/custom_3d_object \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/placeholder_names \
-  examples/3d_rendering_processing/tools/gen_light_map \
   examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators \
   examples/3d_rendering_processing/multiple_viewports \
   examples/3d_rendering_processing/fog_culling \
@@ -203,7 +202,6 @@ EXAMPLES_BASE_NAMES := \
   examples/fixed_camera_game/rift \
   examples/isometric_game/sandbox \
   examples/3d_sound_game/lets_take_a_walk \
-  examples/3d_sound_game/data/levels/base/devel/process_base_b \
   examples/resource_animations/resource_animations \
   examples/fps_game/fps_game \
   examples/2d_standard_ui/show_various_ui_controls/show_various_ui_controls \
@@ -216,6 +214,7 @@ EXAMPLES_BASE_NAMES := \
   tools/texture-font-to-pascal/texture-font-to-pascal \
   tools/castle-curves/castle-curves \
   tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d \
+  examples/random_generator/globalrandom \
   examples/random_generator/random_speed_test \
   examples/random_generator/random_threads_test
 
@@ -264,6 +263,14 @@ examples-laz:
 	lazbuild packages/castle_window.lpk
 	lazbuild packages/castle_components.lpk
 	$(foreach NAME,$(EXAMPLES_BASE_NAMES) $(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
+
+# Compile only Lazarus-specific examples (that depend on LCL)
+.PHONY: examples-only-laz
+examples-only-laz:
+	lazbuild packages/castle_base.lpk
+	lazbuild packages/castle_window.lpk
+	lazbuild packages/castle_components.lpk
+	$(foreach NAME,$(EXAMPLES_LAZARUS_BASE_NAMES),lazbuild $(NAME).lpi && ) true
 
 # cleaning ------------------------------------------------------------
 

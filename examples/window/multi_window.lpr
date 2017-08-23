@@ -24,7 +24,7 @@
 
 program multi_window;
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 uses CastleWindow, SysUtils, CastleUtils, CastleGLUtils, CastleKeysMouse, CastleVectors,
   CastleStringUtils, CastleColors, CastleControls, CastleUIControls;

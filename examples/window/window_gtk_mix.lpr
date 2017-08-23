@@ -87,7 +87,7 @@ begin
   Shape.Appearance := Appearance;
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(Shape);
+  Root.AddChildren(Shape);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(Root, true);

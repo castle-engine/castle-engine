@@ -64,7 +64,7 @@ type
         procedure FreeKeyNodesContents;
       end;
 
-      TAnimationList = class(specialize TObjectList<TAnimation>)
+      TAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAnimation>)
         { Call TAnimation.FreeKeyNodesContents on all the items. }
         procedure FreeKeyNodesContents;
       end;
@@ -103,7 +103,7 @@ type
         function Duration: Single;
       end;
 
-      TBakedAnimationList = class(specialize TObjectList<TBakedAnimation>)
+      TBakedAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBakedAnimation>)
         procedure FreeNodesContents;
       end;
 
@@ -178,7 +178,7 @@ type
 
 implementation
 
-uses SysUtils, XMLRead, DOM,
+uses SysUtils, XMLRead, DOM, Math,
   CastleLog, X3DFields, CastleXMLUtils, CastleFilesUtils, CastleVectors,
   CastleDownload, CastleURIUtils, X3DLoad, CastleClassUtils, X3DLoadInternalUtils;
 
@@ -237,6 +237,7 @@ procedure CheckNodesStructurallyEqual(Model1, Model2: TX3DNode;
 
 var
   I: Integer;
+  MF1, MF2: TX3DMultField;
 begin
   { Yes, Model1 and Model2 must have *exactly* the same classes. }
   if Model1.ClassType <> Model2.ClassType then
@@ -302,16 +303,15 @@ begin
     begin
       if Model1.Fields[I] is TX3DMultField then
       begin
-        try
-          (Model1.Fields[I] as TX3DMultField).CheckCountEqual
-            (Model2.Fields[I] as TX3DMultField);
-        except
-          (* Translate EX3DMultFieldDifferentCount exception
-             (may be raised by TX3DMultField.CheckCountEqual above)
-             to EModelsStructureDifferent. *)
-          on E: EX3DMultFieldDifferentCount do
-            raise EModelsStructureDifferent.CreateFmt('%s', [E.Message]);
-        end;
+        MF1 := Model1.Fields[I] as TX3DMultField;
+        MF2 := Model2.Fields[I] as TX3DMultField;
+        if MF1.Count <> MF2.Count then
+          raise EModelsStructureDifferent.CreateFmt(
+            'Different length of multiple-value fields "%s" and "%s": "%d" and "%d"',
+            [ MF1.X3DName,
+              MF2.X3DName,
+              MF1.Count,
+              MF2.Count ]);
       end;
       { Else we have single-value field that can lerp.
         No need to check anything in this case,
@@ -330,7 +330,8 @@ begin
 
       if not (
          ( (Model1 is TInlineNode)            and (Model1.Fields[I].X3DName = 'url') ) or
-         Model1.Fields[I].Equals(Model2.Fields[I], Epsilon)
+         Model1.Fields[I].Equals(Model2.Fields[I]
+           { TODO: ignored for now, and maybe for ever: , Epsilon })
          ) then
         raise EModelsStructureDifferent.CreateFmt(
           'Fields "%s" (class "%s") are not equal',
@@ -463,7 +464,8 @@ begin
     end else
     if Model1.Fields[I].CanAssignLerp then
     begin
-      if not Model1.Fields[I].Equals(Model2.Fields[I], Epsilon) then
+      if not Model1.Fields[I].Equals(Model2.Fields[I]
+        { TODO: ignored for now, and maybe for ever: , Epsilon }) then
         Result := false;
     end;
 
@@ -650,6 +652,7 @@ begin
   for I := 0 to Count - 1 do
     Items[I].FreeNodesContents;
 end;
+
 { TNodeInterpolator ---------------------------------------------------------- }
 
 class function TNodeInterpolator.BakeToSequence(
@@ -843,7 +846,7 @@ class function TNodeInterpolator.LoadAnimFramesToKeyNodes(const URL: string): TA
           if FrameElement.AttributeVector3('bounding_box_center', FrameBoxCenter) and
              FrameElement.AttributeVector3('bounding_box_size', FrameBoxSize) then
           begin
-            Result.BoundingBox.Add(Box3DAroundPoint(FrameBoxCenter, FrameBoxSize));
+            Result.BoundingBox.Include(Box3DAroundPoint(FrameBoxCenter, FrameBoxSize));
           end;
 
           Result.KeyNodes.Add(NewNode);
@@ -908,7 +911,7 @@ var
     differently at higher level (because this is a switch, so it should
     block leaking anyway, but probably Switch for X3D doesn't work for VRML 1.0
     so well...). But it's obsolete VRML 1.0, so the hack is acceptable:) }
-  function WrapRootNode(const RootNode: TX3DRootNode): TX3DNode;
+  function WrapRootNode(const RootNode: TX3DRootNode): TAbstractChildNode;
   begin
     if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
     begin
@@ -929,7 +932,7 @@ var
     const BakedAnimation: TBakedAnimation;
     const AnimationIndex: Integer;
     const RootNode: TX3DRootNode;
-    const SwitchChooseAnimation: TSwitchNode): TX3DNode;
+    const SwitchChooseAnimation: TSwitchNode): TAbstractChildNode;
   var
     AnimationX3DName: string;
 
@@ -941,12 +944,12 @@ var
     begin
       BooleanFilter := TBooleanFilterNode.Create(
         AnimationX3DName + '_BooleanFilter', BaseUrl);
-      RootNode.FdChildren.Add(BooleanFilter);
+      RootNode.AddChildren(BooleanFilter);
 
       IntegerTrigger := TIntegerTriggerNode.Create(
         AnimationX3DName + '_IntegerTrigger', BaseUrl);
       IntegerTrigger.IntegerKey := AnimationIndex;
-      RootNode.FdChildren.Add(IntegerTrigger);
+      RootNode.AddChildren(IntegerTrigger);
 
       Route := TX3DRoute.Create;
       Route.SetSourceDirectly(TimeSensor.EventIsActive);
@@ -1005,15 +1008,15 @@ var
         IntSequencer.FdKeyValue.Items[I] := I;
       end;
     end;
-    Group.FdChildren.Add(IntSequencer);
+    Group.AddChildren(IntSequencer);
 
     Switch := TSwitchNode.Create(
       AnimationX3DName + '_Switch_ChooseAnimationFrame', BaseUrl);
     for I := 0 to NodesCount - 1 do
-      Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
+      Switch.AddChildren(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
     { we set whichChoice to 0 to see something before you run the animation }
     Switch.WhichChoice := 0;
-    Group.FdChildren.Add(Switch);
+    Group.AddChildren(Switch);
 
     { Name of the TimeSensor is important, this is the animation name,
       so don't append there anything ugly like '_TimeSensor'.
@@ -1025,7 +1028,7 @@ var
     else
       TimeSensor.CycleInterval := BakedAnimation.Duration;
     TimeSensor.Loop := BakedAnimation.Loop;
-    RootNode.FdChildren.Add(TimeSensor);
+    RootNode.AddChildren(TimeSensor);
 
     Route := TX3DRoute.Create;
     Route.SetSourceDirectly(TimeSensor.EventFraction_changed);
@@ -1066,13 +1069,13 @@ begin
   SwitchChooseAnimation := TSwitchNode.Create('ChooseAnimation', BaseUrl);
   for I := 0 to BakedAnimations.Count - 1 do
   begin
-    SwitchChooseAnimation.FdChildren.Add(
+    SwitchChooseAnimation.AddChildren(
       ConvertOneAnimation(BakedAnimations[I], I, Result, SwitchChooseAnimation));
   end;
   { we set whichChoice to 0 to see something before you run the animation }
   SwitchChooseAnimation.WhichChoice := 0;
 
-  Result.FdChildren.Add(SwitchChooseAnimation);
+  Result.AddChildren(SwitchChooseAnimation);
 end;
 
 class procedure TNodeInterpolator.LoadToX3D_GetKeyNodeWithTime(const Index: Cardinal;
@@ -1097,7 +1100,8 @@ begin
         Animation := Animations[I];
         LoadToX3D_KeyNodes := Animation.KeyNodes;
         LoadToX3D_KeyTimes := Animation.KeyTimes;
-        BakedAnimation := BakeToSequence(@LoadToX3D_GetKeyNodeWithTime,
+        BakedAnimation := BakeToSequence(
+          {$ifdef CASTLE_OBJFPC}@{$endif} LoadToX3D_GetKeyNodeWithTime,
           Animation.KeyNodes.Count, Animation.ScenesPerTime, Animation.Epsilon);
         BakedAnimation.Name := Animation.Name;
         BakedAnimation.Loop := Animation.Loop;

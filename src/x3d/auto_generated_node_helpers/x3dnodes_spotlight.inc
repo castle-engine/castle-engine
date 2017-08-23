@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAttenuation: TVector3;
     procedure SetAttenuation(const Value: TVector3);
     function GetBeamWidth: Single;

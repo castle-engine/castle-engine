@@ -26,7 +26,9 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetTessellation: Integer;
     procedure SetTessellation(const Value: Integer);
     function GetClosed: boolean;
@@ -34,8 +36,13 @@
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     property Tessellation: Integer read GetTessellation write SetTessellation;
+    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: TDoubleList);
     property Closed: boolean read GetClosed write SetClosed;
+    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: TDoubleList);
     property Order: Integer read GetOrder write SetOrder;
 
 {$endif read_interface}
@@ -43,6 +50,19 @@
 {$ifdef read_implementation}
 
 { TNurbsCurveNode ----------------------------------------------- }
+
+function TNurbsCurveNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsCurveNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
 
 function TNurbsCurveNode.GetTessellation: Integer;
 begin
@@ -54,6 +74,16 @@ begin
   FdTessellation.Send(Value);
 end;
 
+procedure TNurbsCurveNode.SetWeight(const Value: array of Double);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TNurbsCurveNode.SetWeight(const Value: TDoubleList);
+begin
+  FdWeight.Send(Value);
+end;
+
 function TNurbsCurveNode.GetClosed: boolean;
 begin
   Result := FdClosed.Value;
@@ -62,6 +92,16 @@ end;
 procedure TNurbsCurveNode.SetClosed(const Value: boolean);
 begin
   FdClosed.Send(Value);
+end;
+
+procedure TNurbsCurveNode.SetKnot(const Value: array of Double);
+begin
+  FdKnot.Send(Value);
+end;
+
+procedure TNurbsCurveNode.SetKnot(const Value: TDoubleList);
+begin
+  FdKnot.Send(Value);
 end;
 
 function TNurbsCurveNode.GetOrder: Integer;

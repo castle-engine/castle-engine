@@ -9,7 +9,6 @@ unit CastleInternalVorbisFile;
 {$packrecords C}
 
 {$i castleconf.inc}
-{$I castleinternalvorbisfile_conf.inc}
 
 interface
 
@@ -25,10 +24,10 @@ const
 type
   TSizeT = LongWord;
 
-  TVorbisFileReadFunc = function (ptr: Pointer; Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; libvorbisfile_decl;
-  TVorbisFileSeekFunc = function (DataSource: Pointer; offset: Int64; whence: CInt): CInt; libvorbisfile_decl;
-  TVorbisFileCloseFunc = function (DataSource: Pointer): CInt; libvorbisfile_decl;
-  TVorbisFileTellFunc = function (DataSource: Pointer): CLong; libvorbisfile_decl;
+  TVorbisFileReadFunc = function (ptr: Pointer; Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; cdecl;
+  TVorbisFileSeekFunc = function (DataSource: Pointer; offset: Int64; whence: CInt): CInt; cdecl;
+  TVorbisFileCloseFunc = function (DataSource: Pointer): CInt; cdecl;
+  TVorbisFileTellFunc = function (DataSource: Pointer): CLong; cdecl;
 
   Tov_callbacks = record
     read_func: TVorbisFileReadFunc;
@@ -74,52 +73,52 @@ type
   POggVorbis_File = ^TOggVorbis_File;
 
 var
-  ov_clear: function (Vf: POggVorbis_File): CInt; libvorbisfile_decl;
+  ov_clear: function (Vf: POggVorbis_File): CInt; cdecl;
   { Not translatable, we don't know C stdio FILE type:
-    extern int ov_open(FILE *f,Vf: POggVorbis_File,Initial: PChar,ibytes: CLong); libvorbisfile_decl;}
-  ov_open_callbacks: function (DataSource: Pointer; Vf: POggVorbis_File; Initial: PChar; ibytes: CLong; callbacks: Tov_callbacks): CInt; libvorbisfile_decl;
+    extern int ov_open(FILE *f,Vf: POggVorbis_File,Initial: PChar,ibytes: CLong); cdecl;}
+  ov_open_callbacks: function (DataSource: Pointer; Vf: POggVorbis_File; Initial: PChar; ibytes: CLong; callbacks: Tov_callbacks): CInt; cdecl;
 
   { Not translatable, we don't know C stdio FILE type:
-  extern int ov_test(FILE *f,Vf: POggVorbis_File,Initial: PChar,ibytes: CLong); libvorbisfile_decl;}
-  ov_test_callbacks: function (DataSource: Pointer; Vf: POggVorbis_File; Initial: PChar; ibytes: CLong; callbacks: Tov_callbacks): CInt; libvorbisfile_decl;
-  ov_test_open: function (Vf: POggVorbis_File): CInt; libvorbisfile_decl;
+  extern int ov_test(FILE *f,Vf: POggVorbis_File,Initial: PChar,ibytes: CLong); cdecl;}
+  ov_test_callbacks: function (DataSource: Pointer; Vf: POggVorbis_File; Initial: PChar; ibytes: CLong; callbacks: Tov_callbacks): CInt; cdecl;
+  ov_test_open: function (Vf: POggVorbis_File): CInt; cdecl;
 
-  ov_bitrate: function (Vf: POggVorbis_File; i: CInt): CLong; libvorbisfile_decl;
-  ov_bitrate_instant: function (Vf: POggVorbis_File): CLong; libvorbisfile_decl;
-  ov_streams: function (Vf: POggVorbis_File): CLong; libvorbisfile_decl;
-  ov_seekable: function (Vf: POggVorbis_File): CLong; libvorbisfile_decl;
-  ov_serialnumber: function (Vf: POggVorbis_File; i: CInt): CLong; libvorbisfile_decl;
+  ov_bitrate: function (Vf: POggVorbis_File; i: CInt): CLong; cdecl;
+  ov_bitrate_instant: function (Vf: POggVorbis_File): CLong; cdecl;
+  ov_streams: function (Vf: POggVorbis_File): CLong; cdecl;
+  ov_seekable: function (Vf: POggVorbis_File): CLong; cdecl;
+  ov_serialnumber: function (Vf: POggVorbis_File; i: CInt): CLong; cdecl;
 
-  ov_raw_total: function (Vf: POggVorbis_File; i: CInt): Int64; libvorbisfile_decl;
-  ov_pcm_total: function (Vf: POggVorbis_File; i: CInt): Int64; libvorbisfile_decl;
-  ov_time_total: function (Vf: POggVorbis_File; i: CInt): Double; libvorbisfile_decl;
+  ov_raw_total: function (Vf: POggVorbis_File; i: CInt): Int64; cdecl;
+  ov_pcm_total: function (Vf: POggVorbis_File; i: CInt): Int64; cdecl;
+  ov_time_total: function (Vf: POggVorbis_File; i: CInt): Double; cdecl;
 
-  ov_raw_seek: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl;
-  ov_pcm_seek: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl;
-  ov_pcm_seek_page: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl;
-  ov_time_seek: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl;
-  ov_time_seek_page: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl;
+  ov_raw_seek: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl;
+  ov_pcm_seek: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl;
+  ov_pcm_seek_page: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl;
+  ov_time_seek: function (Vf: POggVorbis_File; pos: Double): CInt; cdecl;
+  ov_time_seek_page: function (Vf: POggVorbis_File; pos: Double): CInt; cdecl;
 
-  // ov_raw_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl; // not available in libtremolo
-  // ov_pcm_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl; // not available in libtremolo
-  // ov_pcm_seek_page_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; libvorbisfile_decl; // not available in libtremolo
-  // ov_time_seek_lap: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl; // not available in libtremolo
-  // ov_time_seek_page_lap: function (Vf: POggVorbis_File; pos: Double): CInt; libvorbisfile_decl; // not available in libtremolo
+  // ov_raw_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl; // not available in libtremolo
+  // ov_pcm_seek_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl; // not available in libtremolo
+  // ov_pcm_seek_page_lap: function (Vf: POggVorbis_File; pos: Int64): CInt; cdecl; // not available in libtremolo
+  // ov_time_seek_lap: function (Vf: POggVorbis_File; pos: Double): CInt; cdecl; // not available in libtremolo
+  // ov_time_seek_page_lap: function (Vf: POggVorbis_File; pos: Double): CInt; cdecl; // not available in libtremolo
 
-  ov_raw_tell: function (Vf: POggVorbis_File): Int64; libvorbisfile_decl;
-  ov_pcm_tell: function (Vf: POggVorbis_File): Int64; libvorbisfile_decl;
-  ov_time_tell: function (Vf: POggVorbis_File): Double; libvorbisfile_decl;
+  ov_raw_tell: function (Vf: POggVorbis_File): Int64; cdecl;
+  ov_pcm_tell: function (Vf: POggVorbis_File): Int64; cdecl;
+  ov_time_tell: function (Vf: POggVorbis_File): Double; cdecl;
 
-  ov_info: function (Vf: POggVorbis_File; link: CInt): Pvorbis_info; libvorbisfile_decl;
+  ov_info: function (Vf: POggVorbis_File; link: CInt): Pvorbis_info; cdecl;
   { Not translated yet }
-  //extern vorbis_comment *ov_comment(Vf: POggVorbis_File,int link); libvorbisfile_decl;
+  //extern vorbis_comment *ov_comment(Vf: POggVorbis_File,int link); cdecl;
 
-  //ov_read_float: function (Vf: POggVorbis_File,float ***pcm_channels,int samples, int *bitstream): CLong; libvorbisfile_decl;
-  ov_read: function (Vf: POggVorbis_File; var buffer; length, bigendianp, word, sgned: CInt; bitstream: PCInt): CLong; libvorbisfile_decl;
-  //ov_crosslap: function (Vf: POggVorbis_File1,Vf: POggVorbis_File2): CInt; libvorbisfile_decl;
+  //ov_read_float: function (Vf: POggVorbis_File,float ***pcm_channels,int samples, int *bitstream): CLong; cdecl;
+  ov_read: function (Vf: POggVorbis_File; var buffer; length, bigendianp, word, sgned: CInt; bitstream: PCInt): CLong; cdecl;
+  //ov_crosslap: function (Vf: POggVorbis_File1,Vf: POggVorbis_File2): CInt; cdecl;
 
-  //ov_halfrate: function (Vf: POggVorbis_File,int flag): CInt; libvorbisfile_decl;
-  //ov_halfrate_p: function (Vf: POggVorbis_File): CInt; libvorbisfile_decl;
+  //ov_halfrate: function (Vf: POggVorbis_File,int flag): CInt; cdecl;
+  //ov_halfrate_p: function (Vf: POggVorbis_File): CInt; cdecl;
 
 
 { Is the vorbisfile shared library (with all necessary symbols) available. }
@@ -173,49 +172,49 @@ begin
 
   if VorbisFileLibrary <> nil then
   begin
-    Pointer(ov_clear) := VorbisFileLibrary.Symbol('ov_clear');
-    //Pointer(ov_open) := VorbisFileLibrary.Symbol('ov_open');
-    Pointer(ov_open_callbacks) := VorbisFileLibrary.Symbol('ov_open_callbacks');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_clear) := VorbisFileLibrary.Symbol('ov_clear');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_open) := VorbisFileLibrary.Symbol('ov_open');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_open_callbacks) := VorbisFileLibrary.Symbol('ov_open_callbacks');
 
-    //Pointer(ov_test) := VorbisFileLibrary.Symbol('ov_test');
-    Pointer(ov_test_callbacks) := VorbisFileLibrary.Symbol('ov_test_callbacks');
-    Pointer(ov_test_open) := VorbisFileLibrary.Symbol('ov_test_open');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test) := VorbisFileLibrary.Symbol('ov_test');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test_callbacks) := VorbisFileLibrary.Symbol('ov_test_callbacks');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_test_open) := VorbisFileLibrary.Symbol('ov_test_open');
 
-    Pointer(ov_bitrate) := VorbisFileLibrary.Symbol('ov_bitrate');
-    Pointer(ov_bitrate_instant) := VorbisFileLibrary.Symbol('ov_bitrate_instant');
-    Pointer(ov_streams) := VorbisFileLibrary.Symbol('ov_streams');
-    Pointer(ov_seekable) := VorbisFileLibrary.Symbol('ov_seekable');
-    Pointer(ov_serialnumber) := VorbisFileLibrary.Symbol('ov_serialnumber');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_bitrate) := VorbisFileLibrary.Symbol('ov_bitrate');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_bitrate_instant) := VorbisFileLibrary.Symbol('ov_bitrate_instant');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_streams) := VorbisFileLibrary.Symbol('ov_streams');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_seekable) := VorbisFileLibrary.Symbol('ov_seekable');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_serialnumber) := VorbisFileLibrary.Symbol('ov_serialnumber');
 
-    Pointer(ov_raw_total) := VorbisFileLibrary.Symbol('ov_raw_total');
-    Pointer(ov_pcm_total) := VorbisFileLibrary.Symbol('ov_pcm_total');
-    Pointer(ov_time_total) := VorbisFileLibrary.Symbol('ov_time_total');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_total) := VorbisFileLibrary.Symbol('ov_raw_total');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_total) := VorbisFileLibrary.Symbol('ov_pcm_total');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_total) := VorbisFileLibrary.Symbol('ov_time_total');
 
-    Pointer(ov_raw_seek) := VorbisFileLibrary.Symbol('ov_raw_seek');
-    Pointer(ov_pcm_seek) := VorbisFileLibrary.Symbol('ov_pcm_seek');
-    Pointer(ov_pcm_seek_page) := VorbisFileLibrary.Symbol('ov_pcm_seek_page');
-    Pointer(ov_time_seek) := VorbisFileLibrary.Symbol('ov_time_seek');
-    Pointer(ov_time_seek_page) := VorbisFileLibrary.Symbol('ov_time_seek_page');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_seek) := VorbisFileLibrary.Symbol('ov_raw_seek');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek) := VorbisFileLibrary.Symbol('ov_pcm_seek');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_page) := VorbisFileLibrary.Symbol('ov_pcm_seek_page');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek) := VorbisFileLibrary.Symbol('ov_time_seek');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_page) := VorbisFileLibrary.Symbol('ov_time_seek_page');
 
-    // Pointer(ov_raw_seek_lap) := VorbisFileLibrary.Symbol('ov_raw_seek_lap'); // not available in libtremolo
-    // Pointer(ov_pcm_seek_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_lap'); // not available in libtremolo
-    // Pointer(ov_pcm_seek_page_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_page_lap'); // not available in libtremolo
-    // Pointer(ov_time_seek_lap) := VorbisFileLibrary.Symbol('ov_time_seek_lap'); // not available in libtremolo
-    // Pointer(ov_time_seek_page_lap) := VorbisFileLibrary.Symbol('ov_time_seek_page_lap'); // not available in libtremolo
+    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_seek_lap) := VorbisFileLibrary.Symbol('ov_raw_seek_lap'); // not available in libtremolo
+    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_lap'); // not available in libtremolo
+    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_seek_page_lap) := VorbisFileLibrary.Symbol('ov_pcm_seek_page_lap'); // not available in libtremolo
+    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_lap) := VorbisFileLibrary.Symbol('ov_time_seek_lap'); // not available in libtremolo
+    // {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_seek_page_lap) := VorbisFileLibrary.Symbol('ov_time_seek_page_lap'); // not available in libtremolo
 
-    Pointer(ov_raw_tell) := VorbisFileLibrary.Symbol('ov_raw_tell');
-    Pointer(ov_pcm_tell) := VorbisFileLibrary.Symbol('ov_pcm_tell');
-    Pointer(ov_time_tell) := VorbisFileLibrary.Symbol('ov_time_tell');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_raw_tell) := VorbisFileLibrary.Symbol('ov_raw_tell');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_pcm_tell) := VorbisFileLibrary.Symbol('ov_pcm_tell');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_time_tell) := VorbisFileLibrary.Symbol('ov_time_tell');
 
-    Pointer(ov_info) := VorbisFileLibrary.Symbol('ov_info');
-    //Pointer(ov_comment) := VorbisFileLibrary.Symbol('ov_comment');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_info) := VorbisFileLibrary.Symbol('ov_info');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_comment) := VorbisFileLibrary.Symbol('ov_comment');
 
-    //Pointer(ov_read_float) := VorbisFileLibrary.Symbol('ov_read_float');
-    Pointer(ov_read) := VorbisFileLibrary.Symbol('ov_read');
-    //Pointer(ov_crosslap) := VorbisFileLibrary.Symbol('ov_crosslap');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_read_float) := VorbisFileLibrary.Symbol('ov_read_float');
+    {$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_read) := VorbisFileLibrary.Symbol('ov_read');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_crosslap) := VorbisFileLibrary.Symbol('ov_crosslap');
 
-    //Pointer(ov_halfrate) := VorbisFileLibrary.Symbol('ov_halfrate');
-    //Pointer(ov_halfrate_p) := VorbisFileLibrary.Symbol('ov_halfrate_p');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_halfrate) := VorbisFileLibrary.Symbol('ov_halfrate');
+    //{$ifdef CASTLE_OBJFPC}Pointer{$endif} (ov_halfrate_p) := VorbisFileLibrary.Symbol('ov_halfrate_p');
   end;
 end;
 

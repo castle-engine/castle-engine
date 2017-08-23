@@ -20,10 +20,11 @@ unit CastlePlayer;
 
 interface
 
-uses CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
+uses Classes,
+  CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
-  Classes, Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
-  CastleTimeUtils;
+  Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
+  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes;
 
 type
   TPlayerSwimming = (psNo,
@@ -85,70 +86,83 @@ type
   }
   TPlayer = class(T3DAliveWithInventory)
   private
-    FEquippedWeapon: TItemWeapon;
+    type
+      { Invisible box, that is added to make TPlayer collidable thanks to default
+        T3DOrient (actually T3DList) methods. Owner must be TPlayer. }
+      TBox = class(T3D)
+      public
+        function BoundingBox: TBox3D; override;
+      end;
 
-    { If Swimming = psUnderWater, then this is the time (from LifeTime)
-      of setting Swimming to psUnderWater. }
-    SwimBeginTime: Single;
-    { If Swimming = psUnderWater, this is the time of last
-      drowning (or 0.0 if there was no drowning yet in this swimming session). }
-    SwimLastDrownTime: Single;
-    { If Swimming = psUnderWater, this is the time of last stPlayerSwimming sound
-      (or 0.0 if there was no stPlayerSwimming played yet in this
-      swimming session). }
-    SwimLastSoundTime: Single;
-    FSwimming: TPlayerSwimming;
+    var
+      FBox: TBox;
+      FDebug3D: TDebug3D;
+      FEnableDebug3D: boolean;
 
-    { Did last @link(Update) detected that we're on toxic ground? }
-    IsToxic: boolean;
-    { Relevant if IsToxic, this is LifeTime when
-      last time toxic damage was done. When player steps on toxic for the
-      first time, he immediately gets damage, so ToxicLastDamageTime is
-      always valid when IsToxic. }
-    ToxicLastDamageTime: Single;
+      FEquippedWeapon: TItemWeapon;
 
-    SwimmingChangeSound: TSound;
-    SwimmingSound: TSound;
+      { If Swimming = psUnderWater, then this is the time (from LifeTime)
+        of setting Swimming to psUnderWater. }
+      SwimBeginTime: Single;
+      { If Swimming = psUnderWater, this is the time of last
+        drowning (or 0.0 if there was no drowning yet in this swimming session). }
+      SwimLastDrownTime: Single;
+      { If Swimming = psUnderWater, this is the time of last stPlayerSwimming sound
+        (or 0.0 if there was no stPlayerSwimming played yet in this
+        swimming session). }
+      SwimLastSoundTime: Single;
+      FSwimming: TPlayerSwimming;
 
-    { Did last @link(Update) detected that we are on the ground. }
-    IsOnTheGround: boolean;
-    { <> @nil if IsOnTheGround and last ground had some TMaterialProperty. }
-    GroundProperty: TMaterialProperty;
-    ReallyIsOnTheGroundTime: Single;
+      { Did last @link(Update) detected that we're on toxic ground? }
+      IsToxic: boolean;
+      { Relevant if IsToxic, this is LifeTime when
+        last time toxic damage was done. When player steps on toxic for the
+        first time, he immediately gets damage, so ToxicLastDamageTime is
+        always valid when IsToxic. }
+      ToxicLastDamageTime: Single;
 
-    { There always must be satisfied:
-        FootstepsSound <> nil
-      if and only if
-        FootstepsSoundPlaying <> stNone. }
-    FootstepsSound: TSound;
-    FootstepsSoundPlaying: TSoundType;
-    ReallyWalkingOnTheGroundTime: Single;
+      SwimmingChangeSound: TSound;
+      SwimmingSound: TSound;
 
-    FInventoryCurrentItem: Integer;
-    FInventoryVisible: boolean;
-    FSickProjectionSpeed: Single;
-    FBlocked: boolean;
-    FRenderOnTop: boolean;
+      { Did last @link(Update) detected that we are on the ground. }
+      IsOnTheGround: boolean;
+      { <> @nil if IsOnTheGround and last ground had some TMaterialProperty. }
+      GroundProperty: TMaterialProperty;
+      ReallyIsOnTheGroundTime: Single;
 
-    FFlying: boolean;
-    FFlyingTimeOut: TFloatTime;
-    { FadeOut settings. }
-    FFadeOutIntensity: Single;
-    FFadeOutColor: TCastleColor;
+      { There always must be satisfied:
+          FootstepsSound <> nil
+        if and only if
+          FootstepsSoundPlaying <> stNone. }
+      FootstepsSound: TSound;
+      FootstepsSoundPlaying: TSoundType;
+      ReallyWalkingOnTheGroundTime: Single;
 
-    FFallMinHeightToSound: Single;
-    FFallMinHeightToDamage: Single;
-    FFallDamageScaleMin: Single;
-    FFallDamageScaleMax: Single;
-    FFallSound: TSoundType;
-    FHeadBobbing: Single;
-    FSwimBreath: Single;
-    FDrownPause: Single;
-    FDrownDamageConst: Single;
-    FDrownDamageRandom: Single;
-    FSwimSoundPause: Single;
-    FEnableCameraDragging: boolean;
-    FFallingEffect: boolean;
+      FInventoryCurrentItem: Integer;
+      FInventoryVisible: boolean;
+      FSickProjectionSpeed: Single;
+      FBlocked: boolean;
+      FRenderOnTop: boolean;
+
+      FFlying: boolean;
+      FFlyingTimeOut: TFloatTime;
+      { FadeOut settings. }
+      FFadeOutIntensity: Single;
+      FFadeOutColor: TCastleColor;
+
+      FFallMinHeightToSound: Single;
+      FFallMinHeightToDamage: Single;
+      FFallDamageScaleMin: Single;
+      FFallDamageScaleMax: Single;
+      FFallSound: TSoundType;
+      FHeadBobbing: Single;
+      FSwimBreath: Single;
+      FDrownPause: Single;
+      FDrownDamageConst: Single;
+      FDrownDamageRandom: Single;
+      FSwimSoundPause: Single;
+      FEnableCameraDragging: boolean;
+      FFallingEffect: boolean;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -410,6 +424,12 @@ type
       @link(Dead) or @link(Blocked)). }
     property EnableCameraDragging: boolean
       read FEnableCameraDragging write SetEnableCameraDragging default true;
+
+    { When global RenderDebug3D is @true @italic(and) this property is @true,
+      show the bounding box of the player. It's a little confusing
+      (since it's a box around yourself), that's why it's off by default. }
+    property EnableDebug3D: boolean
+      read FEnableDebug3D write FEnableDebug3D default false;
   end;
 
 const
@@ -434,26 +454,17 @@ var
 
 implementation
 
-uses Math, SysUtils, CastleClassUtils, CastleUtils, X3DNodes, CastleControls,
+uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
   { TODO: this unit should not use CastleInternalOpenAL directly }
   CastleInternalOpenAL,
-  CastleGL, CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
+  CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
   CastleGLImages, CastleConfig, CastleResources, CastleShapes,
   CastleRenderingCamera;
 
-{ TPlayerBox ----------------------------------------------------------------- }
+{ TPlayer.TBox ----------------------------------------------------------------- }
 
-type
-  { Invisible box, that is added to make TPlayer collidable thanks to default
-    T3DOrient (actually T3DList) methods. Owner must be TPlayer. }
-  TPlayerBox = class(T3D)
-  public
-    function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-  end;
-
-function TPlayerBox.BoundingBox: TBox3D;
+function TPlayer.TBox.BoundingBox: TBox3D;
 var
   Camera: TWalkCamera;
 begin
@@ -470,31 +481,6 @@ begin
     Result.Data[1].Data[2] := Camera.Radius;
   end else
     Result := TBox3D.Empty;
-end;
-
-procedure TPlayerBox.Render(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-  inherited;
-
-  {$ifndef OpenGLES} // TODO-es
-  if RenderDebug3D and GetExists and
-    Frustum.Box3DCollisionPossibleSimple(BoundingBox) and
-    (not Params.Transparent) and Params.ShadowVolumesReceivers then
-  begin
-    { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-    {$warnings off}
-    glPushAttrib(GL_ENABLE_BIT);
-      glDisable(GL_LIGHTING);
-      glEnable(GL_DEPTH_TEST);
-      glPushMatrix;
-        glMultMatrix(Params.RenderTransform);
-        glColorv(Gray);
-        glDrawBox3DWire(BoundingBox);
-      glPopMatrix;
-    glPopAttrib;
-    {$warnings on}
-  end;
-  {$endif}
 end;
 
 { TPlayer -------------------------------------------------------------------- }
@@ -524,7 +510,8 @@ begin
   FFallingEffect := true;
   FEnableCameraDragging := true;
 
-  Add(TPlayerBox.Create(Self));
+  FBox := TBox.Create(Self);
+  Add(FBox);
 
   FInventoryCurrentItem := -1;
 
@@ -541,6 +528,9 @@ begin
     we also call it here to be sure that right after TPlayer constructor
     finished, Camera has already good values. }
   UpdateCamera;
+
+  FDebug3D := TDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 end;
 
 destructor TPlayer.Destroy;
@@ -1068,6 +1058,8 @@ begin
   UpdateIsOnTheGround;
   UpdateToxic;
   UpdateFootstepsSoundPlaying;
+
+  FDebug3D.Exists := EnableDebug3D and RenderDebug3D;
 end;
 
 procedure TPlayer.FadeOut(const Color: TCastleColor);
@@ -1324,12 +1316,12 @@ begin
     It should also enable X3D layers. }
 
   if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
-    DepthRange := drNear;
+    RenderContext.DepthRange := drNear;
 
   inherited;
 
   if RenderOnTop and (RenderingCamera.Target <> rtShadowMap) then
-    DepthRange := drFar;
+    RenderContext.DepthRange := drFar;
 end;
 
 function TPlayer.Middle: TVector3;

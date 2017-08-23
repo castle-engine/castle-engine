@@ -24,25 +24,25 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdAmbientIntensity: TSFFloat;
+    strict private FFdAmbientIntensity: TSFFloat;
     public property FdAmbientIntensity: TSFFloat read FFdAmbientIntensity;
 
-    private FFdAttenuation: TSFVec3f;
+    strict private FFdAttenuation: TSFVec3f;
     public property FdAttenuation: TSFVec3f read FFdAttenuation;
 
-    private FFdColor: TSFColor;
+    strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
 
-    private FFdIntensity: TSFFloat;
+    strict private FFdIntensity: TSFFloat;
     public property FdIntensity: TSFFloat read FFdIntensity;
 
-    private FFdSpot: TSFBool;
+    strict private FFdSpot: TSFBool;
     public property FdSpot: TSFBool read FFdSpot;
 
-    private FFdSpotCutOffAngle: TSFFloat;
+    strict private FFdSpotCutOffAngle: TSFFloat;
     public property FdSpotCutOffAngle: TSFFloat read FFdSpotCutOffAngle;
 
-    private FFdSpotDropOffRate: TSFFloat;
+    strict private FFdSpotDropOffRate: TSFFloat;
     public property FdSpotDropOffRate: TSFFloat read FFdSpotDropOffRate;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -60,7 +60,7 @@
     { Fields added compared to normal Text node: }
 
     { }
-    private FFdDepth: TSFFloat;
+    strict private FFdDepth: TSFFloat;
     public property FdDepth: TSFFloat read FFdDepth;
 
     class function URNMatching(const URN: string): boolean; override;
@@ -82,16 +82,16 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdSrcFactor: TSFString;
+    strict private FFdSrcFactor: TSFString;
     public property FdSrcFactor: TSFString read FFdSrcFactor;
 
-    private FFdDestFactor: TSFString;
+    strict private FFdDestFactor: TSFString;
     public property FdDestFactor: TSFString read FFdDestFactor;
 
-    private FFdColor: TSFColor;
+    strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
 
-    private FFdColorTransparency: TSFFloat;
+    strict private FFdColorTransparency: TSFFloat;
     public property FdColorTransparency: TSFFloat read FFdColorTransparency;
 
     {$I auto_generated_node_helpers/x3dnodes_blendmode.inc}
@@ -113,7 +113,7 @@
   { Embed a scene from another file, and replace some of it's nodes.
     See http://castle-engine.sourceforge.net/x3d_extensions.php#section_ext_kambi_inline . }
   TKambiInlineNode = class(TInlineNode)
-  private
+  strict private
     { This is internal only for DoReplaceNodes, initialized in AfterLoadInlined. }
     ReplaceCount: Integer;
     procedure DoReplaceNodes(ParentNode: TX3DNode; var Node: TX3DNode);
@@ -124,10 +124,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdReplaceNames: TMFString;
+    strict private FFdReplaceNames: TMFString;
     public property FdReplaceNames: TMFString read FFdReplaceNames;
 
-    private FFdReplaceNodes: TMFNode;
+    strict private FFdReplaceNodes: TMFNode;
     public property FdReplaceNodes: TMFNode read FFdReplaceNodes;
 
     {$I auto_generated_node_helpers/x3dnodes_kambiinline.inc}
@@ -147,28 +147,28 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdTimeOriginAtLoad: TSFBool;
+    strict private FFdTimeOriginAtLoad: TSFBool;
     public property FdTimeOriginAtLoad: TSFBool read FFdTimeOriginAtLoad;
 
-    private FFdOctreeRendering: TSFNode;
+    strict private FFdOctreeRendering: TSFNode;
     public property FdOctreeRendering: TSFNode read FFdOctreeRendering;
 
-    private FFdOctreeDynamicCollisions: TSFNode;
+    strict private FFdOctreeDynamicCollisions: TSFNode;
     public property FdOctreeDynamicCollisions: TSFNode read FFdOctreeDynamicCollisions;
 
-    private FFdOctreeVisibleTriangles: TSFNode;
+    strict private FFdOctreeVisibleTriangles: TSFNode;
     public property FdOctreeVisibleTriangles: TSFNode read FFdOctreeVisibleTriangles;
 
-    private FFdOctreeStaticCollisions: TSFNode;
+    strict private FFdOctreeStaticCollisions: TSFNode;
     public property FdOctreeStaticCollisions: TSFNode read FFdOctreeStaticCollisions;
 
-    private FFdHeadBobbing: TSFFloat;
+    strict private FFdHeadBobbing: TSFFloat;
     public property FdHeadBobbing: TSFFloat read FFdHeadBobbing;
 
-    private FFdHeadBobbingTime: TSFFloat;
+    strict private FFdHeadBobbingTime: TSFFloat;
     public property FdHeadBobbingTime: TSFFloat read FFdHeadBobbingTime;
 
-    private FFdHeadlightNode: TSFNode;
+    strict private FFdHeadlightNode: TSFNode;
     public property FdHeadlightNode: TSFNode read FFdHeadlightNode;
 
     { Return value of appropriate FdOctreeXxx field.
@@ -185,10 +185,10 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdMaxDepth: TSFInt32;
+    strict private FFdMaxDepth: TSFInt32;
     public property FdMaxDepth: TSFInt32 read FFdMaxDepth;
 
-    private FFdLeafCapacity: TSFInt32;
+    strict private FFdLeafCapacity: TSFInt32;
     public property FdLeafCapacity: TSFInt32 read FFdLeafCapacity;
 
     { Override Limits fields, where our own fields have values <> -1. }
@@ -217,22 +217,22 @@
     property GeneratedTextureHandler: TGeneratedTextureHandler
       read FGeneratedTextureHandler;
 
-    private FFdUpdate: TSFTextureUpdate;
+    strict private FFdUpdate: TSFTextureUpdate;
     public property FdUpdate: TSFTextureUpdate read FFdUpdate;
 
-    private FFdSize: TSFInt32;
+    strict private FFdSize: TSFInt32;
     public property FdSize: TSFInt32 read FFdSize;
 
-    private FFdLight: TSFNode;
+    strict private FFdLight: TSFNode;
     public property FdLight: TSFNode read FFdLight;
 
-    private FFdScale: TSFFloat;
+    strict private FFdScale: TSFFloat;
     public property FdScale: TSFFloat read FFdScale;
 
-    private FFdBias: TSFFloat;
+    strict private FFdBias: TSFFloat;
     public property FdBias: TSFFloat read FFdBias;
 
-    private FFdCompareMode: TSFstring;
+    strict private FFdCompareMode: TSFstring;
     public property FdCompareMode: TSFString read FFdCompareMode;
 
     {$I auto_generated_node_helpers/x3dnodes_generatedshadowmap.inc}
@@ -247,7 +247,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdProjector: TSFNode;
+    strict private FFdProjector: TSFNode;
     public property FdProjector: TSFNode read FFdProjector;
 
     {$I auto_generated_node_helpers/x3dnodes_projectedtexturecoordinate.inc}
@@ -256,7 +256,7 @@
   { Screen-space shader effect.
     See http://castle-engine.sourceforge.net/x3d_extensions_screen_effects.php . }
   TScreenEffectNode = class(TAbstractChildNode)
-  private
+  strict private
     FShader: TObject;
     FShaderLoaded: boolean;
     FStateForShaderPrepare: TX3DGraphTraverseState;
@@ -268,13 +268,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdShaders: TMFNodeShaders;
+    strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
 
-    private FFdNeedsDepth: TSFBool;
+    strict private FFdNeedsDepth: TSFBool;
     public property FdNeedsDepth: TSFBool read FFdNeedsDepth;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Shader and ShaderLoaded properties are internally manager by the renderer.
@@ -324,13 +324,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdLanguage: TSFString;
+    strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
-    private FFdParts: TMFNode;
+    strict private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     {$I auto_generated_node_helpers/x3dnodes_effect.inc}
@@ -339,7 +339,7 @@
   { Part of a shader effect, used with @link(TEffectNode).
     See http://castle-engine.sourceforge.net/compositing_shaders.php . }
   TEffectPartNode = class(TAbstractNode, IAbstractUrlObject)
-  private
+  strict private
     ContentsCached: boolean;
     ContentsCache: string;
     procedure EventUrlReceive(
@@ -351,13 +351,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdType: TSFStringEnum;
+    strict private FFdType: TSFStringEnum;
     public property FdType: TSFStringEnum read FFdType;
 
     { Shader type. }
     property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     { Load shader code from node's URLs.
@@ -377,7 +377,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDefaultTexCoord: TSFString;
+    strict private FFdDefaultTexCoord: TSFString;
     public property FdDefaultTexCoord: TSFString read FFdDefaultTexCoord;
 
     {$I auto_generated_node_helpers/x3dnodes_shadertexture.inc}
@@ -556,7 +556,7 @@ begin
       Exit;
     end;
 
-  VRML1Children[0].EnumerateReplaceChildren(@DoReplaceNodes);
+  VRML1Children[0].EnumerateReplaceChildren({$ifdef CASTLE_OBJFPC}@{$endif} DoReplaceNodes);
 end;
 
 procedure TKambiInlineNode.DoReplaceNodes(ParentNode: TX3DNode;
@@ -854,7 +854,7 @@ begin
 
   FFdUrl := TMFString.Create(Self, 'url', []);
    FdUrl.ChangesAlways := [chEverything];
-   FdUrl.OnReceive.Add(@EventUrlReceive);
+   FdUrl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
 
   DefaultContainerField := 'parts';

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetUseGeometry: boolean;
     procedure SetUseGeometry(const Value: boolean);
   public

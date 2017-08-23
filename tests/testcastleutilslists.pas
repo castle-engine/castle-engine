@@ -27,6 +27,7 @@ type
     procedure TestCastleVectorsLists;
     procedure TestListsAssign;
     procedure TestListsAssignLerp;
+    procedure TestListsAssignLerpShifted;
     procedure TestZero;
   end;
 
@@ -285,7 +286,7 @@ begin
   end;
 end;
 
-procedure TTestBasicLists.TestListsAssignLerp;
+procedure TTestBasicLists.TestListsAssignLerpShifted;
 var
   V1, V2, V3: TVector3List;
 begin
@@ -309,6 +310,36 @@ begin
     AssertTrue(TVector3.PerfectlyEquals(V3.L[1], Lerp(0.2,
       Vector3(4.0, 5.0, 6.0),
       Vector3(17.0, 18.0, 19.0))));
+  finally
+    FreeAndNil(V1);
+    FreeAndNil(V2);
+    FreeAndNil(V3);
+  end;
+end;
+
+procedure TTestBasicLists.TestListsAssignLerp;
+var
+  V1, V2, V3: TVector3List;
+begin
+  V1 := TVector3List.Create;
+  V2 := TVector3List.Create;
+  V3 := TVector3List.Create;
+  try
+    V1.Add(Vector3(1.0, 2.0, 3.0));
+    V1.Add(Vector3(4.0, 5.0, 6.0));
+
+    V2.Add(Vector3(7.0, 8.0, 9.0));
+    V2.Add(Vector3(11.0, 12.0, 13.0));
+
+    V3.AssignLerp(0.2, V1, V2);
+    AssertTrue(V3.Count = 2);
+
+    AssertTrue(TVector3.PerfectlyEquals(V3.L[0], Lerp(0.2,
+      Vector3(1.0, 2.0, 3.0),
+      Vector3(7.0, 8.0, 9.0))));
+    AssertTrue(TVector3.PerfectlyEquals(V3.L[1], Lerp(0.2,
+      Vector3(4.0, 5.0, 6.0),
+      Vector3(11.0, 12.0, 13.0))));
   finally
     FreeAndNil(V1);
     FreeAndNil(V2);

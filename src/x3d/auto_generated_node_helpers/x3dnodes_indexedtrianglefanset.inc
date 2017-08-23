@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetIndex(const Value: array of LongInt);
+    procedure SetIndex(const Value: TLongIntList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TIndexedTriangleFanSetNode ----------------------------------------------- }
+
+procedure TIndexedTriangleFanSetNode.SetIndex(const Value: array of LongInt);
+begin
+  FdIndex.Send(Value);
+end;
+
+procedure TIndexedTriangleFanSetNode.SetIndex(const Value: TLongIntList);
+begin
+  FdIndex.Send(Value);
+end;
 
 {$endif read_implementation}

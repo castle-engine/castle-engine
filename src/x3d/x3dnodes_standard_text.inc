@@ -64,39 +64,39 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFamily: TMFString;
+    strict private FFdFamily: TMFString;
     public property FdFamily: TMFString read FFdFamily;
     property Family: TX3DFontFamily read GetFamily write SetFamily;
 
-    private FFdHorizontal: TSFBool;
+    strict private FFdHorizontal: TSFBool;
     public property FdHorizontal: TSFBool read FFdHorizontal;
 
-    private FFdJustify: TMFString;
+    strict private FFdJustify: TMFString;
     public property FdJustify: TMFString read FFdJustify;
     property Justify: TX3DFontJustify read GetJustify write SetJustify;
     property JustifyMinor: TX3DFontJustify read GetJustifyMinor write SetJustifyMinor;
 
-    private FFdLanguage: TSFString;
+    strict private FFdLanguage: TSFString;
     public property FdLanguage: TSFString read FFdLanguage;
 
-    private FFdLeftToRight: TSFBool;
+    strict private FFdLeftToRight: TSFBool;
     public property FdLeftToRight: TSFBool read FFdLeftToRight;
 
-    private FFdSize: TSFFloat;
+    strict private FFdSize: TSFFloat;
     public property FdSize: TSFFloat read FFdSize;
 
-    private FFdSpacing: TSFFloat;
+    strict private FFdSpacing: TSFFloat;
     public property FdSpacing: TSFFloat read FFdSpacing;
 
-    private FFdStyle: TSFString;
+    strict private FFdStyle: TSFString;
     public property FdStyle: TSFString read FFdStyle;
     property Bold: boolean read GetBold write SetBold;
     property Italic: boolean read GetItalic write SetItalic;
 
-    private FFdTopToBottom: TSFBool;
+    strict private FFdTopToBottom: TSFBool;
     public property FdTopToBottom: TSFBool read FFdTopToBottom;
 
-    private FFdBlending: TSFBool;
+    strict private FFdBlending: TSFBool;
     public property FdBlending: TSFBool read FFdBlending;
     property Blending: boolean read GetBlending write SetBlending;
 
@@ -132,7 +132,7 @@
   TPixelTextureNode = class;
 
   { Multiline text, visualized as a set of flat and textured polygons. }
-  TTextNode = class(TAbstractX3DGeometryNode)
+  TTextNode = class(TAbstractGeometryNode)
   strict private
     FFontTextureNode: TPixelTextureNode;
     function Font: TTextureFontData;
@@ -144,34 +144,34 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdFontStyle: TSFNode;
+    strict private FFdFontStyle: TSFNode;
     public property FdFontStyle: TSFNode read FFdFontStyle;
 
-    private FFdLength: TMFFloat;
+    strict private FFdLength: TMFFloat;
     public property FdLength: TMFFloat read FFdLength;
 
-    private FFdMaxExtent: TSFFloat;
+    strict private FFdMaxExtent: TSFFloat;
     public property FdMaxExtent: TSFFloat read FFdMaxExtent;
 
-    private FFdString: TMFString;
+    strict private FFdString: TMFString;
     public property FdString: TMFString read FFdString;
 
     { Event out } { }
-    private FEventLineBounds: TMFVec2fEvent;
+    strict private FEventLineBounds: TMFVec2fEvent;
     public property EventLineBounds: TMFVec2fEvent read FEventLineBounds;
 
     { Event out } { }
-    private FEventOrigin: TSFVec3fEvent;
+    strict private FEventOrigin: TSFVec3fEvent;
     public property EventOrigin: TSFVec3fEvent read FEventOrigin;
 
     { Event out } { }
-    private FEventTextBounds: TSFVec2fEvent;
+    strict private FEventTextBounds: TSFVec2fEvent;
     public property EventTextBounds: TSFVec2fEvent read FEventTextBounds;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
 
@@ -606,7 +606,7 @@ var
       fjEnd   : Result := Strings.Count     - (I + 1);
       else raise EInternalError.Create('StringPosY: Invalid font JustifyMinor value');
     end;
-    Result *= Font.RowHeight * Spacing;
+    Result := Result * (Font.RowHeight * Spacing);
   end;
 
 var
@@ -662,15 +662,15 @@ var
           case Justify of
             fjBegin, fjFirst:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2(
+                LineBounds.Items.List^[I] := Vector2(
                   TextWidths[I] * XScale, FinalRowHeight);
             fjMiddle:
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2(
+                LineBounds.Items.List^[I] := Vector2(
                   (MaxTextWidth + TextWidths[I]) * XScale / 2, FinalRowHeight);
             fjEnd   :
               for I := 0 to TextWidths.Count - 1 do
-                LineBounds.Items.L[I] := Vector2(
+                LineBounds.Items.List^[I] := Vector2(
                   MaxTextWidth * XScale, FinalRowHeight);
             else raise EInternalError.Create('Invalid font justify value');
           end;
@@ -733,10 +733,10 @@ var
           CoordX1 := CoordX0 + G.Width  {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
           CoordY1 := CoordY0 + G.Height {$ifdef EXTRA_GLYPH_SPACE} + 1 {$endif};
 
-          CoordX0 *= XScale;
-          CoordX1 *= XScale;
-          CoordY0 *= YScale;
-          CoordY1 *= YScale;
+          CoordX0 := CoordX0 * XScale;
+          CoordX1 := CoordX1 * XScale;
+          CoordY0 := CoordY0 * YScale;
+          CoordY1 := CoordY1 * YScale;
 
           OutCoord.Items.Add(Vector3(CoordX0, CoordY0, 0));
           OutCoord.Items.Add(Vector3(CoordX1, CoordY0, 0));
@@ -775,8 +775,8 @@ var
             OutExtraTexCoord.Items.Add(Vector2(ExtraTexX0, ExtraTexY1));
           end;
         end;
-        X += G.AdvanceX;
-        Y += G.AdvanceY;
+        X := X + G.AdvanceX;
+        Y := Y + G.AdvanceY;
       end;
 
       C := UTF8CharacterToUnicode(TextPtr, CharLen);
@@ -796,8 +796,8 @@ begin
     MaxTextWidth := 0;
     for I := 0 to TextWidths.Count - 1 do
     begin
-      TextWidths.L[I] := Font.TextWidth(Strings[I]);
-      MaxVar(MaxTextWidth, TextWidths.L[I]);
+      TextWidths.List^[I] := Font.TextWidth(Strings[I]);
+      MaxVar(MaxTextWidth, TextWidths.List^[I]);
     end;
 
     if Strings.Count <> 0 then
@@ -846,10 +846,10 @@ begin
     FaceSet.Solid := Solid;
 
     CoordNode := TCoordinateNode.Create('', BaseUrl);
-    FaceSet.FdCoord.Value := CoordNode;
+    FaceSet.Coord := CoordNode;
 
     MultiTexCoordNode := TMultiTextureCoordinateNode.Create('', BaseUrl);
-    FaceSet.FdTexCoord.Value := MultiTexCoordNode;
+    FaceSet.TexCoord := MultiTexCoordNode;
 
     TexCoordNode := TTextureCoordinateNode.Create('', BaseUrl);
     MultiTexCoordNode.FdTexCoord.Add(TexCoordNode);

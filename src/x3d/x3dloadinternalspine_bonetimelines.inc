@@ -17,7 +17,7 @@
 
 {$ifdef read_interface}
   TBoneTimeline = class abstract
-  private
+  strict private
     FMaxTime: Single;
   public
     Bone: TBone;
@@ -74,7 +74,7 @@
     function DoingSomething: boolean; override;
   end;
 
-  TBoneTimelineList = class(specialize TObjectList<TBoneTimeline>)
+  TBoneTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TBoneTimeline>)
   end;
 {$endif}
 
@@ -167,7 +167,7 @@ begin
     Node.FdKey.Items.Add(Time[I] / MaxAnimationTime);
 
   NodeUsedAsChild := true;
-  Container.FdChildren.Add(Node);
+  Container.AddChildren(Node);
 end;
 
 { TBoneTimelineVector2 ------------------------------------------------------- }
@@ -214,6 +214,7 @@ begin
         Bone.Node.FdTranslation.Value[1] + Vectors[I][1], 0));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
     //WritelnLog('Spine', 'Using curve for translation on bone ' + Bone.Name);
@@ -278,12 +279,9 @@ procedure TBoneTimelineScale.BuildNodes(const BaseUrl: string;
       as bone timeline is relative to setup pose }
     Result[0] := InitialScale[0] * KeyScale[0];
     Result[1] := InitialScale[1] * KeyScale[1];
-    { don't just set Result[2] to 1, instead set it to average of X and Y scales.
-      This will work better for collisions. At least in case of uniform scale
-      (when scale X and Y are equal), this way Approximate3DScale will return
-      the same value (equal to all X, Y an Z), which will make collision routines
-      work Ok. }
-    Result[2] := (Result[0] + Result[1]) / 2;
+    { This must be 1.0, not something like (Result[0] + Result[1]) / 2,
+      since scaling in Z will move the bone in front/back of the other bones. }
+    Result[2] := 1.0;
   end;
 
 var
@@ -301,6 +299,7 @@ begin
       NC.FdKeyValue.Items.Add(FinalScale(Bone.Node.FdScale.Value, Vectors[I]));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
     //WritelnLog('Spine', 'Using curve for scale on bone ' + Bone.Name);
@@ -381,6 +380,7 @@ begin
         Bone.Node.FdRotation.Value[3] + DegToRad(Angles[I]));
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
     //WritelnLog('Spine', 'Using curve for rotation on bone ' + Bone.Name);

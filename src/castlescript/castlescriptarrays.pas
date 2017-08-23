@@ -27,12 +27,27 @@ type
   TCasScriptArrayFun = class;
   TCasScriptArrayD = class;
 
-  generic TCasScriptArray<
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TCasScriptArray<
     TXxxList,
     TCasScriptXxxElement,
     TCasScriptXxxArrayFun> = class(TCasScriptValue)
   private
-    FValue: TXxxList;
+    type
+      TSelfClass = TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+        TXxxList,
+        TCasScriptXxxElement,
+        TCasScriptXxxArrayFun> {$endif};
+
+    var
+      FValue: TXxxList;
+
+    { Create and make Value an instance of TSelfClass.
+      This makes Value an instance of the self class, like TCasScriptLongIntArray,
+      when this generic is specialized to TCasScriptLongIntArray. }
+    class function CreateValueIfNeededSelf(var Value: TCasScriptValue;
+      var ParentOfValue: boolean): TSelfClass;
+
     class procedure HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -42,8 +57,8 @@ type
     procedure SetValue(const AValue: TXxxList);
     class procedure RegisterFunctions;
   public
-    constructor Create(const AWriteable: boolean; const AValue: TXxxList);
-    constructor Create(const AWriteable: boolean); override;
+    constructor Create(const AWriteable: boolean; const AValue: TXxxList); overload;
+    constructor Create(const AWriteable: boolean); override; overload;
     destructor Destroy; override;
 
     { Array value. Assigning here makes a @italic(copy) of the array. }
@@ -52,13 +67,13 @@ type
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptLongIntArray = class(specialize TCasScriptArray<
+  TCasScriptLongIntArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TLongIntList,
     TCasScriptInteger,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptSingleArray = class(specialize TCasScriptArray<
+  TCasScriptSingleArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TSingleList,
     TCasScriptFloat,
     TCasScriptArrayFun>)
@@ -68,79 +83,79 @@ type
     class procedure HandleHermiteTenseSpline(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
   end;
 
-  TCasScriptDoubleArray = class(specialize TCasScriptArray<
+  TCasScriptDoubleArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TDoubleList,
     TCasScriptFloat,
     TCasScriptArrayD>)
   end;
 
-  TCasScriptBooleanArray = class(specialize TCasScriptArray<
+  TCasScriptBooleanArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TBooleanList,
     TCasScriptBoolean,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptStringArray = class(specialize TCasScriptArray<
+  TCasScriptStringArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TCastleStringList,
     TCasScriptString,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptVec2fArray = class(specialize TCasScriptArray<
+  TCasScriptVec2fArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TVector2List,
     TCasScriptVec2f,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptVec3fArray = class(specialize TCasScriptArray<
+  TCasScriptVec3fArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TVector3List,
     TCasScriptVec3f,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptVec4fArray = class(specialize TCasScriptArray<
+  TCasScriptVec4fArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TVector4List,
     TCasScriptVec4f,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptVec2dArray = class(specialize TCasScriptArray<
+  TCasScriptVec2dArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TVector2DoubleList,
     TCasScriptVec2d,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptVec3dArray = class(specialize TCasScriptArray<
+  TCasScriptVec3dArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TVector3DoubleList,
     TCasScriptVec3d,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptVec4dArray = class(specialize TCasScriptArray<
+  TCasScriptVec4dArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TVector4DoubleList,
     TCasScriptVec4d,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix3DoubleArray = class(specialize TCasScriptArray<
+  TCasScriptMatrix3dArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TMatrix3DoubleList,
-    TCasScriptMatrix3Double,
+    TCasScriptMatrix3d,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix4DoubleArray = class(specialize TCasScriptArray<
+  TCasScriptMatrix4dArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TMatrix4DoubleList,
-    TCasScriptMatrix4Double,
+    TCasScriptMatrix4d,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix3fArray = class(specialize TCasScriptArray<
+  TCasScriptMatrix3fArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TMatrix3List,
     TCasScriptMatrix3f,
     TCasScriptArrayFun>)
   end;
 
-  TCasScriptMatrix4fArray = class(specialize TCasScriptArray<
+  TCasScriptMatrix4fArray = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptArray<
     TMatrix4List,
     TCasScriptMatrix4f,
     TCasScriptArrayFun>)
@@ -199,31 +214,61 @@ uses SysUtils, CastleCurves;
 
 { TCasScriptArray ------------------------------------------------------------ }
 
-constructor TCasScriptArray.Create(const AWriteable: boolean; const AValue: TXxxList);
+class function TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: boolean): TSelfClass;
+begin
+  CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClassType));
+  Result := TSelfClass(Value);
+end;
+
+constructor TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  Create(const AWriteable: boolean; const AValue: TXxxList);
 begin
   Create(AWriteable);
   Value := AValue;
 end;
 
-constructor TCasScriptArray.Create(const AWriteable: boolean);
+constructor TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  Create(const AWriteable: boolean);
 begin
   inherited;
   FValue := TXxxList.Create;
 end;
 
-destructor TCasScriptArray.Destroy;
+destructor TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  Destroy;
 begin
   FreeAndNil(FValue);
   inherited;
 end;
 
-procedure TCasScriptArray.SetValue(const AValue: TXxxList);
+procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  SetValue(const AValue: TXxxList);
 begin
   FValue.Assign(AValue);
   ValueAssigned := true;
 end;
 
-procedure TCasScriptArray.AssignValue(Source: TCasScriptValue);
+procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  AssignValue(Source: TCasScriptValue);
 begin
   { This works just as well:
 
@@ -242,36 +287,47 @@ begin
     TCasScriptArray<CastleStringUtils.TCastleStringList,CastleScript.TCasScriptString,CastleScriptArrays.TCasScriptArrayFun>
   }
 
-  if Source is TCasScriptArray then
-    Value := TCasScriptArray(Source).Value
+  if Source is TSelfClass then
+    Value := TSelfClass(Source).Value
   else
     raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
 end;
 
-class procedure TCasScriptArray.HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  HandleArrayFun(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
   Arr: TXxxList;
+  MyResult: TSelfClass;
 begin
-  { Make AResult an instance of the self class, like TCasScriptLongIntArray
-    when this generic is specialized to TCasScriptLongIntArray. }
-  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptValueClass(ClassType));
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
 
-  Arr := TCasScriptArray(AResult).Value;
+  Arr := MyResult.Value;
   Arr.Count := Length(Arguments);
   for I := 0 to Length(Arguments) - 1 do
-    Arr.L[I] := TCasScriptXxxElement(Arguments[I]).Value;
+    Arr[I] := TCasScriptXxxElement(Arguments[I]).Value;
 
   AResult.ValueAssigned := true;
 end;
 
-class procedure TCasScriptArray.HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  HandleArrayGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
-  TCasScriptInteger(AResult).Value := TCasScriptArray(Arguments[0]).Value.Count;
+  TCasScriptInteger(AResult).Value := TSelfClass(Arguments[0]).Value.Count;
 end;
 
-class procedure TCasScriptArray.HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  HandleArraySetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   NewCount: Int64;
 begin
@@ -285,30 +341,38 @@ begin
     raise ECasScriptError.CreateFmt('Invalid count %d for array_set_count (should be non-negative)',
       [NewCount]);
 
-  TCasScriptArray(Arguments[0]).Value.Count := NewCount;
+  TSelfClass(Arguments[0]).Value.Count := NewCount;
   Arguments[0].ValueAssigned := true;
 
   AResult := Arguments[0];
 end;
 
-class procedure TCasScriptArray.HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  HandleArrayGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
   Arr: TXxxList;
 begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptXxxElement);
 
-  Arr := TCasScriptArray(Arguments[0]).Value;
+  Arr := TSelfClass(Arguments[0]).Value;
 
   Index := TCasScriptInteger(Arguments[1]).Value;
   if not Between(Index, 0, Arr.Count - 1) then
     raise ECasScriptError.CreateFmt('Invalid index %d for array_get, array count is %d',
       [Index, Arr.Count]);
 
-  TCasScriptXxxElement(AResult).Value := Arr.L[Index];
+  TCasScriptXxxElement(AResult).Value := Arr[Index];
 end;
 
-class procedure TCasScriptArray.HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  HandleArraySet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   Index: Integer;
   Arr: TXxxList;
@@ -318,46 +382,53 @@ begin
   AResult := nil;
   ParentOfResult := false;
 
-  Arr := TCasScriptArray(Arguments[0]).Value;
+  Arr := TSelfClass(Arguments[0]).Value;
 
   Index := TCasScriptInteger(Arguments[1]).Value;
   if not Between(Index, 0, Arr.Count - 1) then
     raise ECasScriptError.CreateFmt('Invalid index %d for array_set, array count is %d',
       [Index, Arr.Count]);
 
-  Arr.L[Index] := TCasScriptXxxElement(Arguments[2]).Value;
+  Arr[Index] := TCasScriptXxxElement(Arguments[2]).Value;
   Arguments[0].ValueAssigned := true;
 
   AResult := Arguments[0];
 end;
 
-class procedure TCasScriptArray.HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
   I: Integer;
   Arr: TXxxList;
+  MyResult: TSelfClass;
 begin
-  { Make AResult an instance of the self class, like TCasScriptLongIntArray
-    when this generic is specialized to TCasScriptLongIntArray. }
-  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptValueClass(ClassType));
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
 
-  Arr := TCasScriptArray(AResult).Value;
+  Arr := MyResult.Value;
   { initially Arr is empty. This is needed to set explicitly,
     since CreateValueIfNeeded could left previous AResult }
   Arr.Clear;
   for I := 0 to Length(Arguments) - 1 do
-    Arr.AddRange(TCasScriptArray(Arguments[I]).Value);
+    Arr.AddRange(TSelfClass(Arguments[I]).Value);
 
   AResult.ValueAssigned := true;
 end;
 
-class procedure TCasScriptArray.RegisterFunctions;
+class procedure TCasScriptArray {$ifndef CASTLE_OBJFPC} <
+  TXxxList,
+  TCasScriptXxxElement,
+  TCasScriptXxxArrayFun> {$endif} .
+  RegisterFunctions;
 begin
-  FunctionHandlers.RegisterHandler(@HandleArrayFun, TCasScriptXxxArrayFun, [TCasScriptXxxElement], true);
-  FunctionHandlers.RegisterHandler(@HandleArrayGetCount, TCasScriptArrayGetCount, [TCasScriptArray], false);
-  FunctionHandlers.RegisterHandler(@HandleArraySetCount, TCasScriptArraySetCount, [TCasScriptArray, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@HandleArrayGet, TCasScriptArrayGet, [TCasScriptArray, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@HandleArraySet, TCasScriptArraySet, [TCasScriptArray, TCasScriptInteger, TCasScriptXxxElement], false);
-  FunctionHandlers.RegisterHandler(@HandleAdd, TCasScriptAdd, [TCasScriptArray], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleArrayFun, TCasScriptXxxArrayFun, [TCasScriptXxxElement], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleArrayGetCount, TCasScriptArrayGetCount, [TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleArraySetCount, TCasScriptArraySetCount, [TSelfClass, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleArrayGet, TCasScriptArrayGet, [TSelfClass, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleArraySet, TCasScriptArraySet, [TSelfClass, TCasScriptInteger, TCasScriptXxxElement], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleAdd, TCasScriptAdd, [TSelfClass], true);
 end;
 
 { TCasScriptSingleArray specials --------------------------------------------- }
@@ -537,10 +608,10 @@ end;
 
 procedure RegisterCharacterFunctions;
 begin
-  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArrayGetCount, TCasScriptArrayGetCount, [TCasScriptString], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArraySetCount, TCasScriptArraySetCount, [TCasScriptString, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArrayGet, TCasScriptArrayGet, [TCasScriptString, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptCharacterArray(nil).HandleArraySet, TCasScriptArraySet, [TCasScriptString, TCasScriptInteger, TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCharacterArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleArrayGetCount, TCasScriptArrayGetCount, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCharacterArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleArraySetCount, TCasScriptArraySetCount, [TCasScriptString, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCharacterArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleArrayGet, TCasScriptArrayGet, [TCasScriptString, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptCharacterArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleArraySet, TCasScriptArraySet, [TCasScriptString, TCasScriptInteger, TCasScriptString], false);
 end;
 
 initialization
@@ -559,12 +630,12 @@ initialization
   TCasScriptVec2dArray.RegisterFunctions;
   TCasScriptVec3dArray.RegisterFunctions;
   TCasScriptVec4dArray.RegisterFunctions;
-  TCasScriptMatrix3DoubleArray.RegisterFunctions;
-  TCasScriptMatrix4DoubleArray.RegisterFunctions;
+  TCasScriptMatrix3dArray.RegisterFunctions;
+  TCasScriptMatrix4dArray.RegisterFunctions;
 
-  FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptSingleArray(nil).HandleHermiteTenseSpline, TCasScriptHermiteTenseSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSingleArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleCatmullRomSpline, TCasScriptCatmullRomSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSingleArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleHermiteSpline, TCasScriptHermiteSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray, TCasScriptSingleArray], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptSingleArray {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleHermiteTenseSpline, TCasScriptHermiteTenseSpline, [TCasScriptFloat, TCasScriptBoolean, TCasScriptSingleArray, TCasScriptSingleArray], false);
 
   RegisterCharacterFunctions;
 end.

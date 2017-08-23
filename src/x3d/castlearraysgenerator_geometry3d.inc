@@ -124,7 +124,7 @@ end;
 
 procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinate;
 begin
-  Geometry.MakeCoordRanges(State, @GenerateCoordsRange);
+  Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(const CreaseAngle: Single);
@@ -179,8 +179,8 @@ begin
 
   if not FaceConvex then
   begin
-    TriangulateFace(PArray_LongInt(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
+    TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
+      EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
       @GenerateTriangle, BeginIndex);
   end else
   begin
@@ -207,8 +207,8 @@ procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesCoordsRange1(
 begin
   if not FaceConvex then
   begin
-    TriangulateFace(PArray_LongInt(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
+    TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
+      EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
       @PrepareIndexesTriangle1, BeginIndex);
   end else
   begin
@@ -233,8 +233,8 @@ begin
 
   if not FaceConvex then
   begin
-    TriangulateFace(PArray_LongInt(CoordIndex.Items.Ptr(BeginIndex)),
-      EndIndex - BeginIndex, PVector3(Coord.Items.List), Coord.Count,
+    TriangulateFace(PLongIntArray(CoordIndex.Items.Ptr(BeginIndex)),
+      EndIndex - BeginIndex, PVector3Array(Coord.Items.List), Coord.Count,
       @PrepareIndexesTriangle2, BeginIndex);
   end else
   begin
@@ -258,7 +258,7 @@ procedure TAbstractIndexedFaceSetGenerator.PrepareIndexesPrimitives;
 begin
   { calculate IFSIndexesCount by one iteration over coordIndex }
   IFSIndexesCount := 0;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange1);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange1);
 
   if FacesNeeded then
   begin
@@ -270,7 +270,7 @@ begin
   IndexesFromCoordIndex := TGeometryIndexList.Create;
   IndexesFromCoordIndex.Count := IFSIndexesCount;
   IFSNextIndex := 0;
-  Geometry.MakeCoordRanges(State, @PrepareIndexesCoordsRange2);
+  Geometry.InternalMakeCoordRanges(State, @PrepareIndexesCoordsRange2);
   Assert(IFSNextIndex = IFSIndexesCount);
 end;
 
@@ -335,7 +335,7 @@ begin
 
   TexCoordIndex := ANode.FdTexCoordIndex;
 
-  Normals := ANode.NormalItems;
+  Normals := ANode.InternalNormal;
   if Normals <> nil then
   begin
     NormalsCcw := ANode.FdCcw.Value;
@@ -357,8 +357,8 @@ begin
   FaceConvex := ANode.FdConvex.Value;
 
   { calculate Color, ColorPerVertex, ColorIndex fields }
-  Color := ANode.Color;
-  ColorRGBA := ANode.ColorRGBA;
+  Color := ANode.InternalColor;
+  ColorRGBA := ANode.InternalColorRGBA;
   ColorPerVertex := ANode.FdColorPerVertex.Value;
   ColorIndex := ANode.FdColorIndex;
 end;

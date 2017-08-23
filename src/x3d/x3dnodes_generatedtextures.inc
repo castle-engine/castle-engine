@@ -22,10 +22,10 @@
 
   { Update field for rendered textures (like TGeneratedCubeMapTextureNode). }
   TSFTextureUpdate = class(TSFStringEnum)
-  private
+  strict private
     function GetValue: TTextureUpdate;
     procedure SetValue(const AValue: TTextureUpdate); reintroduce;
-  protected
+  strict protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
     constructor Create(AParentNode: TX3DFileItem; const AName: string;

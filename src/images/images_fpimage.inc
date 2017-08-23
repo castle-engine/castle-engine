@@ -61,7 +61,7 @@ var
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
-  ResultPixels := RGBPixels;
+  ResultPixels := Pixels;
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
@@ -81,7 +81,7 @@ var
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
-  ResultPixels := AlphaPixels;
+  ResultPixels := Pixels;
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
@@ -102,7 +102,7 @@ var
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
-  ResultPixels := GrayscalePixels;
+  ResultPixels := Pixels;
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
@@ -123,7 +123,7 @@ var
 begin
   SetSize(FPImage.Width, FPImage.Height);
 
-  ResultPixels := GrayscaleAlphaPixels;
+  ResultPixels := Pixels;
   for Y := FPImage.Height - 1 downto 0 do
     for X := 0 to FPImage.Width - 1 do
     begin
@@ -278,7 +278,7 @@ begin
   Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
-    P := GrayscalePixels;
+    P := Pixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
@@ -301,7 +301,7 @@ begin
   Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
-    P := GrayscaleAlphaPixels;
+    P := Pixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
@@ -324,7 +324,7 @@ begin
   Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
-    P := RGBPixels;
+    P := Pixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin
@@ -347,7 +347,7 @@ begin
   Result := CreateFpImage(Width, Height);
   try
     Result.UsePalette := false;
-    P := AlphaPixels;
+    P := Pixels;
     for Y := Result.Height - 1 downto 0 do
       for X := 0 to Result.Width - 1 do
       begin

@@ -1,5 +1,5 @@
 {$mode objfpc}{$H+}
-{$IFDEF WINDOWS}{$apptype GUI}{$ENDIF}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 program tiled_demo_standalone;
 uses CastleWindow, Game;
 begin

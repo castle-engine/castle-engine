@@ -148,8 +148,8 @@ const
     for C := Low(C) to High(C) do
       if C in Compressions then
       begin
-        if Result <> '' then Result += ', ';
-        Result += TextureCompressionInfo[C].Name;
+        if Result <> '' then Result := Result + ', ';
+        Result := Result + TextureCompressionInfo[C].Name;
       end;
     Result := '[' + Result + ']';
   end;
@@ -206,12 +206,16 @@ begin
     nl+
 
     {$ifndef OpenGLES}
+    {$ifdef CASTLE_OBJFPC}
+    {$warnings off} // consciously initializing deprecated stuff, to keep it working
     '-----------------------------' +nl+
     'OpenGL utility (GLU) version:' +nl+
     '  Version string: ' +gluGetString(GLU_VERSION) +nl+
     VersionReport(GLUVersion) +nl+
     '  Extensions: '+gluGetString(GLU_EXTENSIONS) +nl+
     nl+
+    {$warnings on}
+    {$endif CASTLE_OBJFPC}
     {$endif}
 
     '---------------------------' +nl+

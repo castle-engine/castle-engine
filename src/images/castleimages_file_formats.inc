@@ -45,6 +45,7 @@ type
       See also TCompositeImage class in CastleCompositeImage unit,
       that exposes even more features of the DDS image format. }
     ifDDS,
+    ifKTX,
 
     { High-dynamic range image format, originally used by Radiance.
       See e.g. the pfilt and ximage programs from the Radiance package
@@ -164,6 +165,8 @@ function LoadRGBE(Stream: TStream;
   If you want to investigate other images in DDS, you have to use TCompositeImage
   class. }
 function LoadDDS(Stream: TStream;
+  const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
+function LoadKTX(Stream: TStream;
   const AllowedImageClasses: array of TEncodedImageClass): TEncodedImage; forward;
 
 { Saving image (format-specific) --------------------------------------------
@@ -400,6 +403,14 @@ const
       Load: @LoadDDS; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
       Save: @SaveDDS; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
 
+    { Khronos KTX } { }
+    ( FormatName: 'Khronos KTX image';
+      MimeTypesCount: 1;
+      MimeTypes: ('image/ktx', '', '', '', '', '');
+      ExtsCount: 1; Exts: ('ktx', '', '');
+      Load: @LoadKTX; LoadedClasses: lcG_GA_RGB_RGBA_GPUCompressed;
+      Save: nil; SavedClasses: scG_GA_RGB_RGBA_GPUCompressed; ),
+
     { Image formats not well known. }
 
     ( FormatName: 'RGBE (RGB+Exponent) image';
@@ -471,8 +482,8 @@ function LoadEncodedImageParams(
       Result := '';
       for I := 0 to High(AllowedImageClasses) do
       begin
-        if Result <> '' then Result += ', ';
-        Result += AllowedImageClasses[I].ClassName;
+        if Result <> '' then Result := Result + ', ';
+        Result := Result + AllowedImageClasses[I].ClassName;
       end;
     end;
   end;
@@ -528,7 +539,7 @@ begin
   Result := false;
 end;
 
-function ImageClassBestForSavingToFormat(const Format: TImageFormat): TCastleImageClass;
+function ImageClassBestForSavingToFormatCore(const Format: TImageFormat): TCastleImageClass;
 begin
   if Format = ifRGBE then
     Result := TRGBFloatImage else
@@ -541,7 +552,7 @@ var
 begin
   if not MimeTypeToImageFormat(URIMimeType(URL), false, true, Format) then
     Exit(TRGBImage);
-  Result := ImageClassBestForSavingToFormat(Format);
+  Result := ImageClassBestForSavingToFormatCore(Format);
 end;
 
 function IsImageMimeType(const MimeType: string;

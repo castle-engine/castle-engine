@@ -87,13 +87,13 @@ type
     FItems: array of TGLImageCore;
   public
     constructor Create(Video: TVideo;
-      const SmoothScaling: boolean = true);
+      const SmoothScaling: boolean = true); overload;
     constructor Create(const URL: string;
-      const SmoothScaling: boolean = true);
+      const SmoothScaling: boolean = true); overload;
     constructor Create(const URL: string;
       const ResizeToX: Cardinal = 0;
       const ResizeToY: Cardinal = 0;
-      const Interpolation: TResizeInterpolation = riBilinear);
+      const Interpolation: TResizeInterpolation = riBilinear); overload;
     destructor Destroy; override;
 
     function GLImageFromTime(const Time: TFloatTime): TGLImageCore;

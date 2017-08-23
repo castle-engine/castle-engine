@@ -1,21 +1,34 @@
+# FPC, Lazarus stuff
 *.compiled
 *.rsj
 *.rst
 *.o
 *.or
 *.ppu
+*.a
+*.lps
+
+# Delphi stuff
+*.dproj.local
+*.identcache
+*.stat
+*.dcu
+
+# Don't ignore - commit these files, to allow compiling these examples with shell scripts / lpi too.
+# automatic-windows-resources.res
+
+# Other backups
 *.blend1
 *.blend2
 *~
+backup
+
+# Other unwanted
 *.apk
-*.a
 *.log
-*.lps
 *.exe
 *.pro.user
-backup
-# Don't ignore - commit these files, to allow compiling these examples with shell scripts / lpi too.
-# automatic-windows-resources.res
+
 doc/man/man1/*.1
 castle-game-engine-*.fpm
 doc/pasdoc/cache/
@@ -111,6 +124,7 @@ examples/research_special_rendering_methods/radiance_transfer/show_sh
 examples/random_generator/lib
 examples/random_generator/graphics_random_test
 examples/random_generator/graphics_random_test.res
+examples/random_generator/globalrandom
 examples/random_generator/random_speed_test
 examples/random_generator/random_threads_test
 examples/resource_animations/resource_animations
@@ -158,3 +172,5 @@ tools/texture-font-to-pascal/texture-font-to-pascal
 tools/sprite-sheet-to-x3d/sprite-sheet-to-x3d
 units/
 castle-engine-output
+examples/delphi/base_tests/base_tests.res
+packages/delphi/castle_base.res

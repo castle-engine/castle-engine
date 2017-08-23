@@ -42,6 +42,10 @@ type
     property Enabled: boolean read FEnabled write SetEnabled;
   end;
 
+  type
+    { Possible values of @link(TRenderContext.DepthRange). }
+    TDepthRange = (drFull, drNear, drFar);
+
   { The OpenGL / OpenGLES context state.
     We try hard to make this a @bold(very, very) small class,
     because usually it's better to introduce a clean higher-level API
@@ -53,11 +57,15 @@ type
     which means it's set as @link(RenderContext) value.
 
     Do not depend on the context state being persistent.
-    The @link(RenderContext) is constant during a single TUIControl.OnRender
-    method, and that's all we guarantee. On desktops, you control the context
-    creation / destruction explicitly (by opening / closing the TCastleWindow),
-    but on mobile devices -- the context may get destroyed and created at almost
-    any moment. }
+    The @link(RenderContext) does not change during a single TUIControl.OnRender
+    method (with all 2D and 3D stuff rendered inside),
+    but that's all we guarantee. On desktops, you control the context
+    creation / destruction explicitly (by opening / closing the TCastleWindow).
+    But on mobile devices -- the context may get destroyed and created at almost
+    any moment. So do not use the instance of @link(RenderContext) to store
+    anything you rely on being stored. Instead, use your own variables for this,
+    and only synchronize @link(RenderContext) with your variables.
+  }
   TRenderContext = class
   strict private
     type
@@ -71,10 +79,16 @@ type
     FLineWidth, FPointSize: Single;
     FGlobalAmbient: TCastleColorRGB;
     FGlobalScissor: TScissor;
+    FProjectionMatrix: TMatrix4;
+    FDepthRange: TDepthRange;
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
     procedure SetGlobalAmbient(const Value: TCastleColorRGB);
     procedure WarnContextNotCurrent;
+    function GetProjectionMatrix: TMatrix4;
+    procedure SetProjectionMatrix(const Value: TMatrix4);
+    function GetDepthRange: TDepthRange;
+    procedure SetDepthRange(const Value: TDepthRange);
   private
     FEnabledScissors: TScissorList;
   public
@@ -111,14 +125,26 @@ type
       For VRML 2.0 / X3D, lighting equations suggest that it should be zero. }
     property GlobalAmbient: TCastleColorRGB read FGlobalAmbient write SetGlobalAmbient;
 
-     { Enable or disable scissor.
+    { Enable or disable scissor.
 
-       Never call OpenGL glScissor or glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST)
-       directly, or push/pop the related attrib (in case of fixed-function pipeline).
-       @groupBegin }
-     procedure ScissorEnable(const Rect: TRectangle);
-     procedure ScissorDisable;
-     { @groupEnd }
+      Never call OpenGL glScissor or glEnable(GL_SCISSOR_TEST) / glDisable(GL_SCISSOR_TEST)
+      directly, or push/pop the related attrib (in case of fixed-function pipeline).
+      @groupBegin }
+    procedure ScissorEnable(const Rect: TRectangle);
+    procedure ScissorDisable;
+    { @groupEnd }
+
+    { Current projection matrix.
+
+      For desktop OpenGL, setting this also sets fixed-function projection matrix.
+      The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
+      then changed back to GL_MODELVIEW. }
+    property ProjectionMatrix: TMatrix4
+      read GetProjectionMatrix write SetProjectionMatrix;
+
+    { Use this to operate on OpenGL glDepthRange. For now, our engine has
+      very simple use for this, for TPlayer.RenderOnTop. }
+    property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
   end;
 
 var
@@ -128,6 +154,51 @@ var
 
 procedure GLClear(const Buffers: TClearBuffers;
   const ClearColor: TCastleColor); deprecated 'use RenderContext.Clear';
+
+{ Projection matrix -------------------------------------------------------- }
+
+{$ifdef CASTLE_OBJFPC}
+function GetProjectionMatrix: TMatrix4;
+  deprecated 'use RenderContext.ProjectionMatrix';
+procedure SetProjectionMatrix(const Value: TMatrix4);
+  deprecated 'use RenderContext.ProjectionMatrix';
+
+{ Current projection matrix.
+
+  For OpenGLES, this is merely a global ProjectionMatrix variable.
+  It must be passed to various shaders to honour the projection.
+
+  For desktop OpenGL, setting this also sets fixed-function projection matrix.
+  The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
+  then changed back to GL_MODELVIEW. }
+property ProjectionMatrix: TMatrix4
+  read GetProjectionMatrix write SetProjectionMatrix;
+{$endif}
+
+{ Calculate projection matrix, and set
+  @link(TRenderContext.ProjectionMatrix RenderContext.ProjectionMatrix)
+  to given value.
+
+  For PerspectiveProjection, ZFar may have special ZFarInfinity value
+  to create a perspective projection with far plane set at infinity.
+  Useful e.g. for z-fail shadow volumes.
+
+  @groupBegin }
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
+function OrthoProjection(const Dimensions: TFloatRectangle;
+  const ZNear: Single = -1; const ZFar: Single = 1): TMatrix4;
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
+{ @groupEnd }
+
+{ depth range ---------------------------------------------------------------- }
+
+{$ifdef CASTLE_OBJFPC}
+function GetDepthRange: TDepthRange;
+  deprecated 'use RenderContext.DepthRange';
+procedure SetDepthRange(const Value: TDepthRange);
+  deprecated 'use RenderContext.DepthRange';
+property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
+{$endif CASTLE_OBJFPC}
 
 {$endif read_interface}
 
@@ -140,6 +211,8 @@ begin
   FPointSize := 1;
   FGlobalAmbient := Vector3(0.2, 0.2, 0.2);
   FEnabledScissors := TScissorList.Create(false);
+  FProjectionMatrix := TMatrix4.Identity;
+  FDepthRange := drFull;
 end;
 
 destructor TRenderContext.Destroy;
@@ -251,6 +324,49 @@ begin
     FGlobalScissor.Enabled := false;
 end;
 
+function TRenderContext.GetProjectionMatrix: TMatrix4;
+begin
+  Result := FProjectionMatrix;
+end;
+
+procedure TRenderContext.SetProjectionMatrix(const Value: TMatrix4);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  FProjectionMatrix := Value;
+
+  {$ifndef OpenGLES}
+  glMatrixMode(GL_PROJECTION);
+  {$warnings off}
+  glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
+  {$warnings on}
+  glMatrixMode(GL_MODELVIEW);
+  {$endif}
+end;
+
+function TRenderContext.GetDepthRange: TDepthRange;
+begin
+  Result := FDepthRange;
+end;
+
+procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FDepthRange <> Value then
+  begin
+    {$ifdef OpenGLES} {$define glDepthRange := glDepthRangef} {$endif}
+    FDepthRange := Value;
+    case Value of
+      drFull: glDepthRange(0  , 1);
+      drNear: glDepthRange(0  , 0.1);
+      drFar : glDepthRange(0.1, 1);
+    end;
+  end;
+end;
+
 { TRenderContext.TScissorList ------------------------------------------------------------------- }
 
 procedure TRenderContext.TScissorList.Update;
@@ -298,11 +414,57 @@ begin
   end;
 end;
 
-{ globals -------------------------------------------------------------------- }
+{ GLClear -------------------------------------------------------------------- }
 
 procedure GLClear(const Buffers: TClearBuffers; const ClearColor: TCastleColor);
 begin
   RenderContext.Clear(Buffers, ClearColor);
 end;
+
+{ projection matrix ---------------------------------------------------------- }
+
+{$ifdef CASTLE_OBJFPC}
+function GetProjectionMatrix: TMatrix4;
+begin
+  Result := RenderContext.ProjectionMatrix;
+end;
+
+procedure SetProjectionMatrix(const Value: TMatrix4);
+begin
+  RenderContext.ProjectionMatrix := Value;
+end;
+{$endif}
+
+function PerspectiveProjection(const fovy, aspect, ZNear, ZFar: Single): TMatrix4;
+begin
+  Result := PerspectiveProjectionMatrixDeg(fovy, aspect, ZNear, ZFar);
+  RenderContext.ProjectionMatrix := Result;
+end;
+
+function OrthoProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
+begin
+  Result := OrthoProjectionMatrix(Dimensions, ZNear, ZFar);
+  RenderContext.ProjectionMatrix := Result;
+end;
+
+function FrustumProjection(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
+begin
+  Result := FrustumProjectionMatrix(Dimensions, ZNear, ZFar);
+  RenderContext.ProjectionMatrix := Result;
+end;
+
+{ depth range ---------------------------------------------------------------- }
+
+{$ifdef CASTLE_OBJFPC}
+function GetDepthRange: TDepthRange;
+begin
+  Result := RenderContext.DepthRange;
+end;
+
+procedure SetDepthRange(const Value: TDepthRange);
+begin
+  RenderContext.DepthRange := Value;
+end;
+{$endif CASTLE_OBJFPC}
 
 {$endif read_implementation}

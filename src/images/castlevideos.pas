@@ -332,7 +332,7 @@ type
         Video: TVideo;
         AlphaChannel: TAlphaChannel;
       end;
-      TCachedVideoList = specialize TObjectList<TCachedVideo>;
+      TCachedVideoList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCachedVideo>;
     var
       CachedVideos: TCachedVideoList;
       FOnEmpty: TProcedure;
@@ -920,7 +920,8 @@ begin
     S := Format('Video %s : 1. Loading time: %f',
       [URIDisplay(URL), ProcessTimerSeconds(ProcessTimer, Start)]);
     if AlphaChannel <> acNone then
-      S += '. Detected as simple yes/no ("test") alpha channel: ' + BoolToStr(AlphaChannel = acTest, true);
+      S := S + '. Detected as simple yes/no ("test") alpha channel: ' +
+           BoolToStr(AlphaChannel = acTest, true);
     WritelnLog('++', S);
   end;
 end;
@@ -1018,10 +1019,11 @@ begin
   S := Executable;
   for Parameter in Parameters do
   begin
-    S += ' ';
+    S := S + ' ';
     if Pos(' ', Parameter) <> 0 then
-      S += '"' + Parameter + '"' else
-      S += Parameter;
+      S := S + '"' + Parameter + '"'
+    else
+      S := S + Parameter;
   end;
   Writeln(Output, S);
   ExecuteProcess(Executable, Parameters);

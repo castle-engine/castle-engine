@@ -29,7 +29,7 @@ type
   { Projection determines how does the 3D world map onto 2D.
     To change the currently displayed projection,
     you usually want to override the @link(TCastleAbstractViewport.CalculateProjection). }
-  TProjection = object
+  TProjection = record
     ProjectionType: TProjectionType;
 
     { If ProjectionType is ptPerspective, this property specifies
@@ -110,14 +110,14 @@ const
   Then you get perspective projection matrix withour far clipping plane,
   which is very useful for the z-fail shadow volumes technique.
   @groupBegin }
-function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
-function OrthoProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function OrthoProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4; overload;
+function OrthoProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4; overload; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
-function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
-function Ortho2DProjectionMatrix(const left, right, bottom, top: Single): TMatrix4; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2DProjectionMatrix(const Dimensions: TFloatRectangle): TMatrix4; overload; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
+function Ortho2DProjectionMatrix(const left, right, bottom, top: Single): TMatrix4; overload; deprecated 'just use OrthoProjectionMatrix, the 2D optimization is not really worth the maintenance';
 
-function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4;
-function FrustumProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
+function FrustumProjectionMatrix(const Dimensions: TFloatRectangle; const ZNear, ZFar: Single): TMatrix4; overload;
+function FrustumProjectionMatrix(const left, right, bottom, top, ZNear, ZFar: Single): TMatrix4; overload; deprecated 'use the overloaded version that takes Dimensions as TFloatRectangle';
 
 function PerspectiveProjectionMatrixDeg(const fovyDeg, aspect, ZNear, ZFar: Single): TMatrix4;
 function PerspectiveProjectionMatrixRad(const fovyRad, aspect, ZNear, ZFar: Single): TMatrix4;

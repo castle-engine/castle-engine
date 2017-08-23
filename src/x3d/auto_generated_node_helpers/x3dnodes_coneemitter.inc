@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAngle: Single;
     procedure SetAngle(const Value: Single);
     function GetDirection: TVector3;

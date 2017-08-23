@@ -24,7 +24,7 @@ type
   public
     type
       PT = ^T;
-      TTypeList = array [0 .. MaxInt div SizeOf(T) - 1] of T;
+      TTypeList = array [0 .. {$ifdef FPC} MaxInt div SizeOf(T) - 1 {$else} 1000 * 1000 {$endif}] of T;
       PTypeList = ^TTypeList;
 
     { Access the list contents directly through a pointer.
@@ -97,12 +97,12 @@ type
 
 function TStructList<T>.List: PTypeList;
 begin
-  Result := PTypeList(FItems);
+  Result := PTypeList({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
 function TStructList<T>.L: PT;
 begin
-  Result := PT(FItems);
+  Result := PT({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
 function TStructList<T>.Add: PT;

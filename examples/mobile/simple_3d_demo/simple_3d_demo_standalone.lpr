@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{$ifdef Windows}{$apptype GUI}{$endif}
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
 { Main program for a standalone version of the game.
   This allows you to compile the same game game (in Game unit)

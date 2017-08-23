@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCenter: TVector2;
     procedure SetCenter(const Value: TVector2);
     function GetRotation: Single;

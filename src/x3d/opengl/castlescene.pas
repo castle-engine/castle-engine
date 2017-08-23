@@ -22,8 +22,9 @@ unit CastleScene;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
-  CastleUtils, CastleSceneCore, CastleRenderer, CastleGL, CastleBackground,
+  CastleUtils, CastleSceneCore, CastleRenderer, CastleBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
   CastleTriangles, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader,

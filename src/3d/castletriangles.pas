@@ -131,7 +131,7 @@ type
     function Barycentric(const Point: TVector3): TVector3;
   end;
 
-  TTriangle3List = specialize TStructList<TTriangle3>;
+  TTriangle3List = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTriangle3>;
 
   PTriangle3 = ^TTriangle3;
 
@@ -244,7 +244,7 @@ type
 
 { Calculates normalized normal vector for polygon composed from
   indexed vertices. Polygon is defines as vertices
-  Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
+  Verts^[Indices[0]], Verts^[Indices[1]] ... Verts^[Indices[IndicesCount-1]].
   Returns normal pointing from CCW.
 
   It's secured against invalid indexes on Indices list (that's the only
@@ -257,29 +257,29 @@ type
 
   @groupBegin }
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3; overload;
 { @groupEnd }
 
 { Surface area of indexed convex polygon.
   Polygon is defines as vertices
-  Verts[Indices[0]], Verts[Indices[1]] ... Verts[Indices[IndicesCount-1]].
+  Verts^[Indices[0]], Verts^[Indices[1]] ... Verts^[Indices[IndicesCount-1]].
 
   It's secured against invalid indexes on Indices list (that's the only
   reason why it takes VertsCount parameter, after all): they are ignored.
 
   @groupBegin }
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer): Single; overload;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer): Single; overload;
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt): Single; overload;
 { @groupEnd }
 
 { Are the polygon points ordered CCW (counter-clockwise). When viewed
@@ -292,7 +292,7 @@ function IndexedConvexPolygonArea(
   Returns something > 0 if polygon is CCW, or < 0 when it's not.
   Returns zero when polygon has area 0.
   @groupBegin }
-function IsPolygon2dCCW(Verts: PVector2; const VertsCount: Integer): Single; overload;
+function IsPolygon2dCCW(Verts: PVector2Array; const VertsCount: Integer): Single; overload;
 function IsPolygon2dCCW(const Verts: array of TVector2): Single; overload;
 { @groupEnd }
 
@@ -303,7 +303,7 @@ function IsPolygon2dCCW(const Verts: array of TVector2): Single; overload;
   or line segments.
 
   @groupBegin }
-function Polygon2dArea(Verts: PVector2; const VertsCount: Integer): Single; overload;
+function Polygon2dArea(Verts: PVector2Array; const VertsCount: Integer): Single; overload;
 function Polygon2dArea(const Verts: array of TVector2): Single; overload;
 { @groupEnd }
 
@@ -322,7 +322,7 @@ type
     IndexBegin, IndexEnd: Integer;
   end;
 
-  TFaceIndexesList = specialize TStructList<TFaceIndex>;
+  TFaceIndexesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
 
 const
   UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
@@ -405,14 +405,14 @@ function TryTriangleRayCollision(var Intersection: TVector3; var T: Single;
   const RayOrigin, RayDirection: TVector3): boolean; overload;
 { @groupEnd }
 
-function TriangleDirection(const p0, p1, p2: TVector3): TVector3;
-function TriangleDir(const p0, p1, p2: TVector3): TVector3; deprecated 'use TriangleDirection';
-function TriangleNormal(const p0, p1, p2: TVector3): TVector3;
-function TrianglePlane(const p0, p1, p2: TVector3): TVector4;
+function TriangleDirection(const p0, p1, p2: TVector3): TVector3; overload;
+function TriangleDir(const p0, p1, p2: TVector3): TVector3; overload; deprecated 'use TriangleDirection';
+function TriangleNormal(const p0, p1, p2: TVector3): TVector3; overload;
+function TrianglePlane(const p0, p1, p2: TVector3): TVector4; overload;
 
-function TriangleDir(const T: TTriangle3): TVector3; deprecated 'use Triangle.Direction';
-function TriangleNormal(const T: TTriangle3): TVector3; deprecated 'use Triangle.Normal';
-function TrianglePlane(const T: TTriangle3): TVector4; deprecated 'use Triangle.Plane';
+function TriangleDir(const T: TTriangle3): TVector3; overload; deprecated 'use Triangle.Direction';
+function TriangleNormal(const T: TTriangle3): TVector3; overload; deprecated 'use Triangle.Normal';
+function TrianglePlane(const T: TTriangle3): TVector4; overload; deprecated 'use Triangle.Plane';
 function TriangleTransform(const T: TTriangle3; const M: TMatrix4): TTriangle3; deprecated 'use Triangle.Transform';
 function TriangleNormPlane(const T: TTriangle3): TVector4; deprecated 'use Triangle.NormalizedPlane';
 function TriangleArea(const T: TTriangle3): Single; deprecated 'use Triangle.Area';
@@ -443,8 +443,8 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer;
   const ResultForIncorrectPoly: TVector3): TVector3;
 begin
   Result := IndexedConvexPolygonNormal(
@@ -454,11 +454,19 @@ begin
 end;
 
 function IndexedConvexPolygonNormal(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt;
   const ResultForIncorrectPoly: TVector3): TVector3;
-var Tri: TTriangle3;
-    i: integer;
+
+  { Like Verts^[Indices[I]] but takes into account VertsStride. }
+  function VertsIndices(const I: Integer): PVector3; inline;
+  begin
+    Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
+  end;
+
+var
+  Tri: TTriangle3;
+  I: Integer;
 begin
   { We calculate normal vector as an average of normal vectors of
     polygon's triangles. Not taking into account invalid Indices
@@ -472,27 +480,22 @@ begin
 
   I := 0;
 
-  { Verts_Indices_I = Verts[Indices[I]], but takes into account
-    that Verts is an array with VertsStride. }
-  {$define Verts_Indices_I :=
-    PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride)^}
-
   while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
   { This secures us against polygons with no valid Indices[].
     (including case when IndicesCount = 0). }
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri.Data[0] := Verts_Indices_I;
+  Tri.Data[0] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri.Data[1] := Verts_Indices_I;
+  Tri.Data[1] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit(ResultForIncorrectPoly);
-  Tri.Data[2] := Verts_Indices_I;
+  Tri.Data[2] := VertsIndices(I)^;
 
   if Tri.IsValid then
     Result := Result + Tri.Normal;
@@ -504,7 +507,7 @@ begin
     if I >= IndicesCount then
       Break;
     Tri.Data[1] := Tri.Data[2];
-    Tri.Data[2] := Verts_Indices_I;
+    Tri.Data[2] := VertsIndices(I)^;
 
     if Tri.IsValid then
       Result := Result + Tri.Normal;
@@ -520,8 +523,8 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer): Single;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer): Single;
 begin
   Result := IndexedConvexPolygonArea(
     Indices, IndicesCount,
@@ -529,8 +532,15 @@ begin
 end;
 
 function IndexedConvexPolygonArea(
-  Indices: PArray_Longint; IndicesCount: integer;
-  Verts: PVector3; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+  Indices: PLongintArray; IndicesCount: integer;
+  Verts: PVector3Array; const VertsCount: Integer; const VertsStride: PtrUInt): Single;
+
+  { Like Verts^[Indices[I]] but takes into account VertsStride. }
+  function VertsIndices(const I: Integer): PVector3; inline;
+  begin
+    Result := PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride);
+  end;
+
 var
   Tri: TTriangle3;
   i: integer;
@@ -543,29 +553,24 @@ begin
 
   I := 0;
 
-  { Verts_Indices_I = Verts[Indices[I]], but takes into account
-    that Verts is an array with VertsStride. }
-  {$define Verts_Indices_I :=
-    PVector3(PtrUInt(Verts) + PtrUInt(Indices^[I]) * VertsStride)^}
-
   while (I < IndicesCount) and (Indices^[I] >= VertsCount) do Inc(I);
   { This secures us against polygons with no valid Indices[].
     (including case when IndicesCount = 0). }
   if I >= IndicesCount then
     Exit;
-  Tri.Data[0] := Verts_Indices_I;
+  Tri.Data[0] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit;
-  Tri.Data[1] := Verts_Indices_I;
+  Tri.Data[1] := VertsIndices(I)^;
 
   repeat Inc(I) until (I >= IndicesCount) or (Indices^[I] < VertsCount);
   if I >= IndicesCount then
     Exit;
-  Tri.Data[2] := Verts_Indices_I;
+  Tri.Data[2] := VertsIndices(I)^;
 
-  Result += Tri.Area;
+  Result := Result + Tri.Area;
 
   repeat
     { find next valid point, which makes another triangle of polygon }
@@ -574,13 +579,13 @@ begin
     if I >= IndicesCount then
       Break;
     Tri.Data[1] := Tri.Data[2];
-    Tri.Data[2] := Verts_Indices_I;
+    Tri.Data[2] := VertsIndices(I)^;
 
-    Result += Tri.Area;
+    Result := Result + Tri.Area;
   until false;
 end;
 
-function IsPolygon2dCCW(Verts: PVector2; const VertsCount: Integer): Single;
+function IsPolygon2dCCW(Verts: PVector2Array; const VertsCount: Integer): Single;
 { licz pole polygonu CCW.
 
   Implementacja na podstawie "Graphic Gems II", gem I.1
@@ -611,16 +616,17 @@ begin
   if VertsCount = 0 then Exit;
 
   { licze i = 0..VertsCount-2, potem osobno przypadek gdy i = VertsCount-1.
-    Moglbym ujac je razem, dajac zamiast "Verts[i+1, 1]"
-    "Verts[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
+    Moglbym ujac je razem, dajac zamiast "Verts^[i+1, 1]"
+    "Verts^[(i+1)mod VertsCount, 1]" ale szkoda byloby dawac tu "mod" na potrzebe
     tylko jednego przypadku. Tak jest optymalniej czasowo. }
   for i := 0 to VertsCount-2 do
-    Result += Verts[i].Data[0] * Verts[i+1].Data[1] -
-              Verts[i].Data[1] * Verts[i+1].Data[0];
-  Result += Verts[VertsCount-1].Data[0] * Verts[0].Data[1] -
-            Verts[VertsCount-1].Data[1] * Verts[0].Data[0];
-
-  Result /= 2;
+    Result := Result +
+              Verts^[i].Data[0] * Verts^[i+1].Data[1] -
+              Verts^[i].Data[1] * Verts^[i+1].Data[0];
+  Result := Result +
+            Verts^[VertsCount-1].Data[0] * Verts^[0].Data[1] -
+            Verts^[VertsCount-1].Data[1] * Verts^[0].Data[0];
+  Result := Result / 2;
 end;
 
 function IsPolygon2dCCW(const Verts: array of TVector2): Single;
@@ -628,15 +634,14 @@ begin
   Result := IsPolygon2dCCW(@Verts, High(Verts)+1);
 end;
 
-function Polygon2dArea(Verts: PVector2; const VertsCount: Integer): Single;
-{ opieramy sie tutaj na WEWNETRZNEJ IMPLEMENTACJI funkcji IsPolygonCCW:
-  mianowicie wiemy ze, przynajmniej teraz, funkcja ta zwraca pole
-  polygonu CCW lub -pole polygonu CW. }
+function Polygon2dArea(Verts: PVector2Array; const VertsCount: Integer): Single;
 begin
   Result := Abs(IsPolygon2dCCW(Verts, VertsCount));
 end;
 
 function Polygon2dArea(const Verts: array of TVector2): Single;
+{ We depend on the (internal) fact that IsPolygonCCW
+  returns an area in case of CCW, or -area in case of CW polygon. }
 begin
   Result := Polygon2dArea(@Verts, High(Verts) + 1);
 end;

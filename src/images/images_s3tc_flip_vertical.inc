@@ -34,7 +34,7 @@ begin
   PRGBBlock(Block)^.Row1 := PRGBBlock(Block)^.Row2;
   PRGBBlock(Block)^.Row2 := Tmp;
 
-  Block += SizeOf(TRGBBlock);
+  Inc(Block, SizeOf(TRGBBlock));
 end;
 
 procedure DXT1_Flip3Block(var Block: PtrUInt);
@@ -45,7 +45,7 @@ begin
   PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row2;
   PRGBBlock(Block)^.Row2 := Tmp;
 
-  Block += SizeOf(TRGBBlock);
+  Inc(Block, SizeOf(TRGBBlock));
 end;
 
 procedure DXT1_Flip2Block(var Block: PtrUInt);
@@ -56,7 +56,7 @@ begin
   PRGBBlock(Block)^.Row0 := PRGBBlock(Block)^.Row1;
   PRGBBlock(Block)^.Row1 := Tmp;
 
-  Block += SizeOf(TRGBBlock);
+  Inc(Block, SizeOf(TRGBBlock));
 end;
 
 type
@@ -77,7 +77,7 @@ begin
   PAlphaDXT23Block(Block)^.Row1 := PAlphaDXT23Block(Block)^.Row2;
   PAlphaDXT23Block(Block)^.Row2 := Tmp;
 
-  Block += SizeOf(TAlphaDXT23Block);
+  Inc(Block, SizeOf(TAlphaDXT23Block));
   DXT1_Flip4Block(Block);
 end;
 
@@ -89,7 +89,7 @@ begin
   PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row2;
   PAlphaDXT23Block(Block)^.Row2 := Tmp;
 
-  Block += SizeOf(TAlphaDXT23Block);
+  Inc(Block, SizeOf(TAlphaDXT23Block));
   DXT1_Flip4Block(Block);
 end;
 
@@ -101,7 +101,7 @@ begin
   PAlphaDXT23Block(Block)^.Row0 := PAlphaDXT23Block(Block)^.Row1;
   PAlphaDXT23Block(Block)^.Row1 := Tmp;
 
-  Block += SizeOf(TAlphaDXT23Block);
+  Inc(Block, SizeOf(TAlphaDXT23Block));
   DXT1_Flip4Block(Block);
 end;
 
@@ -161,7 +161,7 @@ begin
 
   SetRows(PAlphaDXT45Block(Block)^, Rows);
 
-  Block += SizeOf(TAlphaDXT45Block);
+  Inc(Block, SizeOf(TAlphaDXT45Block));
   DXT1_Flip4Block(Block);
 end;
 
@@ -177,7 +177,7 @@ begin
 
   SetRows(PAlphaDXT45Block(Block)^, Rows);
 
-  Block += SizeOf(TAlphaDXT45Block);
+  Inc(Block, SizeOf(TAlphaDXT45Block));
   DXT1_Flip4Block(Block);
 end;
 
@@ -193,7 +193,7 @@ begin
 
   SetRows(PAlphaDXT45Block(Block)^, Rows);
 
-  Block += SizeOf(TAlphaDXT45Block);
+  Inc(Block, SizeOf(TAlphaDXT45Block));
   DXT1_Flip4Block(Block);
 end;
 
@@ -264,8 +264,8 @@ begin
       Move(TempRow^, Pointer(LowerRow)^, RowSize);
 
       FlipRow(LowerRow, FlipBlock[4]);
-      LowerRow += RowSize;
-      UpperRow -= RowSize;
+      Inc(LowerRow, RowSize);
+      Dec(UpperRow, RowSize);
     end;
 
     FreeMem(TempRow);

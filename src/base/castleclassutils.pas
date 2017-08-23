@@ -96,16 +96,16 @@ function StreamReadLongWord(Stream: TStream): LongWord;
 procedure StreamWriteByte(Stream: TStream; const Value: Byte);
 function StreamReadByte(Stream: TStream): Byte;
 
-{ Write string contents to stream.
+{ Write string contents, as 8-bit string (AnsiString), to stream.
   This isn't a procedure to encode a string within a binary stream,
   this only writes string contents (Length(S) bytes) into the stream.
   Versions with "ln" append newline.
   Versions without Stream parameter write to StdOutStream.
   @groupBegin }
-procedure WriteStr(Stream: TStream; const S: string); overload;
-procedure WritelnStr(Stream: TStream; const S: string); overload;
-procedure WriteStr(const S: string); overload;
-procedure WritelnStr(const S: string); overload;
+procedure WriteStr(Stream: TStream; const S: AnsiString); overload;
+procedure WritelnStr(Stream: TStream; const S: AnsiString); overload;
+procedure WriteStr(const S: AnsiString); overload;
+procedure WritelnStr(const S: AnsiString); overload;
 { @groupEnd }
 
 { Read one character from stream.
@@ -192,9 +192,9 @@ function StreamToString(Stream: TStream): string;
   If Rewind then the position is reset to the beginning,
   otherwise it stays at the end. }
 procedure MemoryStreamLoadFromString(const Stream: TMemoryStream;
-  const S: string; const Rewind: boolean = true);
+  const S: string; const Rewind: boolean = true); overload;
 function MemoryStreamLoadFromString(
-  const S: string; const Rewind: boolean = true): TMemoryStream;
+  const S: string; const Rewind: boolean = true): TMemoryStream; overload;
 
 type
   EStreamNotImplemented = class(Exception);
@@ -246,8 +246,8 @@ type
     {$ifndef FPC}
     function GetPosition: Int64; virtual; abstract;
     {$endif}
-    procedure UpdateLineColumn(const C: char);
-    procedure UpdateLineColumn(const Buffer; const BufferCount: Integer);
+    procedure UpdateLineColumn(const C: char); overload;
+    procedure UpdateLineColumn(const Buffer; const BufferCount: Integer); overload;
   public
     constructor Create(ASourceStream: TStream; AOwnsSourceStream: boolean);
     destructor Destroy; override;
@@ -498,11 +498,11 @@ type
       const AItems: array of TObject);
 
     { Add contents of given array to the list. }
-    procedure AddRange(const A: array of TObject);
+    procedure AddRange(const A: array of TObject); overload;
     procedure AddArray(const A: array of TObject); deprecated 'use AddRange, consistent with other lists';
 
     { Add contents of other TObjectList instance to the list. }
-    procedure AddRange(AList: Contnrs.TObjectList);
+    procedure AddRange(AList: Contnrs.TObjectList); overload;
     procedure AddList(AList: Contnrs.TObjectList); deprecated 'use AddRange, consistent with other lists';
 
     { Replace first found descendant of ReplaceClass with NewItem.
@@ -552,7 +552,7 @@ type
     procedure AddIfNotExists(Value: TObject);
   end;
 
-  TNotifyEventList = class(specialize TList<TNotifyEvent>)
+  TNotifyEventList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TNotifyEvent>)
   public
     { Call all (non-nil) Items, from first to last. }
     procedure ExecuteAll(Sender: TObject);
@@ -562,13 +562,15 @@ type
     procedure ExecuteBackward(Sender: TObject);
   end;
 
+{$ifdef FPC}
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 function DumpExceptionBackTraceToString: string;
+{$endif}
 
 implementation
 
 uses {$ifdef UNIX} Unix {$endif} {$ifdef MSWINDOWS} Windows {$endif},
-  StrUtils, StreamIO;
+  StrUtils, Math {$ifdef FPC}, StreamIO {$endif};
 
 { TStrings helpers ------------------------------------------------------- }
 
@@ -651,23 +653,23 @@ begin
   Stream.ReadBuffer(Result, SizeOf(Result));
 end;
 
-procedure WriteStr(Stream: TStream; const S: string);
+procedure WriteStr(Stream: TStream; const S: AnsiString);
 begin
   Stream.WriteBuffer(Pointer(S)^, Length(S));
 end;
 
-procedure WritelnStr(Stream: TStream; const S: string);
+procedure WritelnStr(Stream: TStream; const S: AnsiString);
 begin
   WriteStr(Stream, S);
   WriteStr(Stream, nl);
 end;
 
-procedure WriteStr(const S: string);
+procedure WriteStr(const S: AnsiString);
 begin
   WriteStr(StdOutStream, S);
 end;
 
-procedure WritelnStr(const S: string);
+procedure WritelnStr(const S: AnsiString);
 begin
   WritelnStr(StdOutStream, S);
 end;
@@ -1290,16 +1292,16 @@ begin
 end;
 
 procedure TCastleObjectList.AddRange(AList: Contnrs.TObjectList);
+{$ifdef FPC}
+begin
+  inherited AddList(AList);
+{$else}
 var
   I: Integer;
 begin
-  inherited AddList(AList);
-
-  { workaround http://bugs.freepascal.org/view.php?id=15655 }
-  { make lnAdded notifications }
   for I := 0 to AList.Count - 1 do
-    if AList[I] <> nil then
-      Notify(AList[I], lnAdded);
+    Add(AList[I]);
+{$endif}
 end;
 
 procedure TCastleObjectList.AddList(AList: Contnrs.TObjectList);
@@ -1319,28 +1321,22 @@ begin
   end;
 
   for I := 0 to Count - 1 do
-    if (TObject(List^[I]) <> nil) and
-       (TObject(List^[I]) is ReplaceClass) then
+    if Items[I] is ReplaceClass then
     begin
-      Result := TObject(List^[I]);
-      TObject(List^[I]) := NewItem;
-      { We're already sure Result <> nil here, because old TObject(List^[I])
-        had to be <> nil to enter this code. So no need for usual
-        check <> nil before Notify call. }
-      Notify(Result, lnExtracted);
-      { We're similarly already sure NewItem <> nil here, because the case
-        of NewItem = nil is handled specially at the beginning of this method. }
-      Notify(NewItem, lnAdded);
+      Result := Extract(I);
+      Insert(I, NewItem);
       Exit;
     end;
 
   Result := nil;
   if AddEnd then
-    Insert(Count, NewItem) else
+    Insert(Count, NewItem)
+  else
     Insert(0, NewItem);
 end;
 
 function TCastleObjectList.Extract(Index: Integer): TObject;
+{$ifdef FPC}
 begin
   Result := TObject(List^[Index]);
 
@@ -1350,7 +1346,18 @@ begin
   TObject(List^[Index]) := nil;
   Delete(Index);
 
-  if Assigned(Result) then Notify(Result, lnExtracted);
+  if Assigned(Result) then
+    Notify(Result, lnExtracted);
+{$else}
+var
+  OldOwnsObjects: boolean;
+begin
+  OldOwnsObjects := OwnsObjects;
+  OwnsObjects := false;
+  Result := Items[Index];
+  Delete(Index);
+  OwnsObjects := OldOwnsObjects;
+{$endif}
 end;
 
 function TCastleObjectList.Extract(RemoveClass: TClass): TObject;
@@ -1358,7 +1365,7 @@ var
   I: Integer;
 begin
   for I := 0 to Count - 1 do
-    if TObject(List^[I]) is RemoveClass then
+    if Items[I] is RemoveClass then
     begin
       Result := Extract(I);
       Exit;
@@ -1430,6 +1437,7 @@ end;
 
 { DumpStack ------------------------------------------------------------------ }
 
+{$ifdef FPC}
 function DumpStackToString(const BaseFramePointer: Pointer): string;
 var
   TextFile: Text;
@@ -1461,6 +1469,7 @@ begin
     Result := StringStream.DataString;
   finally FreeAndNil(StringStream) end;
 end;
+{$endif}
 
 initialization
   InitStdStreams;

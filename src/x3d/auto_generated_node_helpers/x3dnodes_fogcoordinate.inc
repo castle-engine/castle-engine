@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetDepth(const Value: array of Single);
+    procedure SetDepth(const Value: TSingleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TFogCoordinateNode ----------------------------------------------- }
+
+procedure TFogCoordinateNode.SetDepth(const Value: array of Single);
+begin
+  FdDepth.Send(Value);
+end;
+
+procedure TFogCoordinateNode.SetDepth(const Value: TSingleList);
+begin
+  FdDepth.Send(Value);
+end;
 
 {$endif read_implementation}

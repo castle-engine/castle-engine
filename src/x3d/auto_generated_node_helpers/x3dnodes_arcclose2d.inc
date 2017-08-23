@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetEndAngle: Single;
     procedure SetEndAngle(const Value: Single);
     function GetRadius: Single;

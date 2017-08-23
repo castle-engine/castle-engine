@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetReplaceNames(const Value: array of string);
+    procedure SetReplaceNames(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TKambiInlineNode ----------------------------------------------- }
+
+procedure TKambiInlineNode.SetReplaceNames(const Value: array of string);
+begin
+  FdReplaceNames.Send(Value);
+end;
+
+procedure TKambiInlineNode.SetReplaceNames(const Value: TCastleStringList);
+begin
+  FdReplaceNames.Send(Value);
+end;
 
 {$endif read_implementation}

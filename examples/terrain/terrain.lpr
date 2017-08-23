@@ -54,13 +54,15 @@ program terrain;
 
 {$I castleconf.inc}
 
-uses SysUtils, Classes, CastleBoxes, CastleKeysMouse, CastleColors,
-  CastleUtils, CastleWindow, CastleGL, CastleGLUtils, CastleParameters,
+uses SysUtils, Classes,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleBoxes, CastleKeysMouse, CastleColors,
+  CastleUtils, CastleWindow, CastleGLUtils, CastleParameters,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
-  CastleRectangles, CastleControls;
+  CastleRectangles, CastleControls, CastleShaders;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -421,7 +423,7 @@ begin
 
         if Shader and (GLSLProgram <> nil) then
         begin
-          CurrentProgram := GLSLProgram;
+          TGLSLProgram.Current := GLSLProgram;
 
           glActiveTexture(GL_TEXTURE0);
           glBindTexture(GL_TEXTURE_2D, GLTexSand);
@@ -454,7 +456,7 @@ begin
             GLSLProgram.SetUniform('fog_color', BackgroundColor.XYZ);
           end;
         end else
-          CurrentProgram := nil;
+          TGLSLProgram.Current := nil;
 
         DrawTerrain(CurrentTerrain, Subdivision,
           WalkCamera.Position[0], WalkCamera.Position[1], BaseSize, LayersCount);
@@ -495,7 +497,7 @@ begin
 
   GLSLProgram.DetachAllShaders;
   Prefix := '#define HEIGHT_IS_Z' + NL;
-  if Fog then Prefix += '#define FOG' + NL;
+  if Fog then Prefix := Prefix + ('#define FOG' + NL);
   GLSLProgram.AttachVertexShader(Prefix + FileToString(ApplicationData('terrain.vs')));
   GLSLProgram.AttachFragmentShader(Prefix + FileToString(ApplicationData('terrain.fs')));
   { For this test program, we eventually allow shader to run in software.
@@ -584,7 +586,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
     try
       Shape := CurrentTerrain.CreateNode(CountSteps, Size, XRange, ZRange,
         @ColorFromHeight);
-      Root.FdChildren.Add(Shape);
+      Root.AddChildren(Shape);
 
       if AddShadersTextures then
       begin
@@ -594,11 +596,11 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
         { Add shader. Setup everything, like for rendering (without fog). }
         TexSand := TImageTextureNode.Create;
-        TexSand.FdUrl.Items.Add('textures/sand.png');
+        TexSand.SetUrl(['textures/sand.png']);
         TexBread := TImageTextureNode.Create;
-        TexBread.FdUrl.Items.Add('textures/bread.png');
+        TexBread.SetUrl(['textures/bread.png']);
         TexRock := TImageTextureNode.Create;
-        TexRock.FdUrl.Items.Add('textures/rock_d01.png');
+        TexRock.SetUrl(['textures/rock_d01.png']);
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_sand', [], TexSand));
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_bread', [], TexBread));
         Shader.AddCustomField(TSFNode.Create(Shader, 'tex_rock', [], TexRock));
@@ -611,13 +613,13 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
 
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
-        Part.FdType.Value := 'FRAGMENT';
-        Part.FdUrl.Items.Add('terrain.fs');
+        Part.ShaderType := stFragment;
+        Part.SetUrl(['terrain.fs']);
 
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);
-        Part.FdType.Value := 'VERTEX';
-        Part.FdUrl.Items.Add('terrain.vs');
+        Part.ShaderType := stVertex;
+        Part.SetUrl(['terrain.vs']);
       end;
 
       Save3D(Root, URL, 'terrain', '', xeClassic);

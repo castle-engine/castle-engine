@@ -40,7 +40,7 @@ function LoadRGBE(Stream: TStream;
 var LoadResult: TCastleImage absolute result;
 
   { Read from Stream one scanline (of the length result.Width) to RGBERow. }
-  procedure ReadRGBERow(RGBERow: PArray_Vector4Byte);
+  procedure ReadRGBERow(RGBERow: PVector4ByteArray);
 
     function CompressedLineMarker(const Marker: TVector4Byte): boolean;
     begin
@@ -141,9 +141,9 @@ var
   { jesli false to kazdy pixel to RGBE. Wpp. kazdy pixel w pliku to XYZE }
   xyzFormat: boolean;
   x, y, RGBEWidth, RGBEHeight: Integer;
-  RGBERow: PArray_Vector4Byte;
-  FloatRow: PArray_Vector3;
-  ByteRow: PArray_Vector3Byte;
+  RGBERow: PVector4ByteArray;
+  FloatRow: PVector3Array;
+  ByteRow: PVector3ByteArray;
 begin
   { read header }
   { klauzula FORMAT= moze nie wystapic w pliku, wtedy przyjmij xyzFormat = false }

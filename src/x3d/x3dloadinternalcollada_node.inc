@@ -43,7 +43,7 @@ var
     NewNodeTransform: TTransformNode;
   begin
     NewNodeTransform := TTransformNode.Create('', BaseUrl);
-    NodeTransform.FdChildren.Add(NewNodeTransform);
+    NodeTransform.AddChildren(NewNodeTransform);
 
     NodeTransform := NewNodeTransform;
     Result := NewNodeTransform;
@@ -54,7 +54,7 @@ var
     NewNodeTransform: TMatrixTransformNode;
   begin
     NewNodeTransform := TMatrixTransformNode.Create('', BaseUrl);
-    NodeTransform.FdChildren.Add(NewNodeTransform);
+    NodeTransform.AddChildren(NewNodeTransform);
 
     NodeTransform := NewNodeTransform;
     Result := NewNodeTransform;
@@ -73,7 +73,7 @@ begin
   { Add NodeTransform to ParentGroup (which may be LibraryNodes) first.
     This means that if instance_node will create a cycle, we will recreate
     this cycle in VRML/X3D graph, without hanging the importer code. }
-  ParentGroup.FdChildren.Add(NodeTransform);
+  ParentGroup.AddChildren(NodeTransform);
 
   { First iterate to gather all transformations.
 

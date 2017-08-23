@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetToggle: boolean;
     procedure SetToggle(const Value: boolean);
   public

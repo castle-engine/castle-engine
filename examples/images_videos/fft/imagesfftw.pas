@@ -163,7 +163,7 @@ var
 begin
   { Copy Image to ImageComplex }
 
-  Ptr := Image.RGBPixels;
+  Ptr := Image.Pixels;
   ImgComplexPtr := FImageComplex;
 
   for I := 0 to Size - 1 do
@@ -197,7 +197,7 @@ var
   Ptr: PVector3Byte;
   Color, I: Integer;
 begin
-  Ptr := Img.RGBPixels;
+  Ptr := Img.Pixels;
 
   for I := 0 to Size - 1 do
   begin
@@ -219,7 +219,7 @@ var
   Color, ComplexIndex, X, Y: Integer;
   Complex: TImageComplex;
 begin
-  Ptr := Img.RGBPixels;
+  Ptr := Img.Pixels;
   Complex := FImageF;
 
   for Y := 0 to Img.Height - 1 do

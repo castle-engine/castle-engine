@@ -21,5 +21,8 @@
         <UseAnsiStrings Value="True"/>
       </SyntaxOptions>
     </Parsing>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir);../../src/base"/>
+    </SearchPaths>
   </CompilerOptions>
 </CONFIG>

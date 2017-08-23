@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetNameField: string;
     procedure SetNameField(const Value: string);
   public

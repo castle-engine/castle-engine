@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetVertices(const Value: array of TVector2);
+    procedure SetVertices(const Value: TVector2List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTriangleSet2DNode ----------------------------------------------- }
+
+procedure TTriangleSet2DNode.SetVertices(const Value: array of TVector2);
+begin
+  FdVertices.Send(Value);
+end;
+
+procedure TTriangleSet2DNode.SetVertices(const Value: TVector2List);
+begin
+  FdVertices.Send(Value);
+end;
 
 {$endif read_implementation}

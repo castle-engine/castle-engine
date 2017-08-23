@@ -21,27 +21,27 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAddress: TSFString;
+    strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
 
-    private FFdApplicationID: TSFInt32;
+    strict private FFdApplicationID: TSFInt32;
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
 
-    private FFdMapping: TMFNode;
+    strict private FFdMapping: TMFNode;
     public property FdMapping: TMFNode read FFdMapping;
 
-    private FFdPort: TSFInt32;
+    strict private FFdPort: TSFInt32;
     public property FdPort: TSFInt32 read FFdPort;
 
-    private FFdSiteID: TSFInt32;
+    strict private FFdSiteID: TSFInt32;
     public property FdSiteID: TSFInt32 read FFdSiteID;
 
     { Event out } { }
-    private FEventAddedEntities: TMFNodeEvent;
+    strict private FEventAddedEntities: TMFNodeEvent;
     public property EventAddedEntities: TMFNodeEvent read FEventAddedEntities;
 
     { Event out } { }
-    private FEventRemovedEntities: TMFNodeEvent;
+    strict private FEventRemovedEntities: TMFNodeEvent;
     public property EventRemovedEntities: TMFNodeEvent read FEventRemovedEntities;
 
     {$I auto_generated_node_helpers/x3dnodes_disentitymanager.inc}
@@ -53,28 +53,28 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    private FFdCategory: TSFInt32;
+    strict private FFdCategory: TSFInt32;
     public property FdCategory: TSFInt32 read FFdCategory;
 
-    private FFdCountry: TSFInt32;
+    strict private FFdCountry: TSFInt32;
     public property FdCountry: TSFInt32 read FFdCountry;
 
-    private FFdDomain: TSFInt32;
+    strict private FFdDomain: TSFInt32;
     public property FdDomain: TSFInt32 read FFdDomain;
 
-    private FFdExtra: TSFInt32;
+    strict private FFdExtra: TSFInt32;
     public property FdExtra: TSFInt32 read FFdExtra;
 
-    private FFdKind: TSFInt32;
+    strict private FFdKind: TSFInt32;
     public property FdKind: TSFInt32 read FFdKind;
 
-    private FFdSpecific: TSFInt32;
+    strict private FFdSpecific: TSFInt32;
     public property FdSpecific: TSFInt32 read FFdSpecific;
 
-    private FFdSubcategory: TSFInt32;
+    strict private FFdSubcategory: TSFInt32;
     public property FdSubcategory: TSFInt32 read FFdSubcategory;
 
     {$I auto_generated_node_helpers/x3dnodes_disentitytypemapping.inc}
@@ -87,279 +87,279 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue0: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue0: TSFFloatEvent;
     public property EventSet_articulationParameterValue0: TSFFloatEvent read FEventSet_articulationParameterValue0;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue1: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue1: TSFFloatEvent;
     public property EventSet_articulationParameterValue1: TSFFloatEvent read FEventSet_articulationParameterValue1;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue2: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue2: TSFFloatEvent;
     public property EventSet_articulationParameterValue2: TSFFloatEvent read FEventSet_articulationParameterValue2;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue3: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue3: TSFFloatEvent;
     public property EventSet_articulationParameterValue3: TSFFloatEvent read FEventSet_articulationParameterValue3;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue4: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue4: TSFFloatEvent;
     public property EventSet_articulationParameterValue4: TSFFloatEvent read FEventSet_articulationParameterValue4;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue5: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue5: TSFFloatEvent;
     public property EventSet_articulationParameterValue5: TSFFloatEvent read FEventSet_articulationParameterValue5;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue6: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue6: TSFFloatEvent;
     public property EventSet_articulationParameterValue6: TSFFloatEvent read FEventSet_articulationParameterValue6;
 
     { Event in } { }
-    private FEventSet_articulationParameterValue7: TSFFloatEvent;
+    strict private FEventSet_articulationParameterValue7: TSFFloatEvent;
     public property EventSet_articulationParameterValue7: TSFFloatEvent read FEventSet_articulationParameterValue7;
 
-    private FFdAddress: TSFString;
+    strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
 
-    private FFdApplicationID: TSFInt32;
+    strict private FFdApplicationID: TSFInt32;
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
 
-    private FFdArticulationParameterCount: TSFInt32;
+    strict private FFdArticulationParameterCount: TSFInt32;
     public property FdArticulationParameterCount: TSFInt32 read FFdArticulationParameterCount;
 
-    private FFdArticulationParameterDesignatorArray: TMFInt32;
+    strict private FFdArticulationParameterDesignatorArray: TMFInt32;
     public property FdArticulationParameterDesignatorArray: TMFInt32 read FFdArticulationParameterDesignatorArray;
 
-    private FFdArticulationParameterChangeIndicatorArray: TMFInt32;
+    strict private FFdArticulationParameterChangeIndicatorArray: TMFInt32;
     public property FdArticulationParameterChangeIndicatorArray: TMFInt32 read FFdArticulationParameterChangeIndicatorArray;
 
-    private FFdArticulationParameterIdPartAttachedToArray: TMFInt32;
+    strict private FFdArticulationParameterIdPartAttachedToArray: TMFInt32;
     public property FdArticulationParameterIdPartAttachedToArray: TMFInt32 read FFdArticulationParameterIdPartAttachedToArray;
 
-    private FFdArticulationParameterTypeArray: TMFInt32;
+    strict private FFdArticulationParameterTypeArray: TMFInt32;
     public property FdArticulationParameterTypeArray: TMFInt32 read FFdArticulationParameterTypeArray;
 
-    private FFdArticulationParameterArray: TMFFloat;
+    strict private FFdArticulationParameterArray: TMFFloat;
     public property FdArticulationParameterArray: TMFFloat read FFdArticulationParameterArray;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdCollisionType: TSFInt32;
+    strict private FFdCollisionType: TSFInt32;
     public property FdCollisionType: TSFInt32 read FFdCollisionType;
 
-    private FFdDeadReckoning: TSFInt32;
+    strict private FFdDeadReckoning: TSFInt32;
     public property FdDeadReckoning: TSFInt32 read FFdDeadReckoning;
 
-    private FFdDetonationLocation: TSFVec3f;
+    strict private FFdDetonationLocation: TSFVec3f;
     public property FdDetonationLocation: TSFVec3f read FFdDetonationLocation;
 
-    private FFdDetonationRelativeLocation: TSFVec3f;
+    strict private FFdDetonationRelativeLocation: TSFVec3f;
     public property FdDetonationRelativeLocation: TSFVec3f read FFdDetonationRelativeLocation;
 
-    private FFdDetonationResult: TSFInt32;
+    strict private FFdDetonationResult: TSFInt32;
     public property FdDetonationResult: TSFInt32 read FFdDetonationResult;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdEntityCategory: TSFInt32;
+    strict private FFdEntityCategory: TSFInt32;
     public property FdEntityCategory: TSFInt32 read FFdEntityCategory;
 
-    private FFdEntityCountry: TSFInt32;
+    strict private FFdEntityCountry: TSFInt32;
     public property FdEntityCountry: TSFInt32 read FFdEntityCountry;
 
-    private FFdEntityDomain: TSFInt32;
+    strict private FFdEntityDomain: TSFInt32;
     public property FdEntityDomain: TSFInt32 read FFdEntityDomain;
 
-    private FFdEntityExtra: TSFInt32;
+    strict private FFdEntityExtra: TSFInt32;
     public property FdEntityExtra: TSFInt32 read FFdEntityExtra;
 
-    private FFdEntityID: TSFInt32;
+    strict private FFdEntityID: TSFInt32;
     public property FdEntityID: TSFInt32 read FFdEntityID;
 
-    private FFdEntityKind: TSFInt32;
+    strict private FFdEntityKind: TSFInt32;
     public property FdEntityKind: TSFInt32 read FFdEntityKind;
 
-    private FFdEntitySpecific: TSFInt32;
+    strict private FFdEntitySpecific: TSFInt32;
     public property FdEntitySpecific: TSFInt32 read FFdEntitySpecific;
 
-    private FFdEntitySubCategory: TSFInt32;
+    strict private FFdEntitySubCategory: TSFInt32;
     public property FdEntitySubCategory: TSFInt32 read FFdEntitySubCategory;
 
-    private FFdEventApplicationID: TSFInt32;
+    strict private FFdEventApplicationID: TSFInt32;
     public property FdEventApplicationID: TSFInt32 read FFdEventApplicationID;
 
-    private FFdEventEntityID: TSFInt32;
+    strict private FFdEventEntityID: TSFInt32;
     public property FdEventEntityID: TSFInt32 read FFdEventEntityID;
 
-    private FFdEventNumber: TSFInt32;
+    strict private FFdEventNumber: TSFInt32;
     public property FdEventNumber: TSFInt32 read FFdEventNumber;
 
-    private FFdEventSiteID: TSFInt32;
+    strict private FFdEventSiteID: TSFInt32;
     public property FdEventSiteID: TSFInt32 read FFdEventSiteID;
 
-    private FFdFired1: TSFBool;
+    strict private FFdFired1: TSFBool;
     public property FdFired1: TSFBool read FFdFired1;
 
-    private FFdFired2: TSFBool;
+    strict private FFdFired2: TSFBool;
     public property FdFired2: TSFBool read FFdFired2;
 
-    private FFdFireMissionIndex: TSFInt32;
+    strict private FFdFireMissionIndex: TSFInt32;
     public property FdFireMissionIndex: TSFInt32 read FFdFireMissionIndex;
 
-    private FFdFiringRange: TSFFloat;
+    strict private FFdFiringRange: TSFFloat;
     public property FdFiringRange: TSFFloat read FFdFiringRange;
 
-    private FFdFiringRate: TSFInt32;
+    strict private FFdFiringRate: TSFInt32;
     public property FdFiringRate: TSFInt32 read FFdFiringRate;
 
-    private FFdForceID: TSFInt32;
+    strict private FFdForceID: TSFInt32;
     public property FdForceID: TSFInt32 read FFdForceID;
 
-    private FFdFuse: TSFInt32;
+    strict private FFdFuse: TSFInt32;
     public property FdFuse: TSFInt32 read FFdFuse;
 
-    private FFdLinearVelocity: TSFVec3f;
+    strict private FFdLinearVelocity: TSFVec3f;
     public property FdLinearVelocity: TSFVec3f read FFdLinearVelocity;
 
-    private FFdLinearAcceleration: TSFVec3f;
+    strict private FFdLinearAcceleration: TSFVec3f;
     public property FdLinearAcceleration: TSFVec3f read FFdLinearAcceleration;
 
-    private FFdMarking: TSFString;
+    strict private FFdMarking: TSFString;
     public property FdMarking: TSFString read FFdMarking;
 
-    private FFdMulticastRelayHost: TSFString;
+    strict private FFdMulticastRelayHost: TSFString;
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
 
-    private FFdMulticastRelayPort: TSFInt32;
+    strict private FFdMulticastRelayPort: TSFInt32;
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
 
-    private FFdMunitionApplicationID: TSFInt32;
+    strict private FFdMunitionApplicationID: TSFInt32;
     public property FdMunitionApplicationID: TSFInt32 read FFdMunitionApplicationID;
 
-    private FFdMunitionEndPoint: TSFVec3f;
+    strict private FFdMunitionEndPoint: TSFVec3f;
     public property FdMunitionEndPoint: TSFVec3f read FFdMunitionEndPoint;
 
-    private FFdMunitionEntityID: TSFInt32;
+    strict private FFdMunitionEntityID: TSFInt32;
     public property FdMunitionEntityID: TSFInt32 read FFdMunitionEntityID;
 
-    private FFdMunitionQuantity: TSFInt32;
+    strict private FFdMunitionQuantity: TSFInt32;
     public property FdMunitionQuantity: TSFInt32 read FFdMunitionQuantity;
 
-    private FFdMunitionSiteID: TSFInt32;
+    strict private FFdMunitionSiteID: TSFInt32;
     public property FdMunitionSiteID: TSFInt32 read FFdMunitionSiteID;
 
-    private FFdMunitionStartPoint: TSFVec3f;
+    strict private FFdMunitionStartPoint: TSFVec3f;
     public property FdMunitionStartPoint: TSFVec3f read FFdMunitionStartPoint;
 
-    private FFdNetworkMode: TSFString;
+    strict private FFdNetworkMode: TSFString;
     public property FdNetworkMode: TSFString read FFdNetworkMode;
 
-    private FFdPort: TSFInt32;
+    strict private FFdPort: TSFInt32;
     public property FdPort: TSFInt32 read FFdPort;
 
-    private FFdReadInterval: TSFTime;
+    strict private FFdReadInterval: TSFTime;
     public property FdReadInterval: TSFTime read FFdReadInterval;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdSiteID: TSFInt32;
+    strict private FFdSiteID: TSFInt32;
     public property FdSiteID: TSFInt32 read FFdSiteID;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdWarhead: TSFInt32;
+    strict private FFdWarhead: TSFInt32;
     public property FdWarhead: TSFInt32 read FFdWarhead;
 
-    private FFdWriteInterval: TSFTime;
+    strict private FFdWriteInterval: TSFTime;
     public property FdWriteInterval: TSFTime read FFdWriteInterval;
 
     { Event out } { }
-    private FEventArticulationParameterValue0_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue0_changed: TSFFloatEvent;
     public property EventArticulationParameterValue0_changed: TSFFloatEvent read FEventArticulationParameterValue0_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue1_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue1_changed: TSFFloatEvent;
     public property EventArticulationParameterValue1_changed: TSFFloatEvent read FEventArticulationParameterValue1_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue2_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue2_changed: TSFFloatEvent;
     public property EventArticulationParameterValue2_changed: TSFFloatEvent read FEventArticulationParameterValue2_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue3_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue3_changed: TSFFloatEvent;
     public property EventArticulationParameterValue3_changed: TSFFloatEvent read FEventArticulationParameterValue3_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue4_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue4_changed: TSFFloatEvent;
     public property EventArticulationParameterValue4_changed: TSFFloatEvent read FEventArticulationParameterValue4_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue5_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue5_changed: TSFFloatEvent;
     public property EventArticulationParameterValue5_changed: TSFFloatEvent read FEventArticulationParameterValue5_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue6_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue6_changed: TSFFloatEvent;
     public property EventArticulationParameterValue6_changed: TSFFloatEvent read FEventArticulationParameterValue6_changed;
 
     { Event out } { }
-    private FEventArticulationParameterValue7_changed: TSFFloatEvent;
+    strict private FEventArticulationParameterValue7_changed: TSFFloatEvent;
     public property EventArticulationParameterValue7_changed: TSFFloatEvent read FEventArticulationParameterValue7_changed;
 
     { Event out } { }
-    private FEventCollideTime: TSFTimeEvent;
+    strict private FEventCollideTime: TSFTimeEvent;
     public property EventCollideTime: TSFTimeEvent read FEventCollideTime;
 
     { Event out } { }
-    private FEventDetonateTime: TSFTimeEvent;
+    strict private FEventDetonateTime: TSFTimeEvent;
     public property EventDetonateTime: TSFTimeEvent read FEventDetonateTime;
 
     { Event out } { }
-    private FEventFiredTime: TSFTimeEvent;
+    strict private FEventFiredTime: TSFTimeEvent;
     public property EventFiredTime: TSFTimeEvent read FEventFiredTime;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     { Event out } { }
-    private FEventIsCollided: TSFBoolEvent;
+    strict private FEventIsCollided: TSFBoolEvent;
     public property EventIsCollided: TSFBoolEvent read FEventIsCollided;
 
     { Event out } { }
-    private FEventIsDetonated: TSFBoolEvent;
+    strict private FEventIsDetonated: TSFBoolEvent;
     public property EventIsDetonated: TSFBoolEvent read FEventIsDetonated;
 
     { Event out } { }
-    private FEventIsNetworkReader: TSFBoolEvent;
+    strict private FEventIsNetworkReader: TSFBoolEvent;
     public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
 
     { Event out } { }
-    private FEventIsNetworkWriter: TSFBoolEvent;
+    strict private FEventIsNetworkWriter: TSFBoolEvent;
     public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
 
     { Event out } { }
-    private FEventIsRtpHeaderHeard: TSFBoolEvent;
+    strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
     public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
 
     { Event out } { }
-    private FEventIsStandAlone: TSFBoolEvent;
+    strict private FEventIsStandAlone: TSFBoolEvent;
     public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
 
     { Event out } { }
-    private FEventTimestamp: TSFTimeEvent;
+    strict private FEventTimestamp: TSFTimeEvent;
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
-    private FFdRtpHeaderExpected: TSFBool;
+    strict private FFdRtpHeaderExpected: TSFBool;
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
 
     {$I auto_generated_node_helpers/x3dnodes_espdutransform.inc}
@@ -371,87 +371,87 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAddress: TSFString;
+    strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
 
-    private FFdApplicationID: TSFInt32;
+    strict private FFdApplicationID: TSFInt32;
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
 
-    private FFdEntityID: TSFInt32;
+    strict private FFdEntityID: TSFInt32;
     public property FdEntityID: TSFInt32 read FFdEntityID;
 
-    private FFdMulticastRelayHost: TSFString;
+    strict private FFdMulticastRelayHost: TSFString;
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
 
-    private FFdMulticastRelayPort: TSFInt32;
+    strict private FFdMulticastRelayPort: TSFInt32;
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
 
-    private FFdNetworkMode: TSFString;
+    strict private FFdNetworkMode: TSFString;
     public property FdNetworkMode: TSFString read FFdNetworkMode;
 
-    private FFdPort: TSFInt32;
+    strict private FFdPort: TSFInt32;
     public property FdPort: TSFInt32 read FFdPort;
 
-    private FFdRadioID: TSFInt32;
+    strict private FFdRadioID: TSFInt32;
     public property FdRadioID: TSFInt32 read FFdRadioID;
 
-    private FFdReadInterval: TSFFloat;
+    strict private FFdReadInterval: TSFFloat;
     public property FdReadInterval: TSFFloat read FFdReadInterval;
 
-    private FFdReceivedPower: TSFFloat;
+    strict private FFdReceivedPower: TSFFloat;
     public property FdReceivedPower: TSFFloat read FFdReceivedPower;
 
-    private FFdReceiverState: TSFInt32;
+    strict private FFdReceiverState: TSFInt32;
     public property FdReceiverState: TSFInt32 read FFdReceiverState;
 
-    private FFdRtpHeaderExpected: TSFBool;
+    strict private FFdRtpHeaderExpected: TSFBool;
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
 
-    private FFdSiteID: TSFInt32;
+    strict private FFdSiteID: TSFInt32;
     public property FdSiteID: TSFInt32 read FFdSiteID;
 
-    private FFdTransmitterApplicationID: TSFInt32;
+    strict private FFdTransmitterApplicationID: TSFInt32;
     public property FdTransmitterApplicationID: TSFInt32 read FFdTransmitterApplicationID;
 
-    private FFdTransmitterEntityID: TSFInt32;
+    strict private FFdTransmitterEntityID: TSFInt32;
     public property FdTransmitterEntityID: TSFInt32 read FFdTransmitterEntityID;
 
-    private FFdTransmitterRadioID: TSFInt32;
+    strict private FFdTransmitterRadioID: TSFInt32;
     public property FdTransmitterRadioID: TSFInt32 read FFdTransmitterRadioID;
 
-    private FFdTransmitterSiteID: TSFInt32;
+    strict private FFdTransmitterSiteID: TSFInt32;
     public property FdTransmitterSiteID: TSFInt32 read FFdTransmitterSiteID;
 
-    private FFdWhichGeometry: TSFInt32;
+    strict private FFdWhichGeometry: TSFInt32;
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
 
-    private FFdWriteInterval: TSFFloat;
+    strict private FFdWriteInterval: TSFFloat;
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
 
     { Event out } { }
-    private FEventIsNetworkReader: TSFBoolEvent;
+    strict private FEventIsNetworkReader: TSFBoolEvent;
     public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
 
     { Event out } { }
-    private FEventIsNetworkWriter: TSFBoolEvent;
+    strict private FEventIsNetworkWriter: TSFBoolEvent;
     public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
 
     { Event out } { }
-    private FEventIsRtpHeaderHeard: TSFBoolEvent;
+    strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
     public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
 
     { Event out } { }
-    private FEventIsStandAlone: TSFBoolEvent;
+    strict private FEventIsStandAlone: TSFBoolEvent;
     public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
 
     { Event out } { }
-    private FEventTimestamp: TSFTimeEvent;
+    strict private FEventTimestamp: TSFTimeEvent;
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_receiverpdu.inc}
@@ -463,87 +463,87 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAddress: TSFString;
+    strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
 
-    private FFdApplicationID: TSFInt32;
+    strict private FFdApplicationID: TSFInt32;
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
 
-    private FFdData: TMFInt32;
+    strict private FFdData: TMFInt32;
     public property FdData: TMFInt32 read FFdData;
 
-    private FFdDataLength: TSFInt32;
+    strict private FFdDataLength: TSFInt32;
     public property FdDataLength: TSFInt32 read FFdDataLength;
 
-    private FFdEncodingScheme: TSFInt32;
+    strict private FFdEncodingScheme: TSFInt32;
     public property FdEncodingScheme: TSFInt32 read FFdEncodingScheme;
 
-    private FFdEntityID: TSFInt32;
+    strict private FFdEntityID: TSFInt32;
     public property FdEntityID: TSFInt32 read FFdEntityID;
 
-    private FFdMulticastRelayHost: TSFString;
+    strict private FFdMulticastRelayHost: TSFString;
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
 
-    private FFdMulticastRelayPort: TSFInt32;
+    strict private FFdMulticastRelayPort: TSFInt32;
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
 
-    private FFdNetworkMode: TSFString;
+    strict private FFdNetworkMode: TSFString;
     public property FdNetworkMode: TSFString read FFdNetworkMode;
 
-    private FFdPort: TSFInt32;
+    strict private FFdPort: TSFInt32;
     public property FdPort: TSFInt32 read FFdPort;
 
-    private FFdRadioID: TSFInt32;
+    strict private FFdRadioID: TSFInt32;
     public property FdRadioID: TSFInt32 read FFdRadioID;
 
-    private FFdReadInterval: TSFFloat;
+    strict private FFdReadInterval: TSFFloat;
     public property FdReadInterval: TSFFloat read FFdReadInterval;
 
-    private FFdRtpHeaderExpected: TSFBool;
+    strict private FFdRtpHeaderExpected: TSFBool;
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
 
-    private FFdSampleRate: TSFInt32;
+    strict private FFdSampleRate: TSFInt32;
     public property FdSampleRate: TSFInt32 read FFdSampleRate;
 
-    private FFdSamples: TSFInt32;
+    strict private FFdSamples: TSFInt32;
     public property FdSamples: TSFInt32 read FFdSamples;
 
-    private FFdSiteID: TSFInt32;
+    strict private FFdSiteID: TSFInt32;
     public property FdSiteID: TSFInt32 read FFdSiteID;
 
-    private FFdTdlType: TSFInt32;
+    strict private FFdTdlType: TSFInt32;
     public property FdTdlType: TSFInt32 read FFdTdlType;
 
-    private FFdWhichGeometry: TSFInt32;
+    strict private FFdWhichGeometry: TSFInt32;
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
 
-    private FFdWriteInterval: TSFFloat;
+    strict private FFdWriteInterval: TSFFloat;
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
 
     { Event out } { }
-    private FEventIsNetworkReader: TSFBoolEvent;
+    strict private FEventIsNetworkReader: TSFBoolEvent;
     public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
 
     { Event out } { }
-    private FEventIsNetworkWriter: TSFBoolEvent;
+    strict private FEventIsNetworkWriter: TSFBoolEvent;
     public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
 
     { Event out } { }
-    private FEventIsRtpHeaderHeard: TSFBoolEvent;
+    strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
     public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
 
     { Event out } { }
-    private FEventIsStandAlone: TSFBoolEvent;
+    strict private FEventIsStandAlone: TSFBoolEvent;
     public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
 
     { Event out } { }
-    private FEventTimestamp: TSFTimeEvent;
+    strict private FEventTimestamp: TSFTimeEvent;
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_signalpdu.inc}
@@ -555,135 +555,135 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAddress: TSFString;
+    strict private FFdAddress: TSFString;
     public property FdAddress: TSFString read FFdAddress;
 
-    private FFdAntennaLocation: TSFVec3f;
+    strict private FFdAntennaLocation: TSFVec3f;
     public property FdAntennaLocation: TSFVec3f read FFdAntennaLocation;
 
-    private FFdAntennaPatternLength: TSFInt32;
+    strict private FFdAntennaPatternLength: TSFInt32;
     public property FdAntennaPatternLength: TSFInt32 read FFdAntennaPatternLength;
 
-    private FFdAntennaPatternType: TSFInt32;
+    strict private FFdAntennaPatternType: TSFInt32;
     public property FdAntennaPatternType: TSFInt32 read FFdAntennaPatternType;
 
-    private FFdApplicationID: TSFInt32;
+    strict private FFdApplicationID: TSFInt32;
     public property FdApplicationID: TSFInt32 read FFdApplicationID;
 
-    private FFdCryptoKeyID: TSFInt32;
+    strict private FFdCryptoKeyID: TSFInt32;
     public property FdCryptoKeyID: TSFInt32 read FFdCryptoKeyID;
 
-    private FFdCryptoSystem: TSFInt32;
+    strict private FFdCryptoSystem: TSFInt32;
     public property FdCryptoSystem: TSFInt32 read FFdCryptoSystem;
 
-    private FFdEntityID: TSFInt32;
+    strict private FFdEntityID: TSFInt32;
     public property FdEntityID: TSFInt32 read FFdEntityID;
 
-    private FFdFrequency: TSFInt32;
+    strict private FFdFrequency: TSFInt32;
     public property FdFrequency: TSFInt32 read FFdFrequency;
 
-    private FFdInputSource: TSFInt32;
+    strict private FFdInputSource: TSFInt32;
     public property FdInputSource: TSFInt32 read FFdInputSource;
 
-    private FFdLengthOfModulationParameters: TSFInt32;
+    strict private FFdLengthOfModulationParameters: TSFInt32;
     public property FdLengthOfModulationParameters: TSFInt32 read FFdLengthOfModulationParameters;
 
-    private FFdModulationTypeDetail: TSFInt32;
+    strict private FFdModulationTypeDetail: TSFInt32;
     public property FdModulationTypeDetail: TSFInt32 read FFdModulationTypeDetail;
 
-    private FFdModulationTypeMajor: TSFInt32;
+    strict private FFdModulationTypeMajor: TSFInt32;
     public property FdModulationTypeMajor: TSFInt32 read FFdModulationTypeMajor;
 
-    private FFdModulationTypeSpreadSpectrum: TSFInt32;
+    strict private FFdModulationTypeSpreadSpectrum: TSFInt32;
     public property FdModulationTypeSpreadSpectrum: TSFInt32 read FFdModulationTypeSpreadSpectrum;
 
-    private FFdModulationTypeSystem: TSFInt32;
+    strict private FFdModulationTypeSystem: TSFInt32;
     public property FdModulationTypeSystem: TSFInt32 read FFdModulationTypeSystem;
 
-    private FFdMulticastRelayHost: TSFString;
+    strict private FFdMulticastRelayHost: TSFString;
     public property FdMulticastRelayHost: TSFString read FFdMulticastRelayHost;
 
-    private FFdMulticastRelayPort: TSFInt32;
+    strict private FFdMulticastRelayPort: TSFInt32;
     public property FdMulticastRelayPort: TSFInt32 read FFdMulticastRelayPort;
 
-    private FFdNetworkMode: TSFString;
+    strict private FFdNetworkMode: TSFString;
     public property FdNetworkMode: TSFString read FFdNetworkMode;
 
-    private FFdPort: TSFInt32;
+    strict private FFdPort: TSFInt32;
     public property FdPort: TSFInt32 read FFdPort;
 
-    private FFdPower: TSFFloat;
+    strict private FFdPower: TSFFloat;
     public property FdPower: TSFFloat read FFdPower;
 
-    private FFdRadioEntityTypeCategory: TSFInt32;
+    strict private FFdRadioEntityTypeCategory: TSFInt32;
     public property FdRadioEntityTypeCategory: TSFInt32 read FFdRadioEntityTypeCategory;
 
-    private FFdRadioEntityTypeCountry: TSFInt32;
+    strict private FFdRadioEntityTypeCountry: TSFInt32;
     public property FdRadioEntityTypeCountry: TSFInt32 read FFdRadioEntityTypeCountry;
 
-    private FFdRadioEntityTypeDomain: TSFInt32;
+    strict private FFdRadioEntityTypeDomain: TSFInt32;
     public property FdRadioEntityTypeDomain: TSFInt32 read FFdRadioEntityTypeDomain;
 
-    private FFdRadioEntityTypeKind: TSFInt32;
+    strict private FFdRadioEntityTypeKind: TSFInt32;
     public property FdRadioEntityTypeKind: TSFInt32 read FFdRadioEntityTypeKind;
 
-    private FFdRadioEntityTypeNomenclature: TSFInt32;
+    strict private FFdRadioEntityTypeNomenclature: TSFInt32;
     public property FdRadioEntityTypeNomenclature: TSFInt32 read FFdRadioEntityTypeNomenclature;
 
-    private FFdRadioEntityTypeNomenclatureVersion: TSFInt32;
+    strict private FFdRadioEntityTypeNomenclatureVersion: TSFInt32;
     public property FdRadioEntityTypeNomenclatureVersion: TSFInt32 read FFdRadioEntityTypeNomenclatureVersion;
 
-    private FFdRadioID: TSFInt32;
+    strict private FFdRadioID: TSFInt32;
     public property FdRadioID: TSFInt32 read FFdRadioID;
 
-    private FFdReadInterval: TSFFloat;
+    strict private FFdReadInterval: TSFFloat;
     public property FdReadInterval: TSFFloat read FFdReadInterval;
 
-    private FFdRelativeAntennaLocation: TSFVec3f;
+    strict private FFdRelativeAntennaLocation: TSFVec3f;
     public property FdRelativeAntennaLocation: TSFVec3f read FFdRelativeAntennaLocation;
 
-    private FFdRtpHeaderExpected: TSFBool;
+    strict private FFdRtpHeaderExpected: TSFBool;
     public property FdRtpHeaderExpected: TSFBool read FFdRtpHeaderExpected;
 
-    private FFdSiteID: TSFInt32;
+    strict private FFdSiteID: TSFInt32;
     public property FdSiteID: TSFInt32 read FFdSiteID;
 
-    private FFdTransmitFrequencyBandwidth: TSFFloat;
+    strict private FFdTransmitFrequencyBandwidth: TSFFloat;
     public property FdTransmitFrequencyBandwidth: TSFFloat read FFdTransmitFrequencyBandwidth;
 
-    private FFdTransmitState: TSFInt32;
+    strict private FFdTransmitState: TSFInt32;
     public property FdTransmitState: TSFInt32 read FFdTransmitState;
 
-    private FFdWhichGeometry: TSFInt32;
+    strict private FFdWhichGeometry: TSFInt32;
     public property FdWhichGeometry: TSFInt32 read FFdWhichGeometry;
 
-    private FFdWriteInterval: TSFFloat;
+    strict private FFdWriteInterval: TSFFloat;
     public property FdWriteInterval: TSFFloat read FFdWriteInterval;
 
     { Event out } { }
-    private FEventIsNetworkReader: TSFBoolEvent;
+    strict private FEventIsNetworkReader: TSFBoolEvent;
     public property EventIsNetworkReader: TSFBoolEvent read FEventIsNetworkReader;
 
     { Event out } { }
-    private FEventIsNetworkWriter: TSFBoolEvent;
+    strict private FEventIsNetworkWriter: TSFBoolEvent;
     public property EventIsNetworkWriter: TSFBoolEvent read FEventIsNetworkWriter;
 
     { Event out } { }
-    private FEventIsRtpHeaderHeard: TSFBoolEvent;
+    strict private FEventIsRtpHeaderHeard: TSFBoolEvent;
     public property EventIsRtpHeaderHeard: TSFBoolEvent read FEventIsRtpHeaderHeard;
 
     { Event out } { }
-    private FEventIsStandAlone: TSFBoolEvent;
+    strict private FEventIsStandAlone: TSFBoolEvent;
     public property EventIsStandAlone: TSFBoolEvent read FEventIsStandAlone;
 
     { Event out } { }
-    private FEventTimestamp: TSFTimeEvent;
+    strict private FEventTimestamp: TSFTimeEvent;
     public property EventTimestamp: TSFTimeEvent read FEventTimestamp;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_transmitterpdu.inc}

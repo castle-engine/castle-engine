@@ -19,14 +19,18 @@
 
 type
   { }
-  TTextureWrap2D = array [0..1] of TGLenum;
-  TTextureWrap3D = array [0..2] of TGLenum;
+  TTextureWrap2D = packed record
+    Data: packed array [0..1] of TGLenum;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap2D): boolean;
+  end;
 
-operator = (const W1, W2: TTextureWrap2D): boolean;
-operator = (const W1, W2: TTextureWrap3D): boolean;
+  TTextureWrap3D = packed record
+    Data: packed array [0..2] of TGLenum;
+    class operator {$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): boolean;
+  end;
 
 const
-  Texture2DRepeat: TTextureWrap2D = (GL_REPEAT, GL_REPEAT);
+  Texture2DRepeat: TTextureWrap2D = (Data: (GL_REPEAT, GL_REPEAT));
 
 { Return wrap GL_CLAMP_TO_EDGE in both directions. }
 function Texture2DClampToEdge: TTextureWrap2D;
@@ -35,20 +39,20 @@ function Texture2DClampToEdge: TTextureWrap2D;
 
 {$ifdef read_implementation}
 
-operator = (const W1, W2: TTextureWrap2D): boolean;
+class operator TTextureWrap2D.{$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap2D): boolean;
 begin
   Result := CompareMem(@W1, @W2, SizeOf(W1));
 end;
 
-operator = (const W1, W2: TTextureWrap3D): boolean;
+class operator TTextureWrap3D.{$ifdef FPC}={$else}Equal{$endif} (const W1, W2: TTextureWrap3D): boolean;
 begin
   Result := CompareMem(@W1, @W2, SizeOf(W1));
 end;
 
 function Texture2DClampToEdge: TTextureWrap2D;
 begin
-  Result[0] := GLFeatures.CLAMP_TO_EDGE;
-  Result[1] := Result[0];
+  Result.Data[0] := GLFeatures.CLAMP_TO_EDGE;
+  Result.Data[1] := Result.Data[0];
 end;
 
 {$endif read_implementation}

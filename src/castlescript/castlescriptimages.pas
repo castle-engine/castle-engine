@@ -44,8 +44,8 @@ type
     FValue: TCastleImage;
     procedure SetValue(const AValue: TCastleImage);
   public
-    constructor Create(const AWriteable: boolean; const AValue: TCastleImage);
-    constructor Create(const AWriteable: boolean); override;
+    constructor Create(const AWriteable: boolean; const AValue: TCastleImage); overload;
+    constructor Create(const AWriteable: boolean); override; overload;
     destructor Destroy; override;
 
     { Image value. Assigning here makes a @italic(copy) of the image. }
@@ -619,18 +619,18 @@ end;
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImage, TCasScriptImageFun, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageLoad, TCasScriptImageLoad, [TCasScriptString], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImage, TCasScriptImageFun, [TCasScriptInteger, TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageLoad, TCasScriptImageLoad, [TCasScriptString], false);
 
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageWidth, TCasScriptImageWidth, [TCasScriptImage], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageHeight, TCasScriptImageHeight, [TCasScriptImage], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageComponents, TCasScriptImageComponents, [TCasScriptImage], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageWidth, TCasScriptImageWidth, [TCasScriptImage], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageHeight, TCasScriptImageHeight, [TCasScriptImage], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageComponents, TCasScriptImageComponents, [TCasScriptImage], false);
 
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageGet     , TCasScriptImageGet     , [TCasScriptImage, TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageGetColor, TCasScriptImageGetColor, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageGetAlpha, TCasScriptImageGetAlpha, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageGet     , TCasScriptImageGet     , [TCasScriptImage, TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageGetColor, TCasScriptImageGetColor, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageGetAlpha, TCasScriptImageGetAlpha, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger], false);
 
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageSet     , TCasScriptImageSet     , [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageSetColor, TCasScriptImageSetColor, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptImage(nil).HandleImageSetAlpha, TCasScriptImageSetAlpha, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageSet     , TCasScriptImageSet     , [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageSetColor, TCasScriptImageSetColor, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptImage {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleImageSetAlpha, TCasScriptImageSetAlpha, [TCasScriptImage, TCasScriptInteger, TCasScriptInteger, TCasScriptValue], false);
 end.

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDirectOutput: boolean;
     procedure SetDirectOutput(const Value: boolean);
     function GetMustEvaluate: boolean;

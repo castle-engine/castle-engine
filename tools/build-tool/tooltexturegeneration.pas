@@ -197,7 +197,8 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
     ConvertExe := '';
     TryToolExePath(ConvertExe, 'convert', C);
     if TextureCompressionInfo[C].DDSFlipped then
-      RunCommandSimple(ConvertExe, [InputFile, '-flip', InputFlippedFile]) else
+      RunCommandSimple(ConvertExe, [InputFile, '-flip', InputFlippedFile])
+    else
       RunCommandSimple(ConvertExe, [InputFile, InputFlippedFile]);
 
     OutputTempFile := TempPrefix + 'output' + ExtractFileExt(OutputFile);
@@ -217,31 +218,6 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
 
     CheckRenameFile(OutputTempFile, OutputFile);
     CheckDeleteFile(InputFlippedFile, true);
-  end;
-
-  procedure AMDCompressFallbackATICompressonator(
-    const InputFile, OutputFile: string;
-    const C: TTextureCompression;
-    const CompressionNameForAMDCompress: string;
-    const CompressionNameForATICompressonator: string);
-  begin
-    {$ifdef USE_AMDCompress}
-    try
-      AMDCompress(InputFile, OutputFile, C, CompressionNameForAMDCompress);
-    except
-      on E: ECannotFindTool do
-      begin
-        if E.ToolName = 'AMDCompressCLI' then
-        begin
-          Writeln('Cannot find AMDCompressCLI executable. Falling back to ATICompressonator.');
-          ATICompressonator(InputFile, OutputFile, C, CompressionNameForATICompressonator);
-        end else
-          raise;
-      end;
-    end;
-    {$else}
-    ATICompressonator(InputFile, OutputFile, C, CompressionNameForATICompressonator);
-    {$endif}
   end;
 
   procedure PVRTexTool(const InputFile, OutputFile: string;
@@ -296,6 +272,61 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
        '-flip', 'y', // TODO: use this only when TextureCompressionInfo[C].DDSFlipped
        '-i', InputFile,
        '-o', OutputFile]);
+  end;
+
+  procedure NVCompress(const InputFile, OutputFile: string;
+    const C: TTextureCompression; const CompressionNameForTool: string);
+  var
+    ToolExe: string;
+  begin
+    ToolExe := '';
+
+    { assume it's on $PATH }
+    TryToolExePath(ToolExe, 'nvcompress', C);
+
+    RunCommandSimple(ToolExe,
+      ['-' + CompressionNameForTool,
+       InputFile,
+       OutputFile]);
+  end;
+
+  procedure AMDCompress_FallbackATICompressonator(
+    const InputFile, OutputFile: string;
+    const C: TTextureCompression;
+    const CompressionNameForAMDCompress,
+          CompressionNameForATICompressonator: string);
+  begin
+    {$ifdef USE_AMDCompress}
+    try
+      AMDCompress(InputFile, OutputFile, C, CompressionNameForAMDCompress);
+      Exit; // if there was no ECannotFindTool exception, then success: exit
+    except
+      on E: ECannotFindTool do
+        Writeln('Cannot find AMDCompressCLI executable. Falling back to ATICompressonator.');
+    end;
+    {$endif}
+
+    ATICompressonator(InputFile, OutputFile, C, CompressionNameForATICompressonator);
+  end;
+
+  procedure NVCompress_FallbackAMDCompress_FallbackATICompressonator(
+    const InputFile, OutputFile: string;
+    const C: TTextureCompression;
+    const CompressionNameForNVCompress,
+          CompressionNameForAMDCompress,
+          CompressionNameForATICompressonator: string);
+  begin
+    try
+      NVCompress(InputFile, OutputFile, C, CompressionNameForNVCompress);
+      Exit; // if there was no ECannotFindTool exception, then success: exit
+    except
+      on E: ECannotFindTool do
+        Writeln('Cannot find nvcompress executable. Falling back to AMDCompressCLI or ATICompressonator.');
+    end;
+
+    AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C,
+      CompressionNameForAMDCompress,
+      CompressionNameForATICompressonator);
   end;
 
   { Convert both URLs to filenames and check, looking at file modification times
@@ -358,14 +389,14 @@ procedure AutoGenerateTextures(const Project: TCastleProject);
           tcDxt1_RGB and tcDxt1_RGBA result in the same output file,
           DXT1 is the same compression in both cases, and there's no option
           how to differentiate between this in DDS file. }
-        tcDxt1_RGB : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT1', 'DXT1');
-        tcDxt1_RGBA: AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT1', 'DXT1');
-        tcDxt3     : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT3', 'DXT3');
-        tcDxt5     : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'DXT5', 'DXT5');
+        tcDxt1_RGB : NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc1' , 'DXT1', 'DXT1');
+        tcDxt1_RGBA: NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc1a', 'DXT1', 'DXT1');
+        tcDxt3     : NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc2' , 'DXT3', 'DXT3');
+        tcDxt5     : NVCompress_FallbackAMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'bc3' , 'DXT5', 'DXT5');
 
-        tcATITC_RGB                   : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGB'              , 'ATC ');
-        tcATITC_RGBA_InterpolatedAlpha: AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated', 'ATCI');
-        tcATITC_RGBA_ExplicitAlpha    : AMDCompressFallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    , 'ATCA');
+        tcATITC_RGB                   : AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGB'              , 'ATC ');
+        tcATITC_RGBA_InterpolatedAlpha: AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Interpolated', 'ATCI');
+        tcATITC_RGBA_ExplicitAlpha    : AMDCompress_FallbackATICompressonator(InputFile, OutputFile, C, 'ATC_RGBA_Explicit'    , 'ATCA');
 
         tcPvrtc1_4bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_4_RGB');
         tcPvrtc1_2bpp_RGB:  PVRTexTool(InputFile, OutputFile, C, 'PVRTC1_2_RGB');

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetShape: TShapeNode;
     procedure SetShape(const Value: TShapeNode);
   public

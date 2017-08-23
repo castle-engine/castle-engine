@@ -18,7 +18,7 @@
   so look there first. }
 program view_3d_model_advanced;
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses SysUtils, CastleUtils, CastleWindow, CastleProgress, CastleWindowProgress,
   CastleSceneCore, CastleLog, CastleParameters, CastleScene, X3DLoad,

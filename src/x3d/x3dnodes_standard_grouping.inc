@@ -19,7 +19,7 @@
     so it can be inserted as child of another grouping node.
     So, you can create a hierarchy of nodes with any depth. }
   TAbstractGroupingNode = class(TAbstractChildNode)
-  private
+  strict private
     BeforeTraversePushedState: boolean;
   protected
     { If @true (default implementation in this class), then this really
@@ -52,7 +52,10 @@
 
   { Base node that contains children nodes, in X3D and VRML 2.0. }
   TAbstractX3DGroupingNode = class(TAbstractGroupingNode, IAbstractBoundedObject)
-  private
+  strict private
+    type
+      TChildrenArray = array of TAbstractChildNode;
+    function ToChildrenArray(const Nodes: TMFNode): TChildrenArray;
     procedure EventAddChildrenReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     procedure EventRemoveChildrenReceive(
@@ -61,27 +64,44 @@
     procedure CreateNode; override;
 
     { Event in } { }
-    private FEventAddChildren: TMFNodeEvent;
+    strict private FEventAddChildren: TMFNodeEvent;
     public property EventAddChildren: TMFNodeEvent read FEventAddChildren;
 
     { Event in } { }
-    private FEventRemoveChildren: TMFNodeEvent;
+    strict private FEventRemoveChildren: TMFNodeEvent;
     public property EventRemoveChildren: TMFNodeEvent read FEventRemoveChildren;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
-    private FFdRender: TSFBool;
+    strict private FFdRender: TSFBool;
     { This is an extension from InstantReality, see
       [http://instant-reality.com/documentation/nodetype/ChildGroup/].
       We simply ignore it for now. }
     public property FdRender: TSFBool read FFdRender;
+
+    { Add the nodes as children.
+      Adding a node that already exists on the children list is ignored,
+      so this list should never have duplicates.
+
+      This propagates the changes appropriately to the parent TCastleSceneCore,
+      calling TCastleSceneCore.ChangedAll or something similar. }
+    procedure AddChildren(const Children: array of TAbstractChildNode); overload;
+    procedure AddChildren(const Child: TAbstractChildNode); overload;
+
+    { Remove the nodes from the children list.
+      Removing a node that does not exist on the children list is ignored.
+
+      This propagates the changes appropriately to the parent TCastleSceneCore,
+      calling TCastleSceneCore.ChangedAll or something similar. }
+    procedure RemoveChildren(const Children: array of TAbstractChildNode); overload;
+    procedure RemoveChildren(const Child: TAbstractChildNode); overload;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dgroupingnode.inc}
   end;
@@ -104,7 +124,7 @@
   end;
   TGroupNode_2 = TGroupNode;
 
-  TStringLongIntMap = class(specialize TDictionary<string, LongInt>)
+  TStringLongIntMap = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, LongInt>)
   strict private
     function GetItems(const AKey: string): LongInt;
     procedure SetItems(const AKey: string; const AValue: LongInt);
@@ -136,15 +156,16 @@
     is returned by the parser. Like parsed VRML/X3D version, X3D profile,
     some namespace information (exported names and such). }
   TX3DRootNode = class(TGroupNode)
-  private
+  strict private
     FHasForceVersion: boolean;
     FSaveAsRootNode: boolean;
     FProfile: string;
     FComponents: TStringLongIntMap;
     FMeta: TStringStringMap;
+    FScale: Single;
+  private
     FPrototypeNames: TX3DPrototypeNames;
     FExportedNames, FImportedNames: TX3DNodeNames;
-    FScale: Single;
     procedure TopLevelCheckChild(const Child: TX3DNode);
   protected
     function DeepCopyCore(CopyState: TX3DNodeDeepCopyState): TX3DNode; override;
@@ -239,8 +260,8 @@
       works (is recognized by models that Inline this one).
 
       @groupBegin }
-    procedure ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string);
-    procedure ManuallyExportNode(const Node: TX3DNode);
+    procedure ManuallyExportNode(const Node: TX3DNode; const ExportedAlias: string); overload;
+    procedure ManuallyExportNode(const Node: TX3DNode); overload;
     { @groupEnd }
   end;
 
@@ -257,13 +278,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdChildren: TMFNode;
+    strict private FFdChildren: TMFNode;
     public property FdChildren: TMFNode read FFdChildren;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_staticgroup.inc}
@@ -287,7 +308,7 @@
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
 
-    private FFdWhichChoice: TSFInt32;
+    strict private FFdWhichChoice: TSFInt32;
     public property FdWhichChoice: TSFInt32 read FFdWhichChoice;
 
     class function ForVRMLVersion(const Version: TX3DVersion): boolean;
@@ -314,7 +335,7 @@
 
   { Grouping node that transforms (moves, rotates, scales) it's children. }
   TTransformNode = class(TAbstractX3DGroupingNode, ITransformNode)
-  private
+  strict private
     //WarningNegativeScaleDone: boolean;
   protected
     { }
@@ -328,19 +349,19 @@
       override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdCenter: TSFVec3f;
+    strict private FFdCenter: TSFVec3f;
     public property FdCenter: TSFVec3f read FFdCenter;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
     {$I auto_generated_node_helpers/x3dnodes_transform.inc}
@@ -501,7 +522,7 @@ begin
     if Self is TAnchorNode then
       Enumerator.AddPointingDeviceSensor(Self);
 
-    DirectEnumerateActive(@Enumerator.EnumerateChildrenFunction);
+    DirectEnumerateActive({$ifdef CASTLE_OBJFPC}@{$endif} Enumerator.EnumerateChildrenFunction);
   finally FreeAndNil(Enumerator) end;
 end;
 
@@ -524,11 +545,11 @@ begin
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
   AddEvent(FEventAddChildren);
-  EventaddChildren.OnReceive.Add(@EventAddChildrenReceive);
+  EventaddChildren.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventAddChildrenReceive);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventRemoveChildren);
-  EventRemoveChildren.OnReceive.Add(@EventRemoveChildrenReceive);
+  EventRemoveChildren.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
    FdChildren.ChangesAlways := [chEverything];
@@ -550,39 +571,68 @@ begin
   DefaultContainerField := 'children';
 end;
 
-procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
-  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+function TAbstractX3DGroupingNode.ToChildrenArray(
+  const Nodes: TMFNode): TChildrenArray;
 var
-  MF: TMFNode;
   I: Integer;
 begin
-  MF := Value as TMFNode;
-  for I := 0 to MF.Count - 1 do
-    if FdChildren.Items.IndexOf(MF[I]) = -1 then
-      FdChildren.Add(MF[I]);
+  SetLength(Result, Nodes.Items.Count);
+  for I := 0 to Nodes.Items.Count - 1 do
+  begin
+    if not (Nodes.Items[I] is TAbstractChildNode) then
+    begin
+      WritelnWarning('X3D', 'Node on addChildren or removeChildren list is not a TAbstractChildNode, ignoring event');
+      SetLength(Result, 0);
+      Exit;
+    end;
+    Result[I] := TAbstractChildNode(Nodes.Items[I]);
+  end;
+end;
 
-  { X3D spec says explicitly
-    "A children field is not allowed to contain nodes that are
-    ancestors of the grouping node"
-    so correct X3D file cannot produce cycles. Cycles would be very bad,
-    since
-    - they will make memory leaks (reference count will be > 0 for grouping node)
-    - and, worse, TX3DNode.Traverse will hang infinitely
-
-    TODO: So invalid VRML file can produce mem leaks and hang the engine...
-
-    Later: actually, cycles have to be allowed for some cases, see TODOs
-    elsewhere. So we should just enable cycles. And here, we should not worry
-    about them. }
+procedure TAbstractX3DGroupingNode.EventAddChildrenReceive(
+  Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
+begin
+  AddChildren(ToChildrenArray(Value as TMFNode));
 end;
 
 procedure TAbstractX3DGroupingNode.EventRemoveChildrenReceive(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
-var
-  MF: TMFNode;
-  I: Integer;
 begin
-  MF := Value as TMFNode;
+  RemoveChildren(ToChildrenArray(Value as TMFNode));
+end;
+
+procedure TAbstractX3DGroupingNode.AddChildren(
+  const Children: array of TAbstractChildNode);
+var
+  N: TAbstractChildNode;
+begin
+  { ignore empty list, in particular from ToChildrenArray failure }
+  if High(Children) = -1 then Exit;
+
+  { Note: it would be slightly more correct to implement this inside
+    EventAddChildrenReceive, and from AddChildren only create an event
+    "addChildren". This would allow other receivers of EventAddChildren
+    to react to this.
+
+    But it is not necessary in practice,
+    and it would be a little wasteful (creating a temporary TMFNode to send
+    for each AddChildren call). Do we don't do it now. }
+
+  for N in Children do
+    if FdChildren.Items.IndexOf(N) = -1 then
+      FdChildren.Add(N);
+
+  if Scene <> nil then
+    Scene.ChangedAll;
+end;
+
+procedure TAbstractX3DGroupingNode.RemoveChildren(
+  const Children: array of TAbstractChildNode);
+var
+  N: TAbstractChildNode;
+begin
+  { ignore empty list, in particular from ToChildrenArray failure }
+  if High(Children) = -1 then Exit;
 
   { Note that X3D specification directly says
     "A children field is not allowed to directly contain
@@ -593,8 +643,26 @@ begin
     Note that I didn't find such notice in VRML 97 specification.
     This seems to be undefined case in VRML 97? }
 
-  for I := 0 to MF.Count - 1 do
-    FdChildren.Items.Remove(MF[I]);
+  if Scene <> nil then
+    Scene.BeforeNodesFree;
+
+  for N in Children do
+    FdChildren.Remove(N);
+
+  if Scene <> nil then
+    Scene.ChangedAll;
+end;
+
+procedure TAbstractX3DGroupingNode.AddChildren(
+  const Child: TAbstractChildNode);
+begin
+  AddChildren([Child]);
+end;
+
+procedure TAbstractX3DGroupingNode.RemoveChildren(
+  const Child: TAbstractChildNode);
+begin
+  RemoveChildren([Child]);
 end;
 
 procedure TGroupNode.CreateNode;
@@ -784,7 +852,7 @@ begin
     ScalingMatrices(Vector3(Scale, Scale, Scale), true, M, IM);
     State.Transform := State.Transform * M;
     State.InvertedTransform := IM * State.InvertedTransform;
-    State.TransformScale *= Scale;
+    State.TransformScale := State.TransformScale * Scale;
   end;
 end;
 
@@ -966,7 +1034,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
-  State.TransformScale *= Approximate3DScale(Scale);
+  State.TransformScale := State.TransformScale * Approximate3DScale(Scale);
 end;
 
 procedure TTransformNode.ApplyTransform(State: TX3DGraphTraverseState);

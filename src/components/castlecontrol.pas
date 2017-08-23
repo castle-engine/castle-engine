@@ -503,7 +503,7 @@ var
 
 implementation
 
-uses LCLType, CastleGL, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
+uses LCLType, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
   CastleLog, Contnrs, CastleLCLUtils, CastleApplicationProperties;
 
 procedure Register;

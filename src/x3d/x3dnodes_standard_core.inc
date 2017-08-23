@@ -15,7 +15,6 @@
 
 {$ifdef read_interface}
 
-type
   { Interface for a base X3D node that can have some metadata. }
   IAbstractNode = interface(IX3DNode)
   ['{399AC6B2-C2B3-4EEA-AB74-D52C4836B3B9}']
@@ -39,7 +38,7 @@ type
   public
     procedure CreateNode; override;
 
-    private FFdMetadata: TSFNode;
+    strict private FFdMetadata: TSFNode;
     public property FdMetadata: TSFNode read FFdMetadata;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dnode.inc}
@@ -64,7 +63,7 @@ type
 
   { Abstract base type for all bindable children nodes. }
   TAbstractBindableNode = class(TAbstractChildNode)
-  private
+  strict private
     FTransform: TMatrix4;
     FTransformScale: Single;
   protected
@@ -73,15 +72,15 @@ type
     procedure CreateNode; override;
 
     { Event in } { }
-    private FEventSet_bind: TSFBoolEvent;
+    strict private FEventSet_bind: TSFBoolEvent;
     public property EventSet_bind: TSFBoolEvent read FEventSet_bind;
 
     { Event out } { }
-    private FEventBindTime: TSFTimeEvent;
+    strict private FEventBindTime: TSFTimeEvent;
     public property EventBindTime: TSFTimeEvent read FEventBindTime;
 
     { Event out } { }
-    private FEventIsBound: TSFBoolEvent;
+    strict private FEventIsBound: TSFBoolEvent;
     public property EventIsBound: TSFBoolEvent read FEventIsBound;
 
     { Transformation of this bindable node.
@@ -137,11 +136,11 @@ type
   public
     procedure CreateNode; override;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dsensornode.inc}
@@ -154,13 +153,13 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdReference: TSFString;
+    strict private FFdReference: TSFString;
     public property FdReference: TSFString read FFdReference;
 
-    private FFdValue: TMFBool;
+    strict private FFdValue: TMFBool;
     public property FdValue: TMFBool read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_metadataboolean.inc}
@@ -174,13 +173,13 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdReference: TSFString;
+    strict private FFdReference: TSFString;
     public property FdReference: TSFString read FFdReference;
 
-    private FFdValue: TMFDouble;
+    strict private FFdValue: TMFDouble;
     public property FdValue: TMFDouble read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_metadatadouble.inc}
@@ -194,13 +193,13 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdReference: TSFString;
+    strict private FFdReference: TSFString;
     public property FdReference: TSFString read FFdReference;
 
-    private FFdValue: TMFFloat;
+    strict private FFdValue: TMFFloat;
     public property FdValue: TMFFloat read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_metadatafloat.inc}
@@ -213,13 +212,13 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdReference: TSFString;
+    strict private FFdReference: TSFString;
     public property FdReference: TSFString read FFdReference;
 
-    private FFdValue: TMFInt32;
+    strict private FFdValue: TMFInt32;
     public property FdValue: TMFInt32 read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_metadatainteger.inc}
@@ -233,13 +232,13 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdReference: TSFString;
+    strict private FFdReference: TSFString;
     public property FdReference: TSFString read FFdReference;
 
-    private FFdValue: TMFNode;
+    strict private FFdValue: TMFNode;
     public property FdValue: TMFNode read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_metadataset.inc}
@@ -252,13 +251,13 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdName: TSFString;
+    strict private FFdName: TSFString;
     public property FdName: TSFString read FFdName;
 
-    private FFdReference: TSFString;
+    strict private FFdReference: TSFString;
     public property FdReference: TSFString read FFdReference;
 
-    private FFdValue: TMFString;
+    strict private FFdValue: TMFString;
     public property FdValue: TMFString read FFdValue;
 
     {$I auto_generated_node_helpers/x3dnodes_metadatastring.inc}
@@ -273,10 +272,10 @@ type
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdInfo: TMFString;
+    strict private FFdInfo: TMFString;
     public property FdInfo: TMFString read FFdInfo;
 
-    private FFdTitle: TSFString;
+    strict private FFdTitle: TSFString;
     public property FdTitle: TSFString read FFdTitle;
 
     {$I auto_generated_node_helpers/x3dnodes_worldinfo.inc}

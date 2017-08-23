@@ -21,12 +21,12 @@
   TKeyedNode = object
     EventSet_Fraction: TSFFloatEvent;
     Key: TMFFloat;
-    Node: TX3DNode;
+    Node: TAbstractChildNode;
     UsedAsChild: boolean;
   end;
 
   TSlotTimeline = class
-  private
+  strict private
     FMaxTime: Single;
   public
     Slot: TSlot;
@@ -65,7 +65,7 @@
       const SlotsToReset: TSlotsAnimated); override;
   end;
 
-  TSlotTimelineList = class(specialize TObjectList<TSlotTimeline>)
+  TSlotTimelineList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSlotTimeline>)
   end;
 {$endif}
 
@@ -118,7 +118,7 @@ procedure TSlotTimeline.BuildNodes(const BaseUrl: string;
     for I := 0 to Time.Count - 1 do
       Node.Key.Items.Add(Time[I] / MaxAnimationTime);
     Node.UsedAsChild := true;
-    Container.FdChildren.Add(Node.Node);
+    Container.AddChildren(Node.Node);
   end;
 
 begin
@@ -259,6 +259,7 @@ begin
       NC.FdKeyValue.Items.Add(Colors[I]);
       NC.FdControlPoints.Items.Add(CurveControlPoints[I]);
     end;
+    NC.OptimizeControlPoints;
     EventValueChanged := NC.EventValue_changed;
     Node := NC;
   end else

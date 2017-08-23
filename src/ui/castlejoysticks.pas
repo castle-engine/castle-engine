@@ -53,7 +53,7 @@ const
   JSIOCGAXES    = -2147390959;
   JSIOCGBUTTONS = -2147390958;
 {$ENDIF}
-{$IFDEF WINDOWS}
+{$IFDEF MSWINDOWS}
   type
     PJOYCAPSW = ^TJOYCAPSW;
     TJOYCAPSW = packed record
@@ -164,7 +164,7 @@ type
     device  : LongInt;
     axesMap : array[ 0..ABS_MAX - 1 ] of Byte;
     {$ENDIF}
-    {$IFDEF WINDOWS}
+    {$IFDEF MSWINDOWS}
     caps    : TJOYCAPSW;
     axesMap : array[ 0..5 ] of Byte;
     {$ENDIF}
@@ -191,7 +191,7 @@ const
 {$IFDEF LINUX}
   JS_AXIS : array[ 0..17 ] of Byte = ( JOY_AXIS_X, JOY_AXIS_Y, JOY_AXIS_Z, JOY_AXIS_U, JOY_AXIS_V, JOY_AXIS_R, JOY_AXIS_Z, JOY_AXIS_R, 0, 0, 0, 0, 0, 0, 0, 0, JOY_POVX, JOY_POVY );
 {$ENDIF}
-{$IFDEF WINDOWS}
+{$IFDEF MSWINDOWS}
   JS_AXIS : array[ 0..5 ] of LongWord = ( 17 {X}, 19 {Y}, 21 {Z}, 26 {R}, 28 {U}, 30 {V} );
 {$ENDIF}
 
@@ -260,7 +260,7 @@ function TJoysticks.Init: Byte;
 var
   i, j : Integer;
 {$ENDIF}
-{$IFDEF WINDOWS}
+{$IFDEF MSWINDOWS}
 var
   i, j : Integer;
   axis : Integer;
@@ -313,7 +313,7 @@ begin
         break;
   end;
   {$ENDIF}
-  {$IFDEF WINDOWS}
+  {$IFDEF MSWINDOWS}
   j := joyGetNumDevs();
   for i := 0 to j - 1 do
     if joyGetDevCapsW( i, @FjoyArray[ i ].caps, SizeOf( TJOYCAPSW ) ) = 0 then
@@ -398,7 +398,7 @@ var
   axis: Byte;
   event : js_event;
 {$ENDIF}
-{$IFDEF WINDOWS}
+{$IFDEF MSWINDOWS}
 var
   i : Integer;
   _value: Single;
@@ -455,7 +455,7 @@ for i := 0 to FjoyCount - 1 do
       end;
   end;
 {$ENDIF}
-{$IFDEF WINDOWS}
+{$IFDEF MSWINDOWS}
 state.dwSize := SizeOf( TJOYINFOEX );
 for i := 0 to FjoyCount - 1 do
   begin

@@ -77,6 +77,11 @@ begin
     AssertTrue((Expr.Execute as TCasScriptFloat).Value = sin(3) + 10 + 1);
   finally FreeAndNil(Expr) end;
 
+  { BTW, this should not compile (the parameter-less constructor should be
+    hidden by TCasScriptValue, so it's not a problem that descendants have
+    overloaded constructors with "overload" keyword). }
+  // MyVariable := TCasScriptFloat.Create;
+
   MyVariable := TCasScriptFloat.Create(false, 3);
   Expr := TCasScriptAdd.Create([
       TCasScriptSin.Create([MyVariable]),

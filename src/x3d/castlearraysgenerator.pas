@@ -161,7 +161,7 @@ type
       This is not called, not used, anywhere in this base
       TAbstractCoordinateGenerator class.
       In descendants, it may be useful to use this, like
-      Geometry.MakeCoordRanges(State, @@GenerateCoordsRange).
+      Geometry.InternalMakeCoordRanges(State, @@GenerateCoordsRange).
 
       GenerateCoordsRange is supposed to generate the parts of the mesh
       between BeginIndex and EndIndex - 1 vertices.
@@ -721,9 +721,9 @@ begin
   FGeometry := FShape.Geometry(OverTriangulate);
   FState := FShape.State(OverTriangulate);
 
-  Check(Geometry.Coord(State, FCoord),
+  Check(Geometry.InternalCoord(State, FCoord),
     'TAbstractCoordinateRenderer is only for coordinate-based nodes');
-  FCoordIndex := Geometry.CoordIndex;
+  FCoordIndex := Geometry.CoordIndexField;
 end;
 
 procedure TArraysGenerator.WarningShadingProblems(
@@ -881,7 +881,7 @@ end;
 constructor TAbstractTextureCoordinateGenerator.Create(AShape: TShape; AOverTriangulate: boolean);
 begin
   inherited;
-  if not Geometry.TexCoord(State, TexCoord) then
+  if not Geometry.InternalTexCoord(State, TexCoord) then
     TexCoord := nil;
 end;
 
@@ -1561,13 +1561,13 @@ end;
 function TAbstractMaterial1Generator.GetMaterial1Color(
   const MaterialIndex: Integer): TVector4;
 var
-  M: TMaterialNode_1;
+  M: TMaterialInfo;
 begin
-  M := State.VRML1State.Material;
+  M := State.VRML1State.Material.MaterialInfo(MaterialIndex);
   if M.PureEmissive then
-    Result := M.EmissiveColor4Single(MaterialIndex)
+    Result := Vector4(M.EmissiveColor, M.Opacity)
   else
-    Result := M.DiffuseColor4Single(MaterialIndex);
+    Result := Vector4(M.DiffuseColor, M.Opacity);
 end;
 
 procedure TAbstractMaterial1Generator.GenerateVertex(IndexNum: Integer);
@@ -1919,8 +1919,8 @@ constructor TAbstractFogGenerator.Create(AShape: TShape; AOverTriangulate: boole
 begin
   inherited;
 
-  if Geometry.FogCoord <> nil then
-    FogCoord := Geometry.FogCoord.Items;
+  if Geometry.InternalFogCoord <> nil then
+    FogCoord := Geometry.InternalFogCoord.Items;
 end;
 
 procedure TAbstractFogGenerator.PrepareAttributes(
@@ -2047,7 +2047,7 @@ var
 begin
   inherited;
 
-  A := Geometry.Attrib;
+  A := Geometry.AttribField;
   if A <> nil then
     for I := 0 to A.Count - 1 do
       if A[I] is TAbstractVertexAttributeNode then

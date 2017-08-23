@@ -25,7 +25,7 @@ type
 
   { List of Collada controllers. Read from <library_controllers>, used by
     <instance_controller>. }
-  TColladaControllerList = class(specialize TObjectList<TColladaController>)
+  TColladaControllerList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TColladaController>)
   public
     { Find a TColladaController with given Name, @nil if not found. }
     function Find(const Name: string): TColladaController;
@@ -88,7 +88,7 @@ begin
           Group := TMatrixTransformNode.Create('', BaseUrl);
           TMatrixTransformNode(Group).FdMatrix.Value := Controller.BoundShapeMatrix;
         end;
-        ParentGroup.FdChildren.Add(Group);
+        ParentGroup.AddChildren(Group);
         AddGeometryInstance(Group, Geometry, InstantiatingElement);
       end;
     end;

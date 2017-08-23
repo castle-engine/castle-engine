@@ -94,9 +94,9 @@ begin
     NewImage := (Image as TRGBImage).ToRGBAlphaImage;
     NewImage.AlphaDecide(
       Vector3Byte(
-        TRGBAlphaImage(Image).AlphaPixels[0][0],
-        TRGBAlphaImage(Image).AlphaPixels[1][0],
-        TRGBAlphaImage(Image).AlphaPixels[2][0]),
+        TRGBAlphaImage(Image).Pixels[0][0],
+        TRGBAlphaImage(Image).Pixels[1][0],
+        TRGBAlphaImage(Image).Pixels[2][0]),
       0, 0, 255);
     Writeln('Alpha added to "', RelativeURL, '" while loading');
     FreeAndNil(Image);

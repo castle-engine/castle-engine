@@ -120,7 +120,7 @@ resourcestring
   lisProgramFileNotFound = 'program file not found %s';
   lisCanNotExecute = 'can not execute %s';
 
-{$ifdef Windows}
+{$ifdef MSWINDOWS}
 
 { lcl/include/sysenvapis_win.inc --------------------------------------------- }
 
@@ -163,7 +163,7 @@ begin
   Result := OpenURL(APath);
 end;
 
-{$endif}
+{$endif MSWINDOWS}
 
 {$ifdef UNIX}
 

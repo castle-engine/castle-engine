@@ -23,8 +23,23 @@ interface
 uses CastleVectors, CastleScript;
 
 type
-  TCasScriptVec2f = class(TCasScriptValue)
+  TCasScriptVector = class;
+  TCasScriptVectorD = class;
+
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TCasScriptVec<
+    TVectorXxx,
+    TCasScriptVectorFunXxx> = class(TCasScriptValue)
   private
+    type
+      TSelfClass = TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+        TVectorXxx,
+        TCasScriptVectorFunXxx> {$endif};
+
+    { Create and make Value an instance of TSelfClass. }
+    class function CreateValueIfNeededSelf(var Value: TCasScriptValue;
+      var ParentOfValue: boolean): TSelfClass;
+
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -46,73 +61,34 @@ type
     class procedure HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
+    class function VectorGetCount: Integer;
+    class procedure RegisterFunctions;
   private
-    FValue: TVector2;
-    procedure SetValue(const AValue: TVector2);
+    FValue: TVectorXxx;
+    procedure SetValue(const AValue: TVectorXxx);
   public
-    property Value: TVector2 read FValue write SetValue;
+    property Value: TVectorXxx read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptVec3f = class(TCasScriptValue)
+  TCasScriptVec2f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptVec<
+    TVector2,
+    TCasScriptVector>)
+  end;
+
+  TCasScriptVec3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptVec<
+    TVector3,
+    TCasScriptVector>)
   private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleVector(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
     class procedure HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleGrayscale(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TVector3;
-    procedure SetValue(const AValue: TVector3);
-  public
-    property Value: TVector3 read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptVec4f = class(TCasScriptValue)
+  TCasScriptVec4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptVec<
+    TVector4,
+    TCasScriptVector>)
   private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleVector(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
     class procedure HandleOrientationFromDirectionUp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleRotateCore(
       const Rotation: TVector4; const Point: TVector3;
@@ -121,166 +97,41 @@ type
     class procedure HandleOrientationToDirection(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleOrientationToUp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSlerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TVector4;
-    procedure SetValue(const AValue: TVector4);
-  public
-    property Value: TVector4 read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptMatrix3f = class(TCasScriptValue)
-  private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMatrix(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TMatrix3;
-    procedure SetValue(const AValue: TMatrix3);
-  public
-    property Value: TMatrix3 read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
+  TCasScriptVec2d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptVec<
+    TVector2Double,
+    TCasScriptVectorD>)
   end;
 
-  TCasScriptMatrix4f = class(TCasScriptValue)
+  TCasScriptVec3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptVec<
+    TVector3Double,
+    TCasScriptVectorD>)
   private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMatrix(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TMatrix4;
-    procedure SetValue(const AValue: TMatrix4);
-  public
-    property Value: TMatrix4 read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
-  end;
-
-  TCasScriptVec2d = class(TCasScriptValue)
-  private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleVector(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TVector2Double;
-    procedure SetValue(const AValue: TVector2Double);
-  public
-    property Value: TVector2Double read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
-  end;
-
-  TCasScriptVec3d = class(TCasScriptValue)
-  private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleVector(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
     class procedure HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TVector3Double;
-    procedure SetValue(const AValue: TVector3Double);
-  public
-    property Value: TVector3Double read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptVec4d = class(TCasScriptValue)
-  private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-    class procedure HandleVector(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-
-  private
-    FValue: TVector4Double;
-    procedure SetValue(const AValue: TVector4Double);
-  public
-    property Value: TVector4Double read FValue write SetValue;
-
-    procedure AssignValue(Source: TCasScriptValue); override;
+  TCasScriptVec4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptVec<
+    TVector4Double,
+    TCasScriptVectorD>)
   end;
 
-  TCasScriptMatrix3Double = class(TCasScriptValue)
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TCasScriptMatrix<
+    TCasScriptVecXxx,
+    TMatrixXxx,
+    TVectorXxx> = class(TCasScriptValue)
   private
+    type
+      TSelfClass = TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <
+        TCasScriptVecXxx,
+        TMatrixXxx,
+        TVectorXxx> {$endif};
+
+    { Create and make Value an instance of TSelfClass. }
+    class function CreateValueIfNeededSelf(var Value: TCasScriptValue;
+      var ParentOfValue: boolean): TSelfClass;
+
     class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
@@ -295,38 +146,39 @@ type
     class procedure HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
     class procedure HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 
+    class function MatrixGetCount: Integer;
+    class procedure RegisterFunctions;
   private
-    FValue: TMatrix3Double;
-    procedure SetValue(const AValue: TMatrix3Double);
+    FValue: TMatrixXxx;
+    procedure SetValue(const AValue: TMatrixXxx);
   public
-    property Value: TMatrix3Double read FValue write SetValue;
+    property Value: TMatrixXxx read FValue write SetValue;
 
     procedure AssignValue(Source: TCasScriptValue); override;
   end;
 
-  TCasScriptMatrix4Double = class(TCasScriptValue)
-  private
-    class procedure HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  TCasScriptMatrix3f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptMatrix<
+    TCasScriptVec3f,
+    TMatrix3,
+    TVector3>)
+  end;
 
-    class procedure HandleMatrix(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
-    class procedure HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+  TCasScriptMatrix4f = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptMatrix<
+    TCasScriptVec4f,
+    TMatrix4,
+    TVector4>)
+  end;
 
-  private
-    FValue: TMatrix4Double;
-    procedure SetValue(const AValue: TMatrix4Double);
-  public
-    property Value: TMatrix4Double read FValue write SetValue;
+  TCasScriptMatrix3d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptMatrix<
+    TCasScriptVec3d,
+    TMatrix3Double,
+    TVector3Double>)
+  end;
 
-    procedure AssignValue(Source: TCasScriptValue); override;
+  TCasScriptMatrix4d = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TCasScriptMatrix<
+    TCasScriptVec4d,
+    TMatrix4Double,
+    TVector4Double>)
   end;
 
   TCasScriptVector = class(TCasScriptFunction)
@@ -428,30 +280,327 @@ type
 
 implementation
 
-uses CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras, CastleQuaternions,
-  CastleColors;
+uses Math,
+  CastleScriptCoreFunctions, CastleUtils, CastleLog, CastleCameras,
+  CastleQuaternions, CastleColors;
 
-{ Single-precision vectors --------------------------------------------------- }
+{ TCasScriptVec ---------------------------------------------------------- }
 
-{$define TCasScriptVectorFunXxx := TCasScriptVector}
+class function TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: boolean): TSelfClass;
+begin
+  CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClassType));
+  Result := TSelfClass(Value);
+end;
 
-{$define VectorGetCount := 2}
-{$define TCasScriptVecXx := TCasScriptVec2f}
-{$define TVectorXxx := TVector2}
-{$define RegisterVecXxFunctions := RegisterVec2fFunctions}
-{$I castlescriptvectors_implement_vector.inc}
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
 
-{$define VectorGetCount := 3}
-{$define TCasScriptVecXx := TCasScriptVec3f}
-{$define TVectorXxx := TVector3}
-{$define RegisterVecXxFunctions := RegisterVec3fFunctions}
-{$I castlescriptvectors_implement_vector.inc}
+  { The function allows only >= 1 arguments, and this handler is
+    registered only for TCasScriptVec values, so we can safely take
+    the first arg as TCasScriptVec. }
+  MyResult.Value := TSelfClass(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    MyResult.Value := MyResult.Value + TSelfClass(Arguments[I]).Value;
+end;
 
-{$define VectorGetCount := 4}
-{$define TCasScriptVecXx := TCasScriptVec4f}
-{$define TVectorXxx := TVector4}
-{$define RegisterVecXxFunctions := RegisterVec4fFunctions}
-{$I castlescriptvectors_implement_vector.inc}
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value := TSelfClass(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    MyResult.Value := MyResult.Value - TSelfClass(Arguments[I]).Value;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value := -TSelfClass(Arguments[0]).Value;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
+  TCasScriptBoolean(AResult).Value :=
+    TVectorXxx.PerfectlyEquals(
+      TSelfClass(Arguments[0]).Value,
+      TSelfClass(Arguments[1]).Value);
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
+  TCasScriptBoolean(AResult).Value :=
+    not TVectorXxx.PerfectlyEquals(
+      TSelfClass(Arguments[0]).Value,
+      TSelfClass(Arguments[1]).Value);
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  if Arguments[0] is TCasScriptFloat then
+  begin
+    MyResult.Value :=
+      TSelfClass(Arguments[1]).Value *
+      TCasScriptFloat(Arguments[0]).Value;
+  end else
+  begin
+    MyResult.Value :=
+      TSelfClass(Arguments[0]).Value *
+      TCasScriptFloat(Arguments[1]).Value;
+  end;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value :=
+    TSelfClass(Arguments[0]).Value *
+    1/TCasScriptFloat(Arguments[1]).Value;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value := TVectorXxx.Lerp(
+    TCasScriptFloat(Arguments[0]).Value,
+    TSelfClass(Arguments[1]).Value,
+    TSelfClass(Arguments[2]).Value);
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleMax(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  for I := 0 to VectorGetCount - 1 do
+    MyResult.FValue[I] :=
+      Max( TSelfClass(Arguments[0]).FValue[I],
+           TSelfClass(Arguments[1]).FValue[I] );
+  MyResult.ValueAssigned := true;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleMin(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  for I := 0 to VectorGetCount - 1 do
+    MyResult.FValue[I] :=
+      Min( TSelfClass(Arguments[0]).FValue[I],
+           TSelfClass(Arguments[1]).FValue[I] );
+  MyResult.ValueAssigned := true;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVector(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  for I := 0 to VectorGetCount - 1 do
+    MyResult.FValue[I] := TCasScriptFloat(Arguments[I]).Value;
+  MyResult.ValueAssigned := true;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVectorGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  Index: Integer;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+
+  Index := TCasScriptInteger(Arguments[1]).Value;
+  if not Between(Index, 0, VectorGetCount - 1) then
+    raise ECasScriptError.CreateFmt('Invalid index %d for vector_get on %d-element vector',
+      [Index, VectorGetCount]);
+
+  TCasScriptFloat(AResult).Value := TSelfClass(Arguments[0]).Value[Index];
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVectorSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  Index: Integer;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  Index := TCasScriptInteger(Arguments[1]).Value;
+  if not Between(Index, 0, VectorGetCount - 1) then
+    raise ECasScriptError.CreateFmt('Invalid index %d for vector_set on %d-element vector',
+      [Index, VectorGetCount]);
+
+  TSelfClass(Arguments[0]).FValue[Index] := TCasScriptFloat(Arguments[2]).Value;
+  TSelfClass(Arguments[0]).ValueAssigned := true;
+
+  AResult := Arguments[0];
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVectorGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
+  TCasScriptInteger(AResult).Value := VectorGetCount;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVectorLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value := TSelfClass(Arguments[0]).Value.Length;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVectorSqrLength(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value := TSelfClass(Arguments[0]).Value.LengthSqr;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  HandleVectorDot(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptFloat);
+  TCasScriptFloat(AResult).Value :=
+    TVectorXxx.DotProduct(
+      TSelfClass(Arguments[0]).Value,
+      TSelfClass(Arguments[1]).Value );
+end;
+
+procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  AssignValue(Source: TCasScriptValue);
+begin
+  if Source is TSelfClass then
+    Value := TSelfClass(Source).Value
+  else
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
+procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  SetValue(const AValue: TVectorXxx);
+begin
+  FValue := AValue;
+  ValueAssigned := true;
+end;
+
+class function TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  VectorGetCount: Integer;
+begin
+  Result := High(TVectorXxx.TIndex) + 1;
+end;
+
+class procedure TCasScriptVec {$ifndef CASTLE_OBJFPC} <
+  TVectorXxx,
+  TCasScriptVectorFunXxx> {$endif} .
+  RegisterFunctions;
+var
+  VectorArgClasses: array of TCasScriptValueClass;
+  I: Integer;
+begin
+  { functions from CastleScriptCoreFunctions }
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleAdd, TCasScriptAdd, [TSelfClass], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleSubtract, TCasScriptSubtract, [TSelfClass], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleNegate, TCasScriptNegate, [TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleEqual, TCasScriptEqual, [TSelfClass, TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleNotEqual, TCasScriptNotEqual, [TSelfClass, TSelfClass], false);
+
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TCasScriptFloat, TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleDivide, TCasScriptDivide, [TSelfClass, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleLerp, TCasScriptLerp, [TCasScriptFloat, TSelfClass, TSelfClass], false);
+
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMax, TCasScriptMax, [TSelfClass, TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMin, TCasScriptMin, [TSelfClass, TSelfClass], false);
+
+  { functions from CastleScriptVectors }
+  SetLength(VectorArgClasses, VectorGetCount);
+  for I := 0 to VectorGetCount - 1 do
+    VectorArgClasses[I] := TCasScriptFloat;
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVector, TCasScriptVectorFunXxx, VectorArgClasses, false);
+
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVectorGet, TCasScriptVectorGet, [TSelfClass, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVectorSet, TCasScriptVectorSet, [TSelfClass, TCasScriptInteger, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVectorGetCount, TCasScriptVectorGetCount, [TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVectorLength, TCasScriptVectorLength, [TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVectorSqrLength, TCasScriptVectorSqrLength, [TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleVectorDot, TCasScriptVectorDot, [TSelfClass, TSelfClass], false);
+end;
+
+{ TCasScriptVec3f ------------------------------------------------------------ }
 
 class procedure TCasScriptVec3f.HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
@@ -467,6 +616,8 @@ begin
   TCasScriptFloat(AResult).Value :=
     GrayscaleValue( TCasScriptVec3f(Arguments[0]).Value );
 end;
+
+{ TCasScriptVec4f ------------------------------------------------------------ }
 
 class procedure TCasScriptVec4f.HandleOrientationFromDirectionUp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 var
@@ -532,27 +683,7 @@ begin
     TCasScriptVec4f(Arguments[2]).Value);
 end;
 
-{ Double-precision vectors --------------------------------------------------- }
-
-{$define TCasScriptVectorFunXxx := TCasScriptVectorD}
-
-{$define VectorGetCount := 2}
-{$define TCasScriptVecXx := TCasScriptVec2d}
-{$define TVectorXxx := TVector2Double}
-{$define RegisterVecXxFunctions := RegisterVec2dFunctions}
-{$I castlescriptvectors_implement_vector.inc}
-
-{$define VectorGetCount := 3}
-{$define TCasScriptVecXx := TCasScriptVec3d}
-{$define TVectorXxx := TVector3Double}
-{$define RegisterVecXxFunctions := RegisterVec3dFunctions}
-{$I castlescriptvectors_implement_vector.inc}
-
-{$define VectorGetCount := 4}
-{$define TCasScriptVecXx := TCasScriptVec4d}
-{$define TVectorXxx := TVector4Double}
-{$define RegisterVecXxFunctions := RegisterVec4dFunctions}
-{$I castlescriptvectors_implement_vector.inc}
+{ TCasScriptVec3d ------------------------------------------------------------ }
 
 class procedure TCasScriptVec3d.HandleVectorCross(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
 begin
@@ -563,39 +694,282 @@ begin
       TCasScriptVec3d(Arguments[1]).Value );
 end;
 
-{ Matrices ------------------------------------------------------------------- }
+{ TCasScriptMatrix ---------------------------------------------------------- }
 
-{$define MatrixGetCount := 3}
-{$define TCasScriptVecXx := TCasScriptVec3f}
-{$define TCasScriptMatrixXx := TCasScriptMatrix3f}
-{$define TMatrixXxx := TMatrix3}
-{$define TVectorXxx := TVector3}
-{$define RegisterMatrixXxFunctions := RegisterMatrix3fFunctions}
-{$I castlescriptvectors_implement_matrix.inc}
+class function TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  CreateValueIfNeededSelf(var Value: TCasScriptValue; var ParentOfValue: boolean): TSelfClass;
+begin
+  CreateValueIfNeeded(Value, ParentOfValue, TCasScriptValueClass(ClassType));
+  Result := TSelfClass(Value);
+end;
 
-{$define MatrixGetCount := 4}
-{$define TCasScriptVecXx := TCasScriptVec4f}
-{$define TCasScriptMatrixXx := TCasScriptMatrix4f}
-{$define TMatrixXxx := TMatrix4}
-{$define TVectorXxx := TVector4}
-{$define RegisterMatrixXxFunctions := RegisterMatrix4fFunctions}
-{$I castlescriptvectors_implement_matrix.inc}
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleAdd(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  { The function allows only >= 1 arguments, and this handler is
+    registered only for TSelfClass values, so we can safely take
+    the first arg as TSelfClass. }
+  MyResult.Value := TSelfClass(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    MyResult.Value := MyResult.Value + TSelfClass(Arguments[I]).Value;
+end;
 
-{$define MatrixGetCount := 3}
-{$define TCasScriptVecXx := TCasScriptVec3d}
-{$define TCasScriptMatrixXx := TCasScriptMatrix3Double}
-{$define TMatrixXxx := TMatrix3Double}
-{$define TVectorXxx := TVector3Double}
-{$define RegisterMatrixXxFunctions := RegisterMatrix3DoubleFunctions}
-{$I castlescriptvectors_implement_matrix.inc}
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleSubtract(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value := TSelfClass(Arguments[0]).Value;
+  for I := 1 to Length(Arguments) - 1 do
+    MyResult.Value :=  MyResult.Value - TSelfClass(Arguments[I]).Value;
+end;
 
-{$define MatrixGetCount := 4}
-{$define TCasScriptVecXx := TCasScriptVec4d}
-{$define TCasScriptMatrixXx := TCasScriptMatrix4Double}
-{$define TMatrixXxx := TMatrix4Double}
-{$define TVectorXxx := TVector4Double}
-{$define RegisterMatrixXxFunctions := RegisterMatrix4DoubleFunctions}
-{$I castlescriptvectors_implement_matrix.inc}
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleNegate(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value := -TSelfClass(Arguments[0]).Value;
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleMultiply(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+var
+  MyResult: TSelfClass;
+begin
+  if (Length(Arguments) = 2) and
+     (Arguments[0] is TCasScriptFloat) and
+     (Arguments[1] is TSelfClass) then
+  begin
+    MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+    MyResult.Value :=
+      TSelfClass(Arguments[1]).Value *
+      TCasScriptFloat(Arguments[0]).Value;
+  end else
+  if (Length(Arguments) = 2) and
+     (Arguments[1] is TCasScriptFloat) and
+     (Arguments[0] is TSelfClass) then
+  begin
+    MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+    MyResult.Value :=
+      TSelfClass(Arguments[0]).Value *
+      TCasScriptFloat(Arguments[1]).Value;
+  end else
+  if (Length(Arguments) = 2) and
+     (Arguments[0] is TSelfClass) and
+     (Arguments[1].InheritsFrom(TCasScriptVecXxx)) then
+  begin
+    CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXxx);
+    TCasScriptVecXxx(AResult).Value :=
+      TSelfClass(Arguments[0]).Value *
+      TCasScriptVecXxx(Arguments[1]).Value;
+  end else
+  begin
+    { So this is matrix * matrix... operation }
+    MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+    MyResult.Value := TSelfClass(Arguments[0]).Value;
+    for I := 1 to Length(Arguments) - 1 do
+      MyResult.Value :=
+        MyResult.Value *
+        TSelfClass(Arguments[I]).Value;
+  end;
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleDivide(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value :=
+    TSelfClass(Arguments[0]).Value *
+    (1/TCasScriptFloat(Arguments[1]).Value);
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleLerp(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  MyResult.Value := TMatrixXxx.Lerp(
+    TCasScriptFloat(Arguments[0]).Value,
+    TSelfClass(Arguments[1]).Value,
+    TSelfClass(Arguments[2]).Value);
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
+  TCasScriptBoolean(AResult).Value :=
+    TMatrixXxx.PerfectlyEquals(
+      TSelfClass(Arguments[0]).Value,
+      TSelfClass(Arguments[1]).Value);
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleNotEqual(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptBoolean);
+  TCasScriptBoolean(AResult).Value :=
+    not TMatrixXxx.PerfectlyEquals(
+      TSelfClass(Arguments[0]).Value,
+      TSelfClass(Arguments[1]).Value);
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleMatrix(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  I: Integer;
+  MyResult: TSelfClass;
+begin
+  MyResult := CreateValueIfNeededSelf(AResult, ParentOfResult);
+  for I := 0 to MatrixGetCount - 1 do
+    MyResult.FValue.Columns[I] := TCasScriptVecXxx(Arguments[I]).Value;
+  MyResult.ValueAssigned := true;
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleMatrixGet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  Index: Integer;
+  V: TVectorXxx;
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVecXxx);
+
+  Index := TCasScriptInteger(Arguments[1]).Value;
+  if not Between(Index, 0, MatrixGetCount - 1) then
+    raise ECasScriptError.CreateFmt('Invalid index %d for matrix_get on %d-column matrix',
+      [Index, MatrixGetCount]);
+
+  V := TSelfClass(Arguments[0]).Value.Columns[Index];
+  TCasScriptVecXxx(AResult).Value := V;
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleMatrixSet(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+var
+  Index: Integer;
+begin
+  if ParentOfResult then
+    AResult.FreeByParentExpression;
+  AResult := nil;
+  ParentOfResult := false;
+
+  Index := TCasScriptInteger(Arguments[1]).Value;
+  if not Between(Index, 0, MatrixGetCount - 1) then
+    raise ECasScriptError.CreateFmt('Invalid index %d for matrix_set on %d-column matrix',
+      [Index, MatrixGetCount]);
+
+  TSelfClass(Arguments[0]).FValue.Columns[Index] := TCasScriptVecXxx(Arguments[2]).Value;
+  TSelfClass(Arguments[0]).ValueAssigned := true;
+
+  AResult := Arguments[0];
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  HandleMatrixGetCount(AFunction: TCasScriptFunction; const Arguments: array of TCasScriptValue; var AResult: TCasScriptValue; var ParentOfResult: boolean);
+begin
+  CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptInteger);
+  TCasScriptInteger(AResult).Value := MatrixGetCount;
+end;
+
+procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  AssignValue(Source: TCasScriptValue);
+begin
+  if Source is TSelfClass then
+    Value := TSelfClass(Source).Value else
+    raise ECasScriptAssignError.CreateFmt('Assignment from %s to %s not possible', [Source.ClassName, ClassName]);
+end;
+
+procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  SetValue(const AValue: TMatrixXxx);
+begin
+  FValue := AValue;
+  ValueAssigned := true;
+end;
+
+class function TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  MatrixGetCount: Integer;
+begin
+  Result := High(TVectorXxx.TIndex) + 1;
+end;
+
+class procedure TCasScriptMatrix {$ifndef CASTLE_OBJFPC} <TCasScriptVecXxx,
+  TMatrixXxx,
+  TVectorXxx> {$endif} .
+  RegisterFunctions;
+var
+  MatrixArgClasses: array of TCasScriptValueClass;
+  I: Integer;
+begin
+  { functions from CastleScriptCoreFunctions }
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleAdd, TCasScriptAdd, [TSelfClass], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleSubtract, TCasScriptSubtract, [TSelfClass], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleNegate, TCasScriptNegate, [TSelfClass], false);
+
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TCasScriptFloat, TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass, TCasScriptVecXxx], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMultiply, TCasScriptMultiply, [TSelfClass], true);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleDivide, TCasScriptDivide, [TSelfClass, TCasScriptFloat], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleLerp, TCasScriptLerp, [TCasScriptFloat, TSelfClass, TSelfClass], false);
+
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleEqual, TCasScriptEqual, [TSelfClass, TSelfClass], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleNotEqual, TCasScriptNotEqual, [TSelfClass, TSelfClass], false);
+
+  { functions from CastleScriptVectors }
+  SetLength(MatrixArgClasses, MatrixGetCount);
+  for I := 0 to MatrixGetCount - 1 do
+    MatrixArgClasses[I] := TCasScriptVecXxx;
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMatrix, TCasScriptMatrixFun, MatrixArgClasses, false);
+
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMatrixGet, TCasScriptMatrixGet, [TSelfClass, TCasScriptInteger], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMatrixSet, TCasScriptMatrixSet, [TSelfClass, TCasScriptInteger, TCasScriptVecXxx], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} HandleMatrixGetCount, TCasScriptMatrixGetCount, [TSelfClass], false);
+end;
 
 { TCasScriptFunction descendants --------------------------------------------- }
 
@@ -709,28 +1083,28 @@ end;
 { unit init/fini ------------------------------------------------------------- }
 
 initialization
-  RegisterVec2fFunctions;
-  RegisterVec3fFunctions;
-  RegisterVec4fFunctions;
+  TCasScriptVec2f.RegisterFunctions;
+  TCasScriptVec3f.RegisterFunctions;
+  TCasScriptVec4f.RegisterFunctions;
 
-  FunctionHandlers.RegisterHandler(@TCasScriptVec3f(nil).HandleVectorCross, TCasScriptVectorCross, [TCasScriptVec3f, TCasScriptVec3f], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptVec3f(nil).HandleGrayscale, TCasScriptGrayscale, [TCasScriptVec3f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec3f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleVectorCross, TCasScriptVectorCross, [TCasScriptVec3f, TCasScriptVec3f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec3f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleGrayscale, TCasScriptGrayscale, [TCasScriptVec3f], false);
 
-  FunctionHandlers.RegisterHandler(@TCasScriptVec4f(nil).HandleOrientationFromDirectionUp, TCasScriptOrientationFromDirectionUp, [TCasScriptVec3f, TCasScriptVec3f], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptVec4f(nil).HandleRotate, TCasScriptRotate, [TCasScriptVec4f, TCasScriptVec3f], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptVec4f(nil).HandleOrientationToDirection, TCasScriptOrientationToDirection, [TCasScriptVec4f], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptVec4f(nil).HandleOrientationToUp, TCasScriptOrientationToUp, [TCasScriptVec4f], false);
-  FunctionHandlers.RegisterHandler(@TCasScriptVec4f(nil).HandleSlerp, TCasScriptSlerp, [TCasScriptFloat, TCasScriptVec4f, TCasScriptVec4f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec4f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleOrientationFromDirectionUp, TCasScriptOrientationFromDirectionUp, [TCasScriptVec3f, TCasScriptVec3f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec4f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleRotate, TCasScriptRotate, [TCasScriptVec4f, TCasScriptVec3f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec4f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleOrientationToDirection, TCasScriptOrientationToDirection, [TCasScriptVec4f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec4f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleOrientationToUp, TCasScriptOrientationToUp, [TCasScriptVec4f], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec4f {$ifdef CASTLE_OBJFPC}(nil){$endif} .HandleSlerp, TCasScriptSlerp, [TCasScriptFloat, TCasScriptVec4f, TCasScriptVec4f], false);
 
-  RegisterMatrix3fFunctions;
-  RegisterMatrix4fFunctions;
+  TCasScriptMatrix3f.RegisterFunctions;
+  TCasScriptMatrix4f.RegisterFunctions;
 
-  RegisterVec2dFunctions;
-  RegisterVec3dFunctions;
-  RegisterVec4dFunctions;
+  TCasScriptVec2d.RegisterFunctions;
+  TCasScriptVec3d.RegisterFunctions;
+  TCasScriptVec4d.RegisterFunctions;
 
-  FunctionHandlers.RegisterHandler(@TCasScriptVec3d(nil).HandleVectorCross, TCasScriptVectorCross, [TCasScriptVec3d, TCasScriptVec3d], false);
+  FunctionHandlers.RegisterHandler({$ifdef CASTLE_OBJFPC}@{$endif} TCasScriptVec3d {$ifdef CASTLE_OBJFPC}(nil){$endif}. HandleVectorCross, TCasScriptVectorCross, [TCasScriptVec3d, TCasScriptVec3d], false);
 
-  RegisterMatrix3DoubleFunctions;
-  RegisterMatrix4DoubleFunctions;
+  TCasScriptMatrix3d.RegisterFunctions;
+  TCasScriptMatrix4d.RegisterFunctions;
 end.

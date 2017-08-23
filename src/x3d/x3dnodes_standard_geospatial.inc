@@ -42,13 +42,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdPoint: TMFVec3d;
+    strict private FFdPoint: TMFVec3d;
     public property FdPoint: TMFVec3d read FFdPoint;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     function CoordCount: Cardinal; override;
@@ -58,65 +58,65 @@
 
   { Elevation grid expressed in geo-centric coordinates.
     @bold(Rendering of this node is not implemented yet.) }
-  TGeoElevationGridNode = class(TAbstractX3DGeometryNode)
+  TGeoElevationGridNode = class(TAbstractGeometryNode)
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_height: TMFDoubleEvent;
+    strict private FEventSet_height: TMFDoubleEvent;
     public property EventSet_height: TMFDoubleEvent read FEventSet_height;
 
-    private FFdColor: TSFNode;
+    strict private FFdColor: TSFNode;
     public property FdColor: TSFNode read FFdColor;
 
-    private FFdNormal: TSFNode;
+    strict private FFdNormal: TSFNode;
     public property FdNormal: TSFNode read FFdNormal;
 
-    private FFdTexCoord: TSFNode;
+    strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
 
-    private FFdYScale: TSFFloat;
+    strict private FFdYScale: TSFFloat;
     public property FdYScale: TSFFloat read FFdYScale;
 
-    private FFdCcw: TSFBool;
+    strict private FFdCcw: TSFBool;
     public property FdCcw: TSFBool read FFdCcw;
 
-    private FFdColorPerVertex: TSFBool;
+    strict private FFdColorPerVertex: TSFBool;
     public property FdColorPerVertex: TSFBool read FFdColorPerVertex;
 
-    private FFdCreaseAngle: TSFDouble;
+    strict private FFdCreaseAngle: TSFDouble;
     public property FdCreaseAngle: TSFDouble read FFdCreaseAngle;
 
-    private FFdGeoGridOrigin: TSFVec3d;
+    strict private FFdGeoGridOrigin: TSFVec3d;
     public property FdGeoGridOrigin: TSFVec3d read FFdGeoGridOrigin;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
-    private FFdHeight: TMFDouble;
+    strict private FFdHeight: TMFDouble;
     public property FdHeight: TMFDouble read FFdHeight;
 
-    private FFdNormalPerVertex: TSFBool;
+    strict private FFdNormalPerVertex: TSFBool;
     public property FdNormalPerVertex: TSFBool read FFdNormalPerVertex;
 
-    private FFdSolid: TSFBool;
+    strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
-    private FFdXDimension: TSFInt32;
+    strict private FFdXDimension: TSFInt32;
     public property FdXDimension: TSFInt32 read FFdXDimension;
 
-    private FFdXSpacing: TSFDouble;
+    strict private FFdXSpacing: TSFDouble;
     public property FdXSpacing: TSFDouble read FFdXSpacing;
 
-    private FFdZDimension: TSFInt32;
+    strict private FFdZDimension: TSFInt32;
     public property FdZDimension: TSFInt32 read FFdZDimension;
 
-    private FFdZSpacing: TSFDouble;
+    strict private FFdZSpacing: TSFDouble;
     public property FdZSpacing: TSFDouble read FFdZSpacing;
 
     function LocalBoundingBox(State: TX3DGraphTraverseState;
@@ -135,13 +135,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdGeoCoords: TSFVec3d;
+    strict private FFdGeoCoords: TSFVec3d;
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     {$I auto_generated_node_helpers/x3dnodes_geolocation.inc}
@@ -154,47 +154,47 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventChildren: TMFNodeEvent;
+    strict private FEventChildren: TMFNodeEvent;
     public property EventChildren: TMFNodeEvent read FEventChildren;
 
     { Event out } { }
-    private FEventLevel_changed: TSFInt32Event;
+    strict private FEventLevel_changed: TSFInt32Event;
     public property EventLevel_changed: TSFInt32Event read FEventLevel_changed;
 
-    private FFdCenter: TSFVec3d;
+    strict private FFdCenter: TSFVec3d;
     public property FdCenter: TSFVec3d read FFdCenter;
 
-    private FFdChild1Url: TMFString;
+    strict private FFdChild1Url: TMFString;
     public property FdChild1Url: TMFString read FFdChild1Url;
 
-    private FFdChild2Url: TMFString;
+    strict private FFdChild2Url: TMFString;
     public property FdChild2Url: TMFString read FFdChild2Url;
 
-    private FFdChild3Url: TMFString;
+    strict private FFdChild3Url: TMFString;
     public property FdChild3Url: TMFString read FFdChild3Url;
 
-    private FFdChild4Url: TMFString;
+    strict private FFdChild4Url: TMFString;
     public property FdChild4Url: TMFString read FFdChild4Url;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
-    private FFdRange: TSFFloat;
+    strict private FFdRange: TSFFloat;
     public property FdRange: TSFFloat read FFdRange;
 
-    private FFdRootUrl: TMFString;
+    strict private FFdRootUrl: TMFString;
     public property FdRootUrl: TMFString read FFdRootUrl;
 
-    private FFdRootNode: TMFNode;
+    strict private FFdRootNode: TMFNode;
     public property FdRootNode: TMFNode read FFdRootNode;
 
-    private FFdBboxCenter: TSFVec3f;
+    strict private FFdBboxCenter: TSFVec3f;
     public property FdBboxCenter: TSFVec3f read FFdBboxCenter;
 
-    private FFdBboxSize: TSFVec3f;
+    strict private FFdBboxSize: TSFVec3f;
     public property FdBboxSize: TSFVec3f read FFdBboxSize;
 
     {$I auto_generated_node_helpers/x3dnodes_geolod.inc}
@@ -206,13 +206,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdData: TMFNode;
+    strict private FFdData: TMFNode;
     public property FdData: TMFNode read FFdData;
 
-    private FFdSummary: TMFString;
+    strict private FFdSummary: TMFString;
     public property FdSummary: TMFString read FFdSummary;
 
-    private FFdUrl: TMFString;
+    strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
     {$I auto_generated_node_helpers/x3dnodes_geometadata.inc}
@@ -224,13 +224,13 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdGeoCoords: TSFVec3d;
+    strict private FFdGeoCoords: TSFVec3d;
     public property FdGeoCoords: TSFVec3d read FFdGeoCoords;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
-    private FFdRotateYUp: TSFBool;
+    strict private FFdRotateYUp: TSFBool;
     public property FdRotateYUp: TSFBool read FFdRotateYUp;
 
     {$I auto_generated_node_helpers/x3dnodes_geoorigin.inc}
@@ -242,21 +242,21 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdKeyValue: TMFVec3d;
+    strict private FFdKeyValue: TMFVec3d;
     public property FdKeyValue: TMFVec3d read FFdKeyValue;
 
     { Event out } { }
-    private FEventGeovalue_changed: TSFVec3dEvent;
+    strict private FEventGeovalue_changed: TSFVec3dEvent;
     public property EventGeovalue_changed: TSFVec3dEvent read FEventGeovalue_changed;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec3fEvent;
+    strict private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     {$I auto_generated_node_helpers/x3dnodes_geopositioninterpolator.inc}
@@ -268,29 +268,29 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdGeoCenter: TSFVec3d;
+    strict private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
 
     { Event out } { }
-    private FEventCenterOfRotation_changed: TSFVec3fEvent;
+    strict private FEventCenterOfRotation_changed: TSFVec3fEvent;
     public property EventCenterOfRotation_changed: TSFVec3fEvent read FEventCenterOfRotation_changed;
 
     { Event out } { }
-    private FEventGeoCoord_changed: TSFVec3dEvent;
+    strict private FEventGeoCoord_changed: TSFVec3dEvent;
     public property EventGeoCoord_changed: TSFVec3dEvent read FEventGeoCoord_changed;
 
     { Event out } { }
-    private FEventOrientation_changed: TSFRotationEvent;
+    strict private FEventOrientation_changed: TSFRotationEvent;
     public property EventOrientation_changed: TSFRotationEvent read FEventOrientation_changed;
 
     { Event out } { }
-    private FEventPosition_changed: TSFVec3fEvent;
+    strict private FEventPosition_changed: TSFVec3fEvent;
     public property EventPosition_changed: TSFVec3fEvent read FEventPosition_changed;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     {$I auto_generated_node_helpers/x3dnodes_geoproximitysensor.inc}
@@ -303,25 +303,25 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventHitNormal_changed: TSFVec3fEvent;
+    strict private FEventHitNormal_changed: TSFVec3fEvent;
     public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
 
     { Event out } { }
-    private FEventHitPoint_changed: TSFVec3fEvent;
+    strict private FEventHitPoint_changed: TSFVec3fEvent;
     public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
 
     { Event out } { }
-    private FEventHitTexCoord_changed: TSFVec2fEvent;
+    strict private FEventHitTexCoord_changed: TSFVec2fEvent;
     public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
 
     { Event out } { }
-    private FEventHitGeoCoord_changed: TSFVec3dEvent;
+    strict private FEventHitGeoCoord_changed: TSFVec3dEvent;
     public property EventHitGeoCoord_changed: TSFVec3dEvent read FEventHitGeoCoord_changed;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     {$I auto_generated_node_helpers/x3dnodes_geotouchsensor.inc}
@@ -333,25 +333,25 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdGeoCenter: TSFVec3d;
+    strict private FFdGeoCenter: TSFVec3d;
     public property FdGeoCenter: TSFVec3d read FFdGeoCenter;
 
-    private FFdRotation: TSFRotation;
+    strict private FFdRotation: TSFRotation;
     public property FdRotation: TSFRotation read FFdRotation;
 
-    private FFdScale: TSFVec3f;
+    strict private FFdScale: TSFVec3f;
     public property FdScale: TSFVec3f read FFdScale;
 
-    private FFdScaleOrientation: TSFRotation;
+    strict private FFdScaleOrientation: TSFRotation;
     public property FdScaleOrientation: TSFRotation read FFdScaleOrientation;
 
-    private FFdTranslation: TSFVec3f;
+    strict private FFdTranslation: TSFVec3f;
     public property FdTranslation: TSFVec3f read FFdTranslation;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
     {$I auto_generated_node_helpers/x3dnodes_geotransform.inc}
@@ -369,32 +369,32 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_orientation: TSFRotationEvent;
+    strict private FEventSet_orientation: TSFRotationEvent;
     public property EventSet_orientation: TSFRotationEvent read FEventSet_orientation;
 
     { Event in } { }
-    private FEventSet_position: TSFVec3dEvent;
+    strict private FEventSet_position: TSFVec3dEvent;
     public property EventSet_position: TSFVec3dEvent read FEventSet_position;
 
-    private FFdFieldOfView: TSFFloat;
+    strict private FFdFieldOfView: TSFFloat;
     public property FdFieldOfView: TSFFloat read FFdFieldOfView;
 
-    private FFdHeadlight: TSFBool;
+    strict private FFdHeadlight: TSFBool;
     public property FdHeadlight: TSFBool read FFdHeadlight;
 
-    private FFdNavType: TMFString;
+    strict private FFdNavType: TMFString;
     public property FdNavType: TMFString read FFdNavType;
 
-    private FFdGeoOrigin: TSFNode;
+    strict private FFdGeoOrigin: TSFNode;
     public property FdGeoOrigin: TSFNode read FFdGeoOrigin;
 
-    private FFdGeoSystem: TMFString;
+    strict private FFdGeoSystem: TMFString;
     public property FdGeoSystem: TMFString read FFdGeoSystem;
 
-    private FFdPosition: TSFVec3d;
+    strict private FFdPosition: TSFVec3d;
     public property FdPosition: TSFVec3d read FFdPosition;
 
-    private FFdSpeedFactor: TSFFloat;
+    strict private FFdSpeedFactor: TSFFloat;
     public property FdSpeedFactor: TSFFloat read FFdSpeedFactor;
 
     {$I auto_generated_node_helpers/x3dnodes_geoviewpoint.inc}
@@ -550,8 +550,27 @@ begin
     (URN = URNX3DNodes + ClassX3DType);
 end;
 
-{$define TGeometryNotImplemented := TGeoElevationGridNode}
-GeometryNotImplemented
+
+function TGeoElevationGridNode.LocalBoundingBox(State: TX3DGraphTraverseState;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): TBox3D;
+begin
+  { Rendering of TGeoElevationGridNode not implemented. }
+  Result := TBox3D.Empty;
+end;
+
+function TGeoElevationGridNode.VerticesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TGeoElevationGridNode not implemented. }
+  Result := 0;
+end;
+
+function TGeoElevationGridNode.TrianglesCount(State: TX3DGraphTraverseState; OverTriangulate: boolean;
+  ProxyGeometry: TAbstractGeometryNode; ProxyState: TX3DGraphTraverseState): Cardinal;
+begin
+  { Rendering of TGeoElevationGridNode not implemented. }
+  Result := 0;
+end;
 
 procedure TGeoLocationNode.CreateNode;
 begin

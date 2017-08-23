@@ -34,11 +34,11 @@
   public
     procedure CreateNode; override;
 
-    private FFdDescription: TSFString;
+    strict private FFdDescription: TSFString;
     public property FdDescription: TSFString read FFdDescription;
 
     { Event out } { }
-    private FEventIsOver: TSFBoolEvent;
+    strict private FEventIsOver: TSFBoolEvent;
     public property EventIsOver: TSFBoolEvent read FEventIsOver;
 
     { Activate pointing device sensor. Used by the events engine
@@ -68,11 +68,11 @@
   public
     procedure CreateNode; override;
 
-    private FFdAutoOffset: TSFBool;
+    strict private FFdAutoOffset: TSFBool;
     public property FdAutoOffset: TSFBool read FFdAutoOffset;
 
     { Event out } { }
-    private FEventTrackPoint_changed: TSFVec3fEvent;
+    strict private FEventTrackPoint_changed: TSFVec3fEvent;
     public property EventTrackPoint_changed: TSFVec3fEvent read FEventTrackPoint_changed;
 
     { Called by events engine (like TCastleSceneCore) when you move your mouse
@@ -88,7 +88,7 @@
     procedure CreateNode; override;
 
     { Event out } { }
-    private FEventTouchTime: TSFTimeEvent;
+    strict private FEventTouchTime: TSFTimeEvent;
     public property EventTouchTime: TSFTimeEvent read FEventTouchTime;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dtouchsensornode.inc}
@@ -96,7 +96,7 @@
 
   { Pointing device sensor to rotate objects around a constrained axis. }
   TCylinderSensorNode = class(TAbstractDragSensorNode)
-  private
+  strict private
     { Are we in caps mode or cylinder mode (determined at activation) }
     Caps: boolean;
     { If Caps, then this is a plane parallel to Y=0 and coincident with
@@ -124,23 +124,23 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAxisRotation: TSFRotation;
+    strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
 
-    private FFdDiskAngle: TSFFloat;
+    strict private FFdDiskAngle: TSFFloat;
     public property FdDiskAngle: TSFFloat read FFdDiskAngle;
 
-    private FFdMaxAngle: TSFFloat;
+    strict private FFdMaxAngle: TSFFloat;
     public property FdMaxAngle: TSFFloat read FFdMaxAngle;
 
-    private FFdMinAngle: TSFFloat;
+    strict private FFdMinAngle: TSFFloat;
     public property FdMinAngle: TSFFloat read FFdMinAngle;
 
-    private FFdOffset: TSFFloat;
+    strict private FFdOffset: TSFFloat;
     public property FdOffset: TSFFloat read FFdOffset;
 
     { Event out } { }
-    private FEventRotation_changed: TSFRotationEvent;
+    strict private FEventRotation_changed: TSFRotationEvent;
     public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
 
     procedure Activate(const Time: TX3DTime;
@@ -154,7 +154,7 @@
 
   { Pointing device sensor to move objects on a plane. }
   TPlaneSensorNode = class(TAbstractDragSensorNode)
-  private
+  strict private
     { Plane* stuff is in global (VRML scene) coordinates. }
     { Plane of the activated sensor. }
     Plane: TVector4;
@@ -177,20 +177,20 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdAxisRotation: TSFRotation;
+    strict private FFdAxisRotation: TSFRotation;
     public property FdAxisRotation: TSFRotation read FFdAxisRotation;
 
-    private FFdMaxPosition: TSFVec2f;
+    strict private FFdMaxPosition: TSFVec2f;
     public property FdMaxPosition: TSFVec2f read FFdMaxPosition;
 
-    private FFdMinPosition: TSFVec2f;
+    strict private FFdMinPosition: TSFVec2f;
     public property FdMinPosition: TSFVec2f read FFdMinPosition;
 
-    private FFdOffset: TSFVec3f;
+    strict private FFdOffset: TSFVec3f;
     public property FdOffset: TSFVec3f read FFdOffset;
 
     { Event out } { }
-    private FEventTranslation_changed: TSFVec3fEvent;
+    strict private FEventTranslation_changed: TSFVec3fEvent;
     public property EventTranslation_changed: TSFVec3fEvent read FEventTranslation_changed;
 
     procedure Activate(const Time: TX3DTime;
@@ -204,7 +204,7 @@
 
   { Pointing device sensor to rotate objects. }
   TSphereSensorNode = class(TAbstractDragSensorNode)
-  private
+  strict private
     { Sphere center and radius, in world coordinates. }
     SphereCenter: TVector3;
     SphereRadius: Single;
@@ -223,11 +223,11 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdOffset: TSFRotation;
+    strict private FFdOffset: TSFRotation;
     public property FdOffset: TSFRotation read FFdOffset;
 
     { Event out } { }
-    private FEventRotation_changed: TSFRotationEvent;
+    strict private FEventRotation_changed: TSFRotationEvent;
     public property EventRotation_changed: TSFRotationEvent read FEventRotation_changed;
 
     procedure Activate(const Time: TX3DTime;
@@ -247,15 +247,15 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event out } { }
-    private FEventHitNormal_changed: TSFVec3fEvent;
+    strict private FEventHitNormal_changed: TSFVec3fEvent;
     public property EventHitNormal_changed: TSFVec3fEvent read FEventHitNormal_changed;
 
     { Event out } { }
-    private FEventHitPoint_changed: TSFVec3fEvent;
+    strict private FEventHitPoint_changed: TSFVec3fEvent;
     public property EventHitPoint_changed: TSFVec3fEvent read FEventHitPoint_changed;
 
     { Event out } { }
-    private FEventHitTexCoord_changed: TSFVec2fEvent;
+    strict private FEventHitTexCoord_changed: TSFVec2fEvent;
     public property EventHitTexCoord_changed: TSFVec2fEvent read FEventHitTexCoord_changed;
 
     {$I auto_generated_node_helpers/x3dnodes_touchsensor.inc}
@@ -471,7 +471,7 @@ begin
       OriginalIntersection, LocalIntersection, TVector3.One[1]);
 
     { add offset, and clamp by min/maxAngle }
-    RotationAngle += FdOffset.Value;
+    RotationAngle := RotationAngle + FdOffset.Value;
     if FdMinAngle.Value <= FdMaxAngle.Value then
       ClampVar(RotationAngle, FdMinAngle.Value, FdMaxAngle.Value);
 
@@ -635,7 +635,7 @@ begin
     Translation[1] := TVector3.DotProduct(TranslationGlobal, PlaneY);
     Translation[2] := 0;
 
-    Translation += FdOffset.Value;
+    Translation := Translation + FdOffset.Value;
 
     if FdMinPosition.Value[0] <= FdMaxPosition.Value[0] then
       ClampVar(Translation.Data[0], FdMinPosition.Value[0], FdMaxPosition.Value[0]);

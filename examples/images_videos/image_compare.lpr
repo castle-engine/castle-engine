@@ -58,8 +58,8 @@ begin
       Halt(1);
     end else
     begin
-      Ptr1 := Image1.RGBPixels;
-      Ptr2 := Image2.RGBPixels;
+      Ptr1 := Image1.Pixels;
+      Ptr2 := Image2.Pixels;
       { Count Y downward, to show respective to top in error message,
         which is more common for image editing programs. }
       for Y := Integer(Image1.Height) - 1 downto 0 do

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBack: TAbstractTexture2DNode;
     procedure SetBack(const Value: TAbstractTexture2DNode);
     function GetBottom: TAbstractTexture2DNode;
@@ -39,6 +39,8 @@
     procedure SetRight(const Value: TAbstractTexture2DNode);
     function GetTop: TAbstractTexture2DNode;
     procedure SetTop(const Value: TAbstractTexture2DNode);
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
   public
     property Back: TAbstractTexture2DNode read GetBack write SetBack;
     property Bottom: TAbstractTexture2DNode read GetBottom write SetBottom;
@@ -46,6 +48,7 @@
     property Left: TAbstractTexture2DNode read GetLeft write SetLeft;
     property Right: TAbstractTexture2DNode read GetRight write SetRight;
     property Top: TAbstractTexture2DNode read GetTop write SetTop;
+    property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
 
 {$endif read_interface}
 
@@ -129,6 +132,19 @@ end;
 procedure TComposedCubeMapTextureNode.SetTop(const Value: TAbstractTexture2DNode);
 begin
   FdTop.Send(Value);
+end;
+
+function TComposedCubeMapTextureNode.GetTextureProperties: TTexturePropertiesNode;
+begin
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TComposedCubeMapTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
 end;
 
 {$endif read_implementation}

@@ -88,7 +88,7 @@ type
     procedure NormalizePlanes;
   public
     { Calculate frustum, knowing the combined matrix (modelview * projection). }
-    constructor Init(const Matrix: TMatrix4);
+    constructor Init(const Matrix: TMatrix4); overload;
 
     { Calculate frustum, knowing projection and modelview matrices.
       This is equivalent to 1-parameter Init
@@ -97,7 +97,7 @@ type
       and projection) (or you can calculate them using routines
       like @link(FrustumProjectionMatrix)), then pass them to this routine
       and you get your current viewing frustum. }
-    constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4);
+    constructor Init(const ProjectionMatrix, ModelviewMatrix: TMatrix4); overload;
   public
     { Six planes defining the frustum.
       Direction vectors of these planes must point to the inside of the frustum.
@@ -616,12 +616,11 @@ begin
   begin
     Assert(High(I) = fpFar);
     for I := Low(I) to Pred(High(I)) do
-      Result += Indent + Planes[I].ToString + LineEnding;
-    Result += Indent + '(no far plane, frustum goes to infinity)' +
-      LineEnding;
+      Result := Result + Indent + Planes[I].ToString + LineEnding;
+    Result := Result + Indent + '(no far plane, frustum goes to infinity)' + LineEnding;
   end else
     for I := Low(I) to High(I) do
-      Result += Indent + Planes[I].ToString + LineEnding;
+      Result := Result + Indent + Planes[I].ToString + LineEnding;
 end;
 
 end.

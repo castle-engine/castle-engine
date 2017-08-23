@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTessellationScale: Single;
     procedure SetTessellationScale(const Value: Single);
     function GetBboxCenter: TVector3;

@@ -26,7 +26,9 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetUTessellation: Integer;
     procedure SetUTessellation(const Value: Integer);
     function GetVTessellation: Integer;
@@ -44,13 +46,20 @@
     function GetVOrder: Integer;
     procedure SetVOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
     property UTessellation: Integer read GetUTessellation write SetUTessellation;
     property VTessellation: Integer read GetVTessellation write SetVTessellation;
+    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: TDoubleList);
     property UClosed: boolean read GetUClosed write SetUClosed;
     property UDimension: Integer read GetUDimension write SetUDimension;
+    procedure SetUKnot(const Value: array of Double);
+    procedure SetUKnot(const Value: TDoubleList);
     property UOrder: Integer read GetUOrder write SetUOrder;
     property VClosed: boolean read GetVClosed write SetVClosed;
     property VDimension: Integer read GetVDimension write SetVDimension;
+    procedure SetVKnot(const Value: array of Double);
+    procedure SetVKnot(const Value: TDoubleList);
     property VOrder: Integer read GetVOrder write SetVOrder;
 
 {$endif read_interface}
@@ -58,6 +67,19 @@
 {$ifdef read_implementation}
 
 { TAbstractNurbsSurfaceGeometryNode ----------------------------------------------- }
+
+function TAbstractNurbsSurfaceGeometryNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
 
 function TAbstractNurbsSurfaceGeometryNode.GetUTessellation: Integer;
 begin
@@ -79,6 +101,16 @@ begin
   FdVTessellation.Send(Value);
 end;
 
+procedure TAbstractNurbsSurfaceGeometryNode.SetWeight(const Value: array of Double);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetWeight(const Value: TDoubleList);
+begin
+  FdWeight.Send(Value);
+end;
+
 function TAbstractNurbsSurfaceGeometryNode.GetUClosed: boolean;
 begin
   Result := FdUClosed.Value;
@@ -97,6 +129,16 @@ end;
 procedure TAbstractNurbsSurfaceGeometryNode.SetUDimension(const Value: Integer);
 begin
   FdUDimension.Send(Value);
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetUKnot(const Value: array of Double);
+begin
+  FdUKnot.Send(Value);
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetUKnot(const Value: TDoubleList);
+begin
+  FdUKnot.Send(Value);
 end;
 
 function TAbstractNurbsSurfaceGeometryNode.GetUOrder: Integer;
@@ -127,6 +169,16 @@ end;
 procedure TAbstractNurbsSurfaceGeometryNode.SetVDimension(const Value: Integer);
 begin
   FdVDimension.Send(Value);
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetVKnot(const Value: array of Double);
+begin
+  FdVKnot.Send(Value);
+end;
+
+procedure TAbstractNurbsSurfaceGeometryNode.SetVKnot(const Value: TDoubleList);
+begin
+  FdVKnot.Send(Value);
 end;
 
 function TAbstractNurbsSurfaceGeometryNode.GetVOrder: Integer;

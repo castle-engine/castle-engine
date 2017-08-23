@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetFieldOfView: Single;
     procedure SetFieldOfView(const Value: Single);
     function GetHeadlight: boolean;
@@ -38,7 +38,11 @@
   public
     property FieldOfView: Single read GetFieldOfView write SetFieldOfView;
     property Headlight: boolean read GetHeadlight write SetHeadlight;
+    procedure SetNavType(const Value: array of string);
+    procedure SetNavType(const Value: TCastleStringList);
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
     property SpeedFactor: Single read GetSpeedFactor write SetSpeedFactor;
 
 {$endif read_interface}
@@ -67,6 +71,16 @@ begin
   FdHeadlight.Send(Value);
 end;
 
+procedure TGeoViewpointNode.SetNavType(const Value: array of string);
+begin
+  FdNavType.Send(Value);
+end;
+
+procedure TGeoViewpointNode.SetNavType(const Value: TCastleStringList);
+begin
+  FdNavType.Send(Value);
+end;
+
 function TGeoViewpointNode.GetGeoOrigin: TGeoOriginNode;
 begin
   if FdGeoOrigin.Value is TGeoOriginNode then
@@ -78,6 +92,16 @@ end;
 procedure TGeoViewpointNode.SetGeoOrigin(const Value: TGeoOriginNode);
 begin
   FdGeoOrigin.Send(Value);
+end;
+
+procedure TGeoViewpointNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoViewpointNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
 end;
 
 function TGeoViewpointNode.GetSpeedFactor: Single;

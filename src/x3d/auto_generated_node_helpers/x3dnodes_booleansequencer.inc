@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetKeyValue(const Value: array of boolean);
+    procedure SetKeyValue(const Value: TBooleanList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TBooleanSequencerNode ----------------------------------------------- }
+
+procedure TBooleanSequencerNode.SetKeyValue(const Value: array of boolean);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TBooleanSequencerNode.SetKeyValue(const Value: TBooleanList);
+begin
+  FdKeyValue.Send(Value);
+end;
 
 {$endif read_implementation}

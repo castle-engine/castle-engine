@@ -217,11 +217,16 @@ begin
     PChar(glGetString(GL_VENDOR)), PChar(glGetString(GL_RENDERER)));
 
   {$ifndef OpenGLES}
+  {$ifdef CASTLE_OBJFPC}
+  {$warnings off} // consciously initializing deprecated stuff, to keep it working
   FreeAndNil(GLUVersion);
   { gluGetString is valid for version 1.1 or later }
   if Assigned(gluGetString) then
-    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION)) else
+    GLUVersion := TGenericGLVersion.Create(gluGetString(GLU_VERSION))
+  else
     GLUVersion := TGenericGLVersion.Create('1.0');
+  {$warnings on}
+  {$endif CASTLE_OBJFPC}
   {$endif}
 
   FreeAndNil(GLFeatures);
@@ -457,34 +462,37 @@ begin
     if glext_ExtensionSupported('GL_OES_texture_compression_S3TC', SupportedExtensions) or
        glext_ExtensionSupported('GL_EXT_texture_compression_s3tc', SupportedExtensions) or
        glext_ExtensionSupported('GL_NV_texture_compression_s3tc', SupportedExtensions) then
-      TextureCompression += [tcDxt1_RGB, tcDxt1_RGBA, tcDxt3, tcDxt5];
+      TextureCompression := TextureCompression + [
+        tcDxt1_RGB, tcDxt1_RGBA, tcDxt3, tcDxt5];
 
     if glext_ExtensionSupported('GL_EXT_texture_compression_dxt1', SupportedExtensions) then
-      TextureCompression += [tcDxt1_RGB, tcDxt1_RGBA];
+      TextureCompression := TextureCompression + [tcDxt1_RGB, tcDxt1_RGBA];
     if glext_ExtensionSupported('GL_EXT_texture_compression_dxt3', SupportedExtensions) then
-      TextureCompression += [tcDxt3];
+      TextureCompression := TextureCompression + [tcDxt3];
     if glext_ExtensionSupported('GL_EXT_texture_compression_dxt5', SupportedExtensions) then
-      TextureCompression += [tcDxt5];
+      TextureCompression := TextureCompression + [tcDxt5];
 
     if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc', SupportedExtensions) then
-      TextureCompression += [
+      TextureCompression := TextureCompression + [
         tcPvrtc1_4bpp_RGB,
         tcPvrtc1_2bpp_RGB,
         tcPvrtc1_4bpp_RGBA,
         tcPvrtc1_2bpp_RGBA];
 
     if glext_ExtensionSupported('GL_IMG_texture_compression_pvrtc2', SupportedExtensions) then
-      TextureCompression += [
+      TextureCompression := TextureCompression + [
         tcPvrtc2_4bpp,
         tcPvrtc2_2bpp];
 
     if glext_ExtensionSupported('GL_AMD_compressed_ATC_texture', SupportedExtensions) or
        glext_ExtensionSupported('GL_ATI_texture_compression_atitc', SupportedExtensions) then
-      TextureCompression += [tcATITC_RGB,
-        tcATITC_RGBA_ExplicitAlpha, tcATITC_RGBA_InterpolatedAlpha];
+      TextureCompression := TextureCompression + [
+        tcATITC_RGB,
+        tcATITC_RGBA_ExplicitAlpha,
+        tcATITC_RGBA_InterpolatedAlpha];
 
     if glext_ExtensionSupported('GL_OES_compressed_ETC1_RGB8_texture', SupportedExtensions) then
-      TextureCompression += [tcETC1];
+      TextureCompression := TextureCompression + [tcETC1];
   end;
 
   SupportedTextureCompressionKnown := true;

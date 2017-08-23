@@ -18,7 +18,7 @@
 type
   { Parse a sequence of integeres inside a string inside an XML element. }
   TIntegersParser = class
-  private
+  strict private
     Content: string;
     FCurrent: Int64;
     SeekPos: Integer;

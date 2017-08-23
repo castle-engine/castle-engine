@@ -32,7 +32,7 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector2Cardinal = (Data: (0, 0));
     {$endif}
@@ -49,7 +49,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Cardinal): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Cardinal; static; inline;
     {$endif}
   end;
@@ -67,7 +67,7 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector3Cardinal = (Data: (0, 0, 0));
     {$endif}
@@ -85,7 +85,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Cardinal): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Cardinal; static; inline;
     {$endif}
   end;
@@ -103,7 +103,7 @@ type
   public
     var
       Data: array [TIndex] of Cardinal;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector4Cardinal = (Data: (0, 0, 0, 0));
     {$endif}
@@ -122,7 +122,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Cardinal): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Cardinal; static; inline;
     {$endif}
   end;
@@ -131,12 +131,12 @@ type
   PVector3Cardinal = ^TVector3Cardinal;
   PVector4Cardinal = ^TVector4Cardinal;
 
-  TArray_Vector2Cardinal = packed array [0..MaxInt div SizeOf(TVector2Cardinal)-1] of TVector2Cardinal;
-  PArray_Vector2Cardinal = ^TArray_Vector2Cardinal;
-  TArray_Vector3Cardinal = packed array [0..MaxInt div SizeOf(TVector3Cardinal)-1] of TVector3Cardinal;
-  PArray_Vector3Cardinal = ^TArray_Vector3Cardinal;
-  TArray_Vector4Cardinal = packed array [0..MaxInt div SizeOf(TVector4Cardinal)-1] of TVector4Cardinal;
-  PArray_Vector4Cardinal = ^TArray_Vector4Cardinal;
+  TVector2CardinalArray = packed array [0..MaxInt div SizeOf(TVector2Cardinal)-1] of TVector2Cardinal;
+  PVector2CardinalArray = ^TVector2CardinalArray;
+  TVector3CardinalArray = packed array [0..MaxInt div SizeOf(TVector3Cardinal)-1] of TVector3Cardinal;
+  PVector3CardinalArray = ^TVector3CardinalArray;
+  TVector4CardinalArray = packed array [0..MaxInt div SizeOf(TVector4Cardinal)-1] of TVector4Cardinal;
+  PVector4CardinalArray = ^TVector4CardinalArray;
 
 function Vector2Cardinal(const X, Y: Cardinal): TVector2Cardinal; inline;
 function Vector3Cardinal(const X, Y, Z: Cardinal): TVector3Cardinal; inline;
@@ -202,7 +202,7 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Cardinal.Zero: TVector2Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -269,7 +269,7 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Cardinal.Zero: TVector3Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -340,7 +340,7 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Cardinal.Zero: TVector4Cardinal;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -370,25 +370,29 @@ begin
   Result.Data[3] := W;
 end;
 
-function Lerp(const A: Single; const V1, V2: TVector2Cardinal): TVector2Cardinal;
+(*
+Not used now, see TVector*Integer comments for Lerp.
+
+function Lerp(const A: Single; const V1, V2: TVector2Cardinal): TVector2Cardinal; overload;
 begin
   Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
   Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
 end;
 
-function Lerp(const A: Single; const V1, V2: TVector3Cardinal): TVector3Cardinal;
+function Lerp(const A: Single; const V1, V2: TVector3Cardinal): TVector3Cardinal; overload;
 begin
   Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
   Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
   Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Cardinal));
 end;
 
-function Lerp(const A: Single; const V1, V2: TVector4Cardinal): TVector4Cardinal;
+function Lerp(const A: Single; const V1, V2: TVector4Cardinal): TVector4Cardinal; overload;
 begin
   Result.Data[0] := Clamped(Round(V1.Data[0] + A * (V2.Data[0] - V1.Data[0])), 0, High(Cardinal));
   Result.Data[1] := Clamped(Round(V1.Data[1] + A * (V2.Data[1] - V1.Data[1])), 0, High(Cardinal));
   Result.Data[2] := Clamped(Round(V1.Data[2] + A * (V2.Data[2] - V1.Data[2])), 0, High(Cardinal));
   Result.Data[3] := Clamped(Round(V1.Data[3] + A * (V2.Data[3] - V1.Data[3])), 0, High(Cardinal));
 end;
+*)
 
 {$endif read_implementation}

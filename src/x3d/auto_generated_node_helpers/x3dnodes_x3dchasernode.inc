@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDuration: TFloatTime;
     procedure SetDuration(const Value: TFloatTime);
   public

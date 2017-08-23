@@ -15,7 +15,9 @@
 
 { Convert spritesheets to classic X3D files. }
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
+
+{$I castleconf.inc}
 
 uses Classes, SysUtils, strutils, DOM, RegExpr, Generics.Collections,
   CastleParameters, CastleImages, CastleStringUtils,
@@ -35,8 +37,8 @@ type
     AX, AY: single;     { Anchor }
   end;
 
-  TFrameList = specialize TList<TFrame>;
-  TAnimations = class(specialize TDictionary<string, TFrameList>)
+  TFrameList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TList<TFrame>;
+  TAnimations = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, TFrameList>)
     destructor Destroy; override;
   end;
 
@@ -191,7 +193,7 @@ begin
     Tri := TTriangleSetNode.Create;
     Tri.Solid := false;
     Coord := TCoordinateNode.Create('coord');
-    Coord.FdPoint.Items.AddRange([
+    Coord.SetPoint([
         Vector3(-128, -128, 0),
         Vector3(128, -128, 0),
         Vector3(128, 128, 0),
@@ -199,15 +201,15 @@ begin
         Vector3(128, 128, 0),
         Vector3(-128, 128, 0)]);
     TexCoord := TTextureCoordinateNode.Create('texcoord');
-    TexCoord.FdPoint.Items.AddRange([
+    TexCoord.SetPoint([
          Vector2(0, 0),
          Vector2(1, 0),
          Vector2(1, 1),
          Vector2(0, 0),
          Vector2(1, 1),
          Vector2(0, 1)]);
-    Tri.FdCoord.Value := Coord;
-    Tri.FdTexCoord.Value := TexCoord;
+    Tri.Coord := Coord;
+    Tri.TexCoord := TexCoord;
     Shape.Geometry := Tri;
 
     SetLength(CoordArray, 6);
@@ -298,13 +300,13 @@ begin
       Inc(j);
     end;
     { Put everything into the scene. }
-    Root.FdChildren.Add(Shape);
+    Root.AddChildren(Shape);
     for j := 0 to Animations.Count-1 do
-      Root.FdChildren.Add(TimeSensorArray[j]);
+      Root.AddChildren(TimeSensorArray[j]);
     for j := 0 to Animations.Count-1 do
     begin
-      Root.FdChildren.Add(CoordInterpArray[j]);
-      Root.FdChildren.Add(TexCoordInterpArray[j]);
+      Root.AddChildren(CoordInterpArray[j]);
+      Root.AddChildren(TexCoordInterpArray[j]);
     end;
     Save3D(Root, SSOutput);
   finally

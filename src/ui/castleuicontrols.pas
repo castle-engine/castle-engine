@@ -98,7 +98,7 @@ type
   PTouch = ^TTouch;
 
   { Tracking of multi-touch, a position of each finger on the screen. }
-  TTouchList = class(specialize TStructList<TTouch>)
+  TTouchList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TTouch>)
   private
     { Find an item with given FingerIndex, or -1 if not found. }
     function FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
@@ -188,7 +188,7 @@ type
   TUIContainer = class abstract(TComponent)
   private
     type
-      TFingerIndexCaptureMap = specialize TDictionary<TFingerIndex, TUIControl>;
+      TFingerIndexCaptureMap = {$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<TFingerIndex, TUIControl>;
     var
     FOnOpen, FOnClose: TContainerEvent;
     FOnOpenObject, FOnCloseObject: TContainerObjectEvent;
@@ -413,9 +413,9 @@ type
       OpenGL drawing (you have to capture the back buffer, before swap).
 
       @groupBegin }
-    procedure SaveScreen(const URL: string);
-    function SaveScreen: TRGBImage;
-    function SaveScreen(const SaveRect: TRectangle): TRGBImage; virtual; abstract;
+    procedure SaveScreen(const URL: string); overload;
+    function SaveScreen: TRGBImage; overload;
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; overload; virtual; abstract;
     { @groupEnd }
 
     { Called by controls within this container when something could
@@ -619,7 +619,7 @@ type
         if HandleInput then
         begin
           if Container.Pressed[K_Right] then
-            Transform.Position += Vector3(SecondsPassed * 10, 0, 0);
+            Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
           HandleInput := not ExclusiveEvents;
         end;
       #)
@@ -896,14 +896,14 @@ type
     function ControlsCount: Integer;
 
     { Add child control, at the front of other children. }
-    procedure InsertFront(const NewItem: TUIControl);
+    procedure InsertFront(const NewItem: TUIControl); overload;
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
-    procedure InsertFront(const NewItems: TUIControlList);
+    procedure InsertFront(const NewItems: TUIControlList); overload;
 
     { Add child control, at the back of other children. }
-    procedure InsertBack(const NewItem: TUIControl);
+    procedure InsertBack(const NewItem: TUIControl); overload;
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
-    procedure InsertBack(const NewItems: TUIControlList);
+    procedure InsertBack(const NewItems: TUIControlList); overload;
 
     { Remove control added by @link(InsertFront) or @link(InsertBack). }
     procedure RemoveControl(Item: TUIControl);
@@ -985,7 +985,7 @@ type
           Texturing, lighting, fog is off.)
       )
 
-      Beware that GLSL @link(CurrentProgram) has undefined value when this is called.
+      Beware that GLSL @link(TGLSLProgram.Current) has undefined value when this is called.
       You should always set it, before making direct OpenGL drawing calls
       (all the engine drawing routines of course do it already, this is only a concern
       if you make direct OpenGL / OpenGLES calls). }
@@ -1210,7 +1210,7 @@ type
       @link(HorizontalAnchorSelf), @link(HorizontalAnchorParent),
       @link(HorizontalAnchorDelta). }
     procedure Anchor(const AHorizontalAnchor: THorizontalPosition;
-      const AHorizontalAnchorDelta: Integer = 0);
+      const AHorizontalAnchorDelta: Integer = 0); overload;
 
     { Quick way to enable horizontal anchor, to automatically keep this
       control aligned to parent. Sets @link(HasHorizontalAnchor),
@@ -1218,14 +1218,14 @@ type
       @link(HorizontalAnchorDelta). }
     procedure Anchor(
       const AHorizontalAnchorSelf, AHorizontalAnchorParent: THorizontalPosition;
-      const AHorizontalAnchorDelta: Integer = 0);
+      const AHorizontalAnchorDelta: Integer = 0); overload;
 
     { Quick way to enable vertical anchor, to automatically keep this
       control aligned to parent. Sets @link(HasVerticalAnchor),
       @link(VerticalAnchorSelf), @link(VerticalAnchorParent),
       @link(VerticalAnchorDelta). }
     procedure Anchor(const AVerticalAnchor: TVerticalPosition;
-      const AVerticalAnchorDelta: Integer = 0);
+      const AVerticalAnchorDelta: Integer = 0); overload;
 
     { Quick way to enable vertical anchor, to automatically keep this
       control aligned to parent. Sets @link(HasVerticalAnchor),
@@ -1233,7 +1233,7 @@ type
       @link(VerticalAnchorDelta). }
     procedure Anchor(
       const AVerticalAnchorSelf, AVerticalAnchorParent: TVerticalPosition;
-      const AVerticalAnchorDelta: Integer = 0);
+      const AVerticalAnchorDelta: Integer = 0); overload;
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Left).
@@ -1254,7 +1254,7 @@ type
     procedure Align(
       const ControlPosition: THorizontalPosition;
       const ContainerPosition: THorizontalPosition;
-      const X: Integer = 0);
+      const X: Integer = 0); overload;
 
     { Immediately position the control with respect to the parent
       by adjusting @link(Bottom).
@@ -1275,7 +1275,7 @@ type
     procedure Align(
       const ControlPosition: TVerticalPosition;
       const ContainerPosition: TVerticalPosition;
-      const Y: Integer = 0);
+      const Y: Integer = 0); overload;
 
     { Immediately center the control within the parent,
       both horizontally and vertically.
@@ -1417,17 +1417,17 @@ type
   end;
 
   { Simple list of TUIControl instances. }
-  TUIControlList = class(specialize TObjectList<TUIControl>)
+  TUIControlList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TUIControl>)
   public
     { Add child control, at the front of other children. }
-    procedure InsertFront(const NewItem: TUIControl);
+    procedure InsertFront(const NewItem: TUIControl); overload;
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
-    procedure InsertFront(const NewItems: TUIControlList);
+    procedure InsertFront(const NewItems: TUIControlList); overload;
 
     { Add child control, at the back of other children. }
-    procedure InsertBack(const NewItem: TUIControl);
+    procedure InsertBack(const NewItem: TUIControl); overload;
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
-    procedure InsertBack(const NewItems: TUIControlList);
+    procedure InsertBack(const NewItems: TUIControlList); overload;
 
     { Insert, honoring @link(TUIControl.KeepInFront). }
     procedure InsertWithZOrder(Index: Integer; const Item: TUIControl);
@@ -1514,14 +1514,14 @@ type
       AddFront: boolean = true): TUIControl;
 
     { Add at the end of the list. }
-    procedure InsertFront(const NewItem: TUIControl);
+    procedure InsertFront(const NewItem: TUIControl); overload;
     procedure InsertFrontIfNotExists(const NewItem: TUIControl);
-    procedure InsertFront(const NewItems: TUIControlList);
+    procedure InsertFront(const NewItems: TUIControlList); overload;
 
     { Add at the beginning of the list. }
-    procedure InsertBack(const NewItem: TUIControl);
+    procedure InsertBack(const NewItem: TUIControl); overload;
     procedure InsertBackIfNotExists(const NewItem: TUIControl);
-    procedure InsertBack(const NewItems: TUIControlList);
+    procedure InsertBack(const NewItems: TUIControlList); overload;
 
     procedure InsertIfNotExists(const Index: Integer; const NewItem: TUIControl); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
     procedure AddIfNotExists(const NewItem: TUIControl); deprecated 'use InsertFrontIfNotExists or InsertBackIfNotExists';
@@ -1569,7 +1569,7 @@ uses CastleLog;
 function TTouchList.FindFingerIndex(const FingerIndex: TFingerIndex): Integer;
 begin
   for Result := 0 to Count - 1 do
-    if L[Result].FingerIndex = FingerIndex then
+    if List^[Result].FingerIndex = FingerIndex then
       Exit;
   Result := -1;
 end;
@@ -1580,7 +1580,7 @@ var
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    Result := L[Index].Position
+    Result := List^[Index].Position
   else
     Result := TVector2.Zero;
 end;
@@ -1593,7 +1593,7 @@ var
 begin
   Index := FindFingerIndex(FingerIndex);
   if Index <> -1 then
-    L[Index].Position := Value else
+    List^[Index].Position := Value else
   begin
     NewTouch := Add;
     NewTouch^.FingerIndex := FingerIndex;
@@ -2070,7 +2070,7 @@ begin
   { 3D Mouse }
   if Assigned(Mouse3D) and Mouse3D.Loaded then
   begin
-    Mouse3dPollTimer -= Fps.UpdateSecondsPassed;
+    Mouse3dPollTimer := Mouse3dPollTimer - Fps.UpdateSecondsPassed;
     if Mouse3dPollTimer < 0 then
     begin
       { get values from sensor }
@@ -2096,7 +2096,9 @@ begin
         frequency of how often this is checked. But we do it for safety
         (in case something else, like AI or collision detection,
         slows us down *a lot*). }
-      repeat Mouse3dPollTimer += Mouse3dPollDelay until Mouse3dPollTimer > 0;
+      repeat
+        Mouse3dPollTimer := Mouse3dPollTimer + Mouse3dPollDelay;
+      until Mouse3dPollTimer > 0;
     end;
   end;
 
@@ -3059,17 +3061,23 @@ begin
 
     Instead, we'll save design-time "Left" below, under a special name. }
 
-  Filer.DefineProperty('TUIControlPos_RealLeft', @ReadRealLeft, @WriteRealLeft,
+  Filer.DefineProperty('TUIControlPos_RealLeft',
+    {$ifdef CASTLE_OBJFPC}@{$endif} ReadRealLeft,
+    {$ifdef CASTLE_OBJFPC}@{$endif} WriteRealLeft,
     FLeft <> 0);
 
   { Code from fpc/trunk/rtl/objpas/classes/compon.inc }
   Temp:=0;
   Ancestor:=TComponent(Filer.Ancestor);
   If Assigned(Ancestor) then Temp:=Ancestor.DesignInfo;
-  Filer.Defineproperty('TUIControlPos_Design_Left',@readleft,@writeleft,
-                       (longrec(DesignInfo).Lo<>Longrec(temp).Lo));
-  Filer.Defineproperty('TUIControlPos_Design_Top',@readtop,@writetop,
-                       (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
+  Filer.Defineproperty('TUIControlPos_Design_Left',
+    {$ifdef CASTLE_OBJFPC}@{$endif} readleft,
+    {$ifdef CASTLE_OBJFPC}@{$endif} writeleft,
+    (longrec(DesignInfo).Lo<>Longrec(temp).Lo));
+  Filer.Defineproperty('TUIControlPos_Design_Top',
+    {$ifdef CASTLE_OBJFPC}@{$endif} readtop,
+    {$ifdef CASTLE_OBJFPC}@{$endif} writetop,
+    (longrec(DesignInfo).Hi<>Longrec(temp).Hi));
 end;
 
 procedure TUIControl.SetLeft(const Value: Integer);
@@ -3214,8 +3222,8 @@ begin
   begin
     Result := Parent.LocalToScreenTranslation;
     RA := Parent.RectWithAnchors;
-    Result.Data[0] += RA.Left;
-    Result.Data[1] += RA.Bottom;
+    Result.Data[0] := Result.Data[0] + RA.Left;
+    Result.Data[1] := Result.Data[1] + RA.Bottom;
   end else
     Result := TVector2Integer.Zero;
 end;
@@ -3614,8 +3622,9 @@ begin
     custom method --- we will not touch it anymore. That's safer.
     Athough in general user code should not change OnVisibleChange for controls
     on this list, to keep automatic Invalidate working. }
-  if C.OnVisibleChange = nil then
-    C.OnVisibleChange := @AContainer.ControlsVisibleChange;
+  if not Assigned(C.OnVisibleChange) then
+    C.OnVisibleChange :=
+      {$ifdef CASTLE_OBJFPC}@{$endif} AContainer.ControlsVisibleChange;
 
   { Register AContainer to be notified of control destruction. }
   C.FreeNotification(AContainer);
@@ -3638,12 +3647,15 @@ end;
 
 procedure TChildrenControls.UnregisterContainer(
   const C: TUIControl; const AContainer: TUIContainer);
+var
+  MyMethod: TNotifyEvent;
 begin
   if AContainer.GLInitialized and
      (C.DisableContextOpenClose = 0) then
     C.GLContextClose;
 
-  if C.OnVisibleChange = @AContainer.ControlsVisibleChange then
+  MyMethod := {$ifdef CASTLE_OBJFPC}@{$endif} AContainer.ControlsVisibleChange;
+  if CompareMethods(TMethod(C.OnVisibleChange), TMethod(MyMethod)) then
     C.OnVisibleChange := nil;
 
   C.RemoveFreeNotification(AContainer);

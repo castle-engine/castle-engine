@@ -33,7 +33,7 @@ type
     end;
     { Using TObjectList, not map, this way we can sort the list looking
       at data sizes. }
-    TAllocatedTextures = specialize TObjectList<TAllocatedTexture>;
+    TAllocatedTextures = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAllocatedTexture>;
   var
     AllocatedTextures: TAllocatedTextures;
     FEnabled: boolean;
@@ -227,7 +227,7 @@ begin
     if W > 1 then begin W := W div 2; Size := Size div 2; end;
     if H > 1 then begin H := H div 2; Size := Size div 2; end;
     if D > 1 then begin D := D div 2; Size := Size div 2; end;
-    Result += Size;
+    Result := Result + Size;
   end;
 
 {  WritelnLog('Mipmaps', Format('Mipmap sizes is %d for original image size %d (%f)',
@@ -253,7 +253,7 @@ function TTextureMemoryProfiler.Summary: string;
   end;
 
 type
-  TAllocatedTextureComparer = specialize TComparer<TAllocatedTexture>;
+  TAllocatedTextureComparer = {$ifdef CASTLE_OBJFPC}specialize{$endif} TComparer<TAllocatedTexture>;
 var
   S: string;
   I: Integer;
@@ -264,7 +264,7 @@ begin
 
   Used := 0;
   for I := 0 to AllocatedTextures.Count - 1 do
-    Used += AllocatedTextures[I].Size;
+    Used := Used + AllocatedTextures[I].Size;
   S := Format('Texture memory used: %s (%d bytes in %d textures)',
     [FormatSize(Used), Used, AllocatedTextures.Count]) + NL;
 
@@ -272,7 +272,7 @@ begin
   for I := 0 to AllocatedTextures.Count - 1 do
   begin
     AllocatedTex := AllocatedTextures[I];
-    S += Format('  %f - %s (size %d : format %s, dimensions %d x %d x %d, mipmaps: %s)',
+    S := S + Format('  %f - %s (size %d : format %s, dimensions %d x %d x %d, mipmaps: %s)',
       [AllocatedTex.Size / Used, AllocatedTex.URL,
        AllocatedTex.Size, AllocatedTex.ImageFormat,
        AllocatedTex.Width, AllocatedTex.Height, AllocatedTex.Depth,

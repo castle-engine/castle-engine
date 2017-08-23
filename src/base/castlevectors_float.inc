@@ -49,38 +49,38 @@ type
   { 4x4 matrix of floating-point values (Double precision). }
   TMatrix4Double = CastleVectorsInternalDouble.TGenericMatrix4; PMatrix4Double = ^TMatrix4Double;
 
-  TArray_Vector2 = packed array [0..MaxInt div SizeOf(TVector2) - 1] of TVector2;
-  PArray_Vector2 = ^TArray_Vector2;
-  TArray_Vector3 = packed array [0..MaxInt div SizeOf(TVector3) - 1] of TVector3;
-  PArray_Vector3 = ^TArray_Vector3;
-  TArray_Vector4 = packed array [0..MaxInt div SizeOf(TVector4) - 1] of TVector4;
-  PArray_Vector4 = ^TArray_Vector4;
+  TVector2Array = packed array [0..MaxInt div SizeOf(TVector2) - 1] of TVector2;
+  PVector2Array = ^TVector2Array;
+  TVector3Array = packed array [0..MaxInt div SizeOf(TVector3) - 1] of TVector3;
+  PVector3Array = ^TVector3Array;
+  TVector4Array = packed array [0..MaxInt div SizeOf(TVector4) - 1] of TVector4;
+  PVector4Array = ^TVector4Array;
 
 { Construct an initialized TVector2 value. }
-function Vector2(const X, Y: Single): TVector2; inline;
-function Vector2(const V: TVector2Double): TVector2; inline;
+function Vector2(const X, Y: Single): TVector2; overload; inline;
+function Vector2(const V: TVector2Double): TVector2; overload; inline;
 
 { Construct an initialized TVector2Double value. }
 function Vector2Double(const X, Y: Double): TVector2Double; inline;
 
 { Construct an initialized TVector3 value. }
-function Vector3(const X, Y, Z: Single): TVector3; inline;
-function Vector3(const V: TVector2; const Z: Single): TVector3; inline;
-function Vector3(const V: TVector3Double): TVector3; inline;
+function Vector3(const X, Y, Z: Single): TVector3; overload; inline;
+function Vector3(const V: TVector2; const Z: Single): TVector3; overload; inline;
+function Vector3(const V: TVector3Double): TVector3; overload; inline;
 
 { Construct an initialized TVector3Double value. }
-function Vector3Double(const X, Y, Z: Double): TVector3Double; inline;
-function Vector3Double(const V: TVector3): TVector3Double; inline;
+function Vector3Double(const X, Y, Z: Double): TVector3Double; overload; inline;
+function Vector3Double(const V: TVector3): TVector3Double; overload; inline;
 
 { Construct an initialized TVector4 value. }
-function Vector4(const X, Y, Z, W: Single): TVector4; inline;
-function Vector4(const V: TVector3; const W: Single): TVector4; inline;
-function Vector4(const V: TVector2; const Z, W: Single): TVector4; inline;
-function Vector4(const V: TVector4Double): TVector4; inline;
+function Vector4(const X, Y, Z, W: Single): TVector4; overload; inline;
+function Vector4(const V: TVector3; const W: Single): TVector4; overload; inline;
+function Vector4(const V: TVector2; const Z, W: Single): TVector4; overload; inline;
+function Vector4(const V: TVector4Double): TVector4; overload; inline;
 
 { Construct an initialized TVector4Double value. }
-function Vector4Double(const X, Y, Z, W: Double): TVector4Double; inline;
-function Vector4Double(const V: TVector4): TVector4Double; inline;
+function Vector4Double(const X, Y, Z, W: Double): TVector4Double; overload; inline;
+function Vector4Double(const V: TVector4): TVector4Double; overload; inline;
 
 { Convert between Double-precision and Single-precision matrix. }
 function Matrix3(const V: TMatrix3Double): TMatrix3;
@@ -126,6 +126,9 @@ function Lerp(const A: Double; const M1, M2: TMatrix2Double): TMatrix2Double; ov
 function Lerp(const A: Double; const M1, M2: TMatrix3Double): TMatrix3Double; overload; inline;
 function Lerp(const A: Double; const M1, M2: TMatrix4Double): TMatrix4Double; overload; inline;
 { @groupEnd }
+
+{ Try to inverse single-precision matrix using double-precision, if necessary. }
+function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
 
 {$endif read_interface}
 
@@ -244,8 +247,8 @@ function Matrix3(const V: TMatrix3Double): TMatrix3;
 var
   I, J: Integer;
 begin
-  for I in TMatrix3.TIndex do
-    for J in TMatrix3.TIndex do
+  for I := 0 to 2 do
+    for J := 0 to 2 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -253,8 +256,8 @@ function Matrix4(const V: TMatrix4Double): TMatrix4;
 var
   I, J: Integer;
 begin
-  for I in TMatrix4.TIndex do
-    for J in TMatrix4.TIndex do
+  for I := 0 to 3 do
+    for J := 0 to 3 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -262,8 +265,8 @@ function Matrix3Double(const V: TMatrix3): TMatrix3Double;
 var
   I, J: Integer;
 begin
-  for I in TMatrix3.TIndex do
-    for J in TMatrix3.TIndex do
+  for I := 0 to 2 do
+    for J := 0 to 2 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -271,8 +274,8 @@ function Matrix4Double(const V: TMatrix4): TMatrix4Double;
 var
   I, J: Integer;
 begin
-  for I in TMatrix4.TIndex do
-    for J in TMatrix4.TIndex do
+  for I := 0 to 3 do
+    for J := 0 to 3 do
       Result.Data[I, J] := V.Data[I, J];
 end;
 
@@ -378,6 +381,25 @@ end;
 function Lerp(const A: Double; const M1, M2: TMatrix4Double): TMatrix4Double;
 begin
   Result := TMatrix4Double.Lerp(A, M1, M2);
+end;
+
+{ TryInverseHarder ----------------------------------------------------------- }
+
+function TryInverseHarder(const M: TMatrix4; out MInverse: TMatrix4): boolean;
+var
+  MInverseDouble: TMatrix4Double;
+begin
+  Result := M.TryInverse(MInverse);
+  if not Result then
+  begin
+    Result := Matrix4Double(M).TryInverse(MInverseDouble);
+    if Result then
+    begin
+      // WritelnLogMultiline('TryInverseHarder', 'Failed to inverse matrix in Single-precision, but managed to inverse in Double-precision.' + NL +
+      //   M.ToRawString);
+      MInverse := Matrix4(MInverseDouble);
+    end;
+  end;
 end;
 
 {$endif read_implementation}

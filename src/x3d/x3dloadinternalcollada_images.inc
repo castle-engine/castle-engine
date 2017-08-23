@@ -41,7 +41,7 @@ begin
         Images.Add(Image);
         ImageUrl := ReadChildText(I.Current, 'init_from');
         if ImageUrl <> '' then
-          Image.FdUrl.Items.Add(ImageUrl);
+          Image.SetUrl([ImageUrl]);
       end;
   finally FreeAndNil(I) end;
 end;

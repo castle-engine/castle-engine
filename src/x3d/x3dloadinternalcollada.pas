@@ -88,6 +88,7 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
 }
 
 {$define read_interface}
+{$I x3dloadinternalcollada_childrenlist.inc}
 {$I x3dloadinternalcollada_controllers.inc}
 {$I x3dloadinternalcollada_effects.inc}
 {$I x3dloadinternalcollada_primitives.inc}
@@ -100,6 +101,7 @@ uses SysUtils, Classes, DOM, XMLRead, Generics.Collections, Math, URIParser,
 {$undef read_interface}
 
 {$define read_implementation}
+{$I x3dloadinternalcollada_childrenlist.inc}
 {$I x3dloadinternalcollada_controllers.inc}
 {$I x3dloadinternalcollada_effects.inc}
 {$I x3dloadinternalcollada_primitives.inc}
@@ -208,11 +210,11 @@ begin
       Effects := TColladaEffectList.Create;
       Materials := TColladaMaterialsMap.Create;
       Geometries := TColladaGeometryList.Create;
-      VisualScenes := TX3DNodeList.Create(false);
+      VisualScenes := TX3DChildrenList.Create(false);
       Controllers := TColladaControllerList.Create;
       Images := TX3DNodeList.Create(false);
-      Cameras := TX3DNodeList.Create(false);
-      Lights := TX3DNodeList.Create(false);
+      Cameras := TX3DChildrenList.Create(false);
+      Lights := TX3DChildrenList.Create(false);
       LibraryNodesSwitch := nil; // will be created on-demand if needed
 
       Result := TX3DRootNode.Create('', BaseUrl);
@@ -293,9 +295,9 @@ begin
       FreeAndNil(Effects);
       FreeAndNil(Geometries);
 
-      X3DNodeList_FreeUnusedAndNil(Lights);
-      X3DNodeList_FreeUnusedAndNil(Cameras);
-      X3DNodeList_FreeUnusedAndNil(VisualScenes);
+      X3DChildrenList_FreeUnusedAndNil(Lights);
+      X3DChildrenList_FreeUnusedAndNil(Cameras);
+      X3DChildrenList_FreeUnusedAndNil(VisualScenes);
       FreeAndNil(Controllers);
     end;
     { eventually free Result *after* freeing other lists, to make sure references

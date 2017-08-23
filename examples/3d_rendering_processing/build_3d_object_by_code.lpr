@@ -46,24 +46,24 @@ begin
   SphereShape.Geometry := Sphere;
 
   IndexedFaceSetCoordinate := TCoordinateNode.Create;
-  IndexedFaceSetCoordinate.FdPoint.Items.AddRange(
-    [Vector3(0, 0, 0),
-     Vector3(1, 0, 0),
-     Vector3(1, 1, 0),
-     Vector3(0, 1, 0),
+  IndexedFaceSetCoordinate.SetPoint([
+    Vector3(0, 0, 0),
+    Vector3(1, 0, 0),
+    Vector3(1, 1, 0),
+    Vector3(0, 1, 0),
 
-     Vector3(0, 0, 0.5),
-     Vector3(1, 0, 0.5),
-     Vector3(1, 1, 0.5),
-     Vector3(0, 1, 0.5)
-    ]);
+    Vector3(0, 0, 0.5),
+    Vector3(1, 0, 0.5),
+    Vector3(1, 1, 0.5),
+    Vector3(0, 1, 0.5)
+  ]);
 
   IndexedFaceSet := TIndexedFaceSetNode.Create;
-  IndexedFaceSet.FdCoordIndex.Items.AddRange(
+  IndexedFaceSet.SetCoordIndex(
     { Two quad faces. These are just indexes for
-      the array placed in IndexedFaceSet.FdCoordinate array. }
+      the array placed in IndexedFaceSetCoordinate.SetPoint . }
     [0, 1, 2, 3, 0, -1, 4, 5, 6, 7, 4]);
-  IndexedFaceSet.FdCoord.Value := IndexedFaceSetCoordinate;
+  IndexedFaceSet.Coord := IndexedFaceSetCoordinate;
 
   IndexedFaceSetShape := TShapeNode.Create;
   IndexedFaceSetShape.Appearance := Appearance;
@@ -71,12 +71,12 @@ begin
 
   IndexedFaceSetShapeTranslated := TTransformNode.Create;
   IndexedFaceSetShapeTranslated.Translation := Vector3(2, 0, 0);
-  IndexedFaceSetShapeTranslated.FdChildren.Add(IndexedFaceSetShape);
+  IndexedFaceSetShapeTranslated.AddChildren(IndexedFaceSetShape);
 
   Root := TX3DRootNode.Create;
   try
-    Root.FdChildren.Add(SphereShape);
-    Root.FdChildren.Add(IndexedFaceSetShapeTranslated);
+    Root.AddChildren(SphereShape);
+    Root.AddChildren(IndexedFaceSetShapeTranslated);
 
     { The Root holds now a tree of your VRML/X3D nodes, thus describing
       your 3D object. You can do whatever you want with it:

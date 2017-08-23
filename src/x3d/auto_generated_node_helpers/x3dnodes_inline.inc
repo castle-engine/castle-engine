@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetLoad: boolean;
     procedure SetLoad(const Value: boolean);
     function GetBboxCenter: TVector3;
@@ -35,6 +35,8 @@
     procedure SetBboxSize(const Value: TVector3);
   public
     property Load: boolean read GetLoad write SetLoad;
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
@@ -52,6 +54,16 @@ end;
 procedure TInlineNode.SetLoad(const Value: boolean);
 begin
   FdLoad.Send(Value);
+end;
+
+procedure TInlineNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TInlineNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
 end;
 
 function TInlineNode.GetBboxCenter: TVector3;

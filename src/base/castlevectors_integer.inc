@@ -32,7 +32,7 @@ type
   public
     var
       Data: array [TIndex] of Integer;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector2Integer = (Data: (0, 0));
     {$endif}
@@ -49,7 +49,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Integer): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Integer; static; inline;
     {$endif}
   end;
@@ -67,7 +67,7 @@ type
   public
     var
       Data: array [TIndex] of Integer;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector3Integer = (Data: (0, 0, 0));
     {$endif}
@@ -85,7 +85,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Integer): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Integer; static; inline;
     {$endif}
   end;
@@ -103,7 +103,7 @@ type
   public
     var
       Data: array [TIndex] of Integer;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector4Integer = (Data: (0, 0, 0, 0));
     {$endif}
@@ -122,7 +122,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Integer): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Integer; static; inline;
     {$endif}
   end;
@@ -131,12 +131,12 @@ type
   PVector3Integer = ^TVector3Integer;
   PVector4Integer = ^TVector4Integer;
 
-  TArray_Vector2Integer = packed array [0..MaxInt div SizeOf(TVector2Integer)-1] of TVector2Integer;
-  PArray_Vector2Integer = ^TArray_Vector2Integer;
-  TArray_Vector3Integer = packed array [0..MaxInt div SizeOf(TVector3Integer)-1] of TVector3Integer;
-  PArray_Vector3Integer = ^TArray_Vector3Integer;
-  TArray_Vector4Integer = packed array [0..MaxInt div SizeOf(TVector4Integer)-1] of TVector4Integer;
-  PArray_Vector4Integer = ^TArray_Vector4Integer;
+  TVector2IntegerArray = packed array [0..MaxInt div SizeOf(TVector2Integer)-1] of TVector2Integer;
+  PVector2IntegerArray = ^TVector2IntegerArray;
+  TVector3IntegerArray = packed array [0..MaxInt div SizeOf(TVector3Integer)-1] of TVector3Integer;
+  PVector3IntegerArray = ^TVector3IntegerArray;
+  TVector4IntegerArray = packed array [0..MaxInt div SizeOf(TVector4Integer)-1] of TVector4Integer;
+  PVector4IntegerArray = ^TVector4IntegerArray;
 
 function Vector2Integer(const X, Y: Integer): TVector2Integer; inline;
 function Vector3Integer(const X, Y, Z: Integer): TVector3Integer; inline;
@@ -216,7 +216,7 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Integer.Zero: TVector2Integer;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -283,7 +283,7 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Integer.Zero: TVector3Integer;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -354,7 +354,7 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Integer.Zero: TVector4Integer;
 begin
   FillChar(Result, SizeOf(Result), 0);

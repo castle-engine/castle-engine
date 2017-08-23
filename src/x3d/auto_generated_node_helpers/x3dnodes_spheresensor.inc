@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetOffset: TVector4;
     procedure SetOffset(const Value: TVector4);
   public

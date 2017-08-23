@@ -26,20 +26,37 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetViewpoint: TAbstractX3DViewpointNode;
     procedure SetViewpoint(const Value: TAbstractX3DViewpointNode);
+    function GetTextureProperties: TTexturePropertiesNode;
+    procedure SetTextureProperties(const Value: TTexturePropertiesNode);
     function GetRepeatR: boolean;
     procedure SetRepeatR(const Value: boolean);
   public
+    procedure SetDimensions(const Value: array of LongInt);
+    procedure SetDimensions(const Value: TLongIntList);
     property Viewpoint: TAbstractX3DViewpointNode read GetViewpoint write SetViewpoint;
+    property TextureProperties: TTexturePropertiesNode read GetTextureProperties write SetTextureProperties;
     property RepeatR: boolean read GetRepeatR write SetRepeatR;
+    procedure SetDepthMap(const Value: array of boolean);
+    procedure SetDepthMap(const Value: TBooleanList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TRenderedTextureNode ----------------------------------------------- }
+
+procedure TRenderedTextureNode.SetDimensions(const Value: array of LongInt);
+begin
+  FdDimensions.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetDimensions(const Value: TLongIntList);
+begin
+  FdDimensions.Send(Value);
+end;
 
 function TRenderedTextureNode.GetViewpoint: TAbstractX3DViewpointNode;
 begin
@@ -54,6 +71,19 @@ begin
   FdViewpoint.Send(Value);
 end;
 
+function TRenderedTextureNode.GetTextureProperties: TTexturePropertiesNode;
+begin
+  if FdTextureProperties.Value is TTexturePropertiesNode then
+    Result := TTexturePropertiesNode(FdTextureProperties.Value)
+  else
+    Result := nil;
+end;
+
+procedure TRenderedTextureNode.SetTextureProperties(const Value: TTexturePropertiesNode);
+begin
+  FdTextureProperties.Send(Value);
+end;
+
 function TRenderedTextureNode.GetRepeatR: boolean;
 begin
   Result := FdRepeatR.Value;
@@ -62,6 +92,16 @@ end;
 procedure TRenderedTextureNode.SetRepeatR(const Value: boolean);
 begin
   FdRepeatR.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetDepthMap(const Value: array of boolean);
+begin
+  FdDepthMap.Send(Value);
+end;
+
+procedure TRenderedTextureNode.SetDepthMap(const Value: TBooleanList);
+begin
+  FdDepthMap.Send(Value);
 end;
 
 {$endif read_implementation}

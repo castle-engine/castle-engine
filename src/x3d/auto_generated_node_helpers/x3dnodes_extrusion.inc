@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBeginCap: boolean;
     procedure SetBeginCap(const Value: boolean);
     function GetCcw: boolean;
@@ -42,7 +42,15 @@
     property Ccw: boolean read GetCcw write SetCcw;
     property Convex: boolean read GetConvex write SetConvex;
     property CreaseAngle: Single read GetCreaseAngle write SetCreaseAngle;
+    procedure SetCrossSection(const Value: array of TVector2);
+    procedure SetCrossSection(const Value: TVector2List);
     property EndCap: boolean read GetEndCap write SetEndCap;
+    procedure SetOrientation(const Value: array of TVector4);
+    procedure SetOrientation(const Value: TVector4List);
+    procedure SetScale(const Value: array of TVector2);
+    procedure SetScale(const Value: TVector2List);
+    procedure SetSpine(const Value: array of TVector3);
+    procedure SetSpine(const Value: TVector3List);
 
 {$endif read_interface}
 
@@ -90,6 +98,16 @@ begin
   FdCreaseAngle.Send(Value);
 end;
 
+procedure TExtrusionNode.SetCrossSection(const Value: array of TVector2);
+begin
+  FdCrossSection.Send(Value);
+end;
+
+procedure TExtrusionNode.SetCrossSection(const Value: TVector2List);
+begin
+  FdCrossSection.Send(Value);
+end;
+
 function TExtrusionNode.GetEndCap: boolean;
 begin
   Result := FdEndCap.Value;
@@ -98,6 +116,36 @@ end;
 procedure TExtrusionNode.SetEndCap(const Value: boolean);
 begin
   FdEndCap.Send(Value);
+end;
+
+procedure TExtrusionNode.SetOrientation(const Value: array of TVector4);
+begin
+  FdOrientation.Send(Value);
+end;
+
+procedure TExtrusionNode.SetOrientation(const Value: TVector4List);
+begin
+  FdOrientation.Send(Value);
+end;
+
+procedure TExtrusionNode.SetScale(const Value: array of TVector2);
+begin
+  FdScale.Send(Value);
+end;
+
+procedure TExtrusionNode.SetScale(const Value: TVector2List);
+begin
+  FdScale.Send(Value);
+end;
+
+procedure TExtrusionNode.SetSpine(const Value: array of TVector3);
+begin
+  FdSpine.Send(Value);
+end;
+
+procedure TExtrusionNode.SetSpine(const Value: TVector3List);
+begin
+  FdSpine.Send(Value);
 end;
 
 {$endif read_implementation}

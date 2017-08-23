@@ -118,7 +118,7 @@ begin
    PosLightNode := TAbstractPositionalLightNode(Node);
    if PosLightNode.DistanceNeededForAttenuation then
     Attenuat := PosLightNode.CalculateAttenuation( PointsDistance(Point, Location) ) else
-    Attenuat := PosLightNode.CalculateAttenuation( Single(0.0) );
+    Attenuat := PosLightNode.CalculateAttenuation( 0.0 );
   end else
    Attenuat := 1;
 
@@ -166,12 +166,14 @@ begin
   {$endif}
 
   { Factors += diffuse factor }
-  Factors += (MaterialDiffuseColor * DiffuseTextureColor) *
+  Factors := Factors +
+    (MaterialDiffuseColor * DiffuseTextureColor) *
     (Node.FdIntensity.Value * TVector3.DotProduct(Normal, LightDirNorm));
 
   {$ifndef CAMERA_INDEP}
   { Factors += specular factor }
-  Factors += MaterialSpecularColor *
+  Factors := Factors +
+    MaterialSpecularColor *
     (Node.FdIntensity.Value *
       Power( Max(TVector3.DotProduct(Normal, CameraAndLightHalfway), Single(0.0)),
         MaterialShininessExp));

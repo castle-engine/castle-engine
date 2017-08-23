@@ -52,7 +52,8 @@ program plane_mirror_and_shadow;
 {$I castleconf.inc}
 
 uses SysUtils, Classes,
-  CastleVectors, CastleBoxes, X3DNodes, CastleGL, CastleWindow, CastleRenderer,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleBoxes, X3DNodes, CastleWindow, CastleRenderer,
   CastleClassUtils, CastleUtils, X3DLoad, CastleLog,
   CastleGLUtils, CastleScene, CastleCameras, CastleRenderingCamera, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleKeysMouse, CastleSceneManager,
@@ -238,8 +239,8 @@ var
     var
       SavedProjectionMatrix: TMatrix4;
     begin
-      SavedProjectionMatrix := ProjectionMatrix;
-      ProjectionMatrix := TMatrix4.Identity;
+      SavedProjectionMatrix := RenderContext.ProjectionMatrix;
+      RenderContext.ProjectionMatrix := TMatrix4.Identity;
 
       glPushMatrix;
         glLoadIdentity;
@@ -256,7 +257,7 @@ var
         glPopAttrib;
       glPopMatrix;
 
-      ProjectionMatrix := SavedProjectionMatrix;
+      RenderContext.ProjectionMatrix := SavedProjectionMatrix;
     end;
 
   begin

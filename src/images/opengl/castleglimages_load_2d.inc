@@ -295,7 +295,7 @@ begin
   {$ifdef OpenGLES} glCompressedTexImage2D {$else} glCompressedTexImage2DARB {$endif}
     (GL_TEXTURE_2D, Level, ImageGLInternalFormat(Image),
       Image.Width, Image.Height, 0, Image.Size, Image.RawPixels);
-  LoadedSize += Image.Size;
+  LoadedSize := LoadedSize + Image.Size;
 end;
 
 procedure CalculateImageRightSize(
@@ -351,7 +351,7 @@ var
       glTexImage2D(GL_TEXTURE_2D, Level, ImageInternalFormat,
         Image.Width, Image.Height, 0, ImageFormat, ImageGLType(Image),
         Image.RawPixels);
-      LoadedSize += Image.Size;
+      LoadedSize := LoadedSize + Image.Size;
 
       {$ifndef OpenGLES}
       if GLVersion.Mesa then glPopAttrib;
@@ -430,6 +430,7 @@ var
   end;
 
   {$ifndef OpenGLES}
+  {$ifdef CASTLE_OBJFPC}
   { Calls gluBuild2DMipmaps for given image.
     Takes care of OpenGL unpacking (alignment etc.).
     gluBuild2DMipmaps doesn't require size to be a power of 2, so no problems
@@ -441,9 +442,10 @@ var
       gluBuild2DMipmaps(GL_TEXTURE_2D, ImageInternalFormat,
         Image.Width, Image.Height, ImageFormat, ImageGLType(Image),
         Image.RawPixels);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
     finally AfterUnpackImage(Image) end;
   end;
+  {$endif CASTLE_OBJFPC}
   {$endif}
 
   procedure LoadMipmapped(const image: TCastleImage);
@@ -454,12 +456,12 @@ var
       glTexImage2DImage(Image, 0);
       { hardware-accelerated mipmap generation }
       GenerateMipmap(GL_TEXTURE_2D);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
     end else
-    {$ifndef OpenGLES}
-      gluBuild2DMipmapsImage(Image);
+    {$if defined(OpenGLES) or not defined(CASTLE_OBJFPC)}
+      raise ETextureLoadError.Create('Cannot load texture using gluBuild2DMipmapsImage. On modern GPUs and on OpenGLES the GenerateMipmap should always be available, so this should not be a problem.');
     {$else}
-      raise ETextureLoadError.Create('Cannot load texture on OpenGLES using gluBuild2DMipmapsImage. On OpenGLES, GenerateMipmap should always be available, so this should not happen.');
+      gluBuild2DMipmapsImage(Image);
     {$endif}
   end;
 
@@ -475,8 +477,8 @@ begin
   { bind the texture, set min, mag filters and wrap parameters }
   glBindTexture(GL_TEXTURE_2D, TextureId);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, Wrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, Wrap.Data[1]);
 
   { give the texture data }
   if Image is TCastleImage then
@@ -510,7 +512,7 @@ begin
       if not LoadMipmapsFromComposite(CompositeForMipmaps, false) then
       begin
         // GenerateMipmap(GL_TEXTURE_2D);
-        // LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
+        // LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
 
         { On Android doing GenerateMipmap on compressed images
           definitely fails. Tested on:

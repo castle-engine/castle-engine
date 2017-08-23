@@ -26,17 +26,31 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetMaxExtent: Single;
     procedure SetMaxExtent(const Value: Single);
   public
+    procedure SetLength(const Value: array of Single);
+    procedure SetLength(const Value: TSingleList);
     property MaxExtent: Single read GetMaxExtent write SetMaxExtent;
+    procedure SetString(const Value: array of string);
+    procedure SetString(const Value: TCastleStringList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTextNode ----------------------------------------------- }
+
+procedure TTextNode.SetLength(const Value: array of Single);
+begin
+  FdLength.Send(Value);
+end;
+
+procedure TTextNode.SetLength(const Value: TSingleList);
+begin
+  FdLength.Send(Value);
+end;
 
 function TTextNode.GetMaxExtent: Single;
 begin
@@ -46,6 +60,16 @@ end;
 procedure TTextNode.SetMaxExtent(const Value: Single);
 begin
   FdMaxExtent.Send(Value);
+end;
+
+procedure TTextNode.SetString(const Value: array of string);
+begin
+  FdString.Send(Value);
+end;
+
+procedure TTextNode.SetString(const Value: TCastleStringList);
+begin
+  FdString.Send(Value);
 end;
 
 {$endif read_implementation}

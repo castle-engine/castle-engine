@@ -20,7 +20,7 @@
     procedure CreateNode; override;
 
     { Event out } { }
-    private FEventIsActive: TSFBoolEvent;
+    strict private FEventIsActive: TSFBoolEvent;
     public property EventIsActive: TSFBoolEvent read FEventIsActive;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dfollowernode.inc}
@@ -30,13 +30,13 @@
   public
     procedure CreateNode; override;
 
-    private FFdTau: TSFTime;
+    strict private FFdTau: TSFTime;
     public property FdTau: TSFTime read FFdTau;
 
-    private FFdTolerance: TSFFloat;
+    strict private FFdTolerance: TSFFloat;
     public property FdTolerance: TSFFloat read FFdTolerance;
 
-    private FFdOrder: TSFInt32;
+    strict private FFdOrder: TSFInt32;
     public property FdOrder: TSFInt32 read FFdOrder;
 
     {$I auto_generated_node_helpers/x3dnodes_x3ddampernode.inc}
@@ -46,7 +46,7 @@
   public
     procedure CreateNode; override;
 
-    private FFdDuration: TSFTime;
+    strict private FFdDuration: TSFTime;
     public property FdDuration: TSFTime read FFdDuration;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dchasernode.inc}
@@ -59,21 +59,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFColorEvent;
+    strict private FEventSet_destination: TSFColorEvent;
     public property EventSet_destination: TSFColorEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFColorEvent;
+    strict private FEventSet_value: TSFColorEvent;
     public property EventSet_value: TSFColorEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFColorEvent;
+    strict private FEventValue_changed: TSFColorEvent;
     public property EventValue_changed: TSFColorEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFColor;
+    strict private FFdInitialDestination: TSFColor;
     public property FdInitialDestination: TSFColor read FFdInitialDestination;
 
-    private FFdInitialValue: TSFColor;
+    strict private FFdInitialValue: TSFColor;
     public property FdInitialValue: TSFColor read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_colordamper.inc}
@@ -86,21 +86,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TMFVec3fEvent;
+    strict private FEventSet_destination: TMFVec3fEvent;
     public property EventSet_destination: TMFVec3fEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TMFVec3fEvent;
+    strict private FEventSet_value: TMFVec3fEvent;
     public property EventSet_value: TMFVec3fEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TMFVec3fEvent;
+    strict private FEventValue_changed: TMFVec3fEvent;
     public property EventValue_changed: TMFVec3fEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TMFVec3f;
+    strict private FFdInitialDestination: TMFVec3f;
     public property FdInitialDestination: TMFVec3f read FFdInitialDestination;
 
-    private FFdInitialValue: TMFVec3f;
+    strict private FFdInitialValue: TMFVec3f;
     public property FdInitialValue: TMFVec3f read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_coordinatedamper.inc}
@@ -113,21 +113,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFRotationEvent;
+    strict private FEventSet_destination: TSFRotationEvent;
     public property EventSet_destination: TSFRotationEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFRotationEvent;
+    strict private FEventSet_value: TSFRotationEvent;
     public property EventSet_value: TSFRotationEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFRotationEvent;
+    strict private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFRotation;
+    strict private FFdInitialDestination: TSFRotation;
     public property FdInitialDestination: TSFRotation read FFdInitialDestination;
 
-    private FFdInitialValue: TSFRotation;
+    strict private FFdInitialValue: TSFRotation;
     public property FdInitialValue: TSFRotation read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_orientationchaser.inc}
@@ -140,21 +140,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFRotationEvent;
+    strict private FEventSet_destination: TSFRotationEvent;
     public property EventSet_destination: TSFRotationEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFRotationEvent;
+    strict private FEventSet_value: TSFRotationEvent;
     public property EventSet_value: TSFRotationEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFRotationEvent;
+    strict private FEventValue_changed: TSFRotationEvent;
     public property EventValue_changed: TSFRotationEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFRotation;
+    strict private FFdInitialDestination: TSFRotation;
     public property FdInitialDestination: TSFRotation read FFdInitialDestination;
 
-    private FFdInitialValue: TSFRotation;
+    strict private FFdInitialValue: TSFRotation;
     public property FdInitialValue: TSFRotation read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_orientationdamper.inc}
@@ -167,21 +167,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFVec3fEvent;
+    strict private FEventSet_destination: TSFVec3fEvent;
     public property EventSet_destination: TSFVec3fEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFVec3fEvent;
+    strict private FEventSet_value: TSFVec3fEvent;
     public property EventSet_value: TSFVec3fEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec3fEvent;
+    strict private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFVec3f;
+    strict private FFdInitialDestination: TSFVec3f;
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
 
-    private FFdInitialValue: TSFVec3f;
+    strict private FFdInitialValue: TSFVec3f;
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_positionchaser.inc}
@@ -194,21 +194,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFVec2fEvent;
+    strict private FEventSet_destination: TSFVec2fEvent;
     public property EventSet_destination: TSFVec2fEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFVec2fEvent;
+    strict private FEventSet_value: TSFVec2fEvent;
     public property EventSet_value: TSFVec2fEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec2fEvent;
+    strict private FEventValue_changed: TSFVec2fEvent;
     public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFVec2f;
+    strict private FFdInitialDestination: TSFVec2f;
     public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
 
-    private FFdInitialValue: TSFVec2f;
+    strict private FFdInitialValue: TSFVec2f;
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_positionchaser2d.inc}
@@ -221,21 +221,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFVec3fEvent;
+    strict private FEventSet_destination: TSFVec3fEvent;
     public property EventSet_destination: TSFVec3fEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFVec3fEvent;
+    strict private FEventSet_value: TSFVec3fEvent;
     public property EventSet_value: TSFVec3fEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec3fEvent;
+    strict private FEventValue_changed: TSFVec3fEvent;
     public property EventValue_changed: TSFVec3fEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFVec3f;
+    strict private FFdInitialDestination: TSFVec3f;
     public property FdInitialDestination: TSFVec3f read FFdInitialDestination;
 
-    private FFdInitialValue: TSFVec3f;
+    strict private FFdInitialValue: TSFVec3f;
     public property FdInitialValue: TSFVec3f read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_positiondamper.inc}
@@ -248,21 +248,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFVec2fEvent;
+    strict private FEventSet_destination: TSFVec2fEvent;
     public property EventSet_destination: TSFVec2fEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFVec2fEvent;
+    strict private FEventSet_value: TSFVec2fEvent;
     public property EventSet_value: TSFVec2fEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFVec2fEvent;
+    strict private FEventValue_changed: TSFVec2fEvent;
     public property EventValue_changed: TSFVec2fEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFVec2f;
+    strict private FFdInitialDestination: TSFVec2f;
     public property FdInitialDestination: TSFVec2f read FFdInitialDestination;
 
-    private FFdInitialValue: TSFVec2f;
+    strict private FFdInitialValue: TSFVec2f;
     public property FdInitialValue: TSFVec2f read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_positiondamper2d.inc}
@@ -275,21 +275,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TSFFloatEvent;
+    strict private FEventSet_destination: TSFFloatEvent;
     public property EventSet_destination: TSFFloatEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TSFFloatEvent;
+    strict private FEventSet_value: TSFFloatEvent;
     public property EventSet_value: TSFFloatEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TSFFloatEvent;
+    strict private FEventValue_changed: TSFFloatEvent;
     public property EventValue_changed: TSFFloatEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TSFFloat;
+    strict private FFdInitialDestination: TSFFloat;
     public property FdInitialDestination: TSFFloat read FFdInitialDestination;
 
-    private FFdInitialValue: TSFFloat;
+    strict private FFdInitialValue: TSFFloat;
     public property FdInitialValue: TSFFloat read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_scalarchaser.inc}
@@ -302,21 +302,21 @@
     class function URNMatching(const URN: string): boolean; override;
 
     { Event in } { }
-    private FEventSet_destination: TMFVec2fEvent;
+    strict private FEventSet_destination: TMFVec2fEvent;
     public property EventSet_destination: TMFVec2fEvent read FEventSet_destination;
 
     { Event in } { }
-    private FEventSet_value: TMFVec2fEvent;
+    strict private FEventSet_value: TMFVec2fEvent;
     public property EventSet_value: TMFVec2fEvent read FEventSet_value;
 
     { Event out } { }
-    private FEventValue_changed: TMFVec2fEvent;
+    strict private FEventValue_changed: TMFVec2fEvent;
     public property EventValue_changed: TMFVec2fEvent read FEventValue_changed;
 
-    private FFdInitialDestination: TMFVec2f;
+    strict private FFdInitialDestination: TMFVec2f;
     public property FdInitialDestination: TMFVec2f read FFdInitialDestination;
 
-    private FFdInitialValue: TMFVec2f;
+    strict private FFdInitialValue: TMFVec2f;
     public property FdInitialValue: TMFVec2f read FFdInitialValue;
 
     {$I auto_generated_node_helpers/x3dnodes_texcoorddamper2d.inc}

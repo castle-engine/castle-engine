@@ -29,8 +29,6 @@ implementation
 
 uses CastleUtils, CastleInternalVorbisFile, CastleinternalvorbisCodec, CTypes;
 
-{$I castleinternalvorbisfile_conf.inc}
-
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
   I (Michalis) heavily modified it (e.g. to allow exceptions raising in case of
@@ -47,7 +45,7 @@ uses CastleUtils, CastleInternalVorbisFile, CastleinternalvorbisCodec, CTypes;
   this is crucial for me. So I will continue using my own CastleInternalVorbisFile unit. }
 
 function VorbisDecoder_read_func(ptr: Pointer;
-  Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; libvorbisfile_decl;
+  Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; cdecl;
 { Returns amount of items completely read successfully, returns indeterminate
   value on error. The value of a partially read item cannot be determined. Does
   not lead to valid feof or ferror responses, because they are not possible to
@@ -67,7 +65,7 @@ begin
 end;
 
 function VorbisDecoder_seek_func(DataSource: Pointer;
-  offset: Int64; whence: CInt): CInt; libvorbisfile_decl;
+  offset: Int64; whence: CInt): CInt; cdecl;
 const
   SEEK_SET = 0;
   SEEK_CUR = 1;
@@ -89,13 +87,13 @@ begin
 end;
 
 function VorbisDecoder_close_func(DataSource: Pointer): CInt;
-  libvorbisfile_decl;
+  cdecl;
 begin
   Result := 0;
 end;
 
 function VorbisDecoder_tell_func(DataSource: Pointer): CLong;
-  libvorbisfile_decl;
+  cdecl;
 begin
   Result := TStream(DataSource).Position;
 end;

@@ -30,6 +30,8 @@
       <Filename Value="${NAME}"/>
     </Target>
     <SearchPaths>
+      <IncludeFiles Value="${SEARCH_PATHS}"/>
+      <OtherUnitFiles Value="${SEARCH_PATHS}"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/${DOLLAR}(TargetCPU)-${DOLLAR}(TargetOS)"/>
     </SearchPaths>
     <Other>

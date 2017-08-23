@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBackTexture: TAbstractTextureNode;
     procedure SetBackTexture(const Value: TAbstractTextureNode);
     function GetBottomTexture: TAbstractTextureNode;

@@ -26,10 +26,12 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetNumComponents: Integer;
     procedure SetNumComponents(const Value: Integer);
   public
+    procedure SetValue(const Value: array of Single);
+    procedure SetValue(const Value: TSingleList);
     property NumComponents: Integer read GetNumComponents write SetNumComponents;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TFloatVertexAttributeNode ----------------------------------------------- }
+
+procedure TFloatVertexAttributeNode.SetValue(const Value: array of Single);
+begin
+  FdValue.Send(Value);
+end;
+
+procedure TFloatVertexAttributeNode.SetValue(const Value: TSingleList);
+begin
+  FdValue.Send(Value);
+end;
 
 function TFloatVertexAttributeNode.GetNumComponents: Integer;
 begin

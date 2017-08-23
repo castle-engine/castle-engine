@@ -77,9 +77,11 @@ type
 }
 function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
 
-{ Global random function. }
-function Rnd: single;
-function Rnd(N: LongInt): LongInt;
+{ Single random instance. }
+function Rand: TCastleRandom;
+
+function Rnd: single; deprecated 'use Rand.Random';
+function Rnd(N: LongInt): LongInt; deprecated 'use Rand.Random';
 
 implementation
 
@@ -406,6 +408,12 @@ begin
 end;
 
 var GlobalRandom: TCastleRandom;
+
+function Rand: TCastleRandom;
+begin
+  if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
+  Result := GlobalRandom;
+end;
 
 function Rnd: Single;
 begin

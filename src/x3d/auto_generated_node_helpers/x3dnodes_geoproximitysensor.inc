@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetGeoCenter: TVector3Double;
     procedure SetGeoCenter(const Value: TVector3Double);
     function GetGeoOrigin: TGeoOriginNode;
@@ -34,6 +34,8 @@
   public
     property GeoCenter: TVector3Double read GetGeoCenter write SetGeoCenter;
     property GeoOrigin: TGeoOriginNode read GetGeoOrigin write SetGeoOrigin;
+    procedure SetGeoSystem(const Value: array of string);
+    procedure SetGeoSystem(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -62,6 +64,16 @@ end;
 procedure TGeoProximitySensorNode.SetGeoOrigin(const Value: TGeoOriginNode);
 begin
   FdGeoOrigin.Send(Value);
+end;
+
+procedure TGeoProximitySensorNode.SetGeoSystem(const Value: array of string);
+begin
+  FdGeoSystem.Send(Value);
+end;
+
+procedure TGeoProximitySensorNode.SetGeoSystem(const Value: TCastleStringList);
+begin
+  FdGeoSystem.Send(Value);
 end;
 
 {$endif read_implementation}

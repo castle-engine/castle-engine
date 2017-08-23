@@ -104,6 +104,49 @@ private
 
 {$I castlewindow_winapi_menu.inc}
 
+{ WMSizing ------------------------------------------------------------------- }
+
+type
+  { Handling WMSizing message is a way to force minimum/maximum form
+    sizes under WinAPI. }
+  TWMSizing = record
+    Msg: Cardinal;    {< wm_SIZING }
+    fwSide: Longint;  {< const WMSZ_xxx }
+    lprc: PRect;      {< rectangle with window sizes }
+    Result: LongBool; {< should return longbool(true) }
+  end;
+
+procedure WMSizingHandler(var Msg:TWMSizing;
+  const minWidth, minHeight, maxWidth, maxHeight:integer); overload;
+var
+  w, h:integer;
+begin
+  assert(minWidth<=maxWidth);
+  assert(minHeight<=maxHeight);
+  with msg.lprc^ do
+  begin
+    w := right-left;
+    if w<minWidth then right := left+minWidth else
+      if w>maxWidth then right := left+maxWidth;
+    h := bottom-top;
+    if h<minHeight then bottom := top+minHeight else
+      if h>maxHeight then bottom := top+maxHeight;
+  end;
+  msg.result := true;
+end;
+
+function WMSizingHandler(const lParm:LPARAM; const wParm:WPARAM;
+  const minWidth, minHeight, maxWidth, maxHeight:integer):LRESULT; overload;
+var
+  msg: TWMSizing;
+begin
+  msg.Msg := WM_SIZING;
+  msg.fwSide := wParm;
+  msg.lprc := PRect(lParm);
+  WMSizingHandler(msg, minWidth, minHeight, maxWidth, maxHeight);
+  result := LRESULT(msg.Result);
+end;
+
 { TCastleWindowCustom ------------------------------------------------- }
 
 const

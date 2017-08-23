@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCenter: TVector3;
     procedure SetCenter(const Value: TVector3);
     function GetLimitOrientation: TVector4;
@@ -44,11 +44,21 @@
   public
     property Center: TVector3 read GetCenter write SetCenter;
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
+    procedure SetLlimit(const Value: array of Single);
+    procedure SetLlimit(const Value: TSingleList);
     property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4 read GetRotation write SetRotation;
     property Scale: TVector3 read GetScale write SetScale;
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    procedure SetSkinCoordIndex(const Value: array of LongInt);
+    procedure SetSkinCoordIndex(const Value: TLongIntList);
+    procedure SetSkinCoordWeight(const Value: array of Single);
+    procedure SetSkinCoordWeight(const Value: TSingleList);
+    procedure SetStiffness(const Value: array of Single);
+    procedure SetStiffness(const Value: TSingleList);
     property Translation: TVector3 read GetTranslation write SetTranslation;
+    procedure SetUlimit(const Value: array of Single);
+    procedure SetUlimit(const Value: TSingleList);
 
 {$endif read_interface}
 
@@ -74,6 +84,16 @@ end;
 procedure THAnimJointNode.SetLimitOrientation(const Value: TVector4);
 begin
   FdLimitOrientation.Send(Value);
+end;
+
+procedure THAnimJointNode.SetLlimit(const Value: array of Single);
+begin
+  FdLlimit.Send(Value);
+end;
+
+procedure THAnimJointNode.SetLlimit(const Value: TSingleList);
+begin
+  FdLlimit.Send(Value);
 end;
 
 function THAnimJointNode.GetNameField: string;
@@ -116,6 +136,36 @@ begin
   FdScaleOrientation.Send(Value);
 end;
 
+procedure THAnimJointNode.SetSkinCoordIndex(const Value: array of LongInt);
+begin
+  FdSkinCoordIndex.Send(Value);
+end;
+
+procedure THAnimJointNode.SetSkinCoordIndex(const Value: TLongIntList);
+begin
+  FdSkinCoordIndex.Send(Value);
+end;
+
+procedure THAnimJointNode.SetSkinCoordWeight(const Value: array of Single);
+begin
+  FdSkinCoordWeight.Send(Value);
+end;
+
+procedure THAnimJointNode.SetSkinCoordWeight(const Value: TSingleList);
+begin
+  FdSkinCoordWeight.Send(Value);
+end;
+
+procedure THAnimJointNode.SetStiffness(const Value: array of Single);
+begin
+  FdStiffness.Send(Value);
+end;
+
+procedure THAnimJointNode.SetStiffness(const Value: TSingleList);
+begin
+  FdStiffness.Send(Value);
+end;
+
 function THAnimJointNode.GetTranslation: TVector3;
 begin
   Result := FdTranslation.Value;
@@ -124,6 +174,16 @@ end;
 procedure THAnimJointNode.SetTranslation(const Value: TVector3);
 begin
   FdTranslation.Send(Value);
+end;
+
+procedure THAnimJointNode.SetUlimit(const Value: array of Single);
+begin
+  FdUlimit.Send(Value);
+end;
+
+procedure THAnimJointNode.SetUlimit(const Value: TSingleList);
+begin
+  FdUlimit.Send(Value);
 end;
 
 {$endif read_implementation}

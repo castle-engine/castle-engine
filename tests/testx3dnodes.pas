@@ -16,14 +16,16 @@
 unit TestX3DNodes;
 
 {$I tests.inc}
+{$I castleconf.inc}
 
 interface
 
 uses
-  Classes, SysUtils, fpcunit, testutils, testregistry, CastleVectors, X3DNodes;
+  Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase,
+  CastleVectors, X3DNodes;
 
 type
-  TTestX3DNodes = class(TTestCase)
+  TTestX3DNodes = class(TCastleBaseTestCase)
   private
     procedure WeakLinkUnusedWarning(Sender: TObject; const Category, S: string);
   published
@@ -95,14 +97,16 @@ type
     procedure TestFontStyle;
     procedure TestWeakLinkUnusedWarning;
     procedure TestKeepExisting;
+    procedure TestAttenuation;
+    procedure TestAddChildren;
   end;
 
 implementation
 
 uses Generics.Collections,
   CastleUtils, CastleInternalX3DLexer, CastleClassUtils, CastleFilesUtils,
-  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, CastleApplicationProperties,
-  CastleTextureImages;
+  X3DFields, CastleTimeUtils, CastleDownload, X3DLoad, X3DTime,
+  CastleApplicationProperties, CastleTextureImages;
 
 { TNode* ------------------------------------------------------------ }
 
@@ -162,7 +166,7 @@ type
     Integer: Int64; //< for vtInteger
   end;
 
-  TX3DTokenInfoList = class(specialize TObjectList<TX3DTokenInfo>)
+  TX3DTokenInfoList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DTokenInfo>)
     procedure AssertEqual(const TestCase: TTestCase; SecondValue: TX3DTokenInfoList);
     procedure ReadFromFile(const FileName: string);
   end;
@@ -591,11 +595,11 @@ begin
 
     for I := 0 to AllowedGeometryNodes.Count - 1 do
     try
-      AssertTrue(AllowedGeometryNodes[I].InheritsFrom(TAbstractX3DGeometryNode));
+      AssertTrue(AllowedGeometryNodes[I].InheritsFrom(TAbstractGeometryNode));
     except
       on E: Exception do
       begin
-        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TAbstractX3DGeometryNode');
+        Writeln('Failed on ', AllowedGeometryNodes[I].ClassName, ' is TAbstractGeometryNode');
         raise;
       end;
     end;
@@ -1730,8 +1734,8 @@ const
     Touch.FdDescription.Value := ValidString;
 
     Result := TX3DRootNode.Create;
-    Result.FdChildren.Add(Shape);
-    Result.FdChildren.Add(Touch);
+    Result.AddChildren(Shape);
+    Result.AddChildren(Touch);
   end;
 
   procedure Assertions(Node: TX3DRootNode);
@@ -2058,6 +2062,81 @@ begin
   { This *will* cause SIGSEGV without KeepExisting := 1 above.
     But it will work fine with KeepExisting := 1 above. }
   FreeAndNil(TextureProperties);
+end;
+
+procedure TTestX3DNodes.TestAttenuation;
+var
+  L: TPointLightNode;
+begin
+  L := TPointLightNode.Create;
+  try
+    AssertFalse(L.DistanceNeededForAttenuation);
+    AssertEquals(1, L.CalculateAttenuation(123));
+
+    { VRML 97 specification says that attenuation = (0, 0, 0) should
+      behave like (1, 0, 0). }
+    L.Attenuation := TVector3.Zero;
+    AssertFalse(L.DistanceNeededForAttenuation);
+    AssertEquals(1, L.CalculateAttenuation(123));
+
+    L.Attenuation := Vector3(1, 1, 1);
+    AssertTrue(L.DistanceNeededForAttenuation);
+    AssertSameValue(1 / (1 + 5 + Sqr(5)), L.CalculateAttenuation(5), 0.001);
+  finally FreeAndNil(L) end;
+end;
+
+procedure TTestX3DNodes.TestAddChildren;
+var
+  M: TMaterialNode;
+  S: TShapeNode;
+  G: TGroupNode;
+  FieldToSend: TMFNode;
+begin
+  G := TGroupNode.Create;
+  try
+    AssertEquals(0, G.FdChildren.Count);
+
+    // adding using AddChildren method works
+
+    S := TShapeNode.Create;
+    G.AddChildren([S, S]);
+    AssertEquals(1, G.FdChildren.Count);
+    G.AddChildren([S, S, S]);
+    AssertEquals(1, G.FdChildren.Count);
+    // only one instance of TShapeNode is added
+
+    S := TShapeNode.Create;
+    G.AddChildren([S, S]);
+    AssertEquals(2, G.FdChildren.Count);
+
+    S := TShapeNode.Create;
+    G.AddChildren(S);
+    AssertEquals(3, G.FdChildren.Count);
+    G.RemoveChildren(S);
+    AssertEquals(2, G.FdChildren.Count);
+
+    FieldToSend := TMFNode.CreateUndefined(nil, 'temporary', false);
+    try
+      S := TShapeNode.Create;
+      FieldToSend.Add(S);
+      S := TShapeNode.Create;
+      FieldToSend.Add(S);
+      G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
+
+      // adding through EventAddChildren works
+      AssertEquals(4, G.FdChildren.Count);
+    finally FreeAndNil(FieldToSend) end;
+
+    FieldToSend := TMFNode.CreateUndefined(nil, 'temporary', false);
+    try
+      M := TMaterialNode.Create;
+      FieldToSend.Add(M);
+      G.EventAddChildren.Send(FieldToSend, TX3DTime.Oldest);
+
+      // adding Material is ignored, not a child node
+      AssertEquals(4, G.FdChildren.Count);
+    finally FreeAndNil(FieldToSend) end;
+  finally FreeAndNil(G) end;
 end;
 
 initialization

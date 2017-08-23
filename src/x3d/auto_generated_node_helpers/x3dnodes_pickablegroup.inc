@@ -26,10 +26,12 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetPickable: boolean;
     procedure SetPickable(const Value: boolean);
   public
+    procedure SetObjectType(const Value: array of string);
+    procedure SetObjectType(const Value: TCastleStringList);
     property Pickable: boolean read GetPickable write SetPickable;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TPickableGroupNode ----------------------------------------------- }
+
+procedure TPickableGroupNode.SetObjectType(const Value: array of string);
+begin
+  FdObjectType.Send(Value);
+end;
+
+procedure TPickableGroupNode.SetObjectType(const Value: TCastleStringList);
+begin
+  FdObjectType.Send(Value);
+end;
 
 function TPickableGroupNode.GetPickable: boolean;
 begin

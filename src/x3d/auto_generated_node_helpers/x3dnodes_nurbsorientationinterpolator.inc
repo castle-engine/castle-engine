@@ -26,17 +26,47 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
+    function GetControlPoint: TAbstractCoordinateNode;
+    procedure SetControlPoint(const Value: TAbstractCoordinateNode);
     function GetOrder: Integer;
     procedure SetOrder(const Value: Integer);
   public
+    property ControlPoint: TAbstractCoordinateNode read GetControlPoint write SetControlPoint;
+    procedure SetKnot(const Value: array of Double);
+    procedure SetKnot(const Value: TDoubleList);
     property Order: Integer read GetOrder write SetOrder;
+    procedure SetWeight(const Value: array of Double);
+    procedure SetWeight(const Value: TDoubleList);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TNurbsOrientationInterpolatorNode ----------------------------------------------- }
+
+function TNurbsOrientationInterpolatorNode.GetControlPoint: TAbstractCoordinateNode;
+begin
+  if FdControlPoint.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdControlPoint.Value)
+  else
+    Result := nil;
+end;
+
+procedure TNurbsOrientationInterpolatorNode.SetControlPoint(const Value: TAbstractCoordinateNode);
+begin
+  FdControlPoint.Send(Value);
+end;
+
+procedure TNurbsOrientationInterpolatorNode.SetKnot(const Value: array of Double);
+begin
+  FdKnot.Send(Value);
+end;
+
+procedure TNurbsOrientationInterpolatorNode.SetKnot(const Value: TDoubleList);
+begin
+  FdKnot.Send(Value);
+end;
 
 function TNurbsOrientationInterpolatorNode.GetOrder: Integer;
 begin
@@ -46,6 +76,16 @@ end;
 procedure TNurbsOrientationInterpolatorNode.SetOrder(const Value: Integer);
 begin
   FdOrder.Send(Value);
+end;
+
+procedure TNurbsOrientationInterpolatorNode.SetWeight(const Value: array of Double);
+begin
+  FdWeight.Send(Value);
+end;
+
+procedure TNurbsOrientationInterpolatorNode.SetWeight(const Value: TDoubleList);
+begin
+  FdWeight.Send(Value);
 end;
 
 {$endif read_implementation}

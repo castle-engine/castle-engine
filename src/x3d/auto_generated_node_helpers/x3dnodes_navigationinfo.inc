@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetHeadlight: boolean;
     procedure SetHeadlight(const Value: boolean);
     function GetSpeed: Single;
@@ -36,9 +36,15 @@
     function GetVisibilityLimit: Single;
     procedure SetVisibilityLimit(const Value: Single);
   public
+    procedure SetAvatarSize(const Value: array of Single);
+    procedure SetAvatarSize(const Value: TSingleList);
     property Headlight: boolean read GetHeadlight write SetHeadlight;
     property Speed: Single read GetSpeed write SetSpeed;
     property TransitionTime: TFloatTime read GetTransitionTime write SetTransitionTime;
+    procedure SetTransitionType(const Value: array of string);
+    procedure SetTransitionType(const Value: TCastleStringList);
+    procedure SetType(const Value: array of string);
+    procedure SetType(const Value: TCastleStringList);
     property VisibilityLimit: Single read GetVisibilityLimit write SetVisibilityLimit;
 
 {$endif read_interface}
@@ -46,6 +52,16 @@
 {$ifdef read_implementation}
 
 { TNavigationInfoNode ----------------------------------------------- }
+
+procedure TNavigationInfoNode.SetAvatarSize(const Value: array of Single);
+begin
+  FdAvatarSize.Send(Value);
+end;
+
+procedure TNavigationInfoNode.SetAvatarSize(const Value: TSingleList);
+begin
+  FdAvatarSize.Send(Value);
+end;
 
 function TNavigationInfoNode.GetHeadlight: boolean;
 begin
@@ -75,6 +91,26 @@ end;
 procedure TNavigationInfoNode.SetTransitionTime(const Value: TFloatTime);
 begin
   FdTransitionTime.Send(Value);
+end;
+
+procedure TNavigationInfoNode.SetTransitionType(const Value: array of string);
+begin
+  FdTransitionType.Send(Value);
+end;
+
+procedure TNavigationInfoNode.SetTransitionType(const Value: TCastleStringList);
+begin
+  FdTransitionType.Send(Value);
+end;
+
+procedure TNavigationInfoNode.SetType(const Value: array of string);
+begin
+  FdType.Send(Value);
+end;
+
+procedure TNavigationInfoNode.SetType(const Value: TCastleStringList);
+begin
+  FdType.Send(Value);
 end;
 
 function TNavigationInfoNode.GetVisibilityLimit: Single;

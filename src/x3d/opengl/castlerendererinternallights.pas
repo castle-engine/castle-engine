@@ -80,7 +80,9 @@ type
 
 implementation
 
-uses SysUtils, CastleUtils, Math, CastleRenderingCamera, CastleGL;
+uses SysUtils, Math,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleUtils, CastleRenderingCamera;
 
 { Set and enable OpenGL light properties based on VRML/X3D light.
 

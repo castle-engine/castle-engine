@@ -63,17 +63,34 @@ type
 
 implementation
 
-uses Math;
+uses Math,
+  CastleUtils;
 
 procedure TCastleBaseTestCase.AssertMatrixEquals(
   const Expected, Actual: TMatrix4; const Epsilon: Single);
+var
+  DifferenceEpsilon: Single;
+  I, J: TMatrix4.TIndex;
 begin
   if not TMatrix4.Equals(Expected, Actual, Epsilon) then
-    Fail('Matrices (TMatrix4) are not equal:' + LineEnding +
+  begin
+    DifferenceEpsilon := 0;
+    for I in TMatrix4.TIndex do
+      for J in TMatrix4.TIndex do
+        MaxVar(DifferenceEpsilon, Abs(Expected[I, J] - Actual[I, J]));
+
+    Fail(Format('Matrices (TMatrix4) are not equal:' + LineEnding +
       '  Expected:' + LineEnding +
-      Expected.ToRawString('    ') + LineEnding +
+      '%s' + LineEnding +
       '  Actual:' + LineEnding +
-      Actual.ToRawString('    '));
+      '%s' + LineEnding +
+      '  The epsilon to ignore the difference would need to be >= %.10f, but is %.10f',
+      [Expected.ToRawString('    '),
+       Actual.ToRawString('    '),
+       DifferenceEpsilon,
+       Epsilon
+      ]));
+  end;
 end;
 
 procedure TCastleBaseTestCase.AssertVectorEquals(
@@ -251,8 +268,8 @@ begin
   AssertEquals(Expected.Width, Actual.Width);
   AssertEquals(Expected.Height, Actual.Height);
   AssertEquals(Expected.Depth, Actual.Depth);
-  ExpectedPtr := Expected.AlphaPixels;
-  ActualPtr := Actual.AlphaPixels;
+  ExpectedPtr := Expected.Pixels;
+  ActualPtr := Actual.Pixels;
   for I := 1 to Actual.Width * Actual.Height * Actual.Depth do
   begin
     AssertVectorEquals(ExpectedPtr^, ActualPtr^);

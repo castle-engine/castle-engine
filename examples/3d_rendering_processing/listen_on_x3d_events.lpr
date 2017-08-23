@@ -29,7 +29,7 @@
 
   Logs TouchSensor clicks on the console. }
 
-{$ifdef Windows}{$apptype CONSOLE}{$endif}
+{$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
 uses Classes,SysUtils,
   X3DNodes, X3DFields, X3DTIme, CastleWindow, CastleSceneCore, CastleScene;
@@ -84,8 +84,8 @@ begin
   TouchSensor.EventIsActive.OnReceive.Add(@EventListener.ReceivedIsActive);
 
   Root := TX3DRootNode.Create;
-  Root.FdChildren.Add(Shape);
-  Root.FdChildren.Add(TouchSensor);
+  Root.AddChildren(Shape);
+  Root.AddChildren(TouchSensor);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(Root, true);

@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAmbientIntensity: Single;
     procedure SetAmbientIntensity(const Value: Single);
     function GetColor: TCastleColorRGB;

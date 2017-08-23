@@ -19,7 +19,7 @@
 
   { Abstract type from which all backgrounds inherit. }
   TAbstractBackgroundNode = class(TAbstractBindableNode)
-  private
+  strict private
     procedure EventSet_BindReceive(
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
   protected
@@ -38,25 +38,25 @@
       the returned node is always used, and remains managed by parent node). }
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; virtual; abstract;
 
-    private FFdGroundAngle: TMFFloat;
+    strict private FFdGroundAngle: TMFFloat;
     public property FdGroundAngle: TMFFloat read FFdGroundAngle;
 
-    private FFdGroundColor: TMFColor;
+    strict private FFdGroundColor: TMFColor;
     public property FdGroundColor: TMFColor read FFdGroundColor;
 
-    private FFdSkyAngle: TMFFloat;
+    strict private FFdSkyAngle: TMFFloat;
     public property FdSkyAngle: TMFFloat read FFdSkyAngle;
 
-    private FFdSkyColor: TMFColor;
+    strict private FFdSkyColor: TMFColor;
     public property FdSkyColor: TMFColor read FFdSkyColor;
 
-    private FFdTransparency: TSFFloat;
+    strict private FFdTransparency: TSFFloat;
     public property FdTransparency: TSFFloat read FFdTransparency;
 
-    private FFdShaders: TMFNodeShaders;
+    strict private FFdShaders: TMFNodeShaders;
     public property FdShaders: TMFNodeShaders read FFdShaders;
 
-    private FFdEffects: TMFNode;
+    strict private FFdEffects: TMFNode;
     public property FdEffects: TMFNode read FFdEffects;
 
     function TransformRotation: TMatrix4;
@@ -100,22 +100,22 @@
     class function URNMatching(const URN: string): boolean; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
-    private FFdBackUrl: TMFString;
+    strict private FFdBackUrl: TMFString;
     public property FdBackUrl: TMFString read FFdBackUrl;
 
-    private FFdBottomUrl: TMFString;
+    strict private FFdBottomUrl: TMFString;
     public property FdBottomUrl: TMFString read FFdBottomUrl;
 
-    private FFdFrontUrl: TMFString;
+    strict private FFdFrontUrl: TMFString;
     public property FdFrontUrl: TMFString read FFdFrontUrl;
 
-    private FFdLeftUrl: TMFString;
+    strict private FFdLeftUrl: TMFString;
     public property FdLeftUrl: TMFString read FFdLeftUrl;
 
-    private FFdRightUrl: TMFString;
+    strict private FFdRightUrl: TMFString;
     public property FdRightUrl: TMFString read FFdRightUrl;
 
-    private FFdTopUrl: TMFString;
+    strict private FFdTopUrl: TMFString;
     public property FdTopUrl: TMFString read FFdTopUrl;
 
     {$I auto_generated_node_helpers/x3dnodes_background.inc}
@@ -124,7 +124,7 @@
   { Simulate atmospheric fog effects (for the whole scene) by blending
     with the fog colour, based on the distance from the viewer. }
   TFogNode = class(TAbstractBindableNode, IAbstractFogObject)
-  private
+  strict private
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
     function GetFdvisibilityRange: TSFFloat;
@@ -140,29 +140,29 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    private FFdColor: TSFColor;
+    strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
 
-    private FFdFogType: TSFString;
+    strict private FFdFogType: TSFString;
     public property FdFogType: TSFString read FFdFogType;
 
-    private FFdVisibilityRange: TSFFloat;
+    strict private FFdVisibilityRange: TSFFloat;
     public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
 
     { Fields below are Kambi's fog extensions, see
       http://castle-engine.sourceforge.net/x3d_extensions.php#ext_fog_volumetric
 
       @groupBegin }
-    private FFdVolumetric: TSFBool;
+    strict private FFdVolumetric: TSFBool;
     public property FdVolumetric: TSFBool read FFdVolumetric;
 
-    private FFdVolumetricDirection: TSFVec3f;
+    strict private FFdVolumetricDirection: TSFVec3f;
     public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
 
-    private FFdVolumetricVisibilityStart: TSFFloat;
+    strict private FFdVolumetricVisibilityStart: TSFFloat;
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
 
-    private FFdAlternative: TSFNode;
+    strict private FFdAlternative: TSFNode;
     public property FdAlternative: TSFNode read FFdAlternative;
     { @groupEnd }
 
@@ -195,7 +195,7 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdDepth: TMFFloat;
+    strict private FFdDepth: TMFFloat;
     public property FdDepth: TMFFloat read FFdDepth;
 
     {$I auto_generated_node_helpers/x3dnodes_fogcoordinate.inc}
@@ -206,7 +206,7 @@
     This is the "local" version of the @link(TFogNode), this affects
     only the sibling nodes of the @code(LocalFog) node, not the whole scene. }
   TLocalFogNode = class(TAbstractChildNode, IAbstractFogObject)
-  private
+  strict private
     FTransformScale: Single;
     function GetFdcolor: TSFColor;
     function GetFdfogType: TSFString;
@@ -222,29 +222,29 @@
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    private FFdColor: TSFColor;
+    strict private FFdColor: TSFColor;
     public property FdColor: TSFColor read FFdColor;
 
-    private FFdEnabled: TSFBool;
+    strict private FFdEnabled: TSFBool;
     public property FdEnabled: TSFBool read FFdEnabled;
 
-    private FFdFogType: TSFString;
+    strict private FFdFogType: TSFString;
     public property FdFogType: TSFString read FFdFogType;
 
-    private FFdVisibilityRange: TSFFloat;
+    strict private FFdVisibilityRange: TSFFloat;
     public property FdVisibilityRange: TSFFloat read FFdVisibilityRange;
 
     { Fields below are Kambi's fog extensions, see
       http://castle-engine.sourceforge.net/x3d_extensions.php#ext_fog_volumetric
 
       @groupBegin }
-    private FFdVolumetric: TSFBool;
+    strict private FFdVolumetric: TSFBool;
     public property FdVolumetric: TSFBool read FFdVolumetric;
 
-    private FFdVolumetricDirection: TSFVec3f;
+    strict private FFdVolumetricDirection: TSFVec3f;
     public property FdVolumetricDirection: TSFVec3f read FFdVolumetricDirection;
 
-    private FFdVolumetricVisibilityStart: TSFFloat;
+    strict private FFdVolumetricVisibilityStart: TSFFloat;
     public property FdVolumetricVisibilityStart: TSFFloat read FFdVolumetricVisibilityStart;
     { @groupEnd }
 
@@ -264,22 +264,22 @@
     class function URNMatching(const URN: string): boolean; override;
     function Texture(const Side: TBackgroundSide): TAbstractTextureNode; override;
 
-    private FFdBackTexture: TSFNode;
+    strict private FFdBackTexture: TSFNode;
     public property FdBackTexture: TSFNode read FFdBackTexture;
 
-    private FFdBottomTexture: TSFNode;
+    strict private FFdBottomTexture: TSFNode;
     public property FdBottomTexture: TSFNode read FFdBottomTexture;
 
-    private FFdFrontTexture: TSFNode;
+    strict private FFdFrontTexture: TSFNode;
     public property FdFrontTexture: TSFNode read FFdFrontTexture;
 
-    private FFdLeftTexture: TSFNode;
+    strict private FFdLeftTexture: TSFNode;
     public property FdLeftTexture: TSFNode read FFdLeftTexture;
 
-    private FFdRightTexture: TSFNode;
+    strict private FFdRightTexture: TSFNode;
     public property FdRightTexture: TSFNode read FFdRightTexture;
 
-    private FFdTopTexture: TSFNode;
+    strict private FFdTopTexture: TSFNode;
     public property FdTopTexture: TSFNode read FFdTopTexture;
 
     {$I auto_generated_node_helpers/x3dnodes_texturebackground.inc}
@@ -330,7 +330,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -492,7 +492,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add(@EventSet_BindReceive);
+  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 class function TFogNode.ClassX3DType: string;
@@ -624,7 +624,7 @@ begin
         - Distance = FogVolumetricVisibilityStart + X -> X
           (so that Distance = FogVolumetricVisibilityStart +
           FogVisibilityRangeScaled -> FogVisibilityRangeScaled) }
-      Distance -= FogVolumetricVisibilityStart;
+      Distance := Distance - FogVolumetricVisibilityStart;
 
       { When Distance < 0 our intention is to have no fog.
         So Distance < 0 should be equivalent to Distance = 0. }

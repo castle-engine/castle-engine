@@ -32,7 +32,7 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector2Byte = (Data: (0, 0));
     {$endif}
@@ -49,7 +49,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector2Byte): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector2Byte; static; inline;
     {$endif}
   end;
@@ -67,7 +67,7 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector3Byte = (Data: (0, 0, 0));
     {$endif}
@@ -85,7 +85,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector3Byte): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector3Byte; static; inline;
     {$endif}
   end;
@@ -103,7 +103,7 @@ type
   public
     var
       Data: array [TIndex] of Byte;
-    {$ifndef BUGGY_ZERO_CONSTANT}
+    {$ifdef ENABLE_SELF_RECORD_CONSTANTS}
     const
       Zero: TVector4Byte = (Data: (0, 0, 0, 0));
     {$endif}
@@ -122,7 +122,7 @@ type
     function IsZero: boolean; inline;
     class function Equals(const V1, V2: TVector4Byte): boolean; static; inline;
 
-    {$ifdef BUGGY_ZERO_CONSTANT}
+    {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
     class function Zero: TVector4Byte; static;
     {$endif}
   end;
@@ -131,16 +131,16 @@ type
   PVector3Byte = ^TVector3Byte;
   PVector4Byte = ^TVector4Byte;
 
-  TArray_Vector2Byte = packed array [0..MaxInt div SizeOf(TVector2Byte)-1] of TVector2Byte;
-  PArray_Vector2Byte = ^TArray_Vector2Byte;
-  TArray_Vector3Byte = packed array [0..MaxInt div SizeOf(TVector3Byte)-1] of TVector3Byte;
-  PArray_Vector3Byte = ^TArray_Vector3Byte;
-  TArray_Vector4Byte = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
-  PArray_Vector4Byte = ^TArray_Vector4Byte;
+  TVector2ByteArray = packed array [0..MaxInt div SizeOf(TVector2Byte)-1] of TVector2Byte;
+  PVector2ByteArray = ^TVector2ByteArray;
+  TVector3ByteArray = packed array [0..MaxInt div SizeOf(TVector3Byte)-1] of TVector3Byte;
+  PVector3ByteArray = ^TVector3ByteArray;
+  TVector4ByteArray = packed array [0..MaxInt div SizeOf(TVector4Byte)-1] of TVector4Byte;
+  PVector4ByteArray = ^TVector4ByteArray;
 
-function Vector2Byte(const X, Y: Byte): TVector2Byte; inline;
-function Vector3Byte(const X, Y, Z: Byte): TVector3Byte; inline;
-function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; inline;
+function Vector2Byte(const X, Y: Byte): TVector2Byte; overload; inline;
+function Vector3Byte(const X, Y, Z: Byte): TVector3Byte; overload; inline;
+function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; overload; inline;
 
 { Convert float vectors into byte vectors.
   Each float component is converted such that float 0.0 (or less)
@@ -148,9 +148,9 @@ function Vector4Byte(const X, Y, Z, W: Byte): TVector4Byte; inline;
   Values between 0.0 and 1.0 are appropriately (linearly) converted
   into the byte range.
   @groupBegin }
-function Vector2Byte(const V: TVector2): TVector2Byte;
-function Vector3Byte(const V: TVector3): TVector3Byte;
-function Vector4Byte(const V: TVector4): TVector4Byte;
+function Vector2Byte(const V: TVector2): TVector2Byte; overload;
+function Vector3Byte(const V: TVector3): TVector3Byte; overload;
+function Vector4Byte(const V: TVector4): TVector4Byte; overload;
 { @groupEnd }
 
 function Vector2(const V: TVector2Byte): TVector2; overload;
@@ -221,7 +221,7 @@ begin
             (V1.Data[1] = V2.Data[1]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector2Byte.Zero: TVector2Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -288,7 +288,7 @@ begin
             (V1.Data[2] = V2.Data[2]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector3Byte.Zero: TVector3Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);
@@ -359,7 +359,7 @@ begin
             (V1.Data[3] = V2.Data[3]);
 end;
 
-{$ifdef BUGGY_ZERO_CONSTANT}
+{$ifndef ENABLE_SELF_RECORD_CONSTANTS}
 class function TVector4Byte.Zero: TVector4Byte;
 begin
   FillChar(Result, SizeOf(Result), 0);

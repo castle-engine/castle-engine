@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetSize: Integer;
     procedure SetSize(const Value: Integer);
     function GetLight: TAbstractLightNode;

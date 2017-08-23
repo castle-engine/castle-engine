@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetSrcFactor: string;
     procedure SetSrcFactor(const Value: string);
     function GetDestFactor: string;

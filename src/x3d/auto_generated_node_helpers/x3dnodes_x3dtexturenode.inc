@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCrossOrigin: string;
     procedure SetCrossOrigin(const Value: string);
   public

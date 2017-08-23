@@ -26,16 +26,21 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetCenterOfMass: TVector3;
     procedure SetCenterOfMass(const Value: TVector3);
+    function GetCoord: TAbstractCoordinateNode;
+    procedure SetCoord(const Value: TAbstractCoordinateNode);
     function GetMass: Single;
     procedure SetMass(const Value: Single);
     function GetNameField: string;
     procedure SetNameField(const Value: string);
   public
     property CenterOfMass: TVector3 read GetCenterOfMass write SetCenterOfMass;
+    property Coord: TAbstractCoordinateNode read GetCoord write SetCoord;
     property Mass: Single read GetMass write SetMass;
+    procedure SetMomentsOfInertia(const Value: array of Single);
+    procedure SetMomentsOfInertia(const Value: TSingleList);
     property NameField: string read GetNameField write SetNameField;
 
 {$endif read_interface}
@@ -54,6 +59,19 @@ begin
   FdCenterOfMass.Send(Value);
 end;
 
+function THAnimSegmentNode.GetCoord: TAbstractCoordinateNode;
+begin
+  if FdCoord.Value is TAbstractCoordinateNode then
+    Result := TAbstractCoordinateNode(FdCoord.Value)
+  else
+    Result := nil;
+end;
+
+procedure THAnimSegmentNode.SetCoord(const Value: TAbstractCoordinateNode);
+begin
+  FdCoord.Send(Value);
+end;
+
 function THAnimSegmentNode.GetMass: Single;
 begin
   Result := FdMass.Value;
@@ -62,6 +80,16 @@ end;
 procedure THAnimSegmentNode.SetMass(const Value: Single);
 begin
   FdMass.Send(Value);
+end;
+
+procedure THAnimSegmentNode.SetMomentsOfInertia(const Value: array of Single);
+begin
+  FdMomentsOfInertia.Send(Value);
+end;
+
+procedure THAnimSegmentNode.SetMomentsOfInertia(const Value: TSingleList);
+begin
+  FdMomentsOfInertia.Send(Value);
 end;
 
 function THAnimSegmentNode.GetNameField: string;

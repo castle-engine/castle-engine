@@ -406,7 +406,7 @@ begin
           begin
             glDrawElements(Mode, Arrays.Counts[I],
               {$ifdef GLIndexesShort} GL_UNSIGNED_SHORT {$else} GL_UNSIGNED_INT {$endif}, Pointer(Arrays.IndexesPtr(First)));
-            First += Arrays.Counts[I];
+            First := First + Arrays.Counts[I];
           end;
       end else
       begin
@@ -415,7 +415,7 @@ begin
           for I := 0 to Arrays.Counts.Count - 1 do
           begin
             glDrawArrays(Mode, First, Arrays.Counts[I]);
-            First += Arrays.Counts[I];
+            First := First + Arrays.Counts[I];
           end;
       end;
 
@@ -675,16 +675,16 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
               glLoadMatrix(RenderingCamera.Matrix);
 
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Row(0));
+              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
 
               glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Row(1));
+              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Rows[1]);
 
               glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Row(2));
+              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Rows[2]);
 
               glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Row(3));
+              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Rows[3]);
             glPopMatrix;
             Shader.EnableTexGen(TexUnit, tgEye, 0);
             Shader.EnableTexGen(TexUnit, tgEye, 1);
@@ -905,5 +905,5 @@ begin
   if CurrentMeshShader <> nil then
     CurrentMeshShader.SetupUniforms(BoundTextureUnits);
 
-  CurrentProgram := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
+  TGLSLProgram.Current := CurrentMeshShader; // enable the CurrentMeshShader for OpenGL
 end;

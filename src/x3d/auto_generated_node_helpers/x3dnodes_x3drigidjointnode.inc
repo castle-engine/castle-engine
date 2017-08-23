@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetBody1: TRigidBodyNode;
     procedure SetBody1(const Value: TRigidBodyNode);
     function GetBody2: TRigidBodyNode;
@@ -34,6 +34,8 @@
   public
     property Body1: TRigidBodyNode read GetBody1 write SetBody1;
     property Body2: TRigidBodyNode read GetBody2 write SetBody2;
+    procedure SetForceOutput(const Value: array of string);
+    procedure SetForceOutput(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -65,6 +67,16 @@ end;
 procedure TAbstractRigidJointNode.SetBody2(const Value: TRigidBodyNode);
 begin
   FdBody2.Send(Value);
+end;
+
+procedure TAbstractRigidJointNode.SetForceOutput(const Value: array of string);
+begin
+  FdForceOutput.Send(Value);
+end;
+
+procedure TAbstractRigidJointNode.SetForceOutput(const Value: TCastleStringList);
+begin
+  FdForceOutput.Send(Value);
 end;
 
 {$endif read_implementation}

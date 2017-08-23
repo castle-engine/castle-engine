@@ -16,7 +16,7 @@
 {$ifdef read_implementation_nested}
 
 var
-  Cameras: TX3DNodeList;
+  Cameras: TX3DChildrenList;
 
 { Read <library_cameras> (Collada 1.4.x). Fills Cameras list. }
 procedure ReadLibraryCameras(LibraryE: TDOMElement);
@@ -30,7 +30,7 @@ var
     ZNear, ZFar: Float;
   begin
     Navigation := TNavigationInfoNode.Create(Id + '_navigation_info', BaseUrl);
-    CameraGroup.FdChildren.Add(Navigation);
+    CameraGroup.AddChildren(Navigation);
 
     if ReadChildFloat(E, 'znear', ZNear) then
       Navigation.FdAvatarSize.Items[0] := ZNear * 2;
@@ -65,7 +65,7 @@ begin
             begin
               Viewpoint := TViewpointNode.Create(Id + '_viewpoint', BaseUrl);
               Viewpoint.FdPosition.Value := TVector3.Zero;
-              CameraGroup.FdChildren.Add(Viewpoint);
+              CameraGroup.AddChildren(Viewpoint);
 
               { Try to get YFov, and use it as X3D fieldOfView.
                 It's not a perfect translation, the idea of fieldOfView
@@ -86,7 +86,7 @@ begin
               begin
                 OrthoViewpoint := TOrthoViewpointNode.Create(Id + '_viewpoint', BaseUrl);
                 OrthoViewpoint.FdPosition.Value := TVector3.Zero;
-                CameraGroup.FdChildren.Add(OrthoViewpoint);
+                CameraGroup.AddChildren(OrthoViewpoint);
 
                 { Translation to X3D cannot be perfect, as fieldOfView
                   just works differently, and X3D automatically preserves

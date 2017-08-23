@@ -49,7 +49,7 @@ type
 
     When image is not loaded, this always returns height = 0. }
   TTerrainImage = class(TTerrain)
-  private
+  strict private
     { FImage = nil and FImageURL = '' when not loaded. }
     FImage: TGrayscaleImage;
     FImageURL: string;
@@ -86,7 +86,7 @@ type
     This descends from TTerrainImage, so you add an image to
     your function result. }
   TTerrainCasScript = class(TTerrainImage)
-  private
+  strict private
     FXVariable, FYVariable: TCasScriptFloat;
     FFunction: TCasScriptExpression;
   public
@@ -128,7 +128,7 @@ type
     This descends from TTerrainImage, so you can add an image to
     your function result, e.g. to flatten some specific generated area. }
   TTerrainNoise = class(TTerrainImage)
-  private
+  strict private
     FOctaves: Single;
     FSmoothness: Single;
     FAmplitude: Single;
@@ -247,7 +247,7 @@ type
     where the height data is accurate. Everything else is an interpolation
     derived from this data. }
   TTerrainGrid = class(TTerrain)
-  private
+  strict private
     FGridX1, FGridX2, FGridY1, FGridY2, FGridHeightScale: Single;
   public
     constructor Create;
@@ -288,7 +288,7 @@ type
   end;
 
   TTerrainSRTM = class(TTerrainGrid)
-  private
+  strict private
     FData: array [0..1200, 0..1200] of SmallInt;
   public
     constructor CreateFromFile(const URL: string);

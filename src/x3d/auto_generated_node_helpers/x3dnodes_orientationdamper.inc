@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetInitialDestination: TVector4;
     procedure SetInitialDestination(const Value: TVector4);
     function GetInitialValue: TVector4;

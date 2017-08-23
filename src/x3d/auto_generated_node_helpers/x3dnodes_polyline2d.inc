@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetLineSegments(const Value: array of TVector2);
+    procedure SetLineSegments(const Value: TVector2List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TPolyline2DNode ----------------------------------------------- }
+
+procedure TPolyline2DNode.SetLineSegments(const Value: array of TVector2);
+begin
+  FdLineSegments.Send(Value);
+end;
+
+procedure TPolyline2DNode.SetLineSegments(const Value: TVector2List);
+begin
+  FdLineSegments.Send(Value);
+end;
 
 {$endif read_implementation}

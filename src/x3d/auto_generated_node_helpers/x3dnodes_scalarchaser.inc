@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetInitialDestination: Single;
     procedure SetInitialDestination(const Value: Single);
     function GetInitialValue: Single;

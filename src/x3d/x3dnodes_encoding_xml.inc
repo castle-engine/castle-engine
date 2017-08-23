@@ -31,9 +31,9 @@ const
   it it only used to resolve relative URLs inside content and for error messages.
 
   @groupBegin }
-function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode;
-function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode;
-function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode;
+function LoadX3DXml(const URL: string; Gzipped: boolean): TX3DRootNode; overload;
+function LoadX3DXml(Stream: TStream; const URL: string): TX3DRootNode; overload;
+function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode; overload;
 { @groupEnd }
 
 {$endif read_interface}
@@ -53,7 +53,7 @@ function ParseXMLNode(Element: TDOMElement;
   NilIfUnresolvedUSE: boolean): TX3DNode; forward;
 function ParseStatements(Element: TDOMElement;
   FileTopLevel: boolean;
-  X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; forward;
+  X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; overload; forward;
 
 { Checks is Element a correct <connect> element, extracting
   nodeField and protoField value. Returns @true if all Ok, otherwise
@@ -303,7 +303,7 @@ end;
   classic ParseStatements :) ). }
 function ParseStatements(Element: TDOMElement;
   FileTopLevel: boolean;
-  X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode;
+  X3DHeaderElement: TDOMElement; Reader: TX3DReaderNames): TX3DRootNode; overload;
 var
   PositionInParent: Integer;
 
@@ -537,7 +537,7 @@ begin
   finally FreeAndNil(Doc); end;
 end;
 
-function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode;
+function LoadX3DXml(X3DElement: TDOMElement; const URL: string): TX3DRootNode; overload;
 var
   SceneElement: TDOMElement;
   VersionStr: string;

@@ -55,6 +55,10 @@ function IsMemDWordFilled(const Data; Size: Integer; Value: DWord): boolean;
   This is simply Result := A - B, except we do some typecasting. }
 function OffsetUInt(var A, B): PtrUInt;
 function Offset(var A, B): Pointer;
+
+{ Compare two methods. }
+function CompareMethods(AMethod1, AMethod2: TMethod): boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -183,6 +187,12 @@ function Offset(var A, B): Pointer;
 begin
   { additional PtrUInt typecast before Pointer, to avoid warning. }
   Result := Pointer(PtrUInt( PtrUInt(@A) - PtrUInt(@B) ));
+end;
+
+function CompareMethods(AMethod1, AMethod2: TMethod): boolean;
+begin
+  Result := (AMethod1.Code = AMethod2.Code) and
+            (AMethod1.Data = AMethod2.Data);
 end;
 
 {$endif read_implementation}

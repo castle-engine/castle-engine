@@ -19,7 +19,7 @@ var
     Every visual scene is X3D TAbstractX3DGroupingNode instance.
     This is for Collada >= 1.4.x (for Collada < 1.4.x,
     the <scene> element is directly placed as a rendered scene). }
-  VisualScenes: TX3DNodeList;
+  VisualScenes: TX3DChildrenList;
 
 { Read <visual_scene>. Obtained scene X3D node is added both
   to VisualScenes list and VisualScenesSwitch.choice. }
@@ -34,7 +34,7 @@ begin
 
   Group := TGroupNode.Create(VisualSceneId, BaseUrl);
   VisualScenes.Add(Group);
-  VisualScenesSwitch.FdChildren.Add(Group);
+  VisualScenesSwitch.AddChildren(Group);
 
   ReadNodesSequence(Group, VisualSceneElement);
 end;
@@ -56,7 +56,7 @@ begin
     converting. }
 
   VisualScenesSwitch := TSwitchNode.Create(LibraryId, BaseUrl);
-  ResultModel.FdChildren.Add(VisualScenesSwitch);
+  ResultModel.AddChildren(VisualScenesSwitch);
 
   I := LibraryElement.ChildrenIterator('visual_scene');
   try
@@ -75,7 +75,7 @@ var
   var
     InstanceVisualScene: TDOMElement;
     VisualSceneId: string;
-    VisualScene: TX3DNode;
+    VisualScene: TAbstractChildNode;
   begin
     InstanceVisualScene := SceneElement.ChildElement(
       'instance_visual_scene', false);
@@ -89,7 +89,7 @@ var
         if VisualScene = nil then
           WritelnWarning('Collada', Format('<instance_visual_scene> instantiates non-existing ' +
             '<visual_scene> element "%s"', [VisualSceneId])) else
-          ResultModel.FdChildren.Add(VisualScene);
+          ResultModel.AddChildren(VisualScene);
       end;
     end;
   end;
@@ -99,7 +99,7 @@ var
     Group: TGroupNode;
   begin
     Group := TGroupNode.Create(SceneId, BaseUrl);
-    ResultModel.FdChildren.Add(Group);
+    ResultModel.AddChildren(Group);
 
     ReadNodesSequence(Group, SceneElement);
   end;

@@ -26,10 +26,12 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetTitle: string;
     procedure SetTitle(const Value: string);
   public
+    procedure SetInfo(const Value: array of string);
+    procedure SetInfo(const Value: TCastleStringList);
     property Title: string read GetTitle write SetTitle;
 
 {$endif read_interface}
@@ -37,6 +39,16 @@
 {$ifdef read_implementation}
 
 { TWorldInfoNode ----------------------------------------------- }
+
+procedure TWorldInfoNode.SetInfo(const Value: array of string);
+begin
+  FdInfo.Send(Value);
+end;
+
+procedure TWorldInfoNode.SetInfo(const Value: TCastleStringList);
+begin
+  FdInfo.Send(Value);
+end;
 
 function TWorldInfoNode.GetTitle: string;
 begin

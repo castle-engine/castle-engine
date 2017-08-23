@@ -63,7 +63,7 @@ procedure glTextureImage3D(const TextureIdForProfiler: TGLTextureId;
 
 {$ifdef read_implementation}
 
-function IsTexture3DSized(const Size: Cardinal): boolean;
+function IsTexture3DSized(const Size: Cardinal): boolean; overload;
 begin
   Result :=
     (GLFeatures.Texture3D = gsNone) or
@@ -74,7 +74,7 @@ begin
     );
 end;
 
-function IsTexture3DSized(const R: TCastleImage): boolean;
+function IsTexture3DSized(const R: TCastleImage): boolean; overload;
 begin
   if GLFeatures.Texture3D <> gsNone then
   begin
@@ -118,7 +118,7 @@ var
               Image.Width, Image.Height, Image.Depth, 0, ImageFormat, ImageGLType(Image),
               Image.RawPixels);
         end;
-        LoadedSize += Image.Size;
+        LoadedSize := LoadedSize + Image.Size;
       finally AfterUnpackImage(Image) end;
     end;
 
@@ -175,7 +175,7 @@ begin
     if not LoadMipmapsFromComposite(CompositeForMipmaps) then
     try
       GenerateMipmap(GL_TEXTURE_3D);
-      LoadedSize += TTextureMemoryProfiler.MipmapsSize(Image);
+      LoadedSize := LoadedSize + TTextureMemoryProfiler.MipmapsSize(Image);
     except
       on E: EGenerateMipmapNotAvailable do
       begin

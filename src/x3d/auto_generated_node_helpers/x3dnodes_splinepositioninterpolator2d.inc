@@ -26,13 +26,17 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetClosed: boolean;
     procedure SetClosed(const Value: boolean);
     function GetNormalizeVelocity: boolean;
     procedure SetNormalizeVelocity(const Value: boolean);
   public
     property Closed: boolean read GetClosed write SetClosed;
+    procedure SetKeyValue(const Value: array of TVector2);
+    procedure SetKeyValue(const Value: TVector2List);
+    procedure SetKeyVelocity(const Value: array of TVector2);
+    procedure SetKeyVelocity(const Value: TVector2List);
     property NormalizeVelocity: boolean read GetNormalizeVelocity write SetNormalizeVelocity;
 
 {$endif read_interface}
@@ -49,6 +53,26 @@ end;
 procedure TSplinePositionInterpolator2DNode.SetClosed(const Value: boolean);
 begin
   FdClosed.Send(Value);
+end;
+
+procedure TSplinePositionInterpolator2DNode.SetKeyValue(const Value: array of TVector2);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TSplinePositionInterpolator2DNode.SetKeyValue(const Value: TVector2List);
+begin
+  FdKeyValue.Send(Value);
+end;
+
+procedure TSplinePositionInterpolator2DNode.SetKeyVelocity(const Value: array of TVector2);
+begin
+  FdKeyVelocity.Send(Value);
+end;
+
+procedure TSplinePositionInterpolator2DNode.SetKeyVelocity(const Value: TVector2List);
+begin
+  FdKeyVelocity.Send(Value);
 end;
 
 function TSplinePositionInterpolator2DNode.GetNormalizeVelocity: boolean;

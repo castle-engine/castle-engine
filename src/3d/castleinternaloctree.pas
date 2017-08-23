@@ -377,9 +377,6 @@ type
     property OctreeNodeFinalClass: TOctreeNodeClass
       read FOctreeNodeFinalClass;
 
-    constructor Create(AMaxDepth, ALeafCapacity: integer;
-      const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-      AItemsInNonLeafNodes: boolean);
     constructor Create(const Limits: TOctreeLimits;
       const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
       AItemsInNonLeafNodes: boolean);
@@ -456,7 +453,8 @@ function OctreeSubnodeIndexesEqual(const SI1, SI2: TOctreeSubnodeIndex): boolean
 
 implementation
 
-uses CastleStringUtils;
+uses Math,
+  CastleStringUtils;
 
 { TOctreeNode ------------------------------------------------------------ }
 
@@ -603,7 +601,7 @@ begin
   if StatisticsAdded then
   begin
     if IsLeaf then
-      FParentTree.FTotalItemsInLeafs -= ItemIndices.Count;
+      FParentTree.FTotalItemsInLeafs := FParentTree.FTotalItemsInLeafs - ItemIndices.Count;
     StatisticsRemove;
   end; }
 
@@ -617,7 +615,7 @@ begin
   if IsLeaf then
   begin
     Inc(FParentTree.FTotalLeafNodes);
-    FParentTree.FTotalItemsInLeafs += ItemsIndices.Count;
+    FParentTree.FTotalItemsInLeafs := FParentTree.FTotalItemsInLeafs + ItemsIndices.Count;
   end else
   begin
     Inc(FParentTree.FTotalNonLeafNodes);
@@ -630,7 +628,7 @@ begin
   if IsLeaf then
   begin
     Dec(FParentTree.FTotalLeafNodes);
-    FParentTree.FTotalItemsInLeafs -= ItemsIndices.Count;
+    FParentTree.FTotalItemsInLeafs := FParentTree.FTotalItemsInLeafs - ItemsIndices.Count;
   end else
   begin
     Dec(FParentTree.FTotalNonLeafNodes);
@@ -858,24 +856,16 @@ end;
 
 { TOctree ------------------------------------------------------------ }
 
-constructor TOctree.Create(AMaxDepth, ALeafCapacity: integer;
-  const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
-  AItemsInNonLeafNodes: boolean);
-begin
-  inherited Create;
-  FMaxDepth := AMaxDepth;
-  FLeafCapacity := ALeafCapacity;
-  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
-  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
-  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
-end;
-
 constructor TOctree.Create(const Limits: TOctreeLimits;
   const ARootBox: TBox3D; AOctreeNodeFinalClass: TOctreeNodeClass;
   AItemsInNonLeafNodes: boolean);
 begin
-  Create(Limits.MaxDepth, Limits.LeafCapacity,
-    ARootBox, AOctreeNodeFinalClass, AItemsInNonLeafNodes);
+  inherited Create;
+  FMaxDepth := Limits.MaxDepth;
+  FLeafCapacity := Limits.LeafCapacity;
+  FOctreeNodeFinalClass := AOctreeNodeFinalClass;
+  FItemsInNonLeafNodes := AItemsInNonLeafNodes;
+  FTreeRoot := OctreeNodeFinalClass.Create(ARootBox, Self, nil, 0, true);
 end;
 
 destructor TOctree.Destroy;
@@ -898,7 +888,7 @@ function TOctree.Statistics: string;
   procedure WritelnStatLine(const Header: string;
     const LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount: Cardinal);
   begin
-    Result += Format(
+    Result := Result + Format(
       '  %-12s%4d leaves (%6d items in leaves), %4d non-leaf nodes.' +nl,
       [Header, LeafNodesCount, ItemsInLeafsCount, NonLeafNodesCount]);
   end;
@@ -914,11 +904,11 @@ var
   begin
     if TreeNode.IsLeaf then
     begin
-      Inc(LeafNodes.L[TreeNode.Depth]);
-      ItemsInLeafs.L[TreeNode.Depth] += Cardinal(TreeNode.ItemsCount);
+      Inc(LeafNodes.List^[TreeNode.Depth]);
+      ItemsInLeafs.List^[TreeNode.Depth] := ItemsInLeafs.List^[TreeNode.Depth] + Cardinal(TreeNode.ItemsCount);
     end else
     begin
-      Inc(NonLeafNodes.L[TreeNode.Depth]);
+      Inc(NonLeafNodes.List^[TreeNode.Depth]);
       for b0 := Low(boolean) to High(boolean) do
         for b1 := Low(boolean) to High(boolean) do
           for b2 := Low(boolean) to High(boolean) do
@@ -951,7 +941,7 @@ begin
       if (NonLeafNodes[I] = 0) then
       begin
         if i < MaxDepth then
-         Result += Format(
+         Result := Result + Format(
            '  No nodes on lower depths (%d ... %d).' + NL, [I+1, MaxDepth]);
         break;
       end;
@@ -963,11 +953,11 @@ begin
 
     WritelnStatLine('SUM :', TotalLeafNodes, TotalItemsInLeafs, TotalNonLeafNodes);
 
-    Result += NL + Format(
+    Result := Result + NL + Format(
       '  Octree constructed with limits: max depth %d, leaf capacity %d.',
       [MaxDepth, LeafCapacity]) + NL;
 
-    Result += StatisticsBonus;
+    Result := Result + StatisticsBonus;
   finally
     FreeAndNil(LeafNodes);
     FreeAndNil(NonLeafNodes);

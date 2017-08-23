@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAxis: TVector3;
     procedure SetAxis(const Value: TVector3);
     function GetMaxSeparation: Single;

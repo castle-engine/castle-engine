@@ -47,6 +47,9 @@ type
     procedure Test2D;
     procedure TestApproximateScale;
     procedure TestXYZ;
+    procedure TestPlaneMove;
+    procedure TestPlaneMoveRandom;
+    procedure TestTryInverseHarder;
   end;
 
 function RandomVector: TVector3;
@@ -782,6 +785,10 @@ begin
   AssertSameValue(7/3, Approximate3DScale(1, 3, 3), Epsilon);
   AssertSameValue(-7/3, Approximate3DScale(-1, -3, -3), Epsilon);
   AssertSameValue(1, Approximate3DScale(-1, 1, 1), Epsilon);
+
+  AssertSameValue(2, Approximate2DScale(2, 2), Epsilon);
+  AssertSameValue(-2, Approximate2DScale(-2, -2), Epsilon);
+  AssertSameValue(1, Approximate2DScale(-1, 1), Epsilon);
 end;
 
 procedure TTestCastleVectors.TestXYZ;
@@ -817,6 +824,76 @@ begin
   AssertEquals(4, V4.W);
 end;
 
+procedure TTestCastleVectors.TestPlaneMove;
+var
+  Plane: TVector4;
+begin
+  Plane := Vector4(1, 0, 0, 10); // x = -10
+  AssertVectorEquals(Vector4(1, 0, 0, 9), PlaneMove(Plane, Vector3(1, 2, 3)));
+
+  Plane := Vector4(1, 0, 0, 10); // x = -10
+  PlaneMoveVar(Plane, Vector3(1, 2, 3));
+  AssertVectorEquals(Vector4(1, 0, 0, 9), Plane);
+
+  Plane := Vector4(0, 1, 0, 10); // y = -10
+  AssertVectorEquals(Vector4(0, 1, 0, 8), PlaneMove(Plane, Vector3(1, 2, 3)));
+
+  Plane := Vector4(0, 1, 0, 10); // y = -10
+  PlaneMoveVar(Plane, Vector3(1, 2, 3));
+  AssertVectorEquals(Vector4(0, 1, 0, 8), Plane);
+
+  Plane := Vector4(0, 1, 0, 8); // y = -10
+  AssertVectorEquals(Vector4(0, 1, 0, 10), PlaneAntiMove(Plane, Vector3(1, 2, 3)));
+end;
+
+procedure TTestCastleVectors.TestPlaneMoveRandom;
+var
+  I: Integer;
+  Plane: TVector4;
+  Move, PlaneDir: TVector3;
+begin
+  for I := 1 to 100 do
+  begin
+    repeat
+      PlaneDir := RandomVector;
+    until not PlaneDir.IsZero;
+    Plane := Vector4(PlaneDir, Random * 100);
+    Move := RandomVector;
+    // "PlaneAntiMove + PlaneMove" should zero each other out
+    AssertVectorEquals(Plane, PlaneAntiMove(PlaneMove(Plane, Move), Move), 1.0);
+  end;
+end;
+
+procedure TTestCastleVectors.TestTryInverseHarder;
+var
+  M, M2: TMatrix4;
+begin
+  // used in gate_backround in castle-game demo
+
+  M[0, 0] := -0.001710;
+  M[1, 0] := -0.004698;
+  M[2, 0] :=  0.000000;
+  M[3, 0] :=  0.000000;
+
+  M[0, 1] :=  0.004698;
+  M[1, 1] := -0.001710;
+  M[2, 1] :=  0.000000;
+  M[3, 1] :=  0.000000;
+
+  M[0, 2] := 0.000000;
+  M[1, 2] := 0.000000;
+  M[2, 2] := 0.005000;
+  M[3, 2] := 0.000000;
+
+  M[0, 3] := -79.753189;
+  M[1, 3] := -70.291077;
+  M[2, 3] :=   0.182218;
+  M[3, 3] :=   1.000000;
+
+  AssertFalse(M.TryInverse(M2));
+  AssertTrue(TryInverseHarder(M, M2));
+end;
+
 initialization
- RegisterTest(TTestCastleVectors);
+  RegisterTest(TTestCastleVectors);
 end.

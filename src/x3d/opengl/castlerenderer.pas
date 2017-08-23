@@ -197,7 +197,8 @@ unit CastleRenderer;
 interface
 
 uses Classes, SysUtils, Generics.Collections,
-  CastleGL, CastleUtils, CastleVectors, X3DFields, X3DNodes,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleUtils, CastleVectors, X3DFields, X3DNodes,
   CastleInternalX3DLexer, CastleImages, CastleGLUtils, CastleRendererInternalLights,
   CastleGLShaders, CastleGLImages, CastleTextureImages, CastleVideos, X3DTime,
   CastleShapes, CastleGLCubeMaps, CastleClassUtils, CastleCompositeImage, Castle3D,
@@ -551,7 +552,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureImageCacheList = specialize TObjectList<TTextureImageCache>;
+  TTextureImageCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureImageCache>;
 
   TTextureVideoCache = class
     FullUrl: string;
@@ -573,7 +574,7 @@ type
     References: Cardinal;
     GLVideo: TGLVideo3D;
   end;
-  TTextureVideoCacheList = specialize TObjectList<TTextureVideoCache>;
+  TTextureVideoCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureVideoCache>;
 
   TTextureCubeMapCache = class
     InitialNode: TAbstractEnvironmentTextureNode;
@@ -582,7 +583,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureCubeMapCacheList = specialize TObjectList<TTextureCubeMapCache>;
+  TTextureCubeMapCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureCubeMapCache>;
 
   TTexture3DCache = class
     InitialNode: TAbstractTexture3DNode;
@@ -592,7 +593,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTexture3DCacheList = specialize TObjectList<TTexture3DCache>;
+  TTexture3DCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTexture3DCache>;
 
   { Cached depth or float texture.
     For now, depth and float textures require the same fields. }
@@ -604,7 +605,7 @@ type
     References: Cardinal;
     GLName: TGLuint;
   end;
-  TTextureDepthOrFloatCacheList = specialize TObjectList<TTextureDepthOrFloatCache>;
+  TTextureDepthOrFloatCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTextureDepthOrFloatCache>;
 
   TX3DRendererShape = class;
   TVboType = (vtCoordinate, vtAttribute, vtIndex);
@@ -648,7 +649,7 @@ type
     procedure FreeArrays(const Changed: TVboTypes);
   end;
 
-  TShapeCacheList = specialize TObjectList<TShapeCache>;
+  TShapeCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShapeCache>;
 
   TX3DGLSLProgram = class;
 
@@ -667,7 +668,7 @@ type
     destructor Destroy; override;
   end;
 
-  TShaderProgramCacheList = specialize TObjectList<TShaderProgramCache>;
+  TShaderProgramCacheList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TShaderProgramCache>;
 
   TGLRenderer = class;
 
@@ -1508,9 +1509,9 @@ begin
 
   glTextureImage3d(Result, Image, Filter, Composite);
 
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
-  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap[2]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
+  glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, TextureWrap.Data[2]);
 
   TexParameterMaxAnisotropy(GL_TEXTURE_3D, Anisotropy);
   {$endif}
@@ -1586,8 +1587,8 @@ begin
   Filter.Minification := minLinear;
   Filter.Magnification := magLinear;
   SetTextureFilter(GL_TEXTURE_2D, Filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
   { OpenGLES: OES_depth_texture allows only GL_UNSIGNED_SHORT
     or GL_UNSIGNED_INT for depth textures. }
@@ -1706,8 +1707,8 @@ begin
   glGenTextures(1, @Result);
   glBindTexture(GL_TEXTURE_2D, Result);
   SetTextureFilter(GL_TEXTURE_2D, Filter);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap[0]);
-  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap[1]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, TextureWrap.Data[0]);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, TextureWrap.Data[1]);
 
   if Precision32 then
     InternalFormat := GL_RGB32F_ARB { same thing as GL_RGB_FLOAT32_ATI } else
@@ -2176,7 +2177,7 @@ end;
 procedure TShapeCache.FreeArrays(const Changed: TVboTypes);
 begin
   FreeAndNil(Arrays);
-  VboToReload += Changed;
+  VboToReload := VboToReload + Changed;
 end;
 
 procedure TShapeCache.LoadArraysToVbo(DynamicGeometry: boolean);
@@ -2224,8 +2225,8 @@ var
     for I := Low(I) to High(I) do
       if I in VboTypes then
       begin
-        if Result <> '' then Result += ',';
-        Result += Names[I];
+        if Result <> '' then Result := Result + ',';
+        Result := Result + Names[I];
       end;
     Result := '[' + Result + ']';
   end;
@@ -2644,7 +2645,7 @@ begin
 
   RenderCleanState(false);
 
-  CurrentProgram := nil;
+  TGLSLProgram.Current := nil;
 end;
 
 {$ifdef USE_VRML_TRIANGULATION}
@@ -2779,7 +2780,7 @@ const
           on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
           seems enough. }
         WritelnWarning('VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
-        VisibilityRangeScaled *= 5;
+        VisibilityRangeScaled := VisibilityRangeScaled * 5;
       end;
 
       if Volumetric then
@@ -3001,7 +3002,7 @@ begin
 
     for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
     begin
-      ActiveTexture(TextureTransformUnitsUsedMore.L[I]);
+      ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
       glPopMatrix;
     end;
 
@@ -3167,7 +3168,7 @@ var
   var
     TexCoord: TX3DNode;
   begin
-    if Shape.Geometry.TexCoord(Shape.State, TexCoord) and
+    if Shape.Geometry.InternalTexCoord(Shape.State, TexCoord) and
        (TexCoord <> nil) then
     begin
       if TexCoord is TMultiTextureCoordinateNode then
@@ -3203,10 +3204,10 @@ var
       if UniformField <> nil then
       begin
         if UniformField is TSFNode then
-          Result += TextureUnits(TSFNode(UniformField).Value) else
+          Result := Result + TextureUnits(TSFNode(UniformField).Value) else
         if UniformField is TMFNode then
           for J := 0 to TMFNode(UniformField).Count - 1 do
-            Result += TextureUnits(TMFNode(UniformField)[J]);
+            Result := Result + TextureUnits(TMFNode(UniformField)[J]);
       end;
     end;
 

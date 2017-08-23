@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetDescription: string;
     procedure SetDescription(const Value: string);
     function GetLoop: boolean;
@@ -49,6 +49,8 @@
     property Speed: Single read GetSpeed write SetSpeed;
     property StartTime: TFloatTime read GetStartTime write SetStartTime;
     property StopTime: TFloatTime read GetStopTime write SetStopTime;
+    procedure SetUrl(const Value: array of string);
+    procedure SetUrl(const Value: TCastleStringList);
 
 {$endif read_interface}
 
@@ -124,6 +126,16 @@ end;
 procedure TMovieTextureNode.SetStopTime(const Value: TFloatTime);
 begin
   FdStopTime.Send(Value);
+end;
+
+procedure TMovieTextureNode.SetUrl(const Value: array of string);
+begin
+  FdUrl.Send(Value);
+end;
+
+procedure TMovieTextureNode.SetUrl(const Value: TCastleStringList);
+begin
+  FdUrl.Send(Value);
 end;
 
 {$endif read_implementation}

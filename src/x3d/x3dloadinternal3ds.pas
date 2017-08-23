@@ -27,7 +27,7 @@ function Load3DS(const URL: string): TX3DRootNode;
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections,
+uses SysUtils, Classes, Generics.Collections, Math,
   CastleUtils, CastleClassUtils, CastleVectors, X3DCameraUtils,
   X3DLoadInternalUtils, CastleLog, CastleDownload, CastleURIUtils,
   CastleStreamUtils;
@@ -112,7 +112,7 @@ type
     procedure ReadFromStream(Stream: TStream; EndPos: Int64);
   end;
 
-  TMaterial3dsList = class(specialize TObjectList<TMaterial3ds>)
+  TMaterial3dsList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TMaterial3ds>)
   public
     { Index of material with given name. If material doesn't exist,
       it will be added. }
@@ -163,8 +163,8 @@ type
       material defined --- for example therack.3ds. }
     FaceMaterialIndex: Integer;
   end;
-  TArray_Face3ds = packed array [0 .. MaxInt div SizeOf(TFace3ds) - 1] of TFace3ds;
-  PArray_Face3ds = ^TArray_Face3ds;
+  TFace3dsArray = packed array [0 .. MaxInt div SizeOf(TFace3ds) - 1] of TFace3ds;
+  PFace3dsArray = ^TFace3dsArray;
 
   { Vertex information from 3DS. }
   TVertex3ds = packed record
@@ -173,8 +173,8 @@ type
       (HasTexCoords is @false). }
     TexCoord: TVector2;
   end;
-  TArray_Vertex3ds = packed array [0 .. MaxInt div SizeOf(TVertex3ds) - 1] of TVertex3ds;
-  PArray_Vertex3ds = ^TArray_Vertex3ds;
+  TVertex3dsArray = packed array [0 .. MaxInt div SizeOf(TVertex3ds) - 1] of TVertex3ds;
+  PVertex3dsArray = ^TVertex3dsArray;
 
   { Triangle mesh. }
   TTrimesh3ds = class(TObject3DS)
@@ -184,8 +184,8 @@ type
   public
     { Vertexes and faces. Read-only from outside of this class.
       @groupBegin }
-    Verts: PArray_Vertex3ds;
-    Faces: PArray_Face3ds;
+    Verts: PVertex3dsArray;
+    Faces: PFace3dsArray;
     { @groupEnd }
     { Do the vertexes have meaningful texture coordinates? }
     property HasTexCoords: boolean read FHasTexCoords;
@@ -228,9 +228,9 @@ type
       Stream: TStream; const ChunkEndPos: Int64); override;
   end;
 
-  TTrimesh3dsList = specialize TObjectList<TTrimesh3ds>;
-  TCamera3dsList = specialize TObjectList<TCamera3ds>;
-  TLight3dsList = specialize TObjectList<TLight3ds>;
+  TTrimesh3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TTrimesh3ds>;
+  TCamera3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCamera3ds>;
+  TLight3dsList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TLight3ds>;
 
   { 3DS loader. }
   TScene3DS = class
@@ -408,7 +408,7 @@ end;
 
   Overloaded version with 4 components always returns alpha = 1. }
 function TryReadColorInSubchunks(var Col: TVector3;
-  Stream: TStream; EndPos: Int64): boolean;
+  Stream: TStream; EndPos: Int64): boolean; overload;
 var
   h: TChunkHeader;
   hEnd: Int64;
@@ -450,7 +450,7 @@ begin
 end;
 
 function TryReadColorInSubchunks(var Col: TVector4;
-  Stream: TStream; EndPos: Int64): boolean;
+  Stream: TStream; EndPos: Int64): boolean; overload;
 var
   Col3Single: TVector3;
 begin
@@ -1011,7 +1011,7 @@ var
 
   procedure AddViewpoints;
   var
-    Viewpoint: TX3DNode;
+    Viewpoint: TAbstractChildNode;
     I: Integer;
   begin
     for I := 0 to O3ds.Cameras.Count - 1 do
@@ -1022,7 +1022,7 @@ var
         O3ds.Cameras[I].Up,
         O3ds.Cameras[I].Up { GravityUp equals Up });
       Viewpoint.X3DName := ViewpointVRMLName(O3ds.Cameras[I].Name);
-      Result.FdChildren.Add(Viewpoint);
+      Result.AddChildren(Viewpoint);
 
       { TODO: use other 3ds camera fields }
     end;
@@ -1037,7 +1037,7 @@ var
     begin
       Light := TPointLightNode.Create(LightVRMLName(
         O3ds.Lights[I].Name), BaseUrl);
-      Result.FdChildren.Add(Light);
+      Result.AddChildren(Light);
 
       Light.IsOn := O3ds.Lights[I].Enabled;
       Light.Location := O3ds.Lights[I].Pos;
@@ -1064,8 +1064,7 @@ var
     if Material.TextureMap1.Exists then
     begin
       Tex := TImageTextureNode.Create('', BaseUrl);
-      Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
-        Material.TextureMap1.MapURL));
+      Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMap1.MapURL)]);
       Result.Texture := Tex;
 
       TexTransform := TTextureTransformNode.Create('', BaseUrl);
@@ -1075,8 +1074,7 @@ var
       if Material.TextureMapBump.Exists then
       begin
         Tex := TImageTextureNode.Create('', BaseUrl);
-        Tex.FdUrl.Items.Add(SearchTextureFile(BaseUrl,
-          Material.TextureMapBump.MapURL));
+        Tex.SetUrl([SearchTextureFile(BaseUrl, Material.TextureMapBump.MapURL)]);
         Result.NormalMap := Tex;
 
         { We don't have separate TextureTransform for bump map.
@@ -1091,7 +1089,7 @@ var
 
   { How many faces have the same material index.
     Starts, and compares, with the face numnbered StartFace (must be < FacesCount). }
-  function SameMaterialFacesCount(Faces: PArray_Face3ds; FacesCount: integer;
+  function SameMaterialFacesCount(Faces: PFace3dsArray; FacesCount: integer;
     StartFace: integer): integer;
   var
     I: Integer;
@@ -1141,7 +1139,7 @@ begin
         Coord := TCoordinateNode.Create('Coord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
         Coord.FdPoint.Count := Trimesh3ds.VertsCount;
         for J := 0 to Trimesh3ds.VertsCount-1 do
-          Coord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].Pos;
+          Coord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].Pos;
 
         { Create TextureCoordinate node, or nil if not available }
         if Trimesh3ds.HasTexCoords then
@@ -1149,7 +1147,7 @@ begin
           TexCoord := TTextureCoordinateNode.Create('TexCoord_' + TrimeshVRMLName(Trimesh3ds.Name), BaseUrl);
           TexCoord.FdPoint.Count := Trimesh3ds.VertsCount;
           for j := 0 to Trimesh3ds.VertsCount - 1 do
-            TexCoord.FdPoint.Items.L[J] := Trimesh3ds.Verts^[J].TexCoord;
+            TexCoord.FdPoint.Items.List^[J] := Trimesh3ds.Verts^[J].TexCoord;
         end else
           TexCoord := nil;
 
@@ -1158,8 +1156,8 @@ begin
         while J < Trimesh3ds.FacesCount do
         begin
           IFS := TIndexedFaceSetNode.Create('', BaseUrl);
-          IFS.FdTexCoord.Value := TexCoord;
-          IFS.FdCoord.Value := Coord;
+          IFS.TexCoord := TexCoord;
+          IFS.Coord := Coord;
           { We don't support 3DS smoothing groups.
             So instead assign some sensible non-zero crease angle. }
           IFS.CreaseAngle := NiceCreaseAngle;
@@ -1172,7 +1170,7 @@ begin
           if FaceMaterialNum <> -1 then
             Shape.Appearance := TAppearanceNode(Appearances[FaceMaterialNum]);
 
-          Result.FdChildren.Add(Shape);
+          Result.AddChildren(Shape);
 
           ThisMaterialFacesCount := SameMaterialFacesCount(Trimesh3ds.Faces,
             Trimesh3ds.FacesCount, J);
@@ -1182,10 +1180,10 @@ begin
           begin
             with IFS.FdCoordIndex.Items do
             begin
-              L[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
-              L[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
-              L[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
-              L[FaceNum * 4 + 3] := -1;
+              List^[FaceNum * 4    ] := Trimesh3ds.Faces^[J].VertsIndices[0];
+              List^[FaceNum * 4 + 1] := Trimesh3ds.Faces^[J].VertsIndices[1];
+              List^[FaceNum * 4 + 2] := Trimesh3ds.Faces^[J].VertsIndices[2];
+              List^[FaceNum * 4 + 3] := -1;
             end;
             Inc(J);
           end;

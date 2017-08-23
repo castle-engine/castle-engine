@@ -30,12 +30,14 @@
 
 program fog_culling;
 
+{$ifdef MSWINDOWS} {$apptype GUI} {$endif}
+
 uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleLog,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
   CastleProgress, CastleProgressConsole, CastleFilesUtils, Castle3D,
   CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse,
-  CastleApplicationProperties;
+  CastleApplicationProperties, CastleControls, CastleColors;
 
 var
   Window: TCastleWindowCustom;
@@ -47,7 +49,6 @@ type
     function TestFogVisibility(Shape: TShape): boolean;
   protected
     procedure Render3D(const Params: TRenderParams); override;
-    procedure RenderFromViewEverything; override;
   end;
 
 var
@@ -61,7 +62,7 @@ begin
       with the radius taken from fog scaled visibilityRadius.
     If there is no collision than we don't have to render given Shape. }
   Result := PointsDistanceSqr(Shape.BoundingSphereCenter, Camera.Position) <=
-      Sqr(Scene.FogStack.Top.FdVisibilityRange.Value * 
+      Sqr(Scene.FogStack.Top.VisibilityRange *
           Scene.FogStack.Top.TransformScale +
         Sqrt(Shape.BoundingSphereRadiusSqr));
 end;
@@ -72,16 +73,9 @@ var
 procedure TMySceneManager.Render3D(const Params: TRenderParams);
 begin
   if FogCulling then
-    Scene.Render(@TestFogVisibility, RenderingCamera.Frustum, Params) else
+    Scene.Render(@TestFogVisibility, RenderingCamera.Frustum, Params)
+  else
     inherited;
-end;
-
-procedure TMySceneManager.RenderFromViewEverything;
-begin
-  inherited;
-  Writeln(Format('Rendered Shapes: %d / %d (fog culling: %s)',
-    [ Statistics.ShapesRendered, Statistics.ShapesVisible,
-      BoolToStr(FogCulling, true) ]));
 end;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
@@ -97,11 +91,25 @@ begin
     FogNode := Scene.FogStack.Top as TFogNode;
     if FogNode <> nil then
       if FogCulling then
-        FogNode.FdVisibilityRange.Send(30) else
-        FogNode.FdVisibilityRange.Send(0);
+        FogNode.VisibilityRange := 30
+      else
+        FogNode.VisibilityRange := 0;
 
     Window.Invalidate;
   end;
+end;
+
+procedure Render(Container: TUIContainer);
+begin
+  UIFont.Outline := 1;
+  UIFont.OutlineColor := Black;
+  UIFont.PrintStrings(10, 10, Yellow,
+    [ Format('Rendered Shapes: %d / %d',
+       [SceneManager.Statistics.ShapesRendered,
+        SceneManager.Statistics.ShapesVisible]),
+      Format('Fog culling: %s (toggle using the "F" key)',
+       [BoolToStr(FogCulling, true)])
+    ], false, 0);
 end;
 
 begin
@@ -113,7 +121,6 @@ begin
   Window.Controls.InsertFront(SceneManager);
 
   Scene := TCastleScene.Create(Application);
-  ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   Scene.Load(ApplicationData('fog_culling_final.x3dv'));
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);
@@ -125,6 +132,7 @@ begin
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
 
   Window.OnPress := @Press;
+  Window.OnRender := @Render;
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.

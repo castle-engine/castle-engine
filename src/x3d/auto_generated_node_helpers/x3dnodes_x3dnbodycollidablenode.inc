@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetEnabled: boolean;
     procedure SetEnabled(const Value: boolean);
     function GetRotation: TVector4;

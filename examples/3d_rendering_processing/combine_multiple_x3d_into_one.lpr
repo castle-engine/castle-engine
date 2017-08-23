@@ -65,9 +65,9 @@ begin
 
   TransformBoxes := TTransformNode.Create;
   TransformBoxes.Translation := Vector3(-5, 0, 0);
-  TransformBoxes.FdChildren.Add(ModelBoxes);
+  TransformBoxes.AddChildren(ModelBoxes);
 
-  MainRoot.FdChildren.Add(TransformBoxes);
+  MainRoot.AddChildren(TransformBoxes);
 
   { add ModelRaptor and TransformRaptor[0..2] }
 
@@ -77,9 +77,9 @@ begin
   begin
     TransformRaptor[I] := TTransformNode.Create;
     TransformRaptor[I].Translation := Vector3(8, (I -1)  * 5, 0);
-    TransformRaptor[I].FdChildren.Add(ModelRaptor);
+    TransformRaptor[I].AddChildren(ModelRaptor);
 
-    MainRoot.FdChildren.Add(TransformRaptor[I]);
+    MainRoot.AddChildren(TransformRaptor[I]);
   end;
 
   { now load and display MainRoot model }

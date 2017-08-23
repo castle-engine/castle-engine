@@ -499,7 +499,8 @@ uses {$define read_interface_uses}
   { FPC units }
   SysUtils, Classes, Generics.Collections, CustApp,
   { Castle Game Engine units }
-  CastleVectors, CastleGL, CastleRectangles, CastleColors,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleRectangles, CastleColors,
   CastleUtils, CastleClassUtils, CastleGLUtils, CastleImages, CastleGLImages,
   CastleKeysMouse, CastleStringUtils, CastleFilesUtils, CastleTimeUtils,
   CastleFileFilters, CastleUIControls, CastleGLContainer,
@@ -2888,12 +2889,6 @@ uses CastleLog, CastleGLVersion, CastleURIUtils,
   {$undef read_implementation_uses}
   X3DLoad, Math;
 
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
-
 {$define read_implementation}
 
 {$I castlewindowmenu.inc}
@@ -3966,13 +3961,13 @@ const
     end =
   ( ( pOptions: @GeometryOptions;
       Count: High(GeometryOptions)+1;
-      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} GeometryOptionProc),
+      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} GeometryOptionProc),
     ( pOptions: @ScreenGeometryOptions;
       Count: High(ScreenGeometryOptions) + 1;
-      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
+      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} ScreenGeometryOptionProc),
     ( pOptions: @DisplayOptions;
       Count: High(DisplayOptions) + 1;
-      OptionProc: {$ifdef FPC_OBJFPC} @ {$endif} DisplayOptionProc),
+      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} DisplayOptionProc),
     ( pOptions: nil;
       Count: 0;
       OptionProc: nil)

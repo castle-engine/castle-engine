@@ -81,7 +81,7 @@
     V: TVector2; //< vertex position in local Bone coordinate system
     Weight: Single;
   end;
-  TSkinnedMeshVertexBoneList = specialize TObjectList<TSkinnedMeshVertexBone>;
+  TSkinnedMeshVertexBoneList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertexBone>;
 
   TSkinnedMeshVertex = class
     Bones: TSkinnedMeshVertexBoneList;
@@ -91,7 +91,7 @@
       Index: Integer; const BonesCount: Cardinal; const AllBones: TBoneList);
   end;
 
-  TSkinnedMeshVertexList = class(specialize TObjectList<TSkinnedMeshVertex>)
+  TSkinnedMeshVertexList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSkinnedMeshVertex>)
     procedure Parse(const JsonArray: TJSONArray; const Bones: TBoneList);
   end;
 
@@ -103,7 +103,7 @@
     procedure TransformToBoneSpace(const Bone: TBone); override;
   end;
 
-  TAttachmentList = class(specialize TObjectList<TAttachment>)
+  TAttachmentList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TAttachment>)
     { Find by slot+attachment name.
       @raises ESpineReadError If does not exist. }
     function Find(const SlotName, AttachmentName: string;
@@ -203,12 +203,12 @@ begin
   Node := TTransformNode.Create(
     Format('Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
-  Node.FdTranslation.Value := Vector3(XY[0], XY[1], 0);
-  Node.FdScale.Value := Vector3(Scale[0], Scale[1], 1);
-  Node.FdRotation.Value := Vector4(0, 0, 1, DegToRad(Rotation));
+  Node.Translation := Vector3(XY[0], XY[1], 0);
+  Node.Scale := Vector3(Scale[0], Scale[1], 1);
+  Node.Rotation := Vector4(0, 0, 1, DegToRad(Rotation));
 
   Shape := TShapeNode.Create('', BaseUrl);
-  Node.FdChildren.Add(Shape);
+  Node.AddChildren(Shape);
 
   Shape.Appearance := TAppearanceNode.Create('', BaseUrl);
   AtlasRegionName := Name;
@@ -217,14 +217,13 @@ begin
   Shape.Appearance.Texture := TextureLoader.UseNode(AtlasRegionName,
     TexCoord, TexRect, TexRotated);
   if Shape.Appearance.Texture <> nil then
-    Shape.FdGeometry.Value := BuildGeometry(BaseUrl,
-      TexCoord, TexRect, TexRotated);
+    Shape.Geometry := BuildGeometry(BaseUrl, TexCoord, TexRect, TexRotated);
 
   Shape.Material := TMaterialNode.Create(
     Format('Material_Slot_%s_Attachment_%s', [ToX3DName(SlotName), ToX3DName(Name)]),
     BaseUrl);
   Shape.Material.ForcePureEmissive;
-  Shape.Material.FdEmissiveColor.Value := Vector3(1, 1, 1);
+  Shape.Material.EmissiveColor := Vector3(1, 1, 1);
   Material := Shape.Material;
 end;
 
@@ -234,21 +233,15 @@ function TRegionAttachment.BuildGeometry(const BaseUrl: string;
 var
   Coord: TCoordinateNode;
   TexCoordNode: TTextureCoordinateNode;
-  I: Integer;
   Faces: TIndexedFaceSetNode;
   Rect: array [0..1] of TVector2;
 begin
   Faces := TIndexedFaceSetNode.Create('', BaseUrl);
   Result := Faces;
 
-  Faces.FdCreaseAngle.Value := 0; // optimization: do not try to smooth normals, no point
-  Faces.FdSolid.Value := false;
-  Faces.FdCoordIndex.Items.Clear;
-
-  Faces.FdCoordIndex.Items.Add(0);
-  Faces.FdCoordIndex.Items.Add(1);
-  Faces.FdCoordIndex.Items.Add(2);
-  Faces.FdCoordIndex.Items.Add(3);
+  Faces.CreaseAngle := 0; // optimization: do not try to smooth normals, no point
+  Faces.Solid := false;
+  Faces.SetCoordIndex([0, 1, 2, 3]);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   Rect[0] := Vector2(
@@ -257,16 +250,20 @@ begin
   Rect[1] := Vector2(
     MapRange(TexRect[1][0], 0, 1, -Width / 2, Width / 2),
     MapRange(TexRect[1][1], 0, 1, -Height / 2, Height / 2));
-  Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[0][1], 0));
-  Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[0][1], 0));
-  Coord.FdPoint.Items.Add(Vector3(Rect[1][0], Rect[1][1], 0));
-  Coord.FdPoint.Items.Add(Vector3(Rect[0][0], Rect[1][1], 0));
-  Faces.FdCoord.Value := Coord;
+  Coord.SetPoint([
+    Vector3(Rect[0][0], Rect[0][1], 0),
+    Vector3(Rect[1][0], Rect[0][1], 0),
+    Vector3(Rect[1][0], Rect[1][1], 0),
+    Vector3(Rect[0][0], Rect[1][1], 0)]);
+  Faces.Coord := Coord;
 
   TexCoordNode := TTextureCoordinateNode.Create('', Faces.BaseUrl);
-  for I := 0 to 3 do
-    TexCoordNode.FdPoint.Items.Add(TexCoord[I]);
-  Faces.FdTexCoord.Value := TexCoordNode;
+  TexCoordNode.SetPoint([
+    TexCoord[0],
+    TexCoord[1],
+    TexCoord[2],
+    TexCoord[3]]);
+  Faces.TexCoord := TexCoordNode;
 end;
 
 { TAbstractMeshAttachment ---------------------------------------------------- }
@@ -316,16 +313,14 @@ begin
   Faces := TIndexedTriangleSetNode.Create('', BaseUrl);
   Result := Faces;
 
-  Faces.FdNormalPerVertex.Value := false; // optimization: do not try to smooth normals, no point
-  Faces.FdSolid.Value := false;
-  Faces.FdIndex.Items.Clear;
-
-  Faces.FdIndex.Items.Assign(Triangles);
+  Faces.NormalPerVertex := false; // optimization: do not try to smooth normals, no point
+  Faces.Solid := false;
+  Faces.SetIndex(Triangles);
 
   Coord := TCoordinateNode.Create('', Faces.BaseUrl);
   for I := 0 to Vertices.Count - 1 do
     Coord.FdPoint.Items.Add(Vector3(Vertices[I][0], Vertices[I][1], 0));
-  Faces.FdCoord.Value := Coord;
+  Faces.Coord := Coord;
 
   { We do not guarantee correct rendering when model used
     atlas "whitespace compression" by Spine, and used mesh attachment types.
@@ -439,7 +434,7 @@ begin
       Break;
     end;
 
-    I += 1 + BonesCount * 4;
+    I := I + 1 + BonesCount * 4;
   end;
 end;
 
@@ -485,7 +480,7 @@ begin
     for J := 0 to Weights[I].Bones.Count - 1 do
     begin
       VB := Weights[I].Bones[J];
-      V += VB.Bone.ToWorldSpace(VB.V) * VB.Weight;
+      V := V + (VB.Bone.ToWorldSpace(VB.V) * VB.Weight);
     end;
     Vertices[I] := V;
   end;
@@ -500,7 +495,7 @@ begin
 
   List := Coord.FdPoint.Items;
   for I := 0 to List.Count - 1 do
-    List.L[I] := Bone.ToLocalSpace(List.L[I]);
+    List.List^[I] := Bone.ToLocalSpace(List.List^[I]);
 end;
 
 { TAttachmentList ------------------------------------------------------------ }

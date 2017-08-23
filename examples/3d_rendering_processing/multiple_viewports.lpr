@@ -25,7 +25,9 @@
 
 {$I castleconf.inc}
 
-uses SysUtils, CastleGL, CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
+uses SysUtils,
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,

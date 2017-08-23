@@ -23,7 +23,8 @@ interface
 uses
   {$ifdef MSWINDOWS} Windows, {$endif}
   {$ifdef UNIX} BaseUnix, Unix, Dl, {$endif}
-  SysUtils, Math;
+  SysUtils, Math,
+  CastleUtils;
 
 type
   { Time in seconds. This is used throughout my engine to represent time
@@ -46,8 +47,13 @@ const
   OldestTime = -MaxDouble;
 
 type
+  { @deprecated
+    To measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds }
   TMilisecTime = QWord
-    deprecated 'to measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds';
+    {$ifdef FPC}
+    // This works in Delphi too, but is too noisy
+    deprecated 'To measure time, better use Timer + TimerSeconds or ProcessTimer + ProcessTimerSeconds'
+    {$endif};
 
 { Check is SecondTime larger by at least TimeDelay than FirstTime.
 
@@ -111,7 +117,7 @@ function DateTimeToAtStr(DateTime: TDateTime): string;
 type
   { Current time from @link(ProcessTimer).
     If possible, this measures only the CPU usage local to this process. }
-  TProcessTimerResult = object
+  TProcessTimerResult = record
   private
     Value:
       {$ifdef UNIX} clock_t {$endif}
@@ -191,7 +197,7 @@ function ProcessTimerEnd: TFloatTime; deprecated 'instead of this, better to use
 
 type
   { Current time from @link(Timer). }
-  TTimerResult = object
+  TTimerResult = record
   private
     { The type of this could be platform-dependent. But for now, all platforms
       are happy with Int64. }
@@ -205,7 +211,20 @@ type
   and friends that try to measure only CPU time used by the current process.
 
   Call Timer twice, and calculate the difference (in seconds)
-  using the TimerSeconds. }
+  using the TimerSeconds. Like this:
+
+  @longCode(#
+  var
+    TimeStart: TTimerResult;
+    Seconds: TFloatTime;
+  begin
+    TimeStart := Timer;
+    // ...  do something time-consuming ...
+    Seconds := TimerSeconds(Timer, TimeStart);
+    Writeln('Seconds passed: ', Seconds:1:2);
+  end;
+  #)
+}
 function Timer: TTimerResult;
 
 { Subtract two times obtained from @link(Timer),
@@ -580,8 +599,13 @@ type
   TTimerFrequency = LongWord;
 const
   TimerFrequency: TTimerFrequency = 1000000;
+
+{$ifdef ANDROID}
 var
+  { Note that using this makes Timer not thread-safe
+    (but we neved guaranteed in the interface that it's thread-safe...). }
   LastTimer: TTimerResult;
+{$endif}
 
 function Timer: TTimerResult;
 var
@@ -592,17 +616,19 @@ begin
   { We can fit whole TTimeval inside Int64, no problem. }
   Result.Value := Int64(tv.tv_sec) * 1000000 + Int64(tv.tv_usec);
 
+  {$ifdef ANDROID}
   { We cannot trust some Android systems to return increasing values here
     (Android device "Moto X Play", "XT1562", OS version 5.1.1).
     Maybe they synchronize the time from the Internet, and do not take care
     to keep it monotonic (unlike https://lwn.net/Articles/23313/ says?) }
-
   if Result.Value < LastTimer.Value then
   begin
     WritelnLog('Time', 'Detected gettimeofday() going backwards on Unix, workarounding. This is known to happen on some Android devices');
     Result.Value := LastTimer.Value;
   end else
     LastTimer.Value := Result.Value;
+  {$endif ANDROID}
+
 end;
 {$endif UNIX}
 
@@ -650,7 +676,7 @@ var
   NowTime: TTimerResult;
 begin
   Inc(FramesRendered);
-  FrameTimePassed.Value += Timer.Value - RenderStartTime.Value;
+  FrameTimePassed.Value := FrameTimePassed.Value + Timer.Value - RenderStartTime.Value;
 
   NowTime := Timer;
   if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then

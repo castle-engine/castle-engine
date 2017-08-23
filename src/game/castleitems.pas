@@ -24,7 +24,8 @@ uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
-  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, CastleColors;
+  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, CastleColors,
+  CastleDebug3D;
 
 type
   TInventoryItem = class;
@@ -428,7 +429,7 @@ type
     @link(T3DAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
-  TInventory = class(specialize TObjectList<TInventoryItem>)
+  TInventory = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInventoryItem>)
   private
     FOwner3D: T3DAliveWithInventory;
   protected
@@ -469,8 +470,26 @@ type
     It's not in anyone's inventory. }
   TItemOnWorld = class(T3DOrient)
   private
-    FItem: TInventoryItem;
-    ItemRotation, LifeTime: Single;
+    type
+      { A debug visualization that can be added to TItemOnWorld
+        to visualize the parameters of it's parent (bounding volumes and such).
+        See @link(TDebug3D) for usage details. }
+      TItemDebug3D = class(TDebug3D)
+      strict private
+        FBoxRotated: TDebugBox;
+        FParent: TItemOnWorld;
+      strict protected
+        procedure Initialize; override;
+        procedure Update; override;
+      public
+        procedure Attach(const AParent: TItemOnWorld);
+      end;
+
+    var
+      FItem: TInventoryItem;
+      ItemRotation, LifeTime: Single;
+      FDebug3D: TItemDebug3D;
+    function BoundingBoxRotated: TBox3D;
   protected
     function GetChild: T3D; override;
   public
@@ -501,17 +520,6 @@ type
 
     { The Item owned by this TItemOnWorld instance. Never @nil. }
     property Item: TInventoryItem read FItem;
-
-    { Render the item, on current Position with current rotation etc.
-      Current matrix should be modelview, this pushes/pops matrix state
-      (so it 1. needs one place on matrix stack,
-      2. doesn't modify current matrix).
-
-      Pass current viewing Frustum to allow optimizing this
-      (when item for sure is not within Frustum, we don't have
-      to push it to OpenGL). }
-    procedure Render(const Frustum: TFrustum;
-      const Params: TRenderParams); override;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
@@ -585,8 +593,8 @@ var
 
 implementation
 
-uses SysUtils, CastleGL, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
-  CastleConfig, CastleCreatures, CastleGLBoxes;
+uses SysUtils, CastleFilesUtils, CastlePlayer, CastleGameNotifications,
+  CastleConfig, CastleCreatures;
 
 { TItemResource ------------------------------------------------------------ }
 
@@ -746,7 +754,7 @@ begin
 
   Result := Resource.CreateItem(QuantitySplit);
 
-  FQuantity -= QuantitySplit;
+  FQuantity := FQuantity - QuantitySplit;
 end;
 
 function TInventoryItem.PutOnWorld(const AWorld: T3DWorld;
@@ -1077,6 +1085,35 @@ begin
   CheckDepleted(Item);
 end;
 
+{ TItemOnWorld.TItemDebug3D -------------------------------------------------------- }
+
+procedure TItemOnWorld.TItemDebug3D.Initialize;
+begin
+  inherited;
+
+  FBoxRotated := TDebugBox.Create(Self, GrayRGB);
+  WorldSpace.AddChildren(FBoxRotated.Root);
+
+  ChangedScene;
+end;
+
+procedure TItemOnWorld.TItemDebug3D.Attach(const AParent: TItemOnWorld);
+begin
+  FParent := AParent;
+  inherited Attach(AParent);
+end;
+
+procedure TItemOnWorld.TItemDebug3D.Update;
+var
+  BBoxRotated: TBox3D;
+begin
+  inherited;
+
+  // show FParent.BoundingBoxRotated
+  BBoxRotated := FParent.BoundingBoxRotated;
+  FBoxRotated.Box := BBoxRotated;
+end;
+
 { TItemOnWorld ------------------------------------------------------------ }
 
 constructor TItemOnWorld.Create(AOwner: TComponent);
@@ -1085,6 +1122,9 @@ begin
 
   CollidesWithMoving := true;
   Gravity := true;
+
+  FDebug3D := TItemDebug3D.Create(Self);
+  FDebug3D.Attach(Self);
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
@@ -1104,37 +1144,9 @@ begin
   Result := Item.Resource.BaseAnimation.Scene(LifeTime, true);
 end;
 
-procedure TItemOnWorld.Render(const Frustum: TFrustum;
-  const Params: TRenderParams);
-{$ifndef OpenGLES} // TODO-es
-var
-  BoxRotated: TBox3D;
-{$endif}
+function TItemOnWorld.BoundingBoxRotated: TBox3D;
 begin
-  inherited;
-
-  {$ifndef OpenGLES} // TODO-es
-  { This code uses a lot of deprecated stuff. It is already marked with TODO above. }
-  {$warnings off}
-  if RenderDebug3D and GetExists and
-    (not Params.Transparent) and Params.ShadowVolumesReceivers then
-  begin
-    BoxRotated := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Position);
-    if Frustum.Box3DCollisionPossibleSimple(BoxRotated) then
-    begin
-      glPushAttrib(GL_ENABLE_BIT);
-        glDisable(GL_LIGHTING);
-        glEnable(GL_DEPTH_TEST);
-        glColorv(Gray);
-        glDrawBox3DWire(BoundingBox);
-        glDrawBox3DWire(BoxRotated);
-        glColorv(Yellow);
-        glDrawAxisWire(Middle, BoxRotated.AverageSize(true, 0));
-      glPopAttrib;
-    end;
-  end;
-  {$warnings on}
-  {$endif}
+  Result := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Position);
 end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1144,17 +1156,19 @@ begin
   inherited;
   if not GetExists then Exit;
 
-  LifeTime += SecondsPassed;
+  LifeTime := LifeTime + SecondsPassed;
 
   { LifeTime is used to choose animation frame in GetChild.
     So the item constantly changes, even when it's
     transformation (things taken into account in T3DOrient) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
-  ItemRotation += RotationSpeed * SecondsPassed;
+  ItemRotation := ItemRotation + (RotationSpeed * SecondsPassed);
   U := World.GravityUp; // copy to local variable for speed
   DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
+
+  FDebug3D.Exists := RenderDebug3D;
 
   if AutoPick and
      (World.Player <> nil) and

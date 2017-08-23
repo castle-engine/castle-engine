@@ -124,13 +124,13 @@ type
     In descendants, you only need to override GeneratePoints. }
   TPrecalcCurve = class(TSpaceFillingCurve)
   private
-    Pixels: PArray_Vector2Cardinal;
+    Pixels: PVector2CardinalArray;
     NextPixelNum: Cardinal;
   protected
     { Generate next PixelsCount points. You should generate next
       PixelsCount points to the Pixels table
       (it's guaranteed that PixelsCount > 0). }
-    procedure GeneratePixels(APixels: PArray_Vector2Cardinal); virtual; abstract;
+    procedure GeneratePixels(APixels: PVector2CardinalArray); virtual; abstract;
   public
     constructor Create(ASizeX, ASizeY: Cardinal); override;
     destructor Destroy; override;
@@ -147,7 +147,7 @@ type
     in odd rows we go to the left. }
   TSwapScanCurve = class(TPrecalcCurve)
   protected
-    procedure GeneratePixels(APixels: PArray_Vector2Cardinal); override;
+    procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
     class function SFCName: string; override;
   end;
@@ -158,7 +158,7 @@ type
     [0..SizeX-1, 0..SizeY-1] space. }
   THilbertCurve = class(TPrecalcCurve)
   protected
-    procedure GeneratePixels(APixels: PArray_Vector2Cardinal); override;
+    procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
     class function SFCName: string; override;
   end;
@@ -169,7 +169,7 @@ type
     [0..SizeX-1, 0..SizeY-1] space. }
   TPeanoCurve = class(TPrecalcCurve)
   protected
-    procedure GeneratePixels(APixels: PArray_Vector2Cardinal); override;
+    procedure GeneratePixels(APixels: PVector2CardinalArray); override;
   public
     class function SFCName: string; override;
   end;
@@ -193,13 +193,8 @@ function AllSFCurveClassesNames: string;
 
 implementation
 
-uses CastleUtils;
-
-{ Workaround FPC bug:
-  after using Generics.Collections or CastleUtils unit (that are in Delphi mode),
-  *sometimes* the FPC_OBJFPC symbol gets undefined for this unit
-  (but we're stil in ObjFpc syntax mode). }
-{$ifdef FPC} {$define FPC_OBJFPC} {$endif}
+uses Math,
+  CastleUtils;
 
 const
   { AngleTurn[Angle, Orient] = (definicja)
@@ -338,7 +333,7 @@ end;
 
 { TSwapScanCurve ------------------------------------------------------------ }
 
-procedure TSwapScanCurve.GeneratePixels(APixels: PArray_Vector2Cardinal);
+procedure TSwapScanCurve.GeneratePixels(APixels: PVector2CardinalArray);
 var
   NextPixelToWriteNum: Cardinal;
 
@@ -373,11 +368,11 @@ end;
 type
   TStepData = record
     LastX, LastY, NextPixelToWriteNum, SizeX, SizeY: Cardinal;
-    Pixels: PArray_Vector2Cardinal;
+    Pixels: PVector2CardinalArray;
   end;
   PStepData=^TStepData;
 
-procedure InitStepData(out StepData: TStepData; Pixels: PArray_Vector2Cardinal;
+procedure InitStepData(out StepData: TStepData; Pixels: PVector2CardinalArray;
   const SizeX, SizeY: Cardinal);
 begin
  FillChar(Pixels^[0], SizeOf(Pixels^[0]), 0);
@@ -416,7 +411,7 @@ end;
 
 { THilbertCurve ------------------------------------------------------------ }
 
-procedure THilbertCurve.GeneratePixels(APixels: PArray_Vector2Cardinal);
+procedure THilbertCurve.GeneratePixels(APixels: PVector2CardinalArray);
 var StepData: TStepData;
     Level: Cardinal;
 begin
@@ -425,7 +420,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  HilbertCurve(true, 0, Level,
-   {$ifdef FPC_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function THilbertCurve.SFCName: string;
@@ -435,7 +430,7 @@ end;
 
 { TPeanoCurve ------------------------------------------------------------ }
 
-procedure TPeanoCurve.GeneratePixels(APixels: PArray_Vector2Cardinal);
+procedure TPeanoCurve.GeneratePixels(APixels: PVector2CardinalArray);
 var StepData: TStepData;
     MaxSize, Power3Level, Level: Cardinal;
 begin
@@ -448,7 +443,7 @@ begin
 
  InitStepData(StepData, APixels, SizeX, SizeY);
  PeanoCurve(false, 0, Level,
-   {$ifdef FPC_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
+   {$ifdef CASTLE_OBJFPC} @ {$endif} HilbertPeanoStep, @StepData);
 end;
 
 class function TPeanoCurve.SFCName: string;

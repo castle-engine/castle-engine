@@ -26,11 +26,24 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetPoint(const Value: array of TVector4);
+    procedure SetPoint(const Value: TVector4List);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TTextureCoordinate4DNode ----------------------------------------------- }
+
+procedure TTextureCoordinate4DNode.SetPoint(const Value: array of TVector4);
+begin
+  FdPoint.Send(Value);
+end;
+
+procedure TTextureCoordinate4DNode.SetPoint(const Value: TVector4List);
+begin
+  FdPoint.Send(Value);
+end;
 
 {$endif read_implementation}

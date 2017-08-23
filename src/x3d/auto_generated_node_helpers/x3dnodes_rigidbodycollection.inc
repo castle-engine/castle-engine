@@ -26,7 +26,7 @@
 
 {$ifdef read_interface}
 
-  private
+  strict private
     function GetAutoDisable: boolean;
     procedure SetAutoDisable(const Value: boolean);
     function GetConstantForceMix: Single;
