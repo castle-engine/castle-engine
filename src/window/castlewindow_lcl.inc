@@ -580,9 +580,15 @@ end;
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
-  if not Closed then
+  if not Closed then begin
+
+    { Prevent setting mouse position to the same value, as it may cause
+      a false onMotion event sequence at some systems }
+    if TVector2.PerfectlyEquals(Value,FMousePosition) then Exit;
+
     Mouse.CursorPos := OpenGLControl.ControlToScreen(Point(
       Floor(Value[0]), Height - 1 - Floor(Value[1])));
+   end;
 end;
 
 procedure TCastleWindowCustom.MenuItemClick(Sender: TObject);
