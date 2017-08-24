@@ -3013,6 +3013,7 @@ begin
   OwnsMainMenu := true;
   FDpi := DefaultDpi;
   FPressed := TKeysPressed.Create;
+  FMousePosition := Vector2(-1,-1);
   FFps := TFramesPerSecond.Create;
   FMainMenuVisible := true;
   FContainer := CreateContainer;
