@@ -40,11 +40,17 @@
 - File extensions:
 
   *.pas files are units,
-  *.inc are files to be included in other Pascal source files using $Include.
-  *.lpr are main program files.
+  *.inc are files to be included in other Pascal source files using $I
+        (short for $Include).
+  *.dpr are main program files.
+        This changes in CGE >= 6.3.
+        In CGE < 6.3, program files had .lpr extension, since we used only Lazarus.
+        In CGE >= 6.3, we use both Lazarus and Delphi.
+        While Lazarus accepts either .dpr or .lpr extension for the program file,
+        Delphi tolerates only .dpr extension. So we have to (unfortunately)
+        adjust to Delphi, and just use .dpr.
 
   Do not use *.pp (not familiar to people from Delphi).
-  Do not use *.dpr (tied to Delphi, and we're for Lazarus).
 
 - The engine is, in general, not thread-safe.
   You cannot call our functions from different threads.
@@ -83,12 +89,9 @@
 
     See e.g. CastleVectors and CastleImages units.
 
-    Although I must admit that often I don't keep this convention,
-    especially when <type> is some object class.
-    Well, you very seldom should write functions that take an object
-    reference and modify it somehow. After all, usually you should
-    rather make new constructors and destructors for this class
-    in such cases.
+    This rule doesn't apply when <type> is some class instance.
+    It's normal that a procedure may modify the given class instance
+    contents, no need to signify this with a "Var" suffix.
 
   - If somewhere I use parameters like V: ^<type> and Stride: Integer
     then it means that these parameters define a table of <type> values.
@@ -102,7 +105,7 @@
 
   Standard FPC and Delphi ones: MSWINDOWS, UNIX, LINUX,
   CPUI386, CPUX86_64, FPC to differentiate between compiler versions,
-  and many more.
+  and some more.
 
   See castleconf.inc.
 
@@ -117,21 +120,34 @@
   So there's no need to check for RELEASE symbol.
 
 - Exceptions' messages:
-  - Never start them with 'Error: ' or 'Error - ' or anything else
-    that just says "we have an error". Reason: you're raising an Exception,
-    this already says that this is some kind of error.
-  - Don't end the Message with '!' character. Yes, I know that some
-    exceptions mean that something really horrible happened,
-    but screaming about this will not help -- let's keep cold blood :)
-  - Don't end the Message with '.' character.
-  - Usually Message should be a single sentence.
+
+  - Do not start them with 'Error: ' or 'Error - ' or anything else
+    that just says "we have an error".
+    This would be redundant, it would be necessary for *almost all* exception messages,
+    since almost all signal some error.
+    So don't say it -- the fact that you're raising an Exception
+    already signals that this is some kind of error.
+
+  - Don't end the Message with '!' character.
+    All error messages signal that something bad happened,
+    so '!' would be necessary for *almost all* exception messages if you would
+    follow this.
+    Instead, keep the cold blood, and keep the error message "clean and calm".
+
+  - Usually, Message should be a single sentence,
+    and not end with the '.' character.
+    We do not follow this rule 100%, it's OK to break it with good reasons.
+
   - Message should not contain any line-breaks. Reason: this doesn't
     look good when displayed in some situations. Especially when
     one Message is embedded as part of the Message of other exception.
-    But, if Message really must express line-breaks: they should be
-    always expressed as CastleUtils.nl constant.
-  - Message must not contain any general program information like
-    ProgramName, ExeName etc. (The exception to this rule is when
+
+    We do not follow this rule 100%, it's OK to break it with good reasons.
+    I know that some information really looks much cleaner when split into
+    multiple lines (e.g. TMatrix4.ToString output is multi-line already).
+
+  - Message should not contain any general program information like
+    ApplicationName, ExeName etc. (The exception to this rule is when
     such information is really related to the error that happened,
     may help to explain this error etc.)
     In normal situation, the code that finally catched and outputs
