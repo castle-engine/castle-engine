@@ -39,6 +39,51 @@
   - Never use tabs (convert to spaces).
   - Never leave trailing whitespace at the end of lines (in the long run,
     it causes unnecessary diffs when someone removes it).
+  - Never use "with".
+    Using "with" makes the code very difficult to read,
+    as some of the symbols inside the "with A do begin .... end" clause
+    are bound to A, and some are not, but it's completely invisible
+    to the human reader which symbols are which.
+    And it's impossible to determine it, without intimately knowing the complete
+    API of class/record A.
+
+    E.g. what does this code do?
+
+    ```
+    with A do
+    begin
+      SourceX := X;
+      SourceY := Y;
+    end;
+    ```
+
+    Does it modify A contents, or does it modify outside variables,
+    merely reading the A contents? You really don't know,
+    until I show you the documentation of the class of A, and all it's ancestors.
+
+    Compare with a clear:
+
+    ```
+    SourceX := A.X;
+    SourceY := A.Y;
+    ```
+
+    or
+
+    ```
+    A.SourceX := X;
+    A.SourceY := Y;
+    ```
+
+    The "with" also makes the code very fragile to any changes of A API.
+    Every time you add a new field/property/method to A,
+    then the code inside "with A do begin .... end" may change it's meaning.
+    It may compile, but suddenly will do something completely different.
+
+    Likewise, every time you remove a field/property/method from A,
+    the code inside "with A do begin .... end" may compile, if you happen
+    to have a variable outside of this block with a name matching the name
+    inside A.
 
 - File extensions:
 
