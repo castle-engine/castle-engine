@@ -1,9 +1,12 @@
 - In general, we follow the standard Lazarus and Delphi coding conventions,
   used throughout most modern Object Pascal code.
 
-  See
-  http://edn.embarcadero.com/article/10280 - Object Pascal Style Guide
-  http://kodu.ut.ee/~jellen/delphi/cs.html - Delphi Language Coding Standards Document
+  These are documented nicely on:
+  - http://edn.embarcadero.com/article/10280 - Object Pascal Style Guide
+  - http://kodu.ut.ee/~jellen/delphi/cs.html - Delphi Language Coding Standards Document
+    (Not available anymore? Access through Web Archive:
+    https://web.archive.org/web/20170607183644/http://kodu.ut.ee/~jellen/delphi/cs.html
+    )
 
   In particular:
   - Indent by 2 spaces.
