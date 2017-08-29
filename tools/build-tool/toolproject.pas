@@ -204,11 +204,18 @@ uses StrUtils, DOM, Process,
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
 
+{ Insert 'lib' prefix at the beginning of file name. }
 function InsertLibPrefix(const S: string): string;
 begin
-  Result := {$ifdef UNIX} ExtractFilePath(S) + 'lib' + ExtractFileName(S)
-            {$else} S
-            {$endif};
+  Result := ExtractFilePath(S) + 'lib' + ExtractFileName(S);
+end;
+
+{ Compiled library name (.so, .dll etc.) from given source code filename. }
+function CompiledLibraryFile(const S: string; const OS: TOS): string;
+begin
+  Result := ChangeFileExt(S, LibraryExtensionOS(OS));
+  if OS in AllUnixOSes then
+    Result := InsertLibPrefix(Result);
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -691,7 +698,7 @@ begin
 
         if Plugin then
         begin
-          SourceExe := InsertLibPrefix(ChangeFileExt(MainSource, LibraryExtensionOS(OS)));
+          SourceExe := CompiledLibraryFile(MainSource, OS);
           DestExe := PluginLibraryFile(OS, CPU);
         end else
         begin
