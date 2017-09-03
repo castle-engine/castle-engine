@@ -114,6 +114,7 @@ unit kraft;
 {$longstrings on}
 {$booleval off}
 {$typeinfo on}
+{$notes off}
 
 {-$define UseMoreCollisionGroups}
 
