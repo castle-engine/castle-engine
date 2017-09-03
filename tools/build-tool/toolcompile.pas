@@ -353,6 +353,8 @@ begin
         AddEnginePath('game');
         AddEnginePath('services');
         AddEnginePath('services/opengl');
+        AddEnginePath('physics');
+        AddEnginePath('physics/kraft');
 
         if not FPCVer.AtLeast(3, 1, 1) then
           AddEnginePath('compatibility/generics.collections/src');
