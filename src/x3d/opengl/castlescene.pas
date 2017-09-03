@@ -748,6 +748,9 @@ type
     { @groupEnd }
 
     { Create a scene with the same contents (X3D scene graph) as this one.
+      The created scene has exactly the same class as this one
+      (we use ClassType.Create to call a virtual constructor).
+
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(Attributes). }
@@ -2131,7 +2134,7 @@ end;
 
 function TCastleScene.Clone(const AOwner: TComponent): TCastleScene;
 begin
-  Result := TCastleScene.Create(AOwner);
+  Result := TComponentClass(ClassType).Create(AOwner) as TCastleScene;
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;

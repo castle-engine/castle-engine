@@ -1846,6 +1846,15 @@ type
       This calls @link(TTextNode.FontChanged) and @link(TAsciiTextNode_1.FontChanged)
       on all appropriate nodes. }
     procedure FontChanged;
+
+    { Create a scene with the same contents (X3D scene graph) as this one.
+      The created scene has exactly the same class as this one
+      (we use ClassType.Create to call a virtual constructor).
+
+      Note that this @bold(does not copy other scene attributes),
+      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
+      in @link(Attributes). }
+    function Clone(const AOwner: TComponent): TCastleSceneCore;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -7078,6 +7087,13 @@ begin
     RootNode.EnumerateNodes(TTextNode, @FontChanged_TextNode, false);
     RootNode.EnumerateNodes(TAsciiTextNode_1, @FontChanged_AsciiTextNode_1, false);
   end;
+end;
+
+function TCastleSceneCore.Clone(const AOwner: TComponent): TCastleSceneCore;
+begin
+  Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
+  if RootNode <> nil then
+    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
 end.
