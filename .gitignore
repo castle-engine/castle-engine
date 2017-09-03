@@ -144,6 +144,7 @@ examples/window/multi_window
 examples/window/window_events
 examples/window/window_gtk_mix
 examples/window/window_menu
+examples/physics/physics_3d_demo/physics_3d_demo
 fpmake
 packages/castle_base.pas
 packages/castle_components.pas

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE X3D PUBLIC "ISO//Web3D//DTD X3D 3.0//EN" "http://www.web3d.org/specifications/x3d-3.0.dtd">
+<X3D version="3.0" profile="Immersive" xmlns:xsd="http://www.w3.org/2001/XMLSchema-instance" xsd:noNamespaceSchemaLocation="http://www.web3d.org/specifications/x3d-3.0.xsd">
+	<head>
+		<meta name="filename" content="level.x3d" />
+		<meta name="generator" content="Blender 2.78 (sub 0)" />
+	</head>
+	<Scene>
+		<NavigationInfo headlight="false"
+		                visibilityLimit="0.0"
+		                type='"EXAMINE", "ANY"'
+		                avatarSize="0.25, 1.75, 0.75"
+		                />
+		<Background DEF="WO_World"
+		            groundColor="0.051 0.051 0.051"
+		            skyColor="0.051 0.051 0.051"
+		            />
+		<Transform DEF="Plane_TRANSFORM"
+		           translation="0.000000 0.000000 0.000000"
+		           scale="10.000000 10.000000 10.000000"
+		           rotation="0.000000 0.707107 0.707107 3.141593"
+		           >
+			<Transform DEF="Plane_ifs_TRANSFORM"
+			           translation="0.000000 0.000000 0.000000"
+			           scale="1.000000 1.000000 1.000000"
+			           rotation="1.000000 0.000000 0.000000 0.000000"
+			           >
+				<Group DEF="group_ME_Plane">
+					<Shape>
+						<Appearance>
+							<ImageTexture DEF="IM_059_plombieresgbr_jpg"
+							              url='"textures/059_plombieresgbr.jpg" "059_plombieresgbr.jpg" "/home/michalis/sources/castle-engine/castle-engine/examples/physics/physics_3d_demo/data/textures/059_plombieresgbr.jpg"'
+							              />
+							<Material DEF="MA_Material_001"
+							          diffuseColor="0.800 0.800 0.800"
+							          specularColor="0.000 0.000 0.000"
+							          emissiveColor="0.000 0.000 0.000"
+							          ambientIntensity="0.333"
+							          shininess="0.098"
+							          transparency="0.000"
+							          />
+						</Appearance>
+						<IndexedFaceSet solid="true"
+						                texCoordIndex="0 1 2 3 -1 "
+						                coordIndex="0 1 3 2 -1 "
+						                >
+							<Coordinate DEF="coords_ME_Plane"
+							            point="-1.000000 -1.000000 0.000000 1.000000 -1.000000 0.000000 -1.000000 1.000000 0.000000 1.000000 1.000000 0.000000 "
+							            />
+							<TextureCoordinate point="-3.3536 -3.3536 4.3536 -3.3536 4.3536 4.3536 -3.3536 4.3536 " />
+						</IndexedFaceSet>
+					</Shape>
+				</Group>
+			</Transform>
+		</Transform>
+		<Transform DEF="Lamp_TRANSFORM"
+		           translation="-4.076245 5.903862 1.005454"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="30.0000" 
+			            location="-0.0000 -0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Camera_TRANSFORM"
+		           translation="-7.481132 5.343665 -6.507640"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.098233 -0.968789 -0.227591 2.349487"
+		           >
+			<Viewpoint DEF="CA_Camera"
+			           centerOfRotation="0 0 0"
+			           position="-0.00 -0.00 0.00"
+			           orientation="-0.00 -0.47 -0.88 0.00"
+			           fieldOfView="0.858"
+			           />
+		</Transform>
+	</Scene>
+</X3D>
