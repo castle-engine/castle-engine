@@ -404,7 +404,8 @@ var
 begin
   B := (Value as TSFBool).Value;
   if B then
-    EventInputTrue.Send(B, Time) else
+    EventInputTrue.Send(B, Time)
+  else
     EventInputFalse.Send(B, Time);
   EventInputNegate.Send(not B, Time);
 end;
