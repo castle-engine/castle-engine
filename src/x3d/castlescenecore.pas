@@ -1521,8 +1521,7 @@ type
       Handler: TCompiledScriptHandler);
 
     { TNavigationType value determined by current NavigationInfo node. }
-    function NavigationTypeFromNavigationInfo(
-      const ForceNavigationType: string = ''): TNavigationType;
+    function NavigationTypeFromNavigationInfo: TNavigationType;
 
     { Update camera properties based on currently bound NavigationInfo.
 
@@ -1531,13 +1530,6 @@ type
       and we will create camera corresponding to default NavigationInfo
       values (this is following VRML/X3D spec), so it will have
       initial type = EXAMINE.
-
-      You can pass ForceNavigationType = 'EXAMINE', 'WALK', 'FLY', 'NONE' etc.
-      (see X3D specification about NavigationInfo node, type field,
-      on [http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/navigation.html#NavigationInfo],
-      although not all values are handled by our engine now).
-      This way we will ignore what NavigationInfo.type information
-      inside the scene says.
 
       This initializes a lot of camera properties:
       @unorderedList(
@@ -1554,10 +1546,7 @@ type
       Box is the expected bounding box of the whole 3D scene.
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
-    procedure CameraFromNavigationInfo(Camera: TCamera;
-      const Box: TBox3D;
-      const ForceNavigationType: string = '';
-      const ForceRadius: Single = 0);
+    procedure CameraFromNavigationInfo(Camera: TCamera; const Box: TBox3D);
 
     { Update camera to the currently bound VRML/X3D viewpoint.
       When no viewpoint is currently bound, we will go to a suitable
@@ -6018,8 +6007,7 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-function TCastleSceneCore.NavigationTypeFromNavigationInfo(
-  const ForceNavigationType: string): TNavigationType;
+function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
 
   function StringToNavigationType(const S: string;
     out NavigationType: TNavigationType): boolean;
@@ -6065,10 +6053,6 @@ var
   I: Integer;
   NavigationNode: TNavigationInfoNode;
 begin
-  if ForceNavigationType <> '' then
-    if StringToNavigationType(ForceNavigationType, Result) then
-      Exit;
-
   NavigationNode := NavigationInfoStack.Top;
   if NavigationNode <> nil then
     for I := 0 to NavigationNode.FdType.Count - 1 do
@@ -6080,9 +6064,7 @@ begin
 end;
 
 procedure TCastleSceneCore.CameraFromNavigationInfo(
-  Camera: TCamera; const Box: TBox3D;
-  const ForceNavigationType: string;
-  const ForceRadius: Single);
+  Camera: TCamera; const Box: TBox3D);
 var
   NavigationNode: TNavigationInfoNode;
   Radius: Single;
@@ -6090,17 +6072,14 @@ begin
   NavigationNode := NavigationInfoStack.Top;
 
   { calculate Radius }
-  Radius := ForceRadius;
+  Radius := 0;
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 1) then
+    Radius := NavigationNode.FdAvatarSize.Items[0];
+  { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
+    calculate something suitable based on Box. }
   if Radius <= 0 then
-  begin
-    if (NavigationNode <> nil) and
-       (NavigationNode.FdAvatarSize.Count >= 1) then
-      Radius := NavigationNode.FdAvatarSize.Items[0];
-    { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
-      calculate something suitable based on Box. }
-    if Radius <= 0 then
-      Radius := Box.AverageSize(false, 1.0) * 0.005;
-  end;
+    Radius := Box.AverageSize(false, 1.0) * 0.005;
   Camera.Radius := Radius;
 
   { Note that we cannot here conditionally set some properties
