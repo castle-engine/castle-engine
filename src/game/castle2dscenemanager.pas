@@ -169,8 +169,12 @@ end;
 
 procedure T2DSceneManager.AssignDefaultCamera;
 begin
-  { setting NavigationType will create a Camera }
-  SetNavigationTypeCore(ntNone, true);
+  { Set Camera explicitly, otherwise SetNavigationType below could call
+    ExamineCamera / WalkCamera that call AssignDefaultCamera when Camera = nil,
+    and we would have infinite AssignDefaultCamera calls loop. }
+  Camera := InternalWalkCamera;
+
+  NavigationType := ntNone;
   Camera.SetInitialView(
     { pos } Vector3(0, 0, DefaultCameraZ),
     { dir } Vector3(0, 0, -1),

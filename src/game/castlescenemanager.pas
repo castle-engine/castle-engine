@@ -71,15 +71,20 @@ type
     FCamera: TCamera;
     FPaused: boolean;
     FRenderParams: TManagerRenderParams;
-
-    FShadowVolumes: boolean;
-    FShadowVolumesRender: boolean;
-
     FBackgroundWireframe: boolean;
     FBackgroundColor: TCastleColor;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FUseGlobalLights: boolean;
+    FApproximateActivation: boolean;
+    FDefaultVisibilityLimit: Single;
+    FTransparent: boolean;
+    FProjection: TProjection;
+    FInternalExamineCamera: TExamineCamera;
+    FInternalWalkCamera: TWalkCamera;
+
+    FShadowVolumes: boolean;
+    FShadowVolumesRender: boolean;
 
     { If a texture for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth/Target are non-zero and
@@ -98,10 +103,6 @@ type
     ScreenPointVbo: TGLuint;
     ScreenPoint: packed array [0..3] of TScreenPoint;
 
-    FApproximateActivation: boolean;
-    FDefaultVisibilityLimit: Single;
-    FTransparent: boolean;
-
     FScreenSpaceAmbientOcclusion: boolean;
     SSAOShader: TGLSLScreenEffect;
 
@@ -110,8 +111,6 @@ type
       projection. Used by ApplyProjection. }
     DistortFieldOfViewY, DistortViewAspect: Single;
     SickProjectionTime: TFloatTime;
-
-    FProjection: TProjection;
 
     procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
@@ -151,18 +150,6 @@ type
     function GetNavigationType: TNavigationType;
     procedure SetNavigationType(const Value: TNavigationType);
   protected
-    { Internal way to set NavigationType that should be used
-      from overridden AssignDefaultCamera implementations,
-      with AlwaysCreateNewCamera = @true parameter.
-
-      This avoids creating an infinite loop in calling
-      AssignDefaultCamera
-      -> SetNavigationType
-      -> ExamineCamera / WalkCamera
-      -> AssignDefaultCamera... }
-    procedure SetNavigationTypeCore(const Value: TNavigationType;
-      const AlwaysCreateNewCamera: boolean);
-
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
       Used by our Render method.
@@ -389,6 +376,26 @@ type
       that is similar to your configuration. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType;
+
+    { Camera instances used by this scene manager.
+      Using these methods automatically creates these instances
+      (so they are never @nil).
+
+      Using these methods @italic(does not) make these
+      camera instances current (in contast to calling @link(ExamineCamera),
+      @link(WalkCamera) or setting @link(NavigationType)).
+
+      When you switch navigation types by calling @link(ExamineCamera),
+      @link(WalkCamera) or setting @link(NavigationType)
+      the scene manager keeps using these instances of cameras,
+      instead of creating new camera instances.
+      This way all the camera properties
+      (not only those copied by TCamera.Assign) are preserved when you switch
+      e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
+      @groupBegin }
+    function InternalExamineCamera: TExamineCamera;
+    function InternalWalkCamera: TWalkCamera;
+    { @groupEnd }
 
     { Screen effects are shaders that post-process the rendered screen.
       If any screen effects are active, we will automatically render
@@ -2445,6 +2452,20 @@ begin
   Result := Camera;
 end;
 
+function TCastleAbstractViewport.InternalExamineCamera: TExamineCamera;
+begin
+  if FInternalExamineCamera = nil then
+    FInternalExamineCamera := TExamineCamera.Create(Self);
+  Result := FInternalExamineCamera;
+end;
+
+function TCastleAbstractViewport.InternalWalkCamera: TWalkCamera;
+begin
+  if FInternalWalkCamera = nil then
+    FInternalWalkCamera := TWalkCamera.Create(Self);
+  Result := FInternalWalkCamera;
+end;
+
 function TCastleAbstractViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TExamineCamera;
 var
   NewCamera: TExamineCamera;
@@ -2454,15 +2475,14 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
-    NewCamera := TExamineCamera.Create(Self);
+    NewCamera := InternalExamineCamera;
     if Camera = nil then
       AssignDefaultCamera; // initialize defaults from MainScene
     NewCamera.Assign(Camera);
-    Camera.Free;
-    { no need to adjust NewCamera properties,
-      the default TExamineCamera.Create properties match
-      the NavigationType = ntExamine already. }
     Camera := NewCamera;
+    { make sure it's in ntExamine mode (as we possibly reuse old camera,
+      by reusing InternalExamineCamera, so we're not sure what state it's in. }
+    NavigationType := ntExamine;
   end;
   Result := Camera as TExamineCamera;
 end;
@@ -2476,15 +2496,14 @@ begin
     if not SwitchNavigationTypeIfNeeded then
       Exit(nil);
 
-    NewCamera := TWalkCamera.Create(Self);
+    NewCamera := InternalWalkCamera;
     if Camera = nil then
       AssignDefaultCamera; // initialize defaults from MainScene
     NewCamera.Assign(Camera);
-    Camera.Free;
-    { no need to adjust NewCamera properties,
-      the default TWalkCamera.Create properties match
-      the NavigationType = ntWalk already. }
     Camera := NewCamera;
+    { make sure it's in ntWalk mode (as we possibly reuse old camera,
+      by reusing InternalWalkCamera, so we're not sure what state it's in. }
+    NavigationType := ntWalk;
   end;
   Result := Camera as TWalkCamera;
 end;
@@ -2501,37 +2520,6 @@ begin
 end;
 
 procedure TCastleAbstractViewport.SetNavigationType(const Value: TNavigationType);
-begin
-  SetNavigationTypeCore(Value, false);
-end;
-
-procedure TCastleAbstractViewport.SetNavigationTypeCore(const Value: TNavigationType;
-  const AlwaysCreateNewCamera: boolean);
-
-  function GetExamineCamera: TExamineCamera;
-  begin
-    if AlwaysCreateNewCamera then
-    begin
-      Result := TExamineCamera.Create(Self);
-      { Note that camera is partially not initialized,
-        we do not call Result.Init here. But AssignDefaultCamera
-        (the only caller with AlwaysCreateNewCamera = true) will initialize
-        it always by CameraFromNavigationInfo, CameraFromViewpoint. }
-      Camera := Result;
-    end else
-      Result := ExamineCamera;
-  end;
-
-  function GetWalkCamera: TWalkCamera;
-  begin
-    if AlwaysCreateNewCamera then
-    begin
-      Result := TWalkCamera.Create(Self);
-      Camera := Result;
-    end else
-      Result := WalkCamera;
-  end;
-
 var
   E: TExamineCamera;
   W: TWalkCamera;
@@ -2547,19 +2535,19 @@ begin
   case Value of
     ntExamine:
       begin
-        E := GetExamineCamera;
+        E := ExamineCamera;
         E.Input := TCamera.DefaultInput;
         E.Turntable := false;
       end;
     ntTurntable:
       begin
-        E := GetExamineCamera;
+        E := ExamineCamera;
         E.Input := TCamera.DefaultInput;
         E.Turntable := true;
       end;
     ntWalk:
       begin
-        W := GetWalkCamera;
+        W := WalkCamera;
         W.Input := TCamera.DefaultInput;
         W.PreferGravityUpForRotations := true;
         W.PreferGravityUpForMoving := true;
@@ -2567,7 +2555,7 @@ begin
       end;
     ntFly:
       begin
-        W := GetWalkCamera;
+        W := WalkCamera;
         W.Input := TCamera.DefaultInput;
         W.PreferGravityUpForRotations := true;
         W.PreferGravityUpForMoving := false;
@@ -2575,7 +2563,7 @@ begin
       end;
     ntNone:
       begin
-        W := GetWalkCamera;
+        W := WalkCamera;
         W.Input := [];
         // gravity stuff set like for ntFly
         W.PreferGravityUpForRotations := true;
@@ -2591,21 +2579,28 @@ var
   Box: TBox3D;
   Scene: TCastleScene;
   C: TExamineCamera;
+  Nav: TNavigationType;
 begin
   Box := GetItems.BoundingBox;
   Scene := GetMainScene;
   if Scene <> nil then
   begin
-    { We use the AlwaysCreateNewCamera = true,
-      since we cannot call ExamineCamera / WalkCamera now,
-      it would cause infinite loop }
-    SetNavigationTypeCore(Scene.NavigationTypeFromNavigationInfo, true);
+    Nav := Scene.NavigationTypeFromNavigationInfo;
+
+    { Set Camera explicitly, otherwise SetNavigationType below could call
+      ExamineCamera / WalkCamera that call AssignDefaultCamera when Camera = nil,
+      and we would have infinite AssignDefaultCamera calls loop. }
+    if Nav in [ntExamine, ntTurntable] then
+      Camera := InternalExamineCamera
+    else
+      Camera := InternalWalkCamera;
+
+    NavigationType := Nav;
     Scene.CameraFromNavigationInfo(Camera, Box);
     Scene.CameraFromViewpoint(Camera, false, false);
   end else
   begin
-    { we cannot just call ExamineCamera now, it would cause infinite loop }
-    C := TExamineCamera.Create(Self); // ExamineCamera;
+    C := InternalExamineCamera;
     {$warnings off} // TODO: using deprecated
     C.Init(Box, Box.AverageSize(false, 1.0) * 0.005);
     {$warnings on}

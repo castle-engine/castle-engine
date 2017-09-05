@@ -2067,7 +2067,8 @@ end;
 constructor TCamera.Create(AOwner: TComponent);
 begin
   inherited;
-  FProjectionMatrix := TMatrix4.Identity;
+  FProjectionMatrix := TMatrix4.Identity; // any sensible initial value
+  FFrustum.Init(TMatrix4.Identity); // any sensible initial value
   FInitialPosition  := Vector3(0, 0, 0);
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
