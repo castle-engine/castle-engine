@@ -192,19 +192,13 @@ begin
   begin
     { set different camera views for all viewports, to make it interesting }
     Viewports[I].Camera.Free;
-    Viewports[I].Camera := Window.SceneManager.CreateDefaultCamera;
-    if (I < 3) and (Viewports[I].Camera is TExamineCamera) then
-      TExamineCamera(Viewports[I].Camera).Rotations :=
-        QuatFromAxisAngle(TVector3.One[I], Pi/2);
+    if (I < 3) and
+       (Viewports[I].RequiredCamera is TExamineCamera) then
+      Viewports[I].ExamineCamera.Rotations := QuatFromAxisAngle(TVector3.One[I], Pi/2);
   end;
 
-  { scene manager needs assigned camera to make a headlight.
-
-    Right now, one camera cannot be simultaneously on scene manager
-    and viewports. So assign here new camera.
-    See TODO at TCastleAbstractViewport.Camera. }
-  Window.SceneManager.Camera.Free;
-  Window.SceneManager.Camera := Window.SceneManager.CreateDefaultCamera;
+  { scene manager needs assigned camera to make a headlight. }
+  Window.SceneManager.RequiredCamera;
 end;
 
 var

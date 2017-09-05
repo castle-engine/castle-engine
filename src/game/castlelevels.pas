@@ -841,7 +841,8 @@ var
       TWalkCamera.DefaultCrouchHeight, TWalkCamera.DefaultHeadBobbing);
 
     if Player <> nil then
-      WalkCamera := Player.Camera else
+      WalkCamera := Player.Camera
+    else
       { If you don't initialize Player (like for castle1 background level
         or castle-view-level or lets_take_a_walk) then just create a camera. }
       WalkCamera := TWalkCamera.Create(Self);
@@ -868,8 +869,10 @@ var
 
     Camera := WalkCamera;
 
+    {$warnings off} // TODO: using deprecated
     WalkCamera.Init(InitialPosition, InitialDirection,
       InitialUp, GravityUp, PreferredHeight, CameraRadius);
+    {$warnings on}
     WalkCamera.CancelFalling;
   end;
 

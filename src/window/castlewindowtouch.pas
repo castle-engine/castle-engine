@@ -177,14 +177,7 @@ begin
   begin
     FTouchInterface := Value;
 
-    WalkCamera := nil;
-    if SceneManager.Camera <> nil then
-    begin
-      if SceneManager.Camera is TUniversalCamera then
-        WalkCamera := (SceneManager.Camera as TUniversalCamera).Walk else
-      if SceneManager.Camera is TWalkCamera then
-        WalkCamera := SceneManager.Camera as TWalkCamera;
-    end;
+    WalkCamera := SceneManager.WalkCamera(false);
 
     case Value of
       tiNone:

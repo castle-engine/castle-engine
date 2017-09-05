@@ -555,10 +555,8 @@ begin
   SceneManager.LoadLevel('example_level');
 
   { Initialize ExtraViewport camera to something
-    that nicely views the scene from above.
-    The default viewport CreateDefaultCamera implementation always creates
-    TUniversalCamera, so we can safely cast below. }
-  (ExtraViewport.RequiredCamera as TUniversalCamera).NavigationType := ntExamine;
+    that nicely views the scene from above. }
+  ExtraViewport.NavigationType := ntExamine;
   ExtraViewport.RequiredCamera.SetView(
     { position } Vector3(0, 55, 44),
     { direction } Vector3(0, -1, 0),

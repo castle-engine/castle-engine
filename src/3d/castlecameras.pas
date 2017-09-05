@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Cameras to navigate in 3D space (TExamineCamera, TWalkCamera, TUniversalCamera). }
+{ Cameras to navigate in 3D space (TExamineCamera, TWalkCamera). }
 unit CastleCameras;
 
 {$I castleconf.inc}
@@ -50,10 +50,28 @@ type
     ci3dMouse);
   TCameraInputs = set of TCameraInput;
 
-  TNavigationClass = (ncExamine, ncWalk);
-  TNavigationType = (ntExamine, ntTurntable, ntWalk, ntFly, ntNone);
+  { Navigation type that determines various camera properties,
+    used by @link(TCastleAbstractViewport.NavigationType). }
+  TNavigationType = (
+    { Examine mode, comfortable to rotate the scene like an item held in your hand.
+      Uses TExamineCamera. }
+    ntExamine,
+    { Turntable mode, similar to examine mode, but with a bit different interpretation
+      of moves.
+      Uses TExamineCamera. }
+    ntTurntable,
+    { Walk mode, comfortable to walk around the scene with gravity.
+      Uses TWalkCamera. }
+    ntWalk,
+    { Fly mode, comfortable to move around around the scene without gravity.
+      Uses TWalkCamera. }
+    ntFly,
+    { Disable user navigation on the scene.
+      Uses TWalkCamera. }
+    ntNone
+  );
 
-  { Base class camera.
+  { Base class for the camera.
 
     TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
     bug Internal error 200610054 when using the stabs debug info. }
@@ -340,6 +358,14 @@ type
     FProjectionMatrix: TMatrix4;
     FRadius: Single;
     FEnableDragging: boolean;
+    FPreferredHeight: Single;
+    FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
+    FHeadBobbing: Single;
+    FHeadBobbingTime: Single;
+    FClimbHeight: Single;
+    FModelBox: TBox3D;
+    FCrouchHeight: Single;
+    FGravityUp: TVector3;
 
     FAnimation: boolean;
     AnimationEndTime: TFloatTime;
@@ -355,6 +381,7 @@ type
     FFrustum: TFrustum;
 
     procedure RecalculateFrustum;
+    procedure SetGravityUp(const Value: TVector3);
   protected
     { Needed for ciMouseDragging navigation.
       Checking MouseDraggingStarted means that we handle only dragging that
@@ -401,8 +428,12 @@ type
         Matches the default VRML/X3D NavigationInfo.avatarSize[0]. }
       DefaultRadius = 0.25;
       DefaultInput = [ciNormal, ciMouseDragging, ci3dMouse];
+      DefaultHeadBobbingTime = 0.5;
+      DefaultHeadBobbing = 0.02;
+      DefaultCrouchHeight = 0.5;
 
     constructor Create(AOwner: TComponent); override;
+    procedure Assign(Source: TPersistent); override;
 
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
@@ -483,7 +514,7 @@ type
       Returned Dir and Up must be orthogonal.
       Returned Dir and Up and GravityUp are already normalized. }
     procedure GetView(out APos, ADir, AUp: TVector3); overload; virtual; abstract;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); overload; virtual; abstract;
+    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); overload;
 
     { Set camera view from vectors: position, direction, up.
 
@@ -498,11 +529,26 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); overload; virtual; abstract;
     procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); overload; virtual; abstract;
+      const AdjustUp: boolean = true); overload;
 
     property Position: TVector3 read GetPositionInternal write SetPosition;
     function GetPosition: TVector3; deprecated 'use Position property';
-    function GetGravityUp: TVector3; virtual; abstract;
+
+    { "Up" direction of the world in which player moves.
+      Always normalized (when setting this property, we take
+      care to normalize the provided vector).
+
+      This determines in which direction @link(TWalkCamera.Gravity) works.
+
+      This is also the "normal" value for both @link(TWalkCamera.Up) and
+      @link(TWalkCamera.InitialUp) --- one that means that player is looking
+      straight foward. This is used for features like PreferGravityUpForRotations
+      and/or PreferGravityUpForMoving.
+
+      The default value of this vector is (0, 1, 0) (same as the default
+      @link(TWalkCamera.Up) and
+      @link(TWalkCamera.InitialUp) vectors). }
+    property GravityUp: TVector3 read FGravityUp write SetGravityUp;
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
       Uses current Container, which means that you have to add this camera
@@ -639,6 +685,155 @@ type
       It is set internally by scene manager, to prevent camera navigation by
       dragging when we already drag a 3D item (like X3D TouchSensor). }
     property EnableDragging: boolean read FEnableDragging write SetEnableDragging;
+
+    { Height above the ground, only used by @link(TWalkCamera) descendant
+      when @link(TWalkCamera.Gravity) is @true.
+      The @link(Position) tries to stay PreferredHeight above the ground.
+      Temporarily it may still be lower (e.g. player can
+      shortly "duck" when he falls from high).
+
+      This must always be >= 0.
+      You should set this to something greater than zero to get sensible
+      behavior of some things related to @link(Gravity),
+      and also you should set OnHeight.
+
+      See CorrectPreferredHeight for important property
+      of PreferredHeight that you should keep. }
+    property PreferredHeight: Single
+      read FPreferredHeight write FPreferredHeight default 0.0;
+
+    { Correct PreferredHeight based on your Radius
+      and on current HeadBobbing.
+
+      Exactly what and why is done: if you do any kind of collision
+      detection with some Radius, then
+      you should make sure that RealPreferredHeight is always >= of your
+      Radius, otherwise strange effects may happen when crouching
+      or when head bobbing forces camera to go down.
+
+      Exactly, the required equation is
+
+      @preformatted(
+        MinimumRealPreferredHeight :=
+          PreferredHeight * CrouchHeight * (1 - HeadBobbing);
+      )
+
+      and always must be
+
+      @preformatted(
+        MinimumRealPreferredHeight >= RealPreferredHeight
+      )
+
+      Reasoning: otherwise this class would "want camera to fall down"
+      (because we will always be higher than RealPreferredHeight)
+      but your OnMoveAllowed would not allow it (because Radius
+      would not allow it). Note that this class doesn't keep value
+      of your Radius, because collision detection
+      is (by design) never done by this class --- it's always
+      delegated to OnHeight and OnMoveAllowed.
+      Also, it's not exactly forced @italic(how) you should force this
+      condition to hold. Sometimes the good solution is to adjust
+      Radius, not to adjust PreferredHeight.
+
+      Anyway, this method will make sure that this condition
+      holds by eventually adjusting (making larger) PreferredHeight.
+      Note that for Radius = 0.0 this will always leave
+      PreferredHeight as it is. }
+    procedure CorrectPreferredHeight;
+
+    { Preferred height when crouching.
+      This is always mutiplied to PreferredHeight.
+      This should always be <= 1 (CrouchHeight = 1 effectively disables
+      crouching, although it's better to do this by calling MakeClear
+      on Input_Crouch). }
+    property CrouchHeight: Single
+      read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
+
+    { When @link(TWalkCamera) moves, it makes a "head bobbing" effect,
+      by moving the camera a bit up and down.
+
+      This property mutiplied by PreferredHeight
+      says how much head bobbing can move you along GravityUp.
+      Set this to 0 to disable head bobbing.
+      This must always be < 1.0. For sensible effects, this should
+      be rather close to 0.0.
+
+      Of course this is meaningfull only when @link(Gravity) works. }
+    property HeadBobbing: Single
+      read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
+
+    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
+      we do full head bobbing sequence (camera swing up, then down again).
+
+      Note that if you do a footsteps sound in your game (see
+      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
+      then you will want this property to match your footsteps sound length,
+      things feel and sound natural then.
+      Also, often it sounds better to record two footsteps inside
+      a single sound file, in which case the footstep sound length should be twice
+      as long as this property. For example, record 2 steps inside a 1-second long
+      footstep sound, and set this property to 0.5 a second (which is a default
+      in fact). }
+    property HeadBobbingTime: Single
+      read FHeadBobbingTime write FHeadBobbingTime
+      default DefaultHeadBobbingTime;
+
+    { Moving speeds, only used by @link(TWalkCamera) descendant.
+      MoveHorizontalSpeed is only for horizontal movement,
+      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
+      both types of movement. Effectively, we always scale the speed
+      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
+      @code(MoveVerticalSpeed * MoveSpeed).
+
+      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
+      during one second.
+      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
+      MoveSpeed expresses the speed in nice units / per second.
+
+      Default values for all these speed properties is 1.0,
+      so you simply move by 1 unit per second.
+
+      @groupBegin }
+    property MoveHorizontalSpeed: Single
+      read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
+    property MoveVerticalSpeed: Single
+      read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
+    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
+    { @groupEnd }
+
+    { The tallest height that you can climb,
+      only used by @link(TWalkCamera) descendant
+      when @link(TWalkCamera.Gravity) is @true.
+      This is checked in each single horizontal move when @link(TWalkCamera.Gravity) works.
+      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
+
+      This is reliable to prevent user from climbing stairs and such,
+      when vertical walls are really vertical (not just steep-almost-vertical).
+
+      It's not 100% reliable to prevent player from climbing steep hills.
+      That's because, depending on how often an event processing occurs,
+      you actually climb using less or more steps.
+      So even a very steep hill can be always
+      climbed on a computer with very fast speed, because with large FPS you
+      effectively climb it using a lot of very small steps (assuming that
+      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
+      or CastleControl.LimitFPS is zero).
+
+      Remember that user can still try jumping to climb on high obstactes.
+      See @link(TWalkCamera.JumpMaxHeight) for a way to control jumping.
+
+      For a 100% reliable way to prevent user from reaching some point,
+      that does not rely on specific camera/gravity settings,
+      you should build actual walls in 3D (invisible walls
+      can be created by Collision.proxy in VRML/X3D). }
+    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
+
+    { Approximate size of 3D world that is viewed, used by @link(TExamineCamera)
+      descendant.
+      It is crucial to set this to make @link(TExamineCamera) behave OK.
+
+      Initially this is TBox3D.Empty. }
+    property ModelBox: TBox3D read FModelBox write FModelBox;
   published
     { Input methods available to user. See documentation of TCameraInput
       type for possible values and their meaning.
@@ -658,7 +853,7 @@ type
     rotated by @link(Rotations) and scaled by @link(ScaleFactor). }
   TExamineCamera = class(TCamera)
   private
-    FTranslation, FCenterOfRotation: TVector3;
+    FTranslation: TVector3;
     FRotations: TQuaternion;
     FDragMoveSpeed, FKeysMoveSpeed: Single;
     { Speed of rotations. Always zero when RotationAccelerate = false.
@@ -674,7 +869,6 @@ type
       the whole exercise useless. }
     FRotationsAnim: TVector3;
     FScaleFactor: Single;
-    FModelBox: TBox3D;
     FRotationAccelerate: boolean;
     FRotationAccelerationSpeed: Single;
     FRotationSpeed: Single;
@@ -692,8 +886,6 @@ type
     procedure SetRotations(const Value: TQuaternion);
     procedure SetScaleFactor(const Value: Single);
     procedure SetTranslation(const Value: TVector3);
-    procedure SetModelBox(const Value: TBox3D);
-    procedure SetCenterOfRotation(const Value: TVector3);
     function Zoom(const Factor: Single): boolean;
     procedure SetRotationAccelerate(const Value: boolean);
 
@@ -712,6 +904,11 @@ type
 
     function GetMouseNavigation: boolean;
     procedure SetMouseNavigation(const Value: boolean);
+
+    { Center of rotation and scale, relative to @link(Translation).
+      Zero if @link(ModelBox) empty,
+      otherwise @link(ModelBox) middle. }
+    function CenterOfRotation: TVector3;
   protected
     function GetPositionInternal: TVector3; override;
     procedure SetPosition(const Value: TVector3); override;
@@ -758,12 +955,6 @@ type
     { How much to move the model. By default, zero. }
     property Translation: TVector3 read FTranslation write SetTranslation;
 
-    { Center of rotation and scale, relative to @link(Translation).
-      By default, zero.
-      Setting the @link(ModelBox) or calling @link(Init) sets this to the middle
-      of the model bounding box (@link(ModelBox)), which is usually most natural. }
-    property CenterOfRotation: TVector3 read FCenterOfRotation write SetCenterOfRotation;
-
     { Turntable rotates the scene around its Y axis instead of current camera axis. }
     property Turntable: boolean
       read FTurntable write FTurntable default false;
@@ -774,23 +965,6 @@ type
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
 
-    { The aproximate size of 3D model that will be viewed.
-      This is the crucial property of this class that you have to set,
-      to make the navigation work best.
-      Setting this sets also CenterOfRotation to the middle of the box.
-
-      This is usually the only property that you have to set.
-      The rest, like @link(ScaleFactor), @link(Translation), @link(RotationsAnim)
-      will be almost directly controlled by user (through @link(Press)
-      and other events).
-      @link(Rotations) will be automatically modified by @link(Update).
-
-      So often you only need to set ModelBox, once,
-      and everything else will work smoothly.
-
-      Initially this is TBox3D.Empty. }
-    property ModelBox: TBox3D read FModelBox write SetModelBox;
-
     { Initialize most important properties of this class:
       sets ModelBox and goes to a nice view over the entire scene.
 
@@ -798,6 +972,7 @@ type
       setting suitable initial view by SetInitialView,
       and then going to initial view by GoToInitial. }
     procedure Init(const AModelBox: TBox3D; const ARadius: Single);
+      deprecated 'better set ModelBox, Radius directly';
 
     { Methods performing navigation.
       Usually you want to just leave this for user to control. --------------- }
@@ -819,11 +994,7 @@ type
     { @groupEnd }
 
     procedure GetView(out APos, ADir, AUp: TVector3); override;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); override;
-    function GetGravityUp: TVector3; override;
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
       const AdjustUp: boolean = true); override;
 
     procedure VisibleChange; override;
@@ -918,9 +1089,7 @@ type
     and up vector, user can rotate and move camera using various keys. }
   TWalkCamera = class(TCamera)
   private
-    FPosition, FDirection, FUp,
-    FGravityUp: TVector3;
-    FMoveHorizontalSpeed, FMoveVerticalSpeed, FMoveSpeed: Single;
+    FPosition, FDirection, FUp: TVector3;
     FRotationHorizontalSpeed, FRotationVerticalSpeed: Single;
     FRotationHorizontalPivot: Single;
     FPreferGravityUpForRotations: boolean;
@@ -934,7 +1103,6 @@ type
     procedure SetDirection(const Value: TVector3);
     procedure SetUp(const Value: TVector3);
     procedure SetMouseLook(const Value: boolean);
-    procedure SetGravityUp(const Value: TVector3);
   private
     FInput_Forward: TInputShortcut;
     FInput_Backward: TInputShortcut;
@@ -1026,7 +1194,6 @@ type
   private
     { Private things related to gravity ---------------------------- }
 
-    FPreferredHeight: Single;
     FFalling: boolean;
     FFallingStartPosition: TVector3;
     FOnFall: TFallNotifyFunc;
@@ -1043,7 +1210,6 @@ type
       This is either -1, 0 or +1. }
     Fde_RotateHorizontal: Integer;
     FFallingEffect: boolean;
-    FClimbHeight: Single;
 
     FJumpMaxHeight: Single;
     FIsJumping: boolean;
@@ -1051,13 +1217,9 @@ type
     FJumpTime: Single;
     FJumpHorizontalSpeedMultiply: Single;
 
-    FHeadBobbing: Single;
     HeadBobbingPosition: Single;
-    FHeadBobbingTime: Single;
     function UseHeadBobbing: boolean;
-
   private
-    FCrouchHeight: Single;
     FIsCrouching: boolean;
 
     FFallingOnTheGround: boolean;
@@ -1086,8 +1248,6 @@ type
     const
       DefaultFallSpeedStart = 0.5;
       DefaultGrowSpeed = 1.0;
-      DefaultHeadBobbing = 0.02;
-      DefaultCrouchHeight = 0.5;
       DefaultJumpMaxHeight = 1.0;
       DefaultMinAngleRadFromGravityUp = { 10 degress } Pi / 18; { }
       DefaultRotationHorizontalSpeed = 150;
@@ -1095,7 +1255,6 @@ type
       DefaultFallSpeedIncrease = 13/12;
       DefaultMouseLookHorizontalSensitivity = 0.09;
       DefaultMouseLookVerticalSensitivity = 0.09;
-      DefaultHeadBobbingTime = 0.5;
       DefaultJumpHorizontalSpeedMultiply = 2.0;
       DefaultJumpTime = 1.0 / 8.0;
       DefaultMouseDraggingHorizontalRotationSpeed = 0.1;
@@ -1190,21 +1349,6 @@ type
     property Direction: TVector3 read FDirection write SetDirection;
     property Up       : TVector3 read FUp        write SetUp;
     { @groupEnd }
-
-    { This is the upward direction of the world in which player moves.
-      Must be always normalized (when setting this property, we take
-      care to normalize it).
-
-      This indicates how @link(Gravity) works.
-
-      This is also the "normal" value for both @link(Up) and
-      InitialUp --- one that means that player is looking straight
-      foward. This is used for features like PreferGravityUpForRotations
-      and/or PreferGravityUpForMoving.
-
-      The default value of this vector is (0, 1, 0) (same as the default
-      InitialUp and Up vectors). }
-    property GravityUp: TVector3 read FGravityUp write SetGravityUp;
 
     { If PreferGravityUpForRotations or PreferGravityUpForMoving
       then various operations are done with respect
@@ -1328,6 +1472,7 @@ type
       const AGravityUp: TVector3;
       const APreferredHeight: Single;
       const ARadius: Single); overload;
+      deprecated 'better set the related camera properties directly';
 
     { Alternative Init that sets camera properties such that
       an object inside Box is more or less "visible good".
@@ -1336,6 +1481,7 @@ type
       Sets GravityUp to the same thing as InitialUp.
       Sets also PreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
+      deprecated 'better set the related camera properties directly';
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
@@ -1421,85 +1567,7 @@ type
       PreferGravityUpXxx say how the player controls work,
       Gravity says what happens to player due to ... well, due to gravity. }
     property Gravity: boolean
-      read FGravity write FGravity default false;
-
-    { When @link(Gravity) is on, @link(Position) tries to stay PreferredHeight
-      above the ground. Temporary it may be lower (player can
-      shortly "duck" when he falls from high).
-
-      This must always be >= 0.
-      You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(Gravity),
-      and also you should set OnHeight.
-
-      See CorrectPreferredHeight for important property
-      of PreferredHeight that you should keep. }
-    property PreferredHeight: Single
-      read FPreferredHeight write FPreferredHeight default 0.0;
-
-    { This procedure corrects PreferredHeight based on your Radius
-      and on current HeadBobbing.
-
-      Exactly what and why is done: if you do any kind of collision
-      detection with some Radius, then
-      you should make sure that RealPreferredHeight is always >= of your
-      Radius, otherwise strange effects may happen when crouching
-      or when head bobbing forces camera to go down.
-
-      Exactly, the required equation is
-
-      @preformatted(
-        MinimumRealPreferredHeight :=
-          PreferredHeight * CrouchHeight * (1 - HeadBobbing);
-      )
-
-      and always must be
-
-      @preformatted(
-        MinimumRealPreferredHeight >= RealPreferredHeight
-      )
-
-      Reasoning: otherwise this class would "want camera to fall down"
-      (because we will always be higher than RealPreferredHeight)
-      but your OnMoveAllowed would not allow it (because Radius
-      would not allow it). Note that this class doesn't keep value
-      of your Radius, because collision detection
-      is (by design) never done by this class --- it's always
-      delegated to OnHeight and OnMoveAllowed.
-      Also, it's not exactly forced @italic(how) you should force this
-      condition to hold. Sometimes the good solution is to adjust
-      Radius, not to adjust PreferredHeight.
-
-      Anyway, this method will make sure that this condition
-      holds by eventually adjusting (making larger) PreferredHeight.
-      Note that for Radius = 0.0 this will always leave
-      PreferredHeight as it is. }
-    procedure CorrectPreferredHeight;
-
-    { The tallest height that you can climb.
-      This is checked in each single horizontal move when @link(Gravity) works.
-      Must be >= 0. Value 0 means there is no limit (and makes a small speedup).
-
-      This is reliable to prevent user from climbing stairs and such,
-      when vertical walls are really vertical (not just steep-almost-vertical).
-
-      It's not 100% reliable to prevent player from climbing steep hills.
-      That's because, depending on how often an event processing occurs,
-      you actually climb using less or more steps.
-      So even a very steep hill can be always
-      climbed on a computer with very fast speed, because with large FPS you
-      effectively climb it using a lot of very small steps (assuming that
-      FPS limit is not enabled, that is CastleWindow.TCastleApplication.LimitFPS
-      or CastleControl.LimitFPS is zero).
-
-      Remember that user can still try jumping to climb on high obstactes.
-      See JumpMaxHeight for a way to control jumping.
-
-      For a 100% reliable way to prevent user from reaching some point,
-      that does not rely on specific camera/gravity settings,
-      you should build actual walls in 3D (invisible walls
-      can be created by Collision.proxy in VRML/X3D). }
-    property ClimbHeight: Single read FClimbHeight write FClimbHeight;
+      read FGravity write FGravity default true;
 
     { Assign here the callback (or override @link(Height))
       to say what is the current height of camera above the ground.
@@ -1622,48 +1690,10 @@ type
     property JumpTime: Single read FJumpTime write FJumpTime
       default DefaultJumpTime;
 
-    { When you move horizontally, you get "head bobbing" effect
-      --- camera position slightly changes it's vertical position,
-      going a little up, then a little down, then a little up again etc.
-
-      This property mutiplied by PreferredHeight
-      says how much head bobbing can move you along GravityUp.
-      Set this to 0 to disable head bobbing.
-      This must always be < 1.0. For sensible effects, this should
-      be rather close to 0.0.
-
-      Of course this is meaningfull only when @link(Gravity) works. }
-    property HeadBobbing: Single
-      read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
-
-    { Controls head bobbing frequency. In the time of HeadBobbingTime seconds,
-      we do full head bobbing sequence (camera swing up, then down again).
-
-      Note that if you do a footsteps sound in your game (see
-      stPlayerFootstepsDefault or TMaterialProperty.FootstepsSound)
-      then you will want this property to match your footsteps sound length,
-      things feel and sound natural then.
-      Also, often it sounds better to record two footsteps inside
-      a single sound file, in which case the footstep sound length should be twice
-      as long as this property. For example, record 2 steps inside a 1-second long
-      footstep sound, and set this property to 0.5 a second (which is a default
-      in fact). }
-    property HeadBobbingTime: Single
-      read FHeadBobbingTime write FHeadBobbingTime
-      default DefaultHeadBobbingTime;
-
-    { This defines the preferred height of camera when crouching.
-      This is always mutiplied to PreferredHeight.
-      This should always be <= 1 (CrouchHeight = 1 effectively disables
-      crouching, although it's better to do this by calling MakeClear
-      on Input_Crouch). }
-    property CrouchHeight: Single
-      read FCrouchHeight write FCrouchHeight default DefaultCrouchHeight;
-
     { Is player crouching right now. }
     property IsCrouching: boolean read FIsCrouching;
 
-    { This is PreferredHeight slightly modified by head bobbing
+    { The PreferredHeight slightly modified by head bobbing
       and crouch. It can be useful for collision detection
       between camera and something. }
     function RealPreferredHeight: Single;
@@ -1698,13 +1728,9 @@ type
     property IsWalkingOnTheGround: boolean read FIsWalkingOnTheGround;
 
     procedure GetView(out APos, ADir, AUp: TVector3); override;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); override;
-    function GetGravityUp: TVector3; override;
     procedure SetView(const ADir, AUp: TVector3;
       const AdjustUp: boolean = true);
     procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
       const AdjustUp: boolean = true); override;
     function GetNavigationType: TNavigationType; override;
 
@@ -1797,31 +1823,6 @@ type
       read FCheckModsDown write FCheckModsDown
       default true;
 
-    { Moving speeds. MoveHorizontalSpeed is only for horizontal movement,
-      MoveVerticalSpeed is only for vertical, and MoveSpeed simply affects
-      both types of movement. Effectively, we always scale the speed
-      of movement by either @code(MoveHorizontalSpeed * MoveSpeed) or
-      @code(MoveVerticalSpeed * MoveSpeed).
-
-      We move by distance @code(MoveSpeed * MoveHorizontalSpeed (or MoveVerticalSpeed))
-      during one second. Assuming "normal circumstances",
-      namely that SecondsPassed provided to @link(Update) method
-      is expressed in seconds (which is the case, when you use
-      camera as TCastleSceneManager.Camera).
-      So if you leave MoveHorizontalSpeed = MoveVerticalSpeed = 1 (as default),
-      MoveSpeed expresses the speed in nice units / per second.
-
-      Default values for all these speed properties is 1.0,
-      so you simply move by 1 unit per second.
-
-      @groupBegin }
-    property MoveHorizontalSpeed: Single
-      read FMoveHorizontalSpeed write FMoveHorizontalSpeed default 1.0;
-    property MoveVerticalSpeed: Single
-      read FMoveVerticalSpeed write FMoveVerticalSpeed default 1.0;
-    property MoveSpeed: Single read FMoveSpeed write FMoveSpeed default 1.0;
-    { @groupEnd }
-
     { Rotation keys speed, in degrees per second.
       @groupBegin }
     property RotationHorizontalSpeed: Single
@@ -1854,110 +1855,6 @@ type
       OnMoveAllowed. }
     property RotationHorizontalPivot: Single
       read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
-  end;
-
-  { Camera that allows any kind of navigation (Examine, Walk).
-    You can switch between navigation types, while preserving the camera view.
-
-    This simply keeps an TExamineCamera and TWalkCamera instances inside,
-    and passes events (key, mouse presses, Update) to the current one.
-    Properties (like camera position, direction, up vectors) are simply
-    set on both instances simultaneously.
-
-    For some uses you can even directly access the internal camera instances
-    inside @link(Examine) and @link(Walk) properties. However, do not
-    change them directly @italic(when you can use instead a property of
-    this class). For example, it is Ok to directly change input key
-    by @noAutoLink(@code(Walk.Input_Forward)) (see TWalkCamera.Input_Forward).
-    However, do not directly call @noAutoLink(@code(Walk.SetInitialView))
-    (see TWalkCamera.SetInitialView), instead use a method of this class:
-    TUniversalCamera.SetInitialView. This way both @link(Examine)
-    and @link(Walk) will be kept in synch. }
-  TUniversalCamera = class(TCamera)
-  private
-    FExamine: TExamineCamera;
-    FWalk: TWalkCamera;
-    FNavigationClass: TNavigationClass;
-    procedure SetNavigationClass(const Value: TNavigationClass);
-    procedure SetNavigationType(const Value: TNavigationType);
-  protected
-    procedure SetInput(const Value: TCameraInputs); override;
-    procedure SetEnableDragging(const Value: boolean); override;
-    procedure SetProjectionMatrix(const Value: TMatrix4); override;
-    procedure SetContainer(const Value: TUIContainer); override;
-    procedure SetRadius(const Value: Single); override;
-    function GetPositionInternal: TVector3; override;
-    procedure SetPosition(const Value: TVector3); override;
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    { Current (determined by NavigationClass) internal camera,
-      that is either @link(Examine) or @link(Walk). }
-    function Current: TCamera;
-
-    function Matrix: TMatrix4; override;
-    function RotationMatrix: TMatrix4; override;
-    procedure GetView(out APos, ADir, AUp: TVector3); override;
-    procedure GetView(out APos, ADir, AUp, AGravityUp: TVector3); override;
-    function GetGravityUp: TVector3; override;
-    procedure SetView(const APos, ADir, AUp: TVector3;
-      const AdjustUp: boolean = true); override;
-    procedure SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-      const AdjustUp: boolean = true); override;
-
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-    function AllowSuspendForInput: boolean; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    function Motion(const Event: TInputMotion): boolean; override;
-
-    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; override;
-    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; override;
-
-    procedure Resize; override;
-    function GetNavigationType: TNavigationType; override;
-
-    procedure SetInitialView(
-      const AInitialPosition: TVector3;
-      AInitialDirection, AInitialUp: TVector3;
-      const TransformCurrentCamera: boolean); override;
-  published
-    property Examine: TExamineCamera read FExamine;
-    property Walk: TWalkCamera read FWalk;
-
-    { Choose navigation method by choosing particular camera class.
-      The names of this correspond to camera classes (TExamineCamera,
-      TWalkCamera). }
-    property NavigationClass: TNavigationClass
-      read FNavigationClass write SetNavigationClass default ncExamine;
-
-    { Choose navigation method by choosing particular camera class,
-      and gravity and some other properties.
-
-      This is a shortcut property for reading / writing
-      a couple of other properties. When you set this, a couple of other
-      properties are set. When you read this, we determine a sensible
-      answer from a couple of other properties values.
-
-      Setting this sets:
-      @unorderedList(
-        @itemSpacing compact
-        @item NavigationClass,
-        @item Input (and derived deprecated properties IgnoreAllInputs and MouseNavigation),
-        @item Walk.Gravity (see TWalkCamera.Gravity),
-        @item Walk.PreferGravityUpForRotations (see TWalkCamera.PreferGravityUpForRotations),
-        @item Walk.PreferGravityUpForMoving (see TWalkCamera.PreferGravityUpForMoving)
-      )
-
-      If you write to NavigationType, then you @italic(should not) touch the
-      above properties directly. That's because not every combination of
-      above properties correspond to some sensible value of NavigationType.
-      If you directly set some weird configuration, reading NavigationType will
-      try it's best to determine the closest TNavigationType value
-      that is similar to your configuration. }
-    property NavigationType: TNavigationType
-      read GetNavigationType write SetNavigationType default ntExamine;
   end;
 
 { See TWalkCamera.CorrectPreferredHeight.
@@ -2029,7 +1926,7 @@ uses Math, CastleStringUtils, CastleLog;
 
 procedure Register;
 begin
-  RegisterComponents('Castle', [TExamineCamera, TWalkCamera, TUniversalCamera]);
+  RegisterComponents('Castle', [TExamineCamera, TWalkCamera]);
 end;
 
 { TCameraInputListener ------------------------------------------------------------- }
@@ -2175,7 +2072,17 @@ begin
   FInitialDirection := DefaultCameraDirection;
   FInitialUp        := DefaultCameraUp;
   FRadius := DefaultRadius;
-  FInput  := DefaultInput;
+  FInput := DefaultInput;
+  FModelBox := TBox3D.Empty;
+  FHeadBobbing := DefaultHeadBobbing;
+  FHeadBobbingTime := DefaultHeadBobbingTime;
+  FMoveHorizontalSpeed := 1;
+  FMoveVerticalSpeed := 1;
+  FMoveSpeed := 1;
+  FCrouchHeight := DefaultCrouchHeight;
+  FGravityUp := DefaultCameraUp;
+
+  // interaction state
   MouseDraggingStarted := -1;
 end;
 
@@ -2423,6 +2330,72 @@ begin
   Result := GetPositionInternal;
 end;
 
+procedure TCamera.CorrectPreferredHeight;
+begin
+  CastleCameras.CorrectPreferredHeight(
+    FPreferredHeight, Radius, CrouchHeight, HeadBobbing);
+end;
+
+procedure TCamera.Assign(Source: TPersistent);
+var
+  SourceCamera: TCamera;
+  APos, ADir, AUp, AGravityUp: TVector3;
+begin
+  if Source is TCamera then
+  begin
+    SourceCamera := TCamera(Source);
+    Radius              := SourceCamera.Radius             ;
+    Input               := SourceCamera.Input              ;
+    EnableDragging      := SourceCamera.EnableDragging     ;
+    ProjectionMatrix    := SourceCamera.ProjectionMatrix   ;
+    { The Cursor should be synchronized with TWalkCamera.MouseLook,
+      do not blindly copy it from TWalkCamera to TExamineCamera. }
+    // Cursor              := SourceCamera.Cursor             ;
+    PreferredHeight     := SourceCamera.PreferredHeight    ;
+    MoveHorizontalSpeed := SourceCamera.MoveHorizontalSpeed;
+    MoveVerticalSpeed   := SourceCamera.MoveVerticalSpeed  ;
+    MoveSpeed           := SourceCamera.MoveSpeed          ;
+    HeadBobbing         := SourceCamera.HeadBobbing        ;
+    HeadBobbingTime     := SourceCamera.HeadBobbingTime    ;
+    ClimbHeight         := SourceCamera.ClimbHeight        ;
+    ModelBox            := SourceCamera.ModelBox           ;
+    CrouchHeight        := SourceCamera.CrouchHeight       ;
+
+    { Always call CorrectPreferredHeight after changing Radius or PreferredHeight }
+    CorrectPreferredHeight;
+
+    SetInitialView(
+      SourceCamera.InitialPosition,
+      SourceCamera.InitialDirection,
+      SourceCamera.InitialUp, false);
+
+    // finally, get and set view vectors
+    SourceCamera.GetView(APos, ADir, AUp, AGravityUp);
+    SetView(APos, ADir, AUp, AGravityUp);
+  end else
+    { Call inherited ONLY when you cannot handle Source class,
+      to raise EConvertError from TPersistent.Assign. }
+    inherited Assign(Source);
+end;
+
+procedure TCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
+begin
+  GetView(APos, ADir, AUp);
+  AGravityUp := GravityUp;
+end;
+
+procedure TCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
+  const AdjustUp: boolean);
+begin
+  GravityUp := AGravityUp;
+  SetView(APos, ADir, AUp, AdjustUp);
+end;
+
+procedure TCamera.SetGravityUp(const Value: TVector3);
+begin
+  FGravityUp := Value.Normalize;
+end;
+
 { TExamineCamera ------------------------------------------------------------ }
 
 constructor TExamineCamera.Create(AOwner: TComponent);
@@ -2441,7 +2414,6 @@ var
 begin
   inherited;
 
-  FModelBox := TBox3D.Empty;
   FTranslation := TVector3.Zero;
   FRotations := TQuaternion.ZeroRotation;
   FRotationsAnim := TVector3.Zero;
@@ -2510,10 +2482,10 @@ end;
 function TExamineCamera.Matrix: TMatrix4;
 begin
   Result :=
-    TranslationMatrix(Translation + FCenterOfRotation) *
+    TranslationMatrix(Translation + CenterOfRotation) *
     Rotations.ToRotationMatrix *
     ScalingMatrix(Vector3(ScaleFactor, ScaleFactor, ScaleFactor)) *
-    TranslationMatrix(-FCenterOfRotation);
+    TranslationMatrix(-CenterOfRotation);
 end;
 
 function TExamineCamera.MatrixInverse: TMatrix4;
@@ -2521,10 +2493,10 @@ begin
   { This inverse always exists, assuming ScaleFactor is <> 0. }
 
   Result :=
-    TranslationMatrix(FCenterOfRotation) *
+    TranslationMatrix(CenterOfRotation) *
     ScalingMatrix(Vector3(1/ScaleFactor, 1/ScaleFactor, 1/ScaleFactor)) *
     Rotations.Conjugate.ToRotationMatrix *
-    TranslationMatrix(-(Translation + FCenterOfRotation));
+    TranslationMatrix(-(Translation + CenterOfRotation));
 end;
 
 function TExamineCamera.RotationMatrix: TMatrix4;
@@ -2777,13 +2749,14 @@ end;
 
 procedure TExamineCamera.Init(const AModelBox: TBox3D; const ARadius: Single);
 var
-  Pos, Dir, Up, GravityUp: TVector3;
+  Pos, Dir, Up, NewGravityUp: TVector3;
 begin
   ModelBox := AModelBox;
   Radius := ARadius;
 
   CameraViewpointForWholeScene(ModelBox, 2, 1, false, true,
-    Pos, Dir, Up, GravityUp);
+    Pos, Dir, Up, NewGravityUp);
+  GravityUp := NewGravityUp;
   SetInitialView(Pos, Dir, Up, false);
   GoToInitial;
 end;
@@ -2802,16 +2775,12 @@ begin FScaleFactor := Value; ScheduleVisibleChange; end;
 procedure TExamineCamera.SetTranslation(const Value: TVector3);
 begin FTranslation := Value; ScheduleVisibleChange; end;
 
-procedure TExamineCamera.SetCenterOfRotation(const Value: TVector3);
-begin FCenterOfRotation := Value; ScheduleVisibleChange; end;
-
-procedure TExamineCamera.SetModelBox(const Value: TBox3D);
+function TExamineCamera.CenterOfRotation: TVector3;
 begin
-  FModelBox := Value;
   if FModelBox.IsEmpty then
-    FCenterOfRotation := Vector3(0, 0, 0) { any dummy value } else
-    FCenterOfRotation := FModelBox.Center;
-  ScheduleVisibleChange;
+    Result := Vector3(0, 0, 0) { any dummy value }
+  else
+    Result := FModelBox.Center;
 end;
 
 function TExamineCamera.Press(const Event: TInputPressRelease): boolean;
@@ -3091,12 +3060,6 @@ begin
   inherited;
 end;
 
-procedure TExamineCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
-begin
-  GetView(APos, ADir, AUp);
-  AGravityUp := GetGravityUp;
-end;
-
 function TExamineCamera.GetPositionInternal: TVector3;
 begin
   Result := MatrixInverse.MultPoint(TVector3.Zero);
@@ -3106,14 +3069,9 @@ procedure TExamineCamera.SetPosition(const Value: TVector3);
 begin
   { a subset of what SetView does }
   FTranslation := -Value;
-  FTranslation := FRotations.Rotate(FTranslation + FCenterOfRotation)
-    - FCenterOfRotation;
+  FTranslation := FRotations.Rotate(FTranslation + CenterOfRotation)
+    - CenterOfRotation;
   ScheduleVisibleChange;
-end;
-
-function TExamineCamera.GetGravityUp: TVector3;
-begin
-  Result := DefaultCameraUp; { nothing more sensible for Examine camera }
 end;
 
 procedure TExamineCamera.SetView(const APos, ADir, AUp: TVector3;
@@ -3157,10 +3115,10 @@ begin
     of FTranslation. But we can do this directly.
 
     We also note at this point that rotation is done around
-    (FTranslation + FCenterOfRotation). But FCenterOfRotation is not
+    (FTranslation + CenterOfRotation). But CenterOfRotation is not
     included in Translation. }
-  FTranslation := FRotations.Rotate(FTranslation + FCenterOfRotation)
-    - FCenterOfRotation;
+  FTranslation := FRotations.Rotate(FTranslation + CenterOfRotation)
+    - CenterOfRotation;
 
   { Reset ScaleFactor to 1, this way the camera view corresponds
     exactly to the wanted SetView view. }
@@ -3172,13 +3130,6 @@ begin
   FRotationsAnim := TVector3.Zero;
 
   ScheduleVisibleChange;
-end;
-
-procedure TExamineCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean);
-begin
-  SetView(APos, ADir, AUp, AdjustUp);
-  { Ignore AGravityUp }
 end;
 
 function TExamineCamera.GetInput_MoveXInc: TInputShortcut; begin Result := Inputs_Move[0, true ] end;
@@ -3209,7 +3160,8 @@ end;
 function TExamineCamera.GetNavigationType: TNavigationType;
 begin
   if Turntable then
-    Result := ntTurntable else
+    Result := ntTurntable
+  else
     Result := ntExamine;
 end;
 
@@ -3221,30 +3173,23 @@ begin
   FPosition  := InitialPosition;
   FDirection := InitialDirection;
   FUp        := InitialUp;
-  FGravityUp := DefaultCameraUp;
 
-  FMoveHorizontalSpeed := 1;
-  FMoveVerticalSpeed := 1;
-  FMoveSpeed := 1;
   FRotationHorizontalSpeed := DefaultRotationHorizontalSpeed;
   FRotationVerticalSpeed := DefaultRotationVerticalSpeed;
   FFallSpeedStart := DefaultFallSpeedStart;
   FFallSpeedIncrease := DefaultFallSpeedIncrease;
   FPreferGravityUpForRotations := true;
   FPreferGravityUpForMoving := true;
-  FGravity := false;
+  FGravity := true;
   FGrowSpeed := DefaultGrowSpeed;
   FFallingEffect := true;
   FIsJumping := false;
-  FHeadBobbing := DefaultHeadBobbing;
-  FCrouchHeight := DefaultCrouchHeight;
   FJumpMaxHeight := DefaultJumpMaxHeight;
   FMinAngleRadFromGravityUp := DefaultMinAngleRadFromGravityUp;
   FAllowSlowerRotations := true;
   FCheckModsDown := true;
   FMouseLookHorizontalSensitivity := DefaultMouseLookHorizontalSensitivity;
   FMouseLookVerticalSensitivity := DefaultMouseLookVerticalSensitivity;
-  FHeadBobbingTime := DefaultHeadBobbingTime;
   FJumpHorizontalSpeedMultiply := DefaultJumpHorizontalSpeedMultiply;
   FJumpTime := DefaultJumpTime;
   FInvertVerticalMouseLook := false;
@@ -3660,7 +3605,8 @@ begin
   if not Gravity then
   begin
     if PreferGravityUpForMoving then
-      MoveVerticalCore(GravityUp) else
+      MoveVerticalCore(GravityUp)
+    else
       MoveVerticalCore(Up);
   end;
 end;
@@ -3668,7 +3614,8 @@ end;
 procedure TWalkCamera.RotateHorizontalForStrafeMove(const AngleDeg: Single);
 begin
   if PreferGravityUpForMoving then
-    RotateAroundGravityUp(AngleDeg) else
+    RotateAroundGravityUp(AngleDeg)
+  else
     RotateAroundUp(AngleDeg);
 end;
 
@@ -4589,7 +4536,7 @@ procedure TWalkCamera.Init(
   const ARadius: Single);
 begin
   SetInitialView(AInitialPosition, AInitialDirection, AInitialUp, false);
-  FGravityUp := AGravityUp.Normalize;
+  GravityUp := AGravityUp;
   PreferredHeight := APreferredHeight;
   Radius := ARadius;
   CorrectPreferredHeight;
@@ -4600,6 +4547,7 @@ procedure TWalkCamera.Init(const Box: TBox3D; const ARadius: Single);
 var Pos: TVector3;
     AvgSize: Single;
 begin
+{$warnings off} // deliberately using deprecated inside another deprecated
  if Box.IsEmptyOrZero then
   Init(Vector3(0, 0, 0),
        DefaultCameraDirection,
@@ -4617,6 +4565,7 @@ begin
     TVector3.One[2] { GravityUp is the same as InitialUp },
     AvgSize * 5, ARadius);
  end;
+{$warnings on}
 end;
 
 function TWalkCamera.GetPositionInternal: TVector3;
@@ -4649,12 +4598,6 @@ begin
   FUp := AUp.Normalize;
   MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
   ScheduleVisibleChange;
-end;
-
-procedure TWalkCamera.CorrectPreferredHeight;
-begin
-  CastleCameras.CorrectPreferredHeight(
-    FPreferredHeight, Radius, CrouchHeight, HeadBobbing);
 end;
 
 function TWalkCamera.MaxJumpDistance: Single;
@@ -4792,17 +4735,6 @@ begin
   AUp  := FUp;
 end;
 
-procedure TWalkCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
-begin
-  GetView(APos, ADir, AUp);
-  AGravityUp := GravityUp;
-end;
-
-function TWalkCamera.GetGravityUp: TVector3;
-begin
-  Result := GravityUp;
-end;
-
 procedure TWalkCamera.SetView(const ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
@@ -4828,396 +4760,12 @@ begin
   ScheduleVisibleChange;
 end;
 
-procedure TWalkCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean);
-begin
-  GravityUp := AGravityUp;
-  SetView(APos, ADir, AUp, AdjustUp);
-end;
-
-procedure TWalkCamera.SetGravityUp(const Value: TVector3);
-begin
-  FGravityUp := Value.Normalize;
-end;
-
 function TWalkCamera.GetNavigationType: TNavigationType;
 begin
   if Gravity then
-    Result := ntWalk else
+    Result := ntWalk
+  else
     Result := ntFly;
-end;
-
-{ TExamineCameraInUniversal -------------------------------------------------- }
-
-type
-  TExamineCameraInUniversal = class(TExamineCamera)
-  private
-    { Owning TUniversalCamera }
-    Universal: TUniversalCamera;
-  public
-    procedure VisibleChange; override;
-    function Animation: boolean; override;
-  protected
-    procedure DoCursorChange; override;
-  end;
-
-function TExamineCameraInUniversal.Animation: boolean;
-begin
-  Result := (inherited Animation) or Universal.Animation;
-end;
-
-procedure TExamineCameraInUniversal.VisibleChange;
-begin
-  inherited;
-  { Call parent ScheduleVisibleChange when children change. }
-  Universal.ScheduleVisibleChange;
-end;
-
-procedure TExamineCameraInUniversal.DoCursorChange;
-begin
-  inherited;
-  { update Universal.Cursor, in case we're the current camera }
-  Universal.Cursor := Universal.Current.Cursor;
-end;
-
-{ TWalkCameraInUniversal -------------------------------------------------- }
-
-type
-  TWalkCameraInUniversal = class(TWalkCamera)
-  private
-    { Owning TUniversalCamera }
-    Universal: TUniversalCamera;
-  protected
-    procedure DoCursorChange; override;
-  public
-    procedure VisibleChange; override;
-    function Animation: boolean; override;
-  end;
-
-function TWalkCameraInUniversal.Animation: boolean;
-begin
-  Result := (inherited Animation) or Universal.Animation;
-end;
-
-procedure TWalkCameraInUniversal.VisibleChange;
-begin
-  inherited;
-  { Call parent ScheduleVisibleChange when children change. }
-  Universal.ScheduleVisibleChange;
-end;
-
-procedure TWalkCameraInUniversal.DoCursorChange;
-begin
-  inherited;
-  { update Universal.Cursor, in case we're the current camera }
-  Universal.Cursor := Universal.Current.Cursor;
-end;
-
-{ TUniversalCamera ----------------------------------------------------------- }
-
-constructor TUniversalCamera.Create(AOwner: TComponent);
-begin
-  inherited;
-  FExamine := TExamineCameraInUniversal.Create(Self);
-  TExamineCameraInUniversal(FExamine).Universal := Self;
-  Examine.Name := 'Examine';
-  Examine.SetSubComponent(true);
-
-  FWalk := TWalkCameraInUniversal.Create(Self);
-  TWalkCameraInUniversal(FWalk).Universal := Self;
-  Walk.Name := 'Walk';
-  Walk.SetSubComponent(true);
-end;
-
-function TUniversalCamera.Current: TCamera;
-begin
-  if FNavigationClass = ncExamine then
-    Result := FExamine else
-    Result := FWalk;
-end;
-
-function TUniversalCamera.Matrix: TMatrix4;
-begin
-  Result := Current.Matrix;
-end;
-
-function TUniversalCamera.RotationMatrix: TMatrix4;
-begin
-  Result := Current.RotationMatrix;
-end;
-
-procedure TUniversalCamera.GetView(out APos, ADir, AUp: TVector3);
-begin
-  Current.GetView(APos, ADir, AUp);
-end;
-
-procedure TUniversalCamera.GetView(out APos, ADir, AUp, AGravityUp: TVector3);
-begin
-  Current.GetView(APos, ADir, AUp, AGravityUp);
-end;
-
-function TUniversalCamera.GetPositionInternal: TVector3;
-begin
-  Result := Current.Position;
-end;
-
-procedure TUniversalCamera.SetPosition(const Value: TVector3);
-begin
-  Current.Position := Value;
-end;
-
-function TUniversalCamera.GetGravityUp: TVector3;
-begin
-  Result := Current.GetGravityUp;
-end;
-
-procedure TUniversalCamera.SetView(const APos, ADir, AUp: TVector3;
-  const AdjustUp: boolean);
-begin
-  { Note that both Xxx.SetView calls below do Xxx.VisibleChange at the end,
-    which in turn call our own ScheduleVisibleChange.
-
-    Using Begin/EndVisibleChangeSchedule is more than just an optimization
-    (to avoid calling our own VisibleChange at least twice) here.
-    It is actually required for correctness.
-    That is becasue VisibleChange method may be overriden and/or call various
-    callbacks that may in turn change the camera again.
-
-    - So these VisibleChange callbacks should be called only once our state
-      is consistent, not in the middle (like at the end of FExamine.SetView,
-      when FExamine state is not consistent with FWalk state yet).
-
-    - Also, there are cases when variable aliasing would cause our const
-      parameters to change. Consider view3dscene with
-      demo_models/navigation/transition_multiple_viewpoints.x3dv ,
-      when transition 1 ends: our TCamera.Update will then
-      call TUniversalCamera.SetView with AnimationEndXxx parameters.
-      Without Begin/EndVisibleChangeSchedule, the VisibleChange calls
-      inside will cause TCastleSceneCore.CameraChanged
-      that causes NavigationInfo.transitionComplete event,
-      which in turn (if X3D file sends Viewpoint.set_bind to immediately
-      start another transition) may cause TUniversalCamera.AnimateTo call,
-      that changes AnimationEndXxx parameters... Accidentally also changing
-      our current "const" Pos, Dir, Up parameters. This would cause us to blink
-      the final MyViewpoint3 position at the beginning of transition from
-      MyViewpoint2 to MyViewpoint3.
-  }
-
-  BeginVisibleChangeSchedule;
-  try
-    FExamine.SetView(APos, ADir, AUp, AdjustUp);
-    FWalk.SetView(APos, ADir, AUp, AdjustUp);
-  finally EndVisibleChangeSchedule end;
-end;
-
-procedure TUniversalCamera.SetView(const APos, ADir, AUp, AGravityUp: TVector3;
-  const AdjustUp: boolean);
-begin
-  BeginVisibleChangeSchedule;
-  try
-    FExamine.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
-    FWalk.SetView(APos, ADir, AUp, AGravityUp, AdjustUp);
-  finally EndVisibleChangeSchedule end;
-end;
-
-procedure TUniversalCamera.SetRadius(const Value: Single);
-begin
-  inherited;
-  FExamine.Radius := Value;
-  FWalk.Radius := Value;
-end;
-
-procedure TUniversalCamera.SetInput(const Value: TCameraInputs);
-begin
-  inherited;
-  FExamine.Input := Value;
-  FWalk.Input := Value;
-end;
-
-procedure TUniversalCamera.SetEnableDragging(const Value: boolean);
-begin
-  inherited;
-  FExamine.EnableDragging := Value;
-  FWalk.EnableDragging := Value;
-end;
-
-procedure TUniversalCamera.SetProjectionMatrix(const Value: TMatrix4);
-begin
-  { This calls RecalculateFrustum on all 3 cameras, while only once
-    is needed... But speed should not be a problem here, this is seldom used. }
-  inherited;
-  FExamine.ProjectionMatrix := Value;
-  FWalk.ProjectionMatrix := Value;
-end;
-
-procedure TUniversalCamera.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-begin
-  inherited;
-  Current.Update(SecondsPassed, HandleInput);
-end;
-
-function TUniversalCamera.SensorTranslation(const X, Y, Z, Length: Double;
-  const SecondsPassed: Single): boolean;
-begin
-  Result := Current.SensorTranslation(X, Y, Z, Length, SecondsPassed);
-end;
-
-function TUniversalCamera.SensorRotation(const X, Y, Z, Angle: Double;
-  const SecondsPassed: Single): boolean;
-begin
-  Result := Current.SensorRotation(X, Y, Z, Angle, SecondsPassed);
-end;
-
-function TUniversalCamera.AllowSuspendForInput: boolean;
-begin
-  Result := Current.AllowSuspendForInput;
-end;
-
-function TUniversalCamera.Press(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := Current.Press(Event);
-end;
-
-function TUniversalCamera.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := Current.Release(Event);
-end;
-
-function TUniversalCamera.Motion(const Event: TInputMotion): boolean;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  Result := Current.Motion(Event);
-end;
-
-procedure TUniversalCamera.SetContainer(const Value: TUIContainer);
-begin
-  inherited;
-  FWalk.Container := Value;
-  FExamine.Container := Value;
-end;
-
-procedure TUniversalCamera.Resize;
-begin
-  inherited;
-  FWalk.Resize;
-  FExamine.Resize;
-end;
-
-procedure TUniversalCamera.SetInitialView(
-  const AInitialPosition: TVector3;
-  AInitialDirection, AInitialUp: TVector3;
-  const TransformCurrentCamera: boolean);
-begin
-  BeginVisibleChangeSchedule;
-  try
-    { Pass TransformCurrentCamera = false to inherited.
-      This way inherited updates our Initial* properties, but does not
-      call Get/SetView (these would set our children cameras,
-      which isn't needed as we do it manually below). }
-    inherited SetInitialView(
-      AInitialPosition, AInitialDirection, AInitialUp, false);
-
-    FExamine.SetInitialView(
-      AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
-    FWalk.SetInitialView(
-      AInitialPosition, AInitialDirection, AInitialUp, TransformCurrentCamera);
-  finally EndVisibleChangeSchedule end;
-end;
-
-procedure TUniversalCamera.SetNavigationClass(const Value: TNavigationClass);
-var
-  Pos, Dir, Up: TVector3;
-begin
-  if FNavigationClass <> Value then
-  begin
-    Current.GetView(Pos, Dir, Up);
-    FNavigationClass := Value;
-
-    { SetNavigationClass may be called when Dir and Up
-      are both perfectly zero, from TCastleSceneCore.CreateCamera
-      that creates a camera and first calls CameraFromNavigationInfo
-      (that sets NavigationClass) before calling CameraFromViewpoint
-      (that sets sensible view vectors). We protect from it, to not call
-      SetView with Dir and Up zero.
-
-      Although for now this isn't really needed, as all SetView implementations
-      behave Ok, because
-      1. MakeVectorsOrthoOnTheirPlane with both dir/up = zero is Ok
-         (it leaves the 1st argument as zero (because
-         AnyOrthogonalVector(zero) = zero)),
-      2. CamDirUp2OrientQuat also gracefully accepts dir/up = zero
-         (but it doesn't have to, it's documentation requires only non-zero
-         vectors).
-      But, for the future, protect from it, since the doc for SetView guarantees
-      correct behavior only for dir/up non-zero. }
-
-    if not (Dir.IsPerfectlyZero and Up.IsPerfectlyZero) then
-      Current.SetView(Pos, Dir, Up);
-    { our Cursor should always reflect Current.Cursor }
-    Cursor := Current.Cursor;
-  end;
-end;
-
-function TUniversalCamera.GetNavigationType: TNavigationType;
-begin
-  if Input = [] then
-    Result := ntNone else
-    Result := Current.GetNavigationType;
-end;
-
-procedure TUniversalCamera.SetNavigationType(const Value: TNavigationType);
-begin
-  { This is not a pure optimization in this case.
-    If you set some weird values, then (without this check)
-    doing "NavigationType := NavigationType" would not be NOOP. }
-  if Value = GetNavigationType then Exit;
-
-  { set default values (for Walk camera and Input),
-    may be changed later by this method. This way every setting
-    of SetNavigationType sets them, regardless of value, which seems
-    consistent. }
-  Walk.Gravity := false;
-  Walk.PreferGravityUpForRotations := true;
-  Walk.PreferGravityUpForMoving := true;
-  Examine.Turntable := false;
-  Input := DefaultInput;
-
-  { This follows the same logic as TCastleSceneCore.CameraFromNavigationInfo }
-
-  { set NavigationClass, and eventually adjust Walk properties }
-  case Value of
-    ntExamine: NavigationClass := ncExamine;
-    ntTurntable:
-      begin
-        NavigationClass := ncExamine;
-        Examine.Turntable := true;
-      end;
-    ntWalk:
-      begin
-        NavigationClass := ncWalk;
-        Walk.Gravity := true;
-      end;
-    ntFly:
-      begin
-        NavigationClass := ncWalk;
-        Walk.PreferGravityUpForMoving := false;
-      end;
-    ntNone:
-      begin
-        NavigationClass := ncWalk;
-        Input := [];
-      end;
-    else raise EInternalError.Create('TUniversalCamera.SetNavigationType: Value?');
-  end;
 end;
 
 { global ------------------------------------------------------------ }

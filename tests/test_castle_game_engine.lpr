@@ -56,6 +56,7 @@ uses
   TestX3DNodesOptimizedProxy,
   TestCastleScene,
   TestCastleSceneCore,
+  TestCastleSceneManager,
   TestCastleVideos,
   TestCastleSpaceFillingCurves,
   TestCastleStringUtils,

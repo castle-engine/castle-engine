@@ -43,8 +43,7 @@ type
         to move in the world). Because you typically want to
         code from scratch all your own movement for 2D.
 
-        More precisely, the TUniversalCamera.NavigationType is ntNone
-        by default.
+        More precisely, the NavigationType is ntNone by default.
       )
 
       @item(Sets @bold(2D projection). By default
@@ -133,7 +132,7 @@ type
       read FProjectionOriginCenter write FProjectionOriginCenter default false;
 
     constructor Create(AOwner: TComponent); override;
-    function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
+    procedure AssignDefaultCamera; override;
   published
     property Transparent default true;
   end;
@@ -168,19 +167,16 @@ begin
   FProjectionWidth := 0;
 end;
 
-function T2DSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
-var
-  UCamera: TUniversalCamera;
+procedure T2DSceneManager.AssignDefaultCamera;
 begin
-  UCamera := TUniversalCamera.Create(AOwner);
-  UCamera.NavigationType := ntNone;
-  UCamera.SetInitialView(
+  { setting NavigationType will create a Camera }
+  SetNavigationTypeCore(ntNone, true);
+  Camera.SetInitialView(
     { pos } Vector3(0, 0, DefaultCameraZ),
     { dir } Vector3(0, 0, -1),
     { up } Vector3(0, 1, 0), false);
-  UCamera.GoToInitial;
-  UCamera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
-  Result := UCamera;
+  Camera.GoToInitial;
+  Camera.Radius := 0.01; { will not be used for anything, but set to something sensible just in case }
 end;
 
 function T2DSceneManager.CalculateProjection: TProjection;

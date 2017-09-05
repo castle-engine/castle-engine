@@ -4496,7 +4496,7 @@ begin
   MainScene.ShapeOctreeProgressTitle := 'Building shape octree';
 
   { just to make our Camera always non-nil }
-  SceneManager.Camera := SceneManager.CreateDefaultCamera;
+  SceneManager.RequiredCamera;
 end;
 
 function TCastleWindow.MainScene: TCastleScene;
@@ -4526,19 +4526,13 @@ end;
 
 function TCastleWindow.GetNavigationType: TNavigationType;
 begin
-  if SceneManager.Camera <> nil then
-    Result := SceneManager.Camera.GetNavigationType else
-    Result := ntNone;
+  Result := SceneManager.NavigationType;
 end;
 
 procedure TCastleWindow.SetNavigationType(const Value: TNavigationType);
 begin
-  if (SceneManager.Camera <> nil) and
-     (SceneManager.Camera is TUniversalCamera) then
-  begin
-    (SceneManager.Camera as TUniversalCamera).NavigationType := Value;
-    NavigationInfoChanged;
-  end;
+  SceneManager.NavigationType := Value;
+  NavigationInfoChanged;
 end;
 
 { TWindowList ------------------------------------------------------------ }
