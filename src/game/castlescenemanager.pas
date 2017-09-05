@@ -1366,6 +1366,12 @@ begin
       { set to nil by SetCamera, to clean nicely }
       Camera := nil;
     end;
+    // Note that we don't register on FInternalExamine/WalkCamera destruction
+    // when they are not current, so they should never be freed in that case.
+    if AComponent = FInternalWalkCamera then
+      FInternalWalkCamera := nil;
+    if AComponent = FInternalExamineCamera then
+      FInternalExamineCamera := nil;
   end;
 end;
 
