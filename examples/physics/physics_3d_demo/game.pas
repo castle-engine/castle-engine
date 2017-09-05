@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Classes, Generics.Collections, Kraft,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, Castle3D,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors;
+  CastleCameras, CastleVectors, CastleRenderer;
 
 type
   { Shape used for collision detection of a rigid body,
@@ -153,6 +153,7 @@ begin
   LevelScene.Load(ApplicationData('level.x3dv'));
   LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
   LevelScene.ProcessEvents := true;
+  LevelScene.Attributes.Shaders := srAlways; // nicer lighting
 
   Level := TPhysicsTransform.Create(Application);
   Level.Add(LevelScene);
@@ -161,8 +162,9 @@ begin
   Window.SceneManager.MainScene := LevelScene;
 
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
-  Window.SceneManager.RequiredCamera.Input :=
-    Window.SceneManager.RequiredCamera.Input - [ciMouseDragging];
+  Window.SceneManager.NavigationType := ntWalk;
+  Window.SceneManager.Camera.Input :=
+    Window.SceneManager.Camera.Input - [ciMouseDragging];
 
   DynamicTransforms := TPhysicsTransformList.Create(false);
 
@@ -215,14 +217,10 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 var
   C: TWalkCamera;
 begin
-  // TODO: why F4 doesn't work? Is ciMouseDragging needed?
   if Event.IsKey(K_F4) then
   begin
-    if Window.SceneManager.RequiredCamera is TWalkCamera then
-    begin
-      C := TWalkCamera(Window.SceneManager.RequiredCamera);
-      C.MouseLook := not C.MouseLook;
-    end;
+    C := Window.SceneManager.WalkCamera;
+    C.MouseLook := not C.MouseLook;
   end;
 
   if Event.IsMouseButton(mbLeft) then
