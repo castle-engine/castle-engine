@@ -15,6 +15,58 @@
 		            groundColor="0.051 0.051 0.051"
 		            skyColor="0.051 0.051 0.051"
 		            />
+		<Transform DEF="Lamp_004_TRANSFORM"
+		           translation="-26.550716 5.903862 31.416172"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_004"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="30.0000" 
+			            location="-0.0000 -0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Lamp_003_TRANSFORM"
+		           translation="-21.379688 5.903862 -15.906567"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_003"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="30.0000" 
+			            location="-0.0000 -0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Lamp_002_TRANSFORM"
+		           translation="28.606918 5.903862 -16.690056"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_002"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="30.0000" 
+			            location="0.0000 0.0000 0.0000"
+			            />
+		</Transform>
+		<Transform DEF="Lamp_001_TRANSFORM"
+		           translation="18.909023 5.903862 13.033362"
+		           scale="1.000000 1.000000 1.000000"
+		           rotation="-0.498084 -0.762016 -0.413815 1.513875"
+		           >
+			<PointLight DEF="LA_Lamp_001"
+			            ambientIntensity="0.0000"
+			            color="1.0000 1.0000 1.0000"
+			            intensity="0.5714"
+			            radius="30.0000" 
+			            location="0.0000 -0.0000 0.0000"
+			            />
+		</Transform>
 		<Transform DEF="Plane_TRANSFORM"
 		           translation="0.000000 0.000000 0.000000"
 		           scale="10.000000 10.000000 10.000000"
@@ -31,6 +83,11 @@
 							<ImageTexture DEF="IM_059_plombieresgbr_jpg"
 							              url='"textures/059_plombieresgbr.jpg" "059_plombieresgbr.jpg" "/home/michalis/sources/castle-engine/castle-engine/examples/physics/physics_3d_demo/data/textures/059_plombieresgbr.jpg"'
 							              />
+							<TextureTransform 
+							                  translation="0.000000 0.000000"
+							                  scale="1.000000 1.000000"
+							                  rotation="0.000000"
+							                  />
 							<Material DEF="MA_Material_001"
 							          diffuseColor="0.800 0.800 0.800"
 							          specularColor="0.000 0.000 0.000"
@@ -45,9 +102,9 @@
 						                coordIndex="0 1 3 2 -1 "
 						                >
 							<Coordinate DEF="coords_ME_Plane"
-							            point="-1.000000 -1.000000 0.000000 1.000000 -1.000000 0.000000 -1.000000 1.000000 0.000000 1.000000 1.000000 0.000000 "
+							            point="-4.000000 -4.000000 0.000000 4.000000 -4.000000 0.000000 -4.000000 4.000000 0.000000 4.000000 4.000000 0.000000 "
 							            />
-							<TextureCoordinate point="-3.3536 -3.3536 4.3536 -3.3536 4.3536 4.3536 -3.3536 4.3536 " />
+							<TextureCoordinate point="-14.9145 -14.9145 15.9145 -14.9145 15.9145 15.9145 -14.9145 15.9145 " />
 						</IndexedFaceSet>
 					</Shape>
 				</Group>
