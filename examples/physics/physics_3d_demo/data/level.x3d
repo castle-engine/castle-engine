@@ -24,7 +24,7 @@
 			            ambientIntensity="0.0000"
 			            color="1.0000 1.0000 1.0000"
 			            intensity="0.5714"
-			            radius="30.0000" 
+			            radius="10000.0000" 
 			            location="-0.0000 -0.0000 0.0000"
 			            />
 		</Transform>
@@ -37,7 +37,7 @@
 			            ambientIntensity="0.0000"
 			            color="1.0000 1.0000 1.0000"
 			            intensity="0.5714"
-			            radius="30.0000" 
+			            radius="10000.0000" 
 			            location="-0.0000 -0.0000 0.0000"
 			            />
 		</Transform>
@@ -50,7 +50,7 @@
 			            ambientIntensity="0.0000"
 			            color="1.0000 1.0000 1.0000"
 			            intensity="0.5714"
-			            radius="30.0000" 
+			            radius="10000.0000" 
 			            location="0.0000 0.0000 0.0000"
 			            />
 		</Transform>
@@ -63,7 +63,7 @@
 			            ambientIntensity="0.0000"
 			            color="1.0000 1.0000 1.0000"
 			            intensity="0.5714"
-			            radius="30.0000" 
+			            radius="10000.0000" 
 			            location="0.0000 -0.0000 0.0000"
 			            />
 		</Transform>
@@ -119,7 +119,7 @@
 			            ambientIntensity="0.0000"
 			            color="1.0000 1.0000 1.0000"
 			            intensity="0.5714"
-			            radius="30.0000" 
+			            radius="10000.0000" 
 			            location="-0.0000 -0.0000 0.0000"
 			            />
 		</Transform>
