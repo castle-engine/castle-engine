@@ -170,8 +170,8 @@ begin
   if SceneURL <> '' then
     S := URICaption(SceneURL) else
     S := 'No Scene';
-  S += ' - ' +  ApplicationName +
-    Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
+  S := S + (' - ' +  ApplicationName +
+    Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]));
   Caption := S;
 end;
 
@@ -208,17 +208,17 @@ begin
     Browser.Camera.GetView(Pos, Dir, Up);
     { Note that Dir, Up returned here are always normalized }
 
-    EditPositionX.Text := FloatToNiceStr(Pos[0]);
-    EditPositionY.Text := FloatToNiceStr(Pos[1]);
-    EditPositionZ.Text := FloatToNiceStr(Pos[2]);
+    EditPositionX.Text := Format('%f', [Pos[0]]);
+    EditPositionY.Text := Format('%f', [Pos[1]]);
+    EditPositionZ.Text := Format('%f', [Pos[2]]);
 
-    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
-    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
-    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+    EditDirectionX.Text := Format('%f', [Dir[0]]);
+    EditDirectionY.Text := Format('%f', [Dir[1]]);
+    EditDirectionZ.Text := Format('%f', [Dir[2]]);
 
-    EditUpX.Text := FloatToNiceStr(Up[0]);
-    EditUpY.Text := FloatToNiceStr(Up[1]);
-    EditUpZ.Text := FloatToNiceStr(Up[2]);
+    EditUpX.Text := Format('%f', [Up[0]]);
+    EditUpY.Text := Format('%f', [Up[1]]);
+    EditUpZ.Text := Format('%f', [Up[2]]);
   end;
 end;
 
