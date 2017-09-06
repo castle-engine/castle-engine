@@ -1253,6 +1253,7 @@ begin
   SceneManager.MainScene := nil;
   SceneManager.Items.Clear;
   SceneManager.Camera.Free;
+  Assert(SceneManager.Camera = nil);
 
   SceneManager.MainScene := TCastleScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);

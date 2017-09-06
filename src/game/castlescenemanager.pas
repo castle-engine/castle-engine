@@ -460,8 +460,11 @@ type
       If you don't assign anything here, we'll create a default camera
       when necessary (usually at the ApplyProjection which
       happens before the rendering).
-      Use RequiredCamera instead of this property to get a camera
+      Use @link(RequiredCamera) instead of this property to get a camera
       that is never @nil.
+      Or use @link(ExamineCamera) or @link(WalkCamera) to get a camera
+      that is never @nil, and has particular type.
+      Or set @link(NavigationType) first, this also sets the camera always.
 
       For many purposes, you can directly operate on this camera,
       for example you can change it's @link(TCamera.Position Position).
@@ -2518,8 +2521,13 @@ function TCastleAbstractViewport.GetNavigationType: TNavigationType;
 var
   C: TCamera;
 begin
-  C := RequiredCamera;
-  if C.Input = [] then
+  C := Camera;
+  { We are using here Camera, not RequiredCamera, as automatically
+    creating Camera could have surprising consequences.
+    E.g. it means that SetCamera(nil) may recreate the camera,
+    as BoundNavigationInfoChanged calls something that checks
+    NavigationType. }
+  if (C = nil) or (C.Input = []) then
     Result := ntNone
   else
     Result := C.GetNavigationType;

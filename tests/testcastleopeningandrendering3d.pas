@@ -79,6 +79,9 @@ begin
     Scene.Load(FileName);
 
   SceneManager.Camera.Free;
+  // camera should be nil now (thanks to free notification),
+  // and no new camera should be automatically created yet.
+  AssertTrue(SceneManager.Camera = nil);
   SceneManager.RequiredCamera;
 
   { Force preparing and using OpenGL resources for the scene.
