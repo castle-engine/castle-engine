@@ -71,255 +71,6 @@ type
     ntNone
   );
 
-  { Base class for the camera.
-
-    TODO: this is separate from TInputListener class only to avoid FPC 2.6.4
-    bug Internal error 200610054 when using the stabs debug info. }
-  TCameraInputListener = class(TComponent)
-  private
-    FOnVisibleChange: TNotifyEvent;
-    FContainer: TUIContainer;
-    FCursor: TMouseCursor;
-    FOnCursorChange: TNotifyEvent;
-    FExclusiveEvents: boolean;
-    procedure SetCursor(const Value: TMouseCursor);
-  protected
-    { Container sizes.
-      @groupBegin }
-    function ContainerWidth: Cardinal;
-    function ContainerHeight: Cardinal;
-    function ContainerRect: TRectangle;
-    function ContainerSizeKnown: boolean;
-    { @groupEnd }
-
-    procedure SetContainer(const Value: TUIContainer); virtual;
-    { Called when @link(Cursor) changed.
-      In TUIControl class, just calls OnCursorChange. }
-    procedure DoCursorChange; virtual;
-  public
-    constructor Create(AOwner: TComponent); override;
-
-    (*Handle press or release of a key, mouse button or mouse wheel.
-      Return @true if the event was somehow handled.
-
-      In this class this always returns @false, when implementing
-      in descendants you should override it like
-
-      @longCode(#
-        Result := inherited;
-        if Result then Exit;
-        { ... And do the job here.
-          In other words, the handling of events in inherited
-          class should have a priority. }
-      #)
-
-      Note that releasing of mouse wheel is not implemented for now,
-      neither by CastleWindow or Lazarus CastleControl.
-      @groupBegin *)
-    function Press(const Event: TInputPressRelease): boolean; virtual;
-    function Release(const Event: TInputPressRelease): boolean; virtual;
-    { @groupEnd }
-
-    { Motion of mouse or touch. }
-    function Motion(const Event: TInputMotion): boolean; virtual;
-
-    { Rotation detected by sensor.
-      Used for example by 3Dconnexion devices or touch controls.
-
-      @param X   X axis (tilt forward/backwards)
-      @param Y   Y axis (rotate)
-      @param Z   Z axis (tilt sidewards)
-      @param Angle   Angle of rotation
-      @param(SecondsPassed The time passed since last SensorRotation call.
-        This is necessary because some sensors, e.g. 3Dconnexion,
-        may *not* reported as often as normal @link(Update) calls.) }
-    function SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean; virtual;
-
-    { Translation detected by sensor.
-      Used for example by 3Dconnexion devices or touch controls.
-
-      @param X   X axis (move left/right)
-      @param Y   Y axis (move up/down)
-      @param Z   Z axis (move forward/backwards)
-      @param Length   Length of the vector consisting of the above
-      @param(SecondsPassed The time passed since last SensorRotation call.
-        This is necessary because some sensors, e.g. 3Dconnexion,
-        may *not* reported as often as normal @link(Update) calls.) }
-    function SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean; virtual;
-
-    { Axis movement detected by joystick
-
-      @param JoyID ID of joystick with pressed button
-      @param Axis Number of moved axis }
-    function JoyAxisMove(const JoyID, Axis: Byte): boolean; virtual;
-
-    { Joystick button pressed.
-
-      @param JoyID ID of joystick with pressed button
-      @param Button Number of pressed button }
-    function JoyButtonPress(const JoyID, Button: Byte): boolean; virtual;
-
-    { Control may do here anything that must be continously repeated.
-      E.g. camera handles here falling down due to gravity,
-      rotating model in Examine mode, and many more.
-
-      @param(SecondsPassed Should be calculated like TFramesPerSecond.UpdateSecondsPassed,
-        and usually it's in fact just taken from TCastleWindowCustom.Fps.UpdateSecondsPassed.)
-
-      This method may be used, among many other things, to continously
-      react to the fact that user pressed some key (or mouse button).
-      For example, if holding some key should move some 3D object,
-      you should do something like:
-
-      @longCode(#
-      if HandleInput then
-      begin
-        if Container.Pressed[K_Right] then
-          Transform.Position := Transform.Position + Vector3(SecondsPassed * 10, 0, 0);
-        HandleInput := not ExclusiveEvents;
-      end;
-      #)
-
-      Instead of directly using a key code, consider also
-      using TInputShortcut that makes the input key nicely configurable.
-      See engine tutorial about handling inputs.
-
-      Multiplying movement by SecondsPassed makes your
-      operation frame-rate independent. Object will move by 10
-      units in a second, regardless of how many FPS your game has.
-
-      The code related to HandleInput is important if you write
-      a generally-useful control that should nicely cooperate with all other
-      controls, even when placed on top of them or under them.
-      The correct approach is to only look at pressed keys/mouse buttons
-      if HandleInput is @true. Moreover, if you did check
-      that HandleInput is @true, and you did actually handle some keys,
-      then you have to set @code(HandleInput := not ExclusiveEvents).
-      As ExclusiveEvents is @true in normal circumstances,
-      this will prevent the other controls (behind the current control)
-      from handling the keys (they will get HandleInput = @false).
-      And this is important to avoid doubly-processing the same key press,
-      e.g. if two controls react to the same key, only the one on top should
-      process it.
-
-      Note that to handle a single press / release (like "switch
-      light on when pressing a key") you should rather
-      use @link(Press) and @link(Release) methods. Use this method
-      only for continous handling (like "holding this key makes
-      the light brighter and brighter").
-
-      To understand why such HandleInput approach is needed,
-      realize that the "Update" events are called
-      differently than simple mouse and key events like "Press" and "Release".
-      "Press" and "Release" events
-      return whether the event was somehow "handled", and the container
-      passes them only to the controls under the mouse (decided by
-      @link(TUIControl.CapturesEventsAtPosition)). And as soon as some control says it "handled"
-      the event, other controls (even if under the mouse) will not
-      receive the event.
-
-      This approach is not suitable for Update events. Some controls
-      need to do the Update job all the time,
-      regardless of whether the control is under the mouse and regardless
-      of what other controls already did. So all controls (well,
-      all controls that exist, in case of TUIControl,
-      see TUIControl.GetExists) receive Update calls.
-
-      So the "handled" status is passed through HandleInput.
-      If a control is not under the mouse, it will receive HandleInput
-      = @false. If a control is under the mouse, it will receive HandleInput
-      = @true as long as no other control on top of it didn't already
-      change it to @false. }
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); virtual;
-
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
-
-      In this class this simply calls OnVisibleChange (if assigned). }
-    procedure VisibleChange; virtual;
-
-    { Called always when some visible part of this control
-      changes. In the simplest case, this is used by the controls manager to
-      know when we need to redraw the control.
-
-      Be careful when handling this event, various changes may cause this,
-      so be prepared to handle OnVisibleChange at every time.
-
-      @seealso VisibleChange }
-    property OnVisibleChange: TNotifyEvent
-      read FOnVisibleChange write FOnVisibleChange;
-
-    { Allow window containing this control to suspend waiting for user input.
-      Typically you want to override this to return @false when you do
-      something in the overridden @link(Update) method.
-
-      In this class, this simply returns always @true.
-
-      @seeAlso TCastleWindowCustom.AllowSuspendForInput }
-    function AllowSuspendForInput: boolean; virtual;
-
-    { You can resize/reposition your component here,
-      for example set @link(TUIControl.Left) or @link(TUIControl.Bottom), to react to parent
-      size changes.
-      Called always when the container (component or window with OpenGL context)
-      size changes. Called only when the OpenGL context of the container
-      is initialized, so you can be sure that this is called only between
-      GLContextOpen and GLContextClose.
-
-      We also make sure to call this once when inserting into
-      the controls list
-      (like @link(TCastleWindowCustom.Controls) or
-      @link(TCastleControlCustom.Controls) or inside parent TUIControl),
-      if inserting into the container/parent
-      with already initialized OpenGL context. If inserting into the container/parent
-      without OpenGL context initialized, it will be called later,
-      when OpenGL context will get initialized, right after GLContextOpen.
-
-      In other words, this is always called to let the control know
-      the size of the container, if and only if the OpenGL context is
-      initialized. }
-    procedure Resize; virtual;
-
-    procedure ContainerResize(const AContainerWidth, AContainerHeight: Cardinal); virtual; deprecated 'use Resize';
-
-    { Container of this control. When adding control to container's Controls
-      list (like TCastleWindowCustom.Controls) container will automatically
-      set itself here, and when removing from container this will be changed
-      back to @nil.
-
-      May be @nil if this control is not yet inserted into any container. }
-    property Container: TUIContainer read FContainer write SetContainer;
-
-    { Mouse cursor over this control.
-      When user moves mouse over the Container, the currently focused
-      (topmost under the cursor) control determines the mouse cursor look. }
-    property Cursor: TMouseCursor read FCursor write SetCursor default mcDefault;
-
-    { Event called when the @link(Cursor) property changes.
-      This event is, in normal circumstances, used by the Container,
-      so you should not use it in your own programs. }
-    property OnCursorChange: TNotifyEvent
-      read FOnCursorChange write FOnCursorChange;
-
-    { Design note: ExclusiveEvents is not published now, as it's too "obscure"
-      (for normal usage you don't want to deal with it). Also, it's confusing
-      on TCastleSceneCore, the name suggests it relates to ProcessEvents (VRML events,
-      totally not related to this property that is concerned with handling
-      TUIControl events.) }
-
-    { Should we disable further mouse / keys handling for events that
-      we already handled in this control. If @true, then our events will
-      return @true for mouse and key events handled.
-
-      This means that events will not be simultaneously handled by both this
-      control and some other (or camera or normal window callbacks),
-      which is usually more sensible, but sometimes somewhat limiting. }
-    property ExclusiveEvents: boolean
-      read FExclusiveEvents write FExclusiveEvents default true;
-  end;
-
   { Handle user navigation in 3D scene.
     You control camera parameters and provide user input
     to this class by various methods and properties.
@@ -349,7 +100,7 @@ type
     then the default camera will be created for you. So @italic(when
     using TCastleSceneManager, you do not have to do anything to use a camera)
     --- default camera will be created and automatically used for you. }
-  TCamera = class(TCameraInputListener)
+  TCamera = class(TInputListener)
   private
     VisibleChangeSchedule: Cardinal;
     IsVisibleChangeScheduled: boolean;
@@ -443,7 +194,7 @@ type
       to the @link(TCamera.Matrix), and other properties (for example even
       changes to TWalkCamera.MoveSpeed), are "visible",
       and they also result in this event. }
-    procedure VisibleChange; override;
+    procedure VisibleChange(const RectOrCursorChanged: boolean = false); override;
 
     { Current camera matrix. You should multiply every 3D point of your
       scene by this matrix, which usually simply means that you should
@@ -997,7 +748,7 @@ type
     procedure SetView(const APos, ADir, AUp: TVector3;
       const AdjustUp: boolean = true); override;
 
-    procedure VisibleChange; override;
+    procedure VisibleChange(const RectOrCursorChanged: boolean = false); override;
     function GetNavigationType: TNavigationType; override;
 
     { TODO: Input_Xxx not published, although setting them in object inspector
@@ -1929,139 +1680,6 @@ begin
   RegisterComponents('Castle', [TExamineCamera, TWalkCamera]);
 end;
 
-{ TCameraInputListener ------------------------------------------------------------- }
-
-constructor TCameraInputListener.Create(AOwner: TComponent);
-begin
-  inherited;
-  FExclusiveEvents := true;
-  FCursor := mcDefault;
-end;
-
-function TCameraInputListener.Press(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-end;
-
-function TCameraInputListener.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-end;
-
-function TCameraInputListener.Motion(const Event: TInputMotion): boolean;
-begin
-  Result := false;
-end;
-
-function TCameraInputListener.SensorRotation(const X, Y, Z, Angle: Double; const SecondsPassed: Single): boolean;
-begin
-  Result := false;
-end;
-
-function TCameraInputListener.SensorTranslation(const X, Y, Z, Length: Double; const SecondsPassed: Single): boolean;
-begin
-  Result := false;
-end;
-
-function TCameraInputListener.JoyAxisMove(const JoyID, Axis: Byte): boolean;
-begin
-  Result := False;
-end;
-
-function TCameraInputListener.JoyButtonPress(const JoyID, Button: Byte): boolean;
-begin
-  Result := False;
-end;
-
-procedure TCameraInputListener.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
-begin
-end;
-
-procedure TCameraInputListener.VisibleChange;
-begin
-  if Assigned(OnVisibleChange) then
-    OnVisibleChange(Self);
-end;
-
-function TCameraInputListener.AllowSuspendForInput: boolean;
-begin
-  Result := true;
-end;
-
-procedure TCameraInputListener.Resize;
-begin
-  {$warnings off}
-  ContainerResize(ContainerWidth, ContainerHeight); // call deprecated, to keep it working
-  {$warnings on}
-end;
-
-procedure TCameraInputListener.ContainerResize(const AContainerWidth, AContainerHeight: Cardinal);
-begin
-end;
-
-function TCameraInputListener.ContainerWidth: Cardinal;
-begin
-  if ContainerSizeKnown then
-    Result := Container.Width else
-    Result := 0;
-end;
-
-function TCameraInputListener.ContainerHeight: Cardinal;
-begin
-  if ContainerSizeKnown then
-    Result := Container.Height else
-    Result := 0;
-end;
-
-function TCameraInputListener.ContainerRect: TRectangle;
-begin
-  if ContainerSizeKnown then
-    Result := Container.Rect else
-    Result := TRectangle.Empty;
-end;
-
-function TCameraInputListener.ContainerSizeKnown: boolean;
-begin
-  { Note that ContainerSizeKnown is calculated looking at current Container,
-    without waiting for Resize. This way it works even before
-    we receive Resize method, which may happen to be useful:
-    if you insert a SceneManager to a window before it's open (like it happens
-    with standard scene manager in TCastleWindow and TCastleControl),
-    and then you do something inside OnOpen that wants to render
-    this viewport (which may happen if you simply initialize a progress bar
-    without any predefined loading_image). Scene manager did not receive
-    a Resize in this case yet (it will receive it from OnResize,
-    which happens after OnOpen).
-
-    See castle_game_engine/tests/testcontainer.pas for cases
-    when this is really needed. }
-
-  Result := (Container <> nil) and
-    (not (csDestroying in Container.ComponentState)) and
-    Container.GLInitialized;
-end;
-
-procedure TCameraInputListener.SetCursor(const Value: TMouseCursor);
-begin
-  if Value <> FCursor then
-  begin
-    FCursor := Value;
-    if Container <> nil then Container.UpdateFocusAndMouseCursor;
-    DoCursorChange;
-  end;
-end;
-
-procedure TCameraInputListener.DoCursorChange;
-begin
-  if Assigned(OnCursorChange) then OnCursorChange(Self);
-end;
-
-procedure TCameraInputListener.SetContainer(const Value: TUIContainer);
-begin
-  FContainer := Value;
-end;
-
 { TCamera ------------------------------------------------------------ }
 
 constructor TCamera.Create(AOwner: TComponent);
@@ -2087,7 +1705,7 @@ begin
   MouseDraggingStarted := -1;
 end;
 
-procedure TCamera.VisibleChange;
+procedure TCamera.VisibleChange(const RectOrCursorChanged: boolean);
 begin
   RecalculateFrustum;
   inherited;
@@ -3031,7 +2649,7 @@ begin
   AUp  := FUp;
 end;
 
-procedure TExamineCamera.VisibleChange;
+procedure TExamineCamera.VisibleChange(const RectOrCursorChanged: boolean);
 var
   M: TMatrix4;
 begin

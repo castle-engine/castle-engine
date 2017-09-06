@@ -686,7 +686,7 @@ type
       @param(RectOrCursorChanged Set to @true if the final control size
         or position on the screen, or cursor, changed. This simply causes a call
         to @link(TUIContainer.UpdateFocusAndMouseCursor).) }
-    procedure VisibleChange(const RectOrCursorChanged: boolean = false);
+    procedure VisibleChange(const RectOrCursorChanged: boolean = false); virtual;
 
     { Called always when some visible part of this control
       changes. In the simplest case, this is used by the controls manager to
