@@ -869,10 +869,8 @@ var
 
     Camera := WalkCamera;
 
-    {$warnings off} // TODO: using deprecated
     WalkCamera.Init(InitialPosition, InitialDirection,
       InitialUp, GravityUp, PreferredHeight, CameraRadius);
-    {$warnings on}
     WalkCamera.CancelFalling;
   end;
 

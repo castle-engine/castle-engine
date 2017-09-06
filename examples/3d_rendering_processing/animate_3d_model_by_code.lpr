@@ -88,8 +88,7 @@ begin
     Window.SceneManager.Items.Add(Scene);
 
     { init SceneManager.Camera }
-    Window.SceneManager.Camera := TExamineCamera.Create(Window);
-    (Window.SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
+    Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
 
     Window.OnUpdate := @Update;
     Window.SetDemoOptions(K_F11, CharEscape, true);

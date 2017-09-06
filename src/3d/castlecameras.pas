@@ -723,7 +723,6 @@ type
       setting suitable initial view by SetInitialView,
       and then going to initial view by GoToInitial. }
     procedure Init(const AModelBox: TBox3D; const ARadius: Single);
-      deprecated 'better set ModelBox, Radius directly';
 
     { Methods performing navigation.
       Usually you want to just leave this for user to control. --------------- }
@@ -1223,7 +1222,6 @@ type
       const AGravityUp: TVector3;
       const APreferredHeight: Single;
       const ARadius: Single); overload;
-      deprecated 'better set the related camera properties directly';
 
     { Alternative Init that sets camera properties such that
       an object inside Box is more or less "visible good".
@@ -1232,7 +1230,6 @@ type
       Sets GravityUp to the same thing as InitialUp.
       Sets also PreferredHeight to make it behave "sensibly". }
     procedure Init(const box: TBox3D; const ARadius: Single); overload;
-      deprecated 'better set the related camera properties directly';
 
     { This sets the minimal angle (in radians) between GravityUp
       and @link(Direction), and also between -GravityUp and @link(Direction).
@@ -4168,7 +4165,6 @@ procedure TWalkCamera.Init(const Box: TBox3D; const ARadius: Single);
 var Pos: TVector3;
     AvgSize: Single;
 begin
-{$warnings off} // deliberately using deprecated inside another deprecated
  if Box.IsEmptyOrZero then
   Init(Vector3(0, 0, 0),
        DefaultCameraDirection,
@@ -4186,7 +4182,6 @@ begin
     TVector3.One[2] { GravityUp is the same as InitialUp },
     AvgSize * 5, ARadius);
  end;
-{$warnings on}
 end;
 
 function TWalkCamera.GetPositionInternal: TVector3;

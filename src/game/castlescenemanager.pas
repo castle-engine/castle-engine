@@ -2669,9 +2669,7 @@ begin
   end else
   begin
     C := InternalExamineCamera;
-    {$warnings off} // TODO: using deprecated
     C.Init(Box, Box.AverageSize(false, 1.0) * 0.005);
-    {$warnings on}
     Camera := C;
   end;
 end;
