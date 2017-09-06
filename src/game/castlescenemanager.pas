@@ -322,7 +322,7 @@ type
     { Return the camera instance as TWalkCamera used for the current camera.
       When SwitchNavigationTypeIfNeeded is @true (the default),
       this method makes sure that the @link(NavigationType) corresponds to a type
-      handled by TWalkCamera, creating the camera if necessary.
+      handled by TWalkCamera, creating and adjusting the camera if necessary.
 
       If the current NavigationType does not use TWalkCamera
       (see @link(TNavigationType) documentation for information which
@@ -336,7 +336,7 @@ type
     { Return the camera instance as TExamineCamera used for the current camera.
       When SwitchNavigationTypeIfNeeded is @true (the default),
       this method makes sure that the @link(NavigationType) corresponds to a type
-      handled by TExamineCamera, creating the camera if necessary.
+      handled by TExamineCamera, creating and adjusting the camera if necessary.
 
       If the current NavigationType does not use TExamineCamera
       (see @link(TNavigationType) documentation for information which
