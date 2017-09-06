@@ -336,7 +336,12 @@ type
 
         @item(
           When SwitchNavigationTypeIfNeeded is @false,
-          then we return @nil if the current camera is not a TWalkCamera instance.
+          then we return @nil if the current camera is not already
+          a TWalkCamera instance.
+
+          We @italic(never) create a new camera in this case
+          (even if the NavigatinInfo node in MainScene would indicate
+          that the new camera would be a TWalkCamera).
         )
       )
     }
@@ -359,7 +364,12 @@ type
 
         @item(
           When SwitchNavigationTypeIfNeeded is @false,
-          then we return @nil if the current camera is not a TExamineCamera instance.
+          then we return @nil if the current camera is not already
+          a TExamineCamera instance.
+
+          We @italic(never) create a new camera in this case
+          (even if the NavigatinInfo node in MainScene would indicate
+          that the new camera would be a TExamineCamera).
         )
       )
     }
