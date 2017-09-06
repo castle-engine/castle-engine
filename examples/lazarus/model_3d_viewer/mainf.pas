@@ -380,7 +380,7 @@ begin
     if ButtonsNavigationType[NT] = Sender then
       NavigationType := NT;
 
-  Browser.NavigationType := NavigationType;
+  Browser.SceneManager.NavigationType := NavigationType;
 end;
 
 procedure TMain.ButtonScreenshotClick(Sender: TObject);
