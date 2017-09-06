@@ -513,9 +513,6 @@ begin
     AddNavigatorMenu('Local _light source', ntLocalLight);
     AddNavigatorMenu('_Shadow fields explorer', ntSFExplorer);
     AddNavigatorMenu('_Environmental light source', ntEnvLight);
-
-    M.Append(TMenuSeparator.Create);
-    M.Append(TMenuItem.Create('_Next', 20, K_Space));
     Result.Append(M);
 end;
 
@@ -527,14 +524,6 @@ begin
     10..19:
       begin
         Navigator := TNavigatorType(Item.IntData - 10);
-        NavigatorChanged;
-      end;
-
-    20:
-      begin
-        if Navigator = High(Navigator) then
-          Navigator := Low(Navigator) else
-          Navigator := Succ(Navigator);
         NavigatorChanged;
       end;
 
@@ -613,8 +602,7 @@ begin
 
     { initialize navigators }
     BoxSum := SceneCaster.BoundingBox + SceneReceiver.BoundingBox;
-    SceneManager.Camera := SceneReceiver.CreateCamera(Window, BoxSum);
-
+    SceneManager.ExamineCamera.Init(BoxSum, 0.01);
     SceneManager.DefaultVisibilityLimit := 100;
 
     { calculate starting local light position }
