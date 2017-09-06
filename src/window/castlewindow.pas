@@ -4485,7 +4485,7 @@ begin
   SceneManager.MainScene.Free;
   SceneManager.MainScene := nil;
   SceneManager.Items.Clear;
-  SceneManager.Camera.Free;
+  SceneManager.ClearCameras;
   Assert(SceneManager.Camera = nil);
 
   SceneManager.MainScene := TCastleScene.Create(Self);

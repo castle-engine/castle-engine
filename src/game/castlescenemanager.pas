@@ -359,6 +359,26 @@ type
       When you read this, we determine a sensible
       answer from a couple of camera properties.
 
+      When the camera is created for the first time,
+      it's parameters are determined from the current NavigationInfo
+      and Viewpoint of @link(MainScene), and bounding box of the world.
+      When the camera class is switched later, the common camera properties
+      (defined at TCamera, like @link(TCamera.Radius) and view vectors
+      -- position, direction, up) are copied, so they are preserved.
+      The other camera properties (those defined only at TWalkCamera or TExamineCamera
+      descendants, e.g. @link(TWalkCamera.MouseLook) and various inputs
+      of cameras) are also preserved within InternalExamineCamera and
+      InternalWalkCamera.
+
+      To reliably force recreating the camera from scratch, call @link(ClearCameras).
+      Simply freeing the current camera by @code(SceneManager.Camera.Free)
+      is also valid operation, but it does not free both cameras
+      (@link(InternalExamineCamera) and @link(InternalWalkCamera))
+      so it doesn't guarantee that all cameras will be recreated from a "clean"
+      state.
+      You can also explicitly assign your own camera descendant to
+      @code(SceneManager.Camera).
+
       Setting this sets:
       @unorderedList(
         @itemSpacing compact
@@ -377,6 +397,16 @@ type
       that is similar to your configuration. }
     property NavigationType: TNavigationType
       read GetNavigationType write SetNavigationType;
+
+    { Make @link(Camera) @nil, and force creating a completely new camera instance
+      when needed. The actual creation may be caused by calling
+      @link(ExamineCamera), @link(WalkCamera),
+      @link(InternalExamineCamera), @link(InternalWalkCamera),
+      or by setting @link(NavigationType).
+
+      In all cases, these methods will create a new camera instance
+      after a @name call. No previous cached camera instance will be used. }
+    procedure ClearCameras;
 
     { Camera instances used by this scene manager.
       Using these methods automatically creates these instances
@@ -2603,6 +2633,13 @@ begin
   // Assert(GetNavigationType = Value);
 
   FWithinSetNavigationType := false;
+end;
+
+procedure TCastleAbstractViewport.ClearCameras;
+begin
+  Camera := nil;
+  FreeAndNil(FInternalExamineCamera);
+  FreeAndNil(FInternalWalkCamera);
 end;
 
 procedure TCastleAbstractViewport.AssignDefaultCamera;

@@ -84,6 +84,9 @@ begin
   AssertTrue(SceneManager.Camera = nil);
   SceneManager.RequiredCamera;
 
+  SceneManager.ClearCameras;
+  AssertTrue(SceneManager.Camera = nil);
+
   { Force preparing and using OpenGL resources for the scene.
     This way we also check that next Load frees them Ok. }
   Window.Container.EventBeforeRender;
