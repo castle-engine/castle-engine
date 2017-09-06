@@ -319,32 +319,50 @@ type
     { Return current camera. Automatically creates it if missing. }
     function RequiredCamera: TCamera;
 
-    { Return the camera instance as TWalkCamera used for the current camera.
-      When SwitchNavigationTypeIfNeeded is @true (the default),
-      this method makes sure that the @link(NavigationType) corresponds to a type
-      handled by TWalkCamera, creating and adjusting the camera if necessary.
+    { Return the currently used camera as TWalkCamera, making sure that current
+      NavigationType is something using TWalkCamera.
 
-      If the current NavigationType does not use TWalkCamera
-      (see @link(TNavigationType) documentation for information which
-      navigation types use which TCamera descendants),
-      then it's switched to ntWalk.
+      @unorderedList(
+        @item(
+          When SwitchNavigationTypeIfNeeded is @true (the default),
+          this method makes sure that the @link(NavigationType) corresponds to a type
+          handled by TWalkCamera, creating and adjusting the camera if necessary.
 
-      When SwitchNavigationTypeIfNeeded is @false,
-      then we return @nil if the current camera is not a TWalkCamera instance. }
+          If the current NavigationType does not use TWalkCamera
+          (see @link(TNavigationType) documentation for information which
+          navigation types use which TCamera descendants),
+          then it's switched to ntWalk.
+        )
+
+        @item(
+          When SwitchNavigationTypeIfNeeded is @false,
+          then we return @nil if the current camera is not a TWalkCamera instance.
+        )
+      )
+    }
     function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TWalkCamera;
 
-    { Return the camera instance as TExamineCamera used for the current camera.
-      When SwitchNavigationTypeIfNeeded is @true (the default),
-      this method makes sure that the @link(NavigationType) corresponds to a type
-      handled by TExamineCamera, creating and adjusting the camera if necessary.
+    { Return the currently used camera as TExamineCamera, making sure that current
+      NavigationType is something using TExamineCamera.
 
-      If the current NavigationType does not use TExamineCamera
-      (see @link(TNavigationType) documentation for information which
-      navigation types use which TCamera descendants),
-      then it's switched to ntExamine.
+      @unorderedList(
+        @item(
+          When SwitchNavigationTypeIfNeeded is @true (the default),
+          this method makes sure that the @link(NavigationType) corresponds to a type
+          handled by TExamineCamera, creating and adjusting the camera if necessary.
 
-      When SwitchNavigationTypeIfNeeded is @false,
-      then we return @nil if the current camera is not a TWalkCamera instance. }
+          If the current NavigationType does not use TExamineCamera
+          (see @link(TNavigationType) documentation for information which
+          navigation types use which TCamera descendants),
+          then it's switched to ntExamine.
+        )
+
+        @item(
+          When SwitchNavigationTypeIfNeeded is @false,
+          then we return @nil if the current camera is not a TExamineCamera instance.
+        )
+      )
+    }
     function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TExamineCamera;
 
     { Choose navigation method by creating and adjusting the camera,
@@ -356,12 +374,16 @@ type
       This is a shortcut property for adjusting the camera class
       (by calling @link(WalkCamera), @link(ExamineCamera))
       and adjusting a couple of camera properties.
-      When you read this, we determine a sensible
-      answer from a couple of camera properties.
+      Note that you can also affect the current NavigationType by directly
+      changing the camera properties,
+      e.g. you can directly change @link(TWalkCamera.Gravity) from @false to @true,
+      and thus you effectively switch from ntFly to ntWalk navigation types.
+      When you read the NavigationType property, we determine the current navigation
+      type from current camera properties.
 
       When the camera is created for the first time,
       it's parameters are determined from the current NavigationInfo
-      and Viewpoint of @link(MainScene), and bounding box of the world.
+      and Viewpoint nodes in @link(MainScene), and from bounding box of the world.
       When the camera class is switched later, the common camera properties
       (defined at TCamera, like @link(TCamera.Radius) and view vectors
       -- position, direction, up) are copied, so they are preserved.
