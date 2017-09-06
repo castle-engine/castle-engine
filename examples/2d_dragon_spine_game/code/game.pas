@@ -25,10 +25,11 @@ var
 
 implementation
 
-uses SysUtils,
+uses SysUtils, Math,
   CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
   CastleVectors, Castle3D, CastleSceneCore, CastleUtils, CastleColors,
-  CastleUIControls, CastleMessaging, CastleGooglePlayGames, CastleLog;
+  CastleUIControls, CastleMessaging, CastleGooglePlayGames, CastleLog,
+  CastleCameras;
 
 { Google Play Games integration stuff ---------------------------------------- }
 
@@ -281,21 +282,17 @@ var
   SecondsPassed: Single;
   T: TVector3;
   Pos, Dir, Up: TVector3;
+  Camera: TCamera;
 begin
   Status.Caption := Format('FPS: %f (real : %f)',
     [Window.Fps.FrameTime, Window.Fps.RealTime]);
 
-  if { check SceneManager.Camera existence, because in this game
-       we just depend on SceneManager creating camera automatically,
-       so we should not depend that it exists early, like at 1st OnUpdate.
-       Alternatively, we could assign camera, e.g.
-       SceneManager.Camera := SceneManager.CreateDefaultCamera,
-       it ApplicationInitialize. }
-     (SceneManager.Camera = nil) or
-     { check SceneManager.Camera.Animation, to not mess in the middle
-       of Camera.AnimateTo (we could mess it by changing DragonTransform now
-       or by calling Camera.SetView directly) }
-     SceneManager.Camera.Animation then
+  Camera := SceneManager.RequiredCamera;
+
+  { check Camera.Animation, to not mess in the middle
+    of Camera.AnimateTo (we could mess it by changing DragonTransform now
+    or by calling Camera.SetView directly) }
+  if Camera.Animation then
     Exit;
 
   if DragonFlying then
@@ -340,7 +337,7 @@ begin
     Do it in every update, to react to window resize and to DragonTransform
     changes. }
   CalculateCamera(Pos, Dir, Up);
-  SceneManager.Camera.SetView(Pos, Dir, Up);
+  Camera.SetView(Pos, Dir, Up);
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
