@@ -82,6 +82,7 @@ type
     FProjection: TProjection;
     FInternalExamineCamera: TExamineCamera;
     FInternalWalkCamera: TWalkCamera;
+    FWithinSetNavigationType: boolean;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -148,7 +149,7 @@ type
     procedure SetPaused(const Value: boolean);
 
     function GetNavigationType: TNavigationType;
-    procedure SetNavigationType(const Value: TNavigationType);
+    procedure SetNavigationType(const Value: TNavigationType); virtual;
   protected
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -775,6 +776,7 @@ type
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: T3D): boolean;
     procedure SetPlayer(const Value: TPlayer);
+    procedure SetNavigationType(const Value: TNavigationType); override;
   protected
     FSectors: TSectorList;
     Waypoints: TWaypointList;
@@ -2546,6 +2548,14 @@ begin
     It also avoids recursive loop when first assigning camera
     in AssignDefaultCamera. }
 
+  { do not change NavigationType when
+    SetNavigationType is called from ExamineCamera or WalkCamera
+    that were already called by NavigationType.
+    It's actually harmless, but still useless. }
+  if FWithinSetNavigationType then
+    Exit;
+  FWithinSetNavigationType := true;
+
   case Value of
     ntExamine:
       begin
@@ -2586,6 +2596,13 @@ begin
       end;
     else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
   end;
+
+  { This assertion should be OK. It is commented out only to prevent
+    GetNavigationType from accidentally creating something intermediate,
+    and thus making debug and release behaviour different) }
+  // Assert(GetNavigationType = Value);
+
+  FWithinSetNavigationType := false;
 end;
 
 procedure TCastleAbstractViewport.AssignDefaultCamera;
@@ -2996,6 +3013,13 @@ begin
     BoundNavigationInfoChanged;
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
+end;
+
+procedure TCastleSceneManager.SetNavigationType(const Value: TNavigationType);
+begin
+  inherited;
+  { Call OnBoundNavigationInfoChanged when NavigationType changed. }
+  BoundNavigationInfoChanged;
 end;
 
 procedure TCastleSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
