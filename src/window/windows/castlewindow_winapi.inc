@@ -986,11 +986,12 @@ end;
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
-  if not Closed then begin
+  if not Closed then
+  begin
 
-    { Prevent setting mouse position to the same value, as it may cause
-      a false onMotion event sequence at some systems }
-    if TVector2.PerfectlyEquals(Value,FMousePosition) then Exit;
+    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
+      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
+    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
     SetCursorPos(Left + Floor(Value[0]), Top + Height - 1 - Floor(Value[1]));
   end;

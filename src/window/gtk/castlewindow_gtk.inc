@@ -786,11 +786,12 @@ var
   RootX, RootY: GInt;
 {$endif}
 begin
-  if not Closed then begin
+  if not Closed then
+  begin
 
-    { Prevent setting mouse position to the same value, as it may cause
-      a false onMotion event sequence at some systems }
-    if TVector2.PerfectlyEquals(Value,FMousePosition) then Exit;
+    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
+      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
+    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
 
     {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
     { With older GDK/GTK, you had to use XWarpPointer to position mouse.
