@@ -96,6 +96,8 @@ begin
     SceneManager.Items.Add(Scene);
     SceneManager.MainScene := Scene;
 
+    AssertTrue(SceneManager.NavigationType = ntNone);
+    SceneManager.RequiredCamera;
     AssertTrue(SceneManager.NavigationType = ntExamine);
     SceneManager.Camera.GetView(Pos, Dir, Up);
   finally FreeAndNil(SceneManager) end;
