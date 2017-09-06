@@ -1608,6 +1608,8 @@ type
       read FRotationHorizontalPivot write FRotationHorizontalPivot default 0;
   end;
 
+  TUniversalCamera = TCamera deprecated 'complicated TUniversalCamera class is removed; use TCamera as base class, or TWalkCamera or TExamineCamera for particular type, and SceneManager.NavigationType to switch type';
+
 { See TWalkCamera.CorrectPreferredHeight.
   This is a global version, sometimes may be useful. }
 procedure CorrectPreferredHeight(var PreferredHeight: Single;
