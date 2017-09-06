@@ -161,7 +161,14 @@ end;
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
 begin
   if (not Closed) and Assigned(LibraryCallbackProc) then
+  begin
+
+    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
+      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
+    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
+
     LibraryCallbackProc(ecgelibSetMousePosition, Floor(Value[0]), Floor(Value[1]), nil);
+  end;
 end;
 
 procedure TCastleWindowCustom.SetFullScreen(const Value: boolean);

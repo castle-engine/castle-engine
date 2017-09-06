@@ -1211,9 +1211,16 @@ begin
 end;
 
 procedure TCastleControlCustom.SetMousePosition(const Value: TVector2);
+var
+  NewCursorPos: TPoint;
 begin
-  Mouse.CursorPos := ControlToScreen(Point(
-    Floor(Value[0]), Height - 1 - Floor(Value[1])));
+  NewCursorPos := ControlToScreen(
+    Point(Floor(Value[0]), Height - 1 - Floor(Value[1])));
+
+  { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
+    unnecessary OnMotion on some systems while actual MousePosition didn't change. }
+  if (NewCursorPos.x <> Mouse.CursorPos.x) or (NewCursorPos.y <> Mouse.CursorPos.y) then
+    Mouse.CursorPos := NewCursorPos;
 end;
 
 function TCastleControlCustom.Rect: TRectangle;

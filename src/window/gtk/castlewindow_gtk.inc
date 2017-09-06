@@ -781,29 +781,34 @@ procedure gdk_window_get_root_coords(Window: PGdkWindow;
 {$endif}
 
 procedure TCastleWindowCustom.SetMousePosition(const Value: TVector2);
-{$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
-{ With older GDK/GTK, you had to use XWarpPointer to position mouse.
-  We still use it, for now, for GTK under Xlib --- this way we work
-  even with ancient GTK versions. }
+{$ifndef CASTLE_WINDOW_GTK_WITH_XLIB}
+var
+  RootX, RootY: GInt;
+{$endif}
 begin
   if not Closed then
+  begin
+
+    { Do not set Mouse.CursorPos to the same value, to make sure we don't cause
+      unnecessary OnMotion on some systems while actual MousePosition didn't change. }
+    if TVector2.PerfectlyEquals(Value, FMousePosition) then Exit;
+
+    {$ifdef CASTLE_WINDOW_GTK_WITH_XLIB}
+    { With older GDK/GTK, you had to use XWarpPointer to position mouse.
+      We still use it, for now, for GTK under Xlib --- this way we work
+      even with ancient GTK versions. }
     XWarpPointer(
       gdk_x11_drawable_get_xdisplay(GTK_WIDGET(GLAreaGtk)^.Window),
       X.None,
       gdk_x11_drawable_get_xid(GTK_WIDGET(GLAreaGtk)^.Window),
       0, 0, 0, 0, Floor(Value[0]), Height - 1 - Floor(Value[1]));
-{$else}
-var
-  RootX, RootY: GInt;
-begin
-  if not Closed then
-  begin
-    gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
-      Floor(Value[0]), Height - 1 - Floor(Value[1]), @RootX, @RootY);
-    gdk_display_warp_pointer(Application.XDisplayGdk,
-      Application.XScreenGdk, RootX, RootY);
+    {$else}
+      gdk_window_get_root_coords(GTK_WIDGET(GLAreaGtk)^.Window,
+        Floor(Value[0]), Height - 1 - Floor(Value[1]), @RootX, @RootY);
+      gdk_display_warp_pointer(Application.XDisplayGdk,
+        Application.XScreenGdk, RootX, RootY);
+    {$endif}
   end;
-{$endif}
 end;
 
 procedure TCastleWindowCustom.SwapBuffers;
