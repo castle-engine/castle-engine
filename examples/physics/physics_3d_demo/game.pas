@@ -167,10 +167,11 @@ begin
   MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
   Window.SceneManager.MoveLimit := MoveLimit;
 
-  // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
   Window.SceneManager.NavigationType := ntWalk;
-  Window.SceneManager.Camera.Input :=
-    Window.SceneManager.Camera.Input - [ciMouseDragging];
+  // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
+  Window.SceneManager.WalkCamera.Input :=
+    Window.SceneManager.WalkCamera.Input - [ciMouseDragging];
+  Window.SceneManager.WalkCamera.HeadBobbing := 0; // looks bad
 
   DynamicTransforms := TPhysicsTransformList.Create(false);
 
