@@ -23,7 +23,7 @@ implementation
 uses SysUtils, Classes, Generics.Collections, Kraft,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, Castle3D,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer;
+  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes;
 
 type
   { Shape used for collision detection of a rigid body,
@@ -148,6 +148,7 @@ var
 procedure ApplicationInitialize;
 var
   LevelScene: TCastleScene;
+  MoveLimit: TBox3D;
 begin
   LevelScene := TCastleScene.Create(Application);
   LevelScene.Load(ApplicationData('level.x3dv'));
@@ -160,6 +161,11 @@ begin
 
   Window.SceneManager.Items.Add(Level);
   Window.SceneManager.MainScene := LevelScene;
+
+  // make gravity work even if your position is over the world bbox
+  MoveLimit := Window.SceneManager.Items.BoundingBox;
+  MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
+  Window.SceneManager.MoveLimit := MoveLimit;
 
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
   Window.SceneManager.NavigationType := ntWalk;
