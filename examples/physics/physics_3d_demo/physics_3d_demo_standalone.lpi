@@ -7,8 +7,21 @@
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
       </Flags>
+      <SessionStorage Value="InProjectDir"/>
+      <MainUnit Value="0"/>
       <Title Value="physics_3d_demo"/>
     </General>
+    <BuildModes Count="1">
+      <Item1 Name="default" Default="True"/>
+    </BuildModes>
+    <PublishOptions>
+      <Version Value="2"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+      </local>
+    </RunParams>
     <RequiredPackages Count="2">
       <Item1>
         <PackageName Value="castle_window"/>
@@ -30,8 +43,7 @@
       <Filename Value="physics_3d_demo"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value=""/>
-      <OtherUnitFiles Value=""/>
+      <IncludeFiles Value="$(ProjOutDir)"/>
       <UnitOutputDirectory Value="castle-engine-output/standalone/lazarus-lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Other>
