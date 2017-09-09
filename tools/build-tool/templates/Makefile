@@ -5,7 +5,8 @@
 ALL_TARGETS := \
   windows/plugin-automatic-windows-resources.rc.inc \
   windows/automatic-windows-resources.rc.inc \
-  windows/automatic-windows.manifest.inc
+  windows/automatic-windows.manifest.inc \
+  template-castle-engine-output-warning.txt.inc
 
 default: $(ALL_TARGETS)
 
