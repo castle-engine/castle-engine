@@ -20,136 +20,28 @@ interface
 
 implementation
 
-uses SysUtils, Classes, Generics.Collections, Kraft,
+uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, Castle3D,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes;
-
-type
-  { Shape used for collision detection of a rigid body,
-    placed in @link(TRigidBody.Collider) property. }
-  TCollider = class
-  end;
-
-  TRigidBody = class
-  public
-    { Disable motion (@link(T3DTransform.Translation) change) along
-      the particular (world) axis.
-
-      For 2D games, you will usually want to disable motion along the Z axis.
-      You can do this comfortably by calling @link(Setup2D). }
-    LockPosition: set of 0..2;
-
-    { Disable rotation (@link(T3DTransform.Rotation) change) along
-      the particular (world) axis.
-      You can do this comfortably by calling @link(Setup2D). }
-    LockRotation: set of 0..2;
-
-    { Mass in kg. }
-    Mass: Single;
-
-    { Whether this object is affected by gravity. }
-    Gravity: boolean;
-
-    Collider: TCollider;
-
-    { Utility function to set common values for physics in 2D games.
-      Locks moving along the Z axis,
-      locks rotating along the X and Y axes. }
-    procedure Setup2D;
-  end;
-
-  TPhysicsTransform = class(T3DTransform)
-  strict private
-    FRigidBody: TRigidBody;
-  public
-    { Participate in rigid body physics simulation.
-      This makes this object collidable with other rigid bodies
-      (if @link(TRigidBody.Collider) is assigned)
-      and it allows to move and rotate because of gravity
-      or because of collisions with other objects
-      (if @link(TRigidBody.Static) is @false).
-
-      Setting this makes this object a single rigid body for the physics engine.
-
-      If this property is assigned and the @link(TRigidBody.Static) is @false
-      then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TRigidBody.Gravity)),
-      and because of collisions with other objects.
-
-      Usually you want to also assign a @link(TRigidBody.Collider) instance.
-      Otherwise, the rigid body will not collide with anything,
-      and (if not @link(TRigidBody.Static)) it will simply fall down because of gravity.
-
-      @bold(This is an experimental API, subject to change in future releases.)
-
-      @bold(Our engine (for now) also has internal, simple physics simulation,
-      used to perform collisions with player, creatures, and optional gravity.)
-      These two physics systems are independent, and use separate properties for now.
-
-      @unorderedList(
-        @item(@link(T3D.Collides) property has no effect on whether this
-          object is collidable for the physics engine.
-          The @link(T3D.Collides) only determines whether
-          the object is collidable for our internal collision detection
-          (that doesn't use physics engine) which is used for collisions with
-          player (camera), creatures, and for our internal gravity (@link(T3DTransform.Gravity)).
-        )
-
-        @item(@link(T3DTransform.Gravity) property has no effect on whether this
-          object is affected by gravity simulation of the physics engine.
-          The physics engine is controlled by independent @link(TRigidBody.Gravity) property,
-          which is @true by default (while the @link(T3DTransform.Gravity) is @false
-          by default).
-
-          It doesn't make sense to set @link(T3DTransform.Gravity) to @true
-          if also use @link(TRigidBody.Gravity), it would mean that
-          @italic(gravity simulation is performed twice).
-          In the future, @link(T3DTransform.Gravity) may be removed
-          (or merged with @link(TRigidBody.Gravity), but then old games
-          may by surprised by a new default @true.)
-        )
-
-        @item(The collider used by our internal, simple physics is independent
-          from the @link(TRigidBody.Collider).
-          The internal, simple physics uses colliders implicitly implemented
-          in the overridden @link(T3D.HeightCollision),
-          @link(T3D.MoveCollision) and friends.
-          In case of @link(TCastleSceneCore), the rule is simple:
-
-          @unorderedList(
-            @item(If the @link(TCastleSceneCore.Spatial) contains
-              ssDynamicCollisions or ssStaticCollisions, then the object collides
-              as a mesh. This makes precise collisions with all the triangles.
-              Any mesh, convex or concave, is correctly solved.)
-            @item(Otherwise, the object collides as it's axis-aligned bounding box.)
-          )
-        )
-      )
-    }
-    property RigidBody: TRigidBody read FRigidBody write FRigidBody;
-  end;
-
-  TPhysicsTransformList = specialize TObjectList<TPhysicsTransform>;
-
-procedure TRigidBody.Setup2D;
-begin
-  LockPosition := [2];
-  LockRotation := [0, 1];
-end;
+  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastlePhysics;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowCustom;
+  SceneManager: TPhysicsSceneManager;
   Level: TPhysicsTransform;
   BoxTemplate, SphereTemplate: TCastleScene;
-  DynamicTransforms: TPhysicsTransformList;
 
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 var
   LevelScene: TCastleScene;
+  LevelBody: TRigidBody;
+  LevelCollider: TPlaneCollider;
   MoveLimit: TBox3D;
 begin
+  SceneManager := TPhysicsSceneManager.Create(Application);
+  Window.Controls.InsertFront(SceneManager);
+
   LevelScene := TCastleScene.Create(Application);
   LevelScene.Load(ApplicationData('level.x3dv'));
   LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
@@ -159,21 +51,31 @@ begin
   Level := TPhysicsTransform.Create(Application);
   Level.Add(LevelScene);
 
-  Window.SceneManager.Items.Add(Level);
-  Window.SceneManager.MainScene := LevelScene;
+  LevelBody := TRigidBody.Create(LevelScene);
+  LevelBody.RigidBodyType := rbStatic;
+
+  LevelCollider := TPlaneCollider.Create(LevelBody);
+  LevelCollider.Normal := Vector3(0, 1, 0);
+  LevelCollider.Distance := 0;
+  LevelBody.Collider := LevelCollider;
+
+  { assign this only once LevelBody and LevelCollider
+    are fully configured, this initializes physics engine }
+  Level.RigidBody := LevelBody;
+
+  SceneManager.Items.Add(Level);
+  SceneManager.MainScene := LevelScene;
 
   // make gravity work even if your position is over the world bbox
-  MoveLimit := Window.SceneManager.Items.BoundingBox;
+  MoveLimit := SceneManager.Items.BoundingBox;
   MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
-  Window.SceneManager.MoveLimit := MoveLimit;
+  SceneManager.MoveLimit := MoveLimit;
 
-  Window.SceneManager.NavigationType := ntWalk;
+  SceneManager.NavigationType := ntWalk;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
-  Window.SceneManager.WalkCamera.Input :=
-    Window.SceneManager.WalkCamera.Input - [ciMouseDragging];
-  Window.SceneManager.WalkCamera.HeadBobbing := 0; // looks bad
-
-  DynamicTransforms := TPhysicsTransformList.Create(false);
+  SceneManager.WalkCamera.Input :=
+    SceneManager.WalkCamera.Input - [ciMouseDragging];
+  SceneManager.WalkCamera.HeadBobbing := 0; // looks bad
 
   BoxTemplate := TCastleScene.Create(Application);
   BoxTemplate.Load(ApplicationData('box.x3d'));
@@ -193,48 +95,60 @@ begin
   ], false, 0);
 end;
 
-procedure WindowUpdate(Container: TUIContainer);
-begin
-end;
-
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 
-  procedure Spawn(const Template: TCastleScene);
+  procedure Spawn(const Template: TCastleScene; const Collider: TCollider);
   var
     Scene: TCastleScene;
     Transform: TPhysicsTransform;
     CameraPos, CameraDir, CameraUp: TVector3;
+    RigidBody: TRigidBody;
   begin
     Scene := Template.Clone(Application);
 
     Transform := TPhysicsTransform.Create(Application);
-    Window.SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
-    Transform.Translation := CameraPos + CameraDir * 2;
-    // TODO: apply Transform.Direction from Window.SceneManager.Camera.Direction
+    SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
+    Transform.Translation := CameraPos + CameraDir * 2.0;
+    // TODO: apply Transform.Direction from SceneManager.Camera.Direction
     // This code will be much simpler once we merge various T3D descendants
     // into TCastleTransform,
     // and make TCastleScene descend from TCastleTransform.
     Transform.Add(Scene);
 
-    DynamicTransforms.Add(Transform);
+    SceneManager.Items.Add(Transform);
 
-    Window.SceneManager.Items.Add(Transform);
+    RigidBody := TRigidBody.Create(Scene);
+    RigidBody.Collider := Collider;
+    RigidBody.LinearVelocity := CameraDir * 4.0;
+    Transform.RigidBody := RigidBody;
   end;
 
 var
   C: TWalkCamera;
+  BoxCollider: TBoxCollider;
+  SphereCollider: TSphereCollider;
 begin
   if Event.IsKey(K_F4) then
   begin
-    C := Window.SceneManager.WalkCamera;
+    C := SceneManager.WalkCamera;
     C.MouseLook := not C.MouseLook;
   end;
 
   if Event.IsMouseButton(mbLeft) then
-    Spawn(BoxTemplate);
+  begin
+    BoxCollider := TBoxCollider.Create(Application);
+    // TODO: assuming that box center is 0,0,0
+    BoxCollider.Size := BoxTemplate.BoundingBox.Size;
+    Spawn(BoxTemplate, BoxCollider);
+  end;
 
   if Event.IsMouseButton(mbRight) then
-    Spawn(SphereTemplate);
+  begin
+    SphereCollider := TSphereCollider.Create(Application);
+    // TODO: assuming that sphere center is 0,0,0
+    SphereCollider.Radius := SphereTemplate.BoundingBox.Size.X / 2;
+    Spawn(SphereTemplate, SphereCollider);
+  end;
 end;
 
 function MyGetApplicationName: string;
@@ -254,11 +168,8 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowCustom.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
-  Window.OnUpdate := @WindowUpdate;
   Window.OnPress := @WindowPress;
-finalization
-  FreeAndNil(DynamicTransforms);
 end.
