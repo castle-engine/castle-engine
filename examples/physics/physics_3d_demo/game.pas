@@ -39,6 +39,17 @@ var
   LevelCollider: TPlaneCollider;
   MoveLimit: TBox3D;
 begin
+  { TODO:
+    This code will be simpler once we merge various T3D descendants
+    into TCastleTransform,
+    and make TCastleScene descend from TCastleTransform.
+    Coming in next CGE release (6.4),
+    see https://castle-engine.sourceforge.io/planned_features.php
+
+    Also, the physics stuff will soon be moved to be part of CastleTransform
+    and CastleSceneManeger, no need to create special TPhysicsTransform
+    and TPhysicsSceneManager. }
+
   SceneManager := TPhysicsSceneManager.Create(Application);
   Window.Controls.InsertFront(SceneManager);
 
@@ -110,9 +121,6 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
     SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
     Transform.Translation := CameraPos + CameraDir * 2.0;
     // TODO: apply Transform.Direction from SceneManager.Camera.Direction
-    // This code will be much simpler once we merge various T3D descendants
-    // into TCastleTransform,
-    // and make TCastleScene descend from TCastleTransform.
     Transform.Add(Scene);
 
     SceneManager.Items.Add(Transform);
