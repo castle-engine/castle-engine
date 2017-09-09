@@ -3164,7 +3164,7 @@ begin
         AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
         ClimbHeight );
       if Log and not Result then
-        WritelnLog('Camera', 'Blocked move because of ClimbHeight.');
+        WritelnLog('Camera', 'Blocked move because of ClimbHeight (%f).', [ClimbHeight]);
     end;
   end;
 
