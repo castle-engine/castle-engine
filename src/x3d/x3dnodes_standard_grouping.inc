@@ -1031,9 +1031,26 @@ procedure TransformState(State: TX3DGraphTraverseState;
   const Scale: TVector3;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
+{ Workaround FPC 3.0.4 bug (internal error) on Darwin for AArch64
+  (not on other platforms):
+  x3dnodes_standard_grouping.inc(1035,3) Fatal: Internal error 2014121702
+}
+{$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+var
+  M, MInverse: TMatrix4;
+begin
+  M := State.Transform;
+  MInverse := State.InvertedTransform;
+  // TODO:
+  // TransformMatricesMult(M, MInverse,
+  //   Center, Rotation, Scale, ScaleOrientation, Translation);
+  State.Transform := M;
+  State.InvertedTransform := MInverse;
+{$else}
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
+{$endif}
   State.TransformScale := State.TransformScale * Approximate3DScale(Scale);
 end;
 
