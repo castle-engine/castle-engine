@@ -67,6 +67,7 @@ type
       GL_BGR            = $80E0;
       GL_BGRA           = $80E1;
 
+      GL_R16            = $822A;
       GL_RG8            = $822B;
       GL_RG             = $8227;
       //GL_R16F           = $822D;
@@ -440,11 +441,26 @@ begin
   begin
     ReadG(Stream);
   end else
-  if (Header.GlType = GL_UNSIGNED_SHORT) and
-     (Header.GlTypeSize = 2) and
-     (Header.GlFormat = GL_RED_INTEGER) and
-     (Header.GlInternalFormat = GL_R16UI) and
-     (Header.GlBaseInternalFormat = GL_RED_INTEGER) then
+  if (
+       { You can generate this with
+         - PowerVR Texture Tool GUI with "Encode" to R16
+         - PowerVR Texture Tool CLI with "-f r16,US" encoding
+       }
+       (Header.GlType = GL_UNSIGNED_SHORT) and
+       (Header.GlTypeSize = 2) and
+       (Header.GlFormat = GL_RED_INTEGER) and
+       (Header.GlInternalFormat = GL_R16UI) and
+       (Header.GlBaseInternalFormat = GL_RED_INTEGER)
+     ) or (
+       { You can generate this with
+         - PowerVR Texture Tool CLI with "-f r16,USN" encoding
+       }
+       (Header.GlType = GL_UNSIGNED_SHORT) and
+       (Header.GlTypeSize = 2) and
+       (Header.GlFormat = GL_RED) and
+       (Header.GlInternalFormat = GL_R16) and
+       (Header.GlBaseInternalFormat = GL_RED)
+     ) then
   begin
     ReadG16(Stream);
   end else
