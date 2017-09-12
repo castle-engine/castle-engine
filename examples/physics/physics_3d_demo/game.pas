@@ -23,22 +23,30 @@ implementation
 uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, Castle3D,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager;
+  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager,
+  CastleUIControls;
 
 var
   Window: TCastleWindow;
   SceneManager: TCastleSceneManager; //< Shortcut for Window.SceneManager
+  LevelScene: TCastleScene;
   Level: T3DTransform;
   BoxTemplate, SphereTemplate: TCastleScene;
 
-{ One-time initialization of resources. }
-procedure ApplicationInitialize;
+procedure LoadLevel(const URL: string);
 var
-  LevelScene: TCastleScene;
   LevelBody: TRigidBody;
   LevelCollider: TPlaneCollider;
   MoveLimit: TBox3D;
 begin
+  { free previous level, which also frees all related rigid bodies.
+    This is for now the only way to remove rigid bodies from scene: free them. }
+  FreeAndNil(Level);
+  FreeAndNil(LevelScene);
+
+  // SceneManager.Items.Clear; // not needed, we already freed everything
+  SceneManager.ClearCameras; // recreate new camera for new level
+
   { TODO:
     This code will be simpler once we merge various T3D descendants
     into TCastleTransform,
@@ -47,7 +55,7 @@ begin
     see https://castle-engine.sourceforge.io/planned_features.php }
 
   LevelScene := TCastleScene.Create(Application);
-  LevelScene.Load(ApplicationData('level.x3dv'));
+  LevelScene.Load(URL);
   LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
   LevelScene.ProcessEvents := true;
   LevelScene.Attributes.Shaders := srAlways; // nicer lighting
@@ -68,7 +76,6 @@ begin
     are fully configured, this initializes physics engine }
   Level.RigidBody := LevelBody;
 
-  SceneManager := Window.SceneManager;
   SceneManager.Items.Add(Level);
   SceneManager.MainScene := LevelScene;
 
@@ -76,6 +83,32 @@ begin
   MoveLimit := SceneManager.Items.BoundingBox;
   MoveLimit.Max := MoveLimit.Max + Vector3(0, 1000, 0);
   SceneManager.MoveLimit := MoveLimit;
+end;
+
+type
+  TEventHandler = class
+    class procedure LoadLevelSimple(Sender: TObject);
+    class procedure LoadLevelComplex(Sender: TObject);
+  end;
+
+class procedure TEventHandler.LoadLevelSimple(Sender: TObject);
+begin
+  LoadLevel(ApplicationData('level_simple.x3dv'));
+end;
+
+class procedure TEventHandler.LoadLevelComplex(Sender: TObject);
+begin
+  LoadLevel(ApplicationData('level_complex.x3dv'));
+end;
+
+{ One-time initialization of resources. }
+procedure ApplicationInitialize;
+var
+  ButtonLevelSimple, ButtonLevelComplex: TCastleButton;
+begin
+  SceneManager := Window.SceneManager;
+
+  LoadLevel(ApplicationData('level_simple.x3dv'));
 
   SceneManager.NavigationType := ntWalk;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
@@ -88,6 +121,24 @@ begin
 
   SphereTemplate := TCastleScene.Create(Application);
   SphereTemplate.Load(ApplicationData('sphere.x3d'));
+
+  Window.Container.UIReferenceWidth := 1024;
+  Window.Container.UIReferenceHeight := 768;
+  Window.Container.UIScaling := usEncloseReferenceSize;
+
+  ButtonLevelSimple := TCastleButton.Create(Application);
+  ButtonLevelSimple.Caption := 'Simple Level';
+  ButtonLevelSimple.OnClick := @TEventHandler(nil).LoadLevelSimple;
+  ButtonLevelSimple.Anchor(hpLeft, 10);
+  ButtonLevelSimple.Anchor(vpTop, -10);
+  Window.Controls.InsertFront(ButtonLevelSimple);
+
+  ButtonLevelComplex := TCastleButton.Create(Application);
+  ButtonLevelComplex.Caption := 'Complex Level';
+  ButtonLevelComplex.OnClick := @TEventHandler(nil).LoadLevelComplex;
+  ButtonLevelComplex.Anchor(hpLeft, 10);
+  ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.CalculatedHeight - 10);
+  Window.Controls.InsertFront(ButtonLevelComplex);
 end;
 
 procedure WindowRender(Container: TUIContainer);
@@ -110,9 +161,9 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
     CameraPos, CameraDir, CameraUp: TVector3;
     RigidBody: TRigidBody;
   begin
-    Scene := Template.Clone(Application);
+    Scene := Template.Clone(Level);
 
-    Transform := T3DTransform.Create(Application);
+    Transform := T3DTransform.Create(Level);
     SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
     Transform.Translation := CameraPos + CameraDir * 2.0;
     // TODO: apply Transform.Direction from SceneManager.Camera.Direction
@@ -139,7 +190,7 @@ begin
 
   if Event.IsMouseButton(mbLeft) then
   begin
-    BoxCollider := TBoxCollider.Create(Application);
+    BoxCollider := TBoxCollider.Create(Level);
     // TODO: assuming that box center is 0,0,0
     BoxCollider.Size := BoxTemplate.BoundingBox.Size;
     Spawn(BoxTemplate, BoxCollider);
@@ -147,7 +198,7 @@ begin
 
   if Event.IsMouseButton(mbRight) then
   begin
-    SphereCollider := TSphereCollider.Create(Application);
+    SphereCollider := TSphereCollider.Create(Level);
     // TODO: assuming that sphere center is 0,0,0
     SphereCollider.Radius := SphereTemplate.BoundingBox.Size.X / 2;
     Spawn(SphereTemplate, SphereCollider);
