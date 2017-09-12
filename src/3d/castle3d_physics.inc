@@ -23,6 +23,7 @@
   private
     FKraftShape: TKraftShape;
     FParent: TRigidBody;
+    FDensity, FMass, FRestitution, FFriction: Single;
     procedure SetParent(const Value: TRigidBody);
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
@@ -32,6 +33,17 @@
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    const
+      { Default for @link(Density). }
+      DefaultDensity = 1.0;
+      { Default for @link(Mass), zero means "use @link(Density) instead". }
+      DefaultMass = 0.0;
+      { Default for @link(Restitution). }
+      DefaultRestitution = 0.0;
+      { Default for @link(Friction). }
+      DefaultFriction = 0.5;
+
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Parent rigid body, which in turn refers to this collider
@@ -39,6 +51,19 @@
       You can always assign this property instead of assigning
       the @link(TRigidBody.Collider). }
     property Parent: TRigidBody read FParent write SetParent;
+
+    { Density (per volume) in kg, this implicitly determines mass
+      (volume is automatically calculated by the physics engine).
+      If you instead prefer to explicitly calculate mass, set @link(Mass)
+      to something non-zero. }
+    property Density: Single read FDensity write FDensity default DefaultDensity;
+
+    { Mass in kg. When non-zero, this overrides the automatically calculated
+      mass from the volumes and @link(Density). }
+    property Mass: Single read FMass write FMass default DefaultMass;
+
+    property Restitution: Single read FRestitution write FRestitution default DefaultRestitution;
+    property Friction: Single read FFriction write FFriction default DefaultFriction;
   end;
 
   { Collide as an infinite plane.
@@ -88,7 +113,6 @@
     FGravity: boolean;
     FDynamic: boolean;
     FAnimated: boolean;
-    //FMass: Single;
     FLockPosition: T3DCoords;
     FLockRotation: T3DCoords;
     FInitialAngularVelocity: TVector3;
@@ -185,12 +209,6 @@
     { Is this object affected by gravity. }
     property Gravity: boolean read FGravity write FGravity default true;
 
-    { Mass in kg.
-      TODO: should have non-zero default?
-      TODO: better to use Density, Kraft does this?
-      TODO: not applied yet to Kraft. }
-    // property Mass: Single read FMass write FMass;
-
     { Disable motion (@link(T3DTransform.Translation) change) along
       the particular (world) axis.
 
@@ -239,6 +257,17 @@ end;
 
 { TCollider ------------------------------------------------------------------ }
 
+constructor TCollider.Create(AOwner: TComponent);
+begin
+  inherited;
+
+  // properties defaults
+  FDensity := DefaultDensity;
+  FMass := DefaultMass;
+  FRestitution := DefaultRestitution;
+  FFriction := DefaultFriction;
+end;
+
 procedure TCollider.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
@@ -277,6 +306,10 @@ procedure TCollider.InitializeKraft(const APhysics: TKraft;
 begin
   // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   FKraftShape := CreateKraftShape(APhysics, ARigidBody);
+  // assign common TCollider properties to Kraft shape
+  FKraftShape.Density := Density;
+  FKraftShape.Restitution := Restitution;
+  FKraftShape.Friction := Friction;
 end;
 
 destructor TCollider.Destroy;
@@ -295,8 +328,6 @@ function TPlaneCollider.CreateKraftShape(const APhysics: TKraft;
 begin
   Result := TKraftShapePlane.Create(APhysics, ARigidBody,
     Plane(Vector3Norm(VectorToKraft(Normal)), Distance));
-  // TODO: make configurable
-  Result.Restitution := 0.3;
 end;
 
 { TBoxCollider --------------------------------------------------------------- }
@@ -305,9 +336,6 @@ function TBoxCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(Size / 2));
-  // TODO: make configurable
-  Result.Restitution := 0.3;
-  Result.Density := 100.0;
 end;
 
 { TSphereCollider ------------------------------------------------------------ }
@@ -316,10 +344,6 @@ function TSphereCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
   Result := TKraftShapeSphere.Create(APhysics, ARigidBody, Radius);
-  // TODO: make configurable
-  Result.Friction := 0.4;
-  Result.Restitution := 0.2;
-  Result.Density := 20.0;
 end;
 
 { TRigidBody ----------------------------------------------------------------- }
@@ -327,8 +351,11 @@ end;
 constructor TRigidBody.Create(AOwner: TComponent);
 begin
   inherited;
+
+  // properties defaults
   FGravity := true;
   FDynamic := true;
+
   FRecreateKraftInstance := true;
 end;
 
@@ -355,10 +382,13 @@ begin
   else
     FKraftBody.SetRigidBodyType(krbtStatic);
 
+  // initialize Kraft shape
   if Collider = nil then
     raise Exception.Create('You must assign TRigidBody.Collider');
   Collider.InitializeKraft(APhysics, FKraftBody);
+
   FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
+  FKraftBody.ForcedMass := Collider.Mass;
   if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisX];
   if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisY];
   if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisZ];

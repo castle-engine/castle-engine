@@ -40,12 +40,14 @@ procedure LoadLevel(const URL: string; const MeshCollider: boolean);
     Result := TPlaneCollider.Create(LevelScene);
     Result.Normal := Vector3(0, 1, 0);
     Result.Distance := 0;
+    Result.Restitution := 0.3;
   end;
 
   function CreateMeshCollider: TMeshCollider;
   begin
     Result := TMeshCollider.Create(LevelScene);
     Result.Scene := LevelScene;
+    Result.Restitution := 0.3;
   end;
 
 var
@@ -206,6 +208,8 @@ begin
   begin
     BoxCollider := TBoxCollider.Create(Level);
     BoxCollider.Size := BoxTemplate.BoundingBox.Size;
+    BoxCollider.Restitution := 0.3;
+    BoxCollider.Density := 100.0;
     Spawn(BoxTemplate, BoxCollider);
   end;
 
@@ -213,6 +217,9 @@ begin
   begin
     SphereCollider := TSphereCollider.Create(Level);
     SphereCollider.Radius := SphereTemplate.BoundingBox.Size.X / 2;
+    SphereCollider.Friction := 0.4;
+    SphereCollider.Restitution := 0.2;
+    SphereCollider.Density := 20.0;
     Spawn(SphereTemplate, SphereCollider);
   end;
 end;

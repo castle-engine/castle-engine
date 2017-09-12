@@ -81,8 +81,6 @@ begin
   Mesh.Finish;
 
   Result := TKraftShapeMesh.Create(APhysics, ARigidBody, Mesh);
-  // TODO: make configurable
-  Result.Restitution := 0.3;
 end;
 
 {$endif read_implementation}
