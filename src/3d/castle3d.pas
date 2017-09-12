@@ -1654,12 +1654,13 @@ type
 
     { Participate in rigid body physics simulation.
       This makes this object collidable with other rigid bodies
-      (if @link(TRigidBody.Collider) is assigned)
+      (if @link(Collides))
       and it allows to move and rotate because of gravity
       or because of collisions with other objects
       (if @link(TRigidBody.Dynamic) is @true).
 
-      Setting this makes this object a single rigid body for the physics engine.
+      Setting this property makes this 3D object
+      a single rigid body for the physics engine.
 
       If this property is assigned and the @link(TRigidBody.Dynamic) is @true
       (which @link(TRigidBody.Dynamic) is @true by default)
@@ -1672,30 +1673,35 @@ type
       A rigid body without a collider would in theory not collide with anything,
       and (if @link(TRigidBody.Dynamic)) would simply fall down because of gravity.
       In practice, a rigid body without a collider is simply not allowed.
-
-      @bold(This is an experimental API, subject to change in future releases.)
+      If you really need this, assign anything to @link(TRigidBody.Collider)
+      and just set @link(Collides) to @false.
 
       @bold(Our engine (for now) also has internal, simple physics simulation,
-      used to perform collisions with player, creatures, and optional gravity.)
-      These two physics systems are independent, and use separate properties for now.
+      used to perform collisions with player, creatures, and optional
+      (unrealistic) gravity.)
+      So we have two independent physics systems,
+      but they try to not get into each others way (they each perform
+      a different task).
+      In the future there will be an option to use
+      the full-featured physics engine for all simulations,
+      also for player and creatures, at which point our "internal physics
+      simulation" will become deprecated.
 
       @unorderedList(
-        @item(@link(T3D.Collides) property has no effect on whether this
-          object is collidable for the physics engine.
-          The @link(T3D.Collides) only determines whether
-          the object is collidable for our internal collision detection
-          (that doesn't use physics engine) which is used for collisions with
-          player (camera), creatures, and for our internal gravity (@link(T3DTransform.Gravity)).
+        @item(@link(T3D.Collides) property affects @italic(both our
+          "simple physics simulation" and the "full-featured physics engine").
+          It determines whether the object is collidable.
         )
 
-        @item(@link(T3DTransform.Gravity) property has no effect on whether this
-          object is affected by gravity simulation of the physics engine.
-          The physics engine is controlled by independent @link(TRigidBody.Gravity) property,
-          which is @true by default (while the @link(T3DTransform.Gravity) is @false
-          by default).
+        @item(@link(T3DTransform.Gravity) property @italic(only affects the
+          "simple physics simulation"). It is by default @false.
 
-          It doesn't make sense to set @link(T3DTransform.Gravity) to @true
-          if also use @link(TRigidBody.Gravity), it would mean that
+          It has no effect on the "full-featured physics engine" behaviour,
+          that has an independent property @link(TRigidBody.Gravity),
+          and is @true by default.
+
+          You should not set both @link(T3DTransform.Gravity) to @true
+          and @link(TRigidBody.Gravity) to @true, it would mean that
           @italic(gravity simulation is performed twice).
           In the future, @link(T3DTransform.Gravity) may be removed
           (or merged with @link(TRigidBody.Gravity), but then old games

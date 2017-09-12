@@ -118,8 +118,8 @@
     FInitialAngularVelocity: TVector3;
     FInitialLinearVelocity: TVector3;
     FRecreateKraftInstance: boolean;
-    procedure InitializeKraft(const APhysics: TKraft);
     procedure SetCollider(const Value: TCollider);
+    procedure UpdateCollides(const Transform: T3DTransform);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
@@ -369,41 +369,6 @@ begin
   inherited;
 end;
 
-procedure TRigidBody.InitializeKraft(const APhysics: TKraft);
-begin
-  FreeAndNil(FKraftBody);
-  FKraftBody := TKraftRigidBody.Create(APhysics);
-
-  if Dynamic then
-    FKraftBody.SetRigidBodyType(krbtDynamic)
-  else
-  if Animated then
-    FKraftBody.SetRigidBodyType(krbtKinematic)
-  else
-    FKraftBody.SetRigidBodyType(krbtStatic);
-
-  // initialize Kraft shape
-  if Collider = nil then
-    raise Exception.Create('You must assign TRigidBody.Collider');
-  Collider.InitializeKraft(APhysics, FKraftBody);
-
-  FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
-  FKraftBody.ForcedMass := Collider.Mass;
-  if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisX];
-  if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisY];
-  if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisZ];
-  FKraftBody.Finish;
-
-  FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
-  if (not InitialAngularVelocity.IsPerfectlyZero) or
-     (not InitialLinearVelocity.IsPerfectlyZero) then
-  begin
-    FKraftBody.AngularVelocity := VectorToKraft(InitialAngularVelocity);
-    FKraftBody.LinearVelocity := VectorToKraft(InitialLinearVelocity);
-    FKraftBody.SetToAwake;
-  end;
-end;
-
 procedure TRigidBody.Setup2D;
 begin
   LockPosition := [2];
@@ -451,7 +416,41 @@ procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
   begin
     World := Transform.World;
     World.InitializePhysicsEngine;
-    InitializeKraft(World.FKraftEngine);
+
+    FreeAndNil(FKraftBody);
+    FKraftBody := TKraftRigidBody.Create(World.FKraftEngine);
+
+    if Dynamic then
+      FKraftBody.SetRigidBodyType(krbtDynamic)
+    else
+    if Animated then
+      FKraftBody.SetRigidBodyType(krbtKinematic)
+    else
+      FKraftBody.SetRigidBodyType(krbtStatic);
+
+    // initialize Kraft shape
+    if Collider = nil then
+      raise Exception.Create('You must assign TRigidBody.Collider');
+    Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
+
+    FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
+    FKraftBody.ForcedMass := Collider.Mass;
+    if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisX];
+    if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisY];
+    if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisZ];
+    FKraftBody.Finish;
+
+    UpdateCollides(Transform);
+
+    if (not InitialAngularVelocity.IsPerfectlyZero) or
+       (not InitialLinearVelocity.IsPerfectlyZero) then
+    begin
+      FKraftBody.AngularVelocity := VectorToKraft(InitialAngularVelocity);
+      FKraftBody.LinearVelocity := VectorToKraft(InitialLinearVelocity);
+      FKraftBody.SetToAwake;
+    end;
+
+    // set initial transformation
     // TODO: this assumes that this object is not further transformed by parents
     FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform));
   end;
@@ -472,6 +471,24 @@ begin
     Collider.FKraftShape := nil;
   { we in unintialized state, so initialize at nearest occasion }
   FRecreateKraftInstance := true;
+end;
+
+procedure TRigidBody.UpdateCollides(const Transform: T3DTransform);
+const
+  AllCollisionGroups = [
+    Low (TKraftRigidBodyCollisionGroup)..
+    High(TKraftRigidBodyCollisionGroup)];
+begin
+  // TODO: this looks at my GetCollides, not at parents GetCollides
+  if Transform.GetCollides then
+  begin
+    FKraftBody.CollideWithCollisionGroups := AllCollisionGroups;
+    FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
+  end else
+  begin
+    FKraftBody.CollideWithCollisionGroups := [];
+    FKraftBody.CollisionGroups := [];
+  end;
 end;
 
 procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: Single);
@@ -510,7 +527,7 @@ procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: 
 
 begin
   InitializeTransform(Transform);
-
+  UpdateCollides(Transform);
   if Dynamic then
     TransformationFromKraft
   else
