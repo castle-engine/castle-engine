@@ -23,12 +23,12 @@ implementation
 uses SysUtils, Classes, Generics.Collections,
   CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, Castle3D,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
-  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastlePhysics;
+  CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager;
 
 var
-  Window: TCastleWindowCustom;
-  SceneManager: TPhysicsSceneManager;
-  Level: TPhysicsTransform;
+  Window: TCastleWindow;
+  SceneManager: TCastleSceneManager; //< Shortcut for Window.SceneManager
+  Level: T3DTransform;
   BoxTemplate, SphereTemplate: TCastleScene;
 
 { One-time initialization of resources. }
@@ -44,14 +44,7 @@ begin
     into TCastleTransform,
     and make TCastleScene descend from TCastleTransform.
     Coming in next CGE release (6.4),
-    see https://castle-engine.sourceforge.io/planned_features.php
-
-    Also, the physics stuff will soon be moved to be part of CastleTransform
-    and CastleSceneManeger, no need to create special TPhysicsTransform
-    and TPhysicsSceneManager. }
-
-  SceneManager := TPhysicsSceneManager.Create(Application);
-  Window.Controls.InsertFront(SceneManager);
+    see https://castle-engine.sourceforge.io/planned_features.php }
 
   LevelScene := TCastleScene.Create(Application);
   LevelScene.Load(ApplicationData('level.x3dv'));
@@ -59,7 +52,7 @@ begin
   LevelScene.ProcessEvents := true;
   LevelScene.Attributes.Shaders := srAlways; // nicer lighting
 
-  Level := TPhysicsTransform.Create(Application);
+  Level := T3DTransform.Create(Application);
   Level.Add(LevelScene);
 
   LevelBody := TRigidBody.Create(LevelScene);
@@ -74,6 +67,7 @@ begin
     are fully configured, this initializes physics engine }
   Level.RigidBody := LevelBody;
 
+  SceneManager := Window.SceneManager;
   SceneManager.Items.Add(Level);
   SceneManager.MainScene := LevelScene;
 
@@ -111,13 +105,13 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
   procedure Spawn(const Template: TCastleScene; const Collider: TCollider);
   var
     Scene: TCastleScene;
-    Transform: TPhysicsTransform;
+    Transform: T3DTransform;
     CameraPos, CameraDir, CameraUp: TVector3;
     RigidBody: TRigidBody;
   begin
     Scene := Template.Clone(Application);
 
-    Transform := TPhysicsTransform.Create(Application);
+    Transform := T3DTransform.Create(Application);
     SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
     Transform.Translation := CameraPos + CameraDir * 2.0;
     // TODO: apply Transform.Direction from SceneManager.Camera.Direction
@@ -176,7 +170,7 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
   { create Window and initialize Window callbacks }
-  Window := TCastleWindowCustom.Create(Application);
+  Window := TCastleWindow.Create(Application);
   Application.MainWindow := Window;
   Window.OnRender := @WindowRender;
   Window.OnPress := @WindowPress;

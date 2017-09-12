@@ -13,16 +13,9 @@
   ----------------------------------------------------------------------------
 }
 
-{ Physics classes. }
-unit CastlePhysics;
+{ Physics integration code between Castle3D and Kraft physics engine. }
 
-interface
-
-uses Classes, Generics.Collections, Kraft,
-  CastleVectors, Castle3D, CastleSceneManager, CastleTimeUtils;
-
-type
-  TRigidBody = class;
+{$ifdef read_interface}
 
   { Shape used for collision detection of a rigid body,
     placed in @link(TRigidBody.Collider) property. }
@@ -86,8 +79,8 @@ type
       (because of gravity, or because it collides with others).
 
       Do not change the @link(T3DTransform.Translation) and other
-      transformation properties of the related TPhysicsTransform
-      after assigning @link(TPhysicsTransform.RigidBody) that is dynamic.
+      transformation properties of the related T3DTransform
+      after assigning @link(T3DTransform.RigidBody) that is dynamic.
       They are under the control of the physics
       engine. You can still reliably read them.
     }
@@ -97,7 +90,7 @@ type
       but it still collides with other physical objects.
 
       You can change the @link(T3DTransform.Translation) and other
-      transformation properties of the related TPhysicsTransform.
+      transformation properties of the related T3DTransform.
       But it is like destroying it and creating a new one for the physics engine,
       @italic(so do change them often, e.g. every frame).
       Use rbKinematic if you animate some object, and it should still be a collider
@@ -108,9 +101,9 @@ type
       but it still collides with other physical objects.
 
       You can change the @link(T3DTransform.Translation) and other
-      transformation properties of the related TPhysicsTransform.
+      transformation properties of the related T3DTransform.
       The physics engine is prepared that this object can move often,
-      e.g. every frame, so you can animate the related @link(TPhysicsTransform)
+      e.g. every frame, so you can animate the related @link(T3DTransform)
       using any technique. }
     rbKinematic
   );
@@ -119,20 +112,18 @@ type
   T3DCoords = set of T3DCoord;
 
   { Rigid body properties for the physics engine,
-    see @link(TPhysicsTransform.RigidBody).
+    see @link(T3DTransform.RigidBody).
 
     TODO: For now all the properties of this class,
     including the Collider and all properties of Collider,
-    must be assigned before setting TPhysicsTransform.RigidBody . }
+    must be assigned before setting T3DTransform.RigidBody . }
   TRigidBody = class(TComponent)
   private
-    { TODO: FKraftPhysics should be part of T3DWorld, not static here. }
-    FKraftPhysics: TKraft; static;
     FKraft: TKraftRigidBody;
     FRigidBodyType: TRigidBodyType;
     FCollider: TCollider;
     FGravity: boolean;
-    FMass: Single;
+    //FMass: Single;
     FLockPosition: T3DCoords;
     FLockRotation: T3DCoords;
     FInitialAngularVelocity: TVector3;
@@ -171,8 +162,8 @@ type
     { Mass in kg.
       TODO: should have non-zero default?
       TODO: better to use Density, Kraft does this?
-      TODO: not applied yet to Kraft yet. }
-    property Mass: Single read FMass write FMass;
+      TODO: not applied yet to Kraft. }
+    // property Mass: Single read FMass write FMass;
 
     { Disable motion (@link(T3DTransform.Translation) change) along
       the particular (world) axis.
@@ -187,102 +178,9 @@ type
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
   end;
 
-  { T3DTransform that may be controlled by physics,
-    or at least collide with other physical objects.
-    See @link(RigidBody). }
-  TPhysicsTransform = class(T3DTransform)
-  strict private
-    FRigidBody: TRigidBody;
-    procedure SetRigidBody(const Value: TRigidBody);
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-  public
-    { Participate in rigid body physics simulation.
-      This makes this object collidable with other rigid bodies
-      (if @link(TRigidBody.Collider) is assigned)
-      and it allows to move and rotate because of gravity
-      or because of collisions with other objects
-      (if @link(TRigidBody.Static) is @false).
+{$endif read_interface}
 
-      Setting this makes this object a single rigid body for the physics engine.
-
-      If this property is assigned and the @link(TRigidBody.Static) is @false
-      then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TRigidBody.Gravity)),
-      and because of collisions with other objects.
-
-      Usually you want to also assign a @link(TRigidBody.Collider) instance.
-      Otherwise, the rigid body will not collide with anything,
-      and (if not @link(TRigidBody.Static)) it will simply fall down because of gravity.
-
-      @bold(This is an experimental API, subject to change in future releases.)
-
-      @bold(Our engine (for now) also has internal, simple physics simulation,
-      used to perform collisions with player, creatures, and optional gravity.)
-      These two physics systems are independent, and use separate properties for now.
-
-      @unorderedList(
-        @item(@link(T3D.Collides) property has no effect on whether this
-          object is collidable for the physics engine.
-          The @link(T3D.Collides) only determines whether
-          the object is collidable for our internal collision detection
-          (that doesn't use physics engine) which is used for collisions with
-          player (camera), creatures, and for our internal gravity (@link(T3DTransform.Gravity)).
-        )
-
-        @item(@link(T3DTransform.Gravity) property has no effect on whether this
-          object is affected by gravity simulation of the physics engine.
-          The physics engine is controlled by independent @link(TRigidBody.Gravity) property,
-          which is @true by default (while the @link(T3DTransform.Gravity) is @false
-          by default).
-
-          It doesn't make sense to set @link(T3DTransform.Gravity) to @true
-          if also use @link(TRigidBody.Gravity), it would mean that
-          @italic(gravity simulation is performed twice).
-          In the future, @link(T3DTransform.Gravity) may be removed
-          (or merged with @link(TRigidBody.Gravity), but then old games
-          may by surprised by a new default @true.)
-        )
-
-        @item(The collider used by our internal, simple physics is independent
-          from the @link(TRigidBody.Collider).
-          The internal, simple physics uses colliders implicitly implemented
-          in the overridden @link(T3D.HeightCollision),
-          @link(T3D.MoveCollision) and friends.
-          In case of @link(TCastleSceneCore), the rule is simple:
-
-          @unorderedList(
-            @item(If the @link(TCastleSceneCore.Spatial) contains
-              ssDynamicCollisions or ssStaticCollisions, then the object collides
-              as a mesh. This makes precise collisions with all the triangles.
-              Any mesh, convex or concave, is correctly solved.)
-            @item(Otherwise, the object collides as it's axis-aligned bounding box.)
-          )
-        )
-      )
-    }
-    property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
-
-    destructor Destroy; override;
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-  end;
-
-  TPhysicsTransformList = specialize TObjectList<TPhysicsTransform>;
-
-  TPhysicsSceneManager = class(TCastleSceneManager)
-  private
-    WasPhysicsStep: boolean;
-    TimeAccumulator: TFloatTime;
-  public
-    destructor Destroy; override;
-    procedure Update(const SecondsPassed: Single;
-      var HandleInput: boolean); override;
-  end;
-
-implementation
-
-uses SysUtils, Math,
-  CastleUtils;
+{$ifdef read_implementation}
 
 { utilities ------------------------------------------------------------------ }
 
@@ -486,19 +384,9 @@ end;
 procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
 
   procedure RecreateKraftInstance;
-
-    { TODO: initalizing FKraftPhysics should not be done here,
-      but in T3DWorld or TCastleSceneManager. }
-    procedure CreatePhysics;
-    begin
-      FKraftPhysics := TKraft.Create(-1);
-      //KraftPhysics.SetFrequency(120.0); // default is 60
-    end;
-
   begin
-    if FKraftPhysics = nil then
-      CreatePhysics;
-    InitializeKraft(FKraftPhysics);
+    T3DWorld.InitializePhysics;
+    InitializeKraft(T3DWorld.FKraftPhysics);
     // TODO: this assumes that this object is not further transformed by parents
     FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform));
   end;
@@ -559,9 +447,9 @@ begin
   end;
 end;
 
-{ TPhysicsTransform ---------------------------------------------------------- }
+{ T3DTransform ---------------------------------------------------------- }
 
-procedure TPhysicsTransform.SetRigidBody(const Value: TRigidBody);
+procedure T3DTransform.SetRigidBody(const Value: TRigidBody);
 begin
   if FRigidBody <> Value then
   begin
@@ -571,11 +459,11 @@ begin
     if FRigidBody <> nil then
     begin
       FRigidBody.FreeNotification(Self);
-      { Doing this assumes that TPhysicsSceneManager.Update
+      { Doing this makes sure that T3DWorld.Update
         will know the initial position of this object during 1st simulation tick.
 
         TODO: it's not really nice.
-        - If you change a transformation from now to TPhysicsSceneManager.Update,
+        - If you change a transformation from now to T3DWorld.Update,
           then 1st simulation tick will have invalid transformation anyway.
         - If you change some other rigid body parameter between now and
           next FRigidBody.Update, then next FRigidBody will recreate Kraft
@@ -586,7 +474,9 @@ begin
   end;
 end;
 
-destructor TPhysicsTransform.Destroy;
+{ T3DTransform --------------------------------------------------------------- }
+
+destructor T3DTransform.Destroy;
 begin
   { set to nil by SetRigidBody, to detach free notification }
   RigidBody := nil;
@@ -594,7 +484,7 @@ begin
   inherited;
 end;
 
-procedure TPhysicsTransform.Update(const SecondsPassed: Single;
+procedure T3DTransform.Update(const SecondsPassed: Single;
   var RemoveMe: TRemoveType);
 begin
   inherited;
@@ -602,7 +492,7 @@ begin
     FRigidBody.Update(Self, SecondsPassed);
 end;
 
-procedure TPhysicsTransform.Notification(AComponent: TComponent; Operation: TOperation);
+procedure T3DTransform.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
   if (Operation = opRemove) and (AComponent = FRigidBody) then
@@ -610,64 +500,66 @@ begin
     RigidBody := nil;
 end;
 
-{ TPhysicsSceneManager ------------------------------------------------------- }
+{ T3DWorld ------------------------------------------------------------------- }
 
-procedure TPhysicsSceneManager.Update(const SecondsPassed: Single;
-  var HandleInput: boolean);
+class procedure T3DWorld.InitializePhysics;
+begin
+  if FKraftPhysics = nil then
+  begin
+    FKraftPhysics := TKraft.Create(-1);
+    //KraftPhysics.SetFrequency(120.0); // default is 60
+  end;
+end;
+
+destructor T3DWorld.Destroy;
+begin
+  FreeAndNil(FKraftPhysics);
+  inherited;
+end;
+
+procedure T3DWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
-  KraftPhysics: TKraft;
   PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
 begin
-  if (not Paused) and GetExists then
+  if FKraftPhysics <> nil then
   begin
-    // TODO: KraftPhysics will not be stored in TRigidBody
-    KraftPhysics := TRigidBody.FKraftPhysics;
+    // update FKraftPhysics.Gravity
+    // TODO: do we really need to be prepared that it changes each frame?
+    KraftGravity := -GravityUp * 9.81;
+    FKraftPhysics.Gravity.Vector := VectorToKraft(KraftGravity);
 
-    if KraftPhysics <> nil then
+    if not WasPhysicsStep then
     begin
-      // update KraftPhysics.Gravity
-      // (hm, do we really need to be prepared that it changes each frame?)
-      KraftGravity := -GravityUp * 9.81;
-      KraftPhysics.Gravity.Vector := VectorToKraft(KraftGravity);
-
-      if not WasPhysicsStep then
+      FKraftPhysics.StoreWorldTransforms;
+      FKraftPhysics.InterpolateWorldTransforms(0.0);
+      WasPhysicsStep := true;
+    end else
+    begin
+      PhysicsTimeStep := 1.0 / FKraftPhysics.WorldFrequency;
+      TimeAccumulator := TimeAccumulator + SecondsPassed;
+      while TimeAccumulator >= PhysicsTimeStep do
       begin
-        KraftPhysics.StoreWorldTransforms;
-        KraftPhysics.InterpolateWorldTransforms(0.0);
-        WasPhysicsStep := true;
-      end else
-      begin
-        PhysicsTimeStep := 1.0 / KraftPhysics.WorldFrequency;
-        TimeAccumulator := TimeAccumulator + SecondsPassed * TimeScale;
-        while TimeAccumulator>=PhysicsTimeStep do
-        begin
-          TimeAccumulator := TimeAccumulator - PhysicsTimeStep;
-          KraftPhysics.StoreWorldTransforms;
-          KraftPhysics.Step(PhysicsTimeStep);
-        end;
-
-        { Kraft demo (sandbox) doesn't do this, but I think it's sensible:
-          the later line InterpolateWorldTransforms assumes that we calculated
-          "one time too many".
-          TODO: ask Kraft author about this. }
-        KraftPhysics.StoreWorldTransforms;
-        KraftPhysics.Step(PhysicsTimeStep);
-
-        KraftPhysics.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
+        TimeAccumulator := TimeAccumulator - PhysicsTimeStep;
+        FKraftPhysics.StoreWorldTransforms;
+        FKraftPhysics.Step(PhysicsTimeStep);
       end;
+
+      { Kraft demo (sandbox) doesn't do this, but I think it's sensible:
+        the later line InterpolateWorldTransforms assumes that we calculated
+        "one time too many".
+        TODO: ask Kraft author about this. }
+      FKraftPhysics.StoreWorldTransforms;
+      FKraftPhysics.Step(PhysicsTimeStep);
+
+      FKraftPhysics.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
     end;
   end;
 
   { call inherited at the end,
-    to update transformation of all items in their TPhysicsTransform.Update }
+    to update transformation of all items in their TRigidBody.Update
+    called from T3DTransform.Update }
   inherited;
 end;
 
-destructor TPhysicsSceneManager.Destroy;
-begin
-  FreeAndNil(TRigidBody.FKraftPhysics);
-  inherited;
-end;
-
-end.
+{$endif read_implementation}

@@ -20,7 +20,7 @@ unit Castle3D;
 
 interface
 
-uses SysUtils, Classes, Math, Generics.Collections,
+uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
@@ -1199,11 +1199,21 @@ type
 
   { 3D world. List of 3D objects, with some central properties. }
   T3DWorld = class(T3DList)
+  private
+    { TODO: It would be cleaner to not make FKraftPhysics static.
+      However, T3DTransform needs to access it now, possibly before it
+      can access it's T3DTransform.World reference. }
+    FKraftPhysics: TKraft; static;
+    WasPhysicsStep: boolean;
+    TimeAccumulator: TFloatTime;
+    { Create FKraftPhysics, if not assigned yet. }
+    class procedure InitializePhysics;
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
@@ -1263,6 +1273,8 @@ type
       const Details: TCollisionDetails = nil): boolean;
     function WorldPointCollision2D(const Point: TVector2): boolean;
     { @groupEnd }
+
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -1415,14 +1427,21 @@ type
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
-      (it's linked to TWalkCamera.OnFall in this case). }
+      (it's linked to TWalkCamera.OnFall in this case).
+
+      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      to always use physics, through @link(T3DTransform.RigidBody),
+      to have realistic gravity. }
     property Gravity: boolean read FGravity write FGravity default false;
 
     { Falling speed, in units per second, for @link(Gravity).
-      TODO: this will be replaced with more physically-based approach.
 
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
-      0 means no falling. }
+      0 means no falling.
+
+      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      to always use physics, through @link(T3DTransform.RigidBody),
+      to have realistic gravity. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed default 0;
 
     { Growing (raising from crouching to normal standing position)
@@ -1527,6 +1546,8 @@ type
       const EnableWallSliding: boolean = true): boolean;
   end;
 
+  TRigidBody = class;
+
   { Transform (move, rotate, scale) children T3D objects.
     Transformation is a combined 1. @link(Translation),
     2. and @link(Rotation) around @link(Center) point,
@@ -1541,14 +1562,18 @@ type
 
     This descends from T3DList, and it transforms all it's children. }
   T3DTransform = class(T3DCustomTransform)
-  private
+  strict private
     FCenter: TVector3;
     FRotation: TVector4;
     FScale: TVector3;
     FScaleOrientation: TVector4;
     FTranslation: TVector3;
     FOnlyTranslation: boolean;
+    FRigidBody: TRigidBody;
+    procedure SetRigidBody(const Value: TRigidBody);
   protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
     procedure SetScale(const Value: TVector3);
@@ -1564,6 +1589,8 @@ type
     function GetTranslation: TVector3; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Translation (move) the children. Zero by default. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -1626,6 +1653,72 @@ type
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
+
+    { Participate in rigid body physics simulation.
+      This makes this object collidable with other rigid bodies
+      (if @link(TRigidBody.Collider) is assigned)
+      and it allows to move and rotate because of gravity
+      or because of collisions with other objects
+      (if @link(TRigidBody.Static) is @false).
+
+      Setting this makes this object a single rigid body for the physics engine.
+
+      If this property is assigned and the @link(TRigidBody.Static) is @false
+      then this object is moved and rotated using the physics engine.
+      It will move because of gravity (if @link(TRigidBody.Gravity)),
+      and because of collisions with other objects.
+
+      Usually you want to also assign a @link(TRigidBody.Collider) instance.
+      Otherwise, the rigid body will not collide with anything,
+      and (if not @link(TRigidBody.Static)) it will simply fall down because of gravity.
+
+      @bold(This is an experimental API, subject to change in future releases.)
+
+      @bold(Our engine (for now) also has internal, simple physics simulation,
+      used to perform collisions with player, creatures, and optional gravity.)
+      These two physics systems are independent, and use separate properties for now.
+
+      @unorderedList(
+        @item(@link(T3D.Collides) property has no effect on whether this
+          object is collidable for the physics engine.
+          The @link(T3D.Collides) only determines whether
+          the object is collidable for our internal collision detection
+          (that doesn't use physics engine) which is used for collisions with
+          player (camera), creatures, and for our internal gravity (@link(T3DTransform.Gravity)).
+        )
+
+        @item(@link(T3DTransform.Gravity) property has no effect on whether this
+          object is affected by gravity simulation of the physics engine.
+          The physics engine is controlled by independent @link(TRigidBody.Gravity) property,
+          which is @true by default (while the @link(T3DTransform.Gravity) is @false
+          by default).
+
+          It doesn't make sense to set @link(T3DTransform.Gravity) to @true
+          if also use @link(TRigidBody.Gravity), it would mean that
+          @italic(gravity simulation is performed twice).
+          In the future, @link(T3DTransform.Gravity) may be removed
+          (or merged with @link(TRigidBody.Gravity), but then old games
+          may by surprised by a new default @true.)
+        )
+
+        @item(The collider used by our internal, simple physics is independent
+          from the @link(TRigidBody.Collider).
+          The internal, simple physics uses colliders implicitly implemented
+          in the overridden @link(T3D.HeightCollision),
+          @link(T3D.MoveCollision) and friends.
+          In case of @link(TCastleSceneCore), the rule is simple:
+
+          @unorderedList(
+            @item(If the @link(TCastleSceneCore.Spatial) contains
+              ssDynamicCollisions or ssStaticCollisions, then the object collides
+              as a mesh. This makes precise collisions with all the triangles.
+              Any mesh, convex or concave, is correctly solved.)
+            @item(Otherwise, the object collides as it's axis-aligned bounding box.)
+          )
+        )
+      )
+    }
+    property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
   end;
 
   TOrientationType = (
@@ -2092,6 +2185,10 @@ type
 
   T3DExistsEvent = function(const Item: T3D): boolean of object;
 
+  {$define read_interface}
+  {$I castle3d_physics.inc}
+  {$undef read_interface}
+
 const
   MaxSingle = Math.MaxSingle;
 
@@ -2156,6 +2253,10 @@ var
 implementation
 
 uses CastleLog;
+
+{$define read_implementation}
+{$I castle3d_physics.inc}
+{$undef read_implementation}
 
 { TRayCollision --------------------------------------------------------------- }
 
