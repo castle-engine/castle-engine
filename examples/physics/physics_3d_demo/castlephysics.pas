@@ -22,18 +22,30 @@ uses Classes, Generics.Collections, Kraft,
   CastleVectors, Castle3D, CastleSceneManager, CastleTimeUtils;
 
 type
+  TRigidBody = class;
+
   { Shape used for collision detection of a rigid body,
     placed in @link(TRigidBody.Collider) property. }
   TCollider = class(TComponent)
   private
     FKraft: TKraftShape;
+    FParent: TRigidBody;
+    procedure SetParent(const Value: TRigidBody);
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     destructor Destroy; override;
+
+    { Parent rigid body, which in turn refers to this collider
+      by @link(TRigidBody.Collider).
+      You can always assign this property instead of assigning
+      the @link(TRigidBody.Collider). }
+    property Parent: TRigidBody read FParent write SetParent;
   end;
 
   { Collide as an infinite plane.
@@ -114,6 +126,8 @@ type
     must be assigned before setting TPhysicsTransform.RigidBody . }
   TRigidBody = class(TComponent)
   private
+    { TODO: FKraftPhysics should be part of T3DWorld, not static here. }
+    FKraftPhysics: TKraft; static;
     FKraft: TKraftRigidBody;
     FRigidBodyType: TRigidBodyType;
     FCollider: TCollider;
@@ -123,7 +137,11 @@ type
     FLockRotation: T3DCoords;
     FAngularVelocity: TVector3;
     FLinearVelocity: TVector3;
+    FRecreateKraftInstance: boolean;
     procedure InitializeKraft(const APhysics: TKraft);
+    procedure SetCollider(const Value: TCollider);
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -132,6 +150,9 @@ type
       Locks moving along the Z axis,
       locks rotating along the X and Y axes. }
     procedure Setup2D;
+
+    procedure InitializeTransform(const Transform: T3DTransform);
+    procedure Update(const Transform: T3DTransform; const SecondsPassed: Single);
 
     property AngularVelocity: TVector3 read FAngularVelocity write FAngularVelocity;
     property LinearVelocity: TVector3 read FLinearVelocity write FLinearVelocity;
@@ -142,7 +163,7 @@ type
       read FRigidBodyType write FRigidBodyType default rbDynamic;
 
     { Shape used for collisions with this object. }
-    property Collider: TCollider read FCollider write FCollider;
+    property Collider: TCollider read FCollider write SetCollider;
 
     { Is this object affected by gravity. }
     property Gravity: boolean read FGravity write FGravity default true;
@@ -173,9 +194,8 @@ type
   strict private
     FRigidBody: TRigidBody;
     procedure SetRigidBody(const Value: TRigidBody);
-  private
-    { TODO: FKraftPhysics should be part of T3DWorld, not static here. }
-    FKraftPhysics: TKraft; static;
+  protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     { Participate in rigid body physics simulation.
       This makes this object collidable with other rigid bodies
@@ -295,6 +315,39 @@ end;
 
 { TCollider ------------------------------------------------------------------ }
 
+procedure TCollider.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FParent) then
+    { set to nil by SetParent to clean nicely }
+    Parent := nil;
+end;
+
+procedure TCollider.SetParent(const Value: TRigidBody);
+var
+  OldParent: TRigidBody;
+begin
+  if FParent <> Value then
+  begin
+    OldParent := FParent;
+    FParent := Value;
+    { update OldParent.Collider after actually changing FParent,
+      this way we avoid infinite loop when both TCollider and TRigidBody
+      try to set each other to nil. }
+    if OldParent <> nil then
+    begin
+      if OldParent.Collider = Self then
+        OldParent.Collider := nil;
+      OldParent.RemoveFreeNotification(Self);
+    end;
+    if FParent <> nil then
+    begin
+      FParent.FreeNotification(Self);
+      FParent.Collider := Self;
+    end;
+  end;
+end;
+
 procedure TCollider.InitializeKraft(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody);
 begin
@@ -304,6 +357,9 @@ end;
 
 destructor TCollider.Destroy;
 begin
+  { set to nil by SetParent, to detach free notification }
+  Parent := nil;
+
   // FreeAndNil(FKraft); // do not free here, TKraftShape is owned by TKraftRigidBody
   inherited;
 end;
@@ -348,12 +404,16 @@ constructor TRigidBody.Create(AOwner: TComponent);
 begin
   inherited;
   FGravity := true;
+  FRecreateKraftInstance := true;
 end;
 
 destructor TRigidBody.Destroy;
 begin
   FreeAndNil(FKraft);
-  FreeAndNil(FCollider);
+
+  { set to nil by SetCollider, to detach free notification }
+  Collider := nil;
+
   inherited;
 end;
 
@@ -374,7 +434,7 @@ begin
   if 2 in FLockRotation then FKraft.Flags := FKraft.Flags + [krbfLockAxisZ];
   FKraft.Finish;
 
-  FKraft.CollisionGroups:=[0]; // TODO: make this configurable
+  FKraft.CollisionGroups := [0]; // TODO: make this configurable
   if (not AngularVelocity.IsPerfectlyZero) or
      (not LinearVelocity.IsPerfectlyZero) then
   begin
@@ -390,38 +450,68 @@ begin
   LockRotation := [0, 1];
 end;
 
-{ TPhysicsTransform ---------------------------------------------------------- }
-
-procedure TPhysicsTransform.SetRigidBody(const Value: TRigidBody);
-
-  { TODO: initalizing FKraftPhysics should not be done here,
-    but in T3DWorld or TCastleSceneManager. }
-  procedure CreatePhysics;
-  begin
-    FKraftPhysics := TKraft.Create(-1);
-    //KraftPhysics.SetFrequency(120.0); // default is 60
-  end;
-
+procedure TRigidBody.Notification(AComponent: TComponent; Operation: TOperation);
 begin
-  if FRigidBody <> Value then
+  inherited;
+  if (Operation = opRemove) and (AComponent = FCollider) then
+    { set to nil by SetCollider to clean nicely }
+    Collider := nil;
+end;
+
+procedure TRigidBody.SetCollider(const Value: TCollider);
+var
+  OldCollider: TCollider;
+begin
+  if FCollider <> Value then
   begin
-    FRigidBody := Value;
+    OldCollider := FCollider;
+    FCollider := Value;
+    { update OldCollider.Parent after actually changing FCollider,
+      this way we avoid infinite loop when both TCollider and TRigidBody
+      try to set each other to nil. }
+    if OldCollider <> nil then
+    begin
+      if OldCollider.Parent = Self then
+        OldCollider.Parent := nil;
+      OldCollider.RemoveFreeNotification(Self);
+    end;
+    if FCollider <> nil then
+    begin
+      FCollider.FreeNotification(Self);
+      FCollider.Parent := Self;
+    end;
+  end;
+end;
+
+procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
+
+  procedure RecreateKraftInstance;
+
+    { TODO: initalizing FKraftPhysics should not be done here,
+      but in T3DWorld or TCastleSceneManager. }
+    procedure CreatePhysics;
+    begin
+      FKraftPhysics := TKraft.Create(-1);
+      //KraftPhysics.SetFrequency(120.0); // default is 60
+    end;
+
+  begin
     if FKraftPhysics = nil then
       CreatePhysics;
-    FRigidBody.InitializeKraft(FKraftPhysics);
+    InitializeKraft(FKraftPhysics);
     // TODO: this assumes that this object is not further transformed by parents
-    FRigidBody.FKraft.SetWorldTransformation(MatrixToKraft(Transform));
+    FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform));
+  end;
+
+begin
+  if FRecreateKraftInstance then
+  begin
+    FRecreateKraftInstance := false;
+    RecreateKraftInstance;
   end;
 end;
 
-destructor TPhysicsTransform.Destroy;
-begin
-  FreeAndNil(FRigidBody);
-  inherited;
-end;
-
-procedure TPhysicsTransform.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
+procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: Single);
 
   { Update current transformation from Kraft rigid body parameters. }
   procedure TransformationFromKraft;
@@ -433,44 +523,91 @@ procedure TPhysicsTransform.Update(const SecondsPassed: Single;
     Body: TKraftRigidBody;
     Shape: TKraftShape;
   begin
-    Body := FRigidBody.FKraft;
-    Shape := FRigidBody.FCollider.FKraft;
+    Body := FKraft;
+    Shape := FCollider.FKraft;
 
     Q := QuaternionFromMatrix4x4(Shape.InterpolatedWorldTransform);
     QuaternionToAxisAngle(Q, Axis, Angle);
-    Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
+    Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
 
     NewPos := Shape.GetCenter(Shape.InterpolatedWorldTransform);
-    if FRigidBody.LockPosition <> [] then
+    if LockPosition <> [] then
     begin
       { TODO: Kraft feature request for [LockPositionX / Y / Z]? }
       // apply LockPosition to fix some NewPos coords
-      if 0 in FRigidBody.LockPosition then NewPos.X := Translation[0];
-      if 1 in FRigidBody.LockPosition then NewPos.Y := Translation[1];
-      if 2 in FRigidBody.LockPosition then NewPos.Z := Translation[2];
+      if 0 in LockPosition then NewPos.X := Transform.Translation[0];
+      if 1 in LockPosition then NewPos.Y := Transform.Translation[1];
+      if 2 in LockPosition then NewPos.Z := Transform.Translation[2];
     end;
-    Translation := VectorFromKraft(NewPos);
-    if FRigidBody.LockPosition <> [] then
+    Transform.Translation := VectorFromKraft(NewPos);
+    if LockPosition <> [] then
       // fix also position at Kraft side after fixing by LockPosition
-      Body.SetWorldTransformation(MatrixToKraft(Transform));
+      Body.SetWorldTransformation(MatrixToKraft(Transform.Transform));
   end;
 
 begin
-  inherited;
+  InitializeTransform(Transform);
+  case RigidBodyType of
+    rbDynamic: TransformationFromKraft;
+    rbKinematic:
+      begin
+        // TODO: check "if TransformChanged then" or such, don't do this every frame
+        // TODO: this assumes that this object is not further transformed by parents
+        FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform));
+      end;
+    // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
+  end;
+end;
 
-  if FRigidBody <> nil then
+{ TPhysicsTransform ---------------------------------------------------------- }
+
+procedure TPhysicsTransform.SetRigidBody(const Value: TRigidBody);
+begin
+  if FRigidBody <> Value then
   begin
-    case FRigidBody.RigidBodyType of
-      rbDynamic: TransformationFromKraft;
-      rbKinematic:
-        begin
-          // TODO: check "if TransformChanged then" or such, don't do this every frame
-          // TODO: this assumes that this object is not further transformed by parents
-          FRigidBody.FKraft.SetWorldTransformation(MatrixToKraft(Transform));
-        end;
-      // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
+    if FRigidBody <> nil then
+      FRigidBody.RemoveFreeNotification(Self);
+    FRigidBody := Value;
+    if FRigidBody <> nil then
+    begin
+      FRigidBody.FreeNotification(Self);
+      { Doing this assumes that TPhysicsSceneManager.Update
+        will know the initial position of this object during 1st simulation tick.
+
+        TODO: it's not really nice.
+        - If you change a transformation from now to TPhysicsSceneManager.Update,
+          then 1st simulation tick will have invalid transformation anyway.
+        - If you change some other rigid body parameter between now and
+          next FRigidBody.Update, then next FRigidBody will recreate Kraft
+          resources for this object, which is needless (we create Kraft resources
+          for this transform 2 times in this case, instead of once). }
+      FRigidBody.InitializeTransform(Self);
     end;
   end;
+end;
+
+destructor TPhysicsTransform.Destroy;
+begin
+  { set to nil by SetRigidBody, to detach free notification }
+  RigidBody := nil;
+
+  inherited;
+end;
+
+procedure TPhysicsTransform.Update(const SecondsPassed: Single;
+  var RemoveMe: TRemoveType);
+begin
+  inherited;
+  if FRigidBody <> nil then
+    FRigidBody.Update(Self, SecondsPassed);
+end;
+
+procedure TPhysicsTransform.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+  if (Operation = opRemove) and (AComponent = FRigidBody) then
+    { set to nil by SetRigidBody to clean nicely }
+    RigidBody := nil;
 end;
 
 { TPhysicsSceneManager ------------------------------------------------------- }
@@ -484,8 +621,8 @@ var
 begin
   if (not Paused) and GetExists then
   begin
-    // TODO: KraftPhysics will not be stored in TPhysicsTransform
-    KraftPhysics := TPhysicsTransform.FKraftPhysics;
+    // TODO: KraftPhysics will not be stored in TRigidBody
+    KraftPhysics := TRigidBody.FKraftPhysics;
 
     if KraftPhysics <> nil then
     begin
@@ -529,7 +666,7 @@ end;
 
 destructor TPhysicsSceneManager.Destroy;
 begin
-  FreeAndNil(TPhysicsTransform.FKraftPhysics);
+  FreeAndNil(TRigidBody.FKraftPhysics);
   inherited;
 end;
 
