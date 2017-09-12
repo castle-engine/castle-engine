@@ -142,14 +142,14 @@ begin
   Window.Container.UIScaling := usEncloseReferenceSize;
 
   ButtonLevelSimple := TCastleButton.Create(Application);
-  ButtonLevelSimple.Caption := 'Simple Level';
+  ButtonLevelSimple.Caption := 'Simple Level (Plane Collider)';
   ButtonLevelSimple.OnClick := @TEventHandler(nil).LoadLevelSimple;
   ButtonLevelSimple.Anchor(hpLeft, 10);
   ButtonLevelSimple.Anchor(vpTop, -10);
   Window.Controls.InsertFront(ButtonLevelSimple);
 
   ButtonLevelComplex := TCastleButton.Create(Application);
-  ButtonLevelComplex.Caption := 'Complex Level';
+  ButtonLevelComplex.Caption := 'Complex Level (Mesh Collider)';
   ButtonLevelComplex.OnClick := @TEventHandler(nil).LoadLevelComplex;
   ButtonLevelComplex.Anchor(hpLeft, 10);
   ButtonLevelComplex.Anchor(vpTop, -10 - ButtonLevelSimple.CalculatedHeight - 10);
