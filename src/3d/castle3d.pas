@@ -1659,18 +1659,18 @@ type
       (if @link(TRigidBody.Collider) is assigned)
       and it allows to move and rotate because of gravity
       or because of collisions with other objects
-      (if @link(TRigidBody.Static) is @false).
+      (if @link(TRigidBody.Dynamic) is @true).
 
       Setting this makes this object a single rigid body for the physics engine.
 
-      If this property is assigned and the @link(TRigidBody.Static) is @false
+      If this property is assigned and the @link(TRigidBody.Dynamic) is @true
       then this object is moved and rotated using the physics engine.
       It will move because of gravity (if @link(TRigidBody.Gravity)),
       and because of collisions with other objects.
 
       Usually you want to also assign a @link(TRigidBody.Collider) instance.
       Otherwise, the rigid body will not collide with anything,
-      and (if not @link(TRigidBody.Static)) it will simply fall down because of gravity.
+      and (if @link(TRigidBody.Dynamic)) it will simply fall down because of gravity.
 
       @bold(This is an experimental API, subject to change in future releases.)
 

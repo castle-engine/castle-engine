@@ -56,7 +56,7 @@ begin
   Level.Add(LevelScene);
 
   LevelBody := TRigidBody.Create(LevelScene);
-  LevelBody.RigidBodyType := rbStatic;
+  LevelBody.Dynamic := false;
 
   LevelCollider := TPlaneCollider.Create(LevelBody);
   LevelCollider.Normal := Vector3(0, 1, 0);

@@ -72,42 +72,6 @@
     Radius: Single;
   end;
 
-  { Is the object moved/rotated by the physics engine, or is it only
-    a static collider. See @link(TRigidBody.RigidBodyType). }
-  TRigidBodyType = (
-    { Physics simulation moves and rotates this object
-      (because of gravity, or because it collides with others).
-
-      Do not change the @link(T3DTransform.Translation) and other
-      transformation properties of the related T3DTransform
-      after assigning @link(T3DTransform.RigidBody) that is dynamic.
-      They are under the control of the physics
-      engine. You can still reliably read them.
-    }
-    rbDynamic,
-
-    { This object is not transformed by the physics simulation,
-      but it still collides with other physical objects.
-
-      You can change the @link(T3DTransform.Translation) and other
-      transformation properties of the related T3DTransform.
-      But it is like destroying it and creating a new one for the physics engine,
-      @italic(so do change them often, e.g. every frame).
-      Use rbKinematic if you animate some object, and it should still be a collider
-      for the physics engine. }
-    rbStatic,
-
-    { This object is not transformed by the physics simulation,
-      but it still collides with other physical objects.
-
-      You can change the @link(T3DTransform.Translation) and other
-      transformation properties of the related T3DTransform.
-      The physics engine is prepared that this object can move often,
-      e.g. every frame, so you can animate the related @link(T3DTransform)
-      using any technique. }
-    rbKinematic
-  );
-
   T3DCoord = 0..2;
   T3DCoords = set of T3DCoord;
 
@@ -120,9 +84,10 @@
   TRigidBody = class(TComponent)
   private
     FKraft: TKraftRigidBody;
-    FRigidBodyType: TRigidBodyType;
     FCollider: TCollider;
     FGravity: boolean;
+    FDynamic: boolean;
+    FAnimated: boolean;
     //FMass: Single;
     FLockPosition: T3DCoords;
     FLockRotation: T3DCoords;
@@ -148,10 +113,68 @@
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
   published
-    { Is the object moved/rotated by the physics engine, or is it only
-      a static collider. }
-    property RigidBodyType: TRigidBodyType
-      read FRigidBodyType write FRigidBodyType default rbDynamic;
+    { Does the physics simulation move and rotate this object
+      (because of gravity, or because it collides with others).
+
+      @definitionList(
+        @itemLabel true (dynamic object, the default)
+        @item(
+          In this case you cannot
+          change the @link(T3DTransform.Translation) and other
+          transformation properties of the related T3DTransform
+          after assigning @link(T3DTransform.RigidBody).
+          They are under the control of the physics engine.
+          You can still reliably read them.
+
+          Also, the value @link(Animated) is ignored in this case.
+        )
+
+        @itemLabel false
+        @item(
+          In this case object is not transformed by the physics simulation.
+          It still collides with other physical objects.
+
+          You can change the @link(T3DTransform.Translation) and other
+          transformation properties by your own code.
+          But if you plan to change them @italic(very often)
+          (e.g. every frame), then set the @link(Animated) property to @true.
+        )
+      )
+    }
+    property Dynamic: boolean read FDynamic write FDynamic default true;
+
+    { Is the transformation of this object updated often
+      (relevant only when @link(Dynamic) = @false).
+
+      This property is taken into account only if @link(Dynamic) = @false.
+      When @link(Dynamic) = @false,
+      you can change the @link(T3DTransform.Translation) and other
+      transformation properties of the related T3DTransform.
+      This property is an optimization hint to the physics engine,
+      it says @italic(how often) you will change the transformation.
+
+      @definitionList(
+        @itemLabel true (animated object, also known as "kinematic")
+        @item(
+          The physics engine is prepared that this object can move often,
+          e.g. every frame, so you can animate the related @link(T3DTransform)
+          using any technique.
+        )
+
+        @itemLabel false (static object)
+        @item(
+          Changing the transformation properties is costly,
+          it may even be like destroying this object
+          and creating a new one from the point of view of the physics engine,
+          @italic(so do not change them often, e.g. every frame).
+
+          The upside is that collisions with static objects may be much more
+          optimized, since the physics engine can assume that all the static
+          objects form a completely frozen unmovable geometry in the world.
+        )
+      )
+    }
+    property Animated: boolean read FAnimated write FAnimated default false;
 
     { Shape used for collisions with this object. }
     property Collider: TCollider read FCollider write SetCollider;
@@ -302,6 +325,7 @@ constructor TRigidBody.Create(AOwner: TComponent);
 begin
   inherited;
   FGravity := true;
+  FDynamic := true;
   FRecreateKraftInstance := true;
 end;
 
@@ -319,12 +343,15 @@ procedure TRigidBody.InitializeKraft(const APhysics: TKraft);
 begin
   FreeAndNil(FKraft);
   FKraft := TKraftRigidBody.Create(APhysics);
-  case RigidBodyType of
-    rbDynamic  : FKraft.SetRigidBodyType(krbtDynamic);
-    rbStatic   : FKraft.SetRigidBodyType(krbtStatic);
-    rbKinematic: FKraft.SetRigidBodyType(krbtKinematic);
-    else raise EInternalError.Create('TRigidBody.InitializeKraft:RigidBodyType?');
-  end;
+
+  if Dynamic then
+    FKraft.SetRigidBodyType(krbtDynamic)
+  else
+  if Animated then
+    FKraft.SetRigidBodyType(krbtKinematic)
+  else
+    FKraft.SetRigidBodyType(krbtStatic);
+
   Collider.InitializeKraft(APhysics, FKraft);
   FKraft.GravityScale := Iff(Gravity, 1.0, 0.0);
   if 0 in FLockRotation then FKraft.Flags := FKraft.Flags + [krbfLockAxisX];
@@ -435,15 +462,18 @@ procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: 
 
 begin
   InitializeTransform(Transform);
-  case RigidBodyType of
-    rbDynamic: TransformationFromKraft;
-    rbKinematic:
-      begin
-        // TODO: check "if TransformChanged then" or such, don't do this every frame
-        // TODO: this assumes that this object is not further transformed by parents
-        FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform));
-      end;
+
+  if Dynamic then
+    TransformationFromKraft
+  else
+  if Animated then
+  begin
+    // TODO: check "if TransformChanged then" or such, don't do this every frame
+    // TODO: this assumes that this object is not further transformed by parents
+    FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform))
+
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
+    // or will this require recreating rigid body?
   end;
 end;
 
