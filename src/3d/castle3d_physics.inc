@@ -21,7 +21,7 @@
     placed in @link(TRigidBody.Collider) property. }
   TCollider = class(TComponent)
   private
-    FKraft: TKraftShape;
+    FKraftShape: TKraftShape;
     FParent: TRigidBody;
     procedure SetParent(const Value: TRigidBody);
     procedure InitializeKraft(const APhysics: TKraft;
@@ -83,7 +83,7 @@
     must be assigned before setting T3DTransform.RigidBody . }
   TRigidBody = class(TComponent)
   private
-    FKraft: TKraftRigidBody;
+    FKraftBody: TKraftRigidBody;
     FCollider: TCollider;
     FGravity: boolean;
     FDynamic: boolean;
@@ -107,7 +107,10 @@
       locks rotating along the X and Y axes. }
     procedure Setup2D;
 
+    { Connect this rigid body with Transform and Transform.World. }
     procedure InitializeTransform(const Transform: T3DTransform);
+    { Disconnect from Transform.World, if was connected. }
+    procedure DeinitializeTransform(const Transform: T3DTransform);
     procedure Update(const Transform: T3DTransform; const SecondsPassed: Single);
 
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
@@ -272,8 +275,8 @@ end;
 procedure TCollider.InitializeKraft(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody);
 begin
-  // FreeAndNil(FKraft); // do not free here, TKraftShape is owned by TKraftRigidBody
-  FKraft := CreateKraftShape(APhysics, ARigidBody);
+  // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
+  FKraftShape := CreateKraftShape(APhysics, ARigidBody);
 end;
 
 destructor TCollider.Destroy;
@@ -281,7 +284,7 @@ begin
   { set to nil by SetParent, to detach free notification }
   Parent := nil;
 
-  // FreeAndNil(FKraft); // do not free here, TKraftShape is owned by TKraftRigidBody
+  // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   inherited;
 end;
 
@@ -331,7 +334,7 @@ end;
 
 destructor TRigidBody.Destroy;
 begin
-  FreeAndNil(FKraft);
+  FreeAndNil(FKraftBody);
 
   { set to nil by SetCollider, to detach free notification }
   Collider := nil;
@@ -341,33 +344,33 @@ end;
 
 procedure TRigidBody.InitializeKraft(const APhysics: TKraft);
 begin
-  FreeAndNil(FKraft);
-  FKraft := TKraftRigidBody.Create(APhysics);
+  FreeAndNil(FKraftBody);
+  FKraftBody := TKraftRigidBody.Create(APhysics);
 
   if Dynamic then
-    FKraft.SetRigidBodyType(krbtDynamic)
+    FKraftBody.SetRigidBodyType(krbtDynamic)
   else
   if Animated then
-    FKraft.SetRigidBodyType(krbtKinematic)
+    FKraftBody.SetRigidBodyType(krbtKinematic)
   else
-    FKraft.SetRigidBodyType(krbtStatic);
+    FKraftBody.SetRigidBodyType(krbtStatic);
 
   if Collider = nil then
     raise Exception.Create('You must assign TRigidBody.Collider');
-  Collider.InitializeKraft(APhysics, FKraft);
-  FKraft.GravityScale := Iff(Gravity, 1.0, 0.0);
-  if 0 in FLockRotation then FKraft.Flags := FKraft.Flags + [krbfLockAxisX];
-  if 1 in FLockRotation then FKraft.Flags := FKraft.Flags + [krbfLockAxisY];
-  if 2 in FLockRotation then FKraft.Flags := FKraft.Flags + [krbfLockAxisZ];
-  FKraft.Finish;
+  Collider.InitializeKraft(APhysics, FKraftBody);
+  FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
+  if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisX];
+  if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisY];
+  if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisZ];
+  FKraftBody.Finish;
 
-  FKraft.CollisionGroups := [0]; // TODO: make this configurable
+  FKraftBody.CollisionGroups := [0]; // TODO: make this configurable
   if (not InitialAngularVelocity.IsPerfectlyZero) or
      (not InitialLinearVelocity.IsPerfectlyZero) then
   begin
-    FKraft.AngularVelocity := VectorToKraft(InitialAngularVelocity);
-    FKraft.LinearVelocity := VectorToKraft(InitialLinearVelocity);
-    FKraft.SetToAwake;
+    FKraftBody.AngularVelocity := VectorToKraft(InitialAngularVelocity);
+    FKraftBody.LinearVelocity := VectorToKraft(InitialLinearVelocity);
+    FKraftBody.SetToAwake;
   end;
 end;
 
@@ -413,11 +416,14 @@ end;
 procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
 
   procedure RecreateKraftInstance;
+  var
+    World: T3DWorld;
   begin
-    T3DWorld.InitializePhysics;
-    InitializeKraft(T3DWorld.FKraftPhysics);
+    World := Transform.World;
+    World.InitializePhysicsEngine;
+    InitializeKraft(World.FKraftEngine);
     // TODO: this assumes that this object is not further transformed by parents
-    FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform));
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform));
   end;
 
 begin
@@ -426,6 +432,16 @@ begin
     FRecreateKraftInstance := false;
     RecreateKraftInstance;
   end;
+end;
+
+procedure TRigidBody.DeinitializeTransform(const Transform: T3DTransform);
+begin
+  FreeAndNil(FKraftBody);
+  { Collider.FKraftShape is owned by FKraftBody, it was automatically freed now }
+  if Collider <> nil then
+    Collider.FKraftShape := nil;
+  { we in unintialized state, so initialize at nearest occasion }
+  FRecreateKraftInstance := true;
 end;
 
 procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: Single);
@@ -440,8 +456,8 @@ procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: 
     Body: TKraftRigidBody;
     Shape: TKraftShape;
   begin
-    Body := FKraft;
-    Shape := FCollider.FKraft;
+    Body := FKraftBody;
+    Shape := FCollider.FKraftShape;
 
     Q := QuaternionFromMatrix4x4(Shape.InterpolatedWorldTransform);
     QuaternionToAxisAngle(Q, Axis, Angle);
@@ -472,7 +488,7 @@ begin
   begin
     // TODO: check "if TransformChanged then" or such, don't do this every frame
     // TODO: this assumes that this object is not further transformed by parents
-    FKraft.SetWorldTransformation(MatrixToKraft(Transform.Transform))
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform))
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
@@ -491,22 +507,14 @@ begin
     if FRigidBody <> nil then
     begin
       FRigidBody.FreeNotification(Self);
-      { Doing this makes sure that T3DWorld.Update
-        will know the initial position of this object during 1st simulation tick.
-
-        TODO: it's not really nice.
-        - If you change a transformation from now to T3DWorld.Update,
-          then 1st simulation tick will have invalid transformation anyway.
-        - If you change some other rigid body parameter between now and
-          next FRigidBody.Update, then next FRigidBody will recreate Kraft
-          resources for this object, which is needless (we create Kraft resources
-          for this transform 2 times in this case, instead of once). }
-      FRigidBody.InitializeTransform(Self);
+      { For the same reason that T3DTransform.SetWorld calls this,
+        also here call InitializeTransform, in case SetWorld happened
+        before SetRigidBody. }
+      if World <> nil then
+        RigidBody.InitializeTransform(Self);
     end;
   end;
 end;
-
-{ T3DTransform --------------------------------------------------------------- }
 
 destructor T3DTransform.Destroy;
 begin
@@ -532,20 +540,48 @@ begin
     RigidBody := nil;
 end;
 
+procedure T3DTransform.SetWorld(const Value: T3DWorld);
+begin
+  if FWorld <> Value then
+  begin
+    { When removing 3D object from world, remove it also from physics engine world. }
+    if (FWorld <> nil) and (RigidBody <> nil) then
+      RigidBody.DeinitializeTransform(Self);
+
+    inherited;
+
+    { Calling TRigidBody.InitializeTransform explicitly now
+      (instead of letting it happen in TRigidBody.Update)
+      makes sure that when T3DWorld.Update will happen,
+      the physics engine will know
+      the initial position of this object during 1st simulation tick.
+
+      TODO: it's not really nice.
+      - If you change a transformation from now to T3DWorld.Update,
+        then 1st simulation tick will have invalid transformation anyway.
+      - If you change some other rigid body parameter between now and
+        next FRigidBody.Update, then next FRigidBody will recreate Kraft
+        resources for this object, which is needless (we create Kraft resources
+        for this transform 2 times in this case, instead of once). }
+    if (FWorld <> nil) and (RigidBody <> nil) then
+      RigidBody.InitializeTransform(Self);
+  end;
+end;
+
 { T3DWorld ------------------------------------------------------------------- }
 
-class procedure T3DWorld.InitializePhysics;
+procedure T3DWorld.InitializePhysicsEngine;
 begin
-  if FKraftPhysics = nil then
+  if FKraftEngine = nil then
   begin
-    FKraftPhysics := TKraft.Create(-1);
-    //KraftPhysics.SetFrequency(120.0); // default is 60
+    FKraftEngine := TKraft.Create(-1);
+    //KraftEngine.SetFrequency(120.0); // default is 60
   end;
 end;
 
 destructor T3DWorld.Destroy;
 begin
-  FreeAndNil(FKraftPhysics);
+  FreeAndNil(FKraftEngine);
   inherited;
 end;
 
@@ -554,37 +590,37 @@ var
   PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
 begin
-  if FKraftPhysics <> nil then
+  if FKraftEngine <> nil then
   begin
-    // update FKraftPhysics.Gravity
+    // update FKraftEngine.Gravity
     // TODO: do we really need to be prepared that it changes each frame?
     KraftGravity := -GravityUp * 9.81;
-    FKraftPhysics.Gravity.Vector := VectorToKraft(KraftGravity);
+    FKraftEngine.Gravity.Vector := VectorToKraft(KraftGravity);
 
     if not WasPhysicsStep then
     begin
-      FKraftPhysics.StoreWorldTransforms;
-      FKraftPhysics.InterpolateWorldTransforms(0.0);
+      FKraftEngine.StoreWorldTransforms;
+      FKraftEngine.InterpolateWorldTransforms(0.0);
       WasPhysicsStep := true;
     end else
     begin
-      PhysicsTimeStep := 1.0 / FKraftPhysics.WorldFrequency;
+      PhysicsTimeStep := 1.0 / FKraftEngine.WorldFrequency;
       TimeAccumulator := TimeAccumulator + SecondsPassed;
       while TimeAccumulator >= PhysicsTimeStep do
       begin
         TimeAccumulator := TimeAccumulator - PhysicsTimeStep;
-        FKraftPhysics.StoreWorldTransforms;
-        FKraftPhysics.Step(PhysicsTimeStep);
+        FKraftEngine.StoreWorldTransforms;
+        FKraftEngine.Step(PhysicsTimeStep);
       end;
 
       { Kraft demo (sandbox) doesn't do this, but I think it's sensible:
         the later line InterpolateWorldTransforms assumes that we calculated
         "one time too many".
         TODO: ask Kraft author about this. }
-      FKraftPhysics.StoreWorldTransforms;
-      FKraftPhysics.Step(PhysicsTimeStep);
+      FKraftEngine.StoreWorldTransforms;
+      FKraftEngine.Step(PhysicsTimeStep);
 
-      FKraftPhysics.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
+      FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
     end;
   end;
 

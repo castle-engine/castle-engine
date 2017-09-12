@@ -53,8 +53,7 @@ var
   LevelCollider: TCollider;
   MoveLimit: TBox3D;
 begin
-  { free previous level, which also frees all related rigid bodies.
-    This is for now the only way to remove rigid bodies from scene: free them. }
+  { free previous level, which also frees all related rigid bodies }
   FreeAndNil(Level);
   FreeAndNil(LevelScene);
 

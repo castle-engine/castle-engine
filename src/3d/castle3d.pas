@@ -1200,14 +1200,11 @@ type
   { 3D world. List of 3D objects, with some central properties. }
   T3DWorld = class(T3DList)
   private
-    { TODO: It would be cleaner to not make FKraftPhysics static.
-      However, T3DTransform needs to access it now, possibly before it
-      can access it's T3DTransform.World reference. }
-    FKraftPhysics: TKraft; static;
+    FKraftEngine: TKraft;
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
-    { Create FKraftPhysics, if not assigned yet. }
-    class procedure InitializePhysics;
+    { Create FKraftEngine, if not assigned yet. }
+    procedure InitializePhysicsEngine;
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
@@ -1573,6 +1570,7 @@ type
     procedure SetRigidBody(const Value: TRigidBody);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure SetWorld(const Value: T3DWorld); override;
 
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
