@@ -127,7 +127,7 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 
     RigidBody := TRigidBody.Create(Scene);
     RigidBody.Collider := Collider;
-    RigidBody.LinearVelocity := CameraDir * 4.0;
+    RigidBody.InitialLinearVelocity := CameraDir * 4.0;
     Transform.RigidBody := RigidBody;
   end;
 

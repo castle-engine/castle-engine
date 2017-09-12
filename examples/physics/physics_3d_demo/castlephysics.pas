@@ -135,8 +135,8 @@ type
     FMass: Single;
     FLockPosition: T3DCoords;
     FLockRotation: T3DCoords;
-    FAngularVelocity: TVector3;
-    FLinearVelocity: TVector3;
+    FInitialAngularVelocity: TVector3;
+    FInitialLinearVelocity: TVector3;
     FRecreateKraftInstance: boolean;
     procedure InitializeKraft(const APhysics: TKraft);
     procedure SetCollider(const Value: TCollider);
@@ -154,8 +154,8 @@ type
     procedure InitializeTransform(const Transform: T3DTransform);
     procedure Update(const Transform: T3DTransform; const SecondsPassed: Single);
 
-    property AngularVelocity: TVector3 read FAngularVelocity write FAngularVelocity;
-    property LinearVelocity: TVector3 read FLinearVelocity write FLinearVelocity;
+    property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
+    property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
   published
     { Is the object moved/rotated by the physics engine, or is it only
       a static collider. }
@@ -435,11 +435,11 @@ begin
   FKraft.Finish;
 
   FKraft.CollisionGroups := [0]; // TODO: make this configurable
-  if (not AngularVelocity.IsPerfectlyZero) or
-     (not LinearVelocity.IsPerfectlyZero) then
+  if (not InitialAngularVelocity.IsPerfectlyZero) or
+     (not InitialLinearVelocity.IsPerfectlyZero) then
   begin
-    FKraft.AngularVelocity := VectorToKraft(AngularVelocity);
-    FKraft.LinearVelocity := VectorToKraft(LinearVelocity);
+    FKraft.AngularVelocity := VectorToKraft(InitialAngularVelocity);
+    FKraft.LinearVelocity := VectorToKraft(InitialLinearVelocity);
     FKraft.SetToAwake;
   end;
 end;
