@@ -61,7 +61,8 @@ begin
   LevelCollider := TPlaneCollider.Create(LevelBody);
   LevelCollider.Normal := Vector3(0, 1, 0);
   LevelCollider.Distance := 0;
-  LevelBody.Collider := LevelCollider;
+  // equivalent to "LevelBody.Collider := LevelCollider;"
+  LevelCollider.Parent := LevelBody;
 
   { assign this only once LevelBody and LevelCollider
     are fully configured, this initializes physics engine }
