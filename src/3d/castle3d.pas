@@ -1663,9 +1663,10 @@ type
       a single rigid body for the physics engine.
 
       If this property is assigned and the @link(TRigidBody.Dynamic) is @true
-      (which @link(TRigidBody.Dynamic) is @true by default)
+      (and @link(TRigidBody.Dynamic) is @true by default)
       then this object is moved and rotated using the physics engine.
-      It will move because of gravity (if @link(TRigidBody.Gravity)),
+      It will move because of gravity (if @link(TRigidBody.Gravity),
+      also @true by default),
       and because of collisions with other objects.
 
       Note that you must assign a @link(TRigidBody.Collider) instance first,
@@ -1676,7 +1677,7 @@ type
       If you really need this, assign anything to @link(TRigidBody.Collider)
       and just set @link(Collides) to @false.
 
-      @bold(Our engine (for now) also has internal, simple physics simulation,
+      @bold(Our engine (for now) also has an internal, simple physics simulation,
       used to perform collisions with player, creatures, and optional
       (unrealistic) gravity.)
       So we have two independent physics systems,
@@ -1686,6 +1687,7 @@ type
       the full-featured physics engine for all simulations,
       also for player and creatures, at which point our "internal physics
       simulation" will become deprecated.
+      For now, be aware of these:
 
       @unorderedList(
         @item(@link(T3D.Collides) property affects @italic(both our
@@ -1693,17 +1695,17 @@ type
           It determines whether the object is collidable.
         )
 
-        @item(@link(T3DTransform.Gravity) property @italic(only affects the
+        @item(@link(T3DCustomTransform.Gravity) property @italic(only affects the
           "simple physics simulation"). It is by default @false.
 
           It has no effect on the "full-featured physics engine" behaviour,
           that has an independent property @link(TRigidBody.Gravity),
-          and is @true by default.
+          which is @true by default.
 
-          You should not set both @link(T3DTransform.Gravity) to @true
+          You should not set both @link(T3DCustomTransform.Gravity) to @true
           and @link(TRigidBody.Gravity) to @true, it would mean that
           @italic(gravity simulation is performed twice).
-          In the future, @link(T3DTransform.Gravity) may be removed
+          In the future, @link(T3DCustomTransform.Gravity) may be removed
           (or merged with @link(TRigidBody.Gravity), but then old games
           may by surprised by a new default @true.)
         )
