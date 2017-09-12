@@ -302,13 +302,28 @@ type
     FExcludeFromGlobalLights, FExcludeFromStatistics,
       FInternalExcludeFromParentBoundingVolume: boolean;
     FWorld: T3DWorld;
+    FWorldReferences: Cardinal;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { Make this 3D object assigned to given 3D world.
+    { Change to new world, or (if not needed) just increase FWorldReferences.
+      Value must not be @nil. }
+    procedure AddToWorld(const Value: T3DWorld); virtual;
+
+    { Decrease FWorldReferences, then (if needed) change world to @nil.
+      Value must not be @nil. }
+    procedure RemoveFromWorld(const Value: T3DWorld); virtual;
+
+    { Called when the current 3D world (which corresponds to the current
+      TCastleSceneManager) of this 3D object changes.
+      This can be ignored (not care about FWorldReferences) when Value = FWorld.
+
       Each 3D object can only be part of one T3DWorld at a time.
+      The object may be present many times within the world
+      (counted by FWorldReferences, which is always set to 1 by this procedure
+      for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure SetWorld(const Value: T3DWorld); virtual;
+    procedure ChangeWorld(const Value: T3DWorld); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -1079,7 +1094,8 @@ type
     function GetItem(const I: Integer): T3D;
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
-    procedure SetWorld(const Value: T3DWorld); override;
+    procedure AddToWorld(const Value: T3DWorld); override;
+    procedure RemoveFromWorld(const Value: T3DWorld); override;
 
     { Additional child inside the list, always processed before all children
       on the @link(Items) list. By default this method returns @nil,
@@ -1570,7 +1586,7 @@ type
     procedure SetRigidBody(const Value: TRigidBody);
   protected
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure SetWorld(const Value: T3DWorld); override;
+    procedure ChangeWorld(const Value: T3DWorld); override;
 
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
@@ -2317,7 +2333,7 @@ end;
 destructor T3D.Destroy;
 begin
   { set to nil, to detach free notification }
-  SetWorld(nil);
+  ChangeWorld(nil);
   GLContextClose;
   inherited;
 end;
@@ -2651,7 +2667,29 @@ begin
   Dec(Disabled);
 end;
 
-procedure T3D.SetWorld(const Value: T3DWorld);
+procedure T3D.AddToWorld(const Value: T3DWorld);
+begin
+  Assert(Value <> nil);
+  if FWorld <> Value then
+    ChangeWorld(Value)
+  else
+    Inc(FWorldReferences);
+end;
+
+procedure T3D.RemoveFromWorld(const Value: T3DWorld);
+begin
+  Assert(Value <> nil);
+  Assert(FWorldReferences > 0);
+  if FWorld <> Value then
+    WritelnWarning('T3D.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one T3D instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManger.Items.Remove(xxx)") before adding to new scene manager.');
+
+  Dec(FWorldReferences);
+  if FWorldReferences = 0 then
+    ChangeWorld(nil);
+end;
+
+
+procedure T3D.ChangeWorld(const Value: T3DWorld);
 begin
   if FWorld <> Value then
   begin
@@ -2663,6 +2701,7 @@ begin
         FWorld.RemoveFreeNotification(Self);
     end;
     FWorld := Value;
+    FWorldReferences := Iff(Value <> nil, 1, 0);
     if FWorld <> nil then
       // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
       //and (FWorld <> Self) then
@@ -2675,7 +2714,7 @@ begin
   inherited;
   { make sure to nil FWorld reference }
   if (Operation = opRemove) and (AComponent = FWorld) then
-    SetWorld(nil);
+    ChangeWorld(nil);
 end;
 
 function T3D.Height(const MyPosition: TVector3;
@@ -2785,23 +2824,18 @@ begin
     case Action of
       lnAdded:
         begin
-          B.SetWorld(Owner.World);
+          if Owner.World <> nil then
+            B.AddToWorld(Owner.World);
           { Register Owner to be notified of item destruction. }
           B.FreeNotification(Owner);
         end;
       lnExtracted, lnDeleted:
         begin
-          { We don't change B.World here (we don't set it to
-            "previous World", or nil, or anything).
-            The 3D object may be present in the same World multiple times,
-            so it's better to leave World unchanged here.
-
-            This way T3D.World points to "last world you were part of",
-            instead of "current world you are part in", but that's not
-            a problem in practice -- as the World is only used to call
-            World.OnXxx notifications, and it's harmless to call them
-            when the object is not actually part of world. }
-
+          if (Owner.World <> nil) and
+             { It is possible that "B.World <> Owner.World" when B is getting
+               freed and has World set to nil in constructor already. }
+             (B.World = Owner.World) then
+            B.RemoveFromWorld(Owner.World);
           { Do not call RemoveFreeNotification when Owner is equal to B.World,
             this would prevent getting notification when to nil FWorld in
             T3D.Notification. }
@@ -2850,19 +2884,28 @@ begin
   inherited;
 end;
 
-procedure T3DList.SetWorld(const Value: T3DWorld);
+procedure T3DList.AddToWorld(const Value: T3DWorld);
 var
   I: Integer;
 begin
-  if FWorld <> Value then
-  begin
-    inherited;
-    if GetChild <> nil then
-      GetChild.SetWorld(Value);
-    if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
-      for I := 0 to List.Count - 1 do
-        List[I].SetWorld(Value);
-  end;
+  inherited;
+  if GetChild <> nil then
+    GetChild.AddToWorld(Value);
+  if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
+    for I := 0 to List.Count - 1 do
+      List[I].AddToWorld(Value);
+end;
+
+procedure T3DList.RemoveFromWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  inherited;
+  if GetChild <> nil then
+    GetChild.RemoveFromWorld(Value);
+  if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
+    for I := 0 to List.Count - 1 do
+      List[I].RemoveFromWorld(Value);
 end;
 
 function T3DList.GetChild: T3D;
@@ -3559,7 +3602,7 @@ constructor T3DWorld.Create(AOwner: TComponent);
 begin
   inherited;
   { everything inside is part of this world }
-  SetWorld(Self);
+  AddToWorld(Self);
 end;
 
 function T3DWorld.GravityCoordinate: Integer;

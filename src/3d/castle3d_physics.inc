@@ -549,13 +549,17 @@ begin
   if FRigidBody <> Value then
   begin
     if FRigidBody <> nil then
+    begin
       FRigidBody.RemoveFreeNotification(Self);
+      if World <> nil then
+        RigidBody.DeinitializeTransform(Self);
+    end;
     FRigidBody := Value;
     if FRigidBody <> nil then
     begin
       FRigidBody.FreeNotification(Self);
-      { For the same reason that T3DTransform.SetWorld calls this,
-        also here call InitializeTransform, in case SetWorld happened
+      { For the same reason that T3DTransform.ChangeWorld calls this,
+        also here call InitializeTransform, in case ChangeWorld happened
         before SetRigidBody. }
       if World <> nil then
         RigidBody.InitializeTransform(Self);
@@ -587,7 +591,7 @@ begin
     RigidBody := nil;
 end;
 
-procedure T3DTransform.SetWorld(const Value: T3DWorld);
+procedure T3DTransform.ChangeWorld(const Value: T3DWorld);
 begin
   if FWorld <> Value then
   begin
@@ -607,8 +611,10 @@ begin
       - If you change a transformation from now to T3DWorld.Update,
         then 1st simulation tick will have invalid transformation anyway.
       - If you change some other rigid body parameter between now and
-        next FRigidBody.Update, then next FRigidBody will recreate Kraft
-        resources for this object, which is needless (we create Kraft resources
+        next FRigidBody.Update, then next FRigidBody would recreate Kraft
+        resources for this object (once it's implemented, by setting
+        FRecreateKraftInstance on every change),
+        which is needless (we create Kraft resourcest
         for this transform 2 times in this case, instead of once). }
     if (FWorld <> nil) and (RigidBody <> nil) then
       RigidBody.InitializeTransform(Self);
