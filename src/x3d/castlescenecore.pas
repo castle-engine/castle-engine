@@ -23,7 +23,7 @@ unit CastleSceneCore;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections, Contnrs,
+uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
@@ -2030,6 +2030,10 @@ type
       default 0;
   end;
 
+  {$define read_interface}
+  {$I castlescenecore_physics.inc}
+  {$undef read_interface}
+
 var
   { Log changes to fields.
     This debugs what and why happens through TCastleSceneCore.InternalChangedField method
@@ -2052,6 +2056,10 @@ implementation
 uses Math,
   X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
+
+{$define read_implementation}
+{$I castlescenecore_physics.inc}
+{$undef read_implementation}
 
 { TX3DBindableStack ----------------------------------------------------- }
 

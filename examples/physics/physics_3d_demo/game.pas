@@ -33,10 +33,24 @@ var
   Level: T3DTransform;
   BoxTemplate, SphereTemplate: TCastleScene;
 
-procedure LoadLevel(const URL: string);
+procedure LoadLevel(const URL: string; const MeshCollider: boolean);
+
+  function CreatePlaneCollider: TPlaneCollider;
+  begin
+    Result := TPlaneCollider.Create(LevelScene);
+    Result.Normal := Vector3(0, 1, 0);
+    Result.Distance := 0;
+  end;
+
+  function CreateMeshCollider: TMeshCollider;
+  begin
+    Result := TMeshCollider.Create(LevelScene);
+    Result.Scene := LevelScene;
+  end;
+
 var
   LevelBody: TRigidBody;
-  LevelCollider: TPlaneCollider;
+  LevelCollider: TCollider;
   MoveLimit: TBox3D;
 begin
   { free previous level, which also frees all related rigid bodies.
@@ -66,9 +80,10 @@ begin
   LevelBody := TRigidBody.Create(LevelScene);
   LevelBody.Dynamic := false;
 
-  LevelCollider := TPlaneCollider.Create(LevelBody);
-  LevelCollider.Normal := Vector3(0, 1, 0);
-  LevelCollider.Distance := 0;
+  if MeshCollider then
+    LevelCollider := CreateMeshCollider
+  else
+    LevelCollider := CreatePlaneCollider;
   // equivalent to "LevelBody.Collider := LevelCollider;"
   LevelCollider.Parent := LevelBody;
 
@@ -93,12 +108,12 @@ type
 
 class procedure TEventHandler.LoadLevelSimple(Sender: TObject);
 begin
-  LoadLevel(ApplicationData('level_simple.x3dv'));
+  LoadLevel(ApplicationData('level_simple.x3dv'), false);
 end;
 
 class procedure TEventHandler.LoadLevelComplex(Sender: TObject);
 begin
-  LoadLevel(ApplicationData('level_complex.x3dv'));
+  LoadLevel(ApplicationData('level_complex.x3dv'), true);
 end;
 
 { One-time initialization of resources. }
@@ -108,7 +123,7 @@ var
 begin
   SceneManager := Window.SceneManager;
 
-  LoadLevel(ApplicationData('level_simple.x3dv'));
+  LoadLevel(ApplicationData('level_simple.x3dv'), false);
 
   SceneManager.NavigationType := ntWalk;
   // rotating by dragging would cause trouble when clicking to spawn boxes/spheres
@@ -191,7 +206,6 @@ begin
   if Event.IsMouseButton(mbLeft) then
   begin
     BoxCollider := TBoxCollider.Create(Level);
-    // TODO: assuming that box center is 0,0,0
     BoxCollider.Size := BoxTemplate.BoundingBox.Size;
     Spawn(BoxTemplate, BoxCollider);
   end;
@@ -199,7 +213,6 @@ begin
   if Event.IsMouseButton(mbRight) then
   begin
     SphereCollider := TSphereCollider.Create(Level);
-    // TODO: assuming that sphere center is 0,0,0
     SphereCollider.Radius := SphereTemplate.BoundingBox.Size.X / 2;
     Spawn(SphereTemplate, SphereCollider);
   end;
