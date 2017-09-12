@@ -352,6 +352,8 @@ begin
   else
     FKraft.SetRigidBodyType(krbtStatic);
 
+  if Collider = nil then
+    raise Exception.Create('You must assign TRigidBody.Collider');
   Collider.InitializeKraft(APhysics, FKraft);
   FKraft.GravityScale := Iff(Gravity, 1.0, 0.0);
   if 0 in FLockRotation then FKraft.Flags := FKraft.Flags + [krbfLockAxisX];

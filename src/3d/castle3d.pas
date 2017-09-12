@@ -1664,13 +1664,16 @@ type
       Setting this makes this object a single rigid body for the physics engine.
 
       If this property is assigned and the @link(TRigidBody.Dynamic) is @true
+      (which @link(TRigidBody.Dynamic) is @true by default)
       then this object is moved and rotated using the physics engine.
       It will move because of gravity (if @link(TRigidBody.Gravity)),
       and because of collisions with other objects.
 
-      Usually you want to also assign a @link(TRigidBody.Collider) instance.
-      Otherwise, the rigid body will not collide with anything,
-      and (if @link(TRigidBody.Dynamic)) it will simply fall down because of gravity.
+      Note that you must assign a @link(TRigidBody.Collider) instance first,
+      before assigning the @link(TRigidBody) instance to this property.
+      A rigid body without a collider would in theory not collide with anything,
+      and (if @link(TRigidBody.Dynamic)) would simply fall down because of gravity.
+      In practice, a rigid body without a collider is simply not allowed.
 
       @bold(This is an experimental API, subject to change in future releases.)
 
