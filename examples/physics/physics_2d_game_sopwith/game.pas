@@ -292,12 +292,13 @@ end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 begin
-  UpdatePlanePosition(Event.Position);
+  if Event.IsMouseButton(mbLeft) then
+    UpdatePlanePosition(Event.Position);
 end;
 
 procedure WindowMotion(Container: TUIContainer; const Event: TInputMotion);
 begin
-  if Event.Pressed <> [] then
+  if mbLeft in Event.Pressed then
     UpdatePlanePosition(Event.Position);
 end;
 
