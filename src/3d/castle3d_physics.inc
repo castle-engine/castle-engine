@@ -666,12 +666,21 @@ begin
         FKraftEngine.Step(PhysicsTimeStep);
       end;
 
-      { Kraft demo (sandbox) doesn't do this, but I think it's sensible:
-        the later line InterpolateWorldTransforms assumes that we calculated
-        "one time too many".
-        TODO: ask Kraft author about this. }
-      FKraftEngine.StoreWorldTransforms;
-      FKraftEngine.Step(PhysicsTimeStep);
+      { Kraft demo (sandbox) doesn't do this.
+        Also https://gafferongames.com/post/fix_your_timestep/ doesn't do this.
+        But as far as I understand this, to be 100% correct,
+        we should do one more FKraftEngine.Step, to later in InterpolateWorldTransforms
+        interpolate between "last fully reached state" and "future state, not yet reached
+        in 100%".
+
+        Also, we should remember that we did "one time too many" calls to "FKraftEngine.Step",
+        and next time do them one time less.
+
+        This complication seems not needed in practice, so I don't do it.
+        So, in the end I follow the same update pattern as Kraft sandbox
+        and https://gafferongames.com/post/fix_your_timestep/ :) }
+      // FKraftEngine.StoreWorldTransforms;
+      // FKraftEngine.Step(PhysicsTimeStep);
 
       FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
     end;
