@@ -668,21 +668,27 @@ begin
         FKraftEngine.Step(PhysicsTimeStep);
       end;
 
-      { Kraft demo (sandbox) doesn't do this.
-        Also https://gafferongames.com/post/fix_your_timestep/ doesn't do this.
-        But as far as I understand this, to be 100% correct,
-        we should do one more FKraftEngine.Step, to later in InterpolateWorldTransforms
-        interpolate between "last fully reached state" and "future state, not yet reached
-        in 100%".
+      { One can wonder why we do interpolate below between
+        - previous-to-last calculated physics state
+        - and the last calculated physics state
 
-        Also, we should remember that we did "one time too many" calls to "FKraftEngine.Step",
-        and next time do them one time less.
+        It seems that we should interpolate instead between
+        - the last calculated physics state
+        - and the "future" physics state, so we should make one more
+          "FKraftEngine.Step" call (and remember to make one less
+          "FKraftEngine.Step" call in the next loop run).
 
-        This complication seems not needed in practice, so I don't do it.
-        So, in the end I follow the same update pattern as Kraft sandbox
-        and https://gafferongames.com/post/fix_your_timestep/ :) }
-      // FKraftEngine.StoreWorldTransforms;
-      // FKraftEngine.Step(PhysicsTimeStep);
+        The contains an explanation:
+        http://web.archive.org/web/20160205035208/http://gafferongames.com/game-physics/fix-your-timestep/
+
+        """
+        You’re actually delaying the simulation by one frame
+        and then doing the interpolation to ensure smoothness.
+        """
+
+        (The original https://gafferongames.com/post/fix_your_timestep/ no longer
+        has comments.)
+      }
 
       FKraftEngine.InterpolateWorldTransforms(TimeAccumulator / PhysicsTimeStep);
     end;
