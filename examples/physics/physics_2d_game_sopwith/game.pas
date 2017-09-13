@@ -191,6 +191,12 @@ begin
   InitializeBoxScene;
   InitializeMissileScene;
 
+  { initialize the times, to pretend that we shot the missile/dropped the box
+    *right now*. This avoids shooting the 1st missile at 1st WindowUpdate,
+    when SecondsPassed are 0 (not known yet). }
+  BoxDropTime := Timer;
+  MissileShootTime := Timer;
+
   SceneManager.NavigationType := ntNone;
 
   Status := TCastleLabel.Create(Application);
