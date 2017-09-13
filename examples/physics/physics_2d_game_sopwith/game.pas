@@ -182,6 +182,8 @@ begin
   SceneManager.ProjectionHeight := 100; // matches height in Blender
   SceneManager.ProjectionAutoSize := false;
   SceneManager.Transparent := false;
+  // easy way to make the simulation feel more dynamic
+  SceneManager.TimeScale := 1.5;
   Window.Controls.InsertFront(SceneManager);
 
   LoadLevel;
