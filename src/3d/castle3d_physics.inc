@@ -423,7 +423,9 @@ procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
     if Dynamic then
       FKraftBody.SetRigidBodyType(krbtDynamic)
     else
-    if Animated then
+    { Our implementation of LockPosition requires updating
+      the transform every frame, so we should use krbtKinematic. }
+    if Animated or (LockPosition <> []) then
       FKraftBody.SetRigidBodyType(krbtKinematic)
     else
       FKraftBody.SetRigidBodyType(krbtStatic);
