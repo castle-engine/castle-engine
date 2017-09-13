@@ -2777,6 +2777,9 @@ end;
 
 function TExamineCamera.GetNavigationType: TNavigationType;
 begin
+  if Input = [] then
+    Result := ntNone
+  else
   if Turntable then
     Result := ntTurntable
   else
@@ -4378,6 +4381,9 @@ end;
 
 function TWalkCamera.GetNavigationType: TNavigationType;
 begin
+  if Input = [] then
+    Result := ntNone
+  else
   if Gravity then
     Result := ntWalk
   else

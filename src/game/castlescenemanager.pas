@@ -2591,7 +2591,7 @@ begin
     E.g. it means that SetCamera(nil) may recreate the camera,
     as BoundNavigationInfoChanged calls something that checks
     NavigationType. }
-  if (C = nil) or (C.Input = []) then
+  if C = nil then
     Result := ntNone
   else
     Result := C.GetNavigationType;
