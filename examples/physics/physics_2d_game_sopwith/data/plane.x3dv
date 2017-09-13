@@ -1,0 +1,9 @@
+#X3D V3.2 utf8
+PROFILE Interchange
+
+Shape {
+  appearance Appearance {
+    texture ImageTexture { url "plane.png" }
+  }
+  geometry Box { size }
+}
