@@ -32,6 +32,8 @@ type
   T3DOrient = class;
   T3DAlive = class;
 
+  ECannotAddToAnotherWorld = class(Exception);
+
   TRenderFromViewFunction = procedure of object;
 
   { Describe what visible thing changed for T3D.VisibleChangeHere. }
@@ -2671,8 +2673,11 @@ procedure T3D.AddToWorld(const Value: T3DWorld);
 begin
   Assert(Value <> nil);
   if FWorld <> Value then
-    ChangeWorld(Value)
-  else
+  begin
+    if FWorld <> nil then
+      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one world to another. This means that your object is part of SceneManager1.Items, and you are adding it to SceneManager2.Items. You have to remove it from SceneManager1.Items first.');
+    ChangeWorld(Value);
+  end else
     Inc(FWorldReferences);
 end;
 
