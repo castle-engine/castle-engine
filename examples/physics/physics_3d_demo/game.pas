@@ -131,6 +131,8 @@ begin
   SceneManager.WalkCamera.Input :=
     SceneManager.WalkCamera.Input - [ciMouseDragging];
   SceneManager.WalkCamera.HeadBobbing := 0; // looks bad
+  // easy way to make the simulation feel more dynamic
+  SceneManager.TimeScale := 2;
 
   BoxTemplate := TCastleScene.Create(Application);
   BoxTemplate.Load(ApplicationData('box.x3d'));
