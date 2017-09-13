@@ -4333,6 +4333,8 @@ begin
   end;
 
   if (MouseDraggingStarted <> -1) and
+    // Not need to check here ReallyEnableMouseDragging, as MouseDraggingStarted is already <> -1
+    // ReallyEnableMouseDragging and
     (MouseDragMode = mdRotate) and
     (not Animation) and
     (not MouseLook) then
