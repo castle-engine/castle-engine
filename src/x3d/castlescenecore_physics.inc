@@ -71,6 +71,9 @@ function TMeshCollider.CreateKraftShape(const APhysics: TKraft;
 var
   SI: TShapeTreeIterator;
 begin
+  if Scene = nil then
+    raise Exception.Create('You must assign a TMeshCollider.Scene to determine the mesh triangles');
+
   Mesh := TKraftMesh.Create(APhysics);
   SI := TShapeTreeIterator.Create(Scene.Shapes, true);
   try

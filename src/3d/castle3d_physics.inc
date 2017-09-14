@@ -48,18 +48,21 @@
 
     { Parent rigid body, which in turn refers to this collider
       by @link(TRigidBody.Collider).
-      You can always assign this property instead of assigning
-      the @link(TRigidBody.Collider). }
+
+      You can assign this property instead of assigning
+      the parent's @link(TRigidBody.Collider). These two properties
+      and automatically synchronized always, so that always
+      @code(RigidBody.Collider.Parent = RigidBody). }
     property Parent: TRigidBody read FParent write SetParent;
 
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
-      If you instead prefer to explicitly calculate mass, set @link(Mass)
-      to something non-zero. }
+      If you instead prefer to explicitly set mass, set @link(Mass)
+      property to something non-zero. }
     property Density: Single read FDensity write FDensity default DefaultDensity;
 
     { Mass in kg. When non-zero, this overrides the automatically calculated
-      mass from the volumes and @link(Density). }
+      mass from the volume and @link(Density). }
     property Mass: Single read FMass write FMass default DefaultMass;
 
     property Restitution: Single read FRestitution write FRestitution default DefaultRestitution;
