@@ -298,6 +298,7 @@ type
     FExists: boolean;
     FCollides: boolean;
     FPickable: boolean;
+    FVisible: boolean;
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
@@ -495,6 +496,11 @@ type
       May be modified in subclasses, to return something more complicated. }
     function GetPickable: boolean; virtual;
 
+    { Is item really visible, see @link(Visible).
+      It T3D class, returns @link(Visible) and @link(GetExists).
+      May be modified in subclasses, to return something more complicated. }
+    function GetVisible: boolean; virtual;
+
     { Is this object visible and colliding.
 
       Setting this to @false pretty much turns everything of this 3D object
@@ -514,8 +520,8 @@ type
       Internally, we keep a counter of how many times the object is disabled,
       and if this counter is <> 0 then GetExists returns @false.
       Using this is useful for taming collisions, especially to avoid self-collisions
-      (when a creature moves, it doesn't want to collide with other creatures,
-      but obviously it doesn't collide with it's own bounding volume).
+      (when a creature moves, it checks for collision with other creatures,
+      but it doesn't want to check for collisions with it's own bounding volume).
       @groupBegin }
     procedure Disable;
     procedure Enable;
@@ -566,6 +572,17 @@ type
       @noAutoLinkHere }
     property Pickable: boolean read FPickable write FPickable default true;
 
+    { Is item visible.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never visible).
+      This is independent from @link(Collides) or @link(Pickable).
+
+      Descendants may also override GetVisible method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Visible: boolean read FVisible write FVisible default true;
+
     { Bounding box of the 3D object.
 
       Should take into account both collidable and visible objects.
@@ -578,7 +595,7 @@ type
     function BoundingBox: TBox3D; virtual; abstract;
 
     { Render given object.
-      Should check and immediately exit when @link(Exists) is @false.
+      Should check and immediately exit when @link(GetVisible) is @false.
       Should render only parts with matching Params.Transparency
       and Params.ShadowVolumesReceivers values (it may be called
       more than once to render frame).
@@ -2329,6 +2346,7 @@ begin
   FExists := true;
   FCollides := true;
   FPickable := true;
+  FVisible := true;
   FCursor := mcDefault;
 end;
 
@@ -2639,6 +2657,11 @@ end;
 function T3D.GetPickable: boolean;
 begin
   Result := FPickable and GetExists;
+end;
+
+function T3D.GetVisible: boolean;
+begin
+  Result := FVisible and GetExists;
 end;
 
 function T3D.Middle: TVector3;
@@ -3013,7 +3036,7 @@ var
   I: Integer;
 begin
   inherited;
-  if GetExists then
+  if GetVisible then
   begin
     if GetChild <> nil then
       GetChild.Render(Frustum, Params);

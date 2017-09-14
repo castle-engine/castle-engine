@@ -1651,7 +1651,7 @@ begin
   { This is usually called by Render(Frustum, Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if GetExists and (InternalDirty = 0) and
+  if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
@@ -1710,7 +1710,7 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
-  if GetExists and CastShadowVolumes then
+  if GetVisible and CastShadowVolumes then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
@@ -1897,7 +1897,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   end;
 
 begin
-  if GetExists and (InternalDirty = 0) and
+  if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;
