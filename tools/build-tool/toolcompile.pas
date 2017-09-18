@@ -213,6 +213,14 @@ var
       end;
   end;
 
+  function IsIOS: boolean;
+  begin
+    Result :=
+      (OS = iphonesim) or
+      ((OS = darwin) and (CPU = arm)) or
+      ((OS = darwin) and (CPU = aarch64));
+  end;
+
   procedure AddIOSOptions;
   {$ifdef DARWIN}
   const
@@ -253,6 +261,8 @@ var
       FpcOptions.Add('-XR' + DeviceSdk);
       {$endif}
     end;
+
+    Assert(IOS = IsIOS);
 
     // options for all iOS platforms
     if IOS then
@@ -416,7 +426,20 @@ begin
     case Mode of
       cmRelease:
         begin
-          FpcOptions.Add('-O2');
+          { With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+            programs compiled with -O1 or -O2 crash at start.
+            Earlier engine version, Draw3x3 was doing something weird.
+            So disable optimizations.
+
+            This is confirmed to really be needed only on darwin/aarch64,
+            although Michalis simply never tested on darwin/arm.
+            For safety and consistency of testing, disable optimizations
+            on all iOS versions. }
+          //if (OS = darwin) and (CPU = aarch64) then
+          if IsIOS then
+            FpcOptions.Add('-O-')
+          else
+            FpcOptions.Add('-O2');
           FpcOptions.Add('-Xs');
           FpcOptions.Add('-dRELEASE');
         end;
@@ -426,7 +449,10 @@ begin
             - without -Xs
             - with -gv, -gl
             See ../../doc/profiling_howto.txt }
-          FpcOptions.Add('-O2');
+          if IsIOS then
+            FpcOptions.Add('-O-')
+          else
+            FpcOptions.Add('-O2');
           FpcOptions.Add('-dRELEASE');
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
