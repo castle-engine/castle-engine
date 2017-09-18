@@ -55,6 +55,7 @@ type
     FAndroidServices: TAndroidServiceList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
+    IOSTeam: string;
     procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -508,6 +509,12 @@ constructor TCastleProject.Create(const APath: string);
           ChildElement := Element.ChildElement('services', false);
           if ChildElement <> nil then
             FAndroidServices.ReadCastleEngineManifest(ChildElement);
+        end;
+
+        Element := Doc.DocumentElement.ChildElement('ios', false);
+        if Element <> nil then
+        begin
+          IOSTeam := Element.AttributeStringDef('team', '');
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -1419,7 +1426,8 @@ begin
   finally FreeAndNil(VersionComponentsString) end;
 
   if Author = '' then
-    NonEmptyAuthor := 'Unknown Author' else
+    NonEmptyAuthor := 'Unknown Author'
+  else
     NonEmptyAuthor := Author;
 
   Macros := TStringStringMap.Create;
@@ -1460,6 +1468,20 @@ begin
     // iOS specific stuff }
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
+    if IOSTeam <> '' then
+    begin
+      Macros.Add('IOS_TARGET_ATTRIBUTES',
+        CharTab + CharTab + CharTab + CharTab + 'TargetAttributes = {' + NL +
+        CharTab + CharTab + CharTab + CharTab + CharTab + '4D629DF31916B0EB0082689B = {' + NL +
+        CharTab + CharTab + CharTab + CharTab + CharTab + CharTab + 'DevelopmentTeam = ' + IOSTeam + ';' + NL +
+        CharTab + CharTab + CharTab + CharTab + CharTab + '};' + NL +
+        CharTab + CharTab + CharTab + CharTab + '};' + NL);
+      Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
+    end else
+    begin
+      Macros.Add('IOS_TARGET_ATTRIBUTES', '');
+      Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
+    end;
 
     // add CamelCase() replacements, add ${} around
     PreviousMacros := Macros.ToArray;
