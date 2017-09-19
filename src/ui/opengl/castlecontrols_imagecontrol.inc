@@ -15,6 +15,18 @@
 
 {$ifdef read_interface}
 
+  { Indicate stretching approach for @link(TCastleImageControl.ProportionalScaling). }
+  TProportionalScaling = (
+    { Adjust to the requested area, ignoring proportions. }
+    psNone,
+    { Adjust to the requested area, honoring proportions, such that the image
+      may be larger than the requested area. }
+    psEnclose,
+    { Adjust to the requested area, honoring proportions, such that the image
+      may be smaller than the requested area. }
+    psFit
+  );
+
   { Image control.
     Size is automatically adjusted to the image size, if Stretch is @false (default).
     You should set TCastleImageControl.Left, TCastleImageControl.Bottom properties,
@@ -31,7 +43,7 @@
     FGLImage: TGLImageCore;
     FAlphaChannel: TAutoAlphaChannel;
     FStretch: boolean;
-    FProportional: boolean;
+    FProportionalScaling: TProportionalScaling;
     FFullSize: boolean;
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -56,6 +68,8 @@
     procedure SetWidth(const Value: Cardinal);
     procedure SetHeight(const Value: Cardinal);
     procedure SetFullSize(const Value: boolean);
+    procedure SetProportionalScaling(const Value: TProportionalScaling);
+    function GetProportional: boolean;
     procedure SetProportional(const Value: boolean);
     procedure SetColor(const Value: TCastleColor);
     procedure SetSmoothScaling(const Value: boolean);
@@ -149,34 +163,48 @@
     { Size of the image control.
 
       If Stretch = @false, then values you set for Width, Height, FullSize,
-      Proportional properties do not matter (they are still remembered though,
+      ProportionalScaling properties do not matter (they are still remembered though,
       so you can set properties in any order).
       The displayed size (you can check it through @link(Rect) function)
       always corresponds to the underlying image size.
       The Left and Bottom properties work as usual, they allow you to move the control.
 
       If Stretch = @true, then the image will be stretched to fill the requested area.
+
       @unorderedList(
         @item(If Stretch = @true and FullSize = @true then values of Width,
           Height, Left, Bottom do not matter:
           image always fills the whole parent
           (@link(Rect) corresponds to the parent area).)
 
-        @item(Otherwise, if Stretch = @true and Proportional = @true,
-          then the image will be proportionally scaled to fit within
-          the requested Width and Height. If the aspect ratio of image
-          will be different than aspect ratio of Width/Height, the scaled image
-          will be centered inside the Width/Height.)
+        @item(If Stretch = @true and FullSize = @false then the property
+          ProportionalScaling determines how the the image will be adjusted
+          to fit the requested Width and Height.
 
-        @item(Otherwise, if Stretch = @true but no other condition
-          (so FullSize = @false and Proportional = @false)
-          then the image will be scaled to exactly fill
-          the requested Width and Height
-          (without paying attention to the aspect ratio of the image).
+          @definitionList(
+            @itemLabel psNone
+            @item(The image will be scaled to exactly fill
+              the requested Width and Height
+              (without paying attention to the aspect ratio of the image).
 
-          This is the case when you fully force the displayed size
-          and position, regardless of image size. Displayed image will
-          always exactly fill the requested area.
+              This is the case when you fully force the displayed size
+              and position, regardless of image size. Displayed image will
+              always exactly fill the requested area.)
+
+            @itemLabel psFit
+            @item(The image will be proportionally scaled to fit within
+              the requested Width and Height.
+              If the aspect ratio of image
+              will be different than aspect ratio of Width/Height, the scaled image
+              will be centered inside the Width/Height.)
+
+            @itemLabel psEnclose
+            @item(The image will be proportionally scaled to enclode
+              the requested Width and Height.
+              If the aspect ratio of image
+              will be different than aspect ratio of Width/Height, the scaled image
+              will be larger then the requested area.)
+          )
         )
       )
 
@@ -188,8 +216,12 @@
     property Width: Cardinal read FWidth write SetWidth default 0;
     property Height: Cardinal read FHeight write SetHeight default 0;
     property FullSize: boolean read FFullSize write SetFullSize default false;
-    property Proportional: boolean read FProportional write SetProportional default false;
+    property ProportionalScaling: TProportionalScaling
+      read FProportionalScaling write SetProportionalScaling default psNone;
     { @groupEnd }
+
+    property Proportional: boolean read GetProportional write SetProportional
+      stored false default false; deprecated 'use ProportionalScaling';
   end;
 
 {$endif read_interface}
@@ -330,7 +362,7 @@ begin
     FGLImage.ScaleCorners := UIScale;
     FGLImage.Draw3x3(SR, FCorners);
   end;
-  { Useful to debug that Proportional works.
+  { Useful to debug that ProportionalScaling works.
   if Stretch and not FullSize then
     Theme.Draw(Rectangle(Left, Bottom, Width, Height), tiActiveFrame, UIScale); }
 end;
@@ -353,9 +385,10 @@ begin
       Result := ParentRect;
       ApplyScaling := false;
     end else
-    if Proportional and (FImage <> nil) then
+    if (ProportionalScaling in [psFit, psEnclose]) and (FImage <> nil) then
     begin
-      if Width / Height > FImage.Width / FImage.Height then
+      if (ProportionalScaling = psFit) =
+         (Width / Height > FImage.Width / FImage.Height) then
       begin
         NewWidth := FImage.Width * Height div FImage.Height;
         NewLeft := Left + (Width - NewWidth) div 2;
@@ -433,7 +466,8 @@ end;
 procedure TCastleImageControl.SetBlending(const Value: boolean);
 begin
   if Value then
-    AlphaChannel := acBlending else
+    AlphaChannel := acBlending
+  else
     AlphaChannel := acTest;
 end;
 
@@ -446,11 +480,24 @@ begin
   end;
 end;
 
+function TCastleImageControl.GetProportional: boolean;
+begin
+  Result := ProportionalScaling <> psNone;
+end;
+
 procedure TCastleImageControl.SetProportional(const Value: boolean);
 begin
-  if FProportional <> Value then
+  if Value then
+    ProportionalScaling := psFit
+  else
+    ProportionalScaling := psNone;
+end;
+
+procedure TCastleImageControl.SetProportionalScaling(const Value: TProportionalScaling);
+begin
+  if FProportionalScaling <> Value then
   begin
-    FProportional := Value;
+    FProportionalScaling := Value;
     VisibleChange;
   end;
 end;
