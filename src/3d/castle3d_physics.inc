@@ -116,7 +116,7 @@
     FGravity: boolean;
     FDynamic: boolean;
     FAnimated: boolean;
-    FLockPosition: T3DCoords;
+    FLockTranslation: T3DCoords;
     FLockRotation: T3DCoords;
     FInitialAngularVelocity: TVector3;
     FInitialLinearVelocity: TVector3;
@@ -217,7 +217,7 @@
 
       For 2D games, you will usually want to disable motion along the Z axis.
       You can do this comfortably by calling @link(Setup2D). }
-    property LockPosition: T3DCoords read FLockPosition write FLockPosition;
+    property LockTranslation: T3DCoords read FLockTranslation write FLockTranslation;
 
     { Disable rotation (@link(T3DTransform.Rotation) change) along
       the particular (world) axis.
@@ -374,7 +374,7 @@ end;
 
 procedure TRigidBody.Setup2D;
 begin
-  LockPosition := [2];
+  LockTranslation := [2];
   LockRotation := [0, 1];
 end;
 
@@ -411,11 +411,21 @@ begin
   end;
 end;
 
+function ZeroLockedComponents(const V: TVector3;
+  const Locked: T3DCoords): TVector3;
+begin
+  Result := V;
+  if 0 in Locked then Result[0] := 0;
+  if 1 in Locked then Result[1] := 0;
+  if 2 in Locked then Result[2] := 0;
+end;
+
 procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
 
   procedure RecreateKraftInstance;
   var
     World: T3DWorld;
+    V: TVector3;
   begin
     World := Transform.World;
     World.InitializePhysicsEngine;
@@ -438,9 +448,12 @@ procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
 
     FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
     FKraftBody.ForcedMass := Collider.Mass;
-    if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisX];
-    if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisY];
-    if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockAxisZ];
+    if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
+    if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY];
+    if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ];
+    if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [kbrfLockTranslationAxisX];
+    if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [kbrfLockTranslationAxisY];
+    if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [kbrfLockTranslationAxisZ];
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
@@ -448,8 +461,16 @@ procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
     if (not InitialAngularVelocity.IsPerfectlyZero) or
        (not InitialLinearVelocity.IsPerfectlyZero) then
     begin
-      FKraftBody.AngularVelocity := VectorToKraft(InitialAngularVelocity);
-      FKraftBody.LinearVelocity := VectorToKraft(InitialLinearVelocity);
+      { The behaviour is more natural when we zero the InitialXxxVelocity
+        components that are locked. (Otherwise testing e.g. Setup2D in a 3D
+        world makes a little unexpected motions). }
+
+      V := ZeroLockedComponents(InitialAngularVelocity, FLockRotation);
+      FKraftBody.AngularVelocity := VectorToKraft(V);
+
+      V := ZeroLockedComponents(InitialLinearVelocity, FLockTranslation);
+      FKraftBody.LinearVelocity := VectorToKraft(V);
+
       FKraftBody.SetToAwake;
     end;
 
@@ -502,30 +523,16 @@ procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: 
     Q: TKraftQuaternion;
     Axis: TKraftVector3;
     Angle: TKraftScalar;
-    NewPos: TKraftVector3;
-    Body: TKraftRigidBody;
     Shape: TKraftShape;
   begin
-    Body := FKraftBody;
     Shape := FCollider.FKraftShape;
 
     Q := QuaternionFromMatrix4x4(Shape.InterpolatedWorldTransform);
     QuaternionToAxisAngle(Q, Axis, Angle);
     Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
 
-    NewPos := Shape.GetCenter(Shape.InterpolatedWorldTransform);
-    if LockPosition <> [] then
-    begin
-      { TODO: Kraft feature request for [LockPositionX / Y / Z]? }
-      // apply LockPosition to fix some NewPos coords
-      if 0 in LockPosition then NewPos.X := Transform.Translation[0];
-      if 1 in LockPosition then NewPos.Y := Transform.Translation[1];
-      if 2 in LockPosition then NewPos.Z := Transform.Translation[2];
-    end;
-    Transform.Translation := VectorFromKraft(NewPos);
-    if LockPosition <> [] then
-      // fix also position at Kraft side after fixing by LockPosition
-      Body.SetWorldTransformation(MatrixToKraft(Transform.Transform));
+    Transform.Translation := VectorFromKraft(
+      Shape.GetCenter(Shape.InterpolatedWorldTransform));
   end;
 
 begin
