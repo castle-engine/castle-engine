@@ -1,7 +1,7 @@
 (****************************************************************************** 
  *                            KRAFT PHYSICS ENGINE                            *
  ******************************************************************************
- *                        Version 2017-09-18-21-45-0000                       *
+ *                        Version 2017-09-19-14-07-0000                       *
  ******************************************************************************
  *                                zlib license                                *
  *============================================================================*
@@ -318,9 +318,9 @@ type PKraftForceMode=^TKraftForceMode;
                           krbfAllowSleep,
                           krbfAwake,
                           krbfActive,
-                          kbrfLockTranslationAxisX,
-                          kbrfLockTranslationAxisY,
-                          kbrfLockTranslationAxisZ,
+                          krbfLockTranslationAxisX,
+                          krbfLockTranslationAxisY,
+                          krbfLockTranslationAxisZ,
                           krbfLockRotationAxisX,
                           krbfLockRotationAxisY,
                           krbfLockRotationAxisZ,
@@ -25005,19 +25005,19 @@ procedure TKraftRigidBody.Finish;
 
     fInverseMass:=1.0/fMass;
 
-    if kbrfLockTranslationAxisX in fFlags then begin
+    if krbfLockTranslationAxisX in fFlags then begin
      fLinearFactor.x:=0.0;
     end else begin
      fLinearFactor.x:=1.0;
     end;
 
-    if kbrfLockTranslationAxisY in fFlags then begin
+    if krbfLockTranslationAxisY in fFlags then begin
      fLinearFactor.y:=0.0;
     end else begin
      fLinearFactor.y:=1.0;
     end;
 
-    if kbrfLockTranslationAxisZ in fFlags then begin
+    if krbfLockTranslationAxisZ in fFlags then begin
      fLinearFactor.z:=0.0;
     end else begin
      fLinearFactor.z:=1.0;

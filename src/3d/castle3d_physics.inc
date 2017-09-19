@@ -451,9 +451,9 @@ procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
     if 0 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisX];
     if 1 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisY];
     if 2 in FLockRotation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockRotationAxisZ];
-    if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [kbrfLockTranslationAxisX];
-    if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [kbrfLockTranslationAxisY];
-    if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [kbrfLockTranslationAxisZ];
+    if 0 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisX];
+    if 1 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisY];
+    if 2 in FLockTranslation then FKraftBody.Flags := FKraftBody.Flags + [krbfLockTranslationAxisZ];
     FKraftBody.Finish;
 
     UpdateCollides(Transform);
