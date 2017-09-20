@@ -17,21 +17,17 @@
 
 {$ifdef read_interface}
 
-  { Shape used for collision detection of a rigid body,
-    placed in @link(TRigidBody.Collider) property. }
-  TCollider = class(TComponent)
+  { Shape used for collision detection of a rigid body @link(TRigidBody). }
+  TCollider = class
   private
     FKraftShape: TKraftShape;
     FParent: TRigidBody;
     FDensity, FMass, FRestitution, FFriction: Single;
-    procedure SetParent(const Value: TRigidBody);
     procedure InitializeKraft(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody);
   strict protected
     function CreateKraftShape(const APhysics: TKraft;
       const ARigidBody: TKraftRigidBody): TKraftShape; virtual; abstract;
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     const
       { Default for @link(Density). }
@@ -43,17 +39,18 @@
       { Default for @link(Friction). }
       DefaultFriction = 0.5;
 
-    constructor Create(AOwner: TComponent); override;
+    { Create a collider, and set the parent rigid body.
+      The collider instance is @bold(owned) by the @link(TRigidBody) instance,
+      so will be freed when the @link(TRigidBody) is freed.
+      This automatically sets the
+      @link(TRigidBody.Collider) property and
+      @link(TCollider.Parent) property. }
+    constructor Create(const AParent: TRigidBody);
     destructor Destroy; override;
 
     { Parent rigid body, which in turn refers to this collider
-      by @link(TRigidBody.Collider).
-
-      You can assign this property instead of assigning
-      the parent's @link(TRigidBody.Collider). These two properties
-      and automatically synchronized always, so that always
-      @code(RigidBody.Collider.Parent = RigidBody). }
-    property Parent: TRigidBody read FParent write SetParent;
+      by @link(TRigidBody.Collider). }
+    property Parent: TRigidBody read FParent;
 
     { Density (per volume) in kg, this implicitly determines mass
       (volume is automatically calculated by the physics engine).
@@ -121,10 +118,7 @@
     FInitialAngularVelocity: TVector3;
     FInitialLinearVelocity: TVector3;
     FRecreateKraftInstance: boolean;
-    procedure SetCollider(const Value: TCollider);
     procedure UpdateCollides(const Transform: T3DTransform);
-  protected
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -206,8 +200,11 @@
     }
     property Animated: boolean read FAnimated write FAnimated default false;
 
-    { Shape used for collisions with this object. }
-    property Collider: TCollider read FCollider write SetCollider;
+    { Shape used for collisions with this object.
+      You cannot assign this property directly,
+      it is automatically assigned when you create a @link(TCollider)
+      specifying this @link(TRigidBody) as it's parent. }
+    property Collider: TCollider read FCollider;
 
     { Is this object affected by gravity. }
     property Gravity: boolean read FGravity write FGravity default true;
@@ -260,48 +257,19 @@ end;
 
 { TCollider ------------------------------------------------------------------ }
 
-constructor TCollider.Create(AOwner: TComponent);
+constructor TCollider.Create(const AParent: TRigidBody);
 begin
-  inherited;
+  inherited Create;
 
   // properties defaults
   FDensity := DefaultDensity;
   FMass := DefaultMass;
   FRestitution := DefaultRestitution;
   FFriction := DefaultFriction;
-end;
 
-procedure TCollider.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent = FParent) then
-    { set to nil by SetParent to clean nicely }
-    Parent := nil;
-end;
-
-procedure TCollider.SetParent(const Value: TRigidBody);
-var
-  OldParent: TRigidBody;
-begin
-  if FParent <> Value then
-  begin
-    OldParent := FParent;
-    FParent := Value;
-    { update OldParent.Collider after actually changing FParent,
-      this way we avoid infinite loop when both TCollider and TRigidBody
-      try to set each other to nil. }
-    if OldParent <> nil then
-    begin
-      if OldParent.Collider = Self then
-        OldParent.Collider := nil;
-      OldParent.RemoveFreeNotification(Self);
-    end;
-    if FParent <> nil then
-    begin
-      FParent.FreeNotification(Self);
-      FParent.Collider := Self;
-    end;
-  end;
+  FParent := AParent;
+  FreeAndNil(FParent.FCollider);
+  FParent.FCollider := Self;
 end;
 
 procedure TCollider.InitializeKraft(const APhysics: TKraft;
@@ -317,9 +285,6 @@ end;
 
 destructor TCollider.Destroy;
 begin
-  { set to nil by SetParent, to detach free notification }
-  Parent := nil;
-
   // FreeAndNil(FKraftShape); // do not free here, TKraftShape is owned by TKraftRigidBody
   inherited;
 end;
@@ -365,10 +330,7 @@ end;
 destructor TRigidBody.Destroy;
 begin
   FreeAndNil(FKraftBody);
-
-  { set to nil by SetCollider, to detach free notification }
-  Collider := nil;
-
+  FreeAndNil(FCollider);
   inherited;
 end;
 
@@ -376,39 +338,6 @@ procedure TRigidBody.Setup2D;
 begin
   LockTranslation := [2];
   LockRotation := [0, 1];
-end;
-
-procedure TRigidBody.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  if (Operation = opRemove) and (AComponent = FCollider) then
-    { set to nil by SetCollider to clean nicely }
-    Collider := nil;
-end;
-
-procedure TRigidBody.SetCollider(const Value: TCollider);
-var
-  OldCollider: TCollider;
-begin
-  if FCollider <> Value then
-  begin
-    OldCollider := FCollider;
-    FCollider := Value;
-    { update OldCollider.Parent after actually changing FCollider,
-      this way we avoid infinite loop when both TCollider and TRigidBody
-      try to set each other to nil. }
-    if OldCollider <> nil then
-    begin
-      if OldCollider.Parent = Self then
-        OldCollider.Parent := nil;
-      OldCollider.RemoveFreeNotification(Self);
-    end;
-    if FCollider <> nil then
-    begin
-      FCollider.FreeNotification(Self);
-      FCollider.Parent := Self;
-    end;
-  end;
 end;
 
 function ZeroLockedComponents(const V: TVector3;

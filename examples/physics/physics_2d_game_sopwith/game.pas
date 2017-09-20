@@ -84,10 +84,8 @@ procedure ApplicationInitialize;
     RigidBody.Dynamic := false;
     RigidBody.Setup2D; // not really needed for objects with Dynamic = false
 
-    Collider := TMeshCollider.Create(Scene);
+    Collider := TMeshCollider.Create(RigidBody);
     Collider.Scene := Scene;
-    // equivalent to "RigidBody.Collider := Collider;"
-    Collider.Parent := RigidBody;
 
     { assign this only once RigidBody and Collider
       are fully configured, this initializes physics engine }
@@ -115,10 +113,8 @@ procedure ApplicationInitialize;
     RigidBody.Animated := true;
     RigidBody.Setup2D; // not really needed for objects with Dynamic = false
 
-    Collider := TBoxCollider.Create(Scene);
+    Collider := TBoxCollider.Create(RigidBody);
     Collider.Size := Scene.BoundingBox.Size;
-    // equivalent to "RigidBody.Collider := Collider;"
-    Collider.Parent := RigidBody;
 
     { assign this only once RigidBody and Collider
       are fully configured, this initializes physics engine }
@@ -227,11 +223,9 @@ procedure WindowUpdate(Container: TUIContainer);
     RigidBody := TRigidBody.Create(Transform);
     RigidBody.Setup2D;
 
-    Collider := TBoxCollider.Create(Transform);
+    Collider := TBoxCollider.Create(RigidBody);
     Collider.Size := BoxScene.BoundingBox.Size;
     Collider.Mass := 10;
-    // equivalent to "RigidBody.Collider := Collider;"
-    Collider.Parent := RigidBody;
 
     { assign this only once RigidBody and Collider
       are fully configured, this initializes physics engine }
@@ -256,11 +250,9 @@ procedure WindowUpdate(Container: TUIContainer);
     RigidBody.Setup2D;
     RigidBody.InitialLinearVelocity := Vector3(100, 0, 0);
 
-    Collider := TSphereCollider.Create(Transform);
+    Collider := TSphereCollider.Create(RigidBody);
     Collider.Radius := MissileScene.BoundingBox.Size.X / 2;
     Collider.Mass := 10;
-    // equivalent to "RigidBody.Collider := Collider;"
-    Collider.Parent := RigidBody;
 
     { assign this only once RigidBody and Collider
       are fully configured, this initializes physics engine }

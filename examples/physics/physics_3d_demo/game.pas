@@ -35,24 +35,23 @@ var
 
 procedure LoadLevel(const URL: string; const MeshCollider: boolean);
 
-  function CreatePlaneCollider: TPlaneCollider;
+  function CreatePlaneCollider(const ParentBody: TRigidBody): TPlaneCollider;
   begin
-    Result := TPlaneCollider.Create(LevelScene);
+    Result := TPlaneCollider.Create(ParentBody);
     Result.Normal := Vector3(0, 1, 0);
     Result.Distance := 0;
     Result.Restitution := 0.3;
   end;
 
-  function CreateMeshCollider: TMeshCollider;
+  function CreateMeshCollider(const ParentBody: TRigidBody): TMeshCollider;
   begin
-    Result := TMeshCollider.Create(LevelScene);
+    Result := TMeshCollider.Create(ParentBody);
     Result.Scene := LevelScene;
     Result.Restitution := 0.3;
   end;
 
 var
   LevelBody: TRigidBody;
-  LevelCollider: TCollider;
   MoveLimit: TBox3D;
 begin
   { free previous level, which also frees all related rigid bodies }
@@ -82,11 +81,9 @@ begin
   LevelBody.Dynamic := false;
 
   if MeshCollider then
-    LevelCollider := CreateMeshCollider
+    CreateMeshCollider(LevelBody)
   else
-    LevelCollider := CreatePlaneCollider;
-  // equivalent to "LevelBody.Collider := LevelCollider;"
-  LevelCollider.Parent := LevelBody;
+    CreatePlaneCollider(LevelBody);
 
   { assign this only once LevelBody and LevelCollider
     are fully configured, this initializes physics engine }
@@ -172,12 +169,12 @@ end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 
-  procedure Spawn(const Template: TCastleScene; const Collider: TCollider);
+  procedure Spawn(const Template: TCastleScene; const Collider: TCollider;
+    const RigidBody: TRigidBody);
   var
     Scene: TCastleScene;
     Transform: T3DTransform;
     CameraPos, CameraDir, CameraUp: TVector3;
-    RigidBody: TRigidBody;
   begin
     Scene := Template.Clone(Level);
 
@@ -189,14 +186,13 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 
     SceneManager.Items.Add(Transform);
 
-    RigidBody := TRigidBody.Create(Scene);
-    RigidBody.Collider := Collider;
     RigidBody.InitialLinearVelocity := CameraDir * 4.0;
     Transform.RigidBody := RigidBody;
   end;
 
 var
   C: TWalkCamera;
+  RigidBody: TRigidBody;
   BoxCollider: TBoxCollider;
   SphereCollider: TSphereCollider;
 begin
@@ -208,21 +204,25 @@ begin
 
   if Event.IsMouseButton(mbLeft) then
   begin
-    BoxCollider := TBoxCollider.Create(Level);
+    RigidBody := TRigidBody.Create(BoxTemplate);
+
+    BoxCollider := TBoxCollider.Create(RigidBody);
     BoxCollider.Size := BoxTemplate.BoundingBox.Size;
     BoxCollider.Restitution := 0.3;
     BoxCollider.Density := 100.0;
-    Spawn(BoxTemplate, BoxCollider);
+    Spawn(BoxTemplate, BoxCollider, RigidBody);
   end;
 
   if Event.IsMouseButton(mbRight) then
   begin
-    SphereCollider := TSphereCollider.Create(Level);
+    RigidBody := TRigidBody.Create(SphereTemplate);
+
+    SphereCollider := TSphereCollider.Create(RigidBody);
     SphereCollider.Radius := SphereTemplate.BoundingBox.Size.X / 2;
     SphereCollider.Friction := 0.4;
     SphereCollider.Restitution := 0.2;
     SphereCollider.Density := 20.0;
-    Spawn(SphereTemplate, SphereCollider);
+    Spawn(SphereTemplate, SphereCollider, RigidBody);
   end;
 end;
 
