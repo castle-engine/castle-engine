@@ -278,7 +278,7 @@ begin
       Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
 
       CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
-      CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(ProjectionMatrix);
+      CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
       CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
       CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
       CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
