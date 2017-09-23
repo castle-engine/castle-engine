@@ -53,6 +53,8 @@ procedure CompileIOS(const Plugin: boolean;
   begin
     Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile, SearchPaths);
 
+    { now use libtool to create a static library .a }
+
     CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
     LinkRes := CompilationOutput + 'link.res';
     if not FileExists(LinkRes) then

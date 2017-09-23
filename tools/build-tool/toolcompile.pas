@@ -268,6 +268,7 @@ var
     if IOS then
     begin
       FpcOptions.Add('-Cn');
+
       { This corresponds to the iOS version used when compiling FPC 3.0.3 RTL
         from the latest official FPC release for iOS.
         With -WP5.1, I got a lot of warnings that FPC RTL was for iOS 7.0.
@@ -275,7 +276,29 @@ var
         clang: error: -fembed-bitcode is not supported on versions of iOS prior to 6.0
       }
       FpcOptions.Add('-WP7.0');
-      { TODO: this option is probably useless for now, since we pass -Cn
+
+      { This option is actually ununsed, since we pass -Cn
+        and later create the library manually.
+
+        Add -w to ignore linker warnings
+
+        This seems the only way to get rid of XCode (>= 8.3) linker errors when
+        compiling iOS project. The error is
+
+          Warning:pointer not aligned at address...
+
+        and it is caused when compiling x86 code for iPhone Simulator.
+        The error is inside FPC RTL, FPC developers consider this warning
+        unnecessary, aligning the relevant structured would be wasteful:
+        https://bugs.freepascal.org/view.php?id=31696
+
+        See more:
+        https://forum.lazarus.freepascal.org/index.php?topic=36978.0
+        https://stackoverflow.com/questions/41229076/project-settings-recommends-compiler-warning-suspicious-moves
+      }
+      //FpcOptions.Add('-k-w');
+
+      { This option is actually ununsed, since we pass -Cn
         and later create the library manually. }
       FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'libcge_ios_project_unused.a');
     end;
