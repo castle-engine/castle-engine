@@ -332,6 +332,12 @@ var
     (e.g. you can assign to another TCastleStringList instance). }
   Parameters: TParameters;
 
+{ Return a multiline command-line option help,
+  containing the option name and description,
+  nicely indented and broken into multiple lines.
+  Existing newlines in Description are correctly accounted for. }
+function OptionDescription(const Name, Description: string): string;
+
 implementation
 
 function OptionSeparateArgumentToCount(const v: TOptionSeparateArgument): Integer; forward;
@@ -667,6 +673,26 @@ end;
 procedure FinalizationParams;
 begin
   FreeAndNil(Parameters);
+end;
+
+function OptionDescription(const Name, Description: string): string;
+const
+  MaxLineWidth = 75;
+  Indent = 24;
+  NameIndent = 2;
+var
+  PadLength: Integer;
+begin
+  Result := StringOfChar(' ', NameIndent) + Name;
+  PadLength := Indent - Length(Result);
+  if PadLength > 0 then
+    { option name and first line of description can fit on a single line }
+    Result := Result + StringOfChar(' ', PadLength)
+  else
+    Result := Result + NL + StringOfChar(' ', Indent);
+
+  Result := Result + BreakLine(Description, MaxLineWidth - Indent, WhiteSpaces,
+    NL, StringOfChar(' ', Indent));
 end;
 
 initialization

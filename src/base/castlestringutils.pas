@@ -172,13 +172,13 @@ procedure StringReplaceAllVar(var S: string;
   IgnoreCase: boolean = true); overload;
 
 { Insert newline characters into string S, such that each line
-  has at most MaxCol chars. Newline characters inserted is @link(NL).
+  has at most MaxCol chars.
 
-  It tries to insert NL at the last character in OnBreakChars but still
-  before MaxCol limit, and the character in OnBreakChars is deleted in this case.
+  It tries to insert newline sequence at the last character in AllowedBreakChars but still
+  before MaxCol limit, and the character in AllowedBreakChars is deleted in this case.
   In other words, in most typical situation it simply breaks the string
   where the whitespace is, trying to make the line as long as possible within
-  MaxCol limit. If no such character in OnBreakChars is found (e.g., you
+  MaxCol limit. If no such character in AllowedBreakChars is found (e.g., you
   put a long line of non-white characters), it will still break the string
   at MaxCol position (so in this exceptional case, it will cause a break
   in the middle of the word).
@@ -190,9 +190,17 @@ procedure StringReplaceAllVar(var S: string;
   This intelligently recognizes already
   existing newline characters (#13, #10, #13#10 or #10#13) in the string,
   so e.g. it will not insert more newline characters when they are not
-  necessary. }
-function BreakLine(const s: string; MaxCol: integer;
-  onbreakChars: TSetOfChars = WhiteSpaces): string; overload;
+  necessary.
+
+  The Indent is added after every newline.
+  This is a bit more powerful than simply specyfing Newline parameter
+  as @code(NL + Indent), because this function also adds Indent after existing
+  newlines in the input string. }
+function BreakLine(const s: string; const MaxCol: integer;
+  const AllowedBreakChars: TSetOfChars = WhiteSpaces): string; overload;
+function BreakLine(const s: string; const MaxCol: integer;
+  const AllowedBreakChars: TSetOfChars;
+  const Newline: string; const Indent: string): string; overload;
 
 { Returns S with all chars in ExcludedChars deleted. }
 function SDeleteChars(const s: string; const excludedChars: TSetOfChars): string;
@@ -1178,14 +1186,25 @@ begin
     s := StringReplace(s, FromPattern, ToPattern, [rfReplaceAll]);
 end;
 
-function BreakLine(const s: string; MaxCol: integer; onbreakChars: TSetOfChars): string;
+function BreakLine(const S: string; const MaxCol: integer;
+  const AllowedBreakChars: TSetOfChars): string;
+begin
+  Result := BreakLine(S, MaxCol, AllowedBreakChars, NL, '');
+end;
+
+function BreakLine(const S: string; const MaxCol: integer;
+  const AllowedBreakChars: TSetOfChars;
+  const Newline: string; const Indent: string): string;
 var
   done: integer;
   nowcol, i, brk: integer;
   BrokenSuccess: boolean;
-const
-  breakingstr = nl;
 begin
+  // WrapText is not perfect, in looks for AllowedBreakChars after MaxCol.
+  // It also doesn't have Indent that is added to existing newlines.
+  // Result := WrapText(S, Newline, AllowedBreakChars, MaxCol);
+  // Exit;
+
   Done := 0;
   Result := '';
 
@@ -1199,7 +1218,7 @@ begin
         #13 : if SCharIs(s, i+1, #10) then Inc(i);
         #10 : if SCharIs(s, i+1, #13) then Inc(i);
       end;
-      Result := Result + CopyPos(s, Done+1, i);
+      Result := Result + CopyPos(s, Done+1, i) + Indent;
       Done := i;
     end else
     begin
@@ -1209,18 +1228,18 @@ begin
         { we got line s[done+1..i] that we have to break somewhere. }
         BrokenSuccess := false;
         for brk := i downto Done + 1 do
-          if s[brk] in OnBreakChars then
+          if s[brk] in AllowedBreakChars then
           begin
-            Result := Result + CopyPos(s, Done+1, Brk-1) + BreakingStr;
+            Result := Result + CopyPos(s, Done+1, Brk-1) + Newline + Indent;
             Done := brk; { we left the rest : s[brk+1..i] to be done }
-            Break;
             BrokenSuccess := true;
+            Break;
           end;
         if not BrokenSuccess then
         begin
-          { ups ! it can't be broken - no onbreakChars found ! so we break after
+          { ups ! it can't be broken - no AllowedBreakChars found ! so we break after
             done+maxcol position. }
-          Result := Result + Copy(s, Done+1, MaxCol) + BreakingStr;
+          Result := Result + Copy(s, Done+1, MaxCol) + Newline + Indent;
           Done := Done + MaxCol;
         end;
       end;
