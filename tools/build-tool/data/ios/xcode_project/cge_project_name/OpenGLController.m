@@ -195,7 +195,7 @@
 }
 
 //-----------------------------------------------------------------
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+- (void)TouchesEndedOrCancelled:(NSSet *)touches
 {
     for (UITouch *touch in touches)
     {
@@ -206,27 +206,21 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
+        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
     }
+}
 
+//-----------------------------------------------------------------
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
+{
+    [self TouchesEndedOrCancelled:touches];
     [super touchesEnded:touches withEvent:event];
 }
 
 //-----------------------------------------------------------------
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    for (UITouch *touch in touches)
-    {
-        NSInteger nFingerIdx = [self IndexOfTouch:touch];
-        if (nFingerIdx == -1) continue;
-
-        m_arrTouches[nFingerIdx] = nil;
-
-        CGPoint pt = [touch locationInView:self.view];
-        [self RecalcTouchPosForCGE:&pt];
-        CGEApp_MouseUp(pt.x, pt.y, true, (int)nFingerIdx);
-    }
-
+    [self TouchesEndedOrCancelled:touches];
     [super touchesCancelled:touches withEvent:event];
 }
 

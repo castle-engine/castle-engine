@@ -53,7 +53,7 @@ procedure CGEApp_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl;
 procedure CGEApp_Update; cdecl;
 procedure CGEApp_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
-procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
@@ -471,16 +471,20 @@ begin
   end;
 end;
 
-procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
+  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 var
   MyButton: TMouseButton;
 begin
   try
     CheckMainWindow;
-    if (bLeftBtn) then MyButton := mbLeft else MyButton := mbRight;
-    Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex);
+    if bLeftBtn then
+      MyButton := mbLeft
+    else
+      MyButton := mbRight;
+    Application.MainWindow.DoMouseUp(Vector2(X, Y), MyButton, FingerIndex, TrackReleased);
   except
-    on E: TObject do WritelnWarning('CGEApp_TouchUp', ExceptMessage(E));
+    on E: TObject do WritelnWarning('CGEApp_MouseUp', ExceptMessage(E));
   end;
 end;
 

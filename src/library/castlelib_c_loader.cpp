@@ -49,7 +49,7 @@ typedef void (CDECL *PFNRD_CGE_Update)();
 
 typedef void (CDECL *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn, int nFingerIdx);
 typedef void (CDECL *PFNRD_CGE_Motion)(int x, int y, int nFingerIdx);
-typedef void (CDECL *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx);
+typedef void (CDECL *PFNRD_CGE_MouseUp)(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased);
 typedef void (CDECL *PFNRD_CGE_MouseWheel)(float zDelta, bool bVertical);
 
 typedef void (CDECL *PFNRD_CGE_KeyDown)(int eKey);
@@ -241,10 +241,10 @@ void CGE_Motion(int x, int y, int nFingerIdx)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx)
+void CGE_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool trackReleased)
 {
 	if (pfrd_CGE_MouseUp!=NULL)
-		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn, nFingerIdx);
+		(*pfrd_CGE_MouseUp)(x, y, bLeftBtn, nFingerIdx, trackReleased);
 }
 
 //-----------------------------------------------------------------------------

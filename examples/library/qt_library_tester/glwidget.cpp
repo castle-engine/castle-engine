@@ -154,7 +154,7 @@ void GLWidget::mouseMoveEvent(QMouseEvent *event)
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    CGE_MouseUp(event->x(), height() - 1 - event->y(), event->button()==Qt::LeftButton, 0);
+    CGE_MouseUp(event->x(), height() - 1 - event->y(), event->button()==Qt::LeftButton, 0, true);
 }
 
 #ifndef QT_NO_WHEELEVENT
