@@ -19,4 +19,4 @@ android:
 
 .PHONY: ios
 ios:
-	castle-engine --mode=$(MODE) package --target=iOS
+	castle-engine --mode=$(MODE) package --target=iOS --fast
