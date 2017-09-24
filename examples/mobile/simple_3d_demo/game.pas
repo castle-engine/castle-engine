@@ -45,12 +45,13 @@ var
   ProgressButton: TCastleButton;
   ReopenContextButton: TCastleButton;
   ToggleTextureUpdatesButton: TCastleButton;
-  PlaySoundButton: TCastleButton;
+  PlaySoundWavButton: TCastleButton;
+  PlaySoundOggButton: TCastleButton;
 
   MyShaderEffect: TEffectNode;
   MyScreenEffect: TScreenEffectNode;
 
-  SoundBuffer1, SoundBuffer2: TSoundBuffer;
+  SoundBufferWav, SoundBufferOgg: TSoundBuffer;
 
 type
   TDummy = class
@@ -63,7 +64,8 @@ type
     class procedure ReopenContextClick(Sender: TObject);
     class procedure ToggleTextureUpdates(Sender: TObject);
     class procedure ToggleTextureUpdatesCallback(Node: TX3DNode);
-    class procedure PlaySound(Sender: TObject);
+    class procedure PlaySoundWav(Sender: TObject);
+    class procedure PlaySoundOgg(Sender: TObject);
   end;
 
 class procedure TDummy.ToggleShaderClick(Sender: TObject);
@@ -175,11 +177,14 @@ begin
     TGeneratedCubeMapTextureNode, @ToggleTextureUpdatesCallback, false);
 end;
 
-class procedure TDummy.PlaySound(Sender: TObject);
+class procedure TDummy.PlaySoundWav(Sender: TObject);
 begin
-  if Random < 0.5 then
-    SoundEngine.PlaySound(SoundBuffer1) else
-    SoundEngine.PlaySound(SoundBuffer2);
+  SoundEngine.PlaySound(SoundBufferWav);
+end;
+
+class procedure TDummy.PlaySoundOgg(Sender: TObject);
+begin
+  SoundEngine.PlaySound(SoundBufferOgg);
 end;
 
 procedure FindFilesCallback(const FileInfo: TFileInfo; Data: Pointer; var StopSearch: boolean);
@@ -297,12 +302,19 @@ begin
   Window.Controls.InsertFront(ToggleTextureUpdatesButton);
   AnchorNextButton(ToggleTextureUpdatesButton);
 
-  PlaySoundButton := TCastleButton.Create(Window);
-  PlaySoundButton.Caption := 'Play Sound';
-  PlaySoundButton.OnClick := @TDummy(nil).PlaySound;
-  PlaySoundButton.Anchor(hpRight, -Margin);
-  Window.Controls.InsertFront(PlaySoundButton);
-  AnchorNextButton(PlaySoundButton);
+  PlaySoundWavButton := TCastleButton.Create(Window);
+  PlaySoundWavButton.Caption := 'Play Sound (Wav)';
+  PlaySoundWavButton.OnClick := @TDummy(nil).PlaySoundWav;
+  PlaySoundWavButton.Anchor(hpRight, -Margin);
+  Window.Controls.InsertFront(PlaySoundWavButton);
+  AnchorNextButton(PlaySoundWavButton);
+
+  PlaySoundOggButton := TCastleButton.Create(Window);
+  PlaySoundOggButton.Caption := 'Play Sound (Ogg Vorbis)';
+  PlaySoundOggButton.OnClick := @TDummy(nil).PlaySoundOgg;
+  PlaySoundOggButton.Anchor(hpRight, -Margin);
+  Window.Controls.InsertFront(PlaySoundOggButton);
+  AnchorNextButton(PlaySoundOggButton);
 
   MyShaderEffect := Window.SceneManager.MainScene.RootNode.TryFindNodeByName(
     TEffectNode, 'MyShaderEffect', false) as TEffectNode;
@@ -320,8 +332,14 @@ begin
   FindFiles(ApplicationData('') + 'textures/castle', '*', true, @FindFilesCallback, nil, [ffRecursive]);
   FindFiles(ApplicationData('') + 'textures/castle/', '*', true, @FindFilesCallback, nil, [ffRecursive]);
 
-  SoundBuffer1 := SoundEngine.LoadBuffer(ApplicationData('sounds/werewolf_howling.wav'));
-  SoundBuffer2 := SoundEngine.LoadBuffer(ApplicationData('sounds/player_potion_drink.wav'));
+  SoundBufferWav := SoundEngine.LoadBuffer(ApplicationData('sounds/player_potion_drink.wav'));
+
+  try
+    SoundBufferOgg := SoundEngine.LoadBuffer(ApplicationData('sounds/werewolf_howling.ogg'));
+  except
+    on E: ESoundFileError do
+      WritelnWarning('OggVorbis loading failed: ' + E.Message);
+  end;
 end;
 
 procedure WindowRender(Container: TUIContainer);
