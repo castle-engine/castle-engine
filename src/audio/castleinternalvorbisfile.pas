@@ -1,8 +1,10 @@
-{ API of vorbisfile library. Usually libvorbisfile.so under Unixes
-  or vorbisfile.dll under Windows. This is just a quick translation
-  of /usr/include/vorbis/vorbisfile.h header.
+{ API of vorbisfile / tremolo library.
+  Usually called libvorbisfile.so under Unixes or vorbisfile.dll under Windows.
+  On ARM devices (Android, iOS) this uses the Tremolo,
+  http://wss.co.uk/pinknoise/tremolo/ , which is like vorbisfile but better for mobile devices.
+  This started as a translation of /usr/include/vorbis/vorbisfile.h header.
 
-  @exclude (This is only a C header translation (no nice PasDoc docs),
+  @exclude (This unit is only a C header translation (it has no nice PasDoc docs),
   and also this is internal.) }
 unit CastleInternalVorbisFile;
 

@@ -31,18 +31,9 @@ uses CastleUtils, CastleInternalVorbisFile, CastleinternalvorbisCodec, CTypes;
 
 { VorbisDecoder_ callbacks code based on Noeska code from
   [http://www.noeska.com/doal/tutorials.aspx].
-  I (Michalis) heavily modified it (e.g. to allow exceptions raising in case of
+  Heavily modified for CGE (e.g. to allow exceptions raising in case of
   stream errors (instead of silencing these exceptions), to check (ReadCount mod
-  Size) in read_func and whence in seek_func, close does nothing),
-  but still the idea remains.
-
-  I made my own CastleInternalVorbisFile header, and later realized that actually
-  someone already did something similar...
-  But from the first glance, JEDI VorbisFile
-  header shows some problems --- as usual, the JEDI guys don't have a clue
-  about FPC or any OS that isn't Windows. Besides, my CastleInternalVorbisFile will not
-  cause exception at initialization if vorbisfile will not be installled ---
-  this is crucial for me. So I will continue using my own CastleInternalVorbisFile unit. }
+  Size) in read_func and whence in seek_func, close does nothing). }
 
 function VorbisDecoder_read_func(ptr: Pointer;
   Size: TSizeT; nmemb: TSizeT; DataSource: Pointer): TSizeT; cdecl;
