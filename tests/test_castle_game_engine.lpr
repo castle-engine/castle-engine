@@ -73,7 +73,8 @@ uses
   TestCastleCurves,
   TestCastleTimeUtils,
   TestCastleControls,
-  TestCastleRandom
+  TestCastleRandom,
+  TestCastleSoundEngine
 
   {$ifdef TEXT_RUNNER} {$ifndef NO_WINDOW_SYSTEM},
   TestCastleWindow,

@@ -43,6 +43,15 @@ type
   @raises EOpenALInitError If ALInitialized is @false. }
 procedure CheckALInitialized;
 
+{ Load the sound from given URL using TSoundFile,
+  load it's contents to the OpenAL buffer Buffer.
+
+  @raises(ESoundFileError If loading of this sound file failed.
+    See @link(TSoundFile.CreateFromFile) for various possibible
+    reasons when this may be raised.) }
+procedure alBufferDataFromFile(Buffer: TALuint; const URL: string;
+  out Duration: TFloatTime);
+
 { ---------------------------------------------------------------------------- }
 { @section(Error checking) }
 
@@ -67,33 +76,6 @@ type
 
 { @raises(EALError if alGetError returned something <> AL_NO_ERROR) }
 procedure CheckAL(const situation: string);
-
-{ ---------------------------------------------------------------------------- }
-{ @section(TALSoundFile) }
-
-type
-  { }
-  TALSoundFile = class
-  private
-    FSoundFile: TSoundFile;
-    FOwnsSoundFile: boolean;
-  public
-    { Creates TALSoundFile, with given SoundFile.
-      If OwnsSoundFile then SoundFile will be freed on destruction
-      of this object. }
-    constructor Create(ASoundFile: TSoundFile; AOwnsSoundFile: boolean);
-    destructor Destroy; override;
-
-    property SoundFile: TSoundFile read FSoundFile;
-    property OwnsSoundFile: boolean read FOwnsSoundFile;
-
-    { Load this file to the buffer using alBufferData(buffer, ...) where
-      "..." is taken from SoundFile's properties. }
-    procedure alBufferData(buffer: TALuint);
-
-    class procedure alBufferDataFromFile(buffer: TALuint; const URL: string;
-      out Duration: TFloatTime);
-  end;
 
 { ---------------------------------------------------------------------------- }
 { @section(Query AL state) }
@@ -225,6 +207,24 @@ begin
   raise EOpenALInitError.Create('OpenAL library is not available');
 end;
 
+procedure alBufferDataFromFile(Buffer: TALuint;
+  const URL: string; out Duration: TFloatTime);
+var
+  F: TSoundFile;
+begin
+  F := TSoundFile.CreateFromFile(URL);
+  try
+    alBufferData(Buffer, F.DataFormat, F.Data, F.DataSize, F.Frequency);
+
+    if Log then
+      WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
+        [ URIDisplay(URL), F.ClassName, ALDataFormatToStr(F.DataFormat),
+          F.DataSize, F.Frequency, F.Duration ]));
+
+    Duration := F.Duration;
+  finally F.Free end;
+end;
+
 { error checking ------------------------------------------------------- }
 
 constructor EALError.Create(AALErrorNum: TALenum; const AMessage: string);
@@ -247,52 +247,6 @@ constructor EALCError.Create(AALCErrorNum: TALenum; const AMessage: string);
 begin
   FALCErrorNum := AALCErrorNum;
   inherited Create(AMessage);
-end;
-
-{ TALSoundFile ------------------------------------------------------------ }
-
-constructor TALSoundFile.Create(ASoundFile: TSoundFile; AOwnsSoundFile: boolean);
-begin
-  inherited Create;
-  FOwnsSoundFile := AOwnsSoundFile;
-  FSoundFile := ASoundFile;
-end;
-
-destructor TALSoundFile.Destroy;
-begin
-  if OwnsSoundFile then
-    FreeAndNil(FSoundFile);
-end;
-
-procedure TALSoundFile.alBufferData(buffer: TALuint);
-begin
-  SoundFile.PrepareOpenAL;
-  CastleInternalOpenAL.alBufferData(buffer, SoundFile.DataFormat, SoundFile.Data,
-    SoundFile.DataSize, SoundFile.Frequency);
-end;
-
-class procedure TALSoundFile.alBufferDataFromFile(buffer: TALuint;
-  const URL: string; out Duration: TFloatTime);
-var
-  F: TSoundFile;
-  FAL: TALSoundFile;
-begin
-  F := TSoundFile.CreateFromFile(URL);
-  try
-    FAL := TALSoundFile.Create(F, false);
-    try
-      FAL.alBufferData(buffer);
-
-      { Write to log after PrepareOpenAL, as OggVorbis is potentially decoded
-        there (and this way we get to know it's duration). }
-      if Log then
-        WritelnLog('Sound', Format('Loaded "%s": %s, %s, size: %d, frequency: %d, duration: %f',
-          [ URIDisplay(URL), F.ClassName, ALDataFormatToStr(F.DataFormat),
-            F.DataSize, F.Frequency, F.Duration ]));
-
-      Duration := F.Duration;
-    finally FAL.Free end;
-  finally F.Free end;
 end;
 
 { query al state -------------------------------------------------------------- }

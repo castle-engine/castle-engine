@@ -22,7 +22,7 @@ interface
 
 uses SysUtils, Classes, Math, Generics.Collections,
   CastleInternalOpenAL, CastleVectors, CastleTimeUtils, CastleXMLConfig,
-  CastleClassUtils, CastleStringUtils;
+  CastleClassUtils, CastleStringUtils, CastleInternalSoundFile;
 
 type
   TSound = class;
@@ -33,6 +33,8 @@ type
   TSoundEvent = procedure (Sender: TSound) of object;
 
   ENoMoreOpenALSources = class(Exception);
+  ESoundBufferNotLoaded = class(Exception);
+  ESoundFileError = CastleInternalSoundFile.ESoundFileError;
 
   { Sound.
     Internally, this corresponds to an allocated OpenAL sound source. }
@@ -338,8 +340,6 @@ type
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
 
-  ESoundBufferNotLoaded = class(Exception);
-
   TSoundBuffersCache = class
     URL: string; //< Absolute URL.
     Buffer: TSoundBuffer;
@@ -527,6 +527,12 @@ type
       URL second time returns the same OpenAL buffer. The buffer
       is released only once you call FreeBuffer as many times as you called
       LoadBuffer for it.
+
+      @raises(ESoundFileError If loading of this sound file failed.
+        There are many reasons why this may happen: we cannot read given URL,
+        or it may contain invalid contents,
+        or a library required to decompress e.g. OggVorbis is missing.)
+
       @groupBegin }
     function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer; overload;
     function LoadBuffer(const URL: string): TSoundBuffer; overload;
@@ -1058,7 +1064,7 @@ implementation
 
 uses DOM, XMLRead, StrUtils, Generics.Defaults,
   CastleUtils, CastleInternalALUtils, CastleLog, CastleProgress,
-  CastleInternalSoundFile, CastleInternalVorbisFile, CastleInternalEFX,
+  CastleInternalVorbisFile, CastleInternalEFX,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
@@ -1787,15 +1793,13 @@ procedure TSoundEngine.ALContextOpen;
       NL+
       'Allocated OpenAL sources: min %d, max %d' +NL+
       NL+
-      'OggVorbis handling method: %s' +NL+
-      'vorbisfile library available: %s',
+      'Library to decode OggVorbis available: %s',
       [ alGetString(AL_VERSION),
         FALMajorVersion, FALMinorVersion,
         alGetString(AL_RENDERER),
         alGetString(AL_VENDOR),
         alGetString(AL_EXTENSIONS),
         MinAllocatedSources, MaxAllocatedSources,
-        TSoundOggVorbis.VorbisMethod,
         BoolToStr(VorbisFileInitialized, true)
       ]);
   end;
@@ -2101,7 +2105,7 @@ begin
   { actually load, and add to cache }
   alCreateBuffers(1, @Result);
   try
-    TALSoundFile.alBufferDataFromFile(Result, URL, Duration);
+    alBufferDataFromFile(Result, URL, Duration);
   except alDeleteBuffers(1, @Result); raise end;
 
   Cache := TSoundBuffersCache.Create;

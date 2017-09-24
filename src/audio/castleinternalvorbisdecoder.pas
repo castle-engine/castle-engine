@@ -9,10 +9,11 @@ uses SysUtils, Classes, CastleInternalOpenAL;
 
 type
   EVorbisLoadError = class(Exception);
+  EVorbisMissingLibraryError = class(EVorbisLoadError);
   EVorbisFileError = class(EVorbisLoadError);
 
-{ OggVorbis decoder using vorbisfile library and working on
-  ObjectPascal TStream objects.
+{ OggVorbis decoder using LibVorbisFile or Tremolo libraries
+  and working on ObjectPascal TStream objects.
 
   This checks VorbisFileInitialized at the beginning, so you don't have to
   worry about it.
@@ -20,8 +21,9 @@ type
   Note: this only uses some constants from OpenAL unit. It doesn't
   actually require OpenAL library to be available and initialized.
 
-  @raises EReadError If Stream cannot be read (e.g. ended prematurely.)
-  @raises EVorbisLoadError If decoding OggVorbis stream failed. }
+  @raises(EStreamError If Stream cannot be read (e.g. ended prematurely).)
+  @raises(EVorbisLoadError If decoding OggVorbis stream failed,
+    this may also happen if the vorbisfile / tremolo library is not available.) }
 function VorbisDecode(Stream: TStream; out DataFormat: TALuint;
   out Frequency: LongWord): TMemoryStream;
 
@@ -139,8 +141,7 @@ var
   BitStream: CInt;
 begin
   if not VorbisFileInitialized then
-    raise EVorbisLoadError.Create('vorbisfile library is not available, ' +
-      'cannot decode OggVorbis file');
+    raise EVorbisMissingLibraryError.Create('Library to decode OggVorbis (LibVorbisFile on desktops, Tremolo on mobile) is not available');
 
   Result := TMemoryStream.Create;
   try

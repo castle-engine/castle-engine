@@ -116,16 +116,19 @@ type
   -- we plan to implement it by the class TDownload (see comments
   in CastleDownload code), but it's not ready yet!
 
-  @raises(EDownloadError In case of problems saving this URL.)
+  @raises(EDownloadError In case of problems loading from this URL.)
+  @raises(EFOpenError If case opening the underlying file fails,
+    raised in case of file:// URLs.)
+  @raises(EStreamError If case reading the stream fails,
+    raised in case of file:// URLs.)
 
-  @raises(Exception Various TStream instances (used internally by this
-    function) may raise exceptions in case the stream cannot be created
+  @raises(Exception Various TStream classes (used internally by this
+    function) may raise various exceptions in case the stream cannot be created
     for reading.
     Right now, we simply let these exceptions to "pass through" from this function
     (instead of catching and re-raising).
-    So be ready that this function may raise @italic(any) Exception class.
-    In case of local files (file:// URLs), the typical exception class
-    is EFOpenError.)
+    So, to be really safe, be ready that this function may raise @italic(any)
+    Exception class.)
 }
 function Download(const URL: string; const Options: TStreamOptions = []): TStream;
 function Download(const URL: string; const Options: TStreamOptions;
