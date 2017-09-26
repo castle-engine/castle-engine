@@ -666,13 +666,22 @@ procedure TCastleProject.DoCompile(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
 var
   SourceExe, DestExe, MainSource: string;
+  ExtraOptions: TCastleStringList;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
 
   if Target = targetIOS then
   begin
-    CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths);
+    ExtraOptions := TCastleStringList.Create;
+    try
+      if depOggVorbis in Dependencies then
+        { To compile CastleInternalVorbisFile properly.
+          Later PackageIOS will actually add the static tremolo files to the project. }
+        ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths, ExtraOptions);
+    finally FreeAndNil(ExtraOptions) end;
+
     LinkIOSLibrary(Path, IOSLibraryFile);
     Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
     Exit;

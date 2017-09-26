@@ -20,7 +20,9 @@ unit ToolCompile;
 
 interface
 
-uses Classes, ToolArchitectures;
+uses Classes,
+  CastleStringUtils,
+  ToolArchitectures;
 
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
@@ -29,7 +31,8 @@ type
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings);
+  const SearchPaths: TStrings;
+  const ExtraOptions: TStrings = nil);
 
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
@@ -51,7 +54,7 @@ var
 implementation
 
 uses SysUtils, Process,
-  CastleUtils, CastleStringUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
+  CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   ToolUtils;
 
 type
@@ -187,7 +190,7 @@ end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings);
+  const SearchPaths, ExtraOptions: TStrings);
 var
   CastleEnginePath, CastleEngineSrc: string;
   FpcOptions: TCastleStringList;
@@ -567,6 +570,9 @@ begin
     FpcOptions.Add('-FU' + CompilationOutputPath(OS, CPU, WorkingDirectory));
 
     AddIOSOptions;
+
+    if ExtraOptions <> nil then
+      FpcOptions.AddRange(ExtraOptions);
 
     Writeln('FPC executing...');
     FpcExe := FindExe('fpc');

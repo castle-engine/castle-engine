@@ -72,8 +72,8 @@ type
     { Add strings from Source list.
       Alias for AddStrings, useful for usage with macros,
       since it's consistent with AddRange in other lists. }
-    procedure AddRange(const Source: TStringList); overload;
-    procedure AddList(const Source: TStringList); deprecated 'use AddRange, consistent with other lists';
+    procedure AddRange(const Source: TStrings); overload;
+    procedure AddList(const Source: TStrings); deprecated 'use AddRange, consistent with other lists';
 
     procedure AddRange(const A: array of string); overload;
     procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
@@ -1011,12 +1011,12 @@ begin
   end;
 end;
 
-procedure TCastleStringList.AddRange(const Source: TStringList);
+procedure TCastleStringList.AddRange(const Source: TStrings);
 begin
   AddStrings(Source);
 end;
 
-procedure TCastleStringList.AddList(const Source: TStringList);
+procedure TCastleStringList.AddList(const Source: TStrings);
 begin
   AddStrings(Source);
 end;

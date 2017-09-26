@@ -244,8 +244,8 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil);
-      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil);
+      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil);
+      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil, nil);
       else raise EInternalError.Create('Operation not implemented for this target');
     end;
   end else

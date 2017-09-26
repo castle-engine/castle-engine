@@ -8,13 +8,14 @@
   and also this is internal.) }
 unit CastleInternalVorbisFile;
 
+{ Define this to link statically to Tremolo.
+  This is automatically defined by the build tool
+  when building a game for iOS using OggVorbis. }
+{.$define CASTLE_TREMOLO_STATIC}
+
 {$packrecords C}
 
 {$i castleconf.inc}
-
-{$ifdef IOS}
-  {$define CASTLE_TREMOLO_STATIC}
-{$endif}
 
 interface
 
