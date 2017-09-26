@@ -1407,6 +1407,8 @@ const
           Result += UpCase(S[I]);
   end;
 
+  {$I data/ios/services/ogg_vorbis/cge_project_name.xcodeproj/project.pbxproj.inc}
+
 var
   Macros: TStringStringMap;
   I: Integer;
@@ -1481,6 +1483,27 @@ begin
     begin
       Macros.Add('IOS_TARGET_ATTRIBUTES', '');
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
+    end;
+    if depOggVorbis in Dependencies then
+    begin
+      Macros.Add('IOS_EXTRA_PBXBuildFile'                  , Tremolo_IOS_EXTRA_PBXBuildFile);
+      Macros.Add('IOS_EXTRA_PBXFileReference'              , Tremolo_IOS_EXTRA_PBXFileReference);
+      Macros.Add('IOS_EXTRA_PBXGroup'                      , Tremolo_IOS_EXTRA_PBXGroup);
+      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup'            , Tremolo_IOS_EXTRA_PBXGroup_MainGroup);
+      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase'        , Tremolo_IOS_EXTRA_PBXResourcesBuildPhase);
+      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase'          , Tremolo_IOS_EXTRA_PBXSourcesBuildPhase);
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG'  , Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG);
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE);
+    end else
+    begin
+      Macros.Add('IOS_EXTRA_PBXBuildFile', '');
+      Macros.Add('IOS_EXTRA_PBXFileReference', '');
+      Macros.Add('IOS_EXTRA_PBXGroup', '');
+      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup', '');
+      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase', '');
+      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase', '');
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG', '');
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', '');
     end;
 
     // add CamelCase() replacements, add ${} around

@@ -287,6 +287,11 @@ begin
     RemoveNonEmptyDir(XCodeProject);
 
   GenerateFromTemplates;
+
+  if depOggVorbis in Project.Dependencies then
+    Project.ExtractTemplate('ios/services/ogg_vorbis/cge_project_name/tremolo/',
+      XCodeProject + Project.Name + PathDelim + 'tremolo/');
+
   GenerateIcons;
   GenerateLaunchImages;
   GenerateData;

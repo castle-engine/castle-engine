@@ -12,6 +12,10 @@ unit CastleInternalVorbisFile;
 
 {$i castleconf.inc}
 
+{$ifdef IOS}
+  {$define CASTLE_TREMOLO_STATIC}
+{$endif}
+
 interface
 
 uses CTypes, CastleInternalVorbisCodec, CastleInternalOgg;
@@ -74,6 +78,42 @@ type
   end;
   POggVorbis_File = ^TOggVorbis_File;
 
+{$ifdef CASTLE_TREMOLO_STATIC}
+
+// link statically to Tremolo
+
+function ov_clear(Vf: POggVorbis_File): CInt; cdecl; external;
+function ov_open_callbacks(DataSource: Pointer; Vf: POggVorbis_File; Initial: PChar; ibytes: CLong; callbacks: Tov_callbacks): CInt; cdecl; external;
+
+function ov_test_callbacks(DataSource: Pointer; Vf: POggVorbis_File; Initial: PChar; ibytes: CLong; callbacks: Tov_callbacks): CInt; cdecl; external;
+function ov_test_open(Vf: POggVorbis_File): CInt; cdecl; external;
+
+function ov_bitrate(Vf: POggVorbis_File; i: CInt): CLong; cdecl; external;
+function ov_bitrate_instant(Vf: POggVorbis_File): CLong; cdecl; external;
+function ov_streams(Vf: POggVorbis_File): CLong; cdecl; external;
+function ov_seekable(Vf: POggVorbis_File): CLong; cdecl; external;
+function ov_serialnumber(Vf: POggVorbis_File; i: CInt): CLong; cdecl; external;
+
+function ov_raw_total(Vf: POggVorbis_File; i: CInt): Int64; cdecl; external;
+function ov_pcm_total(Vf: POggVorbis_File; i: CInt): Int64; cdecl; external;
+function ov_time_total(Vf: POggVorbis_File; i: CInt): Double; cdecl; external;
+
+function ov_raw_seek(Vf: POggVorbis_File; pos: Int64): CInt; cdecl; external;
+function ov_pcm_seek(Vf: POggVorbis_File; pos: Int64): CInt; cdecl; external;
+function ov_pcm_seek_page(Vf: POggVorbis_File; pos: Int64): CInt; cdecl; external;
+function ov_time_seek(Vf: POggVorbis_File; pos: Double): CInt; cdecl; external;
+function ov_time_seek_page(Vf: POggVorbis_File; pos: Double): CInt; cdecl; external;
+
+function ov_raw_tell(Vf: POggVorbis_File): Int64; cdecl; external;
+function ov_pcm_tell(Vf: POggVorbis_File): Int64; cdecl; external;
+function ov_time_tell(Vf: POggVorbis_File): Double; cdecl; external;
+
+function ov_info(Vf: POggVorbis_File; link: CInt): Pvorbis_info; cdecl; external;
+
+function ov_read(Vf: POggVorbis_File; var buffer; length, bigendianp, word, sgned: CInt; bitstream: PCInt): CLong; cdecl; external;
+
+{$else}
+
 var
   ov_clear: function (Vf: POggVorbis_File): CInt; cdecl;
   { Not translatable, we don't know C stdio FILE type:
@@ -122,6 +162,7 @@ var
   //ov_halfrate: function (Vf: POggVorbis_File,int flag): CInt; cdecl;
   //ov_halfrate_p: function (Vf: POggVorbis_File): CInt; cdecl;
 
+{$endif CASTLE_TREMOLO_STATIC}
 
 { Is the vorbisfile shared library (with all necessary symbols) available. }
 function VorbisFileInitialized: boolean;
@@ -129,6 +170,21 @@ function VorbisFileInitialized: boolean;
 procedure VorbisFileInitialization;
 
 implementation
+
+{$ifdef CASTLE_TREMOLO_STATIC}
+
+function VorbisFileInitialized: boolean;
+begin
+  Result := true;
+end;
+
+procedure VorbisFileInitialization;
+begin
+end;
+
+end.
+
+{$else CASTLE_TREMOLO_STATIC}
 
 uses SysUtils, CastleUtils, CastleDynLib, CastleFilesUtils;
 
@@ -227,3 +283,5 @@ initialization
 finalization
   FreeAndNil(VorbisFileLibrary);
 end.
+
+{$endif CASTLE_TREMOLO_STATIC}

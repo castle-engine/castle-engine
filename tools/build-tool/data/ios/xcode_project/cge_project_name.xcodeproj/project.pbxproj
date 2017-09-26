@@ -20,6 +20,7 @@
 		84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */; };
 		84DEEDF31E9D7B3800A9228C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEF1E9D7B3800A9228C /* main.m */; };
 		84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDF11E9D7B3800A9228C /* OpenGLController.m */; };
+		${IOS_EXTRA_PBXBuildFile}
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -42,6 +43,7 @@
 		84DEEDF01E9D7B3800A9228C /* OpenGLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLController.h; sourceTree = "<group>"; };
 		84DEEDF11E9D7B3800A9228C /* OpenGLController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLController.m; sourceTree = "<group>"; };
 		84DEEDF51E9D7B8600A9228C /* castleiosappglue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = castleiosappglue.h; sourceTree = "<group>"; };
+		${IOS_EXTRA_PBXFileReference}
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 		4D629DFD1916B0EB0082689B /* ${NAME} */ = {
 			isa = PBXGroup;
 			children = (
+				${IOS_EXTRA_PBXGroup_MainGroup}
 				84DEEDED1E9D7B3800A9228C /* AppDelegate.h */,
 				84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */,
 				84DEEDEF1E9D7B3800A9228C /* main.m */,
@@ -119,6 +122,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		${IOS_EXTRA_PBXGroup}
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -174,6 +178,7 @@
 				4D629E021916B0EB0082689B /* InfoPlist.strings in Resources */,
 				4D90CC2219197A82004E90CC /* data in Resources */,
 				4D629E0A1916B0EB0082689B /* Images.xcassets in Resources */,
+				${IOS_EXTRA_PBXResourcesBuildPhase}
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +192,7 @@
 				84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */,
 				84DEEDF31E9D7B3800A9228C /* main.m in Sources */,
 				84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */,
+				${IOS_EXTRA_PBXSourcesBuildPhase}
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +306,7 @@
 				${IOS_DEVELOPMENT_TEAM_LINE}
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "${NAME}/${NAME}-Prefix.pch";
+				${IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG}
 				INFOPLIST_FILE = "${NAME}/${NAME}-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
@@ -322,6 +329,7 @@
 				${IOS_DEVELOPMENT_TEAM_LINE}
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "${NAME}/${NAME}-Prefix.pch";
+				${IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE}
 				INFOPLIST_FILE = "${NAME}/${NAME}-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
