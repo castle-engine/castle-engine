@@ -55,67 +55,71 @@ uses SysUtils,
   as Linux OpenAL version). }
 procedure Gets;
 
-  function DistanceModelToStr(enum:TALenum):string;
+  function DistanceModelToStr(enum: TALenum): string;
   begin
     case enum of
-      AL_NONE : result:='NONE';
-      AL_INVERSE_DISTANCE : result:='INVERSE_DISTANCE';
-      AL_INVERSE_DISTANCE_CLAMPED : result:='INVERSE_DISTANCE_CLAMPED';
-      else result:='!!! UNKNOWN !!!!';
+      AL_NONE                     : Result := 'NONE';
+      AL_INVERSE_DISTANCE         : Result := 'INVERSE_DISTANCE';
+      AL_INVERSE_DISTANCE_CLAMPED : Result := 'INVERSE_DISTANCE_CLAMPED';
+      AL_LINEAR_DISTANCE          : Result := 'LINEAR_DISTANCE (only possible in OpenAL >= 1.1)';
+      AL_LINEAR_DISTANCE_CLAMPED  : Result := 'LINEAR_DISTANCE_CLAMPED (only possible in OpenAL >= 1.1)';
+      AL_EXPONENT_DISTANCE        : Result := 'EXPONENT_DISTANCE (only possible in OpenAL >= 1.1)';
+      AL_EXPONENT_DISTANCE_CLAMPED: Result := 'EXPONENT_DISTANCE_CLAMPED (only possible in OpenAL >= 1.1)';
+      else                          Result := Format('Unknown: %d (0x%x)', [Enum, Enum]);
     end;
   end;
 
-  function TwoVectorsToNiceStr(const tv:TALTwoVectors3f):string;
+  function TwoVectorsToNiceStr(const tv: TALTwoVectors3f): string;
   begin
-    result:='at : ' +tv[0].ToString +', up : ' +tv[1].ToString;
+    Result := 'at : ' +tv[0].ToString +', up : ' +tv[1].ToString;
   end;
 
 var
-  SampleSource, SampleBuffer:TALuint;
+  SampleSource, SampleBuffer: TALuint;
 
-  function SampleSourceState:string;
+  function SampleSourceState: string;
   begin
-   result:=
-     'Sample Source state -------------------------------' +nl+
-     'POSITION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_POSITION)) +nl+
-     'VELOCITY : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_VELOCITY)) +nl+
-     'GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_GAIN)) +nl+
-     'RELATIVE : '+ BoolToStr(alGetSource1bool(SampleSource, AL_SOURCE_RELATIVE), true) +nl+
-     'LOOPING : '+ BoolToStr(alGetSource1bool(SampleSource, AL_LOOPING), true) +nl+
-     'BUFFER : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFER)) +nl+
-     'BUFFERS_QUEUED : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFERS_QUEUED)) +nl+
-     'BUFFERS_PROCESSED : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFERS_PROCESSED)) +nl+
-     'MIN_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MIN_GAIN)) +nl+
-     'MAX_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MAX_GAIN)) +nl+
-     'REFERENCE_DISTANCE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_REFERENCE_DISTANCE)) +nl+
-     'ROLLOFF_FACTOR : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_ROLLOFF_FACTOR)) +nl+
-     'MAX_DISTANCE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MAX_DISTANCE)) +nl+
-     'PITCH : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_PITCH)) +nl+
-     'DIRECTION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_DIRECTION)) +nl+
-     'CONE_INNER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_INNER_ANGLE)) +nl+
-     'CONE_OUTER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_ANGLE)) +nl+
-     'CONE_OUTER_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_GAIN)) +nl+
-  //   ' : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_)) +nl+
-      {
-      * ENVIRONMENT_IASIG
-      * DIRECT_IASIG -- more IASIG reverberation environment variables.
-      * DIRECT_HIGH_FREQUENCY_IASIG
-      * ROOM_IASIG
-      * ROOM_HIGH_FREQUENCY_IASIG
-      }
-     nl;
+    Result :=
+      'Sample Source state -------------------------------' +nl+
+      'POSITION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_POSITION)) +nl+
+      'VELOCITY : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_VELOCITY)) +nl+
+      'GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_GAIN)) +nl+
+      'RELATIVE : '+ BoolToStr(alGetSource1bool(SampleSource, AL_SOURCE_RELATIVE), true) +nl+
+      'LOOPING : '+ BoolToStr(alGetSource1bool(SampleSource, AL_LOOPING), true) +nl+
+      'BUFFER : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFER)) +nl+
+      'BUFFERS_QUEUED : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFERS_QUEUED)) +nl+
+      'BUFFERS_PROCESSED : '+ IntToStr(alGetSource1ui(SampleSource, AL_BUFFERS_PROCESSED)) +nl+
+      'MIN_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MIN_GAIN)) +nl+
+      'MAX_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MAX_GAIN)) +nl+
+      'REFERENCE_DISTANCE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_REFERENCE_DISTANCE)) +nl+
+      'ROLLOFF_FACTOR : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_ROLLOFF_FACTOR)) +nl+
+      'MAX_DISTANCE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_MAX_DISTANCE)) +nl+
+      'PITCH : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_PITCH)) +nl+
+      'DIRECTION : '+ VectorToNiceStr(alGetSource3f(SampleSource, AL_DIRECTION)) +nl+
+      'CONE_INNER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_INNER_ANGLE)) +nl+
+      'CONE_OUTER_ANGLE : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_ANGLE)) +nl+
+      'CONE_OUTER_GAIN : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_CONE_OUTER_GAIN)) +nl+
+   //   ' : '+ FloatToNiceStr(alGetSource1f(SampleSource, AL_)) +nl+
+       {
+       * ENVIRONMENT_IASIG
+       * DIRECT_IASIG -- more IASIG reverberation environment variables.
+       * DIRECT_HIGH_FREQUENCY_IASIG
+       * ROOM_IASIG
+       * ROOM_HIGH_FREQUENCY_IASIG
+       }
+      nl;
   end;
 
-  function SampleBufferState:string;
+  function SampleBufferState: string;
   begin
-   result:=
-     'Sample Buffer state -------------------------------' +nl+
-     'FREQUENCY : '+ IntToStr(alGetBuffer1i(SampleBuffer, AL_FREQUENCY)) +nl+
-     'SIZE : '+ IntToStr(alGetBuffer1sizei(SampleBuffer, AL_SIZE)) +nl+
-      { BITS -- sample bit resolution.
-      * CHANNELS -- channels provided by Buffer, usually only one
-      }
-     nl;
+    Result :=
+      'Sample Buffer state -------------------------------' +nl+
+      'FREQUENCY : '+ IntToStr(alGetBuffer1i(SampleBuffer, AL_FREQUENCY)) +nl+
+      'SIZE : '+ IntToStr(alGetBuffer1sizei(SampleBuffer, AL_SIZE)) +nl+
+       { BITS -- sample bit resolution.
+       * CHANNELS -- channels provided by Buffer, usually only one
+       }
+      nl;
   end;
 
 var
@@ -167,7 +171,7 @@ begin
     begin
       TestSoundURL := Parameters[1];
 
-      TALSoundFile.alBufferDataFromFile(SampleBuffer, TestSoundURL, IgnoredDuration);
+      alBufferDataFromFile(SampleBuffer, TestSoundURL, IgnoredDuration);
       alSourcei(SampleSource, AL_BUFFER, SampleBuffer);
 
       Write(
