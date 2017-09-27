@@ -34,19 +34,34 @@ procedure TTestCastleSoundEngine.TestLoadBufferException;
 begin
   try
     SoundEngine.LoadBuffer(ApplicationData('sound/non-existing.wav'));
-    Fail('Should have raised ESoundFileError');
+    if not SoundEngine.ALActive then
+      Writeln('WARNING: OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+    else
+      Fail('Should have raised ESoundFileError 1');
   except on ESoundFileError do ; end;
+
   try
     SoundEngine.LoadBuffer(ApplicationData('sound/non-existing.ogg'));
-    Fail('Should have raised ESoundFileError');
+    if not SoundEngine.ALActive then
+      Writeln('WARNING: OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+    else
+      Fail('Should have raised ESoundFileError 2');
   except on ESoundFileError do ; end;
+
   try
     SoundEngine.LoadBuffer(ApplicationData('sound/invalid.wav'));
-    Fail('Should have raised ESoundFileError');
+    if not SoundEngine.ALActive then
+      Writeln('WARNING: OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+    else
+      Fail('Should have raised ESoundFileError 3');
   except on ESoundFileError do ; end;
+
   try
     SoundEngine.LoadBuffer(ApplicationData('sound/invalid.ogg'));
-    Fail('Should have raised ESoundFileError');
+    if not SoundEngine.ALActive then
+      Writeln('WARNING: OpenAL cannot be initialized, TestLoadBufferException doesn''t really do anything')
+    else
+      Fail('Should have raised ESoundFileError 4');
   except on ESoundFileError do ; end;
 end;
 
