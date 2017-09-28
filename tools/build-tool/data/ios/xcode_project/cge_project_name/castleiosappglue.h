@@ -167,13 +167,13 @@ typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode,
 
 //-----------------------------------------------------------------------------
 extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
-extern void CGEApp_Close();
+extern void CGEApp_Close(void);
 extern void CGEApp_SetDpi(int nDpi);
 
 extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
-extern void CGEApp_Render();                                                  // paints the 3d scene into the context
+extern void CGEApp_Render(void);                                                  // paints the 3d scene into the context
 extern void CGEApp_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);     // set callback function
-extern void CGEApp_Update();                                                  // let the 3d engine perform the animations, etc
+extern void CGEApp_Update(void);                                                  // let the 3d engine perform the animations, etc
 
 extern void CGEApp_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
 extern void CGEApp_Motion(int x, int y, int nFingerIdx);

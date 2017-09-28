@@ -1014,7 +1014,7 @@ int ov_raw_seek(OggVorbis_File *vf,ogg_int64_t pos){
     int lastblock=0;
     int accblock=0;
     int thisblock;
-    int eosflag;
+    int eosflag=0; // CGE: initialized to silence warnings
 
     work_os=ogg_stream_create(vf->current_serialno); /* get the memory ready */
     while(1){

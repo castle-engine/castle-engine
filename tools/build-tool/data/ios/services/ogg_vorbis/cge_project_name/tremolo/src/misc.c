@@ -22,9 +22,9 @@ static void **pointers=NULL;
 static long *insertlist=NULL; /* We can't embed this in the pointer list;
 			  a pointer can have any value... */
 
-static char **files=NULL;
-static long *file_bytes=NULL;
-static int  filecount=0;
+//static char **files=NULL; // CGE: unused
+//static long *file_bytes=NULL; // CGE: unused
+//static int  filecount=0; // CGE: unused
 
 static int ptop=0;
 static int palloced=0;

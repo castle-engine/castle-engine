@@ -88,7 +88,8 @@ int mapping_info_unpack(vorbis_info_mapping *info,vorbis_info *vi,
 
   info->submaplist=_ogg_malloc(sizeof(*info->submaplist)*info->submaps);
   for(i=0;i<info->submaps;i++){
-    int temp=oggpack_read(opb,8);
+    //int temp= // CGE: unused
+    oggpack_read(opb,8);
     info->submaplist[i].floor=oggpack_read(opb,8);
     if(info->submaplist[i].floor>=ci->floors)goto err_out;
     info->submaplist[i].residue=oggpack_read(opb,8);

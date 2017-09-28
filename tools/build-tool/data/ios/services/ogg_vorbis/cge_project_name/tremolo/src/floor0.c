@@ -52,13 +52,15 @@ static inline ogg_int32_t vorbis_invsqlook_i(long a,long e){
 #ifdef _LOW_ACCURACY_
 static inline ogg_int32_t vorbis_fromdBlook_i(long a){
   if(a>0) return 0x7fffffff;
-  if(a<(-140<<12)) return 0;
+  // CGE: typecasted to (unsigned long) to avoid warnings
+  if(a<((unsigned long)-140<<12)) return 0;
   return FLOOR_fromdB_LOOKUP[((a+140)*467)>>20]<<9;
 }
 #else
 static inline ogg_int32_t vorbis_fromdBlook_i(long a){
   if(a>0) return 0x7fffffff;
-  if(a<(-140<<12)) return 0;
+  // CGE: typecasted to (unsigned long) to avoid warnings
+  if(a<((unsigned long)-140<<12)) return 0;
   return FLOOR_fromdB_LOOKUP[((a+(140<<12))*467)>>20];
 }
 #endif
@@ -136,7 +138,7 @@ void vorbis_lsp_to_curve(ogg_int32_t *curve,int n,int ln,
   int ampi=amp;
   ogg_int32_t *ilsp=(ogg_int32_t *)alloca(m*sizeof(*ilsp));
 
-  ogg_uint32_t inyq= (1UL<<31) / toBARK(nyq);
+  // ogg_uint32_t inyq= (1UL<<31) / toBARK(nyq); // CGE: unused
   ogg_uint32_t imap= (1UL<<31) / ln;
   ogg_uint32_t tBnyq1 = toBARK(nyq)<<1;
 

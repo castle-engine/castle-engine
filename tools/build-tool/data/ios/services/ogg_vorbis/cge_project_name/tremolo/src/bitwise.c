@@ -189,8 +189,8 @@ void oggpack_readinit(oggpack_buffer *b,ogg_reference *r){
 /* Read in bits without advancing the bitptr; bits <= 32 */
 long oggpack_look(oggpack_buffer *b,int bits){
   unsigned long m=mask[bits];
-  unsigned long ret;
-  int BITS = bits;
+  unsigned long ret = 0;  // CGE: initialized to silence warnings
+  //int BITS = bits; // CGE: unused
 
   bits+=b->headbit;
 
@@ -256,7 +256,7 @@ long oggpack_look(oggpack_buffer *b,int bits){
 
 /* limited to 32 at a time */
 void oggpack_adv(oggpack_buffer *b,int bits){
-    int BITS=bits;
+  // int BITS=bits;  // CGE: unused
   bits+=b->headbit;
   b->headbit=bits&7;
   b->headend-=(bits>>3);
