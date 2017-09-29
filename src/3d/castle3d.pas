@@ -1704,8 +1704,10 @@ type
       also @true by default),
       and because of collisions with other objects.
 
-      Note that you must assign a @link(TRigidBody.Collider) instance first,
-      before assigning the @link(TRigidBody) instance to this property.
+      The @link(TRigidBody.Collider) property must be initialized
+      @italic(before) assigning the @link(TRigidBody) instance here.
+      So you must create a @link(TCollider) descendant, specyfying the given
+      @link(TRigidBody) as a parent.
       A rigid body without a collider would in theory not collide with anything,
       and (if @link(TRigidBody.Dynamic)) would simply fall down because of gravity.
       In practice, a rigid body without a collider is simply not allowed.
