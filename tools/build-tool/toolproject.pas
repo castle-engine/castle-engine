@@ -36,7 +36,7 @@ type
   private
     FDependencies: TDependencies;
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
-    FIOSOverrideQualifiedName: string;
+    FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, FPath, FDataPath: string;
@@ -220,28 +220,6 @@ begin
     Result := InsertLibPrefix(Result);
 end;
 
-procedure CheckValidQualifiedName(const QualifiedName: string);
-var
-  Components: TStringList;
-  I: Integer;
-begin
-  if (QualifiedName <> '') and
-     ((QualifiedName[1] = '.') or
-      (QualifiedName[Length(QualifiedName)] = '.')) then
-    raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
-
-  Components := SplitString(QualifiedName, '.');
-  try
-    for I := 0 to Components.Count - 1 do
-    begin
-      if Components[I] = '' then
-        raise Exception.CreateFmt('qualified_name must contain a number of non-empty components separated with dots: "%s"', [QualifiedName]);
-      if Components[I][1] in ['0'..'9'] then
-        raise Exception.CreateFmt('qualified_name components must not start with a digit: "%s"', [QualifiedName]);
-    end;
-  finally FreeAndNil(Components) end;
-end;
-
 { TCastleProject ------------------------------------------------------------- }
 
 const
@@ -305,6 +283,45 @@ constructor TCastleProject.Create(const APath: string);
       Result := 'unknown.' + SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
     end;
 
+    procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
+    var
+      I: Integer;
+    begin
+      for I := 1 to Length(Value) do
+        if not (Value[I] in AllowedChars) then
+          raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
+            [Name, Value, SReadableForm(Value[I])]);
+    end;
+
+    procedure CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
+    var
+      Components: TStringList;
+      I: Integer;
+    begin
+      CheckMatches(OptionName, QualifiedName, QualifiedNameAllowedChars);
+
+      if (QualifiedName <> '') and
+         ((QualifiedName[1] = '.') or
+          (QualifiedName[Length(QualifiedName)] = '.')) then
+        raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) cannot start or end with a dot: "%s"', [OptionName, QualifiedName]);
+
+      Components := SplitString(QualifiedName, '.');
+      try
+        for I := 0 to Components.Count - 1 do
+        begin
+          if Components[I] = '' then
+            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) must contain a number of non-empty components separated with dots: "%s"', [OptionName, QualifiedName]);
+          if Components[I][1] in ['0'..'9'] then
+            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) components must not start with a digit: "%s"', [OptionName, QualifiedName]);
+        end;
+      finally FreeAndNil(Components) end;
+    end;
+
+    procedure CheckValidVersion(const OptionName: string; const Version: string);
+    begin
+      CheckMatches(OptionName, Version, AlphaNum + ['_','-','.']);
+    end;
+
     procedure AutoGuessManifest;
 
       function GuessName: string;
@@ -343,25 +360,13 @@ constructor TCastleProject.Create(const APath: string);
     end;
 
     procedure CheckManifestCorrect;
-
-      procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
-      var
-        I: Integer;
-      begin
-        for I := 1 to Length(Value) do
-          if not (Value[I] in AllowedChars) then
-            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
-              [Name, Value, SReadableForm(Value[I])]);
-      end;
-
     begin
       CheckMatches('name', Name                     , AlphaNum + ['_','-']);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
 
       { non-filename stuff: allow also dots }
-      CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
-      CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
-      CheckValidQualifiedName(QualifiedName);
+      CheckValidVersion('version', Version);
+      CheckValidQualifiedName('qualified_name', QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
@@ -516,9 +521,14 @@ constructor TCastleProject.Create(const APath: string);
         if Element <> nil then
         begin
           IOSTeam := Element.AttributeStringDef('team', '');
+
           FIOSOverrideQualifiedName := Element.AttributeStringDef('override_qualified_name', '');
           if FIOSOverrideQualifiedName <> '' then
-            CheckValidQualifiedName(FIOSOverrideQualifiedName);
+            CheckValidQualifiedName('override_qualified_name', FIOSOverrideQualifiedName);
+
+          FIOSOverrideVersion := Element.AttributeStringDef('override_version_value', '');
+          if FIOSOverrideVersion <> '' then
+            CheckValidVersion('override_version_value', FIOSOverrideVersion);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -1429,6 +1439,15 @@ const
       Result := QualifiedName;
   end;
 
+  { Version for iOS: either version, or ios.override_version_value. }
+  function IOSVersion: string;
+  begin
+    if FIOSOverrideVersion <> '' then
+      Result := FIOSOverrideVersion
+    else
+      Result := Version;
+  end;
+
   {$I data/ios/services/ogg_vorbis/cge_project_name.xcodeproj/project.pbxproj.inc}
 
 var
@@ -1491,6 +1510,7 @@ begin
 
     // iOS specific stuff }
     Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
+    Macros.Add('IOS_VERSION', IOSVersion);
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
     if IOSTeam <> '' then
