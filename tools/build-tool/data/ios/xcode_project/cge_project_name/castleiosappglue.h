@@ -163,7 +163,9 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
   kcge_Period      = 190,
 };
 
-typedef int (__cdecl *TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
+// __cdecl here causes warning:
+// /Users/michalis/sources/cat-astrophe-games/escape_universe/trunk/castle-engine-output/ios/xcode_project/escape_universe/castleiosappglue.h:166:14: Calling convention '__cdecl' ignored for this target
+typedef int (*TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
 
 //-----------------------------------------------------------------------------
 extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
