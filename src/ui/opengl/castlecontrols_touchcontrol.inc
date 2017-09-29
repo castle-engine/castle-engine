@@ -15,8 +15,9 @@
 
 {$ifdef read_interface}
 
-  TCastleTouchCtlMode = (ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation,
-                         ctcmFlyUpdown, ctcmPanXY);
+  { Possible touch control UI, for @link(TCastleTouchControl.TouchMode). }
+  TCastleTouchCtlMode = (
+    ctcmWalking, ctcmWalkWithSideRot, ctcmHeadRotation, ctcmFlyUpdown, ctcmPanXY);
   TCastleTouchPosition = (tpManual, tpLeft, tpRight);
 
   { Touch user interface to navigate in a 3D world.
