@@ -36,6 +36,7 @@ type
   private
     FDependencies: TDependencies;
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
+    FIOSOverrideQualifiedName: string;
     GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, FPath, FDataPath: string;
@@ -219,6 +220,28 @@ begin
     Result := InsertLibPrefix(Result);
 end;
 
+procedure CheckValidQualifiedName(const QualifiedName: string);
+var
+  Components: TStringList;
+  I: Integer;
+begin
+  if (QualifiedName <> '') and
+     ((QualifiedName[1] = '.') or
+      (QualifiedName[Length(QualifiedName)] = '.')) then
+    raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
+
+  Components := SplitString(QualifiedName, '.');
+  try
+    for I := 0 to Components.Count - 1 do
+    begin
+      if Components[I] = '' then
+        raise Exception.CreateFmt('qualified_name must contain a number of non-empty components separated with dots: "%s"', [QualifiedName]);
+      if Components[I][1] in ['0'..'9'] then
+        raise Exception.CreateFmt('qualified_name components must not start with a digit: "%s"', [QualifiedName]);
+    end;
+  finally FreeAndNil(Components) end;
+end;
+
 { TCastleProject ------------------------------------------------------------- }
 
 const
@@ -331,28 +354,6 @@ constructor TCastleProject.Create(const APath: string);
               [Name, Value, SReadableForm(Value[I])]);
       end;
 
-      procedure CheckQualifiedNameServices(const QualifiedName: string);
-      var
-        Services: TStringList;
-        I: Integer;
-      begin
-        if (QualifiedName <> '') and
-           ((QualifiedName[1] = '.') or
-            (QualifiedName[Length(QualifiedName)] = '.')) then
-          raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
-
-        Services := SplitString(QualifiedName, '.');
-        try
-          for I := 0 to Services.Count - 1 do
-          begin
-            if Services[I] = '' then
-              raise Exception.CreateFmt('qualified_name must contain a number of non-empty services separated with dots: "%s"', [QualifiedName]);
-            if Services[I][1] in ['0'..'9'] then
-              raise Exception.CreateFmt('qualified_name services must not start with a digit: "%s"', [QualifiedName]);
-          end;
-        finally FreeAndNil(Services) end;
-      end;
-
     begin
       CheckMatches('name', Name                     , AlphaNum + ['_','-']);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
@@ -360,7 +361,7 @@ constructor TCastleProject.Create(const APath: string);
       { non-filename stuff: allow also dots }
       CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
       CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
-      CheckQualifiedNameServices(QualifiedName);
+      CheckValidQualifiedName(QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
@@ -515,6 +516,9 @@ constructor TCastleProject.Create(const APath: string);
         if Element <> nil then
         begin
           IOSTeam := Element.AttributeStringDef('team', '');
+          FIOSOverrideQualifiedName := Element.AttributeStringDef('override_qualified_name', '');
+          if FIOSOverrideQualifiedName <> '' then
+            CheckValidQualifiedName(FIOSOverrideQualifiedName);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -1416,6 +1420,15 @@ const
           Result += UpCase(S[I]);
   end;
 
+  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
+  function IOSQualifiedName: string;
+  begin
+    if FIOSOverrideQualifiedName <> '' then
+      Result := FIOSOverrideQualifiedName
+    else
+      Result := QualifiedName;
+  end;
+
   {$I data/ios/services/ogg_vorbis/cge_project_name.xcodeproj/project.pbxproj.inc}
 
 var
@@ -1477,6 +1490,7 @@ begin
           AndroidServiceParameterPair.Value);
 
     // iOS specific stuff }
+    Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
     if IOSTeam <> '' then
