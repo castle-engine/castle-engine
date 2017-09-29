@@ -37,6 +37,7 @@ type
     FDependencies: TDependencies;
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
+    FUsesNonExemptEncryption: boolean;
     GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, FPath, FDataPath: string;
@@ -263,6 +264,7 @@ constructor TCastleProject.Create(const APath: string);
     ReallyMinSdkVersion = 9;
     DefaultAndroidMinSdkVersion = 9;
     DefaultAndroidTargetSdkVersion = 18;
+    DefaultUsesNonExemptEncryption = true;
 
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
@@ -357,6 +359,7 @@ constructor TCastleProject.Create(const APath: string);
       FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
+      FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
     end;
 
     procedure CheckManifestCorrect;
@@ -518,6 +521,7 @@ constructor TCastleProject.Create(const APath: string);
         end;
 
         Element := Doc.DocumentElement.ChildElement('ios', false);
+        FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
         if Element <> nil then
         begin
           IOSTeam := Element.AttributeStringDef('team', '');
@@ -529,6 +533,9 @@ constructor TCastleProject.Create(const APath: string);
           FIOSOverrideVersion := Element.AttributeStringDef('override_version_value', '');
           if FIOSOverrideVersion <> '' then
             CheckValidVersion('override_version_value', FIOSOverrideVersion);
+
+          FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
+            DefaultUsesNonExemptEncryption);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -1508,11 +1515,15 @@ begin
           UpperCase(AndroidServiceParameterPair.Key),
           AndroidServiceParameterPair.Value);
 
-    // iOS specific stuff }
+    // iOS specific stuff
     Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
     Macros.Add('IOS_VERSION', IOSVersion);
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
+    if not FUsesNonExemptEncryption then
+      Macros.Add('IOS_EXTRA_INFO_PLIST', '<key>ITSAppUsesNonExemptEncryption</key> <false/>')
+    else
+      Macros.Add('IOS_EXTRA_INFO_PLIST', '');
     if IOSTeam <> '' then
     begin
       Macros.Add('IOS_TARGET_ATTRIBUTES',

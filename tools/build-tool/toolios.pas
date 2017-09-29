@@ -156,6 +156,7 @@ var
       SaveResized(144);
       SaveResized(152);
       SaveResized(167);
+      SaveResized(1024);
     finally
       if Icon = DefaultIconSquare then
         Icon := nil else
