@@ -321,7 +321,14 @@ begin
         between A and B. }
       Assert(A < Result);
       Assert(Result < B);
-      if Fraction <= Key[Result] then
+      { Using "<" instead of "<=" below: when the Fraction = Key[Result],
+        we want to go to right part, not left. See
+        - X3D specification
+          http://www.web3d.org/documents/specifications/19775-1/V3.3/Part01/components/utils.html#SequencingEvents
+          It says that f(t) = vn, if tn <= t < tn-1
+        - Testcase on https://github.com/castle-engine/view3dscene/issues/2
+      }
+      if Fraction < Key[Result] then
         B := Result else
         A := Result;
     end;
