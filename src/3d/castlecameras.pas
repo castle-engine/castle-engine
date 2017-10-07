@@ -4544,7 +4544,9 @@ begin
 
   if Box.IsEmpty then
   begin
-    Position  := TVector3.Zero;
+    { If box is empty, choose the default X3D viewpoint.
+      This is least surprising, see https://github.com/castle-engine/view3dscene/issues/3 }
+    Position  := Vector3(0, 0, 10); // DefaultX3DCameraPosition[cvVrml2_X3d];
   end else
   begin
     Position := Box.Center;
