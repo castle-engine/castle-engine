@@ -16,6 +16,7 @@
 
 #import "AppDelegate.h"
 #import "OpenGLController.h"
+#import "ServiceAbstract.h"
 
 // import services
 ${IOS_SERVICES_IMPORT}

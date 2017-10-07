@@ -18,6 +18,7 @@
 		4D629E311916B8250082689B /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629E301916B8250082689B /* OpenAL.framework */; };
 		4D90CC2219197A82004E90CC /* data in Resources */ = {isa = PBXBuildFile; fileRef = 4D90CC2119197A82004E90CC /* data */; };
 		84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */; };
+		0258163B1F8609D80069398E /* ServiceAbstract.m in Sources */ = {isa = PBXBuildFile; fileRef = 0258163A1F8609D80069398E /* ServiceAbstract.m */; };
 		84DEEDF31E9D7B3800A9228C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEF1E9D7B3800A9228C /* main.m */; };
 		84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDF11E9D7B3800A9228C /* OpenGLController.m */; };
 		${IOS_EXTRA_PBXBuildFile}
@@ -39,6 +40,8 @@
 		4D90CC2119197A82004E90CC /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ${NAME}/data; sourceTree = "<group>"; };
 		84DEEDED1E9D7B3800A9228C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		025816391F86096A0069398E /* ServiceAbstract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ServiceAbstract.h; sourceTree = "<group>"; };
+		0258163A1F8609D80069398E /* ServiceAbstract.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ServiceAbstract.m; sourceTree = "<group>"; };
 		84DEEDEF1E9D7B3800A9228C /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		84DEEDF01E9D7B3800A9228C /* OpenGLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLController.h; sourceTree = "<group>"; };
 		84DEEDF11E9D7B3800A9228C /* OpenGLController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLController.m; sourceTree = "<group>"; };
@@ -102,6 +105,8 @@
 				${IOS_EXTRA_PBXGroup_MainGroup}
 				84DEEDED1E9D7B3800A9228C /* AppDelegate.h */,
 				84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */,
+				025816391F86096A0069398E /* ServiceAbstract.h */,
+				0258163A1F8609D80069398E /* ServiceAbstract.m */,
 				84DEEDEF1E9D7B3800A9228C /* main.m */,
 				84DEEDF51E9D7B8600A9228C /* castleiosappglue.h */,
 				84DEEDF01E9D7B3800A9228C /* OpenGLController.h */,
@@ -190,6 +195,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */,
+				0258163B1F8609D80069398E /* ServiceAbstract.m in Sources */,
 				84DEEDF31E9D7B3800A9228C /* main.m in Sources */,
 				84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */,
 				${IOS_EXTRA_PBXSourcesBuildPhase}
