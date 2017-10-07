@@ -52,22 +52,45 @@ type
     Usage:
 
     @orderedList(
-      @item(Create an instance of it (only a single instance allowed).)
+      @item(Include the necessary integration code in your Android / iOS project.
 
-      @item(Call @link(TGameService.Initialize) at some point.
-        Usually from @link(TCastleApplication.OnInitialize).)
-
-      @item(Use this to manage achievements, leaderboards and so on.)
-
-      @item(To include the necessary integration code in your Android project,
-        declare your Android project type as "integrated" with
+        For Android, declare your project type as "integrated" and add
         the "google_play_games" service inside CastleEngineManifest.xml.
         See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .)
 
-      @item(To include the necessary integration code in your iOS project,
-        add the "apple_game_center" component inside CastleEngineManifest.xml.
-        See https://github.com/castle-engine/castle-engine/wiki/iOS-Project-Services-Integrated-with-Castle-Game-Engine .)
-    ) }
+        For iOS, add the "apple_game_center" service inside CastleEngineManifest.xml.
+        See https://github.com/castle-engine/castle-engine/wiki/iOS-Project-Services-Integrated-with-Castle-Game-Engine .
+
+        Build your project with the Castle Game Engine build tool:
+        https://github.com/castle-engine/castle-engine/wiki/Build-Tool .)
+
+      @item(Create an instance of this class. Only a single instance of this class is allowed.)
+
+      @item(Call @link(TGameService.Initialize).
+        You usually do it from @link(TCastleApplication.OnInitialize).
+        The @link(TGameService.Initialize) must be called before calling any other method
+        of this class.)
+
+      @item(Use this to manage achievements, leaderboards and so on.)
+
+      @item(The user must be "signed in" to the game service.
+
+        The methods that display some user-interface will automatically attempt
+        to sign-in the user if needed. These include @link(ShowAchievements),
+        @link(ShowLeaderboard), @link(ShowSaveGames).
+        So you don't have to do anything before you call them.
+
+        All other methods will @italic(not sign-in the user automatically).
+        For example, @link(Achievement) or @link(SubmitScore) or
+        @link(SaveGameLoad) or @link(SaveGameSave).
+        You should always make sure that the user is signed-in before calling them.
+        To do this, pass AutoStartSignInFlow parameter as @true to @link(Initialize)
+        or call the @link(RequestSignedIn RequestSignedIn(true)).
+        And then wait for the @link(SignedIn) property value to change to @true
+        (you can register @link(OnSignedInChanged) to be notified about changes).
+      )
+    )
+  }
   TGameService = class(TComponent)
   private
     FOnPlayerBestScoreReceived: TPlayerBestScoreEvent;
