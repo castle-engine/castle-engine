@@ -14,7 +14,7 @@
 }
 
 { Google Play Game Services integration (TGooglePlayGames). }
-unit CastleGooglePlayGames; deprecated 'use CastleGameService unit';
+unit CastleGooglePlayGames deprecated 'use CastleGameService unit';
 
 {$I castleconf.inc}
 
