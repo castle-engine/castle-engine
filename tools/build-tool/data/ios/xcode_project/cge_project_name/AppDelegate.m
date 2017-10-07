@@ -17,7 +17,39 @@
 #import "AppDelegate.h"
 #import "OpenGLController.h"
 
+// import services
+${IOS_SERVICES_IMPORT}
+
+AppDelegate* appDelegateToReceiveMessages;
+
+void receiveMessageFromPascal(const char* message)
+{
+    if (appDelegateToReceiveMessages == nil) {
+        NSLog(@"Objective-C received message from Pascal, but appDelegateToReceiveMessages is not assigned, this should not happen.");
+        return;
+    }
+    [appDelegateToReceiveMessages messageReceived:message];
+}
+
 @implementation AppDelegate
+
+- (void)initializeServices:(OpenGLController* )viewController
+{
+    services = [[NSMutableArray alloc] init];
+
+    // create services
+    ${IOS_SERVICES_CREATE}
+
+    // call applicationDidFinishLaunchingWithOptions on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service applicationDidFinishLaunchingWithOptions];
+    }
+
+    // initialize messaging with CastleMessaging unit
+    appDelegateToReceiveMessages = self;
+    CGEApp_SetReceiveMessageFromPascalCallback(receiveMessageFromPascal);
+}
 
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
@@ -35,10 +67,16 @@
 
     self.window.rootViewController = viewController;
 
+    // initialize services once window and viewController are initialized,
+    // but before doing [viewController viewDidLoad] which performs OpenGL initialization
+    // including calling Application.OnInitialize (that may want to already use services).
+    [self initializeServices: viewController];
+
     [viewController viewDidLoad];
 
     self.window.backgroundColor = [UIColor whiteColor];
     [self.window makeKeyAndVisible];
+
     return YES;
 }
 
@@ -52,6 +90,12 @@
 {
     // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
     // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
+
+    // call applicationDidEnterBackground on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service applicationDidEnterBackground];
+    }
 }
 
 - (void)applicationWillEnterForeground:(UIApplication *)application
@@ -67,6 +111,25 @@
 - (void)applicationWillTerminate:(UIApplication *)application
 {
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+}
+
+- (void)messageReceived:(const char *)message
+{
+    NSString* messageStr = @(message);
+    NSArray* messageAsList = [messageStr componentsSeparatedByString:@"\1"];
+
+    // call receiveMessageFromPascal on all services
+    bool handled = false;
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        bool serviceHandled = [service messageReceived: messageAsList];
+        handled = handled || serviceHandled;
+    }
+
+    if (!handled) {
+        NSString* messageMultiline = [messageAsList componentsJoinedByString:@"\n"];
+        NSLog(@"Message received by Objective-C but not handled by any service: %@", messageMultiline);
+    }
 }
 
 @end
