@@ -61,4 +61,9 @@
       <!-- <service name="vibrate" /> -->
     </services>
   </android>
+  <ios>
+    <services>
+      <service name="apple_game_center" />
+    </services>
+  </ios>
 </project>
