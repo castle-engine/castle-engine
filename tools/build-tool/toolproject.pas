@@ -1559,6 +1559,9 @@ begin
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG', '');
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', '');
     end;
+    // TODO: this should allow services like apple_game_center
+    Macros.Add('IOS_SERVICES_IMPORT', '');
+    Macros.Add('IOS_SERVICES_CREATE', '');
 
     // add CamelCase() replacements, add ${} around
     PreviousMacros := Macros.ToArray;
