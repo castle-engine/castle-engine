@@ -33,7 +33,6 @@ android:
 ios:
 	castle-engine --mode=$(MODE) package --target=iOS
 
-.PHONY: ios-quick
-ios-quick:
-	castle-engine --mode=$(MODE) compile --target=iOS --verbose
-	castle-engine --mode=$(MODE) package --target=iOS --assume-compiled
+.PHONY: ios-fast
+ios-fast:
+	castle-engine --mode=$(MODE) package --target=iOS --fast
