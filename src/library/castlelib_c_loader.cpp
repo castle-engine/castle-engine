@@ -44,7 +44,7 @@ typedef void (CDECL *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSiz
 typedef void (CDECL *PFNRD_CGE_Resize)(unsigned uiViewWidth, unsigned uiViewHeight);
 typedef void (CDECL *PFNRD_CGE_Render)();
 typedef void (CDECL *PFNRD_CGE_SaveScreenshotToFile)(const char *szFile);
-typedef void (CDECL *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallbackProc pProc);
+typedef void (CDECL *PFNRD_CGE_SetLibraryCallbackProc)(TCgeLibraryCallback pProc);
 typedef void (CDECL *PFNRD_CGE_Update)();
 
 typedef void (CDECL *PFNRD_CGE_MouseDown)(int x, int y, bool bLeftBtn, int nFingerIdx);
@@ -213,7 +213,7 @@ void CGE_SaveScreenshotToFile(const char *szFile)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc)
+void CGE_SetLibraryCallbackProc(TCgeLibraryCallback pProc)
 {
 	if (pfrd_CGE_SetLibraryCallbackProc!=NULL)
 		(*pfrd_CGE_SetLibraryCallbackProc)(pProc);

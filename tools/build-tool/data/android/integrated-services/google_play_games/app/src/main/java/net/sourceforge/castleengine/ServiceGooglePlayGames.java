@@ -134,7 +134,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     {
         if (mGoogleSignedIn != value) {
             mGoogleSignedIn = value;
-            messageSend(new String[]{"google-sign-in-status", booleanToString(mGoogleSignedIn)});
+            messageSend(new String[]{"game-service-sign-in-status", booleanToString(mGoogleSignedIn)});
         }
     }
 
@@ -608,7 +608,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 3 && parts[0].equals("google-play-games-initialize")) {
+        if (parts.length == 3 && parts[0].equals("game-service-initialize")) {
             initialize(stringToBoolean(parts[1]), stringToBoolean(parts[2]));
             return true;
         } else
@@ -644,11 +644,11 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             saveGameSave(parts[1], parts[2], parts[3], Long.parseLong(parts[4]));
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("google-sign-in") && stringToBoolean(parts[1])) {
+        if (parts.length == 2 && parts[0].equals("game-service-sign-in") && stringToBoolean(parts[1])) {
             signInClicked(null);
             return true;
         } else
-        if (parts.length == 2 && parts[0].equals("google-sign-in") && !stringToBoolean(parts[1])) {
+        if (parts.length == 2 && parts[0].equals("game-service-sign-in") && !stringToBoolean(parts[1])) {
             signOutClicked();
             return true;
         } else {

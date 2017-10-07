@@ -165,7 +165,9 @@ enum ECgeKey    // values for these constants have to be same as in unit CastleK
 
 // __cdecl here causes warning:
 // /Users/michalis/sources/cat-astrophe-games/escape_universe/trunk/castle-engine-output/ios/xcode_project/escape_universe/castleiosappglue.h:166:14: Calling convention '__cdecl' ignored for this target
-typedef int (*TCgeLibraryCallbackProc)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
+
+typedef int (*TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1, int iParam2, const char *szParam);
+typedef void (*TCgeReceiveMessageFromPascalCallback)(const char *message);
 
 //-----------------------------------------------------------------------------
 extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
@@ -174,7 +176,7 @@ extern void CGEApp_SetDpi(int nDpi);
 
 extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
 extern void CGEApp_Render(void);                                                  // paints the 3d scene into the context
-extern void CGEApp_SetLibraryCallbackProc(TCgeLibraryCallbackProc pProc);     // set callback function
+extern void CGEApp_SetLibraryCallbackProc(TCgeLibraryCallback pProc);     // set callback function
 extern void CGEApp_Update(void);                                                  // let the 3d engine perform the animations, etc
 
 extern void CGEApp_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
@@ -183,6 +185,9 @@ extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool tra
 
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
+
+extern void CGEApp_SetReceiveMessageFromPascalCallback(TCgeReceiveMessageFromPascalCallback aCallback);
+extern void CGEApp_SendMessageToPascal(const char *message);
 
 #ifdef __cplusplus
 }
