@@ -899,12 +899,14 @@ end;
 procedure TGLImageCore.AlphaBegin;
 begin
   case FinalAlpha of
+    {$ifndef OpenGLES}
     acTest:
       if not GLFeatures.ShadersForEverything2D then
       begin
         glAlphaFunc(GL_GEQUAL, 0.5);
         glEnable(GL_ALPHA_TEST);
       end;
+    {$endif not OpenGLES}
     acBlending:
       begin
         if GLFeatures.BlendConstant and
@@ -931,7 +933,9 @@ end;
 procedure TGLImageCore.AlphaEnd;
 begin
   case FinalAlpha of
+    {$ifndef OpenGLES}
     acTest: if not GLFeatures.ShadersForEverything2D then glDisable(GL_ALPHA_TEST);
+    {$endif not OpenGLES}
     acBlending: glDisable(GL_BLEND);
   end;
 end;
