@@ -592,7 +592,7 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
       begin
         Shader := TComposedShaderNode.Create;
         Shape.Appearance.FdShaders.Add(Shader);
-        Shader.FdLanguage.Value := 'GLSL';
+        Shader.Language := slGLSL; // not actually needed, TComposedShaderNode assumes GLSL by default
 
         { Add shader. Setup everything, like for rendering (without fog). }
         TexSand := TImageTextureNode.Create;

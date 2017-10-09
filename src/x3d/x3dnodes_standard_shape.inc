@@ -15,6 +15,7 @@
 
 {$ifdef read_interface}
   TKambiOctreePropertiesNode = class;
+  TAbstractShaderNode = class;
 
   { Base node type for the child nodes of @link(TAbstractAppearanceNode). }
   TAbstractAppearanceChildNode = class(TAbstractNode)
@@ -962,8 +963,7 @@ begin
   if Items[Index] is TComposedShaderNode then
   begin
     Result := TComposedShaderNode(Items[Index]);
-    if not ((Result.FdLanguage.Value = '') or
-            (Result.FdLanguage.Value = 'GLSL')) then
+    if not (Result.Language in [slDefault, slGLSL]) then
       Result := nil;
   end else
     Result := nil;

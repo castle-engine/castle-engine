@@ -1948,7 +1948,7 @@ procedure TShader.EnableEffects(Effects: TX3DNodeList;
   begin
     if not Effect.FdEnabled.Value then Exit;
 
-    if Effect.FdLanguage.Value <> 'GLSL' then
+    if not (Effect.Language in [slDefault, slGLSL]) then
     begin
       WritelnWarning('VRML/X3D', Format('Unknown shading language "%s" for Effect node',
         [Effect.FdLanguage.Value]));

@@ -14,8 +14,17 @@
 }
 
 {$ifdef read_interface}
+  TShaderPartNode = class;
+  TShaderProgramNode = class;
+
+  { Shader language used for @link(TShaderPart.Language) and @link(TEffectPart.Language). }
+  TShaderLanguage = (slDefault, slCG, slGLSL, slHLSL);
+
   { Base type for all node types that specify a programmable shader. }
   TAbstractShaderNode = class(TAbstractAppearanceChildNode)
+  strict private
+    function GetLanguage: TShaderLanguage;
+    procedure SetLanguage(const Value: TShaderLanguage);
   public
     procedure CreateNode; override;
 
@@ -31,8 +40,9 @@
     strict private FEventIsValid: TSFBoolEvent;
     public property EventIsValid: TSFBoolEvent read FEventIsValid;
 
-    strict private FFdLanguage: TSFString;
-    public property FdLanguage: TSFString read FFdLanguage;
+    strict private FFdLanguage: TSFStringEnum;
+    public property FdLanguage: TSFStringEnum read FFdLanguage;
+    property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dshadernode.inc}
   end;
@@ -151,6 +161,8 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetShaderType: TShaderType;
     procedure SetShaderType(const Value: TShaderType);
+    function GetContents: string;
+    procedure SetContents(const Value: string);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -165,11 +177,17 @@
     { Shader type. }
     property ShaderType: TShaderType read GetShaderType write SetShaderType;
 
-    { Load shader code from node's URLs.
-      In X3D XML encoding, also loads node's XML CDATA as a last resort.
-      Will return '' if no valid URLs are present,
-      loading errors are reported to WritelnWarning. }
-    function Contents: string;
+    { The shader code.
+
+      Getting this automatically loads the shader code pointed by the URL field
+      of this node. The shader code may be specified in an external file,
+      or inline using "data URI", see https://castle-engine.sourceforge.io/manual_network.php .
+      The shader code may also be specified using the XML "CDATA" in X3D XML encoding.
+      Returns '' of no valid URLs are present
+      (loading errors are reported to WritelnWarning).
+
+      Setting this overrides the URL field, to specify only the given shader code. }
+    property Contents: string read GetContents write SetContents;
 
     {$I auto_generated_node_helpers/x3dnodes_shaderpart.inc}
   end;
@@ -194,6 +212,10 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
+const
+  ShaderLanguageNames: array [TShaderLanguage] of string =
+  ('', 'CG', 'GLSL', 'HLSL');
+
 procedure TAbstractShaderNode.CreateNode;
 begin
   inherited;
@@ -207,13 +229,22 @@ begin
   FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
   AddEvent(FEventIsValid);
 
-  FFdLanguage := TSFString.Create(Self, 'language', '');
+  FFdLanguage := TSFStringEnum.Create(Self, 'language', ShaderLanguageNames, Ord(slDefault));
    FdLanguage.Exposed := false;
    FdLanguage.ChangesAlways := [chEverything];
   AddField(FFdLanguage);
-  { X3D specification comment: ["CG"|"GLSL"|"HLSL"|...] }
 
   DefaultContainerField := 'shaders';
+end;
+
+function TAbstractShaderNode.GetLanguage: TShaderLanguage;
+begin
+  Result := TShaderLanguage(FdLanguage.EnumValue);
+end;
+
+procedure TAbstractShaderNode.SetLanguage(const Value: TShaderLanguage);
+begin
+  FdLanguage.SendEnumValue(Ord(Value));
 end;
 
 procedure TAbstractVertexAttributeNode.CreateNode;
@@ -435,7 +466,7 @@ begin
   end;
 end;
 
-function TShaderPartNode.Contents: string;
+function TShaderPartNode.GetContents: string;
 begin
   if not ContentsCached then
   begin
@@ -443,6 +474,16 @@ begin
     ContentsCached := true;
   end;
   Result := ContentsCache;
+end;
+
+procedure TShaderPartNode.SetContents(const Value: string);
+begin
+  SetUrl(['data:text/plain,' + Value]);
+
+  //Assert(Value = GetContents);
+  // an optimized way to initialize ContentsCache
+  ContentsCache := Value;
+  ContentsCached := true;
 end;
 
 procedure TShaderPartNode.EventUrlReceive(
