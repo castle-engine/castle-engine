@@ -97,12 +97,19 @@
   {$endif}
 {$endif}
 
-{ We do *not* define inline functions/methods when compiling from
-  Lazarus package. This is to workaround FPC bug
-  http://bugs.freepascal.org/view.php?id=12223 . }
-{$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
-  {$define SUPPORTS_INLINE}
-{$endif}
+{ We used to disable inline functions/methods when compiling from
+  Lazarus package (when CASTLE_ENGINE_LAZARUS_PACKAGE),
+  to workaround FPC bug http://bugs.freepascal.org/view.php?id=12223 .
+  That bug is closed, but with an answer basically "it will never be fixed",
+  which means that you cannot have units in Lazarus package having
+  "inline". (Unless you add -Ur, which would be uncomfortable for
+  engine development from Lazarus.)
+
+  But with FPC 3.0.2 everything seems to work cool even with "inline",
+  so let's try defining it always now.
+  We only support FPC >= 3.0.0 now.
+}
+{$define SUPPORTS_INLINE}
 
 {$define TOBJECT_HAS_EQUALS}
 
