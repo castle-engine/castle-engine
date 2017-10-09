@@ -50,7 +50,7 @@ type
       TPointArray = packed array [0..MaxInt div SizeOf(TPoint) - 1] of TPoint;
       PPointArray = ^TPointArray;
 
-      {$ifdef GLImageUseShaders}
+      { Used only in shader pipeline }
       TColorTreatment = (
         { Use texture color to draw. }
         ctPureTexture,
@@ -60,23 +60,22 @@ type
           for alpha use constant color.a * texture.
           Useful when texture has no alpha information. }
         ctColorMultipliesTextureAlpha);
-
       TImageProgram = record
         Prog: TGLSLProgram;
         UniformViewportSize, UniformColor, UniformClipLine: TGLSLUniform;
         AttribVertex, AttribTexCoord: TGLSLAttribute;
       end;
-      {$endif}
+
     var
     { Static OpenGL resources, used by all TGLImageCore instances. }
     PointsVbo, IndexesVbo: TGLuint; static;
     { Point VBO contents, reused in every Draw. }
     Points: array of TPoint; static;
     Indexes: array of {$ifdef GLIndexesShort} Word {$else} LongWord {$endif}; static;
-    {$ifdef GLImageUseShaders}
     TextureHasOnlyAlpha: boolean;
+
+    { Used only in shader pipeline }
     Programs: array [boolean { alpha test? }, boolean { clip? }, TColorTreatment] of TImageProgram; static;
-    {$endif}
 
     FWidth: Cardinal;
     FHeight: Cardinal;
@@ -791,13 +790,11 @@ begin
     FImageAlpha := acNone;
   end;
 
-  {$ifdef GLImageUseShaders}
   { calculate TextureHasOnlyAlpha, useful only for GLSL image rendering }
   TextureHasOnlyAlpha :=
     (AImage <> nil) and
     (AImage is TGrayscaleImage) and
     (TGrayscaleImage(AImage).TreatAsAlpha);
-  {$endif}
 
   { in case of TGLImageCore, this is the only way to call GLContextOpen.
     But in case of TGLImage, GLContextOpen can be called
@@ -810,13 +807,11 @@ begin
 end;
 
 class procedure TGLImageCore.StaticGLContextOpen;
-{$ifdef GLImageUseShaders}
 var
   AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TColorTreatment;
   NewProgram: TImageProgram;
   VS, FS: string;
-{$endif}
 begin
   // Some Intel GPUs may not support VBO
   if GLFeatures.VertexBufferObject then
@@ -827,64 +822,65 @@ begin
       glGenBuffers(1, @IndexesVbo);
   end;
 
-  {$ifdef GLImageUseShaders}
-  { create programs }
-  for AlphaTestShader in boolean do
-    for ClipLineShader in boolean do
-      for ColorTreatment in TColorTreatment do
-        if Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog = nil then
-        begin
-          VS := Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
-                {$I image.vs.inc};
-          FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
-                Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
-                Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
-                Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
-                {$I image.fs.inc};
-          if Log and LogShaders then
+  if GLFeatures.ShadersForEverything2D then
+  begin
+    { create programs }
+    for AlphaTestShader in boolean do
+      for ClipLineShader in boolean do
+        for ColorTreatment in TColorTreatment do
+          if Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog = nil then
           begin
-            WritelnLogMultiline('TGLImageCore GLSL vertex shader', VS);
-            WritelnLogMultiline('TGLImageCore GLSL fragment shader', FS);
+            VS := Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
+                  {$I image.vs.inc};
+            FS := Iff(AlphaTestShader, '#define ALPHA_TEST' + NL, '') +
+                  Iff(ClipLineShader, '#define CLIP_LINE' + NL, '') +
+                  Iff(ColorTreatment in [ctColorMultipliesTexture, ctColorMultipliesTextureAlpha], '#define COLOR_UNIFORM' + NL, '') +
+                  Iff(ColorTreatment = ctColorMultipliesTextureAlpha, '#define TEXTURE_HAS_ONLY_ALPHA' + NL, '') +
+                  {$I image.fs.inc};
+            if Log and LogShaders then
+            begin
+              WritelnLogMultiline('TGLImageCore GLSL vertex shader', VS);
+              WritelnLogMultiline('TGLImageCore GLSL fragment shader', FS);
+            end;
+
+            NewProgram.Prog := TGLSLProgram.Create;
+            NewProgram.Prog.AttachVertexShader(VS);
+            NewProgram.Prog.AttachFragmentShader(FS);
+            NewProgram.Prog.Link;
+
+            NewProgram.UniformViewportSize := NewProgram.Prog.Uniform('viewport_size');
+            if ColorTreatment <> ctPureTexture then
+              NewProgram.UniformColor := NewProgram.Prog.Uniform('color') else
+              NewProgram.UniformColor := TGLSLUniform.NotExisting;
+            if ClipLineShader then
+              NewProgram.UniformClipLine := NewProgram.Prog.Uniform('clip_line') else
+              NewProgram.UniformClipLine := TGLSLUniform.NotExisting;
+
+            NewProgram.AttribVertex := NewProgram.Prog.Attribute('vertex');
+            NewProgram.AttribTexCoord := NewProgram.Prog.Attribute('tex_coord');
+
+            Programs[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
           end;
-
-          NewProgram.Prog := TGLSLProgram.Create;
-          NewProgram.Prog.AttachVertexShader(VS);
-          NewProgram.Prog.AttachFragmentShader(FS);
-          NewProgram.Prog.Link;
-
-          NewProgram.UniformViewportSize := NewProgram.Prog.Uniform('viewport_size');
-          if ColorTreatment <> ctPureTexture then
-            NewProgram.UniformColor := NewProgram.Prog.Uniform('color') else
-            NewProgram.UniformColor := TGLSLUniform.NotExisting;
-          if ClipLineShader then
-            NewProgram.UniformClipLine := NewProgram.Prog.Uniform('clip_line') else
-            NewProgram.UniformClipLine := TGLSLUniform.NotExisting;
-
-          NewProgram.AttribVertex := NewProgram.Prog.Attribute('vertex');
-          NewProgram.AttribTexCoord := NewProgram.Prog.Attribute('tex_coord');
-
-          Programs[AlphaTestShader, ClipLineShader, ColorTreatment] := NewProgram;
-        end;
-  {$endif}
+  end;
 
   StaticResourcesReady := true;
 end;
 
 class procedure TGLImageCore.StaticGLContextClose;
-{$ifdef GLImageUseShaders}
 var
   AlphaTestShader, ClipLineShader: boolean;
   ColorTreatment: TGLImageCore.TColorTreatment;
-{$endif}
 begin
   glFreeBuffer(PointsVbo);
   glFreeBuffer(IndexesVbo);
-  {$ifdef GLImageUseShaders}
-  for AlphaTestShader in boolean do
-    for ClipLineShader in boolean do
-      for ColorTreatment in TColorTreatment do
-        FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
-  {$endif}
+
+  if GLFeatures.ShadersForEverything2D then
+  begin
+    for AlphaTestShader in boolean do
+      for ClipLineShader in boolean do
+        for ColorTreatment in TColorTreatment do
+          FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
+  end;
 
   StaticResourcesReady := false;
 end;
@@ -903,13 +899,12 @@ end;
 procedure TGLImageCore.AlphaBegin;
 begin
   case FinalAlpha of
-    {$ifndef GLImageUseShaders}
     acTest:
+      if not GLFeatures.ShadersForEverything2D then
       begin
         glAlphaFunc(GL_GEQUAL, 0.5);
         glEnable(GL_ALPHA_TEST);
       end;
-    {$endif}
     acBlending:
       begin
         if GLFeatures.BlendConstant and
@@ -936,9 +931,7 @@ end;
 procedure TGLImageCore.AlphaEnd;
 begin
   case FinalAlpha of
-    {$ifndef GLImageUseShaders}
-    acTest: glDisable(GL_ALPHA_TEST);
-    {$endif}
+    acTest: if not GLFeatures.ShadersForEverything2D then glDisable(GL_ALPHA_TEST);
     acBlending: glDisable(GL_BLEND);
   end;
 end;
@@ -1090,10 +1083,8 @@ var
   end;
 
 var
-  {$ifdef GLImageUseShaders}
   ColorTreatment: TColorTreatment;
   Prog: TImageProgram;
-  {$endif}
   I: Integer;
 begin
   if (Count = 0) or
@@ -1153,49 +1144,53 @@ begin
 
   AlphaBegin;
 
-  {$ifdef GLImageUseShaders}
-  if TextureHasOnlyAlpha then
-    ColorTreatment := ctColorMultipliesTextureAlpha else
-  if not TCastleColor.PerfectlyEquals(Color, White) then
-    ColorTreatment := ctColorMultipliesTexture else
-    ColorTreatment := ctPureTexture;
-
-  Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
-  TGLSLProgram.Current := Prog.Prog;
-  Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
-    SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
-  Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
-    SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
-  Prog.UniformViewportSize.SetValue(Viewport2DSize);
-  if ColorTreatment <> ctPureTexture then
-    Prog.UniformColor.SetValue(Color);
-  if Clip then
-    Prog.UniformClipLine.SetValue(ClipLine);
-  {$else}
-  TGLSLProgram.Current := nil;
-  glLoadIdentity();
-  glColorv(Color);
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-  if GLFeatures.VertexBufferObject then
+  if GLFeatures.ShadersForEverything2D then
   begin
-    glVertexPointer(2, GL_SHORT,
-      SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
-    glTexCoordPointer(2, GL_FLOAT,
-      SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
+    if TextureHasOnlyAlpha then
+      ColorTreatment := ctColorMultipliesTextureAlpha else
+    if not TCastleColor.PerfectlyEquals(Color, White) then
+      ColorTreatment := ctColorMultipliesTexture else
+      ColorTreatment := ctPureTexture;
+
+    Prog := Programs[FinalAlpha = acTest, Clip, ColorTreatment];
+    TGLSLProgram.Current := Prog.Prog;
+    Prog.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE,
+      SizeOf(TPoint), OffsetUInt(Points[0].Position, Points[0]));
+    Prog.AttribTexCoord.EnableArray(0, 2, GL_FLOAT, GL_FALSE,
+      SizeOf(TPoint), OffsetUInt(Points[0].TexCoord, Points[0]));
+    Prog.UniformViewportSize.SetValue(Viewport2DSize);
+    if ColorTreatment <> ctPureTexture then
+      Prog.UniformColor.SetValue(Color);
+    if Clip then
+      Prog.UniformClipLine.SetValue(ClipLine);
   end else
   begin
-    glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Points[0].Position));
-    glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
+    {$ifndef OpenGLES}
+    TGLSLProgram.Current := nil;
+    glLoadIdentity();
+    glColorv(Color);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    if GLFeatures.VertexBufferObject then
+    begin
+      glVertexPointer(2, GL_SHORT,
+        SizeOf(TPoint), Offset(Points[0].Position, Points[0]));
+      glTexCoordPointer(2, GL_FLOAT,
+        SizeOf(TPoint), Offset(Points[0].TexCoord, Points[0]));
+    end else
+    begin
+      glVertexPointer  (2, GL_SHORT, SizeOf(TPoint), @(Points[0].Position));
+      glTexCoordPointer(2, GL_FLOAT, SizeOf(TPoint), @(Points[0].TexCoord));
+    end;
+    if Clip then
+    begin
+      glEnable(GL_CLIP_PLANE0);
+      glClipPlane(GL_CLIP_PLANE0, Vector4Double(
+        FClipLine[0], FClipLine[1], 0, FClipLine[2]));
+    end;
+    {$endif not OpenGLES}
   end;
-  if Clip then
-  begin
-    glEnable(GL_CLIP_PLANE0);
-    glClipPlane(GL_CLIP_PLANE0, Vector4Double(
-      FClipLine[0], FClipLine[1], 0, FClipLine[2]));
-  end;
-  {$endif}
 
   if Count <> 1 then
   begin
@@ -1210,18 +1205,22 @@ begin
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-  {$ifdef GLImageUseShaders}
-  // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TGLImage
-  { attribute arrays are enabled independent from GLSL program, so we need
-    to disable them separately }
-  Prog.AttribVertex.DisableArray;
-  Prog.AttribTexCoord.DisableArray;
-  {$else}
-  if Clip then
-    glDisable(GL_CLIP_PLANE0);
-  glDisableClientState(GL_VERTEX_ARRAY);
-  glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-  {$endif}
+  if GLFeatures.ShadersForEverything2D then
+  begin
+    // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TGLImage
+    { attribute arrays are enabled independent from GLSL program, so we need
+      to disable them separately }
+    Prog.AttribVertex.DisableArray;
+    Prog.AttribTexCoord.DisableArray;
+  end else
+  begin
+    {$ifndef OpenGLES}
+    if Clip then
+      glDisable(GL_CLIP_PLANE0);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    {$endif not OpenGLES}
+  end;
 
   AlphaEnd;
 
@@ -1273,9 +1272,7 @@ var
   XImageLeft, XImageRight, YImageBottom, YImageTop,
     HorizontalImageSize, VerticalImageSize: Single;
   OldAlpha: TAutoAlphaChannel;
-  {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
-  {$endif}
   EpsilonT, EpsilonR, EpsilonB, EpsilonL: Single;
   DrawCornerTop, DrawCornerRight, DrawCornerBottom, DrawCornerLeft: Single;
 const
@@ -1325,12 +1322,10 @@ begin
   YImageTop  :=         Height -     CornerTop;
 
   { For speed, we only apply AlphaBegin/End once.
-    In case of GLImageUseShaders, this optimization is only useful
+    In case of ShadersForEverything2D, this optimization is only useful
     for acBlending, and it would actually break the acTest case. }
-  {$ifdef GLImageUseShaders}
-  OptimizeAlpha := FinalAlpha = acBlending;
+  OptimizeAlpha := (not GLFeatures.ShadersForEverything2D) or (FinalAlpha = acBlending);
   if OptimizeAlpha then
-  {$endif}
   begin
     AlphaBegin;
     OldAlpha := Alpha;
@@ -1380,9 +1375,7 @@ begin
   Draw(X + DrawCornerLeft           , Y + DrawCornerBottom           , HorizontalScreenSize, VerticalScreenSize,
                CornerLeft + EpsilonL,         CornerBottom + EpsilonB, HorizontalImageSize - (EpsilonL+EpsilonR), VerticalImageSize - (EpsilonT+EpsilonB));
 
-  {$ifdef GLImageUseShaders}
   if OptimizeAlpha then
-  {$endif}
   begin
     Alpha := OldAlpha;
     AlphaEnd;
@@ -1416,9 +1409,7 @@ var
   XImageLeft, XImageRight,
     HorizontalImageSize: Single;
   OldAlpha: TAutoAlphaChannel;
-  {$ifdef GLImageUseShaders}
   OptimizeAlpha: boolean;
-  {$endif}
   EpsilonR, EpsilonL: Single;
   DrawSideLeft, DrawSideRight: Single;
 const
@@ -1447,12 +1438,10 @@ begin
   XImageRight  :=         Width -     SideRight;
 
   { For speed, we only apply AlphaBegin/End once.
-    In case of GLImageUseShaders, this optimization is only useful
+    In case of ShadersForEverything2D, this optimization is only useful
     for acBlending, and it would actually break the acTest case. }
-  {$ifdef GLImageUseShaders}
-  OptimizeAlpha := FinalAlpha = acBlending;
+  OptimizeAlpha := (not GLFeatures.ShadersForEverything2D) or (FinalAlpha = acBlending);
   if OptimizeAlpha then
-  {$endif}
   begin
     AlphaBegin;
     OldAlpha := Alpha;
@@ -1483,9 +1472,7 @@ begin
   Draw(X + SideLeft           , Y, HorizontalScreenSize, DrawHeight,
            SideLeft + EpsilonL, 0, HorizontalImageSize - (EpsilonL+EpsilonR), Height);
 
-  {$ifdef GLImageUseShaders}
   if OptimizeAlpha then
-  {$endif}
   begin
     Alpha := OldAlpha;
     AlphaEnd;

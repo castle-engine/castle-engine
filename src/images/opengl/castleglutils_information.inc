@@ -187,7 +187,8 @@ begin
 
     '---------' +nl+
     'Features:' +nl+
-    '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
+    '  Shaders (GLSL) support: ' + GLSupportNames[GLFeatures.Shaders] +nl+
+    '  Use shaders to draw everything 2D: ' + BoolToStr(GLFeatures.ShadersForEverything2D, true) +nl+
     '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) +nl+
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] +nl+
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) +nl+

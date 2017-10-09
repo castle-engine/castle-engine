@@ -2472,7 +2472,7 @@ begin
 
   if SSAOShader = nil then
   begin
-    if TGLSLProgram.ClassSupport <> gsNone then
+    if GLFeatures.Shaders <> gsNone then
     begin
       try
         SSAOShader := TGLSLScreenEffect.Create;

@@ -197,6 +197,14 @@ type
     { Support for depth texture formats for glTexImage2d. }
     TextureDepth: boolean;
 
+    { GLSL shaders support. }
+    Shaders: TGLSupport;
+
+    { Use shaders for TGLImage.Draw, DrawPrimitive2D, and consequently
+      for whole 2D user-interface drawing.
+      On OpenGLES this is always @true. }
+    ShadersForEverything2D: boolean;
+
     constructor Create;
   end;
 
@@ -514,6 +522,26 @@ begin
   TextureDepth :=
     {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', SupportedExtensions)
     {$else} Load_GL_ARB_depth_texture
+    {$endif};
+
+  {$ifdef OpenGLES}
+  Shaders := gsStandard;
+  {$else}
+  if Version_2_0 then
+    Shaders := gsStandard else
+  {$ifndef ForceStandardGLSLApi}
+  if Load_GL_ARB_shader_objects and
+     Load_GL_ARB_vertex_shader and
+     Load_GL_ARB_fragment_shader and
+     Load_GL_ARB_shading_language_100 then
+    Shaders := gsExtension else
+  {$endif not ForceStandardGLSLApi}
+    Shaders := gsNone;
+  {$endif}
+
+  ShadersForEverything2D :=
+    {$ifdef OpenGLES} true
+    {$else} Shaders = gsStandard
     {$endif};
 end;
 

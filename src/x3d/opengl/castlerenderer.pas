@@ -2411,7 +2411,7 @@ begin
     Attributes.EnableTextures and
     (Attributes.Mode = rmFull) and
     GLFeatures.UseMultiTexturing and
-    (TGLSLProgram.ClassSupport <> gsNone) then
+    (GLFeatures.Shaders <> gsNone) then
     Result := Attributes.BumpMapping else
     Result := bmNone;
 end;

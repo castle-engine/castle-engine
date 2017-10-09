@@ -1774,7 +1774,7 @@ class function TGLGeneratedShadowMap.ClassVarianceShadowMaps(
 begin
   Result :=
     (Attributes.ShadowSampling = ssVarianceShadowMaps) and
-    (TGLSLProgram.ClassSupport <> gsNone) and
+    (GLFeatures.Shaders <> gsNone) and
     GLFeatures.TextureFloat;
 end;
 
@@ -1794,7 +1794,7 @@ begin
     WritelnLog('Shadows', Format('Variance Shadow Maps used: %s (Reasons: Attributes.Shadow sampling = %s, GLSL support = %s, texture_float support = %s)',
       [ BoolToStr(VarianceShadowMaps, true),
         ShadowSamplingNames[Renderer.Attributes.ShadowSampling],
-        GLSupportNames[TGLSLProgram.ClassSupport],
+        GLSupportNames[GLFeatures.Shaders],
         BoolToStr(GLFeatures.TextureFloat, true) ]));
 
   { TODO: fix TextureNode.FdSize.Value if needed }
