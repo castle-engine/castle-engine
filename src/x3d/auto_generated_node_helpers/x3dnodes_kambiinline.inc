@@ -29,6 +29,7 @@
   public
     procedure SetReplaceNames(const Value: array of string);
     procedure SetReplaceNames(const Value: TCastleStringList);
+    procedure SetReplaceNodes(const Value: array of TAbstractNode);
 
 {$endif read_interface}
 
@@ -44,6 +45,18 @@ end;
 procedure TKambiInlineNode.SetReplaceNames(const Value: TCastleStringList);
 begin
   FdReplaceNames.Send(Value);
+end;
+
+procedure TKambiInlineNode.SetReplaceNodes(const Value: array of TAbstractNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractNode));
+  FdReplaceNodes.Send(A);
 end;
 
 {$endif read_implementation}

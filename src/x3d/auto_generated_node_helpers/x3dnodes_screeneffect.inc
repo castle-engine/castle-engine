@@ -34,6 +34,7 @@
   public
     property Enabled: boolean read GetEnabled write SetEnabled;
     property NeedsDepth: boolean read GetNeedsDepth write SetNeedsDepth;
+    procedure SetShaders(const Value: array of TAbstractShaderNode);
 
 {$endif read_interface}
 
@@ -59,6 +60,18 @@ end;
 procedure TScreenEffectNode.SetNeedsDepth(const Value: boolean);
 begin
   FdNeedsDepth.Send(Value);
+end;
+
+procedure TScreenEffectNode.SetShaders(const Value: array of TAbstractShaderNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractShaderNode));
+  FdShaders.Send(A);
 end;
 
 {$endif read_implementation}

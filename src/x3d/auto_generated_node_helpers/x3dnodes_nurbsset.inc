@@ -34,6 +34,7 @@
     function GetBboxSize: TVector3;
     procedure SetBboxSize(const Value: TVector3);
   public
+    procedure SetGeometry(const Value: array of TNurbsSurfaceNode);
     property TessellationScale: Single read GetTessellationScale write SetTessellationScale;
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
@@ -43,6 +44,18 @@
 {$ifdef read_implementation}
 
 { TNurbsSetNode ----------------------------------------------- }
+
+procedure TNurbsSetNode.SetGeometry(const Value: array of TNurbsSurfaceNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TNurbsSurfaceNode));
+  FdGeometry.Send(A);
+end;
 
 function TNurbsSetNode.GetTessellationScale: Single;
 begin

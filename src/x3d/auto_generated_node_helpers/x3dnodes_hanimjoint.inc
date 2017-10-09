@@ -43,6 +43,7 @@
     procedure SetTranslation(const Value: TVector3);
   public
     property Center: TVector3 read GetCenter write SetCenter;
+    procedure SetDisplacers(const Value: array of THAnimDisplacerNode);
     property LimitOrientation: TVector4 read GetLimitOrientation write SetLimitOrientation;
     procedure SetLlimit(const Value: array of Single);
     procedure SetLlimit(const Value: TSingleList);
@@ -74,6 +75,18 @@ end;
 procedure THAnimJointNode.SetCenter(const Value: TVector3);
 begin
   FdCenter.Send(Value);
+end;
+
+procedure THAnimJointNode.SetDisplacers(const Value: array of THAnimDisplacerNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(THAnimDisplacerNode));
+  FdDisplacers.Send(A);
 end;
 
 function THAnimJointNode.GetLimitOrientation: TVector4;

@@ -26,11 +26,25 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetChildren(const Value: array of TAbstractChildNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TLayerNode ----------------------------------------------- }
+
+procedure TLayerNode.SetChildren(const Value: array of TAbstractChildNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractChildNode));
+  FdChildren.Send(A);
+end;
 
 {$endif read_implementation}

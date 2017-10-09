@@ -14,6 +14,9 @@
 }
 
 {$ifdef read_interface}
+  THAnimSegmentNode = class;
+  THAnimSiteNode = class;
+
   { Alter the shape of coordinate-based geometry within parent H-Anim nodes.
     For example, different HAnimDisplacer may be used for each facial expression. }
   THAnimDisplacerNode = class(TAbstractGeometricPropertyNode)

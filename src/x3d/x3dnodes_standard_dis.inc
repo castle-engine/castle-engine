@@ -14,6 +14,8 @@
 }
 
 {$ifdef read_interface}
+  TDISEntityTypeMappingNode = class;
+
   { }
   TDISEntityManagerNode = class(TAbstractChildNode)
   public

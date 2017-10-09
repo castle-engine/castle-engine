@@ -121,6 +121,8 @@
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
+    { Set the field's value in a correct way (by sending X3D event, or at least notifying 
+      the parent scene). }
     procedure Send(const AValue: array of TItem); overload;
     procedure Send(const AValue: TItemList); overload;
   end;
@@ -465,7 +467,7 @@ begin
     finally FreeAndNil(FieldValue) end;
   end else
   begin
-    { When SendsByEvent, we can optimize this method.
+    { When SendsByEvent = false, we can optimize this method.
       No need to create an intermediate FieldValue instance
       (and assign AValue to FieldValue, just to later assign FieldValue to Items). }
     ValueFromIsClause := false;

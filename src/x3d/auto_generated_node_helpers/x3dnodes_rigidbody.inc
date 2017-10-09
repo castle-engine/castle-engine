@@ -79,6 +79,7 @@
     property Fixed: boolean read GetFixed write SetFixed;
     procedure SetForces(const Value: array of TVector3);
     procedure SetForces(const Value: TVector3List);
+    procedure SetGeometry(const Value: array of TAbstractNBodyCollidableNode);
     property Inertia: TMatrix3 read GetInertia write SetInertia;
     property LinearDampingFactor: Single read GetLinearDampingFactor write SetLinearDampingFactor;
     property LinearVelocity: TVector3 read GetLinearVelocity write SetLinearVelocity;
@@ -214,6 +215,18 @@ end;
 procedure TRigidBodyNode.SetForces(const Value: TVector3List);
 begin
   FdForces.Send(Value);
+end;
+
+procedure TRigidBodyNode.SetGeometry(const Value: array of TAbstractNBodyCollidableNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractNBodyCollidableNode));
+  FdGeometry.Send(A);
 end;
 
 function TRigidBodyNode.GetInertia: TMatrix3;

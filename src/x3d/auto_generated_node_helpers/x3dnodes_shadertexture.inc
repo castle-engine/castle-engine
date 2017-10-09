@@ -26,11 +26,25 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TShaderTextureNode ----------------------------------------------- }
+
+procedure TShaderTextureNode.SetEffects(const Value: array of TEffectNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectNode));
+  FdEffects.Send(A);
+end;
 
 {$endif read_implementation}

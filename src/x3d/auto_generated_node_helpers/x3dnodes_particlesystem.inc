@@ -56,6 +56,7 @@
     procedure SetColorKey(const Value: array of Single);
     procedure SetColorKey(const Value: TSingleList);
     property Emitter: TAbstractParticleEmitterNode read GetEmitter write SetEmitter;
+    procedure SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
     property TexCoordRamp: TTextureCoordinateNode read GetTexCoordRamp write SetTexCoordRamp;
     procedure SetTexCoordKey(const Value: array of Single);
     procedure SetTexCoordKey(const Value: TSingleList);
@@ -160,6 +161,18 @@ end;
 procedure TParticleSystemNode.SetEmitter(const Value: TAbstractParticleEmitterNode);
 begin
   FdEmitter.Send(Value);
+end;
+
+procedure TParticleSystemNode.SetPhysics(const Value: array of TAbstractParticlePhysicsModelNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractParticlePhysicsModelNode));
+  FdPhysics.Send(A);
 end;
 
 function TParticleSystemNode.GetTexCoordRamp: TTextureCoordinateNode;

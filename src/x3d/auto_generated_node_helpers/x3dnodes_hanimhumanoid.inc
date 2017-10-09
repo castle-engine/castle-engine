@@ -51,13 +51,18 @@
     property Center: TVector3 read GetCenter write SetCenter;
     procedure SetInfo(const Value: array of string);
     procedure SetInfo(const Value: TCastleStringList);
+    procedure SetJoints(const Value: array of THAnimJointNode);
     property NameField: string read GetNameField write SetNameField;
     property Rotation: TVector4 read GetRotation write SetRotation;
     property Scale: TVector3 read GetScale write SetScale;
     property ScaleOrientation: TVector4 read GetScaleOrientation write SetScaleOrientation;
+    procedure SetSegments(const Value: array of THAnimSegmentNode);
+    procedure SetSites(const Value: array of THAnimSiteNode);
+    procedure SetSkin(const Value: array of TAbstractChildNode);
     property SkinNormal: TAbstractNormalNode read GetSkinNormal write SetSkinNormal;
     property Translation: TVector3 read GetTranslation write SetTranslation;
     property Version: string read GetVersion write SetVersion;
+    procedure SetViewpoints(const Value: array of THAnimSiteNode);
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
@@ -85,6 +90,18 @@ end;
 procedure THAnimHumanoidNode.SetInfo(const Value: TCastleStringList);
 begin
   FdInfo.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetJoints(const Value: array of THAnimJointNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(THAnimJointNode));
+  FdJoints.Send(A);
 end;
 
 function THAnimHumanoidNode.GetNameField: string;
@@ -127,6 +144,42 @@ begin
   FdScaleOrientation.Send(Value);
 end;
 
+procedure THAnimHumanoidNode.SetSegments(const Value: array of THAnimSegmentNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(THAnimSegmentNode));
+  FdSegments.Send(A);
+end;
+
+procedure THAnimHumanoidNode.SetSites(const Value: array of THAnimSiteNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(THAnimSiteNode));
+  FdSites.Send(A);
+end;
+
+procedure THAnimHumanoidNode.SetSkin(const Value: array of TAbstractChildNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractChildNode));
+  FdSkin.Send(A);
+end;
+
 function THAnimHumanoidNode.GetSkinNormal: TAbstractNormalNode;
 begin
   if FdSkinNormal.Value is TAbstractNormalNode then
@@ -158,6 +211,18 @@ end;
 procedure THAnimHumanoidNode.SetVersion(const Value: string);
 begin
   FdVersion.Send(Value);
+end;
+
+procedure THAnimHumanoidNode.SetViewpoints(const Value: array of THAnimSiteNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(THAnimSiteNode));
+  FdViewpoints.Send(A);
 end;
 
 function THAnimHumanoidNode.GetBboxCenter: TVector3;

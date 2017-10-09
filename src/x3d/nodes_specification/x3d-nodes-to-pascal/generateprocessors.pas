@@ -746,29 +746,49 @@ begin
     { All the conditions below may be eventually removed.
       We're just not ready for it yet, the generated code is not ready for them. }
     if (Field.AllowedChildrenNodes.Count = 1) and
-       (not Field.AllowedChildrenNodes[0].IsInterface) and
-       (Field.X3DType = 'SFNode') then
+       (not Field.AllowedChildrenNodes[0].IsInterface) then
     begin
       AllowedPascalClass := Field.AllowedChildrenNodes[0].PascalType;
-      OutputPrivateInterface +=
-        '    function Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
-        '    procedure Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL;
-      OutputPublicInterface +=
-        '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
-      OutputImplementation +=
-        'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
-        'begin' + NL +
-        '  if ' + Field.PascalNamePrefixed + '.Value is ' + AllowedPascalClass + ' then' + NL +
-        '    Result := ' + AllowedPascalClass + '(' + Field.PascalNamePrefixed + '.Value)' + NL +
-        '  else' + NL +
-        '    Result := nil;' + NL +
-        'end;' + NL +
-        NL +
-        'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
-        'begin' + NL +
-        '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
-        'end;' + NL +
-        NL;
+      if Field.X3DType = 'SFNode' then
+      begin
+        OutputPrivateInterface +=
+          '    function Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
+          '    procedure Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL;
+        OutputPublicInterface +=
+          '    property ' + Field.PascalName + ': ' + AllowedPascalClass + ' read Get' + Field.PascalName + ' write Set' + Field.PascalName + ';' + NL;
+        OutputImplementation +=
+          'function ' + Node.PascalType + '.Get' + Field.PascalName + ': ' + AllowedPascalClass + ';' + NL +
+          'begin' + NL +
+          '  if ' + Field.PascalNamePrefixed + '.Value is ' + AllowedPascalClass + ' then' + NL +
+          '    Result := ' + AllowedPascalClass + '(' + Field.PascalNamePrefixed + '.Value)' + NL +
+          '  else' + NL +
+          '    Result := nil;' + NL +
+          'end;' + NL +
+          NL +
+          'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: ' + AllowedPascalClass + ');' + NL +
+          'begin' + NL +
+          '  ' + Field.PascalNamePrefixed + '.Send(Value);' + NL +
+          'end;' + NL +
+          NL;
+      end else
+      if Field.X3DType = 'MFNode' then
+      begin
+        OutputPublicInterface +=
+          '    procedure Set' + Field.PascalName + '(const Value: array of ' + AllowedPascalClass + ');' + NL;
+        OutputImplementation +=
+          'procedure ' + Node.PascalType + '.Set' + Field.PascalName + '(const Value: array of ' + AllowedPascalClass + ');' + NL +
+          'var' + NL +
+          '  L: Integer;' + NL +
+          '  A: array of TX3DNode;' + NL +
+          'begin' + NL +
+          '  L := High(Value) + 1;' + NL +
+          '  SetLength(A, L);' + NL +
+          '  if L > 0 then' + NL +
+          '    Move(Value[0], A[0], L * SizeOf(' + AllowedPascalClass + '));' + NL +
+          '  ' + Field.PascalNamePrefixed + '.Send(A);' + NL +
+          'end;' + NL +
+          NL;
+      end;
     end;
   end else
   begin

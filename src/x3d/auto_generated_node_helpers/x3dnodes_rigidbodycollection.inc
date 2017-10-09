@@ -55,6 +55,7 @@
     procedure SetCollider(const Value: TCollisionCollectionNode);
   public
     property AutoDisable: boolean read GetAutoDisable write SetAutoDisable;
+    procedure SetBodies(const Value: array of TRigidBodyNode);
     property ConstantForceMix: Single read GetConstantForceMix write SetConstantForceMix;
     property ContactSurfaceThickness: Single read GetContactSurfaceThickness write SetContactSurfaceThickness;
     property DisableAngularSpeed: Single read GetDisableAngularSpeed write SetDisableAngularSpeed;
@@ -64,6 +65,7 @@
     property ErrorCorrection: Single read GetErrorCorrection write SetErrorCorrection;
     property Gravity: TVector3 read GetGravity write SetGravity;
     property Iterations: Integer read GetIterations write SetIterations;
+    procedure SetJoints(const Value: array of TAbstractRigidJointNode);
     property MaxCorrectionSpeed: Single read GetMaxCorrectionSpeed write SetMaxCorrectionSpeed;
     property PreferAccuracy: boolean read GetPreferAccuracy write SetPreferAccuracy;
     property Collider: TCollisionCollectionNode read GetCollider write SetCollider;
@@ -82,6 +84,18 @@ end;
 procedure TRigidBodyCollectionNode.SetAutoDisable(const Value: boolean);
 begin
   FdAutoDisable.Send(Value);
+end;
+
+procedure TRigidBodyCollectionNode.SetBodies(const Value: array of TRigidBodyNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TRigidBodyNode));
+  FdBodies.Send(A);
 end;
 
 function TRigidBodyCollectionNode.GetConstantForceMix: Single;
@@ -172,6 +186,18 @@ end;
 procedure TRigidBodyCollectionNode.SetIterations(const Value: Integer);
 begin
   FdIterations.Send(Value);
+end;
+
+procedure TRigidBodyCollectionNode.SetJoints(const Value: array of TAbstractRigidJointNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractRigidJointNode));
+  FdJoints.Send(A);
 end;
 
 function TRigidBodyCollectionNode.GetMaxCorrectionSpeed: Single;

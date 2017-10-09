@@ -30,6 +30,7 @@
     function GetCrossOrigin: string;
     procedure SetCrossOrigin(const Value: string);
   public
+    procedure SetEffects(const Value: array of TEffectNode);
     property CrossOrigin: string read GetCrossOrigin write SetCrossOrigin;
 
 {$endif read_interface}
@@ -37,6 +38,18 @@
 {$ifdef read_implementation}
 
 { TAbstractTextureNode ----------------------------------------------- }
+
+procedure TAbstractTextureNode.SetEffects(const Value: array of TEffectNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectNode));
+  FdEffects.Send(A);
+end;
 
 function TAbstractTextureNode.GetCrossOrigin: string;
 begin

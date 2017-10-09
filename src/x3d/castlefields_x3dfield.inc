@@ -58,9 +58,9 @@
     procedure SetExposed(Value: boolean);
     function GetExposedEvents(InEvent: boolean): TX3DEvent;
     procedure SetExposedEventsLinked(const Value: boolean);
-  private
-    function SendsByEvent: boolean;
   strict protected
+    function SendsByEvent: boolean;
+
     { Save field value to a stream. Must be overriden for each specific
       field.
 
