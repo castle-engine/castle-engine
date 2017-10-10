@@ -1212,7 +1212,7 @@ constructor TGLSLProgram.Create;
 begin
   inherited;
 
-  FSupport := ClassSupport;
+  FSupport := GLFeatures.Shaders;
 
   case Support of
     {$ifndef ForceStandardGLSLApi}
@@ -2038,7 +2038,7 @@ end;
 class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
 begin
   if Location <> -1 then
-    case ClassSupport of
+    case GLFeatures.Shaders of
       {$ifndef OpenGLES}
       gsExtension: glDisableVertexAttribArrayARB(Location);
       {$endif}
@@ -2059,7 +2059,7 @@ begin
 
     if Value <> nil then
     begin
-      case TGLSLProgram.ClassSupport of
+      case GLFeatures.Shaders of
         {$ifndef ForceStandardGLSLApi}
         gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
         {$endif}
@@ -2067,7 +2067,7 @@ begin
       end;
     end else
     begin
-      case TGLSLProgram.ClassSupport of
+      case GLFeatures.Shaders of
         {$ifndef ForceStandardGLSLApi}
         gsExtension:
           begin
