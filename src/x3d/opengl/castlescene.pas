@@ -1129,10 +1129,18 @@ var
   { Transformation of Params.RenderTransform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
+  var
+    CameraMatrix: PMatrix4;
   begin
+    if RenderingCamera.RotationOnly then
+      CameraMatrix := @RenderingCamera.RotationMatrix
+    else
+      CameraMatrix := @RenderingCamera.Matrix;
+
     if Params.RenderTransformIdentity then
-      Result := RenderingCamera.Matrix else
-      Result := RenderingCamera.Matrix * Params.RenderTransform;
+      Result := CameraMatrix^
+    else
+      Result := CameraMatrix^ * Params.RenderTransform;
   end;
 
   { Renders Shape, by calling Renderer.RenderShape. }

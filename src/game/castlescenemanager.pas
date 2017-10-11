@@ -2018,9 +2018,13 @@ begin
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
-      {$ifndef OpenGLES}
-      glLoadMatrix(RenderingCamera.RotationMatrix);
-      {$endif}
+      if EnableFixedFunction then
+      begin
+        {$ifndef OpenGLES}
+        glLoadMatrix(RenderingCamera.RotationMatrix);
+        {$endif}
+      end;
+      RenderingCamera.RotationOnly := true;
 
       { The background rendering doesn't like custom Dimensions.
         They could make the background sky box very small, such that it
@@ -2038,6 +2042,8 @@ begin
 
       if FProjection.ProjectionType = ptOrthographic then
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+
+      RenderingCamera.RotationOnly := false;
     end else
     begin
       Include(ClearBuffers, cbColor);
@@ -2052,9 +2058,12 @@ begin
 
   RenderContext.Clear(ClearBuffers, ClearColor);
 
-  {$ifndef OpenGLES}
-  glLoadMatrix(RenderingCamera.Matrix);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    glLoadMatrix(RenderingCamera.Matrix);
+    {$endif}
+  end;
 
   { clear FRenderParams instance }
 
