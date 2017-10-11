@@ -1,8 +1,9 @@
 { -*- buffer-read-only: t -*- }
 { DON'T EDIT -- this file was automatically generated from "fallback.fs" }
-'/* Fallback GLSL shader, used for OpenGL ES, when normal shader did not compile.' + LineEnding +
-'   This is merely used to avoid crashing the application (you cannot leave' + LineEnding +
-'   the shader empty). */' + LineEnding +
+'/* Fallback GLSL fragment shader,' + LineEnding +
+'   used when we need a shader (e.g. because it is OpenGLES or EnableFixedFunction = false)' + LineEnding +
+'   but the default shader did not compile.' + LineEnding +
+'   You cannot leave the shader empty in OpenGLES. */' + LineEnding +
 '' + LineEnding +
 '#ifdef GL_ES' + LineEnding +
 'precision mediump float;' + LineEnding +

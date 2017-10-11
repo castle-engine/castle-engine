@@ -74,7 +74,7 @@
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
 '    // Apply castle_ColorPerVertexFragment alpha here.' + LineEnding +
 '    // The RGB portion of castle_ColorPerVertexFragment was' + LineEnding +
-'    // already applied in template_add_light.glsl . (TODO)' + LineEnding +
+'    // already applied in template_light.glsl .' + LineEnding +
 '    fragment_color.a = castle_ColorPerVertexFragment.a;' + LineEnding +
 '  #else' + LineEnding +
 '    fragment_color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
@@ -90,7 +90,7 @@
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
 '    /* Apply COLOR_PER_VERTEX, when unlit.' + LineEnding +
 '       (When lit, then the analogous multiplication is done' + LineEnding +
-'        inside template_add_light.glsl - TODO) */' + LineEnding +
+'        inside template_add_light.glsl) */' + LineEnding +
 '    * castle_ColorPerVertexFragment' + LineEnding +
 '#endif' + LineEnding +
 '  ;' + LineEnding +
