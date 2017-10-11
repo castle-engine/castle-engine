@@ -1444,12 +1444,14 @@ begin
     begin
       Shader.Plug(stFragment, Format(
         'uniform %s %s;' +NL+
+        'varying vec4 %s;' +NL+
         '%s' +NL+
         'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
         '{' +NL+
-        '  scale *= shadow(%s, castle_MultiTexCoord%d, %d.0);' +NL+
+        '  scale *= shadow(%s, castle_TexCoord%d, %d.0);' +NL+
         '}',
         [SamplerType, UniformName,
+         TexCoordName,
          Shader.DeclareShadowFunctions,
          UniformName, TextureUnit, ShadowMapSize]),
         ShadowLightShader.Code);
