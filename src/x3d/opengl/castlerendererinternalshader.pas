@@ -1574,6 +1574,8 @@ const
   DefaultFragmentShader = {$ifdef OpenGLES} {$I template_mobile.fs.inc} {$else} {$I template.fs.inc} {$endif};
   DefaultGeometryShader = {$I template.gs.inc};
 
+  // TODO: fix this to pass color in new shaders (not using deprecated gl_FrontColor, gl_BackColor)
+  (*
   GeometryShaderPassColors =
     '#version 150 compatibility' +NL+
 
@@ -1594,6 +1596,7 @@ const
     '  gl_FrontColor += gl_in[index].gl_FrontColor * scale;' +NL+
     '  gl_BackColor  += gl_in[index].gl_BackColor  * scale;' +NL+
     '}' +NL;
+  *)
 
 constructor TShader.Create;
 begin
@@ -2108,7 +2111,10 @@ var
         {$endif}
       end;
     end else
-      Plug(stGeometry, GeometryShaderPassColors);
+    begin
+      // TODO: fix this to pass color in new shaders (not using deprecated gl_FrontColor, gl_BackColor)
+      // Plug(stGeometry, GeometryShaderPassColors);
+    end;
   end;
 
 var
@@ -2216,7 +2222,7 @@ var
       '}';
 
   var
-    VertexEyeBonusDeclarations, VertexEyeBonusCode: string;
+    VertexEyeBonusDeclarations, VertexEyeBonusCode, CoordName: string;
   begin
     if FBumpMapping = bmNone then Exit;
 
@@ -2242,9 +2248,9 @@ var
         'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL;
       VertexEyeBonusCode :=
         'mat3 object_to_tangent_space = transpose(castle_tangent_to_object_space);' +NL+
-        'mat3 eye_to_object_space = mat3(gl_ModelViewMatrix[0][0], gl_ModelViewMatrix[1][0], gl_ModelViewMatrix[2][0],' +NL+
-        '                                gl_ModelViewMatrix[0][1], gl_ModelViewMatrix[1][1], gl_ModelViewMatrix[2][1],' +NL+
-        '                                gl_ModelViewMatrix[0][2], gl_ModelViewMatrix[1][2], gl_ModelViewMatrix[2][2]);' +NL+
+        'mat3 eye_to_object_space = mat3(castle_ModelViewMatrix[0][0], castle_ModelViewMatrix[1][0], castle_ModelViewMatrix[2][0],' +NL+
+        '                                castle_ModelViewMatrix[0][1], castle_ModelViewMatrix[1][1], castle_ModelViewMatrix[2][1],' +NL+
+        '                                castle_ModelViewMatrix[0][2], castle_ModelViewMatrix[1][2], castle_ModelViewMatrix[2][2]);' +NL+
         'mat3 eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL+
         { Theoretically faster implementation below, not fully correct ---
           assume that transpose is enough to invert this matrix. Tests proved:
@@ -2256,48 +2262,51 @@ var
       BumpMappingUniformName2 := 'castle_parallax_bm_scale';
       BumpMappingUniformValue2 := FHeightMapScale;
 
-      if FBumpMapping >= bmSteepParallaxShadowing then
+      if (FBumpMapping >= bmSteepParallaxShadowing) and (LightShaders.Count > 0) then
       begin
         Plug(stFragment, SteepParallaxShadowing);
         VertexEyeBonusDeclarations +=
-          'varying vec3 castle_light_direction_tangent_space;' +NL;
-        VertexEyeBonusCode +=
-          { We only cast shadow from gl_LightSource[0]. }
-          'vec3 light_dir = gl_LightSource[0].position.xyz;' +NL+
-          '/* We assume gl_LightSource[0].position.w = 1 (if not 0). */' +NL+
-          'if (gl_LightSource[0].position.w != 0.0)' +NL+
-          '  light_dir -= vec3(vertex_eye);' +NL+
-          'light_dir = normalize(light_dir);' +NL+
+          'varying vec3 castle_light_direction_tangent_space;' +NL+
+          // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+          'uniform vec3 castle_LightSource0Position;' +NL;
 
-          'castle_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
+        { add VertexEyeBonusCode to cast shadow from LightShaders[0]. }
+        VertexEyeBonusCode += 'vec3 light_dir = castle_LightSource0Position;';
+        if LightShaders[0].Node is TAbstractPositionalLightNode then
+          VertexEyeBonusCode += 'light_dir -= vec3(vertex_eye);';
+          VertexEyeBonusCode +=
+            'light_dir = normalize(light_dir);' +NL+
+            'castle_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
       end;
     end;
 
     Plug(stVertex,
-      '#version 120' +NL+ { version 120 needed for transpose() }
       'attribute mat3 castle_tangent_to_object_space;' +NL+
       'varying mat3 castle_tangent_to_eye_space;' +NL+
+      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      'uniform mat4 castle_ModelViewMatrix;' +NL+
+      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      'uniform mat3 castle_NormalMatrix;' +NL+
       VertexEyeBonusDeclarations +
       NL+
       'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
       '{' +NL+
-      '  castle_tangent_to_eye_space = gl_NormalMatrix * castle_tangent_to_object_space;' +NL+
+      '  castle_tangent_to_eye_space = castle_NormalMatrix * castle_tangent_to_object_space;' +NL+
       VertexEyeBonusCode +
       '}');
+
+    CoordName := TTextureCoordinateShader.CoordName(FNormalMapTextureCoordinatesId);
 
     Plug(stFragment,
       'varying mat3 castle_tangent_to_eye_space;' +NL+
       'uniform sampler2D castle_normal_map;' +NL+
+      'varying vec4 ' + CoordName + ';' +NL+
       NL+
       'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
       '{' +NL+
       { Read normal from the texture, this is the very idea of bump mapping.
-        Unpack normals, they are in texture in [0..1] range and I want in [-1..1].
-        Our normal map is always indexed using gl_TexCoord[NormalMapTextureCoordinatesId]
-        (this way we depend on already correct gl_TexCoord[NormalMapTextureCoordinatesId],
-        multiplied by TextureTransform and such). }
-      '  vec3 normal_tangent = texture2D(castle_normal_map, gl_TexCoord[' +
-         IntToStr(FNormalMapTextureCoordinatesId) + '].st).xyz * 2.0 - vec3(1.0);' +NL+
+        Unpack normals, they are in texture in [0..1] range and I want in [-1..1]. }
+      '  vec3 normal_tangent = texture2D(castle_normal_map, ' + CoordName + '.st).xyz * 2.0 - vec3(1.0);' +NL+
 
       '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
       '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
@@ -2338,34 +2347,43 @@ var
     PlugFunction: array [TSurfaceTexture] of string =
     (
       'uniform sampler2D %s;' +NL+
+      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      'varying vec4 %s;' + NL+
       'void PLUG_material_light_ambient(inout vec4 ambient)' +NL+
       '{' +NL+
-      '  ambient.rgb *= texture2D(%s, gl_TexCoord[%d].st).%s;' +NL+
+      '  ambient.rgb *= texture2D(%s, %s.st).%s;' +NL+
       '}' +NL,
 
       'uniform sampler2D %s;' +NL+
+      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      'varying vec4 %s;' + NL+
       'void PLUG_material_light_specular(inout vec4 specular)' +NL+
       '{' +NL+
-      '  specular.rgb *= texture2D(%s, gl_TexCoord[%d].st).%s;' +NL+
+      '  specular.rgb *= texture2D(%s, %s.st).%s;' +NL+
       '}' +NL,
 
       'uniform sampler2D %s;' +NL+
+      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      'varying vec4 %s;' + NL+
       'void PLUG_material_shininess(inout float shininess)' +NL+
       '{' +NL+
-      '  shininess *= texture2D(%s, gl_TexCoord[%d].st).%s;' +NL+
+      '  shininess *= texture2D(%s, %s.st).%s;' +NL+
       '}' +NL
     );
   var
     SurfaceTexture: TSurfaceTexture;
-    UniformTextureName: string;
+    CoordName, UniformTextureName: string;
   begin
     for SurfaceTexture in TSurfaceTexture do
       if FSurfaceTextureShaders[SurfaceTexture].Enable then
       begin
         UniformTextureName := TSurfaceTextureShader.UniformTextureName(SurfaceTexture);
+        CoordName := TTextureCoordinateShader.CoordName(FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId);
         Plug(stFragment, Format(PlugFunction[SurfaceTexture],
-          [ UniformTextureName, UniformTextureName,
-            FSurfaceTextureShaders[SurfaceTexture].TextureCoordinatesId,
+          [ UniformTextureName,
+            CoordName,
+            UniformTextureName,
+            CoordName,
             FSurfaceTextureShaders[SurfaceTexture].ChannelMask ]));
       end;
   end;
@@ -2399,7 +2417,7 @@ var
         ftLinear:
           begin
             FogUniforms := 'uniform float castle_FogLinearEnd;';
-            { The normal fog equation multiply by gl_Fog.scale,
+            { The fixed-function fog equation multiply by gl_Fog.scale,
               which is a precomputed 1.0 / (gl_Fog.end - gl_Fog.start),
               which is just 1.0 / gl_Fog.end for us.
               So we just divide by castle_FogLinearEnd. }
