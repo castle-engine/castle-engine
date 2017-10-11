@@ -2379,13 +2379,13 @@ begin
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
-    {$ifndef OpenGLES}
-    glPushAttrib(GL_ENABLE_BIT);
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
-    {$endif}
 
-      {$ifndef OpenGLES}
       glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
       if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
@@ -2399,11 +2399,13 @@ begin
           glEnable(ScreenEffectTextureTarget);
       end;
       {$endif}
+    end;
 
-      OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
+    OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
+    RenderWithScreenEffectsCore;
 
-      RenderWithScreenEffectsCore;
-
+    if EnableFixedFunction then
+    begin
       {$ifndef OpenGLES}
       if CurrentScreenEffectsNeedDepth then
       begin
@@ -2415,12 +2417,12 @@ begin
       glActiveTexture(GL_TEXTURE0);
       if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
         glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-      {$endif}
 
       { at the end, we left active texture as default GL_TEXTURE0 }
-    {$ifndef OpenGLES}
-    glPopAttrib;
-    {$endif}
+
+      glPopAttrib;
+      {$endif}
+    end;
   end;
 end;
 

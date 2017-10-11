@@ -1307,7 +1307,7 @@ begin
     end;
     { TODO: this should be replaced with just
     glLoadMatrix(GetModelViewTransform);
-      to just load full matrix, and be consistent with what happens on OpenGLES. }
+      to just load full matrix, and be consistent with what happens when EnableFixedFunction=false. }
   end;
   {$endif}
 

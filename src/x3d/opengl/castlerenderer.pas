@@ -2881,9 +2881,12 @@ begin
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
      (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
-    {$ifndef OpenGLES}
-    glMatrixMode(GL_TEXTURE);
-    {$endif}
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glMatrixMode(GL_TEXTURE);
+      {$endif}
+    end;
 
     { We work assuming that texture matrix before RenderShape was identity.
       Texture transform encoded in VRML/X3D will be multiplied by this.
@@ -2914,13 +2917,15 @@ begin
       if FirstTexUnit < GLFeatures.MaxTextureUnits then
       begin
         TextureTransformUnitsUsed := 1;
-        {$ifndef OpenGLES}
-        ActiveTexture(FirstTexUnit);
-        glPushMatrix;
-        glMultMatrix(State.TextureTransform);
-        {$else}
+        if EnableFixedFunction then
+        begin
+          {$ifndef OpenGLES}
+          ActiveTexture(FirstTexUnit);
+          glPushMatrix;
+          glMultMatrix(State.TextureTransform);
+          {$endif}
+        end;
         Shader.EnableTextureTransform(FirstTexUnit, State.TextureTransform);
-        {$endif}
       end;
     end else
     begin
@@ -2939,10 +2944,13 @@ begin
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
-            {$ifndef OpenGLES}
-            ActiveTexture(FirstTexUnit + I);
-            glPushMatrix;
-            {$endif}
+            if EnableFixedFunction then
+            begin
+              {$ifndef OpenGLES}
+              ActiveTexture(FirstTexUnit + I);
+              glPushMatrix;
+              {$endif}
+            end;
             Child := Transforms[I];
             if (Child <> nil) and
                (Child is TAbstractTextureTransformNode) then
@@ -2951,11 +2959,13 @@ begin
                 WritelnWarning('VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
               begin
                 Matrix := TAbstractTextureTransformNode(Child).TransformMatrix;
-                {$ifndef OpenGLES}
-                glMultMatrix(Matrix);
-                {$else}
+                if EnableFixedFunction then
+                begin
+                  {$ifndef OpenGLES}
+                  glMultMatrix(Matrix);
+                  {$endif}
+                end;
                 Shader.EnableTextureTransform(FirstTexUnit + I, Matrix);
-                {$endif}
               end;
             end;
           end;
@@ -2976,51 +2986,59 @@ begin
           begin
             TextureTransformUnitsUsed := 1;
             Matrix := TextureTransform.TransformMatrix;
-            {$ifndef OpenGLES}
-            ActiveTexture(FirstTexUnit);
-            glPushMatrix;
-            glMultMatrix(Matrix);
-            {$else}
+            if EnableFixedFunction then
+            begin
+              {$ifndef OpenGLES}
+              ActiveTexture(FirstTexUnit);
+              glPushMatrix;
+              glMultMatrix(Matrix);
+              {$endif}
+            end;
             Shader.EnableTextureTransform(FirstTexUnit, Matrix);
-            {$endif}
           end;
         end;
       end;
     end;
 
-    {$ifndef OpenGLES}
-    { restore GL_MODELVIEW }
-    glMatrixMode(GL_MODELVIEW);
-    {$endif}
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      { restore GL_MODELVIEW }
+      glMatrixMode(GL_MODELVIEW);
+      {$endif}
+    end;
   end;
 
   RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, Lighting);
 
-  {$ifndef OpenGLES}
-  if (TextureTransformUnitsUsed <> 0) or
-     (TextureTransformUnitsUsedMore.Count <> 0) then
+  if EnableFixedFunction then
   begin
-    glMatrixMode(GL_TEXTURE);
-
-    for I := 0 to TextureTransformUnitsUsed - 1 do
+    {$ifndef OpenGLES}
+    if (TextureTransformUnitsUsed <> 0) or
+       (TextureTransformUnitsUsedMore.Count <> 0) then
     begin
-      { This code is Ok also when not GLFeatures.UseMultiTexturing: then
-        TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
-        will be simply ignored. }
-      ActiveTexture(FirstTexUnit + I);
-      glPopMatrix;
-    end;
+      glMatrixMode(GL_TEXTURE);
 
-    for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
-    begin
-      ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
-      glPopMatrix;
-    end;
+      for I := 0 to TextureTransformUnitsUsed - 1 do
+      begin
+        { This code is Ok also when not GLFeatures.UseMultiTexturing: then
+          TextureTransformUnitsUsed for sure is <= 1 and ActiveTexture
+          will be simply ignored. }
+        ActiveTexture(FirstTexUnit + I);
+        glPopMatrix;
+      end;
 
-    { restore GL_MODELVIEW }
-    glMatrixMode(GL_MODELVIEW);
+      for I := 0 to TextureTransformUnitsUsedMore.Count - 1 do
+      begin
+        ActiveTexture(TextureTransformUnitsUsedMore.List^[I]);
+        glPopMatrix;
+      end;
+
+      { restore GL_MODELVIEW }
+      glMatrixMode(GL_MODELVIEW);
+    end;
+    {$endif}
   end;
-  {$endif}
 end;
 
 procedure TGLRenderer.RenderShapeClipPlanes(Shape: TX3DRendererShape;
@@ -3104,8 +3122,10 @@ begin
       glMultMatrix(Shape.State.Transform);
   end;
   {$endif}
+
     Shape.ModelView := Shape.ModelView * Shape.State.Transform;
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
+
   {$ifndef OpenGLES}
   if EnableFixedFunction then
     glPopMatrix;
