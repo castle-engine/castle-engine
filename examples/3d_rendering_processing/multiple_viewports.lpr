@@ -95,7 +95,7 @@ end;
 procedure TScreenEffectDemoViewport.GLContextOpen;
 begin
   inherited;
-  if TGLSLProgram.ClassSupport <> gsNone then
+  if GLFeatures.Shaders <> gsNone then
   begin
     GLSLProgram := TGLSLScreenEffect.Create;
     GLSLProgram.ScreenEffectShader :=
