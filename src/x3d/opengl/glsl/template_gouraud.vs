@@ -1,4 +1,4 @@
-/* Generic GLSL vertex shader, used on OpenGL ES. */
+/* Gouraud shading GLSL vertex shader. */
 
 uniform mat4 castle_ModelViewMatrix;
 uniform mat4 castle_ProjectionMatrix;

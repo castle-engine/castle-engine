@@ -1,10 +1,11 @@
-/* Generic GLSL fragment shader.
+/* Phong shading GLSL fragment shader.
    Used by ../castlerendererinternalshader.pas to construct the final shader.
-
-   This is converted to template.fs.inc, and is then compiled
-   in program's binary.
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
+
+#ifdef GL_ES
+precision mediump float;
+#endif
 
 /* PLUG-DECLARATIONS */
 

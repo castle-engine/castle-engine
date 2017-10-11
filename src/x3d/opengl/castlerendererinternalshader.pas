@@ -159,15 +159,15 @@ type
     { Append AppendCode to our code.
       Has some special features:
 
-      - Doesn't use AppendCode[stFragment][0]
+      - Doesn't use AppendCode[DontAppendFirstPart][0]
         (we use this for now only with texture and light shaders,
-        which treat AppendCode[stFragment][0] specially).
+        which treat AppendCode[stVertex / stFragment][0] specially).
 
       - Doesn't add anything to given type, if it's already empty.
         For our internal base shaders, vertex and fragment are never empty.
         When they are empty, this means that user assigned ComposedShader,
         but depends on fixed-function pipeline to do part of the job. }
-    procedure Append(AppendCode: TShaderSource);
+    procedure Append(AppendCode: TShaderSource; const DontAppendFirstPart: TShaderType);
   end;
 
   { Internal for TLightShader. @exclude }
@@ -345,6 +345,7 @@ type
     DynamicUniforms: TDynamicUniformList;
     TextureMatrix: TCardinalList;
     NeedsCameraInverseMatrix: boolean;
+    FPhongShading: boolean;
 
     { We have to optimize the most often case of TShader usage,
       when the shader is not needed or is already prepared.
@@ -507,8 +508,16 @@ type
     property ShapeRequiresShaders: boolean read FShapeRequiresShaders
       write FShapeRequiresShaders;
 
-    { Clear instance, bringing it to the state after creation. }
+    { Clear instance, bringing it to the state after creation.
+      You must call Intialize afterwards. }
     procedure Clear;
+
+    { Initialize the instance and PhongShading.
+      For now, PhongShading must be set early (and cannot be changed later),
+      as it determines the initial shader templates that may be used before linking. }
+    procedure Initialize(const APhongShading: boolean);
+
+    property PhongShading: boolean read FPhongShading;
 
     { Set uniforms that should be set each time before using shader
       (because changes to their values may happen at any time,
@@ -525,16 +534,6 @@ uses SysUtils, StrUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleGLUtils, CastleLog, Castle3D, CastleGLVersion, CastleRenderingCamera,
   CastleScreenEffects, CastleInternalX3DLexer;
-
-{ TODO: a way to turn off using fixed-function pipeline completely
-  will be needed some day. Currently, some functions here call
-  fixed-function glEnable... stuff.
-
-  TODO: some day, avoid using predefined OpenGL state variables.
-  Use only shader uniforms. Right now, we allow some state to be assigned
-  using direct normal OpenGL fixed-function functions in GLRenderer,
-  and our shaders just use it.
-}
 
 { String helpers ------------------------------------------------------------- }
 
@@ -693,14 +692,14 @@ begin
   Result := FSource[AType];
 end;
 
-procedure TShaderSource.Append(AppendCode: TShaderSource);
+procedure TShaderSource.Append(AppendCode: TShaderSource; const DontAppendFirstPart: TShaderType);
 var
   T: TShaderType;
   I: Integer;
 begin
   for T := Low(T) to High(T) do
     if Source[T].Count <> 0 then
-      for I := Iff(T = stFragment, 1, 0) to AppendCode[T].Count - 1 do
+      for I := Iff(T = DontAppendFirstPart, 1, 0) to AppendCode[T].Count - 1 do
         Source[T].Add(AppendCode[T][I]);
 end;
 
@@ -809,6 +808,7 @@ function TLightShader.Code: TShaderSource;
 
 var
   TemplateLight: string;
+  LightingStage: TShaderType;
 begin
   if FCode = nil then
   begin
@@ -818,9 +818,11 @@ begin
     TemplateLight := StringReplace(TemplateLight,
       '<Light>', IntToStr(Number), [rfReplaceAll]);
 
-    // TODO: vertex / fragment should depend on Gouraud / Phong shading
-    FCode[{$ifdef OpenGLES} stVertex {$else} stFragment {$endif}].
-      Add(DefinesStr + TemplateLight);
+    if Shader.PhongShading then
+      LightingStage := stFragment
+    else
+      LightingStage := stVertex;
+    FCode[LightingStage].Add(DefinesStr + TemplateLight);
 
     if Node <> nil then
       Shader.EnableEffects(Node.FdEffects, FCode);
@@ -1509,7 +1511,7 @@ begin
           is a little special, we add it to TextureApply that
           will be directly placed within the source. }
         TextureApply += Code[stFragment][0];
-        Shader.Source.Append(Code);
+        Shader.Source.Append(Code, stFragment);
       finally FreeAndNil(Code) end;
 
       TextureApply += TextureEnvMix(Env, 'fragment_color', 'texture_color', TextureUnit) + NL;
@@ -1570,8 +1572,10 @@ begin
 end;
 
 const
-  DefaultVertexShader   = {$ifdef OpenGLES} {$I template_mobile.vs.inc} {$else} {$I template.vs.inc} {$endif};
-  DefaultFragmentShader = {$ifdef OpenGLES} {$I template_mobile.fs.inc} {$else} {$I template.fs.inc} {$endif};
+  DefaultVertexShader   : array [ { phong shading } boolean ] of string =
+  ( {$I template_gouraud.vs.inc}, {$I template_phong.vs.inc} );
+  DefaultFragmentShader : array [ { phong shading } boolean ] of string =
+  ( {$I template_gouraud.fs.inc}, {$I template_phong.fs.inc} );
   DefaultGeometryShader = {$I template.gs.inc};
 
   // TODO: fix this to pass color in new shaders (not using deprecated gl_FrontColor, gl_BackColor)
@@ -1601,12 +1605,7 @@ const
 constructor TShader.Create;
 begin
   inherited;
-
   Source := TShaderSource.Create;
-  Source[stVertex].Add(DefaultVertexShader);
-  Source[stFragment].Add(DefaultFragmentShader);
-  Source[stGeometry].Add(DefaultGeometryShader);
-
   LightShaders := TLightShaders.Create;
   TextureShaders := TTextureCoordinateShaderList.Create;
   UniformsNodes := TX3DNodeList.Create(false);
@@ -1630,13 +1629,11 @@ end;
 procedure TShader.Clear;
 var
   SurfaceTexture: TSurfaceTexture;
+  ShaderType: TShaderType;
 begin
-  Source[stVertex].Count := 1;
-  Source[stVertex][0] := DefaultVertexShader;
-  Source[stFragment].Count := 1;
-  Source[stFragment][0] := DefaultFragmentShader;
-  Source[stGeometry].Count := 1;
-  Source[stGeometry][0] := DefaultGeometryShader;
+  for ShaderType in TShaderType do
+    Source[ShaderType].Clear;
+
   WarnMissingPlugs := true;
   HasGeometryMain := false;
 
@@ -1669,6 +1666,7 @@ begin
   GroupEffects := nil;
   Lighting := false;
   MaterialFromColor := false;
+  FPhongShading := false;
   ShapeBoundingBox := TBox3D.Empty;
   MaterialAmbient := TVector4.Zero;
   MaterialDiffuse := TVector4.Zero;
@@ -1679,6 +1677,19 @@ begin
   DynamicUniforms.Clear;
   TextureMatrix.Clear;
   NeedsCameraInverseMatrix := false;
+end;
+
+procedure TShader.Initialize(const APhongShading: boolean);
+begin
+  FPhongShading := APhongShading;
+  FCodeHash.AddInteger(Ord(PhongShading) * 877);
+
+  Source[stVertex].Count := 1;
+  Source[stVertex][0] := DefaultVertexShader[PhongShading];
+  Source[stFragment].Count := 1;
+  Source[stFragment][0] := DefaultFragmentShader[PhongShading];
+  Source[stGeometry].Count := 1;
+  Source[stGeometry][0] := DefaultGeometryShader;
 end;
 
 procedure TShader.Plug(const EffectPartType: TShaderType; PlugValue: string;
@@ -1840,7 +1851,8 @@ begin
       AnyOccurrences := LookForPlugDeclaration(Source[EffectPartType]);
 
     if (not AnyOccurrences) and WarnMissingPlugs then
-      WritelnWarning('VRML/X3D', Format('Plug name "%s" not declared', [PlugName]));
+      WritelnWarning('VRML/X3D', Format('Plug name "%s" not declared (in shader type "%s")',
+        [PlugName, ShaderTypeName[EffectPartType]]));
   until false;
 
   { regardless if any (and how many) plug points were found,
@@ -2072,7 +2084,8 @@ var
 
   procedure EnableLights;
   var
-    I: Integer;
+    LightShader: TLightShader;
+    LightingStage: TShaderType;
   begin
     PassLightsUniforms := false;
 
@@ -2098,17 +2111,17 @@ var
 
       PassLightsUniforms := true;
 
-      for I := 0 to LightShaders.Count - 1 do
+      if PhongShading then
+        LightingStage := stFragment
+      else
+        LightingStage := stVertex;
+
+      for LightShader in LightShaders do
       begin
-        {$ifndef OpenGLES}
-        // TODO: stFragment or stVertex should depend on Gouraud / Phong
-        // (you will still need ifdef between OpenGLES / OpenGL but only to decide
-        // should we do Source.Append, probably).
-        Plug(stFragment, LightShaders[I].Code[stFragment][0]);
-        Source.Append(LightShaders[I].Code);
-        {$else}
-        Plug(stVertex, LightShaders[I].Code[stVertex][0]);
-        {$endif}
+        Plug(LightingStage, LightShader.Code[LightingStage][0]);
+        { Append the rest of LightShader, it may contain shadow maps utilities
+          and light plugs. }
+        Source.Append(LightShader.Code, LightingStage);
       end;
     end else
     begin
@@ -2151,7 +2164,7 @@ var
       'float height = 1.0;' +NL+
       'castle_bm_height = texture2D(castle_normal_map, tex_coord).a;' +NL+
 
-      { It's known problem that NVidia GeForce FX 5200 fails here with
+      { TODO: NVidia GeForce FX 5200 fails here with
 
            error C5011: profile does not support "while" statements
            and "while" could not be unrolled.
@@ -2162,8 +2175,7 @@ var
           if (! (castle_bm_height < height)) break;
         , this is possible to unroll). But it turns out that this still
         (even with steep_steps_max = 1) works much too slow on this hardware...
-        so I simply fallback to non-steep version of parallax mapping
-        if this doesn't compile. TODO: we no longer retry with steep? }
+      }
 
       'while (castle_bm_height < height)' +NL+
       '{' +NL+

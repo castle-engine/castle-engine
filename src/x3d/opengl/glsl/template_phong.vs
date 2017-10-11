@@ -1,8 +1,5 @@
-/* Generic GLSL vertex shader.
+/* Phong shading GLSL vertex shader.
    Used by ../castlerendererinternalshader.pas to construct the final shader.
-
-   This is converted to template.vs.inc, and is then compiled
-   in program's binary.
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 

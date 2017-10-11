@@ -42,7 +42,7 @@
   TLinePropertiesNode = class;
   TCommonSurfaceShaderNode = class;
 
-  TShading = (shDefault, shPhong, shWireframe);
+  TShading = (shDefault, shGouraud, shPhong, shWireframe);
 
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
@@ -652,7 +652,7 @@ end;
 
 procedure TAbstractShapeNode.CreateNode;
 const
-  ShadingNames: array [TShading] of string = ('DEFAULT', 'PHONG', 'WIREFRAME');
+  ShadingNames: array [TShading] of string = ('DEFAULT', 'GOURAUD', 'PHONG', 'WIREFRAME');
 begin
   inherited;
 

@@ -1,8 +1,10 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_mobile.fs" }
-'/* Generic GLSL fragment shader, used on OpenGL ES. */' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "template_gouraud.fs" }
+'/* Gouraud shading GLSL fragment shader. */' + LineEnding +
 '' + LineEnding +
+'#ifdef GL_ES' + LineEnding +
 'precision mediump float;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +

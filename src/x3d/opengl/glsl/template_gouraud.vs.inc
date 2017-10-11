@@ -1,6 +1,6 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_mobile.vs" }
-'/* Generic GLSL vertex shader, used on OpenGL ES. */' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "template_gouraud.vs" }
+'/* Gouraud shading GLSL vertex shader. */' + LineEnding +
 '' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
 'uniform mat4 castle_ProjectionMatrix;' + LineEnding +

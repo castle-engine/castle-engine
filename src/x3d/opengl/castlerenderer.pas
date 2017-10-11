@@ -280,13 +280,15 @@ type
     FPointSize: TGLFloat;
     FLineWidth: TGLFloat;
     FBumpMapping: TBumpMapping;
-    FShaders: TShadersRendering;
     FCustomShader, FCustomShaderAlphaTest: TX3DShaderProgramBase;
     FMode: TRenderingMode;
     FVertexBufferObject: boolean;
     FShadowSampling: TShadowSampling;
     FVisualizeDepthMap: boolean;
     FDepthTest: boolean;
+    FPhongShading: boolean;
+    function GetShaders: TShadersRendering;
+    procedure SetShaders(const Value: TShadersRendering);
   protected
     { These methods just set the value on given property,
       eventually (some of them) calling ReleaseCachedResources.
@@ -301,7 +303,7 @@ type
     procedure SetShadowSampling(const Value: TShadowSampling); virtual;
     procedure SetVertexBufferObject(const Value: boolean); virtual;
     procedure SetVisualizeDepthMap(const Value: boolean); virtual;
-    procedure SetShaders(const Value: TShadersRendering); virtual;
+    procedure SetPhongShading(const Value: boolean); virtual;
     { @groupEnd }
 
     { Called before changing an attribute that requires the release
@@ -322,7 +324,6 @@ type
     const
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
-      DefaultShaders = srWhenRequired;
       DefaultBumpMapping = bmSteepParallaxShadowing;
 
     constructor Create; virtual;
@@ -444,29 +445,16 @@ type
       read FBumpMapping write SetBumpMapping default DefaultBumpMapping;
 
     { When GLSL shaders are used.
+      This is now a deprecated property, better use @link(PhongShading) to determine
+      the shading.
+      The engine auto-detects whether to use shaders based on OpenGL capabilities,
+      particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
+      and EnableFixedFunction. }
+    property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
 
-      @unorderedList(
-        @item(srDisable Never use shaders for anything.
-          This means that "shaders", "effects" VRML/X3D fields
-          are ignored, and various effects are disabled
-          (like shadow maps, bump mapping, screen effects).
-          No GLSL program is active, we always force fixed-function pipeline.)
-
-        @item(srWhenRequired Enable only for shapes that require it.
-          For shapes that don't strictly require shaders
-          (don't have ComposedShader, don't use shadow maps,
-          don't have any shader effects etc.) use fixed-function pipeline.)
-
-        @item(srAlways Enable for all shapes, render everything by GLSL shaders.
-          Everything will look beautiful (per-pixel lighting for all shapes),
-          but rendering may be slower.)
-      )
-
-      Note that Mode <> rmFull also disables all shaders.
-      That is, when Mode <> rmFull, the value of this property
-      doesn't matter, it's always treated like srDisable. }
-    property Shaders: TShadersRendering read FShaders write FShaders
-      default DefaultShaders;
+    { Whether to use Phong shading by default for all shapes.
+      Note that each shape may override it by @link(TShapeNode.Shading) field. }
+    property PhongShading: boolean read FPhongShading write SetPhongShading;
 
     { Custom GLSL shader to use for the whole scene.
       When this is assigned, @link(Shaders) value is ignored.
@@ -1990,7 +1978,6 @@ begin
   FPointSize := DefaultPointSize;
   FLineWidth := DefaultLineWidth;
   FBumpMapping := DefaultBumpMapping;
-  FShaders := DefaultShaders;
   FVertexBufferObject := true;
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
@@ -2100,9 +2087,22 @@ begin
   end;
 end;
 
+function TRenderingAttributes.GetShaders: TShadersRendering;
+begin
+  if PhongShading then
+    Result := srAlways
+  else
+    Result := srWhenRequired;
+end;
+
 procedure TRenderingAttributes.SetShaders(const Value: TShadersRendering);
 begin
-  FShaders := Value;
+  PhongShading := Value = srAlways;
+end;
+
+procedure TRenderingAttributes.SetPhongShading(const Value: boolean);
+begin
+  FPhongShading := Value;
 end;
 
 { TGLRenderer ---------------------------------------------------------- }
@@ -2678,18 +2678,49 @@ end;
 
 procedure TGLRenderer.RenderShape(Shape: TX3DRendererShape;
   Fog: IAbstractFogObject);
+
+  function ShapeMaybeUsesShadowMaps(Shape: TX3DRendererShape): boolean;
+  var
+    Tex, SubTexture: TX3DNode;
+  begin
+    Result := false;
+    if (Shape.Node <> nil) and
+       (Shape.Node.Appearance <> nil) then
+    begin
+      Tex := Shape.Node.Appearance.Texture;
+
+      if Tex is TGeneratedShadowMapNode then
+        Exit(true);
+
+      if Tex is TMultiTextureNode then
+      begin
+        for SubTexture in TMultiTextureNode(Tex).FdTexture.Items do
+          if SubTexture is TGeneratedShadowMapNode then
+            Exit(true);
+      end;
+    end;
+  end;
+
 var
+  PhongShading: boolean;
   Shader: TShader;
 begin
   { instead of TShader.Create, reuse existing PreparedShader for speed }
   Shader := PreparedShader;
   Shader.Clear;
 
+  PhongShading :=
+    Attributes.PhongShading or
+    ((Shape.Node <> nil) and (Shape.Node.Shading = shPhong)) or
+    ShapeMaybeUsesBumpMapping(Shape) or
+    ShapeMaybeUsesShadowMaps(Shape);
+  Shader.Initialize(PhongShading);
+
+  if PhongShading then
+    Shader.ShapeRequiresShaders := true;
+
   Shader.ShapeBoundingBox := Shape.BoundingBox;
   Shader.ShadowSampling := Attributes.ShadowSampling;
-  if (Shape.Node <> nil) and
-     (Shape.Node.Shading = shPhong) then
-    Shader.ShapeRequiresShaders := true;
   RenderShapeLineProperties(Shape, Fog, Shader);
 end;
 

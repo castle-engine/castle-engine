@@ -1,12 +1,13 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template.fs" }
-'/* Generic GLSL fragment shader.' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "template_phong.fs" }
+'/* Phong shading GLSL fragment shader.' + LineEnding +
 '   Used by ../castlerendererinternalshader.pas to construct the final shader.' + LineEnding +
-'' + LineEnding +
-'   This is converted to template.fs.inc, and is then compiled' + LineEnding +
-'   in program''s binary.' + LineEnding +
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding +
 '*/' + LineEnding +
+'' + LineEnding +
+'#ifdef GL_ES' + LineEnding +
+'precision mediump float;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 '/* PLUG-DECLARATIONS */' + LineEnding +
 '' + LineEnding +

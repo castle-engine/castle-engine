@@ -1,6 +1,8 @@
-/* Generic GLSL fragment shader, used on OpenGL ES. */
+/* Gouraud shading GLSL fragment shader. */
 
+#ifdef GL_ES
 precision mediump float;
+#endif
 
 /* PLUG-DECLARATIONS */
 

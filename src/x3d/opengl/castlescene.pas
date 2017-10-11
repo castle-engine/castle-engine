@@ -131,7 +131,7 @@ type
     procedure SetControlBlending(const Value: boolean); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
 
-    procedure SetShaders(const Value: TShadersRendering); override;
+    procedure SetPhongShading(const Value: boolean); override;
   public
     const
       { }
@@ -2088,14 +2088,14 @@ var
   SE: TScreenEffectNode;
 begin
   Result := 0;
-  if Attributes.Shaders <> srDisable then
-    for I := 0 to ScreenEffectNodes.Count - 1 do
-    begin
-      SE := TScreenEffectNode(ScreenEffectNodes[I]);
-      Renderer.PrepareScreenEffect(SE);
-      if SE.Shader <> nil then
-        Inc(Result);
-    end;
+
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+  begin
+    SE := TScreenEffectNode(ScreenEffectNodes[I]);
+    Renderer.PrepareScreenEffect(SE);
+    if SE.Shader <> nil then
+      Inc(Result);
+  end;
 end;
 
 function TCastleScene.ScreenEffects(Index: Integer): TGLSLProgram;
@@ -2277,15 +2277,14 @@ begin
     (GLFeatures.QueryCounterBits > 0);
 end;
 
-procedure TSceneRenderingAttributes.SetShaders(const Value: TShadersRendering);
+procedure TSceneRenderingAttributes.SetPhongShading(const Value: boolean);
 var
   I: Integer;
 begin
-  if Shaders <> Value then
+  if PhongShading <> Value then
   begin
     inherited;
-    { When switching to a higher TShadersRendering value
-      (that uses more shaders), we want to force generating necessary
+    { When switching this we want to force generating necessary
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
       awfully stutters for some time after changing this property. }

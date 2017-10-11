@@ -8,8 +8,8 @@ Shape {
     shaders ComposedShader {
       language "GLSL"
       parts [
-        ShaderPart { type "VERTEX" url "template_mobile.vs" }
-        ShaderPart { type "FRAGMENT" url "template_mobile.fs" }
+        ShaderPart { type "VERTEX" url "template_gouraud.vs" }
+        ShaderPart { type "FRAGMENT" url "template_gouraud.fs" }
       ]
     }
   }

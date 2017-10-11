@@ -896,11 +896,7 @@ begin
 
     UseShaderRendering := {$ifdef OpenGLES} true {$else}
       (not EnableFixedFunction) or
-      ( (Attributes.Mode = rmFull) and
-        ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
-           (Attributes.Shaders = srAlways)
-        )
-      )
+      ((Attributes.Mode = rmFull) and Shader.ShapeRequiresShaders)
       {$endif};
 
     if UseShaderRendering then
