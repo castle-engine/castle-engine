@@ -563,18 +563,14 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     ( (Data: (1, 0, 0, 0)),
       (Data: (0, 1, 0, 0)),
       (Data: (0, 0, 1, 0)) );
-  var
-    TransformToWorldSpace: boolean;
-  {$ifndef OpenGLES} // TODO-es
-  const
     ProjectorScalingMatrix: TMatrix4 = (Data:
     ( (0.5,   0,   0, 0),
       (  0, 0.5,   0, 0),
       (  0,   0, 0.5, 0),
       (0.5, 0.5, 0.5, 1) ));
   var
+    TransformToWorldSpace: boolean;
     ProjectorMatrix: TMatrix4;
-  {$endif}
   begin
     TransformToWorldSpace := TexCoord.Generation in
       [tgWorldSpaceReflectionVector, tgWorldSpaceNormal];
