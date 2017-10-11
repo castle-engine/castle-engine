@@ -2,7 +2,9 @@
    This is merely used to avoid crashing the application (you cannot leave
    the shader empty). */
 
+#ifdef GL_ES
 precision mediump float;
+#endif
 
 void main(void)
 {

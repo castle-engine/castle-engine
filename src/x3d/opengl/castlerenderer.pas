@@ -1905,9 +1905,8 @@ begin
     end;
   end;
 
-  { We *must* have some GLSL shader on OpenGLES }
-  {$ifdef OpenGLES}
-  if Result.ShaderProgram = nil then
+  { We *must* have some GLSL shader when EnableFixedFunction = false }
+  if (not EnableFixedFunction) and (Result.ShaderProgram = nil) then
   begin
     try
       Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
@@ -1922,7 +1921,6 @@ begin
       end;
     end;
   end;
-  {$endif}
 
   if LogRendererCache and Log then
     WritelnLog('++', 'Shader program (hash %s): %d', [Result.Hash.ToString, Result.References]);
@@ -2426,13 +2424,13 @@ end;
 
 procedure TGLRenderer.DisableTexture(const TextureUnit: Cardinal);
 begin
-  { TODO: what to do for Shader? We cannot disable texture later...
-    We should detect it, and do enable only when appropriate }
-
-  { This must be synchronized, and disable all that can be enabled
-    by TShape.EnableTexture }
-  ActiveTexture(TextureUnit);
-  DisableCurrentTexture;
+  if EnableFixedFunction then
+  begin
+    { This must be synchronized, and disable all that can be enabled
+      by TShape.EnableTexture }
+    ActiveTexture(TextureUnit);
+    DisableCurrentTexture;
+  end;
 end;
 
 procedure TGLRenderer.DisableCurrentTexture;
@@ -2489,17 +2487,18 @@ begin
     {$endif}
   end;
 
-  { init our OpenGL state }
-  {$ifndef OpenGLES}
-  glMatrixMode(GL_MODELVIEW);
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    glMatrixMode(GL_MODELVIEW);
+
+    { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
+      after rendering X3D model using MultiTexture. }
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    {$endif}
+  end;
 
   RenderContext.PointSize := Attributes.PointSize;
-
-  { Reset GL_TEXTURE_ENV, otherwise it may be left GL_COMBINE
-    after rendering X3D model using MultiTexture. }
-  glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-  {$endif}
-
   RenderContext.LineWidth := Attributes.LineWidth;
 
   if Beginning then
@@ -2517,7 +2516,7 @@ begin
 
   GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
 
-  if Attributes.Mode in [rmDepth, rmFull] then
+  if EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
@@ -2540,7 +2539,7 @@ begin
     {$endif}
   end;
 
-  if Attributes.Mode = rmFull then
+  if EnableFixedFunction and (Attributes.Mode = rmFull) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
@@ -2605,6 +2604,12 @@ begin
     if Beginning then
       glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
     {$endif}
+  end else
+  begin
+    FSmoothShading := true;
+    if Beginning then
+      { Initialize FFixedFunctionLighting, make sure OpenGL state is appropriate }
+      FFixedFunctionLighting := Attributes.Lighting;
   end;
 end;
 
@@ -2616,10 +2621,13 @@ begin
 
   RenderCleanState(true);
 
-  { push matrix after RenderCleanState, to be sure we're in modelview mode }
-  {$ifndef OpenGLES}
-  glPushMatrix;
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    { push matrix after RenderCleanState, to be sure we're in modelview mode }
+    {$ifndef OpenGLES}
+    glPushMatrix;
+    {$endif}
+  end;
 
   Assert(FogNode = nil);
   Assert(not FogEnabled);
@@ -2639,9 +2647,12 @@ begin
   FogNode := nil;
   FogEnabled := false;
 
-  {$ifndef OpenGLES}
-  glPopMatrix;
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    glPopMatrix;
+    {$endif}
+  end;
 
   RenderCleanState(false);
 
@@ -3087,13 +3098,17 @@ begin
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
   {$ifndef OpenGLES}
-  glPushMatrix;
-    glMultMatrix(Shape.State.Transform);
+  if EnableFixedFunction then
+  begin
+    glPushMatrix;
+      glMultMatrix(Shape.State.Transform);
+  end;
   {$endif}
     Shape.ModelView := Shape.ModelView * Shape.State.Transform;
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
   {$ifndef OpenGLES}
-  glPopMatrix;
+  if EnableFixedFunction then
+    glPopMatrix;
   {$endif}
 
   ClipPlanesEnd;

@@ -1290,14 +1290,17 @@ begin
   ModelView := GetModelViewTransform;
 
   {$ifndef OpenGLES}
-  if not Params.RenderTransformIdentity then
+  if EnableFixedFunction then
   begin
-    glPushMatrix;
-    glMultMatrix(Params.RenderTransform);
+    if not Params.RenderTransformIdentity then
+    begin
+      glPushMatrix;
+      glMultMatrix(Params.RenderTransform);
+    end;
+    { TODO: this should be replaced with just
+    glLoadMatrix(GetModelViewTransform);
+      to just load full matrix, and be consistent with what happens on OpenGLES. }
   end;
-  { TODO: this should be replaced with just
-  glLoadMatrix(GetModelViewTransform);
-    to just load full matrix, and be consistent with what happens on OpenGLES. }
   {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,

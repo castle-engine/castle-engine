@@ -23,7 +23,7 @@
 
 uses SysUtils,
   CastleLog, CastleShaders, CastleVectors, X3DNodes, CastleWindow, CastleSceneCore,
-  CastleScene;
+  CastleScene, CastleUtils;
 
 function BuildX3D: TX3DRootNode;
 var
@@ -44,11 +44,22 @@ begin
 
   VertexShader := TShaderPartNode.Create;
   VertexShader.ShaderType := stVertex;
-  VertexShader.Contents := 'void main(void) { gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex; }';
+  VertexShader.Contents :=
+    'uniform mat4 castle_ModelViewMatrix;' + NL +
+    'uniform mat4 castle_ProjectionMatrix;' + NL +
+    'attribute vec4 castle_Vertex;' + NL +
+    'void main(void)' + NL +
+    '{' + NL +
+    '  gl_Position = castle_ProjectionMatrix * (castle_ModelViewMatrix * castle_Vertex);' + NL +
+    '}';
 
   FragmentShader := TShaderPartNode.Create;
   FragmentShader.ShaderType := stFragment;
-  FragmentShader.Contents := 'void main(void) { gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0); }';
+  FragmentShader.Contents :=
+    'void main(void)' + NL +
+    '{' + NL +
+    '  gl_FragColor = vec4(1.0, 0.0, 0.0, 1.0);' + NL +
+    '}';
 
   ComposedShader := TComposedShaderNode.Create;
   ComposedShader.SetParts([VertexShader, FragmentShader]);

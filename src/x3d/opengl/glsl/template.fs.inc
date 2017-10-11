@@ -18,6 +18,19 @@
 'varying vec4 castle_vertex_eye;' + LineEnding +
 'varying vec3 castle_normal_eye;' + LineEnding +
 '' + LineEnding +
+'uniform float castle_MaterialDiffuseAlpha;' + LineEnding +
+'uniform float castle_MaterialShininess;' + LineEnding +
+'/* Color summed with all the lights.' + LineEnding +
+'   Like gl_Front/BackLightModelProduct.sceneColor:' + LineEnding +
+'   material emissive color + material ambient color * global (light model) ambient.' + LineEnding +
+'*/' + LineEnding +
+'uniform vec3 castle_SceneColor;' + LineEnding +
+'uniform vec4 castle_UnlitColor;' + LineEnding +
+'' + LineEnding +
+'#ifdef COLOR_PER_VERTEX' + LineEnding +
+'varying vec4 castle_ColorPerVertexFragment;' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 '/* Wrapper for calling PLUG texture_coord_shift */' + LineEnding +
 'vec2 texture_coord_shifted(in vec2 tex_coord)' + LineEnding +
 '{' + LineEnding +
@@ -46,28 +59,26 @@
 '  /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +
 '#ifdef LIT' + LineEnding +
+'  /* Comparing this with Gouraud shading (template_mobile.vs/fs:' + LineEnding +
+'     this variable performs both the role of castle_Color and fragment_color' + LineEnding +
+'     from that GLSL code). */' + LineEnding +
 '  vec4 fragment_color;' + LineEnding +
 '' + LineEnding +
-'#ifndef CASTLE_BUGGY_FRONT_FACING' + LineEnding +
-'  if (gl_FrontFacing)' + LineEnding +
-'  {' + LineEnding +
-'#endif' + LineEnding +
-'    fragment_color = gl_FrontLightModelProduct.sceneColor;' + LineEnding +
-'    /* PLUG: add_light_contribution_front (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */' + LineEnding +
+'  fragment_color = vec4(castle_SceneColor, 1.0);' + LineEnding +
+'  /* PLUG: add_light_contribution (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess) */' + LineEnding +
 '' + LineEnding +
-'    /* Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding +
-'       and it''s always opaque.' + LineEnding +
-'       Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding +
-'       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */' + LineEnding +
-'    fragment_color.a = gl_FrontMaterial.diffuse.a;' + LineEnding +
-'#ifndef CASTLE_BUGGY_FRONT_FACING' + LineEnding +
-'  } else' + LineEnding +
-'  {' + LineEnding +
-'    fragment_color = gl_BackLightModelProduct.sceneColor;' + LineEnding +
-'    /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_BackMaterial) */' + LineEnding +
-'    fragment_color.a = gl_BackMaterial.diffuse.a;' + LineEnding +
-'  }' + LineEnding +
-'#endif' + LineEnding +
+'  /* Apply alpha. Otherwise, alpha is usually large after previous add_light_contribution,' + LineEnding +
+'     and it''s always opaque.' + LineEnding +
+'     Using diffuse.a is actually exactly what fixed-function pipeline does' + LineEnding +
+'     too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */' + LineEnding +
+'  #ifdef COLOR_PER_VERTEX' + LineEnding +
+'    // Apply castle_ColorPerVertexFragment alpha here.' + LineEnding +
+'    // The RGB portion of castle_ColorPerVertexFragment was' + LineEnding +
+'    // already applied in template_add_light.glsl . (TODO)' + LineEnding +
+'    fragment_color.a = castle_ColorPerVertexFragment.a;' + LineEnding +
+'  #else' + LineEnding +
+'    fragment_color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
+'  #endif' + LineEnding +
 '' + LineEnding +
 '  /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.' + LineEnding +
 '     This isn''t really mandatory, but scenes with many lights could easily' + LineEnding +
@@ -75,7 +86,15 @@
 '     Of course, for future HDR rendering we will turn this off. */' + LineEnding +
 '  fragment_color.rgb = min(fragment_color.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
-'  vec4 fragment_color = gl_Color;' + LineEnding +
+'  vec4 fragment_color = castle_UnlitColor' + LineEnding +
+'#ifdef COLOR_PER_VERTEX' + LineEnding +
+'    /* Apply COLOR_PER_VERTEX, when unlit.' + LineEnding +
+'       (When lit, then the analogous multiplication is done' + LineEnding +
+'        inside template_add_light.glsl - TODO) */' + LineEnding +
+'    * castle_ColorPerVertexFragment' + LineEnding +
+'#endif' + LineEnding +
+'  ;' + LineEnding +
+'' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
 '  /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */' + LineEnding +

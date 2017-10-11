@@ -214,6 +214,23 @@ procedure GLInformationInitialize;
 var
   GLFeatures: TGLFeatures;
 
+  { Enable OpenGL fixed-function rendering on desktops.
+    This makes Gouraud-shaded shapes rendered using OpenGL fixed-function pipeline
+    on desktops. It also allows you to use fixed-function pipeline calls in the
+    @link(TCastleWindow.OnRender) callback, @link(TUIControl.Render) override
+    and related places.
+    It also allows some deprecated rendering features like WindowPos to continue to work.
+
+    For now it's @true by default on desktops, which reflects how
+    the Castle Game Engine versions <= 6.3 were rendering:
+    mixing fixed-function and shader pipelines.
+    You can switch it to @false to have "pure shader pipeline" on a desktop OpenGL.
+    It will become @false by default eventually (on GPUs that support shaders).
+
+    On OpenGLES, it must be @false always, since OpenGLES >= 2 has no fixed-function pipeline.
+  }
+  EnableFixedFunction: boolean = {$ifdef OpenGLES} false {$else} true {$endif};
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

@@ -1,15 +1,13 @@
 { -*- buffer-read-only: t -*- }
-{ DON'T EDIT -- this file was automatically generated from "template_mobile_add_light.glsl" }
-'/* Shader code used for adding light source contribution, for OpenGL ES.' + LineEnding +
-'' + LineEnding +
-'   Very similar for normal light calculation in template_add_light.glsl,' + LineEnding +
-'   except it uses custom castle_Xxx uniforms, and doesn''t use gl_Xxx structures.' + LineEnding +
-'   We would like to eventually use a common code for this and' + LineEnding +
-'   for template_add_light.glsl.' + LineEnding +
+{ DON'T EDIT -- this file was automatically generated from "template_light.glsl" }
+'/* Shader code used for adding light source contribution.' + LineEnding +
+'   This is used by both desktop OpenGL and OpenGLES.' + LineEnding +
+'   This is used in both Gouraud and Phong shading,' + LineEnding +
+'   so it may go either in vertex or fragment shader.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
-'/* TODO: use this, i.e. define PLUG_geometry_vertex_*' + LineEnding +
-'   for every light source to pass these */' + LineEnding +
+'/* TODO: use this in case of Phong shading, i.e. define PLUG_geometry_vertex_*' + LineEnding +
+'   for every light source to pass these from vertex to fragment. */' + LineEnding +
 '#ifdef HAS_GEOMETRY_SHADER' + LineEnding +
 '  #define castle_LightSource<Light>Radius castle_LightSource<Light>Radius_geoshader' + LineEnding +
 '  #define castle_LightSource<Light>BeamWidth castle_LightSource<Light>BeamWidth_geoshader' + LineEnding +
@@ -69,6 +67,9 @@
 '#endif' + LineEnding +
 '' + LineEnding +
 '#ifdef LIGHT_TYPE_SPOT' + LineEnding +
+'  /* Check SpotCosCutoff first, as we want to add nothing' + LineEnding +
+'     (not even ambient term) when were outside of spot light cone. */' + LineEnding +
+'' + LineEnding +
 '  float spot_cos = dot(normalize(castle_LightSource<Light>SpotDirection), -light_dir);' + LineEnding +
 '  if (spot_cos < castle_LightSource<Light>SpotCosCutoff)' + LineEnding +
 '    return;' + LineEnding +

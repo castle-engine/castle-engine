@@ -16,6 +16,19 @@
 varying vec4 castle_vertex_eye;
 varying vec3 castle_normal_eye;
 
+uniform float castle_MaterialDiffuseAlpha;
+uniform float castle_MaterialShininess;
+/* Color summed with all the lights.
+   Like gl_Front/BackLightModelProduct.sceneColor:
+   material emissive color + material ambient color * global (light model) ambient.
+*/
+uniform vec3 castle_SceneColor;
+uniform vec4 castle_UnlitColor;
+
+#ifdef COLOR_PER_VERTEX
+varying vec4 castle_ColorPerVertexFragment;
+#endif
+
 /* Wrapper for calling PLUG texture_coord_shift */
 vec2 texture_coord_shifted(in vec2 tex_coord)
 {
@@ -44,28 +57,26 @@ void main(void)
   /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */
 
 #ifdef LIT
+  /* Comparing this with Gouraud shading (template_mobile.vs/fs:
+     this variable performs both the role of castle_Color and fragment_color
+     from that GLSL code). */
   vec4 fragment_color;
 
-#ifndef CASTLE_BUGGY_FRONT_FACING
-  if (gl_FrontFacing)
-  {
-#endif
-    fragment_color = gl_FrontLightModelProduct.sceneColor;
-    /* PLUG: add_light_contribution_front (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_FrontMaterial) */
+  fragment_color = vec4(castle_SceneColor, 1.0);
+  /* PLUG: add_light_contribution (fragment_color, castle_vertex_eye, normal_eye_fragment, castle_MaterialShininess) */
 
-    /* Otherwise, alpha is usually large after previous add_light_contribution,
-       and it's always opaque.
-       Using diffuse.a is actually exactly what fixed-function pipeline does
-       too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
-    fragment_color.a = gl_FrontMaterial.diffuse.a;
-#ifndef CASTLE_BUGGY_FRONT_FACING
-  } else
-  {
-    fragment_color = gl_BackLightModelProduct.sceneColor;
-    /* PLUG: add_light_contribution_back (fragment_color, castle_vertex_eye, normal_eye_fragment, gl_BackMaterial) */
-    fragment_color.a = gl_BackMaterial.diffuse.a;
-  }
-#endif
+  /* Apply alpha. Otherwise, alpha is usually large after previous add_light_contribution,
+     and it's always opaque.
+     Using diffuse.a is actually exactly what fixed-function pipeline does
+     too, according to http://www.sjbaker.org/steve/omniv/opengl_lighting.html */
+  #ifdef COLOR_PER_VERTEX
+    // Apply castle_ColorPerVertexFragment alpha here.
+    // The RGB portion of castle_ColorPerVertexFragment was
+    // already applied in template_light.glsl .
+    fragment_color.a = castle_ColorPerVertexFragment.a;
+  #else
+    fragment_color.a = castle_MaterialDiffuseAlpha;
+  #endif
 
   /* Clamp sum of lights colors to be <= 1. Fixed-function OpenGL does it too.
      This isn't really mandatory, but scenes with many lights could easily
@@ -73,7 +84,15 @@ void main(void)
      Of course, for future HDR rendering we will turn this off. */
   fragment_color.rgb = min(fragment_color.rgb, 1.0);
 #else
-  vec4 fragment_color = gl_Color;
+  vec4 fragment_color = castle_UnlitColor
+#ifdef COLOR_PER_VERTEX
+    /* Apply COLOR_PER_VERTEX, when unlit.
+       (When lit, then the analogous multiplication is done
+        inside template_add_light.glsl) */
+    * castle_ColorPerVertexFragment
+#endif
+  ;
+
 #endif
 
   /* PLUG: lighting_apply (fragment_color, castle_vertex_eye, normal_eye_fragment) */

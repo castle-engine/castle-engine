@@ -133,6 +133,9 @@ var
   Color3, AmbientColor3: TVector3;
   Color4, AmbientColor4: TVector4;
 begin
+  if not EnableFixedFunction then
+    Exit;
+
   glLightNum += GL_LIGHT0;
 
   glPushMatrix;

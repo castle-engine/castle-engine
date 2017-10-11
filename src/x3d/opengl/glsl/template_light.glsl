@@ -1,13 +1,11 @@
-/* Shader code used for adding light source contribution, for OpenGL ES.
-
-   Very similar for normal light calculation in template_add_light.glsl,
-   except it uses custom castle_Xxx uniforms, and doesn't use gl_Xxx structures.
-   We would like to eventually use a common code for this and
-   for template_add_light.glsl.
+/* Shader code used for adding light source contribution.
+   This is used by both desktop OpenGL and OpenGLES.
+   This is used in both Gouraud and Phong shading,
+   so it may go either in vertex or fragment shader.
 */
 
-/* TODO: use this, i.e. define PLUG_geometry_vertex_*
-   for every light source to pass these */
+/* TODO: use this in case of Phong shading, i.e. define PLUG_geometry_vertex_*
+   for every light source to pass these from vertex to fragment. */
 #ifdef HAS_GEOMETRY_SHADER
   #define castle_LightSource<Light>Radius castle_LightSource<Light>Radius_geoshader
   #define castle_LightSource<Light>BeamWidth castle_LightSource<Light>BeamWidth_geoshader
@@ -67,6 +65,9 @@ void PLUG_add_light_contribution(inout vec4 color,
 #endif
 
 #ifdef LIGHT_TYPE_SPOT
+  /* Check SpotCosCutoff first, as we want to add nothing
+     (not even ambient term) when were outside of spot light cone. */
+
   float spot_cos = dot(normalize(castle_LightSource<Light>SpotDirection), -light_dir);
   if (spot_cos < castle_LightSource<Light>SpotCosCutoff)
     return;

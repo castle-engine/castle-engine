@@ -62,7 +62,6 @@ type
     but does not require to link the shader using TShader algorithm. }
   TX3DShaderProgramBase = class(TGLSLProgram)
   public
-    {$ifdef OpenGLES}
     { Uniforms initialized after linking.
       Initializing them only once after linking allows the mesh renderer to go fast. }
     UniformCastle_ModelViewMatrix,
@@ -81,7 +80,6 @@ type
     AttributeCastle_FogCoord: TGLSLAttribute;
 
     procedure Link; override;
-    {$endif}
   end;
 
   { GLSL program integrated with VRML/X3D and TShader.
@@ -345,7 +343,7 @@ type
     FFogCoordinateSource: TFogCoordinateSource;
     HasGeometryMain: boolean;
     DynamicUniforms: TDynamicUniformList;
-    {$ifdef OpenGLES} TextureMatrix: TCardinalList; {$endif}
+    TextureMatrix: TCardinalList;
     NeedsCameraInverseMatrix: boolean;
 
     { We have to optimize the most often case of TShader usage,
@@ -465,8 +463,8 @@ type
       const ShadowLight: TAbstractLightNode = nil;
       const ShadowVisualizeDepth: boolean = false);
     procedure EnableTexGen(const TextureUnit: Cardinal;
-      const Generation: TTexGenerationComponent; const Component: TTexComponent
-      {$ifdef OpenGLES} ; const Plane: TVector4 {$endif});
+      const Generation: TTexGenerationComponent; const Component: TTexComponent;
+      const Plane: TVector4);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComplete;
       const TransformToWorldSpace: boolean = false);
@@ -474,10 +472,8 @@ type
       Guarantees to also set active texture unit to TexUnit (if multi-texturing
       available at all). }
     procedure DisableTexGen(const TextureUnit: Cardinal);
-    {$ifdef OpenGLES}
     procedure EnableTextureTransform(const TextureUnit: Cardinal;
       const Matrix: TMatrix4);
-    {$endif}
     procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
@@ -589,15 +585,6 @@ begin
     if S[P] = ')' then
       Dec(ParenLevel);
   until ParenLevel = 0;
-end;
-
-{ GL helpers ----------------------------------------------------------------- }
-
-function GLSLConstStruct: string;
-begin
-  if GLVersion.BuggyGLSLConstStruct then
-    Result := '' else
-    Result := 'const';
 end;
 
 { TShaderCodeHash ------------------------------------------------------------ }
@@ -827,17 +814,11 @@ begin
   begin
     FCode := TShaderSource.Create;
 
-    TemplateLight := {$ifdef OpenGLES}
-      {$I template_mobile_add_light.glsl.inc}
-    {$else}
-      {$I template_add_light.glsl.inc}
-    {$endif};
-    if GLVersion.BuggyGLSLConstStruct then
-      TemplateLight := StringReplace(TemplateLight,
-        'const in gl_MaterialParameters', 'in gl_MaterialParameters', [rfReplaceAll]);
+    TemplateLight := {$I template_light.glsl.inc};
     TemplateLight := StringReplace(TemplateLight,
       '<Light>', IntToStr(Number), [rfReplaceAll]);
 
+    // TODO: vertex / fragment should depend on Gouraud / Phong shading
     FCode[{$ifdef OpenGLES} stVertex {$else} stFragment {$endif}].
       Add(DefinesStr + TemplateLight);
 
@@ -858,16 +839,13 @@ end;
 
 procedure TLightShader.SetDynamicUniforms(AProgram: TX3DShaderProgram);
 var
-  {$ifdef OpenGLES}
   Color3, AmbientColor3: TVector3;
   Color4, AmbientColor4: TVector4;
   Position: TVector4;
-  {$endif}
   LiPos: TAbstractPositionalLightNode;
   LiSpot1: TSpotLightNode_1;
   LiSpot: TSpotLightNode;
 begin
-  {$ifdef OpenGLES}
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
   Color4 := Vector4(Color3, 1);
@@ -889,7 +867,6 @@ begin
     or positional light. }
   AProgram.SetUniform(Format('castle_LightSource%dPosition', [Number]),
     Position.XYZ);
-  {$endif}
 
   if Node is TAbstractPositionalLightNode then
   begin
@@ -899,7 +876,6 @@ begin
       LiSpot1 := TSpotLightNode_1(Node);
       AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
         LiSpot1.SpotCosCutoff);
-      {$ifdef OpenGLES}
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
         RenderingCamera.Matrix.MultDirection(
           Node.Transform.MultDirection(LiSpot1.FdDirection.Value)));
@@ -908,14 +884,12 @@ begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotExponent', [Number]),
           LiSpot1.SpotExponent);
       end;
-      {$endif}
     end else
     if LiPos is TSpotLightNode then
     begin
       LiSpot := TSpotLightNode(Node);
       AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
         LiSpot.SpotCosCutoff);
-      {$ifdef OpenGLES}
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
         RenderingCamera.Matrix.MultDirection(
           Node.Transform.MultDirection(LiSpot.FdDirection.Value)));
@@ -924,17 +898,13 @@ begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotCutoff', [Number]),
           LiSpot.FdCutOffAngle.Value);
       end;
-      {$endif}
     end;
 
-    {$ifdef OpenGLES}
     if LiPos.HasAttenuation then
       AProgram.SetUniform(Format('castle_LightSource%dAttenuation', [Number]),
         LiPos.FdAttenuation.Value);
-    {$endif}
   end;
 
-  {$ifdef OpenGLES}
   if Node.FdAmbientIntensity.Value <> 0 then
     AProgram.SetUniform(Format('castle_SideLightProduct%dAmbient', [Number]),
       Shader.MaterialAmbient * AmbientColor4);
@@ -952,7 +922,6 @@ begin
       Color4) else
     AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
       Shader.MaterialDiffuse * Color4);
-  {$endif}
 end;
 
 { TLightShaders -------------------------------------------------------------- }
@@ -973,7 +942,6 @@ end;
 
 { TX3DShaderProgramBase ------------------------------------------------------ }
 
-{$ifdef OpenGLES}
 procedure TX3DShaderProgramBase.Link;
 begin
   inherited;
@@ -991,7 +959,6 @@ begin
   AttributeCastle_ColorPerVertex := AttributeOptional('castle_ColorPerVertex');
   AttributeCastle_FogCoord       := AttributeOptional('castle_FogCoord');
 end;
-{$endif}
 
 { TX3DShaderProgram ------------------------------------------------------- }
 
@@ -1287,16 +1254,12 @@ end;
 
 class function TTextureCoordinateShader.CoordName(const TexUnit: Cardinal): string;
 begin
-  Result := Format(
-    {$ifndef OpenGLES} 'gl_TexCoord[%d]' {$else} 'castle_TexCoord%d' {$endif},
-    [TexUnit]);
+  Result := Format('castle_TexCoord%d', [TexUnit]);
 end;
 
 class function TTextureCoordinateShader.MatrixName(const TexUnit: Cardinal): string;
 begin
-  Result := Format(
-    {$ifndef OpenGLES} 'gl_TextureMatrix[%d]' {$else} 'castle_TextureMatrix%d' {$endif},
-    [TexUnit]);
+  Result := Format('castle_TextureMatrix%d', [TexUnit]);
 end;
 
 procedure TTextureCoordinateShader.Prepare(var Hash: TShaderCodeHash);
@@ -1321,15 +1284,10 @@ begin
   TexCoordName := CoordName(TextureUnit);
   TexMatrixName := MatrixName(TextureUnit);
 
-  {$ifndef OpenGLES}
-  TextureCoordInitialize += Format('%s = gl_MultiTexCoord%d;' + NL,
-    [TexCoordName, TextureUnit]);
-  {$else}
   TextureCoordInitialize += Format('%s = castle_MultiTexCoord%d;' + NL,
     [TexCoordName, TextureUnit]);
   TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
   TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
-  {$endif}
 
   if HasMatrixTransform then
     TextureCoordMatrix += Format('%s = %s * %0:s;' + NL,
@@ -1376,16 +1334,17 @@ var
 begin
   if AEnv.Disabled then Exit('');
 
-  case AEnv.Source[cRGB] of
-    { TODO: it would be better to pass MultiTexture.color/factor as special
-      uniform, instead of using (per-unit) gl_TextureEnvColor.
-      For now, we don't do this (otherwise, we'd have to account
-      MultiTexture.color/factor inside TTextureEnv.Hash. }
-    csConstant: Arg2 := Format('gl_TextureEnvColor[%d]', [ATextureUnit]);
-    else
-      { assume csPreviousTexture }
-      Arg2 := FragmentColor;
-  end;
+  // if AEnv.Source[cRGB] = csConstant then
+  //   { TODO: Fix new shader pipeline without deprecated gl_xxx usage:
+  //     We need to pass MultiTexture.color/factor as special
+  //     uniform, instead of using (per-unit) gl_TextureEnvColor.
+  //     Account for MultiTexture.color/factor inside TTextureEnv.Hash. }
+  //   Arg2 := Format('castle_TextureEnvColor%d', [ATextureUnit]);
+  //   Arg2 := 'castle_TextureEnvColor'; // maybe this is enough?
+  // else
+
+  { assume AEnv.Source[cRGB] = csPreviousTexture }
+  Arg2 := FragmentColor;
 
   case AEnv.Combine[cRGB] of
     coReplace:
@@ -1486,9 +1445,9 @@ begin
       Shader.Plug(stFragment, Format(
         'uniform %s %s;' +NL+
         '%s' +NL+
-        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir, ' + GLSLConstStruct + ' in gl_LightSourceParameters light_source, ' + GLSLConstStruct + ' in gl_LightProducts light_products, ' + GLSLConstStruct + ' in gl_MaterialParameters material)' +NL+
+        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
         '{' +NL+
-        '  scale *= shadow(%s, gl_TexCoord[%d], %d.0);' +NL+
+        '  scale *= shadow(%s, castle_MultiTexCoord%d, %d.0);' +NL+
         '}',
         [SamplerType, UniformName,
          Shader.DeclareShadowFunctions,
@@ -1647,7 +1606,7 @@ begin
   TextureShaders := TTextureCoordinateShaderList.Create;
   UniformsNodes := TX3DNodeList.Create(false);
   DynamicUniforms := TDynamicUniformList.Create(true);
-  {$ifdef OpenGLES} TextureMatrix := TCardinalList.Create; {$endif}
+  TextureMatrix := TCardinalList.Create;
 
   WarnMissingPlugs := true;
 end;
@@ -1659,7 +1618,7 @@ begin
   FreeAndNil(TextureShaders);
   FreeAndNil(Source);
   FreeAndNil(DynamicUniforms);
-  {$ifdef OpenGLES} FreeAndNil(TextureMatrix); {$endif}
+  FreeAndNil(TextureMatrix);
   inherited;
 end;
 
@@ -1713,7 +1672,7 @@ begin
   MaterialShininessExp := 0;
   MaterialUnlit := TVector4.Zero;
   DynamicUniforms.Clear;
-  {$ifdef OpenGLES} TextureMatrix.Clear; {$endif}
+  TextureMatrix.Clear;
   NeedsCameraInverseMatrix := false;
 end;
 
@@ -1855,9 +1814,6 @@ begin
     if PlugName = '' then Break;
 
     { When using some special plugs, we need to do define some symbols. }
-    if PlugName = 'vertex_object_space_change' then
-      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
-        '#define VERTEX_OBJECT_SPACE_CHANGED', false) else
     if PlugName = 'texture_coord_shift' then
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         '#define HAS_TEXTURE_COORD_SHIFT', false);
@@ -1993,8 +1949,7 @@ var
 
       { item with necessary TextureUnit not found, so create it }
       TexCoordShader := TTextureCoordinateShader.Create;
-      TexCoordShader.HasMatrixTransform :=
-        {$ifdef OpenGLES} TextureMatrix.IndexOf(TextureCoordinateId) <> -1 {$else} true {$endif};
+      TexCoordShader.HasMatrixTransform := TextureMatrix.IndexOf(TextureCoordinateId) <> -1;
       TexCoordShader.TextureUnit := TextureCoordinateId;
       TextureShaders.Add(TexCoordShader);
 
@@ -2109,17 +2064,12 @@ var
 
 var
   PassLightsUniforms: boolean;
-  EnabledLights: boolean;
 
   procedure EnableLights;
   var
     I: Integer;
-    {$ifndef OpenGLES}
-    LightShaderBack, LightShaderFront: string;
-    {$endif}
   begin
     PassLightsUniforms := false;
-    EnabledLights := false;
 
     { If we have no fragment/vertex shader (means that we used ComposedShader
       node without one shader) then don't add any code.
@@ -2145,25 +2095,11 @@ var
 
       for I := 0 to LightShaders.Count - 1 do
       begin
-        EnabledLights := true;
-
         {$ifndef OpenGLES}
-        LightShaderBack  := LightShaders[I].Code[stFragment][0];
-        LightShaderFront := LightShaderBack;
-
-        LightShaderBack := StringReplace(LightShaderBack,
-          'gl_SideLightProduct', 'gl_BackLightProduct' , [rfReplaceAll]);
-        LightShaderFront := StringReplace(LightShaderFront,
-          'gl_SideLightProduct', 'gl_FrontLightProduct', [rfReplaceAll]);
-
-        LightShaderBack := StringReplace(LightShaderBack,
-          'add_light_contribution_side', 'add_light_contribution_back' , [rfReplaceAll]);
-        LightShaderFront := StringReplace(LightShaderFront,
-          'add_light_contribution_side', 'add_light_contribution_front', [rfReplaceAll]);
-
-        Plug(stFragment, LightShaderBack);
-        Plug(stFragment, LightShaderFront);
-
+        // TODO: stFragment or stVertex should depend on Gouraud / Phong
+        // (you will still need ifdef between OpenGLES / OpenGL but only to decide
+        // should we do Source.Append, probably).
+        Plug(stFragment, LightShaders[I].Code[stFragment][0]);
         Source.Append(LightShaders[I].Code);
         {$else}
         Plug(stVertex, LightShaders[I].Code[stVertex][0]);
@@ -2381,81 +2317,17 @@ var
   end;
 
   procedure EnableShaderMaterialFromColor;
-  const
-    PlugLightingApply =
-      'void PLUG_lighting_apply(inout vec4 fragment_color, const vec4 vertex_eye, const vec3 normal_eye_fragment)' +NL+
-      '{' +NL+
-      '  fragment_color.a = gl_Color.a;' +NL+
-      '}' +NL;
   begin
     if MaterialFromColor then
     begin
-      {$ifndef OpenGLES}
-      Plug(stVertex,
-        'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-        '{' +NL+
-        '  gl_FrontColor = gl_Color;' +NL+
-        '  gl_BackColor = gl_Color;' +NL+
-        '}');
-
+      { TODO: need to pass castle_ColorPerVertexFragment onward?
       Plug(stGeometry, GeometryShaderPassColors);
-
-      { What happens without the PLUG_material_light_diffuse below?
-        That is, what's in OpenGL gl_Front/BackLightProducts
-        (used by normal shader code) when glEnable(GL_COLOR_MATERIAL) was called
-        --- the value from glMaterial call, or the value from glColor
-        (or color array)? IOW, is glEnable(GL_COLOR_MATERIAL) automatically
-        already applied for shader uniforms?
-
-        Looks like it's undefined:
-        - NVidia GeForce 450 GTS (kocury) behaves like an undefined
-          color (from some previous shape) leaked on the current shape.
-
-          (Although for MaterialFromColor, we always have lit shape,
-          with set glMaterial, and set glColor (or color array).
-          Although we set glColor (or color array) after enabling
-          GL_COLOR_MATERIAL, which means material color is undefined
-          for a short time, but it's always defined before actual glDraw*
-          call.)
-
-          Looks like NVidia just doesn't know (like me :) what to put
-          inside uniform gl_Front/BackLightProducts, so it just doesn't
-          change it at all.
-
-        - Radeon X1600 (fglrx, chantal) behaves like GL_COLOR_MATERIAL
-          doesn't affect shader. gl_Front/BackLightProducts contain
-          (it seems) values from glMaterial (multiplied by light),
-          never glColor. }
-
-      { Check EnabledLights, to avoid warnings that plug
-        "material_light_diffuse" is not defined on unlit stuff,
-        testcase: castle-game/data/levels/gate/gate_final.x3dv .
-
-        Note that the rest of the logic (PlugLightingApply and PLUG_vertex_eye_space
-        above) is still sensible, regardless of EnabledLights,
-        and should be done always.
-        Although in the unlit mode (LIT undefined), the analogous
-        gl_Color assignments happen anyway.
-        But when when we're in lit mode (LIT defined) and EnabledLights = false
-        (so, lighting=on but we have zero lights), this is necessary,
-        otherwise the alphas from ColorRGBA are not applied on
-        the final fragment alpha.
       }
-      if EnabledLights then
-        Plug(stFragment,
-          'void PLUG_material_light_diffuse(inout vec4 diffuse, const in vec4 vertex_eye, const in vec3 normal_eye, ' + GLSLConstStruct + ' in gl_LightSourceParameters light_source, ' + GLSLConstStruct + ' in gl_MaterialParameters material)' +NL+
-          '{' +NL+
-          '  diffuse = light_source.diffuse * gl_Color;' +NL+
-          '}' +NL+
-          NL +
-          PlugLightingApply)
-      else
-        Plug(stFragment, PlugLightingApply);
-      {$else}
-      { Do not add it to all Source[stVertex], as then GLSL compilers
+
+      { Do not add it to all Source[stXxx], as then GLSL compilers
         may say "COLOR_PER_VERTEX macro redefinition". }
-      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
-      {$endif}
+      PlugDirectly(Source[stVertex  ], 0, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
+      PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
     end;
   end;
 
@@ -2503,20 +2375,18 @@ var
     UColor: TDynamicUniformVec3;
   begin
     { Both OpenGLES and desktop OpenGL use castle_xxx uniforms and varying
-      to pass fog parameters, not gl_xxx.
-      However, for attribute, desktop OpenGL still uses old gl_FogCoord. }
+      to pass fog parameters, not gl_xxx. }
 
     if FFogEnabled then
     begin
       case FFogCoordinateSource of
         fcDepth           : CoordinateSource := '-vertex_eye.z';
-        fcPassedCoordinate: CoordinateSource :=
-          {$ifdef OpenGLES} 'castle_FogCoord' {$else} 'gl_FogCoord' {$endif};
+        fcPassedCoordinate: CoordinateSource := 'castle_FogCoord';
         else raise EInternalError.Create('TShader.EnableShaderFog:FogCoordinateSource?');
       end;
 
       Plug(stVertex,
-        {$ifdef OpenGLES} 'attribute float castle_FogCoord;' +NL+ {$endif}
+        'attribute float castle_FogCoord;' +NL+
         'varying float castle_FogFragCoord;' + NL+
         'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
         '{' +NL+
@@ -2797,7 +2667,7 @@ begin
 
   TextureShader := TTextureShader.Create;
   TextureShader.HasMatrixTransform :=
-    {$ifdef OpenGLES} (TextureMatrix.IndexOf(TextureUnit) <> -1) {$else} true {$endif}
+    (TextureMatrix.IndexOf(TextureUnit) <> -1)
     and not (GLVersion.BuggyShaderShadowMap and (TextureType = tt2DShadow));
   TextureShader.TextureUnit := TextureUnit;
   TextureShader.TextureType := TextureType;
@@ -2837,12 +2707,15 @@ begin
   case Generation of
     tgSphere:
       begin
-        {$ifndef OpenGLES}
-        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
-        glEnable(GL_TEXTURE_GEN_S);
-        glEnable(GL_TEXTURE_GEN_T);
-        {$endif}
+        if EnableFixedFunction then
+        begin
+          {$ifndef OpenGLES}
+          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
+          glEnable(GL_TEXTURE_GEN_S);
+          glEnable(GL_TEXTURE_GEN_T);
+          {$endif}
+        end;
         TextureCoordGen += Format(
           { Sphere mapping in GLSL adapted from
             http://www.ozone3d.net/tutorials/glsl_texturing_p04.php#part_41
@@ -2856,28 +2729,34 @@ begin
       end;
     tgNormal:
       begin
-        {$ifndef OpenGLES}
-        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
-        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
-        glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
-        glEnable(GL_TEXTURE_GEN_S);
-        glEnable(GL_TEXTURE_GEN_T);
-        glEnable(GL_TEXTURE_GEN_R);
-        {$endif}
+        if EnableFixedFunction then
+        begin
+          {$ifndef OpenGLES}
+          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+          glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
+          glEnable(GL_TEXTURE_GEN_S);
+          glEnable(GL_TEXTURE_GEN_T);
+          glEnable(GL_TEXTURE_GEN_R);
+          {$endif}
+        end;
         TextureCoordGen += Format('%s.xyz = castle_normal_eye;' + NL,
           [TexCoordName]);
         FCodeHash.AddInteger(1303 * (TextureUnit + 1));
       end;
     tgReflection:
       begin
-        {$ifndef OpenGLES}
-        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
-        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
-        glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
-        glEnable(GL_TEXTURE_GEN_S);
-        glEnable(GL_TEXTURE_GEN_T);
-        glEnable(GL_TEXTURE_GEN_R);
-        {$endif}
+        if EnableFixedFunction then
+        begin
+          {$ifndef OpenGLES}
+          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+          glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
+          glEnable(GL_TEXTURE_GEN_S);
+          glEnable(GL_TEXTURE_GEN_T);
+          glEnable(GL_TEXTURE_GEN_R);
+          {$endif}
+        end;
         { Negate reflect result --- just like for demo_models/water/water_reflections_normalmap.fs }
         TextureCoordGen += Format('%s.xyz = -reflect(-vec3(castle_vertex_eye), castle_normal_eye);' + NL,
           [TexCoordName]);
@@ -2886,7 +2765,6 @@ begin
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
 
-  {$ifdef OpenGLES}
   if TransformToWorldSpace then
   begin
     TextureCoordGen += Format('%s.w = 0.0; %0:s = castle_CameraInverseMatrix * %0:s;' + NL,
@@ -2894,34 +2772,35 @@ begin
     NeedsCameraInverseMatrix := true;
     FCodeHash.AddInteger(263);
   end;
-  {$endif}
 end;
 
 procedure TShader.EnableTexGen(const TextureUnit: Cardinal;
-  const Generation: TTexGenerationComponent; const Component: TTexComponent
-  {$ifdef OpenGLES} ; const Plane: TVector4 {$endif});
+  const Generation: TTexGenerationComponent; const Component: TTexComponent;
+  const Plane: TVector4);
 const
   PlaneComponentNames: array [TTexComponent] of char = ('S', 'T', 'R', 'Q');
   { Note: R changes to p ! }
   VectorComponentNames: array [TTexComponent] of char = ('s', 't', 'p', 'q');
 var
   PlaneName, CoordSource, TexCoordName: string;
-  {$ifdef OpenGLES}
   Uniform: TDynamicUniformVec4;
-  {$endif}
 begin
   { Enable for fixed-function pipeline }
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
-  {$ifndef OpenGLES}
-  case Component of
-    0: glEnable(GL_TEXTURE_GEN_S);
-    1: glEnable(GL_TEXTURE_GEN_T);
-    2: glEnable(GL_TEXTURE_GEN_R);
-    3: glEnable(GL_TEXTURE_GEN_Q);
-    else raise EInternalError.Create('TShader.EnableTexGen:Component?');
+
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    case Component of
+      0: glEnable(GL_TEXTURE_GEN_S);
+      1: glEnable(GL_TEXTURE_GEN_T);
+      2: glEnable(GL_TEXTURE_GEN_R);
+      3: glEnable(GL_TEXTURE_GEN_Q);
+      else raise EInternalError.Create('TShader.EnableTexGen:Component?');
+    end;
+    {$endif}
   end;
-  {$endif}
 
   { Enable for shader pipeline.
     See helpful info about simulating glTexGen in GLSL in:
@@ -2933,19 +2812,14 @@ begin
     else raise EInternalError.Create('TShader.EnableTexGen:Generation?');
   end;
 
-  PlaneName := {$ifdef OpenGLES} 'castle_' {$else} 'gl_' {$endif} +
-    PlaneName + PlaneComponentNames[Component] +
-    Format({$ifdef OpenGLES} '%d' {$else} '[%d]' {$endif}, [TextureUnit]);
+  PlaneName := 'castle_' + PlaneName + PlaneComponentNames[Component] +
+    Format('%d', [TextureUnit]);
 
-  {$ifdef OpenGLES}
-  { For OpenGLES, we have to actually pass our own castle_xxx uniform value
-    to shader. For desktop OpenGL, we do it using gl_xxx standard variables. }
   Uniform := TDynamicUniformVec4.Create;
   Uniform.Name := PlaneName;
   Uniform.Declaration := 'uniform vec4 ' + PlaneName + ';' + NL;
   Uniform.Value := Plane;
   DynamicUniforms.Add(Uniform);
-  {$endif}
 
   TexCoordName := TTextureShader.CoordName(TextureUnit);
   TextureCoordGen += Format('%s.%s = dot(%s, %s);' + NL,
@@ -2955,18 +2829,20 @@ end;
 
 procedure TShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
-  { Disable for fixed-function pipeline }
-  if GLFeatures.UseMultiTexturing then
-    glActiveTexture(GL_TEXTURE0 + TextureUnit);
-  {$ifndef OpenGLES}
-  glDisable(GL_TEXTURE_GEN_S);
-  glDisable(GL_TEXTURE_GEN_T);
-  glDisable(GL_TEXTURE_GEN_R);
-  glDisable(GL_TEXTURE_GEN_Q);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    { Disable for fixed-function pipeline }
+    if GLFeatures.UseMultiTexturing then
+      glActiveTexture(GL_TEXTURE0 + TextureUnit);
+    {$ifndef OpenGLES}
+    glDisable(GL_TEXTURE_GEN_S);
+    glDisable(GL_TEXTURE_GEN_T);
+    glDisable(GL_TEXTURE_GEN_R);
+    glDisable(GL_TEXTURE_GEN_Q);
+    {$endif}
+  end;
 end;
 
-{$ifdef OpenGLES}
 procedure TShader.EnableTextureTransform(const TextureUnit: Cardinal;
   const Matrix: TMatrix4);
 var
@@ -2984,7 +2860,6 @@ begin
 
   FCodeHash.AddInteger(1973 * (TextureUnit + 1));
 end;
-{$endif}
 
 procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
 begin
@@ -3226,6 +3101,7 @@ begin
   { glColorMaterial is already set by TGLRenderer.RenderBegin }
   {$ifndef OpenGLES}
   // TODO-es We depend on it in shader, to get correct values from deprecated inputs. We should not.
+  // TODO: already fixed?
   glEnable(GL_COLOR_MATERIAL);
   {$endif}
 

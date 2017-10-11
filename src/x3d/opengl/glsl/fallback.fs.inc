@@ -4,7 +4,9 @@
 '   This is merely used to avoid crashing the application (you cannot leave' + LineEnding +
 '   the shader empty). */' + LineEnding +
 '' + LineEnding +
+'#ifdef GL_ES' + LineEnding +
 'precision mediump float;' + LineEnding +
+'#endif' + LineEnding +
 '' + LineEnding +
 'void main(void)' + LineEnding +
 '{' + LineEnding +
