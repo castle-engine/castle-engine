@@ -3098,12 +3098,13 @@ end;
 
 procedure TShader.EnableMaterialFromColor;
 begin
-  { glColorMaterial is already set by TGLRenderer.RenderBegin }
-  {$ifndef OpenGLES}
-  // TODO-es We depend on it in shader, to get correct values from deprecated inputs. We should not.
-  // TODO: already fixed?
-  glEnable(GL_COLOR_MATERIAL);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    { glColorMaterial is already set by TGLRenderer.RenderBegin }
+    {$ifndef OpenGLES}
+    glEnable(GL_COLOR_MATERIAL);
+    {$endif}
+  end;
 
   { This will cause appropriate shader later }
   MaterialFromColor := true;
