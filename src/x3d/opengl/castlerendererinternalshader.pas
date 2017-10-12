@@ -2334,6 +2334,9 @@ var
     end;
 
     Plug(stVertex,
+      {$ifndef OpenGLES}
+      '#version 120' +NL+ { version 120 needed for transpose() }
+      {$endif}
       'attribute mat3 castle_tangent_to_object_space;' +NL+
       'varying mat3 castle_tangent_to_eye_space;' +NL+
       // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
