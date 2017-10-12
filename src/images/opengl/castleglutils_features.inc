@@ -222,7 +222,7 @@ var
     It also allows some deprecated rendering features like WindowPos to continue to work.
 
     For now it's @true by default on desktops, which reflects how
-    the Castle Game Engine versions <= 6.3 were rendering:
+    the Castle Game Engine versions <= 6.2 were rendering:
     mixing fixed-function and shader pipelines.
     You can switch it to @false to have "pure shader pipeline" on a desktop OpenGL.
     It will become @false by default eventually (on GPUs that support shaders).
