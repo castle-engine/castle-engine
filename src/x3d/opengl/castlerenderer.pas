@@ -3538,7 +3538,8 @@ begin
   if (TexUnit >= TextureTransformUnitsUsed) and
      (TextureTransformUnitsUsedMore.IndexOf(TexUnit) = -1) then
   begin
-    glPushMatrix;
+    if EnableFixedFunction then
+      glPushMatrix;
 
     { Simple implementation would just add always TexUnit
       to TextureTransformUnitsUsedMore. But there are optimizations possible,
