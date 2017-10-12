@@ -72,7 +72,7 @@ begin
   LevelScene.Load(URL);
   LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
   LevelScene.ProcessEvents := true;
-  LevelScene.Attributes.Shaders := srAlways; // nicer lighting
+  LevelScene.Attributes.PhongShading := true; // nicer lighting
 
   Level := T3DTransform.Create(Application);
   Level.Add(LevelScene);
