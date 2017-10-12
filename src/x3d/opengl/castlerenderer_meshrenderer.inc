@@ -690,28 +690,34 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgProjection:
         begin
-          // TODO: this relies on loading GL_EYE_PLANE under correct RenderingCamera.Matrix,
-          // wil not work on OpenGLES or EnableFixedFunction=false for now.
-          if EnableFixedFunction and Assigned(TexCoord.GenerationProjectorMatrix) then
+          if Assigned(TexCoord.GenerationProjectorMatrix) then
           begin
             ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
-            {$ifndef OpenGLES} // TODO-es
-            glPushMatrix;
-              glLoadMatrix(RenderingCamera.Matrix);
 
-              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
+            if EnableFixedFunction then
+            begin
+              {$ifndef OpenGLES} // TODO-es
+              glPushMatrix;
+                glLoadMatrix(RenderingCamera.Matrix);
 
-              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Rows[1]);
+                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
 
-              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Rows[2]);
+                glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Rows[1]);
 
-              glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Rows[3]);
-            glPopMatrix;
-            {$endif}
+                glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Rows[2]);
+
+                glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Rows[3]);
+              glPopMatrix;
+              {$endif}
+            end;
+
+            RenderingCamera.InverseMatrixNeeded;
+            ProjectorMatrix :=  ProjectorMatrix * RenderingCamera.InverseMatrix;
+
             Shader.EnableTexGen(TexUnit, tgEye, 0, ProjectorMatrix.Rows[0]);
             Shader.EnableTexGen(TexUnit, tgEye, 1, ProjectorMatrix.Rows[1]);
             Shader.EnableTexGen(TexUnit, tgEye, 2, ProjectorMatrix.Rows[2]);
