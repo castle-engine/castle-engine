@@ -324,10 +324,13 @@ begin
   EXT_fog_coord := Load_GL_EXT_fog_coord;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
 
-  { We want to be able to render any scene --- so we have to be prepared
-    that fog interpolation has to be corrected for perspective.
-    TODO: this should be moved elsewhere, but where? }
-  glHint(GL_FOG_HINT, GL_NICEST);
+  if EnableFixedFunction then
+  begin
+    { We want to be able to render any scene --- so we have to be prepared
+      that fog interpolation has to be corrected for perspective.
+      TODO: this should be moved elsewhere, but where? }
+    glHint(GL_FOG_HINT, GL_NICEST);
+  end;
   {$endif}
 
   {$ifdef OpenGLES}
