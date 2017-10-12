@@ -51,7 +51,8 @@ uniform float castle_LightSource<Light>Radius;
 void PLUG_add_light_contribution(inout vec4 color,
   const in vec4 vertex_eye,
   const in vec3 normal_eye,
-  in float material_shininess)
+  in float material_shininess,
+  in vec4 color_per_vertex)
 {
   vec3 light_dir;
 
@@ -116,7 +117,7 @@ void PLUG_add_light_contribution(inout vec4 color,
   /* add diffuse term */
   vec4 diffuse =
 #ifdef COLOR_PER_VERTEX
-  castle_LightSource<Light>Diffuse * castle_ColorPerVertex;
+  castle_LightSource<Light>Diffuse * color_per_vertex;
 #else
   castle_SideLightProduct<Light>Diffuse;
 #endif

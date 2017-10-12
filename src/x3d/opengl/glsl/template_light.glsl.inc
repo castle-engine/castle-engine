@@ -53,7 +53,8 @@
 'void PLUG_add_light_contribution(inout vec4 color,' + LineEnding +
 '  const in vec4 vertex_eye,' + LineEnding +
 '  const in vec3 normal_eye,' + LineEnding +
-'  in float material_shininess)' + LineEnding +
+'  in float material_shininess,' + LineEnding +
+'  in vec4 color_per_vertex)' + LineEnding +
 '{' + LineEnding +
 '  vec3 light_dir;' + LineEnding +
 '' + LineEnding +
@@ -118,7 +119,7 @@
 '  /* add diffuse term */' + LineEnding +
 '  vec4 diffuse =' + LineEnding +
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
-'  castle_LightSource<Light>Diffuse * castle_ColorPerVertex;' + LineEnding +
+'  castle_LightSource<Light>Diffuse * color_per_vertex;' + LineEnding +
 '#else' + LineEnding +
 '  castle_SideLightProduct<Light>Diffuse;' + LineEnding +
 '#endif' + LineEnding +

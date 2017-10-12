@@ -50,14 +50,12 @@ void main(void)
 
 #ifdef LIT
   castle_Color = vec4(castle_SceneColor, 1.0);
-  /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess) */
 
-  // Apply castle_ColorPerVertex alpha.
-  // The RGB portion of castle_ColorPerVertex was
-  // already applied in template_mobile_add_light.glsl .
   #ifdef COLOR_PER_VERTEX
+    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */
     castle_Color.a = castle_ColorPerVertex.a;
   #else
+    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */
     castle_Color.a = castle_MaterialDiffuseAlpha;
   #endif
 

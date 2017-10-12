@@ -386,6 +386,10 @@ type
       const PlugName, PlugValue: string;
       const InsertAtBeginIfNotFound: boolean): boolean;
 
+    { Make symbol DefineName to be defined for all GLSL parts of
+      Source[ShaderType]. }
+    procedure Define(const DefineName: string; const ShaderType: TShaderType);
+
     function DeclareShadowFunctions: string;
   public
     ShapeBoundingBox: TBox3D;
@@ -1902,6 +1906,29 @@ begin
     WritelnWarning('VRML/X3D', Format('Plug point "%s" not found', [PlugName]));
 end;
 
+procedure TShader.Define(const DefineName: string; const ShaderType: TShaderType);
+var
+  Declaration: string;
+  Code: TCastleStringList;
+  {$ifndef OpenGLES}
+  I: Integer;
+  {$endif}
+begin
+  Declaration := '#define ' + DefineName;
+  Code := Source[ShaderType];
+
+  {$ifdef OpenGLES}
+  { Do not add it to all Source[stXxx], as then GLSL compiler
+    will say "COLOR_PER_VERTEX macro redefinition",
+    because we glue all parts for OpenGLES. }
+  if Code.Count > 0 then
+    PlugDirectly(Code, 0, '/* PLUG-DECLARATIONS */', Declaration, true);
+  {$else}
+  for I := 0 to Code.Count - 1 do
+    PlugDirectly(Code, I, '/* PLUG-DECLARATIONS */', Declaration, true);
+  {$endif}
+end;
+
 procedure TShader.EnableEffects(Effects: TMFNode;
   const Code: TShaderSource;
   const ForwardDeclareInFinalShader: boolean);
@@ -2353,6 +2380,8 @@ var
     BumpMappingUniformValue1 := FNormalMapTextureUnit;
   end;
 
+  { Must be done after EnableLights (to add define COLOR_PER_VERTEX
+    also to light shader parts). }
   procedure EnableShaderMaterialFromColor;
   begin
     if MaterialFromColor then
@@ -2361,10 +2390,8 @@ var
       Plug(stGeometry, GeometryShaderPassColors);
       }
 
-      { Do not add it to all Source[stXxx], as then GLSL compilers
-        may say "COLOR_PER_VERTEX macro redefinition". }
-      PlugDirectly(Source[stVertex  ], 0, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
-      PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */', '#define COLOR_PER_VERTEX', true);
+      Define('COLOR_PER_VERTEX', stVertex);
+      Define('COLOR_PER_VERTEX', stFragment);
     end;
   end;
 
@@ -2547,8 +2574,7 @@ begin
 
   if HasGeometryMain then
   begin
-    for I := 0 to Source[stFragment].Count - 1 do
-      PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define HAS_GEOMETRY_SHADER', true);
+    Define('HAS_GEOMETRY_SHADER', stFragment);
     if GLVersion.VendorType = gvATI then
       GeometryInputSize := 'gl_in.length()' else
       GeometryInputSize := '';
@@ -2560,29 +2586,10 @@ begin
     Source[stGeometry].Clear;
 
   if GLVersion.BuggyGLSLFrontFacing then
-    for I := 0 to Source[stFragment].Count - 1 do
-      PlugDirectly(Source[stFragment], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_FRONT_FACING', true);
+    Define('CASTLE_BUGGY_FRONT_FACING', stFragment);
 
   if GLVersion.BuggyGLSLReadVarying then
-  begin
-    {$ifdef OpenGLES}
-    { On OpenGLES, replace only 1st one, otherwise PowerVR complains
-        Syntax error, 'CASTLE_BUGGY_GLSL_READ_VARYING' macro redefinition
-      Observed on phone (from O of M):
-        Version string: OpenGL ES 2.0 build 1.9.RC2@2130229
-        Version parsed: major: 2, minor: 0, release exists: False, release: 0, vendor-specific information: "build 1.9.RC2@2130229"
-        Vendor-specific version parsed: major: 1, minor: 9, release: 0
-        Vendor: Imagination Technologies
-        Vendor type: Imagination Technologies
-        Renderer: PowerVR SGX 540
-    }
-    if Source[stVertex].Count > 0 then
-      PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_GLSL_READ_VARYING', true);
-    {$else}
-    for I := 0 to Source[stVertex].Count - 1 do
-      PlugDirectly(Source[stVertex], I, '/* PLUG-DECLARATIONS */', '#define CASTLE_BUGGY_GLSL_READ_VARYING', true);
-    {$endif}
-  end;
+    Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
 
   if Log and LogShaders then
   begin
