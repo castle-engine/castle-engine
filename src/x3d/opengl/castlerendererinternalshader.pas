@@ -397,6 +397,9 @@ type
     MaterialShininessExp: Single;
     MaterialUnlit: TVector4;
 
+    { Camera * scene transformation (without the shape transformation). }
+    SceneModelView: TMatrix4;
+
     constructor Create;
     destructor Destroy; override;
 
@@ -847,6 +850,7 @@ var
   LiPos: TAbstractPositionalLightNode;
   LiSpot1: TSpotLightNode_1;
   LiSpot: TSpotLightNode;
+  LightToEyeSpace: PMatrix4;
 begin
   { calculate Color4 = light color * light intensity }
   Color3 := Node.FdColor.Value * Node.FdIntensity.Value;
@@ -860,10 +864,22 @@ begin
     AmbientColor4 := Vector4(AmbientColor3, 1);
   end;
 
-  Position := Light^.Position;
-  // TODO: assume Light.WorldCoordinates=true or light scene not transformed
-  // same TODO about spot light direction below
-  Position := RenderingCamera.Matrix * Position;
+  if Light^.WorldCoordinates then
+    LightToEyeSpace := @RenderingCamera.Matrix
+  else
+    LightToEyeSpace := @Shader.SceneModelView;
+
+  { This is incorrect, at least on Linux x86_64 and Darwin x86_64
+    (works OK on Darwin i386), with FPC 3.0.2.
+    Possibly TGenericMatrix4.Multiply has then equal addresses
+    for Result and argument, although I didn't manage to "catch it red-handed"
+    (it seems that merely adding a check to TGenericMatrix4.Multiply
+    about it, disables this optimization, so everything is OK then). }
+  // Position := Light^.Position;
+  // Position := LightToEyeSpace^ * Position;
+
+  Position := LightToEyeSpace^ * Light^.Position;
+
   { Note that we cut off last component of Node.Position,
     we don't need it. #defines tell the shader whether we deal with direcional
     or positional light. }
@@ -879,8 +895,7 @@ begin
       AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
         LiSpot1.SpotCosCutoff);
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
-        RenderingCamera.Matrix.MultDirection(
-          Node.Transform.MultDirection(LiSpot1.FdDirection.Value)));
+        LightToEyeSpace^.MultDirection(Light^.Direction));
       if LiSpot1.SpotExponent <> 0 then
       begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotExponent', [Number]),
@@ -893,8 +908,7 @@ begin
       AProgram.SetUniform(Format('castle_LightSource%dSpotCosCutoff', [Number]),
         LiSpot.SpotCosCutoff);
       AProgram.SetUniform(Format('castle_LightSource%dSpotDirection', [Number]),
-        RenderingCamera.Matrix.MultDirection(
-          Node.Transform.MultDirection(LiSpot.FdDirection.Value)));
+        LightToEyeSpace^.MultDirection(Light^.Direction));
       if LiSpot.FdBeamWidth.Value < LiSpot.FdCutOffAngle.Value then
       begin
         AProgram.SetUniform(Format('castle_LightSource%dSpotCutoff', [Number]),

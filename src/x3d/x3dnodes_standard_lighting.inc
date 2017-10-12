@@ -198,7 +198,7 @@
       For positional lights, the last component is always 1.
       For directional lights, the last component is always 0.
 
-      Note that this expressed is in the local light node coordinate system. }
+      Note that this is expressed in the local light node coordinate system. }
     function PositionAndDirection: TVector4; virtual; abstract;
 
     {$I auto_generated_node_helpers/x3dnodes_x3dlightnode.inc}

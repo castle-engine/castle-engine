@@ -2770,13 +2770,13 @@ procedure TGLRenderer.RenderShapeLights(Shape: TX3DRendererShape;
 var
   SceneLights: TLightInstancesList;
 begin
-  { All this is done before loading State.Transform.
-    The light renderer assumes current matrix contains only camera +
-    scene transform.
-
-    All this is done after setting Shader.MaterialSpecularColor
+  { This is done after setting Shader.MaterialSpecularColor
     by RenderMaterialsBegin,
     as MaterialSpecularColor must be already set during Shader.EnableLight. }
+
+  { Shape.ModelView is not yet multiplied by State.Transform,
+    and it contains only camera and scene transform. }
+  Shader.SceneModelView := Shape.ModelView;
 
   { When lighting is off (for either shaders or fixed-function),
     there is no point in setting up lights. }
