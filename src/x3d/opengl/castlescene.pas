@@ -1401,8 +1401,9 @@ begin
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
-  if not Params.RenderTransformIdentity then
-    glPopMatrix;
+  if EnableFixedFunction then
+    if not Params.RenderTransformIdentity then
+      glPopMatrix;
   {$endif}
 end;
 
