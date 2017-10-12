@@ -2699,6 +2699,18 @@ end;
 
 procedure T3D.RemoveFromWorld(const Value: T3DWorld);
 begin
+  { TODO: This check should not be necessary, instead we should always assert
+    FWorldReferences > 0.
+    However, the GetChild mechanism, which is scheduled to be removed,
+    may break this now: the 3D objects defined by GetChild may not get
+    correct AddToWorld, and so RemoveFromWorld on them cannot depend
+    on these assumptions.
+
+    Reproduction: just and and exit fps_game (that uses animated
+    knights that use the GetChild). }
+  if FWorldReferences = 0 then
+    Exit;
+
   Assert(Value <> nil);
   Assert(FWorldReferences > 0);
   if FWorld <> Value then
