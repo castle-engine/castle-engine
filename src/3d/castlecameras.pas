@@ -3166,8 +3166,9 @@ begin
       Result := not (
         AboveHeight - NewAboveHeight - (OldAbsoluteHeight - NewAbsoluteHeight) >
         ClimbHeight );
-      if Log and not Result then
-        WritelnLog('Camera', 'Blocked move because of ClimbHeight (%f).', [ClimbHeight]);
+      // useful log to test ClimbHeight, but too spammy to be enabled by default
+      // if Log and not Result then
+      //   WritelnLog('Camera', 'Blocked move because of ClimbHeight (%f).', [ClimbHeight]);
     end;
   end;
 
