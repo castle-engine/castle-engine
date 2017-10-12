@@ -624,16 +624,7 @@ type
       parent transforms it's children. When ParentTransformIsIdentity,
       ParentTransform must be TMatrix4.Identity (it's not guaranteed
       that when ParentTransformIsIdentity = @true, Transform value will be
-      ignored !).
-
-      @italic(Implementation note:) In @link(Render), it is usually possible
-      to implement ParentTransform* by glPush/PopMatrix and Frustum.Move tricks.
-      But RenderShadowVolume needs actual transformation explicitly:
-      ShadowMaybeVisible needs actual box position in world coordinates,
-      so bounding box has to be transformed by ParentTransform.
-      And TCastleScene.RenderShadowVolumeCore needs explicit ParentTransform
-      to correctly detect front/back sides (for silhouette edges and
-      volume capping). }
+      ignored !). }
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
