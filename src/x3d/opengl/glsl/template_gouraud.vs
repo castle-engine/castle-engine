@@ -59,7 +59,7 @@ void main(void)
     castle_Color.a = castle_MaterialDiffuseAlpha;
   #endif
 
-  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */
+  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */
   castle_Color.rgb = min(castle_Color.rgb, 1.0);
 #else
   castle_Color = castle_UnlitColor

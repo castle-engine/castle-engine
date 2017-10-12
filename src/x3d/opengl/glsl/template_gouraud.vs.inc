@@ -61,7 +61,7 @@
 '    castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
-'  /* Clamp sum of lights colors to be <= 1. See template.fs for comments. */' + LineEnding +
+'  /* Clamp sum of lights colors to be <= 1. See template_phong.fs for comments. */' + LineEnding +
 '  castle_Color.rgb = min(castle_Color.rgb, 1.0);' + LineEnding +
 '#else' + LineEnding +
 '  castle_Color = castle_UnlitColor' + LineEnding +
