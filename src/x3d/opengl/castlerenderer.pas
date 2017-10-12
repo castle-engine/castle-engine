@@ -2709,11 +2709,20 @@ begin
   Shader := PreparedShader;
   Shader.Clear;
 
-  PhongShading :=
-    Attributes.PhongShading or
-    ((Shape.Node <> nil) and (Shape.Node.Shading = shPhong)) or
-    ShapeMaybeUsesBumpMapping(Shape) or
-    ShapeMaybeUsesShadowMaps(Shape);
+  { calculate PhongShading }
+  PhongShading := Attributes.PhongShading;
+  { if Shape specifies Shading = Gouraud or Phong, use it }
+  if Shape.Node <> nil then
+    if Shape.Node.Shading = shPhong then
+      PhongShading := true
+    else
+    if Shape.Node.Shading = shGouraud then
+      PhongShading := false;
+  { if some feature requires PhongShading, make it true }
+  if ShapeMaybeUsesPhongSurfaceTexture(Shape) or
+     ShapeMaybeUsesShadowMaps(Shape) then
+    PhongShading := true;
+
   Shader.Initialize(PhongShading);
 
   if PhongShading then

@@ -34,9 +34,9 @@ private
   procedure SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
-  { Is this shape possibly use bump mapping.
+  { Is this shape possibly use some texture that requires Phong shading.
     Decide before actually making any OpenGL operations. }
-  class function ShapeMaybeUsesBumpMapping(const Shape: TX3DRendererShape): boolean;
+  class function ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 
 {$endif read_interface}
 
@@ -66,7 +66,7 @@ begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
 end;
 
-class function TGLRenderer.ShapeMaybeUsesBumpMapping(const Shape: TX3DRendererShape): boolean;
+class function TGLRenderer.ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
 var
   SurfaceShader: TCommonSurfaceShaderNode;
 begin
@@ -76,7 +76,12 @@ begin
     SurfaceShader := Shape.Node.CommonSurfaceShader;
     if SurfaceShader <> nil then
     begin
-      Result := SurfaceShader.NormalTexture <> nil;
+      Result :=
+        (SurfaceShader.AmbientTexture <> nil) or
+        (SurfaceShader.EmissiveTexture <> nil) or
+        (SurfaceShader.NormalTexture <> nil) or
+        (SurfaceShader.ShininessTexture <> nil) or
+        (SurfaceShader.SpecularTexture <> nil);
     end else
     if Shape.Node.Appearance <> nil then
     begin
