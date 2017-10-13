@@ -1871,12 +1871,19 @@ end;
 
 function TGLGeneratedShadowMap.Enable(const TextureUnit: Cardinal;
   Shader: TShader; const Env: TTextureEnv): boolean;
+var
+  TextureType: TTextureType;
 begin
   Result := Bind(TextureUnit);
   if not Result then Exit;
 
-  Shader.EnableTexture(TextureUnit, tt2DShadow, TextureNode, Env,
-    Size, TextureNode.Light, VisualizeDepthMap);
+  if VisualizeDepthMap then
+    TextureType := tt2D
+  else
+    TextureType := tt2DShadow;
+
+  Shader.EnableTexture(TextureUnit,
+    TextureType, TextureNode, Env, Size, TextureNode.Light);
 end;
 
 procedure TGLGeneratedShadowMap.Update(

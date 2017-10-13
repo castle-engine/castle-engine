@@ -239,7 +239,6 @@ type
     Env: TTextureEnv;
     ShadowMapSize: Cardinal;
     ShadowLight: TAbstractLightNode;
-    ShadowVisualizeDepth: boolean;
     Shader: TShader;
 
     { Uniform to set for this texture. May be empty. }
@@ -468,8 +467,7 @@ type
       const TextureType: TTextureType; const Node: TAbstractTextureNode;
       const Env: TTextureEnv;
       const ShadowMapSize: Cardinal = 0;
-      const ShadowLight: TAbstractLightNode = nil;
-      const ShadowVisualizeDepth: boolean = false);
+      const ShadowLight: TAbstractLightNode = nil);
     procedure EnableTexGen(const TextureUnit: Cardinal;
       const Generation: TTexGenerationComponent; const Component: TTexComponent;
       const Plane: TVector4);
@@ -1334,7 +1332,6 @@ begin
     1 +
     181 * Ord(TextureType) +
     191 * ShadowMapSize +
-    193 * Ord(ShadowVisualizeDepth) +
     Env.Hash;
   if ShadowLight <> nil then
     IntHash += PtrUInt(ShadowLight);
@@ -1433,111 +1430,91 @@ begin
 
   TexCoordName := CoordName(TextureUnit);
 
+  SamplerType := SamplerFromTextureType[TextureType];
+  { For variance shadow maps, use normal sampler2D, not sampler2DShadow }
+  if (Shader.ShadowSampling = ssVarianceShadowMaps) and
+     (TextureType = tt2DShadow) then
+    SamplerType := 'sampler2D';
+
   if (TextureType = tt2DShadow) and
-      ShadowVisualizeDepth then
+     (ShadowLight <> nil) and
+     Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
   begin
-    { visualizing depth map requires a little different approach:
-      - we use shadow_depth() instead of shadow() function
-      - we *set* gl_FragColor, not modulate it, to ignore previous textures
-      - we call "return" after, to ignore following textures
-      - the sampler is sampler2D, not sampler2DShadow
-      - also, we use gl_FragColor (while we should use fragment_color otherwise),
-        because we don't care about previous texture operations and
-        we want to return immediately. }
-    TextureSampleCall := 'vec4(vec3(shadow_depth(%s, %s)), gl_FragColor.a)';
-    TextureApply += Format('gl_FragColor = ' + TextureSampleCall + ';' + NL +
-      'return;',
-      [UniformName, TexCoordName]);
-    TextureUniformsDeclare += Format('uniform sampler2D %s;' + NL,
-      [UniformName]);
+    Shader.Plug(stFragment, Format(
+      'uniform %s %s;' +NL+
+      'varying vec4 %s;' +NL+
+      '%s' +NL+
+      'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
+      '{' +NL+
+      '  scale *= shadow(%s, castle_TexCoord%d, %d.0);' +NL+
+      '}',
+      [SamplerType, UniformName,
+       TexCoordName,
+       Shader.DeclareShadowFunctions,
+       UniformName, TextureUnit, ShadowMapSize]),
+      ShadowLightShader.Code);
   end else
   begin
-    SamplerType := SamplerFromTextureType[TextureType];
-    { For variance shadow maps, use normal sampler2D, not sampler2DShadow }
-    if (Shader.ShadowSampling = ssVarianceShadowMaps) and
-       (TextureType = tt2DShadow) then
-      SamplerType := 'sampler2D';
+    if TextureColorDeclare = '' then
+      TextureColorDeclare := 'vec4 texture_color;' + NL;
+    case TextureType of
+      tt2D:
+        { texture2DProj reasoning:
+          Most of the time, 'texture2D(%s, %s.st)' would be enough.
+          But we may get 4D tex coords (that is, with last component <> 1)
+          - through TextureCoordinate4D
+          - through projected texture mapping, when using perspective light
+            (spot light) or perspective viewpoint.
 
-    if (TextureType = tt2DShadow) and
-       (ShadowLight <> nil) and
-       Shader.LightShaders.Find(ShadowLight, ShadowLightShader) then
-    begin
-      Shader.Plug(stFragment, Format(
-        'uniform %s %s;' +NL+
-        'varying vec4 %s;' +NL+
-        '%s' +NL+
-        'void PLUG_light_scale(inout float scale, const in vec3 normal_eye, const in vec3 light_dir)' +NL+
-        '{' +NL+
-        '  scale *= shadow(%s, castle_TexCoord%d, %d.0);' +NL+
-        '}',
-        [SamplerType, UniformName,
-         TexCoordName,
-         Shader.DeclareShadowFunctions,
-         UniformName, TextureUnit, ShadowMapSize]),
-        ShadowLightShader.Code);
-    end else
-    begin
-      if TextureColorDeclare = '' then
-        TextureColorDeclare := 'vec4 texture_color;' + NL;
-      case TextureType of
-        tt2D:
-          { texture2DProj reasoning:
-            Most of the time, 'texture2D(%s, %s.st)' would be enough.
-            But we may get 4D tex coords (that is, with last component <> 1)
-            - through TextureCoordinate4D
-            - through projected texture mapping, when using perspective light
-              (spot light) or perspective viewpoint.
-
-            TextureUnit = 0 check reasoning:
-            Even when HAS_TEXTURE_COORD_SHIFT is defined (PLUG_texture_coord_shift
-            was used), use it only for 0th texture unit. Parallax bump mapping
-            calculates the shift, assuming that transformations to tangent space
-            follow 0th texture coordinates. Also, for parallax bump mapping,
-            we have to assume the 0th texture has simple 2D coords (not 4D). }
-          if TextureUnit = 0 then
-            TextureSampleCall := NL+
-              '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
-              '  texture2D(%0:s, texture_coord_shifted(%1:s.st))' +NL+
-              '#else' +NL+
-              '  texture2DProj(%0:s, %1:s)' +NL+
-              '#endif' + NL else
-            TextureSampleCall := 'texture2DProj(%0:s, %1:s)';
-        tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
-        ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
-        { For 3D textures, remember we may get 4D tex coords
-          through TextureCoordinate4D, so we have to use texture3DProj }
-        tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
-        ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
-        else raise EInternalError.Create('TShader.EnableTexture:TextureType?');
-      end;
-
-      Code := TShaderSource.Create;
-      try
-        if TextureType <> ttShader then
-          Code[stFragment].Add(Format(
-            'texture_color = ' + TextureSampleCall + ';' +NL+
-            '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
-            [UniformName, TexCoordName])) else
-          Code[stFragment].Add(Format(
-            'texture_color = ' + TextureSampleCall + ';' +NL+
-            '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
-            [TexCoordName]));
-
-        Shader.EnableEffects(Node.FdEffects, Code, true);
-
-        { Add generated Code to Shader.Source. Code[stFragment][0] for texture
-          is a little special, we add it to TextureApply that
-          will be directly placed within the source. }
-        TextureApply += Code[stFragment][0];
-        Shader.Source.Append(Code, stFragment);
-      finally FreeAndNil(Code) end;
-
-      TextureApply += TextureEnvMix(Env, 'fragment_color', 'texture_color', TextureUnit) + NL;
-
-      if TextureType <> ttShader then
-        TextureUniformsDeclare += Format('uniform %s %s;' + NL,
-          [SamplerType, UniformName]);
+          TextureUnit = 0 check reasoning:
+          Even when HAS_TEXTURE_COORD_SHIFT is defined (PLUG_texture_coord_shift
+          was used), use it only for 0th texture unit. Parallax bump mapping
+          calculates the shift, assuming that transformations to tangent space
+          follow 0th texture coordinates. Also, for parallax bump mapping,
+          we have to assume the 0th texture has simple 2D coords (not 4D). }
+        if TextureUnit = 0 then
+          TextureSampleCall := NL+
+            '#ifdef HAS_TEXTURE_COORD_SHIFT' +NL+
+            '  texture2D(%0:s, texture_coord_shifted(%1:s.st))' +NL+
+            '#else' +NL+
+            '  texture2DProj(%0:s, %1:s)' +NL+
+            '#endif' + NL else
+          TextureSampleCall := 'texture2DProj(%0:s, %1:s)';
+      tt2DShadow: TextureSampleCall := 'vec4(vec3(shadow(%s, %s, ' +IntToStr(ShadowMapSize) + '.0)), fragment_color.a)';
+      ttCubeMap : TextureSampleCall := 'textureCube(%s, %s.xyz)';
+      { For 3D textures, remember we may get 4D tex coords
+        through TextureCoordinate4D, so we have to use texture3DProj }
+      tt3D      : TextureSampleCall := 'texture3DProj(%s, %s)';
+      ttShader  : TextureSampleCall := 'vec4(1.0, 0.0, 1.0, 1.0)';
+      else raise EInternalError.Create('TShader.EnableTexture:TextureType?');
     end;
+
+    Code := TShaderSource.Create;
+    try
+      if TextureType <> ttShader then
+        Code[stFragment].Add(Format(
+          'texture_color = ' + TextureSampleCall + ';' +NL+
+          '/* PLUG: texture_color (texture_color, %0:s, %1:s) */' +NL,
+          [UniformName, TexCoordName])) else
+        Code[stFragment].Add(Format(
+          'texture_color = ' + TextureSampleCall + ';' +NL+
+          '/* PLUG: texture_color (texture_color, %0:s) */' +NL,
+          [TexCoordName]));
+
+      Shader.EnableEffects(Node.FdEffects, Code, true);
+
+      { Add generated Code to Shader.Source. Code[stFragment][0] for texture
+        is a little special, we add it to TextureApply that
+        will be directly placed within the source. }
+      TextureApply += Code[stFragment][0];
+      Shader.Source.Append(Code, stFragment);
+    finally FreeAndNil(Code) end;
+
+    TextureApply += TextureEnvMix(Env, 'fragment_color', 'texture_color', TextureUnit) + NL;
+
+    if TextureType <> ttShader then
+      TextureUniformsDeclare += Format('uniform %s %s;' + NL,
+        [SamplerType, UniformName]);
   end;
 end;
 
@@ -2640,8 +2617,6 @@ begin
 
     So settings below only control what happens on our uniform values.
     - Missing uniform name should be ignored, as it's normal in some cases:
-      - When ShadowVisualizeDepth is used, almost everything (besides
-        the single visualized shadow map) is unused.
       - When all the lights are off (including headlight) then normal vectors
         are unused, and so the normalmap texture is unused.
 
@@ -2703,8 +2678,7 @@ procedure TShader.EnableTexture(const TextureUnit: Cardinal;
   const Node: TAbstractTextureNode;
   const Env: TTextureEnv;
   const ShadowMapSize: Cardinal;
-  const ShadowLight: TAbstractLightNode;
-  const ShadowVisualizeDepth: boolean);
+  const ShadowLight: TAbstractLightNode);
 var
   TextureShader: TTextureShader;
 begin
@@ -2731,7 +2705,6 @@ begin
   TextureShader.Env := Env;
   TextureShader.ShadowMapSize := ShadowMapSize;
   TextureShader.ShadowLight := ShadowLight;
-  TextureShader.ShadowVisualizeDepth := ShadowVisualizeDepth;
   TextureShader.Shader := Self;
 
   TextureShaders.Add(TextureShader);
