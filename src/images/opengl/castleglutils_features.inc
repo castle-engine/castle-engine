@@ -229,7 +229,7 @@ var
 
     On OpenGLES, it must be @false always, since OpenGLES >= 2 has no fixed-function pipeline.
   }
-  EnableFixedFunction: boolean = {$ifdef OpenGLES} false {$else} false {$endif};
+  EnableFixedFunction: boolean = {$ifdef OpenGLES} false {$else} true {$endif};
 
 {$endif read_interface}
 
