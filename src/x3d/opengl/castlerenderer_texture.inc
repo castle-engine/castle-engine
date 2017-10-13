@@ -632,13 +632,16 @@ begin
   if (TextureUnitsCount > 0) and
      Enable(TextureSlotsUsed, Shader, Env) then
   begin
-    {$ifndef OpenGLES}
-    { Here we know that Env was initialized above.
-      So we know that mode is simple, the same for rgb and alpha,
-      and can be set using GL_TEXTURE_ENV_MODE
-      (doesn't require using GL_COMBINE). }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, CombineGL[Env.Combine[cRGB]]);
-    {$endif}
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      { Here we know that Env was initialized above.
+        So we know that mode is simple, the same for rgb and alpha,
+        and can be set using GL_TEXTURE_ENV_MODE
+        (doesn't require using GL_COMBINE). }
+      glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, CombineGL[Env.Combine[cRGB]]);
+      {$endif}
+    end;
     Inc(TextureSlotsUsed);
   end;
 end;
@@ -803,58 +806,61 @@ begin
           Renderer.DisableCurrentTexture;
         end else
         begin
-          {$ifndef OpenGLES}
-          glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
-
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, CombineGL[Env.Combine[cRGB]]);
-          glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, CombineGL[Env.Combine[cAlpha]]);
-
-          glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, Env.Scale[cRGB]);
-          glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, Env.Scale[cAlpha]);
-
-          if Env.CurrentTextureArgument[cRGB] <> taNone then
+          if EnableFixedFunction then
           begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB + Argument[Env.CurrentTextureArgument[cRGB]], GL_TEXTURE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB + Argument[Env.CurrentTextureArgument[cRGB]], GL_SRC_COLOR);
-          end;
+            {$ifndef OpenGLES}
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
 
-          if Env.CurrentTextureArgument[cAlpha] <> taNone then
-          begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA + Argument[Env.CurrentTextureArgument[cAlpha]], GL_TEXTURE);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.CurrentTextureArgument[cAlpha]], GL_SRC_ALPHA);
-          end;
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB, CombineGL[Env.Combine[cRGB]]);
+            glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA, CombineGL[Env.Combine[cAlpha]]);
 
-          if Env.SourceArgument[cRGB] <> taNone then
-          begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB + Argument[Env.SourceArgument[cRGB]], ColorSourceGL[Env.Source[cRGB]]);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB + Argument[Env.SourceArgument[cRGB]], GL_SRC_COLOR);
-          end;
+            glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE, Env.Scale[cRGB]);
+            glTexEnvf(GL_TEXTURE_ENV, GL_ALPHA_SCALE, Env.Scale[cAlpha]);
 
-          if Env.SourceArgument[cAlpha] <> taNone then
-          begin
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA + Argument[Env.SourceArgument[cAlpha]], ColorSourceGL[Env.Source[cAlpha]]);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.SourceArgument[cAlpha]], GL_SRC_ALPHA);
-          end;
+            if Env.CurrentTextureArgument[cRGB] <> taNone then
+            begin
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB + Argument[Env.CurrentTextureArgument[cRGB]], GL_TEXTURE);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB + Argument[Env.CurrentTextureArgument[cRGB]], GL_SRC_COLOR);
+            end;
 
-          if (Env.Combine[cRGB] = coInterpolate) or
-             (Env.Combine[cAlpha] = coInterpolate) then
-          begin
-            { Whole source2 (both RGB and alpha) is filled by alpha from color
-              specified by InterpolateAlphaSource. }
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, ColorSourceGL[Env.InterpolateAlphaSource]);
-            glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, ColorSourceGL[Env.InterpolateAlphaSource]);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
-            glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
-          end;
+            if Env.CurrentTextureArgument[cAlpha] <> taNone then
+            begin
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA + Argument[Env.CurrentTextureArgument[cAlpha]], GL_TEXTURE);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.CurrentTextureArgument[cAlpha]], GL_SRC_ALPHA);
+            end;
 
-          if Env.NeedsConstantColor then
-          begin
-            { Assign constant color now, when we know it should be used. }
-            glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4(
-              TextureNode.FdColor.Value,
-              TextureNode.FdAlpha.Value));
+            if Env.SourceArgument[cRGB] <> taNone then
+            begin
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB + Argument[Env.SourceArgument[cRGB]], ColorSourceGL[Env.Source[cRGB]]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB + Argument[Env.SourceArgument[cRGB]], GL_SRC_COLOR);
+            end;
+
+            if Env.SourceArgument[cAlpha] <> taNone then
+            begin
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA + Argument[Env.SourceArgument[cAlpha]], ColorSourceGL[Env.Source[cAlpha]]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA + Argument[Env.SourceArgument[cAlpha]], GL_SRC_ALPHA);
+            end;
+
+            if (Env.Combine[cRGB] = coInterpolate) or
+               (Env.Combine[cAlpha] = coInterpolate) then
+            begin
+              { Whole source2 (both RGB and alpha) is filled by alpha from color
+                specified by InterpolateAlphaSource. }
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB, ColorSourceGL[Env.InterpolateAlphaSource]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_ALPHA, ColorSourceGL[Env.InterpolateAlphaSource]);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB, GL_SRC_ALPHA);
+              glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_ALPHA, GL_SRC_ALPHA);
+            end;
+
+            if Env.NeedsConstantColor then
+            begin
+              { Assign constant color now, when we know it should be used. }
+              glTexEnvv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, Vector4(
+                TextureNode.FdColor.Value,
+                TextureNode.FdAlpha.Value));
+            end;
+            {$endif}
           end;
-          {$endif}
         end;
       end;
     end;

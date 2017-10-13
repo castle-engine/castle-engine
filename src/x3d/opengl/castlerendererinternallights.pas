@@ -293,12 +293,15 @@ begin
     if LightsEnabled >= GLFeatures.MaxLights then Exit;
   end;
 
-  {$ifndef OpenGLES}
-  { Disable remaining light for fixed-function pipeline }
-  for I := LightsEnabled to GLFeatures.MaxLights - 1 do
-    if NeedRenderLight(I, nil) then
-      glDisable(GL_LIGHT0 + I);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    { Disable remaining light for fixed-function pipeline }
+    for I := LightsEnabled to GLFeatures.MaxLights - 1 do
+      if NeedRenderLight(I, nil) then
+        glDisable(GL_LIGHT0 + I);
+    {$endif}
+  end;
 
   LightsKnown := true;
 end;

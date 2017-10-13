@@ -2819,32 +2819,35 @@ const
 
       VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
-      {$ifndef OpenGLES}
-      { This code really does not need to be executed on OpenGLES at all,
-        where we know that fog coord is possible and will be realized by passing
-        castle_FogCoord to shader. }
+      if EnableFixedFunction then
+      begin
+        {$ifndef OpenGLES}
+        { This code does not need to be executed on shader pipeline at all,
+          where we know that fog coord is possible and will be realized by passing
+          castle_FogCoord to shader. }
 
-      if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
-      begin
-        { Try to make normal fog that looks similar. This looks poorly,
-          but it's not a real problem --- EXT_fog_coord is supported
-          on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
-          seems enough. }
-        WritelnWarning('VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
-        VisibilityRangeScaled := VisibilityRangeScaled * 5;
-      end;
+        if Node.FdVolumetric.Value and (not GLFeatures.EXT_fog_coord) then
+        begin
+          { Try to make normal fog that looks similar. This looks poorly,
+            but it's not a real problem --- EXT_fog_coord is supported
+            on all sensible GPUs nowadays. Increasing VisibilityRangeScaled
+            seems enough. }
+          WritelnWarning('VRML/X3D', 'Volumetric fog not supported, your graphic card (OpenGL) doesn''t support EXT_fog_coord');
+          VisibilityRangeScaled := VisibilityRangeScaled * 5;
+        end;
 
-      if Volumetric then
-      begin
-        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
-      end else
-      begin
-        { If not Volumetric but still GL_EXT_fog_coord, we make sure
-          that we're *not* using FogCoord below. }
-        if GLFeatures.EXT_fog_coord then
-          glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+        if Volumetric then
+        begin
+          glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+        end else
+        begin
+          { If not Volumetric but still GL_EXT_fog_coord, we make sure
+            that we're *not* using FogCoord below. }
+          if GLFeatures.EXT_fog_coord then
+            glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+        end;
+        {$endif}
       end;
-      {$endif}
 
       { calculate FogType and other Fog parameters }
       FogType := Node.FogType;
@@ -2865,29 +2868,31 @@ begin
     RenderFog(FogNode, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
 
-    {$ifndef OpenGLES}
-    { Set fixed-function fog parameters, also accessed by GLSL using gl_xxx
-      on desktop OpenGL. }
-    if FogEnabled then
+    if EnableFixedFunction then
     begin
-      glFogv(GL_FOG_COLOR, Vector4(FogColor, 1.0));
-      case FogType of
-        ftLinear:
-          begin
-            glFogi(GL_FOG_MODE, GL_LINEAR);
-            glFogf(GL_FOG_START, 0);
-            glFogf(GL_FOG_END, FogLinearEnd);
-          end;
-        ftExp: begin
-            glFogi(GL_FOG_MODE, GL_EXP);
-            glFogf(GL_FOG_DENSITY, FogExpDensity);
-          end;
-        else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
-      end;
-      glEnable(GL_FOG);
-    end else
-      glDisable(GL_FOG);
-    {$endif}
+      {$ifndef OpenGLES}
+      { Set fixed-function fog parameters. }
+      if FogEnabled then
+      begin
+        glFogv(GL_FOG_COLOR, Vector4(FogColor, 1.0));
+        case FogType of
+          ftLinear:
+            begin
+              glFogi(GL_FOG_MODE, GL_LINEAR);
+              glFogf(GL_FOG_START, 0);
+              glFogf(GL_FOG_END, FogLinearEnd);
+            end;
+          ftExp: begin
+              glFogi(GL_FOG_MODE, GL_EXP);
+              glFogf(GL_FOG_DENSITY, FogExpDensity);
+            end;
+          else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
+        end;
+        glEnable(GL_FOG);
+      end else
+        glDisable(GL_FOG);
+      {$endif}
+    end;
   end;
 
   if FogEnabled then

@@ -413,8 +413,6 @@ procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
   HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
 
-  { TODO: tutaj powinienes przelaczac glEdgeFlag }
-
   glBegin(GL_TRIANGLES);
     glVertex2f(0, 2);
     glVertex2f(-1, HeadLength);

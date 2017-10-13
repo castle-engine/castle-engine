@@ -294,12 +294,15 @@ begin
   begin
     FGlobalAmbient := Value;
 
-    {$ifndef OpenGLES}
-    { We always set "1" as global ambient alpha.
-      This alpha does not have any useful interpretation, it seems,
-      so don't let it change. }
-    glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4(FGlobalAmbient, 1));
-    {$endif}
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      { We always set "1" as global ambient alpha.
+        This alpha does not have any useful interpretation, it seems,
+        so don't let it change. }
+      glLightModelv(GL_LIGHT_MODEL_AMBIENT, Vector4(FGlobalAmbient, 1));
+      {$endif}
+    end;
   end;
 end;
 
@@ -336,13 +339,16 @@ begin
 
   FProjectionMatrix := Value;
 
-  {$ifndef OpenGLES}
-  glMatrixMode(GL_PROJECTION);
-  {$warnings off}
-  glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
-  {$warnings on}
-  glMatrixMode(GL_MODELVIEW);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    glMatrixMode(GL_PROJECTION);
+    {$warnings off}
+    glLoadMatrix(Value); // consciously using deprecated stuff; this should be internal in this unit
+    {$warnings on}
+    glMatrixMode(GL_MODELVIEW);
+    {$endif}
+  end;
 end;
 
 function TRenderContext.GetDepthRange: TDepthRange;

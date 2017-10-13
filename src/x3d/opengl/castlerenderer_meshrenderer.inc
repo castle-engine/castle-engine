@@ -481,7 +481,7 @@ end;
 { TTextureCoordinateRenderer ----------------------------------------- }
 
 {$ifndef OpenGLES}
-{ If multitexturing available, sets texture coordinate for texture
+{ If multitexturing available, sets fixed-function texture coordinate for texture
   unit TextureUnit (by appropriate glMultiTexCoord).
   Otherwise (when no multitexturing), sets texture coordinate for
   the only texture unit (glTexCoord).
@@ -492,7 +492,8 @@ end;
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
   if GLFeatures.UseMultiTexturing then
-    glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord) else
+    glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord)
+  else
     glTexCoord4fv(@TexCoord);
 end;
 {$endif}
@@ -506,10 +507,14 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
     {$ifndef OpenGLES}
     { Do the necessary things for WorldSpaceNormal and
-      WorldSpaceReflectionVector. Note that the OpenGLES counterpart
+      WorldSpaceReflectionVector in fixed-function pipeline.
+      Note that the shader pipeline counterpart
       of this is entirely inside EnableTexGen. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
     begin
+      if not EnableFixedFunction then
+        Exit;
+
       { Set the 4th texture coord component (Q) to 0.0.
         Reason: We use matrix 4x4, so it will transform whole texture
         coordinate (4-valued vector, since we're in homogeneous
@@ -581,14 +586,17 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         Shader.EnableTexGen(TexUnit, tgSphere);
       tgCoord:
         begin
-          {$ifndef OpenGLES}
-          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
-          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
-          glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
-          {$endif}
+          if EnableFixedFunction then
+          begin
+            {$ifndef OpenGLES}
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
+            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
+            {$endif}
+          end;
           Shader.EnableTexGen(TexUnit, tgObject, 0, GenerationVectorsIdentity[0]);
           Shader.EnableTexGen(TexUnit, tgObject, 1, GenerationVectorsIdentity[1]);
           Shader.EnableTexGen(TexUnit, tgObject, 2, GenerationVectorsIdentity[2]);
@@ -782,11 +790,14 @@ begin
       { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
         enabled by RenderCoordinateBegin. }
       Shader.DisableTexGen(I);
-      {$ifndef OpenGLES}
-      { DisableTexGen already set glActiveTexture }
-      if RestoreDefaultTexCoord then
-        MultiTexCoord(I, DefaultTexCoord);
-      {$endif}
+      if EnableFixedFunction then
+      begin
+        {$ifndef OpenGLES}
+        { DisableTexGen already set glActiveTexture }
+        if RestoreDefaultTexCoord then
+          MultiTexCoord(I, DefaultTexCoord);
+        {$endif}
+      end;
     end;
 
   inherited;
@@ -802,20 +813,23 @@ begin
      Arrays.FogDirectValues {$ifndef OpenGLES} and
      GLFeatures.EXT_fog_coord {$endif} then
   begin
-    {$ifndef OpenGLES}
-    { This is really not needed for OpenGLES. When we know that rendering
-      is done through shaders, then Shader.ModifyFog does everything necessary. }
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      { This is not needed for shader pipeline. When we know that rendering
+        is done through shaders, then Shader.ModifyFog does everything necessary. }
 
-    { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
-      is already set correctly by RenderBegin. }
-    if not Renderer.FogVolumetric then
-      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+      { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
+        is already set correctly by RenderBegin. }
+      if not Renderer.FogVolumetric then
+        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
 
-    glPushAttrib(GL_FOG_BIT);
-    glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
-    glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
-    glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
-    {$endif}
+      glPushAttrib(GL_FOG_BIT);
+      glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
+      glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
+      glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
+      {$endif}
+    end;
 
     { We potentially override the fog already set
       by TGLRenderer.RenderShapeFog here. }
@@ -833,15 +847,19 @@ begin
      Arrays.FogDirectValues and
      GLFeatures.EXT_fog_coord then
   begin
-    glPopAttrib;
+    if EnableFixedFunction then
+    begin
+      glPopAttrib;
 
-    { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
-      also would restore it, but I didn't find it in the docs, so don't depend
-      on it. }
-    if not Renderer.FogVolumetric then
-      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+      { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
+        also would restore it, but I didn't find it in the docs, so don't depend
+        on it. }
+      if not Renderer.FogVolumetric then
+        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
+    end;
   end;
   {$endif}
+
   inherited;
 end;
 

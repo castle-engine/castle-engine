@@ -56,18 +56,24 @@ begin
   if GLFeatures.Framebuffer <> gsNone then
   begin
     {$ifndef OpenGLES}
-    glPushAttrib(GL_ENABLE_BIT);
+    if GLVersion.Fglrx then
+    begin
+      glPushAttrib(GL_ENABLE_BIT);
       { To work under fglrx (confirmed on chantal (ATI Mobility Radeon X1600)),
         we have to temporarily enable target.
         At least with EXT_framebuffer_object.
         This is a known ATI drivers problem:
         http://www.opengl.org/discussion_boards/ubbthreads.php?ubb=showflat&Number=237052 }
       glEnable(Target);
-      case GLFeatures.Framebuffer of
-        gsExtension: glGenerateMipmapEXT(Target);
-        gsStandard : glGenerateMipmap   (Target);
-      end;
-    glPopAttrib;
+    end;
+
+    case GLFeatures.Framebuffer of
+      gsExtension: glGenerateMipmapEXT(Target);
+      gsStandard : glGenerateMipmap   (Target);
+    end;
+
+    if GLVersion.Fglrx then
+      glPopAttrib;
     {$else}
     glGenerateMipmap(Target);
     {$endif}
