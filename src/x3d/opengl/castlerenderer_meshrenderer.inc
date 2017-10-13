@@ -140,7 +140,7 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TMaterialFromColorCoordinateRenderer = class(TFogCoordinateRenderer)
+  TColorPerVertexCoordinateRenderer = class(TFogCoordinateRenderer)
   private
     MaterialFromColorEnabled: boolean;
   protected
@@ -148,7 +148,7 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TShaderCoordinateRenderer = class(TMaterialFromColorCoordinateRenderer)
+  TShaderCoordinateRenderer = class(TColorPerVertexCoordinateRenderer)
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -845,14 +845,14 @@ begin
   inherited;
 end;
 
-{ TMaterialFromColorCoordinateRenderer --------------------------------------- }
+{ TColorPerVertexCoordinateRenderer --------------------------------------- }
 
-procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateBegin;
+procedure TColorPerVertexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  {$ifdef OpenGLES}
-  { For OpenGLES, we must call EnableMaterialFromColor regardless
+  { The shader implementation of color-per-vertex (for OpenGLES,
+    or OpenGL shader pipeline) must be enabled regardless
     if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
     feature, which works regardless if we're lit or unlit.
 
@@ -860,20 +860,28 @@ begin
     of mcDefaultColor is implemented in OpenGLES differently,
     without default color "pretending" to be a color per vertex,
     as in fixed-function pipeline case). }
-  MaterialFromColorEnabled := MeshColor = mcColorPerVertex;
-  {$else}
-  MaterialFromColorEnabled := (MeshColor <> mcNone) and Lighting;
-  {$endif}
+  if MeshColor = mcColorPerVertex then
+    Shader.EnableColorPerVertex;
+
+  {$ifndef OpenGLES}
+  { for fixed-function pipeline, GL_COLOR_MATERIAL is similar to
+    the Shader.EnableColorPerVertex feature, but not exactly the same.
+    It can only be used when Lighting, and it suitable for mcDefaultColor too. }
+  MaterialFromColorEnabled :=
+    EnableFixedFunction and (MeshColor <> mcNone) and Lighting;
   if MaterialFromColorEnabled then
-    Shader.EnableMaterialFromColor;
+    { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
+    glEnable(GL_COLOR_MATERIAL);
+  {$endif}
 end;
 
-procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateEnd;
+procedure TColorPerVertexCoordinateRenderer.RenderCoordinateEnd;
 begin
   {$ifndef OpenGLES}
   if MaterialFromColorEnabled then
     glDisable(GL_COLOR_MATERIAL);
   {$endif}
+
   inherited;
 end;
 

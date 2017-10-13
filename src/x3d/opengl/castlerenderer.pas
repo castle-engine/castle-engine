@@ -2596,9 +2596,9 @@ begin
 
     { - We always set diffuse material component from the color.
         This satisfies all cases.
-      - TShader.EnableMaterialFromColor
-        takes care of actually enabling COLOR_MATERIAL, it depends on
-        the setting below.
+      - TColorPerVertexCoordinateRenderer.RenderCoordinateBegin
+        takes care of actually enabling COLOR_MATERIAL, it assumes that
+        the state is as set below.
       - We never change glColorMaterial during rendering,
         so no need to call this in RenderEnd. }
     if Beginning then

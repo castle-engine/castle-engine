@@ -364,7 +364,7 @@ type
     }
     AppearanceEffects: TMFNode;
     GroupEffects: TX3DNodeList;
-    Lighting, MaterialFromColor: boolean;
+    Lighting, ColorPerVertex: boolean;
 
     procedure EnableEffects(Effects: TMFNode;
       const Code: TShaderSource = nil;
@@ -506,7 +506,7 @@ type
     procedure EnableAppearanceEffects(Effects: TMFNode);
     procedure EnableGroupEffects(Effects: TX3DNodeList);
     procedure EnableLighting;
-    procedure EnableMaterialFromColor;
+    procedure EnableColorPerVertex;
 
     property ShadowSampling: TShadowSampling
       read FShadowSampling write FShadowSampling;
@@ -935,7 +935,7 @@ begin
 
   { depending on COLOR_PER_VERTEX define, only one of these uniforms
     will be actually used. }
-  if Shader.MaterialFromColor then
+  if Shader.ColorPerVertex then
     AProgram.SetUniform(Format('castle_LightSource%dDiffuse', [Number]),
       Color4) else
     AProgram.SetUniform(Format('castle_SideLightProduct%dDiffuse', [Number]),
@@ -1660,7 +1660,7 @@ begin
   AppearanceEffects := nil;
   GroupEffects := nil;
   Lighting := false;
-  MaterialFromColor := false;
+  ColorPerVertex := false;
   FPhongShading := false;
   ShapeBoundingBox := TBox3D.Empty;
   MaterialAmbient := TVector4.Zero;
@@ -2362,9 +2362,9 @@ var
 
   { Must be done after EnableLights (to add define COLOR_PER_VERTEX
     also to light shader parts). }
-  procedure EnableShaderMaterialFromColor;
+  procedure EnableShaderColorPerVertex;
   begin
-    if MaterialFromColor then
+    if ColorPerVertex then
     begin
       { TODO: need to pass castle_ColorPerVertexFragment onward?
       Plug(stGeometry, GeometryShaderPassColors);
@@ -2541,7 +2541,7 @@ begin
   EnableTextures;
   EnableInternalEffects;
   EnableLights;
-  EnableShaderMaterialFromColor;
+  EnableShaderColorPerVertex;
   {$ifndef OpenGLES} //TODO-es
   EnableShaderBumpMapping;
   EnableShaderSurfaceTextures;
@@ -3125,18 +3125,10 @@ begin
   FCodeHash.AddInteger(7);
 end;
 
-procedure TShader.EnableMaterialFromColor;
+procedure TShader.EnableColorPerVertex;
 begin
-  if EnableFixedFunction then
-  begin
-    { glColorMaterial is already set by TGLRenderer.RenderBegin }
-    {$ifndef OpenGLES}
-    glEnable(GL_COLOR_MATERIAL);
-    {$endif}
-  end;
-
   { This will cause appropriate shader later }
-  MaterialFromColor := true;
+  ColorPerVertex := true;
   FCodeHash.AddInteger(29);
 end;
 
