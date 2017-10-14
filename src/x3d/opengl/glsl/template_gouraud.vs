@@ -58,14 +58,40 @@ void main(void)
      normal_for_lighting), as castle_normal_eye may be useful also for other
      calculations, e.g. cubemap reflections, that don't want this flippping
      (testcase: demo-models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv )
-   */
-  vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye);
+
+     This is commented out, because it's not perfect, and I'm not sure can
+     we efficiently do artifact-free version of two-sided lighting.
+     Reproduction of the problem:
+     - demo-models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv,
+       look at the back side of the box.
+     - demo-models/fog/fog_linear, rotate in Examine and look at the thin water
+       edges.
+
+     The problem: We base our flipping on castle_normal_eye,
+     which may be a smoothed (per-vertex) normal vector.
+
+     - We cannot calculate here reliably per-face vector (fragment shaders
+       can do a trick with dFdx, see
+       https://makc3d.wordpress.com/2015/09/17/alternative-to-gl_frontfacing/ ,
+       but dFdx is only available in fragment shader).
+
+     - Fully-correct solutions are inefficient:
+       - To pass to vertex shader a face_normal in a special uniform
+         means that we have to pass extra data, and also that we have to
+         split vertexes to not share vertexes across faces.
+       - Calculating light 2x times and then letting fragment shader to choose
+         which side to show (this is what fixed-function does, I think).
+
+     - If you're OK with being correct (not fast), you can use Phong shading
+       where two-sided lighting works easily.
+  */
+  /* vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye); */
 
   #ifdef COLOR_PER_VERTEX
-    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, normal_for_lighting, castle_MaterialShininess, castle_ColorPerVertex) */
+    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */
     castle_Color.a = castle_ColorPerVertex.a;
   #else
-    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, normal_for_lighting, castle_MaterialShininess, vec4(0.0)) */
+    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */
     castle_Color.a = castle_MaterialDiffuseAlpha;
   #endif
 
