@@ -25,7 +25,13 @@ release-linux:
 release-linux64:
 	castle-engine package --os=linux --cpu=x86_64
 
+.PHONY: android
+android:
+	castle-engine package --os=android --cpu=arm --fast --mode=debug
+	castle-engine install --os=android --cpu=arm
+	castle-engine run --os=android --cpu=arm
+
 .PHONY: release-android
 release-android:
-	castle-engine package --os=android --cpu=arm
+	castle-engine package --os=android --cpu=arm --mode=release
 	castle-engine install --os=android --cpu=arm

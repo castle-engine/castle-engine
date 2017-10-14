@@ -2554,6 +2554,11 @@ type
     VideoResizeheight : integer;
     { @groupEnd }
 
+    { Initialized to @true on touch devices (Android, iOS).
+      You can change this to easily pretend that you have a touch device
+      on desktop. }
+    TouchDevice: boolean;
+
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Color bits per pixel that will be set by next VideoChange call,
@@ -4574,7 +4579,10 @@ begin
   FTimerMilisec := 1000;
   FLimitFPS := DefaultLimitFPS;
   FDefaultWindowClass := TCastleWindowCustom;
-
+  TouchDevice :=
+    {$ifdef ANDROID} true {$else}
+    {$ifdef IOS}     true {$else}
+                     false {$endif} {$endif};
   CreateBackend;
 end;
 

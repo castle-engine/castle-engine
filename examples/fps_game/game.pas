@@ -26,13 +26,13 @@ implementation
 uses SysUtils, Classes, CastleWindow, CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
-  Castle3D, CastleFilesUtils, CastleGameNotifications,
+  Castle3D, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
   CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
 
 var
-  Window: TCastleWindow;
+  Window: TCastleWindowTouch;
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
   ExtraViewport: TCastleViewport;
@@ -51,6 +51,7 @@ type
     ScrenshotButton: TCastleButton;
     AddCreatureButton: TCastleButton;
     AddItemButton: TCastleButton;
+    AttackButton: TCastleButton;
     constructor Create(AOwner: TComponent); override;
     procedure ToggleMouseLookButtonClick(Sender: TObject);
     procedure ExitButtonClick(Sender: TObject);
@@ -59,6 +60,7 @@ type
     procedure ScreenshotButtonClick(Sender: TObject);
     procedure AddCreatureButtonClick(Sender: TObject);
     procedure AddItemButtonClick(Sender: TObject);
+    procedure AttackButtonClick(Sender: TObject);
   end;
 
 const
@@ -72,14 +74,17 @@ begin
 
   NextButtonBottom := ControlsMargin;
 
-  ToggleMouseLookButton := TCastleButton.Create(Application);
-  ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
-  ToggleMouseLookButton.Toggle := true;
-  ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
-  ToggleMouseLookButton.Left := ControlsMargin;
-  ToggleMouseLookButton.Bottom := NextButtonBottom;
-  Window.Controls.InsertFront(ToggleMouseLookButton);
-  NextButtonBottom += ToggleMouseLookButton.CalculatedHeight + ControlsMargin;
+  if not Application.TouchDevice then
+  begin
+    ToggleMouseLookButton := TCastleButton.Create(Application);
+    ToggleMouseLookButton.Caption := 'Mouse Look (F4)';
+    ToggleMouseLookButton.Toggle := true;
+    ToggleMouseLookButton.OnClick := @ToggleMouseLookButtonClick;
+    ToggleMouseLookButton.Left := ControlsMargin;
+    ToggleMouseLookButton.Bottom := NextButtonBottom;
+    Window.Controls.InsertFront(ToggleMouseLookButton);
+    NextButtonBottom += ToggleMouseLookButton.CalculatedHeight + ControlsMargin;
+  end;
 
   ExitButton := TCastleButton.Create(Application);
   ExitButton.Caption := 'Exit (Escape)';
@@ -130,6 +135,14 @@ begin
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
   NextButtonBottom += AddItemButton.CalculatedHeight + ControlsMargin;
+
+  AttackButton := TCastleButton.Create(Application);
+  AttackButton.Caption := 'Attack (Ctrl)';
+  AttackButton.OnClick := @AttackButtonClick;
+  AttackButton.Left := ControlsMargin;
+  AttackButton.Bottom := NextButtonBottom;
+  Window.Controls.InsertFront(AttackButton);
+  NextButtonBottom += AttackButton.CalculatedHeight + ControlsMargin;
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
@@ -202,6 +215,11 @@ begin
 
   { You could instead add the item directly to someone's inventory, like this: }
   // Player.PickItem(ItemResource.CreateItem(1));
+end;
+
+procedure TButtons.AttackButtonClick(Sender: TObject);
+begin
+  Player.Attack;
 end;
 
 var
@@ -322,14 +340,6 @@ begin
     Buttons.AddItemButtonClick(nil);
 end;
 
-procedure Resize(Container: TUIContainer);
-begin
-  ExtraViewport.Width := Window.Height div 5;
-  ExtraViewport.Height := 3 * ExtraViewport.Width;
-  ExtraViewport.Left := Window.Width - ExtraViewport.Width - ControlsMargin;
-  ExtraViewport.Bottom := ControlsMargin;
-end;
-
 { Customized item ------------------------------------------------------------ }
 
 type
@@ -413,6 +423,11 @@ end;
   This is assigned to Application.OnInitialize, and will be called only once. }
 procedure ApplicationInitialize;
 begin
+  { automatically scale user interface to reference sizes }
+  Window.Container.UIReferenceWidth := 1024;
+  Window.Container.UIReferenceHeight := 768;
+  Window.Container.UIScaling := usEncloseReferenceSize;
+
   { Load user preferences file.
     You can use it for your own user persistent data
     (preferences or savegames), see
@@ -457,14 +472,16 @@ begin
     for 3D world information, like below.
     Each viewport has it's own camera, so you can even interact with it
     (the viewport created below uses Examine camera).
-    See examples/3d_rendering_processing/multiple_viewports for more examples
-    of custom viewports. }
+    See
+    examples/3d_rendering_processing/multiple_viewports and
+    examples/2d_standard_ui/zombie_fighter/ for more examples of custom viewports. }
   ExtraViewport := TCastleViewport.Create(Application);
   ExtraViewport.SceneManager := SceneManager;
   ExtraViewport.FullSize := false;
-  { Usually when you change FullSize := false you also want to adjust
-    Left/Bottom/Width/Height properties. But in this case we know that
-    the initial Resize event will do it. }
+  ExtraViewport.Width := 150;
+  ExtraViewport.Height := 400;
+  ExtraViewport.Anchor(vpMiddle);
+  ExtraViewport.Anchor(hpRight, -ControlsMargin);
   { We insert ExtraViewport to Controls before SceneManager, to be on top. }
   Window.Controls.InsertFront(ExtraViewport);
 
@@ -474,28 +491,35 @@ begin
     Window.Open. That is why we assign them here, and that is why we created
     ExtraViewport (that is resized in Resize callback) earlier. }
   Window.OnPress := @Press;
-  Window.OnResize := @Resize;
 
   { Show progress bars on our Window. }
   Progress.UserInterface := WindowProgressInterface;
+
+  { Enable automatic navigation UI on touch devices. }
+  //Application.TouchDevice := true; // use this to test touch behavior on desktop
+  Window.AutomaticTouchInterface := Application.TouchDevice;
 
   { Allow player to drop items by "R" key. This shortcut is by default inactive
     (no key/mouse button correspond to it), because not all games may want
     to allow player to do this. }
   Input_DropItem.Assign(K_R);
-  // allow shooting by clicking or pressing Ctrl key
-  Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
+  if not Application.TouchDevice then
+    // allow shooting by clicking or pressing Ctrl key
+    Input_Attack.Assign(K_Ctrl, K_None, #0, true, mbLeft);
 
   { Allow using type="MedKit" inside resource.xml files,
     to define our MedKit item. }
   RegisterResourceClass(TMedKitResource, 'MedKit');
 
-  { Load all resources (creatures and items kinds) information from
-    resource.xml files found inside ApplicationData.
-    Similarly, load all available levels information from level.xml
-    files inside ApplicationData. }
-  Resources.LoadFromFiles;
-  Levels.LoadFromFiles;
+  { Load resources (creatures and items) from resource.xml files. }
+  //Resources.LoadFromFiles; // on non-Android, this finds all resource.xml files in data
+  Resources.AddFromFile(ApplicationData('knight_creature/resource.xml'));
+  Resources.AddFromFile(ApplicationData('item_medkit/resource.xml'));
+  Resources.AddFromFile(ApplicationData('item_shooting_eye/resource.xml'));
+
+  { Load available levels information from level.xml files. }
+  //Levels.LoadFromFiles; // on non-Android, this finds all level.xml files in data
+  Levels.AddFromFile(ApplicationData('example_level/level.xml'));
 
   { Create player. This is necessary to represent the player as anything
     more than a camera. Player adds inventory, with automatic picking of items
@@ -593,7 +617,7 @@ initialization
   InitializeLog;
 
   { Create a window. }
-  Window := TCastleWindow.Create(Application);
+  Window := TCastleWindowTouch.Create(Application);
 
   Application.MainWindow := Window;
   Application.OnInitialize := @ApplicationInitialize;
