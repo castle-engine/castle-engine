@@ -591,6 +591,28 @@ begin
   until ParenLevel = 0;
 end;
 
+{ In OpenGL, each part (separate compilation) has to declare it's variables
+  (uniforms, attributes etc.).
+  In OpenGLES, all parts are glued into one, and their declarations cannot
+  be repeated (or there will be compilation error).
+  This function wraps a variable declaration in suitable #ifdef
+  such that it will only be declared once.
+
+  Declaration should not (but may) end with newline.
+  The result always ends with newline. }
+function DeclareOnce(const VariableName: string; const Declaration: string): string;
+begin
+  {$ifndef OpenGLES}
+  Result := Declaration + NL;
+  {$else}
+  Result :=
+    '#ifndef ' + VariableName + '_defined' + NL +
+    '#define ' + VariableName + '_defined' + NL +
+    Declaration + NL +
+    '#endif' + NL;
+  {$endif}
+end;
+
 { TShaderCodeHash ------------------------------------------------------------ }
 
 {$include norqcheckbegin.inc}
@@ -2156,12 +2178,13 @@ var
 
   procedure EnableShaderBumpMapping;
   const
-    SteepParallaxDeclarations: array [boolean] of string = ('',
+    ParallaxDeclarations: array [ { steep parallax, with height map? } boolean ] of string = (
+      '',
       'float castle_bm_height;' +NL+
       'vec2 castle_parallax_tex_coord;' +NL
     );
 
-    SteepParallaxShift: array [boolean] of string = (
+    ParallaxShift: array [ { steep parallax, with height map? } boolean] of string = (
       { Classic parallax bump mapping }
       'float height = (texture2D(castle_normal_map, tex_coord).a - 1.0/2.0) * castle_parallax_bm_scale;' +NL+
       'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
@@ -2207,12 +2230,15 @@ var
     );
 
     SteepParallaxShadowing =
+      // avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      {$ifndef OpenGLES}
       'uniform float castle_parallax_bm_scale;' +NL+
       'uniform sampler2D castle_normal_map;' +NL+
-      'varying vec3 castle_light_direction_tangent_space;' +NL+
-
       'float castle_bm_height;' +NL+
       'vec2 castle_parallax_tex_coord;' +NL+
+      {$endif}
+
+      'varying vec3 castle_light_direction_tangent_space;' +NL+
 
       { This has to be done after PLUG_texture_coord_shift (done from PLUG_texture_apply),
         as we depend that global castle_bm_height/castle_parallax_tex_coord
@@ -2264,15 +2290,15 @@ var
       { parallax bump mapping }
       Plug(stFragment,
         'uniform float castle_parallax_bm_scale;' +NL+
-        'uniform sampler2D castle_normal_map;' +NL+
+        DeclareOnce('castle_normal_map', 'uniform sampler2D castle_normal_map;') +
         'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL+
-        SteepParallaxDeclarations[FBumpMapping >= bmSteepParallax] +
+        ParallaxDeclarations[FBumpMapping >= bmSteepParallax] +
         NL+
         'void PLUG_texture_coord_shift(inout vec2 tex_coord)' +NL+
         '{' +NL+
         { We have to normalize castle_vertex_to_eye_in_tangent_space again, just like normal vectors. }
         '  vec3 v_to_eye = normalize(castle_vertex_to_eye_in_tangent_space);' +NL+
-        SteepParallaxShift[FBumpMapping >= bmSteepParallax] +
+        ParallaxShift[FBumpMapping >= bmSteepParallax] +
         '}');
       VertexEyeBonusDeclarations :=
         'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL;
@@ -2311,15 +2337,34 @@ var
     end;
 
     Plug(stVertex,
+
       {$ifndef OpenGLES}
-      '#version 120' +NL+ { version 120 needed for transpose() }
+      { version 1.20 needed for transpose() }
+      '#version 120' +NL+
+      {$else}
+      { On OpenGLES, it seems easiest to just implement your own transpose().
+        Or we could require version 3.00,
+        https://www.khronos.org/registry/OpenGL-Refpages/es3.1/html/transpose.xhtml ,
+        but this also requires other GLSL changes,
+        and it seems that iOS would be troublesome anyway:
+        https://stackoverflow.com/questions/18034677/transpose-a-mat4-in-opengl-es-2-0-glsl }
+      'mat3 transpose(const in mat3 m) {' +NL+
+      '  return mat3(' +NL+
+      '    vec3(m[0].x, m[1].x, m[2].x),' +NL+
+      '    vec3(m[0].y, m[1].y, m[2].y),' +NL+
+      '    vec3(m[0].z, m[1].z, m[2].z)' +NL+
+      '  );' +NL+
+      '}' +NL+
       {$endif}
+
       'attribute mat3 castle_tangent_to_object_space;' +NL+
       'varying mat3 castle_tangent_to_eye_space;' +NL+
-      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      // avoid redeclaring variables when no "separate compilation units" (OpenGLES)
+      {$ifndef OpenGLES}
       'uniform mat4 castle_ModelViewMatrix;' +NL+
-      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
       'uniform mat3 castle_NormalMatrix;' +NL+
+      {$endif}
+
       VertexEyeBonusDeclarations +
       NL+
       'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
@@ -2332,8 +2377,11 @@ var
 
     Plug(stFragment,
       'varying mat3 castle_tangent_to_eye_space;' +NL+
-      'uniform sampler2D castle_normal_map;' +NL+
+      DeclareOnce('castle_normal_map', 'uniform sampler2D castle_normal_map;') +
+      // avoid redeclaring variables when no "separate compilation units" (OpenGLES)
+      {$ifndef OpenGLES}
       'varying vec4 ' + CoordName + ';' +NL+
+      {$endif}
       NL+
       'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
       '{' +NL+
@@ -2380,7 +2428,9 @@ var
     PlugFunction: array [TSurfaceTexture] of string =
     (
       'uniform sampler2D %s;' +NL+
-      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      {$ifdef OpenGLES}
+      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
+      {$endif}
       'varying vec4 %s;' + NL+
       'void PLUG_material_light_ambient(inout vec4 ambient)' +NL+
       '{' +NL+
@@ -2388,7 +2438,9 @@ var
       '}' +NL,
 
       'uniform sampler2D %s;' +NL+
-      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      {$ifdef OpenGLES}
+      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
+      {$endif}
       'varying vec4 %s;' + NL+
       'void PLUG_material_light_specular(inout vec4 specular)' +NL+
       '{' +NL+
@@ -2396,7 +2448,9 @@ var
       '}' +NL,
 
       'uniform sampler2D %s;' +NL+
-      // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+      {$ifdef OpenGLES}
+      '// avoid redeclaring variables when no "separate compilation units" (OpenGLES)' +
+      {$endif}
       'varying vec4 %s;' + NL+
       'void PLUG_material_shininess(inout float shininess)' +NL+
       '{' +NL+
@@ -2542,10 +2596,8 @@ begin
   EnableInternalEffects;
   EnableLights;
   EnableShaderColorPerVertex;
-  {$ifndef OpenGLES} //TODO-es
   EnableShaderBumpMapping;
   EnableShaderSurfaceTextures;
-  {$endif}
   EnableShaderFog;
   if AppearanceEffects <> nil then
     EnableEffects(AppearanceEffects);
