@@ -29,10 +29,13 @@
   strict private
     function GetSize: TVector3;
     procedure SetSize(const Value: TVector3);
+    function GetCcw: boolean;
+    procedure SetCcw(const Value: boolean);
     function GetDivisions: Integer;
     procedure SetDivisions(const Value: Integer);
   public
     property Size: TVector3 read GetSize write SetSize;
+    property Ccw: boolean read GetCcw write SetCcw;
     property Divisions: Integer read GetDivisions write SetDivisions;
 
 {$endif read_interface}
@@ -49,6 +52,16 @@ end;
 procedure TBoxNode.SetSize(const Value: TVector3);
 begin
   FdSize.Send(Value);
+end;
+
+function TBoxNode.GetCcw: boolean;
+begin
+  Result := FdCcw.Value;
+end;
+
+procedure TBoxNode.SetCcw(const Value: boolean);
+begin
+  FdCcw.Send(Value);
 end;
 
 function TBoxNode.GetDivisions: Integer;

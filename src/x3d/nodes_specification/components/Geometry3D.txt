@@ -2,6 +2,7 @@ Box : X3DGeometryNode {
   SFVec3f []       size     2 2 2 (0,Inf)
   SFBool  []       solid    TRUE
   # EXTENSIONS:
+  SFBool     []            ccw         TRUE
   SFNode     [in,out]      texCoord    NULL        # [TextureCoordinateGenerator, ProjectedTextureCoordinate, MultiGeneratedTextureCoordinate]
   SFInt32    [in,out]      divisions   -1          # [-1, infinity)
 }
