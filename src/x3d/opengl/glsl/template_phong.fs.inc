@@ -53,6 +53,9 @@
 '       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...' + LineEnding +
 '       To minimize the number of problems, never use "if (!gl_FrontFacing)",' + LineEnding +
 '       only "if (gl_FrontFacing)".' + LineEnding +
+'' + LineEnding +
+'       See also https://makc3d.wordpress.com/2015/09/17/alternative-to-gl_frontfacing/ ,' + LineEnding +
+'       gl_FrontFacing seems unreliable sometimes.' + LineEnding +
 '    */ ; else' + LineEnding +
 '    normal_eye_fragment = -normal_eye_fragment;' + LineEnding +
 '#endif' + LineEnding +

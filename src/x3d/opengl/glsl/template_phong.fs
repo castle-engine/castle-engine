@@ -51,6 +51,9 @@ void main(void)
        It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...
        To minimize the number of problems, never use "if (!gl_FrontFacing)",
        only "if (gl_FrontFacing)".
+
+       See also https://makc3d.wordpress.com/2015/09/17/alternative-to-gl_frontfacing/ ,
+       gl_FrontFacing seems unreliable sometimes.
     */ ; else
     normal_eye_fragment = -normal_eye_fragment;
 #endif

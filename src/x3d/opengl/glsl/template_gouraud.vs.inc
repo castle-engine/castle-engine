@@ -53,11 +53,21 @@
 '#ifdef LIT' + LineEnding +
 '  castle_Color = vec4(castle_SceneColor, 1.0);' + LineEnding +
 '' + LineEnding +
+'  /* Two-sided lighting in Gouraud shading:' + LineEnding +
+'     flip the normal vector to correspond to the face side that we actually see.' + LineEnding +
+'' + LineEnding +
+'     Note that we don''t flip the castle_normal_eye (we only flip the' + LineEnding +
+'     normal_for_lighting), as castle_normal_eye may be useful also for other' + LineEnding +
+'     calculations, e.g. cubemap reflections, that don''t want this flippping' + LineEnding +
+'     (testcase: demo-models/cube_environment_mapping/cubemap_generated_in_dynamic_world.x3dv )' + LineEnding +
+'   */' + LineEnding +
+'  vec3 normal_for_lighting = (castle_normal_eye.z > 0.0 ? castle_normal_eye : -castle_normal_eye);' + LineEnding +
+'' + LineEnding +
 '  #ifdef COLOR_PER_VERTEX' + LineEnding +
-'    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, castle_ColorPerVertex) */' + LineEnding +
+'    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, normal_for_lighting, castle_MaterialShininess, castle_ColorPerVertex) */' + LineEnding +
 '    castle_Color.a = castle_ColorPerVertex.a;' + LineEnding +
 '  #else' + LineEnding +
-'    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, castle_normal_eye, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
+'    /* PLUG: add_light_contribution (castle_Color, castle_vertex_eye, normal_for_lighting, castle_MaterialShininess, vec4(0.0)) */' + LineEnding +
 '    castle_Color.a = castle_MaterialDiffuseAlpha;' + LineEnding +
 '  #endif' + LineEnding +
 '' + LineEnding +
