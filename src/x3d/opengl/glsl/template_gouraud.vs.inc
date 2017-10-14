@@ -110,6 +110,8 @@
 '  ;' + LineEnding +
 '#endif' + LineEnding +
 '' + LineEnding +
+'  /* PLUG: lighting_apply (castle_Color, castle_vertex_eye, castle_normal_eye) */' + LineEnding +
+'' + LineEnding +
 '  gl_Position = castle_ProjectionMatrix * castle_vertex_eye;' + LineEnding +
 '' + LineEnding +
 '  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING' + LineEnding +

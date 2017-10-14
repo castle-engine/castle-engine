@@ -108,6 +108,8 @@ void main(void)
   ;
 #endif
 
+  /* PLUG: lighting_apply (castle_Color, castle_vertex_eye, castle_normal_eye) */
+
   gl_Position = castle_ProjectionMatrix * castle_vertex_eye;
 
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING
