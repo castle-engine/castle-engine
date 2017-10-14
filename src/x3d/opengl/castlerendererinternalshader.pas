@@ -592,22 +592,29 @@ begin
 end;
 
 { In OpenGL, each part (separate compilation) has to declare it's variables
-  (uniforms, attributes etc.).
+  (uniforms, attributes etc.). It also has to declare the used procedures
+  from other compilation units.
+
   In OpenGLES, all parts are glued into one, and their declarations cannot
   be repeated (or there will be compilation error).
-  This function wraps a variable declaration in suitable #ifdef
+  The used procedures may be declated (a forward declaration),
+  but the forward declarations cannot be repeated (although it may depend
+  on mobile GPU).
+
+  This function wraps a declaration in suitable #ifdef
   such that it will only be declared once.
+  The given Name is anything unique -- usually the variable or procedure name.
 
   Declaration should not (but may) end with newline.
   The result always ends with newline. }
-function DeclareOnce(const VariableName: string; const Declaration: string): string;
+function DeclareOnce(const Name: string; const Declaration: string): string;
 begin
   {$ifndef OpenGLES}
   Result := Declaration + NL;
   {$else}
   Result :=
-    '#ifndef ' + VariableName + '_defined' + NL +
-    '#define ' + VariableName + '_defined' + NL +
+    '#ifndef ' + Name + '_defined' + NL +
+    '#define ' + Name + '_defined' + NL +
     Declaration + NL +
     '#endif' + NL;
   {$endif}
@@ -1797,7 +1804,7 @@ var
   var
     AnyOccurrencesInThisCodeIndex: boolean;
     PBegin, PEnd, CodeSearchBegin, CodeIndex: Integer;
-    CommentBegin, Parameter: string;
+    CommentBegin, Parameters, Declaration: string;
   begin
     CommentBegin := '/* PLUG: ' + PlugName + ' ';
     Result := false;
@@ -1808,11 +1815,12 @@ var
       while FindPlugOccurrence(CommentBegin, CodeForPlugDeclaration[CodeIndex],
         CodeSearchBegin, PBegin, PEnd) do
       begin
-        Parameter := Trim(CopyPos(CodeForPlugDeclaration[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
-        InsertIntoCode(CodeForPlugDeclaration, CodeIndex, PBegin, ProcedureName + Parameter + ';' + NL);
+        Parameters := Trim(CopyPos(CodeForPlugDeclaration[CodeIndex], PBegin + Length(CommentBegin), PEnd - 1));
+        Declaration := ProcedureName + Parameters + ';' + NL;
+        InsertIntoCode(CodeForPlugDeclaration, CodeIndex, PBegin, Declaration);
 
         { do not find again the same plug comment by FindPlugOccurrence }
-        CodeSearchBegin := PEnd;
+        CodeSearchBegin := PEnd + Length(Declaration);
 
         AnyOccurrencesInThisCodeIndex := true;
         Result := true;
@@ -1860,11 +1868,14 @@ begin
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
         '#define HAS_TEXTURE_COORD_SHIFT', false);
 
-    ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers);
+    { PlugName is not needed below to make this unique,
+      but it makes reading shader code easier. }
+    ProcedureName := 'plugged_' + IntToStr(PlugIdentifiers) + '_' + PlugName;
     StringReplaceAllVar(PlugValue, 'PLUG_' + PlugName, ProcedureName, false);
     Inc(PlugIdentifiers);
 
-    PlugForwardDeclaration := 'void ' + ProcedureName + PlugDeclaredParameters + ';' + NL;
+    PlugForwardDeclaration := DeclareOnce(ProcedureName,
+      'void ' + ProcedureName + PlugDeclaredParameters + ';');
 
     AnyOccurrences := LookForPlugDeclaration(Code);
     { If the plug declaration not found in Code, then try to find it in
