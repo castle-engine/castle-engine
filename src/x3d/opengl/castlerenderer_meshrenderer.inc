@@ -704,7 +704,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
             if EnableFixedFunction then
             begin
-              {$ifndef OpenGLES} // TODO-es
+              {$ifndef OpenGLES}
               glPushMatrix;
                 glLoadMatrix(RenderingCamera.Matrix);
 
