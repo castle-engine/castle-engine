@@ -75,7 +75,37 @@ implementation
 
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleGLUtils, CastleUtils, CastleShapes;
+  CastleGLUtils, CastleUtils, CastleShapes, CastleRenderingCamera;
+
+{$ifndef OpenGLES}
+{ Rendering in this unit for now uses fixed-function pipeline,
+  and it requires fixed-function matrix set up. }
+procedure PushMatrix;
+var
+  CameraMatrix: PMatrix4;
+begin
+  glMatrixMode(GL_PROJECTION);
+  glPushMatrix;
+  glLoadMatrix(RenderContext.ProjectionMatrix);
+
+  if RenderingCamera.RotationOnly then
+    CameraMatrix := @RenderingCamera.RotationMatrix
+  else
+    CameraMatrix := @RenderingCamera.Matrix;
+
+  glMatrixMode(GL_MODELVIEW);
+  glPushMatrix;
+  glLoadMatrix(CameraMatrix^);
+end;
+
+procedure PopMatrix;
+begin
+  glMatrixMode(GL_PROJECTION);
+  glPopMatrix;
+  glMatrixMode(GL_MODELVIEW);
+  glPopMatrix;
+end;
+{$endif not OpenGLES}
 
 { Return vertex Original extruded into infinity, as seen from light
   at position LightPos.
@@ -408,6 +438,8 @@ begin
 
   Triangles := TrianglesListShadowCasters;
 
+  PushMatrix;
+
   TrianglesPlaneSide := TBooleanList.Create;
   try
     InitializeTrianglesPlaneSideAndRenderCaps(TrianglesPlaneSide,
@@ -488,6 +520,8 @@ begin
     glEnd;
 
   finally FreeAndNil(TrianglesPlaneSide) end;
+
+  PopMatrix;
 {$else}
 begin
 {$endif}
@@ -547,6 +581,8 @@ var
   TrianglesPlaneSide: TBooleanList;
   Edges: TManifoldEdgeList;
 begin
+  PushMatrix;
+
   glBegin(GL_LINES);
     Triangles := TrianglesListShadowCasters;
     Edges := ManifoldEdges;
@@ -577,6 +613,8 @@ begin
 
     finally FreeAndNil(TrianglesPlaneSide) end;
   glEnd;
+
+  PopMatrix;
 {$else}
 begin
 {$endif}
@@ -610,6 +648,8 @@ var
   I: Integer;
   Edges: TBorderEdgeList;
 begin
+  PushMatrix;
+
   glBegin(GL_LINES);
     Triangles := TrianglesListShadowCasters;
     Edges := BorderEdges;
@@ -622,6 +662,8 @@ begin
       Inc(EdgePtr);
     end;
   glEnd;
+
+  PopMatrix;
 {$else}
 begin
 {$endif}

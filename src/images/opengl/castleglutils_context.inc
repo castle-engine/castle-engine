@@ -136,9 +136,8 @@ type
 
     { Current projection matrix.
 
-      For desktop OpenGL, setting this also sets fixed-function projection matrix.
-      The OpenGL matrix mode is temporarily changed to GL_PROJECTION,
-      then changed back to GL_MODELVIEW. }
+      When EnableFixedFunction = true, setting this also
+      sets fixed-function projection matrix. }
     property ProjectionMatrix: TMatrix4
       read GetProjectionMatrix write SetProjectionMatrix;
 
