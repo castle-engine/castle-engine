@@ -2336,15 +2336,16 @@ var
         VertexEyeBonusDeclarations +=
           'varying vec3 castle_light_direction_tangent_space;' +NL+
           // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
+          // in case of Phong shading
           'uniform vec3 castle_LightSource0Position;' +NL;
 
         { add VertexEyeBonusCode to cast shadow from LightShaders[0]. }
         VertexEyeBonusCode += 'vec3 light_dir = castle_LightSource0Position;';
         if LightShaders[0].Node is TAbstractPositionalLightNode then
           VertexEyeBonusCode += 'light_dir -= vec3(vertex_eye);';
-          VertexEyeBonusCode +=
-            'light_dir = normalize(light_dir);' +NL+
-            'castle_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
+        VertexEyeBonusCode +=
+          'light_dir = normalize(light_dir);' +NL+
+          'castle_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
       end;
     end;
 
