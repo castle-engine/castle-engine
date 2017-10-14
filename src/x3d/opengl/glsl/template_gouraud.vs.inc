@@ -2,6 +2,10 @@
 { DON'T EDIT -- this file was automatically generated from "template_gouraud.vs" }
 '/* Gouraud shading GLSL vertex shader. */' + LineEnding +
 '' + LineEnding +
+'#ifdef GL_ES' + LineEnding +
+'precision mediump float;' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
 'uniform mat4 castle_ProjectionMatrix;' + LineEnding +
 'uniform mat3 castle_NormalMatrix;' + LineEnding +

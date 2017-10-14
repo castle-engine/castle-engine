@@ -1,5 +1,9 @@
 /* Gouraud shading GLSL vertex shader. */
 
+#ifdef GL_ES
+precision mediump float;
+#endif
+
 uniform mat4 castle_ModelViewMatrix;
 uniform mat4 castle_ProjectionMatrix;
 uniform mat3 castle_NormalMatrix;

@@ -5,6 +5,10 @@
 '   When you change this file, rerun `make'' and then recompile Pascal sources.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
+'#ifdef GL_ES' + LineEnding +
+'precision mediump float;' + LineEnding +
+'#endif' + LineEnding +
+'' + LineEnding +
 'uniform mat4 castle_ModelViewMatrix;' + LineEnding +
 'uniform mat4 castle_ProjectionMatrix;' + LineEnding +
 'uniform mat3 castle_NormalMatrix;' + LineEnding +
