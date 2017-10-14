@@ -810,12 +810,11 @@ begin
   inherited;
 
   if Arrays.HasFogCoord and
-     Arrays.FogDirectValues {$ifndef OpenGLES} and
-     GLFeatures.EXT_fog_coord {$endif} then
+     Arrays.FogDirectValues then
   begin
-    if EnableFixedFunction then
+    {$ifndef OpenGLES}
+    if EnableFixedFunction and GLFeatures.EXT_fog_coord then
     begin
-      {$ifndef OpenGLES}
       { This is not needed for shader pipeline. When we know that rendering
         is done through shaders, then Shader.ModifyFog does everything necessary. }
 
@@ -828,8 +827,8 @@ begin
       glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
       glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
       glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
-      {$endif}
     end;
+    {$endif}
 
     { We potentially override the fog already set
       by TGLRenderer.RenderShapeFog here. }
@@ -840,23 +839,19 @@ end;
 procedure TFogCoordinateRenderer.RenderCoordinateEnd;
 begin
   {$ifndef OpenGLES}
-  { This is really not needed for OpenGLES. No need to restore state,
-    as it's reset for every shape. }
   { Restore defaults }
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
+     EnableFixedFunction and
      GLFeatures.EXT_fog_coord then
   begin
-    if EnableFixedFunction then
-    begin
-      glPopAttrib;
+    glPopAttrib;
 
-      { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
-        also would restore it, but I didn't find it in the docs, so don't depend
-        on it. }
-      if not Renderer.FogVolumetric then
-        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
-    end;
+    { Restore GL_FOG_COORDINATE_SOURCE_EXT. Actually, it seems glPopAttrib
+      also would restore it, but I didn't find it in the docs, so don't depend
+      on it. }
+    if not Renderer.FogVolumetric then
+      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
   end;
   {$endif}
 
