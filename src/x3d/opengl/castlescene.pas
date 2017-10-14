@@ -822,6 +822,10 @@ const
   bs2D = CastleBoxes.bs2D;
   bs3D = CastleBoxes.bs3D;
 
+  paDefault = CastleSceneCore.paDefault;
+  paForceLooping = CastleSceneCore.paForceLooping;
+  paForceNotLooping = CastleSceneCore.paForceNotLooping;
+
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog,
