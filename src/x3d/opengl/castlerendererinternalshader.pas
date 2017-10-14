@@ -1332,8 +1332,8 @@ begin
   TextureVaryingDeclareFragment += Format(
     '#ifdef HAS_GEOMETRY_SHADER' + NL +
     '  #define %s %0:s_geoshader' + NL +
-    '#endif', [TexCoordName]) + NL +
-    TextureVaryingDeclareVertex;
+    '#endif' + NL +
+    'varying vec4 %0:s;' + NL, [TexCoordName]);
 
   if HasMatrixTransform then
     TextureCoordMatrix += Format('%s = %s * %0:s;' + NL,
