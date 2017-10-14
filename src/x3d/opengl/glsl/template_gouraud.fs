@@ -9,6 +9,7 @@ precision mediump float;
 #ifdef HAS_GEOMETRY_SHADER
   #define castle_vertex_eye castle_vertex_eye_geoshader
   #define castle_normal_eye castle_normal_eye_geoshader
+  #define castle_Color      castle_Color_geoshader
 #endif
 
 varying vec4 castle_vertex_eye;
@@ -26,7 +27,7 @@ void main(void)
 {
   vec4 fragment_color = castle_Color;
 
-/* Fragment shader on mobile doesn't get a normal vector now, for speed. */
+/* Fragment shader in Gouraud doesn't get a normal vector, for speed. */
 #define normal_eye_fragment vec3(0.0)
 
   /* PLUG: texture_apply (fragment_color, normal_eye_fragment) */

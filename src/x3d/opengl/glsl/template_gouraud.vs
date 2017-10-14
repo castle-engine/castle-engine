@@ -34,7 +34,7 @@ void main(void)
 
   #ifdef CASTLE_BUGGY_GLSL_READ_VARYING
   /* use local variables, instead of reading + writing to varying variables,
-     when VARYING_NOT_READABLE */
+     in this case */
   vec4 temp_castle_vertex_eye;
   vec3 temp_castle_normal_eye;
   vec4 temp_castle_Color;

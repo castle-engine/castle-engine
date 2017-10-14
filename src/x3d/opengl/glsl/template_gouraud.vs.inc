@@ -36,7 +36,7 @@
 '' + LineEnding +
 '  #ifdef CASTLE_BUGGY_GLSL_READ_VARYING' + LineEnding +
 '  /* use local variables, instead of reading + writing to varying variables,' + LineEnding +
-'     when VARYING_NOT_READABLE */' + LineEnding +
+'     in this case */' + LineEnding +
 '  vec4 temp_castle_vertex_eye;' + LineEnding +
 '  vec3 temp_castle_normal_eye;' + LineEnding +
 '  vec4 temp_castle_Color;' + LineEnding +

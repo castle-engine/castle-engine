@@ -227,8 +227,8 @@ type
     procedure Prepare(var Hash: TShaderCodeHash); virtual;
     procedure Enable(var TextureApply, TextureColorDeclare,
       TextureCoordInitialize, TextureCoordMatrix,
-      TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-      GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
+      TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+      GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); virtual;
   end;
 
   { Setup the necessary shader things to query a texture using texture coordinates. }
@@ -254,8 +254,8 @@ type
     procedure Prepare(var Hash: TShaderCodeHash); override;
     procedure Enable(var TextureApply, TextureColorDeclare,
       TextureCoordInitialize, TextureCoordMatrix,
-      TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-      GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
+      TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+      GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string); override;
   end;
 
   TTextureCoordinateShaderList = specialize TObjectList<TTextureCoordinateShader>;
@@ -1316,8 +1316,8 @@ end;
 
 procedure TTextureCoordinateShader.Enable(var TextureApply, TextureColorDeclare,
   TextureCoordInitialize, TextureCoordMatrix,
-  TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-  GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+  TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+  GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 var
   TexCoordName, TexMatrixName: string;
 begin
@@ -1327,18 +1327,27 @@ begin
   TextureCoordInitialize += Format('%s = castle_MultiTexCoord%d;' + NL,
     [TexCoordName, TextureUnit]);
   TextureAttributeDeclare += Format('attribute vec4 castle_MultiTexCoord%d;' + NL, [TextureUnit]);
-  TextureVaryingDeclare += Format('varying vec4 %s;' + NL, [TexCoordName]);
+  TextureVaryingDeclareVertex += Format(
+    'varying vec4 %s;' + NL, [TexCoordName]);
+  TextureVaryingDeclareFragment += Format(
+    '#ifdef HAS_GEOMETRY_SHADER' + NL +
+    '  #define %s %0:s_geoshader' + NL +
+    '#endif', [TexCoordName]) + NL +
+    TextureVaryingDeclareVertex;
 
   if HasMatrixTransform then
     TextureCoordMatrix += Format('%s = %s * %0:s;' + NL,
       [TexCoordName, TexMatrixName]);
 
-  GeometryVertexSet  += Format('%s  = gl_in[index].%0:s;' + NL, [TexCoordName]);
-  GeometryVertexZero += Format('%s  = vec4(0.0);' + NL, [TexCoordName]);
+  GeometryVertexDeclare += Format(
+    'in vec4 %s[CASTLE_GEOMETRY_INPUT_SIZE];' + NL +
+    'out vec4 %0:s_geoshader;', [TexCoordName]);
+  GeometryVertexSet  += Format('%s_geoshader  = %0:s[index];' + NL, [TexCoordName]);
+  GeometryVertexZero += Format('%s_geoshader  = vec4(0.0);' + NL, [TexCoordName]);
   { NVidia will warn here "... might be used before being initialized".
     Which is of course true --- but we depend that author will always call
     geometryVertexZero() before geometryVertexAdd(). }
-  GeometryVertexAdd  += Format('%s += gl_in[index].%0:s * scale;' + NL, [TexCoordName]);
+  GeometryVertexAdd  += Format('%s_geoshader += %0:s[index] * scale;' + NL, [TexCoordName]);
 end;
 
 { TTextureShader ------------------------------------------------------------- }
@@ -1430,8 +1439,8 @@ end;
 
 procedure TTextureShader.Enable(var TextureApply, TextureColorDeclare,
   TextureCoordInitialize, TextureCoordMatrix,
-  TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-  GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
+  TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+  GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string);
 const
   SamplerFromTextureType: array [TTextureType] of string =
   ('sampler2D', 'sampler2DShadow', 'samplerCube', 'sampler3D', '');
@@ -1987,8 +1996,8 @@ procedure TShader.LinkProgram(AProgram: TX3DShaderProgram;
   const ShapeNiceName: string);
 var
   TextureApply, TextureColorDeclare, TextureCoordInitialize, TextureCoordMatrix,
-    TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-    GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
+    TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+    GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd: string;
   TextureUniformsSet: boolean;
 
   procedure RequireTextureCoordinateForSurfaceTextures;
@@ -2041,8 +2050,10 @@ var
     TextureCoordInitialize := '';
     TextureCoordMatrix := '';
     TextureAttributeDeclare := '';
-    TextureVaryingDeclare := '';
+    TextureVaryingDeclareVertex := '';
+    TextureVaryingDeclareFragment := '';
     TextureUniformsDeclare := '';
+    GeometryVertexDeclare := '';
     GeometryVertexSet := '';
     GeometryVertexZero := '';
     GeometryVertexAdd := '';
@@ -2051,8 +2062,8 @@ var
     for I := 0 to TextureShaders.Count - 1 do
       TextureShaders[I].Enable(TextureApply, TextureColorDeclare,
         TextureCoordInitialize, TextureCoordMatrix,
-        TextureAttributeDeclare, TextureVaryingDeclare, TextureUniformsDeclare,
-        GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
+        TextureAttributeDeclare, TextureVaryingDeclareVertex, TextureVaryingDeclareFragment, TextureUniformsDeclare,
+        GeometryVertexDeclare, GeometryVertexSet, GeometryVertexZero, GeometryVertexAdd);
   end;
 
   { Applies effects from various strings here.
@@ -2077,9 +2088,10 @@ var
       TextureColorDeclare + TextureApply, false);
     PlugDirectly(Source[stFragment], 0, '/* PLUG: fragment_end', FragmentEnd, false);
 
-    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_set' , GeometryVertexSet , false);
-    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_zero', GeometryVertexZero, false);
-    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_add' , GeometryVertexAdd , false);
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG-DECLARATIONS'         , GeometryVertexDeclare, false);
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_set' , GeometryVertexSet    , false);
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_zero', GeometryVertexZero   , false);
+    PlugDirectly(Source[stGeometry], 0, '/* PLUG: geometry_vertex_add' , GeometryVertexAdd    , false);
 
     UniformsDeclare := '';
     for I := 0 to DynamicUniforms.Count - 1 do
@@ -2089,11 +2101,11 @@ var
 
     if not (
       PlugDirectly(Source[stFragment], 0, '/* PLUG-DECLARATIONS */',
-        TextureVaryingDeclare + NL + TextureUniformsDeclare
+        TextureVaryingDeclareFragment + NL + TextureUniformsDeclare
         {$ifndef OpenGLES} + NL + DeclareShadowFunctions {$endif}, false) and
       PlugDirectly(Source[stVertex], 0, '/* PLUG-DECLARATIONS */',
         UniformsDeclare +
-        TextureAttributeDeclare + NL + TextureVaryingDeclare, false) ) then
+        TextureAttributeDeclare + NL + TextureVaryingDeclareVertex, false) ) then
     begin
       { When we cannot find /* PLUG-DECLARATIONS */, it also means we have
         base shader from ComposedShader. In this case, forcing
