@@ -6,13 +6,6 @@
 '   so it may go either in vertex or fragment shader.' + LineEnding +
 '*/' + LineEnding +
 '' + LineEnding +
-'/* TODO: use this in case of Phong shading, i.e. define PLUG_geometry_vertex_*' + LineEnding +
-'   for every light source to pass these from vertex to fragment. */' + LineEnding +
-'#ifdef HAS_GEOMETRY_SHADER' + LineEnding +
-'  #define castle_LightSource<Light>Radius castle_LightSource<Light>Radius_geoshader' + LineEnding +
-'  #define castle_LightSource<Light>BeamWidth castle_LightSource<Light>BeamWidth_geoshader' + LineEnding +
-'#endif' + LineEnding +
-'' + LineEnding +
 '/* Light source position (or direction, if not LIGHT_TYPE_POSITIONAL)' + LineEnding +
 '   in eye coordinates. */' + LineEnding +
 'uniform vec3 castle_LightSource<Light>Position;' + LineEnding +
