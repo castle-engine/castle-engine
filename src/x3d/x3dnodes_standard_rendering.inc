@@ -458,6 +458,8 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dcolornode.inc}
   end;
 
+  TAbstractVertexAttributeNode = class;
+
   { Base node type for all composed 3D geometry. }
   TAbstractComposedGeometryNode = class(TAbstractGeometryNode)
   protected

@@ -31,6 +31,7 @@
     procedure SetEnabled(const Value: boolean);
   public
     property Enabled: boolean read GetEnabled write SetEnabled;
+    procedure SetParts(const Value: array of TEffectPartNode);
 
 {$endif read_interface}
 
@@ -46,6 +47,18 @@ end;
 procedure TEffectNode.SetEnabled(const Value: boolean);
 begin
   FdEnabled.Send(Value);
+end;
+
+procedure TEffectNode.SetParts(const Value: array of TEffectPartNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectPartNode));
+  FdParts.Send(A);
 end;
 
 {$endif read_implementation}

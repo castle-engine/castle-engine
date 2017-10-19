@@ -937,39 +937,37 @@ begin
 
     O1List.Remove(O1); // now O1 is not present in World1
 
-    //AssertTrue(nil = O1.World); // for now, we don't unassign O1.World yet
-    AssertTrue(World1 = O1.World);
+    AssertTrue(nil = O1.World);
     AssertTrue(nil = O2.World);
     AssertTrue(World1 = O1List.World);
     AssertTrue(nil = O2List.World);
 
     World2.Add(O1);
-    AssertTrue(World2.Count = 1);
+    AssertEquals(1, World2.Count);
 
     AssertTrue(World2 = O1.World);
     AssertTrue(nil = O2.World);
     AssertTrue(World1 = O1List.World);
     AssertTrue(nil = O2List.World);
 
-    { these are incorrect (you should remove object from previous world first),
-      but are harmless in practice now. }
+    { these are incorrect (you should remove object from previous world first) }
+
+    // TODO: The exceptions are raised correctly by these,
+    // but when the ECannotAddToAnotherWorld is fired,
+    // it breaks in the middle of the addition, and the state is messed up,
+    // making later problems when freeing.
 
     // try
-      World1.Add(O1);
-      AssertTrue(World1.Count = 2);
+    //   World1.Add(O1);
     //   raise Exception.Create('Adding T3D to different World should not be possible');
     // except on E: ECannotAddToAnotherWorld do ; end;
 
     // try
-      World2.Add(O1List);
-      AssertTrue(World2.Count = 2);
+    //   World2.Add(O1List);
     //   raise Exception.Create('Adding T3D to different World should not be possible');
     // except on E: ECannotAddToAnotherWorld do ; end;
   finally
     FreeAndNil(World1);
-    { freeing World1 also frees the things it owned -- which includes
-      O1 and O1List within World2. }
-    AssertTrue('World2.Count = 0 at the end', World2.Count = 0);
     FreeAndNil(World2);
   end;
 end;

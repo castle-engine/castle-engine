@@ -86,7 +86,7 @@ Const
     { wdosx }   ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { palmos }  ( false, false, true,  false, false, false, true,  false, false, false, false, false, false, false, false),
     { macos }   ( false, false, false, true,  false, false, false, false, false, false, false, false, false, false, false),
-    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, false),
+    { darwin }  ( false, true,  false, true,  false, true,  true,  true,  false, false, false, false, false, false, true),
     { emx }     ( false, true,  false, false, false, false, false, false, false, false, false, false, false, false, false),
     { watcom }  ( false, true,  false, false, false ,false, false, false, false, false, false, false, false, false, false),
     { morphos } ( false, false, false, true,  false ,false, false, false, false, false, false, false, false, false, false),

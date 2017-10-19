@@ -15,6 +15,7 @@
 
 {$ifdef read_interface}
 
+  { Possible shape type, for @link(TCastleShape.ShapeType). }
   TShapeType = (stRectangle, stCircle);
 
   { Draw a simple shape (rectangle, circle) with given color and optional outline. }

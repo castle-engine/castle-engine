@@ -26,11 +26,25 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetTrimmingContour(const Value: array of TContour2DNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TNurbsTrimmedSurfaceNode ----------------------------------------------- }
+
+procedure TNurbsTrimmedSurfaceNode.SetTrimmingContour(const Value: array of TContour2DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TContour2DNode));
+  FdTrimmingContour.Send(A);
+end;
 
 {$endif read_implementation}

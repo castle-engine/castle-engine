@@ -26,11 +26,25 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetTexture(const Value: array of TAbstractTexture2DNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TComposedTexture3DNode ----------------------------------------------- }
+
+procedure TComposedTexture3DNode.SetTexture(const Value: array of TAbstractTexture2DNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractTexture2DNode));
+  FdTexture.Send(A);
+end;
 
 {$endif read_implementation}

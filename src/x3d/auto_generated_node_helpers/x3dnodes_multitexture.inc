@@ -40,6 +40,7 @@
     procedure SetMode(const Value: TCastleStringList);
     procedure SetSource(const Value: array of string);
     procedure SetSource(const Value: TCastleStringList);
+    procedure SetTexture(const Value: array of TAbstractTextureNode);
 
 {$endif read_interface}
 
@@ -95,6 +96,18 @@ end;
 procedure TMultiTextureNode.SetSource(const Value: TCastleStringList);
 begin
   FdSource.Send(Value);
+end;
+
+procedure TMultiTextureNode.SetTexture(const Value: array of TAbstractTextureNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractTextureNode));
+  FdTexture.Send(A);
 end;
 
 {$endif read_implementation}

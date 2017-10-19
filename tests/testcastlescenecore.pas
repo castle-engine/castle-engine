@@ -245,9 +245,8 @@ begin
       Scene.Spatial := [ssRendering, ssDynamicCollisions];
       SceneManager.Items.Add(Scene);
       SceneManager.MainScene := Scene;
-      SceneManager.Camera := SceneManager.CreateDefaultCamera(SceneManager);
 
-      Scene.CameraChanged(SceneManager.Camera);
+      Scene.CameraChanged(SceneManager.RequiredCamera);
       FakeRemoveMe := rtNone;
       Scene.Update(1, FakeRemoveMe);
 

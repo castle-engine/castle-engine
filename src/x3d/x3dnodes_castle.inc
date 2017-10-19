@@ -316,16 +316,22 @@
     {$I auto_generated_node_helpers/x3dnodes_multigeneratedtexturecoordinate.inc}
   end;
 
+  TEffectPartNode = class;
+
   { Shader effect, that can be composed with other effect or standard rendering.
     See http://castle-engine.sourceforge.net/compositing_shaders.php . }
   TEffectNode = class(TAbstractChildNode)
+  strict private
+    function GetLanguage: TShaderLanguage;
+    procedure SetLanguage(const Value: TShaderLanguage);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
     class function URNMatching(const URN: string): boolean; override;
 
-    strict private FFdLanguage: TSFString;
-    public property FdLanguage: TSFString read FFdLanguage;
+    strict private FFdLanguage: TSFStringEnum;
+    public property FdLanguage: TSFStringEnum read FFdLanguage;
+    property Language: TShaderLanguage read GetLanguage write SetLanguage;
 
     strict private FFdParts: TMFNode;
     public property FdParts: TMFNode read FFdParts;
@@ -346,6 +352,8 @@
       Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
     function GetShaderType: TShaderType;
     procedure SetShaderType(const Value: TShaderType);
+    function GetContents: string;
+    procedure SetContents(const Value: string);
   public
     procedure CreateNode; override;
     class function ClassX3DType: string; override;
@@ -360,11 +368,17 @@
     strict private FFdUrl: TMFString;
     public property FdUrl: TMFString read FFdUrl;
 
-    { Load shader code from node's URLs.
-      In X3D XML encoding, also loads node's XML CDATA as a last resort.
-      Will return '' if no valid URLs are present,
-      loading errors are reported to WritelnWarning. }
-    function Contents: string;
+    { The shader code.
+
+      Getting this automatically loads the shader code pointed by the URL field
+      of this node. The shader code may be specified in an external file,
+      or inline using "data URI", see https://castle-engine.sourceforge.io/manual_network.php .
+      The shader code may also be specified using the XML "CDATA" in X3D XML encoding.
+      Returns '' of no valid URLs are present
+      (loading errors are reported to WritelnWarning).
+
+      Setting this overrides the URL field, to specify only the given shader code. }
+    property Contents: string read GetContents write SetContents;
 
     {$I auto_generated_node_helpers/x3dnodes_effectpart.inc}
   end;
@@ -816,7 +830,7 @@ procedure TEffectNode.CreateNode;
 begin
   inherited;
 
-  FFdLanguage := TSFString.Create(Self, 'language', '');
+  FFdLanguage := TSFStringEnum.Create(Self, 'language', ShaderLanguageNames, Ord(slDefault));
    FdLanguage.Exposed := false;
    FdLanguage.ChangesAlways := [chEverything];
   AddField(FFdLanguage);
@@ -841,6 +855,16 @@ end;
 class function TEffectNode.URNMatching(const URN: string): boolean;
 begin
   Result := URNMatchingCastle(URN, ClassX3DType);
+end;
+
+function TEffectNode.GetLanguage: TShaderLanguage;
+begin
+  Result := TShaderLanguage(FdLanguage.EnumValue);
+end;
+
+procedure TEffectNode.SetLanguage(const Value: TShaderLanguage);
+begin
+  FdLanguage.SendEnumValue(Ord(Value));
 end;
 
 procedure TEffectPartNode.CreateNode;
@@ -870,7 +894,7 @@ begin
   Result := URNMatchingCastle(URN, ClassX3DType);
 end;
 
-function TEffectPartNode.Contents: string;
+function TEffectPartNode.GetContents: string;
 begin
   if not ContentsCached then
   begin
@@ -878,6 +902,16 @@ begin
     ContentsCached := true;
   end;
   Result := ContentsCache;
+end;
+
+procedure TEffectPartNode.SetContents(const Value: string);
+begin
+  SetUrl(['data:text/plain,' + Value]);
+
+  //Assert(Value = GetContents);
+  // an optimized way to initialize ContentsCache
+  ContentsCache := Value;
+  ContentsCached := true;
 end;
 
 procedure TEffectPartNode.EventUrlReceive(

@@ -1031,9 +1031,57 @@ procedure TransformState(State: TX3DGraphTraverseState;
   const Scale: TVector3;
   const ScaleOrientation: TVector4;
   const Translation: TVector3);
+{ Workaround FPC 3.0.4 bug (internal error) on Darwin for AArch64
+  (not on other platforms):
+  x3dnodes_standard_grouping.inc(1035,3) Fatal: Internal error 2014121702
+}
+{$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+
+  type
+    TTransformData = record
+      Transform, InverseTransform: TMatrix4;
+      Center: TVector3;
+      Rotation: TVector4;
+      Scale: TVector3;
+      ScaleOrientation: TVector4;
+      Translation: TVector3;
+    end;
+
+  procedure TransformMatricesMultWorkaround(var TransformData: TTransformData);
+  begin
+    Castle3D.TransformMatricesMult(
+      TransformData.Transform,
+      TransformData.InverseTransform,
+      TransformData.Center,
+      TransformData.Rotation,
+      TransformData.Scale,
+      TransformData.ScaleOrientation,
+      TransformData.Translation);
+  end;
+
+var
+  TransformData: TTransformData;
+begin
+  TransformData.Transform := State.Transform;
+  TransformData.InverseTransform := State.InvertedTransform;;
+  TransformData.Center := Center;
+  TransformData.Rotation := Rotation;
+  TransformData.Scale := Scale;
+  TransformData.ScaleOrientation := ScaleOrientation;
+  TransformData.Translation := Translation;
+
+  // Doing it like this avoids
+  // Fatal: Internal error 2014121702
+  // from FPC 3.0.3 for 64-bit iPhone (Darwin for AArch64)
+  TransformMatricesMultWorkaround(TransformData);
+
+  State.Transform := TransformData.Transform;
+  State.InvertedTransform := TransformData.InverseTransform;
+{$else}
 begin
   TransformMatricesMult(State.Transform, State.InvertedTransform,
     Center, Rotation, Scale, ScaleOrientation, Translation);
+{$endif}
   State.TransformScale := State.TransformScale * Approximate3DScale(Scale);
 end;
 

@@ -77,7 +77,6 @@ const
         '  Buggy GL_LIGHT_MODEL_TWO_SIDE: %s' +nl+
         '  Buggy VBO: %s' +nl+
         '  Buggy shader shadow map: %s' +nl+
-        '  Buggy GLSL "const in gl_XxxParameters" declaration: %s' +nl+
         '  Buggy FBO rendering to multi-sampling texture: %s' +nl+
         '  Buggy FBO rendering to cube map texture: %s' +nl+
         '  Buggy swap buffers with non-standard glViewport: %s' +nl+
@@ -95,7 +94,6 @@ const
           BoolToStr(Version.BuggyLightModelTwoSide, true),
           BoolToStr(Version.BuggyVBO, true),
           BoolToStr(Version.BuggyShaderShadowMap, true),
-          BoolToStr(Version.BuggyGLSLConstStruct, true),
           BoolToStr(Version.BuggyFBOMultiSampling, true),
           BoolToStr(Version.BuggyFBOCubeMap, true),
           BoolToStr(Version.BuggySwapNonStandardViewport, true),
@@ -187,7 +185,8 @@ begin
 
     '---------' +nl+
     'Features:' +nl+
-    '  GLSL shaders support: ' + GLSupportNames[TGLSLProgram.ClassSupport] +nl+
+    '  Shaders (GLSL) support: ' + GLSupportNames[GLFeatures.Shaders] +nl+
+    '  Use shaders to draw everything 2D: ' + BoolToStr(GLFeatures.ShadersForEverything2D, true) +nl+
     '  Multi-texturing: ' + BoolToStr(GLFeatures.UseMultiTexturing, true) +nl+
     '  Framebuffer Object: ' + GLSupportNamesFBO[GLFeatures.Framebuffer] +nl+
     '  Multi-sampling for FBO buffers and textures: ' + BoolToStr(GLFeatures.FBOMultiSampling, true) +nl+

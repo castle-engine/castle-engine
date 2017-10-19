@@ -27,6 +27,9 @@
     strict private FFdSolid: TSFBool;
     public property FdSolid: TSFBool read FFdSolid;
 
+    strict private FFdCcw: TSFBool;
+    public property FdCcw: TSFBool read FFdCcw;
+
     strict private FFdTexCoord: TSFNode;
     public property FdTexCoord: TSFNode read FFdTexCoord;
     function TexCoordField: TSFNode; override;
@@ -471,6 +474,11 @@ begin
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
+
+  FFdCcw := TSFBool.Create(Self, 'ccw', true);
+   FdCcw.Exposed := false;
+   FdCcw.ChangesAlways := [chGeometry];
+  AddField(FFdCcw);
 
   FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];

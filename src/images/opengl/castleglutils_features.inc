@@ -197,6 +197,14 @@ type
     { Support for depth texture formats for glTexImage2d. }
     TextureDepth: boolean;
 
+    { GLSL shaders support. }
+    Shaders: TGLSupport;
+
+    { Use shaders for TGLImage.Draw, DrawPrimitive2D, and consequently
+      for whole 2D user-interface drawing.
+      On OpenGLES this is always @true. }
+    ShadersForEverything2D: boolean;
+
     constructor Create;
   end;
 
@@ -205,6 +213,23 @@ procedure GLInformationInitialize;
 
 var
   GLFeatures: TGLFeatures;
+
+  { Enable OpenGL fixed-function rendering on desktops.
+    This makes Gouraud-shaded shapes rendered using OpenGL fixed-function pipeline
+    on desktops. It also allows you to use fixed-function pipeline calls in the
+    @link(TCastleWindow.OnRender) callback, @link(TUIControl.Render) override
+    and related places.
+    It also allows some deprecated rendering features like WindowPos to continue to work.
+
+    For now it's @true by default on desktops, which reflects how
+    the Castle Game Engine versions <= 6.2 were rendering:
+    mixing fixed-function and shader pipelines.
+    You can switch it to @false to have "pure shader pipeline" on a desktop OpenGL.
+    It will become @false by default eventually (on GPUs that support shaders).
+
+    On OpenGLES, it must be @false always, since OpenGLES >= 2 has no fixed-function pipeline.
+  }
+  EnableFixedFunction: boolean = {$ifdef OpenGLES} false {$else} true {$endif};
 
 {$endif read_interface}
 
@@ -299,10 +324,13 @@ begin
   EXT_fog_coord := Load_GL_EXT_fog_coord;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
 
-  { We want to be able to render any scene --- so we have to be prepared
-    that fog interpolation has to be corrected for perspective.
-    TODO: this should be moved elsewhere, but where? }
-  glHint(GL_FOG_HINT, GL_NICEST);
+  if EnableFixedFunction then
+  begin
+    { We want to be able to render any scene --- so we have to be prepared
+      that fog interpolation has to be corrected for perspective.
+      TODO: this should be moved elsewhere, but where? }
+    glHint(GL_FOG_HINT, GL_NICEST);
+  end;
   {$endif}
 
   {$ifdef OpenGLES}
@@ -514,6 +542,26 @@ begin
   TextureDepth :=
     {$ifdef OpenGLES} glext_ExtensionSupported('GL_OES_depth_texture', SupportedExtensions)
     {$else} Load_GL_ARB_depth_texture
+    {$endif};
+
+  {$ifdef OpenGLES}
+  Shaders := gsStandard;
+  {$else}
+  if Version_2_0 then
+    Shaders := gsStandard else
+  {$ifndef ForceStandardGLSLApi}
+  if Load_GL_ARB_shader_objects and
+     Load_GL_ARB_vertex_shader and
+     Load_GL_ARB_fragment_shader and
+     Load_GL_ARB_shading_language_100 then
+    Shaders := gsExtension else
+  {$endif not ForceStandardGLSLApi}
+    Shaders := gsNone;
+  {$endif}
+
+  ShadersForEverything2D :=
+    {$ifdef OpenGLES} true
+    {$else} Shaders = gsStandard
     {$endif};
 end;
 

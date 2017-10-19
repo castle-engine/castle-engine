@@ -18,8 +18,10 @@
 		4D629E311916B8250082689B /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629E301916B8250082689B /* OpenAL.framework */; };
 		4D90CC2219197A82004E90CC /* data in Resources */ = {isa = PBXBuildFile; fileRef = 4D90CC2119197A82004E90CC /* data */; };
 		84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */; };
+		0258163B1F8609D80069398E /* ServiceAbstract.m in Sources */ = {isa = PBXBuildFile; fileRef = 0258163A1F8609D80069398E /* ServiceAbstract.m */; };
 		84DEEDF31E9D7B3800A9228C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEF1E9D7B3800A9228C /* main.m */; };
 		84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDF11E9D7B3800A9228C /* OpenGLController.m */; };
+		${IOS_EXTRA_PBXBuildFile}
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -38,10 +40,13 @@
 		4D90CC2119197A82004E90CC /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ${NAME}/data; sourceTree = "<group>"; };
 		84DEEDED1E9D7B3800A9228C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
 		84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		025816391F86096A0069398E /* ServiceAbstract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ServiceAbstract.h; sourceTree = "<group>"; };
+		0258163A1F8609D80069398E /* ServiceAbstract.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ServiceAbstract.m; sourceTree = "<group>"; };
 		84DEEDEF1E9D7B3800A9228C /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		84DEEDF01E9D7B3800A9228C /* OpenGLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLController.h; sourceTree = "<group>"; };
 		84DEEDF11E9D7B3800A9228C /* OpenGLController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLController.m; sourceTree = "<group>"; };
 		84DEEDF51E9D7B8600A9228C /* castleiosappglue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = castleiosappglue.h; sourceTree = "<group>"; };
+		${IOS_EXTRA_PBXFileReference}
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,8 +102,11 @@
 		4D629DFD1916B0EB0082689B /* ${NAME} */ = {
 			isa = PBXGroup;
 			children = (
+				${IOS_EXTRA_PBXGroup_MainGroup}
 				84DEEDED1E9D7B3800A9228C /* AppDelegate.h */,
 				84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */,
+				025816391F86096A0069398E /* ServiceAbstract.h */,
+				0258163A1F8609D80069398E /* ServiceAbstract.m */,
 				84DEEDEF1E9D7B3800A9228C /* main.m */,
 				84DEEDF51E9D7B8600A9228C /* castleiosappglue.h */,
 				84DEEDF01E9D7B3800A9228C /* OpenGLController.h */,
@@ -119,6 +127,7 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
+		${IOS_EXTRA_PBXGroup}
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -145,7 +154,8 @@
 		4D629DEC1916B0EA0082689B /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0830;
+				LastUpgradeCheck = 0900;
+				${IOS_TARGET_ATTRIBUTES}
 				ORGANIZATIONNAME = "${AUTHOR}";
 			};
 			buildConfigurationList = 4D629DEF1916B0EA0082689B /* Build configuration list for PBXProject "${NAME}" */;
@@ -173,6 +183,7 @@
 				4D629E021916B0EB0082689B /* InfoPlist.strings in Resources */,
 				4D90CC2219197A82004E90CC /* data in Resources */,
 				4D629E0A1916B0EB0082689B /* Images.xcassets in Resources */,
+				${IOS_EXTRA_PBXResourcesBuildPhase}
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -184,8 +195,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */,
+				0258163B1F8609D80069398E /* ServiceAbstract.m in Sources */,
 				84DEEDF31E9D7B3800A9228C /* main.m in Sources */,
 				84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */,
+				${IOS_EXTRA_PBXSourcesBuildPhase}
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,14 +224,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -258,14 +277,20 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
@@ -296,8 +321,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				${IOS_DEVELOPMENT_TEAM_LINE}
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "${NAME}/${NAME}-Prefix.pch";
+				${IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG}
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = "${NAME}/${NAME}-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
@@ -305,7 +333,7 @@
 					"$(PROJECT_DIR)",
 				);
 				"OTHER_LDFLAGS[arch=*]" = "-w";
-				PRODUCT_BUNDLE_IDENTIFIER = ${QUALIFIED_NAME};
+				PRODUCT_BUNDLE_IDENTIFIER = ${IOS_QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;
@@ -317,8 +345,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				${IOS_DEVELOPMENT_TEAM_LINE}
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "${NAME}/${NAME}-Prefix.pch";
+				${IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE}
+				GCC_WARN_64_TO_32_BIT_CONVERSION = NO;
 				INFOPLIST_FILE = "${NAME}/${NAME}-Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LIBRARY_SEARCH_PATHS = (
@@ -326,7 +357,7 @@
 					"$(PROJECT_DIR)",
 				);
 				"OTHER_LDFLAGS[arch=*]" = "-w";
-				PRODUCT_BUNDLE_IDENTIFIER = ${QUALIFIED_NAME};
+				PRODUCT_BUNDLE_IDENTIFIER = ${IOS_QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
 				WRAPPER_EXTENSION = app;

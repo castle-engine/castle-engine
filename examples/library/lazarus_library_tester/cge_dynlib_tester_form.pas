@@ -168,7 +168,7 @@ end;
 procedure TForm1.OpenGLControl1MouseUp(Sender: TObject; Button: Controls.TMouseButton;
   Shift: TShiftState; X, Y: Integer);
 begin
-  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=mbLeft, 0);
+  CGE_MouseUp(x, OpenGLControl1.Height - 1 - y, Button=mbLeft, 0, true);
 end;
 
 procedure TForm1.OpenGLControl1MouseWheel(Sender: TObject; Shift: TShiftState;

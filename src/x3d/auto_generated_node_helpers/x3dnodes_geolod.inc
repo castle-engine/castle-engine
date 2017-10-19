@@ -53,6 +53,7 @@
     property Range: Single read GetRange write SetRange;
     procedure SetRootUrl(const Value: array of string);
     procedure SetRootUrl(const Value: TCastleStringList);
+    procedure SetRootNode(const Value: array of TAbstractChildNode);
     property BboxCenter: TVector3 read GetBboxCenter write SetBboxCenter;
     property BboxSize: TVector3 read GetBboxSize write SetBboxSize;
 
@@ -153,6 +154,18 @@ end;
 procedure TGeoLODNode.SetRootUrl(const Value: TCastleStringList);
 begin
   FdRootUrl.Send(Value);
+end;
+
+procedure TGeoLODNode.SetRootNode(const Value: array of TAbstractChildNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractChildNode));
+  FdRootNode.Send(A);
 end;
 
 function TGeoLODNode.GetBboxCenter: TVector3;

@@ -216,11 +216,12 @@ begin
   end;
 end;
 
-procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
+procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
+  FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 begin
   try
     if not CGE_VerifyWindow then exit;
-    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex);
+    CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
   end;
@@ -482,18 +483,6 @@ begin
   end;
 end;
 
-function cgehelper_getWalkCamera: TWalkCamera;
-begin
-  Result := nil;
-  if Window.SceneManager.Camera <> nil then
-  begin
-    if Window.SceneManager.Camera is TUniversalCamera then
-      Result := (Window.SceneManager.Camera as TUniversalCamera).Walk else
-    if Window.SceneManager.Camera is TWalkCamera then
-      Result := Window.SceneManager.Camera as TWalkCamera;
-  end;
-end;
-
 procedure CGE_SetVariableInt(eVar: cInt32; nValue: cInt32); cdecl;
 var
   WalkCamera: TWalkCamera;
@@ -502,7 +491,7 @@ begin
   try
     case eVar of
       0: begin    // ecgevarWalkHeadBobbing
-        WalkCamera := cgehelper_getWalkCamera;
+        WalkCamera := Window.SceneManager.WalkCamera(false);
         if WalkCamera <> nil then begin
           if nValue>0 then
             WalkCamera.HeadBobbing := TWalkCamera.DefaultHeadBobbing else
@@ -516,7 +505,7 @@ begin
       end;
 
       2: begin    // ecgevarMouseLook
-        WalkCamera := cgehelper_getWalkCamera;
+        WalkCamera := Window.SceneManager.WalkCamera(false);
         if WalkCamera <> nil then
             WalkCamera.MouseLook := (nValue > 0);
       end;
@@ -556,7 +545,7 @@ begin
   try
     case eVar of
       0: begin    // ecgevarWalkHeadBobbing
-        WalkCamera := cgehelper_getWalkCamera;
+        WalkCamera := Window.SceneManager.WalkCamera(false);
         if (WalkCamera <> nil) and (WalkCamera.HeadBobbing > 0) then
           Result := 1 else
           Result := 0;
@@ -570,7 +559,7 @@ begin
       end;
 
       2: begin    // ecgevarMouseLook
-        WalkCamera := cgehelper_getWalkCamera;
+        WalkCamera := Window.SceneManager.WalkCamera(false);
         if (WalkCamera <> nil) and WalkCamera.MouseLook then
           Result := 1 else
           Result := 0;

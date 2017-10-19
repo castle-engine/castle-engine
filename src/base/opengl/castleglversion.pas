@@ -86,7 +86,6 @@ type
     FBuggyLightModelTwoSideMessage: string;
     FBuggyVBO: boolean;
     FBuggyShaderShadowMap: boolean;
-    FBuggyGLSLConstStruct: boolean;
     FBuggyFBOMultiSampling: boolean;
     FBuggySwapNonStandardViewport: boolean;
     FBuggyDepth32: boolean;
@@ -175,13 +174,6 @@ type
 
     { Buggy shadow2DProj in some situations (ATI(Linux) bug). }
     property BuggyShaderShadowMap: boolean read FBuggyShaderShadowMap;
-
-    { Buggy GLSL @code("const in gl_Xxx") (NVidia bug).
-      Segfaults at glCompileShader[ARB] on GLSL declarations like
-      @code("const in gl_MaterialParameters material").
-      Affects some NVidia drivers on Linux (like version 295.49
-      in Debian testing on 2012-06-02). }
-    property BuggyGLSLConstStruct: boolean read FBuggyGLSLConstStruct;
 
     { Buggy (looks like wireframe) FBO rendering to
       the multi-sampling texture (ATI(Windows) and Intel(Windows) bug).
@@ -513,9 +505,7 @@ begin
       since Ubuntu 10.04, which is fglrx >= 8.723). }
     Fglrx and ReleaseExists and (Release >= 8723);
 
-  FBuggyGLSLConstStruct := {$ifdef LINUX} VendorType = gvNvidia {$else} false {$endif};
-
-   { Reported on Radeon 6600, 6850 - looks like wireframe
+  { Reported on Radeon 6600, 6850 - looks like wireframe
      Also on Intel cards - querying multisampled depth buffer returns bad data. }
   FBuggyFBOMultiSampling :=
     {$ifdef MSWINDOWS} ((VendorType = gvATI) and

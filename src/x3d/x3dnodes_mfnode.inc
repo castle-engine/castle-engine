@@ -106,7 +106,8 @@
       explanation. }
     function Extract(Index: Integer): TX3DNode;
     procedure Clear;
-    procedure AssignItems(SourceItems: TX3DNodeList);
+    procedure AssignItems(const SourceItems: TX3DNodeList);
+    procedure AssignItems(const SourceItems: array of TX3DNode);
     procedure Replace(Index: Integer; Node: TX3DNode);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
@@ -163,6 +164,13 @@
       The main use for this is to simplify implementation of
       TX3DNode.DirectEnumerateActive overrides in TX3DNode descendants. }
     function Enumerate(Func: TEnumerateChildrenFunction): Pointer;
+
+    { Set the field's value in a correct way (by sending X3D event, or at least notifying
+      the parent scene). }
+    procedure Send(const AValue: array of TX3DNode); overload;
+
+    // Not needed now
+    //procedure Send(const AValue: TX3DNodeList); overload;
   end;
 
 {$endif read_interface}
@@ -371,14 +379,22 @@ begin
   FDefaultItems.Count := 0;
 end;
 
-procedure TMFNode.AssignItems(SourceItems: TX3DNodeList);
+procedure TMFNode.AssignItems(const SourceItems: TX3DNodeList);
 var
   I: Integer;
 begin
   Clear;
-
   Items.Assign(SourceItems);
+  for I := 0 to Count - 1 do
+    Items[I].AddParentField(Self);
+end;
 
+procedure TMFNode.AssignItems(const SourceItems: array of TX3DNode);
+var
+  I: Integer;
+begin
+  Clear;
+  Items.Assign(SourceItems);
   for I := 0 to Count - 1 do
     Items[I].AddParentField(Self);
 end;
@@ -570,5 +586,49 @@ class function TMFNode.CreateEvent(const AParentNode: TX3DFileItem; const AName:
 begin
   Result := TMFNodeEvent.Create(AParentNode, AName, AInEvent);
 end;
+
+procedure TMFNode.Send(const AValue: array of TX3DNode);
+var
+  FieldValue: TMFNode;
+begin
+  { implementation just like TX3DSimpleMultField.Send }
+  if SendsByEvent then
+  begin
+    FieldValue := TMFNode.CreateUndefined(ParentNode, X3DName, true);
+    try
+      FieldValue.Items.AddRange(AValue);
+      Send(FieldValue);
+    finally FreeAndNil(FieldValue) end;
+  end else
+  begin
+    { When SendsByEvent = false, we can optimize this method.
+      No need to create an intermediate FieldValue instance
+      (and assign AValue to FieldValue, just to later assign FieldValue to Items). }
+    ValueFromIsClause := false;
+    AssignItems(AValue);
+    Changed;
+  end;
+end;
+
+// Not needed now
+// procedure TMFNode.Send(const AValue: TX3DNodeList);
+// var
+//   FieldValue: TMFNode;
+// begin
+//   { This is a copy-paste of implementation of Send(const AValue: array of TItem) }
+//   if SendsByEvent then
+//   begin
+//     FieldValue := TMFNode.CreateUndefined(ParentNode, X3DName, true);
+//     try
+//       FieldValue.Items.AddRange(AValue);
+//       Send(FieldValue);
+//     finally FreeAndNil(FieldValue) end;
+//   end else
+//   begin
+//     ValueFromIsClause := false;
+//     AssignItems(AValue);
+//     Changed;
+//   end;
+// end;
 
 {$endif read_implementation}

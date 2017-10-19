@@ -79,7 +79,13 @@ begin
     Scene.Load(FileName);
 
   SceneManager.Camera.Free;
-  SceneManager.Camera := SceneManager.CreateDefaultCamera;
+  // camera should be nil now (thanks to free notification),
+  // and no new camera should be automatically created yet.
+  AssertTrue(SceneManager.Camera = nil);
+  SceneManager.RequiredCamera;
+
+  SceneManager.ClearCameras;
+  AssertTrue(SceneManager.Camera = nil);
 
   { Force preparing and using OpenGL resources for the scene.
     This way we also check that next Load frees them Ok. }

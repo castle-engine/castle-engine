@@ -83,10 +83,6 @@ begin
 
   Cube := TCube.Create(Application);
   Window.SceneManager.Items.Add(Cube);
-
-  { do not assign here SceneManager.Camera, let it be automatically created
-    (during nearest rendering, see TCastleSceneManager.CreateDefaultCamera docs). }
-
   Window.SetDemoOptions(K_F11, CharEscape, true);
   Window.OpenAndRun;
 end.

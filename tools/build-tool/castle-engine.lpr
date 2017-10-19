@@ -35,10 +35,11 @@ var
   Plugin: boolean = false;
   Mode: TCompilationMode = cmRelease;
   AssumeCompiled: boolean = false;
+  Fast: boolean = false;
 
 const
   Version = CastleEngineVersion;
-  Options: array [0..9] of TOption =
+  Options: array [0..10] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -48,6 +49,7 @@ const
     (Short: 'V'; Long: 'verbose'; Argument: oaNone),
     (Short: #0 ; Long: 'mode'; Argument: oaRequired),
     (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
+    (Short: #0 ; Long: 'fast'; Argument: oaNone),
     (Short: #0 ; Long: 'plugin'; Argument: oaNone),
     (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired)
   );
@@ -129,23 +131,18 @@ begin
           'Available options are:' +NL+
           HelpOptionHelp +NL+
           VersionOptionHelp +NL+
-          '  -V / --verbose        Verbose mode, output contains e.g. list of packaged files.' +NL+
-          '  --mode=debug|release  Compilation mode, used by "compile" command.' +NL+
-          '                        Also packaging mode for some platforms (right now, Android).' +NL+
-          '                        By default "release".' +NL+
-          '  --assume-compiled     Do not automatically do "clean" and "compile"' +NL+
-          '                        before "package". Instead assume that compiled' +NL+
-          '                        executable for given OS/CPU/mode' +NL+
-          '                        is already present in the package directory.' +NL+
-          '  --plugin              Compile/package/install a browser plugin.' +NL+
-          '  --fpc-version-iphone-simulator VERSION' +NL+
-          '                        When compiling for iPhone Simulator, we pass' +NL+
-          '                        -V<VERSION> to the "fpc" command-line.' +NL+
-          '                        This is necessary if you use the official "FPC for iOS"' +NL+
-          '                        package (see the "Getting Started - iOS.rtf" inside' +NL+
-          '                        the "FPC for iOS" dmg for explanation).' +NL+
-          '                        By default it is "' + DefaultFPCVersionForIPhoneSimulator + '".' +NL+
-          '                        You can set this is empty to avoid passing any -V<VERSION>.' +NL+
+          OptionDescription('-V / --verbose',
+            'Verbose mode, output contains e.g. list of packaged files.') +NL+
+          OptionDescription('--mode=debug|release',
+            'Compilation mode, used by "compile" command. Also packaging mode for some platforms (right now, Android). By default "release".') +NL+
+          OptionDescription('--assume-compiled',
+            'Do not automatically do "clean" and "compile" before "package". Instead assume that compiled executable for given OS/CPU/mode is already present in the package directory.') +NL+
+          OptionDescription('--fast',
+            'Do not "clean" before "package". Recompile only what changed. This is faster for development, but cannot guarantee that everything is recompiled in a release mode.') +NL+
+          OptionDescription('--plugin',
+            'Compile/package/install a browser plugin.') +NL+
+          OptionDescription('--fpc-version-iphone-simulator VERSION',
+            'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). By default it is "' + DefaultFPCVersionForIPhoneSimulator + '". You can set this is empty to avoid passing any -V<VERSION>.') +NL+
           TargetOptionHelp +
           OSOptionHelp +
           CPUOptionHelp +
@@ -167,8 +164,9 @@ begin
     5:Verbose := true;
     6:Mode := StringToMode(Argument);
     7:AssumeCompiled := true;
-    8:Plugin := true;
-    9:FPCVersionForIPhoneSimulator := Argument;
+    8:Fast := true;
+    9:Plugin := true;
+    10:FPCVersionForIPhoneSimulator := Argument;
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -246,8 +244,8 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil);
-      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil);
+      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil);
+      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil, nil);
       else raise EInternalError.Create('Operation not implemented for this target');
     end;
   end else
@@ -264,7 +262,8 @@ begin
       begin
         if not AssumeCompiled then
         begin
-          Project.DoClean;
+          if not Fast then
+            Project.DoClean;
           Project.DoCompile(Target, OS, CPU, Plugin, Mode);
         end;
         Project.DoPackage(Target, OS, CPU, Plugin, Mode);

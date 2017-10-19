@@ -170,8 +170,8 @@ begin
   if SceneURL <> '' then
     S := URICaption(SceneURL) else
     S := 'No Scene';
-  S += ' - ' +  ApplicationName +
-    Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]);
+  S := S + (' - ' +  ApplicationName +
+    Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]));
   Caption := S;
 end;
 
@@ -208,17 +208,17 @@ begin
     Browser.Camera.GetView(Pos, Dir, Up);
     { Note that Dir, Up returned here are always normalized }
 
-    EditPositionX.Text := FloatToNiceStr(Pos[0]);
-    EditPositionY.Text := FloatToNiceStr(Pos[1]);
-    EditPositionZ.Text := FloatToNiceStr(Pos[2]);
+    EditPositionX.Text := Format('%f', [Pos[0]]);
+    EditPositionY.Text := Format('%f', [Pos[1]]);
+    EditPositionZ.Text := Format('%f', [Pos[2]]);
 
-    EditDirectionX.Text := FloatToNiceStr(Dir[0]);
-    EditDirectionY.Text := FloatToNiceStr(Dir[1]);
-    EditDirectionZ.Text := FloatToNiceStr(Dir[2]);
+    EditDirectionX.Text := Format('%f', [Dir[0]]);
+    EditDirectionY.Text := Format('%f', [Dir[1]]);
+    EditDirectionZ.Text := Format('%f', [Dir[2]]);
 
-    EditUpX.Text := FloatToNiceStr(Up[0]);
-    EditUpY.Text := FloatToNiceStr(Up[1]);
-    EditUpZ.Text := FloatToNiceStr(Up[2]);
+    EditUpX.Text := Format('%f', [Up[0]]);
+    EditUpY.Text := Format('%f', [Up[1]]);
+    EditUpZ.Text := Format('%f', [Up[2]]);
   end;
 end;
 
@@ -226,13 +226,9 @@ procedure TMain.MenuMouseLookToggleClick(Sender: TObject);
 var
   Walk: TWalkCamera;
 begin
-  if Browser.Camera is TWalkCamera then
-    Walk := TWalkCamera(Browser.Camera) else
-  if Browser.Camera is TUniversalCamera then
-    Walk := TUniversalCamera(Browser.Camera).Walk else
-    Walk := nil;
-
-  if Walk <> nil then begin
+  Walk := Browser.SceneManager.WalkCamera(false);
+  if Walk <> nil then
+  begin
     Walk.MouseLook := (Sender as TMenuItem).Checked;
     UpdateCrosshairImage;
     Repaint;
@@ -261,11 +257,7 @@ procedure TMain.UpdateCrosshairImage;
 var
   Walk: TWalkCamera;
 begin
-  if Browser.Camera is TWalkCamera then
-    Walk := TWalkCamera(Browser.Camera) else
-  if Browser.Camera is TUniversalCamera then
-    Walk := TUniversalCamera(Browser.Camera).Walk else
-    Walk := nil;
+  Walk := Browser.SceneManager.WalkCamera(false);
 
   CrosshairCtl.Exists := ((Walk <> nil) and Walk.MouseLook);
 
@@ -372,42 +364,23 @@ procedure TMain.SceneManagerBoundNavigationInfoChanged(Sender: TObject);
 var
   NavigationType: TNavigationType;
 begin
-  { For safety, we check here Camera existence and class.
-    Camera may not exist yet (it is intially nil, and is freed / recreated
-    inside Browser.Load call in OpenScene).
-    In this program, it is always TUniversalCamera (because by default
-    TCastleSceneManager and TCastlScene always create the most versatile
-    TUniversalCamera). }
-
-  if (Browser.Camera <> nil) and
-     (Browser.Camera is TUniversalCamera) then
-  begin
-    NavigationType := (Browser.Camera as TUniversalCamera).NavigationType;
-
-    { make the appropriate button on ButtonsNavigationType pressed.
-      Thanks to TSpeedButton.GroupIndex, all others will be automatically released. }
-    ButtonsNavigationType[NavigationType].Down := true;
-  end;
+  NavigationType := Browser.SceneManager.NavigationType;
+  { make the appropriate button on ButtonsNavigationType pressed.
+    Thanks to TSpeedButton.GroupIndex, all others will be automatically released. }
+  ButtonsNavigationType[NavigationType].Down := true;
 end;
 
 procedure TMain.ButtonNavigationTypeClick(Sender: TObject);
 var
   NavigationType, NT: TNavigationType;
 begin
-  { Just like in SceneManagerBoundNavigationInfoChanged:
-    in practice, our Camera is always of TUniversalCamera class.
-    But check for safety. }
-  if (Browser.Camera <> nil) and
-     (Browser.Camera is TUniversalCamera) then
-  begin
-    { this is a handler for all four navigation type buttons.
-      Scan ButtonsNavigationType to detect which is Sender. }
-    for NT := Low(NT) to High(NT) do
-      if ButtonsNavigationType[NT] = Sender then
-        NavigationType := NT;
+  { this is a handler for all four navigation type buttons.
+    Scan ButtonsNavigationType to detect which is Sender. }
+  for NT := Low(NT) to High(NT) do
+    if ButtonsNavigationType[NT] = Sender then
+      NavigationType := NT;
 
-    (Browser.Camera as TUniversalCamera).NavigationType := NavigationType;
-  end;
+  Browser.SceneManager.NavigationType := NavigationType;
 end;
 
 procedure TMain.ButtonScreenshotClick(Sender: TObject);

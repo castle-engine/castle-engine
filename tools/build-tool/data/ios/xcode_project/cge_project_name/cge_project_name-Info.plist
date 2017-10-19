@@ -48,7 +48,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>${VERSION}</string>
+	<string>${IOS_VERSION}</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
@@ -75,5 +75,6 @@ ${IOS_SCREEN_ORIENTATION}
 	<array>
 ${IOS_SCREEN_ORIENTATION}
 	</array>
+${IOS_EXTRA_INFO_PLIST}
 </dict>
 </plist>

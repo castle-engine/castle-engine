@@ -26,11 +26,25 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetPrograms(const Value: array of TShaderProgramNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TProgramShaderNode ----------------------------------------------- }
+
+procedure TProgramShaderNode.SetPrograms(const Value: array of TShaderProgramNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TShaderProgramNode));
+  FdPrograms.Send(A);
+end;
 
 {$endif read_implementation}

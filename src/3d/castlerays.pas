@@ -216,7 +216,20 @@ constructor TFrustumRaysWindow.Create(
   const ADimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
+  { Workaround FPC 3.0.4 bug (internal error) on Darwin for AArch64
+    (not on other platforms):
+    castlerays.pas(262,3) Fatal: Internal error 2014121702
+  }
+  {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+  Dimensions := FloatRectangle(
+    ADimensions.Left,
+    ADimensions.Bottom,
+    ADimensions.Width,
+    ADimensions.Height
+  );
+  {$else}
   Dimensions := ADimensions;
+  {$endif}
 end;
 
 procedure TFrustumRaysWindow.PrimaryRay(const X, Y: Single;
@@ -248,7 +261,20 @@ constructor TOrthographicRaysWindow.Create(
   const ADimensions: TFloatRectangle);
 begin
   inherited Create(ACamPosition, ACamDirection, ACamUp);
+  { Workaround FPC 3.0.4 bug (internal error) on Darwin for AArch64
+    (not on other platforms):
+    castlerays.pas(262,3) Fatal: Internal error 2014121702
+  }
+  {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+  Dimensions := FloatRectangle(
+    ADimensions.Left,
+    ADimensions.Bottom,
+    ADimensions.Width,
+    ADimensions.Height
+  );
+  {$else}
   Dimensions := ADimensions;
+  {$endif}
 end;
 
 procedure TOrthographicRaysWindow.PrimaryRay(const x, y: Single;

@@ -107,10 +107,9 @@ begin
     Window.SceneManager.Items.Add(Scene);
 
     { init SceneManager.Camera }
-    Window.SceneManager.Camera := TExamineCamera.Create(Window);
-    (Window.SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
+    Window.SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
     { set more interesting view by default }
-    (Window.SceneManager.Camera as TExamineCamera).Rotations := QuatFromAxisAngle(
+    Window.SceneManager.ExamineCamera.Rotations := QuatFromAxisAngle(
       Vector3(1, 1, 0).Normalize, Pi/4);
 
     Window.OnUpdate := @Update;

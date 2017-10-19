@@ -199,8 +199,7 @@ begin
   CreateScene;
   Window.SceneManager.Items.Add(Scene);
   Window.SceneManager.MainScene := Scene;
-  Window.SceneManager.Camera := Window.SceneManager.CreateDefaultCamera;
-  Window.SceneManager.Camera.Input := [];
+  Window.SceneManager.RequiredCamera.Input := [];
 
   { create menu }
   MainMenu := TMenu.Create('Main menu');

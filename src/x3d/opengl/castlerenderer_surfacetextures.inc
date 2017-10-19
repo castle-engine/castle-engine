@@ -34,6 +34,10 @@ private
   procedure SurfaceTexturesEnable(State: TX3DGraphTraverseState;
     var ABoundTextureUnits, ATexCoordsNeeded: Cardinal; Shader: TShader);
 
+  { Is this shape possibly use some texture that requires Phong shading.
+    Decide before actually making any OpenGL operations. }
+  class function ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -60,6 +64,30 @@ var
   IgnoreTextureHasAlpha: boolean;
 begin
   Result := GLTexture2D(Node, IgnoreTextureHasAlpha);
+end;
+
+class function TGLRenderer.ShapeMaybeUsesPhongSurfaceTexture(const Shape: TX3DRendererShape): boolean;
+var
+  SurfaceShader: TCommonSurfaceShaderNode;
+begin
+  Result := false;
+  if Shape.Node <> nil then
+  begin
+    SurfaceShader := Shape.Node.CommonSurfaceShader;
+    if SurfaceShader <> nil then
+    begin
+      Result :=
+        (SurfaceShader.AmbientTexture <> nil) or
+        (SurfaceShader.EmissiveTexture <> nil) or
+        (SurfaceShader.NormalTexture <> nil) or
+        (SurfaceShader.ShininessTexture <> nil) or
+        (SurfaceShader.SpecularTexture <> nil);
+    end else
+    if Shape.Node.Appearance <> nil then
+    begin
+      Result := Shape.Node.Appearance.NormalMap <> nil;
+    end;
+  end;
 end;
 
 procedure TGLRenderer.BumpMappingEnable(State: TX3DGraphTraverseState;

@@ -15,6 +15,7 @@
 
 {$ifdef read_interface}
 
+  { Possible image placement for a button, see @link(TCastleButton.ImageLayout). }
   TCastleButtonImageLayout = (ilTop, ilBottom, ilLeft, ilRight);
 
   { Clickable button.

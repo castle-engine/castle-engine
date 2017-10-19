@@ -294,6 +294,8 @@ var
   FOutputPath: string;
 
 function OutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
+const
+  OutputNoteContents = {$I templates/template-castle-engine-output-warning.txt.inc};
 var
   OutputNote: string;
 begin
@@ -311,8 +313,7 @@ begin
 
       OutputNote := FOutputPath + 'DO-NOT-COMMIT-THIS-DIRECTORY.txt';
       if not FileExists(OutputNote) then
-        CheckCopyFile(URIToFilenameSafe(ApplicationData(
-          'template-castle-engine-output-warning.txt')), OutputNote);
+        StringToFile(OutputNote, OutputNoteContents);
     end;
   end;
 

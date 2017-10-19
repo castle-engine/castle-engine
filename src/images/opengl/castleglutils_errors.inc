@@ -94,6 +94,10 @@ begin
     GL_INVALID_ENUM: S := 'An unacceptable value is specified for an enumerated argument.';
     GL_INVALID_VALUE: S := 'A numeric argument is out of range.';
     GL_INVALID_OPERATION: S := 'The specified operation is not allowed in the current state.';
+    {$ifndef OpenGLES}
+    GL_STACK_OVERFLOW: S := 'Stack overflow';
+    GL_STACK_UNDERFLOW: S := 'Stack underflow';
+    {$endif}
     GL_INVALID_FRAMEBUFFER_OPERATION: S := 'The command is trying to render to or read from the framebuffer while the currently bound framebuffer is not framebuffer complete (i.e. the return value from glCheckFramebufferStatus is not GL_FRAMEBUFFER_COMPLETE).';
     GL_OUT_OF_MEMORY: S := 'There is not enough memory left to execute the command.';
     else S := 'Unknown error.';

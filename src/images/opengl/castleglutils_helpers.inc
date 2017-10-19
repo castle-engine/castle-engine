@@ -413,8 +413,6 @@ procedure GLDrawArrow(HeadThickness, HeadLength: TGLfloat);
 begin
   HeadLength := 2*HeadLength; { mapuj HeadLength na zakres 0..2 }
 
-  { TODO: tutaj powinienes przelaczac glEdgeFlag }
-
   glBegin(GL_TRIANGLES);
     glVertex2f(0, 2);
     glVertex2f(-1, HeadLength);
@@ -584,33 +582,36 @@ function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 begin
   Result := true;
 
-  {$ifndef OpenGLES}
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
 
-  case Target of
-    etNone: begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-      end;
-    et2D: begin
-        glEnable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-      end;
-    etCubeMap: begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap <> gsNone then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
-        if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
-      end;
-    et3D: begin
-        glDisable(GL_TEXTURE_2D);
-        if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
-        if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
-      end;
-    else raise EInternalError.Create('GLEnableTexture:Target?');
+    case Target of
+      etNone: begin
+          glDisable(GL_TEXTURE_2D);
+          if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
+          if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
+        end;
+      et2D: begin
+          glEnable(GL_TEXTURE_2D);
+          if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
+          if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
+        end;
+      etCubeMap: begin
+          glDisable(GL_TEXTURE_2D);
+          if GLFeatures.TextureCubeMap <> gsNone then glEnable(GL_TEXTURE_CUBE_MAP) else Result := false;
+          if GLFeatures.Texture3D <> gsNone then glDisable(GL_TEXTURE_3D);
+        end;
+      et3D: begin
+          glDisable(GL_TEXTURE_2D);
+          if GLFeatures.TextureCubeMap <> gsNone then glDisable(GL_TEXTURE_CUBE_MAP);
+          if GLFeatures.Texture3D <> gsNone then glEnable(GL_TEXTURE_3D) else Result := false;
+        end;
+      else raise EInternalError.Create('GLEnableTexture:Target?');
+    end;
+
+    {$endif}
   end;
-
-  {$endif}
 end;
 
 {$endif read_implementation}

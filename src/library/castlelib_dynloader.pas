@@ -92,7 +92,7 @@ procedure CGE_SetLibraryCallbackProc(aProc: TLibraryCallbackProc); cdecl; extern
 procedure CGE_Update(); cdecl; external 'castleengine';
 procedure CGE_MouseDown(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl; external 'castleengine';
 procedure CGE_Motion(X, Y: cInt32; FingerIndex: CInt32); cdecl; external 'castleengine';
-procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl; external 'castleengine';
+procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; trackReleased: cBool); cdecl; external 'castleengine';
 procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl; external 'castleengine';
 procedure CGE_KeyDown(eKey: CInt32); cdecl; external 'castleengine';
 procedure CGE_KeyUp(eKey: CInt32); cdecl; external 'castleengine';

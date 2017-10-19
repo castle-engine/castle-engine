@@ -38,6 +38,7 @@
   public
     property Address: string read GetAddress write SetAddress;
     property ApplicationID: Integer read GetApplicationID write SetApplicationID;
+    procedure SetMapping(const Value: array of TDISEntityTypeMappingNode);
     property Port: Integer read GetPort write SetPort;
     property SiteID: Integer read GetSiteID write SetSiteID;
 
@@ -65,6 +66,18 @@ end;
 procedure TDISEntityManagerNode.SetApplicationID(const Value: Integer);
 begin
   FdApplicationID.Send(Value);
+end;
+
+procedure TDISEntityManagerNode.SetMapping(const Value: array of TDISEntityTypeMappingNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TDISEntityTypeMappingNode));
+  FdMapping.Send(A);
 end;
 
 function TDISEntityManagerNode.GetPort: Integer;

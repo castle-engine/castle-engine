@@ -52,6 +52,7 @@
     function GetZSpacing: Single;
     procedure SetZSpacing(const Value: Single);
   public
+    procedure SetAttrib(const Value: array of TAbstractVertexAttributeNode);
     property Color: TAbstractColorNode read GetColor write SetColor;
     property FogCoord: TFogCoordinateNode read GetFogCoord write SetFogCoord;
     property Normal: TAbstractNormalNode read GetNormal write SetNormal;
@@ -72,6 +73,18 @@
 {$ifdef read_implementation}
 
 { TElevationGridNode ----------------------------------------------- }
+
+procedure TElevationGridNode.SetAttrib(const Value: array of TAbstractVertexAttributeNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractVertexAttributeNode));
+  FdAttrib.Send(A);
+end;
 
 function TElevationGridNode.GetColor: TAbstractColorNode;
 begin

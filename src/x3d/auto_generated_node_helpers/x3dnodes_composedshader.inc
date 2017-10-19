@@ -26,11 +26,25 @@
 
 {$ifdef read_interface}
 
+  public
+    procedure SetParts(const Value: array of TShaderPartNode);
 
 {$endif read_interface}
 
 {$ifdef read_implementation}
 
 { TComposedShaderNode ----------------------------------------------- }
+
+procedure TComposedShaderNode.SetParts(const Value: array of TShaderPartNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TShaderPartNode));
+  FdParts.Send(A);
+end;
 
 {$endif read_implementation}

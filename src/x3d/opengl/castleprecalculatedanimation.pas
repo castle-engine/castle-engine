@@ -124,7 +124,8 @@ type
 
     procedure SetOwnsFirstRootNode(const Value: boolean);
   protected
-    procedure SetWorld(const Value: T3DWorld); override;
+    procedure AddToWorld(const Value: T3DWorld); override;
+    procedure RemoveFromWorld(const Value: T3DWorld); override;
 
     { Internal version of @link(Load) routines, feasible to load
       from both ready KeyNodes array and to automatically generate KeyNodes
@@ -729,7 +730,8 @@ begin
   ShadowMapsDefaultSize := FParentAnimation.ShadowMapsDefaultSize;
   InitialViewpointIndex := FParentAnimation.InitialViewpointIndex;
   InitialViewpointName := FParentAnimation.InitialViewpointName;
-  SetWorld(FParentAnimation.World);
+  if FParentAnimation.World <> nil then
+    AddToWorld(FParentAnimation.World);
 
   {$warnings off}
   { consciously using deprecated feature in a deprecated class }
@@ -796,17 +798,24 @@ begin
   inherited;
 end;
 
-procedure TCastlePrecalculatedAnimation.SetWorld(const Value: T3DWorld);
+procedure TCastlePrecalculatedAnimation.AddToWorld(const Value: T3DWorld);
 var
   I: Integer;
 begin
-  if World <> Value then
-  begin
-    inherited;
-    if FScenes <> nil then
-      for I := 0 to FScenes.Count - 1 do
-        TAnimationScene(FScenes[I]).SetWorld(Value);
-  end;
+  inherited;
+  if FScenes <> nil then
+    for I := 0 to FScenes.Count - 1 do
+      TAnimationScene(FScenes[I]).AddToWorld(Value);
+end;
+
+procedure TCastlePrecalculatedAnimation.RemoveFromWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  inherited;
+  if FScenes <> nil then
+    for I := 0 to FScenes.Count - 1 do
+      TAnimationScene(FScenes[I]).RemoveFromWorld(Value);
 end;
 
 procedure TCastlePrecalculatedAnimation.LoadCore(

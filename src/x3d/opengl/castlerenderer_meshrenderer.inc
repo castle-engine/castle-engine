@@ -140,7 +140,7 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TMaterialFromColorCoordinateRenderer = class(TFogCoordinateRenderer)
+  TColorPerVertexCoordinateRenderer = class(TFogCoordinateRenderer)
   private
     MaterialFromColorEnabled: boolean;
   protected
@@ -148,7 +148,7 @@ type
     procedure RenderCoordinateEnd; override;
   end;
 
-  TShaderCoordinateRenderer = class(TMaterialFromColorCoordinateRenderer)
+  TShaderCoordinateRenderer = class(TColorPerVertexCoordinateRenderer)
   protected
     procedure RenderCoordinateBegin; override;
   end;
@@ -215,33 +215,37 @@ var
   var
     I: Integer;
   begin
-    {$ifndef OpenGLES}
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-
-    if Attributes.Mode = rmFull then
-      glDisableClientState(GL_COLOR_ARRAY);
-
-    if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
-      glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
-
-    if GLFeatures.UseMultiTexturing then
+    if CurrentMeshShader = nil then
     begin
-      for I := 0 to Arrays.TexCoords.Count - 1 do
-        if (Arrays.TexCoords[I] <> nil) and
-           (Arrays.TexCoords[I].Generation = tgExplicit) then
-        begin
-          glClientActiveTexture(GL_TEXTURE0 + I);
-          glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        end;
-    end else
-    if (Arrays.TexCoords.Count <> 0) and
-       (Arrays.TexCoords[0] <> nil) and
-       (Arrays.TexCoords[0].Generation = tgExplicit) then
-    begin
-      glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      {$ifndef OpenGLES}
+      { disable fixed-function parameters }
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glDisableClientState(GL_NORMAL_ARRAY);
+
+      if Attributes.Mode = rmFull then
+        glDisableClientState(GL_COLOR_ARRAY);
+
+      if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
+        glDisableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+
+      if GLFeatures.UseMultiTexturing then
+      begin
+        for I := 0 to Arrays.TexCoords.Count - 1 do
+          if (Arrays.TexCoords[I] <> nil) and
+             (Arrays.TexCoords[I].Generation = tgExplicit) then
+          begin
+            glClientActiveTexture(GL_TEXTURE0 + I);
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+          end;
+      end else
+      if (Arrays.TexCoords.Count <> 0) and
+         (Arrays.TexCoords[0] <> nil) and
+         (Arrays.TexCoords[0].Generation = tgExplicit) then
+      begin
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+      end;
+      {$endif}
     end;
-    {$endif}
 
     if Attribs <> nil then
     begin
@@ -260,9 +264,7 @@ var
   I: Integer;
   First: Cardinal;
   Mode: TGLenum;
-  {$ifdef OpenGLES}
   TexCoordAttrib: TGLSLAttribute;
-  {$endif}
 begin
   Attribs := nil;
 
@@ -276,116 +278,130 @@ begin
 
       {$ifdef OpenGLES}
       Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
-
-      CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
-      CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(ProjectionMatrix);
-      CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
-      CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
-      CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
-      CurrentMeshShader.UniformCastle_SceneColor.SetValue(Shader.MaterialEmission.XYZ +
-        RenderContext.GlobalAmbient * Shader.MaterialAmbient.XYZ);
-      CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
-
-      Attribs := TGLSLAttributeList.Create;
-
-      CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
-      Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
-
-      CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
-      Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
       {$else}
-      glEnableClientState(GL_VERTEX_ARRAY);
-      glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
-
-      glEnableClientState(GL_NORMAL_ARRAY);
-      glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+      if not EnableFixedFunction then
+        Assert(CurrentMeshShader <> nil, 'All rendering must go through shaders when EnableFixedFunction = false');
       {$endif}
+
+      if CurrentMeshShader <> nil then
+      begin
+        CurrentMeshShader.UniformCastle_ModelViewMatrix.SetValue(Shape.ModelView);
+        CurrentMeshShader.UniformCastle_ProjectionMatrix.SetValue(RenderContext.ProjectionMatrix);
+        CurrentMeshShader.UniformCastle_NormalMatrix.SetValue(ModelViewToNormalMatrix(Shape.ModelView));
+        CurrentMeshShader.UniformCastle_MaterialDiffuseAlpha.SetValue(Shader.MaterialDiffuse[3]);
+        CurrentMeshShader.UniformCastle_MaterialShininess.SetValue(Shader.MaterialShininessExp);
+        CurrentMeshShader.UniformCastle_SceneColor.SetValue(Shader.MaterialEmission.XYZ +
+          RenderContext.GlobalAmbient * Shader.MaterialAmbient.XYZ);
+        CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit);
+
+        Attribs := TGLSLAttributeList.Create;
+
+        CurrentMeshShader.AttributeCastle_Vertex.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Position));
+        Attribs.Add(CurrentMeshShader.AttributeCastle_Vertex);
+
+        CurrentMeshShader.AttributeCastle_Normal.EnableArrayVector3(Arrays.CoordinateSize, PtrUInt(Arrays.Normal));
+        Attribs.Add(CurrentMeshShader.AttributeCastle_Normal);
+      end else
+      begin
+        { set fixed-function parameters }
+        {$ifndef OpenGLES}
+        glEnableClientState(GL_VERTEX_ARRAY);
+        glVertexPointer(3, GL_FLOAT, Arrays.CoordinateSize, Arrays.Position);
+
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, Arrays.CoordinateSize, Arrays.Normal);
+        {$endif not OpenGLES}
+      end;
 
       if Vbo[vtAttribute] <> 0 then
         glBindBuffer(GL_ARRAY_BUFFER, Vbo[vtAttribute]);
 
-      {$ifdef OpenGLES}
-      case MeshColor of
-        mcColorPerVertex:
-          begin
-            Assert(Arrays.HasColor);
-            CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
-            Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
-          end;
-
-        mcDefaultColor:
-          begin
-            Assert(Arrays.HasDefaultColor);
-            { in this case, we must apply Arrays.DefaultColor as multiplier
-              to Shader.MaterialUnlit, overriding previous castle_UnlitColor setting.
-              This matters for rendering IndexedLineSet with Material that has only
-              emissiveColor (without IndexedLineSet.color per vertex).
-              We cannot pass Arrays.DefaultColor in any other way to shader now. }
-            CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit * Arrays.DefaultColor);
-          end;
-      end;
-
-      if Arrays.HasFogCoord then
+      if CurrentMeshShader <> nil then
       begin
-        CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
-        Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
-      end;
+        case MeshColor of
+          mcColorPerVertex:
+            begin
+              Assert(Arrays.HasColor);
+              CurrentMeshShader.AttributeCastle_ColorPerVertex.EnableArrayVector4(Arrays.AttributeSize, PtrUInt(Arrays.Color));
+              Attribs.Add(CurrentMeshShader.AttributeCastle_ColorPerVertex);
+            end;
 
-      for I := 0 to Arrays.TexCoords.Count - 1 do
-        if (Arrays.TexCoords[I] <> nil) and
-           (Arrays.TexCoords[I].Generation = tgExplicit) then
-        begin
-          // TODO: would be faster to not query GLSLProgram.Attribute every frame,
-          // but save it in GLSLProgram.
-          TexCoordAttrib := CurrentMeshShader.AttributeOptional('castle_MultiTexCoord' + IntToStr(I));
-          if TexCoordAttrib.Location = -1 then Continue;
-          TexCoordAttrib.EnableArray(0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
-            Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
-          Attribs.Add(TexCoordAttrib);
+          mcDefaultColor:
+            begin
+              Assert(Arrays.HasDefaultColor);
+              { in this case, we must apply Arrays.DefaultColor as multiplier
+                to Shader.MaterialUnlit, overriding previous castle_UnlitColor setting.
+                This matters for rendering IndexedLineSet with Material that has only
+                emissiveColor (without IndexedLineSet.color per vertex).
+                We cannot pass Arrays.DefaultColor in any other way to shader now. }
+              CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit * Arrays.DefaultColor);
+            end;
         end;
-      {$else}
 
-      case MeshColor of
-        mcColorPerVertex:
-          begin
-            Assert(Arrays.HasColor);
-            glEnableClientState(GL_COLOR_ARRAY);
-            glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
-          end;
-        mcDefaultColor:
-          begin
-            Assert(Arrays.HasDefaultColor);
-            glColorv(Arrays.DefaultColor);
-          end;
-      end;
+        if Arrays.HasFogCoord then
+        begin
+          CurrentMeshShader.AttributeCastle_FogCoord.EnableArraySingle(Arrays.AttributeSize, PtrUInt(Arrays.FogCoord));
+          Attribs.Add(CurrentMeshShader.AttributeCastle_FogCoord);
+        end;
 
-      if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
-      begin
-        glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
-        glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
-      end;
-
-      if GLFeatures.UseMultiTexturing then
-      begin
         for I := 0 to Arrays.TexCoords.Count - 1 do
           if (Arrays.TexCoords[I] <> nil) and
              (Arrays.TexCoords[I].Generation = tgExplicit) then
           begin
-            glClientActiveTexture(GL_TEXTURE0 + I);
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
-              Arrays.AttributeSize, Arrays.TexCoord(I, 0));
+            // TODO: would be faster to not query GLSLProgram.Attribute every frame,
+            // but save it in GLSLProgram.
+            TexCoordAttrib := CurrentMeshShader.AttributeOptional('castle_MultiTexCoord' + IntToStr(I));
+            if TexCoordAttrib.Location = -1 then Continue;
+            TexCoordAttrib.EnableArray(0, Arrays.TexCoords[I].Dimensions, GL_FLOAT, GL_FALSE,
+              Arrays.AttributeSize, PtrUInt(Arrays.TexCoord(I, 0)));
+            Attribs.Add(TexCoordAttrib);
           end;
       end else
-      if (Arrays.TexCoords.Count <> 0) and
-         (Arrays.TexCoords[0] <> nil) and
-         (Arrays.TexCoords[0].Generation = tgExplicit) then
       begin
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-        glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
-          Arrays.AttributeSize, Arrays.TexCoord(0, 0));
+        { set fixed-function parameters }
+        {$ifndef OpenGLES}
+        case MeshColor of
+          mcColorPerVertex:
+            begin
+              Assert(Arrays.HasColor);
+              glEnableClientState(GL_COLOR_ARRAY);
+              glColorPointer(4, GL_FLOAT, Arrays.AttributeSize, Arrays.Color);
+            end;
+          mcDefaultColor:
+            begin
+              Assert(Arrays.HasDefaultColor);
+              glColorv(Arrays.DefaultColor);
+            end;
+        end;
+
+        if Arrays.HasFogCoord and GLFeatures.EXT_fog_coord then
+        begin
+          glEnableClientState(GL_FOG_COORDINATE_ARRAY_EXT);
+          glFogCoordPointerEXT(GL_FLOAT, Arrays.AttributeSize, Arrays.FogCoord);
+        end;
+
+        if GLFeatures.UseMultiTexturing then
+        begin
+          for I := 0 to Arrays.TexCoords.Count - 1 do
+            if (Arrays.TexCoords[I] <> nil) and
+               (Arrays.TexCoords[I].Generation = tgExplicit) then
+            begin
+              glClientActiveTexture(GL_TEXTURE0 + I);
+              glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+              glTexCoordPointer(Arrays.TexCoords[I].Dimensions, GL_FLOAT,
+                Arrays.AttributeSize, Arrays.TexCoord(I, 0));
+            end;
+        end else
+        if (Arrays.TexCoords.Count <> 0) and
+           (Arrays.TexCoords[0] <> nil) and
+           (Arrays.TexCoords[0].Generation = tgExplicit) then
+        begin
+          glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+          glTexCoordPointer(Arrays.TexCoords[0].Dimensions, GL_FLOAT,
+            Arrays.AttributeSize, Arrays.TexCoord(0, 0));
+        end;
+        {$endif not OpenGLES}
       end;
-      {$endif}
 
       { We know now that CurrentMeshShader is the program set by
         TShaderCoordinateRenderer.RenderCoordinateBegin }
@@ -465,7 +481,7 @@ end;
 { TTextureCoordinateRenderer ----------------------------------------- }
 
 {$ifndef OpenGLES}
-{ If multitexturing available, sets texture coordinate for texture
+{ If multitexturing available, sets fixed-function texture coordinate for texture
   unit TextureUnit (by appropriate glMultiTexCoord).
   Otherwise (when no multitexturing), sets texture coordinate for
   the only texture unit (glTexCoord).
@@ -476,7 +492,8 @@ end;
 procedure MultiTexCoord(const TextureUnit: Cardinal; const TexCoord: TVector4f);
 begin
   if GLFeatures.UseMultiTexturing then
-    glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord) else
+    glMultiTexCoord4fv(GL_TEXTURE0 + TextureUnit, @TexCoord)
+  else
     glTexCoord4fv(@TexCoord);
 end;
 {$endif}
@@ -490,10 +507,14 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
 
     {$ifndef OpenGLES}
     { Do the necessary things for WorldSpaceNormal and
-      WorldSpaceReflectionVector. Note that the OpenGLES counterpart
+      WorldSpaceReflectionVector in fixed-function pipeline.
+      Note that the shader pipeline counterpart
       of this is entirely inside EnableTexGen. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
     begin
+      if not EnableFixedFunction then
+        Exit;
+
       { Set the 4th texture coord component (Q) to 0.0.
         Reason: We use matrix 4x4, so it will transform whole texture
         coordinate (4-valued vector, since we're in homogeneous
@@ -547,18 +568,14 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
     ( (Data: (1, 0, 0, 0)),
       (Data: (0, 1, 0, 0)),
       (Data: (0, 0, 1, 0)) );
-  var
-    TransformToWorldSpace: boolean;
-  {$ifndef OpenGLES} // TODO-es
-  const
     ProjectorScalingMatrix: TMatrix4 = (Data:
     ( (0.5,   0,   0, 0),
       (  0, 0.5,   0, 0),
       (  0,   0, 0.5, 0),
       (0.5, 0.5, 0.5, 1) ));
   var
+    TransformToWorldSpace: boolean;
     ProjectorMatrix: TMatrix4;
-  {$endif}
   begin
     TransformToWorldSpace := TexCoord.Generation in
       [tgWorldSpaceReflectionVector, tgWorldSpaceNormal];
@@ -569,43 +586,49 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         Shader.EnableTexGen(TexUnit, tgSphere);
       tgCoord:
         begin
-          {$ifndef OpenGLES}
-          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
-          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
-          glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
-          {$endif}
-          Shader.EnableTexGen(TexUnit, tgObject, 0 {$ifdef OpenGLES}, GenerationVectorsIdentity[0] {$endif});
-          Shader.EnableTexGen(TexUnit, tgObject, 1 {$ifdef OpenGLES}, GenerationVectorsIdentity[1] {$endif});
-          Shader.EnableTexGen(TexUnit, tgObject, 2 {$ifdef OpenGLES}, GenerationVectorsIdentity[2] {$endif});
+          if EnableFixedFunction then
+          begin
+            {$ifndef OpenGLES}
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
+            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
+            {$endif}
+          end;
+          Shader.EnableTexGen(TexUnit, tgObject, 0, GenerationVectorsIdentity[0]);
+          Shader.EnableTexGen(TexUnit, tgObject, 1, GenerationVectorsIdentity[1]);
+          Shader.EnableTexGen(TexUnit, tgObject, 2, GenerationVectorsIdentity[2]);
         end;
       tgCoordEye:
         begin
-          {$ifndef OpenGLES}
-          { Vectors given to EYE_PLANE are transformed by inverted
-            modelview matrix (at the moment of glTexGen call).
-            We don't want to transform them, so just temporarily setting
-            modelview matrix to identity makes things work Ok. }
-          glPushMatrix;
-            glLoadIdentity;
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_S, GL_EYE_PLANE, GenerationVectorsIdentity[0]);
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_T, GL_EYE_PLANE, GenerationVectorsIdentity[1]);
-            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-            glTexGenv(GL_R, GL_EYE_PLANE, GenerationVectorsIdentity[2]);
-          glPopMatrix;
-          {$endif}
+          if EnableFixedFunction then
+          begin
+            {$ifndef OpenGLES}
+            { Vectors given to EYE_PLANE are transformed by inverted
+              modelview matrix (at the moment of glTexGen call).
+              We don't want to transform them, so just temporarily setting
+              modelview matrix to identity makes things work Ok. }
+            glPushMatrix;
+              glLoadIdentity;
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+              glTexGenv(GL_S, GL_EYE_PLANE, GenerationVectorsIdentity[0]);
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+              glTexGenv(GL_T, GL_EYE_PLANE, GenerationVectorsIdentity[1]);
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+              glTexGenv(GL_R, GL_EYE_PLANE, GenerationVectorsIdentity[2]);
+            glPopMatrix;
+            {$endif}
+          end;
           { TODO: the shader version of this is quite unoptimal,
             we pass 3 uniform vec4 vectors, make 3 dot operations,
             just to simply copy vertex_eye to texture coordinate.
             Same for tgCoord. So far, this is not used often enough
             to bother with optimization. }
-          Shader.EnableTexGen(TexUnit, tgEye, 0 {$ifdef OpenGLES}, GenerationVectorsIdentity[0] {$endif});
-          Shader.EnableTexGen(TexUnit, tgEye, 1 {$ifdef OpenGLES}, GenerationVectorsIdentity[1] {$endif});
-          Shader.EnableTexGen(TexUnit, tgEye, 2 {$ifdef OpenGLES}, GenerationVectorsIdentity[2] {$endif});
+          Shader.EnableTexGen(TexUnit, tgEye, 0, GenerationVectorsIdentity[0]);
+          Shader.EnableTexGen(TexUnit, tgEye, 1, GenerationVectorsIdentity[1]);
+          Shader.EnableTexGen(TexUnit, tgEye, 2, GenerationVectorsIdentity[2]);
         end;
       tgCameraSpaceNormal,
       tgWorldSpaceNormal:
@@ -616,16 +639,20 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           if GLFeatures.TextureCubeMap = gsNone then
           begin
             WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
-            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
 
-            Shader.EnableTexGen(TexUnit, tgObject, 0);
-            Shader.EnableTexGen(TexUnit, tgObject, 1);
-            Shader.EnableTexGen(TexUnit, tgObject, 2);
+            if EnableFixedFunction then
+            begin
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
+            end;
+
+            Shader.EnableTexGen(TexUnit, tgObject, 0, GenerationVectorsIdentity[0]);
+            Shader.EnableTexGen(TexUnit, tgObject, 1, GenerationVectorsIdentity[1]);
+            Shader.EnableTexGen(TexUnit, tgObject, 2, GenerationVectorsIdentity[2]);
           end else
           {$endif}
           begin
@@ -645,16 +672,20 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           if GLFeatures.TextureCubeMap = gsNone then
           begin
             WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
-            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
-            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
-            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-            glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
 
-            Shader.EnableTexGen(TexUnit, tgObject, 0);
-            Shader.EnableTexGen(TexUnit, tgObject, 1);
-            Shader.EnableTexGen(TexUnit, tgObject, 2);
+            if EnableFixedFunction then
+            begin
+              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
+              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_T, GL_OBJECT_PLANE, GenerationVectorsIdentity[1]);
+              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+              glTexGenv(GL_R, GL_OBJECT_PLANE, GenerationVectorsIdentity[2]);
+            end;
+
+            Shader.EnableTexGen(TexUnit, tgObject, 0, GenerationVectorsIdentity[0]);
+            Shader.EnableTexGen(TexUnit, tgObject, 1, GenerationVectorsIdentity[1]);
+            Shader.EnableTexGen(TexUnit, tgObject, 2, GenerationVectorsIdentity[2]);
           end else
           {$endif}
           begin
@@ -667,56 +698,70 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgProjection:
         begin
-          {$ifndef OpenGLES} // TODO-es
           if Assigned(TexCoord.GenerationProjectorMatrix) then
           begin
             ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
-            glPushMatrix;
-              glLoadMatrix(RenderingCamera.Matrix);
 
-              glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
+            if EnableFixedFunction then
+            begin
+              {$ifndef OpenGLES}
+              glPushMatrix;
+                glLoadMatrix(RenderingCamera.Matrix);
 
-              glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Rows[1]);
+                glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_S, GL_EYE_PLANE, ProjectorMatrix.Rows[0]);
 
-              glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Rows[2]);
+                glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_T, GL_EYE_PLANE, ProjectorMatrix.Rows[1]);
 
-              glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
-              glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Rows[3]);
-            glPopMatrix;
-            Shader.EnableTexGen(TexUnit, tgEye, 0);
-            Shader.EnableTexGen(TexUnit, tgEye, 1);
-            Shader.EnableTexGen(TexUnit, tgEye, 2);
-            Shader.EnableTexGen(TexUnit, tgEye, 3);
+                glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_R, GL_EYE_PLANE, ProjectorMatrix.Rows[2]);
+
+                glTexGeni(GL_Q, GL_TEXTURE_GEN_MODE, GL_EYE_LINEAR);
+                glTexGenv(GL_Q, GL_EYE_PLANE, ProjectorMatrix.Rows[3]);
+              glPopMatrix;
+              {$endif}
+            end;
+
+            RenderingCamera.InverseMatrixNeeded;
+            ProjectorMatrix :=  ProjectorMatrix * RenderingCamera.InverseMatrix;
+
+            Shader.EnableTexGen(TexUnit, tgEye, 0, ProjectorMatrix.Rows[0]);
+            Shader.EnableTexGen(TexUnit, tgEye, 1, ProjectorMatrix.Rows[1]);
+            Shader.EnableTexGen(TexUnit, tgEye, 2, ProjectorMatrix.Rows[2]);
+            Shader.EnableTexGen(TexUnit, tgEye, 3, ProjectorMatrix.Rows[3]);
           end;
-          {$endif}
         end;
       tgBounds2d:
         begin
-          {$ifndef OpenGLES}
-          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
-          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
-          {$endif}
-          Shader.EnableTexGen(TexUnit, tgObject, 0 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[0] {$endif});
-          Shader.EnableTexGen(TexUnit, tgObject, 1 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[1] {$endif});
+          if EnableFixedFunction then
+          begin
+            {$ifndef OpenGLES}
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
+            {$endif}
+          end;
+          Shader.EnableTexGen(TexUnit, tgObject, 0, TexCoord.GenerationBoundsVector[0]);
+          Shader.EnableTexGen(TexUnit, tgObject, 1, TexCoord.GenerationBoundsVector[1]);
         end;
       tgBounds3d:
         begin
-          {$ifndef OpenGLES}
-          glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
-          glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
-          glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-          glTexGenv(GL_R, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[2]);
-          {$endif}
-          Shader.EnableTexGen(TexUnit, tgObject, 0 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[0] {$endif});
-          Shader.EnableTexGen(TexUnit, tgObject, 1 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[1] {$endif});
-          Shader.EnableTexGen(TexUnit, tgObject, 2 {$ifdef OpenGLES}, TexCoord.GenerationBoundsVector[2] {$endif});
+          if EnableFixedFunction then
+          begin
+            {$ifndef OpenGLES}
+            glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_S, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[0]);
+            glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_T, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[1]);
+            glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+            glTexGenv(GL_R, GL_OBJECT_PLANE, TexCoord.GenerationBoundsVector[2]);
+            {$endif}
+          end;
+          Shader.EnableTexGen(TexUnit, tgObject, 0, TexCoord.GenerationBoundsVector[0]);
+          Shader.EnableTexGen(TexUnit, tgObject, 1, TexCoord.GenerationBoundsVector[1]);
+          Shader.EnableTexGen(TexUnit, tgObject, 2, TexCoord.GenerationBoundsVector[2]);
         end;
       else raise EInternalError.Create('EnableTextureGen - Gen?');
     end;
@@ -745,11 +790,14 @@ begin
       { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
         enabled by RenderCoordinateBegin. }
       Shader.DisableTexGen(I);
-      {$ifndef OpenGLES}
-      { DisableTexGen already set glActiveTexture }
-      if RestoreDefaultTexCoord then
-        MultiTexCoord(I, DefaultTexCoord);
-      {$endif}
+      if EnableFixedFunction then
+      begin
+        {$ifndef OpenGLES}
+        { DisableTexGen already set glActiveTexture }
+        if RestoreDefaultTexCoord then
+          MultiTexCoord(I, DefaultTexCoord);
+        {$endif}
+      end;
     end;
 
   inherited;
@@ -762,22 +810,24 @@ begin
   inherited;
 
   if Arrays.HasFogCoord and
-     Arrays.FogDirectValues {$ifndef OpenGLES} and
-     GLFeatures.EXT_fog_coord {$endif} then
+     Arrays.FogDirectValues then
   begin
     {$ifndef OpenGLES}
-    { This is really not needed for OpenGLES. When we know that rendering
-      is done through shaders, then Shader.ModifyFog does everything necessary. }
+    if EnableFixedFunction and GLFeatures.EXT_fog_coord then
+    begin
+      { This is not needed for shader pipeline. When we know that rendering
+        is done through shaders, then Shader.ModifyFog does everything necessary. }
 
-    { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
-      is already set correctly by RenderBegin. }
-    if not Renderer.FogVolumetric then
-      glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
+      { When Renderer.FogVolumetric, GL_FOG_COORDINATE_SOURCE_EXT
+        is already set correctly by RenderBegin. }
+      if not Renderer.FogVolumetric then
+        glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FOG_COORDINATE_EXT);
 
-    glPushAttrib(GL_FOG_BIT);
-    glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
-    glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
-    glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
+      glPushAttrib(GL_FOG_BIT);
+      glFogi(GL_FOG_MODE, GL_LINEAR); // saved by GL_FOG_BIT
+      glFogf(GL_FOG_START, 0); // saved by GL_FOG_BIT
+      glFogf(GL_FOG_END, 1); // saved by GL_FOG_BIT
+    end;
     {$endif}
 
     { We potentially override the fog already set
@@ -789,11 +839,10 @@ end;
 procedure TFogCoordinateRenderer.RenderCoordinateEnd;
 begin
   {$ifndef OpenGLES}
-  { This is really not needed for OpenGLES. No need to restore state,
-    as it's reset for every shape. }
   { Restore defaults }
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
+     EnableFixedFunction and
      GLFeatures.EXT_fog_coord then
   begin
     glPopAttrib;
@@ -805,17 +854,18 @@ begin
       glFogi(GL_FOG_COORDINATE_SOURCE_EXT, GL_FRAGMENT_DEPTH_EXT);
   end;
   {$endif}
+
   inherited;
 end;
 
-{ TMaterialFromColorCoordinateRenderer --------------------------------------- }
+{ TColorPerVertexCoordinateRenderer --------------------------------------- }
 
-procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateBegin;
+procedure TColorPerVertexCoordinateRenderer.RenderCoordinateBegin;
 begin
   inherited;
 
-  {$ifdef OpenGLES}
-  { For OpenGLES, we must call EnableMaterialFromColor regardless
+  { The shader implementation of color-per-vertex (for OpenGLES,
+    or OpenGL shader pipeline) must be enabled regardless
     if we have lighting or not, as in fact this activates COLOR_PER_VERTEX
     feature, which works regardless if we're lit or unlit.
 
@@ -823,20 +873,28 @@ begin
     of mcDefaultColor is implemented in OpenGLES differently,
     without default color "pretending" to be a color per vertex,
     as in fixed-function pipeline case). }
-  MaterialFromColorEnabled := MeshColor = mcColorPerVertex;
-  {$else}
-  MaterialFromColorEnabled := (MeshColor <> mcNone) and Lighting;
-  {$endif}
+  if MeshColor = mcColorPerVertex then
+    Shader.EnableColorPerVertex;
+
+  {$ifndef OpenGLES}
+  { for fixed-function pipeline, GL_COLOR_MATERIAL is similar to
+    the Shader.EnableColorPerVertex feature, but not exactly the same.
+    It can only be used when Lighting, and it suitable for mcDefaultColor too. }
+  MaterialFromColorEnabled :=
+    EnableFixedFunction and (MeshColor <> mcNone) and Lighting;
   if MaterialFromColorEnabled then
-    Shader.EnableMaterialFromColor;
+    { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
+    glEnable(GL_COLOR_MATERIAL);
+  {$endif}
 end;
 
-procedure TMaterialFromColorCoordinateRenderer.RenderCoordinateEnd;
+procedure TColorPerVertexCoordinateRenderer.RenderCoordinateEnd;
 begin
   {$ifndef OpenGLES}
   if MaterialFromColorEnabled then
     glDisable(GL_COLOR_MATERIAL);
   {$endif}
+
   inherited;
 end;
 
@@ -864,9 +922,8 @@ begin
       Shader.EnableGroupEffects(Shape.State.Effects);
 
     UseShaderRendering := {$ifdef OpenGLES} true {$else}
-      (Attributes.Mode = rmFull) and
-      ( ((Attributes.Shaders = srWhenRequired) and Shader.ShapeRequiresShaders) or
-         (Attributes.Shaders = srAlways) )
+      (not EnableFixedFunction) or
+      ((Attributes.Mode = rmFull) and Shader.ShapeRequiresShaders)
       {$endif};
 
     if UseShaderRendering then
@@ -893,9 +950,8 @@ begin
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
       CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
-      {$ifdef OpenGLES}
-      Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed on OpenGLES?)');
-      {$endif}
+      if not EnableFixedFunction then
+        Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed?)');
       if CurrentX3DProgram <> nil then // may be nil on desktops
         Shader.SetDynamicUniforms(CurrentX3DProgram);
     end else

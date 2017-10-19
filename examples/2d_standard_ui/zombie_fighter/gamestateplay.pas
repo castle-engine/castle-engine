@@ -76,8 +76,8 @@ begin
   SceneManager.Height := 748;
   SceneManager.Items.Add(Scene);
   SceneManager.MainScene := Scene;
-  (SceneManager.RequiredCamera as TUniversalCamera).NavigationType := ntWalk;
-  (SceneManager.RequiredCamera as TUniversalCamera).Walk.MoveSpeed := 10;
+  SceneManager.NavigationType := ntWalk;
+  SceneManager.WalkCamera.MoveSpeed := 10;
   InsertFront(SceneManager);
 
   ViewportRect := TCastleRectangleControl.Create(FreeAtStop);
@@ -97,8 +97,8 @@ begin
   Viewport.Height := 236;
   Viewport.SceneManager := SceneManager;
   Viewport.Transparent := true;
-  (Viewport.RequiredCamera as TUniversalCamera).NavigationType := ntNone;
-  (Viewport.RequiredCamera as TUniversalCamera).SetView(
+  Viewport.NavigationType := ntNone;
+  Viewport.RequiredCamera.SetView(
     Vector3(5, 92.00, 0.99),
     Vector3(0, -1, 0),
     Vector3(0, 0, 1));

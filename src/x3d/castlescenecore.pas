@@ -23,7 +23,7 @@ unit CastleSceneCore;
 
 interface
 
-uses SysUtils, Classes, Generics.Collections, Contnrs,
+uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleVectors, CastleBoxes, CastleTriangles, X3DFields, X3DNodes,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
@@ -98,7 +98,8 @@ type
       So freeing this is useful only if you have used shadow volumes,
       but you will not need to render with shadow volumes anymore
       (for some time). }
-    frShadowVolume);
+    frShadowVolume
+  );
 
   TSceneFreeResources = set of TSceneFreeResource;
 
@@ -1519,6 +1520,9 @@ type
     procedure RegisterCompiledScript(const HandlerName: string;
       Handler: TCompiledScriptHandler);
 
+    { TNavigationType value determined by current NavigationInfo node. }
+    function NavigationTypeFromNavigationInfo: TNavigationType;
+
     { Update camera properties based on currently bound NavigationInfo.
 
       Bound NavigationInfo node is taken from
@@ -1526,13 +1530,6 @@ type
       and we will create camera corresponding to default NavigationInfo
       values (this is following VRML/X3D spec), so it will have
       initial type = EXAMINE.
-
-      You can pass ForceNavigationType = 'EXAMINE', 'WALK', 'FLY', 'NONE' etc.
-      (see X3D specification about NavigationInfo node, type field,
-      on [http://www.web3d.org/x3d/specifications/ISO-IEC-19775-1.2-X3D-AbstractSpecification/Part01/components/navigation.html#NavigationInfo],
-      although not all values are handled by our engine now).
-      This way we will ignore what NavigationInfo.type information
-      inside the scene says.
 
       This initializes a lot of camera properties:
       @unorderedList(
@@ -1549,10 +1546,7 @@ type
       Box is the expected bounding box of the whole 3D scene.
       Usually, it should be just Scene.BoundingBox, but it may be something
       larger, if this scene is part of a larger world. }
-    procedure CameraFromNavigationInfo(Camera: TCamera;
-      const Box: TBox3D;
-      const ForceNavigationType: string = '';
-      const ForceRadius: Single = 0);
+    procedure CameraFromNavigationInfo(Camera: TCamera; const Box: TBox3D);
 
     { Update camera to the currently bound VRML/X3D viewpoint.
       When no viewpoint is currently bound, we will go to a suitable
@@ -1587,22 +1581,6 @@ type
     procedure CameraFromViewpoint(ACamera: TCamera;
       const RelativeCameraTransform: boolean = false;
       const AllowTransitionAnimate: boolean = true);
-
-    { Create new camera instance, and bind it to current NavigationInfo
-      and Viewpoint. This is only a shortcut for creating
-      TUniversalCamera and then using CameraFromNavigationInfo
-      and CameraFromViewpoint.
-
-      CameraFromViewpoint here is called with AllowTransitionAnimate = @false,
-      because animating camera in this case would be wrong (user does
-      not want to see the animation from default camera position). }
-    function CreateCamera(AOwner: TComponent;
-      const Box: TBox3D;
-      const ForceNavigationType: string = ''): TUniversalCamera;
-
-    { @deprecated }
-    function CreateCamera(AOwner: TComponent;
-      const ForceNavigationType: string = ''): TUniversalCamera; deprecated;
 
     { Make Camera go to the view given by Position, Direction, Up.
 
@@ -1846,6 +1824,15 @@ type
       This calls @link(TTextNode.FontChanged) and @link(TAsciiTextNode_1.FontChanged)
       on all appropriate nodes. }
     procedure FontChanged;
+
+    { Create a scene with the same contents (X3D scene graph) as this one.
+      The created scene has exactly the same class as this one
+      (we use ClassType.Create to call a virtual constructor).
+
+      Note that this @bold(does not copy other scene attributes),
+      like @link(ProcessEvents) or @link(Spatial) or rendering attributes
+      in @link(Attributes). }
+    function Clone(const AOwner: TComponent): TCastleSceneCore;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -2043,6 +2030,10 @@ type
       default 0;
   end;
 
+  {$define read_interface}
+  {$I castlescenecore_physics.inc}
+  {$undef read_interface}
+
 var
   { Log changes to fields.
     This debugs what and why happens through TCastleSceneCore.InternalChangedField method
@@ -2065,6 +2056,10 @@ implementation
 uses Math,
   X3DCameraUtils, CastleStringUtils, CastleLog, DateUtils,
   X3DLoad, CastleURIUtils, CastleTimeUtils;
+
+{$define read_implementation}
+{$I castlescenecore_physics.inc}
+{$undef read_implementation}
 
 { TX3DBindableStack ----------------------------------------------------- }
 
@@ -6020,187 +6015,135 @@ end;
 
 { camera ------------------------------------------------------------------ }
 
-procedure TCastleSceneCore.CameraFromNavigationInfo(
-  Camera: TCamera; const Box: TBox3D;
-  const ForceNavigationType: string;
-  const ForceRadius: Single);
-var
-  NavigationTypeInitialized: boolean;
+function TCastleSceneCore.NavigationTypeFromNavigationInfo: TNavigationType;
 
-  { Use to set TWalkCamera-specific properties.
-    This is Camera (if it's TWalkCamera),
-    or Camera.Walk (if it's TUniversalCamera), or nil. }
-  Walk: TWalkCamera;
-  Examine: TExamineCamera;
-  Universal: TUniversalCamera;
-
-  { Initialize stuff determined by NavigationType
-    (treating it like NavigationInfo.type value).
-    Sets NavigationTypeInitialized to true if navigation type
-    recognized (and not 'ANY'). }
-  procedure InitializeNavigationType(const NavigationType: string);
+  function StringToNavigationType(const S: string;
+    out NavigationType: TNavigationType): boolean;
   begin
-    if NavigationType = 'WALK' then
+    Result := false;
+    if S = 'WALK' then
     begin
-      NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationClass := ncWalk;
-      if Walk <> nil then Walk.PreferGravityUpForRotations := true;
-      if Walk <> nil then Walk.PreferGravityUpForMoving := true;
-      if Walk <> nil then Walk.Gravity := true;
+      Result := true;
+      NavigationType := ntWalk;
     end else
-    if NavigationType = 'FLY' then
+    if S = 'FLY' then
     begin
-      NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationClass := ncWalk;
-      if Walk <> nil then Walk.PreferGravityUpForRotations := true;
-      if Walk <> nil then Walk.PreferGravityUpForMoving := false;
-      if Walk <> nil then Walk.Gravity := false;
+      Result := true;
+      NavigationType := ntFly
     end else
-    if NavigationType = 'NONE' then
+    if S = 'NONE' then
     begin
-      NavigationTypeInitialized := true;
-      Camera.Input := [];
+      Result := true;
+      NavigationType := ntNone
     end else
-    if (NavigationType = 'EXAMINE') or (NavigationType = 'LOOKAT') then
+    if (S = 'EXAMINE') or
+       (S = 'LOOKAT') then
     begin
-      if NavigationType = 'LOOKAT' then
+      if S = 'LOOKAT' then
         WritelnWarning('VRML/X3D', 'TODO: Navigation type "LOOKAT" is not yet supported, treating like "EXAMINE"');
-      NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationClass := ncExamine;
-      if Examine <> nil then Examine.Turntable := false;
+      Result := true;
+      NavigationType := ntExamine;
     end else
-    if (NavigationType = 'ARCHITECTURE') or
-       (NavigationType = 'TURNTABLE') then
+    if (S = 'ARCHITECTURE') or
+       (S = 'TURNTABLE') then
     begin
-      NavigationTypeInitialized := true;
-      if Universal <> nil then Universal.NavigationClass := ncExamine;
-      if Examine <> nil then Examine.Turntable := true;
+      Result := true;
+      NavigationType := ntTurntable
     end else
-    if NavigationType = 'ANY' then
+    if S = 'ANY' then
     begin
       { Do nothing, also do not report this NavigationInfo.type as unknown. }
     end else
-      WritelnWarning('VRML/X3D', Format('Unknown NavigationInfo.type "%s"',
-        [NavigationType]));
+      WritelnWarning('VRML/X3D', 'Unknown NavigationInfo.type "%s"', [S]);
   end;
 
 var
-  NavigationNode: TNavigationInfoNode;
   I: Integer;
+  NavigationNode: TNavigationInfoNode;
+begin
+  NavigationNode := NavigationInfoStack.Top;
+  if NavigationNode <> nil then
+    for I := 0 to NavigationNode.FdType.Count - 1 do
+      if StringToNavigationType(NavigationNode.FdType.Items[I], Result) then
+        Exit;
+
+  { No recognized "type" found, so use default type EXAMINE. }
+  Result := ntExamine;
+end;
+
+procedure TCastleSceneCore.CameraFromNavigationInfo(
+  Camera: TCamera; const Box: TBox3D);
+var
+  NavigationNode: TNavigationInfoNode;
   Radius: Single;
 begin
-  { calculate Walk, Examine and Universal first.
-    Makes handling various cameras later much easier. }
-  if Camera is TUniversalCamera then
-    Walk := TUniversalCamera(Camera).Walk else
-  if Camera is TWalkCamera then
-    Walk := TWalkCamera(Camera) else
-    Walk := nil;
-
-  if Camera is TUniversalCamera then
-    Examine := TUniversalCamera(Camera).Examine else
-  if Camera is TExamineCamera then
-    Examine := TExamineCamera(Camera) else
-    Examine := nil;
-
-  if Camera is TUniversalCamera then
-    Universal := TUniversalCamera(Camera) else
-    Universal := nil;
-
-  NavigationTypeInitialized := false;
   NavigationNode := NavigationInfoStack.Top;
 
-  { Reset Camera properties, this way InitializeNavigationType may
-    assume these are already set. }
-  if Universal <> nil then Universal.NavigationClass := ncWalk;
-  if Walk <> nil then Walk.PreferGravityUpForRotations := true;
-  if Walk <> nil then Walk.PreferGravityUpForMoving := true;
-  if Walk <> nil then Walk.Gravity := false;
-  if Examine <> nil then Examine.Turntable := false;
-  Camera.Input := TCamera.DefaultInput;
-
-  if ForceNavigationType <> '' then
-    InitializeNavigationType(ForceNavigationType);
-
-  if not NavigationTypeInitialized then
-  begin
-    if NavigationNode <> nil then
-      for I := 0 to NavigationNode.FdType.Count - 1 do
-      begin
-        InitializeNavigationType(NavigationNode.FdType.Items[I]);
-        if NavigationTypeInitialized then
-          Break;
-      end;
-  end;
-
-  if not NavigationTypeInitialized then
-    { No recognized "type" found, so use default type EXAMINE. }
-    InitializeNavigationType('EXAMINE');
-
   { calculate Radius }
-  Radius := ForceRadius;
+  Radius := 0;
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 1) then
+    Radius := NavigationNode.FdAvatarSize.Items[0];
+  { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
+    calculate something suitable based on Box. }
   if Radius <= 0 then
-  begin
-    if (NavigationNode <> nil) and
-       (NavigationNode.FdAvatarSize.Count >= 1) then
-      Radius := NavigationNode.FdAvatarSize.Items[0];
-    { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
-      calculate something suitable based on Box. }
-    if Radius <= 0 then
-      Radius := Box.AverageSize(false, 1.0) * 0.005;
-  end;
-
+    Radius := Box.AverageSize(false, 1.0) * 0.005;
   Camera.Radius := Radius;
 
-  if Walk <> nil then
+  { Note that we cannot here conditionally set some properties
+    e.g. only if "Camera is TWalkCamera".
+    This would mean that e.g. value of PreferredHeight
+    (from NavigationInfo.avatarSize) is lost when NavigationInfo.type="EXAMINE",
+    even if developer later switches NavigationType to Walk. }
+
+  { calculate Camera.PreferredHeight }
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 2) then
+    Camera.PreferredHeight := NavigationNode.FdAvatarSize.Items[1]
+  else
+    { Make it something >> Radius * 2, to allow some
+      space to decrease (e.g. by Input_DecreasePreferredHeight
+      in view3dscene). Remember that CorrectPreferredHeight
+      adds a limit to PreferredHeight, around Radius * 2. }
+    Camera.PreferredHeight := Radius * 4;
+
+  Camera.CorrectPreferredHeight;
+
+  { calculate Camera.ClimbHeight }
+  if (NavigationNode <> nil) and
+     (NavigationNode.FdAvatarSize.Count >= 3) then
+    Camera.ClimbHeight := Max(NavigationNode.FdAvatarSize.Items[2], 0.0)
+  else
+    Camera.ClimbHeight := 0;
+
+  { calculate Camera.HeadBobbing* }
+  if (NavigationNode <> nil) and
+     (NavigationNode is TKambiNavigationInfoNode) then
   begin
-    { calculate Walk.PreferredHeight }
-    if (NavigationNode <> nil) and
-       (NavigationNode.FdAvatarSize.Count >= 2) then
-      Walk.PreferredHeight := NavigationNode.FdAvatarSize.Items[1] else
-      { Make it something >> Radius * 2, to allow some
-        space to decrease (e.g. by Input_DecreasePreferredHeight
-        in view3dscene). Remember that CorrectPreferredHeight
-        adds a limit to PreferredHeight, around Radius * 2. }
-      Walk.PreferredHeight := Radius * 4;
-
-    Walk.CorrectPreferredHeight;
-
-    { calculate Walk.ClimbHeight }
-    if (NavigationNode <> nil) and
-       (NavigationNode.FdAvatarSize.Count >= 3) then
-      Walk.ClimbHeight := Max(NavigationNode.FdAvatarSize.Items[2], 0.0) else
-      Walk.ClimbHeight := 0;
-
-    { calculate Walk.HeadBobbing* }
-    if (NavigationNode <> nil) and
-       (NavigationNode is TKambiNavigationInfoNode) then
-    begin
-      Walk.HeadBobbing := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbing.Value;
-      Walk.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
-    end else
-    begin
-      Walk.HeadBobbing := TWalkCamera.DefaultHeadBobbing;
-      Walk.HeadBobbingTime := TWalkCamera.DefaultHeadBobbingTime;
-    end;
-
-    { calculate Walk.MoveSpeed }
-    if NavigationNode = nil then
-      { Since we don't have NavigationNode.speed, we just calculate some
-        speed that should "feel sensible". We base it on Radius,
-        that was set above. }
-      Walk.MoveSpeed := Camera.Radius * 20 else
-      { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
-      Walk.MoveSpeed := NavigationNode.FdSpeed.Value;
+    Camera.HeadBobbing := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbing.Value;
+    Camera.HeadBobbingTime := TKambiNavigationInfoNode(NavigationNode).FdHeadBobbingTime.Value;
+  end else
+  begin
+    Camera.HeadBobbing := TWalkCamera.DefaultHeadBobbing;
+    Camera.HeadBobbingTime := TWalkCamera.DefaultHeadBobbingTime;
   end;
 
-  if Examine <> nil then Examine.ModelBox := Box;
+  { calculate Camera.MoveSpeed }
+  if NavigationNode = nil then
+    { Since we don't have NavigationNode.speed, we just calculate some
+      speed that should "feel sensible". We base it on Radius,
+      that was set above. }
+    Camera.MoveSpeed := Camera.Radius * 20
+  else
+    { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
+    Camera.MoveSpeed := NavigationNode.FdSpeed.Value;
 
-  { No point in calling Walk.Init here: this method,
-    together with CameraFromViewpoint (with RelativeCameraTransform = false),
-    together initialize everything that TWalkCamera.Init does.
+  Camera.ModelBox := Box;
 
-    Also, no point in calling Examine.Init, for the same reason. }
+  { No point in calling TWalkCamera.Init or TExamineCamera.Init here:
+    this method, together with CameraFromViewpoint
+    (with RelativeCameraTransform = false),
+    together initialize everything that Init does. }
 end;
 
 procedure TCastleSceneCore.CameraFromViewpoint(ACamera: TCamera;
@@ -6210,7 +6153,6 @@ var
   Direction: TVector3;
   Up: TVector3;
   GravityUp: TVector3;
-  WalkCamera: TWalkCamera;
 begin
   if ViewpointStack.Top <> nil then
     ViewpointStack.Top.GetView(Position, Direction, Up, GravityUp) else
@@ -6221,14 +6163,7 @@ begin
       Position, Direction, Up, GravityUp);
   end;
 
-  if ACamera is TWalkCamera then
-    WalkCamera := TWalkCamera(ACamera) else
-  if ACamera is TUniversalCamera then
-    WalkCamera := TUniversalCamera(ACamera).Walk else
-    WalkCamera := nil;
-
-  if WalkCamera <> nil then
-    WalkCamera.GravityUp := GravityUp;
+  ACamera.GravityUp := GravityUp;
 
   { If RelativeCameraTransform, then we will move relative to
     initial camera changes. Else, we will jump to new initial camera vectors. }
@@ -6236,24 +6171,10 @@ begin
   if not RelativeCameraTransform then
   begin
     if AllowTransitionAnimate and (not ForceTeleportTransitions) then
-      CameraTransition(ACamera, Position, Direction, Up) else
+      CameraTransition(ACamera, Position, Direction, Up)
+    else
       ACamera.SetView(Position, Direction, Up);
   end;
-end;
-
-function TCastleSceneCore.CreateCamera(AOwner: TComponent;
-  const Box: TBox3D;
-  const ForceNavigationType: string = ''): TUniversalCamera;
-begin
-  Result := TUniversalCamera.Create(AOwner);
-  CameraFromNavigationInfo(Result, Box, ForceNavigationType);
-  CameraFromViewpoint(Result, false, false);
-end;
-
-function TCastleSceneCore.CreateCamera(AOwner: TComponent;
-  const ForceNavigationType: string = ''): TUniversalCamera;
-begin
-  Result := CreateCamera(AOwner, BoundingBox, ForceNavigationType);
 end;
 
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
@@ -6311,12 +6232,7 @@ end;
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
   const Position, Direction, Up, GravityUp: TVector3);
 begin
-  if Camera is TWalkCamera then
-    TWalkCamera(Camera).GravityUp := GravityUp else
-  if Camera is TUniversalCamera then
-    TUniversalCamera(Camera).Walk.GravityUp := GravityUp;
-    { Else ignore GravityUp }
-
+  Camera.GravityUp := GravityUp;
   CameraTransition(Camera, Position, Direction, Up);
 end;
 
@@ -6796,7 +6712,6 @@ var
   NavigationType: string;
   Walk: TWalkCamera;
   Examine: TExamineCamera;
-  Universal: TUniversalCamera;
   WalkSpeed, VisibilityLimit: Single;
   AvatarSize: TVector3;
   NewNavigationNode: TNavigationInfoNode;
@@ -6818,29 +6733,22 @@ begin
   NewViewpointNode.Scene := self;
 
   { Create NavigationInfo node }
-  Universal := nil;
   Walk := nil;
   Examine := nil;
-  if ACamera is TUniversalCamera then begin
-    Universal := ACamera as TUniversalCamera;
-    Walk := Universal.Walk;
-    Examine := Universal.Examine;
-
-    if Universal.NavigationType = ntWalk then NavigationType := 'WALK'
-    else if Universal.NavigationType = ntFly then NavigationType := 'FLY'
-    else if Universal.NavigationType = ntExamine then NavigationType := 'EXAMINE'
-    else if Universal.NavigationType = ntTurntable then NavigationType := 'TURNTABLE';
-  end
-  else if ACamera is TWalkCamera then begin
+  if ACamera is TWalkCamera then
+  begin
     Walk := ACamera as TWalkCamera;
     if Walk.Gravity then
-      NavigationType := 'WALK' else
+      NavigationType := 'WALK'
+    else
       NavigationType := 'FLY';
-  end
-  else if ACamera is TExamineCamera then begin
+  end else
+  if ACamera is TExamineCamera then
+  begin
     Examine := ACamera as TExamineCamera;
     if Examine.Turntable then
-      NavigationType := 'TURNTABLE' else
+      NavigationType := 'TURNTABLE'
+    else
       NavigationType := 'EXAMINE';
   end;
 
@@ -7078,6 +6986,13 @@ begin
     RootNode.EnumerateNodes(TTextNode, @FontChanged_TextNode, false);
     RootNode.EnumerateNodes(TAsciiTextNode_1, @FontChanged_AsciiTextNode_1, false);
   end;
+end;
+
+function TCastleSceneCore.Clone(const AOwner: TComponent): TCastleSceneCore;
+begin
+  Result := TComponentClass(ClassType).Create(AOwner) as TCastleSceneCore;
+  if RootNode <> nil then
+    Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
 
 end.

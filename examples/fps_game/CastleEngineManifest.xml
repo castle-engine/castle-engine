@@ -1,6 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="fps_game" standalone_source="fps_game.lpr">
+<project
+  name="fps_game"
+  standalone_source="fps_game.lpr"
+  game_units="Game"
+  caption="FPS Game Example"
+  qualified_name="io.castleengine.fps.game"
+>
   <package>
     <include path="README.txt" />
   </package>
+  <!--
+    Enable Android project integration with "services",
+    https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+    This automatically makes some features on Android work: sound, immersive mode.
+  -->
+  <android project_type="integrated" />
 </project>

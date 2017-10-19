@@ -1063,6 +1063,7 @@
     procedure AddIfNotExists(const Node: TX3DNode);
     function Equals(SecondValue: TObject): boolean; {$ifdef TOBJECT_HAS_EQUALS} override; {$endif}
     procedure Assign(const Source: TX3DNodeList);
+    procedure Assign(const Source: array of TX3DNode);
   end;
 
 {$endif read_interface}
@@ -3360,6 +3361,12 @@ begin
 end;
 
 procedure TX3DNodeList.Assign(const Source: TX3DNodeList);
+begin
+  Clear;
+  AddRange(Source);
+end;
+
+procedure TX3DNodeList.Assign(const Source: array of TX3DNode);
 begin
   Clear;
   AddRange(Source);

@@ -71,15 +71,21 @@ type
     FCamera: TCamera;
     FPaused: boolean;
     FRenderParams: TManagerRenderParams;
-
-    FShadowVolumes: boolean;
-    FShadowVolumesRender: boolean;
-
     FBackgroundWireframe: boolean;
     FBackgroundColor: TCastleColor;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
     FUseGlobalLights: boolean;
+    FApproximateActivation: boolean;
+    FDefaultVisibilityLimit: Single;
+    FTransparent: boolean;
+    FProjection: TProjection;
+    FInternalExamineCamera: TExamineCamera;
+    FInternalWalkCamera: TWalkCamera;
+    FWithinSetNavigationType: boolean;
+
+    FShadowVolumes: boolean;
+    FShadowVolumesRender: boolean;
 
     { If a texture for screen effects is ready, then
       ScreenEffectTextureDest/Src/Depth/Target are non-zero and
@@ -98,10 +104,6 @@ type
     ScreenPointVbo: TGLuint;
     ScreenPoint: packed array [0..3] of TScreenPoint;
 
-    FApproximateActivation: boolean;
-    FDefaultVisibilityLimit: Single;
-    FTransparent: boolean;
-
     FScreenSpaceAmbientOcclusion: boolean;
     SSAOShader: TGLSLScreenEffect;
 
@@ -110,8 +112,6 @@ type
       projection. Used by ApplyProjection. }
     DistortFieldOfViewY, DistortViewAspect: Single;
     SickProjectionTime: TFloatTime;
-
-    FProjection: TProjection;
 
     procedure RecalculateCursor(Sender: TObject);
     function PlayerNotBlocked: boolean;
@@ -139,14 +139,17 @@ type
 
       This cooperates closely with current @link(Camera) definition.
       Viewport's @link(Camera), if not assigned, is automatically created here,
-      see @link(Camera) and CreateDefaultCamera.
+      see @link(Camera) and AssignDefaultCamera.
       This takes care to always update Camera.ProjectionMatrix,
       Projection, GetMainScene.BackgroundSkySphereRadius.
       In turn, this expects Camera.Radius to be already properly set
-      (usually by CreateDefaultCamera). }
+      (usually by AssignDefaultCamera). }
     procedure ApplyProjection;
 
     procedure SetPaused(const Value: boolean);
+
+    function GetNavigationType: TNavigationType;
+    procedure SetNavigationType(const Value: TNavigationType); virtual;
   protected
     { The projection parameters. Determines if the view is perspective
       or orthogonal and exact field of view parameters.
@@ -276,6 +279,18 @@ type
     { @groupEnd }
 
     function GetScreenEffects(const Index: Integer): TGLSLProgram; virtual;
+
+    { Assign Camera to a default TCamera suitable for navigating in this scene.
+      The newly created camera owned should be Self.
+      This is automatically used when @link(Camera) is @nil at various places,
+      and implementation may assume that @link(Camera) is @nil at entry.
+
+      The implementation in base TCastleAbstractViewport uses
+      MainScene.NavigationTypeFromNavigationInfo
+      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
+      If MainScene is not assigned, we create a simple
+      camera in Examine mode. }
+    procedure AssignDefaultCamera; virtual;
   public
     const
       DefaultScreenSpaceAmbientOcclusion = false;
@@ -301,43 +316,149 @@ type
       @bold(Read only), change these parameters only by overriding CalculateProjection. }
     property Projection: TProjection read FProjection;
 
-    { Create default TCamera suitable for navigating in this scene.
-      This is automatically used to initialize @link(Camera) property
-      when @link(Camera) is @nil at ApplyProjection call.
-
-      The implementation in base TCastleSceneManager uses MainScene.CreateCamera
-      (so it will follow your VRML/X3D scene Viewpoint, NavigationInfo and such).
-      If MainScene is not assigned, we will just create a simple
-      TUniversalCamera in (initially) Examine mode.
-
-      The implementation in TCastleViewport simply calls
-      SceneManager.CreateDefaultCamera. So by default all the viewport's
-      cameras are created the same way, by refering to the scene manager.
-      If you want you can override it to specialize CreateDefaultCamera
-      for specific viewport classes.
-
-      Overloaded version without any parameters just uses Self as owner
-      of the camera.
-
-      @groupBegin }
-    function CreateDefaultCamera(AOwner: TComponent): TCamera; virtual; abstract; overload;
-    function CreateDefaultCamera: TCamera; overload;
-    { @groupEnd }
-
     { Return current camera. Automatically creates it if missing. }
     function RequiredCamera: TCamera;
 
-    { Smoothly animate current @link(Camera) to a default camera settings.
+    { Return the currently used camera as TWalkCamera, making sure that current
+      NavigationType is something using TWalkCamera.
 
-      Default camera settings are determined by calling CreateDefaultCamera.
-      See TCamera.AnimateTo for details what and how is animated.
+      @unorderedList(
+        @item(
+          When SwitchNavigationTypeIfNeeded is @true (the default),
+          this method makes sure that the @link(NavigationType) corresponds to a type
+          handled by TWalkCamera, creating and adjusting the camera if necessary.
 
-      Current @link(Camera) is created by CreateDefaultCamera if not assigned
-      yet at this point. (And the animation isn't done, since such camera
-      already stands at the default position.) This makes this method
-      consistent: after calling it, you always know that @link(Camera) is
-      assigned and going to the default position. }
-    procedure CameraAnimateToDefault(const Time: TFloatTime);
+          If the current NavigationType does not use TWalkCamera
+          (see @link(TNavigationType) documentation for information which
+          navigation types use which TCamera descendants),
+          then it's switched to ntWalk.
+        )
+
+        @item(
+          When SwitchNavigationTypeIfNeeded is @false,
+          then we return @nil if the current camera is not already
+          a TWalkCamera instance.
+
+          We @italic(never) create a new camera in this case
+          (even if the NavigatinInfo node in MainScene would indicate
+          that the new camera would be a TWalkCamera).
+        )
+      )
+    }
+    function WalkCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TWalkCamera;
+
+    { Return the currently used camera as TExamineCamera, making sure that current
+      NavigationType is something using TExamineCamera.
+
+      @unorderedList(
+        @item(
+          When SwitchNavigationTypeIfNeeded is @true (the default),
+          this method makes sure that the @link(NavigationType) corresponds to a type
+          handled by TExamineCamera, creating and adjusting the camera if necessary.
+
+          If the current NavigationType does not use TExamineCamera
+          (see @link(TNavigationType) documentation for information which
+          navigation types use which TCamera descendants),
+          then it's switched to ntExamine.
+        )
+
+        @item(
+          When SwitchNavigationTypeIfNeeded is @false,
+          then we return @nil if the current camera is not already
+          a TExamineCamera instance.
+
+          We @italic(never) create a new camera in this case
+          (even if the NavigatinInfo node in MainScene would indicate
+          that the new camera would be a TExamineCamera).
+        )
+      )
+    }
+    function ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean = true): TExamineCamera;
+
+    { Choose navigation method by creating and adjusting the camera,
+      and various camera properies (like TWalkCamera.Gravity and so on).
+      This is automatically determined from the currently bound NavigatinInfo X3D
+      node in the @link(MainScene).
+      You can also set this manually, thus overriding the NavigatinInfo node.
+
+      This is a shortcut property for adjusting the camera class
+      (by calling @link(WalkCamera), @link(ExamineCamera))
+      and adjusting a couple of camera properties.
+      Note that you can also affect the current NavigationType by directly
+      changing the camera properties,
+      e.g. you can directly change @link(TWalkCamera.Gravity) from @false to @true,
+      and thus you effectively switch from ntFly to ntWalk navigation types.
+      When you read the NavigationType property, we determine the current navigation
+      type from current camera properties.
+
+      When the camera is created for the first time,
+      it's parameters are determined from the current NavigationInfo
+      and Viewpoint nodes in @link(MainScene), and from bounding box of the world.
+      When the camera class is switched later, the common camera properties
+      (defined at TCamera, like @link(TCamera.Radius) and view vectors
+      -- position, direction, up) are copied, so they are preserved.
+      The other camera properties (those defined only at TWalkCamera or TExamineCamera
+      descendants, e.g. @link(TWalkCamera.MouseLook) and various inputs
+      of cameras) are also preserved within InternalExamineCamera and
+      InternalWalkCamera.
+
+      To reliably force recreating the camera from scratch, call @link(ClearCameras).
+      Simply freeing the current camera by @code(SceneManager.Camera.Free)
+      is also valid operation, but it does not free both cameras
+      (@link(InternalExamineCamera) and @link(InternalWalkCamera))
+      so it doesn't guarantee that all cameras will be recreated from a "clean"
+      state.
+      You can also explicitly assign your own camera descendant to
+      @code(SceneManager.Camera).
+
+      Setting this sets:
+      @unorderedList(
+        @itemSpacing compact
+        @item @link(TCamera.Input)
+        @item @link(TExamineCamera.Turntable), only in case of @link(TExamineCamera)
+        @item @link(TWalkCamera.Gravity), only in case of @link(TWalkCamera)
+        @item @link(TWalkCamera.PreferGravityUpForRotations), only in case of @link(TWalkCamera)
+        @item @link(TWalkCamera.PreferGravityUpForMoving), only in case of @link(TWalkCamera)
+      )
+
+      If you write to NavigationType, then you @italic(should not) touch the
+      above properties directly. That's because not every combination of
+      above properties correspond to some sensible value of NavigationType.
+      If you directly set some weird configuration, reading NavigationType will
+      try it's best to determine the closest TNavigationType value
+      that is similar to your configuration. }
+    property NavigationType: TNavigationType
+      read GetNavigationType write SetNavigationType;
+
+    { Make @link(Camera) @nil, and force creating a completely new camera instance
+      when needed. The actual creation may be caused by calling
+      @link(ExamineCamera), @link(WalkCamera),
+      @link(InternalExamineCamera), @link(InternalWalkCamera),
+      or by setting @link(NavigationType).
+
+      In all cases, these methods will create a new camera instance
+      after a @name call. No previous cached camera instance will be used. }
+    procedure ClearCameras;
+
+    { Camera instances used by this scene manager.
+      Using these methods automatically creates these instances
+      (so they are never @nil).
+
+      Using these methods @italic(does not) make these
+      camera instances current (in contast to calling @link(ExamineCamera),
+      @link(WalkCamera) or setting @link(NavigationType)).
+
+      When you switch navigation types by calling @link(ExamineCamera),
+      @link(WalkCamera) or setting @link(NavigationType)
+      the scene manager keeps using these instances of cameras,
+      instead of creating new camera instances.
+      This way all the camera properties
+      (not only those copied by TCamera.Assign) are preserved when you switch
+      e.g. NavigationType from ntWalk to ntExamine to ntWalk again.
+      @groupBegin }
+    function InternalExamineCamera: TExamineCamera;
+    function InternalWalkCamera: TWalkCamera;
+    { @groupEnd }
 
     { Screen effects are shaders that post-process the rendered screen.
       If any screen effects are active, we will automatically render
@@ -402,8 +523,11 @@ type
       If you don't assign anything here, we'll create a default camera
       when necessary (usually at the ApplyProjection which
       happens before the rendering).
-      Use RequiredCamera instead of this property to get a camera
+      Use @link(RequiredCamera) instead of this property to get a camera
       that is never @nil.
+      Or use @link(ExamineCamera) or @link(WalkCamera) to get a camera
+      that is never @nil, and has particular type.
+      Or set @link(NavigationType) first, this also sets the camera always.
 
       For many purposes, you can directly operate on this camera,
       for example you can change it's @link(TCamera.Position Position).
@@ -714,6 +838,7 @@ type
     procedure SetMouseRayHit(const Value: TRayCollision);
     function MouseRayHitContains(const Item: T3D): boolean;
     procedure SetPlayer(const Value: TPlayer);
+    procedure SetNavigationType(const Value: TNavigationType); override;
   protected
     FSectors: TSectorList;
     Waypoints: TWaypointList;
@@ -800,8 +925,6 @@ type
 
     procedure Update(const SecondsPassed: Single;
       var HandleInput: boolean); override;
-
-    function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
 
     { Where the 3D items (player, creatures, items) can move,
       and where the gravity works. In case of 1st-person view
@@ -1110,8 +1233,6 @@ type
     destructor Destroy; override;
 
     procedure Render; override;
-
-    function CreateDefaultCamera(AOwner: TComponent): TCamera; override;
   published
     property SceneManager: TCastleSceneManager read FSceneManager write SetSceneManager;
   end;
@@ -1213,8 +1334,7 @@ begin
     This includes setting FCamera to nil.
     Yes, this setting FCamera to nil is needed, it's not just paranoia.
 
-    Consider e.g. when our Camera is owned by Self
-    (e.g. because it was created in ApplyProjection by CreateDefaultCamera).
+    Consider e.g. when our Camera is owned by Self.
     This means that this camera will be freed in "inherited" destructor call
     below. Since we just did FCamera.RemoveFreeNotification, we would have
     no way to set FCamera to nil, and FCamera would then remain as invalid
@@ -1236,12 +1356,8 @@ end;
 
 procedure TCastleAbstractViewport.SetCamera(const Value: TCamera);
 begin
-  { This camera @italic(cannot) be inside some other container
-    (like on TCastleWindowCustom.Controls or TCastleControlCustom.Controls list),
-    and even cannot be now (TCamera is not a TUIControl anymore).
-
-    Scene manager / viewport will handle passing events to the camera on it's own,
-    we will also pass our own Container to Camera.Container.
+  { Scene manager / viewport will handle passing events to their camera,
+    and will also pass our own Container to Camera.Container.
     This is desired, this way events are correctly passed
     and interpreted before passing them to 3D objects.
     And this way we avoid the question whether camera should be before
@@ -1258,7 +1374,7 @@ begin
   if FCamera <> Value then
   begin
     { Check csDestroying, as this may be called from Notification,
-      which may be called by camera destructor *after* TUniversalCamera
+      which may be called by camera destructor *after* TCamera
       after freed it's fields. }
     if (FCamera <> nil) and not (csDestroying in FCamera.ComponentState) then
     begin
@@ -1268,11 +1384,6 @@ begin
       begin
         TWalkCamera(FCamera).OnMoveAllowed := nil;
         TWalkCamera(FCamera).OnHeight := nil;
-      end else
-      if FCamera is TUniversalCamera then
-      begin
-        TUniversalCamera(FCamera).Walk.OnMoveAllowed := nil;
-        TUniversalCamera(FCamera).Walk.OnHeight := nil;
       end;
 
       FCamera.RemoveFreeNotification(Self);
@@ -1292,11 +1403,6 @@ begin
       begin
         TWalkCamera(FCamera).OnMoveAllowed := @CameraMoveAllowed;
         TWalkCamera(FCamera).OnHeight := @CameraHeight;
-      end else
-      if FCamera is TUniversalCamera then
-      begin
-        TUniversalCamera(FCamera).Walk.OnMoveAllowed := @CameraMoveAllowed;
-        TUniversalCamera(FCamera).Walk.OnHeight := @CameraHeight;
       end;
 
       FCamera.FreeNotification(Self);
@@ -1327,6 +1433,12 @@ begin
       { set to nil by SetCamera, to clean nicely }
       Camera := nil;
     end;
+    // Note that we don't register on FInternalExamine/WalkCamera destruction
+    // when they are not current, so they should never be freed in that case.
+    if AComponent = FInternalWalkCamera then
+      FInternalWalkCamera := nil;
+    if AComponent = FInternalExamineCamera then
+      FInternalExamineCamera := nil;
   end;
 end;
 
@@ -1804,7 +1916,8 @@ begin
   begin
     {$warnings off}
     if HeadlightFromViewport then
-      HC := Camera else
+      HC := Camera
+    else
       HC := GetHeadlightCamera;
     {$warnings on}
 
@@ -1905,9 +2018,13 @@ begin
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
-      {$ifndef OpenGLES}
-      glLoadMatrix(RenderingCamera.RotationMatrix);
-      {$endif}
+      if EnableFixedFunction then
+      begin
+        {$ifndef OpenGLES}
+        glLoadMatrix(RenderingCamera.RotationMatrix);
+        {$endif}
+      end;
+      RenderingCamera.RotationOnly := true;
 
       { The background rendering doesn't like custom Dimensions.
         They could make the background sky box very small, such that it
@@ -1925,6 +2042,8 @@ begin
 
       if FProjection.ProjectionType = ptOrthographic then
         RenderContext.ProjectionMatrix := SavedProjectionMatrix;
+
+      RenderingCamera.RotationOnly := false;
     end else
     begin
       Include(ClearBuffers, cbColor);
@@ -1939,9 +2058,12 @@ begin
 
   RenderContext.Clear(ClearBuffers, ClearColor);
 
-  {$ifndef OpenGLES}
-  glLoadMatrix(RenderingCamera.Matrix);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    {$ifndef OpenGLES}
+    glLoadMatrix(RenderingCamera.Matrix);
+    {$endif}
+  end;
 
   { clear FRenderParams instance }
 
@@ -2257,13 +2379,13 @@ begin
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
-    {$ifndef OpenGLES}
-    glPushAttrib(GL_ENABLE_BIT);
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glPushAttrib(GL_ENABLE_BIT);
       glDisable(GL_LIGHTING);
       glDisable(GL_DEPTH_TEST);
-    {$endif}
 
-      {$ifndef OpenGLES}
       glActiveTexture(GL_TEXTURE0);
       glDisable(GL_TEXTURE_2D);
       if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
@@ -2277,11 +2399,13 @@ begin
           glEnable(ScreenEffectTextureTarget);
       end;
       {$endif}
+    end;
 
-      OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
+    OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
+    RenderWithScreenEffectsCore;
 
-      RenderWithScreenEffectsCore;
-
+    if EnableFixedFunction then
+    begin
       {$ifndef OpenGLES}
       if CurrentScreenEffectsNeedDepth then
       begin
@@ -2293,12 +2417,12 @@ begin
       glActiveTexture(GL_TEXTURE0);
       if ScreenEffectTextureTarget <> GL_TEXTURE_2D_MULTISAMPLE then
         glDisable(ScreenEffectTextureTarget); // TODO: should be done by glPopAttrib, right? enable_bit contains it?
-      {$endif}
 
       { at the end, we left active texture as default GL_TEXTURE0 }
-    {$ifndef OpenGLES}
-    glPopAttrib;
-    {$endif}
+
+      glPopAttrib;
+      {$endif}
+    end;
   end;
 end;
 
@@ -2359,7 +2483,7 @@ begin
 
   if SSAOShader = nil then
   begin
-    if TGLSLProgram.ClassSupport <> gsNone then
+    if GLFeatures.Shaders <> gsNone then
     begin
       try
         SSAOShader := TGLSLScreenEffect.Create;
@@ -2405,30 +2529,192 @@ begin
   end;
 end;
 
-procedure TCastleAbstractViewport.CameraAnimateToDefault(const Time: TFloatTime);
-var
-  DefCamera: TCamera;
-begin
-  if Camera = nil then
-    Camera := CreateDefaultCamera(nil) else
-  begin
-    DefCamera := CreateDefaultCamera(nil);
-    try
-      Camera.AnimateTo(DefCamera, Time);
-    finally FreeAndNil(DefCamera) end;
-  end;
-end;
-
-function TCastleAbstractViewport.CreateDefaultCamera: TCamera;
-begin
-  Result := CreateDefaultCamera(Self);
-end;
-
 function TCastleAbstractViewport.RequiredCamera: TCamera;
 begin
   if Camera = nil then
-    Camera := CreateDefaultCamera(Self);
+    AssignDefaultCamera;
   Result := Camera;
+end;
+
+function TCastleAbstractViewport.InternalExamineCamera: TExamineCamera;
+begin
+  if FInternalExamineCamera = nil then
+    FInternalExamineCamera := TExamineCamera.Create(Self);
+  Result := FInternalExamineCamera;
+end;
+
+function TCastleAbstractViewport.InternalWalkCamera: TWalkCamera;
+begin
+  if FInternalWalkCamera = nil then
+    FInternalWalkCamera := TWalkCamera.Create(Self);
+  Result := FInternalWalkCamera;
+end;
+
+function TCastleAbstractViewport.ExamineCamera(const SwitchNavigationTypeIfNeeded: boolean): TExamineCamera;
+var
+  NewCamera: TExamineCamera;
+begin
+  if not (Camera is TExamineCamera) then
+  begin
+    if not SwitchNavigationTypeIfNeeded then
+      Exit(nil);
+
+    NewCamera := InternalExamineCamera;
+    if Camera = nil then
+      AssignDefaultCamera; // initialize defaults from MainScene
+    NewCamera.Assign(Camera);
+    Camera := NewCamera;
+    { make sure it's in ntExamine mode (as we possibly reuse old camera,
+      by reusing InternalExamineCamera, so we're not sure what state it's in. }
+    NavigationType := ntExamine;
+  end;
+  Result := Camera as TExamineCamera;
+end;
+
+function TCastleAbstractViewport.WalkCamera(const SwitchNavigationTypeIfNeeded: boolean): TWalkCamera;
+var
+  NewCamera: TWalkCamera;
+begin
+  if not (Camera is TWalkCamera) then
+  begin
+    if not SwitchNavigationTypeIfNeeded then
+      Exit(nil);
+
+    NewCamera := InternalWalkCamera;
+    if Camera = nil then
+      AssignDefaultCamera; // initialize defaults from MainScene
+    NewCamera.Assign(Camera);
+    Camera := NewCamera;
+    { make sure it's in ntWalk mode (as we possibly reuse old camera,
+      by reusing InternalWalkCamera, so we're not sure what state it's in. }
+    NavigationType := ntWalk;
+  end;
+  Result := Camera as TWalkCamera;
+end;
+
+function TCastleAbstractViewport.GetNavigationType: TNavigationType;
+var
+  C: TCamera;
+begin
+  C := Camera;
+  { We are using here Camera, not RequiredCamera, as automatically
+    creating Camera could have surprising consequences.
+    E.g. it means that SetCamera(nil) may recreate the camera,
+    as BoundNavigationInfoChanged calls something that checks
+    NavigationType. }
+  if C = nil then
+    Result := ntNone
+  else
+    Result := C.GetNavigationType;
+end;
+
+procedure TCastleAbstractViewport.SetNavigationType(const Value: TNavigationType);
+var
+  E: TExamineCamera;
+  W: TWalkCamera;
+begin
+  { Do this even if "Value = GetNavigationType".
+    This makes sense, in case you set some weird values.
+    On the other hand, it makes "NavigationType := NavigationType" sometimes
+    a sensible operation that changes something.
+
+    It also avoids recursive loop when first assigning camera
+    in AssignDefaultCamera. }
+
+  { do not change NavigationType when
+    SetNavigationType is called from ExamineCamera or WalkCamera
+    that were already called by NavigationType.
+    It's actually harmless, but still useless. }
+  if FWithinSetNavigationType then
+    Exit;
+  FWithinSetNavigationType := true;
+
+  case Value of
+    ntExamine:
+      begin
+        E := ExamineCamera;
+        E.Input := TCamera.DefaultInput;
+        E.Turntable := false;
+      end;
+    ntTurntable:
+      begin
+        E := ExamineCamera;
+        E.Input := TCamera.DefaultInput;
+        E.Turntable := true;
+      end;
+    ntWalk:
+      begin
+        W := WalkCamera;
+        W.Input := TCamera.DefaultInput;
+        W.PreferGravityUpForRotations := true;
+        W.PreferGravityUpForMoving := true;
+        W.Gravity := true;
+      end;
+    ntFly:
+      begin
+        W := WalkCamera;
+        W.Input := TCamera.DefaultInput;
+        W.PreferGravityUpForRotations := true;
+        W.PreferGravityUpForMoving := false;
+        W.Gravity := false;
+      end;
+    ntNone:
+      begin
+        W := WalkCamera;
+        W.Input := [];
+        // gravity stuff set like for ntFly
+        W.PreferGravityUpForRotations := true;
+        W.PreferGravityUpForMoving := false;
+        W.Gravity := false;
+      end;
+    else raise EInternalError.Create('TCastleAbstractViewport.SetNavigationType: Value?');
+  end;
+
+  { This assertion should be OK. It is commented out only to prevent
+    GetNavigationType from accidentally creating something intermediate,
+    and thus making debug and release behaviour different) }
+  // Assert(GetNavigationType = Value);
+
+  FWithinSetNavigationType := false;
+end;
+
+procedure TCastleAbstractViewport.ClearCameras;
+begin
+  Camera := nil;
+  FreeAndNil(FInternalExamineCamera);
+  FreeAndNil(FInternalWalkCamera);
+end;
+
+procedure TCastleAbstractViewport.AssignDefaultCamera;
+var
+  Box: TBox3D;
+  Scene: TCastleScene;
+  C: TExamineCamera;
+  Nav: TNavigationType;
+begin
+  Box := GetItems.BoundingBox;
+  Scene := GetMainScene;
+  if Scene <> nil then
+  begin
+    Nav := Scene.NavigationTypeFromNavigationInfo;
+
+    { Set Camera explicitly, otherwise SetNavigationType below could call
+      ExamineCamera / WalkCamera that call AssignDefaultCamera when Camera = nil,
+      and we would have infinite AssignDefaultCamera calls loop. }
+    if Nav in [ntExamine, ntTurntable] then
+      Camera := InternalExamineCamera
+    else
+      Camera := InternalWalkCamera;
+
+    NavigationType := Nav;
+    Scene.CameraFromNavigationInfo(Camera, Box);
+    Scene.CameraFromViewpoint(Camera, false, false);
+  end else
+  begin
+    C := InternalExamineCamera;
+    C.Init(Box, Box.AverageSize(false, 1.0) * 0.005);
+    Camera := C;
+  end;
 end;
 
 function TCastleAbstractViewport.Statistics: TRenderStatistics;
@@ -2674,34 +2960,6 @@ begin
   inherited;
 end;
 
-function TCastleSceneManager.CreateDefaultCamera(AOwner: TComponent): TCamera;
-var
-  Box: TBox3D;
-  Position, Direction, Up, GravUp: TVector3;
-begin
-  Box := Items.BoundingBox;
-  if MainScene <> nil then
-    Result := MainScene.CreateCamera(AOwner, Box) else
-  begin
-    CameraViewpointForWholeScene(Box, 2, 1, false, true,
-      Position, Direction, Up, GravUp);
-
-    { by default, create TUniversalCamera, as this is the most versatile camera,
-      and it's also what TCastleSceneCore creates (so it's good for consistency,
-      simple 3D viewers may in practice assume they always have TUniversalCamera).
-      Operations below set the same stuff as
-      TExamineCamera.Init and TWalkCamera.Init (but we try to do most by
-      using TUniversalCamera methods, so that everything is known by
-      TUniversalCamera fields too). }
-    Result := TUniversalCamera.Create(AOwner);
-    (Result as TUniversalCamera).Radius := Box.AverageSize(false, 1.0) * 0.005;
-    (Result as TUniversalCamera).Examine.ModelBox := Box;
-    (Result as TUniversalCamera).Walk.GravityUp := GravUp;
-    (Result as TUniversalCamera).SetInitialView(Position, Direction, Up, false);
-    (Result as TUniversalCamera).GoToInitial;
-  end;
-end;
-
 function TCastleSceneManager.MouseRayHitContains(const Item: T3D): boolean;
 begin
   Result := (MouseRayHit <> nil) and
@@ -2833,6 +3091,13 @@ begin
     BoundNavigationInfoChanged;
   end else
     inherited; { not really needed for now, but for safety --- always call inherited }
+end;
+
+procedure TCastleSceneManager.SetNavigationType(const Value: TNavigationType);
+begin
+  inherited;
+  { Call OnBoundNavigationInfoChanged when NavigationType changed. }
+  BoundNavigationInfoChanged;
 end;
 
 procedure TCastleSceneManager.Notification(AComponent: TComponent; Operation: TOperation);
@@ -3258,7 +3523,10 @@ end;
 procedure TCastleSceneManager.SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 begin
   if Camera <> nil then
+  begin
+    NavigationType := Scene.NavigationTypeFromNavigationInfo;
     Scene.CameraFromNavigationInfo(Camera, Items.BoundingBox);
+  end;
   BoundNavigationInfoChanged;
 end;
 
@@ -3317,7 +3585,8 @@ end;
 function TCastleSceneManager.GravityUp: TVector3;
 begin
   if Camera <> nil then
-    Result := Camera.GetGravityUp else
+    Result := Camera.GravityUp
+  else
     Result := DefaultCameraUp;
 end;
 
@@ -3414,12 +3683,6 @@ begin
   if SceneManager <> nil then
     Result := SceneManager.CameraRayCollision(RayOrigin, RayDirection) else
     Result := nil;
-end;
-
-function TCastleViewport.CreateDefaultCamera(AOwner: TComponent): TCamera;
-begin
-  CheckSceneManagerAssigned;
-  Result := SceneManager.CreateDefaultCamera(AOwner);
 end;
 
 function TCastleViewport.GetItems: T3DWorld;

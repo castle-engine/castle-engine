@@ -14,7 +14,7 @@ X3DShapeNode : X3DChildNode, X3DBoundedObject {
   SFVec3f []       bboxSize   -1 -1 -1 [0,Inf) or -1 -1 -1
 
   # EXTENSIONS:
-  SFString [in,out]    shading            "DEFAULT" # ["DEFAULT"|"PHONG"|"WIREFRAME"]
+  SFString [in,out]    shading            "DEFAULT" # ["DEFAULT"|"GOURAUD"|"PHONG"|"WIREFRAME"]
   SFNode  []           octreeTriangles    NULL      # [KambiOctreeProperties]
   # InstantReality extension, http://doc.instantreality.org/documentation/nodetype/Shape/
   SFBool  [in,out]     render             TRUE

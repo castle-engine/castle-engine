@@ -241,7 +241,9 @@
       Use only for TSFBool fields within TAbstractDragSensorNode. }
     chDragSensorEnabled,
 
-    { NavigationInfo field value used in TCastleSceneCore.CameraFromNavigationInfo
+    { NavigationInfo field value used in
+      TCastleSceneCore.NavigationTypeFromNavigationInfo or
+      TCastleSceneCore.CameraFromNavigationInfo
       changed. }
     chNavigationInfo,
 

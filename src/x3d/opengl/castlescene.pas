@@ -131,7 +131,7 @@ type
     procedure SetControlBlending(const Value: boolean); virtual;
     procedure SetUseOcclusionQuery(const Value: boolean); virtual;
 
-    procedure SetShaders(const Value: TShadersRendering); override;
+    procedure SetPhongShading(const Value: boolean); override;
   public
     const
       { }
@@ -748,6 +748,9 @@ type
     { @groupEnd }
 
     { Create a scene with the same contents (X3D scene graph) as this one.
+      The created scene has exactly the same class as this one
+      (we use ClassType.Create to call a virtual constructor).
+
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(Attributes). }
@@ -818,6 +821,10 @@ const
   bsNone = CastleBoxes.bsNone;
   bs2D = CastleBoxes.bs2D;
   bs3D = CastleBoxes.bs3D;
+
+  paDefault = CastleSceneCore.paDefault;
+  paForceLooping = CastleSceneCore.paForceLooping;
+  paForceNotLooping = CastleSceneCore.paForceNotLooping;
 
 implementation
 
@@ -1126,10 +1133,18 @@ var
   { Transformation of Params.RenderTransform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
+  var
+    CameraMatrix: PMatrix4;
   begin
+    if RenderingCamera.RotationOnly then
+      CameraMatrix := @RenderingCamera.RotationMatrix
+    else
+      CameraMatrix := @RenderingCamera.Matrix;
+
     if Params.RenderTransformIdentity then
-      Result := RenderingCamera.Matrix else
-      Result := RenderingCamera.Matrix * Params.RenderTransform;
+      Result := CameraMatrix^
+    else
+      Result := CameraMatrix^ * Params.RenderTransform;
   end;
 
   { Renders Shape, by calling Renderer.RenderShape. }
@@ -1287,14 +1302,17 @@ begin
   ModelView := GetModelViewTransform;
 
   {$ifndef OpenGLES}
-  if not Params.RenderTransformIdentity then
+  if EnableFixedFunction then
   begin
-    glPushMatrix;
-    glMultMatrix(Params.RenderTransform);
+    if not Params.RenderTransformIdentity then
+    begin
+      glPushMatrix;
+      glMultMatrix(Params.RenderTransform);
+    end;
+    { TODO: this should be replaced with just
+    glLoadMatrix(GetModelViewTransform);
+      to just load full matrix, and be consistent with what happens when EnableFixedFunction=false. }
   end;
-  { TODO: this should be replaced with just
-  glLoadMatrix(GetModelViewTransform);
-    to just load full matrix, and be consistent with what happens on OpenGLES. }
   {$endif}
 
   Renderer.RenderBegin(Params.BaseLights(Self) as TLightInstancesList,
@@ -1387,8 +1405,9 @@ begin
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
-  if not Params.RenderTransformIdentity then
-    glPopMatrix;
+  if EnableFixedFunction then
+    if not Params.RenderTransformIdentity then
+      glPopMatrix;
   {$endif}
 end;
 
@@ -1648,7 +1667,7 @@ begin
   { This is usually called by Render(Frustum, Params) that probably
     already did tests below. But it may also be called directly,
     so do the checks below anyway. (The checks are trivial, so no speed harm.) }
-  if GetExists and (InternalDirty = 0) and
+  if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     { I used to make here more complex "prepare" mechanism, that was trying
@@ -1707,7 +1726,7 @@ var
   T: TMatrix4;
   ForceOpaque: boolean;
 begin
-  if GetExists and CastShadowVolumes then
+  if GetVisible and CastShadowVolumes then
   begin
     SVRenderer := ShadowVolumeRenderer as TGLShadowVolumeRenderer;
 
@@ -1894,7 +1913,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   end;
 
 begin
-  if GetExists and (InternalDirty = 0) and
+  if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;
@@ -2074,14 +2093,14 @@ var
   SE: TScreenEffectNode;
 begin
   Result := 0;
-  if Attributes.Shaders <> srDisable then
-    for I := 0 to ScreenEffectNodes.Count - 1 do
-    begin
-      SE := TScreenEffectNode(ScreenEffectNodes[I]);
-      Renderer.PrepareScreenEffect(SE);
-      if SE.Shader <> nil then
-        Inc(Result);
-    end;
+
+  for I := 0 to ScreenEffectNodes.Count - 1 do
+  begin
+    SE := TScreenEffectNode(ScreenEffectNodes[I]);
+    Renderer.PrepareScreenEffect(SE);
+    if SE.Shader <> nil then
+      Inc(Result);
+  end;
 end;
 
 function TCastleScene.ScreenEffects(Index: Integer): TGLSLProgram;
@@ -2131,7 +2150,7 @@ end;
 
 function TCastleScene.Clone(const AOwner: TComponent): TCastleScene;
 begin
-  Result := TCastleScene.Create(AOwner);
+  Result := TComponentClass(ClassType).Create(AOwner) as TCastleScene;
   if RootNode <> nil then
     Result.Load(RootNode.DeepCopy as TX3DRootNode, true);
 end;
@@ -2263,15 +2282,14 @@ begin
     (GLFeatures.QueryCounterBits > 0);
 end;
 
-procedure TSceneRenderingAttributes.SetShaders(const Value: TShadersRendering);
+procedure TSceneRenderingAttributes.SetPhongShading(const Value: boolean);
 var
   I: Integer;
 begin
-  if Shaders <> Value then
+  if PhongShading <> Value then
   begin
     inherited;
-    { When switching to a higher TShadersRendering value
-      (that uses more shaders), we want to force generating necessary
+    { When switching this we want to force generating necessary
       shaders at the next PrepareResources call. Otherwise shaders would
       be prepared only when shapes come into view, which means that navigating
       awfully stutters for some time after changing this property. }

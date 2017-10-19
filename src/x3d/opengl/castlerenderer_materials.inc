@@ -54,20 +54,23 @@ procedure RenderMaterialsBegin;
       Shader.MaterialUnlit := Vector4(DiffuseColor, MaterialOpacity) else
       Shader.MaterialUnlit := Vector4(UnLitColor, MaterialOpacity);
 
-    {$ifndef OpenGLES}
-    if Lighting then
+    if EnableFixedFunction then
     begin
-      glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Shader.MaterialAmbient);
-      glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Shader.MaterialDiffuse);
-      glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Shader.MaterialSpecular);
-      glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Shader.MaterialEmission);
-      glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, Shader.MaterialShininessExp);
+      {$ifndef OpenGLES}
+      if Lighting then
+      begin
+        glMaterialv(GL_FRONT_AND_BACK, GL_AMBIENT, Shader.MaterialAmbient);
+        glMaterialv(GL_FRONT_AND_BACK, GL_DIFFUSE, Shader.MaterialDiffuse);
+        glMaterialv(GL_FRONT_AND_BACK, GL_SPECULAR, Shader.MaterialSpecular);
+        glMaterialv(GL_FRONT_AND_BACK, GL_EMISSION, Shader.MaterialEmission);
+        glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, Shader.MaterialShininessExp);
 
-      { If Lighting, we know that GL_LIGHTING is enabled
-        (for fixed-function, or shader). So no point in setting glColor. }
-    end else
-      glColorv(Shader.MaterialUnlit);
-    {$endif}
+        { If Lighting, we know that GL_LIGHTING is enabled
+          (for fixed-function, or shader). So no point in setting glColor. }
+      end else
+        glColorv(Shader.MaterialUnlit);
+      {$endif}
+    end;
   end;
 
   { Sets current OpenGL material and color properties for VRML 1.0 material

@@ -275,11 +275,11 @@ type
   { OpenGL resources for DrawPrimitive2D.
     Shared across OpenGL contexts, must be freed before last OpenGL context is freed. }
   TPrimitive2DResources = class
-    {$ifdef GLImageUseShaders}
+    { Used only in shader pipeline }
     Prog: TGLSLProgram;
     UniformViewportSize, UniformColor: TGLSLUniform;
     AttribVertex: TGLSLAttribute;
-    {$endif}
+
     Vbo: TGLuint;
     PointPtr: Pointer;
     PointPtrAllocated: Integer;
@@ -289,9 +289,7 @@ type
 destructor TPrimitive2DResources.Destroy;
 begin
   glFreeBuffer(Vbo);
-  {$ifdef GLImageUseShaders}
   FreeAndNil(Prog);
-  {$endif}
   FreeMem(PointPtr); // not tied to OpenGL, but freed together anyway
   PointPtr := nil;
   PointPtrAllocated := 0;
@@ -316,8 +314,7 @@ begin
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 
-  {$ifdef GLImageUseShaders}
-  if Primitive2DRes.Prog = nil then
+  if GLFeatures.ShadersForEverything2D and (Primitive2DRes.Prog = nil) then
   begin
     Primitive2DRes.Prog := TGLSLProgram.Create;
     Primitive2DRes.Prog.AttachVertexShader({$I primitive_2.vs.inc});
@@ -328,7 +325,6 @@ begin
     Primitive2DRes.UniformColor := Primitive2DRes.Prog.Uniform('color');
     Primitive2DRes.AttribVertex := Primitive2DRes.Prog.Attribute('vertex');
   end;
-  {$endif}
 
   { apply LineWidth, PointSize.
     Their setters avoid doing anything when they already have the requested
@@ -374,35 +370,42 @@ begin
     glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_STREAM_DRAW);
   end;
 
-  {$ifdef GLImageUseShaders}
-  TGLSLProgram.Current := Primitive2DRes.Prog;
-  Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
-  Primitive2DRes.UniformViewportSize.SetValue(Viewport2DSize);
-  Primitive2DRes.UniformColor.SetValue(Color);
+  if GLFeatures.ShadersForEverything2D then
+  begin
+    TGLSLProgram.Current := Primitive2DRes.Prog;
+    Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
+    Primitive2DRes.UniformViewportSize.SetValue(Viewport2DSize);
+    Primitive2DRes.UniformColor.SetValue(Color);
+  end else
+  begin
+    {$ifndef OpenGLES}
+    TGLSLProgram.Current := nil;
+    glLoadIdentity();
+    {$warnings off}
+    glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
+    {$warnings on}
 
-  {$else}
-  TGLSLProgram.Current := nil;
-  glLoadIdentity();
-  {$warnings off}
-  glColorv(Color); // consciously using deprecated stuff; this should be internal in this unit
-  {$warnings on}
-
-  glEnableClientState(GL_VERTEX_ARRAY);
-  if GLFeatures.VertexBufferObject then
-    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
-    glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), Primitive2DRes.PointPtr);
-  {$endif}
+    glEnableClientState(GL_VERTEX_ARRAY);
+    if GLFeatures.VertexBufferObject then
+      glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), nil) else
+      glVertexPointer(2, GL_SHORT, SizeOf(TVector2SmallInt), Primitive2DRes.PointPtr);
+    {$endif}
+  end;
 
   glDrawArrays(PrimitiveModeToGL[Mode], 0, High(Points) + 1);
 
-  {$ifdef GLImageUseShaders}
-  // Primitive2DRes.Prog.Disable; // no need to disable, keep it enabled to save speed
-  { attribute arrays are enabled independent from GLSL program, so we need
-    to disable them separately }
-  Primitive2DRes.AttribVertex.DisableArray;
-  {$else}
-  glDisableClientState(GL_VERTEX_ARRAY);
-  {$endif}
+  if GLFeatures.ShadersForEverything2D then
+  begin
+    // Primitive2DRes.Prog.Disable; // no need to disable, keep it enabled to save speed
+    { attribute arrays are enabled independent from GLSL program, so we need
+      to disable them separately }
+    Primitive2DRes.AttribVertex.DisableArray;
+  end else
+  begin
+    {$ifndef OpenGLES}
+    glDisableClientState(GL_VERTEX_ARRAY);
+    {$endif}
+  end;
 
   if GLFeatures.VertexBufferObject then
   begin

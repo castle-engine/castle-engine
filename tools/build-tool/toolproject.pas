@@ -36,6 +36,8 @@ type
   private
     FDependencies: TDependencies;
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
+    FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
+    FUsesNonExemptEncryption: boolean;
     GatheringFilesVsData: boolean; //< only for GatherFile
     GatheringFiles: TCastleStringList; //< only for GatherFile
     ManifestFile, FPath, FDataPath: string;
@@ -55,6 +57,7 @@ type
     FAndroidServices: TAndroidServiceList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
+    IOSTeam: string;
     procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -204,11 +207,18 @@ uses StrUtils, DOM, Process,
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
 
+{ Insert 'lib' prefix at the beginning of file name. }
 function InsertLibPrefix(const S: string): string;
 begin
-  Result := {$ifdef UNIX} ExtractFilePath(S) + 'lib' + ExtractFileName(S)
-            {$else} S
-            {$endif};
+  Result := ExtractFilePath(S) + 'lib' + ExtractFileName(S);
+end;
+
+{ Compiled library name (.so, .dll etc.) from given source code filename. }
+function CompiledLibraryFile(const S: string; const OS: TOS): string;
+begin
+  Result := ChangeFileExt(S, LibraryExtensionOS(OS));
+  if OS in AllUnixOSes then
+    Result := InsertLibPrefix(Result);
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -254,6 +264,7 @@ constructor TCastleProject.Create(const APath: string);
     ReallyMinSdkVersion = 9;
     DefaultAndroidMinSdkVersion = 9;
     DefaultAndroidTargetSdkVersion = 18;
+    DefaultUsesNonExemptEncryption = true;
 
     { character sets }
     ControlChars = [#0..Chr(Ord(' ')-1)];
@@ -272,6 +283,45 @@ constructor TCastleProject.Create(const APath: string);
     function DefaultQualifiedName: string;
     begin
       Result := 'unknown.' + SDeleteChars(FName, AllChars - QualifiedNameAllowedChars);
+    end;
+
+    procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
+    var
+      I: Integer;
+    begin
+      for I := 1 to Length(Value) do
+        if not (Value[I] in AllowedChars) then
+          raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
+            [Name, Value, SReadableForm(Value[I])]);
+    end;
+
+    procedure CheckValidQualifiedName(const OptionName: string; const QualifiedName: string);
+    var
+      Components: TStringList;
+      I: Integer;
+    begin
+      CheckMatches(OptionName, QualifiedName, QualifiedNameAllowedChars);
+
+      if (QualifiedName <> '') and
+         ((QualifiedName[1] = '.') or
+          (QualifiedName[Length(QualifiedName)] = '.')) then
+        raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) cannot start or end with a dot: "%s"', [OptionName, QualifiedName]);
+
+      Components := SplitString(QualifiedName, '.');
+      try
+        for I := 0 to Components.Count - 1 do
+        begin
+          if Components[I] = '' then
+            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) must contain a number of non-empty components separated with dots: "%s"', [OptionName, QualifiedName]);
+          if Components[I][1] in ['0'..'9'] then
+            raise Exception.CreateFmt('%s (in CastleEngineManifest.xml) components must not start with a digit: "%s"', [OptionName, QualifiedName]);
+        end;
+      finally FreeAndNil(Components) end;
+    end;
+
+    procedure CheckValidVersion(const OptionName: string; const Version: string);
+    begin
+      CheckMatches(OptionName, Version, AlphaNum + ['_','-','.']);
     end;
 
     procedure AutoGuessManifest;
@@ -309,50 +359,17 @@ constructor TCastleProject.Create(const APath: string);
       FAndroidBuildToolsVersion := DefaultAndroidBuildToolsVersion;
       FAndroidMinSdkVersion := DefaultAndroidMinSdkVersion;
       FAndroidTargetSdkVersion := DefaultAndroidTargetSdkVersion;
+      FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
     end;
 
     procedure CheckManifestCorrect;
-
-      procedure CheckMatches(const Name, Value: string; const AllowedChars: TSetOfChars);
-      var
-        I: Integer;
-      begin
-        for I := 1 to Length(Value) do
-          if not (Value[I] in AllowedChars) then
-            raise Exception.CreateFmt('Project %s contains invalid characters: "%s", this character is not allowed: "%s"',
-              [Name, Value, SReadableForm(Value[I])]);
-      end;
-
-      procedure CheckQualifiedNameServices(const QualifiedName: string);
-      var
-        Services: TStringList;
-        I: Integer;
-      begin
-        if (QualifiedName <> '') and
-           ((QualifiedName[1] = '.') or
-            (QualifiedName[Length(QualifiedName)] = '.')) then
-          raise Exception.CreateFmt('Project qualified_name cannot start or end with a dot: "%s"', [QualifiedName]);
-
-        Services := SplitString(QualifiedName, '.');
-        try
-          for I := 0 to Services.Count - 1 do
-          begin
-            if Services[I] = '' then
-              raise Exception.CreateFmt('qualified_name must contain a number of non-empty services separated with dots: "%s"', [QualifiedName]);
-            if Services[I][1] in ['0'..'9'] then
-              raise Exception.CreateFmt('qualified_name services must not start with a digit: "%s"', [QualifiedName]);
-          end;
-        finally FreeAndNil(Services) end;
-      end;
-
     begin
       CheckMatches('name', Name                     , AlphaNum + ['_','-']);
       CheckMatches('executable_name', ExecutableName, AlphaNum + ['_','-']);
 
       { non-filename stuff: allow also dots }
-      CheckMatches('version', Version             , AlphaNum + ['_','-','.']);
-      CheckMatches('qualified_name', QualifiedName, QualifiedNameAllowedChars);
-      CheckQualifiedNameServices(QualifiedName);
+      CheckValidVersion('version', Version);
+      CheckValidQualifiedName('qualified_name', QualifiedName);
 
       { more user-visible stuff, where we allow spaces, local characters and so on }
       CheckMatches('caption', Caption, AllChars - ControlChars);
@@ -501,6 +518,24 @@ constructor TCastleProject.Create(const APath: string);
           ChildElement := Element.ChildElement('services', false);
           if ChildElement <> nil then
             FAndroidServices.ReadCastleEngineManifest(ChildElement);
+        end;
+
+        Element := Doc.DocumentElement.ChildElement('ios', false);
+        FUsesNonExemptEncryption := DefaultUsesNonExemptEncryption;
+        if Element <> nil then
+        begin
+          IOSTeam := Element.AttributeStringDef('team', '');
+
+          FIOSOverrideQualifiedName := Element.AttributeStringDef('override_qualified_name', '');
+          if FIOSOverrideQualifiedName <> '' then
+            CheckValidQualifiedName('override_qualified_name', FIOSOverrideQualifiedName);
+
+          FIOSOverrideVersion := Element.AttributeStringDef('override_version_value', '');
+          if FIOSOverrideVersion <> '' then
+            CheckValidVersion('override_version_value', FIOSOverrideVersion);
+
+          FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
+            DefaultUsesNonExemptEncryption);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -652,13 +687,22 @@ procedure TCastleProject.DoCompile(const Target: TTarget;
   const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
 var
   SourceExe, DestExe, MainSource: string;
+  ExtraOptions: TCastleStringList;
 begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
 
   if Target = targetIOS then
   begin
-    CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths);
+    ExtraOptions := TCastleStringList.Create;
+    try
+      if depOggVorbis in Dependencies then
+        { To compile CastleInternalVorbisFile properly.
+          Later PackageIOS will actually add the static tremolo files to the project. }
+        ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
+      CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths, ExtraOptions);
+    finally FreeAndNil(ExtraOptions) end;
+
     LinkIOSLibrary(Path, IOSLibraryFile);
     Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
     Exit;
@@ -691,7 +735,7 @@ begin
 
         if Plugin then
         begin
-          SourceExe := InsertLibPrefix(ChangeFileExt(MainSource, LibraryExtensionOS(OS)));
+          SourceExe := CompiledLibraryFile(MainSource, OS);
           DestExe := PluginLibraryFile(OS, CPU);
         end else
         begin
@@ -1393,6 +1437,26 @@ const
           Result += UpCase(S[I]);
   end;
 
+  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
+  function IOSQualifiedName: string;
+  begin
+    if FIOSOverrideQualifiedName <> '' then
+      Result := FIOSOverrideQualifiedName
+    else
+      Result := QualifiedName;
+  end;
+
+  { Version for iOS: either version, or ios.override_version_value. }
+  function IOSVersion: string;
+  begin
+    if FIOSOverrideVersion <> '' then
+      Result := FIOSOverrideVersion
+    else
+      Result := Version;
+  end;
+
+  {$I data/ios/services/ogg_vorbis/cge_project_name.xcodeproj/project.pbxproj.inc}
+
 var
   Macros: TStringStringMap;
   I: Integer;
@@ -1412,7 +1476,8 @@ begin
   finally FreeAndNil(VersionComponentsString) end;
 
   if Author = '' then
-    NonEmptyAuthor := 'Unknown Author' else
+    NonEmptyAuthor := 'Unknown Author'
+  else
     NonEmptyAuthor := Author;
 
   Macros := TStringStringMap.Create;
@@ -1450,9 +1515,53 @@ begin
           UpperCase(AndroidServiceParameterPair.Key),
           AndroidServiceParameterPair.Value);
 
-    // iOS specific stuff }
+    // iOS specific stuff
+    Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
+    Macros.Add('IOS_VERSION', IOSVersion);
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
+    if not FUsesNonExemptEncryption then
+      Macros.Add('IOS_EXTRA_INFO_PLIST', '<key>ITSAppUsesNonExemptEncryption</key> <false/>')
+    else
+      Macros.Add('IOS_EXTRA_INFO_PLIST', '');
+    if IOSTeam <> '' then
+    begin
+      Macros.Add('IOS_TARGET_ATTRIBUTES',
+        CharTab + CharTab + CharTab + CharTab + 'TargetAttributes = {' + NL +
+        CharTab + CharTab + CharTab + CharTab + CharTab + '4D629DF31916B0EB0082689B = {' + NL +
+        CharTab + CharTab + CharTab + CharTab + CharTab + CharTab + 'DevelopmentTeam = ' + IOSTeam + ';' + NL +
+        CharTab + CharTab + CharTab + CharTab + CharTab + '};' + NL +
+        CharTab + CharTab + CharTab + CharTab + '};' + NL);
+      Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
+    end else
+    begin
+      Macros.Add('IOS_TARGET_ATTRIBUTES', '');
+      Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
+    end;
+    if depOggVorbis in Dependencies then
+    begin
+      Macros.Add('IOS_EXTRA_PBXBuildFile'                  , Tremolo_IOS_EXTRA_PBXBuildFile);
+      Macros.Add('IOS_EXTRA_PBXFileReference'              , Tremolo_IOS_EXTRA_PBXFileReference);
+      Macros.Add('IOS_EXTRA_PBXGroup'                      , Tremolo_IOS_EXTRA_PBXGroup);
+      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup'            , Tremolo_IOS_EXTRA_PBXGroup_MainGroup);
+      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase'        , Tremolo_IOS_EXTRA_PBXResourcesBuildPhase);
+      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase'          , Tremolo_IOS_EXTRA_PBXSourcesBuildPhase);
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG'  , Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG);
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE);
+    end else
+    begin
+      Macros.Add('IOS_EXTRA_PBXBuildFile', '');
+      Macros.Add('IOS_EXTRA_PBXFileReference', '');
+      Macros.Add('IOS_EXTRA_PBXGroup', '');
+      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup', '');
+      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase', '');
+      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase', '');
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG', '');
+      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', '');
+    end;
+    // TODO: this should allow services like apple_game_center
+    Macros.Add('IOS_SERVICES_IMPORT', '');
+    Macros.Add('IOS_SERVICES_CREATE', '');
 
     // add CamelCase() replacements, add ${} around
     PreviousMacros := Macros.ToArray;

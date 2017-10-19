@@ -24,7 +24,7 @@ uses Classes,
 
 procedure CompileIOS(const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings);
+  const SearchPaths, ExtraOptions: TStrings);
 
 procedure LinkIOSLibrary(const CompilationWorkingDirectory, OutputFile: string);
 
@@ -43,7 +43,7 @@ const
 
 procedure CompileIOS(const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings);
+  const SearchPaths, ExtraOptions: TStrings);
 
   procedure CompileLibrary(const OS: TOS; const CPU: TCPU);
   var
@@ -51,7 +51,9 @@ procedure CompileIOS(const Plugin: boolean;
     LinkResContents, ObjectFiles: TCastleStringList;
     I: Integer;
   begin
-    Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile, SearchPaths);
+    Compile(OS, CPU, Plugin, Mode, WorkingDirectory, CompileFile, SearchPaths, ExtraOptions);
+
+    { now use libtool to create a static library .a }
 
     CompilationOutput := CompilationOutputPath(OS, CPU, WorkingDirectory);
     LinkRes := CompilationOutput + 'link.res';
@@ -154,6 +156,7 @@ var
       SaveResized(144);
       SaveResized(152);
       SaveResized(167);
+      SaveResized(1024);
     finally
       if Icon = DefaultIconSquare then
         Icon := nil else
@@ -285,6 +288,11 @@ begin
     RemoveNonEmptyDir(XCodeProject);
 
   GenerateFromTemplates;
+
+  if depOggVorbis in Project.Dependencies then
+    Project.ExtractTemplate('ios/services/ogg_vorbis/cge_project_name/tremolo/',
+      XCodeProject + Project.Name + PathDelim + 'tremolo/');
+
   GenerateIcons;
   GenerateLaunchImages;
   GenerateData;

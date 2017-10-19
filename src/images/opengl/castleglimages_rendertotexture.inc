@@ -272,7 +272,7 @@ var
   BoundFboStack: TLongWordList;
 
   { The FBO id meaning "the screen".
-    This is 0 in usual circumstances, except in iPhone Simulator it can be non-zero
+    This is 0 in usual circumstances, except on iOS and iPhone Simulator it can be non-zero
     (see https://stackoverflow.com/questions/11617013/why-would-glbindframebuffergl-framebuffer-0-result-in-blank-screen-in-cocos2d)
   }
   ScreenFbo: TGLuint;
@@ -289,13 +289,13 @@ begin
   { See the ScreenFbo documentation for reason why we need to query it now.
     We use ScreenFboQueried to
     1. optimize (no need for glGetIntegerv every time we do BindFramebuffer)
-    2. avoid spamming the console with a warning each frame on iPhone Simulator }
+    2. avoid spamming the console with a warning each frame on iOS and iPhone Simulator }
   if (BoundFboStack.Count = 0) and (not ScreenFboQueried) then
   begin
     ScreenFboQueried := true;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, @ScreenFbo);
     if ScreenFbo <> 0 then
-      WritelnWarning('The screen FBO should be 0, but is %d. This is a weirdness known to happen on iPhone Simulator.',
+      WritelnWarning('The screen FBO should be 0, but is %d. This is a weirdness known to happen on iOS and iPhone Simulator.',
         [ScreenFbo]);
   end;
   BoundFboStack.Add(Fbo);
@@ -310,7 +310,7 @@ end;
 
 { Remove the top Fbo from the stack, and bind previous (new top) Fbo.
   Binds FBO number 0 (normal OpenGL buffer, actually uses ScreenFbo as it may
-  be <> 0 on iPhone Simulator) if stack becomes empty.
+  be <> 0 on iOS / iPhone Simulator) if stack becomes empty.
 
   PreviousFboDefaultBuffer is set to the default draw buffer suitable
   for currently (after this call) bound FBO. It's GL_BACK if we're

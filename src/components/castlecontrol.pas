@@ -1259,7 +1259,8 @@ begin
   SceneManager.MainScene.Free;
   SceneManager.MainScene := nil;
   SceneManager.Items.Clear;
-  SceneManager.Camera.Free;
+  SceneManager.ClearCameras;
+  Assert(SceneManager.Camera = nil);
 
   SceneManager.MainScene := TCastleScene.Create(Self);
   SceneManager.MainScene.Load(ARootNode, OwnsRootNode);
@@ -1272,7 +1273,7 @@ begin
   { just to make our Camera always non-nil.
     Useful for model_3d_viewer that wants to initialize NavigationType
     from camera. }
-  SceneManager.Camera := SceneManager.CreateDefaultCamera;
+  SceneManager.RequiredCamera;
 end;
 
 function TCastleControl.MainScene: TCastleScene;

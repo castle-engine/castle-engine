@@ -15,6 +15,7 @@
 
 {$ifdef read_interface}
   TKambiOctreePropertiesNode = class;
+  TAbstractShaderNode = class;
 
   { Base node type for the child nodes of @link(TAbstractAppearanceNode). }
   TAbstractAppearanceChildNode = class(TAbstractNode)
@@ -41,7 +42,7 @@
   TLinePropertiesNode = class;
   TCommonSurfaceShaderNode = class;
 
-  TShading = (shDefault, shPhong, shWireframe);
+  TShading = (shDefault, shGouraud, shPhong, shWireframe);
 
   { Base node type for all Shape nodes. }
   TAbstractShapeNode = class(TAbstractChildNode, IAbstractBoundedObject)
@@ -651,7 +652,7 @@ end;
 
 procedure TAbstractShapeNode.CreateNode;
 const
-  ShadingNames: array [TShading] of string = ('DEFAULT', 'PHONG', 'WIREFRAME');
+  ShadingNames: array [TShading] of string = ('DEFAULT', 'GOURAUD', 'PHONG', 'WIREFRAME');
 begin
   inherited;
 
@@ -962,8 +963,7 @@ begin
   if Items[Index] is TComposedShaderNode then
   begin
     Result := TComposedShaderNode(Items[Index]);
-    if not ((Result.FdLanguage.Value = '') or
-            (Result.FdLanguage.Value = 'GLSL')) then
+    if not (Result.Language in [slDefault, slGLSL]) then
       Result := nil;
   end else
     Result := nil;

@@ -26,7 +26,7 @@
     Run "castle-engine auto-generate-textures" to create or update the DDS files
     with compressed textures. You will need to install first:
     - build tool: https://github.com/castle-engine/castle-engine/wiki/Build-Tool
-    - one of the supported tools to compress to DXT5, see
+    - one of the supported tools to compress to DXTn, see
       https://castle-engine.sourceforge.io/creating_data_material_properties.php#section_texture_compression
       We advice the "NVidia Texture Tools" (libnvtt-bin package on Linux).
 
@@ -39,7 +39,7 @@
 
     <include path="example_level/textures/*" recursive="True" />
     <include path="example_level/sky/*" recursive="True" />
-    <exclude path="example_level/textures/brushwalker437.png" recursive="True" />
+    <exclude path="example_level/textures/brushwalker437.png" />
   </auto_generated_textures>
 
   <auto_generated_textures>

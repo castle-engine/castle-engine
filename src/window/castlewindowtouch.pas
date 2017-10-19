@@ -126,9 +126,8 @@ begin
         FControl[RightSide].GetSensorRotation(Rx, Ry, Rz, RAngle);
       end;
 
-    { send to all 2D controls, including viewports }
-    Container.EventSensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
-    Container.EventSensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
+    SceneManager.SensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
+    SceneManager.SensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
   end;
 end;
 
@@ -177,14 +176,7 @@ begin
   begin
     FTouchInterface := Value;
 
-    WalkCamera := nil;
-    if SceneManager.Camera <> nil then
-    begin
-      if SceneManager.Camera is TUniversalCamera then
-        WalkCamera := (SceneManager.Camera as TUniversalCamera).Walk else
-      if SceneManager.Camera is TWalkCamera then
-        WalkCamera := SceneManager.Camera as TWalkCamera;
-    end;
+    WalkCamera := SceneManager.WalkCamera(false);
 
     case Value of
       tiNone:

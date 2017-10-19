@@ -1,0 +1,47 @@
+Tremolo changelog:
+
+*** 20100110: 0.8 ***
+
+First "post Google" version. Shift fixes in mdctARM.s and
+mdctLARM.s. Many thanks to Gloria Wang for finding the example
+file that showed this up. Thanks to everyone else at Google for
+making the BSD rerelease possible!
+
+Also, some (mainly error handling) fixes in codebook.c imported
+from the trunk version of Tremor.
+
+*** 20071129: 0.7 ***
+
+Bugs in mdct.c, mdctARM.s, mdctLARM.s that caused 'chirping'
+and 'popping' fixed. Many thanks to Dan Silsby for spotting
+the problem, narrowing it down to the code concerned and
+testing potential fixes.
+
+
+*** 20070807: 0.6 ***
+
+Initial optimisation port from low memory branch of Tremor,
+v1.0.2
+
+--------------------------------------------------------------------
+Original Tremor changelog follows:
+
+*** 20020517: 1.0.2 ***
+
+  Playback bugfix to floor1; mode mistakenly used for sizing instead
+  of blockflag
+
+*** 20020515: 1.0.1 ***
+
+  Added complete API documentation to source tarball.  No code
+  changes.
+
+*** 20020412: 1.0.1 ***
+
+  Fixed a clipping bug that affected ARM processors; negative
+  overflows were being properly clipped, but then clobbered to
+  positive by the positive overflow chec (asm_arm.h:CLIP_TO_15)
+
+*** 20020403: 1.0.0 ***
+
+  Initial version

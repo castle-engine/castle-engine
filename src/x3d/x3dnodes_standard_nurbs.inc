@@ -18,6 +18,8 @@
   in x3dnodes_97_nurbs.inc. }
 
 {$ifdef read_interface}
+  TNurbsSurfaceNode = class;
+
   { Base type for nodes that provide control curve information in 2D space. }
   TAbstractNurbsControlCurveNode = class(TAbstractNode)
   public

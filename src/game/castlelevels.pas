@@ -841,7 +841,8 @@ var
       TWalkCamera.DefaultCrouchHeight, TWalkCamera.DefaultHeadBobbing);
 
     if Player <> nil then
-      WalkCamera := Player.Camera else
+      WalkCamera := Player.Camera
+    else
       { If you don't initialize Player (like for castle1 background level
         or castle-view-level or lets_take_a_walk) then just create a camera. }
       WalkCamera := TWalkCamera.Create(Self);
@@ -1042,8 +1043,9 @@ constructor TLevelLogic.Create(AOwner: TComponent; AWorld: T3DWorld;
   MainScene: TCastleScene; DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);
-  SetWorld(AWorld);
   Assert(AWorld <> nil, 'TLevelLogic.World should never be nil, you have to provide World at TLevelLogic constructor');
+  AddToWorld(AWorld);
+
   { Actually, the fact that our BoundingBox is empty also prevents collisions.
     But for some methods, knowing that Collides = false allows them to exit
     faster. }

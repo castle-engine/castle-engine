@@ -79,23 +79,31 @@ uses SysUtils,
 
 procedure ControlRenderBegin(const ViewportRect: TRectangle);
 begin
-  { Set state that is guaranteed for Render2D calls,
-    but TUIControl.Render cannot change it carelessly. }
-  {$ifndef OpenGLES}
-  glDisable(GL_LIGHTING);
-  glDisable(GL_FOG);
-  {$endif}
+  if EnableFixedFunction then
+  begin
+    { Set state that is guaranteed for Render2D calls,
+      but TUIControl.Render cannot change it carelessly. }
+    {$ifndef OpenGLES}
+    glDisable(GL_LIGHTING);
+    glDisable(GL_FOG);
+    {$endif}
+    GLEnableTexture(CastleGLUtils.etNone);
+  end;
+
   glDisable(GL_DEPTH_TEST);
-  GLEnableTexture(CastleGLUtils.etNone);
+
   CastleGLUtils.glViewport(ViewportRect);
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
-  { Set OpenGL state that may be changed carelessly, and has some
-    guaranteed value, for Render2d calls. }
-  {$ifndef OpenGLES} glLoadIdentity; {$endif}
-  {$warnings off}
-  CastleGLUtils.WindowPos := Vector2Integer(0, 0);
-  {$warnings on}
+  if EnableFixedFunction then
+  begin
+    { Set OpenGL state that may be changed carelessly, and has some
+      guaranteed value, for Render2d calls. }
+    {$ifndef OpenGLES} glLoadIdentity; {$endif}
+    {$warnings off}
+    CastleGLUtils.WindowPos := Vector2Integer(0, 0);
+    {$warnings on}
+  end;
 end;
 
 { TGLContainer --------------------------------------------------------------- }

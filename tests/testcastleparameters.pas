@@ -39,6 +39,7 @@ type
       const ParsedPars2: array of TParsedOption);
   published
     procedure TestParsingParameters;
+    procedure TestOptionDescription;
   end;
 
 implementation
@@ -472,6 +473,27 @@ begin
  CheckParsFail('19', Pars19Question, Pars19, EExcessiveOptionArgument, 'Option --baba requires 2 arguments, you cannot give them using the form --option=argument, you must give all the arguments as separate parameters');
  CheckPars('20_OnlyKnown', Pars20Question, Pars20, Pars20_OnlyKnown_Answer, Pars20_OnlyKnown_Rest, true);
  CheckPars('21', Pars21Question, Pars21, Pars21Answer, Pars21Rest, false);
+end;
+
+procedure TTestParsingParameters.TestOptionDescription;
+begin
+  AssertEquals(
+    '  --fast                Do not "clean"' + NL +
+    '                        before "package". Recompile only what changed. This' + NL +
+    '                        is faster for development, but cannot guarantee' + NL +
+    '                        that everything is recompiled in a release mode.',
+    OptionDescription('--fast',
+      'Do not "clean"' + NL + 'before "package". Recompile only what changed. This is faster for development, but cannot guarantee that everything is recompiled in a release mode.')
+  );
+
+  AssertEquals(
+    '  --fast                Do not "clean" before "package". Recompile only' + NL +
+    '                        what changed. This is faster for development, but' + NL +
+    '                        cannot guarantee that everything is recompiled in a' + NL +
+    '                        release mode.',
+    OptionDescription('--fast',
+      'Do not "clean" before "package". Recompile only what changed. This is faster for development, but cannot guarantee that everything is recompiled in a release mode.')
+  );
 end;
 
 initialization

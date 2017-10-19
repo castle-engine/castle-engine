@@ -37,44 +37,6 @@ unit CastleGLShaders;
 
 {$I castleconf.inc}
 
-{$ifdef OpenGLES}
-  {$define ForceStandardGLSLApi}
-{$endif}
-{$ifdef DARWIN}
-  {$ifdef CPU64}
-    (*Apple did something really weird, and defined GLhandleARB to be
-      a pointer-size (not an GLint-size) type.
-
-      See the (correct) definition in fpc/trunk/packages/opengl/src/glext.pp:
-        {$ifdef DARWIN}
-        GLHandleARB = Pointer;              // defined as void * in OpenGL.framework/glext.h
-        {$else}
-        GLhandleARB = Cardinal;
-        {$endif}
-      This is correct, i.e. this is consistent with C OpenGL header,
-      and (apparently, if you believe the Internet) with what binary code expects:
-      on Mac OS X 64-bit, GLhandleARB is 8 bytes, not 4.
-
-      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
-      for example glGetProgramivARB (that takes GLEnum).
-      So I'm unsure whether everything will really work correctly then -- one has to be extra
-      careful when the GLhandleARB and GLint are (binary) different things *only on this one
-      specific OS + architecture*.
-
-      See others being baffled by this:
-      - https://www.opengl.org/discussion_boards/showthread.php/175353-Scared-of-ARB-s-glext-h
-      - http://irrlicht.sourceforge.net/forum/viewtopic.php?t=44069
-      - http://trac.wildfiregames.com/ticket/1197
-
-      This makes things uncomfortable here, as we cannot cast "ProgramId: TGLuint"
-      to GLhandleARB safely. For simplicity, we just avoid using GLhandleARB,
-      and whole family of ARB functions, on Mac OS X 64-bit.
-      They should not be needed in practice --- modern OpenGL versions
-      don't need the ARB extensions to access the shaders. *)
-    {$define ForceStandardGLSLApi}
-  {$endif}
-{$endif}
-
 interface
 
 uses SysUtils, Classes, Generics.Collections,
@@ -385,7 +347,7 @@ type
 
     { @abstract(What support do we get from current OpenGL context ?)
       This is much like @link(Support), but it's a class function. }
-    class function ClassSupport: TGLSupport;
+    class function ClassSupport: TGLSupport; deprecated 'use GLFeatures.Shaders';
 
     { What to do when GLSL uniform variable is accessed (by @link(SetUniform)
       or @link(Uniform)) but doesn't exist in the shader.
@@ -1250,7 +1212,7 @@ constructor TGLSLProgram.Create;
 begin
   inherited;
 
-  FSupport := ClassSupport;
+  FSupport := GLFeatures.Shaders;
 
   case Support of
     {$ifndef ForceStandardGLSLApi}
@@ -1306,20 +1268,7 @@ end;
 
 class function TGLSLProgram.ClassSupport: TGLSupport;
 begin
-  {$ifdef OpenGLES}
-  Result := gsStandard;
-  {$else}
-  if GLFeatures.Version_2_0 then
-    Result := gsStandard else
-  {$ifndef ForceStandardGLSLApi}
-  if Load_GL_ARB_shader_objects and
-     Load_GL_ARB_vertex_shader and
-     Load_GL_ARB_fragment_shader and
-     Load_GL_ARB_shading_language_100 then
-    Result := gsExtension else
-  {$endif not ForceStandardGLSLApi}
-    Result := gsNone;
-  {$endif}
+  Result := GLFeatures.Shaders;
 end;
 
 function TGLSLProgram.ProgramInfoLog: string;
@@ -2089,7 +2038,7 @@ end;
 class procedure TGLSLProgram.DisableVertexAttribArray(Location: TGLint);
 begin
   if Location <> -1 then
-    case ClassSupport of
+    case GLFeatures.Shaders of
       {$ifndef OpenGLES}
       gsExtension: glDisableVertexAttribArrayARB(Location);
       {$endif}
@@ -2110,7 +2059,7 @@ begin
 
     if Value <> nil then
     begin
-      case TGLSLProgram.ClassSupport of
+      case GLFeatures.Shaders of
         {$ifndef ForceStandardGLSLApi}
         gsExtension: glUseProgramObjectARB(GLhandleARB(Value.ProgramId));
         {$endif}
@@ -2118,7 +2067,7 @@ begin
       end;
     end else
     begin
-      case TGLSLProgram.ClassSupport of
+      case GLFeatures.Shaders of
         {$ifndef ForceStandardGLSLApi}
         gsExtension:
           begin

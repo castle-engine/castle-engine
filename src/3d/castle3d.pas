@@ -20,7 +20,7 @@ unit Castle3D;
 
 interface
 
-uses SysUtils, Classes, Math, Generics.Collections,
+uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleVectors, CastleFrustum, CastleBoxes, CastleClassUtils, CastleKeysMouse,
   CastleRectangles, CastleUtils, CastleTimeUtils,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
@@ -31,6 +31,8 @@ type
   T3DWorld = class;
   T3DOrient = class;
   T3DAlive = class;
+
+  ECannotAddToAnotherWorld = class(Exception);
 
   TRenderFromViewFunction = procedure of object;
 
@@ -296,19 +298,35 @@ type
     FExists: boolean;
     FCollides: boolean;
     FPickable: boolean;
+    FVisible: boolean;
     FCursor: TMouseCursor;
     FCollidesWithMoving: boolean;
     Disabled: Cardinal;
     FExcludeFromGlobalLights, FExcludeFromStatistics,
       FInternalExcludeFromParentBoundingVolume: boolean;
     FWorld: T3DWorld;
+    FWorldReferences: Cardinal;
     procedure SetCursor(const Value: TMouseCursor);
   protected
-    { Make this 3D object assigned to given 3D world.
+    { Change to new world, or (if not needed) just increase FWorldReferences.
+      Value must not be @nil. }
+    procedure AddToWorld(const Value: T3DWorld); virtual;
+
+    { Decrease FWorldReferences, then (if needed) change world to @nil.
+      Value must not be @nil. }
+    procedure RemoveFromWorld(const Value: T3DWorld); virtual;
+
+    { Called when the current 3D world (which corresponds to the current
+      TCastleSceneManager) of this 3D object changes.
+      This can be ignored (not care about FWorldReferences) when Value = FWorld.
+
       Each 3D object can only be part of one T3DWorld at a time.
+      The object may be present many times within the world
+      (counted by FWorldReferences, which is always set to 1 by this procedure
+      for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure SetWorld(const Value: T3DWorld); virtual;
+    procedure ChangeWorld(const Value: T3DWorld); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -478,6 +496,11 @@ type
       May be modified in subclasses, to return something more complicated. }
     function GetPickable: boolean; virtual;
 
+    { Is item really visible, see @link(Visible).
+      It T3D class, returns @link(Visible) and @link(GetExists).
+      May be modified in subclasses, to return something more complicated. }
+    function GetVisible: boolean; virtual;
+
     { Is this object visible and colliding.
 
       Setting this to @false pretty much turns everything of this 3D object
@@ -497,8 +520,8 @@ type
       Internally, we keep a counter of how many times the object is disabled,
       and if this counter is <> 0 then GetExists returns @false.
       Using this is useful for taming collisions, especially to avoid self-collisions
-      (when a creature moves, it doesn't want to collide with other creatures,
-      but obviously it doesn't collide with it's own bounding volume).
+      (when a creature moves, it checks for collision with other creatures,
+      but it doesn't want to check for collisions with it's own bounding volume).
       @groupBegin }
     procedure Disable;
     procedure Enable;
@@ -549,6 +572,17 @@ type
       @noAutoLinkHere }
     property Pickable: boolean read FPickable write FPickable default true;
 
+    { Is item visible.
+      Note that if not @link(Exists) then this doesn't matter
+      (not existing objects are never visible).
+      This is independent from @link(Collides) or @link(Pickable).
+
+      Descendants may also override GetVisible method. Sometimes it's more
+      comfortable than changing the property value.
+
+      @noAutoLinkHere }
+    property Visible: boolean read FVisible write FVisible default true;
+
     { Bounding box of the 3D object.
 
       Should take into account both collidable and visible objects.
@@ -561,7 +595,7 @@ type
     function BoundingBox: TBox3D; virtual; abstract;
 
     { Render given object.
-      Should check and immediately exit when @link(Exists) is @false.
+      Should check and immediately exit when @link(GetVisible) is @false.
       Should render only parts with matching Params.Transparency
       and Params.ShadowVolumesReceivers values (it may be called
       more than once to render frame).
@@ -590,16 +624,7 @@ type
       parent transforms it's children. When ParentTransformIsIdentity,
       ParentTransform must be TMatrix4.Identity (it's not guaranteed
       that when ParentTransformIsIdentity = @true, Transform value will be
-      ignored !).
-
-      @italic(Implementation note:) In @link(Render), it is usually possible
-      to implement ParentTransform* by glPush/PopMatrix and Frustum.Move tricks.
-      But RenderShadowVolume needs actual transformation explicitly:
-      ShadowMaybeVisible needs actual box position in world coordinates,
-      so bounding box has to be transformed by ParentTransform.
-      And TCastleScene.RenderShadowVolumeCore needs explicit ParentTransform
-      to correctly detect front/back sides (for silhouette edges and
-      volume capping). }
+      ignored !). }
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
@@ -1079,7 +1104,8 @@ type
     function GetItem(const I: Integer): T3D;
     procedure SetItem(const I: Integer; const Item: T3D);
   protected
-    procedure SetWorld(const Value: T3DWorld); override;
+    procedure AddToWorld(const Value: T3DWorld); override;
+    procedure RemoveFromWorld(const Value: T3DWorld); override;
 
     { Additional child inside the list, always processed before all children
       on the @link(Items) list. By default this method returns @nil,
@@ -1199,11 +1225,18 @@ type
 
   { 3D world. List of 3D objects, with some central properties. }
   T3DWorld = class(T3DList)
+  private
+    FKraftEngine: TKraft;
+    WasPhysicsStep: boolean;
+    TimeAccumulator: TFloatTime;
+    { Create FKraftEngine, if not assigned yet. }
+    procedure InitializePhysicsEngine;
   public
     OnCursorChange: TNotifyEvent;
     OnVisibleChange: TVisibleChangeEvent;
 
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
 
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
@@ -1263,6 +1296,8 @@ type
       const Details: TCollisionDetails = nil): boolean;
     function WorldPointCollision2D(const Point: TVector2): boolean;
     { @groupEnd }
+
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   { Transform (move, rotate, scale) other T3D objects.
@@ -1415,14 +1450,21 @@ type
       extras, to make camera effects). This will change in the future,
       to merge these two gravity implementations.
       Although the TPlayer.Fall method still works as expected
-      (it's linked to TWalkCamera.OnFall in this case). }
+      (it's linked to TWalkCamera.OnFall in this case).
+
+      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      to always use physics, through @link(T3DTransform.RigidBody),
+      to have realistic gravity. }
     property Gravity: boolean read FGravity write FGravity default false;
 
     { Falling speed, in units per second, for @link(Gravity).
-      TODO: this will be replaced with more physically-based approach.
 
       This is relevant only if @link(Gravity) and PreferredHeight <> 0.
-      0 means no falling. }
+      0 means no falling.
+
+      TODO: In CGE 6.6 this will be deprecated, and you will be adviced
+      to always use physics, through @link(T3DTransform.RigidBody),
+      to have realistic gravity. }
     property FallSpeed: Single read FFallSpeed write FFallSpeed default 0;
 
     { Growing (raising from crouching to normal standing position)
@@ -1527,6 +1569,8 @@ type
       const EnableWallSliding: boolean = true): boolean;
   end;
 
+  TRigidBody = class;
+
   { Transform (move, rotate, scale) children T3D objects.
     Transformation is a combined 1. @link(Translation),
     2. and @link(Rotation) around @link(Center) point,
@@ -1541,14 +1585,19 @@ type
 
     This descends from T3DList, and it transforms all it's children. }
   T3DTransform = class(T3DCustomTransform)
-  private
+  strict private
     FCenter: TVector3;
     FRotation: TVector4;
     FScale: TVector3;
     FScaleOrientation: TVector4;
     FTranslation: TVector3;
     FOnlyTranslation: boolean;
+    FRigidBody: TRigidBody;
+    procedure SetRigidBody(const Value: TRigidBody);
   protected
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+    procedure ChangeWorld(const Value: T3DWorld); override;
+
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
     procedure SetScale(const Value: TVector3);
@@ -1564,6 +1613,8 @@ type
     function GetTranslation: TVector3; override;
   public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Translation (move) the children. Zero by default. }
     property Translation: TVector3 read FTranslation write SetTranslation;
@@ -1626,6 +1677,85 @@ type
     { Make the transform do nothing --- zero @link(Translation), zero @link(Rotation),
       @link(Scale) to one. Also resets @link(ScaleOrientation). }
     procedure Identity;
+
+    { Participate in rigid body physics simulation.
+      This makes this object collidable with other rigid bodies
+      (if @link(Collides))
+      and it allows to move and rotate because of gravity
+      or because of collisions with other objects
+      (if @link(TRigidBody.Dynamic) is @true).
+
+      Setting this property makes this 3D object
+      a single rigid body for the physics engine.
+
+      If this property is assigned and the @link(TRigidBody.Dynamic) is @true
+      (and @link(TRigidBody.Dynamic) is @true by default)
+      then this object is moved and rotated using the physics engine.
+      It will move because of gravity (if @link(TRigidBody.Gravity),
+      also @true by default),
+      and because of collisions with other objects.
+
+      The @link(TRigidBody.Collider) property must be initialized
+      @italic(before) assigning the @link(TRigidBody) instance here.
+      So you must create a @link(TCollider) descendant, specyfying the given
+      @link(TRigidBody) as a parent.
+      A rigid body without a collider would in theory not collide with anything,
+      and (if @link(TRigidBody.Dynamic)) would simply fall down because of gravity.
+      In practice, a rigid body without a collider is simply not allowed.
+      If you really need this, assign anything to @link(TRigidBody.Collider)
+      and just set @link(Collides) to @false.
+
+      @bold(Our engine (for now) also has an internal, simple physics simulation,
+      used to perform collisions with player, creatures, and optional
+      (unrealistic) gravity.)
+      So we have two independent physics systems,
+      but they try to not get into each others way (they each perform
+      a different task).
+      In the future there will be an option to use
+      the full-featured physics engine for all simulations,
+      also for player and creatures, at which point our "internal physics
+      simulation" will become deprecated.
+      For now, be aware of these:
+
+      @unorderedList(
+        @item(@link(T3D.Collides) property affects @italic(both our
+          "simple physics simulation" and the "full-featured physics engine").
+          It determines whether the object is collidable.
+        )
+
+        @item(@link(T3DCustomTransform.Gravity) property @italic(only affects the
+          "simple physics simulation"). It is by default @false.
+
+          It has no effect on the "full-featured physics engine" behaviour,
+          that has an independent property @link(TRigidBody.Gravity),
+          which is @true by default.
+
+          You should not set both @link(T3DCustomTransform.Gravity) to @true
+          and @link(TRigidBody.Gravity) to @true, it would mean that
+          @italic(gravity simulation is performed twice).
+          In the future, @link(T3DCustomTransform.Gravity) may be removed
+          (or merged with @link(TRigidBody.Gravity), but then old games
+          may by surprised by a new default @true.)
+        )
+
+        @item(The collider used by our internal, simple physics is independent
+          from the @link(TRigidBody.Collider).
+          The internal, simple physics uses colliders implicitly implemented
+          in the overridden @link(T3D.HeightCollision),
+          @link(T3D.MoveCollision) and friends.
+          In case of @link(TCastleSceneCore), the rule is simple:
+
+          @unorderedList(
+            @item(If the @link(TCastleSceneCore.Spatial) contains
+              ssDynamicCollisions or ssStaticCollisions, then the object collides
+              as a mesh. This makes precise collisions with all the triangles.
+              Any mesh, convex or concave, is correctly solved.)
+            @item(Otherwise, the object collides as it's axis-aligned bounding box.)
+          )
+        )
+      )
+    }
+    property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
   end;
 
   TOrientationType = (
@@ -2092,6 +2222,10 @@ type
 
   T3DExistsEvent = function(const Item: T3D): boolean of object;
 
+  {$define read_interface}
+  {$I castle3d_physics.inc}
+  {$undef read_interface}
+
 const
   MaxSingle = Math.MaxSingle;
 
@@ -2157,6 +2291,10 @@ implementation
 
 uses CastleLog;
 
+{$define read_implementation}
+{$I castle3d_physics.inc}
+{$undef read_implementation}
+
 { TRayCollision --------------------------------------------------------------- }
 
 function TRayCollision.IndexOfItem(const Item: T3D): Integer;
@@ -2201,13 +2339,14 @@ begin
   FExists := true;
   FCollides := true;
   FPickable := true;
+  FVisible := true;
   FCursor := mcDefault;
 end;
 
 destructor T3D.Destroy;
 begin
   { set to nil, to detach free notification }
-  SetWorld(nil);
+  ChangeWorld(nil);
   GLContextClose;
   inherited;
 end;
@@ -2513,6 +2652,11 @@ begin
   Result := FPickable and GetExists;
 end;
 
+function T3D.GetVisible: boolean;
+begin
+  Result := FVisible and GetExists;
+end;
+
 function T3D.Middle: TVector3;
 begin
   Result := TVector3.Zero;
@@ -2541,7 +2685,44 @@ begin
   Dec(Disabled);
 end;
 
-procedure T3D.SetWorld(const Value: T3DWorld);
+procedure T3D.AddToWorld(const Value: T3DWorld);
+begin
+  Assert(Value <> nil);
+  if FWorld <> Value then
+  begin
+    if FWorld <> nil then
+      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one world to another. This means that your object is part of SceneManager1.Items, and you are adding it to SceneManager2.Items. You have to remove it from SceneManager1.Items first.');
+    ChangeWorld(Value);
+  end else
+    Inc(FWorldReferences);
+end;
+
+procedure T3D.RemoveFromWorld(const Value: T3DWorld);
+begin
+  { TODO: This check should not be necessary, instead we should always assert
+    FWorldReferences > 0.
+    However, the GetChild mechanism, which is scheduled to be removed,
+    may break this now: the 3D objects defined by GetChild may not get
+    correct AddToWorld, and so RemoveFromWorld on them cannot depend
+    on these assumptions.
+
+    Reproduction: just and and exit fps_game (that uses animated
+    knights that use the GetChild). }
+  if FWorldReferences = 0 then
+    Exit;
+
+  Assert(Value <> nil);
+  Assert(FWorldReferences > 0);
+  if FWorld <> Value then
+    WritelnWarning('T3D.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one T3D instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManger.Items.Remove(xxx)") before adding to new scene manager.');
+
+  Dec(FWorldReferences);
+  if FWorldReferences = 0 then
+    ChangeWorld(nil);
+end;
+
+
+procedure T3D.ChangeWorld(const Value: T3DWorld);
 begin
   if FWorld <> Value then
   begin
@@ -2553,6 +2734,7 @@ begin
         FWorld.RemoveFreeNotification(Self);
     end;
     FWorld := Value;
+    FWorldReferences := Iff(Value <> nil, 1, 0);
     if FWorld <> nil then
       // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
       //and (FWorld <> Self) then
@@ -2565,7 +2747,7 @@ begin
   inherited;
   { make sure to nil FWorld reference }
   if (Operation = opRemove) and (AComponent = FWorld) then
-    SetWorld(nil);
+    ChangeWorld(nil);
 end;
 
 function T3D.Height(const MyPosition: TVector3;
@@ -2675,23 +2857,18 @@ begin
     case Action of
       lnAdded:
         begin
-          B.SetWorld(Owner.World);
+          if Owner.World <> nil then
+            B.AddToWorld(Owner.World);
           { Register Owner to be notified of item destruction. }
           B.FreeNotification(Owner);
         end;
       lnExtracted, lnDeleted:
         begin
-          { We don't change B.World here (we don't set it to
-            "previous World", or nil, or anything).
-            The 3D object may be present in the same World multiple times,
-            so it's better to leave World unchanged here.
-
-            This way T3D.World points to "last world you were part of",
-            instead of "current world you are part in", but that's not
-            a problem in practice -- as the World is only used to call
-            World.OnXxx notifications, and it's harmless to call them
-            when the object is not actually part of world. }
-
+          if (Owner.World <> nil) and
+             { It is possible that "B.World <> Owner.World" when B is getting
+               freed and has World set to nil in constructor already. }
+             (B.World = Owner.World) then
+            B.RemoveFromWorld(Owner.World);
           { Do not call RemoveFreeNotification when Owner is equal to B.World,
             this would prevent getting notification when to nil FWorld in
             T3D.Notification. }
@@ -2740,19 +2917,28 @@ begin
   inherited;
 end;
 
-procedure T3DList.SetWorld(const Value: T3DWorld);
+procedure T3DList.AddToWorld(const Value: T3DWorld);
 var
   I: Integer;
 begin
-  if FWorld <> Value then
-  begin
-    inherited;
-    if GetChild <> nil then
-      GetChild.SetWorld(Value);
-    if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
-      for I := 0 to List.Count - 1 do
-        List[I].SetWorld(Value);
-  end;
+  inherited;
+  if GetChild <> nil then
+    GetChild.AddToWorld(Value);
+  if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
+    for I := 0 to List.Count - 1 do
+      List[I].AddToWorld(Value);
+end;
+
+procedure T3DList.RemoveFromWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  inherited;
+  if GetChild <> nil then
+    GetChild.RemoveFromWorld(Value);
+  if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
+    for I := 0 to List.Count - 1 do
+      List[I].RemoveFromWorld(Value);
 end;
 
 function T3DList.GetChild: T3D;
@@ -2855,7 +3041,7 @@ var
   I: Integer;
 begin
   inherited;
-  if GetExists then
+  if GetVisible then
   begin
     if GetChild <> nil then
       GetChild.Render(Frustum, Params);
@@ -3449,7 +3635,7 @@ constructor T3DWorld.Create(AOwner: TComponent);
 begin
   inherited;
   { everything inside is part of this world }
-  SetWorld(Self);
+  AddToWorld(Self);
 end;
 
 function T3DWorld.GravityCoordinate: Integer;

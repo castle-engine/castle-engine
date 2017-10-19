@@ -20,7 +20,9 @@ unit ToolCompile;
 
 interface
 
-uses Classes, ToolArchitectures;
+uses Classes,
+  CastleStringUtils,
+  ToolArchitectures;
 
 type
   TCompilationMode = (cmRelease, cmValgrind, cmDebug);
@@ -29,7 +31,8 @@ type
   SearchPaths, ExtraOptions may be @nil (same as empty). }
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings);
+  const SearchPaths: TStrings;
+  const ExtraOptions: TStrings = nil);
 
 { Output path, where temporary things like units (and iOS stuff)
   are placed. }
@@ -51,7 +54,7 @@ var
 implementation
 
 uses SysUtils, Process,
-  CastleUtils, CastleStringUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
+  CastleUtils, CastleLog, CastleFilesUtils, CastleFindFiles,
   ToolUtils;
 
 type
@@ -187,7 +190,7 @@ end;
 
 procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const Mode: TCompilationMode; const WorkingDirectory, CompileFile: string;
-  const SearchPaths: TStrings);
+  const SearchPaths, ExtraOptions: TStrings);
 var
   CastleEnginePath, CastleEngineSrc: string;
   FpcOptions: TCastleStringList;
@@ -211,6 +214,14 @@ var
         FpcOptions.Add('-Fu' + SearchPaths[I]);
         FpcOptions.Add('-Fi' + SearchPaths[I]);
       end;
+  end;
+
+  function IsIOS: boolean;
+  begin
+    Result :=
+      (OS = iphonesim) or
+      ((OS = darwin) and (CPU = arm)) or
+      ((OS = darwin) and (CPU = aarch64));
   end;
 
   procedure AddIOSOptions;
@@ -254,10 +265,13 @@ var
       {$endif}
     end;
 
+    Assert(IOS = IsIOS);
+
     // options for all iOS platforms
     if IOS then
     begin
       FpcOptions.Add('-Cn');
+
       { This corresponds to the iOS version used when compiling FPC 3.0.3 RTL
         from the latest official FPC release for iOS.
         With -WP5.1, I got a lot of warnings that FPC RTL was for iOS 7.0.
@@ -265,7 +279,29 @@ var
         clang: error: -fembed-bitcode is not supported on versions of iOS prior to 6.0
       }
       FpcOptions.Add('-WP7.0');
-      { TODO: this option is probably useless for now, since we pass -Cn
+
+      { This option is actually ununsed, since we pass -Cn
+        and later create the library manually.
+
+        Add -w to ignore linker warnings
+
+        This seems the only way to get rid of XCode (>= 8.3) linker errors when
+        compiling iOS project. The error is
+
+          Warning:pointer not aligned at address...
+
+        and it is caused when compiling x86 code for iPhone Simulator.
+        The error is inside FPC RTL, FPC developers consider this warning
+        unnecessary, aligning the relevant structured would be wasteful:
+        https://bugs.freepascal.org/view.php?id=31696
+
+        See more:
+        https://forum.lazarus.freepascal.org/index.php?topic=36978.0
+        https://stackoverflow.com/questions/41229076/project-settings-recommends-compiler-warning-suspicious-moves
+      }
+      //FpcOptions.Add('-k-w');
+
+      { This option is actually ununsed, since we pass -Cn
         and later create the library manually. }
       FpcOptions.Add('-o' + CompilationOutputPath(OS, CPU, WorkingDirectory) + 'libcge_ios_project_unused.a');
     end;
@@ -353,6 +389,8 @@ begin
         AddEnginePath('game');
         AddEnginePath('services');
         AddEnginePath('services/opengl');
+        AddEnginePath('physics');
+        AddEnginePath('physics/kraft');
 
         if not FPCVer.AtLeast(3, 1, 1) then
           AddEnginePath('compatibility/generics.collections/src');
@@ -414,7 +452,20 @@ begin
     case Mode of
       cmRelease:
         begin
-          FpcOptions.Add('-O2');
+          { With FPC 3.0.3 on Darwin/aarch64 (physical iOS, 64-bit)
+            programs compiled with -O1 or -O2 crash at start.
+            Earlier engine version, Draw3x3 was doing something weird.
+            So disable optimizations.
+
+            This is confirmed to really be needed only on darwin/aarch64,
+            although Michalis simply never tested on darwin/arm.
+            For safety and consistency of testing, disable optimizations
+            on all iOS versions. }
+          //if (OS = darwin) and (CPU = aarch64) then
+          if IsIOS then
+            FpcOptions.Add('-O-')
+          else
+            FpcOptions.Add('-O2');
           FpcOptions.Add('-Xs');
           FpcOptions.Add('-dRELEASE');
         end;
@@ -424,7 +475,10 @@ begin
             - without -Xs
             - with -gv, -gl
             See ../../doc/profiling_howto.txt }
-          FpcOptions.Add('-O2');
+          if IsIOS then
+            FpcOptions.Add('-O-')
+          else
+            FpcOptions.Add('-O2');
           FpcOptions.Add('-dRELEASE');
           FpcOptions.Add('-gv');
           FpcOptions.Add('-gl');
@@ -516,6 +570,9 @@ begin
     FpcOptions.Add('-FU' + CompilationOutputPath(OS, CPU, WorkingDirectory));
 
     AddIOSOptions;
+
+    if ExtraOptions <> nil then
+      FpcOptions.AddRange(ExtraOptions);
 
     Writeln('FPC executing...');
     FpcExe := FindExe('fpc');

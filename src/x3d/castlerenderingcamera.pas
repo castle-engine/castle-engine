@@ -88,6 +88,9 @@ type
       which is 1.0. }
     RotationMatrix: TMatrix4;
 
+    { Use RotationMatrix as camera matrix for rendering. }
+    RotationOnly: boolean;
+
     { Inverse of RotationMatrix.
 
       Always call RotationInverseMatrixNeeded before using it,

@@ -42,10 +42,13 @@
   public
     property FillProperties: TFillPropertiesNode read GetFillProperties write SetFillProperties;
     property LineProperties: TLinePropertiesNode read GetLineProperties write SetLineProperties;
+    procedure SetShaders(const Value: array of TAbstractShaderNode);
     property TextureTransform: TAbstractTextureTransformNode read GetTextureTransform write SetTextureTransform;
+    procedure SetReceiveShadows(const Value: array of TAbstractLightNode);
     property ShadowCaster: boolean read GetShadowCaster write SetShadowCaster;
     property HeightMapScale: Single read GetHeightMapScale write SetHeightMapScale;
     property BlendMode: TBlendModeNode read GetBlendMode write SetBlendMode;
+    procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}
 
@@ -79,6 +82,18 @@ begin
   FdLineProperties.Send(Value);
 end;
 
+procedure TAppearanceNode.SetShaders(const Value: array of TAbstractShaderNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractShaderNode));
+  FdShaders.Send(A);
+end;
+
 function TAppearanceNode.GetTextureTransform: TAbstractTextureTransformNode;
 begin
   if FdTextureTransform.Value is TAbstractTextureTransformNode then
@@ -90,6 +105,18 @@ end;
 procedure TAppearanceNode.SetTextureTransform(const Value: TAbstractTextureTransformNode);
 begin
   FdTextureTransform.Send(Value);
+end;
+
+procedure TAppearanceNode.SetReceiveShadows(const Value: array of TAbstractLightNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractLightNode));
+  FdReceiveShadows.Send(A);
 end;
 
 function TAppearanceNode.GetShadowCaster: boolean;
@@ -123,6 +150,18 @@ end;
 procedure TAppearanceNode.SetBlendMode(const Value: TBlendModeNode);
 begin
   FdBlendMode.Send(Value);
+end;
+
+procedure TAppearanceNode.SetEffects(const Value: array of TEffectNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectNode));
+  FdEffects.Send(A);
 end;
 
 {$endif read_implementation}

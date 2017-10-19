@@ -31,6 +31,7 @@
     procedure SetActiveLayer(const Value: Integer);
   public
     property ActiveLayer: Integer read GetActiveLayer write SetActiveLayer;
+    procedure SetLayers(const Value: array of TAbstractLayerNode);
     procedure SetOrder(const Value: array of LongInt);
     procedure SetOrder(const Value: TLongIntList);
 
@@ -48,6 +49,18 @@ end;
 procedure TLayerSetNode.SetActiveLayer(const Value: Integer);
 begin
   FdActiveLayer.Send(Value);
+end;
+
+procedure TLayerSetNode.SetLayers(const Value: array of TAbstractLayerNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TAbstractLayerNode));
+  FdLayers.Send(A);
 end;
 
 procedure TLayerSetNode.SetOrder(const Value: array of LongInt);

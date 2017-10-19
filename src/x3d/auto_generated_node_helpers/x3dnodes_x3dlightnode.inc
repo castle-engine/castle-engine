@@ -64,6 +64,7 @@
     property ProjectionFar: Single read GetProjectionFar write SetProjectionFar;
     property Up: TVector3 read GetUp write SetUp;
     property DefaultShadowMap: TGeneratedShadowMapNode read GetDefaultShadowMap write SetDefaultShadowMap;
+    procedure SetEffects(const Value: array of TEffectNode);
 
 {$endif read_interface}
 
@@ -192,6 +193,18 @@ end;
 procedure TAbstractLightNode.SetDefaultShadowMap(const Value: TGeneratedShadowMapNode);
 begin
   FdDefaultShadowMap.Send(Value);
+end;
+
+procedure TAbstractLightNode.SetEffects(const Value: array of TEffectNode);
+var
+  L: Integer;
+  A: array of TX3DNode;
+begin
+  L := High(Value) + 1;
+  SetLength(A, L);
+  if L > 0 then
+    Move(Value[0], A[0], L * SizeOf(TEffectNode));
+  FdEffects.Send(A);
 end;
 
 {$endif read_implementation}

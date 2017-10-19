@@ -97,12 +97,19 @@
   {$endif}
 {$endif}
 
-{ We do *not* define inline functions/methods when compiling from
-  Lazarus package. This is to workaround FPC bug
-  http://bugs.freepascal.org/view.php?id=12223 . }
-{$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
-  {$define SUPPORTS_INLINE}
-{$endif}
+{ We used to disable inline functions/methods when compiling from
+  Lazarus package (when CASTLE_ENGINE_LAZARUS_PACKAGE),
+  to workaround FPC bug http://bugs.freepascal.org/view.php?id=12223 .
+  That bug is closed, but with an answer basically "it will never be fixed",
+  which means that you cannot have units in Lazarus package having
+  "inline". (Unless you add -Ur, which would be uncomfortable for
+  engine development from Lazarus.)
+
+  But with FPC 3.0.2 everything seems to work cool even with "inline",
+  so let's try defining it always now.
+  We only support FPC >= 3.0.0 now.
+}
+{$define SUPPORTS_INLINE}
 
 {$define TOBJECT_HAS_EQUALS}
 
@@ -158,7 +165,7 @@
   {$endif}
 {$endif}
 
-{ OpenGL ES ------------------------------------------------------------------ }
+{ OpenGL[ES] ------------------------------------------------------------------ }
 
 { Whether we use OpenGL ES or normal OpenGL.
   OpenGL ES is generally for mobile devices.
@@ -174,7 +181,6 @@
   {$else}
     {$define CastleGL := CastleGLES20}
   {$endif}
-  {$define GLImageUseShaders}
 
   { This is necessary to workaround buggy OpenGLES on Android EMUI 3.1
     (Renderer = "Mali-450 MP", Vendor = "ARM", Version string "OpenGL ES 2.0").
@@ -199,9 +205,47 @@
   {$ifndef CASTLE_ENGINE_TEST_DELPHI_MODE}
     {$define CastleGL := GL, GLU, GLExt}
   {$endif}
-  { It is possible to test GLImageUseShaders also with non-OpenGLES version.
-    All the TGLImageCore and DrawRectangle rendering will go through shaders. }
-  { $define GLImageUseShaders}
+{$endif}
+
+{ Define ForceStandardGLSLApi to only use GLSL shaders when included in OpenGL core
+  (or not use GLSL shaders at all),
+  and never use GLSL ARB extensions available on some OpenGL 1.x implementations. }
+{$ifdef OpenGLES}
+  {$define ForceStandardGLSLApi}
+{$endif}
+{$ifdef DARWIN}
+  {$ifdef CPU64}
+    (*Apple did something really weird, and defined GLhandleARB to be
+      a pointer-size (not an GLint-size) type.
+
+      See the (correct) definition in fpc/trunk/packages/opengl/src/glext.pp:
+        {$ifdef DARWIN}
+        GLHandleARB = Pointer;              // defined as void * in OpenGL.framework/glext.h
+        {$else}
+        GLhandleARB = Cardinal;
+        {$endif}
+      This is correct, i.e. this is consistent with C OpenGL header,
+      and (apparently, if you believe the Internet) with what binary code expects:
+      on Mac OS X 64-bit, GLhandleARB is 8 bytes, not 4.
+
+      To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
+      for example glGetProgramivARB (that takes GLEnum).
+      So I'm unsure whether everything will really work correctly then -- one has to be extra
+      careful when the GLhandleARB and GLint are (binary) different things *only on this one
+      specific OS + architecture*.
+
+      See others being baffled by this:
+      - https://www.opengl.org/discussion_boards/showthread.php/175353-Scared-of-ARB-s-glext-h
+      - http://irrlicht.sourceforge.net/forum/viewtopic.php?t=44069
+      - http://trac.wildfiregames.com/ticket/1197
+
+      This makes things uncomfortable in CastleGLShaders, as we cannot cast "ProgramId: TGLuint"
+      to GLhandleARB safely. For simplicity, we just avoid using GLhandleARB,
+      and whole family of ARB functions, on Mac OS X 64-bit.
+      They should not be needed in practice --- modern OpenGL versions
+      don't need the ARB extensions to access the shaders. *)
+    {$define ForceStandardGLSLApi}
+  {$endif}
 {$endif}
 
 { PNG ------------------------------------------------------------------------ }

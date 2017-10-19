@@ -17,7 +17,7 @@
 { Library to run the game on iOS. }
 library ${NAME_PASCAL};
 
-uses Math, CastleWindow, ${GAME_UNITS};
+uses Math, CastleWindow, CastleMessaging, ${GAME_UNITS};
 
 { Qualify identifiers by unit names below,
   to prevent GAME_UNITS from changing the meaning of code below. }
@@ -34,7 +34,9 @@ exports
   CastleWindow.CGEApp_MouseUp,
   CastleWindow.CGEApp_KeyDown,
   CastleWindow.CGEApp_KeyUp,
-  CastleWindow.CGEApp_SetDpi;
+  CastleWindow.CGEApp_SetDpi,
+  CastleMessaging.CGEApp_SetReceiveMessageFromPascalCallback,
+  CastleMessaging.CGEApp_SendMessageToPascal;
 
 begin
   Math.SetExceptionMask([exInvalidOp, exDenormalized, exZeroDivide,

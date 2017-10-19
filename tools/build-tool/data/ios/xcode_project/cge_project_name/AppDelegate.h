@@ -15,8 +15,15 @@
 */
 
 #import <UIKit/UIKit.h>
+#include "castleiosappglue.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
+{
+    /* Services (integrations with 3rd party services).
+       Array of ServiceAbstract instances. */
+    NSMutableArray* services;
+}
+- (void)messageReceived:(const char *)message;
 
 @property (strong, nonatomic) UIWindow *window;
 

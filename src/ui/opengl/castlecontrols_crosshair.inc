@@ -15,6 +15,7 @@
 
 {$ifdef read_interface}
 
+  { Possible crosshair shape, for @link(TCastleCrosshair.Shape). }
   TCastleCrosshairShape = (csCross, csCrossRect);
 
   { Display a simple crosshair in the middle of the parent control. }

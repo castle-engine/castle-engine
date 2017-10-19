@@ -223,6 +223,12 @@ function TBoxNode.Proxy(var State: TX3DGraphTraverseState;
         OverTriangulate, FdSize.Value, CalculateDivisions);
 
       IFS.FdSolid.Value := FdSolid.Value;
+      IFS.FdCcw.Value := FdCcw.Value;
+
+      { Box_Proxy generated normals from CCW,
+        we need to flip them if CW is front face }
+      if not FdCcw.Value then
+        NormalNode.FdVector.Items.Negate;
 
       { Smooth nothing. Not really needed, we use explicit normal node now. }
       IFS.FdCreaseAngle.Value := 0;

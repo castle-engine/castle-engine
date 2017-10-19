@@ -564,7 +564,7 @@ begin
 
           SceneURL := S;
           { reinit camera, since Scene.BoundingBox changed }
-          (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.1);
+          SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.1);
         end;
       end;
     12: Window.Close;
@@ -669,8 +669,7 @@ begin
     RenderParams.FBaseLights.Add(LightInstance);
 
     { init SceneManager.Camera }
-    SceneManager.Camera := TExamineCamera.Create(Window);
-    (SceneManager.Camera as TExamineCamera).Init(Scene.BoundingBox, 0.02);
+    SceneManager.ExamineCamera.Init(Scene.BoundingBox, 0.02);
 
     Window.MainMenu := CreateMainMenu;
     Window.OnMenuClick := @MenuClick;
