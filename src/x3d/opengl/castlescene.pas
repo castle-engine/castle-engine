@@ -381,11 +381,13 @@ type
   { Basic non-abstact implementation of render params for calling T3D.Render.
 
     @exclude
-    @bold(This is a hack, exposed here only to support some really weird
-    OpenGL tricks in engine example programs. Do not use this in your own code.)
-    To be used when you have to call T3D.Render, but you don't use scene manager.
-    Usually this should not be needed, and this class may be removed at some
-    point! You should always try to use TCastleSceneManager to manage and render
+    @bold(This is exposed here only to support some experiments with non-standard
+    rendering in engine example programs. Do not use this in your own code.)
+    This can be used when you have to call T3D.Render,
+    but you don't use scene manager.
+    Usually this should not be needed.
+    This class may be removed at some point!
+    You should always try to use TCastleSceneManager to manage and render
     3D stuff in new programs, and then TCastleSceneManager will take care of creating
     proper render params instance for you. }
   TBasicRenderParams = class(TRenderParams)
