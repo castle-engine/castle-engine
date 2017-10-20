@@ -56,7 +56,7 @@ especially with instrumentation (this is when actual measurements take place).
 So it's advised to start without instrumentation, and only turn it on
 for the interested code part.
 
-valgrind --tool=callgrind --instr-atstart=no ~/bin/view3dscene
+valgrind --tool=callgrind --instr-atstart=no ./my-program
 
 # from other shell:
 callgrind_control -i on
@@ -68,31 +68,18 @@ kcachegrind
 ------------------------------------------------------------------------------
 For memory usage profiling:
 
-- Try using CMem: add CMem as first unit on uses clause of the main program,
-  or compile with -FaCMem. This avoids possible complications of default
-  FPC memory manager (that may be lazy about releasing memory to OS,
-  in order to gain some speed; although this didn't have any noticeable bad
-  impact on memory use in my tests, so FPC memory manager does a good job;
-  but still it's worth checking.)
-
-  Note that valgrind (-gv) option conflicts with using CMem explicitly.
-  That is because, as far as I know, using -gv means that CMem
-  is already, implicitly, added (looks like CMem is required for valgrind to
-  duplicated in uses clause. correctly interpret results).
-  So "-gv -FaCMem" will say that Cmem is duplicated in uses clause.
-  So actually any one of "-gv" or "-FaCMem" (but don't use both)
-  will result in your program being tested with CMem memory manager.
-
 - Use valgrind's massif tool.
   Compile like described previously for callgrind (with -gv), then run like
 
-    valgrind --tool=massif --run-libc-freeres=no ... ~/bin/view3dscene
+    valgrind --tool=massif --run-libc-freeres=no ./my-program
 
-  Actually, we have a script that wraps a couple of useful massif
-  options for you in ../../scripts/massif_fpc . Just copy it to your $PATH,
-  like ~/bin/, and then execute
+  There are some more useful Valgrind options,
+  we have them in massif_fpc script in
+  https://github.com/castle-engine/cge-scripts/blob/master/massif_fpc .
+  So just get https://raw.githubusercontent.com/castle-engine/cge-scripts/master/massif_fpc ,
+  place it in your $PATH, and then execute
 
-    massif_fpc ~/bin/view3dscene
+    massif_fpc ./my-program
 
   Afterwards investigate the resulting massif.out.xxx file, by
 
