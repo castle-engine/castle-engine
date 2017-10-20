@@ -1,12 +1,16 @@
-How to profile FPC code.
+Short instructions how to "profile" (analyze time and memory usage)
+your Castle Game Engine applications.
+====
 
-Short guide on how to profile view3dscene (or any other FPC binary, actually)
-with valgrind. This reflects some Kambi preferences and tastes.
-Do not follow it blindly, your real guide is documentation of
-FPC+valgrind and valgrind/callgrind manual.
+Most of this description actually applies to any program
+compiled using FPC, not just Castle Game Engine.
 
-http://valgrind.org/docs/manual/cl-manual.html
-http://wiki.lazarus.freepascal.org/Profiling
+This document is just a shortcut. Your real guide is
+the documentation of FPC and Valgrind and Valgrind/Callgrind manual :
+
+- http://valgrind.org/docs/manual/cl-manual.html
+
+- http://wiki.lazarus.freepascal.org/Profiling
 
 ------------------------------------------------------------------------------
 Compile for valgrind:
