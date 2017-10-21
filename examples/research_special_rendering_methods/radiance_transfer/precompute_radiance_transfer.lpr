@@ -233,7 +233,7 @@ begin
             smooth normals. Simple, and thanks to CastleInternalNormals
             this works for all VRML/X3D coord-based nodes (and only for
             those RadianceTransfer is defined). }
-          Normals := SI.Current.NormalsSmooth(true);
+          Normals := SI.Current.NormalsSmooth(true, true);
           ComputeTransfer(RadianceTransfer,
             Geometry.InternalCoordinates(State).Items,
             State.Transform, DiffuseColor(State));
