@@ -172,7 +172,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
-  CastleTextureFontData, CastleShaders, CastleProjection;
+  CastleTextureFontData, CastleRendererBaseTypes, CastleProjection;
 
 {$define read_interface}
 

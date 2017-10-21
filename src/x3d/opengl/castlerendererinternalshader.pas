@@ -23,7 +23,7 @@ interface
 uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererInternalTextureEnv, CastleStringUtils, CastleShaders,
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRendererBaseTypes,
   CastleShapes;
 
 type

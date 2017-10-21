@@ -62,7 +62,7 @@ uses SysUtils, Classes,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
-  CastleRectangles, CastleControls, CastleShaders;
+  CastleRectangles, CastleControls, CastleRendererBaseTypes;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -539,8 +539,9 @@ begin
   GLTexRock := LoadTexture('rock_d01.png');
 
   { initialize GLSL program }
-  if TGLSLProgram.ClassSupport <> gsNone then
-    GLSLProgram := TGLSLProgram.Create else
+  if GLFeatures.Shaders <> gsNone then
+    GLSLProgram := TGLSLProgram.Create
+  else
     Shader := false;
   GLSLProgramRegenerate;
 end;
