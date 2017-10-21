@@ -81,14 +81,15 @@ type
     FGlobalScissor: TScissor;
     FProjectionMatrix: TMatrix4;
     FDepthRange: TDepthRange;
-    FCullFaces: TCullFaces;
+    FCullFace, FFrontFaceCcw: boolean;
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
     procedure SetGlobalAmbient(const Value: TCastleColorRGB);
     procedure WarnContextNotCurrent;
     procedure SetProjectionMatrix(const Value: TMatrix4);
     procedure SetDepthRange(const Value: TDepthRange);
-    procedure SetCullFaces(const Value: TCullFaces);
+    procedure SetCullFace(const Value: boolean);
+    procedure SetFrontFaceCcw(const Value: boolean);
   private
     FEnabledScissors: TScissorList;
   public
@@ -146,16 +147,15 @@ type
     property DepthRange: TDepthRange read FDepthRange write SetDepthRange;
 
     { Should we use backface-culling (ignore some faces during rendering).
-      This controls whether OpenGL GL_CULL_FACE flag is enabled or not,
-      and whether glCullFace is set to back or front.
+      This controls whether OpenGL GL_CULL_FACE flag is enabled or not. }
+    property CullFace: boolean read FCullFace write SetCullFace
+      default false;
 
-      Note that we never use glFrontFace, we assume that it's always CCW
-      for normal rendering. This way planar mirrors implementation may use
-      glFrontFace (see research_special_rendering_methods/plane_mirror_and_shadow/ ,
-      not yet integrated with the engine core).
-
-      @seealso TCullFaces }
-    property CullFaces: TCullFaces read FCullFaces write SetCullFaces;
+    { Is the front face ordered counter-clockwise.
+      The "front face" is important to interpreting the @link(CullFace)
+      and to interpret the normal vectors (they point ourward from front face). }
+    property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
+      default true;
   end;
 
 var
@@ -224,7 +224,8 @@ begin
   FEnabledScissors := TScissorList.Create(false);
   FProjectionMatrix := TMatrix4.Identity;
   FDepthRange := drFull;
-  FCullFaces := cfNone;
+  FCullFace := false;
+  FFrontFaceCcw := true;
 end;
 
 destructor TRenderContext.Destroy;
@@ -376,26 +377,30 @@ begin
   end;
 end;
 
-procedure TRenderContext.SetCullFaces(const Value: TCullFaces);
+procedure TRenderContext.SetCullFace(const Value: boolean);
 begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if FCullFaces <> Value then
+  if FCullFace <> Value then
   begin
-    FCullFaces := Value;
+    FCullFace := Value;
+    GLSetEnabled(GL_CULL_FACE, FCullFace);
+  end;
+end;
 
-    { We do not want to touch OpenGL glFrontFace (this will be useful
-      for planar mirrors, where caller should be able to control glFrontFace).
-      So we use only glCullFace. We assume that glFrontFace = always CCW,
-      so we know how to call glCullFace. }
+procedure TRenderContext.SetFrontFaceCcw(const Value: boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
 
-    case Value of
-      cfNone: glDisable(GL_CULL_FACE);
-      cfCullCw:  begin glCullFace(GL_BACK);  glEnable(GL_CULL_FACE); end;
-      cfCullCcw: begin glCullFace(GL_FRONT); glEnable(GL_CULL_FACE); end;
-      else raise EInternalError.Create('SetCullFaces:Value?');
-    end;
+  if FFrontFaceCcw <> Value then
+  begin
+    FFrontFaceCcw := Value;
+    if Value then
+      glFrontFace(GL_CCW)
+    else
+      glFrontFace(GL_CW);
   end;
 end;
 

@@ -29,26 +29,6 @@ const
   ShaderTypeName: array [TShaderType] of string =
   ( 'Vertex', 'Geometry', 'Fragment' );
 
-type
-  { Should we use backface-culling (ignore some faces during rendering).
-    This controls whether OpenGL GL_CULL_FACE flag is enabled or not,
-    and whether glCullFace is set to back or front.
-
-    Note that we never use glFrontFace, we assume that it's always CCW
-    for normal rendering. This way planar mirrors implementation may use
-    glFrontFace (see research_special_rendering_methods/plane_mirror_and_shadow/ ,
-    not yet integrated with the engine core).
-
-    @seealso TRenderContext.CullFaces }
-  TCullFaces = (
-    { No backface-culling. }
-    cfNone,
-    { Cull the faces oriented clockwise. }
-    cfCullCw,
-    { Cull the faces oriented counter-clockwise. }
-    cfCullCcw
-  );
-
 implementation
 
 end.

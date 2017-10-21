@@ -46,7 +46,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
   Remember it's your responsibility to free result of this function
   at some point.
 
-  @param(FromCCW Specifies whether we should generate normals
+  @param(FromCcw Specifies whether we should generate normals
     pointing from CCW (counter-clockwise) or CW.)
 
   @param(CreaseAngleRad Specifies in radians what is the acceptable
@@ -67,7 +67,7 @@ uses SysUtils, CastleUtils, CastleVectors, X3DNodes;
 function CreateNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
-  const FromCCW, Convex: boolean): TVector3List;
+  const FromCcw, Convex: boolean): TVector3List;
 
 { Calculate flat per-face normals for indexed faces.
 
@@ -77,7 +77,7 @@ function CreateNormals(CoordIndex: TLongintList;
   Using something larger would be a waste of memory and time. }
 function CreateFlatNormals(coordIndex: TLongintList;
   vertices: TVector3List;
-  const FromCCW, Convex: boolean): TVector3List;
+  const FromCcw, Convex: boolean): TVector3List;
 
 { Calculate always smooth normals per-vertex, for VRML/X3D coordinate-based
   node. We use TAbstractGeometryNode.InternalCoordPolygons for this, so the node class
@@ -93,7 +93,7 @@ function CreateFlatNormals(coordIndex: TLongintList;
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  const FromCCW: boolean): TVector3List;
+  const FromCcw: boolean): TVector3List;
 
 implementation
 
@@ -113,7 +113,7 @@ type
 function CreateNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
   CreaseAngleRad: Single;
-  const FromCCW, Convex: boolean): TVector3List;
+  const FromCcw, Convex: boolean): TVector3List;
 var
   Faces: TFaceList;
   { For each vertex (this array Count is always Vertices.Count),
@@ -252,7 +252,7 @@ begin
       { for each vertex, calculate all his normals (on all his faces) }
       for I := 0 to Vertices.Count - 1 do CalculateVertexNormals(I);
 
-      if not FromCCW then Result.Negate;
+      if not FromCcw then Result.Negate;
     finally
       for I := 0 to Vertices.Count - 1 do VerticesFaces[I].Free;
       Faces.Free;
@@ -262,7 +262,7 @@ end;
 
 function CreateFlatNormals(CoordIndex: TLongintList;
   Vertices: TVector3List;
-  const FromCCW, Convex: boolean): TVector3List;
+  const FromCcw, Convex: boolean): TVector3List;
 var
   I, StartIndex: Integer;
   FaceNumber: Integer;
@@ -288,7 +288,7 @@ begin
 
     Result.Count := FaceNumber;
 
-    if not FromCCW then Result.Negate;
+    if not FromCcw then Result.Negate;
   except FreeAndNil(Result); raise end;
 end;
 
@@ -344,7 +344,7 @@ end;
 function CreateSmoothNormalsCoordinateNode(
   Node: TAbstractGeometryNode;
   State: TX3DGraphTraverseState;
-  const FromCCW: boolean): TVector3List;
+  const FromCcw: boolean): TVector3List;
 var
   Calculator: TCoordinateNormalsCalculator;
   C: TMFVec3f;
@@ -370,7 +370,7 @@ begin
     finally FreeAndNil(Calculator) end;
 
     Result.Normalize;
-    if not FromCCW then Result.Negate;
+    if not FromCcw then Result.Negate;
 
   except FreeAndNil(Result); raise end;
 end;

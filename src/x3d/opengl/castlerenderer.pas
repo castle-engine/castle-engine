@@ -13,12 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D low-level rendering (TGLRenderer).
-  You usually don't want to use this renderer directly, you should
-  rather use TCastleScene that wraps this renderer and gives you simple
+{ VRML / X3D low-level rendering (TGLRenderer).
+  You should never use this renderer directly,
+  you should always use TCastleScene that wraps this renderer and gives you simple
   method to render whole scene.
+  TODO: this unit should be renamed to Internal at some point.
 
-  The overview of this class can also be found in engine documentation
+  The overview of the renderer can also be found in engine documentation
   [http://castle-engine.sourceforge.net/engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
 
@@ -89,57 +90,17 @@
   This allows you to customize rendering by using normal OpenGL commands.
 
   @unorderedList(
-    @item(First of all, current matrix values (MODELVIEW,
-      PROJECTION and TEXTURE) affect our rendering as usual.
-
-      So you can move the rendered VRML model by normal OpenGL
-      matrix transformations, you can even affect rendered texture coords
-      by your own texture matrix etc.)
-
     @item(Current glPolygonMode.
-
-      Of course for normal rendering you want to render polygons
-      (both sides, GL_FRONT_AND_BACK) with GL_FILL. But you can change
-      it to get wireframe model view.)
+      This is used by @link(TCastleScene) to optionally render wireframe.
+    )
 
     @item(Blending settings (GL_BLEND enabled state, glBlendFunc),
       and glDepthMask.
 
-      These are typically controlled by higher-level renderer (Scene)
-      to allow rendering scenes with both tranparent and opaque objects.
-      Only such higher-level renderer may control them, as only it controls
-      the order of rendering shapes, which is important for rendering
-      tranparent shapes.)
-
-    @item(Current GL_FOG_HINT.
-
-      Just like for any other OpenGL program, you may want to set this
-      to GL_NICEST (if you have to render models that may look bad
-      when fog is interpolated without perspective correction).)
-
-    @item(glFrontFace is assumed to be CCW (OpenGL default) but not manipulated
-      by this unit anywhere.
-
-      So our normals passed to OpenGL always point from CCW side.
-      Even if you supplied in VRML file normals pointing from CW
-      (indicated e.g. by IndexedFaceSet.ccw = FALSE field in VRML 97),
-      we will internally invert them and pass inverted ones to OpenGL.
-      And when culling faces, we switch using @code(glCullFace(
-      GL_BACK / GL_FRONT)), not by switching front face.
-
-      Why so much work was done to always work with front face = CCW assumption?
-      Because this is very handy when you render mirrors by using
-      @code(Scale(1, 1, -1)) trick. See
-      [http://www.opengl.org/resources/code/samples/mjktips/Reflect.html]
-      and example program
-      @code(castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr).
-      With such strange scale, CCW and CW invert places. Sides that were
-      CCW normally are now CW. This means that you want to call @code(glFrontFace(GL_CW))
-      temporarily when rendering scene in the mirror. This way scene in the mirror
-      will have correct normals and backface culling.
-
-      Since we don't touch @code(glFrontFace) anywhere, this is possible to you.
-      And you can reuse resources for the scene in the mirror.
+      This is used by @link(TCastleScene) to render
+      scenes with a mix of tranparent and opaque objects.
+      Only @link(TCastleScene) deals with it (not this renderer),
+      as doing it correctly requires ordering the shapes.
     )
   )
 
@@ -2646,6 +2607,9 @@ begin
 
   RenderCleanState(false);
 
+  { restore defaults }
+  RenderContext.CullFace := false;
+  RenderContext.FrontFaceCcw := true;
   TGLSLProgram.Current := nil;
 end;
 

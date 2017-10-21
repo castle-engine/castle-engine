@@ -78,7 +78,7 @@ type
   TTriangleStripSetGenerator = class(TAbstractCompleteGenerator)
   strict private
     TriFaceNormal: TVector3;
-    VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
+    VRML1FrontFaceCcw, VRML1CullFace: boolean;
     procedure PrepareIndexesCoordsRange(
       const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer);
@@ -275,22 +275,21 @@ begin
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
-
     { For both TriangleSet and IndexedTriangleSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
     if Geometry is TIndexedTriangleSetNode then
-      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexCoordIndexed
+    else
       NorImplementation := niPerVertexNonIndexed;
   end else
   if (Geometry is TIndexedTriangleSetNode) and
      TIndexedTriangleSetNode(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate);
-    NormalsCcw := true;
+    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin
@@ -419,23 +418,23 @@ begin
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
-
     { For both TriangleFanSet and IndexedTriangleFanSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
     if Geometry is TIndexedTriangleFanSetNode then
-      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexCoordIndexed
+    else
       NorImplementation := niPerVertexNonIndexed;
   end else
   if (Geometry as TAbstractComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate);
-    NormalsCcw := true;
+    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
     if CoordIndex <> nil then
-      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexCoordIndexed
+    else
       NorImplementation := niPerVertexNonIndexed;
   end else
   begin
@@ -596,7 +595,7 @@ constructor TTriangleStripSetGenerator.Create(AShape: TShape; AOverTriangulate: 
       nie podadza vertexOrdering innego niz UNKNOWN) }
     VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
-    VRML1CullBackFaces :=
+    VRML1CullFace :=
       (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
       (SH.FdShapeType.Value = SHTYPE_SOLID);
 
@@ -631,23 +630,23 @@ begin
   end;
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
-
     { For both TriangleStripSet and IndexedTriangleStripSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex), as far as I understand
       X3D spec. }
     if Geometry is TIndexedTriangleStripSetNode then
-      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexCoordIndexed
+    else
       NorImplementation := niPerVertexNonIndexed;
   end else
   if (Geometry as TAbstractComposedGeometryNode).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate);
-    NormalsCcw := true;
+    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
     if CoordIndex <> nil then
-      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexCoordIndexed
+    else
       NorImplementation := niPerVertexNonIndexed;
   end else
   begin
@@ -670,7 +669,7 @@ begin
   begin
     { Already calculated in constructor, pass to Arrays now }
     Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
-    Arrays.CullBackFaces := VRML1CullBackFaces;
+    Arrays.CullFace := VRML1CullFace;
 
     { When generating, we always generate flat normals for IndexedTriangleMesh
       (I don't know if I should use anything like "creaseAngle"?) }
@@ -823,22 +822,21 @@ begin
     we have quads now. }
 
   Normals := (Geometry as TAbstractComposedGeometryNode).InternalNormal;
+  NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   if Normals <> nil then
   begin
-    NormalsCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
-
     { For both QuadSet and IndexedQuadSet, if normals are supplied
       then they are per-vertex (ignoring normalPerVertex),
       as far as I understand X3D spec. }
     if Geometry is TIndexedQuadSetNode then
-      NorImplementation := niPerVertexCoordIndexed else
+      NorImplementation := niPerVertexCoordIndexed
+    else
       NorImplementation := niPerVertexNonIndexed;
   end else
   if (Geometry is TIndexedQuadSetNode) and
      TIndexedQuadSetNode(Geometry).FdNormalPerVertex.Value then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate);
-    NormalsCcw := true;
+    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   begin

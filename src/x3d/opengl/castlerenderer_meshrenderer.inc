@@ -447,7 +447,8 @@ end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
-  RenderContext.CullFaces := Arrays.CullFaces;
+  RenderContext.CullFace := Arrays.CullFace;
+  RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
   if Renderer.Attributes.Mode = rmFull then
     Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;

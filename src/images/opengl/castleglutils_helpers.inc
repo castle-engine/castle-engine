@@ -133,8 +133,8 @@ var
 
 { ---------------------------------------------------------------------------- }
 
-{ }
-procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
+{ Enable or disable given OpenGL flag. }
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 
 {$ifndef OpenGLES}
 
@@ -393,9 +393,9 @@ end;
 
 { Various helpers ------------------------------------------------------------ }
 
-procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 begin
-  if isEnabled then glEnable(value) else glDisable(value);
+  if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
 
 {$ifndef OpenGLES}

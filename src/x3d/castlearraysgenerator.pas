@@ -596,11 +596,8 @@ type
     Note that PerVertexXxx normals require smooth shading to work Ok. }
   TAbstractNormalGenerator = class(TAbstractColorGenerator)
   private
-    { Will be set to Normals or it's inverted version, to keep
-      pointing from CCW. }
-    CcwNormals: TVector3List;
     FaceNormal: TVector3;
-    function CcwNormalsSafe(const Index: Integer): TVector3;
+    function NormalsSafe(const Index: Integer): TVector3;
   protected
     NormalIndex: TMFLong;
     Normals: TVector3List;
@@ -821,7 +818,7 @@ procedure TArraysGenerator.PrepareAttributes(var AllowIndexed: boolean);
 begin
   if Geometry is TAbstractComposedGeometryNode then
   begin
-    Arrays.CullBackFaces := Geometry.Solid;
+    Arrays.CullFace := Geometry.Solid;
     Arrays.FrontFaceCcw := (Geometry as TAbstractComposedGeometryNode).FdCcw.Value;
   end;
 end;
@@ -1786,11 +1783,11 @@ begin
     Result := niNone;
 end;
 
-function TAbstractNormalGenerator.CcwNormalsSafe(
-  const Index: Integer): TVector3;
+function TAbstractNormalGenerator.NormalsSafe(const Index: Integer): TVector3;
 begin
-  if Index < CcwNormals.Count then
-    Result := CcwNormals.L[Index] else
+  if Index < Normals.Count then
+    Result := Normals.L[Index]
+  else
     Result := TVector3.Zero;
 end;
 
@@ -1799,17 +1796,17 @@ procedure TAbstractNormalGenerator.GetNormal(
 begin
   case NorImplementation of
     niOverall:
-      N := CcwNormals.L[0];
+      N := Normals.L[0];
     niPerVertexNonIndexed:
-      N := CcwNormals.L[IndexNum];
+      N := Normals.L[IndexNum];
     niPerVertexCoordIndexed:
-      N := CcwNormals.L[CoordIndex.Items.L[IndexNum]];
+      N := Normals.L[CoordIndex.Items.L[IndexNum]];
     niPerVertexNormalIndexed:
-      N := CcwNormals.L[NormalIndex.ItemsSafe[IndexNum]];
+      N := Normals.L[NormalIndex.ItemsSafe[IndexNum]];
     niPerFace:
-      N := CcwNormals.L[RangeNumber];
+      N := Normals.L[RangeNumber];
     niPerFaceNormalIndexed:
-      N := CcwNormals.L[NormalIndex.ItemsSafe[RangeNumber]];
+      N := Normals.L[NormalIndex.ItemsSafe[RangeNumber]];
     else
       raise EInternalError.CreateFmt('NorImplementation unknown (probably niNone, and not overridden GetNormal) in class %s',
         [ClassName]);
@@ -1828,13 +1825,13 @@ begin
     niPerVertexNormalIndexed:
       begin
         Assert(Arrays.Indexes = nil);
-        Arrays.Normal(ArrayIndexNum)^ := CcwNormalsSafe(NormalIndex.ItemsSafe[IndexNum]);
+        Arrays.Normal(ArrayIndexNum)^ := NormalsSafe(NormalIndex.ItemsSafe[IndexNum]);
       end;
     niPerVertexNonIndexed:
       if CoordIndex <> nil then
       begin
         Assert(Arrays.Indexes = nil);
-        Arrays.Normal(ArrayIndexNum)^ := CcwNormalsSafe(IndexNum);
+        Arrays.Normal(ArrayIndexNum)^ := NormalsSafe(IndexNum);
       end;
     niPerFace, niPerFaceNormalIndexed:
       begin
@@ -1862,39 +1859,25 @@ procedure TAbstractNormalGenerator.GenerateCoordinateBegin;
 begin
   inherited;
 
-  if Normals <> nil then
-  begin
-    if NormalsCcw then
-      CcwNormals := Normals else
-    begin
-      CcwNormals := TVector3List.Create;
-      CcwNormals.Assign(Normals);
-      CcwNormals.Negate;
-    end;
-  end;
-
   if NorImplementation = niPerVertexCoordIndexed then
   begin
     if Arrays.Indexes <> nil then
-      AssignToInterleaved       (CcwNormals.L, CcwNormals.ItemSize, CcwNormals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
-      AssignToInterleavedIndexed(CcwNormals.L, CcwNormals.ItemSize, CcwNormals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
+      AssignToInterleaved       (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count) else
+      AssignToInterleavedIndexed(Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count, IndexesFromCoordIndex);
   end else
   if (NorImplementation = niPerVertexNonIndexed) and (CoordIndex = nil) then
   begin
     Assert(Arrays.Indexes = nil);
-    AssignToInterleaved         (CcwNormals.L, CcwNormals.ItemSize, CcwNormals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
+    AssignToInterleaved         (Normals.L, Normals.ItemSize, Normals.Count, Arrays.Normal, Arrays.CoordinateSize, Arrays.Count);
   end else
   if NorImplementation = niOverall then
   begin
-    SetAllNormals(CcwNormalsSafe(0));
+    SetAllNormals(NormalsSafe(0));
   end;
 end;
 
 procedure TAbstractNormalGenerator.GenerateCoordinateEnd;
 begin
-  if (Normals <> nil) and (not NormalsCcw) then
-    FreeAndNil(CcwNormals);
-
   inherited;
 end;
 
@@ -1907,9 +1890,9 @@ begin
     for this face. }
   case NorImplementation of
     niPerFace:
-      FaceNormal := CcwNormalsSafe(RangeNumber);
+      FaceNormal := NormalsSafe(RangeNumber);
     niPerFaceNormalIndexed:
-      FaceNormal := CcwNormalsSafe(NormalIndex.ItemsSafe[RangeNumber]);
+      FaceNormal := NormalsSafe(NormalIndex.ItemsSafe[RangeNumber]);
   end;
 end;
 

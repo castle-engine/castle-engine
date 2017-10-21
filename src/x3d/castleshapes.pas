@@ -208,7 +208,7 @@ type
       svTrianglesCountNotOver, svTrianglesCountOver,
       svBoundingSphere,
       svNormals);
-    TShapeNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
+    TNormalsCached = (ncSmooth, ncFlat, ncCreaseAngle);
 
     var
     FLocalBoundingBox: TBox3D;
@@ -282,12 +282,13 @@ type
     { @groupEnd }
     {$endif}
 
-    { Meaningful only when svNormals in Validities.
-      Normals may be assigned only if svNormals in Validities. }
-    FNormalsCached: TShapeNormalsCached;
+    { All fields below are meaningful only when svNormals in Validities.
+      Normals may be assigned only if svNormals in Validities.
+      Moreover, FNormalsCreaseAngle is meaningful only when
+      (svNormals in Validities) and (NormalsCached = ncCreaseAngle). }
+    FNormalsCached: TNormalsCached;
+    FNormalsCachedCcw: boolean;
     FNormals: TVector3List;
-    { Meaningful only when svNormals in Validities and
-      NormalsCached = ncCreaseAngle. }
     FNormalsCreaseAngle: Single;
     FNormalsOverTriangulate: boolean;
 
@@ -521,7 +522,7 @@ type
     { Create normals suitable for this shape.
 
       You can call this only when Geometry is coordinate-based
-      VRML geometry, implementing Coord and having non-empty coordinates
+      X3D geometry, implementing Coord and having non-empty coordinates
       (that is, Geometry.Coord returns @true and sets ACoord <> @nil),
       and having Geometry.CoordIndex <> @nil.
 
@@ -547,13 +548,10 @@ type
       speedup if the shape will not change (@link(Changed) method) and
       will need normals many times (e.g. will be rendered many times).
 
-      Normals generated always point out from CCW (FromCCW = @true
-      is passed to all Create*Normals internally).
-
       @groupBegin }
-    function NormalsSmooth(OverTriangulate: boolean): TVector3List;
-    function NormalsFlat(OverTriangulate: boolean): TVector3List;
-    function NormalsCreaseAngle(OverTriangulate: boolean;
+    function NormalsSmooth(const OverTriangulate, FromCcw: boolean): TVector3List;
+    function NormalsFlat(const OverTriangulate, FromCcw: boolean): TVector3List;
+    function NormalsCreaseAngle(const OverTriangulate, FromCcw: boolean;
       const CreaseAngle: Single): TVector3List;
     { @groupEnd }
 
@@ -1743,14 +1741,17 @@ begin
   {$endif}
 end;
 
-function TShape.NormalsSmooth(OverTriangulate: boolean): TVector3List;
+function TShape.NormalsSmooth(const OverTriangulate, FromCcw: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
 begin
-  if not ((svNormals in Validities) and
-          (FNormalsOverTriangulate = OverTriangulate) and
-          (FNormalsCached = ncSmooth)) then
+  if not (
+       (svNormals in Validities) and
+       (FNormalsCached = ncSmooth) and
+       (FNormalsCachedCcw = FromCcw) and
+       (FNormalsOverTriangulate = OverTriangulate)
+     ) then
   begin
     if Log and LogShapes then
       WritelnLog('Normals', 'Calculating shape smooth normals');
@@ -1762,8 +1763,9 @@ begin
     G := Geometry(OverTriangulate);
     S := State(OverTriangulate);
 
-    FNormals := CreateSmoothNormalsCoordinateNode(G, S, true);
+    FNormals := CreateSmoothNormalsCoordinateNode(G, S, FromCcw);
     FNormalsCached := ncSmooth;
+    FNormalsCachedCcw := FromCcw;
     FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
   end;
@@ -1771,14 +1773,17 @@ begin
   Result := FNormals;
 end;
 
-function TShape.NormalsFlat(OverTriangulate: boolean): TVector3List;
+function TShape.NormalsFlat(const OverTriangulate, FromCcw: boolean): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
 begin
-  if not ((svNormals in Validities) and
-          (FNormalsOverTriangulate = OverTriangulate) and
-          (FNormalsCached = ncFlat)) then
+  if not (
+       (svNormals in Validities) and
+       (FNormalsCached = ncFlat) and
+       (FNormalsCachedCcw = FromCcw) and
+       (FNormalsOverTriangulate = OverTriangulate)
+     ) then
   begin
     if Log and LogShapes then
       WritelnLog('Normals', 'Calculating shape flat normals');
@@ -1791,8 +1796,9 @@ begin
     S := State(OverTriangulate);
 
     FNormals := CreateFlatNormals(G.CoordIndexField.Items,
-      G.InternalCoordinates(S).Items, true, G.Convex);
+      G.InternalCoordinates(S).Items, FromCcw, G.Convex);
     FNormalsCached := ncFlat;
+    FNormalsCachedCcw := FromCcw;
     FNormalsOverTriangulate := OverTriangulate;
     Include(Validities, svNormals);
   end;
@@ -1800,16 +1806,19 @@ begin
   Result := FNormals;
 end;
 
-function TShape.NormalsCreaseAngle(OverTriangulate: boolean;
+function TShape.NormalsCreaseAngle(const OverTriangulate, FromCcw: boolean;
   const CreaseAngle: Single): TVector3List;
 var
   G: TAbstractGeometryNode;
   S: TX3DGraphTraverseState;
 begin
-  if not ((svNormals in Validities) and
-          (FNormalsCached = ncCreaseAngle) and
-          (FNormalsOverTriangulate = OverTriangulate) and
-          (FNormalsCreaseAngle = CreaseAngle)) then
+  if not (
+       (svNormals in Validities) and
+       (FNormalsCached = ncCreaseAngle) and
+       (FNormalsCachedCcw = FromCcw) and
+       (FNormalsOverTriangulate = OverTriangulate)  and
+       (FNormalsCreaseAngle = CreaseAngle)
+     ) then
   begin
     if Log and LogShapes then
       WritelnLog('Normals', 'Calculating shape CreaseAngle normals');
@@ -1822,8 +1831,9 @@ begin
     S := State(OverTriangulate);
 
     FNormals := CreateNormals(G.CoordIndexField.Items,
-      G.InternalCoordinates(S).Items, CreaseAngle, true, G.Convex);
+      G.InternalCoordinates(S).Items, CreaseAngle, FromCcw, G.Convex);
     FNormalsCached := ncCreaseAngle;
+    FNormalsCachedCcw := FromCcw;
     FNormalsOverTriangulate := OverTriangulate;
     FNormalsCreaseAngle := CreaseAngle;
     Include(Validities, svNormals);
