@@ -40,7 +40,6 @@
     of the program. Default if 1000, PRT paper advices 10 * 1000 to 30 * 1000
     for best effect.
 
-
   TODO: for now, radianceTransfer is calculated for whole model.
   This means that self-shadowing takes whole model into account,
   but also that whole model must remain static (or radianceTransfer must
