@@ -21,7 +21,7 @@ unit CastleGeometryArrays;
 interface
 
 uses Generics.Collections,
-  CastleUtils, CastleVectors, CastleTriangles;
+  CastleUtils, CastleVectors, CastleTriangles, CastleRendererBaseTypes;
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
@@ -315,23 +315,26 @@ type
     function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
     function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
 
-    { CullBackFaces says if we should enable back-face culling.
+    { Should we use backface-culling (ignore some faces during rendering).
       If @true, then we should glEnable(GL_CULL_FACE),
       and set glCullFace such that front face will be visible.
       FrontFaceCcw says what is "front face".
+      See TRenderContext.CullFaces.
 
       FrontFaceCcw is ignored by renderer if CullBackFaces = @false.
 
-      Note that we *do not* implement FrontFaceCcw by glFrontFace,
-      we do a little more complicated trick,
-      see comments at the beginning of CastleRenderer for explanation
-      (hint: plane mirrors).
+      @italic(Maybe) in the future the FrontFaceCcw
+      will also tell from which side the normals point.
+      This is why we keep CullBackFaces and FrontFaceCcw as two separate booleans.
+      For now, @link(Normal) always points from CCW (we make sure about this
+      when creating arrays).
 
       @groupBegin }
     property CullBackFaces: boolean
       read FCullBackFaces write FCullBackFaces default false;
     property FrontFaceCcw: boolean
       read FFrontFaceCcw write FFrontFaceCcw default false;
+    function CullFaces: TCullFaces;
     { @groupEnd }
 
     { Make the whole rendering with flat shading. }
@@ -733,6 +736,20 @@ end;
 function TGeometryArrays.GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
 begin
   Result := PMatrix4(GLSLAttribute(atMatrix4, Name, Index));
+end;
+
+function TGeometryArrays.CullFaces: TCullFaces;
+begin
+  if CullBackFaces then
+  begin
+    { If vertex ordering is consistent and object is SOLID than we use
+      backface culling. If FrontFaceCcw then we have to cull CW faces. }
+    if FrontFaceCcw then
+      Result := cfCullCw
+    else
+      Result := cfCullCcw;
+  end else
+    Result := cfNone;
 end;
 
 procedure TGeometryArrays.FreeData;

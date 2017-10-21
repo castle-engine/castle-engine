@@ -81,14 +81,14 @@ type
     FGlobalScissor: TScissor;
     FProjectionMatrix: TMatrix4;
     FDepthRange: TDepthRange;
+    FCullFaces: TCullFaces;
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
     procedure SetGlobalAmbient(const Value: TCastleColorRGB);
     procedure WarnContextNotCurrent;
-    function GetProjectionMatrix: TMatrix4;
     procedure SetProjectionMatrix(const Value: TMatrix4);
-    function GetDepthRange: TDepthRange;
     procedure SetDepthRange(const Value: TDepthRange);
+    procedure SetCullFaces(const Value: TCullFaces);
   private
     FEnabledScissors: TScissorList;
   public
@@ -139,11 +139,23 @@ type
       When EnableFixedFunction = true, setting this also
       sets fixed-function projection matrix. }
     property ProjectionMatrix: TMatrix4
-      read GetProjectionMatrix write SetProjectionMatrix;
+      read FProjectionMatrix write SetProjectionMatrix;
 
     { Use this to operate on OpenGL glDepthRange. For now, our engine has
       very simple use for this, for TPlayer.RenderOnTop. }
-    property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
+    property DepthRange: TDepthRange read FDepthRange write SetDepthRange;
+
+    { Should we use backface-culling (ignore some faces during rendering).
+      This controls whether OpenGL GL_CULL_FACE flag is enabled or not,
+      and whether glCullFace is set to back or front.
+
+      Note that we never use glFrontFace, we assume that it's always CCW
+      for normal rendering. This way planar mirrors implementation may use
+      glFrontFace (see research_special_rendering_methods/plane_mirror_and_shadow/ ,
+      not yet integrated with the engine core).
+
+      @seealso TCullFaces }
+    property CullFaces: TCullFaces read FCullFaces write SetCullFaces;
   end;
 
 var
@@ -212,6 +224,7 @@ begin
   FEnabledScissors := TScissorList.Create(false);
   FProjectionMatrix := TMatrix4.Identity;
   FDepthRange := drFull;
+  FCullFaces := cfNone;
 end;
 
 destructor TRenderContext.Destroy;
@@ -326,11 +339,6 @@ begin
     FGlobalScissor.Enabled := false;
 end;
 
-function TRenderContext.GetProjectionMatrix: TMatrix4;
-begin
-  Result := FProjectionMatrix;
-end;
-
 procedure TRenderContext.SetProjectionMatrix(const Value: TMatrix4);
 begin
   if Self <> RenderContext then
@@ -350,10 +358,6 @@ begin
   end;
 end;
 
-function TRenderContext.GetDepthRange: TDepthRange;
-begin
-  Result := FDepthRange;
-end;
 
 procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
 begin
@@ -368,6 +372,29 @@ begin
       drFull: glDepthRange(0  , 1);
       drNear: glDepthRange(0  , 0.1);
       drFar : glDepthRange(0.1, 1);
+    end;
+  end;
+end;
+
+procedure TRenderContext.SetCullFaces(const Value: TCullFaces);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FCullFaces <> Value then
+  begin
+    FCullFaces := Value;
+
+    { We do not want to touch OpenGL glFrontFace (this will be useful
+      for planar mirrors, where caller should be able to control glFrontFace).
+      So we use only glCullFace. We assume that glFrontFace = always CCW,
+      so we know how to call glCullFace. }
+
+    case Value of
+      cfNone: glDisable(GL_CULL_FACE);
+      cfCullCw:  begin glCullFace(GL_BACK);  glEnable(GL_CULL_FACE); end;
+      cfCullCcw: begin glCullFace(GL_FRONT); glEnable(GL_CULL_FACE); end;
+      else raise EInternalError.Create('SetCullFaces:Value?');
     end;
   end;
 end;

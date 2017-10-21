@@ -24,7 +24,7 @@ interface
 uses SysUtils, Math, Matrix, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleImages, CastleUtils, CastleVectors, CastleRectangles,
-  CastleColors, CastleProjection;
+  CastleColors, CastleProjection, CastleRendererBaseTypes;
 
 {$define read_interface}
 

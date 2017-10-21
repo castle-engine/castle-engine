@@ -216,6 +216,9 @@ const
   ShaderLanguageNames: array [TShaderLanguage] of string =
   ('', 'CG', 'GLSL', 'HLSL');
 
+  ShaderTypeNameX3D: array [TShaderType] of string =
+  ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
+
 procedure TAbstractShaderNode.CreateNode;
 begin
   inherited;

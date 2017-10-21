@@ -156,6 +156,7 @@ begin
     P.Targets.AddUnit('castleprogressconsole.pas');
     P.Targets.AddUnit('castleprojection.pas');
     P.Targets.AddUnit('castlerectangles.pas');
+    P.Targets.AddUnit('castlerendererbasetypes.pas');
     P.Targets.AddUnit('castlestreamutils.pas');
     P.Targets.AddUnit('castlestringutils.pas');
     P.Targets.AddUnit('castletimeutils.pas');

@@ -2610,10 +2610,40 @@ var
     AProgram.Disable;
   end;
 
+  procedure DoLogShaders;
+  const
+    ShaderTypeNameX3D: array [TShaderType] of string =
+    ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
+  var
+    ShaderType: TShaderType;
+    LogStr, LogStrPart: string;
+    I: Integer;
+  begin
+    LogStr :=
+      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
+      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
+      'shaders ComposedShader {' + NL +
+      '  language "GLSL"' + NL +
+      '  parts [' + NL;
+    for ShaderType := Low(ShaderType) to High(ShaderType) do
+      for I := 0 to Source[ShaderType].Count - 1 do
+      begin
+        LogStrPart := Source[ShaderType][I];
+        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
+        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
+        LogStr += '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
+          '" url "data:text/plain,' +
+          StringToX3DClassic(LogStrPart, false) + '"' + NL +
+          '    }';
+      end;
+    LogStr += '  ]' + NL + '}';
+    WritelnLogMultiline('Generated Shader', LogStr);
+  end;
+
 var
   ShaderType: TShaderType;
+  GeometryInputSize: string;
   I: Integer;
-  GeometryInputSize, LogStr, LogStrPart: string;
 begin
   RequireTextureCoordinateForSurfaceTextures;
   EnableTextures;
@@ -2648,27 +2678,7 @@ begin
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
 
   if Log and LogShaders then
-  begin
-    LogStr :=
-      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
-      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
-      'shaders ComposedShader {' + NL +
-      '  language "GLSL"' + NL +
-      '  parts [' + NL;
-    for ShaderType := Low(ShaderType) to High(ShaderType) do
-      for I := 0 to Source[ShaderType].Count - 1 do
-      begin
-        LogStrPart := Source[ShaderType][I];
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
-        LogStr += '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
-          '" url "data:text/plain,' +
-          StringToX3DClassic(LogStrPart, false) + '"' + NL +
-          '    }';
-      end;
-    LogStr += '  ]' + NL + '}';
-    WritelnLogMultiline('Generated Shader', LogStr);
-  end;
+    DoLogShaders;
 
   try
     if (Source[stVertex].Count = 0) and

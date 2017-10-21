@@ -212,8 +212,7 @@ type
     const Vert: TVector3) of object;
 
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
-  { Faces to cull (make invisible) during VRML/X3D rendering. }
-  TCullFace = (cfNone, cfCW, cfCCW);
+
   TBumpMapping = CastleRendererInternalShader.TBumpMapping;
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
@@ -881,7 +880,6 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
 
-    FCullFace: TCullFace;
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
     FFixedFunctionAlphaTest: boolean;
@@ -909,15 +907,11 @@ type
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
 
-    procedure SetCullFace(const Value: TCullFace);
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetFixedFunctionAlphaTest(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
 
-    { Change glCullFace and GL_CULL_FACE enabled by this property.
-      This way we avoid redundant state changes. }
-    property CullFace: TCullFace read FCullFace write SetCullFace;
     { Change glShadeModel by this property. }
     property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
@@ -2510,10 +2504,6 @@ begin
   end else
     LineType := ltSolid;
 
-  { Initialize FCullFace, make sure OpenGL state is set as appropriate }
-  FCullFace := cfNone;
-  glDisable(GL_CULL_FACE);
-
   GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
 
   if EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
@@ -3684,26 +3674,6 @@ begin
     UpdateGeneratedShadowMap(TGeneratedShadowMapNode(TextureNode)) else
   if TextureNode is TRenderedTextureNode then
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
-end;
-
-procedure TGLRenderer.SetCullFace(const Value: TCullFace);
-begin
-  if FCullFace <> Value then
-  begin
-    FCullFace := Value;
-
-    { We do not want to touch OpenGL glFrontFace (this will be useful
-      for planar mirrors, where caller should be able to control glFrontFace).
-      So we use only glCullFace. We assume that glFrontFace = always CCW,
-      so we know how to call glCullFace. }
-
-    case Value of
-      cfNone: glDisable(GL_CULL_FACE);
-      cfCW:  begin glCullFace(GL_BACK);  glEnable(GL_CULL_FACE); end;
-      cfCCW: begin glCullFace(GL_FRONT); glEnable(GL_CULL_FACE); end;
-      else raise EInternalError.Create('SetCullFace:Value?');
-    end;
-  end;
 end;
 
 procedure TGLRenderer.SetSmoothShading(const Value: boolean);
