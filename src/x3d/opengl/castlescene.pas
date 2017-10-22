@@ -111,6 +111,7 @@ type
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingSort: TBlendingSort;
+    FOcclusionSort: boolean;
     FControlBlending: boolean;
     FWireframeColor: TVector3;
     FWireframeEffect: TWireframeEffect;
@@ -212,6 +213,10 @@ type
     property BlendingSort: TBlendingSort
       read FBlendingSort write SetBlendingSort
       default DefaultBlendingSort;
+
+    { Sort the opaque objects when rendering.
+      This may generate speedup on some scenes. }
+    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort;
 
     { Setting this to @false disables any modification of OpenGL
       blending (and depth mask) state by TCastleScene.
@@ -1358,7 +1363,8 @@ begin
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
+          if CameraViewKnown and
+            (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -2179,6 +2185,7 @@ begin
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingSort := DefaultBlendingSort;
+  FOcclusionSort := false;
   FControlBlending := true;
   FSolidWireframeScale := DefaultSolidWireframeScale;
   FSolidWireframeBias := DefaultSolidWireframeBias;
@@ -2210,6 +2217,7 @@ begin
     BlendingSourceFactor := S.BlendingSourceFactor;
     BlendingDestinationFactor := S.BlendingDestinationFactor;
     BlendingSort := S.BlendingSort;
+    OcclusionSort := S.OcclusionSort;
     ControlBlending := S.ControlBlending;
     UseOcclusionQuery := S.UseOcclusionQuery;
     UseHierarchicalOcclusionQuery := S.UseHierarchicalOcclusionQuery;
