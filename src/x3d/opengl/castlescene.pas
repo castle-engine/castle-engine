@@ -509,6 +509,7 @@ type
     class procedure LightRenderInShadow(const Light: TLightInstance;
       var LightOn: boolean);
   private
+    OcclusionQueryUtilsRenderer: TOcclusionQueryUtilsRenderer;
     SimpleOcclusionQueryRenderer: TSimpleOcclusionQueryRenderer;
     HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
     BlendingRenderer: TBlendingRenderer;
@@ -935,8 +936,11 @@ begin
 
   FilteredShapes := TShapeList.Create;
 
-  SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(Self);
-  HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(Self);
+  OcclusionQueryUtilsRenderer := TOcclusionQueryUtilsRenderer.Create;
+  SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(
+    Self, OcclusionQueryUtilsRenderer);
+  HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(
+    Self, OcclusionQueryUtilsRenderer);
   BlendingRenderer := TBlendingRenderer.Create(Self);
 end;
 
@@ -962,6 +966,7 @@ destructor TCastleScene.Destroy;
 begin
   FreeAndNil(HierarchicalOcclusionQueryRenderer);
   FreeAndNil(SimpleOcclusionQueryRenderer);
+  FreeAndNil(OcclusionQueryUtilsRenderer);
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
 
@@ -1100,6 +1105,8 @@ begin
   inherited;
   CloseGLRenderer;
   InvalidateBackground;
+  if OcclusionQueryUtilsRenderer <> nil then
+    OcclusionQueryUtilsRenderer.GLContextClose;
 end;
 
 procedure TCastleScene.GLContextCloseEvent(Sender: TObject);
@@ -1158,7 +1165,7 @@ var
     { implement Shape node "render" field here, by a trivial check }
     if (Shape.Node <> nil) and (not Shape.Node.Render) then Exit;
 
-    OcclusionBoxStateEnd;
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
     if (Params.Pass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
@@ -1298,13 +1305,14 @@ begin
     UpdateVisibilitySensors;
   end;
 
-  OcclusionBoxState := false;
-
   if Params.InShadow then
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
   ModelView := GetModelViewTransform;
+  OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
+    RenderContext.ProjectionMatrix * ModelView;
+  OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
 
   {$ifndef OpenGLES}
   if EnableFixedFunction then
@@ -1331,7 +1339,7 @@ begin
       RenderAllAsOpaque(Attributes.Mode = rmDepth);
 
       { Each RenderShape_SomeTests inside could set OcclusionBoxState }
-      OcclusionBoxStateEnd;
+      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
@@ -1342,7 +1350,7 @@ begin
         Frustum, Params);
 
       { Inside we could set OcclusionBoxState }
-      OcclusionBoxStateEnd;
+      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     begin
       if Attributes.Blending then
@@ -1401,11 +1409,12 @@ begin
 
       { Each RenderShape_SomeTests inside could set OcclusionBoxState.
 
-        TODO: in case of blending, glPopAttrib inside could restore now
+        TODO: in case of fixed-function path,
+        glPopAttrib inside could restore now
         glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-        This problem will disappear when we'll get rid of push/pop inside
-        OcclusionBoxStateXxx. }
-      OcclusionBoxStateEnd;
+        This problem will disappear when we'll get rid of fixed-function
+        possibility in OcclusionBoxStateEnd. }
+      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end;
   finally Renderer.RenderEnd end;
 

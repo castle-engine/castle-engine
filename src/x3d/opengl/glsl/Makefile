@@ -7,7 +7,8 @@ ALL_OUTPUT := shadow_map_common.fs.inc \
   template_phong.vs.inc template_phong.fs.inc template.gs.inc \
   ssao.glsl.inc screen_effect_library.glsl.inc screen_effect.vs.inc \
   template_gouraud.vs.inc template_gouraud.fs.inc template_light.glsl.inc \
-  fallback.vs.inc fallback.fs.inc
+  fallback.vs.inc fallback.fs.inc \
+  simplest.vs.inc simplest.fs.inc
 
 .PHONY: all
 all: $(ALL_OUTPUT)
