@@ -55,7 +55,7 @@ Compile for valgrind:
 For speed profiling:
 
 Use valgrind's callgrind tool.
-Running program through callgrind adds an enormours slowdown,
+Running program through callgrind adds an enormous slowdown,
 especially with instrumentation (this is when actual measurements take place).
 So it's advised to start without instrumentation, and only turn it on
 for the interested code part.
