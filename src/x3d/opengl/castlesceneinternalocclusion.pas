@@ -228,7 +228,9 @@ begin
 
   AttributeVertex.EnableArrayVector3(SizeOf(TVector3), 0);
 
+  {$ifndef OpenGLES} // TODO-es - no quads
   glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_SHORT, nil);
+  {$endif}
 end;
 
 { TOcclusionQuery ------------------------------------------------------------ }
