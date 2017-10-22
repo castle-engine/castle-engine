@@ -2294,13 +2294,17 @@ end;
 function TSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
 begin
   Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
-    GLFeatures.ARB_occlusion_query and (GLFeatures.QueryCounterBits > 0);
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
 end;
 
 function TSceneRenderingAttributes.
   ReallyUseHierarchicalOcclusionQuery: boolean;
 begin
-  Result := UseHierarchicalOcclusionQuery and GLFeatures.ARB_occlusion_query and
+  Result := UseHierarchicalOcclusionQuery and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
 end;
 
