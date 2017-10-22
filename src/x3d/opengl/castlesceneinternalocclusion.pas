@@ -95,7 +95,11 @@ const
   );
 const
   SimplestVS = {$I simplest.vs.inc};
+  { On desktop OpenGL, fragment shader doesn't need to exist now.
+    https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional }
+  {$ifdef OpenGLES}
   SimplestFS = {$I simplest.fs.inc};
+  {$endif}
 begin
   GLInitiliazed := true;
 
@@ -112,7 +116,11 @@ begin
   begin
     SimplestProgram := TGLSLProgram.Create;
     SimplestProgram.AttachShader(stVertex, SimplestVS);
+    { On desktop OpenGL, fragment shader doesn't need to exist now.
+      https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional }
+    {$ifdef OpenGLES}
     SimplestProgram.AttachShader(stFragment, SimplestFS);
+    {$endif}
     SimplestProgram.Link;
 
     AttributeVertex := SimplestProgram.Attribute('castle_Vertex');
