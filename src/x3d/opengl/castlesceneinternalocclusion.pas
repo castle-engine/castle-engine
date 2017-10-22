@@ -27,6 +27,15 @@ uses CastleSceneCore, CastleSceneInternalShape, Castle3D, CastleFrustum;
 type
   TShapeProcedure = procedure (Shape: TGLShape) is nested;
 
+  TSimpleOcclusionQueryRenderer = class
+  strict private
+    Scene: TCastleSceneCore;
+  public
+    constructor Create(const AScene: TCastleSceneCore);
+    procedure Render(const Shape: TGLShape; const RenderShape: TShapeProcedure;
+      const Params: TRenderParams);
+  end;
+
   THierarchicalOcclusionQueryRenderer = class
   private
     FrameId: Cardinal;
@@ -43,10 +52,6 @@ var
 
 procedure OcclusionBoxStateBegin;
 procedure OcclusionBoxStateEnd;
-
-procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
-  const Shape: TGLShape; const RenderShape: TShapeProcedure;
-  const Params: TRenderParams);
 
 implementation
 
@@ -404,40 +409,44 @@ end;
 
 { routines ------------------------------------------------------------------- }
 
+var
+  SavedCullFace: boolean;
+
 procedure OcclusionBoxStateBegin;
 begin
   if not OcclusionBoxState then
   begin
-    {$ifndef OpenGLES}
-    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or
-      GL_ENABLE_BIT or GL_LIGHTING_BIT);
+    glSetDepthAndColorWriteable(false);
+    SavedCullFace := RenderContext.CullFace;
+    RenderContext.CullFace := false;
 
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
-    glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
 
-    { A lot of state should be disabled. Remember that this is done
-      in the middle of TGLRenderer rendering, between
-      RenderBegin/End, and TGLRenderer doesn't need to
-      restore state after each shape render. So e.g. texturing
-      and alpha test may be enabled, which could lead to very
-      strange effects (box would be rendered with random texel,
-      possibly alpha tested and rejected...).
+      { A lot of state should be disabled. Remember that this is done
+        in the middle of TGLRenderer rendering, between
+        RenderBegin/End, and TGLRenderer doesn't need to
+        restore state after each shape render. So e.g. texturing
+        and alpha test may be enabled, which could lead to very
+        strange effects (box would be rendered with random texel,
+        possibly alpha tested and rejected...).
 
-      Also, some state should be disabled just to speed up
-      rendering. E.g. lighting is totally not needed here. }
+        Also, some state should be disabled just to speed up
+        rendering. E.g. lighting is totally not needed here. }
 
-    glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
-    glDisable(GL_CULL_FACE); { saved by GL_ENABLE_BIT }
-    glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
-    glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
-    glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
-    GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
+      glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
+      glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
+      glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
+      glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
+      GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
 
-    glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
+      glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    {$endif}
+      glEnableClientState(GL_VERTEX_ARRAY);
+      {$endif}
+    end;
 
     OcclusionBoxState := true;
   end;
@@ -447,17 +456,31 @@ procedure OcclusionBoxStateEnd;
 begin
   if OcclusionBoxState then
   begin
-    {$ifndef OpenGLES}
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glPopAttrib;
-    {$endif}
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glDisableClientState(GL_VERTEX_ARRAY);
+      glPopAttrib;
+      {$endif}
+    end;
+
+    glSetDepthAndColorWriteable(true);
+    RenderContext.CullFace := SavedCullFace;
+
     OcclusionBoxState := false;
   end;
 end;
 
-procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
-  const Shape: TGLShape; const RenderShape: TShapeProcedure;
-  const Params: TRenderParams);
+{ TSimpleOcclusionQueryRenderer ---------------------------------------------- }
+
+constructor TSimpleOcclusionQueryRenderer.Create(const AScene: TCastleSceneCore);
+begin
+  inherited Create;
+  Scene := AScene;
+end;
+
+procedure TSimpleOcclusionQueryRenderer.Render(const Shape: TGLShape;
+   const RenderShape: TShapeProcedure; const Params: TRenderParams);
 {$ifndef OpenGLES}
 var
   SampleCount: TGLuint;

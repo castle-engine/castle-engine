@@ -509,6 +509,7 @@ type
     class procedure LightRenderInShadow(const Light: TLightInstance;
       var LightOn: boolean);
   private
+    SimpleOcclusionQueryRenderer: TSimpleOcclusionQueryRenderer;
     HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
     BlendingRenderer: TBlendingRenderer;
   protected
@@ -934,6 +935,7 @@ begin
 
   FilteredShapes := TShapeList.Create;
 
+  SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(Self);
   HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(Self);
   BlendingRenderer := TBlendingRenderer.Create(Self);
 end;
@@ -959,6 +961,7 @@ end;
 destructor TCastleScene.Destroy;
 begin
   FreeAndNil(HierarchicalOcclusionQueryRenderer);
+  FreeAndNil(SimpleOcclusionQueryRenderer);
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
 
@@ -1193,7 +1196,7 @@ var
       if Attributes.ReallyUseOcclusionQuery and
          (RenderingCamera.Target = rtScreen) then
       begin
-        SimpleOcclusionQueryRender(Self, Shape, @RenderShape_NoTests, Params);
+        SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_NoTests, Params);
       end else
       if Attributes.DebugHierOcclusionQueryResults and
          Attributes.UseHierarchicalOcclusionQuery then

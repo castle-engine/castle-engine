@@ -684,7 +684,7 @@ begin
 
       { Calculate shadows to the stencil buffer.
         Don't write anything to depth or color buffers. }
-      glSetDepthAndColorWriteable(GL_FALSE);
+      glSetDepthAndColorWriteable(false);
         glStencilFunc(GL_ALWAYS, 0, 0);
 
         if StencilTwoSided then
@@ -709,7 +709,7 @@ begin
           Count := OldCount;
         end;
 
-      glSetDepthAndColorWriteable(GL_TRUE);
+      glSetDepthAndColorWriteable(true);
     glPopAttrib;
   glDisable(GL_STENCIL_TEST);
 
