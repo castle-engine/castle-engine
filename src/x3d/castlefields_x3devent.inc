@@ -112,7 +112,7 @@
       #)
 
       All callbacks here are simply called by @link(Send) method. }
-    property OnReceive: TX3DEventReceiveList read FOnReceive;
+    function OnReceive: TX3DEventReceiveList;
 
     { Safely remove a callback from OnReceive list.
 
@@ -181,10 +181,8 @@ constructor TX3DEvent.Create(AParentNode: TX3DFileItem;
   const AInEvent: boolean);
 begin
   inherited Create(AParentNode, AName);
-
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
-  FOnReceive := TX3DEventReceiveList.Create;
 end;
 
 destructor TX3DEvent.Destroy;
@@ -193,6 +191,16 @@ begin
   FreeAndNil(HandlersToRemove);
   FreeAndNil(FOnReceive);
   inherited;
+end;
+
+function TX3DEvent.OnReceive: TX3DEventReceiveList;
+begin
+  { create FOnReceive on-demand, as in cases of models with a large number
+    of nodes (or using prototypes a lot, which also creates a large number of nodes)
+    we have a lot of TX3DEvent instances, and they eat a significant part of memory }
+  if FOnReceive = nil then
+    FOnReceive := TX3DEventReceiveList.Create;
+  Result := FOnReceive;
 end;
 
 procedure TX3DEvent.Parse(Lexer: TX3DLexer);
@@ -216,8 +224,9 @@ procedure TX3DEvent.Send(Field: TX3DField; const Time: TX3DTime);
   var
     I: Integer;
   begin
-    for I := 0 to HandlersToRemove.Count - 1 do
-      OnReceive.Remove(HandlersToRemove.Items[I]);
+    if FOnReceive <> nil then
+      for I := 0 to HandlersToRemove.Count - 1 do
+        FOnReceive.Remove(HandlersToRemove.Items[I]);
     HandlersToRemove.Count := 0;
   end;
 
@@ -227,7 +236,8 @@ begin
 
   Inc(SendLevel);
   try
-    FOnReceive.ExecuteAll(Self, Field, Time);
+    if FOnReceive <> nil then
+      FOnReceive.ExecuteAll(Self, Field, Time);
   finally
     Dec(SendLevel);
     if (HandlersToRemove <> nil) and
@@ -246,7 +256,7 @@ end;
 
 function TX3DEvent.SendNeeded: boolean;
 begin
-  Result := OnReceive.Count <> 0;
+  Result := (FOnReceive <> nil) and (FOnReceive.Count <> 0);
 end;
 
 procedure TX3DEvent.Assign(Source: TPersistent);
@@ -282,7 +292,10 @@ end;
 procedure TX3DEvent.RemoveHandler(Handler: TX3DEventReceive);
 begin
   if SendLevel = 0 then
-    OnReceive.Remove(Handler) else
+  begin
+    if FOnReceive <> nil then
+      FOnReceive.Remove(Handler);
+  end else
   begin
     if HandlersToRemove = nil then
       HandlersToRemove := TX3DEventReceiveList.Create;
