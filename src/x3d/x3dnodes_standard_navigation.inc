@@ -770,8 +770,7 @@ begin
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   AddEvent(FEventIsActive);
 
-  FFdProxy := TSFNode.Create(Self, true, 'proxy', IAbstractChildNode);
-   FdProxy.Exposed := false;
+  FFdProxy := TSFNode.Create(Self, false, 'proxy', IAbstractChildNode);
    FdProxy.ChangesAlways := [chEverything];
   AddField(FFdProxy);
 
@@ -874,21 +873,18 @@ procedure TAbstractLODNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, true, 'center', TVector3.Zero);
-   FdCenter.Exposed := false;
+  FFdCenter := TSFVec3f.Create(Self, false, 'center', TVector3.Zero);
    { Just redisplay, and new appropriate LOD children will be displayed. }
    FdCenter.ChangesAlways := [chRedisplay];
   AddField(FFdCenter);
 
-  FFdRange := TMFFloat.Create(Self, true, 'range', []);
-   FdRange.Exposed := false;
+  FFdRange := TMFFloat.Create(Self, false, 'range', []);
    { Just redisplay, and new appropriate LOD children will be displayed. }
    FdRange.ChangesAlways := [chRedisplay];
   AddField(FFdRange);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdForceTransitions := TSFBool.Create(Self, true, 'forceTransitions', false);
-  FFdForceTransitions.Exposed := false;
+  FFdForceTransitions := TSFBool.Create(Self, false, 'forceTransitions', false);
   AddField(FFdForceTransitions);
 
   FEventLevel_changed := TSFInt32Event.Create(Self, 'level_changed', false);

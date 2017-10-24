@@ -609,18 +609,15 @@ procedure TAbstractTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdEffects := TMFNode.Create(Self, true, 'effects', [TEffectNode]);
-   FdEffects.Exposed := false;
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 
-  FFdCrossOrigin := TSFString.Create(Self, true, 'crossOrigin', '');
+  FFdCrossOrigin := TSFString.Create(Self, false, 'crossOrigin', '');
    FdCrossOrigin.ChangesAlways := [];
-   FdCrossOrigin.Exposed := false;
   AddField(FFdCrossOrigin);
 
-  FFdAlphaChannel := TSFStringEnum.Create(Self, true, 'alphaChannel', AlphaToString, Ord(acAuto));
-   FdAlphaChannel.Exposed := false;
+  FFdAlphaChannel := TSFStringEnum.Create(Self, false, 'alphaChannel', AlphaToString, Ord(acAuto));
    FdAlphaChannel.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdAlphaChannel);
 
@@ -666,8 +663,7 @@ begin
   UsedCache := nil;
   FIsTextureLoaded := false;
 
-  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
+  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 end;
@@ -790,13 +786,11 @@ procedure TAbstractX3DTexture2DNode.CreateNode;
 begin
   inherited;
 
-  FFdRepeatS := TSFBool.Create(Self, true, 'repeatS', true);
-   FdRepeatS.Exposed := false;
+  FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', true);
    FdRepeatS.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatS);
 
-  FFdRepeatT := TSFBool.Create(Self, true, 'repeatT', true);
-   FdRepeatT.Exposed := false;
+  FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', true);
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatT);
 end;
@@ -1318,13 +1312,11 @@ begin
   AddField(FFdTexturePriority);
   { X3D specification comment: [0,1] }
 
-  FFdGenerateMipMaps := TSFBool.Create(Self, true, 'generateMipMaps', false);
-   FdGenerateMipMaps.Exposed := false;
+  FFdGenerateMipMaps := TSFBool.Create(Self, false, 'generateMipMaps', false);
    FdGenerateMipMaps.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdGenerateMipMaps);
 
-  FFdGUITexture := TSFBool.Create(Self, true, 'guiTexture', false);
-   FdGUITexture.Exposed := false;
+  FFdGUITexture := TSFBool.Create(Self, false, 'guiTexture', false);
    FdGUITexture.ChangesAlways := [chTexturePropertiesNode];
   AddField(FFdGUITexture);
 

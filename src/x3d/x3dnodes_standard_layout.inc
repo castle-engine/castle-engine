@@ -240,44 +240,35 @@ procedure TScreenFontStyleNode.CreateNode;
 begin
   inherited;
 
-  FFdFamily := TMFString.Create(Self, true, 'family', ['SERIF']);
-  FFdFamily.Exposed := false;
+  FFdFamily := TMFString.Create(Self, false, 'family', ['SERIF']);
   AddField(FFdFamily);
 
-  FFdHorizontal := TSFBool.Create(Self, true, 'horizontal', true);
-  FFdHorizontal.Exposed := false;
+  FFdHorizontal := TSFBool.Create(Self, false, 'horizontal', true);
   AddField(FFdHorizontal);
 
-  FFdJustify := TMFString.Create(Self, true, 'justify', ['BEGIN']);
-  FFdJustify.Exposed := false;
+  FFdJustify := TMFString.Create(Self, false, 'justify', ['BEGIN']);
   AddField(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
-  FFdLanguage := TSFString.Create(Self, true, 'language', '');
-  FFdLanguage.Exposed := false;
+  FFdLanguage := TSFString.Create(Self, false, 'language', '');
   AddField(FFdLanguage);
 
-  FFdLeftToRight := TSFBool.Create(Self, true, 'leftToRight', true);
-  FFdLeftToRight.Exposed := false;
+  FFdLeftToRight := TSFBool.Create(Self, false, 'leftToRight', true);
   AddField(FFdLeftToRight);
 
-  FFdPointSize := TSFFloat.Create(Self, true, 'pointSize', 12.0);
-  FFdPointSize.Exposed := false;
+  FFdPointSize := TSFFloat.Create(Self, false, 'pointSize', 12.0);
   AddField(FFdPointSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdSpacing := TSFFloat.Create(Self, true, 'spacing', 1.0);
-  FFdSpacing.Exposed := false;
+  FFdSpacing := TSFFloat.Create(Self, false, 'spacing', 1.0);
   AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdStyle := TSFString.Create(Self, true, 'style', 'PLAIN');
-  FFdStyle.Exposed := false;
+  FFdStyle := TSFString.Create(Self, false, 'style', 'PLAIN');
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
-  FFdTopToBottom := TSFBool.Create(Self, true, 'topToBottom', true);
-  FFdTopToBottom.Exposed := false;
+  FFdTopToBottom := TSFBool.Create(Self, false, 'topToBottom', true);
   AddField(FFdTopToBottom);
 end;
 

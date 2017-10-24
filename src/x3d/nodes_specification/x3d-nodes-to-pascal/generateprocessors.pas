@@ -990,7 +990,7 @@ procedure TTemplateProcessor.NodeField(const Node: TX3DNodeInformation;
   const Field: TX3DFieldInformation);
 var
   EventInOrOut: string;
-  FieldConfigure: string;
+  FieldConfigure, FieldExposed: string;
 begin
   FieldConfigure := '';
 
@@ -1028,21 +1028,20 @@ begin
         '    public property ' + Field.PascalNamePrefixed + ': ' + Field.PascalClass + ' read F' + Field.PascalNamePrefixed + ';' + NL;
 
       FieldConfigure += '   ' + Field.PascalNamePrefixed + '.ChangesAlways := [chVisibleNonGeometry]; // TODO: adjust if necessary' + NL;
-      if Field.AccessType = atInitializeOnly then
-        FieldConfigure += '   ' + Field.PascalNamePrefixed + '.Exposed := false;' + NL;
+      FieldExposed := BoolToStr(Field.AccessType = atInputOutput, true);
 
       if Field.IsNode then
       begin
         OutputImplementation +=
           NL +
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', [' + Field.AllowedChildrenNodes.PascalTypesList + ']);' + NL +
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', [' + Field.AllowedChildrenNodes.PascalTypesList + ']);' + NL +
           FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL;
       end else
       begin
         OutputImplementation +=
           NL +
-          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');' + NL +
+          '  F' + Field.PascalNamePrefixed + ' := ' + Field.PascalClass + '.Create(Self, ' + FieldExposed + ', ''' + Field.X3DName + ''', ' + Field.DefaultValue + ');' + NL +
           FieldConfigure +
           '  AddField(F' + Field.PascalNamePrefixed + ');' + NL;
         if Field.Comment <> '' then

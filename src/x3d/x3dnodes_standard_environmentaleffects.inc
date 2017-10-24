@@ -323,8 +323,7 @@ begin
    FdShaders.ChangesAlways := [chEverything];
   AddField(FFdShaders);
 
-  FFdEffects := TMFNode.Create(Self, true, 'effects', [TEffectNode]);
-   FdEffects.Exposed := false;
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 

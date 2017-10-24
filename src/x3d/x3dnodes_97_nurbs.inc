@@ -362,48 +362,37 @@ begin
   FFdweight := TMFFloat.Create(Self, true, 'weight', []);
   AddField(FFdweight);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', TVector3.Zero);
-  FFdbboxCenter.Exposed := false;
+  FFdbboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
   AddField(FFdbboxCenter);
 
-  FFdbboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdbboxSize.Exposed := false;
+  FFdbboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdbboxSize);
 
-  FFduDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
-  FFduDimension.Exposed := false;
+  FFduDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
   AddField(FFduDimension);
 
-  FFduKnot := TMFFloat.Create(Self, true, 'uKnot', []);
-  FFduKnot.Exposed := false;
+  FFduKnot := TMFFloat.Create(Self, false, 'uKnot', []);
   AddField(FFduKnot);
 
-  FFduOrder := TSFInt32.Create(Self, true, 'uOrder', 2);
-  FFduOrder.Exposed := false;
+  FFduOrder := TSFInt32.Create(Self, false, 'uOrder', 2);
   AddField(FFduOrder);
 
-  FFdvDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
-  FFdvDimension.Exposed := false;
+  FFdvDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
   AddField(FFdvDimension);
 
-  FFdvKnot := TMFFloat.Create(Self, true, 'vKnot', []);
-  FFdvKnot.Exposed := false;
+  FFdvKnot := TMFFloat.Create(Self, false, 'vKnot', []);
   AddField(FFdvKnot);
 
-  FFdvOrder := TSFInt32.Create(Self, true, 'vOrder', 2);
-  FFdvOrder.Exposed := false;
+  FFdvOrder := TSFInt32.Create(Self, false, 'vOrder', 2);
   AddField(FFdvOrder);
 
-  FFdwDimension := TSFInt32.Create(Self, true, 'wDimension', 0);
-  FFdwDimension.Exposed := false;
+  FFdwDimension := TSFInt32.Create(Self, false, 'wDimension', 0);
   AddField(FFdwDimension);
 
-  FFdwKnot := TMFFloat.Create(Self, true, 'wKnot', []);
-  FFdwKnot.Exposed := false;
+  FFdwKnot := TMFFloat.Create(Self, false, 'wKnot', []);
   AddField(FFdwKnot);
 
-  FFdwOrder := TSFInt32.Create(Self, true, 'wOrder', 2);
-  FFdwOrder.Exposed := false;
+  FFdwOrder := TSFInt32.Create(Self, false, 'wOrder', 2);
   AddField(FFdwOrder);
 
   DefaultContainerField := 'children';
@@ -436,13 +425,11 @@ begin
    Fdtessellation.ChangesAlways := [chGeometry];
   AddField(FFdtessellation);
 
-  FFdknot := TMFFloat.Create(Self, true, 'knot', []);
-   Fdknot.Exposed := false;
+  FFdknot := TMFFloat.Create(Self, false, 'knot', []);
    Fdknot.ChangesAlways := [chGeometry];
   AddField(FFdknot);
 
-  FFdorder := TSFInt32.Create(Self, true, 'order', 3);
-   Fdorder.Exposed := false;
+  FFdorder := TSFInt32.Create(Self, false, 'order', 3);
    Fdorder.ChangesAlways := [chGeometry];
   AddField(FFdorder);
 end;
@@ -634,43 +621,35 @@ begin
    Fdweight.ChangesAlways := [chGeometry];
   AddField(FFdweight);
 
-  FFdccw := TSFBool.Create(Self, true, 'ccw', TRUE);
-   Fdccw.Exposed := false;
+  FFdccw := TSFBool.Create(Self, false, 'ccw', TRUE);
    Fdccw.ChangesAlways := [chGeometry];
   AddField(FFdccw);
 
-  FFdsolid := TSFBool.Create(Self, true, 'solid', TRUE);
-   Fdsolid.Exposed := false;
+  FFdsolid := TSFBool.Create(Self, false, 'solid', TRUE);
    Fdsolid.ChangesAlways := [chGeometry];
   AddField(FFdsolid);
 
-  FFduDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
-   FduDimension.Exposed := false;
+  FFduDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
    FduDimension.ChangesAlways := [chGeometry];
   AddField(FFduDimension);
 
-  FFduKnot := TMFFloat.Create(Self, true, 'uKnot', []);
-   FduKnot.Exposed := false;
+  FFduKnot := TMFFloat.Create(Self, false, 'uKnot', []);
    FduKnot.ChangesAlways := [chGeometry];
   AddField(FFduKnot);
 
-  FFduOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
-   FduOrder.Exposed := false;
+  FFduOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
    FduOrder.ChangesAlways := [chGeometry];
   AddField(FFduOrder);
 
-  FFdvDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
-   FdvDimension.Exposed := false;
+  FFdvDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
    FdvDimension.ChangesAlways := [chGeometry];
   AddField(FFdvDimension);
 
-  FFdvKnot := TMFFloat.Create(Self, true, 'vKnot', []);
-   FdvKnot.Exposed := false;
+  FFdvKnot := TMFFloat.Create(Self, false, 'vKnot', []);
    FdvKnot.ChangesAlways := [chGeometry];
   AddField(FFdvKnot);
 
-  FFdvOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
-   FdvOrder.Exposed := false;
+  FFdvOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
    FdvOrder.ChangesAlways := [chGeometry];
   AddField(FFdvOrder);
 end;
@@ -781,28 +760,22 @@ begin
   FFdweight := TMFFloat.Create(Self, true, 'weight', []);
   AddField(FFdweight);
 
-  FFduDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
-  FFduDimension.Exposed := false;
+  FFduDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
   AddField(FFduDimension);
 
-  FFduKnot := TMFFloat.Create(Self, true, 'uKnot', []);
-  FFduKnot.Exposed := false;
+  FFduKnot := TMFFloat.Create(Self, false, 'uKnot', []);
   AddField(FFduKnot);
 
-  FFduOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
-  FFduOrder.Exposed := false;
+  FFduOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
   AddField(FFduOrder);
 
-  FFdvDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
-  FFdvDimension.Exposed := false;
+  FFdvDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
   AddField(FFdvDimension);
 
-  FFdvKnot := TMFFloat.Create(Self, true, 'vKnot', []);
-  FFdvKnot.Exposed := false;
+  FFdvKnot := TMFFloat.Create(Self, false, 'vKnot', []);
   AddField(FFdvKnot);
 
-  FFdvOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
-  FFdvOrder.Exposed := false;
+  FFdvOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
   AddField(FFdvOrder);
 end;
 

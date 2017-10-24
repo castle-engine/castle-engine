@@ -210,57 +210,47 @@ procedure TFontStyleNode.CreateNode;
 begin
   inherited;
 
-  FFdFamily := TMFString.Create(Self, true, 'family', ['SERIF']);
-   FdFamily.Exposed := false;
+  FFdFamily := TMFString.Create(Self, false, 'family', ['SERIF']);
    FdFamily.ChangesAlways := [chFontStyle];
   AddField(FFdFamily);
 
-  FFdHorizontal := TSFBool.Create(Self, true, 'horizontal', true);
-   FdHorizontal.Exposed := false;
+  FFdHorizontal := TSFBool.Create(Self, false, 'horizontal', true);
    FdHorizontal.ChangesAlways := [chFontStyle];
   AddField(FFdHorizontal);
 
-  FFdJustify := TMFString.Create(Self, true, 'justify', ['BEGIN']);
-   FdJustify.Exposed := false;
+  FFdJustify := TMFString.Create(Self, false, 'justify', ['BEGIN']);
    FdJustify.ChangesAlways := [chFontStyle];
   AddField(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
-  FFdLanguage := TSFString.Create(Self, true, 'language', '');
-   FdLanguage.Exposed := false;
+  FFdLanguage := TSFString.Create(Self, false, 'language', '');
    FdLanguage.ChangesAlways := [chFontStyle];
   AddField(FFdLanguage);
 
-  FFdLeftToRight := TSFBool.Create(Self, true, 'leftToRight', true);
-   FdLeftToRight.Exposed := false;
+  FFdLeftToRight := TSFBool.Create(Self, false, 'leftToRight', true);
    FdLeftToRight.ChangesAlways := [chFontStyle];
   AddField(FFdLeftToRight);
 
-  FFdSize := TSFFloat.Create(Self, true, 'size', DefaultSize);
-   FdSize.Exposed := false;
+  FFdSize := TSFFloat.Create(Self, false, 'size', DefaultSize);
    FdSize.ChangesAlways := [chFontStyle];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdSpacing := TSFFloat.Create(Self, true, 'spacing', DefaultSpacing);
-   FdSpacing.Exposed := false;
+  FFdSpacing := TSFFloat.Create(Self, false, 'spacing', DefaultSpacing);
    FdSpacing.ChangesAlways := [chFontStyle];
   AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdStyle := TSFString.Create(Self, true, 'style', 'PLAIN');
-   FdStyle.Exposed := false;
+  FFdStyle := TSFString.Create(Self, false, 'style', 'PLAIN');
    FdStyle.ChangesAlways := [chFontStyle];
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
-  FFdTopToBottom := TSFBool.Create(Self, true, 'topToBottom', true);
-   FdTopToBottom.Exposed := false;
+  FFdTopToBottom := TSFBool.Create(Self, false, 'topToBottom', true);
    FdTopToBottom.ChangesAlways := [chFontStyle];
   AddField(FFdTopToBottom);
 
-  FFdBlending := TSFBool.Create(Self, true, 'blending', DefaultBlending);
-   FdBlending.Exposed := false;
+  FFdBlending := TSFBool.Create(Self, false, 'blending', DefaultBlending);
    FdBlending.ChangesAlways := [chFontStyle];
   AddField(FFdBlending);
 end;
@@ -508,8 +498,7 @@ begin
   FEventTextBounds := TSFVec2fEvent.Create(Self, 'textBounds', false);
   AddEvent(FEventTextBounds);
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', false);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', false);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 

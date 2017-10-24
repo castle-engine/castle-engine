@@ -267,13 +267,11 @@ begin
   AddField(FFdVariation);
   { X3D specification comment: [0,Inf) }
 
-  FFdMass := TSFFloat.Create(Self, true, 'mass', 0);
-  FFdMass.Exposed := false;
+  FFdMass := TSFFloat.Create(Self, false, 'mass', 0);
   AddField(FFdMass);
   { X3D specification comment: [0,Inf) }
 
-  FFdSurfaceArea := TSFFloat.Create(Self, true, 'surfaceArea', 0);
-  FFdSurfaceArea.Exposed := false;
+  FFdSurfaceArea := TSFFloat.Create(Self, false, 'surfaceArea', 0);
   AddField(FFdSurfaceArea);
   { X3D specification comment: [0,Inf) }
 
@@ -403,34 +401,27 @@ begin
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
   AddEvent(FEventIsActive);
 
-  FFdColorRamp := TSFNode.Create(Self, true, 'colorRamp', [TAbstractColorNode]);
-  FFdColorRamp.Exposed := false;
+  FFdColorRamp := TSFNode.Create(Self, false, 'colorRamp', [TAbstractColorNode]);
   AddField(FFdColorRamp);
 
-  FFdColorKey := TMFFloat.Create(Self, true, 'colorKey', []);
-  FFdColorKey.Exposed := false;
+  FFdColorKey := TMFFloat.Create(Self, false, 'colorKey', []);
   AddField(FFdColorKey);
   { X3D specification comment: [0,Inf) }
 
-  FFdEmitter := TSFNode.Create(Self, true, 'emitter', [TAbstractParticleEmitterNode]);
-  FFdEmitter.Exposed := false;
+  FFdEmitter := TSFNode.Create(Self, false, 'emitter', [TAbstractParticleEmitterNode]);
   AddField(FFdEmitter);
 
-  FFdGeometryType := TSFString.Create(Self, true, 'geometryType', 'QUAD');
-  FFdGeometryType.Exposed := false;
+  FFdGeometryType := TSFString.Create(Self, false, 'geometryType', 'QUAD');
   AddField(FFdGeometryType);
   { X3D specification comment: ["LINE"|"POINT"|"QUAD"|"SPRITE"|"TRIANGLE"|"GEOMETRY"|...] }
 
-  FFdPhysics := TMFNode.Create(Self, true, 'physics', [TAbstractParticlePhysicsModelNode]);
-  FFdPhysics.Exposed := false;
+  FFdPhysics := TMFNode.Create(Self, false, 'physics', [TAbstractParticlePhysicsModelNode]);
   AddField(FFdPhysics);
 
-  FFdTexCoordRamp := TSFNode.Create(Self, true, 'texCoordRamp', [TTextureCoordinateNode]);
-  FFdTexCoordRamp.Exposed := false;
+  FFdTexCoordRamp := TSFNode.Create(Self, false, 'texCoordRamp', [TTextureCoordinateNode]);
   AddField(FFdTexCoordRamp);
 
-  FFdTexCoordKey := TMFFloat.Create(Self, true, 'texCoordKey', []);
-  FFdTexCoordKey.Exposed := false;
+  FFdTexCoordKey := TMFFloat.Create(Self, false, 'texCoordKey', []);
   AddField(FFdTexCoordKey);
   { X3D specification comment: [0,Inf) }
 end;
@@ -482,8 +473,7 @@ begin
   AddField(FFdDirection);
   { X3D specification comment: [-1,1] }
 
-  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', [-1]);
-  FFdCoordIndex.Exposed := false;
+  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', [-1]);
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 end;
@@ -506,13 +496,11 @@ begin
   FEventSet_coordinate := TSFInt32Event.Create(Self, 'set_coordinate', true);
   AddEvent(FEventSet_coordinate);
 
-  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', [-1]);
-  FFdCoordIndex.Exposed := false;
+  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', [-1]);
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdSurface := TSFNode.Create(Self, true, 'surface', [TAbstractGeometryNode]);
-  FFdSurface.Exposed := false;
+  FFdSurface := TSFNode.Create(Self, false, 'surface', [TAbstractGeometryNode]);
   AddField(FFdSurface);
 end;
 
@@ -541,13 +529,11 @@ begin
   AddField(FFdDirection);
   { X3D specification comment: [-1,1] }
 
-  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', [-1]);
-  FFdCoordIndex.Exposed := false;
+  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', [-1]);
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdInternal := TSFBool.Create(Self, true, 'internal', true);
-  FFdInternal.Exposed := false;
+  FFdInternal := TSFBool.Create(Self, false, 'internal', true);
   AddField(FFdInternal);
 end;
 

@@ -573,53 +573,44 @@ begin
   AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdUClosed := TSFBool.Create(Self, true, 'uClosed', false);
-   FdUClosed.Exposed := false;
+  FFdUClosed := TSFBool.Create(Self, false, 'uClosed', false);
    FdUClosed.ChangesAlways := [chGeometry];
   AddField(FFdUClosed);
 
-  FFdUDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
-   FdUDimension.Exposed := false;
+  FFdUDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
    FdUDimension.ChangesAlways := [chGeometry];
   AddField(FFdUDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdUKnot := TMFDouble.Create(Self, true, 'uKnot', []);
-   FdUKnot.Exposed := false;
+  FFdUKnot := TMFDouble.Create(Self, false, 'uKnot', []);
    FdUKnot.ChangesAlways := [chGeometry];
   AddField(FFdUKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdUOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
-   FdUOrder.Exposed := false;
+  FFdUOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
    FdUOrder.ChangesAlways := [chGeometry];
   AddField(FFdUOrder);
   { X3D specification comment: [2,Inf) }
 
-  FFdVClosed := TSFBool.Create(Self, true, 'vClosed', false);
-   FdVClosed.Exposed := false;
+  FFdVClosed := TSFBool.Create(Self, false, 'vClosed', false);
    FdVClosed.ChangesAlways := [chGeometry];
   AddField(FFdVClosed);
 
-  FFdVDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
-   FdVDimension.Exposed := false;
+  FFdVDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
    FdVDimension.ChangesAlways := [chGeometry];
   AddField(FFdVDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdVKnot := TMFDouble.Create(Self, true, 'vKnot', []);
-   FdVKnot.Exposed := false;
+  FFdVKnot := TMFDouble.Create(Self, false, 'vKnot', []);
    FdVKnot.ChangesAlways := [chGeometry];
   AddField(FFdVKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdVOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
-   FdVOrder.Exposed := false;
+  FFdVOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
    FdVOrder.ChangesAlways := [chGeometry];
   AddField(FFdVOrder);
   { X3D specification comment: [2,Inf) }
@@ -736,19 +727,16 @@ begin
   AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
-  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
-   FdClosed.Exposed := false;
+  FFdClosed := TSFBool.Create(Self, false, 'closed', false);
    FdClosed.ChangesAlways := [chGeometry];
   AddField(FFdClosed);
 
-  FFdKnot := TMFDouble.Create(Self, true, 'knot', []);
-   FdKnot.Exposed := false;
+  FFdKnot := TMFDouble.Create(Self, false, 'knot', []);
    FdKnot.ChangesAlways := [chGeometry];
   AddField(FFdKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdOrder := TSFInt32.Create(Self, true, 'order', 3);
-   FdOrder.Exposed := false;
+  FFdOrder := TSFInt32.Create(Self, false, 'order', 3);
    FdOrder.ChangesAlways := [chGeometry];
   AddField(FFdOrder);
   { X3D specification comment: [2,Inf) }
@@ -905,17 +893,14 @@ begin
   AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
-  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
-   FdClosed.Exposed := false;
+  FFdClosed := TSFBool.Create(Self, false, 'closed', false);
   AddField(FFdClosed);
 
-  FFdKnot := TMFDouble.Create(Self, true, 'knot', []);
-   FdKnot.Exposed := false;
+  FFdKnot := TMFDouble.Create(Self, false, 'knot', []);
   AddField(FFdKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdOrder := TSFInt32.Create(Self, true, 'order', 3);
-   FdOrder.Exposed := false;
+  FFdOrder := TSFInt32.Create(Self, false, 'order', 3);
   AddField(FFdOrder);
   { X3D specification comment: [2,Inf) }
 
@@ -1480,13 +1465,11 @@ begin
   AddField(FFdTessellationScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
@@ -1524,33 +1507,27 @@ begin
   FEventNormal_changed := TSFVec3fEvent.Create(Self, 'normal_changed', false);
   AddEvent(FEventNormal_changed);
 
-  FFdUDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
-  FFdUDimension.Exposed := false;
+  FFdUDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
   AddField(FFdUDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdUKnot := TMFDouble.Create(Self, true, 'uKnot', []);
-  FFdUKnot.Exposed := false;
+  FFdUKnot := TMFDouble.Create(Self, false, 'uKnot', []);
   AddField(FFdUKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdUOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
-  FFdUOrder.Exposed := false;
+  FFdUOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
   AddField(FFdUOrder);
   { X3D specification comment: [2,Inf) }
 
-  FFdVDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
-  FFdVDimension.Exposed := false;
+  FFdVDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
   AddField(FFdVDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdVKnot := TMFDouble.Create(Self, true, 'vKnot', []);
-  FFdVKnot.Exposed := false;
+  FFdVKnot := TMFDouble.Create(Self, false, 'vKnot', []);
   AddField(FFdVKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdVOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
-  FFdVOrder.Exposed := false;
+  FFdVOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
   AddField(FFdVOrder);
   { X3D specification comment: [2,Inf) }
 
@@ -1665,13 +1642,11 @@ begin
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
   AddField(FFdTrajectoryCurve);
 
-  FFdCcw := TSFBool.Create(Self, true, 'ccw', true);
-   FdCcw.Exposed := false;
+  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 end;
@@ -1734,13 +1709,11 @@ begin
    FdTrajectoryCurve.ChangesAlways := [chGeometry];
   AddField(FFdTrajectoryCurve);
 
-  FFdCcw := TSFBool.Create(Self, true, 'ccw', true);
-   FdCcw.Exposed := false;
+  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 end;
@@ -1803,33 +1776,27 @@ begin
   AddField(FFdWeight);
   { X3D specification comment: (0,Inf) }
 
-  FFdUDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
-  FFdUDimension.Exposed := false;
+  FFdUDimension := TSFInt32.Create(Self, false, 'uDimension', 0);
   AddField(FFdUDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdUKnot := TMFDouble.Create(Self, true, 'uKnot', []);
-  FFdUKnot.Exposed := false;
+  FFdUKnot := TMFDouble.Create(Self, false, 'uKnot', []);
   AddField(FFdUKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdUOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
-  FFdUOrder.Exposed := false;
+  FFdUOrder := TSFInt32.Create(Self, false, 'uOrder', 3);
   AddField(FFdUOrder);
   { X3D specification comment: [2,Inf) }
 
-  FFdVDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
-  FFdVDimension.Exposed := false;
+  FFdVDimension := TSFInt32.Create(Self, false, 'vDimension', 0);
   AddField(FFdVDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdVKnot := TMFDouble.Create(Self, true, 'vKnot', []);
-  FFdVKnot.Exposed := false;
+  FFdVKnot := TMFDouble.Create(Self, false, 'vKnot', []);
   AddField(FFdVKnot);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdVOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
-  FFdVOrder.Exposed := false;
+  FFdVOrder := TSFInt32.Create(Self, false, 'vOrder', 3);
   AddField(FFdVOrder);
   { X3D specification comment: [2,Inf) }
 

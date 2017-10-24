@@ -691,13 +691,11 @@ begin
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
@@ -709,13 +707,11 @@ begin
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 end;
@@ -766,8 +762,7 @@ procedure TCollidableOffsetNode.CreateNode;
 begin
   inherited;
 
-  FFdCollidable := TSFNode.Create(Self, true, 'collidable', [TAbstractNBodyCollidableNode]);
-  FFdCollidable.Exposed := false;
+  FFdCollidable := TSFNode.Create(Self, false, 'collidable', [TAbstractNBodyCollidableNode]);
   AddField(FFdCollidable);
 end;
 
@@ -786,8 +781,7 @@ procedure TCollidableShapeNode.CreateNode;
 begin
   inherited;
 
-  FFdShape := TSFNode.Create(Self, true, 'shape', [TShapeNode]);
-  FFdShape.Exposed := false;
+  FFdShape := TSFNode.Create(Self, false, 'shape', [TShapeNode]);
   AddField(FFdShape);
 end;
 
@@ -1159,8 +1153,7 @@ begin
   FEventMotor3AngleRate := TSFFloatEvent.Create(Self, 'motor3AngleRate', false);
   AddEvent(FEventMotor3AngleRate);
 
-  FFdAutoCalc := TSFBool.Create(Self, true, 'autoCalc', false);
-  FFdAutoCalc.Exposed := false;
+  FFdAutoCalc := TSFBool.Create(Self, false, 'autoCalc', false);
   AddField(FFdAutoCalc);
 end;
 
@@ -1331,8 +1324,7 @@ begin
   FFdPreferAccuracy := TSFBool.Create(Self, true, 'preferAccuracy', false);
   AddField(FFdPreferAccuracy);
 
-  FFdCollider := TSFNode.Create(Self, true, 'collider', [TCollisionCollectionNode]);
-  FFdCollider.Exposed := false;
+  FFdCollider := TSFNode.Create(Self, false, 'collider', [TCollisionCollectionNode]);
   AddField(FFdCollider);
 end;
 

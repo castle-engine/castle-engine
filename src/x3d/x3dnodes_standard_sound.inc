@@ -432,8 +432,7 @@ begin
   FFdSource := TSFNode.Create(Self, true, 'source', IAbstractSoundSourceNode);
   AddField(FFdSource);
 
-  FFdSpatialize := TSFBool.Create(Self, true, 'spatialize', true);
-  FFdSpatialize.Exposed := false;
+  FFdSpatialize := TSFBool.Create(Self, false, 'spatialize', true);
   AddField(FFdSpatialize);
 
   DefaultContainerField := 'children';

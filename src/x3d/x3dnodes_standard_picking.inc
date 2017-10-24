@@ -139,13 +139,11 @@ begin
   FEventPickedGeometry := TMFNodeEvent.Create(Self, 'pickedGeometry', false);
   AddEvent(FEventPickedGeometry);
 
-  FFdIntersectionType := TSFString.Create(Self, true, 'intersectionType', 'BOUNDS');
-  FFdIntersectionType.Exposed := false;
+  FFdIntersectionType := TSFString.Create(Self, false, 'intersectionType', 'BOUNDS');
   AddField(FFdIntersectionType);
   { X3D specification comment: ["GEOMETRY"|"BOUNDS"] }
 
-  FFdSortOrder := TSFString.Create(Self, true, 'sortOrder', 'CLOSEST');
-  FFdSortOrder.Exposed := false;
+  FFdSortOrder := TSFString.Create(Self, false, 'sortOrder', 'CLOSEST');
   AddField(FFdSortOrder);
   { X3D specification comment: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"] }
 

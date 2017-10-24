@@ -664,13 +664,11 @@ begin
    FdGeometry.ChangesAlways := [chEverything];
   AddField(FFdGeometry);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-   FdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-   FdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
@@ -681,8 +679,7 @@ begin
    FdShading.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdShading);
 
-  FFdOctreeTriangles := TSFNode.Create(Self, true, 'octreeTriangles', [TKambiOctreePropertiesNode]);
-   FdOctreeTriangles.Exposed := false;
+  FFdOctreeTriangles := TSFNode.Create(Self, false, 'octreeTriangles', [TKambiOctreePropertiesNode]);
    FdOctreeTriangles.ChangesAlways := [chEverything];
   AddField(FFdOctreeTriangles);
 end;
@@ -904,8 +901,7 @@ begin
    FdTextureTransform.ChangesAlways := [chEverything];
   AddField(FFdTextureTransform);
 
-  FFdReceiveShadows := TMFNode.Create(Self, true, 'receiveShadows', [TAbstractLightNode]);
-   FdReceiveShadows.Exposed := false;
+  FFdReceiveShadows := TMFNode.Create(Self, false, 'receiveShadows', [TAbstractLightNode]);
    FdReceiveShadows.ChangesAlways := [chShadowMaps];
   AddField(FFdReceiveShadows);
 
@@ -929,8 +925,7 @@ begin
    FdBlendMode.ChangesAlways := [chEverything];
   AddField(FFdBlendMode);
 
-  FFdEffects := TMFNode.Create(Self, true, 'effects', [TEffectNode]);
-   FdEffects.Exposed := false;
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 

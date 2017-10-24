@@ -201,23 +201,19 @@ procedure TAbstractTexture3DNode.CreateNode;
 begin
   inherited;
 
-  FFdRepeatS := TSFBool.Create(Self, true, 'repeatS', false);
-   FdRepeatS.Exposed := false;
+  FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', false);
    FdRepeatS.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatS);
 
-  FFdRepeatT := TSFBool.Create(Self, true, 'repeatT', false);
-   FdRepeatT.Exposed := false;
+  FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', false);
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatT);
 
-  FFdRepeatR := TSFBool.Create(Self, true, 'repeatR', false);
-   FdRepeatR.Exposed := false;
+  FFdRepeatR := TSFBool.Create(Self, false, 'repeatR', false);
    FdRepeatR.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatR);
 
-  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
+  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 end;

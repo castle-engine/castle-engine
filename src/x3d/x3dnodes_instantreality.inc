@@ -633,18 +633,15 @@ procedure TTeapotNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec3f.Create(Self, true, 'size', Vector3(3, 3, 3));
-   FdSize.Exposed := false;
+  FFdSize := TSFVec3f.Create(Self, false, 'size', Vector3(3, 3, 3));
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdManifold := TSFBool.Create(Self, true, 'manifold', false);
-   FdManifold.Exposed := false;
+  FFdManifold := TSFBool.Create(Self, false, 'manifold', false);
    FdManifold.ChangesAlways := [chGeometry];
   AddField(FFdManifold);
 
@@ -742,8 +739,7 @@ begin
   FFdLevel := TSFInt32.Create(Self, true, 'level', 1);
   AddField(FFdLevel);
 
-  FFdLogFile := TSFString.Create(Self, true, 'logFile', '');
-  FFdLogFile.Exposed := false;
+  FFdLogFile := TSFString.Create(Self, false, 'logFile', '');
   AddField(FFdLogFile);
 
   FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
@@ -978,13 +974,11 @@ begin
    FdFrameBufferMode.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdFrameBufferMode);
 
-  FFdExcludeNodes := TMFNode.Create(Self, true, 'excludeNodes', [TX3DNode]);
-   FdExcludeNodes.Exposed := false;
+  FFdExcludeNodes := TMFNode.Create(Self, false, 'excludeNodes', [TX3DNode]);
    FdExcludeNodes.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdExcludeNodes);
 
-  FFdTriggerName := TSFString.Create(Self, true, 'triggerName', 'Render');
-   FdTriggerName.Exposed := false;
+  FFdTriggerName := TSFString.Create(Self, false, 'triggerName', 'Render');
   AddField(FFdTriggerName);
 
   FEventTriggerSlot := TSFTimeEvent.Create(Self, 'triggerSlot', true);
@@ -993,23 +987,19 @@ begin
   FEventImage_changed := TSFImageEvent.Create(Self, 'image_changed', false);
   AddEvent(FEventImage_changed);
 
-  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
+  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 
-  FFdRepeatS := TSFBool.Create(Self, true, 'repeatS', true);
-   FdRepeatS.Exposed := false;
+  FFdRepeatS := TSFBool.Create(Self, false, 'repeatS', true);
    FdRepeatS.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatS);
 
-  FFdRepeatT := TSFBool.Create(Self, true, 'repeatT', true);
-   FdRepeatT.Exposed := false;
+  FFdRepeatT := TSFBool.Create(Self, false, 'repeatT', true);
    FdRepeatT.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatT);
 
-  FFdRepeatR := TSFBool.Create(Self, true, 'repeatR', true);
-   FdRepeatR.Exposed := false;
+  FFdRepeatR := TSFBool.Create(Self, false, 'repeatR', true);
    FdRepeatR.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRepeatR);
 
@@ -1041,14 +1031,12 @@ procedure TPlaneNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec2f.Create(Self, true, 'size', Vector2(2, 2));
-   FdSize.Exposed := false;
+  FFdSize := TSFVec2f.Create(Self, false, 'size', Vector2(2, 2));
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 end;
@@ -1446,14 +1434,12 @@ begin
    FdNormalTextureChannelMask.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdNormalTextureChannelMask);
 
-  FFdNormalScale := TSFVec3f.Create(Self, true, 'normalScale', Vector3(2, 2, 2));
+  FFdNormalScale := TSFVec3f.Create(Self, false, 'normalScale', Vector3(2, 2, 2));
    FdNormalScale.ChangesAlways := [chVisibleNonGeometry];
-   FdNormalScale.Exposed := false;
   AddField(FFdNormalScale);
 
-  FFdNormalBias := TSFVec3f.Create(Self, true, 'normalBias', Vector3(-1, -1, -1));
+  FFdNormalBias := TSFVec3f.Create(Self, false, 'normalBias', Vector3(-1, -1, -1));
    FdNormalBias.ChangesAlways := [chVisibleNonGeometry];
-   FdNormalBias.Exposed := false;
   AddField(FFdNormalBias);
 
   FFdNormalTexture := TSFNode.Create(Self, true, 'normalTexture', [TAbstractTextureNode]);
@@ -1564,9 +1550,8 @@ begin
    FdFresnelBlend.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdFresnelBlend);
 
-  FFdTextureTransformEnabled := TMFBool.Create(Self, true, 'textureTransformEnabled', [false, false, false, false, false, false, false, false]);
+  FFdTextureTransformEnabled := TMFBool.Create(Self, false, 'textureTransformEnabled', [false, false, false, false, false, false, false, false]);
    FdTextureTransformEnabled.ChangesAlways := [chVisibleNonGeometry];
-   FdTextureTransformEnabled.Exposed := false;
   AddField(FFdTextureTransformEnabled);
 
   DefaultContainerField := 'shaders';

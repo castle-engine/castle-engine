@@ -591,24 +591,19 @@ procedure TKambiNavigationInfoNode.CreateNode;
 begin
   inherited;
 
-  FFdTimeOriginAtLoad := TSFBool.Create(Self, true, 'timeOriginAtLoad', false);
-  FFdTimeOriginAtLoad.Exposed := false;
+  FFdTimeOriginAtLoad := TSFBool.Create(Self, false, 'timeOriginAtLoad', false);
   AddField(FFdTimeOriginAtLoad);
 
-  FFdOctreeRendering := TSFNode.Create(Self, true, 'octreeRendering', [TKambiOctreePropertiesNode]);
-  FFdOctreeRendering.Exposed := false;
+  FFdOctreeRendering := TSFNode.Create(Self, false, 'octreeRendering', [TKambiOctreePropertiesNode]);
   AddField(FFdOctreeRendering);
 
-  FFdOctreeDynamicCollisions := TSFNode.Create(Self, true, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
-  FFdOctreeDynamicCollisions.Exposed := false;
+  FFdOctreeDynamicCollisions := TSFNode.Create(Self, false, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
   AddField(FFdOctreeDynamicCollisions);
 
-  FFdOctreeVisibleTriangles := TSFNode.Create(Self, true, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
-  FFdOctreeVisibleTriangles.Exposed := false;
+  FFdOctreeVisibleTriangles := TSFNode.Create(Self, false, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
   AddField(FFdOctreeVisibleTriangles);
 
-  FFdOctreeStaticCollisions := TSFNode.Create(Self, true, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
-  FFdOctreeStaticCollisions.Exposed := false;
+  FFdOctreeStaticCollisions := TSFNode.Create(Self, false, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
   FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
   AddField(FFdOctreeStaticCollisions);
 
@@ -695,8 +690,7 @@ begin
   AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdSize := TSFInt32.Create(Self, true, 'size', DefaultSize, { MustBeNonnegative } true);
-   FdSize.Exposed := false;
+  FFdSize := TSFInt32.Create(Self, false, 'size', DefaultSize, { MustBeNonnegative } true);
    FdSize.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
@@ -830,13 +824,11 @@ procedure TEffectNode.CreateNode;
 begin
   inherited;
 
-  FFdLanguage := TSFStringEnum.Create(Self, true, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.Exposed := false;
+  FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
    FdLanguage.ChangesAlways := [chEverything];
   AddField(FFdLanguage);
 
-  FFdParts := TMFNode.Create(Self, true, 'parts', [TEffectPartNode]);
-   FdParts.Exposed := false;
+  FFdParts := TMFNode.Create(Self, false, 'parts', [TEffectPartNode]);
    FdParts.ChangesAlways := [chEverything];
   AddField(FFdParts);
 
@@ -871,8 +863,7 @@ procedure TEffectPartNode.CreateNode;
 begin
   inherited;
 
-  FFdType := TSFStringEnum.Create(Self, true, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.Exposed := false;
+  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.ChangesAlways := [chEverything];
   AddField(FFdType);
 
@@ -934,8 +925,7 @@ procedure TShaderTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdDefaultTexCoord := TSFString.Create(Self, true, 'defaultTexCoord', 'BOUNDS2D');
-   FdDefaultTexCoord.Exposed := false;
+  FFdDefaultTexCoord := TSFString.Create(Self, false, 'defaultTexCoord', 'BOUNDS2D');
    FdDefaultTexCoord.ChangesAlways := [chEverything];
   AddField(FFdDefaultTexCoord);
 end;

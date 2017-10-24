@@ -232,8 +232,7 @@ begin
   FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
   AddEvent(FEventIsValid);
 
-  FFdLanguage := TSFStringEnum.Create(Self, true, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.Exposed := false;
+  FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
    FdLanguage.ChangesAlways := [chEverything];
   AddField(FFdLanguage);
 
@@ -254,8 +253,7 @@ procedure TAbstractVertexAttributeNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, true, 'name', '');
-  FFdName.Exposed := false;
+  FFdName := TSFString.Create(Self, false, 'name', '');
   AddField(FFdName);
 
   DefaultContainerField := 'attrib';
@@ -303,8 +301,7 @@ begin
   AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNumComponents := TSFInt32.Create(Self, true, 'numComponents', 4);
-  FFdNumComponents.Exposed := false;
+  FFdNumComponents := TSFInt32.Create(Self, false, 'numComponents', 4);
   AddField(FFdNumComponents);
   { X3D specification comment: [1..4] }
 end;
@@ -412,8 +409,7 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdType := TSFStringEnum.Create(Self, true, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.Exposed := false;
+  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.ChangesAlways := [chEverything];
   AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
@@ -519,8 +515,7 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdType := TSFStringEnum.Create(Self, true, 'type', ShaderTypeNameX3D, Ord(stVertex));
-  FFdType.Exposed := false;
+  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
   AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 

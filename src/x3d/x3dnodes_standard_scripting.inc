@@ -349,12 +349,10 @@ procedure TScriptNode.CreateNode;
 begin
   inherited;
 
-  FFdDirectOutput := TSFBool.Create(Self, true, 'directOutput', false);
-  FFdDirectOutput.Exposed := false;
+  FFdDirectOutput := TSFBool.Create(Self, false, 'directOutput', false);
   AddField(FFdDirectOutput);
 
-  FFdMustEvaluate := TSFBool.Create(Self, true, 'mustEvaluate', false);
-  FFdMustEvaluate.Exposed := false;
+  FFdMustEvaluate := TSFBool.Create(Self, false, 'mustEvaluate', false);
   AddField(FFdMustEvaluate);
 
   DefaultContainerField := 'children';

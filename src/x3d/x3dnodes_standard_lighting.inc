@@ -476,18 +476,15 @@ begin
    FdUp.ChangesAlways := [chVisibleGeometry];
   AddField(FFdUp);
 
-  FFdDefaultShadowMap := TSFNode.Create(Self, true, 'defaultShadowMap', [TGeneratedShadowMapNode]);
-   FdDefaultShadowMap.Exposed := false;
+  FFdDefaultShadowMap := TSFNode.Create(Self, false, 'defaultShadowMap', [TGeneratedShadowMapNode]);
    FdDefaultShadowMap.ChangesAlways := [chEverything];
   AddField(FFdDefaultShadowMap);
 
-  FFdShadows := TSFBool.Create(Self, true, 'shadows', false);
-   FdShadows.Exposed := false;
+  FFdShadows := TSFBool.Create(Self, false, 'shadows', false);
    FdShadows.ChangesAlways := [chShadowMaps];
   AddField(FFdShadows);
 
-  FFdEffects := TMFNode.Create(Self, true, 'effects', [TEffectNode]);
-   FdEffects.Exposed := false;
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 

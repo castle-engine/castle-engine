@@ -1233,23 +1233,19 @@ begin
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdCcw := TSFBool.Create(Self, true, 'ccw', true);
-   FdCcw.Exposed := false;
+  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdColorPerVertex := TSFBool.Create(Self, true, 'colorPerVertex', true);
-   FdColorPerVertex.Exposed := false;
+  FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
    FdColorPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdColorPerVertex);
 
-  FFdNormalPerVertex := TSFBool.Create(Self, true, 'normalPerVertex', true);
-   FdNormalPerVertex.Exposed := false;
+  FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
    FdNormalPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdNormalPerVertex);
 
-  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
@@ -1460,20 +1456,17 @@ begin
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
 
-  FFdColorIndex := TMFInt32.Create(Self, true, 'colorIndex', []);
-   FdColorIndex.Exposed := false;
+  FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
    FdColorIndex.ChangesAlways := [chGeometry];
   AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdColorPerVertex := TSFBool.Create(Self, true, 'colorPerVertex', true);
-   FdColorPerVertex.Exposed := false;
+  FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
    FdColorPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdColorPerVertex);
 
-  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', []);
-   FdCoordIndex.Exposed := false;
+  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
    FdCoordIndex.ChangesAlways := [chGeometry];
   AddField(FFdCoordIndex);
@@ -1558,8 +1551,7 @@ begin
   AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
-  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
-   FdIndex.Exposed := false;
+  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }
@@ -1596,8 +1588,7 @@ begin
   AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
-  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
-   FdIndex.Exposed := false;
+  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }
@@ -1634,8 +1625,7 @@ begin
   AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
-  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
-   FdIndex.Exposed := false;
+  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) or -1 }

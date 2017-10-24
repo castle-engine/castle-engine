@@ -555,13 +555,11 @@ begin
    FdChildren.ChangesAlways := [chEverything];
   AddField(FFdChildren);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', TVector3.Zero);
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', TVector3.Zero);
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
@@ -884,18 +882,15 @@ procedure TStaticGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
-   FdChildren.Exposed := false;
+  FFdChildren := TMFNode.Create(Self, false, 'children', IAbstractChildNode);
    FdChildren.ChangesAlways := [chEverything];
   AddField(FFdChildren);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 

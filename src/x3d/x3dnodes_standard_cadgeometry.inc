@@ -208,13 +208,11 @@ begin
   FFdShape := TSFNode.Create(Self, true, 'shape', [TAbstractShapeNode, TAbstractLODNode]);
   AddField(FFdShape);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0, Inf) or -1 -1 -1 }
 
@@ -348,8 +346,7 @@ begin
   FEventSet_index := TMFInt32Event.Create(Self, 'set_index', true);
   AddEvent(FEventSet_index);
 
-  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
-   FdIndex.Exposed := false;
+  FFdIndex := TMFInt32.Create(Self, false, 'index', []);
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
   { X3D specification comment: [0,Inf) }

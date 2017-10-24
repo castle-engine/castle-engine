@@ -744,38 +744,31 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdCategory := TSFInt32.Create(Self, true, 'category', 0);
-  FFdCategory.Exposed := false;
+  FFdCategory := TSFInt32.Create(Self, false, 'category', 0);
   AddField(FFdCategory);
   { X3D specification comment: [0,255] }
 
-  FFdCountry := TSFInt32.Create(Self, true, 'country', 0);
-  FFdCountry.Exposed := false;
+  FFdCountry := TSFInt32.Create(Self, false, 'country', 0);
   AddField(FFdCountry);
   { X3D specification comment: [0,65535] }
 
-  FFdDomain := TSFInt32.Create(Self, true, 'domain', 0);
-  FFdDomain.Exposed := false;
+  FFdDomain := TSFInt32.Create(Self, false, 'domain', 0);
   AddField(FFdDomain);
   { X3D specification comment: [0,255] }
 
-  FFdExtra := TSFInt32.Create(Self, true, 'extra', 0);
-  FFdExtra.Exposed := false;
+  FFdExtra := TSFInt32.Create(Self, false, 'extra', 0);
   AddField(FFdExtra);
   { X3D specification comment: [0,255] }
 
-  FFdKind := TSFInt32.Create(Self, true, 'kind', 0);
-  FFdKind.Exposed := false;
+  FFdKind := TSFInt32.Create(Self, false, 'kind', 0);
   AddField(FFdKind);
   { X3D specification comment: [0,255] }
 
-  FFdSpecific := TSFInt32.Create(Self, true, 'specific', 0);
-  FFdSpecific.Exposed := false;
+  FFdSpecific := TSFInt32.Create(Self, false, 'specific', 0);
   AddField(FFdSpecific);
   { X3D specification comment: [0,255] }
 
-  FFdSubcategory := TSFInt32.Create(Self, true, 'subcategory', 0);
-  FFdSubcategory.Exposed := false;
+  FFdSubcategory := TSFInt32.Create(Self, false, 'subcategory', 0);
   AddField(FFdSubcategory);
   { X3D specification comment: [0,255] }
 
@@ -1090,8 +1083,7 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdRtpHeaderExpected := TSFBool.Create(Self, true, 'rtpHeaderExpected', false);
-  FFdRtpHeaderExpected.Exposed := false;
+  FFdRtpHeaderExpected := TSFBool.Create(Self, false, 'rtpHeaderExpected', false);
   AddField(FFdRtpHeaderExpected);
 
   DefaultContainerField := 'children';
@@ -1199,13 +1191,11 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1 }
 
@@ -1314,13 +1304,11 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
 
@@ -1492,13 +1480,11 @@ begin
   FEventTimestamp := TSFTimeEvent.Create(Self, 'timestamp', false);
   AddEvent(FEventTimestamp);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
-  FFdBboxCenter.Exposed := false;
+  FFdBboxCenter := TSFVec3f.Create(Self, false, 'bboxCenter', Vector3(0, 0, 0));
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
-  FFdBboxSize.Exposed := false;
+  FFdBboxSize := TSFVec3f.Create(Self, false, 'bboxSize', Vector3(-1, -1, -1));
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) [0,Inf) [0,Inf) or -1 -1 -1 }
 

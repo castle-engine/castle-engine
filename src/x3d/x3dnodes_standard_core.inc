@@ -507,12 +507,10 @@ procedure TWorldInfoNode.CreateNode;
 begin
   inherited;
 
-  FFdInfo := TMFString.Create(Self, true, 'info', []);
-  FFdInfo.Exposed := false;
+  FFdInfo := TMFString.Create(Self, false, 'info', []);
   AddField(FFdInfo);
 
-  FFdTitle := TSFString.Create(Self, true, 'title', '');
-  FFdTitle.Exposed := false;
+  FFdTitle := TSFString.Create(Self, false, 'title', '');
   AddField(FFdTitle);
 end;
 

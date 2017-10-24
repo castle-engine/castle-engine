@@ -182,8 +182,7 @@ begin
 
   { X3D spec 3.2 doesn't specify this, but it's natural,
     instantreality also uses this. }
-  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
+  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 end;
@@ -250,14 +249,12 @@ begin
   AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdSize := TSFInt32.Create(Self, true, 'size', 128, { MustBeNonnegative } true);
-   FdSize.Exposed := false;
+  FFdSize := TSFInt32.Create(Self, false, 'size', 128, { MustBeNonnegative } true);
    FdSize.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
+  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 
@@ -307,8 +304,7 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
-   FdTextureProperties.Exposed := false;
+  FFdTextureProperties := TSFNode.Create(Self, false, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 end;
