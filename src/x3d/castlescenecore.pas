@@ -1735,7 +1735,7 @@ type
       like
 
       @longCode(#
-        Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
+        Scene.AnimationTimeSensor('my_animation').EventIsActive.AddNotification(
           @AnimationIsActiveChanged);
       #)
 

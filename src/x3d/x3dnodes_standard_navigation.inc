@@ -503,7 +503,7 @@ begin
   FFdDescription := TSFString.Create(Self, true, 'description', '');
   AddField(FFdDescription);
 
-  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 procedure TAbstractViewpointNode.GetView(
@@ -1019,7 +1019,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 class function TNavigationInfoNode.ClassX3DType: string;

@@ -545,11 +545,11 @@ begin
 
   FEventAddChildren := TMFNodeEvent.Create(Self, 'addChildren', true);
   AddEvent(FEventAddChildren);
-  EventaddChildren.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventAddChildrenReceive);
+  EventaddChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventAddChildrenReceive);
 
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventRemoveChildren);
-  EventRemoveChildren.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
+  EventRemoveChildren.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventRemoveChildrenReceive);
 
   FFdChildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
    FdChildren.ChangesAlways := [chEverything];

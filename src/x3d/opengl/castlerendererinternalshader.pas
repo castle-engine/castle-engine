@@ -1023,7 +1023,7 @@ begin
   if EventsObserved <> nil then
   begin
     for I := 0 to EventsObserved.Count - 1 do
-      EventsObserved[I].RemoveHandler(@EventReceive);
+      EventsObserved[I].RemoveNotification(@EventReceive);
     FreeAndNil(EventsObserved);
   end;
   FreeAndNil(UniformsTextures);
@@ -1071,7 +1071,7 @@ begin
 
   if ObservedEvent <> nil then
   begin
-    ObservedEvent.OnReceive.Add(@EventReceive);
+    ObservedEvent.AddNotification(@EventReceive);
     EventsObserved.Add(ObservedEvent);
   end;
 end;
@@ -1245,11 +1245,11 @@ begin
     SetUniformFromField(UniformName, Value, true);
   except
     { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
-      This way we remove this event from OnReceive list. }
+      This way we can remove ourselves (EventReceive) from event notifications. }
     on E: EGLSLUniformInvalid do
     begin
       WritelnWarning('VRML/X3D', E.Message);
-      Event.RemoveHandler(@EventReceive);
+      Event.RemoveNotification(@EventReceive);
       EventsObserved.Remove(Event);
       Exit;
     end;

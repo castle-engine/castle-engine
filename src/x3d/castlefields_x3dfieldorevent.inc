@@ -162,7 +162,6 @@
   end;
 
   TX3DFieldOrEventList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DFieldOrEvent>;
-  TX3DEventReceiveList = class;
 
 {$endif read_interface}
 

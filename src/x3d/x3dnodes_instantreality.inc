@@ -747,7 +747,7 @@ begin
 
   FEventWrite := TXFAnyEvent.Create(Self, 'write', true);
   AddEvent(FEventWrite);
-  FEventWrite.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);
+  FEventWrite.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventWriteReceive);
 end;
 
 destructor TLoggerNode.Destroy;
@@ -885,7 +885,7 @@ begin
 
   FEventIn := TXFAnyEvent.Create(Self, 'in', true);
   AddEvent(FEventIn);
-  FEventIn.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventInReceive);
+  FEventIn.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventInReceive);
 
   FEventOut := TXFAnyEvent.Create(Self, 'out', true);
   AddEvent(FEventOut);
@@ -1092,23 +1092,23 @@ begin
   inherited;
 
   FFdStatus := TSFBoolIgnorable.Create(Self, true, 'status', false);
-   FdStatus.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventStatusReceive);
+   FdStatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventStatusReceive);
   AddField(FFdStatus);
 
   FFdNotStatus := TSFBoolIgnorable.Create(Self, true, 'notStatus', true);
-   FdNotstatus.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventNotStatusReceive);
+   FdNotstatus.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventNotStatusReceive);
   AddField(FFdNotStatus);
 
   FEventToggle := TXFAnyEvent.Create(Self, 'toggle', true);
-  FEventToggle.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventToggleReceive);
+  FEventToggle.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventToggleReceive);
   AddEvent(FEventToggle);
 
   FEventSet := TXFAnyEvent.Create(Self, 'set', true);
-   EventSet.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSetReceive);
+   EventSet.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSetReceive);
   AddEvent(FEventSet);
 
   FEventReset := TXFAnyEvent.Create(Self, 'reset', true);
-   EventReset.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventResetReceive);
+   EventReset.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventResetReceive);
   AddEvent(FEventReset);
 
   FEventChanged := TSFBoolEvent.Create(Self, 'changed', false);

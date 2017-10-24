@@ -306,7 +306,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(
+  EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
@@ -376,7 +376,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(
+  EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 

@@ -406,11 +406,11 @@ begin
   inherited;
 
   FFdLoad := TSFBool.Create(Self, true, 'load', true);
-   FdLoad.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventLoadReceive);
+   FdLoad.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventLoadReceive);
   AddField(FFdLoad);
 
   FFdUrl := TMFString.Create(Self, true, 'url', []);
-   FdUrl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+   FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
   { X3D specification comment: [url or urn] }
 

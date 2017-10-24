@@ -59,7 +59,7 @@
       the "duration". If you want to observe when the animation ended,
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
-      a callback on @code(EventIsActive.OnReceive).
+      a callback on @code(EventIsActive.AddNotification).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
 
       BTW, the @italic("duration") mentioned above is usually just
@@ -272,7 +272,7 @@
       the "duration". If you want to observe when the animation ended,
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
-      a callback on @code(EventIsActive.OnReceive).
+      a callback on @code(EventIsActive.AddNotification).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
 
       BTW, the @italic("duration") mentioned above is usually just
@@ -950,7 +950,7 @@ begin
   InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }
-  EventElapsedTime.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
+  EventElapsedTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
 end;
 
 function TTimeSensorNode.GetCycleInterval: TFloatTime;

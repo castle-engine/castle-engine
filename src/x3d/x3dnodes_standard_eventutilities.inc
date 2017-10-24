@@ -255,15 +255,15 @@ begin
 
   FEventNext := TSFBoolEvent.Create(Self, 'next', true);
   AddEvent(FEventNext);
-  EventNext.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventNextReceive);
+  EventNext.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventNextReceive);
 
   FEventPrevious := TSFBoolEvent.Create(Self, 'previous', true);
   AddEvent(FEventPrevious);
-  EventPrevious.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventPreviousReceive);
+  EventPrevious.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventPreviousReceive);
 
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventSet_fraction);
-  EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
+  EventSet_Fraction.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 
   FFdKey := TMFFloat.Create(Self, true, 'key', []);
   AddField(FFdKey);
@@ -383,7 +383,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
   FEventInputFalse := TSFBoolEvent.Create(Self, 'inputFalse', false);
   AddEvent(FEventInputFalse);
@@ -460,7 +460,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
   FFdToggle := TSFBool.Create(Self, true, 'toggle', false);
   AddField(FFdToggle);
@@ -495,7 +495,7 @@ begin
 
   FEventSet_triggerTime := TSFTimeEvent.Create(Self, 'set_triggerTime', true);
   AddEvent(FEventSet_triggerTime);
-  FEventSet_triggerTime.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_triggerTimeReceive);
+  FEventSet_triggerTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_triggerTimeReceive);
 
   FEventTriggerTrue := TSFBoolEvent.Create(Self, 'triggerTrue', false);
   AddEvent(FEventTriggerTrue);
@@ -560,7 +560,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_booleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_booleanReceive);
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
@@ -597,7 +597,7 @@ begin
 
   FEventSet_boolean := TSFBoolEvent.Create(Self, 'set_boolean', true);
   AddEvent(FEventSet_boolean);
-  FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
+  FEventSet_boolean.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
   FEventTriggerTime := TSFTimeEvent.Create(Self, 'triggerTime', false);
   AddEvent(FEventTriggerTime);

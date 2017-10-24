@@ -15,7 +15,14 @@
 
 {$ifdef read_interface}
 
+  TX3DField = class;
+
   TX3DFieldClass = class of TX3DField;
+
+  { Called when @link(TX3DEvent) is received,
+    see @link(TX3DEvent.AddNotification). }
+  TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
+    const Time: TX3DTime) of object;
 
   { Base class for all VRML/X3D fields.
 
@@ -405,13 +412,13 @@
       to determine what must be done when we know that value of this field changed.
 
       In overridden descendants, this can also do something immediately.
-      Overriding this is similar to registering your callback in OnReceive
-      list, with two benefits:
+      Overriding this is similar to registering your callback by
+      @link(EventOut.AddNotification), with two additional benefits:
 
       @orderedList(
         @item(This method may be not called (although no guarantees)
           when the actual field value did not change.
-          In contrast, the OnReceive event is always fired,
+          In contrast, the event notification is always fired,
           even when you send the same value to an exposed field,
           because VRML/X3D events and routes must be fired anyway.)
 
@@ -420,7 +427,7 @@
       )
 
       So overridding this is closer to "do something when field value changes"
-      than registering callback in OnReceive list. }
+      than registering notification by @link(EventOut.AddNotification). }
     function ExecuteChanges: TX3DChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
@@ -445,9 +452,10 @@
     procedure Send(Value: TX3DField);
 
     { Notifications when exposed field received new value through VRML/X3D event.
-      Only for exposed fields (@nil for not exposed fields).
-      This is simply a shortcut for @code(EventOut.OnReceive),
-      see TX3DEvent.OnReceive for details how does this work.
+      Use only for exposed fields.
+      This is simply a shortcut for @code(EventOut.AddNotification),
+      @code(EventOut.RemoveNotification),
+      see @link(TX3DEvent.AddNotification) for details how does this work.
 
       Note that this observes the "out" event (not the "in" event).
       This way you know inside the handler that the field value is already
@@ -461,7 +469,8 @@
       graph inside the event handler (for example, load something on
       Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways
       cause appropriate action on this change. }
-    function OnReceive: TX3DEventReceiveList;
+    procedure AddNotification(const Notification: TX3DEventReceive);
+    procedure RemoveNotification(const Notification: TX3DEventReceive);
   end;
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
@@ -614,10 +623,10 @@ begin
     if Exposed then
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Add(
+        FExposedEvents[true].AddNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive)
       else
-        FExposedEvents[true].OnReceive.Remove(
+        FExposedEvents[true].RemoveNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
     end;
   end;
@@ -657,12 +666,12 @@ begin
         end;
 
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Add(
+        FExposedEvents[true].AddNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
     end else
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Remove(
+        FExposedEvents[true].RemoveNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
@@ -903,11 +912,16 @@ begin
   Result := X3DType;
 end;
 
-function TX3DField.OnReceive: TX3DEventReceiveList;
+procedure TX3DField.AddNotification(const Notification: TX3DEventReceive);
 begin
-  if FExposedEvents[false] <> nil then
-    Result := FExposedEvents[false].OnReceive else
-    Result := nil;
+  Assert(Exposed, 'Use TX3DField.AddNotification only on Exposed fields');
+  FExposedEvents[false].AddNotification(Notification);
+end;
+
+procedure TX3DField.RemoveNotification(const Notification: TX3DEventReceive);
+begin
+  Assert(Exposed, 'Use TX3DField.RemoveNotification only on Exposed fields');
+  FExposedEvents[false].RemoveNotification(Notification);
 end;
 
 { TX3DFieldList ------------------------------------------------------------- }

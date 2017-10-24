@@ -734,7 +734,7 @@ begin
 
   FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
   AddEvent(FEventSet_height);
-  Eventset_height.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
+  Eventset_height.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
 
   FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
@@ -867,19 +867,19 @@ begin
 
   FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
   AddEvent(FEventSet_crossSection);
-  Eventset_crossSection.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
+  Eventset_crossSection.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
 
   FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
   AddEvent(FEventSet_orientation);
-  Eventset_orientation.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
+  Eventset_orientation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
 
   FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
   AddEvent(FEventSet_scale);
-  Eventset_scale.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
+  Eventset_scale.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
 
   FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
   AddEvent(FEventSet_spine);
-  Eventset_spine.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
+  Eventset_spine.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
 
   FFdBeginCap := TSFBool.Create(Self, false, 'beginCap', true);
    FdBeginCap.ChangesAlways := [chGeometry];
@@ -1308,19 +1308,19 @@ begin
 
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   AddEvent(FEventSet_colorIndex);
-  Eventset_colorIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
+  Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
 
   FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   AddEvent(FEventSet_coordIndex);
-  Eventset_coordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
+  Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
 
   FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
   AddEvent(FEventSet_normalIndex);
-  Eventset_normalIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
+  Eventset_normalIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
 
   FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
   AddEvent(FEventSet_texCoordIndex);
-  Eventset_texCoordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
+  Eventset_texCoordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
 
   FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
