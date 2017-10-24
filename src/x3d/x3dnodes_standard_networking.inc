@@ -257,13 +257,13 @@ procedure TAnchorNode.CreateNode;
 begin
   inherited;
 
-  FFdDescription := TSFString.Create(Self, 'description', '');
+  FFdDescription := TSFString.Create(Self, true, 'description', '');
   AddField(FFdDescription);
 
-  FFdParameter := TMFString.Create(Self, 'parameter', []);
+  FFdParameter := TMFString.Create(Self, true, 'parameter', []);
   AddField(FFdParameter);
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   AddField(FFdUrl);
   { X3D specification comment: [url or urn] }
 
@@ -405,21 +405,21 @@ procedure TInlineNode.CreateNode;
 begin
   inherited;
 
-  FFdLoad := TSFBool.Create(Self, 'load', true);
+  FFdLoad := TSFBool.Create(Self, true, 'load', true);
    FdLoad.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventLoadReceive);
   AddField(FFdLoad);
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
    FdUrl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
   { X3D specification comment: [url or urn] }
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
    FdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
    FdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -690,7 +690,7 @@ begin
 
   if EventChildren.SendNeeded and (Scene <> nil) then
   begin
-    ChildrenToSend := TMFNode.CreateUndefined(Self, EventChildren.X3DName, false);
+    ChildrenToSend := TMFNode.CreateUndefined(Self, false, EventChildren.X3DName);
     try
       ChildrenToSend.Add(FInlined);
       EventChildren.Send(ChildrenToSend, Scene.NextEventTime);
@@ -702,10 +702,10 @@ procedure TLoadSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdTimeOut := TSFTime.Create(Self, 'timeOut', 0);
+  FFdTimeOut := TSFTime.Create(Self, true, 'timeOut', 0);
   AddField(FFdTimeOut);
 
-  FFdWatchList := TMFNode.Create(Self, 'watchList', IAbstractUrlObject);
+  FFdWatchList := TMFNode.Create(Self, true, 'watchList', IAbstractUrlObject);
   AddField(FFdWatchList);
 
   FEventIsLoaded := TSFBoolEvent.Create(Self, 'isLoaded', false);

@@ -125,7 +125,8 @@
       The Create constructor should be just a comfortable extension of
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
-    constructor Create(AParentNode: TX3DFileItem; const AName: string);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
@@ -144,8 +145,8 @@
       TSFBitMask.FlagNames + TSFBitMask.NoneString + TSFBitMask.AllString
       before they can be parsed. I guess that's one of the reasons why these
       field types were entirely removed from VRML 2.0. }
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); virtual;
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); virtual;
 
     destructor Destroy; override;
 
@@ -254,7 +255,7 @@
 
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
-    property Exposed: boolean read FExposed write SetExposed default true;
+    property Exposed: boolean read FExposed write SetExposed default false;
 
     { These are the set_xxx and xxx_changed events exposed by this field.
       @nil if Exposed is @false. }
@@ -489,18 +490,16 @@
 
 { TX3DField ------------------------------------------------------------- }
 
-constructor TX3DField.Create(AParentNode: TX3DFileItem;
-  const AName: string);
+constructor TX3DField.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
-  CreateUndefined(AParentNode, AName,
-    true { default Exposed = true for normal constructor });
+  CreateUndefined(AParentNode, AExposed, AName);
 end;
 
-constructor TX3DField.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
+constructor TX3DField.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
   inherited Create(AParentNode, AName);
-
   FExposedEventsLinked := true;
 
   { Set Exposed by the property, to force FExposedEvents initialization }

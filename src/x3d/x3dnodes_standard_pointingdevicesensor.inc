@@ -296,7 +296,7 @@ procedure TAbstractPointingDeviceSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdDescription := TSFString.Create(Self, 'description', '');
+  FFdDescription := TSFString.Create(Self, true, 'description', '');
   AddField(FFdDescription);
 
   FEventIsOver := TSFBoolEvent.Create(Self, 'isOver', false);
@@ -319,7 +319,7 @@ procedure TAbstractDragSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdAutoOffset := TSFBool.Create(Self, 'autoOffset', true);
+  FFdAutoOffset := TSFBool.Create(Self, true, 'autoOffset', true);
   AddField(FFdAutoOffset);
 
   FEventTrackPoint_changed := TSFVec3fEvent.Create(Self, 'trackPoint_changed', false);
@@ -345,22 +345,22 @@ procedure TCylinderSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdAxisRotation := TSFRotation.Create(Self, 'axisRotation', Vector3(0, 1, 0), 0);
+  FFdAxisRotation := TSFRotation.Create(Self, true, 'axisRotation', Vector3(0, 1, 0), 0);
   AddField(FFdAxisRotation);
 
-  FFdDiskAngle := TSFFloat.Create(Self, 'diskAngle', Pi/12);
+  FFdDiskAngle := TSFFloat.Create(Self, true, 'diskAngle', Pi/12);
   AddField(FFdDiskAngle);
   { X3D specification comment: [0,Pi/2] }
 
-  FFdMaxAngle := TSFFloat.Create(Self, 'maxAngle', -1);
+  FFdMaxAngle := TSFFloat.Create(Self, true, 'maxAngle', -1);
   AddField(FFdMaxAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdMinAngle := TSFFloat.Create(Self, 'minAngle', 0);
+  FFdMinAngle := TSFFloat.Create(Self, true, 'minAngle', 0);
   AddField(FFdMinAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdOffset := TSFFloat.Create(Self, 'offset', 0);
+  FFdOffset := TSFFloat.Create(Self, true, 'offset', 0);
   AddField(FFdOffset);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -484,18 +484,18 @@ procedure TPlaneSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdAxisRotation := TSFRotation.Create(Self, 'axisRotation', Vector3(0, 0, 1), 0);
+  FFdAxisRotation := TSFRotation.Create(Self, true, 'axisRotation', Vector3(0, 0, 1), 0);
   AddField(FFdAxisRotation);
 
-  FFdMaxPosition := TSFVec2f.Create(Self, 'maxPosition', Vector2(-1, -1));
+  FFdMaxPosition := TSFVec2f.Create(Self, true, 'maxPosition', Vector2(-1, -1));
   AddField(FFdMaxPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdMinPosition := TSFVec2f.Create(Self, 'minPosition', Vector2(0, 0));
+  FFdMinPosition := TSFVec2f.Create(Self, true, 'minPosition', Vector2(0, 0));
   AddField(FFdMinPosition);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdOffset := TSFVec3f.Create(Self, 'offset', Vector3(0, 0, 0));
+  FFdOffset := TSFVec3f.Create(Self, true, 'offset', Vector3(0, 0, 0));
   AddField(FFdOffset);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -651,7 +651,7 @@ procedure TSphereSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdOffset := TSFRotation.Create(Self, 'offset', Vector3(0, 1, 0), 0);
+  FFdOffset := TSFRotation.Create(Self, true, 'offset', Vector3(0, 1, 0), 0);
   AddField(FFdOffset);
   { X3D specification comment: [-1,1],(-Inf,Inf) }
 

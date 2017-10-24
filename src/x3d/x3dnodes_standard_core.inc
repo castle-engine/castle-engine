@@ -289,7 +289,7 @@ procedure TAbstractNode.CreateNode;
 begin
   inherited;
 
-  FFdMetadata := TSFNode.Create(Self, 'metadata', IAbstractMetadataNode);
+  FFdMetadata := TSFNode.Create(Self, true, 'metadata', IAbstractMetadataNode);
   AddField(FFdMetadata);
 end;
 
@@ -334,7 +334,7 @@ procedure TAbstractSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
 
   FEventIsActive := TSFBoolEvent.Create(Self, 'isActive', false);
@@ -345,13 +345,13 @@ procedure TMetadataBooleanNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdReference := TSFString.Create(Self, 'reference', '');
+  FFdReference := TSFString.Create(Self, true, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFBool.Create(Self, 'value', []);
+  FFdValue := TMFBool.Create(Self, true, 'value', []);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
@@ -372,13 +372,13 @@ procedure TMetadataDoubleNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdReference := TSFString.Create(Self, 'reference', '');
+  FFdReference := TSFString.Create(Self, true, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFDouble.Create(Self, 'value', []);
+  FFdValue := TMFDouble.Create(Self, true, 'value', []);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
@@ -399,13 +399,13 @@ procedure TMetadataFloatNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdReference := TSFString.Create(Self, 'reference', '');
+  FFdReference := TSFString.Create(Self, true, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFFloat.Create(Self, 'value', []);
+  FFdValue := TMFFloat.Create(Self, true, 'value', []);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
@@ -426,13 +426,13 @@ procedure TMetadataIntegerNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdReference := TSFString.Create(Self, 'reference', '');
+  FFdReference := TSFString.Create(Self, true, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFInt32.Create(Self, 'value', []);
+  FFdValue := TMFInt32.Create(Self, true, 'value', []);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
@@ -453,13 +453,13 @@ procedure TMetadataSetNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdReference := TSFString.Create(Self, 'reference', '');
+  FFdReference := TSFString.Create(Self, true, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFNode.Create(Self, 'value', IAbstractMetadataNode);
+  FFdValue := TMFNode.Create(Self, true, 'value', IAbstractMetadataNode);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
@@ -480,13 +480,13 @@ procedure TMetadataStringNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdReference := TSFString.Create(Self, 'reference', '');
+  FFdReference := TSFString.Create(Self, true, 'reference', '');
   AddField(FFdReference);
 
-  FFdValue := TMFString.Create(Self, 'value', []);
+  FFdValue := TMFString.Create(Self, true, 'value', []);
   AddField(FFdValue);
 
   DefaultContainerField := 'metadata';
@@ -507,11 +507,11 @@ procedure TWorldInfoNode.CreateNode;
 begin
   inherited;
 
-  FFdInfo := TMFString.Create(Self, 'info', []);
+  FFdInfo := TMFString.Create(Self, true, 'info', []);
   FFdInfo.Exposed := false;
   AddField(FFdInfo);
 
-  FFdTitle := TSFString.Create(Self, 'title', '');
+  FFdTitle := TSFString.Create(Self, true, 'title', '');
   FFdTitle.Exposed := false;
   AddField(FFdTitle);
 end;

@@ -28,7 +28,8 @@
   strict protected
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
-    constructor Create(AParentNode: TX3DFileItem; const AName: string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
       const AValue: TTextureUpdate);
     function ExecuteChanges: TX3DChanges; override;
 
@@ -65,13 +66,13 @@
 {$endif read_interface}
 
 {$ifdef read_implementation}
-constructor TSFTextureUpdate.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TTextureUpdate);
+constructor TSFTextureUpdate.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: TTextureUpdate);
 const
   UpdateNames: array [TTextureUpdate] of string =
   ('NONE', 'NEXT_FRAME_ONLY', 'ALWAYS');
 begin
-  inherited Create(AParentNode, AName, UpdateNames, Ord(AValue));
+  inherited Create(AParentNode, AExposed, AName, UpdateNames, Ord(AValue));
 end;
 
 function TSFTextureUpdate.GetValue: TTextureUpdate;

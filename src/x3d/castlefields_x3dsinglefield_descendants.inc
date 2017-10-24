@@ -70,8 +70,8 @@
       Remember that arrays AFlagNames and AFlags
       (AFlags is initial value of Flags) must have equal length.
       Eventually, AFlags may be longer (excessive items will be ignored). }
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AFlagNames: array of string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AFlagNames: array of string;
       const ANoneString, AAllString: string; const AFlags: array of boolean);
 
     destructor Destroy; override;
@@ -93,8 +93,8 @@
     DefaultValue: boolean;
     DefaultValueExists: boolean;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: boolean);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: boolean);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
     function EqualsDefaultValue: boolean; override;
@@ -127,8 +127,8 @@
     DefaultValue: integer;
     DefaultValueExists: boolean;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
       const AEnumNames: array of string; const AValue: integer);
     destructor Destroy; override;
 
@@ -165,10 +165,10 @@
     DefaultValue: Single;
     DefaultValueExists: boolean;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: Single); overload;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: Single;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: Single); overload;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: Single;
       AMustBeNonnegative: boolean); overload;
 
     property Value: Single read FValue write SetValue;
@@ -214,8 +214,8 @@
     DefaultValue: Double;
     DefaultValueExists: boolean;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: Double);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: Double);
 
     property Value: Double read FValue write SetValue;
 
@@ -276,10 +276,10 @@
         our Value field)).
         You can pass AValue = nil, then Value will be initialized to null image
         TRGBImage.Create.) }
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TCastleImage);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TCastleImage);
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); override;
 
     destructor Destroy; override;
 
@@ -306,10 +306,10 @@
     DefaultValue: Longint;
     DefaultValueExists: boolean;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: Longint); overload;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: Longint;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: Longint); overload;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: Longint;
       AMustBeNonnegative: boolean); overload;
 
     property Value: Longint read FValue write SetValue;
@@ -355,8 +355,8 @@
   strict protected
     procedure SaveToStreamValue(Writer: TX3DWriter); override;
   public
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TItem);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TItem);
 
     property Value: TItem read FValue write FValue;
 
@@ -444,11 +444,11 @@
     Axis: TVector3;
     RotationRad: Single;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
       const AnAxis: TVector3; const ARotationRad: Single); overload;
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
       const AValue: TVector4); overload;
 
     { Current rotation value, with last component expressing rotation in radians.
@@ -500,8 +500,8 @@
       read FDefaultValueExists write FDefaultValueExists;
     property Value: string read FValue write SetValue;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: string);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: string);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -542,8 +542,8 @@
     procedure SetDefaultValue(const NewDefaultValue: string); override;
     class function ExposedEventsFieldClass: TX3DFieldClass; override;
   public
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
       const AEnumNames: array of string; const AValue: Integer);
     destructor Destroy; override;
     property EnumValue: Integer
@@ -566,8 +566,8 @@
     DefaultValue: TItem;
     DefaultValueExists: boolean;
 
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string; const AValue: TItem);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string; const AValue: TItem);
 
     procedure ParseValue(Lexer: TX3DLexer; Reader: TX3DReader); override;
 
@@ -655,10 +655,10 @@
 
 { TSFBool -------------------------------------------------------------------- }
 
-constructor TSFBool.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: boolean);
+constructor TSFBool.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: boolean);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -766,7 +766,7 @@ procedure TSFBool.Send(const AValue: Boolean);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFBool.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFBool.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -786,16 +786,16 @@ begin
     FValue := AValue;
 end;
 
-constructor TSFFloat.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: Single);
+constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Single);
 begin
-  Create(AParentNode, AName, AValue, false);
+  Create(AParentNode, false, AName, AValue, false);
 end;
 
-constructor TSFFloat.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
+constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
   Value := AValue; { Set property, zeby SetValue moglo ew. zmienic Value }
@@ -882,7 +882,7 @@ procedure TSFFloat.Send(const AValue: Single);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFFloat.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFFloat.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -895,10 +895,10 @@ end;
 
 { TSFDouble -------------------------------------------------------------------- }
 
-constructor TSFDouble.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: Double);
+constructor TSFDouble.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Double);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -987,7 +987,7 @@ procedure TSFDouble.Send(const AValue: Double);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFDouble.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFDouble.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -1014,7 +1014,7 @@ procedure TSFTime.Send(const AValue: Double);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFTime.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFTime.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -1022,18 +1022,18 @@ end;
 
 { TSFImage ------------------------------------------------------------------- }
 
-constructor TSFImage.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TCastleImage);
+constructor TSFImage.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: TCastleImage);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   if AValue <> nil then
     { use SetValue setter, to free previous value if needed }
     Value := AValue;
 end;
 
-constructor TSFImage.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
+constructor TSFImage.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
   inherited;
 
@@ -1220,16 +1220,16 @@ begin
     FValue := AValue;
 end;
 
-constructor TSFLong.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: Longint);
+constructor TSFLong.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Longint);
 begin
-  Create(AParentNode, AName, AValue, false);
+  Create(AParentNode, false, AName, AValue, false);
 end;
 
-constructor TSFLong.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
+constructor TSFLong.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
   Value := AValue; { Set using property, zeby SetValue moglo ew. zmienic Value }
@@ -1320,7 +1320,7 @@ procedure TSFLong.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFLong.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFLong.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -1342,7 +1342,7 @@ procedure TSFInt32.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFInt32.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFInt32.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -1355,10 +1355,10 @@ end;
 
 { TSFGenericMatrix ---------------------------------------------------------------------------- }
 
-constructor TSFGenericMatrix.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TItem);
+constructor TSFGenericMatrix.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: TItem);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
   FValue := AValue;
   AssignDefaultValueFromValue;
 end;
@@ -1471,7 +1471,7 @@ var
   FieldValue: TSFGenericMatrix;
 begin
   FieldValue := TSFGenericMatrix(
-    TX3DFieldClass(ClassType).CreateUndefined(ParentNode, X3DName, true));
+    TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
   try
     FieldValue.Value := AValue;
     Send(FieldValue);
@@ -1527,11 +1527,11 @@ end;
 
 { TSFRotation ---------------------------------------------------------------- }
 
-constructor TSFRotation.Create(AParentNode: TX3DFileItem;
-  const AName: string;
+constructor TSFRotation.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string;
   const AnAxis: TVector3; const ARotationRad: Single);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   Axis := AnAxis;
   RotationRad := ARotationRad;
@@ -1539,13 +1539,13 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-constructor TSFRotation.Create(AParentNode: TX3DFileItem;
-  const AName: string;
+constructor TSFRotation.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string;
   const AValue: TVector4);
 var
   AnAxis: TVector3 absolute AValue;
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   Axis := AnAxis;
   RotationRad := AValue[3];
@@ -1678,7 +1678,7 @@ procedure TSFRotation.Send(const AValue: TVector4);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFRotation.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFRotation.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -1691,10 +1691,10 @@ end;
 
 { TSFString ------------------------------------------------------------------ }
 
-constructor TSFString.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: string);
+constructor TSFString.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: string);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -1794,7 +1794,7 @@ procedure TSFString.Send(const AValue: string);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFString.Create(ParentNode, X3DName, AValue);
+  FieldValue := TSFString.Create(ParentNode, false, X3DName, AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;
@@ -1822,13 +1822,13 @@ end;
 
 { TSFStringEnum -------------------------------------------------------------- }
 
-constructor TSFStringEnum.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AEnumNames: array of string; const AValue: integer);
+constructor TSFStringEnum.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
 begin
   FEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, FEnumNames);
 
-  inherited Create(AParentNode, AName, FEnumNames[AValue]);
+  inherited Create(AParentNode, false, AName, FEnumNames[AValue]);
   { inherited Create will assign Value, and in SetValue should cause setting
     our FEnumValue }
   Assert(AValue = FEnumValue);
@@ -1895,10 +1895,10 @@ end;
 
 { TSFGenericVector ----------------------------------------------------------- }
 
-constructor TSFGenericVector.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AValue: TItem);
+constructor TSFGenericVector.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AValue: TItem);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   Value := AValue;
   AssignDefaultValueFromValue;
@@ -1993,7 +1993,7 @@ var
   FieldValue: TSFGenericVector;
 begin
   FieldValue := TSFGenericVector(
-    TX3DFieldClass(ClassType).CreateUndefined(ParentNode, X3DName, true));
+    TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
   try
     FieldValue.Value := AValue;
     Send(FieldValue);
@@ -2077,13 +2077,13 @@ end;
 
 { TSFBitMask ------------------------------------------------------------ }
 
-constructor TSFBitMask.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AFlagNames: array of string;
+constructor TSFBitMask.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AFlagNames: array of string;
   const ANoneString, AAllString: string; const AFlags: array of boolean);
 var
   i: integer;
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   fFlagNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AFlagNames, fFlagNames);
@@ -2235,10 +2235,10 @@ end;
 
 { TSFEnum ----------------------------------------------------------------- }
 
-constructor TSFEnum.Create(AParentNode: TX3DFileItem;
-  const AName: string; const AEnumNames: array of string; const AValue: integer);
+constructor TSFEnum.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string; const AEnumNames: array of string; const AValue: integer);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   FEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, FEnumNames);
@@ -2332,7 +2332,7 @@ procedure TSFEnum.Send(const AValue: LongInt);
 var
   FieldValue: TX3DField;
 begin
-  FieldValue := TSFEnum.Create(ParentNode, X3DName, [], AValue);
+  FieldValue := TSFEnum.Create(ParentNode, false, X3DName, [], AValue);
   try
     Send(FieldValue);
   finally FreeAndNil(FieldValue) end;

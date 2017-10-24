@@ -300,17 +300,17 @@ procedure THAnimDisplacerNode.CreateNode;
 begin
   inherited;
 
-  FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
+  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', []);
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdDisplacements := TMFVec3f.Create(Self, 'displacements', []);
+  FFdDisplacements := TMFVec3f.Create(Self, true, 'displacements', []);
   AddField(FFdDisplacements);
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdWeight := TSFFloat.Create(Self, 'weight', 0.0);
+  FFdWeight := TSFFloat.Create(Self, true, 'weight', 0.0);
   AddField(FFdWeight);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -341,42 +341,42 @@ procedure THAnimHumanoidNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdInfo := TMFString.Create(Self, 'info', []);
+  FFdInfo := TMFString.Create(Self, true, 'info', []);
   AddField(FFdInfo);
 
-  FFdJoints := TMFNode.Create(Self, 'joints', [THAnimJointNode]);
+  FFdJoints := TMFNode.Create(Self, true, 'joints', [THAnimJointNode]);
   AddField(FFdJoints);
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdSegments := TMFNode.Create(Self, 'segments', [THAnimSegmentNode]);
+  FFdSegments := TMFNode.Create(Self, true, 'segments', [THAnimSegmentNode]);
   AddField(FFdSegments);
 
-  FFdSites := TMFNode.Create(Self, 'sites', [THAnimSiteNode]);
+  FFdSites := TMFNode.Create(Self, true, 'sites', [THAnimSiteNode]);
   AddField(FFdSites);
 
-  FFdSkeleton := TMFNode.Create(Self, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
+  FFdSkeleton := TMFNode.Create(Self, true, 'skeleton', [THAnimJointNode, THAnimSiteNode]);
   AddField(FFdSkeleton);
 
   { HAnim 1.1 specificaion uses "humanoidBody" instead of "skeleton",
@@ -384,24 +384,24 @@ begin
     HAnim 200x specs talks only about "skeleton"). }
   Fdskeleton.AddAlternativeName('humanoidBody', 0);
 
-  FFdSkin := TMFNode.Create(Self, 'skin', [TAbstractChildNode]);
+  FFdSkin := TMFNode.Create(Self, true, 'skin', [TAbstractChildNode]);
   AddField(FFdSkin);
 
-  FFdSkinCoord := TSFNode.Create(Self, 'skinCoord', [TAbstractCoordinateNode]);
+  FFdSkinCoord := TSFNode.Create(Self, true, 'skinCoord', [TAbstractCoordinateNode]);
   AddField(FFdSkinCoord);
 
-  FFdSkinNormal := TSFNode.Create(Self, 'skinNormal', [TAbstractNormalNode]);
+  FFdSkinNormal := TSFNode.Create(Self, true, 'skinNormal', [TAbstractNormalNode]);
   AddField(FFdSkinNormal);
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdVersion := TSFString.Create(Self, 'version', '');
+  FFdVersion := TSFString.Create(Self, true, 'version', '');
   AddField(FFdVersion);
 
-  FFdViewpoints := TMFNode.Create(Self, 'viewpoints', [
+  FFdViewpoints := TMFNode.Create(Self, true, 'viewpoints', [
     { X3D specificaion indicates that THAnimSiteNode is allowed here,
       but textual description in HAnim specification indicates that
       it's an error: viewpoints should be allowed here.
@@ -414,12 +414,12 @@ begin
     TAbstractX3DViewpointNode, TViewpointGroupNode ]);
   AddField(FFdViewpoints);
 
-  FFdBboxCenter := TSFVec3f.Create(Self, 'bboxCenter', Vector3(0, 0, 0));
+  FFdBboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', Vector3(0, 0, 0));
   FFdBboxCenter.Exposed := false;
   AddField(FFdBboxCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdBboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
+  FFdBboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
   FFdBboxSize.Exposed := false;
   AddField(FFdBboxSize);
   { X3D specification comment: [0,Inf) or -1 -1 -1 }
@@ -598,56 +598,56 @@ procedure THAnimJointNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdDisplacers := TMFNode.Create(Self, 'displacers', [THAnimDisplacerNode]);
+  FFdDisplacers := TMFNode.Create(Self, true, 'displacers', [THAnimDisplacerNode]);
   AddField(FFdDisplacers);
 
-  FFdLimitOrientation := TSFRotation.Create(Self, 'limitOrientation', Vector3(0, 0, 1), 0);
+  FFdLimitOrientation := TSFRotation.Create(Self, true, 'limitOrientation', Vector3(0, 0, 1), 0);
   AddField(FFdLimitOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdLlimit := TMFFloat.Create(Self, 'llimit', []);
+  FFdLlimit := TMFFloat.Create(Self, true, 'llimit', []);
   AddField(FFdLlimit);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdSkinCoordIndex := TMFInt32.Create(Self, 'skinCoordIndex', []);
+  FFdSkinCoordIndex := TMFInt32.Create(Self, true, 'skinCoordIndex', []);
   AddField(FFdSkinCoordIndex);
 
-  FFdSkinCoordWeight := TMFFloat.Create(Self, 'skinCoordWeight', []);
+  FFdSkinCoordWeight := TMFFloat.Create(Self, true, 'skinCoordWeight', []);
   AddField(FFdSkinCoordWeight);
 
-  FFdStiffness := TMFFloat.Create(Self, 'stiffness', [0, 0, 0]);
+  FFdStiffness := TMFFloat.Create(Self, true, 'stiffness', [0, 0, 0]);
   AddField(FFdStiffness);
   { X3D specification comment: [0,1] }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdUlimit := TMFFloat.Create(Self, 'ulimit', []);
+  FFdUlimit := TMFFloat.Create(Self, true, 'ulimit', []);
   AddField(FFdUlimit);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -737,7 +737,7 @@ begin
 
         if ChildJoint.FdCenter.Exposed then
         begin
-          TempToSend := TSFVec3f.Create(ChildJoint, 'center', NewChildCenter);
+          TempToSend := TSFVec3f.Create(ChildJoint, false, 'center', NewChildCenter);
           try
             ChildJoint.FdCenter.EventOut.Send(TempToSend);
           finally FreeAndNil(TempToSend) end;
@@ -764,38 +764,38 @@ procedure THAnimSegmentNode.CreateNode;
 begin
   inherited;
 
-  FFdCenterOfMass := TSFVec3f.Create(Self, 'centerOfMass', Vector3(0, 0, 0));
+  FFdCenterOfMass := TSFVec3f.Create(Self, true, 'centerOfMass', Vector3(0, 0, 0));
   AddField(FFdCenterOfMass);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
   AddField(FFdCoord);
 
-  FFdDisplacers := TMFNode.Create(Self, 'displacers', [THAnimDisplacerNode]);
+  FFdDisplacers := TMFNode.Create(Self, true, 'displacers', [THAnimDisplacerNode]);
   AddField(FFdDisplacers);
 
-  FFdMass := TSFFloat.Create(Self, 'mass', 0);
+  FFdMass := TSFFloat.Create(Self, true, 'mass', 0);
   AddField(FFdMass);
   { X3D specification comment: [0,Inf) }
 
-  FFdMomentsOfInertia := TMFFloat.Create(Self, 'momentsOfInertia', [0, 0, 0, 0, 0, 0, 0, 0, 0]);
+  FFdMomentsOfInertia := TMFFloat.Create(Self, true, 'momentsOfInertia', [0, 0, 0, 0, 0, 0, 0, 0, 0]);
   AddField(FFdMomentsOfInertia);
   { X3D specification comment: [0,Inf) }
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (-Inf, Inf) }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf) }
@@ -836,30 +836,30 @@ procedure THAnimSiteNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chTransform];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdName := TSFString.Create(Self, 'name', '');
+  FFdName := TSFString.Create(Self, true, 'name', '');
   AddField(FFdName);
 
-  FFdRotation := TSFRotation.Create(Self, 'rotation', Vector3(0, 0, 1), 0);
+  FFdRotation := TSFRotation.Create(Self, true, 'rotation', Vector3(0, 0, 1), 0);
    FdRotation.ChangesAlways := [chTransform];
   AddField(FFdRotation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdScale := TSFVec3f.Create(Self, 'scale', Vector3(1, 1, 1));
+  FFdScale := TSFVec3f.Create(Self, true, 'scale', Vector3(1, 1, 1));
    FdScale.ChangesAlways := [chTransform];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdScaleOrientation := TSFRotation.Create(Self, 'scaleOrientation', Vector3(0, 0, 1), 0);
+  FFdScaleOrientation := TSFRotation.Create(Self, true, 'scaleOrientation', Vector3(0, 0, 1), 0);
    FdScaleOrientation.ChangesAlways := [chTransform];
   AddField(FFdScaleOrientation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }
 
-  FFdTranslation := TSFVec3f.Create(Self, 'translation', Vector3(0, 0, 0));
+  FFdTranslation := TSFVec3f.Create(Self, true, 'translation', Vector3(0, 0, 0));
    FdTranslation.ChangesAlways := [chTransform];
   AddField(FFdTranslation);
   { X3D specification comment: (-Inf,Inf)|[-1,1] }

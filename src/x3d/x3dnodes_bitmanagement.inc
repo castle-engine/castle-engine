@@ -142,16 +142,16 @@ procedure TLayer2DNode.CreateNode;
 begin
   inherited;
 
-  FFdTranslation := TSFVec2f.Create(Self, 'translation', TVector2.Zero);
+  FFdTranslation := TSFVec2f.Create(Self, true, 'translation', TVector2.Zero);
   AddField(FFdTranslation);
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(-1, -1));
+  FFdSize := TSFVec2f.Create(Self, true, 'size', Vector2(-1, -1));
   AddField(FFdSize);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, true, 'background', [TAbstractBackgroundNode]);
   AddField(FFdBackground);
 
-  FFdViewport := TSFNode.Create(Self, 'viewport', [TAbstractViewportNode]);
+  FFdViewport := TSFNode.Create(Self, true, 'viewport', [TAbstractViewportNode]);
   AddField(FFdViewport);
 end;
 
@@ -176,28 +176,28 @@ begin
   FEventRemoveChildrenLayer := TMFNodeEvent.Create(Self, 'removeChildrenLayer', true);
   AddEvent(FEventRemoveChildrenLayer);
 
-  FFdChildrenLayer := TMFNode.Create(Self, 'childrenLayer', [TLayer3DNode]);
+  FFdChildrenLayer := TMFNode.Create(Self, true, 'childrenLayer', [TLayer3DNode]);
   AddField(FFdChildrenLayer);
 
-  FFdTranslation := TSFVec2f.Create(Self, 'translation', TVector2.Zero);
+  FFdTranslation := TSFVec2f.Create(Self, true, 'translation', TVector2.Zero);
   AddField(FFdTranslation);
 
-  FFdDepth := TSFInt32.Create(Self, 'depth', 0);
+  FFdDepth := TSFInt32.Create(Self, true, 'depth', 0);
   AddField(FFdDepth);
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(-1, -1));
+  FFdSize := TSFVec2f.Create(Self, true, 'size', Vector2(-1, -1));
   AddField(FFdSize);
 
-  FFdBackground := TSFNode.Create(Self, 'background', [TAbstractBackgroundNode]);
+  FFdBackground := TSFNode.Create(Self, true, 'background', [TAbstractBackgroundNode]);
   AddField(FFdBackground);
 
-  FFdFog := TSFNode.Create(Self, 'fog', [TFogNode]);
+  FFdFog := TSFNode.Create(Self, true, 'fog', [TFogNode]);
   AddField(FFdFog);
 
-  FFdNavigationInfo := TSFNode.Create(Self, 'navigationInfo', [TNavigationInfoNode]);
+  FFdNavigationInfo := TSFNode.Create(Self, true, 'navigationInfo', [TNavigationInfoNode]);
   AddField(FFdNavigationInfo);
 
-  FFdViewpoint := TSFNode.Create(Self, 'viewpoint', [TAbstractViewpointNode]);
+  FFdViewpoint := TSFNode.Create(Self, true, 'viewpoint', [TAbstractViewpointNode]);
   AddField(FFdViewpoint);
 end;
 
@@ -216,7 +216,7 @@ procedure TMouseSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdEventsProcessed := TSFBool.Create(Self, 'eventsProcessed', true);
+  FFdEventsProcessed := TSFBool.Create(Self, true, 'eventsProcessed', true);
   AddField(FFdEventsProcessed);
 
   FEventClient := TSFVec2fEvent.Create(Self, 'client', false);

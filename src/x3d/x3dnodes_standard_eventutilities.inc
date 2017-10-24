@@ -265,11 +265,11 @@ begin
   AddEvent(FEventSet_fraction);
   EventSet_Fraction.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 
-  FFdKey := TMFFloat.Create(Self, 'key', []);
+  FFdKey := TMFFloat.Create(Self, true, 'key', []);
   AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdForceContinousValue_Changed := TSFBool.Create(Self, 'forceContinousValue_changed', false);
+  FFdForceContinousValue_Changed := TSFBool.Create(Self, true, 'forceContinousValue_changed', false);
   AddField(FFdForceContinousValue_Changed);
 
   DefaultContainerField := 'children';
@@ -425,7 +425,7 @@ procedure TBooleanSequencerNode.CreateNode;
 begin
   inherited;
 
-  FFdKeyValue := TMFBool.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFBool.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
 
   FEventValue_changed := TSFBoolEvent.Create(Self, 'value_changed', false);
@@ -462,7 +462,7 @@ begin
   AddEvent(FEventSet_boolean);
   FEventSet_boolean.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BooleanReceive);
 
-  FFdToggle := TSFBool.Create(Self, 'toggle', false);
+  FFdToggle := TSFBool.Create(Self, true, 'toggle', false);
   AddField(FFdToggle);
 
   DefaultContainerField := 'children';
@@ -524,7 +524,7 @@ procedure TIntegerSequencerNode.CreateNode;
 begin
   inherited;
 
-  FFdKeyValue := TMFInt32.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFInt32.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -564,7 +564,7 @@ begin
 
   { X3D specification mistakenly omitted default value for this field...
     I guess it's 0? }
-  FFdIntegerKey := TSFInt32.Create(Self, 'integerKey', 0);
+  FFdIntegerKey := TSFInt32.Create(Self, true, 'integerKey', 0);
   AddField(FFdIntegerKey);
   { X3D specification comment: (-Inf,Inf) }
 

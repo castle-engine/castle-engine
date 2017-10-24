@@ -156,33 +156,33 @@ begin
   { TODO: changes to nodes inside will not be properly caught,
     they should result in chTextureRendererProperties on us. }
 
-  FFdBack := TSFNode.Create(Self, 'back', [TAbstractX3DTexture2DNode]);
+  FFdBack := TSFNode.Create(Self, true, 'back', [TAbstractX3DTexture2DNode]);
    FdBack.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdBack);
 
-  FFdBottom := TSFNode.Create(Self, 'bottom', [TAbstractX3DTexture2DNode]);
+  FFdBottom := TSFNode.Create(Self, true, 'bottom', [TAbstractX3DTexture2DNode]);
    FdBottom.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdBottom);
 
-  FFdFront := TSFNode.Create(Self, 'front', [TAbstractX3DTexture2DNode]);
+  FFdFront := TSFNode.Create(Self, true, 'front', [TAbstractX3DTexture2DNode]);
    FdFront.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdFront);
 
-  FFdLeft := TSFNode.Create(Self, 'left', [TAbstractX3DTexture2DNode]);
+  FFdLeft := TSFNode.Create(Self, true, 'left', [TAbstractX3DTexture2DNode]);
    FdLeft.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdLeft);
 
-  FFdRight := TSFNode.Create(Self, 'right', [TAbstractX3DTexture2DNode]);
+  FFdRight := TSFNode.Create(Self, true, 'right', [TAbstractX3DTexture2DNode]);
    FdRight.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdRight);
 
-  FFdTop := TSFNode.Create(Self, 'top', [TAbstractX3DTexture2DNode]);
+  FFdTop := TSFNode.Create(Self, true, 'top', [TAbstractX3DTexture2DNode]);
    FdTop.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTop);
 
   { X3D spec 3.2 doesn't specify this, but it's natural,
     instantreality also uses this. }
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
+  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
@@ -246,22 +246,22 @@ procedure TGeneratedCubeMapTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
+  FFdUpdate := TSFTextureUpdate.Create(Self, true, 'update', upNone);
   AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdSize := TSFInt32.Create(Self, 'size', 128, { MustBeNonnegative } true);
+  FFdSize := TSFInt32.Create(Self, true, 'size', 128, { MustBeNonnegative } true);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
+  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);
 
-  FFdBias := TSFVec3f.Create(Self, 'bias', TVector3.Zero);
+  FFdBias := TSFVec3f.Create(Self, true, 'bias', TVector3.Zero);
   AddField(FFdBias);
 
   FGeneratedTextureHandler := TGeneratedTextureHandler.Create;
@@ -299,7 +299,7 @@ procedure TImageCubeMapTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   { The image loaded by LoadImage method isn't saved here.
     So we don't need chTextureImage in case of change,
     instead just let renderer load the texture again. }
@@ -307,7 +307,7 @@ begin
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdTextureProperties := TSFNode.Create(Self, 'textureProperties', [TTexturePropertiesNode]);
+  FFdTextureProperties := TSFNode.Create(Self, true, 'textureProperties', [TTexturePropertiesNode]);
    FdTextureProperties.Exposed := false;
    FdTextureProperties.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdTextureProperties);

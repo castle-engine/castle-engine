@@ -210,56 +210,56 @@ procedure TFontStyleNode.CreateNode;
 begin
   inherited;
 
-  FFdFamily := TMFString.Create(Self, 'family', ['SERIF']);
+  FFdFamily := TMFString.Create(Self, true, 'family', ['SERIF']);
    FdFamily.Exposed := false;
    FdFamily.ChangesAlways := [chFontStyle];
   AddField(FFdFamily);
 
-  FFdHorizontal := TSFBool.Create(Self, 'horizontal', true);
+  FFdHorizontal := TSFBool.Create(Self, true, 'horizontal', true);
    FdHorizontal.Exposed := false;
    FdHorizontal.ChangesAlways := [chFontStyle];
   AddField(FFdHorizontal);
 
-  FFdJustify := TMFString.Create(Self, 'justify', ['BEGIN']);
+  FFdJustify := TMFString.Create(Self, true, 'justify', ['BEGIN']);
    FdJustify.Exposed := false;
    FdJustify.ChangesAlways := [chFontStyle];
   AddField(FFdJustify);
   { X3D specification comment: ["BEGIN","END","FIRST","MIDDLE",""] }
 
-  FFdLanguage := TSFString.Create(Self, 'language', '');
+  FFdLanguage := TSFString.Create(Self, true, 'language', '');
    FdLanguage.Exposed := false;
    FdLanguage.ChangesAlways := [chFontStyle];
   AddField(FFdLanguage);
 
-  FFdLeftToRight := TSFBool.Create(Self, 'leftToRight', true);
+  FFdLeftToRight := TSFBool.Create(Self, true, 'leftToRight', true);
    FdLeftToRight.Exposed := false;
    FdLeftToRight.ChangesAlways := [chFontStyle];
   AddField(FFdLeftToRight);
 
-  FFdSize := TSFFloat.Create(Self, 'size', DefaultSize);
+  FFdSize := TSFFloat.Create(Self, true, 'size', DefaultSize);
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chFontStyle];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdSpacing := TSFFloat.Create(Self, 'spacing', DefaultSpacing);
+  FFdSpacing := TSFFloat.Create(Self, true, 'spacing', DefaultSpacing);
    FdSpacing.Exposed := false;
    FdSpacing.ChangesAlways := [chFontStyle];
   AddField(FFdSpacing);
   { X3D specification comment: [0,Inf) }
 
-  FFdStyle := TSFString.Create(Self, 'style', 'PLAIN');
+  FFdStyle := TSFString.Create(Self, true, 'style', 'PLAIN');
    FdStyle.Exposed := false;
    FdStyle.ChangesAlways := [chFontStyle];
   AddField(FFdStyle);
   { X3D specification comment: ["PLAIN"|"BOLD"|"ITALIC"|"BOLDITALIC"|""] }
 
-  FFdTopToBottom := TSFBool.Create(Self, 'topToBottom', true);
+  FFdTopToBottom := TSFBool.Create(Self, true, 'topToBottom', true);
    FdTopToBottom.Exposed := false;
    FdTopToBottom.ChangesAlways := [chFontStyle];
   AddField(FFdTopToBottom);
 
-  FFdBlending := TSFBool.Create(Self, 'blending', DefaultBlending);
+  FFdBlending := TSFBool.Create(Self, true, 'blending', DefaultBlending);
    FdBlending.Exposed := false;
    FdBlending.ChangesAlways := [chFontStyle];
   AddField(FFdBlending);
@@ -481,21 +481,21 @@ procedure TTextNode.CreateNode;
 begin
   inherited;
 
-  FFdFontStyle := TSFNode.Create(Self, 'fontStyle', [TAbstractFontStyleNode]);
+  FFdFontStyle := TSFNode.Create(Self, true, 'fontStyle', [TAbstractFontStyleNode]);
    FdFontStyle.ChangesAlways := [chGeometry];
   AddField(FFdFontStyle);
 
-  FFdLength := TMFFloat.Create(Self, 'length', []);
+  FFdLength := TMFFloat.Create(Self, true, 'length', []);
    FdLength.ChangesAlways := [chGeometry];
   AddField(FFdLength);
   { X3D specification comment: [0,Inf) }
 
-  FFdMaxExtent := TSFFloat.Create(Self, 'maxExtent', 0.0);
+  FFdMaxExtent := TSFFloat.Create(Self, true, 'maxExtent', 0.0);
    FdMaxExtent.ChangesAlways := [chGeometry];
   AddField(FFdMaxExtent);
   { X3D specification comment: [0,Inf) }
 
-  FFdString := TMFString.Create(Self, 'string', []);
+  FFdString := TMFString.Create(Self, true, 'string', []);
    FdString.ChangesAlways := [chGeometry];
   AddField(FFdString);
 
@@ -508,12 +508,12 @@ begin
   FEventTextBounds := TSFVec2fEvent.Create(Self, 'textBounds', false);
   AddEvent(FEventTextBounds);
 
-  FFdSolid := TSFBool.Create(Self, 'solid', false);
+  FFdSolid := TSFBool.Create(Self, true, 'solid', false);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 end;
@@ -655,7 +655,7 @@ var
 
       if EventLineBounds.SendNeeded then
       begin
-        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, EventLineBounds.X3DName, false);
+        LineBounds := TMFVec2f.CreateUndefined(OriginalNode, false, EventLineBounds.X3DName);
         try
           LineBounds.Items.Count := TextWidths.Count;
 

@@ -1001,7 +1001,7 @@ end;
 constructor TX3DExternalPrototype.Create;
 begin
   inherited;
-  FURLList := TMFString.Create(nil, '', []);
+  FURLList := TMFString.Create(nil, false, '', []);
 end;
 
 destructor TX3DExternalPrototype.Destroy;

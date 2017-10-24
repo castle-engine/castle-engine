@@ -95,7 +95,7 @@ procedure TAbstractScriptNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   AddField(FFdUrl);
   Fdurl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   { X3D specification comment: [URI] }
@@ -349,11 +349,11 @@ procedure TScriptNode.CreateNode;
 begin
   inherited;
 
-  FFdDirectOutput := TSFBool.Create(Self, 'directOutput', false);
+  FFdDirectOutput := TSFBool.Create(Self, true, 'directOutput', false);
   FFdDirectOutput.Exposed := false;
   AddField(FFdDirectOutput);
 
-  FFdMustEvaluate := TSFBool.Create(Self, 'mustEvaluate', false);
+  FFdMustEvaluate := TSFBool.Create(Self, true, 'mustEvaluate', false);
   FFdMustEvaluate.Exposed := false;
   AddField(FFdMustEvaluate);
 

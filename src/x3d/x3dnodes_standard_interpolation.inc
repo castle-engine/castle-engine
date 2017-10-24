@@ -368,7 +368,7 @@ begin
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventSet_fraction);
 
-  FFdKey := TMFFloat.Create(Self, 'key', []);
+  FFdKey := TMFFloat.Create(Self, true, 'key', []);
   AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -437,7 +437,7 @@ procedure TAbstractSingleInterpolatorNode {$ifndef CASTLE_OBJFPC} <
 begin
   inherited;
 
-  FFdKeyValue := TKeyValue.Create(Self, 'keyValue', []);
+  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
 
   FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
@@ -480,7 +480,7 @@ begin
   // This is not required, ParentNode could be @nil and everything
   // will work Ok, but setting ParentNode allows InstantReality Logger node
   // to display "sending node" information, useful for debugging.
-  Result := TKeyValue.CreateUndefined(Self, '', false);
+  Result := TKeyValue.CreateUndefined(Self, false, '');
 
   if (Index + 1) * FrameValues <= FdKeyValue.Items.Count then
   begin
@@ -501,7 +501,7 @@ begin
   // Index2 > Index1
 
   FrameValues := FdKeyValue.Items.Count div KeyCount;
-  Result := TKeyValue.CreateUndefined(Self, '', false);
+  Result := TKeyValue.CreateUndefined(Self, false, '');
 
   if (Index2 + 1) * FrameValues <= FdKeyValue.Items.Count then
   begin
@@ -559,7 +559,7 @@ procedure TAbstractArrayInterpolatorNode {$ifndef CASTLE_OBJFPC} <
 begin
   inherited;
 
-  FFdKeyValue := TKeyValue.Create(Self, 'keyValue', []);
+  FFdKeyValue := TKeyValue.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
 
   FEventValue_changed := TKeyValueEvent.Create(Self, 'value_changed', false);
@@ -655,11 +655,11 @@ begin
   FEventSet_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventSet_fraction);
 
-  FFdEaseInEaseOut := TMFVec2f.Create(Self, 'easeInEaseOut', []);
+  FFdEaseInEaseOut := TMFVec2f.Create(Self, true, 'easeInEaseOut', []);
   AddField(FFdEaseInEaseOut);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdKey := TMFFloat.Create(Self, 'key', []);
+  FFdKey := TMFFloat.Create(Self, true, 'key', []);
   AddField(FFdKey);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -779,18 +779,18 @@ procedure TSplinePositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FFdClosed := TSFBool.Create(Self, 'closed', false);
+  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
   AddField(FFdClosed);
 
-  FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFVec3f.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdKeyVelocity := TMFVec3f.Create(Self, 'keyVelocity', []);
+  FFdKeyVelocity := TMFVec3f.Create(Self, true, 'keyVelocity', []);
   AddField(FFdKeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
+  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
   AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
@@ -814,18 +814,18 @@ procedure TSplinePositionInterpolator2DNode.CreateNode;
 begin
   inherited;
 
-  FFdClosed := TSFBool.Create(Self, 'closed', false);
+  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
   AddField(FFdClosed);
 
-  FFdKeyValue := TMFVec2f.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFVec2f.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdKeyVelocity := TMFVec2f.Create(Self, 'keyVelocity', []);
+  FFdKeyVelocity := TMFVec2f.Create(Self, true, 'keyVelocity', []);
   AddField(FFdKeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
+  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
   AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
@@ -849,18 +849,18 @@ procedure TSplineScalarInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FFdClosed := TSFBool.Create(Self, 'closed', false);
+  FFdClosed := TSFBool.Create(Self, true, 'closed', false);
   AddField(FFdClosed);
 
-  FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFFloat.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdKeyVelocity := TMFFloat.Create(Self, 'keyVelocity', []);
+  FFdKeyVelocity := TMFFloat.Create(Self, true, 'keyVelocity', []);
   AddField(FFdKeyVelocity);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
+  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
   AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
@@ -884,11 +884,11 @@ procedure TSquadOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FFdKeyValue := TMFRotation.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFRotation.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNormalizeVelocity := TSFBool.Create(Self, 'normalizeVelocity', false);
+  FFdNormalizeVelocity := TSFBool.Create(Self, true, 'normalizeVelocity', false);
   AddField(FFdNormalizeVelocity);
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);

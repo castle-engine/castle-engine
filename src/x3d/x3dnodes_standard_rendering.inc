@@ -1209,51 +1209,51 @@ procedure TAbstractComposedGeometryNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
+  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   AddField(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
+  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractNormalNode]);
+  FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   AddField(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdCcw := TSFBool.Create(Self, 'ccw', true);
+  FFdCcw := TSFBool.Create(Self, true, 'ccw', true);
    FdCcw.Exposed := false;
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
+  FFdColorPerVertex := TSFBool.Create(Self, true, 'colorPerVertex', true);
    FdColorPerVertex.Exposed := false;
    FdColorPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdColorPerVertex);
 
-  FFdNormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
+  FFdNormalPerVertex := TSFBool.Create(Self, true, 'normalPerVertex', true);
    FdNormalPerVertex.Exposed := false;
    FdNormalPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdNormalPerVertex);
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
+  FFdSolid := TSFBool.Create(Self, true, 'solid', true);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdRadianceTransfer := TMFVec3f.Create(Self, 'radianceTransfer', []);
+  FFdRadianceTransfer := TMFVec3f.Create(Self, true, 'radianceTransfer', []);
    FdRadianceTransfer.ChangesAlways := [chGeometry];
   AddField(FFdRadianceTransfer);
 end;
@@ -1336,11 +1336,11 @@ procedure TClipPlaneNode.CreateNode;
 begin
   inherited;
 
-  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
    FdEnabled.ChangesAlways := [chClipPlane];
   AddField(FFdEnabled);
 
-  FFdPlane := TSFVec4f.Create(Self, 'plane', Vector4(0, 1, 0, 0));
+  FFdPlane := TSFVec4f.Create(Self, true, 'plane', Vector4(0, 1, 0, 0));
    FdPlane.ChangesAlways := [chClipPlane];
   AddField(FFdPlane);
   { X3D specification comment: [0,1] }
@@ -1366,7 +1366,7 @@ procedure TColorNode.CreateNode;
 begin
   inherited;
 
-  FFdColor := TMFColor.Create(Self, 'color', []);
+  FFdColor := TMFColor.Create(Self, true, 'color', []);
    FdColor.ChangesAlways := [chColorNode];
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
@@ -1388,7 +1388,7 @@ procedure TColorRGBANode.CreateNode;
 begin
   inherited;
 
-  FFdColor := TMFColorRGBA.Create(Self, 'color', []);
+  FFdColor := TMFColorRGBA.Create(Self, true, 'color', []);
    FdColor.ChangesAlways := [chColorNode];
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
@@ -1409,7 +1409,7 @@ procedure TCoordinateNode.CreateNode;
 begin
   inherited;
 
-  FFdPoint := TMFVec3f.Create(Self, 'point', []);
+  FFdPoint := TMFVec3f.Create(Self, true, 'point', []);
    FdPoint.ChangesAlways := [chCoordinate];
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
@@ -1444,35 +1444,35 @@ begin
   AddEvent(FEventSet_coordIndex);
   Eventset_coordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_CoordIndexReceive);
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
+  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   AddField(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
+  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
 
-  FFdColorIndex := TMFInt32.Create(Self, 'colorIndex', []);
+  FFdColorIndex := TMFInt32.Create(Self, true, 'colorIndex', []);
    FdColorIndex.Exposed := false;
    FdColorIndex.SaveToStreamLineUptoNegative := true;
    FdColorIndex.ChangesAlways := [chGeometry];
   AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
+  FFdColorPerVertex := TSFBool.Create(Self, true, 'colorPerVertex', true);
    FdColorPerVertex.Exposed := false;
    FdColorPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdColorPerVertex);
 
-  FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
+  FFdCoordIndex := TMFInt32.Create(Self, true, 'coordIndex', []);
    FdCoordIndex.Exposed := false;
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
    FdCoordIndex.ChangesAlways := [chGeometry];
@@ -1558,7 +1558,7 @@ begin
   AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
-  FFdIndex := TMFInt32.Create(Self, 'index', []);
+  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
    FdIndex.Exposed := false;
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
@@ -1596,7 +1596,7 @@ begin
   AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
-  FFdIndex := TMFInt32.Create(Self, 'index', []);
+  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
    FdIndex.Exposed := false;
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
@@ -1634,7 +1634,7 @@ begin
   AddEvent(FEventSet_index);
   Eventset_index.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_IndexReceive);
 
-  FFdIndex := TMFInt32.Create(Self, 'index', []);
+  FFdIndex := TMFInt32.Create(Self, true, 'index', []);
    FdIndex.Exposed := false;
    FdIndex.ChangesAlways := [chGeometry];
   AddField(FFdIndex);
@@ -1668,23 +1668,23 @@ procedure TLineSetNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
+  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   AddField(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
+  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
 
-  FFdVertexCount := TMFInt32.Create(Self, 'vertexCount', []);
+  FFdVertexCount := TMFInt32.Create(Self, true, 'vertexCount', []);
    FdVertexCount.ChangesAlways := [chGeometry];
   AddField(FFdVertexCount);
   { X3D specification comment: [2,Inf) }
@@ -1766,7 +1766,7 @@ procedure TNormalNode.CreateNode;
 begin
   inherited;
 
-  FFdVector := TMFVec3f.Create(Self, 'vector', []);
+  FFdVector := TMFVec3f.Create(Self, true, 'vector', []);
    FdVector.ChangesAlways := [chVisibleVRML1State];
   AddField(FFdVector);
   { X3D specification comment: [-1,1] }
@@ -1790,19 +1790,19 @@ procedure TPointSetNode.CreateNode;
 begin
   inherited;
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
+  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   AddField(FFdColor);
 
-  FFdCoord := TSFNode.Create(Self, 'coord', [TAbstractCoordinateNode]);
+  FFdCoord := TSFNode.Create(Self, true, 'coord', [TAbstractCoordinateNode]);
    FdCoord.ChangesAlways := [chGeometry];
   AddField(FFdCoord);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
+  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
 end;
@@ -1876,7 +1876,7 @@ procedure TTriangleFanSetNode.CreateNode;
 begin
   inherited;
 
-  FFdFanCount := TMFInt32.Create(Self, 'fanCount', []);
+  FFdFanCount := TMFInt32.Create(Self, true, 'fanCount', []);
    FdFanCount.ChangesAlways := [chGeometry];
   AddField(FFdFanCount);
   { X3D specification comment: [3,Inf) }
@@ -1925,7 +1925,7 @@ procedure TTriangleStripSetNode.CreateNode;
 begin
   inherited;
 
-  FFdStripCount := TMFInt32.Create(Self, 'stripCount', []);
+  FFdStripCount := TMFInt32.Create(Self, true, 'stripCount', []);
    FdStripCount.ChangesAlways := [chGeometry];
   AddField(FFdStripCount);
   { X3D specification comment: [3,Inf) }

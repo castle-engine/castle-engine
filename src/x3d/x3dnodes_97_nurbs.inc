@@ -344,65 +344,65 @@ begin
   FEventremoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventremoveChildren);
 
-  FFdchildren := TMFNode.Create(Self, 'children', IAbstractChildNode);
+  FFdchildren := TMFNode.Create(Self, true, 'children', IAbstractChildNode);
   AddField(FFdchildren);
 
-  FFdcontrolPoint := TMFVec3f.Create(Self, 'controlPoint', []);
+  FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);
   AddField(FFdcontrolPoint);
 
-  FFdinputCoord := TMFNode.Create(Self, 'inputCoord', [TCoordinateNode]);
+  FFdinputCoord := TMFNode.Create(Self, true, 'inputCoord', [TCoordinateNode]);
   AddField(FFdinputCoord);
 
-  FFdinputTransform := TMFNode.Create(Self, 'inputTransform', [TTransformNode]);
+  FFdinputTransform := TMFNode.Create(Self, true, 'inputTransform', [TTransformNode]);
   AddField(FFdinputTransform);
 
-  FFdoutputCoord := TMFNode.Create(Self, 'outputCoord', [TCoordinateNode]);
+  FFdoutputCoord := TMFNode.Create(Self, true, 'outputCoord', [TCoordinateNode]);
   AddField(FFdoutputCoord);
 
-  FFdweight := TMFFloat.Create(Self, 'weight', []);
+  FFdweight := TMFFloat.Create(Self, true, 'weight', []);
   AddField(FFdweight);
 
-  FFdbboxCenter := TSFVec3f.Create(Self, 'bboxCenter', TVector3.Zero);
+  FFdbboxCenter := TSFVec3f.Create(Self, true, 'bboxCenter', TVector3.Zero);
   FFdbboxCenter.Exposed := false;
   AddField(FFdbboxCenter);
 
-  FFdbboxSize := TSFVec3f.Create(Self, 'bboxSize', Vector3(-1, -1, -1));
+  FFdbboxSize := TSFVec3f.Create(Self, true, 'bboxSize', Vector3(-1, -1, -1));
   FFdbboxSize.Exposed := false;
   AddField(FFdbboxSize);
 
-  FFduDimension := TSFInt32.Create(Self, 'uDimension', 0);
+  FFduDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
   FFduDimension.Exposed := false;
   AddField(FFduDimension);
 
-  FFduKnot := TMFFloat.Create(Self, 'uKnot', []);
+  FFduKnot := TMFFloat.Create(Self, true, 'uKnot', []);
   FFduKnot.Exposed := false;
   AddField(FFduKnot);
 
-  FFduOrder := TSFInt32.Create(Self, 'uOrder', 2);
+  FFduOrder := TSFInt32.Create(Self, true, 'uOrder', 2);
   FFduOrder.Exposed := false;
   AddField(FFduOrder);
 
-  FFdvDimension := TSFInt32.Create(Self, 'vDimension', 0);
+  FFdvDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
   FFdvDimension.Exposed := false;
   AddField(FFdvDimension);
 
-  FFdvKnot := TMFFloat.Create(Self, 'vKnot', []);
+  FFdvKnot := TMFFloat.Create(Self, true, 'vKnot', []);
   FFdvKnot.Exposed := false;
   AddField(FFdvKnot);
 
-  FFdvOrder := TSFInt32.Create(Self, 'vOrder', 2);
+  FFdvOrder := TSFInt32.Create(Self, true, 'vOrder', 2);
   FFdvOrder.Exposed := false;
   AddField(FFdvOrder);
 
-  FFdwDimension := TSFInt32.Create(Self, 'wDimension', 0);
+  FFdwDimension := TSFInt32.Create(Self, true, 'wDimension', 0);
   FFdwDimension.Exposed := false;
   AddField(FFdwDimension);
 
-  FFdwKnot := TMFFloat.Create(Self, 'wKnot', []);
+  FFdwKnot := TMFFloat.Create(Self, true, 'wKnot', []);
   FFdwKnot.Exposed := false;
   AddField(FFdwKnot);
 
-  FFdwOrder := TSFInt32.Create(Self, 'wOrder', 2);
+  FFdwOrder := TSFInt32.Create(Self, true, 'wOrder', 2);
   FFdwOrder.Exposed := false;
   AddField(FFdwOrder);
 
@@ -424,24 +424,24 @@ procedure TNurbsCurveNode_2.CreateNode;
 begin
   inherited;
 
-  FFdcontrolPoint := TMFVec3f.Create(Self, 'controlPoint', []);
+  FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);
    FdcontrolPoint.ChangesAlways := [chGeometry];
   AddField(FFdcontrolPoint);
 
-  FFdweight := TMFFloat.Create(Self, 'weight', []);
+  FFdweight := TMFFloat.Create(Self, true, 'weight', []);
    Fdweight.ChangesAlways := [chGeometry];
   AddField(FFdweight);
 
-  FFdtessellation := TSFInt32.Create(Self, 'tessellation', 0);
+  FFdtessellation := TSFInt32.Create(Self, true, 'tessellation', 0);
    Fdtessellation.ChangesAlways := [chGeometry];
   AddField(FFdtessellation);
 
-  FFdknot := TMFFloat.Create(Self, 'knot', []);
+  FFdknot := TMFFloat.Create(Self, true, 'knot', []);
    Fdknot.Exposed := false;
    Fdknot.ChangesAlways := [chGeometry];
   AddField(FFdknot);
 
-  FFdorder := TSFInt32.Create(Self, 'order', 3);
+  FFdorder := TSFInt32.Create(Self, true, 'order', 3);
    Fdorder.Exposed := false;
    Fdorder.ChangesAlways := [chGeometry];
   AddField(FFdorder);
@@ -513,7 +513,7 @@ procedure TNurbsGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdtessellationScale := TSFFloat.Create(Self, 'tessellationScale', 1.0);
+  FFdtessellationScale := TSFFloat.Create(Self, true, 'tessellationScale', 1.0);
   AddField(FFdtessellationScale);
 end;
 
@@ -535,19 +535,19 @@ begin
   FEventset_fraction := TSFFloatEvent.Create(Self, 'set_fraction', true);
   AddEvent(FEventset_fraction);
 
-  FFddimension := TSFInt32.Create(Self, 'dimension', 0);
+  FFddimension := TSFInt32.Create(Self, true, 'dimension', 0);
   AddField(FFddimension);
 
-  FFdkeyValue := TMFVec3f.Create(Self, 'keyValue', []);
+  FFdkeyValue := TMFVec3f.Create(Self, true, 'keyValue', []);
   AddField(FFdkeyValue);
 
-  FFdkeyWeight := TMFFloat.Create(Self, 'keyWeight', []);
+  FFdkeyWeight := TMFFloat.Create(Self, true, 'keyWeight', []);
   AddField(FFdkeyWeight);
 
-  FFdknot := TMFFloat.Create(Self, 'knot', []);
+  FFdknot := TMFFloat.Create(Self, true, 'knot', []);
   AddField(FFdknot);
 
-  FFdorder := TSFInt32.Create(Self, 'order', 4);
+  FFdorder := TSFInt32.Create(Self, true, 'order', 4);
   AddField(FFdorder);
 
   FEventvalue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
@@ -614,62 +614,62 @@ procedure TNurbsSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FFdcontrolPoint := TMFVec3f.Create(Self, 'controlPoint', []);
+  FFdcontrolPoint := TMFVec3f.Create(Self, true, 'controlPoint', []);
    FdcontrolPoint.ChangesAlways := [chGeometry];
   AddField(FFdcontrolPoint);
 
-  FFdtexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateNode, TNurbsTextureSurfaceNode]);
+  FFdtexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateNode, TNurbsTextureSurfaceNode]);
    FdtexCoord.ChangesAlways := [chGeometry];
   AddField(FFdtexCoord);
 
-  FFduTessellation := TSFInt32.Create(Self, 'uTessellation', 0);
+  FFduTessellation := TSFInt32.Create(Self, true, 'uTessellation', 0);
    FduTessellation.ChangesAlways := [chGeometry];
   AddField(FFduTessellation);
 
-  FFdvTessellation := TSFInt32.Create(Self, 'vTessellation', 0);
+  FFdvTessellation := TSFInt32.Create(Self, true, 'vTessellation', 0);
    FdvTessellation.ChangesAlways := [chGeometry];
   AddField(FFdvTessellation);
 
-  FFdweight := TMFFloat.Create(Self, 'weight', []);
+  FFdweight := TMFFloat.Create(Self, true, 'weight', []);
    Fdweight.ChangesAlways := [chGeometry];
   AddField(FFdweight);
 
-  FFdccw := TSFBool.Create(Self, 'ccw', TRUE);
+  FFdccw := TSFBool.Create(Self, true, 'ccw', TRUE);
    Fdccw.Exposed := false;
    Fdccw.ChangesAlways := [chGeometry];
   AddField(FFdccw);
 
-  FFdsolid := TSFBool.Create(Self, 'solid', TRUE);
+  FFdsolid := TSFBool.Create(Self, true, 'solid', TRUE);
    Fdsolid.Exposed := false;
    Fdsolid.ChangesAlways := [chGeometry];
   AddField(FFdsolid);
 
-  FFduDimension := TSFInt32.Create(Self, 'uDimension', 0);
+  FFduDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
    FduDimension.Exposed := false;
    FduDimension.ChangesAlways := [chGeometry];
   AddField(FFduDimension);
 
-  FFduKnot := TMFFloat.Create(Self, 'uKnot', []);
+  FFduKnot := TMFFloat.Create(Self, true, 'uKnot', []);
    FduKnot.Exposed := false;
    FduKnot.ChangesAlways := [chGeometry];
   AddField(FFduKnot);
 
-  FFduOrder := TSFInt32.Create(Self, 'uOrder', 3);
+  FFduOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
    FduOrder.Exposed := false;
    FduOrder.ChangesAlways := [chGeometry];
   AddField(FFduOrder);
 
-  FFdvDimension := TSFInt32.Create(Self, 'vDimension', 0);
+  FFdvDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
    FdvDimension.Exposed := false;
    FdvDimension.ChangesAlways := [chGeometry];
   AddField(FFdvDimension);
 
-  FFdvKnot := TMFFloat.Create(Self, 'vKnot', []);
+  FFdvKnot := TMFFloat.Create(Self, true, 'vKnot', []);
    FdvKnot.Exposed := false;
    FdvKnot.ChangesAlways := [chGeometry];
   AddField(FFdvKnot);
 
-  FFdvOrder := TSFInt32.Create(Self, 'vOrder', 3);
+  FFdvOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
    FdvOrder.Exposed := false;
    FdvOrder.ChangesAlways := [chGeometry];
   AddField(FFdvOrder);
@@ -775,33 +775,33 @@ procedure TNurbsTextureSurfaceNode.CreateNode;
 begin
   inherited;
 
-  FFdcontrolPoint := TMFVec2f.Create(Self, 'controlPoint', []);
+  FFdcontrolPoint := TMFVec2f.Create(Self, true, 'controlPoint', []);
   AddField(FFdcontrolPoint);
 
-  FFdweight := TMFFloat.Create(Self, 'weight', []);
+  FFdweight := TMFFloat.Create(Self, true, 'weight', []);
   AddField(FFdweight);
 
-  FFduDimension := TSFInt32.Create(Self, 'uDimension', 0);
+  FFduDimension := TSFInt32.Create(Self, true, 'uDimension', 0);
   FFduDimension.Exposed := false;
   AddField(FFduDimension);
 
-  FFduKnot := TMFFloat.Create(Self, 'uKnot', []);
+  FFduKnot := TMFFloat.Create(Self, true, 'uKnot', []);
   FFduKnot.Exposed := false;
   AddField(FFduKnot);
 
-  FFduOrder := TSFInt32.Create(Self, 'uOrder', 3);
+  FFduOrder := TSFInt32.Create(Self, true, 'uOrder', 3);
   FFduOrder.Exposed := false;
   AddField(FFduOrder);
 
-  FFdvDimension := TSFInt32.Create(Self, 'vDimension', 0);
+  FFdvDimension := TSFInt32.Create(Self, true, 'vDimension', 0);
   FFdvDimension.Exposed := false;
   AddField(FFdvDimension);
 
-  FFdvKnot := TMFFloat.Create(Self, 'vKnot', []);
+  FFdvKnot := TMFFloat.Create(Self, true, 'vKnot', []);
   FFdvKnot.Exposed := false;
   AddField(FFdvKnot);
 
-  FFdvOrder := TSFInt32.Create(Self, 'vOrder', 3);
+  FFdvOrder := TSFInt32.Create(Self, true, 'vOrder', 3);
   FFdvOrder.Exposed := false;
   AddField(FFdvOrder);
 end;
@@ -827,11 +827,11 @@ begin
   FEventremoveTrimmingContour := TMFNodeEvent.Create(Self, 'removeTrimmingContour', true);
   AddEvent(FEventremoveTrimmingContour);
 
-  FFdtrimmingContour := TMFNode.Create(Self, 'trimmingContour', [TContour2DNode_2]);
+  FFdtrimmingContour := TMFNode.Create(Self, true, 'trimmingContour', [TContour2DNode_2]);
    FdtrimmingContour.ChangesAlways := [chGeometry];
   AddField(FFdtrimmingContour);
 
-  FFdsurface := TSFNode.Create(Self, 'surface', [TNurbsSurfaceNode]);
+  FFdsurface := TSFNode.Create(Self, true, 'surface', [TNurbsSurfaceNode]);
    Fdsurface.ChangesAlways := [chGeometry];
   AddField(FFdsurface);
 end;
@@ -880,7 +880,7 @@ begin
   FEventRemoveChildren := TMFNodeEvent.Create(Self, 'removeChildren', true);
   AddEvent(FEventRemoveChildren);
 
-  FFdChildren := TMFNode.Create(Self, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
+  FFdChildren := TMFNode.Create(Self, true, 'children', [TNurbsCurve2DNode, TContourPolyline2DNode,
     { In VRML 97 these are allowed children too: }
     TPolyline2DNode, TContour2DNode_2 ]);
    FdChildren.ChangesAlways := [chGeometry];

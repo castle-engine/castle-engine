@@ -217,20 +217,20 @@ procedure TArc2DNode.CreateNode;
 begin
   inherited;
 
-  FFdEndAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
+  FFdEndAngle := TSFFloat.Create(Self, true, 'endAngle', Pi/2);
    FdEndAngle.Angle := true;
    FdEndAngle.Exposed := false;
    FdEndAngle.ChangesAlways := [chGeometry];
   AddField(FFdEndAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdRadius := TSFFloat.Create(Self, 'radius', 1);
+  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
    FdRadius.Exposed := false;
    FdRadius.ChangesAlways := [chGeometry];
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdStartAngle := TSFFloat.Create(Self, 'startAngle', 0);
+  FFdStartAngle := TSFFloat.Create(Self, true, 'startAngle', 0);
    FdStartAngle.Angle := true;
    FdStartAngle.Exposed := false;
    FdStartAngle.ChangesAlways := [chGeometry];
@@ -274,31 +274,31 @@ procedure TArcClose2DNode.CreateNode;
 begin
   inherited;
 
-  FFdClosureType := TSFString.Create(Self, 'closureType', 'PIE');
+  FFdClosureType := TSFString.Create(Self, true, 'closureType', 'PIE');
    FdClosureType.Exposed := false;
    FdClosureType.ChangesAlways := [chGeometry];
   AddField(FFdClosureType);
   { X3D specification comment: ["PIE"|"CHORD"] }
 
-  FFdEndAngle := TSFFloat.Create(Self, 'endAngle', Pi/2);
+  FFdEndAngle := TSFFloat.Create(Self, true, 'endAngle', Pi/2);
    FdEndAngle.Angle := true;
    FdEndAngle.Exposed := false;
    FdEndAngle.ChangesAlways := [chGeometry];
   AddField(FFdEndAngle);
   { X3D specification comment: [-2Pi,2Pi] }
 
-  FFdRadius := TSFFloat.Create(Self, 'radius', 1);
+  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
    FdRadius.Exposed := false;
    FdRadius.ChangesAlways := [chGeometry];
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', false);
+  FFdSolid := TSFBool.Create(Self, true, 'solid', false);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdStartAngle := TSFFloat.Create(Self, 'startAngle', 0);
+  FFdStartAngle := TSFFloat.Create(Self, true, 'startAngle', 0);
    FdStartAngle.Angle := true;
    FdStartAngle.Exposed := false;
    FdStartAngle.ChangesAlways := [chGeometry];
@@ -342,13 +342,13 @@ procedure TCircle2DNode.CreateNode;
 begin
   inherited;
 
-  FFdRadius := TSFFloat.Create(Self, 'radius', 1);
+  FFdRadius := TSFFloat.Create(Self, true, 'radius', 1);
    FdRadius.Exposed := false;
    FdRadius.ChangesAlways := [chGeometry];
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
    FdSlices.ChangesAlways := [chGeometry];
   AddField(FFdSlices);
 end;
@@ -415,19 +415,19 @@ procedure TDisk2DNode.CreateNode;
 begin
   inherited;
 
-  FFdInnerRadius := TSFFloat.Create(Self, 'innerRadius', 0);
+  FFdInnerRadius := TSFFloat.Create(Self, true, 'innerRadius', 0);
    FdInnerRadius.Exposed := false;
    FdInnerRadius.ChangesAlways := [chGeometry];
   AddField(FFdInnerRadius);
   { X3D specification comment: [0,Inf) }
 
-  FFdOuterRadius := TSFFloat.Create(Self, 'outerRadius', 1);
+  FFdOuterRadius := TSFFloat.Create(Self, true, 'outerRadius', 1);
    FdOuterRadius.Exposed := false;
    FdOuterRadius.ChangesAlways := [chGeometry];
   AddField(FFdOuterRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', false);
+  FFdSolid := TSFBool.Create(Self, true, 'solid', false);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
@@ -469,7 +469,7 @@ procedure TPolyline2DNode.CreateNode;
 begin
   inherited;
 
-  FFdLineSegments := TMFVec2f.Create(Self, 'lineSegments', []);
+  FFdLineSegments := TMFVec2f.Create(Self, true, 'lineSegments', []);
    FdLineSegments.Exposed := false;
    FdLineSegments.ChangesAlways := [chGeometry];
   AddField(FFdLineSegments);
@@ -515,7 +515,7 @@ procedure TPolypoint2DNode.CreateNode;
 begin
   inherited;
 
-  FFdPoint := TMFVec2f.Create(Self, 'point', []);
+  FFdPoint := TMFVec2f.Create(Self, true, 'point', []);
    FdPoint.ChangesAlways := [chGeometry];
   AddField(FFdPoint);
   { X3D specification comment: (-Inf,Inf) }
@@ -557,13 +557,13 @@ procedure TRectangle2DNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec2f.Create(Self, 'size', Vector2(2, 2));
+  FFdSize := TSFVec2f.Create(Self, true, 'size', Vector2(2, 2));
    FdSize.Exposed := false;
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', false);
+  FFdSolid := TSFBool.Create(Self, true, 'solid', false);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
@@ -630,12 +630,12 @@ procedure TTriangleSet2DNode.CreateNode;
 begin
   inherited;
 
-  FFdVertices := TMFVec2f.Create(Self, 'vertices', []);
+  FFdVertices := TMFVec2f.Create(Self, true, 'vertices', []);
    FdVertices.ChangesAlways := [chGeometry];
   AddField(FFdVertices);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', false);
+  FFdSolid := TSFBool.Create(Self, true, 'solid', false);
    FdSolid.Exposed := false;
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);

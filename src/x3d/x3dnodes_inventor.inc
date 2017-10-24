@@ -63,11 +63,11 @@ procedure TRotationXYZNode.CreateNode;
 begin
   inherited;
 
-  FFdAxis := TSFEnum.Create(Self, 'axis' , ['X', 'Y', 'Z'], 0);
+  FFdAxis := TSFEnum.Create(Self, true, 'axis' , ['X', 'Y', 'Z'], 0);
    FdAxis.ChangesAlways := [chEverything];
   AddField(FFdAxis);
 
-  FFdAngle := TSFFloat.Create(Self, 'angle', 0);
+  FFdAngle := TSFFloat.Create(Self, true, 'angle', 0);
    FdAngle.ChangesAlways := [chEverything];
   AddField(FFdAngle);
 end;

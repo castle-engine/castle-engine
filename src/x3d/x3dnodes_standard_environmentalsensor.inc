@@ -107,12 +107,12 @@ procedure TAbstractEnvironmentalSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdCenter := TSFVec3f.Create(Self, 'center', Vector3(0, 0, 0));
+  FFdCenter := TSFVec3f.Create(Self, true, 'center', Vector3(0, 0, 0));
    FdCenter.ChangesAlways := [chEnvironmentalSensorBounds];
   AddField(FFdCenter);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdSize := TSFVec3f.Create(Self, 'size', Vector3(0, 0, 0));
+  FFdSize := TSFVec3f.Create(Self, true, 'size', Vector3(0, 0, 0));
    FdSize.ChangesAlways := [chEnvironmentalSensorBounds];
   AddField(FFdSize);
   { X3D specification comment: (-Inf,Inf) }
@@ -163,7 +163,7 @@ procedure TTransformSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdTargetObject := TSFNode.Create(Self, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
+  FFdTargetObject := TSFNode.Create(Self, true, 'targetObject', [TAbstractX3DGroupingNode, TAbstractShapeNode]);
   AddField(FFdTargetObject);
 
   FEventOrientation_changed := TSFRotationEvent.Create(Self, 'orientation_changed', false);

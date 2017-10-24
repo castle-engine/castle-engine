@@ -1727,7 +1727,7 @@ function TX3DNode.ParseNodeBodyElement(Lexer: TX3DLexer; Reader: TX3DReaderNames
   var
     IsAField: TMFString;
   begin
-    IsAField := TMFString.Create(Self, '', []);
+    IsAField := TMFString.Create(Self, false, '', []);
     try
       IsAField.Parse(Lexer, Reader, false);
 

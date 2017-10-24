@@ -272,7 +272,7 @@ procedure TStringSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdDeletionAllowed := TSFBool.Create(Self, 'deletionAllowed', true);
+  FFdDeletionAllowed := TSFBool.Create(Self, true, 'deletionAllowed', true);
   AddField(FFdDeletionAllowed);
 
   FEventEnteredText := TSFStringEvent.Create(Self, 'enteredText', false);

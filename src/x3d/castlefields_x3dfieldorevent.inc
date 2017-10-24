@@ -43,7 +43,7 @@
   strict protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
-    constructor Create(AParentNode: TX3DFileItem; const AX3DName: string);
+    constructor Create(const AParentNode: TX3DFileItem; const AX3DName: string);
     destructor Destroy; override;
 
     { Name of the field or event.
@@ -170,7 +170,7 @@
 
 { TX3DFieldOrEvent ---------------------------------------------------------- }
 
-constructor TX3DFieldOrEvent.Create(AParentNode: TX3DFileItem;
+constructor TX3DFieldOrEvent.Create(const AParentNode: TX3DFileItem;
   const AX3DName: string);
 begin
   inherited Create;
