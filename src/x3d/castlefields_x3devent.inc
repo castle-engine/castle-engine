@@ -40,6 +40,8 @@
 
     SendLevel: Cardinal;
     NotificationsToRemove: TX3DEventReceiveList;
+
+    procedure RemoveNotificationNow(const Notification: TX3DEventReceive);
   public
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
@@ -122,7 +124,11 @@
       This is guaranteed to work correctly even if we're right now
       in the middle of this event's processing (which means that we may
       be iterating over a list of notifications).
-      The handler may be actually removed a bit later (when it's safe). }
+      The handler may be actually removed a bit later (when it's safe).
+
+      Note that adding a notification two-times makes it called two times.
+      Removing a notification removes one copy of a notification,
+      so it should then be removed two-times too. }
     procedure RemoveNotification(const Notification: TX3DEventReceive);
 
     { @abstract(Is anything actually listening on this events @link(Send)?)
@@ -217,13 +223,8 @@ procedure TX3DEvent.Send(Field: TX3DField; const Time: TX3DTime);
   var
     I: Integer;
   begin
-    // remove from FFirstNotification
-    if NotificationsToRemove.IndexOf(FFirstNotification) <> -1 then
-      FFirstNotification := nil;
-    // remove from FNotifications
-    if FNotifications <> nil then
-      for I := 0 to NotificationsToRemove.Count - 1 do
-        FNotifications.Remove(NotificationsToRemove.Items[I]);
+    for I := 0 to NotificationsToRemove.Count - 1 do
+      RemoveNotificationNow(NotificationsToRemove.Items[I]);
     // clear NotificationsToRemove
     NotificationsToRemove.Count := 0;
   end;
@@ -307,18 +308,22 @@ begin
   end;
 end;
 
+procedure TX3DEvent.RemoveNotificationNow(const Notification: TX3DEventReceive);
+begin
+  { The "else" below is important to remove only the first notification present,
+    if you added multiple notifications. }
+  if CompareMethods(TMethod(FFirstNotification), TMethod(Notification)) then
+    FFirstNotification := nil
+  else
+  if FNotifications <> nil then
+    FNotifications.Remove(Notification);
+end;
+
 procedure TX3DEvent.RemoveNotification(const Notification: TX3DEventReceive);
 begin
   if SendLevel = 0 then
   begin
-    { our public API doesn't specify what happens if you add two same notifications,
-      does RemoveNotification only the first one or both?
-      The implementation removes only the first one. }
-    if CompareMethods(TMethod(FFirstNotification), TMethod(Notification)) then
-      FFirstNotification := nil
-    else
-    if FNotifications <> nil then
-      FNotifications.Remove(Notification);
+    RemoveNotificationNow(Notification);
   end else
   begin
     if NotificationsToRemove = nil then
