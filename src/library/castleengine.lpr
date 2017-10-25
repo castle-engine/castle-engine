@@ -596,39 +596,26 @@ end;
 procedure CGE_SetNodeFieldValue(szNodeName, szFieldName: pcchar;
                                 fVal1, fVal2, fVal3, fVal4: cFloat); cdecl;
 var
-  aX3DNode: TX3DNode;
-  aField, aNewVal: TX3DField;
+  aField: TX3DField;
 begin
   try
     if not CGE_VerifyScene then exit;
-    if Window.MainScene.RootNode = nil then exit;
 
-    // find node
-    aX3DNode := Window.MainScene.RootNode.TryFindNodeByName(TX3DNode, StrPas(PChar(szNodeName)), true);
-    if aX3DNode = nil then exit;
-
-    // find its field
-    aField := aX3DNode.FieldOrEvent(StrPas(PChar(szFieldName))) as TX3DField;
-    if (aField = nil) or not (aField is TX3DField) then exit;
-
-    // create new value according to field type
-    aNewVal := nil;
+    // find node and field
+    aField := Window.MainScene.Field(PChar(szNodeName), PChar(szFieldName));
+    if aField = nil then Exit;
 
     if aField is TSFVec3f then
-      aNewVal := TSFVec3f.Create(nil, false, '', Vector3(fVal1, fVal2, fVal3))
-    else if aField is TSFVec4f then
-      aNewVal := TSFVec4f.Create(nil, false, '', Vector4(fVal1, fVal2, fVal3, fVal4))
-    else if aField is TSFVec3d then
-      aNewVal := TSFVec3d.Create(nil, false, '', Vector3Double(fVal1, fVal2, fVal3))
-    else if aField is TSFVec4d then
-      aNewVal := TSFVec4d.Create(nil, false, '', Vector4Double(fVal1, fVal2, fVal3, fVal4));
-
-    // set new value
-    if aNewVal <> nil then
-    begin
-      aField.Send(aNewVal);
-      FreeAndNil(aNewVal);
-    end;
+      TSFVec3f(aField).Send(Vector3(fVal1, fVal2, fVal3))
+    else
+    if aField is TSFVec4f then
+      TSFVec4f(aField).Send(Vector4(fVal1, fVal2, fVal3, fVal4))
+    else
+    if aField is TSFVec3d then
+      TSFVec3d(aField).Send(Vector3Double(fVal1, fVal2, fVal3))
+    else
+    if aField is TSFVec4d then
+      TSFVec4d(aField).Send(Vector4Double(fVal1, fVal2, fVal3, fVal4));
 
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
