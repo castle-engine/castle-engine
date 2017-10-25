@@ -615,13 +615,13 @@ begin
     aNewVal := nil;
 
     if aField is TSFVec3f then
-      aNewVal := TSFVec3f.Create(nil, '', Vector3(fVal1, fVal2, fVal3))
+      aNewVal := TSFVec3f.Create(nil, false, '', Vector3(fVal1, fVal2, fVal3))
     else if aField is TSFVec4f then
-      aNewVal := TSFVec4f.Create(nil, '', Vector4(fVal1, fVal2, fVal3, fVal4))
+      aNewVal := TSFVec4f.Create(nil, false, '', Vector4(fVal1, fVal2, fVal3, fVal4))
     else if aField is TSFVec3d then
-      aNewVal := TSFVec3d.Create(nil, '', Vector3Double(fVal1, fVal2, fVal3))
+      aNewVal := TSFVec3d.Create(nil, false, '', Vector3Double(fVal1, fVal2, fVal3))
     else if aField is TSFVec4d then
-      aNewVal := TSFVec4d.Create(nil, '', Vector4Double(fVal1, fVal2, fVal3, fVal4));
+      aNewVal := TSFVec4d.Create(nil, false, '', Vector4Double(fVal1, fVal2, fVal3, fVal4));
 
     // set new value
     if aNewVal <> nil then
