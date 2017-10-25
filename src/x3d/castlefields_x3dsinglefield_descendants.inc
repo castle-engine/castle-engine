@@ -166,10 +166,8 @@
     DefaultValueExists: boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Single); overload;
-    constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string; const AValue: Single;
-      AMustBeNonnegative: boolean); overload;
+      const AMustBeNonnegative: boolean = false);
 
     property Value: Single read FValue write SetValue;
 
@@ -307,10 +305,8 @@
     DefaultValueExists: boolean;
 
     constructor Create(const AParentNode: TX3DFileItem;
-      const AExposed: boolean; const AName: string; const AValue: Longint); overload;
-    constructor Create(const AParentNode: TX3DFileItem;
       const AExposed: boolean; const AName: string; const AValue: Longint;
-      AMustBeNonnegative: boolean); overload;
+      const AMustBeNonnegative: boolean = false);
 
     property Value: Longint read FValue write SetValue;
 
@@ -787,13 +783,8 @@ begin
 end;
 
 constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Single);
-begin
-  Create(AParentNode, false, AName, AValue, false);
-end;
-
-constructor TSFFloat.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Single; AMustBeNonnegative: boolean);
+  const AExposed: boolean; const AName: string; const AValue: Single;
+  const AMustBeNonnegative: boolean);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
@@ -1221,18 +1212,13 @@ begin
 end;
 
 constructor TSFLong.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Longint);
-begin
-  Create(AParentNode, false, AName, AValue, false);
-end;
-
-constructor TSFLong.Create(const AParentNode: TX3DFileItem;
-  const AExposed: boolean; const AName: string; const AValue: Longint; AMustBeNonnegative: boolean);
+  const AExposed: boolean; const AName: string; const AValue: Longint;
+  const AMustBeNonnegative: boolean);
 begin
   inherited Create(AParentNode, AExposed, AName);
 
   FMustBeNonnegative := AMustBeNonnegative;
-  Value := AValue; { Set using property, zeby SetValue moglo ew. zmienic Value }
+  Value := AValue; { Set using property, to let SetValue change Value }
   AssignDefaultValueFromValue;
 end;
 
