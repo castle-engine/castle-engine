@@ -22,6 +22,8 @@ public:
 
 protected:
     static int CDECL OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, const char *szParam);
+    QPoint PointFromMousePoint(const QPoint& pt);
+    QPoint PointFromMousePoint(const QPointF& pt);
 
 private:
     bool m_bAfterInit;

@@ -49,6 +49,8 @@ void GLWidget::OpenScene(QString const &sFilename)
         return;
 
     CGE_LoadSceneFromFile(sFilename.toUtf8());
+    double dPixRatio = devicePixelRatioF();
+    CGE_Resize(width()*dPixRatio, height()*dPixRatio);
     ((MainWindow*)g_pThis->parent())->UpdateAfterSceneLoaded();
 }
 
@@ -110,9 +112,10 @@ int CDECL GLWidget::OpenGlLibraryCallback(int eCode, int iParam1, int iParam2, c
 
 void GLWidget::initializeGL()
 {
+    double dPixRatio = devicePixelRatioF();
     // Get config dir, see https://stackoverflow.com/questions/4369661/qt-how-to-save-a-configuration-file-on-multiple-platforms
     QString configDir = QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation);
-    CGE_Open(ecgeofLog, width(), height(), configDir.toUtf8());
+    CGE_Open(ecgeofLog, width()*dPixRatio, height()*dPixRatio, configDir.toUtf8());
     CGE_SetUserInterface(false, logicalDpiY());
     CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
     m_bAfterInit = true;
@@ -134,27 +137,53 @@ void GLWidget::OnUpdateTimer()
 
 void GLWidget::paintGL()
 {
+    if (!m_bAfterInit) return;
+
     CGE_Render();
 }
 
 void GLWidget::resizeGL(int width, int height)
 {
-    CGE_Resize(width, height);
+    if (m_bAfterInit && width > 0 && height > 0)
+        CGE_Resize(width, height);
+}
+
+QPoint GLWidget::PointFromMousePoint(const QPoint& pt)
+{
+    QPoint ptNew(pt.x(), height() - 1 - pt.y());
+    ptNew *= devicePixelRatioF();
+    return ptNew;
+}
+
+QPoint GLWidget::PointFromMousePoint(const QPointF& pt)
+{
+    QPoint ptNew(pt.x(), height() - 1 - pt.y());
+    ptNew *= devicePixelRatioF();
+    return ptNew;
 }
 
 void GLWidget::mousePressEvent(QMouseEvent *event)
 {
-    CGE_MouseDown(event->x(), height() - 1 - event->y(), event->button()==Qt::LeftButton, 0);
+    if (!m_bAfterInit) return;
+
+    QPoint pt(PointFromMousePoint(event->pos()));
+    CGE_MouseDown(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0);
 }
 
 void GLWidget::mouseMoveEvent(QMouseEvent *event)
 {
-    CGE_Motion(event->x(), height() - 1 - event->y(), 0);
+    if (!m_bAfterInit) return;
+
+    QPoint pt(PointFromMousePoint(event->pos()));
+    CGE_Motion(pt.x(), pt.y(), 0);
 }
 
 void GLWidget::mouseReleaseEvent(QMouseEvent *event)
 {
-    CGE_MouseUp(event->x(), height() - 1 - event->y(), event->button()==Qt::LeftButton, 0, true);
+    if (!m_bAfterInit) return;
+
+    QPoint pt(PointFromMousePoint(event->pos()));
+    CGE_MouseUp(pt.x(), pt.y(), event->button()==Qt::LeftButton, 0, true);
 }
 
 #ifndef QT_NO_WHEELEVENT
