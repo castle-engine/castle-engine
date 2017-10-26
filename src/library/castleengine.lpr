@@ -530,6 +530,10 @@ begin
         Window.SceneManager.Paused := (nValue > 0);
       end;
 
+      7: begin    // ecgevarAutoRedisplay
+        Window.AutoRedisplay := (nValue > 0);
+      end;
+
     end;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -584,6 +588,18 @@ begin
 
       5: begin    // ecgevarWalkTouchCtl
         Result := cgehelper_ConstFromTouchInterface(Window.AutomaticWalkTouchCtl);
+      end;
+
+      6: begin    // ecgevarScenePaused
+        if Window.SceneManager.Paused then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      7: begin    // ecgevarAutoRedisplay
+        if Window.AutoRedisplay then
+          Result := 1 else
+          Result := 0;
       end;
 
       else Result := -1; // unsupported variable
