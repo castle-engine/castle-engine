@@ -1814,7 +1814,7 @@ begin
   FEnumNames := TStringListCaseSens.Create;
   AddStrArrayToStrings(AEnumNames, FEnumNames);
 
-  inherited Create(AParentNode, false, AName, FEnumNames[AValue]);
+  inherited Create(AParentNode, AExposed, AName, FEnumNames[AValue]);
   { inherited Create will assign Value, and in SetValue should cause setting
     our FEnumValue }
   Assert(AValue = FEnumValue);
