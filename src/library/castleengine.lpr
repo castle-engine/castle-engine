@@ -534,6 +534,18 @@ begin
         Window.AutoRedisplay := (nValue > 0);
       end;
 
+      8: begin    // ecgevarHeadlight
+        Window.MainScene.HeadlightOn := (nValue > 0);
+      end;
+
+      9: begin    // ecgevarOcclusionQuery
+        Window.MainScene.Attributes.UseOcclusionQuery := (nValue > 0);
+      end;
+
+      10: begin    // ecgevarHierarchicalOcclQuery
+        Window.MainScene.Attributes.UseHierarchicalOcclusionQuery := (nValue > 0);
+      end;
+
     end;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -598,6 +610,24 @@ begin
 
       7: begin    // ecgevarAutoRedisplay
         if Window.AutoRedisplay then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      8: begin    // ecgevarHeadlight
+        if Window.MainScene.HeadlightOn then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      9: begin    // ecgevarOcclusionQuery
+        if Window.MainScene.Attributes.UseOcclusionQuery then
+          Result := 1 else
+          Result := 0;
+      end;
+
+      10: begin    // ecgevarHierarchicalOcclQuery
+        if Window.MainScene.Attributes.UseHierarchicalOcclusionQuery then
           Result := 1 else
           Result := 0;
       end;

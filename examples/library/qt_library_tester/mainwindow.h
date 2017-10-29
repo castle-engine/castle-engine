@@ -58,6 +58,7 @@ private slots:
     void MenuMouseLookClick();
     void MenuShowWarningClick();
     void MenuOpenGLInfoClick();
+    void on_actionHeadlight_triggered();
 };
 
 class ActionWithTag : public QAction

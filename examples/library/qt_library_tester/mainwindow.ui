@@ -20,7 +20,7 @@
      <x>0</x>
      <y>0</y>
      <width>636</width>
-     <height>27</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -51,6 +51,7 @@
     <addaction name="actionHead_Bobbing"/>
     <addaction name="actionMouse_Look"/>
     <addaction name="actionMultiSampling"/>
+    <addaction name="actionHeadlight"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuViewpoints"/>
@@ -171,6 +172,14 @@
    </property>
    <property name="text">
     <string>MultiSampling</string>
+   </property>
+  </action>
+  <action name="actionHeadlight">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Headlight</string>
    </property>
   </action>
  </widget>
