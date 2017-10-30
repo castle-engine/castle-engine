@@ -387,7 +387,7 @@
     function CanAssignLerp: boolean; virtual;
 
     procedure AddAlternativeName(const AlternativeName: string;
-      VrmlMajorVersion: Integer); override;
+      const X3DMajorVersion: Integer); override;
 
     { Notify ParentNode.Scene that the value of this field changed. }
     procedure Changed;
@@ -842,14 +842,12 @@ begin
     for I := Low(FAlternativeNames) to High(FAlternativeNames) do
       if FAlternativeNames[I] <> '' then
       begin
-        FExposedEvents[false].FAlternativeNames[I] :=
-          FAlternativeNames[I] + ChangedSuffix;
-        FExposedEvents[true].FAlternativeNames[I] :=
-          SetPrefix + FAlternativeNames[I];
+        FExposedEvents[false].AddAlternativeName(FAlternativeNames[I] + ChangedSuffix, I);
+        FExposedEvents[true].AddAlternativeName(SetPrefix + FAlternativeNames[I], I);
       end else
       begin
-        FExposedEvents[false].FAlternativeNames[I] := '';
-        FExposedEvents[true].FAlternativeNames[I] := '';
+        FExposedEvents[false].RemoveAlternativeName(I);
+        FExposedEvents[true].RemoveAlternativeName(I);
       end;
   end;
 end;
@@ -883,7 +881,7 @@ begin
 end;
 
 procedure TX3DField.AddAlternativeName(const AlternativeName: string;
-  VrmlMajorVersion: Integer);
+  const X3DMajorVersion: Integer);
 begin
   inherited;
 
@@ -893,9 +891,9 @@ begin
     Assert(FExposedEvents[true] <> nil);
 
     FExposedEvents[false].AddAlternativeName(
-      AlternativeName + ChangedSuffix, VrmlMajorVersion);
+      AlternativeName + ChangedSuffix, X3DMajorVersion);
     FExposedEvents[true].AddAlternativeName(
-      SetPrefix + AlternativeName, VrmlMajorVersion);
+      SetPrefix + AlternativeName, X3DMajorVersion);
   end;
 end;
 

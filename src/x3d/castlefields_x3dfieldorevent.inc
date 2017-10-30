@@ -39,7 +39,7 @@
       - there are only 0 (none), 1, 2, and 3 VRML major versions
       - each VRML major version has exactly one alt name
       - alt name is never '' ('' means that alt name doesn't exist) }
-    FAlternativeNames: array [0..3] of string;
+    FAlternativeNames: array of string;
   strict protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
   public
@@ -111,13 +111,13 @@
     { Add alternative name for the same field/event, to be used in different
       VRML version.
 
-      When VRML major version is exactly equal VrmlMajorVersion,
+      When VRML major version is exactly equal X3DMajorVersion,
       the AlternativeName should be used --- for both reading and writing
       of this field/event. In some cases, when reading, we may also allow
       all versions (both original and alternative), but this is mostly
       for implementation simplicity --- don't count on it.
 
-      A special value 0 for VrmlMajorVersion means that this is just
+      A special value 0 for X3DMajorVersion means that this is just
       an alternative name, that should be allowed when reading (as alternative
       to normal Name), and never used when writing.
 
@@ -130,7 +130,8 @@
       if a field has alternative names, then it's exposed events always also
       have appropriate alternative names. }
     procedure AddAlternativeName(const AlternativeName: string;
-      VrmlMajorVersion: Integer); virtual;
+      const X3DMajorVersion: Integer); virtual;
+    procedure RemoveAlternativeName(const X3DMajorVersion: Integer);
 
     { Returns if S matches current Name or one of the alternative names.
       Think about it like simple test "Name = S", but actually this
@@ -230,9 +231,18 @@ begin
 end;
 
 procedure TX3DFieldOrEvent.AddAlternativeName(const AlternativeName: string;
-  VrmlMajorVersion: Integer);
+  const X3DMajorVersion: Integer);
 begin
-  FAlternativeNames[VrmlMajorVersion] := AlternativeName;
+  if X3DMajorVersion >= Length(FAlternativeNames) then
+    SetLength(FAlternativeNames, X3DMajorVersion + 1);
+
+  FAlternativeNames[X3DMajorVersion] := AlternativeName;
+end;
+
+procedure TX3DFieldOrEvent.RemoveAlternativeName(const X3DMajorVersion: Integer);
+begin
+  if X3DMajorVersion < Length(FAlternativeNames) then
+    FAlternativeNames[X3DMajorVersion] := '';
 end;
 
 function TX3DFieldOrEvent.IsName(const S: string): boolean;
@@ -255,10 +265,13 @@ begin
   Result := X3DName = S;
 end;
 
-function TX3DFieldOrEvent.NameForVersion(
-  Version: TX3DVersion): string;
+function TX3DFieldOrEvent.NameForVersion(Version: TX3DVersion): string;
 begin
-  Result := FAlternativeNames[Version.Major];
+  if Version.Major < Length(FAlternativeNames) then
+    Result := FAlternativeNames[Version.Major]
+  else
+    Result := '';
+
   if Result = '' then
     Result := X3DName;
 end;
