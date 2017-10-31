@@ -34,11 +34,11 @@
   private
     FX3DName: string;
 
-    { A really simple (but good enough for now) implementation of
-      AddAlternativeName:
-      - there are only 0 (none), 1, 2, and 3 VRML major versions
-      - each VRML major version has exactly one alt name
-      - alt name is never '' ('' means that alt name doesn't exist) }
+    { Implementation of AddAlternativeName uses it like this:
+      - FAlternativeNames[0] is alternative for any VRML/X3D version
+      - FAlternativeNames[1], [2], [3] is alternative for VRML 1.0, VRML 2.0 (97) and X3D
+      - any FAlternativeNames[...] that is '' should be ignored
+    }
     FAlternativeNames: array of string;
   strict protected
     procedure FieldOrEventAssignCommon(Source: TX3DFieldOrEvent);
