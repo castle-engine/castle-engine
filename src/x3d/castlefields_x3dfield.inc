@@ -56,9 +56,11 @@
   }
   TX3DField = class(TX3DFieldOrEvent)
   strict private
-    FExposed: boolean;
     FExposedEvents: array [boolean] of TX3DEvent;
     FChangesAlways: TX3DChanges;
+
+    // keep booleans together, to pack them together in memory
+    FExposed: boolean;
     FValueFromIsClause: boolean;
     FExposedEventsLinked: boolean;
 
