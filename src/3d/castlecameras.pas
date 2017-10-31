@@ -2434,7 +2434,7 @@ begin
     { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
     if Turntable then
-      ZoomScale := 40 else
+      ZoomScale := 30 else
       ZoomScale := 10;
     if Zoom(Event.MouseWheelScroll / ZoomScale) then
        Result := ExclusiveEvents;
@@ -2497,9 +2497,15 @@ var
   var
     W2, H2, AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
   begin
-    if (not ContainerSizeKnown) or Turntable then
+    if (not ContainerSizeKnown) then
     begin
       Result := XYRotation(1);
+    end else if Turntable then
+    begin
+      //Result := XYRotation(0.5); // this matches the rotation speed of ntExamine
+      { Do one turn around Y axis by dragging from one viewport side to another
+        (so it does not depend on viewport size)  }
+      Result := XYRotation(2 * Pi * MoveDivConst / Container.Width);
     end else
     begin
       { When the cursor is close to the window edge, make rotation around Z axis.
