@@ -413,7 +413,7 @@ type
     property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
 
     { Whether to use Phong shading by default for all shapes.
-      Note that each shape may override it by @link(TShapeNode.Shading) field. }
+      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
     property PhongShading: boolean read FPhongShading write SetPhongShading;
 
     { Custom GLSL shader to use for the whole scene.

@@ -123,11 +123,14 @@
       This epsilon is either done through the standard Math.SameValue and Math.IsZero
       or by using our own SingleEpsilon and DoubleEpsilon constants
       (they are equal to standard Math unit epsilon values).
-      The floating-point vector and matrix comparison methods,
-      like @link(TVector3.Equals) and @link(TVector3.IsZero), compare with such epsilon.
+      The floating-point vector and matrix comparison methods, like
+      @link(CastleVectorsInternalSingle.TGenericVector3.Equals TVector3.Equals) and
+      @link(CastleVectorsInternalSingle.TGenericVector3.IsZero TVector3.IsZero), compare with such epsilon.
 
       If you really want to compare things precisely,
-      use methods like @link(TVector3.PerfectlyEquals) or @link(TVector3.IsPerfectlyZero).
+      use methods like
+      @link(CastleVectorsInternalSingle.TGenericVector3.PerfectlyEquals TVector3.PerfectlyEquals) or
+      @link(CastleVectorsInternalSingle.TGenericVector3.IsPerfectlyZero TVector3.IsPerfectlyZero).
     )
 
     @item(For collision-detecting routines, the general strategy

@@ -378,7 +378,7 @@ type
     { Choose navigation method by creating and adjusting the camera,
       and various camera properies (like TWalkCamera.Gravity and so on).
       This is automatically determined from the currently bound NavigatinInfo X3D
-      node in the @link(MainScene).
+      node in the @link(GetMainScene).
       You can also set this manually, thus overriding the NavigatinInfo node.
 
       This is a shortcut property for adjusting the camera class
@@ -393,7 +393,7 @@ type
 
       When the camera is created for the first time,
       it's parameters are determined from the current NavigationInfo
-      and Viewpoint nodes in @link(MainScene), and from bounding box of the world.
+      and Viewpoint nodes in @link(GetMainScene), and from bounding box of the world.
       When the camera class is switched later, the common camera properties
       (defined at TCamera, like @link(TCamera.Radius) and view vectors
       -- position, direction, up) are copied, so they are preserved.

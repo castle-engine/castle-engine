@@ -60,9 +60,9 @@ type
     On iOS, communication happens synchronously -- when Pascal sends the message,
     the relevant Objective-C code is executed immediately,
     and messages from Objective-C code execute appropriate Pascal code immediately.
-    Take this into account, e.g. @link(TGooglePlayGames.OnSignedInChanged) callback
-    @italic(may) be executed right inside the @link(TGooglePlayGames.Initialize)
-    or @link(TGooglePlayGames.RequestSignedIn)
+    Take this into account, e.g. @link(TGameService.OnSignedInChanged) callback
+    @italic(may) be executed right inside the @link(TGameService.Initialize)
+    or @link(TGameService.RequestSignedIn)
     call on iOS, if there's no network communication necessary to answer.
 
     This is used automatically by various engine classes like

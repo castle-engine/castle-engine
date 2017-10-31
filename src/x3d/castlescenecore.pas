@@ -1831,7 +1831,7 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(Attributes). }
+      in @link(TCastleScene.Attributes). }
     function Clone(const AOwner: TComponent): TCastleSceneCore;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.

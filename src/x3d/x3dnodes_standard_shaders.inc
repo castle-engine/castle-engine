@@ -17,7 +17,7 @@
   TShaderPartNode = class;
   TShaderProgramNode = class;
 
-  { Shader language used for @link(TShaderPart.Language) and @link(TEffectPart.Language). }
+  { Shader language used for @link(TAbstractShaderNode.Language) and @link(TEffectNode.Language). }
   TShaderLanguage = (slDefault, slCG, slGLSL, slHLSL);
 
   { Base type for all node types that specify a programmable shader. }

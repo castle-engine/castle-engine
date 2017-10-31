@@ -274,7 +274,7 @@
       allowed here, but everything allows TextureCoordinateGenerator
       and ProjectedTextureCoordinate instances.
 
-      This gives you more possibilities than the @link(TexCoord) method
+      This gives you more possibilities than the @link(InternalTexCoord) method
       (as you can assign texCoord using this), however it may be not available
       in all cases --- for example VRML 1.0 nodes do not have texCoord field,
       but they may have a texture coordinate node (from the state). }

@@ -415,7 +415,7 @@
 
       In overridden descendants, this can also do something immediately.
       Overriding this is similar to registering your callback by
-      @link(EventOut.AddNotification), with two additional benefits:
+      @link(TX3DEvent.AddNotification EventOut.AddNotification), with two additional benefits:
 
       @orderedList(
         @item(This method may be not called (although no guarantees)
@@ -429,7 +429,7 @@
       )
 
       So overridding this is closer to "do something when field value changes"
-      than registering notification by @link(EventOut.AddNotification). }
+      than registering notification by @link(TX3DEvent.AddNotification EventOut.AddNotification). }
     function ExecuteChanges: TX3DChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
