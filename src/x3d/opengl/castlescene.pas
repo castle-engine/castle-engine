@@ -290,10 +290,17 @@ type
       described in detail in "GPU Gems 2",
       Chapter 6: "Hardware Occlusion Queries Made Useful",
       by Michael Wimmer and Jiri Bittner. Online on
-      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html]. }
+      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html].
+
+      @exclude
+      @bold(Experimental):
+      Using the "Hierarchical Occlusion Query" is not adviced in the current implementation,
+      it is slow and it does not treat transparent shapes correctly.
+    }
     property UseHierarchicalOcclusionQuery: boolean
       read FUseHierarchicalOcclusionQuery
       write FUseHierarchicalOcclusionQuery default false;
+      experimental;
 
     { View only the shapes that were detected as visible by occlusion query
       in last Render.
@@ -1210,8 +1217,10 @@ var
       begin
         SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_NoTests, Params);
       end else
+      {$warnings off}
       if Attributes.DebugHierOcclusionQueryResults and
          Attributes.UseHierarchicalOcclusionQuery then
+      {$warnings on}
       begin
         if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
           RenderShape_NoTests(Shape);
@@ -2220,7 +2229,9 @@ begin
     OcclusionSort := S.OcclusionSort;
     ControlBlending := S.ControlBlending;
     UseOcclusionQuery := S.UseOcclusionQuery;
+    {$warnings off}
     UseHierarchicalOcclusionQuery := S.UseHierarchicalOcclusionQuery;
+    {$warnings on}
     inherited;
   end else
     inherited;
@@ -2293,19 +2304,22 @@ end;
 
 function TSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
 begin
+  {$warnings off}
   Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
-function TSceneRenderingAttributes.
-  ReallyUseHierarchicalOcclusionQuery: boolean;
+function TSceneRenderingAttributes.ReallyUseHierarchicalOcclusionQuery: boolean;
 begin
+  {$warnings off}
   Result := UseHierarchicalOcclusionQuery and
     GLFeatures.ARB_occlusion_query and
     GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
 procedure TSceneRenderingAttributes.SetPhongShading(const Value: boolean);
