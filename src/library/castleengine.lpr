@@ -56,18 +56,18 @@ var
   Window: TCastleWindowTouch;
   Crosshair: TCrosshairManager;
 
-function CGE_VerifyWindow: boolean;
+function CGE_VerifyWindow(const FromFunc: string): boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil);
   if not Result then
-    WarningWrite('CGE not initialized (CGE_Open not called)');
+    WarningWrite(FromFunc + ' : CGE not initialized (CGE_Open not called)');
 end;
 
-function CGE_VerifyScene: boolean;
+function CGE_VerifyScene(const FromFunc: string): boolean;
 begin
   Result := (Window <> nil) and (Window.SceneManager <> nil) and (Window.MainScene <> nil);
   if not Result then
-    WarningWrite('CGE scene not initialized (CGE_LoadSceneFromFile not called)');
+    WarningWrite(FromFunc + ': CGE scene not initialized (CGE_LoadSceneFromFile not called)');
 end;
 
 procedure CGE_Open(flags: cUInt32; InitialWidth, InitialHeight: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
@@ -96,7 +96,7 @@ end;
 procedure CGE_Close; cdecl;
 begin
   try
-    if not CGE_VerifyWindow then Exit;
+    if not CGE_VerifyWindow('CGE_Close') then Exit;
 
     if Window.MainScene <> nil then
       Window.MainScene.OnPointingDeviceSensorsChange := nil;
@@ -124,7 +124,7 @@ end;
 procedure CGE_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_Resize') then exit;
     CGEApp_Resize(uiViewWidth, uiViewHeight);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -134,7 +134,7 @@ end;
 procedure CGE_Render; cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_Render') then exit;
     CGEApp_Render;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -149,7 +149,7 @@ var
   C: TUIControl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_SaveScreenshotToFile') then exit;
 
     Restore2D := TUIControlList.Create(false);
     try
@@ -189,7 +189,7 @@ end;
 procedure CGE_Update; cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_Update') then exit;
     CGEApp_Update;
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -199,7 +199,7 @@ end;
 procedure CGE_MouseDown(X, Y: CInt32; bLeftBtn: cBool; FingerIndex: CInt32); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_MouseDown') then exit;
     CGEApp_MouseDown(X, Y, bLeftBtn, FingerIndex);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -209,7 +209,7 @@ end;
 procedure CGE_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_Motion') then exit;
     CGEApp_Motion(X, Y, FingerIndex);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -220,7 +220,7 @@ procedure CGE_MouseUp(X, Y: cInt32; bLeftBtn: cBool;
   FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_MouseUp') then exit;
     CGEApp_MouseUp(X, Y, bLeftBtn, FingerIndex, TrackReleased);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -230,7 +230,7 @@ end;
 procedure CGE_MouseWheel(zDelta: cFloat; bVertical: cBool); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_MouseWheel') then exit;
     // TODO: no corresponding CGEApp callback, as not implemented in iOS code
     // (in ios_tested not used anyway, because USE_GESTURE_RECOGNIZERS
     // undefined, and also --- pinch is not really a mouse wheel)
@@ -243,7 +243,7 @@ end;
 procedure CGE_KeyDown(eKey: CInt32); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_KeyDown') then exit;
     CGEApp_KeyDown(eKey);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -253,7 +253,7 @@ end;
 procedure CGE_KeyUp(eKey: CInt32); cdecl;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_KeyUp') then exit;
     CGEApp_KeyUp(eKey);
   except
     on E: TObject do WritelnWarning('Window', ExceptMessage(E));
@@ -276,7 +276,7 @@ end;
 function CGE_GetViewpointsCount(): cInt32; cdecl;
 begin
   try
-    if not CGE_VerifyScene then
+    if not CGE_VerifyScene('CGE_GetViewpointsCount') then
     begin
       Result := 0;
       exit;
@@ -297,7 +297,7 @@ var
   sName: string;
 begin
   try
-    if not CGE_VerifyScene then exit;
+    if not CGE_VerifyScene('CGE_GetViewpointName') then exit;
 
     sName := Window.MainScene.GetViewpointName(iViewpointIdx);
     StrPLCopy(szName, sName, nBufSize-1);
@@ -309,7 +309,7 @@ end;
 procedure CGE_MoveToViewpoint(iViewpointIdx: cInt32; bAnimated: cBool); cdecl;
 begin
   try
-    if not CGE_VerifyScene then exit;
+    if not CGE_VerifyScene('CGE_MoveToViewpoint') then exit;
 
     Window.MainScene.MoveToViewpoint(iViewpointIdx, bAnimated);
   except
@@ -320,7 +320,7 @@ end;
 procedure CGE_AddViewpointFromCurrentView(szName: pcchar); cdecl;
 begin
   try
-    if not CGE_VerifyScene then exit;
+    if not CGE_VerifyScene('CGE_AddViewpointFromCurrentView') then exit;
 
     Window.MainScene.AddViewpointFromCamera(
       Window.SceneManager.Camera, StrPas(PChar(szName)));
@@ -334,7 +334,7 @@ var
   BBox: TBox3D;
 begin
   try
-    if not CGE_VerifyScene then exit;
+    if not CGE_VerifyScene('CGE_GetBoundingBox') then exit;
 
     BBox := Window.MainScene.BoundingBox;
     pfXMin^ := BBox.Data[0].Data[0]; pfXMax^ := BBox.Data[1].Data[0];
@@ -351,7 +351,7 @@ var
   Pos, Dir, Up, GravityUp: TVector3;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_GetViewCoords') then exit;
 
     Window.SceneManager.Camera.GetView(Pos, Dir, Up, GravityUp);
     pfPosX^ := Pos[0]; pfPosY^ := Pos[1]; pfPosZ^ := Pos[2];
@@ -370,7 +370,7 @@ var
   Pos, Dir, Up, GravityUp: TVector3;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_MoveViewToCoords') then exit;
 
     Pos[0] := fPosX; Pos[1] := fPosY; Pos[2] := fPosZ;
     Dir[0] := fDirX; Dir[1] := fDirY; Dir[2] := fDirZ;
@@ -388,7 +388,7 @@ end;
 function CGE_GetNavigationType(): cInt32; cdecl;
 begin
   try
-    if not CGE_VerifyWindow then Exit(-1);
+    if not CGE_VerifyWindow('CGE_GetNavigationType') then Exit(-1);
 
     case Window.NavigationType of
       ntWalk     : Result := 0;
@@ -412,7 +412,7 @@ var
   aNavType: TNavigationType;
 begin
   try
-    if not CGE_VerifyWindow then exit;
+    if not CGE_VerifyWindow('CGE_SetNavigationType') then exit;
 
     case NewType of
       0: aNavType := ntWalk;
@@ -535,15 +535,13 @@ begin
       end;
 
       8: begin    // ecgevarHeadlight
-        Window.MainScene.HeadlightOn := (nValue > 0);
+        if Window.MainScene <> nil then
+           Window.MainScene.HeadlightOn := (nValue > 0);
       end;
 
       9: begin    // ecgevarOcclusionQuery
-        Window.MainScene.Attributes.UseOcclusionQuery := (nValue > 0);
-      end;
-
-      10: begin    // ecgevarHierarchicalOcclQuery
-        Window.MainScene.Attributes.UseHierarchicalOcclusionQuery := (nValue > 0);
+        if Window.MainScene <> nil then
+           Window.MainScene.Attributes.UseOcclusionQuery := (nValue > 0);
       end;
 
     end;
@@ -615,19 +613,13 @@ begin
       end;
 
       8: begin    // ecgevarHeadlight
-        if Window.MainScene.HeadlightOn then
+        if (Window.MainScene <> nil) and Window.MainScene.HeadlightOn then
           Result := 1 else
           Result := 0;
       end;
 
       9: begin    // ecgevarOcclusionQuery
-        if Window.MainScene.Attributes.UseOcclusionQuery then
-          Result := 1 else
-          Result := 0;
-      end;
-
-      10: begin    // ecgevarHierarchicalOcclQuery
-        if Window.MainScene.Attributes.UseHierarchicalOcclusionQuery then
+        if (Window.MainScene <> nil) and Window.MainScene.Attributes.UseOcclusionQuery then
           Result := 1 else
           Result := 0;
       end;
@@ -645,7 +637,7 @@ var
   aField: TX3DField;
 begin
   try
-    if not CGE_VerifyScene then exit;
+    if not CGE_VerifyScene('CGE_SetNodeFieldValue') then exit;
 
     // find node and field
     aField := Window.MainScene.Field(PChar(szNodeName), PChar(szFieldName));

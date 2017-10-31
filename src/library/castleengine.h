@@ -36,7 +36,9 @@
 #    define CDECL
 #  endif
 #else
-#  define CDECL __cdecl
+#  ifndef CDECL
+#    define CDECL __cdecl
+#  endif
 #endif
 
 #ifdef __cplusplus
@@ -61,7 +63,6 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
     ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
     ecgevarOcclusionQuery  = 9,   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
-    ecgevarHierarchicalOcclQuery  = 10, // hierarchical occlusion query (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType
