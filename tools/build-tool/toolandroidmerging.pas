@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Android project services and their configurations. }
-unit ToolAndroidServices;
+{ Merging of some special Android project files. }
+unit ToolAndroidMerging;
 
 interface
 
@@ -25,24 +25,6 @@ uses SysUtils, Generics.Collections, DOM,
 type
   ECannotMergeManifest = class(Exception);
   ECannotMergeBuildGradle = class(Exception);
-
-  TAndroidService = class
-  private
-    FParameters: TStringStringMap;
-    FName: string;
-  public
-    constructor Create;
-    destructor Destroy; override;
-    procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    property Name: string read FName;
-    property Parameters: TStringStringMap read FParameters;
-  end;
-
-  TAndroidServiceList = class(specialize TObjectList<TAndroidService>)
-  public
-    procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function HasService(const Name: string): boolean;
-  end;
 
 procedure MergeAndroidManifest(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
@@ -58,88 +40,6 @@ implementation
 uses Classes, XMLRead, XMLWrite,
   CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
 
-{ TAndroidService ---------------------------------------------------------- }
-
-constructor TAndroidService.Create;
-begin
-  inherited;
-  FParameters := TStringStringMap.Create;
-end;
-
-destructor TAndroidService.Destroy;
-begin
-  FreeAndNil(FParameters);
-  inherited;
-end;
-
-procedure TAndroidService.ReadCastleEngineManifest(const Element: TDOMElement);
-var
-  ChildElements: TXMLElementIterator;
-  ChildElement: TDOMElement;
-  Key, Value: string;
-begin
-  FName := Element.AttributeString('name');
-
-  ChildElements := Element.ChildrenIterator('parameter');
-  try
-    while ChildElements.GetNext do
-    begin
-      ChildElement := ChildElements.Current;
-      Key := ChildElement.AttributeString('key');
-      if ChildElement.HasAttribute('value') then
-        Value := ChildElement.AttributeString('value')
-      else
-      begin
-        Value := ChildElement.TextData;
-        { value cannot be empty in this case }
-        if Value = '' then
-          raise Exception.CreateFmt('No value for key "%s" specified in CastleEngineManifest.xml', [Key]);
-      end;
-      FParameters.Add(Key, Value);
-    end;
-  finally FreeAndNil(ChildElements) end;
-end;
-
-{ TAndroidServiceList ------------------------------------------------------ }
-
-procedure TAndroidServiceList.ReadCastleEngineManifest(const Element: TDOMElement);
-var
-  ChildElements: TXMLElementIterator;
-  ChildElement: TDOMElement;
-  Service: TAndroidService;
-begin
-  ChildElements := Element.ChildrenIterator('component');
-  try
-    while ChildElements.GetNext do
-    begin
-      ChildElement := ChildElements.Current;
-      Service := TAndroidService.Create;
-      Add(Service);
-      Service.ReadCastleEngineManifest(ChildElement);
-    end;
-  finally FreeAndNil(ChildElements) end;
-
-  ChildElements := Element.ChildrenIterator('service');
-  try
-    while ChildElements.GetNext do
-    begin
-      ChildElement := ChildElements.Current;
-      Service := TAndroidService.Create;
-      Add(Service);
-      Service.ReadCastleEngineManifest(ChildElement);
-    end;
-  finally FreeAndNil(ChildElements) end;
-end;
-
-function TAndroidServiceList.HasService(const Name: string): boolean;
-var
-  I: Integer;
-begin
-  for I := 0 to Count - 1 do
-    if Items[I].Name = Name then
-      Exit(true);
-  Result := false;
-end;
 
 { globals -------------------------------------------------------------------- }
 

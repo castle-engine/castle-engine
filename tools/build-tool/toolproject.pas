@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidServices;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolServices;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -54,7 +54,7 @@ type
     FAndroidBuildToolsVersion: string;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
-    FAndroidServices: TAndroidServiceList;
+    FAndroidServices, FIOSServices: TServiceList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     IOSTeam: string;
@@ -155,7 +155,8 @@ type
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
     property SearchPaths: TStringList read FSearchPaths;
-    property AndroidServices: TAndroidServiceList read FAndroidServices;
+    property AndroidServices: TServiceList read FAndroidServices;
+    property IOSServices: TServiceList read FIOSServices;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -202,7 +203,7 @@ implementation
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
-  ToolTextureGeneration, ToolIOS;
+  ToolTextureGeneration, ToolIOS, ToolAndroidMerging;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
@@ -536,6 +537,10 @@ constructor TCastleProject.Create(const APath: string);
 
           FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
             DefaultUsesNonExemptEncryption);
+
+          ChildElement := Element.ChildElement('services', false);
+          if ChildElement <> nil then
+            FIOSServices.ReadCastleEngineManifest(ChildElement);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -624,7 +629,8 @@ begin
   FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
-  FAndroidServices := TAndroidServiceList.Create(true);
+  FAndroidServices := TServiceList.Create(true);
+  FIOSServices := TServiceList.Create(true);
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -645,6 +651,7 @@ begin
   FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
   FreeAndNil(FAndroidServices);
+  FreeAndNil(FIOSServices);
   inherited;
 end;
 
@@ -1516,6 +1523,7 @@ begin
     Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
     Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
     Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
+    // TODO: when needed, do the analogous for iOS services
     for I := 0 to AndroidServices.Count - 1 do
       for AndroidServiceParameterPair in AndroidServices[I].Parameters do
         Macros.Add('ANDROID.' +

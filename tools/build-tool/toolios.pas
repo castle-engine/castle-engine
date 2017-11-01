@@ -36,7 +36,7 @@ implementation
 
 uses SysUtils,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils,
-  ToolEmbeddedImages, ToolIosPbxGeneration;
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -107,18 +107,28 @@ procedure PackageIOS(const Project: TCastleProject);
 var
   XCodeProject: string;
 
-  { Generate files for Android project from templates. }
+  { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;
   begin
     Project.ExtractTemplate('ios/xcode_project/', XCodeProject);
   end;
 
   procedure GenerateServicesFromTemplates;
+
+    procedure ExtractService(const ServiceName: string);
+    begin
+      Project.ExtractTemplate('ios/services/' + ServiceName + '/', XCodeProject);
+    end;
+
+  var
+    S: TService;
   begin
-    // TODO: support IosComponents
-    if depOggVorbis in Project.Dependencies then
-      Project.ExtractTemplate('ios/services/ogg_vorbis/', XCodeProject);
-    Project.ExtractTemplate('ios/services/apple_game_center/',  XCodeProject);
+    for S in Project.IOSServices do
+      ExtractService(S.Name);
+
+    if (depOggVorbis in Project.Dependencies) and
+       not Project.IOSServices.HasService('ogg_vorbis') then
+      ExtractService('ogg_vorbis');
   end;
 
   { Generate icons, in various sizes, from the base icon. }
@@ -296,8 +306,8 @@ var
       PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GLKit'));
       PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenAL'));
 
-      // TODO: only for game_services
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GameKit'));
+      if Project.IOSServices.HasService('apple_game_center') then
+        PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GameKit'));
 
       PBXContentsGenerated := PbxProject.PBXContents;
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
