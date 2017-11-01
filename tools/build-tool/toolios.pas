@@ -36,7 +36,7 @@ implementation
 
 uses SysUtils,
   CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils,
-  ToolEmbeddedImages;
+  ToolEmbeddedImages, ToolIosPbxGeneration;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -111,6 +111,14 @@ var
   procedure GenerateFromTemplates;
   begin
     Project.ExtractTemplate('ios/xcode_project/', XCodeProject);
+  end;
+
+  procedure GenerateServicesFromTemplates;
+  begin
+    // TODO: support IosComponents
+    if depOggVorbis in Project.Dependencies then
+      Project.ExtractTemplate('ios/services/ogg_vorbis/', XCodeProject);
+    Project.ExtractTemplate('ios/services/apple_game_center/',  XCodeProject);
   end;
 
   { Generate icons, in various sizes, from the base icon. }
@@ -270,6 +278,39 @@ var
     finally FreeAndNil(Files) end;
   end;
 
+  (* Add a large auto-generated chunk into the pbx file, replacing a special macro
+    ${PBX_CONTENTS_GENERATED} inside the pbx file. *)
+  procedure FixPbxProjectFile;
+  var
+    PbxProject: TXCodeProject;
+    PBXContentsGenerated, PBX, PBXFileUrl: string;
+  begin
+    PbxProject := TXCodeProject.Create;
+    try
+      PbxProject.AddTopLevelDir(XCodeProject, Project.Name);
+
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('Foundation'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('CoreGraphics'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('UIKit'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenGLES'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GLKit'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenAL'));
+
+      // TODO: only for game_services
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GameKit'));
+
+      PBXContentsGenerated := PbxProject.PBXContents;
+      // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
+      PBXContentsGenerated := Project.ReplaceMacros(PBXContentsGenerated);
+
+      PBXFileUrl := FilenameToURISafe(
+        XCodeProject + Project.Name + '.xcodeproj' + PathDelim + 'project.pbxproj');
+      PBX := FileToString(PBXFileUrl);
+      StringReplaceAllVar(PBX, '${PBX_CONTENTS_GENERATED}', PBXContentsGenerated, false);
+      StringToFile(PBXFileUrl, PBX);
+    finally FreeAndNil(PbxProject) end;
+  end;
+
   { Copy compiled library into XCode project. }
   procedure GenerateLibrary;
   var
@@ -288,11 +329,8 @@ begin
     RemoveNonEmptyDir(XCodeProject);
 
   GenerateFromTemplates;
-
-  if depOggVorbis in Project.Dependencies then
-    Project.ExtractTemplate('ios/services/ogg_vorbis/cge_project_name/tremolo/',
-      XCodeProject + Project.Name + PathDelim + 'tremolo/');
-
+  GenerateServicesFromTemplates;
+  FixPbxProjectFile; // must be done *after* all files for services are created
   GenerateIcons;
   GenerateLaunchImages;
   GenerateData;

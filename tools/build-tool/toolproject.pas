@@ -1388,17 +1388,27 @@ const
    '<uses-feature android:name="android.hardware.screen.portrait"/>');
 
   IOSScreenOrientation: array [TScreenOrientation] of string =
-  (CharTab + CharTab + '<string>UIInterfaceOrientationPortrait</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+  (#9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   CharTab + CharTab + '<string>UIInterfaceOrientationPortrait</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
+   #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
   );
+
+  Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG =
+    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = (' + NL +
+    #9#9#9#9#9'"ONLY_C=1",' + NL +
+    #9#9#9#9#9'"DEBUG=1",' + NL +
+    #9#9#9#9#9'"$(inherited)",' + NL +
+    #9#9#9#9');' + NL;
+
+  Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE =
+    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = "ONLY_C=1";' + NL;
 
   function AndroidActivityLoadLibraries: string;
   begin
@@ -1454,8 +1464,6 @@ const
     else
       Result := Version;
   end;
-
-  {$I data/ios/services/ogg_vorbis/cge_project_name.xcodeproj/project.pbxproj.inc}
 
 var
   Macros: TStringStringMap;
@@ -1527,11 +1535,11 @@ begin
     if IOSTeam <> '' then
     begin
       Macros.Add('IOS_TARGET_ATTRIBUTES',
-        CharTab + CharTab + CharTab + CharTab + 'TargetAttributes = {' + NL +
-        CharTab + CharTab + CharTab + CharTab + CharTab + '4D629DF31916B0EB0082689B = {' + NL +
-        CharTab + CharTab + CharTab + CharTab + CharTab + CharTab + 'DevelopmentTeam = ' + IOSTeam + ';' + NL +
-        CharTab + CharTab + CharTab + CharTab + CharTab + '};' + NL +
-        CharTab + CharTab + CharTab + CharTab + '};' + NL);
+        #9#9#9#9'TargetAttributes = {' + NL +
+        #9#9#9#9#9'4D629DF31916B0EB0082689B = {' + NL +
+        #9#9#9#9#9#9'DevelopmentTeam = ' + IOSTeam + ';' + NL +
+        #9#9#9#9#9'};' + NL +
+        #9#9#9#9'};' + NL);
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
     end else
     begin
@@ -1540,22 +1548,10 @@ begin
     end;
     if depOggVorbis in Dependencies then
     begin
-      Macros.Add('IOS_EXTRA_PBXBuildFile'                  , Tremolo_IOS_EXTRA_PBXBuildFile);
-      Macros.Add('IOS_EXTRA_PBXFileReference'              , Tremolo_IOS_EXTRA_PBXFileReference);
-      Macros.Add('IOS_EXTRA_PBXGroup'                      , Tremolo_IOS_EXTRA_PBXGroup);
-      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup'            , Tremolo_IOS_EXTRA_PBXGroup_MainGroup);
-      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase'        , Tremolo_IOS_EXTRA_PBXResourcesBuildPhase);
-      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase'          , Tremolo_IOS_EXTRA_PBXSourcesBuildPhase);
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG'  , Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG);
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE);
     end else
     begin
-      Macros.Add('IOS_EXTRA_PBXBuildFile', '');
-      Macros.Add('IOS_EXTRA_PBXFileReference', '');
-      Macros.Add('IOS_EXTRA_PBXGroup', '');
-      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup', '');
-      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase', '');
-      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase', '');
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG', '');
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', '');
     end;
