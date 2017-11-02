@@ -1654,8 +1654,7 @@ begin
       MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
     if SameText(DestinationRelativeFileNameSlashes, 'build.gradle') then
       MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
-    if Verbose then
-      Writeln('Not overwriting custom ' + DestinationRelativeFileName);
+    WritelnWarning('Template not overwriting custom ' + DestinationRelativeFileName);
     Exit;
   end;
 
