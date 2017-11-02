@@ -60,6 +60,7 @@
 	<key>UIRequiredDeviceCapabilities</key>
 	<array>
 		<string>armv7</string>
+${IOS_REQUIRED_DEVICE_CAPABILITIES}
 	</array>
 	<key>UIRequiresFullScreen</key>
 	<true/>

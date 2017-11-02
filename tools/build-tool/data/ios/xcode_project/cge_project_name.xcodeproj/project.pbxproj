@@ -33,7 +33,11 @@ ${PBX_CONTENTS_GENERATED}
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0900;
-				${IOS_TARGET_ATTRIBUTES}
+				TargetAttributes = {
+					4D629DF31916B0EB0082689B = {
+${IOS_TARGET_ATTRIBUTES}
+					};
+				};
 				ORGANIZATIONNAME = "${AUTHOR}";
 			};
 			buildConfigurationList = 4D629DEF1916B0EA0082689B /* Build configuration list for PBXProject "${NAME}" */;

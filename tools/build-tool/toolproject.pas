@@ -1475,7 +1475,8 @@ const
 var
   Macros: TStringStringMap;
   I: Integer;
-  P, NonEmptyAuthor, AndroidLibraryName: string;
+  P, NonEmptyAuthor, AndroidLibraryName, IOSTargetAttributes,
+    IOSRequiredDeviceCapabilities: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
   AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
@@ -1540,20 +1541,32 @@ begin
       Macros.Add('IOS_EXTRA_INFO_PLIST', '<key>ITSAppUsesNonExemptEncryption</key> <false/>')
     else
       Macros.Add('IOS_EXTRA_INFO_PLIST', '');
+
+    IOSTargetAttributes := '';
+    IOSRequiredDeviceCapabilities := '';
     if IOSTeam <> '' then
     begin
-      Macros.Add('IOS_TARGET_ATTRIBUTES',
-        #9#9#9#9'TargetAttributes = {' + NL +
-        #9#9#9#9#9'4D629DF31916B0EB0082689B = {' + NL +
-        #9#9#9#9#9#9'DevelopmentTeam = ' + IOSTeam + ';' + NL +
-        #9#9#9#9#9'};' + NL +
-        #9#9#9#9'};' + NL);
+      IOSTargetAttributes := IOSTargetAttributes +
+        #9#9#9#9#9#9'DevelopmentTeam = ' + IOSTeam + ';' + NL;
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
     end else
     begin
-      Macros.Add('IOS_TARGET_ATTRIBUTES', '');
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
     end;
+    if IOSServices.HasService('apple_game_center') then
+    begin
+      IOSTargetAttributes := IOSTargetAttributes +
+        #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+        #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
+        #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+        #9#9#9#9#9#9#9'};' + NL +
+        #9#9#9#9#9#9'};' + NL;
+      IOSRequiredDeviceCapabilities := IOSRequiredDeviceCapabilities +
+        #9#9'<string>gamekit</string>' + NL;
+    end;
+    Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
+    Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
+
     if depOggVorbis in Dependencies then
     begin
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG'  , Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG);
