@@ -1643,18 +1643,28 @@ begin
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
+
+    if SameText(DestinationRelativeFileNameSlashes, Name + '/AppDelegate.m') then
+      MergeIOSAppDelegate(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
-      MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
-      MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/jni/Android.mk') or
        SameText(DestinationRelativeFileNameSlashes, 'app/src/main/custom-proguard-project.txt') then
-      MergeAppend(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeAppend(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/build.gradle') then
-      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'build.gradle') then
-      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
-    WritelnWarning('Template not overwriting custom ' + DestinationRelativeFileName);
+      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
+      WritelnWarning('Template not overwriting custom ' + DestinationRelativeFileName);
+
     Exit;
   end;
 

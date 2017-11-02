@@ -19,7 +19,7 @@
 #import "ServiceAbstract.h"
 
 // import services
-${IOS_SERVICES_IMPORT}
+/* IOS-SERVICES-IMPORT */
 
 AppDelegate* appDelegateToReceiveMessages;
 
@@ -39,7 +39,7 @@ void receiveMessageFromPascal(const char* message)
     services = [[NSMutableArray alloc] init];
 
     // create services
-    ${IOS_SERVICES_CREATE}
+    /* IOS-SERVICES-CREATE */
 
     // call applicationDidFinishLaunchingWithOptions on all services
     for (int i = 0; i < [services count]; i++) {

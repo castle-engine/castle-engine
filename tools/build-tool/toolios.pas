@@ -32,10 +32,13 @@ procedure PackageIOS(const Project: TCastleProject);
 procedure InstallIOS(const Project: TCastleProject);
 procedure RunIOS(const Project: TCastleProject);
 
+procedure MergeIOSAppDelegate(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+
 implementation
 
-uses SysUtils,
-  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils,
+uses SysUtils, DOM,
+  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
   ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices;
 
 const
@@ -362,6 +365,56 @@ procedure RunIOS(const Project: TCastleProject);
 begin
   // TODO
   raise Exception.Create('The "run" command is not implemented for iOS right now');
+end;
+
+type
+  ECannotMergeAppDelegate = class(Exception);
+
+procedure MergeIOSAppDelegate(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+const
+  MarkerImport = '/* IOS-SERVICES-IMPORT */';
+  MarkerCreate = '/* IOS-SERVICES-CREATE */';
+  CreateTemplate =
+    '{' + NL +
+    '%s* serviceInstance;' + NL +
+    'serviceInstance = [[%0:s alloc] init];' + NL +
+    'serviceInstance.mainController = viewController;' + NL +
+    'serviceInstance.window = self.window;' + NL +
+    '[services addObject: serviceInstance];' + NL +
+    '}';
+
+var
+  DestinationContents: string;
+
+  procedure InsertAtMarker(const Marker, Insertion: string);
+  var
+    MarkerPos: Integer;
+  begin
+    MarkerPos := Pos(Marker, DestinationContents);
+    if MarkerPos = 0 then
+      raise ECannotMergeAppDelegate.CreateFmt('Cannot find marker "%s" in AppDelegate.m', [Marker]);
+    Insert(Trim(Insertion) + NL, DestinationContents, MarkerPos);
+  end;
+
+var
+  SourceDocument: TXMLDocument;
+  Import, CreateClass, CreateCode: string;
+begin
+  SourceDocument := URLReadXML(Source);
+  try
+    if SourceDocument.DocumentElement.TagName <> 'app_delegate_patch' then
+      raise ECannotMergeAppDelegate.Create('The source file from which to merge AppDelegate.m must be XML with root <app_delegate_patch>');
+    Import := SourceDocument.DocumentElement.ChildElement('import').TextData;
+    CreateClass := SourceDocument.DocumentElement.ChildElement('class').TextData;
+  finally FreeAndNil(SourceDocument) end;
+
+  CreateCode := Format(CreateTemplate, [CreateClass]);
+
+  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  InsertAtMarker(MarkerImport, Import);
+  InsertAtMarker(MarkerCreate, CreateCode);
+  StringToFile(Destination, DestinationContents);
 end;
 
 end.

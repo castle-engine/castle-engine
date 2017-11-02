@@ -1,16 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <app_delegate_patch>
-
-<import>
-#import "game_center/GameCenterService.h"
-</import>
-
-<create>
-GameCenterService* gameCenterService;
-gameCenterService = [[GameCenterService alloc] init];
-gameCenterService.mainController = viewController;
-gameCenterService.window = self.window;
-[services addObject: gameCenterService];
-</create>
-
+<!--
+  This describes a modification to the AppDelegate.m in the XCode project
+  to insert GameCenterService.
+-->
+<import>#import "game_center/GameCenterService.h"</import>
+<class>GameCenterService</class>
 </app_delegate_patch>
