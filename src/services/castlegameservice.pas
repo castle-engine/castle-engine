@@ -129,10 +129,6 @@ type
       Most calls (like sending or showing the leaderboars) will be ignored until
       you call this.
 
-      Remember that on iOS, communication is synchronous, so it may even immediately
-      call some callback like OnSignedInChanged, when no network communication is necessary
-      to answer.
-
       @param(SaveGames Indicates whether you want to use save games feature.
         You can then use @link(ShowSaveGames), @link(SaveGameSave), @link(SaveGameLoad)
         methods. See also the description of this feature in Google Play Games:
@@ -167,10 +163,8 @@ type
 
     { Get the best score, if available, for given leaderboard.
 
-      This may (after some unspecified time, asynchronously) call
+      This may (after some time, asynchronously) call
       OnPlayerBestScoreReceived with this score.
-      On iOS, communication is synchronous, so it may also immediately
-      call OnPlayerBestScoreReceived, when no network communication is necessary to answer.
 
       Note that no error is signalled if loading the score fails for any reason.
       This includes failing to load because user is not connected
