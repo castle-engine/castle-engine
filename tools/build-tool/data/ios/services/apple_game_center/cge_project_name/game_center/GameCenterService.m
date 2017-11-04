@@ -170,12 +170,14 @@ bool isGameCenterAPIAvailable()
     [super applicationDidEnterBackground];
 
     /*
-     TODO: Apple writes:
+      Apple writes that at this point we should:
 
-     Invalidate Game Center Authentication and save game state, so the game doesn't start until the Authentication Completion
-     Handler is run. This prevents a new user from using the old users game state.
+      Invalidate Game Center Authentication and save game state, so the game doesn't start
+      until the Authentication Completion
+      Handler is run. This prevents a new user from using the old users game state.
 
-     Do we actually honor it now?
+      Doing setSignedIn is closest to this, as far as I see.
+      There's no way to actually tell GKLocalPlayer to disconnect.
     */
     [self setSignedIn: false];
 }
