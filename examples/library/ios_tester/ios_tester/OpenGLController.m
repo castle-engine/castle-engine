@@ -153,10 +153,8 @@
     // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
-    // see http://stackoverflow.com/questions/2996657/converting-an-nsstring-to-char
-    char *libraryDirectoryAsChar = strdup([libraryDirectory cStringUsingEncoding:[NSString defaultCStringEncoding]]);
 
-    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, libraryDirectoryAsChar);
+    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, [libraryDirectory fileSystemRepresentation]);
     CGE_SetUserInterface(true, 115 * m_fScale);
 
     Options *opt = [Options sharedOptions];
@@ -215,7 +213,7 @@
 
         CGPoint pt = [m_arrTouches[i] locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_Motion(pt.x, pt.y, i);
+        CGE_Motion(pt.x, pt.y, (int)i);
     }
 
 #endif
@@ -324,7 +322,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseDown(pt.x, pt.y, true, nFingerIdx);
+        CGE_MouseDown(pt.x, pt.y, true, (int)nFingerIdx);
     }
 
     [super touchesBegan:touches withEvent:event];
@@ -342,7 +340,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseUp(pt.x, pt.y, true, nFingerIdx, false);
+        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
     }
 
     [super touchesEnded:touches withEvent:event];
@@ -360,7 +358,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseUp(pt.x, pt.y, true, nFingerIdx, false);
+        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
     }
 
     [super touchesCancelled:touches withEvent:event];
@@ -414,7 +412,7 @@
 //-----------------------------------------------------------------
 - (void)OnNavigationSegmentChanged:(id)sender
 {
-    int nSegment = m_segmNavigation.selectedSegmentIndex;
+    NSInteger nSegment = m_segmNavigation.selectedSegmentIndex;
     enum ECgeNavigationType eNav;
     switch (nSegment) {
         case 0: eNav = ecgenavWalk; break;
@@ -486,7 +484,7 @@
 
     if (m_viewpointsController!=nil)    // viewpoint selected
     {
-        m_nCurrentViewpoint = m_viewpointsController.selectedViewpoint;
+        m_nCurrentViewpoint = (int)m_viewpointsController.selectedViewpoint;
         CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
         [self updateViewpointButtons];
 
