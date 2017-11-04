@@ -29,8 +29,8 @@
 
 @implementation GameCenterService
 
-@synthesize currentPlayerID;
-@synthesize player;
+@synthesize authenticatedPlayerID;
+@synthesize achievements;
 
 #pragma mark -
 #pragma mark Game Center Support
@@ -126,21 +126,27 @@ bool isGameCenterAPIAvailable()
                 // If there is an error, do not assume local player is not authenticated.
                 if (weakLocalPlayer.isAuthenticated) {
 
-                    if (!self.currentPlayerID || ! [self.currentPlayerID isEqualToString:localPlayer.playerID]) {
+                    if (!self.authenticatedPlayerID ||
+                        ![self.authenticatedPlayerID isEqualToString:localPlayer.playerID]) {
                         // Switching Users
-                        if (!self.player || ![self.currentPlayerID isEqualToString:localPlayer.playerID]) {
-                            // If there is an existing player, replace the existing PlayerModel object with a
-                            // new object, and use it to load the new player's saved achievements.
-                            // It is not necessary for the previous PlayerModel object to writes its data first;
+                        if (!self.achievements ||
+                            ![self.authenticatedPlayerID isEqualToString:localPlayer.playerID]) {
+                            // If there is an existing Achievements instance,
+                            // replace the existing Achievements object with
+                            // a new object, and use it to load the new player's
+                            // saved achievements.
+                            //
+                            // It is not necessary for the previous Achievements
+                            // object to writes its data first;
                             // It automatically saves the changes whenever its list of stored
                             // achievements changes.
 
-                            self.player = [[PlayerModel alloc] init];
+                            self.achievements = [[Achievements alloc] init];
                         }
-                        [self.player loadStoredAchievements];
+                        [self.achievements loadStoredAchievements];
 
                         // Current playerID has changed. Create/Load a game state around the new user.
-                        self.currentPlayerID = weakLocalPlayer.playerID;
+                        self.authenticatedPlayerID = weakLocalPlayer.playerID;
                     }
 
                     [self setSignedIn: true];
@@ -212,6 +218,11 @@ bool isGameCenterAPIAvailable()
 #pragma mark -
 #pragma mark Messages
 
+- (void)achievement:(NSString* )achievementId
+{
+    [achievements submitAchievement:achievementId];
+}
+
 /* Make a log, and messageSend, that loading savegame failed. */
 - (void)saveGameLoadingError:(NSString* )errorStr
 {
@@ -250,6 +261,13 @@ bool isGameCenterAPIAvailable()
     {
         //NSString* leaderboardId = [message objectAtIndex: 2]; // TODO: ignored
         [self showLeaderboards];
+        return TRUE;
+    } else
+    if (message.count == 2 &&
+        [[message objectAtIndex: 0] isEqualToString:@"achievement"])
+    {
+        NSString* achievementId = [message objectAtIndex: 1];
+        [self achievement:achievementId];
         return TRUE;
     } else
     if (message.count == 2 &&

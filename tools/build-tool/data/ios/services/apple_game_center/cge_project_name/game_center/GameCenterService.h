@@ -19,7 +19,7 @@
 #import <UIKit/UIKit.h>
 #import <GameKit/GameKit.h>
 #import "../ServiceAbstract.h"
-#import "PlayerModel.h"
+#import "Achievements.h"
 
 // Preferred method for testing for Game Center
 bool isGameCenterAPIAvailable(void);
@@ -31,10 +31,10 @@ bool isGameCenterAPIAvailable(void);
     bool m_signedIn;
 }
 
-// currentPlayerID is the value of the playerID last time GameKit authenticated.
-@property (retain, readwrite) NSString * currentPlayerID;
+// value of the playerID last time GameKit authenticated.
+@property (retain, readwrite) NSString* authenticatedPlayerID;
 
-// contains drag and drop code to be used to include GameKit functionality
-@property (readwrite, retain) PlayerModel* player;
+// achievements management
+@property (readwrite, retain) Achievements* achievements;
 
 @end
