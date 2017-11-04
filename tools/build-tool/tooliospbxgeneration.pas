@@ -168,9 +168,10 @@ begin
   if (E = '.c') or (E = '.m') then
     Result := 'Sources'
   else
-  if E = '.txt' then
-    Result := 'Resources'
-  else
+  // Uncomment this to copy .txt files to the final application.
+  // if E = '.txt' then
+  //   Result := 'Resources'
+  // else
     Result := '';
 end;
 
@@ -443,6 +444,8 @@ begin
     #9#9#9#9'4D90CC2219197A82004E90CC /* data in Resources */,' + NL +
     #9#9#9#9'4D629E0A1916B0EB0082689B /* Images.xcassets in Resources */,' + NL;
 
+  { The loop below does nothing for now, as the BuildGroup is never 'Resources'
+    now for any file. Maybe it will be useful in the future. }
   for F in Files do
     if F.BuildGroup = 'Resources' then
       Result := Result + Format(
