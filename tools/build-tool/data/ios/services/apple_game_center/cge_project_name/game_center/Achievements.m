@@ -50,8 +50,8 @@
     if (storedAchievements && storedAchievements.count > 0) {
         NSLog(@"INFO: %lu achievements pending to be submitted to server, submitting.",
             (unsigned long)storedAchievements.count);
-        for (NSString *key in storedAchievements){
-            GKAchievement * achievement = [storedAchievements objectForKey:key];
+        for (NSString* key in storedAchievements) {
+            GKAchievement* achievement = [storedAchievements objectForKey:key];
             [storedAchievements removeObjectForKey:key];
             [self submitAchievementObject:achievement];
         }
@@ -62,7 +62,7 @@
 - (void)loadStoredAchievements
 {
     if (!storedAchievements) {
-        NSDictionary *  unarchivedObj = [NSKeyedUnarchiver unarchiveObjectWithFile:storedFilename];;
+        NSDictionary* unarchivedObj = [NSKeyedUnarchiver unarchiveObjectWithFile:storedFilename];
 
         if (unarchivedObj) {
             storedAchievements = [[NSMutableDictionary alloc] initWithDictionary:unarchivedObj];
@@ -77,8 +77,8 @@
 - (void)writeStoredAchievements
 {
     [writeLock lock];
-    NSData * archivedAchievements = [NSKeyedArchiver archivedDataWithRootObject:storedAchievements];
-    NSError * error;
+    NSData* archivedAchievements = [NSKeyedArchiver archivedDataWithRootObject:storedAchievements];
+    NSError* error;
     [archivedAchievements writeToFile:storedFilename options:NSDataWritingFileProtectionNone error:&error];
     if (error) {
         NSLog(@"Error when saving stored achievements to file \"%@\" because: %@",
@@ -108,7 +108,7 @@
 {
     if (achievement) {
         // Submit the achievement.
-        [GKAchievement reportAchievements:@[achievement] withCompletionHandler:^(NSError *error)
+        [GKAchievement reportAchievements:@[achievement] withCompletionHandler:^(NSError* error)
         {
             if (error) {
                 NSLog(@"Failed to submit achievement to server, will submit it later.");
@@ -130,7 +130,7 @@
 // This writes achievements to disk when changed.
 - (void)storeAchievement:(GKAchievement*) achievement
 {
-    GKAchievement * currentStorage = [storedAchievements objectForKey:achievement.identifier];
+    GKAchievement* currentStorage = [storedAchievements objectForKey:achievement.identifier];
     if (!currentStorage || (currentStorage && currentStorage.percentComplete < achievement.percentComplete)) {
         [storedAchievements setObject:achievement forKey:achievement.identifier];
         [self writeStoredAchievements];
@@ -141,7 +141,7 @@
 // Useful for testing.
 - (void)resetAchievements
 {
-    [GKAchievement resetAchievementsWithCompletionHandler: ^(NSError *error)
+    [GKAchievement resetAchievementsWithCompletionHandler: ^(NSError* error)
     {
         if (!error) {
             // this will release previous storedAchievements

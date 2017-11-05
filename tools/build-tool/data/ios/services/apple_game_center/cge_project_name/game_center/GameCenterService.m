@@ -29,9 +29,6 @@
 
 @implementation GameCenterService
 
-@synthesize authenticatedPlayerID;
-@synthesize achievements;
-
 #pragma mark -
 #pragma mark Game Center Support
 
@@ -52,11 +49,13 @@ bool isGameCenterAPIAvailable()
 #pragma mark -
 #pragma mark Signing in / out
 
-- (void)initialize:(bool)autoStartSignInFlow saveGames: (bool)saveGames
+- (void)initialize:(bool)autoStartSignInFlowExplicit saveGames: (bool)saveGames
 {
     // TODO: ignore saveGames now
-    m_autoStartSignInFlow = autoStartSignInFlow;
-    if (autoStartSignInFlow && m_finishedLaunching) {
+
+    autoSignIn = [[AutoSignIn alloc] init];
+    m_autoStartSignInFlow = autoStartSignInFlowExplicit || [autoSignIn isAutoSignIn];
+    if (m_autoStartSignInFlow && m_finishedLaunching) {
         [self requestSignIn:TRUE];
     }
 }
@@ -77,6 +76,10 @@ bool isGameCenterAPIAvailable()
         m_signedIn = signedIn;
         NSString* signedInStr = [self boolToString: signedIn];
         [self messageSend: @[@"game-service-sign-in-status", signedInStr]];
+
+        if (signedIn) {
+            [autoSignIn setAutoSignIn: true];
+        }
     }
 }
 
@@ -126,11 +129,11 @@ bool isGameCenterAPIAvailable()
                 // If there is an error, do not assume local player is not authenticated.
                 if (weakLocalPlayer.isAuthenticated) {
 
-                    if (!self.authenticatedPlayerID ||
-                        ![self.authenticatedPlayerID isEqualToString:localPlayer.playerID]) {
+                    if (!authenticatedPlayerID ||
+                        ![authenticatedPlayerID isEqualToString:localPlayer.playerID]) {
                         // Switching Users
-                        if (!self.achievements ||
-                            ![self.authenticatedPlayerID isEqualToString:localPlayer.playerID]) {
+                        if (!achievements ||
+                            ![authenticatedPlayerID isEqualToString:localPlayer.playerID]) {
                             // If there is an existing Achievements instance,
                             // replace the existing Achievements object with
                             // a new object, and use it to load the new player's
@@ -141,12 +144,12 @@ bool isGameCenterAPIAvailable()
                             // It automatically saves the changes whenever its list of stored
                             // achievements changes.
 
-                            self.achievements = [[Achievements alloc] init];
+                            achievements = [[Achievements alloc] init];
                         }
-                        [self.achievements loadStoredAchievements];
+                        [achievements loadStoredAchievements];
 
                         // Current playerID has changed. Create/Load a game state around the new user.
-                        self.authenticatedPlayerID = weakLocalPlayer.playerID;
+                        authenticatedPlayerID = weakLocalPlayer.playerID;
                     }
 
                     [self setSignedIn: true];
@@ -222,7 +225,9 @@ bool isGameCenterAPIAvailable()
 
 - (void)achievement:(NSString* )achievementId
 {
-    [achievements submitAchievement:achievementId];
+    if (m_signedIn) {
+        [achievements submitAchievement:achievementId];
+    }
 }
 
 /* Make a log, and messageSend, that loading savegame failed. */
@@ -232,7 +237,7 @@ bool isGameCenterAPIAvailable()
     [self messageSend:@[@"save-game-loaded", @"false", errorStr]];
 }
 
-- (void)saveGameLoad:(NSString* )saveGameName
+- (void)saveGameLoad:(NSString*) saveGameName
 {
     if (m_signedIn) {
         // TODO
@@ -242,14 +247,19 @@ bool isGameCenterAPIAvailable()
     }
 }
 
+- (void)saveGameSave:(NSString*) saveGameName saveGameContents:(NSString*) saveGameContents description:(NSString*) description playedTimeMillis:(long) playedTimeMillis
+{
+    NSLog(@"TODO: Saving game not implemented");
+}
+
 - (bool)messageReceived:(NSArray* )message
 {
     if (message.count == 3 &&
         [[message objectAtIndex: 0] isEqualToString:@"game-service-initialize"])
     {
-        bool autoStartSignInFlow = [self stringToBool: [message objectAtIndex: 1]];
+        bool autoStartSignInFlowExplicit = [self stringToBool: [message objectAtIndex: 1]];
         bool saveGames = [self stringToBool: [message objectAtIndex: 2]];
-        [self initialize: autoStartSignInFlow saveGames: saveGames];
+        [self initialize: autoStartSignInFlowExplicit saveGames: saveGames];
         return TRUE;
     } else
     if ([message isEqualToArray: @[@"show", @"achievements"]])
@@ -269,7 +279,7 @@ bool isGameCenterAPIAvailable()
         [[message objectAtIndex: 0] isEqualToString:@"achievement"])
     {
         NSString* achievementId = [message objectAtIndex: 1];
-        [self achievement:achievementId];
+        [self achievement: achievementId];
         return TRUE;
     } else
     if (message.count == 2 &&
@@ -277,6 +287,9 @@ bool isGameCenterAPIAvailable()
     {
         bool wantsSignedIn = [self stringToBool: [message objectAtIndex: 1]];
         [self requestSignIn: wantsSignedIn];
+        if (!wantsSignedIn) {
+            [autoSignIn setAutoSignIn: false];
+        }
         return TRUE;
     } else
     if (message.count == 2 &&
@@ -284,6 +297,16 @@ bool isGameCenterAPIAvailable()
     {
         NSString* saveGameName = [message objectAtIndex: 1];
         [self saveGameLoad: saveGameName];
+        return TRUE;
+    } else
+    if (message.count == 5 &&
+        [[message objectAtIndex: 0] isEqualToString:@"save-game-save"])
+    {
+        NSString* saveGameName = [message objectAtIndex: 1];
+        NSString* saveGameContents = [message objectAtIndex: 2];
+        NSString* description = [message objectAtIndex: 3];
+        long playedTimeMillis = [[message objectAtIndex: 4] longLongValue];
+        [self saveGameSave: saveGameName saveGameContents: saveGameContents description: description playedTimeMillis: playedTimeMillis];
         return TRUE;
     }
 

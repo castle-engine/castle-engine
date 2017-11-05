@@ -20,6 +20,7 @@
 #import <GameKit/GameKit.h>
 #import "../ServiceAbstract.h"
 #import "Achievements.h"
+#import "AutoSignIn.h"
 
 // Preferred method for testing for Game Center
 bool isGameCenterAPIAvailable(void);
@@ -29,12 +30,15 @@ bool isGameCenterAPIAvailable(void);
     bool m_finishedLaunching;
     bool m_duringSignIn;
     bool m_signedIn;
+
+    // value of the playerID last time GameKit authenticated.
+    NSString* authenticatedPlayerID;
+
+    // achievements management
+    Achievements* achievements;
+
+    // whether to automatically sign-in on initialization
+    AutoSignIn* autoSignIn;
 }
-
-// value of the playerID last time GameKit authenticated.
-@property (retain, readwrite) NSString* authenticatedPlayerID;
-
-// achievements management
-@property (readwrite, retain) Achievements* achievements;
 
 @end

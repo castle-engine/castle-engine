@@ -113,20 +113,20 @@ type
 
     { Connect to the service, optionally try to sign-in player.
 
-      On Android, if the player already connected this application with Google Play Games,
-      (s)he will be signed-in automatically, without any dialogs.
-      If the player did not connect with Google Play Games,
-      (s)he will be asked to sign-in (accept permissions etc.) only if
-      AutoStartSignInFlow.
-      So if you want to avoid the initial Google Games dialog, just
-      pass AutoStartSignInFlow=false.
+      If the player already connected this application with
+      Google Play Games (Android) or Apple Game Center (iOS),
+      (s)he will be signed-in automatically.
+      If not, player will be asked to sign-in (which means asking to accept permissions
+      on Android) only if AutoStartSignInFlow.
+      So if you want to avoid the initial Google Play Games dialog on Android,
+      just always pass AutoStartSignInFlow=false.
 
       Calling this when already initialized is harmless (will not do anything).
 
       In theory, you can call this at any point in your application.
       But you probably want to call it early, e.g. from Application.OnInitialize,
       otherwise user will not be signed-in automatically.
-      Most calls (like sending or showing the leaderboars) will be ignored until
+      Most calls (like sending the leaderboars or achievements) will be ignored until
       you call this.
 
       @param(SaveGames Indicates whether you want to use save games feature.
