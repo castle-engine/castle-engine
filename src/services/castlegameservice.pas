@@ -158,7 +158,9 @@ type
 
     { Report a score in given leaderboard.
       Use Google Developer Console (Android) or iTunes Connect (iOS)
-      to create leaderboards for your game, use their ids here. }
+      to create leaderboards for your game, use their ids here.
+
+      TODO: Not implemented for Apple Game Center (iOS) yet. }
     procedure SubmitScore(const LeaderboardId: string; const Score: Int64);
 
     { Get the best score, if available, for given leaderboard.
@@ -169,7 +171,9 @@ type
       Note that no error is signalled if loading the score fails for any reason.
       This includes failing to load because user is not connected
       to the game service (this method doesn't connect automatically;
-      wait for OnSignedInChanged before calling this, if you need). }
+      wait for OnSignedInChanged before calling this, if you need).
+
+      TODO: Not implemented for Apple Game Center (iOS) yet. }
     procedure RequestPlayerBestScore(const LeaderboardId: string);
 
     { Request sign-in or sign-out.
@@ -226,6 +230,8 @@ type
       SignedIn changed to @true (which may be "never", in case of network problems
       or user cancelling!), for example using OnSignedInChanged event,
       and only then call ShowSaveGames.
+
+      TODO: Not implemented for Apple Game Center (iOS) yet.
 
       @param(Title Dialog title to display.)
       @param(AllowAddButton Enable user to choose "new save game".)
