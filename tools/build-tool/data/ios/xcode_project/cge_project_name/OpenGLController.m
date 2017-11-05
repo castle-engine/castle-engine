@@ -99,10 +99,8 @@
     // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
-    // see http://stackoverflow.com/questions/2996657/converting-an-nsstring-to-char
-    char *libraryDirectoryAsChar = strdup([libraryDirectory cStringUsingEncoding:[NSString defaultCStringEncoding]]);
 
-    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, libraryDirectoryAsChar);
+    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, [libraryDirectory fileSystemRepresentation]);
     CGEApp_SetDpi(115 * m_fScale);
 
     [self update];
