@@ -153,6 +153,9 @@ begin
   if E = '.plist' then
     Result := 'text.plist.xml'
   else
+  if E = '.entitlements' then
+    Result := 'text.plist.entitlements'
+  else
   begin
     WarningWrite('Unrecognized file extension in XCode project: "%s" on file "%s". Assuming a text file.',
       [E, Name]);

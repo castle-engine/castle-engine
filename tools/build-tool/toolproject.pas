@@ -1555,17 +1555,33 @@ begin
     end;
     if IOSServices.HasService('apple_game_center') then
     begin
-      IOSTargetAttributes := IOSTargetAttributes +
-        #9#9#9#9#9#9'SystemCapabilities = {' + NL +
-        #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
-        #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
-        #9#9#9#9#9#9#9'};' + NL +
-        #9#9#9#9#9#9'};' + NL;
+      if IOSServices.HasService('icloud_for_save_games') then
+        IOSTargetAttributes := IOSTargetAttributes +
+          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+          #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
+          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+          #9#9#9#9#9#9#9'};' + NL +
+          #9#9#9#9#9#9#9'com.apple.iCloud = {' + NL +
+          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+          #9#9#9#9#9#9#9'};' + NL +
+          #9#9#9#9#9#9'};' + NL
+      else
+        IOSTargetAttributes := IOSTargetAttributes +
+          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+          #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
+          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+          #9#9#9#9#9#9#9'};' + NL +
+          #9#9#9#9#9#9'};' + NL;
       IOSRequiredDeviceCapabilities := IOSRequiredDeviceCapabilities +
         #9#9'<string>gamekit</string>' + NL;
     end;
     Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
     Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
+
+    if IOSServices.HasService('icloud_for_save_games') then
+      Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', 'CODE_SIGN_ENTITLEMENTS = "' + Name + '/icloud_for_save_games.entitlements";')
+    else
+      Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
 
     if depOggVorbis in Dependencies then
     begin
