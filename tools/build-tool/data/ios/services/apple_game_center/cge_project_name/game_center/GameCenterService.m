@@ -54,10 +54,8 @@ const int STATUS_SIGNING_IN = 1;
 const int STATUS_SIGNED_IN = 2;
 const int STATUS_SIGNING_OUT = 3;
 
-- (void)initialize:(bool)autoStartSignInFlowExplicit saveGames: (bool)saveGames
+- (void)initialize:(bool)autoStartSignInFlowExplicit
 {
-    // TODO: ignore saveGames now
-
     autoSignIn = [[AutoSignIn alloc] init];
     m_autoStartSignInFlow = autoStartSignInFlowExplicit || [autoSignIn isAutoSignIn];
     if (m_autoStartSignInFlow && m_finishedLaunching) {
@@ -240,15 +238,44 @@ const int STATUS_SIGNING_OUT = 3;
 /* Make a log, and messageSend, that loading savegame failed. */
 - (void)saveGameLoadingError:(NSString* )errorStr
 {
-    NSLog(@"Saving game failed: %@", errorStr);
+    NSLog(@"Loading savegame failed: %@", errorStr);
     [self messageSend:@[@"save-game-loaded", @"false", errorStr]];
 }
 
 - (void)saveGameLoad:(NSString*) saveGameName
 {
     if (status == STATUS_SIGNED_IN) {
-        // TODO
-        [self saveGameLoadingError: @"Not implemented for Apple Game Center"];
+        GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+        [localPlayer fetchSavedGamesWithCompletionHandler:^(NSArray<GKSavedGame *> * _Nullable savedGames, NSError * _Nullable error) {
+            if (error) {
+                [self saveGameLoadingError: [NSString stringWithFormat: @"Error when fetching savegames: %@", error.localizedDescription]];
+            } else {
+                NSMutableArray<GKSavedGame*>* matchingSavedGames = [[NSMutableArray<GKSavedGame*> alloc] init];
+                for (int i = 0; i < [savedGames count]; i++) {
+                    GKSavedGame* game = [savedGames objectAtIndex: i];
+                    if ([game.name isEqualToString:saveGameName]) {
+                        [matchingSavedGames addObject: game];
+                    }
+                }
+                if ([matchingSavedGames count] == 0) {
+                    [self saveGameLoadingError: [NSString stringWithFormat: @"No savegames matching name \"%@\"", saveGameName]];
+                } else
+                {
+                    GKSavedGame* game = [matchingSavedGames objectAtIndex: 0];
+                    if ([matchingSavedGames count] > 1) {
+                        NSLog(@"TODO: More than one savegame matching name \"%@\", we should call resolveConflictingSavedGames", saveGameName);
+                    }
+                    [game loadDataWithCompletionHandler:^(NSData * _Nullable data, NSError * _Nullable error) {
+                        if (error) {
+                            [self saveGameLoadingError: [NSString stringWithFormat: @"Error when loading savegame data: %@", error.localizedDescription]];
+                        } else {
+                            NSString* contents = [NSString stringWithUTF8String:[data bytes]];
+                            [self messageSend: @[@"save-game-loaded", @"true", contents]];
+                        }
+                    }];
+                }
+            }
+        }];
     } else {
         [self saveGameLoadingError: @"Not connected to Apple Game Center"];
     }
@@ -256,7 +283,25 @@ const int STATUS_SIGNING_OUT = 3;
 
 - (void)saveGameSave:(NSString*) saveGameName saveGameContents:(NSString*) saveGameContents description:(NSString*) description playedTimeMillis:(long) playedTimeMillis
 {
-    NSLog(@"TODO: Saving game not implemented");
+    if (status == STATUS_SIGNED_IN) {
+        NSData* contentsAsData = [saveGameContents dataUsingEncoding:NSUTF8StringEncoding];
+
+        // Both below methods work OK to retrieve the data back,
+        // see also http://www.ios-blog.co.uk/tutorials/quick-tips/quick-tip-converting-nsstring-to-nsdata/ :
+        //
+        // NSString* contentsBack = [NSString stringWithUTF8String:[contentsAsData bytes]];
+        // NSString* contentsBackWrong = [[NSString alloc] initWithData:contentsAsData encoding:NSUTF8StringEncoding];
+        // NSLog(@"Saving game lengths: %@ %@ %@", @(saveGameContents.length), @(contentsBack.length), @(contentsBackWrong.length));
+
+        GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+        [localPlayer saveGameData:contentsAsData withName:saveGameName completionHandler:^(GKSavedGame * _Nullable savedGame, NSError * _Nullable error) {
+            if (error) {
+                NSLog(@"Error when saving a saved game \"%@\" because: %@", saveGameName, error.localizedDescription);
+            } else {
+                NSLog(@"Successfully saved a saved game \"%@\"", saveGameName);
+            }
+        }];
+    }
 }
 
 - (bool)messageReceived:(NSArray* )message
@@ -265,8 +310,9 @@ const int STATUS_SIGNING_OUT = 3;
         [[message objectAtIndex: 0] isEqualToString:@"game-service-initialize"])
     {
         bool autoStartSignInFlowExplicit = [self stringToBool: [message objectAtIndex: 1]];
-        bool saveGames = [self stringToBool: [message objectAtIndex: 2]];
-        [self initialize: autoStartSignInFlowExplicit saveGames: saveGames];
+        // ignore saveGames param, not useful for iOS, saveGames are always OK:
+        // bool saveGames = [self stringToBool: [message objectAtIndex: 2]];
+        [self initialize: autoStartSignInFlowExplicit];
         return TRUE;
     } else
     if ([message isEqualToArray: @[@"show", @"achievements"]])
