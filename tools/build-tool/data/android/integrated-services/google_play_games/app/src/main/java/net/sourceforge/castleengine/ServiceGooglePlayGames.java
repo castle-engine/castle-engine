@@ -281,14 +281,14 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                        (which is not documented as valid result code). */
                     Log.w(TAG, "mGoogleApiClient == null when we received Google Play Games sign in. Indicates that connection to Google Play Games was reached after Java activity died and was recreated.");
                     // stoppping signing-in
-                    if (mStatus = STATUS_SIGNING_IN) {
+                    if (mStatus == STATUS_SIGNING_IN) {
                         setStatus(STATUS_SIGNED_OUT);
                     }
                 }
             } else {
                 Log.w(TAG, "Unable to sign in to Google Games.");
                 // stoppping signing-in
-                if (mStatus = STATUS_SIGNING_IN) {
+                if (mStatus == STATUS_SIGNING_IN) {
                     setStatus(STATUS_SIGNED_OUT);
                 }
             }
