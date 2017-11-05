@@ -49,6 +49,11 @@ bool isGameCenterAPIAvailable()
 #pragma mark -
 #pragma mark Signing in / out
 
+const int STATUS_SIGNED_OUT = 0;
+const int STATUS_SIGNING_IN = 1;
+const int STATUS_SIGNED_IN = 2;
+const int STATUS_SIGNING_OUT = 3;
+
 - (void)initialize:(bool)autoStartSignInFlowExplicit saveGames: (bool)saveGames
 {
     // TODO: ignore saveGames now
@@ -70,34 +75,40 @@ bool isGameCenterAPIAvailable()
     }
 }
 
-- (void)setSignedIn:(bool)signedIn
+- (void)setStatus:(int) value
 {
-    if (m_signedIn != signedIn) {
-        m_signedIn = signedIn;
-        NSString* signedInStr = [self boolToString: signedIn];
-        [self messageSend: @[@"game-service-sign-in-status", signedInStr]];
+    if (status != value) {
+        status = value;
+        NSString* statusStr = [@(status) stringValue];
+        [self messageSend: @[@"game-service-status", statusStr]];
 
-        if (signedIn) {
+        if (status == STATUS_SIGNED_IN) {
             [autoSignIn setAutoSignIn: true];
         }
     }
 }
 
-- (void)requestSignIn:(bool)wantsSignedIn
+- (void)requestSignIn:(bool) wantsSignedIn
 {
-    if (m_signedIn == wantsSignedIn) {
+    if ( ( wantsSignedIn && status == STATUS_SIGNED_IN) ||
+         (!wantsSignedIn && status == STATUS_SIGNED_OUT))
+     {
         NSLog(@"Ignoring requestSignIn call, requested the current state");
         return;
     }
 
-    if (m_duringSignIn) {
-        NSLog(@"Ignoring requestSignIn call, we are in the middle of sign-in.");
+    if (status == STATUS_SIGNING_IN ||
+        status == STATUS_SIGNING_OUT)
+    {
+        // Note that the current iOS implementation actually never has
+        // status == STATUS_SIGNING_OUT, since sign-out is always immediate.
+        NSLog(@"Ignoring requestSignIn call, we are in the middle of sign-in or sign-out.");
         return;
     }
 
     if (!isGameCenterAPIAvailable()) {
         // Game Center is not available.
-        [self setSignedIn: false];
+        [self setStatus: STATUS_SIGNED_OUT];
         return;
     }
 
@@ -110,10 +121,9 @@ bool isGameCenterAPIAvailable()
             // because Game Center does not have any method to disconnect,
             // the player actually stays isAuthenticated after sign-out.
             // Setting the localPlayer.authenticateHandler would not do anything then.
-            [self setSignedIn: true];
+            [self setStatus: STATUS_SIGNED_IN];
         } else {
-            m_duringSignIn = true;
-            NSLog(@"During sign-in to Game Center...");
+            [self setStatus: STATUS_SIGNING_IN];
 
             // Avoid warning
             // "Capturing 'localPlayer' strongly in this block is likely to lead to a retain cycle"
@@ -123,9 +133,6 @@ bool isGameCenterAPIAvailable()
             // See https://developer.apple.com/documentation/gamekit/gklocalplayer/1515399-authenticatehandler
             localPlayer.authenticateHandler = ^(UIViewController *viewController, NSError *error)
             {
-                m_duringSignIn = false;
-                NSLog(@"... No longer during sign-in to Game Center.");
-
                 // If there is an error, do not assume local player is not authenticated.
                 if (weakLocalPlayer.isAuthenticated) {
 
@@ -152,10 +159,10 @@ bool isGameCenterAPIAvailable()
                         authenticatedPlayerID = weakLocalPlayer.playerID;
                     }
 
-                    [self setSignedIn: true];
+                    [self setStatus: STATUS_SIGNED_IN];
                 } else {
                     // No user is logged into Game Center, run without Game Center support or user interface.
-                    [self setSignedIn: false];
+                    [self setStatus: STATUS_SIGNED_OUT];
                 }
             };
         }
@@ -164,7 +171,7 @@ bool isGameCenterAPIAvailable()
         // There is no method to disconnect in Game Center,
         // https://developer.apple.com/documentation/gamekit/gklocalplayer,
         // so just pretend we're disconnected.
-        [self setSignedIn: false];
+        [self setStatus: STATUS_SIGNED_OUT];
     }
 }
 
@@ -179,10 +186,10 @@ bool isGameCenterAPIAvailable()
       until the Authentication Completion
       Handler is run. This prevents a new user from using the old users game state.
 
-      Doing setSignedIn is closest to this, as far as I see.
+      Doing setStatus to STATUS_SIGNED_OUT is closest to this, as far as I see.
       There's no way to actually tell GKLocalPlayer to disconnect.
     */
-    [self setSignedIn: false];
+    [self setStatus: STATUS_SIGNED_OUT];
 }
 
 #pragma mark -
@@ -225,7 +232,7 @@ bool isGameCenterAPIAvailable()
 
 - (void)achievement:(NSString* )achievementId
 {
-    if (m_signedIn) {
+    if (status == STATUS_SIGNED_IN) {
         [achievements submitAchievement:achievementId];
     }
 }
@@ -239,7 +246,7 @@ bool isGameCenterAPIAvailable()
 
 - (void)saveGameLoad:(NSString*) saveGameName
 {
-    if (m_signedIn) {
+    if (status == STATUS_SIGNED_IN) {
         // TODO
         [self saveGameLoadingError: @"Not implemented for Apple Game Center"];
     } else {

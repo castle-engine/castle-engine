@@ -39,6 +39,18 @@ type
     @param Content The savegame content, if Success. If not Success, this is the error message. }
   TSaveGameLoadedEvent = procedure (Sender: TObject; const Success: boolean; const Content: string) of object;
 
+  { Status of TGameService sign-in. }
+  TGameServiceStatus = (
+    // Not signed-in to the service.
+    gsSignedOut,
+    // Not signed-in to the service, but during signing-in.
+    gsSigningIn,
+    // Signed-in to the service. All game service methods work now.
+    gsSignedIn,
+    // During signing-out from the service. You should not call other methods on the service now.
+    gsSigningOut
+  );
+
   { Integration with a game service,
     that can be used to show achievements, leaderboards, and store save games "in the cloud".
     This integrates with
@@ -86,24 +98,26 @@ type
         You should always make sure that the user is signed-in before calling them.
         To do this, pass AutoStartSignInFlow parameter as @true to @link(Initialize)
         or call the @link(RequestSignedIn RequestSignedIn(true)).
-        And then wait for the @link(SignedIn) property value to change to @true
-        (you can register @link(OnSignedInChanged) to be notified about changes).
+        And then wait for the @link(Status) property to change to gsSignedIn
+        (you can register @link(OnStatusChanged) to be notified about changes).
       )
     )
   }
   TGameService = class(TComponent)
   private
     FOnPlayerBestScoreReceived: TPlayerBestScoreEvent;
-    FSignedIn, FInitialized,
+    FInitialized,
       FInitializedAutoStartSignInFlow,
       FInitializedSaveGames: boolean;
     FOnSaveGameChosen: TSaveGameChosenEvent;
     FOnSaveGameLoaded: TSaveGameLoadedEvent;
-    FOnSignedInChanged: TNotifyEvent;
+    FOnStatusChanged: TNotifyEvent;
+    FStatus: TGameServiceStatus;
     function MessageReceived(const Received: TCastleStringList): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
   protected
-    procedure DoSignedInChanged; virtual;
+    procedure DoSignedInChanged; virtual; deprecated 'use DoStatusChanged';
+    procedure DoStatusChanged; virtual;
     procedure DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64); virtual;
     procedure DoSaveGameChosen(const Choice: TSaveGameChoice; const SaveGameName: string); virtual;
     procedure DoSaveGameLoaded(const Success: boolean; const Content: string); virtual;
@@ -139,8 +153,11 @@ type
     { Was the @link(Initialize) called. }
     property Initialized: boolean read FInitialized;
 
-    { Is user currently signed-in. }
-    property SignedIn: boolean read FSignedIn;
+    { Current status of signing-in. }
+    property Status: TGameServiceStatus read FStatus;
+
+    { Is user currently signed-in. Just a shortcut for @code(Status = gsSignedIn) check. }
+    function SignedIn: boolean;
 
     { Report the given achievement as achieved.
 
@@ -171,14 +188,17 @@ type
       Note that no error is signalled if loading the score fails for any reason.
       This includes failing to load because user is not connected
       to the game service (this method doesn't connect automatically;
-      wait for OnSignedInChanged before calling this, if you need).
+      wait for OnStatusChanged before calling this, if you need).
 
       TODO: Not implemented for Apple Game Center (iOS) yet. }
     procedure RequestPlayerBestScore(const LeaderboardId: string);
 
     { Request sign-in or sign-out.
-      This will (may) eventually (after some network delay) change
-      the @link(SignedIn) value, also calling OnSignedInChanged event. }
+      The operation will be done asynchronously (it will in most cases require
+      some network communication).
+
+      Watch for changes to the @link(Status) property.
+      You can register an event on @link(OnStatusChanged) to be notified about this. }
     procedure RequestSignedIn(const Value: boolean);
 
     { Show the user achievements, using the default UI.
@@ -226,10 +246,9 @@ type
       reasons why sign-in may fail (network problems etc.).
       If this is a problem for your logic (e.g. if you want to "wait"
       until OnSaveGameChosen is called), then never call ShowSaveGames
-      when SignedIn is @false. Instead, call RequestSignedIn, wait until
+      when @link(SignedIn) is @false. Instead, call RequestSignedIn, wait until
       SignedIn changed to @true (which may be "never", in case of network problems
-      or user cancelling!), for example using OnSignedInChanged event,
-      and only then call ShowSaveGames.
+      or user cancelling!), and only then call ShowSaveGames.
 
       TODO: Not implemented for Apple Game Center (iOS) yet.
 
@@ -291,15 +310,17 @@ type
       if trying to load fails for any reason.
       This includes the case when loading fails because user is not connected
       to game service yet (this method @italic(does not) connect user
-      automatically; wait for OnSignedInChanged before calling this method,
+      automatically; wait for OnStatusChanged before calling this method,
       if you need it). }
     procedure SaveGameLoad(const SaveGameName: string);
   published
-    { Event called when @link(SignedIn) changed, for example because
+    { Event called when @link(Status) changed, for example because
       @link(RequestSignedIn) was called, or because user signs-in automatically
       (which may happen if you used AutoStartSignInFlow with @link(Initialize),
       or if user was signed-in in this application previously). }
-    property OnSignedInChanged: TNotifyEvent read FOnSignedInChanged write FOnSignedInChanged;
+    property OnStatusChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged;
+    property OnSignedInChanged: TNotifyEvent read FOnStatusChanged write FOnStatusChanged stored false;
+      deprecated 'use OnStatusChanged';
     { Event received in response to @link(RequestPlayerBestScore). }
     property OnPlayerBestScoreReceived: TPlayerBestScoreEvent read FOnPlayerBestScoreReceived write FOnPlayerBestScoreReceived;
     { Event received in response to @link(ShowSaveGames). }
@@ -312,7 +333,7 @@ type
 implementation
 
 uses SysUtils,
-  CastleUtils, CastleMessaging, CastleApplicationProperties;
+  CastleUtils, CastleMessaging, CastleApplicationProperties, CastleLog;
 
 constructor TGameService.Create(AOwner: TComponent);
 begin
@@ -335,15 +356,27 @@ begin
   { in case Java activity got killed and is created again, reinitialize services }
   if FInitialized then
   begin
-    FSignedIn := false;
+    FStatus := gsSignedOut;
     Initialize(FInitializedAutoStartSignInFlow, FInitializedSaveGames);
   end;
 end;
 
+procedure TGameService.DoStatusChanged;
+begin
+  if Assigned(OnStatusChanged) then
+    OnStatusChanged(Self);
+  {$warnings off} // calling deprecated to keep it working
+  DoSignedInChanged;
+  {$warnings on}
+end;
+
 procedure TGameService.DoSignedInChanged;
 begin
-  if Assigned(OnSignedInChanged) then
-    OnSignedInChanged(Self);
+end;
+
+function TGameService.SignedIn: boolean;
+begin
+  Result := FStatus = gsSignedIn;
 end;
 
 procedure TGameService.DoPlayerBestScoreReceived(const LeaderboardId: string; const Score: Int64);
@@ -365,6 +398,8 @@ begin
 end;
 
 function TGameService.MessageReceived(const Received: TCastleStringList): boolean;
+var
+  StatusInt: Int64;
 begin
   Result := false;
 
@@ -376,28 +411,18 @@ begin
   end else
 
   if (Received.Count = 2) and
-     (Received[0] = 'game-service-sign-in-status') and
-     (Received[1] = 'true') then
+     (Received[0] = 'game-service-status') then
   begin
-    if not FSignedIn then
+    StatusInt := StrToIntDef(Received[1], -1);
+    if (StatusInt >= Ord(Low(TGameServiceStatus))) and
+       (StatusInt <= Ord(High(TGameServiceStatus))) then
     begin
-      FSignedIn := true;
-      DoSignedInChanged;
-    end;
+      FStatus := TGameServiceStatus(StatusInt);
+      DoStatusChanged;
+    end else
+      WritelnWarning('Invalid game-service-status parameter "%s"', [Received[1]]);
     Result := true;
   end else
-
-  if (Received.Count = 2) and
-     (Received[0] = 'game-service-sign-in-status') and
-     (Received[1] = 'false') then
-  begin
-    if FSignedIn then
-    begin
-      FSignedIn := false;
-      DoSignedInChanged;
-    end;
-    Result := true;
-  end;
 
   if (Received.Count = 2) and
      (Received[0] = 'chosen-save-game') then

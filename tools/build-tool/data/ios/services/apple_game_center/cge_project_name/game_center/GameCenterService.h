@@ -28,8 +28,7 @@ bool isGameCenterAPIAvailable(void);
 @interface GameCenterService : ServiceAbstract <GKGameCenterControllerDelegate> {
     bool m_autoStartSignInFlow;
     bool m_finishedLaunching;
-    bool m_duringSignIn;
-    bool m_signedIn;
+    int status;
 
     // value of the playerID last time GameKit authenticated.
     NSString* authenticatedPlayerID;
