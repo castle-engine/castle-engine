@@ -3,10 +3,6 @@
    When you change this file, rerun `make' and then recompile Pascal sources.
 */
 
-#ifdef GL_ES
-precision mediump float;
-#endif
-
 uniform mat4 castle_ModelViewMatrix;
 uniform mat4 castle_ProjectionMatrix;
 uniform mat3 castle_NormalMatrix;

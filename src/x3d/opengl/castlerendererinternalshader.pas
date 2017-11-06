@@ -2346,9 +2346,19 @@ var
         Plug(stFragment, SteepParallaxShadowing);
         VertexEyeBonusDeclarations +=
           'varying vec3 castle_light_direction_tangent_space;' +NL+
-          // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
-          // in case of Phong shading
-          'uniform vec3 castle_LightSource0Position;' +NL;
+          { Note that there's no need to protect castle_LightSource0Position
+            from redeclaring, which is usually a problem when
+            no "separate compilation units" are available (on OpenGLES).
+            In this particular case, using bump mapping forces Phong shading,
+            and then lights are calculated in the fragment shader.
+            The declaration below is in vertex shader, so it never conflicts. }
+          '#ifdef GL_ES' +NL+
+          'uniform mediump vec3 castle_LightSource0Position;' +NL+
+          '#else'+NL+
+          'uniform vec3 castle_LightSource0Position;' +NL+
+          '#endif'+NL+
+          ''
+        ;
 
         { add VertexEyeBonusCode to cast shadow from LightShaders[0]. }
         VertexEyeBonusCode += 'vec3 light_dir = castle_LightSource0Position;';
