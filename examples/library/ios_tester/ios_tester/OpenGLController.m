@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,9 @@
 */
 
 #import "OpenGLController.h"
+#import "FileOpenController.h"
 #import "ViewInfoController.h"
+#import "ViewpointsController.h"
 #import "Options.h"
 #include "castleengine.h"
 
@@ -22,7 +24,7 @@
 
 //#define USE_GESTURE_RECOGNIZERS
 
-@interface OpenGLController ()
+@interface OpenGLController () <ViewpointCtlDelegate, FileOpenCtlDelegate>
 {
     bool m_bIsPanning;
     CGPoint m_ptPanningMousePos;
@@ -448,12 +450,10 @@
 //-----------------------------------------------------------------
 - (void)OnBtnViewpointPopup:(id)sender
 {
-    if (m_currentPopover!=nil) return;
-
-    // show popover
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    m_viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"ViewpointsPopover"];
-    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_viewpointsController];
+    ViewpointsController* viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"ViewpointsPopover"];
+    viewpointsController.modalPresentationStyle = UIModalPresentationPopover;
+    viewpointsController.popoverPresentationController.barButtonItem = sender;
 
     // fill with viewpoint names
     NSMutableArray *arrViewpoints = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
@@ -465,71 +465,52 @@
         NSString *sName = [NSString stringWithUTF8String:szName];
         [arrViewpoints addObject:sName];
     }
+    
+    viewpointsController.arrayViewpoints = arrViewpoints;
+    viewpointsController.selectedViewpoint = m_nCurrentViewpoint;
+    viewpointsController.delegate = self;
 
-    m_viewpointsController.arrayViewpoints = arrViewpoints;
-    m_viewpointsController.selectedViewpoint = m_nCurrentViewpoint;
-    m_viewpointsController.popover = m_currentPopover;
-
-    [m_currentPopover setDelegate:self];
-    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+    [self presentViewController:viewpointsController animated:YES completion:nil];
 }
 
 //-----------------------------------------------------------------
-- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
+- (void)viewpointDidChange:(int)nNewViewpoint
 {
-    if (popoverController!=m_currentPopover)
-        return;
-    m_currentPopover = nil;
-
-    if (m_viewpointsController!=nil)    // viewpoint selected
-    {
-        m_nCurrentViewpoint = (int)m_viewpointsController.selectedViewpoint;
-        CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
-        [self updateViewpointButtons];
-
-        m_viewpointsController = nil;
-    }
-
-    if (m_fileOpenController!=nil)      // scene file selected
-    {
-        NSString *sFile = m_fileOpenController.selectedFile;
-        m_fileOpenController = nil;
-
-        if (sFile!=nil && sFile.length > 0)
-        {
-            self.fileToOpen = sFile;
-            [self LoadSceneFile];
-        }
-    }
+    m_nCurrentViewpoint = nNewViewpoint;
+    CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
+    [self updateViewpointButtons];
 }
 
 //-----------------------------------------------------------------
 - (void)OnBtnOpenFile:(id)sender
 {
-    if (m_currentPopover!=nil) return;
-
-    // show popover
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    m_fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
-    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_fileOpenController];
+    FileOpenController* fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
+    fileOpenController.modalPresentationStyle = UIModalPresentationPopover;
+    fileOpenController.popoverPresentationController.barButtonItem = sender;
+    
+    fileOpenController.delegate = self;
+    [self presentViewController:fileOpenController animated:YES completion:nil];
+}
 
-    m_fileOpenController.popover = m_currentPopover;
-
-    [m_currentPopover setDelegate:self];
-    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+//-----------------------------------------------------------------
+- (void)fileSelectedToOpen:(NSString *)selectedFile
+{
+    if (selectedFile != nil && selectedFile.length > 0)
+    {
+        self.fileToOpen = selectedFile;
+        [self LoadSceneFile];
+    }
 }
 
 //-----------------------------------------------------------------
 - (void)OnBtnOptions:(id)sender
 {
-    if (m_currentPopover!=nil) return;
-
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    UIViewController *viewctl = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
-    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:viewctl];
-
-    [m_currentPopover setDelegate:self];
-    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+    ViewpointsController* viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
+    viewpointsController.modalPresentationStyle = UIModalPresentationPopover;
+    viewpointsController.popoverPresentationController.barButtonItem = sender;
+    [self presentViewController:viewpointsController animated:YES completion:nil];
 }
 
 //-----------------------------------------------------------------

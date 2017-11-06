@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,9 +15,13 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol ViewpointCtlDelegate
+- (void)viewpointDidChange:(int)nNewViewpoint;
+@end
+
 @interface ViewpointsController : UITableViewController
 
-@property (nonatomic, assign) UIPopoverController *popover;
+@property (nonatomic, weak) id<ViewpointCtlDelegate> delegate;
 @property (nonatomic, strong) NSMutableArray* arrayViewpoints;
 @property (nonatomic, assign) NSInteger selectedViewpoint;
 

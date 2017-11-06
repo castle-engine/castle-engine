@@ -1,5 +1,5 @@
 /*
- Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+ Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
  
  This file is part of "Castle Game Engine".
  
@@ -81,9 +81,8 @@
 //-----------------------------------------------------------------
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    self.selectedFile = [m_arrayFiles objectAtIndex:indexPath.row];
-
-    [self.popover dismissPopoverAnimated:YES];
-    [self.popover.delegate popoverControllerDidDismissPopover:self.popover]; // call delegate programatically in order to get the data from here
+    if (self.delegate != nil)
+        [self.delegate fileSelectedToOpen:[m_arrayFiles objectAtIndex:indexPath.row]];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 @end
