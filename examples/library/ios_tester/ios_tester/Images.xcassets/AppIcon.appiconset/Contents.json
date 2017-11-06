@@ -2,6 +2,16 @@
   "images" : [
     {
       "idiom" : "iphone",
+      "size" : "20x20",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "iphone",
+      "size" : "20x20",
+      "scale" : "3x"
+    },
+    {
+      "idiom" : "iphone",
       "size" : "29x29",
       "scale" : "1x"
     },
@@ -9,6 +19,11 @@
       "idiom" : "iphone",
       "size" : "29x29",
       "scale" : "2x"
+    },
+    {
+      "idiom" : "iphone",
+      "size" : "29x29",
+      "scale" : "3x"
     },
     {
       "idiom" : "iphone",
@@ -17,7 +32,13 @@
     },
     {
       "idiom" : "iphone",
+      "size" : "40x40",
+      "scale" : "3x"
+    },
+    {
       "size" : "57x57",
+      "idiom" : "iphone",
+      "filename" : "icon-57.png",
       "scale" : "1x"
     },
     {
@@ -26,8 +47,9 @@
       "scale" : "2x"
     },
     {
-      "idiom" : "iphone",
       "size" : "60x60",
+      "idiom" : "iphone",
+      "filename" : "icon-120.png",
       "scale" : "2x"
     },
     {
@@ -37,6 +59,16 @@
     },
     {
       "idiom" : "ipad",
+      "size" : "20x20",
+      "scale" : "1x"
+    },
+    {
+      "idiom" : "ipad",
+      "size" : "20x20",
+      "scale" : "2x"
+    },
+    {
+      "idiom" : "ipad",
       "size" : "29x29",
       "scale" : "1x"
     },
@@ -68,26 +100,38 @@
     {
       "size" : "72x72",
       "idiom" : "ipad",
-      "filename" : "cge-logo72.png",
+      "filename" : "icon-72.png",
       "scale" : "1x"
     },
     {
       "size" : "72x72",
       "idiom" : "ipad",
-      "filename" : "cge-logo144.png",
+      "filename" : "icon-144.png",
       "scale" : "2x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "cge-logo76.png",
+      "filename" : "icon-76.png",
       "scale" : "1x"
     },
     {
       "size" : "76x76",
       "idiom" : "ipad",
-      "filename" : "cge-logo152.png",
+      "filename" : "icon-152.png",
       "scale" : "2x"
+    },
+    {
+      "size" : "83.5x83.5",
+      "idiom" : "ipad",
+      "filename" : "icon-167.png",
+      "scale" : "2x"
+    },
+    {
+      "size" : "1024x1024",
+      "idiom" : "ios-marketing",
+      "filename" : "icon-1024.png",
+      "scale" : "1x"
     }
   ],
   "info" : {
