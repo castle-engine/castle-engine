@@ -2,6 +2,10 @@
 @echo off
 setlocal
 
+:: You can pass additional FPC parameters as this script parameters
+:: So you can call, for example, 'castleengine_compile_win32.bat -dCASTLE_ENGINE_LGPL'
+set FPC_CONFIG=%*
+
 :: First auto-detect fpc.exe location
 for /f "tokens=*" %%i in ('..\..\tools\fpc_path_detect.bat') do set FPC_EXE_DIR=%%i
 echo fpc folder: %FPC_EXE_DIR%fpc.exe
@@ -13,4 +17,4 @@ if not exist %OUT_DIR% mkdir %OUT_DIR%
 :: Change to the directory where castle-fpc.cfg is.
 cd ..\..
 
-%FPC_EXE_DIR%fpc.exe -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr -Pi386 -FEsrc/library/%OUT_DIR%
+%FPC_EXE_DIR%fpc.exe -fPIC -dRELEASE @castle-fpc.cfg -dCASTLE_WINDOW_LIBRARY src/library/castleengine.lpr -Pi386 -FEsrc/library/%OUT_DIR% %FPC_CONFIG%
