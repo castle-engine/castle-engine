@@ -28,6 +28,7 @@ type
     procedure TestPercentEncoding;
     procedure TestCombineURIEncoding;
     procedure TestURIDisplay;
+    procedure TestRelativeURLWhitespace;
   end;
 
 implementation
@@ -180,6 +181,16 @@ begin
   AssertEquals('', URIDisplay('', false));
   AssertEquals('', URIDisplay('', true));
   AssertEquals('', URICaption(''));
+end;
+
+procedure TTestURIUtils.TestRelativeURLWhitespace;
+begin
+  AssertEquals('   castlescript: blablah', CombineURI('http:///foo/bar', '   castlescript: blablah'));
+  AssertEquals(NL + 'castlescript: blablah', CombineURI('http:///foo/bar', NL + 'castlescript: blablah'));
+
+  AssertEquals('   ecmascript: blablah', CombineURI('http:///foo/bar', '   ecmascript: blablah'));
+  AssertEquals(NL + 'ecmascript: blablah', CombineURI('http:///foo/bar', NL + 'ecmascript: blablah'));
+  AssertEquals(NL + '  ecmascript: blablah', CombineURI('http:///foo/bar', NL + '  ecmascript: blablah'));
 end;
 
 initialization

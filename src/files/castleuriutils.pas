@@ -451,7 +451,19 @@ begin
 end;
 
 function CombineURI(const Base, Relative: string): string;
+var
+  RelativeProtocol: string;
 begin
+  { Test for some special protocols first, that may have whitespace before
+    the protocol name. }
+  RelativeProtocol := URIProtocol(Relative);
+  if (RelativeProtocol = 'ecmascript') or
+     (RelativeProtocol = 'javascript') or
+     (RelativeProtocol = 'castlescript') or
+     (RelativeProtocol = 'kambiscript') or
+     (RelativeProtocol = 'compiled') then
+    Exit(Relative);
+
   try
     if not ResolveRelativeURI(AbsoluteURI(Base), Relative, Result) then
     begin
@@ -766,7 +778,8 @@ begin
     finally FreeAndNil(DataURI) end;
   end else
 
-  { Special script protocols always imply a specific MIME type. }
+  { Special script protocols always imply a specific MIME type.
+    Note: add these to CombineURI as exceptions too. }
   if (P = 'ecmascript') or
      (P = 'javascript') then
     Result := 'application/javascript' else
