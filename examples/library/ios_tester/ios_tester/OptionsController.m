@@ -67,7 +67,7 @@
 //-----------------------------------------------------------------
 - (void)OnOptionSwitchChanged:(id)sender
 {
-    int nRow = [(UISwitch*)sender tag];
+    long nRow = [(UISwitch*)sender tag];
     bool bOn = [(UISwitch*)sender isOn];
 
     Options *opt = [Options sharedOptions];
