@@ -233,6 +233,8 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             return;
         }
 
+        boolean stillSigningIn = false;
+
         // if the sign-in button was clicked or if auto sign-in is enabled,
         // launch the sign-in flow
         if (mSignInClicked || mAutoStartSignInFlow) {
@@ -242,18 +244,18 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure.
-            if (!resolveConnectionFailure(getActivity(),
-                    mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
+            if (resolveConnectionFailure(getActivity(),
+                  mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
+                stillSigningIn = true;
+            } else {
                 mResolvingConnectionFailure = false;
                 mOnConnectedFinish = null;
             }
-
-            // TODO: when resolveConnectionFailure returns true,
-            // should we keep STATUS_SIGNING_IN, instead of changing to STATUS_SIGNED_OUT?
         }
 
-        // We can now e.g. display the sign-in button.
-        setStatus(STATUS_SIGNED_OUT);
+        if (!stillSigningIn) {
+            setStatus(STATUS_SIGNED_OUT);
+        }
     }
 
     @Override
