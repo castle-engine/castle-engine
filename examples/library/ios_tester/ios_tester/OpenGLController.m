@@ -94,7 +94,7 @@
     [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
 
-    UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open File" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOpenFile:)];
+    UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOpenFile:)];
 
     self.navigationItem.leftBarButtonItem = btnOpenFile;
     self.navigationItem.rightBarButtonItems = @[btnBarInfo, btnOptions, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
@@ -452,8 +452,6 @@
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     ViewpointsController* viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"ViewpointsPopover"];
-    viewpointsController.modalPresentationStyle = UIModalPresentationPopover;
-    viewpointsController.popoverPresentationController.barButtonItem = sender;
 
     // fill with viewpoint names
     NSMutableArray *arrViewpoints = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
@@ -470,7 +468,17 @@
     viewpointsController.selectedViewpoint = m_nCurrentViewpoint;
     viewpointsController.delegate = self;
 
-    [self presentViewController:viewpointsController animated:YES completion:nil];
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        viewpointsController.modalPresentationStyle = UIModalPresentationPopover;
+        viewpointsController.popoverPresentationController.barButtonItem = sender;
+        [self presentViewController:viewpointsController animated:YES completion:nil];
+    }
+    else
+    {
+        UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewpointsController];
+        [self presentViewController:navCtl animated:YES completion:nil];
+    }
 }
 
 //-----------------------------------------------------------------
@@ -486,11 +494,19 @@
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     FileOpenController* fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
-    fileOpenController.modalPresentationStyle = UIModalPresentationPopover;
-    fileOpenController.popoverPresentationController.barButtonItem = sender;
-    
     fileOpenController.delegate = self;
-    [self presentViewController:fileOpenController animated:YES completion:nil];
+    
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        fileOpenController.modalPresentationStyle = UIModalPresentationPopover;
+        fileOpenController.popoverPresentationController.barButtonItem = sender;
+        [self presentViewController:fileOpenController animated:YES completion:nil];
+    }
+    else
+    {
+        UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:fileOpenController];
+        [self presentViewController:navCtl animated:YES completion:nil];
+    }
 }
 
 //-----------------------------------------------------------------
@@ -507,10 +523,19 @@
 - (void)OnBtnOptions:(id)sender
 {
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    ViewpointsController* viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
-    viewpointsController.modalPresentationStyle = UIModalPresentationPopover;
-    viewpointsController.popoverPresentationController.barButtonItem = sender;
-    [self presentViewController:viewpointsController animated:YES completion:nil];
+    UIViewController* ctl = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
+
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        ctl.modalPresentationStyle = UIModalPresentationPopover;
+        ctl.popoverPresentationController.barButtonItem = sender;
+        [self presentViewController:ctl animated:YES completion:nil];
+    }
+    else
+    {
+        UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:ctl];
+        [self presentViewController:navCtl animated:YES completion:nil];
+    }
 }
 
 //-----------------------------------------------------------------

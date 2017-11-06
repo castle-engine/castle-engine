@@ -19,6 +19,14 @@
 
 @implementation OptionsController
 
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(OnBtnDone:)];
+}
+
+//-----------------------------------------------------------------
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
@@ -83,6 +91,12 @@
         default:
             break;
     }
+}
+
+//-----------------------------------------------------------------
+- (void)OnBtnDone:(id)sender
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

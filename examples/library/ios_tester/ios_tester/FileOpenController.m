@@ -28,6 +28,8 @@
 {
     [super viewDidLoad];
     
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(OnBtnCancel:)];
+    
     m_arrayFiles = [[NSMutableArray alloc] init];
     
     // documnets folder
@@ -85,4 +87,11 @@
         [self.delegate fileSelectedToOpen:[m_arrayFiles objectAtIndex:indexPath.row]];
     [self dismissViewControllerAnimated:YES completion:nil];
 }
+
+//-----------------------------------------------------------------
+- (void)OnBtnCancel:(id)sender
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
 @end

@@ -19,7 +19,9 @@
 
 - (void)viewDidLoad
 {
+    [super viewDidLoad];
     
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(OnBtnCancel:)];
 }
 
 //-----------------------------------------------------------------
@@ -49,6 +51,12 @@
     self.selectedViewpoint = indexPath.row;
     if (self.delegate != nil)
         [self.delegate viewpointDidChange:(int)indexPath.row];
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+
+//-----------------------------------------------------------------
+- (void)OnBtnCancel:(id)sender
+{
     [self dismissViewControllerAnimated:YES completion:nil];
 }
 
