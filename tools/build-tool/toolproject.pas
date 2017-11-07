@@ -38,8 +38,8 @@ type
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     FUsesNonExemptEncryption: boolean;
-    GatheringFilesVsData: boolean; //< only for GatherFile
-    GatheringFiles: TCastleStringList; //< only for GatherFile
+    GatheringFilesVsData: boolean; //< only for PackageFilesGather
+    GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     FIcons, FLaunchImages: TImageFileNames;
@@ -58,7 +58,8 @@ type
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     IOSTeam: string;
-    procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU): string;
@@ -220,6 +221,11 @@ begin
   Result := ChangeFileExt(S, LibraryExtensionOS(OS));
   if OS in AllUnixOSes then
     Result := InsertLibPrefix(Result);
+end;
+
+function AnsiSameFileName(const S1, S2: string): boolean;
+begin
+  Result := AnsiCompareFileName(S1, S2) = 0;
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -666,16 +672,6 @@ begin
   end;
 end;
 
-procedure TCastleProject.GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-var
-  RelativeVs: string;
-begin
-  if GatheringFilesVsData then
-    RelativeVs := DataPath else
-    RelativeVs := Path;
-  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
-end;
-
 procedure TCastleProject.DoCreateManifest;
 var
   Contents: string;
@@ -768,6 +764,17 @@ begin
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
+procedure TCastleProject.PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  RelativeVs: string;
+begin
+  if GatheringFilesVsData then
+    RelativeVs := DataPath
+  else
+    RelativeVs := Path;
+  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
+end;
+
 procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
@@ -801,7 +808,7 @@ var
 begin
   GatheringFiles := Files;
   GatheringFilesVsData := OnlyData;
-  FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
+  FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
 
   if not OnlyData then
     for I := 0 to IncludePaths.Count - 1 do
@@ -812,7 +819,7 @@ begin
           or <include path="docs/README.txt" />
           should not include *all* README.txt files inside. }
         FindOptions := [];
-      FindFiles(Path + IncludePaths[I], false, @GatherFile, FindOptions);
+      FindFiles(Path + IncludePaths[I], false, @PackageFilesGather, FindOptions);
     end;
   GatheringFiles := nil;
 
@@ -1043,13 +1050,33 @@ begin
   // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
 
+procedure TCastleProject.PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if FileInfo.Directory then
+  begin
+    if SpecialDirName(FileInfo.Name) or
+       { exclude version control dirs }
+       AnsiSameFileName(FileInfo.Name, '.git') or
+       AnsiSameFileName(FileInfo.Name, '.svn') or
+       { exclude various build tool output }
+       AnsiSameFileName(FileInfo.Name, 'castle-engine-output') then
+      Exit;
+    { recursively scan children }
+    FindFiles(FileInfo.AbsoluteName, '*', true, @PackageSourceGather, []);
+  end else
+  begin
+    { add relative filename to GatheringFiles }
+    GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
+  end;
+end;
+
 procedure TCastleProject.DoPackageSource;
 var
   Pack: TPackageDirectory;
   Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
-  IsPackageName: boolean;
+  Exclude: boolean;
   OS: TOS;
   CPU: TCPU;
 begin
@@ -1060,28 +1087,33 @@ begin
     Files := TCastleStringList.Create;
     try
       GatheringFiles := Files;
-      FindFiles(Path, '*', false, @GatherFile, [ffRecursive]);
+      { Non-recursive FindFiles, we will make recursion manually
+        inside PackageSourceGather }
+      FindFiles(Path, '*', true, @PackageSourceGather, []);
       GatheringFiles := nil;
+
       for I := 0 to Files.Count - 1 do
       begin
+        Exclude := false;
+
         { Do not pack packages (binary or source) into the source package.
           The packages are not cleaned by DoClean, so they could otherwise
           be packed by accident. }
-        IsPackageName := false;
         for OS in TOS do
           for CPU in TCPU do
             if OSCPUSupported[OS, CPU] then
-              if AnsiCompareFileName(Files[I], PackageName(OS, CPU)) = 0 then
-                IsPackageName := true;
-        if (AnsiCompareFileName(Files[I], SourcePackageName) = 0) or
-           { avoid Android packages }
-           (AnsiCompareFileName(Files[I], Name + '-debug.apk') = 0) or
-           (AnsiCompareFileName(Files[I], Name + '-release.apk') = 0) then
-          IsPackageName := true;
+              if AnsiSameFileName(Files[I], PackageName(OS, CPU)) then
+                Exclude := true;
 
-        if (not IsPackageName) and
+        if AnsiSameFileName(Files[I], SourcePackageName) or
+           { avoid Android packages }
+           AnsiSameFileName(Files[I], Name + '-debug.apk') or
+           AnsiSameFileName(Files[I], Name + '-release.apk') or
            { do not pack AndroidAntProperties.txt with private stuff }
-           (Files[I] <> 'AndroidAntProperties.txt') then
+           AnsiSameFileName(Files[I], 'AndroidAntProperties.txt') then
+          Exclude := true;
+
+        if not Exclude then
           Pack.Add(Path + Files[I], Files[I]);
       end;
     finally FreeAndNil(Files) end;
