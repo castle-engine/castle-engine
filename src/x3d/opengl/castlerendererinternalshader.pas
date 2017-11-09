@@ -2199,6 +2199,10 @@ var
   BumpMappingUniformName2: string;
   BumpMappingUniformValue2: Single;
 
+  { TODO: This is a mess of GLSL code snippets.
+    It should be separated into a separate GLSL file,
+    using (preferably) functions and (eventually) #ifdefs
+    to account for various bump mapping types. }
   procedure EnableShaderBumpMapping;
   const
     ParallaxDeclarations: array [ { steep parallax, with height map? } boolean ] of string = (
