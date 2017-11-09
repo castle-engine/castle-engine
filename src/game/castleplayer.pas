@@ -456,8 +456,6 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
-  { TODO: this unit should not use CastleInternalOpenAL directly }
-  CastleInternalOpenAL,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
   CastleGLImages, CastleConfig, CastleResources, CastleShapes,
   CastleRenderingCamera;
@@ -1011,17 +1009,8 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     if FootstepsSoundPlaying <> stNone then
     begin
       { So FootstepsSoundPlaying = NewFootstepsSoundPlaying for sure.
-        Make sure that the AL sound is really playing.
-
-        The decision to not use looping sound means that
-        end of footsteps sound should be detected
-        almost immediately (otherwise player will hear a little pause
-        in footsteps, due to the delay between SoundEngine.Refresh calls,
-        it's very short pause, but it's noticeable,
-        since footsteps should be rhytmic). I prefer to not rely
-        on SoundEngine.Refresh for this and instead just check this here. }
-      if not FootstepsSound.PlayingOrPaused then
-        alSourcePlay(FootstepsSound.ALSource);
+        Make sure that the sound is really playing. }
+      FootstepsSound.KeepPlaying;
     end;
 
     Assert(

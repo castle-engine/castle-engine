@@ -178,6 +178,34 @@ type
       and OnRelease being automatically called, and this TSound may then
       be reused for playing other sounds. }
     function PlayingOrPaused: boolean;
+
+    { Make sure that the sound keeps playing, in case it stopped playing.
+
+      This is an alternative approach to play a sound many times,
+      like in a loop, but without using the @link(Loop) property.
+      The idea is that you leave @link(Loop) set to @false,
+      and you keep calling this method from some "update" event
+      (like some @link(TUIControl.Update) implementation).
+      Once you stop calling this method, the sound will automatically stop
+      (once it finishes the current cycle).
+
+      Note that you still (as always when using TSound) must observe
+      the @link(TSound.OnRelease). When it's called, it means that the sound
+      engine (TSoundEngine) decided that this sound should be used for other purposes
+      (there's also a very small chance that the sound engine "caught"
+      the sound as unused, in a short time when it stopped playing but you didn't
+      yet call this method).
+      In such case, you must stop doing anything with this TSound instance
+      (including calling this method, @name, on it).
+      You have to start playing the sound again by @link(TSoundEngine.PlaySound)
+      instead.
+
+      Note that calling this method is better than observing @link(TSound.OnRelease),
+      to start playing a new sound when the previous one stopped.
+      That's because @link(TSound.OnRelease) may be called with some small delay
+      after the sound actually stopped, and it may be noticeable (e.g. in case
+      of using this for a short rhytmic sound, like footsteps). }
+    procedure KeepPlaying;
   end;
 
   TSoundList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSound>)
@@ -1243,6 +1271,12 @@ var
 begin
   SourceState := alGetSource1i(ALSource, AL_SOURCE_STATE);
   Result := (SourceState = AL_PLAYING) or (SourceState = AL_PAUSED);
+end;
+
+procedure TSound.KeepPlaying;
+begin
+  if not PlayingOrPaused then
+    alSourcePlay(ALSource);
 end;
 
 { TSoundList ----------------------------------------------------- }
