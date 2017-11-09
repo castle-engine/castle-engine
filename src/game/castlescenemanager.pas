@@ -814,7 +814,6 @@ type
 
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
-    LastSoundRefresh: TTimerResult;
     DefaultHeadlightNode: TDirectionalLightNode;
 
     ScheduledVisibleChangeNotification: boolean;
@@ -3398,12 +3397,8 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
     end;
   end;
 
-const
-  { Delay between calling SoundEngine.Refresh, in seconds. }
-  SoundRefreshDelay = 0.1;
 var
   RemoveItem: TRemoveType;
-  TimeNow: TTimerResult;
   SecondsPassedScaled: Single;
 begin
   inherited;
@@ -3415,22 +3410,6 @@ begin
     RemoveItem := rtNone;
     Items.Update(SecondsPassedScaled, RemoveItem);
     { we ignore RemoveItem --- main Items list cannot be removed }
-
-    { Calling SoundEngine.Refresh relatively often is important,
-      to call OnRelease for sound sources that finished playing.
-      Some of the engine features depend that sounds OnRelease is called
-      in a timely fashion. Notably: footsteps sound (done in TPlayer.Update)
-      relies on the fact that OnRelease of it's source will be reported
-      quickly after sound stopped. }
-    if SoundEngine.ALActive then
-    begin
-      TimeNow := Timer;
-      if TimerSeconds(TimeNow, LastSoundRefresh) > SoundRefreshDelay then
-      begin
-        LastSoundRefresh := TimeNow;
-        SoundEngine.Refresh;
-      end;
-    end;
   end;
 
   DoScheduledVisibleChangeNotification;

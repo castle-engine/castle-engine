@@ -76,6 +76,7 @@ type
     constructor Create(const AnAllocator: TSoundAllocator);
     destructor Destroy; override;
 
+    { Internal: OpenAL sound identifier. }
     property ALSource: TALuint read FALSource;
 
     { Do we play something.
@@ -103,28 +104,20 @@ type
       and we must assign this OpenAL sound slot to something else,
       or it may stop be used because it simply stopped playing.
 
-      But note that we do not make any guarantees that sources that
-      stopped playing will be immediately reported to OnRelease.
-      In fact, a source may be considered in Used = @true state
-      for a long time until it stopped playing. That's not a problem
-      for this unit --- TSoundAllocator.AllocateSound is smart,
-      and it may actually check (and eventually mark with @link(Release))
-      whether some sources are in playing state,
-      to avoid allocating unnecessary sources.
-      However, if this is a problem for you (because e.g. you do
-      some expensive operations to update all used sources every time)
-      and you really desire OnRelease to be called quickly after
-      sound stoppped playing, you may call TSoundAllocator.Refresh
-      from time to time.
-
-      In this event you should make sure to delete all references
-      to this sound, because the TSound instance may
-      be freed (or reused for other means) after calling OnRelease.
-      For the same reason, after calling this, we always clear it
+      When this event occurs, you should forget (e.g. set to @nil) all
+      your references to this sound instance. That's because this TSound instance
+      may be freed (or reused for other sounds) after calling OnRelease.
+      For the same reason, right after calling this event, we always clear it
       (set OnRelease to @nil).
 
       It's guaranteed that when this will be called,
-      @link(Used) will be @false and @link(PlayingOrPaused) will be @false. }
+      @link(Used) will be @false and @link(PlayingOrPaused) will be @false.
+
+      Note that we do not guarantee that sources that
+      stopped playing will be immediately reported to OnRelease.
+      A source may have Used = @true state
+      for a short time when it stopped playing (when PlayingOrPaused
+      is already @false). }
     property OnRelease: TSoundEvent read FOnRelease write FOnRelease;
 
     { Stops playing the source,
@@ -253,10 +246,13 @@ type
     made some error in your OpenAL code, and you didn't check alGetError
     yourself often enough. }
   TSoundAllocator = class
-  private
+  strict private
     FAllocatedSources: TSoundList;
     FMinAllocatedSources: Cardinal;
     FMaxAllocatedSources: Cardinal;
+    LastSoundRefresh: TTimerResult;
+    procedure DetectUnusedSounds;
+    procedure Update(Sender: TObject);
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
   public
@@ -275,13 +271,13 @@ type
       only when @link(TSoundEngine.ALActive). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; virtual; abstract;
 
-    { Allocate sound for playing. You should initialize the OpenAL sound
+    { Internal: Allocate sound for playing. You should initialize the OpenAL sound
       properties and start playing the sound (you have
       OpenAL sound identifier in TSound.ALSource).
 
       Note that if you don't call alSourcePlay, the source may be detected
       as unused (and recycled for another sound) at the next AllocateSound,
-      PlaySound, @link(Refresh) and such calls.
+      PlaySound, DetectUnusedSounds and such calls.
 
       If we can't allocate new OpenAL sound, we return nil.
       This may happen your OpenAL context is not initialized.
@@ -315,7 +311,7 @@ type
       whether this source is actually in playing/paused state
       right now. If not, it calls @link(TSound.Release) (thus setting
       Used to @false and triggering OnRelease) for this source. }
-    procedure Refresh;
+    procedure Refresh; deprecated 'do not call this method yourself, it will be called directly if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
 
     { Stop all the sources currently playing. Especially useful since
       you have to stop a source before releasing it's associated buffer. }
@@ -1331,6 +1327,8 @@ begin
   FAllocatedSources.Count := MinAllocatedSources;
   for I := 0 to FAllocatedSources.Count - 1 do
     FAllocatedSources[I] := TSound.Create(Self);
+
+  ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
 end;
 
 procedure TSoundAllocator.ALContextClose;
@@ -1355,6 +1353,9 @@ begin
 
     FreeAndNil(FAllocatedSources);
   end;
+
+  if ApplicationProperties(false) <> nil then
+    ApplicationProperties(false).OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif} Update);
 end;
 
 function TSoundAllocator.AllocateSound(
@@ -1472,9 +1473,8 @@ begin
     if (FAllocatedSources <> nil) and
        (Cardinal(FAllocatedSources.Count) > MaxAllocatedSources) then
     begin
-      { Refresh is useful here, so that we really cut off
-        the *currently* unused sources. }
-      Refresh;
+      { DetectUnusedSounds is needed here to release the *currently* unused sources. }
+      DetectUnusedSounds;
       FAllocatedSources.SortByImportance;
 
       for I := MaxAllocatedSources to FAllocatedSources.Count - 1 do
@@ -1490,16 +1490,44 @@ begin
 end;
 
 procedure TSoundAllocator.Refresh;
+begin
+  DetectUnusedSounds;
+end;
+
+procedure TSoundAllocator.DetectUnusedSounds;
 var
   I: Integer;
 begin
-  CheckAL('before Refresh');
+  CheckAL('before DetectUnusedSounds');
 
   if FAllocatedSources <> nil then
     for I := 0 to FAllocatedSources.Count - 1 do
       if FAllocatedSources[I].Used and
          (not FAllocatedSources[I].PlayingOrPaused) then
+      begin
         FAllocatedSources[I].Release;
+        // WritelnLog('Sound stopped playing');
+      end;
+end;
+
+procedure TSoundAllocator.Update(Sender: TObject);
+const
+  { Delay between calling DetectUnusedSounds, in seconds. }
+  SoundRefreshDelay = 0.1;
+var
+  TimeNow: TTimerResult;
+begin
+  { Calling DetectUnusedSounds relatively often is important,
+    to call OnRelease for sound sources that finished playing. }
+  if FAllocatedSources <> nil then
+  begin
+    TimeNow := Timer;
+    if TimerSeconds(TimeNow, LastSoundRefresh) > SoundRefreshDelay then
+    begin
+      LastSoundRefresh := TimeNow;
+      DetectUnusedSounds;
+    end;
+  end;
 end;
 
 procedure TSoundAllocator.StopAllSources;
