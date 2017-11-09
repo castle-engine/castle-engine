@@ -39,10 +39,11 @@ type
   TControlInputPressReleaseEvent = procedure (Sender: TObject; const Event: TInputPressRelease) of object;
   TControlInputMotionEvent = procedure (Sender: TObject; const Event: TInputMotion) of object;
 
-  { OpenGL control, with extensions for "Castle Game Engine", including
-    @link(Controls) list for TUIControl instances.
-    Use a descendant TCastleControl to have a ready
-    @link(TCastleControl.SceneManager) for 3D world.
+  { OpenGL control with extensions for "Castle Game Engine",
+    including @link(Controls) list for TUIControl instances.
+    You can use a descendant of this called TCastleControl to have even
+    more comfort: TCastleControl gives you a ready
+    @link(TCastleControl.SceneManager) for your world.
 
     This extends TOpenGLControl, adding various features:
 
@@ -51,16 +52,39 @@ type
         (like TCastleOnScreenMenu, TCastleButton and more).
         We will pass events to these controls, draw them etc.)
 
-      @item(Continously called @link(DoUpdate) method, that allows to handle
-        TUIControl.Update. This is something different than LCL "idle" event,
+      @item(Continously called @link(OnUpdate) event, and automatic handling
+        of all controls @link(TUIControl.Update).
+        This is something different than LCL "idle" event,
         as it's guaranteed to be run continously, even when your application
-        is clogged with events (like when using TWalkCamera.MouseLook).)
+        is clogged with events (like when using TWalkCamera.MouseLook).
+
+        Note: As we need to continously call the "update" event (to update animations
+        and more), we listen on the Lazarus Application "idle" event,
+        and tell it that we're never "done" with our work.
+        We do this only when at least one instance of TCastleControlCustom
+        is created, and never at design-time.
+        This means that your own "idle" events (registered through LCL
+        TApplicationProperties.OnIdle or Application.AddOnIdleHandler)
+        may be never executed, because really the application is never idle.
+
+        If you want to reliably do some continuous work, use Castle Game Engine
+        features to do it. There are various alternative ways:
+
+        @unorderedList(
+          @item(Register an event on @link(OnUpdate) of this component,)
+          @item(Add custom @link(TUIControl) instance to the @link(Controls) list
+            with overridden @link(TUIControl.Update) method,)
+          @item(Register an event on @link(TCastleApplicationProperties.OnUpdate
+            ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
+            unit.)
+        )
+      )
 
       @item(Automatically calls GLInformationInitialize
         when OpenGL context is initialized. This will initialize GLVersion,
-        GLUVersion, GLFeatures.)
+        GLFeatures and more.)
 
-      @item(FPS (frames per second) counter inside @link(Fps).)
+      @item(Measures FPS (frames per second), see the @link(Fps).)
 
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
         and mouse position @link(MousePosition).)
