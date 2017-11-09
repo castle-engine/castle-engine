@@ -12,33 +12,35 @@ type
   { TMain }
 
   TMain = class(TForm)
-    ButtonRefreshUsed: TButton;
+    ApplicationProperties1: TApplicationProperties;
     ButtonAllocateAndPlay: TButton;
     ButtonApplyAllocatorLimits: TButton;
+    CheckKeepRefreshingUsed: TCheckBox;
     CheckBoxPlayLooping: TCheckBox;
     FileNameEditSound: TFileNameEdit;
-    Label1: TLabel;
+    LabelDescription: TLabel;
     Label2: TLabel;
     Label3: TLabel;
+    LabelTitle: TLabel;
     LabelMaxAllocatedSources: TLabel;
     LabelMinAllocatedSources: TLabel;
     LabelSourceImportance: TLabel;
     ListAllocatedSources: TListBox;
     ListUsedSources1: TListBox;
-    Memo1: TMemo;
     PanelSourcePlaying: TPanel;
     PanelAllocatorLimits: TPanel;
     PanelLists: TPanel;
     SpinEditSourceImportance: TSpinEdit;
     SpinEditMaxAllocatedSources: TSpinEdit;
     SpinEditMinAllocatedSources: TSpinEdit;
-    Timer1: TTimer;
+    TimerToRefreshUsedSounds: TTimer;
+    TimerToDisplaySounds: TTimer;
     procedure ButtonAllocateAndPlayClick(Sender: TObject);
     procedure ButtonApplyAllocatorLimitsClick(Sender: TObject);
-    procedure ButtonRefreshUsedClick(Sender: TObject);
     procedure FormCreate(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
-    procedure Timer1Timer(Sender: TObject);
+    procedure TimerToDisplaySoundsTimer(Sender: TObject);
+    procedure TimerToRefreshUsedSoundsTimer(Sender: TObject);
   private
     procedure SourceRelease(Sender: TSound);
   public
@@ -50,7 +52,7 @@ var
 
 implementation
 
-uses CastleVectors, CastleUtils, CastleStringUtils;
+uses CastleVectors, CastleUtils, CastleStringUtils, CastleApplicationProperties;
 
 type
   { Data associated with sounds.
@@ -67,17 +69,12 @@ type
     StartedTime: TTime;
   end;
 
-procedure TMain.ButtonRefreshUsedClick(Sender: TObject);
-begin
-  SoundEngine.Refresh;
-end;
-
 procedure TMain.FormCreate(Sender: TObject);
 begin
   SoundEngine.MinAllocatedSources := SpinEditMinAllocatedSources.Value;
   SoundEngine.MaxAllocatedSources := SpinEditMaxAllocatedSources.Value;
   SoundEngine.ALContextOpen;
-  Timer1.Enabled := true;
+  TimerToDisplaySounds.Enabled := true;
 end;
 
 procedure TMain.ButtonApplyAllocatorLimitsClick(Sender: TObject);
@@ -150,7 +147,7 @@ begin
   Sender.UserData := nil;
 end;
 
-procedure TMain.Timer1Timer(Sender: TObject);
+procedure TMain.TimerToDisplaySoundsTimer(Sender: TObject);
 var
   I: Integer;
   S: string;
@@ -174,6 +171,14 @@ begin
           ]);
       ListAllocatedSources.Items.Append(S);
     end;
+end;
+
+procedure TMain.TimerToRefreshUsedSoundsTimer(Sender: TObject);
+begin
+  if CheckKeepRefreshingUsed.Checked then
+    { calling TCastleApplicationProperties._Update will cause
+      updating used sound sources in SoundEngine. }
+    ApplicationProperties._Update;
 end;
 
 initialization
