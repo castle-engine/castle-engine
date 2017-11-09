@@ -78,6 +78,8 @@ type
             ApplicationProperties.OnUpdate) from the @link(CastleApplicationProperties)
             unit.)
         )
+
+        TODO: Try an alternative implementation using TTimer with Interval=1.
       )
 
       @item(Automatically calls GLInformationInitialize
