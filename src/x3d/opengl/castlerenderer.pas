@@ -3067,31 +3067,23 @@ var
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
 
-          { Nope, you should *not* multiply
-            ClipPlane^.Transform * plane yourself.
-            The plane equation cannot be transformed in the same way
-            as you transform normal 4D vertex/direction (Matrix * vector).
-            E.g. translating a plane this way, with a standard translation
-            matrix, would make nonsense plane as a result.
-            This much I understand :)
+          { Note: do *not* multiply
 
-            So what OpenGL does? Some voodoo to allow you to specify
-            plane equation in local (in current modelview) space,
-            and not worry about the math :)
-            http://www2.imm.dtu.dk/~jab/texgen.pdf sheds some light on this.
+              ClipPlane^.Transform * ClipPlane^.Node.Plane
+
+            The plane equation cannot be transformed like that,
+            it's not a 4D vertex / direction.
+
+            OpenGL does smart calculatations such that we can
+            provide modelview matrix, and then specify
+            plane equation in the local space.
+            See e.g. http://www2.imm.dtu.dk/~jab/texgen.pdf .
             glClipPlane docs say that glClipPlane is multiplied by
             the *inverse* of modelview. The wording is crucial here:
             plane is multiplied by the matrix, not the other way around. }
 
-          {$ifndef OpenGLES} // TODO-es
-          glPushMatrix;
-            glMultMatrix(ClipPlane^.Transform);
-            glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
-              Vector4Double(ClipPlane^.Node.FdPlane.Value));
-            Shader.EnableClipPlane(ClipPlanesEnabled);
-          glPopMatrix;
-          {$endif}
-
+          Shader.EnableClipPlane(ClipPlanesEnabled,
+            ClipPlane^.Transform, ClipPlane^.Node.FdPlane.Value);
           Inc(ClipPlanesEnabled);
 
           { No more clip planes possible, regardless if there are any more

@@ -480,7 +480,8 @@ type
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableTextureTransform(const TextureUnit: Cardinal;
       const Matrix: TMatrix4);
-    procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
+    procedure EnableClipPlane(const ClipPlaneIndex: Cardinal;
+      const Transform: TMatrix4; const Plane: TVector4);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
@@ -2990,17 +2991,22 @@ begin
   FCodeHash.AddInteger(1973 * (TextureUnit + 1));
 end;
 
-procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
+procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal;
+  const Transform: TMatrix4; const Plane: TVector4);
 begin
-  {$ifndef OpenGLES}
-  // TODO-es how to do it on OpenGLES?
+  {$ifndef OpenGLES} // TODO-es
+  glPushMatrix;
+    glMultMatrix(Transform);
+    glClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
+  glPopMatrix;
+
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
-  {$endif}
+
   if ClipPlane = '' then
   begin
     ClipPlane := 'gl_ClipVertex = castle_vertex_eye;';
 
-    (* TODO: make this work: (instead of 0, add each index)
+    (* TODO: make this work with geometry shaders: (instead of 0, add each index)
     ClipPlaneGeometryPlug :=
       '#version 150 compatibility' +NL+
       'void PLUG_geometry_vertex_set(const int index)' +NL+
@@ -3016,8 +3022,10 @@ begin
       '  gl_ClipDistance[0] += gl_in[index].gl_ClipDistance[0] * scale;' +NL+
       '}' +NL;
     *)
+
     FCodeHash.AddInteger(2003);
   end;
+  {$endif}
 end;
 
 procedure TShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);
