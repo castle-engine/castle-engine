@@ -93,6 +93,31 @@ type
 
   EInvalidOBJFile = class(Exception);
 
+{ Read string to TVector3, ignoring invalid ending,
+  so it handles even incorrect things like '0 0 0c',
+  see https://github.com/castle-engine/castle-engine/pull/76/ }
+function Vector3FromStrPermissive(const S: string): TVector3;
+const
+  OnlyNums = AllChars - ['0'..'9', '.', '-','+','e','E'];
+var
+  SPosition: Integer;
+begin
+  try
+    Result := Vector3FromStr(S);
+  except
+    on E: EConvertError do
+    begin
+      SPosition := 1;
+      Result.Data[0] := StrToFloat(NextToken(S, SPosition));
+      Result.Data[1] := StrToFloat(NextToken(S, SPosition));
+      Result.Data[2] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+      if NextToken(S, SPosition) <> '' then
+        raise EConvertError.Create('Expected end of data when reading vector from string');
+      WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
+    end;
+  end;
+end;
+
 { TWavefrontMaterial --------------------------------------------------------- }
 
 constructor TWavefrontMaterial.Create(const AName: string);
@@ -306,7 +331,7 @@ var
       if SameText(FirstToken, 'xyz') or SameText(FirstToken, 'spectral') then
         { we can't interpret other colors than RGB, so we silently ignore them }
         Result := Vector3(1, 1, 1) else
-        Result := Vector3FromStr(Line);
+        Result := Vector3FromStrPermissive(Line);
     end;
 
     procedure CheckIsMaterial(const AttributeName: string);
