@@ -81,10 +81,11 @@ type
     FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
   public
-    constructor Create(const URL: string;
-      const AVerts: TVector3List;
-      const ATexCoords: TVector2List;
-      const ANormals: TVector3List);
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
+    Normal: TNormalNode;
+
+    constructor Create(const URL: string);
     destructor Destroy; override;
 
     property Faces: TWavefrontFaceList read FFaces;
@@ -181,10 +182,7 @@ end;
 
 { TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3DOBJ.Create(const URL: string;
-  const AVerts: TVector3List;
-  const ATexCoords: TVector2List;
-  const ANormals: TVector3List);
+constructor TObject3DOBJ.Create(const URL: string);
 var
   BasePath: string;
 
@@ -445,10 +443,6 @@ begin
 
   BasePath := AbsoluteURI(URL);
 
-  Verts := AVerts;
-  TexCoords := ATexCoords;
-  Normals := ANormals;
-
   FFaces := TWavefrontFaceList.Create(true);
   FMaterials := TWavefrontMaterialList.Create(true);
 
@@ -456,6 +450,14 @@ begin
 
   F := TTextReader.Create(URL);
   try
+    Coord := TCoordinateNode.Create('ObjCoordinates');
+    TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates');
+    Normal := TNormalNode.Create('ObjNormals');
+
+    Verts := Coord.FdPoint.Items;
+    TexCoords := TexCoord.FdPoint.Items;
+    Normals := Normal.FdVector.Items;
+
     while not F.Eof do
     begin
       ReadLine(F.Readln, LineTok, LineAfterMarker);
@@ -489,6 +491,9 @@ end;
 
 destructor TObject3DOBJ.Destroy;
 begin
+  FreeIfUnusedAndNil(Coord);
+  FreeIfUnusedAndNil(TexCoord);
+  FreeIfUnusedAndNil(Normal);
   FreeAndNil(FFaces);
   FreeAndNil(FMaterials);
   inherited;
@@ -544,12 +549,9 @@ var
 
 var
   Obj: TObject3DOBJ;
-  Coord: TCoordinateNode;
   Faces: TIndexedFaceSetNode;
-  TexCoord: TTextureCoordinateNode;
   I: integer;
   FacesWithTexCoord, FacesWithNormal: boolean;
-  Normal: TNormalNode;
   FacesWithMaterial: TWavefrontMaterial;
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
@@ -562,14 +564,7 @@ begin
     Result.HasForceVersion := true;
     Result.ForceVersion := X3DVersion;
 
-    Coord := TCoordinateNode.Create('ObjCoordinates',BaseUrl);
-    TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates', BaseUrl);
-    Normal := TNormalNode.Create('ObjNormals', BaseUrl);
-
-    Obj := TObject3DOBJ.Create(URL,
-      Coord.FdPoint.Items,
-      TexCoord.FdPoint.Items,
-      Normal.FdVector.Items);
+    Obj := TObject3DOBJ.Create(URL);
     try
       Appearances := TX3DNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;
@@ -610,18 +605,18 @@ begin
           and https://sourceforge.net/p/castle-engine/tickets/19/ }
         Faces.Convex := false;
         Faces.Solid := false;
-        Faces.Coord := Coord;
+        Faces.Coord := Obj.Coord;
         Faces.FdCoordIndex.Items.Clear;
         Faces.FdCoordIndex.Items.Capacity := IndicesCapacity;
         if FacesWithTexCoord then
         begin
-          Faces.TexCoord := TexCoord;
+          Faces.TexCoord := Obj.TexCoord;
           Faces.FdTexCoordIndex.Items.Clear;
           Faces.FdTexCoordIndex.Items.Capacity := IndicesCapacity;
         end;
         if FacesWithNormal then
         begin
-          Faces.Normal := Normal;
+          Faces.Normal := Obj.Normal;
           Faces.FdNormalIndex.Items.Clear;
           Faces.FdNormalIndex.Items.Capacity := IndicesCapacity;
         end;
@@ -650,10 +645,6 @@ begin
           (FacesWithNormal   <> Obj.Faces[I].HasNormals) or
           (FacesWithMaterial <> Obj.Faces[I].Material);
       end;
-
-      FreeIfUnusedAndNil(Coord);
-      FreeIfUnusedAndNil(TexCoord);
-      FreeIfUnusedAndNil(Normal);
 
       for I := 0 to Appearances.Count - 1 do
         Appearances[I].FreeIfUnused;
