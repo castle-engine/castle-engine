@@ -83,6 +83,7 @@ type
     FInternalExamineCamera: TExamineCamera;
     FInternalWalkCamera: TWalkCamera;
     FWithinSetNavigationType: boolean;
+    LastPressEvent: TInputPressRelease;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -1471,6 +1472,8 @@ begin
     in case a camera would base some movement based on the position delta. }
   Motion(InputMotion(Container.MousePosition, Container.MousePosition, Container.MousePressed, 0));
 
+  LastPressEvent := TInputPressRelease(Event);
+
   Result := GetItems.Press(Event);
   if Result then Exit;
 
@@ -1535,12 +1538,36 @@ begin
 end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
+
+  function IsTouchSensorActiveInMainScene: boolean;
+  var
+    ActiveSensorsList: TX3DNodeList;
+    I: Integer;
+  begin
+    ActiveSensorsList := GetMainScene.PointingDeviceActiveSensors;
+    for I := 0 to ActiveSensorsList.Count -1 do
+    begin
+      if ActiveSensorsList.Items[I] is TTouchSensorNode then
+        Exit(true);
+    end;
+    Result := false;
+  end;
+
 var
   RayOrigin, RayDirection: TVector3;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
   begin
+    { Test if dragging TTouchSensorNode. In that case cancel its dragging
+      and let camera move instead. }
+    if IsTouchSensorActiveInMainScene and
+       (PointsDistance(LastPressEvent.Position, Event.Position) > 5*96/Container.Dpi) then
+    begin
+      GetMainScene.PointingDeviceActivate(false, 0, true);
+      Camera.Press(LastPressEvent);
+    end;
+
     Camera.EnableDragging := not GetItems.Dragging;
     { Do not navigate by dragging (regardless of ciMouseDragging in Camera.Input)
       when we're already dragging a 3D item.
