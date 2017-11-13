@@ -1539,32 +1539,41 @@ end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
 
-  function IsTouchSensorActiveInMainScene: boolean;
+  function IsTouchSensorActiveInScene(const Scene: T3D): boolean;
   var
     ActiveSensorsList: TX3DNodeList;
     I: Integer;
   begin
-    ActiveSensorsList := GetMainScene.PointingDeviceActiveSensors;
+    Result := false;
+    if not (Scene is TCastleSceneCore) then
+      Exit;
+    ActiveSensorsList := (Scene as TCastleSceneCore).PointingDeviceActiveSensors;
     for I := 0 to ActiveSensorsList.Count -1 do
     begin
       if ActiveSensorsList.Items[I] is TTouchSensorNode then
         Exit(true);
     end;
-    Result := false;
   end;
 
 var
   RayOrigin, RayDirection: TVector3;
+  TopMostScene: T3D;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
   begin
+    if (GetMouseRayHit <> nil) and
+       (GetMouseRayHit.Count <> 0) then
+      TopMostScene := GetMouseRayHit.First.Item else
+      TopMostScene := nil;
+
     { Test if dragging TTouchSensorNode. In that case cancel its dragging
       and let camera move instead. }
-    if IsTouchSensorActiveInMainScene and
+    if (TopMostScene <> nil) and
+       IsTouchSensorActiveInScene(TopMostScene) and
        (PointsDistance(LastPressEvent.Position, Event.Position) > 5*96/Container.Dpi) then
     begin
-      GetMainScene.PointingDeviceActivate(false, 0, true);
+      TopMostScene.PointingDeviceActivate(false, 0, true);
       Camera.Press(LastPressEvent);
     end;
 
