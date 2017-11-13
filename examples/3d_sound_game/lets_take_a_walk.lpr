@@ -75,7 +75,7 @@ type
     function GetChild: T3D; override;
   public
     function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; override;
+      const Distance: Single; const CancelAction: boolean = false): boolean; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -92,9 +92,9 @@ begin
 end;
 
 function TTnt.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
+  const Distance: Single; const CancelAction: boolean): boolean;
 begin
-  Result := Active and not ToRemove;
+  Result := Active and (not ToRemove) and (not CancelAction);
   if not Result then Exit;
 
   SoundEngine.Sound3D(stKaboom, Translation);

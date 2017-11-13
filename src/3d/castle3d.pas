@@ -715,7 +715,16 @@ type
           Note that the exact key or mouse responsible for this is configurable
           in our engine by Input_Interact. By default it's the left mouse button,
           as is usual for VRML/X3D browsers. But it can be configured to be other
-          mouse button or a key, for example most 3D games use "e" key to interact.)
+          mouse button or a key, for example most 3D games use "e" key to interact.
+
+          In case of Active = @false (which means that pointing device
+          is no longer pressed), an extra parameter CancelAction indicates
+          whether this pointing device "press and release" sequence may be
+          considered a "click". When CancelAction = @true, then you should not make
+          a "click" event (e.g. TouchSensor should not send touchTime event etc.).
+
+          In case of Active = @true, CancelAction is always @false.
+        )
 
         @item(PointingDeviceMove signals that pointer moves over this 3D object.)
       )
