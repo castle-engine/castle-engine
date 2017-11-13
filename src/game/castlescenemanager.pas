@@ -83,6 +83,7 @@ type
     FInternalExamineCamera: TExamineCamera;
     FInternalWalkCamera: TWalkCamera;
     FWithinSetNavigationType: boolean;
+    LastPressEvent: TInputPressRelease;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -1471,6 +1472,8 @@ begin
     in case a camera would base some movement based on the position delta. }
   Motion(InputMotion(Container.MousePosition, Container.MousePosition, Container.MousePressed, 0));
 
+  LastPressEvent := TInputPressRelease(Event);
+
   Result := GetItems.Press(Event);
   if Result then Exit;
 
@@ -1535,12 +1538,45 @@ begin
 end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
+
+  function IsTouchSensorActiveInScene(const Scene: T3D): boolean;
+  var
+    ActiveSensorsList: TX3DNodeList;
+    I: Integer;
+  begin
+    Result := false;
+    if not (Scene is TCastleSceneCore) then
+      Exit;
+    ActiveSensorsList := (Scene as TCastleSceneCore).PointingDeviceActiveSensors;
+    for I := 0 to ActiveSensorsList.Count -1 do
+    begin
+      if ActiveSensorsList.Items[I] is TTouchSensorNode then
+        Exit(true);
+    end;
+  end;
+
 var
   RayOrigin, RayDirection: TVector3;
+  TopMostScene: T3D;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
   begin
+    if (GetMouseRayHit <> nil) and
+       (GetMouseRayHit.Count <> 0) then
+      TopMostScene := GetMouseRayHit.First.Item else
+      TopMostScene := nil;
+
+    { Test if dragging TTouchSensorNode. In that case cancel its dragging
+      and let camera move instead. }
+    if (TopMostScene <> nil) and
+       IsTouchSensorActiveInScene(TopMostScene) and
+       (PointsDistance(LastPressEvent.Position, Event.Position) > 5*96/Container.Dpi) then
+    begin
+      TopMostScene.PointingDeviceActivate(false, 0, true);
+      Camera.Press(LastPressEvent);
+    end;
+
     Camera.EnableDragging := not GetItems.Dragging;
     { Do not navigate by dragging (regardless of ciMouseDragging in Camera.Input)
       when we're already dragging a 3D item.

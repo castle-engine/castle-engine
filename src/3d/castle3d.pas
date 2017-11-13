@@ -758,7 +758,7 @@ type
 
       @groupBegin }
     function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; virtual;
+      const Distance: Single; const CancelAction: boolean = false): boolean; virtual;
     function PointingDeviceMove(const Pick: TRayCollisionNode;
       const Distance: Single): boolean; virtual;
     { @groupEnd }
@@ -2383,7 +2383,7 @@ begin
 end;
 
 function T3D.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
+  const Distance: Single; const CancelAction: boolean): boolean;
 begin
   Result := false;
 end;
