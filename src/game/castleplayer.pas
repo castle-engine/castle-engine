@@ -163,6 +163,7 @@ type
       FSwimSoundPause: Single;
       FEnableCameraDragging: boolean;
       FFallingEffect: boolean;
+      CurrentEquippedScene: TCastleScene;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -190,7 +191,6 @@ type
     procedure SetEnableCameraDragging(const AValue: boolean);
   protected
     procedure SetLife(const Value: Single); override;
-    function GetChild: T3D; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -664,7 +664,15 @@ begin
   if Value <> FEquippedWeapon then
   begin
     if FEquippedWeapon <> nil then
+    begin
+      { clear CurrentEquippedScene }
+      if CurrentEquippedScene <> nil then
+      begin
+        Remove(CurrentEquippedScene);
+        CurrentEquippedScene := nil;
+      end;
       FEquippedWeapon.RemoveFreeNotification(Self);
+    end;
 
     FEquippedWeapon := Value;
 
@@ -826,6 +834,25 @@ begin
 end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  procedure UpdateCurrentEquippedScene;
+  var
+    NewEquippedScene: TCastleScene;
+  begin
+    if EquippedWeapon <> nil then
+      NewEquippedScene := EquippedWeapon.EquippedScene(LifeTime)
+    else
+      NewEquippedScene := nil;
+
+    if CurrentEquippedScene <> NewEquippedScene then
+    begin
+      if CurrentEquippedScene <> nil then
+        Remove(CurrentEquippedScene);
+      CurrentEquippedScene := NewEquippedScene;
+      if CurrentEquippedScene <> nil then
+        Add(CurrentEquippedScene);
+    end;
+  end;
 
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
@@ -1023,6 +1050,8 @@ const
 begin
   inherited;
   if not GetExists then Exit;
+
+  UpdateCurrentEquippedScene;
 
   if FFlyingTimeOut > 0 then
   begin
@@ -1246,13 +1275,6 @@ function TPlayer.Sphere(out Radius: Single): boolean;
 begin
   Result := true;
   Radius := Camera.Radius;
-end;
-
-function TPlayer.GetChild: T3D;
-begin
-  if EquippedWeapon <> nil then
-    Result := EquippedWeapon.EquippedScene(LifeTime) else
-    Result := nil;
 end;
 
 procedure TPlayer.Notification(AComponent: TComponent; Operation: TOperation);

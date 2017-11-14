@@ -787,11 +787,6 @@ type
     procedure SetLife(const Value: Single); override;
     procedure Fall(const FallHeight: Single); override;
 
-    { Current scene to be rendered.
-      Note that this may be called before we're added to World (at the end of our
-      construction), so make it work always reliably. }
-    { function GetChild: T3D; override; }
-
     { LerpLegsMiddle interpolates between Position and Middle
       (intuitively, legs and eye positions). }
     function LerpLegsMiddle(const A: Single): TVector3;
@@ -888,6 +883,7 @@ type
 
     FDebug3DAlternativeTargetAxis: TDebugAxis;
     FDebug3DLastSensedEnemyAxis: TDebugAxis;
+    CurrentChild: T3D;
   protected
     { Last known information about enemy. }
     HasLastSensedEnemy: boolean;
@@ -905,8 +901,6 @@ type
 
     { Last State change time, taken from LifeTime. }
     property StateChangeTime: Single read FStateChangeTime;
-
-    function GetChild: T3D; override;
 
     { Actually do the attack indicated by AttackAnimation
       and AttackTime and other AttackXxx properties.
@@ -952,11 +946,10 @@ type
   private
     LastSoundIdleTime: Single;
     ForceRemoveDead: boolean;
+    CurrentChild: T3D;
     procedure HitCore;
     procedure HitPlayer;
     procedure HitCreature(Creature: TCreature);
-  protected
-    function GetChild: T3D; override;
   public
     constructor Create(AOwner: TComponent; const AMaxLife: Single); override;
     function Resource: TMissileCreatureResource;
@@ -965,8 +958,8 @@ type
 
   { Creature using TStillCreatureResource. }
   TStillCreature = class(TCreature)
-  protected
-    function GetChild: T3D; override;
+  private
+    CurrentChild: T3D;
   public
     function Resource: TStillCreatureResource;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -1504,10 +1497,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 
     if RenderDebugCaptions then
     begin
-      if GetChild <> nil then
-        BBox := GetChild.BoundingBox
-      else
-        BBox := TBox3D.Empty;
+      BBox := BoundingBox;
       FDebugCaptionsShape.Render := not BBox.IsEmpty;
       if FDebugCaptionsShape.Render then
       begin
@@ -1690,6 +1680,54 @@ begin
 end;
 
 procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  function GetChild: T3D;
+  var
+    StateTime: Single;
+  begin
+    if not Resource.Prepared then Exit(nil);
+
+    { Time from the change to this state. }
+    StateTime := LifeTime - StateChangeTime;
+
+    case FState of
+      csIdle:
+        Result := Resource.IdleAnimation.Scene(StateTime, true);
+      csWalk:
+        if Resource.IdleToWalkAnimation.Defined and
+           (StateTime < Resource.IdleToWalkAnimation.Duration) then
+          Result := Resource.IdleToWalkAnimation.Scene(StateTime, false) else
+          Result := Resource.WalkAnimation.Scene(
+            StateTime - Resource.IdleToWalkAnimation.Duration, true);
+      csAttack:
+        Result := Resource.AttackAnimation.Scene(StateTime, false);
+      csFireMissile:
+        Result := Resource.FireMissileAnimation.Scene(StateTime, false);
+      csDie:
+        Result := Resource.DieAnimation.Scene(StateTime, false);
+      csDieBack:
+        Result := Resource.DieBackAnimation.Scene(StateTime, false);
+      csHurt:
+        Result := Resource.HurtAnimation.Scene(StateTime, false);
+      else raise EInternalError.Create('FState ?');
+    end;
+  end;
+
+  procedure UpdateChild;
+  var
+    NewChild: T3D;
+  begin
+    NewChild := GetChild;
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
 var
   EnemySensedNow: boolean;
   SqrDistanceToLastSensedEnemy: Single;
@@ -2324,8 +2362,10 @@ begin
   if Dead and not (State in [csDie, csDieBack]) then
   begin
     if Resource.DieBackAnimation.Defined and WasLackAttackBack then
-      SetState(csDieBack) else
+      SetState(csDieBack)
+    else
       SetState(csDie);
+    UpdateChild;
     Exit;
   end;
 
@@ -2374,38 +2414,7 @@ begin
     UpPrefer(World.GravityUp);
 
   UpdateDebug3D;
-end;
-
-function TWalkAttackCreature.GetChild: T3D;
-var
-  StateTime: Single;
-begin
-  if not Resource.Prepared then Exit(nil);
-
-  { Time from the change to this state. }
-  StateTime := LifeTime - StateChangeTime;
-
-  case FState of
-    csIdle:
-      Result := Resource.IdleAnimation.Scene(StateTime, true);
-    csWalk:
-      if Resource.IdleToWalkAnimation.Defined and
-         (StateTime < Resource.IdleToWalkAnimation.Duration) then
-        Result := Resource.IdleToWalkAnimation.Scene(StateTime, false) else
-        Result := Resource.WalkAnimation.Scene(
-          StateTime - Resource.IdleToWalkAnimation.Duration, true);
-    csAttack:
-      Result := Resource.AttackAnimation.Scene(StateTime, false);
-    csFireMissile:
-      Result := Resource.FireMissileAnimation.Scene(StateTime, false);
-    csDie:
-      Result := Resource.DieAnimation.Scene(StateTime, false);
-    csDieBack:
-      Result := Resource.DieBackAnimation.Scene(StateTime, false);
-    csHurt:
-      Result := Resource.HurtAnimation.Scene(StateTime, false);
-    else raise EInternalError.Create('FState ?');
-  end;
+  UpdateChild;
 end;
 
 procedure TWalkAttackCreature.SetLife(const Value: Single);
@@ -2539,6 +2548,32 @@ begin
 end;
 
 procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  function GetChild: T3D;
+  begin
+   if not Resource.Prepared then Exit(nil);
+
+   if Dead and Resource.DieAnimation.Defined then
+     Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false)
+   else
+     Result := Resource.FlyAnimation.Scene(LifeTime, true);
+  end;
+
+  procedure UpdateChild;
+  var
+    NewChild: T3D;
+  begin
+    NewChild := GetChild;
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
 var
   Player: T3DOrient;
 
@@ -2649,15 +2684,8 @@ begin
     LastSoundIdleTime := LifeTime;
     Sound3d(Resource.SoundIdle, 0.0);
   end;
-end;
 
-function TMissileCreature.GetChild: T3D;
-begin
-  if not Resource.Prepared then Exit(nil);
-
-  if Dead and Resource.DieAnimation.Defined then
-    Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false) else
-    Result := Resource.FlyAnimation.Scene(LifeTime, true);
+  UpdateChild;
 end;
 
 procedure TMissileCreature.HitCore;
@@ -2688,16 +2716,33 @@ begin
   Result := TStillCreatureResource(inherited Resource);
 end;
 
-function TStillCreature.GetChild: T3D;
-begin
-  if not Resource.Prepared then Exit(nil);
-
-  if Dead and Resource.DieAnimation.Defined then
-    Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false) else
-    Result := Resource.IdleAnimation.Scene(LifeTime, true);
-end;
-
 procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  function GetChild: T3D;
+  begin
+    if not Resource.Prepared then Exit(nil);
+
+    if Dead and Resource.DieAnimation.Defined then
+      Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false)
+    else
+      Result := Resource.IdleAnimation.Scene(LifeTime, true);
+  end;
+
+  procedure UpdateChild;
+  var
+    NewChild: T3D;
+  begin
+    NewChild := GetChild;
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
@@ -2707,6 +2752,8 @@ begin
     if Resource.RemoveDead and (LifeTime - DieTime > Resource.DieAnimation.Duration) then
       RemoveMe := rtRemoveAndFree;
   end;
+
+  UpdateChild;
 end;
 
 { initialization / finalization ---------------------------------------------- }

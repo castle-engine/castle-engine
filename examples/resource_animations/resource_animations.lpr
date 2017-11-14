@@ -43,20 +43,37 @@ type
   TLoopAnimation = class(T3DList)
   public
     Time: Single;
-    function GetChild: T3D; override;
+    CurrentChild: T3D;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
-function TLoopAnimation.GetChild: T3D;
-begin
-  if not (GetExists and Resource.Prepared) then Exit;
-  Result := Animation.Scene(Time, true);
-end;
-
 procedure TLoopAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  function GetChild: T3D;
+  begin
+    if not (GetExists and Resource.Prepared) then Exit;
+    Result := Animation.Scene(Time, true);
+  end;
+
+  procedure UpdateChild;
+  var
+    NewChild: T3D;
+  begin
+    NewChild := GetChild;
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
 begin
   Time += SecondsPassed;
   VisibleChangeHere([vcVisibleGeometry]);
+  UpdateChild;
 end;
 
 var

@@ -489,9 +489,8 @@ type
       FItem: TInventoryItem;
       ItemRotation, LifeTime: Single;
       FDebug3D: TItemDebug3D;
+      CurrentChild: T3D;
     function BoundingBoxRotated: TBox3D;
-  protected
-    function GetChild: T3D; override;
   public
     { Speed of the rotation of 3D item on world.
       In radians per second, default is DefaultRotationSpeed.
@@ -1138,18 +1137,34 @@ begin
   inherited;
 end;
 
-function TItemOnWorld.GetChild: T3D;
-begin
-  if (Item = nil) or not Item.Resource.Prepared then Exit(nil);
-  Result := Item.Resource.BaseAnimation.Scene(LifeTime, true);
-end;
-
 function TItemOnWorld.BoundingBoxRotated: TBox3D;
 begin
   Result := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Position);
 end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  function GetChild: T3D;
+  begin
+    if (Item = nil) or not Item.Resource.Prepared then Exit(nil);
+    Result := Item.Resource.BaseAnimation.Scene(LifeTime, true);
+  end;
+
+  procedure UpdateChild;
+  var
+    NewChild: T3D;
+  begin
+    NewChild := GetChild;
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
 var
   DirectionZero, U: TVector3;
 begin
@@ -1180,6 +1195,8 @@ begin
   { Since we cannot live with Item = nil, we free ourselves }
   if Item = nil then
     RemoveMe := rtRemoveAndFree;
+
+  UpdateChild;
 end;
 
 function TItemOnWorld.ExtractItem: TInventoryItem;

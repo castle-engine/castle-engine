@@ -71,8 +71,6 @@ type
   TTnt = class(T3DTransform)
   private
     ToRemove: boolean;
-  protected
-    function GetChild: T3D; override;
   public
     function PointingDeviceActivate(const Active: boolean;
       const Distance: Single; const CancelAction: boolean = false): boolean; override;
@@ -85,11 +83,6 @@ const
   MaxTntsCount = 40;
 var
   TntsCount: Integer = 0;
-
-function TTnt.GetChild: T3D;
-begin
-  Result := TntScene;
-end;
 
 function TTnt.PointingDeviceActivate(const Active: boolean;
   const Distance: Single; const CancelAction: boolean): boolean;
@@ -132,6 +125,7 @@ var
 begin
   TntSize := TntScene.BoundingBox.MaxSize;
   Tnt := TTnt.Create(SceneManager);
+  Tnt.Add(TntScene);
   Box := SceneManager.MainScene.BoundingBox;
   Tnt.Translation := Vector3(
     RandomFloatRange(Box.Data[0].Data[0], Box.Data[1].Data[0]-TntSize),
