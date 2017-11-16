@@ -1417,6 +1417,10 @@ type
 
     { Untransformed bounding box value. }
     function LocalBoundingBox: TBox3D;
+
+    { Override this to be notified about every transformation change.
+      By default, this calls VisibleChangeHere, which causes the window to redraw. }
+    procedure ChangedTransform; virtual;
   public
     const
       DefaultMiddleHeight = 0.5;
@@ -1798,7 +1802,7 @@ type
     There is no scaling of 3D objects, ever. }
   T3DOrient = class(T3DCustomTransform)
   private
-    FCamera: TWalkCamera;
+    FPosition, FDirection, FUp: TVector3;
     FOrientation: TOrientationType;
     function GetPosition: TVector3;
     function GetDirection: TVector3;
@@ -1890,25 +1894,6 @@ type
       Generally, it applies to every 3D model that is used as
       a child of this T3DOrient instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
-
-    { Camera, with view vectors (position, direction and up)
-      always synchronized with this T3DOrient instance.
-      You should not set Camera vectors (by TWalkCamera.Position,
-      TWalkCamera.SetView and such) directly, instead use this
-      object's properties (T3DOrient.Position, T3DOrient.SetView),
-      as we will call proper VisibleChangeHere method.
-
-      We don't deal with any other camera properties in T3DOrient.
-      If you want, you can ignore this camera (you will probably do this
-      if you use T3DOrient for creature like TCastleCreature;
-      although camera may still have a fun usage then, for observing world from
-      a creature view).
-      Or you can use this camera, taking care of all it's settings,
-      even asssigning this camera to TCastleSceneManager.Camera
-      to allow user to directly control it (you will probably
-      do this if you use T3DOrient for player like TPlayer;
-      in fact, TGameSceneManager.LoadLevel does this automatically for you). }
-    property Camera: TWalkCamera read FCamera;
   end;
 
   { Deprecated name for T3DCustomTransform. @deprecated @exclude }
@@ -4171,6 +4156,11 @@ begin
     Translate(NewMiddle - OldMiddle);
 end;
 
+procedure T3DCustomTransform.ChangedTransform;
+begin
+  VisibleChangeHere([vcVisibleGeometry]);
+end;
+
 { T3DTransform -------------------------------------------------------------- }
 
 constructor T3DTransform.Create(AOwner: TComponent);
@@ -4213,14 +4203,14 @@ procedure T3DTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
   FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
-  VisibleChangeHere([vcVisibleGeometry]);
+  ChangedTransform;
 end;
 
 procedure T3DTransform.SetRotation(const Value: TVector4);
 begin
   FRotation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-  VisibleChangeHere([vcVisibleGeometry]);
+  ChangedTransform;
 end;
 
 procedure T3DTransform.SetScale(const Value: TVector3);
@@ -4228,20 +4218,20 @@ begin
   FScale := Value;
   FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
-  VisibleChangeHere([vcVisibleGeometry]);
+  ChangedTransform;
 end;
 
 procedure T3DTransform.SetScaleOrientation(const Value: TVector4);
 begin
   FScaleOrientation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
-  VisibleChangeHere([vcVisibleGeometry]);
+  ChangedTransform;
 end;
 
 procedure T3DTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
-  VisibleChangeHere([vcVisibleGeometry]);
+  ChangedTransform;
 end;
 
 function T3DTransform.OnlyTranslation: boolean;
@@ -4268,13 +4258,14 @@ end;
 constructor T3DOrient.Create(AOwner: TComponent);
 begin
   inherited;
-  FCamera := TWalkCamera.Create(nil);
   FOrientation := DefaultOrientation;
+  FPosition  := TVector3.Zero;
+  FDirection := DefaultCameraDirection;
+  FUp        := DefaultCameraUp;
 end;
 
 destructor T3DOrient.Destroy;
 begin
-  FreeAndNil(FCamera);
   inherited;
 end;
 
@@ -4291,7 +4282,7 @@ begin
     TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
     on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
 
-  Camera.GetView(P, D, U);
+  GetView(P, D, U);
 
   case Orientation of
     otUpYDirectionMinusZ:
@@ -4326,78 +4317,88 @@ end;
 
 function T3DOrient.GetPosition: TVector3;
 begin
-  Result := Camera.Position;
+  Result := FPosition;
 end;
 
 function T3DOrient.GetDirection: TVector3;
 begin
-  Result := Camera.Direction;
+  Result := FDirection;
 end;
 
 function T3DOrient.GetUp: TVector3;
 begin
-  Result := Camera.Up;
+  Result := FUp;
 end;
 
 procedure T3DOrient.SetPosition(const Value: TVector3);
 begin
-  Camera.Position := Value;
-  VisibleChangeHere([vcVisibleGeometry]);
+  FPosition := Value;
+  ChangedTransform;
 end;
 
 procedure T3DOrient.SetDirection(const Value: TVector3);
 begin
-  Camera.Direction := Value;
-  VisibleChangeHere([vcVisibleGeometry]);
+  FDirection := Value.Normalize;
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  ChangedTransform;
 end;
 
 procedure T3DOrient.SetUp(const Value: TVector3);
 begin
-  Camera.Up := Value;
-  VisibleChangeHere([vcVisibleGeometry]);
+  FUp := Value.Normalize;
+  MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
+  ChangedTransform;
 end;
 
 procedure T3DOrient.UpPrefer(const AUp: TVector3);
 begin
-  Camera.UpPrefer(AUp);
-  VisibleChangeHere([vcVisibleGeometry]);
+  FUp := AUp.Normalize;
+  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
+  ChangedTransform;
 end;
 
 procedure T3DOrient.GetView(out APos, ADir, AUp: TVector3);
 begin
-  Camera.GetView(APos, ADir, AUp);
+  APos := FPosition;
+  ADir := FDirection;
+  AUp  := FUp;
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
-  Camera.SetView(APos, ADir, AUp, AdjustUp);
-  VisibleChangeHere([vcVisibleGeometry]);
+  FPosition := APos;
+  SetView(ADir, AUp, AdjustUp);
 end;
 
 procedure T3DOrient.SetView(const ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
-  Camera.SetView(ADir, AUp, AdjustUp);
-  VisibleChangeHere([vcVisibleGeometry]);
+  FDirection := ADir.Normalize;
+  FUp := AUp.Normalize;
+  if AdjustUp then
+    MakeVectorsOrthoOnTheirPlane(FUp, FDirection)
+  else
+    MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
+  ChangedTransform;
 end;
 
 procedure T3DOrient.Translate(const T: TVector3);
 begin
-  Camera.Position := Camera.Position + T;
-  VisibleChangeHere([vcVisibleGeometry]);
+  FPosition := FPosition + T;
+  ChangedTransform;
 end;
 
 function T3DOrient.GetTranslation: TVector3;
 begin
-  Result := Camera.Position;
+  Result := FPosition;
 end;
 
 function T3DOrient.GetRotation: TVector4;
 var
   APos, ADir, AUp: TVector3;
 begin
-  Camera.GetView(APos, ADir, AUp);
+  GetView(APos, ADir, AUp);
   { TODO: Is this correct also for TOrientationType <> otUpYDirectionMinusZ? }
   Result := CamDirUp2Orient(ADir, AUp);
 end;

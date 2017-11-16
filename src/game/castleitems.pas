@@ -1239,6 +1239,16 @@ end;
 
 function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
 
+  function DirectionInGravityPlane: TVector3;
+  var
+    GravityUp: TVector3;
+  begin
+    GravityUp := World.GravityUp;
+    Result := Direction;
+    if not VectorsParallel(Result, GravityUp) then
+      MakeVectorsOrthoOnTheirPlane(Result, GravityUp);
+  end;
+
   function GetItemDropPosition(DroppedItemResource: TItemResource;
     out DropPosition: TVector3): boolean;
   var
@@ -1265,14 +1275,14 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       prevent putting item "inside the ground", but the item
       would be too close to the player --- he could pick it up
       immediately. }
-    DropPosition := Camera.Position +
-      Camera.DirectionInGravityPlane *
-        (0.6 * (Camera.RealPreferredHeight * Sqrt3 + ItemBox.Diagonal));
+    DropPosition := Position +
+      DirectionInGravityPlane *
+        (0.6 * (PreferredHeight * Sqrt3 + ItemBox.Diagonal));
 
     { Now check is DropPosition actually possible
       (i.e. check collisions item<->everything).
       The assumption is that item starts from
-      Camera.Position and is moved to DropPosition.
+      Position and is moved to DropPosition.
 
       But actually we must shift both these positions,
       so that we check positions that are ideally in the middle
@@ -1281,9 +1291,9 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       look good. }
 
     Result := World.WorldMoveAllowed(
-      ItemBoxMiddle + Camera.Position,
+      ItemBoxMiddle + Position,
       ItemBoxMiddle + DropPosition, true, ItemBoxRadius,
-      ItemBox.Translate(Camera.Position),
+      ItemBox.Translate(Position),
       ItemBox.Translate(DropPosition), false);
   end;
 
