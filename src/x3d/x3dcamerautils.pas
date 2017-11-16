@@ -178,7 +178,7 @@ begin
     { Then GravityUp is parallel to DefaultX3DGravityUp, which means that it's
       just the same. So we can use untranslated Viewpoint node. }
     S1 := Position.ToRawString;
-    S2 := CamDirUp2Orient(Direction, Up).ToRawString;
+    S2 := OrientationFromDirectionUp(Direction, Up).ToRawString;
     Result := Result + Format(UntransformedViewpoint[Version, Xml], [S1, S2]);
   end else
   begin
@@ -194,11 +194,11 @@ begin
         2. rotated by orientation
         3. rotated around RotationVectorForGravity
       will give Camera.Direction/Up.
-      CamDirUp2Orient will calculate the orientation needed to
+      OrientationFromDirectionUp will calculate the orientation needed to
       achieve given up/dir vectors. So I have to pass there
       MatrixWalker.Direction/Up *already rotated negatively
       around RotationVectorForGravity*. }
-    S4 := CamDirUp2Orient(
+    S4 := OrientationFromDirectionUp(
             RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
             RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity)
           ).ToRawString;
@@ -229,7 +229,7 @@ begin
       else raise EInternalError.Create('MakeCameraNode Version incorrect');
     end;
     ViewpointNode.Position := Position;
-    ViewpointNode.Orientation := CamDirUp2Orient(Direction, Up);
+    ViewpointNode.Orientation := OrientationFromDirectionUp(Direction, Up);
     Result := ViewpointNode;
   end else
   begin
@@ -243,11 +243,11 @@ begin
       2. rotated by orientation
       3. rotated around RotationVectorForGravity
       will give MatrixWalker.Direction/Up.
-      CamDirUp2Orient will calculate the orientation needed to
+      OrientationFromDirectionUp will calculate the orientation needed to
       achieve given up/dir vectors. So I have to pass there
       MatrixWalker.Direction/Up *already rotated negatively
       around RotationVectorForGravity*. }
-    Orientation := CamDirUp2Orient(
+    Orientation := OrientationFromDirectionUp(
       RotatePointAroundAxisRad(-AngleForGravity, Direction, RotationVectorForGravity),
       RotatePointAroundAxisRad(-AngleForGravity, Up       , RotationVectorForGravity));
     case Version of

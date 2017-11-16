@@ -5921,7 +5921,7 @@ begin
           Direction := PSI.InvertedTransform.MultDirection(CameraDirection);
           Up        := PSI.InvertedTransform.MultDirection(CameraUp);
           ProxNode.EventOrientation_Changed.Send(
-            CamDirUp2Orient(Direction, Up), NextEventTime);
+            OrientationFromDirectionUp(Direction, Up), NextEventTime);
         end;
         { TODO: centerOfRotation_changed }
       end;

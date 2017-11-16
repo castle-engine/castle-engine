@@ -1800,9 +1800,8 @@ type
     The translation of objects is just taken from @link(Position),
     and works just like normal T3DTransform.Translation.
     There is no scaling of 3D objects, ever. }
-  T3DOrient = class(T3DCustomTransform)
+  T3DOrient = class(T3DTransform)
   private
-    FPosition, FDirection, FUp: TVector3;
     FOrientation: TOrientationType;
     function GetPosition: TVector3;
     function GetDirection: TVector3;
@@ -1810,23 +1809,29 @@ type
     procedure SetPosition(const Value: TVector3);
     procedure SetDirection(const Value: TVector3);
     procedure SetUp(const Value: TVector3);
-  protected
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4); override;
-    function OnlyTranslation: boolean; override;
-    function GetTranslation: TVector3; override;
-    function GetRotation: TVector4; override;
+    function RotationFromDirectionUp(const D, U: TVector3): TVector4;
+    function RotationToDirection(const ARotation: TVector4): TVector3;
+    function RotationToUp(const ARotation: TVector4): TVector3;
   public
-    { Default value of T3DOrient.Orientation, for new instances of T3DOrient
-      (creatures, items, player etc.). }
+    { Default value of @link(T3DOrient.Orientation) for new instances. }
     DefaultOrientation: TOrientationType; static;
 
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
 
-    { Position (translation) of this 3D object. }
     property Position: TVector3 read GetPosition write SetPosition;
+      deprecated 'use Translation';
 
     { Direction the creature is facing, and up vector.
+      These properties provide an alternative way to get and set the @link(Rotation)
+      of the transformation.
+      Thinking in terms of "direction" and "up" is often more natural
+      when transforming creatures and player.
+
+      The @link(Orientation) determines what is your default direction and up
+      (when the @link(Rotation) is zero).
+      By default we follow X3D standard vectors suitable for gravity along
+      the Y axis. So direction is -Z (DefaultCameraDirection),
+      up is +Y (DefaultCameraUp).
 
       The @link(Direction) and @link(Up) vectors should always be normalized
       (have length 1). When setting them by these properties, we will normalize
@@ -1836,10 +1841,6 @@ type
       When setting @link(Direction), @link(Up) will always be automatically
       adjusted to be orthogonal to @link(Direction). And vice versa ---
       when setting @link(Up), @link(Direction) will be adjusted.
-
-      Initially, they follow VRML/X3D standard vectors suitable for gravity along
-      the Y axis. So direction is -Z (DefaultCameraDirection),
-      up is +Y (DefaultCameraUp).
 
       @groupBegin }
     property Direction: TVector3 read GetDirection write SetDirection;
@@ -1877,8 +1878,6 @@ type
       It's good to use this if you have a preferred up vector for creatures,
       but still preserving the direction vector has the highest priority. }
     procedure UpPrefer(const AUp: TVector3);
-
-    procedure Translate(const T: TVector3); override;
 
     { How the direction and up vectors determine transformation.
       See TOrientationType for values documentation.
@@ -4255,152 +4254,118 @@ end;
 
 { T3DOrient ------------------------------------------------------------------ }
 
+const
+  DefaultDirection: array [TOrientationType] of TVector3 = (
+    (Data: (0,  0, -1)),
+    (Data: (0, -1,  0)),
+    (Data: (1,  0,  0))
+  );
+  DefaultUp: array [TOrientationType] of TVector3 = (
+    (Data: (0, 1, 0)),
+    (Data: (0, 0, 1)),
+    (Data: (0, 0, 1))
+  );
+
 constructor T3DOrient.Create(AOwner: TComponent);
 begin
   inherited;
   FOrientation := DefaultOrientation;
-  FPosition  := TVector3.Zero;
-  FDirection := DefaultCameraDirection;
-  FUp        := DefaultCameraUp;
 end;
 
-destructor T3DOrient.Destroy;
+function T3DOrient.RotationFromDirectionUp(const D, U: TVector3): TVector4;
 begin
-  inherited;
+  Result := OrientationFromDirectionUp(D, U,
+    DefaultDirection[Orientation],
+    DefaultUp[Orientation]
+  );
 end;
 
-procedure T3DOrient.TransformMatricesMult(var M, MInverse: TMatrix4);
-var
-  NewM, NewMInverse: TMatrix4;
-var
-  P, D, U, Side: TVector3;
+function T3DOrient.RotationToDirection(const ARotation: TVector4): TVector3;
 begin
-  { Note that actually I could do here TransformToCoordsNoScaleMatrix,
-    as obviously I don't want any scaling. But in this case I know
-    that Direction and Up lengths = 1 (so their product
-    length is also = 1), so no need to do
-    TransformToCoordsNoScaleMatrix here (and I can avoid wasting my time
-    on Sqrts needed inside TransformToCoordsNoScaleMatrix). }
-
-  GetView(P, D, U);
-
-  case Orientation of
-    otUpYDirectionMinusZ:
-      begin
-        Side := TVector3.CrossProduct(U, -D);
-        NewM := TransformToCoordsMatrix         (P, Side, U, -D);
-        NewMInverse := TransformFromCoordsMatrix(P, Side, U, -D);
-      end;
-    otUpZDirectionMinusY:
-      begin
-        Side := TVector3.CrossProduct(-D, U);
-        NewM := TransformToCoordsMatrix         (P, Side, -D, U);
-        NewMInverse := TransformFromCoordsMatrix(P, Side, -D, U);
-      end;
-    otUpZDirectionX:
-      begin
-        Side := TVector3.CrossProduct(U, D);
-        NewM := TransformToCoordsMatrix         (P, D, Side, U);
-        NewMInverse := TransformFromCoordsMatrix(P, D, Side, U);
-      end;
-    else raise EInternalError.Create('T3DOrient.TransformMatricesMult Orientation?');
-  end;
-
-  M := M * NewM;
-  MInverse := NewMInverse * MInverse;
+  Result := RotatePointAroundAxis(ARotation, DefaultDirection[Orientation]);
 end;
 
-function T3DOrient.OnlyTranslation: boolean;
+function T3DOrient.RotationToUp(const ARotation: TVector4): TVector3;
 begin
-  Result := false;
+  Result := RotatePointAroundAxis(ARotation, DefaultUp[Orientation]);
 end;
 
 function T3DOrient.GetPosition: TVector3;
 begin
-  Result := FPosition;
+  Result := Translation;
 end;
 
 function T3DOrient.GetDirection: TVector3;
 begin
-  Result := FDirection;
+  Result := RotationToDirection(Rotation);
 end;
 
 function T3DOrient.GetUp: TVector3;
 begin
-  Result := FUp;
+  Result := RotationToUp(Rotation);
 end;
 
 procedure T3DOrient.SetPosition(const Value: TVector3);
 begin
-  FPosition := Value;
-  ChangedTransform;
+  Translation := Value;
 end;
 
 procedure T3DOrient.SetDirection(const Value: TVector3);
+var
+  D, U: TVector3;
 begin
-  FDirection := Value.Normalize;
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  ChangedTransform;
+  D := Value; // no need to normalize here
+  U := GetUp;
+  MakeVectorsOrthoOnTheirPlane(U, D);
+  Rotation := RotationFromDirectionUp(D, U);
 end;
 
 procedure T3DOrient.SetUp(const Value: TVector3);
+var
+  D, U: TVector3;
 begin
-  FUp := Value.Normalize;
-  MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
-  ChangedTransform;
+  U := Value; // no need to normalize here
+  D := GetDirection;
+  MakeVectorsOrthoOnTheirPlane(D, U);
+  Rotation := RotationFromDirectionUp(D, U);
 end;
 
 procedure T3DOrient.UpPrefer(const AUp: TVector3);
+var
+  D, U: TVector3;
 begin
-  FUp := AUp.Normalize;
-  MakeVectorsOrthoOnTheirPlane(FUp, FDirection);
-  ChangedTransform;
+  U := AUp; // no need to normalize here
+  D := GetDirection;
+  MakeVectorsOrthoOnTheirPlane(U, D);
+  Rotation := RotationFromDirectionUp(D, U);
 end;
 
 procedure T3DOrient.GetView(out APos, ADir, AUp: TVector3);
 begin
-  APos := FPosition;
-  ADir := FDirection;
-  AUp  := FUp;
+  APos := Translation;
+  ADir := Direction;
+  AUp  := Up;
 end;
 
 procedure T3DOrient.SetView(const APos, ADir, AUp: TVector3;
   const AdjustUp: boolean);
 begin
-  FPosition := APos;
+  Translation := APos;
   SetView(ADir, AUp, AdjustUp);
 end;
 
 procedure T3DOrient.SetView(const ADir, AUp: TVector3;
   const AdjustUp: boolean);
-begin
-  FDirection := ADir.Normalize;
-  FUp := AUp.Normalize;
-  if AdjustUp then
-    MakeVectorsOrthoOnTheirPlane(FUp, FDirection)
-  else
-    MakeVectorsOrthoOnTheirPlane(FDirection, FUp);
-  ChangedTransform;
-end;
-
-procedure T3DOrient.Translate(const T: TVector3);
-begin
-  FPosition := FPosition + T;
-  ChangedTransform;
-end;
-
-function T3DOrient.GetTranslation: TVector3;
-begin
-  Result := FPosition;
-end;
-
-function T3DOrient.GetRotation: TVector4;
 var
-  APos, ADir, AUp: TVector3;
+  D, U: TVector3;
 begin
-  GetView(APos, ADir, AUp);
-  { TODO: Is this correct also for TOrientationType <> otUpYDirectionMinusZ? }
-  Result := CamDirUp2Orient(ADir, AUp);
+  D := ADir; // no need to normalize here
+  U := AUp; // no need to normalize here
+  if AdjustUp then
+    MakeVectorsOrthoOnTheirPlane(U, D)
+  else
+    MakeVectorsOrthoOnTheirPlane(D, U);
+  Rotation := RotationFromDirectionUp(D, U);
 end;
 
 { T3DMoving --------------------------------------------------------- }

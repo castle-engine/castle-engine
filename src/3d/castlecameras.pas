@@ -1613,46 +1613,63 @@ procedure CorrectPreferredHeight(var PreferredHeight: Single;
 
 const
   { Default camera direction and up vectors, used to define the meaning
-    of "camera orientation" for CamDirUp2Orient routines.
-    These match VRML/X3D default camera values.
+    of "camera orientation" for @link(OrientationFromDirectionUp),
+    @link(OrientationToDirection), @link(OrientationToUp).
+    These match X3D default camera values.
     @groupBegin }
   DefaultCameraDirection: TVector3 = (Data: (0, 0, -1));
   DefaultCameraUp: TVector3 = (Data: (0, 1, 0));
   { @groupEnd }
 
-{ Convert camera direction and up vectors into VRML/X3D "orientation" vector.
+{ Convert camera direction and up vectors into a rotation (X3D "orientation" vector).
 
-  Orientation expresses CamDir and CamUp as 4-item vector
-  (SFRotation). First three items are the Axis (normalized) and the
-  4th is the Angle (in radians). Meaning: if you rotate the standard
+  Orientation vector expresses Direction and Up as a rotation.
+  First three components of the resulting vector are the Axis (normalized) and the
+  4th component is the Angle (in radians). If you would rotate the standard
   direction and up (see DefaultCameraDirection, DefaultCameraUp) around Axis
-  by the Angle, then you get CamDir and CamUp.
+  by the Angle, then you would get Direction and Up back.
 
-  Given here CamDir and CamUp must be orthogonal and non-zero.
+  There is an overloaded version where you can pass your custom
+  DefaultDirection, DefaultUp to be used instead of
+  default DefaultCameraDirection, DefaultCameraUp.
+
+  Given here Direction and Up must be orthogonal and non-zero.
   Their lengths are not relevant (that is, you don't need to normalize them
   before passing here).
 
   @groupBegin }
-function CamDirUp2Orient(const CamDir, CamUp: TVector3): TVector4;
-procedure CamDirUp2Orient(const CamDir, CamUp: TVector3;
-  out OrientAxis: TVector3; out OrientRadAngle: Single);
+function OrientationFromDirectionUp(const Direction, Up: TVector3): TVector4;
+procedure OrientationFromDirectionUp(const Direction, Up: TVector3;
+  out Axis: TVector3; out Angle: Single);
+function OrientationFromDirectionUp(const Direction, Up: TVector3;
+  const DefaultDirection, DefaultUp: TVector3): TVector4;
 { @groupEnd }
 
-{ Convert camera direction and up vectors into "rotation quaternion" of
-  VRML/X3D "orientation".
+{ Convert rotation (X3D orientation) to a direction vector,
+  reversing the @link(OrientationFromDirectionUp). }
+function OrientationToDirection(const OrientationRotation: TVector4): TVector3;
 
-  VRML orientation expresses camera direction and up as a rotation.
-  This means that you should rotate the standard
-  direction and up (see DefaultCameraDirection, DefaultCameraUp) by this rotation
-  to get CamDir and CamUp.
+{ Convert rotation (X3D orientation) to an up vector,
+  reversing the @link(OrientationFromDirectionUp). }
+function OrientationToUp(const OrientationRotation: TVector4): TVector3;
 
-  Given here CamDir and CamUp must be orthogonal and non-zero.
-  Their lengths are not relevant (that is, you don't need to normalize them
-  before passing here).
+function CamDirUp2Orient(const Direction, Up: TVector3): TVector4;
+  deprecated 'use OrientationFromDirectionUp';
+procedure CamDirUp2Orient(const Direction, Up: TVector3;
+  out Axis: TVector3; out Angle: Single);
+  deprecated 'use OrientationFromDirectionUp';
 
+{ Convert camera direction and up vectors into a "rotation quaternion".
+  Just like OrientationFromDirectionUp, but the result is a quaternion,
+  not an axis-angle vector.
   @groupBegin }
-function CamDirUp2OrientQuat(CamDir, CamUp: TVector3): TQuaternion;
+function OrientationQuaternionFromDirectionUp(Direction, Up: TVector3;
+  const DefaultDirection, DefaultUp: TVector3): TQuaternion;
+function OrientationQuaternionFromDirectionUp(const Direction, Up: TVector3): TQuaternion;
 { @groupEnd }
+
+function CamDirUp2OrientQuat(const Direction, Up: TVector3): TQuaternion;
+  deprecated 'OrientationQuaternionFromDirectionUp';
 
 { Calculate sensible camera configuration to see the whole Box.
 
@@ -1877,9 +1894,9 @@ begin
     if not (TVector3.PerfectlyEquals(FInitialDirection, AInitialDirection) and
             TVector3.PerfectlyEquals(FInitialUp       , AInitialUp ) ) then
     begin
-      OldInitialOrientation := CamDirUp2OrientQuat(FInitialDirection, FInitialUp);
-      NewInitialOrientation := CamDirUp2OrientQuat(AInitialDirection, AInitialUp);
-      Orientation           := CamDirUp2OrientQuat(Dir, Up);
+      OldInitialOrientation := OrientationQuaternionFromDirectionUp(FInitialDirection, FInitialUp);
+      NewInitialOrientation := OrientationQuaternionFromDirectionUp(AInitialDirection, AInitialUp);
+      Orientation           := OrientationQuaternionFromDirectionUp(Dir, Up);
 
       { I want new Orientation :=
           (Orientation - OldInitialOrientation) + NewInitialOrientation. }
@@ -2704,7 +2721,7 @@ var
 begin
   FTranslation := -APos;
 
-  { Make vectors orthogonal, CamDirUp2OrientQuat requires this }
+  { Make vectors orthogonal, OrientationQuaternionFromDirectionUp requires this }
   Dir := ADir;
   Up := AUp;
   if AdjustUp then
@@ -2712,9 +2729,9 @@ begin
   else
     MakeVectorsOrthoOnTheirPlane(Dir, Up);
 
-  FRotations := CamDirUp2OrientQuat(Dir, Up).Conjugate;
+  FRotations := OrientationQuaternionFromDirectionUp(Dir, Up).Conjugate;
 
-{ Testing of "hard case" in CamDirUp2OrientQuat.
+{ Testing of "hard case" in OrientationQuaternionFromDirectionUp.
   This should always succeed now, many cases tested automatically
   by TTestCastleCameras.TestOrientationFromBasicAxes.
 
@@ -4420,23 +4437,30 @@ begin
     PreferredHeight := NewPreferredHeight;
 end;
 
-function CamDirUp2OrientQuat(CamDir, CamUp: TVector3): TQuaternion;
+function OrientationQuaternionFromDirectionUp(const Direction, Up: TVector3): TQuaternion;
+begin
+  Result := OrientationQuaternionFromDirectionUp(Direction, Up,
+    DefaultCameraDirection, DefaultCameraUp);
+end;
+
+function OrientationQuaternionFromDirectionUp(Direction, Up: TVector3;
+  const DefaultDirection, DefaultUp: TVector3): TQuaternion;
 
 { This was initially based on Stephen Chenney's ANSI C code orient.c,
   available still from here: http://vrmlworks.crispen.org/tools.html
   I rewrote it a couple of times, possibly removing and possibly adding
   some bugs :)
 
-  Idea: we want to convert CamDir and CamUp into VRML orientation,
-  which is a rotation from DefaultCameraDirection/DefaultCameraUp into CamDir/Up.
+  Idea: we want to convert Direction and Up into VRML orientation,
+  which is a rotation from DefaultDirection/DefaultUp into Direction/Up.
 
-  1) Take vector orthogonal to standard DefaultCameraDirection and CamDir.
-     Rotate around it, to match DefaultCameraDirection with CamDir.
+  1) Take vector orthogonal to standard DefaultDirection and Direction.
+     Rotate around it, to match DefaultDirection with Direction.
 
-  2) Now rotate around CamDir such that standard up (already rotated
-     by 1st transform) matches with CamUp. We know it's possible,
-     since CamDir and CamUp are orthogonal and normalized,
-     just like standard DefaultCameraDirection/DefaultCameraUp.
+  2) Now rotate around Direction such that standard up (already rotated
+     by 1st transform) matches with Up. We know it's possible,
+     since Direction and Up are orthogonal and normalized,
+     just like standard DefaultDirection/DefaultUp.
 
   Combine these two rotations and you have the result.
 
@@ -4451,44 +4475,45 @@ function CamDirUp2OrientQuat(CamDir, CamUp: TVector3): TQuaternion;
   end;
 
 var
-  Rot1Axis, Rot2Axis, StdCamUpAfterRot1: TVector3;
+  Rot1Axis, Rot2Axis, DefaultUpAfterRot1: TVector3;
   Rot1Quat, Rot2Quat: TQuaternion;
   Rot1CosAngle, Rot2CosAngle: Single;
 begin
-  CamDir.NormalizeMe;
-  CamUp.NormalizeMe;
+  Direction.NormalizeMe;
+  Up.NormalizeMe;
 
   { calculate Rot1Quat }
-  Rot1Axis := TVector3.CrossProduct(DefaultCameraDirection, CamDir);
-  { Rot1Axis may be zero if DefaultCameraDirection and CamDir are parallel.
+  Rot1Axis := TVector3.CrossProduct(DefaultDirection, Direction);
+  { Rot1Axis may be zero if DefaultDirection and Direction are parallel.
     When they point in the same direction, then it doesn't matter
     (rotation will be by 0 angle anyway), but when they are in opposite
     direction we want to do some rotation, so we need some non-zero
     sensible Rot1Axis. }
   if Rot1Axis.IsZero then
-    Rot1Axis := DefaultCameraUp else
+    Rot1Axis := DefaultUp
+  else
     { Normalize *after* checking ZeroVector, otherwise normalization
       could change some almost-zero vector into a (practically random)
       vector of length 1. }
     Rot1Axis.NormalizeMe;
-  Rot1CosAngle := TVector3.DotProduct(DefaultCameraDirection, CamDir);
+  Rot1CosAngle := TVector3.DotProduct(DefaultDirection, Direction);
   Rot1Quat := QuatFromAxisAngleCos(Rot1Axis, Rot1CosAngle);
 
   { calculate Rot2Quat }
-  StdCamUpAfterRot1 := Rot1Quat.Rotate(DefaultCameraUp);
-  { We know Rot2Axis should be either CamDir or -CamDir. But how do we know
+  DefaultUpAfterRot1 := Rot1Quat.Rotate(DefaultUp);
+  { We know Rot2Axis should be either Direction or -Direction. But how do we know
     which one? (To make the rotation around it in correct direction.)
     Calculating Rot2Axis below is a solution. }
-  Rot2Axis := TVector3.CrossProduct(StdCamUpAfterRot1, CamUp);
+  Rot2Axis := TVector3.CrossProduct(DefaultUpAfterRot1, Up);
 
   (*We could now do Rot2Axis.NormalizeMe,
     after making sure it's not zero. Like
 
     { we need larger epsilon for ZeroVector below, in case
-      StdCamUpAfterRot1 is = -CamUp.
+      DefaultUpAfterRot1 is = -Up.
       testcameras.pas contains testcases that require it. }
     if Rot2Axis.IsZero(0.001) then
-      Rot2Axis := CamDir else
+      Rot2Axis := Direction else
       { Normalize *after* checking ZeroVector, otherwise normalization
         could change some almost-zero vector into a (practically random)
         vector of length 1. }
@@ -4497,20 +4522,20 @@ begin
     And later do
 
       { epsilon for TVector3.Equals 0.001 is too small }
-      Assert( TVector3.Equals(Rot2Axis,  CamDir, 0.01) or
-              TVector3.Equals(Rot2Axis, -CamDir, 0.01),
-        Format('CamDirUp2OrientQuat failed for CamDir, CamUp: (%s), (%s)',
-          [ CamDir.ToRawString, CamUp.ToRawString ]));
+      Assert( TVector3.Equals(Rot2Axis,  Direction, 0.01) or
+              TVector3.Equals(Rot2Axis, -Direction, 0.01),
+        Format('OrientationQuaternionFromDirectionUp failed for Direction, Up: (%s), (%s)',
+          [ Direction.ToRawString, Up.ToRawString ]));
 
     However, as can be seen in above comments, this requires some careful
     adjustments of epsilons, so it's somewhat numerically unstable.
     It's better to just use now the knowledge that Rot2Axis
-    is either CamDir or -CamDir, and choose one of them. *)
-  if AreParallelVectorsSameDirection(Rot2Axis, CamDir) then
-    Rot2Axis :=  CamDir else
-    Rot2Axis := -CamDir;
+    is either Direction or -Direction, and choose one of them. *)
+  if AreParallelVectorsSameDirection(Rot2Axis, Direction) then
+    Rot2Axis :=  Direction else
+    Rot2Axis := -Direction;
 
-  Rot2CosAngle := TVector3.DotProduct(StdCamUpAfterRot1, CamUp);
+  Rot2CosAngle := TVector3.DotProduct(DefaultUpAfterRot1, Up);
   Rot2Quat := QuatFromAxisAngleCos(Rot2Axis, Rot2CosAngle);
 
   { calculate Result = combine Rot1 and Rot2 (yes, the order
@@ -4518,21 +4543,58 @@ begin
   Result := Rot2Quat * Rot1Quat;
 end;
 
-procedure CamDirUp2Orient(const CamDir, CamUp: TVector3;
-  out OrientAxis: TVector3; out OrientRadAngle: Single);
+procedure OrientationFromDirectionUp(const Direction, Up: TVector3;
+  out Axis: TVector3; out Angle: Single);
 begin
-  { Call CamDirUp2OrientQuat,
+  { Call OrientationQuaternionFromDirectionUp,
     and extract the axis and angle from the quaternion. }
-  CamDirUp2OrientQuat(CamDir, CamUp).ToAxisAngle(OrientAxis, OrientRadAngle);
+  OrientationQuaternionFromDirectionUp(Direction, Up).ToAxisAngle(Axis, Angle);
 end;
 
-function CamDirUp2Orient(const CamDir, CamUp: TVector3): TVector4;
+function OrientationFromDirectionUp(const Direction, Up: TVector3): TVector4;
 var
-  OrientAxis: TVector3;
-  OrientAngle: Single;
+  Axis: TVector3;
+  Angle: Single;
 begin
-  CamDirUp2Orient(CamDir, CamUp, OrientAxis, OrientAngle);
-  result := Vector4(OrientAxis, OrientAngle);
+  OrientationFromDirectionUp(Direction, Up, Axis, Angle);
+  Result := Vector4(Axis, Angle);
+end;
+
+function OrientationFromDirectionUp(const Direction, Up,
+  DefaultDirection, DefaultUp: TVector3): TVector4;
+var
+  Axis: TVector3;
+  Angle: Single;
+begin
+  OrientationQuaternionFromDirectionUp(Direction, Up, DefaultDirection, DefaultUp).
+    ToAxisAngle(Axis, Angle);
+  Result := Vector4(Axis, Angle);
+end;
+
+function OrientationToDirection(const OrientationRotation: TVector4): TVector3;
+begin
+  Result := RotatePointAroundAxis(OrientationRotation, DefaultCameraDirection);
+end;
+
+function OrientationToUp(const OrientationRotation: TVector4): TVector3;
+begin
+  Result := RotatePointAroundAxis(OrientationRotation, DefaultCameraUp);
+end;
+
+function CamDirUp2Orient(const Direction, Up: TVector3): TVector4;
+begin
+  Result := OrientationFromDirectionUp(Direction, Up);
+end;
+
+procedure CamDirUp2Orient(const Direction, Up: TVector3;
+  out Axis: TVector3; out Angle: Single);
+begin
+  OrientationFromDirectionUp(Direction, Up, Axis, Angle);
+end;
+
+function CamDirUp2OrientQuat(const Direction, Up: TVector3): TQuaternion;
+begin
+  Result := OrientationQuaternionFromDirectionUp(Direction, Up);
 end;
 
 procedure CameraViewpointForWholeScene(const Box: TBox3D;
