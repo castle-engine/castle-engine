@@ -478,8 +478,11 @@ const
         if Angle[I - 1] > GroundHighestAngle then Break;
         RenderNextStack(Color[I + 1], Angle[I]);
       end;
-      { close the tip of the sky sphere with constant color (last on Color[] table) }
-      if Angle[AngleCount - 1] <= GroundHighestAngle then
+      { Close the tip of the sky sphere with constant color (last on Color[] table).
+        Add 0.01 epsilon, in case GroundHighestAngle is very close to the
+        last sky angle. Better to make RenderLastStack then, to avoid bad artifacts
+        (see https://github.com/castle-engine/castle-engine/issues/79 ). }
+      if Angle[AngleCount - 1] <= GroundHighestAngle + 0.01 then
         RenderLastStack(Color[ColorCount - 1], Pi);
     end;
   end;

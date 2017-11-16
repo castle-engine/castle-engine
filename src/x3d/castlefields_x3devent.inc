@@ -15,29 +15,33 @@
 
 {$ifdef read_interface}
 
-  { Callback type for @link(TX3DEvent.OnReceive). }
-  TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
-    const Time: TX3DTime) of object;
-
-  TX3DEventReceiveList = class(specialize TList<TX3DEventReceive>)
-  public
-    { Call all functions. }
-    procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
-      const Time: TX3DTime);
-  end;
-
   { X3D event. }
   TX3DEvent = class(TX3DFieldOrEvent)
   strict private
+    type
+      TX3DEventReceiveList = class(specialize TList<TX3DEventReceive>)
+      public
+        { Call all functions. }
+        procedure ExecuteAll(Event: TX3DEvent; Value: TX3DField;
+          const Time: TX3DTime);
+      end;
+
+    var
     FFieldClass: TX3DFieldClass;
     FInEvent: boolean;
-    FOnReceive: TX3DEventReceiveList;
+    { To avoid allocating memory for FNotifications list in the most-common case
+      when 0 or 1 notification is enough, store 1st notification in special
+      field instead. }
+    FFirstNotification: TX3DEventReceive;
+    FNotifications: TX3DEventReceiveList;
     FParentExposedField: TX3DField;
     Temp: TX3DField;
     TempUsed: boolean;
 
     SendLevel: Cardinal;
-    HandlersToRemove: TX3DEventReceiveList;
+    NotificationsToRemove: TX3DEventReceiveList;
+
+    procedure RemoveNotificationNow(const Notification: TX3DEventReceive);
   public
     constructor Create(AParentNode: TX3DFileItem;
       const AName: string;
@@ -85,9 +89,9 @@
     procedure Send(Field: TX3DField; const Time: TX3DTime); overload;
     procedure Send(Field: TX3DField); overload;
 
-    { Notifications about receiving an item. For input fields,
+    { Add notification about receiving new value. For input events,
       these are used by node itself to listen to events send to it.
-      For output fields, these are used by routes, scripts to listen
+      For output events, these are used by routes, scripts to listen
       to events occuring.
 
       When you handle this callback to send another X3D event,
@@ -111,16 +115,21 @@
         end;
       #)
 
-      All callbacks here are simply called by @link(Send) method. }
-    property OnReceive: TX3DEventReceiveList read FOnReceive;
+      All callbacks registered here are simply called by @link(Send) method. }
+    procedure AddNotification(const Notification: TX3DEventReceive);
 
-    { Safely remove a callback from OnReceive list.
+    { Remove notification (previously added by @link(AddNotification))
+      about receiving new value.
 
-      Contrary to direct @code(OnReceive.Remove) call, this works correctly
-      even if we're right now in the middle of this event's processing.
-      In the latter case, the handler will be actually removed with some delay
-      (when it's safe). }
-    procedure RemoveHandler(Handler: TX3DEventReceive);
+      This is guaranteed to work correctly even if we're right now
+      in the middle of this event's processing (which means that we may
+      be iterating over a list of notifications).
+      The handler may be actually removed a bit later (when it's safe).
+
+      Note that adding a notification two-times makes it called two times.
+      Removing a notification removes one copy of a notification,
+      so it should then be removed two-times too. }
+    procedure RemoveNotification(const Notification: TX3DEventReceive);
 
     { @abstract(Is anything actually listening on this events @link(Send)?)
 
@@ -133,17 +142,17 @@
       For example, event out to which no ROUTE is connected, and no Script
       can listen to it.
 
-      For now, this simply returns whether any OnReceive callback is registered. }
-
+      For now, this simply returns whether any callback is registered
+      by AddNotification. }
     function SendNeeded: boolean;
 
-    { Assign from another event.
-      Note that FieldClass, InEvent is copied.
+    { Assign from another event. The FieldClass and InEvent is copied.
 
-      OnReceive, ParentExposedField are not copied, since they shouldn't
+      The notifications (from @link(AddNotification))
+      and ParentExposedField are not copied, since they shouldn't
       be copied so easily (ParentExposedField is related to hierarchy
-      of containers, and OnReceive requires some knowledge of the caller
-      when his callback is copied). }
+      of containers, copying notification would be surprising to the
+      notification listener). }
     procedure Assign(Source: TPersistent); override;
   end;
 
@@ -163,9 +172,9 @@
 
 {$ifdef read_implementation}
 
-{ TX3DEventReceiveList -------------------------------------------------- }
+{ TX3DEvent.TX3DEventReceiveList -------------------------------------------------- }
 
-procedure TX3DEventReceiveList.ExecuteAll(
+procedure TX3DEvent.TX3DEventReceiveList.ExecuteAll(
   Event: TX3DEvent; Value: TX3DField; const Time: TX3DTime);
 var
   I: Integer;
@@ -181,17 +190,15 @@ constructor TX3DEvent.Create(AParentNode: TX3DFileItem;
   const AInEvent: boolean);
 begin
   inherited Create(AParentNode, AName);
-
   FFieldClass := AFieldClass;
   FInEvent := AInEvent;
-  FOnReceive := TX3DEventReceiveList.Create;
 end;
 
 destructor TX3DEvent.Destroy;
 begin
   FreeAndNil(Temp);
-  FreeAndNil(HandlersToRemove);
-  FreeAndNil(FOnReceive);
+  FreeAndNil(NotificationsToRemove);
+  FreeAndNil(FNotifications);
   inherited;
 end;
 
@@ -212,13 +219,14 @@ end;
 
 procedure TX3DEvent.Send(Field: TX3DField; const Time: TX3DTime);
 
-  procedure RemoveHandlers;
+  procedure RemoveNotifications;
   var
     I: Integer;
   begin
-    for I := 0 to HandlersToRemove.Count - 1 do
-      OnReceive.Remove(HandlersToRemove.Items[I]);
-    HandlersToRemove.Count := 0;
+    for I := 0 to NotificationsToRemove.Count - 1 do
+      RemoveNotificationNow(NotificationsToRemove.Items[I]);
+    // clear NotificationsToRemove
+    NotificationsToRemove.Count := 0;
   end;
 
 begin
@@ -227,13 +235,16 @@ begin
 
   Inc(SendLevel);
   try
-    FOnReceive.ExecuteAll(Self, Field, Time);
+    if Assigned(FFirstNotification) then
+      FFirstNotification(Self, Field, Time);
+    if FNotifications <> nil then
+      FNotifications.ExecuteAll(Self, Field, Time);
   finally
     Dec(SendLevel);
-    if (HandlersToRemove <> nil) and
-       (HandlersToRemove.Count <> 0) and
+    if (NotificationsToRemove <> nil) and
+       (NotificationsToRemove.Count <> 0) and
        (SendLevel = 0) then
-      RemoveHandlers;
+      RemoveNotifications;
   end;
 end;
 
@@ -246,7 +257,9 @@ end;
 
 function TX3DEvent.SendNeeded: boolean;
 begin
-  Result := OnReceive.Count <> 0;
+  Result :=
+    Assigned(FFirstNotification) or
+    ((FNotifications <> nil) and (FNotifications.Count <> 0));
 end;
 
 procedure TX3DEvent.Assign(Source: TPersistent);
@@ -265,11 +278,11 @@ begin
   if not TempUsed then
   begin
     if Temp = nil then
-      Temp := FieldClass.CreateUndefined(ParentNode, X3DName, false);
+      Temp := FieldClass.CreateUndefined(ParentNode, false, X3DName);
     Result := Temp;
     TempUsed := true;
   end else
-    Result := FieldClass.CreateUndefined(ParentNode, X3DName, false);
+    Result := FieldClass.CreateUndefined(ParentNode, false, X3DName);
 end;
 
 procedure TX3DEvent.FreeTemp(const Field: TX3DField);
@@ -279,14 +292,43 @@ begin
     Field.Free;
 end;
 
-procedure TX3DEvent.RemoveHandler(Handler: TX3DEventReceive);
+procedure TX3DEvent.AddNotification(const Notification: TX3DEventReceive);
+begin
+  if not Assigned(FFirstNotification) then
+  begin
+    FFirstNotification := Notification;
+  end else
+  begin
+    { create FNotifications on-demand, as in cases of models with a large number
+      of nodes (or using prototypes a lot, which also creates a large number of nodes)
+      we have a lot of TX3DEvent instances, and they eat a significant part of memory }
+    if FNotifications = nil then
+      FNotifications := TX3DEventReceiveList.Create;
+    FNotifications.Add(Notification);
+  end;
+end;
+
+procedure TX3DEvent.RemoveNotificationNow(const Notification: TX3DEventReceive);
+begin
+  { The "else" below is important to remove only the first notification present,
+    if you added multiple notifications. }
+  if CompareMethods(TMethod(FFirstNotification), TMethod(Notification)) then
+    FFirstNotification := nil
+  else
+  if FNotifications <> nil then
+    FNotifications.Remove(Notification);
+end;
+
+procedure TX3DEvent.RemoveNotification(const Notification: TX3DEventReceive);
 begin
   if SendLevel = 0 then
-    OnReceive.Remove(Handler) else
   begin
-    if HandlersToRemove = nil then
-      HandlersToRemove := TX3DEventReceiveList.Create;
-    HandlersToRemove.Add(Handler);
+    RemoveNotificationNow(Notification);
+  end else
+  begin
+    if NotificationsToRemove = nil then
+      NotificationsToRemove := TX3DEventReceiveList.Create;
+    NotificationsToRemove.Add(Notification);
   end;
 end;
 

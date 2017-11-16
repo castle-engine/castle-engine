@@ -23,7 +23,7 @@ interface
 uses Generics.Collections,
   CastleVectors, CastleGLShaders,
   X3DTime, X3DFields, X3DNodes, CastleUtils, CastleBoxes,
-  CastleRendererInternalTextureEnv, CastleStringUtils, CastleShaders,
+  CastleRendererInternalTextureEnv, CastleStringUtils, CastleRendererBaseTypes,
   CastleShapes;
 
 type
@@ -480,7 +480,8 @@ type
     procedure DisableTexGen(const TextureUnit: Cardinal);
     procedure EnableTextureTransform(const TextureUnit: Cardinal;
       const Matrix: TMatrix4);
-    procedure EnableClipPlane(const ClipPlaneIndex: Cardinal);
+    procedure EnableClipPlane(const ClipPlaneIndex: Cardinal;
+      const Transform: TMatrix4; const Plane: TVector4);
     procedure DisableClipPlane(const ClipPlaneIndex: Cardinal);
     procedure EnableAlphaTest;
     procedure EnableBumpMapping(const BumpMapping: TBumpMapping;
@@ -1023,7 +1024,7 @@ begin
   if EventsObserved <> nil then
   begin
     for I := 0 to EventsObserved.Count - 1 do
-      EventsObserved[I].RemoveHandler(@EventReceive);
+      EventsObserved[I].RemoveNotification(@EventReceive);
     FreeAndNil(EventsObserved);
   end;
   FreeAndNil(UniformsTextures);
@@ -1071,7 +1072,7 @@ begin
 
   if ObservedEvent <> nil then
   begin
-    ObservedEvent.OnReceive.Add(@EventReceive);
+    ObservedEvent.AddNotification(@EventReceive);
     EventsObserved.Add(ObservedEvent);
   end;
 end;
@@ -1245,11 +1246,11 @@ begin
     SetUniformFromField(UniformName, Value, true);
   except
     { We capture EGLSLUniformInvalid, converting it to WritelnWarning.
-      This way we remove this event from OnReceive list. }
+      This way we can remove ourselves (EventReceive) from event notifications. }
     on E: EGLSLUniformInvalid do
     begin
       WritelnWarning('VRML/X3D', E.Message);
-      Event.RemoveHandler(@EventReceive);
+      Event.RemoveNotification(@EventReceive);
       EventsObserved.Remove(Event);
       Exit;
     end;
@@ -2199,6 +2200,10 @@ var
   BumpMappingUniformName2: string;
   BumpMappingUniformValue2: Single;
 
+  { TODO: This is a mess of GLSL code snippets.
+    It should be separated into a separate GLSL file,
+    using (preferably) functions and (eventually) #ifdefs
+    to account for various bump mapping types. }
   procedure EnableShaderBumpMapping;
   const
     ParallaxDeclarations: array [ { steep parallax, with height map? } boolean ] of string = (
@@ -2346,9 +2351,19 @@ var
         Plug(stFragment, SteepParallaxShadowing);
         VertexEyeBonusDeclarations +=
           'varying vec3 castle_light_direction_tangent_space;' +NL+
-          // TODO: avoid redeclaring this when no "separate compilation units" (OpenGLES)
-          // in case of Phong shading
-          'uniform vec3 castle_LightSource0Position;' +NL;
+          { Note that there's no need to protect castle_LightSource0Position
+            from redeclaring, which is usually a problem when
+            no "separate compilation units" are available (on OpenGLES).
+            In this particular case, using bump mapping forces Phong shading,
+            and then lights are calculated in the fragment shader.
+            The declaration below is in vertex shader, so it never conflicts. }
+          '#ifdef GL_ES' +NL+
+          'uniform mediump vec3 castle_LightSource0Position;' +NL+
+          '#else'+NL+
+          'uniform vec3 castle_LightSource0Position;' +NL+
+          '#endif'+NL+
+          ''
+        ;
 
         { add VertexEyeBonusCode to cast shadow from LightShaders[0]. }
         VertexEyeBonusCode += 'vec3 light_dir = castle_LightSource0Position;';
@@ -2610,10 +2625,40 @@ var
     AProgram.Disable;
   end;
 
+  procedure DoLogShaders;
+  const
+    ShaderTypeNameX3D: array [TShaderType] of string =
+    ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
+  var
+    ShaderType: TShaderType;
+    LogStr, LogStrPart: string;
+    I: Integer;
+  begin
+    LogStr :=
+      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
+      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
+      'shaders ComposedShader {' + NL +
+      '  language "GLSL"' + NL +
+      '  parts [' + NL;
+    for ShaderType := Low(ShaderType) to High(ShaderType) do
+      for I := 0 to Source[ShaderType].Count - 1 do
+      begin
+        LogStrPart := Source[ShaderType][I];
+        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
+        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
+        LogStr += '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
+          '" url "data:text/plain,' +
+          StringToX3DClassic(LogStrPart, false) + '"' + NL +
+          '    }';
+      end;
+    LogStr += '  ]' + NL + '}';
+    WritelnLogMultiline('Generated Shader', LogStr);
+  end;
+
 var
   ShaderType: TShaderType;
+  GeometryInputSize: string;
   I: Integer;
-  GeometryInputSize, LogStr, LogStrPart: string;
 begin
   RequireTextureCoordinateForSurfaceTextures;
   EnableTextures;
@@ -2648,27 +2693,7 @@ begin
     Define('CASTLE_BUGGY_GLSL_READ_VARYING', stVertex);
 
   if Log and LogShaders then
-  begin
-    LogStr :=
-      '# Generated shader code for shape ' + ShapeNiceName + ' by ' + ApplicationName + '.' + NL +
-      '# To try this out, paste this inside Appearance node in VRML/X3D classic encoding.' + NL +
-      'shaders ComposedShader {' + NL +
-      '  language "GLSL"' + NL +
-      '  parts [' + NL;
-    for ShaderType := Low(ShaderType) to High(ShaderType) do
-      for I := 0 to Source[ShaderType].Count - 1 do
-      begin
-        LogStrPart := Source[ShaderType][I];
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG:', '/* ALREADY-PROCESSED-PLUG:', [rfReplaceAll]);
-        LogStrPart := StringReplace(LogStrPart, '/* PLUG-DECLARATIONS */', '/* ALREADY-PROCESSED-PLUG-DECLARATIONS */', [rfReplaceAll]);
-        LogStr += '    ShaderPart { type "' + ShaderTypeNameX3D[ShaderType] +
-          '" url "data:text/plain,' +
-          StringToX3DClassic(LogStrPart, false) + '"' + NL +
-          '    }';
-      end;
-    LogStr += '  ]' + NL + '}';
-    WritelnLogMultiline('Generated Shader', LogStr);
-  end;
+    DoLogShaders;
 
   try
     if (Source[stVertex].Count = 0) and
@@ -2966,17 +2991,22 @@ begin
   FCodeHash.AddInteger(1973 * (TextureUnit + 1));
 end;
 
-procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal);
+procedure TShader.EnableClipPlane(const ClipPlaneIndex: Cardinal;
+  const Transform: TMatrix4; const Plane: TVector4);
 begin
-  {$ifndef OpenGLES}
-  // TODO-es how to do it on OpenGLES?
+  {$ifndef OpenGLES} // TODO-es
+  glPushMatrix;
+    glMultMatrix(Transform);
+    glClipPlane(GL_CLIP_PLANE0 + ClipPlaneIndex, Vector4Double(Plane));
+  glPopMatrix;
+
   glEnable(GL_CLIP_PLANE0 + ClipPlaneIndex);
-  {$endif}
+
   if ClipPlane = '' then
   begin
     ClipPlane := 'gl_ClipVertex = castle_vertex_eye;';
 
-    (* TODO: make this work: (instead of 0, add each index)
+    (* TODO: make this work with geometry shaders: (instead of 0, add each index)
     ClipPlaneGeometryPlug :=
       '#version 150 compatibility' +NL+
       'void PLUG_geometry_vertex_set(const int index)' +NL+
@@ -2992,8 +3022,10 @@ begin
       '  gl_ClipDistance[0] += gl_in[index].gl_ClipDistance[0] * scale;' +NL+
       '}' +NL;
     *)
+
     FCodeHash.AddInteger(2003);
   end;
+  {$endif}
 end;
 
 procedure TShader.DisableClipPlane(const ClipPlaneIndex: Cardinal);

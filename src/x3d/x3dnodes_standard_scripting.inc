@@ -95,9 +95,9 @@ procedure TAbstractScriptNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   AddField(FFdUrl);
-  Fdurl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+  Fdurl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   { X3D specification comment: [URI] }
 
   DefaultContainerField := 'children';
@@ -349,12 +349,10 @@ procedure TScriptNode.CreateNode;
 begin
   inherited;
 
-  FFdDirectOutput := TSFBool.Create(Self, 'directOutput', false);
-  FFdDirectOutput.Exposed := false;
+  FFdDirectOutput := TSFBool.Create(Self, false, 'directOutput', false);
   AddField(FFdDirectOutput);
 
-  FFdMustEvaluate := TSFBool.Create(Self, 'mustEvaluate', false);
-  FFdMustEvaluate.Exposed := false;
+  FFdMustEvaluate := TSFBool.Create(Self, false, 'mustEvaluate', false);
   AddField(FFdMustEvaluate);
 
   DefaultContainerField := 'children';
@@ -378,9 +376,9 @@ begin
   inherited;
 
   if (IDecl.Event <> nil) and IDecl.Event.InEvent then
-    IDecl.Event.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} IDeclEventReceive) else
+    IDecl.Event.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} IDeclEventReceive) else
   if (IDecl.Field <> nil) and IDecl.Field.Exposed then
-    IDecl.Field.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} IDeclEventReceive);
+    IDecl.Field.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} IDeclEventReceive);
 end;
 
 procedure TScriptNode.IDeclEventReceive(

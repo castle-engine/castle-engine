@@ -19,6 +19,14 @@
 
 @implementation OptionsController
 
+- (void)viewDidLoad
+{
+    [super viewDidLoad];
+    
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemDone target:self action:@selector(OnBtnDone:)];
+}
+
+//-----------------------------------------------------------------
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
     return 1;
@@ -67,7 +75,7 @@
 //-----------------------------------------------------------------
 - (void)OnOptionSwitchChanged:(id)sender
 {
-    int nRow = [(UISwitch*)sender tag];
+    long nRow = [(UISwitch*)sender tag];
     bool bOn = [(UISwitch*)sender isOn];
 
     Options *opt = [Options sharedOptions];
@@ -83,6 +91,12 @@
         default:
             break;
     }
+}
+
+//-----------------------------------------------------------------
+- (void)OnBtnDone:(id)sender
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
 @end

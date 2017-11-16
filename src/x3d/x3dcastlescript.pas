@@ -310,7 +310,7 @@ procedure X3DCasScriptAfterExecute(Value: TCasScriptValue;
       for the same reasons TX3DEvent.Send shortcuts do this:
       to get nice information in Logger node reports. }
 
-    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, Event.X3DName, false);
+    Result := Event.FieldClass.CreateUndefined(Event.ParentNode, false, Event.X3DName);
   end;
 
 var

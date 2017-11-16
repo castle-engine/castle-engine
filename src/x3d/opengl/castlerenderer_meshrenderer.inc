@@ -447,17 +447,8 @@ end;
 
 procedure TBaseCoordinateRenderer.RenderCoordinateBegin;
 begin
-  { Always make sure Renderer.CullFace is suitable }
-  if Arrays.CullBackFaces then
-  begin
-    { If vertex ordering is consistent and object is SOLID than we use OpenGL's
-      backface culling. If FrontFaceCcw then we have to cull CW faces. }
-    if Arrays.FrontFaceCcw then
-      Renderer.CullFace := cfCW else
-      Renderer.CullFace := cfCCW;
-  end else
-    Renderer.CullFace := cfNone;
-
+  RenderContext.CullFace := Arrays.CullFace;
+  RenderContext.FrontFaceCcw := Arrays.FrontFaceCcw;
   if Renderer.Attributes.Mode = rmFull then
     Renderer.SmoothShading := not Arrays.ForceFlatShading;
 end;

@@ -59,7 +59,7 @@
       the "duration". If you want to observe when the animation ended,
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
-      a callback on @code(EventIsActive.OnReceive).
+      a callback on @code(EventIsActive.AddNotification).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
 
       BTW, the @italic("duration") mentioned above is usually just
@@ -272,7 +272,7 @@
       the "duration". If you want to observe when the animation ended,
       you probably do not want to use this property. Instead
       observe when @link(IsActive) changed to @false, by registering
-      a callback on @code(EventIsActive.OnReceive).
+      a callback on @code(EventIsActive.AddNotification).
       See the examples/3d_rendering_processing/listen_on_x3d_events.lpr .
 
       BTW, the @italic("duration") mentioned above is usually just
@@ -832,25 +832,25 @@ procedure TAbstractTimeDependentNode.CreateNode;
 begin
   inherited;
 
-  FFdLoop := TSFBool.Create(Self, 'loop', false);
+  FFdLoop := TSFBool.Create(Self, true, 'loop', false);
   AddField(FFdLoop);
 
-  FFdPauseTime := TSFTime.Create(Self, 'pauseTime', 0);
+  FFdPauseTime := TSFTime.Create(Self, true, 'pauseTime', 0);
    FdPauseTime.ChangesAlways := [chTimeStopStart];
   AddField(FFdPauseTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdResumeTime := TSFTime.Create(Self, 'resumeTime', 0);
+  FFdResumeTime := TSFTime.Create(Self, true, 'resumeTime', 0);
    FdResumeTime.ChangesAlways := [chTimeStopStart];
   AddField(FFdResumeTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdStartTime := TSFTimeIgnoreWhenActive.Create(Self, 'startTime', 0);
+  FFdStartTime := TSFTimeIgnoreWhenActive.Create(Self, true, 'startTime', 0);
    FdStartTime.ChangesAlways := [chTimeStopStart];
   AddField(FFdStartTime);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdStopTime := TSFStopTime.Create(Self, 'stopTime', 0);
+  FFdStopTime := TSFStopTime.Create(Self, true, 'stopTime', 0);
    FdStopTime.ChangesAlways := [chTimeStopStart];
   AddField(FFdStopTime);
   { X3D specification comment: (-Inf,Inf) }
@@ -924,7 +924,7 @@ procedure TTimeSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdCycleInterval := TSFTimeIgnoreWhenActive.Create(Self, 'cycleInterval', 1);
+  FFdCycleInterval := TSFTimeIgnoreWhenActive.Create(Self, true, 'cycleInterval', 1);
   AddField(FFdCycleInterval);
   { X3D specification comment: (0,Inf) }
 
@@ -940,7 +940,7 @@ begin
   FEventTime := TSFTimeEvent.Create(Self, 'time', false);
   AddEvent(FEventTime);
 
-  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
 
   DefaultContainerField := 'children';
@@ -950,7 +950,7 @@ begin
   InternalTimeDependentHandler.EventCycleTime := EventCycleTime;
 
   { On receiving new elapsedTime, we send other continous events. }
-  EventElapsedTime.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
+  EventElapsedTime.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventElapsedTimeReceive);
 end;
 
 function TTimeSensorNode.GetCycleInterval: TFloatTime;

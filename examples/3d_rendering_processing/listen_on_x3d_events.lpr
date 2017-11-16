@@ -24,8 +24,7 @@
   for the details about the TouchSensor.
 
   Then it registers simple callbacks on the TouchSensor touchTime
-  and isActive events. You register callbacks simply by adding them to
-  event's OnReceive list.
+  and isActive events. You register callbacks simply by event's AddNotification.
 
   Logs TouchSensor clicks on the console. }
 
@@ -80,8 +79,8 @@ begin
 
   TouchSensor := TTouchSensorNode.Create('MyTouchSensor');
   TouchSensor.Enabled := true;
-  TouchSensor.EventTouchTime.OnReceive.Add(@EventListener.ReceivedTouchTime);
-  TouchSensor.EventIsActive.OnReceive.Add(@EventListener.ReceivedIsActive);
+  TouchSensor.EventTouchTime.AddNotification(@EventListener.ReceivedTouchTime);
+  TouchSensor.EventIsActive.AddNotification(@EventListener.ReceivedIsActive);
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(Shape);

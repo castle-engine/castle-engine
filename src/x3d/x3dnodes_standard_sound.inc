@@ -149,10 +149,10 @@ procedure TAbstractSoundSourceNode.CreateNode;
 begin
   inherited;
 
-  FFdDescription := TSFString.Create(Self, 'description', '');
+  FFdDescription := TSFString.Create(Self, true, 'description', '');
   AddField(FFdDescription);
 
-  FFdPitch := TSFFloat.Create(Self, 'pitch', 1.0);
+  FFdPitch := TSFFloat.Create(Self, true, 'pitch', 1.0);
   AddField(FFdPitch);
   { X3D specification comment: (0,Inf) }
 
@@ -173,12 +173,12 @@ procedure TAudioClipNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   AddField(FFdUrl);
   { X3D specification comment: [urn] }
 
-  EventIsActive.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
-  EventIsPaused.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
+  EventIsActive.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
+  EventIsPaused.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} UpdatePlayingEvent);
 
   { Although X3D XML encoding spec says that "children" is default
     containerField, common sense says it should be "source".
@@ -396,44 +396,43 @@ procedure TSoundNode.CreateNode;
 begin
   inherited;
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 0, 1));
+  FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, 1));
   AddField(FFdDirection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdIntensity := TSFFloat.Create(Self, 'intensity', 1);
+  FFdIntensity := TSFFloat.Create(Self, true, 'intensity', 1);
   AddField(FFdIntensity);
   { X3D specification comment: [0,1] }
 
-  FFdLocation := TSFVec3f.Create(Self, 'location', Vector3(0, 0, 0));
-   FdLocation.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventLocationReceive);
+  FFdLocation := TSFVec3f.Create(Self, true, 'location', Vector3(0, 0, 0));
+   FdLocation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventLocationReceive);
   AddField(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdMaxBack := TSFFloat.Create(Self, 'maxBack', 10);
+  FFdMaxBack := TSFFloat.Create(Self, true, 'maxBack', 10);
   AddField(FFdMaxBack);
   { X3D specification comment: [0,Inf) }
 
-  FFdMaxFront := TSFFloat.Create(Self, 'maxFront', 10);
+  FFdMaxFront := TSFFloat.Create(Self, true, 'maxFront', 10);
   AddField(FFdMaxFront);
   { X3D specification comment: [0,Inf) }
 
-  FFdMinBack := TSFFloat.Create(Self, 'minBack', 1);
+  FFdMinBack := TSFFloat.Create(Self, true, 'minBack', 1);
   AddField(FFdMinBack);
   { X3D specification comment: [0,Inf) }
 
-  FFdMinFront := TSFFloat.Create(Self, 'minFront', 1);
+  FFdMinFront := TSFFloat.Create(Self, true, 'minFront', 1);
   AddField(FFdMinFront);
   { X3D specification comment: [0,Inf) }
 
-  FFdPriority := TSFFloat.Create(Self, 'priority', 0);
+  FFdPriority := TSFFloat.Create(Self, true, 'priority', 0);
   AddField(FFdPriority);
   { X3D specification comment: [0,1] }
 
-  FFdSource := TSFNode.Create(Self, 'source', IAbstractSoundSourceNode);
+  FFdSource := TSFNode.Create(Self, true, 'source', IAbstractSoundSourceNode);
   AddField(FFdSource);
 
-  FFdSpatialize := TSFBool.Create(Self, 'spatialize', true);
-  FFdSpatialize.Exposed := false;
+  FFdSpatialize := TSFBool.Create(Self, false, 'spatialize', true);
   AddField(FFdSpatialize);
 
   DefaultContainerField := 'children';

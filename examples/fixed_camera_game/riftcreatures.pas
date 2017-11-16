@@ -88,6 +88,7 @@ type
     FKind: TCreatureKind;
     FDebug3D: TDebug3D;
     FState: TCreatureState;
+    CurrentChild: T3D;
     procedure SetState(const Value: TCreatureState);
   private
     { SetState actually only "schedules" actual state change at the nearest
@@ -103,8 +104,6 @@ type
     StandTimeToBeBored: TFloatTime;
 
     procedure RandomizeStandTimeToBeBored;
-  protected
-    function GetChild: T3D; override;
   public
     constructor Create(AKind: TCreatureKind); reintroduce;
     property Kind: TCreatureKind read FKind;
@@ -340,17 +339,33 @@ begin
   end;
 end;
 
-function TCreature.GetChild: T3D;
-var
-  Scene: TCastleScene;
-begin
-  Scene := Kind.Animations[FState].Animation;
-  Result := Scene;
-  Scene.ForceAnimationPose('animation',
-    WorldTime - CurrentStateStartTime, paForceLooping);
-end;
-
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  function GetChild: T3D;
+  var
+    Scene: TCastleScene;
+  begin
+    Scene := Kind.Animations[FState].Animation;
+    Result := Scene;
+    Scene.ForceAnimationPose('animation',
+      WorldTime - CurrentStateStartTime, paForceLooping);
+  end;
+
+  procedure UpdateChild;
+  var
+    NewChild: T3D;
+  begin
+    NewChild := GetChild;
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
 begin
   inherited;
 
@@ -366,6 +381,8 @@ begin
     end;
   end else
     UpdateNoStateChangeScheduled(SecondsPassed);
+
+  UpdateChild;
 end;
 
 procedure TCreature.UpdateNoStateChangeScheduled(const SecondsPassed: Single);

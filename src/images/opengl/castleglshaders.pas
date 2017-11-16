@@ -41,7 +41,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleGLUtils, CastleUtils, CastleVectors, CastleShaders;
+  CastleGLUtils, CastleUtils, CastleVectors, CastleRendererBaseTypes;
 
 type
   { Common class for exceptions related to GLSL programs. }

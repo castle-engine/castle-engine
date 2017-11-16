@@ -133,7 +133,7 @@ type
     class function PerfectlyEquals(const V1, V2: TGenericVector2): boolean; static; inline;
 
     { Linear interpolation between two vector values.
-      @seealso @link(TVector3.Lerp) }
+      @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector2): TGenericVector2; static; inline;
 
     {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
@@ -397,7 +397,7 @@ type
     function XYZ: TGenericVector3; inline;
 
     { Linear interpolation between two vector values.
-      @seealso @link(TVector3.Lerp) }
+      Works analogous to @link(TGenericVector3.Lerp TVector3.Lerp) }
     class function Lerp(const A: TGenericScalar; const V1, V2: TGenericVector4): TGenericVector4; static; inline;
 
     {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
@@ -476,7 +476,7 @@ type
     class function PerfectlyEquals(const M1, M2: TGenericMatrix2): boolean; static;
 
     { Linear interpolation between two matrix values.
-      @seealso @link(TVector3.Lerp) }
+      @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix2): TGenericMatrix2; static;
 
     {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
@@ -570,7 +570,7 @@ type
     class function PerfectlyEquals(const M1, M2: TGenericMatrix3): boolean; static;
 
     { Linear interpolation between two matrix values.
-      @seealso @link(TVector3.Lerp) }
+      @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix3): TGenericMatrix3; static;
 
     {$ifndef ENABLE_SELF_RECORD_CONSTANTS}
@@ -681,7 +681,7 @@ type
     class function PerfectlyEquals(const M1, M2: TGenericMatrix4): boolean; static;
 
     { Linear interpolation between two matrix values.
-      @seealso @link(TVector3.Lerp) }
+      @seealso TGenericVector3.Lerp }
     class function Lerp(const A: TGenericScalar; const M1, M2: TGenericMatrix4): TGenericMatrix4; static;
 
     {$ifndef ENABLE_SELF_RECORD_CONSTANTS}

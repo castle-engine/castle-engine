@@ -117,6 +117,7 @@ void MainWindow::UpdateAfterSceneLoaded()
     m_nViewpointCount = nCount;
 
     ui->actionHead_Bobbing->setChecked(CGE_GetVariableInt(ecgevarWalkHeadBobbing)>0);
+    ui->actionHeadlight->setChecked(CGE_GetVariableInt(ecgevarHeadlight)>0);
     ui->actionSSAO->setChecked(CGE_GetVariableInt(ecgevarEffectSSAO)>0);
 
     if (m_aNavKeeper.ApplyState())  // when scene loading was caused by reloading (changing multisampling, etc)
@@ -188,6 +189,12 @@ void MainWindow::MenuMouseLookClick()
 {
     CGE_SetVariableInt(ecgevarMouseLook, 1);
     CGE_SetVariableInt(ecgevarCrossHair, 1);
+}
+
+void MainWindow::on_actionHeadlight_triggered()
+{
+    bool bSwitchOn = ui->actionHeadlight->isChecked();
+    CGE_SetVariableInt(ecgevarHeadlight, bSwitchOn ? 1 : 0);
 }
 
 void MainWindow::AddNewWarning(QString const& sWarning)

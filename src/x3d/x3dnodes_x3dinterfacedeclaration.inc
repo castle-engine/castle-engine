@@ -240,7 +240,7 @@ begin
     atInputOnly, atOutputOnly:
       FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      FieldOrEvent := FieldType.CreateUndefined(ParentNode, ParsedName, Access = atInputOutput);
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Access = atInputOutput, ParsedName);
     else raise EInternalError.Create('Access ? in TX3DInterfaceDeclaration.Parse');
   end;
 
@@ -303,7 +303,7 @@ begin
     atInputOnly, atOutputOnly:
       FieldOrEvent := FieldType.CreateEvent(ParentNode, ParsedName, Access = atInputOnly);
     atInitializeOnly, atInputOutput:
-      FieldOrEvent := FieldType.CreateUndefined(ParentNode, ParsedName, Access = atInputOutput);
+      FieldOrEvent := FieldType.CreateUndefined(ParentNode, Access = atInputOutput, ParsedName);
     else raise EInternalError.Create('AccessType ?');
   end;
 
@@ -339,7 +339,7 @@ begin
   begin
     { F := copy of Field }
     F := TX3DFieldClass(Field.ClassType).CreateUndefined(NewParentNode,
-      Field.X3DName, Field.Exposed);
+      Field.Exposed, Field.X3DName);
     F.Assign(Field);
 
     { CreateUndefined creates field without any default value,

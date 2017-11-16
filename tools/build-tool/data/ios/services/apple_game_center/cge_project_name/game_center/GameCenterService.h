@@ -19,7 +19,8 @@
 #import <UIKit/UIKit.h>
 #import <GameKit/GameKit.h>
 #import "../ServiceAbstract.h"
-#import "PlayerModel.h"
+#import "Achievements.h"
+#import "AutoSignIn.h"
 
 // Preferred method for testing for Game Center
 bool isGameCenterAPIAvailable(void);
@@ -27,14 +28,16 @@ bool isGameCenterAPIAvailable(void);
 @interface GameCenterService : ServiceAbstract <GKGameCenterControllerDelegate> {
     bool m_autoStartSignInFlow;
     bool m_finishedLaunching;
-    bool m_duringSignIn;
-    bool m_signedIn;
+    int status;
+
+    // value of the playerID last time GameKit authenticated.
+    NSString* authenticatedPlayerID;
+
+    // achievements management
+    Achievements* achievements;
+
+    // whether to automatically sign-in on initialization
+    AutoSignIn* autoSignIn;
 }
-
-// currentPlayerID is the value of the playerID last time GameKit authenticated.
-@property (retain, readwrite) NSString * currentPlayerID;
-
-// contains drag and drop code to be used to include GameKit functionality
-@property (readwrite, retain) PlayerModel* player;
 
 @end

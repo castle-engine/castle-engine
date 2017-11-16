@@ -86,11 +86,11 @@
     procedure SetCapacity(const Value: SizeInt);
     property Capacity: SizeInt read GetCapacity write SetCapacity;
   public
-    constructor Create(AParentNode: TX3DFileItem;
-      const AName: string;
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string;
       const InitialContent: array of TItem);
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); override;
     destructor Destroy; override;
 
     property Items: TItemList read GetItems write SetItems;
@@ -121,7 +121,7 @@
 
     class function CreateEvent(const AParentNode: TX3DFileItem; const AName: string; const AInEvent: boolean): TX3DEvent; override;
 
-    { Set the field's value in a correct way (by sending X3D event, or at least notifying 
+    { Set the field's value in a correct way (by sending X3D event, or at least notifying
       the parent scene). }
     procedure Send(const AValue: array of TItem); overload;
     procedure Send(const AValue: TItemList); overload;
@@ -135,7 +135,7 @@
 
 function TX3DSimpleMultField.CreateItemBeforeParse: TSingleField;
 begin
-  result := TSingleField.CreateUndefined(ParentNode, '', false);
+  result := TSingleField.CreateUndefined(ParentNode, false, '');
 end;
 
 procedure TX3DSimpleMultField.ParseValue(Lexer: TX3DLexer; Reader: TX3DReader);
@@ -312,18 +312,19 @@ begin
   end;
 end;
 
-constructor TX3DSimpleMultField.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
+constructor TX3DSimpleMultField.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
   inherited;
   FItems := TItemList.Create;
   DefaultValuesCount := -1;
 end;
 
-constructor TX3DSimpleMultField.Create(AParentNode: TX3DFileItem; const AName: string;
+constructor TX3DSimpleMultField.Create(
+  const AParentNode: TX3DFileItem; const AExposed: boolean; const AName: string;
   const InitialContent: array of TItem);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
   Items.AddRange(InitialContent);
   AssignDefaultValueFromValue;
 end;
@@ -457,10 +458,11 @@ begin
       not just an instance of TX3DSimpleMultField<T> (which is only an ancestor
       of other MF field classes). }
     // This works in FPC (Delphi and ObjFpc mode), but doesn't in actual Delphi:
-    // FieldValue := TX3DFieldClass(ClassType).Create(ParentNode, X3DName, AValue);
+    // FieldValue := TX3DFieldClass(ClassType).Create(ParentNode, false, X3DName, AValue);
 
+    { AExposed = false below, because not needed otherwise. }
     FieldValue := TX3DSimpleMultField(
-      TX3DFieldClass(ClassType).CreateUndefined(ParentNode, X3DName, true));
+      TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
     try
       FieldValue.Items.AddRange(AValue);
       Send(FieldValue);
@@ -484,7 +486,7 @@ begin
   if SendsByEvent then
   begin
     FieldValue := TX3DSimpleMultField(
-      TX3DFieldClass(ClassType).CreateUndefined(ParentNode, X3DName, true));
+      TX3DFieldClass(ClassType).CreateUndefined(ParentNode, false, X3DName));
     try
       FieldValue.Items.AddRange(AValue);
       Send(FieldValue);

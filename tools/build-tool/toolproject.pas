@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolAndroidServices;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolServices;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -38,8 +38,8 @@ type
     FName, FExecutableName, FQualifiedName, FAuthor, FCaption: string;
     FIOSOverrideQualifiedName, FIOSOverrideVersion: string;
     FUsesNonExemptEncryption: boolean;
-    GatheringFilesVsData: boolean; //< only for GatherFile
-    GatheringFiles: TCastleStringList; //< only for GatherFile
+    GatheringFilesVsData: boolean; //< only for PackageFilesGather
+    GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     ManifestFile, FPath, FDataPath: string;
     IncludePaths, ExcludePaths: TCastleStringList;
     FIcons, FLaunchImages: TImageFileNames;
@@ -54,11 +54,12 @@ type
     FAndroidBuildToolsVersion: string;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
-    FAndroidServices: TAndroidServiceList;
+    FAndroidServices, FIOSServices: TServiceList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     IOSTeam: string;
-    procedure GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
+    procedure PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
     procedure AddDependency(const Dependency: TDependency; const FileInfo: TFileInfo);
     procedure DeleteFoundFile(const FileInfo: TFileInfo; var StopSearch: boolean);
     function PackageName(const OS: TOS; const CPU: TCPU): string;
@@ -155,7 +156,8 @@ type
     property Icons: TImageFileNames read FIcons;
     property LaunchImages: TImageFileNames read FLaunchImages;
     property SearchPaths: TStringList read FSearchPaths;
-    property AndroidServices: TAndroidServiceList read FAndroidServices;
+    property AndroidServices: TServiceList read FAndroidServices;
+    property IOSServices: TServiceList read FIOSServices;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -202,7 +204,7 @@ implementation
 uses StrUtils, DOM, Process,
   CastleURIUtils, CastleXMLUtils, CastleLog, CastleFilesUtils,
   ToolPackage, ToolWindowsResources, ToolAndroidPackage, ToolWindowsRegistry,
-  ToolTextureGeneration, ToolIOS;
+  ToolTextureGeneration, ToolIOS, ToolAndroidMerging;
 
 const
   SErrDataDir = 'Make sure you have installed the data files of the Castle Game Engine build tool. Usually it is easiest to set the $CASTLE_ENGINE_PATH environment variable to the location of castle_game_engine/ or castle-engine/ directory, the build tool will then find its data correctly. Or place the data in system-wide location /usr/share/castle-engine/ or /usr/local/share/castle-engine/.';
@@ -219,6 +221,11 @@ begin
   Result := ChangeFileExt(S, LibraryExtensionOS(OS));
   if OS in AllUnixOSes then
     Result := InsertLibPrefix(Result);
+end;
+
+function AnsiSameFileName(const S1, S2: string): boolean;
+begin
+  Result := AnsiCompareFileName(S1, S2) = 0;
 end;
 
 { TCastleProject ------------------------------------------------------------- }
@@ -536,6 +543,10 @@ constructor TCastleProject.Create(const APath: string);
 
           FUsesNonExemptEncryption := Element.AttributeBooleanDef('uses_non_exempt_encryption',
             DefaultUsesNonExemptEncryption);
+
+          ChildElement := Element.ChildElement('services', false);
+          if ChildElement <> nil then
+            FIOSServices.ReadCastleEngineManifest(ChildElement);
         end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
@@ -624,7 +635,8 @@ begin
   FLaunchImages := TImageFileNames.Create;
   FSearchPaths := TStringList.Create;
   FAndroidProjectType := apBase;
-  FAndroidServices := TAndroidServiceList.Create(true);
+  FAndroidServices := TServiceList.Create(true);
+  FIOSServices := TServiceList.Create(true);
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -645,6 +657,7 @@ begin
   FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
   FreeAndNil(FAndroidServices);
+  FreeAndNil(FIOSServices);
   inherited;
 end;
 
@@ -657,16 +670,6 @@ begin
         '" to dependencies because data contains file: ' + FileInfo.URL);
     Include(FDependencies, Dependency);
   end;
-end;
-
-procedure TCastleProject.GatherFile(const FileInfo: TFileInfo; var StopSearch: boolean);
-var
-  RelativeVs: string;
-begin
-  if GatheringFilesVsData then
-    RelativeVs := DataPath else
-    RelativeVs := Path;
-  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
 end;
 
 procedure TCastleProject.DoCreateManifest;
@@ -761,6 +764,17 @@ begin
     OSToString(OS) + '-' + CPUToString(CPU) + LibraryExtensionOS(OS);
 end;
 
+procedure TCastleProject.PackageFilesGather(const FileInfo: TFileInfo; var StopSearch: boolean);
+var
+  RelativeVs: string;
+begin
+  if GatheringFilesVsData then
+    RelativeVs := DataPath
+  else
+    RelativeVs := Path;
+  GatheringFiles.Add(ExtractRelativePath(RelativeVs, FileInfo.AbsoluteName));
+end;
+
 procedure TCastleProject.PackageFiles(const Files: TCastleStringList; const OnlyData: boolean);
 
   procedure Exclude(const PathMask: string; const Files: TCastleStringList);
@@ -794,7 +808,7 @@ var
 begin
   GatheringFiles := Files;
   GatheringFilesVsData := OnlyData;
-  FindFiles(DataPath, '*', false, @GatherFile, [ffRecursive]);
+  FindFiles(DataPath, '*', false, @PackageFilesGather, [ffRecursive]);
 
   if not OnlyData then
     for I := 0 to IncludePaths.Count - 1 do
@@ -805,7 +819,7 @@ begin
           or <include path="docs/README.txt" />
           should not include *all* README.txt files inside. }
         FindOptions := [];
-      FindFiles(Path + IncludePaths[I], false, @GatherFile, FindOptions);
+      FindFiles(Path + IncludePaths[I], false, @PackageFilesGather, FindOptions);
     end;
   GatheringFiles := nil;
 
@@ -1036,13 +1050,33 @@ begin
   // raise Exception.Create('The "run" command is not useful for this OS / CPU right now. Run the application manually.');
 end;
 
+procedure TCastleProject.PackageSourceGather(const FileInfo: TFileInfo; var StopSearch: boolean);
+begin
+  if FileInfo.Directory then
+  begin
+    if SpecialDirName(FileInfo.Name) or
+       { exclude version control dirs }
+       AnsiSameFileName(FileInfo.Name, '.git') or
+       AnsiSameFileName(FileInfo.Name, '.svn') or
+       { exclude various build tool output }
+       AnsiSameFileName(FileInfo.Name, 'castle-engine-output') then
+      Exit;
+    { recursively scan children }
+    FindFiles(FileInfo.AbsoluteName, '*', true, @PackageSourceGather, []);
+  end else
+  begin
+    { add relative filename to GatheringFiles }
+    GatheringFiles.Add(ExtractRelativePath(Path, FileInfo.AbsoluteName));
+  end;
+end;
+
 procedure TCastleProject.DoPackageSource;
 var
   Pack: TPackageDirectory;
   Files: TCastleStringList;
   I: Integer;
   PackageFileName: string;
-  IsPackageName: boolean;
+  Exclude: boolean;
   OS: TOS;
   CPU: TCPU;
 begin
@@ -1053,28 +1087,33 @@ begin
     Files := TCastleStringList.Create;
     try
       GatheringFiles := Files;
-      FindFiles(Path, '*', false, @GatherFile, [ffRecursive]);
+      { Non-recursive FindFiles, we will make recursion manually
+        inside PackageSourceGather }
+      FindFiles(Path, '*', true, @PackageSourceGather, []);
       GatheringFiles := nil;
+
       for I := 0 to Files.Count - 1 do
       begin
+        Exclude := false;
+
         { Do not pack packages (binary or source) into the source package.
           The packages are not cleaned by DoClean, so they could otherwise
           be packed by accident. }
-        IsPackageName := false;
         for OS in TOS do
           for CPU in TCPU do
             if OSCPUSupported[OS, CPU] then
-              if AnsiCompareFileName(Files[I], PackageName(OS, CPU)) = 0 then
-                IsPackageName := true;
-        if (AnsiCompareFileName(Files[I], SourcePackageName) = 0) or
-           { avoid Android packages }
-           (AnsiCompareFileName(Files[I], Name + '-debug.apk') = 0) or
-           (AnsiCompareFileName(Files[I], Name + '-release.apk') = 0) then
-          IsPackageName := true;
+              if AnsiSameFileName(Files[I], PackageName(OS, CPU)) then
+                Exclude := true;
 
-        if (not IsPackageName) and
+        if AnsiSameFileName(Files[I], SourcePackageName) or
+           { avoid Android packages }
+           AnsiSameFileName(Files[I], Name + '-debug.apk') or
+           AnsiSameFileName(Files[I], Name + '-release.apk') or
            { do not pack AndroidAntProperties.txt with private stuff }
-           (Files[I] <> 'AndroidAntProperties.txt') then
+           AnsiSameFileName(Files[I], 'AndroidAntProperties.txt') then
+          Exclude := true;
+
+        if not Exclude then
           Pack.Add(Path + Files[I], Files[I]);
       end;
     finally FreeAndNil(Files) end;
@@ -1388,17 +1427,27 @@ const
    '<uses-feature android:name="android.hardware.screen.portrait"/>');
 
   IOSScreenOrientation: array [TScreenOrientation] of string =
-  (CharTab + CharTab + '<string>UIInterfaceOrientationPortrait</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+  (#9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
+   #9#9'<string>UIInterfaceOrientationLandscapeLeft</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationLandscapeRight</string>' + NL,
 
-   CharTab + CharTab + '<string>UIInterfaceOrientationPortrait</string>' + NL +
-   CharTab + CharTab + '<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
+   #9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
+   #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
   );
+
+  Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG =
+    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = (' + NL +
+    #9#9#9#9#9'"ONLY_C=1",' + NL +
+    #9#9#9#9#9'"DEBUG=1",' + NL +
+    #9#9#9#9#9'"$(inherited)",' + NL +
+    #9#9#9#9');' + NL;
+
+  Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE =
+    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = "ONLY_C=1";' + NL;
 
   function AndroidActivityLoadLibraries: string;
   begin
@@ -1455,12 +1504,11 @@ const
       Result := Version;
   end;
 
-  {$I data/ios/services/ogg_vorbis/cge_project_name.xcodeproj/project.pbxproj.inc}
-
 var
   Macros: TStringStringMap;
   I: Integer;
-  P, NonEmptyAuthor, AndroidLibraryName: string;
+  P, NonEmptyAuthor, AndroidLibraryName, IOSTargetAttributes,
+    IOSRequiredDeviceCapabilities: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
   AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
@@ -1508,6 +1556,7 @@ begin
     Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
     Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
     Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
+    // TODO: when needed, do the analogous for iOS services
     for I := 0 to AndroidServices.Count - 1 do
       for AndroidServiceParameterPair in AndroidServices[I].Parameters do
         Macros.Add('ANDROID.' +
@@ -1524,38 +1573,54 @@ begin
       Macros.Add('IOS_EXTRA_INFO_PLIST', '<key>ITSAppUsesNonExemptEncryption</key> <false/>')
     else
       Macros.Add('IOS_EXTRA_INFO_PLIST', '');
+
+    IOSTargetAttributes := '';
+    IOSRequiredDeviceCapabilities := '';
     if IOSTeam <> '' then
     begin
-      Macros.Add('IOS_TARGET_ATTRIBUTES',
-        CharTab + CharTab + CharTab + CharTab + 'TargetAttributes = {' + NL +
-        CharTab + CharTab + CharTab + CharTab + CharTab + '4D629DF31916B0EB0082689B = {' + NL +
-        CharTab + CharTab + CharTab + CharTab + CharTab + CharTab + 'DevelopmentTeam = ' + IOSTeam + ';' + NL +
-        CharTab + CharTab + CharTab + CharTab + CharTab + '};' + NL +
-        CharTab + CharTab + CharTab + CharTab + '};' + NL);
+      IOSTargetAttributes := IOSTargetAttributes +
+        #9#9#9#9#9#9'DevelopmentTeam = ' + IOSTeam + ';' + NL;
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
     end else
     begin
-      Macros.Add('IOS_TARGET_ATTRIBUTES', '');
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
     end;
+    if IOSServices.HasService('apple_game_center') then
+    begin
+      if IOSServices.HasService('icloud_for_save_games') then
+        IOSTargetAttributes := IOSTargetAttributes +
+          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+          #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
+          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+          #9#9#9#9#9#9#9'};' + NL +
+          #9#9#9#9#9#9#9'com.apple.iCloud = {' + NL +
+          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+          #9#9#9#9#9#9#9'};' + NL +
+          #9#9#9#9#9#9'};' + NL
+      else
+        IOSTargetAttributes := IOSTargetAttributes +
+          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+          #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
+          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+          #9#9#9#9#9#9#9'};' + NL +
+          #9#9#9#9#9#9'};' + NL;
+      IOSRequiredDeviceCapabilities := IOSRequiredDeviceCapabilities +
+        #9#9'<string>gamekit</string>' + NL;
+    end;
+    Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
+    Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
+
+    if IOSServices.HasService('icloud_for_save_games') then
+      Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', 'CODE_SIGN_ENTITLEMENTS = "' + Name + '/icloud_for_save_games.entitlements";')
+    else
+      Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
+
     if depOggVorbis in Dependencies then
     begin
-      Macros.Add('IOS_EXTRA_PBXBuildFile'                  , Tremolo_IOS_EXTRA_PBXBuildFile);
-      Macros.Add('IOS_EXTRA_PBXFileReference'              , Tremolo_IOS_EXTRA_PBXFileReference);
-      Macros.Add('IOS_EXTRA_PBXGroup'                      , Tremolo_IOS_EXTRA_PBXGroup);
-      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup'            , Tremolo_IOS_EXTRA_PBXGroup_MainGroup);
-      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase'        , Tremolo_IOS_EXTRA_PBXResourcesBuildPhase);
-      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase'          , Tremolo_IOS_EXTRA_PBXSourcesBuildPhase);
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG'  , Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG);
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE);
     end else
     begin
-      Macros.Add('IOS_EXTRA_PBXBuildFile', '');
-      Macros.Add('IOS_EXTRA_PBXFileReference', '');
-      Macros.Add('IOS_EXTRA_PBXGroup', '');
-      Macros.Add('IOS_EXTRA_PBXGroup_MainGroup', '');
-      Macros.Add('IOS_EXTRA_PBXResourcesBuildPhase', '');
-      Macros.Add('IOS_EXTRA_PBXSourcesBuildPhase', '');
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG', '');
       Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', '');
     end;
@@ -1626,19 +1691,28 @@ begin
   begin
     DestinationRelativeFileNameSlashes := StringReplace(
       DestinationRelativeFileName, '\', '/', [rfReplaceAll]);
+
+    if SameText(DestinationRelativeFileNameSlashes, Name + '/AppDelegate.m') then
+      MergeIOSAppDelegate(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
-      MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/java/net/sourceforge/castleengine/MainActivity.java') then
-      MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeAndroidMainActivity(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/jni/Android.mk') or
        SameText(DestinationRelativeFileNameSlashes, 'app/src/main/custom-proguard-project.txt') then
-      MergeAppend(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeAppend(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/build.gradle') then
-      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
+      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'build.gradle') then
-      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros) else
-    if Verbose then
-      Writeln('Not overwriting custom ' + DestinationRelativeFileName);
+      MergeBuildGradle(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
+      WritelnWarning('Template not overwriting custom ' + DestinationRelativeFileName);
+
     Exit;
   end;
 

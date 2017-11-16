@@ -715,7 +715,16 @@ type
           Note that the exact key or mouse responsible for this is configurable
           in our engine by Input_Interact. By default it's the left mouse button,
           as is usual for VRML/X3D browsers. But it can be configured to be other
-          mouse button or a key, for example most 3D games use "e" key to interact.)
+          mouse button or a key, for example most 3D games use "e" key to interact.
+
+          In case of Active = @false (which means that pointing device
+          is no longer pressed), an extra parameter CancelAction indicates
+          whether this pointing device "press and release" sequence may be
+          considered a "click". When CancelAction = @true, then you should not make
+          a "click" event (e.g. TouchSensor should not send touchTime event etc.).
+
+          In case of Active = @true, CancelAction is always @false.
+        )
 
         @item(PointingDeviceMove signals that pointer moves over this 3D object.)
       )
@@ -758,7 +767,7 @@ type
 
       @groupBegin }
     function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; virtual;
+      const Distance: Single; const CancelAction: boolean = false): boolean; virtual;
     function PointingDeviceMove(const Pick: TRayCollisionNode;
       const Distance: Single): boolean; virtual;
     { @groupEnd }
@@ -1107,17 +1116,6 @@ type
     procedure AddToWorld(const Value: T3DWorld); override;
     procedure RemoveFromWorld(const Value: T3DWorld); override;
 
-    { Additional child inside the list, always processed before all children
-      on the @link(Items) list. By default this method returns @nil,
-      indicating no additional child exists.
-      The presence of this child can be calculated in overriden
-      method using any condition, which is sometimes more comfortable
-      than adding item to Items.
-
-      This item cannot be removed by methods like @link(T3DList.Remove)
-      or by setting RemoveMe in it's @link(T3D.Update) implementation.
-      Presence of this item is completely determined by GetChild implementation. }
-    function GetChild: T3D; virtual;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function HeightCollision(const Position, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -2383,7 +2381,7 @@ begin
 end;
 
 function T3D.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
+  const Distance: Single; const CancelAction: boolean): boolean;
 begin
   Result := false;
 end;
@@ -2699,18 +2697,6 @@ end;
 
 procedure T3D.RemoveFromWorld(const Value: T3DWorld);
 begin
-  { TODO: This check should not be necessary, instead we should always assert
-    FWorldReferences > 0.
-    However, the GetChild mechanism, which is scheduled to be removed,
-    may break this now: the 3D objects defined by GetChild may not get
-    correct AddToWorld, and so RemoveFromWorld on them cannot depend
-    on these assumptions.
-
-    Reproduction: just and and exit fps_game (that uses animated
-    knights that use the GetChild). }
-  if FWorldReferences = 0 then
-    Exit;
-
   Assert(Value <> nil);
   Assert(FWorldReferences > 0);
   if FWorld <> Value then
@@ -2922,8 +2908,6 @@ var
   I: Integer;
 begin
   inherited;
-  if GetChild <> nil then
-    GetChild.AddToWorld(Value);
   if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
     for I := 0 to List.Count - 1 do
       List[I].AddToWorld(Value);
@@ -2934,16 +2918,9 @@ var
   I: Integer;
 begin
   inherited;
-  if GetChild <> nil then
-    GetChild.RemoveFromWorld(Value);
   if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
     for I := 0 to List.Count - 1 do
       List[I].RemoveFromWorld(Value);
-end;
-
-function T3DList.GetChild: T3D;
-begin
-  Result := nil;
 end;
 
 procedure T3DList.Add(const Item: T3D);
@@ -3027,9 +3004,6 @@ begin
   Result := TBox3D.Empty;
   if GetExists then
   begin
-    if (GetChild <> nil) and
-       (not GetChild.InternalExcludeFromParentBoundingVolume) then
-      Result.Include(GetChild.BoundingBox);
     for I := 0 to List.Count - 1 do
       if not List[I].InternalExcludeFromParentBoundingVolume then
         Result.Include(List[I].BoundingBox);
@@ -3043,8 +3017,6 @@ begin
   inherited;
   if GetVisible then
   begin
-    if GetChild <> nil then
-      GetChild.Render(Frustum, Params);
     for I := 0 to List.Count - 1 do
       List[I].Render(Frustum, Params);
   end;
@@ -3060,9 +3032,6 @@ begin
   inherited;
   if GetExists and CastShadowVolumes then
   begin
-    if GetChild <> nil then
-      GetChild.RenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform);
     for I := 0 to List.Count - 1 do
       List[I].RenderShadowVolume(ShadowVolumeRenderer,
         ParentTransformIsIdentity, ParentTransform);
@@ -3075,8 +3044,6 @@ var
   I: Integer;
 begin
   inherited;
-  if GetChild <> nil then
-    GetChild.PrepareResources(Options, ProgressStep, BaseLights);
   for I := 0 to List.Count - 1 do
     List[I].PrepareResources(Options, ProgressStep, BaseLights);
 end;
@@ -3086,8 +3053,6 @@ var
   I: Integer;
 begin
   Result := inherited;
-  if GetChild <> nil then
-    Result := Result + GetChild.PrepareResourcesSteps;
   for I := 0 to List.Count - 1 do
     Result := Result + List[I].PrepareResourcesSteps;
 end;
@@ -3099,8 +3064,6 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  if GetChild <> nil then
-    if GetChild.Press(Event) then Exit(true);
   for I := 0 to List.Count - 1 do
     if List[I].Press(Event) then Exit(true);
 end;
@@ -3112,8 +3075,6 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  if GetChild <> nil then
-    if GetChild.Release(Event) then Exit(true);
   for I := 0 to List.Count - 1 do
     if List[I].Release(Event) then Exit(true);
 end;
@@ -3127,13 +3088,6 @@ begin
   inherited;
   if GetExists then
   begin
-    if GetChild <> nil then
-    begin
-      RemoveItem := rtNone;
-      GetChild.Update(SecondsPassed, RemoveItem);
-      { resulting RemoveItem is ignored, GetChild cannot be removed }
-    end;
-
     I := 0;
     while I < List.Count do
     begin
@@ -3155,8 +3109,6 @@ procedure T3DList.GLContextClose;
 var
   I: Integer;
 begin
-  if GetChild <> nil then
-    GetChild.GLContextClose;
   { this is called from inherited destructor, so check <> nil carefully }
   if FList <> nil then
   begin
@@ -3223,19 +3175,6 @@ begin
 
   if GetCollides then
   begin
-    if GetChild <> nil then
-    begin
-      NewResult := GetChild.HeightCollision(Position, GravityUp, TrianglesToIgnoreFunc,
-        NewAboveHeight, NewAboveGround);
-
-      if NewAboveHeight < AboveHeight then
-      begin
-        Result := NewResult;
-        AboveHeight := NewAboveHeight;
-        AboveGround := NewAboveGround;
-      end;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       NewResult := List[I].HeightCollision(Position, GravityUp, TrianglesToIgnoreFunc,
@@ -3262,7 +3201,7 @@ begin
   if GetCollides then
   begin
     { We call MoveCollision with separate ProposedNewPos and NewPos
-      only on the first scene (or GetChild, if exists).
+      only on the first scene.
       This means that only first scene collisions provide wall sliding.
       Collisions with other 3D objects will simply block the player.
 
@@ -3277,19 +3216,6 @@ begin
       although also slower. Is there any way to make it as fast and
       more general? }
 
-    if GetChild <> nil then
-    begin
-      Result := GetChild.MoveCollision(OldPos, ProposedNewPos, NewPos,
-        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-      if not Result then Exit;
-
-      for I := 0 to List.Count - 1 do
-      begin
-        Result := List[I].MoveCollision(OldPos, NewPos,
-          IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-        if not Result then Exit;
-      end;
-    end else
     if List.Count <> 0 then
     begin
       Result := List[0].MoveCollision(OldPos, ProposedNewPos, NewPos,
@@ -3322,13 +3248,6 @@ begin
 
   if GetCollides then
   begin
-    if GetChild <> nil then
-    begin
-      Result := GetChild.MoveCollision(OldPos, NewPos,
-        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-      if not Result then Exit;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].MoveCollision(OldPos, NewPos,
@@ -3348,12 +3267,6 @@ begin
 
   if GetCollides or (ALineOfSight and GetExists) then
   begin
-    if GetChild <> nil then
-    begin
-      Result := GetChild.SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
-      if Result then Exit;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
@@ -3371,12 +3284,6 @@ begin
 
   if GetCollides then
   begin
-    if GetChild <> nil then
-    begin
-      Result := GetChild.SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
-      if Result then Exit;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
@@ -3395,17 +3302,6 @@ begin
 
   if GetCollides then
   begin
-    if GetChild <> nil then
-    begin
-      Result := GetChild.SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
-      if Result then
-      begin
-        if Details <> nil then
-          Details.Add(Self);
-        Exit;
-      end;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
@@ -3428,12 +3324,6 @@ begin
 
   if GetCollides then
   begin
-    if GetChild <> nil then
-    begin
-      Result := GetChild.PointCollision2D(Point, TrianglesToIgnoreFunc);
-      if Result then Exit;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].PointCollision2D(Point, TrianglesToIgnoreFunc);
@@ -3451,12 +3341,6 @@ begin
 
   if GetCollides then
   begin
-    if GetChild <> nil then
-    begin
-      Result := GetChild.BoxCollision(Box, TrianglesToIgnoreFunc);
-      if Result then Exit;
-    end;
-
     for I := 0 to List.Count - 1 do
     begin
       Result := List[I].BoxCollision(Box, TrianglesToIgnoreFunc);
@@ -3490,8 +3374,6 @@ begin
 
   if GetPickable then
   begin
-    if GetChild <> nil then
-      AddNewResult(GetChild.RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
     for I := 0 to List.Count - 1 do
       AddNewResult(List[I].RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
 
@@ -3516,9 +3398,6 @@ var
   I: Integer;
 begin
   inherited;
-  if GetChild <> nil then
-    GetChild.UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewport);
   for I := 0 to List.Count - 1 do
     List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
       OriginalViewport);
@@ -3529,8 +3408,6 @@ var
   I: Integer;
 begin
   inherited;
-  if GetChild <> nil then
-    GetChild.VisibleChangeNotification(Changes);
   for I := 0 to List.Count - 1 do
     List[I].VisibleChangeNotification(Changes);
 end;
@@ -3540,8 +3417,6 @@ var
   I: Integer;
 begin
   inherited;
-  if GetChild <> nil then
-    GetChild.CameraChanged(ACamera);
   for I := 0 to List.Count - 1 do
     List[I].CameraChanged(ACamera);
 end;
@@ -3552,12 +3427,6 @@ var
 begin
   Result := inherited;
   if Result then Exit;
-
-  if GetChild <> nil then
-  begin
-    Result := GetChild.Dragging;
-    if Result then Exit;
-  end;
 
   for I := 0 to List.Count - 1 do
   begin

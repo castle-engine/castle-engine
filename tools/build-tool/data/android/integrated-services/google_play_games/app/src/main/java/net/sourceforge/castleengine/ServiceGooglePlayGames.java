@@ -37,10 +37,16 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     GoogleApiClient.OnConnectionFailedListener
 {
     private static final String TAG = "${NAME}.castleengine.ServiceGooglePlayGames";
+
     private static final int REQUEST_SIGN_IN = 9001;
     private static final int REQUEST_ACHIEVEMENTS = 9101;
     private static final int REQUEST_LEADERBOARD = 9102;
     private static final int REQUEST_SAVED_GAMES = 9103;
+
+    private static final int STATUS_SIGNED_OUT = 0;
+    private static final int STATUS_SIGNING_IN = 1;
+    private static final int STATUS_SIGNED_IN = 2;
+    private static final int STATUS_SIGNING_OUT = 3;
 
     private boolean initialized, scheduledStart;
 
@@ -110,7 +116,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     }
 
     /**
-     * Return initialized and mGoogleSignedIn,
+     * Return if we are initialized and mStatus is STATUS_SIGNED_IN,
      * while by the way also checking related stuff, to be secure. */
     private boolean checkGamesConnection()
     {
@@ -118,23 +124,22 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             Log.w(TAG, "initialized is true, but mGoogleApiClient == null");
             initialized = false;
         }
-        if (initialized && mGoogleSignedIn && !mGoogleApiClient.isConnected()) {
-            Log.w(TAG, "mGoogleSignedIn is true, but mGoogleApiClient.isConnected() == false");
-            mGoogleSignedIn = false;
+        if (initialized && mStatus == STATUS_SIGNED_IN && !mGoogleApiClient.isConnected()) {
+            Log.w(TAG, "mStatus == STATUS_SIGNED_IN, but mGoogleApiClient.isConnected() == false");
+            mStatus = STATUS_SIGNED_OUT;
         }
-        return initialized && mGoogleSignedIn;
+        return initialized && mStatus == STATUS_SIGNED_IN;
     }
 
-    // Are we signed in. Starts at false (native code can assume this
-    // starting value too), and we notify native code about every change.
-    private boolean mGoogleSignedIn = false;
+    // Are we signed in (use STATUS_xxx constants).
+    private int mStatus = STATUS_SIGNED_OUT;
 
-    // Set mGoogleSignedIn variable, also send to native code notification.
-    private void setGoogleSignedIn(boolean value)
+    // Set mStatus, and send new mStatus to Pascal code.
+    private void setStatus(int value)
     {
-        if (mGoogleSignedIn != value) {
-            mGoogleSignedIn = value;
-            messageSend(new String[]{"game-service-sign-in-status", booleanToString(mGoogleSignedIn)});
+        if (mStatus != value) {
+            mStatus = value;
+            messageSend(new String[]{"game-service-status", Long.toString(value)});
         }
     }
 
@@ -152,7 +157,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
 
         // The player is signed in.
         // We can now hide the sign-in button.
-        setGoogleSignedIn(true);
+        setStatus(STATUS_SIGNED_IN);
 
         if (mScoreToSendWhenConnected > 0) {
             if (checkGamesConnection()) {
@@ -182,7 +187,6 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     /* When mSignInClicked, this may be non-null to indicate an action to make
      * when sign-in succeeds. */
     private OnConnectedFinish mOnConnectedFinish = null;
-    private boolean mDuringSignOut = false;
 
     /**
      * Resolve a connection failure from
@@ -229,6 +233,8 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             return;
         }
 
+        boolean stillSigningIn = false;
+
         // if the sign-in button was clicked or if auto sign-in is enabled,
         // launch the sign-in flow
         if (mSignInClicked || mAutoStartSignInFlow) {
@@ -238,22 +244,25 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
             mResolvingConnectionFailure = true;
 
             // Attempt to resolve the connection failure.
-            if (!resolveConnectionFailure(getActivity(),
-                    mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
+            if (resolveConnectionFailure(getActivity(),
+                  mGoogleApiClient, connectionResult, REQUEST_SIGN_IN)) {
+                stillSigningIn = true;
+            } else {
                 mResolvingConnectionFailure = false;
                 mOnConnectedFinish = null;
             }
         }
 
-        // We can now e.g. display the sign-in button.
-        setGoogleSignedIn(false);
+        if (!stillSigningIn) {
+            setStatus(STATUS_SIGNED_OUT);
+        }
     }
 
     @Override
     public void onConnectionSuspended(int i)
     {
         Log.i(TAG, "onConnectionSuspended, attempting to reconnect");
-        setGoogleSignedIn(false);
+        setStatus(STATUS_SIGNING_IN);
         // Attempt to reconnect
         mGoogleApiClient.connect();
     }
@@ -273,9 +282,17 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                        there anyway: OpenSnapshotResult result code is sometimes 16
                        (which is not documented as valid result code). */
                     Log.w(TAG, "mGoogleApiClient == null when we received Google Play Games sign in. Indicates that connection to Google Play Games was reached after Java activity died and was recreated.");
+                    // stoppping signing-in
+                    if (mStatus == STATUS_SIGNING_IN) {
+                        setStatus(STATUS_SIGNED_OUT);
+                    }
                 }
             } else {
                 Log.w(TAG, "Unable to sign in to Google Games.");
+                // stoppping signing-in
+                if (mStatus == STATUS_SIGNING_IN) {
+                    setStatus(STATUS_SIGNED_OUT);
+                }
             }
         }
 
@@ -309,12 +326,14 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     private void signInClicked(OnConnectedFinish onConnectedFinish)
     {
         /* don't act when inside sign-out process, or not initialized */
-        if (mDuringSignOut || !initialized) {
+        if (mStatus == STATUS_SIGNING_OUT || !initialized) {
             return;
         }
 
         mSignInClicked = true;
         mOnConnectedFinish = onConnectedFinish;
+        setStatus(STATUS_SIGNING_IN);
+
         // It is Ok to call it while connecting, as docs
         // https://developer.android.com/reference/com/google/android/gms/common/api/GoogleApiClient.html#connect()
         // say:
@@ -325,19 +344,20 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
     private void signOutClicked()
     {
         /* don't act when inside sign-out process, or not initialized */
-        if (mDuringSignOut || !initialized || !mGoogleApiClient.isConnected()) {
+        if (mStatus == STATUS_SIGNING_OUT || !initialized || !mGoogleApiClient.isConnected()) {
             return;
         }
 
         mSignInClicked = false;
         mOnConnectedFinish = null;
+        setStatus(STATUS_SIGNING_OUT);
+
         // According to docs,
         // https://developer.android.com/reference/com/google/android/gms/games/Games.html#signOut(com.google.android.gms.common.api.GoogleApiClient)
         // this does not actually call mGoogleApiClient.disconnect().
         // So we observe it and eventually call mGoogleApiClient.disconnect
         // later, otherwise future call to signInClicked() would be ignored
         // (as we're connected already ---- just not signed in as anyone).
-        mDuringSignOut = true;
         Games.signOut(mGoogleApiClient).setResultCallback(
             new ResultCallback<Status>() {
                 public void onResult(Status status)
@@ -348,8 +368,7 @@ public class ServiceGooglePlayGames extends ServiceAbstract implements
                     if (mGoogleApiClient != null) {
                         mGoogleApiClient.disconnect();
                     }
-                    mDuringSignOut = false;
-                    setGoogleSignedIn(false);
+                    setStatus(STATUS_SIGNED_OUT);
                 }
             });
     }

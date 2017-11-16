@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -19,7 +19,9 @@
 
 - (void)viewDidLoad
 {
+    [super viewDidLoad];
     
+    self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(OnBtnCancel:)];
 }
 
 //-----------------------------------------------------------------
@@ -47,9 +49,15 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     self.selectedViewpoint = indexPath.row;
-    [self.popover dismissPopoverAnimated:YES];
-    [self.popover.delegate popoverControllerDidDismissPopover:self.popover]; // call delegate programatically in order to get the data from here
+    if (self.delegate != nil)
+        [self.delegate viewpointDidChange:(int)indexPath.row];
+    [self dismissViewControllerAnimated:YES completion:nil];
 }
 
+//-----------------------------------------------------------------
+- (void)OnBtnCancel:(id)sender
+{
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
 
 @end

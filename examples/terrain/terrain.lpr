@@ -62,7 +62,7 @@ uses SysUtils, Classes,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
   Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
-  CastleRectangles, CastleControls, CastleShaders;
+  CastleRectangles, CastleControls, CastleRendererBaseTypes;
 
 type
   TTerrainType = (ttNoise, ttCasScript, ttImage, ttGrid);
@@ -539,8 +539,9 @@ begin
   GLTexRock := LoadTexture('rock_d01.png');
 
   { initialize GLSL program }
-  if TGLSLProgram.ClassSupport <> gsNone then
-    GLSLProgram := TGLSLProgram.Create else
+  if GLFeatures.Shaders <> gsNone then
+    GLSLProgram := TGLSLProgram.Create
+  else
     Shader := false;
   GLSLProgramRegenerate;
 end;
@@ -601,15 +602,15 @@ procedure MenuClick(Container: TUIContainer; Item: TMenuItem);
         TexBread.SetUrl(['textures/bread.png']);
         TexRock := TImageTextureNode.Create;
         TexRock.SetUrl(['textures/rock_d01.png']);
-        Shader.AddCustomField(TSFNode.Create(Shader, 'tex_sand', [], TexSand));
-        Shader.AddCustomField(TSFNode.Create(Shader, 'tex_bread', [], TexBread));
-        Shader.AddCustomField(TSFNode.Create(Shader, 'tex_rock', [], TexRock));
-        Shader.AddCustomField(TSFFloat.Create(Shader, 'z0', 0.8));
-        Shader.AddCustomField(TSFFloat.Create(Shader, 'z1', 1.0));
-        Shader.AddCustomField(TSFFloat.Create(Shader, 'z2', 1.2));
-        Shader.AddCustomField(TSFFloat.Create(Shader, 'z3', 1.5));
-        Shader.AddCustomField(TSFFloat.Create(Shader, 'color_scale', 0.2));
-        Shader.AddCustomField(TSFFloat.Create(Shader, 'tex_scale', 0.8));
+        Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_sand', [], TexSand));
+        Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_bread', [], TexBread));
+        Shader.AddCustomField(TSFNode.Create(Shader, false, 'tex_rock', [], TexRock));
+        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z0', 0.8));
+        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z1', 1.0));
+        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z2', 1.2));
+        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'z3', 1.5));
+        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'color_scale', 0.2));
+        Shader.AddCustomField(TSFFloat.Create(Shader, false, 'tex_scale', 0.8));
 
         Part := TShaderPartNode.Create;
         Shader.FdParts.Add(Part);

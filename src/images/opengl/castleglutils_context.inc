@@ -81,14 +81,15 @@ type
     FGlobalScissor: TScissor;
     FProjectionMatrix: TMatrix4;
     FDepthRange: TDepthRange;
+    FCullFace, FFrontFaceCcw: boolean;
     procedure SetLineWidth(const Value: Single);
     procedure SetPointSize(const Value: Single);
     procedure SetGlobalAmbient(const Value: TCastleColorRGB);
     procedure WarnContextNotCurrent;
-    function GetProjectionMatrix: TMatrix4;
     procedure SetProjectionMatrix(const Value: TMatrix4);
-    function GetDepthRange: TDepthRange;
     procedure SetDepthRange(const Value: TDepthRange);
+    procedure SetCullFace(const Value: boolean);
+    procedure SetFrontFaceCcw(const Value: boolean);
   private
     FEnabledScissors: TScissorList;
   public
@@ -139,11 +140,22 @@ type
       When EnableFixedFunction = true, setting this also
       sets fixed-function projection matrix. }
     property ProjectionMatrix: TMatrix4
-      read GetProjectionMatrix write SetProjectionMatrix;
+      read FProjectionMatrix write SetProjectionMatrix;
 
     { Use this to operate on OpenGL glDepthRange. For now, our engine has
       very simple use for this, for TPlayer.RenderOnTop. }
-    property DepthRange: TDepthRange read GetDepthRange write SetDepthRange;
+    property DepthRange: TDepthRange read FDepthRange write SetDepthRange;
+
+    { Should we use backface-culling (ignore some faces during rendering).
+      This controls whether OpenGL GL_CULL_FACE flag is enabled or not. }
+    property CullFace: boolean read FCullFace write SetCullFace
+      default false;
+
+    { Is the front face ordered counter-clockwise.
+      The "front face" is important to interpreting the @link(CullFace)
+      and to interpret the normal vectors (they point ourward from front face). }
+    property FrontFaceCcw: boolean read FFrontFaceCcw write SetFrontFaceCcw
+      default true;
   end;
 
 var
@@ -212,6 +224,8 @@ begin
   FEnabledScissors := TScissorList.Create(false);
   FProjectionMatrix := TMatrix4.Identity;
   FDepthRange := drFull;
+  FCullFace := false;
+  FFrontFaceCcw := true;
 end;
 
 destructor TRenderContext.Destroy;
@@ -326,11 +340,6 @@ begin
     FGlobalScissor.Enabled := false;
 end;
 
-function TRenderContext.GetProjectionMatrix: TMatrix4;
-begin
-  Result := FProjectionMatrix;
-end;
-
 procedure TRenderContext.SetProjectionMatrix(const Value: TMatrix4);
 begin
   if Self <> RenderContext then
@@ -350,10 +359,6 @@ begin
   end;
 end;
 
-function TRenderContext.GetDepthRange: TDepthRange;
-begin
-  Result := FDepthRange;
-end;
 
 procedure TRenderContext.SetDepthRange(const Value: TDepthRange);
 begin
@@ -369,6 +374,33 @@ begin
       drNear: glDepthRange(0  , 0.1);
       drFar : glDepthRange(0.1, 1);
     end;
+  end;
+end;
+
+procedure TRenderContext.SetCullFace(const Value: boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FCullFace <> Value then
+  begin
+    FCullFace := Value;
+    GLSetEnabled(GL_CULL_FACE, FCullFace);
+  end;
+end;
+
+procedure TRenderContext.SetFrontFaceCcw(const Value: boolean);
+begin
+  if Self <> RenderContext then
+    WarnContextNotCurrent;
+
+  if FFrontFaceCcw <> Value then
+  begin
+    FFrontFaceCcw := Value;
+    if Value then
+      glFrontFace(GL_CCW)
+    else
+      glFrontFace(GL_CW);
   end;
 end;
 

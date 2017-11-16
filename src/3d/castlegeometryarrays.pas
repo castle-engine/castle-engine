@@ -21,7 +21,7 @@ unit CastleGeometryArrays;
 interface
 
 uses Generics.Collections,
-  CastleUtils, CastleVectors, CastleTriangles;
+  CastleUtils, CastleVectors, CastleTriangles, CastleRendererBaseTypes;
 
 type
   { Primitive geometry types. Analogous to OpenGL / OpenGLES primitives. }
@@ -143,7 +143,7 @@ type
     FTexCoords: TGeometryTexCoordList;
     FAttribs: TGeometryAttribList;
 
-    FCullBackFaces: boolean;
+    FCullFace: boolean;
     FFrontFaceCcw: boolean;
     FForceFlatShading: boolean;
 
@@ -315,24 +315,20 @@ type
     function GLSLAttributeMatrix3(const Name: string; const Index: Cardinal = 0): PMatrix3;
     function GLSLAttributeMatrix4(const Name: string; const Index: Cardinal = 0): PMatrix4;
 
-    { CullBackFaces says if we should enable back-face culling.
-      If @true, then we should glEnable(GL_CULL_FACE),
-      and set glCullFace such that front face will be visible.
-      FrontFaceCcw says what is "front face".
+    { Should we use backface-culling (ignore some faces during rendering).
 
-      FrontFaceCcw is ignored by renderer if CullBackFaces = @false.
+      Which faces are "back" (and will be culled) is determined by FrontFaceCcw.
+      When FrontFaceCcw = @true, the the faces ordered counter-clockwise are front,
+      and thus the faces ordered clockwise will be culled.
+      When FrontFaceCcw = @false, the faces ordered counter-clockwise
+      will be culled. }
+    property CullFace: boolean
+      read FCullFace write FCullFace default false;
 
-      Note that we *do not* implement FrontFaceCcw by glFrontFace,
-      we do a little more complicated trick,
-      see comments at the beginning of CastleRenderer for explanation
-      (hint: plane mirrors).
-
-      @groupBegin }
-    property CullBackFaces: boolean
-      read FCullBackFaces write FCullBackFaces default false;
+    { Which faces are front, for backface-culling (see @link(CullFace))
+      and for normals data (see @link(Normal)). }
     property FrontFaceCcw: boolean
       read FFrontFaceCcw write FFrontFaceCcw default false;
-    { @groupEnd }
 
     { Make the whole rendering with flat shading. }
     property ForceFlatShading: boolean

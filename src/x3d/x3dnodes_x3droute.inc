@@ -275,7 +275,7 @@ procedure TX3DRoute.UnsetEnding(
   RemoveFromDestructionNotification: boolean);
 begin
   if (Event <> nil) and (not DestEnding) then
-    Event.OnReceive.Remove({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
+    Event.RemoveNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
 
   if Node <> nil then
   begin
@@ -361,7 +361,7 @@ begin
         DestinationEvent.X3DName, DestinationEvent.FieldClass.X3DType ]);
 
   if (Event <> nil) and (not DestEnding) then
-    Event.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
+    Event.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventReceive);
 end;
 
 procedure TX3DRoute.SetEnding(const NodeName, FieldOrEventName: string;

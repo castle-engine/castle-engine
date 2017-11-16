@@ -464,27 +464,24 @@ procedure TBoxNode.CreateNode;
 begin
   inherited;
 
-  FFdSize := TSFVec3f.Create(Self, 'size', Vector3(2, 2, 2));
-   FdSize.Exposed := false;
+  FFdSize := TSFVec3f.Create(Self, false, 'size', Vector3(2, 2, 2));
    FdSize.ChangesAlways := [chGeometry];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdCcw := TSFBool.Create(Self, 'ccw', true);
-   FdCcw.Exposed := false;
+  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdDivisions := TSFInt32.Create(Self, 'divisions', -1);
+  FFdDivisions := TSFInt32.Create(Self, true, 'divisions', -1);
    FdDivisions.ChangesAlways := [chGeometry];
   AddField(FFdDivisions);
 end;
@@ -531,42 +528,37 @@ procedure TConeNode.CreateNode;
 begin
   inherited;
 
-  FFdBottom := TSFBool.Create(Self, 'bottom', true);
-   FdBottom.Exposed := false;
+  FFdBottom := TSFBool.Create(Self, false, 'bottom', true);
    FdBottom.ChangesAlways := [chGeometry];
   AddField(FFdBottom);
 
-  FFdBottomRadius := TSFFloat.Create(Self, 'bottomRadius', 1);
-   FdBottomRadius.Exposed := false;
+  FFdBottomRadius := TSFFloat.Create(Self, false, 'bottomRadius', 1);
    FdBottomRadius.ChangesAlways := [chGeometry];
   AddField(FFdBottomRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdHeight := TSFFloat.Create(Self, 'height', 2);
-   FdHeight.Exposed := false;
+  FFdHeight := TSFFloat.Create(Self, false, 'height', 2);
    FdHeight.ChangesAlways := [chGeometry];
   AddField(FFdHeight);
   { X3D specification comment: (0,Inf) }
 
-  FFdSide := TSFBool.Create(Self, 'side', true);
-   FdSide.Exposed := false;
+  FFdSide := TSFBool.Create(Self, false, 'side', true);
    FdSide.ChangesAlways := [chGeometry];
   AddField(FFdSide);
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
    FdSlices.ChangesAlways := [chGeometry];
   AddField(FFdSlices);
 
-  FFdStacks := TSFInt32.Create(Self, 'stacks', -1);
+  FFdStacks := TSFInt32.Create(Self, true, 'stacks', -1);
    FdStacks.ChangesAlways := [chGeometry];
   AddField(FFdStacks);
 end;
@@ -636,47 +628,41 @@ procedure TCylinderNode.CreateNode;
 begin
   inherited;
 
-  FFdBottom := TSFBool.Create(Self, 'bottom', true);
-   FdBottom.Exposed := false;
+  FFdBottom := TSFBool.Create(Self, false, 'bottom', true);
    FdBottom.ChangesAlways := [chGeometry];
   AddField(FFdBottom);
 
-  FFdHeight := TSFFloat.Create(Self, 'height', 2);
-   FdHeight.Exposed := false;
+  FFdHeight := TSFFloat.Create(Self, false, 'height', 2);
    FdHeight.ChangesAlways := [chGeometry];
   AddField(FFdHeight);
   { X3D specification comment: (0,Inf) }
 
-  FFdRadius := TSFFloat.Create(Self, 'radius', 1);
-   FdRadius.Exposed := false;
+  FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
    FdRadius.ChangesAlways := [chGeometry];
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdSide := TSFBool.Create(Self, 'side', true);
-   FdSide.Exposed := false;
+  FFdSide := TSFBool.Create(Self, false, 'side', true);
    FdSide.ChangesAlways := [chGeometry];
   AddField(FFdSide);
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdTop := TSFBool.Create(Self, 'top', true);
-   FdTop.Exposed := false;
+  FFdTop := TSFBool.Create(Self, false, 'top', true);
    FdTop.ChangesAlways := [chGeometry];
   AddField(FFdTop);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
    FdSlices.ChangesAlways := [chGeometry];
   AddField(FFdSlices);
 
-  FFdStacks := TSFInt32.Create(Self, 'stacks', -1);
+  FFdStacks := TSFInt32.Create(Self, true, 'stacks', -1);
    FdStacks.ChangesAlways := [chGeometry];
   AddField(FFdStacks);
 end;
@@ -748,81 +734,71 @@ begin
 
   FEventSet_height := TMFFloatEvent.Create(Self, 'set_height', true);
   AddEvent(FEventSet_height);
-  Eventset_height.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
+  Eventset_height.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_HeightReceive);
 
-  FFdAttrib := TMFNode.Create(Self, 'attrib', [TAbstractVertexAttributeNode]);
+  FFdAttrib := TMFNode.Create(Self, true, 'attrib', [TAbstractVertexAttributeNode]);
    FdAttrib.ChangesAlways := [chGeometry];
   AddField(FFdAttrib);
 
-  FFdColor := TSFNode.Create(Self, 'color', [TAbstractColorNode]);
+  FFdColor := TSFNode.Create(Self, true, 'color', [TAbstractColorNode]);
    FdColor.ChangesAlways := [chGeometry];
   AddField(FFdColor);
 
-  FFdFogCoord := TSFNode.Create(Self, 'fogCoord', [TFogCoordinateNode]);
+  FFdFogCoord := TSFNode.Create(Self, true, 'fogCoord', [TFogCoordinateNode]);
    FdFogCoord.ChangesAlways := [chGeometry];
   AddField(FFdFogCoord);
 
-  FFdNormal := TSFNode.Create(Self, 'normal', [TAbstractNormalNode]);
+  FFdNormal := TSFNode.Create(Self, true, 'normal', [TAbstractNormalNode]);
    FdNormal.ChangesAlways := [chGeometry];
   AddField(FFdNormal);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TAbstractTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TAbstractTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdCcw := TSFBool.Create(Self, 'ccw', true);
-   FdCcw.Exposed := false;
+  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdColorPerVertex := TSFBool.Create(Self, 'colorPerVertex', true);
-   FdColorPerVertex.Exposed := false;
+  FFdColorPerVertex := TSFBool.Create(Self, false, 'colorPerVertex', true);
    FdColorPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdColorPerVertex);
 
-  FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
+  FFdCreaseAngle := TSFFloat.Create(Self, false, 'creaseAngle', 0);
    FdCreaseAngle.Angle := true;
-   FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   AddField(FFdCreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdHeight := TMFFloat.Create(Self, 'height', []);
-   FdHeight.Exposed := false;
+  FFdHeight := TMFFloat.Create(Self, false, 'height', []);
    FdHeight.ChangesAlways := [chGeometry];
   AddField(FFdHeight);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNormalPerVertex := TSFBool.Create(Self, 'normalPerVertex', true);
-   FdNormalPerVertex.Exposed := false;
+  FFdNormalPerVertex := TSFBool.Create(Self, false, 'normalPerVertex', true);
    FdNormalPerVertex.ChangesAlways := [chGeometry];
   AddField(FFdNormalPerVertex);
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdXDimension := TSFInt32.Create(Self, 'xDimension', 0);
-   FdXDimension.Exposed := false;
+  FFdXDimension := TSFInt32.Create(Self, false, 'xDimension', 0);
    FdXDimension.ChangesAlways := [chGeometry];
   AddField(FFdXDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdXSpacing := TSFFloat.Create(Self, 'xSpacing', 1.0);
-   FdXSpacing.Exposed := false;
+  FFdXSpacing := TSFFloat.Create(Self, false, 'xSpacing', 1.0);
    FdXSpacing.ChangesAlways := [chGeometry];
   AddField(FFdXSpacing);
   { X3D specification comment: (0,Inf) }
 
-  FFdZDimension := TSFInt32.Create(Self, 'zDimension', 0);
-   FdZDimension.Exposed := false;
+  FFdZDimension := TSFInt32.Create(Self, false, 'zDimension', 0);
    FdZDimension.ChangesAlways := [chGeometry];
   AddField(FFdZDimension);
   { X3D specification comment: [0,Inf) }
 
-  FFdZSpacing := TSFFloat.Create(Self, 'zSpacing', 1.0);
-   FdZSpacing.Exposed := false;
+  FFdZSpacing := TSFFloat.Create(Self, false, 'zSpacing', 1.0);
    FdZSpacing.ChangesAlways := [chGeometry];
   AddField(FFdZSpacing);
   { X3D specification comment: (0,Inf) }
@@ -891,77 +867,67 @@ begin
 
   FEventSet_crossSection := TMFVec2fEvent.Create(Self, 'set_crossSection', true);
   AddEvent(FEventSet_crossSection);
-  Eventset_crossSection.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
+  Eventset_crossSection.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_crossSectionReceive);
 
   FEventSet_orientation := TMFRotationEvent.Create(Self, 'set_orientation', true);
   AddEvent(FEventSet_orientation);
-  Eventset_orientation.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
+  Eventset_orientation.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_orientationReceive);
 
   FEventSet_scale := TMFVec2fEvent.Create(Self, 'set_scale', true);
   AddEvent(FEventSet_scale);
-  Eventset_scale.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
+  Eventset_scale.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_scaleReceive);
 
   FEventSet_spine := TMFVec3fEvent.Create(Self, 'set_spine', true);
   AddEvent(FEventSet_spine);
-  Eventset_spine.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
+  Eventset_spine.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_spineReceive);
 
-  FFdBeginCap := TSFBool.Create(Self, 'beginCap', true);
-   FdBeginCap.Exposed := false;
+  FFdBeginCap := TSFBool.Create(Self, false, 'beginCap', true);
    FdBeginCap.ChangesAlways := [chGeometry];
   AddField(FFdBeginCap);
 
-  FFdCcw := TSFBool.Create(Self, 'ccw', true);
-   FdCcw.Exposed := false;
+  FFdCcw := TSFBool.Create(Self, false, 'ccw', true);
    FdCcw.ChangesAlways := [chGeometry];
   AddField(FFdCcw);
 
-  FFdConvex := TSFBool.Create(Self, 'convex', true);
-   FdConvex.Exposed := false;
+  FFdConvex := TSFBool.Create(Self, false, 'convex', true);
    FdConvex.ChangesAlways := [chGeometry];
   AddField(FFdConvex);
 
-  FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
+  FFdCreaseAngle := TSFFloat.Create(Self, false, 'creaseAngle', 0);
    FdCreaseAngle.Angle := true;
-   FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   AddField(FFdCreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdCrossSection := TMFVec2f.Create(Self, 'crossSection', [ Vector2(1, 1), Vector2(1, -1),  Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]);
-   FdCrossSection.Exposed := false;
+  FFdCrossSection := TMFVec2f.Create(Self, false, 'crossSection', [ Vector2(1, 1), Vector2(1, -1),  Vector2(-1, -1), Vector2(-1, 1), Vector2(1, 1) ]);
    FdCrossSection.ChangesAlways := [chGeometry];
   AddField(FFdCrossSection);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdEndCap := TSFBool.Create(Self, 'endCap', true);
-   FdEndCap.Exposed := false;
+  FFdEndCap := TSFBool.Create(Self, false, 'endCap', true);
    FdEndCap.ChangesAlways := [chGeometry];
   AddField(FFdEndCap);
 
-  FFdOrientation := TMFRotation.Create(Self, 'orientation', [ Vector4(0, 0, 1, 0) ]);
-   FdOrientation.Exposed := false;
+  FFdOrientation := TMFRotation.Create(Self, false, 'orientation', [ Vector4(0, 0, 1, 0) ]);
    FdOrientation.ChangesAlways := [chGeometry];
   AddField(FFdOrientation);
   { X3D specification comment: [-1,1] or (-Inf,Inf) }
 
-  FFdScale := TMFVec2f.Create(Self, 'scale', Vector2(1, 1));
-   FdScale.Exposed := false;
+  FFdScale := TMFVec2f.Create(Self, false, 'scale', Vector2(1, 1));
    FdScale.ChangesAlways := [chGeometry];
   AddField(FFdScale);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdSpine := TMFVec3f.Create(Self, 'spine', [ Vector3(0, 0, 0), Vector3(0, 1, 0) ]);
-   FdSpine.Exposed := false;
+  FFdSpine := TMFVec3f.Create(Self, false, 'spine', [ Vector3(0, 0, 0), Vector3(0, 1, 0) ]);
    FdSpine.ChangesAlways := [chGeometry];
   AddField(FFdSpine);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 end;
@@ -1342,56 +1308,50 @@ begin
 
   FEventSet_colorIndex := TMFInt32Event.Create(Self, 'set_colorIndex', true);
   AddEvent(FEventSet_colorIndex);
-  Eventset_colorIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
+  Eventset_colorIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_colorIndexReceive);
 
   FEventSet_coordIndex := TMFInt32Event.Create(Self, 'set_coordIndex', true);
   AddEvent(FEventSet_coordIndex);
-  Eventset_coordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
+  Eventset_coordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_coordIndexReceive);
 
   FEventSet_normalIndex := TMFInt32Event.Create(Self, 'set_normalIndex', true);
   AddEvent(FEventSet_normalIndex);
-  Eventset_normalIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
+  Eventset_normalIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_normalIndexReceive);
 
   FEventSet_texCoordIndex := TMFInt32Event.Create(Self, 'set_texCoordIndex', true);
   AddEvent(FEventSet_texCoordIndex);
-  Eventset_texCoordIndex.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
+  Eventset_texCoordIndex.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_texCoordIndexReceive);
 
-  FFdColorIndex := TMFInt32.Create(Self, 'colorIndex', []);
+  FFdColorIndex := TMFInt32.Create(Self, false, 'colorIndex', []);
    FdColorIndex.SaveToStreamLineUptoNegative := true;
-   FdColorIndex.Exposed := false;
    FdColorIndex.ChangesAlways := [chGeometry];
   AddField(FFdColorIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdConvex := TSFBool.Create(Self, 'convex', true);
-   FdConvex.Exposed := false;
+  FFdConvex := TSFBool.Create(Self, false, 'convex', true);
    FdConvex.ChangesAlways := [chGeometry];
   AddField(FFdConvex);
 
-  FFdCoordIndex := TMFInt32.Create(Self, 'coordIndex', []);
+  FFdCoordIndex := TMFInt32.Create(Self, false, 'coordIndex', []);
    FdCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdCoordIndex.Exposed := false;
    FdCoordIndex.ChangesAlways := [chGeometry];
   AddField(FFdCoordIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdCreaseAngle := TSFFloat.Create(Self, 'creaseAngle', 0);
+  FFdCreaseAngle := TSFFloat.Create(Self, false, 'creaseAngle', 0);
    FdCreaseAngle.Angle := true;
-   FdCreaseAngle.Exposed := false;
    FdCreaseAngle.ChangesAlways := [chGeometry];
   AddField(FFdCreaseAngle);
   { X3D specification comment: [0,Inf) }
 
-  FFdNormalIndex := TMFInt32.Create(Self, 'normalIndex', []);
+  FFdNormalIndex := TMFInt32.Create(Self, false, 'normalIndex', []);
    FdNormalIndex.SaveToStreamLineUptoNegative := true;
-   FdNormalIndex.Exposed := false;
    FdNormalIndex.ChangesAlways := [chGeometry];
   AddField(FFdNormalIndex);
   { X3D specification comment: [0,Inf) or -1 }
 
-  FFdTexCoordIndex := TMFInt32.Create(Self, 'texCoordIndex', []);
+  FFdTexCoordIndex := TMFInt32.Create(Self, false, 'texCoordIndex', []);
    FdTexCoordIndex.SaveToStreamLineUptoNegative := true;
-   FdTexCoordIndex.Exposed := false;
    FdTexCoordIndex.ChangesAlways := [chGeometry];
   AddField(FFdTexCoordIndex);
   { X3D specification comment: [-1,Inf) }
@@ -1456,26 +1416,24 @@ procedure TSphereNode.CreateNode;
 begin
   inherited;
 
-  FFdRadius := TSFFloat.Create(Self, 'radius', 1);
-   FdRadius.Exposed := false;
+  FFdRadius := TSFFloat.Create(Self, false, 'radius', 1);
    FdRadius.ChangesAlways := [chGeometry];
   AddField(FFdRadius);
   { X3D specification comment: (0,Inf) }
 
-  FFdSolid := TSFBool.Create(Self, 'solid', true);
-   FdSolid.Exposed := false;
+  FFdSolid := TSFBool.Create(Self, false, 'solid', true);
    FdSolid.ChangesAlways := [chGeometry];
   AddField(FFdSolid);
 
-  FFdTexCoord := TSFNode.Create(Self, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
+  FFdTexCoord := TSFNode.Create(Self, true, 'texCoord', [TTextureCoordinateGeneratorNode, TProjectedTextureCoordinateNode, TMultiTextureCoordinateNode]);
    FdTexCoord.ChangesAlways := [chGeometry];
   AddField(FFdTexCoord);
 
-  FFdSlices := TSFInt32.Create(Self, 'slices', -1);
+  FFdSlices := TSFInt32.Create(Self, true, 'slices', -1);
    FdSlices.ChangesAlways := [chGeometry];
   AddField(FFdSlices);
 
-  FFdStacks := TSFInt32.Create(Self, 'stacks', -1);
+  FFdStacks := TSFInt32.Create(Self, true, 'stacks', -1);
    FdStacks.ChangesAlways := [chGeometry];
   AddField(FFdStacks);
 end;

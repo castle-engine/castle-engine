@@ -81,10 +81,11 @@ type
     FFaces: TWavefrontFaceList;
     FMaterials: TWavefrontMaterialList;
   public
-    constructor Create(const URL: string;
-      const AVerts: TVector3List;
-      const ATexCoords: TVector2List;
-      const ANormals: TVector3List);
+    Coord: TCoordinateNode;
+    TexCoord: TTextureCoordinateNode;
+    Normal: TNormalNode;
+
+    constructor Create(const URL: string);
     destructor Destroy; override;
 
     property Faces: TWavefrontFaceList read FFaces;
@@ -92,6 +93,31 @@ type
   end;
 
   EInvalidOBJFile = class(Exception);
+
+{ Read string to TVector3, ignoring invalid ending,
+  so it handles even incorrect things like '0 0 0c',
+  see https://github.com/castle-engine/castle-engine/pull/76/ }
+function Vector3FromStrPermissive(const S: string): TVector3;
+const
+  OnlyNums = AllChars - ['0'..'9', '.', '-','+','e','E'];
+var
+  SPosition: Integer;
+begin
+  try
+    Result := Vector3FromStr(S);
+  except
+    on E: EConvertError do
+    begin
+      SPosition := 1;
+      Result.Data[0] := StrToFloat(NextToken(S, SPosition));
+      Result.Data[1] := StrToFloat(NextToken(S, SPosition));
+      Result.Data[2] := StrToFloat(NextToken(S, SPosition, OnlyNums));
+      if NextToken(S, SPosition) <> '' then
+        raise EConvertError.Create('Expected end of data when reading vector from string');
+      WritelnWarning('Invalid TVector3 format: "%s", ignored the incorrect characters at the end', [S]);
+    end;
+  end;
+end;
 
 { TWavefrontMaterial --------------------------------------------------------- }
 
@@ -156,10 +182,7 @@ end;
 
 { TObject3DOBJ --------------------------------------------------------------- }
 
-constructor TObject3DOBJ.Create(const URL: string;
-  const AVerts: TVector3List;
-  const ATexCoords: TVector2List;
-  const ANormals: TVector3List);
+constructor TObject3DOBJ.Create(const URL: string);
 var
   BasePath: string;
 
@@ -306,7 +329,7 @@ var
       if SameText(FirstToken, 'xyz') or SameText(FirstToken, 'spectral') then
         { we can't interpret other colors than RGB, so we silently ignore them }
         Result := Vector3(1, 1, 1) else
-        Result := Vector3FromStr(Line);
+        Result := Vector3FromStrPermissive(Line);
     end;
 
     procedure CheckIsMaterial(const AttributeName: string);
@@ -420,10 +443,6 @@ begin
 
   BasePath := AbsoluteURI(URL);
 
-  Verts := AVerts;
-  TexCoords := ATexCoords;
-  Normals := ANormals;
-
   FFaces := TWavefrontFaceList.Create(true);
   FMaterials := TWavefrontMaterialList.Create(true);
 
@@ -431,6 +450,14 @@ begin
 
   F := TTextReader.Create(URL);
   try
+    Coord := TCoordinateNode.Create('ObjCoordinates');
+    TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates');
+    Normal := TNormalNode.Create('ObjNormals');
+
+    Verts := Coord.FdPoint.Items;
+    TexCoords := TexCoord.FdPoint.Items;
+    Normals := Normal.FdVector.Items;
+
     while not F.Eof do
     begin
       ReadLine(F.Readln, LineTok, LineAfterMarker);
@@ -464,6 +491,9 @@ end;
 
 destructor TObject3DOBJ.Destroy;
 begin
+  FreeIfUnusedAndNil(Coord);
+  FreeIfUnusedAndNil(TexCoord);
+  FreeIfUnusedAndNil(Normal);
   FreeAndNil(FFaces);
   FreeAndNil(FMaterials);
   inherited;
@@ -494,37 +524,34 @@ var
       MatOBJNameToX3DName(Material.Name), BaseUrl);
 
     Mat := TMaterialNode.Create('', BaseUrl);
-    Result.FdMaterial.Value := Mat;
-    Mat.FdAmbientIntensity.Value := AmbientIntensity(
+    Result.Material := Mat;
+    Mat.AmbientIntensity := AmbientIntensity(
       Material.AmbientColor, Material.DiffuseColor);
-    Mat.FdDiffuseColor.Value := Material.DiffuseColor;
-    Mat.FdSpecularColor.Value := Material.SpecularColor;
-    Mat.FdTransparency.Value := 1 - Material.Opacity;
-    Mat.FdShininess.Value := Material.SpecularExponent / 128.0;
+    Mat.DiffuseColor := Material.DiffuseColor;
+    Mat.SpecularColor := Material.SpecularColor;
+    Mat.Transparency := 1 - Material.Opacity;
+    Mat.Shininess := Material.SpecularExponent / 128.0;
 
     if Material.DiffuseTextureURL <> '' then
     begin
       Texture := TImageTextureNode.Create('', BaseUrl);
-      Result.FdTexture.Value := Texture;
-      Texture.FdUrl.Items.Add(SearchTextureFile(BaseUrl, Material.DiffuseTextureURL));
+      Result.Texture := Texture;
+      Texture.SetUrl([SearchTextureFile(BaseUrl, Material.DiffuseTextureURL)]);
 
       if Material.BumpTextureURL <> '' then
       begin
         Texture := TImageTextureNode.Create('', BaseUrl);
-        Result.FdNormalMap.Value := Texture;
-        Texture.FdUrl.Items.Add(SearchTextureFile(BaseUrl, Material.BumpTextureURL));
+        Result.NormalMap := Texture;
+        Texture.SetUrl([SearchTextureFile(BaseUrl, Material.BumpTextureURL)]);
       end;
     end;
   end;
 
 var
   Obj: TObject3DOBJ;
-  Coord: TCoordinateNode;
   Faces: TIndexedFaceSetNode;
-  TexCoord: TTextureCoordinateNode;
   I: integer;
   FacesWithTexCoord, FacesWithNormal: boolean;
-  Normal: TNormalNode;
   FacesWithMaterial: TWavefrontMaterial;
   Appearances: TX3DNodeList;
   Shape: TShapeNode;
@@ -537,14 +564,7 @@ begin
     Result.HasForceVersion := true;
     Result.ForceVersion := X3DVersion;
 
-    Coord := TCoordinateNode.Create('ObjCoordinates',BaseUrl);
-    TexCoord := TTextureCoordinateNode.Create('ObjTextureCoordinates', BaseUrl);
-    Normal := TNormalNode.Create('ObjNormals', BaseUrl);
-
-    Obj := TObject3DOBJ.Create(URL,
-      Coord.FdPoint.Items,
-      TexCoord.FdPoint.Items,
-      Normal.FdVector.Items);
+    Obj := TObject3DOBJ.Create(URL);
     try
       Appearances := TX3DNodeList.Create(false);
       Appearances.Count := Obj.Materials.Count;
@@ -585,18 +605,18 @@ begin
           and https://sourceforge.net/p/castle-engine/tickets/19/ }
         Faces.Convex := false;
         Faces.Solid := false;
-        Faces.Coord := Coord;
+        Faces.Coord := Obj.Coord;
         Faces.FdCoordIndex.Items.Clear;
         Faces.FdCoordIndex.Items.Capacity := IndicesCapacity;
         if FacesWithTexCoord then
         begin
-          Faces.TexCoord := TexCoord;
+          Faces.TexCoord := Obj.TexCoord;
           Faces.FdTexCoordIndex.Items.Clear;
           Faces.FdTexCoordIndex.Items.Capacity := IndicesCapacity;
         end;
         if FacesWithNormal then
         begin
-          Faces.Normal := Normal;
+          Faces.Normal := Obj.Normal;
           Faces.FdNormalIndex.Items.Clear;
           Faces.FdNormalIndex.Items.Capacity := IndicesCapacity;
         end;
@@ -625,10 +645,6 @@ begin
           (FacesWithNormal   <> Obj.Faces[I].HasNormals) or
           (FacesWithMaterial <> Obj.Faces[I].Material);
       end;
-
-      FreeIfUnusedAndNil(Coord);
-      FreeIfUnusedAndNil(TexCoord);
-      FreeIfUnusedAndNil(Normal);
 
       for I := 0 to Appearances.Count - 1 do
         Appearances[I].FreeIfUnused;

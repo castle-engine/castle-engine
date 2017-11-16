@@ -22,58 +22,69 @@ unit CastleSceneInternalOcclusion;
 
 interface
 
-uses CastleSceneCore, CastleSceneInternalShape, Castle3D, CastleFrustum;
+uses
+  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
+  CastleVectors, CastleSceneCore, CastleSceneInternalShape, Castle3D,
+  CastleFrustum, CastleGLShaders, CastleBoxes;
 
 type
   TShapeProcedure = procedure (Shape: TGLShape) is nested;
+
+  TOcclusionQueryUtilsRenderer = class
+  strict private
+    GLInitiliazed: boolean;
+    OcclusionBoxState: boolean;
+    SavedCullFace: boolean;
+    VboVertex, VboIndex: TGLuint;
+    SimplestProgram: TGLSLProgram;
+    UniformModelViewProjectionMatrix: TGLSLUniform;
+    AttributeVertex: TGLSLAttribute;
+    procedure GLContextOpen;
+    procedure OcclusionBoxStateBegin;
+  private
+    procedure DrawBox(const Box: TBox3D);
+  public
+    ModelViewProjectionMatrix: TMatrix4;
+    ModelViewProjectionMatrixChanged: boolean;
+    procedure GLContextClose;
+    procedure OcclusionBoxStateEnd;
+  end;
+
+  TSimpleOcclusionQueryRenderer = class
+  strict private
+    Scene: TCastleSceneCore;
+    Utils: TOcclusionQueryUtilsRenderer;
+  public
+    constructor Create(const AScene: TCastleSceneCore;
+      const AUtils: TOcclusionQueryUtilsRenderer);
+    procedure Render(const Shape: TGLShape; const RenderShape: TShapeProcedure;
+      const Params: TRenderParams);
+  end;
 
   THierarchicalOcclusionQueryRenderer = class
   private
     FrameId: Cardinal;
     Scene: TCastleSceneCore;
+    Utils: TOcclusionQueryUtilsRenderer;
   public
-    constructor Create(const AScene: TCastleSceneCore);
+    constructor Create(const AScene: TCastleSceneCore;
+      const AUtils: TOcclusionQueryUtilsRenderer);
     procedure Render(const RenderShape: TShapeProcedure;
       const Frustum: TFrustum; const Params: TRenderParams);
     function WasLastVisible(const Shape: TGLShape): boolean;
   end;
 
-var
-  OcclusionBoxState: boolean;
-
-procedure OcclusionBoxStateBegin;
-procedure OcclusionBoxStateEnd;
-
-procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
-  const Shape: TGLShape; const RenderShape: TShapeProcedure;
-  const Params: TRenderParams);
-
 implementation
 
 uses SysUtils,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleClassUtils, CastleInternalShapeOctree, CastleBoxes,
-  CastleGLUtils, CastleVectors, CastleGLShaders;
+  CastleClassUtils, CastleInternalShapeOctree, CastleGLUtils,
+  CastleRendererBaseTypes;
 
-{$ifndef OpenGLES} // TODO-es this whole unit
+{ TOcclusionQueryUtilsRenderer ------------------------------------------------- }
 
-{ Draw simple box. Nothing is generated besides vertex positions ---
-  no normal vectors, no texture coords, nothing. Order is CCW outside
-  (so if you want, you can turn on backface culling yourself).
-
-  You @bold(must enable GL_VERTEX_ARRAY before using this).
-  (It's not done automatically, as it's much faster to do it once
-  for many glDrawBox3DSimple calls. Example --- bzwgen city view behind
-  building 1, with occlusion query used: FPC 150 vs 110 when
-  GL_VERTEX_ARRAY is activated once in OcclusionBoxStateBegin, not here.
-  Tested on fglrx on Radeon X1600 (chantal).)
-
-  It can be safely placed in a display list. }
-procedure glDrawBox3DSimple(const Box: TBox3D);
-var
-  Verts: array [0..7] of TVector3;
+procedure TOcclusionQueryUtilsRenderer.GLContextOpen;
 const
-  VertsIndices: array [0..23] of TGLuint =
+  Indexes: array [0..23] of TGLushort =
   (
     0, 1, 3, 2,
     1, 5, 7, 3,
@@ -82,10 +93,127 @@ const
     2, 3, 7, 6,
     0, 4, 5, 1
   );
+const
+  SimplestVS = {$I simplest.vs.inc};
+  { On desktop OpenGL, fragment shader doesn't need to exist now.
+    https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional }
+  {$ifdef OpenGLES}
+  SimplestFS = {$I simplest.fs.inc};
+  {$endif}
+begin
+  GLInitiliazed := true;
+
+  glGenBuffers(1, @VboIndex);
+  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+  glBufferData(GL_ELEMENT_ARRAY_BUFFER, SizeOf(Indexes), @Indexes, GL_STATIC_DRAW);
+
+  glGenBuffers(1, @VboVertex);
+  glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+  // pass nil to Data, we will actually initialize it in DrawBox
+  glBufferData(GL_ARRAY_BUFFER, 8 * SizeOf(TVector3), nil, GL_DYNAMIC_DRAW);
+
+  if GLFeatures.Shaders <> gsNone then
+  begin
+    SimplestProgram := TGLSLProgram.Create;
+    SimplestProgram.AttachShader(stVertex, SimplestVS);
+    { On desktop OpenGL, fragment shader doesn't need to exist now.
+      https://www.khronos.org/opengl/wiki/Fragment_Shader#Optional }
+    {$ifdef OpenGLES}
+    SimplestProgram.AttachShader(stFragment, SimplestFS);
+    {$endif}
+    SimplestProgram.Link;
+
+    AttributeVertex := SimplestProgram.Attribute('castle_Vertex');
+    UniformModelViewProjectionMatrix := SimplestProgram.Uniform('castle_ModelViewProjectionMatrix');
+  end;
+end;
+
+procedure TOcclusionQueryUtilsRenderer.GLContextClose;
+begin
+  FreeAndNil(SimplestProgram);
+  glFreeBuffer(VboIndex);
+  glFreeBuffer(VboVertex);
+  GLInitiliazed := false;
+end;
+
+procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateBegin;
+begin
+  if not OcclusionBoxState then
+  begin
+    if not GLInitiliazed then
+      GLContextOpen;
+
+    glSetDepthAndColorWriteable(false);
+    SavedCullFace := RenderContext.CullFace;
+    RenderContext.CullFace := false;
+
+    glBindBuffer(GL_ARRAY_BUFFER, VboVertex);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
+    TGLSLProgram.Current := SimplestProgram;
+
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
+
+      { A lot of state should be disabled. Remember that this is done
+        in the middle of TGLRenderer rendering, between
+        RenderBegin/End, and TGLRenderer doesn't need to
+        restore state after each shape render. So e.g. texturing
+        and alpha test may be enabled, which could lead to very
+        strange effects (box would be rendered with random texel,
+        possibly alpha tested and rejected...).
+
+        Also, some state should be disabled just to speed up
+        rendering. E.g. lighting is totally not needed here. }
+
+      glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
+      glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
+      glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
+      glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
+      GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
+
+      glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
+      {$endif}
+    end;
+
+    OcclusionBoxState := true;
+  end;
+end;
+
+procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
+begin
+  if OcclusionBoxState then
+  begin
+    if EnableFixedFunction then
+    begin
+      {$ifndef OpenGLES}
+      glPopAttrib;
+      {$endif}
+    end;
+
+    glSetDepthAndColorWriteable(true);
+    RenderContext.CullFace := SavedCullFace;
+
+    if SimplestProgram <> nil then
+    begin
+      AttributeVertex.DisableArray;
+      TGLSLProgram.Current := nil;
+    end;
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+    OcclusionBoxState := false;
+  end;
+end;
+
+procedure TOcclusionQueryUtilsRenderer.DrawBox(const Box: TBox3D);
+var
+  Verts: array [0..7] of TVector3;
 begin
   if Box.IsEmpty then Exit;
 
-  TGLSLProgram.Current := nil;
+  OcclusionBoxStateBegin;
 
   { Verts index in octal notation indicates which of 8 vertexes it is. }
   Verts[0] := Box.Data[0];
@@ -98,14 +226,24 @@ begin
   Verts[6] := Box.Data[1]; Verts[6][0] := Box.Data[0][0];
   Verts[7] := Box.Data[1];
 
-  glVertexPointer(3, GL_FLOAT, 0, @Verts);
+  glBufferSubData(GL_ARRAY_BUFFER, 0, SizeOf(Verts), @Verts);
 
-  { TODO: use vbo. Speed of this is important for occlusion query. }
+  if ModelViewProjectionMatrixChanged then
+  begin
+    ModelViewProjectionMatrixChanged := false;
+    UniformModelViewProjectionMatrix.SetValue(ModelViewProjectionMatrix);
+  end;
 
-  glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_INT, @VertsIndices);
+  AttributeVertex.EnableArrayVector3(SizeOf(TVector3), 0);
+
+  {$ifndef OpenGLES} // TODO-es - no quads
+  glDrawElements(GL_QUADS, 6 * 4, GL_UNSIGNED_SHORT, nil);
+  {$endif}
 end;
 
 { TOcclusionQuery ------------------------------------------------------------ }
+
+{$ifndef OpenGLES} // TODO-es
 
 type
   TOcclusionQuery = class
@@ -147,13 +285,72 @@ end;
 
 {$endif}
 
-{ THierarchicalOcclusionQueryRenderer ---------------------------------------- }
+{ TSimpleOcclusionQueryRenderer ---------------------------------------------- }
 
-constructor THierarchicalOcclusionQueryRenderer.Create(
-  const AScene: TCastleSceneCore);
+constructor TSimpleOcclusionQueryRenderer.Create(const AScene: TCastleSceneCore;
+  const AUtils: TOcclusionQueryUtilsRenderer);
 begin
   inherited Create;
   Scene := AScene;
+  Utils := AUtils;
+end;
+
+procedure TSimpleOcclusionQueryRenderer.Render(const Shape: TGLShape;
+   const RenderShape: TShapeProcedure; const Params: TRenderParams);
+{$ifndef OpenGLES}
+var
+  SampleCount: TGLuint;
+begin
+  Assert(Shape.OcclusionQueryId <> 0);
+  if Shape.OcclusionQueryAsked then
+    glGetQueryObjectuivARB(Shape.OcclusionQueryId, GL_QUERY_RESULT_ARB,
+      @SampleCount) else
+    SampleCount := 1; { if not asked, assume it's visible }
+
+  { Do not do occlusion query (although still use results from previous
+    query) if we're within stencil test (like in InShadow = false pass
+    of shadow volumes). This would incorrectly mark some shapes
+    as non-visible (just because they don't pass stencil test on any pixel),
+    while in fact they should be visible in the very next
+    (with InShadow = true) render pass. }
+
+  if Params.StencilTest = 0 then
+    glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
+
+    if SampleCount > 0 then
+    begin
+      RenderShape(Shape);
+    end else
+    begin
+      { Object was not visible in the last frame.
+        In this frame, only render it's bounding box, to test
+        occlusion query. This is the speedup of using occlusion query:
+        we render only bbox. }
+
+      Utils.DrawBox(Shape.BoundingBox);
+      if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
+        Inc(Params.Statistics.BoxesOcclusionQueriedCount);
+    end;
+
+  if Params.StencilTest = 0 then
+  begin
+    glEndQueryARB(GL_SAMPLES_PASSED_ARB);
+    Shape.OcclusionQueryAsked := true;
+  end;
+{$else}
+begin
+{$endif}
+end;
+
+{ THierarchicalOcclusionQueryRenderer ---------------------------------------- }
+
+constructor THierarchicalOcclusionQueryRenderer.Create(
+  const AScene: TCastleSceneCore;
+  const AUtils: TOcclusionQueryUtilsRenderer);
+begin
+  inherited Create;
+  Scene := AScene;
+  Utils := AUtils;
 end;
 
 procedure THierarchicalOcclusionQueryRenderer.Render(
@@ -214,8 +411,6 @@ var
     Shape: TGLShape;
     Box: TBox3D;
   begin
-    OcclusionBoxStateBegin;
-
     { How to render bounding volume of leaf for occlusion query?
 
       - Simple version is just to render Node.Box. But this may be
@@ -244,7 +439,7 @@ var
         Box.Include(Shape.BoundingBox);
     end;
 
-    glDrawBox3DSimple(Box);
+    Utils.DrawBox(Box);
     if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
       Inc(Params.Statistics.BoxesOcclusionQueriedCount);
   end;
@@ -372,8 +567,7 @@ begin
                     bounding volume for occlusion query. }
                   RenderLeafNodeVolume(Node) else
                 begin
-                  OcclusionBoxStateBegin;
-                  glDrawBox3DSimple(Node.Box);
+                  Utils.DrawBox(Node.Box);
                   if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
                     Inc(Params.Statistics.BoxesOcclusionQueriedCount);
                 end;
@@ -400,108 +594,6 @@ end;
 function THierarchicalOcclusionQueryRenderer.WasLastVisible(const Shape: TGLShape): boolean;
 begin
   Result := Shape.RenderedFrameId = FrameId
-end;
-
-{ routines ------------------------------------------------------------------- }
-
-procedure OcclusionBoxStateBegin;
-begin
-  if not OcclusionBoxState then
-  begin
-    {$ifndef OpenGLES}
-    glPushAttrib(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT or
-      GL_ENABLE_BIT or GL_LIGHTING_BIT);
-
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE); { saved by GL_COLOR_BUFFER_BIT }
-    glDepthMask(GL_FALSE); { saved by GL_DEPTH_BUFFER_BIT }
-
-    { A lot of state should be disabled. Remember that this is done
-      in the middle of TGLRenderer rendering, between
-      RenderBegin/End, and TGLRenderer doesn't need to
-      restore state after each shape render. So e.g. texturing
-      and alpha test may be enabled, which could lead to very
-      strange effects (box would be rendered with random texel,
-      possibly alpha tested and rejected...).
-
-      Also, some state should be disabled just to speed up
-      rendering. E.g. lighting is totally not needed here. }
-
-    glDisable(GL_LIGHTING); { saved by GL_ENABLE_BIT }
-    glDisable(GL_CULL_FACE); { saved by GL_ENABLE_BIT }
-    glDisable(GL_COLOR_MATERIAL); { saved by GL_ENABLE_BIT }
-    glDisable(GL_ALPHA_TEST); { saved by GL_ENABLE_BIT }
-    glDisable(GL_FOG); { saved by GL_ENABLE_BIT }
-    GLEnableTexture(etNone); { saved by GL_ENABLE_BIT }
-
-    glShadeModel(GL_FLAT); { saved by GL_LIGHTING_BIT }
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-
-    {$endif}
-
-    OcclusionBoxState := true;
-  end;
-end;
-
-procedure OcclusionBoxStateEnd;
-begin
-  if OcclusionBoxState then
-  begin
-    {$ifndef OpenGLES}
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glPopAttrib;
-    {$endif}
-    OcclusionBoxState := false;
-  end;
-end;
-
-procedure SimpleOcclusionQueryRender(const Scene: TCastleSceneCore;
-  const Shape: TGLShape; const RenderShape: TShapeProcedure;
-  const Params: TRenderParams);
-{$ifndef OpenGLES}
-var
-  SampleCount: TGLuint;
-begin
-  Assert(Shape.OcclusionQueryId <> 0);
-  if Shape.OcclusionQueryAsked then
-    glGetQueryObjectuivARB(Shape.OcclusionQueryId, GL_QUERY_RESULT_ARB,
-      @SampleCount) else
-    SampleCount := 1; { if not asked, assume it's visible }
-
-  { Do not do occlusion query (although still use results from previous
-    query) if we're within stencil test (like in InShadow = false pass
-    of shadow volumes). This would incorrectly mark some shapes
-    as non-visible (just because they don't pass stencil test on any pixel),
-    while in fact they should be visible in the very next
-    (with InShadow = true) render pass. }
-
-  if Params.StencilTest = 0 then
-    glBeginQueryARB(GL_SAMPLES_PASSED_ARB, Shape.OcclusionQueryId);
-
-    if SampleCount > 0 then
-    begin
-      RenderShape(Shape);
-    end else
-    begin
-      { Object was not visible in the last frame.
-        In this frame, only render it's bounding box, to test
-        occlusion query. This is the speedup of using occlusion query:
-        we render only bbox. }
-
-      OcclusionBoxStateBegin;
-      glDrawBox3DSimple(Shape.BoundingBox);
-      if (Params.Pass = 0) and not Scene.ExcludeFromStatistics then
-        Inc(Params.Statistics.BoxesOcclusionQueriedCount);
-    end;
-
-  if Params.StencilTest = 0 then
-  begin
-    glEndQueryARB(GL_SAMPLES_PASSED_ARB);
-    Shape.OcclusionQueryAsked := true;
-  end;
-{$else}
-begin
-{$endif}
 end;
 
 end.

@@ -111,6 +111,7 @@ type
     FBlendingSourceFactor: TBlendingSourceFactor;
     FBlendingDestinationFactor: TBlendingDestinationFactor;
     FBlendingSort: TBlendingSort;
+    FOcclusionSort: boolean;
     FControlBlending: boolean;
     FWireframeColor: TVector3;
     FWireframeEffect: TWireframeEffect;
@@ -213,6 +214,10 @@ type
       read FBlendingSort write SetBlendingSort
       default DefaultBlendingSort;
 
+    { Sort the opaque objects when rendering.
+      This may generate speedup on some scenes. }
+    property OcclusionSort: boolean read FOcclusionSort write FOcclusionSort;
+
     { Setting this to @false disables any modification of OpenGL
       blending (and depth mask) state by TCastleScene.
       This makes every other @link(Blending) setting ignored,
@@ -285,10 +290,17 @@ type
       described in detail in "GPU Gems 2",
       Chapter 6: "Hardware Occlusion Queries Made Useful",
       by Michael Wimmer and Jiri Bittner. Online on
-      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html]. }
+      [http://http.developer.nvidia.com/GPUGems2/gpugems2_chapter06.html].
+
+      @exclude
+      @bold(Experimental):
+      Using the "Hierarchical Occlusion Query" is not adviced in the current implementation,
+      it is slow and it does not treat transparent shapes correctly.
+    }
     property UseHierarchicalOcclusionQuery: boolean
       read FUseHierarchicalOcclusionQuery
       write FUseHierarchicalOcclusionQuery default false;
+      experimental;
 
     { View only the shapes that were detected as visible by occlusion query
       in last Render.
@@ -381,11 +393,13 @@ type
   { Basic non-abstact implementation of render params for calling T3D.Render.
 
     @exclude
-    @bold(This is a hack, exposed here only to support some really weird
-    OpenGL tricks in engine example programs. Do not use this in your own code.)
-    To be used when you have to call T3D.Render, but you don't use scene manager.
-    Usually this should not be needed, and this class may be removed at some
-    point! You should always try to use TCastleSceneManager to manage and render
+    @bold(This is exposed here only to support some experiments with non-standard
+    rendering in engine example programs. Do not use this in your own code.)
+    This can be used when you have to call T3D.Render,
+    but you don't use scene manager.
+    Usually this should not be needed.
+    This class may be removed at some point!
+    You should always try to use TCastleSceneManager to manage and render
     3D stuff in new programs, and then TCastleSceneManager will take care of creating
     proper render params instance for you. }
   TBasicRenderParams = class(TRenderParams)
@@ -507,6 +521,8 @@ type
     class procedure LightRenderInShadow(const Light: TLightInstance;
       var LightOn: boolean);
   private
+    OcclusionQueryUtilsRenderer: TOcclusionQueryUtilsRenderer;
+    SimpleOcclusionQueryRenderer: TSimpleOcclusionQueryRenderer;
     HierarchicalOcclusionQueryRenderer: THierarchicalOcclusionQueryRenderer;
     BlendingRenderer: TBlendingRenderer;
   protected
@@ -932,7 +948,11 @@ begin
 
   FilteredShapes := TShapeList.Create;
 
-  HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(Self);
+  OcclusionQueryUtilsRenderer := TOcclusionQueryUtilsRenderer.Create;
+  SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(
+    Self, OcclusionQueryUtilsRenderer);
+  HierarchicalOcclusionQueryRenderer := THierarchicalOcclusionQueryRenderer.Create(
+    Self, OcclusionQueryUtilsRenderer);
   BlendingRenderer := TBlendingRenderer.Create(Self);
 end;
 
@@ -957,6 +977,8 @@ end;
 destructor TCastleScene.Destroy;
 begin
   FreeAndNil(HierarchicalOcclusionQueryRenderer);
+  FreeAndNil(SimpleOcclusionQueryRenderer);
+  FreeAndNil(OcclusionQueryUtilsRenderer);
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
 
@@ -1095,6 +1117,8 @@ begin
   inherited;
   CloseGLRenderer;
   InvalidateBackground;
+  if OcclusionQueryUtilsRenderer <> nil then
+    OcclusionQueryUtilsRenderer.GLContextClose;
 end;
 
 procedure TCastleScene.GLContextCloseEvent(Sender: TObject);
@@ -1153,7 +1177,7 @@ var
     { implement Shape node "render" field here, by a trivial check }
     if (Shape.Node <> nil) and (not Shape.Node.Render) then Exit;
 
-    OcclusionBoxStateEnd;
+    OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 
     if (Params.Pass = 0) and not ExcludeFromStatistics then
       Inc(Params.Statistics.ShapesRendered);
@@ -1191,10 +1215,12 @@ var
       if Attributes.ReallyUseOcclusionQuery and
          (RenderingCamera.Target = rtScreen) then
       begin
-        SimpleOcclusionQueryRender(Self, Shape, @RenderShape_NoTests, Params);
+        SimpleOcclusionQueryRenderer.Render(Shape, @RenderShape_NoTests, Params);
       end else
+      {$warnings off}
       if Attributes.DebugHierOcclusionQueryResults and
          Attributes.UseHierarchicalOcclusionQuery then
+      {$warnings on}
       begin
         if HierarchicalOcclusionQueryRenderer.WasLastVisible(Shape) then
           RenderShape_NoTests(Shape);
@@ -1293,13 +1319,14 @@ begin
     UpdateVisibilitySensors;
   end;
 
-  OcclusionBoxState := false;
-
   if Params.InShadow then
     LightRenderEvent := @LightRenderInShadow else
     LightRenderEvent := nil;
 
   ModelView := GetModelViewTransform;
+  OcclusionQueryUtilsRenderer.ModelViewProjectionMatrix :=
+    RenderContext.ProjectionMatrix * ModelView;
+  OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
 
   {$ifndef OpenGLES}
   if EnableFixedFunction then
@@ -1326,7 +1353,7 @@ begin
       RenderAllAsOpaque(Attributes.Mode = rmDepth);
 
       { Each RenderShape_SomeTests inside could set OcclusionBoxState }
-      OcclusionBoxStateEnd;
+      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     if Attributes.ReallyUseHierarchicalOcclusionQuery and
        (not Attributes.DebugHierOcclusionQueryResults) and
@@ -1337,7 +1364,7 @@ begin
         Frustum, Params);
 
       { Inside we could set OcclusionBoxState }
-      OcclusionBoxStateEnd;
+      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end else
     begin
       if Attributes.Blending then
@@ -1345,7 +1372,8 @@ begin
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if CameraViewKnown and Attributes.ReallyUseOcclusionQuery then
+          if CameraViewKnown and
+            (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, false);
@@ -1396,11 +1424,12 @@ begin
 
       { Each RenderShape_SomeTests inside could set OcclusionBoxState.
 
-        TODO: in case of blending, glPopAttrib inside could restore now
+        TODO: in case of fixed-function path,
+        glPopAttrib inside could restore now
         glDepthMask(GL_TRUE) and glDisable(GL_BLEND).
-        This problem will disappear when we'll get rid of push/pop inside
-        OcclusionBoxStateXxx. }
-      OcclusionBoxStateEnd;
+        This problem will disappear when we'll get rid of fixed-function
+        possibility in OcclusionBoxStateEnd. }
+      OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
     end;
   finally Renderer.RenderEnd end;
 
@@ -2165,6 +2194,7 @@ begin
   FBlendingSourceFactor := DefaultBlendingSourceFactor;
   FBlendingDestinationFactor := DefaultBlendingDestinationFactor;
   FBlendingSort := DefaultBlendingSort;
+  FOcclusionSort := false;
   FControlBlending := true;
   FSolidWireframeScale := DefaultSolidWireframeScale;
   FSolidWireframeBias := DefaultSolidWireframeBias;
@@ -2196,9 +2226,12 @@ begin
     BlendingSourceFactor := S.BlendingSourceFactor;
     BlendingDestinationFactor := S.BlendingDestinationFactor;
     BlendingSort := S.BlendingSort;
+    OcclusionSort := S.OcclusionSort;
     ControlBlending := S.ControlBlending;
     UseOcclusionQuery := S.UseOcclusionQuery;
+    {$warnings off}
     UseHierarchicalOcclusionQuery := S.UseHierarchicalOcclusionQuery;
+    {$warnings on}
     inherited;
   end else
     inherited;
@@ -2271,15 +2304,22 @@ end;
 
 function TSceneRenderingAttributes.ReallyUseOcclusionQuery: boolean;
 begin
+  {$warnings off}
   Result := UseOcclusionQuery and (not UseHierarchicalOcclusionQuery) and
-    GLFeatures.ARB_occlusion_query and (GLFeatures.QueryCounterBits > 0);
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
+    (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
-function TSceneRenderingAttributes.
-  ReallyUseHierarchicalOcclusionQuery: boolean;
+function TSceneRenderingAttributes.ReallyUseHierarchicalOcclusionQuery: boolean;
 begin
-  Result := UseHierarchicalOcclusionQuery and GLFeatures.ARB_occlusion_query and
+  {$warnings off}
+  Result := UseHierarchicalOcclusionQuery and
+    GLFeatures.ARB_occlusion_query and
+    GLFeatures.VertexBufferObject and
     (GLFeatures.QueryCounterBits > 0);
+  {$warnings on}
 end;
 
 procedure TSceneRenderingAttributes.SetPhongShading(const Value: boolean);

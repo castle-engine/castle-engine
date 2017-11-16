@@ -588,11 +588,11 @@ end;
 
 function ChangeIntCycle(value, change, maxValue: integer): integer;
 begin
- Inc(maxValue);
- result := (value+change) mod maxValue;
- {teraz wynik jest w zakresie -maxValue..maxValue gdzie maxValue to jest to
-  oryginalne maxValue jakie dostalismy}
- if result < 0 then result := result+maxValue;
+  Inc(maxValue);
+  Result := (value + change) mod maxValue;
+  { We know Result is now in [-maxValue .. maxValue]
+    (where maxValue is the original maxValue passed to this function). }
+  if result < 0 then result := result+maxValue;
 end;
 
 { Lerp : l + (h-l) * a = l + a*h - a*l = (1-a) *l + a*h }
@@ -605,61 +605,64 @@ function Lerp(const a, l, h: Double): Double;                 begin result := l 
 
 function RoundUpToMultiply(value, multiplicator: Integer): Integer;
 begin
- if value mod multiplicator = 0 then
-  result := value else
-  result := ((value div multiplicator)+1)*multiplicator;
+  if value mod multiplicator = 0 then
+    result := value
+  else
+    result := ((value div multiplicator)+1)*multiplicator;
 end;
 
 function BiggestPowerOf2(Value: Cardinal): Cardinal;
 begin
- { szukamy najwiekszej potegi dwojki <= Value.
-   To proste na bitach : znajdz pierwszy od lewej (najstarszy) bit rowny 1.
-   Reszte bitow na prawo wyzeruj i zwroc calosc jako result. }
- result := Cardinal(1 shl (SizeOf(Cardinal)*8-1));
- while (result <> 0) and ((result and Value) = 0) do result := result shr 1;
+  { Find the first from the left ("oldest") bit = 1.
+    Set the rest of the bits (all the "younger" bits) to zero. }
+  result := Cardinal(1 shl (SizeOf(Cardinal)*8-1));
+  while (result <> 0) and ((result and Value) = 0) do result := result shr 1;
 end;
 
 function Biggest2Exponent(Value: Cardinal): integer;
 begin
- result := -1;
- while Value <> 0 do
-  begin Inc(result); Value := Value shr 1 end;
+  result := -1;
+  while Value <> 0 do
+    begin Inc(result); Value := Value shr 1 end;
 end;
 
 function Smallest2Exponent(Value: Cardinal): Integer;
 begin
- if Value = 0 then begin result := -1; Exit end;
+  if Value = 0 then begin result := -1; Exit end;
 
- for result := SizeOf(Value)*8-1 downto 0 do
-  if ((LongWord(1) shl result) and Value) <> 0 then Break;
+  for result := SizeOf(Value)*8-1 downto 0 do
+   if ((LongWord(1) shl result) and Value) <> 0 then Break;
 
- { Wiemy ze Value <> 0 wiec zawsze z powyzszego for'a wyjdziemy breakiem.
-   Teraz result okresla pozycje najbardziej znaczacej 1-ki w liczbie Value.
-   Jezeli wszystkie pozostale bity sa rowne 0 (czyli Value = 1 shl result)
-   to result juz jest dobry. Wpp. zeby 2^result bylo >= Value musimy
-   zwiekszyc result o 1.}
- if Value <> Cardinal(1) shl result then Inc(result);
+  { since Value <> 0, so the above "for" is always finished by a Break.
+    Now Result is the position of the "oldest" bit = 1 in Value.
+    If all other bits are = 0 (IOW, "Value = 1 shl Result")
+    then Result is already OK. Otherwise increase Result
+    to make "2 ^ Result >= Value".}
+  if Value <> Cardinal(1) shl result then Inc(result);
 end;
 
 function Smallest2Power(Value: Cardinal): Cardinal;
-var Exp: Integer;
+var
+  Exp: Integer;
 begin
- Exp := Smallest2Exponent(Value);
- if Exp = -1 then
-  result := 0 else
-  result := 1 shl Exp;
+  Exp := Smallest2Exponent(Value);
+  if Exp = -1 then
+    result := 0
+  else
+    result := 1 shl Exp;
 end;
 
 function IsPowerOf2(Value: Cardinal): boolean;
-var i: Cardinal;
+var
+  i: Cardinal;
 begin
- i := Cardinal(1 shl (SizeOf(Cardinal)*8-1));
- while (i <> 0) do
- begin
-  if i = Value then begin result := true; exit end;
-  i := i shr 1;
- end;
- result := false;
+  i := Cardinal(1 shl (SizeOf(Cardinal)*8-1));
+  while (i <> 0) do
+  begin
+    if i = Value then begin result := true; exit end;
+    i := i shr 1;
+  end;
+  result := false;
 end;
 
 function DivRoundUp(Value, Divider: Cardinal): Cardinal;

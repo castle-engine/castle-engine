@@ -16,9 +16,18 @@
 { Process arbitrary model for PRT. Computes and adds "radianceTransfer"
   field to all geometry nodes (descending from X3DComposedGeometryNode,
   this includes most often used nodes).
+  See https://castle-engine.sourceforge.io/x3d_extensions.php#section_ext_radiance_transfer
+  about the radiance transfer.
 
-  $1 is the source model, $2 is the output model (output is always VRML/X3D,
-  so use .wrl/.x3dv extension).
+  Command-line usage:
+    $1 is the source model,
+    $2 is the output model (output is always VRML/X3D, so use .wrl/.x3dv extension).
+
+  Example:
+    ./precompute_radiance_transfer data/chinchilla.wrl.gz chinchilla-output.x3dv
+    ./radiance_transfer chinchilla-output.x3dv # test the output
+
+  Optional parameters:
 
   --sh-basis-count / -c COUNT
 
@@ -41,7 +50,8 @@
   radianceTransfer must be animated along with it's coords), but it can
   move with respect to other shapes. But note that then self-shadowing
   takes only this shape into account... TODO: make this possible,
-  and document on x3d_extensions.
+  and document on
+  https://castle-engine.sourceforge.io/x3d_extensions.php#section_ext_radiance_transfer
 
   We compute radianceTransfer in scene space (not in local shape
   space). This is important, otherwise incoming light SH (calculated
@@ -52,7 +62,6 @@
   If the same shape is instantiated many times, it will have the same
   radianceTransfer. Which is bad, since self-shadowing may be different
   on different instances...
-  TODO: move to x3d_extensions docs.
 }
 
 program precompute_radiance_transfer;
@@ -192,6 +201,8 @@ var
   State: TX3DGraphTraverseState;
   RadianceTransfer: TVector3List;
   S: string;
+  TimeStart: TProcessTimerResult;
+  Seconds: TFloatTime;
 begin
   Parameters.Parse(Options, @OptionProc, nil);
   Parameters.CheckHigh(2);
@@ -204,7 +215,7 @@ begin
     Scene.TriangleOctreeProgressTitle := 'Building octree';
     Scene.Spatial := [ssVisibleTriangles];
 
-    ProcessTimerBegin;
+    TimeStart := ProcessTimer;
 
     SI := TShapeTreeIterator.Create(Scene.Shapes, false);
     try
@@ -233,7 +244,7 @@ begin
             smooth normals. Simple, and thanks to CastleInternalNormals
             this works for all VRML/X3D coord-based nodes (and only for
             those RadianceTransfer is defined). }
-          Normals := SI.Current.NormalsSmooth(true);
+          Normals := SI.Current.NormalsSmooth(true, true);
           ComputeTransfer(RadianceTransfer,
             Geometry.InternalCoordinates(State).Items,
             State.Transform, DiffuseColor(State));
@@ -241,8 +252,9 @@ begin
       end;
     finally FreeAndNil(SI) end;
 
+    Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
     S := Format('SH bases %d, rays per vertex %d, done in %f secs',
-      [SHBasisCount, RaysPerVertex, ProcessTimerEnd]);
+      [SHBasisCount, RaysPerVertex, Seconds]);
 
     Writeln('Precomputing finished: ', S);
 

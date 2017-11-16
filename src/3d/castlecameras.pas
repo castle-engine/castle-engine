@@ -292,13 +292,13 @@ type
       This determines in which direction @link(TWalkCamera.Gravity) works.
 
       This is also the "normal" value for both @link(TWalkCamera.Up) and
-      @link(TWalkCamera.InitialUp) --- one that means that player is looking
+      @link(InitialUp) --- one that means that player is looking
       straight foward. This is used for features like PreferGravityUpForRotations
       and/or PreferGravityUpForMoving.
 
       The default value of this vector is (0, 1, 0) (same as the default
       @link(TWalkCamera.Up) and
-      @link(TWalkCamera.InitialUp) vectors). }
+      @link(InitialUp) vectors). }
     property GravityUp: TVector3 read FGravityUp write SetGravityUp;
 
     { Calculate a 3D ray picked by the WindowX, WindowY position on the window.
@@ -445,7 +445,7 @@ type
 
       This must always be >= 0.
       You should set this to something greater than zero to get sensible
-      behavior of some things related to @link(Gravity),
+      behavior of some things related to @link(TWalkCamera.Gravity),
       and also you should set OnHeight.
 
       See CorrectPreferredHeight for important property
@@ -509,7 +509,7 @@ type
       This must always be < 1.0. For sensible effects, this should
       be rather close to 0.0.
 
-      Of course this is meaningfull only when @link(Gravity) works. }
+      This is meaningfull only when @link(TWalkCamera.Gravity) works. }
     property HeadBobbing: Single
       read FHeadBobbing write FHeadBobbing default DefaultHeadBobbing;
 
@@ -711,8 +711,7 @@ type
       read FTurntable write FTurntable default false;
 
     { How the model is scaled.
-      Scaling is done around @link(Translation) + @link(CenterOfRotation).
-      @italic(This property may never be zero (or too near zero).) }
+      @italic(This property may never be zero (or close to zero).) }
     property ScaleFactor: Single
       read FScaleFactor write SetScaleFactor default 1;
 
@@ -2434,7 +2433,7 @@ begin
     { For now, doing Zoom on mouse wheel is hardcoded, we don't call EventDown here }
 
     if Turntable then
-      ZoomScale := 40 else
+      ZoomScale := 30 else
       ZoomScale := 10;
     if Zoom(Event.MouseWheelScroll / ZoomScale) then
        Result := ExclusiveEvents;
@@ -2497,9 +2496,15 @@ var
   var
     W2, H2, AvgX, AvgY, ZRotAngle, ZRotRatio: Single;
   begin
-    if (not ContainerSizeKnown) or Turntable then
+    if (not ContainerSizeKnown) then
     begin
       Result := XYRotation(1);
+    end else if Turntable then
+    begin
+      //Result := XYRotation(0.5); // this matches the rotation speed of ntExamine
+      { Do one turn around Y axis by dragging from one viewport side to another
+        (so it does not depend on viewport size)  }
+      Result := XYRotation(2 * Pi * MoveDivConst / Container.Width);
     end else
     begin
       { When the cursor is close to the window edge, make rotation around Z axis.

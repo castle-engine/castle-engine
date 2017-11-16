@@ -20,7 +20,8 @@
 type
   { List of structures.
     This is just TList class from Generics.Collections, with some useful helpers. }
-  TStructList<T> = class(TList<T>)
+  {$ifdef CASTLE_OBJFPC}generic{$endif}
+  TStructList<T> = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TList<T>)
   public
     type
       PT = ^T;
@@ -79,13 +80,13 @@ type
     { Pointer to ith item. }
     function Ptr(I: Integer): PT;
 
-    procedure Assign(const Source: TStructList<T>); overload;
+    procedure Assign(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); overload;
     procedure Assign(const A: array of T); overload;
 
     function ItemSize: SizeInt;
 
     procedure AddArray(const A: array of T); deprecated 'use AddRange';
-    procedure AddList(const Source: TStructList<T>); deprecated 'use AddRange';
+    procedure AddList(const Source: TStructList {$ifndef CASTLE_OBJFPC}<T>{$endif}); deprecated 'use AddRange';
     procedure AssignArray(const A: array of T); deprecated 'use Assign';
   end;
 
@@ -95,55 +96,55 @@ type
 
 { TStructList ---------------------------------------------------------------- }
 
-function TStructList<T>.List: PTypeList;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.List: PTypeList;
 begin
   Result := PTypeList({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
-function TStructList<T>.L: PT;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.L: PT;
 begin
   Result := PT({$ifdef FPC} FItems {$else} inherited List {$endif});
 end;
 
-function TStructList<T>.Add: PT;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Add: PT;
 begin
   Count := Count + 1;
   Result := Addr(List^[Count - 1]);
 end;
 
-function TStructList<T>.Ptr(I: Integer): PT;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Ptr(I: Integer): PT;
 begin
   Result := Addr(List^[I]);
 end;
 
-procedure TStructList<T>.Assign(const Source: TStructList<T>);
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Assign(const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif});
 begin
   Clear;
   AddRange(Source);
 end;
 
-procedure TStructList<T>.Assign(const A: array of T);
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.Assign(const A: array of T);
 begin
   Clear;
   AddRange(A);
 end;
 
-function TStructList<T>.ItemSize: SizeInt;
+function TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.ItemSize: SizeInt;
 begin
   Result := SizeOf(T);
 end;
 
-procedure TStructList<T>.AddArray(const A: array of T);
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddArray(const A: array of T);
 begin
   AddRange(A);
 end;
 
-procedure TStructList<T>.AddList(const Source: TStructList<T>);
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AddList(const Source: TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif});
 begin
   AddRange(Source);
 end;
 
-procedure TStructList<T>.AssignArray(const A: array of T);
+procedure TStructList{$ifndef CASTLE_OBJFPC}<T>{$endif}.AssignArray(const A: array of T);
 begin
   Assign(A);
 end;

@@ -6,129 +6,7 @@
 	objectVersion = 46;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		4D629DF81916B0EB0082689B /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629DF71916B0EB0082689B /* Foundation.framework */; };
-		4D629DFA1916B0EB0082689B /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629DF91916B0EB0082689B /* CoreGraphics.framework */; };
-		4D629DFC1916B0EB0082689B /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629DFB1916B0EB0082689B /* UIKit.framework */; };
-		4D629E021916B0EB0082689B /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 4D629E001916B0EB0082689B /* InfoPlist.strings */; };
-		4D629E0A1916B0EB0082689B /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 4D629E091916B0EB0082689B /* Images.xcassets */; };
-		4D629E2B1916B7A40082689B /* ${IOS_LIBRARY_BASE_NAME} in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629E2A1916B7A40082689B /* ${IOS_LIBRARY_BASE_NAME} */; };
-		4D629E2D1916B8170082689B /* OpenGLES.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629E2C1916B8170082689B /* OpenGLES.framework */; };
-		4D629E2F1916B81E0082689B /* GLKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629E2E1916B81E0082689B /* GLKit.framework */; };
-		4D629E311916B8250082689B /* OpenAL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4D629E301916B8250082689B /* OpenAL.framework */; };
-		4D90CC2219197A82004E90CC /* data in Resources */ = {isa = PBXBuildFile; fileRef = 4D90CC2119197A82004E90CC /* data */; };
-		84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */; };
-		0258163B1F8609D80069398E /* ServiceAbstract.m in Sources */ = {isa = PBXBuildFile; fileRef = 0258163A1F8609D80069398E /* ServiceAbstract.m */; };
-		84DEEDF31E9D7B3800A9228C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDEF1E9D7B3800A9228C /* main.m */; };
-		84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */ = {isa = PBXBuildFile; fileRef = 84DEEDF11E9D7B3800A9228C /* OpenGLController.m */; };
-		${IOS_EXTRA_PBXBuildFile}
-/* End PBXBuildFile section */
-
-/* Begin PBXFileReference section */
-		4D629DF41916B0EB0082689B /* ${CAPTION}.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "${CAPTION}.app"; sourceTree = BUILT_PRODUCTS_DIR; };
-		4D629DF71916B0EB0082689B /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
-		4D629DF91916B0EB0082689B /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
-		4D629DFB1916B0EB0082689B /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
-		4D629DFF1916B0EB0082689B /* ${NAME}-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "${NAME}-Info.plist"; sourceTree = "<group>"; };
-		4D629E011916B0EB0082689B /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		4D629E051916B0EB0082689B /* ${NAME}-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "${NAME}-Prefix.pch"; sourceTree = "<group>"; };
-		4D629E091916B0EB0082689B /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
-		4D629E2A1916B7A40082689B /* ${IOS_LIBRARY_BASE_NAME} */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; path = ${IOS_LIBRARY_BASE_NAME}; sourceTree = "<group>"; };
-		4D629E2C1916B8170082689B /* OpenGLES.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGLES.framework; path = System/Library/Frameworks/OpenGLES.framework; sourceTree = SDKROOT; };
-		4D629E2E1916B81E0082689B /* GLKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLKit.framework; path = System/Library/Frameworks/GLKit.framework; sourceTree = SDKROOT; };
-		4D629E301916B8250082689B /* OpenAL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenAL.framework; path = System/Library/Frameworks/OpenAL.framework; sourceTree = SDKROOT; };
-		4D90CC2119197A82004E90CC /* data */ = {isa = PBXFileReference; lastKnownFileType = folder; name = data; path = ${NAME}/data; sourceTree = "<group>"; };
-		84DEEDED1E9D7B3800A9228C /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
-		025816391F86096A0069398E /* ServiceAbstract.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ServiceAbstract.h; sourceTree = "<group>"; };
-		0258163A1F8609D80069398E /* ServiceAbstract.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ServiceAbstract.m; sourceTree = "<group>"; };
-		84DEEDEF1E9D7B3800A9228C /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
-		84DEEDF01E9D7B3800A9228C /* OpenGLController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OpenGLController.h; sourceTree = "<group>"; };
-		84DEEDF11E9D7B3800A9228C /* OpenGLController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OpenGLController.m; sourceTree = "<group>"; };
-		84DEEDF51E9D7B8600A9228C /* castleiosappglue.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = castleiosappglue.h; sourceTree = "<group>"; };
-		${IOS_EXTRA_PBXFileReference}
-/* End PBXFileReference section */
-
-/* Begin PBXFrameworksBuildPhase section */
-		4D629DF11916B0EB0082689B /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4D629E311916B8250082689B /* OpenAL.framework in Frameworks */,
-				4D629E2F1916B81E0082689B /* GLKit.framework in Frameworks */,
-				4D629E2D1916B8170082689B /* OpenGLES.framework in Frameworks */,
-				4D629DFA1916B0EB0082689B /* CoreGraphics.framework in Frameworks */,
-				4D629DFC1916B0EB0082689B /* UIKit.framework in Frameworks */,
-				4D629E2B1916B7A40082689B /* ${IOS_LIBRARY_BASE_NAME} in Frameworks */,
-				4D629DF81916B0EB0082689B /* Foundation.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXFrameworksBuildPhase section */
-
-/* Begin PBXGroup section */
-		4D629DEB1916B0EA0082689B = {
-			isa = PBXGroup;
-			children = (
-				4D629DFD1916B0EB0082689B /* ${NAME} */,
-				4D90CC2119197A82004E90CC /* data */,
-				4D629DF61916B0EB0082689B /* Frameworks */,
-				4D629DF51916B0EB0082689B /* Products */,
-			);
-			sourceTree = "<group>";
-		};
-		4D629DF51916B0EB0082689B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				4D629DF41916B0EB0082689B /* ${CAPTION}.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		4D629DF61916B0EB0082689B /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				4D629E2A1916B7A40082689B /* ${IOS_LIBRARY_BASE_NAME} */,
-				4D629E301916B8250082689B /* OpenAL.framework */,
-				4D629E2E1916B81E0082689B /* GLKit.framework */,
-				4D629E2C1916B8170082689B /* OpenGLES.framework */,
-				4D629DF71916B0EB0082689B /* Foundation.framework */,
-				4D629DF91916B0EB0082689B /* CoreGraphics.framework */,
-				4D629DFB1916B0EB0082689B /* UIKit.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
-		4D629DFD1916B0EB0082689B /* ${NAME} */ = {
-			isa = PBXGroup;
-			children = (
-				${IOS_EXTRA_PBXGroup_MainGroup}
-				84DEEDED1E9D7B3800A9228C /* AppDelegate.h */,
-				84DEEDEE1E9D7B3800A9228C /* AppDelegate.m */,
-				025816391F86096A0069398E /* ServiceAbstract.h */,
-				0258163A1F8609D80069398E /* ServiceAbstract.m */,
-				84DEEDEF1E9D7B3800A9228C /* main.m */,
-				84DEEDF51E9D7B8600A9228C /* castleiosappglue.h */,
-				84DEEDF01E9D7B3800A9228C /* OpenGLController.h */,
-				84DEEDF11E9D7B3800A9228C /* OpenGLController.m */,
-				4D629E091916B0EB0082689B /* Images.xcassets */,
-				4D629DFE1916B0EB0082689B /* Supporting Files */,
-			);
-			path = ${NAME};
-			sourceTree = "<group>";
-		};
-		4D629DFE1916B0EB0082689B /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				4D629DFF1916B0EB0082689B /* ${NAME}-Info.plist */,
-				4D629E001916B0EB0082689B /* InfoPlist.strings */,
-				4D629E051916B0EB0082689B /* ${NAME}-Prefix.pch */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		${IOS_EXTRA_PBXGroup}
-/* End PBXGroup section */
+${PBX_CONTENTS_GENERATED}
 
 /* Begin PBXNativeTarget section */
 		4D629DF31916B0EB0082689B /* ${CAPTION} */ = {
@@ -155,7 +33,11 @@
 			isa = PBXProject;
 			attributes = {
 				LastUpgradeCheck = 0900;
-				${IOS_TARGET_ATTRIBUTES}
+				TargetAttributes = {
+					4D629DF31916B0EB0082689B = {
+${IOS_TARGET_ATTRIBUTES}
+					};
+				};
 				ORGANIZATIONNAME = "${AUTHOR}";
 			};
 			buildConfigurationList = 4D629DEF1916B0EA0082689B /* Build configuration list for PBXProject "${NAME}" */;
@@ -174,35 +56,6 @@
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		4D629DF21916B0EB0082689B /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				4D629E021916B0EB0082689B /* InfoPlist.strings in Resources */,
-				4D90CC2219197A82004E90CC /* data in Resources */,
-				4D629E0A1916B0EB0082689B /* Images.xcassets in Resources */,
-				${IOS_EXTRA_PBXResourcesBuildPhase}
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		4D629DF01916B0EB0082689B /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				84DEEDF21E9D7B3800A9228C /* AppDelegate.m in Sources */,
-				0258163B1F8609D80069398E /* ServiceAbstract.m in Sources */,
-				84DEEDF31E9D7B3800A9228C /* main.m in Sources */,
-				84DEEDF41E9D7B3800A9228C /* OpenGLController.m in Sources */,
-				${IOS_EXTRA_PBXSourcesBuildPhase}
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXSourcesBuildPhase section */
 
 /* Begin PBXVariantGroup section */
 		4D629E001916B0EB0082689B /* InfoPlist.strings */ = {
@@ -321,6 +174,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				${IOS_CODE_SIGN_ENTITLEMENTS}
 				${IOS_DEVELOPMENT_TEAM_LINE}
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "${NAME}/${NAME}-Prefix.pch";
@@ -345,6 +199,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				${IOS_CODE_SIGN_ENTITLEMENTS}
 				${IOS_DEVELOPMENT_TEAM_LINE}
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "${NAME}/${NAME}-Prefix.pch";

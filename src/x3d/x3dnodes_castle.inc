@@ -420,25 +420,25 @@ const
 begin
   inherited;
 
-  FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
+  FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', HeadLightDefaultAmbientIntensity);
   AddField(FFdAmbientIntensity);
 
-  FFdAttenuation := TSFVec3f.Create(Self, 'attenuation', HeadLightDefaultAttenuation);
+  FFdAttenuation := TSFVec3f.Create(Self, true, 'attenuation', HeadLightDefaultAttenuation);
   AddField(FFdAttenuation);
 
-  FFdColor := TSFColor.Create(Self, 'color', HeadLightDefaultColor);
+  FFdColor := TSFColor.Create(Self, true, 'color', HeadLightDefaultColor);
   AddField(FFdColor);
 
-  FFdIntensity := TSFFloat.Create(Self, 'intensity', HeadLightDefaultIntensity);
+  FFdIntensity := TSFFloat.Create(Self, true, 'intensity', HeadLightDefaultIntensity);
   AddField(FFdIntensity);
 
-  FFdSpot := TSFBool.Create(Self, 'spot', HeadLightDefaultSpot);
+  FFdSpot := TSFBool.Create(Self, true, 'spot', HeadLightDefaultSpot);
   AddField(FFdSpot);
 
-  FFdSpotCutOffAngle := TSFFloat.Create(Self, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
+  FFdSpotCutOffAngle := TSFFloat.Create(Self, true, 'spotCutOffAngle', HeadLightDefaultSpotCutOffAngle);
   AddField(FFdSpotCutOffAngle);
 
-  FFdSpotDropOffRate := TSFFloat.Create(Self, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
+  FFdSpotDropOffRate := TSFFloat.Create(Self, true, 'spotDropOffRate', HeadLightDefaultSpotDropOffRate);
   AddField(FFdSpotDropOffRate);
 end;
 
@@ -464,7 +464,7 @@ procedure TText3DNode.CreateNode;
 begin
   inherited;
 
-  FFdDepth := TSFFloat.Create(Self, 'depth', 0.1, true);
+  FFdDepth := TSFFloat.Create(Self, true, 'depth', 0.1, true);
    FdDepth.ChangesAlways := [chGeometry];
   AddField(FFdDepth);
 end;
@@ -486,19 +486,19 @@ procedure TBlendModeNode.CreateNode;
 begin
   inherited;
 
-  FFdSrcFactor := TSFString.Create(Self, 'srcFactor', 'src_alpha');
+  FFdSrcFactor := TSFString.Create(Self, true, 'srcFactor', 'src_alpha');
    FdSrcFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdSrcFactor);
 
-  FFdDestFactor := TSFString.Create(Self, 'destFactor', 'one_minus_src_alpha');
+  FFdDestFactor := TSFString.Create(Self, true, 'destFactor', 'one_minus_src_alpha');
    FdDestFactor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdDestFactor);
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
    FdColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdColor);
 
-  FFdColorTransparency := TSFFloat.Create(Self, 'colorTransparency', 0.0);
+  FFdColorTransparency := TSFFloat.Create(Self, true, 'colorTransparency', 0.0);
    FdColorTransparency.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdColorTransparency);
 
@@ -526,10 +526,10 @@ procedure TKambiInlineNode.CreateNode;
 begin
   inherited;
 
-  FFdReplaceNames := TMFString.Create(Self, 'replaceNames', []);
+  FFdReplaceNames := TMFString.Create(Self, true, 'replaceNames', []);
   AddField(FFdReplaceNames);
 
-  FFdReplaceNodes := TMFNode.Create(Self, 'replaceNodes', [TX3DNode]);
+  FFdReplaceNodes := TMFNode.Create(Self, true, 'replaceNodes', [TX3DNode]);
   AddField(FFdReplaceNodes);
 end;
 
@@ -591,36 +591,31 @@ procedure TKambiNavigationInfoNode.CreateNode;
 begin
   inherited;
 
-  FFdTimeOriginAtLoad := TSFBool.Create(Self, 'timeOriginAtLoad', false);
-  FFdTimeOriginAtLoad.Exposed := false;
+  FFdTimeOriginAtLoad := TSFBool.Create(Self, false, 'timeOriginAtLoad', false);
   AddField(FFdTimeOriginAtLoad);
 
-  FFdOctreeRendering := TSFNode.Create(Self, 'octreeRendering', [TKambiOctreePropertiesNode]);
-  FFdOctreeRendering.Exposed := false;
+  FFdOctreeRendering := TSFNode.Create(Self, false, 'octreeRendering', [TKambiOctreePropertiesNode]);
   AddField(FFdOctreeRendering);
 
-  FFdOctreeDynamicCollisions := TSFNode.Create(Self, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
-  FFdOctreeDynamicCollisions.Exposed := false;
+  FFdOctreeDynamicCollisions := TSFNode.Create(Self, false, 'octreeDynamicCollisions', [TKambiOctreePropertiesNode]);
   AddField(FFdOctreeDynamicCollisions);
 
-  FFdOctreeVisibleTriangles := TSFNode.Create(Self, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
-  FFdOctreeVisibleTriangles.Exposed := false;
+  FFdOctreeVisibleTriangles := TSFNode.Create(Self, false, 'octreeVisibleTriangles', [TKambiOctreePropertiesNode]);
   AddField(FFdOctreeVisibleTriangles);
 
-  FFdOctreeStaticCollisions := TSFNode.Create(Self, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
-  FFdOctreeStaticCollisions.Exposed := false;
+  FFdOctreeStaticCollisions := TSFNode.Create(Self, false, 'octreeStaticCollisions', [TKambiOctreePropertiesNode]);
   FFdOctreeStaticCollisions.AddAlternativeName('octreeCollidableTriangles', 0);
   AddField(FFdOctreeStaticCollisions);
 
-  FFdHeadBobbing := TSFFloat.Create(Self, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
+  FFdHeadBobbing := TSFFloat.Create(Self, true, 'headBobbing', TWalkCamera.DefaultHeadBobbing, true);
    FdHeadBobbing.ChangesAlways := [chNavigationInfo];
   AddField(FFdHeadBobbing);
 
-  FFdHeadBobbingTime := TSFFloat.Create(Self, 'headBobbingTime', TWalkCamera.DefaultHeadBobbingTime, true);
+  FFdHeadBobbingTime := TSFFloat.Create(Self, true, 'headBobbingTime', TWalkCamera.DefaultHeadBobbingTime, true);
    FdHeadBobbingTime.ChangesAlways := [chNavigationInfo];
   AddField(FdHeadBobbingTime);
 
-  FFdHeadlightNode := TSFNode.Create(Self, 'headlightNode', [TAbstractLightNode]);
+  FFdHeadlightNode := TSFNode.Create(Self, true, 'headlightNode', [TAbstractLightNode]);
   AddField(FFdHeadlightNode);
 end;
 
@@ -655,11 +650,11 @@ procedure TKambiOctreePropertiesNode.CreateNode;
 begin
   inherited;
 
-  FFdMaxDepth := TSFInt32.Create(Self, 'maxDepth', -1);
+  FFdMaxDepth := TSFInt32.Create(Self, true, 'maxDepth', -1);
    FdMaxDepth.ChangesAlways := [chEverything];
   AddField(FFdMaxDepth);
 
-  FFdLeafCapacity := TSFInt32.Create(Self, 'leafCapacity', -1);
+  FFdLeafCapacity := TSFInt32.Create(Self, true, 'leafCapacity', -1);
    FdLeafCapacity.ChangesAlways := [chEverything];
   AddField(FFdLeafCapacity);
 end;
@@ -691,12 +686,11 @@ procedure TGeneratedShadowMapNode.CreateNode;
 begin
   inherited;
 
-  FFdUpdate := TSFTextureUpdate.Create(Self, 'update', upNone);
+  FFdUpdate := TSFTextureUpdate.Create(Self, true, 'update', upNone);
   AddField(FFdUpdate);
   { X3D specification comment: ["NONE"|"NEXT_FRAME_ONLY"|"ALWAYS"] }
 
-  FFdSize := TSFInt32.Create(Self, 'size', DefaultSize, { MustBeNonnegative } true);
-   FdSize.Exposed := false;
+  FFdSize := TSFInt32.Create(Self, false, 'size', DefaultSize, { MustBeNonnegative } true);
    FdSize.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdSize);
   { X3D specification comment: (0,Inf) }
@@ -706,20 +700,20 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     GeneratedShadowMap. }
-  FFdLight := TSFNode.Create(Self, 'light', [TAbstractLightNode]);
+  FFdLight := TSFNode.Create(Self, true, 'light', [TAbstractLightNode]);
    FdLight.ChangesAlways := [chGeneratedTextureUpdateNeeded];
    FdLight.WeakLink := true;
   AddField(FFdLight);
 
-  FFdScale := TSFFloat.Create(Self, 'scale', DefaultScale, { MustBeNonnegative } true);
+  FFdScale := TSFFloat.Create(Self, true, 'scale', DefaultScale, { MustBeNonnegative } true);
    FdScale.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdScale);
 
-  FFdBias := TSFFloat.Create(Self, 'bias', DefaultBias, { MustBeNonnegative } true);
+  FFdBias := TSFFloat.Create(Self, true, 'bias', DefaultBias, { MustBeNonnegative } true);
    FdBias.ChangesAlways := [chGeneratedTextureUpdateNeeded];
   AddField(FFdBias);
 
-  FFdCompareMode := TSFString.Create(Self, 'compareMode', 'COMPARE_R_LEQUAL');
+  FFdCompareMode := TSFString.Create(Self, true, 'compareMode', 'COMPARE_R_LEQUAL');
    FdCompareMode.ChangesAlways := [chTextureRendererProperties];
   AddField(FFdCompareMode);
 
@@ -752,7 +746,7 @@ begin
     shine here. We don't want
     to override it's transform with transformation of this
     ProjectedTextureCoordinate. }
-  FFdProjector := TSFNode.Create(Self, 'projector',
+  FFdProjector := TSFNode.Create(Self, true, 'projector',
     [TSpotLightNode_1, TDirectionalLightNode_1,
      TSpotLightNode  , TDirectionalLightNode  ,
      TAbstractX3DViewpointNode]);
@@ -774,15 +768,15 @@ procedure TScreenEffectNode.CreateNode;
 begin
   inherited;
 
-  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
    FdEnabled.ChangesAlways := [chScreenEffectEnabled];
   AddField(FFdEnabled);
 
-  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractShaderNode]);
+  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
   AddField(FFdShaders);
 
-  FFdNeedsDepth := TSFBool.Create(Self, 'needsDepth', false);
+  FFdNeedsDepth := TSFBool.Create(Self, true, 'needsDepth', false);
    { no change needed, TCastleScene recalculates NeedsDepth every time
      when ScreenEffectsNeedDepth is called by scene manager. }
    FdNeedsDepth.ChangesAlways := [];
@@ -830,17 +824,15 @@ procedure TEffectNode.CreateNode;
 begin
   inherited;
 
-  FFdLanguage := TSFStringEnum.Create(Self, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.Exposed := false;
+  FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
    FdLanguage.ChangesAlways := [chEverything];
   AddField(FFdLanguage);
 
-  FFdParts := TMFNode.Create(Self, 'parts', [TEffectPartNode]);
-   FdParts.Exposed := false;
+  FFdParts := TMFNode.Create(Self, false, 'parts', [TEffectPartNode]);
    FdParts.ChangesAlways := [chEverything];
   AddField(FFdParts);
 
-  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
    FdEnabled.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdEnabled);
 
@@ -871,14 +863,13 @@ procedure TEffectPartNode.CreateNode;
 begin
   inherited;
 
-  FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.Exposed := false;
+  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.ChangesAlways := [chEverything];
   AddField(FFdType);
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
    FdUrl.ChangesAlways := [chEverything];
-   FdUrl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+   FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
 
   DefaultContainerField := 'parts';
@@ -934,8 +925,7 @@ procedure TShaderTextureNode.CreateNode;
 begin
   inherited;
 
-  FFdDefaultTexCoord := TSFString.Create(Self, 'defaultTexCoord', 'BOUNDS2D');
-   FdDefaultTexCoord.Exposed := false;
+  FFdDefaultTexCoord := TSFString.Create(Self, false, 'defaultTexCoord', 'BOUNDS2D');
    FdDefaultTexCoord.ChangesAlways := [chEverything];
   AddField(FFdDefaultTexCoord);
 end;

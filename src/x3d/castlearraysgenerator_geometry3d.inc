@@ -45,8 +45,8 @@ type
     procedure GenerateCoordsRange(const RangeNumber: Cardinal;
       BeginIndex, EndIndex: Integer); override;
 
-    { Auto-generate normals and set Normals, NormalsCcw, NorImplementation
-      properties to use them. }
+    { Auto-generate normals (from NormalsCcw side)
+      and set Normals, NorImplementation properties to use them. }
     procedure AutoGenerateNormals(const CreaseAngle: Single);
     procedure PrepareIndexesPrimitives; override;
   public
@@ -55,7 +55,7 @@ type
 
   TIndexedFaceSet_1Generator = class(TAbstractIndexedFaceSetGenerator)
   private
-    VRML1FrontFaceCcw, VRML1CullBackFaces: boolean;
+    VRML1FrontFaceCcw, VRML1CullFace: boolean;
   protected
     procedure GenerateCoordinateBegin; override;
   public
@@ -127,7 +127,8 @@ begin
   Geometry.InternalMakeCoordRanges(State, @GenerateCoordsRange);
 end;
 
-procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(const CreaseAngle: Single);
+procedure TAbstractIndexedFaceSetGenerator.AutoGenerateNormals(
+  const CreaseAngle: Single);
 begin
   { We could use the same NormalsCreaseAngle for all CreaseAngle values,
     so the tests for CreaseAngle are not really required below.
@@ -139,19 +140,18 @@ begin
 
   if CreaseAngle >= Pi then
   begin
-    Normals := Shape.NormalsSmooth(OverTriangulate);
+    Normals := Shape.NormalsSmooth(OverTriangulate, NormalsCcw);
     NorImplementation := niPerVertexCoordIndexed;
   end else
   if CreaseAngle <> 0 then
   begin
-    Normals := Shape.NormalsCreaseAngle(OverTriangulate, CreaseAngle);
+    Normals := Shape.NormalsCreaseAngle(OverTriangulate, NormalsCcw, CreaseAngle);
     NorImplementation := niPerVertexNonIndexed;
   end else
   begin
-    Normals := Shape.NormalsFlat(OverTriangulate);
+    Normals := Shape.NormalsFlat(OverTriangulate, NormalsCcw);
     NorImplementation := niPerFace;
   end;
-  NormalsCcw := true; { always generated from CCW }
 end;
 
 procedure TAbstractIndexedFaceSetGenerator.GenerateCoordinateEnd;
@@ -298,7 +298,7 @@ begin
     nie podadza vertexOrdering innego niz UNKNOWN) }
   VRML1FrontFaceCcw := SH.FdVertexOrdering.Value <> VERTORDER_CLOCKWISE;
 
-  VRML1CullBackFaces :=
+  VRML1CullFace :=
     (SH.FdVertexOrdering.Value <> VERTORDER_UNKNOWN) and
     (SH.FdShapeType.Value = SHTYPE_SOLID);
 
@@ -320,7 +320,7 @@ begin
   inherited;
   { Already calculated in constructor, pass to Arrays now }
   Arrays.FrontFaceCcw := VRML1FrontFaceCcw;
-  Arrays.CullBackFaces := VRML1CullBackFaces;
+  Arrays.CullFace := VRML1CullFace;
 end;
 
 { TIndexedFaceSetGenerator -------------------------------------------------- }
@@ -336,9 +336,9 @@ begin
   TexCoordIndex := ANode.FdTexCoordIndex;
 
   Normals := ANode.InternalNormal;
+  NormalsCcw := ANode.FdCcw.Value;
   if Normals <> nil then
   begin
-    NormalsCcw := ANode.FdCcw.Value;
     NormalIndex := ANode.FdNormalIndex;
     if ANode.FdNormalPerVertex.Value then
     begin

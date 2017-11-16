@@ -28,6 +28,9 @@ backup
 *.log
 *.exe
 *.pro.user
+.DS_Store
+xcuserdata
+!xcshareddata
 
 doc/man/man1/*.1
 castle-game-engine-*.fpm
@@ -59,6 +62,7 @@ examples/3d_rendering_processing/listen_on_x3d_events
 examples/3d_rendering_processing/multiple_viewports
 examples/3d_rendering_processing/placeholder_names
 examples/research_special_rendering_methods/plane_mirror_and_shadow/plane_mirror_and_shadow
+examples/research_special_rendering_methods/new_renderer_skeleton/new_renderer_skeleton
 examples/3d_rendering_processing/scene_manager_demos
 examples/3d_rendering_processing/tools/gen_light_map
 examples/3d_rendering_processing/tools/castle_anim_frames_to_interpolators
@@ -154,6 +158,7 @@ packages/castle_window.pas
 packages/lib/
 src/library/libcastleengine.so
 src/library/libcastleengine.dylib
+src/library/build-*
 src/library/ios-output/
 src/x3d/nodes_specification/x3d-nodes-to-pascal/x3d-nodes-to-pascal
 src/x3d/nodes_specification/old_x3d_nodes_spec_to_pascal/x3d_nodes_spec_to_pascal

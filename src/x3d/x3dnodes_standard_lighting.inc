@@ -422,72 +422,69 @@ procedure TAbstractLightNode.CreateNode;
 begin
   inherited;
 
-  FFdGlobal := TSFBool.Create(Self, 'global', false);
+  FFdGlobal := TSFBool.Create(Self, true, 'global', false);
    FdGlobal.ChangesAlways := [chEverything];
   AddField(FFdGlobal);
 
-  FFdOn := TSFBool.Create(Self, 'on', true);
+  FFdOn := TSFBool.Create(Self, true, 'on', true);
    FdOn.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdOn);
 
-  FFdIntensity := TSFFloat.Create(Self, 'intensity', 1);
+  FFdIntensity := TSFFloat.Create(Self, true, 'intensity', 1);
    FdIntensity.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdIntensity);
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
    FdColor.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdColor);
 
-  FFdAmbientIntensity := TSFFloat.Create(Self, 'ambientIntensity', 0);
+  FFdAmbientIntensity := TSFFloat.Create(Self, true, 'ambientIntensity', 0);
    FdAmbientIntensity.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdAmbientIntensity);
 
-  FFdShadowVolumes := TSFBool.Create(Self, 'shadowVolumes', false);
+  FFdShadowVolumes := TSFBool.Create(Self, true, 'shadowVolumes', false);
    FdShadowVolumes.AddAlternativeName('kambiShadows', 0);
    FdShadowVolumes.ChangesAlways := [chLightForShadowVolumes];
   AddField(FFdShadowVolumes);
 
-  FFdShadowVolumesMain := TSFBool.Create(Self, 'shadowVolumesMain', false);
+  FFdShadowVolumesMain := TSFBool.Create(Self, true, 'shadowVolumesMain', false);
    FdShadowVolumesMain.AddAlternativeName('kambiShadowsMain', 0);
    FdShadowVolumesMain.ChangesAlways := [chLightForShadowVolumes];
   AddField(FFdShadowVolumesMain);
 
-  FFdShowProxyGeometry := TSFBool.Create(Self, 'showProxyGeometry', false);
+  FFdShowProxyGeometry := TSFBool.Create(Self, true, 'showProxyGeometry', false);
   AddField(FFdShowProxyGeometry);
 
-  FFdProjectionNear := TSFFloat.Create(Self, 'projectionNear', 0);
+  FFdProjectionNear := TSFFloat.Create(Self, true, 'projectionNear', 0);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
    FdProjectionNear.ChangesAlways := [chVisibleGeometry];
   AddField(FFdProjectionNear);
 
-  FFdProjectionFar := TSFFloat.Create(Self, 'projectionFar', 0);
+  FFdProjectionFar := TSFFloat.Create(Self, true, 'projectionFar', 0);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
    FdProjectionFar.ChangesAlways := [chVisibleGeometry];
   AddField(FFdProjectionFar);
 
-  FFdUp := TSFVec3f.Create(Self, 'up', TVector3.Zero);
+  FFdUp := TSFVec3f.Create(Self, true, 'up', TVector3.Zero);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
    FdUp.ChangesAlways := [chVisibleGeometry];
   AddField(FFdUp);
 
-  FFdDefaultShadowMap := TSFNode.Create(Self, 'defaultShadowMap', [TGeneratedShadowMapNode]);
-   FdDefaultShadowMap.Exposed := false;
+  FFdDefaultShadowMap := TSFNode.Create(Self, false, 'defaultShadowMap', [TGeneratedShadowMapNode]);
    FdDefaultShadowMap.ChangesAlways := [chEverything];
   AddField(FFdDefaultShadowMap);
 
-  FFdShadows := TSFBool.Create(Self, 'shadows', false);
-   FdShadows.Exposed := false;
+  FFdShadows := TSFBool.Create(Self, false, 'shadows', false);
    FdShadows.ChangesAlways := [chShadowMaps];
   AddField(FFdShadows);
 
-  FFdEffects := TMFNode.Create(Self, 'effects', [TEffectNode]);
-   FdEffects.Exposed := false;
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 
@@ -638,18 +635,18 @@ procedure TAbstractDirectionalLightNode.CreateNode;
 begin
   inherited;
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 0, -1));
+  FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
    FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   AddField(FFdDirection);
 
-  FFdProjectionRectangle := TSFVec4f.Create(Self, 'projectionRectangle', TVector4.Zero);
+  FFdProjectionRectangle := TSFVec4f.Create(Self, true, 'projectionRectangle', TVector4.Zero);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
    FdProjectionRectangle.ChangesAlways := [chVisibleGeometry];
   AddField(FFdProjectionRectangle);
 
-  FFdProjectionLocation := TSFVec3f.Create(Self, 'projectionLocation', TVector3.Zero);
+  FFdProjectionLocation := TSFVec3f.Create(Self, true, 'projectionLocation', TVector3.Zero);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }
@@ -777,17 +774,17 @@ procedure TAbstractPositionalLightNode.CreateNode;
 begin
   inherited;
 
-  FFdLocation := TSFVec3f.Create(Self, 'location', Vector3(0, 0, 0));
+  FFdLocation := TSFVec3f.Create(Self, true, 'location', Vector3(0, 0, 0));
    FdLocation.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   AddField(FFdLocation);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdAttenuation := TSFVec3f.Create(Self, 'attenuation', Vector3(1, 0, 0));
+  FFdAttenuation := TSFVec3f.Create(Self, true, 'attenuation', Vector3(1, 0, 0));
    FdAttenuation.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdAttenuation);
   { X3D specification comment: [0,Inf) }
 
-  FFdRadius := TSFFloat.Create(Self, 'radius', 100);
+  FFdRadius := TSFFloat.Create(Self, true, 'radius', 100);
    FdRadius.ChangesAlways := [chLightInstanceProperty];
   AddField(FFdRadius);
   { X3D specification comment: [0,Inf) }
@@ -966,24 +963,24 @@ procedure TSpotLightNode.CreateNode;
 begin
   inherited;
 
-  FFdBeamWidth := TSFFloat.Create(Self, 'beamWidth', Pi / 2);
+  FFdBeamWidth := TSFFloat.Create(Self, true, 'beamWidth', Pi / 2);
    FdBeamWidth.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdBeamWidth);
   { X3D specification comment: (0,Pi/2] }
 
-  FFdCutOffAngle := TSFFloat.Create(Self, 'cutOffAngle', Pi / 4);
+  FFdCutOffAngle := TSFFloat.Create(Self, true, 'cutOffAngle', Pi / 4);
    FdCutOffAngle.ChangesAlways := [chVisibleNonGeometry];
   AddField(FFdCutOffAngle);
   { X3D specification comment: (0,Pi/2] }
 
-  FFdDirection := TSFVec3f.Create(Self, 'direction', Vector3(0, 0, -1));
+  FFdDirection := TSFVec3f.Create(Self, true, 'direction', Vector3(0, 0, -1));
    FdDirection.ChangesAlways := [chLightInstanceProperty, chLightLocationDirection];
   AddField(FFdDirection);
   { X3D specification comment: (-Inf,Inf) }
 
   FdGlobal.Value := true;
 
-  FFdProjectionAngle := TSFFloat.Create(Self, 'projectionAngle', 0);
+  FFdProjectionAngle := TSFFloat.Create(Self, true, 'projectionAngle', 0);
    { We want to set UpdateNeeded := true for all GeneratedShadowMap using
      this light. For now, simply send chVisibleGeometry that will
      force updating all GeneratedShadowMaps. }

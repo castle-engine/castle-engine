@@ -52,6 +52,7 @@ uses
   TestCastle3D,
   TestCastleParameters,
   TestCastleCameras,
+  TestX3DFields,
   TestX3DNodes,
   TestX3DNodesOptimizedProxy,
   TestCastleScene,

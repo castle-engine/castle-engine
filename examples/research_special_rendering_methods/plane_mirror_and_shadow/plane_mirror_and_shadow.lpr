@@ -293,7 +293,12 @@ var
             inside working as usual etc.
 
             We swap CCW to CW --- sides that were CCW previously (and had to
-            be culled, or have normal vectors pointing from them) are now CW. }
+            be culled, or have normal vectors pointing from them) are now CW.
+
+            TODO: this assumes glFrontFace by default.
+            In a real implementation, this should do *negate any FrontFaceCcw
+            interpretation* inside CastleRenderer,
+            so different faces are visible (and have normals defined). }
           glFrontFace(GL_CW);
 
           { TODO: RenderingCamera.Frustum is actually invalid.

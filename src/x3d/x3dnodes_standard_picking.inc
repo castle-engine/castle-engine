@@ -121,11 +121,11 @@ procedure TAbstractPickSensorNode.CreateNode;
 begin
   inherited;
 
-  FFdObjectType := TMFString.Create(Self, 'objectType', ['ALL']);
+  FFdObjectType := TMFString.Create(Self, true, 'objectType', ['ALL']);
   AddField(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdPickingGeometry := TSFNode.Create(Self, 'pickingGeometry', [TAbstractGeometryNode]);
+  FFdPickingGeometry := TSFNode.Create(Self, true, 'pickingGeometry', [TAbstractGeometryNode]);
   AddField(FFdPickingGeometry);
 
   { X3D specification (edition 2) specifies X3DInlineNode as 3rd value on
@@ -133,19 +133,17 @@ begin
     in the specification... So I just added TInlineNode there (it's the only
     Inline node for X3D anyway. }
 
-  FFdPickTarget := TMFNode.Create(Self, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
+  FFdPickTarget := TMFNode.Create(Self, true, 'pickTarget', [TAbstractX3DGroupingNode, TAbstractShapeNode, TInlineNode]);
   AddField(FFdPickTarget);
 
   FEventPickedGeometry := TMFNodeEvent.Create(Self, 'pickedGeometry', false);
   AddEvent(FEventPickedGeometry);
 
-  FFdIntersectionType := TSFString.Create(Self, 'intersectionType', 'BOUNDS');
-  FFdIntersectionType.Exposed := false;
+  FFdIntersectionType := TSFString.Create(Self, false, 'intersectionType', 'BOUNDS');
   AddField(FFdIntersectionType);
   { X3D specification comment: ["GEOMETRY"|"BOUNDS"] }
 
-  FFdSortOrder := TSFString.Create(Self, 'sortOrder', 'CLOSEST');
-  FFdSortOrder.Exposed := false;
+  FFdSortOrder := TSFString.Create(Self, false, 'sortOrder', 'CLOSEST');
   AddField(FFdSortOrder);
   { X3D specification comment: ["ANY"|"CLOSEST"|"ALL"|"ALL_SORTED"] }
 
@@ -183,11 +181,11 @@ procedure TPickableGroupNode.CreateNode;
 begin
   inherited;
 
-  FFdObjectType := TMFString.Create(Self, 'objectType', ['ALL']);
+  FFdObjectType := TMFString.Create(Self, true, 'objectType', ['ALL']);
   AddField(FFdObjectType);
   { X3D specification comment: ["ALL","NONE","TERRAIN",...] }
 
-  FFdPickable := TSFBool.Create(Self, 'pickable', true);
+  FFdPickable := TSFBool.Create(Self, true, 'pickable', true);
   AddField(FFdPickable);
 
   DefaultContainerField := 'children';

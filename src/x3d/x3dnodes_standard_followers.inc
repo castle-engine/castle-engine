@@ -339,16 +339,15 @@ procedure TAbstractDamperNode.CreateNode;
 begin
   inherited;
 
-  FFdTau := TSFTime.Create(Self, 'tau', 0);
+  FFdTau := TSFTime.Create(Self, true, 'tau', 0);
   AddField(FFdTau);
   { X3D specification comment: [0,Inf) }
 
-  FFdTolerance := TSFFloat.Create(Self, 'tolerance', -1);
+  FFdTolerance := TSFFloat.Create(Self, true, 'tolerance', -1);
   AddField(FFdTolerance);
   { X3D specification comment: -1 or [0,Inf) }
 
-  FFdOrder := TSFInt32.Create(Self, 'order', 0);
-  FFdOrder.Exposed := false;
+  FFdOrder := TSFInt32.Create(Self, false, 'order', 0);
   AddField(FFdOrder);
   { X3D specification comment: [0..5] }
 
@@ -359,8 +358,7 @@ procedure TAbstractChaserNode.CreateNode;
 begin
   inherited;
 
-  FFdDuration := TSFTime.Create(Self, 'duration', 0);
-  FFdDuration.Exposed := false;
+  FFdDuration := TSFTime.Create(Self, false, 'duration', 0);
   AddField(FFdDuration);
   { X3D specification comment: [0,Inf) }
 
@@ -380,12 +378,10 @@ begin
   FEventValue_changed := TSFColorEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFColor.Create(Self, 'initialDestination', Vector3(0.8, 0.8, 0.8));
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFColor.Create(Self, false, 'initialDestination', Vector3(0.8, 0.8, 0.8));
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFColor.Create(Self, 'initialValue', Vector3(0.8, 0.8, 0.8));
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFColor.Create(Self, false, 'initialValue', Vector3(0.8, 0.8, 0.8));
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -415,12 +411,10 @@ begin
   FEventValue_changed := TMFVec3fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TMFVec3f.Create(Self, 'initialDestination', Vector3(0, 0, 0));
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TMFVec3f.Create(Self, false, 'initialDestination', Vector3(0, 0, 0));
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TMFVec3f.Create(Self, 'initialValue', Vector3(0, 0, 0));
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TMFVec3f.Create(Self, false, 'initialValue', Vector3(0, 0, 0));
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -450,12 +444,10 @@ begin
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3(0, 1, 0), 0);
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFRotation.Create(Self, false, 'initialDestination', Vector3(0, 1, 0), 0);
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFRotation.Create(Self, 'initialValue', Vector3(0, 1, 0), 0);
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFRotation.Create(Self, false, 'initialValue', Vector3(0, 1, 0), 0);
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -485,12 +477,10 @@ begin
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFRotation.Create(Self, 'initialDestination', Vector3(0, 1, 0), 0);
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFRotation.Create(Self, false, 'initialDestination', Vector3(0, 1, 0), 0);
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFRotation.Create(Self, 'initialValue', Vector3(0, 1, 0), 0);
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFRotation.Create(Self, false, 'initialValue', Vector3(0, 1, 0), 0);
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -520,12 +510,10 @@ begin
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3(0, 0, 0));
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFVec3f.Create(Self, false, 'initialDestination', Vector3(0, 0, 0));
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFVec3f.Create(Self, 'initialValue', Vector3(0, 0, 0));
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFVec3f.Create(Self, false, 'initialValue', Vector3(0, 0, 0));
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -555,13 +543,11 @@ begin
   FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2(0, 0));
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFVec2f.Create(Self, false, 'initialDestination', Vector2(0, 0));
   AddField(FFdInitialDestination);
   { X3D specification comment: 0 }
 
-  FFdInitialValue := TSFVec2f.Create(Self, 'initialValue', Vector2(0, 0));
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFVec2f.Create(Self, false, 'initialValue', Vector2(0, 0));
   AddField(FFdInitialValue);
   { X3D specification comment: 0 }
 
@@ -592,12 +578,10 @@ begin
   FEventValue_changed := TSFVec3fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFVec3f.Create(Self, 'initialDestination', Vector3(0, 0, 0));
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFVec3f.Create(Self, false, 'initialDestination', Vector3(0, 0, 0));
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFVec3f.Create(Self, 'initialValue', Vector3(0, 0, 0));
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFVec3f.Create(Self, false, 'initialValue', Vector3(0, 0, 0));
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -627,12 +611,10 @@ begin
   FEventValue_changed := TSFVec2fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFVec2f.Create(Self, 'initialDestination', Vector2(0, 0));
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFVec2f.Create(Self, false, 'initialDestination', Vector2(0, 0));
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFVec2f.Create(Self, 'initialValue', Vector2(0, 0));
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFVec2f.Create(Self, false, 'initialValue', Vector2(0, 0));
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -662,12 +644,10 @@ begin
   FEventValue_changed := TSFFloatEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TSFFloat.Create(Self, 'initialDestination', 0);
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TSFFloat.Create(Self, false, 'initialDestination', 0);
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TSFFloat.Create(Self, 'initialValue', 0);
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TSFFloat.Create(Self, false, 'initialValue', 0);
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';
@@ -697,12 +677,10 @@ begin
   FEventValue_changed := TMFVec2fEvent.Create(Self, 'value_changed', false);
   AddEvent(FEventValue_changed);
 
-  FFdInitialDestination := TMFVec2f.Create(Self, 'initialDestination', []);
-  FFdInitialDestination.Exposed := false;
+  FFdInitialDestination := TMFVec2f.Create(Self, false, 'initialDestination', []);
   AddField(FFdInitialDestination);
 
-  FFdInitialValue := TMFVec2f.Create(Self, 'initialValue', []);
-  FFdInitialValue.Exposed := false;
+  FFdInitialValue := TMFVec2f.Create(Self, false, 'initialValue', []);
   AddField(FFdInitialValue);
 
   DefaultContainerField := 'children';

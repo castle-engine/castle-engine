@@ -1,5 +1,5 @@
 /*
- Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+ Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
  
  This file is part of "Castle Game Engine".
  
@@ -15,9 +15,12 @@
 
 #import <Foundation/Foundation.h>
 
+@protocol FileOpenCtlDelegate
+- (void)fileSelectedToOpen:(NSString*)selectedFile;
+@end
+
 @interface FileOpenController : UITableViewController
 
-@property (nonatomic, assign) UIPopoverController *popover;
-@property (nonatomic, assign) NSString * selectedFile;
+@property (nonatomic, weak) id<FileOpenCtlDelegate> delegate;
 
 @end

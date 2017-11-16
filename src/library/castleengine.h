@@ -36,7 +36,9 @@
 #    define CDECL
 #  endif
 #else
-#  define CDECL __cdecl
+#  ifndef CDECL
+#    define CDECL __cdecl
+#  endif
 #endif
 
 #ifdef __cplusplus
@@ -58,6 +60,9 @@ enum ECgeVariable   // used for querying engine parameters in CGE_Set/GetVariabl
     ecgevarAnimationRunning = 4,  // (read-only) engine would like to progress with the animation (int, 1 or 0)
     ecgevarWalkTouchCtl    = 5,   // walking touch control (int, one of ECgeTouchCtlInterface values)
     ecgevarScenePaused     = 6,   // pause SceneManager (int, 1 = on, 0 = off)
+    ecgevarAutoRedisplay   = 7,   // automatically redraws the window all the time (int, 1 = on, 0 = off)
+    ecgevarHeadlight       = 8,   // avatar's headlight (int, 1 = on, 0 = off)
+    ecgevarOcclusionQuery  = 9,   // occlusion query, ignored when hierarchical on (int, 1 = on, 0 = off)
 };
 
 enum ECgeNavigationType
@@ -214,19 +219,19 @@ typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int i
 
 
 //-----------------------------------------------------------------------------
-extern void CGE_LoadLibrary();	// function defined in the loader CPP file
+extern void CGE_LoadLibrary(void);	// function defined in the loader CPP file
 
 //-----------------------------------------------------------------------------
 extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required). Flags is any combination of ECgeOpenFlag
-extern void CGE_Close();
+extern void CGE_Close(void);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
 extern void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
-extern void CGE_Render();                                                  // paints the 3d scene into the context
+extern void CGE_Render(void);                                                  // paints the 3d scene into the context
 extern void CGE_SaveScreenshotToFile(const char *szFile);
 extern void CGE_SetLibraryCallbackProc(TCgeLibraryCallback pProc);     // set callback function
-extern void CGE_Update();                                                  // let the 3d engine perform the animations, etc
+extern void CGE_Update(void);                                                  // let the 3d engine perform the animations, etc
 
 extern void CGE_MouseDown(int x, int y, bool bLeftBtn, int nFingerIdx);    // [0,0] is the bottom-left corner!
 extern void CGE_Motion(int x, int y, int nFingerIdx);
@@ -238,7 +243,7 @@ extern void CGE_KeyUp(int /*ECgeKey*/ eKey);
 
 extern void CGE_LoadSceneFromFile(const char *szFile);                     // name od the file has to be utf-8 encoded
 
-extern int CGE_GetViewpointsCount();
+extern int CGE_GetViewpointsCount(void);
 extern void CGE_GetViewpointName(int iViewpointIdx, char *szName, int nBufSize);    // szName is buffer of size nBufSize, and is filled with utf-8 encoded string
 extern void CGE_MoveToViewpoint(int iViewpointIdx, bool bAnimated);
 extern void CGE_AddViewpointFromCurrentView(const char *szName);
@@ -249,7 +254,7 @@ extern void CGE_GetViewCoords(float *pfPosX, float *pfPosY, float *pfPosZ, float
 extern void CGE_MoveViewToCoords(float fPosX, float fPosY, float fPosZ, float fDirX, float fDirY, float fDirZ,
                                  float fUpX, float fUpY, float fUpZ, float fGravX, float fGravY, float fGravZ, bool bAnimated);
 
-extern int CGE_GetNavigationType();
+extern int CGE_GetNavigationType(void);
 extern void CGE_SetNavigationType(int /*ECgeNavigationType*/ eNewType);
 
 extern void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode);

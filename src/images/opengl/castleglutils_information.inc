@@ -219,7 +219,7 @@ begin
 
     '---------------------------' +nl+
     'Current buffers bit depths:' +nl+
-    '  Color (red / greeen / blue / alpha): '
+    '  Color (red / green / blue / alpha): '
       +GetInteger(GL_RED_BITS) +' / '
       +GetInteger(GL_GREEN_BITS) +' / '
       +GetInteger(GL_BLUE_BITS) +' / '
@@ -230,7 +230,7 @@ begin
     {$endif}
     '  Stencil: ' +GetInteger(GL_STENCIL_BITS) +nl+
     {$ifndef OpenGLES}
-    '  Accumulation (red / greeen / blue / alpha): '
+    '  Accumulation (red / green / blue / alpha): '
       +GetInteger(GL_ACCUM_RED_BITS) +' / '
       +GetInteger(GL_ACCUM_GREEN_BITS) +' / '
       +GetInteger(GL_ACCUM_BLUE_BITS) +' / '

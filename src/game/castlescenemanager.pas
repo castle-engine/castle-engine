@@ -83,6 +83,7 @@ type
     FInternalExamineCamera: TExamineCamera;
     FInternalWalkCamera: TWalkCamera;
     FWithinSetNavigationType: boolean;
+    LastPressEvent: TInputPressRelease;
 
     FShadowVolumes: boolean;
     FShadowVolumesRender: boolean;
@@ -378,7 +379,7 @@ type
     { Choose navigation method by creating and adjusting the camera,
       and various camera properies (like TWalkCamera.Gravity and so on).
       This is automatically determined from the currently bound NavigatinInfo X3D
-      node in the @link(MainScene).
+      node in the @link(GetMainScene).
       You can also set this manually, thus overriding the NavigatinInfo node.
 
       This is a shortcut property for adjusting the camera class
@@ -393,7 +394,7 @@ type
 
       When the camera is created for the first time,
       it's parameters are determined from the current NavigationInfo
-      and Viewpoint nodes in @link(MainScene), and from bounding box of the world.
+      and Viewpoint nodes in @link(GetMainScene), and from bounding box of the world.
       When the camera class is switched later, the common camera properties
       (defined at TCamera, like @link(TCamera.Radius) and view vectors
       -- position, direction, up) are copied, so they are preserved.
@@ -814,7 +815,6 @@ type
 
     FWater: TBox3D;
     FOnMoveAllowed: TWorldMoveAllowedEvent;
-    LastSoundRefresh: TTimerResult;
     DefaultHeadlightNode: TDirectionalLightNode;
 
     ScheduledVisibleChangeNotification: boolean;
@@ -1472,6 +1472,8 @@ begin
     in case a camera would base some movement based on the position delta. }
   Motion(InputMotion(Container.MousePosition, Container.MousePosition, Container.MousePressed, 0));
 
+  LastPressEvent := TInputPressRelease(Event);
+
   Result := GetItems.Press(Event);
   if Result then Exit;
 
@@ -1536,12 +1538,45 @@ begin
 end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
+
+  function IsTouchSensorActiveInScene(const Scene: T3D): boolean;
+  var
+    ActiveSensorsList: TX3DNodeList;
+    I: Integer;
+  begin
+    Result := false;
+    if not (Scene is TCastleSceneCore) then
+      Exit;
+    ActiveSensorsList := (Scene as TCastleSceneCore).PointingDeviceActiveSensors;
+    for I := 0 to ActiveSensorsList.Count -1 do
+    begin
+      if ActiveSensorsList.Items[I] is TTouchSensorNode then
+        Exit(true);
+    end;
+  end;
+
 var
   RayOrigin, RayDirection: TVector3;
+  TopMostScene: T3D;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
   begin
+    if (GetMouseRayHit <> nil) and
+       (GetMouseRayHit.Count <> 0) then
+      TopMostScene := GetMouseRayHit.First.Item else
+      TopMostScene := nil;
+
+    { Test if dragging TTouchSensorNode. In that case cancel its dragging
+      and let camera move instead. }
+    if (TopMostScene <> nil) and
+       IsTouchSensorActiveInScene(TopMostScene) and
+       (PointsDistance(LastPressEvent.Position, Event.Position) > 5*96/Container.Dpi) then
+    begin
+      TopMostScene.PointingDeviceActivate(false, 0, true);
+      Camera.Press(LastPressEvent);
+    end;
+
     Camera.EnableDragging := not GetItems.Dragging;
     { Do not navigate by dragging (regardless of ciMouseDragging in Camera.Input)
       when we're already dragging a 3D item.
@@ -3398,12 +3433,8 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
     end;
   end;
 
-const
-  { Delay between calling SoundEngine.Refresh, in seconds. }
-  SoundRefreshDelay = 0.1;
 var
   RemoveItem: TRemoveType;
-  TimeNow: TTimerResult;
   SecondsPassedScaled: Single;
 begin
   inherited;
@@ -3415,22 +3446,6 @@ begin
     RemoveItem := rtNone;
     Items.Update(SecondsPassedScaled, RemoveItem);
     { we ignore RemoveItem --- main Items list cannot be removed }
-
-    { Calling SoundEngine.Refresh relatively often is important,
-      to call OnRelease for sound sources that finished playing.
-      Some of the engine features depend that sounds OnRelease is called
-      in a timely fashion. Notably: footsteps sound (done in TPlayer.Update)
-      relies on the fact that OnRelease of it's source will be reported
-      quickly after sound stopped. }
-    if SoundEngine.ALActive then
-    begin
-      TimeNow := Timer;
-      if TimerSeconds(TimeNow, LastSoundRefresh) > SoundRefreshDelay then
-      begin
-        LastSoundRefresh := TimeNow;
-        SoundEngine.Refresh;
-      end;
-    end;
   end;
 
   DoScheduledVisibleChangeNotification;

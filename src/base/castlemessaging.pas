@@ -55,15 +55,10 @@ type
     in @code(CastleEngineManifest.xml), so that the build tool automatically
     generates a proper Android / iOS library code, exporting the proper functions.
 
-    On Android, all the communication is asynchronous -- Pascal code sends a message,
-    and any answers from the Java code will come asynchronously later.
-    On iOS, communication happens synchronously -- when Pascal sends the message,
-    the relevant Objective-C code is executed immediately,
-    and messages from Objective-C code execute appropriate Pascal code immediately.
-    Take this into account, e.g. @link(TGooglePlayGames.OnSignedInChanged) callback
-    @italic(may) be executed right inside the @link(TGooglePlayGames.Initialize)
-    or @link(TGooglePlayGames.RequestSignedIn)
-    call on iOS, if there's no network communication necessary to answer.
+    All the communication is asynchronous on all platforms -- Pascal code sends a message,
+    and any answers will come asynchronously later. This means that e.g.
+    @link(TGameService.RequestSignedIn) will never call @link(OnSignedInChanged) right inside,
+    the call to @link(OnSignedInChanged) will always happen at a later time.
 
     This is used automatically by various engine classes like
     @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
@@ -71,10 +66,7 @@ type
   private
     {$ifdef ANDROID}
     JavaCommunicationCS: TCriticalSection;
-    ToJava: TCastleStringList;
-    FromJava: TCastleStringList;
-    { Called constantly to process messages from Java. }
-    procedure Update(Sender: TObject);
+    FromPascal: TCastleStringList;
     {$endif}
 
     {$ifdef IOS}
@@ -85,10 +77,11 @@ type
     {$endif}
 
     var
+      ToPascal: TCastleStringList;
       FOnReceive: TMessageReceivedEventList;
       FLog: boolean;
-    procedure SendStr(const Message: string);
-    procedure ReceiveStr(const Message: string);
+    { Called constantly to empty the ToPascal list. }
+    procedure Update(Sender: TObject);
   public
     constructor Create;
     destructor Destroy; override;
@@ -163,27 +156,31 @@ constructor TMessaging.Create;
 begin
   inherited;
   FOnReceive := TMessageReceivedEventList.Create;
+  ToPascal := TCastleStringList.Create;
 
   {$ifdef ANDROID}
-  ToJava := TCastleStringList.Create;
-  FromJava := TCastleStringList.Create;
   JavaCommunicationCS := TCriticalSection.Create;
-  { Only Android needs the Update to communicate. }
-  ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+  FromPascal := TCastleStringList.Create;
   {$endif ANDROID}
+
+  { Only register the Update on platforms where CastleMessaging is actually used. }
+  {$if defined(ANDROID) or defined(IOS)}
+  ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+  {$endif}
 end;
 
 destructor TMessaging.Destroy;
 begin
-  {$ifdef ANDROID}
   if ApplicationProperties(false) <> nil then
     ApplicationProperties(false).OnUpdate.Remove({$ifdef CASTLE_OBJFPC}@{$endif} Update);
+  FreeAndNil(ToPascal);
+  FreeAndNil(FOnReceive);
+
+  {$ifdef ANDROID}
   FreeAndNil(JavaCommunicationCS);
-  FreeAndNil(ToJava);
-  FreeAndNil(FromJava);
+  FreeAndNil(FromPascal);
   {$endif ANDROID}
 
-  FreeAndNil(FOnReceive);
   inherited;
 end;
 
@@ -197,64 +194,70 @@ const
       the UTF-8 multibyte stuff, as far as I know). }
   MessageDelimiter = #1;
 
-procedure TMessaging.SendStr(const Message: string);
-begin
-  { secure in case this is called from state Finish when things are finalized }
-  if Self = nil then Exit;
-
-  if CastleLog.Log and Log then
-    WritelnLog('Messaging', 'Pascal code sends a message to service: ' + SReadableForm(Message));
-
-  {$ifdef ANDROID}
-  JavaCommunicationCS.Acquire;
-  try
-    ToJava.Add(Message);
-  finally JavaCommunicationCS.Release end;
-  {$endif ANDROID}
-
-  {$ifdef IOS}
-  if Assigned(FReceiveMessageFromPascalCallback) then
-    FReceiveMessageFromPascalCallback(PCChar(Message))
-  else
-    WritelnWarning('Messaging', 'Message cannot be delivered, iOS application not finished loading yet');
-  {$endif IOS}
-end;
-
 procedure TMessaging.Send(const Strings: array of string);
+
+  procedure SendStr(const Message: string);
+  begin
+    { secure in case this is called from state Finish when things are finalized }
+    if Self = nil then Exit;
+
+    if CastleLog.Log and Log then
+      WritelnLog('Messaging', 'Pascal code sends a message to service: ' + SReadableForm(Message));
+
+    {$ifdef ANDROID}
+    JavaCommunicationCS.Acquire;
+    try
+      FromPascal.Add(Message);
+    finally JavaCommunicationCS.Release end;
+    {$endif ANDROID}
+
+    {$ifdef IOS}
+    if Assigned(FReceiveMessageFromPascalCallback) then
+      FReceiveMessageFromPascalCallback(PCChar(Message))
+    else
+      WritelnWarning('Messaging', 'Message cannot be delivered, iOS application not finished loading yet');
+    {$endif IOS}
+  end;
+
 begin
   if High(Strings) = -1 then Exit; // exit in case of empty list
   SendStr(GlueStrings(Strings, MessageDelimiter));
 end;
 
-procedure TMessaging.ReceiveStr(const Message: string);
-var
-  MessageAsList: TCastleStringList;
-begin
-  if CastleLog.Log and Log then
-    WritelnLog('Messaging', 'Pascal code received a message from service: ' + SReadableForm(Message));
-  if Message = '' then
-    WritelnWarning('Messaging', 'Pascal code received an empty message');
-
-  MessageAsList := SplitString(Message, MessageDelimiter);
-  try
-    OnReceive.ExecuteAll(MessageAsList);
-  finally FreeAndNil(MessageAsList) end;
-end;
-
-{$ifdef ANDROID}
 procedure TMessaging.Update(Sender: TObject);
+
+  procedure ReceiveStr(const Message: string);
+  var
+    MessageAsList: TCastleStringList;
+  begin
+    if CastleLog.Log and Log then
+      WritelnLog('Messaging', 'Pascal code received a message from service: ' + SReadableForm(Message));
+    if Message = '' then
+      WritelnWarning('Messaging', 'Pascal code received an empty message');
+
+    MessageAsList := SplitString(Message, MessageDelimiter);
+    try
+      OnReceive.ExecuteAll(MessageAsList);
+    finally FreeAndNil(MessageAsList) end;
+  end;
 
   function GetNextMessageToPascal: string;
   begin
+    {$ifdef ANDROID}
     JavaCommunicationCS.Acquire;
     try
-      if FromJava.Count <> 0 then
+    {$endif ANDROID}
+
+      if ToPascal.Count <> 0 then
       begin
-        Result := FromJava[0];
-        FromJava.Delete(0);
+        Result := ToPascal[0];
+        ToPascal.Delete(0);
       end else
         Result := '';
+
+    {$ifdef ANDROID}
     finally JavaCommunicationCS.Release end;
+    {$endif ANDROID}
   end;
 
 var
@@ -262,9 +265,11 @@ var
 begin
   Received := GetNextMessageToPascal;
   while Received <> '' do
+  begin
     ReceiveStr(Received);
+    Received := GetNextMessageToPascal;
+  end;
 end;
-{$endif ANDROID}
 
 class function TMessaging.BoolToStr(const Value: boolean): string;
 begin
@@ -310,7 +315,10 @@ end;
 
 procedure CGEApp_SendMessageToPascal(Message: PCChar); cdecl;
 begin
-  Messaging.ReceiveStr(AnsiString(PChar(Message)));
+  { For consistent behaviour with Android, do not receive and process messages synchronously. }
+  // Messaging.ReceiveStr(AnsiString(PChar(Message)));
+
+  Messaging.ToPascal.Add(AnsiString(PChar(Message)));
 end;
 {$endif IOS}
 
@@ -327,15 +335,15 @@ begin
     in weird state. }
   if (FMessaging <> nil) and
      (FMessaging.JavaCommunicationCS <> nil) and
-     (FMessaging.ToJava <> nil) and
-     (FMessaging.FromJava <> nil) then
+     (FMessaging.FromPascal <> nil) and
+     (FMessaging.ToPascal <> nil) then
   begin
     FMessaging.JavaCommunicationCS.Acquire;
     try
-      if FMessaging.ToJava.Count <> 0 then
+      if FMessaging.FromPascal.Count <> 0 then
       begin
-        Result := Env^^.NewStringUTF(Env, PChar(FMessaging.ToJava[0]));
-        FMessaging.ToJava.Delete(0);
+        Result := Env^^.NewStringUTF(Env, PChar(FMessaging.FromPascal[0]));
+        FMessaging.FromPascal.Delete(0);
       end else
         Result := Env^^.NewStringUTF(Env, nil);
 
@@ -346,7 +354,7 @@ begin
         JavaToNativeStr := Env^^.GetStringUTFChars(Env, JavaToNative,
           {$ifdef VER2} Dummy {$else} @Dummy {$endif});
         try
-          FMessaging.FromJava.Add(AnsiString(JavaToNativeStr)); // will copy characters
+          FMessaging.ToPascal.Add(AnsiString(JavaToNativeStr)); // will copy characters
         finally Env^^.ReleaseStringUTFChars(Env, JavaToNative, JavaToNativeStr) end;
       end;
     finally FMessaging.JavaCommunicationCS.Release end;

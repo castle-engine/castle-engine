@@ -112,10 +112,10 @@ if (( $# == 0 )); then
               '(' -iname 'x3dloadinternal*.pas' ')' -or \
               '(' -iname 'castleinternal*.pas' ')' -or \
               '(' -iname 'castleshapeinternal*.pas' ')' -or \
+              '(' -iname 'kraft.pas' ')' -or \
               '(' -iwholename '*/compatibility/*' ')' -or \
               '(' -iwholename '*/x3d/nodes_specification/*' ')' -or \
-              '(' -iwholename '*fonts/castleoutlinefont_*.pas' ')' -or \
-              '(' -iwholename '*fonts/castlebitmapfont_*.pas' ')' \
+              '(' -iwholename '*fonts/castletexturefont_*.pas' ')' \
             ')' \
             -print ')' >> "$TMP_PAS_LIST"
 else
@@ -185,7 +185,9 @@ pasdoc \
     --regexp='Could not resolve link "EReadError"' \
     --regexp='Could not resolve link "Exception"' \
     --regexp='Could not resolve link "EOSError"' \
-    --regexp='Could not resolve link "EInvalidArgument"'
+    --regexp='Could not resolve link "EInvalidArgument"' \
+    --regexp='Could not resolve link "EFOpenError"' \
+    --regexp='Could not resolve link "EStreamError"'
 
 # Not anymore:
 # We hide protected members, for now. Makes a cleaner documentation,

@@ -17,7 +17,7 @@
   TShaderPartNode = class;
   TShaderProgramNode = class;
 
-  { Shader language used for @link(TShaderPart.Language) and @link(TEffectPart.Language). }
+  { Shader language used for @link(TAbstractShaderNode.Language) and @link(TEffectNode.Language). }
   TShaderLanguage = (slDefault, slCG, slGLSL, slHLSL);
 
   { Base type for all node types that specify a programmable shader. }
@@ -216,6 +216,9 @@ const
   ShaderLanguageNames: array [TShaderLanguage] of string =
   ('', 'CG', 'GLSL', 'HLSL');
 
+  ShaderTypeNameX3D: array [TShaderType] of string =
+  ( 'VERTEX', 'GEOMETRY', 'FRAGMENT' );
+
 procedure TAbstractShaderNode.CreateNode;
 begin
   inherited;
@@ -229,8 +232,7 @@ begin
   FEventIsValid := TSFBoolEvent.Create(Self, 'isValid', false);
   AddEvent(FEventIsValid);
 
-  FFdLanguage := TSFStringEnum.Create(Self, 'language', ShaderLanguageNames, Ord(slDefault));
-   FdLanguage.Exposed := false;
+  FFdLanguage := TSFStringEnum.Create(Self, false, 'language', ShaderLanguageNames, Ord(slDefault));
    FdLanguage.ChangesAlways := [chEverything];
   AddField(FFdLanguage);
 
@@ -251,8 +253,7 @@ procedure TAbstractVertexAttributeNode.CreateNode;
 begin
   inherited;
 
-  FFdName := TSFString.Create(Self, 'name', '');
-  FFdName.Exposed := false;
+  FFdName := TSFString.Create(Self, false, 'name', '');
   AddField(FFdName);
 
   DefaultContainerField := 'attrib';
@@ -262,7 +263,7 @@ procedure TComposedShaderNode.CreateNode;
 begin
   inherited;
 
-  FFdParts := TMFNode.Create(Self, 'parts', [TShaderPartNode]);
+  FFdParts := TMFNode.Create(Self, true, 'parts', [TShaderPartNode]);
    FdParts.ChangesAlways := [chEverything];
   AddField(FFdParts);
 
@@ -296,12 +297,11 @@ procedure TFloatVertexAttributeNode.CreateNode;
 begin
   inherited;
 
-  FFdValue := TMFFloat.Create(Self, 'value', []);
+  FFdValue := TMFFloat.Create(Self, true, 'value', []);
   AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 
-  FFdNumComponents := TSFInt32.Create(Self, 'numComponents', 4);
-  FFdNumComponents.Exposed := false;
+  FFdNumComponents := TSFInt32.Create(Self, false, 'numComponents', 4);
   AddField(FFdNumComponents);
   { X3D specification comment: [1..4] }
 end;
@@ -321,7 +321,7 @@ procedure TMatrix3VertexAttributeNode.CreateNode;
 begin
   inherited;
 
-  FFdValue := TMFMatrix3f.Create(Self, 'value', []);
+  FFdValue := TMFMatrix3f.Create(Self, true, 'value', []);
   AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -341,7 +341,7 @@ procedure TMatrix4VertexAttributeNode.CreateNode;
 begin
   inherited;
 
-  FFdValue := TMFMatrix4f.Create(Self, 'value', []);
+  FFdValue := TMFMatrix4f.Create(Self, true, 'value', []);
   AddField(FFdValue);
   { X3D specification comment: (-Inf,Inf) }
 end;
@@ -361,7 +361,7 @@ procedure TPackagedShaderNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
@@ -384,7 +384,7 @@ procedure TProgramShaderNode.CreateNode;
 begin
   inherited;
 
-  FFdPrograms := TMFNode.Create(Self, 'programs', [TShaderProgramNode]);
+  FFdPrograms := TMFNode.Create(Self, true, 'programs', [TShaderProgramNode]);
   AddField(FFdPrograms);
 end;
 
@@ -403,14 +403,13 @@ procedure TShaderPartNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
    FdUrl.ChangesAlways := [chEverything]; { TODO - something more optimized }
-   FdUrl.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
+   FdUrl.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventUrlReceive);
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
-   FdType.Exposed := false;
+  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
    FdType.ChangesAlways := [chEverything];
   AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
@@ -512,12 +511,11 @@ procedure TShaderProgramNode.CreateNode;
 begin
   inherited;
 
-  FFdUrl := TMFString.Create(Self, 'url', []);
+  FFdUrl := TMFString.Create(Self, true, 'url', []);
   AddField(FFdUrl);
   { X3D specification comment: [URI] }
 
-  FFdType := TSFStringEnum.Create(Self, 'type', ShaderTypeNameX3D, Ord(stVertex));
-  FFdType.Exposed := false;
+  FFdType := TSFStringEnum.Create(Self, false, 'type', ShaderTypeNameX3D, Ord(stVertex));
   AddField(FFdType);
   { X3D specification comment: ["VERTEX"|"FRAGMENT"] }
 

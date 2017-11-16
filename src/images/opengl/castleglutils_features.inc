@@ -217,7 +217,7 @@ var
   { Enable OpenGL fixed-function rendering on desktops.
     This makes Gouraud-shaded shapes rendered using OpenGL fixed-function pipeline
     on desktops. It also allows you to use fixed-function pipeline calls in the
-    @link(TCastleWindow.OnRender) callback, @link(TUIControl.Render) override
+    @link(TCastleWindowCustom.OnRender) callback, @link(TUIControl.Render) override
     and related places.
     It also allows some deprecated rendering features like WindowPos to continue to work.
 

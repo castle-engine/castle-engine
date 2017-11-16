@@ -1289,7 +1289,7 @@ type
     function Release(const Event: TInputPressRelease): boolean; override;
 
     function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; override;
+      const Distance: Single; const CancelAction: boolean = false): boolean; override;
 
     { Called when pointing device moves.
       This may generate the continously-generated events like
@@ -1735,7 +1735,7 @@ type
       like
 
       @longCode(#
-        Scene.AnimationTimeSensor('my_animation').EventIsActive.OnReceive.Add(
+        Scene.AnimationTimeSensor('my_animation').EventIsActive.AddNotification(
           @AnimationIsActiveChanged);
       #)
 
@@ -1831,7 +1831,7 @@ type
 
       Note that this @bold(does not copy other scene attributes),
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
-      in @link(Attributes). }
+      in @link(TCastleScene.Attributes). }
     function Clone(const AOwner: TComponent): TCastleSceneCore;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
@@ -5358,7 +5358,7 @@ begin
 end;
 
 function TCastleSceneCore.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
+  const Distance: Single; const CancelAction: boolean): boolean;
 
   function AnchorActivate(Anchor: TAnchorNode): boolean;
   var
@@ -5458,7 +5458,8 @@ begin
               as TAbstractPointingDeviceSensorNode;
             ActiveSensor.Deactivate(NextEventTime);
             { If we're still over the sensor, generate touchTime for TouchSensor }
-            if (PointingDeviceOverItem <> nil) and
+            if (not CancelAction) and
+               (PointingDeviceOverItem <> nil) and
                (PointingDeviceOverItem^.State.PointingDeviceSensors.
                  IndexOf(ActiveSensor) <> -1) and
                (ActiveSensor is TTouchSensorNode) then

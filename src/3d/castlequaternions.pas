@@ -42,7 +42,7 @@ type
     const
       { Quaternion representing @italic("no rotation").
         Note: this is @italic(not) a quaternion filled with zeros
-        (the @link(Real) component is 1.0), instead this is a unit quaternion
+        (the @code(Data.Real) component is 1.0), instead this is a unit quaternion
         that correctly represents @italic("rotation by zero degrees/radians"). }
       ZeroRotation: TQuaternion = (Data: (Vector: (Data: (0, 0, 0)); Real: 1));
 
@@ -71,7 +71,7 @@ type
     function Rotate(const Point: TVector3): TVector3; overload;
     { @groupEnd }
 
-    { Quaternion conjugation. This is just a fancy name for negating @link(Vector).
+    { Quaternion conjugation. This is just a fancy name for negating @code(Data.Vector).
       @groupBegin }
     function Conjugate: TQuaternion;
     procedure ConjugateMe;

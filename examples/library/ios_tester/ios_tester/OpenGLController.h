@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -15,21 +15,11 @@
 
 #import <Foundation/Foundation.h>
 #import <GLKit/GLKit.h>
-#import "ViewpointsController.h"
-#import "FileOpenController.h"
 
-@interface OpenGLController : GLKViewController<UIPopoverControllerDelegate>
+@interface OpenGLController : GLKViewController
 {
-    ViewpointsController *m_viewpointsController;
-    FileOpenController *m_fileOpenController;
-    UIPopoverController *m_currentPopover;
 }
 
 @property (nonatomic, strong) NSString* fileToOpen;
-
-- (IBAction)OnTouchGesture:(UITapGestureRecognizer *)sender;
-- (IBAction)OnPanGesture:(UIPanGestureRecognizer *)sender;
-- (IBAction)OnPinchGesture:(UIPinchGestureRecognizer *)sender;
-
 
 @end

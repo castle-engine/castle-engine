@@ -17,6 +17,7 @@ default: html
 
 html:
 	./mk_docs.sh html
+	rm -Rf ../reference/html
 	mv html ../reference/
 	cp logo/castle_game_engine_icon.png ../reference/
 
@@ -82,6 +83,7 @@ SCP_OPTIONS=
 # uploading separate HTML files.
 .PHONY: upload
 upload: clean html
+	rm -Rf ../reference/html
 	mv ../reference/ html
 	tar czvf html.tar.gz html
 	scp $(SCP_OPTIONS) -r html.tar.gz $(SF_CONNECT)

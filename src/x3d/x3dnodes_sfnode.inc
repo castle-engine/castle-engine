@@ -54,21 +54,24 @@
       Suitable only for special cases. For example, in instantiated prototypes,
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    constructor Create(AParentNode: TX3DNode; const AName: string;
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); override;
+    constructor Create(const AParentNode: TX3DNode;
+      const AExposed: boolean; const AName: string;
       const AAllowedChildrenClasses: array of TX3DNodeClass;
-      AValue: TX3DNode = nil); overload;
+      const AValue: TX3DNode = nil); overload;
     { Constructor that takes a list of allowed children classes.
       Note that we copy the contents of AAllowedChildrenClasses,
       not the reference. }
-    constructor Create(AParentNode: TX3DNode; const AName: string;
-      AAllowedChildrenClasses: TX3DNodeClassesList;
-      AValue: TX3DNode = nil); overload;
+    constructor Create(const AParentNode: TX3DNode;
+      const AExposed: boolean; const AName: string;
+      const AAllowedChildrenClasses: TX3DNodeClassesList;
+      const AValue: TX3DNode = nil); overload;
     { Constructor that allows as children any implementor of given interface. }
-    constructor Create(AParentNode: TX3DNode; const AName: string;
-      AnAllowedChildrenInterface: TGUID;
-      AValue: TX3DNode = nil); overload;
+    constructor Create(const AParentNode: TX3DNode;
+      const AExposed: boolean; const AName: string;
+      const AnAllowedChildrenInterface: TGUID;
+      const AValue: TX3DNode = nil); overload;
     destructor Destroy; override;
 
     { Default value of SFNode field.
@@ -189,8 +192,8 @@
 
 { TSFNode --------------------------------------------------------------------- }
 
-constructor TSFNode.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
+constructor TSFNode.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
   inherited;
   Value := nil;
@@ -202,11 +205,12 @@ begin
   FDefaultValueExists := false;
 end;
 
-constructor TSFNode.Create(AParentNode: TX3DNode; const AName: string;
+constructor TSFNode.Create(const AParentNode: TX3DNode;
+  const AExposed: boolean; const AName: string;
   const AAllowedChildrenClasses: array of TX3DNodeClass;
-  AValue: TX3DNode);
+  const AValue: TX3DNode);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
@@ -221,22 +225,24 @@ begin
   AssignDefaultValueFromValue;
 end;
 
-constructor TSFNode.Create(AParentNode: TX3DNode; const AName: string;
-  AAllowedChildrenClasses: TX3DNodeClassesList;
-  AValue: TX3DNode);
+constructor TSFNode.Create(const AParentNode: TX3DNode;
+  const AExposed: boolean; const AName: string;
+  const AAllowedChildrenClasses: TX3DNodeClassesList;
+  const AValue: TX3DNode);
 begin
-  Create(AParentNode, AName, [], AValue);
+  Create(AParentNode, AExposed, AName, [], AValue);
 
   Assert(AllowedChildren = acClasses);
   Assert(AllowedChildrenClasses <> nil);
   AllowedChildrenClasses.Assign(AAllowedChildrenClasses);
 end;
 
-constructor TSFNode.Create(AParentNode: TX3DNode; const AName: string;
-  AnAllowedChildrenInterface: TGUID;
-  AValue: TX3DNode);
+constructor TSFNode.Create(const AParentNode: TX3DNode;
+  const AExposed: boolean; const AName: string;
+  const AnAllowedChildrenInterface: TGUID;
+  const AValue: TX3DNode);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
 
   { FParentNode is just a copy of inherited (TX3DFieldOrEvent) FParentNode,
     but casted to TX3DNode }
@@ -544,10 +550,9 @@ procedure TSFNode.Send(const AValue: TX3DNode);
 var
   FieldValue: TSFNode;
 begin
-  { We construct using CreateUndefined constructor,
-    to have AllowedChildren = acAll }
-  FieldValue := TSFNode.CreateUndefined(ParentNode, X3DName,
-    false { Exposed = false, because no need to be true });
+  { We construct using CreateUndefined constructor,to have AllowedChildren = acAll }
+  { AExposed = false below, because not needed otherwise. }
+  FieldValue := TSFNode.CreateUndefined(ParentNode, false, X3DName);
   try
     FieldValue.Value := AValue;
     Send(FieldValue);

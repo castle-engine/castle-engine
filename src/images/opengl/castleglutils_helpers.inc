@@ -133,8 +133,8 @@ var
 
 { ---------------------------------------------------------------------------- }
 
-{ }
-procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
+{ Enable or disable given OpenGL flag. }
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 
 {$ifndef OpenGLES}
 
@@ -230,7 +230,7 @@ procedure glFreeBuffer(var Buffer: TGLuint);
     glDepthMask(Writeable);
     glColorMask(Writeable, Writeable, Writeable, Writeable);
   #) }
-procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
+procedure glSetDepthAndColorWriteable(const Writeable: boolean);
 
 { Global position for drawing 2D stuff.
   @deprecated Do this use this.
@@ -393,9 +393,9 @@ end;
 
 { Various helpers ------------------------------------------------------------ }
 
-procedure GLSetEnabled(value: TGLenum; isEnabled: boolean);
+procedure GLSetEnabled(Value: TGLenum; IsEnabled: boolean);
 begin
-  if isEnabled then glEnable(value) else glDisable(value);
+  if IsEnabled then glEnable(Value) else glDisable(Value);
 end;
 
 {$ifndef OpenGLES}
@@ -572,10 +572,16 @@ begin
   end;
 end;
 
-procedure glSetDepthAndColorWriteable(Writeable: TGLboolean);
+procedure glSetDepthAndColorWriteable(const Writeable: boolean);
+var
+  B: TGLboolean;
 begin
-  glDepthMask(Writeable);
-  glColorMask(Writeable, Writeable, Writeable, Writeable);
+  if Writeable then
+    B := GL_TRUE
+  else
+    B := GL_FALSE;
+  glDepthMask(B);
+  glColorMask(B, B, B, B);
 end;
 
 function GLEnableTexture(const Target: TEnableTextureTarget): boolean;

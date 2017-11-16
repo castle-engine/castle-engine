@@ -1,5 +1,5 @@
 /*
-  Copyright 2013-2014 Jan Adamec, Michalis Kamburelis.
+  Copyright 2013-2017 Jan Adamec, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -14,7 +14,9 @@
 */
 
 #import "OpenGLController.h"
+#import "FileOpenController.h"
 #import "ViewInfoController.h"
+#import "ViewpointsController.h"
 #import "Options.h"
 #include "castleengine.h"
 
@@ -22,7 +24,7 @@
 
 //#define USE_GESTURE_RECOGNIZERS
 
-@interface OpenGLController ()
+@interface OpenGLController () <ViewpointCtlDelegate, FileOpenCtlDelegate>
 {
     bool m_bIsPanning;
     CGPoint m_ptPanningMousePos;
@@ -75,7 +77,6 @@
 
     // create toolbar controls
     m_segmNavigation = [[UISegmentedControl alloc] initWithItems:@[@"Walk", @"Fly", @"Examine", @"Turntable"]];
-    m_segmNavigation.segmentedControlStyle = UISegmentedControlStyleBar;
     m_segmNavigation.selectedSegmentIndex = 0;
     [m_segmNavigation addTarget:self
                          action:@selector(OnNavigationSegmentChanged:)
@@ -83,17 +84,17 @@
 
     UIBarButtonItem *itemSegm = [[UIBarButtonItem alloc] initWithCustomView:m_segmNavigation];
 
-    m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPrev:)];
-    m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointNext:)];
-    UIBarButtonItem *btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnViewpointPopup:)];
+    m_btnViewpointPrev = [[UIBarButtonItem alloc] initWithTitle:@" < " style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointPrev:)];
+    m_btnViewpointNext = [[UIBarButtonItem alloc] initWithTitle:@" > " style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointNext:)];
+    UIBarButtonItem *btnViewpointPopup = [[UIBarButtonItem alloc] initWithTitle:@"Viewpoints" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnViewpointPopup:)];
 
-    UIBarButtonItem *btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnOptions:)];
+    UIBarButtonItem *btnOptions = [[UIBarButtonItem alloc] initWithTitle:@"Options" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOptions:)];
 
     UIButton *btnInfo = [UIButton buttonWithType:UIButtonTypeInfoLight];
     [btnInfo addTarget:self action:@selector(OnBtnInfo:) forControlEvents:UIControlEventTouchUpInside];
     UIBarButtonItem *btnBarInfo =[[UIBarButtonItem alloc] initWithCustomView:btnInfo];
 
-    UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open File" style:UIBarButtonItemStyleBordered target:self action:@selector(OnBtnOpenFile:)];
+    UIBarButtonItem *btnOpenFile = [[UIBarButtonItem alloc] initWithTitle:@"Open" style:UIBarButtonItemStylePlain target:self action:@selector(OnBtnOpenFile:)];
 
     self.navigationItem.leftBarButtonItem = btnOpenFile;
     self.navigationItem.rightBarButtonItems = @[btnBarInfo, btnOptions, m_btnViewpointNext, btnViewpointPopup, m_btnViewpointPrev, itemSegm];
@@ -153,10 +154,8 @@
     // see http://stackoverflow.com/questions/1567134/how-can-i-get-a-writable-path-on-the-iphone/1567147#1567147
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
-    // see http://stackoverflow.com/questions/2996657/converting-an-nsstring-to-char
-    char *libraryDirectoryAsChar = strdup([libraryDirectory cStringUsingEncoding:[NSString defaultCStringEncoding]]);
 
-    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, libraryDirectoryAsChar);
+    CGE_Open(ecgeofLog, m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, [libraryDirectory fileSystemRepresentation]);
     CGE_SetUserInterface(true, 115 * m_fScale);
 
     Options *opt = [Options sharedOptions];
@@ -215,7 +214,7 @@
 
         CGPoint pt = [m_arrTouches[i] locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_Motion(pt.x, pt.y, i);
+        CGE_Motion(pt.x, pt.y, (int)i);
     }
 
 #endif
@@ -324,7 +323,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseDown(pt.x, pt.y, true, nFingerIdx);
+        CGE_MouseDown(pt.x, pt.y, true, (int)nFingerIdx);
     }
 
     [super touchesBegan:touches withEvent:event];
@@ -342,7 +341,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseUp(pt.x, pt.y, true, nFingerIdx, false);
+        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
     }
 
     [super touchesEnded:touches withEvent:event];
@@ -360,7 +359,7 @@
 
         CGPoint pt = [touch locationInView:self.view];
         [self RecalcTouchPosForCGE:&pt];
-        CGE_MouseUp(pt.x, pt.y, true, nFingerIdx, false);
+        CGE_MouseUp(pt.x, pt.y, true, (int)nFingerIdx, false);
     }
 
     [super touchesCancelled:touches withEvent:event];
@@ -414,7 +413,7 @@
 //-----------------------------------------------------------------
 - (void)OnNavigationSegmentChanged:(id)sender
 {
-    int nSegment = m_segmNavigation.selectedSegmentIndex;
+    NSInteger nSegment = m_segmNavigation.selectedSegmentIndex;
     enum ECgeNavigationType eNav;
     switch (nSegment) {
         case 0: eNav = ecgenavWalk; break;
@@ -451,12 +450,8 @@
 //-----------------------------------------------------------------
 - (void)OnBtnViewpointPopup:(id)sender
 {
-    if (m_currentPopover!=nil) return;
-
-    // show popover
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    m_viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"ViewpointsPopover"];
-    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_viewpointsController];
+    ViewpointsController* viewpointsController = [storyboard instantiateViewControllerWithIdentifier:@"ViewpointsPopover"];
 
     // fill with viewpoint names
     NSMutableArray *arrViewpoints = [[NSMutableArray alloc] initWithCapacity:m_nViewpointCount];
@@ -468,71 +463,79 @@
         NSString *sName = [NSString stringWithUTF8String:szName];
         [arrViewpoints addObject:sName];
     }
+    
+    viewpointsController.arrayViewpoints = arrViewpoints;
+    viewpointsController.selectedViewpoint = m_nCurrentViewpoint;
+    viewpointsController.delegate = self;
 
-    m_viewpointsController.arrayViewpoints = arrViewpoints;
-    m_viewpointsController.selectedViewpoint = m_nCurrentViewpoint;
-    m_viewpointsController.popover = m_currentPopover;
-
-    [m_currentPopover setDelegate:self];
-    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        viewpointsController.modalPresentationStyle = UIModalPresentationPopover;
+        viewpointsController.popoverPresentationController.barButtonItem = sender;
+        [self presentViewController:viewpointsController animated:YES completion:nil];
+    }
+    else
+    {
+        UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:viewpointsController];
+        [self presentViewController:navCtl animated:YES completion:nil];
+    }
 }
 
 //-----------------------------------------------------------------
-- (void)popoverControllerDidDismissPopover:(UIPopoverController *)popoverController
+- (void)viewpointDidChange:(int)nNewViewpoint
 {
-    if (popoverController!=m_currentPopover)
-        return;
-    m_currentPopover = nil;
-
-    if (m_viewpointsController!=nil)    // viewpoint selected
-    {
-        m_nCurrentViewpoint = m_viewpointsController.selectedViewpoint;
-        CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
-        [self updateViewpointButtons];
-
-        m_viewpointsController = nil;
-    }
-
-    if (m_fileOpenController!=nil)      // scene file selected
-    {
-        NSString *sFile = m_fileOpenController.selectedFile;
-        m_fileOpenController = nil;
-
-        if (sFile!=nil && sFile.length > 0)
-        {
-            self.fileToOpen = sFile;
-            [self LoadSceneFile];
-        }
-    }
+    m_nCurrentViewpoint = nNewViewpoint;
+    CGE_MoveToViewpoint(m_nCurrentViewpoint, true);
+    [self updateViewpointButtons];
 }
 
 //-----------------------------------------------------------------
 - (void)OnBtnOpenFile:(id)sender
 {
-    if (m_currentPopover!=nil) return;
-
-    // show popover
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    m_fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
-    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:m_fileOpenController];
+    FileOpenController* fileOpenController = [storyboard instantiateViewControllerWithIdentifier:@"FileOpenPopover"];
+    fileOpenController.delegate = self;
+    
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        fileOpenController.modalPresentationStyle = UIModalPresentationPopover;
+        fileOpenController.popoverPresentationController.barButtonItem = sender;
+        [self presentViewController:fileOpenController animated:YES completion:nil];
+    }
+    else
+    {
+        UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:fileOpenController];
+        [self presentViewController:navCtl animated:YES completion:nil];
+    }
+}
 
-    m_fileOpenController.popover = m_currentPopover;
-
-    [m_currentPopover setDelegate:self];
-    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+//-----------------------------------------------------------------
+- (void)fileSelectedToOpen:(NSString *)selectedFile
+{
+    if (selectedFile != nil && selectedFile.length > 0)
+    {
+        self.fileToOpen = selectedFile;
+        [self LoadSceneFile];
+    }
 }
 
 //-----------------------------------------------------------------
 - (void)OnBtnOptions:(id)sender
 {
-    if (m_currentPopover!=nil) return;
-
     UIStoryboard *storyboard = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
-    UIViewController *viewctl = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
-    m_currentPopover = [[UIPopoverController alloc] initWithContentViewController:viewctl];
+    UIViewController* ctl = [storyboard instantiateViewControllerWithIdentifier:@"OptionsPopover"];
 
-    [m_currentPopover setDelegate:self];
-    [m_currentPopover presentPopoverFromBarButtonItem:sender permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+    if (UIDevice.currentDevice.userInterfaceIdiom == UIUserInterfaceIdiomPad)
+    {
+        ctl.modalPresentationStyle = UIModalPresentationPopover;
+        ctl.popoverPresentationController.barButtonItem = sender;
+        [self presentViewController:ctl animated:YES completion:nil];
+    }
+    else
+    {
+        UINavigationController *navCtl = [[UINavigationController alloc] initWithRootViewController:ctl];
+        [self presentViewController:navCtl animated:YES completion:nil];
+    }
 }
 
 //-----------------------------------------------------------------

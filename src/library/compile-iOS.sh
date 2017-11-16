@@ -21,8 +21,12 @@ FPC_ARM_COMPILER="fpc -Parm"
 FPC_ARM64_COMPILER="fpc -Paarch64"
 
 # debug or release (for the exact meaning, see ../../castle-fpc.cfg)
-FPC_CONFIG="-dDEBUG"
-#FPC_CONFIG="-dRELEASE"
+#FPC_CONFIG="-dDEBUG"
+FPC_CONFIG="-dRELEASE"
+
+# You can pass additional FPC parameters as this script parameters
+# So you can call, for example, 'compile-iOS.sh -dCASTLE_ENGINE_LGPL'
+FPC_CONFIG="${FPC_CONFIG} $@"
 
 # Functions ------------------------------------------------------------------
 

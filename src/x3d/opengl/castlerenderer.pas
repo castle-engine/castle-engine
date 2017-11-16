@@ -13,12 +13,13 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D low-level rendering (TGLRenderer).
-  You usually don't want to use this renderer directly, you should
-  rather use TCastleScene that wraps this renderer and gives you simple
+{ VRML / X3D low-level rendering (TGLRenderer).
+  You should never use this renderer directly,
+  you should always use TCastleScene that wraps this renderer and gives you simple
   method to render whole scene.
+  TODO: this unit should be renamed to Internal at some point.
 
-  The overview of this class can also be found in engine documentation
+  The overview of the renderer can also be found in engine documentation
   [http://castle-engine.sourceforge.net/engine_doc.php]
   in chapter "OpenGL rendering", section "Basic OpenGL rendering".
 
@@ -89,57 +90,17 @@
   This allows you to customize rendering by using normal OpenGL commands.
 
   @unorderedList(
-    @item(First of all, current matrix values (MODELVIEW,
-      PROJECTION and TEXTURE) affect our rendering as usual.
-
-      So you can move the rendered VRML model by normal OpenGL
-      matrix transformations, you can even affect rendered texture coords
-      by your own texture matrix etc.)
-
     @item(Current glPolygonMode.
-
-      Of course for normal rendering you want to render polygons
-      (both sides, GL_FRONT_AND_BACK) with GL_FILL. But you can change
-      it to get wireframe model view.)
+      This is used by @link(TCastleScene) to optionally render wireframe.
+    )
 
     @item(Blending settings (GL_BLEND enabled state, glBlendFunc),
       and glDepthMask.
 
-      These are typically controlled by higher-level renderer (Scene)
-      to allow rendering scenes with both tranparent and opaque objects.
-      Only such higher-level renderer may control them, as only it controls
-      the order of rendering shapes, which is important for rendering
-      tranparent shapes.)
-
-    @item(Current GL_FOG_HINT.
-
-      Just like for any other OpenGL program, you may want to set this
-      to GL_NICEST (if you have to render models that may look bad
-      when fog is interpolated without perspective correction).)
-
-    @item(glFrontFace is assumed to be CCW (OpenGL default) but not manipulated
-      by this unit anywhere.
-
-      So our normals passed to OpenGL always point from CCW side.
-      Even if you supplied in VRML file normals pointing from CW
-      (indicated e.g. by IndexedFaceSet.ccw = FALSE field in VRML 97),
-      we will internally invert them and pass inverted ones to OpenGL.
-      And when culling faces, we switch using @code(glCullFace(
-      GL_BACK / GL_FRONT)), not by switching front face.
-
-      Why so much work was done to always work with front face = CCW assumption?
-      Because this is very handy when you render mirrors by using
-      @code(Scale(1, 1, -1)) trick. See
-      [http://www.opengl.org/resources/code/samples/mjktips/Reflect.html]
-      and example program
-      @code(castle_game_engine/examples/vrml/plane_mirror_and_shadow.lpr).
-      With such strange scale, CCW and CW invert places. Sides that were
-      CCW normally are now CW. This means that you want to call @code(glFrontFace(GL_CW))
-      temporarily when rendering scene in the mirror. This way scene in the mirror
-      will have correct normals and backface culling.
-
-      Since we don't touch @code(glFrontFace) anywhere, this is possible to you.
-      And you can reuse resources for the scene in the mirror.
+      This is used by @link(TCastleScene) to render
+      scenes with a mix of tranparent and opaque objects.
+      Only @link(TCastleScene) deals with it (not this renderer),
+      as doing it correctly requires ordering the shapes.
     )
   )
 
@@ -212,8 +173,7 @@ type
     const Vert: TVector3) of object;
 
   TShadersRendering = (srDisable, srWhenRequired, srAlways);
-  { Faces to cull (make invisible) during VRML/X3D rendering. }
-  TCullFace = (cfNone, cfCW, cfCCW);
+
   TBumpMapping = CastleRendererInternalShader.TBumpMapping;
   TLightRenderEvent = CastleRendererInternalLights.TLightRenderEvent;
 
@@ -453,7 +413,7 @@ type
     property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
 
     { Whether to use Phong shading by default for all shapes.
-      Note that each shape may override it by @link(TShapeNode.Shading) field. }
+      Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
     property PhongShading: boolean read FPhongShading write SetPhongShading;
 
     { Custom GLSL shader to use for the whole scene.
@@ -881,7 +841,6 @@ type
       used by RenderShapeEnd. }
     TextureTransformUnitsUsedMore: TLongIntList;
 
-    FCullFace: TCullFace;
     FSmoothShading: boolean;
     FFixedFunctionLighting: boolean;
     FFixedFunctionAlphaTest: boolean;
@@ -909,15 +868,11 @@ type
       context capabilities to see if bump mapping can be used. }
     function BumpMapping: TBumpMapping;
 
-    procedure SetCullFace(const Value: TCullFace);
     procedure SetSmoothShading(const Value: boolean);
     procedure SetFixedFunctionLighting(const Value: boolean);
     procedure SetFixedFunctionAlphaTest(const Value: boolean);
     procedure SetLineType(const Value: TLineType);
 
-    { Change glCullFace and GL_CULL_FACE enabled by this property.
-      This way we avoid redundant state changes. }
-    property CullFace: TCullFace read FCullFace write SetCullFace;
     { Change glShadeModel by this property. }
     property SmoothShading: boolean read FSmoothShading write SetSmoothShading;
     { Change GL_LIGHTING enabled by this property. }
@@ -2510,10 +2465,6 @@ begin
   end else
     LineType := ltSolid;
 
-  { Initialize FCullFace, make sure OpenGL state is set as appropriate }
-  FCullFace := cfNone;
-  glDisable(GL_CULL_FACE);
-
   GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
 
   if EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
@@ -2656,6 +2607,9 @@ begin
 
   RenderCleanState(false);
 
+  { restore defaults }
+  RenderContext.CullFace := false;
+  RenderContext.FrontFaceCcw := true;
   TGLSLProgram.Current := nil;
 end;
 
@@ -3113,31 +3067,23 @@ var
         begin
           Assert(ClipPlanesEnabled < GLFeatures.MaxClipPlanes);
 
-          { Nope, you should *not* multiply
-            ClipPlane^.Transform * plane yourself.
-            The plane equation cannot be transformed in the same way
-            as you transform normal 4D vertex/direction (Matrix * vector).
-            E.g. translating a plane this way, with a standard translation
-            matrix, would make nonsense plane as a result.
-            This much I understand :)
+          { Note: do *not* multiply
 
-            So what OpenGL does? Some voodoo to allow you to specify
-            plane equation in local (in current modelview) space,
-            and not worry about the math :)
-            http://www2.imm.dtu.dk/~jab/texgen.pdf sheds some light on this.
+              ClipPlane^.Transform * ClipPlane^.Node.Plane
+
+            The plane equation cannot be transformed like that,
+            it's not a 4D vertex / direction.
+
+            OpenGL does smart calculatations such that we can
+            provide modelview matrix, and then specify
+            plane equation in the local space.
+            See e.g. http://www2.imm.dtu.dk/~jab/texgen.pdf .
             glClipPlane docs say that glClipPlane is multiplied by
             the *inverse* of modelview. The wording is crucial here:
             plane is multiplied by the matrix, not the other way around. }
 
-          {$ifndef OpenGLES} // TODO-es
-          glPushMatrix;
-            glMultMatrix(ClipPlane^.Transform);
-            glClipPlane(GL_CLIP_PLANE0 + ClipPlanesEnabled,
-              Vector4Double(ClipPlane^.Node.FdPlane.Value));
-            Shader.EnableClipPlane(ClipPlanesEnabled);
-          glPopMatrix;
-          {$endif}
-
+          Shader.EnableClipPlane(ClipPlanesEnabled,
+            ClipPlane^.Transform, ClipPlane^.Node.FdPlane.Value);
           Inc(ClipPlanesEnabled);
 
           { No more clip planes possible, regardless if there are any more
@@ -3684,26 +3630,6 @@ begin
     UpdateGeneratedShadowMap(TGeneratedShadowMapNode(TextureNode)) else
   if TextureNode is TRenderedTextureNode then
     UpdateRenderedTexture(TRenderedTextureNode(TextureNode));
-end;
-
-procedure TGLRenderer.SetCullFace(const Value: TCullFace);
-begin
-  if FCullFace <> Value then
-  begin
-    FCullFace := Value;
-
-    { We do not want to touch OpenGL glFrontFace (this will be useful
-      for planar mirrors, where caller should be able to control glFrontFace).
-      So we use only glCullFace. We assume that glFrontFace = always CCW,
-      so we know how to call glCullFace. }
-
-    case Value of
-      cfNone: glDisable(GL_CULL_FACE);
-      cfCW:  begin glCullFace(GL_BACK);  glEnable(GL_CULL_FACE); end;
-      cfCCW: begin glCullFace(GL_FRONT); glEnable(GL_CULL_FACE); end;
-      else raise EInternalError.Create('SetCullFace:Value?');
-    end;
-  end;
 end;
 
 procedure TGLRenderer.SetSmoothShading(const Value: boolean);

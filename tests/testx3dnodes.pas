@@ -2115,7 +2115,7 @@ begin
     G.RemoveChildren(S);
     AssertEquals(2, G.FdChildren.Count);
 
-    FieldToSend := TMFNode.CreateUndefined(nil, 'temporary', false);
+    FieldToSend := TMFNode.CreateUndefined(nil, false, 'temporary');
     try
       S := TShapeNode.Create;
       FieldToSend.Add(S);
@@ -2127,7 +2127,7 @@ begin
       AssertEquals(4, G.FdChildren.Count);
     finally FreeAndNil(FieldToSend) end;
 
-    FieldToSend := TMFNode.CreateUndefined(nil, 'temporary', false);
+    FieldToSend := TMFNode.CreateUndefined(nil, false, 'temporary');
     try
       M := TMaterialNode.Create;
       FieldToSend.Add(M);

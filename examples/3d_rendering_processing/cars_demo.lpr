@@ -88,6 +88,10 @@ begin
   Appearance := TAppearanceNode.Create;
   Appearance.Material := Material;
 
+  { Note: you could use TBoxNode.CreateTransform shortcut method
+    to create Box1, Shape1, Transform1 in one instruction.
+    But we show the longer version below, as it's easier to understand. }
+
   Box1 := TBoxNode.Create('box_1_geometry');
   Box1.Size := Vector3(0.5, WallHeight, RoadBox.Size.Z);
 

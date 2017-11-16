@@ -64,6 +64,7 @@ var
   Dragon: T2DScene;
   CameraView3D: TCastleButton;
   CameraFollowsDragon: TCastleButton;
+  ShowAchievements: TCastleButton;
   DragonFlying: boolean;
   DragonFlyingTarget: TVector2;
   Status: TCastleLabel;
@@ -72,6 +73,7 @@ type
   TButtonsHandler = class
     class procedure CameraView3DClick(Sender: TObject);
     class procedure CameraFollowsDragonClick(Sender: TObject);
+    class procedure ShowAchievementsClick(Sender: TObject);
   end;
 
 const
@@ -216,6 +218,16 @@ begin
   CameraFollowsDragon.PaddingHorizontal := ButtonPadding;
   CameraFollowsDragon.PaddingVertical := ButtonPadding;
   Window.Controls.InsertFront(CameraFollowsDragon);
+
+  ShowAchievements := TCastleButton.Create(Window);
+  ShowAchievements.Caption := 'Show Achievements (on Android or iOS)';
+  ShowAchievements.OnClick := @TButtonsHandler(nil).ShowAchievementsClick;
+  ShowAchievements.Toggle := true;
+  ShowAchievements.Left := 10;
+  ShowAchievements.Bottom := 190;
+  ShowAchievements.PaddingHorizontal := ButtonPadding;
+  ShowAchievements.PaddingVertical := ButtonPadding;
+  Window.Controls.InsertFront(ShowAchievements);
 
   Status := TCastleLabel.Create(Window);
   Status.Padding := 5;
@@ -415,6 +427,11 @@ begin
     SceneManager.Camera.AnimateTo(Pos, Dir, Up, 1.0);
     GameService.Achievement(AchievementClickFollow);
   end;
+end;
+
+class procedure TButtonsHandler.ShowAchievementsClick(Sender: TObject);
+begin
+  GameService.ShowAchievements;
 end;
 
 function MyGetApplicationName: string;

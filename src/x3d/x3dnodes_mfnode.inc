@@ -64,18 +64,21 @@
       Suitable only for special cases. For example, in instantiated prototypes,
       we must initially just allow all children, otherwise valid prototypes
       with SFNode/MFNode would cause warnings when parsing. }
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); override;
-    constructor Create(AParentNode: TX3DNode; const AName: string;
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); override;
+    constructor Create(const AParentNode: TX3DNode;
+      const AExposed: boolean; const AName: string;
       const AAllowedChildrenClasses: array of TX3DNodeClass); overload;
     { Constructor that takes a list of allowed children classes.
       Note that we copy the contents of AAllowedChildrenClasses,
       not the reference. }
-    constructor Create(AParentNode: TX3DNode; const AName: string;
-      AAllowedChildrenClasses: TX3DNodeClassesList); overload;
+    constructor Create(const AParentNode: TX3DNode;
+      const AExposed: boolean; const AName: string;
+      const AAllowedChildrenClasses: TX3DNodeClassesList); overload;
     { Constructor that allows as children any implementor of given interface. }
-    constructor Create(AParentNode: TX3DNode; const AName: string;
-      AnAllowedChildrenInterface: TGUID); overload;
+    constructor Create(const AParentNode: TX3DNode;
+      const AExposed: boolean; const AName: string;
+      const AnAllowedChildrenInterface: TGUID); overload;
     destructor Destroy; override;
 
     { TODO:
@@ -179,8 +182,8 @@
 
 { TMFNode -------------------------------------------------------------------- }
 
-constructor TMFNode.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
+constructor TMFNode.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
   inherited;
   FItems := TX3DNodeList.Create(false);
@@ -192,10 +195,11 @@ begin
   FDefaultValueExists := false;
 end;
 
-constructor TMFNode.Create(AParentNode: TX3DNode; const AName: string;
+constructor TMFNode.Create(const AParentNode: TX3DNode;
+  const AExposed: boolean; const AName: string;
   const AAllowedChildrenClasses: array of TX3DNodeClass);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
   FParentNode := AParentNode;
 
   AllowedChildren := acClasses;
@@ -209,20 +213,22 @@ begin
   DefaultValueExists := true;
 end;
 
-constructor TMFNode.Create(AParentNode: TX3DNode; const AName: string;
-  AAllowedChildrenClasses: TX3DNodeClassesList);
+constructor TMFNode.Create(const AParentNode: TX3DNode;
+  const AExposed: boolean; const AName: string;
+  const AAllowedChildrenClasses: TX3DNodeClassesList);
 begin
-  Create(AParentNode, AName, []);
+  Create(AParentNode, AExposed, AName, []);
 
   Assert(AllowedChildren = acClasses);
   Assert(AllowedChildrenClasses <> nil);
   AllowedChildrenClasses.Assign(AAllowedChildrenClasses);
 end;
 
-constructor TMFNode.Create(AParentNode: TX3DNode; const AName: string;
-  AnAllowedChildrenInterface: TGUID);
+constructor TMFNode.Create(const AParentNode: TX3DNode;
+  const AExposed: boolean; const AName: string;
+  const AnAllowedChildrenInterface: TGUID);
 begin
-  inherited Create(AParentNode, AName);
+  inherited Create(AParentNode, AExposed, AName);
   FParentNode := AParentNode;
 
   AllowedChildren := acInterface;
@@ -594,7 +600,8 @@ begin
   { implementation just like TX3DSimpleMultField.Send }
   if SendsByEvent then
   begin
-    FieldValue := TMFNode.CreateUndefined(ParentNode, X3DName, true);
+    { AExposed = false below, because not needed otherwise. }
+    FieldValue := TMFNode.CreateUndefined(ParentNode, false, X3DName);
     try
       FieldValue.Items.AddRange(AValue);
       Send(FieldValue);
@@ -618,7 +625,7 @@ end;
 //   { This is a copy-paste of implementation of Send(const AValue: array of TItem) }
 //   if SendsByEvent then
 //   begin
-//     FieldValue := TMFNode.CreateUndefined(ParentNode, X3DName, true);
+//     FieldValue := TMFNode.CreateUndefined(ParentNode, false, X3DName);
 //     try
 //       FieldValue.Items.AddRange(AValue);
 //       Send(FieldValue);

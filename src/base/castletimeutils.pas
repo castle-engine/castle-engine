@@ -154,11 +154,24 @@ const
   and it ignores things like waiting for hard disk (I/O).
   This is possible on Unix thanks to the @code(clock) API,
   see http://www.gnu.org/software/libc/manual/html_node/Processor-And-CPU-Time.html .
-  On other platforms (like Windows),
-  this simply measures real time that passed.
+  On other platforms (like Windows), this simply measures real time that passed.
 
-  You take two ProcessTimer values, subtract them with @link(ProcessTimerSeconds),
-  this is the time that passed -- in seconds. }
+  You usually take two ProcessTimer values,
+  subtract them with @link(ProcessTimerSeconds),
+  and this is the time that passed -- in seconds. Like this:
+
+  @longCode(#
+  var
+    TimeStart: TProcessTimerResult;
+    Seconds: TFloatTime;
+  begin
+    TimeStart := ProcessTimer;
+    // ...  do something time-consuming ...
+    Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
+    Writeln('Seconds passed (in this process): ', Seconds:1:2);
+  end;
+  #)
+}
 function ProcessTimer: TProcessTimerResult;
 
 function ProcessTimerNow: TProcessTimerResult; deprecated 'use ProcessTimer';
@@ -204,11 +217,11 @@ type
     Value: Int64;
   end;
 
-{ Current time, to measure real time passed.
-  This may be a time local to this process. It is a "real" time,
-  which means that subtracting two values measures the actual time
-  that passed between two events. Contrast this with @link(ProcessTimer)
-  and friends that try to measure only CPU time used by the current process.
+{ Timer to measure (real) time passed during some operations.
+  It is a "real" time, which means that subtracting two values measures
+  the actual time that passed between two events.
+  Contrast this with @link(ProcessTimer) that tries to measure
+  only CPU time used by the current process.
 
   Call Timer twice, and calculate the difference (in seconds)
   using the TimerSeconds. Like this:

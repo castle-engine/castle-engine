@@ -225,7 +225,7 @@ procedure TAbstractCubicBezierInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FFdControlPoints := TMFVec4f.Create(Self, 'controlPoints', []);
+  FFdControlPoints := TMFVec4f.Create(Self, true, 'controlPoints', []);
   AddField(FFdControlPoints);
 end;
 
@@ -295,10 +295,10 @@ procedure TCubicBezier2DOrientationInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FFdKeyValue := TMFFloat.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFFloat.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
 
-  FFdAxis := TSFVec3f.Create(Self, 'axis', Vector3(0, 0, 1));
+  FFdAxis := TSFVec3f.Create(Self, true, 'axis', Vector3(0, 0, 1));
   AddField(FFdAxis);
 
   FEventValue_changed := TSFRotationEvent.Create(Self, 'value_changed', false);
@@ -306,7 +306,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(
+  EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 
@@ -367,7 +367,7 @@ procedure TCubicBezierPositionInterpolatorNode.CreateNode;
 begin
   inherited;
 
-  FFdKeyValue := TMFVec3f.Create(Self, 'keyValue', []);
+  FFdKeyValue := TMFVec3f.Create(Self, true, 'keyValue', []);
   AddField(FFdKeyValue);
   { X3D specification comment: (-Inf,Inf) }
 
@@ -376,7 +376,7 @@ begin
 
   DefaultContainerField := 'children';
 
-  EventSet_Fraction.OnReceive.Add(
+  EventSet_Fraction.AddNotification(
     {$ifdef CASTLE_OBJFPC}@{$endif} EventSet_FractionReceive);
 end;
 

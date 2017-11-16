@@ -163,6 +163,7 @@ type
       FSwimSoundPause: Single;
       FEnableCameraDragging: boolean;
       FFallingEffect: boolean;
+      CurrentEquippedScene: TCastleScene;
 
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
@@ -190,7 +191,6 @@ type
     procedure SetEnableCameraDragging(const AValue: boolean);
   protected
     procedure SetLife(const Value: Single); override;
-    function GetChild: T3D; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
@@ -456,8 +456,6 @@ implementation
 
 uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
-  { TODO: this unit should not use CastleInternalOpenAL directly }
-  CastleInternalOpenAL,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
   CastleGLImages, CastleConfig, CastleResources, CastleShapes,
   CastleRenderingCamera;
@@ -666,7 +664,15 @@ begin
   if Value <> FEquippedWeapon then
   begin
     if FEquippedWeapon <> nil then
+    begin
+      { clear CurrentEquippedScene }
+      if CurrentEquippedScene <> nil then
+      begin
+        Remove(CurrentEquippedScene);
+        CurrentEquippedScene := nil;
+      end;
       FEquippedWeapon.RemoveFreeNotification(Self);
+    end;
 
     FEquippedWeapon := Value;
 
@@ -828,6 +834,25 @@ begin
 end;
 
 procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+
+  procedure UpdateCurrentEquippedScene;
+  var
+    NewEquippedScene: TCastleScene;
+  begin
+    if EquippedWeapon <> nil then
+      NewEquippedScene := EquippedWeapon.EquippedScene(LifeTime)
+    else
+      NewEquippedScene := nil;
+
+    if CurrentEquippedScene <> NewEquippedScene then
+    begin
+      if CurrentEquippedScene <> nil then
+        Remove(CurrentEquippedScene);
+      CurrentEquippedScene := NewEquippedScene;
+      if CurrentEquippedScene <> nil then
+        Add(CurrentEquippedScene);
+    end;
+  end;
 
   { Perform various things related to player swimming. }
   procedure UpdateSwimming;
@@ -1011,17 +1036,8 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     if FootstepsSoundPlaying <> stNone then
     begin
       { So FootstepsSoundPlaying = NewFootstepsSoundPlaying for sure.
-        Make sure that the AL sound is really playing.
-
-        The decision to not use looping sound means that
-        end of footsteps sound should be detected
-        almost immediately (otherwise player will hear a little pause
-        in footsteps, due to the delay between SoundEngine.Refresh calls,
-        it's very short pause, but it's noticeable,
-        since footsteps should be rhytmic). I prefer to not rely
-        on SoundEngine.Refresh for this and instead just check this here. }
-      if not FootstepsSound.PlayingOrPaused then
-        alSourcePlay(FootstepsSound.ALSource);
+        Make sure that the sound is really playing. }
+      FootstepsSound.KeepPlaying;
     end;
 
     Assert(
@@ -1034,6 +1050,8 @@ const
 begin
   inherited;
   if not GetExists then Exit;
+
+  UpdateCurrentEquippedScene;
 
   if FFlyingTimeOut > 0 then
   begin
@@ -1257,13 +1275,6 @@ function TPlayer.Sphere(out Radius: Single): boolean;
 begin
   Result := true;
   Radius := Camera.Radius;
-end;
-
-function TPlayer.GetChild: T3D;
-begin
-  if EquippedWeapon <> nil then
-    Result := EquippedWeapon.EquippedScene(LifeTime) else
-    Result := nil;
 end;
 
 procedure TPlayer.Notification(AComponent: TComponent; Operation: TOperation);

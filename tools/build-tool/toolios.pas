@@ -32,11 +32,14 @@ procedure PackageIOS(const Project: TCastleProject);
 procedure InstallIOS(const Project: TCastleProject);
 procedure RunIOS(const Project: TCastleProject);
 
+procedure MergeIOSAppDelegate(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+
 implementation
 
-uses SysUtils,
-  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils,
-  ToolEmbeddedImages;
+uses SysUtils, DOM,
+  CastleImages, CastleURIUtils, CastleLog, CastleFilesUtils, CastleXMLUtils,
+  ToolEmbeddedImages, ToolIosPbxGeneration, ToolServices;
 
 const
   IOSPartialLibraryName = 'lib_cge_project.a';
@@ -107,10 +110,28 @@ procedure PackageIOS(const Project: TCastleProject);
 var
   XCodeProject: string;
 
-  { Generate files for Android project from templates. }
+  { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;
   begin
     Project.ExtractTemplate('ios/xcode_project/', XCodeProject);
+  end;
+
+  procedure GenerateServicesFromTemplates;
+
+    procedure ExtractService(const ServiceName: string);
+    begin
+      Project.ExtractTemplate('ios/services/' + ServiceName + '/', XCodeProject);
+    end;
+
+  var
+    S: TService;
+  begin
+    for S in Project.IOSServices do
+      ExtractService(S.Name);
+
+    if (depOggVorbis in Project.Dependencies) and
+       not Project.IOSServices.HasService('ogg_vorbis') then
+      ExtractService('ogg_vorbis');
   end;
 
   { Generate icons, in various sizes, from the base icon. }
@@ -270,6 +291,39 @@ var
     finally FreeAndNil(Files) end;
   end;
 
+  (* Add a large auto-generated chunk into the pbx file, replacing a special macro
+    ${PBX_CONTENTS_GENERATED} inside the pbx file. *)
+  procedure FixPbxProjectFile;
+  var
+    PbxProject: TXCodeProject;
+    PBXContentsGenerated, PBX, PBXFileUrl: string;
+  begin
+    PbxProject := TXCodeProject.Create;
+    try
+      PbxProject.AddTopLevelDir(XCodeProject, Project.Name);
+
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('Foundation'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('CoreGraphics'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('UIKit'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenGLES'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GLKit'));
+      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenAL'));
+
+      if Project.IOSServices.HasService('apple_game_center') then
+        PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GameKit'));
+
+      PBXContentsGenerated := PbxProject.PBXContents;
+      // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
+      PBXContentsGenerated := Project.ReplaceMacros(PBXContentsGenerated);
+
+      PBXFileUrl := FilenameToURISafe(
+        XCodeProject + Project.Name + '.xcodeproj' + PathDelim + 'project.pbxproj');
+      PBX := FileToString(PBXFileUrl);
+      StringReplaceAllVar(PBX, '${PBX_CONTENTS_GENERATED}', PBXContentsGenerated, false);
+      StringToFile(PBXFileUrl, PBX);
+    finally FreeAndNil(PbxProject) end;
+  end;
+
   { Copy compiled library into XCode project. }
   procedure GenerateLibrary;
   var
@@ -288,11 +342,8 @@ begin
     RemoveNonEmptyDir(XCodeProject);
 
   GenerateFromTemplates;
-
-  if depOggVorbis in Project.Dependencies then
-    Project.ExtractTemplate('ios/services/ogg_vorbis/cge_project_name/tremolo/',
-      XCodeProject + Project.Name + PathDelim + 'tremolo/');
-
+  GenerateServicesFromTemplates;
+  FixPbxProjectFile; // must be done *after* all files for services are created
   GenerateIcons;
   GenerateLaunchImages;
   GenerateData;
@@ -314,6 +365,56 @@ procedure RunIOS(const Project: TCastleProject);
 begin
   // TODO
   raise Exception.Create('The "run" command is not implemented for iOS right now');
+end;
+
+type
+  ECannotMergeAppDelegate = class(Exception);
+
+procedure MergeIOSAppDelegate(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+const
+  MarkerImport = '/* IOS-SERVICES-IMPORT */';
+  MarkerCreate = '/* IOS-SERVICES-CREATE */';
+  CreateTemplate =
+    '{' + NL +
+    '%s* serviceInstance;' + NL +
+    'serviceInstance = [[%0:s alloc] init];' + NL +
+    'serviceInstance.mainController = viewController;' + NL +
+    'serviceInstance.window = self.window;' + NL +
+    '[services addObject: serviceInstance];' + NL +
+    '}';
+
+var
+  DestinationContents: string;
+
+  procedure InsertAtMarker(const Marker, Insertion: string);
+  var
+    MarkerPos: Integer;
+  begin
+    MarkerPos := Pos(Marker, DestinationContents);
+    if MarkerPos = 0 then
+      raise ECannotMergeAppDelegate.CreateFmt('Cannot find marker "%s" in AppDelegate.m', [Marker]);
+    Insert(Trim(Insertion) + NL, DestinationContents, MarkerPos);
+  end;
+
+var
+  SourceDocument: TXMLDocument;
+  Import, CreateClass, CreateCode: string;
+begin
+  SourceDocument := URLReadXML(Source);
+  try
+    if SourceDocument.DocumentElement.TagName <> 'app_delegate_patch' then
+      raise ECannotMergeAppDelegate.Create('The source file from which to merge AppDelegate.m must be XML with root <app_delegate_patch>');
+    Import := SourceDocument.DocumentElement.ChildElement('import').TextData;
+    CreateClass := SourceDocument.DocumentElement.ChildElement('class').TextData;
+  finally FreeAndNil(SourceDocument) end;
+
+  CreateCode := Format(CreateTemplate, [CreateClass]);
+
+  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  InsertAtMarker(MarkerImport, Import);
+  InsertAtMarker(MarkerCreate, CreateCode);
+  StringToFile(Destination, DestinationContents);
 end;
 
 end.

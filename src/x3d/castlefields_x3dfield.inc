@@ -15,7 +15,14 @@
 
 {$ifdef read_interface}
 
+  TX3DField = class;
+
   TX3DFieldClass = class of TX3DField;
+
+  { Called when @link(TX3DEvent) is received,
+    see @link(TX3DEvent.AddNotification). }
+  TX3DEventReceive = procedure (Event: TX3DEvent; Value: TX3DField;
+    const Time: TX3DTime) of object;
 
   { Base class for all VRML/X3D fields.
 
@@ -49,9 +56,11 @@
   }
   TX3DField = class(TX3DFieldOrEvent)
   strict private
-    FExposed: boolean;
     FExposedEvents: array [boolean] of TX3DEvent;
     FChangesAlways: TX3DChanges;
+
+    // keep booleans together, to pack them together in memory
+    FExposed: boolean;
     FValueFromIsClause: boolean;
     FExposedEventsLinked: boolean;
 
@@ -125,7 +134,8 @@
       The Create constructor should be just a comfortable extension of
       CreateUndefined, that does the same and addiionally gets parameters
       that specify default field value. }
-    constructor Create(AParentNode: TX3DFileItem; const AName: string);
+    constructor Create(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string);
 
     { Virtual constructor, that you can use to construct field instance when
       field class is known only at runtime.
@@ -144,8 +154,8 @@
       TSFBitMask.FlagNames + TSFBitMask.NoneString + TSFBitMask.AllString
       before they can be parsed. I guess that's one of the reasons why these
       field types were entirely removed from VRML 2.0. }
-    constructor CreateUndefined(AParentNode: TX3DFileItem;
-      const AName: string; const AExposed: boolean); virtual;
+    constructor CreateUndefined(const AParentNode: TX3DFileItem;
+      const AExposed: boolean; const AName: string); virtual;
 
     destructor Destroy; override;
 
@@ -254,7 +264,7 @@
 
     { Does this field generate/accept events, that is
       an "exposedField" (in VRML 2.0) or "inputOutput" (in X3D). }
-    property Exposed: boolean read FExposed write SetExposed default true;
+    property Exposed: boolean read FExposed write SetExposed default false;
 
     { These are the set_xxx and xxx_changed events exposed by this field.
       @nil if Exposed is @false. }
@@ -379,7 +389,7 @@
     function CanAssignLerp: boolean; virtual;
 
     procedure AddAlternativeName(const AlternativeName: string;
-      VrmlMajorVersion: Integer); override;
+      const X3DMajorVersion: Integer); override;
 
     { Notify ParentNode.Scene that the value of this field changed. }
     procedure Changed;
@@ -404,13 +414,13 @@
       to determine what must be done when we know that value of this field changed.
 
       In overridden descendants, this can also do something immediately.
-      Overriding this is similar to registering your callback in OnReceive
-      list, with two benefits:
+      Overriding this is similar to registering your callback by
+      @link(TX3DEvent.AddNotification EventOut.AddNotification), with two additional benefits:
 
       @orderedList(
         @item(This method may be not called (although no guarantees)
           when the actual field value did not change.
-          In contrast, the OnReceive event is always fired,
+          In contrast, the event notification is always fired,
           even when you send the same value to an exposed field,
           because VRML/X3D events and routes must be fired anyway.)
 
@@ -419,7 +429,7 @@
       )
 
       So overridding this is closer to "do something when field value changes"
-      than registering callback in OnReceive list. }
+      than registering notification by @link(TX3DEvent.AddNotification EventOut.AddNotification). }
     function ExecuteChanges: TX3DChanges; virtual;
 
     { Set the value of the field, notifying the scenes and events engine.
@@ -444,9 +454,10 @@
     procedure Send(Value: TX3DField);
 
     { Notifications when exposed field received new value through VRML/X3D event.
-      Only for exposed fields (@nil for not exposed fields).
-      This is simply a shortcut for @code(EventOut.OnReceive),
-      see TX3DEvent.OnReceive for details how does this work.
+      Use only for exposed fields.
+      This is simply a shortcut for @code(EventOut.AddNotification),
+      @code(EventOut.RemoveNotification),
+      see @link(TX3DEvent.AddNotification) for details how does this work.
 
       Note that this observes the "out" event (not the "in" event).
       This way you know inside the handler that the field value is already
@@ -460,7 +471,8 @@
       graph inside the event handler (for example, load something on
       Inline.load or Inline.url changes), and let the TX3DField.ChangesAlways
       cause appropriate action on this change. }
-    function OnReceive: TX3DEventReceiveList;
+    procedure AddNotification(const Notification: TX3DEventReceive);
+    procedure RemoveNotification(const Notification: TX3DEventReceive);
   end;
 
   TX3DFieldList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TX3DField>)
@@ -489,18 +501,16 @@
 
 { TX3DField ------------------------------------------------------------- }
 
-constructor TX3DField.Create(AParentNode: TX3DFileItem;
-  const AName: string);
+constructor TX3DField.Create(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
-  CreateUndefined(AParentNode, AName,
-    true { default Exposed = true for normal constructor });
+  CreateUndefined(AParentNode, AExposed, AName);
 end;
 
-constructor TX3DField.CreateUndefined(AParentNode: TX3DFileItem;
-  const AName: string; const AExposed: boolean);
+constructor TX3DField.CreateUndefined(const AParentNode: TX3DFileItem;
+  const AExposed: boolean; const AName: string);
 begin
   inherited Create(AParentNode, AName);
-
   FExposedEventsLinked := true;
 
   { Set Exposed by the property, to force FExposedEvents initialization }
@@ -615,10 +625,10 @@ begin
     if Exposed then
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Add(
+        FExposedEvents[true].AddNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive)
       else
-        FExposedEvents[true].OnReceive.Remove(
+        FExposedEvents[true].RemoveNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
     end;
   end;
@@ -658,12 +668,12 @@ begin
         end;
 
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Add(
+        FExposedEvents[true].AddNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
     end else
     begin
       if ExposedEventsLinked then
-        FExposedEvents[true].OnReceive.Remove(
+        FExposedEvents[true].RemoveNotification(
           {$ifdef CASTLE_OBJFPC}@{$endif} ExposedEventReceive);
 
       FreeAndNil(FExposedEvents[false]);
@@ -834,14 +844,12 @@ begin
     for I := Low(FAlternativeNames) to High(FAlternativeNames) do
       if FAlternativeNames[I] <> '' then
       begin
-        FExposedEvents[false].FAlternativeNames[I] :=
-          FAlternativeNames[I] + ChangedSuffix;
-        FExposedEvents[true].FAlternativeNames[I] :=
-          SetPrefix + FAlternativeNames[I];
+        FExposedEvents[false].AddAlternativeName(FAlternativeNames[I] + ChangedSuffix, I);
+        FExposedEvents[true].AddAlternativeName(SetPrefix + FAlternativeNames[I], I);
       end else
       begin
-        FExposedEvents[false].FAlternativeNames[I] := '';
-        FExposedEvents[true].FAlternativeNames[I] := '';
+        FExposedEvents[false].RemoveAlternativeName(I);
+        FExposedEvents[true].RemoveAlternativeName(I);
       end;
   end;
 end;
@@ -875,7 +883,7 @@ begin
 end;
 
 procedure TX3DField.AddAlternativeName(const AlternativeName: string;
-  VrmlMajorVersion: Integer);
+  const X3DMajorVersion: Integer);
 begin
   inherited;
 
@@ -885,9 +893,9 @@ begin
     Assert(FExposedEvents[true] <> nil);
 
     FExposedEvents[false].AddAlternativeName(
-      AlternativeName + ChangedSuffix, VrmlMajorVersion);
+      AlternativeName + ChangedSuffix, X3DMajorVersion);
     FExposedEvents[true].AddAlternativeName(
-      SetPrefix + AlternativeName, VrmlMajorVersion);
+      SetPrefix + AlternativeName, X3DMajorVersion);
   end;
 end;
 
@@ -904,11 +912,16 @@ begin
   Result := X3DType;
 end;
 
-function TX3DField.OnReceive: TX3DEventReceiveList;
+procedure TX3DField.AddNotification(const Notification: TX3DEventReceive);
 begin
-  if FExposedEvents[false] <> nil then
-    Result := FExposedEvents[false].OnReceive else
-    Result := nil;
+  Assert(Exposed, 'Use TX3DField.AddNotification only on Exposed fields');
+  FExposedEvents[false].AddNotification(Notification);
+end;
+
+procedure TX3DField.RemoveNotification(const Notification: TX3DEventReceive);
+begin
+  Assert(Exposed, 'Use TX3DField.RemoveNotification only on Exposed fields');
+  FExposedEvents[false].RemoveNotification(Notification);
 end;
 
 { TX3DFieldList ------------------------------------------------------------- }

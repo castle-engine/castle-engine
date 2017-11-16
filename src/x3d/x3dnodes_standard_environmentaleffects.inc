@@ -292,45 +292,44 @@ procedure TAbstractBackgroundNode.CreateNode;
 begin
   inherited;
 
-  FFdGroundAngle := TMFFloat.Create(Self, 'groundAngle', []);
+  FFdGroundAngle := TMFFloat.Create(Self, true, 'groundAngle', []);
    FdGroundAngle.Angle := true;
    FdGroundAngle.ChangesAlways := [chBackground];
   AddField(FFdGroundAngle);
   { X3D specification comment: [0,Pi/2] }
 
-  FFdGroundColor := TMFColor.Create(Self, 'groundColor', []);
+  FFdGroundColor := TMFColor.Create(Self, true, 'groundColor', []);
    FdGroundColor.ChangesAlways := [chBackground];
   AddField(FFdGroundColor);
   { X3D specification comment: [0,1] }
 
-  FFdSkyAngle := TMFFloat.Create(Self, 'skyAngle', []);
+  FFdSkyAngle := TMFFloat.Create(Self, true, 'skyAngle', []);
    FdSkyAngle.Angle := true;
    FdSkyAngle.ChangesAlways := [chBackground];
   AddField(FFdSkyAngle);
   { X3D specification comment: [0,Pi] }
 
-  FFdSkyColor := TMFColor.Create(Self, 'skyColor', Vector3(0, 0, 0));
+  FFdSkyColor := TMFColor.Create(Self, true, 'skyColor', Vector3(0, 0, 0));
    FdSkyColor.ChangesAlways := [chBackground];
   AddField(FFdSkyColor);
   { X3D specification comment: [0,1] }
 
-  FFdTransparency := TSFFloat.Create(Self, 'transparency', 0);
+  FFdTransparency := TSFFloat.Create(Self, true, 'transparency', 0);
    FdTransparency.ChangesAlways := [chBackground];
   AddField(FFdTransparency);
   { X3D specification comment: [0,1] }
 
-  FFdShaders := TMFNodeShaders.Create(Self, 'shaders', [TAbstractShaderNode]);
+  FFdShaders := TMFNodeShaders.Create(Self, true, 'shaders', [TAbstractShaderNode]);
    FdShaders.ChangesAlways := [chEverything];
   AddField(FFdShaders);
 
-  FFdEffects := TMFNode.Create(Self, 'effects', [TEffectNode]);
-   FdEffects.Exposed := false;
+  FFdEffects := TMFNode.Create(Self, false, 'effects', [TEffectNode]);
    FdEffects.ChangesAlways := [chEverything];
   AddField(FFdEffects);
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 function TAbstractBackgroundNode.DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer;
@@ -382,32 +381,32 @@ begin
     and then chBackground (to create need display list for rendering background).
     Current chEverything is very unoptimal. }
 
-  FFdBackUrl := TMFString.Create(Self, 'backUrl', []);
+  FFdBackUrl := TMFString.Create(Self, true, 'backUrl', []);
    FdBackUrl.ChangesAlways := [chEverything];
   AddField(FFdBackUrl);
   { X3D specification comment: [URI] }
 
-  FFdBottomUrl := TMFString.Create(Self, 'bottomUrl', []);
+  FFdBottomUrl := TMFString.Create(Self, true, 'bottomUrl', []);
    FdBottomUrl.ChangesAlways := [chEverything];
   AddField(FFdBottomUrl);
   { X3D specification comment: [URI] }
 
-  FFdFrontUrl := TMFString.Create(Self, 'frontUrl', []);
+  FFdFrontUrl := TMFString.Create(Self, true, 'frontUrl', []);
    FdFrontUrl.ChangesAlways := [chEverything];
   AddField(FFdFrontUrl);
   { X3D specification comment: [URI] }
 
-  FFdLeftUrl := TMFString.Create(Self, 'leftUrl', []);
+  FFdLeftUrl := TMFString.Create(Self, true, 'leftUrl', []);
    FdLeftUrl.ChangesAlways := [chEverything];
   AddField(FFdLeftUrl);
   { X3D specification comment: [URI] }
 
-  FFdRightUrl := TMFString.Create(Self, 'rightUrl', []);
+  FFdRightUrl := TMFString.Create(Self, true, 'rightUrl', []);
    FdRightUrl.ChangesAlways := [chEverything];
   AddField(FFdRightUrl);
   { X3D specification comment: [URI] }
 
-  FFdTopUrl := TMFString.Create(Self, 'topUrl', []);
+  FFdTopUrl := TMFString.Create(Self, true, 'topUrl', []);
    FdTopUrl.ChangesAlways := [chEverything];
   AddField(FFdTopUrl);
   { X3D specification comment: [URI] }
@@ -458,41 +457,41 @@ begin
     With new renderer, we possible don't have to do *anything*
     when fog property changes, they will be automatically used? }
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
    FdColor.ChangesAlways := [chEverything];
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 
-  FFdFogType := TSFString.Create(Self, 'fogType', 'LINEAR');
+  FFdFogType := TSFString.Create(Self, true, 'fogType', 'LINEAR');
    FdFogType.ChangesAlways := [chEverything];
   AddField(FFdFogType);
   { X3D specification comment: ["LINEAR"|"EXPONENTIAL"] }
 
-  FFdVisibilityRange := TSFFloat.Create(Self, 'visibilityRange', 0);
+  FFdVisibilityRange := TSFFloat.Create(Self, true, 'visibilityRange', 0);
    FdVisibilityRange.ChangesAlways := [chEverything];
   AddField(FFdVisibilityRange);
   { X3D specification comment: [0,Inf) }
 
-  FFdVolumetric := TSFBool.Create(Self, 'volumetric', false);
+  FFdVolumetric := TSFBool.Create(Self, true, 'volumetric', false);
    FdVolumetric.ChangesAlways := [chEverything];
   AddField(FFdVolumetric);
 
-  FFdVolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3(0, -1, 0));
+  FFdVolumetricDirection := TSFVec3f.Create(Self, true, 'volumetricDirection', Vector3(0, -1, 0));
    FdVolumetricDirection.ChangesAlways := [chEverything];
   AddField(FFdVolumetricDirection);
 
-  FFdVolumetricVisibilityStart := TSFFloat.Create(Self, 'volumetricVisibilityStart', 0);
+  FFdVolumetricVisibilityStart := TSFFloat.Create(Self, true, 'volumetricVisibilityStart', 0);
    FdVolumetricVisibilityStart.ChangesAlways := [chEverything];
   AddField(FFdVolumetricVisibilityStart);
 
   { Only for backward compatibility. Not used anymore. }
-  FFdAlternative := TSFNode.Create(Self, 'alternative', [TFogNode]);
+  FFdAlternative := TSFNode.Create(Self, true, 'alternative', [TFogNode]);
    FdAlternative.ChangesAlways := [chEverything];
   AddField(FFdAlternative);
 
   DefaultContainerField := 'children';
 
-  Eventset_bind.OnReceive.Add({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
+  Eventset_bind.AddNotification({$ifdef CASTLE_OBJFPC}@{$endif} EventSet_BindReceive);
 end;
 
 class function TFogNode.ClassX3DType: string;
@@ -649,7 +648,7 @@ procedure TFogCoordinateNode.CreateNode;
 begin
   inherited;
 
-  FFdDepth := TMFFloat.Create(Self, 'depth', []);
+  FFdDepth := TMFFloat.Create(Self, true, 'depth', []);
   AddField(FFdDepth);
   { X3D specification comment: [0,1] }
 
@@ -671,30 +670,30 @@ procedure TLocalFogNode.CreateNode;
 begin
   inherited;
 
-  FFdColor := TSFColor.Create(Self, 'color', Vector3(1, 1, 1));
+  FFdColor := TSFColor.Create(Self, true, 'color', Vector3(1, 1, 1));
   AddField(FFdColor);
   { X3D specification comment: [0,1] }
 
-  FFdEnabled := TSFBool.Create(Self, 'enabled', true);
+  FFdEnabled := TSFBool.Create(Self, true, 'enabled', true);
   AddField(FFdEnabled);
 
-  FFdFogType := TSFString.Create(Self, 'fogType', 'LINEAR');
+  FFdFogType := TSFString.Create(Self, true, 'fogType', 'LINEAR');
   AddField(FFdFogType);
   { X3D specification comment: ["LINEAR"|"EXPONENTIAL"] }
 
-  FFdVisibilityRange := TSFFloat.Create(Self, 'visibilityRange', 0);
+  FFdVisibilityRange := TSFFloat.Create(Self, true, 'visibilityRange', 0);
   AddField(FFdVisibilityRange);
   { X3D specification comment: [0,-Inf) }
 
-  FFdVolumetric := TSFBool.Create(Self, 'volumetric', false);
+  FFdVolumetric := TSFBool.Create(Self, true, 'volumetric', false);
    FdVolumetric.ChangesAlways := [chEverything];
   AddField(FFdVolumetric);
 
-  FFdVolumetricDirection := TSFVec3f.Create(Self, 'volumetricDirection', Vector3(0, -1, 0));
+  FFdVolumetricDirection := TSFVec3f.Create(Self, true, 'volumetricDirection', Vector3(0, -1, 0));
    FdVolumetricDirection.ChangesAlways := [chEverything];
   AddField(FFdVolumetricDirection);
 
-  FFdVolumetricVisibilityStart := TSFFloat.Create(Self, 'volumetricVisibilityStart', 0);
+  FFdVolumetricVisibilityStart := TSFFloat.Create(Self, true, 'volumetricVisibilityStart', 0);
    FdVolumetricVisibilityStart.ChangesAlways := [chEverything];
   AddField(FFdVolumetricVisibilityStart);
 
@@ -775,22 +774,22 @@ procedure TTextureBackgroundNode.CreateNode;
 begin
   inherited;
 
-  FFdBackTexture := TSFNode.Create(Self, 'backTexture', [TAbstractTextureNode]);
+  FFdBackTexture := TSFNode.Create(Self, true, 'backTexture', [TAbstractTextureNode]);
   AddField(FFdBackTexture);
 
-  FFdBottomTexture := TSFNode.Create(Self, 'bottomTexture', [TAbstractTextureNode]);
+  FFdBottomTexture := TSFNode.Create(Self, true, 'bottomTexture', [TAbstractTextureNode]);
   AddField(FFdBottomTexture);
 
-  FFdFrontTexture := TSFNode.Create(Self, 'frontTexture', [TAbstractTextureNode]);
+  FFdFrontTexture := TSFNode.Create(Self, true, 'frontTexture', [TAbstractTextureNode]);
   AddField(FFdFrontTexture);
 
-  FFdLeftTexture := TSFNode.Create(Self, 'leftTexture', [TAbstractTextureNode]);
+  FFdLeftTexture := TSFNode.Create(Self, true, 'leftTexture', [TAbstractTextureNode]);
   AddField(FFdLeftTexture);
 
-  FFdRightTexture := TSFNode.Create(Self, 'rightTexture', [TAbstractTextureNode]);
+  FFdRightTexture := TSFNode.Create(Self, true, 'rightTexture', [TAbstractTextureNode]);
   AddField(FFdRightTexture);
 
-  FFdTopTexture := TSFNode.Create(Self, 'topTexture', [TAbstractTextureNode]);
+  FFdTopTexture := TSFNode.Create(Self, true, 'topTexture', [TAbstractTextureNode]);
   AddField(FFdTopTexture);
 
   DefaultContainerField := 'children';

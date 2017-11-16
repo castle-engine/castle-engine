@@ -71,11 +71,9 @@ type
   TTnt = class(T3DTransform)
   private
     ToRemove: boolean;
-  protected
-    function GetChild: T3D; override;
   public
     function PointingDeviceActivate(const Active: boolean;
-      const Distance: Single): boolean; override;
+      const Distance: Single; const CancelAction: boolean = false): boolean; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -86,15 +84,10 @@ const
 var
   TntsCount: Integer = 0;
 
-function TTnt.GetChild: T3D;
-begin
-  Result := TntScene;
-end;
-
 function TTnt.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single): boolean;
+  const Distance: Single; const CancelAction: boolean): boolean;
 begin
-  Result := Active and not ToRemove;
+  Result := Active and (not ToRemove) and (not CancelAction);
   if not Result then Exit;
 
   SoundEngine.Sound3D(stKaboom, Translation);
@@ -132,6 +125,7 @@ var
 begin
   TntSize := TntScene.BoundingBox.MaxSize;
   Tnt := TTnt.Create(SceneManager);
+  Tnt.Add(TntScene);
   Box := SceneManager.MainScene.BoundingBox;
   Tnt.Translation := Vector3(
     RandomFloatRange(Box.Data[0].Data[0], Box.Data[1].Data[0]-TntSize),
