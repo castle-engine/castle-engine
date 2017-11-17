@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ VRML/X3D complete scene handling and OpenGL rendering (TCastleScene). }
+{ Rendering of scenes (TCastleScene). }
 unit CastleScene;
 
 {$I castleconf.inc}
@@ -26,7 +26,7 @@ uses SysUtils, Classes, Generics.Collections,
   CastleVectors, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleSceneCore, CastleRenderer, CastleBackground,
   CastleGLUtils, CastleInternalShapeOctree, CastleGLShadowVolumes, X3DFields,
-  CastleTriangles, CastleShapes, CastleFrustum, Castle3D, CastleGLShaders,
+  CastleTriangles, CastleShapes, CastleFrustum, CastleTransform, CastleGLShaders,
   CastleRectangles, CastleCameras, CastleRendererInternalShader,
   CastleSceneInternalShape, CastleSceneInternalOcclusion, CastleSceneInternalBlending;
 
@@ -336,14 +336,14 @@ type
   end;
 
 type
-  TPrepareResourcesOption = Castle3D.TPrepareResourcesOption;
-  TPrepareResourcesOptions = Castle3D.TPrepareResourcesOptions;
+  TPrepareResourcesOption = CastleTransform.TPrepareResourcesOption;
+  TPrepareResourcesOptions = CastleTransform.TPrepareResourcesOptions;
 
 const
-  prRender = Castle3D.prRender;
-  prBackground = Castle3D.prBackground;
-  prBoundingBox = Castle3D.prBoundingBox;
-  prShadowVolume = Castle3D.prShadowVolume;
+  prRender = CastleTransform.prRender;
+  prBackground = CastleTransform.prBackground;
+  prBoundingBox = CastleTransform.prBoundingBox;
+  prShadowVolume = CastleTransform.prShadowVolume;
 
 type
   { Possible checks done while frustum culling.
@@ -410,21 +410,8 @@ type
     function BaseLights(Scene: T3D): TLightInstancesList; override;
   end;
 
-  { Complete handling and rendering of a 3D VRML/X3D scene.
-    This is a descendant of TCastleSceneCore that adds efficient rendering
-    using OpenGL.
-
-    This uses internal @link(TGLRenderer) instance,
-    adding some features and comfortable methods on top of it (like blending).
-    See @link(Render) method for some details.
-
-    This class also provides comfortable management for
-    @link(Background) instance to render the VRML/X3D background of this scene.
-
-    Calling methods PrepareResources, Render or Background connects this
-    class with current OpenGL context. Which means that all the following
-    calls should be done with the same OpenGL context set as current.
-    Calling GLContextClose or the destructor removes this connection. }
+  { Complete loading, processing and rendering of a scene.
+    This is a descendant of TCastleSceneCore that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
   private
     Renderer: TGLRenderer;
@@ -671,19 +658,19 @@ type
       Silhouette is determined from the ObserverPos.
       Useful to debug (visualize) ManifoldEdges of the scene.
 
-      Whole scene is transformed by Transform (before checking which
+      Whole scene is transformed by ATransform (before checking which
       edges are silhouette and before rendering). In other words,
-      Transform must transform the scene to the same coord space where
+      ATransform must transform the scene to the same coord space where
       given ObserverPos is. When they are in the same space, just use
       TMatrix4.Identity. }
     procedure RenderSilhouetteEdges(
       const ObserverPos: TVector4;
-      const Transform: TMatrix4);
+      const ATransform: TMatrix4);
 
     { Render all border edges (the edges without neighbor).
       Useful to debug (visualize) BorderEdges of the scene. }
     procedure RenderBorderEdges(
-      const Transform: TMatrix4);
+      const ATransform: TMatrix4);
   private
     FBackgroundSkySphereRadius: Single;
     { Node for which FBackground is currently prepared. }
@@ -1795,7 +1782,7 @@ end;
 
 procedure TCastleScene.RenderSilhouetteEdges(
   const ObserverPos: TVector4;
-  const Transform: TMatrix4);
+  const ATransform: TMatrix4);
 var
   SI: TShapeTreeIterator;
   T: TMatrix4;
@@ -1804,14 +1791,14 @@ begin
   try
     while SI.GetNext do
     begin
-      T := Transform * SI.Current.State.Transform;
+      T := ATransform * SI.Current.State.Transform;
       SI.Current.InternalShadowVolumes.RenderSilhouetteEdges(ObserverPos, T);
     end;
   finally FreeAndNil(SI) end;
 end;
 
 procedure TCastleScene.RenderBorderEdges(
-  const Transform: TMatrix4);
+  const ATransform: TMatrix4);
 var
   SI: TShapeTreeIterator;
   T: TMatrix4;
@@ -1820,7 +1807,7 @@ begin
   try
     while SI.GetNext do
     begin
-      T := Transform * SI.Current.State.Transform;
+      T := ATransform * SI.Current.State.Transform;
       SI.Current.InternalShadowVolumes.RenderBorderEdges(T);
     end;
   finally FreeAndNil(SI) end;

@@ -265,31 +265,7 @@ type
 
   { Base 3D object, that can be managed by TCastleSceneManager.
     All 3D objects should descend from this, this way we can easily
-    insert them into the TCastleSceneManager.
-
-    Default implementations of collision methods in this class work
-    with our BoundingBox:
-
-    @unorderedList(
-      @item(Wall-sliding MoveCollision version simply calls
-        non-wall-sliding version (without separate ProposedNewPos
-        and NewPos).)
-      @item(Non-wall-sliding MoveCollision version,
-        SegmentCollision, SphereCollision, SphereCollision2D, PointCollision2D,
-        BoxCollision, RayCollision, and HeightCollision
-        check for collisions with our BoundingBox,
-        using TBox3D methods:
-        @link(TBox3D.TryRayClosestIntersection),
-        @link(TBox3D.TryRayEntrance),
-        @link(TBox3D.SegmentCollision),
-        @link(TBox3D.SphereCollision) and
-        @link(TBox3D.Collision).)
-    )
-
-    The idea is that by default everything simply uses BoundingBox,
-    and that is the only method that you really @italic(have) to override.
-    You do not have to (in fact, usually you should not) call "inherited"
-    when overriding collision methods mentioned above. }
+    insert them into the TCastleSceneManager. }
   T3D = class(TComponent)
   private
     FCastShadowVolumes: boolean;
@@ -329,11 +305,11 @@ type
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
     { Height of a point above the 3D model.
-      This checks ray collision, from Position along the negated GravityUp vector.
+      This checks ray collision, from APosition along the negated GravityUp vector.
       Measures distance to the nearest scene item (called "ground" here).
 
       @returns(If the 3D scene is hit.
-        @false means that Position floats above an empty space.
+        @false means that APosition floats above an empty space.
         That is, if you turn gravity on, it will fall down forever,
         as far as this 3D scene is concerned.)
 
@@ -355,7 +331,7 @@ type
         Or to decrease player life points for walking on hot lava.
         See "The Castle" game for examples.)
     }
-    function HeightCollision(const Position, GravityUp: TVector3;
+    function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
 
@@ -1111,7 +1087,7 @@ type
     procedure RemoveFromWorld(const Value: T3DWorld); override;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const Position, GravityUp: TVector3;
+    function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveCollision(
@@ -1279,7 +1255,7 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
-    function WorldHeight(const Position: TVector3;
+    function WorldHeight(const APosition: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
@@ -1425,7 +1401,7 @@ type
       to prevent from weird results sometimes, see @link(Approximate2DScale). }
     function AverageScale2D: Single;
 
-    function HeightCollision(const Position, GravityUp: TVector3;
+    function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function MoveCollision(
@@ -1869,6 +1845,7 @@ uses CastleLog;
 
 {$define read_implementation}
 {$I castletransform_physics.inc}
+{$I castletransform_collisions.inc}
 {$undef read_implementation}
 
 { TRayCollision --------------------------------------------------------------- }
@@ -2000,205 +1977,6 @@ end;
 
 procedure T3D.GLContextClose;
 begin
-end;
-
-function T3D.HeightCollision(const Position, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
-var
-  Intersection: TVector3;
-  IntersectionDistance: Single;
-begin
-  AboveHeight := MaxSingle;
-  AboveGround := nil;
-
-  Result := GetCollides and
-    { Using TryRayEntrance here would also be sensible, but sometimes too eager:
-      In case creature walks over an item, it would cause the item to go upward
-      (because the creature is collidable (item is not), so item's gravity
-      would cause it to grow). Sometimes also the creatures would too easily
-      climb on top of each other.
-      It may be changed in the future back into TryRayEntrance? Item problems
-      could be solved by using GrowSpeed = 0 for items. }
-    BoundingBox.TryRayClosestIntersection(Intersection, IntersectionDistance, Position, -GravityUp);
-  if Result then
-    AboveHeight := IntersectionDistance;
-end;
-
-function T3D.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { A simple implementation, just don't do wall-sliding. }
-  Result := MoveCollision(OldPos, ProposedNewPos, IsRadius, Radius, OldBox, NewBox,
-    TrianglesToIgnoreFunc);
-  if Result then
-    NewPos := ProposedNewPos;
-end;
-
-function T3D.MoveCollision(
-  const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  MyBox: TBox3D;
-
-  { P1 is closer to our middle than P2. }
-  function CloserToMiddle(const P1, P2: TVector3): boolean;
-  var
-    M: TVector3;
-  begin
-    M := Middle;
-    Result := PointsDistanceSqr(M, P1) < PointsDistanceSqr(M, P2);
-  end;
-
-var
-  OldCollision, NewCollision: boolean;
-begin
-  { check collision with our bounding box.
-
-    We do not look here at our own sphere. When other objects move,
-    it's better to treat ourself as larger (not smaller), to prevent
-    collisions rather then allow them in case of uncertainty.
-    So we ignore Self.Sphere method.
-
-    But we do take into account that other (moving) object may prefer to
-    be treated as a sphere, so we take into account IsRadius, Radius parameters.
-    This allows a player to climb on top of dead corpses (with flat
-    bbox), since player's sphere is slightly above the ground.
-    And it allows the missiles (like arrow) to use their spheres
-    for determining what is hit, which is good because e.g. arrow
-    has a very large bbox, sphere is much better (otherwise it may be too easy
-    to hit with arrow). }
-
-  Result := true;
-
-  if GetCollides then
-  begin
-    MyBox := BoundingBox;
-
-    if IsRadius then
-    begin
-      OldCollision := MyBox.SphereCollision(OldPos, Radius);
-      NewCollision := MyBox.SphereCollision(NewPos, Radius);
-    end else
-    begin
-      OldCollision := MyBox.Collision(OldBox);
-      NewCollision := MyBox.Collision(NewBox);
-    end;
-
-    if NewCollision then
-    begin
-      { We now know that we have a collision with new position.
-        Strictly thinking, move should be disallowed
-        (we should exit with false). But it's not that simple.
-
-        There is a weakness in collision checking with dynamic objects,
-        like creatures, because when LifeTime changes then effectively
-        BoundingBox changes, and there is no way how I can prevent collisions
-        from occuring (we cannot stop/reverse an arbitrary animation,
-        this would look bad and require AI preparations, see @link(Sphere) comments).
-
-        So we must allow some moves, to allow player/creature that is already
-        stuck (already collidable with Self) to get out of the collision.
-        To do this, we are going to enable a move, only if *old position
-        was already collidable (so the other object is stuck with us already)
-        and new position is further from us (so the other object tries
-        to get unstuck)". }
-      if (not OldCollision) or CloserToMiddle(NewPos, OldPos) then
-        Exit(false);
-    end else
-    if (not OldCollision) and
-       { new and old positions are Ok (not collidable), so check also
-         line segment. Otherwise fast moving player could run through slim
-         creature. }
-       MyBox.SegmentCollision(OldPos, NewPos) then
-      Exit(false);
-  end;
-
-{ Simpler implementation that doesn't allow others to become "unstuck".
-  It's also slightly less optimal, as internally BoundingBox and GetCollides
-  will be calculated many times (although they should be lighting-fast,
-  still their time matters, as this is the basis of our AI and may be called
-  many times per frame).
-  OTOH, this simpler version is a little cleaner: it delegates work
-  to other methods, they may use BoundingBox or something else.
-
-  if IsRadius then
-    Result := not ( GetCollides and
-      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
-        SphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) ) else
-    Result := not ( GetCollides and
-      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
-        BoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
-}
-end;
-
-function T3D.SegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
-begin
-  Result := (GetCollides or (ALineOfSight and GetExists)) and
-    BoundingBox.SegmentCollision(Pos1, Pos2);
-end;
-
-function T3D.SphereCollision(const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := GetCollides and BoundingBox.SphereCollision(Pos, Radius);
-end;
-
-function T3D.SphereCollision2D(const Pos: TVector2; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const Details: TCollisionDetails): boolean;
-begin
-  Result := GetCollides and BoundingBox.SphereCollision2D(Pos, Radius);
-
-  if Result and (Details <> nil) then
-  begin
-    Details.Clear;
-    Details.Add(Self);
-  end;
-end;
-
-function T3D.PointCollision2D(const Point: TVector2;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := GetCollides and BoundingBox.Contains2D(Point);
-end;
-
-function T3D.BoxCollision(const Box: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  Result := GetCollides and BoundingBox.Collision(Box);
-end;
-
-function T3D.RayCollision(const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
-var
-  Intersection: TVector3;
-  IntersectionDistance: Single;
-  NewNode: PRayCollisionNode;
-begin
-  if GetPickable and
-    BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
-  begin
-    Result := TRayCollision.Create;
-    Result.Distance := IntersectionDistance;
-
-    NewNode := Result.Add;
-    NewNode^.Item := Self;
-    NewNode^.Point := Intersection;
-    { better T3D implementation could assign here something nice to NewNode^.Triangle,
-      to inform T3D.PointingDeviceMove/Activate about the intersected material. }
-    NewNode^.Triangle := nil;
-    NewNode^.RayOrigin := RayOrigin;
-    NewNode^.RayDirection := RayDirection;
-  end else
-    Result := nil;
 end;
 
 procedure T3D.UpdateGeneratedTextures(
@@ -2738,236 +2516,6 @@ begin
     List.RemoveAll(AComponent);
 end;
 
-function T3DList.HeightCollision(const Position, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
-var
-  I: Integer;
-  NewResult: boolean;
-  NewAboveHeight: Single;
-  NewAboveGround: P3DTriangle;
-begin
-  Result := false;
-  AboveHeight := MaxSingle;
-  AboveGround := nil;
-
-  if GetCollides then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      NewResult := List[I].HeightCollision(Position, GravityUp, TrianglesToIgnoreFunc,
-        NewAboveHeight, NewAboveGround);
-
-      if NewAboveHeight < AboveHeight then
-      begin
-        Result := NewResult;
-        AboveHeight := NewAboveHeight;
-        AboveGround := NewAboveGround;
-      end;
-    end;
-  end;
-end;
-
-function T3DList.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  I: Integer;
-begin
-  if GetCollides then
-  begin
-    { We call MoveCollision with separate ProposedNewPos and NewPos
-      only on the first scene.
-      This means that only first scene collisions provide wall sliding.
-      Collisions with other 3D objects will simply block the player.
-
-      Otherwise, various MoveCollision could modify NewPos
-      making it colliding with other items, already checked. This would
-      be wrong.
-
-      TODO: this could be improved, to call MoveCollision
-      with separate ProposedNewPos and NewPos
-      on the first scene
-      where the simple move is not allowed. This would make it more general,
-      although also slower. Is there any way to make it as fast and
-      more general? }
-
-    if List.Count <> 0 then
-    begin
-      Result := List[0].MoveCollision(OldPos, ProposedNewPos, NewPos,
-        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-      if not Result then Exit;
-
-      for I := 1 to List.Count - 1 do
-      begin
-        Result := List[I].MoveCollision(OldPos, NewPos,
-          IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-        if not Result then Exit;
-      end;
-    end;
-  end else
-  begin
-    Result := true;
-    NewPos := ProposedNewPos;
-  end;
-end;
-
-function T3DList.MoveCollision(
-  const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  I: Integer;
-begin
-  Result := true;
-
-  if GetCollides then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].MoveCollision(OldPos, NewPos,
-        IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-      if not Result then Exit;
-    end;
-  end;
-end;
-
-function T3DList.SegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-
-  if GetCollides or (ALineOfSight and GetExists) then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
-      if Result then Exit;
-    end;
-  end;
-end;
-
-function T3DList.SphereCollision(const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-
-  if GetCollides then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
-      if Result then Exit;
-    end;
-  end;
-end;
-
-function T3DList.SphereCollision2D(const Pos: TVector2; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const Details: TCollisionDetails): boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-
-  if GetCollides then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
-      if Result then
-      begin
-        if Details <> nil then
-          Details.Add(Self);
-        Exit;
-      end;
-    end;
-  end;
-end;
-
-function T3DList.PointCollision2D(const Point: TVector2;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-
-  if GetCollides then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].PointCollision2D(Point, TrianglesToIgnoreFunc);
-      if Result then Exit;
-    end;
-  end;
-end;
-
-function T3DList.BoxCollision(const Box: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  I: Integer;
-begin
-  Result := false;
-
-  if GetCollides then
-  begin
-    for I := 0 to List.Count - 1 do
-    begin
-      Result := List[I].BoxCollision(Box, TrianglesToIgnoreFunc);
-      if Result then Exit;
-    end;
-  end;
-end;
-
-function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
-
-  procedure AddNewResult(NewResult: TRayCollision);
-  begin
-    if NewResult <> nil then
-    begin
-      if (Result = nil) or (NewResult.Distance < Result.Distance) then
-      begin
-        SysUtils.FreeAndNil(Result);
-        Result := NewResult;
-      end else
-        FreeAndNil(NewResult);
-    end;
-  end;
-
-var
-  I: Integer;
-
-  NewNode, PreviousNode: PRayCollisionNode;
-begin
-  Result := nil;
-
-  if GetPickable then
-  begin
-    for I := 0 to List.Count - 1 do
-      AddNewResult(List[I].RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc));
-
-    if Result <> nil then
-    begin
-      NewNode := Result.Add;
-      PreviousNode := @(Result.List^[Result.Count - 2]);
-      NewNode^.Item := Self;
-      NewNode^.Point := PreviousNode^.Point;
-      NewNode^.Triangle := nil;
-      NewNode^.RayOrigin := RayOrigin;
-      NewNode^.RayDirection := RayDirection;
-    end;
-  end;
-end;
-
 procedure T3DList.UpdateGeneratedTextures(
   const RenderFunc: TRenderFromViewFunction;
   const ProjectionNear, ProjectionFar: Single;
@@ -3252,267 +2800,6 @@ begin
   end else
     inherited RenderShadowVolume(ShadowVolumeRenderer,
       false, Transform * ParentTransform);
-end;
-
-function TCastleTransform.HeightCollision(const Position, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
-var
-  MInverse: TMatrix4;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then
-  begin
-    Result := false;
-    AboveHeight := MaxSingle;
-    AboveGround := nil;
-    Exit;
-  end;
-
-  if FOnlyTranslation then
-    Result := inherited HeightCollision(
-      Position - Translation, GravityUp, TrianglesToIgnoreFunc,
-      AboveHeight, AboveGround) else
-  begin
-    MInverse := InverseTransform;
-    Result := inherited HeightCollision(
-      MInverse.MultPoint(Position),
-      MInverse.MultDirection(GravityUp), TrianglesToIgnoreFunc,
-        AboveHeight, AboveGround);
-    { Note that we should not scale resulting AboveHeight by AverageScale.
-      That is because AboveHeight is relative to GravityUp length,
-      so it's automatically correct. }
-  end;
-end;
-
-function TCastleTransform.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  T: TVector3;
-  M, MInverse: TMatrix4;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then
-  begin
-    NewPos := ProposedNewPos;
-    Exit(true);
-  end;
-
-  if FOnlyTranslation then
-  begin
-    T := Translation;
-    Result := inherited MoveCollision(
-      OldPos         - T,
-      ProposedNewPos - T, NewPos,
-      IsRadius, Radius,
-      OldBox.AntiTranslate(T),
-      NewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
-    { translate calculated NewPos back }
-    if Result then
-      NewPos := NewPos + T;
-  end else
-  begin
-    TransformMatrices(M, MInverse);
-    Result := inherited MoveCollision(
-      MInverse.MultPoint(OldPos),
-      MInverse.MultPoint(ProposedNewPos), NewPos,
-      IsRadius, Radius / AverageScale,
-      OldBox.Transform(MInverse),
-      NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
-    { transform calculated NewPos back }
-    if Result then
-      NewPos := M.MultPoint(NewPos);
-  end;
-end;
-
-function TCastleTransform.MoveCollision(
-  const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-var
-  T: TVector3;
-  MInverse: TMatrix4;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(true);
-
-  if FOnlyTranslation then
-  begin
-    { I have to check collision between
-        Items + Translation and (OldPos, NewPos).
-      So it's equivalent to checking for collision between
-        Items and (OldPos, NewPos) - Translation
-      And this way I can use inherited MoveCollision. }
-    T := Translation;
-    Result := inherited MoveCollision(
-      OldPos - T,
-      NewPos - T,
-      IsRadius, Radius,
-      OldBox.AntiTranslate(T),
-      NewBox.AntiTranslate(T), TrianglesToIgnoreFunc);
-  end else
-  begin
-    MInverse := InverseTransform;
-    Result := inherited MoveCollision(
-      MInverse.MultPoint(OldPos),
-      MInverse.MultPoint(NewPos),
-      IsRadius, Radius / AverageScale,
-      OldBox.Transform(MInverse),
-      NewBox.Transform(MInverse), TrianglesToIgnoreFunc);
-  end;
-end;
-
-function TCastleTransform.SegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
-var
-  T: TVector3;
-  MInverse: TMatrix4;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not (GetCollides or (ALineOfSight and GetExists)) then Exit(false);
-
-  if FOnlyTranslation then
-  begin
-    T := Translation;
-    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, ALineOfSight);
-  end else
-  begin
-    MInverse := InverseTransform;
-    Result := inherited SegmentCollision(
-      MInverse.MultPoint(Pos1),
-      MInverse.MultPoint(Pos2), TrianglesToIgnoreFunc, ALineOfSight);
-  end;
-end;
-
-function TCastleTransform.SphereCollision(
-  const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
-
-  if FOnlyTranslation then
-    Result := inherited SphereCollision(
-      Pos - Translation, Radius, TrianglesToIgnoreFunc) else
-    Result := inherited SphereCollision(
-      InverseTransform.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
-end;
-
-function TCastleTransform.SphereCollision2D(
-  const Pos: TVector2; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const Details: TCollisionDetails): boolean;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
-
-  if FOnlyTranslation then
-    Result := inherited SphereCollision2D(
-      Pos - Translation2D, Radius, TrianglesToIgnoreFunc, Details) else
-    Result := inherited SphereCollision2D(
-      InverseTransform.MultPoint(Pos), Radius / AverageScale2D, TrianglesToIgnoreFunc, Details);
-end;
-
-function TCastleTransform.PointCollision2D(
-  const Point: TVector2;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
-
-  if FOnlyTranslation then
-    Result := inherited PointCollision2D(
-      Point - Translation2D, TrianglesToIgnoreFunc) else
-    Result := inherited PointCollision2D(
-      InverseTransform.MultPoint(Point), TrianglesToIgnoreFunc);
-end;
-
-function TCastleTransform.BoxCollision(
-  const Box: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetCollides then Exit(false);
-
-  if FOnlyTranslation then
-    Result := inherited BoxCollision(
-      Box.AntiTranslate(Translation), TrianglesToIgnoreFunc)
-  else
-    Result := inherited BoxCollision(
-      Box.Transform(InverseTransform), TrianglesToIgnoreFunc);
-end;
-
-function TCastleTransform.OutsideToLocal(const Pos: TVector3): TVector3;
-begin
-  if FOnlyTranslation then
-    Result := Pos - Translation
-  else
-    Result := InverseTransform.MultPoint(Pos);
-end;
-
-function TCastleTransform.LocalToOutside(const Pos: TVector3): TVector3;
-begin
-  if FOnlyTranslation then
-    Result := Pos + Translation
-  else
-    Result := Transform.MultPoint(Pos);
-end;
-
-function TCastleTransform.RayCollision(const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
-var
-  T: TVector3;
-  M, MInverse: TMatrix4;
-  LastNode: PRayCollisionNode;
-begin
-  { inherited will check these anyway. But by checking them here,
-    we can potentially avoid the cost of transforming into local space. }
-  if not GetPickable then Exit(nil);
-
-  if FOnlyTranslation then
-  begin
-    T := Translation;
-    Result := inherited RayCollision(RayOrigin - T, RayDirection, TrianglesToIgnoreFunc);
-    if Result <> nil then
-    begin
-      LastNode := @(Result.List^[Result.Count - 1]);
-      LastNode^.Point := LastNode^.Point + T;
-      { untransform the ray }
-      LastNode^.RayOrigin := RayOrigin;
-      LastNode^.RayDirection := RayDirection;
-    end;
-  end else
-  begin
-    TransformMatrices(M, MInverse);
-    Result := inherited RayCollision(
-      MInverse.MultPoint(RayOrigin),
-      MInverse.MultDirection(RayDirection), TrianglesToIgnoreFunc);
-    if Result <> nil then
-    begin
-      LastNode := @(Result.List^[Result.Count - 1]);
-      LastNode^.Point := M.MultPoint(LastNode^.Point);
-      { untransform the ray }
-      LastNode^.RayOrigin := RayOrigin;
-      LastNode^.RayDirection := RayDirection;
-
-      { Note that we should not scale Result.Distance by AverageScale.
-        That is because Result.Distance is relative to RayDirection length,
-        so it's automatically correct. }
-    end;
-  end;
 end;
 
 function Bottom(const Gravity: boolean; const GravityCoordinate: Integer;

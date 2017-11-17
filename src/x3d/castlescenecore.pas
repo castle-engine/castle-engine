@@ -13,8 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ 3D scenes (TCastleSceneCore). }
-
+{ Loading and processing of scenes (TCastleSceneCore). }
 unit CastleSceneCore;
 
 {$I castleconf.inc}
@@ -402,9 +401,13 @@ type
     { Force TimeSensor.Loop to be @false, to force not looping. }
     paForceNotLooping);
 
-  { 3D scene processing (except rendering, for which see TCastleScene).
-    Provides a lot of useful functionality. Simple loading of the scene (@link(Load)
-    method), calculating various things (like @link(BoundingBox) method).
+  { Loading and processing of a scene.
+    Almost everything visible in your game will be an instance of
+    @link(TCastleScene), which is a descendant of this class that adds rendering
+    capabilities.
+    This provides a lot of functionality, like loading of the scene
+    (@link(Load) method), animating it, performing collisions with the scene,
+    calculating things (like @link(BoundingBox)).
 
     The @link(Shapes) tree provides a simple processed scene information,
     alternative to traversing the complicated VRML/X3D nodes graph.
@@ -498,6 +501,11 @@ type
       Instances: TShapeTreeList; const Changes: TX3DChanges);
     { Like TransformationChanged, but specialized for TransformNode = RootNode. }
     procedure RootTransformationChanged(const Changes: TX3DChanges);
+
+    function BoundingVolumeMoveCollision(
+      const OldPos, NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D): boolean;
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -663,7 +671,7 @@ type
   private
     TriangleOctreeToAdd: TTriangleOctree;
     procedure AddTriangleToOctreeProgress(Shape: TObject;
-      const Position: TTriangle3;
+      const APosition: TTriangle3;
       const Normal: TTriangle3; const TexCoord: TTriangle4;
       const Face: TFaceIndex);
   private
@@ -780,7 +788,7 @@ type
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
   public
-    function HeightCollision(const Position, GravityUp: TVector3;
+    function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
   protected
@@ -1582,19 +1590,19 @@ type
       const RelativeCameraTransform: boolean = false;
       const AllowTransitionAnimate: boolean = true);
 
-    { Make Camera go to the view given by Position, Direction, Up.
+    { Make Camera go to the view given by APosition, ADirection, AUp.
 
       Honours current NavigationInfo.transitionType and transitionTime.
       If transitionType indicates instanteneous transition, then jumps
-      by simple @code(Camera.SetView(Position, Direction, Up)).
+      by simple @code(Camera.SetView(APosition, ADirection, AUp)).
       Otherwise makes a smooth animation into new values by
-      @code(Camera.AnimateTo(Position, Direction, TransitionTime)).
+      @code(Camera.AnimateTo(APosition, ADirection, AUp, TransitionTime)).
 
       Will generate NavigationInfo.transitionComplete when transition ends.
 
       @groupBegin }
-    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up: TVector3);
-    procedure CameraTransition(Camera: TCamera; const Position, Direction, Up, GravityUp: TVector3);
+    procedure CameraTransition(Camera: TCamera; const APosition, ADirection, AUp: TVector3);
+    procedure CameraTransition(Camera: TCamera; const APosition, ADirection, AUp, GravityUp: TVector3);
     { @groupEnd }
 
     { Detect position/direction of the main light that produces shadows.
@@ -2059,6 +2067,7 @@ uses Math,
 
 {$define read_implementation}
 {$I castlescenecore_physics.inc}
+{$I castlescenecore_collisions.inc}
 {$undef read_implementation}
 
 { TX3DBindableStack ----------------------------------------------------- }
@@ -4570,12 +4579,12 @@ begin
 end;
 
 procedure TCastleSceneCore.AddTriangleToOctreeProgress(Shape: TObject;
-  const Position: TTriangle3;
+  const APosition: TTriangle3;
   const Normal: TTriangle3; const TexCoord: TTriangle4;
   const Face: TFaceIndex);
 begin
   Progress.Step;
-  TriangleOctreeToAdd.AddItemTriangle(Shape, Position, Normal, TexCoord, Face);
+  TriangleOctreeToAdd.AddItemTriangle(Shape, APosition, Normal, TexCoord, Face);
 end;
 
 procedure TCastleSceneCore.SetSpatial(const Value: TSceneSpatialStructures);
@@ -5852,7 +5861,7 @@ end;
 
 procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
 var
-  Position, Direction, Up: TVector3;
+  APosition, ADirection, AUp: TVector3;
   ProxNode: TProximitySensorNode;
   NewIsActive: boolean;
 begin
@@ -5882,15 +5891,15 @@ begin
           it's InvertedTransform and call ProximitySensorUpdate.
       }
 
-      Position := PSI.InvertedTransform.MultPoint(CameraPosition);
+      APosition := PSI.InvertedTransform.MultPoint(CameraPosition);
 
       NewIsActive :=
-        (Position[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
-        (Position[0] <= ProxNode.FdCenter.Value[0] + ProxNode.FdSize.Value[0] / 2) and
-        (Position[1] >= ProxNode.FdCenter.Value[1] - ProxNode.FdSize.Value[1] / 2) and
-        (Position[1] <= ProxNode.FdCenter.Value[1] + ProxNode.FdSize.Value[1] / 2) and
-        (Position[2] >= ProxNode.FdCenter.Value[2] - ProxNode.FdSize.Value[2] / 2) and
-        (Position[2] <= ProxNode.FdCenter.Value[2] + ProxNode.FdSize.Value[2] / 2) and
+        (APosition[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
+        (APosition[0] <= ProxNode.FdCenter.Value[0] + ProxNode.FdSize.Value[0] / 2) and
+        (APosition[1] >= ProxNode.FdCenter.Value[1] - ProxNode.FdSize.Value[1] / 2) and
+        (APosition[1] <= ProxNode.FdCenter.Value[1] + ProxNode.FdSize.Value[1] / 2) and
+        (APosition[2] >= ProxNode.FdCenter.Value[2] - ProxNode.FdSize.Value[2] / 2) and
+        (APosition[2] <= ProxNode.FdCenter.Value[2] + ProxNode.FdSize.Value[2] / 2) and
         { ... and the box is not empty, which for ProximitySensor
           is signalled by any size <= 0 (yes, equal 0 also means empty).
           We check this at the end, as this is the least common situation? }
@@ -5915,13 +5924,13 @@ begin
 
       if NewIsActive then
       begin
-        ProxNode.EventPosition_Changed.Send(Position, NextEventTime);
+        ProxNode.EventPosition_Changed.Send(APosition, NextEventTime);
         if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
-          Direction := PSI.InvertedTransform.MultDirection(CameraDirection);
-          Up        := PSI.InvertedTransform.MultDirection(CameraUp);
+          ADirection := PSI.InvertedTransform.MultDirection(CameraDirection);
+          AUp        := PSI.InvertedTransform.MultDirection(CameraUp);
           ProxNode.EventOrientation_Changed.Send(
-            OrientationFromDirectionUp(Direction, Up), NextEventTime);
+            OrientationFromDirectionUp(ADirection, AUp), NextEventTime);
         end;
         { TODO: centerOfRotation_changed }
       end;
@@ -6150,36 +6159,36 @@ end;
 procedure TCastleSceneCore.CameraFromViewpoint(ACamera: TCamera;
   const RelativeCameraTransform, AllowTransitionAnimate: boolean);
 var
-  Position: TVector3;
-  Direction: TVector3;
-  Up: TVector3;
+  APosition: TVector3;
+  ADirection: TVector3;
+  AUp: TVector3;
   GravityUp: TVector3;
 begin
   if ViewpointStack.Top <> nil then
-    ViewpointStack.Top.GetView(Position, Direction, Up, GravityUp) else
+    ViewpointStack.Top.GetView(APosition, ADirection, AUp, GravityUp) else
   begin
     { Suitable viewpoint,
       with dir -Z and up +Y (like standard VRML/X3D viewpoint) }
     CameraViewpointForWholeScene(BoundingBox, 2, 1, false, true,
-      Position, Direction, Up, GravityUp);
+      APosition, ADirection, AUp, GravityUp);
   end;
 
   ACamera.GravityUp := GravityUp;
 
   { If RelativeCameraTransform, then we will move relative to
     initial camera changes. Else, we will jump to new initial camera vectors. }
-  ACamera.SetInitialView(Position, Direction, Up, RelativeCameraTransform);
+  ACamera.SetInitialView(APosition, ADirection, AUp, RelativeCameraTransform);
   if not RelativeCameraTransform then
   begin
     if AllowTransitionAnimate and (not ForceTeleportTransitions) then
-      CameraTransition(ACamera, Position, Direction, Up)
+      CameraTransition(ACamera, APosition, ADirection, AUp)
     else
-      ACamera.SetView(Position, Direction, Up);
+      ACamera.SetView(APosition, ADirection, AUp);
   end;
 end;
 
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
-  const Position, Direction, Up: TVector3);
+  const APosition, ADirection, AUp: TVector3);
 var
   NavigationNode: TNavigationInfoNode;
   TransitionAnimate: boolean;
@@ -6220,21 +6229,21 @@ begin
 
   if TransitionAnimate then
   begin
-    Camera.AnimateTo(Position, Direction, Up, TransitionTime);
+    Camera.AnimateTo(APosition, ADirection, AUp, TransitionTime);
     WatchForTransitionComplete := true;
   end else
   begin
-    Camera.SetView(Position, Direction, Up);
+    Camera.SetView(APosition, ADirection, AUp);
     if NavigationInfoStack.Top <> nil then
       NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
   end;
 end;
 
 procedure TCastleSceneCore.CameraTransition(Camera: TCamera;
-  const Position, Direction, Up, GravityUp: TVector3);
+  const APosition, ADirection, AUp, GravityUp: TVector3);
 begin
   Camera.GravityUp := GravityUp;
-  CameraTransition(Camera, Position, Direction, Up);
+  CameraTransition(Camera, APosition, ADirection, AUp);
 end;
 
 { misc ----------------------------------------------------------------------- }
@@ -6444,159 +6453,6 @@ begin
   end;
 end;
 
-function TCastleSceneCore.HeightCollision(const Position, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
-begin
-  if UseInternalOctreeCollisions then
-  begin
-    Result := false;
-    AboveHeight := MaxSingle;
-    AboveGround := nil;
-
-    if GetCollides then
-    begin
-      Result := InternalOctreeCollisions.HeightCollision(Position, GravityUp,
-        AboveHeight, PTriangle(AboveGround), nil, TrianglesToIgnoreFunc);
-    end;
-  end else
-    Result := inherited HeightCollision(Position, GravityUp,
-      TrianglesToIgnoreFunc, AboveHeight, AboveGround);
-end;
-
-function TCastleSceneCore.MoveCollision(
-  const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  if UseInternalOctreeCollisions then
-  begin
-    if GetCollides then
-    begin
-      Result := InternalOctreeCollisions.MoveCollision(OldPos, ProposedNewPos, NewPos,
-        IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
-    end else
-    begin
-      Result := true;
-      NewPos := ProposedNewPos;
-    end;
-  end else
-    Result := inherited MoveCollision(OldPos, ProposedNewPos, NewPos,
-      IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-end;
-
-function TCastleSceneCore.MoveCollision(
-  const OldPos, NewPos: TVector3;
-  const IsRadius: boolean; const Radius: Single;
-  const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  if UseInternalOctreeCollisions then
-  begin
-    Result := (not GetCollides) or
-      InternalOctreeCollisions.MoveCollision(OldPos, NewPos,
-        IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
-  end else
-    Result := inherited MoveCollision(OldPos, NewPos,
-      IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
-end;
-
-function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const ALineOfSight: boolean): boolean;
-begin
-  if UseInternalOctreeCollisions then
-    Result := (GetCollides or (ALineOfSight and GetExists)) and
-      InternalOctreeCollisions.IsSegmentCollision(
-        Pos1, Pos2,
-        nil, false, TrianglesToIgnoreFunc) else
-    Result := inherited SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
-end;
-
-function TCastleSceneCore.SphereCollision(
-  const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  if UseInternalOctreeCollisions then
-    Result := GetCollides and
-      InternalOctreeCollisions.IsSphereCollision(
-        Pos, Radius, nil, TrianglesToIgnoreFunc) else
-    Result := inherited SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
-end;
-
-function TCastleSceneCore.SphereCollision2D(
-  const Pos: TVector2; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  const Details: TCollisionDetails): boolean;
-begin
-  if UseInternalOctreeCollisions then
-  begin
-    Result := GetCollides and
-      InternalOctreeCollisions.IsSphereCollision2D(Pos, Radius, nil, TrianglesToIgnoreFunc);
-    if Result and (Details <> nil) then
-    begin
-      Details.Clear;
-      Details.Add(Self);
-    end;
-  end else
-    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
-end;
-
-function TCastleSceneCore.PointCollision2D(
-  const Point: TVector2;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  if UseInternalOctreeCollisions then
-    Result := GetCollides and
-      InternalOctreeCollisions.IsPointCollision2D(Point, nil, TrianglesToIgnoreFunc) else
-    Result := inherited PointCollision2D(Point, TrianglesToIgnoreFunc);
-end;
-
-function TCastleSceneCore.BoxCollision(const Box: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
-begin
-  if UseInternalOctreeCollisions then
-    Result := GetCollides and
-      InternalOctreeCollisions.IsBoxCollision(
-        Box,  nil, TrianglesToIgnoreFunc) else
-    Result := inherited BoxCollision(Box, TrianglesToIgnoreFunc);
-end;
-
-function TCastleSceneCore.RayCollision(const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
-var
-  Triangle: PTriangle;
-  Intersection: TVector3;
-  IntersectionDistance: Single;
-  NewNode: PRayCollisionNode;
-begin
-  if UseInternalOctreeCollisions then
-  begin
-    Result := nil;
-    if GetExists then
-    begin
-      Triangle := InternalOctreeCollisions.RayCollision(
-        Intersection, IntersectionDistance, RayOrigin, RayDirection,
-        { ReturnClosestIntersection } true,
-        { TriangleToIgnore } nil,
-        { IgnoreMarginAtStart } false, TrianglesToIgnoreFunc);
-      if Triangle <> nil then
-      begin
-        Result := TRayCollision.Create;
-        Result.Distance := IntersectionDistance;
-        NewNode := Result.Add;
-        NewNode^.Item := Self;
-        NewNode^.Point := Intersection;
-        NewNode^.Triangle := Triangle;
-        NewNode^.RayOrigin := RayOrigin;
-        NewNode^.RayDirection := RayDirection;
-      end;
-    end;
-  end else
-    Result := inherited RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
-end;
-
 procedure TCastleSceneCore.SetShadowMaps(const Value: boolean);
 begin
   if FShadowMaps <> Value then
@@ -6703,9 +6559,9 @@ end;
 
 procedure TCastleSceneCore.AddViewpointFromCamera(ACamera: TCamera; AName: string);
 var
-  Position: TVector3;
-  Direction: TVector3;
-  Up: TVector3;
+  APosition: TVector3;
+  ADirection: TVector3;
+  AUp: TVector3;
   GravityUp: TVector3;
   Version: TX3DCameraVersion;
   NewViewNode: TAbstractChildNode;
@@ -6722,12 +6578,12 @@ begin
   if RootNode = nil then
     raise Exception.Create('You have to initialize RootNode, usually just by loading some scene to TCastleSceneCore.Load, before adding viewpoints');
 
-  ACamera.GetView(Position, Direction, Up, GravityUp);
+  ACamera.GetView(APosition, ADirection, AUp, GravityUp);
 
   if RootNode.HasForceVersion and (RootNode.ForceVersion.Major <= 1) then
     Version := cvVrml1_Inventor else
     Version := cvVrml2_X3d;
-  NewViewNode := MakeCameraNode(Version, '', Position, Direction, Up, GravityUp,
+  NewViewNode := MakeCameraNode(Version, '', APosition, ADirection, AUp, GravityUp,
     NewViewpointNode);
   NewViewpointNode.FdDescription.Value := AName;
   NewViewpointNode.X3DName := 'Viewpoint' + IntToStr(Random(10000));
