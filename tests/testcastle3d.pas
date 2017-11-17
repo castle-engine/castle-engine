@@ -46,31 +46,45 @@ type
 implementation
 
 uses CastleVectors, CastleBoxes, Castle3D, CastleSceneManager, Contnrs, CastleClassUtils,
-  CastleTriangles;
+  CastleTriangles, CastleSceneCore, X3DNodes;
 
 { TMy3D ---------------------------------------------------------------------- }
 
 type
-  { Simple invisible 3D axis-aligned box.
-    Probably the simplest possible complete T3D descendant implementation,
-    to test various T3D methods.
-    Default T3D methods implementation takes care of collisions with BoundingBox,
-    so all we need to do is to override the BoundingBox method. }
-  TMy3D = class(T3D)
+  { Simple 3D axis-aligned box, resolving collisions with this box using
+    TCastleScene fallback methods when Spatial = []. }
+  TMy3D = class(TCastleSceneCore)
   private
     MyBox: TBox3D;
   public
     constructor Create(AOwner: TComponent; const AMyBox: TBox3D); reintroduce;
+    function LocalBoundingBox: TBox3D; override;
     function BoundingBox: TBox3D; override;
+    function Middle: TVector3; override;
   end;
 
 constructor TMy3D.Create(AOwner: TComponent; const AMyBox: TBox3D);
+var
+  Root: TX3DRootNode;
+  BoxTransform: TTransformNode;
+  BoxShape: TShapeNode;
+  Box: TBoxNode;
 begin
   inherited Create(AOwner);
   MyBox := AMyBox;
+
+
+  Box := TBoxNode.CreateTransform(BoxShape, BoxTransform);
+  Box.Size := MyBox.Size;
+  BoxTransform.Translation := MyBox.Center;
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(BoxTransform);
+
+  Load(Root, true);
 end;
 
-function TMy3D.BoundingBox: TBox3D;
+function TMy3D.LocalBoundingBox: TBox3D;
 begin
   { Note that we don't check Collides property in BoundingBox method.
     BoundingBox must take into account also non-collidable
@@ -79,8 +93,20 @@ begin
     But in general, the rule is "BoundingBox looks at GetExists,
     not at Collides property".) }
   if GetExists then
-    Result := MyBox else
+    Result := MyBox
+  else
     Result := TBox3D.Empty;
+end;
+
+function TMy3D.BoundingBox: TBox3D;
+begin
+  Result := LocalBoundingBox;
+end;
+
+function TMy3D.Middle: TVector3;
+begin
+  // do not require World.GravityCoordinate for Middle implementation
+  Result := TVector3.Zero;
 end;
 
 { Helper box values ---------------------------------------------------------- }
