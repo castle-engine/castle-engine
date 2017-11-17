@@ -27,16 +27,16 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleTransform;
 
 type
-  T3D = CastleTransform.T3D;
-  T3DList = CastleTransform.T3DList;
-  T3DWorld = CastleTransform.T3DWorld;
-
   T3DCustomTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
   T3DTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
   T3DOrient = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
   T3DCustomTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
   T3DTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
 
+  T3D                         = CastleTransform.T3D;
+  T3DListCore                 = CastleTransform.T3DListCore;
+  T3DList                     = CastleTransform.T3DList;
+  T3DWorld                    = CastleTransform.T3DWorld;
   TCollisionDetails           = CastleTransform.TCollisionDetails;
   TRayCollision               = CastleTransform.TRayCollision;
   TRayCollisionNode           = CastleTransform.TRayCollisionNode;
@@ -373,20 +373,20 @@ const
   DefaultPlayerFallSoundName = 'player_fall';
   { @groupEnd }
 
-  vcVisibleGeometry = CastleTransform.vcVisibleGeometry;
+  vcVisibleGeometry    = CastleTransform.vcVisibleGeometry;
   vcVisibleNonGeometry = CastleTransform.vcVisibleNonGeometry;
-  prShadowVolume = CastleTransform.prShadowVolume;
-  prSpatial = CastleTransform.prSpatial;
-  prScreenEffects = CastleTransform.prScreenEffects;
-  prRender = CastleTransform.prRender;
-  prBackground = CastleTransform.prBackground;
-  prBoundingBox = CastleTransform.prBoundingBox;
-  rtNone = CastleTransform.rtNone;
-  rtRemove = CastleTransform.rtRemove;
-  rtRemoveAndFree = CastleTransform.rtRemoveAndFree;
+  prShadowVolume       = CastleTransform.prShadowVolume;
+  prSpatial            = CastleTransform.prSpatial;
+  prScreenEffects      = CastleTransform.prScreenEffects;
+  prRender             = CastleTransform.prRender;
+  prBackground         = CastleTransform.prBackground;
+  prBoundingBox        = CastleTransform.prBoundingBox;
+  rtNone               = CastleTransform.rtNone;
+  rtRemove             = CastleTransform.rtRemove;
+  rtRemoveAndFree      = CastleTransform.rtRemoveAndFree;
   otUpYDirectionMinusZ = CastleTransform.otUpYDirectionMinusZ;
   otUpZDirectionMinusY = CastleTransform.otUpZDirectionMinusY;
-  otUpZDirectionX = CastleTransform.otUpZDirectionX;
+  otUpZDirectionX      = CastleTransform.otUpZDirectionX;
 
 var
   { Creatures, items and possibly other 3D stuff may look at these variables

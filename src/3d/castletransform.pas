@@ -1625,6 +1625,8 @@ type
     { Translation (move) the children. Zero by default. }
     property Translation: TVector3 read FTranslation write SetTranslation;
 
+    function GetTranslation: TVector3; deprecated 'use Translation';
+
     { Center point around which the @link(Rotation) and @link(Scale) is performed. }
     property Center: TVector3 read FCenter write SetCenter;
 
@@ -3772,6 +3774,11 @@ begin
   FScaleOrientation := Value;
   FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
   ChangedTransform;
+end;
+
+function TCastleTransform.GetTranslation: TVector3;
+begin
+  Result := FTranslation;
 end;
 
 procedure TCastleTransform.SetTranslation(const Value: TVector3);
