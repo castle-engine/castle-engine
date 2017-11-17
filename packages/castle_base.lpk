@@ -61,7 +61,7 @@ end;"/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="645">
+    <Files Count="646">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2650,6 +2650,10 @@ end;"/>
         <Filename Value="../src/base/castlerendererbasetypes.pas"/>
         <UnitName Value="CastleRendererBaseTypes"/>
       </Item645>
+      <Item646>
+        <Filename Value="../src/3d/castletransform.pas"/>
+        <UnitName Value="CastleTransform"/>
+      </Item646>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

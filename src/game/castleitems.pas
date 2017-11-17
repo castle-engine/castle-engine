@@ -1188,7 +1188,7 @@ begin
   if AutoPick and
      (World.Player <> nil) and
      (World.Player is T3DAliveWithInventory) and
-     (not World.Player.Dead) and
+     (not (World.Player as T3DAlive).Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
     ExtractItem.Picked(T3DAliveWithInventory(World.Player));
 

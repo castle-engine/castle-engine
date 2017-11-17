@@ -101,11 +101,11 @@
   T3DCoords = set of T3DCoord;
 
   { Rigid body properties for the physics engine,
-    see @link(T3DTransform.RigidBody).
+    see @link(TCastleTransform.RigidBody).
 
     TODO: For now all the properties of this class,
     including the Collider and all properties of Collider,
-    must be assigned before setting T3DTransform.RigidBody . }
+    must be assigned before setting TCastleTransform.RigidBody . }
   TRigidBody = class(TComponent)
   private
     FKraftBody: TKraftRigidBody;
@@ -118,7 +118,7 @@
     FInitialAngularVelocity: TVector3;
     FInitialLinearVelocity: TVector3;
     FRecreateKraftInstance: boolean;
-    procedure UpdateCollides(const Transform: T3DTransform);
+    procedure UpdateCollides(const Transform: TCastleTransform);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -129,10 +129,10 @@
     procedure Setup2D;
 
     { Connect this rigid body with Transform and Transform.World. }
-    procedure InitializeTransform(const Transform: T3DTransform);
+    procedure InitializeTransform(const Transform: TCastleTransform);
     { Disconnect from Transform.World, if was connected. }
-    procedure DeinitializeTransform(const Transform: T3DTransform);
-    procedure Update(const Transform: T3DTransform; const SecondsPassed: Single);
+    procedure DeinitializeTransform(const Transform: TCastleTransform);
+    procedure Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
     property InitialAngularVelocity: TVector3 read FInitialAngularVelocity write FInitialAngularVelocity;
     property InitialLinearVelocity: TVector3 read FInitialLinearVelocity write FInitialLinearVelocity;
@@ -144,9 +144,9 @@
         @itemLabel true (dynamic object, the default)
         @item(
           In this case you cannot
-          change the @link(T3DTransform.Translation) and other
-          transformation properties of the related T3DTransform
-          after assigning @link(T3DTransform.RigidBody).
+          change the @link(TCastleTransform.Translation) and other
+          transformation properties of the related TCastleTransform
+          after assigning @link(TCastleTransform.RigidBody).
           They are under the control of the physics engine.
           You can still reliably read them.
 
@@ -158,7 +158,7 @@
           In this case object is not transformed by the physics simulation.
           It still collides with other physical objects.
 
-          You can change the @link(T3DTransform.Translation) and other
+          You can change the @link(TCastleTransform.Translation) and other
           transformation properties by your own code.
           But if you plan to change them @italic(very often)
           (e.g. every frame), then set the @link(Animated) property to @true.
@@ -172,8 +172,8 @@
 
       This property is taken into account only if @link(Dynamic) = @false.
       When @link(Dynamic) = @false,
-      you can change the @link(T3DTransform.Translation) and other
-      transformation properties of the related T3DTransform.
+      you can change the @link(TCastleTransform.Translation) and other
+      transformation properties of the related TCastleTransform.
       This property is an optimization hint to the physics engine,
       it says @italic(how often) you will change the transformation.
 
@@ -181,7 +181,7 @@
         @itemLabel true (animated object, also known as "kinematic")
         @item(
           The physics engine is prepared that this object can move often,
-          e.g. every frame, so you can animate the related @link(T3DTransform)
+          e.g. every frame, so you can animate the related @link(TCastleTransform)
           using any technique.
         )
 
@@ -209,14 +209,14 @@
     { Is this object affected by gravity. }
     property Gravity: boolean read FGravity write FGravity default true;
 
-    { Disable motion (@link(T3DTransform.Translation) change) along
+    { Disable motion (@link(TCastleTransform.Translation) change) along
       the particular (world) axis.
 
       For 2D games, you will usually want to disable motion along the Z axis.
       You can do this comfortably by calling @link(Setup2D). }
     property LockTranslation: T3DCoords read FLockTranslation write FLockTranslation;
 
-    { Disable rotation (@link(T3DTransform.Rotation) change) along
+    { Disable rotation (@link(TCastleTransform.Rotation) change) along
       the particular (world) axis.
       You can do this comfortably by calling @link(Setup2D). }
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
@@ -349,7 +349,7 @@ begin
   if 2 in Locked then Result[2] := 0;
 end;
 
-procedure TRigidBody.InitializeTransform(const Transform: T3DTransform);
+procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
@@ -416,7 +416,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.DeinitializeTransform(const Transform: T3DTransform);
+procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
 begin
   FreeAndNil(FKraftBody);
   { Collider.FKraftShape is owned by FKraftBody, it was automatically freed now }
@@ -426,7 +426,7 @@ begin
   FRecreateKraftInstance := true;
 end;
 
-procedure TRigidBody.UpdateCollides(const Transform: T3DTransform);
+procedure TRigidBody.UpdateCollides(const Transform: TCastleTransform);
 const
   AllCollisionGroups = [
     Low (TKraftRigidBodyCollisionGroup)..
@@ -444,7 +444,7 @@ begin
   end;
 end;
 
-procedure TRigidBody.Update(const Transform: T3DTransform; const SecondsPassed: Single);
+procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
   { Update current transformation from Kraft rigid body parameters. }
   procedure TransformationFromKraft;
@@ -481,9 +481,9 @@ begin
   end;
 end;
 
-{ T3DTransform ---------------------------------------------------------- }
+{ TCastleTransform ---------------------------------------------------------- }
 
-procedure T3DTransform.SetRigidBody(const Value: TRigidBody);
+procedure TCastleTransform.SetRigidBody(const Value: TRigidBody);
 begin
   if FRigidBody <> Value then
   begin
@@ -497,7 +497,7 @@ begin
     if FRigidBody <> nil then
     begin
       FRigidBody.FreeNotification(Self);
-      { For the same reason that T3DTransform.ChangeWorld calls this,
+      { For the same reason that TCastleTransform.ChangeWorld calls this,
         also here call InitializeTransform, in case ChangeWorld happened
         before SetRigidBody. }
       if World <> nil then
@@ -506,7 +506,7 @@ begin
   end;
 end;
 
-destructor T3DTransform.Destroy;
+destructor TCastleTransform.Destroy;
 begin
   { set to nil by SetRigidBody, to detach free notification }
   RigidBody := nil;
@@ -514,15 +514,13 @@ begin
   inherited;
 end;
 
-procedure T3DTransform.Update(const SecondsPassed: Single;
-  var RemoveMe: TRemoveType);
+procedure TCastleTransform.UpdatePhysicsEngine(const SecondsPassed: Single);
 begin
-  inherited;
   if FRigidBody <> nil then
     FRigidBody.Update(Self, SecondsPassed);
 end;
 
-procedure T3DTransform.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
 begin
   inherited;
   if (Operation = opRemove) and (AComponent = FRigidBody) then
@@ -530,7 +528,7 @@ begin
     RigidBody := nil;
 end;
 
-procedure T3DTransform.ChangeWorld(const Value: T3DWorld);
+procedure TCastleTransform.ChangeWorld(const Value: T3DWorld);
 begin
   if FWorld <> Value then
   begin
@@ -633,7 +631,7 @@ begin
 
   { call inherited at the end,
     to update transformation of all items in their TRigidBody.Update
-    called from T3DTransform.Update }
+    called from TCastleTransform.Update }
   inherited;
 end;
 

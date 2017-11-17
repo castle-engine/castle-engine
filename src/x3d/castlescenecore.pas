@@ -28,7 +28,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
   CastleClassUtils, CastleUtils, CastleShapes, CastleInternalTriangleOctree,
   CastleProgress, CastleInternalOctree, CastleInternalShapeOctree,
   CastleKeysMouse, X3DTime, CastleCameras, X3DTriangles, CastleRenderingCamera,
-  Castle3D, CastleInternalShadowMaps, CastleProjection;
+  CastleTransform, CastleInternalShadowMaps, CastleProjection;
 
 type
   { Internal helper type for TCastleSceneCore.

@@ -23,7 +23,7 @@ interface
 uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
-  CastleResources, CastleXMLConfig, Castle3D,
+  CastleResources, CastleXMLConfig, Castle3D, CastleTransform,
   CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
   CastleDebug3D;
 
@@ -1506,11 +1506,12 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
         FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
           { move the caption to be at the top }
           World.GravityUp * H,
-          { By default, Text is in XY plane.
-            Adjust it to our Orientation. }
-          TVector3.CrossProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
-          UpFromOrientation[Orientation],
-          DirectionFromOrientation[Orientation]);
+          { By default, Text is in XY plane. Adjust it to our Orientation. }
+          TVector3.CrossProduct(
+            TCastleTransform.DefaultUp[Orientation],
+            TCastleTransform.DefaultDirection[Orientation]),
+          TCastleTransform.DefaultUp[Orientation],
+          TCastleTransform.DefaultDirection[Orientation]);
 
         FDebugCaptionsText.FdString.Items.Clear;
         UpdateDebugCaption(FDebugCaptionsText.FdString.Items);
@@ -1611,7 +1612,7 @@ end;
 
 function TWalkAttackCreature.Enemy: T3DAlive;
 begin
-  Result := World.Player;
+  Result := World.Player as T3DAlive;
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2700,7 +2701,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt(World.Player);
+  AttackHurt(World.Player as T3DAlive);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);
