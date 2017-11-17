@@ -438,6 +438,55 @@ type
     procedure LocalRenderInside(const TestShapeVisibility: TTestShapeVisibility;
       const Frustum: TFrustum; const Params: TRenderParams);
 
+    { Render everything using LocalRenderInside.
+      The rendering parameters are configurable
+      by @link(Attributes), see TSceneRenderingAttributes and
+      TRenderingAttributes.
+
+      For more details about rendering, see @link(CastleRenderer) unit comments.
+      This method internally uses TGLRenderer instance, additionally
+      handling the blending:
+
+      @unorderedList(
+        @item(
+          OpenGL state of glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc
+          is controlled by this function. This function will unconditionally
+          change (and restore later to original value) this state,
+          to perform correct blending (transparency rendering).
+
+          To make a correct rendering, we always
+          render transparent shapes at the end (after all opaque),
+          and with depth-buffer in read-only mode.)
+
+        @item(Only a subset of shapes indicated by Params.Transparent is rendered.
+          This is necessary if you want to mix in one 3D world many scenes
+          (like TCastleScene instances), and each of them may have some opaque
+          and some transparent
+          parts. In such case, you want to render everything opaque
+          (from every scene) first, and only then render everything transparent.
+          For shadow volumes, this is even more complicated.)
+
+        @item(Note that when Attributes.Blending is @false then everything
+          is always opaque, so tgOpaque renders everything and tgTransparent
+          renders nothing.)
+      )
+
+      @param(TestShapeVisibility Filters which shapes are visible.
+
+        You can use this to optimize rendering. For example
+        you can reject shapes because their bounding volume
+        (bounding boxes or bounding spheres) doesn't intersect with frustum
+        or such. This is called frustum culling, and in fact is done
+        automatically by other overloaded Render methods in this class,
+        see FrustumCulling and OctreeFrustumCulling.
+
+        TestShapeVisibility callback may be used to implement frustum
+        culling, or some other visibility algorithm.) }
+    procedure LocalRenderOutside(
+      const TestShapeVisibility: TTestShapeVisibility;
+      const Frustum: TFrustum;
+      const Params: TRenderParams);
+
     { Destroy any associations of Renderer with OpenGL context.
 
       This also destroys associations with OpenGL context in this class
@@ -511,55 +560,6 @@ type
     function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
-
-    { Render everything using LocalRenderInside.
-      The rendering parameters are configurable
-      by @link(Attributes), see TSceneRenderingAttributes and
-      TRenderingAttributes.
-
-      For more details about rendering, see @link(CastleRenderer) unit comments.
-      This method internally uses TGLRenderer instance, additionally
-      handling the blending:
-
-      @unorderedList(
-        @item(
-          OpenGL state of glDepthMask, glEnable/Disable(GL_BLEND), glBlendFunc
-          is controlled by this function. This function will unconditionally
-          change (and restore later to original value) this state,
-          to perform correct blending (transparency rendering).
-
-          To make a correct rendering, we always
-          render transparent shapes at the end (after all opaque),
-          and with depth-buffer in read-only mode.)
-
-        @item(Only a subset of shapes indicated by Params.Transparent is rendered.
-          This is necessary if you want to mix in one 3D world many scenes
-          (like TCastleScene instances), and each of them may have some opaque
-          and some transparent
-          parts. In such case, you want to render everything opaque
-          (from every scene) first, and only then render everything transparent.
-          For shadow volumes, this is even more complicated.)
-
-        @item(Note that when Attributes.Blending is @false then everything
-          is always opaque, so tgOpaque renders everything and tgTransparent
-          renders nothing.)
-      )
-
-      @param(TestShapeVisibility Filters which shapes are visible.
-
-        You can use this to optimize rendering. For example
-        you can reject shapes because their bounding volume
-        (bounding boxes or bounding spheres) doesn't intersect with frustum
-        or such. This is called frustum culling, and in fact is done
-        automatically by other overloaded Render methods in this class,
-        see FrustumCulling and OctreeFrustumCulling.
-
-        TestShapeVisibility callback may be used to implement frustum
-        culling, or some other visibility algorithm.) }
-    procedure LocalRenderOutside(
-      const TestShapeVisibility: TTestShapeVisibility;
-      const Frustum: TFrustum;
-      const Params: TRenderParams);
 
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
 
