@@ -384,6 +384,9 @@ const
   rtNone = CastleTransform.rtNone;
   rtRemove = CastleTransform.rtRemove;
   rtRemoveAndFree = CastleTransform.rtRemoveAndFree;
+  otUpYDirectionMinusZ = CastleTransform.otUpYDirectionMinusZ;
+  otUpZDirectionMinusY = CastleTransform.otUpZDirectionMinusY;
+  otUpZDirectionX = CastleTransform.otUpZDirectionX;
 
 var
   { Creatures, items and possibly other 3D stuff may look at these variables

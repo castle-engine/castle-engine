@@ -1354,7 +1354,6 @@ type
     FScale: TVector3;
     FScaleOrientation: TVector4;
     FTranslation: TVector3;
-    FOnlyTranslation: boolean;
 
     FGravity: boolean;
     FFallingStartMiddle: TVector3;
@@ -1381,6 +1380,9 @@ type
     procedure UpdateSimpleGravity(const SecondsPassed: Single);
     procedure UpdatePhysicsEngine(const SecondsPassed: Single);
   protected
+    { Internal. Protected instead of private only for testing. }
+    OnlyTranslation: boolean;
+
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
       If MiddleForceBox then we will use given MiddleForceBoxValue
@@ -1399,10 +1401,6 @@ type
 
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
     function Translation2D: TVector2;
-
-    { Can we use simple @link(Translation) instead of full TransformMatricesMult.
-      Returning @true allows optimization in some cases. }
-    function OnlyTranslation: boolean;
 
     { Transformation matrix.
       This method produces matrices that preserve points as points
@@ -3113,7 +3111,7 @@ constructor TCastleTransform.Create(AOwner: TComponent);
 begin
   inherited;
   FMiddleHeight := DefaultMiddleHeight;
-  FOnlyTranslation := true;
+  OnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
 end;
@@ -3741,21 +3739,21 @@ end;
 procedure TCastleTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
-  FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
+  OnlyTranslation := OnlyTranslation and Value.IsPerfectlyZero;
   ChangedTransform;
 end;
 
 procedure TCastleTransform.SetRotation(const Value: TVector4);
 begin
   FRotation := Value;
-  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+  OnlyTranslation := OnlyTranslation and (Value[3] = 0);
   ChangedTransform;
 end;
 
 procedure TCastleTransform.SetScale(const Value: TVector3);
 begin
   FScale := Value;
-  FOnlyTranslation := FOnlyTranslation and
+  OnlyTranslation := OnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
   ChangedTransform;
 end;
@@ -3763,7 +3761,7 @@ end;
 procedure TCastleTransform.SetScaleOrientation(const Value: TVector4);
 begin
   FScaleOrientation := Value;
-  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
+  OnlyTranslation := OnlyTranslation and (Value[3] = 0);
   ChangedTransform;
 end;
 
@@ -3771,11 +3769,6 @@ procedure TCastleTransform.SetTranslation(const Value: TVector3);
 begin
   FTranslation := Value;
   ChangedTransform;
-end;
-
-function TCastleTransform.OnlyTranslation: boolean;
-begin
-  Result := FOnlyTranslation;
 end;
 
 procedure TCastleTransform.Translate(const T: TVector3);
