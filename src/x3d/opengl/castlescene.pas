@@ -421,10 +421,10 @@ type
     { Cache used by this scene. Always initialized to non-nil by constructor. }
     Cache: TGLRendererContextCache;
 
-    { used by RenderScene }
+    { used by LocalRenderInside }
     FilteredShapes: TShapeList;
 
-    { Render everything.
+    { Render everything using Renderer.
 
       Calls Renderer.RenderBegin.
       Then on all potentially visible Shapes[] calls RenderShape.
@@ -438,7 +438,7 @@ type
       shape before all opaque objects.
 
       Updates Params.Statistics. }
-    procedure RenderScene(TestShapeVisibility: TTestShapeVisibility;
+    procedure LocalRenderInside(const TestShapeVisibility: TTestShapeVisibility;
       const Frustum: TFrustum; const Params: TRenderParams);
 
     { Destroy any associations of Renderer with OpenGL context.
@@ -516,48 +516,9 @@ type
     function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
     procedure InvalidateBackground; override;
-  public
-    constructor Create(AOwner: TComponent); override;
 
-    constructor CreateCustomCache(AOwner: TComponent; ACache: TGLRendererContextCache);
-
-    { A very special constructor, that forces this class to use
-      provided ACustomRenderer. ACustomRenderer must be <> @nil.
-
-      Note that this renderer must be created with AttributesClass
-      = TSceneRenderingAttributes.
-
-      @italic(Don't use this unless you really know what you're doing!)
-      In all normal circumstances you should use normal @link(Create)
-      constructor, that will internally create and use internal renderer object.
-      If you use this constructor you will have to understand how internally
-      this class synchronizes itself with underlying Renderer object.
-
-      Once again, if you're not sure, then simply don't use this
-      constructor. It's for internal use --- namely it's internally used
-      by TCastlePrecalculatedAnimation, this way all scenes of the animation share
-      the same renderer which means that they also share the same
-      information about textures and images loaded into OpenGL.
-      And this is crucial for TCastlePrecalculatedAnimation, otherwise animation with
-      100 scenes would load the same texture to OpenGL 100 times. }
-    constructor CreateCustomRenderer(AOwner: TComponent;
-      ACustomRenderer: TGLRenderer);
-
-    destructor Destroy; override;
-
-    { Destroy any associations of this object with current OpenGL context.
-      For example, release any allocated texture names.
-
-      Generally speaking, destroys everything that is allocated by
-      PrepareResources call. It's harmless to call this
-      method when there are already no associations with current OpenGL context.
-      This is called automatically from the destructor. }
-    procedure GLContextClose; override;
-
-    procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
-
-    { Render for OpenGL. The rendering parameters are configurable
+    { Render everything using LocalRenderInside.
+      The rendering parameters are configurable
       by @link(Attributes), see TSceneRenderingAttributes and
       TRenderingAttributes.
 
@@ -600,13 +561,12 @@ type
 
         TestShapeVisibility callback may be used to implement frustum
         culling, or some other visibility algorithm.) }
-    procedure Render(TestShapeVisibility: TTestShapeVisibility;
+    procedure LocalRenderOutside(
+      const TestShapeVisibility: TTestShapeVisibility;
       const Frustum: TFrustum;
       const Params: TRenderParams);
 
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-
-    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     { Render shadow volume (sides and caps) of this scene, for shadow volume
       algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
@@ -649,10 +609,52 @@ type
       Faces (both shadow quads and caps) are rendered such that
       CCW <=> you're looking at it from outside
       (i.e. it's considered front face of this shadow volume). }
-    procedure RenderShadowVolume(
+    procedure LocalRenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4); override;
+  public
+    constructor Create(AOwner: TComponent); override;
+
+    constructor CreateCustomCache(AOwner: TComponent; ACache: TGLRendererContextCache);
+
+    { A very special constructor, that forces this class to use
+      provided ACustomRenderer. ACustomRenderer must be <> @nil.
+
+      Note that this renderer must be created with AttributesClass
+      = TSceneRenderingAttributes.
+
+      @italic(Don't use this unless you really know what you're doing!)
+      In all normal circumstances you should use normal @link(Create)
+      constructor, that will internally create and use internal renderer object.
+      If you use this constructor you will have to understand how internally
+      this class synchronizes itself with underlying Renderer object.
+
+      Once again, if you're not sure, then simply don't use this
+      constructor. It's for internal use --- namely it's internally used
+      by TCastlePrecalculatedAnimation, this way all scenes of the animation share
+      the same renderer which means that they also share the same
+      information about textures and images loaded into OpenGL.
+      And this is crucial for TCastlePrecalculatedAnimation, otherwise animation with
+      100 scenes would load the same texture to OpenGL 100 times. }
+    constructor CreateCustomRenderer(AOwner: TComponent;
+      ACustomRenderer: TGLRenderer);
+
+    destructor Destroy; override;
+
+    { Destroy any associations of this object with current OpenGL context.
+      For example, release any allocated texture names.
+
+      Generally speaking, destroys everything that is allocated by
+      PrepareResources call. It's harmless to call this
+      method when there are already no associations with current OpenGL context.
+      This is called automatically from the destructor. }
+    procedure GLContextClose; override;
+
+    procedure PrepareResources(Options: TPrepareResourcesOptions;
+      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
+
+    procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
     { Render silhouette edges.
       Silhouette is determined from the ObserverPos.
@@ -1135,8 +1137,8 @@ begin
     Result := Attributes.BlendingSort;
 end;
 
-procedure TCastleScene.RenderScene(
-  TestShapeVisibility: TTestShapeVisibility;
+procedure TCastleScene.LocalRenderInside(
+  const TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
 var
   ModelView: TMatrix4;
@@ -1540,13 +1542,13 @@ begin
   finally Dec(InternalDirty) end;
 end;
 
-procedure TCastleScene.Render(
-  TestShapeVisibility: TTestShapeVisibility;
+procedure TCastleScene.LocalRenderOutside(
+  const TestShapeVisibility: TTestShapeVisibility;
   const Frustum: TFrustum; const Params: TRenderParams);
 
   procedure RenderNormal;
   begin
-    RenderScene(TestShapeVisibility, Frustum, Params);
+    LocalRenderInside(TestShapeVisibility, Frustum, Params);
   end;
 
   {$ifndef OpenGLES} // TODO-es For OpenGLES, wireframe must be done differently
@@ -1731,7 +1733,7 @@ end;
 
 { Shadow volumes ------------------------------------------------------------- }
 
-procedure TCastleScene.RenderShadowVolume(
+procedure TCastleScene.LocalRenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4);
@@ -1903,7 +1905,7 @@ begin
     Shape.RenderFrustumOctree_Visible := true;
 end;
 
-procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 
 { Call Render with explicit TTestShapeVisibility function.
   That is, choose test function suitable for our Frustum,
@@ -1914,7 +1916,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
   find visible Shape. Otherwise, we will just enumerate all
   Shapes (which may be slower if you really have a lot of Shapes). }
 
-  procedure RenderFrustumOctree(Octree: TShapeOctree);
+  procedure LocalRenderFrustumOctree(Octree: TShapeOctree);
 
     procedure ResetShapeVisible(Shape: TShape);
     begin
@@ -1925,7 +1927,7 @@ procedure TCastleScene.Render(const Frustum: TFrustum; const Params: TRenderPara
     Shapes.Traverse(@ResetShapeVisible, false, true);
     Octree.EnumerateCollidingOctreeItems(Frustum,
       @RenderFrustumOctree_EnumerateShapes);
-    Render(@RenderFrustumOctree_TestShape, Frustum, Params);
+    LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
   end;
 
 begin
@@ -1935,8 +1937,9 @@ begin
     RenderFrustum_Frustum := @Frustum;
 
     if InternalOctreeRendering <> nil then
-      RenderFrustumOctree(InternalOctreeRendering) else
-      Render(FrustumCullingFunc, Frustum, Params);
+      LocalRenderFrustumOctree(InternalOctreeRendering)
+    else
+      LocalRenderOutside(FrustumCullingFunc, Frustum, Params);
   end;
 end;
 

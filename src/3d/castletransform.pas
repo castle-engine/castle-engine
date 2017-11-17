@@ -450,6 +450,18 @@ type
       and chooses the closest one. }
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
+
+    { Bounding box assuming that the scene is not transformed. }
+    function LocalBoundingBox: TBox3D; virtual; abstract;
+
+    { Render with given Params (includes a full transformation of this scene). }
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); virtual;
+
+    { Render shadow volumes (with a full transformation of this scene). }
+    procedure LocalRenderShadowVolume(
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
+      const ParentTransformIsIdentity: boolean;
+      const ParentTransform: TMatrix4); virtual;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1114,6 +1126,12 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
+    function LocalBoundingBox: TBox3D; override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRenderShadowVolume(
+      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
+      const ParentTransformIsIdentity: boolean;
+      const ParentTransform: TMatrix4); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1163,12 +1181,6 @@ type
       is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
     procedure SortBackToFront2D;
 
-    function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    procedure RenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); override;
     procedure PrepareResources(
       Options: TPrepareResourcesOptions;
       ProgressStep: boolean;
@@ -1189,83 +1201,6 @@ type
     { 3D objects inside.
       Freeing these items automatically removes them from this list. }
     property List: T3DListCore read FList;
-  end;
-
-  { 3D world. List of 3D objects, with some central properties. }
-  T3DWorld = class(T3DList)
-  private
-    FKraftEngine: TKraft;
-    WasPhysicsStep: boolean;
-    TimeAccumulator: TFloatTime;
-    { Create FKraftEngine, if not assigned yet. }
-    procedure InitializePhysicsEngine;
-  public
-    OnCursorChange: TNotifyEvent;
-    OnVisibleChange: TVisibleChangeEvent;
-
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    { See TCastleSceneManager.CollisionIgnoreItem. }
-    function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; virtual; abstract;
-    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
-    function GravityUp: TVector3; virtual; abstract;
-    { The major axis of gravity vector: 0, 1 or 2.
-      This is derived from GravityUp value. It can only truly express
-      GravityUp vector values (1,0,0) or (0,1,0) or (0,0,1),
-      although in practice this is enough for normal games (normal 3D scenes
-      use up either +Y or +Z).
-
-      We try to avoid using it in
-      the engine, and use full GravityUp vector wherever possible.
-      Full GravityUp vector may allow for more fun with weird gravity
-      in future games. }
-    function GravityCoordinate: Integer;
-    { Player, see TCastleSceneManager.Player. }
-    function Player: TCastleTransform; virtual; abstract;
-    { Base lights, see TCastleSceneManager.BaseLights. }
-    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
-    { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
-    function Sectors: TSectorList; virtual; abstract;
-    { Water volume. See TCastleSceneManager.Water. }
-    function Water: TBox3D; virtual; abstract;
-
-    { Collisions with world. They call corresponding methods without the World
-      prefix, automatically taking into account some knowledge about this
-      3D world.
-
-      Calling these methods to check collisions makes sense if your
-      collision query is not initiated by any existing T3D instance.
-
-      If your query originates from some existing T3D instance,
-      you usually do not want to call these WorldXxx methods.
-      Instead call T3D.MoveAllowed, T3D.Height methods.
-      Underneath, they still call @code(World.WorldMoveAllowed) and
-      @code(World.WorldHeight),
-      additionally making sure that the 3D object does not collide with itself.
-      @groupBegin }
-    function WorldMoveAllowed(
-      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
-    function WorldMoveAllowed(
-      const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
-    function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
-    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
-    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
-    function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
-    function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const Details: TCollisionDetails = nil): boolean;
-    function WorldPointCollision2D(const Point: TVector2): boolean;
-    { @groupEnd }
-
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
   TOrientationType = (
@@ -1432,9 +1367,6 @@ type
     { Called when fall ended. You can use FallHeight to decrease creature
       life or such. }
     procedure Fall(const FallHeight: Single); virtual;
-
-    { Untransformed bounding box value. }
-    function LocalBoundingBox: TBox3D;
 
     { Override this to be notified about every transformation change.
       By default, this calls VisibleChangeHere, which causes the window to redraw. }
@@ -1816,6 +1748,83 @@ type
     property Orientation: TOrientationType read FOrientation write FOrientation;
   end;
 
+  { 3D world. List of 3D objects, with some central properties. }
+  T3DWorld = class(TCastleTransform)
+  private
+    FKraftEngine: TKraft;
+    WasPhysicsStep: boolean;
+    TimeAccumulator: TFloatTime;
+    { Create FKraftEngine, if not assigned yet. }
+    procedure InitializePhysicsEngine;
+  public
+    OnCursorChange: TNotifyEvent;
+    OnVisibleChange: TVisibleChangeEvent;
+
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+
+    { See TCastleSceneManager.CollisionIgnoreItem. }
+    function CollisionIgnoreItem(const Sender: TObject;
+      const Triangle: P3DTriangle): boolean; virtual; abstract;
+    { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
+    function GravityUp: TVector3; virtual; abstract;
+    { The major axis of gravity vector: 0, 1 or 2.
+      This is derived from GravityUp value. It can only truly express
+      GravityUp vector values (1,0,0) or (0,1,0) or (0,0,1),
+      although in practice this is enough for normal games (normal 3D scenes
+      use up either +Y or +Z).
+
+      We try to avoid using it in
+      the engine, and use full GravityUp vector wherever possible.
+      Full GravityUp vector may allow for more fun with weird gravity
+      in future games. }
+    function GravityCoordinate: Integer;
+    { Player, see TCastleSceneManager.Player. }
+    function Player: TCastleTransform; virtual; abstract;
+    { Base lights, see TCastleSceneManager.BaseLights. }
+    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
+    { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
+    function Sectors: TSectorList; virtual; abstract;
+    { Water volume. See TCastleSceneManager.Water. }
+    function Water: TBox3D; virtual; abstract;
+
+    { Collisions with world. They call corresponding methods without the World
+      prefix, automatically taking into account some knowledge about this
+      3D world.
+
+      Calling these methods to check collisions makes sense if your
+      collision query is not initiated by any existing T3D instance.
+
+      If your query originates from some existing T3D instance,
+      you usually do not want to call these WorldXxx methods.
+      Instead call T3D.MoveAllowed, T3D.Height methods.
+      Underneath, they still call @code(World.WorldMoveAllowed) and
+      @code(World.WorldHeight),
+      additionally making sure that the 3D object does not collide with itself.
+      @groupBegin }
+    function WorldMoveAllowed(
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
+    function WorldMoveAllowed(
+      const OldPos, NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
+    function WorldHeight(const APosition: TVector3;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
+    function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
+    function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
+    function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
+    function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
+      const Details: TCollisionDetails = nil): boolean;
+    function WorldPointCollision2D(const Point: TVector2): boolean;
+    { @groupEnd }
+
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+  end;
+
   {$define read_interface}
   {$I castletransform_physics.inc}
   {$undef read_interface}
@@ -1909,6 +1918,17 @@ begin
 end;
 
 procedure T3D.RenderShadowVolume(
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
+  const ParentTransformIsIdentity: boolean;
+  const ParentTransform: TMatrix4);
+begin
+end;
+
+procedure T3D.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+begin
+end;
+
+procedure T3D.LocalRenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4);
@@ -2353,7 +2373,7 @@ begin
   SortBackToFront(bs2D, TVector3.Zero);
 end;
 
-function T3DList.BoundingBox: TBox3D;
+function T3DList.LocalBoundingBox: TBox3D;
 var
   I: Integer;
 begin
@@ -2366,7 +2386,7 @@ begin
   end;
 end;
 
-procedure T3DList.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure T3DList.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 var
   I: Integer;
 begin
@@ -2378,7 +2398,7 @@ begin
   end;
 end;
 
-procedure T3DList.RenderShadowVolume(
+procedure T3DList.LocalRenderShadowVolume(
   ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
   const ParentTransformIsIdentity: boolean;
   const ParentTransform: TMatrix4);
@@ -2624,38 +2644,6 @@ begin
   MultMatricesTranslation(Transform, InverseTransform, -Center);
 end;
 
-{ T3DWorld ------------------------------------------------------------------- }
-
-constructor T3DWorld.Create(AOwner: TComponent);
-begin
-  inherited;
-  { everything inside is part of this world }
-  AddToWorld(Self);
-end;
-
-function T3DWorld.GravityCoordinate: Integer;
-begin
-  Result := MaxAbsVectorCoord(GravityUp);
-end;
-
-function T3DWorld.WorldSphereCollision(const Pos: TVector3;
-  const Radius: Single): boolean;
-begin
-  Result := SphereCollision(Pos, Radius, nil);
-end;
-
-function T3DWorld.WorldSphereCollision2D(const Pos: TVector2;
-  const Radius: Single;
-  const Details: TCollisionDetails): boolean;
-begin
-  Result := SphereCollision2D(Pos, Radius, nil, Details);
-end;
-
-function T3DWorld.WorldPointCollision2D(const Point: TVector2): boolean;
-begin
-  Result := PointCollision2D(Point, nil);
-end;
-
 { TCastleTransform -------------------------------------------------------- }
 
 const
@@ -2740,46 +2728,47 @@ var
 begin
   T := Translation;
   if FOnlyTranslation and T.IsZero then
-    inherited Render(Frustum, Params) else
+    LocalRender(Frustum, Params)
+  else
+  begin
+    { LocalRender expects Frustum in local coordinates (without
+      transformation), so we subtract transformation here. }
+
+    OldRenderTransform         := Params.RenderTransform;
+    OldRenderTransformIdentity := Params.RenderTransformIdentity;
+    Params.RenderTransformIdentity := false;
+
+    if FOnlyTranslation then
     begin
-      { inherited Render expects Frustum in local coordinates (without
-        transformation), so we subtract transformation here. }
-
-      OldRenderTransform         := Params.RenderTransform;
-      OldRenderTransformIdentity := Params.RenderTransformIdentity;
-      Params.RenderTransformIdentity := false;
-
-      if FOnlyTranslation then
-      begin
-        MultMatrixTranslation(Params.RenderTransform, T);
-        inherited Render(Frustum.Move(-T), Params);
-      end else
-      begin
-        Inverse := TMatrix4.Identity;
-        TransformMatricesMult(Params.RenderTransform, Inverse);
-        if IsNan(Inverse.Data[0, 0]) then
-          {$ifndef VER3_1}
-          WritelnWarning('Transform', Format(
-            'Inverse transform matrix has NaN value inside:' + NL +
-            '%s' + NL +
-            '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-            [Inverse.ToString('  '),
-             FCenter.ToString,
-             FRotation.ToString,
-             FScale.ToString,
-             FScaleOrientation.ToString,
-             FTranslation.ToString
-            ]));
-          {$else}
-          { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
-          WritelnWarning('Transform', 'Inverse transform matrix has NaN value inside');
-          {$endif}
-        inherited Render(Frustum.Transform(Inverse), Params);
-      end;
-
-      Params.RenderTransform         := OldRenderTransform;
-      Params.RenderTransformIdentity := OldRenderTransformIdentity;
+      MultMatrixTranslation(Params.RenderTransform, T);
+      LocalRender(Frustum.Move(-T), Params);
+    end else
+    begin
+      Inverse := TMatrix4.Identity;
+      TransformMatricesMult(Params.RenderTransform, Inverse);
+      if IsNan(Inverse.Data[0, 0]) then
+        {$ifndef VER3_1}
+        WritelnWarning('Transform', Format(
+          'Inverse transform matrix has NaN value inside:' + NL +
+          '%s' + NL +
+          '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
+          [Inverse.ToString('  '),
+           FCenter.ToString,
+           FRotation.ToString,
+           FScale.ToString,
+           FScaleOrientation.ToString,
+           FTranslation.ToString
+          ]));
+        {$else}
+        { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
+        WritelnWarning('Transform', 'Inverse transform matrix has NaN value inside');
+        {$endif}
+      LocalRender(Frustum.Transform(Inverse), Params);
     end;
+
+    Params.RenderTransform         := OldRenderTransform;
+    Params.RenderTransformIdentity := OldRenderTransformIdentity;
+  end;
 end;
 
 procedure TCastleTransform.RenderShadowVolume(
@@ -2793,12 +2782,13 @@ begin
   begin
     T := Translation;
     if T.IsZero then
-      inherited RenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform) else
-      inherited RenderShadowVolume(ShadowVolumeRenderer,
+      LocalRenderShadowVolume(ShadowVolumeRenderer,
+        ParentTransformIsIdentity, ParentTransform)
+    else
+      LocalRenderShadowVolume(ShadowVolumeRenderer,
         false, TranslationMatrix(T) * ParentTransform);
   end else
-    inherited RenderShadowVolume(ShadowVolumeRenderer,
+    LocalRenderShadowVolume(ShadowVolumeRenderer,
       false, Transform * ParentTransform);
 end;
 
@@ -2994,11 +2984,6 @@ begin
   { Nothing to do in this class }
 end;
 
-function TCastleTransform.LocalBoundingBox: TBox3D;
-begin
-  Result := inherited BoundingBox;
-end;
-
 function TCastleTransform.Move(const ATranslation: TVector3;
   const BecauseOfGravity, EnableWallSliding: boolean): boolean;
 var
@@ -3172,6 +3157,38 @@ begin
   else
     MakeVectorsOrthoOnTheirPlane(D, U);
   Rotation := RotationFromDirectionUp(D, U);
+end;
+
+{ T3DWorld ------------------------------------------------------------------- }
+
+constructor T3DWorld.Create(AOwner: TComponent);
+begin
+  inherited;
+  { everything inside is part of this world }
+  AddToWorld(Self);
+end;
+
+function T3DWorld.GravityCoordinate: Integer;
+begin
+  Result := MaxAbsVectorCoord(GravityUp);
+end;
+
+function T3DWorld.WorldSphereCollision(const Pos: TVector3;
+  const Radius: Single): boolean;
+begin
+  Result := SphereCollision(Pos, Radius, nil);
+end;
+
+function T3DWorld.WorldSphereCollision2D(const Pos: TVector2;
+  const Radius: Single;
+  const Details: TCollisionDetails): boolean;
+begin
+  Result := SphereCollision2D(Pos, Radius, nil, Details);
+end;
+
+function T3DWorld.WorldPointCollision2D(const Point: TVector2): boolean;
+begin
+  Result := PointCollision2D(Point, nil);
 end;
 
 end.

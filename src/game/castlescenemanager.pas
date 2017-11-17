@@ -2810,7 +2810,7 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
-    function WorldHeight(const Position: TVector3;
+    function WorldHeight(const APosition: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; override;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
@@ -2876,10 +2876,10 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldHeight(const Position: TVector3;
+function T3DWorldConcrete.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  Result := HeightCollision(Position, Owner.GravityUp, @CollisionIgnoreItem,
+  Result := HeightCollision(APosition, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 

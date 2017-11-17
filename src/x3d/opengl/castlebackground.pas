@@ -96,6 +96,11 @@ const
   SphereRadiusToCubeSize = 2 / Sqrt(3);
   CubeSizeToSphereRadius = Sqrt(3) / 2;
 
+type
+  { Derive from TCastleScene only to expose protected LocalRenderOutside. }
+  TMyScene = class(TCastleScene)
+  end;
+
 { TBackground ------------------------------------------------------------ }
 
 class function TBackground.NearFarToSkySphereRadius(const zNear, zFar: Single;
@@ -134,13 +139,13 @@ begin
     Result := (Min + Max) / 2;
 end;
 
-{$define Scene := TCastleScene(SceneObj)}
+{$define Scene := TMyScene(SceneObj)}
 {$define Params := TBasicRenderParams(ParamsObj)}
 
 constructor TBackground.Create;
 begin
   inherited;
-  Scene := TCastleScene.Create(nil);
+  Scene := TMyScene.Create(nil);
   { We don't need depth test (we put our shapes in proper order),
     we even don't want it (because we don't clear depth buffer
     before drawing, so it may contain the depths on 3D world rendered
@@ -556,8 +561,8 @@ begin
 
   { Note: the Frustum is useless now, as it contains a shifted camera,
     not just rotated. We pass it, but it will be ignored. }
-  Params.Transparent := false; Scene.Render(nil, Frustum, Params);
-  Params.Transparent := true ; Scene.Render(nil, Frustum, Params);
+  Params.Transparent := false; Scene.LocalRenderOutside(nil, Frustum, Params);
+  Params.Transparent := true ; Scene.LocalRenderOutside(nil, Frustum, Params);
 end;
 
 procedure TBackground.FreeResources;

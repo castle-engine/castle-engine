@@ -816,6 +816,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
+    function LocalBoundingBox: TBox3D; override;
   public
     { Nonzero value prevents rendering of this scene,
       and generally means that our state isn't complete.
@@ -910,13 +911,12 @@ type
       @seealso ShapesActiveCount }
     function ShapesActiveVisibleCount: Cardinal;
 
-    { Calculate bounding box, number of triangls and vertexes of all
+    { Calculate the number of triangls and vertexes of all
       shapa states. For detailed specification of what these functions
       do (and what does OverTriangulate mean) see appropriate
       TAbstractGeometryNode methods. Here, we just sum their results
       for all shapes.
       @groupBegin }
-    function BoundingBox: TBox3D; override;
     function VerticesCount(OverTriangulate: boolean): Cardinal;
     function TrianglesCount(OverTriangulate: boolean): Cardinal;
     { @groupEnd }
@@ -2671,7 +2671,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-function TCastleSceneCore.BoundingBox: TBox3D;
+function TCastleSceneCore.LocalBoundingBox: TBox3D;
 begin
   if GetExists then
   begin
@@ -2683,6 +2683,8 @@ begin
     Result := FBoundingBox;
   end else
     Result := TBox3D.Empty;
+
+  Result.Include(inherited LocalBoundingBox);
 end;
 
 function TCastleSceneCore.VerticesCount(OverTriangulate: boolean): Cardinal;
