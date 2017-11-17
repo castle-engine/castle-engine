@@ -660,6 +660,9 @@ type
     procedure SetBackgroundSkySphereRadius(const Value: Single);
     procedure PrepareBackground;
   public
+    { Internal hack to avoid checking frustum at rendering in some situations. }
+    InternalIgnoreFrustum: boolean;
+
     procedure FreeResources(Resources: TSceneFreeResources); override;
 
     property BackgroundSkySphereRadius: Single
@@ -1840,16 +1843,15 @@ end;
 
 procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 
-{ Call Render with explicit TTestShapeVisibility function.
-  That is, choose test function suitable for our Frustum,
-  octrees and some settings.
+{ Call LocalRenderOutside, choosing TTestShapeVisibility function
+  suitable for our Frustum, octrees and some settings.
 
   If InternalOctreeRendering is initialized (so be sure to include
   ssRendering in @link(Spatial)), this octree will be used to quickly
-  find visible Shape. Otherwise, we will just enumerate all
+  find visible Shapes. Otherwise, we will just enumerate all
   Shapes (which may be slower if you really have a lot of Shapes). }
 
-  procedure LocalRenderFrustumOctree(Octree: TShapeOctree);
+  procedure TestOctreeWithFrustum(Octree: TShapeOctree);
 
     procedure ResetShapeVisible(Shape: TShape);
     begin
@@ -1858,9 +1860,7 @@ procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRende
 
   begin
     Shapes.Traverse(@ResetShapeVisible, false, true);
-    Octree.EnumerateCollidingOctreeItems(Frustum,
-      @RenderFrustumOctree_EnumerateShapes);
-    LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
+    Octree.EnumerateCollidingOctreeItems(Frustum, @RenderFrustumOctree_EnumerateShapes);
   end;
 
 begin
@@ -1869,9 +1869,14 @@ begin
   begin
     RenderFrustum_Frustum := @Frustum;
 
-    if InternalOctreeRendering <> nil then
-      LocalRenderFrustumOctree(InternalOctreeRendering)
+    if InternalIgnoreFrustum then
+      LocalRenderOutside(nil, Frustum, Params)
     else
+    if InternalOctreeRendering <> nil then
+    begin
+      TestOctreeWithFrustum(InternalOctreeRendering);
+      LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
+    end else
       LocalRenderOutside(FrustumCullingFunc, Frustum, Params);
   end;
 end;

@@ -206,7 +206,8 @@ begin
     VisibilitySensor inside these models, so frustum value isn't really used. }
 
   H.Node.FdOn.Send(false);
-  SceneReceiver.Render(nil, RenderingCamera.Frustum, RenderParams);
+  SceneReceiver.InternalIgnoreFrustum := true;
+  SceneReceiver.Render(RenderingCamera.Frustum, RenderParams);
 
   { turn on headlight for following rendering }
   H.Node.FdOn.Send(true);
@@ -214,13 +215,15 @@ begin
   glPushMatrix;
     glTranslatev(NavigatorData[ntCaster].Pos);
     glScalev(NavigatorData[ntCaster].Scale);
-    SceneCaster.Render(nil, RenderingCamera.Frustum, RenderParams);
+    SceneCaster.InternalIgnoreFrustum := true;
+    SceneCaster.Render(RenderingCamera.Frustum, RenderParams);
   glPopMatrix;
 
   glPushMatrix;
     glTranslatev(NavigatorData[ntLocalLight].Pos);
     glScalev(NavigatorData[ntLocalLight].Scale);
-    SceneLocalLight.Render(nil, RenderingCamera.Frustum, RenderParams);
+    SceneLocalLight.InternalIgnoreFrustum := true;
+    SceneLocalLight.Render(RenderingCamera.Frustum, RenderParams);
   glPopMatrix;
 
   { GL_LIGHTING is disabled by TCastleScene renderer now }
