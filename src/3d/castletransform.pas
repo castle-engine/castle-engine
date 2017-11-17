@@ -1363,6 +1363,7 @@ type
     FMiddleHeight: Single;
     FRigidBody: TRigidBody;
     FOrientation: TOrientationType;
+    FOnlyTranslation: boolean;
 
     procedure SetCenter(const Value: TVector3);
     procedure SetRotation(const Value: TVector4);
@@ -1380,9 +1381,6 @@ type
     procedure UpdateSimpleGravity(const SecondsPassed: Single);
     procedure UpdatePhysicsEngine(const SecondsPassed: Single);
   protected
-    { Internal. Protected instead of private only for testing. }
-    OnlyTranslation: boolean;
-
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
       If MiddleForceBox then we will use given MiddleForceBoxValue
@@ -1398,6 +1396,12 @@ type
     { @exclude }
     MiddleForceBoxValue: TBox3D;
     { @groupEnd }
+
+    { Can we use simple @link(Translation) instead of full TransformMatricesMult.
+      Returning @true allows optimization in some cases.
+      @bold(Internal. Protected instead of private only for testing.)
+      @exclude }
+    function OnlyTranslation: boolean;
 
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
     function Translation2D: TVector2;
@@ -3111,7 +3115,7 @@ constructor TCastleTransform.Create(AOwner: TComponent);
 begin
   inherited;
   FMiddleHeight := DefaultMiddleHeight;
-  OnlyTranslation := true;
+  FOnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
 end;
@@ -3160,7 +3164,7 @@ begin
   Result := Approximate2DScale(Scale.XY);
 end;
 
-{ We assume in all methods below that OnlyTranslation is the most common case,
+{ We assume in all methods below that FOnlyTranslation is the most common case,
   and then that Translation = 0,0,0 is the most common case.
   This is true for many 3D objects. And for only translation,
   we can calculate result much faster (and for translation = zero,
@@ -3172,7 +3176,7 @@ end;
 
 function TCastleTransform.BoundingBox: TBox3D;
 begin
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := LocalBoundingBox.Translate(Translation)
   else
     Result := LocalBoundingBox.Transform(Transform);
@@ -3185,7 +3189,7 @@ var
   OldRenderTransformIdentity: boolean;
 begin
   T := Translation;
-  if OnlyTranslation and T.IsZero then
+  if FOnlyTranslation and T.IsZero then
     inherited Render(Frustum, Params) else
     begin
       { inherited Render expects Frustum in local coordinates (without
@@ -3195,7 +3199,7 @@ begin
       OldRenderTransformIdentity := Params.RenderTransformIdentity;
       Params.RenderTransformIdentity := false;
 
-      if OnlyTranslation then
+      if FOnlyTranslation then
       begin
         MultMatrixTranslation(Params.RenderTransform, T);
         inherited Render(Frustum.Move(-T), Params);
@@ -3235,7 +3239,7 @@ procedure TCastleTransform.RenderShadowVolume(
 var
   T: TVector3;
 begin
-  if OnlyTranslation then
+  if FOnlyTranslation then
   begin
     T := Translation;
     if T.IsZero then
@@ -3264,7 +3268,7 @@ begin
     Exit;
   end;
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := inherited HeightCollision(
       Position - Translation, GravityUp, TrianglesToIgnoreFunc,
       AboveHeight, AboveGround) else
@@ -3297,7 +3301,7 @@ begin
     Exit(true);
   end;
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
   begin
     T := Translation;
     Result := inherited MoveCollision(
@@ -3337,7 +3341,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(true);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
   begin
     { I have to check collision between
         Items + Translation and (OldPos, NewPos).
@@ -3374,7 +3378,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not (GetCollides or (ALineOfSight and GetExists)) then Exit(false);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
   begin
     T := Translation;
     Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, ALineOfSight);
@@ -3395,7 +3399,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := inherited SphereCollision(
       Pos - Translation, Radius, TrianglesToIgnoreFunc) else
     Result := inherited SphereCollision(
@@ -3411,7 +3415,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := inherited SphereCollision2D(
       Pos - Translation2D, Radius, TrianglesToIgnoreFunc, Details) else
     Result := inherited SphereCollision2D(
@@ -3426,7 +3430,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := inherited PointCollision2D(
       Point - Translation2D, TrianglesToIgnoreFunc) else
     Result := inherited PointCollision2D(
@@ -3441,7 +3445,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := inherited BoxCollision(
       Box.AntiTranslate(Translation), TrianglesToIgnoreFunc)
   else
@@ -3451,7 +3455,7 @@ end;
 
 function TCastleTransform.OutsideToLocal(const Pos: TVector3): TVector3;
 begin
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := Pos - Translation
   else
     Result := InverseTransform.MultPoint(Pos);
@@ -3459,7 +3463,7 @@ end;
 
 function TCastleTransform.LocalToOutside(const Pos: TVector3): TVector3;
 begin
-  if OnlyTranslation then
+  if FOnlyTranslation then
     Result := Pos + Translation
   else
     Result := Transform.MultPoint(Pos);
@@ -3476,7 +3480,7 @@ begin
     we can potentially avoid the cost of transforming into local space. }
   if not GetPickable then Exit(nil);
 
-  if OnlyTranslation then
+  if FOnlyTranslation then
   begin
     T := Translation;
     Result := inherited RayCollision(RayOrigin - T, RayDirection, TrianglesToIgnoreFunc);
@@ -3732,28 +3736,33 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
-{ We try hard to keep OnlyTranslation return fast, and return with true.
-  This will allow TCastleTransform to be optimized and accurate
-  for often case of pure translation. }
+{ We try hard to keep FOnlyTranslation return fast, and return with true.
+  This allows TCastleTransform to be optimized and accurate
+  for the (often) case of pure translation. }
+
+function TCastleTransform.OnlyTranslation: boolean;
+begin
+  Result := FOnlyTranslation;
+end;
 
 procedure TCastleTransform.SetCenter(const Value: TVector3);
 begin
   FCenter := Value;
-  OnlyTranslation := OnlyTranslation and Value.IsPerfectlyZero;
+  FOnlyTranslation := FOnlyTranslation and Value.IsPerfectlyZero;
   ChangedTransform;
 end;
 
 procedure TCastleTransform.SetRotation(const Value: TVector4);
 begin
   FRotation := Value;
-  OnlyTranslation := OnlyTranslation and (Value[3] = 0);
+  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
   ChangedTransform;
 end;
 
 procedure TCastleTransform.SetScale(const Value: TVector3);
 begin
   FScale := Value;
-  OnlyTranslation := OnlyTranslation and
+  FOnlyTranslation := FOnlyTranslation and
     (Value[0] = 1) and (Value[1] = 1) and (Value[2] = 1);
   ChangedTransform;
 end;
@@ -3761,7 +3770,7 @@ end;
 procedure TCastleTransform.SetScaleOrientation(const Value: TVector4);
 begin
   FScaleOrientation := Value;
-  OnlyTranslation := OnlyTranslation and (Value[3] = 0);
+  FOnlyTranslation := FOnlyTranslation and (Value[3] = 0);
   ChangedTransform;
 end;
 
