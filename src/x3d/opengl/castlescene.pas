@@ -662,6 +662,8 @@ type
   public
     { Internal hack to avoid checking frustum at rendering in some situations. }
     InternalIgnoreFrustum: boolean;
+    { Internal override test visibility. }
+    InternalVisibilityTest: TTestShapeVisibility;
 
     procedure FreeResources(Resources: TSceneFreeResources); override;
 
@@ -1869,6 +1871,9 @@ begin
   begin
     RenderFrustum_Frustum := @Frustum;
 
+    if Assigned(InternalVisibilityTest) then
+      LocalRenderOutside(InternalVisibilityTest, Frustum, Params)
+    else
     if InternalIgnoreFrustum then
       LocalRenderOutside(nil, Frustum, Params)
     else
