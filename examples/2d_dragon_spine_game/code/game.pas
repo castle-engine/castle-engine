@@ -222,7 +222,6 @@ begin
   ShowAchievements := TCastleButton.Create(Window);
   ShowAchievements.Caption := 'Show Achievements (on Android or iOS)';
   ShowAchievements.OnClick := @TButtonsHandler(nil).ShowAchievementsClick;
-  ShowAchievements.Toggle := true;
   ShowAchievements.Left := 10;
   ShowAchievements.Bottom := 190;
   ShowAchievements.PaddingHorizontal := ButtonPadding;
