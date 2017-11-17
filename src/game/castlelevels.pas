@@ -24,7 +24,7 @@ interface
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
-  CastlePlayer, CastleResources, CastleProgress, CastlePrecalculatedAnimation,
+  CastlePlayer, CastleResources, CastleProgress,
   CastleSoundEngine, Castle3D, CastleShapes, CastleXMLConfig, CastleImages,
   CastleTimeUtils, CastleSceneManager, CastleFindFiles;
 
@@ -32,9 +32,6 @@ type
   TLevelLogic = class;
   TLevelLogicClass = class of TLevelLogic;
   TCastleSceneClass = class of TCastleScene;
-  {$warnings off}
-  TCastlePrecalculatedAnimationClass = class of TCastlePrecalculatedAnimation;
-  {$warnings on}
   TGameSceneManager = class;
 
   TLevelInfo = class
@@ -444,24 +441,6 @@ type
   private
     FTime: TFloatTime;
   protected
-    { Load 3D precalculated animation (from *.castle-anim-frames or *.md3 file), doing common tasks.
-      @unorderedList(
-        @item optionally creates triangle octree for the FirstScene and/or LastScene
-        @item(call PrepareResources, with prRender, prBoundingBox, prShadowVolume
-          (if shadow volumes possible at all in this OpenGL context))
-        @item Free texture data, since they will not be needed anymore
-        @item TimePlaying is by default @false, so the animation is not playing.
-      )
-      @groupBegin }
-    function LoadLevelAnimation(const URL: string;
-      const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
-      const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
-      deprecated 'whole TCastlePrecalculatedAnimation is deprecated, use TCastleScene for rendering all animations';
-    function LoadLevelAnimation(const URL: string;
-      const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
-      deprecated 'whole TCastlePrecalculatedAnimation is deprecated, use TCastleScene for rendering all animations';
-    { @groupEnd }
-
     { Load 3D scene from file, doing common tasks.
       @unorderedList(
         @item optionally create triangle octree
@@ -1093,46 +1072,6 @@ function TLevelLogic.LoadLevelScene(
   const PrepareForCollisions: boolean): TCastleScene;
 begin
   Result := LoadLevelScene(URL, PrepareForCollisions, TCastleScene);
-end;
-
-function TLevelLogic.LoadLevelAnimation(
-  const URL: string;
-  const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean;
-  const AnimationClass: TCastlePrecalculatedAnimationClass): TCastlePrecalculatedAnimation;
-var
-  Options: TPrepareResourcesOptions;
-begin
-  Result := AnimationClass.Create(Self);
-  Result.LoadFromFile(URL, false, true);
-
-  { calculate Options for PrepareResources }
-  Options := [prRender, prBoundingBox { always needed }];
-  if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
-    Include(Options, prShadowVolume);
-
-  Result.PrepareResources(Options, false, World.BaseLights);
-
-  if CreateFirstOctreeCollisions then
-    Result.FirstScene.Spatial := [ssDynamicCollisions];
-
-  if CreateLastOctreeCollisions then
-    Result.LastScene.Spatial := [ssDynamicCollisions];
-
-  Result.FreeResources([frTextureDataInNodes]);
-
-  Result.TimePlaying := false;
-end;
-
-function TLevelLogic.LoadLevelAnimation(
-  const URL: string;
-  const CreateFirstOctreeCollisions, CreateLastOctreeCollisions: boolean): TCastlePrecalculatedAnimation;
-begin
-  {$warnings off}
-  { knowingly using deprecated function in another deprecated function }
-  Result := LoadLevelAnimation(URL,
-    CreateFirstOctreeCollisions, CreateLastOctreeCollisions,
-    TCastlePrecalculatedAnimation);
-  {$warnings on}
 end;
 
 procedure TLevelLogic.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);

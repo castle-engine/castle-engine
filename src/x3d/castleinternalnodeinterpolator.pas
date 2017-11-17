@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Powerful automatic interpolation for VRML/X3D node hierarchies,
-  used by CastlePrecalculatedAnimation now. }
+{ Powerful automatic interpolation for any X3D node hierarchies,
+  able to animate a sequence of any X3D scenes. }
 unit CastleInternalNodeInterpolator;
 
 {$I castleconf.inc}
@@ -703,7 +703,7 @@ begin
         on E: EModelsStructureDifferent do
         begin
           if Log then
-            WritelnLog('PrecalculatedAnimation', Format(
+            WritelnLog('TNodeInterpolator', Format(
               'Nodes %d and %d structurally different, so animation will not be smoothed between them: ',
               [I - 1, I]) + E.Message);
         end;

@@ -985,24 +985,7 @@
       May be @nil if none.
 
       A given TX3DNode may be renderable only by a single renderer.
-      This means it can be placed only within one TCastleScene
-      or one TCastlePrecalculatedAnimation (nothing else gives you a renderer).
-
-      A given TX3DNode may be placed inside many TCastleSceneCore instances
-      (including TCastleScene). But if more than one scene is used,
-      then all the scenes must be static (TCastleSceneCore.ProcessEvents = false
-      and TCastleSceneCore.Static = true). Static scenes are ones
-      that never change, that is never have any TCastleSceneCore.InternalChangedField called.
-      This means that events processing is disabled, and also
-      other dynamic scene changes from code are disallowed.
-
-      These two rules are both at action when you think about
-      a node inside many TCastleScene instances. In this case,
-      all such scene instances must be created with the same
-      renderer (hence the need for TCastleScene.CreateCustomRenderer)
-      and all must be static. This is actually exactly how
-      TCastlePrecalculatedAnimation works: it internally creates a single renderer
-      and a series of TCastleScene instances. }
+      This means it can be placed only within one TCastleScene. }
     property Scene: TX3DEventsEngine read FScene write FScene;
 
     { Managed and used by TCastleSceneCore to keep TShapeTreesList
@@ -3070,8 +3053,8 @@ begin
 
     { TODO: No need to copy prototypes for now?
 
-      This DeepCopy is used for now by protos expanding and by TCastlePrecalculatedAnimation.
-      Neither need prototype links (as protos are already expanded when copying,
+      This DeepCopy is used for now by protos expanding.
+      It does not need prototype links (as protos are already expanded when copying,
       and they don't need anything more).
 
       for I := 0 to Prototypes.Count - 1 do

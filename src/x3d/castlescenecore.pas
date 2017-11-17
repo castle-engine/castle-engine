@@ -5810,8 +5810,9 @@ begin
   if LastUpdateFrameId = TFramesPerSecond.FrameId then Exit;
   LastUpdateFrameId := TFramesPerSecond.FrameId;
 
-  { Most of the "update" job should go to InternalSetTime implementation,
-    because TCastlePrecalculatedAnimation calls only SetTime, not Update. }
+  { Most of the "update" job happens inside InternalSetTime.
+    Reasons are partially historiec: TCastlePrecalculatedAnimation
+    called only SetTime, not Update. }
 
   { Ignore calls when SecondsPassed is precisely zero
     (this may happen, and is correct, see TFramesPerSecond.ZeroNextSecondsPassed).

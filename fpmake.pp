@@ -353,7 +353,6 @@ begin
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternaltextureenv.pas');
     P.Targets.AddUnit('castlerenderer.pas');
-    P.Targets.AddUnit('castleprecalculatedanimation.pas');
 
     Run;
   end;

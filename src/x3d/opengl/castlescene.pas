@@ -418,9 +418,6 @@ type
     FReceiveShadowVolumes: boolean;
     RegisteredGLContextCloseListener: boolean;
 
-    { Cache used by this scene. Always initialized to non-nil by constructor. }
-    Cache: TGLRendererContextCache;
-
     { used by LocalRenderInside }
     FilteredShapes: TShapeList;
 
@@ -454,8 +451,6 @@ type
     procedure CloseGLRenderer;
     procedure GLContextCloseEvent(Sender: TObject);
   private
-    FOwnsRenderer: boolean;
-
     { Fog for this shape. @nil if none. }
     function ShapeFog(Shape: TShape): IAbstractFogObject;
     function EffectiveBlendingSort: TBlendingSort;
@@ -615,30 +610,6 @@ type
       const ParentTransform: TMatrix4); override;
   public
     constructor Create(AOwner: TComponent); override;
-
-    constructor CreateCustomCache(AOwner: TComponent; ACache: TGLRendererContextCache);
-
-    { A very special constructor, that forces this class to use
-      provided ACustomRenderer. ACustomRenderer must be <> @nil.
-
-      Note that this renderer must be created with AttributesClass
-      = TSceneRenderingAttributes.
-
-      @italic(Don't use this unless you really know what you're doing!)
-      In all normal circumstances you should use normal @link(Create)
-      constructor, that will internally create and use internal renderer object.
-      If you use this constructor you will have to understand how internally
-      this class synchronizes itself with underlying Renderer object.
-
-      Once again, if you're not sure, then simply don't use this
-      constructor. It's for internal use --- namely it's internally used
-      by TCastlePrecalculatedAnimation, this way all scenes of the animation share
-      the same renderer which means that they also share the same
-      information about textures and images loaded into OpenGL.
-      And this is crucial for TCastlePrecalculatedAnimation, otherwise animation with
-      100 scenes would load the same texture to OpenGL 100 times. }
-    constructor CreateCustomRenderer(AOwner: TComponent;
-      ACustomRenderer: TGLRenderer);
 
     destructor Destroy; override;
 
@@ -901,19 +872,7 @@ begin
     may call ViewChangedSuddenly which is overridden here and uses Attributes.
     That's why I have to initialize them *before* "inherited Create" }
 
-  { Cache may be already assigned, when we came here from
-    CreateCustomRenderer or CreateCustomCache. }
-  if Cache = nil then
-    Cache := GLContextCache;
-
-  { Renderer may be already assigned, when we came here from
-    CreateCustomRenderer. }
-  if Renderer = nil then
-  begin
-    FOwnsRenderer := true;
-    Renderer := TGLRenderer.Create(TSceneRenderingAttributes, Cache);
-  end;
-
+  Renderer := TGLRenderer.Create(TSceneRenderingAttributes, GLContextCache);
   Assert(Renderer.Attributes is TSceneRenderingAttributes);
 
   { Note that this calls Renderer.Attributes, so use this after
@@ -945,24 +904,6 @@ begin
   BlendingRenderer := TBlendingRenderer.Create(Self);
 end;
 
-constructor TCastleScene.CreateCustomCache(
-  AOwner: TComponent; ACache: TGLRendererContextCache);
-begin
-  Assert(ACache <> nil);
-  Cache := ACache;
-
-  Create(AOwner);
-end;
-
-constructor TCastleScene.CreateCustomRenderer(
-  AOwner: TComponent; ACustomRenderer: TGLRenderer);
-begin
-  FOwnsRenderer := false;
-  Renderer := ACustomRenderer;
-
-  CreateCustomCache(AOwner, ACustomRenderer.Cache);
-end;
-
 destructor TCastleScene.Destroy;
 begin
   FreeAndNil(HierarchicalOcclusionQueryRenderer);
@@ -985,39 +926,33 @@ begin
   if Renderer <> nil then
     Attributes.FScenes.Remove(Self);
 
-  if FOwnsRenderer then
-  begin
-    { We must release all connections between RootNode and Renderer first.
-      Reason: when freeing RootNode, image references (from texture nodes)
-      are decremented. So cache used when loading these images must be
-      available.
+  { We must release all connections between RootNode and Renderer first.
+    Reason: when freeing RootNode, image references (from texture nodes)
+    are decremented. So cache used when loading these images must be
+    available.
 
-      If we used custom renderer, then this is not
-      our problem: if OwnsRootNode then RootNode will be freed soon
-      by "inherited", if not OwnsRootNode then it's the using programmer
-      responsibility to free both RootNode and CustomRenderer
-      in exactly this order.
+    If we used custom renderer, then this is not
+    our problem: if OwnsRootNode then RootNode will be freed soon
+    by "inherited", if not OwnsRootNode then it's the using programmer
+    responsibility to free both RootNode and CustomRenderer
+    in exactly this order.
 
-      If we used our own renderer (actually, this is needed only if we used
-      own own cache, so caller didn't provide a renderer and didn't provide
-      a cache (ACache = nil for constructor), but we don't store this information
-      for now) : we must make sure that freeing RootNode is safe.
+    If we used our own renderer (actually, this is needed only if we used
+    own own cache, so caller didn't provide a renderer and didn't provide
+    a cache (ACache = nil for constructor), but we don't store this information
+    for now) : we must make sure that freeing RootNode is safe.
 
-      If OwnsRootNode then we know that inherited will free RootNode
-      and so the simpler solution, to just FreeAndNil(Renderer) after
-      inherited, would be possible. But it's not possible, since
-      OwnsRootNode may be false and then programmer may want to free
-      RootNode at undefined later time.
+    If OwnsRootNode then we know that inherited will free RootNode
+    and so the simpler solution, to just FreeAndNil(Renderer) after
+    inherited, would be possible. But it's not possible, since
+    OwnsRootNode may be false and then programmer may want to free
+    RootNode at undefined later time.
 
-      So we have to guarantee, *now*, that freeing RootNode is safe ---
-      no dangling references to Renderer.Cache. }
-    FreeResources([frTextureDataInNodes, frBackgroundImageInNodes]);
+    So we have to guarantee, *now*, that freeing RootNode is safe ---
+    no dangling references to Renderer.Cache. }
+  FreeResources([frTextureDataInNodes, frBackgroundImageInNodes]);
 
-    FreeAndNil(Renderer);
-  end else
-    Renderer := nil;
-
-  Cache := nil; // just for safety
+  FreeAndNil(Renderer);
 
   inherited;
 end;
@@ -1081,10 +1016,8 @@ begin
     for I := 0 to ScreenEffectNodes.Count - 1 do
       CloseGLScreenEffect(TScreenEffectNode(ScreenEffectNodes[I]));
 
-  { TODO: if FOwnsRenderer then we should do something more detailed
-    then just Renderer.UnprepareAll. It's not needed for TCastlePrecalculatedAnimation
-    right now, so it's not implemented. }
-  if Renderer <> nil then Renderer.UnprepareAll;
+  if Renderer <> nil then
+    Renderer.UnprepareAll;
 
   if Shapes <> nil then
   begin

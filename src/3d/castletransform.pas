@@ -634,9 +634,8 @@ type
       then e.g. the first @link(Render) call may take a long time because it may
       have to prepare resources that will be reused in next @link(Render) calls.
       This is bad, as your program will seem very slow at the beginning
-      (when rendering resources are prepared, so a first frame,
-      or a couple of first frames, if it's something
-      like a precalculated animation). To avoid this, call this method,
+      (when rendering resources are being prepared, so at first frame,
+      or a couple of first animation frames). To avoid this, call this method,
       showing the user something like "now we're preparing
       the resources --- please wait".
 
@@ -1017,13 +1016,6 @@ type
       This ignores the geometry of this 3D object (to not accidentaly collide
       with your own geometry), and checks collisions with the rest of the world. }
     function Ray(const RayOrigin, RayDirection: TVector3): TRayCollision;
-
-    { In case this scene shares lights with other scenes,
-      this is the source scene. In usual circumstances, this method
-      simply returns @code(Self), which means "no sharing".
-      In case of scenes that are children of TCastlePrecalculatedAnimation,
-      their Shared methods all point to the 1st animation scene. }
-    function Shared: T3D; virtual;
 
     { Is this object's bounding volume (@link(BoundingBox))
       included in parent bounding volume.
@@ -2191,11 +2183,6 @@ begin
   try
     Result := World.WorldRay(RayOrigin, RayDirection);
   finally Enable end;
-end;
-
-function T3D.Shared: T3D;
-begin
-  Result := Self;
 end;
 
 { T3DListCore ------------------------------------------------------------ }

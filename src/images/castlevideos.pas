@@ -51,17 +51,7 @@ type
     See example program
     @code(castle_game_engine/examples/images_videos/simple_video_editor.lpr)
     in our engine for example of a simple movie player/editor implemented on top
-    of this class.
-
-    Note that some properties and methods of this class may look familiar
-    to properties of TCastlePrecalculatedAnimation. And indeed they are familiar
-    and work in an analogous way. Since both of these classes implement
-    some sort of animation loading and playing, it's most sensible that
-    some ideas find use in both of them. For example the idea of
-    LoadFromFile / checking Loaded / Close. For example the idea that
-    the programmer interface is mainly through ImageFromTime
-    (like TCastlePrecalculatedAnimation.Scene). For example the way
-    TimeLoop and TimeBackwards properties work. }
+    of this class. }
   TVideo = class
   private
     FItems: array of TCastleImage;

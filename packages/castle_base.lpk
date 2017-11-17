@@ -61,7 +61,7 @@ end;"/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="646">
+    <Files Count="645">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2124,11 +2124,6 @@ end;"/>
         <Filename Value="../src/x3d/opengl/castleglcubemaps.pas"/>
         <UnitName Value="CastleGLCubeMaps"/>
       </Item514>
-      <Item515>
-        <Filename Value="../src/x3d/opengl/castleprecalculatedanimation.pas"/>
-        <HasRegisterProc Value="True"/>
-        <UnitName Value="CastlePrecalculatedAnimation"/>
-      </Item515>
       <Item516>
         <Filename Value="../src/x3d/opengl/castlerenderer.pas"/>
         <UnitName Value="CastleRenderer"/>
@@ -2650,10 +2645,10 @@ end;"/>
         <Filename Value="../src/base/castlerendererbasetypes.pas"/>
         <UnitName Value="CastleRendererBaseTypes"/>
       </Item645>
-      <Item646>
+      <Item515>
         <Filename Value="../src/3d/castletransform.pas"/>
         <UnitName Value="CastleTransform"/>
-      </Item646>
+      </Item515>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>

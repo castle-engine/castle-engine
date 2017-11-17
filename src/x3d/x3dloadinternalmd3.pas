@@ -525,8 +525,8 @@ var
 begin
   Result := TX3DRootNode.Create(
     ToX3DName(Md3.Name
-      { Although adding here FrameNumber is not a bad idea, but PrecalculatedAnimation
-        requires for now that sequence of VRML models have the same node names }
+      { Although adding here FrameNumber is not a bad idea, but TNodeInterpolator
+        requires for now that sequence of models have the same node names. }
       { + '_Frame' + IntToStr(FrameNumber) }), BaseUrl);
 
   Result.HasForceVersion := true;
@@ -582,7 +582,7 @@ begin
       Animation.Name := TNodeInterpolator.DefaultAnimationName;
       Animation.ScenesPerTime := TNodeInterpolator.DefaultScenesPerTime;
       { Default ScenesPerTime and times are set such that one MD3
-        frame will result in one frame inside TCastlePrecalculatedAnimation.
+        frame will result in one frame inside TNodeInterpolator.
         So don't try to merge these frames (on the assumption that
         they are not merged in MD3... so hopefully there's no need for it ?). }
       Animation.Epsilon := 0.0;
