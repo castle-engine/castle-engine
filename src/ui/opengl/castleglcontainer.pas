@@ -76,6 +76,10 @@ type
   The background behind the control is filled with BackgroundColor
   (which may be transparent, e.g. with alpha = 0).
 
+  The rendering is done using off-screen FBO.
+  Which means that you can request any size, you are @bold(not) limited
+  to your current window / control size.
+
   Make sure that the control is nicely positioned to fill the ViewportRect.
   Usually you want to adjust control size and position,
   and disable UI scaling (set TUIControl.EnableUIScaling = @false
