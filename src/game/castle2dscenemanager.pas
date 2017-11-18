@@ -165,6 +165,10 @@ begin
   FProjectionSpan := DefaultProjectionSpan;
   FProjectionHeight := 0;
   FProjectionWidth := 0;
+
+  { Make camera already existing, so WalkCamera returns it,
+    instead of using AssignDefaultCamera and then switching to ntWalk. }
+  AssignDefaultCamera;
 end;
 
 procedure T2DSceneManager.AssignDefaultCamera;

@@ -386,7 +386,8 @@ begin
     { between Start and Stop, be sure to return the same thing
       from StateContainer method. Also makes it working when Application
       is nil when destroying state from CastleWindow finalization. }
-    Result := FStartContainer else
+    Result := FStartContainer
+  else
     Result := Application.MainWindow.Container;
 end;
 
