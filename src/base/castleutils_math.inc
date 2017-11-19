@@ -320,6 +320,11 @@ function CastleCoTan(const Value: Float): Float;
 function IntSqrt(const Value: Cardinal): Cardinal;
 
 { Hermite interpolation between two values.
+  For X changing from Edge0 to Edge1, the resulting value changes from 0 to 1,
+  smoothly (not with a linear speed).
+  This is useful to make nicer transition from one value to another,
+  it often looks better than using directly @link(Lerp) or @link(MapRange).
+
   Just like GLSL smoothstep:
   http://www.khronos.org/opengles/sdk/docs/manglsl/xhtml/smoothstep.xml }
 function SmoothStep(const Edge0, Edge1, X: Single): Single;
