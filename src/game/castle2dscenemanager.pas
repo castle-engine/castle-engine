@@ -101,6 +101,15 @@ type
       read FProjectionWidth write FProjectionWidth default 0;
     property CurrentProjectionWidth: Single read FCurrentProjectionWidth;
     property CurrentProjectionHeight: Single read FCurrentProjectionHeight;
+
+    { Determines the minimum and maximum depth visible, relative to the camera Z.
+
+      Higher values allow to see more.
+      The objects are visible in Z range
+      @code([Camera.Position.Z - ProjectionSpan ..
+      Camera.Position.Z + ProjectionSpan]).
+
+      Lower values improve depth buffer precision. }
     property ProjectionSpan: Single
       read FProjectionSpan write FProjectionSpan default DefaultProjectionSpan;
 
