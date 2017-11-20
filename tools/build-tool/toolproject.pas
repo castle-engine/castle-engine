@@ -41,7 +41,7 @@ type
     GatheringFilesVsData: boolean; //< only for PackageFilesGather
     GatheringFiles: TCastleStringList; //< only for PackageFilesGather, PackageSourceGather
     ManifestFile, FPath, FDataPath: string;
-    IncludePaths, ExcludePaths: TCastleStringList;
+    IncludePaths, ExcludePaths, ExtraCompilerOptions: TCastleStringList;
     FIcons, FLaunchImages: TImageFileNames;
     FSearchPaths: TStringList;
     IncludePathsRecursive: TBooleanList;
@@ -552,10 +552,20 @@ constructor TCastleProject.Create(const APath: string);
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
         if Element <> nil then
         begin
-          Element := Element.ChildElement('search_paths', false);
-          if Element <> nil then
+          ChildElement := Element.ChildElement('custom_options', false);
+          if ChildElement <> nil then
           begin
-            ChildElements := Element.ChildrenIterator('path');
+            ChildElements := ChildElement.ChildrenIterator('option');
+            try
+              while ChildElements.GetNext do
+                ExtraCompilerOptions.Add(ChildElements.Current.TextData);
+            finally FreeAndNil(ChildElements) end;
+          end;
+
+          ChildElement := Element.ChildElement('search_paths', false);
+          if ChildElement <> nil then
+          begin
+            ChildElements := ChildElement.ChildrenIterator('path');
             try
               while ChildElements.GetNext do
                 FSearchPaths.Add(ChildElements.Current.AttributeString('value'));
@@ -630,6 +640,7 @@ begin
   IncludePaths := TCastleStringList.Create;
   IncludePathsRecursive := TBooleanList.Create;
   ExcludePaths := TCastleStringList.Create;
+  ExtraCompilerOptions := TCastleStringList.Create;
   FDependencies := [];
   FIcons := TImageFileNames.Create;
   FLaunchImages := TImageFileNames.Create;
@@ -653,6 +664,7 @@ begin
   FreeAndNil(IncludePaths);
   FreeAndNil(IncludePathsRecursive);
   FreeAndNil(ExcludePaths);
+  FreeAndNil(ExtraCompilerOptions);
   FreeAndNil(FIcons);
   FreeAndNil(FLaunchImages);
   FreeAndNil(FSearchPaths);
@@ -695,65 +707,67 @@ begin
   Writeln(Format('Compiling project "%s" for %s in mode "%s".',
     [Name, PlatformToString(Target, OS, CPU, Plugin), ModeToString(Mode)]));
 
-  if Target = targetIOS then
-  begin
-    ExtraOptions := TCastleStringList.Create;
-    try
+  ExtraOptions := TCastleStringList.Create;
+  try
+    ExtraOptions.AddRange(ExtraCompilerOptions);
+
+    if Target = targetIOS then
+    begin
       if depOggVorbis in Dependencies then
         { To compile CastleInternalVorbisFile properly.
           Later PackageIOS will actually add the static tremolo files to the project. }
         ExtraOptions.Add('-dCASTLE_TREMOLO_STATIC');
       CompileIOS(Plugin, Mode, Path, IOSSourceFile(true, true), SearchPaths, ExtraOptions);
-    finally FreeAndNil(ExtraOptions) end;
 
-    LinkIOSLibrary(Path, IOSLibraryFile);
-    Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
-    Exit;
-  end;
+      LinkIOSLibrary(Path, IOSLibraryFile);
+      Writeln('Compiled library for iOS in ', IOSLibraryFile(false));
+      Exit;
+    end;
 
-  case OS of
-    Android:
-      begin
-        Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true), SearchPaths);
-        Writeln('Compiled library for Android in ', AndroidLibraryFile(false));
-      end;
-    else
-      begin
-        if Plugin then
+    case OS of
+      Android:
         begin
-          MainSource := PluginSourceFile(false, true);
-          if MainSource = '' then
-            raise Exception.Create('plugin_source property for project not defined, cannot compile plugin version');
-        end else
-        begin
-          MainSource := StandaloneSourceFile(false, true);
-          if MainSource = '' then
-            raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+          Compile(OS, CPU, Plugin, Mode, Path, AndroidSourceFile(true, true), SearchPaths, ExtraOptions);
+          Writeln('Compiled library for Android in ', AndroidLibraryFile(false));
         end;
-
-        if OS in AllWindowsOSes then
-          GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
-
-        Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths);
-
-        if Plugin then
+      else
         begin
-          SourceExe := CompiledLibraryFile(MainSource, OS);
-          DestExe := PluginLibraryFile(OS, CPU);
-        end else
-        begin
-          SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
-          DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+          if Plugin then
+          begin
+            MainSource := PluginSourceFile(false, true);
+            if MainSource = '' then
+              raise Exception.Create('plugin_source property for project not defined, cannot compile plugin version');
+          end else
+          begin
+            MainSource := StandaloneSourceFile(false, true);
+            if MainSource = '' then
+              raise Exception.Create('standalone_source property for project not defined, cannot compile standalone version');
+          end;
+
+          if OS in AllWindowsOSes then
+            GenerateWindowsResources(Self, Path + ExtractFilePath(MainSource), CPU, Plugin);
+
+          Compile(OS, CPU, Plugin, Mode, Path, MainSource, SearchPaths, ExtraOptions);
+
+          if Plugin then
+          begin
+            SourceExe := CompiledLibraryFile(MainSource, OS);
+            DestExe := PluginLibraryFile(OS, CPU);
+          end else
+          begin
+            SourceExe := ChangeFileExt(MainSource, ExeExtensionOS(OS));
+            DestExe := ChangeFileExt(ExecutableName, ExeExtensionOS(OS));
+          end;
+          if not SameFileName(SourceExe, DestExe) then
+          begin
+            { move exe to top-level (in case MainSource is in subdirectory
+              like code/) and eventually rename to follow ExecutableName }
+            Writeln('Moving ', SourceExe, ' to ', DestExe);
+            CheckRenameFile(Path + SourceExe, Path + DestExe);
+          end;
         end;
-        if not SameFileName(SourceExe, DestExe) then
-        begin
-          { move exe to top-level (in case MainSource is in subdirectory
-            like code/) and eventually rename to follow ExecutableName }
-          Writeln('Moving ', SourceExe, ' to ', DestExe);
-          CheckRenameFile(Path + SourceExe, Path + DestExe);
-        end;
-      end;
-  end;
+    end;
+  finally FreeAndNil(ExtraOptions) end;
 end;
 
 function TCastleProject.PluginLibraryFile(const OS: TOS; const CPU: TCPU): string;
