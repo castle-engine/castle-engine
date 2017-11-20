@@ -264,20 +264,42 @@
     warnings, see
     https://sourceforge.net/p/castle-engine/discussion/general/thread/2fd412b1/ .
 
-  - Using libpng from a dynamic library (.so or .dll).
-    On Linux and other desktop Unixes, this is pretty much standard.
-    On Windows, see
-    http://svn.code.sf.net/p/castle-engine/code/trunk/external_libraries/ .
-    This is used when neither CASTLE_PNG_USING_FCL_IMAGE
-    nor CASTLE_PNG_STATIC are defined.
+  - IF CASTLE_PNG_DYNAMIC is defined,
+    we use libpng from a dynamic library (.so or .dll).
+    This is a bit harder to set up for developer, but may result in drastically
+    faster PNG loading (even 4x times).
+
+    - On Linux and other desktop Unixes, libpng is almost definitely already
+      installed system-wide, so this just works.
+
+    - On Windows, the appropriate dll is available in our build tool data in
+      ../../tools/build-tool/data/external_libraries/ .
+
+      It will be added to your Windows package by the build tool automatically when
+      you run "castle-engine package ...".
+      See https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
+
+      For development, you may want to copy the DLLs from
+      ../../tools/build-tool/data/external_libraries/ to your project exe dir,
+      or to place these DLLs in a directory listed on the PATH environment variable.
+
+    - For Mac OS X, see https://castle-engine.sourceforge.io/macosx_requirements.php .
 
   - If CASTLE_PNG_STATIC is defined, we use a different version of CastleInternalPng
     unit that allows static linking to png, see castleinternalpng_static.inc.
 }
 
-{$define CASTLE_PNG_USING_FCL_IMAGE}
-// {$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
-// {$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
+{$ifndef CASTLE_PNG_DYNAMIC}
+  {$ifndef CASTLE_PNG_STATIC}
+
+    // Automatically define CASTLE_PNG_USING_FCL_IMAGE, unless one of the other defines is set.
+    // This allows developers to override this by setting e.g. -dCASTLE_PNG_DYNAMIC in ~/.fpc.cfg
+    {$define CASTLE_PNG_USING_FCL_IMAGE}
+    // {$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
+    // {$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
+
+  {$endif}
+{$endif}
 
 { Below is relevant only if we use dynamic PNG library (castleinternalpng_dynamic.inc).
   Determines calling convention of libpng functions and callbacks:
