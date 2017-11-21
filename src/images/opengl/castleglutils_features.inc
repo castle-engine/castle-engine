@@ -25,6 +25,21 @@ const
   ( 'None', 'Extension', 'Standard' );
 
 type
+  { OpenGL memory information. }
+  TGLMemoryInfo = class
+  strict private
+    ExtensionNVidia, ExtensionATI: boolean;
+  public
+    { Total and current memory available, in Kb. }
+    Total, Current: TGLint;
+
+    { Current memory free for a particular feature, in Kb. }
+    CurrentVbo, CurrentTexture, CurrentRenderbuffer: TGLint;
+
+    constructor Create;
+    procedure Refresh;
+  end;
+
   { OpenGL features, analyzed based on OpenGL extensions and version.
     A single instance of this class is assigned to @link(GLFeatures)
     after the first OpenGL context was created.
@@ -205,7 +220,12 @@ type
       On OpenGLES this is always @true. }
     ShadersForEverything2D: boolean;
 
+    { Total and current memory available.
+      Call Memory.Refresh whenever needed. }
+    Memory: TGLMemoryInfo;
+
     constructor Create;
+    destructor Destroy; override;
   end;
 
 { Initialize GLVersion and GLUVersion and GLFeatures. }
@@ -563,6 +583,68 @@ begin
     {$ifdef OpenGLES} true
     {$else} Shaders = gsStandard
     {$endif};
+
+  // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it
+  GLFeatures := Self;
+
+  Memory := TGLMemoryInfo.Create;
+end;
+
+destructor TGLFeatures.Destroy;
+begin
+  FreeAndNil(Memory);
+end;
+
+{ TGLMemoryInfo -------------------------------------------------------------- }
+
+constructor TGLMemoryInfo.Create;
+var
+  SupportedExtensions: string;
+begin
+  inherited;
+  SupportedExtensions := PChar(glGetString(GL_EXTENSIONS));
+  ExtensionNVidia := glext_ExtensionSupported('GL_NVX_gpu_memory_info', SupportedExtensions);
+  ExtensionATI := glext_ExtensionSupported('GL_ATI_meminfo', SupportedExtensions);
+  Refresh;
+end;
+
+procedure TGLMemoryInfo.Refresh;
+const
+  GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX   = $9048;
+  GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX = $9049;
+  GL_VBO_FREE_MEMORY_ATI          = $87FB;
+  GL_TEXTURE_FREE_MEMORY_ATI      = $87FC;
+  GL_RENDERBUFFER_FREE_MEMORY_ATI = $87FD;
+var
+  FreeMemory: TVector4Integer;
+begin
+  // see http://nasutechtips.blogspot.com/2011/02/how-to-get-gpu-memory-size-and-usage-in.html
+
+  // http://developer.download.nvidia.com/opengl/specs/GL_NVX_gpu_memory_info.txt
+  if ExtensionNVidia then
+  begin
+    glGetIntegerv(GL_GPU_MEM_INFO_TOTAL_AVAILABLE_MEM_NVX, @Total);
+    glGetIntegerv(GL_GPU_MEM_INFO_CURRENT_AVAILABLE_MEM_NVX, @Current);
+  end;
+
+  // https://www.khronos.org/registry/OpenGL/extensions/ATI/ATI_meminfo.txt
+  if ExtensionATI then
+  begin
+    if GLFeatures.VertexBufferObject then
+    begin
+      glGetIntegerv(GL_VBO_FREE_MEMORY_ATI, @FreeMemory);
+      CurrentVbo := FreeMemory[0];
+    end;
+
+    glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, @FreeMemory);
+    CurrentTexture := FreeMemory[0];
+
+    if GLFeatures.Framebuffer <> gsNone then
+    begin
+      glGetIntegerv(GL_RENDERBUFFER_FREE_MEMORY_ATI, @FreeMemory);
+      CurrentRenderbuffer := FreeMemory[0];
+    end;
+  end;
 end;
 
 {$endif read_implementation}
