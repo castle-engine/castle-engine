@@ -25,7 +25,7 @@ uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleSceneCore, CastleScene, CastleBoxes, X3DNodes,
   X3DFields, CastleCameras, CastleSectors, CastleUtils, CastleClassUtils,
   CastlePlayer, CastleResources, CastleProgress,
-  CastleSoundEngine, Castle3D, CastleShapes, CastleXMLConfig, CastleImages,
+  CastleSoundEngine, CastleTransform, CastleShapes, CastleXMLConfig, CastleImages,
   CastleTimeUtils, CastleSceneManager, CastleFindFiles;
 
 type

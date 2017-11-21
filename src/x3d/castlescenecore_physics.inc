@@ -47,7 +47,7 @@
 
 { utilities ------------------------------------------------------------------ }
 
-// TODO: dirty copy-paste from castle3d_physics.inc,
+// TODO: dirty copy-paste from castletransform_physics.inc,
 // we should add CastleInternalKraft unit at some point.
 function VectorToKraft(const V: TVector3): TKraftVector3;
 begin

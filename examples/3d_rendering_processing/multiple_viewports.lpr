@@ -33,7 +33,7 @@ uses SysUtils,
   CastleUtils, CastleGLUtils, X3DLoad, CastleGLShaders, CastleParameters,
   CastleStringUtils, CastleKeysMouse, CastleColors, CastleControlsImages,
   CastleApplicationProperties
-  {$ifdef ADD_ANIMATION} , CastleFilesUtils, Castle3D {$endif};
+  {$ifdef ADD_ANIMATION} , CastleFilesUtils, CastleTransform {$endif};
 
 { TMyViewport ---------------------------------------------------------------- }
 

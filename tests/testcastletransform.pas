@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestCastle3D;
+unit TestCastleTransform;
 
 interface
 
@@ -21,7 +21,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastle3D = class(TCastleBaseTestCase)
+  TTestCastleTransform = class(TCastleBaseTestCase)
   strict private
     procedure DoTestWorld(const PrematureFree: boolean);
   published
@@ -45,7 +45,8 @@ type
 
 implementation
 
-uses CastleVectors, CastleBoxes, Castle3D, CastleSceneManager, Contnrs, CastleClassUtils,
+uses Math, Contnrs,
+  CastleVectors, CastleBoxes, CastleTransform, CastleSceneManager, CastleClassUtils,
   CastleTriangles, CastleSceneCore, X3DNodes;
 
 { TMy3D ---------------------------------------------------------------------- }
@@ -121,9 +122,9 @@ const
     (Data: (21, 1, 1))
   ));
 
-{ TTestCastle3D ---------------------------------------------------------------- }
+{ TTestCastleTransform ---------------------------------------------------------------- }
 
-procedure TTestCastle3D.TestMy3D;
+procedure TTestCastleTransform.TestMy3D;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -193,7 +194,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.TestMy3DNotExists;
+procedure TTestCastleTransform.TestMy3DNotExists;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -261,7 +262,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.TestMy3DNotCollides;
+procedure TTestCastleTransform.TestMy3DNotCollides;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -338,7 +339,7 @@ type
   TMy3DTransform = class(TCastleTransform)
   end;
 
-procedure TTestCastle3D.Test3DTransform;
+procedure TTestCastleTransform.Test3DTransform;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -411,7 +412,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.Test3DTransformNotExists;
+procedure TTestCastleTransform.Test3DTransformNotExists;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -481,7 +482,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.Test3DTransformNotCollides;
+procedure TTestCastleTransform.Test3DTransformNotCollides;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -554,7 +555,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.Test3DTransformReal;
+procedure TTestCastleTransform.Test3DTransformReal;
 
   { Perform test on M, assuming that it results in box Box20. }
   procedure DoTests(M: TMy3DTransform);
@@ -686,7 +687,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.TestNotifications;
+procedure TTestCastleTransform.TestNotifications;
 var
   ListParent, List: T3DList;
   ItemOnList: TCastleTransform;
@@ -722,7 +723,7 @@ begin
   finally FreeAndNil(ListParent) end;
 end;
 
-procedure TTestCastle3D.TestNotificationsSceneManager;
+procedure TTestCastleTransform.TestNotificationsSceneManager;
 var
   SceneManager: TCastleSceneManager;
   List: T3DList;
@@ -744,7 +745,7 @@ begin
   finally FreeAndNil(SceneManager) end;
 end;
 
-procedure TTestCastle3D.TestList;
+procedure TTestCastleTransform.TestList;
 var
   My, My2: T3D;
   List: T3DList;
@@ -777,7 +778,7 @@ begin
   end;
 end;
 
-procedure TTestCastle3D.TestViewVectorsOrthogonal1;
+procedure TTestCastleTransform.TestViewVectorsOrthogonal1;
 { Test forcing Direction/Up orthogonal by various TCastleTransform routines
   (that actually implement it by TWalkCamera routines).
   This tests doesn't pass dir/up parallel. }
@@ -826,7 +827,7 @@ begin
   FreeAndNil(O);
 end;
 
-procedure TTestCastle3D.TestViewVectorsOrthogonal2;
+procedure TTestCastleTransform.TestViewVectorsOrthogonal2;
 { Test forcing Direction/Up orthogonal by various TCastleTransform routines
   (that actually implement it by TWalkCamera routines).
   This tests does pass dir/up parallel. }
@@ -866,7 +867,7 @@ begin
   FreeAndNil(O);
 end;
 
-procedure TTestCastle3D.TestListNotification;
+procedure TTestCastleTransform.TestListNotification;
 var
   O1List: T3DList;
   O1: T3D;
@@ -884,17 +885,17 @@ begin
   FreeAndNil(O1List);
 end;
 
-procedure TTestCastle3D.TestWorldFull;
+procedure TTestCastleTransform.TestWorldFull;
 begin
   DoTestWorld(false);
 end;
 
-procedure TTestCastle3D.TestWorldPrematureFree;
+procedure TTestCastleTransform.TestWorldPrematureFree;
 begin
   DoTestWorld(true);
 end;
 
-procedure TTestCastle3D.DoTestWorld(const PrematureFree: boolean);
+procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
 var
   World1, World2: T3DWorld;
   O1List, O2List: T3DList;
@@ -998,7 +999,7 @@ begin
   end;
 end;
 
-procedure TTestCastle3D.TestWorldFreeBeforeItem;
+procedure TTestCastleTransform.TestWorldFreeBeforeItem;
 var
   World1: T3DWorld;
   O1List: T3DList;
@@ -1046,5 +1047,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestCastle3D);
+  RegisterTest(TTestCastleTransform);
 end.

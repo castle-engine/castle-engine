@@ -23,7 +23,7 @@ interface
 
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleXMLConfig, CastleTimeUtils,
-  CastleScene, X3DNodes, Castle3D, CastleBoxes, CastleFindFiles;
+  CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles;
 
 type
   T3DResource = class;

@@ -17,7 +17,7 @@
 uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
-  CastleUtils, Castle3D, CastleSoundEngine, CastleCreatures, CastleLog;
+  CastleUtils, CastleTransform, CastleSoundEngine, CastleCreatures, CastleLog;
 
 var
   BaseScene: TCastleScene;

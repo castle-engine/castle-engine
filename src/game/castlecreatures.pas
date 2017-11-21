@@ -23,7 +23,7 @@ interface
 uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
-  CastleResources, CastleXMLConfig, Castle3D, CastleTransform,
+  CastleResources, CastleXMLConfig, CastleTransform, Castle3D,
   CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
   CastleDebug3D;
 
@@ -1288,7 +1288,7 @@ begin
        but they keep pointing upwards. This is noticeable to the player
        that looks at the arrow.
     2. It also conflicts with current hack with "MaximumFallingDistance -= 0.01"
-       inside Castle3D gravity. It could probably be fixed better,
+       inside CastleTransform gravity. It could probably be fixed better,
        but since the 1st problem would remain anyway...
     Also growing up doesn't make any sense for missile that explodes on contact
     with ground. So Fall should be overriden to make HitCore,

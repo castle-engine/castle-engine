@@ -2518,7 +2518,7 @@ begin
     ourselves, just like our children; so check "AComponent is T3D" doesn't
     protect us.)
     Practical situation when it happens is in testcases
-    TTestCastle3D.TestNotifications and TTestCastle3D.TestNotificationsSceneManager. }
+    TTestCastleTransform.TestNotifications and TTestCastleTransform.TestNotificationsSceneManager. }
 
   if (Operation = opRemove) and (AComponent is T3D) and (List <> nil) then
     List.RemoveAll(AComponent);

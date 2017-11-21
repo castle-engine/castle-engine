@@ -23,7 +23,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections, DOM,
   CastleVectors, CastleBoxes, CastleUtils, CastleScript,
-  CastleClassUtils, Castle3D, CastleFrustum;
+  CastleClassUtils, CastleFrustum;
 
 type
   ECurveFileInvalid = class(Exception);

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Physics integration code between Castle3D and Kraft physics engine. }
+{ Physics integration code between CastleTransform and Kraft physics engine. }
 
 {$ifdef read_interface}
 

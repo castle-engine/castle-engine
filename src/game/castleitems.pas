@@ -24,8 +24,8 @@ uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
-  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, CastleColors,
-  CastleDebug3D;
+  CastleXMLConfig, CastleSoundEngine, CastleFrustum,
+  Castle3D, CastleTransform, CastleColors, CastleDebug3D;
 
 type
   TInventoryItem = class;
@@ -468,7 +468,7 @@ type
 
   { Item that is placed on a 3D world, ready to be picked up.
     It's not in anyone's inventory. }
-  TItemOnWorld = class(T3DOrient)
+  TItemOnWorld = class(TCastleTransform)
   private
     type
       { A debug visualization that can be added to TItemOnWorld

@@ -23,11 +23,12 @@ interface
 
 implementation
 
-uses SysUtils, Classes, CastleWindow, CastleLog, CastleConfig, CastleLevels,
+uses SysUtils, Classes,
+  CastleWindow, CastleLog, CastleConfig, CastleLevels,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
-  Castle3D, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
-  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
+  CastleTransform, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
+  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils, Castle3D,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
 

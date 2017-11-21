@@ -49,7 +49,7 @@ uses
   TestCastleImagesDraw,
   TestCastleBoxes,
   TestCastleFrustum,
-  TestCastle3D,
+  TestCastleTransform,
   TestCastleParameters,
   TestCastleCameras,
   TestX3DFields,
@@ -95,14 +95,14 @@ var
 {$endif}
 
 {var
-  T: TTestCastle3D;}
+  T: TTestCastleTransform;}
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.
 
-  T := TTestCastle3D.Create;
+  T := TTestCastleTransform.Create;
   T.TestListNotification;
   T.Free;
   Exit;}

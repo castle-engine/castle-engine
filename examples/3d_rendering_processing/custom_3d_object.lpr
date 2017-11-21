@@ -35,7 +35,7 @@ program custom_3d_object;
 uses SysUtils, Classes,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleBoxes, CastleWindow, CastleFrustum,
-  CastleClassUtils, CastleUtils, Castle3D,
+  CastleClassUtils, CastleUtils, CastleTransform,
   CastleGLUtils, CastleFilesUtils, CastleStringUtils, CastleKeysMouse,
   CastleGLBoxes;
 
