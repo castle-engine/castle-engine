@@ -186,32 +186,32 @@ end;
 
 procedure TButtons.AddCreatureButtonClick(Sender: TObject);
 var
-  Position: TVector3;
+  Translation: TVector3;
   Direction: TVector3;
   CreatureResource: TCreatureResource;
 begin
-  Position := Player.Position + Player.Direction * 10;
+  Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Position.Data[1] += 5;
+  Translation.Data[1] += 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
-  CreatureResource.CreateCreature(SceneManager.Items, Position, Direction);
+  CreatureResource.CreateCreature(SceneManager.Items, Translation, Direction);
 end;
 
 procedure TButtons.AddItemButtonClick(Sender: TObject);
 var
-  Position: TVector3;
+  Translation: TVector3;
   ItemResource: TItemResource;
 begin
-  Position := Player.Position + Player.Direction * 10;
+  Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Position.Data[1] += 5;
+  Translation.Data[1] += 5;
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
     instance) and adds it to SceneManager.Items. }
-  ItemResource.CreateItem(1).PutOnWorld(SceneManager.Items, Position);
+  ItemResource.CreateItem(1).PutOnWorld(SceneManager.Items, Translation);
 
   { You could instead add the item directly to someone's inventory, like this: }
   // Player.PickItem(ItemResource.CreateItem(1));
