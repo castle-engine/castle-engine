@@ -333,9 +333,9 @@ begin
 end;
 
 type
-  { Define my own T3DTransform descendant, only to expose OnlyTranslation
+  { Define my own TCastleTransform descendant, only to expose OnlyTranslation
     value for testing. }
-  TMy3DTransform = class(T3DTransform)
+  TMy3DTransform = class(TCastleTransform)
   end;
 
 procedure TTestCastle3D.Test3DTransform;
@@ -613,7 +613,7 @@ procedure TTestCastle3D.Test3DTransformReal;
     AssertTrue(not M.SphereCollision(Vector3(22, 2, 2), 0.3, nil));
     AssertTrue(M.SphereCollision(Vector3(22, 2, 2), 3, nil));
     { below radius values chosen specifically to test that "/ AverageScale"
-      inside T3DCustomTransform.SphereCollision works Ok }
+      inside TCastleTransform.SphereCollision works Ok }
     AssertTrue(not M.SphereCollision(Vector3(22, 0, 0), 0.9, nil));
     AssertTrue(M.SphereCollision(Vector3(22, 0, 0), 1.1, nil));
 
@@ -659,7 +659,7 @@ begin
     M2 := TMy3DTransform.Create(nil);
 
     { test rotation and translation in different order.
-      This requires connecting 2 T3DTransform instances, and using Center. }
+      This requires connecting 2 TCastleTransform instances, and using Center. }
     M.Add(M2);
     M.Rotation := Vector4(0, 1, 0, Pi / 2);
     M.Center := Vector3(20, 0, 0);
@@ -675,7 +675,7 @@ begin
 
   M := TMy3DTransform.Create(nil);
   try
-    { use scaling in T3DTransform }
+    { use scaling in TCastleTransform }
     M.Add(TMy3D.Create(M, Box3D(
       Vector3(-0.25, -0.25, -0.25),
       Vector3( 0.25,  0.25,  0.25))));
@@ -689,7 +689,7 @@ end;
 procedure TTestCastle3D.TestNotifications;
 var
   ListParent, List: T3DList;
-  ItemOnList: T3DTransform;
+  ItemOnList: TCastleTransform;
 begin
   ListParent := T3DList.Create(nil);
   try
@@ -697,7 +697,7 @@ begin
     try
       ListParent.Add(List);
 
-      ItemOnList := T3DTransform.Create(ListParent);
+      ItemOnList := TCastleTransform.Create(ListParent);
       List.Add(ItemOnList);
 
       { now this will cause T3DList.Notification with Owner=Self, and List=nil }
@@ -712,7 +712,7 @@ begin
     try
       ListParent.Add(List);
 
-      ItemOnList := T3DTransform.Create(List);
+      ItemOnList := TCastleTransform.Create(List);
       List.Add(ItemOnList);
 
       { now this will cause T3DList.Notification with Owner=Self, and List=nil }
@@ -726,7 +726,7 @@ procedure TTestCastle3D.TestNotificationsSceneManager;
 var
   SceneManager: TCastleSceneManager;
   List: T3DList;
-  ItemOnList: T3DTransform;
+  ItemOnList: TCastleTransform;
 begin
   SceneManager := TCastleSceneManager.Create(nil);
   try
@@ -734,7 +734,7 @@ begin
     try
       SceneManager.Items.Add(List);
 
-      ItemOnList := T3DTransform.Create(SceneManager);
+      ItemOnList := TCastleTransform.Create(SceneManager);
       List.Add(ItemOnList);
 
       { now this will cause T3DList.Notification with Owner=Self, and List=nil }
@@ -778,13 +778,13 @@ begin
 end;
 
 procedure TTestCastle3D.TestViewVectorsOrthogonal1;
-{ Test forcing Direction/Up orthogonal by various T3DOrient routines
+{ Test forcing Direction/Up orthogonal by various TCastleTransform routines
   (that actually implement it by TWalkCamera routines).
   This tests doesn't pass dir/up parallel. }
 var
-  O: T3DOrient;
+  O: TCastleTransform;
 begin
-  O := T3DOrient.Create(nil);
+  O := TCastleTransform.Create(nil);
 
   { no need to change direction/up angle, only normalize them }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
@@ -827,13 +827,13 @@ begin
 end;
 
 procedure TTestCastle3D.TestViewVectorsOrthogonal2;
-{ Test forcing Direction/Up orthogonal by various T3DOrient routines
+{ Test forcing Direction/Up orthogonal by various TCastleTransform routines
   (that actually implement it by TWalkCamera routines).
   This tests does pass dir/up parallel. }
 var
-  O: T3DOrient;
+  O: TCastleTransform;
 begin
-  O := T3DOrient.Create(nil);
+  O := TCastleTransform.Create(nil);
 
   { SetView corrects up vector angle }
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 0));

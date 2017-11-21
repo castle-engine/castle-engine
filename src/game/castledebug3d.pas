@@ -19,7 +19,7 @@ unit CastleDebug3D;
 interface
 
 uses Classes,
-  Castle3D, CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleColors;
+  CastleTransform, CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleColors;
 
 type
   { 3D axis, as an X3D node, to easily visualize debug things.
@@ -103,9 +103,9 @@ type
   end;
 
   { Visualization of a bounding volume (and maybe other properties)
-    of a T3DCustomTransform instance.
+    of a TCastleTransform instance.
     After constructing this, call @link(Attach) to attach this to some
-    @link(T3DCustomTransform) instance.
+    @link(TCastleTransform) instance.
 
     Then set @link(Exists) to control whether the debug visualization
     should actually be shown. We take care to only actually construct
@@ -125,7 +125,7 @@ type
       FWorldSpace: TAbstractX3DGroupingNode;
       FSphere: TDebugSphere;
       FMiddleAxis: TDebugAxis;
-      FParent: T3DCustomTransform;
+      FParent: TCastleTransform;
       FScene: TInternalScene;
       FExists: boolean;
     procedure UpdateSafe;
@@ -140,7 +140,7 @@ type
       in @link(Initialize). }
     procedure Update; virtual;
   public
-    procedure Attach(const AParent: T3DCustomTransform);
+    procedure Attach(const AParent: TCastleTransform);
     { Is the debug visualization visible. }
     property Exists: boolean read FExists write SetExists default false;
     { Add additional things that are expressed in world-space under this transform.
@@ -313,7 +313,7 @@ begin
   FScene.Exists := FExists;
 end;
 
-procedure TDebug3D.Attach(const AParent: T3DCustomTransform);
+procedure TDebug3D.Attach(const AParent: TCastleTransform);
 begin
   if FScene = nil then
     Initialize;

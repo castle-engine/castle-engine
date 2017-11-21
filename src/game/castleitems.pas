@@ -853,7 +853,7 @@ var
   procedure FireMissileAttack;
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-       CreateCreature(World, Attacker.Position, Attacker.Direction);
+       CreateCreature(World, Attacker.Translation, Attacker.Direction);
     SoundEngine.Sound(Resource.FireMissileSound);
   end;
 
@@ -1139,7 +1139,7 @@ end;
 
 function TItemOnWorld.BoundingBoxRotated: TBox3D;
 begin
-  Result := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Position);
+  Result := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Translation);
 end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1249,8 +1249,8 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       MakeVectorsOrthoOnTheirPlane(Result, GravityUp);
   end;
 
-  function GetItemDropPosition(DroppedItemResource: TItemResource;
-    out DropPosition: TVector3): boolean;
+  function GetItemDropTranslation(DroppedItemResource: TItemResource;
+    out DropTranslation: TVector3): boolean;
   var
     ItemBox: TBox3D;
     ItemBoxRadius: Single;
@@ -1262,7 +1262,7 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       radius around ItemBoxMiddle }
     ItemBoxRadius := ItemBox.Translate(-ItemBoxMiddle).Radius;
 
-    { Calculate DropPosition.
+    { Calculate DropTranslation.
 
       We must move the item a little before us to
       1. show visually player that the item was dropped
@@ -1275,14 +1275,14 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       prevent putting item "inside the ground", but the item
       would be too close to the player --- he could pick it up
       immediately. }
-    DropPosition := Position +
+    DropTranslation := Translation +
       DirectionInGravityPlane *
         (0.6 * (PreferredHeight * Sqrt3 + ItemBox.Diagonal));
 
-    { Now check is DropPosition actually possible
+    { Now check is DropTranslation actually possible
       (i.e. check collisions item<->everything).
       The assumption is that item starts from
-      Position and is moved to DropPosition.
+      Translation and is moved to DropTranslation.
 
       But actually we must shift both these positions,
       so that we check positions that are ideally in the middle
@@ -1291,24 +1291,24 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       look good. }
 
     Result := World.WorldMoveAllowed(
-      ItemBoxMiddle + Position,
-      ItemBoxMiddle + DropPosition, true, ItemBoxRadius,
-      ItemBox.Translate(Position),
-      ItemBox.Translate(DropPosition), false);
+      ItemBoxMiddle + Translation,
+      ItemBoxMiddle + DropTranslation, true, ItemBoxRadius,
+      ItemBox.Translate(Translation),
+      ItemBox.Translate(DropTranslation), false);
   end;
 
 var
-  DropPosition: TVector3;
+  DropTranslation: TVector3;
   DropppedItem: TInventoryItem;
 begin
   Result := nil;
 
   if Between(Index, 0, Inventory.Count - 1) then
   begin
-    if GetItemDropPosition(Inventory[Index].Resource, DropPosition) then
+    if GetItemDropTranslation(Inventory[Index].Resource, DropTranslation) then
     begin
       DropppedItem := Inventory.Drop(Index);
-      Result := DropppedItem.PutOnWorld(World, DropPosition);
+      Result := DropppedItem.PutOnWorld(World, DropTranslation);
     end;
   end;
 end;

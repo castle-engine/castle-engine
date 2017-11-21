@@ -880,9 +880,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     NewSwimming := psNo;
     if World <> nil then
     begin
-      if World.Water.Contains(Position) then
+      if World.Water.Contains(Translation) then
         NewSwimming := psUnderWater else
-      if World.Water.Contains(Position - World.GravityUp * Camera.PreferredHeight) then
+      if World.Water.Contains(Translation - World.GravityUp * Camera.PreferredHeight) then
         NewSwimming := psAboveWater;
     end;
     Swimming := NewSwimming;
@@ -1354,7 +1354,7 @@ end;
 
 function TPlayer.Middle: TVector3;
 begin
-  { For player, our Position is already the suitable "eye position"
+  { For player, our Translation is already the suitable "eye position"
     above the ground.
 
     Note that Player.Gravity remains false for now (only Player.Camera.Gravity
@@ -1362,7 +1362,7 @@ begin
     Castle3D unit, so there's no point in overriding methods like PreferredHeight.
     TWalkCamera.Gravity does all the work now. }
 
-  Result := Position;
+  Result := Translation;
 end;
 
 procedure TPlayer.SetEnableCameraDragging(const AValue: boolean);
