@@ -43,7 +43,7 @@ uses SysUtils, CastleWindow, CastleScene, X3DFields, X3DNodes,
   CastleUtils, CastleGLUtils, CastleBoxes, CastleVectors,
   CastleProgress, CastleWindowProgress, CastleStringUtils,
   CastleParameters, CastleImages, CastleMessages, CastleFilesUtils, CastleGLImages,
-  Castle3D, CastleSoundEngine, CastleRectangles,
+  CastleTransform, CastleSoundEngine, CastleRectangles,
   CastleRenderingCamera, Classes, CastleControls, CastleLevels, CastleConfig,
   CastleInputs, CastleKeysMouse, CastlePlayer, CastleControlsImages;
 
@@ -55,7 +55,7 @@ var
   Player: TPlayer; //< same thing as Window.SceneManager.Player
 
   TntScene: TCastleScene;
-  Rat: T3DTransform;
+  Rat: TCastleScene;
   RatAngle: Single;
 
   stRatSound, stRatSqueak, stKaboom, stCricket: TSoundType;
@@ -68,7 +68,7 @@ var
 { TNT ------------------------------------------------------------------------ }
 
 type
-  TTnt = class(T3DTransform)
+  TTnt = class(TCastleTransform)
   private
     ToRemove: boolean;
   public
@@ -108,7 +108,7 @@ begin
   T := Translation;
   if T.Data[2] > 0 then
   begin
-    T.Data[2] -= 5 * SecondsPassed;
+    T.Data[2] := T.Data[2] - (5 * SecondsPassed);
     MaxVar(T.Data[2], 0);
     Translation := T;
   end;
@@ -146,15 +146,9 @@ var
   T: TVector3;
 begin
   T := RatCircleMiddle;
-  T.Data[0] += Cos(RatAngle) * RatCircleRadius;
-  T.Data[1] += Sin(RatAngle) * RatCircleRadius;
+  T.Data[0] := T.Data[0] + (Cos(RatAngle) * RatCircleRadius);
+  T.Data[1] := T.Data[1] + (Sin(RatAngle) * RatCircleRadius);
   Rat.Translation := T;
-end;
-
-function LoadScene(const Name: string; AOwner: TComponent): TCastleScene;
-begin
-  Result := TCastleScene.Create(AOwner);
-  Result.Load(ApplicationData('3d/' + Name));
 end;
 
 type
@@ -204,7 +198,7 @@ end;
 procedure Update(Container: TUIContainer);
 begin
   { update rat }
-  RatAngle += 0.5 * Window.Fps.UpdateSecondsPassed;
+  RatAngle := RatAngle + (0.5 * Window.Fps.UpdateSecondsPassed);
   UpdateRatPosition;
   if RatSound <> nil then
     RatSound.Position := Rat.Translation;
@@ -363,13 +357,14 @@ begin
   SceneManager.LoadLevel('base');
 
   { init Rat }
-  Rat := T3DTransform.Create(SceneManager);
-  Rat.Add(LoadScene('rat.x3d', SceneManager));
+  Rat := TCastleScene.Create(SceneManager);
+  Rat.Load(ApplicationData('3d/rat.x3d'));
   SceneManager.Items.Add(Rat);
   UpdateRatPosition;
 
   { init Tnt }
-  TntScene := LoadScene('tnt.wrl', SceneManager);
+  TntScene := TCastleScene.Create(SceneManager);
+  TntScene.Load(ApplicationData('3d/tnt.wrl'));
   while TntsCount < MaxTntsCount do NewTnt(0.0);
 
   { init 3D sounds }

@@ -48,7 +48,9 @@
       coordinates.
 
       This matters if you render the scene using TCastleScene,
-      and transform it by T3DTransform or direct OpenGL modelview changes.
+      and transform it (by wrapping it in TCastleTransform, or by directly
+      changing TCastleScene transformation properties inherited from
+      TCastleTransform).
       By default (WorldCoordinates = false) we assume that light is defined
       in scene space, so it will be transformed by the whole modelview matrix
       (camera matrix with scene transformations).

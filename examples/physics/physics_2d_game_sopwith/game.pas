@@ -21,7 +21,7 @@ interface
 implementation
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleWindow, CastleLog, CastleScene, CastleControls, X3DNodes, Castle3D,
+  CastleWindow, CastleLog, CastleScene, CastleControls, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, Castle2DSceneManager,
   CastleUIControls, CastleTimeUtils, CastleUtils;
@@ -36,18 +36,18 @@ var
   Window: TCastleWindowCustom;
   SceneManager: T2DSceneManager;
   Status: TCastleLabel;
-  Level: T3DTransform;
-  Plane: T3DTransform;
+  Level: TCastleScene;
+  Plane: TCastleScene;
   BoxScene, MissileScene: TCastleScene;
   BoxDropTime, MissileShootTime: TTimerResult;
 
 { TAutoDisappearTransform ---------------------------------------------------------- }
 
 type
-  { Descendant of T3DTransform that is removed from scene as soon
+  { Descendant of TCastleTransform that is removed from scene as soon
     as it disappears from view. This means we don't waste time
     calculating missiles or boxes that flew outside of the screen. }
-  TAutoDisappearTransform = class(T3DTransform)
+  TAutoDisappearTransform = class(TCastleTransform)
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
@@ -70,51 +70,43 @@ procedure ApplicationInitialize;
 
   procedure LoadLevel;
   var
-    Scene: TCastleScene;
     RigidBody: TRigidBody;
     Collider: TMeshCollider;
   begin
-    Scene := TCastleScene.Create(Application);
-    Scene.Load(ApplicationData('level.x3d'));
+    Level := TCastleScene.Create(Application);
+    Level.Load(ApplicationData('level.x3d'));
 
-    Level := T3DTransform.Create(Application);
-    Level.Add(Scene);
-
-    RigidBody := TRigidBody.Create(Scene);
+    RigidBody := TRigidBody.Create(Level);
     RigidBody.Dynamic := false;
     RigidBody.Setup2D; // not really needed for objects with Dynamic = false
 
     Collider := TMeshCollider.Create(RigidBody);
-    Collider.Scene := Scene;
+    Collider.Scene := Level;
 
     { assign this only once RigidBody and Collider
       are fully configured, this initializes physics engine }
     Level.RigidBody := RigidBody;
 
     SceneManager.Items.Add(Level);
-    SceneManager.MainScene := Scene;
+    SceneManager.MainScene := Level;
   end;
 
   procedure LoadPlane;
   var
-    Scene: TCastleScene;
     RigidBody: TRigidBody;
     Collider: TBoxCollider;
   begin
-    Scene := TCastleScene.Create(Application);
-    Scene.Load(ApplicationData('plane.x3d'));
-
-    Plane := T3DTransform.Create(Application);
+    Plane := TCastleScene.Create(Application);
+    Plane.Load(ApplicationData('plane.x3d'));
     Plane.Translation := Vector3(50, 50, 0); // initial position
-    Plane.Add(Scene);
 
-    RigidBody := TRigidBody.Create(Scene);
+    RigidBody := TRigidBody.Create(Plane);
     RigidBody.Dynamic := false;
     RigidBody.Animated := true;
     RigidBody.Setup2D; // not really needed for objects with Dynamic = false
 
     Collider := TBoxCollider.Create(RigidBody);
-    Collider.Size := Scene.BoundingBox.Size;
+    Collider.Size := Plane.LocalBoundingBox.Size;
 
     { assign this only once RigidBody and Collider
       are fully configured, this initializes physics engine }
@@ -208,7 +200,7 @@ procedure WindowUpdate(Container: TUIContainer);
   var
     RigidBody: TRigidBody;
     Collider: TBoxCollider;
-    Transform: T3DTransform;
+    Transform: TCastleTransform;
   begin
     // stop dropping boxes when too many, it would slow down the game
     if SceneManager.Items.Count >= 50 then
@@ -238,7 +230,7 @@ procedure WindowUpdate(Container: TUIContainer);
   var
     RigidBody: TRigidBody;
     Collider: TSphereCollider;
-    Transform: T3DTransform;
+    Transform: TCastleTransform;
   begin
     Transform := TAutoDisappearTransform.Create(Application);
     Transform.Translation := Plane.Translation + Vector3(10, 0, 0);

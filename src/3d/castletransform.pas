@@ -451,9 +451,6 @@ type
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
 
-    { Bounding box assuming that the scene is not transformed. }
-    function LocalBoundingBox: TBox3D; virtual; abstract;
-
     { Render with given Params (includes a full transformation of this scene). }
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); virtual;
 
@@ -579,6 +576,9 @@ type
       to include the object inside. At the same time, it should be
       as "tight" as it can, to make various optimizations work best. }
     function BoundingBox: TBox3D; virtual; abstract;
+
+    { Bounding box assuming that the scene is not transformed. }
+    function LocalBoundingBox: TBox3D; virtual; abstract;
 
     { Render given object.
       Should check and immediately exit when @link(GetVisible) is @false.
@@ -1118,7 +1118,6 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
-    function LocalBoundingBox: TBox3D; override;
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure LocalRenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
@@ -1139,6 +1138,8 @@ type
     procedure Clear;
     procedure Exchange(const Index1, Index2: Integer);
     { @groupEnd }
+
+    function LocalBoundingBox: TBox3D; override;
 
     { Sort objects back-to-front @italic(right now)
       following one of the blending sorting algorithms.

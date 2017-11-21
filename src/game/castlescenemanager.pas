@@ -684,7 +684,7 @@ type
       Note that for now this assumes that MainScene coordinates equal
       world coordinates. This means that you should not transform
       the MainScene, it should be placed inside @link(TCastleSceneManager.Items)
-      without wrapping in any T3DTransform. }
+      and not transformed by TCastleTransform. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
 

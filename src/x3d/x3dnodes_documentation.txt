@@ -16,7 +16,7 @@ and with orientation given by @link(ScaleOrientation).
 
 We do the best we can to work with @italic(any) scale value,
 even negative or zero. But usually, it's best to keep the scale
-positive. See the @link(T3DTransform.Scale) documentation for some
+positive. See the @link(TCastleTransform.Scale) documentation for some
 good guidelines about the scale.
 
 # TTransformNode.ScaleOrientation

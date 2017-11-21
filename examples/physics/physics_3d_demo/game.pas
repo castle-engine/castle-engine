@@ -21,7 +21,7 @@ interface
 implementation
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, Castle3D,
+  CastleWindow, CastleScene, CastleControls, CastleLog, X3DNodes, CastleTransform,
   CastleFilesUtils, CastleSceneCore, CastleKeysMouse, CastleColors,
   CastleCameras, CastleVectors, CastleRenderer, CastleBoxes, CastleSceneManager,
   CastleUIControls;
@@ -29,8 +29,7 @@ uses SysUtils, Classes, Generics.Collections,
 var
   Window: TCastleWindow;
   SceneManager: TCastleSceneManager; //< Shortcut for Window.SceneManager
-  LevelScene: TCastleScene;
-  Level: T3DTransform;
+  Level: TCastleScene;
   BoxTemplate, SphereTemplate: TCastleScene;
 
 procedure LoadLevel(const URL: string; const MeshCollider: boolean);
@@ -46,7 +45,7 @@ procedure LoadLevel(const URL: string; const MeshCollider: boolean);
   function CreateMeshCollider(const ParentBody: TRigidBody): TMeshCollider;
   begin
     Result := TMeshCollider.Create(ParentBody);
-    Result.Scene := LevelScene;
+    Result.Scene := Level;
     Result.Restitution := 0.3;
   end;
 
@@ -56,28 +55,17 @@ var
 begin
   { free previous level, which also frees all related rigid bodies }
   FreeAndNil(Level);
-  FreeAndNil(LevelScene);
 
   // SceneManager.Items.Clear; // not needed, we already freed everything
   SceneManager.ClearCameras; // recreate new camera for new level
 
-  { TODO:
-    This code will be simpler once we merge various T3D descendants
-    into TCastleTransform,
-    and make TCastleScene descend from TCastleTransform.
-    Coming in next CGE release (6.4),
-    see https://castle-engine.sourceforge.io/planned_features.php }
+  Level := TCastleScene.Create(Application);
+  Level.Load(URL);
+  Level.Spatial := [ssRendering, ssDynamicCollisions];
+  Level.ProcessEvents := true;
+  Level.Attributes.PhongShading := true; // nicer lighting
 
-  LevelScene := TCastleScene.Create(Application);
-  LevelScene.Load(URL);
-  LevelScene.Spatial := [ssRendering, ssDynamicCollisions];
-  LevelScene.ProcessEvents := true;
-  LevelScene.Attributes.PhongShading := true; // nicer lighting
-
-  Level := T3DTransform.Create(Application);
-  Level.Add(LevelScene);
-
-  LevelBody := TRigidBody.Create(LevelScene);
+  LevelBody := TRigidBody.Create(Level);
   LevelBody.Dynamic := false;
 
   if MeshCollider then
@@ -90,7 +78,7 @@ begin
   Level.RigidBody := LevelBody;
 
   SceneManager.Items.Add(Level);
-  SceneManager.MainScene := LevelScene;
+  SceneManager.MainScene := Level;
 
   // make gravity work even if your position is over the world bbox
   MoveLimit := SceneManager.Items.BoundingBox;
@@ -173,21 +161,18 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
     const RigidBody: TRigidBody);
   var
     Scene: TCastleScene;
-    Transform: T3DTransform;
     CameraPos, CameraDir, CameraUp: TVector3;
   begin
     Scene := Template.Clone(Level);
 
-    Transform := T3DTransform.Create(Level);
     SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
-    Transform.Translation := CameraPos + CameraDir * 2.0;
-    // TODO: apply Transform.Direction from SceneManager.Camera.Direction
-    Transform.Add(Scene);
+    Scene.Translation := CameraPos + CameraDir * 2.0;
+    // TODO: apply Scene.Direction from SceneManager.Camera.Direction
 
-    SceneManager.Items.Add(Transform);
+    SceneManager.Items.Add(Scene);
 
     RigidBody.InitialLinearVelocity := CameraDir * 4.0;
-    Transform.RigidBody := RigidBody;
+    Scene.RigidBody := RigidBody;
   end;
 
 var

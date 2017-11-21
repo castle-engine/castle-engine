@@ -15,7 +15,7 @@
 
 { Demo of using SceneManager. Shows how you can add many 3D objects to
   SceneManager.Items tree. For simpler usage,
-  see simplest_vrml_browser.lpr first.
+  see view_3d_model_basic.lpr first.
 
   This reads a couple of 3D files from data/ subdirectory.
   Their URLs are in the source code below.
@@ -26,13 +26,13 @@ program scene_manager_demos;
 
 {$ifdef MSWINDOWS} {$apptype CONSOLE} {$endif}
 
-uses CastleUtils, CastleWindow, CastleVectors, CastleLog, Castle3D,
+uses CastleUtils, CastleWindow, CastleVectors, CastleLog, CastleTransform,
   CastleSceneCore, CastleScene, X3DFields, X3DNodes, CastleApplicationProperties;
 
 var
   Window: TCastleWindow;
   Scene, ParticlesScene, DinoScene: TCastleScene;
-  ParticlesTransform, DinoTransform: T3DTransform;
+  DinoTransform1, DinoTransform2: TCastleTransform;
 begin
   Window := TCastleWindow.Create(Application);
 
@@ -65,17 +65,19 @@ begin
 
     SceneManager.Items
     |- Scene (class TCastleScene)
-    |- ParticlesTransform (class T3DTransform)
-       |- ParticlesScene (class TCastleScene)
-    |- DinoTransform (class T3DTransform)
+    |- ParticlesScene (class TCastleScene)
+    |- DinoTransform1 (class TCastleTransform)
        |- DinoScene (class TCastleScene)
-  }
+    |- DinoTransform2 (class TCastleTransform)
+       |- DinoScene (class TCastleScene)
 
-  { initialize ParticlesTransform }
-  ParticlesTransform := T3DTransform.Create(Application);
-  ParticlesTransform.Translation := Vector3(-15, -4, 0);
-  ParticlesTransform.Rotation := Vector4(1, 0, 0, -Pi/2);
-  Window.SceneManager.Items.Add(ParticlesTransform);
+    Note that the DinoScene is present 2 times in the tree, but under
+    different transformations. This is a very optimal way to render
+    the same scene at many places in your world.
+    However, both scene transformations will always show the same animation frame.
+    If you want to show different frames, you would instead create two TCastleScene
+    instances (you can create the 2nd one by using "Clone" method on the 1st one).
+  }
 
   { initialize ParticlesScene }
   ParticlesScene := TCastleScene.Create(Application);
@@ -87,12 +89,9 @@ begin
     We change it before the animation even starts (before activating ProcessEvents). }
   (ParticlesScene.Field('ParticleScript', 'count') as TSFInt32).Send(100);
   ParticlesScene.ProcessEvents := true;
-  ParticlesTransform.Add(ParticlesScene);
-
-  { initialize DinoTransform }
-  DinoTransform := T3DTransform.Create(Application);
-  DinoTransform.Translation := Vector3(-20, -1, -2);
-  Window.SceneManager.Items.Add(DinoTransform);
+  ParticlesScene.Translation := Vector3(-15, -4, 0);
+  ParticlesScene.Rotation := Vector4(1, 0, 0, -Pi/2);
+  Window.SceneManager.Items.Add(ParticlesScene);
 
   { initialize DinoScene }
   DinoScene := TCastleScene.Create(Application);
@@ -103,7 +102,20 @@ begin
     for other options.  }
   DinoScene.Attributes.WireframeEffect := weSolidWireframe;
   DinoScene.Attributes.WireframeColor := Vector3(0, 0.25, 0); { dark green }
-  DinoTransform.Add(DinoScene);
+  // will be added to DinoTransform1 and DinoTransform2 later
+
+  { initialize DinoTransform1 }
+  DinoTransform1 := TCastleTransform.Create(Application);
+  DinoTransform1.Translation := Vector3(-20, -1, -2);
+  Window.SceneManager.Items.Add(DinoTransform1);
+
+  { initialize DinoTransform2 }
+  DinoTransform2 := TCastleTransform.Create(Application);
+  DinoTransform2.Translation := Vector3(-30, -1, -2);
+  Window.SceneManager.Items.Add(DinoTransform2);
+
+  DinoTransform1.Add(DinoScene);
+  DinoTransform2.Add(DinoScene);
 
   Window.FpsShowOnCaption := true;
 

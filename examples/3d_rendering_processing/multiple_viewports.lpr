@@ -237,7 +237,7 @@ var
   Background: TCastleSimpleBackground;
   {$ifdef ADD_ANIMATION}
   Animation: TCastleScene;
-  Transform: T3DTransform;
+  Transform: TCastleTransform;
   {$endif ADD_ANIMATION}
 begin
   if Parameters.High = 1 then
@@ -258,7 +258,7 @@ begin
 
   {$ifdef ADD_ANIMATION}
   { initialize Transform }
-  Transform := T3DTransform.Create(Window.SceneManager);
+  Transform := TCastleTransform.Create(Window.SceneManager);
 //  Transform.Translation := Vector3(5, 3, 60);
   Window.SceneManager.Items.Add(Transform);
 
