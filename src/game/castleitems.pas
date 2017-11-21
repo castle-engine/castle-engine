@@ -1175,7 +1175,7 @@ begin
 
   { LifeTime is used to choose animation frame in GetChild.
     So the item constantly changes, even when it's
-    transformation (things taken into account in T3DOrient) stay equal. }
+    transformation (things taken into account in TCastleTransform) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
   ItemRotation := ItemRotation + (RotationSpeed * SecondsPassed);

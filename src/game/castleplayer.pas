@@ -66,8 +66,8 @@ type
   TPlayer = class(T3DAliveWithInventory)
   private
     type
-      { Invisible box, that is added to make TPlayer collidable thanks to default
-        T3DOrient (actually T3DList) methods. Owner must be TPlayer. }
+      { Invisible box, that is added to TPlayer to make it collidable.
+        Owner must be TPlayer. }
       TBox = class(T3D)
       public
         function BoundingBox: TBox3D; override;

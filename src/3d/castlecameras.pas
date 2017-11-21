@@ -1484,7 +1484,7 @@ type
     { Change up vector, keeping the direction unchanged.
       If necessary, the up vector provided here will be fixed to be orthogonal
       to direction.
-      See T3DOrient.UpPrefer for detailed documentation what this does. }
+      See TCastleTransform.UpPrefer for detailed documentation what this does. }
     procedure UpPrefer(const AUp: TVector3);
 
     { Last known information about whether camera is over the ground.
