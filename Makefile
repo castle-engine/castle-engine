@@ -178,7 +178,6 @@ EXAMPLES_BASE_NAMES := \
   examples/research_special_rendering_methods/shadow_fields/shadow_fields \
   examples/research_special_rendering_methods/dynamic_ambient_occlusion/dynamic_ambient_occlusion \
   examples/terrain/terrain \
-  examples/3d_rendering_processing/custom_3d_object \
   examples/3d_rendering_processing/triangulate_demo \
   examples/3d_rendering_processing/placeholder_names \
   examples/3d_rendering_processing/multiple_viewports \
