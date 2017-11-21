@@ -289,15 +289,20 @@
     unit that allows static linking to png, see castleinternalpng_static.inc.
 }
 
+// iOS or Android support only CASTLE_PNG_USING_FCL_IMAGE
+// (they could work with other methods too, but it needs some work to set up,
+// so we don't support it officially)
+{$if defined(iOS) or defined(ANDROID)}
+  {$undef CASTLE_PNG_DYNAMIC}
+  {$undef CASTLE_PNG_STATIC}
+  {$define CASTLE_PNG_USING_FCL_IMAGE}
+{$endif}
+
 {$ifndef CASTLE_PNG_DYNAMIC}
   {$ifndef CASTLE_PNG_STATIC}
-
     // Automatically define CASTLE_PNG_USING_FCL_IMAGE, unless one of the other defines is set.
     // This allows developers to override this by setting e.g. -dCASTLE_PNG_DYNAMIC in ~/.fpc.cfg
     {$define CASTLE_PNG_USING_FCL_IMAGE}
-    // {$ifdef iOS} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
-    // {$ifdef ANDROID} {$define CASTLE_PNG_USING_FCL_IMAGE} {$endif}
-
   {$endif}
 {$endif}
 
