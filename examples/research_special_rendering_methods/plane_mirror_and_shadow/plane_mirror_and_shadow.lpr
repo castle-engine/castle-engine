@@ -209,12 +209,9 @@ var
               in bad places }
             glDepthFunc(GL_ALWAYS);
 
-            { TODO: RenderingCamera.Frustum is actually invalid.
-              But we pass TestShapeVisibility = nil, and we don't use
-              VisibilitySensor inside these models,
-              so frustum value isn't really used. }
-
-            SceneForShadow.Render(nil, RenderingCamera.Frustum, RenderParams);
+            { TODO: RenderingCamera.Frustum is invalid. }
+            SceneForShadow.InternalIgnoreFrustum := true;
+            SceneForShadow.Render(RenderingCamera.Frustum, RenderParams);
           glPopAttrib();
         glPopMatrix();
       glPopAttrib();
@@ -301,12 +298,9 @@ var
             so different faces are visible (and have normals defined). }
           glFrontFace(GL_CW);
 
-          { TODO: RenderingCamera.Frustum is actually invalid.
-            But we pass TestShapeVisibility = nil, and we don't use
-            VisibilitySensor inside these models,
-            so frustum value isn't really used. }
-
-          Scene.Render(nil, RenderingCamera.Frustum, RenderParams);
+          { TODO: RenderingCamera.Frustum is invalid. }
+          Scene.InternalIgnoreFrustum := true;
+          Scene.Render(RenderingCamera.Frustum, RenderParams);
           glFrontFace(GL_CCW);
         glPopMatrix();
 
@@ -407,12 +401,9 @@ begin
     glPushMatrix();
       glRotatef(RotationAngle, 1, 1, 1);
 
-      { TODO: RenderingCamera.Frustum is actually invalid.
-        But we pass TestShapeVisibility = nil, and we don't use
-        VisibilitySensor inside these models,
-        so frustum value isn't really used. }
-
-      Scene.Render(nil, RenderingCamera.Frustum, RenderParams);
+      { TODO: RenderingCamera.Frustum is invalid. }
+      Scene.InternalIgnoreFrustum := true;
+      Scene.Render(RenderingCamera.Frustum, RenderParams);
     glPopMatrix();
 
     BoxMaxSize := Box.MaxSize;

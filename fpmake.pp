@@ -121,6 +121,7 @@ begin
     P.Targets.AddUnit('castlespacefillingcurves.pas');
     P.Targets.AddUnit('castlespheresampling.pas');
     P.Targets.AddUnit('castlesphericalharmonics.pas');
+    P.Targets.AddUnit('castletransform.pas');
 
     P.SourcePath.Add('src' + PathDelim + '3d' + PathDelim + 'opengl');
     P.Targets.AddUnit('castleglboxes.pas');
@@ -352,7 +353,6 @@ begin
     P.Targets.AddUnit('castlerendererinternallights.pas');
     P.Targets.AddUnit('castlerendererinternaltextureenv.pas');
     P.Targets.AddUnit('castlerenderer.pas');
-    P.Targets.AddUnit('castleprecalculatedanimation.pas');
 
     Run;
   end;

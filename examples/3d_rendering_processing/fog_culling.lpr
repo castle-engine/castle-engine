@@ -35,7 +35,7 @@ program fog_culling;
 uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleClassUtils, CastleUtils, Classes, CastleLog,
   CastleGLUtils, X3DNodes, CastleSceneCore, CastleScene, CastleShapes,
-  CastleProgress, CastleProgressConsole, CastleFilesUtils, Castle3D,
+  CastleProgress, CastleProgressConsole, CastleFilesUtils,
   CastleSceneManager, CastleParameters, CastleRenderingCamera, CastleKeysMouse,
   CastleApplicationProperties, CastleControls, CastleColors;
 
@@ -47,8 +47,6 @@ type
   TMySceneManager = class(TCastleSceneManager)
   private
     function TestFogVisibility(Shape: TShape): boolean;
-  protected
-    procedure Render3D(const Params: TRenderParams); override;
   end;
 
 var
@@ -68,15 +66,7 @@ begin
 end;
 
 var
-  FogCulling: boolean = true;
-
-procedure TMySceneManager.Render3D(const Params: TRenderParams);
-begin
-  if FogCulling then
-    Scene.Render(@TestFogVisibility, RenderingCamera.Frustum, Params)
-  else
-    inherited;
-end;
+  FogCulling: boolean;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
 var
@@ -85,6 +75,11 @@ begin
   if Event.IsKey(K_F) then
   begin
     FogCulling := not FogCulling;
+
+    if FogCulling then
+      Scene.InternalVisibilityTest := @SceneManager.TestFogVisibility
+    else
+      Scene.InternalVisibilityTest := nil;
 
     { Also, turn on/off actual fog on the model (if any).
       We do it by changing Fog.VisibilityRange (0 means no fog). }
@@ -122,14 +117,12 @@ begin
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(ApplicationData('fog_culling_final.x3dv'));
+  Scene.Spatial := [ssRendering, ssDynamicCollisions];
   SceneManager.MainScene := Scene;
   SceneManager.Items.Add(Scene);
 
-  { build octrees }
-  Progress.UserInterface := ProgressConsoleInterface;
-  Scene.TriangleOctreeProgressTitle := 'Building triangle octree';
-  Scene.ShapeOctreeProgressTitle := 'Building Shape octree';
-  Scene.Spatial := [ssRendering, ssDynamicCollisions];
+  // fake pressing "F" to turn on FogCulling correctly
+  Press(nil, InputKey(TVector2.Zero, K_F, #0));
 
   Window.OnPress := @Press;
   Window.OnRender := @Render;

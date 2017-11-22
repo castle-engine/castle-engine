@@ -33,7 +33,7 @@ implementation
 uses SysUtils, Classes,
   PropEdits, ComponentEditors, LResources, Dialogs, Controls,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
-  CastleUIControls, CastleControl, CastleControls, CastleImages, Castle3D,
+  CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager;
 
 { TSceneURLPropertyEditor ---------------------------------------------------- }
@@ -89,7 +89,7 @@ type
 
 procedure T3DEditorForm.ShowModal;
 var
-  Transform: T3DTransform;
+  Transform: TCastleTransform;
   Scene: TCastleScene;
   Root: TX3DRootNode;
   Shape: TShapeNode;
@@ -111,7 +111,7 @@ begin
     Scene := TCastleScene.Create(Items);
     Scene.Load(Root, true);
 
-    Transform := T3DTransform.Create(Items);
+    Transform := TCastleTransform.Create(Items);
     Transform.Translation := Vector3(
       RandomFloatRange(-1, 1),
       RandomFloatRange(-1, 1),

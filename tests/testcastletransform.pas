@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-unit TestCastle3D;
+unit TestCastleTransform;
 
 interface
 
@@ -21,7 +21,7 @@ uses
   Classes, SysUtils, fpcunit, testutils, testregistry, CastleBaseTestCase;
 
 type
-  TTestCastle3D = class(TCastleBaseTestCase)
+  TTestCastleTransform = class(TCastleBaseTestCase)
   strict private
     procedure DoTestWorld(const PrematureFree: boolean);
   published
@@ -45,32 +45,47 @@ type
 
 implementation
 
-uses CastleVectors, CastleBoxes, Castle3D, CastleSceneManager, Contnrs, CastleClassUtils,
-  CastleTriangles;
+uses Math, Contnrs,
+  CastleVectors, CastleBoxes, CastleTransform, CastleSceneManager, CastleClassUtils,
+  CastleTriangles, CastleSceneCore, X3DNodes;
 
 { TMy3D ---------------------------------------------------------------------- }
 
 type
-  { Simple invisible 3D axis-aligned box.
-    Probably the simplest possible complete T3D descendant implementation,
-    to test various T3D methods.
-    Default T3D methods implementation takes care of collisions with BoundingBox,
-    so all we need to do is to override the BoundingBox method. }
-  TMy3D = class(T3D)
+  { Simple 3D axis-aligned box, resolving collisions with this box using
+    TCastleScene fallback methods when Spatial = []. }
+  TMy3D = class(TCastleSceneCore)
   private
     MyBox: TBox3D;
   public
     constructor Create(AOwner: TComponent; const AMyBox: TBox3D); reintroduce;
+    function LocalBoundingBox: TBox3D; override;
     function BoundingBox: TBox3D; override;
+    function Middle: TVector3; override;
   end;
 
 constructor TMy3D.Create(AOwner: TComponent; const AMyBox: TBox3D);
+var
+  Root: TX3DRootNode;
+  BoxTransform: TTransformNode;
+  BoxShape: TShapeNode;
+  Box: TBoxNode;
 begin
   inherited Create(AOwner);
   MyBox := AMyBox;
+
+
+  Box := TBoxNode.CreateTransform(BoxShape, BoxTransform);
+  Box.Size := MyBox.Size;
+  BoxTransform.Translation := MyBox.Center;
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(BoxTransform);
+
+  Load(Root, true);
 end;
 
-function TMy3D.BoundingBox: TBox3D;
+function TMy3D.LocalBoundingBox: TBox3D;
 begin
   { Note that we don't check Collides property in BoundingBox method.
     BoundingBox must take into account also non-collidable
@@ -79,8 +94,20 @@ begin
     But in general, the rule is "BoundingBox looks at GetExists,
     not at Collides property".) }
   if GetExists then
-    Result := MyBox else
+    Result := MyBox
+  else
     Result := TBox3D.Empty;
+end;
+
+function TMy3D.BoundingBox: TBox3D;
+begin
+  Result := LocalBoundingBox;
+end;
+
+function TMy3D.Middle: TVector3;
+begin
+  // do not require World.GravityCoordinate for Middle implementation
+  Result := TVector3.Zero;
 end;
 
 { Helper box values ---------------------------------------------------------- }
@@ -95,9 +122,9 @@ const
     (Data: (21, 1, 1))
   ));
 
-{ TTestCastle3D ---------------------------------------------------------------- }
+{ TTestCastleTransform ---------------------------------------------------------------- }
 
-procedure TTestCastle3D.TestMy3D;
+procedure TTestCastleTransform.TestMy3D;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -167,7 +194,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.TestMy3DNotExists;
+procedure TTestCastleTransform.TestMy3DNotExists;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -235,7 +262,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.TestMy3DNotCollides;
+procedure TTestCastleTransform.TestMy3DNotCollides;
 var
   M: TMy3D;
   IsAbove: boolean;
@@ -307,12 +334,12 @@ begin
 end;
 
 type
-  { Define my own T3DTransform descendant, only to expose OnlyTranslation
+  { Define my own TCastleTransform descendant, only to expose OnlyTranslation
     value for testing. }
-  TMy3DTransform = class(T3DTransform)
+  TMy3DTransform = class(TCastleTransform)
   end;
 
-procedure TTestCastle3D.Test3DTransform;
+procedure TTestCastleTransform.Test3DTransform;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -385,7 +412,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.Test3DTransformNotExists;
+procedure TTestCastleTransform.Test3DTransformNotExists;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -455,7 +482,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.Test3DTransformNotCollides;
+procedure TTestCastleTransform.Test3DTransformNotCollides;
 var
   M: TMy3DTransform;
   IsAbove: boolean;
@@ -528,7 +555,7 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.Test3DTransformReal;
+procedure TTestCastleTransform.Test3DTransformReal;
 
   { Perform test on M, assuming that it results in box Box20. }
   procedure DoTests(M: TMy3DTransform);
@@ -587,7 +614,7 @@ procedure TTestCastle3D.Test3DTransformReal;
     AssertTrue(not M.SphereCollision(Vector3(22, 2, 2), 0.3, nil));
     AssertTrue(M.SphereCollision(Vector3(22, 2, 2), 3, nil));
     { below radius values chosen specifically to test that "/ AverageScale"
-      inside T3DCustomTransform.SphereCollision works Ok }
+      inside TCastleTransform.SphereCollision works Ok }
     AssertTrue(not M.SphereCollision(Vector3(22, 0, 0), 0.9, nil));
     AssertTrue(M.SphereCollision(Vector3(22, 0, 0), 1.1, nil));
 
@@ -633,7 +660,7 @@ begin
     M2 := TMy3DTransform.Create(nil);
 
     { test rotation and translation in different order.
-      This requires connecting 2 T3DTransform instances, and using Center. }
+      This requires connecting 2 TCastleTransform instances, and using Center. }
     M.Add(M2);
     M.Rotation := Vector4(0, 1, 0, Pi / 2);
     M.Center := Vector3(20, 0, 0);
@@ -649,7 +676,7 @@ begin
 
   M := TMy3DTransform.Create(nil);
   try
-    { use scaling in T3DTransform }
+    { use scaling in TCastleTransform }
     M.Add(TMy3D.Create(M, Box3D(
       Vector3(-0.25, -0.25, -0.25),
       Vector3( 0.25,  0.25,  0.25))));
@@ -660,10 +687,10 @@ begin
   finally FreeAndNil(M) end;
 end;
 
-procedure TTestCastle3D.TestNotifications;
+procedure TTestCastleTransform.TestNotifications;
 var
   ListParent, List: T3DList;
-  ItemOnList: T3DTransform;
+  ItemOnList: TCastleTransform;
 begin
   ListParent := T3DList.Create(nil);
   try
@@ -671,7 +698,7 @@ begin
     try
       ListParent.Add(List);
 
-      ItemOnList := T3DTransform.Create(ListParent);
+      ItemOnList := TCastleTransform.Create(ListParent);
       List.Add(ItemOnList);
 
       { now this will cause T3DList.Notification with Owner=Self, and List=nil }
@@ -686,7 +713,7 @@ begin
     try
       ListParent.Add(List);
 
-      ItemOnList := T3DTransform.Create(List);
+      ItemOnList := TCastleTransform.Create(List);
       List.Add(ItemOnList);
 
       { now this will cause T3DList.Notification with Owner=Self, and List=nil }
@@ -696,11 +723,11 @@ begin
   finally FreeAndNil(ListParent) end;
 end;
 
-procedure TTestCastle3D.TestNotificationsSceneManager;
+procedure TTestCastleTransform.TestNotificationsSceneManager;
 var
   SceneManager: TCastleSceneManager;
   List: T3DList;
-  ItemOnList: T3DTransform;
+  ItemOnList: TCastleTransform;
 begin
   SceneManager := TCastleSceneManager.Create(nil);
   try
@@ -708,7 +735,7 @@ begin
     try
       SceneManager.Items.Add(List);
 
-      ItemOnList := T3DTransform.Create(SceneManager);
+      ItemOnList := TCastleTransform.Create(SceneManager);
       List.Add(ItemOnList);
 
       { now this will cause T3DList.Notification with Owner=Self, and List=nil }
@@ -718,7 +745,7 @@ begin
   finally FreeAndNil(SceneManager) end;
 end;
 
-procedure TTestCastle3D.TestList;
+procedure TTestCastleTransform.TestList;
 var
   My, My2: T3D;
   List: T3DList;
@@ -751,14 +778,14 @@ begin
   end;
 end;
 
-procedure TTestCastle3D.TestViewVectorsOrthogonal1;
-{ Test forcing Direction/Up orthogonal by various T3DOrient routines
+procedure TTestCastleTransform.TestViewVectorsOrthogonal1;
+{ Test forcing Direction/Up orthogonal by various TCastleTransform routines
   (that actually implement it by TWalkCamera routines).
   This tests doesn't pass dir/up parallel. }
 var
-  O: T3DOrient;
+  O: TCastleTransform;
 begin
-  O := T3DOrient.Create(nil);
+  O := TCastleTransform.Create(nil);
 
   { no need to change direction/up angle, only normalize them }
   O.SetView(Vector3(0, 0, 0), Vector3(1, 0, 0), Vector3(0, 0, 1));
@@ -800,14 +827,14 @@ begin
   FreeAndNil(O);
 end;
 
-procedure TTestCastle3D.TestViewVectorsOrthogonal2;
-{ Test forcing Direction/Up orthogonal by various T3DOrient routines
+procedure TTestCastleTransform.TestViewVectorsOrthogonal2;
+{ Test forcing Direction/Up orthogonal by various TCastleTransform routines
   (that actually implement it by TWalkCamera routines).
   This tests does pass dir/up parallel. }
 var
-  O: T3DOrient;
+  O: TCastleTransform;
 begin
-  O := T3DOrient.Create(nil);
+  O := TCastleTransform.Create(nil);
 
   { SetView corrects up vector angle }
   O.SetView(Vector3(0, 0, 0), Vector3(10, 0, 0), Vector3(10, 0, 0));
@@ -840,7 +867,7 @@ begin
   FreeAndNil(O);
 end;
 
-procedure TTestCastle3D.TestListNotification;
+procedure TTestCastleTransform.TestListNotification;
 var
   O1List: T3DList;
   O1: T3D;
@@ -858,17 +885,17 @@ begin
   FreeAndNil(O1List);
 end;
 
-procedure TTestCastle3D.TestWorldFull;
+procedure TTestCastleTransform.TestWorldFull;
 begin
   DoTestWorld(false);
 end;
 
-procedure TTestCastle3D.TestWorldPrematureFree;
+procedure TTestCastleTransform.TestWorldPrematureFree;
 begin
   DoTestWorld(true);
 end;
 
-procedure TTestCastle3D.DoTestWorld(const PrematureFree: boolean);
+procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
 var
   World1, World2: T3DWorld;
   O1List, O2List: T3DList;
@@ -972,7 +999,7 @@ begin
   end;
 end;
 
-procedure TTestCastle3D.TestWorldFreeBeforeItem;
+procedure TTestCastleTransform.TestWorldFreeBeforeItem;
 var
   World1: T3DWorld;
   O1List: T3DList;
@@ -1020,5 +1047,5 @@ begin
 end;
 
 initialization
-  RegisterTest(TTestCastle3D);
+  RegisterTest(TTestCastleTransform);
 end.

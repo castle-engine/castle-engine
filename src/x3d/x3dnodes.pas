@@ -169,7 +169,7 @@ uses SysUtils, Generics.Collections, Classes, XMLRead, DOM,
   CastleVectors, CastleInternalDoubleLists, CastleRectangles,
   CastleInternalX3DLexer, CastleUtils, CastleClassUtils,
   X3DFields, CastleBoxes, CastleImages, CastleColors,
-  CastleVideos, X3DTime, Castle3D, CastleMaterialProperties,
+  CastleVideos, X3DTime, CastleTransform, CastleMaterialProperties,
   CastleScript, X3DCastleScript, CastleInternalOctree, CastleCompositeImage,
   CastleTextureImages, CastleKeysMouse, CastleSoundEngine, CastleStringUtils,
   CastleTextureFontData, CastleRendererBaseTypes, CastleProjection;

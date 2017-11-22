@@ -30,6 +30,10 @@ var
     and these warning can be ignored), so they are disabled by default. }
   SpineVerboseWarnings: boolean = false;
 
+  { Do not use textures referenced in the Spine model, do
+    not set their URLs and do not try to load them in any other way. }
+  SpineIgnoreTextures: boolean = false;
+
 implementation
 
 uses SysUtils, Classes, Generics.Collections, FpJson, JSONParser, JSONScanner, Math,

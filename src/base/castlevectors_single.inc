@@ -64,23 +64,31 @@ function RotationAngleRadBetweenVectors(const V1, V2: TVector3): Single; overloa
 function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): Single; overload;
 { @groupEnd }
 
-{ Rotate point Point around the Axis by given Angle.
-  Axis cannot be zero.
+{ Rotate Point around the Axis by given Angle.
+  Axis cannot be zero. It does not have to be normalized (it will be normalized
+  internally).
 
   Note that this is equivalent to constructing a rotation matrix
   and then using it, like
 
   @longCode(#
-    M := RotationMatrixDeg(Angle, Axis);
+    M := RotationMatrixRad(Angle, Axis);
     Result := M.MultPoint(Point);
   #)
 
-  Except this will be a little faster. So rotations are done in the
-  same direction as RotationMatrixDeg, and as OpenGL.
+  Except this will be a little faster.
+
+  Rotations are done in the same direction as RotationMatrixRad, and as OpenGL.
+
   @groupBegin }
-function RotatePointAroundAxisDeg(Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
-function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
+function RotatePointAroundAxisDeg(const Angle: Single; const Point: TVector3; const Axis: TVector3): TVector3; overload;
 { @groupEnd }
+
+{ Rotate Point around the given axis by a given angle.
+  Axis is specified in the first 3 components of AxisAngle,
+  rotation angle (in radians) is specified in the last component of AxisAngle. }
+function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3): TVector3;
 
 { Which coordinate (0, 1, 2, and eventually 3 for 4D versions) is the largest.
   When the vector components are equal, the first one "wins", for example
@@ -925,13 +933,13 @@ begin
   Result := RotationAngleRadBetweenVectors(V1, V2, TVector3.CrossProduct(V1, V2));
 end;
 
-function RotatePointAroundAxisDeg(Angle: Single; const Point: TVector3;
+function RotatePointAroundAxisDeg(const Angle: Single; const Point: TVector3;
   const Axis: TVector3): TVector3;
 begin
   Result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
-function RotatePointAroundAxisRad(Angle: Single; const Point: TVector3;
+function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
   const Axis: TVector3): TVector3;
 var
   x, y,z, l: Single;
@@ -956,6 +964,13 @@ begin
   Result.Data[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * Point.Data[0]
                  + ((1 - cosAngle) * y * z + x * sinAngle)   * Point.Data[1]
                  + (cosAngle + (1 - cosAngle) * z * z)       * Point.Data[2];
+end;
+
+function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3): TVector3;
+var
+  Axis: TVector3 absolute AxisAngle;
+begin
+  Result := RotatePointAroundAxisRad(AxisAngle[3], Point, Axis);
 end;
 
 function MaxVectorCoord(const v: TVector2): integer;

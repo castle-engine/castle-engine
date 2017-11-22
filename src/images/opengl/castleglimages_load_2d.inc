@@ -180,6 +180,17 @@ procedure LoadGLGeneratedTexture(const TextureId: TGLTextureId; const image: TEn
     because appropriate OpenGL extensions are not available, or such).) }
 function GLDecompressTexture(Image: TGPUCompressedImage): TCastleImage;
 
+type
+  ECannotSaveTextureContents = class(Exception);
+
+{ Save OpenGL texture contents to TCastleImage.
+  @bold(Size of the texture must match the Image size,
+  otherwise terrible things (writing over unallocated memory) will happen).
+
+  @raises(ECannotSaveTextureContents If we cannot get texture contents
+    (not supported on OpenGLES).) }
+procedure SaveTextureContents(const Image: TCastleImage; const Texture: TGLTextureId);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
@@ -599,12 +610,7 @@ begin
     Result := TRGBAlphaImage.Create(Image.Width, Image.Height, Image.Depth) else
     Result := TRGBImage.Create(Image.Width, Image.Height, Image.Depth);
 
-  BeforePackImage(Result);
-  try
-    glGetTexImage(GL_TEXTURE_2D, 0,
-      ImageGLFormat(Result), ImageGLType(Result), Result.RawPixels);
-  finally AfterPackImage(Result) end;
-
+  SaveTextureContents(Result, Tex);
   glFreeTexture(Tex);
 end;
 
@@ -616,6 +622,23 @@ begin
     e.g. using TGLRenderToTexture. }
   raise ECannotDecompressTexture.Create('Cannot decompress texture on OpenGL ES');
   Result := nil; // get rid of warning
+end;
+{$endif}
+
+procedure SaveTextureContents(const Image: TCastleImage; const Texture: TGLTextureId);
+{$ifndef OpenGLES}
+begin
+  BeforePackImage(Image);
+  try
+    glBindTexture(GL_TEXTURE_2D, Texture);
+    glGetTexImage(GL_TEXTURE_2D, 0,
+      ImageGLFormat(Image), ImageGLType(Image), Image.RawPixels);
+  finally AfterPackImage(Image) end;
+end;
+{$else}
+begin
+  { glGetTexImage is not available on OpenGLES }
+  raise ECannotSaveTextureContents.Create('Cannot SaveTextureContents on OpenGL ES');
 end;
 {$endif}
 

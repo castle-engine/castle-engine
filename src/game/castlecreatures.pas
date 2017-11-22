@@ -23,7 +23,7 @@ interface
 uses Classes, Generics.Collections,
   CastleVectors, CastleBoxes, CastleClassUtils,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
-  CastleResources, CastleXMLConfig, Castle3D,
+  CastleResources, CastleXMLConfig, CastleTransform, Castle3D,
   CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
   CastleDebug3D;
 
@@ -244,7 +244,7 @@ type
 
     { Height of the eyes of the creature,
       used for various collision detection routines.
-      See T3DCustomTransform.MiddleHeight for a precise documentation.
+      See TCastleTransform.MiddleHeight for a precise documentation.
 
       Game developers can use the RenderDebug3D variable to easily
       visualize the bounding sphere (and other things) around resources.
@@ -254,7 +254,7 @@ type
       @link(TCreatureResource.RadiusCalculate)). }
     property MiddleHeight: Single
       read FMiddleHeight write FMiddleHeight
-      default T3DCustomTransform.DefaultMiddleHeight;
+      default TCastleTransform.DefaultMiddleHeight;
 
     property FallMinHeightToSound: Single
       read FFallMinHeightToSound write FFallMinHeightToSound default DefaultCreatureFallMinHeightToSound;
@@ -509,7 +509,7 @@ type
       they can attack enemy only when they are facing the enemy.
 
       More precisely, the attack is allowed to start only when
-      the angle between current creature @link(T3DOrient.Direction Direction)
+      the angle between current creature @link(TCastleTransform.Direction Direction)
       and the vector from creature's Middle to the enemy's Middle (see T3D.Middle)
       is <= AttackMaxAngle.
 
@@ -995,7 +995,7 @@ begin
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
   FAttackKnockbackDistance := DefaultAttackKnockbackDistance;
-  FMiddleHeight := T3DCustomTransform.DefaultMiddleHeight;
+  FMiddleHeight := TCastleTransform.DefaultMiddleHeight;
   FFallMinHeightToSound := DefaultCreatureFallMinHeightToSound;
   FFallMinHeightToDamage := DefaultFallMinHeightToDamage;
   FFallDamageScaleMin := DefaultFallDamageScaleMin;
@@ -1024,7 +1024,7 @@ begin
     DefaultAttackDamageRandom);
   AttackKnockbackDistance := ResourceConfig.GetFloat('attack/knockback_distance',
     DefaultAttackKnockbackDistance);
-  MiddleHeight := ResourceConfig.GetFloat('middle_height', T3DCustomTransform.DefaultMiddleHeight);
+  MiddleHeight := ResourceConfig.GetFloat('middle_height', TCastleTransform.DefaultMiddleHeight);
   FallMinHeightToSound := ResourceConfig.GetFloat('fall/sound/min_height', DefaultCreatureFallMinHeightToSound);
   FallMinHeightToDamage := ResourceConfig.GetFloat('fall/damage/min_height', DefaultFallMinHeightToDamage);
   FallDamageScaleMin := ResourceConfig.GetFloat('fall/damage/scale_min', DefaultFallDamageScaleMin);
@@ -1120,7 +1120,7 @@ begin
     So it's Ok to make here some assumptions that should suit usual cases,
     but not necessarily all possible cases ---
     e.g. our MaxRadiusForGravity calculation assumes you
-    let default T3DCustomTransform.PreferredHeight algorithm to work. }
+    let default TCastleTransform.PreferredHeight algorithm to work. }
 
   if Animations.Count = 0 then
     Box := TBox3D.Empty
@@ -1288,7 +1288,7 @@ begin
        but they keep pointing upwards. This is noticeable to the player
        that looks at the arrow.
     2. It also conflicts with current hack with "MaximumFallingDistance -= 0.01"
-       inside Castle3D gravity. It could probably be fixed better,
+       inside CastleTransform gravity. It could probably be fixed better,
        but since the 1st problem would remain anyway...
     Also growing up doesn't make any sense for missile that explodes on contact
     with ground. So Fall should be overriden to make HitCore,
@@ -1296,7 +1296,7 @@ begin
 
     We also want to turn off Gravity to use Gravity=false case when using
     MiddleHeight, so MiddleHeight is always between bounding box bottom and top
-    for missiles. See T3DCustomTransform.MiddleHeight. }
+    for missiles. See TCastleTransform.MiddleHeight. }
 
   Result.Gravity := false;
 end;
@@ -1417,7 +1417,7 @@ end;
 
 function TCreature.LerpLegsMiddle(const A: Single): TVector3;
 begin
-  Result := Lerp(A, Position, Middle);
+  Result := Lerp(A, Translation, Middle);
 end;
 
 procedure TCreature.UpdateDebugCaption(const Lines: TCastleStringList);
@@ -1506,11 +1506,12 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
         FDebugCaptionsTransform.Matrix := TransformToCoordsMatrix(
           { move the caption to be at the top }
           World.GravityUp * H,
-          { By default, Text is in XY plane.
-            Adjust it to our Orientation. }
-          TVector3.CrossProduct(UpFromOrientation[Orientation], DirectionFromOrientation[Orientation]),
-          UpFromOrientation[Orientation],
-          DirectionFromOrientation[Orientation]);
+          { By default, Text is in XY plane. Adjust it to our Orientation. }
+          TVector3.CrossProduct(
+            TCastleTransform.DefaultUp[Orientation],
+            TCastleTransform.DefaultDirection[Orientation]),
+          TCastleTransform.DefaultUp[Orientation],
+          TCastleTransform.DefaultDirection[Orientation]);
 
         FDebugCaptionsText.FdString.Items.Clear;
         UpdateDebugCaption(FDebugCaptionsText.FdString.Items);
@@ -1527,7 +1528,7 @@ begin
     T3DAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
-    transformation (things taken into account in T3DOrient) stay equal. }
+    transformation (things taken into account in TCastleTransform) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
@@ -1611,7 +1612,7 @@ end;
 
 function TWalkAttackCreature.Enemy: T3DAlive;
 begin
-  Result := World.Player;
+  Result := World.Player as T3DAlive;
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2351,7 +2352,7 @@ var
   end;
 
 var
-  E: T3DOrient;
+  E: TCastleTransform;
 begin
   inherited;
   if (not GetExists) or DebugTimeStopForCreatures then Exit;
@@ -2575,7 +2576,7 @@ procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRe
   end;
 
 var
-  Player: T3DOrient;
+  Player: TCastleTransform;
 
   function MissileMoveAllowed(const OldPos, NewPos: TVector3): boolean;
   begin
@@ -2665,7 +2666,7 @@ begin
 
   if (Resource.CloseDirectionToTargetSpeed <> 0.0) and (Player <> nil) then
   begin
-    TargetDirection := Player.Position - Position;
+    TargetDirection := Player.Translation - Translation;
     AngleBetween := AngleRadBetweenVectors(TargetDirection, Direction);
     AngleChange := Resource.CloseDirectionToTargetSpeed * SecondsPassed;
     if AngleBetween <= AngleChange then
@@ -2700,7 +2701,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt(World.Player);
+  AttackHurt(World.Player as T3DAlive);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

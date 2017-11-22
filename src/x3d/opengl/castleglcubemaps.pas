@@ -23,7 +23,7 @@ interface
 uses
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, CastleCubeMaps, CastleImages, CastleCompositeImage,
-  CastleRenderingCamera, CastleGLImages, Castle3D, CastleGLUtils;
+  CastleRenderingCamera, CastleGLImages, CastleTransform, CastleGLUtils;
 
 type
   TCubeMapRenderSimpleFunction = procedure (ForCubeMap: boolean);

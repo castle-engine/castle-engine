@@ -61,7 +61,7 @@ uses SysUtils, Classes,
   CastleCameras, CastleVectors, CastleFilesUtils, CastleTerrain, CastleMessages,
   CastleStringUtils, CastleOnScreenMenu, CastleUIControls, CastleImages,
   RenderTerrains, CastleGLShaders, CastleGLImages, X3DFields, X3DNodes,
-  Castle3D, CastleFrustum, CastleSceneManager, CastleURIUtils,
+  CastleTransform, CastleFrustum, CastleSceneManager, CastleURIUtils,
   CastleRectangles, CastleControls, CastleRendererBaseTypes;
 
 type

@@ -628,9 +628,9 @@ begin
   Dir := TCasScriptVec3f(Arguments[0]).Value;
   Up := TCasScriptVec3f(Arguments[1]).Value;
   MakeVectorsOrthoOnTheirPlane(Up, Dir);
-  { no need to normalize Dir, Up here (CamDirUp2Orient will do it) }
+  { no need to normalize Dir, Up here (OrientationFromDirectionUp will do it) }
 
-  TCasScriptVec4f(AResult).Value := CamDirUp2Orient(Dir, Up);
+  TCasScriptVec4f(AResult).Value := OrientationFromDirectionUp(Dir, Up);
 end;
 
 class procedure TCasScriptVec4f.HandleRotateCore(
@@ -642,8 +642,8 @@ begin
   CreateValueIfNeeded(AResult, ParentOfResult, TCasScriptVec3f);
 
   if not Axis.IsZero then
-    TCasScriptVec3f(AResult).Value := RotatePointAroundAxisRad(
-      Rotation[3], Point, Axis) else
+    TCasScriptVec3f(AResult).Value := RotatePointAroundAxis(Rotation, Point)
+  else
   begin
     { Safeguard against rotation around zero vector, which produces unpredictable
       results (actually, Result would be filled with Nan values).

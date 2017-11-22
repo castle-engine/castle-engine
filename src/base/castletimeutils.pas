@@ -122,6 +122,10 @@ type
     Value:
       {$ifdef UNIX} clock_t {$endif}
       {$ifdef MSWINDOWS} DWord {$endif};
+  public
+    { Seconds passed since this time sample up to now.
+      Equivalent to @code(ProcessTimerSeconds(ProcessTimer, Self)) }
+    function ElapsedTime: TFloatTime;
   end;
 
 const
@@ -168,7 +172,8 @@ const
     TimeStart := ProcessTimer;
     // ...  do something time-consuming ...
     Seconds := ProcessTimerSeconds(ProcessTimer, TimeStart);
-    Writeln('Seconds passed (in this process): ', Seconds:1:2);
+    // or: Seconds := TimeStart.ElapsedTime;
+    WritelnLog('Seconds passed (in this process): %f', [Seconds]);
   end;
   #)
 }
@@ -215,6 +220,10 @@ type
     { The type of this could be platform-dependent. But for now, all platforms
       are happy with Int64. }
     Value: Int64;
+  public
+    { Seconds passed since this time sample up to now.
+      Equivalent to @code(TimerSeconds(Timer, Self)) }
+    function ElapsedTime: TFloatTime;
   end;
 
 { Timer to measure (real) time passed during some operations.
@@ -234,7 +243,8 @@ type
     TimeStart := Timer;
     // ...  do something time-consuming ...
     Seconds := TimerSeconds(Timer, TimeStart);
-    Writeln('Seconds passed: ', Seconds:1:2);
+    // or: Seconds := TimeStart.ElapsedTime;
+    WritelnLog('Seconds passed: %f', [Seconds]);
   end;
   #)
 }
@@ -558,6 +568,11 @@ begin
   Result := ProcessTimerSeconds(ProcessTimer, LastProcessTimerBegin);
 end;
 
+function TProcessTimerResult.ElapsedTime: TFloatTime;
+begin
+  Result := ProcessTimerSeconds(ProcessTimer, Self);
+end;
+
 { timer ---------------------------------------------------------- }
 
 {$ifdef MSWINDOWS}
@@ -648,6 +663,11 @@ end;
 function TimerSeconds(const A, B: TTimerResult): TFloatTime;
 begin
   Result := (A.Value - B.Value) / TimerFrequency;
+end;
+
+function TTimerResult.ElapsedTime: TFloatTime;
+begin
+  Result := TimerSeconds(Timer, Self);
 end;
 
 { TFramesPerSecond ----------------------------------------------------------- }

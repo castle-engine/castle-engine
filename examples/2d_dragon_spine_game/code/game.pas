@@ -27,7 +27,7 @@ implementation
 
 uses SysUtils, Math,
   CastleControls, CastleKeysMouse, CastleFilesUtils, Castle2DSceneManager,
-  CastleVectors, Castle3D, CastleSceneCore, CastleUtils, CastleColors,
+  CastleVectors, CastleTransform, CastleSceneCore, CastleUtils, CastleColors,
   CastleUIControls, CastleMessaging, CastleGameService, CastleLog,
   CastleCameras;
 
@@ -60,7 +60,6 @@ var
 var
   SceneManager: T2DSceneManager;
   Background: T2DScene;
-  DragonTransform: T3DTransform;
   Dragon: T2DScene;
   CameraView3D: TCastleButton;
   CameraFollowsDragon: TCastleButton;
@@ -90,25 +89,21 @@ procedure AddBackgroundItems;
   procedure AddItem(const X, Y, Z, Scale: Single; const Path: string;
     const RunAnimation: boolean = true);
   var
-    Transform: T3DTransform;
     Scene: T2DScene;
   begin
-    Transform := T3DTransform.Create(Application);
-    Transform.Scale := Vector3(Scale, Scale, Scale);
-    Transform.Translation := Vector3(X, Y, Z);
-    { do not capture mouse picking on this item,
-      otherwise Background.PointingDeviceOverItem in WindoPress would not work
-      as we want, because items in front of the background would "hijack"
-      mouse picks. }
-    Transform.Pickable := false;
-    SceneManager.Items.Add(Transform);
-
     Scene := T2DScene.Create(Application);
-    Transform.Add(Scene);
     Scene.Load(ApplicationData(Path));
     Scene.ProcessEvents := true;
     if RunAnimation then
       Scene.PlayAnimation('animation', paForceLooping);
+    Scene.Scale := Vector3(Scale, Scale, Scale);
+    Scene.Translation := Vector3(X, Y, Z);
+    { do not capture mouse picking on this item,
+      otherwise Background.PointingDeviceOverItem in WindoPress would not work
+      as we want, because items in front of the background would "hijack"
+      mouse picks. }
+    Scene.Pickable := false;
+    SceneManager.Items.Add(Scene);
   end;
 
 const
@@ -182,22 +177,18 @@ begin
   SceneManager.ProjectionHeight := Background.BoundingBox.Data[1][1];
   SceneManager.ProjectionSpan := 10000.0;
 
-  DragonTransform := T3DTransform.Create(Application);
-  DragonTransform.Pickable := false;
-  DragonTransform.Scale := Vector3(DragonScale, DragonScale, DragonScale);
-  { translate in XY to set initial position in the middle of the screen.
-    translate in Z to push dragon in front of trees
-    (on Z = 20, see data/background.x3dv) }
-  DragonTransform.Translation := DragonInitialPosition;
-  DragonTransform.Name := 'DragonTransform'; // Name is useful for debugging
-  SceneManager.Items.Add(DragonTransform);
-
   Dragon := T2DScene.Create(Application);
-  DragonTransform.Add(Dragon);
   Dragon.Load(ApplicationData('dragon/dragon.json'));
   Dragon.ProcessEvents := true;
   Dragon.Name := 'Dragon'; // Name is useful for debugging
   Dragon.PlayAnimation('idle', paForceLooping);
+  Dragon.Pickable := false;
+  Dragon.Scale := Vector3(DragonScale, DragonScale, DragonScale);
+  { translate in XY to set initial position in the middle of the screen.
+    translate in Z to push dragon in front of trees
+    (on Z = 20, see data/background.x3dv) }
+  Dragon.Translation := DragonInitialPosition;
+  SceneManager.Items.Add(Dragon);
 
   CameraView3D := TCastleButton.Create(Window);
   CameraView3D.Caption := '3D Camera View';
@@ -222,7 +213,6 @@ begin
   ShowAchievements := TCastleButton.Create(Window);
   ShowAchievements.Caption := 'Show Achievements (on Android or iOS)';
   ShowAchievements.OnClick := @TButtonsHandler(nil).ShowAchievementsClick;
-  ShowAchievements.Toggle := true;
   ShowAchievements.Left := 10;
   ShowAchievements.Bottom := 190;
   ShowAchievements.PaddingHorizontal := ButtonPadding;
@@ -272,14 +262,14 @@ begin
   { Apply "Camera Follows Dragon" }
   if CameraFollowsDragon.Pressed then
   begin
-    Pos[0] := DragonTransform.Translation[0]
+    Pos[0] := Dragon.Translation[0]
       { subtract half of the screen, because camera is at the left screen corner
         when using default 2D projection of T2DSceneManager. }
       - 0.5 * SceneManager.CurrentProjectionWidth;
     { when both "Camera Follows Dragon" and "Camera 3D View" are pressed,
       we need to offset the above calculation }
     if CameraView3D.Pressed then
-      Pos.Data[0] += Camera3DPos[0] - Camera2DPos[0];
+      Pos.Data[0] := Pos.Data[0] + (Camera3DPos[0] - Camera2DPos[0]);
   end;
 
   { Limit camera span, to not show blackness to the left or right.
@@ -305,17 +295,17 @@ begin
   Camera := SceneManager.RequiredCamera;
 
   { check Camera.Animation, to not mess in the middle
-    of Camera.AnimateTo (we could mess it by changing DragonTransform now
+    of Camera.AnimateTo (we could mess it by changing Dragon now
     or by calling Camera.SetView directly) }
   if Camera.Animation then
     Exit;
 
   if DragonFlying then
   begin
-    { update DragonTransform.Translation to reach DragonFlyingTarget.
+    { update Dragon.Translation to reach DragonFlyingTarget.
       Be careful to not overshoot, and to set DragonFlying to false when
       necessary. }
-    T := DragonTransform.Translation;
+    T := Dragon.Translation;
     SecondsPassed := Container.Fps.UpdateSecondsPassed;
     if T[0] < DragonFlyingTarget[0] then
       T[0] := Min(DragonFlyingTarget[0], T[0] + DragonSpeedX * SecondsPassed) else
@@ -323,7 +313,7 @@ begin
     if T[1] < DragonFlyingTarget[1] then
       T[1] := Min(DragonFlyingTarget[1], T[1] + DragonSpeedY * SecondsPassed) else
       T[1] := Max(DragonFlyingTarget[1], T[1] - DragonSpeedY * SecondsPassed);
-    DragonTransform.Translation := T;
+    Dragon.Translation := T;
 
     { check did we reach the target. Note that we can compare floats
       using exact "=" operator (no need to use FloatsEqual), because
@@ -349,7 +339,7 @@ begin
   end;
 
   { move camera, in case CameraFollowsDragon.Pressed.
-    Do it in every update, to react to window resize and to DragonTransform
+    Do it in every update, to react to window resize and to Dragon
     changes. }
   CalculateCamera(Pos, Dir, Up);
   Camera.SetView(Pos, Dir, Up);
@@ -388,11 +378,11 @@ begin
 
       { force scale in X to be negative or positive, to easily make
         flying left/right animations from single "flying" animation. }
-      S := DragonTransform.Scale;
-      if DragonFlyingTarget[0] > DragonTransform.Translation[0] then
+      S := Dragon.Scale;
+      if DragonFlyingTarget[0] > Dragon.Translation[0] then
         S[0] := -Abs(S[0]) else
         S[0] := Abs(S[0]);
-      DragonTransform.Scale := S;
+      Dragon.Scale := S;
 
       if not AchievementMoveSubmitted then
       begin

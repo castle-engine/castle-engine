@@ -36,7 +36,7 @@ uses Math, SysUtils,
   CastleGLUtils, CastleWindow, CastleStringUtils, CastleVectors,
   CastleFilesUtils, CastleWindowModes, CastleCameras, X3DNodes,
   CastleProjection, CastleUIControls, CastleRenderer, CastleImages, CastleGLImages,
-  CastleGameNotifications, CastleRenderingCamera, Castle3D, CastleRectangles,
+  CastleGameNotifications, CastleRenderingCamera, CastleTransform, CastleRectangles,
   CastleKeysMouse,
   RiftSceneManager, RiftVideoOptions, RiftLocations, RiftCreatures, RiftWindow,
   RiftGame;

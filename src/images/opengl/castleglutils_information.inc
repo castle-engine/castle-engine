@@ -273,9 +273,17 @@ begin
     '  Max renderbuffer size: ' + GetMaxRenderbufferSize
     {$ifdef OpenGLES} +NL+
     '  Max line width: ' + GetInteger(GL_ALIASED_LINE_WIDTH_RANGE)
-    {$endif};
+    {$endif} + NL +
+    NL +
+    '-------' + NL +
+    'Memory (in Kb):' + NL +
+    '  Total: ' + IntToStr(GLFeatures.Memory.Total) + NL +
+    '  Current: ' + IntToStr(GLFeatures.Memory.Current) + NL +
+    '  Current for VBO: ' + IntToStr(GLFeatures.Memory.CurrentVbo) + NL +
+    '  Current for Textures: ' + IntToStr(GLFeatures.Memory.CurrentTexture) + NL +
+    '  Current for Renderbuffers: ' + IntToStr(GLFeatures.Memory.CurrentRenderbuffer);
 
-   CheckGLErrors;
+  CheckGLErrors;
 end;
 
 {$endif read_implementation}

@@ -30,7 +30,7 @@
 
 uses SysUtils, TypInfo, Classes,
   CastleVectors, CastleCameras, X3DNodes, CastleSceneCore, CastleShapes,
-  Castle3D, CastleRenderingCamera, CastleProjection, CastleFrustum,
+  CastleTransform, CastleRenderingCamera, CastleProjection, CastleFrustum,
   CastleGeometryArrays;
 
 var

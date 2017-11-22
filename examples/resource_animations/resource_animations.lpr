@@ -17,7 +17,7 @@
 uses SysUtils, Generics.Collections,
   CastleFilesUtils, CastleWindow, CastleResources, CastleScene,
   CastleProgress, CastleWindowProgress, CastleControls, CastleUIControls,
-  CastleUtils, Castle3D, CastleSoundEngine, CastleCreatures, CastleLog;
+  CastleUtils, CastleTransform, CastleSoundEngine, CastleCreatures, CastleLog;
 
 var
   BaseScene: TCastleScene;
@@ -40,7 +40,7 @@ type
 
     Here, to directly show the animation, we go around the normal CastleCreatures
     and CastleItems mechanisms, and we directly get the animation. }
-  TLoopAnimation = class(T3DList)
+  TLoopAnimation = class(TCastleTransform)
   public
     Time: Single;
     CurrentChild: T3D;

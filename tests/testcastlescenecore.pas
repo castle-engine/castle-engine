@@ -27,7 +27,7 @@ implementation
 
 uses CastleSceneCore, X3DLoad, CastleVectors, CastleShapes,
   CastleTimeUtils, CastleStringUtils, X3DFields, CastleSceneManager,
-  CastleFilesUtils, CastleScene, Castle3D;
+  CastleFilesUtils, CastleScene, CastleTransform;
 
 procedure TTestSceneCore.TestBorderManifoldEdges;
 var

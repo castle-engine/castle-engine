@@ -52,7 +52,8 @@ begin
   if not Nodes.TryGetValue(AttachmentName, Result) then
   begin
     Result := TImageTextureNode.Create('SimpleTexture_' + ToX3DName(AttachmentName), BaseUrl);
-    Result.SetUrl(['images/' + AttachmentName + '.png']);
+    if not SpineIgnoreTextures then
+      Result.SetUrl(['images/' + AttachmentName + '.png']);
     Result.RepeatS := false;
     Result.RepeatT := false;
 

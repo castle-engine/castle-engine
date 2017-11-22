@@ -28,7 +28,7 @@ type
 implementation
 
 uses CastleVectors, CastleLevels, CastleResources, CastleSoundEngine, CastlePlayer,
-  CastleMaterialProperties, CastleCreatures, CastleShapes, Castle3D,
+  CastleMaterialProperties, CastleCreatures, CastleShapes, CastleTransform,
   CastleURIUtils;
 
 procedure TTestGame.TestGameData;

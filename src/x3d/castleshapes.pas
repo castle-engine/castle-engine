@@ -27,7 +27,7 @@ unit CastleShapes;
 interface
 
 uses SysUtils, Classes, Generics.Collections,
-  CastleVectors, Castle3D, CastleBoxes, X3DNodes, CastleClassUtils,
+  CastleVectors, CastleTransform, CastleBoxes, X3DNodes, CastleClassUtils,
   CastleUtils, CastleInternalTriangleOctree, CastleFrustum, CastleInternalOctree,
   X3DTriangles, X3DFields, CastleGeometryArrays, CastleTriangles,
   CastleMaterialProperties, CastleShapeInternalShadowVolumes;

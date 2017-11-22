@@ -30,9 +30,9 @@ program dynamic_ambient_occlusion;
 
 uses SysUtils, Classes, Math,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors, CastleWindow, CastleTriangles,
+  CastleVectors, CastleWindow, CastleTriangles, Castle3D,
   CastleClassUtils, CastleUtils, CastleKeysMouse,
-  CastleGLUtils, CastleSceneCore, CastleScene, Castle3D, CastleParameters,
+  CastleGLUtils, CastleSceneCore, CastleScene, CastleParameters,
   CastleFilesUtils, CastleStringUtils, CastleGLShaders, CastleShapes,
   X3DFields, CastleImages, CastleGLImages, CastleMessages, CastleLog,
   CastleGLVersion, CastleSceneManager, CastleRenderingCamera,

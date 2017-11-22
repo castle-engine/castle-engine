@@ -1195,7 +1195,9 @@ type
       coordinates. }
     function ScreenRect: TRectangle;
 
-    { How to translate local coords to screen. }
+    { How to translate local coords to screen.
+      If you use UI scaling, this works in final coordinates
+      (after scaling, real pixels on screen). }
     function LocalToScreenTranslation: TVector2Integer;
 
     { Rectangle filling the parent control (or coordinates), in local coordinates.

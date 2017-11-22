@@ -23,7 +23,7 @@ interface
 
 uses Classes, DOM, Generics.Collections,
   CastleVectors, CastleXMLConfig, CastleTimeUtils,
-  CastleScene, X3DNodes, Castle3D, CastleBoxes, CastleFindFiles;
+  CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles;
 
 type
   T3DResource = class;
@@ -99,7 +99,7 @@ type
     property Required: boolean read FRequired;
   end;
 
-  T3DResourceAnimationList = class(specialize TObjectList<T3DResourceAnimation>)
+  T3DResourceAnimationList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResourceAnimation>)
     { Find an animation by name.
       @raises Exception if not found. }
     function FindName(const AName: string): T3DResourceAnimation;
@@ -301,7 +301,7 @@ type
       "Growing" is used to allow non-flying creatures to climb stairs.
       The creature can move whenever a sphere (see TCreatureResource.MiddleHeight
       and TCreatureResource.Radius) can move. This means that part of the bounding
-      box (part of the T3DCustomTransform.PreferredHeight) may temporarily
+      box (part of the TCastleTransform.PreferredHeight) may temporarily
       "sink" into the ground. Then growing, controlled by this property,
       pushes the creature up.
 
@@ -327,7 +327,7 @@ type
 
   T3DResourceClass = class of T3DResource;
 
-  T3DResourceList = class(specialize TObjectList<T3DResource>)
+  T3DResourceList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<T3DResource>)
   private
     ResourceXmlReload: boolean;
     procedure AddFromInfo(const FileInfo: TFileInfo; var StopSearch: boolean);
@@ -400,7 +400,7 @@ uses SysUtils,
 { TResourceClasses  ---------------------------------------------------------- }
 
 type
-  TResourceClasses = class(specialize TDictionary<string, T3DResourceClass>)
+  TResourceClasses = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TDictionary<string, T3DResourceClass>)
   strict private
     function GetItems(const AKey: string): T3DResourceClass;
     procedure SetItems(const AKey: string; const AValue: T3DResourceClass);
@@ -832,7 +832,7 @@ begin
     Resource.UsageCount := Resource.UsageCount + 1;
     if Resource.UsageCount = 1 then
     begin
-      PrepareSteps += Resource.PrepareCoreSteps;
+      PrepareSteps := PrepareSteps + Resource.PrepareCoreSteps;
       PrepareNeeded := true;
     end;
   end;

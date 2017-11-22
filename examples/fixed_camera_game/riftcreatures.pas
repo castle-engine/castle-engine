@@ -29,7 +29,7 @@ interface
 
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
-  CastleVectors, Castle3D, CastleFrustum, CastleApplicationProperties,
+  CastleVectors, CastleTransform, CastleFrustum, CastleApplicationProperties,
   CastleTimeUtils, X3DNodes, CastleColors, CastleDebug3D,
   RiftWindow, RiftGame, RiftLoadable;
 
@@ -83,7 +83,7 @@ type
     procedure UnLoad;
   end;
 
-  TCreature = class(T3DOrient)
+  TCreature = class(TCastleTransform)
   private
     FKind: TCreatureKind;
     FDebug3D: TDebug3D;
@@ -455,20 +455,20 @@ var
   begin
     { since Position <> WantsToWalkPos, we know that
       MoveDirectionMax is non-zero }
-    MoveDirectionMax := WantsToWalkPos - Position;
+    MoveDirectionMax := WantsToWalkPos - Translation;
     MoveDirectionCurrentScale := MoveSpeed * SecondsPassed / MoveDirectionMax.Length;
     if MoveDirectionCurrentScale >= 1.0 then
     begin
       { This means that
-          Position + MoveDirectionMax * MoveDirectionCurrentScale
+          Translation + MoveDirectionMax * MoveDirectionCurrentScale
         would actually get us too far. So we instead just go to target and
         stop there. }
-      Position := WantsToWalkPos;
+      Translation := WantsToWalkPos;
       State := csStand;
     end else
     begin
       MoveDirectionCurrent := MoveDirectionMax * MoveDirectionCurrentScale;
-      Position := Position + MoveDirectionCurrent;
+      Translation := Translation + MoveDirectionCurrent;
     end;
   end;
 
@@ -480,9 +480,9 @@ begin
     { Do walking. If walking ends (because target reached, or can't reach target),
       change to csStand. }
 
-    { TODO: check collisions with the scene before changing Position }
+    { TODO: check collisions with the scene before changing Translation }
 
-    IsTargetPos := TVector3.Equals(Position, WantsToWalkPos);
+    IsTargetPos := TVector3.Equals(Translation, WantsToWalkPos);
     IsTargetDir := TVector3.Equals(Direction, WantsToWalkDir);
 
     if not IsTargetDir then
@@ -543,7 +543,7 @@ end;
 
 initialization
   CreaturesKinds := TCreatureKindList.Create(true);
-  T3DOrient.DefaultOrientation := otUpZDirectionX;
+  TCastleTransform.DefaultOrientation := otUpZDirectionX;
 
   PlayerKind := TCreatureKind.Create('player');
   CreaturesKinds.Add(PlayerKind);

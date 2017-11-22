@@ -24,8 +24,8 @@ uses Generics.Collections,
   CastleBoxes, X3DNodes, CastleScene, CastleVectors, CastleUtils,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
-  CastleXMLConfig, CastleSoundEngine, CastleFrustum, Castle3D, CastleColors,
-  CastleDebug3D;
+  CastleXMLConfig, CastleSoundEngine, CastleFrustum,
+  Castle3D, CastleTransform, CastleColors, CastleDebug3D;
 
 type
   TInventoryItem = class;
@@ -468,7 +468,7 @@ type
 
   { Item that is placed on a 3D world, ready to be picked up.
     It's not in anyone's inventory. }
-  TItemOnWorld = class(T3DOrient)
+  TItemOnWorld = class(TCastleTransform)
   private
     type
       { A debug visualization that can be added to TItemOnWorld
@@ -853,7 +853,7 @@ var
   procedure FireMissileAttack;
   begin
     (Resources.FindName(Resource.FireMissileName) as TCreatureResource).
-       CreateCreature(World, Attacker.Position, Attacker.Direction);
+       CreateCreature(World, Attacker.Translation, Attacker.Direction);
     SoundEngine.Sound(Resource.FireMissileSound);
   end;
 
@@ -1139,7 +1139,7 @@ end;
 
 function TItemOnWorld.BoundingBoxRotated: TBox3D;
 begin
-  Result := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Position);
+  Result := Item.Resource.BoundingBoxRotated(World.GravityUp).Translate(Translation);
 end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
@@ -1175,7 +1175,7 @@ begin
 
   { LifeTime is used to choose animation frame in GetChild.
     So the item constantly changes, even when it's
-    transformation (things taken into account in T3DOrient) stay equal. }
+    transformation (things taken into account in TCastleTransform) stay equal. }
   VisibleChangeHere([vcVisibleGeometry]);
 
   ItemRotation := ItemRotation + (RotationSpeed * SecondsPassed);
@@ -1188,7 +1188,7 @@ begin
   if AutoPick and
      (World.Player <> nil) and
      (World.Player is T3DAliveWithInventory) and
-     (not World.Player.Dead) and
+     (not (World.Player as T3DAlive).Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
     ExtractItem.Picked(T3DAliveWithInventory(World.Player));
 
@@ -1239,8 +1239,18 @@ end;
 
 function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
 
-  function GetItemDropPosition(DroppedItemResource: TItemResource;
-    out DropPosition: TVector3): boolean;
+  function DirectionInGravityPlane: TVector3;
+  var
+    GravityUp: TVector3;
+  begin
+    GravityUp := World.GravityUp;
+    Result := Direction;
+    if not VectorsParallel(Result, GravityUp) then
+      MakeVectorsOrthoOnTheirPlane(Result, GravityUp);
+  end;
+
+  function GetItemDropTranslation(DroppedItemResource: TItemResource;
+    out DropTranslation: TVector3): boolean;
   var
     ItemBox: TBox3D;
     ItemBoxRadius: Single;
@@ -1252,7 +1262,7 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       radius around ItemBoxMiddle }
     ItemBoxRadius := ItemBox.Translate(-ItemBoxMiddle).Radius;
 
-    { Calculate DropPosition.
+    { Calculate DropTranslation.
 
       We must move the item a little before us to
       1. show visually player that the item was dropped
@@ -1265,14 +1275,14 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       prevent putting item "inside the ground", but the item
       would be too close to the player --- he could pick it up
       immediately. }
-    DropPosition := Camera.Position +
-      Camera.DirectionInGravityPlane *
-        (0.6 * (Camera.RealPreferredHeight * Sqrt3 + ItemBox.Diagonal));
+    DropTranslation := Translation +
+      DirectionInGravityPlane *
+        (0.6 * (PreferredHeight * Sqrt3 + ItemBox.Diagonal));
 
-    { Now check is DropPosition actually possible
+    { Now check is DropTranslation actually possible
       (i.e. check collisions item<->everything).
       The assumption is that item starts from
-      Camera.Position and is moved to DropPosition.
+      Translation and is moved to DropTranslation.
 
       But actually we must shift both these positions,
       so that we check positions that are ideally in the middle
@@ -1281,24 +1291,24 @@ function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
       look good. }
 
     Result := World.WorldMoveAllowed(
-      ItemBoxMiddle + Camera.Position,
-      ItemBoxMiddle + DropPosition, true, ItemBoxRadius,
-      ItemBox.Translate(Camera.Position),
-      ItemBox.Translate(DropPosition), false);
+      ItemBoxMiddle + Translation,
+      ItemBoxMiddle + DropTranslation, true, ItemBoxRadius,
+      ItemBox.Translate(Translation),
+      ItemBox.Translate(DropTranslation), false);
   end;
 
 var
-  DropPosition: TVector3;
+  DropTranslation: TVector3;
   DropppedItem: TInventoryItem;
 begin
   Result := nil;
 
   if Between(Index, 0, Inventory.Count - 1) then
   begin
-    if GetItemDropPosition(Inventory[Index].Resource, DropPosition) then
+    if GetItemDropTranslation(Inventory[Index].Resource, DropTranslation) then
     begin
       DropppedItem := Inventory.Drop(Index);
-      Result := DropppedItem.PutOnWorld(World, DropPosition);
+      Result := DropppedItem.PutOnWorld(World, DropTranslation);
     end;
   end;
 end;

@@ -80,7 +80,7 @@ type
     property Texture: TGLTextureId read FTexture default 0;
 
     { Target of texture associated with rendered buffer.
-      This is GL_TEXTURE2D for normal 2D textures, but may also be
+      This is GL_TEXTURE_2D for normal 2D textures, but may also be
       GL_TEXTURE_RECTANGLE, GL_TEXTURE_CUBE_MAP_POSITIVE_X etc. for
       other texture types.
 

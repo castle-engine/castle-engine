@@ -222,11 +222,9 @@ type
   { Various properties that control rendering done
     with @link(TGLRenderer).
 
-    They are collected here,
-    in a class separate from @link(TGLRenderer),
-    because various things (like TCastleScene and TCastlePrecalculatedAnimation)
-    wrap @link(TGLRenderer) instances and hide it,
-    but still they want to allow user to change these attributes. }
+    They are collected here, in a class separate from @link(TGLRenderer),
+    to allow TCastleScene to hide internal @link(TGLRenderer) but still
+    expose @link(TRenderingAttributes) instance. }
   TRenderingAttributes = class(TPersistent)
   private
     FOnRadianceTransfer: TRadianceTransferFunction;

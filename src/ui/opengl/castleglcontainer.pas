@@ -21,7 +21,8 @@ unit CastleGLContainer;
 interface
 
 uses Classes,
-  CastleUIControls, CastleGLUtils, CastleRectangles;
+  CastleUIControls, CastleGLUtils, CastleRectangles, CastleColors,
+  CastleImages;
 
 type
   { Container for controls providing an OpenGL rendering.
@@ -71,11 +72,28 @@ type
       const ViewportRect: TRectangle);
   end;
 
+{ Render control contents to an RGBA image, using off-screen rendering.
+  The background behind the control is filled with BackgroundColor
+  (which may be transparent, e.g. with alpha = 0).
+
+  The rendering is done using off-screen FBO.
+  Which means that you can request any size, you are @bold(not) limited
+  to your current window / control size.
+
+  Make sure that the control is nicely positioned to fill the ViewportRect.
+  Usually you want to adjust control size and position,
+  and disable UI scaling (set TUIControl.EnableUIScaling = @false
+  if you use TUIContainer.UIScaling). }
+function RenderControlToImage(const Container: TGLContainer;
+  const Control: TUIControl;
+  const ViewportRect: TRectangle;
+  const BackgroundColor: TCastleColor): TRGBAlphaImage;
+
 implementation
 
 uses SysUtils,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
-  CastleVectors;
+  CastleVectors, CastleGLImages;
 
 procedure ControlRenderBegin(const ViewportRect: TRectangle);
 begin
@@ -268,6 +286,58 @@ begin
     FreeAndNil(FContext);
     FContext := TRenderContext.Create;
   end;
+end;
+
+function RenderControlToImage(const Container: TGLContainer;
+  const Control: TUIControl;
+  const ViewportRect: TRectangle;
+  const BackgroundColor: TCastleColor): TRGBAlphaImage;
+
+  function CreateTargetTexture(const W, H: Integer): TGLTextureId;
+  var
+    InitialImage: TCastleImage;
+  begin
+    InitialImage := TRGBAlphaImage.Create(W, H);
+    try
+      InitialImage.URL := 'generated:/temporary-render-to-texture';
+      InitialImage.Clear(Vector4Byte(255, 0, 255, 255));
+      Result := LoadGLTexture(InitialImage,
+        TextureFilter(minNearest, magNearest),
+        Texture2DClampToEdge, nil, true);
+    finally FreeAndNil(InitialImage) end;
+  end;
+
+var
+  W, H: Integer;
+  RenderToTexture: TGLRenderToTexture;
+  TargetTexture: TGLTextureId;
+begin
+  W := ViewportRect.Width;
+  H := ViewportRect.Height;
+  RenderToTexture := TGLRenderToTexture.Create(W, H);
+  try
+    // RenderToTexture.Buffer := tbNone;
+    // RenderToTexture.ColorBufferAlpha := true;
+
+    RenderToTexture.Buffer := tbColor;
+    TargetTexture := CreateTargetTexture(W, H);
+    RenderToTexture.SetTexture(TargetTexture, GL_TEXTURE_2D);
+    RenderToTexture.GLContextOpen;
+    RenderToTexture.RenderBegin;
+
+    { actually render }
+    RenderContext.Clear([cbColor], BackgroundColor);
+    Container.RenderControl(Control, ViewportRect);
+
+    RenderToTexture.RenderEnd;
+
+    Result := TRGBAlphaImage.Create(W, H);
+    SaveTextureContents(Result, TargetTexture);
+
+    RenderToTexture.GLContextClose;
+
+    glFreeTexture(TargetTexture);
+  finally FreeAndNil(RenderToTexture) end;
 end;
 
 end.

@@ -26,12 +26,12 @@
     procedure Set_Bind(Node: TAbstractBindableNode; const Value: boolean); virtual; abstract;
   end;
 
-  { Abstract 3D object handling VRML/X3D events.
+  { Abstract scene handling VRML/X3D events.
     Is also notified about changes to VRML/X3D nodes/fields.
 
     See TCastleSceneCore for documentation of these methods,
     TCastleSceneCore is the only implementation of this interface in practice. }
-  TX3DEventsEngine = class(T3D)
+  TX3DEventsEngine = class(TCastleTransform)
   protected
     procedure ExecuteCompiledScript(const HandlerName: string;  ReceivedValue: TX3DField); virtual; abstract;
   public

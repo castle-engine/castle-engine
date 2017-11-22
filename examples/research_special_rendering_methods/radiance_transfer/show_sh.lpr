@@ -22,11 +22,11 @@
 
 program show_sh;
 
-uses Classes, CastleFrustum, Castle3D,
+uses Classes, CastleFrustum,
   CastleVectors, CastleBoxes, CastleWindow, CastleUIControls,
   CastleClassUtils, CastleUtils, SysUtils, CastleFilesUtils, CastleControls,
   CastleGLUtils, CastleCameras, Math, CastleSphereSampling, CastleSphericalHarmonics,
-  CastleSceneManager, CastleScene, X3DNodes, CastleShapes,
+  CastleSceneManager, CastleScene, X3DNodes, CastleShapes, Castle3D,
   CastleStringUtils, CastleKeysMouse, CastleColors;
 
 var

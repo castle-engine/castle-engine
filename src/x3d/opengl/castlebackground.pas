@@ -555,9 +555,11 @@ begin
   RenderContext.Clear([cbColor], ClearColor);
 
   { Note: the Frustum is useless now, as it contains a shifted camera,
-    not just rotated. We pass it, but it will be ignored. }
-  Params.Transparent := false; Scene.Render(nil, Frustum, Params);
-  Params.Transparent := true ; Scene.Render(nil, Frustum, Params);
+    not just rotated. }
+  Scene.InternalIgnoreFrustum := true;
+
+  Params.Transparent := false; Scene.Render(Frustum, Params);
+  Params.Transparent := true ; Scene.Render(Frustum, Params);
 end;
 
 procedure TBackground.FreeResources;

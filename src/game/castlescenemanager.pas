@@ -573,9 +573,8 @@ type
       some events processing for the 3D world:
 
       @unorderedList(
-        @item(You can set TCastleScene.TimePlaying or TCastlePrecalculatedAnimation.TimePlaying
-          to @false. This is roughly equivalent to not running their
-          @link(Update) methods.
+        @item(You can set TCastleScene.TimePlaying to @false.
+          This is roughly equivalent to not running their @link(Update) methods.
           This means that time will "stand still" for them,
           so their animations will not play. Although they may
           still react and change in response to mouse clicks / key presses,
@@ -685,7 +684,7 @@ type
       Note that for now this assumes that MainScene coordinates equal
       world coordinates. This means that you should not transform
       the MainScene, it should be placed inside @link(TCastleSceneManager.Items)
-      without wrapping in any T3DTransform. }
+      and not transformed by TCastleTransform. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
 
@@ -751,7 +750,7 @@ type
 
   { Scene manager that knows about all 3D things inside your world.
 
-    Single scenes/models (like TCastleScene or TCastlePrecalculatedAnimation instances)
+    Single scenes/models (like TCastleScene instances)
     can be rendered directly, but it's not always comfortable.
     Scenes have to assume that they are "one of the many" inside your 3D world,
     which means that multi-pass rendering techniques have to be implemented
@@ -765,8 +764,7 @@ type
     Naturally, it also serves as container for all your visible 3D scenes.
 
     @link(Items) property keeps a tree of T3D objects.
-    All our 3D objects, like TCastleSceneCore (and so also TCastleScene)
-    and TCastlePrecalculatedAnimation descend from
+    All our 3D objects, like TCastleScene descend from
     T3D, and you can add them to the scene manager.
     And naturally you can implement your own T3D descendants,
     representing any 3D (possibly dynamic, animated and even interactive) object.
@@ -905,11 +903,7 @@ type
 
     { Prepare resources, to make various methods (like @link(Render))
       execute fast.
-
-      If DisplayProgressTitle <> '', we will display progress bar during
-      loading. This is especially useful for long precalculated animations
-      (TCastlePrecalculatedAnimation with a lot of ScenesCount), they show nice
-      linearly increasing progress bar. }
+      If DisplayProgressTitle <> '', we will display progress bar during loading. }
     procedure PrepareResources(const DisplayProgressTitle: string = '');
     procedure PrepareResources(const Item: T3D;
       const DisplayProgressTitle: string = ''); virtual;
@@ -1302,15 +1296,7 @@ end;
 
 function TManagerRenderParams.BaseLights(Scene: T3D): TAbstractLightInstancesList;
 begin
-  { Use Scene.Shared, not just Scene, for comparison.
-    This way all scenes within a single TCastlePrecalculatedAnimation
-    are treated the same, which makes UseGlobalLights work correctly
-    in case when you render TCastlePrecalculatedAnimation and MainScene
-    refers to the 1st animation scene.
-
-    Testcase: demo-models/castle-anim-frames/simple/raptor.castle-anim-frames,
-    without this fix the lights woud be duplicated on non-first animation scene. }
-  Result := FBaseLights[(Scene.Shared = MainScene) or Scene.ExcludeFromGlobalLights];
+  Result := FBaseLights[(Scene = MainScene) or Scene.ExcludeFromGlobalLights];
 end;
 
 { TCastleAbstractViewport ------------------------------------------------------- }
@@ -2810,7 +2796,7 @@ type
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
-    function WorldHeight(const Position: TVector3;
+    function WorldHeight(const APosition: TVector3;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; override;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
@@ -2876,10 +2862,10 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldHeight(const Position: TVector3;
+function T3DWorldConcrete.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
-  Result := HeightCollision(Position, Owner.GravityUp, @CollisionIgnoreItem,
+  Result := HeightCollision(APosition, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 

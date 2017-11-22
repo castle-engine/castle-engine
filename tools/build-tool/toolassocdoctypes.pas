@@ -1,0 +1,199 @@
+{
+  Copyright 2014-2017 Michalis Kamburelis and Jan Adamec.
+
+  This file is part of "Castle Game Engine".
+
+  "Castle Game Engine" is free software; see the file COPYING.txt,
+  included in this distribution, for details about the copyright.
+
+  "Castle Game Engine" is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+  ----------------------------------------------------------------------------
+}
+
+{ Associated documents types (file extensions) requested by the project. }
+unit ToolAssocDocTypes;
+
+interface
+
+uses SysUtils, Generics.Collections, DOM,
+  CastleUtils, CastleStringUtils,
+  ToolUtils;
+
+type
+  TAssocDocTypeFileExt = class
+  private
+    FExt, FMime, FUti: string;
+  public
+    procedure ReadCastleEngineManifest(const Element: TDOMElement);
+    property Ext: string read FExt;
+    property Mime: string read FMime;
+    property Uti: string read FUti;
+  end;
+
+  TAssocDocType = class(specialize TObjectList<TAssocDocTypeFileExt>)
+  private
+    FName, FIcon: string;
+  public
+    procedure ReadCastleEngineManifest(const Element: TDOMElement);
+    function ToPListBundleDocumentTypesSection(const DefaultIcon: string): string;
+    function ToPListExportedTypeDeclarationsSection: string;
+  end;
+
+  TAssociatedDocTypeList = class(specialize TObjectList<TAssocDocType>)
+  public
+    procedure ReadCastleEngineManifest(const Element: TDOMElement);
+    function ToPListSection(const DefaultIcon: string): string;
+  end;
+
+implementation
+
+uses Classes, XMLRead, XMLWrite,
+  CastleXMLUtils, CastleURIUtils, CastleFilesUtils;
+
+{ TAssocDocTypeFileExt ------------------------------------------------- }
+
+procedure TAssocDocTypeFileExt.ReadCastleEngineManifest(const Element: TDOMElement);
+begin
+  FExt := Element.AttributeStringDef('ext', '');
+  FMime := Element.AttributeStringDef('mime', '');
+  FUti := Element.AttributeString('uti');
+end;
+
+{ TAssocDocType ------------------------------------------------------ }
+
+procedure TAssocDocType.ReadCastleEngineManifest(const Element: TDOMElement);
+var
+  ChildElements: TXMLElementIterator;
+  ChildElement: TDOMElement;
+  FileExt: TAssocDocTypeFileExt;
+begin
+  FName := Element.AttributeString('name');
+  FIcon := Element.AttributeStringDef('icon', '');
+
+  ChildElements := Element.ChildrenIterator('file_ext');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+      FileExt := TAssocDocTypeFileExt.Create;
+      Add(FileExt);
+      FileExt.ReadCastleEngineManifest(ChildElement);
+    end;
+  finally FreeAndNil(ChildElements) end;
+end;
+
+function TAssocDocType.ToPListBundleDocumentTypesSection(const DefaultIcon: string): string;
+var
+  I: Integer;
+  FileIcon: string;
+begin
+  if Count = 0 then
+    Exit('');
+  if Length(FIcon) > 0 then
+    FileIcon := FIcon else
+    FileIcon := DefaultIcon;
+
+  Result := #9#9'<dict>' + NL +
+            #9#9#9'<key>CFBundleTypeIconFiles</key>' + NL +
+            #9#9#9'<array>' + NL +
+            #9#9#9#9'<string>' + FileIcon + '</string>' + NL +
+            #9#9#9'</array>' + NL +
+            #9#9#9'<key>CFBundleTypeName</key>' + NL +
+            #9#9#9'<string>' + FName + '</string>' + NL +
+            #9#9#9'<key>CFBundleTypeRole</key>' + NL +
+            #9#9#9'<string>Viewer</string>' + NL +
+            #9#9#9'<key>LSHandlerRank</key>' + NL +
+            #9#9#9'<string>Owner</string>' + NL +
+            #9#9#9'<key>LSItemContentTypes</key>' + NL +
+            #9#9#9'<array>' + NL;
+  for I := 0 to Count - 1 do
+  begin
+    Result := Result + #9#9#9#9'<string>' + Items[I].Uti + '</string>' + NL;
+  end;
+  Result := Result +
+            #9#9#9'</array>' + NL +
+            #9#9'</dict>' + NL;
+end;
+
+function TAssocDocType.ToPListExportedTypeDeclarationsSection: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  if Count = 0 then
+    Exit;
+  for I := 0 to Count - 1 do
+  begin
+    if Length(Items[I].Ext) > 0 then
+      Result := Result +
+                #9#9'<dict>' + NL +
+                #9#9#9'<key>UTTypeConformsTo</key>' + NL +
+                #9#9#9'<array>' + NL +
+                #9#9#9#9'<string>public.data</string>' + NL +
+                #9#9#9'</array>' + NL +
+                #9#9#9'<key>UTTypeDescription</key>' + NL +
+                #9#9#9'<string>' + FName + '</string>' + NL +
+                #9#9#9'<key>UTTypeIdentifier</key>' + NL +
+                #9#9#9'<string>' + Items[I].Uti + '</string>' + NL +
+                #9#9#9'<key>UTTypeTagSpecification</key>' + NL +
+                #9#9#9'<dict>' + NL +
+                #9#9#9#9'<key>public.filename-extension</key>' + NL +
+                #9#9#9#9'<string>' + Items[I].Ext + '</string>' + NL +
+                #9#9#9#9'<key>public.mime-type</key>' + NL +
+                #9#9#9#9'<string>' + Items[I].Mime + '</string>' + NL +
+                #9#9#9'</dict>' + NL +
+                #9#9'</dict>' + NL;
+  end;
+end;
+
+{ TAssociatedDocTypeList ------------------------------------------------------ }
+
+procedure TAssociatedDocTypeList.ReadCastleEngineManifest(const Element: TDOMElement);
+var
+  ChildElements: TXMLElementIterator;
+  ChildElement: TDOMElement;
+  DocType: TAssocDocType;
+begin
+  ChildElements := Element.ChildrenIterator('document_type');
+  try
+    while ChildElements.GetNext do
+    begin
+      ChildElement := ChildElements.Current;
+      DocType := TAssocDocType.Create;
+      Add(DocType);
+      DocType.ReadCastleEngineManifest(ChildElement);
+    end;
+  finally FreeAndNil(ChildElements) end;
+end;
+
+function TAssociatedDocTypeList.ToPListSection(const DefaultIcon: string): string;
+var
+  BundleDocumentTypes, ExportedTypeDeclarations: string;
+  I: Integer;
+begin
+  if Count = 0 then
+    Exit('');
+  BundleDocumentTypes := '';
+  ExportedTypeDeclarations := '';
+  for I := 0 to Count - 1 do
+  begin
+    BundleDocumentTypes := BundleDocumentTypes +
+                           Items[I].ToPListBundleDocumentTypesSection(DefaultIcon);
+    ExportedTypeDeclarations := ExportedTypeDeclarations +
+                                Items[I].ToPListExportedTypeDeclarationsSection;
+  end;
+
+  Result := #9'<key>CFBundleDocumentTypes</key>' + NL +
+            #9'<array>' + NL +
+            BundleDocumentTypes + NL +
+            #9'</array>' + NL +
+            #9'<key>UTExportedTypeDeclarations</key>' + NL +
+            #9'<array>' + NL +
+            ExportedTypeDeclarations + NL +
+            #9'</array>';
+end;
+
+end.

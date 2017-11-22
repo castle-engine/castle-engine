@@ -1044,7 +1044,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
 
   procedure TransformMatricesMultWorkaround(var TransformData: TTransformData);
   begin
-    Castle3D.TransformMatricesMult(
+    CastleTransform.TransformMatricesMult(
       TransformData.Transform,
       TransformData.InverseTransform,
       TransformData.Center,

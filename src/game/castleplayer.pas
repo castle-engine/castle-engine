@@ -61,34 +61,13 @@ type
       @item No changing EquippedWeapon, no calling Attack.
     )
 
-    Note that every player, just like every T3DOrient actually,
-    has an associated and magically synchronized T3DOrient.Camera instance.
-    Ancestor T3DOrient only takes care about synchronizing the view vectors
-    (position, direciton, up) and doesn't care about camera otherwise.
-    We synchronize more in TPlayer class:
-
-    @unorderedList(
-      @item(@link(Flying) is synchronized with TWalkCamera.Gravity.)
-      @item(Various camera inputs are automatically adjusted based on current
-        player state (@link(Dead), @link(Blocked)) and global PlayerInput_Xxx
-        values, like PlayerInput_Forward.)
-    )
-
-    The outside code may still directly access and change many camera
-    properties. Camera view vectors (position, direciton, up),
-    TWalkCamera.PreferredHeight,
-    TWalkCamera.RotationHorizontalSpeed
-    TWalkCamera.RotationVerticalSpeed. In fact, it's Ok to call
-    TWalkCamera.Init, and it's Ok to assign this Camera to TCastleSceneManager.Camera,
-    and TGameSceneManager.LoadLevel does this automatically.
-    So scene manager will update Camera.ProjectionMatrix,
-    call camera events like TCamera.Press, TCamera.Update and such.)
+    Note that a player has an associated and synchronized @link(Camera) instance.
   }
   TPlayer = class(T3DAliveWithInventory)
   private
     type
-      { Invisible box, that is added to make TPlayer collidable thanks to default
-        T3DOrient (actually T3DList) methods. Owner must be TPlayer. }
+      { Invisible box, that is added to TPlayer to make it collidable.
+        Owner must be TPlayer. }
       TBox = class(T3D)
       public
         function BoundingBox: TBox3D; override;
@@ -165,6 +144,8 @@ type
       FFallingEffect: boolean;
       CurrentEquippedScene: TCastleScene;
 
+      FCamera: TWalkCamera;
+
     procedure SetEquippedWeapon(Value: TItemWeapon);
 
     { Update Camera properties, including inputs.
@@ -196,6 +177,7 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
     procedure Fall(const FallHeight: Single); override;
+    procedure ChangedTransform; override;
   public
     { Various navigation properties that may depend on loaded level. }
     DefaultMoveHorizontalSpeed: Single;
@@ -289,7 +271,7 @@ type
     procedure Attack; virtual;
 
     { You should set this property as appropriate.
-      This object will just use this property (changing it's Camera
+      This object will just use this property (changing it's @link(Camera)
       properties etc.). }
     property Swimming: TPlayerSwimming read FSwimming write SetSwimming;
 
@@ -416,6 +398,23 @@ type
       the effect. }
     property FallingEffect: boolean
       read FFallingEffect write FFallingEffect default true;
+
+    { Camera synchronized with this player instance.
+
+      You can use this camera as @link(TCastleSceneManager.Camera)
+      to allow user to directly control this player in first-person game.
+      @link(TGameSceneManager.LoadLevel) sets this automatically.
+
+      The view vectors (position, direction and up), @link(TWalkCamera.Gravity),
+      and various camera inputs are automatically adjusted based on the current
+      player state (@link(Dead), @link(Blocked)) and global PlayerInput_Xxx
+      values, like @link(PlayerInput_Forward).
+      The outside code may still directly access and change some camera
+      properties like TWalkCamera.PreferredHeight,
+      TWalkCamera.RotationHorizontalSpeed
+      TWalkCamera.RotationVerticalSpeed. In fact, it's Ok to call
+      TWalkCamera.Init. }
+    property Camera: TWalkCamera read FCamera;
   published
     property KnockBackSpeed default DefaultPlayerKnockBackSpeed;
 
@@ -507,6 +506,7 @@ begin
   FSwimSoundPause := DefaultSwimSoundPause;
   FFallingEffect := true;
   FEnableCameraDragging := true;
+  FCamera := TWalkCamera.Create(nil);
 
   FBox := TBox.Create(Self);
   Add(FBox);
@@ -544,6 +544,7 @@ begin
   if SwimmingSound <> nil then
     SwimmingSound.Release;
 
+  FreeAndNil(FCamera);
   inherited;
 end;
 
@@ -690,10 +691,26 @@ begin
   end;
 end;
 
+procedure TPlayer.ChangedTransform;
+var
+  P, D, U: TVector3;
+begin
+  inherited;
+
+  // synchronize Position, Direction, Up *to* Camera
+  GetView(P, D, U);
+  Camera.SetView(P, D, U);
+end;
+
 procedure TPlayer.UpdateCamera;
 var
   NormalCameraInput: TCameraInputs;
+  P, D, U: TVector3;
 begin
+  // synchronize Position, Direction, Up *from* Camera
+  Camera.GetView(P, D, U);
+  SetView(P, D, U);
+
   Camera.Gravity := (not Blocked) and (not Flying);
   { Note that when not Camera.Gravity then FallingEffect will not
     work anyway. }
@@ -863,9 +880,9 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
     NewSwimming := psNo;
     if World <> nil then
     begin
-      if World.Water.Contains(Position) then
+      if World.Water.Contains(Translation) then
         NewSwimming := psUnderWater else
-      if World.Water.Contains(Position - World.GravityUp * Camera.PreferredHeight) then
+      if World.Water.Contains(Translation - World.GravityUp * Camera.PreferredHeight) then
         NewSwimming := psAboveWater;
     end;
     Swimming := NewSwimming;
@@ -1337,7 +1354,7 @@ end;
 
 function TPlayer.Middle: TVector3;
 begin
-  { For player, our Position is already the suitable "eye position"
+  { For player, our Translation is already the suitable "eye position"
     above the ground.
 
     Note that Player.Gravity remains false for now (only Player.Camera.Gravity
@@ -1345,7 +1362,7 @@ begin
     Castle3D unit, so there's no point in overriding methods like PreferredHeight.
     TWalkCamera.Gravity does all the work now. }
 
-  Result := Position;
+  Result := Translation;
 end;
 
 procedure TPlayer.SetEnableCameraDragging(const AValue: boolean);
