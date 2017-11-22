@@ -1,5 +1,6 @@
 active
 add
+align
 alignment
 anchor
 angle
@@ -105,6 +106,7 @@ evaluate
 event
 events
 examine
+exists
 exchange
 execute
 exported
