@@ -2667,9 +2667,53 @@ end;
 
 procedure TCastleTransform.TransformMatricesMult(
   var M, MInverse: TMatrix4);
+  
+{$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+  type
+    TTransformData = record
+      Transform, InverseTransform: TMatrix4;
+      Center: TVector3;
+      Rotation: TVector4;
+      Scale: TVector3;
+      ScaleOrientation: TVector4;
+      Translation: TVector3;
+    end;
+
+  procedure TransformMatricesMultWorkaround(var TransformData: TTransformData);
+  begin
+    CastleTransform.TransformMatricesMult(
+      TransformData.Transform,
+      TransformData.InverseTransform,
+      TransformData.Center,
+      TransformData.Rotation,
+      TransformData.Scale,
+      TransformData.ScaleOrientation,
+      TransformData.Translation);
+  end;
+
+var
+  TransformData: TTransformData;
+begin
+  TransformData.Transform := M;
+  TransformData.InverseTransform := MInverse;
+  TransformData.Center := FCenter;
+  TransformData.Rotation := FRotation;
+  TransformData.Scale := FScale;
+  TransformData.ScaleOrientation := FScaleOrientation;
+  TransformData.Translation := FTranslation;
+
+  // Doing it like this avoids
+  // Fatal: Internal error 2014121702
+  // from FPC 3.0.3 for 64-bit iPhone (Darwin for AArch64)
+  TransformMatricesMultWorkaround(TransformData);
+
+  M := TransformData.Transform;
+  MInverse := TransformData.InverseTransform;
+{$else}
 begin
   CastleTransform.TransformMatricesMult(M, MInverse,
     FCenter, FRotation, FScale, FScaleOrientation, FTranslation);
+{$endif}
 end;
 
 procedure TCastleTransform.TransformMatrices(
