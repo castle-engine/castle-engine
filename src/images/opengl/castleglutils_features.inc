@@ -30,14 +30,24 @@ type
   strict private
     ExtensionNVidia, ExtensionATI: boolean;
   public
-    { Total and current memory available, in Kb. }
+    { Total and current memory available, in Kb.
+      May be zero if unknown (only some NVidia GPUs support this). }
     Total, Current: TGLint;
 
-    { Current memory free for a particular feature, in Kb. }
+    { Current memory free for a particular feature, in Kb.
+      May be zero if unknown (only some AMD GPUs support this). }
     CurrentVbo, CurrentTexture, CurrentRenderbuffer: TGLint;
 
     constructor Create;
     procedure Refresh;
+
+    { Detect GPUs with low texture memory.
+      Looks at @link(Current) or @link(CurrentTexture), whichever is available.
+
+      This is useful to detect at runtime when to use e.g. compressed textures
+      (S3TC and such) or downscaled textures (using @link(GLTextureScale) or
+      @link(TextureLoadingScale)). }
+    function LessTextureMemoryThan(const RequiredMemoryKb: Integer): boolean;
   end;
 
   { OpenGL features, analyzed based on OpenGL extensions and version.
@@ -645,6 +655,18 @@ begin
       CurrentRenderbuffer := FreeMemory[0];
     end;
   end;
+end;
+
+function TGLMemoryInfo.LessTextureMemoryThan(const RequiredMemoryKb: Integer): boolean;
+begin
+  if Current <> 0 then
+    Result := Current < RequiredMemoryKb
+  else
+  if CurrentTexture <> 0 then
+    Result := CurrentTexture < RequiredMemoryKb
+  else
+    // unknown memory, assume old GPU with low memory
+    Result := true;
 end;
 
 {$endif read_implementation}
