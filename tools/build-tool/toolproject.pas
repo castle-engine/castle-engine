@@ -20,7 +20,7 @@ interface
 
 uses SysUtils, Classes,
   CastleFindFiles, CastleStringUtils, CastleUtils,
-  ToolArchitectures, ToolCompile, ToolUtils, ToolServices;
+  ToolArchitectures, ToolCompile, ToolUtils, ToolServices, ToolAssocDocTypes;
 
 type
   TDependency = (depFreetype, depZlib, depPng, depSound, depOggVorbis);
@@ -55,6 +55,7 @@ type
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
     FAndroidProjectType: TAndroidProjectType;
     FAndroidServices, FIOSServices: TServiceList;
+    FAssociateDocumentTypes: TAssociatedDocTypeList;
     // Helpers only for ExtractTemplateFoundFile.
     ExtractTemplateDestinationPath, ExtractTemplateDir: string;
     IOSTeam: string;
@@ -158,6 +159,7 @@ type
     property SearchPaths: TStringList read FSearchPaths;
     property AndroidServices: TServiceList read FAndroidServices;
     property IOSServices: TServiceList read FIOSServices;
+    property AssociateDocumentTypes: TAssociatedDocTypeList read FAssociateDocumentTypes;
 
     { Path to the external library in data/external_libraries/ .
       Right now, these host various Windows-specific DLL files.
@@ -549,6 +551,10 @@ constructor TCastleProject.Create(const APath: string);
             FIOSServices.ReadCastleEngineManifest(ChildElement);
         end;
 
+        Element := Doc.DocumentElement.ChildElement('associate_document_types', false);
+        if Element <> nil then
+          FAssociateDocumentTypes.ReadCastleEngineManifest(Element);
+
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
         if Element <> nil then
         begin
@@ -648,6 +654,7 @@ begin
   FAndroidProjectType := apBase;
   FAndroidServices := TServiceList.Create(true);
   FIOSServices := TServiceList.Create(true);
+  FAssociateDocumentTypes := TAssociatedDocTypeList.Create;
 
   FPath := InclPathDelim(APath);
   FDataPath := InclPathDelim(Path + DataName);
@@ -670,6 +677,7 @@ begin
   FreeAndNil(FSearchPaths);
   FreeAndNil(FAndroidServices);
   FreeAndNil(FIOSServices);
+  FreeAndNil(FAssociateDocumentTypes);
   inherited;
 end;
 
@@ -1583,10 +1591,14 @@ begin
     Macros.Add('IOS_VERSION', IOSVersion);
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
+    P := AssociateDocumentTypes.ToPListSection('AppIcon');
     if not FUsesNonExemptEncryption then
-      Macros.Add('IOS_EXTRA_INFO_PLIST', '<key>ITSAppUsesNonExemptEncryption</key> <false/>')
-    else
-      Macros.Add('IOS_EXTRA_INFO_PLIST', '');
+    begin
+      if Length(P) > 0 then
+        P := P + NL;
+      P := P + '<key>ITSAppUsesNonExemptEncryption</key> <false/>';
+    end;
+    Macros.Add('IOS_EXTRA_INFO_PLIST', P);
 
     IOSTargetAttributes := '';
     IOSRequiredDeviceCapabilities := '';
