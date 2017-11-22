@@ -2667,7 +2667,7 @@ end;
 
 procedure TCastleTransform.TransformMatricesMult(
   var M, MInverse: TMatrix4);
-  
+
 {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
   type
     TTransformData = record
