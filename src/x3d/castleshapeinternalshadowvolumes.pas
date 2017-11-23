@@ -28,20 +28,25 @@ type
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TManifoldEdge = record
     { Index to get vertexes of this edge.
-      The actual edge's vertexes are not recorded here (this would prevent
-      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
-      the same animation). You should get them as the VertexIndex
-      and (VertexIndex+1) mod 3 vertexes of the first triangle
-      (i.e. Triangles[0]). }
+
+      During rendering, the edge is defined by these two vertexes:
+      - Triangles[0][VertexIndex]
+      - Triangles[0][(VertexIndex + 1) mod 3]
+
+      These are indexes to @link(TShapeShadowVolumes.TrianglesListShadowCasters)
+      in turn. This way if a shape changes during animation,
+      we need to recalculate @link(TShapeShadowVolumes.TrianglesListShadowCasters),
+      but the @link(TShapeShadowVolumes.ManifoldEdges) and
+      @link(TShapeShadowVolumes.BorderEdges) may stay unchanged. }
     VertexIndex: Cardinal;
 
-    { Indexes to TCastleSceneCore.TrianglesListShadowCasters array }
+    { Indexes to @link(TShapeShadowVolumes.TrianglesListShadowCasters) array }
     Triangles: array [0..1] of Cardinal;
 
-    { These are vertexes at VertexIndex and (VertexIndex+1)mod 3 positions,
+    { These are vertex values at VertexIndex and (VertexIndex+1)mod 3 positions,
       but @italic(only at generation of manifold edges time).
-      Like said in VertexIndex, keeping here actual vertex info would prevent
-      TCastleSceneCore.ShareManifoldAndBorderEdges. However, using these when generating
+      Updating this data later would be costly.
+      However, using these when generating
       makes a great speed-up when generating manifold edges.
 
       Memory cost is acceptable: assume we have model with 10 000 faces,
@@ -55,10 +60,7 @@ type
       5 seconds faster (18 with, 23 without this).
 
       So memory loss is small, speed gain is noticeable (but still small),
-      implementation code is a little simplified, so I'm keeping this.
-      Also, in the future, maybe it will be sensible
-      to use this for actual shadow quad rendering, in cases when we know that
-      TCastleSceneCore.ShareManifoldAndBorderEdges was not used to make it. }
+      implementation code is a little simplified, so we're keeping this for now. }
     V0, V1: TVector3;
   end;
   PManifoldEdge = ^TManifoldEdge;
@@ -70,13 +72,13 @@ type
     and this is crucial for rendering silhouette shadow volumes in OpenGL. }
   TBorderEdge = record
     { Index to get vertex of this edge.
-      The actual edge's vertexes are not recorded here (this would prevent
-      using TCastleSceneCore.ShareManifoldAndBorderEdges with various scenes from
-      the same animation). You should get them as the VertexIndex
+      The actual edge's vertexes are not recorded here (this way
+      we don't have to update this when the shape changes during animation).
+      You should get them as the VertexIndex
       and (VertexIndex+1) mod 3 vertexes of the triangle TriangleIndex. }
     VertexIndex: Cardinal;
 
-    { Index to TCastleSceneCore.TrianglesListShadowCasters array. }
+    { Index to @link(TShapeShadowVolumes.TrianglesListShadowCasters) array. }
     TriangleIndex: Cardinal;
   end;
   PBorderEdge = ^TBorderEdge;
