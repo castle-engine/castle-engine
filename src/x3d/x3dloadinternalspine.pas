@@ -30,8 +30,8 @@ var
     and these warning can be ignored), so they are disabled by default. }
   SpineVerboseWarnings: boolean = false;
 
-  { Do not use textures referenced in the Spine model, do
-    not set their URLs and do not try to load them in any other way. }
+  { Do not use textures and atlases referenced in the Spine model,
+    do not set their URLs and do not try to load them in any way. }
   SpineIgnoreTextures: boolean = false;
 
 implementation
@@ -90,6 +90,9 @@ function LoadSpine(URL: string): TX3DRootNode;
     AtlasURL: string;
     Atlas: TAtlas;
   begin
+    if SpineIgnoreTextures then
+      Exit(TSimpleTextureLoader.Create(URL));
+
     AtlasURL := ChangeURIExt(URL, '.atlas');
     // try alternative name, with "_tex", used by Dragon Bones
     if not URIFileExists(AtlasURL) then

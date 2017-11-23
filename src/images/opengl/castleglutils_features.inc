@@ -249,17 +249,14 @@ var
     on desktops. It also allows you to use fixed-function pipeline calls in the
     @link(TCastleWindowCustom.OnRender) callback, @link(TUIControl.Render) override
     and related places.
-    It also allows some deprecated rendering features like WindowPos to continue to work.
+    It also allows some deprecated rendering features like WindowPos to continue
+    to work.
 
-    For now it's @true by default on desktops, which reflects how
-    the Castle Game Engine versions <= 6.2 were rendering:
-    mixing fixed-function and shader pipelines.
-    You can switch it to @false to have "pure shader pipeline" on a desktop OpenGL.
-    It will become @false by default eventually (on GPUs that support shaders).
+    This is @false by default on modern GPUs (that have good GLSL support).
 
     On OpenGLES, it must be @false always, since OpenGLES >= 2 has no fixed-function pipeline.
   }
-  EnableFixedFunction: boolean = {$ifdef OpenGLES} false {$else} true {$endif};
+  EnableFixedFunction: boolean = false;
 
 {$endif read_interface}
 
@@ -592,6 +589,10 @@ begin
   ShadersForEverything2D :=
     {$ifdef OpenGLES} true
     {$else} Shaders = gsStandard
+    {$endif};
+  EnableFixedFunction :=
+    {$ifdef OpenGLES} false
+    {$else} Shaders <> gsStandard
     {$endif};
 
   // set GLFeatures singleton, TGLMemoryInfo.Refresh depends on it

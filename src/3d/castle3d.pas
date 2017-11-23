@@ -29,7 +29,19 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
 type
   T3DCustomTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
   T3DTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DOrient = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+
+  T3DOrient = class(CastleTransform.TCastleTransform)
+  private
+    FCamera: TWalkCamera;
+  protected
+    procedure ChangedTransform; override;
+  public
+    { Camera that is automatically synchronized with this 3D object. }
+    property Camera: TWalkCamera read FCamera; deprecated 'instead of using this, better define your own TWalkCamera instance synchronized with this TCastleTransform';
+    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+    constructor Create(AOwner: TComponent); override;
+  end deprecated 'use TCastleTransform from CastleTransform unit';
+
   T3DCustomTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
   T3DTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
 
@@ -405,6 +417,38 @@ var
 implementation
 
 uses CastleLog;
+
+{ T3DOrient ------------------------------------------------------------------ }
+
+constructor T3DOrient.Create(AOwner: TComponent);
+begin
+  inherited;
+  FCamera := TWalkCamera.Create(Self);
+end;
+
+procedure T3DOrient.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  P, D, U: TVector3;
+begin
+  inherited;
+  // synchronize Position, Direction, Up *from* Camera
+  {$warnings off} // knowingly using deprecated
+  Camera.GetView(P, D, U);
+  {$warnings on}
+  SetView(P, D, U);
+end;
+
+procedure T3DOrient.ChangedTransform;
+var
+  P, D, U: TVector3;
+begin
+  inherited;
+  // synchronize Position, Direction, Up *to* Camera
+  GetView(P, D, U);
+  {$warnings off} // knowingly using deprecated
+  Camera.SetView(P, D, U);
+  {$warnings on}
+end;
 
 { T3DMoving --------------------------------------------------------- }
 

@@ -71,7 +71,7 @@ begin
   if Event.EventType = itKey then
     case Event.KeyCharacter of
       CharEscape: UserQuit := true;
-      'h': (SceneManager.Camera as TWalkCamera).GoToInitial;
+      'h': SceneManager.WalkCamera.GoToInitial;
       's': Creature.State := csStand;
       'w': Creature.State := csWalk;
       'b': Creature.State := csBored;
@@ -101,18 +101,17 @@ begin
     SceneManager := TRiftSceneManager.Create(nil);
     Window.Controls.InsertBack(SceneManager);
 
-    SceneManager.Camera := TWalkCamera.Create(SceneManager);
-    (SceneManager.Camera as TWalkCamera).Init(
+    SceneManager.WalkCamera.Init(
       Vector3(3, 3, 4),
       Vector3(-1, -1, -1),
       Vector3(0, 0, 1) { this will be corrected for ortho to dir, don't worry },
       Vector3(0, 0, 1),
       0, 0.1);
-    (SceneManager.Camera as TWalkCamera).MoveSpeed := 2.5;
+    SceneManager.WalkCamera.MoveSpeed := 2.5;
     { by default, forward is also activated with "w", and backward with "s",
       which conflicts with our "walk" and "stand" shortcuts }
-    (SceneManager.Camera as TWalkCamera).Input_Forward.Assign(K_Up);
-    (SceneManager.Camera as TWalkCamera).Input_Backward.Assign(K_Down);
+    SceneManager.WalkCamera.Input_Forward.Assign(K_Up);
+    SceneManager.WalkCamera.Input_Backward.Assign(K_Down);
     CreaturesKinds.Load(SceneManager.BaseLights);
     { TODO: allow to choose creature }
     Creature := TCreature.Create(PlayerKind);
