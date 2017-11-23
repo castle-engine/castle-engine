@@ -527,8 +527,8 @@ begin
   Result := 0;
   try
     CheckMainWindow;
-    if Application.DoHandleOpenUrl(StrPas(PChar(szUrl))) then
-       Result := 1;
+    Application.MainWindow.DoDropFiles([StrPas(PChar(szUrl))]);
+    Result := 1;
   except
     on E: TObject do WritelnWarning('CGEApp_HandleOpenUrl', ExceptMessage(E));
   end;
