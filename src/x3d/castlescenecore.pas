@@ -816,7 +816,6 @@ type
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
-    function LocalBoundingBox: TBox3D; override;
   public
     { Nonzero value prevents rendering of this scene,
       and generally means that our state isn't complete.
@@ -1375,6 +1374,7 @@ type
       read FOnPointingDeviceSensorsChange
       write FOnPointingDeviceSensorsChange;
 
+    function LocalBoundingBox: TBox3D; override;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Change current scene time, setting @link(Time).
