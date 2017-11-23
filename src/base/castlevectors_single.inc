@@ -65,8 +65,14 @@ function RotationAngleRadBetweenVectors(const V1, V2, Cross: TVector3): Single; 
 { @groupEnd }
 
 { Rotate Point around the Axis by given Angle.
-  Axis cannot be zero. It does not have to be normalized (it will be normalized
-  internally).
+  Axis does not have to be normalized (it will be normalized internally).
+
+  Axis can be an exact zero only if Angle is also an exact zero.
+  This special case is supported to make it easier to initialize stuff.
+  This way by default a vector and an angle can be left filled with zeros
+  (like @link(TCastleTransform.Rotation)), and this function will accept
+  them (in effect e.g. @link(TCastleTransform.Direction) will be valid).
+  In all other cases, axis must be a non-zero vector.
 
   Note that this is equivalent to constructing a rotation matrix
   and then using it, like
@@ -939,31 +945,47 @@ begin
   Result := RotatePointAroundAxisRad(DegToRad(Angle), Point, Axis);
 end;
 
+procedure WarningZeroVectorNonZeroAngle;
+begin
+  WritelnWarning('RotatePointAroundAxisRad called with rotation Axis = zero but non-zero rotation Angle, this is invalid');
+end;
+
 function RotatePointAroundAxisRad(const Angle: Single; const Point: TVector3;
   const Axis: TVector3): TVector3;
 var
-  x, y,z, l: Single;
-  sinAngle, cosAngle: Float;
+  X, Y, Z, L: Single;
+  SinAngle, CosAngle: Float;
 begin
-  SinCos(Angle, sinAngle, cosAngle);
+  SinCos(Angle, SinAngle, CosAngle);
 
   { normalize and decompose Axis vector }
-  L := 1 / Axis.Length;
-  x := Axis.Data[0] * L;
-  y := Axis.Data[1] * L;
-  z := Axis.Data[2] * L;
+  L := Axis.Length;
+  if L <> 0 then
+  begin
+    L := 1 / L;
+    X := Axis.Data[0] * L;
+    Y := Axis.Data[1] * L;
+    Z := Axis.Data[2] * L;
+  end else
+  begin
+    { In case vector has zero length (so it's just zero),
+      the Angle must be zero, and we can exit early. }
+    if Angle <> 0 then
+      WarningZeroVectorNonZeroAngle;
+    Exit(Point);
+  end;
 
-  Result.Data[0] := (cosAngle + (1 - cosAngle) * x * x)     * Point.Data[0]
-                 + ((1 - cosAngle) * x * y - z * sinAngle)  * Point.Data[1]
-                 + ((1 - cosAngle) * x * z + y * sinAngle)  * Point.Data[2];
+  Result.Data[0] := (CosAngle + (1 - CosAngle) * x * x)     * Point.Data[0]
+                 + ((1 - CosAngle) * x * y - z * SinAngle)  * Point.Data[1]
+                 + ((1 - CosAngle) * x * z + y * SinAngle)  * Point.Data[2];
 
-  Result.Data[1] := ((1 - cosAngle) * x * y + z * sinAngle)  * Point.Data[0]
-                 + (cosAngle + (1 - cosAngle) * y * y)       * Point.Data[1]
-                 + ((1 - cosAngle) * y * z - x * sinAngle)   * Point.Data[2];
+  Result.Data[1] := ((1 - CosAngle) * x * y + z * SinAngle)  * Point.Data[0]
+                 + (CosAngle + (1 - CosAngle) * y * y)       * Point.Data[1]
+                 + ((1 - CosAngle) * y * z - x * SinAngle)   * Point.Data[2];
 
-  Result.Data[2] := ((1 - cosAngle) * x * z - y * sinAngle)  * Point.Data[0]
-                 + ((1 - cosAngle) * y * z + x * sinAngle)   * Point.Data[1]
-                 + (cosAngle + (1 - cosAngle) * z * z)       * Point.Data[2];
+  Result.Data[2] := ((1 - CosAngle) * x * z - y * SinAngle)  * Point.Data[0]
+                 + ((1 - CosAngle) * y * z + x * SinAngle)   * Point.Data[1]
+                 + (CosAngle + (1 - CosAngle) * z * z)       * Point.Data[2];
 end;
 
 function RotatePointAroundAxis(const AxisAngle: TVector4; const Point: TVector3): TVector3;

@@ -41,6 +41,7 @@ type
     procedure TestWorldFull;
     procedure TestWorldPrematureFree;
     procedure TestWorldFreeBeforeItem;
+    procedure TestDirectionUp;
   end;
 
 implementation
@@ -1044,6 +1045,36 @@ begin
   Assert(O1List.Count = 0);
 
   FreeAndNil(O1List);
+end;
+
+procedure TTestCastleTransform.TestDirectionUp;
+var
+  T: TCastleTransform;
+begin
+  T := TCastleTransform.Create(nil);
+  try
+    AssertVectorEquals(Vector3(1, 2, 3),
+      RotatePointAroundAxis(Vector4(0, 0, 0, 0), Vector3(1, 2, 3)));
+
+    AssertVectorEquals(Vector4(0, 0, 0, 0), T.Rotation);
+    AssertVectorEquals(T.Direction, Vector3(0, 0, -1));
+    AssertVectorEquals(T.Up, Vector3(0, 1, 0));
+
+    T.Orientation := otUpZDirectionX;
+    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
+    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+
+    T.Direction := Vector3(1, 0, 0);
+    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
+    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+
+    T.Up := Vector3(0, 0, 1);
+    AssertVectorEquals(T.Direction, Vector3(1, 0, 0));
+    AssertVectorEquals(T.Up, Vector3(0, 0, 1));
+
+    T.Direction := Vector3(1, 1, 1);
+    AssertVectorEquals(T.Direction, Vector3(1, 1, 1).Normalize);
+  finally FreeAndNil(T) end;
 end;
 
 initialization

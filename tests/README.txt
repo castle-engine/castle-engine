@@ -12,7 +12,10 @@ Lazarus (LCL), only pure FPC is needed:
 
   cd tests/
   ./compile_console.sh
+  # runs all
   ./test_castle_game_engine -a
+  # runs only CastleTransform tests
+  ./test_castle_game_engine --suite=TTestCastleTransform
 
 --
 Michalis Kamburelis
