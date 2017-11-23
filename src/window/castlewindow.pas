@@ -584,6 +584,7 @@ type
   TWindowMessageType = (mtInfo, mtWarning, mtQuestion, mtError, mtOther);
 
   TUpdateFunc = procedure;
+  THandleOpenUrlFunc = function (Url: string): boolean;
   TMenuClickFunc = procedure (Container: TUIContainer; Item: TMenuItem);
   TDropFilesFunc = procedure (Container: TUIContainer; const FileNames: array of string);
   TGLContextRetryOpenFunc = function (Window: TCastleWindowCustom): boolean;
@@ -2433,6 +2434,7 @@ type
     FOnInitialize{, FOnInitializeJavaActivity}: TProcedure;
     Initialized, InitializedJavaActivity: boolean;
     FOnUpdate: TUpdateFunc;
+    FOnHandleOpenUrl: THandleOpenUrlFunc;
     FOnTimer: TProcedure;
     FTimerMilisec: Cardinal;
     FVideoColorBits: integer;
@@ -2505,6 +2507,9 @@ type
 
     { Call Application.OnUpdate. }
     procedure DoApplicationUpdate;
+
+    { Call Application.OnHandleOpenUrl. }
+    function DoHandleOpenUrl(const url: string): boolean;
 
     { Call Application.OnTimer. }
     procedure DoApplicationTimer;
@@ -2637,6 +2642,10 @@ type
 
     { @deprecated Deprecated name for OnUpdate. }
     property OnIdle: TUpdateFunc read FOnUpdate write FOnUpdate; deprecated;
+
+    { Called when the application received the request to open URL. This is
+      how you can handle opening files on Android or iOS. }
+    property OnHandleOpenUrl: THandleOpenUrlFunc read FOnHandleOpenUrl write FOnHandleOpenUrl;
 
     { Event called approximately after each TimerMilisec miliseconds.
       The actual delay may be larger than TimerMilisec miliseconds,
@@ -4713,6 +4722,13 @@ procedure TCastleApplication.DoApplicationUpdate;
 begin
   if Assigned(FOnUpdate) then FOnUpdate;
   ApplicationProperties._Update;
+end;
+
+function TCastleApplication.DoHandleOpenUrl(const url: string): boolean;
+begin
+  Result := false;
+  if Assigned(FOnHandleOpenUrl) then
+    Result := FOnHandleOpenUrl(url);
 end;
 
 procedure TCastleApplication.DoApplicationTimer;
