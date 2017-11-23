@@ -143,8 +143,7 @@ var
   I, ReferenceImageWidth, ReferenceImageHeight: Integer;
 begin
   Node := TImageTextureNode.Create('Page_' + ToX3DName(TextureURL), BaseUrl);
-  if not SpineIgnoreTextures then
-    Node.SetUrl([TextureURL]);
+  Node.SetUrl([TextureURL]);
   Node.RepeatS := IsRepeat;
   Node.RepeatT := IsRepeat;
 
@@ -158,7 +157,6 @@ begin
     ReferenceImageWidth := Size[0];
     ReferenceImageHeight := Size[1];
   end else
-  if not SpineIgnoreTextures then
   begin
     { Then the only way to calculate tex coords is to actually load the texture.
       We use the texture Node for this, this way loaded texture will be reused for
