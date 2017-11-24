@@ -1,20 +1,20 @@
 {
   Copyright 2007-2017 Michalis Kamburelis.
 
-  This file is part of "the rift".
+  This file is part of "The Rift".
 
-  "the rift" is free software; you can redistribute it and/or modify
+  "The Rift" is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation; either version 2 of the License, or
   (at your option) any later version.
 
-  "the rift" is distributed in the hope that it will be useful,
+  "The Rift" is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
 
   You should have received a copy of the GNU General Public License
-  along with "the rift"; if not, write to the Free Software
+  along with "The Rift"; if not, write to the Free Software
   Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA
 
   ----------------------------------------------------------------------------
@@ -38,7 +38,6 @@ var
   WasParam_NoScreenChange: boolean = false;
 
 const
-  Version = '0.1.0';
   Options: array [0..6] of TOption =
   ( (Short:'h'; Long: 'help'; Argument: oaNone),
     (Short:'v'; Long: 'version'; Argument: oaNone),
@@ -55,7 +54,7 @@ begin
   case OptionNum of
     0: begin
          InfoWrite(
-           '"The Rift" version ' + Version + '.' +nl+
+           '"The Rift" version ' + Application.Version + '.' +nl+
            'WWW: http://castle-engine.sourceforge.net/' +nl+
            '     (no rift-specific webpage yet)' +nl+
            nl+
@@ -74,19 +73,18 @@ begin
            '  --debug-no-creatures  Do not load creatures. Only for developers,' +nl+
            '                        avoids loading creatures (may cause crashes' +nl+
            '                        if you don''t know what you''re doing).' +nl+
-           '  --debug-log           Print log on StdOut. Be sure to redirect' +nl+
-           '                        if running on Windows.'
+           '  --debug-log           Enable logging.'
            );
          Halt;
        end;
     1: begin
-         WritelnStr(Version);
+         WritelnStr(Application.Version);
          Halt;
        end;
     2: WasParam_NoScreenChange := true;
     3: DebugMenuDesignerAllowed := true;
     4: DebugMenuFps := true;
-    5: InitializeLog(Version);
+    5: InitializeLog(Application.Version);
     6: DebugNoCreatures := true;
     else raise EInternalError.Create('OptionProc');
   end;
@@ -110,6 +108,8 @@ begin
     - ParamStr(0) is unsure for Unixes.
     - ApplicationConfig uses this. }
   OnGetApplicationName := @MyGetApplicationName;
+
+  Application.Version := '0.1.0';
 
   //InitializeLog;
 

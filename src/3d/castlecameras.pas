@@ -2531,8 +2531,8 @@ var
       AvgX := (Event.Position[0] + Event.OldPosition[0]) / 2;
       AvgY := (Event.Position[1] + Event.OldPosition[1]) / 2;
       { let physical size affect scaling speed }
-      W2 := Container.Width  * 96 / (Container.Dpi * 2); // multiply by 96 to keep old constants working
-      H2 := Container.Height * 96 / (Container.Dpi * 2);
+      W2 := Container.Width / 2;
+      H2 := Container.Height / 2;
       { calculate rotation around Z }
       ZRotAngle :=
         ArcTan2((Event.OldPosition[1] - H2) / H2, (Event.OldPosition[0] - W2) / W2) -

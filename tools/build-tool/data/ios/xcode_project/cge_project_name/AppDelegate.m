@@ -114,6 +114,11 @@ void receiveMessageFromPascal(const char* message)
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
+- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
+{
+    return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+}
+
 - (void)messageReceived:(const char *)message
 {
     NSString* messageStr = @(message);

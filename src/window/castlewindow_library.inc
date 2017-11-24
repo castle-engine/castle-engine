@@ -57,6 +57,7 @@ procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; Tra
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
 procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
+function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 {$endif read_global_interface}
 
@@ -518,6 +519,18 @@ begin
     Application.MainWindow.Dpi := nDpi;
   except
     on E: TObject do WritelnWarning('CGEApp_Dpi', ExceptMessage(E));
+  end;
+end;
+
+function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
+begin
+  Result := 0;
+  try
+    CheckMainWindow;
+    Application.MainWindow.DoDropFiles([StrPas(PChar(szUrl))]);
+    Result := 1;
+  except
+    on E: TObject do WritelnWarning('CGEApp_HandleOpenUrl', ExceptMessage(E));
   end;
 end;
 

@@ -186,6 +186,8 @@ extern void CGEApp_MouseUp(int x, int y, bool bLeftBtn, int nFingerIdx, bool tra
 extern void CGEApp_KeyDown(int /*ECgeKey*/ eKey);
 extern void CGEApp_KeyUp(int /*ECgeKey*/ eKey);
 
+extern int CGEApp_HandleOpenUrl(const char *szUrl); // open URL, return 1 if processed
+
 extern void CGEApp_SetReceiveMessageFromPascalCallback(TCgeReceiveMessageFromPascalCallback aCallback);
 extern void CGEApp_SendMessageToPascal(const char *message);
 

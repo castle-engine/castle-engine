@@ -273,17 +273,19 @@ var
   procedure GenerateData;
   var
     I: Integer;
+    OutputDataFolder: string;
     FileFrom, FileTo: string;
     Files: TCastleStringList;
   begin
+    OutputDataFolder := XCodeProject + Project.Name + PathDelim + 'data';
+    ForceDirectories(OutputDataFolder);    // create folder even if project does not contain any files (is referenced in Xcode project)
     Files := TCastleStringList.Create;
     try
       Project.PackageFiles(Files, true);
       for I := 0 to Files.Count - 1 do
       begin
         FileFrom := Project.DataPath + Files[I];
-        FileTo := XCodeProject + Project.Name + PathDelim +
-          'data' + PathDelim + Files[I];
+        FileTo := OutputDataFolder + PathDelim + Files[I];
         SmartCopyFile(FileFrom, FileTo);
         if Verbose then
           Writeln('Packaging data file: ' + Files[I]);

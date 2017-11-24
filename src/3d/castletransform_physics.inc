@@ -409,6 +409,9 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
   end;
 
 begin
+  if Transform.FWorldReferences > 1 then
+    raise EMultipleReferencesInWorld.Create('Do not use RigidBody physics with objects (TCastleScene or TCastleTransform) inserted multiple times into the SceneManager.Items');
+
   if FRecreateKraftInstance then
   begin
     FRecreateKraftInstance := false;

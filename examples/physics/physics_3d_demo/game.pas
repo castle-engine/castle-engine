@@ -167,7 +167,7 @@ procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
 
     SceneManager.Camera.GetView(CameraPos, CameraDir, CameraUp);
     Scene.Translation := CameraPos + CameraDir * 2.0;
-    // TODO: apply Scene.Direction from SceneManager.Camera.Direction
+    Scene.Direction := CameraDir;
 
     SceneManager.Items.Add(Scene);
 

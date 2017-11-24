@@ -31,6 +31,7 @@ type
   TCastleTransform = class;
 
   ECannotAddToAnotherWorld = class(Exception);
+  EMultipleReferencesInWorld = class(Exception);
 
   TRenderFromViewFunction = procedure of object;
 
@@ -1661,6 +1662,10 @@ type
           )
         )
       )
+
+      Note that an object can only be present once in the @link(World)
+      to be a rigid body. Breaking this rule will cause the
+      @link(EMultipleReferencesInWorld) exception at an undefined time.
     }
     property RigidBody: TRigidBody read FRigidBody write SetRigidBody;
 
