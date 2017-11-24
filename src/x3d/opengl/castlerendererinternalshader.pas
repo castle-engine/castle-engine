@@ -2200,251 +2200,49 @@ var
   BumpMappingUniformName2: string;
   BumpMappingUniformValue2: Single;
 
-  { TODO: This is a mess of GLSL code snippets.
-    It should be separated into a separate GLSL file,
-    using (preferably) functions and (eventually) #ifdefs
-    to account for various bump mapping types. }
   procedure EnableShaderBumpMapping;
-  const
-    ParallaxDeclarations: array [ { steep parallax, with height map? } boolean ] of string = (
-      '',
-      'float castle_bm_height;' +NL+
-      'vec2 castle_parallax_tex_coord;' +NL
-    );
-
-    ParallaxShift: array [ { steep parallax, with height map? } boolean] of string = (
-      { Classic parallax bump mapping }
-      'float height = (texture2D(castle_normal_map, tex_coord).a - 1.0/2.0) * castle_parallax_bm_scale;' +NL+
-      'tex_coord += height * v_to_eye.xy /* / v_to_eye.z*/;' +NL,
-
-      { Steep parallax bump mapping }
-      '/* At smaller view angles, much more iterations needed, otherwise ugly' +NL+
-      '   aliasing artifacts quickly appear. */' +NL+
-      'float num_steps = mix(30.0, 10.0, v_to_eye.z);' +NL+
-      'float step = 1.0 / num_steps;' +NL+
-
-      { Should we remove "v_to_eye.z" below, i.e. should we apply
-        "offset limiting" ? In works about steep parallax mapping,
-        v_to_eye.z is present, and in sample steep parallax mapping
-        shader they suggest that it doesn't really matter.
-        My tests confirm this, so I leave v_to_eye.z component. }
-
-      'vec2 delta = -v_to_eye.xy * castle_parallax_bm_scale / (v_to_eye.z * num_steps);' +NL+
-      'float height = 1.0;' +NL+
-      'castle_bm_height = texture2D(castle_normal_map, tex_coord).a;' +NL+
-
-      { TODO: NVidia GeForce FX 5200 fails here with
-
-           error C5011: profile does not support "while" statements
-           and "while" could not be unrolled.
-
-        I could workaround this problem (by using
-          for (int i = 0; i < steep_steps_max; i++)
-        loop and
-          if (! (castle_bm_height < height)) break;
-        , this is possible to unroll). But it turns out that this still
-        (even with steep_steps_max = 1) works much too slow on this hardware...
-      }
-
-      'while (castle_bm_height < height)' +NL+
-      '{' +NL+
-      '  height -= step;' +NL+
-      '  tex_coord += delta;' +NL+
-      '  castle_bm_height = texture2D(castle_normal_map, tex_coord).a;' +NL+
-      '}' +NL+
-
-      { Save for SteepParallaxShadowing }
-      'castle_parallax_tex_coord = tex_coord;'
-    );
-
-    SteepParallaxShadowing =
-      // avoid redeclaring this when no "separate compilation units" (OpenGLES)
-      {$ifndef OpenGLES}
-      'uniform float castle_parallax_bm_scale;' +NL+
-      'uniform sampler2D castle_normal_map;' +NL+
-      'float castle_bm_height;' +NL+
-      'vec2 castle_parallax_tex_coord;' +NL+
-      {$endif}
-
-      'varying vec3 castle_light_direction_tangent_space;' +NL+
-
-      { This has to be done after PLUG_texture_coord_shift (done from PLUG_texture_apply),
-        as we depend that global castle_bm_height/castle_parallax_tex_coord
-        are already set correctly. }
-      'void PLUG_steep_parallax_shadow_apply(inout vec4 fragment_color)' +NL+
-      '{' +NL+
-      '  vec3 light_dir = normalize(castle_light_direction_tangent_space);' +NL+
-
-      '  /* We basically do the same thing as when we calculate tex_coord' +NL+
-      '     with steep parallax mapping.' +NL+
-      '     Only now we increment height, and we use light_dir instead of' +NL+
-      '     v_to_eye. */' +NL+
-      '  float num_steps = mix(30.0, 10.0, light_dir.z);' +NL+
-
-      '  float step = 1.0 / num_steps;' +NL+
-
-      '  vec2 delta = light_dir.xy * castle_parallax_bm_scale / (light_dir.z * num_steps);' +NL+
-
-      '  /* Do the 1st step always, otherwise initial height = shadow_map_height' +NL+
-      '     and we would be considered in our own shadow. */' +NL+
-      '  float height = castle_bm_height + step;' +NL+
-      '  vec2 shadow_texture_coord = castle_parallax_tex_coord + delta;' +NL+
-      '  float shadow_map_height = texture2D(castle_normal_map, shadow_texture_coord).a;' +NL+
-
-      '  while (shadow_map_height < height && height < 1.0)' +NL+
-      '  {' +NL+
-      '    height += step;' +NL+
-      '    shadow_texture_coord += delta;' +NL+
-      '    shadow_map_height = texture2D(castle_normal_map, shadow_texture_coord).a;' +NL+
-      '  }' +NL+
-
-      '  if (shadow_map_height >= height)' +NL+
-      '  {' +NL+
-      '    /* TODO: setting appropriate light contribution to 0 would be more correct. But for now, this self-shadowing is hacky, always from light source 0, and after the light calculation is actually done. */' +NL+
-      '    fragment_color.rgb /= 2.0;' +NL+
-      '  }' +NL+
-      '}';
-
   var
-    VertexEyeBonusDeclarations, VertexEyeBonusCode, CoordName: string;
+    VertexShader, FragmentShader: string;
   begin
     if FBumpMapping = bmNone then Exit;
 
-    VertexEyeBonusDeclarations := '';
-    VertexEyeBonusCode := '';
+    // add basic bump mapping code
+    VertexShader   := {$I bump_mapping.vs.inc};
+    FragmentShader := {$I bump_mapping.fs.inc};
+    StringReplaceAllVar(FragmentShader, '<NormalMapTextureCoordinatesId>',
+      IntToStr(FNormalMapTextureCoordinatesId));
+    Plug(stVertex  , VertexShader);
+    Plug(stFragment, FragmentShader);
+
+    BumpMappingUniformName1 := 'castle_normal_map';
+    BumpMappingUniformValue1 := FNormalMapTextureUnit;
 
     if FHeightMapInAlpha and (FBumpMapping >= bmParallax) then
     begin
-      { parallax bump mapping }
-      Plug(stFragment,
-        'uniform float castle_parallax_bm_scale;' +NL+
-        DeclareOnce('castle_normal_map', 'uniform sampler2D castle_normal_map;') +
-        'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL+
-        ParallaxDeclarations[FBumpMapping >= bmSteepParallax] +
-        NL+
-        'void PLUG_texture_coord_shift(inout vec2 tex_coord)' +NL+
-        '{' +NL+
-        { We have to normalize castle_vertex_to_eye_in_tangent_space again, just like normal vectors. }
-        '  vec3 v_to_eye = normalize(castle_vertex_to_eye_in_tangent_space);' +NL+
-        ParallaxShift[FBumpMapping >= bmSteepParallax] +
-        '}');
-      VertexEyeBonusDeclarations :=
-        'varying vec3 castle_vertex_to_eye_in_tangent_space;' +NL;
-      VertexEyeBonusCode :=
-        'mat3 object_to_tangent_space = transpose(castle_tangent_to_object_space);' +NL+
-        'mat3 eye_to_object_space = mat3(castle_ModelViewMatrix[0][0], castle_ModelViewMatrix[1][0], castle_ModelViewMatrix[2][0],' +NL+
-        '                                castle_ModelViewMatrix[0][1], castle_ModelViewMatrix[1][1], castle_ModelViewMatrix[2][1],' +NL+
-        '                                castle_ModelViewMatrix[0][2], castle_ModelViewMatrix[1][2], castle_ModelViewMatrix[2][2]);' +NL+
-        'mat3 eye_to_tangent_space = object_to_tangent_space * eye_to_object_space;' +NL+
-        { Theoretically faster implementation below, not fully correct ---
-          assume that transpose is enough to invert this matrix. Tests proved:
-          - results seem the same
-          - but it's not really faster. }
-        { 'mat3 eye_to_tangent_space = transpose(castle_tangent_to_eye_space);' +NL+ }
-        'castle_vertex_to_eye_in_tangent_space = normalize(eye_to_tangent_space * (-vec3(vertex_eye)) );' +NL;
+      // add parallax bump mapping code, with a variant for "steep parallax"
+      VertexShader   := {$I bump_mapping_parallax.vs.inc};
+      FragmentShader := {$I bump_mapping_parallax.fs.inc};
+      if FBumpMapping >= bmSteepParallax then
+        FragmentShader := '#define CASTLE_BUMP_MAPPING_PARALLAX_STEEP' + NL
+          + FragmentShader;
+      Plug(stVertex  , VertexShader);
+      Plug(stFragment, FragmentShader);
 
       BumpMappingUniformName2 := 'castle_parallax_bm_scale';
       BumpMappingUniformValue2 := FHeightMapScale;
 
       if (FBumpMapping >= bmSteepParallaxShadowing) and (LightShaders.Count > 0) then
       begin
-        Plug(stFragment, SteepParallaxShadowing);
-        VertexEyeBonusDeclarations +=
-          'varying vec3 castle_light_direction_tangent_space;' +NL+
-          { Note that there's no need to protect castle_LightSource0Position
-            from redeclaring, which is usually a problem when
-            no "separate compilation units" are available (on OpenGLES).
-            In this particular case, using bump mapping forces Phong shading,
-            and then lights are calculated in the fragment shader.
-            The declaration below is in vertex shader, so it never conflicts. }
-          '#ifdef GL_ES' +NL+
-          'uniform mediump vec3 castle_LightSource0Position;' +NL+
-          '#else'+NL+
-          'uniform vec3 castle_LightSource0Position;' +NL+
-          '#endif'+NL+
-          ''
-        ;
-
-        { add VertexEyeBonusCode to cast shadow from LightShaders[0]. }
-        VertexEyeBonusCode += 'vec3 light_dir = castle_LightSource0Position;';
+        // add steep parallax with self-shadowing bump mapping code
+        VertexShader   := {$I bump_mapping_steep_parallax_shadowing.vs.inc};
+        FragmentShader := {$I bump_mapping_steep_parallax_shadowing.fs.inc};
         if LightShaders[0].Node is TAbstractPositionalLightNode then
-          VertexEyeBonusCode += 'light_dir -= vec3(vertex_eye);';
-        VertexEyeBonusCode +=
-          'light_dir = normalize(light_dir);' +NL+
-          'castle_light_direction_tangent_space = eye_to_tangent_space * light_dir;' +NL;
+          VertexShader := '#define CASTLE_LIGHT0_POSITIONAL' + NL
+            + VertexShader;
+        Plug(stVertex  , VertexShader);
+        Plug(stFragment, FragmentShader);
       end;
     end;
-
-    Plug(stVertex,
-
-      {$ifndef OpenGLES}
-      { version 1.20 needed for transpose() }
-      '#version 120' +NL+
-      {$else}
-      { On OpenGLES, it seems easiest to just implement your own transpose().
-        Or we could require version 3.00,
-        https://www.khronos.org/registry/OpenGL-Refpages/es3.1/html/transpose.xhtml ,
-        but this also requires other GLSL changes,
-        and it seems that iOS would be troublesome anyway:
-        https://stackoverflow.com/questions/18034677/transpose-a-mat4-in-opengl-es-2-0-glsl }
-      'mat3 transpose(const in mat3 m) {' +NL+
-      '  return mat3(' +NL+
-      '    vec3(m[0].x, m[1].x, m[2].x),' +NL+
-      '    vec3(m[0].y, m[1].y, m[2].y),' +NL+
-      '    vec3(m[0].z, m[1].z, m[2].z)' +NL+
-      '  );' +NL+
-      '}' +NL+
-      {$endif}
-
-      'attribute mat3 castle_tangent_to_object_space;' +NL+
-      'varying mat3 castle_tangent_to_eye_space;' +NL+
-      // avoid redeclaring variables when no "separate compilation units" (OpenGLES)
-      {$ifndef OpenGLES}
-      'uniform mat4 castle_ModelViewMatrix;' +NL+
-      'uniform mat3 castle_NormalMatrix;' +NL+
-      {$endif}
-
-      VertexEyeBonusDeclarations +
-      NL+
-      'void PLUG_vertex_eye_space(const in vec4 vertex_eye, const in vec3 normal_eye)' +NL+
-      '{' +NL+
-      '  castle_tangent_to_eye_space = castle_NormalMatrix * castle_tangent_to_object_space;' +NL+
-      VertexEyeBonusCode +
-      '}');
-
-    CoordName := TTextureCoordinateShader.CoordName(FNormalMapTextureCoordinatesId);
-
-    Plug(stFragment,
-      'varying mat3 castle_tangent_to_eye_space;' +NL+
-      DeclareOnce('castle_normal_map', 'uniform sampler2D castle_normal_map;') +
-      // avoid redeclaring variables when no "separate compilation units" (OpenGLES)
-      {$ifndef OpenGLES}
-      'varying vec4 ' + CoordName + ';' +NL+
-      {$endif}
-      NL+
-      'void PLUG_fragment_eye_space(const vec4 vertex, inout vec3 normal_eye_fragment)' +NL+
-      '{' +NL+
-      { Read normal from the texture, this is the very idea of bump mapping.
-        Unpack normals, they are in texture in [0..1] range and I want in [-1..1]. }
-      '  vec3 normal_tangent = texture2D(castle_normal_map, ' + CoordName + '.st).xyz * 2.0 - vec3(1.0);' +NL+
-
-      '  /* We have to take two-sided lighting into account here, in tangent space.' +NL+
-      '     Simply negating whole normal in eye space (like we do without bump mapping)' +NL+
-      '     would not work good, check e.g. insides of demo_models/bump_mapping/room_for_parallax_final.wrl. */' +NL+
-      '  if (gl_FrontFacing)' +NL+
-      '    /* Avoid AMD bug http://forums.amd.com/devforum/messageview.cfm?catid=392&threadid=148827&enterthread=y' +NL+
-      '       It causes both (gl_FrontFacing) and (!gl_FrontFacing) to be true...' +NL+
-      '       To minimize the number of problems, never use "if (!gl_FrontFacing)",' +NL+
-      '       only "if (gl_FrontFacing)".' +NL+
-      '       See template.fs for more comments.' +NL+
-      '    */ ; else' +NL+
-      '    normal_tangent.z = -normal_tangent.z;' +NL+
-
-      '  normal_eye_fragment = normalize(castle_tangent_to_eye_space * normal_tangent);' +NL+
-      '}');
-
-    BumpMappingUniformName1 := 'castle_normal_map';
-    BumpMappingUniformValue1 := FNormalMapTextureUnit;
   end;
 
   { Must be done after EnableLights (to add define COLOR_PER_VERTEX
