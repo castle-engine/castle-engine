@@ -1558,7 +1558,8 @@ type
 
     { Update camera to the currently bound VRML/X3D viewpoint.
       When no viewpoint is currently bound, we will go to a suitable
-      viewpoint to see the whole scene (based on a scene bounding box).
+      viewpoint to see the whole scene (based on the Camera.ModelBox,
+      which should be set in CameraFromNavigationInfo to the world bounding box).
 
       The initial camera vectors (TCamera.InitialPosition,
       TCamera.InitialDirection, TCamera.InitialUp, TWalkCamera.GravityUp)
@@ -6172,7 +6173,7 @@ begin
   begin
     { Suitable viewpoint,
       with dir -Z and up +Y (like standard VRML/X3D viewpoint) }
-    CameraViewpointForWholeScene(BoundingBox, 2, 1, false, true,
+    CameraViewpointForWholeScene(ACamera.ModelBox, 2, 1, false, true,
       APosition, ADirection, AUp, GravityUp);
   end;
 
