@@ -152,6 +152,13 @@ const
     Result := '[' + Result + ']';
   end;
 
+  function IntToStrUnknown(const I: Integer): string;
+  begin
+    Result := IntToStr(I);
+    if I = 0 then
+      Result := Result + ' (unknown)';
+  end;
+
 begin
   Result:=
     'OpenGL information (detected by ' + ApplicationName +'):' +nl+
@@ -278,11 +285,11 @@ begin
     NL +
     '-------' + NL +
     'Memory (in Kb):' + NL +
-    '  Total: ' + IntToStr(GLFeatures.Memory.Total) + NL +
-    '  Current: ' + IntToStr(GLFeatures.Memory.Current) + NL +
-    '  Current for VBO: ' + IntToStr(GLFeatures.Memory.CurrentVbo) + NL +
-    '  Current for Textures: ' + IntToStr(GLFeatures.Memory.CurrentTexture) + NL +
-    '  Current for Renderbuffers: ' + IntToStr(GLFeatures.Memory.CurrentRenderbuffer);
+    '  Total: ' + IntToStrUnknown(GLFeatures.Memory.Total) + NL +
+    '  Current: ' + IntToStrUnknown(GLFeatures.Memory.Current) + NL +
+    '  Current for VBO: ' + IntToStrUnknown(GLFeatures.Memory.CurrentVbo) + NL +
+    '  Current for Textures: ' + IntToStrUnknown(GLFeatures.Memory.CurrentTexture) + NL +
+    '  Current for Renderbuffers: ' + IntToStrUnknown(GLFeatures.Memory.CurrentRenderbuffer);
 
   CheckGLErrors;
 end;
