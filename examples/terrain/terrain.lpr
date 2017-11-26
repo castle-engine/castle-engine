@@ -519,6 +519,10 @@ procedure Open(Container: TUIContainer);
   end;
 
 begin
+  { TODO: this demo uses specialized rendering (in renderterrains.pas)
+    that currently assumes some fixed-function things set up. }
+  EnableFixedFunction := true;
+
   RenderTerrainsOpenGL;
 
   ControlsNoise := TControlsNoise.Create(nil);
