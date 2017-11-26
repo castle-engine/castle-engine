@@ -849,6 +849,7 @@ type
       material, when you want player to dive under the water. }
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; virtual;
+      deprecated 'use "Collision" X3D node with enabled=FALSE to selectively make some part of the world non-collidable';
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -2810,7 +2811,9 @@ end;
 function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
   const Triangle: P3DTriangle): boolean;
 begin
+  {$warnings off} // consiously using deprecated here
   Result := Owner.CollisionIgnoreItem(Sender, Triangle);
+  {$warnings on}
 end;
 
 function T3DWorldConcrete.GravityUp: TVector3;
