@@ -73,7 +73,7 @@ type
         Box: TBoxNode;
         Shape: TShapeNode;
         TransformNode: TTransformNode;
-        procedure UpdateBox(const GravityKnown: boolean);
+        procedure UpdateBox;
       public
         constructor Create(AOwner: TComponent); override;
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -475,7 +475,7 @@ begin
   Box := TBoxNode.CreateTransform(Shape, TransformNode);
   Box.Size := Vector3(1, 1, 1); // this way Transform.Scale determines the size
 
-  UpdateBox(false);
+  UpdateBox;
 
   Root := TX3DRootNode.Create;
   Root.AddChildren(TransformNode);
@@ -487,11 +487,11 @@ end;
 procedure TPlayer.TBox.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   if GetExists then
-    UpdateBox(true);
+    UpdateBox;
   inherited;
 end;
 
-procedure TPlayer.TBox.UpdateBox(const GravityKnown: boolean);
+procedure TPlayer.TBox.UpdateBox;
 var
   B: TBox3D;
   Camera: TWalkCamera;
@@ -502,7 +502,7 @@ begin
   B.Data[0].Data[1] := -Camera.Radius;
   B.Data[0].Data[2] := -Camera.Radius;
 
-  if GravityKnown then
+  if World <> nil then
     B.Data[0].Data[World.GravityCoordinate] := -Camera.RealPreferredHeight;
 
   B.Data[1].Data[0] := Camera.Radius;
