@@ -18,7 +18,7 @@
 
 { If defined, then the 3D world will contain an additional animation
   of a dinosaur. It's most suitable when as the main scene you load
-  data/bridge_final.x3dv, then you get a setup similar to scene_manager_demos.
+  data/bridge_final.x3dv .
   This shows that animation from 2nd file works fully with mirrors
   by GeneratedCubeMapTexture in 1st file, also in custom viewports. }
 { $define ADD_ANIMATION}
@@ -26,7 +26,6 @@
 {$I castleconf.inc}
 
 uses SysUtils,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleWindow, X3DNodes, CastleSceneCore, CastleScene,
   CastleUIControls, CastleCameras, CastleQuaternions, CastleVectors,
   CastleControls, CastleLog, CastleScreenEffects, CastleSceneManager,
@@ -53,17 +52,19 @@ type
 
 procedure TWireViewport.Render;
 begin
-  { TODO: There is no way to make this trick work on OpenGLES.
-    Wireframe rendering must be done then by really rendering different
-    primitives, not by switching some PolygonMode. }
-  {$ifndef OpenGLES}
-  glPushAttrib(GL_POLYGON_BIT or GL_LINE_BIT);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); { saved by GL_POLYGON_BIT }
-  {$endif}
-    inherited;
-  {$ifndef OpenGLES}
-  glPopAttrib;
-  {$endif}
+  { To make wireframe rendering, but only in this viewport
+    (not in other viewports), we temporarily switch WireframeEffect
+    of the MainScene.
+
+    In a desktop OpenGL, an alternative way to do this is to switch
+      glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    and then go back by
+      glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    But this is not possible on OpenGLES. }
+
+  GetMainScene.Attributes.WireframeEffect := weWireframeOnly;
+  inherited;
+  GetMainScene.Attributes.WireframeEffect := weNormal;
 end;
 
 { TScreenEffectDemoViewport -------------------------------------------------- }
