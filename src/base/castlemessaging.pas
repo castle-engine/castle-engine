@@ -57,8 +57,9 @@ type
 
     All the communication is asynchronous on all platforms -- Pascal code sends a message,
     and any answers will come asynchronously later. This means that e.g.
-    @link(TGameService.RequestSignedIn) will never call @link(OnSignedInChanged) right inside,
-    the call to @link(OnSignedInChanged) will always happen at a later time.
+    @link(TGameService.RequestSignedIn) will never call
+    @link(TGameService.OnStatusChanged) right inside,
+    the call to @link(TGameService.OnStatusChanged) will always happen at a later time.
 
     This is used automatically by various engine classes like
     @link(TGooglePlayGames), @link(TAds), @link(TAnalytics), @link(TInAppPurchases). }
