@@ -45,18 +45,20 @@ begin
 end;
 
 procedure TTestCastleRandom.TestRandom;
-const NTests = 10000000;
-var Rnd: TCastleRandom;
-    i: Integer;
-    Sum: Double;
+const
+  NTests = 10000000;
+var
+  Rnd: TCastleRandom;
+  i: Integer;
+  Sum: Double;
 begin
   Rnd := TCastleRandom.Create;
 
   //test that random is in 0..1 limits
   for i := 0 to NTests do
-    AssertTrue(Rnd.Random <= 1);
+    AssertTrue('Rnd.Random <= 1', Rnd.Random <= 1);
   for i := 0 to NTests do
-    AssertTrue(Rnd.Random > 0);
+    AssertTrue('Rnd.Random > 0', Rnd.Random > 0);
 
   //test random homogeneity
   {p.s. I'm not exactly sure if this is the right way to do, because random
@@ -65,7 +67,7 @@ begin
   for i := 0 to NTests*10 do
     Sum += Rnd.Random;
   //checking random against shot noise (with extended margin, just in case)
-  AssertTrue(Abs(Sum/(NTests*10)-0.5) <= 2/Sqrt(NTests*10));
+  AssertTrue('Random is on average 0.5', Abs(Sum/(NTests*10)-0.5) <= 2/Sqrt(NTests*10));
 
   FreeAndNil(Rnd);
 end;
