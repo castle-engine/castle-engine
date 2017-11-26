@@ -727,6 +727,10 @@ const
 var
   ShaderString: string;
 begin
+  { TODO: this demo uses specialized rendering (in renderterrains.pas)
+    that currently assumes some fixed-function things set up. }
+  EnableFixedFunction := true;
+
   if (Elements.Count = 0) or
      Scene.BoundingBox.IsEmpty then
   begin
