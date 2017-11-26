@@ -108,10 +108,12 @@ begin
   begin
     SavedProjectionMatrix := RenderContext.ProjectionMatrix;
       OrthoProjection(FloatRectangle(Window.Rect)); // need 2D projection
+      Assert(GLFeatures.ShadersForEverything2D);
       {$ifndef OpenGLES}
-      { TGLImage.Draw will reset modelview matrix
+      { Without GLFeatures.ShadersForEverything2D,
+        TGLImage.Draw will reset modelview matrix
         (that should keep camera matrix, in non-OpenGLES renderer now),
-        so save it }
+        so save it. }
       glPushMatrix;
       {$endif}
         if Params.InShadow then
