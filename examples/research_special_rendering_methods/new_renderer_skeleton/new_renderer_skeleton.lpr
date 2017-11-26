@@ -54,7 +54,7 @@ type
   public
     procedure PrepareResources(Options: TPrepareResourcesOptions;
       ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
 function TCastleSceneVulkan.CreateShape(AGeometry: TAbstractGeometryNode;
@@ -101,7 +101,7 @@ begin
   finally FreeAndNil(SI) end;
 end;
 
-procedure TCastleSceneVulkan.Render(
+procedure TCastleSceneVulkan.LocalRender(
   const Frustum: TFrustum; const Params: TRenderParams);
 
   function GetSceneModelView: TMatrix4;
