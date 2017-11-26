@@ -408,11 +408,11 @@ type
 
     { Change to new world, or (if not needed) just increase FWorldReferences.
       Value must not be @nil. }
-    procedure AddToWorld(const Value: T3DWorld); virtual;
+    procedure AddToWorld(const Value: T3DWorld);
 
     { Decrease FWorldReferences, then (if needed) change world to @nil.
       Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: T3DWorld); virtual;
+    procedure RemoveFromWorld(const Value: T3DWorld);
 
     { Called when the current 3D world (which corresponds to the current
       TCastleSceneManager) of this 3D object changes.
@@ -424,7 +424,7 @@ type
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: T3DWorld); virtual;
+    procedure ChangeWorld(const Value: T3DWorld);
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -864,7 +864,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); virtual;
+      const ParentTransform: TMatrix4);
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
@@ -874,8 +874,10 @@ type
       will automatically call @code(MyScene.PrepareResources(...)) underneath,
       with proper parameters.
 
-      This requires OpenGL to be initailized for most 3D objects.
-      If not, some parts of preparations will be aborted.
+      It is best to call this after the rendering context is initailized,
+      which means: at Application.OnInitialize, or Window.OnOpen or later.
+      Calling this method earlier will omit some preparations,
+      thus reducing the effectiveness of them.
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
@@ -1110,9 +1112,7 @@ type
       and be possible to change only when MoveAllowed is checked
       (so only when @link(TCastleTransform.Translation) can change).
 
-      In this class this is simply zero. In the descendant
-      @link(TCastleTransform)
-      this is overriden to return something sensible above the bottom
+      In this class this returns something sensible above the bottom
       of the box. See @link(TCastleTransform.MiddleHeight). }
     function Middle: TVector3; virtual;
 
