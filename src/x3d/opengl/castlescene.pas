@@ -1868,6 +1868,8 @@ procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRende
   end;
 
 begin
+  inherited;
+
   if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
