@@ -68,9 +68,15 @@ type
     type
       { Invisible box, that is added to TPlayer to make it collidable.
         Owner must be TPlayer. }
-      TBox = class(TCastleTransform)
+      TBox = class(TCastleScene)
+      strict private
+        Box: TBoxNode;
+        Shape: TShapeNode;
+        TransformNode: TTransformNode;
+        procedure UpdateBox(const GravityKnown: boolean);
       public
-        function LocalBoundingBox: TBox3D; override;
+        constructor Create(AOwner: TComponent); override;
+        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
 
     var
@@ -461,23 +467,52 @@ uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
-function TPlayer.TBox.LocalBoundingBox: TBox3D;
+constructor TPlayer.TBox.Create(AOwner: TComponent);
 var
-  Camera: TWalkCamera;
+  Root: TX3DRootNode;
+begin
+  inherited;
+  Box := TBoxNode.CreateTransform(Shape, TransformNode);
+  Box.Size := Vector3(1, 1, 1); // this way Transform.Scale determines the size
+
+  UpdateBox(false);
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(TransformNode);
+  Load(Root, true);
+
+  Visible := false;
+end;
+
+procedure TPlayer.TBox.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   if GetExists then
-  begin
-    Camera := TPlayer(Owner).Camera;
-    Result.Data[0].Data[0] := -Camera.Radius;
-    Result.Data[0].Data[1] := -Camera.Radius;
-    Result.Data[0].Data[2] := -Camera.Radius;
-    Result.Data[0].Data[World.GravityCoordinate] := -Camera.RealPreferredHeight;
+    UpdateBox(true);
+  inherited;
+end;
 
-    Result.Data[1].Data[0] := Camera.Radius;
-    Result.Data[1].Data[1] := Camera.Radius;
-    Result.Data[1].Data[2] := Camera.Radius;
-  end else
-    Result := TBox3D.Empty;
+procedure TPlayer.TBox.UpdateBox(const GravityKnown: boolean);
+var
+  B: TBox3D;
+  Camera: TWalkCamera;
+begin
+  Camera := TPlayer(Owner).Camera;
+
+  B.Data[0].Data[0] := -Camera.Radius;
+  B.Data[0].Data[1] := -Camera.Radius;
+  B.Data[0].Data[2] := -Camera.Radius;
+
+  if GravityKnown then
+    B.Data[0].Data[World.GravityCoordinate] := -Camera.RealPreferredHeight;
+
+  B.Data[1].Data[0] := Camera.Radius;
+  B.Data[1].Data[1] := Camera.Radius;
+  B.Data[1].Data[2] := Camera.Radius;
+
+  { We adjust TransformNode.Scale, not Box.Size, because this is faster:
+    no need to rebuild box proxy. }
+  TransformNode.Scale := B.Size;
+  TransformNode.Translation := B.Center;
 end;
 
 { TPlayer -------------------------------------------------------------------- }
@@ -508,9 +543,6 @@ begin
   FEnableCameraDragging := true;
   FCamera := TWalkCamera.Create(nil);
 
-  FBox := TBox.Create(Self);
-  Add(FBox);
-
   FInventoryCurrentItem := -1;
 
   { turn off keys that are totally unavailable for the player }
@@ -526,6 +558,10 @@ begin
     we also call it here to be sure that right after TPlayer constructor
     finished, Camera has already good values. }
   UpdateCamera;
+
+  // once Camera is initialized, initialize TBox
+  FBox := TBox.Create(Self);
+  Add(FBox);
 
   FDebug3D := TDebug3D.Create(Self);
   FDebug3D.Attach(Self);
