@@ -1492,6 +1492,11 @@ type
 
     { Camera position/direction/up known for this scene.
 
+      @bold(TODO: These should be in @italic(local scene coordinates),
+      so moving the scene by @link(TCastleTransform.Translation)
+      has no effect on them.
+      Temporarily, they are actually remembered in world coordinates.)
+
       Set by CameraChanged. CameraViewKnown = @false means that
       CameraChanged was never called, and so camera settings are not known,
       and so other Camera* properties have undefined values.

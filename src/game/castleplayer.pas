@@ -24,7 +24,7 @@ uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
   Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
-  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes;
+  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes, CastleTransform;
 
 type
   TPlayerSwimming = (psNo,
@@ -68,7 +68,7 @@ type
     type
       { Invisible box, that is added to TPlayer to make it collidable.
         Owner must be TPlayer. }
-      TBox = class(T3D)
+      TBox = class(TCastleTransform)
       public
         function BoundingBox: TBox3D; override;
       end;

@@ -367,12 +367,12 @@ begin
 end;
 
 type
-  T3DTerrain = class(T3D)
-    function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+  T3DTerrain = class(TCastleTransform)
+    function LocalBoundingBox: TBox3D; override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
-procedure T3DTerrain.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure T3DTerrain.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 
   procedure WalkCameraAboveGround;
   var
@@ -468,7 +468,7 @@ begin
   glPopAttrib;
 end;
 
-function T3DTerrain.BoundingBox: TBox3D;
+function T3DTerrain.LocalBoundingBox: TBox3D;
 { Instead of trying to figure out what is a suitable bounding box,
   just assume we fill the whole 3D space.
   It must be large to always consider terrain within frustum,

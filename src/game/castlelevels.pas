@@ -437,7 +437,7 @@ type
     way to add any behavior to the 3D world (it doesn't matter that
     "level logic" is not a usual 3D object --- it doesn't have to collide
     or be visible). }
-  TLevelLogic = class(T3D)
+  TLevelLogic = class(TCastleTransform)
   private
     FTime: TFloatTime;
   protected
