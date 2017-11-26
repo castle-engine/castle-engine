@@ -491,7 +491,7 @@ type
     { Maximum distance between enemy and creature to allow creature
       to start attack. The distance is measured between
       enemy (see TWalkAttackCreature.Enemy) and current creature
-      Middle (see T3D.Middle) points. }
+      Middle (see @link(TCastleTransform.Middle)) points. }
     property AttackMaxDistance: Single
       read FAttackMaxDistance write FAttackMaxDistance
       default DefaultAttackMaxDistance;

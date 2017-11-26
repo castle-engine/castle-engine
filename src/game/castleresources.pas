@@ -290,9 +290,9 @@ type
       TCreatureResource.Flying is ignored, they have special approach
       to gravity).
 
-      See T3D.FallSpeed for precise definition, this works the same,
+      See TCastleTransform.FallSpeed for precise definition, this works the same,
       except our default value is non-zero, and by default T3D.Gravity
-      and T3D.PreferredHeight are already sensible for creatures/items. }
+      and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property FallSpeed: Single
       read FFallSpeed write FFallSpeed default DefaultFallSpeed;
 
@@ -305,9 +305,9 @@ type
       "sink" into the ground. Then growing, controlled by this property,
       pushes the creature up.
 
-      See T3D.GrowSpeed, this works the same,
-      except the default value is non-zero, and by default T3D.Gravity
-      and T3D.PreferredHeight are already sensible for creatures/items. }
+      See TCastleTransform.GrowSpeed, this works the same,
+      except the default value is non-zero, and by default TCastleTransform.Gravity
+      and TCastleTransform.PreferredHeight are already sensible for creatures/items. }
     property GrowSpeed: Single
       read FGrowSpeed write FGrowSpeed default DefaultGrowSpeed;
 

@@ -101,10 +101,10 @@ type
       as TCastleSceneManager.MainScene,
       so it determines the default viewpoint, background and such.
 
-      Usually it also contains the most (if not all) of 3D level visible geometry,
+      Usually it also contains the most (if not all) of the visible level geometry,
       scripts and such. Although level logic (TLevelLogic descendant determined
-      by LevelClass) may also add any number of additional 3D objects
-      (T3D instances) to the 3D world. }
+      by LevelClass) may also add any number of additional objects
+      (TCastleTransform instances) to the world. }
     property SceneURL: string read FSceneURL write FSceneURL;
 
     { @deprecated Deprecated name for SceneURL. }

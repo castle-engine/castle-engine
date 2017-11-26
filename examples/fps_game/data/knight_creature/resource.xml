@@ -23,7 +23,8 @@
 
   - radius and preferred_height: important for collision detection.
     These are best visualized with "Render debug 3D" in fps_game.
-    See T3D.Sphere and T3D.Middle and T3D.PreferredHeight documentation for
+    See TCastleTransform.Sphere and TCastleTransform.Middle and
+    TCastleTransform.PreferredHeight documentation for
     a precise meaning of these values. Engine *does* calculate good values
     for them automatically, but they can be "tuned" manually to work even better
     (that is because the engine does not know that these are humanoids,

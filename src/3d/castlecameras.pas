@@ -1320,7 +1320,7 @@ type
       to say what is the current height of camera above the ground.
       This should be calculated like collision of ray from @link(Position)
       in direction -GravityUp with the scene.
-      See T3D.Height for specification what returned parameters
+      See @link(TCastleTransform.Height) for specification what returned parameters
       mean.
 
       Implementation of @link(Height) in this class

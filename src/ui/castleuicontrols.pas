@@ -788,7 +788,7 @@ type
     Parent control is recorded inside @link(Parent). A control
     may only be a child of one other control --- that is, you cannot
     insert to the 2D hierarchy the same control multiple times
-    (in T3D hierarchy, such trick is allowed).
+    (in TCastleTransform hierarchy, such trick is allowed).
 
     Control may handle mouse/keyboard input, see @link(Press) and @link(Release)
     methods.
