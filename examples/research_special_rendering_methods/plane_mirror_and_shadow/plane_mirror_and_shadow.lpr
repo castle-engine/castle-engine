@@ -504,7 +504,7 @@ procedure Open(Container: TUIContainer);
 begin
   { TODO: this demo uses specialized rendering (in renderterrains.pas)
     that currently assumes some fixed-function things set up. }
-  EnableFixedFunction := true;
+  GLFeatures.EnableFixedFunction := true;
 end;
 
 procedure Close(Container: TUIContainer);

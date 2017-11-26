@@ -407,7 +407,7 @@ type
       the shading.
       The engine auto-detects whether to use shaders based on OpenGL capabilities,
       particular shape needs (phong shading, bump mapping, shadow maps, compositing shader effects),
-      and EnableFixedFunction. }
+      and GLFeatures.EnableFixedFunction. }
     property Shaders: TShadersRendering read GetShaders write SetShaders; deprecated 'use PhongShading';
 
     { Whether to use Phong shading by default for all shapes.
@@ -1846,8 +1846,8 @@ begin
     end;
   end;
 
-  { We *must* have some GLSL shader when EnableFixedFunction = false }
-  if (not EnableFixedFunction) and (Result.ShaderProgram = nil) then
+  { We *must* have some GLSL shader when GLFeatures.EnableFixedFunction = false }
+  if (not GLFeatures.EnableFixedFunction) and (Result.ShaderProgram = nil) then
   begin
     try
       Result.ShaderProgram := TX3DGLSLProgram.Create(ARenderer);
@@ -2377,7 +2377,7 @@ end;
 
 procedure TGLRenderer.DisableTexture(const TextureUnit: Cardinal);
 begin
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     { This must be synchronized, and disable all that can be enabled
       by TShape.EnableTexture }
@@ -2440,7 +2440,7 @@ begin
     {$endif}
   end;
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glMatrixMode(GL_MODELVIEW);
@@ -2465,7 +2465,7 @@ begin
 
   GLSetEnabled(GL_DEPTH_TEST, Beginning and Attributes.DepthTest);
 
-  if EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
+  if GLFeatures.EnableFixedFunction and (Attributes.Mode in [rmDepth, rmFull]) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_TEXTURE_GEN_S);
@@ -2488,7 +2488,7 @@ begin
     {$endif}
   end;
 
-  if EnableFixedFunction and (Attributes.Mode = rmFull) then
+  if GLFeatures.EnableFixedFunction and (Attributes.Mode = rmFull) then
   begin
     {$ifndef OpenGLES}
     glDisable(GL_COLOR_MATERIAL);
@@ -2570,7 +2570,7 @@ begin
 
   RenderCleanState(true);
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     { push matrix after RenderCleanState, to be sure we're in modelview mode }
     {$ifndef OpenGLES}
@@ -2596,7 +2596,7 @@ begin
   FogNode := nil;
   FogEnabled := false;
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glPopMatrix;
@@ -2771,7 +2771,7 @@ const
 
       VisibilityRangeScaled := Node.FdVisibilityRange.Value * Node.TransformScale;
 
-      if EnableFixedFunction then
+      if GLFeatures.EnableFixedFunction then
       begin
         {$ifndef OpenGLES}
         { This code does not need to be executed on shader pipeline at all,
@@ -2820,7 +2820,7 @@ begin
     RenderFog(FogNode, FogVolumetric,
       FogVolumetricDirection, FogVolumetricVisibilityStart);
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       { Set fixed-function fog parameters. }
@@ -2840,6 +2840,9 @@ begin
             end;
           else raise EInternalError.Create('TGLRenderer.RenderShapeFog:FogType? 2');
         end;
+        { We want to be able to render any scene --- so we have to be prepared
+          that fog interpolation has to be corrected for perspective. }
+        glHint(GL_FOG_HINT, GL_NICEST);
         glEnable(GL_FOG);
       end else
         glDisable(GL_FOG);
@@ -2878,7 +2881,7 @@ begin
   if (State.ShapeNode = nil { VRML 1.0, always some texture transform }) or
      (State.ShapeNode.TextureTransform <> nil { VRML 2.0 with tex transform }) then
   begin
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       glMatrixMode(GL_TEXTURE);
@@ -2914,7 +2917,7 @@ begin
       if FirstTexUnit < GLFeatures.MaxTextureUnits then
       begin
         TextureTransformUnitsUsed := 1;
-        if EnableFixedFunction then
+        if GLFeatures.EnableFixedFunction then
         begin
           {$ifndef OpenGLES}
           ActiveTexture(FirstTexUnit);
@@ -2941,7 +2944,7 @@ begin
 
           for I := 0 to TextureTransformUnitsUsed - 1 do
           begin
-            if EnableFixedFunction then
+            if GLFeatures.EnableFixedFunction then
             begin
               {$ifndef OpenGLES}
               ActiveTexture(FirstTexUnit + I);
@@ -2956,7 +2959,7 @@ begin
                 WritelnWarning('VRML/X3D', 'MultiTextureTransform.textureTransform list cannot contain another MultiTextureTransform instance') else
               begin
                 Matrix := TAbstractTextureTransformNode(Child).TransformMatrix;
-                if EnableFixedFunction then
+                if GLFeatures.EnableFixedFunction then
                 begin
                   {$ifndef OpenGLES}
                   glMultMatrix(Matrix);
@@ -2983,7 +2986,7 @@ begin
           begin
             TextureTransformUnitsUsed := 1;
             Matrix := TextureTransform.TransformMatrix;
-            if EnableFixedFunction then
+            if GLFeatures.EnableFixedFunction then
             begin
               {$ifndef OpenGLES}
               ActiveTexture(FirstTexUnit);
@@ -2997,7 +3000,7 @@ begin
       end;
     end;
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       { restore GL_MODELVIEW }
@@ -3008,7 +3011,7 @@ begin
 
   RenderShapeClipPlanes(Shape, Fog, Shader, MaterialOpacity, Lighting);
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     if (TextureTransformUnitsUsed <> 0) or
@@ -3105,7 +3108,7 @@ begin
   ClipPlanesBegin(Shape.State.ClipPlanes);
 
   {$ifndef OpenGLES}
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     glPushMatrix;
       glMultMatrix(Shape.State.Transform);
@@ -3116,7 +3119,7 @@ begin
     RenderShapeCreateMeshRenderer(Shape, Fog, Shader, MaterialOpacity, Lighting);
 
   {$ifndef OpenGLES}
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
     glPopMatrix;
   {$endif}
 
@@ -3487,7 +3490,7 @@ begin
   if (TexUnit >= TextureTransformUnitsUsed) and
      (TextureTransformUnitsUsedMore.IndexOf(TexUnit) = -1) then
   begin
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
       glPushMatrix;
 
     { Simple implementation would just add always TexUnit

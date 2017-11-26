@@ -2037,7 +2037,7 @@ begin
     UsedBackground := Background;
     if UsedBackground <> nil then
     begin
-      if EnableFixedFunction then
+      if GLFeatures.EnableFixedFunction then
       begin
         {$ifndef OpenGLES}
         glLoadMatrix(RenderingCamera.RotationMatrix);
@@ -2077,7 +2077,7 @@ begin
 
   RenderContext.Clear(ClearBuffers, ClearColor);
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glLoadMatrix(RenderingCamera.Matrix);
@@ -2398,7 +2398,7 @@ begin
 
     SwapValues(ScreenEffectTextureDest, ScreenEffectTextureSrc);
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       glPushAttrib(GL_ENABLE_BIT);
@@ -2423,7 +2423,7 @@ begin
     OrthoProjection(FloatRectangle(0, 0, SR.Width, SR.Height));
     RenderWithScreenEffectsCore;
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       if CurrentScreenEffectsNeedDepth then

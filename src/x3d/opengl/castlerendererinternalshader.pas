@@ -2635,7 +2635,7 @@ begin
   case Generation of
     tgSphere:
       begin
-        if EnableFixedFunction then
+        if GLFeatures.EnableFixedFunction then
         begin
           {$ifndef OpenGLES}
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -2657,7 +2657,7 @@ begin
       end;
     tgNormal:
       begin
-        if EnableFixedFunction then
+        if GLFeatures.EnableFixedFunction then
         begin
           {$ifndef OpenGLES}
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_NORMAL_MAP_ARB);
@@ -2674,7 +2674,7 @@ begin
       end;
     tgReflection:
       begin
-        if EnableFixedFunction then
+        if GLFeatures.EnableFixedFunction then
         begin
           {$ifndef OpenGLES}
           glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_ARB);
@@ -2717,7 +2717,7 @@ begin
   if GLFeatures.UseMultiTexturing then
     glActiveTexture(GL_TEXTURE0 + TextureUnit);
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     case Component of
@@ -2757,7 +2757,7 @@ end;
 
 procedure TShader.DisableTexGen(const TextureUnit: Cardinal);
 begin
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     { Disable for fixed-function pipeline }
     if GLFeatures.UseMultiTexturing then

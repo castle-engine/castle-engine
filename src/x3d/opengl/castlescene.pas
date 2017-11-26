@@ -1258,7 +1258,7 @@ begin
   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
 
   {$ifndef OpenGLES}
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     if not Params.RenderTransformIdentity then
     begin
@@ -1267,7 +1267,7 @@ begin
     end;
     { TODO: this should be replaced with just
     glLoadMatrix(GetModelViewTransform);
-      to just load full matrix, and be consistent with what happens when EnableFixedFunction=false. }
+      to just load full matrix, and be consistent with what happens when GLFeatures.EnableFixedFunction=false. }
   end;
   {$endif}
 
@@ -1363,7 +1363,7 @@ begin
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
     if not Params.RenderTransformIdentity then
       glPopMatrix;
   {$endif}

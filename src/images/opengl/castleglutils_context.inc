@@ -137,7 +137,7 @@ type
 
     { Current projection matrix.
 
-      When EnableFixedFunction = true, setting this also
+      When GLFeatures.EnableFixedFunction = true, setting this also
       sets fixed-function projection matrix. }
     property ProjectionMatrix: TMatrix4
       read FProjectionMatrix write SetProjectionMatrix;
@@ -307,7 +307,7 @@ begin
   begin
     FGlobalAmbient := Value;
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       { We always set "1" as global ambient alpha.
@@ -347,7 +347,7 @@ begin
 
   FProjectionMatrix := Value;
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     glMatrixMode(GL_PROJECTION);

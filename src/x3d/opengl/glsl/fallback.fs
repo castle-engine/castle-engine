@@ -1,5 +1,6 @@
 /* Fallback GLSL fragment shader,
-   used when we need a shader (e.g. because it is OpenGLES or EnableFixedFunction = false)
+   used when we need a shader (e.g. because it is OpenGLES or
+   GLFeatures.EnableFixedFunction = false)
    but the default shader did not compile.
    You cannot leave the shader empty in OpenGLES. */
 

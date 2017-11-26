@@ -133,7 +133,7 @@ var
   Color3, AmbientColor3: TVector3;
   Color4, AmbientColor4: TVector4;
 begin
-  if not EnableFixedFunction then
+  if not GLFeatures.EnableFixedFunction then
     Exit;
 
   glLightNum += GL_LIGHT0;
@@ -293,7 +293,7 @@ begin
     if LightsEnabled >= GLFeatures.MaxLights then Exit;
   end;
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
     { Disable remaining light for fixed-function pipeline }

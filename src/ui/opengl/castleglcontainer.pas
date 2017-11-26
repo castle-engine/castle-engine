@@ -97,7 +97,7 @@ uses SysUtils,
 
 procedure ControlRenderBegin(const ViewportRect: TRectangle);
 begin
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     { Set state that is guaranteed for Render2D calls,
       but TUIControl.Render cannot change it carelessly. }
@@ -113,7 +113,7 @@ begin
   CastleGLUtils.glViewport(ViewportRect);
   OrthoProjection(FloatRectangle(0, 0, ViewportRect.Width, ViewportRect.Height));
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     { Set OpenGL state that may be changed carelessly, and has some
       guaranteed value, for Render2d calls. }

@@ -632,7 +632,7 @@ begin
   if (TextureUnitsCount > 0) and
      Enable(TextureSlotsUsed, Shader, Env) then
   begin
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       { Here we know that Env was initialized above.
@@ -806,7 +806,7 @@ begin
           Renderer.DisableCurrentTexture;
         end else
         begin
-          if EnableFixedFunction then
+          if GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE);
