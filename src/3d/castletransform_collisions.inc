@@ -85,7 +85,7 @@ end;
 
 { T3DList -------------------------------------------------------------------- }
 
-function T3DList.HeightCollision(const APosition, GravityUp: TVector3;
+function T3DList.LocalHeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
@@ -115,7 +115,7 @@ begin
   end;
 end;
 
-function T3DList.MoveCollision(
+function T3DList.LocalMoveCollision(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -161,7 +161,7 @@ begin
   end;
 end;
 
-function T3DList.MoveCollision(
+function T3DList.LocalMoveCollision(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -182,7 +182,7 @@ begin
   end;
 end;
 
-function T3DList.SegmentCollision(const Pos1, Pos2: TVector3;
+function T3DList.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 var
@@ -200,7 +200,7 @@ begin
   end;
 end;
 
-function T3DList.SphereCollision(const Pos: TVector3; const Radius: Single;
+function T3DList.LocalSphereCollision(const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -217,7 +217,7 @@ begin
   end;
 end;
 
-function T3DList.SphereCollision2D(const Pos: TVector2; const Radius: Single;
+function T3DList.LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 var
@@ -240,7 +240,7 @@ begin
   end;
 end;
 
-function T3DList.PointCollision2D(const Point: TVector2;
+function T3DList.LocalPointCollision2D(const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -257,7 +257,7 @@ begin
   end;
 end;
 
-function T3DList.BoxCollision(const Box: TBox3D;
+function T3DList.LocalBoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 var
   I: Integer;
@@ -274,7 +274,7 @@ begin
   end;
 end;
 
-function T3DList.RayCollision(const RayOrigin, RayDirection: TVector3;
+function T3DList.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 
   procedure AddNewResult(NewResult: TRayCollision);
@@ -323,7 +323,7 @@ function TCastleTransform.HeightCollision(const APosition, GravityUp: TVector3;
 var
   MInverse: TMatrix4;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalHeightCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then
   begin
@@ -334,12 +334,12 @@ begin
   end;
 
   if FOnlyTranslation then
-    Result := inherited HeightCollision(
+    Result := LocalHeightCollision(
       APosition - Translation, GravityUp, TrianglesToIgnoreFunc,
       AboveHeight, AboveGround) else
   begin
     MInverse := InverseTransform;
-    Result := inherited HeightCollision(
+    Result := LocalHeightCollision(
       MInverse.MultPoint(APosition),
       MInverse.MultDirection(GravityUp), TrianglesToIgnoreFunc,
         AboveHeight, AboveGround);
@@ -358,7 +358,7 @@ var
   T: TVector3;
   M, MInverse: TMatrix4;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalMoveCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then
   begin
@@ -369,7 +369,7 @@ begin
   if FOnlyTranslation then
   begin
     T := Translation;
-    Result := inherited MoveCollision(
+    Result := LocalMoveCollision(
       OldPos         - T,
       ProposedNewPos - T, NewPos,
       IsRadius, Radius,
@@ -381,7 +381,7 @@ begin
   end else
   begin
     TransformMatrices(M, MInverse);
-    Result := inherited MoveCollision(
+    Result := LocalMoveCollision(
       MInverse.MultPoint(OldPos),
       MInverse.MultPoint(ProposedNewPos), NewPos,
       IsRadius, Radius / AverageScale,
@@ -402,7 +402,7 @@ var
   T: TVector3;
   MInverse: TMatrix4;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalMoveCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(true);
 
@@ -412,9 +412,9 @@ begin
         Items + Translation and (OldPos, NewPos).
       So it's equivalent to checking for collision between
         Items and (OldPos, NewPos) - Translation
-      And this way I can use inherited MoveCollision. }
+      And this way I can use LocalMoveCollision. }
     T := Translation;
-    Result := inherited MoveCollision(
+    Result := LocalMoveCollision(
       OldPos - T,
       NewPos - T,
       IsRadius, Radius,
@@ -423,7 +423,7 @@ begin
   end else
   begin
     MInverse := InverseTransform;
-    Result := inherited MoveCollision(
+    Result := LocalMoveCollision(
       MInverse.MultPoint(OldPos),
       MInverse.MultPoint(NewPos),
       IsRadius, Radius / AverageScale,
@@ -439,18 +439,18 @@ var
   T: TVector3;
   MInverse: TMatrix4;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalSegmentCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not (GetCollides or (ALineOfSight and GetExists)) then Exit(false);
 
   if FOnlyTranslation then
   begin
     T := Translation;
-    Result := inherited SegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, ALineOfSight);
+    Result := LocalSegmentCollision(Pos1 - T, Pos2 - T, TrianglesToIgnoreFunc, ALineOfSight);
   end else
   begin
     MInverse := InverseTransform;
-    Result := inherited SegmentCollision(
+    Result := LocalSegmentCollision(
       MInverse.MultPoint(Pos1),
       MInverse.MultPoint(Pos2), TrianglesToIgnoreFunc, ALineOfSight);
   end;
@@ -460,14 +460,14 @@ function TCastleTransform.SphereCollision(
   const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalSphereCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
   if FOnlyTranslation then
-    Result := inherited SphereCollision(
+    Result := LocalSphereCollision(
       Pos - Translation, Radius, TrianglesToIgnoreFunc) else
-    Result := inherited SphereCollision(
+    Result := LocalSphereCollision(
       InverseTransform.MultPoint(Pos), Radius / AverageScale, TrianglesToIgnoreFunc);
 end;
 
@@ -476,14 +476,14 @@ function TCastleTransform.SphereCollision2D(
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalSphereCollision2D will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
   if FOnlyTranslation then
-    Result := inherited SphereCollision2D(
+    Result := LocalSphereCollision2D(
       Pos - Translation2D, Radius, TrianglesToIgnoreFunc, Details) else
-    Result := inherited SphereCollision2D(
+    Result := LocalSphereCollision2D(
       InverseTransform.MultPoint(Pos), Radius / AverageScale2D, TrianglesToIgnoreFunc, Details);
 end;
 
@@ -491,14 +491,14 @@ function TCastleTransform.PointCollision2D(
   const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalPointCollision2D will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
   if FOnlyTranslation then
-    Result := inherited PointCollision2D(
+    Result := LocalPointCollision2D(
       Point - Translation2D, TrianglesToIgnoreFunc) else
-    Result := inherited PointCollision2D(
+    Result := LocalPointCollision2D(
       InverseTransform.MultPoint(Point), TrianglesToIgnoreFunc);
 end;
 
@@ -506,15 +506,15 @@ function TCastleTransform.BoxCollision(
   const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalBoxCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetCollides then Exit(false);
 
   if FOnlyTranslation then
-    Result := inherited BoxCollision(
+    Result := LocalBoxCollision(
       Box.AntiTranslate(Translation), TrianglesToIgnoreFunc)
   else
-    Result := inherited BoxCollision(
+    Result := LocalBoxCollision(
       Box.Transform(InverseTransform), TrianglesToIgnoreFunc);
 end;
 
@@ -541,14 +541,14 @@ var
   M, MInverse: TMatrix4;
   LastNode: PRayCollisionNode;
 begin
-  { inherited will check these anyway. But by checking them here,
+  { LocalRayCollision will check these anyway. But by checking them here,
     we can potentially avoid the cost of transforming into local space. }
   if not GetPickable then Exit(nil);
 
   if FOnlyTranslation then
   begin
     T := Translation;
-    Result := inherited RayCollision(RayOrigin - T, RayDirection, TrianglesToIgnoreFunc);
+    Result := LocalRayCollision(RayOrigin - T, RayDirection, TrianglesToIgnoreFunc);
     if Result <> nil then
     begin
       LastNode := @(Result.List^[Result.Count - 1]);
@@ -560,7 +560,7 @@ begin
   end else
   begin
     TransformMatrices(M, MInverse);
-    Result := inherited RayCollision(
+    Result := LocalRayCollision(
       MInverse.MultPoint(RayOrigin),
       MInverse.MultDirection(RayDirection), TrianglesToIgnoreFunc);
     if Result <> nil then

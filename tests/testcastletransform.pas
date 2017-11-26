@@ -42,6 +42,7 @@ type
     procedure TestWorldPrematureFree;
     procedure TestWorldFreeBeforeItem;
     procedure TestDirectionUp;
+    procedure TestTransformingScene;
   end;
 
 implementation
@@ -74,7 +75,6 @@ var
 begin
   inherited Create(AOwner);
   MyBox := AMyBox;
-
 
   Box := TBoxNode.CreateTransform(BoxShape, BoxTransform);
   Box.Size := MyBox.Size;
@@ -1075,6 +1075,149 @@ begin
     T.Direction := Vector3(1, 1, 1);
     AssertVectorEquals(T.Direction, Vector3(1, 1, 1).Normalize);
   finally FreeAndNil(T) end;
+end;
+
+procedure TTestCastleTransform.TestTransformingScene;
+var
+  World: T3DWorld;
+
+  function EpsilonBox(const Center: TVector3): TBox3D;
+  begin
+    Result := Box3D(
+      Center - Vector3(0.01, 0.01, 0.01),
+      Center + Vector3(0.01, 0.01, 0.01)
+    );
+  end;
+
+  procedure AssertBox2(const TestName: string; const T: TCastleTransform; const B: TBox3D);
+  var
+    P: TVector3;
+  begin
+    //Writeln(TestName);
+    AssertBoxesEqual(B, T.BoundingBox);
+
+    { This has a right to not work in case of using octrees for Scene,
+      as then the scene collides as a set of triangles,
+      and the TBoxNode is considered empty inside. }
+    // AssertTrue(TestName + '_Center', World.WorldBoxCollision(EpsilonBox(B.Center)));
+
+    AssertTrue(TestName + '_Center', World.WorldBoxCollision(B));
+    AssertTrue(TestName + '_SphereCenter', World.WorldSphereCollision(B.Center, B.MaxSize));
+
+    P := B.Center;
+    P.X := B.Min.X;
+    AssertTrue(TestName + '_Min.X', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Y := B.Min.Y;
+    AssertTrue(TestName + '_Min.Y', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Z := B.Min.Z;
+    AssertTrue(TestName + '_Min.Z', World.WorldBoxCollision(EpsilonBox(P)));
+
+    P := B.Center;
+    P.X := B.Max.X;
+    AssertTrue(TestName + '_Max.X', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Y := B.Max.Y;
+    AssertTrue(TestName + '_Max.Y', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Z := B.Max.Z;
+    AssertTrue(TestName + '_Max.Z', World.WorldBoxCollision(EpsilonBox(P)));
+
+    P := B.Center;
+    P.X := B.Min.X - 0.1;
+    AssertFalse(TestName + '_Outside_Min.X', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Y := B.Min.Y - 0.1;
+    AssertFalse(TestName + '_Outside_Min.Y', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Z := B.Min.Z - 0.1;
+    AssertFalse(TestName + '_Outside_Min.Z', World.WorldBoxCollision(EpsilonBox(P)));
+
+    P := B.Center;
+    P.X := B.Max.X + 0.1;
+    AssertFalse(TestName + '_Outside_Max.X', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Y := B.Max.Y + 0.1;
+    AssertFalse(TestName + '_Outside_Max.Y', World.WorldBoxCollision(EpsilonBox(P)));
+    P := B.Center;
+    P.Z := B.Max.Z + 0.1;
+    AssertFalse(TestName + '_Outside_Max.Z', World.WorldBoxCollision(EpsilonBox(P)));
+  end;
+
+var
+  Scene: TCastleSceneCore;
+
+  procedure AssertBox(const TestName: string; const T: TCastleTransform; const B: TBox3D);
+  begin
+    Scene.Spatial := [];
+    AssertBox2(TestName + '_Scene as bbox', T, B);
+    Scene.Spatial := [ssDynamicCollisions];
+    AssertBox2(TestName + '_Scene as ssDynamicCollisions octree', T, B);
+    Scene.Spatial := [ssStaticCollisions];
+    AssertBox2(TestName + '_Scene as ssStaticCollisions octree', T, B);
+  end;
+
+var
+  T: TCastleTransform;
+  Box: TBoxNode;
+  Shape: TShapeNode;
+  Root: TX3DRootNode;
+begin
+  World := T3DWorld.Create(nil);
+  try
+    //Box := TBoxNode.CreateShape(Shape);
+    Box := TBoxNode.Create;
+    Shape := TShapeNode.Create;
+    Shape.Geometry := Box;
+    Root := TX3DRootNode.Create;
+    Root.AddChildren(Shape);
+    Scene := TCastleSceneCore.Create(World);
+    Scene.Load(Root, true);
+
+    T := TCastleTransform.Create(World);
+    T.Add(Scene);
+
+    World.Add(T);
+
+    AssertBox('Base', T, Box3D(Vector3(-1, -1, -1), Vector3(1, 1, 1)));
+
+    T.Translation := Vector3(10, 20, 30);
+    T.Scale := Vector3(1, 1, 1); // default
+    Scene.Translation := Vector3(0, 0, 0); // default
+    Scene.Scale := Vector3(1, 1, 1); // default
+    AssertBox('T.Translation', T, Box3D(Vector3(10-1, 20-1, 30-1), Vector3(10+1, 20+1, 30+1)));
+
+    T.Translation := Vector3(10, 20, 30);
+    T.Scale := Vector3(1, 1, 1); // default
+    Scene.Translation := Vector3(100, 200, 300);
+    Scene.Scale := Vector3(1, 1, 1); // default
+    AssertBox('T.Translation + Scene.Translation', T, Box3D(Vector3(110-1, 220-1, 330-1), Vector3(110+1, 220+1, 330+1)));
+
+    T.Translation := Vector3(0, 0, 0); // default
+    T.Scale := Vector3(1, 1, 1); // default
+    Scene.Translation := Vector3(100, 200, 300);
+    Scene.Scale := Vector3(1, 1, 1); // default
+    AssertBox('Scene.Translation', T, Box3D(Vector3(100-1, 200-1, 300-1), Vector3(100+1, 200+1, 300+1)));
+
+    T.Translation := Vector3(10, 20, 30);
+    T.Scale := Vector3(0.5, 2.0, 4.0);
+    Scene.Translation := Vector3(0, 0, 0); // default
+    Scene.Scale := Vector3(1, 1, 1); // default
+    AssertBox('T.Translation+Scale', T, Box3D(Vector3(10-0.5, 20-2, 30-4), Vector3(10+0.5, 20+2, 30+4)));
+
+    T.Translation := Vector3(10, 20, 30);
+    T.Scale := Vector3(0.5, 0.5, 0.5);
+    Scene.Translation := Vector3(100, 200, 300); // default
+    Scene.Scale := Vector3(1, 1, 1); // default
+    AssertBox('T.Translation+Scale + Scene.Translation', T, Box3D(Vector3(50+10-0.5, 100+20-0.5, 150+30-0.5), Vector3(50+10+0.5, 100+20+0.5, 150+30+0.5)));
+
+    T.Translation := Vector3(10, 20, 30);
+    T.Scale := Vector3(0.5, 0.5, 0.5);
+    Scene.Translation := Vector3(100, 200, 300); // default
+    Scene.Scale := Vector3(4, 4, 4);
+    AssertBox('T.Translation+Scale + Scene.Translation+Scale', T, Box3D(Vector3(50+10-2, 100+20-2, 150+30-2), Vector3(50+10+2, 100+20+2, 150+30+2)));
+  finally FreeAndNil(World) end;
 end;
 
 initialization

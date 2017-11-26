@@ -452,6 +452,34 @@ type
     function RayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
 
+    function LocalHeightCollision(const APosition, GravityUp: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
+    function LocalMoveCollision(
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+    function LocalMoveCollision(
+      const OldPos, NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+    function LocalSegmentCollision(const Pos1, Pos2: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const ALineOfSight: boolean): boolean; virtual; abstract;
+    function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+    function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails = nil): boolean; virtual; abstract;
+    function LocalPointCollision2D(const Point: TVector2;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+    function LocalBoxCollision(const Box: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual; abstract;
+    function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual; abstract;
+
     { Render with given Params (includes a full transformation of this scene). }
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); virtual;
 
@@ -1092,32 +1120,33 @@ type
     procedure RemoveFromWorld(const Value: T3DWorld); override;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const APosition, GravityUp: TVector3;
+
+    function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveCollision(
+    function LocalMoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveCollision(
+    function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3;
+    function LocalSegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3; const Radius: Single;
+    function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
+    function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; override;
-    function PointCollision2D(const Point: TVector2;
+    function LocalPointCollision2D(const Point: TVector2;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3D;
+    function LocalBoxCollision(const Box: TBox3D;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3;
+    function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure LocalRenderShadowVolume(
@@ -1814,6 +1843,7 @@ type
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
+    function WorldBoxCollision(const Box: TBox3D): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
@@ -3208,6 +3238,11 @@ end;
 function T3DWorld.GravityCoordinate: Integer;
 begin
   Result := MaxAbsVectorCoord(GravityUp);
+end;
+
+function T3DWorld.WorldBoxCollision(const Box: TBox3D): boolean;
+begin
+  Result := BoxCollision(Box, nil);
 end;
 
 function T3DWorld.WorldSphereCollision(const Pos: TVector3;

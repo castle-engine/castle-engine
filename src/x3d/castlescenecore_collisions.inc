@@ -17,7 +17,7 @@
 
 { TCastleSceneCore ----------------------------------------------------------- }
 
-function TCastleSceneCore.HeightCollision(const APosition, GravityUp: TVector3;
+function TCastleSceneCore.LocalHeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 var
@@ -28,7 +28,7 @@ var
 begin
   if GetCollides then
   begin
-    Result := inherited HeightCollision(APosition, GravityUp,
+    Result := inherited LocalHeightCollision(APosition, GravityUp,
       TrianglesToIgnoreFunc, AboveHeight, AboveGround);
 
     if UseInternalOctreeCollisions then
@@ -37,7 +37,7 @@ begin
         NewAboveHeight, PTriangle(NewAboveGround), nil, TrianglesToIgnoreFunc);
     end else
     begin
-      { collide with BoundingBox }
+      { collide with LocalBoundingBox }
       { Using TryRayEntrance here would also be sensible, but sometimes too eager:
         In case creature walks over an item, it would cause the item to go upward
         (because the creature is collidable (item is not), so item's gravity
@@ -45,7 +45,7 @@ begin
         climb on top of each other.
         It may be changed in the future back into TryRayEntrance? Item problems
         could be solved by using GrowSpeed = 0 for items. }
-      NewResult := BoundingBox.TryRayClosestIntersection(BoxIntersection, NewAboveHeight, APosition, -GravityUp);
+      NewResult := LocalBoundingBox.TryRayClosestIntersection(BoxIntersection, NewAboveHeight, APosition, -GravityUp);
       NewAboveGround := nil;
     end;
 
@@ -63,7 +63,7 @@ begin
   end;
 end;
 
-function TCastleSceneCore.BoundingVolumeMoveCollision(
+function TCastleSceneCore.LocalBoundingVolumeMoveCollision(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D): boolean;
@@ -100,7 +100,7 @@ begin
 
   Result := true;
 
-  MyBox := BoundingBox;
+  MyBox := LocalBoundingBox;
 
   if IsRadius then
   begin
@@ -120,7 +120,7 @@ begin
 
       There is a weakness in collision checking with dynamic objects,
       like creatures, because when LifeTime changes then effectively
-      BoundingBox changes, and there is no way how I can prevent collisions
+      LocalBoundingBox changes, and there is no way how I can prevent collisions
       from occuring (we cannot stop/reverse an arbitrary animation,
       this would look bad and require AI preparations, see @link(Sphere) comments).
 
@@ -141,24 +141,25 @@ begin
     Exit(false);
 
 { Simpler implementation that doesn't allow others to become "unstuck".
-  It's also slightly less optimal, as internally BoundingBox and GetCollides
+  It's also slightly less optimal, as internally LocalBoundingBox and GetCollides
   will be calculated many times (although they should be lighting-fast,
   still their time matters, as this is the basis of our AI and may be called
   many times per frame).
   OTOH, this simpler version is a little cleaner: it delegates work
-  to other methods, they may use BoundingBox or something else.
+  to other methods, they may use LocalBoundingBox or something else.
 
   if IsRadius then
     Result := not ( GetCollides and
-      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
-        SphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) ) else
+      ( LocalSegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
+        LocalSphereCollision(ProposedNewPos, Radius, TrianglesToIgnoreFunc) ) )
+  else
     Result := not ( GetCollides and
-      ( SegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
-        BoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
+      ( LocalSegmentCollision(OldPos, ProposedNewPos, TrianglesToIgnoreFunc, false) or
+        LocalBoxCollision(NewBox, TrianglesToIgnoreFunc) ) );
 }
 end;
 
-function TCastleSceneCore.MoveCollision(
+function TCastleSceneCore.LocalMoveCollision(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -176,18 +177,18 @@ begin
     end else
     begin
       { no wall-sliding with bounding volume }
-      Result := BoundingVolumeMoveCollision(OldPos, ProposedNewPos,
+      Result := LocalBoundingVolumeMoveCollision(OldPos, ProposedNewPos,
         IsRadius, Radius, OldBox, NewBox);
     end;
     if not Result then Exit;
 
     { no wall-sliding in inherited }
-    Result := inherited MoveCollision(OldPos, ProposedNewPos,
+    Result := inherited LocalMoveCollision(OldPos, ProposedNewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
   end;
 end;
 
-function TCastleSceneCore.MoveCollision(
+function TCastleSceneCore.LocalMoveCollision(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -203,17 +204,17 @@ begin
         IsRadius, Radius, OldBox, NewBox, nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := BoundingVolumeMoveCollision(OldPos, NewPos,
+      Result := LocalBoundingVolumeMoveCollision(OldPos, NewPos,
         IsRadius, Radius, OldBox, NewBox);
     end;
     if not Result then Exit;
 
-    Result := inherited MoveCollision(OldPos, NewPos,
+    Result := inherited LocalMoveCollision(OldPos, NewPos,
       IsRadius, Radius, OldBox, NewBox, TrianglesToIgnoreFunc);
   end;
 end;
 
-function TCastleSceneCore.SegmentCollision(const Pos1, Pos2: TVector3;
+function TCastleSceneCore.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -227,15 +228,15 @@ begin
         Pos1, Pos2, nil, false, TrianglesToIgnoreFunc)
     end else
     begin
-      Result := BoundingBox.SegmentCollision(Pos1, Pos2);
+      Result := LocalBoundingBox.SegmentCollision(Pos1, Pos2);
     end;
     if Result then Exit;
 
-    Result := inherited SegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
+    Result := inherited LocalSegmentCollision(Pos1, Pos2, TrianglesToIgnoreFunc, ALineOfSight);
   end;
 end;
 
-function TCastleSceneCore.SphereCollision(
+function TCastleSceneCore.LocalSphereCollision(
   const Pos: TVector3; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
@@ -249,15 +250,15 @@ begin
         Pos, Radius, nil, TrianglesToIgnoreFunc)
     end else
     begin
-      Result := BoundingBox.SphereCollision(Pos, Radius);
+      Result := LocalBoundingBox.SphereCollision(Pos, Radius);
     end;
     if Result then Exit;
 
-    Result := inherited SphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
+    Result := inherited LocalSphereCollision(Pos, Radius, TrianglesToIgnoreFunc);
   end;
 end;
 
-function TCastleSceneCore.SphereCollision2D(
+function TCastleSceneCore.LocalSphereCollision2D(
   const Pos: TVector2; const Radius: Single;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
@@ -272,7 +273,7 @@ begin
         Pos, Radius, nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := BoundingBox.SphereCollision2D(Pos, Radius);
+      Result := LocalBoundingBox.SphereCollision2D(Pos, Radius);
     end;
 
     if Result then
@@ -285,11 +286,11 @@ begin
       Exit;
     end;
 
-    Result := inherited SphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
+    Result := inherited LocalSphereCollision2D(Pos, Radius, TrianglesToIgnoreFunc, Details);
   end;
 end;
 
-function TCastleSceneCore.PointCollision2D(const Point: TVector2;
+function TCastleSceneCore.LocalPointCollision2D(const Point: TVector2;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := false;
@@ -302,15 +303,15 @@ begin
         Point, nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := BoundingBox.Contains2D(Point);
+      Result := LocalBoundingBox.Contains2D(Point);
     end;
     if Result then Exit;
 
-    Result := inherited PointCollision2D(Point, TrianglesToIgnoreFunc);
+    Result := inherited LocalPointCollision2D(Point, TrianglesToIgnoreFunc);
   end;
 end;
 
-function TCastleSceneCore.BoxCollision(const Box: TBox3D;
+function TCastleSceneCore.LocalBoxCollision(const Box: TBox3D;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 begin
   Result := false;
@@ -323,15 +324,15 @@ begin
         Box,  nil, TrianglesToIgnoreFunc);
     end else
     begin
-      Result := BoundingBox.Collision(Box);
+      Result := LocalBoundingBox.Collision(Box);
     end;
     if Result then Exit;
 
-    Result := inherited BoxCollision(Box, TrianglesToIgnoreFunc);
+    Result := inherited LocalBoxCollision(Box, TrianglesToIgnoreFunc);
   end;
 end;
 
-function TCastleSceneCore.RayCollision(const RayOrigin, RayDirection: TVector3;
+function TCastleSceneCore.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
 var
   Triangle: PTriangle;
@@ -364,7 +365,7 @@ begin
       end;
     end else
     begin
-      if BoundingBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
+      if LocalBoundingBox.TryRayEntrance(Intersection, IntersectionDistance, RayOrigin, RayDirection) then
       begin
         Result := TRayCollision.Create;
         Result.Distance := IntersectionDistance;
@@ -380,7 +381,7 @@ begin
       end;
     end;
 
-    NewResult := inherited RayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
+    NewResult := inherited LocalRayCollision(RayOrigin, RayDirection, TrianglesToIgnoreFunc);
     if NewResult <> nil then
     begin
       if (Result = nil) or (NewResult.Distance < Result.Distance) then
