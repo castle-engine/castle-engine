@@ -65,7 +65,6 @@ procedure ApplicationInitialize;
 
 var
   Scene1, Scene2: TCastleScene;
-  Transform2: TCastleTransform;
 begin
   Scene1 := TCastleScene.Create(Application);
   Scene1.Load(ApplicationData('steep_parallax.x3dv'));
@@ -77,18 +76,12 @@ begin
   SceneVisualizeLight.Load(CreateSphereModel, true);
   Window.SceneManager.Items.Add(SceneVisualizeLight);
 
-  // TODO: Transform2 should not be necessary, Scene2.Translation should work OK
-  Transform2 := TCastleTransform.Create(Application);
-  Transform2.Translation := Vector3(0, 2.1, 0);
-  Window.SceneManager.Items.Add(Transform2);
-
   Scene2 := TCastleScene.Create(Application);
   Scene2.Load(ApplicationData('leaf.x3dv'));
   Scene2.Spatial := [ssRendering, ssDynamicCollisions];
   Scene2.ProcessEvents := true;
-  // Scene2.Translation := Vector3(0, 2, 0);
-  // Window.SceneManager.Items.Add(Scene2);
-  Transform2.Add(Scene2);
+  Scene2.Translation := Vector3(0, 2, 0);
+  Window.SceneManager.Items.Add(Scene2);
 
   // make MainLight on Scene1 affect all scenes, Scene1 and Scene2
   Window.SceneManager.MainScene := Scene1;

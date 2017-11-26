@@ -32,7 +32,7 @@ uses SysUtils, Classes, Generics.Collections, Contnrs, Kraft,
 type
   { Internal helper type for TCastleSceneCore.
     @exclude }
-  TSceneValidity = (fvBoundingBox,
+  TSceneValidity = (fvLocalBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver,
     fvMainLightForShadows,
@@ -405,35 +405,36 @@ type
     Almost everything visible in your game will be an instance of
     @link(TCastleScene), which is a descendant of this class that adds rendering
     capabilities.
-    This provides a lot of functionality, like loading of the scene
+
+    This class provides a lot of functionality, like loading of the scene
     (@link(Load) method), animating it, performing collisions with the scene,
-    calculating things (like @link(BoundingBox)).
+    and calculating things (like @link(LocalBoundingBox)).
 
-    The @link(Shapes) tree provides a simple processed scene information,
-    alternative to traversing the complicated VRML/X3D nodes graph.
-    The basic idea is to have at the same time full VRML/X3D graph
-    of the scene (in @link(RootNode)) and a simple view of the same scene
-    (in @link(Shapes)).
+    The actual scene information (visible and collidable things) is inside
+    X3D nodes graph contained within the @link(RootNode).
+    During the lifetime of the scene, this X3D graph can change
+    (e.g. because of animations), and you can always change it by code
+    too. E.g. you can freely change @link(TTransformNode.Translation)
+    or add children by @link(TX3DRootNode.AddChildren).
+    The X3D nodes graph works like a DOM tree for rendering HTML documents:
+    it's typically initialized from a file (3D model), but during
+    the game execution it is dynamic, always changing.
 
-    VRML/X3D scene also takes care of initiating and managing VRML/X3D events
-    and routes mechanism (see ProcessEvents).
+    This class takes care of performing the X3D events
+    and routes mechanism (if @link(ProcessEvents) is @true).
+    This is what allows X3D graph to be animated, or even be interactive
+    (respond to user actions).
+    For a simple way to play animations, use the @link(PlayAnimation) method.
 
-    The actual VRML/X3D nodes graph is stored in the RootNode property.
-    If you directly change the fields/nodes within the RootNode
-    (changing them through the @code(FdXxx) properties of nodes,
-    instead of nice wrappers without the @code(Fd...) prefix)
-    then the scene must be notified about this.
-    The simplest way to do this is to use only @link(TX3DField.Send) to change
-    the fields' values. Or you can call @link(TX3DField.Changed) after each change.
-    If you will have to call @link(ChangedAll) method of this class,
-    to rebuild everything (which is quite expensive).
+    This class maintains a @link(Shapes) tree is
+    always synchronized with the X3D nodes tree in @link(RootNode).
+    The @link(Shapes) tree provides a little simple view at the scene,
+    sometimes easier (or faster) to iterate over.
 
-    For more-or-less static scenes,
-    many things are cached and work very quickly.
-    E.g. methods BoundingBox, VerticesCount, TrianglesCount, @link(Shapes)
-    cache their results so after the first call to @link(TrianglesCount)
-    next calls to the same method will return instantly (assuming
-    that scene did not change much). }
+    Many results are cached, so querying them multiple times is fast,
+    if the scene does not change (in a significant way) between each query.
+    So you can query information like @link(LocalBoundingBox),
+    @link(BoundingBox), @link(VerticesCount)... as often as you want to. }
   TCastleSceneCore = class(TX3DEventsEngine)
   private
     FOwnsRootNode: boolean;
@@ -514,10 +515,10 @@ type
 
     FGlobalLights: TLightInstancesList;
 
-    FBoundingBox: TBox3D;
+    FLocalBoundingBox: TBox3D;
     FVerticesCount, FTrianglesCount: array [boolean] of Cardinal;
     Validities: TSceneValidities;
-    function CalculateBoundingBox: TBox3D;
+    function CalculateLocalBoundingBox: TBox3D;
     function CalculateVerticesCount(OverTriangulate: boolean): Cardinal;
     function CalculateTrianglesCount(OverTriangulate: boolean): Cardinal;
   private
@@ -616,7 +617,7 @@ type
       const OP: TSceneOctreeProperties): TOctreeLimits;
 
     { Create octree containing all triangles or shapes from our scene.
-      Create octree, inits it with our BoundingBox
+      Create octree, inits it with our LocalBoundingBox
       and adds shapes (or all triangles from our Shapes).
 
       Triangles are generated using calls like
@@ -831,7 +832,7 @@ type
       Note: in the future, we could replace this by just Enable/Disable
       feature on T3D. But it's not so trivial now, as Enable/Disable
       makes even *too much* things non-existing, e.g. GetCollides
-      may return false, BoundingBox may be empty etc.
+      may return false, LocalBoundingBox may be empty etc.
 
       @exclude }
     InternalDirty: Cardinal;
@@ -1551,9 +1552,11 @@ type
       )
 
       Box is the expected bounding box of the whole 3D scene.
-      Usually, it should be just Scene.BoundingBox, but it may be something
-      larger, if this scene is part of a larger world. }
-    procedure CameraFromNavigationInfo(Camera: TCamera; const Box: TBox3D);
+      Usually, it should be SceneManager.Items.BoundingBox.
+      In simple cases (if this scene is the only TCastleScene instance
+      in your world, and it's not transformed) it may be equal to just
+      @link(BoundingBox) of this scene. }
+    procedure CameraFromNavigationInfo(Camera: TCamera; const WorldBox: TBox3D);
 
     { Update camera to the currently bound VRML/X3D viewpoint.
       When no viewpoint is currently bound, we will go to a suitable
@@ -2635,7 +2638,7 @@ begin
   Result := FShapesActiveVisibleCount;
 end;
 
-function TCastleSceneCore.CalculateBoundingBox: TBox3D;
+function TCastleSceneCore.CalculateLocalBoundingBox: TBox3D;
 var
   SI: TShapeTreeIterator;
 begin
@@ -2675,12 +2678,12 @@ function TCastleSceneCore.LocalBoundingBox: TBox3D;
 begin
   if GetExists then
   begin
-    if not (fvBoundingBox in Validities) then
+    if not (fvLocalBoundingBox in Validities) then
     begin
-      FBoundingBox := CalculateBoundingBox;
-      Include(Validities, fvBoundingBox);
+      FLocalBoundingBox := CalculateLocalBoundingBox;
+      Include(Validities, fvLocalBoundingBox);
     end;
-    Result := FBoundingBox;
+    Result := FLocalBoundingBox;
   end else
     Result := TBox3D.Empty;
 
@@ -3988,7 +3991,7 @@ var
       actually does most of this work, it invalidates already most
       of the needed things when ScheduledGeometryActiveShapesChanged:
 
-      fvBoundingBox,
+      fvLocalBoundingBox,
       fvVerticesCountNotOver, fvVerticesCountOver,
       fvTrianglesCountNotOver, fvTrianglesCountOver,
     }
@@ -4410,7 +4413,7 @@ procedure TCastleSceneCore.DoGeometryChanged(const Change: TGeometryChange;
 var
   SomeLocalGeometryChanged: boolean;
 begin
-  Validities := Validities - [fvBoundingBox,
+  Validities := Validities - [fvLocalBoundingBox,
     fvVerticesCountNotOver, fvVerticesCountOver,
     fvTrianglesCountNotOver, fvTrianglesCountOver];
 
@@ -4780,7 +4783,7 @@ begin
   Inc(InternalDirty);
   try
 
-  Result := TTriangleOctree.Create(Limits, BoundingBox);
+  Result := TTriangleOctree.Create(Limits, LocalBoundingBox);
   try
     Result.Triangles.Capacity := TrianglesCount(false);
     if (ProgressTitle <> '') and
@@ -4823,7 +4826,7 @@ begin
     { Add only active and visible shapes }
     ShapesList := TShapeList.Create(Shapes, true, true, false);
 
-  Result := TShapeOctree.Create(Limits, BoundingBox, ShapesList, true);
+  Result := TShapeOctree.Create(Limits, LocalBoundingBox, ShapesList, true);
   try
     if (ProgressTitle <> '') and
        (Progress.UserInterface <> nil) and
@@ -6085,7 +6088,7 @@ begin
 end;
 
 procedure TCastleSceneCore.CameraFromNavigationInfo(
-  Camera: TCamera; const Box: TBox3D);
+  Camera: TCamera; const WorldBox: TBox3D);
 var
   NavigationNode: TNavigationInfoNode;
   Radius: Single;
@@ -6100,7 +6103,7 @@ begin
   { if avatarSize doesn't specify Radius, or specifies invalid <= 0,
     calculate something suitable based on Box. }
   if Radius <= 0 then
-    Radius := Box.AverageSize(false, 1.0) * 0.005;
+    Radius := WorldBox.AverageSize(false, 1.0) * 0.005;
   Camera.Radius := Radius;
 
   { Note that we cannot here conditionally set some properties
@@ -6151,7 +6154,7 @@ begin
     { This is OK, also for NavigationNode.FdSpeed.Value = 0 case. }
     Camera.MoveSpeed := NavigationNode.FdSpeed.Value;
 
-  Camera.ModelBox := Box;
+  Camera.ModelBox := WorldBox;
 
   { No point in calling TWalkCamera.Init or TExamineCamera.Init here:
     this method, together with CameraFromViewpoint
@@ -6441,7 +6444,7 @@ begin
   inherited;
 
   if prBoundingBox in Options then
-    BoundingBox { ignore the result };
+    LocalBoundingBox { ignore the result };
 
   if prShadowVolume in Options then
     PrepareShadowVolumes;

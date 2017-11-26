@@ -102,6 +102,8 @@ type
 
   TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes) of object;
 
+  { Rendering attributes,
+    available for every scene through @link(TCastleScene.Attributes). }
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
@@ -411,7 +413,7 @@ type
   end;
 
   { Complete loading, processing and rendering of a scene.
-    This is a descendant of TCastleSceneCore that adds efficient rendering. }
+    This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
   private
     Renderer: TGLRenderer;
@@ -567,7 +569,7 @@ type
       algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
       is necessary at all.
       It will calculate current bounding box (looking at ParentTransform,
-      ParentTransformIsIdentity and BoundingBox method).
+      ParentTransformIsIdentity and LocalBoundingBox method).
 
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
@@ -1689,7 +1691,7 @@ begin
     ForceOpaque := not (Attributes.Blending and (Attributes.Mode = rmFull));
 
     { calculate and check SceneBox }
-    SceneBox := BoundingBox;
+    SceneBox := LocalBoundingBox;
     if not ParentTransformIsIdentity then
       SceneBox := SceneBox.Transform(ParentTransform);
     SVRenderer.InitCaster(SceneBox);
