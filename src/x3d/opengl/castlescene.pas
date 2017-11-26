@@ -409,7 +409,7 @@ type
     FBaseLights: TLightInstancesList;
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: T3D): TLightInstancesList; override;
+    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
   end;
 
   { Complete loading, processing and rendering of a scene.
@@ -865,7 +865,7 @@ begin
   inherited;
 end;
 
-function TBasicRenderParams.BaseLights(Scene: T3D): TLightInstancesList;
+function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
 begin
   Result := FBaseLights;
 end;

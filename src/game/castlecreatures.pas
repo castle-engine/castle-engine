@@ -883,7 +883,7 @@ type
 
     FDebug3DAlternativeTargetAxis: TDebugAxis;
     FDebug3DLastSensedEnemyAxis: TDebugAxis;
-    CurrentChild: T3D;
+    CurrentChild: TCastleTransform;
   protected
     { Last known information about enemy. }
     HasLastSensedEnemy: boolean;
@@ -946,7 +946,7 @@ type
   private
     LastSoundIdleTime: Single;
     ForceRemoveDead: boolean;
-    CurrentChild: T3D;
+    CurrentChild: TCastleTransform;
     procedure HitCore;
     procedure HitPlayer;
     procedure HitCreature(Creature: TCreature);
@@ -959,7 +959,7 @@ type
   { Creature using TStillCreatureResource. }
   TStillCreature = class(TCreature)
   private
-    CurrentChild: T3D;
+    CurrentChild: TCastleTransform;
   public
     function Resource: TStillCreatureResource;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -1716,7 +1716,7 @@ procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: 
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then
@@ -2562,7 +2562,7 @@ procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRe
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then
@@ -2731,7 +2731,7 @@ procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemo
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then

@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleVectors, X3DNodes, X3DTriangles, CastleScene, CastleSceneCore, CastleCameras,
-  CastleGLShadowVolumes, CastleUIControls, Castle3D, CastleTriangles,
+  CastleGLShadowVolumes, CastleUIControls, CastleTransform, CastleTriangles,
   CastleKeysMouse, CastleBoxes, CastleBackground, CastleUtils, CastleClassUtils,
   CastleGLShaders, CastleGLImages, CastleTimeUtils, CastleSectors,
   CastleInputs, CastlePlayer, CastleRectangles, CastleColors,
@@ -44,12 +44,12 @@ type
     @exclude. }
   TManagerRenderParams = class(TRenderParams)
   private
-    MainScene: T3D;
+    MainScene: TCastleTransform;
     FBaseLights: array [boolean { is main scene }] of TLightInstancesList;
   public
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: T3D): TAbstractLightInstancesList; override;
+    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; override;
   end;
 
   { Event for TCastleSceneManager.OnMoveAllowed. }
@@ -170,7 +170,7 @@ type
       If you want to display something 3D during rendering,
       this is the simplest method to override. (Or you can use OnRender3D
       event, which is called at the end of this method.)
-      Alternatively, you can create new T3D descendant and add it
+      Alternatively, you can create new TCastleTransform descendant and add it
       to the @link(GetItems) list.
 
       @param(Params Parameters specify what lights should be used
@@ -691,9 +691,9 @@ type
     { Help user to activate pointing device sensors and pick items.
       Every time you press or release Input_Interact (by default
       just left mouse button), we look if current mouse position hits 3D object
-      that actually does something on activation. 3D objects may do various stuff
-      inside T3D.PointingDeviceActivate, generally this causes various
-      picking/interaction with the 3D object (like pulling a level, opening a door),
+      that actually does something on activation. The objects may do various stuff
+      inside TCastleTransform.PointingDeviceActivate, generally this causes various
+      picking/interaction with the object (like pulling a level, opening a door),
       possibly dragging, possibly with the help of VRML/X3D pointing device
       and drag sensors.
 
@@ -763,11 +763,10 @@ type
     taking care of doing multiple rendering passes for particular features.
     Naturally, it also serves as container for all your visible 3D scenes.
 
-    @link(Items) property keeps a tree of T3D objects.
-    All our 3D objects, like TCastleScene descend from
-    T3D, and you can add them to the scene manager.
-    And naturally you can implement your own T3D descendants,
-    representing any 3D (possibly dynamic, animated and even interactive) object.
+    @link(Items) property keeps a tree of TCastleTransform objects.
+    TCastleTransform and TCastleScene can be added to this tree.
+    Naturally you can implement your own TCastleTransform descendants,
+    representing any (possibly dynamic, animated and even interactive) object.
 
     TCastleSceneManager.Render can assume that it's the @italic(only) manager rendering
     to the screen (although you can safely render more 3D geometry *after*
@@ -785,7 +784,7 @@ type
 
     This is a TUIControl descendant, which means it's advised usage
     is to add this to TCastleWindowCustom.Controls or TCastleControlCustom.Controls.
-    This passes relevant TUIControl events to all the T3D objects inside.
+    This passes relevant TUIControl events to all the TCastleTransform objects inside.
     Note that even when you set DefaultViewport = @false
     (and use custom viewports, by TCastleViewport class, to render your 3D world),
     you still should add scene manager to the controls list
@@ -826,7 +825,7 @@ type
     procedure SetMainScene(const Value: TCastleScene);
     procedure SetDefaultViewport(const Value: boolean);
 
-    procedure ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
+    procedure ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 
     { scene callbacks }
     procedure SceneBoundViewpointChanged(Scene: TCastleSceneCore);
@@ -834,7 +833,7 @@ type
     procedure SceneBoundNavigationInfoChanged(Scene: TCastleSceneCore);
 
     procedure SetMouseRayHit(const Value: TRayCollision);
-    function MouseRayHitContains(const Item: T3D): boolean;
+    function MouseRayHitContains(const Item: TCastleTransform): boolean;
     procedure SetPlayer(const Value: TPlayer);
     procedure SetNavigationType(const Value: TNavigationType); override;
   protected
@@ -876,10 +875,10 @@ type
     procedure PointingDeviceActivateFailed(const Active: boolean); virtual;
 
     { Handle pointing device (mouse) activation/deactivation event over a given 3D
-      object. See T3D.PointingDeviceActivate method for description how it
+      object. See TCastleTransform.PointingDeviceActivate method for description how it
       should be handled. Default implementation in TCastleSceneManager
-      just calls T3D.PointingDeviceActivate. }
-    function PointingDeviceActivate3D(const Item: T3D; const Active: boolean;
+      just calls TCastleTransform.PointingDeviceActivate. }
+    function PointingDeviceActivate3D(const Item: TCastleTransform; const Active: boolean;
       const Distance: Single): boolean; virtual;
 
     { Handle OnMoveAllowed and default MoveLimit algorithm.
@@ -906,7 +905,7 @@ type
       execute fast.
       If DisplayProgressTitle <> '', we will display progress bar during loading. }
     procedure PrepareResources(const DisplayProgressTitle: string = '');
-    procedure PrepareResources(const Item: T3D;
+    procedure PrepareResources(const Item: TCastleTransform;
       const DisplayProgressTitle: string = ''); virtual;
 
     procedure BeforeRender; override;
@@ -1010,10 +1009,7 @@ type
 
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
-      You may also set your main TCastleScene (if you have any) as MainScene.
-
-      T3DList is also T3D instance, so yes --- this may be a tree
-      of T3D, not only a flat list. }
+      You may also set your main TCastleScene (if you have any) as MainScene. }
     property Items: T3DWorld read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
@@ -1111,7 +1107,7 @@ type
     property Player: TPlayer read FPlayer write SetPlayer;
 
     (*Enable or disable movement of the player, items and creatures.
-      This applies to all 3D objects using T3D.WorldMoveAllowed for movement.
+      This applies to all 3D objects using TCastleTransform.WorldMoveAllowed for movement.
       In case of 1st-person view (always for now),
       limiting the player position also implies limiting the camera position.
 
@@ -1295,7 +1291,7 @@ begin
   inherited;
 end;
 
-function TManagerRenderParams.BaseLights(Scene: T3D): TAbstractLightInstancesList;
+function TManagerRenderParams.BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList;
 begin
   Result := FBaseLights[(Scene = MainScene) or Scene.ExcludeFromGlobalLights];
 end;
@@ -1526,7 +1522,7 @@ end;
 
 function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
 
-  function IsTouchSensorActiveInScene(const Scene: T3D): boolean;
+  function IsTouchSensorActiveInScene(const Scene: TCastleTransform): boolean;
   var
     ActiveSensorsList: TX3DNodeList;
     I: Integer;
@@ -1544,7 +1540,7 @@ function TCastleAbstractViewport.Motion(const Event: TInputMotion): boolean;
 
 var
   RayOrigin, RayDirection: TVector3;
-  TopMostScene: T3D;
+  TopMostScene: TCastleTransform;
 begin
   Result := inherited;
   if (not Result) and (not Paused) and GetExists and (Camera <> nil) then
@@ -1602,7 +1598,8 @@ end;
 
 procedure TCastleAbstractViewport.RecalculateCursor(Sender: TObject);
 begin
-  if { This may be called from T3DListCore.Notify when removing stuff owned by other
+  if { This may be called from
+       TCastleTransformList.Notify when removing stuff owned by other
        stuff, in particular during our own destructor when FItems is freed
        and we're in half-destructed state. }
      (csDestroying in GetItems.ComponentState) or
@@ -2783,7 +2780,7 @@ type
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3; override;
-    function Player: T3DAlive; override;
+    function Player: TCastleTransform; override;
     function BaseLights: TAbstractLightInstancesList; override;
     function Sectors: TSectorList; override;
     function Water: TBox3D; override;
@@ -2821,7 +2818,7 @@ begin
   Result := Owner.GravityUp;
 end;
 
-function T3DWorldConcrete.Player: T3DAlive;
+function T3DWorldConcrete.Player: TCastleTransform;
 begin
   Result := Owner.Player;
 end;
@@ -2950,7 +2947,7 @@ begin
   inherited;
 end;
 
-procedure TCastleSceneManager.ItemsVisibleChange(const Sender: T3D; const Changes: TVisibleChanges);
+procedure TCastleSceneManager.ItemsVisibleChange(const Sender: TCastleTransform; const Changes: TVisibleChanges);
 begin
   { merely schedule broadcasting this change to a later time.
     This way e.g. animating a lot of transformations doesn't cause a lot of
@@ -2984,7 +2981,7 @@ begin
   inherited;
 end;
 
-function TCastleSceneManager.MouseRayHitContains(const Item: T3D): boolean;
+function TCastleSceneManager.MouseRayHitContains(const Item: TCastleTransform): boolean;
 begin
   Result := (MouseRayHit <> nil) and
             (MouseRayHit.IndexOfItem(Item) <> -1);
@@ -3025,7 +3022,7 @@ begin
         as soon as ProcessEvents becomes true).
 
         TODO: actually, we should call CameraChanged on all newly added
-        T3D to Items. This would fix the problem of 1st frame not using BlendingSort
+        TCastleTransform to Items. This would fix the problem of 1st frame not using BlendingSort
         for non-MainScene scenes, as in trees_blending/CW_demo.lpr testcase
         from Eugene.
       }
@@ -3134,7 +3131,8 @@ begin
     if AComponent = FMainScene then
       MainScene := nil;
 
-    if (AComponent is T3D) and MouseRayHitContains(T3D(AComponent)) then
+    if (AComponent is TCastleTransform) and
+       MouseRayHitContains(TCastleTransform(AComponent)) then
     begin
       { MouseRayHit cannot be used in subsequent RecalculateCursor. }
       SetMouseRayHit(nil);
@@ -3145,7 +3143,7 @@ begin
   end;
 end;
 
-procedure TCastleSceneManager.PrepareResources(const Item: T3D;
+procedure TCastleSceneManager.PrepareResources(const Item: TCastleTransform;
   const DisplayProgressTitle: string);
 var
   Options: TPrepareResourcesOptions;
@@ -3256,7 +3254,7 @@ function TCastleSceneManager.PointingDeviceActivate(const Active: boolean): bool
     PassToMainScene: boolean;
     I: Integer;
   begin
-    { call T3D.PointingDeviceActivate on everything, calculate Result }
+    { call TCastleTransform.PointingDeviceActivate on everything, calculate Result }
     Result := false;
     PassToMainScene := true;
 
@@ -3342,7 +3340,7 @@ begin
     PointingDeviceActivateFailed(Active);
 end;
 
-function TCastleSceneManager.PointingDeviceActivate3D(const Item: T3D;
+function TCastleSceneManager.PointingDeviceActivate3D(const Item: TCastleTransform;
   const Active: boolean; const Distance: Single): boolean;
 begin
   Result := Item.PointingDeviceActivate(Active, Distance);
@@ -3366,7 +3364,7 @@ begin
     to get correct MouseRayHit.Distance. }
   SetMouseRayHit(CameraRayCollision(RayOrigin, RayDirection));
 
-  { call T3D.PointingDeviceMove on everything, calculate Result }
+  { call TCastleTransform.PointingDeviceMove on everything, calculate Result }
   Result := false;
   PassToMainScene := true;
 
@@ -3417,7 +3415,7 @@ procedure TCastleSceneManager.Update(const SecondsPassed: Single;
 
       { pass visible change notification "upward" (as a TUIControl, to container) }
       VisibleChange;
-      { pass visible change notification "downward", to all children T3D }
+      { pass visible change notification "downward", to all children TCastleTransform }
       Items.VisibleChangeNotification(Changes);
     end;
   end;
@@ -3480,7 +3478,7 @@ begin
     Result := Items.WorldMoveAllowed(ACamera.Position, ProposedNewPos, NewPos,
       true, ACamera.Radius,
       { We prefer to resolve collisions with camera using sphere.
-        But for T3D implementations that can't use sphere, we can construct box. }
+        But for TCastleTransform implementations that can't use sphere, we can construct box. }
       Box3DAroundPoint(ACamera.Position, ACamera.Radius * 2),
       Box3DAroundPoint(ProposedNewPos, ACamera.Radius * 2), BecauseOfGravity);
 end;

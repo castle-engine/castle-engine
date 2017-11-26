@@ -70,7 +70,7 @@ type
         Owner must be TPlayer. }
       TBox = class(TCastleTransform)
       public
-        function BoundingBox: TBox3D; override;
+        function LocalBoundingBox: TBox3D; override;
       end;
 
     var
@@ -173,9 +173,13 @@ type
   protected
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const APosition, GravityUp: TVector3;
+    function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+    function LocalSegmentCollision(const Pos1, Pos2: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const ALineOfSight: boolean): boolean; override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
@@ -334,11 +338,7 @@ type
       default DefaultSickProjectionSpeed;
 
     property CollidesWithMoving default true;
-    function SegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; override;
     function Sphere(out Radius: Single): boolean; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     { Disables changing the camera by user.
       It's useful when you want to temporarily force camera to some specific
@@ -461,7 +461,7 @@ uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
-function TPlayer.TBox.BoundingBox: TBox3D;
+function TPlayer.TBox.LocalBoundingBox: TBox3D;
 var
   Camera: TWalkCamera;
 begin
@@ -1276,7 +1276,7 @@ begin
   Result := PTriangle(Camera.AboveGround);
 end;
 
-function TPlayer.SegmentCollision(const Pos1, Pos2: TVector3;
+function TPlayer.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -1284,7 +1284,8 @@ begin
     { Player box is collidable (creatures cannot enter on player),
       but is not visible, so ALineOfSight ignores it.
       This allows creatures to see player's middle point. }
-    Result := false else
+    Result := false
+  else
     Result := inherited;
 end;
 
@@ -1302,7 +1303,7 @@ begin
     FEquippedWeapon := nil;
 end;
 
-function TPlayer.HeightCollision(const APosition, GravityUp: TVector3;
+function TPlayer.LocalHeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
@@ -1320,7 +1321,7 @@ begin
   AboveGround := nil;
 end;
 
-procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TPlayer.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   { TODO: This implementation is a quick hack, that depends on the fact
     that TPlayer.Render is the *only* thing in the whole engine currently

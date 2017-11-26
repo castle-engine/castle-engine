@@ -27,8 +27,12 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleTransform;
 
 type
-  T3DCustomTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3D                         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DList                     = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DCustomTranslated         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DTranslated               = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DCustomTransform          = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DTransform                = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
 
   T3DOrient = class(CastleTransform.TCastleTransform)
   private
@@ -42,12 +46,7 @@ type
     constructor Create(AOwner: TComponent); override;
   end deprecated 'use TCastleTransform from CastleTransform unit';
 
-  T3DCustomTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-
-  T3D                         = CastleTransform.T3D;
-  T3DListCore                 = CastleTransform.T3DListCore;
-  T3DList                     = CastleTransform.T3DList;
+  T3DListCore                 = CastleTransform.TCastleTransformList;
   T3DWorld                    = CastleTransform.T3DWorld;
   TCollisionDetails           = CastleTransform.TCollisionDetails;
   TRayCollision               = CastleTransform.TRayCollision;

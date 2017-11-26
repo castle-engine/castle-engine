@@ -763,7 +763,7 @@ begin
       AssertTrue(OList[0] = My2);
     finally FreeAndNil(OList) end;
 
-    { Test that our T3DListCore avoids this bug:
+    { Test that our TCastleTransformList avoids this bug:
       http://bugs.freepascal.org/view.php?id=21087 }
 
     List := T3DList.Create(nil);

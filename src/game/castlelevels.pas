@@ -497,7 +497,7 @@ type
     }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
-    function BoundingBox: TBox3D; override;
+    function LocalBoundingBox: TBox3D; override;
 
     { Called when new player starts new game on this level.
       This may be used to equip the player with some basic weapon / items.
@@ -1031,7 +1031,7 @@ begin
   Collides := false;
 end;
 
-function TLevelLogic.BoundingBox: TBox3D;
+function TLevelLogic.LocalBoundingBox: TBox3D;
 begin
   { This object is invisible and non-colliding. }
   Result := TBox3D.Empty;
