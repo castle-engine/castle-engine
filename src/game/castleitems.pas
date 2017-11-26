@@ -1152,7 +1152,7 @@ procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then

@@ -62,7 +62,6 @@ type
   public
     constructor Create(AOwner: TComponent; const AMyBox: TBox3D); reintroduce;
     function LocalBoundingBox: TBox3D; override;
-    function BoundingBox: TBox3D; override;
     function Middle: TVector3; override;
   end;
 
@@ -98,11 +97,6 @@ begin
     Result := MyBox
   else
     Result := TBox3D.Empty;
-end;
-
-function TMy3D.BoundingBox: TBox3D;
-begin
-  Result := LocalBoundingBox;
 end;
 
 function TMy3D.Middle: TVector3;
@@ -690,34 +684,34 @@ end;
 
 procedure TTestCastleTransform.TestNotifications;
 var
-  ListParent, List: T3DList;
+  ListParent, List: TCastleTransform;
   ItemOnList: TCastleTransform;
 begin
-  ListParent := T3DList.Create(nil);
+  ListParent := TCastleTransform.Create(nil);
   try
-    List := T3DList.Create(ListParent);
+    List := TCastleTransform.Create(ListParent);
     try
       ListParent.Add(List);
 
       ItemOnList := TCastleTransform.Create(ListParent);
       List.Add(ItemOnList);
 
-      { now this will cause T3DList.Notification with Owner=Self, and List=nil }
+      { now this will cause TCastleTransform.Notification with Owner=Self, and List=nil }
       FreeAndNil(ItemOnList);
 
     finally FreeAndNil(List) end;
   finally FreeAndNil(ListParent) end;
 
-  ListParent := T3DList.Create(nil);
+  ListParent := TCastleTransform.Create(nil);
   try
-    List := T3DList.Create(ListParent);
+    List := TCastleTransform.Create(ListParent);
     try
       ListParent.Add(List);
 
       ItemOnList := TCastleTransform.Create(List);
       List.Add(ItemOnList);
 
-      { now this will cause T3DList.Notification with Owner=Self, and List=nil }
+      { now this will cause TCastleTransform.Notification with Owner=Self, and List=nil }
       FreeAndNil(ItemOnList);
 
     finally FreeAndNil(List) end;
@@ -727,19 +721,19 @@ end;
 procedure TTestCastleTransform.TestNotificationsSceneManager;
 var
   SceneManager: TCastleSceneManager;
-  List: T3DList;
+  List: TCastleTransform;
   ItemOnList: TCastleTransform;
 begin
   SceneManager := TCastleSceneManager.Create(nil);
   try
-    List := T3DList.Create(SceneManager);
+    List := TCastleTransform.Create(SceneManager);
     try
       SceneManager.Items.Add(List);
 
       ItemOnList := TCastleTransform.Create(SceneManager);
       List.Add(ItemOnList);
 
-      { now this will cause T3DList.Notification with Owner=Self, and List=nil }
+      { now this will cause TCastleTransform.Notification with Owner=Self, and List=nil }
       FreeAndNil(ItemOnList);
 
     finally FreeAndNil(List) end;
@@ -748,8 +742,8 @@ end;
 
 procedure TTestCastleTransform.TestList;
 var
-  My, My2: T3D;
-  List: T3DList;
+  My, My2: TCastleTransform;
+  List: TCastleTransform;
   OList: TCastleObjectList;
 begin
   My  := TMy3D.Create(nil, Box0);
@@ -766,7 +760,7 @@ begin
     { Test that our TCastleTransformList avoids this bug:
       http://bugs.freepascal.org/view.php?id=21087 }
 
-    List := T3DList.Create(nil);
+    List := TCastleTransform.Create(nil);
     try
       List.Add(My);
       List[0] := My2;
@@ -870,13 +864,13 @@ end;
 
 procedure TTestCastleTransform.TestListNotification;
 var
-  O1List: T3DList;
-  O1: T3D;
+  O1List: TCastleTransform;
+  O1: TCastleTransform;
 begin
   {$warnings off} { don't warn about creating with abstract methods here }
-  O1 := T3D.Create(nil); O1.Name := 'O1';
+  O1 := TCastleTransform.Create(nil); O1.Name := 'O1';
   {$warnings on}
-  O1List := T3DList.Create(nil); O1List.Name := 'O1List';
+  O1List := TCastleTransform.Create(nil); O1List.Name := 'O1List';
 
   AssertTrue(O1List.Count = 0);
   O1List.Add(O1);
@@ -899,8 +893,8 @@ end;
 procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
 var
   World1, World2: T3DWorld;
-  O1List, O2List: T3DList;
-  O1, O2: T3D;
+  O1List, O2List: TCastleTransform;
+  O1, O2: TCastleTransform;
 begin
   World1 := nil;
   World2 := nil;
@@ -908,12 +902,12 @@ begin
     {$warnings off} { don't warn about creating with abstract methods here }
     World1 := T3DWorld.Create(nil); World1.Name := 'World1';
     World2 := T3DWorld.Create(nil); World2.Name := 'World2';
-    O1 := T3D.Create(World1); O1.Name := 'O1';
-    O2 := T3D.Create(World1); O2.Name := 'O2';
+    O1 := TCastleTransform.Create(World1); O1.Name := 'O1';
+    O2 := TCastleTransform.Create(World1); O2.Name := 'O2';
     {$warnings on}
 
-    O1List := T3DList.Create(World1); O1List.Name := 'O1List';
-    O2List := T3DList.Create(World1); O2List.Name := 'O2List';
+    O1List := TCastleTransform.Create(World1); O1List.Name := 'O1List';
+    O2List := TCastleTransform.Create(World1); O2List.Name := 'O2List';
 
     AssertTrue(World1 = World1.World);
     AssertTrue(World2 = World2.World);
@@ -1003,14 +997,14 @@ end;
 procedure TTestCastleTransform.TestWorldFreeBeforeItem;
 var
   World1: T3DWorld;
-  O1List: T3DList;
-  O1: T3D;
+  O1List: TCastleTransform;
+  O1: TCastleTransform;
 begin
   {$warnings off} { don't warn about creating with abstract methods here }
   World1 := T3DWorld.Create(nil); World1.Name := 'World1';
-  O1 := T3D.Create(nil); O1.Name := 'O1';
+  O1 := TCastleTransform.Create(nil); O1.Name := 'O1';
   {$warnings on}
-  O1List := T3DList.Create(nil); O1List.Name := 'O1List';
+  O1List := TCastleTransform.Create(nil); O1List.Name := 'O1List';
 
   Assert(World1 = World1.World);
   Assert(nil = O1.World);
