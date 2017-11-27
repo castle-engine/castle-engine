@@ -780,6 +780,7 @@ type
   TCreature = class(T3DAlive)
   private
     FResource: TCreatureResource;
+    FResourceFrame: TResourceFrame;
 
     UsedSounds: TSoundList;
     FSoundDieEnabled: boolean;
@@ -902,7 +903,6 @@ type
 
     FDebug3DAlternativeTargetAxis: TDebugAxis;
     FDebug3DLastSensedEnemyAxis: TDebugAxis;
-    CurrentChild: TCastleTransform;
   protected
     { Last known information about enemy. }
     HasLastSensedEnemy: boolean;
@@ -965,7 +965,6 @@ type
   private
     LastSoundIdleTime: Single;
     ForceRemoveDead: boolean;
-    CurrentChild: TCastleTransform;
     procedure HitCore;
     procedure HitPlayer;
     procedure HitCreature(Creature: TCreature);
@@ -977,8 +976,6 @@ type
 
   { Creature using TStillCreatureResource. }
   TStillCreature = class(TCreature)
-  private
-    CurrentChild: TCastleTransform;
   public
     function Resource: TStillCreatureResource;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
@@ -1378,6 +1375,9 @@ begin
 
   FDebug3D := TDebug3D.Create(Self);
   FDebug3D.Attach(Self);
+
+  FResourceFrame := TResourceFrame.Create(Self);
+  Add(FResourceFrame);
 end;
 
 function TCreature.GetExists: boolean;
@@ -1708,50 +1708,34 @@ end;
 
 procedure TWalkAttackCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  function GetChild: T3D;
+  procedure UpdateResourceFrame;
   var
     StateTime: Single;
   begin
-    if not Resource.Prepared then Exit(nil);
-
     { Time from the change to this state. }
     StateTime := LifeTime - StateChangeTime;
 
     case FState of
       csIdle:
-        Result := Resource.IdleAnimation.Scene(StateTime, true);
+        FResourceFrame.SetFrame(Resource.IdleAnimation, StateTime, true);
       csWalk:
         if Resource.IdleToWalkAnimation.Defined and
            (StateTime < Resource.IdleToWalkAnimation.Duration) then
-          Result := Resource.IdleToWalkAnimation.Scene(StateTime, false) else
-          Result := Resource.WalkAnimation.Scene(
+          FResourceFrame.SetFrame(Resource.IdleToWalkAnimation, StateTime, false)
+        else
+          FResourceFrame.SetFrame(Resource.WalkAnimation,
             StateTime - Resource.IdleToWalkAnimation.Duration, true);
       csAttack:
-        Result := Resource.AttackAnimation.Scene(StateTime, false);
+        FResourceFrame.SetFrame(Resource.AttackAnimation, StateTime, false);
       csFireMissile:
-        Result := Resource.FireMissileAnimation.Scene(StateTime, false);
+        FResourceFrame.SetFrame(Resource.FireMissileAnimation, StateTime, false);
       csDie:
-        Result := Resource.DieAnimation.Scene(StateTime, false);
+        FResourceFrame.SetFrame(Resource.DieAnimation, StateTime, false);
       csDieBack:
-        Result := Resource.DieBackAnimation.Scene(StateTime, false);
+        FResourceFrame.SetFrame(Resource.DieBackAnimation, StateTime, false);
       csHurt:
-        Result := Resource.HurtAnimation.Scene(StateTime, false);
+        FResourceFrame.SetFrame(Resource.HurtAnimation, StateTime, false);
       else raise EInternalError.Create('FState ?');
-    end;
-  end;
-
-  procedure UpdateChild;
-  var
-    NewChild: TCastleTransform;
-  begin
-    NewChild := GetChild;
-    if CurrentChild <> NewChild then
-    begin
-      if CurrentChild <> nil then
-        Remove(CurrentChild);
-      CurrentChild := NewChild;
-      if CurrentChild <> nil then
-        Add(CurrentChild);
     end;
   end;
 
@@ -2392,7 +2376,7 @@ begin
       SetState(csDieBack)
     else
       SetState(csDie);
-    UpdateChild;
+    UpdateResourceFrame;
     Exit;
   end;
 
@@ -2441,7 +2425,7 @@ begin
     UpPrefer(World.GravityUp);
 
   UpdateDebug3D;
-  UpdateChild;
+  UpdateResourceFrame;
 end;
 
 procedure TWalkAttackCreature.SetLife(const Value: Single);
@@ -2576,29 +2560,12 @@ end;
 
 procedure TMissileCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  function GetChild: T3D;
+  procedure UpdateResourceFrame;
   begin
-   if not Resource.Prepared then Exit(nil);
-
-   if Dead and Resource.DieAnimation.Defined then
-     Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false)
-   else
-     Result := Resource.FlyAnimation.Scene(LifeTime, true);
-  end;
-
-  procedure UpdateChild;
-  var
-    NewChild: TCastleTransform;
-  begin
-    NewChild := GetChild;
-    if CurrentChild <> NewChild then
-    begin
-      if CurrentChild <> nil then
-        Remove(CurrentChild);
-      CurrentChild := NewChild;
-      if CurrentChild <> nil then
-        Add(CurrentChild);
-    end;
+    if Dead and Resource.DieAnimation.Defined then
+      FResourceFrame.SetFrame(Resource.DieAnimation, LifeTime - DieTime, false)
+    else
+      FResourceFrame.SetFrame(Resource.FlyAnimation, LifeTime, true);
   end;
 
 var
@@ -2712,7 +2679,7 @@ begin
     Sound3d(Resource.SoundIdle, 0.0);
   end;
 
-  UpdateChild;
+  UpdateResourceFrame;
 end;
 
 procedure TMissileCreature.HitCore;
@@ -2745,29 +2712,12 @@ end;
 
 procedure TStillCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  function GetChild: T3D;
+  procedure UpdateResourceFrame;
   begin
-    if not Resource.Prepared then Exit(nil);
-
     if Dead and Resource.DieAnimation.Defined then
-      Result := Resource.DieAnimation.Scene(LifeTime - DieTime, false)
+      FResourceFrame.SetFrame(Resource.DieAnimation, LifeTime - DieTime, false)
     else
-      Result := Resource.IdleAnimation.Scene(LifeTime, true);
-  end;
-
-  procedure UpdateChild;
-  var
-    NewChild: TCastleTransform;
-  begin
-    NewChild := GetChild;
-    if CurrentChild <> NewChild then
-    begin
-      if CurrentChild <> nil then
-        Remove(CurrentChild);
-      CurrentChild := NewChild;
-      if CurrentChild <> nil then
-        Add(CurrentChild);
-    end;
+      FResourceFrame.SetFrame(Resource.IdleAnimation, LifeTime, true);
   end;
 
 begin
@@ -2780,7 +2730,7 @@ begin
       RemoveMe := rtRemoveAndFree;
   end;
 
-  UpdateChild;
+  UpdateResourceFrame;
 end;
 
 { initialization / finalization ---------------------------------------------- }

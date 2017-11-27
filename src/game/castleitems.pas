@@ -487,9 +487,9 @@ type
 
     var
       FItem: TInventoryItem;
+      FResourceFrame: TResourceFrame;
       ItemRotation, LifeTime: Single;
       FDebug3D: TItemDebug3D;
-      CurrentChild: TCastleTransform;
     function BoundingBoxRotated: TBox3D;
   public
     class var
@@ -1141,6 +1141,9 @@ begin
     For now, this also means that creatures can pass through them,
     which isn't really troublesome now. }
   Collides := false;
+
+  FResourceFrame := TResourceFrame.Create(Self);
+  Add(FResourceFrame);
 end;
 
 destructor TItemOnWorld.Destroy;
@@ -1156,25 +1159,10 @@ end;
 
 procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  function GetChild: T3D;
+  procedure UpdateResourceFrame;
   begin
-    if (Item = nil) or not Item.Resource.Prepared then Exit(nil);
-    Result := Item.Resource.BaseAnimation.Scene(LifeTime, true);
-  end;
-
-  procedure UpdateChild;
-  var
-    NewChild: TCastleTransform;
-  begin
-    NewChild := GetChild;
-    if CurrentChild <> NewChild then
-    begin
-      if CurrentChild <> nil then
-        Remove(CurrentChild);
-      CurrentChild := NewChild;
-      if CurrentChild <> nil then
-        Add(CurrentChild);
-    end;
+    if Item = nil then Exit;
+    FResourceFrame.SetFrame(Item.Resource.BaseAnimation, LifeTime, true);
   end;
 
 var
@@ -1208,7 +1196,7 @@ begin
   if Item = nil then
     RemoveMe := rtRemoveAndFree;
 
-  UpdateChild;
+  UpdateResourceFrame;
 end;
 
 function TItemOnWorld.ExtractItem: TInventoryItem;

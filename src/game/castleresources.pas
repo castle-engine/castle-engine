@@ -22,7 +22,7 @@ unit CastleResources;
 interface
 
 uses Classes, DOM, Generics.Collections,
-  CastleVectors, CastleXMLConfig, CastleTimeUtils,
+  CastleVectors, CastleXMLConfig, CastleTimeUtils, CastleFrustum,
   CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles;
 
 type
@@ -103,6 +103,28 @@ type
     { Find an animation by name.
       @raises Exception if not found. }
     function FindName(const AName: string): T3DResourceAnimation;
+  end;
+
+  { Display a specified frame of the specified animation.
+    This is reliable even when multiple TResourceFrame request different frames
+    from the same animation. }
+  TResourceFrame = class(TCastleTransform)
+  strict private
+    FAnimation: T3DResourceAnimation;
+    FTime: TFloatTime;
+    FLoop: boolean;
+    CurrentChild: TCastleScene;
+  protected
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+  public
+    property Animation: T3DResourceAnimation read FAnimation;
+    { Time within the ResourceAnimation. }
+    property Time: TFloatTime read FTime;
+    { Should we loop within ResourceAnimation. }
+    property Loop: boolean read FLoop;
+    { Set which animation and animation frame to display. }
+    procedure SetFrame(const AnAnimation: T3DResourceAnimation;
+      const ATime: TFloatTime; const ALoop: boolean);
   end;
 
   { Resource used for rendering and processing of 3D objects.
@@ -558,6 +580,43 @@ begin
       Exit;
   end;
   raise Exception.CreateFmt('No resource animation named "%s"', [AName]);
+end;
+
+{ TResourceFrame ------------------------------------------------------------- }
+
+procedure TResourceFrame.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+
+  procedure UpdateChild;
+  var
+    NewChild: TCastleScene;
+  begin
+    if (FAnimation <> nil) and FAnimation.FOwner.Prepared then
+      NewChild := FAnimation.Scene(FTime, FLoop)
+    else
+      NewChild := nil;
+
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
+begin
+  // before rendering, set correct child
+  UpdateChild;
+  inherited;
+end;
+
+procedure TResourceFrame.SetFrame(const AnAnimation: T3DResourceAnimation;
+  const ATime: TFloatTime; const ALoop: boolean);
+begin
+  FAnimation := AnAnimation;
+  FTime := ATime;
+  FLoop := ALoop;
 end;
 
 { T3DResource ---------------------------------------------------------------- }
