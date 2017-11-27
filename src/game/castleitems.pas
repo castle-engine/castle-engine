@@ -954,6 +954,14 @@ begin
     AttackStartTime := LifeTime;
     Attacking := true;
     AttackDone := false;
+
+    { if AttackTime = 0, attack immediately, otherwise this could get aborted
+      by TItemWeapon.EquippedScene if AttackAnim.Duration = 0. }
+    if Resource.AttackTime = 0 then
+    begin
+      AttackDone := true;
+      Attack;
+    end;
   end;
 end;
 
