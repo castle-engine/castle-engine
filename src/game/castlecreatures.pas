@@ -25,7 +25,7 @@ uses Classes, Generics.Collections,
   CastleUtils, CastleScene, CastleSectors, CastleStringUtils,
   CastleResources, CastleXMLConfig, CastleTransform, Castle3D,
   CastleSoundEngine, CastleFrustum, X3DNodes, CastleColors,
-  CastleDebug3D;
+  CastleDebugTransform;
 
 type
   TCreatureState = type Integer;
@@ -791,7 +791,7 @@ type
     FDebugCaptionsText: TTextNode;
     FDebugCaptionsFontStyle: TFontStyleNode;
 
-    FDebug3D: TDebug3D;
+    FDebugTransform: TDebugTransform;
 
     { Calculated @link(Radius) suitable for this creature.
       This is cached result of @link(TCreatureResource.Radius). }
@@ -901,8 +901,8 @@ type
     WaypointsSaved: TWaypointList;
     MiddleForceBoxTime: Single;
 
-    FDebug3DAlternativeTargetAxis: TDebugAxis;
-    FDebug3DLastSensedEnemyAxis: TDebugAxis;
+    FDebugAlternativeTargetAxis: TDebugAxis;
+    FDebugLastSensedEnemyAxis: TDebugAxis;
   protected
     { Last known information about enemy. }
     HasLastSensedEnemy: boolean;
@@ -1373,8 +1373,8 @@ begin
   FSoundDieEnabled := true;
   UsedSounds := TSoundList.Create(false);
 
-  FDebug3D := TDebug3D.Create(Self);
-  FDebug3D.Attach(Self);
+  FDebugTransform := TDebugTransform.Create(Self);
+  FDebugTransform.Attach(Self);
 
   FResourceFrame := TResourceFrame.Create(Self);
   Add(FResourceFrame);
@@ -1558,7 +1558,7 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
-  FDebug3D.Exists := RenderDebug;
+  FDebugTransform.Exists := RenderDebug;
   UpdateDebugCaptions;
 end;
 
@@ -2333,31 +2333,31 @@ var
       RemoveMe := rtRemoveAndFree;
   end;
 
-  procedure UpdateDebug3D;
+  procedure UpdateDebugTransform;
   begin
     if RenderDebug then
     begin
-      if FDebug3DAlternativeTargetAxis = nil then
+      if FDebugAlternativeTargetAxis = nil then
       begin
-        FDebug3DAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
-        FDebug3D.WorldSpace.AddChildren(FDebug3DAlternativeTargetAxis.Root);
-        FDebug3D.ChangedScene;
+        FDebugAlternativeTargetAxis := TDebugAxis.Create(Self, BlueRGB);
+        FDebugTransform.WorldSpace.AddChildren(FDebugAlternativeTargetAxis.Root);
+        FDebugTransform.ChangedScene;
       end;
 
-      FDebug3DAlternativeTargetAxis.Render := HasAlternativeTarget;
-      FDebug3DAlternativeTargetAxis.ScaleFromBox := BoundingBox;
-      FDebug3DAlternativeTargetAxis.Position := AlternativeTarget;
+      FDebugAlternativeTargetAxis.Render := HasAlternativeTarget;
+      FDebugAlternativeTargetAxis.ScaleFromBox := BoundingBox;
+      FDebugAlternativeTargetAxis.Position := AlternativeTarget;
 
-      if FDebug3DLastSensedEnemyAxis = nil then
+      if FDebugLastSensedEnemyAxis = nil then
       begin
-        FDebug3DLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
-        FDebug3D.WorldSpace.AddChildren(FDebug3DLastSensedEnemyAxis.Root);
-        FDebug3D.ChangedScene;
+        FDebugLastSensedEnemyAxis := TDebugAxis.Create(Self, RedRGB);
+        FDebugTransform.WorldSpace.AddChildren(FDebugLastSensedEnemyAxis.Root);
+        FDebugTransform.ChangedScene;
       end;
 
-      FDebug3DLastSensedEnemyAxis.Render := HasLastSensedEnemy;
-      FDebug3DLastSensedEnemyAxis.ScaleFromBox := BoundingBox;
-      FDebug3DLastSensedEnemyAxis.Position := LastSensedEnemy;
+      FDebugLastSensedEnemyAxis.Render := HasLastSensedEnemy;
+      FDebugLastSensedEnemyAxis.ScaleFromBox := BoundingBox;
+      FDebugLastSensedEnemyAxis.Position := LastSensedEnemy;
     end;
   end;
 
@@ -2424,7 +2424,7 @@ begin
   if not Gravity then
     UpPrefer(World.GravityUp);
 
-  UpdateDebug3D;
+  UpdateDebugTransform;
   UpdateResourceFrame;
 end;
 

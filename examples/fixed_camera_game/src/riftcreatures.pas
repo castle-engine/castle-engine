@@ -30,7 +30,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, CastleTransform, CastleFrustum, CastleApplicationProperties,
-  CastleTimeUtils, X3DNodes, CastleColors, CastleDebug3D,
+  CastleTimeUtils, X3DNodes, CastleColors, CastleDebugTransform,
   RiftWindow, RiftGame, RiftLoadable;
 
 type
@@ -86,7 +86,7 @@ type
   TCreature = class(TCastleTransform)
   private
     FKind: TCreatureKind;
-    FDebug3D: TDebug3D;
+    FDebugTransform: TDebugTransform;
     FState: TCreatureState;
     CurrentChild: TCastleTransform;
     procedure SetState(const Value: TCreatureState);
@@ -276,8 +276,8 @@ begin
 
   RandomizeStandTimeToBeBored;
 
-  FDebug3D := TDebug3D.Create(Self);
-  FDebug3D.Attach(Self);
+  FDebugTransform := TDebugTransform.Create(Self);
+  FDebugTransform.Attach(Self);
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
@@ -368,7 +368,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 begin
   inherited;
 
-  FDebug3D.Exists := DebugRenderBoundingGeometry;
+  FDebugTransform.Exists := DebugRenderBoundingGeometry;
 
   if ScheduledTransitionBegin then
   begin
@@ -419,8 +419,8 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 begin
   inherited;
   CreateTargetVisualize;
-  FDebug3D.WorldSpace.AddChildren(FTargetVisualize);
-  FDebug3D.ChangedScene;
+  FDebugTransform.WorldSpace.AddChildren(FTargetVisualize);
+  FDebugTransform.ChangedScene;
 end;
 
 destructor TPlayer.Destroy;
@@ -506,7 +506,7 @@ begin
   { Update children 3D objects *after* updating our own transformation,
     this way they are always synchronized when displaying.
     Otherwise, the FTargetVisualize would have a bit of "shaking",
-    because the TDebug3D transformation would be updated with 1-frame delay. }
+    because the TDebugTransform transformation would be updated with 1-frame delay. }
   inherited;
 end;
 

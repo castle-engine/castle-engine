@@ -24,7 +24,7 @@ uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
   Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
-  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes, CastleTransform;
+  CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform;
 
 type
   TPlayerSwimming = (psNo,
@@ -81,7 +81,7 @@ type
 
     var
       FBox: TBox;
-      FDebug3D: TDebug3D;
+      FDebugTransform: TDebugTransform;
       FRenderDebug: boolean;
 
       FEquippedWeapon: TItemWeapon;
@@ -562,8 +562,8 @@ begin
   FBox := TBox.Create(Self);
   Add(FBox);
 
-  FDebug3D := TDebug3D.Create(Self);
-  FDebug3D.Attach(Self);
+  FDebugTransform := TDebugTransform.Create(Self);
+  FDebugTransform.Attach(Self);
 end;
 
 destructor TPlayer.Destroy;
@@ -1129,7 +1129,7 @@ begin
   UpdateToxic;
   UpdateFootstepsSoundPlaying;
 
-  FDebug3D.Exists := RenderDebug;
+  FDebugTransform.Exists := RenderDebug;
 end;
 
 procedure TPlayer.FadeOut(const Color: TCastleColor);

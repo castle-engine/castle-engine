@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Base 3D objects (T3D, T3DList, T3DTransform, T3DOrient, T3DMoving). }
+{ Additional 3D objects derived from TCastleTransform (T3DAlive, T3DMoving...). }
 unit Castle3D;
 
 {$I castleconf.inc}

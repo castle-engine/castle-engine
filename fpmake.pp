@@ -246,7 +246,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'game');
     P.Targets.AddUnit('castle2dscenemanager.pas');
     P.Targets.AddUnit('castlecreatures.pas');
-    P.Targets.AddUnit('castledebug3d.pas');
+    P.Targets.AddUnit('castledebugtransform.pas');
     P.Targets.AddUnit('castlegamenotifications.pas');
     P.Targets.AddUnit('castleitems.pas');
     P.Targets.AddUnit('castlelevels.pas');

@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Helpers to visualize debug information in 3D. }
-unit CastleDebug3D;
+{ Helpers to visualize debug information about transformation. }
+unit CastleDebugTransform;
 
 interface
 
@@ -23,7 +23,7 @@ uses Classes,
 
 type
   { 3D axis, as an X3D node, to easily visualize debug things.
-    This is useful in connection with your custom TDebug3D descendants,
+    This is useful in connection with your custom TDebugTransform descendants,
     to show an axis to visualize something.
 
     Create it and add the @link(Root) to your X3D scene graph
@@ -53,7 +53,7 @@ type
     This is a ready construction using X3D TBoxNode, TShapeNode, TTransformNode
     to give you a comfortable box visualization.
 
-    This is useful in connection with your custom TDebug3D descendants,
+    This is useful in connection with your custom TDebugTransform descendants,
     to show an axis to visualize something.
 
     Create it and add the @link(Root) to your X3D scene graph
@@ -77,7 +77,7 @@ type
     This is a ready construction using X3D TSphereNode, TShapeNode, TTransformNode
     to give you a comfortable sphere visualization.
 
-    This is useful in connection with your custom TDebug3D descendants,
+    This is useful in connection with your custom TDebugTransform descendants,
     to show an axis to visualize something.
 
     Create it and add the @link(Root) to your X3D scene graph
@@ -110,13 +110,13 @@ type
     Then set @link(Exists) to control whether the debug visualization
     should actually be shown. We take care to only actually construct
     internal TCastleScene when the @link(Exists) becomes @true,
-    so you can construct TDebug3D instance always, even in release mode --
+    so you can construct TDebugTransform instance always, even in release mode --
     it does not take up resources if never visible. }
-  TDebug3D = class(TComponent)
+  TDebugTransform = class(TComponent)
   strict private
     type
       TInternalScene = class(TCastleScene)
-        Container: TDebug3D;
+        Container: TDebugTransform;
         procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
     var
@@ -273,17 +273,17 @@ begin
   FGeometry.Radius := Value;
 end;
 
-{ TDebug3D.TInternalScene ---------------------------------------------------- }
+{ TDebugTransform.TInternalScene ---------------------------------------------------- }
 
-procedure TDebug3D.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TDebugTransform.TInternalScene.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   inherited;
   Container.UpdateSafe;
 end;
 
-{ TDebug3D ---------------------------------------------------- }
+{ TDebugTransform ---------------------------------------------------- }
 
-procedure TDebug3D.Initialize;
+procedure TDebugTransform.Initialize;
 var
   Root: TX3DRootNode;
 begin
@@ -313,7 +313,7 @@ begin
   FScene.Exists := FExists;
 end;
 
-procedure TDebug3D.Attach(const AParent: TCastleTransform);
+procedure TDebugTransform.Attach(const AParent: TCastleTransform);
 begin
   if FScene = nil then
     Initialize;
@@ -323,7 +323,7 @@ begin
   UpdateSafe;
 end;
 
-procedure TDebug3D.SetExists(const Value: boolean);
+procedure TDebugTransform.SetExists(const Value: boolean);
 begin
   if FExists <> Value then
   begin
@@ -335,7 +335,7 @@ begin
   end;
 end;
 
-procedure TDebug3D.UpdateSafe;
+procedure TDebugTransform.UpdateSafe;
 begin
   if Exists and
      (FParent <> nil) and
@@ -349,7 +349,7 @@ begin
   end;
 end;
 
-procedure TDebug3D.Update;
+procedure TDebugTransform.Update;
 var
   R: Single;
 begin
@@ -372,7 +372,7 @@ begin
   FMiddleAxis.ScaleFromBox := FParent.BoundingBox;
 end;
 
-procedure TDebug3D.ChangedScene;
+procedure TDebugTransform.ChangedScene;
 begin
   FScene.ChangedAll;
 end;

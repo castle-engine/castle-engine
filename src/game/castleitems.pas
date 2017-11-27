@@ -25,7 +25,7 @@ uses Generics.Collections,
   CastleClassUtils, Classes, CastleImages, CastleGLUtils,
   CastleResources, CastleGLImages,
   CastleXMLConfig, CastleSoundEngine, CastleFrustum,
-  Castle3D, CastleTransform, CastleColors, CastleDebug3D;
+  Castle3D, CastleTransform, CastleColors, CastleDebugTransform;
 
 type
   TInventoryItem = class;
@@ -473,8 +473,8 @@ type
     type
       { A debug visualization that can be added to TItemOnWorld
         to visualize the parameters of it's parent (bounding volumes and such).
-        See @link(TDebug3D) for usage details. }
-      TItemDebug3D = class(TDebug3D)
+        See @link(TDebugTransform) for usage details. }
+      TItemDebugTransform = class(TDebugTransform)
       strict private
         FBoxRotated: TDebugBox;
         FParent: TItemOnWorld;
@@ -489,7 +489,7 @@ type
       FItem: TInventoryItem;
       FResourceFrame: TResourceFrame;
       ItemRotation, LifeTime: Single;
-      FDebug3D: TItemDebug3D;
+      FDebugTransform: TItemDebugTransform;
     function BoundingBoxRotated: TBox3D;
   public
     class var
@@ -1096,9 +1096,9 @@ begin
   CheckDepleted(Item);
 end;
 
-{ TItemOnWorld.TItemDebug3D -------------------------------------------------------- }
+{ TItemOnWorld.TItemDebugTransform -------------------------------------------------------- }
 
-procedure TItemOnWorld.TItemDebug3D.Initialize;
+procedure TItemOnWorld.TItemDebugTransform.Initialize;
 begin
   inherited;
 
@@ -1108,13 +1108,13 @@ begin
   ChangedScene;
 end;
 
-procedure TItemOnWorld.TItemDebug3D.Attach(const AParent: TItemOnWorld);
+procedure TItemOnWorld.TItemDebugTransform.Attach(const AParent: TItemOnWorld);
 begin
   FParent := AParent;
   inherited Attach(AParent);
 end;
 
-procedure TItemOnWorld.TItemDebug3D.Update;
+procedure TItemOnWorld.TItemDebugTransform.Update;
 var
   BBoxRotated: TBox3D;
 begin
@@ -1134,8 +1134,8 @@ begin
   CollidesWithMoving := true;
   Gravity := true;
 
-  FDebug3D := TItemDebug3D.Create(Self);
-  FDebug3D.Attach(Self);
+  FDebugTransform := TItemDebugTransform.Create(Self);
+  FDebugTransform.Attach(Self);
 
   { Items are not collidable, player can enter them to pick them up.
     For now, this also means that creatures can pass through them,
@@ -1183,7 +1183,7 @@ begin
   DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
 
-  FDebug3D.Exists := RenderDebug;
+  FDebugTransform.Exists := RenderDebug;
 
   if AutoPick and
      (World.Player <> nil) and

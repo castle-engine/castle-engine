@@ -590,8 +590,8 @@ end;"/>
         <UnitName Value="CastleCreatures"/>
       </Item131>
       <Item132>
-        <Filename Value="../src/game/castledebug3d.pas"/>
-        <UnitName Value="CastleDebug3D"/>
+        <Filename Value="../src/game/castledebugtransform.pas"/>
+        <UnitName Value="CastleDebugTransform"/>
       </Item132>
       <Item133>
         <Filename Value="../src/game/castlegamenotifications.pas"/>
