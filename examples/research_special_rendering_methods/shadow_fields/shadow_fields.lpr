@@ -284,9 +284,9 @@ end;
 
 procedure Open(Container: TUIContainer);
 begin
-  { TODO: this demo uses specialized rendering (in renderterrains.pas)
+  { TODO: this demo uses specialized rendering
     that currently assumes some fixed-function things set up. }
-  EnableFixedFunction := true;
+  GLFeatures.EnableFixedFunction := true;
 
   GLList_EnvLight := glGenListsCheck(1, 'GLList_EnvLight');
   glNewList(GLList_EnvLight, GL_COMPILE);
