@@ -381,7 +381,7 @@ type
   protected
     procedure Stack(var Item: TInventoryItem); override;
     procedure Use; override;
-    // procedure Picked(const NewOwner: T3DAliveWithInventory); override;
+    // procedure Picked(const NewOwner: TAliveWithInventory); override;
   end;
 
 function TMedKitResource.ItemClass: TInventoryItemClass;
@@ -418,7 +418,7 @@ end;
   Picked method. By default, it causes item to be added to inventory,
   but you could as well e.g. immediately increase player life and destroy item.
   Uncomment this method (and it's declaration in TMedKit class) to test it. }
-// procedure TMedKit.Picked(const NewOwner: T3DAliveWithInventory);
+// procedure TMedKit.Picked(const NewOwner: TAliveWithInventory);
 // begin
 //   Use;
 //   Free;

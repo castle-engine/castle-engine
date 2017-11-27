@@ -1243,7 +1243,7 @@ var
 
   { Key/mouse combination to operate on Player and it's inventory.
     They are used only when Player is assigned, and only when it's
-    not Dead and not Blocked (see T3DAlive.Dead, TPlayer.Blocked).
+    not Dead and not Blocked (see TAlive.Dead, TPlayer.Blocked).
     Also other TCastleAbstractViewport rules for processing
     inputs must be satisfied, of course (TCastleAbstractViewport must exist,
     according to TCastleAbstractViewport.GetExists, and not be paused, see

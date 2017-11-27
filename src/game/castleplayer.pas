@@ -63,7 +63,7 @@ type
 
     Note that a player has an associated and synchronized @link(Camera) instance.
   }
-  TPlayer = class(T3DAliveWithInventory)
+  TPlayer = class(TAliveWithInventory)
   private
     type
       { Invisible box, that is added to TPlayer to make it collidable.

@@ -219,10 +219,10 @@ type
       read FKnockBackDistance write FKnockBackDistance
       default DefaultKnockBackDistance;
 
-    { See T3DAlive.KnockBackSpeed. }
+    { See TAlive.KnockBackSpeed. }
     property KnockBackSpeed: Single
       read FKnockBackSpeed write FKnockBackSpeed
-      default T3DAlive.DefaultKnockBackSpeed;
+      default TAlive.DefaultKnockBackSpeed;
 
     { By default dead creatures (corpses) don't collide, this usually looks better. }
     property CollidesWhenDead: boolean
@@ -777,7 +777,7 @@ type
   end;
 
   { Base creature, using any TCreatureResource. }
-  TCreature = class(T3DAlive)
+  TCreature = class(TAlive)
   private
     FResource: TCreatureResource;
     FResourceFrame: TResourceFrame;
@@ -807,7 +807,7 @@ type
     function LerpLegsMiddle(const A: Single): TVector3;
 
     { Hurt given enemy. HurtEnemy may be @nil, in this case we do nothing. }
-    procedure AttackHurt(const HurtEnemy: T3DAlive);
+    procedure AttackHurt(const HurtEnemy: TAlive);
 
     procedure UpdateDebugCaption(const Lines: TCastleStringList); virtual;
   public
@@ -916,7 +916,7 @@ type
     { Enemy of this creature. In this class, this always returns global
       World.Player (if it exists and is still alive).
       Return @nil for no enemy. }
-    function Enemy: T3DAlive; virtual;
+    function Enemy: TAlive; virtual;
 
     { Last State change time, taken from LifeTime. }
     property StateChangeTime: Single read FStateChangeTime;
@@ -957,7 +957,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     procedure Hurt(const LifeLoss: Single; const HurtDirection: TVector3;
-      const AKnockbackDistance: Single; const Attacker: T3DAlive); override;
+      const AKnockbackDistance: Single; const Attacker: TAlive); override;
   end;
 
   { Creature using TMissileCreatureResource. }
@@ -1006,7 +1006,7 @@ begin
   FFlying := DefaultFlying;
   FDefaultMaxLife := DefaultDefaultMaxLife;
   FKnockBackDistance := DefaultKnockBackDistance;
-  FKnockBackSpeed := T3DAlive.DefaultKnockBackSpeed;
+  FKnockBackSpeed := TAlive.DefaultKnockBackSpeed;
   FSoundDieTiedToCreature := DefaultSoundDieTiedToCreature;
   FAttackDamageConst := DefaultAttackDamageConst;
   FAttackDamageRandom := DefaultAttackDamageRandom;
@@ -1024,7 +1024,7 @@ begin
   inherited;
 
   KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
-    T3DAlive.DefaultKnockBackSpeed);
+    TAlive.DefaultKnockBackSpeed);
   CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   KnockBackDistance := ResourceConfig.GetFloat('knockback_distance',
     DefaultKnockBackDistance);
@@ -1551,7 +1551,7 @@ begin
   if not GetExists then Exit;
 
   { In this case (when GetExists, regardless of DebugTimeStopForCreatures),
-    T3DAlive.Update changed LifeTime.
+    TAlive.Update changed LifeTime.
     And LifeTime is used to choose animation frame in GetChild.
     So the creature constantly changes, even when it's
     transformation (things taken into account in TCastleTransform) stay equal. }
@@ -1578,7 +1578,7 @@ begin
   inherited;
 end;
 
-procedure TCreature.AttackHurt(const HurtEnemy: T3DAlive);
+procedure TCreature.AttackHurt(const HurtEnemy: TAlive);
 begin
   if HurtEnemy <> nil then
     HurtEnemy.Hurt(Resource.AttackDamageConst +
@@ -1636,9 +1636,9 @@ begin
   Result := TWalkAttackCreatureResource(inherited Resource);
 end;
 
-function TWalkAttackCreature.Enemy: T3DAlive;
+function TWalkAttackCreature.Enemy: TAlive;
 begin
-  Result := World.Player as T3DAlive;
+  Result := World.Player as TAlive;
   if (Result <> nil) and Result.Dead then
     Result := nil; { do not attack dead player }
 end;
@@ -2440,7 +2440,7 @@ end;
 
 procedure TWalkAttackCreature.Attack;
 var
-  E: T3DAlive;
+  E: TAlive;
 
   function ShortRangeAttackHits: boolean;
   var
@@ -2527,7 +2527,7 @@ end;
 
 procedure TWalkAttackCreature.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AKnockbackDistance: Single; const Attacker: T3DAlive);
+  const AKnockbackDistance: Single; const Attacker: TAlive);
 begin
   inherited Hurt(LifeLoss, HurtDirection,
     AKnockbackDistance * Resource.KnockBackDistance, Attacker);
@@ -2694,7 +2694,7 @@ end;
 procedure TMissileCreature.HitPlayer;
 begin
   ForceRemoveDead := true;
-  AttackHurt(World.Player as T3DAlive);
+  AttackHurt(World.Player as TAlive);
 end;
 
 procedure TMissileCreature.HitCreature(Creature: TCreature);

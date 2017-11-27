@@ -276,7 +276,7 @@ type
   end;
 
   TItemOnWorld = class;
-  T3DAliveWithInventory = class;
+  TAliveWithInventory = class;
 
   { An item that can be used, kept in the inventory, or (using PutOnWorld
     that wraps it in TItemOnWorld) dropped on 3D world.
@@ -311,18 +311,18 @@ type
       The default implementation of this in TInventoryItem class
       allows stacking always, as long as the Resource matches.
       This means that, by default, every TItemResource is existing at most once
-      in T3DAliveWithInventory.Inventory. }
+      in TAliveWithInventory.Inventory. }
     procedure Stack(var Item: TInventoryItem); virtual;
 
     { Item is picked by an alive player/creature.
       The default implementation in this class adds the item to the Inventory
-      by calling T3DAliveWithInventory.PickItem.
+      by calling TAliveWithInventory.PickItem.
 
       You can override this to cause different behavior (for example,
       to consume some items right at pickup).
       Remember that this method must take care of memory management
       of this item. }
-    procedure Picked(const NewOwner: T3DAliveWithInventory); virtual;
+    procedure Picked(const NewOwner: TAliveWithInventory); virtual;
 
     { Use this item.
 
@@ -424,16 +424,16 @@ type
 
   { List of items, with a 3D object (like a player or creature) owning
     these items. Do not directly change this list, always use
-    the owner (T3DAliveWithInventory) methods like
-    @link(T3DAliveWithInventory.PickItem) or
-    @link(T3DAliveWithInventory.DropItem).
+    the owner (TAliveWithInventory) methods like
+    @link(TAliveWithInventory.PickItem) or
+    @link(TAliveWithInventory.DropItem).
     They make sure that items are correctly stacked, and that
     TInventoryItem.Owner3D and memory management is good. }
   TInventory = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TInventoryItem>)
   private
-    FOwner3D: T3DAliveWithInventory;
+    FOwner3D: TAliveWithInventory;
   protected
-    { Add Item to inventory. See T3DAliveWithInventory.PickItemUpdate description,
+    { Add Item to inventory. See TAliveWithInventory.PickItemUpdate description,
       this method actually implements it. }
     function Pick(var Item: TInventoryItem): Integer;
 
@@ -441,7 +441,7 @@ type
       ItemIndex must be valid (between 0 and Items.Count - 1).
       You @italic(must) take care yourself of returned TInventoryItem memory
       management.
-      This is the low-level basis for T3DAliveWithInventory.DropItem. }
+      This is the low-level basis for TAliveWithInventory.DropItem. }
     function Drop(const ItemIndex: Integer): TInventoryItem;
 
     { Pass here items owned by this list, immediately after decreasing
@@ -450,16 +450,16 @@ type
     procedure CheckDepleted(const Item: TInventoryItem);
 
     { Use the item of given index.
-      This is the low-level basis for T3DAliveWithInventory.UseItem. }
+      This is the low-level basis for TAliveWithInventory.UseItem. }
     procedure Use(const Index: Integer);
   public
-    constructor Create(const AOwner3D: T3DAliveWithInventory);
+    constructor Create(const AOwner3D: TAliveWithInventory);
 
     { Owner of the inventory (like a player or creature).
       Never @nil, always valid for given inventory.
       All items on this list always have the same TInventoryItem.Owner3D value
       as the inventory they are in. }
-    property Owner3D: T3DAliveWithInventory read FOwner3D;
+    property Owner3D: TAliveWithInventory read FOwner3D;
 
     { Searches for item of given Resource. Returns index of first found,
       or -1 if not found. }
@@ -536,15 +536,15 @@ type
       and removed from 3D world.
 
       It's up to you what to do with resulting TInventoryItem instance.
-      You can pick it up, by T3DAliveWithInventory.PickItem
-      (for example player is an instance of T3DAliveWithInventory),
+      You can pick it up, by TAliveWithInventory.PickItem
+      (for example player is an instance of TAliveWithInventory),
       or add it back to 3D world by TInventoryItem.PutOnWorld,
       or at least free it (or you'll get a memory leak). }
     function ExtractItem: TInventoryItem;
   end;
 
   { Alive 3D thing that has inventory (can keep items). }
-  T3DAliveWithInventory = class(T3DAlive)
+  TAliveWithInventory = class(TAlive)
   private
     FInventory: TInventory;
   public
@@ -552,7 +552,7 @@ type
     destructor Destroy; override;
 
     { Owned items. Never change the contents of this list directly,
-      always use T3DAliveWithInventory methods like PickItem
+      always use TAliveWithInventory methods like PickItem
       or DropItem for this. }
     property Inventory: TInventory read FInventory;
 
@@ -788,7 +788,7 @@ begin
     Result := nil;
 end;
 
-procedure TInventoryItem.Picked(const NewOwner: T3DAliveWithInventory);
+procedure TInventoryItem.Picked(const NewOwner: TAliveWithInventory);
 begin
   NewOwner.PickItem(Self);
 end;
@@ -797,11 +797,11 @@ end;
 
 procedure TItemWeapon.Attack;
 var
-  Attacker: T3DAlive;
+  Attacker: TAlive;
   AttackDC, AttackDR, AttackKD: Single;
   AttackSoundHitDone: boolean;
 
-  procedure ImmediateAttackHit(Enemy: T3DAlive);
+  procedure ImmediateAttackHit(Enemy: TAlive);
   begin
     if not AttackSoundHitDone then
     begin
@@ -823,9 +823,9 @@ var
     if Hit <> nil then
     begin
       for I := 0 to Hit.Count - 1 do
-        if Hit[I].Item is T3DAlive then
+        if Hit[I].Item is TAlive then
         begin
-          ImmediateAttackHit(T3DAlive(Hit[I].Item));
+          ImmediateAttackHit(TAlive(Hit[I].Item));
           Break;
         end;
       FreeAndNil(Hit);
@@ -835,7 +835,7 @@ var
   procedure ShortRangeAttack;
   var
     I: Integer;
-    Enemy: T3DAlive;
+    Enemy: TAlive;
     WeaponBoundingBox: TBox3D;
   begin
     { Attacker.Direction may be multiplied by something here for long-range weapons }
@@ -844,9 +844,9 @@ var
     { TODO: we would prefer to use World.BoxCollision for this,
       but we need to know which creature was hit. }
     for I := 0 to World.Count - 1 do
-      if World[I] is T3DAlive then
+      if World[I] is TAlive then
       begin
-        Enemy := T3DAlive(World[I]);
+        Enemy := TAlive(World[I]);
         { Tests: Writeln('Creature bbox is ', C.BoundingBox.ToNiceStr); }
         if (Enemy <> Attacker) and
           Enemy.BoundingBox.Collision(WeaponBoundingBox) then
@@ -867,9 +867,9 @@ begin
   { attacking only works when there's an owner (player, in the future creature
     should also be able to use it) of the weapon }
   if (Owner3D <> nil) and
-     (Owner3D is T3DAlive) then
+     (Owner3D is TAlive) then
   begin
-    Attacker := T3DAlive(Owner3D);
+    Attacker := TAlive(Owner3D);
 
     AttackDC := Resource.AttackDamageConst;
     AttackDR := Resource.AttackDamageRandom;
@@ -924,9 +924,9 @@ procedure TItemWeapon.EquippedAttack(const LifeTime: Single);
     if Resource.AttackAmmo <> '' then
     begin
       if (Owner3D <> nil) and
-         (Owner3D is T3DAliveWithInventory) then
+         (Owner3D is TAliveWithInventory) then
       begin
-        Inventory := T3DAliveWithInventory(Owner3D).Inventory;
+        Inventory := TAliveWithInventory(Owner3D).Inventory;
         AmmoResource := Resources.FindName(Resource.AttackAmmo) as TItemResource;
         AmmoIndex := Inventory.FindResource(AmmoResource);
         Result := AmmoIndex <> -1;
@@ -1000,7 +1000,7 @@ end;
 
 { TInventory ------------------------------------------------------------ }
 
-constructor TInventory.Create(const AOwner3D: T3DAliveWithInventory);
+constructor TInventory.Create(const AOwner3D: TAliveWithInventory);
 begin
   inherited Create(true);
   FOwner3D := AOwner3D;
@@ -1187,10 +1187,10 @@ begin
 
   if AutoPick and
      (World.Player <> nil) and
-     (World.Player is T3DAliveWithInventory) and
-     (not (World.Player as T3DAlive).Dead) and
+     (World.Player is TAliveWithInventory) and
+     (not (World.Player as TAlive).Dead) and
      BoundingBox.Collision(World.Player.BoundingBox) then
-    ExtractItem.Picked(T3DAliveWithInventory(World.Player));
+    ExtractItem.Picked(TAliveWithInventory(World.Player));
 
   { Since we cannot live with Item = nil, we free ourselves }
   if Item = nil then
@@ -1213,31 +1213,31 @@ begin
     ((not Assigned(OnItemOnWorldExists)) or OnItemOnWorldExists(Self));
 end;
 
-{ T3DAliveWithInventory ------------------------------------------------------ }
+{ TAliveWithInventory ------------------------------------------------------ }
 
-constructor T3DAliveWithInventory.Create(AOwner: TComponent);
+constructor TAliveWithInventory.Create(AOwner: TComponent);
 begin
   inherited;
   FInventory := TInventory.Create(Self);
 end;
 
-destructor T3DAliveWithInventory.Destroy;
+destructor TAliveWithInventory.Destroy;
 begin
   FreeAndNil(FInventory);
   inherited;
 end;
 
-function T3DAliveWithInventory.PickItemUpdate(var Item: TInventoryItem): Integer;
+function TAliveWithInventory.PickItemUpdate(var Item: TInventoryItem): Integer;
 begin
   Result := Inventory.Pick(Item);
 end;
 
-function T3DAliveWithInventory.PickItem(Item: TInventoryItem): Integer;
+function TAliveWithInventory.PickItem(Item: TInventoryItem): Integer;
 begin
   Result := PickItemUpdate(Item);
 end;
 
-function T3DAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
+function TAliveWithInventory.DropItem(const Index: Integer): TItemOnWorld;
 
   function DirectionInGravityPlane: TVector3;
   var
@@ -1313,7 +1313,7 @@ begin
   end;
 end;
 
-procedure T3DAliveWithInventory.UseItem(const Index: Integer);
+procedure TAliveWithInventory.UseItem(const Index: Integer);
 begin
   if Between(Index, 0, Inventory.Count - 1) then
     Inventory.Use(Index);
