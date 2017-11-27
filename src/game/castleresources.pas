@@ -38,6 +38,12 @@ type
     FDuration: Single;
     FURL: string;
     FAnimationName: string;
+
+    LastForcedScene: TCastleScene;
+    LastForcedAnimationName: string;
+    LastForcedLoop: boolean;
+    LastForcedActualTime: TFloatTime;
+
     procedure Prepare(const BaseLights: TAbstractLightInstancesList;
       const DoProgress: boolean);
     procedure Release;
@@ -459,27 +465,68 @@ begin
   AOwner.Animations.Add(Self);
 end;
 
+{ $define STATISTICS_FORCING_OPTIMIZATION}
+{$ifdef STATISTICS_FORCING_OPTIMIZATION}
+var
+  Necessary, Avoided: Int64;
+{$endif}
+
 function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
 var
   Looping: TPlayAnimationLooping;
   GoodAnimationName: string;
+  ActualTime: TFloatTime;
+  ForceNecessary: boolean;
 begin
   if FSceneForAnimation <> nil then
-    Result := FSceneForAnimation else
+    Result := FSceneForAnimation
+  else
   if Owner.Model <> nil then
-    Result := Owner.Model else
+    Result := Owner.Model
+  else
     Result := nil;
 
   if Result <> nil then
   begin
     if AnimationName <> '' then
-      GoodAnimationName := AnimationName else
+      GoodAnimationName := AnimationName
+    else
       GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
     if Loop then
-      Looping := paForceLooping else
+      Looping := paForceLooping
+    else
       Looping := paForceNotLooping;
-    Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+    // calculate Time with looping/clamping applied
+    if Loop then
+      ActualTime := FloatModulo(Time, Duration)
+    else
+      ActualTime := Clamped(Time, 0, Duration);
+
+    // call (costly) ForceAnimationPose only if necessary
+    ForceNecessary :=
+      (LastForcedScene <> Result) or
+      (LastForcedAnimationName <> AnimationName) or
+      (LastForcedLoop <> Loop) or
+      (LastForcedActualTime <> ActualTime);
+    if ForceNecessary then
+    begin
+      LastForcedScene := Result;
+      LastForcedAnimationName := AnimationName;
+      LastForcedLoop := Loop;
+      LastForcedActualTime := ActualTime;
+      Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+    end;
+
+    {$ifdef STATISTICS_FORCING_OPTIMIZATION}
+    if ForceNecessary then
+      Inc(Necessary)
+    else
+      Inc(Avoided);
+    if (Necessary + Avoided) mod 100 = 0 then
+      WritelnLog('T3DResourceAnimation.Scene forcing optimization: %d necessary vs %d avoided => %f fraction of work avoided',
+        [Necessary, Avoided, Avoided / (Necessary + Avoided)]);
+    {$endif}
   end;
 end;
 
