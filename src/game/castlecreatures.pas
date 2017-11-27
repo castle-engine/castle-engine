@@ -2333,7 +2333,7 @@ var
 
   { @true if last attack was from the back of the creature,
     @false if from the front or unknown (when LastHurtDirection is zero). }
-  function WasLackAttackBack: boolean;
+  function WasLastAttackBack: boolean;
   begin
     try
       Result := AngleRadBetweenVectors(LastHurtDirection, Direction) < Pi/2;
@@ -2388,7 +2388,7 @@ begin
 
   if Dead and not (State in [csDie, csDieBack]) then
   begin
-    if Resource.DieBackAnimation.Defined and WasLackAttackBack then
+    if Resource.DieBackAnimation.Defined and WasLastAttackBack then
       SetState(csDieBack)
     else
       SetState(csDie);
