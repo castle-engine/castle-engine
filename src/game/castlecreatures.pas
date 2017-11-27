@@ -76,6 +76,7 @@ type
     FDefaultMaxLife: Single;
     FKnockBackDistance: Single;
     FKnockBackSpeed: Single;
+    FCollidesWhenDead: boolean;
 
     FRadiusOverride: Single;
 
@@ -223,6 +224,10 @@ type
       read FKnockBackSpeed write FKnockBackSpeed
       default T3DAlive.DefaultKnockBackSpeed;
 
+    { By default dead creatures (corpses) don't collide, this usually looks better. }
+    property CollidesWhenDead: boolean
+      read FCollidesWhenDead write FCollidesWhenDead default false;
+
     { Default attack damage and knockback.
       Used only by the creatures that actually do some kind of direct attack.
       For example it is used for short-range attack by TWalkAttackCreatureResource
@@ -287,14 +292,23 @@ type
       then we use automatically calculated radius using RadiusCalculate,
       that is adjusted to the bounding box of the animation.
 
-      Note that this radius is not used at all when creature is dead,
-      as dead creatures usually have wildly
-      different boxes (tall humanoid creature probably has a flat bounding
-      box when it's dead lying on the ground), so trying to use (the same)
-      radius would only cause problems.
-      Using sphere collision is also not necessary for dead creatures.
-      See T3D.Sphere for more discussion about when the sphere is a useful
-      bounding volume.
+      This radius is used only for alive creatures, because:
+
+      @unorderedList(
+        @item(It would cause incorrect results on many dead creatures.
+          Dead creatures usually have very different boxes than alive
+          (tall alive humanoid creature probably has a small flat bounding
+          box when it's lying dead on the ground). So the same radius would not work
+          nicely.)
+
+        @item(It is not necessary to use sphere bounding volumes for dead creatures.
+          The main advantage of sphere bounding volumes (over box bounding volumes)
+          is for moving (alive) creatures:
+          sphere better avoids getting stuck into obstacles (because an animation
+          can change the bounding box at any moment).)
+
+        @item(Actually, the results look best when dead creatures don't collide at all.)
+      )
 
       The sphere center is the Middle point ("eye position") of the given creature.
       If the creature may be affected by gravity then
@@ -803,6 +817,7 @@ type
     constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
     destructor Destroy; override;
     function GetExists: boolean; override;
+    function GetCollides: boolean; override;
 
     property Resource: TCreatureResource read FResource;
 
@@ -1013,6 +1028,7 @@ begin
 
   KnockBackSpeed := ResourceConfig.GetFloat('knockback_speed',
     T3DAlive.DefaultKnockBackSpeed);
+  CollidesWhenDead := ResourceConfig.GetValue('collides_when_dead', false);
   KnockBackDistance := ResourceConfig.GetFloat('knockback_distance',
     DefaultKnockBackDistance);
   Flying := ResourceConfig.GetValue('flying',
@@ -1368,6 +1384,12 @@ function TCreature.GetExists: boolean;
 begin
   Result := (inherited GetExists) and (DisableCreatures = 0) and
     ((not Assigned(OnCreatureExists)) or OnCreatureExists(Self));
+end;
+
+function TCreature.GetCollides: boolean;
+begin
+  Result := (inherited GetCollides) and
+    (Resource.CollidesWhenDead or (not Dead));
 end;
 
 destructor TCreature.Destroy;
