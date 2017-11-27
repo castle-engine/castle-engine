@@ -588,7 +588,7 @@ function GLEnableTexture(const Target: TEnableTextureTarget): boolean;
 begin
   Result := true;
 
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     {$ifndef OpenGLES}
 

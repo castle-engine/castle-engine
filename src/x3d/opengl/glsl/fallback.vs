@@ -1,6 +1,7 @@
 /* Fallback GLSL vertex shader.
 
-   Used when we need a shader (e.g. because it is OpenGLES or EnableFixedFunction = false),
+   Used when we need a shader (e.g. because it is OpenGLES or
+   GLFeatures.EnableFixedFunction = false),
    but the default shader did not compile.
    You cannot leave the shader empty in OpenGLES.
 */

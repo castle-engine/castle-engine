@@ -102,6 +102,8 @@ type
 
   TRenderingAttributesEvent = procedure (Attributes: TSceneRenderingAttributes) of object;
 
+  { Rendering attributes,
+    available for every scene through @link(TCastleScene.Attributes). }
   TSceneRenderingAttributes = class(TRenderingAttributes)
   private
     { Scenes that use Renderer with this TSceneRenderingAttributes instance. }
@@ -407,11 +409,11 @@ type
     FBaseLights: TLightInstancesList;
     constructor Create;
     destructor Destroy; override;
-    function BaseLights(Scene: T3D): TLightInstancesList; override;
+    function BaseLights(Scene: TCastleTransform): TLightInstancesList; override;
   end;
 
   { Complete loading, processing and rendering of a scene.
-    This is a descendant of TCastleSceneCore that adds efficient rendering. }
+    This is a descendant of @link(TCastleSceneCore) that adds efficient rendering. }
   TCastleScene = class(TCastleSceneCore)
   private
     Renderer: TGLRenderer;
@@ -567,7 +569,7 @@ type
       algorithm. Uses ShadowVolumeRenderer for rendering, and to detect if rendering
       is necessary at all.
       It will calculate current bounding box (looking at ParentTransform,
-      ParentTransformIsIdentity and BoundingBox method).
+      ParentTransformIsIdentity and LocalBoundingBox method).
 
       It always uses silhouette optimization. This is the usual,
       fast method of rendering shadow volumes.
@@ -863,7 +865,7 @@ begin
   inherited;
 end;
 
-function TBasicRenderParams.BaseLights(Scene: T3D): TLightInstancesList;
+function TBasicRenderParams.BaseLights(Scene: TCastleTransform): TLightInstancesList;
 begin
   Result := FBaseLights;
 end;
@@ -1256,7 +1258,7 @@ begin
   OcclusionQueryUtilsRenderer.ModelViewProjectionMatrixChanged := true;
 
   {$ifndef OpenGLES}
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
   begin
     if not Params.RenderTransformIdentity then
     begin
@@ -1265,7 +1267,7 @@ begin
     end;
     { TODO: this should be replaced with just
     glLoadMatrix(GetModelViewTransform);
-      to just load full matrix, and be consistent with what happens when EnableFixedFunction=false. }
+      to just load full matrix, and be consistent with what happens when GLFeatures.EnableFixedFunction=false. }
   end;
   {$endif}
 
@@ -1361,7 +1363,7 @@ begin
   finally Renderer.RenderEnd end;
 
   {$ifndef OpenGLES}
-  if EnableFixedFunction then
+  if GLFeatures.EnableFixedFunction then
     if not Params.RenderTransformIdentity then
       glPopMatrix;
   {$endif}
@@ -1689,7 +1691,7 @@ begin
     ForceOpaque := not (Attributes.Blending and (Attributes.Mode = rmFull));
 
     { calculate and check SceneBox }
-    SceneBox := BoundingBox;
+    SceneBox := LocalBoundingBox;
     if not ParentTransformIsIdentity then
       SceneBox := SceneBox.Transform(ParentTransform);
     SVRenderer.InitCaster(SceneBox);
@@ -1866,6 +1868,8 @@ procedure TCastleScene.LocalRender(const Frustum: TFrustum; const Params: TRende
   end;
 
 begin
+  inherited;
+
   if GetVisible and (InternalDirty = 0) and
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin

@@ -366,8 +366,8 @@ type
 
       Changed when each container "update" event occurs,
       so this is equal during all @link(TInputListener.Update),
-      @link(TUIControl.Render), @link(T3D.Update),
-      @link(T3D.Render) occuring within the same frame.
+      @link(TUIControl.Render), @link(TCastleTransform.Update),
+      @link(TCastleTransform.LocalRender) occuring within the same frame.
       You can use this to avoid performing the same job many times
       in a single frame.
 

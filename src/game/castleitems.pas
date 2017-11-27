@@ -286,7 +286,7 @@ type
   private
     FResource: TItemResource;
     FQuantity: Cardinal;
-    FOwner3D: T3D;
+    FOwner3D: TCastleTransform;
   protected
     { Try to sum (stack) the given Item with current TInventoryItem.
       The idea is that if player has 5 arrows, and picks an item representing
@@ -376,7 +376,7 @@ type
       The owner is always responsible for freeing this TInventoryItem instance
       (in case of TItemOnWorld, it does it directly;
       in case of player or creature, it does it by TInventory). }
-    property Owner3D: T3D read FOwner3D;
+    property Owner3D: TCastleTransform read FOwner3D;
 
     { 3D world of this item, if any.
 
@@ -489,7 +489,7 @@ type
       FItem: TInventoryItem;
       ItemRotation, LifeTime: Single;
       FDebug3D: TItemDebug3D;
-      CurrentChild: T3D;
+      CurrentChild: TCastleTransform;
     function BoundingBoxRotated: TBox3D;
   public
     { Speed of the rotation of 3D item on world.
@@ -1152,7 +1152,7 @@ procedure TItemOnWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemove
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then

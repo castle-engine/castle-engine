@@ -225,10 +225,27 @@ type
     { GLSL shaders support. }
     Shaders: TGLSupport;
 
-    { Use shaders for TGLImage.Draw, DrawPrimitive2D, and consequently
-      for whole 2D user-interface drawing.
-      On OpenGLES this is always @true. }
-    ShadersForEverything2D: boolean;
+    { Enable OpenGL fixed-function rendering on desktops.
+
+      @unorderedList(
+        @item(This makes Gouraud-shaded shapes rendered using OpenGL
+          fixed-function pipeline on desktops.)
+        @item(It also makes TGLImage.Draw, DrawPrimitive2D (and consequently
+          most of the 2D user-interface) rendered using OpenGL fixed-function pipeline
+          on desktops.)
+        @item(It also allows you to use fixed-function pipeline calls in the
+          @link(TCastleWindowCustom.OnRender) callback, @link(TUIControl.Render)
+          override and related places.)
+        @item(It also allows some deprecated rendering features like WindowPos
+          to continue to work.)
+      )
+
+      This is @false by default on modern GPUs (that have good GLSL support).
+
+      On OpenGLES, it must be @false always, since OpenGLES >= 2
+      has no fixed-function pipeline.
+    }
+    EnableFixedFunction: boolean;
 
     { Total and current memory available.
       Call Memory.Refresh whenever needed. }
@@ -243,20 +260,6 @@ procedure GLInformationInitialize;
 
 var
   GLFeatures: TGLFeatures;
-
-  { Enable OpenGL fixed-function rendering on desktops.
-    This makes Gouraud-shaded shapes rendered using OpenGL fixed-function pipeline
-    on desktops. It also allows you to use fixed-function pipeline calls in the
-    @link(TCastleWindowCustom.OnRender) callback, @link(TUIControl.Render) override
-    and related places.
-    It also allows some deprecated rendering features like WindowPos to continue
-    to work.
-
-    This is @false by default on modern GPUs (that have good GLSL support).
-
-    On OpenGLES, it must be @false always, since OpenGLES >= 2 has no fixed-function pipeline.
-  }
-  EnableFixedFunction: boolean = false;
 
 {$endif read_interface}
 
@@ -350,14 +353,6 @@ begin
   ARB_shadow := Load_GL_ARB_shadow;
   EXT_fog_coord := Load_GL_EXT_fog_coord;
   NV_multisample_filter_hint := Load_GL_NV_multisample_filter_hint;
-
-  if EnableFixedFunction then
-  begin
-    { We want to be able to render any scene --- so we have to be prepared
-      that fog interpolation has to be corrected for perspective.
-      TODO: this should be moved elsewhere, but where? }
-    glHint(GL_FOG_HINT, GL_NICEST);
-  end;
   {$endif}
 
   {$ifdef OpenGLES}
@@ -586,10 +581,6 @@ begin
     Shaders := gsNone;
   {$endif}
 
-  ShadersForEverything2D :=
-    {$ifdef OpenGLES} true
-    {$else} Shaders = gsStandard
-    {$endif};
   EnableFixedFunction :=
     {$ifdef OpenGLES} false
     {$else} Shaders <> gsStandard

@@ -43,13 +43,13 @@ type
   TLoopAnimation = class(TCastleTransform)
   public
     Time: Single;
-    CurrentChild: T3D;
+    CurrentChild: TCastleTransform;
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   end;
 
 procedure TLoopAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  function GetChild: T3D;
+  function GetChild: TCastleTransform;
   begin
     if not (GetExists and Resource.Prepared) then Exit;
     Result := Animation.Scene(Time, true);
@@ -57,7 +57,7 @@ procedure TLoopAnimation.Update(const SecondsPassed: Single; var RemoveMe: TRemo
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then

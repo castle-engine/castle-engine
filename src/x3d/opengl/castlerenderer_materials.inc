@@ -54,7 +54,7 @@ procedure RenderMaterialsBegin;
       Shader.MaterialUnlit := Vector4(DiffuseColor, MaterialOpacity) else
       Shader.MaterialUnlit := Vector4(UnLitColor, MaterialOpacity);
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       if Lighting then

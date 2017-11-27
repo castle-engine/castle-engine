@@ -27,8 +27,12 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleTransform;
 
 type
-  T3DCustomTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DTransform = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3D                         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DList                     = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DCustomTranslated         = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DTranslated               = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DCustomTransform          = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
+  T3DTransform                = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
 
   T3DOrient = class(CastleTransform.TCastleTransform)
   private
@@ -42,12 +46,7 @@ type
     constructor Create(AOwner: TComponent); override;
   end deprecated 'use TCastleTransform from CastleTransform unit';
 
-  T3DCustomTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-  T3DTranslated = CastleTransform.TCastleTransform deprecated 'use TCastleTransform from CastleTransform unit';
-
-  T3D                         = CastleTransform.T3D;
-  T3DListCore                 = CastleTransform.T3DListCore;
-  T3DList                     = CastleTransform.T3DList;
+  T3DListCore                 = CastleTransform.TCastleTransformList;
   T3DWorld                    = CastleTransform.T3DWorld;
   TCollisionDetails           = CastleTransform.TCollisionDetails;
   TRayCollision               = CastleTransform.TRayCollision;
@@ -113,7 +112,7 @@ type
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
   published
     { Are other 3D objects pushed when this object moves.
-      Only the 3D objects with @link(T3D.CollidesWithMoving) are ever pushed by this object
+      Only the 3D objects with @link(TCastleTransform.CollidesWithMoving) are ever pushed by this object
       (the rest of 3D world is treated as static, does not interact with
       elevators / doors or such).
 
@@ -135,10 +134,8 @@ type
         @item(When PushesEverythingInside = @false: We check precise
           collision between 3D objects with CollidesWithMoving=@true
           and our triangle mesh.
-          Actually, we use T3DList.BoxCollision / T3DList.SphereCollsion,
-          that will use children's T3D.BoxCollision / T3D.SphereCollsion;
-          they check collisions with triangle mesh in case of TCastleScene
-          with Spatial containing e.g. ssDynamicCollisions.)
+          We use TCastleTransform.BoxCollision / TCastleTransform.SphereCollsion
+          that can check collisions with TCastleScene precisely.)
       )
 
       Neither method is really perfect.
@@ -525,7 +522,7 @@ var
   MoveTranslation: TVector3;
   CurrentTranslation, NewTranslation: TVector3;
   SphereRadius: Single;
-  Item: T3D;
+  Item: TCastleTransform;
 begin
   if GetCollides and Pushes then
   begin

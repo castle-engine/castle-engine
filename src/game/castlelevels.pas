@@ -101,10 +101,10 @@ type
       as TCastleSceneManager.MainScene,
       so it determines the default viewpoint, background and such.
 
-      Usually it also contains the most (if not all) of 3D level visible geometry,
+      Usually it also contains the most (if not all) of the visible level geometry,
       scripts and such. Although level logic (TLevelLogic descendant determined
-      by LevelClass) may also add any number of additional 3D objects
-      (T3D instances) to the 3D world. }
+      by LevelClass) may also add any number of additional objects
+      (TCastleTransform instances) to the world. }
     property SceneURL: string read FSceneURL write FSceneURL;
 
     { @deprecated Deprecated name for SceneURL. }
@@ -437,7 +437,7 @@ type
     way to add any behavior to the 3D world (it doesn't matter that
     "level logic" is not a usual 3D object --- it doesn't have to collide
     or be visible). }
-  TLevelLogic = class(T3D)
+  TLevelLogic = class(TCastleTransform)
   private
     FTime: TFloatTime;
   protected
@@ -497,7 +497,7 @@ type
     }
     constructor Create(AOwner: TComponent; AWorld: T3DWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
-    function BoundingBox: TBox3D; override;
+    function LocalBoundingBox: TBox3D; override;
 
     { Called when new player starts new game on this level.
       This may be used to equip the player with some basic weapon / items.
@@ -1031,7 +1031,7 @@ begin
   Collides := false;
 end;
 
-function TLevelLogic.BoundingBox: TBox3D;
+function TLevelLogic.LocalBoundingBox: TBox3D;
 begin
   { This object is invisible and non-colliding. }
   Result := TBox3D.Empty;

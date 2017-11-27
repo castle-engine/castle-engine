@@ -25,8 +25,6 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
 type
-  T3D = class;
-  T3DList = class;
   T3DWorld = class;
   TCastleTransform = class;
 
@@ -35,7 +33,7 @@ type
 
   TRenderFromViewFunction = procedure of object;
 
-  { Describe what visible thing changed for T3D.VisibleChangeHere. }
+  { Describe what visible thing changed for TCastleTransform.VisibleChangeHere. }
   TVisibleChange = (
     { Visible geometry (actual 3D shape) changed.
       It's not used when only light conditions, materials, textures
@@ -50,9 +48,9 @@ type
     vcVisibleNonGeometry);
   TVisibleChanges = set of TVisibleChange;
 
-  TVisibleChangeEvent = procedure (const Sender: T3D; const Changes: TVisibleChanges) of object;
+  TVisibleChangeEvent = procedure (const Sender: TCastleTransform; const Changes: TVisibleChanges) of object;
 
-  { Various things that T3D.PrepareResources may prepare. }
+  { Various things that TCastleTransform.PrepareResources may prepare. }
   TPrepareResourcesOption = (prRender, prBackground, prBoundingBox,
     prShadowVolume,
     { Prepare octrees (determined by things like TCastleSceneCore.Spatial). }
@@ -64,15 +62,15 @@ type
   TBaseShadowVolumeRenderer = class
   end;
 
-  T3DListCore = class;
+  TCastleTransformList = class;
 
   { Information about ray collision with a single 3D object.
     Everything (Point, RayOrigin, RayDirection) is expressed in the
     local coordinates of given 3D object (in @link(Item)). }
   TRayCollisionNode = object
   public
-    { Colliding 3D object. }
-    Item: T3D;
+    { Colliding object. }
+    Item: TCastleTransform;
 
     { Position, in local coordinate system of this 3D object,
       of the picked 3D point.
@@ -100,7 +98,7 @@ type
           structure (ssDynamicCollisions or ssStaticCollisions),
           then this triangle is set.)
 
-        @item(If the collision occured merely with a T3D bounding box,
+        @item(If the collision occured merely with a TCastleTransform bounding box,
           the triangle is left as @nil.)
       )
     }
@@ -118,15 +116,11 @@ type
     object (a path within @link(TCastleSceneManager.Items) hierarchy tree,
     usually).
 
-    This list is a path in the 3D objects tree leading from the
-    final colliding 3D object to the root of the tree.
-
-    For example, your 3D tree may be a list (like T3DList), and within
-    this list is a transformed list (TCastleTransform),
-    and within is your final colliding object (like TCastleScene).
-    We will contain in this case these three items, in reverse order
-    (TCastleScene, TCastleTransform, T3DList).
-    This allows you to track the containers that contain given collision.
+    This list is a path in the TCastleTransform tree leading from the
+    final colliding object (usually TCastleScene)
+    to the root of the TCastleTransform tree.
+    This allows you to track the TCastleTransform
+    containers that contain given collision.
 
     This is never an empty list when returned by RayCollision. }
   TRayCollision = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TRayCollisionNode>)
@@ -142,14 +136,14 @@ type
     Distance: Single;
 
     { Index of node with given Item. }
-    function IndexOfItem(const Item: T3D): Integer;
+    function IndexOfItem(const Item: TCastleTransform): Integer;
   end;
 
   { Detailed information about collision with a single 3D object. }
   TCollisionDetailsItem = object
   public
     { Colliding 3D object. }
-    Item: T3D;
+    Item: TCastleTransform;
 
     { Triangle that was hit. This triangle is always a part of @link(Item).
 
@@ -171,22 +165,17 @@ type
     object (a path within @link(TCastleSceneManager.Items) hierarchy tree,
     usually).
 
-    This list is a path in the 3D objects tree leading from the
-    final colliding 3D object to the root of the tree.
-
-    For example, your 3D tree may be a list (like T3DList), and within
-    this list is a transformed list (TCastleTransform),
-    and within is your final colliding object (like TCastleScene).
-    We will contain in this case these three items, in reverse order
-    (TCastleScene, TCastleTransform, T3DList).
-    This allows you to track the containers that contain given collision.
+    This list is a path in the TCastleTransform tree leading from the
+    final colliding object to the root of the TCastleTransform tree.
+    This allows you to track the TCastleTransform
+    containers that contain given collision.
 
     This is never an empty list when returned by XxxCollision method. }
   TCollisionDetails = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TCollisionDetailsItem>)
   public
     { Index of node with given Item. }
-    function IndexOfItem(const Item: T3D): Integer;
-    procedure Add(const Item: T3D);
+    function IndexOfItem(const Item: TCastleTransform): Integer;
+    procedure Add(const Item: TCastleTransform);
   end;
 
   { Statistics about what was rendered during last frame.
@@ -196,7 +185,7 @@ type
     { How many shapes were rendered (send to OpenGL)
       versus all shapes that were potentially visible.
       Potentially visible shapes are the ones with
-      TShape.Visible inside a 3D object with T3D.GetExists.
+      TShape.Visible inside a 3D object with TCastleTransform.GetExists.
 
       When ShapesRendered is much smaller than ShapesVisible,
       it means that the algorithm for removing invisible scene parts
@@ -222,8 +211,9 @@ type
   TRenderingPass = 0..1;
 
   { Information that 3D object needs to render.
-    Read-only for T3D.Render (except Statistics, which should be updated
-    by T3D.Render). }
+    Read-only for TCastleTransform.Render
+    (except Statistics, which should be updated
+    by TCastleTransform.Render). }
   TRenderParams = class
     { Which parts should be rendered: opaque (@false) or transparent (@true). }
     Transparent: boolean;
@@ -259,15 +249,92 @@ type
     constructor Create;
 
     { Lights that shine on given 3D object. }
-    function BaseLights(Scene: T3D): TAbstractLightInstancesList; virtual; abstract;
+    function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
   end;
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
 
-  { Base 3D object, that can be managed by TCastleSceneManager.
-    All 3D objects should descend from this, this way we can easily
-    insert them into the TCastleSceneManager. }
-  T3D = class(TComponent)
+  { List of TCastleTransform instances.
+    This inherits from TCastleObjectList, getting many
+    features like TList notification mechanism.
+    You should not create instances of this class yourself
+    --- instead use TCastleTransform to group your scenes and transformations. }
+  TCastleTransformList = class(TCastleObjectList)
+  private
+    FOwner: TCastleTransform;
+
+    function GetItem(const I: Integer): TCastleTransform;
+    procedure SetItem(const I: Integer; const Item: TCastleTransform);
+  public
+    constructor Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
+    property Items[I: Integer]: TCastleTransform read GetItem write SetItem; default;
+
+    function First: TCastleTransform;
+    function Last: TCastleTransform;
+
+    { TCastleTransform instance that owns this list.
+      May be @nil, for example when this list is used by TRayCollision. }
+    property Owner: TCastleTransform read FOwner;
+  end;
+
+  TOrientationType = (
+    { Sensible for worlds oriented around Y axis.
+      That is when gravity pulls in -Y and GravityUp vector is +Y.
+      Transformation makes -Z and +Y match (respectively) Direction and Up.
+
+      This matches default direction/up of OpenGL and VRML/X3D cameras.
+
+      For example, using this value for @link(TCastleTransform.Orientation) (or even
+      @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
+      Blender X3D exporter, and you let the exporter to make
+      a transformation (to make +Z up into +Y up). This is the default setting.
+      Then you can follow the standard Blender view names
+      ("front", "top" and such) when modelling, and Blender tools like
+      "X-axis mirror" will work best. }
+    otUpYDirectionMinusZ,
+
+    { Sensible for worlds oriented around Z axis.
+      Transformation makes -Y and +Z match (respectively) Direction and Up.
+
+      Using this value for @link(TCastleTransform.Orientation) (or even
+      @link(TCastleTransform.DefaultOrientation)) is sensible if you export your models
+      from Blender @italic(without transforming them during export).
+      Note that @italic(this is not the default Blender X3D exporter behavior).
+      But you can configure the exporter to work like this (not transform),
+      and then you can follow the standard Blender view names
+      ("front", "top" and such) when modelling. }
+    otUpZDirectionMinusY,
+
+    { @deprecated Up in +Z (like otUpZDirectionMinusY) and direction
+      in +X. Should not be used in new models. }
+    otUpZDirectionX
+  );
+
+  TRigidBody = class;
+
+  { Group and transform (move, rotate, scale) children objects.
+    This is the base thing that is managed by the @link(TCastleSceneManager).
+
+    Transformation is a combined
+    @orderedList(
+      @itemSpacing Compact
+      @item @link(Translation),
+      @item and @link(Rotation) around @link(Center) point,
+      @item(and @link(Scale) around @link(Center) and with orientation given by
+        @link(ScaleOrientation).)
+    )
+
+    For precise order of the translation/rotation/scale operations,
+    see the X3D Transform node specification.
+    The @link(Rotation) may be alternatively controlled using
+    @link(Direction) and @link(Up) vectors.
+
+    Default values of all fields indicate "no transformation".
+    So everything is zero, except Scale is (1,1,1).
+
+    This class enables (optional) gravity and physics. }
+  TCastleTransform = class(TComponent)
   private
     FCastShadowVolumes: boolean;
     FExists: boolean;
@@ -281,15 +348,71 @@ type
       FInternalExcludeFromParentBoundingVolume: boolean;
     FWorld: T3DWorld;
     FWorldReferences: Cardinal;
+    FList: TCastleTransformList;
+
+    // transformation
+    FCenter: TVector3;
+    FRotation: TVector4;
+    FScale: TVector3;
+    FScaleOrientation: TVector4;
+    FTranslation: TVector3;
+
+    // transformation extras
+    FGravity: boolean;
+    FFallingStartMiddle: TVector3;
+    FFalling: boolean;
+    FFallSpeed: Single;
+    FGrowSpeed: Single;
+    FMiddleHeight: Single;
+    FRigidBody: TRigidBody;
+    FOrientation: TOrientationType;
+    FOnlyTranslation: boolean;
+
     procedure SetCursor(const Value: TMouseCursor);
+    procedure SetCenter(const Value: TVector3);
+    procedure SetRotation(const Value: TVector4);
+    procedure SetScale(const Value: TVector3);
+    procedure SetScaleOrientation(const Value: TVector4);
+    procedure SetTranslation(const Value: TVector3);
+    procedure SetRigidBody(const Value: TRigidBody);
+    function GetDirection: TVector3;
+    function GetUp: TVector3;
+    procedure SetDirection(const Value: TVector3);
+    procedure SetUp(const Value: TVector3);
+    function RotationFromDirectionUp(const D, U: TVector3): TVector4;
+    function RotationToDirection(const ARotation: TVector4): TVector3;
+    function RotationToUp(const ARotation: TVector4): TVector3;
+    procedure UpdateSimpleGravity(const SecondsPassed: Single);
+    procedure UpdatePhysicsEngine(const SecondsPassed: Single);
+    function GetItem(const I: Integer): TCastleTransform;
+    procedure SetItem(const I: Integer; const Item: TCastleTransform);
+    procedure PhysicsDestroy;
+    procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
+    procedure PhysicsChangeWorld(const Value: T3DWorld);
   protected
+    { Workaround for descendants where BoundingBox may suddenly change
+      but their logic depends on stable (not suddenly changing) Middle.
+      If MiddleForceBox then we will use given MiddleForceBoxValue
+      instead of LocalBoundingBox for Middle and PreferredHeight
+      calculation. Descendants that deal with this should usually have
+      some timeout when they restore MiddleForceBox to false.
+
+      This is quite internal hack and you should not use this in your own programs.
+      This is used only by TWalkAttackCreature.
+      @exclude
+      @groupBegin }
+    MiddleForceBox: boolean;
+    { @exclude }
+    MiddleForceBoxValue: TBox3D;
+    { @groupEnd }
+
     { Change to new world, or (if not needed) just increase FWorldReferences.
       Value must not be @nil. }
-    procedure AddToWorld(const Value: T3DWorld); virtual;
+    procedure AddToWorld(const Value: T3DWorld);
 
     { Decrease FWorldReferences, then (if needed) change world to @nil.
       Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: T3DWorld); virtual;
+    procedure RemoveFromWorld(const Value: T3DWorld);
 
     { Called when the current 3D world (which corresponds to the current
       TCastleSceneManager) of this 3D object changes.
@@ -301,7 +424,7 @@ type
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: T3DWorld); virtual;
+    procedure ChangeWorld(const Value: T3DWorld);
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -334,7 +457,7 @@ type
     }
     function HeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 
     { Can other 3D object (maybe a player) move without colliding with this object.
 
@@ -364,19 +487,19 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload;
     function MoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload;
     { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; virtual;
+      const ALineOfSight: boolean): boolean;
     function SphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
     { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
 
@@ -391,7 +514,7 @@ type
         the 3D objects hierarchy that caused this collision.) }
     function SphereCollision2D(const Pos: TVector2; const Radius: Single;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const Details: TCollisionDetails = nil): boolean; virtual;
+      const Details: TCollisionDetails = nil): boolean;
 
     { Check collision with a point in 2D (which is an infinite line along the Z axis
       in 3D).
@@ -429,10 +552,10 @@ type
       )
     }
     function PointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
     function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
 
     { Check collision with a ray, building a TRayCollision result.
       Returns a collision as TRayCollision instance, or @nil if no collision.
@@ -447,9 +570,37 @@ type
 
       This always returns the first collision with the 3D world, that is
       the one with smallest TRayCollision.Distance. For example, when
-      implemented in T3DList, this checks collisions for all list items,
+      implemented in TCastleTransform, this checks collisions for all list items,
       and chooses the closest one. }
     function RayCollision(const RayOrigin, RayDirection: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
+
+    function LocalHeightCollision(const APosition, GravityUp: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
+    function LocalMoveCollision(
+      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function LocalMoveCollision(
+      const OldPos, NewPos: TVector3;
+      const IsRadius: boolean; const Radius: Single;
+      const OldBox, NewBox: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function LocalSegmentCollision(const Pos1, Pos2: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const ALineOfSight: boolean): boolean; virtual;
+    function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const Details: TCollisionDetails = nil): boolean; virtual;
+    function LocalPointCollision2D(const Point: TVector2;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function LocalBoxCollision(const Box: TBox3D;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+    function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
 
     { Render with given Params (includes a full transformation of this scene). }
@@ -460,28 +611,81 @@ type
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
       const ParentTransform: TMatrix4); virtual;
+
+    { Can we use simple @link(Translation) instead of full TransformMatricesMult.
+      Returning @true allows optimization in some cases.
+      @bold(Internal. Protected instead of private only for testing.)
+      @exclude }
+    function OnlyTranslation: boolean;
+
+    { Get translation in 2D (uses @link(Translation), ignores Z coord). }
+    function Translation2D: TVector2;
+
+    { Transformation matrix.
+      This method produces matrices that preserve points as points
+      and directions as directions in homegeneous space.
+      In other words, using TMatrix4.MultPoint or TMatrix4.MultDirection
+      with these matrices must never raise ETransformedResultInvalid.
+      For example, a combination of translations, rotations, scaling is Ok. }
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4);
+    procedure TransformMatrices(out M, MInverse: TMatrix4);
+
+    { Average value of 3D scale in @link(Scale).
+      It is not calculated as a simple average, it's a little smarter
+      to prevent from weird results sometimes, see @link(Approximate3DScale). }
+    function AverageScale: Single;
+
+    { Average value of 2D scale, from XY components of @link(Scale).
+      It is not calculated as a simple average, it's a little smarter
+      to prevent from weird results sometimes, see @link(Approximate2DScale). }
+    function AverageScale2D: Single;
+
+    { Called when fall ended. You can use FallHeight to decrease creature
+      life or such. }
+    procedure Fall(const FallHeight: Single); virtual;
+
+    { Override this to be notified about every transformation change.
+      By default, this calls VisibleChangeHere, which causes the window to redraw. }
+    procedure ChangedTransform; virtual;
   public
+    const
+      DefaultMiddleHeight = 0.5;
+      DefaultDirection: array [TOrientationType] of TVector3 = (
+        (Data: (0,  0, -1)),
+        (Data: (0, -1,  0)),
+        (Data: (1,  0,  0))
+      );
+      DefaultUp: array [TOrientationType] of TVector3 = (
+        (Data: (0, 1, 0)),
+        (Data: (0, 0, 1)),
+        (Data: (0, 0, 1))
+      );
+
+    var
+      { Default value of @link(TCastleTransform.Orientation) for new instances. }
+      DefaultOrientation: TOrientationType; static;
+
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
 
     { Does item really exist, see @link(Exists) and @link(Enable),
       @link(Disable).
-      It T3D class, returns @true if @link(Exists) and not disabled.
+      It TCastleTransform class, returns @true if @link(Exists) and not disabled.
       May be modified in subclasses, to return something more complicated. }
     function GetExists: boolean; virtual;
 
     { Does item really collide, see @link(Collides).
-      It T3D class, returns @link(Collides) and @link(GetExists).
+      It TCastleTransform class, returns @link(Collides) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetCollides: boolean; virtual;
 
     { Is item really pickable, see @link(Pickable).
-      It T3D class, returns @link(Pickable) and @link(GetExists).
+      It TCastleTransform class, returns @link(Pickable) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetPickable: boolean; virtual;
 
     { Is item really visible, see @link(Visible).
-      It T3D class, returns @link(Visible) and @link(GetExists).
+      It v class, returns @link(Visible) and @link(GetExists).
       May be modified in subclasses, to return something more complicated. }
     function GetVisible: boolean; virtual;
 
@@ -567,6 +771,51 @@ type
       @noAutoLinkHere }
     property Visible: boolean read FVisible write FVisible default true;
 
+    { Operate on 3D objects contained in the list.
+      You can also operate directly on @link(List) instance.
+      @groupBegin }
+    procedure Add(const Item: TCastleTransform);
+    procedure Insert(const Index: Integer; const Item: TCastleTransform);
+    procedure Remove(const Item: TCastleTransform);
+    property Items[I: Integer]: TCastleTransform read GetItem write SetItem; default;
+    function Count: Integer;
+    procedure Clear;
+    procedure Exchange(const Index1, Index2: Integer);
+    { @groupEnd }
+
+    { Sort objects back-to-front @italic(right now)
+      following one of the blending sorting algorithms.
+      Only the immediate list items are reordered,
+      looking at their bounding boxes.
+
+      Calling this method makes sense if you have a list
+      of objects, and some of them are partially-transparent and may
+      be visible at the same place on the screen.
+      It may even make sense to call this method every frame (like in every
+      @link(TCastleWindowCustom.OnUpdate)),
+      if you move or otherwise change the objects (changing their bounding boxes),
+      or if the CameraPosition may change (note that CameraPosition is only
+      relevant if BlendingSort = bs3D).
+
+      Sorting partially-transparent objects avoids artifacts when rendering.
+
+      Note that this doesn't take care of sorting the shapes
+      within the scenes. For this, you should set
+      @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
+      to a value like bs3D, to keep it sorted.
+      It is actually the default now.
+
+      See the TBlendingSort documentation for the exact specification
+      of sorting algorithms. Using BlendingSort = bsNone does nothing. }
+    procedure SortBackToFront(const BlendingSort: TBlendingSort;
+      const CameraPosition: TVector3);
+
+    { Sort objects back-to-front @italic(right now)
+      following the 2D blending sorting algorithm.
+      See @link(SortBackToFront) for documentation, this method
+      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
+    procedure SortBackToFront2D;
+
     { Bounding box of the 3D object.
 
       Should take into account both collidable and visible objects.
@@ -576,10 +825,10 @@ type
       It's a @italic(bounding) volume, it should be as large as necessary
       to include the object inside. At the same time, it should be
       as "tight" as it can, to make various optimizations work best. }
-    function BoundingBox: TBox3D; virtual; abstract;
+    function BoundingBox: TBox3D;
 
     { Bounding box assuming that the scene is not transformed. }
-    function LocalBoundingBox: TBox3D; virtual; abstract;
+    function LocalBoundingBox: TBox3D; virtual;
 
     { Render given object.
       Should check and immediately exit when @link(GetVisible) is @false.
@@ -592,7 +841,7 @@ type
 
       @param(Params Other parameters helpful for rendering.)
     }
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); virtual;
+    procedure Render(const Frustum: TFrustum; const Params: TRenderParams);
 
     { Does the 3D object cast shadows by shadow volumes.
       See also TCastleScene.ReceiveShadowVolumes. }
@@ -607,7 +856,7 @@ type
 
       ParentTransform and ParentTransformIsIdentity describe the transformation
       of this object in the 3D world.
-      T3D objects may be organized in a hierarchy when
+      TCastleTransform objects may be organized in a hierarchy when
       parent transforms it's children. When ParentTransformIsIdentity,
       ParentTransform must be TMatrix4.Identity (it's not guaranteed
       that when ParentTransformIsIdentity = @true, Transform value will be
@@ -615,7 +864,7 @@ type
     procedure RenderShadowVolume(
       ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
       const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); virtual;
+      const ParentTransform: TMatrix4);
 
     { Prepare resources, making various methods (like rendering and such)
       to execute fast.
@@ -625,8 +874,10 @@ type
       will automatically call @code(MyScene.PrepareResources(...)) underneath,
       with proper parameters.
 
-      This requires OpenGL to be initailized for most 3D objects.
-      If not, some parts of preparations will be aborted.
+      It is best to call this after the rendering context is initailized,
+      which means: at Application.OnInitialize, or Window.OnOpen or later.
+      Calling this method earlier will omit some preparations,
+      thus reducing the effectiveness of them.
 
       This makes sure that appropriate methods execute as fast as possible.
       It's never required to call this method
@@ -648,7 +899,7 @@ type
       @param(Options What features should be prepared to execute fast.
         See TPrepareResourcesOption,
         the names should be self-explanatory (they refer to appropriate
-        methods of T3D, TCastleSceneCore or TCastleScene).)
+        methods of TCastleTransform, TCastleSceneCore or TCastleScene).)
 
       @param(ProgressStep Says that we should make this many Progress.Step calls
         during preparation.
@@ -681,7 +932,7 @@ type
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
-      In the base class T3D this just returns 0.  }
+      In the base class TCastleTransform this just returns 0.  }
     function PrepareResourcesSteps: Cardinal; virtual;
 
     { Press and release events of key and mouse. Return @true if you handled them.
@@ -799,11 +1050,11 @@ type
       hierarchy. }
     property World: T3DWorld read FWorld;
 
-    { Something visible changed in the 3D world.
+    { Something visible changed in the world.
       This is usually called by our container (like TCastleSceneManager),
-      to allow this 3D object to react (e.g. by regenerating mirror textures)
-      to changes in the 3D world (not necessarily in this 3D object,
-      maybe in some other T3D instance).
+      to allow this object to react (e.g. by regenerating mirror textures)
+      to changes in the world (not necessarily in this object,
+      maybe in some other TCastleScene instance).
 
       If you want to @italic(react) to visibility
       changes, you should override this. }
@@ -861,9 +1112,7 @@ type
       and be possible to change only when MoveAllowed is checked
       (so only when @link(TCastleTransform.Translation) can change).
 
-      In this class this is simply zero. In the descendant
-      @link(TCastleTransform)
-      this is overriden to return something sensible above the bottom
+      In this class this returns something sensible above the bottom
       of the box. See @link(TCastleTransform.MiddleHeight). }
     function Middle: TVector3; virtual;
 
@@ -885,7 +1134,7 @@ type
       "empty sphere" by @link(Sphere) method for now, but BoundingBox can express
       TBox3D.Empty).
 
-      By default, in T3D class, this always returns @false
+      By default, in TCastleTransform class, this always returns @false
       and @link(Sphere) is undefined.
 
       The advantages of using a sphere, that does not have to be a perfect
@@ -977,8 +1226,8 @@ type
 
       Some other 3D moving objects may push this object.
       Like elevators (vertical, or horizontal moving platforms).
-      We may use sphere (see @link(T3D.Sphere)) for checking
-      collisions, or bounding box (@link(T3D.BoundingBox)), depending on need. }
+      We may use sphere (see @link(TCastleTransform.Sphere)) for checking
+      collisions, or bounding box (@link(TCastleTransform.BoundingBox)), depending on need. }
     property CollidesWithMoving: boolean read FCollidesWithMoving write FCollidesWithMoving default false;
 
     { Get height of my point above the rest of the 3D world.
@@ -1031,371 +1280,6 @@ type
     property InternalExcludeFromParentBoundingVolume: boolean
       read FInternalExcludeFromParentBoundingVolume
       write FInternalExcludeFromParentBoundingVolume;
-  published
-    { If this 3D object is rendered as part of TCastleSceneManager,
-      and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
-      to make an exception for this 3D object: even though
-      @link(TCastleAbstractViewport.UseGlobalLights) is @true,
-      do not use global lights @italic(for this 3D object).
-
-      Note that this is not applied recursively. Instead, it is checked at each T3D instance
-      that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,
-      unless you do custom rendering on your own. }
-    property ExcludeFromGlobalLights: boolean
-      read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
-
-    { Exclude from rendering statistics in
-      @link(TCastleAbstractViewport.Statistics). }
-    property ExcludeFromStatistics: boolean
-      read FExcludeFromStatistics write FExcludeFromStatistics default false;
-  end;
-
-  { List of 3D objects (T3D instances).
-
-    This inherits from TCastleObjectList, getting many
-    features like TList notification mechanism (useful in some situations).
-    Usually you want to use T3DList instead, which is a wrapper around
-    this class. }
-  T3DListCore = class(TCastleObjectList)
-  private
-    FOwner: T3DList;
-
-    function GetItem(const I: Integer): T3D;
-    procedure SetItem(const I: Integer; const Item: T3D);
-  public
-    constructor Create(const FreeObjects: boolean; const AOwner: T3DList);
-    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
-    property Items[I: Integer]: T3D read GetItem write SetItem; default;
-
-    function First: T3D;
-    function Last: T3D;
-
-    { T3DList instance that owns this list.
-      May be @nil, for example when this list is used by TRayCollision. }
-    property Owner: T3DList read FOwner;
-  end;
-
-  { List of 3D objects (T3D instances), that can be treated like another,
-    larger 3D object.
-
-    It inherits from T3D class, so this list is itself
-    a 3D object, representing a sum of all it's children 3D objects.
-    This allows you to group many 3D objects, and treat them as one T3D
-    descendant. }
-  T3DList = class(T3D)
-  private
-    FList: T3DListCore;
-    function GetItem(const I: Integer): T3D;
-    procedure SetItem(const I: Integer; const Item: T3D);
-  protected
-    procedure AddToWorld(const Value: T3DWorld); override;
-    procedure RemoveFromWorld(const Value: T3DWorld); override;
-
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveCollision(
-      const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const Details: TCollisionDetails = nil): boolean; override;
-    function PointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
-    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
-    procedure LocalRenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-
-    { Operate on 3D objects contained in the list.
-      You can also operate directly on @link(List) instance.
-      @groupBegin }
-    procedure Add(const Item: T3D);
-    procedure Insert(const Index: Integer; const Item: T3D);
-    procedure Remove(const Item: T3D);
-    property Items[I: Integer]: T3D read GetItem write SetItem; default;
-    function Count: Integer;
-    procedure Clear;
-    procedure Exchange(const Index1, Index2: Integer);
-    { @groupEnd }
-
-    function LocalBoundingBox: TBox3D; override;
-
-    { Sort objects back-to-front @italic(right now)
-      following one of the blending sorting algorithms.
-      Only the immediate list items are reordered,
-      looking at their bounding boxes.
-
-      Calling this method makes sense if you have a list
-      of objects, and some of them are partially-transparent and may
-      be visible at the same place on the screen.
-      It may even make sense to call this method every frame (like in every
-      @link(TCastleWindowCustom.OnUpdate)),
-      if you move or otherwise change the objects (changing their bounding boxes),
-      or if the CameraPosition may change (note that CameraPosition is only
-      relevant if BlendingSort = bs3D).
-
-      Sorting partially-transparent objects avoids artifacts when rendering.
-
-      Note that this doesn't take care of sorting the shapes
-      within the scenes. For this, you should set
-      @link(TSceneRenderingAttributes.BlendingSort Scene.Attributes.BlendingSort)
-      to a value like bs3D, to keep it sorted.
-      It is actually the default now.
-
-      See the TBlendingSort documentation for the exact specification
-      of sorting algorithms. Using BlendingSort = bsNone does nothing. }
-    procedure SortBackToFront(const BlendingSort: TBlendingSort;
-      const CameraPosition: TVector3);
-
-    { Sort objects back-to-front @italic(right now)
-      following the 2D blending sorting algorithm.
-      See @link(SortBackToFront) for documentation, this method
-      is only a shortcut for @code(SortBackToFront(bs2D, TVector3.Zero)). }
-    procedure SortBackToFront2D;
-
-    procedure PrepareResources(
-      Options: TPrepareResourcesOptions;
-      ProgressStep: boolean;
-      BaseLights: TAbstractLightInstancesList); override;
-    function PrepareResourcesSteps: Cardinal; override;
-    function Press(const Event: TInputPressRelease): boolean; override;
-    function Release(const Event: TInputPressRelease): boolean; override;
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
-    procedure GLContextClose; override;
-    procedure UpdateGeneratedTextures(
-      const RenderFunc: TRenderFromViewFunction;
-      const ProjectionNear, ProjectionFar: Single;
-      const OriginalViewport: TRectangle); override;
-    procedure VisibleChangeNotification(const Changes: TVisibleChanges); override;
-    procedure CameraChanged(ACamera: TCamera); override;
-    function Dragging: boolean; override;
-  published
-    { 3D objects inside.
-      Freeing these items automatically removes them from this list. }
-    property List: T3DListCore read FList;
-  end;
-
-  TOrientationType = (
-    { Sensible for worlds oriented around Y axis.
-      That is when gravity pulls in -Y and GravityUp vector is +Y.
-      Transformation makes -Z and +Y match (respectively) Direction and Up.
-
-      This matches default direction/up of OpenGL and VRML/X3D cameras.
-
-      For example, using this value for @link(TCastleTransform.Orientation) (or even
-      @link(TCastleTransform.DefaultOrientation)) is sensible if you use default
-      Blender X3D exporter, and you let the exporter to make
-      a transformation (to make +Z up into +Y up). This is the default setting.
-      Then you can follow the standard Blender view names
-      ("front", "top" and such) when modelling, and Blender tools like
-      "X-axis mirror" will work best. }
-    otUpYDirectionMinusZ,
-
-    { Sensible for worlds oriented around Z axis.
-      Transformation makes -Y and +Z match (respectively) Direction and Up.
-
-      Using this value for @link(TCastleTransform.Orientation) (or even
-      @link(TCastleTransform.DefaultOrientation)) is sensible if you export your models
-      from Blender @italic(without transforming them during export).
-      Note that @italic(this is not the default Blender X3D exporter behavior).
-      But you can configure the exporter to work like this (not transform),
-      and then you can follow the standard Blender view names
-      ("front", "top" and such) when modelling. }
-    otUpZDirectionMinusY,
-
-    { @deprecated Up in +Z (like otUpZDirectionMinusY) and direction
-      in +X. Should not be used in new models. }
-    otUpZDirectionX
-  );
-
-  TRigidBody = class;
-
-  { Group and transform (move, rotate, scale) children objects.
-
-    Transformation is a combined
-    @orderedList(
-      @itemSpacing Compact
-      @item @link(Translation),
-      @item and @link(Rotation) around @link(Center) point,
-      @item(and @link(Scale) around @link(Center) and with orientation given by
-        @link(ScaleOrientation).)
-    )
-
-    For precise order of the translation/rotation/scale operations,
-    see the X3D Transform node specification.
-    The @link(Rotation) may be alternatively controlled using
-    @link(Direction) and @link(Up) vectors.
-
-    Default values of all fields indicate "no transformation".
-    So everything is zero, except Scale is (1,1,1).
-
-    This class enables (optional) gravity and physics. }
-  TCastleTransform = class(T3DList)
-  private
-    FCenter: TVector3;
-    FRotation: TVector4;
-    FScale: TVector3;
-    FScaleOrientation: TVector4;
-    FTranslation: TVector3;
-
-    FGravity: boolean;
-    FFallingStartMiddle: TVector3;
-    FFalling: boolean;
-    FFallSpeed: Single;
-    FGrowSpeed: Single;
-    FMiddleHeight: Single;
-    FRigidBody: TRigidBody;
-    FOrientation: TOrientationType;
-    FOnlyTranslation: boolean;
-
-    procedure SetCenter(const Value: TVector3);
-    procedure SetRotation(const Value: TVector4);
-    procedure SetScale(const Value: TVector3);
-    procedure SetScaleOrientation(const Value: TVector4);
-    procedure SetTranslation(const Value: TVector3);
-    procedure SetRigidBody(const Value: TRigidBody);
-    function GetDirection: TVector3;
-    function GetUp: TVector3;
-    procedure SetDirection(const Value: TVector3);
-    procedure SetUp(const Value: TVector3);
-    function RotationFromDirectionUp(const D, U: TVector3): TVector4;
-    function RotationToDirection(const ARotation: TVector4): TVector3;
-    function RotationToUp(const ARotation: TVector4): TVector3;
-    procedure UpdateSimpleGravity(const SecondsPassed: Single);
-    procedure UpdatePhysicsEngine(const SecondsPassed: Single);
-  protected
-    { Workaround for descendants where BoundingBox may suddenly change
-      but their logic depends on stable (not suddenly changing) Middle.
-      If MiddleForceBox then we will use given MiddleForceBoxValue
-      instead of LocalBoundingBox for Middle and PreferredHeight
-      calculation. Descendants that deal with this should usually have
-      some timeout when they restore MiddleForceBox to false.
-
-      This is quite internal hack and you should not use this in your own programs.
-      This is used only by TWalkAttackCreature.
-      @exclude
-      @groupBegin }
-    MiddleForceBox: boolean;
-    { @exclude }
-    MiddleForceBoxValue: TBox3D;
-    { @groupEnd }
-
-    { Can we use simple @link(Translation) instead of full TransformMatricesMult.
-      Returning @true allows optimization in some cases.
-      @bold(Internal. Protected instead of private only for testing.)
-      @exclude }
-    function OnlyTranslation: boolean;
-
-    { Get translation in 2D (uses @link(Translation), ignores Z coord). }
-    function Translation2D: TVector2;
-
-    { Transformation matrix.
-      This method produces matrices that preserve points as points
-      and directions as directions in homegeneous space.
-      In other words, using TMatrix4.MultPoint or TMatrix4.MultDirection
-      with these matrices must never raise ETransformedResultInvalid.
-      For example, a combination of translations, rotations, scaling is Ok. }
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4);
-    procedure TransformMatrices(out M, MInverse: TMatrix4);
-
-    { Average value of 3D scale in @link(Scale).
-      It is not calculated as a simple average, it's a little smarter
-      to prevent from weird results sometimes, see @link(Approximate3DScale). }
-    function AverageScale: Single;
-
-    { Average value of 2D scale, from XY components of @link(Scale).
-      It is not calculated as a simple average, it's a little smarter
-      to prevent from weird results sometimes, see @link(Approximate2DScale). }
-    function AverageScale2D: Single;
-
-    function HeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
-    function MoveCollision(
-      const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function MoveCollision(
-      const OldPos, NewPos: TVector3;
-      const IsRadius: boolean; const Radius: Single;
-      const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; override;
-    function SphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function SphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const Details: TCollisionDetails): boolean; override;
-    function PointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
-    function RayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
-
-    { Called when fall ended. You can use FallHeight to decrease creature
-      life or such. }
-    procedure Fall(const FallHeight: Single); virtual;
-
-    { Override this to be notified about every transformation change.
-      By default, this calls VisibleChangeHere, which causes the window to redraw. }
-    procedure ChangedTransform; virtual;
-
-    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    procedure ChangeWorld(const Value: T3DWorld); override;
-  public
-    const
-      DefaultMiddleHeight = 0.5;
-      DefaultDirection: array [TOrientationType] of TVector3 = (
-        (Data: (0,  0, -1)),
-        (Data: (0, -1,  0)),
-        (Data: (1,  0,  0))
-      );
-      DefaultUp: array [TOrientationType] of TVector3 = (
-        (Data: (0, 1, 0)),
-        (Data: (0, 0, 1)),
-        (Data: (0, 0, 1))
-      );
-
-    var
-      { Default value of @link(TCastleTransform.Orientation) for new instances. }
-      DefaultOrientation: TOrientationType; static;
-
-    constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    function BoundingBox: TBox3D; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
-    procedure RenderShadowVolume(
-      ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-      const ParentTransformIsIdentity: boolean;
-      const ParentTransform: TMatrix4); override;
-    function Middle: TVector3; override;
-    procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
     { Convert position between local and outside coordinate system.
       This is called OutsideToLocal, not WorldToLocal, because it only handles transformation
@@ -1626,7 +1510,7 @@ type
       For now, be aware of these:
 
       @unorderedList(
-        @item(@link(T3D.Collides) property affects @italic(both our
+        @item(@link(TCastleTransform.Collides) property affects @italic(both our
           "simple physics simulation" and the "full-featured physics engine").
           It determines whether the object is collidable.
         )
@@ -1649,8 +1533,8 @@ type
         @item(The collider used by our internal, simple physics is independent
           from the @link(TRigidBody.Collider).
           The internal, simple physics uses colliders implicitly implemented
-          in the overridden @link(T3D.HeightCollision),
-          @link(T3D.MoveCollision) and friends.
+          in the overridden @link(TCastleTransform.HeightCollision),
+          @link(TCastleTransform.MoveCollision) and friends.
           In case of @link(TCastleSceneCore), the rule is simple:
 
           @unorderedList(
@@ -1744,6 +1628,27 @@ type
       Generally, it applies to every 3D model that is used as
       a child of this TCastleTransform instance. }
     property Orientation: TOrientationType read FOrientation write FOrientation;
+  published
+    { 3D objects inside.
+      Freeing these items automatically removes them from this list. }
+    property List: TCastleTransformList read FList;
+
+    { If this 3D object is rendered as part of TCastleSceneManager,
+      and @link(TCastleAbstractViewport.UseGlobalLights) is @true, then this property allows
+      to make an exception for this 3D object: even though
+      @link(TCastleAbstractViewport.UseGlobalLights) is @true,
+      do not use global lights @italic(for this 3D object).
+
+      Note that this is not applied recursively. Instead, it is checked at each TCastleTransform instance
+      that checks TRenderParams.BaseLights. In practice, it is only checked at TCastleScene,
+      unless you do custom rendering on your own. }
+    property ExcludeFromGlobalLights: boolean
+      read FExcludeFromGlobalLights write FExcludeFromGlobalLights default false;
+
+    { Exclude from rendering statistics in
+      @link(TCastleAbstractViewport.Statistics). }
+    property ExcludeFromStatistics: boolean
+      read FExcludeFromStatistics write FExcludeFromStatistics default false;
   end;
 
   { 3D world. List of 3D objects, with some central properties. }
@@ -1791,11 +1696,11 @@ type
       3D world.
 
       Calling these methods to check collisions makes sense if your
-      collision query is not initiated by any existing T3D instance.
+      collision query is not initiated by any existing TCastleTransform instance.
 
-      If your query originates from some existing T3D instance,
+      If your query originates from some existing TCastleTransform instance,
       you usually do not want to call these WorldXxx methods.
-      Instead call T3D.MoveAllowed, T3D.Height methods.
+      Instead call TCastleTransform.MoveAllowed, TCastleTransform.Height methods.
       Underneath, they still call @code(World.WorldMoveAllowed) and
       @code(World.WorldHeight),
       additionally making sure that the 3D object does not collide with itself.
@@ -1814,6 +1719,7 @@ type
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
+    function WorldBoxCollision(const Box: TBox3D): boolean;
     function WorldSphereCollision(const Pos: TVector3; const Radius: Single): boolean;
     function WorldSphereCollision2D(const Pos: TVector2; const Radius: Single;
       const Details: TCollisionDetails = nil): boolean;
@@ -1854,725 +1760,6 @@ uses CastleLog;
 {$I castletransform_physics.inc}
 {$I castletransform_collisions.inc}
 {$undef read_implementation}
-
-{ TRayCollision --------------------------------------------------------------- }
-
-function TRayCollision.IndexOfItem(const Item: T3D): Integer;
-begin
-  for Result := 0 to Count - 1 do
-    if List^[Result].Item = Item then Exit;
-  Result := -1;
-end;
-
-{ TCollisionDetails ------------------------------------------------------------ }
-
-function TCollisionDetails.IndexOfItem(const Item: T3D): Integer;
-begin
-  for Result := 0 to Count - 1 do
-    if List^[Result].Item = Item then Exit;
-  Result := -1;
-end;
-
-procedure TCollisionDetails.Add(const Item: T3D);
-var
-  NewItem: PCollisionDetailsItem;
-begin
-  NewItem := inherited Add();
-  NewItem^.Item := Item;
-end;
-
-{ TRenderParams -------------------------------------------------------------- }
-
-constructor TRenderParams.Create;
-begin
-  inherited;
-  RenderTransform := TMatrix4.Identity;
-  RenderTransformIdentity := true;
-end;
-
-{ T3D -------------------------------------------------------------------- }
-
-constructor T3D.Create(AOwner: TComponent);
-begin
-  inherited;
-  FCastShadowVolumes := true;
-  FExists := true;
-  FCollides := true;
-  FPickable := true;
-  FVisible := true;
-  FCursor := mcDefault;
-end;
-
-destructor T3D.Destroy;
-begin
-  { set to nil, to detach free notification }
-  ChangeWorld(nil);
-  GLContextClose;
-  inherited;
-end;
-
-procedure T3D.Render(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-end;
-
-procedure T3D.RenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
-begin
-end;
-
-procedure T3D.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
-begin
-end;
-
-procedure T3D.LocalRenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
-begin
-end;
-
-procedure T3D.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
-begin
-end;
-
-function T3D.PrepareResourcesSteps: Cardinal;
-begin
-  Result := 0;
-end;
-
-function T3D.Press(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-end;
-
-function T3D.Release(const Event: TInputPressRelease): boolean;
-begin
-  Result := false;
-end;
-
-function T3D.PointingDeviceActivate(const Active: boolean;
-  const Distance: Single; const CancelAction: boolean): boolean;
-begin
-  Result := false;
-end;
-
-function T3D.PointingDeviceMove(const Pick: TRayCollisionNode;
-  const Distance: Single): boolean;
-begin
-  Result := false;
-end;
-
-procedure T3D.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-begin
-end;
-
-procedure T3D.VisibleChangeHere(const Changes: TVisibleChanges);
-begin
-  if (World <> nil) and Assigned(World.OnVisibleChange) then
-    World.OnVisibleChange(Self, Changes);
-end;
-
-procedure T3D.VisibleChangeNotification(const Changes: TVisibleChanges);
-begin
-end;
-
-procedure T3D.CameraChanged(ACamera: TCamera);
-begin
-end;
-
-procedure T3D.SetCursor(const Value: TMouseCursor);
-begin
-  if FCursor <> Value then
-  begin
-    FCursor := Value;
-    if (World <> nil) and Assigned(World.OnCursorChange) then
-      World.OnCursorChange(Self);
-  end;
-end;
-
-procedure T3D.GLContextClose;
-begin
-end;
-
-procedure T3D.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewport: TRectangle);
-begin
-end;
-
-function T3D.Dragging: boolean;
-begin
-  Result := false;
-end;
-
-function T3D.GetExists: boolean;
-begin
-  Result := FExists and (Disabled = 0);
-end;
-
-function T3D.GetCollides: boolean;
-begin
-  Result := FCollides and GetExists;
-end;
-
-function T3D.GetPickable: boolean;
-begin
-  Result := FPickable and GetExists;
-end;
-
-function T3D.GetVisible: boolean;
-begin
-  Result := FVisible and GetExists;
-end;
-
-function T3D.Middle: TVector3;
-begin
-  Result := TVector3.Zero;
-end;
-
-function T3D.Sector: TSector;
-begin
-  if (World <> nil) and (World.Sectors <> nil) then
-    Result := World.Sectors.SectorWithPoint(Middle) else
-    Result := nil;
-end;
-
-function T3D.Sphere(out Radius: Single): boolean;
-begin
-  Result := false;
-  Radius := 0;
-end;
-
-procedure T3D.Disable;
-begin
-  Inc(Disabled);
-end;
-
-procedure T3D.Enable;
-begin
-  Dec(Disabled);
-end;
-
-procedure T3D.AddToWorld(const Value: T3DWorld);
-begin
-  Assert(Value <> nil);
-  if FWorld <> Value then
-  begin
-    if FWorld <> nil then
-      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one world to another. This means that your object is part of SceneManager1.Items, and you are adding it to SceneManager2.Items. You have to remove it from SceneManager1.Items first.');
-    ChangeWorld(Value);
-  end else
-    Inc(FWorldReferences);
-end;
-
-procedure T3D.RemoveFromWorld(const Value: T3DWorld);
-begin
-  Assert(Value <> nil);
-  Assert(FWorldReferences > 0);
-  if FWorld <> Value then
-    WritelnWarning('T3D.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one T3D instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManger.Items.Remove(xxx)") before adding to new scene manager.');
-
-  Dec(FWorldReferences);
-  if FWorldReferences = 0 then
-    ChangeWorld(nil);
-end;
-
-
-procedure T3D.ChangeWorld(const Value: T3DWorld);
-begin
-  if FWorld <> Value then
-  begin
-    if FWorld <> nil then
-    begin
-      { Do not call RemoveFreeNotification when FWorld is also our list owner,
-        this would prevent getting notification in T3DList.Notification. }
-      if (FWorld.List = nil) or (FWorld.List.IndexOf(Self) = -1) then
-        FWorld.RemoveFreeNotification(Self);
-    end;
-    FWorld := Value;
-    FWorldReferences := Iff(Value <> nil, 1, 0);
-    if FWorld <> nil then
-      // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
-      //and (FWorld <> Self) then
-      FWorld.FreeNotification(Self);
-  end;
-end;
-
-procedure T3D.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-  { make sure to nil FWorld reference }
-  if (Operation = opRemove) and (AComponent = FWorld) then
-    ChangeWorld(nil);
-end;
-
-function T3D.Height(const MyPosition: TVector3;
-  out AboveHeight: Single): boolean;
-var
-  AboveGroundIgnored: P3DTriangle;
-begin
-  Result := Height(MyPosition, AboveHeight, AboveGroundIgnored);
-end;
-
-function T3D.Height(const MyPosition: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
-begin
-  Disable;
-  try
-    Result := World.WorldHeight(MyPosition, AboveHeight, AboveGround);
-  finally Enable end;
-end;
-
-function T3D.LineOfSight(const Pos1, Pos2: TVector3): boolean;
-begin
-  Disable;
-  try
-    Result := World.WorldLineOfSight(Pos1, Pos2);
-  finally Enable end;
-end;
-
-function T3D.MoveAllowed(
-  const OldPos, ProposedNewPos: TVector3;
-  out NewPos: TVector3;
-  const BecauseOfGravity: boolean): boolean;
-var
-  Sp: boolean;
-  SpRadius: Single;
-  OldBox, NewBox: TBox3D;
-begin
-  { save bounding volume information before calling Disable, as Disable makes
-    bounding volume empty }
-  Sp := Sphere(SpRadius);
-  if not Sp then
-    SpRadius := 0; { something predictable, for safety }
-  OldBox := BoundingBox;
-  NewBox := OldBox.Translate(ProposedNewPos - OldPos);
-
-  Disable;
-  try
-    Result := World.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos,
-      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
-  finally Enable end;
-end;
-
-function T3D.MoveAllowed(
-  const OldPos, NewPos: TVector3;
-  const BecauseOfGravity: boolean): boolean;
-var
-  Sp: boolean;
-  SpRadius: Single;
-  OldBox, NewBox: TBox3D;
-begin
-  { save bounding volume information before calling Disable, as Disable makes
-    bounding volume empty }
-  Sp := Sphere(SpRadius);
-  if not Sp then
-    SpRadius := 0; { something predictable, for safety }
-  OldBox := BoundingBox;
-  NewBox := OldBox.Translate(NewPos - OldPos);
-
-  Disable;
-  try
-    Result := World.WorldMoveAllowed(OldPos, NewPos,
-      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
-  finally Enable end;
-end;
-
-function T3D.Ray(
-  const RayOrigin, RayDirection: TVector3): TRayCollision;
-begin
-  Disable;
-  try
-    Result := World.WorldRay(RayOrigin, RayDirection);
-  finally Enable end;
-end;
-
-{ T3DListCore ------------------------------------------------------------ }
-
-constructor T3DListCore.Create(const FreeObjects: boolean; const AOwner: T3DList);
-begin
-  inherited Create(FreeObjects);
-  FOwner := AOwner;
-end;
-
-procedure T3DListCore.Notify(Ptr: Pointer; Action: TListNotification);
-var
-  B: T3D;
-begin
-  inherited;
-
-  if Owner <> nil then
-  begin
-    B := T3D(Ptr);
-
-    case Action of
-      lnAdded:
-        begin
-          if Owner.World <> nil then
-            B.AddToWorld(Owner.World);
-          { Register Owner to be notified of item destruction. }
-          B.FreeNotification(Owner);
-        end;
-      lnExtracted, lnDeleted:
-        begin
-          if (Owner.World <> nil) and
-             { It is possible that "B.World <> Owner.World" when B is getting
-               freed and has World set to nil in constructor already. }
-             (B.World = Owner.World) then
-            B.RemoveFromWorld(Owner.World);
-          { Do not call RemoveFreeNotification when Owner is equal to B.World,
-            this would prevent getting notification when to nil FWorld in
-            T3D.Notification. }
-          if B.World <> Owner then
-            B.RemoveFreeNotification(Owner);
-        end;
-      else raise EInternalError.Create('T3DListCore.Notify action?');
-    end;
-
-    if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
-      Owner.World.OnCursorChange(Owner);
-  end;
-end;
-
-function T3DListCore.GetItem(const I: Integer): T3D;
-begin
-  Result := T3D(inherited Items[I]);
-end;
-
-procedure T3DListCore.SetItem(const I: Integer; const Item: T3D);
-begin
-  inherited Items[I] := Item;
-end;
-
-function T3DListCore.First: T3D;
-begin
-  Result := (inherited First) as T3D;
-end;
-
-function T3DListCore.Last: T3D;
-begin
-  Result := (inherited Last) as T3D;
-end;
-
-{ T3DList ---------------------------------------------------------------- }
-
-constructor T3DList.Create(AOwner: TComponent);
-begin
-  inherited;
-  FList := T3DListCore.Create(false, Self);
-end;
-
-destructor T3DList.Destroy;
-begin
-  FreeAndNil(FList);
-  inherited;
-end;
-
-procedure T3DList.AddToWorld(const Value: T3DWorld);
-var
-  I: Integer;
-begin
-  inherited;
-  if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
-    for I := 0 to List.Count - 1 do
-      List[I].AddToWorld(Value);
-end;
-
-procedure T3DList.RemoveFromWorld(const Value: T3DWorld);
-var
-  I: Integer;
-begin
-  inherited;
-  if FList <> nil then // when one list is within another, this may be called during own destruction by T3DListCore.Notify
-    for I := 0 to List.Count - 1 do
-      List[I].RemoveFromWorld(Value);
-end;
-
-procedure T3DList.Add(const Item: T3D);
-begin
-  List.Add(Item);
-end;
-
-procedure T3DList.Insert(const Index: Integer; const Item: T3D);
-begin
-  List.Insert(Index, Item);
-end;
-
-function T3DList.GetItem(const I: Integer): T3D;
-begin
-  Result := List[I];
-end;
-
-procedure T3DList.SetItem(const I: Integer; const Item: T3D);
-begin
-  List[I] := Item;
-end;
-
-function T3DList.Count: Integer;
-begin
-  Result := List.Count;
-end;
-
-procedure T3DList.Remove(const Item: T3D);
-begin
-  List.Remove(Item);
-end;
-
-procedure T3DList.Clear;
-begin
-  List.Clear;
-end;
-
-procedure T3DList.Exchange(const Index1, Index2: Integer);
-begin
-  List.Exchange(Index1, Index2);
-end;
-
-function CompareBackToFront2D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront2D(T3D(A).BoundingBox, T3D(B).BoundingBox);
-end;
-
-var
-  { Has to be global, since TObjectList.Sort
-    requires normal function (not "of object"). }
-  SortCameraPosition: TVector3;
-
-function CompareBackToFront3D(A, B: Pointer): Integer;
-begin
-  Result := TBox3D.CompareBackToFront3D(T3D(A).BoundingBox, T3D(B).BoundingBox,
-    SortCameraPosition);
-end;
-
-procedure T3DList.SortBackToFront(const BlendingSort: TBlendingSort;
-  const CameraPosition: TVector3);
-begin
-  case BlendingSort of
-    bs2D: List.Sort(@CompareBackToFront2D);
-    bs3D:
-      begin
-        SortCameraPosition := CameraPosition;
-        List.Sort(@CompareBackToFront3D);
-      end;
-  end;
-end;
-
-procedure T3DList.SortBackToFront2D;
-begin
-  SortBackToFront(bs2D, TVector3.Zero);
-end;
-
-function T3DList.LocalBoundingBox: TBox3D;
-var
-  I: Integer;
-begin
-  Result := TBox3D.Empty;
-  if GetExists then
-  begin
-    for I := 0 to List.Count - 1 do
-      if not List[I].InternalExcludeFromParentBoundingVolume then
-        Result.Include(List[I].BoundingBox);
-  end;
-end;
-
-procedure T3DList.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
-var
-  I: Integer;
-begin
-  inherited;
-  if GetVisible then
-  begin
-    for I := 0 to List.Count - 1 do
-      List[I].Render(Frustum, Params);
-  end;
-end;
-
-procedure T3DList.LocalRenderShadowVolume(
-  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
-  const ParentTransformIsIdentity: boolean;
-  const ParentTransform: TMatrix4);
-var
-  I: Integer;
-begin
-  inherited;
-  if GetExists and CastShadowVolumes then
-  begin
-    for I := 0 to List.Count - 1 do
-      List[I].RenderShadowVolume(ShadowVolumeRenderer,
-        ParentTransformIsIdentity, ParentTransform);
-  end;
-end;
-
-procedure T3DList.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
-var
-  I: Integer;
-begin
-  inherited;
-  for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep, BaseLights);
-end;
-
-function T3DList.PrepareResourcesSteps: Cardinal;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  for I := 0 to List.Count - 1 do
-    Result := Result + List[I].PrepareResourcesSteps;
-end;
-
-function T3DList.Press(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  for I := 0 to List.Count - 1 do
-    if List[I].Press(Event) then Exit(true);
-end;
-
-function T3DList.Release(const Event: TInputPressRelease): boolean;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  if Result or (not GetExists) then Exit;
-
-  for I := 0 to List.Count - 1 do
-    if List[I].Release(Event) then Exit(true);
-end;
-
-procedure T3DList.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-var
-  I: Integer;
-  Item: T3D;
-  RemoveItem: TRemoveType;
-begin
-  inherited;
-  if GetExists then
-  begin
-    I := 0;
-    while I < List.Count do
-    begin
-      Item := List[I];
-      RemoveItem := rtNone;
-      Item.Update(SecondsPassed, RemoveItem);
-      if RemoveItem in [rtRemove, rtRemoveAndFree] then
-      begin
-        List.Delete(I);
-        if RemoveItem = rtRemoveAndFree then
-          FreeAndNil(Item);
-      end else
-        Inc(I);
-    end;
-  end;
-end;
-
-procedure T3DList.GLContextClose;
-var
-  I: Integer;
-begin
-  { this is called from inherited destructor, so check <> nil carefully }
-  if FList <> nil then
-  begin
-    for I := 0 to List.Count - 1 do
-      List[I].GLContextClose;
-  end;
-
-  inherited;
-end;
-
-procedure T3DList.Notification(AComponent: TComponent; Operation: TOperation);
-begin
-  inherited;
-
-  { We have to remove a reference to the object from the List.
-    This is crucial: T3DListCore.Notify,
-    and e.g. GLContextClose call, assume that all objects on
-    the List are always valid objects (no invalid references,
-    even for a short time). }
-
-  { About List <> nil check:
-
-    How situation with List = nil may happen? When our List is destroyed,
-    it calls B.FreeNotification on all it's items, so it (falsely) seems we will
-    not get any more notifications.
-
-    It turns out that we may get notifications,
-    and they are notifications about our own destruction (AComponent = Self).
-    That is because TComponent.Notification passes down the notification to
-    all it's FComponents, that is rtl/objpas/classes/compon.inc
-    (in FPC sources) contains code
-
-    Procedure TComponent.Notification(AComponent: TComponent; Operation: TOperation);
-    begin
-      ...
-      For Runner:=0 To FComponents.Count-1 do
-        TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
-    end;
-
-    And FComponents contain all components that are owned.
-    So we are informed when something is removed from the owner,
-    including about our own removal. (And in this case, we are a T3D descendant
-    ourselves, just like our children; so check "AComponent is T3D" doesn't
-    protect us.)
-    Practical situation when it happens is in testcases
-    TTestCastleTransform.TestNotifications and TTestCastleTransform.TestNotificationsSceneManager. }
-
-  if (Operation = opRemove) and (AComponent is T3D) and (List <> nil) then
-    List.RemoveAll(AComponent);
-end;
-
-procedure T3DList.UpdateGeneratedTextures(
-  const RenderFunc: TRenderFromViewFunction;
-  const ProjectionNear, ProjectionFar: Single;
-  const OriginalViewport: TRectangle);
-var
-  I: Integer;
-begin
-  inherited;
-  for I := 0 to List.Count - 1 do
-    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
-      OriginalViewport);
-end;
-
-procedure T3DList.VisibleChangeNotification(const Changes: TVisibleChanges);
-var
-  I: Integer;
-begin
-  inherited;
-  for I := 0 to List.Count - 1 do
-    List[I].VisibleChangeNotification(Changes);
-end;
-
-procedure T3DList.CameraChanged(ACamera: TCamera);
-var
-  I: Integer;
-begin
-  inherited;
-  for I := 0 to List.Count - 1 do
-    List[I].CameraChanged(ACamera);
-end;
-
-function T3DList.Dragging: boolean;
-var
-  I: Integer;
-begin
-  Result := inherited;
-  if Result then Exit;
-
-  for I := 0 to List.Count - 1 do
-  begin
-    Result := List[I].Dragging;
-    if Result then Exit;
-  end;
-end;
 
 { TransformMatricesMult ------------------------------------------------------ }
 
@@ -2637,7 +1824,109 @@ begin
   MultMatricesTranslation(Transform, InverseTransform, -Center);
 end;
 
-{ TCastleTransform -------------------------------------------------------- }
+{ TRayCollision --------------------------------------------------------------- }
+
+function TRayCollision.IndexOfItem(const Item: TCastleTransform): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if List^[Result].Item = Item then Exit;
+  Result := -1;
+end;
+
+{ TCollisionDetails ------------------------------------------------------------ }
+
+function TCollisionDetails.IndexOfItem(const Item: TCastleTransform): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if List^[Result].Item = Item then Exit;
+  Result := -1;
+end;
+
+procedure TCollisionDetails.Add(const Item: TCastleTransform);
+var
+  NewItem: PCollisionDetailsItem;
+begin
+  NewItem := inherited Add();
+  NewItem^.Item := Item;
+end;
+
+{ TRenderParams -------------------------------------------------------------- }
+
+constructor TRenderParams.Create;
+begin
+  inherited;
+  RenderTransform := TMatrix4.Identity;
+  RenderTransformIdentity := true;
+end;
+
+{ TCastleTransformList ------------------------------------------------------------ }
+
+constructor TCastleTransformList.Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
+begin
+  inherited Create(FreeObjects);
+  FOwner := AOwner;
+end;
+
+procedure TCastleTransformList.Notify(Ptr: Pointer; Action: TListNotification);
+var
+  B: TCastleTransform;
+begin
+  inherited;
+
+  if Owner <> nil then
+  begin
+    B := TCastleTransform(Ptr);
+
+    case Action of
+      lnAdded:
+        begin
+          if Owner.World <> nil then
+            B.AddToWorld(Owner.World);
+          { Register Owner to be notified of item destruction. }
+          B.FreeNotification(Owner);
+        end;
+      lnExtracted, lnDeleted:
+        begin
+          if (Owner.World <> nil) and
+             { It is possible that "B.World <> Owner.World" when B is getting
+               freed and has World set to nil in constructor already. }
+             (B.World = Owner.World) then
+            B.RemoveFromWorld(Owner.World);
+          { Do not call RemoveFreeNotification when Owner is equal to B.World,
+            this would prevent getting notification when to nil FWorld in
+            TCastleTransform.Notification. }
+          if B.World <> Owner then
+            B.RemoveFreeNotification(Owner);
+        end;
+      else raise EInternalError.Create('TCastleTransformList.Notify action?');
+    end;
+
+    if (Owner.World <> nil) and Assigned(Owner.World.OnCursorChange) then
+      Owner.World.OnCursorChange(Owner);
+  end;
+end;
+
+function TCastleTransformList.GetItem(const I: Integer): TCastleTransform;
+begin
+  Result := TCastleTransform(inherited Items[I]);
+end;
+
+procedure TCastleTransformList.SetItem(const I: Integer; const Item: TCastleTransform);
+begin
+  inherited Items[I] := Item;
+end;
+
+function TCastleTransformList.First: TCastleTransform;
+begin
+  Result := (inherited First) as TCastleTransform;
+end;
+
+function TCastleTransformList.Last: TCastleTransform;
+begin
+  Result := (inherited Last) as TCastleTransform;
+end;
+
+{ TCastleTransform ---------------------------------------------------------------- }
 
 const
   NoScale: TVector3 = (Data: (1, 1, 1));
@@ -2645,11 +1934,531 @@ const
 constructor TCastleTransform.Create(AOwner: TComponent);
 begin
   inherited;
+  FCastShadowVolumes := true;
+  FExists := true;
+  FCollides := true;
+  FPickable := true;
+  FVisible := true;
+  FCursor := mcDefault;
+  FList := TCastleTransformList.Create(false, Self);
   FMiddleHeight := DefaultMiddleHeight;
   FOnlyTranslation := true;
   FScale := NoScale;
   FOrientation := DefaultOrientation;
 end;
+
+destructor TCastleTransform.Destroy;
+begin
+  PhysicsDestroy;
+  FreeAndNil(FList);
+  { set to nil, to detach free notification }
+  ChangeWorld(nil);
+  GLContextClose;
+  inherited;
+end;
+
+procedure TCastleTransform.VisibleChangeHere(const Changes: TVisibleChanges);
+begin
+  if (World <> nil) and Assigned(World.OnVisibleChange) then
+    World.OnVisibleChange(Self, Changes);
+end;
+
+procedure TCastleTransform.SetCursor(const Value: TMouseCursor);
+begin
+  if FCursor <> Value then
+  begin
+    FCursor := Value;
+    if (World <> nil) and Assigned(World.OnCursorChange) then
+      World.OnCursorChange(Self);
+  end;
+end;
+
+function TCastleTransform.GetExists: boolean;
+begin
+  Result := FExists and (Disabled = 0);
+end;
+
+function TCastleTransform.GetCollides: boolean;
+begin
+  Result := FCollides and GetExists;
+end;
+
+function TCastleTransform.GetPickable: boolean;
+begin
+  Result := FPickable and GetExists;
+end;
+
+function TCastleTransform.GetVisible: boolean;
+begin
+  Result := FVisible and GetExists;
+end;
+
+function TCastleTransform.Sector: TSector;
+begin
+  if (World <> nil) and (World.Sectors <> nil) then
+    Result := World.Sectors.SectorWithPoint(Middle) else
+    Result := nil;
+end;
+
+function TCastleTransform.Sphere(out Radius: Single): boolean;
+begin
+  Result := false;
+  Radius := 0;
+end;
+
+procedure TCastleTransform.Disable;
+begin
+  Inc(Disabled);
+end;
+
+procedure TCastleTransform.Enable;
+begin
+  Dec(Disabled);
+end;
+
+procedure TCastleTransform.AddToWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  Assert(Value <> nil);
+  if FWorld <> Value then
+  begin
+    if FWorld <> nil then
+      raise ECannotAddToAnotherWorld.Create('Cannot add object existing in one world to another. This means that your object is part of SceneManager1.Items, and you are adding it to SceneManager2.Items. You have to remove it from SceneManager1.Items first.');
+    ChangeWorld(Value);
+  end else
+    Inc(FWorldReferences);
+
+  // list stuff
+  if FList <> nil then // when one list is within another, this may be called during own destruction by TCastleTransformList.Notify
+    for I := 0 to List.Count - 1 do
+      List[I].AddToWorld(Value);
+end;
+
+procedure TCastleTransform.RemoveFromWorld(const Value: T3DWorld);
+var
+  I: Integer;
+begin
+  Assert(Value <> nil);
+  Assert(FWorldReferences > 0);
+  if FWorld <> Value then
+    WritelnWarning('TCastleTransform.RemoveFromWorld: Removing from World you were not part of. This probably means that you placed one TCastleTransform instance in multiple worlds (multiple TCastleSceneManagers) at the same time, which is not allowed. Always remove 3D object from previous scene manager (e.g. by "SceneManger.Items.Remove(xxx)") before adding to new scene manager.');
+
+  Dec(FWorldReferences);
+  if FWorldReferences = 0 then
+    ChangeWorld(nil);
+
+  // list stuff
+  if FList <> nil then // when one list is within another, this may be called during own destruction by TCastleTransformList.Notify
+    for I := 0 to List.Count - 1 do
+      List[I].RemoveFromWorld(Value);
+end;
+
+procedure TCastleTransform.ChangeWorld(const Value: T3DWorld);
+begin
+  if FWorld <> Value then
+  begin
+    if FWorld <> nil then
+    begin
+      { Do not call RemoveFreeNotification when FWorld is also our list owner,
+        this would prevent getting notification in TCastleTransform.Notification. }
+      if (FWorld.List = nil) or (FWorld.List.IndexOf(Self) = -1) then
+        FWorld.RemoveFreeNotification(Self);
+    end;
+    FWorld := Value;
+    FWorldReferences := Iff(Value <> nil, 1, 0);
+    if FWorld <> nil then
+      // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
+      //and (FWorld <> Self) then
+      FWorld.FreeNotification(Self);
+  end;
+
+  PhysicsChangeWorld(Value);
+end;
+
+procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
+begin
+  inherited;
+
+  { make sure to nil FWorld reference }
+  if (Operation = opRemove) and (AComponent = FWorld) then
+    ChangeWorld(nil);
+
+  { We have to remove a reference to the object from the List.
+    This is crucial: TCastleTransformList.Notify,
+    and e.g. GLContextClose call, assume that all objects on
+    the List are always valid objects (no invalid references,
+    even for a short time). }
+
+  { About List <> nil check:
+
+    How situation with List = nil may happen? When our List is destroyed,
+    it calls B.FreeNotification on all it's items, so it (falsely) seems we will
+    not get any more notifications.
+
+    It turns out that we may get notifications,
+    and they are notifications about our own destruction (AComponent = Self).
+    That is because TComponent.Notification passes down the notification to
+    all it's FComponents, that is rtl/objpas/classes/compon.inc
+    (in FPC sources) contains code
+
+    Procedure TComponent.Notification(AComponent: TComponent; Operation: TOperation);
+    begin
+      ...
+      For Runner:=0 To FComponents.Count-1 do
+        TComponent(FComponents.Items[Runner]).Notification(AComponent,Operation);
+    end;
+
+    And FComponents contain all components that are owned.
+    So we are informed when something is removed from the owner,
+    including about our own removal. (And in this case, we are a TCastleTransform descendant
+    ourselves, just like our children; so check "AComponent is TCastleTransform" doesn't
+    protect us.)
+    Practical situation when it happens is in testcases
+    TTestCastleTransform.TestNotifications and TTestCastleTransform.TestNotificationsSceneManager. }
+
+  if (Operation = opRemove) and (AComponent is TCastleTransform) and (List <> nil) then
+    List.RemoveAll(AComponent);
+
+  PhysicsNotification(AComponent, Operation);
+end;
+
+function TCastleTransform.Height(const MyPosition: TVector3;
+  out AboveHeight: Single): boolean;
+var
+  AboveGroundIgnored: P3DTriangle;
+begin
+  Result := Height(MyPosition, AboveHeight, AboveGroundIgnored);
+end;
+
+function TCastleTransform.Height(const MyPosition: TVector3;
+  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+begin
+  Disable;
+  try
+    Result := World.WorldHeight(MyPosition, AboveHeight, AboveGround);
+  finally Enable end;
+end;
+
+function TCastleTransform.LineOfSight(const Pos1, Pos2: TVector3): boolean;
+begin
+  Disable;
+  try
+    Result := World.WorldLineOfSight(Pos1, Pos2);
+  finally Enable end;
+end;
+
+function TCastleTransform.MoveAllowed(
+  const OldPos, ProposedNewPos: TVector3;
+  out NewPos: TVector3;
+  const BecauseOfGravity: boolean): boolean;
+var
+  Sp: boolean;
+  SpRadius: Single;
+  OldBox, NewBox: TBox3D;
+begin
+  { save bounding volume information before calling Disable, as Disable makes
+    bounding volume empty }
+  Sp := Sphere(SpRadius);
+  if not Sp then
+    SpRadius := 0; { something predictable, for safety }
+  OldBox := BoundingBox;
+  NewBox := OldBox.Translate(ProposedNewPos - OldPos);
+
+  Disable;
+  try
+    Result := World.WorldMoveAllowed(OldPos, ProposedNewPos, NewPos,
+      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
+  finally Enable end;
+end;
+
+function TCastleTransform.MoveAllowed(
+  const OldPos, NewPos: TVector3;
+  const BecauseOfGravity: boolean): boolean;
+var
+  Sp: boolean;
+  SpRadius: Single;
+  OldBox, NewBox: TBox3D;
+begin
+  { save bounding volume information before calling Disable, as Disable makes
+    bounding volume empty }
+  Sp := Sphere(SpRadius);
+  if not Sp then
+    SpRadius := 0; { something predictable, for safety }
+  OldBox := BoundingBox;
+  NewBox := OldBox.Translate(NewPos - OldPos);
+
+  Disable;
+  try
+    Result := World.WorldMoveAllowed(OldPos, NewPos,
+      Sp, SpRadius, OldBox, NewBox, BecauseOfGravity);
+  finally Enable end;
+end;
+
+function TCastleTransform.Ray(
+  const RayOrigin, RayDirection: TVector3): TRayCollision;
+begin
+  Disable;
+  try
+    Result := World.WorldRay(RayOrigin, RayDirection);
+  finally Enable end;
+end;
+
+{ list stuff ---------------------------------------------------------------- }
+
+procedure TCastleTransform.Add(const Item: TCastleTransform);
+begin
+  List.Add(Item);
+end;
+
+procedure TCastleTransform.Insert(const Index: Integer; const Item: TCastleTransform);
+begin
+  List.Insert(Index, Item);
+end;
+
+function TCastleTransform.GetItem(const I: Integer): TCastleTransform;
+begin
+  Result := List[I];
+end;
+
+procedure TCastleTransform.SetItem(const I: Integer; const Item: TCastleTransform);
+begin
+  List[I] := Item;
+end;
+
+function TCastleTransform.Count: Integer;
+begin
+  Result := List.Count;
+end;
+
+procedure TCastleTransform.Remove(const Item: TCastleTransform);
+begin
+  List.Remove(Item);
+end;
+
+procedure TCastleTransform.Clear;
+begin
+  List.Clear;
+end;
+
+procedure TCastleTransform.Exchange(const Index1, Index2: Integer);
+begin
+  List.Exchange(Index1, Index2);
+end;
+
+function CompareBackToFront2D(A, B: Pointer): Integer;
+begin
+  Result := TBox3D.CompareBackToFront2D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox);
+end;
+
+var
+  { Has to be global, since TObjectList.Sort
+    requires normal function (not "of object"). }
+  SortCameraPosition: TVector3;
+
+function CompareBackToFront3D(A, B: Pointer): Integer;
+begin
+  Result := TBox3D.CompareBackToFront3D(TCastleTransform(A).BoundingBox, TCastleTransform(B).BoundingBox,
+    SortCameraPosition);
+end;
+
+procedure TCastleTransform.SortBackToFront(const BlendingSort: TBlendingSort;
+  const CameraPosition: TVector3);
+begin
+  case BlendingSort of
+    bs2D: List.Sort(@CompareBackToFront2D);
+    bs3D:
+      begin
+        SortCameraPosition := CameraPosition;
+        List.Sort(@CompareBackToFront3D);
+      end;
+  end;
+end;
+
+procedure TCastleTransform.SortBackToFront2D;
+begin
+  SortBackToFront(bs2D, TVector3.Zero);
+end;
+
+function TCastleTransform.LocalBoundingBox: TBox3D;
+var
+  I: Integer;
+begin
+  Result := TBox3D.Empty;
+  if GetExists then
+  begin
+    for I := 0 to List.Count - 1 do
+      if not List[I].InternalExcludeFromParentBoundingVolume then
+        Result.Include(List[I].BoundingBox);
+  end;
+end;
+
+procedure TCastleTransform.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+var
+  I: Integer;
+begin
+  if GetVisible then
+  begin
+    for I := 0 to List.Count - 1 do
+      List[I].Render(Frustum, Params);
+  end;
+end;
+
+procedure TCastleTransform.LocalRenderShadowVolume(
+  ShadowVolumeRenderer: TBaseShadowVolumeRenderer;
+  const ParentTransformIsIdentity: boolean;
+  const ParentTransform: TMatrix4);
+var
+  I: Integer;
+begin
+  if GetExists and CastShadowVolumes then
+  begin
+    for I := 0 to List.Count - 1 do
+      List[I].RenderShadowVolume(ShadowVolumeRenderer,
+        ParentTransformIsIdentity, ParentTransform);
+  end;
+end;
+
+procedure TCastleTransform.PrepareResources(Options: TPrepareResourcesOptions;
+  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    List[I].PrepareResources(Options, ProgressStep, BaseLights);
+end;
+
+function TCastleTransform.PrepareResourcesSteps: Cardinal;
+var
+  I: Integer;
+begin
+  Result := 0;
+  for I := 0 to List.Count - 1 do
+    Result := Result + List[I].PrepareResourcesSteps;
+end;
+
+function TCastleTransform.Press(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+  if not GetExists then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].Press(Event) then Exit(true);
+end;
+
+function TCastleTransform.Release(const Event: TInputPressRelease): boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+  if not GetExists then Exit;
+
+  for I := 0 to List.Count - 1 do
+    if List[I].Release(Event) then Exit(true);
+end;
+
+function TCastleTransform.PointingDeviceActivate(const Active: boolean;
+  const Distance: Single; const CancelAction: boolean): boolean;
+begin
+  { This event is not automatically passed to all children on List,
+    instead the TCastleSceneManager has special logic which
+    TCastleTransform instances receive the PointingDeviceActivate call. }
+  Result := false;
+end;
+
+function TCastleTransform.PointingDeviceMove(const Pick: TRayCollisionNode;
+  const Distance: Single): boolean;
+begin
+  { This event is not automatically passed to all children on List,
+    instead the TCastleSceneManager has special logic which
+    TCastleTransform instances receive the PointingDeviceMove call. }
+  Result := false;
+end;
+
+procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+var
+  I: Integer;
+  Item: TCastleTransform;
+  RemoveItem: TRemoveType;
+begin
+  if GetExists then
+  begin
+    I := 0;
+    while I < List.Count do
+    begin
+      Item := List[I];
+      RemoveItem := rtNone;
+      Item.Update(SecondsPassed, RemoveItem);
+      if RemoveItem in [rtRemove, rtRemoveAndFree] then
+      begin
+        List.Delete(I);
+        if RemoveItem = rtRemoveAndFree then
+          FreeAndNil(Item);
+      end else
+        Inc(I);
+    end;
+
+    UpdateSimpleGravity(SecondsPassed);
+    UpdatePhysicsEngine(SecondsPassed);
+  end;
+end;
+
+procedure TCastleTransform.GLContextClose;
+var
+  I: Integer;
+begin
+  { this is called from inherited destructor, so check <> nil carefully }
+  if FList <> nil then
+  begin
+    for I := 0 to List.Count - 1 do
+      List[I].GLContextClose;
+  end;
+end;
+
+procedure TCastleTransform.UpdateGeneratedTextures(
+  const RenderFunc: TRenderFromViewFunction;
+  const ProjectionNear, ProjectionFar: Single;
+  const OriginalViewport: TRectangle);
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    List[I].UpdateGeneratedTextures(RenderFunc, ProjectionNear, ProjectionFar,
+      OriginalViewport);
+end;
+
+procedure TCastleTransform.VisibleChangeNotification(const Changes: TVisibleChanges);
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    List[I].VisibleChangeNotification(Changes);
+end;
+
+procedure TCastleTransform.CameraChanged(ACamera: TCamera);
+var
+  I: Integer;
+begin
+  for I := 0 to List.Count - 1 do
+    List[I].CameraChanged(ACamera);
+end;
+
+function TCastleTransform.Dragging: boolean;
+var
+  I: Integer;
+begin
+  Result := false;
+
+  for I := 0 to List.Count - 1 do
+  begin
+    Result := List[I].Dragging;
+    if Result then Exit;
+  end;
+end;
+
+{ transform stuff -------------------------------------------------------- }
 
 function TCastleTransform.Translation2D: TVector2;
 begin
@@ -3006,16 +2815,6 @@ begin
   end;
 end;
 
-procedure TCastleTransform.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
-begin
-  inherited;
-  if GetExists then
-  begin
-    UpdateSimpleGravity(SecondsPassed);
-    UpdatePhysicsEngine(SecondsPassed);
-  end;
-end;
-
 procedure TCastleTransform.Fall(const FallHeight: Single);
 begin
   { Nothing to do in this class }
@@ -3208,6 +3007,11 @@ end;
 function T3DWorld.GravityCoordinate: Integer;
 begin
   Result := MaxAbsVectorCoord(GravityUp);
+end;
+
+function T3DWorld.WorldBoxCollision(const Box: TBox3D): boolean;
+begin
+  Result := BoxCollision(Box, nil);
 end;
 
 function T3DWorld.WorldSphereCollision(const Pos: TVector3;

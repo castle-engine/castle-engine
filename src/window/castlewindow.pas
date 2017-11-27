@@ -1756,7 +1756,7 @@ type
       We consciously decided to not implement anything more involved here.
       If you need really flexible timer mechanism, do not use this.
       Instead use @link(OnUpdate)
-      (or TUIControl.Update, or T3D.Update) and look at it's @code(SecondsPassed)
+      (or TUIControl.Update, or TCastleTransform.Update) and look at it's @code(SecondsPassed)
       value to perform actions (one time or repeated) with a specified delay.
       The engine source is full of examples of this.
 

@@ -314,7 +314,7 @@ begin
   if Primitive2DRes = nil then
     Primitive2DRes := TPrimitive2DResources.Create;
 
-  if GLFeatures.ShadersForEverything2D and (Primitive2DRes.Prog = nil) then
+  if (not GLFeatures.EnableFixedFunction) and (Primitive2DRes.Prog = nil) then
   begin
     Primitive2DRes.Prog := TGLSLProgram.Create;
     Primitive2DRes.Prog.AttachVertexShader({$I primitive_2.vs.inc});
@@ -370,7 +370,7 @@ begin
     glBufferData(GL_ARRAY_BUFFER, RequiredPointPtrSize, Primitive2DRes.PointPtr, GL_STREAM_DRAW);
   end;
 
-  if GLFeatures.ShadersForEverything2D then
+  if not GLFeatures.EnableFixedFunction then
   begin
     TGLSLProgram.Current := Primitive2DRes.Prog;
     Primitive2DRes.AttribVertex.EnableArray(0, 2, GL_SHORT, GL_FALSE, SizeOf(TVector2SmallInt), 0);
@@ -394,7 +394,7 @@ begin
 
   glDrawArrays(PrimitiveModeToGL[Mode], 0, High(Points) + 1);
 
-  if GLFeatures.ShadersForEverything2D then
+  if not GLFeatures.EnableFixedFunction then
   begin
     // Primitive2DRes.Prog.Disable; // no need to disable, keep it enabled to save speed
     { attribute arrays are enabled independent from GLSL program, so we need

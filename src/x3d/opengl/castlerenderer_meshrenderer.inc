@@ -279,8 +279,8 @@ begin
       {$ifdef OpenGLES}
       Assert(CurrentMeshShader <> nil, 'OpenGL ES 2.0 rendering must go through shaders');
       {$else}
-      if not EnableFixedFunction then
-        Assert(CurrentMeshShader <> nil, 'All rendering must go through shaders when EnableFixedFunction = false');
+      if not GLFeatures.EnableFixedFunction then
+        Assert(CurrentMeshShader <> nil, 'All rendering must go through shaders when GLFeatures.EnableFixedFunction = false');
       {$endif}
 
       if CurrentMeshShader <> nil then
@@ -503,7 +503,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
       of this is entirely inside EnableTexGen. }
     procedure TextureTransformToWorldSpace(const SuccessName, FailName: string);
     begin
-      if not EnableFixedFunction then
+      if not GLFeatures.EnableFixedFunction then
         Exit;
 
       { Set the 4th texture coord component (Q) to 0.0.
@@ -577,7 +577,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         Shader.EnableTexGen(TexUnit, tgSphere);
       tgCoord:
         begin
-          if EnableFixedFunction then
+          if GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -594,7 +594,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgCoordEye:
         begin
-          if EnableFixedFunction then
+          if GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             { Vectors given to EYE_PLANE are transformed by inverted
@@ -631,7 +631,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACENORMAL", will do "COORD" instead');
 
-            if EnableFixedFunction then
+            if GLFeatures.EnableFixedFunction then
             begin
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
               glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
@@ -664,7 +664,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             WritelnWarning('VRML/X3D', 'ARB_texture_cube_map not supported by your OpenGL implementation, cannot generate texture coordinates with mode = "CAMERASPACEREFLECTIONVECTOR", will do "COORD" instead');
 
-            if EnableFixedFunction then
+            if GLFeatures.EnableFixedFunction then
             begin
               glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
               glTexGenv(GL_S, GL_OBJECT_PLANE, GenerationVectorsIdentity[0]);
@@ -693,7 +693,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
           begin
             ProjectorMatrix := ProjectorScalingMatrix * TexCoord.GenerationProjectorMatrix();
 
-            if EnableFixedFunction then
+            if GLFeatures.EnableFixedFunction then
             begin
               {$ifndef OpenGLES}
               glPushMatrix;
@@ -725,7 +725,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgBounds2d:
         begin
-          if EnableFixedFunction then
+          if GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -739,7 +739,7 @@ procedure TTextureCoordinateRenderer.RenderCoordinateBegin;
         end;
       tgBounds3d:
         begin
-          if EnableFixedFunction then
+          if GLFeatures.EnableFixedFunction then
           begin
             {$ifndef OpenGLES}
             glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
@@ -781,7 +781,7 @@ begin
       { Disable OpenGL GL_TEXTURE_GEN_x, if it was (possibly)
         enabled by RenderCoordinateBegin. }
       Shader.DisableTexGen(I);
-      if EnableFixedFunction then
+      if GLFeatures.EnableFixedFunction then
       begin
         {$ifndef OpenGLES}
         { DisableTexGen already set glActiveTexture }
@@ -804,7 +804,7 @@ begin
      Arrays.FogDirectValues then
   begin
     {$ifndef OpenGLES}
-    if EnableFixedFunction and GLFeatures.EXT_fog_coord then
+    if GLFeatures.EnableFixedFunction and GLFeatures.EXT_fog_coord then
     begin
       { This is not needed for shader pipeline. When we know that rendering
         is done through shaders, then Shader.ModifyFog does everything necessary. }
@@ -833,7 +833,7 @@ begin
   { Restore defaults }
   if Arrays.HasFogCoord and
      Arrays.FogDirectValues and
-     EnableFixedFunction and
+     GLFeatures.EnableFixedFunction and
      GLFeatures.EXT_fog_coord then
   begin
     glPopAttrib;
@@ -872,7 +872,7 @@ begin
     the Shader.EnableColorPerVertex feature, but not exactly the same.
     It can only be used when Lighting, and it suitable for mcDefaultColor too. }
   MaterialFromColorEnabled :=
-    EnableFixedFunction and (MeshColor <> mcNone) and Lighting;
+    GLFeatures.EnableFixedFunction and (MeshColor <> mcNone) and Lighting;
   if MaterialFromColorEnabled then
     { Note: glColorMaterial is already set by TGLRenderer.RenderBegin }
     glEnable(GL_COLOR_MATERIAL);
@@ -913,7 +913,7 @@ begin
       Shader.EnableGroupEffects(Shape.State.Effects);
 
     UseShaderRendering := {$ifdef OpenGLES} true {$else}
-      (not EnableFixedFunction) or
+      (not GLFeatures.EnableFixedFunction) or
       ((Attributes.Mode = rmFull) and Shader.ShapeRequiresShaders)
       {$endif};
 
@@ -941,7 +941,7 @@ begin
       Assert(Shape.ProgramCache[Renderer.Pass] <> nil);
       CurrentX3DProgram := Shape.ProgramCache[Renderer.Pass].ShaderProgram;
       CurrentMeshShader := CurrentX3DProgram;
-      if not EnableFixedFunction then
+      if not GLFeatures.EnableFixedFunction then
         Assert(CurrentX3DProgram <> nil, 'Shader is not initialized, but it has to be (creation of fallback shaders failed?)');
       if CurrentX3DProgram <> nil then // may be nil on desktops
         Shader.SetDynamicUniforms(CurrentX3DProgram);

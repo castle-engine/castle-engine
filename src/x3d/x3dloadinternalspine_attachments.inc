@@ -64,6 +64,7 @@
       Looking as official Spine runtime in spine-csharp and spine-unity,
       it is also unused there. }
     Hull: Integer;
+    Invalid: boolean;
     constructor Create;
     destructor Destroy; override;
     procedure Parse(const Json: TJSONObject; const Bones: TBoneList); override;
@@ -148,12 +149,10 @@ begin
     Result.AttachmentName := AnAttachmentName;
     Result.Parse(Json, Bones);
   end else
-  if TypeName = 'boundingbox' then
   begin
-    WritelnWarning('Spine', 'Spine region type "boundingbox" is ignored for now');
+    WritelnWarning('Spine', 'Spine region (attachment) type "%s" is not supported', [TypeName]);
     Result := nil;
-  end else
-    raise ESpineReadError.CreateFmt('Attachment type "%s" not supported', [TypeName]);
+  end;
 end;
 
 procedure TAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList);
@@ -313,6 +312,9 @@ begin
   Faces := TIndexedTriangleSetNode.Create('', BaseUrl);
   Result := Faces;
 
+  // do not call SetIndex in case Vertices count is known to be invalid
+  if Invalid then Exit;
+
   Faces.NormalPerVertex := false; // optimization: do not try to smooth normals, no point
   Faces.Solid := false;
   Faces.SetIndex(Triangles);
@@ -366,11 +368,17 @@ procedure TMeshAttachment.Parse(const Json: TJSONObject; const Bones: TBoneList)
 begin
   inherited;
   ReadVector2List(Json, 'vertices', Vertices);
+
+  if Vertices.Count > UVs.Count then
+  begin
+    WritelnWarning('Spine', 'A weighted mesh (when the number of vertices > number of uvs) is not supported');
+    Invalid := true;
+  end else
   if UVs.Count <> Vertices.Count then
   begin
     WritelnWarning('Spine', Format('uvs and vertices lists have different number of items, respectively %d and %d, for mesh attachment %s',
       [UVs.Count, Vertices.Count, Name]));
-    Vertices.Count := UVs.Count;
+    Invalid := true;
   end;
 end;
 

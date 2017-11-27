@@ -33,8 +33,8 @@
     { Mesh which is used to collide.
       It does not have to be convex.
 
-      The @link(T3D.Collides Scene.Collides) and
-      @link(T3D.GetCollides Scene.GetCollides) do not matter here.
+      The @link(TCastleTransform.Collides Scene.Collides) and
+      @link(TCastleTransform.GetCollides Scene.GetCollides) do not matter here.
       Using the TCollisionNode inside Scene matters (so the scene may collide
       as something different than it's visible, see
       https://castle-engine.sourceforge.io/x3d_implementation_navigation.php ). }

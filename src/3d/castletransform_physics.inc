@@ -509,12 +509,10 @@ begin
   end;
 end;
 
-destructor TCastleTransform.Destroy;
+procedure TCastleTransform.PhysicsDestroy;
 begin
   { set to nil by SetRigidBody, to detach free notification }
   RigidBody := nil;
-
-  inherited;
 end;
 
 procedure TCastleTransform.UpdatePhysicsEngine(const SecondsPassed: Single);
@@ -523,15 +521,14 @@ begin
     FRigidBody.Update(Self, SecondsPassed);
 end;
 
-procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
+procedure TCastleTransform.PhysicsNotification(AComponent: TComponent; Operation: TOperation);
 begin
-  inherited;
   if (Operation = opRemove) and (AComponent = FRigidBody) then
     { set to nil by SetRigidBody to clean nicely }
     RigidBody := nil;
 end;
 
-procedure TCastleTransform.ChangeWorld(const Value: T3DWorld);
+procedure TCastleTransform.PhysicsChangeWorld(const Value: T3DWorld);
 begin
   if FWorld <> Value then
   begin

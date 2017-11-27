@@ -422,7 +422,7 @@ type
   end;
 
   { Render 3D world and GUI controls.
-    Add your game stuff (3D descending from @link(T3D), like @link(TCastleScene))
+    Add your game stuff (descending from @link(TCastleTransform), like @link(TCastleScene))
     to the scene manager available in @link(SceneManager) property.
     Add your GUI stuff to the @link(TCastleControlCustom.Controls) property
     (from ancestor TCastleControlCustom).

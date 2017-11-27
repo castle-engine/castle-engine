@@ -88,7 +88,7 @@ type
     FKind: TCreatureKind;
     FDebug3D: TDebug3D;
     FState: TCreatureState;
-    CurrentChild: T3D;
+    CurrentChild: TCastleTransform;
     procedure SetState(const Value: TCreatureState);
   private
     { SetState actually only "schedules" actual state change at the nearest
@@ -137,7 +137,6 @@ var
 implementation
 
 uses Math,
-  {$ifdef CASTLE_OBJFPC} CastleGL, {$else} GL, GLExt, {$endif}
   CastleLog, CastleProgress, CastleGLUtils, CastleWindow,
   CastleUIControls, CastleGLBoxes, CastleSceneCore,
   RiftData, RiftVideoOptions;
@@ -341,7 +340,7 @@ end;
 
 procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 
-  function GetChild: T3D;
+  function GetChild: TCastleTransform;
   var
     Scene: TCastleScene;
   begin
@@ -353,7 +352,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 
   procedure UpdateChild;
   var
-    NewChild: T3D;
+    NewChild: TCastleTransform;
   begin
     NewChild := GetChild;
     if CurrentChild <> NewChild then

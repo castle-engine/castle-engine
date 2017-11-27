@@ -24,7 +24,7 @@ uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
   CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
   Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
-  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes;
+  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes, CastleTransform;
 
 type
   TPlayerSwimming = (psNo,
@@ -68,9 +68,15 @@ type
     type
       { Invisible box, that is added to TPlayer to make it collidable.
         Owner must be TPlayer. }
-      TBox = class(T3D)
+      TBox = class(TCastleScene)
+      strict private
+        Box: TBoxNode;
+        Shape: TShapeNode;
+        TransformNode: TTransformNode;
+        procedure UpdateBox;
       public
-        function BoundingBox: TBox3D; override;
+        constructor Create(AOwner: TComponent); override;
+        procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
       end;
 
     var
@@ -173,9 +179,13 @@ type
   protected
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
-    function HeightCollision(const APosition, GravityUp: TVector3;
+    function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+    function LocalSegmentCollision(const Pos1, Pos2: TVector3;
+      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const ALineOfSight: boolean): boolean; override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
     procedure ChangedTransform; override;
   public
@@ -334,11 +344,7 @@ type
       default DefaultSickProjectionSpeed;
 
     property CollidesWithMoving default true;
-    function SegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      const ALineOfSight: boolean): boolean; override;
     function Sphere(out Radius: Single): boolean; override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
 
     { Disables changing the camera by user.
       It's useful when you want to temporarily force camera to some specific
@@ -461,23 +467,52 @@ uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
-function TPlayer.TBox.BoundingBox: TBox3D;
+constructor TPlayer.TBox.Create(AOwner: TComponent);
 var
-  Camera: TWalkCamera;
+  Root: TX3DRootNode;
+begin
+  inherited;
+  Box := TBoxNode.CreateTransform(Shape, TransformNode);
+  Box.Size := Vector3(1, 1, 1); // this way Transform.Scale determines the size
+
+  UpdateBox;
+
+  Root := TX3DRootNode.Create;
+  Root.AddChildren(TransformNode);
+  Load(Root, true);
+
+  Visible := false;
+end;
+
+procedure TPlayer.TBox.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 begin
   if GetExists then
-  begin
-    Camera := TPlayer(Owner).Camera;
-    Result.Data[0].Data[0] := -Camera.Radius;
-    Result.Data[0].Data[1] := -Camera.Radius;
-    Result.Data[0].Data[2] := -Camera.Radius;
-    Result.Data[0].Data[World.GravityCoordinate] := -Camera.RealPreferredHeight;
+    UpdateBox;
+  inherited;
+end;
 
-    Result.Data[1].Data[0] := Camera.Radius;
-    Result.Data[1].Data[1] := Camera.Radius;
-    Result.Data[1].Data[2] := Camera.Radius;
-  end else
-    Result := TBox3D.Empty;
+procedure TPlayer.TBox.UpdateBox;
+var
+  B: TBox3D;
+  Camera: TWalkCamera;
+begin
+  Camera := TPlayer(Owner).Camera;
+
+  B.Data[0].Data[0] := -Camera.Radius;
+  B.Data[0].Data[1] := -Camera.Radius;
+  B.Data[0].Data[2] := -Camera.Radius;
+
+  if World <> nil then
+    B.Data[0].Data[World.GravityCoordinate] := -Camera.RealPreferredHeight;
+
+  B.Data[1].Data[0] := Camera.Radius;
+  B.Data[1].Data[1] := Camera.Radius;
+  B.Data[1].Data[2] := Camera.Radius;
+
+  { We adjust TransformNode.Scale, not Box.Size, because this is faster:
+    no need to rebuild box proxy. }
+  TransformNode.Scale := B.Size;
+  TransformNode.Translation := B.Center;
 end;
 
 { TPlayer -------------------------------------------------------------------- }
@@ -508,9 +543,6 @@ begin
   FEnableCameraDragging := true;
   FCamera := TWalkCamera.Create(nil);
 
-  FBox := TBox.Create(Self);
-  Add(FBox);
-
   FInventoryCurrentItem := -1;
 
   { turn off keys that are totally unavailable for the player }
@@ -526,6 +558,10 @@ begin
     we also call it here to be sure that right after TPlayer constructor
     finished, Camera has already good values. }
   UpdateCamera;
+
+  // once Camera is initialized, initialize TBox
+  FBox := TBox.Create(Self);
+  Add(FBox);
 
   FDebug3D := TDebug3D.Create(Self);
   FDebug3D.Attach(Self);
@@ -1276,7 +1312,7 @@ begin
   Result := PTriangle(Camera.AboveGround);
 end;
 
-function TPlayer.SegmentCollision(const Pos1, Pos2: TVector3;
+function TPlayer.LocalSegmentCollision(const Pos1, Pos2: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
@@ -1284,7 +1320,8 @@ begin
     { Player box is collidable (creatures cannot enter on player),
       but is not visible, so ALineOfSight ignores it.
       This allows creatures to see player's middle point. }
-    Result := false else
+    Result := false
+  else
     Result := inherited;
 end;
 
@@ -1302,7 +1339,7 @@ begin
     FEquippedWeapon := nil;
 end;
 
-function TPlayer.HeightCollision(const APosition, GravityUp: TVector3;
+function TPlayer.LocalHeightCollision(const APosition, GravityUp: TVector3;
   const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
@@ -1320,7 +1357,7 @@ begin
   AboveGround := nil;
 end;
 
-procedure TPlayer.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TPlayer.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   { TODO: This implementation is a quick hack, that depends on the fact
     that TPlayer.Render is the *only* thing in the whole engine currently

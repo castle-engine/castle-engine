@@ -151,7 +151,7 @@ begin
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, VboIndex);
     TGLSLProgram.Current := SimplestProgram;
 
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       glPushAttrib(GL_ENABLE_BIT or GL_LIGHTING_BIT);
@@ -185,7 +185,7 @@ procedure TOcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
 begin
   if OcclusionBoxState then
   begin
-    if EnableFixedFunction then
+    if GLFeatures.EnableFixedFunction then
     begin
       {$ifndef OpenGLES}
       glPopAttrib;

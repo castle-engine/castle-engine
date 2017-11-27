@@ -2,7 +2,8 @@
 { DON'T EDIT -- this file was automatically generated from "fallback.vs" }
 '/* Fallback GLSL vertex shader.' + LineEnding +
 '' + LineEnding +
-'   Used when we need a shader (e.g. because it is OpenGLES or EnableFixedFunction = false),' + LineEnding +
+'   Used when we need a shader (e.g. because it is OpenGLES or' + LineEnding +
+'   GLFeatures.EnableFixedFunction = false),' + LineEnding +
 '   but the default shader did not compile.' + LineEnding +
 '   You cannot leave the shader empty in OpenGLES.' + LineEnding +
 '*/' + LineEnding +

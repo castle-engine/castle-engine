@@ -55,7 +55,7 @@ type
       VertexIndex: Integer);
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Render(const Frustum: TFrustum; const Params: TRenderParams); override;
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
 procedure TMyScene.VertexColor(var Color: TVector3;
@@ -94,7 +94,7 @@ begin
   Load(Root, true);
 end;
 
-procedure TMyScene.Render(const Frustum: TFrustum; const Params: TRenderParams);
+procedure TMyScene.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
 begin
   if (not Params.Transparent) and Params.ShadowVolumesReceivers then
   begin

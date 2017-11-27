@@ -822,7 +822,7 @@ begin
       glGenBuffers(1, @IndexesVbo);
   end;
 
-  if GLFeatures.ShadersForEverything2D then
+  if not GLFeatures.EnableFixedFunction then
   begin
     { create programs }
     for AlphaTestShader in boolean do
@@ -874,13 +874,13 @@ begin
   glFreeBuffer(PointsVbo);
   glFreeBuffer(IndexesVbo);
 
-  if GLFeatures.ShadersForEverything2D then
-  begin
-    for AlphaTestShader in boolean do
-      for ClipLineShader in boolean do
-        for ColorTreatment in TColorTreatment do
-          FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
-  end;
+  { free below regardless of EnableFixedFunction state,
+    to avoid memory leaks in case we toggle EnableFixedFunction at runtime }
+  // if not GLFeatures.EnableFixedFunction then
+  for AlphaTestShader in boolean do
+    for ClipLineShader in boolean do
+      for ColorTreatment in TColorTreatment do
+        FreeAndNil(Programs[AlphaTestShader, ClipLineShader, ColorTreatment].Prog);
 
   StaticResourcesReady := false;
 end;
@@ -901,7 +901,7 @@ begin
   case FinalAlpha of
     {$ifndef OpenGLES}
     acTest:
-      if not GLFeatures.ShadersForEverything2D then
+      if GLFeatures.EnableFixedFunction then
       begin
         glAlphaFunc(GL_GEQUAL, 0.5);
         glEnable(GL_ALPHA_TEST);
@@ -934,7 +934,7 @@ procedure TGLImageCore.AlphaEnd;
 begin
   case FinalAlpha of
     {$ifndef OpenGLES}
-    acTest: if not GLFeatures.ShadersForEverything2D then glDisable(GL_ALPHA_TEST);
+    acTest: if GLFeatures.EnableFixedFunction then glDisable(GL_ALPHA_TEST);
     {$endif not OpenGLES}
     acBlending: glDisable(GL_BLEND);
   end;
@@ -1148,7 +1148,7 @@ begin
 
   AlphaBegin;
 
-  if GLFeatures.ShadersForEverything2D then
+  if not GLFeatures.EnableFixedFunction then
   begin
     if TextureHasOnlyAlpha then
       ColorTreatment := ctColorMultipliesTextureAlpha else
@@ -1209,7 +1209,7 @@ begin
   end else
     glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
-  if GLFeatures.ShadersForEverything2D then
+  if not GLFeatures.EnableFixedFunction then
   begin
     // Prog.Prog.Disable; // not necessary, and may give some speed gain if the next drawing call will also use TGLImage
     { attribute arrays are enabled independent from GLSL program, so we need
@@ -1326,9 +1326,10 @@ begin
   YImageTop  :=         Height -     CornerTop;
 
   { For speed, we only apply AlphaBegin/End once.
-    In case of ShadersForEverything2D, this optimization is only useful
-    for acBlending, and it would actually break the acTest case. }
-  OptimizeAlpha := (not GLFeatures.ShadersForEverything2D) or (FinalAlpha = acBlending);
+    In case of GLFeatures.EnableFixedFunction=false,
+    this optimization is only useful for acBlending,
+    and it would actually break the acTest case. }
+  OptimizeAlpha := GLFeatures.EnableFixedFunction or (FinalAlpha = acBlending);
   if OptimizeAlpha then
   begin
     AlphaBegin;
@@ -1442,9 +1443,9 @@ begin
   XImageRight  :=         Width -     SideRight;
 
   { For speed, we only apply AlphaBegin/End once.
-    In case of ShadersForEverything2D, this optimization is only useful
+    In case of GLFeatures.EnableFixedFunction=false, this optimization is only useful
     for acBlending, and it would actually break the acTest case. }
-  OptimizeAlpha := (not GLFeatures.ShadersForEverything2D) or (FinalAlpha = acBlending);
+  OptimizeAlpha := GLFeatures.EnableFixedFunction or (FinalAlpha = acBlending);
   if OptimizeAlpha then
   begin
     AlphaBegin;

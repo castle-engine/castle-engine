@@ -86,18 +86,47 @@ type
 function LoadSpine(URL: string): TX3DRootNode;
 
   function CreateTextureLoader: TTextureLoader;
+
+    function FindAtlas(const InitialAtlasURL: string; out AtlasURL: string): boolean;
+    var
+      NoExtension: string;
+    begin
+      AtlasURL := InitialAtlasURL;
+      if URIFileExists(AtlasURL) then Exit(true);
+
+      NoExtension := ChangeURIExt(URL, '');
+
+      // try with "_tex", used by Dragon Bones
+      AtlasURL := NoExtension + '_tex.atlas';
+      if URIFileExists(AtlasURL) then Exit(true);
+
+      // try to remove -pro and -ess suffixes, Spine runtimes on
+      // https://github.com/EsotericSoftware/spine-runtimes
+      // (sometimes) do it too
+      if IsSuffix('-pro', NoExtension, true) then
+      begin
+        AtlasURL := SuffixRemove('-pro', NoExtension, true) + '.atlas';
+        if URIFileExists(AtlasURL) then Exit(true);
+      end;
+
+      if IsSuffix('-ess', NoExtension, true) then
+      begin
+        AtlasURL := SuffixRemove('-ess', NoExtension, true) + '.atlas';
+        if URIFileExists(AtlasURL) then Exit(true);
+      end;
+
+      Exit(false);
+    end;
+
   var
-    AtlasURL: string;
+    StandardAtlasURL, AtlasURL: string;
     Atlas: TAtlas;
   begin
     if SpineIgnoreTextures then
       Exit(TSimpleTextureLoader.Create(URL));
 
-    AtlasURL := ChangeURIExt(URL, '.atlas');
-    // try alternative name, with "_tex", used by Dragon Bones
-    if not URIFileExists(AtlasURL) then
-      AtlasURL := ChangeURIExt(URL, '_tex.atlas');
-    if URIFileExists(AtlasURL) then
+    StandardAtlasURL := ChangeURIExt(URL, '.atlas');
+    if FindAtlas(StandardAtlasURL, AtlasURL) then
     begin
       Atlas := TAtlas.Create;
       try
@@ -107,7 +136,7 @@ function LoadSpine(URL: string): TX3DRootNode;
       except FreeAndNil(Atlas); raise end;
     end else
     begin
-      WritelnLog('Spine', 'Atlas not found under URL "' + AtlasURL + '", will directly load images using "images/xxx.png" filenames');
+      WritelnLog('Spine', 'Atlas not found under URL "' + StandardAtlasURL + '" (and some alternative URLs we tried), will load images without atlas, using "images/xxx.png" filenames');
       Result := TSimpleTextureLoader.Create(URL);
     end;
   end;
