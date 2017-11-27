@@ -250,7 +250,7 @@ type
       For scene maager, these methods simply return it's own properties.
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
-    function GetItems: T3DWorld; virtual; abstract;
+    function GetItems: TSceneManagerWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
@@ -792,7 +792,7 @@ type
   TCastleSceneManager = class(TCastleAbstractViewport)
   private
     FMainScene: TCastleScene;
-    FItems: T3DWorld;
+    FItems: TSceneManagerWorld;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
     FTimeScale: Single;
@@ -860,7 +860,7 @@ type
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
-    function GetItems: T3DWorld; override;
+    function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
@@ -1010,7 +1010,7 @@ type
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
       You may also set your main TCastleScene (if you have any) as MainScene. }
-    property Items: T3DWorld read FItems;
+    property Items: TSceneManagerWorld read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
       (after all, your 3D world doesn't even need to have any TCastleScene
@@ -1202,7 +1202,7 @@ type
     procedure SetSceneManager(const Value: TCastleSceneManager);
     procedure CheckSceneManagerAssigned;
   protected
-    function GetItems: T3DWorld; override;
+    function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
@@ -2770,12 +2770,12 @@ begin
   Result := false;
 end;
 
-{ T3DWorldConcrete ----------------------------------------------------------- }
+{ TSceneManagerWorldConcrete ----------------------------------------------------------- }
 
 type
   { Root of T3D hierarchy lists.
     Owner is always non-nil, always a TCastleSceneManager. }
-  T3DWorldConcrete = class(T3DWorld)
+  TSceneManagerWorldConcrete = class(TSceneManagerWorld)
     function Owner: TCastleSceneManager;
     function CollisionIgnoreItem(const Sender: TObject;
       const Triangle: P3DTriangle): boolean; override;
@@ -2800,12 +2800,12 @@ type
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
 
-function T3DWorldConcrete.Owner: TCastleSceneManager;
+function TSceneManagerWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
 end;
 
-function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
+function TSceneManagerWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
   const Triangle: P3DTriangle): boolean;
 begin
   {$warnings off} // consiously using deprecated here
@@ -2813,32 +2813,32 @@ begin
   {$warnings on}
 end;
 
-function T3DWorldConcrete.GravityUp: TVector3;
+function TSceneManagerWorldConcrete.GravityUp: TVector3;
 begin
   Result := Owner.GravityUp;
 end;
 
-function T3DWorldConcrete.Player: TCastleTransform;
+function TSceneManagerWorldConcrete.Player: TCastleTransform;
 begin
   Result := Owner.Player;
 end;
 
-function T3DWorldConcrete.BaseLights: TAbstractLightInstancesList;
+function TSceneManagerWorldConcrete.BaseLights: TAbstractLightInstancesList;
 begin
   Result := Owner.BaseLights;
 end;
 
-function T3DWorldConcrete.Sectors: TSectorList;
+function TSceneManagerWorldConcrete.Sectors: TSectorList;
 begin
   Result := Owner.Sectors;
 end;
 
-function T3DWorldConcrete.Water: TBox3D;
+function TSceneManagerWorldConcrete.Water: TBox3D;
 begin
   Result := Owner.Water;
 end;
 
-function T3DWorldConcrete.WorldMoveAllowed(
+function TSceneManagerWorldConcrete.WorldMoveAllowed(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2850,7 +2850,7 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldMoveAllowed(
+function TSceneManagerWorldConcrete.WorldMoveAllowed(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2862,14 +2862,14 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldHeight(const APosition: TVector3;
+function TSceneManagerWorldConcrete.WorldHeight(const APosition: TVector3;
   out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
 begin
   Result := HeightCollision(APosition, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 
-function T3DWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+function TSceneManagerWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
@@ -2879,7 +2879,7 @@ begin
     true);
 end;
 
-function T3DWorldConcrete.WorldRay(
+function TSceneManagerWorldConcrete.WorldRay(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection,
@@ -2894,7 +2894,7 @@ constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := T3DWorldConcrete.Create(Self);
+  FItems := TSceneManagerWorldConcrete.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so make it a correct sub-component. }
@@ -3538,7 +3538,7 @@ begin
     Scene.CameraFromViewpoint(Camera, true);
 end;
 
-function TCastleSceneManager.GetItems: T3DWorld;
+function TCastleSceneManager.GetItems: TSceneManagerWorld;
 begin
   Result := Items;
 end;
@@ -3687,7 +3687,7 @@ begin
     Result := nil;
 end;
 
-function TCastleViewport.GetItems: T3DWorld;
+function TCastleViewport.GetItems: TSceneManagerWorld;
 begin
   CheckSceneManagerAssigned;
   Result := SceneManager.Items;

@@ -47,7 +47,7 @@ type
   end deprecated 'use TCastleTransform from CastleTransform unit';
 
   T3DListCore                 = CastleTransform.TCastleTransformList;
-  T3DWorld                    = CastleTransform.T3DWorld;
+  T3DWorld                    = CastleTransform.TSceneManagerWorld;
   TCollisionDetails           = CastleTransform.TCollisionDetails;
   TRayCollision               = CastleTransform.TRayCollision;
   TRayCollisionNode           = CastleTransform.TRayCollisionNode;

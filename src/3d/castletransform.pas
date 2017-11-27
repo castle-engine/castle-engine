@@ -25,7 +25,7 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
 type
-  T3DWorld = class;
+  TSceneManagerWorld = class;
   TCastleTransform = class;
 
   ECannotAddToAnotherWorld = class(Exception);
@@ -346,7 +346,7 @@ type
     Disabled: Cardinal;
     FExcludeFromGlobalLights, FExcludeFromStatistics,
       FInternalExcludeFromParentBoundingVolume: boolean;
-    FWorld: T3DWorld;
+    FWorld: TSceneManagerWorld;
     FWorldReferences: Cardinal;
     FList: TCastleTransformList;
 
@@ -388,7 +388,7 @@ type
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
     procedure PhysicsDestroy;
     procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
-    procedure PhysicsChangeWorld(const Value: T3DWorld);
+    procedure PhysicsChangeWorld(const Value: TSceneManagerWorld);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -408,23 +408,23 @@ type
 
     { Change to new world, or (if not needed) just increase FWorldReferences.
       Value must not be @nil. }
-    procedure AddToWorld(const Value: T3DWorld);
+    procedure AddToWorld(const Value: TSceneManagerWorld);
 
     { Decrease FWorldReferences, then (if needed) change world to @nil.
       Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: T3DWorld);
+    procedure RemoveFromWorld(const Value: TSceneManagerWorld);
 
     { Called when the current 3D world (which corresponds to the current
       TCastleSceneManager) of this 3D object changes.
       This can be ignored (not care about FWorldReferences) when Value = FWorld.
 
-      Each 3D object can only be part of one T3DWorld at a time.
+      Each 3D object can only be part of one TSceneManagerWorld at a time.
       The object may be present many times within the world
       (counted by FWorldReferences, which is always set to 1 by this procedure
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: T3DWorld);
+    procedure ChangeWorld(const Value: TSceneManagerWorld);
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -1045,10 +1045,10 @@ type
       is always 1-1 corresponding to a particular TCastleSceneManager instance
       (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
 
-      @nil if we are not part of a hierarchy rooted in T3DWorld.
+      @nil if we are not part of a hierarchy rooted in TSceneManagerWorld.
       In pratice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
       hierarchy. }
-    property World: T3DWorld read FWorld;
+    property World: TSceneManagerWorld read FWorld;
 
     { Something visible changed in the world.
       This is usually called by our container (like TCastleSceneManager),
@@ -1652,7 +1652,7 @@ type
   end;
 
   { 3D world. List of 3D objects, with some central properties. }
-  T3DWorld = class(TCastleTransform)
+  TSceneManagerWorld = class(TCastleTransform)
   private
     FKraftEngine: TKraft;
     WasPhysicsStep: boolean;
@@ -2016,7 +2016,7 @@ begin
   Dec(Disabled);
 end;
 
-procedure TCastleTransform.AddToWorld(const Value: T3DWorld);
+procedure TCastleTransform.AddToWorld(const Value: TSceneManagerWorld);
 var
   I: Integer;
 begin
@@ -2035,7 +2035,7 @@ begin
       List[I].AddToWorld(Value);
 end;
 
-procedure TCastleTransform.RemoveFromWorld(const Value: T3DWorld);
+procedure TCastleTransform.RemoveFromWorld(const Value: TSceneManagerWorld);
 var
   I: Integer;
 begin
@@ -2054,7 +2054,7 @@ begin
       List[I].RemoveFromWorld(Value);
 end;
 
-procedure TCastleTransform.ChangeWorld(const Value: T3DWorld);
+procedure TCastleTransform.ChangeWorld(const Value: TSceneManagerWorld);
 begin
   if FWorld <> Value then
   begin
@@ -2068,7 +2068,7 @@ begin
     FWorld := Value;
     FWorldReferences := Iff(Value <> nil, 1, 0);
     if FWorld <> nil then
-      // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
+      // Ignore FWorld = Self case, when this is done by TSceneManagerWorld.Create? No need to.
       //and (FWorld <> Self) then
       FWorld.FreeNotification(Self);
   end;
@@ -2995,39 +2995,39 @@ begin
   Rotation := RotationFromDirectionUp(D, U);
 end;
 
-{ T3DWorld ------------------------------------------------------------------- }
+{ TSceneManagerWorld ------------------------------------------------------------------- }
 
-constructor T3DWorld.Create(AOwner: TComponent);
+constructor TSceneManagerWorld.Create(AOwner: TComponent);
 begin
   inherited;
   { everything inside is part of this world }
   AddToWorld(Self);
 end;
 
-function T3DWorld.GravityCoordinate: Integer;
+function TSceneManagerWorld.GravityCoordinate: Integer;
 begin
   Result := MaxAbsVectorCoord(GravityUp);
 end;
 
-function T3DWorld.WorldBoxCollision(const Box: TBox3D): boolean;
+function TSceneManagerWorld.WorldBoxCollision(const Box: TBox3D): boolean;
 begin
   Result := BoxCollision(Box, nil);
 end;
 
-function T3DWorld.WorldSphereCollision(const Pos: TVector3;
+function TSceneManagerWorld.WorldSphereCollision(const Pos: TVector3;
   const Radius: Single): boolean;
 begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
-function T3DWorld.WorldSphereCollision2D(const Pos: TVector2;
+function TSceneManagerWorld.WorldSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const Details: TCollisionDetails): boolean;
 begin
   Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
-function T3DWorld.WorldPointCollision2D(const Point: TVector2): boolean;
+function TSceneManagerWorld.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
 end;

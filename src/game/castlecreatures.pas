@@ -185,15 +185,15 @@ type
       as initial TCreature.Direction value.
 
       @groupBegin }
-    function CreateCreature(World: T3DWorld;
+    function CreateCreature(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; virtual; overload;
-    function CreateCreature(World: T3DWorld;
+    function CreateCreature(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3): TCreature; overload;
     { @groupEnd }
 
     { Instantiate creature placeholder, by calling CreateCreature. }
-    procedure InstantiatePlaceholder(World: T3DWorld;
+    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
@@ -681,7 +681,7 @@ type
     constructor Create(const AName: string); override;
     function CreatureClass: TCreatureClass; override;
     procedure LoadFromFile(ResourceConfig: TCastleConfig); override;
-    function CreateCreature(World: T3DWorld;
+    function CreateCreature(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3;
       const MaxLife: Single): TCreature; override;
 
@@ -1060,7 +1060,7 @@ begin
   Result := true;
 end;
 
-function TCreatureResource.CreateCreature(World: T3DWorld;
+function TCreatureResource.CreateCreature(World: TSceneManagerWorld;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 begin
@@ -1091,13 +1091,13 @@ begin
   World.Add(Result);
 end;
 
-function TCreatureResource.CreateCreature(World: T3DWorld;
+function TCreatureResource.CreateCreature(World: TSceneManagerWorld;
   const APosition, ADirection: TVector3): TCreature;
 begin
   Result := CreateCreature(World, APosition, ADirection, DefaultMaxLife);
 end;
 
-procedure TCreatureResource.InstantiatePlaceholder(World: T3DWorld;
+procedure TCreatureResource.InstantiatePlaceholder(World: TSceneManagerWorld;
   const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -1292,7 +1292,7 @@ begin
     ResourceConfig.GetValue('sound_idle', ''));
 end;
 
-function TMissileCreatureResource.CreateCreature(World: T3DWorld;
+function TMissileCreatureResource.CreateCreature(World: TSceneManagerWorld;
   const APosition, ADirection: TVector3;
   const MaxLife: Single): TCreature;
 begin

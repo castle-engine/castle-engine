@@ -1147,8 +1147,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1161,8 +1161,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       You can use @link(InternalOctreeCollisions) to get either
       @link(InternalOctreeDynamicCollisions) or
@@ -1182,8 +1182,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains X3D Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1196,8 +1196,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       It is automatically used by the XxxCollision methods in this class,
       if exists, unless OctreeDynamicCollisions exists.
@@ -1217,8 +1217,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
     function UseInternalOctreeCollisions: boolean;

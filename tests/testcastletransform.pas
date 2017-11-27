@@ -892,7 +892,7 @@ end;
 
 procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
 var
-  World1, World2: T3DWorld;
+  World1, World2: TSceneManagerWorld;
   O1List, O2List: TCastleTransform;
   O1, O2: TCastleTransform;
 begin
@@ -900,8 +900,8 @@ begin
   World2 := nil;
   try
     {$warnings off} { don't warn about creating with abstract methods here }
-    World1 := T3DWorld.Create(nil); World1.Name := 'World1';
-    World2 := T3DWorld.Create(nil); World2.Name := 'World2';
+    World1 := TSceneManagerWorld.Create(nil); World1.Name := 'World1';
+    World2 := TSceneManagerWorld.Create(nil); World2.Name := 'World2';
     O1 := TCastleTransform.Create(World1); O1.Name := 'O1';
     O2 := TCastleTransform.Create(World1); O2.Name := 'O2';
     {$warnings on}
@@ -996,12 +996,12 @@ end;
 
 procedure TTestCastleTransform.TestWorldFreeBeforeItem;
 var
-  World1: T3DWorld;
+  World1: TSceneManagerWorld;
   O1List: TCastleTransform;
   O1: TCastleTransform;
 begin
   {$warnings off} { don't warn about creating with abstract methods here }
-  World1 := T3DWorld.Create(nil); World1.Name := 'World1';
+  World1 := TSceneManagerWorld.Create(nil); World1.Name := 'World1';
   O1 := TCastleTransform.Create(nil); O1.Name := 'O1';
   {$warnings on}
   O1List := TCastleTransform.Create(nil); O1List.Name := 'O1List';
@@ -1073,7 +1073,7 @@ end;
 
 procedure TTestCastleTransform.TestTransformingScene;
 var
-  World: T3DWorld;
+  World: TSceneManagerWorld;
 
   function EpsilonBox(const Center: TVector3): TBox3D;
   begin
@@ -1158,7 +1158,7 @@ var
   Shape: TShapeNode;
   Root: TX3DRootNode;
 begin
-  World := T3DWorld.Create(nil);
+  World := TSceneManagerWorld.Create(nil);
   try
     //Box := TBoxNode.CreateShape(Shape);
     Box := TBoxNode.Create;

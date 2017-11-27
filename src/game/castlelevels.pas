@@ -495,7 +495,7 @@ type
         #)
       )
     }
-    constructor Create(AOwner: TComponent; AWorld: T3DWorld;
+    constructor Create(AOwner: TComponent; AWorld: TSceneManagerWorld;
       MainScene: TCastleScene; DOMElement: TDOMElement); reintroduce; virtual;
     function LocalBoundingBox: TBox3D; override;
 
@@ -1018,7 +1018,7 @@ end;
 
 { TLevelLogic ---------------------------------------------------------------- }
 
-constructor TLevelLogic.Create(AOwner: TComponent; AWorld: T3DWorld;
+constructor TLevelLogic.Create(AOwner: TComponent; AWorld: TSceneManagerWorld;
   MainScene: TCastleScene; DOMElement: TDOMElement);
 begin
   inherited Create(AOwner);

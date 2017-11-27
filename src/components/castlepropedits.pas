@@ -82,7 +82,7 @@ type
 
 type
   T3DEditorForm = class(TComponent)
-    Items: T3DWorld;
+    Items: TSceneManagerWorld;
     SceneManager: TCastleSceneManager;
     procedure ShowModal;
   end;
@@ -132,27 +132,27 @@ begin
   end;
 end;
 
-{ T3DWorldPropertyEditor ----------------------------------------------------- }
+{ TSceneManagerWorldPropertyEditor ----------------------------------------------------- }
 
 type
-  T3DWorldPropertyEditor = class(TClassPropertyEditor)
+  TSceneManagerWorldPropertyEditor = class(TClassPropertyEditor)
   public
     procedure Edit; Override;
     function  GetAttributes: TPropertyAttributes; Override;
   end;
 
-procedure T3DWorldPropertyEditor.Edit;
+procedure TSceneManagerWorldPropertyEditor.Edit;
 var
   Dialog: T3DEditorForm;
 begin
   Dialog := T3DEditorForm.Create(nil);
   try
-    Dialog.Items := T3DWorld(GetObjectValue(T3DWorld));
+    Dialog.Items := TSceneManagerWorld(GetObjectValue(TSceneManagerWorld));
     Dialog.ShowModal;
   finally FreeAndNil(Dialog) end;
 end;
 
-function T3DWorldPropertyEditor.GetAttributes: TPropertyAttributes;
+function TSceneManagerWorldPropertyEditor.GetAttributes: TPropertyAttributes;
 begin
   Result := [paMultiSelect, paSubProperties, paDialog, paReadOnly];
 end;
@@ -214,8 +214,8 @@ begin
     'Controls', TChildrenControlsPropertyEditor);
   }
   // TODO: Also TSceneManagerPropertyEditor, leading to the same?
-  RegisterPropertyEditor(TypeInfo(T3DWorld), TCastleSceneManager, 'Items',
-    T3DWorldPropertyEditor);
+  RegisterPropertyEditor(TypeInfo(TSceneManagerWorld), TCastleSceneManager, 'Items',
+    TSceneManagerWorldPropertyEditor);
   RegisterComponentEditor(TCastleControl, TCastleControlComponentEditor);
 end;
 

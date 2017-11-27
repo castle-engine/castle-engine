@@ -270,7 +270,7 @@ type
 
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
-    procedure InstantiatePlaceholder(World: T3DWorld;
+    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 

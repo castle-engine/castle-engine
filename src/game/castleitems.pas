@@ -151,7 +151,7 @@ type
 
     { Instantiate placeholder by create new item with CreateItem
       and putting it on level with TInventoryItem.PutOnWorld. }
-    procedure InstantiatePlaceholder(World: T3DWorld;
+    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); override;
 
@@ -363,7 +363,7 @@ type
       so we take AWorld parameter explicitly.
       This is how you should create new TItemOnWorld instances.
       It is analogous to TCreatureResource.CreateCreature, but now for items. }
-    function PutOnWorld(const AWorld: T3DWorld;
+    function PutOnWorld(const AWorld: TSceneManagerWorld;
       const APosition: TVector3): TItemOnWorld;
 
     { 3D owner of the item,
@@ -386,7 +386,7 @@ type
       or as being owned by a 3D object (like player or creature) that are
       part of 3D world. In other words, our Owner3D.World is the 3D world
       this item lives in. }
-    function World: T3DWorld;
+    function World: TSceneManagerWorld;
   end;
 
   TItemWeapon = class(TInventoryItem)
@@ -663,7 +663,7 @@ begin
   Result := TInventoryItem;
 end;
 
-procedure TItemResource.InstantiatePlaceholder(World: T3DWorld;
+procedure TItemResource.InstantiatePlaceholder(World: TSceneManagerWorld;
   const APosition, ADirection: TVector3;
   const NumberPresent: boolean; const Number: Int64);
 var
@@ -760,7 +760,7 @@ begin
   FQuantity := FQuantity - QuantitySplit;
 end;
 
-function TInventoryItem.PutOnWorld(const AWorld: T3DWorld;
+function TInventoryItem.PutOnWorld(const AWorld: TSceneManagerWorld;
   const APosition: TVector3): TItemOnWorld;
 begin
   Result := TItemOnWorld.Create(AWorld { owner });
@@ -781,7 +781,7 @@ begin
   Notifications.Show('This item cannot be used');
 end;
 
-function TInventoryItem.World: T3DWorld;
+function TInventoryItem.World: TSceneManagerWorld;
 begin
   if Owner3D <> nil then
     Result := Owner3D.World else

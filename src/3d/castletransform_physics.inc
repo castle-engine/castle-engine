@@ -353,7 +353,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
-    World: T3DWorld;
+    World: TSceneManagerWorld;
     V: TVector3;
   begin
     World := Transform.World;
@@ -528,7 +528,7 @@ begin
     RigidBody := nil;
 end;
 
-procedure TCastleTransform.PhysicsChangeWorld(const Value: T3DWorld);
+procedure TCastleTransform.PhysicsChangeWorld(const Value: TSceneManagerWorld);
 begin
   if FWorld <> Value then
   begin
@@ -540,12 +540,12 @@ begin
 
     { Calling TRigidBody.InitializeTransform explicitly now
       (instead of letting it happen in TRigidBody.Update)
-      makes sure that when T3DWorld.Update will happen,
+      makes sure that when TSceneManagerWorld.Update will happen,
       the physics engine will know
       the initial position of this object during 1st simulation tick.
 
       TODO: it's not really nice.
-      - If you change a transformation from now to T3DWorld.Update,
+      - If you change a transformation from now to TSceneManagerWorld.Update,
         then 1st simulation tick will have invalid transformation anyway.
       - If you change some other rigid body parameter between now and
         next FRigidBody.Update, then next FRigidBody would recreate Kraft
@@ -558,9 +558,9 @@ begin
   end;
 end;
 
-{ T3DWorld ------------------------------------------------------------------- }
+{ TSceneManagerWorld ------------------------------------------------------------------- }
 
-procedure T3DWorld.InitializePhysicsEngine;
+procedure TSceneManagerWorld.InitializePhysicsEngine;
 begin
   if FKraftEngine = nil then
   begin
@@ -569,13 +569,13 @@ begin
   end;
 end;
 
-destructor T3DWorld.Destroy;
+destructor TSceneManagerWorld.Destroy;
 begin
   FreeAndNil(FKraftEngine);
   inherited;
 end;
 
-procedure T3DWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TSceneManagerWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;
