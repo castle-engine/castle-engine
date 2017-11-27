@@ -37,6 +37,7 @@ var
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
   ExtraViewport: TCastleViewport;
+  CreaturesSpawned: Integer;
 
 { Buttons -------------------------------------------------------------------- }
 
@@ -198,6 +199,11 @@ begin
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
   CreatureResource.CreateCreature(SceneManager.Items, Translation, Direction);
+
+  // update and show CreaturesSpawned
+  Inc(CreaturesSpawned);
+  AddCreatureButton.Caption := Format('Add creature (F9) (Spawned: %d)',
+    [CreaturesSpawned]);
 end;
 
 procedure TButtons.AddItemButtonClick(Sender: TObject);
