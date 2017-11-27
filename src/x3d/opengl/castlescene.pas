@@ -506,19 +506,28 @@ type
     function ShapeFog(Shape: TShape): IAbstractFogObject;
     function EffectiveBlendingSort: TBlendingSort;
   private
-    { Used by UpdateGeneratedTextures, to prevent rendering the shape
-      for which reflection texture is generated. (This wouldn't cause
-      recursive loop in our engine, but still it's bad --- rendering
-      from the inside of the object usually obscures the world around...). }
-    AvoidShapeRendering: TGLShape;
+    type
+      TCustomShaders = record
+        Shader: TX3DShaderProgramBase;
+        ShaderAlphaTest: TX3DShaderProgramBase;
+        procedure Initialize(const VertexCode, FragmentCode: string);
+        procedure Free;
+      end;
 
-    { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
-      for shadow maps. }
-    AvoidNonShadowCasterRendering: boolean;
+    var
+      { Used by UpdateGeneratedTextures, to prevent rendering the shape
+        for which reflection texture is generated. (This wouldn't cause
+        recursive loop in our engine, but still it's bad --- rendering
+        from the inside of the object usually obscures the world around...). }
+      AvoidShapeRendering: TGLShape;
 
-    PreparedShapesResources, PreparedRender: boolean;
-    VarianceShadowMapsProgram: array [boolean] of TX3DShaderProgramBase;
-    FDistanceCulling: Single;
+      { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
+        for shadow maps. }
+      AvoidNonShadowCasterRendering: boolean;
+
+      PreparedShapesResources, PreparedRender: boolean;
+      VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
+      FDistanceCulling: Single;
 
     { Private things for RenderFrustum --------------------------------------- }
 
@@ -870,6 +879,53 @@ begin
   Result := FBaseLights;
 end;
 
+{ TCastleScene.TCustomShaders ------------------------------------------------ }
+
+procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: string);
+
+  procedure DoInitialize(const VertexCode, FragmentCode: string);
+  begin
+    { create programs if needed }
+    if Shader = nil then
+    begin
+      Shader := TX3DShaderProgramBase.Create;
+      Shader.AttachVertexShader(VertexCode);
+      Shader.AttachFragmentShader(FragmentCode);
+      Shader.Link;
+    end;
+
+    if ShaderAlphaTest = nil then
+    begin
+      ShaderAlphaTest := TX3DShaderProgramBase.Create;
+      ShaderAlphaTest.AttachVertexShader('#define ALPHA_TEST' + NL + VertexCode);
+      ShaderAlphaTest.AttachFragmentShader('#define ALPHA_TEST' + NL + FragmentCode);
+      ShaderAlphaTest.Link;
+    end;
+  end;
+
+begin
+  try
+    DoInitialize(VertexCode, FragmentCode);
+  except
+    on E: EGLSLError do
+    begin
+      FreeAndNil(Shader);
+      FreeAndNil(ShaderAlphaTest);
+
+      WritelnWarning('Scene', 'Error compiling/linking GLSL shaders for shadow maps: %s',
+        [E.Message]);
+
+      DoInitialize({$I fallback.vs.inc}, {$I fallback.fs.inc});
+    end;
+  end;
+end;
+
+procedure TCastleScene.TCustomShaders.Free;
+begin
+  FreeAndNil(Shader);
+  FreeAndNil(ShaderAlphaTest);
+end;
+
 { TCastleScene ------------------------------------------------------------ }
 
 constructor TCastleScene.Create(AOwner: TComponent);
@@ -1035,10 +1091,8 @@ begin
     finally FreeAndNil(SI) end;
   end;
 
-  if VarianceShadowMapsProgram[false] <> nil then
-    FreeAndNil(VarianceShadowMapsProgram[false]);
-  if VarianceShadowMapsProgram[true] <> nil then
-    FreeAndNil(VarianceShadowMapsProgram[true]);
+  VarianceShadowMapsProgram.Free;
+  ShadowMapsProgram.Free;
 end;
 
 procedure TCastleScene.GLContextClose;
@@ -1574,50 +1628,42 @@ procedure TCastleScene.LocalRenderOutside(
   procedure RenderWithShadowMaps;
   var
     SavedMode: TRenderingMode;
-    SavedCustomShader, SavedCustomShaderAlphaTest: TX3DShaderProgramBase;
+    SavedShaders, NewShaders: TCustomShaders;
   begin
     { For shadow maps, speed up rendering by using only features that affect
-      depth output. This also disables user shaders (for both classic
-      and VSM shadow maps, consistently). }
+      depth output. Also set up specialized shaders. }
     if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       SavedMode := Attributes.Mode;
       Attributes.Mode := rmDepth;
-    end;
 
-    { When rendering to Variance Shadow Map, we need special shader. }
-    if RenderingCamera.Target = rtVarianceShadowMap then
-    begin
-      { create VarianceShadowMapsProgram if needed }
-      if VarianceShadowMapsProgram[false] = nil then
+      if RenderingCamera.Target = rtVarianceShadowMap then
       begin
-        VarianceShadowMapsProgram[false] := TX3DShaderProgramBase.Create;
-        VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[false].Link;
+        VarianceShadowMapsProgram.Initialize(
+          '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
+          '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.fs.inc});
+        NewShaders := VarianceShadowMapsProgram;
+      end else
+      begin
+        ShadowMapsProgram.Initialize(
+          {$I shadow_map_generate.vs.inc},
+          {$I shadow_map_generate.fs.inc});
+        NewShaders := ShadowMapsProgram;
       end;
 
-      if VarianceShadowMapsProgram[true] = nil then
-      begin
-        VarianceShadowMapsProgram[true] := TX3DShaderProgramBase.Create;
-        VarianceShadowMapsProgram[true].AttachFragmentShader(
-          '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[true].Link;
-      end;
-
-      SavedCustomShader          := Attributes.CustomShader;
-      SavedCustomShaderAlphaTest := Attributes.CustomShaderAlphaTest;
-      Attributes.CustomShader          := VarianceShadowMapsProgram[false];
-      Attributes.CustomShaderAlphaTest := VarianceShadowMapsProgram[true];
+      SavedShaders.Shader          := Attributes.CustomShader;
+      SavedShaders.ShaderAlphaTest := Attributes.CustomShaderAlphaTest;
+      Attributes.CustomShader          := NewShaders.Shader;
+      Attributes.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
     end;
 
     RenderWithWireframeEffect;
 
     if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
-      Attributes.Mode := SavedMode;
-    if RenderingCamera.Target = rtVarianceShadowMap then
     begin
-      Attributes.CustomShader          := SavedCustomShader;
-      Attributes.CustomShaderAlphaTest := SavedCustomShaderAlphaTest;
+      Attributes.Mode := SavedMode;
+      Attributes.CustomShader          := SavedShaders.Shader;
+      Attributes.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end;
   end;
 

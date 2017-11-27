@@ -902,7 +902,8 @@ begin
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
        Renderer.FixedFunctionAlphaTest then
-      CurrentMeshShader := Attributes.CustomShaderAlphaTest else
+      CurrentMeshShader := Attributes.CustomShaderAlphaTest
+    else
       CurrentMeshShader := Attributes.CustomShader;
   end else
   begin
