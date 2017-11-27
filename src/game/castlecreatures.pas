@@ -246,7 +246,7 @@ type
       used for various collision detection routines.
       See TCastleTransform.MiddleHeight for a precise documentation.
 
-      Game developers can use the RenderDebug3D variable to easily
+      Game developers can use the RenderDebug variable to easily
       visualize the bounding sphere (and other things) around resources.
       The bounding sphere is centered around the point derived from MiddleHeight
       setting and with given creature radius
@@ -796,6 +796,10 @@ type
 
     procedure UpdateDebugCaption(const Lines: TCastleStringList); virtual;
   public
+    class var
+      { Render debug bounding boxes and captions at every creature. }
+      RenderDebug: boolean;
+
     constructor Create(AOwner: TComponent; const AMaxLife: Single); virtual; reintroduce;
     destructor Destroy; override;
     function GetExists: boolean; override;
@@ -1462,7 +1466,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     H: Single;
     BBox: TBox3D;
   begin
-    if RenderDebugCaptions and (FDebugCaptions = nil) then
+    if RenderDebug and (FDebugCaptions = nil) then
     begin
       { create FDebugCaptions on demand }
 
@@ -1493,9 +1497,9 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
     end;
 
     if FDebugCaptions <> nil then
-      FDebugCaptions.Exists := RenderDebugCaptions;
+      FDebugCaptions.Exists := RenderDebug;
 
-    if RenderDebugCaptions then
+    if RenderDebug then
     begin
       BBox := BoundingBox;
       FDebugCaptionsShape.Render := not BBox.IsEmpty;
@@ -1532,7 +1536,7 @@ begin
   VisibleChangeHere([vcVisibleGeometry]);
 
   UpdateUsedSounds;
-  FDebug3D.Exists := RenderDebug3D;
+  FDebug3D.Exists := RenderDebug;
   UpdateDebugCaptions;
 end;
 
@@ -2325,7 +2329,7 @@ var
 
   procedure UpdateDebug3D;
   begin
-    if RenderDebug3D then
+    if RenderDebug then
     begin
       if FDebug3DAlternativeTargetAxis = nil then
       begin

@@ -492,23 +492,27 @@ type
       CurrentChild: TCastleTransform;
     function BoundingBoxRotated: TBox3D;
   public
-    { Speed of the rotation of 3D item on world.
-      In radians per second, default is DefaultRotationSpeed.
-      Set to zero to disable rotation. }
-    RotationSpeed: Single; static;
+    class var
+      { Render debug bounding boxes and captions at every creature. }
+      RenderDebug: boolean;
 
-    { Does the player automatically picks up items by walking over them.
-      Default is @true. If you set this to @false, you most probably want to
-      implement some other way of picking up items, use the ExtractItem method.
+      { Speed of the rotation of 3D item on world.
+        In radians per second, default is DefaultRotationSpeed.
+        Set to zero to disable rotation. }
+      RotationSpeed: Single;
 
-      More precisely, this variable controls when TInventoryItem.Picked
-      is called. When @true, it is called for player when player steps over
-      an item (otherwise it's never called).
-      You can always override TInventoryItem.Picked for particular items
-      to customize what happens at "pick" --- the default implementation
-      picks an item by adding it to inventory, but you could override it
-      e.g. to consume some potions immediately on pickup. }
-    AutoPick: boolean; static;
+      { Does the player automatically picks up items by walking over them.
+        Default is @true. If you set this to @false, you most probably want to
+        implement some other way of picking up items, use the ExtractItem method.
+
+        More precisely, this variable controls when TInventoryItem.Picked
+        is called. When @true, it is called for player when player steps over
+        an item (otherwise it's never called).
+        You can always override TInventoryItem.Picked for particular items
+        to customize what happens at "pick" --- the default implementation
+        picks an item by adding it to inventory, but you could override it
+        e.g. to consume some potions immediately on pickup. }
+      AutoPick: boolean;
 
     const
       DefaultRotationSpeed = Pi;
@@ -1183,7 +1187,7 @@ begin
   DirectionZero := AnyOrthogonalVector(U).Normalize;
   SetView(RotatePointAroundAxisRad(ItemRotation, DirectionZero, U), U);
 
-  FDebug3D.Exists := RenderDebug3D;
+  FDebug3D.Exists := RenderDebug;
 
   if AutoPick and
      (World.Player <> nil) and

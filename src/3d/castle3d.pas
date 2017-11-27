@@ -402,8 +402,10 @@ var
     to display additional features of 3D objects, helpful to debug collisions,
     AI and other things.
     @groupBegin }
-  RenderDebug3D: boolean = false;
-  RenderDebugCaptions: boolean = false;
+  RenderDebug3D: boolean = false
+    deprecated 'use Player.RenderDebug, TCreature.RenderDebug, TItemOnWorld.RenderDebug';
+  RenderDebugCaptions: boolean = false
+    deprecated 'use TCreature.RenderDebug';
   { @groupEnd }
 
   { Log shadow volume information.

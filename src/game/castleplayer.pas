@@ -82,7 +82,7 @@ type
     var
       FBox: TBox;
       FDebug3D: TDebug3D;
-      FEnableDebug3D: boolean;
+      FRenderDebug: boolean;
 
       FEquippedWeapon: TItemWeapon;
 
@@ -430,11 +430,10 @@ type
     property EnableCameraDragging: boolean
       read FEnableCameraDragging write SetEnableCameraDragging default true;
 
-    { When global RenderDebug3D is @true @italic(and) this property is @true,
-      show the bounding box of the player. It's a little confusing
-      (since it's a box around yourself), that's why it's off by default. }
-    property EnableDebug3D: boolean
-      read FEnableDebug3D write FEnableDebug3D default false;
+    { Show the debug bounding box of the player.
+      Warning: It looks a little confusing (since it's a box around camera). }
+    property RenderDebug: boolean
+      read FRenderDebug write FRenderDebug default false;
   end;
 
 const
@@ -1130,7 +1129,7 @@ begin
   UpdateToxic;
   UpdateFootstepsSoundPlaying;
 
-  FDebug3D.Exists := EnableDebug3D and RenderDebug3D;
+  FDebug3D.Exists := RenderDebug;
 end;
 
 procedure TPlayer.FadeOut(const Color: TCastleColor);
