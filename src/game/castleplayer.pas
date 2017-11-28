@@ -1373,7 +1373,7 @@ begin
     quite a nice solution,
     - you don't have to split rendering layers in passes, you can render
       all objects in one pass, just switching DepthRange as necessary.
-    - you can set DepthRange for 3D objects inside T3DList,
+    - you can set DepthRange for 3D objects inside TCastleTransform,
       like here TPlayer will just affect every child underneath.
 
     But it has to be implemented in more extensible manner in the future.
@@ -1395,7 +1395,7 @@ begin
 
     Note that Player.Gravity remains false for now (only Player.Camera.Gravity
     is true), so the player is not affected by simple gravity implemented in
-    Castle3D unit, so there's no point in overriding methods like PreferredHeight.
+    CastleTransform unit, so there's no point in overriding methods like PreferredHeight.
     TWalkCamera.Gravity does all the work now. }
 
   Result := Translation;
