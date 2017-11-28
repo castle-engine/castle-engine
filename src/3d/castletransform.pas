@@ -278,8 +278,12 @@ type
     property Owner: TCastleTransform read FOwner;
   end;
 
+  { Orientation of the model is 3D world, determining where is
+    the conceptual "up" direction of the model,
+    and where is it facing. Used by the @link(TCastleTransform.Orientation)
+    and @link(TCastleTransform.DefaultOrientation). }
   TOrientationType = (
-    { Sensible for worlds oriented around Y axis.
+    { Orientation sensible for models oriented around Y axis.
       That is when gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes -Z and +Y match (respectively) Direction and Up.
 
@@ -294,7 +298,7 @@ type
       "X-axis mirror" will work best. }
     otUpYDirectionMinusZ,
 
-    { Sensible for worlds oriented around Z axis.
+    { Orientation sensible for models oriented around Z axis.
       Transformation makes -Y and +Z match (respectively) Direction and Up.
 
       Using this value for @link(TCastleTransform.Orientation) (or even
@@ -314,26 +318,35 @@ type
   TRigidBody = class;
 
   { Group and transform (move, rotate, scale) children objects.
-    This is the base thing that is managed by the @link(TCastleSceneManager).
 
-    Transformation is a combined
+    Add and remove children using the @link(Add), @link(Remove) and similar methods.
+    A child can be any @link(TCastleTransform) instance,
+    in particular it can be a @link(TCastleScene) instance
+    (which allows to load and render any 3D or 2D model).
+
+    Control the transformation using these properties:
+
     @orderedList(
-      @itemSpacing Compact
-      @item @link(Translation),
-      @item and @link(Rotation) around @link(Center) point,
-      @item(and @link(Scale) around @link(Center) and with orientation given by
+      @item(Move using @link(Translation).)
+
+      @item(Rotate using @link(Rotation).
+        The rotation is performed around the @link(Center) point.
+        The rotation may be alternatively controlled using the
+        @link(Direction) and @link(Up) vectors.)
+
+      @item(Change size using @link(Scale).
+        Scale is done around @link(Center) and with orientation given by
         @link(ScaleOrientation).)
     )
 
-    For precise order of the translation/rotation/scale operations,
-    see the X3D Transform node specification.
-    The @link(Rotation) may be alternatively controlled using
-    @link(Direction) and @link(Up) vectors.
+    This class is the base object that is managed by the @link(TCastleSceneManager).
+    You insert instances of this class into @link(TCastleSceneManager.Items),
+    which is actually an instance of @link(TCastleTransform) too.
 
-    Default values of all fields indicate "no transformation".
-    So everything is zero, except Scale is (1,1,1).
-
-    This class enables (optional) gravity and physics. }
+    This class implements also optional gravity and physics.
+    See the @link(Gravity) property for a simple unrealistic gravity model.
+    See the @link(RigidBody) for a proper rigid-bidy simulation,
+    with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TComponent)
   private
     FCastShadowVolumes: boolean;
