@@ -104,7 +104,7 @@
 '#ifdef COLOR_PER_VERTEX' + LineEnding +
 '    /* Apply COLOR_PER_VERTEX, when unlit.' + LineEnding +
 '       (When lit, then the analogous multiplication is done' + LineEnding +
-'        inside template_mobile_add_light.glsl) */' + LineEnding +
+'        inside template_light.glsl) */' + LineEnding +
 '    * castle_ColorPerVertex' + LineEnding +
 '#endif' + LineEnding +
 '  ;' + LineEnding +
