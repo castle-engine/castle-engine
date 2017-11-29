@@ -329,8 +329,11 @@ begin
           mcDefaultColor:
             begin
               Assert(Arrays.HasDefaultColor);
-              { in this case, we must apply Arrays.DefaultColor as
-                Shader.MaterialUnlit, overriding previous castle_UnlitColor setting. }
+              { We apply Arrays.DefaultColor as Shader.MaterialUnlit,
+                overriding previous castle_UnlitColor setting.
+                Arrays.DefaultColor is in fact used with this intention
+                ("override unlit color") by PointSet and LineSet generators
+                in castlearraysgenerator_rendering.inc . }
               CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Arrays.DefaultColor);
             end;
         end;
