@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<project name="rift" standalone_source="src/rift.lpr">
+<project name="rift" standalone_source="code/rift.lpr">
   <version value="0.1.0" />
   <compiler_options>
     <search_paths>
-      <path value="src/" />
+      <path value="code/" />
     </search_paths>
   </compiler_options>
   <package>
