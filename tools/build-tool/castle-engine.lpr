@@ -144,7 +144,7 @@ begin
           OptionDescription('--plugin',
             'Compile/package/install a browser plugin.') +NL+
           OptionDescription('--fpc-version-iphone-simulator VERSION',
-            'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). By default it is "' + DefaultFPCVersionForIPhoneSimulator + '". You can set this is empty to avoid passing any -V<VERSION>.') +NL+
+            'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). You can set this to "auto" (this is the default) to auto-detect this based on regular FPC version. Or you can set this to a particular version, like "3.0.5". Or you can set this to empty "" to avoid passing any -V<VERSION> (suitable for FPC 3.1.1).') +NL+
           OptionDescription('--compiler-option=PARAM',
             'Extra parameter for "fpc" command line. For example --compiler-option=-dUSE_MOUSE will add -dUSE_MOUSE. You can use this parameter multiple times.') +NL+
           TargetOptionHelp +
