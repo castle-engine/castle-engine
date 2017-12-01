@@ -6,6 +6,6 @@ set -eu
 # Or just do "make examples" in base castle_game_engine directory.
 
 # Allow calling this script from it's dir.
-if [ -f castle-engine.lpr ]; then cd ../../; fi
+if [ -f code/castle-engine.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg tools/build-tool/castle-engine.lpr
+fpc -dRELEASE @castle-fpc.cfg tools/build-tool/code/castle-engine.lpr

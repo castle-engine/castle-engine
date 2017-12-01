@@ -177,6 +177,7 @@ src/x3d/teapot/teapot_3d_to_pascal
 src/x3d/teapot/teapot_3d_to_pascal.res
 tests/test_castle_game_engine
 tools/build-tool/castle-engine
+tools/build-tool/code/castle-engine
 tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar
 tools/build-tool/data/android/integrated-services/game_analytics/app/libs/*.jar
 tools/build-tool/data/android/integrated-services/giftiz/app/libs/

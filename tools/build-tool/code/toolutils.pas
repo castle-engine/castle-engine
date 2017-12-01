@@ -295,7 +295,7 @@ var
 
 function OutputPath(const WorkingDirectory: string; const CreateIfNecessary: boolean): string;
 const
-  OutputNoteContents = {$I templates/template-castle-engine-output-warning.txt.inc};
+  OutputNoteContents = {$I ../templates/template-castle-engine-output-warning.txt.inc};
 var
   OutputNote: string;
 begin

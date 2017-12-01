@@ -35,14 +35,14 @@ procedure GenerateWindowsResources(const Project: TCastleProject; const ExePath:
   const CPU: TCpu; const Plugin: boolean);
 const
   RcTemplate: array [boolean { plugin? }] of string = (
-    {$I templates/windows/automatic-windows-resources.rc.inc},
-    {$I templates/windows/plugin-automatic-windows-resources.rc.inc}
+    {$I ../templates/windows/automatic-windows-resources.rc.inc},
+    {$I ../templates/windows/plugin-automatic-windows-resources.rc.inc}
   );
   RcName: array [boolean { plugin? }] of string = (
     'automatic-windows-resources.rc',
     'plugin-automatic-windows-resources.rc'
   );
-  ManifestTemplate = {$I templates/windows/automatic-windows.manifest.inc};
+  ManifestTemplate = {$I ../templates/windows/automatic-windows.manifest.inc};
 var
   IcoPath, OutputRc, OutputManifest: string;
   WindresOutput, WindresExe, RcFilename, ManifestFilename, ResName: string;
