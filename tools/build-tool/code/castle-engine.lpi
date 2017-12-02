@@ -66,10 +66,11 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="castle-engine"/>
+      <Filename Value="../castle-engine"/>
     </Target>
     <SearchPaths>
-      <IncludeFiles Value="$(ProjOutDir);../../src/base"/>
+      <IncludeFiles Value="$(ProjOutDir);../../../src/base"/>
+      <OtherUnitFiles Value="../embedded_images"/>
       <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
     </SearchPaths>
     <Parsing>

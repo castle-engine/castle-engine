@@ -8,4 +8,6 @@ set -eu
 # Allow calling this script from it's dir.
 if [ -f code/castle-engine.lpr ]; then cd ../../; fi
 
-fpc -dRELEASE @castle-fpc.cfg tools/build-tool/code/castle-engine.lpr
+fpc -dRELEASE @castle-fpc.cfg \
+  -Futools/build-tool/embedded_images/ \
+  tools/build-tool/code/castle-engine.lpr
