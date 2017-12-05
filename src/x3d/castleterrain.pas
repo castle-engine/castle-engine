@@ -34,7 +34,7 @@ type
   public
     function Height(const X, Y: Single): Single; virtual; abstract;
     { Create X3D node with the given terrain. }
-    function CreateNode(const Dimensions: Cardinal;
+    function CreateNode(const Divisions: Cardinal;
       const Size: Single; const XRange, ZRange: TVector2;
       const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
   end;
@@ -304,7 +304,7 @@ uses CastleUtils, CastleScriptParser, CastleNoise, Math, CastleDownload;
 
 { TTerrain ------------------------------------------------------------------- }
 
-function TTerrain.CreateNode(const Dimensions: Cardinal;
+function TTerrain.CreateNode(const Divisions: Cardinal;
   const Size: Single; const XRange, ZRange: TVector2;
   const ColorFromHeight: TColorFromHeightFunction): TShapeNode;
 var
@@ -318,25 +318,29 @@ begin
   Grid := TElevationGridNode.Create;
   Result.FdGeometry.Value := Grid;
   Grid.FdCreaseAngle.Value := 4; { > pi, to be perfectly smooth }
-  Grid.FdXDimension.Value := Dimensions;
-  Grid.FdZDimension.Value := Dimensions;
-  Grid.FdXSpacing.Value := Size / (Dimensions - 1);
-  Grid.FdZSpacing.Value := Size / (Dimensions - 1);
-  Grid.FdHeight.Items.Count := Dimensions * Dimensions;
+  Grid.FdXDimension.Value := Divisions;
+  Grid.FdZDimension.Value := Divisions;
+  Grid.FdXSpacing.Value := Size / (Divisions - 1);
+  Grid.FdZSpacing.Value := Size / (Divisions - 1);
+  Grid.FdHeight.Items.Count := Divisions * Divisions;
 
-  Color := TColorNode.Create;
-  Grid.FdColor.Value := Color;
-  Color.FdColor.Items.Count := Dimensions * Dimensions;
+  if Assigned(ColorFromHeight) then
+  begin
+    Color := TColorNode.Create;
+    Grid.FdColor.Value := Color;
+    Color.FdColor.Items.Count := Divisions * Divisions;
+  end;
 
-  for X := 0 to Dimensions - 1 do
-    for Z := 0 to Dimensions - 1 do
+  for X := 0 to Divisions - 1 do
+    for Z := 0 to Divisions - 1 do
     begin
-      Grid.FdHeight.Items.L[X + Z * Dimensions] := Height(
-        MapRange(X, 0, Dimensions, XRange[0], XRange[1]),
-        MapRange(Z, 0, Dimensions, ZRange[0], ZRange[1]));
+      Grid.FdHeight.Items.L[X + Z * Divisions] := Height(
+        MapRange(X, 0, Divisions, XRange[0], XRange[1]),
+        MapRange(Z, 0, Divisions, ZRange[0], ZRange[1]));
 
-      Color.FdColor.Items.L[X + Z * Dimensions] :=
-        ColorFromHeight(Self, Grid.FdHeight.Items.L[X + Z * Dimensions]);
+      if Assigned(ColorFromHeight) then
+        Color.FdColor.Items.L[X + Z * Divisions] :=
+          ColorFromHeight(Self, Grid.FdHeight.Items.L[X + Z * Divisions]);
     end;
 
   Appearance := TAppearanceNode.Create;
