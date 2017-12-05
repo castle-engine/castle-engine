@@ -329,7 +329,7 @@ procedure CheckRenameFile(const Source, Dest: string);
   @raises ERemoveFailed If delete failed, and Warn = @false. }
 procedure RemoveNonEmptyDir(const DirName: string; const Warn: boolean = false);
 
-{ Substitute %d in given filename pattern with successive numbers,
+{ Substitute %d in given filename (or URL) pattern with successive numbers,
   until the filename doesn't exist.
 
   The idea is to start with number = 0 and do
@@ -347,8 +347,8 @@ procedure RemoveNonEmptyDir(const DirName: string; const Warn: boolean = false);
   (use proper file open modes for this). }
 function FileNameAutoInc(const FileNamePattern: string): string;
 
-{ Deprecated name for FileNameAutoInc. @deprecated }
-function FnameAutoInc(const FileNamePattern: string): string; deprecated;
+function FnameAutoInc(const FileNamePattern: string): string;
+  deprecated 'use FileNameAutoInc';
 
 { Parent directory name.
 
@@ -745,7 +745,7 @@ begin
  i := 0;
  repeat
   result := Format(FileNamePattern,[i]);
-  if not FileExists(result) then exit;
+  if not URIFileExists(result) then exit;
   Inc(i);
  until false;
 end;
