@@ -44,7 +44,7 @@ begin
   Window.Container.UIReferenceHeight := 768;
   Window.Container.UIScaling := usEncloseReferenceSize;
 
-  { Show a label with some text }
+  { Show a label with frames per second information }
   Status := TCastleLabel.Create(Application);
   Status.Anchor(vpTop, -10);
   Status.Anchor(hpRight, -10);
