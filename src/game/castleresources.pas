@@ -44,8 +44,7 @@ type
     LastForcedLoop: boolean;
     LastForcedActualTime: TFloatTime;
 
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const DoProgress: boolean);
+    procedure Prepare(const Params: TPrepareParams; const DoProgress: boolean);
     procedure Release;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
     property Owner: T3DResource read FOwner;
@@ -182,7 +181,7 @@ type
       This allows to make nice progress bar in @link(Prepare).
       In this class, PrepareCoreSteps returns 0.
       @groupBegin }
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+    procedure PrepareCore(const Params: TPrepareParams;
       const DoProgress: boolean); virtual;
     function PrepareCoreSteps: Cardinal; virtual;
     procedure ReleaseCore; virtual;
@@ -223,7 +222,7 @@ type
     { Release and then immediately prepare again this resource.
       Call only when UsageCount <> 0, that is when resource is prepared.
       Shows nice progress bar, using @link(Progress). }
-    procedure RedoPrepare(const BaseLights: TAbstractLightInstancesList);
+    procedure RedoPrepare(const Params: TPrepareParams);
 
     { How many times this resource is used. Used by Prepare and Release:
       actual allocation / deallocation happens when this raises from zero
@@ -243,28 +242,14 @@ type
 
       Show nice progress bar, using @link(Progress).
 
-      @param(BaseLights
-        Base lights include a headlight, or global lights that shine on all
-        3D scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
-
-        You can usually take them from @link(TCastleAbstractViewport.BaseLights),
-        usually by a simple @code(SceneManager.BaseLights) call
-        (as the scene manager, @link(TCastleSceneManager), is a descedant
-        of @link(TCastleAbstractViewport)).
-
-        It is not necessary to define this parameter (you can pass @nil).
-        And all the lighting is dynamic, so of course you can always
-        turn on / off things like a headlight during the game.
-        However, passing here the appropriate lights will mean that the shaders
-        are immediately prepared for the current lighting.
-
-        See @link(T3D.PrepareResources) for more comments.)
+      @param(Params
+        World parameters to prepare for.
+        See @link(TCastleTransform.PrepareResources) for more comments.)
 
       @groupBegin }
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3);
+    procedure Prepare(const Params: TPrepareParams; const GravityUp: TVector3);
       deprecated 'use Prepare overload without the GravityUp parameter';
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList = nil);
+    procedure Prepare(const Params: TPrepareParams);
     procedure Release;
     { @groupEnd }
 
@@ -403,7 +388,7 @@ type
 
     { Prepare / release all resources on list.
       @groupBegin }
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
+    procedure Prepare(const Params: TPrepareParams;
       const ResourcesName: string = 'resources');
     procedure Release;
     { @groupEnd }
@@ -545,7 +530,7 @@ begin
   Result := (URL <> '') or (AnimationName <> '');
 end;
 
-procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 
   { Prepare 3D resource loading it from given URL.
@@ -566,7 +551,7 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
 
     if Scene <> nil then
       Scene.PrepareResources([prRender, prBoundingBox, prShadowVolume],
-        false, BaseLights);
+        false, Params);
     if DoProgress then Progress.Step;
   end;
 
@@ -687,13 +672,13 @@ begin
   inherited;
 end;
 
-procedure T3DResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 var
   I: Integer;
 begin
   for I := 0 to Animations.Count - 1 do
-    Animations[I].Prepare(BaseLights, DoProgress);
+    Animations[I].Prepare(Params, DoProgress);
 end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
@@ -734,7 +719,7 @@ begin
     Animations[I].LoadFromFile(ResourceConfig);
 end;
 
-procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList);
+procedure T3DResource.RedoPrepare(const Params: TPrepareParams);
 var
   DoProgress: boolean;
 begin
@@ -751,27 +736,27 @@ begin
       So we should call Progress.Init before we make outselves unprepared. }
     FPrepared := false;
     ReleaseCore;
-    PrepareCore(BaseLights, DoProgress);
+    PrepareCore(Params, DoProgress);
     FPrepared := true;
   finally
     if DoProgress then Progress.Fini;
   end;
 end;
 
-procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResource.Prepare(const Params: TPrepareParams;
   const GravityUp: TVector3);
 begin
-  Prepare(BaseLights);
+  Prepare(Params);
 end;
 
-procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList);
+procedure T3DResource.Prepare(const Params: TPrepareParams);
 var
   List: T3DResourceList;
 begin
   List := T3DResourceList.Create(false);
   try
     List.Add(Self);
-    List.Prepare(BaseLights);
+    List.Prepare(Params);
   finally FreeAndNil(List) end;
 end;
 
@@ -916,7 +901,7 @@ begin
   end;
 end;
 
-procedure T3DResourceList.Prepare(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResourceList.Prepare(const Params: TPrepareParams;
   const ResourcesName: string);
 var
   I: Integer;
@@ -960,7 +945,7 @@ begin
             WritelnLog('Resources', Format(
               'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
-          Resource.PrepareCore(BaseLights, DoProgress);
+          Resource.PrepareCore(Params, DoProgress);
           Resource.FPrepared := true;
         end;
       end;

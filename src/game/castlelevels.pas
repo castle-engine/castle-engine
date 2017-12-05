@@ -902,7 +902,7 @@ begin
     be after loading MainScene (because initial camera looks at MainScene
     contents).
     It will show it's own progress bar. }
-  Info.LevelResources.Prepare(BaseLights);
+  Info.LevelResources.Prepare(PrepareParams);
   LevelResourcesPrepared := true;
   PreviousResources.Release;
   FreeAndNil(PreviousResources);
@@ -938,7 +938,7 @@ begin
     if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
       Include(Options, prShadowVolume);
 
-    MainScene.PrepareResources(Options, false, BaseLights);
+    MainScene.PrepareResources(Options, false, PrepareParams);
 
     MainScene.FreeResources([frTextureDataInNodes]);
 
@@ -952,7 +952,7 @@ begin
   MainScene.TriangleOctreeProgressTitle := 'Loading level (triangle octree)';
   MainScene.ShapeOctreeProgressTitle := 'Loading level (Shape octree)';
   MainScene.Spatial := [ssRendering, ssDynamicCollisions];
-  MainScene.PrepareResources([prSpatial], false, BaseLights);
+  MainScene.PrepareResources([prSpatial], false, PrepareParams);
 
   if (Player <> nil) then
     Player.LevelChanged;
@@ -1057,7 +1057,7 @@ begin
   if (GLFeatures <> nil) and GLFeatures.ShadowVolumesPossible then
     Include(Options, prShadowVolume);
 
-  Result.PrepareResources(Options, false, World.BaseLights);
+  Result.PrepareResources(Options, false, World.PrepareParams);
 
   if PrepareForCollisions then
     Result.Spatial := [ssDynamicCollisions];

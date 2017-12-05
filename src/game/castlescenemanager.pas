@@ -71,11 +71,12 @@ type
     FCamera: TCamera;
     FPaused: boolean;
     FRenderParams: TManagerRenderParams;
+    FPrepareParams: TPrepareParams;
     FBackgroundWireframe: boolean;
     FBackgroundColor: TCastleColor;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
-    FUseGlobalLights: boolean;
+    FUseGlobalLights, FUseGlobalFog: boolean;
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
     FTransparent: boolean;
@@ -296,6 +297,7 @@ type
     const
       DefaultScreenSpaceAmbientOcclusion = false;
       DefaultUseGlobalLights = true;
+      DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
 
     constructor Create(AOwner: TComponent); override;
@@ -497,11 +499,15 @@ type
       when we return @false. }
     function HeadlightInstance(out Instance: TLightInstance): boolean;
 
-    { Base lights used for rendering. Uses InitializeLights,
-      and returns instance owned and managed by this scene manager.
-      You can only use this outside PrepareResources or Render,
-      as they may change this instance. }
-    function BaseLights: TLightInstancesList;
+    { Parameters to prepare items that are to be rendered
+      within this world. This should be passed to
+      @link(TCastleTransform.PrepareResources).
+
+      Note: Instead of using @link(TCastleTransform.PrepareResources),
+      and this method,
+      it's usually easier to call @link(TCastleAbstractViewport.PrepareResources).
+      Then the appropriate TPrepareParams will be passed automatically. }
+    function PrepareParams: TPrepareParams;
 
     { Statistics about last rendering frame. See TRenderStatistics docs. }
     function Statistics: TRenderStatistics;
@@ -687,6 +693,12 @@ type
       and not transformed by TCastleTransform. }
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
+
+    { Let the fog defined in MainScene affect all objects, not only MainScene.
+      This is consistent with @link(UseGlobalLights), that allows lights
+      from MainScene to shine on all objects. }
+    property UseGlobalFog: boolean
+      read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
 
     { Help user to activate pointing device sensors and pick items.
       Every time you press or release Input_Interact (by default
@@ -1303,7 +1315,9 @@ begin
   inherited;
   FBackgroundColor := Black;
   FUseGlobalLights := DefaultUseGlobalLights;
+  FUseGlobalFog := DefaultUseGlobalFog;
   FRenderParams := TManagerRenderParams.Create;
+  FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
@@ -1333,6 +1347,7 @@ begin
   Camera := nil;
 
   FreeAndNil(FRenderParams);
+  FreeAndNil(FPrepareParams);
 
   inherited;
 end;
@@ -1973,13 +1988,28 @@ begin
     Lights.Add(HI);
 end;
 
-function TCastleAbstractViewport.BaseLights: TLightInstancesList;
+function TCastleAbstractViewport.PrepareParams: TPrepareParams;
+{ Note: you cannot refer to PrepareParams inside
+  the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
+  as they may change the referenced PrepareParams.InternalBaseLights value.
+}
 begin
   { We just reuse FRenderParams.FBaseLights[false] below as a temporary
     TLightInstancesList that we already have created. }
-  Result := FRenderParams.FBaseLights[false];
-  Result.Clear;
-  InitializeLights(Result);
+
+  { initialize FPrepareParams.InternalBaseLights }
+  FRenderParams.FBaseLights[false].Clear;
+  InitializeLights(FRenderParams.FBaseLights[false]);
+  FPrepareParams.InternalBaseLights := FRenderParams.FBaseLights[false];
+
+  { initialize FPrepareParams.InternalGlobalFog }
+  if UseGlobalFog and
+     (GetMainScene <> nil) then
+    FPrepareParams.InternalGlobalFog := GetMainScene.FogStack.Top
+  else
+    FPrepareParams.InternalGlobalFog := nil;
+
+  Result := FPrepareParams;
 end;
 
 procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
@@ -2104,6 +2134,13 @@ begin
   end else
     { Do not use Params.FBaseLights[true] }
     FRenderParams.MainScene := nil;
+
+  { initialize FRenderParams.GlobalFog }
+  if UseGlobalFog and
+     (GetMainScene <> nil) then
+    FRenderParams.GlobalFog := GetMainScene.FogStack.Top
+  else
+    FRenderParams.GlobalFog := nil;
 
   RenderFromView3D(FRenderParams);
 end;
@@ -2781,7 +2818,7 @@ type
       const Triangle: P3DTriangle): boolean; override;
     function GravityUp: TVector3; override;
     function Player: TCastleTransform; override;
-    function BaseLights: TAbstractLightInstancesList; override;
+    function PrepareParams: TPrepareParams; override;
     function Sectors: TSectorList; override;
     function Water: TBox3D; override;
     function WorldMoveAllowed(
@@ -2823,9 +2860,9 @@ begin
   Result := Owner.Player;
 end;
 
-function TSceneManagerWorldConcrete.BaseLights: TAbstractLightInstancesList;
+function TSceneManagerWorldConcrete.PrepareParams: TPrepareParams;
 begin
-  Result := Owner.BaseLights;
+  Result := Owner.PrepareParams;
 end;
 
 function TSceneManagerWorldConcrete.Sectors: TSectorList;
@@ -3183,10 +3220,10 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Item.PrepareResources(Options, true, BaseLights);
+        Item.PrepareResources(Options, true, PrepareParams);
       finally Progress.Fini end;
     end else
-      Item.PrepareResources(Options, false, BaseLights);
+      Item.PrepareResources(Options, false, PrepareParams);
 
     NeedsUpdateGeneratedTextures := true;
   end;

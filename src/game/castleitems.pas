@@ -58,7 +58,7 @@ type
       placed on world. You usually want to add current item position to this. }
     function BoundingBoxRotated(const GravityUp: TVector3): TBox3D;
   protected
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+    procedure PrepareCore(const Params: TPrepareParams;
       const DoProgress: boolean); override;
     { Which TInventoryItem descendant to create when constructing item
       of this resource by CreateItem. }
@@ -640,7 +640,7 @@ begin
   Result := FGLImage;
 end;
 
-procedure TItemResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+procedure TItemResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 begin
   inherited;

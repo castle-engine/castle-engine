@@ -205,15 +205,36 @@ type
   end;
 
   { List of lights. Always TLightInstancesList, but we cannot declare it here
-    as such. }
+    as such. Internal. @exlude }
   TAbstractLightInstancesList = TObject;
+
+  { Fog node. Always TFogNode, but we cannot declare it here as such.
+    Internal. @exlude }
+  TAbstractFogNode = TObject;
 
   TRenderingPass = 0..1;
 
-  { Information that 3D object needs to render.
+  { Information that a TCastleTransform object needs to prepare rendering. }
+  TPrepareParams = class
+    { Include a headlight, or global lights that shine on all
+      scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
+
+      It is not necessary to define this (it may be @nil).
+      And all the lighting is dynamic, so of course you can always
+      turn on / off things like a headlight during the game.
+      However, passing here the appropriate lights will mean that the shaders
+      are immediately prepared for the current lighting.
+
+      @exclude }
+    InternalBaseLights: TAbstractLightInstancesList;
+    { World fog, in any, to prepare for.
+      @exclude }
+    InternalGlobalFog: TAbstractFogNode;
+  end;
+
+  { Information that a TCastleTransform object needs to render.
     Read-only for TCastleTransform.Render
-    (except Statistics, which should be updated
-    by TCastleTransform.Render). }
+    (except Statistics, which should be updated during rendering). }
   TRenderParams = class
     { Which parts should be rendered: opaque (@false) or transparent (@true). }
     Transparent: boolean;
@@ -245,6 +266,9 @@ type
     { @groupEnd }
 
     Statistics: TRenderStatistics;
+
+    { Fog that affects all scenes. }
+    GlobalFog: TAbstractFogNode;
 
     constructor Create;
 
@@ -922,26 +946,12 @@ type
         Reason: octree preparations have a separate mechanism
         that may want to show progress.)
 
-      @param(BaseLights
-        Lights added to the scene when rendering it.
-        They may include a headlight, or global lights that shine on all
-        3D scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
-        These do not include the lights defined @italic(within) this scene.
-        It is a list of base lights (always TLightInstancesList, although
-        it cannot be declated as such here).
-
+      @param(Params
+        Rendering parameters to prepare for.
         It is used only if Options contains prRender.
-
-        It is not necessary to define this parameter (you can pass @nil).
-        And all the lighting is dynamic, so of course you can always
-        turn on / off things like a headlight during the game.
-        However, passing here the appropriate lights will mean that the shaders
-        are immediately prepared for the current lighting.
       ) }
-    procedure PrepareResources(
-      Options: TPrepareResourcesOptions;
-      ProgressStep: boolean;
-      BaseLights: TAbstractLightInstancesList); virtual;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); virtual;
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
@@ -1697,8 +1707,9 @@ type
     function GravityCoordinate: Integer;
     { Player, see TCastleSceneManager.Player. }
     function Player: TCastleTransform; virtual; abstract;
-    { Base lights, see TCastleSceneManager.BaseLights. }
-    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
+    { Parameters to prepare rendering for,
+      see @link(TCastleAbstractViewport.PrepareParams). }
+    function PrepareParams: TPrepareParams; virtual; abstract;
     { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
     function Sectors: TSectorList; virtual; abstract;
     { Water volume. See TCastleSceneManager.Water. }
@@ -2332,13 +2343,13 @@ begin
   end;
 end;
 
-procedure TCastleTransform.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
 var
   I: Integer;
 begin
   for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep, BaseLights);
+    List[I].PrepareResources(Options, ProgressStep, Params);
 end;
 
 function TCastleTransform.PrepareResourcesSteps: Cardinal;

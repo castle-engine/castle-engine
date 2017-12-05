@@ -52,8 +52,8 @@ type
     function CreateShape(AGeometry: TAbstractGeometryNode;
       AState: TX3DGraphTraverseState; ParentInfo: PTraversingInfo): TShape; override;
   public
-    procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); override;
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
   end;
 
@@ -63,8 +63,9 @@ begin
   Result := TVulkanShape.Create(Self, AGeometry, AState, ParentInfo);
 end;
 
-procedure TCastleSceneVulkan.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+procedure TCastleSceneVulkan.PrepareResources(
+  const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
 var
   SI: TShapeTreeIterator;
   Shape: TVulkanShape;

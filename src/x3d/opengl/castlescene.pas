@@ -419,6 +419,7 @@ type
     Renderer: TGLRenderer;
     FReceiveShadowVolumes: boolean;
     RegisteredGLContextCloseListener: boolean;
+    FTempPrepareParams: TPrepareParams;
 
     { used by LocalRenderInside }
     FilteredShapes: TShapeList;
@@ -503,7 +504,7 @@ type
     procedure GLContextCloseEvent(Sender: TObject);
   private
     { Fog for this shape. @nil if none. }
-    function ShapeFog(Shape: TShape): IAbstractFogObject;
+    function ShapeFog(const Shape: TShape; const GlobalFog: TAbstractFogNode): IAbstractFogObject;
     function EffectiveBlendingSort: TBlendingSort;
   private
     type
@@ -633,8 +634,8 @@ type
       This is called automatically from the destructor. }
     procedure GLContextClose; override;
 
-    procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
@@ -958,6 +959,7 @@ begin
   FReceiveShadowVolumes := true;
 
   FilteredShapes := TShapeList.Create;
+  FTempPrepareParams := TPrepareParams.Create;
 
   OcclusionQueryUtilsRenderer := TOcclusionQueryUtilsRenderer.Create;
   SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(
@@ -974,6 +976,7 @@ begin
   FreeAndNil(OcclusionQueryUtilsRenderer);
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
+  FreeAndNil(FTempPrepareParams);
 
   if RegisteredGLContextCloseListener and
      (ApplicationProperties <> nil) then
@@ -1109,11 +1112,13 @@ begin
   GLContextClose;
 end;
 
-function TCastleScene.ShapeFog(Shape: TShape): IAbstractFogObject;
+function TCastleScene.ShapeFog(const Shape: TShape; const GlobalFog: TAbstractFogNode): IAbstractFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then
     Result := FogStack.Top;
+  if Result = nil then
+    Result := GlobalFog as TFogNode;
 end;
 
 function TCastleScene.EffectiveBlendingSort: TBlendingSort;
@@ -1172,7 +1177,7 @@ var
       Shape.Cache.FreeArrays([vtAttribute]);
 
     Shape.ModelView := ModelView;
-    Renderer.RenderShape(Shape, ShapeFog(Shape));
+    Renderer.RenderShape(Shape, ShapeFog(Shape, Params.GlobalFog));
     IsVisibleNow := true;
   end;
 
@@ -1424,8 +1429,8 @@ begin
 end;
 
 procedure TCastleScene.PrepareResources(
-  Options: TPrepareResourcesOptions; ProgressStep: boolean;
-  BaseLights: TAbstractLightInstancesList);
+  const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
 
   procedure PrepareShapesResources;
   var
@@ -1451,11 +1456,11 @@ procedure TCastleScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(BaseLights as TLightInstancesList, nil, 0);
+        Renderer.RenderBegin(Params.InternalBaseLights as TLightInstancesList, nil, 0);
         while SI.GetNext do
         begin
           Shape := TGLShape(SI.Current);
-          Renderer.RenderShape(Shape, ShapeFog(Shape));
+          Renderer.RenderShape(Shape, ShapeFog(Shape, Params.InternalGlobalFog));
         end;
         Renderer.RenderEnd;
       finally Dec(Renderer.PrepareRenderShape) end;
@@ -1687,7 +1692,9 @@ begin
         before actually rendering the shape).
 
       It's much simpler to just call PrepareResources at the beginning. }
-    PrepareResources([prRender], false, Params.BaseLights(Self));
+    FTempPrepareParams.InternalBaseLights := Params.BaseLights(Self);
+    FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
+    PrepareResources([prRender], false, FTempPrepareParams);
 
     RenderWithShadowMaps;
   end;
