@@ -4762,7 +4762,7 @@ begin
 
     But we don't want to use this octree.
     When Spatial = [], you can *expect* that collisions revert to simpler
-    mechanism in "inherited MoveCollision".
+    mechanism (using bounding boxes).
     This is important only if you may have Collides = true with Spatial empty. }
 end;
 
