@@ -85,14 +85,21 @@
     FMax: Single;
     FValue: Single;
     FMultipleOf: Single;
+    FValuePointer: PSingle; //< non-nil only when initiazed with appropriate constructor
     procedure SetMin(const AMin: Single);
     procedure SetMax(const AMax: Single);
     procedure SetValue(const AValue: Single);
+  strict protected
+    procedure DoChange; override;
   public
     const
       DefaultMin = 0.0;
       DefaultMax = 1.0;
     constructor Create(AOwner: TComponent); override;
+    { An easy way to construct float slider. }
+    constructor Create(AOwner: TComponent;
+      const ValuePointer: PSingle; const AMin, AMax: Single;
+      const AOnChange: TNotifyEvent);
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -128,16 +135,23 @@
     FMin: Integer;
     FMax: Integer;
     FValue: Integer;
+    FValuePointer: PInteger; //< non-nil only when initiazed with appropriate constructor
     function XCoordToValue(
       const XCoord: Single; const R: TRectangle): Integer;
     procedure SetMin(const AMin: Integer);
     procedure SetMax(const AMax: Integer);
     procedure SetValue(const AValue: Integer);
+  strict protected
+    procedure DoChange; override;
   public
     const
       DefaultMin = 0;
       DefaultMax = 10;
     constructor Create(AOwner: TComponent); override;
+    { An easy way to construct integer slider. }
+    constructor Create(AOwner: TComponent;
+      const ValuePointer: PInteger; const AMin, AMax: Integer;
+      const AOnChange: TNotifyEvent);
     procedure Render; override;
     function Press(const Event: TInputPressRelease): boolean; override;
     function Motion(const Event: TInputMotion): boolean; override;
@@ -276,6 +290,26 @@ begin
   FValue := FMin;
 end;
 
+constructor TCastleFloatSlider.Create(AOwner: TComponent;
+  const ValuePointer: PSingle; const AMin, AMax: Single;
+  const AOnChange: TNotifyEvent);
+begin
+  Create(AOwner);
+  FValuePointer := ValuePointer;
+  if Assigned(FValuePointer) then
+    Value := FValuePointer^;
+  Min := AMin;
+  Max := AMax;
+  OnChange := AOnChange;
+end;
+
+procedure TCastleFloatSlider.DoChange;
+begin
+  if Assigned(FValuePointer) then
+    FValuePointer^ := Value;
+  inherited;
+end;
+
 procedure TCastleFloatSlider.Render;
 var
   R: TRectangle;
@@ -409,6 +443,26 @@ begin
   FMin := DefaultMin;
   FMax := DefaultMax;
   FValue := FMin;
+end;
+
+constructor TCastleIntegerSlider.Create(AOwner: TComponent;
+  const ValuePointer: PInteger; const AMin, AMax: Integer;
+  const AOnChange: TNotifyEvent);
+begin
+  Create(AOwner);
+  FValuePointer := ValuePointer;
+  if Assigned(FValuePointer) then
+    Value := FValuePointer^;
+  Min := AMin;
+  Max := AMax;
+  OnChange := AOnChange;
+end;
+
+procedure TCastleIntegerSlider.DoChange;
+begin
+  if Assigned(FValuePointer) then
+    FValuePointer^ := Value;
+  inherited;
 end;
 
 procedure TCastleIntegerSlider.Render;
