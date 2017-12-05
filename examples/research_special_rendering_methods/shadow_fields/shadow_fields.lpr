@@ -199,7 +199,8 @@ begin
 
   { BaseLights will contain our headlight, based on camera (NavigatorAll)
     properties }
-  RenderParams.FBaseLights.Assign(BaseLights);
+  RenderParams.FBaseLights.Assign(
+    PrepareParams.InternalBaseLights as TLightInstancesList);
 
   { TODO: RenderingCamera.Frustum is actually invalid (at least in 2 of 3 cases
     below). But we pass TestShapeVisibility = nil, and we don't use

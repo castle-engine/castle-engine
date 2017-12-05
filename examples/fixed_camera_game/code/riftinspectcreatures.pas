@@ -112,7 +112,7 @@ begin
       which conflicts with our "walk" and "stand" shortcuts }
     SceneManager.WalkCamera.Input_Forward.Assign(K_Up);
     SceneManager.WalkCamera.Input_Backward.Assign(K_Down);
-    CreaturesKinds.Load(SceneManager.BaseLights);
+    CreaturesKinds.Load(SceneManager.PrepareParams);
     { TODO: allow to choose creature }
     Creature := TCreature.Create(PlayerKind);
     try

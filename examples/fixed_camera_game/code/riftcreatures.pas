@@ -54,7 +54,7 @@ type
     Animations: array [TCreatureState] of TCreatureAnimation;
     FReceiveShadowVolumes: boolean;
   protected
-    procedure LoadInternal(const BaseLights: TLightInstancesList); override;
+    procedure LoadInternal(const PrepareParams: TPrepareParams); override;
     procedure UnLoadInternal; override;
   public
     constructor Create(const AName: string);
@@ -79,7 +79,7 @@ type
 
   TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
-    procedure Load(const BaseLights: TLightInstancesList);
+    procedure Load(const PrepareParams: TPrepareParams);
     procedure UnLoad;
   end;
 
@@ -187,7 +187,7 @@ begin
   Result := inherited LoadSteps + Ord(High(TCreatureState)) + 1;
 end;
 
-procedure TCreatureKind.LoadInternal(const BaseLights: TLightInstancesList);
+procedure TCreatureKind.LoadInternal(const PrepareParams: TPrepareParams);
 var
   S: TCreatureState;
 begin
@@ -209,7 +209,7 @@ begin
     //Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
-      [prRender, prBoundingBox, prShadowVolume], false, BaseLights);
+      [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
     Progress.Step;
 
@@ -232,7 +232,7 @@ end;
 
 { TCreatureKindList -------------------------------------------------------- }
 
-procedure TCreatureKindList.Load(const BaseLights: TLightInstancesList);
+procedure TCreatureKindList.Load(const PrepareParams: TPrepareParams);
 var
   I: Integer;
   ProgressCount: Cardinal;
@@ -247,7 +247,7 @@ begin
   Progress.Init(ProgressCount, 'Loading creatures');
   try
     for I := 0 to Count - 1 do
-      Items[I].Load(BaseLights);
+      Items[I].Load(PrepareParams);
   finally Progress.Fini end;
 
   WritelnLog('Creatures', Format('Creatures loading time: %f seconds',

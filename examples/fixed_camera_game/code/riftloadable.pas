@@ -25,7 +25,7 @@ unit RiftLoadable;
 
 interface
 
-uses X3DNodes;
+uses CastleTransform;
 
 type
   { Base class for anything that needs some time-consuming load/unload
@@ -34,7 +34,7 @@ type
   private
     FLoaded: boolean;
   protected
-    procedure LoadInternal(const BaseLights: TLightInstancesList); virtual;
+    procedure LoadInternal(const PrepareParams: TPrepareParams); virtual;
     procedure UnLoadInternal; virtual;
   public
     destructor Destroy; override;
@@ -55,7 +55,7 @@ type
       loaded state (as it may be used in various finalization steps).
 
       @groupBegin }
-    procedure Load(const BaseLights: TLightInstancesList);
+    procedure Load(const PrepareParams: TPrepareParams);
     procedure UnLoad;
     property Loaded: boolean read FLoaded;
     { @groupEnd }
@@ -76,7 +76,7 @@ begin
   inherited;
 end;
 
-procedure TLoadable.LoadInternal(const BaseLights: TLightInstancesList);
+procedure TLoadable.LoadInternal(const PrepareParams: TPrepareParams);
 begin
 end;
 
@@ -84,7 +84,7 @@ procedure TLoadable.UnLoadInternal;
 begin
 end;
 
-procedure TLoadable.Load(const BaseLights: TLightInstancesList);
+procedure TLoadable.Load(const PrepareParams: TPrepareParams);
 begin
   if Loaded then
   begin
@@ -94,7 +94,7 @@ begin
 
   Progress.Step;
   try
-    LoadInternal(BaseLights);
+    LoadInternal(PrepareParams);
   except
     UnLoad;
     raise;
