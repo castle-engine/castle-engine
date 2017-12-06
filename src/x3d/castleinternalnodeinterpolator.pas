@@ -717,14 +717,17 @@ begin
         { Try to merge it with LastKeyNode.
           Then initialize Nodes[LastNodesIndex + 1 to Nodes.Count - 1]. }
         KeyNodesEqual := NodesMerge(NewKeyNode, LastKeyNode, Epsilon);
-        if KeyNodesEqual then
-        begin
-          { In this case don't waste memory, simply reuse
-            LastKeyNode. }
-          FreeAndNil(NewKeyNode);
-          for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 1 do
-            Nodes[NodesIndex] := Nodes[LastNodesIndex];
-        end else
+        // TODO: commented out as workaround for
+        // ~/sources/castle-engine/wyrd-forest/data/evil_squirrel/evil-squirrel-board.castle-anim-frames
+        //
+        // if KeyNodesEqual then
+        // begin
+        //   { In this case don't waste memory, simply reuse
+        //     LastKeyNode. }
+        //   FreeAndNil(NewKeyNode);
+        //   for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 1 do
+        //     Nodes[NodesIndex] := Nodes[LastNodesIndex];
+        // end else
         begin
           for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 2 do
             Nodes[NodesIndex] := NodesLerp(
