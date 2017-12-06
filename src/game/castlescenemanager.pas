@@ -509,6 +509,8 @@ type
       Then the appropriate TPrepareParams will be passed automatically. }
     function PrepareParams: TPrepareParams;
 
+    function BaseLights: TLightInstancesList; deprecated 'this is internal info, you should not need this; use PrepareParams to get opaque information to pass to TCastleTransform.PrepareResources';
+
     { Statistics about last rendering frame. See TRenderStatistics docs. }
     function Statistics: TRenderStatistics;
 
@@ -2012,6 +2014,11 @@ begin
   Result := FPrepareParams;
 end;
 
+function TCastleAbstractViewport.BaseLights: TLightInstancesList;
+begin
+  Result := PrepareParams.InternalBaseLights as TLightInstancesList;
+end;
+
 procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
 
   procedure RenderNoShadows;
@@ -3204,12 +3211,19 @@ begin
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];
 
-    { Apply projection now, as TCastleScene.GLProjection calculates
-      BackgroundSkySphereRadius, which is used by MainScene.Background.
-      Otherwise our preparations of "prBackground" here would be useless,
-      as BackgroundSkySphereRadius will change later, and MainScene.Background
-      will have to be recreated. }
-    ChosenViewport.ApplyProjection;
+    if ChosenViewport.ContainerSizeKnown then
+    begin
+      { Apply projection now, as TCastleScene.GLProjection calculates
+        BackgroundSkySphereRadius, which is used by MainScene.Background.
+        Otherwise our preparations of "prBackground" here would be useless,
+        as BackgroundSkySphereRadius will change later, and MainScene.Background
+        will have to be recreated. }
+      ChosenViewport.ApplyProjection;
+    end else
+    begin
+      ChosenViewport.RequiredCamera; // create Camera if necessary
+      WritelnWarning('Calling TCastleSceneManager.PrepareResources(Scene) before TCastleSceneManager.Resize was done. This is valid, but preparing the Scene.Background will be deferred to a later time.');
+    end;
 
     { RenderingCamera properties must be already set,
       since PrepareResources may do some operations on texture gen modes
