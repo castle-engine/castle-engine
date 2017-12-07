@@ -1588,6 +1588,8 @@ begin
           UpperCase(AndroidServices[I].Name) + '.' +
           UpperCase(AndroidServiceParameterPair.Key),
           AndroidServiceParameterPair.Value);
+    P := AssociateDocumentTypes.ToIntentFilter;
+    Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES', P);
 
     // iOS specific stuff
     Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
