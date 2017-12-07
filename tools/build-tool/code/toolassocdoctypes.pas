@@ -26,11 +26,13 @@ type
   TAssocDocTypeFileExt = class
   private
     FExt, FMime, FUti: string;
+    FIosSystemDefined: boolean;
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     property Ext: string read FExt;
     property Mime: string read FMime;
     property Uti: string read FUti;
+    property IosSystemDefined: boolean read FIosSystemDefined;
   end;
 
   TAssocDocType = class(specialize TObjectList<TAssocDocTypeFileExt>)
@@ -62,6 +64,7 @@ begin
   FExt := Element.AttributeStringDef('ext', '');
   FMime := Element.AttributeStringDef('mime', '');
   FUti := Element.AttributeString('uti');
+  FIosSystemDefined := (Element.AttributeStringDef('ios-system', '') = 'true');
 end;
 
 { TAssocDocType ------------------------------------------------------ }
@@ -129,7 +132,7 @@ begin
     Exit;
   for I := 0 to Count - 1 do
   begin
-    if Length(Items[I].Ext) > 0 then
+    if (Length(Items[I].Ext) > 0) and (not Items[I].IosSystemDefined) then
       Result := Result +
                 #9#9'<dict>' + NL +
                 #9#9#9'<key>UTTypeConformsTo</key>' + NL +
