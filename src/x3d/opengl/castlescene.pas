@@ -819,6 +819,11 @@ const
   paForceLooping = CastleSceneCore.paForceLooping;
   paForceNotLooping = CastleSceneCore.paForceNotLooping;
 
+  ssRendering = CastleSceneCore.ssRendering;
+  ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
+  ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
+  ssStaticCollisions = CastleSceneCore.ssStaticCollisions;
+
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog,
