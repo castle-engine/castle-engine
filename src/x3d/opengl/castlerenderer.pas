@@ -245,6 +245,7 @@ type
       DefaultPointSize = 3.0;
       DefaultLineWidth = 2.0;
       DefaultBumpMapping = bmSteepParallaxShadowing;
+      DefaultPhongShading = false;
 
     constructor Create; virtual;
 
@@ -374,7 +375,8 @@ type
 
     { Whether to use Phong shading by default for all shapes.
       Note that each shape may override it by @link(TAbstractShapeNode.Shading) field. }
-    property PhongShading: boolean read FPhongShading write SetPhongShading;
+    property PhongShading: boolean read FPhongShading write SetPhongShading
+      default DefaultPhongShading;
 
     { Custom GLSL shader to use for the whole scene.
       When this is assigned, @link(Shaders) value is ignored.
@@ -1893,6 +1895,7 @@ begin
   FVertexBufferObject := true;
   FShadowSampling := DefaultShadowSampling;
   FDepthTest := true;
+  FPhongShading := DefaultPhongShading;
 end;
 
 procedure TRenderingAttributes.ReleaseCachedResources;
