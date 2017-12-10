@@ -471,7 +471,7 @@ var
   Root: TX3DRootNode;
 begin
   inherited;
-  Box := TBoxNode.CreateTransform(Shape, TransformNode);
+  Box := TBoxNode.CreateWithTransform(Shape, TransformNode);
   Box.Size := Vector3(1, 1, 1); // this way Transform.Scale determines the size
 
   UpdateBox;

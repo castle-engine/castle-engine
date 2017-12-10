@@ -34,7 +34,7 @@ var
   VertexShader, FragmentShader: TShaderPartNode;
 begin
   { create Box and BoxShape in one go }
-  Box := TBoxNode.CreateShape(BoxShape);
+  Box := TBoxNode.CreateWithShape(BoxShape);
   Box.Size := Vector3(1, 2, 3);
 
   { Note: if you're looking instead at a way to enhance the default shaders

@@ -75,7 +75,7 @@ begin
   inherited Create(AOwner);
   MyBox := AMyBox;
 
-  Box := TBoxNode.CreateTransform(BoxShape, BoxTransform);
+  Box := TBoxNode.CreateWithTransform(BoxShape, BoxTransform);
   Box.Size := MyBox.Size;
   BoxTransform.Translation := MyBox.Center;
 
@@ -1160,7 +1160,7 @@ var
 begin
   World := TSceneManagerWorld.Create(nil);
   try
-    //Box := TBoxNode.CreateShape(Shape);
+    //Box := TBoxNode.CreateWithShape(Shape);
     Box := TBoxNode.Create;
     Shape := TShapeNode.Create;
     Shape.Geometry := Box;

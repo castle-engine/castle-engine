@@ -395,7 +395,7 @@
       e.g. like this:
 
       @longCode(#
-      Box := TBoxNode.CreateShape(Shape);
+      Box := TBoxNode.CreateWithShape(Shape);
 
       Root := TX3DRootNode.Create;
       Root.AddChildren(Shape);
@@ -410,7 +410,9 @@
       Instead, free the resulting Shape node,
       or add it to some scene, as shown above.
     }
-    constructor CreateShape(out Shape: TShapeNode);
+    constructor CreateWithShape(out Shape: TShapeNode);
+
+    constructor CreateShape(out Shape: TShapeNode); deprecated 'use CreateWithShape';
 
     { Create an instance of this geometry node,
       and make it a child of a new shape node (TShapeNode),
@@ -422,7 +424,7 @@
       e.g. like this:
 
       @longCode(#
-      Box := TBoxNode.CreateTransform(Shape, Transform);
+      Box := TBoxNode.CreateWithTransform(Shape, Transform);
 
       Root := TX3DRootNode.Create;
       Root.AddChildren(Transform);
@@ -438,7 +440,9 @@
       Instead, free the resulting Transform node,
       or add it to some scene, as shown above.
     }
-    constructor CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
+    constructor CreateWithTransform(out Shape: TShapeNode; out Transform: TTransformNode);
+
+    constructor CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode); deprecated 'use CreateWithTransform';
 
     {$I auto_generated_node_helpers/x3dnodes_x3dgeometrynode.inc}
   end;
@@ -924,7 +928,7 @@ begin
   FIgnoredConvex := true;
 end;
 
-constructor TAbstractGeometryNode.CreateShape(out Shape: TShapeNode);
+constructor TAbstractGeometryNode.CreateWithShape(out Shape: TShapeNode);
 begin
   Create;
 
@@ -932,7 +936,12 @@ begin
   Shape.Geometry := Self;
 end;
 
-constructor TAbstractGeometryNode.CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
+constructor TAbstractGeometryNode.CreateShape(out Shape: TShapeNode);
+begin
+  CreateWithShape(Shape);
+end;
+
+constructor TAbstractGeometryNode.CreateWithTransform(out Shape: TShapeNode; out Transform: TTransformNode);
 begin
   Create;
 
@@ -941,6 +950,11 @@ begin
 
   Transform := TTransformNode.Create;
   Transform.AddChildren(Shape);
+end;
+
+constructor TAbstractGeometryNode.CreateTransform(out Shape: TShapeNode; out Transform: TTransformNode);
+begin
+  CreateWithTransform(Shape, Transform);
 end;
 
 function TAbstractGeometryNode.InternalCoord(State: TX3DGraphTraverseState;
