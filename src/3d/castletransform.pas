@@ -28,6 +28,8 @@ type
   TSceneManagerWorld = class;
   TCastleTransform = class;
 
+  TCastleTransformClass = class of TCastleTransform;
+
   ECannotAddToAnotherWorld = class(Exception);
   EMultipleReferencesInWorld = class(Exception);
 
@@ -135,8 +137,11 @@ type
       when the ray hit empty space. }
     Distance: Single;
 
-    { Index of node with given Item. }
+    { Index of node with given Item, -1 if none. }
     function IndexOfItem(const Item: TCastleTransform): Integer;
+
+    { Index of node with given ItemClass, -1 if none. }
+    function IndexOfItem(const ItemClass: TCastleTransformClass): Integer;
   end;
 
   { Detailed information about collision with a single 3D object. }
@@ -1854,6 +1859,13 @@ function TRayCollision.IndexOfItem(const Item: TCastleTransform): Integer;
 begin
   for Result := 0 to Count - 1 do
     if List^[Result].Item = Item then Exit;
+  Result := -1;
+end;
+
+function TRayCollision.IndexOfItem(const ItemClass: TCastleTransformClass): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if List^[Result].Item is ItemClass then Exit;
   Result := -1;
 end;
 
