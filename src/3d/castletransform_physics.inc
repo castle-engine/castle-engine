@@ -213,12 +213,16 @@
       the particular (world) axis.
 
       For 2D games, you will usually want to disable motion along the Z axis.
-      You can do this comfortably by calling @link(Setup2D). }
+      Instead of directly changing this property,
+      you can achieve this by calling @link(Setup2D). }
     property LockTranslation: T3DCoords read FLockTranslation write FLockTranslation;
 
     { Disable rotation (@link(TCastleTransform.Rotation) change) along
       the particular (world) axis.
-      You can do this comfortably by calling @link(Setup2D). }
+
+      For 2D games, you will usually want to disable rotation along the X and Y axes.
+      Instead of directly changing this property,
+      you can achieve this by calling @link(Setup2D). }
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
   end;
 
