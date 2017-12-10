@@ -2039,7 +2039,7 @@ begin
     Renderer.UpdateGeneratedTextures(Shape, TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
       ViewpointStack.Top,
-      CameraViewKnown, CameraPosition, CameraDirection, CameraUp);
+      CameraViewKnown, CameraWorldPosition, CameraWorldDirection, CameraWorldUp);
 
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;

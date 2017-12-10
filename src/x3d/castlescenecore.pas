@@ -608,6 +608,7 @@ type
     procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance);
   private
     FCameraPosition, FCameraDirection, FCameraUp: TVector3;
+    FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp: TVector3;
     FCameraViewKnown: boolean;
 
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
@@ -747,9 +748,16 @@ type
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
+
     { Update things depending on both camera information and X3D events.
       Call it only when CameraViewKnown and ProcessEvents. }
     procedure UpdateCameraEvents;
+
+    { Call after CameraWorldPosition/Direction/Up or InverseTransform were changed.
+      This updates local camera vectors (CameraPosition/Direction/Up)
+      and various X3D nodes using this information,
+      like LOD, Billboard, ProximitySensor. }
+    procedure CameraViewChanged;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
     ScreenEffectNodes: TX3DNodeList;
@@ -757,6 +765,8 @@ type
     { Is the scene visible currently. Descendants may set this to @true
       during @link(T3D.Render). }
     IsVisibleNow: boolean;
+
+    GeneratedTextures: TGeneratedTextureList;
 
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
@@ -776,8 +786,9 @@ type
     procedure InvalidateBackground; virtual;
 
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
-  protected
-    GeneratedTextures: TGeneratedTextureList;
+
+    procedure ChangedTransform; override;
+    procedure ChangeWorld(const Value: TSceneManagerWorld); override;
 
     { Called after PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed.
@@ -788,7 +799,6 @@ type
 
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
-  protected
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
       const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
@@ -1490,12 +1500,13 @@ type
     function GetNavigationInfoStack: TX3DBindableStackBasic; override;
     function GetViewpointStack: TX3DBindableStackBasic; override;
 
-    { Camera position/direction/up known for this scene.
+    { Camera position, direction and up known to this scene,
+      in the scene local coordinates.
 
-      @bold(TODO: These should be in @italic(local scene coordinates),
-      so moving the scene by @link(TCastleTransform.Translation)
-      has no effect on them.
-      Temporarily, they are actually remembered in world coordinates.)
+      @bold(TODO: This takes into account scene transformation,
+      but it does not yet take into account transformation
+      of parents @link(TCastleTransform) instances.
+      It needs TCastleTransform.WorldTransform feature.)
 
       Set by CameraChanged. CameraViewKnown = @false means that
       CameraChanged was never called, and so camera settings are not known,
@@ -1509,7 +1520,16 @@ type
     property CameraPosition: TVector3 read FCameraPosition;
     property CameraDirection: TVector3 read FCameraDirection;
     property CameraUp: TVector3 read FCameraUp;
+
     property CameraViewKnown: boolean read FCameraViewKnown;
+    { @groupEnd }
+
+    { Camera position, direction and up known to this scene,
+      in the world (scene manager) coordinates.
+      @groupBegin }
+    property CameraWorldPosition: TVector3 read FCameraWorldPosition;
+    property CameraWorldDirection: TVector3 read FCameraWorldDirection;
+    property CameraWorldUp: TVector3 read FCameraWorldUp;
     { @groupEnd }
 
     { Call when camera position/dir/up changed, to update things depending
@@ -5981,13 +6001,54 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
-var
-  I: Integer;
+procedure TCastleSceneCore.ChangedTransform;
+begin
+  inherited;
+  { InverseTransform changed, so update local camera vectors }
+  if CameraViewKnown then
+    CameraViewChanged;
+end;
+
+procedure TCastleSceneCore.ChangeWorld(const Value: TSceneManagerWorld);
 begin
   inherited;
 
-  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
+  if Value <> nil then
+  begin
+    FCameraWorldPosition  := World.CameraWorldPosition;
+    FCameraWorldDirection := World.CameraWorldDirection;
+    FCameraWorldUp        := World.CameraWorldUp;
+    CameraViewChanged;
+  end;
+end;
+
+procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
+begin
+  inherited;
+
+  { call CameraViewChanged }
+  ACamera.GetView(FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp);
+  CameraViewChanged;
+
+  { handle WatchForTransitionComplete, looking at ACamera.Animation }
+  if ProcessEvents and WatchForTransitionComplete and not ACamera.Animation then
+  begin
+    BeginChangesSchedule;
+    try
+      WatchForTransitionComplete := false;
+      if NavigationInfoStack.Top <> nil then
+        NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
+    finally EndChangesSchedule end;
+  end;
+end;
+
+procedure TCastleSceneCore.CameraViewChanged;
+var
+  I: Integer;
+begin
+  FCameraPosition  := InverseTransform.MultPoint(FCameraWorldPosition);
+  FCameraDirection := InverseTransform.MultDirection(FCameraWorldDirection);
+  FCameraUp        := InverseTransform.MultDirection(FCameraWorldUp);
   FCameraViewKnown := true;
 
   BeginChangesSchedule;
@@ -5996,16 +6057,7 @@ begin
       UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]));
 
     if ProcessEvents then
-    begin
       UpdateCameraEvents;
-
-      if WatchForTransitionComplete and not ACamera.Animation then
-      begin
-        WatchForTransitionComplete := false;
-        if NavigationInfoStack.Top <> nil then
-          NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
-      end;
-    end;
   finally EndChangesSchedule end;
 end;
 

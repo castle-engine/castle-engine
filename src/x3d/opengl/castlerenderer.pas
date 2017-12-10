@@ -978,7 +978,11 @@ type
 
       NeedsRestoreViewport will be set to @true if viewport was
       (possibly) changed by this procedure (otherwise, NeedsRestoreViewport
-      will not be modified). }
+      will not be modified).
+
+      The given camera position, direction, up should be in world space
+      (that is, in TCastleSceneManager space,
+      not in space local to this TCastleScene). }
     procedure UpdateGeneratedTextures(Shape: TShape;
       TextureNode: TAbstractTextureNode;
       const Render: TRenderFromViewFunction;

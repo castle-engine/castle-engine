@@ -466,7 +466,7 @@ type
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: TSceneManagerWorld);
+    procedure ChangeWorld(const Value: TSceneManagerWorld); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -1685,6 +1685,8 @@ type
     FKraftEngine: TKraft;
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
+    FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp: TVector3;
+    FCameraViewKnown: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1756,6 +1758,17 @@ type
     { @groupEnd }
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    { Last known camera position, direction and up.
+      Consistent with @link(TCastleScene) properties of the same name.
+      @groupBegin }
+    property CameraWorldPosition: TVector3 read FCameraWorldPosition;
+    property CameraWorldDirection: TVector3 read FCameraWorldDirection;
+    property CameraWorldUp: TVector3 read FCameraWorldUp;
+    property CameraViewKnown: boolean read FCameraViewKnown;
+    { @groupEnd }
+
+    procedure CameraChanged(ACamera: TCamera); override;
   end;
 
   {$define read_interface}
@@ -3066,6 +3079,13 @@ end;
 function TSceneManagerWorld.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
+end;
+
+procedure TSceneManagerWorld.CameraChanged(ACamera: TCamera);
+begin
+  inherited;
+  ACamera.GetView(FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp);
+  FCameraViewKnown := true;
 end;
 
 end.
