@@ -89,33 +89,16 @@ type
   TTestShapeVisibility = function (Shape: TShape): boolean of object;
 
   { Triangle information, called by TShape.LocalTriangulate and such.
-
-    @param(Shape A shape containing this triangle.
-      This is always an instance of TShape class, but due
-      to unit dependencies it cannot be declared as such.)
-
-    @param(Normal Normal vectors, for each triangle point.)
-
-    @param(TexCoord Texture coordinates, for each triangle point.
-
-      Each texture coordinate is a 4D vector, since we may have 3D textures
-      referenced by 4D (homogeneous) coordinates. For normal 2D textures,
-      you can simply take the first 2 components of the vector,
-      and ignore the remaining 2 components. The 3th component is always
-      0 if was not specified (if model had only 2D texture coords).
-      The 4th component is always 1 if was not specified
-      (if model had only 2D or 3D texture coords).
-
-      In case of multi-texturing, this describes coordinates
-      of the first texture unit.
-      In case no texture is defined, this is undefined.)
-
-    @param(Face Describes the indexes of this face, for editing / removing it.
-      See TFaceIndex.) }
+    See the @link(TTriangle) fields documentation for the meaning
+    of parameters of this callback. }
   TTriangleEvent = procedure (Shape: TObject;
     const Position: TTriangle3;
     const Normal: TTriangle3; const TexCoord: TTriangle4;
     const Face: TFaceIndex) of object;
+
+  TTriangleShapeHelper = record helper (TTriangleHelper) for TTriangle
+    function Shape: TShape;
+  end;
 
   { Tree of shapes.
 
@@ -505,7 +488,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     { Equivalent to using OctreeTriangles.SegmentCollision, except this
       wil use the mailbox. }
@@ -517,7 +500,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     { Create normals suitable for this shape.
 
@@ -950,6 +933,14 @@ const
     (Data: (0, 0, 0, 1)),
     (Data: (0, 0, 0, 1))
   ));
+
+{ TTriangleShapeHelper ------------------------------------------------------------ }
+
+function TTriangleShapeHelper.Shape: TShape;
+begin
+  Assert(InternalShape is TShape); // will be optimized out in RELEASE mode
+  Result := TShape(InternalShape);
+end;
 
 { TShapeTree ------------------------------------------------------------ }
 
@@ -1667,7 +1658,7 @@ function TShape.RayCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then
@@ -1708,7 +1699,7 @@ function TShape.SegmentCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then

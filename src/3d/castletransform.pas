@@ -102,7 +102,7 @@ type
           the triangle is left as @nil.)
       )
     }
-    Triangle: P3DTriangle;
+    Triangle: PTriangle;
 
     { Ray used to cause the collision,
       in local coordinate system of this 3D object. }
@@ -155,7 +155,7 @@ type
       If the ray hit empty space, this is @nil.
       Note that only TCastleSceneManager.MainScene is informed about pointing
       device events when the ray hit empty space, so this is an unusual case. }
-    // Triangle: P3DTriangle;
+    // Triangle: PTriangle;
   end;
   PCollisionDetailsItem = ^TCollisionDetailsItem;
 
@@ -482,10 +482,10 @@ type
         AboveHeight is always set to MaxSingle when returned result is @false
         (this guarantee simplifies some code).)
 
-      @param(AboveGround Pointer to P3DTriangle representing the ground.
+      @param(AboveGround Pointer to PTriangle representing the ground.
         Must be @nil if returned result is @false.
         @bold(May) be @nil even if we returned @true (not all 3D
-        objects may be able to generate P3DTriangle information about collision).
+        objects may be able to generate PTriangle information about collision).
 
         This may be useful for example to make a footsteps sound dependent
         on texture of the ground.
@@ -493,8 +493,8 @@ type
         See "The Castle" game for examples.)
     }
     function HeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 
     { Can other 3D object (maybe a player) move without colliding with this object.
 
@@ -524,19 +524,19 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
     function MoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
     { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean;
     function SphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
     { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
 
@@ -550,7 +550,7 @@ type
         If the result is @true, the Details contents are set to describe
         the 3D objects hierarchy that caused this collision.) }
     function SphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean;
 
     { Check collision with a point in 2D (which is an infinite line along the Z axis
@@ -589,10 +589,10 @@ type
       )
     }
     function PointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
     function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
     { Check collision with a ray, building a TRayCollision result.
       Returns a collision as TRayCollision instance, or @nil if no collision.
@@ -610,35 +610,35 @@ type
       implemented in TCastleTransform, this checks collisions for all list items,
       and chooses the closest one. }
     function RayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual;
     function LocalMoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; virtual;
     function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; virtual;
     function LocalPointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalBoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; virtual;
 
     { Render with given Params (includes a full transformation of this scene). }
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); virtual;
@@ -1261,7 +1261,7 @@ type
     function Height(const MyPosition: TVector3;
       out AboveHeight: Single): boolean; overload;
     function Height(const MyPosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; overload;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; overload;
     { @groupEnd }
 
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
@@ -1691,7 +1691,7 @@ type
 
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; virtual; abstract;
+      const Triangle: PTriangle): boolean; virtual; abstract;
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3; virtual; abstract;
     { The major axis of gravity vector: 0, 1 or 2.
@@ -1740,7 +1740,7 @@ type
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
     function WorldBoxCollision(const Box: TBox3D): boolean;
@@ -2150,13 +2150,13 @@ end;
 function TCastleTransform.Height(const MyPosition: TVector3;
   out AboveHeight: Single): boolean;
 var
-  AboveGroundIgnored: P3DTriangle;
+  AboveGroundIgnored: PTriangle;
 begin
   Result := Height(MyPosition, AboveHeight, AboveGroundIgnored);
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   Disable;
   try

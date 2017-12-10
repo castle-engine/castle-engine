@@ -124,7 +124,7 @@ var
   M: TMy3D;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -194,7 +194,7 @@ var
   M: TMy3D;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -262,7 +262,7 @@ var
   M: TMy3D;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -339,7 +339,7 @@ var
   M: TMy3DTransform;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -412,7 +412,7 @@ var
   M: TMy3DTransform;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -482,7 +482,7 @@ var
   M: TMy3DTransform;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -557,7 +557,7 @@ procedure TTestCastleTransform.Test3DTransformReal;
   var
     IsAbove: boolean;
     AboveHeight: Single;
-    AboveGround: P3DTriangle;
+    AboveGround: PTriangle;
     NewPos: TVector3;
     Collision: TRayCollision;
   begin

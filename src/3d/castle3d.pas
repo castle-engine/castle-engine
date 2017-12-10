@@ -491,7 +491,7 @@ procedure T3DMoving.BeforeTimeIncrease(
   function SphereCollisionAssumeTranslation(
     const AssumeTranslation: TVector3;
     const Pos: TVector3; const Radius: Single;
-    const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
   begin
     Result := GetCollides;
     if Result then
@@ -507,7 +507,7 @@ procedure T3DMoving.BeforeTimeIncrease(
   function BoxCollisionAssumeTranslation(
     const AssumeTranslation: TVector3;
     const Box: TBox3D;
-    const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
   begin
     Result := GetCollides;
     if Result then

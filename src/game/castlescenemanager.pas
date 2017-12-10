@@ -275,7 +275,7 @@ type
       const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
@@ -861,7 +861,7 @@ type
       so nothing is ignored. You can override it e.g. to ignore your "water"
       material, when you want player to dive under the water. }
     function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; virtual;
+      const Triangle: PTriangle): boolean; virtual;
       deprecated 'use "Collision" X3D node with enabled=FALSE to selectively make some part of the world non-collidable';
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -870,7 +870,7 @@ type
       const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; override;
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
@@ -1230,7 +1230,7 @@ type
       const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; override;
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
     function Headlight: TAbstractLightNode; override;
@@ -1660,8 +1660,7 @@ function TCastleAbstractViewport.TriangleHit: PTriangle;
 begin
   if (GetMouseRayHit <> nil) and
      (GetMouseRayHit.Count <> 0) then
-    { This should always be castable to TTriangle class. }
-    Result := PTriangle(GetMouseRayHit.First.Triangle)
+    Result := GetMouseRayHit.First.Triangle
   else
     Result := nil;
 end;
@@ -2822,7 +2821,7 @@ type
   TSceneManagerWorldConcrete = class(TSceneManagerWorld)
     function Owner: TCastleSceneManager;
     function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; override;
+      const Triangle: PTriangle): boolean; override;
     function GravityUp: TVector3; override;
     function Player: TCastleTransform; override;
     function PrepareParams: TPrepareParams; override;
@@ -2839,7 +2838,7 @@ type
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; override;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
@@ -2850,7 +2849,7 @@ begin
 end;
 
 function TSceneManagerWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
-  const Triangle: P3DTriangle): boolean;
+  const Triangle: PTriangle): boolean;
 begin
   {$warnings off} // consiously using deprecated here
   Result := Owner.CollisionIgnoreItem(Sender, Triangle);
@@ -2907,7 +2906,7 @@ begin
 end;
 
 function TSceneManagerWorldConcrete.WorldHeight(const APosition: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   Result := HeightCollision(APosition, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
@@ -3513,7 +3512,7 @@ begin
 end;
 
 function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
-  const Triangle: P3DTriangle): boolean;
+  const Triangle: PTriangle): boolean;
 begin
   Result := false;
 end;
@@ -3536,7 +3535,7 @@ end;
 
 function TCastleSceneManager.CameraHeight(ACamera: TWalkCamera;
   const Position: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   { Both version result in calling WorldHeight.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
@@ -3720,7 +3719,7 @@ end;
 
 function TCastleViewport.CameraHeight(ACamera: TWalkCamera;
   const Position: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   if SceneManager <> nil then
     Result := SceneManager.CameraHeight(ACamera, Position, AboveHeight, AboveGround) else

@@ -18,12 +18,12 @@
 { TCastleSceneCore ----------------------------------------------------------- }
 
 function TCastleSceneCore.LocalHeightCollision(const APosition, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 var
   NewResult: boolean;
   NewAboveHeight: Single;
-  NewAboveGround: P3DTriangle;
+  NewAboveGround: PTriangle;
   BoxIntersection: TVector3;
 begin
   if GetCollides then
@@ -34,7 +34,7 @@ begin
     if UseInternalOctreeCollisions then
     begin
       NewResult := InternalOctreeCollisions.HeightCollision(APosition, GravityUp,
-        NewAboveHeight, PTriangle(NewAboveGround), nil, TrianglesToIgnoreFunc);
+        NewAboveHeight, NewAboveGround, nil, TrianglesToIgnoreFunc);
     end else
     begin
       { collide with LocalBoundingBox }
@@ -163,7 +163,7 @@ function TCastleSceneCore.LocalMoveCollision(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := true;
   NewPos := ProposedNewPos;
@@ -192,7 +192,7 @@ function TCastleSceneCore.LocalMoveCollision(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := true;
 
@@ -215,7 +215,7 @@ begin
 end;
 
 function TCastleSceneCore.LocalSegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
   Result := false;
@@ -238,7 +238,7 @@ end;
 
 function TCastleSceneCore.LocalSphereCollision(
   const Pos: TVector3; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 
@@ -260,7 +260,7 @@ end;
 
 function TCastleSceneCore.LocalSphereCollision2D(
   const Pos: TVector2; const Radius: Single;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
   const Details: TCollisionDetails): boolean;
 begin
   Result := false;
@@ -291,7 +291,7 @@ begin
 end;
 
 function TCastleSceneCore.LocalPointCollision2D(const Point: TVector2;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 
@@ -312,7 +312,7 @@ begin
 end;
 
 function TCastleSceneCore.LocalBoxCollision(const Box: TBox3D;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := false;
 
@@ -333,7 +333,7 @@ begin
 end;
 
 function TCastleSceneCore.LocalRayCollision(const RayOrigin, RayDirection: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 var
   Triangle: PTriangle;
   Intersection: TVector3;

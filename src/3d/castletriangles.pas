@@ -162,8 +162,8 @@ function IndexedTriangleNormal(const Indexes: TVector3Cardinal;
   VerticesArray: PVector3; VerticesStride: integer): TVector3;
 
 type
-  { Triangle expressed in particular coordinate system, for T3DTriangle. }
-  T3DTriangleGeometry = record
+  { Triangle expressed in particular coordinate system, for TTriangle. }
+  TTriangleGeometry = record
     Triangle: TTriangle3;
 
     { Area of the triangle. }
@@ -185,24 +185,30 @@ type
     {$endif}
   end;
 
-  { 3D triangle.
+{ TFaceIndex ----------------------------------------------------------------- }
 
+type
+  { Describe a range of indexes where the face (polygon and such) is located.
+
+    When a triangle is part of a face defined by the coordIndex field
+    (like in IndexedFaceSet) then this describes where
+    in this coordIndex this face is located. This is useful for
+    editing / removing a face corresponding to a given triangle.
+
+    Otherwise, both IndexBegin and IndexEnd are -1. }
+  TFaceIndex = object
+    IndexBegin, IndexEnd: Integer;
+  end;
+
+  TFaceIndexesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
+
+  TMailboxTag = Int64;
+
+  { Triangle in 3D.
     This object should always be initialized by @link(Init),
     and updated only by it's methods (never modify fields of
-    this object directly).
-
-    I use old-style Pascal "object" to define this,
-    since this makes it a little more efficient. This doesn't need
-    any virtual methods or such, so (at least for now) it's easier
-    and more memory-efficient to keep this as an old-style object.
-    And memory efficiency is somewhat important here, since large
-    scenes may easily have milions of triangles, and each triangle
-    results in one TTriangle (descendant of T3DTriangle) instance. }
-  T3DTriangle = object
-  public
-    { Initialize new triangle. Given ATriangle must satisfy ATriangle.IsValid. }
-    constructor Init(const ATriangle: TTriangle3);
-
+    this object directly). }
+  TTriangle = record
   public
     { Geometry of this item.
       We need two geometry descriptions:
@@ -210,7 +216,7 @@ type
       @unorderedList(
 
         @item(Local is based on initial Triangle, given when constructing
-          this T3DTriangle. It's constant for this T3DTriangle. It's used
+          this TTriangle. It's constant for this TTriangle. It's used
           by octree collision routines, that is things like
           TBaseTrianglesOctree.SphereCollision, TBaseTrianglesOctree.RayCollision
           and such expect parameters in the same coord space.
@@ -230,15 +236,88 @@ type
           geometry will be needed in world coords. This will have to be
           done e.g. by TBaseTrianglesOctree.XxxCollision for each returned item.)
       ) }
-    Local, World: T3DTriangleGeometry;
+    Local, World: TTriangleGeometry;
+
+    { Shape containing this triangle.
+      This is always an instance of TShape class, but due
+      to unit dependencies it cannot be declared as such here.
+      Use X3DTriangles unit to have a "record helper" method that returns
+      a Shape as TShape instance. }
+    InternalShape: TObject;
+
+    {$ifndef CONSERVE_TRIANGLE_MEMORY}
+    { Normal vectors, at each triangle vertex. }
+    Normal: TTriangle3;
+
+    { Texture coordinates, for each triangle point.
+
+      Each texture coordinate is a 4D vector, since we may have 3D textures
+      referenced by 4D (homogeneous) coordinates. For normal 2D textures,
+      you can simply take the first 2 components of the vector,
+      and ignore the remaining 2 components. The 3th component is always
+      0 if was not specified (if model had only 2D texture coords).
+      The 4th component is always 1 if was not specified
+      (if model had only 2D or 3D texture coords).
+
+      In case of multi-texturing, this describes coordinates
+      of the first texture unit.
+      In case no texture is defined, this is undefined. }
+    TexCoord: TTriangle4;
+
+    { The indexes of this face, for editing / removing it.
+      See TFaceIndex. }
+    Face: TFaceIndex;
+    {$else}
+
+    { The indexes of this face, for editing / removing it.
+      See TFaceIndex. }
+    function Face: TFaceIndex;
+    {$endif not CONSERVE_TRIANGLE_MEMORY}
+
+    {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+    { Tag of an object (like a ray or a line segment)
+      for which we have saved an
+      intersection result. Intersection result is in
+      MailboxIsIntersection, MailboxIntersection, MailboxIntersectionDistance.
+
+      To make things correct, we obviously assume that every segment
+      and ray have different tags. Also, tag -1 is reserved.
+      In practice, we simply initialize MailboxSavedTag to -1,
+      and each new segment/ray get consecutive tags starting from 0.
+
+      @italic(History): a naive implementation at the beginning
+      was not using tags, instead I had MailboxState (empty, ray or segment)
+      and I was storing ray/line vectors (2 TVector3 values).
+      This had much larger size (6 * SizeOf(Single) + SizeOf(enum) = 28 bytes)
+      than tag, which is important (3D models have easily thousands of
+      TTriangle). And it took longer to compare and assign,
+      so it was working much slower.
+
+      @groupBegin }
+    MailboxSavedTag: TMailboxTag;
+    MailboxIsIntersection: boolean;
+    MailboxIntersection: TVector3;
+    MailboxIntersectionDistance: Single;
+    { @groupEnd }
+    {$endif}
+
+    { Initialize new triangle. Given ATriangle must satisfy ATriangle.IsValid. }
+    procedure Init(const ATriangle: TTriangle3);
   end;
-  P3DTriangle = ^T3DTriangle;
+  PTriangle = ^TTriangle;
 
   { Return for given Triangle do we want to ignore collisions with it.
     For now, Sender is always TTriangleOctree. }
-  T3DTriangleIgnoreFunc = function (
-    const Sender: TObject;
-    const Triangle: P3DTriangle): boolean of object;
+  TTriangleIgnoreFunc = function (const Sender: TObject;
+    const Triangle: PTriangle): boolean of object;
+
+  T3DTriangleGeometry = TTriangleGeometry deprecated 'use TTriangleGeometry';
+  T3DTriangle = TTriangle deprecated 'use TTriangle';
+  P3DTriangle = PTriangle deprecated 'use PTriangle';
+  T3DTriangleIgnoreFunc = TTriangleIgnoreFunc deprecated 'use TTriangleIgnoreFunc';
+
+const
+  UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
 
 { polygons ------------------------------------------------------------------- }
 
@@ -306,26 +385,6 @@ function IsPolygon2dCCW(const Verts: array of TVector2): Single; overload;
 function Polygon2dArea(Verts: PVector2Array; const VertsCount: Integer): Single; overload;
 function Polygon2dArea(const Verts: array of TVector2): Single; overload;
 { @groupEnd }
-
-{ TFaceIndex ----------------------------------------------------------------- }
-
-type
-  { Describe a range of indexes where the face (polygon and such) is located.
-
-    When a triangle is part of a face defined by the coordIndex field
-    (like in IndexedFaceSet) then this describes where
-    in this coordIndex this face is located. This is useful for
-    editing / removing a face corresponding to a given triangle.
-
-    Otherwise, both IndexBegin and IndexEnd are -1. }
-  TFaceIndex = object
-    IndexBegin, IndexEnd: Integer;
-  end;
-
-  TFaceIndexesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
-
-const
-  UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
 
 { Assuming a point lies on a triangle plane,
   check does it lie inside a triangle.
@@ -646,28 +705,28 @@ begin
   Result := Polygon2dArea(@Verts, High(Verts) + 1);
 end;
 
-{ T3DTriangleGeometry -------------------------------------------------------- }
+{ TTriangleGeometry -------------------------------------------------------- }
 
 {$ifdef CONSERVE_TRIANGLE_MEMORY_MORE}
-function T3DTriangleGeometry.Area: Single;
+function TTriangleGeometry.Area: Single;
 begin
   Result := Triangle.Area;
 end;
 
-function T3DTriangleGeometry.Plane: TVector4;
+function TTriangleGeometry.Plane: TVector4;
 begin
   Result := Triangle.NormalizedPlane;
 end;
 
-function T3DTriangleGeometry.Normal: TVector3;
+function TTriangleGeometry.Normal: TVector3;
 begin
   Result := Triangle.Normal;
 end;
 {$endif}
 
-{ T3DTriangle  --------------------------------------------------------------- }
+{ TTriangle  --------------------------------------------------------------- }
 
-constructor T3DTriangle.Init(const ATriangle: TTriangle3);
+procedure TTriangle.Init(const ATriangle: TTriangle3);
 begin
   Local.Triangle := ATriangle;
   {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}

@@ -180,10 +180,10 @@ type
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
@@ -1308,11 +1308,11 @@ end;
 
 function TPlayer.Ground: PTriangle;
 begin
-  Result := PTriangle(Camera.AboveGround);
+  Result := Camera.AboveGround;
 end;
 
 function TPlayer.LocalSegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
   if ALineOfSight then
@@ -1339,8 +1339,8 @@ begin
 end;
 
 function TPlayer.LocalHeightCollision(const APosition, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   { instead of allowing inherited to do the work (and allow other stuff
     like items and creatures to stand on player's head), for now just

@@ -831,7 +831,7 @@ type
 
   THeightEvent = function (Camera: TWalkCamera;
     const Position: TVector3;
-    out AboveHeight: Single; out AboveGround: P3DTriangle): boolean of object;
+    out AboveHeight: Single; out AboveGround: PTriangle): boolean of object;
 
   { Navigation by walking (first-person-shooter-like moving) in 3D scene.
     Camera is defined by it's position, looking direction
@@ -845,7 +845,7 @@ type
     FPreferGravityUpForMoving: boolean;
     FIsAbove: boolean;
     FAboveHeight: Single;
-    FAboveGround: P3DTriangle;
+    FAboveGround: PTriangle;
     FMouseLook: boolean;
     FMouseDragMode: TMouseDragMode;
 
@@ -987,7 +987,7 @@ type
     { Call OnHeight callback. }
     procedure Height(const APosition: TVector3;
       out AIsAbove: boolean;
-      out AnAboveHeight: Single; out AnAboveGround: P3DTriangle); virtual;
+      out AnAboveHeight: Single; out AnAboveGround: PTriangle); virtual;
 
     function GetPositionInternal: TVector3; override;
     procedure SetPosition(const Value: TVector3); override;
@@ -1506,7 +1506,7 @@ type
       @groupBegin }
     property IsAbove: boolean read FIsAbove;
     property AboveHeight: Single read FAboveHeight;
-    property AboveGround: P3DTriangle read FAboveGround write FAboveGround;
+    property AboveGround: PTriangle read FAboveGround write FAboveGround;
     { @groupEnd }
 
     { TODO: Input_Xxx not published. See TExamineCamera Input_Xxx notes
@@ -2945,7 +2945,7 @@ end;
 
 procedure TWalkCamera.Height(const APosition: TVector3;
   out AIsAbove: boolean;
-  out AnAboveHeight: Single; out AnAboveGround: P3DTriangle);
+  out AnAboveHeight: Single; out AnAboveGround: PTriangle);
 begin
   if Assigned(OnHeight) then
     AIsAbove := OnHeight(Self, APosition, AnAboveHeight, AnAboveGround) else
@@ -3168,7 +3168,7 @@ var
   NewPos: TVector3;
   NewIsAbove: boolean;
   NewAboveHeight, OldAbsoluteHeight, NewAbsoluteHeight: Single;
-  NewAboveGround: P3DTriangle;
+  NewAboveGround: PTriangle;
 begin
   Result := DoMoveAllowed(ProposedNewPos, NewPos, BecauseOfGravity);
 
