@@ -21,6 +21,7 @@ type
     {$endif ITERATOR_SPEED_TEST}
     procedure TestFind;
     procedure TestViewpointBillboardTricky;
+    procedure TestManifold;
   end;
 
 implementation
@@ -215,10 +216,9 @@ begin
     Result := nil;
 end;
 
+procedure TTestSceneCore.TestViewpointBillboardTricky;
 { Unfortunately, it cannot reproduce bug #38 for some reason...
   Probably it misses something that triggers it interactively. }
-
-procedure TTestSceneCore.TestViewpointBillboardTricky;
 var
   Scene: TCastleScene;
 
@@ -258,6 +258,20 @@ begin
       Scene.Update(1, FakeRemoveMe);
     finally FreeAndNil(Scene) end;
   finally FreeAndNil(SceneManager) end;
+end;
+
+procedure TTestSceneCore.TestManifold;
+var
+  Scene: TCastleSceneCore;
+  ManifoldEdges, BorderEdges: Cardinal;
+begin
+  Scene := TCastleSceneCore.Create(nil);
+  try
+    Scene.URL := ApplicationData('shadow_volumes_tests/should_be_manifold.x3d');
+    Scene.EdgesCount(ManifoldEdges, BorderEdges);
+    AssertEquals(0, BorderEdges);
+    AssertEquals(210, ManifoldEdges);
+  finally FreeAndNil(Scene) end;
 end;
 
 initialization
