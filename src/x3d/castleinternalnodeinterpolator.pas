@@ -717,17 +717,13 @@ begin
         { Try to merge it with LastKeyNode.
           Then initialize Nodes[LastNodesIndex + 1 to Nodes.Count - 1]. }
         KeyNodesEqual := NodesMerge(NewKeyNode, LastKeyNode, Epsilon);
-        // TODO: commented out as workaround for
-        // ~/sources/castle-engine/wyrd-forest/data/evil_squirrel/evil-squirrel-board.castle-anim-frames
-        //
-        // if KeyNodesEqual then
-        // begin
-        //   { In this case don't waste memory, simply reuse
-        //     LastKeyNode. }
-        //   FreeAndNil(NewKeyNode);
-        //   for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 1 do
-        //     Nodes[NodesIndex] := Nodes[LastNodesIndex];
-        // end else
+        if KeyNodesEqual then
+        begin
+          { In this case don't waste memory, simply reuse Nodes[LastNodesIndex]. }
+          FreeAndNil(NewKeyNode);
+          for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 1 do
+            Nodes[NodesIndex] := Nodes[LastNodesIndex];
+        end else
         begin
           for NodesIndex := LastNodesIndex + 1 to Nodes.Count - 2 do
             Nodes[NodesIndex] := NodesLerp(
@@ -1016,7 +1012,12 @@ var
     Switch := TSwitchNode.Create(
       AnimationX3DName + '_Switch_ChooseAnimationFrame', BaseUrl);
     for I := 0 to NodesCount - 1 do
-      Switch.AddChildren(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
+      { Add using FdChildren.Add, not AddChildren, because duplicates
+        are possible below, in case two animation frames are exactly equal.
+        See e.g. evil squirrel in https://github.com/castle-engine/wyrd-forest }
+      Switch.FdChildren.Add(WrapRootNode(BakedAnimation.Nodes[I] as TX3DRootNode));
+    Assert(Switch.FdChildren.Count = NodesCount);
+
     { we set whichChoice to 0 to see something before you run the animation }
     Switch.WhichChoice := 0;
     Group.AddChildren(Switch);

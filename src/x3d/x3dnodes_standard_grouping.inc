@@ -87,8 +87,13 @@
     public property FdRender: TSFBool read FFdRender;
 
     { Add the nodes as children.
-      Adding a node that already exists on the children list is ignored,
-      so this list should never have duplicates.
+      Adding a node that already exists on the children list is ignored.
+
+      Note: This method prevents adding duplicates to the children list.
+      And the X3D specification doesn't allow duplicates on the children list.
+      But our engine allows duplicates on the children list ---
+      you can specify them in the X3D file,
+      or you can add them using @link(FdChildren).Add.
 
       This propagates the changes appropriately to the parent TCastleSceneCore,
       calling TCastleSceneCore.ChangedAll or something similar. }
@@ -97,6 +102,10 @@
 
     { Remove the nodes from the children list.
       Removing a node that does not exist on the children list is ignored.
+
+      If a node exists on the current children list multiple times,
+      then a single occurrence of this node is removed,
+      for each occurrence of this node in the parameters list.
 
       This propagates the changes appropriately to the parent TCastleSceneCore,
       calling TCastleSceneCore.ChangedAll or something similar. }
