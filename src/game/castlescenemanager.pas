@@ -525,7 +525,7 @@ type
     { Current 3D triangle under the mouse cursor.
       Updated in every mouse move. May be @nil. }
     function TriangleHit: PTriangle;
-  published
+
     { Camera used to render this viewport.
 
       Note this property may be @nil before rendering.
@@ -559,6 +559,7 @@ type
       @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
 
+  published
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the camera of this viewpoint paused
       (not responsive).

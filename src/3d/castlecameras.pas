@@ -781,11 +781,11 @@ type
     property Input_ScaleSmaller: TInputShortcut read FInput_ScaleSmaller;
     property Input_Home: TInputShortcut read FInput_Home;
     property Input_StopRotating: TInputShortcut read FInput_StopRotating;
-  published
+
     { @Deprecated Include/exclude ciMouseDragging from @link(Input) instead. }
     property MouseNavigation: boolean
       read GetMouseNavigation write SetMouseNavigation default true; deprecated;
-
+  published
     { When @true, rotation keys make the rotation faster, and the model keeps
       rotating even when you don't hold any keys. When @false, you have to
       hold rotation keys to rotate. }

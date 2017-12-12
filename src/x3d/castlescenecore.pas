@@ -1870,6 +1870,9 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(TCastleScene.Attributes). }
     function Clone(const AOwner: TComponent): TCastleSceneCore;
+
+    { @deprecated Deprecated name for @link(URL). }
+    property FileName: string read FURL write SetURL; deprecated;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -1940,7 +1943,7 @@ type
         @item(Allow developer to adjust TriangleOctreeLimits
           before creating the octree.)
       ) }
-    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
+    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial default [];
 
     { Should the VRML/X3D event mechanism work.
 
@@ -1971,9 +1974,6 @@ type
       That is, @code(Scene.URL := Scene.URL;) will not reload
       the scene (you have to use explicit @link(Load) for this.). }
     property URL: string read FURL write SetURL;
-
-    { @deprecated Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
 
     { At loading, process the scene to support shadow maps.
       This happens at the @link(Load) method call,
