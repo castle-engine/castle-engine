@@ -96,8 +96,62 @@ type
     const Normal: TTriangle3; const TexCoord: TTriangle4;
     const Face: TFaceIndex) of object;
 
-  TTriangleShapeHelper = record helper (TTriangleHelper) for TTriangle
+  { Triangle in a 3D model.
+    Helper methods. }
+  TTriangleHelper = record helper for TTriangle
+    { Shape containing this triangle. }
     function Shape: TShape;
+
+    { State of this shape, containing various information about 3D shape.
+      This is a shortcut for @link(Shape).State. }
+    function State: TX3DGraphTraverseState;
+
+    { Use State.Transform to update triangle @link(World) geometry
+      from triangle @link(Local) geometry. }
+    procedure UpdateWorld;
+
+    { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
+    function ShapeNode: TAbstractShapeNode;
+
+    { X3D material node of this triangle. May be @nil in case material is not set,
+      or in VRML 1.0. }
+    function Material: TMaterialNode;
+
+    function MaterialNode: TMaterialNode; deprecated 'use Material';
+
+    { Material information for the material of this triangle.
+      See TMaterialInfo for usage description.
+      Returns @nil when no node determines material properties
+      (which indicates white unlit look).
+
+      Returned TMaterialInfo is valid only as long as the underlying
+      Material or CommonSurfaceShader node exists.
+      Do not free it yourself, it will be automatically freed. }
+    function MaterialInfo: TMaterialInfo;
+
+    { Return transparency of this triangle's material.
+      Equivalent to MaterialInfo.Transparency, although a little faster. }
+    function Transparency: Single;
+
+    { Returns @true for triangles that are transparent. }
+    function IsTransparent: boolean;
+
+    { Returns @true for triangles that should be ignored by shadow rays.
+      Returns @true for transparent triangles
+      (with Material.Transparency > 0) and non-shadow-casting triangles
+      (with Appearance.shadowCaster = FALSE).
+
+      @seealso TBaseTrianglesOctree.IgnoreForShadowRays }
+    function IgnoreForShadowRays: boolean;
+
+    {$ifndef CONSERVE_TRIANGLE_MEMORY}
+    { For a given position (in world coordinates), return the smooth
+      normal vector at this point, with the resulting normal vector
+      in world coordinates.
+
+      @seealso TTriangle.INormal }
+    function INormalWorldSpace(const Point: TVector3): TVector3;
+    {$endif}
   end;
 
   { Tree of shapes.
@@ -934,13 +988,95 @@ const
     (Data: (0, 0, 0, 1))
   ));
 
-{ TTriangleShapeHelper ------------------------------------------------------------ }
+{ TTriangleHelper ------------------------------------------------------------ }
 
-function TTriangleShapeHelper.Shape: TShape;
+function TTriangleHelper.Shape: TShape;
 begin
   Assert(InternalShape is TShape); // will be optimized out in RELEASE mode
   Result := TShape(InternalShape);
 end;
+
+function TTriangleHelper.State: TX3DGraphTraverseState;
+begin
+  Result := TShape(InternalShape).State;
+end;
+
+procedure TTriangleHelper.UpdateWorld;
+begin
+  World.Triangle := Local.Triangle.Transform(State.Transform);
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
+  World.Plane := World.Triangle.NormalizedPlane;
+  World.Area := World.Triangle.Area;
+  {$endif}
+end;
+
+function TTriangleHelper.ShapeNode: TAbstractShapeNode;
+begin
+  Result := State.ShapeNode;
+end;
+
+function TTriangleHelper.Material: TMaterialNode;
+var
+  S: TAbstractShapeNode;
+begin
+  S := ShapeNode;
+  if S <> nil then
+    Result := S.Material
+  else
+    Result := nil;
+end;
+
+function TTriangleHelper.MaterialNode: TMaterialNode;
+begin
+  Result := Material;
+end;
+
+function TTriangleHelper.MaterialInfo: TMaterialInfo;
+begin
+  Result := State.MaterialInfo;
+end;
+
+function TTriangleHelper.Transparency: Single;
+var
+  M: TMaterialInfo;
+begin
+  M := MaterialInfo;
+  if M <> nil then
+    Result := M.Transparency
+  else
+    Result := 0;
+end;
+
+function TTriangleHelper.IsTransparent: boolean;
+begin
+  Result := Transparency > SingleEpsilon;
+end;
+
+function TTriangleHelper.IgnoreForShadowRays: boolean;
+
+  function NonShadowCaster(State: TX3DGraphTraverseState): boolean;
+  var
+    Shape: TAbstractShapeNode;
+  begin
+    Shape := State.ShapeNode;
+    Result :=
+      (Shape <> nil) and
+      (Shape.FdAppearance.Value <> nil) and
+      (Shape.FdAppearance.Value is TAppearanceNode) and
+      (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value);
+  end;
+
+begin
+  Result := ({ IsTransparent } Transparency > SingleEpsilon) or
+    NonShadowCaster(State);
+end;
+
+{$ifndef CONSERVE_TRIANGLE_MEMORY}
+function TTriangleHelper.INormalWorldSpace(const Point: TVector3): TVector3;
+begin
+  Result := State.Transform.MultDirection(INormalCore(Point)).Normalize;
+end;
+{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TShapeTree ------------------------------------------------------------ }
 

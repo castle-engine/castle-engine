@@ -202,6 +202,12 @@ type
 
   TFaceIndexesList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TStructList<TFaceIndex>;
 
+const
+  UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
+
+{ TTriangle ------------------------------------------------------------------ }
+
+type
   TMailboxTag = Int64;
 
   { Triangle in 3D.
@@ -245,6 +251,33 @@ type
       a Shape as TShape instance. }
     InternalShape: TObject;
 
+    {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+    { Tag of an object (like a ray or a line segment)
+      for which we have saved an
+      intersection result. Intersection result is in
+      MailboxIsIntersection, MailboxIntersection, MailboxIntersectionDistance.
+
+      To make things correct, we obviously assume that every segment
+      and ray have different tags. Also, tag -1 is reserved.
+      In practice, we simply initialize MailboxSavedTag to -1,
+      and each new segment/ray get consecutive tags starting from 0.
+
+      @italic(History): a naive implementation at the beginning
+      was not using tags, instead I had MailboxState (empty, ray or segment)
+      and I was storing ray/line vectors (2 TVector3 values).
+      This had much larger size (6 * SizeOf(Single) + SizeOf(enum) = 28 bytes)
+      than tag, which is important (3D models have easily thousands of
+      TTriangle). And it took longer to compare and assign,
+      so it was working much slower.
+
+      @groupBegin }
+    MailboxSavedTag: TMailboxTag;
+    MailboxIsIntersection: boolean;
+    MailboxIntersection: TVector3;
+    MailboxIntersectionDistance: Single;
+    { @groupEnd }
+    {$endif}
+
     {$ifndef CONSERVE_TRIANGLE_MEMORY}
     { Normal vectors, at each triangle vertex. }
     Normal: TTriangle3;
@@ -274,37 +307,72 @@ type
     function Face: TFaceIndex;
     {$endif not CONSERVE_TRIANGLE_MEMORY}
 
-    {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
-    { Tag of an object (like a ray or a line segment)
-      for which we have saved an
-      intersection result. Intersection result is in
-      MailboxIsIntersection, MailboxIntersection, MailboxIntersectionDistance.
+    { Initialize new triangle.
+      Given ATriangle must satisfy ATriangle.IsValid. }
+    procedure Init(AShape: TObject;
+      const ATriangle: TTriangle3;
+      const ANormal: TTriangle3; const ATexCoord: TTriangle4;
+      const AFace: TFaceIndex);
 
-      To make things correct, we obviously assume that every segment
-      and ray have different tags. Also, tag -1 is reserved.
-      In practice, we simply initialize MailboxSavedTag to -1,
-      and each new segment/ray get consecutive tags starting from 0.
+    { Check collisions between TTriangle and ray/segment.
 
-      @italic(History): a naive implementation at the beginning
-      was not using tags, instead I had MailboxState (empty, ray or segment)
-      and I was storing ray/line vectors (2 TVector3 values).
-      This had much larger size (6 * SizeOf(Single) + SizeOf(enum) = 28 bytes)
-      than tag, which is important (3D models have easily thousands of
-      TTriangle). And it took longer to compare and assign,
-      so it was working much slower.
+      Always use these routines to check for collisions,
+      to use mailboxes if possible. Mailboxes are used only if this was
+      compiled with TRIANGLE_OCTREE_USE_MAILBOX defined.
+
+      Increments TriangleCollisionTestsCounter if actual test was done
+      (that is, if we couldn't use mailbox to get the result quickier).
 
       @groupBegin }
-    MailboxSavedTag: TMailboxTag;
-    MailboxIsIntersection: boolean;
-    MailboxIntersection: TVector3;
-    MailboxIntersectionDistance: Single;
-    { @groupEnd }
-    {$endif}
+    function SegmentDirCollision(
+      out Intersection: TVector3;
+      out IntersectionDistance: Single;
+      const Segment0, SegmentVector: TVector3;
+      const SegmentTag: TMailboxTag): boolean;
 
-    { Initialize new triangle. Given ATriangle must satisfy ATriangle.IsValid. }
-    procedure Init(const ATriangle: TTriangle3);
+    function RayCollision(
+      out Intersection: TVector3;
+      out IntersectionDistance: Single;
+      const RayOrigin, RayDirection: TVector3;
+      const RayTag: TMailboxTag): boolean;
+    { @groupEnd }
+
+    {$ifndef CONSERVE_TRIANGLE_MEMORY}
+
+    { For a given position (in world coordinates), return the texture
+      coordinate at this point. It is an interpolated texture coordinate
+      from our per-vertex texture coordinates in @link(TexCoord) field.
+
+      This assumes that Position actually lies within the triangle.
+
+      The ITexCoord2D returns the same, but cut to the first 2 texture
+      coordinate components. Usable for normal 2D textures.
+      @groupBegin }
+    function ITexCoord(const Point: TVector3): TVector4;
+    function ITexCoord2D(const Point: TVector3): TVector2;
+    { @groupEnd }
+
+    { For a given position (in world coordinates), return the smooth
+      normal vector at this point. It is an interpolated normal
+      from our per-vertex normals in the @link(Normal) field,
+      thus is supports also the case when you have smooth shading
+      (normals change throughout the triangle).
+
+      Like the @link(Normal) field, the returned vector is
+      a normal vector in the local coordinates.
+      Use @link(TTriangleHelper.INormalWorldSpace) to get a normal vector in scene
+      coordinates.
+
+      This assumes that Position actally lies within the triangle. }
+    function INormal(const Point: TVector3): TVector3;
+
+    { Like INormal, but not necessarily normalized. }
+    function INormalCore(const Point: TVector3): TVector3;
+    {$endif}
   end;
   PTriangle = ^TTriangle;
+
+  TTriangleList = specialize TStructList<TTriangle>;
 
   { Return for given Triangle do we want to ignore collisions with it.
     For now, Sender is always TTriangleOctree. }
@@ -316,8 +384,24 @@ type
   P3DTriangle = PTriangle deprecated 'use PTriangle';
   T3DTriangleIgnoreFunc = TTriangleIgnoreFunc deprecated 'use TTriangleIgnoreFunc';
 
-const
-  UnknownFaceIndex: TFaceIndex = (IndexBegin: -1; IndexEnd: -1);
+var
+  { Counter of collision tests done by TTriangle when the actual collision
+    calculation had to be done.
+    This counts all calls to TTriangle.SegmentDirCollision and
+    TTriangle.RayCollision when the result had to be actually geometrically
+    calculated (result was not in the cache aka "mailbox").
+
+    It is especially useful to look at this after using some spatial
+    data structure, like an octree. The goal of tree structures is to
+    minimize this number.
+
+    It is a global variable, because that's the most comfortable way to use
+    it. Triangles are usually wrapped in an octree (like TTriangleOctree),
+    or even in an octree of octrees (like TShapeOctree).
+    Tracking collisions using the global variable is most comfortable,
+    instead of spending time on propagating this (purely debugging) information
+    through the octree structures. }
+  TriangleCollisionTestsCounter: Cardinal;
 
 { polygons ------------------------------------------------------------------- }
 
@@ -726,7 +810,10 @@ end;
 
 { TTriangle  --------------------------------------------------------------- }
 
-procedure TTriangle.Init(const ATriangle: TTriangle3);
+procedure TTriangle.Init(AShape: TObject;
+  const ATriangle: TTriangle3;
+  const ANormal: TTriangle3; const ATexCoord: TTriangle4;
+  const AFace: TFaceIndex);
 begin
   Local.Triangle := ATriangle;
   {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
@@ -735,7 +822,140 @@ begin
   {$endif}
 
   World := Local;
+
+  InternalShape := AShape;
+
+  {$ifndef CONSERVE_TRIANGLE_MEMORY}
+  Normal := ANormal;
+  TexCoord := ATexCoord;
+  Face := AFace;
+  {$endif not CONSERVE_TRIANGLE_MEMORY}
+
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+  MailboxSavedTag := -1;
+  {$endif}
 end;
+
+function TTriangle.SegmentDirCollision(
+  out Intersection: TVector3;
+  out IntersectionDistance: Single;
+  const Segment0, SegmentVector: TVector3;
+  const SegmentTag: TMailboxTag): boolean;
+begin
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+  if MailboxSavedTag = SegmentTag then
+  begin
+    result := MailboxIsIntersection;
+    if result then
+    begin
+      Intersection         := MailboxIntersection;
+      IntersectionDistance := MailboxIntersectionDistance;
+    end;
+  end else
+  begin
+  {$endif}
+
+    Result := TryTriangleSegmentDirCollision(
+      Intersection, IntersectionDistance,
+      Local.Triangle, Local.Plane,
+      Segment0, SegmentVector);
+    Inc(TriangleCollisionTestsCounter);
+
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+    { save result to mailbox }
+    MailboxSavedTag := SegmentTag;
+    MailboxIsIntersection := result;
+    if result then
+    begin
+      MailboxIntersection         := Intersection;
+      MailboxIntersectionDistance := IntersectionDistance;
+    end;
+  end;
+  {$endif}
+end;
+
+function TTriangle.RayCollision(
+  out Intersection: TVector3;
+  out IntersectionDistance: Single;
+  const RayOrigin, RayDirection: TVector3;
+  const RayTag: TMailboxTag): boolean;
+begin
+  { uwzgledniam tu fakt ze czesto bedzie wypuszczanych wiele promieni
+    z jednego RayOrigin ale z roznym RayDirection (np. w raytracerze). Wiec lepiej
+    najpierw porownywac przechowywane w skrzynce RayDirection (niz RayOrigin)
+    zeby moc szybciej stwierdzic niezgodnosc. }
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+  if MailboxSavedTag = RayTag then
+  begin
+    result := MailboxIsIntersection;
+    if result then
+    begin
+      Intersection         := MailboxIntersection;
+      IntersectionDistance := MailboxIntersectionDistance;
+    end;
+  end else
+  begin
+  {$endif}
+
+    result := TryTriangleRayCollision(
+      Intersection, IntersectionDistance,
+      Local.Triangle, Local.Plane,
+      RayOrigin, RayDirection);
+    Inc(TriangleCollisionTestsCounter);
+
+  {$ifdef TRIANGLE_OCTREE_USE_MAILBOX}
+    { zapisz wyniki do mailboxa }
+    MailboxSavedTag := RayTag;
+    MailboxIsIntersection := result;
+    if result then
+    begin
+      MailboxIntersection         := Intersection;
+      MailboxIntersectionDistance := IntersectionDistance;
+    end;
+  end;
+  {$endif}
+end;
+
+{$ifndef CONSERVE_TRIANGLE_MEMORY}
+function TTriangle.ITexCoord(const Point: TVector3): TVector4;
+var
+  B: TVector3;
+begin
+  B := World.Triangle.Barycentric(Point);
+  Result := TexCoord.Data[0] * B[0] +
+            TexCoord.Data[1] * B[1] +
+            TexCoord.Data[2] * B[2];
+end;
+
+function TTriangle.ITexCoord2D(const Point: TVector3): TVector2;
+var
+  V: TVector4;
+begin
+  V := ITexCoord(Point);
+  Move(V, Result, SizeOf(TVector2));
+end;
+
+function TTriangle.INormalCore(const Point: TVector3): TVector3;
+var
+  B: TVector3;
+begin
+  B := World.Triangle.Barycentric(Point);
+  Result := Normal.Data[0] * B[0] +
+            Normal.Data[1] * B[1] +
+            Normal.Data[2] * B[2];
+end;
+
+function TTriangle.INormal(const Point: TVector3): TVector3;
+begin
+  Result := INormalCore(Point).Normalize;
+end;
+
+{$else}
+function TTriangle.Face: TFaceIndex;
+begin
+  Result := UnknownFaceIndex;
+end;
+{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TTriangle2 ----------------------------------------------------------------- }
 

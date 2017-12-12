@@ -22,7 +22,7 @@ interface
 
 uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
-  CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
+  CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
   Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
   CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform;
 
@@ -461,8 +461,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig, CastleResources, CastleShapes,
-  CastleRenderingCamera;
+  CastleGLImages, CastleConfig, CastleResources, CastleRenderingCamera;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 

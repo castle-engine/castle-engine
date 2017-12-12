@@ -207,6 +207,8 @@ type
 
 implementation
 
+uses CastleShapes;
+
 {$define read_implementation}
 
 { TTriangleOctreeNode -------------------------------------------------------------- }
