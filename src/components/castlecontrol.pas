@@ -31,7 +31,7 @@ uses
 
 { Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
   (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
-{$if LCL_FULLVERSION >= 1080000}
+{$if LCL_FULLVERSION >= 1090000}
   {$define HAS_RENDER_AT_DESIGN_TIME}
 {$endif}
 
