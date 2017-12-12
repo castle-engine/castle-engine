@@ -46,7 +46,7 @@ var
 implementation
 
 uses CastleVectors, CastleColors, CastleWindow, CastleUIControls,
-  CastleFilesUtils, CastleUtils, CastleShapes,
+  CastleFilesUtils, CastleUtils, CastleTriangles, CastleShapes,
   GameStateMainMenu, GameStateAskDialog;
 
 { TStatePlay ------------------------------------------------------------- }
