@@ -335,7 +335,8 @@ type
       @bold(only for scenes that never change).
 
       It may be useful if you're absolutely sure that you have a static scene
-      (nothing changes, e.g. because ProcessEvents = @false) and
+      (nothing changes, i.e. ProcessEvents = @false and you never
+      make any change to X3D nodes from code) and
       you want to have collision detection with the scene.
 
       For dynamic scenes, using this is a bad idea as
@@ -4457,6 +4458,12 @@ begin
      ((Change in [gcCollidableTransformChanged, gcActiveShapesChanged]) or
       SomeLocalGeometryChanged) then
     FreeAndNil(FOctreeDynamicCollisions);
+
+  if FOctreeStaticCollisions <> nil then
+  begin
+    WritelnWarning('ssStaticCollisions used on scene "' + Name + '" but the geometry changed. Freeing the spatial structure. You should use ssDynamicCollisions for this scene');
+    FreeAndNil(FOctreeStaticCollisions);
+  end;
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged,
