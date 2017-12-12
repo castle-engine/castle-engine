@@ -602,6 +602,7 @@ begin
   begin
     T^.UpdateWorld;
     EnumerateTriangleFunc(T);
+    Inc(T);
   end;
 end;
 
