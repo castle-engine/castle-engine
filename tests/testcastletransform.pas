@@ -43,6 +43,9 @@ type
     procedure TestWorldFreeBeforeItem;
     procedure TestDirectionUp;
     procedure TestTransformingScene;
+    procedure TestPhysicsWorldOwner;
+    procedure TestPhysicsWorldOwnerEmptyBox;
+    procedure TestPhysicsWorldOwnerEmptySphere;
   end;
 
 implementation
@@ -1212,6 +1215,87 @@ begin
     Scene.Scale := Vector3(4, 4, 4);
     AssertBox('T.Translation+Scale + Scene.Translation+Scale', T, Box3D(Vector3(50+10-2, 100+20-2, 150+30-2), Vector3(50+10+2, 100+20+2, 150+30+2)));
   finally FreeAndNil(World) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptyBox;
+var
+  SceneManager: TCastleSceneManager;
+  Scene: TCastleSceneCore;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+begin
+  try
+    SceneManager := TCastleSceneManager.Create(nil);
+    try
+      Scene := TCastleSceneCore.Create(SceneManager.Items);
+
+      Body := TRigidBody.Create(SceneManager.Items);
+
+      Collider := TBoxCollider.Create(Body);
+
+      // add to SceneManager before setting Scene.RigidBody,
+      // to provoke RigidBody.InitializeTransform to create all physics stuff
+      SceneManager.Items.Add(Scene);
+
+      Scene.RigidBody := Body;
+    finally FreeAndNil(SceneManager) end;
+
+    Fail('This should raise EPhysicsError, as TBoxCollider is empty');
+  except on EPhysicsError do end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptySphere;
+var
+  SceneManager: TCastleSceneManager;
+  Scene: TCastleSceneCore;
+  Body: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  //try
+    SceneManager := TCastleSceneManager.Create(nil);
+    try
+      Scene := TCastleSceneCore.Create(SceneManager.Items);
+
+      Body := TRigidBody.Create(SceneManager.Items);
+
+      Collider := TSphereCollider.Create(Body);
+
+      // add to SceneManager before setting Scene.RigidBody,
+      // to provoke RigidBody.InitializeTransform to create all physics stuff
+      SceneManager.Items.Add(Scene);
+
+      Scene.RigidBody := Body;
+    finally FreeAndNil(SceneManager) end;
+
+    // OK, this can work without error now,
+    // although it's a little inconsistent with TestPhysicsWorldOwnerEmptyBox.
+
+    // Fail('This should raise EPhysicsError, as TSphereCollider is empty');
+  //except on EPhysicsError do end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsWorldOwner;
+var
+  SceneManager: TCastleSceneManager;
+  Scene: TCastleSceneCore;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+begin
+  SceneManager := TCastleSceneManager.Create(nil);
+  try
+    Scene := TCastleSceneCore.Create(SceneManager.Items);
+
+    Body := TRigidBody.Create(SceneManager.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    // add to SceneManager before setting Scene.RigidBody,
+    // to provoke RigidBody.InitializeTransform to create all physics stuff
+    SceneManager.Items.Add(Scene);
+
+    Scene.RigidBody := Body;
+  finally FreeAndNil(SceneManager) end;
 end;
 
 initialization

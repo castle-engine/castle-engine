@@ -32,6 +32,7 @@ type
 
   ECannotAddToAnotherWorld = class(Exception);
   EMultipleReferencesInWorld = class(Exception);
+  EPhysicsError = class(Exception);
 
   TRenderFromViewFunction = procedure of object;
 
@@ -430,7 +431,8 @@ type
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
     procedure PhysicsDestroy;
     procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
-    procedure PhysicsChangeWorld(const Value: TSceneManagerWorld);
+    procedure PhysicsChangeWorldDetach;
+    procedure PhysicsChangeWorldAttach;
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -2109,20 +2111,26 @@ begin
   begin
     if FWorld <> nil then
     begin
+      PhysicsChangeWorldDetach;
+
       { Do not call RemoveFreeNotification when FWorld is also our list owner,
         this would prevent getting notification in TCastleTransform.Notification. }
       if (FWorld.List = nil) or (FWorld.List.IndexOf(Self) = -1) then
         FWorld.RemoveFreeNotification(Self);
     end;
+
     FWorld := Value;
     FWorldReferences := Iff(Value <> nil, 1, 0);
-    if FWorld <> nil then
-      // Ignore FWorld = Self case, when this is done by TSceneManagerWorld.Create? No need to.
-      //and (FWorld <> Self) then
-      FWorld.FreeNotification(Self);
-  end;
 
-  PhysicsChangeWorld(Value);
+    if FWorld <> nil then
+    begin
+      // Ignore FWorld = Self case, when this is done by TSceneManagerWorld.Create? No need to.
+      //if FWorld <> Self then
+      FWorld.FreeNotification(Self);
+
+      PhysicsChangeWorldAttach;
+    end;
+  end;
 end;
 
 procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
