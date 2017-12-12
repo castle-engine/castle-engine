@@ -31,10 +31,17 @@ procedure Register;
 implementation
 
 uses SysUtils, Classes,
-  PropEdits, ComponentEditors, LResources, Dialogs, Controls,
+  PropEdits, ComponentEditors, LResources, Dialogs, Controls, LCLVersion,
+  OpenGLContext,
   CastleSceneCore, CastleScene, CastleLCLUtils, X3DLoad, X3DNodes,
   CastleUIControls, CastleControl, CastleControls, CastleImages, CastleTransform,
   CastleVectors, CastleUtils, CastleColors, CastleSceneManager;
+
+{ Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
+  (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
+{$if LCL_FULLVERSION >= 1090000}
+  {$define HAS_RENDER_AT_DESIGN_TIME}
+{$endif}
 
 { TSceneURLPropertyEditor ---------------------------------------------------- }
 
@@ -82,8 +89,9 @@ type
 
 type
   T3DEditorForm = class(TComponent)
-    Items: TSceneManagerWorld;
-    SceneManager: TCastleSceneManager;
+    Control: TCastleControl;
+    SceneManager: TCastleSceneManager; //< just a shortcut for TCastleControl.SceneManager now
+    Items: TSceneManagerWorld; //< just a shortcut for SceneManager.Items now
     procedure ShowModal;
   end;
 
@@ -129,6 +137,10 @@ begin
       // force recreating the camera soon, to see the whole scene
       SceneManager.Camera.Free;
     end;
+
+    {$ifdef HAS_RENDER_AT_DESIGN_TIME}
+    Control.Options := Control.Options + [ocoRenderAtDesignTime];
+    {$endif}
   end;
 end;
 
@@ -179,6 +191,7 @@ begin
   try
     Control := GetComponent as TCastleControl;
     SceneManager := Control.SceneManager;
+    Dialog.Control := Control;
     Dialog.Items := SceneManager.Items;
     Dialog.SceneManager := SceneManager;
     Dialog.ShowModal;
