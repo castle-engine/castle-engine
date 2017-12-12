@@ -19,18 +19,21 @@ unit CastleControl;
 
 {$I castleconf.inc}
 
-{ Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
-  (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
-{ $define HAS_RENDER_AT_DESIGN_TIME}
-
 interface
 
 uses
-  Classes, SysUtils, OpenGLContext, Controls, Forms, CastleRectangles,
-  CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils, StdCtrls,
+  Classes, SysUtils,
+  StdCtrls, OpenGLContext, Controls, Forms, LCLVersion,
+  CastleRectangles, CastleVectors, CastleKeysMouse, CastleUtils, CastleTimeUtils,
   CastleUIControls, CastleCameras, X3DNodes, CastleScene, CastleLevels,
   CastleImages, CastleGLVersion, CastleSceneManager,
   CastleGLImages, CastleGLContainer, Castle2DSceneManager;
+
+{ Define this for new Lazarus that has Options (with ocoRenderAtDesignTime)
+  (see issue https://bugs.freepascal.org/view.php?id=32026 ). }
+{$if LCL_FULLVERSION >= 1080000}
+  {$define HAS_RENDER_AT_DESIGN_TIME}
+{$endif}
 
 const
   DefaultLimitFPS = 100.0;
