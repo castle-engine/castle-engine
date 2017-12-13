@@ -114,10 +114,10 @@ procedure TCastleSceneVulkan.LocalRender(
     else
       CameraMatrix := @RenderingCamera.Matrix;
 
-    if Params.RenderTransformIdentity then
+    if Params.TransformIdentity then
       Result := CameraMatrix^
     else
-      Result := CameraMatrix^ * Params.RenderTransform;
+      Result := CameraMatrix^ * Params.Transform;
   end;
 
   function PrimitiveToStr(const Primitive: TGeometryPrimitive): string;

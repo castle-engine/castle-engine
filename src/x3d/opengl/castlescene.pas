@@ -420,6 +420,10 @@ type
     FReceiveShadowVolumes: boolean;
     RegisteredGLContextCloseListener: boolean;
     FTempPrepareParams: TPrepareParams;
+    RenderCameraKnown: boolean;
+    { Camera position, in local scene coordinates, known (if RenderCameraKnown)
+      during the Render call. }
+    RenderCameraPosition: TVector3;
 
     { used by LocalRenderInside }
     FilteredShapes: TShapeList;
@@ -1147,7 +1151,7 @@ procedure TCastleScene.LocalRenderInside(
 var
   ModelView: TMatrix4;
 
-  { Transformation of Params.RenderTransform and current RenderingCamera
+  { Transformation of Params.Transform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
   var
@@ -1158,10 +1162,10 @@ var
     else
       CameraMatrix := @RenderingCamera.Matrix;
 
-    if Params.RenderTransformIdentity then
+    if Params.TransformIdentity then
       Result := CameraMatrix^
     else
-      Result := CameraMatrix^ * Params.RenderTransform;
+      Result := CameraMatrix^ * Params.Transform;
   end;
 
   { Renders Shape, by calling Renderer.RenderShape. }
@@ -1324,10 +1328,10 @@ begin
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    if not Params.RenderTransformIdentity then
+    if not Params.TransformIdentity then
     begin
       glPushMatrix;
-      glMultMatrix(Params.RenderTransform);
+      glMultMatrix(Params.Transform);
     end;
     { TODO: this should be replaced with just
     glLoadMatrix(GetModelViewTransform);
@@ -1354,7 +1358,7 @@ begin
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Frustum, Params);
+        Frustum, Params, RenderCameraKnown, RenderCameraPosition);
 
       { Inside we could set OcclusionBoxState }
       OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
@@ -1365,7 +1369,7 @@ begin
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if CameraViewKnown and
+          if RenderCameraKnown and
             (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
@@ -1376,7 +1380,7 @@ begin
               with RenderShape_SomeTests to skip checking TestShapeVisibility
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
-            FilteredShapes.SortFrontToBack(CameraPosition);
+            FilteredShapes.SortFrontToBack(RenderCameraPosition);
 
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1394,12 +1398,12 @@ begin
           { sort for blending, if BlendingSort not bsNone.
             Note that bs2D does not require knowledge of the camera,
             CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if ((EffectiveBlendingSort = bs3D) and CameraViewKnown) or
+          if ((EffectiveBlendingSort = bs3D) and RenderCameraKnown) or
               (EffectiveBlendingSort = bs2D) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(CameraPosition, EffectiveBlendingSort = bs3D);
+            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
             for I := 0 to FilteredShapes.Count - 1 do
             begin
               BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
@@ -1428,7 +1432,7 @@ begin
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
-    if not Params.RenderTransformIdentity then
+    if not Params.TransformIdentity then
       glPopMatrix;
   {$endif}
 end;
@@ -1845,8 +1849,8 @@ function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
 begin
   Result :=
     (DistanceCulling <= 0) or
-    (not CameraViewKnown) or
-    (PointsDistanceSqr(Shape.BoundingSphereCenter, CameraPosition) <=
+    (not RenderCameraKnown) or
+    (PointsDistanceSqr(Shape.BoundingSphereCenter, RenderCameraPosition) <=
      Sqr(DistanceCulling + Shape.BoundingSphereRadius))
 end;
 
@@ -1932,6 +1936,9 @@ begin
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;
+    RenderCameraKnown := (World <> nil) and World.CameraKnown;
+    if RenderCameraKnown then
+      RenderCameraPosition := Params.InverseTransform.MultPoint(World.CameraPosition);
 
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Frustum, Params)
@@ -1945,6 +1952,10 @@ begin
       LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
     end else
       LocalRenderOutside(FrustumCullingFunc, Frustum, Params);
+
+    { Nothing should even try to access camera outside of Render...
+      But for security, set RenderCameraKnown to false. }
+    RenderCameraKnown := false;
   end;
 end;
 
@@ -2039,7 +2050,10 @@ begin
     Renderer.UpdateGeneratedTextures(Shape, TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
       ViewpointStack.Top,
-      CameraViewKnown, CameraWorldPosition, CameraWorldDirection, CameraWorldUp);
+      World.CameraKnown,
+      World.CameraPosition,
+      World.CameraDirection,
+      World.CameraUp);
 
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;

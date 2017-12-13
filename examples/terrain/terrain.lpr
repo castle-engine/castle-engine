@@ -402,7 +402,7 @@ begin
   end;
 
   glPushMatrix;
-    glMultMatrix(Params.RenderTransform);
+    glMultMatrix(Params.Transform);
 
     if (CurrentTerrain is TTerrainGrid) and
        SpecializedGridRendering then

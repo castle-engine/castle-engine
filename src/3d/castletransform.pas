@@ -31,9 +31,9 @@ type
   TCastleTransformClass = class of TCastleTransform;
 
   ECannotAddToAnotherWorld = class(Exception);
-  EMultipleReferencesInWorld = class(Exception);
-  EInvalidParent = class(Exception);
-  ENotAddedToWorld = class(Exception);
+  ETransformParentUndefined = class(Exception);
+  EMultipleReferencesInWorld = class(ETransformParentUndefined);
+  ENotAddedToWorld = class(ETransformParentUndefined);
   EPhysicsError = class(Exception);
 
   TRenderFromViewFunction = procedure of object;
@@ -267,10 +267,10 @@ type
     Pass: TRenderingPass;
 
     { Transformation that should be applied to the rendered result.
-      If RenderTransformIdentity, then RenderTransform is always identity.
+      If TransformIdentity, then Transform and InverseTransform is always identity.
       @groupBegin }
-    RenderTransform: TMatrix4;
-    RenderTransformIdentity: boolean;
+    Transform, InverseTransform: TMatrix4;
+    TransformIdentity: boolean;
     { @groupEnd }
 
     Statistics: TRenderStatistics;
@@ -1443,6 +1443,11 @@ type
       coordinate system. This is an inverse of @link(Transform). }
     function InverseTransform: TMatrix4;
 
+    { All conditions are satisfied to have @link(WorldTransform).
+      When this returns @true, you know that @link(WorldTransform)
+      and @link(WorldInverseTransform) will not raise @link(ETransformParentUndefined). }
+    function HasWorldTransform: boolean;
+
     { Transformation (from local to world) as a matrix.
       This accumulates the transformation of this instance
       (derived from properties like @link(Translation), @link(Rotation), @link(Scale))
@@ -1475,21 +1480,27 @@ type
           But if you do this --- you cannot rely on WorldTransform property.
 
           Otherwise reading this raises @link(EMultipleReferencesInWorld)
-          or @link(EInvalidParent).
+          or @link(ETransformParentUndefined).
         )
       )
 
-      (Note that the WorldTransform is not updated in @link(Update),
+      You can check HasWorldTransform before calling this method,
+      to avoid catching an exception.
+
+      Note that the WorldTransform is not updated in @link(Update),
       it is smartly updated on-demand.
-      So you do not have to wait for @link(Update) or other method
-      to be called. The above two requirements are all that's necessary.)
+      So you do not have to wait for @link(Update) or other method to be called
+      before accessing the @link(WorldTransform).
 
       @raises(ENotAddedToWorld
         When this instance is not yet part of @link(World).)
       @raises(EMultipleReferencesInWorld
         When this instance is added multiple times to @link(World).)
-      @raises(EInvalidParent
-        When this instance was once added multiple times to @link(World).)
+      @raises(ETransformParentUndefined
+        When this instance was once added multiple times to @link(World),
+        or for some other reason cannot be calculated.
+        This is an ancestor of ENotAddedToWorld and EMultipleReferencesInWorld
+        too.)
     }
     function WorldTransform: TMatrix4;
 
@@ -1502,8 +1513,11 @@ type
         When this instance is not yet part of @link(World).)
       @raises(EMultipleReferencesInWorld
         When this instance is added multiple times to @link(World).)
-      @raises(EInvalidParent
-        When this instance was once added multiple times to @link(World).)
+      @raises(EMultipleReferencesInWorld
+        When this instance was once added multiple times to @link(World),
+        or for some other reason cannot be calculated.
+        This is an ancestor of ENotAddedToWorld and EMultipleReferencesInWorld
+        too.)
     }
     function WorldInverseTransform: TMatrix4;
 
@@ -1771,8 +1785,8 @@ type
     FKraftEngine: TKraft;
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
-    FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp: TVector3;
-    FCameraViewKnown: boolean;
+    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
+    FCameraKnown: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1845,13 +1859,29 @@ type
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
-    { Last known camera position, direction and up.
-      Consistent with @link(TCastleScene) properties of the same name.
+    { Camera position, direction and up, in the world coordinates.
+
+      Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
+      will need to transform this camera to scene local space.
+      They use @link(WorldTransform), and will raise @link(ETransformParentUndefined)
+      when it is not possible (e.g. when the same scene instance
+      is reused under many different locations).
+
+      So, to be on the safe side, do not turn on @link(TCastleScene.ProcessEvents),
+      or do not share the scene in multiple places in the scene manager.
+      Or at least don't use features like LOD or Billboard or ProximitySensor,
+      that cannot work in case the same scene instance in rendered in multiple
+      locations on the world.
+
+      CameraKnown = @false means that
+      CameraChanged was never called, and so camera settings are not known,
+      and so other Camera* properties have undefined values.
+
       @groupBegin }
-    property CameraWorldPosition: TVector3 read FCameraWorldPosition;
-    property CameraWorldDirection: TVector3 read FCameraWorldDirection;
-    property CameraWorldUp: TVector3 read FCameraWorldUp;
-    property CameraViewKnown: boolean read FCameraViewKnown;
+    property CameraPosition: TVector3 read FCameraPosition;
+    property CameraDirection: TVector3 read FCameraDirection;
+    property CameraUp: TVector3 read FCameraUp;
+    property CameraKnown: boolean read FCameraKnown;
     { @groupEnd }
 
     procedure CameraChanged(ACamera: TCamera); override;
@@ -1990,8 +2020,9 @@ end;
 constructor TRenderParams.Create;
 begin
   inherited;
-  RenderTransform := TMatrix4.Identity;
-  RenderTransformIdentity := true;
+  Transform := TMatrix4.Identity;
+  InverseTransform := TMatrix4.Identity;
+  TransformIdentity := true;
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }
@@ -2658,12 +2689,17 @@ begin
   end;
   if FParent = nil then
   begin
-    if FParent = World then
-      raise EInvalidParent.Create('Parent not available: This is the root node (World)')
+    if Self = World then
+      raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
     else
-      raise EInvalidParent.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to SceneManager.Items (it lost link to Parent)');
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to SceneManager.Items (it lost link to Parent)');
   end;
   Result := FParent;
+end;
+
+function TCastleTransform.HasWorldTransform: boolean;
+begin
+  Result := (Self = World) or ((FWorldReferences = 1) and (FParent <> nil));
 end;
 
 procedure TCastleTransform.UpdateWorldTransformAndInverse;
@@ -2833,8 +2869,8 @@ end;
 procedure TCastleTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   T: TVector3;
-  OldRenderTransform, Inverse: TMatrix4;
-  OldRenderTransformIdentity: boolean;
+  OldParamsTransform, OldParamsInverseTransform: TMatrix4;
+  OldParamsTransformIdentity: boolean;
 begin
   T := Translation;
   if FOnlyTranslation and T.IsZero then
@@ -2844,40 +2880,36 @@ begin
     { LocalRender expects Frustum in local coordinates (without
       transformation), so we subtract transformation here. }
 
-    OldRenderTransform         := Params.RenderTransform;
-    OldRenderTransformIdentity := Params.RenderTransformIdentity;
-    Params.RenderTransformIdentity := false;
+    OldParamsTransform         := Params.Transform;
+    OldParamsInverseTransform  := Params.InverseTransform;
+    OldParamsTransformIdentity := Params.TransformIdentity;
+    Params.TransformIdentity := false;
 
     if FOnlyTranslation then
     begin
-      MultMatrixTranslation(Params.RenderTransform, T);
+      MultMatricesTranslation(Params.Transform, Params.InverseTransform, T);
       LocalRender(Frustum.Move(-T), Params);
     end else
     begin
-      Inverse := TMatrix4.Identity;
-      InternalTransformMatricesMult(Params.RenderTransform, Inverse);
-      if IsNan(Inverse.Data[0, 0]) then
-        {$ifndef VER3_1}
+      InternalTransformMatricesMult(Params.Transform, Params.InverseTransform);
+      if IsNan(Params.InverseTransform.Data[0, 0]) then
         WritelnWarning('Transform', Format(
           'Inverse transform matrix has NaN value inside:' + NL +
           '%s' + NL +
           '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-          [Inverse.ToString('  '),
+          [InverseTransform.ToString('  '),
            FCenter.ToString,
            FRotation.ToString,
            FScale.ToString,
            FScaleOrientation.ToString,
            FTranslation.ToString
           ]));
-        {$else}
-        { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
-        WritelnWarning('Transform', 'Inverse transform matrix has NaN value inside');
-        {$endif}
-      LocalRender(Frustum.Transform(Inverse), Params);
+      LocalRender(Frustum.Transform(InverseTransform), Params);
     end;
 
-    Params.RenderTransform         := OldRenderTransform;
-    Params.RenderTransformIdentity := OldRenderTransformIdentity;
+    Params.Transform         := OldParamsTransform;
+    Params.InverseTransform  := OldParamsInverseTransform;
+    Params.TransformIdentity := OldParamsTransformIdentity;
   end;
 end;
 
@@ -3301,8 +3333,8 @@ end;
 procedure TSceneManagerWorld.CameraChanged(ACamera: TCamera);
 begin
   inherited;
-  ACamera.GetView(FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp);
-  FCameraViewKnown := true;
+  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
+  FCameraKnown := true;
 end;
 
 end.
