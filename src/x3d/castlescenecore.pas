@@ -5939,6 +5939,8 @@ begin
   end;
 end;
 
+{ camera --------------------------------------------------------------------- }
+
 function TCastleSceneCore.GetCameraLocal(
   out CameraVectors: TCameraVectors): boolean;
 begin
@@ -5958,7 +5960,7 @@ begin
   // note that HasWorldTransform implies also World <> nil
   Result := HasWorldTransform and World.CameraKnown;
   if Result then
-    CameraLocalPosition  := WorldInverseTransform.MultPoint    (World.CameraPosition);
+    CameraLocalPosition := WorldInverseTransform.MultPoint(World.CameraPosition);
 end;
 
 procedure TCastleSceneCore.ChangedTransform;
