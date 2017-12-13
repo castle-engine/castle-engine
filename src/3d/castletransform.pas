@@ -3332,9 +3332,12 @@ end;
 
 procedure TSceneManagerWorld.CameraChanged(ACamera: TCamera);
 begin
-  inherited;
   ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
   FCameraKnown := true;
+
+  { inherited calls CameraChanged on all items,
+    and they may assume that World.Camera* properties are already properly set. }
+  inherited;
 end;
 
 end.
