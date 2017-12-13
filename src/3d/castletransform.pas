@@ -410,6 +410,8 @@ type
     FRigidBody: TRigidBody;
     FOrientation: TOrientationType;
     FOnlyTranslation: boolean;
+    FTransform, FInverseTransform: TMatrix4;
+    FTransformAndInverseValid: boolean;
 
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
@@ -433,6 +435,8 @@ type
     procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
     procedure PhysicsChangeWorldDetach;
     procedure PhysicsChangeWorldAttach;
+    procedure InternalTransformMatricesMult(var M, MInverse: TMatrix4);
+    procedure InternalTransformMatrices(out M, MInverse: TMatrix4);
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -665,14 +669,9 @@ type
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
     function Translation2D: TVector2;
 
-    { Transformation matrix.
-      This method produces matrices that preserve points as points
-      and directions as directions in homegeneous space.
-      In other words, using TMatrix4.MultPoint or TMatrix4.MultDirection
-      with these matrices must never raise ETransformedResultInvalid.
-      For example, a combination of translations, rotations, scaling is Ok. }
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4);
-    procedure TransformMatrices(out M, MInverse: TMatrix4);
+    { Transformation matrices, like @link(Transform) and @link(InverseTransform). }
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4); deprecated 'do not use this directly, instead use Transform and InverseTransform methods';
+    procedure TransformMatrices(out M, MInverse: TMatrix4); deprecated 'do not use this directly, instead use Transform and InverseTransform methods';
 
     { Average value of 3D scale in @link(Scale).
       It is not calculated as a simple average, it's a little smarter
@@ -1416,12 +1415,29 @@ type
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
 
-    { Transformation (from local to global) as a matrix. }
+    { Transformation (from local to outside) as a matrix.
+      This matrix represents a concise version of properties like @link(Translation),
+      @link(Rotation), @link(Scale). It does not takie into account the
+      transformation of parent TCastleTransform (for this, use @link(WorldTransform)). }
     function Transform: TMatrix4;
 
-    { Inverse transformation as a matrix, thus transforming from global to local
-      coordinate system. }
+    { Inverse transformation as a matrix, thus transforming from outside to local
+      coordinate system. This is an inverse of @link(Transform). }
     function InverseTransform: TMatrix4;
+
+    { Transformation (from local to world) as a matrix.
+      This accumulates the transformation of this instance
+      (derived from properties like @link(Translation), @link(Rotation), @link(Scale))
+      with the transformation of parent @link(TCastleTransform) instances,
+      all the way up to and including the root transformation of
+      @link(TSceneManagerWorld).
+      Thus, this is a transformation to the world known to the
+      @link(TCastleSceneManager) instance. }
+    function WorldTransform: TMatrix4; virtual;
+
+    { Inverse transformation of @link(WorldTransform),
+      thus transforming from world to local coordinate system. }
+    function WorldInverseTransform: TMatrix4; virtual;
 
     { Unconditionally move this 3D object by given vector.
       You usually don't want to use this directly, instead use @link(Move)
@@ -1771,6 +1787,8 @@ type
     { @groupEnd }
 
     procedure CameraChanged(ACamera: TCamera); override;
+    function WorldTransform: TMatrix4; override;
+    function WorldInverseTransform: TMatrix4; override;
   end;
 
   {$define read_interface}
@@ -2523,20 +2541,50 @@ begin
 end;
 
 function TCastleTransform.Transform: TMatrix4;
-var
-  Dummy: TMatrix4;
 begin
-  TransformMatrices(Result, Dummy); // TODO: optimize, if needed?
+  if not FTransformAndInverseValid then
+  begin
+    InternalTransformMatrices(FTransform, FInverseTransform);
+    FTransformAndInverseValid := true;
+  end;
+  Result := FTransform;
 end;
 
 function TCastleTransform.InverseTransform: TMatrix4;
-var
-  Dummy: TMatrix4;
 begin
-  TransformMatrices(Dummy, Result); // TODO: optimize, if needed?
+  if not FTransformAndInverseValid then
+  begin
+    InternalTransformMatrices(FTransform, FInverseTransform);
+    FTransformAndInverseValid := true;
+  end;
+  Result := FInverseTransform;
 end;
 
-procedure TCastleTransform.TransformMatricesMult(
+function TCastleTransform.WorldTransform: TMatrix4;
+begin
+  // TODO
+  Result := Transform;
+end;
+
+function TCastleTransform.WorldInverseTransform: TMatrix4;
+begin
+  // TODO
+  Result := InverseTransform;
+end;
+
+procedure TCastleTransform.TransformMatricesMult(var M, MInverse: TMatrix4);
+begin
+  // just call private (non-deprecated) versions
+  InternalTransformMatricesMult(M, MInverse);
+end;
+
+procedure TCastleTransform.TransformMatrices(out M, MInverse: TMatrix4);
+begin
+  // just call private (non-deprecated) versions
+  InternalTransformMatrices(M, MInverse);
+end;
+
+procedure TCastleTransform.InternalTransformMatricesMult(
   var M, MInverse: TMatrix4);
 
 {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
@@ -2587,12 +2635,12 @@ begin
 {$endif}
 end;
 
-procedure TCastleTransform.TransformMatrices(
+procedure TCastleTransform.InternalTransformMatrices(
   out M, MInverse: TMatrix4);
 begin
   M := TMatrix4.Identity;
   MInverse := TMatrix4.Identity;
-  TransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
+  InternalTransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
 end;
 
 function TCastleTransform.AverageScale: Single;
@@ -2648,7 +2696,7 @@ begin
     end else
     begin
       Inverse := TMatrix4.Identity;
-      TransformMatricesMult(Params.RenderTransform, Inverse);
+      InternalTransformMatricesMult(Params.RenderTransform, Inverse);
       if IsNan(Inverse.Data[0, 0]) then
         {$ifndef VER3_1}
         WritelnWarning('Transform', Format(
@@ -2900,6 +2948,7 @@ end;
 
 procedure TCastleTransform.ChangedTransform;
 begin
+  FTransformAndInverseValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
@@ -3094,6 +3143,16 @@ begin
   inherited;
   ACamera.GetView(FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp);
   FCameraViewKnown := true;
+end;
+
+function TSceneManagerWorld.WorldTransform: TMatrix4;
+begin
+  Result := Transform;
+end;
+
+function TSceneManagerWorld.WorldInverseTransform: TMatrix4;
+begin
+  Result := InverseTransform;
 end;
 
 end.

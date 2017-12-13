@@ -312,7 +312,7 @@ begin
       NewPos := NewPos + T;
   end else
   begin
-    TransformMatrices(M, MInverse);
+    InternalTransformMatrices(M, MInverse);
     Result := LocalMoveCollision(
       MInverse.MultPoint(OldPos),
       MInverse.MultPoint(ProposedNewPos), NewPos,
@@ -491,7 +491,7 @@ begin
     end;
   end else
   begin
-    TransformMatrices(M, MInverse);
+    InternalTransformMatrices(M, MInverse);
     Result := LocalRayCollision(
       MInverse.MultPoint(RayOrigin),
       MInverse.MultDirection(RayDirection), TrianglesToIgnoreFunc);
