@@ -32,6 +32,8 @@ type
 
   ECannotAddToAnotherWorld = class(Exception);
   EMultipleReferencesInWorld = class(Exception);
+  EInvalidParent = class(Exception);
+  ENotAddedToWorld = class(Exception);
   EPhysicsError = class(Exception);
 
   TRenderFromViewFunction = procedure of object;
@@ -379,39 +381,51 @@ type
     with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TComponent)
   private
-    FCastShadowVolumes: boolean;
-    FExists: boolean;
-    FCollides: boolean;
-    FPickable: boolean;
-    FVisible: boolean;
-    FCursor: TMouseCursor;
-    FCollidesWithMoving: boolean;
-    Disabled: Cardinal;
-    FExcludeFromGlobalLights, FExcludeFromStatistics,
-      FInternalExcludeFromParentBoundingVolume: boolean;
-    FWorld: TSceneManagerWorld;
-    FWorldReferences: Cardinal;
-    FList: TCastleTransformList;
+    class var
+      NextTransformId: Cardinal;
+    var
+      FCastShadowVolumes: boolean;
+      FExists: boolean;
+      FCollides: boolean;
+      FPickable: boolean;
+      FVisible: boolean;
+      FCursor: TMouseCursor;
+      FCollidesWithMoving: boolean;
+      Disabled: Cardinal;
+      FExcludeFromGlobalLights, FExcludeFromStatistics,
+        FInternalExcludeFromParentBoundingVolume: boolean;
+      FWorld: TSceneManagerWorld;
+      FWorldReferences: Cardinal;
+      FList: TCastleTransformList;
+      FParent: TCastleTransform;
 
-    // transformation
-    FCenter: TVector3;
-    FRotation: TVector4;
-    FScale: TVector3;
-    FScaleOrientation: TVector4;
-    FTranslation: TVector3;
+      // transformation
+      FCenter: TVector3;
+      FRotation: TVector4;
+      FScale: TVector3;
+      FScaleOrientation: TVector4;
+      FTranslation: TVector3;
 
-    // transformation extras
-    FGravity: boolean;
-    FFallingStartMiddle: TVector3;
-    FFalling: boolean;
-    FFallSpeed: Single;
-    FGrowSpeed: Single;
-    FMiddleHeight: Single;
-    FRigidBody: TRigidBody;
-    FOrientation: TOrientationType;
-    FOnlyTranslation: boolean;
-    FTransform, FInverseTransform: TMatrix4;
-    FTransformAndInverseValid: boolean;
+      // transformation extras
+      FGravity: boolean;
+      FFallingStartMiddle: TVector3;
+      FFalling: boolean;
+      FFallSpeed: Single;
+      FGrowSpeed: Single;
+      FMiddleHeight: Single;
+      FRigidBody: TRigidBody;
+      FOrientation: TOrientationType;
+      FOnlyTranslation: boolean;
+
+      FTransform, FInverseTransform: TMatrix4;
+      FTransformAndInverseValid: boolean;
+
+      FWorldTransform, FWorldInverseTransform: TMatrix4;
+      FWorldTransformAndInverseId: Cardinal;
+      FWorldTransformAndInverseValid: boolean;
+
+      FLastParentWorldTransform, FLastParentWorldInverseTransform: TMatrix4;
+      FLastParentWorldTransformAndInverseId: Cardinal;
 
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
@@ -437,6 +451,10 @@ type
     procedure PhysicsChangeWorldAttach;
     procedure InternalTransformMatricesMult(var M, MInverse: TMatrix4);
     procedure InternalTransformMatrices(out M, MInverse: TMatrix4);
+    { Update our FWorldTransform, FWorldInverseTransform, FWorldTransformAndInverseId. }
+    procedure UpdateWorldTransformAndInverse;
+    { Return non-nil parent, making sure it's valid. }
+    function Parent: TCastleTransform;
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -1432,12 +1450,62 @@ type
       all the way up to and including the root transformation of
       @link(TSceneManagerWorld).
       Thus, this is a transformation to the world known to the
-      @link(TCastleSceneManager) instance. }
-    function WorldTransform: TMatrix4; virtual;
+      @link(TCastleSceneManager) instance.
+
+      Two conditions are necessary to make this available:
+
+      @unorderedList(
+        @item(
+          This instance must be part of some @link(World).
+          So it must be added to @link(TCastleSceneManager.Items SceneManager.Items),
+          or to some other @link(TCastleTransform) that is part of @link(World).
+
+          Otherwise reading this raises @link(ENotAddedToWorld).
+        )
+
+        @item(
+          This instance must not be present multiple times inside the @link(World).
+          Ever (even in the past).
+
+          In general, it is allowed to have multiple references to the same TCastleTransform
+          within the same @link(World). So you can add
+          the same TCastleTransform or TCastleScene many times to
+          @link(TCastleSceneManager.Items SceneManager.Items).
+          This is a useful optimization (sharing), and is explicitly allowed.
+          But if you do this --- you cannot rely on WorldTransform property.
+
+          Otherwise reading this raises @link(EMultipleReferencesInWorld)
+          or @link(EInvalidParent).
+        )
+      )
+
+      (Note that the WorldTransform is not updated in @link(Update),
+      it is smartly updated on-demand.
+      So you do not have to wait for @link(Update) or other method
+      to be called. The above two requirements are all that's necessary.)
+
+      @raises(ENotAddedToWorld
+        When this instance is not yet part of @link(World).)
+      @raises(EMultipleReferencesInWorld
+        When this instance is added multiple times to @link(World).)
+      @raises(EInvalidParent
+        When this instance was once added multiple times to @link(World).)
+    }
+    function WorldTransform: TMatrix4;
 
     { Inverse transformation of @link(WorldTransform),
-      thus transforming from world to local coordinate system. }
-    function WorldInverseTransform: TMatrix4; virtual;
+      thus transforming from world to local coordinate system.
+
+      See @link(WorldTransform) for more details how this works.
+
+      @raises(ENotAddedToWorld
+        When this instance is not yet part of @link(World).)
+      @raises(EMultipleReferencesInWorld
+        When this instance is added multiple times to @link(World).)
+      @raises(EInvalidParent
+        When this instance was once added multiple times to @link(World).)
+    }
+    function WorldInverseTransform: TMatrix4;
 
     { Unconditionally move this 3D object by given vector.
       You usually don't want to use this directly, instead use @link(Move)
@@ -1787,8 +1855,6 @@ type
     { @groupEnd }
 
     procedure CameraChanged(ACamera: TCamera); override;
-    function WorldTransform: TMatrix4; override;
-    function WorldInverseTransform: TMatrix4; override;
   end;
 
   {$define read_interface}
@@ -1949,6 +2015,9 @@ begin
     case Action of
       lnAdded:
         begin
+          { assign FParent before calling AddToWorld
+            (that may cause PhysicsChangeWorldAttach that may use Parent). }
+          B.FParent := Owner;
           if Owner.World <> nil then
             B.AddToWorld(Owner.World);
           { Register Owner to be notified of item destruction. }
@@ -1961,6 +2030,12 @@ begin
                freed and has World set to nil in constructor already. }
              (B.World = Owner.World) then
             B.RemoveFromWorld(Owner.World);
+          { It may seem that setting Parent to nil is not really needed,
+            nothing should use it when FWorldReferences <> 1.
+            But what if FWorldReferences was > 1
+            but then it goes back FWorldReferences = 1, we don't want to suddenly
+            use FParent that was not watched (it may be invalid reference by now). }
+          B.FParent := nil;
           { Do not call RemoveFreeNotification when Owner is equal to B.World,
             this would prevent getting notification when to nil FWorld in
             TCastleTransform.Notification. }
@@ -2562,14 +2637,98 @@ end;
 
 function TCastleTransform.WorldTransform: TMatrix4;
 begin
-  // TODO
-  Result := Transform;
+  UpdateWorldTransformAndInverse;
+  Result := FWorldTransform;
 end;
 
 function TCastleTransform.WorldInverseTransform: TMatrix4;
 begin
-  // TODO
-  Result := InverseTransform;
+  UpdateWorldTransformAndInverse;
+  Result := FWorldInverseTransform;
+end;
+
+function TCastleTransform.Parent: TCastleTransform;
+begin
+  if FWorldReferences <> 1 then
+  begin
+    if FWorldReferences = 0 then
+      raise ENotAddedToWorld.Create('Parent (and WorldTransform) not available: This instance is not yet added to SceneManager.Items')
+    else
+      raise EMultipleReferencesInWorld.Create('Parent (and WorldTransform) not available: This instance is added multiple times to SceneManager.Items, it does not have a single Parent value');
+  end;
+  if FParent = nil then
+  begin
+    if FParent = World then
+      raise EInvalidParent.Create('Parent not available: This is the root node (World)')
+    else
+      raise EInvalidParent.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to SceneManager.Items (it lost link to Parent)');
+  end;
+  Result := FParent;
+end;
+
+procedure TCastleTransform.UpdateWorldTransformAndInverse;
+var
+  Par: TCastleTransform;
+  IsWorld: boolean;
+begin
+  { The main feature that enables to optimize this (usually reuse previously
+    calculated FWorldTransform and FWorldInverseTransform) is that we keep
+    FWorldTransformAndInverseId.
+    This id changes every time the FWorldTransform or FWorldInverseTransform changes.
+    So a child can save this id, and know that as long as FWorldTransformAndInverseId
+    didn't change, so also FWorldTransform or FWorldInverseTransform didn't change.
+
+    The FWorldTransformAndInverseId is never zero after UpdateWorldTransformAndInverse.
+    So you can safely use FLastParentWorldTransformAndInverseId = 0
+    as a value that "will never be considered equal". }
+
+  IsWorld := Self = World;
+
+  if not IsWorld then
+  begin
+    // first, update FLastParentWorldTransform*
+    Par := Parent;
+    Par.UpdateWorldTransformAndInverse;
+    if FLastParentWorldTransformAndInverseId <> Par.FWorldTransformAndInverseId then
+    begin
+      FLastParentWorldTransformAndInverseId := Par.FWorldTransformAndInverseId;
+      FLastParentWorldTransform             := Par.FWorldTransform;
+      FLastParentWorldInverseTransform      := Par.FWorldInverseTransform;
+      // need to recalculate our FWorldTransform*
+      FWorldTransformAndInverseValid := false;
+    end;
+  end;
+
+  { Note that FWorldTransformAndInverseValid is set to false
+    - when Par.WorldTransform changes or
+    - when our Transform changes
+    Both situations imply that our WorldTransform should change.
+  }
+
+  if not FWorldTransformAndInverseValid then
+  begin
+    // update NextTransformId
+    if NextTransformId = High(NextTransformId) then
+    begin
+      WritelnLog('Watch out, UpdateWorldTransformAndInverse overflows the NextTransformId');
+      NextTransformId := 1; // skip over 0
+    end else
+      Inc(NextTransformId);
+
+    FWorldTransformAndInverseId := NextTransformId;
+
+    // actually calculate World[Inverse]Transform here
+    if IsWorld then
+    begin
+      FWorldTransform := Transform;
+      FWorldInverseTransform := InverseTransform;
+    end else
+    begin
+      FWorldTransform := FLastParentWorldTransform * Transform;
+      FWorldInverseTransform := InverseTransform * FLastParentWorldInverseTransform;
+    end;
+    FWorldTransformAndInverseValid := true;
+  end;
 end;
 
 procedure TCastleTransform.TransformMatricesMult(var M, MInverse: TMatrix4);
@@ -2949,6 +3108,7 @@ end;
 procedure TCastleTransform.ChangedTransform;
 begin
   FTransformAndInverseValid := false;
+  FWorldTransformAndInverseValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
@@ -3143,16 +3303,6 @@ begin
   inherited;
   ACamera.GetView(FCameraWorldPosition, FCameraWorldDirection, FCameraWorldUp);
   FCameraViewKnown := true;
-end;
-
-function TSceneManagerWorld.WorldTransform: TMatrix4;
-begin
-  Result := Transform;
-end;
-
-function TSceneManagerWorld.WorldInverseTransform: TMatrix4;
-begin
-  Result := InverseTransform;
 end;
 
 end.

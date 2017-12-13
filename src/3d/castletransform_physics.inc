@@ -259,6 +259,12 @@ begin
   Move(M, Result, SizeOf(M));
 end;
 
+function MatrixFromKraft(const M: TKraftMatrix4x4): TMatrix4;
+begin
+  Assert(SizeOf(M) = SizeOf(Result));
+  Move(M, Result, SizeOf(M));
+end;
+
 { TCollider ------------------------------------------------------------------ }
 
 constructor TCollider.Create(const AParent: TRigidBody);
@@ -423,8 +429,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     end;
 
     // set initial transformation
-    // TODO: this assumes that this object is not further transformed by parents
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform));
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
   end;
 
 begin
@@ -480,6 +485,11 @@ end;
 
 procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
+  function TranslationFromMatrix(const M: TMatrix4): TVector3;
+  begin
+    Result := PVector3(@M.Data[3])^;
+  end;
+
   { Update current transformation from Kraft rigid body parameters. }
   procedure TransformationFromKraft;
   var
@@ -487,15 +497,18 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
     Axis: TKraftVector3;
     Angle: TKraftScalar;
     Shape: TKraftShape;
+    LocalTransform: TMatrix4;
   begin
     Shape := FCollider.FKraftShape;
 
-    Q := QuaternionFromMatrix4x4(Shape.InterpolatedWorldTransform);
+    LocalTransform := Transform.Parent.WorldInverseTransform *
+      MatrixFromKraft(Shape.InterpolatedWorldTransform);
+
+    Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
     QuaternionToAxisAngle(Q, Axis, Angle);
     Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
 
-    Transform.Translation := VectorFromKraft(
-      Shape.GetCenter(Shape.InterpolatedWorldTransform));
+    Transform.Translation := TranslationFromMatrix(LocalTransform);
   end;
 
 begin
@@ -507,8 +520,7 @@ begin
   if Animated then
   begin
     // TODO: check "if TransformChanged then" or such, don't do this every frame
-    // TODO: this assumes that this object is not further transformed by parents
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform))
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform))
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
