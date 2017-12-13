@@ -2897,7 +2897,7 @@ begin
           'Inverse transform matrix has NaN value inside:' + NL +
           '%s' + NL +
           '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-          [InverseTransform.ToString('  '),
+          [Params.InverseTransform.ToString('  '),
            FCenter.ToString,
            FRotation.ToString,
            FScale.ToString,
