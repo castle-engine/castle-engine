@@ -3222,7 +3222,7 @@ begin
     end else
     begin
       ChosenViewport.RequiredCamera; // create Camera if necessary
-      WritelnWarning('Calling TCastleSceneManager.PrepareResources(Scene) before TCastleSceneManager.Resize was done. This is valid, but preparing the Scene.Background will be deferred to a later time.');
+      // WritelnLog('Calling TCastleSceneManager.PrepareResources(Scene) before TCastleSceneManager.Resize was done. This is valid, but preparing the Scene.Background will be deferred to a later time.');
     end;
 
     { RenderingCamera properties must be already set,
