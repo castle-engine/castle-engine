@@ -40,7 +40,7 @@ type
       Notifications := TCastleNotifications.Create(Owner);
       Notifications.Anchor(hpMiddle);
       Notifications.Anchor(vpMiddle);
-      Notifications.TextAlign := hpMiddle; // looks best, when anchor is also in the middle
+      Notifications.TextAlignment := hpMiddle; // looks best, when anchor is also in the middle
     #) }
   TCastleNotifications = class(TUIControlFont)
   private

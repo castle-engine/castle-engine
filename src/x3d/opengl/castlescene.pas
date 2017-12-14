@@ -419,6 +419,11 @@ type
     Renderer: TGLRenderer;
     FReceiveShadowVolumes: boolean;
     RegisteredGLContextCloseListener: boolean;
+    FTempPrepareParams: TPrepareParams;
+    RenderCameraKnown: boolean;
+    { Camera position, in local scene coordinates, known (if RenderCameraKnown)
+      during the Render call. }
+    RenderCameraPosition: TVector3;
 
     { used by LocalRenderInside }
     FilteredShapes: TShapeList;
@@ -503,22 +508,31 @@ type
     procedure GLContextCloseEvent(Sender: TObject);
   private
     { Fog for this shape. @nil if none. }
-    function ShapeFog(Shape: TShape): IAbstractFogObject;
+    function ShapeFog(const Shape: TShape; const GlobalFog: TAbstractFogNode): IAbstractFogObject;
     function EffectiveBlendingSort: TBlendingSort;
   private
-    { Used by UpdateGeneratedTextures, to prevent rendering the shape
-      for which reflection texture is generated. (This wouldn't cause
-      recursive loop in our engine, but still it's bad --- rendering
-      from the inside of the object usually obscures the world around...). }
-    AvoidShapeRendering: TGLShape;
+    type
+      TCustomShaders = record
+        Shader: TX3DShaderProgramBase;
+        ShaderAlphaTest: TX3DShaderProgramBase;
+        procedure Initialize(const VertexCode, FragmentCode: string);
+        procedure Free;
+      end;
 
-    { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
-      for shadow maps. }
-    AvoidNonShadowCasterRendering: boolean;
+    var
+      { Used by UpdateGeneratedTextures, to prevent rendering the shape
+        for which reflection texture is generated. (This wouldn't cause
+        recursive loop in our engine, but still it's bad --- rendering
+        from the inside of the object usually obscures the world around...). }
+      AvoidShapeRendering: TGLShape;
 
-    PreparedShapesResources, PreparedRender: boolean;
-    VarianceShadowMapsProgram: array [boolean] of TX3DShaderProgramBase;
-    FDistanceCulling: Single;
+      { Used by UpdateGeneratedTextures, to prevent rendering non-shadow casters
+        for shadow maps. }
+      AvoidNonShadowCasterRendering: boolean;
+
+      PreparedShapesResources, PreparedRender: boolean;
+      VarianceShadowMapsProgram, ShadowMapsProgram: TCustomShaders;
+      FDistanceCulling: Single;
 
     { Private things for RenderFrustum --------------------------------------- }
 
@@ -624,8 +638,8 @@ type
       This is called automatically from the destructor. }
     procedure GLContextClose; override;
 
-    procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     procedure BeforeNodesFree(const InternalChangedAll: boolean = false); override;
 
@@ -809,6 +823,11 @@ const
   paForceLooping = CastleSceneCore.paForceLooping;
   paForceNotLooping = CastleSceneCore.paForceNotLooping;
 
+  ssRendering = CastleSceneCore.ssRendering;
+  ssDynamicCollisions = CastleSceneCore.ssDynamicCollisions;
+  ssVisibleTriangles = CastleSceneCore.ssVisibleTriangles;
+  ssStaticCollisions = CastleSceneCore.ssStaticCollisions;
+
 implementation
 
 uses CastleGLVersion, CastleImages, CastleLog,
@@ -870,6 +889,53 @@ begin
   Result := FBaseLights;
 end;
 
+{ TCastleScene.TCustomShaders ------------------------------------------------ }
+
+procedure TCastleScene.TCustomShaders.Initialize(const VertexCode, FragmentCode: string);
+
+  procedure DoInitialize(const VertexCode, FragmentCode: string);
+  begin
+    { create programs if needed }
+    if Shader = nil then
+    begin
+      Shader := TX3DShaderProgramBase.Create;
+      Shader.AttachVertexShader(VertexCode);
+      Shader.AttachFragmentShader(FragmentCode);
+      Shader.Link;
+    end;
+
+    if ShaderAlphaTest = nil then
+    begin
+      ShaderAlphaTest := TX3DShaderProgramBase.Create;
+      ShaderAlphaTest.AttachVertexShader('#define ALPHA_TEST' + NL + VertexCode);
+      ShaderAlphaTest.AttachFragmentShader('#define ALPHA_TEST' + NL + FragmentCode);
+      ShaderAlphaTest.Link;
+    end;
+  end;
+
+begin
+  try
+    DoInitialize(VertexCode, FragmentCode);
+  except
+    on E: EGLSLError do
+    begin
+      FreeAndNil(Shader);
+      FreeAndNil(ShaderAlphaTest);
+
+      WritelnWarning('Scene', 'Error compiling/linking GLSL shaders for shadow maps: %s',
+        [E.Message]);
+
+      DoInitialize({$I fallback.vs.inc}, {$I fallback.fs.inc});
+    end;
+  end;
+end;
+
+procedure TCastleScene.TCustomShaders.Free;
+begin
+  FreeAndNil(Shader);
+  FreeAndNil(ShaderAlphaTest);
+end;
+
 { TCastleScene ------------------------------------------------------------ }
 
 constructor TCastleScene.Create(AOwner: TComponent);
@@ -902,6 +968,7 @@ begin
   FReceiveShadowVolumes := true;
 
   FilteredShapes := TShapeList.Create;
+  FTempPrepareParams := TPrepareParams.Create;
 
   OcclusionQueryUtilsRenderer := TOcclusionQueryUtilsRenderer.Create;
   SimpleOcclusionQueryRenderer := TSimpleOcclusionQueryRenderer.Create(
@@ -918,6 +985,7 @@ begin
   FreeAndNil(OcclusionQueryUtilsRenderer);
   FreeAndNil(BlendingRenderer);
   FreeAndNil(FilteredShapes);
+  FreeAndNil(FTempPrepareParams);
 
   if RegisteredGLContextCloseListener and
      (ApplicationProperties <> nil) then
@@ -1035,10 +1103,8 @@ begin
     finally FreeAndNil(SI) end;
   end;
 
-  if VarianceShadowMapsProgram[false] <> nil then
-    FreeAndNil(VarianceShadowMapsProgram[false]);
-  if VarianceShadowMapsProgram[true] <> nil then
-    FreeAndNil(VarianceShadowMapsProgram[true]);
+  VarianceShadowMapsProgram.Free;
+  ShadowMapsProgram.Free;
 end;
 
 procedure TCastleScene.GLContextClose;
@@ -1055,11 +1121,13 @@ begin
   GLContextClose;
 end;
 
-function TCastleScene.ShapeFog(Shape: TShape): IAbstractFogObject;
+function TCastleScene.ShapeFog(const Shape: TShape; const GlobalFog: TAbstractFogNode): IAbstractFogObject;
 begin
   Result := Shape.State.LocalFog;
   if Result = nil then
     Result := FogStack.Top;
+  if Result = nil then
+    Result := GlobalFog as TFogNode;
 end;
 
 function TCastleScene.EffectiveBlendingSort: TBlendingSort;
@@ -1083,7 +1151,7 @@ procedure TCastleScene.LocalRenderInside(
 var
   ModelView: TMatrix4;
 
-  { Transformation of Params.RenderTransform and current RenderingCamera
+  { Transformation of Params.Transform and current RenderingCamera
     expressed as a single combined matrix. }
   function GetModelViewTransform: TMatrix4;
   var
@@ -1094,10 +1162,10 @@ var
     else
       CameraMatrix := @RenderingCamera.Matrix;
 
-    if Params.RenderTransformIdentity then
+    if Params.TransformIdentity then
       Result := CameraMatrix^
     else
-      Result := CameraMatrix^ * Params.RenderTransform;
+      Result := CameraMatrix^ * Params.Transform;
   end;
 
   { Renders Shape, by calling Renderer.RenderShape. }
@@ -1118,7 +1186,7 @@ var
       Shape.Cache.FreeArrays([vtAttribute]);
 
     Shape.ModelView := ModelView;
-    Renderer.RenderShape(Shape, ShapeFog(Shape));
+    Renderer.RenderShape(Shape, ShapeFog(Shape, Params.GlobalFog));
     IsVisibleNow := true;
   end;
 
@@ -1260,10 +1328,10 @@ begin
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
   begin
-    if not Params.RenderTransformIdentity then
+    if not Params.TransformIdentity then
     begin
       glPushMatrix;
-      glMultMatrix(Params.RenderTransform);
+      glMultMatrix(Params.Transform);
     end;
     { TODO: this should be replaced with just
     glLoadMatrix(GetModelViewTransform);
@@ -1290,7 +1358,7 @@ begin
        (InternalOctreeRendering <> nil) then
     begin
       HierarchicalOcclusionQueryRenderer.Render(@RenderShape_SomeTests,
-        Frustum, Params);
+        Frustum, Params, RenderCameraKnown, RenderCameraPosition);
 
       { Inside we could set OcclusionBoxState }
       OcclusionQueryUtilsRenderer.OcclusionBoxStateEnd;
@@ -1301,7 +1369,7 @@ begin
         if not Params.Transparent then
         begin
           { draw fully opaque objects }
-          if CameraViewKnown and
+          if RenderCameraKnown and
             (Attributes.ReallyUseOcclusionQuery or Attributes.OcclusionSort) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
@@ -1312,7 +1380,7 @@ begin
               with RenderShape_SomeTests to skip checking TestShapeVisibility
               twice. This is a good thing: it means that sorting below has
               much less shapes to consider. }
-            FilteredShapes.SortFrontToBack(CameraPosition);
+            FilteredShapes.SortFrontToBack(RenderCameraPosition);
 
             for I := 0 to FilteredShapes.Count - 1 do
               RenderShape_SomeTests(TGLShape(FilteredShapes[I]));
@@ -1330,12 +1398,12 @@ begin
           { sort for blending, if BlendingSort not bsNone.
             Note that bs2D does not require knowledge of the camera,
             CameraPosition is unused in this case by FilteredShapes.SortBackToFront }
-          if ((EffectiveBlendingSort = bs3D) and CameraViewKnown) or
+          if ((EffectiveBlendingSort = bs3D) and RenderCameraKnown) or
               (EffectiveBlendingSort = bs2D) then
           begin
             ShapesFilterBlending(Shapes, true, true, false,
               TestShapeVisibility, FilteredShapes, true);
-            FilteredShapes.SortBackToFront(CameraPosition, EffectiveBlendingSort = bs3D);
+            FilteredShapes.SortBackToFront(RenderCameraPosition, EffectiveBlendingSort = bs3D);
             for I := 0 to FilteredShapes.Count - 1 do
             begin
               BlendingRenderer.BeforeRenderShape(FilteredShapes[I]);
@@ -1364,14 +1432,14 @@ begin
 
   {$ifndef OpenGLES}
   if GLFeatures.EnableFixedFunction then
-    if not Params.RenderTransformIdentity then
+    if not Params.TransformIdentity then
       glPopMatrix;
   {$endif}
 end;
 
 procedure TCastleScene.PrepareResources(
-  Options: TPrepareResourcesOptions; ProgressStep: boolean;
-  BaseLights: TAbstractLightInstancesList);
+  const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
 
   procedure PrepareShapesResources;
   var
@@ -1397,11 +1465,11 @@ procedure TCastleScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(BaseLights as TLightInstancesList, nil, 0);
+        Renderer.RenderBegin(Params.InternalBaseLights as TLightInstancesList, nil, 0);
         while SI.GetNext do
         begin
           Shape := TGLShape(SI.Current);
-          Renderer.RenderShape(Shape, ShapeFog(Shape));
+          Renderer.RenderShape(Shape, ShapeFog(Shape, Params.InternalGlobalFog));
         end;
         Renderer.RenderEnd;
       finally Dec(Renderer.PrepareRenderShape) end;
@@ -1574,50 +1642,42 @@ procedure TCastleScene.LocalRenderOutside(
   procedure RenderWithShadowMaps;
   var
     SavedMode: TRenderingMode;
-    SavedCustomShader, SavedCustomShaderAlphaTest: TX3DShaderProgramBase;
+    SavedShaders, NewShaders: TCustomShaders;
   begin
     { For shadow maps, speed up rendering by using only features that affect
-      depth output. This also disables user shaders (for both classic
-      and VSM shadow maps, consistently). }
+      depth output. Also set up specialized shaders. }
     if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
     begin
       SavedMode := Attributes.Mode;
       Attributes.Mode := rmDepth;
-    end;
 
-    { When rendering to Variance Shadow Map, we need special shader. }
-    if RenderingCamera.Target = rtVarianceShadowMap then
-    begin
-      { create VarianceShadowMapsProgram if needed }
-      if VarianceShadowMapsProgram[false] = nil then
+      if RenderingCamera.Target = rtVarianceShadowMap then
       begin
-        VarianceShadowMapsProgram[false] := TX3DShaderProgramBase.Create;
-        VarianceShadowMapsProgram[false].AttachFragmentShader({$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[false].Link;
+        VarianceShadowMapsProgram.Initialize(
+          '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.vs.inc},
+          '#define VARIANCE_SHADOW_MAPS' + NL + {$I shadow_map_generate.fs.inc});
+        NewShaders := VarianceShadowMapsProgram;
+      end else
+      begin
+        ShadowMapsProgram.Initialize(
+          {$I shadow_map_generate.vs.inc},
+          {$I shadow_map_generate.fs.inc});
+        NewShaders := ShadowMapsProgram;
       end;
 
-      if VarianceShadowMapsProgram[true] = nil then
-      begin
-        VarianceShadowMapsProgram[true] := TX3DShaderProgramBase.Create;
-        VarianceShadowMapsProgram[true].AttachFragmentShader(
-          '#define ALPHA_TEST' + NL + {$I variance_shadow_map_generate.fs.inc});
-        VarianceShadowMapsProgram[true].Link;
-      end;
-
-      SavedCustomShader          := Attributes.CustomShader;
-      SavedCustomShaderAlphaTest := Attributes.CustomShaderAlphaTest;
-      Attributes.CustomShader          := VarianceShadowMapsProgram[false];
-      Attributes.CustomShaderAlphaTest := VarianceShadowMapsProgram[true];
+      SavedShaders.Shader          := Attributes.CustomShader;
+      SavedShaders.ShaderAlphaTest := Attributes.CustomShaderAlphaTest;
+      Attributes.CustomShader          := NewShaders.Shader;
+      Attributes.CustomShaderAlphaTest := NewShaders.ShaderAlphaTest;
     end;
 
     RenderWithWireframeEffect;
 
     if RenderingCamera.Target in [rtVarianceShadowMap, rtShadowMap] then
-      Attributes.Mode := SavedMode;
-    if RenderingCamera.Target = rtVarianceShadowMap then
     begin
-      Attributes.CustomShader          := SavedCustomShader;
-      Attributes.CustomShaderAlphaTest := SavedCustomShaderAlphaTest;
+      Attributes.Mode := SavedMode;
+      Attributes.CustomShader          := SavedShaders.Shader;
+      Attributes.CustomShaderAlphaTest := SavedShaders.ShaderAlphaTest;
     end;
   end;
 
@@ -1641,7 +1701,9 @@ begin
         before actually rendering the shape).
 
       It's much simpler to just call PrepareResources at the beginning. }
-    PrepareResources([prRender], false, Params.BaseLights(Self));
+    FTempPrepareParams.InternalBaseLights := Params.BaseLights(Self);
+    FTempPrepareParams.InternalGlobalFog := Params.GlobalFog;
+    PrepareResources([prRender], false, FTempPrepareParams);
 
     RenderWithShadowMaps;
   end;
@@ -1787,8 +1849,8 @@ function TCastleScene.DistanceCullingCheck(Shape: TShape): boolean;
 begin
   Result :=
     (DistanceCulling <= 0) or
-    (not CameraViewKnown) or
-    (PointsDistanceSqr(Shape.BoundingSphereCenter, CameraPosition) <=
+    (not RenderCameraKnown) or
+    (PointsDistanceSqr(Shape.BoundingSphereCenter, RenderCameraPosition) <=
      Sqr(DistanceCulling + Shape.BoundingSphereRadius))
 end;
 
@@ -1874,6 +1936,9 @@ begin
      (ReceiveShadowVolumes = Params.ShadowVolumesReceivers) then
   begin
     RenderFrustum_Frustum := @Frustum;
+    RenderCameraKnown := (World <> nil) and World.CameraKnown;
+    if RenderCameraKnown then
+      RenderCameraPosition := Params.InverseTransform.MultPoint(World.CameraPosition);
 
     if Assigned(InternalVisibilityTest) then
       LocalRenderOutside(InternalVisibilityTest, Frustum, Params)
@@ -1887,6 +1952,10 @@ begin
       LocalRenderOutside(@RenderFrustumOctree_TestShape, Frustum, Params);
     end else
       LocalRenderOutside(FrustumCullingFunc, Frustum, Params);
+
+    { Nothing should even try to access camera outside of Render...
+      But for security, set RenderCameraKnown to false. }
+    RenderCameraKnown := false;
   end;
 end;
 
@@ -1981,7 +2050,10 @@ begin
     Renderer.UpdateGeneratedTextures(Shape, TextureNode,
       RenderFunc, ProjectionNear, ProjectionFar, NeedsRestoreViewport,
       ViewpointStack.Top,
-      CameraViewKnown, CameraPosition, CameraDirection, CameraUp);
+      World.CameraKnown,
+      World.CameraPosition,
+      World.CameraDirection,
+      World.CameraUp);
 
     AvoidShapeRendering := nil;
     AvoidNonShadowCasterRendering := false;

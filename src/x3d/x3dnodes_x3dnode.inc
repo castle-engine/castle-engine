@@ -1006,7 +1006,7 @@
       Sets the field's exposed to given Exposed parameter, for comfort.
       This should only be used with nodes having
       HasInterfaceDeclarations = @true, like Script or ComposedShader. }
-    procedure AddCustomField(AField: TX3DField; const Exposed: boolean = false);
+    procedure AddCustomField(AField: TX3DField);
 
     { Add to node InterfaceDeclarations given field or event.
       This should only be used with nodes having
@@ -3133,9 +3133,8 @@ begin
   PostAddInterfaceDeclaration(IDecl);
 end;
 
-procedure TX3DNode.AddCustomField(AField: TX3DField; const Exposed: boolean);
+procedure TX3DNode.AddCustomField(AField: TX3DField);
 begin
-  AField.Exposed := Exposed;
   AddCustomFieldOrEvent(AField);
 end;
 

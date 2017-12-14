@@ -149,7 +149,7 @@ begin
   begin
     Resources.AddFromFile(LastChosenURL);
     { directly prepare new resource }
-    Resources.Prepare(Window.SceneManager.BaseLights, 'resources');
+    Resources.Prepare(Window.SceneManager.PrepareParams, 'resources');
     UpdateButtons(ucpActivateLast);
   end;
 end;
@@ -299,7 +299,7 @@ begin
   { Prepare (load animations) for all resources.
     In a normal game, you would not call this directly, instead you would
     depend on TGameSceneManager.LoadLevel doing this for you. }
-  Resources.Prepare(Window.SceneManager.BaseLights, 'resources');
+  Resources.Prepare(Window.SceneManager.PrepareParams, 'resources');
 
   LoadResourceButton := TLoadResourceButton.Create(Application);
   LoadResourceButton.Caption := 'Add resource...';

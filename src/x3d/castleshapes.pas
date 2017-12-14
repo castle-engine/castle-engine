@@ -89,33 +89,70 @@ type
   TTestShapeVisibility = function (Shape: TShape): boolean of object;
 
   { Triangle information, called by TShape.LocalTriangulate and such.
-
-    @param(Shape A shape containing this triangle.
-      This is always an instance of TShape class, but due
-      to unit dependencies it cannot be declared as such.)
-
-    @param(Normal Normal vectors, for each triangle point.)
-
-    @param(TexCoord Texture coordinates, for each triangle point.
-
-      Each texture coordinate is a 4D vector, since we may have 3D textures
-      referenced by 4D (homogeneous) coordinates. For normal 2D textures,
-      you can simply take the first 2 components of the vector,
-      and ignore the remaining 2 components. The 3th component is always
-      0 if was not specified (if model had only 2D texture coords).
-      The 4th component is always 1 if was not specified
-      (if model had only 2D or 3D texture coords).
-
-      In case of multi-texturing, this describes coordinates
-      of the first texture unit.
-      In case no texture is defined, this is undefined.)
-
-    @param(Face Describes the indexes of this face, for editing / removing it.
-      See TFaceIndex.) }
+    See the @link(TTriangle) fields documentation for the meaning
+    of parameters of this callback. }
   TTriangleEvent = procedure (Shape: TObject;
     const Position: TTriangle3;
     const Normal: TTriangle3; const TexCoord: TTriangle4;
     const Face: TFaceIndex) of object;
+
+  { Triangle in a 3D model.
+    Helper methods. }
+  TTriangleHelper = record helper for TTriangle
+    { Shape containing this triangle. }
+    function Shape: TShape;
+
+    { State of this shape, containing various information about 3D shape.
+      This is a shortcut for @link(Shape).State. }
+    function State: TX3DGraphTraverseState;
+
+    { Use State.Transform to update triangle @link(World) geometry
+      from triangle @link(Local) geometry. }
+    procedure UpdateWorld;
+
+    { X3D shape node of this triangle. May be @nil in case of VRML 1.0. }
+    function ShapeNode: TAbstractShapeNode;
+
+    { X3D material node of this triangle. May be @nil in case material is not set,
+      or in VRML 1.0. }
+    function Material: TMaterialNode;
+
+    function MaterialNode: TMaterialNode; deprecated 'use Material';
+
+    { Material information for the material of this triangle.
+      See TMaterialInfo for usage description.
+      Returns @nil when no node determines material properties
+      (which indicates white unlit look).
+
+      Returned TMaterialInfo is valid only as long as the underlying
+      Material or CommonSurfaceShader node exists.
+      Do not free it yourself, it will be automatically freed. }
+    function MaterialInfo: TMaterialInfo;
+
+    { Return transparency of this triangle's material.
+      Equivalent to MaterialInfo.Transparency, although a little faster. }
+    function Transparency: Single;
+
+    { Returns @true for triangles that are transparent. }
+    function IsTransparent: boolean;
+
+    { Returns @true for triangles that should be ignored by shadow rays.
+      Returns @true for transparent triangles
+      (with Material.Transparency > 0) and non-shadow-casting triangles
+      (with Appearance.shadowCaster = FALSE).
+
+      @seealso TBaseTrianglesOctree.IgnoreForShadowRays }
+    function IgnoreForShadowRays: boolean;
+
+    {$ifndef CONSERVE_TRIANGLE_MEMORY}
+    { For a given position (in world coordinates), return the smooth
+      normal vector at this point, with the resulting normal vector
+      in world coordinates.
+
+      @seealso TTriangle.INormal }
+    function INormalWorldSpace(const Point: TVector3): TVector3;
+    {$endif}
+  end;
 
   { Tree of shapes.
 
@@ -505,7 +542,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     { Equivalent to using OctreeTriangles.SegmentCollision, except this
       wil use the mailbox. }
@@ -517,7 +554,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     { Create normals suitable for this shape.
 
@@ -950,6 +987,96 @@ const
     (Data: (0, 0, 0, 1)),
     (Data: (0, 0, 0, 1))
   ));
+
+{ TTriangleHelper ------------------------------------------------------------ }
+
+function TTriangleHelper.Shape: TShape;
+begin
+  Assert(InternalShape is TShape); // will be optimized out in RELEASE mode
+  Result := TShape(InternalShape);
+end;
+
+function TTriangleHelper.State: TX3DGraphTraverseState;
+begin
+  Result := TShape(InternalShape).State;
+end;
+
+procedure TTriangleHelper.UpdateWorld;
+begin
+  World.Triangle := Local.Triangle.Transform(State.Transform);
+  {$ifndef CONSERVE_TRIANGLE_MEMORY_MORE}
+  World.Plane := World.Triangle.NormalizedPlane;
+  World.Area := World.Triangle.Area;
+  {$endif}
+end;
+
+function TTriangleHelper.ShapeNode: TAbstractShapeNode;
+begin
+  Result := State.ShapeNode;
+end;
+
+function TTriangleHelper.Material: TMaterialNode;
+var
+  S: TAbstractShapeNode;
+begin
+  S := ShapeNode;
+  if S <> nil then
+    Result := S.Material
+  else
+    Result := nil;
+end;
+
+function TTriangleHelper.MaterialNode: TMaterialNode;
+begin
+  Result := Material;
+end;
+
+function TTriangleHelper.MaterialInfo: TMaterialInfo;
+begin
+  Result := State.MaterialInfo;
+end;
+
+function TTriangleHelper.Transparency: Single;
+var
+  M: TMaterialInfo;
+begin
+  M := MaterialInfo;
+  if M <> nil then
+    Result := M.Transparency
+  else
+    Result := 0;
+end;
+
+function TTriangleHelper.IsTransparent: boolean;
+begin
+  Result := Transparency > SingleEpsilon;
+end;
+
+function TTriangleHelper.IgnoreForShadowRays: boolean;
+
+  function NonShadowCaster(State: TX3DGraphTraverseState): boolean;
+  var
+    Shape: TAbstractShapeNode;
+  begin
+    Shape := State.ShapeNode;
+    Result :=
+      (Shape <> nil) and
+      (Shape.FdAppearance.Value <> nil) and
+      (Shape.FdAppearance.Value is TAppearanceNode) and
+      (not TAppearanceNode(Shape.FdAppearance.Value).FdShadowCaster.Value);
+  end;
+
+begin
+  Result := ({ IsTransparent } Transparency > SingleEpsilon) or
+    NonShadowCaster(State);
+end;
+
+{$ifndef CONSERVE_TRIANGLE_MEMORY}
+function TTriangleHelper.INormalWorldSpace(const Point: TVector3): TVector3;
+begin
+  Result := State.Transform.MultDirection(INormalCore(Point)).Normalize;
+end;
+{$endif not CONSERVE_TRIANGLE_MEMORY}
 
 { TShapeTree ------------------------------------------------------------ }
 
@@ -1667,7 +1794,7 @@ function TShape.RayCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then
@@ -1708,7 +1835,7 @@ function TShape.SegmentCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   {$ifdef SHAPE_OCTREE_USE_MAILBOX}
   if MailboxSavedTag = Tag then

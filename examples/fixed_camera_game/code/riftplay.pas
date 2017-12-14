@@ -310,8 +310,8 @@ begin
     SceneManager := TGameSceneManager.Create(nil);
     SceneManager.ShadowVolumes := ShadowVolumes;
 
-    Locations.Load(SceneManager.BaseLights);
-    CreaturesKinds.Load(SceneManager.BaseLights);
+    Locations.Load(SceneManager.PrepareParams);
+    CreaturesKinds.Load(SceneManager.PrepareParams);
 
     if not DebugNoCreatures then
     begin

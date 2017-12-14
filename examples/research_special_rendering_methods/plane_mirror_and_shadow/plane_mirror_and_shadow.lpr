@@ -502,7 +502,7 @@ var
 
 procedure Open(Container: TUIContainer);
 begin
-  { TODO: this demo uses specialized rendering (in renderterrains.pas)
+  { TODO: this demo uses specialized rendering
     that currently assumes some fixed-function things set up. }
   GLFeatures.EnableFixedFunction := true;
 end;

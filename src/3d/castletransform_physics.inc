@@ -213,12 +213,16 @@
       the particular (world) axis.
 
       For 2D games, you will usually want to disable motion along the Z axis.
-      You can do this comfortably by calling @link(Setup2D). }
+      Instead of directly changing this property,
+      you can achieve this by calling @link(Setup2D). }
     property LockTranslation: T3DCoords read FLockTranslation write FLockTranslation;
 
     { Disable rotation (@link(TCastleTransform.Rotation) change) along
       the particular (world) axis.
-      You can do this comfortably by calling @link(Setup2D). }
+
+      For 2D games, you will usually want to disable rotation along the X and Y axes.
+      Instead of directly changing this property,
+      you can achieve this by calling @link(Setup2D). }
     property LockRotation: T3DCoords read FLockRotation write FLockRotation;
   end;
 
@@ -252,6 +256,12 @@ begin
   Assert(SizeOf(M) = SizeOf(Result));
   // simply copy the contents,
   // memory layout is the same (column-major, Single precision)
+  Move(M, Result, SizeOf(M));
+end;
+
+function MatrixFromKraft(const M: TKraftMatrix4x4): TMatrix4;
+begin
+  Assert(SizeOf(M) = SizeOf(Result));
   Move(M, Result, SizeOf(M));
 end;
 
@@ -303,6 +313,17 @@ end;
 function TBoxCollider.CreateKraftShape(const APhysics: TKraft;
   const ARigidBody: TKraftRigidBody): TKraftShape;
 begin
+  { Check it ourselves, otherwise Kraft will crash on such invalid box with segfault.
+    First Kraft raises nice
+      EKraftDegeneratedConvexHull.Create('Degenerated convex hull');
+    but then makes SIGSEGV at
+      fPhysics.fStaticAABBTree.DestroyProxy(fStaticAABBTreeProxy)
+    in TKraftShape.Destroy. }
+
+  if (Size[0] <= 0) or
+     (Size[1] <= 0) or
+     (Size[2] <= 0) then
+    raise EPhysicsError.Create('You must assign positive Size to TBoxCollider');
   Result := TKraftShapeBox.Create(APhysics, ARigidBody, VectorToKraft(Size / 2));
 end;
 
@@ -329,6 +350,10 @@ end;
 
 destructor TRigidBody.Destroy;
 begin
+  { The FKraftBody will be freed now if you free TRigidBody
+    instance explicitly. In most other cases, DeinitializeTransform
+    already freed FKraftBody and set it nil. }
+
   FreeAndNil(FKraftBody);
   FreeAndNil(FCollider);
   inherited;
@@ -353,7 +378,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
   procedure RecreateKraftInstance;
   var
-    World: T3DWorld;
+    World: TSceneManagerWorld;
     V: TVector3;
   begin
     World := Transform.World;
@@ -372,7 +397,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
 
     // initialize Kraft shape
     if Collider = nil then
-      raise Exception.Create('You must assign TRigidBody.Collider');
+      raise EPhysicsError.Create('You must assign TRigidBody.Collider');
     Collider.InitializeKraft(World.FKraftEngine, FKraftBody);
 
     FKraftBody.GravityScale := Iff(Gravity, 1.0, 0.0);
@@ -404,8 +429,7 @@ procedure TRigidBody.InitializeTransform(const Transform: TCastleTransform);
     end;
 
     // set initial transformation
-    // TODO: this assumes that this object is not further transformed by parents
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform));
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform));
   end;
 
 begin
@@ -421,10 +445,22 @@ end;
 
 procedure TRigidBody.DeinitializeTransform(const Transform: TCastleTransform);
 begin
-  FreeAndNil(FKraftBody);
-  { Collider.FKraftShape is owned by FKraftBody, it was automatically freed now }
+  Assert(Transform.World <> nil, 'Transform.World should be assigned at the time of TRigidBody.DeinitializeTransform call');
+
+  if Transform.World.FKraftEngine <> nil then
+    FreeAndNil(FKraftBody)
+  else
+    { FKraftBody is owned by FKraftEngine.
+      If FKraftEngine = nil then FKraftBody was already freed.
+      This can happen because TSceneManagerWorld.Destroy frees FKraftEngine,
+      but the TCastleTransform instances (with TRigidBody)
+      may be detached later, see TTestCastleTransform.TestPhysicsWorldOwner. }
+    FKraftBody := nil;
+
+  { Collider.FKraftShape is owned by FKraftBody, it was automatically freed already }
   if Collider <> nil then
     Collider.FKraftShape := nil;
+
   { we in unintialized state, so initialize at nearest occasion }
   FRecreateKraftInstance := true;
 end;
@@ -449,6 +485,11 @@ end;
 
 procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPassed: Single);
 
+  function TranslationFromMatrix(const M: TMatrix4): TVector3;
+  begin
+    Result := PVector3(@M.Data[3])^;
+  end;
+
   { Update current transformation from Kraft rigid body parameters. }
   procedure TransformationFromKraft;
   var
@@ -456,15 +497,18 @@ procedure TRigidBody.Update(const Transform: TCastleTransform; const SecondsPass
     Axis: TKraftVector3;
     Angle: TKraftScalar;
     Shape: TKraftShape;
+    LocalTransform: TMatrix4;
   begin
     Shape := FCollider.FKraftShape;
 
-    Q := QuaternionFromMatrix4x4(Shape.InterpolatedWorldTransform);
+    LocalTransform := Transform.Parent.WorldInverseTransform *
+      MatrixFromKraft(Shape.InterpolatedWorldTransform);
+
+    Q := QuaternionFromMatrix4x4(MatrixToKraft(LocalTransform));
     QuaternionToAxisAngle(Q, Axis, Angle);
     Transform.Rotation := Vector4(Axis.X, Axis.Y, Axis.Z, Angle);
 
-    Transform.Translation := VectorFromKraft(
-      Shape.GetCenter(Shape.InterpolatedWorldTransform));
+    Transform.Translation := TranslationFromMatrix(LocalTransform);
   end;
 
 begin
@@ -476,8 +520,7 @@ begin
   if Animated then
   begin
     // TODO: check "if TransformChanged then" or such, don't do this every frame
-    // TODO: this assumes that this object is not further transformed by parents
-    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.Transform))
+    FKraftBody.SetWorldTransformation(MatrixToKraft(Transform.WorldTransform))
 
     // TODO: do above also for rbStatic, once "if TransformChanged then" implemented
     // or will this require recreating rigid body?
@@ -500,7 +543,7 @@ begin
     if FRigidBody <> nil then
     begin
       FRigidBody.FreeNotification(Self);
-      { For the same reason that TCastleTransform.ChangeWorld calls this,
+      { For the same reason that TCastleTransform.PhysicsChangeWorld calls this,
         also here call InitializeTransform, in case ChangeWorld happened
         before SetRigidBody. }
       if World <> nil then
@@ -528,39 +571,37 @@ begin
     RigidBody := nil;
 end;
 
-procedure TCastleTransform.PhysicsChangeWorld(const Value: T3DWorld);
+procedure TCastleTransform.PhysicsChangeWorldDetach;
 begin
-  if FWorld <> Value then
-  begin
-    { When removing 3D object from world, remove it also from physics engine world. }
-    if (FWorld <> nil) and (RigidBody <> nil) then
-      RigidBody.DeinitializeTransform(Self);
-
-    inherited;
-
-    { Calling TRigidBody.InitializeTransform explicitly now
-      (instead of letting it happen in TRigidBody.Update)
-      makes sure that when T3DWorld.Update will happen,
-      the physics engine will know
-      the initial position of this object during 1st simulation tick.
-
-      TODO: it's not really nice.
-      - If you change a transformation from now to T3DWorld.Update,
-        then 1st simulation tick will have invalid transformation anyway.
-      - If you change some other rigid body parameter between now and
-        next FRigidBody.Update, then next FRigidBody would recreate Kraft
-        resources for this object (once it's implemented, by setting
-        FRecreateKraftInstance on every change),
-        which is needless (we create Kraft resourcest
-        for this transform 2 times in this case, instead of once). }
-    if (FWorld <> nil) and (RigidBody <> nil) then
-      RigidBody.InitializeTransform(Self);
-  end;
+  { When removing 3D object from world, remove it also from physics engine world. }
+  if RigidBody <> nil then
+    RigidBody.DeinitializeTransform(Self);
 end;
 
-{ T3DWorld ------------------------------------------------------------------- }
+procedure TCastleTransform.PhysicsChangeWorldAttach;
+begin
+  { Calling TRigidBody.InitializeTransform explicitly now
+    (instead of letting it happen in TRigidBody.Update)
+    makes sure that when TSceneManagerWorld.Update will happen,
+    the physics engine will know
+    the initial position of this object during 1st simulation tick.
 
-procedure T3DWorld.InitializePhysicsEngine;
+    TODO: it's not really nice.
+    - If you change a transformation from now to TSceneManagerWorld.Update,
+      then 1st simulation tick will have invalid transformation anyway.
+    - If you change some other rigid body parameter between now and
+      next FRigidBody.Update, then next FRigidBody would recreate Kraft
+      resources for this object (once it's implemented, by setting
+      FRecreateKraftInstance on every change),
+      which is needless (we create Kraft resourcest
+      for this transform 2 times in this case, instead of once). }
+  if RigidBody <> nil then
+    RigidBody.InitializeTransform(Self);
+end;
+
+{ TSceneManagerWorld ------------------------------------------------------------------- }
+
+procedure TSceneManagerWorld.InitializePhysicsEngine;
 begin
   if FKraftEngine = nil then
   begin
@@ -569,13 +610,13 @@ begin
   end;
 end;
 
-destructor T3DWorld.Destroy;
+destructor TSceneManagerWorld.Destroy;
 begin
   FreeAndNil(FKraftEngine);
   inherited;
 end;
 
-procedure T3DWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TSceneManagerWorld.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 var
   PhysicsTimeStep: TFloatTime;
   KraftGravity: TVector3;

@@ -43,6 +43,9 @@ type
     procedure TestWorldFreeBeforeItem;
     procedure TestDirectionUp;
     procedure TestTransformingScene;
+    procedure TestPhysicsWorldOwner;
+    procedure TestPhysicsWorldOwnerEmptyBox;
+    procedure TestPhysicsWorldOwnerEmptySphere;
   end;
 
 implementation
@@ -75,7 +78,7 @@ begin
   inherited Create(AOwner);
   MyBox := AMyBox;
 
-  Box := TBoxNode.CreateTransform(BoxShape, BoxTransform);
+  Box := TBoxNode.CreateWithTransform(BoxShape, BoxTransform);
   Box.Size := MyBox.Size;
   BoxTransform.Translation := MyBox.Center;
 
@@ -124,7 +127,7 @@ var
   M: TMy3D;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -194,7 +197,7 @@ var
   M: TMy3D;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -262,7 +265,7 @@ var
   M: TMy3D;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -339,7 +342,7 @@ var
   M: TMy3DTransform;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -412,7 +415,7 @@ var
   M: TMy3DTransform;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -482,7 +485,7 @@ var
   M: TMy3DTransform;
   IsAbove: boolean;
   AboveHeight: Single;
-  AboveGround: P3DTriangle;
+  AboveGround: PTriangle;
   NewPos: TVector3;
   Collision: TRayCollision;
 begin
@@ -557,7 +560,7 @@ procedure TTestCastleTransform.Test3DTransformReal;
   var
     IsAbove: boolean;
     AboveHeight: Single;
-    AboveGround: P3DTriangle;
+    AboveGround: PTriangle;
     NewPos: TVector3;
     Collision: TRayCollision;
   begin
@@ -892,7 +895,7 @@ end;
 
 procedure TTestCastleTransform.DoTestWorld(const PrematureFree: boolean);
 var
-  World1, World2: T3DWorld;
+  World1, World2: TSceneManagerWorld;
   O1List, O2List: TCastleTransform;
   O1, O2: TCastleTransform;
 begin
@@ -900,8 +903,8 @@ begin
   World2 := nil;
   try
     {$warnings off} { don't warn about creating with abstract methods here }
-    World1 := T3DWorld.Create(nil); World1.Name := 'World1';
-    World2 := T3DWorld.Create(nil); World2.Name := 'World2';
+    World1 := TSceneManagerWorld.Create(nil); World1.Name := 'World1';
+    World2 := TSceneManagerWorld.Create(nil); World2.Name := 'World2';
     O1 := TCastleTransform.Create(World1); O1.Name := 'O1';
     O2 := TCastleTransform.Create(World1); O2.Name := 'O2';
     {$warnings on}
@@ -996,12 +999,12 @@ end;
 
 procedure TTestCastleTransform.TestWorldFreeBeforeItem;
 var
-  World1: T3DWorld;
+  World1: TSceneManagerWorld;
   O1List: TCastleTransform;
   O1: TCastleTransform;
 begin
   {$warnings off} { don't warn about creating with abstract methods here }
-  World1 := T3DWorld.Create(nil); World1.Name := 'World1';
+  World1 := TSceneManagerWorld.Create(nil); World1.Name := 'World1';
   O1 := TCastleTransform.Create(nil); O1.Name := 'O1';
   {$warnings on}
   O1List := TCastleTransform.Create(nil); O1List.Name := 'O1List';
@@ -1073,7 +1076,7 @@ end;
 
 procedure TTestCastleTransform.TestTransformingScene;
 var
-  World: T3DWorld;
+  World: TSceneManagerWorld;
 
   function EpsilonBox(const Center: TVector3): TBox3D;
   begin
@@ -1158,9 +1161,9 @@ var
   Shape: TShapeNode;
   Root: TX3DRootNode;
 begin
-  World := T3DWorld.Create(nil);
+  World := TSceneManagerWorld.Create(nil);
   try
-    //Box := TBoxNode.CreateShape(Shape);
+    //Box := TBoxNode.CreateWithShape(Shape);
     Box := TBoxNode.Create;
     Shape := TShapeNode.Create;
     Shape.Geometry := Box;
@@ -1212,6 +1215,87 @@ begin
     Scene.Scale := Vector3(4, 4, 4);
     AssertBox('T.Translation+Scale + Scene.Translation+Scale', T, Box3D(Vector3(50+10-2, 100+20-2, 150+30-2), Vector3(50+10+2, 100+20+2, 150+30+2)));
   finally FreeAndNil(World) end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptyBox;
+var
+  SceneManager: TCastleSceneManager;
+  Scene: TCastleSceneCore;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+begin
+  try
+    SceneManager := TCastleSceneManager.Create(nil);
+    try
+      Scene := TCastleSceneCore.Create(SceneManager.Items);
+
+      Body := TRigidBody.Create(SceneManager.Items);
+
+      Collider := TBoxCollider.Create(Body);
+
+      // add to SceneManager before setting Scene.RigidBody,
+      // to provoke RigidBody.InitializeTransform to create all physics stuff
+      SceneManager.Items.Add(Scene);
+
+      Scene.RigidBody := Body;
+    finally FreeAndNil(SceneManager) end;
+
+    Fail('This should raise EPhysicsError, as TBoxCollider is empty');
+  except on EPhysicsError do end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsWorldOwnerEmptySphere;
+var
+  SceneManager: TCastleSceneManager;
+  Scene: TCastleSceneCore;
+  Body: TRigidBody;
+  Collider: TSphereCollider;
+begin
+  //try
+    SceneManager := TCastleSceneManager.Create(nil);
+    try
+      Scene := TCastleSceneCore.Create(SceneManager.Items);
+
+      Body := TRigidBody.Create(SceneManager.Items);
+
+      Collider := TSphereCollider.Create(Body);
+
+      // add to SceneManager before setting Scene.RigidBody,
+      // to provoke RigidBody.InitializeTransform to create all physics stuff
+      SceneManager.Items.Add(Scene);
+
+      Scene.RigidBody := Body;
+    finally FreeAndNil(SceneManager) end;
+
+    // OK, this can work without error now,
+    // although it's a little inconsistent with TestPhysicsWorldOwnerEmptyBox.
+
+    // Fail('This should raise EPhysicsError, as TSphereCollider is empty');
+  //except on EPhysicsError do end;
+end;
+
+procedure TTestCastleTransform.TestPhysicsWorldOwner;
+var
+  SceneManager: TCastleSceneManager;
+  Scene: TCastleSceneCore;
+  Body: TRigidBody;
+  Collider: TBoxCollider;
+begin
+  SceneManager := TCastleSceneManager.Create(nil);
+  try
+    Scene := TCastleSceneCore.Create(SceneManager.Items);
+
+    Body := TRigidBody.Create(SceneManager.Items);
+
+    Collider := TBoxCollider.Create(Body);
+    Collider.Size := Vector3(2, 2, 2);
+
+    // add to SceneManager before setting Scene.RigidBody,
+    // to provoke RigidBody.InitializeTransform to create all physics stuff
+    SceneManager.Items.Add(Scene);
+
+    Scene.RigidBody := Body;
+  finally FreeAndNil(SceneManager) end;
 end;
 
 initialization

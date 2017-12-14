@@ -88,7 +88,7 @@ begin
   Appearance := TAppearanceNode.Create;
   Appearance.Material := Material;
 
-  { Note: you could use TBoxNode.CreateTransform shortcut method
+  { Note: you could use TBoxNode.CreateWithTransform shortcut method
     to create Box1, Shape1, Transform1 in one instruction.
     But we show the longer version below, as it's easier to understand. }
 

@@ -25,11 +25,16 @@ uses SysUtils, Classes, Math, Generics.Collections, Kraft,
   CastleSoundEngine, CastleSectors, CastleCameras, CastleTriangles;
 
 type
-  T3DWorld = class;
+  TSceneManagerWorld = class;
   TCastleTransform = class;
 
+  TCastleTransformClass = class of TCastleTransform;
+
   ECannotAddToAnotherWorld = class(Exception);
-  EMultipleReferencesInWorld = class(Exception);
+  ETransformParentUndefined = class(Exception);
+  EMultipleReferencesInWorld = class(ETransformParentUndefined);
+  ENotAddedToWorld = class(ETransformParentUndefined);
+  EPhysicsError = class(Exception);
 
   TRenderFromViewFunction = procedure of object;
 
@@ -102,7 +107,7 @@ type
           the triangle is left as @nil.)
       )
     }
-    Triangle: P3DTriangle;
+    Triangle: PTriangle;
 
     { Ray used to cause the collision,
       in local coordinate system of this 3D object. }
@@ -135,8 +140,11 @@ type
       when the ray hit empty space. }
     Distance: Single;
 
-    { Index of node with given Item. }
+    { Index of node with given Item, -1 if none. }
     function IndexOfItem(const Item: TCastleTransform): Integer;
+
+    { Index of node with given ItemClass, -1 if none. }
+    function IndexOfItem(const ItemClass: TCastleTransformClass): Integer;
   end;
 
   { Detailed information about collision with a single 3D object. }
@@ -155,7 +163,7 @@ type
       If the ray hit empty space, this is @nil.
       Note that only TCastleSceneManager.MainScene is informed about pointing
       device events when the ray hit empty space, so this is an unusual case. }
-    // Triangle: P3DTriangle;
+    // Triangle: PTriangle;
   end;
   PCollisionDetailsItem = ^TCollisionDetailsItem;
 
@@ -205,15 +213,36 @@ type
   end;
 
   { List of lights. Always TLightInstancesList, but we cannot declare it here
-    as such. }
+    as such. Internal. @exlude }
   TAbstractLightInstancesList = TObject;
+
+  { Fog node. Always TFogNode, but we cannot declare it here as such.
+    Internal. @exlude }
+  TAbstractFogNode = TObject;
 
   TRenderingPass = 0..1;
 
-  { Information that 3D object needs to render.
+  { Information that a TCastleTransform object needs to prepare rendering. }
+  TPrepareParams = class
+    { Include a headlight, or global lights that shine on all
+      scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
+
+      It is not necessary to define this (it may be @nil).
+      And all the lighting is dynamic, so of course you can always
+      turn on / off things like a headlight during the game.
+      However, passing here the appropriate lights will mean that the shaders
+      are immediately prepared for the current lighting.
+
+      @exclude }
+    InternalBaseLights: TAbstractLightInstancesList;
+    { World fog, in any, to prepare for.
+      @exclude }
+    InternalGlobalFog: TAbstractFogNode;
+  end;
+
+  { Information that a TCastleTransform object needs to render.
     Read-only for TCastleTransform.Render
-    (except Statistics, which should be updated
-    by TCastleTransform.Render). }
+    (except Statistics, which should be updated during rendering). }
   TRenderParams = class
     { Which parts should be rendered: opaque (@false) or transparent (@true). }
     Transparent: boolean;
@@ -238,13 +267,16 @@ type
     Pass: TRenderingPass;
 
     { Transformation that should be applied to the rendered result.
-      If RenderTransformIdentity, then RenderTransform is always identity.
+      If TransformIdentity, then Transform and InverseTransform is always identity.
       @groupBegin }
-    RenderTransform: TMatrix4;
-    RenderTransformIdentity: boolean;
+    Transform, InverseTransform: TMatrix4;
+    TransformIdentity: boolean;
     { @groupEnd }
 
     Statistics: TRenderStatistics;
+
+    { Fog that affects all scenes. }
+    GlobalFog: TAbstractFogNode;
 
     constructor Create;
 
@@ -278,8 +310,12 @@ type
     property Owner: TCastleTransform read FOwner;
   end;
 
+  { Orientation of the model is 3D world, determining where is
+    the conceptual "up" direction of the model,
+    and where is it facing. Used by the @link(TCastleTransform.Orientation)
+    and @link(TCastleTransform.DefaultOrientation). }
   TOrientationType = (
-    { Sensible for worlds oriented around Y axis.
+    { Orientation sensible for models oriented around Y axis.
       That is when gravity pulls in -Y and GravityUp vector is +Y.
       Transformation makes -Z and +Y match (respectively) Direction and Up.
 
@@ -294,7 +330,7 @@ type
       "X-axis mirror" will work best. }
     otUpYDirectionMinusZ,
 
-    { Sensible for worlds oriented around Z axis.
+    { Orientation sensible for models oriented around Z axis.
       Transformation makes -Y and +Z match (respectively) Direction and Up.
 
       Using this value for @link(TCastleTransform.Orientation) (or even
@@ -314,59 +350,82 @@ type
   TRigidBody = class;
 
   { Group and transform (move, rotate, scale) children objects.
-    This is the base thing that is managed by the @link(TCastleSceneManager).
 
-    Transformation is a combined
+    Add and remove children using the @link(Add), @link(Remove) and similar methods.
+    A child can be any @link(TCastleTransform) instance,
+    in particular it can be a @link(TCastleScene) instance
+    (which allows to load and render any 3D or 2D model).
+
+    Control the transformation using these properties:
+
     @orderedList(
-      @itemSpacing Compact
-      @item @link(Translation),
-      @item and @link(Rotation) around @link(Center) point,
-      @item(and @link(Scale) around @link(Center) and with orientation given by
+      @item(Move using @link(Translation).)
+
+      @item(Rotate using @link(Rotation).
+        The rotation is performed around the @link(Center) point.
+        The rotation may be alternatively controlled using the
+        @link(Direction) and @link(Up) vectors.)
+
+      @item(Change size using @link(Scale).
+        Scale is done around @link(Center) and with orientation given by
         @link(ScaleOrientation).)
     )
 
-    For precise order of the translation/rotation/scale operations,
-    see the X3D Transform node specification.
-    The @link(Rotation) may be alternatively controlled using
-    @link(Direction) and @link(Up) vectors.
+    This class is the base object that is managed by the @link(TCastleSceneManager).
+    You insert instances of this class into @link(TCastleSceneManager.Items),
+    which is actually an instance of @link(TCastleTransform) too.
 
-    Default values of all fields indicate "no transformation".
-    So everything is zero, except Scale is (1,1,1).
-
-    This class enables (optional) gravity and physics. }
+    This class implements also optional gravity and physics.
+    See the @link(Gravity) property for a simple unrealistic gravity model.
+    See the @link(RigidBody) for a proper rigid-bidy simulation,
+    with correct gravity model and collisions with other rigid bodies. }
   TCastleTransform = class(TComponent)
   private
-    FCastShadowVolumes: boolean;
-    FExists: boolean;
-    FCollides: boolean;
-    FPickable: boolean;
-    FVisible: boolean;
-    FCursor: TMouseCursor;
-    FCollidesWithMoving: boolean;
-    Disabled: Cardinal;
-    FExcludeFromGlobalLights, FExcludeFromStatistics,
-      FInternalExcludeFromParentBoundingVolume: boolean;
-    FWorld: T3DWorld;
-    FWorldReferences: Cardinal;
-    FList: TCastleTransformList;
+    class var
+      NextTransformId: Cardinal;
+    var
+      FCastShadowVolumes: boolean;
+      FExists: boolean;
+      FCollides: boolean;
+      FPickable: boolean;
+      FVisible: boolean;
+      FCursor: TMouseCursor;
+      FCollidesWithMoving: boolean;
+      Disabled: Cardinal;
+      FExcludeFromGlobalLights, FExcludeFromStatistics,
+        FInternalExcludeFromParentBoundingVolume: boolean;
+      FWorld: TSceneManagerWorld;
+      FWorldReferences: Cardinal;
+      FList: TCastleTransformList;
+      FParent: TCastleTransform;
 
-    // transformation
-    FCenter: TVector3;
-    FRotation: TVector4;
-    FScale: TVector3;
-    FScaleOrientation: TVector4;
-    FTranslation: TVector3;
+      // transformation
+      FCenter: TVector3;
+      FRotation: TVector4;
+      FScale: TVector3;
+      FScaleOrientation: TVector4;
+      FTranslation: TVector3;
 
-    // transformation extras
-    FGravity: boolean;
-    FFallingStartMiddle: TVector3;
-    FFalling: boolean;
-    FFallSpeed: Single;
-    FGrowSpeed: Single;
-    FMiddleHeight: Single;
-    FRigidBody: TRigidBody;
-    FOrientation: TOrientationType;
-    FOnlyTranslation: boolean;
+      // transformation extras
+      FGravity: boolean;
+      FFallingStartMiddle: TVector3;
+      FFalling: boolean;
+      FFallSpeed: Single;
+      FGrowSpeed: Single;
+      FMiddleHeight: Single;
+      FRigidBody: TRigidBody;
+      FOrientation: TOrientationType;
+      FOnlyTranslation: boolean;
+
+      FTransform, FInverseTransform: TMatrix4;
+      FTransformAndInverseValid: boolean;
+
+      FWorldTransform, FWorldInverseTransform: TMatrix4;
+      FWorldTransformAndInverseId: Cardinal;
+      FWorldTransformAndInverseValid: boolean;
+
+      FLastParentWorldTransform, FLastParentWorldInverseTransform: TMatrix4;
+      FLastParentWorldTransformAndInverseId: Cardinal;
 
     procedure SetCursor(const Value: TMouseCursor);
     procedure SetCenter(const Value: TVector3);
@@ -388,7 +447,14 @@ type
     procedure SetItem(const I: Integer; const Item: TCastleTransform);
     procedure PhysicsDestroy;
     procedure PhysicsNotification(AComponent: TComponent; Operation: TOperation);
-    procedure PhysicsChangeWorld(const Value: T3DWorld);
+    procedure PhysicsChangeWorldDetach;
+    procedure PhysicsChangeWorldAttach;
+    procedure InternalTransformMatricesMult(var M, MInverse: TMatrix4);
+    procedure InternalTransformMatrices(out M, MInverse: TMatrix4);
+    { Update our FWorldTransform, FWorldInverseTransform, FWorldTransformAndInverseId. }
+    procedure UpdateWorldTransformAndInverse;
+    { Return non-nil parent, making sure it's valid. }
+    function Parent: TCastleTransform;
   protected
     { Workaround for descendants where BoundingBox may suddenly change
       but their logic depends on stable (not suddenly changing) Middle.
@@ -408,23 +474,23 @@ type
 
     { Change to new world, or (if not needed) just increase FWorldReferences.
       Value must not be @nil. }
-    procedure AddToWorld(const Value: T3DWorld);
+    procedure AddToWorld(const Value: TSceneManagerWorld);
 
     { Decrease FWorldReferences, then (if needed) change world to @nil.
       Value must not be @nil. }
-    procedure RemoveFromWorld(const Value: T3DWorld);
+    procedure RemoveFromWorld(const Value: TSceneManagerWorld);
 
     { Called when the current 3D world (which corresponds to the current
       TCastleSceneManager) of this 3D object changes.
       This can be ignored (not care about FWorldReferences) when Value = FWorld.
 
-      Each 3D object can only be part of one T3DWorld at a time.
+      Each 3D object can only be part of one TSceneManagerWorld at a time.
       The object may be present many times within the world
       (counted by FWorldReferences, which is always set to 1 by this procedure
       for non-nil Value, and 0 for nil Value).
       Always remove 3D object from previous world (scene manager)
       before adding it to new one. }
-    procedure ChangeWorld(const Value: T3DWorld);
+    procedure ChangeWorld(const Value: TSceneManagerWorld); virtual;
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
 
@@ -445,10 +511,10 @@ type
         AboveHeight is always set to MaxSingle when returned result is @false
         (this guarantee simplifies some code).)
 
-      @param(AboveGround Pointer to P3DTriangle representing the ground.
+      @param(AboveGround Pointer to PTriangle representing the ground.
         Must be @nil if returned result is @false.
         @bold(May) be @nil even if we returned @true (not all 3D
-        objects may be able to generate P3DTriangle information about collision).
+        objects may be able to generate PTriangle information about collision).
 
         This may be useful for example to make a footsteps sound dependent
         on texture of the ground.
@@ -456,8 +522,8 @@ type
         See "The Castle" game for examples.)
     }
     function HeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 
     { Can other 3D object (maybe a player) move without colliding with this object.
 
@@ -487,19 +553,19 @@ type
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
     function MoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; overload;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; overload;
     { @groupEnd }
 
     function SegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean;
     function SphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
     { Check collision with a sphere in 2D (a circle, extruded to infinity along the Z axis).
 
@@ -513,7 +579,7 @@ type
         If the result is @true, the Details contents are set to describe
         the 3D objects hierarchy that caused this collision.) }
     function SphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean;
 
     { Check collision with a point in 2D (which is an infinite line along the Z axis
@@ -552,10 +618,10 @@ type
       )
     }
     function PointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
     function BoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 
     { Check collision with a ray, building a TRayCollision result.
       Returns a collision as TRayCollision instance, or @nil if no collision.
@@ -573,35 +639,35 @@ type
       implemented in TCastleTransform, this checks collisions for all list items,
       and chooses the closest one. }
     function RayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision;
 
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual;
     function LocalMoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; virtual;
     function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const Details: TCollisionDetails = nil): boolean; virtual;
     function LocalPointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalBoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; virtual;
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; virtual;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; virtual;
 
     { Render with given Params (includes a full transformation of this scene). }
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); virtual;
@@ -621,14 +687,9 @@ type
     { Get translation in 2D (uses @link(Translation), ignores Z coord). }
     function Translation2D: TVector2;
 
-    { Transformation matrix.
-      This method produces matrices that preserve points as points
-      and directions as directions in homegeneous space.
-      In other words, using TMatrix4.MultPoint or TMatrix4.MultDirection
-      with these matrices must never raise ETransformedResultInvalid.
-      For example, a combination of translations, rotations, scaling is Ok. }
-    procedure TransformMatricesMult(var M, MInverse: TMatrix4);
-    procedure TransformMatrices(out M, MInverse: TMatrix4);
+    { Transformation matrices, like @link(Transform) and @link(InverseTransform). }
+    procedure TransformMatricesMult(var M, MInverse: TMatrix4); deprecated 'do not use this directly, instead use Transform and InverseTransform methods';
+    procedure TransformMatrices(out M, MInverse: TMatrix4); deprecated 'do not use this directly, instead use Transform and InverseTransform methods';
 
     { Average value of 3D scale in @link(Scale).
       It is not calculated as a simple average, it's a little smarter
@@ -909,26 +970,12 @@ type
         Reason: octree preparations have a separate mechanism
         that may want to show progress.)
 
-      @param(BaseLights
-        Lights added to the scene when rendering it.
-        They may include a headlight, or global lights that shine on all
-        3D scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
-        These do not include the lights defined @italic(within) this scene.
-        It is a list of base lights (always TLightInstancesList, although
-        it cannot be declated as such here).
-
+      @param(Params
+        Rendering parameters to prepare for.
         It is used only if Options contains prRender.
-
-        It is not necessary to define this parameter (you can pass @nil).
-        And all the lighting is dynamic, so of course you can always
-        turn on / off things like a headlight during the game.
-        However, passing here the appropriate lights will mean that the shaders
-        are immediately prepared for the current lighting.
       ) }
-    procedure PrepareResources(
-      Options: TPrepareResourcesOptions;
-      ProgressStep: boolean;
-      BaseLights: TAbstractLightInstancesList); virtual;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); virtual;
 
     { How many times PrepareResources will call Progress.Step.
       Useful only if you want to pass ProgressStep = @true to PrepareResources.
@@ -1045,10 +1092,10 @@ type
       is always 1-1 corresponding to a particular TCastleSceneManager instance
       (each scene manager has it's world instance in @link(TCastleSceneManager.Items)).
 
-      @nil if we are not part of a hierarchy rooted in T3DWorld.
+      @nil if we are not part of a hierarchy rooted in TSceneManagerWorld.
       In pratice, this happens if we're not yet part of a @link(TCastleSceneManager.Items)
       hierarchy. }
-    property World: T3DWorld read FWorld;
+    property World: TSceneManagerWorld read FWorld;
 
     { Something visible changed in the world.
       This is usually called by our container (like TCastleSceneManager),
@@ -1238,7 +1285,7 @@ type
     function Height(const MyPosition: TVector3;
       out AboveHeight: Single): boolean; overload;
     function Height(const MyPosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; overload;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; overload;
     { @groupEnd }
 
     function LineOfSight(const Pos1, Pos2: TVector3): boolean;
@@ -1386,12 +1433,93 @@ type
     property MiddleHeight: Single read FMiddleHeight write FMiddleHeight
       default DefaultMiddleHeight;
 
-    { Transformation (from local to global) as a matrix. }
+    { Transformation (from local to outside) as a matrix.
+      This matrix represents a concise version of properties like @link(Translation),
+      @link(Rotation), @link(Scale). It does not takie into account the
+      transformation of parent TCastleTransform (for this, use @link(WorldTransform)). }
     function Transform: TMatrix4;
 
-    { Inverse transformation as a matrix, thus transforming from global to local
-      coordinate system. }
+    { Inverse transformation as a matrix, thus transforming from outside to local
+      coordinate system. This is an inverse of @link(Transform). }
     function InverseTransform: TMatrix4;
+
+    { All conditions are satisfied to have @link(WorldTransform).
+      When this returns @true, you know that @link(WorldTransform)
+      and @link(WorldInverseTransform) will not raise @link(ETransformParentUndefined). }
+    function HasWorldTransform: boolean;
+
+    { Transformation (from local to world) as a matrix.
+      This accumulates the transformation of this instance
+      (derived from properties like @link(Translation), @link(Rotation), @link(Scale))
+      with the transformation of parent @link(TCastleTransform) instances,
+      all the way up to and including the root transformation of
+      @link(TSceneManagerWorld).
+      Thus, this is a transformation to the world known to the
+      @link(TCastleSceneManager) instance.
+
+      Two conditions are necessary to make this available:
+
+      @unorderedList(
+        @item(
+          This instance must be part of some @link(World).
+          So it must be added to @link(TCastleSceneManager.Items SceneManager.Items),
+          or to some other @link(TCastleTransform) that is part of @link(World).
+
+          Otherwise reading this raises @link(ENotAddedToWorld).
+        )
+
+        @item(
+          This instance must not be present multiple times inside the @link(World).
+          Ever (even in the past).
+
+          In general, it is allowed to have multiple references to the same TCastleTransform
+          within the same @link(World). So you can add
+          the same TCastleTransform or TCastleScene many times to
+          @link(TCastleSceneManager.Items SceneManager.Items).
+          This is a useful optimization (sharing), and is explicitly allowed.
+          But if you do this --- you cannot rely on WorldTransform property.
+
+          Otherwise reading this raises @link(EMultipleReferencesInWorld)
+          or @link(ETransformParentUndefined).
+        )
+      )
+
+      You can check HasWorldTransform before calling this method,
+      to avoid catching an exception.
+
+      Note that the WorldTransform is not updated in @link(Update),
+      it is smartly updated on-demand.
+      So you do not have to wait for @link(Update) or other method to be called
+      before accessing the @link(WorldTransform).
+
+      @raises(ENotAddedToWorld
+        When this instance is not yet part of @link(World).)
+      @raises(EMultipleReferencesInWorld
+        When this instance is added multiple times to @link(World).)
+      @raises(ETransformParentUndefined
+        When this instance was once added multiple times to @link(World),
+        or for some other reason cannot be calculated.
+        This is an ancestor of ENotAddedToWorld and EMultipleReferencesInWorld
+        too.)
+    }
+    function WorldTransform: TMatrix4;
+
+    { Inverse transformation of @link(WorldTransform),
+      thus transforming from world to local coordinate system.
+
+      See @link(WorldTransform) for more details how this works.
+
+      @raises(ENotAddedToWorld
+        When this instance is not yet part of @link(World).)
+      @raises(EMultipleReferencesInWorld
+        When this instance is added multiple times to @link(World).)
+      @raises(EMultipleReferencesInWorld
+        When this instance was once added multiple times to @link(World),
+        or for some other reason cannot be calculated.
+        This is an ancestor of ENotAddedToWorld and EMultipleReferencesInWorld
+        too.)
+    }
+    function WorldInverseTransform: TMatrix4;
 
     { Unconditionally move this 3D object by given vector.
       You usually don't want to use this directly, instead use @link(Move)
@@ -1652,11 +1780,13 @@ type
   end;
 
   { 3D world. List of 3D objects, with some central properties. }
-  T3DWorld = class(TCastleTransform)
+  TSceneManagerWorld = class(TCastleTransform)
   private
     FKraftEngine: TKraft;
     WasPhysicsStep: boolean;
     TimeAccumulator: TFloatTime;
+    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
+    FCameraKnown: boolean;
     { Create FKraftEngine, if not assigned yet. }
     procedure InitializePhysicsEngine;
   public
@@ -1668,7 +1798,7 @@ type
 
     { See TCastleSceneManager.CollisionIgnoreItem. }
     function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; virtual; abstract;
+      const Triangle: PTriangle): boolean; virtual; abstract;
     { Up vector, according to gravity. Gravity force pulls in -GravityUp direction. }
     function GravityUp: TVector3; virtual; abstract;
     { The major axis of gravity vector: 0, 1 or 2.
@@ -1684,8 +1814,9 @@ type
     function GravityCoordinate: Integer;
     { Player, see TCastleSceneManager.Player. }
     function Player: TCastleTransform; virtual; abstract;
-    { Base lights, see TCastleSceneManager.BaseLights. }
-    function BaseLights: TAbstractLightInstancesList; virtual; abstract;
+    { Parameters to prepare rendering for,
+      see @link(TCastleAbstractViewport.PrepareParams). }
+    function PrepareParams: TPrepareParams; virtual; abstract;
     { Sectors in the world, for AI. See TCastleSceneManager.Sectors. }
     function Sectors: TSectorList; virtual; abstract;
     { Water volume. See TCastleSceneManager.Water. }
@@ -1716,7 +1847,7 @@ type
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; overload; virtual; abstract;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; virtual; abstract;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
     function WorldBoxCollision(const Box: TBox3D): boolean;
@@ -1727,6 +1858,33 @@ type
     { @groupEnd }
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
+
+    { Camera position, direction and up, in the world coordinates.
+
+      Note that some features of TCastleScene (like LOD or Billboard or ProximitySensor)
+      will need to transform this camera to scene local space.
+      They use @link(WorldTransform), and will raise @link(ETransformParentUndefined)
+      when it is not possible (e.g. when the same scene instance
+      is reused under many different locations).
+
+      So, to be on the safe side, do not turn on @link(TCastleScene.ProcessEvents),
+      or do not share the scene in multiple places in the scene manager.
+      Or at least don't use features like LOD or Billboard or ProximitySensor,
+      that cannot work in case the same scene instance in rendered in multiple
+      locations on the world.
+
+      CameraKnown = @false means that
+      CameraChanged was never called, and so camera settings are not known,
+      and so other Camera* properties have undefined values.
+
+      @groupBegin }
+    property CameraPosition: TVector3 read FCameraPosition;
+    property CameraDirection: TVector3 read FCameraDirection;
+    property CameraUp: TVector3 read FCameraUp;
+    property CameraKnown: boolean read FCameraKnown;
+    { @groupEnd }
+
+    procedure CameraChanged(ACamera: TCamera); override;
   end;
 
   {$define read_interface}
@@ -1833,6 +1991,13 @@ begin
   Result := -1;
 end;
 
+function TRayCollision.IndexOfItem(const ItemClass: TCastleTransformClass): Integer;
+begin
+  for Result := 0 to Count - 1 do
+    if List^[Result].Item is ItemClass then Exit;
+  Result := -1;
+end;
+
 { TCollisionDetails ------------------------------------------------------------ }
 
 function TCollisionDetails.IndexOfItem(const Item: TCastleTransform): Integer;
@@ -1855,8 +2020,9 @@ end;
 constructor TRenderParams.Create;
 begin
   inherited;
-  RenderTransform := TMatrix4.Identity;
-  RenderTransformIdentity := true;
+  Transform := TMatrix4.Identity;
+  InverseTransform := TMatrix4.Identity;
+  TransformIdentity := true;
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }
@@ -1880,6 +2046,9 @@ begin
     case Action of
       lnAdded:
         begin
+          { assign FParent before calling AddToWorld
+            (that may cause PhysicsChangeWorldAttach that may use Parent). }
+          B.FParent := Owner;
           if Owner.World <> nil then
             B.AddToWorld(Owner.World);
           { Register Owner to be notified of item destruction. }
@@ -1892,6 +2061,12 @@ begin
                freed and has World set to nil in constructor already. }
              (B.World = Owner.World) then
             B.RemoveFromWorld(Owner.World);
+          { It may seem that setting Parent to nil is not really needed,
+            nothing should use it when FWorldReferences <> 1.
+            But what if FWorldReferences was > 1
+            but then it goes back FWorldReferences = 1, we don't want to suddenly
+            use FParent that was not watched (it may be invalid reference by now). }
+          B.FParent := nil;
           { Do not call RemoveFreeNotification when Owner is equal to B.World,
             this would prevent getting notification when to nil FWorld in
             TCastleTransform.Notification. }
@@ -2016,7 +2191,7 @@ begin
   Dec(Disabled);
 end;
 
-procedure TCastleTransform.AddToWorld(const Value: T3DWorld);
+procedure TCastleTransform.AddToWorld(const Value: TSceneManagerWorld);
 var
   I: Integer;
 begin
@@ -2035,7 +2210,7 @@ begin
       List[I].AddToWorld(Value);
 end;
 
-procedure TCastleTransform.RemoveFromWorld(const Value: T3DWorld);
+procedure TCastleTransform.RemoveFromWorld(const Value: TSceneManagerWorld);
 var
   I: Integer;
 begin
@@ -2054,26 +2229,32 @@ begin
       List[I].RemoveFromWorld(Value);
 end;
 
-procedure TCastleTransform.ChangeWorld(const Value: T3DWorld);
+procedure TCastleTransform.ChangeWorld(const Value: TSceneManagerWorld);
 begin
   if FWorld <> Value then
   begin
     if FWorld <> nil then
     begin
+      PhysicsChangeWorldDetach;
+
       { Do not call RemoveFreeNotification when FWorld is also our list owner,
         this would prevent getting notification in TCastleTransform.Notification. }
       if (FWorld.List = nil) or (FWorld.List.IndexOf(Self) = -1) then
         FWorld.RemoveFreeNotification(Self);
     end;
+
     FWorld := Value;
     FWorldReferences := Iff(Value <> nil, 1, 0);
-    if FWorld <> nil then
-      // Ignore FWorld = Self case, when this is done by T3DWorld.Create? No need to.
-      //and (FWorld <> Self) then
-      FWorld.FreeNotification(Self);
-  end;
 
-  PhysicsChangeWorld(Value);
+    if FWorld <> nil then
+    begin
+      // Ignore FWorld = Self case, when this is done by TSceneManagerWorld.Create? No need to.
+      //if FWorld <> Self then
+      FWorld.FreeNotification(Self);
+
+      PhysicsChangeWorldAttach;
+    end;
+  end;
 end;
 
 procedure TCastleTransform.Notification(AComponent: TComponent; Operation: TOperation);
@@ -2126,13 +2307,13 @@ end;
 function TCastleTransform.Height(const MyPosition: TVector3;
   out AboveHeight: Single): boolean;
 var
-  AboveGroundIgnored: P3DTriangle;
+  AboveGroundIgnored: PTriangle;
 begin
   Result := Height(MyPosition, AboveHeight, AboveGroundIgnored);
 end;
 
 function TCastleTransform.Height(const MyPosition: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   Disable;
   try
@@ -2319,13 +2500,13 @@ begin
   end;
 end;
 
-procedure TCastleTransform.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+procedure TCastleTransform.PrepareResources(const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
 var
   I: Integer;
 begin
   for I := 0 to List.Count - 1 do
-    List[I].PrepareResources(Options, ProgressStep, BaseLights);
+    List[I].PrepareResources(Options, ProgressStep, Params);
 end;
 
 function TCastleTransform.PrepareResourcesSteps: Cardinal;
@@ -2466,20 +2647,139 @@ begin
 end;
 
 function TCastleTransform.Transform: TMatrix4;
-var
-  Dummy: TMatrix4;
 begin
-  TransformMatrices(Result, Dummy); // TODO: optimize, if needed?
+  if not FTransformAndInverseValid then
+  begin
+    InternalTransformMatrices(FTransform, FInverseTransform);
+    FTransformAndInverseValid := true;
+  end;
+  Result := FTransform;
 end;
 
 function TCastleTransform.InverseTransform: TMatrix4;
-var
-  Dummy: TMatrix4;
 begin
-  TransformMatrices(Dummy, Result); // TODO: optimize, if needed?
+  if not FTransformAndInverseValid then
+  begin
+    InternalTransformMatrices(FTransform, FInverseTransform);
+    FTransformAndInverseValid := true;
+  end;
+  Result := FInverseTransform;
 end;
 
-procedure TCastleTransform.TransformMatricesMult(
+function TCastleTransform.WorldTransform: TMatrix4;
+begin
+  UpdateWorldTransformAndInverse;
+  Result := FWorldTransform;
+end;
+
+function TCastleTransform.WorldInverseTransform: TMatrix4;
+begin
+  UpdateWorldTransformAndInverse;
+  Result := FWorldInverseTransform;
+end;
+
+function TCastleTransform.Parent: TCastleTransform;
+begin
+  if FWorldReferences <> 1 then
+  begin
+    if FWorldReferences = 0 then
+      raise ENotAddedToWorld.Create('Parent (and WorldTransform) not available: This instance is not yet added to SceneManager.Items')
+    else
+      raise EMultipleReferencesInWorld.Create('Parent (and WorldTransform) not available: This instance is added multiple times to SceneManager.Items, it does not have a single Parent value');
+  end;
+  if FParent = nil then
+  begin
+    if Self = World then
+      raise ETransformParentUndefined.Create('Parent not available: This is the root node (World)')
+    else
+      raise ETransformParentUndefined.Create('Parent (and WorldTransform) not available: This instance was once added multiple times to SceneManager.Items (it lost link to Parent)');
+  end;
+  Result := FParent;
+end;
+
+function TCastleTransform.HasWorldTransform: boolean;
+begin
+  Result := (Self = World) or ((FWorldReferences = 1) and (FParent <> nil));
+end;
+
+procedure TCastleTransform.UpdateWorldTransformAndInverse;
+var
+  Par: TCastleTransform;
+  IsWorld: boolean;
+begin
+  { The main feature that enables to optimize this (usually reuse previously
+    calculated FWorldTransform and FWorldInverseTransform) is that we keep
+    FWorldTransformAndInverseId.
+    This id changes every time the FWorldTransform or FWorldInverseTransform changes.
+    So a child can save this id, and know that as long as FWorldTransformAndInverseId
+    didn't change, so also FWorldTransform or FWorldInverseTransform didn't change.
+
+    The FWorldTransformAndInverseId is never zero after UpdateWorldTransformAndInverse.
+    So you can safely use FLastParentWorldTransformAndInverseId = 0
+    as a value that "will never be considered equal". }
+
+  IsWorld := Self = World;
+
+  if not IsWorld then
+  begin
+    // first, update FLastParentWorldTransform*
+    Par := Parent;
+    Par.UpdateWorldTransformAndInverse;
+    if FLastParentWorldTransformAndInverseId <> Par.FWorldTransformAndInverseId then
+    begin
+      FLastParentWorldTransformAndInverseId := Par.FWorldTransformAndInverseId;
+      FLastParentWorldTransform             := Par.FWorldTransform;
+      FLastParentWorldInverseTransform      := Par.FWorldInverseTransform;
+      // need to recalculate our FWorldTransform*
+      FWorldTransformAndInverseValid := false;
+    end;
+  end;
+
+  { Note that FWorldTransformAndInverseValid is set to false
+    - when Par.WorldTransform changes or
+    - when our Transform changes
+    Both situations imply that our WorldTransform should change.
+  }
+
+  if not FWorldTransformAndInverseValid then
+  begin
+    // update NextTransformId
+    if NextTransformId = High(NextTransformId) then
+    begin
+      WritelnLog('Watch out, UpdateWorldTransformAndInverse overflows the NextTransformId');
+      NextTransformId := 1; // skip over 0
+    end else
+      Inc(NextTransformId);
+
+    FWorldTransformAndInverseId := NextTransformId;
+
+    // actually calculate World[Inverse]Transform here
+    if IsWorld then
+    begin
+      FWorldTransform := Transform;
+      FWorldInverseTransform := InverseTransform;
+    end else
+    begin
+      FWorldTransform := FLastParentWorldTransform * Transform;
+      FWorldInverseTransform := InverseTransform * FLastParentWorldInverseTransform;
+    end;
+    FWorldTransformAndInverseValid := true;
+  end;
+end;
+
+procedure TCastleTransform.TransformMatricesMult(var M, MInverse: TMatrix4);
+begin
+  // just call private (non-deprecated) versions
+  InternalTransformMatricesMult(M, MInverse);
+end;
+
+procedure TCastleTransform.TransformMatrices(out M, MInverse: TMatrix4);
+begin
+  // just call private (non-deprecated) versions
+  InternalTransformMatrices(M, MInverse);
+end;
+
+procedure TCastleTransform.InternalTransformMatricesMult(
   var M, MInverse: TMatrix4);
 
 {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
@@ -2530,12 +2830,12 @@ begin
 {$endif}
 end;
 
-procedure TCastleTransform.TransformMatrices(
+procedure TCastleTransform.InternalTransformMatrices(
   out M, MInverse: TMatrix4);
 begin
   M := TMatrix4.Identity;
   MInverse := TMatrix4.Identity;
-  TransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
+  InternalTransformMatricesMult(M, MInverse); // TODO: optimize, if needed?
 end;
 
 function TCastleTransform.AverageScale: Single;
@@ -2569,8 +2869,8 @@ end;
 procedure TCastleTransform.Render(const Frustum: TFrustum; const Params: TRenderParams);
 var
   T: TVector3;
-  OldRenderTransform, Inverse: TMatrix4;
-  OldRenderTransformIdentity: boolean;
+  OldParamsTransform, OldParamsInverseTransform: TMatrix4;
+  OldParamsTransformIdentity: boolean;
 begin
   T := Translation;
   if FOnlyTranslation and T.IsZero then
@@ -2580,40 +2880,36 @@ begin
     { LocalRender expects Frustum in local coordinates (without
       transformation), so we subtract transformation here. }
 
-    OldRenderTransform         := Params.RenderTransform;
-    OldRenderTransformIdentity := Params.RenderTransformIdentity;
-    Params.RenderTransformIdentity := false;
+    OldParamsTransform         := Params.Transform;
+    OldParamsInverseTransform  := Params.InverseTransform;
+    OldParamsTransformIdentity := Params.TransformIdentity;
+    Params.TransformIdentity := false;
 
     if FOnlyTranslation then
     begin
-      MultMatrixTranslation(Params.RenderTransform, T);
+      MultMatricesTranslation(Params.Transform, Params.InverseTransform, T);
       LocalRender(Frustum.Move(-T), Params);
     end else
     begin
-      Inverse := TMatrix4.Identity;
-      TransformMatricesMult(Params.RenderTransform, Inverse);
-      if IsNan(Inverse.Data[0, 0]) then
-        {$ifndef VER3_1}
+      InternalTransformMatricesMult(Params.Transform, Params.InverseTransform);
+      if IsNan(Params.InverseTransform.Data[0, 0]) then
         WritelnWarning('Transform', Format(
           'Inverse transform matrix has NaN value inside:' + NL +
           '%s' + NL +
           '  Matrix source: Center %s, Rotation %s, Scale %s, ScaleOrientation %s, Translation %s',
-          [Inverse.ToString('  '),
+          [Params.InverseTransform.ToString('  '),
            FCenter.ToString,
            FRotation.ToString,
            FScale.ToString,
            FScaleOrientation.ToString,
            FTranslation.ToString
           ]));
-        {$else}
-        { Workaround FPC 3.1.1 Internal error 200211262 when compiling above }
-        WritelnWarning('Transform', 'Inverse transform matrix has NaN value inside');
-        {$endif}
-      LocalRender(Frustum.Transform(Inverse), Params);
+      LocalRender(Frustum.Transform(InverseTransform), Params);
     end;
 
-    Params.RenderTransform         := OldRenderTransform;
-    Params.RenderTransformIdentity := OldRenderTransformIdentity;
+    Params.Transform         := OldParamsTransform;
+    Params.InverseTransform  := OldParamsInverseTransform;
+    Params.TransformIdentity := OldParamsTransformIdentity;
   end;
 end;
 
@@ -2843,6 +3139,8 @@ end;
 
 procedure TCastleTransform.ChangedTransform;
 begin
+  FTransformAndInverseValid := false;
+  FWorldTransformAndInverseValid := false;
   VisibleChangeHere([vcVisibleGeometry]);
 end;
 
@@ -2995,41 +3293,51 @@ begin
   Rotation := RotationFromDirectionUp(D, U);
 end;
 
-{ T3DWorld ------------------------------------------------------------------- }
+{ TSceneManagerWorld ------------------------------------------------------------------- }
 
-constructor T3DWorld.Create(AOwner: TComponent);
+constructor TSceneManagerWorld.Create(AOwner: TComponent);
 begin
   inherited;
   { everything inside is part of this world }
   AddToWorld(Self);
 end;
 
-function T3DWorld.GravityCoordinate: Integer;
+function TSceneManagerWorld.GravityCoordinate: Integer;
 begin
   Result := MaxAbsVectorCoord(GravityUp);
 end;
 
-function T3DWorld.WorldBoxCollision(const Box: TBox3D): boolean;
+function TSceneManagerWorld.WorldBoxCollision(const Box: TBox3D): boolean;
 begin
   Result := BoxCollision(Box, nil);
 end;
 
-function T3DWorld.WorldSphereCollision(const Pos: TVector3;
+function TSceneManagerWorld.WorldSphereCollision(const Pos: TVector3;
   const Radius: Single): boolean;
 begin
   Result := SphereCollision(Pos, Radius, nil);
 end;
 
-function T3DWorld.WorldSphereCollision2D(const Pos: TVector2;
+function TSceneManagerWorld.WorldSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const Details: TCollisionDetails): boolean;
 begin
   Result := SphereCollision2D(Pos, Radius, nil, Details);
 end;
 
-function T3DWorld.WorldPointCollision2D(const Point: TVector2): boolean;
+function TSceneManagerWorld.WorldPointCollision2D(const Point: TVector2): boolean;
 begin
   Result := PointCollision2D(Point, nil);
+end;
+
+procedure TSceneManagerWorld.CameraChanged(ACamera: TCamera);
+begin
+  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
+  FCameraKnown := true;
+
+  { inherited calls CameraChanged on all items,
+    and they may assume that World.Camera* properties are already properly set. }
+  inherited;
 end;
 
 end.

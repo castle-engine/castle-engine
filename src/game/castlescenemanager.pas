@@ -71,11 +71,12 @@ type
     FCamera: TCamera;
     FPaused: boolean;
     FRenderParams: TManagerRenderParams;
+    FPrepareParams: TPrepareParams;
     FBackgroundWireframe: boolean;
     FBackgroundColor: TCastleColor;
     FOnRender3D: TRender3DEvent;
     FHeadlightFromViewport: boolean;
-    FUseGlobalLights: boolean;
+    FUseGlobalLights, FUseGlobalFog: boolean;
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
     FTransparent: boolean;
@@ -250,7 +251,7 @@ type
       For scene maager, these methods simply return it's own properties.
       For TCastleViewport, these methods refer to scene manager.
       @groupBegin }
-    function GetItems: T3DWorld; virtual; abstract;
+    function GetItems: TSceneManagerWorld; virtual; abstract;
     function GetMainScene: TCastleScene; virtual; abstract;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; virtual; abstract;
     function GetMouseRayHit: TRayCollision; virtual; abstract;
@@ -274,7 +275,7 @@ type
       const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; virtual; abstract;
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; virtual; abstract;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; virtual; abstract;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; virtual; abstract;
     procedure CameraVisibleChange(ACamera: TObject); virtual; abstract;
     { @groupEnd }
@@ -296,6 +297,7 @@ type
     const
       DefaultScreenSpaceAmbientOcclusion = false;
       DefaultUseGlobalLights = true;
+      DefaultUseGlobalFog = true;
       DefaultShadowVolumes = true;
 
     constructor Create(AOwner: TComponent); override;
@@ -497,11 +499,17 @@ type
       when we return @false. }
     function HeadlightInstance(out Instance: TLightInstance): boolean;
 
-    { Base lights used for rendering. Uses InitializeLights,
-      and returns instance owned and managed by this scene manager.
-      You can only use this outside PrepareResources or Render,
-      as they may change this instance. }
-    function BaseLights: TLightInstancesList;
+    { Parameters to prepare items that are to be rendered
+      within this world. This should be passed to
+      @link(TCastleTransform.PrepareResources).
+
+      Note: Instead of using @link(TCastleTransform.PrepareResources),
+      and this method,
+      it's usually easier to call @link(TCastleAbstractViewport.PrepareResources).
+      Then the appropriate TPrepareParams will be passed automatically. }
+    function PrepareParams: TPrepareParams;
+
+    function BaseLights: TLightInstancesList; deprecated 'this is internal info, you should not need this; use PrepareParams to get opaque information to pass to TCastleTransform.PrepareResources';
 
     { Statistics about last rendering frame. See TRenderStatistics docs. }
     function Statistics: TRenderStatistics;
@@ -517,7 +525,7 @@ type
     { Current 3D triangle under the mouse cursor.
       Updated in every mouse move. May be @nil. }
     function TriangleHit: PTriangle;
-  published
+
     { Camera used to render this viewport.
 
       Note this property may be @nil before rendering.
@@ -551,6 +559,7 @@ type
       @seealso TCastleSceneManager.OnCameraChanged }
     property Camera: TCamera read FCamera write SetCamera;
 
+  published
     { For scene manager: you can pause everything inside your 3D world,
       for viewport: you can make the camera of this viewpoint paused
       (not responsive).
@@ -688,6 +697,12 @@ type
     property UseGlobalLights: boolean
       read FUseGlobalLights write FUseGlobalLights default DefaultUseGlobalLights;
 
+    { Let the fog defined in MainScene affect all objects, not only MainScene.
+      This is consistent with @link(UseGlobalLights), that allows lights
+      from MainScene to shine on all objects. }
+    property UseGlobalFog: boolean
+      read FUseGlobalFog write FUseGlobalFog default DefaultUseGlobalFog;
+
     { Help user to activate pointing device sensors and pick items.
       Every time you press or release Input_Interact (by default
       just left mouse button), we look if current mouse position hits 3D object
@@ -792,7 +807,7 @@ type
   TCastleSceneManager = class(TCastleAbstractViewport)
   private
     FMainScene: TCastleScene;
-    FItems: T3DWorld;
+    FItems: TSceneManagerWorld;
     FDefaultViewport: boolean;
     FViewports: TCastleAbstractViewportList;
     FTimeScale: Single;
@@ -847,7 +862,7 @@ type
       so nothing is ignored. You can override it e.g. to ignore your "water"
       material, when you want player to dive under the water. }
     function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; virtual;
+      const Triangle: PTriangle): boolean; virtual;
       deprecated 'use "Collision" X3D node with enabled=FALSE to selectively make some part of the world non-collidable';
 
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
@@ -856,11 +871,11 @@ type
       const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; override;
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
 
-    function GetItems: T3DWorld; override;
+    function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
@@ -1010,7 +1025,7 @@ type
     { Tree of 3D objects within your world. This is the place where you should
       add your scenes to have them handled by scene manager.
       You may also set your main TCastleScene (if you have any) as MainScene. }
-    property Items: T3DWorld read FItems;
+    property Items: TSceneManagerWorld read FItems;
 
     { The main scene of your 3D world. It's not necessary to set this
       (after all, your 3D world doesn't even need to have any TCastleScene
@@ -1202,7 +1217,7 @@ type
     procedure SetSceneManager(const Value: TCastleSceneManager);
     procedure CheckSceneManagerAssigned;
   protected
-    function GetItems: T3DWorld; override;
+    function GetItems: TSceneManagerWorld; override;
     function GetMainScene: TCastleScene; override;
     function GetShadowVolumeRenderer: TGLShadowVolumeRenderer; override;
     function GetMouseRayHit: TRayCollision; override;
@@ -1216,7 +1231,7 @@ type
       const ProposedNewPos: TVector3; out NewPos: TVector3;
       const BecauseOfGravity: boolean): boolean; override;
     function CameraHeight(ACamera: TWalkCamera; const Position: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function CameraRayCollision(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
     procedure CameraVisibleChange(ACamera: TObject); override;
     function Headlight: TAbstractLightNode; override;
@@ -1243,7 +1258,7 @@ var
 
   { Key/mouse combination to operate on Player and it's inventory.
     They are used only when Player is assigned, and only when it's
-    not Dead and not Blocked (see T3DAlive.Dead, TPlayer.Blocked).
+    not Dead and not Blocked (see TAlive.Dead, TPlayer.Blocked).
     Also other TCastleAbstractViewport rules for processing
     inputs must be satisfied, of course (TCastleAbstractViewport must exist,
     according to TCastleAbstractViewport.GetExists, and not be paused, see
@@ -1303,7 +1318,9 @@ begin
   inherited;
   FBackgroundColor := Black;
   FUseGlobalLights := DefaultUseGlobalLights;
+  FUseGlobalFog := DefaultUseGlobalFog;
   FRenderParams := TManagerRenderParams.Create;
+  FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
@@ -1333,6 +1350,7 @@ begin
   Camera := nil;
 
   FreeAndNil(FRenderParams);
+  FreeAndNil(FPrepareParams);
 
   inherited;
 end;
@@ -1643,8 +1661,7 @@ function TCastleAbstractViewport.TriangleHit: PTriangle;
 begin
   if (GetMouseRayHit <> nil) and
      (GetMouseRayHit.Count <> 0) then
-    { This should always be castable to TTriangle class. }
-    Result := PTriangle(GetMouseRayHit.First.Triangle)
+    Result := GetMouseRayHit.First.Triangle
   else
     Result := nil;
 end;
@@ -1973,13 +1990,33 @@ begin
     Lights.Add(HI);
 end;
 
-function TCastleAbstractViewport.BaseLights: TLightInstancesList;
+function TCastleAbstractViewport.PrepareParams: TPrepareParams;
+{ Note: you cannot refer to PrepareParams inside
+  the TCastleTransform.PrepareResources or TCastleTransform.Render implementation,
+  as they may change the referenced PrepareParams.InternalBaseLights value.
+}
 begin
   { We just reuse FRenderParams.FBaseLights[false] below as a temporary
     TLightInstancesList that we already have created. }
-  Result := FRenderParams.FBaseLights[false];
-  Result.Clear;
-  InitializeLights(Result);
+
+  { initialize FPrepareParams.InternalBaseLights }
+  FRenderParams.FBaseLights[false].Clear;
+  InitializeLights(FRenderParams.FBaseLights[false]);
+  FPrepareParams.InternalBaseLights := FRenderParams.FBaseLights[false];
+
+  { initialize FPrepareParams.InternalGlobalFog }
+  if UseGlobalFog and
+     (GetMainScene <> nil) then
+    FPrepareParams.InternalGlobalFog := GetMainScene.FogStack.Top
+  else
+    FPrepareParams.InternalGlobalFog := nil;
+
+  Result := FPrepareParams;
+end;
+
+function TCastleAbstractViewport.BaseLights: TLightInstancesList;
+begin
+  Result := PrepareParams.InternalBaseLights as TLightInstancesList;
 end;
 
 procedure TCastleAbstractViewport.RenderFromView3D(const Params: TRenderParams);
@@ -2104,6 +2141,13 @@ begin
   end else
     { Do not use Params.FBaseLights[true] }
     FRenderParams.MainScene := nil;
+
+  { initialize FRenderParams.GlobalFog }
+  if UseGlobalFog and
+     (GetMainScene <> nil) then
+    FRenderParams.GlobalFog := GetMainScene.FogStack.Top
+  else
+    FRenderParams.GlobalFog := nil;
 
   RenderFromView3D(FRenderParams);
 end;
@@ -2770,18 +2814,18 @@ begin
   Result := false;
 end;
 
-{ T3DWorldConcrete ----------------------------------------------------------- }
+{ TSceneManagerWorldConcrete ----------------------------------------------------------- }
 
 type
   { Root of T3D hierarchy lists.
     Owner is always non-nil, always a TCastleSceneManager. }
-  T3DWorldConcrete = class(T3DWorld)
+  TSceneManagerWorldConcrete = class(TSceneManagerWorld)
     function Owner: TCastleSceneManager;
     function CollisionIgnoreItem(const Sender: TObject;
-      const Triangle: P3DTriangle): boolean; override;
+      const Triangle: PTriangle): boolean; override;
     function GravityUp: TVector3; override;
     function Player: TCastleTransform; override;
-    function BaseLights: TAbstractLightInstancesList; override;
+    function PrepareParams: TPrepareParams; override;
     function Sectors: TSectorList; override;
     function Water: TBox3D; override;
     function WorldMoveAllowed(
@@ -2795,50 +2839,50 @@ type
       const OldBox, NewBox: TBox3D;
       const BecauseOfGravity: boolean): boolean; override;
     function WorldHeight(const APosition: TVector3;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function WorldLineOfSight(const Pos1, Pos2: TVector3): boolean; override;
     function WorldRay(const RayOrigin, RayDirection: TVector3): TRayCollision; override;
   end;
 
-function T3DWorldConcrete.Owner: TCastleSceneManager;
+function TSceneManagerWorldConcrete.Owner: TCastleSceneManager;
 begin
   Result := TCastleSceneManager(inherited Owner);
 end;
 
-function T3DWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
-  const Triangle: P3DTriangle): boolean;
+function TSceneManagerWorldConcrete.CollisionIgnoreItem(const Sender: TObject;
+  const Triangle: PTriangle): boolean;
 begin
   {$warnings off} // consiously using deprecated here
   Result := Owner.CollisionIgnoreItem(Sender, Triangle);
   {$warnings on}
 end;
 
-function T3DWorldConcrete.GravityUp: TVector3;
+function TSceneManagerWorldConcrete.GravityUp: TVector3;
 begin
   Result := Owner.GravityUp;
 end;
 
-function T3DWorldConcrete.Player: TCastleTransform;
+function TSceneManagerWorldConcrete.Player: TCastleTransform;
 begin
   Result := Owner.Player;
 end;
 
-function T3DWorldConcrete.BaseLights: TAbstractLightInstancesList;
+function TSceneManagerWorldConcrete.PrepareParams: TPrepareParams;
 begin
-  Result := Owner.BaseLights;
+  Result := Owner.PrepareParams;
 end;
 
-function T3DWorldConcrete.Sectors: TSectorList;
+function TSceneManagerWorldConcrete.Sectors: TSectorList;
 begin
   Result := Owner.Sectors;
 end;
 
-function T3DWorldConcrete.Water: TBox3D;
+function TSceneManagerWorldConcrete.Water: TBox3D;
 begin
   Result := Owner.Water;
 end;
 
-function T3DWorldConcrete.WorldMoveAllowed(
+function TSceneManagerWorldConcrete.WorldMoveAllowed(
   const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2850,7 +2894,7 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldMoveAllowed(
+function TSceneManagerWorldConcrete.WorldMoveAllowed(
   const OldPos, NewPos: TVector3;
   const IsRadius: boolean; const Radius: Single;
   const OldBox, NewBox: TBox3D;
@@ -2862,14 +2906,14 @@ begin
     Result := Owner.MoveAllowed(OldPos, NewPos, BecauseOfGravity);
 end;
 
-function T3DWorldConcrete.WorldHeight(const APosition: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+function TSceneManagerWorldConcrete.WorldHeight(const APosition: TVector3;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   Result := HeightCollision(APosition, Owner.GravityUp, @CollisionIgnoreItem,
     AboveHeight, AboveGround);
 end;
 
-function T3DWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
+function TSceneManagerWorldConcrete.WorldLineOfSight(const Pos1, Pos2: TVector3): boolean;
 begin
   Result := not SegmentCollision(Pos1, Pos2,
     { Ignore transparent materials, this means that creatures can see through
@@ -2879,7 +2923,7 @@ begin
     true);
 end;
 
-function T3DWorldConcrete.WorldRay(
+function TSceneManagerWorldConcrete.WorldRay(
   const RayOrigin, RayDirection: TVector3): TRayCollision;
 begin
   Result := RayCollision(RayOrigin, RayDirection,
@@ -2894,7 +2938,7 @@ constructor TCastleSceneManager.Create(AOwner: TComponent);
 begin
   inherited;
 
-  FItems := T3DWorldConcrete.Create(Self);
+  FItems := TSceneManagerWorldConcrete.Create(Self);
   { Items is displayed and streamed with TCastleSceneManager
     (and in the future this should allow design Items.List by IDE),
     so make it a correct sub-component. }
@@ -3167,12 +3211,19 @@ begin
       Maybe in the future we'll need more intelligent method of choosing. }
     ChosenViewport := Viewports[0];
 
-    { Apply projection now, as TCastleScene.GLProjection calculates
-      BackgroundSkySphereRadius, which is used by MainScene.Background.
-      Otherwise our preparations of "prBackground" here would be useless,
-      as BackgroundSkySphereRadius will change later, and MainScene.Background
-      will have to be recreated. }
-    ChosenViewport.ApplyProjection;
+    if ChosenViewport.ContainerSizeKnown then
+    begin
+      { Apply projection now, as TCastleScene.GLProjection calculates
+        BackgroundSkySphereRadius, which is used by MainScene.Background.
+        Otherwise our preparations of "prBackground" here would be useless,
+        as BackgroundSkySphereRadius will change later, and MainScene.Background
+        will have to be recreated. }
+      ChosenViewport.ApplyProjection;
+    end else
+    begin
+      ChosenViewport.RequiredCamera; // create Camera if necessary
+      // WritelnLog('Calling TCastleSceneManager.PrepareResources(Scene) before TCastleSceneManager.Resize was done. This is valid, but preparing the Scene.Background will be deferred to a later time.');
+    end;
 
     { RenderingCamera properties must be already set,
       since PrepareResources may do some operations on texture gen modes
@@ -3183,10 +3234,10 @@ begin
     begin
       Progress.Init(Items.PrepareResourcesSteps, DisplayProgressTitle, true);
       try
-        Item.PrepareResources(Options, true, BaseLights);
+        Item.PrepareResources(Options, true, PrepareParams);
       finally Progress.Fini end;
     end else
-      Item.PrepareResources(Options, false, BaseLights);
+      Item.PrepareResources(Options, false, PrepareParams);
 
     NeedsUpdateGeneratedTextures := true;
   end;
@@ -3462,7 +3513,7 @@ begin
 end;
 
 function TCastleSceneManager.CollisionIgnoreItem(const Sender: TObject;
-  const Triangle: P3DTriangle): boolean;
+  const Triangle: PTriangle): boolean;
 begin
   Result := false;
 end;
@@ -3485,7 +3536,7 @@ end;
 
 function TCastleSceneManager.CameraHeight(ACamera: TWalkCamera;
   const Position: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   { Both version result in calling WorldHeight.
     Player version adds Player.Disable/Enable around, so don't collide with self. }
@@ -3538,7 +3589,7 @@ begin
     Scene.CameraFromViewpoint(Camera, true);
 end;
 
-function TCastleSceneManager.GetItems: T3DWorld;
+function TCastleSceneManager.GetItems: TSceneManagerWorld;
 begin
   Result := Items;
 end;
@@ -3669,7 +3720,7 @@ end;
 
 function TCastleViewport.CameraHeight(ACamera: TWalkCamera;
   const Position: TVector3;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   if SceneManager <> nil then
     Result := SceneManager.CameraHeight(ACamera, Position, AboveHeight, AboveGround) else
@@ -3687,7 +3738,7 @@ begin
     Result := nil;
 end;
 
-function TCastleViewport.GetItems: T3DWorld;
+function TCastleViewport.GetItems: TSceneManagerWorld;
 begin
   CheckSceneManagerAssigned;
   Result := SceneManager.Items;

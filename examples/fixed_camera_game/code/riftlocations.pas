@@ -26,7 +26,8 @@ unit RiftLocations;
 interface
 
 uses Classes, Generics.Collections,
-  CastleUtils, CastleClassUtils, CastleScene, CastleVectors, X3DNodes, CastleGLImages,
+  CastleUtils, CastleClassUtils, CastleScene, CastleVectors, CastleTransform,
+  CastleGLImages, X3DNodes,
   RiftLoadable;
 
 type
@@ -44,7 +45,7 @@ type
     FInitialUp: TVector3;
     procedure EnumerateLights(Node: TX3DNode);
   protected
-    procedure LoadInternal(const BaseLights: TLightInstancesList); override;
+    procedure LoadInternal(const PrepareParams: TPrepareParams); override;
     procedure UnLoadInternal; override;
   public
     { Internal creature name, must be simple (needs to be valid XML element
@@ -70,7 +71,7 @@ type
 
   TLocationList = class(specialize TObjectList<TLocation>)
     { Call Load on all items, producing also appropriate progress bar. }
-    procedure Load(const BaseLights: TLightInstancesList);
+    procedure Load(const PrepareParams: TPrepareParams);
   end;
 
 var
@@ -96,7 +97,7 @@ begin
   (Node as TAbstractLightNode).ShadowVolumes := true;
 end;
 
-procedure TLocation.LoadInternal(const BaseLights: TLightInstancesList);
+procedure TLocation.LoadInternal(const PrepareParams: TPrepareParams);
 var
   SceneRoot: TX3DRootNode;
 begin
@@ -111,7 +112,7 @@ begin
   { in normal (non-debug) circumstances, scene is only rendered to depth buffer }
   Scene.Attributes.Mode := rmDepth;
 
-  Scene.PrepareResources([prRender, prBoundingBox], false, BaseLights);
+  Scene.PrepareResources([prRender, prBoundingBox], false, PrepareParams);
   Progress.Step;
 
   { prepare octrees }
@@ -140,7 +141,7 @@ end;
 
 { TLocationList ------------------------------------------------------------- }
 
-procedure TLocationList.Load(const BaseLights: TLightInstancesList);
+procedure TLocationList.Load(const PrepareParams: TPrepareParams);
 var
   I: Integer;
   ProgressCount: Cardinal;
@@ -152,7 +153,7 @@ begin
   Progress.Init(ProgressCount, 'Loading locations');
   try
     for I := 0 to Count - 1 do
-      Items[I].Load(BaseLights);
+      Items[I].Load(PrepareParams);
   finally Progress.Fini end;
 end;
 

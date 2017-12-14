@@ -83,17 +83,15 @@
       This is just a shortcut to get/set @link(Text) as a single string.
 
       Use LineEnding or NL constant when setting this to indicate a newline.
-      These two examples equivalent. First example:
+      The two examples below are equivalent:
 
       @longCode(#
+        // one way
         Label1.Text.Clear;
         Label1.Text.Add('First line');
         Label1.Text.Add('Second line');
-      #)
 
-      Second (equivalent) example:
-
-      @longCode(#
+        // alternative way to do the same
         Label1.Caption := 'First line' + LineEnding + 'Second line';
       #)
     }

@@ -28,7 +28,7 @@ uses SysUtils, Classes,
   CastlePlayer, CastleSoundEngine, CastleProgress, CastleWindowProgress,
   CastleResources, CastleControls, CastleKeysMouse, CastleStringUtils,
   CastleTransform, CastleFilesUtils, CastleGameNotifications, CastleWindowTouch,
-  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils, Castle3D,
+  CastleSceneManager, CastleVectors, CastleUIControls, CastleGLUtils,
   CastleColors, CastleItems, CastleUtils, CastleCameras, CastleMaterialProperties,
   CastleCreatures, CastleRectangles, CastleImages, CastleApplicationProperties;
 
@@ -37,6 +37,7 @@ var
   SceneManager: TGameSceneManager; //< same thing as Window.SceneManager
   Player: TPlayer; //< same thing as Window.SceneManager.Player
   ExtraViewport: TCastleViewport;
+  CreaturesSpawned: Integer;
 
 { Buttons -------------------------------------------------------------------- }
 
@@ -47,8 +48,8 @@ type
   TButtons = class(TComponent)
     ToggleMouseLookButton: TCastleButton;
     ExitButton: TCastleButton;
-    RenderDebug3DButton: TCastleButton;
-    RenderDebugCaptionsButton: TCastleButton;
+    RenderDebugCreaturesButton: TCastleButton;
+    RenderDebugItemsButton: TCastleButton;
     ScrenshotButton: TCastleButton;
     AddCreatureButton: TCastleButton;
     AddItemButton: TCastleButton;
@@ -56,8 +57,8 @@ type
     constructor Create(AOwner: TComponent); override;
     procedure ToggleMouseLookButtonClick(Sender: TObject);
     procedure ExitButtonClick(Sender: TObject);
-    procedure RenderDebug3DButtonClick(Sender: TObject);
-    procedure RenderDebugCaptionsButtonClick(Sender: TObject);
+    procedure RenderDebugCreaturesButtonClick(Sender: TObject);
+    procedure RenderDebugItemsButtonClick(Sender: TObject);
     procedure ScreenshotButtonClick(Sender: TObject);
     procedure AddCreatureButtonClick(Sender: TObject);
     procedure AddItemButtonClick(Sender: TObject);
@@ -84,7 +85,7 @@ begin
     ToggleMouseLookButton.Left := ControlsMargin;
     ToggleMouseLookButton.Bottom := NextButtonBottom;
     Window.Controls.InsertFront(ToggleMouseLookButton);
-    NextButtonBottom += ToggleMouseLookButton.CalculatedHeight + ControlsMargin;
+    NextButtonBottom := NextButtonBottom + (ToggleMouseLookButton.CalculatedHeight + ControlsMargin);
   end;
 
   ExitButton := TCastleButton.Create(Application);
@@ -93,25 +94,25 @@ begin
   ExitButton.Left := ControlsMargin;
   ExitButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ExitButton);
-  NextButtonBottom += ExitButton.CalculatedHeight + ControlsMargin;
+  NextButtonBottom := NextButtonBottom + (ExitButton.CalculatedHeight + ControlsMargin);
 
-  RenderDebug3DButton := TCastleButton.Create(Application);
-  RenderDebug3DButton.Caption := 'Render debug 3D objects';
-  RenderDebug3DButton.Toggle := true;
-  RenderDebug3DButton.OnClick := @RenderDebug3DButtonClick;
-  RenderDebug3DButton.Left := ControlsMargin;
-  RenderDebug3DButton.Bottom := NextButtonBottom;
-  Window.Controls.InsertFront(RenderDebug3DButton);
-  NextButtonBottom += RenderDebug3DButton.CalculatedHeight + ControlsMargin;
+  RenderDebugCreaturesButton := TCastleButton.Create(Application);
+  RenderDebugCreaturesButton.Caption := 'Creatures Debug Visualization';
+  RenderDebugCreaturesButton.Toggle := true;
+  RenderDebugCreaturesButton.OnClick := @RenderDebugCreaturesButtonClick;
+  RenderDebugCreaturesButton.Left := ControlsMargin;
+  RenderDebugCreaturesButton.Bottom := NextButtonBottom;
+  Window.Controls.InsertFront(RenderDebugCreaturesButton);
+  NextButtonBottom := NextButtonBottom + (RenderDebugCreaturesButton.CalculatedHeight + ControlsMargin);
 
-  RenderDebugCaptionsButton := TCastleButton.Create(Application);
-  RenderDebugCaptionsButton.Caption := 'Render debug captions';
-  RenderDebugCaptionsButton.Toggle := true;
-  RenderDebugCaptionsButton.OnClick := @RenderDebugCaptionsButtonClick;
-  RenderDebugCaptionsButton.Left := ControlsMargin;
-  RenderDebugCaptionsButton.Bottom := NextButtonBottom;
-  Window.Controls.InsertFront(RenderDebugCaptionsButton);
-  NextButtonBottom += RenderDebugCaptionsButton.CalculatedHeight + ControlsMargin;
+  RenderDebugItemsButton := TCastleButton.Create(Application);
+  RenderDebugItemsButton.Caption := 'Items Debug Visualization';
+  RenderDebugItemsButton.Toggle := true;
+  RenderDebugItemsButton.OnClick := @RenderDebugItemsButtonClick;
+  RenderDebugItemsButton.Left := ControlsMargin;
+  RenderDebugItemsButton.Bottom := NextButtonBottom;
+  Window.Controls.InsertFront(RenderDebugItemsButton);
+  NextButtonBottom := NextButtonBottom + (RenderDebugItemsButton.CalculatedHeight + ControlsMargin);
 
   ScrenshotButton := TCastleButton.Create(Application);
   ScrenshotButton.Caption := 'Screenshot (F5)';
@@ -119,7 +120,7 @@ begin
   ScrenshotButton.Left := ControlsMargin;
   ScrenshotButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(ScrenshotButton);
-  NextButtonBottom += ScrenshotButton.CalculatedHeight + ControlsMargin;
+  NextButtonBottom := NextButtonBottom + (ScrenshotButton.CalculatedHeight + ControlsMargin);
 
   AddCreatureButton := TCastleButton.Create(Application);
   AddCreatureButton.Caption := 'Add creature (F9)';
@@ -127,7 +128,7 @@ begin
   AddCreatureButton.Left := ControlsMargin;
   AddCreatureButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddCreatureButton);
-  NextButtonBottom += AddCreatureButton.CalculatedHeight + ControlsMargin;
+  NextButtonBottom := NextButtonBottom + (AddCreatureButton.CalculatedHeight + ControlsMargin);
 
   AddItemButton := TCastleButton.Create(Application);
   AddItemButton.Caption := 'Add item (F10)';
@@ -135,7 +136,7 @@ begin
   AddItemButton.Left := ControlsMargin;
   AddItemButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AddItemButton);
-  NextButtonBottom += AddItemButton.CalculatedHeight + ControlsMargin;
+  NextButtonBottom := NextButtonBottom + (AddItemButton.CalculatedHeight + ControlsMargin);
 
   AttackButton := TCastleButton.Create(Application);
   AttackButton.Caption := 'Attack (Ctrl)';
@@ -143,7 +144,7 @@ begin
   AttackButton.Left := ControlsMargin;
   AttackButton.Bottom := NextButtonBottom;
   Window.Controls.InsertFront(AttackButton);
-  NextButtonBottom += AttackButton.CalculatedHeight + ControlsMargin;
+  NextButtonBottom := NextButtonBottom + (AttackButton.CalculatedHeight + ControlsMargin);
 end;
 
 procedure TButtons.ToggleMouseLookButtonClick(Sender: TObject);
@@ -157,16 +158,16 @@ begin
   Application.Terminate;
 end;
 
-procedure TButtons.RenderDebug3DButtonClick(Sender: TObject);
+procedure TButtons.RenderDebugCreaturesButtonClick(Sender: TObject);
 begin
-  RenderDebug3DButton.Pressed := not RenderDebug3DButton.Pressed;
-  RenderDebug3D := RenderDebug3DButton.Pressed;
+  RenderDebugCreaturesButton.Pressed := not RenderDebugCreaturesButton.Pressed;
+  TCreature.RenderDebug := RenderDebugCreaturesButton.Pressed;
 end;
 
-procedure TButtons.RenderDebugCaptionsButtonClick(Sender: TObject);
+procedure TButtons.RenderDebugItemsButtonClick(Sender: TObject);
 begin
-  RenderDebugCaptionsButton.Pressed := not RenderDebugCaptionsButton.Pressed;
-  RenderDebugCaptions := RenderDebugCaptionsButton.Pressed;
+  RenderDebugItemsButton.Pressed := not RenderDebugItemsButton.Pressed;
+  TItemOnWorld.RenderDebug := RenderDebugItemsButton.Pressed;
 end;
 
 procedure TButtons.ScreenshotButtonClick(Sender: TObject);
@@ -193,11 +194,16 @@ var
 begin
   Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Translation.Data[1] += 5;
+  Translation.Data[1] := Translation.Data[1] + 5;
   Direction := Player.Direction; { by default creature is facing back to player }
   CreatureResource := Resources.FindName('Knight') as TCreatureResource;
   { CreateCreature creates TCreature instance and adds it to SceneManager.Items }
   CreatureResource.CreateCreature(SceneManager.Items, Translation, Direction);
+
+  // update and show CreaturesSpawned
+  Inc(CreaturesSpawned);
+  AddCreatureButton.Caption := Format('Add creature (F9) (Spawned: %d)',
+    [CreaturesSpawned]);
 end;
 
 procedure TButtons.AddItemButtonClick(Sender: TObject);
@@ -207,7 +213,7 @@ var
 begin
   Translation := Player.Translation + Player.Direction * 10;
   { increase default height, as dropping from above looks better }
-  Translation.Data[1] += 5;
+  Translation.Data[1] := Translation.Data[1] + 5;
   ItemResource := Resources.FindName('MedKit') as TItemResource;
   { ItemResource.CreateItem(<quantity>) creates new TInventoryItem instance.
     PutOnWorld method creates TItemOnWorld (that "wraps" the TInventoryItem
@@ -253,7 +259,7 @@ begin
     (ContainerWidth, ContainerHeight) position is top-right corner.
     You can take font measurements by UIFont.RowHeight or UIFont.TextWidth
     to adjust initial position as needed. }
-  Y -= UIFont.RowHeight + ControlsMargin;
+  Y := Y - (UIFont.RowHeight + ControlsMargin);
   UIFont.Print(ControlsMargin, Y, Yellow,
     Format('Player life: %f / %f', [Player.Life, Player.MaxLife]));
 
@@ -261,7 +267,7 @@ begin
   UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
     Format('FPS: %f', [Window.Fps.RealTime]), hpRight, vpTop);
 
-  Y -= UIFont.RowHeight + InventoryImageSize;
+  Y := Y - (UIFont.RowHeight + InventoryImageSize);
 
   { Mark currently chosen item. You can change currently selected item by
     Input_InventoryPrevious, Input_InventoryNext (by default: [ ] keys or mouse
@@ -292,7 +298,7 @@ begin
     Player.Inventory[I].Resource.GLImage.Draw(X, Y);
     S := Player.Inventory[I].Resource.Caption;
     if Player.Inventory[I].Quantity <> 1 then
-      S += Format(' (%d)', [Player.Inventory[I].Quantity]);
+      S := S + Format(' (%d)', [Player.Inventory[I].Quantity]);
     UIFont.Print(X, Y - UIFont.RowHeight, Yellow, S);
   end;
 
@@ -375,7 +381,7 @@ type
   protected
     procedure Stack(var Item: TInventoryItem); override;
     procedure Use; override;
-    // procedure Picked(const NewOwner: T3DAliveWithInventory); override;
+    // procedure Picked(const NewOwner: TAliveWithInventory); override;
   end;
 
 function TMedKitResource.ItemClass: TInventoryItemClass;
@@ -412,7 +418,7 @@ end;
   Picked method. By default, it causes item to be added to inventory,
   but you could as well e.g. immediately increase player life and destroy item.
   Uncomment this method (and it's declaration in TMedKit class) to test it. }
-// procedure TMedKit.Picked(const NewOwner: T3DAliveWithInventory);
+// procedure TMedKit.Picked(const NewOwner: TAliveWithInventory);
 // begin
 //   Use;
 //   Free;

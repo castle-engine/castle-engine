@@ -329,12 +329,12 @@ begin
           mcDefaultColor:
             begin
               Assert(Arrays.HasDefaultColor);
-              { in this case, we must apply Arrays.DefaultColor as multiplier
-                to Shader.MaterialUnlit, overriding previous castle_UnlitColor setting.
-                This matters for rendering IndexedLineSet with Material that has only
-                emissiveColor (without IndexedLineSet.color per vertex).
-                We cannot pass Arrays.DefaultColor in any other way to shader now. }
-              CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Shader.MaterialUnlit * Arrays.DefaultColor);
+              { We apply Arrays.DefaultColor as Shader.MaterialUnlit,
+                overriding previous castle_UnlitColor setting.
+                Arrays.DefaultColor is in fact used with this intention
+                ("override unlit color") by PointSet and LineSet generators
+                in castlearraysgenerator_rendering.inc . }
+              CurrentMeshShader.UniformCastle_UnlitColor.SetValue(Arrays.DefaultColor);
             end;
         end;
 
@@ -902,7 +902,8 @@ begin
   begin
     if (Attributes.CustomShaderAlphaTest <> nil) and
        Renderer.FixedFunctionAlphaTest then
-      CurrentMeshShader := Attributes.CustomShaderAlphaTest else
+      CurrentMeshShader := Attributes.CustomShaderAlphaTest
+    else
       CurrentMeshShader := Attributes.CustomShader;
   end else
   begin

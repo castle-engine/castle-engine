@@ -102,7 +102,7 @@ void main(void)
 #ifdef COLOR_PER_VERTEX
     /* Apply COLOR_PER_VERTEX, when unlit.
        (When lit, then the analogous multiplication is done
-        inside template_mobile_add_light.glsl) */
+        inside template_light.glsl) */
     * castle_ColorPerVertex
 #endif
   ;

@@ -63,7 +63,7 @@
 '  /* PLUG: fragment_eye_space (castle_vertex_eye, normal_eye_fragment) */' + LineEnding +
 '' + LineEnding +
 '#ifdef LIT' + LineEnding +
-'  /* Comparing this with Gouraud shading (template_mobile.vs/fs:' + LineEnding +
+'  /* Comparing this with Gouraud shading (template_gouraud.vs/fs:' + LineEnding +
 '     this variable performs both the role of castle_Color and fragment_color' + LineEnding +
 '     from that GLSL code). */' + LineEnding +
 '  vec4 fragment_color;' + LineEnding +

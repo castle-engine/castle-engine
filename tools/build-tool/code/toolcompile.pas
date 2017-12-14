@@ -42,14 +42,11 @@ function CompilationOutputPath(const OS: TOS; const CPU: TCPU;
 function ModeToString(const M: TCompilationMode): string;
 function StringToMode(const S: string): TCompilationMode;
 
-const
-  DefaultFPCVersionForIPhoneSimulator = '3.0.3';
-
 var
-  { The -V3.0.3 parameter is necessary if you got FPC
+  { Should we use the -Vxxx parameter, that is necessary if you got FPC
     from the fpc-3.0.3.intel-macosx.cross.ios.dmg
     (official "FPC for iOS" installation). }
-  FPCVersionForIPhoneSimulator: string = DefaultFPCVersionForIPhoneSimulator;
+  FPCVersionForIPhoneSimulator: string = 'auto';
 
 implementation
 
@@ -115,13 +112,35 @@ type
     class var
       IsCached: boolean;
       CachedValue: string;
+    class function AutoDetect(const FPCVer: TFPCVersion): string; static;
   public
     { Return FPCVersionForIPhoneSimulator, but the 1st time this is run,
       we check and optionally change the returned value to something better. }
-    class function Value: string; static;
+    class function Value(const FPCVer: TFPCVersion): string; static;
   end;
 
-class function TFPCVersionForIPhoneSimulatorChecked.Value: string; static;
+class function TFPCVersionForIPhoneSimulatorChecked.AutoDetect(
+  const FPCVer: TFPCVersion): string; static;
+begin
+  if (not Odd(FPCVer.Minor)) and
+     (not Odd(FPCVer.Release)) then
+  begin
+    { If we have a stable FPC version (like 3.0.0, 3.0.2, 3.0.4...)
+      then for iPhone Simulator pass -V with release bumped +1
+      (making it 3.0.1, 3.0.3, 3.0.5...). }
+    Result := Format('%d.%d.%d', [
+      FPCVer.Major,
+      FPCVer.Minor,
+      FPCVer.Release + 1]);
+    Writeln('Auto-detected FPC version for iPhone Simulator as ' + Result);
+  end else
+    { In other cases, do not pass any -Vxxx for iPhone Simulator.
+      This is OK for FPC 3.1.1 from FPC SVN. }
+    Result := '';
+end;
+
+class function TFPCVersionForIPhoneSimulatorChecked.Value(
+  const FPCVer: TFPCVersion): string; static;
 var
   FpcOutput, FpcExe: string;
   FpcExitStatus: Integer;
@@ -131,6 +150,9 @@ begin
     CachedValue := FPCVersionForIPhoneSimulator;
     IsCached := true;
 
+    if CachedValue = 'auto' then
+      CachedValue := AutoDetect(FPCVer);
+
     if CachedValue <> '' then
     begin
       FpcExe := FindExe('fpc');
@@ -139,7 +161,7 @@ begin
       MyRunCommandIndir(GetCurrentDir, FpcExe, ['-V' + CachedValue, '-iV'], FpcOutput, FpcExitStatus);
       if FpcExitStatus <> 0 then
       begin
-        WritelnWarning('Failed to execute FPC with "-V' + CachedValue + '" option, indicating that --fpc-version-iphone-simulator value is invalid.' + NL +
+        WritelnWarning('Failed to execute FPC with "-V' + CachedValue + '" option, indicating that using this option for iPhone Simulator is invalid.' + NL +
           '  We will continue assuming that --fpc-version-iphone-simulator is empty (using normal FPC version to compile for iPhone Simulator).' + NL +
           '  Call with the correct --fpc-version-iphone-simulator on the command-line to get rid of this warning.');
         CachedValue := '';
@@ -193,6 +215,7 @@ procedure Compile(const OS: TOS; const CPU: TCPU; const Plugin: boolean;
   const SearchPaths, ExtraOptions: TStrings);
 var
   CastleEnginePath, CastleEngineSrc: string;
+  FPCVer: TFPCVersion;
   FpcOptions: TCastleStringList;
 
   procedure AddEnginePath(Path: string);
@@ -232,14 +255,16 @@ var
   {$endif}
   var
     IOS: boolean;
+    VersionForSimulator: string;
   begin
     IOS := false;
 
     if OS = iphonesim then
     begin
       IOS := true;
-      if TFPCVersionForIPhoneSimulatorChecked.Value <> '' then
-        FpcOptions.Add('-V' + TFPCVersionForIPhoneSimulatorChecked.Value);
+      VersionForSimulator := TFPCVersionForIPhoneSimulatorChecked.Value(FPCVer);
+      if VersionForSimulator <> '' then
+        FpcOptions.Add('-V' + VersionForSimulator);
       {$ifdef DARWIN}
       FpcOptions.Add('-XR' + SimulatorSdk);
       {$endif}
@@ -310,7 +335,6 @@ var
 var
   FpcOutput, CastleEngineSrc1, CastleEngineSrc2, CastleEngineSrc3, FpcExe: string;
   FpcExitStatus: Integer;
-  FPCVer: TFPCVersion;
 begin
   FPCVer := FPCVersion;
 

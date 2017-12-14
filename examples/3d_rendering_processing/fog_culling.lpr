@@ -13,19 +13,14 @@
   ----------------------------------------------------------------------------
 }
 
-{ Demo of fog culling. When rendering with fog turned "on" (the default),
-  we do not render objects outside of the fog visibility radius.
-  This can make a hude speedup if you have dense fog and exterior-like level
-  (where frustum culing leaves too many shapes visible).
+{ Demo of TCastleScene.DistanceCulling, especially useful when you have fog.
+  We can avoid rendering objects that are too far to be visible (covered by fog).
+  It's a useful optimization when you have a dense fog,
+  and you have a background that has the same color as the fog.
 
-  This always loads data/fog_culling_final.x3dv X3D file.
-  Be sure to run it with proper current directory (examples/3d_rendering_processing/).
-  It's a crafted scene, with some green and dense fog and a lot of
-  spheres scattered around. Fog culling will work best on it.
+  This loads data/fog_culling_final.x3dv X3D file.
 
-  Handles keys:
-    'f' turns fog culling on/off
-    F5 makes a screenshot
+  Press [F] key to turn DistanceCulling (and fog display) on/off.
 }
 
 program fog_culling;
@@ -40,32 +35,8 @@ uses SysUtils, CastleVectors, CastleWindow, CastleStringUtils,
   CastleApplicationProperties, CastleControls, CastleColors;
 
 var
-  Window: TCastleWindowCustom;
+  Window: TCastleWindow;
   Scene: TCastleScene;
-
-type
-  TMySceneManager = class(TCastleSceneManager)
-  private
-    function TestFogVisibility(Shape: TShape): boolean;
-  end;
-
-var
-  SceneManager: TMySceneManager;
-
-function TMySceneManager.TestFogVisibility(Shape: TShape): boolean;
-begin
-  { Test for collision between two spheres.
-    1st is the bounding sphere of Shape.
-    2nd is the sphere around current camera position,
-      with the radius taken from fog scaled visibilityRadius.
-    If there is no collision than we don't have to render given Shape. }
-  Result := PointsDistanceSqr(Shape.BoundingSphereCenter, Camera.Position) <=
-      Sqr(Scene.FogStack.Top.VisibilityRange *
-          Scene.FogStack.Top.TransformScale +
-        Sqrt(Shape.BoundingSphereRadiusSqr));
-end;
-
-var
   FogCulling: boolean;
 
 procedure Press(Container: TUIContainer; const Event: TInputPressRelease);
@@ -75,22 +46,17 @@ begin
   if Event.IsKey(K_F) then
   begin
     FogCulling := not FogCulling;
-
+    FogNode := Scene.FogStack.Top;
     if FogCulling then
-      Scene.InternalVisibilityTest := @SceneManager.TestFogVisibility
-    else
-      Scene.InternalVisibilityTest := nil;
-
-    { Also, turn on/off actual fog on the model (if any).
-      We do it by changing Fog.VisibilityRange (0 means no fog). }
-    FogNode := Scene.FogStack.Top as TFogNode;
-    if FogNode <> nil then
-      if FogCulling then
-        FogNode.VisibilityRange := 30
-      else
-        FogNode.VisibilityRange := 0;
-
-    Window.Invalidate;
+    begin
+      FogNode.VisibilityRange := 30;
+      Scene.DistanceCulling := FogNode.VisibilityRange * FogNode.TransformScale
+    end else
+    begin
+      // setting VisibilityRange to 0 turns off fog display
+      FogNode.VisibilityRange := 0;
+      Scene.DistanceCulling := 0;
+    end;
   end;
 end;
 
@@ -100,8 +66,8 @@ begin
   UIFont.OutlineColor := Black;
   UIFont.PrintStrings(10, 10, Yellow,
     [ Format('Rendered Shapes: %d / %d',
-       [SceneManager.Statistics.ShapesRendered,
-        SceneManager.Statistics.ShapesVisible]),
+       [Window.SceneManager.Statistics.ShapesRendered,
+        Window.SceneManager.Statistics.ShapesVisible]),
       Format('Fog culling: %s (toggle using the "F" key)',
        [BoolToStr(FogCulling, true)])
     ], false, 0);
@@ -110,16 +76,13 @@ end;
 begin
   Parameters.CheckHigh(0);
 
-  Window := TCastleWindowCustom.Create(Application);
-
-  SceneManager := TMySceneManager.Create(Application);
-  Window.Controls.InsertFront(SceneManager);
+  Window := TCastleWindow.Create(Application);
 
   Scene := TCastleScene.Create(Application);
   Scene.Load(ApplicationData('fog_culling_final.x3dv'));
   Scene.Spatial := [ssRendering, ssDynamicCollisions];
-  SceneManager.MainScene := Scene;
-  SceneManager.Items.Add(Scene);
+  Window.SceneManager.MainScene := Scene;
+  Window.SceneManager.Items.Add(Scene);
 
   // fake pressing "F" to turn on FogCulling correctly
   Press(nil, InputKey(TVector2.Zero, K_F, #0));

@@ -43,22 +43,31 @@ Compiling
 
 Get Lazarus ( http://www.lazarus.freepascal.org/ )
 and install in Lazarus two packages:
+
 - packages/castle_base.lpk and
 - packages/castle_components.lpk
+
 Also, compile (but don't install) this package:
+
 - packages/castle_window.lpk
-Then you can compile all the examples by opening their .lpi files
+
+Now you can compile and run all the examples by opening their .lpi files
 and running them as usual from Lazarus.
 
-If you use bare FPC and the command-line, you can:
-
-- Use xxx_compile.sh scripts to compile particular programs using FPC.
-  Use "make examples" in the top engine directory to simply compile
-  all the examples.
+If you prefer to use bare FPC and the command-line, you can:
 
 - Use the build tool to compile various examples and your own games
   for many plaforms:
-  https://github.com/castle-engine/castle-engine/wiki/Build-Tool
+  https://github.com/castle-engine/castle-engine/wiki/Build-Tool .
+
+    It relies on the existence of [CastleEngineManifest.xml](https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples)
+    file inside your project. The build tool allows to comfortably
+    compile and package your game for various platforms,
+    including Android and iOS.
+
+- Or use `xxx_compile.sh` scripts to compile particular programs using FPC.
+  Use `make examples` in the top engine directory to simply compile
+  all the examples.
 
 See the "Getting Started" page on
 https://castle-engine.sourceforge.io/documentation.php

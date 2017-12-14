@@ -147,7 +147,9 @@ procedure RenderMaterialsBegin;
         { Colors for lighting don't matter here }
         WhiteRGB, WhiteRGB, WhiteRGB, WhiteRGB,
         { From VRML 2.0 spec about Appearance node: when no Material is
-          specified, object is unlit and unlit object color is (1, 1, 1). }
+          specified, object is unlit and unlit object color is (1, 1, 1).
+          X3D spec also hints (at Material node) that
+          Material = NULL makes "unlit white color".  }
         WhiteRGB,
         { shininess } 0, { opacity } 1);
     end;

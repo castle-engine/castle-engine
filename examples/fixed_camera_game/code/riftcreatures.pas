@@ -30,7 +30,7 @@ interface
 uses SysUtils, Classes, Generics.Collections,
   CastleUtils, CastleClassUtils, CastleScene,
   CastleVectors, CastleTransform, CastleFrustum, CastleApplicationProperties,
-  CastleTimeUtils, X3DNodes, CastleColors, CastleDebug3D,
+  CastleTimeUtils, X3DNodes, CastleColors, CastleDebugTransform,
   RiftWindow, RiftGame, RiftLoadable;
 
 type
@@ -54,7 +54,7 @@ type
     Animations: array [TCreatureState] of TCreatureAnimation;
     FReceiveShadowVolumes: boolean;
   protected
-    procedure LoadInternal(const BaseLights: TLightInstancesList); override;
+    procedure LoadInternal(const PrepareParams: TPrepareParams); override;
     procedure UnLoadInternal; override;
   public
     constructor Create(const AName: string);
@@ -79,14 +79,14 @@ type
 
   TCreatureKindList = class({$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCreatureKind>)
   public
-    procedure Load(const BaseLights: TLightInstancesList);
+    procedure Load(const PrepareParams: TPrepareParams);
     procedure UnLoad;
   end;
 
   TCreature = class(TCastleTransform)
   private
     FKind: TCreatureKind;
-    FDebug3D: TDebug3D;
+    FDebugTransform: TDebugTransform;
     FState: TCreatureState;
     CurrentChild: TCastleTransform;
     procedure SetState(const Value: TCreatureState);
@@ -187,7 +187,7 @@ begin
   Result := inherited LoadSteps + Ord(High(TCreatureState)) + 1;
 end;
 
-procedure TCreatureKind.LoadInternal(const BaseLights: TLightInstancesList);
+procedure TCreatureKind.LoadInternal(const PrepareParams: TPrepareParams);
 var
   S: TCreatureState;
 begin
@@ -209,7 +209,7 @@ begin
     //Animations[S].Animation.ReceiveShadowVolumes := ReceiveShadowVolumes;
     Animations[S].Animation.Load(Animations[S].URL);
     Animations[S].Animation.PrepareResources(
-      [prRender, prBoundingBox, prShadowVolume], false, BaseLights);
+      [prRender, prBoundingBox, prShadowVolume], false, PrepareParams);
     Animations[S].Duration := Animations[S].Animation.AnimationDuration('animation');
     Progress.Step;
 
@@ -232,7 +232,7 @@ end;
 
 { TCreatureKindList -------------------------------------------------------- }
 
-procedure TCreatureKindList.Load(const BaseLights: TLightInstancesList);
+procedure TCreatureKindList.Load(const PrepareParams: TPrepareParams);
 var
   I: Integer;
   ProgressCount: Cardinal;
@@ -247,7 +247,7 @@ begin
   Progress.Init(ProgressCount, 'Loading creatures');
   try
     for I := 0 to Count - 1 do
-      Items[I].Load(BaseLights);
+      Items[I].Load(PrepareParams);
   finally Progress.Fini end;
 
   WritelnLog('Creatures', Format('Creatures loading time: %f seconds',
@@ -276,8 +276,8 @@ begin
 
   RandomizeStandTimeToBeBored;
 
-  FDebug3D := TDebug3D.Create(Self);
-  FDebug3D.Attach(Self);
+  FDebugTransform := TDebugTransform.Create(Self);
+  FDebugTransform.Attach(Self);
 end;
 
 procedure TCreature.RandomizeStandTimeToBeBored;
@@ -368,7 +368,7 @@ procedure TCreature.Update(const SecondsPassed: Single; var RemoveMe: TRemoveTyp
 begin
   inherited;
 
-  FDebug3D.Exists := DebugRenderBoundingGeometry;
+  FDebugTransform.Exists := DebugRenderBoundingGeometry;
 
   if ScheduledTransitionBegin then
   begin
@@ -419,8 +419,8 @@ constructor TPlayer.Create(AKind: TCreatureKind);
 begin
   inherited;
   CreateTargetVisualize;
-  FDebug3D.WorldSpace.AddChildren(FTargetVisualize);
-  FDebug3D.ChangedScene;
+  FDebugTransform.WorldSpace.AddChildren(FTargetVisualize);
+  FDebugTransform.ChangedScene;
 end;
 
 destructor TPlayer.Destroy;
@@ -506,7 +506,7 @@ begin
   { Update children 3D objects *after* updating our own transformation,
     this way they are always synchronized when displaying.
     Otherwise, the FTargetVisualize would have a bit of "shaking",
-    because the TDebug3D transformation would be updated with 1-frame delay. }
+    because the TDebugTransform transformation would be updated with 1-frame delay. }
   inherited;
 end;
 

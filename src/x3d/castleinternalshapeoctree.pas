@@ -60,20 +60,20 @@ type
     function LocalSphereCollision(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     function LocalSphereCollision2D(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     function LocalPointCollision2D(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     function LocalBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     function LocalSegmentCollision(
       out Intersection: TVector3;
@@ -83,7 +83,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 
     function LocalRayCollision(
       out Intersection: TVector3;
@@ -93,27 +93,27 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
   protected
     procedure PutItemIntoSubNodes(ItemIndex: integer); override;
 
     function CommonSphereLeaf(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function CommonSphere2DLeaf(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function CommonPoint2DLeaf(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function CommonBoxLeaf(const ABox: TBox3D;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function CommonSegmentLeaf(
       out Intersection: TVector3;
@@ -123,7 +123,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function CommonRayLeaf(
       out Intersection: TVector3;
@@ -133,7 +133,7 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
   public
     function ParentTree: TShapeOctree;
     function ParentNode: TShapeOctreeNode;
@@ -141,38 +141,38 @@ type
     function SphereCollision(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function IsSphereCollision(const pos: TVector3;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
 
     function SphereCollision2D(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function IsSphereCollision2D(const pos: TVector2;
       const Radius: Single;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
 
     function PointCollision2D(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function IsPointCollision2D(const Point: TVector2;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
 
     function BoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function IsBoxCollision(const ABox: TBox3D;
       const TriangleToIgnore: PTriangle;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
 
     function SegmentCollision(
       out Intersection: TVector3;
@@ -182,14 +182,14 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function IsSegmentCollision(
       const Pos1, Pos2: TVector3;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
 
     function RayCollision(
       out Intersection: TVector3;
@@ -199,14 +199,14 @@ type
       const ReturnClosestIntersection: boolean;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle; override;
 
     function IsRayCollision(
       const RayOrigin, RayDirection: TVector3;
       const Tag: TMailboxTag;
       const TriangleToIgnore: PTriangle;
       const IgnoreMarginAtStart: boolean;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
 
   public
     { For Hierarchical Occlusion Culling }
@@ -278,7 +278,7 @@ end;
 function TShapeOctreeNode.CommonSphereLeaf(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
@@ -306,7 +306,7 @@ end;
 function TShapeOctreeNode.LocalSphereCollision(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonSphere(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
@@ -314,7 +314,7 @@ end;
 function TShapeOctreeNode.SphereCollision(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
@@ -325,7 +325,7 @@ end;
 function TShapeOctreeNode.IsSphereCollision(const Pos: TVector3;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := LocalSphereCollision(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
@@ -334,7 +334,7 @@ end;
 function TShapeOctreeNode.CommonSphere2DLeaf(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
@@ -360,7 +360,7 @@ end;
 function TShapeOctreeNode.LocalSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonSphere2D(pos, Radius, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
@@ -368,7 +368,7 @@ end;
 function TShapeOctreeNode.SphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalSphereCollision2D(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc);
@@ -379,7 +379,7 @@ end;
 function TShapeOctreeNode.IsSphereCollision2D(const Pos: TVector2;
   const Radius: Single;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := LocalSphereCollision2D(Pos, Radius, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
@@ -387,7 +387,7 @@ end;
 
 function TShapeOctreeNode.CommonPoint2DLeaf(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
@@ -410,14 +410,14 @@ end;
 
 function TShapeOctreeNode.LocalPointCollision2D(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonPoint2D(Point, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
 function TShapeOctreeNode.PointCollision2D(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalPointCollision2D(Point, TriangleToIgnore,
     TrianglesToIgnoreFunc);
@@ -427,7 +427,7 @@ end;
 
 function TShapeOctreeNode.IsPointCollision2D(const Point: TVector2;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := LocalPointCollision2D(Point, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
@@ -435,7 +435,7 @@ end;
 
 function TShapeOctreeNode.CommonBoxLeaf(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
@@ -460,14 +460,14 @@ end;
 
 function TShapeOctreeNode.LocalBoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonBox(ABox, TriangleToIgnore, TrianglesToIgnoreFunc);
 end;
 
 function TShapeOctreeNode.BoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalBoxCollision(ABox, TriangleToIgnore,
     TrianglesToIgnoreFunc);
@@ -477,7 +477,7 @@ end;
 
 function TShapeOctreeNode.IsBoxCollision(const ABox: TBox3D;
   const TriangleToIgnore: PTriangle;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 begin
   Result := LocalBoxCollision(ABox, TriangleToIgnore,
     TrianglesToIgnoreFunc) <> nil;
@@ -491,7 +491,7 @@ function TShapeOctreeNode.CommonSegmentLeaf(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
@@ -566,7 +566,7 @@ function TShapeOctreeNode.LocalSegmentCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonSegment(
     Intersection, IntersectionDistance, Pos1, Pos2,
@@ -583,7 +583,7 @@ function TShapeOctreeNode.SegmentCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalSegmentCollision(
     Intersection, IntersectionDistance, Pos1, Pos2,
@@ -607,7 +607,7 @@ function TShapeOctreeNode.IsSegmentCollision(
   const Tag: TMailboxTag;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 var
   { We just ignore returned Intersection, IntersectionDistance }
   Intersection: TVector3;
@@ -628,7 +628,7 @@ function TShapeOctreeNode.CommonRayLeaf(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 var
   I: Integer;
   Shape: TShape;
@@ -704,7 +704,7 @@ function TShapeOctreeNode.LocalRayCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := CommonRay(
     Intersection, IntersectionDistance, RayOrigin, RayDirection,
@@ -721,7 +721,7 @@ function TShapeOctreeNode.RayCollision(
   const ReturnClosestIntersection: boolean;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): PTriangle;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): PTriangle;
 begin
   Result := LocalRayCollision(Intersection, IntersectionDistance,
     RayOrigin, RayDirection,
@@ -745,7 +745,7 @@ function TShapeOctreeNode.IsRayCollision(
   const Tag: TMailboxTag;
   const TriangleToIgnore: PTriangle;
   const IgnoreMarginAtStart: boolean;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
 var
   { We just ignore returned Intersection, IntersectionDistance }
   Intersection: TVector3;

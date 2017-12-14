@@ -22,7 +22,7 @@ unit CastleResources;
 interface
 
 uses Classes, DOM, Generics.Collections,
-  CastleVectors, CastleXMLConfig, CastleTimeUtils,
+  CastleVectors, CastleXMLConfig, CastleTimeUtils, CastleFrustum,
   CastleScene, X3DNodes, CastleTransform, CastleBoxes, CastleFindFiles;
 
 type
@@ -38,8 +38,13 @@ type
     FDuration: Single;
     FURL: string;
     FAnimationName: string;
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const DoProgress: boolean);
+
+    LastForcedScene: TCastleScene;
+    LastForcedAnimationName: string;
+    LastForcedLoop: boolean;
+    LastForcedActualTime: TFloatTime;
+
+    procedure Prepare(const Params: TPrepareParams; const DoProgress: boolean);
     procedure Release;
     procedure LoadFromFile(ResourceConfig: TCastleConfig);
     property Owner: T3DResource read FOwner;
@@ -105,6 +110,28 @@ type
     function FindName(const AName: string): T3DResourceAnimation;
   end;
 
+  { Display a specified frame of the specified animation.
+    This is reliable even when multiple TResourceFrame request different frames
+    from the same animation. }
+  TResourceFrame = class(TCastleTransform)
+  strict private
+    FAnimation: T3DResourceAnimation;
+    FTime: TFloatTime;
+    FLoop: boolean;
+    CurrentChild: TCastleScene;
+  protected
+    procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
+  public
+    property Animation: T3DResourceAnimation read FAnimation;
+    { Time within the ResourceAnimation. }
+    property Time: TFloatTime read FTime;
+    { Should we loop within ResourceAnimation. }
+    property Loop: boolean read FLoop;
+    { Set which animation and animation frame to display. }
+    procedure SetFrame(const AnAnimation: T3DResourceAnimation;
+      const ATime: TFloatTime; const ALoop: boolean);
+  end;
+
   { Resource used for rendering and processing of 3D objects.
     By itself this doesn't render or do anything.
     But some 3D objects may need to have such resource prepared to work.
@@ -154,7 +181,7 @@ type
       This allows to make nice progress bar in @link(Prepare).
       In this class, PrepareCoreSteps returns 0.
       @groupBegin }
-    procedure PrepareCore(const BaseLights: TAbstractLightInstancesList;
+    procedure PrepareCore(const Params: TPrepareParams;
       const DoProgress: boolean); virtual;
     function PrepareCoreSteps: Cardinal; virtual;
     procedure ReleaseCore; virtual;
@@ -195,7 +222,7 @@ type
     { Release and then immediately prepare again this resource.
       Call only when UsageCount <> 0, that is when resource is prepared.
       Shows nice progress bar, using @link(Progress). }
-    procedure RedoPrepare(const BaseLights: TAbstractLightInstancesList);
+    procedure RedoPrepare(const Params: TPrepareParams);
 
     { How many times this resource is used. Used by Prepare and Release:
       actual allocation / deallocation happens when this raises from zero
@@ -215,34 +242,20 @@ type
 
       Show nice progress bar, using @link(Progress).
 
-      @param(BaseLights
-        Base lights include a headlight, or global lights that shine on all
-        3D scenes (see @link(TCastleAbstractViewport.UseGlobalLights)).
-
-        You can usually take them from @link(TCastleAbstractViewport.BaseLights),
-        usually by a simple @code(SceneManager.BaseLights) call
-        (as the scene manager, @link(TCastleSceneManager), is a descedant
-        of @link(TCastleAbstractViewport)).
-
-        It is not necessary to define this parameter (you can pass @nil).
-        And all the lighting is dynamic, so of course you can always
-        turn on / off things like a headlight during the game.
-        However, passing here the appropriate lights will mean that the shaders
-        are immediately prepared for the current lighting.
-
-        See @link(T3D.PrepareResources) for more comments.)
+      @param(Params
+        World parameters to prepare for.
+        See @link(TCastleTransform.PrepareResources) for more comments.)
 
       @groupBegin }
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
-      const GravityUp: TVector3);
+    procedure Prepare(const Params: TPrepareParams; const GravityUp: TVector3);
       deprecated 'use Prepare overload without the GravityUp parameter';
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList = nil);
+    procedure Prepare(const Params: TPrepareParams);
     procedure Release;
     { @groupEnd }
 
     { Place an instance of this resource on World, using information
       from the placeholder on the level. }
-    procedure InstantiatePlaceholder(World: T3DWorld;
+    procedure InstantiatePlaceholder(World: TSceneManagerWorld;
       const APosition, ADirection: TVector3;
       const NumberPresent: boolean; const Number: Int64); virtual; abstract;
 
@@ -375,7 +388,7 @@ type
 
     { Prepare / release all resources on list.
       @groupBegin }
-    procedure Prepare(const BaseLights: TAbstractLightInstancesList;
+    procedure Prepare(const Params: TPrepareParams;
       const ResourcesName: string = 'resources');
     procedure Release;
     { @groupEnd }
@@ -437,27 +450,68 @@ begin
   AOwner.Animations.Add(Self);
 end;
 
+{ $define STATISTICS_FORCING_OPTIMIZATION}
+{$ifdef STATISTICS_FORCING_OPTIMIZATION}
+var
+  Necessary, Avoided: Int64;
+{$endif}
+
 function T3DResourceAnimation.Scene(const Time: TFloatTime;
   const Loop: boolean): TCastleScene;
 var
   Looping: TPlayAnimationLooping;
   GoodAnimationName: string;
+  ActualTime: TFloatTime;
+  ForceNecessary: boolean;
 begin
   if FSceneForAnimation <> nil then
-    Result := FSceneForAnimation else
+    Result := FSceneForAnimation
+  else
   if Owner.Model <> nil then
-    Result := Owner.Model else
+    Result := Owner.Model
+  else
     Result := nil;
 
   if Result <> nil then
   begin
     if AnimationName <> '' then
-      GoodAnimationName := AnimationName else
+      GoodAnimationName := AnimationName
+    else
       GoodAnimationName := TNodeInterpolator.DefaultAnimationName;
     if Loop then
-      Looping := paForceLooping else
+      Looping := paForceLooping
+    else
       Looping := paForceNotLooping;
-    Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+    // calculate Time with looping/clamping applied
+    if Loop then
+      ActualTime := FloatModulo(Time, Duration)
+    else
+      ActualTime := Clamped(Time, 0, Duration);
+
+    // call (costly) ForceAnimationPose only if necessary
+    ForceNecessary :=
+      (LastForcedScene <> Result) or
+      (LastForcedAnimationName <> AnimationName) or
+      (LastForcedLoop <> Loop) or
+      (LastForcedActualTime <> ActualTime);
+    if ForceNecessary then
+    begin
+      LastForcedScene := Result;
+      LastForcedAnimationName := AnimationName;
+      LastForcedLoop := Loop;
+      LastForcedActualTime := ActualTime;
+      Result.ForceAnimationPose(GoodAnimationName, Time, Looping);
+    end;
+
+    {$ifdef STATISTICS_FORCING_OPTIMIZATION}
+    if ForceNecessary then
+      Inc(Necessary)
+    else
+      Inc(Avoided);
+    if (Necessary + Avoided) mod 100 = 0 then
+      WritelnLog('T3DResourceAnimation.Scene forcing optimization: %d necessary vs %d avoided => %f fraction of work avoided',
+        [Necessary, Avoided, Avoided / (Necessary + Avoided)]);
+    {$endif}
   end;
 end;
 
@@ -476,7 +530,7 @@ begin
   Result := (URL <> '') or (AnimationName <> '');
 end;
 
-procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResourceAnimation.Prepare(const Params: TPrepareParams;
   const DoProgress: boolean);
 
   { Prepare 3D resource loading it from given URL.
@@ -497,7 +551,7 @@ procedure T3DResourceAnimation.Prepare(const BaseLights: TAbstractLightInstances
 
     if Scene <> nil then
       Scene.PrepareResources([prRender, prBoundingBox, prShadowVolume],
-        false, BaseLights);
+        false, Params);
     if DoProgress then Progress.Step;
   end;
 
@@ -560,6 +614,43 @@ begin
   raise Exception.CreateFmt('No resource animation named "%s"', [AName]);
 end;
 
+{ TResourceFrame ------------------------------------------------------------- }
+
+procedure TResourceFrame.LocalRender(const Frustum: TFrustum; const Params: TRenderParams);
+
+  procedure UpdateChild;
+  var
+    NewChild: TCastleScene;
+  begin
+    if (FAnimation <> nil) and FAnimation.FOwner.Prepared then
+      NewChild := FAnimation.Scene(FTime, FLoop)
+    else
+      NewChild := nil;
+
+    if CurrentChild <> NewChild then
+    begin
+      if CurrentChild <> nil then
+        Remove(CurrentChild);
+      CurrentChild := NewChild;
+      if CurrentChild <> nil then
+        Add(CurrentChild);
+    end;
+  end;
+
+begin
+  // before rendering, set correct child
+  UpdateChild;
+  inherited;
+end;
+
+procedure TResourceFrame.SetFrame(const AnAnimation: T3DResourceAnimation;
+  const ATime: TFloatTime; const ALoop: boolean);
+begin
+  FAnimation := AnAnimation;
+  FTime := ATime;
+  FLoop := ALoop;
+end;
+
 { T3DResource ---------------------------------------------------------------- }
 
 constructor T3DResource.Create(const AName: string);
@@ -581,13 +672,13 @@ begin
   inherited;
 end;
 
-procedure T3DResource.PrepareCore(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResource.PrepareCore(const Params: TPrepareParams;
   const DoProgress: boolean);
 var
   I: Integer;
 begin
   for I := 0 to Animations.Count - 1 do
-    Animations[I].Prepare(BaseLights, DoProgress);
+    Animations[I].Prepare(Params, DoProgress);
 end;
 
 function T3DResource.PrepareCoreSteps: Cardinal;
@@ -628,7 +719,7 @@ begin
     Animations[I].LoadFromFile(ResourceConfig);
 end;
 
-procedure T3DResource.RedoPrepare(const BaseLights: TAbstractLightInstancesList);
+procedure T3DResource.RedoPrepare(const Params: TPrepareParams);
 var
   DoProgress: boolean;
 begin
@@ -645,27 +736,27 @@ begin
       So we should call Progress.Init before we make outselves unprepared. }
     FPrepared := false;
     ReleaseCore;
-    PrepareCore(BaseLights, DoProgress);
+    PrepareCore(Params, DoProgress);
     FPrepared := true;
   finally
     if DoProgress then Progress.Fini;
   end;
 end;
 
-procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResource.Prepare(const Params: TPrepareParams;
   const GravityUp: TVector3);
 begin
-  Prepare(BaseLights);
+  Prepare(Params);
 end;
 
-procedure T3DResource.Prepare(const BaseLights: TAbstractLightInstancesList);
+procedure T3DResource.Prepare(const Params: TPrepareParams);
 var
   List: T3DResourceList;
 begin
   List := T3DResourceList.Create(false);
   try
     List.Add(Self);
-    List.Prepare(BaseLights);
+    List.Prepare(Params);
   finally FreeAndNil(List) end;
 end;
 
@@ -810,7 +901,7 @@ begin
   end;
 end;
 
-procedure T3DResourceList.Prepare(const BaseLights: TAbstractLightInstancesList;
+procedure T3DResourceList.Prepare(const Params: TPrepareParams;
   const ResourcesName: string);
 var
   I: Integer;
@@ -854,7 +945,7 @@ begin
             WritelnLog('Resources', Format(
               'Resource "%s" becomes used, preparing', [Resource.Name]));
           Assert(not Resource.Prepared);
-          Resource.PrepareCore(BaseLights, DoProgress);
+          Resource.PrepareCore(Params, DoProgress);
           Resource.FPrepared := true;
         end;
       end;

@@ -124,12 +124,16 @@
     {$I auto_generated_node_helpers/x3dnodes_x3dviewpointnode.inc}
   end;
 
+  TCameraVectors = record
+    Position, Direction, Up: TVector3;
+  end;
+
   { Grouping node that transforms the coordinate system of its children
     so that they always turn towards the viewer. }
   TBillboardNode = class(TAbstractX3DGroupingNode, ITransformNode)
   strict private
-    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
-    FCameraViewKnown: boolean;
+    FCameraVectors: TCameraVectors;
+    FCameraVectorsKnown: boolean;
   protected
     function DirectEnumerateActive(Func: TEnumerateChildrenFunction): Pointer; override;
     procedure ApplyTransform(State: TX3DGraphTraverseState); override;
@@ -139,12 +143,7 @@
     class function URNMatching(const URN: string): boolean; override;
     function TransformationChange: TNodeTransformationChange; override;
 
-    property CameraViewKnown: boolean read FCameraViewKnown;
-    property CameraPosition: TVector3 read FCameraPosition;
-    property CameraDirection: TVector3 read FCameraDirection;
-    property CameraUp: TVector3 read FCameraUp;
-
-    procedure CameraChanged(const APosition, ADirection, AUp: TVector3);
+    procedure CameraChanged(const ACameraVectors: TCameraVectors);
 
     strict private FFdAxisOfRotation: TSFVec3f;
     public property FdAxisOfRotation: TSFVec3f read FFdAxisOfRotation;
@@ -667,13 +666,13 @@ var
   PlaneAxis: TVector4;
   PlaneAxisDir: TVector3 absolute PlaneAxis;
 begin
-  if CameraViewKnown then
+  if FCameraVectorsKnown then
   begin
     if FdAxisOfRotation.Value.IsPerfectlyZero then
     begin
-      LocalDirection := State.InvertedTransform.MultDirection(FCameraDirection);
-      LocalUp        := State.InvertedTransform.MultDirection(FCameraUp);
-      { although FCameraDirection/Up are for sure normalized and orthogonal,
+      LocalDirection := State.InvertedTransform.MultDirection(FCameraVectors.Direction);
+      LocalUp        := State.InvertedTransform.MultDirection(FCameraVectors.Up);
+      { although FCameraVectors.Direction/Up are for sure normalized and orthogonal,
         but State.InvertedTransform may contain scaling,
         so be sure to normalize again the result.
         For safety, also call MakeVectorsOrthoOnTheirPlane. }
@@ -690,8 +689,8 @@ begin
       State.InvertedTransform := IM * State.InvertedTransform;
     end else
     begin
-      { vector from node origin to CameraPosition, in local coords }
-      BillboardToViewer := State.InvertedTransform.MultPoint(CameraPosition);
+      { vector from node origin to FCameraVectors.Position, in local coords }
+      BillboardToViewer := State.InvertedTransform.MultPoint(FCameraVectors.Position);
 
       { plane of axisOfRotation }
       PlaneAxisDir := FdAxisOfRotation.Value;
@@ -736,13 +735,10 @@ begin
   end;
 end;
 
-procedure TBillboardNode.CameraChanged(
-  const APosition, ADirection, AUp: TVector3);
+procedure TBillboardNode.CameraChanged(const ACameraVectors: TCameraVectors);
 begin
-  FCameraViewKnown := true;
-  FCameraPosition := APosition;
-  FCameraDirection := ADirection;
-  FCameraUp := AUp;
+  FCameraVectorsKnown := true;
+  FCameraVectors := ACameraVectors;
 end;
 
 function TBillboardNode.TransformationChange: TNodeTransformationChange;

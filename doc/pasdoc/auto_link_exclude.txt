@@ -106,9 +106,9 @@ evaluate
 event
 events
 examine
-exists
 exchange
 execute
+exists
 exported
 exposed
 extract
@@ -131,6 +131,7 @@ focused
 font
 fps
 frame
+framebuffer
 frames
 frustum
 fullscreen
@@ -330,6 +331,7 @@ support
 symbol
 tag
 tags
+target
 text
 texture
 theme

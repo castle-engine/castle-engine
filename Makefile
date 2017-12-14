@@ -207,7 +207,6 @@ EXAMPLES_BASE_NAMES := \
   examples/2d_standard_ui/timer_test/timer_test \
   examples/2d_standard_ui/zombie_fighter/zombie_fighter \
   examples/mobile/simple_3d_demo/simple_3d_demo_standalone \
-  tools/build-tool/castle-engine \
   tools/image-to-pascal/image-to-pascal \
   tools/texture-font-to-pascal/texture-font-to-pascal \
   tools/castle-curves/castle-curves \
@@ -226,7 +225,8 @@ EXAMPLES_LAZARUS_BASE_NAMES := \
   tests/test_castle_game_engine \
   src/library/castleengine \
   examples/library/lazarus_library_tester/cge_dynlib_tester \
-  examples/random_generator/graphics_random_test
+  examples/random_generator/graphics_random_test \
+  tools/build-tool/code/castle-engine
 
 EXAMPLES_UNIX_EXECUTABLES := $(EXAMPLES_BASE_NAMES) \
   $(EXAMPLES_LAZARUS_BASE_NAMES)

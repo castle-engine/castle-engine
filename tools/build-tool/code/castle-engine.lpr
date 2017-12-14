@@ -36,10 +36,11 @@ var
   Mode: TCompilationMode = cmRelease;
   AssumeCompiled: boolean = false;
   Fast: boolean = false;
+  CompilerExtraOptions: TCastleStringList;
 
 const
   Version = CastleEngineVersion;
-  Options: array [0..10] of TOption =
+  Options: array [0..11] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
     (Short: 'v'; Long: 'version'; Argument: oaNone),
@@ -51,7 +52,8 @@ const
     (Short: #0 ; Long: 'assume-compiled'; Argument: oaNone),
     (Short: #0 ; Long: 'fast'; Argument: oaNone),
     (Short: #0 ; Long: 'plugin'; Argument: oaNone),
-    (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired)
+    (Short: #0 ; Long: 'fpc-version-iphone-simulator'; Argument: oaRequired),
+    (Short: #0 ; Long: 'compiler-option'; Argument: oaRequired)
   );
 
 procedure OptionProc(OptionNum: Integer; HasArgument: boolean;
@@ -142,7 +144,9 @@ begin
           OptionDescription('--plugin',
             'Compile/package/install a browser plugin.') +NL+
           OptionDescription('--fpc-version-iphone-simulator VERSION',
-            'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). By default it is "' + DefaultFPCVersionForIPhoneSimulator + '". You can set this is empty to avoid passing any -V<VERSION>.') +NL+
+            'When compiling for iPhone Simulator, we pass -V<VERSION> to the "fpc" command-line. This is necessary if you use the official "FPC for iOS" package (see the "Getting Started - iOS.rtf" inside the "FPC for iOS" dmg for explanation). You can set this to "auto" (this is the default) to auto-detect this based on regular FPC version. Or you can set this to a particular version, like "3.0.5". Or you can set this to empty "" to avoid passing any -V<VERSION> (suitable for FPC 3.1.1).') +NL+
+          OptionDescription('--compiler-option=PARAM',
+            'Extra parameter for "fpc" command line. For example --compiler-option=-dUSE_MOUSE will add -dUSE_MOUSE. You can use this parameter multiple times.') +NL+
           TargetOptionHelp +
           OSOptionHelp +
           CPUOptionHelp +
@@ -167,6 +171,7 @@ begin
     8:Fast := true;
     9:Plugin := true;
     10:FPCVersionForIPhoneSimulator := Argument;
+    11:CompilerExtraOptions.Add(Argument);
     else raise EInternalError.Create('OptionProc');
   end;
 end;
@@ -217,6 +222,7 @@ begin
 
   OS := DefaultOS;
   CPU := DefaultCPU;
+  CompilerExtraOptions := TCastleStringList.Create();
 
   { parse parameters }
   Parameters.Parse(Options, @OptionProc, nil);
@@ -244,8 +250,8 @@ begin
       so calling "castle-engine simple-compile somesubdir/myunit.pas" works.
       Working dir for FPC must be equal to our own working dir. }
     case Target of
-      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, nil);
-      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil, nil);
+      targetCustom: Compile(OS, CPU, Plugin, Mode, GetCurrentDir, FileName, nil, CompilerExtraOptions);
+      targetIOS:    CompileIOS(Plugin, Mode, GetCurrentDir, FileName, nil, CompilerExtraOptions);
       else raise EInternalError.Create('Operation not implemented for this target');
     end;
   end else
@@ -257,14 +263,14 @@ begin
       if Command = 'create-manifest' then
         Project.DoCreateManifest else
       if Command = 'compile' then
-        Project.DoCompile(Target, OS, CPU, Plugin, Mode) else
+        Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions) else
       if Command = 'package' then
       begin
         if not AssumeCompiled then
         begin
           if not Fast then
             Project.DoClean;
-          Project.DoCompile(Target, OS, CPU, Plugin, Mode);
+          Project.DoCompile(Target, OS, CPU, Plugin, Mode, CompilerExtraOptions);
         end;
         Project.DoPackage(Target, OS, CPU, Plugin, Mode);
       end else

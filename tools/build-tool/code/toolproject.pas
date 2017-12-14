@@ -123,7 +123,7 @@ type
     { }
 
     procedure DoCreateManifest;
-    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+    procedure DoCompile(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode; const FpcExtraOptions: TStrings = nil);
     procedure DoPackage(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
     procedure DoInstall(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean);
     procedure DoRun(const Target: TTarget; const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Params: TCastleStringList);
@@ -707,7 +707,8 @@ begin
 end;
 
 procedure TCastleProject.DoCompile(const Target: TTarget;
-  const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode);
+  const OS: TOS; const CPU: TCPU; const Plugin: boolean; const Mode: TCompilationMode;
+  const FpcExtraOptions: TStrings);
 var
   SourceExe, DestExe, MainSource: string;
   ExtraOptions: TCastleStringList;
@@ -718,6 +719,8 @@ begin
   ExtraOptions := TCastleStringList.Create;
   try
     ExtraOptions.AddRange(ExtraCompilerOptions);
+    if FpcExtraOptions <> nil then
+       ExtraOptions.AddRange(FpcExtraOptions);
 
     if Target = targetIOS then
     begin
@@ -1585,6 +1588,8 @@ begin
           UpperCase(AndroidServices[I].Name) + '.' +
           UpperCase(AndroidServiceParameterPair.Key),
           AndroidServiceParameterPair.Value);
+    P := AssociateDocumentTypes.ToIntentFilter;
+    Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES', P);
 
     // iOS specific stuff
     Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);

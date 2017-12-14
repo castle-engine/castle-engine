@@ -103,7 +103,7 @@ begin
   full backtrace from FPC.
 
   T := TTestCastleTransform.Create;
-  T.TestListNotification;
+  T.TestPhysicsWorldOwnerEmptyBox;
   T.Free;
   Exit;}
 

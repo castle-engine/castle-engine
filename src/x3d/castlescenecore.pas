@@ -335,7 +335,8 @@ type
       @bold(only for scenes that never change).
 
       It may be useful if you're absolutely sure that you have a static scene
-      (nothing changes, e.g. because ProcessEvents = @false) and
+      (nothing changes, i.e. ProcessEvents = @false and you never
+      make any change to X3D nodes from code) and
       you want to have collision detection with the scene.
 
       For dynamic scenes, using this is a bad idea as
@@ -485,9 +486,12 @@ type
     { This always holds pointers to all TShapeTreeLOD instances in Shapes
       tree. }
     ShapeLODs: TObjectList;
-    { Recalculate and update LODTree.Level (if camera position known).
-      Also sends level_changed when needed. }
-    procedure UpdateLODLevel(LODTree: TShapeTreeLOD);
+
+    { Recalculate and update LODTree.Level.
+      Also sends level_changed when needed.
+      Call only when ProcessEvents. }
+    procedure UpdateLODLevel(const LODTree: TShapeTreeLOD;
+      const CameraLocalPosition: TVector3);
 
     procedure SetURL(const AValue: string);
     procedure SetStatic(const Value: boolean);
@@ -601,15 +605,10 @@ type
   private
     { Call this when the ProximitySensor instance changed (either the box or
       it's transformation) or when camera position changed (by user actions
-      or animating the Viewpoint).
-
-      Camera position/dir/up must at this point be stored within Camera*
-      properties. }
-    procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance);
+      or animating the Viewpoint). }
+    procedure ProximitySensorUpdate(const PSI: TProximitySensorInstance;
+      const CameraVectors: TCameraVectors);
   private
-    FCameraPosition, FCameraDirection, FCameraUp: TVector3;
-    FCameraViewKnown: boolean;
-
     FCompiledScriptHandlers: TCompiledScriptHandlerInfoList;
 
     function OverrideOctreeLimits(
@@ -747,8 +746,16 @@ type
     procedure RenderingCameraChanged(const RenderingCamera: TRenderingCamera;
       Viewpoint: TAbstractViewpointNode);
     procedure SetHeadlightOn(const Value: boolean);
-    { Update things depending on both camera information and X3D events.
-      Call it only when CameraViewKnown and ProcessEvents. }
+
+    { Get camera position in current scene local coordinates.
+      This is calculated every time now (in the future it may be optimized
+      to recalculate only when WorldTransform changed, e.g. using
+      FWorldTransformAndInverseId). }
+    function GetCameraLocal(out CameraVectors: TCameraVectors): boolean;
+    function GetCameraLocal(out CameraLocalPosition: TVector3): boolean;
+
+    { Update various X3D nodes using the camera position/direction/up,
+      like LOD, Billboard, ProximitySensor. }
     procedure UpdateCameraEvents;
   protected
     { List of TScreenEffectNode nodes, collected by ChangedAll. }
@@ -757,6 +764,8 @@ type
     { Is the scene visible currently. Descendants may set this to @true
       during @link(T3D.Render). }
     IsVisibleNow: boolean;
+
+    GeneratedTextures: TGeneratedTextureList;
 
     { Create TShape (or descendant) instance suitable for this
       TCastleSceneCore descendant. In this class, this simply creates new
@@ -776,8 +785,9 @@ type
     procedure InvalidateBackground; virtual;
 
     property VisibilitySensors: TVisibilitySensors read FVisibilitySensors;
-  protected
-    GeneratedTextures: TGeneratedTextureList;
+
+    procedure ChangedTransform; override;
+    procedure ChangeWorld(const Value: TSceneManagerWorld); override;
 
     { Called after PointingDeviceSensors or
       PointingDeviceActiveSensors lists (possibly) changed.
@@ -788,34 +798,33 @@ type
 
     procedure ExecuteCompiledScript(const HandlerName: string; ReceivedValue: TX3DField); override;
 
-  protected
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function LocalMoveCollision(
       const OldPos, ProposedNewPos: TVector3; out NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
     function LocalMoveCollision(
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     function LocalSphereCollision(const Pos: TVector3; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
     function LocalSphereCollision2D(const Pos: TVector2; const Radius: Single;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const Details: TCollisionDetails): boolean; override;
     function LocalPointCollision2D(const Point: TVector2;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
     function LocalBoxCollision(const Box: TBox3D;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean; override;
     function LocalRayCollision(const RayOrigin, RayDirection: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): TRayCollision; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): TRayCollision; override;
   public
     { Nonzero value prevents rendering of this scene,
       and generally means that our state isn't complete.
@@ -1147,8 +1156,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1161,8 +1170,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       You can use @link(InternalOctreeCollisions) to get either
       @link(InternalOctreeDynamicCollisions) or
@@ -1182,8 +1191,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       Note that when VRML/X3D scene contains X3D Collision nodes, this octree
       contains the @italic(visible (not necessarily collidable)) objects. }
@@ -1196,8 +1205,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).)
 
       It is automatically used by the XxxCollision methods in this class,
       if exists, unless OctreeDynamicCollisions exists.
@@ -1217,8 +1226,8 @@ type
       Instead use SceneManager
       (like @link(TCastleSceneManager) or @link(T2DSceneManager))
       and then use @code(SceneManager.Items.WorldXxxCollision) methods like
-      @link(T3DWorld.WorldRay SceneManager.Items.WorldRay) or
-      @link(T3DWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
+      @link(TSceneManagerWorld.WorldRay SceneManager.Items.WorldRay) or
+      @link(TSceneManagerWorld.WorldSphereCollision SceneManager.Items.WorldSphereCollision).) }
     function InternalOctreeCollisions: TBaseTrianglesOctree;
 
     function UseInternalOctreeCollisions: boolean;
@@ -1490,27 +1499,10 @@ type
     function GetNavigationInfoStack: TX3DBindableStackBasic; override;
     function GetViewpointStack: TX3DBindableStackBasic; override;
 
-    { Camera position/direction/up known for this scene.
-
-      @bold(TODO: These should be in @italic(local scene coordinates),
-      so moving the scene by @link(TCastleTransform.Translation)
-      has no effect on them.
-      Temporarily, they are actually remembered in world coordinates.)
-
-      Set by CameraChanged. CameraViewKnown = @false means that
-      CameraChanged was never called, and so camera settings are not known,
-      and so other Camera* properties have undefined values.
-
-      These are remembered for various reasons, like
-      reacting to changes to ProximitySensor box (center, size)
-      (or it's transform), or changing LOD node children.
-
-      @groupBegin }
-    property CameraPosition: TVector3 read FCameraPosition;
-    property CameraDirection: TVector3 read FCameraDirection;
-    property CameraUp: TVector3 read FCameraUp;
-    property CameraViewKnown: boolean read FCameraViewKnown;
-    { @groupEnd }
+    function CameraPosition: TVector3; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera.Position';
+    function CameraDirection: TVector3; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera.GetView';
+    function CameraUp: TVector3; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera.GetView';
+    function CameraViewKnown: boolean; deprecated 'do not access camera properties this way, instead use e.g. SceneManager.Camera';
 
     { Call when camera position/dir/up changed, to update things depending
       on camera settings. This includes sensors like ProximitySensor,
@@ -1680,8 +1672,8 @@ type
       This method will do exactly that. }
     procedure ViewChangedSuddenly; virtual;
 
-    procedure PrepareResources(Options: TPrepareResourcesOptions;
-      ProgressStep: boolean; BaseLights: TAbstractLightInstancesList); override;
+    procedure PrepareResources(const Options: TPrepareResourcesOptions;
+      const ProgressStep: boolean; const Params: TPrepareParams); override;
 
     function Dragging: boolean; override;
 
@@ -1849,6 +1841,9 @@ type
       like @link(ProcessEvents) or @link(Spatial) or rendering attributes
       in @link(TCastleScene.Attributes). }
     function Clone(const AOwner: TComponent): TCastleSceneCore;
+
+    { @deprecated Deprecated name for @link(URL). }
+    property FileName: string read FURL write SetURL; deprecated;
   published
     { When TimePlaying is @true, the time of our 3D world will keep playing.
       More precisely, our @link(Update) will take care of increasing @link(Time).
@@ -1919,7 +1914,7 @@ type
         @item(Allow developer to adjust TriangleOctreeLimits
           before creating the octree.)
       ) }
-    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial;
+    property Spatial: TSceneSpatialStructures read FSpatial write SetSpatial default [];
 
     { Should the VRML/X3D event mechanism work.
 
@@ -1950,9 +1945,6 @@ type
       That is, @code(Scene.URL := Scene.URL;) will not reload
       the scene (you have to use explicit @link(Load) for this.). }
     property URL: string read FURL write SetURL;
-
-    { @deprecated Deprecated name for @link(URL). }
-    property FileName: string read FURL write SetURL; deprecated;
 
     { At loading, process the scene to support shadow maps.
       This happens at the @link(Load) method call,
@@ -2846,6 +2838,7 @@ function TChangedAllTraverser.Traverse(
     ChildNode: TX3DNode;
     ChildGroup: TShapeTreeGroup;
     I: Integer;
+    CameraLocalPosition: TVector3;
   begin
     LODTree := TShapeTreeLOD.Create(ParentScene);
     LODTree.LODNode := LODNode;
@@ -2860,7 +2853,9 @@ function TChangedAllTraverser.Traverse(
     for I := 0 to LODNode.FdChildren.Items.Count - 1 do
       LODTree.Children.Add(TShapeTreeGroup.Create(ParentScene));
 
-    ParentScene.UpdateLODLevel(LODTree);
+    if ParentScene.ProcessEvents and
+       ParentScene.GetCameraLocal(CameraLocalPosition) then
+      ParentScene.UpdateLODLevel(LODTree, CameraLocalPosition);
 
     for I := 0 to LODNode.FdChildren.Count - 1 do
     begin
@@ -3019,41 +3014,40 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateLODLevel(LODTree: TShapeTreeLOD);
+procedure TCastleSceneCore.UpdateLODLevel(const LODTree: TShapeTreeLOD;
+  const CameraLocalPosition: TVector3);
 var
   OldLevel, NewLevel: Cardinal;
 begin
-  if CameraViewKnown then
+  Assert(ProcessEvents);
+
+  OldLevel := LODTree.Level;
+  NewLevel := LODTree.CalculateLevel(CameraLocalPosition);
+  LODTree.Level := NewLevel;
+
+  if ( (OldLevel <> NewLevel) or
+       (not LODTree.WasLevel_ChangedSend) ) and
+     { If LODTree.Children.Count = 0, then Level = 0, but we don't
+       want to send Level_Changed since the children 0 doesn't really exist. }
+     (LODTree.Children.Count <> 0) then
   begin
-    OldLevel := LODTree.Level;
-    NewLevel := LODTree.CalculateLevel(CameraPosition);
-    LODTree.Level := NewLevel;
+    LODTree.WasLevel_ChangedSend := true;
+    LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), NextEventTime);
+  end;
 
-    if ProcessEvents and
-       ( (OldLevel <> NewLevel) or
-         (not LODTree.WasLevel_ChangedSend) ) and
-       { If LODTree.Children.Count = 0, then Level = 0, but we don't
-         want to send Level_Changed since the children 0 doesn't really exist. }
-       (LODTree.Children.Count <> 0) then
-    begin
-      LODTree.WasLevel_ChangedSend := true;
-      LODTree.LODNode.EventLevel_Changed.Send(LongInt(NewLevel), NextEventTime);
-    end;
+  if OldLevel <> NewLevel then
+  begin
+    { This means that active shapes changed, so we have to change things
+      depending on them. Just like after Switch.whichChoice change. }
 
-    if OldLevel <> NewLevel then
-    begin
-      { This means that active shapes changed, so we have to change things
-        depending on them. Just like after Switch.whichChoice change. }
+    Validities := Validities - [
+      { Calculation traverses over active shapes. }
+      fvShapesActiveCount,
+      fvShapesActiveVisibleCount,
+      { Calculation traverses over active nodes (uses RootNode.Traverse). }
+      fvMainLightForShadows];
 
-      Validities := Validities - [
-        { Calculation traverses over active shapes. }
-        fvShapesActiveCount,
-        fvShapesActiveVisibleCount,
-        { Calculation traverses over active nodes (uses RootNode.Traverse). }
-        fvMainLightForShadows];
-
-      DoGeometryChanged(gcActiveShapesChanged, nil);
-    end;
+    DoGeometryChanged(gcActiveShapesChanged, nil);
   end;
 end;
 
@@ -3451,6 +3445,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
     ShapeLOD: TShapeTreeLOD;
     OldShapes: PShapesParentInfo;
     NewShapes: TShapesParentInfo;
+    CameraLocalPosition: TVector3;
   begin
     { get Shape and increase Shapes^.Index }
     ShapeLOD := Shapes^.Group.Children[Shapes^.Index] as TShapeTreeLOD;
@@ -3460,7 +3455,9 @@ function TTransformChangeHelper.TransformChangeTraverse(
     if Inside then
     begin
       ShapeLOD.LODInvertedTransform^ := StateStack.Top.InvertedTransform;
-      ParentScene.UpdateLODLevel(ShapeLOD);
+      if ParentScene.ProcessEvents and
+         ParentScene.GetCameraLocal(CameraLocalPosition) then
+        ParentScene.UpdateLODLevel(ShapeLOD, CameraLocalPosition);
     end;
 
     OldShapes := Shapes;
@@ -3533,6 +3530,7 @@ function TTransformChangeHelper.TransformChangeTraverse(
   procedure HandleProximitySensor(Node: TProximitySensorNode);
   var
     Instance: TProximitySensorInstance;
+    CameraVectors: TCameraVectors;
   begin
     Check(Shapes^.Index < Shapes^.Group.Children.Count,
       'Missing shape in Shapes tree');
@@ -3555,8 +3553,8 @@ function TTransformChangeHelper.TransformChangeTraverse(
       { Call ProximitySensorUpdate, since the sensor's box is transformed,
         so possibly it should be activated/deactivated,
         position/orientation_changed called etc. }
-      if ParentScene.CameraViewKnown then
-        ParentScene.ProximitySensorUpdate(Instance);
+      if ParentScene.GetCameraLocal(CameraVectors) then
+        ParentScene.ProximitySensorUpdate(Instance, CameraVectors);
     end;
   end;
 
@@ -4108,15 +4106,16 @@ var
     I: Integer;
     VSInstances: TVisibilitySensorInstanceList;
     VS: TVisibilitySensorNode;
+    CameraVectors: TCameraVectors;
   begin
     if ANode is TProximitySensorNode then
     begin
       { Update state for this ProximitySensor node. }
-      if CameraViewKnown then
+      if GetCameraLocal(CameraVectors) then
         for I := 0 to ProximitySensors.Count - 1 do
         begin
           if ProximitySensors[I].Node = ANode then
-            ProximitySensorUpdate(ProximitySensors[I]);
+            ProximitySensorUpdate(ProximitySensors[I], CameraVectors);
         end;
     end else
     if ANode is TVisibilitySensorNode then
@@ -4437,6 +4436,12 @@ begin
      ((Change in [gcCollidableTransformChanged, gcActiveShapesChanged]) or
       SomeLocalGeometryChanged) then
     FreeAndNil(FOctreeDynamicCollisions);
+
+  if FOctreeStaticCollisions <> nil then
+  begin
+    WritelnWarning('ssStaticCollisions used on scene "' + Name + '" but the geometry changed. Freeing the spatial structure. You should use ssDynamicCollisions for this scene');
+    FreeAndNil(FOctreeStaticCollisions);
+  end;
 
   if Assigned(OnGeometryChanged) then
     OnGeometryChanged(Self, SomeLocalGeometryChanged,
@@ -4762,7 +4767,7 @@ begin
 
     But we don't want to use this octree.
     When Spatial = [], you can *expect* that collisions revert to simpler
-    mechanism in "inherited MoveCollision".
+    mechanism (using bounding boxes).
     This is important only if you may have Collides = true with Spatial empty. }
 end;
 
@@ -5027,29 +5032,6 @@ begin
 end;
 
 procedure TCastleSceneCore.SetProcessEvents(const Value: boolean);
-
-  { When ProcessEvents is set to @true, you want to initialize stuff
-    for things depending on camera (and X3D events):
-    - position/orientation_changed events on ProximitySensors,
-    - update camera information on all Billboard nodes.
-
-    TODO: when scene has ProcessEvents = true,
-    and we only flip Exists = false / true, then billboards are not correctly
-    updated when changing Exists from false to true. Not really sure why
-    (but no time to debug now), at 1st glance it should work,
-    as CameraChanged should be called on scenewith Exists = false and work anyway.
-    Testcase: view3dscene lights editor and switching between scenes. }
-  procedure UpdateCameraChangedEvents;
-  begin
-    if CameraViewKnown then
-    begin
-      BeginChangesSchedule;
-      try
-        UpdateCameraEvents;
-      finally EndChangesSchedule end;
-    end;
-  end;
-
 begin
   if FProcessEvents <> Value then
   begin
@@ -5058,7 +5040,13 @@ begin
       FProcessEvents := Value;
 
       ScriptsInitialize;
-      UpdateCameraChangedEvents;
+
+      { When ProcessEvents is set to @true, you want to initialize stuff
+        for things depending on camera (and X3D events):
+        - position/orientation_changed events on ProximitySensors,
+        - update camera information on all Billboard nodes,
+        - LOD nodes. }
+      UpdateCameraEvents;
 
       RenderingCamera.OnChanged.Add(@RenderingCameraChanged);
     end else
@@ -5163,7 +5151,7 @@ begin
   Result := inherited;
   if Result or (not GetExists) then Exit;
 
-  OverItem := PTriangle(Pick.Triangle);
+  OverItem := Pick.Triangle;
 
   { Never treat the event as handled here, as we don't get enough information
     from VRML/X3D events (which may come down to calling some scripts in VRML/X3D)
@@ -5870,13 +5858,13 @@ end;
 
 { proximity sensor ----------------------------------------------------------- }
 
-procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance);
+procedure TCastleSceneCore.ProximitySensorUpdate(const PSI: TProximitySensorInstance;
+  const CameraVectors: TCameraVectors);
 var
   APosition, ADirection, AUp: TVector3;
   ProxNode: TProximitySensorNode;
   NewIsActive: boolean;
 begin
-  Assert(CameraViewKnown);
   if ProcessEvents then
   begin
     BeginChangesSchedule;
@@ -5902,7 +5890,7 @@ begin
           it's InvertedTransform and call ProximitySensorUpdate.
       }
 
-      APosition := PSI.InvertedTransform.MultPoint(CameraPosition);
+      APosition := PSI.InvertedTransform.MultPoint(CameraVectors.Position);
 
       NewIsActive :=
         (APosition[0] >= ProxNode.FdCenter.Value[0] - ProxNode.FdSize.Value[0] / 2) and
@@ -5938,8 +5926,8 @@ begin
         ProxNode.EventPosition_Changed.Send(APosition, NextEventTime);
         if ProxNode.EventOrientation_Changed.SendNeeded then
         begin
-          ADirection := PSI.InvertedTransform.MultDirection(CameraDirection);
-          AUp        := PSI.InvertedTransform.MultDirection(CameraUp);
+          ADirection := PSI.InvertedTransform.MultDirection(CameraVectors.Direction);
+          AUp        := PSI.InvertedTransform.MultDirection(CameraVectors.Up);
           ProxNode.EventOrientation_Changed.Send(
             OrientationFromDirectionUp(ADirection, AUp), NextEventTime);
         end;
@@ -5951,62 +5939,142 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.UpdateCameraEvents;
-var
-  I: Integer;
+{ camera --------------------------------------------------------------------- }
+
+function TCastleSceneCore.GetCameraLocal(
+  out CameraVectors: TCameraVectors): boolean;
 begin
-  Assert(CameraViewKnown);
-  Assert(ProcessEvents);
-
-  for I := 0 to ProximitySensors.Count - 1 do
-    ProximitySensorUpdate(ProximitySensors[I]);
-
-  { Update camera information on all Billboard nodes,
-    and retraverse scene from Billboard nodes. So we treat Billboard nodes
-    much like Transform nodes, except that their transformation animation
-    is caused by camera changes, not by changes to field values.
-
-    TODO: If one Billboard is under transformation of another Billboard,
-    this will be a little wasteful. We should update first all camera
-    information, and then update only Billboard nodes that do not have
-    any parent Billboard nodes. }
-  for I := 0 to BillboardInstancesList.Count - 1 do
+  // note that HasWorldTransform implies also World <> nil
+  Result := HasWorldTransform and World.CameraKnown;
+  if Result then
   begin
-    (BillboardInstancesList[I] as TBillboardNode).CameraChanged(
-      FCameraPosition, FCameraDirection, FCameraUp);
-    { TODO: use OptimizeExtensiveTransformations? }
-    TransformationChanged(BillboardInstancesList[I],
-      BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
-      [chTransform]);
+    CameraVectors.Position  := WorldInverseTransform.MultPoint    (World.CameraPosition);
+    CameraVectors.Direction := WorldInverseTransform.MultDirection(World.CameraDirection);
+    CameraVectors.Up        := WorldInverseTransform.MultDirection(World.CameraUp);
   end;
 end;
 
-procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
-var
-  I: Integer;
+function TCastleSceneCore.GetCameraLocal(
+  out CameraLocalPosition: TVector3): boolean;
+begin
+  // note that HasWorldTransform implies also World <> nil
+  Result := HasWorldTransform and World.CameraKnown;
+  if Result then
+    CameraLocalPosition := WorldInverseTransform.MultPoint(World.CameraPosition);
+end;
+
+procedure TCastleSceneCore.ChangedTransform;
 begin
   inherited;
+  { WorldInverseTransform changed, so update things depending on camera view.
+    TODO: This way doesn't make a notification when WorldInverseTransform
+    changed because parent transform changed.
+    We should look at FWorldTransformAndInverseId changes to detect this? }
+  UpdateCameraEvents;
+end;
 
-  ACamera.GetView(FCameraPosition, FCameraDirection, FCameraUp);
-  FCameraViewKnown := true;
+procedure TCastleSceneCore.ChangeWorld(const Value: TSceneManagerWorld);
+begin
+  inherited;
+  { World changed, so update things depending on camera view }
+  if Value <> nil then
+    UpdateCameraEvents;
+end;
 
-  BeginChangesSchedule;
-  try
+function TCastleSceneCore.CameraPosition: TVector3;
+begin
+  Result := World.CameraPosition;
+end;
+
+function TCastleSceneCore.CameraDirection: TVector3;
+begin
+  Result := World.CameraDirection;
+end;
+
+function TCastleSceneCore.CameraUp: TVector3;
+begin
+  Result := World.CameraUp;
+end;
+
+function TCastleSceneCore.CameraViewKnown: boolean;
+begin
+  Result := (World <> nil) and World.CameraKnown;
+end;
+
+procedure TCastleSceneCore.CameraChanged(ACamera: TCamera);
+begin
+  inherited;
+  UpdateCameraEvents;
+
+  { handle WatchForTransitionComplete, looking at ACamera.Animation }
+  if ProcessEvents and WatchForTransitionComplete and not ACamera.Animation then
+  begin
+    BeginChangesSchedule;
+    try
+      WatchForTransitionComplete := false;
+      if NavigationInfoStack.Top <> nil then
+        NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
+    finally EndChangesSchedule end;
+  end;
+end;
+
+procedure TCastleSceneCore.UpdateCameraEvents;
+
+  { Does CameraProcessing needs to be called (does it actually do anything). }
+  function CameraProcessingNeeded: boolean;
+  begin
+    Result :=
+      (ShapeLODs.Count <> 0) or
+      (ProximitySensors.Count <> 0) or
+      (BillboardInstancesList.Count <> 0);
+  end;
+
+  { Update things depending on camera information and X3D events.
+    Call it only when ProcessEvents. }
+  procedure CameraProcessing(const CameraVectors: TCameraVectors);
+  var
+    I: Integer;
+  begin
+    Assert(ProcessEvents);
+
     for I := 0 to ShapeLODs.Count - 1 do
-      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]));
+      UpdateLODLevel(TShapeTreeLOD(ShapeLODs.Items[I]), CameraVectors.Position);
 
-    if ProcessEvents then
+    for I := 0 to ProximitySensors.Count - 1 do
+      ProximitySensorUpdate(ProximitySensors[I], CameraVectors);
+
+    { Update camera information on all Billboard nodes,
+      and retraverse scene from Billboard nodes. So we treat Billboard nodes
+      much like Transform nodes, except that their transformation animation
+      is caused by camera changes, not by changes to field values.
+
+      TODO: If one Billboard is under transformation of another Billboard,
+      this will be a little wasteful. We should update first all camera
+      information, and then update only Billboard nodes that do not have
+      any parent Billboard nodes. }
+    for I := 0 to BillboardInstancesList.Count - 1 do
     begin
-      UpdateCameraEvents;
-
-      if WatchForTransitionComplete and not ACamera.Animation then
-      begin
-        WatchForTransitionComplete := false;
-        if NavigationInfoStack.Top <> nil then
-          NavigationInfoStack.Top.EventTransitionComplete.Send(true, NextEventTime);
-      end;
+      (BillboardInstancesList[I] as TBillboardNode).CameraChanged(CameraVectors);
+      { TODO: use OptimizeExtensiveTransformations? }
+      TransformationChanged(BillboardInstancesList[I],
+        BillboardInstancesList[I].ShapeTrees as TShapeTreeList,
+        [chTransform]);
     end;
-  finally EndChangesSchedule end;
+  end;
+
+var
+  CameraVectors: TCameraVectors;
+begin
+  if ProcessEvents and
+     CameraProcessingNeeded and
+     { call GetCameraLocal only when necessary, as it does some calculations }
+     GetCameraLocal(CameraVectors) then
+  begin
+    BeginChangesSchedule;
+    try
+      CameraProcessing(CameraVectors);
+    finally EndChangesSchedule end;
+  end;
 end;
 
 { compiled scripts ----------------------------------------------------------- }
@@ -6417,8 +6485,8 @@ begin
   end;
 end;
 
-procedure TCastleSceneCore.PrepareResources(Options: TPrepareResourcesOptions;
-  ProgressStep: boolean; BaseLights: TAbstractLightInstancesList);
+procedure TCastleSceneCore.PrepareResources(const Options: TPrepareResourcesOptions;
+  const ProgressStep: boolean; const Params: TPrepareParams);
 
   { PrepareShapesOctrees and PrepareShadowVolumes could be optimized
     into one run }

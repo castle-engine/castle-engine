@@ -26,11 +26,13 @@ type
   TAssocDocTypeFileExt = class
   private
     FExt, FMime, FUti: string;
+    FIosSystemDefined: boolean;
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     property Ext: string read FExt;
     property Mime: string read FMime;
     property Uti: string read FUti;
+    property IosSystemDefined: boolean read FIosSystemDefined;
   end;
 
   TAssocDocType = class(specialize TObjectList<TAssocDocTypeFileExt>)
@@ -40,12 +42,14 @@ type
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function ToPListBundleDocumentTypesSection(const DefaultIcon: string): string;
     function ToPListExportedTypeDeclarationsSection: string;
+    function ToIntentFilterPathPattern: string;
   end;
 
   TAssociatedDocTypeList = class(specialize TObjectList<TAssocDocType>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function ToPListSection(const DefaultIcon: string): string;
+    function ToIntentFilter: string;
   end;
 
 implementation
@@ -60,6 +64,7 @@ begin
   FExt := Element.AttributeStringDef('ext', '');
   FMime := Element.AttributeStringDef('mime', '');
   FUti := Element.AttributeString('uti');
+  FIosSystemDefined := (Element.AttributeStringDef('ios-system', '') = 'true');
 end;
 
 { TAssocDocType ------------------------------------------------------ }
@@ -127,7 +132,7 @@ begin
     Exit;
   for I := 0 to Count - 1 do
   begin
-    if Length(Items[I].Ext) > 0 then
+    if (Length(Items[I].Ext) > 0) and (not Items[I].IosSystemDefined) then
       Result := Result +
                 #9#9'<dict>' + NL +
                 #9#9#9'<key>UTTypeConformsTo</key>' + NL +
@@ -146,6 +151,23 @@ begin
                 #9#9#9#9'<string>' + Items[I].Mime + '</string>' + NL +
                 #9#9#9'</dict>' + NL +
                 #9#9'</dict>' + NL;
+  end;
+end;
+
+function TAssocDocType.ToIntentFilterPathPattern: string;
+var
+  I: Integer;
+begin
+  Result := '';
+  if Count = 0 then
+    Exit;
+  for I := 0 to Count - 1 do
+  begin
+    if Length(Items[I].Ext) > 0 then
+      Result := Result +
+                #9#9#9#9'<data android:pathPattern=".*\\.' + Items[I].Ext + '" />' + NL +
+                #9#9#9#9'<data android:pathPattern=".*\\..*\\.' + Items[I].Ext + '" />' + NL +    // to match dot in filename
+                #9#9#9#9'<data android:pathPattern=".*\\..*\\..*\\.' + Items[I].Ext + '" />' + NL;
   end;
 end;
 
@@ -188,12 +210,48 @@ begin
 
   Result := #9'<key>CFBundleDocumentTypes</key>' + NL +
             #9'<array>' + NL +
-            BundleDocumentTypes + NL +
+            BundleDocumentTypes +
             #9'</array>' + NL +
             #9'<key>UTExportedTypeDeclarations</key>' + NL +
             #9'<array>' + NL +
-            ExportedTypeDeclarations + NL +
+            ExportedTypeDeclarations +
             #9'</array>';
+end;
+
+// https://stackoverflow.com/questions/3760276/android-intent-filter-associate-app-with-file-extension
+function TAssociatedDocTypeList.ToIntentFilter: string;
+var
+  PathPatterns: string;
+  I: Integer;
+begin
+  if Count = 0 then
+    Exit('');
+  PathPatterns := '';
+  for I := 0 to Count - 1 do
+  begin
+    PathPatterns := PathPatterns + Items[I].ToIntentFilterPathPattern;
+  end;
+
+  Result := #9#9#9'<intent-filter>' + NL +
+            #9#9#9#9'<action android:name="android.intent.action.VIEW" />' + NL +
+            #9#9#9#9'<category android:name="android.intent.category.DEFAULT" />' + NL +
+            #9#9#9#9'<category android:name="android.intent.category.BROWSABLE" />' + NL +
+            #9#9#9#9'<data android:scheme="content" />' + NL +
+            #9#9#9#9'<data android:scheme="file" />' + NL +
+            #9#9#9#9'<data android:mimeType="*/*" />' + NL +
+            PathPatterns +
+            #9#9#9'</intent-filter>' + NL +
+            #9#9#9'<intent-filter>' + NL +
+            #9#9#9#9'<action android:name="android.intent.action.VIEW" />' + NL +
+            #9#9#9#9'<category android:name="android.intent.category.DEFAULT" />' + NL +
+            #9#9#9#9'<category android:name="android.intent.category.BROWSABLE" />' + NL +
+            #9#9#9#9'<data android:scheme="http" />' + NL +
+            #9#9#9#9'<data android:scheme="https" />' + NL +
+            #9#9#9#9'<data android:scheme="ftp" />' + NL +
+            #9#9#9#9'<data android:host="*" />' + NL +
+            PathPatterns +
+            #9#9#9'</intent-filter>';
+
 end;
 
 end.

@@ -123,7 +123,7 @@ procedure ApplicationInitialize;
   begin
     BoxScene := TCastleScene.Create(Application);
 
-    Box := TBoxNode.CreateShape(Shape);
+    Box := TBoxNode.CreateWithShape(Shape);
     Box.Size := Vector3(4, 4, 4);
 
     Shape.Appearance := TAppearanceNode.Create;
@@ -145,7 +145,7 @@ procedure ApplicationInitialize;
   begin
     MissileScene := TCastleScene.Create(Application);
 
-    Sphere := TSphereNode.CreateShape(Shape);
+    Sphere := TSphereNode.CreateWithShape(Shape);
     Sphere.Radius := 1;
 
     Shape.Appearance := TAppearanceNode.Create;
@@ -256,7 +256,7 @@ procedure WindowUpdate(Container: TUIContainer);
 begin
   Status.Caption := Format(
     'FPS: %f' + LineEnding +
-    '3D Objects: %d' + LineEnding +
+    'Scene Manager Objects: %d' + LineEnding +
     'Click or drag with mouse to move the plane.',
     [Container.Fps.RealTime,
      SceneManager.Items.Count]);

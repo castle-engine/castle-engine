@@ -70,7 +70,8 @@ type
     constructor Create(const AScene: TCastleSceneCore;
       const AUtils: TOcclusionQueryUtilsRenderer);
     procedure Render(const RenderShape: TShapeProcedure;
-      const Frustum: TFrustum; const Params: TRenderParams);
+      const Frustum: TFrustum; const Params: TRenderParams;
+      const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
     function WasLastVisible(const Shape: TGLShape): boolean;
   end;
 
@@ -355,7 +356,8 @@ end;
 
 procedure THierarchicalOcclusionQueryRenderer.Render(
   const RenderShape: TShapeProcedure;
-  const Frustum: TFrustum; const Params: TRenderParams);
+  const Frustum: TFrustum; const Params: TRenderParams;
+  const RenderCameraKnown: boolean; const RenderCameraPosition: TVector3);
 {$ifndef OpenGLES}
 var
   { Stack of TShapeOctreeNode.
@@ -387,10 +389,11 @@ var
     end else
     begin
       { Push Node children onto TraversalStack.
-        We want to Pop them front-first, to (since this is a stack)
+        We want to Pop them front-first, so (since this is a stack)
         we want to push back first. }
-      if Scene.CameraViewKnown then
-        Node.PushChildrenBackToFront(TraversalStack, Scene.CameraPosition) else
+      if RenderCameraKnown then
+        Node.PushChildrenBackToFront(TraversalStack, RenderCameraPosition)
+      else
         Node.PushChildren(TraversalStack);
     end;
   end;

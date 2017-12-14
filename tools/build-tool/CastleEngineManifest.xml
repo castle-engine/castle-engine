@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- castle-engine tool can be compiled by itself :) -->
-<project name="castle-engine" standalone_source="castle-engine.lpr">
+<project name="castle-engine" standalone_source="code/castle-engine.lpr">
   <icons>
     <icon path="icon.ico"/>
   </icons>
   <version value="6.3" code="11" />
+  <compiler_options>
+    <search_paths>
+      <path value="code/" />
+      <path value="embedded_images/" />
+    </search_paths>
+  </compiler_options>
 </project>

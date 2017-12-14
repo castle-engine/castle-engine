@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Base 3D objects (T3D, T3DList, T3DTransform, T3DOrient, T3DMoving). }
+{ Additional 3D objects derived from TCastleTransform (TAlive, T3DMoving...). }
 unit Castle3D;
 
 {$I castleconf.inc}
@@ -47,7 +47,7 @@ type
   end deprecated 'use TCastleTransform from CastleTransform unit';
 
   T3DListCore                 = CastleTransform.TCastleTransformList;
-  T3DWorld                    = CastleTransform.T3DWorld;
+  T3DWorld                    = CastleTransform.TSceneManagerWorld;
   TCollisionDetails           = CastleTransform.TCollisionDetails;
   TRayCollision               = CastleTransform.TRayCollision;
   TRayCollisionNode           = CastleTransform.TRayCollisionNode;
@@ -275,14 +275,14 @@ type
   { Alive, oriented 3D object. Basis for players, creatures and everything
     else that has some position, direction and that can be killed.
 
-    Note that the T3DAlive doesn't remove dead objects, doesn't make any
-    dead animations or such. T3DAlive class merely keeps track of
+    Note that the TAlive doesn't remove dead objects, doesn't make any
+    dead animations or such. TAlive class merely keeps track of
     @link(Life), @link(Dead) and such properties,
     and allows you to call @link(Hurt) doing eventual knockback.
     If your own code doesn't call @link(Hurt),
     or even doesn't look at @link(Life) value, then they have no implication
     for given 3D object, so it may be indestructible just like other 3D objects. }
-  T3DAlive = class(TCastleTransform)
+  TAlive = class(TCastleTransform)
   private
     FLifeTime: Single;
     FDieTime: Single;
@@ -324,12 +324,12 @@ type
       Ignored if HurtDirection is zero.
 
       Attacker is the other alive creature that caused this damage. It may be @nil
-      if no other T3DAlive is directly responsible for this damage. This may
+      if no other TAlive is directly responsible for this damage. This may
       be useful for various purposes, for example the victim may become aware
       of attacker presence when it's attacked. }
     procedure Hurt(const LifeLoss: Single;
       const HurtDirection: TVector3;
-      const AKnockbackDistance: Single; const Attacker: T3DAlive); virtual;
+      const AKnockbackDistance: Single; const Attacker: TAlive); virtual;
 
     procedure Update(const SecondsPassed: Single; var RemoveMe: TRemoveType); override;
 
@@ -360,6 +360,8 @@ type
     property KnockBackSpeed: Single read FKnockBackSpeed write FKnockBackSpeed
       default DefaultKnockBackSpeed;
   end;
+
+  T3DAlive = TAlive deprecated 'use TAlive';
 
   T3DExistsEvent = function(const Item: T3D): boolean of object;
 
@@ -402,8 +404,10 @@ var
     to display additional features of 3D objects, helpful to debug collisions,
     AI and other things.
     @groupBegin }
-  RenderDebug3D: boolean = false;
-  RenderDebugCaptions: boolean = false;
+  RenderDebug3D: boolean = false
+    deprecated 'use Player.RenderDebug, TCreature.RenderDebug, TItemOnWorld.RenderDebug';
+  RenderDebugCaptions: boolean = false
+    deprecated 'use TCreature.RenderDebug';
   { @groupEnd }
 
   { Log shadow volume information.
@@ -487,7 +491,7 @@ procedure T3DMoving.BeforeTimeIncrease(
   function SphereCollisionAssumeTranslation(
     const AssumeTranslation: TVector3;
     const Pos: TVector3; const Radius: Single;
-    const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
   begin
     Result := GetCollides;
     if Result then
@@ -503,7 +507,7 @@ procedure T3DMoving.BeforeTimeIncrease(
   function BoxCollisionAssumeTranslation(
     const AssumeTranslation: TVector3;
     const Box: TBox3D;
-    const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc): boolean;
+    const TrianglesToIgnoreFunc: TTriangleIgnoreFunc): boolean;
   begin
     Result := GetCollides;
     if Result then
@@ -756,9 +760,9 @@ begin
     UsedSound.Release;
 end;
 
-{ T3DAlive ------------------------------------------------------------------- }
+{ TAlive ------------------------------------------------------------------- }
 
-constructor T3DAlive.Create(AOwner: TComponent);
+constructor TAlive.Create(AOwner: TComponent);
 begin
   inherited;
   KnockBackSpeed := 1.0;
@@ -766,21 +770,21 @@ begin
     so everything is already in the correct state. }
 end;
 
-procedure T3DAlive.SetLife(const Value: Single);
+procedure TAlive.SetLife(const Value: Single);
 begin
   if (FLife > 0) and (Value <= 0) then
     FDieTime := LifeTime;
   FLife := Value;
 end;
 
-function T3DAlive.Dead: boolean;
+function TAlive.Dead: boolean;
 begin
   Result := Life <= 0;
 end;
 
-procedure T3DAlive.Hurt(const LifeLoss: Single;
+procedure TAlive.Hurt(const LifeLoss: Single;
   const HurtDirection: TVector3;
-  const AKnockbackDistance: Single; const Attacker: T3DAlive);
+  const AKnockbackDistance: Single; const Attacker: TAlive);
 begin
   Life := Life - LifeLoss;
   FKnockbackDistance := AKnockbackDistance;
@@ -792,12 +796,12 @@ begin
     MakeVectorsOrthoOnTheirPlane(FLastHurtDirectionGround, World.GravityUp);
 end;
 
-procedure T3DAlive.CancelKnockback;
+procedure TAlive.CancelKnockback;
 begin
   FKnockbackDistance := 0;
 end;
 
-procedure T3DAlive.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
+procedure TAlive.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType);
 { Do the knockback effect, if it's currently active, by pushing
   creature along last attack direction. }
 var

@@ -22,9 +22,9 @@ interface
 
 uses Classes,
   CastleBoxes, CastleCameras, CastleItems, CastleVectors, CastleInputs,
-  CastleKeysMouse, X3DTriangles, CastleMaterialProperties, CastleSoundEngine,
+  CastleKeysMouse, CastleShapes, CastleMaterialProperties, CastleSoundEngine,
   Castle3D, CastleGLUtils, CastleColors, CastleFrustum, CastleTriangles,
-  CastleTimeUtils, CastleScene, CastleDebug3D, X3DNodes, CastleTransform;
+  CastleTimeUtils, CastleScene, CastleDebugTransform, X3DNodes, CastleTransform;
 
 type
   TPlayerSwimming = (psNo,
@@ -63,7 +63,7 @@ type
 
     Note that a player has an associated and synchronized @link(Camera) instance.
   }
-  TPlayer = class(T3DAliveWithInventory)
+  TPlayer = class(TAliveWithInventory)
   private
     type
       { Invisible box, that is added to TPlayer to make it collidable.
@@ -81,8 +81,8 @@ type
 
     var
       FBox: TBox;
-      FDebug3D: TDebug3D;
-      FEnableDebug3D: boolean;
+      FDebugTransform: TDebugTransform;
+      FRenderDebug: boolean;
 
       FEquippedWeapon: TItemWeapon;
 
@@ -180,10 +180,10 @@ type
     procedure SetLife(const Value: Single); override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function LocalHeightCollision(const APosition, GravityUp: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-      out AboveHeight: Single; out AboveGround: P3DTriangle): boolean; override;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+      out AboveHeight: Single; out AboveGround: PTriangle): boolean; override;
     function LocalSegmentCollision(const Pos1, Pos2: TVector3;
-      const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+      const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
       const ALineOfSight: boolean): boolean; override;
     procedure LocalRender(const Frustum: TFrustum; const Params: TRenderParams); override;
     procedure Fall(const FallHeight: Single); override;
@@ -430,11 +430,10 @@ type
     property EnableCameraDragging: boolean
       read FEnableCameraDragging write SetEnableCameraDragging default true;
 
-    { When global RenderDebug3D is @true @italic(and) this property is @true,
-      show the bounding box of the player. It's a little confusing
-      (since it's a box around yourself), that's why it's off by default. }
-    property EnableDebug3D: boolean
-      read FEnableDebug3D write FEnableDebug3D default false;
+    { Show the debug bounding box of the player.
+      Warning: It looks a little confusing (since it's a box around camera). }
+    property RenderDebug: boolean
+      read FRenderDebug write FRenderDebug default false;
   end;
 
 const
@@ -462,8 +461,7 @@ implementation
 uses Math, SysUtils, CastleClassUtils, CastleUtils, CastleControls,
   CastleImages, CastleFilesUtils, CastleUIControls,
   CastleGLBoxes, CastleGameNotifications, CastleXMLConfig,
-  CastleGLImages, CastleConfig, CastleResources, CastleShapes,
-  CastleRenderingCamera;
+  CastleGLImages, CastleConfig, CastleResources, CastleRenderingCamera;
 
 { TPlayer.TBox ----------------------------------------------------------------- }
 
@@ -472,7 +470,7 @@ var
   Root: TX3DRootNode;
 begin
   inherited;
-  Box := TBoxNode.CreateTransform(Shape, TransformNode);
+  Box := TBoxNode.CreateWithTransform(Shape, TransformNode);
   Box.Size := Vector3(1, 1, 1); // this way Transform.Scale determines the size
 
   UpdateBox;
@@ -563,8 +561,8 @@ begin
   FBox := TBox.Create(Self);
   Add(FBox);
 
-  FDebug3D := TDebug3D.Create(Self);
-  FDebug3D.Attach(Self);
+  FDebugTransform := TDebugTransform.Create(Self);
+  FDebugTransform.Attach(Self);
 end;
 
 destructor TPlayer.Destroy;
@@ -1130,7 +1128,7 @@ begin
   UpdateToxic;
   UpdateFootstepsSoundPlaying;
 
-  FDebug3D.Exists := EnableDebug3D and RenderDebug3D;
+  FDebugTransform.Exists := RenderDebug;
 end;
 
 procedure TPlayer.FadeOut(const Color: TCastleColor);
@@ -1309,11 +1307,11 @@ end;
 
 function TPlayer.Ground: PTriangle;
 begin
-  Result := PTriangle(Camera.AboveGround);
+  Result := Camera.AboveGround;
 end;
 
 function TPlayer.LocalSegmentCollision(const Pos1, Pos2: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
   const ALineOfSight: boolean): boolean;
 begin
   if ALineOfSight then
@@ -1340,8 +1338,8 @@ begin
 end;
 
 function TPlayer.LocalHeightCollision(const APosition, GravityUp: TVector3;
-  const TrianglesToIgnoreFunc: T3DTriangleIgnoreFunc;
-  out AboveHeight: Single; out AboveGround: P3DTriangle): boolean;
+  const TrianglesToIgnoreFunc: TTriangleIgnoreFunc;
+  out AboveHeight: Single; out AboveGround: PTriangle): boolean;
 begin
   { instead of allowing inherited to do the work (and allow other stuff
     like items and creatures to stand on player's head), for now just
@@ -1374,7 +1372,7 @@ begin
     quite a nice solution,
     - you don't have to split rendering layers in passes, you can render
       all objects in one pass, just switching DepthRange as necessary.
-    - you can set DepthRange for 3D objects inside T3DList,
+    - you can set DepthRange for 3D objects inside TCastleTransform,
       like here TPlayer will just affect every child underneath.
 
     But it has to be implemented in more extensible manner in the future.
@@ -1396,7 +1394,7 @@ begin
 
     Note that Player.Gravity remains false for now (only Player.Camera.Gravity
     is true), so the player is not affected by simple gravity implemented in
-    Castle3D unit, so there's no point in overriding methods like PreferredHeight.
+    CastleTransform unit, so there's no point in overriding methods like PreferredHeight.
     TWalkCamera.Gravity does all the work now. }
 
   Result := Translation;

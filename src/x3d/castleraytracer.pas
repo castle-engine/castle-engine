@@ -37,7 +37,7 @@ interface
 
 uses Classes,
   CastleVectors, CastleImages, CastleRays, CastleProjection, CastleUtils,
-  X3DTriangles, X3DNodes, CastleSpaceFillingCurves, CastleTriangles;
+  X3DTriangles, CastleShapes, X3DNodes, CastleSpaceFillingCurves, CastleTriangles;
 
 type
   { }
@@ -147,8 +147,10 @@ type
 
     { Lights shining on everything, like a headlight. }
     BaseLights: TLightInstancesList;
+    OwnsBaseLights: boolean;
 
     procedure Execute; override;
+    destructor Destroy; override;
   end;
 
   { Path tracer. See
@@ -813,6 +815,13 @@ begin
     [PrimaryRaysCount / RenderingTime]));
   Stats.Append(Format('%f simple collision tests done per one primary ray.',
     [TriangleCollisionTestsCounter /  PrimaryRaysCount ]));
+end;
+
+destructor TClassicRayTracer.Destroy;
+begin
+  if OwnsBaseLights then
+    FreeAndNil(BaseLights);
+  inherited;
 end;
 
 { TPathTracer -------------------------------------------------------------- }

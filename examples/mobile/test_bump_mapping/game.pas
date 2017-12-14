@@ -53,7 +53,7 @@ procedure ApplicationInitialize;
     Sphere: TSphereNode;
     Shape: TShapeNode;
   begin
-    Sphere := TSphereNode.CreateShape(Shape);
+    Sphere := TSphereNode.CreateWithShape(Shape);
     Sphere.Radius := 0.1;
 
     Shape.Material := TMaterialNode.Create;
