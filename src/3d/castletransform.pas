@@ -282,6 +282,9 @@ type
 
     { Lights that shine on given 3D object. }
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
+
+    function RenderTransform: TMatrix4; deprecated 'use Transform';
+    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
   end;
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
@@ -2023,6 +2026,16 @@ begin
   Transform := TMatrix4.Identity;
   InverseTransform := TMatrix4.Identity;
   TransformIdentity := true;
+end;
+
+function TRenderParams.RenderTransform: TMatrix4;
+begin
+  Result := Transform;
+end;
+
+function TRenderParams.RenderTransformIdentity: boolean;
+begin
+  Result := TransformIdentity;
 end;
 
 { TCastleTransformList ------------------------------------------------------------ }
