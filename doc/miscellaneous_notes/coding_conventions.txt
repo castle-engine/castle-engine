@@ -36,6 +36,43 @@
     for I := 1 to 10 do
       Writeln(I);
     ~~~~
+  - The "else" keyword is written on a new line, unless it's right after "end". So:
+    ~~~~
+    // THIS IS OK:
+    if Foo then
+      Bar
+    else
+      Xyz;
+
+    // THIS IS ALSO OK:
+    if Foo then
+    begin
+      Bar
+    end else
+    begin
+      Xyz;
+    end;
+
+    // THIS IS NOT OK:
+    if Foo then
+    begin
+      Bar
+    end
+    else
+    begin
+      Xyz;
+    end;
+
+    // THIS IS NOT OK, BUT IS USED IN A LOT OF CODE:
+    // (Michalis was using this for a long time,
+    // until it was pointed to him that it's not optimal,
+    // and most e.g. Lazarus code doesn't use it):
+    // Try not to use this in new code, but don't be surprised if it still occurs somewhere.
+    // We gradually get rid of it.
+    if Foo then
+      Bar else
+      Xyz;
+    ~~~
   - Never use tabs (convert to spaces).
   - Never leave trailing whitespace at the end of lines (in the long run,
     it causes unnecessary diffs when someone removes it).
@@ -84,6 +121,17 @@
     the code inside "with A do begin .... end" may compile, if you happen
     to have a variable outside of this block with a name matching the name
     inside A.
+  - The uses clause of our units and examples should follow the order
+    - standard units (RTL, LCL, VCL...)
+    - then our own (CastleXxx) units
+    - then eventual game-specific units (GameXxx)
+    Each part should start from a newline.
+    ```
+    // THIS IS OK:
+    uses SysUtils, Classes,
+      CastleUtils, CastleSceneManager,
+      GameStatePlay;
+    ```
 
 - File extensions:
 
