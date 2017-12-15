@@ -350,7 +350,7 @@ var
     for user input), and it simply doesn't work on iOS.
     If you want to use TUIState to manage all dialogs,
     then use explicitly states like @link(TStateDialogYesNo) from
-    the @link(CastleDialogs) unit.
+    the @link(CastleDialogStates) unit.
   }
   MessageOKPushesState: boolean;
 
@@ -358,7 +358,7 @@ implementation
 
 uses SysUtils,
   CastleImages, CastleClassUtils, CastleWindowModes, CastleLog,
-  CastleUIControls, CastleUIState, CastleDialogs;
+  CastleUIControls, CastleUIState, CastleDialogStates;
 
 { MessageCore ---------------------------------------------------------------- }
 

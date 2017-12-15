@@ -111,8 +111,8 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleInternalXlib"/>
       </Item17>
       <Item18>
-        <Filename Value="../src/window/castledialogs.pas"/>
-        <UnitName Value="CastleDialogs"/>
+        <Filename Value="../src/window/castledialogstates.pas"/>
+        <UnitName Value="CastleDialogStates"/>
       </Item18>
     </Files>
     <RequiredPkgs Count="2">

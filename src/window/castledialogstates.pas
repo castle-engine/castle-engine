@@ -82,7 +82,7 @@
   #)
 *)
 
-unit CastleDialogs;
+unit CastleDialogStates;
 
 {$I castleconf.inc}
 
@@ -96,12 +96,12 @@ uses Classes, Math,
 
 type
   { Abstract class for a modal dialog user-interface state.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialog = class abstract(TUIState)
   strict private
     type
       {$define read_interface}
-      {$I castledialogs_dialog.inc}
+      {$I castledialogstates_dialog.inc}
       {$undef read_interface}
     var
       FText: TStrings;
@@ -212,7 +212,7 @@ type
   end;
 
   { Wait for simple confirmation ("OK") from user.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogOK = class(TStateDialog)
   strict private
     procedure ButtonOKClick(Sender: TObject);
@@ -223,7 +223,7 @@ type
   end;
 
   { Ask user a simple "yes" / "no" question.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogYesNo = class(TStateDialog)
   strict private
     FAnswer: boolean;
@@ -240,7 +240,7 @@ type
   { Ask user to choose from a number of options.
     Each choice is shown as a button, user can also press the appropriate character.
     ButtonChars length must be always equal to ButtonCaptions.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogChoice = class(TStateDialog)
   strict private
     FAnswer: char;
@@ -257,7 +257,7 @@ type
   end;
 
   { Ask user to input a string, or cancel.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogInput = class(TStateDialog)
   strict private
     FAllowedChars: TSetOfChars;
@@ -299,7 +299,7 @@ type
   end;
 
   { Ask user a press any key, and return this key.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogKey = class(TStateDialog)
   strict private
     FAnswer: TKey;
@@ -311,7 +311,7 @@ type
 
   { Ask user a press anything (key, mouse button, mouse wheel),
     for example to configure a keybinding for a game.
-    See unit @link(CastleDialogs) documentation for example usage. }
+    See unit @link(CastleDialogStates) documentation for example usage. }
   TStateDialogPressEvent = class(TStateDialog)
   strict private
     FAnswer: TInputPressRelease;
@@ -327,7 +327,7 @@ uses SysUtils,
   CastleImages;
 
 {$define read_implementation}
-{$I castledialogs_dialog.inc}
+{$I castledialogstates_dialog.inc}
 
 { TStateDialog ------------------------------------------------------------- }
 

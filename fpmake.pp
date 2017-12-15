@@ -300,7 +300,7 @@ begin
     P.Targets.AddUnit('castletiledmap.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
-    P.Targets.AddUnit('castledialogs.pas');
+    P.Targets.AddUnit('castledialogstates.pas');
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');

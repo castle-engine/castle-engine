@@ -50,7 +50,7 @@
     BarEmptyColor: TVector3Byte;
     BarFilledColor: TVector3Byte;
 
-    { Color layer displayed between modal dialogs (CastleMessages, CastleDialogs, TGLModeFrozenScreen)
+    { Color layer displayed between modal dialogs (CastleMessages, CastleDialogStates, TGLModeFrozenScreen)
       and their background (state underneath or a screenshot).
       Default is (0, 0, 0, 0.25), making things underneath darker,
       which helps dialog to stand out. }
