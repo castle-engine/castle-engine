@@ -35,10 +35,12 @@
   making sure that your normal window callbacks are redirected as appropriate.
   But you don't need to be concerned with this.
 
-  However, if you need to use this unit directly (because you need
-  to work in @link(TCastleControl), or you need to work on iOS) then
-  you cannot use the @link(CastleMessages) unit. Making modal boxes like that
-  is not supported in this case. Instead, you need to instantiate the
+  However, if you need to work on iOS, then you cannot use most of routines
+  from the @link(CastleMessages) unit. You can use @link(MessageOK) if you turn on
+  the @link(MessageOKPushesState) flag, but nothing else. E.g. @link(MessageYesNo)
+  cannot work on iOS now. Making modal boxes like that is not supported on iOS.
+
+  In this case you should use this unit and instantiate the
   user-interface classes yourself, and you need to
   @italic(organize your whole game using TUIState classes).
   See https://castle-engine.sourceforge.io/manual_2d_user_interface.php#section_ui_state

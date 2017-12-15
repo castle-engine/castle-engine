@@ -40,7 +40,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="17">
+    <Files Count="18">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -110,6 +110,10 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalXlib"/>
       </Item17>
+      <Item18>
+        <Filename Value="../src/ui/opengl/castledialogs.pas"/>
+        <UnitName Value="CastleDialogs"/>
+      </Item18>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

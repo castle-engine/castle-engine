@@ -293,7 +293,6 @@ begin
 
     P.SourcePath.Add('src' + PathDelim + 'ui' + PathDelim + 'opengl');
     P.Targets.AddUnit('castlecontrols.pas');
-    P.Targets.AddUnit('castledialogs.pas');
     P.Targets.AddUnit('castleflasheffect.pas');
     P.Targets.AddUnit('castleinspectorcontrol.pas');
     P.Targets.AddUnit('castlenotifications.pas');
@@ -301,9 +300,11 @@ begin
     P.Targets.AddUnit('castletiledmap.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
+    P.Targets.AddUnit('castledialogs.pas');
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');
+    P.Targets.AddUnit('castleuistate.pas');
     P.Targets.AddUnit('castlewindow.pas');
     P.Targets.AddUnit('castlewindowtouch.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');

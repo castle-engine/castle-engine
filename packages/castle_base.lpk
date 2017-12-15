@@ -61,7 +61,7 @@ end;"/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="640">
+    <Files Count="639">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -2625,10 +2625,6 @@ end;"/>
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
       </Item639>
-      <Item640>
-        <Filename Value="../src/ui/opengl/castledialogs.pas"/>
-        <UnitName Value="CastleDialogs"/>
-      </Item640>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
