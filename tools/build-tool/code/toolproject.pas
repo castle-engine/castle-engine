@@ -1596,7 +1596,7 @@ begin
     Macros.Add('IOS_VERSION', IOSVersion);
     Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
     Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
-    P := AssociateDocumentTypes.ToPListSection('AppIcon');
+    P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
     if not FUsesNonExemptEncryption then
     begin
       if Length(P) > 0 then
