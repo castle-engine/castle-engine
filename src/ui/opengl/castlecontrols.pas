@@ -88,9 +88,10 @@ type
   {$I castlecontrols_edit.inc}
   // Add more UI controls include files here.
 
-  // Keep the following (theme and uifont) at the end, as they end the "type" clause.
+  // Keep the following (theme, uifont...) at the end, as they end the "type" clause.
   {$I castlecontrols_theme.inc}
   {$I castlecontrols_uifont.inc}
+  {$I castlecontrols_clipboard.inc}
   {$undef read_interface}
 
 procedure Register;
@@ -119,6 +120,7 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_theme.inc}
+{$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -134,4 +136,5 @@ initialization
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;
+  FinalizationClipboard;
 end.

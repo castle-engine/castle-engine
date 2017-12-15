@@ -1566,6 +1566,43 @@ begin
   end;
 end;
 
+{ TGTKClipboard ----------------------------------------------------------- }
+
+{ TODO: Shouldn't we convert here UTF8<->system, like in LCL backend?
+  GTK always uses UTF8, which may not be our system encoding.
+
+  TODO: gtk_clipboard_wait_for_text runs the main loop.
+  We don't really want it (it would require blocking the main UI usually,
+  which makes the whole asynchronous fun useless --- if we want to block,
+  then why not just wait for the clipboard, instead of running app loop?).
+
+  Hm, although LCL also does here waiting by Application.ProcessMessages
+  inside lcl/interfaces/gtk/gtkproc.inc inside WaitForClipboardAnswer.
+}
+
+type
+  TGTKClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: string; override;
+    procedure SetAsText(const Value: string); override;
+  end;
+
+function TGTKClipboard.GetAsText: string;
+var
+  C: PGtkClipboard;
+begin
+  C := gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  Result := gtk_clipboard_wait_for_text(C);
+end;
+
+procedure TGTKClipboard.SetAsText(const Value: string);
+var
+  C: PGtkClipboard;
+begin
+  C := gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
+  gtk_clipboard_set_text(C, PChar(Value), Length(Value));
+end;
+
 { TCastleApplication ------------------------------------------------------------- }
 
 procedure TCastleApplication.ProcessUpdates;
@@ -1743,6 +1780,8 @@ end;
 procedure TCastleApplication.CreateBackend;
 begin
   inherited Initialize; // set Terminated := false
+
+  RegisterClipboard(TGTKClipboard.Create);
 end;
 
 procedure TCastleApplication.DestroyBackend;
@@ -1868,36 +1907,6 @@ begin
 
     InitializeXDisplayDone := true;
   end;
-end;
-
-{ TCastleClipboard ----------------------------------------------------------- }
-
-{ TODO: Shouldn't we convert here UTF8<->system, like in LCL backend?
-  GTK always uses UTF8, which may not be our system encoding.
-
-  TODO: gtk_clipboard_wait_for_text runs the main loop.
-  We don't really want it (it would require blocking the main UI usually,
-  which makes the whole asynchronous fun useless --- if we want to block,
-  then why not just wait for the clipboard, instead of running app loop?).
-
-  Hm, although LCL also does here waiting by Application.ProcessMessages
-  inside lcl/interfaces/gtk/gtkproc.inc inside WaitForClipboardAnswer.
-}
-
-function TCastleClipboard.GetAsText: string;
-var
-  C: PGtkClipboard;
-begin
-  C := gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-  Result := gtk_clipboard_wait_for_text(C);
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-var
-  C: PGtkClipboard;
-begin
-  C := gtk_clipboard_get(GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_set_text(C, PChar(Value), Length(Value));
 end;
 
 { TCastleWindow -------------------------------------------------------------- }

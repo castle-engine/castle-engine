@@ -319,8 +319,6 @@ begin
       Text := Copy(Text, 1, Length(Text) - 1);
     Result := true;
   end else
-(*
-  // TODO: Expose Clipboard in UI controls that don't depend on CastleWindow.
   if Event.IsKey(CtrlC) then
   begin
     if Text <> '' then
@@ -341,7 +339,6 @@ begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
     Result := true;
   end else
-*)
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
      (Event.KeyCharacter in AllowedChars) and

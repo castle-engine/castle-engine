@@ -320,19 +320,6 @@ begin
   end;
 end;
 
-{ TCastleClipboard ----------------------------------------------------------- }
-
-function TCastleClipboard.GetAsText: string;
-begin
-  { TODO }
-  Result := '';
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-begin
-  { TODO }
-end;
-
 { TCastleWindow -------------------------------------------------------------- }
 
 procedure TCastleWindow.NavigationInfoChanged;

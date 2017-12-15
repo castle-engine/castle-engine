@@ -789,10 +789,31 @@ begin
   DoDropFiles(FileNames);
 end;
 
+{ TLCLClipboard ----------------------------------------------------------- }
+
+type
+  TLCLClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: string; override;
+    procedure SetAsText(const Value: string); override;
+  end;
+
+function TLCLClipboard.GetAsText: string;
+begin
+  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
+end;
+
+procedure TLCLClipboard.SetAsText(const Value: string);
+begin
+  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
 begin
+  RegisterClipboard(TLCLClipboard.Create);
+
   { Do not install LCL handler for ExceptProc, we want to use our own handler
     in CastleUtils. }
   Forms.Application.CaptureExceptions := false;
@@ -953,18 +974,6 @@ end;
 function TCastleApplication.BackendName: string;
 begin
   Result := 'LCL';
-end;
-
-{ TCastleClipboard ----------------------------------------------------------- }
-
-function TCastleClipboard.GetAsText: string;
-begin
-  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-begin
-  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;
 
 { TCastleWindow -------------------------------------------------------------- }

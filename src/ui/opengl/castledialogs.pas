@@ -632,12 +632,11 @@ begin
     end;
     Result := true;
   end else
-(*
-  // TODO: Expose Clipboard in UI controls that don't depend on CastleWindow.
   if Event.IsKey(CtrlC) then
   begin
     if InputText <> '' then
       Clipboard.AsText := InputText;
+    Result := true;
   end else
   if Event.IsKey(CtrlX) then
   begin
@@ -646,12 +645,13 @@ begin
       Clipboard.AsText := InputText;
       InputText := '';
     end;
+    Result := true;
   end else
   if Event.IsKey(CtrlV) then
   begin
-    InputText := SDeleteChars(Clipboard.AsText, AllChars - answerAllowedChars);
+    InputText := SDeleteChars(Clipboard.AsText, AllChars - AllowedChars);
+    Result := true;
   end else
-*)
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
      (Event.KeyCharacter in AllowedChars) and
