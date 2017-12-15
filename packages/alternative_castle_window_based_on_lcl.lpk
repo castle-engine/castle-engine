@@ -93,7 +93,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <UnitName Value="CastleUIState"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/ui/opengl/castledialogs.pas"/>
+        <Filename Value="../src/window/castledialogs.pas"/>
         <UnitName Value="CastleDialogs"/>
       </Item14>
     </Files>
