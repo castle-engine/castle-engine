@@ -87,7 +87,7 @@ unit CastleDialogs;
 interface
 
 uses Classes, Math,
-  CastleWindow, CastleGLUtils, CastleUtils,
+  CastleGLUtils, CastleUtils,
   CastleStringUtils, CastleVectors, CastleKeysMouse, CastleControls,
   CastleRectangles, CastleUIState, CastleColors, CastleUIControls,
   CastleFonts, CastleFontFamily, CastleTimeUtils;
