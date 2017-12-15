@@ -74,6 +74,7 @@
     begin
       if DialogAskDeleteFile.Answer then
         DeleteFile(...);
+      FreeAndNil(DialogAskDeleteFile);
     end;
   end;
   #)
