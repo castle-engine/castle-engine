@@ -82,13 +82,13 @@ implementation
 
   We did some changes to the code here:
   - Removed references to UTF8 classes and functions.
-    Not that I don't like them, but they just have no place in a game engine.
-    With time, hopefully FPC will have nice solution for UTF8.
-    Also, with time, hopefully these functions may be moved to FPC FCL too.
+    With time, hopefully FPC RTL will have nice solution for UTF8
+    (it does now: codepage-aware strings).
+    Also, with time, hopefully these functions could be availabe in FPC FCL too?
   - Using TProcess.Executable, TProcess.Parameters instead of
     TProcess.CommandLine. This avoids the need for many paranoid quoting
     previously present here.
-  - Some bits may use our CastleUtils, CastleFilesUtils functions.
+  - Some bits adjusted to use our CastleUtils, CastleFilesUtils functions.
   - On Android, we use CastleMessaging to integrate with Android activities
     through Java APIs.
 
