@@ -289,12 +289,26 @@ procedure TStateDialog.TDialog.UpdateSizes;
 var
   BreakWidth, ButtonsWidth: integer;
   Button: TCastleButton;
+  PR: TRectangle;
 begin
+  { TODO: Using PR variable, otherwise on iOS directly writing ParentRect.Width
+    causes range check error. Investigating,
+    looks like FPC bug (seen on FPC 3.0.2, other versions not tested yet).
+
+    - Writeln(ParentRect.Width) is some huge (impossible for 32-bit actually,
+      and yes, it's 32-bit on iOS too) value (4879082848896).
+    - But Writeln(Format('%d', [ParentRect.Width])) shows normal value (640).
+    - Using ParentRect.Width in expression causes range check error.
+
+    Using PR.Width always works OK.
+  }
+  PR := ParentRect;
+
   { calculate BreakWidth, which is the width at which we should break
     our string lists Broken_Xxx. We must here always subtract
     ScrollBarWidthScaled to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
-  BreakWidth := Max(0, ParentRect.Width - BoxMarginScaled * 2
+  BreakWidth := Max(0, PR.Width - BoxMarginScaled * 2
     - WindowMarginScaled * 2 - Round(ScrollView.ScrollBarWidth * UIScale));
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
