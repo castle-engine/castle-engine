@@ -532,8 +532,9 @@ var
 
 implementation
 
-uses LCLType, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
-  CastleLog, Contnrs, CastleLCLUtils, CastleApplicationProperties;
+uses LCLType, Math, Contnrs, LazUTF8, Clipbrd,
+  CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
+  CastleLCLUtils, CastleApplicationProperties, CastleControls;
 
 procedure Register;
 begin
@@ -560,7 +561,7 @@ var
     as all OpenGL contexts in our engine must share OpenGL resources
     (our OnGLContextOpen and such callbacks depend on it,
     and it makes implementation much easier). }
-  CastleControls: TComponentList;
+  ControlsList: TComponentList;
 
   ControlsOpen: Cardinal;
 
@@ -624,9 +625,9 @@ begin
   Assert(not (csDesigning in Application.ComponentState));
 
   { Call DoUpdate for all TCastleControl instances. }
-  for I := 0 to CastleControls.Count - 1 do
+  for I := 0 to ControlsList.Count - 1 do
   begin
-    C := CastleControls[I] as TCastleControlCustom;
+    C := ControlsList[I] as TCastleControlCustom;
     C.DoUpdate;
   end;
   ApplicationProperties._Update;
@@ -848,9 +849,9 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
-  if CastleControls.Count <> 0 then
-    SharedControl := CastleControls[0] as TCastleControl;
-  CastleControls.Add(Self);
+  if ControlsList.Count <> 0 then
+    SharedControl := ControlsList[0] as TCastleControl;
+  ControlsList.Add(Self);
 
   Invalidated := false;
 
@@ -864,15 +865,15 @@ end;
 destructor TCastleControlCustom.Destroy;
 begin
   if ApplicationIdleSet and
-     (CastleControls <> nil) and
-     { If CastleControls.Count will become 0 after this destructor,
+     (ControlsList <> nil) and
+     { If ControlsList.Count will become 0 after this destructor,
        then unregisted our idle callback.
-       If everyhting went Ok, CastleControls.Count = 1 should always imply
-       that we're the only control there. But check "CastleControls[0] = Self"
+       If everyhting went Ok, ControlsList.Count = 1 should always imply
+       that we're the only control there. But check "ControlsList[0] = Self"
        in case we're in destructor because there was an exception
        in the constructor. }
-     (CastleControls.Count = 1) and
-     (CastleControls[0] = Self) then
+     (ControlsList.Count = 1) and
+     (ControlsList[0] = Self) then
   begin
     ApplicationIdleSet := false;
     Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
@@ -1360,8 +1361,36 @@ begin
   Controls.InsertFront(SceneManager);
 end;
 
+{ TLCLClipboard ----------------------------------------------------------- }
+
+type
+  TLCLClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: string; override;
+    procedure SetAsText(const Value: string); override;
+  end;
+
+function TLCLClipboard.GetAsText: string;
+begin
+  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
+end;
+
+procedure TLCLClipboard.SetAsText(const Value: string);
+begin
+  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
+end;
+
+{ initialization / finalization ---------------------------------------------- }
+
+procedure InitializeClipboard;
+begin
+  // make the Clipboard in CastleControls integrated with LCL clipboard
+  RegisterClipboard(TLCLClipboard.Create);
+end;
+
 initialization
-  CastleControls := TComponentList.Create(false);
+  ControlsList := TComponentList.Create(false);
+  InitializeClipboard;
 finalization
-  FreeAndNil(CastleControls);
+  FreeAndNil(ControlsList);
 end.
