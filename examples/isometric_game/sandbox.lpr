@@ -265,7 +265,16 @@ begin
 end;
 
 
+function MyGetApplicationName: string;
 begin
+  // Do not collide with /usr/share/sandbox on Mac OS X
+  Result := 'sandbox_game';
+end;
+
+begin
+  { This should be done as early as possible to mark our log lines correctly. }
+  OnGetApplicationName := @MyGetApplicationName;
+
   InitializeLog;
 
   Window := TCastleWindowCustom.Create(Application);
