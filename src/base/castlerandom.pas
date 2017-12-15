@@ -114,18 +114,18 @@ end;
 
 {$IFDEF USE_DEV_URANDOM}
 function DEV_URANDOM: longint;
-var dev_rnd: file of integer;
+var DevRnd: file of integer;
 begin
   { algorithm according to http://wiki.freepascal.org/Dev_random
    /dev/urandom is a native *nix very high-quality random number generator.
    it's 1000 times slower than CastleRandom,
    but provides a perfect seed initialization. }
-  AssignFile(dev_rnd, '/dev/urandom');
-  Reset(dev_rnd);
+  AssignFile(DevRnd, '/dev/urandom');
+  Reset(DevRnd);
   repeat
-    read(dev_rnd,result);
-  until result<>0; // xorshift can't get 0 as a random seed so, we just read /dev/urandom until its not zero
-  CloseFile(dev_rnd);
+    Read(DevRnd, Result);
+  until Result <> 0; // xorshift can't get 0 as a random seed so, we just read /dev/urandom until its not zero
+  CloseFile(DevRnd);
 end;
 {$ELSE}
 
@@ -155,11 +155,12 @@ begin
    with equal seed even if they are absolutely simultaneous}
   c64 := PtrUInt(@(c64));
 
+  {$HINT use TCriticalSession}
   while WaitForSeed do XorShift64; //do something nearly useful while randomization is buisy
 
   WaitForSeed := true;     //prevents another randomization to start until this one is finished
 
-  XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;
+  XorShift64; XorShift64; XorShift64; XorShift64; XorShift64; XorShift64;
   {I've made it 6 times, because sometimes values returned by
    xorshift algorithm are not too different,
    but we want them really independent for random seed initialization.
@@ -174,7 +175,8 @@ begin
    because thanks to b64 still we shall get different random values. Just the
    algorithm would not be as optimal as it might be}
 
-  if Store64bitSeed = 0 then begin //if this is the first randomization
+  if Store64bitSeed = 0 then  //if this is the first randomization
+  begin
 
     {This random seed initialization follows SysUtils random.
      Actually it is a relatively bad initialization for random numbers
@@ -194,6 +196,7 @@ begin
      which we obviously don't want to.}
 
     {so let's start by getting tick count as SysUtils does}
+    {$HINT Use CastleTimeUtils.Timer}
     {$PUSH}{$WARN 5066 OFF}
     {Yes, we are using a deprecated function, it's ok here,
      because its goal is not convenient time measurement
@@ -205,25 +208,26 @@ begin
     c64 := GetTickCount64;
     {$POP}
     {just to make sure it's not zero. It's not really important here.}
-    if c64 = 0 then c64 := 2903758934725;
+    if c64 = 0 then
+      c64 := 2903758934725;
 
     {"Trying to solve the problem" we do the following:}
 
     {make a 64-bit xorshift cycle several times
      to kill any possible link to GetTickCount64}
-    XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;XorShift64;
+    XorShift64; XorShift64; XorShift64; XorShift64; XorShift64; XorShift64;
     {the same note on quantity of xorshift's as above}
 
     {now we have to make sure adding "now" won't overflow our c64 variable
      and add a few xorshift64-cycles just for fun in case it will.}
-    while (c64 > high(QWord)-DateOrder) do XorShift64;
+    while (c64 > High(QWord) - DateOrder) do XorShift64;
 
     {to kill a random discretness introduced by gettickcount64 we add "now".
      "now" and gettickcount64 are not independent and, in fact, change
      synchronously. But after several xorshift64-s c64 has no information
      left off gettickcount64 and therefore we introduce an additional
      semi-independent shift into the random seed}
-    c64 += QWord(Round(Now*DateMultiplier));
+    c64 += QWord(Round(Now * DateMultiplier));
     {now we are sure that the player will get a different random seed even
      in case he/she launches the game exactly at the same milisecond since
      the OS startup - different date&time will shift the random seed...
@@ -244,8 +248,8 @@ begin
     {cycle everything one more time}
     XorShift64;
     {leave higher 32-bits of c64 as a true random seed}
-    result := longint(c64 shr 32);
-  until result<>0;
+    Result := longint(c64 shr 32);
+  until Result<>0;
   {and strictly demand it's not zero!
    adding a few XorShift64-cycles in case it does.}
 
@@ -290,11 +294,11 @@ begin
 end;
 
 function TCastleRandom.Random: single;
-const Divisor: Single = 1/MaxInt;
+const Divisor: single = 1 / MaxInt;
 begin
   XorShiftCycle;
-  Result := Divisor*LongInt(Seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
-  //Result := Divisor*Longint(XorShift shr 1);    // works slower
+  Result := Divisor * LongInt(Seed shr 1);       // note: we discard 1 bit of accuracy to gain speed
+  //Result := Divisor * LongInt(XorShift shr 1);    // works slower
 end;
 
 {Result := LongWord((int64(Seed)*N) shr 32)// := seed mod N; works slower
@@ -305,8 +309,8 @@ end;
 function TCastleRandom.Random(N: LongInt): LongInt;
 begin
   XorShiftCycle;
-  if N>1 then
-    Result := LongInt((Int64(LongWord(Seed))*N) shr 32)
+  if N > 1 then
+    Result := LongInt((Int64(LongWord(Seed)) * N) shr 32)
   else
     Result := 0
 end;
@@ -364,7 +368,7 @@ var h, k: LongWord; //MurMur variables
   const m = $5bd1e995; //MurMur "magic" cycling constant
         MaxLongWord = $FFFFFFFF;
   begin
-    x := QWord(x*m) and MaxLongWord //prevent overflows during multiplication;
+    x := QWord(x  *m) and MaxLongWord //prevent overflows during multiplication;
   end;
 begin
   i := Len;
@@ -381,13 +385,13 @@ begin
     CycleHash(h);
     h := h xor k;         //merge data into hash
 
-    inc(p,4); //advance to next character
-    dec(i,4); //to gain some speed we don't use p>pmax-4 check
+    inc(p, 4); //advance to next character
+    dec(i, 4); //to gain some speed we don't use p>pmax-4 check
   end;
 
   //upmix 0..3 final bytes of data to hash
-  if i  = 3 then h := h xor (PByte(p+2)^ shl 16);
-  if i >= 2 then h := h xor (PByte(p+1)^ shl 8);
+  if i  = 3 then h := h xor (PByte(p + 2)^ shl 16);
+  if i >= 2 then h := h xor (PByte(p + 1)^ shl 8);
   if i >= 1 then begin
                    h := h xor PByte(p)^;
                    CycleHash(h);
@@ -403,7 +407,7 @@ end;
 
 function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
 begin
-  Result := MurMur2(Pointer(InputString), length(InputString), Seed);
+  Result := MurMur2(Pointer(InputString), Length(InputString), Seed);
   //Pointer(InputString) is an untyped pointer to the first character of the string
 end;
 
