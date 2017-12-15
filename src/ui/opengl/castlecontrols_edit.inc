@@ -118,6 +118,9 @@
 
 {$ifdef read_implementation}
 
+const
+  CaretChar = '|';
+
 { TCastleEdit --------------------------------------------------------------- }
 
 constructor TCastleEdit.Create(AOwner: TComponent);
@@ -314,6 +317,7 @@ begin
   begin
     if Text <> '' then
       Text := Copy(Text, 1, Length(Text) - 1);
+    Result := true;
   end else
 (*
   // TODO: Expose Clipboard in UI controls that don't depend on CastleWindow.
@@ -321,6 +325,7 @@ begin
   begin
     if Text <> '' then
       Clipboard.AsText := Text;
+    Result := true;
   end else
   if Event.IsKey(CtrlX) then
   begin
@@ -329,10 +334,12 @@ begin
       Clipboard.AsText := Text;
       Text := '';
     end;
+    Result := true;
   end else
   if Event.IsKey(CtrlV) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
+    Result := true;
   end else
 *)
   if (Event.EventType = itKey) and
@@ -341,6 +348,7 @@ begin
      ((MaxLength = 0) or (Length(Text) < MaxLength)) then
   begin
     Text := Text + Event.KeyCharacter;
+    Result := true;
   end;
 end;
 

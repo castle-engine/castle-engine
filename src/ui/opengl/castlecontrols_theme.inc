@@ -25,7 +25,6 @@
     FOwnsImages: array [TThemeImage] of boolean;
     FMessageFont: TCastleFont;
     FOwnsMessageFont: boolean;
-    FMessageErrorBackground: boolean;
     function GetImages(const ImageType: TThemeImage): TCastleImage;
     procedure SetImages(const ImageType: TThemeImage; const Value: TCastleImage);
     function GetOwnsImages(const ImageType: TThemeImage): boolean;
@@ -51,33 +50,36 @@
     BarEmptyColor: TVector3Byte;
     BarFilledColor: TVector3Byte;
 
-    { Tint of background image under TCastleDialog and TGLModeFrozenScreen.
-      Default is (0.25, 0.25, 0.25, 1), which makes background darker,
+    { Color layer displayed between modal dialogs (CastleMessages, CastleDialogs, TGLModeFrozenScreen)
+      and their background (state underneath or a screenshot).
+      Default is (0, 0, 0, 0.25), making things underneath darker,
       which helps dialog to stand out. }
-    BackgroundTint: TCastleColor;
+    BackgroundColor: TCastleColor;
+
+    { Color used instead of BackgroundColor when InternalForceOpaqueBackground is used.
+      You can only customize the RGB values, alpha is always 1, so the resulting
+      color is always opaque.
+      It's a dark gray color (0.33, 0.33, 0.33) by default. }
+    BackgroundOpaqueColor: TCastleColorRGB;
 
     { Colors used when displaying the "Loading..." text when Android application
       is resuming. Note that you can also customize the tiLoading image.
       By default, LoadingBackgroundColor is black, and LoadingTextColor is white. }
     LoadingBackgroundColor, LoadingTextColor: TCastleColor;
 
-    { Undernath various message dialogs show "error background"
-      (@link(tiErrorBackground)) image instead of the default behaviour.
-      @italic(This is automatically used by CastleWindow exception handler,
-      you should not need to modify this property yourself.)
+    { Request modal boxes to use opaque color from @link(BackgroundOpaqueColor).
 
-      This affects modal messages made by @link(CastleMessages) unit,
-      and modal messages made by @link(TCastleWindowCustom.MessageOK) and friends,
+      This is internally set and unset by the CastleWindow exception handler
+      (you should not modify this yourself).
+      It allows to request showing opaque color under
+      @link(TCastleWindowCustom.MessageOK) and friends,
       or modal states by @link(TGLModeFrozenScreen).
 
-      The default behaviour of them is to show the TCastleDialog provided background
-      (coming from screenshot usually), in case of
-      @link(CastleMessages) it is mixed with @link(BackgroundTint).
-      But saving the screen is potentially a bad idea when an exception occured
-      (since the application may be already in some dirty state, for which
-      the developer is not necessarily prepared). }
-    property MessageErrorBackground: boolean
-      read FMessageErrorBackground write FMessageErrorBackground default false;
+      This allows to avoid making a screenshot (TStateDialog.BackgroundScreenshot may be false),
+      which is safer when we want to show an exception
+      (since the application may be in some dirty state, so it's better to avoid
+      rendering user stuff). }
+    InternalForceOpaqueBackground: boolean;
 
     constructor Create;
     destructor Destroy; override;
@@ -145,12 +147,12 @@ begin
   DisabledTextColor      := Vector4(0.33, 0.33, 0.33, 1);
   MessageInputTextColor  := Vector4(0.33, 1, 1, 1);
   MessageTextColor       := Vector4(1   , 1, 1, 1);
-  BackgroundTint         := Vector4(0.25, 0.25, 0.25, 1);
+  BackgroundColor        := Vector4(0, 0, 0, 0.25);
+  BackgroundOpaqueColor  := Vector3(0.33, 0.33, 0.33);
   LoadingBackgroundColor := Black;
   LoadingTextColor       := White;
 
   FOwnsMessageFont := true;
-  FMessageErrorBackground := false;
 
   FImages[tiPanel] := Panel;
   FCorners[tiPanel] := Vector4Integer(0, 0, 0, 0);
@@ -196,8 +198,6 @@ begin
   FCorners[tiCrosshair1] := Vector4Integer(0, 0, 0, 0);
   FImages[tiCrosshair2] := Crosshair2;
   FCorners[tiCrosshair2] := Vector4Integer(0, 0, 0, 0);
-  FImages[tiErrorBackground] := ErrorBackground;
-  FCorners[tiErrorBackground] := Vector4Integer(0, 0, 0, 0);
   FImages[tiLoading] := Loading;
   FCorners[tiLoading] := Vector4Integer(0, 0, 0, 0);
   FImages[tiEdit] := Edit;

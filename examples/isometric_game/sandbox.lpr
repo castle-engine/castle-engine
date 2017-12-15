@@ -47,7 +47,7 @@ begin
 
   BaseFitX := Ceil(Window.Width / BaseWidth) + 1;
   BaseFitY := Ceil(2 * Window.Height / BaseHeight) + 1;
-  
+
   if ViewFollowsPlayer then
   begin
     { Ignore ViewMoveX/Y, calculate RealView such that the player
@@ -123,8 +123,8 @@ var
   var
     Event: TInputPressRelease;
   begin
-    MessageKeyMouse(Window,
-      'Enter the character code of new base tile, or Escape to cancel', Event);
+    Event := MessageKeyMouse(Window,
+      'Enter the character code of new base tile, or Escape to cancel');
     if (Event.EventType = itKey) and
        (Event.KeyCharacter <> CharEscape) and
        (Event.KeyCharacter <> #0)  then

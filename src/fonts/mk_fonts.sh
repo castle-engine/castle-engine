@@ -30,7 +30,7 @@ $TEXTUREFONT2PASCAL --size "${TEXT_NODE_FONT_SIZE}" data/DejaVuSerif.ttf        
 # Used by CastleControls.UIFontSmall
 $TEXTUREFONT2PASCAL --size 10 data/DejaVuSans.ttf
 
-# Used by CastleControls as MessageFont, for TCastleDialog
+# Used by CastleControls as MessageFont, for TDialog
 $TEXTUREFONT2PASCAL --size 18 data/DejaVuSansMono.ttf
 
 # Used by view3dscene

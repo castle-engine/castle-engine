@@ -17,12 +17,8 @@
 
   { Dialog box that can display a long text, with automatic vertical scrollbar.
     You can also add buttons at the bottom.
-    You can also have an input text area.
-    This can be used to make either a modal or non-modal dialog boxes.
-
-    See CastleMessages for routines that intensively use this dialog underneath,
-    giving you easy MessageXxx routines that ask user for confirmation and such. }
-  TCastleDialog = class abstract(TUIControlFont)
+    You can also have an input text area. }
+  TDialog = class(TUIControlFont)
   strict private
     const
       BoxMargin = 10;
@@ -31,7 +27,7 @@
     type
       TDialogScrollArea = class(TUIControlSizeable)
       strict private
-        Dialog: TCastleDialog;
+        Dialog: TDialog;
       public
         constructor Create(AOwner: TComponent); override;
         procedure Render; override;
@@ -53,11 +49,6 @@
     { Things below set in MessageCore, readonly afterwards. }
     { Main text to display. Read-only contents. }
     Text: TStringList;
-    { Drawn as window background. @nil means there is no background
-      (use only if there is always some other 2D control underneath TCastleDialog).
-      When assigned, stretched to cover whole screen. }
-    GLBackground: TGLImageCore;
-    Background: TCastleImage;
     TextAlign: THorizontalPosition;
     { Should we display InputText }
     DrawInputText: boolean;
@@ -70,7 +61,7 @@
     function WindowMarginScaled: Integer;
     function ButtonHorizontalMarginScaled: Integer;
 
-    procedure SetInputText(const value: string);
+    procedure SetInputText(const Value: string);
 
     { Calculate height in pixels needed to draw Buttons.
       Returns 0 if there are no Buttons. }
@@ -91,17 +82,13 @@
 
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    { Assign display stuff. Call this before adding control to Controls list.
-      ABackground instance becomes owned by this component. }
+    { Assign display stuff. Call this before adding control to Controls list. }
     procedure Initialize(
-      const TextList: TStringList; const ATextAlign: THorizontalPosition;
+      const TextList: TStrings; const ATextAlign: THorizontalPosition;
       const AHtml: boolean;
       const AButtons: array of TCastleButton;
-      const ADrawInputText: boolean; const AInputText: string;
-      const ABackground: TCastleImage);
+      const ADrawInputText: boolean);
     procedure Resize; override;
-    procedure GLContextOpen; override;
-    procedure GLContextClose; override;
     procedure Update(const SecondsPassed: Single; var HandleInput: boolean); override;
     procedure Render; override;
     function CapturesEventsAtPosition(const Position: TVector2): boolean; override;
@@ -111,19 +98,19 @@
 
 {$ifdef read_implementation}
 
-{ TDialogScrollArea -------------------------------------------------------------- }
-
 const
   CaretChar = '|';
 
-constructor TCastleDialog.TDialogScrollArea.Create(AOwner: TComponent);
+{ TDialogScrollArea -------------------------------------------------------------- }
+
+constructor TStateDialog.TDialog.TDialogScrollArea.Create(AOwner: TComponent);
 begin
   inherited;
-  Dialog := AOwner as TCastleDialog;
+  Dialog := AOwner as TStateDialog.TDialog;
   FullSize := true; // we want our ScreenRect to be equal to parent
 end;
 
-procedure TCastleDialog.TDialogScrollArea.Render;
+procedure TStateDialog.TDialog.TDialogScrollArea.Render;
 type
   TCaretMode = (cmNone, cmVisible, cmInvisible);
 
@@ -197,14 +184,15 @@ begin
   Dialog.Broken_Text.Print(TextX, TextY, Theme.MessageTextColor, 0, Dialog.TextAlign);
 end;
 
-{ TCastleDialog -------------------------------------------------------------- }
+{ TStateDialog.TDialog -------------------------------------------------------------- }
 
-constructor TCastleDialog.Create(AOwner: TComponent);
+constructor TStateDialog.TDialog.Create(AOwner: TComponent);
 begin
   inherited;
   { use Theme.MessageFont this way }
   CustomFont := Theme.MessageFont;
-  { Contents of Broken_InputText will be initialized in TCastleDialog.UpdateSizes. }
+  Text := TStringList.Create;
+  { Contents of Broken_InputText will be initialized in TStateDialog.TDialog.UpdateSizes. }
   Broken_InputText := TStringList.Create;
   Anchor(hpMiddle);
   Anchor(vpMiddle);
@@ -215,22 +203,17 @@ begin
   InsertFront(ScrollView);
 end;
 
-procedure TCastleDialog.Initialize(const TextList: TStringList;
+procedure TStateDialog.TDialog.Initialize(const TextList: TStrings;
   const ATextAlign: THorizontalPosition; const AHtml: boolean;
   const AButtons: array of TCastleButton;
-  const ADrawInputText: boolean; const AInputText: string;
-  const ABackground: TCastleImage);
+  const ADrawInputText: boolean);
 var
   I: Integer;
 begin
-  Text := TextList;
-  Background := ABackground;
-  if GLInitialized then
-    GLBackground := TGLImageCore.Create(Background, true);
+  Text.Assign(TextList);
   TextAlign := ATextAlign;
   FHtml := AHtml;
   DrawInputText := ADrawInputText;
-  FInputText := AInputText;
   SetLength(Buttons, Length(AButtons));
   for I := 0 to High(AButtons) do
   begin
@@ -239,35 +222,25 @@ begin
   end;
 end;
 
-destructor TCastleDialog.Destroy;
+destructor TStateDialog.TDialog.Destroy;
 begin
   FreeAndNil(Broken_Text);
   FreeAndNil(Broken_InputText);
-  FreeAndNil(Background);
+  FreeAndNil(Text);
   inherited;
 end;
 
-procedure TCastleDialog.GLContextOpen;
-begin
-  inherited;
-  if (GLBackground = nil) and (Background <> nil) then
-    GLBackground := TGLImageCore.Create(Background, true);
-end;
-
-procedure TCastleDialog.GLContextClose;
-begin
-  FreeAndNil(GLBackground);
-  inherited;
-end;
-
-procedure TCastleDialog.SetInputText(const value: string);
+procedure TStateDialog.TDialog.SetInputText(const value: string);
 begin
   FInputText := value;
-  VisibleChange;
-  UpdateSizes;
+  if Container <> nil then
+  begin
+    VisibleChange;
+    UpdateSizes;
+  end;
 end;
 
-function TCastleDialog.ButtonsHeightScaled: Integer;
+function TStateDialog.TDialog.ButtonsHeightScaled: Integer;
 var
   Button: TCastleButton;
 begin
@@ -276,7 +249,7 @@ begin
     MaxVar(Result, Round(Button.CalculatedHeight * UIScale) + 2 * BoxMarginScaled);
 end;
 
-function TCastleDialog.ButtonsHeight: Integer;
+function TStateDialog.TDialog.ButtonsHeight: Integer;
 var
   Button: TCastleButton;
 begin
@@ -285,13 +258,13 @@ begin
     MaxVar(Result, Button.CalculatedHeight + 2 * BoxMargin);
 end;
 
-procedure TCastleDialog.Resize;
+procedure TStateDialog.TDialog.Resize;
 begin
   inherited;
   UpdateSizes;
 end;
 
-procedure TCastleDialog.UpdateSizes;
+procedure TStateDialog.TDialog.UpdateSizes;
 
   { Reposition Buttons. }
   procedure UpdateButtons;
@@ -322,7 +295,7 @@ begin
     ScrollBarWidthScaled to be on the safe side, because we don't know
     yet is ScrollBarVisible. }
   BreakWidth := Max(0, ParentRect.Width - BoxMarginScaled * 2
-    - WindowMarginScaled * 2 - ScrollView.ScrollBarWidthScaled);
+    - WindowMarginScaled * 2 - Round(ScrollView.ScrollBarWidth * UIScale));
 
   { calculate MaxLineWidth and AllScrolledLinesCount }
 
@@ -370,7 +343,7 @@ begin
   UpdateButtons;
 end;
 
-procedure TCastleDialog.Update(const SecondsPassed: Single;
+procedure TStateDialog.TDialog.Update(const SecondsPassed: Single;
   var HandleInput: boolean);
 begin
   inherited;
@@ -380,31 +353,25 @@ begin
     VisibleChange;
 end;
 
-procedure TCastleDialog.Render;
+procedure TStateDialog.TDialog.Render;
 begin
   inherited;
-
-  if GLBackground <> nil then
-  begin
-    GLBackground.Color := Theme.BackgroundTint;
-    GLBackground.Draw(ParentRect);
-  end;
 
   Theme.Draw(ScreenRect, tiWindow, UIScale);
 end;
 
-function TCastleDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
+function TStateDialog.TDialog.CapturesEventsAtPosition(const Position: TVector2): boolean;
 begin
   Result := true; // always capture
 end;
 
-function TCastleDialog.Rect: TRectangle;
+function TStateDialog.TDialog.Rect: TRectangle;
 var
   PR: TRectangle;
 begin
   PR := ParentRect;
   Result := Rectangle(0, 0,
-    Min(MaxLineWidth + BoxMarginScaled * 2 + ScrollView.ScrollBarWidthScaled,
+    Min(MaxLineWidth + BoxMarginScaled * 2 + Round(ScrollView.ScrollBarWidth * UIScale),
       PR.Width  - WindowMarginScaled * 2),
     Min(Font.RowHeight * AllScrolledLinesCount + Font.Descend + BoxMarginScaled * 2 + ButtonsHeightScaled
       { adding here + 2 is a hack to make sure that TCastleScrollView will
@@ -421,17 +388,17 @@ begin
       PR.Height - WindowMarginScaled * 2));
 end;
 
-function TCastleDialog.BoxMarginScaled: Integer;
+function TStateDialog.TDialog.BoxMarginScaled: Integer;
 begin
   Result := Round(BoxMargin * UIScale);
 end;
 
-function TCastleDialog.WindowMarginScaled: Integer;
+function TStateDialog.TDialog.WindowMarginScaled: Integer;
 begin
   Result := Round(WindowMargin * UIScale);
 end;
 
-function TCastleDialog.ButtonHorizontalMarginScaled: Integer;
+function TStateDialog.TDialog.ButtonHorizontalMarginScaled: Integer;
 begin
   Result := Round(ButtonHorizontalMargin * UIScale);
 end;

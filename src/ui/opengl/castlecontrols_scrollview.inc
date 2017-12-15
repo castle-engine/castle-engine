@@ -47,7 +47,7 @@
       so it's in unscaled pixels. Kept as a float, to allow smooth time-based changes.
       Note that setting it always clamps the value to a sensible range. }
     property Scroll: Single read FScroll write SetScroll;
-  private
+
     function ScrollBarWidthScaled: Integer;
   public
     const
@@ -285,8 +285,8 @@ begin
 
   { if not ScrollBarVisible then there is no point in changing Scroll.
 
-    This way we allow TCastleDialog (that uses TCastleScrollView) descendants
-    like TCastleKeyMouseDialog to handle K_PageDown, K_PageUp, K_Home and K_End keys
+    This way we allow TStateDialog (that uses TDialog that uses TCastleScrollView) descendants
+    like TStateDialogKey to handle K_PageDown, K_PageUp, K_Home and K_End keys
     and mouse wheel. And this is very good for MessageKey,
     when it's used e.g. to allow user to choose any TKey.
     Otherwise MessageKey would not be able to return
