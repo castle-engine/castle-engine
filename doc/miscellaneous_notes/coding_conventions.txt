@@ -53,6 +53,21 @@
       Xyz;
     end;
 
+    // THIS IS ALSO OK:
+    if Foo then
+    begin
+      Bar
+    end else
+      Xyz;
+
+    // THIS IS ACCEPTABLE, BUT BETTER AVOID IT:
+    if Foo then
+      Bar
+    else
+    begin
+      Xyz;
+    end;
+
     // THIS IS NOT OK:
     if Foo then
     begin
