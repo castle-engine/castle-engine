@@ -562,17 +562,23 @@ end;
 
 procedure TStateDialogInput.InitializeButtons(var Buttons: TButtonArray);
 begin
-  SetLength(Buttons, Iff(CanCancel, 2, 1));
-
-  Buttons[0] := TCastleButton.Create(Self);
-  Buttons[0].OnClick := @ButtonOKClick;
-  Buttons[0].Caption := 'OK';
-
   if CanCancel then
   begin
+    SetLength(Buttons, 2);
+
+    Buttons[0] := TCastleButton.Create(Self);
+    Buttons[0].OnClick := @ButtonCancelClick;
+    Buttons[0].Caption := 'Cancel';
+
     Buttons[1] := TCastleButton.Create(Self);
-    Buttons[1].OnClick := @ButtonCancelClick;
-    Buttons[1].Caption := 'Cancel';
+    Buttons[1].OnClick := @ButtonOKClick;
+    Buttons[1].Caption := 'OK';
+  end else
+  begin
+    SetLength(Buttons, 1);
+    Buttons[0] := TCastleButton.Create(Self);
+    Buttons[0].OnClick := @ButtonOKClick;
+    Buttons[0].Caption := 'OK';
   end;
 end;
 
