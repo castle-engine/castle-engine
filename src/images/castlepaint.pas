@@ -22,11 +22,23 @@ unit CastlePaint;
 interface
 
 uses
-  CastleImages;
+  CastleImages, CastleColors;
 
 type
+  { Contains "Sorter" procedures which calls a proper native
+    implementation of each routine.
+    Warning: the operation is destructive, it will overwrite the current
+    image content, if you want to preserve the initial image
+    you will need to create copies manually.
+    They are not abstract (as helper currently doesn't allow for virtual methods)
+    so they cause a negligible slow-down when called run-time }
   TCastleImageHelper = class helper for TCastleImage
   public
+    { draws a hollow circle at x,y with aRadius radius with antialiasing.
+      aColor is treated differently depending on specific
+      image type it is drawn over }
+    procedure Circle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor);
   end;
 
 type
@@ -55,6 +67,28 @@ type
   end;
 
 implementation
+
+procedure TCastleImageHelper.Circle(const x, y: single; const aRadius: single;
+  const aColor: TCastleColor);
+begin
+  if Self is TRGBAlphaImage then
+    TRGBAlphaImage(Self).Circle(x, y, aRadius, aColor)
+  else
+  if Self is TRGBImage then
+    TRGBImage(Self).Circle(x, y, aRadius, aColor)
+  else
+  if Self is TGrayscaleAlphaImage then
+    TRGBImage(Self).Circle(x, y, aRadius, aColor)
+  else
+  if Self is TGrayscaleImage then
+    TRGBImage(Self).Circle(x, y, aRadius, aColor)
+  else
+  if Self is TRGBFloatImage then
+    TRGBImage(Self).Circle(x, y, aRadius, aColor)
+  else
+  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
+        [ClassName]);
+end;
 
 end.
 
