@@ -34,9 +34,7 @@ uses
 type
   { "native" colors (as in pointers) }
   TCastleColor4Byte = TVector4Byte;
-  TCastleColor3Byte = TVector3Byte;
   TCastleColor2Byte = TVector2Byte;
-  TCastleColor1Byte = byte;
 
 
 type
@@ -50,9 +48,7 @@ type
   TCastleImageHelper = class helper for TCastleImage
   strict private
     function CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
-    function CastleColorToCastleColor3Byte(aColor: TCastleColor): TCastleColor3Byte;
     function CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
-    function CastleColorToCastleColor1Byte(aColor: TCastleColor): TCastleColor1Byte;
   public
     { draws a hollow circle at x,y with aRadius radius with antialiasing.
       aColor is treated differently depending on specific
@@ -72,7 +68,7 @@ type
   TRGBImageHelper = class helper for TRGBImage
   public
     procedure Circle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor3Byte);
+      const aColor: TCastleColor4Byte);
   end;
 
 type
@@ -86,7 +82,7 @@ type
   TGrayscaleImageHelper = class helper for TGrayscaleImage
   public
     procedure Circle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor1Byte);
+      const aColor: TCastleColor2Byte);
   end;
 
 type
@@ -100,25 +96,17 @@ implementation
 
 function TCastleImageHelper.CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
 begin
-
-end;
-
-function TCastleImageHelper.CastleColorToCastleColor3Byte(aColor: TCastleColor): TCastleColor3Byte;
-begin
-
+  Result[0] := Trunc(aColor[0]*256);
+  Result[1] := Trunc(aColor[1]*256);
+  Result[2] := Trunc(aColor[2]*256);
+  Result[3] := Trunc(aColor[3]*256);
 end;
 
 function TCastleImageHelper.CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
 begin
-
+  Result[0] := GrayscaleValue(Vector3Byte(Vector3(aColor[0], aColor[1], aColor[2])));
+  Result[1] := Trunc(aColor[3]*256);
 end;
-
-function TCastleImageHelper.CastleColorToCastleColor1Byte(aColor: TCastleColor): TCastleColor1Byte;
-begin
-
-end;
-
-
 
 procedure TCastleImageHelper.Circle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
@@ -127,13 +115,13 @@ begin
     TRGBAlphaImage(Self).Circle(x, y, aRadius, CastleColorToCastleColor4Byte(aColor))
   else
   if Self is TRGBImage then
-    TRGBImage(Self).Circle(x, y, aRadius, CastleColorToCastleColor3Byte(aColor))
+    TRGBImage(Self).Circle(x, y, aRadius, CastleColorToCastleColor4Byte(aColor))
   else
   if Self is TGrayscaleAlphaImage then
     TGrayscaleAlphaImage(Self).Circle(x, y, aRadius, CastleColorToCastleColor2Byte(aColor))
   else
   if Self is TGrayscaleImage then
-    TGrayscaleImage(Self).Circle(x, y, aRadius, CastleColorToCastleColor1Byte(aColor))
+    TGrayscaleImage(Self).Circle(x, y, aRadius, CastleColorToCastleColor2Byte(aColor))
   else
   if Self is TRGBFloatImage then
     TRGBFloatImage(Self).Circle(x, y, aRadius, aColor)
@@ -149,7 +137,7 @@ begin
 end;
 
 procedure TRGBImageHelper.Circle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor3Byte);
+  const aColor: TCastleColor4Byte);
 begin
 
 end;
@@ -161,7 +149,7 @@ begin
 end;
 
 procedure TGrayscaleImageHelper.Circle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor1Byte);
+  const aColor: TCastleColor2Byte);
 begin
 
 end;
