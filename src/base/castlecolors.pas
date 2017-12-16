@@ -183,14 +183,14 @@ begin
 
     These weights are copied from libpng manual. }
 
-  result := (0.212671 * V.Data[0]+
+  Result := (0.212671 * V.Data[0]+
              0.715160 * V.Data[1]+
              0.072169 * V.Data[2]);
 end;
 
 function GrayscaleValue(const v: TCastleColorRGB): Single;
 begin
-  result := 0.212671 * V.Data[0]+
+  Result := 0.212671 * V.Data[0]+
             0.715160 * V.Data[1]+
             0.072169 * V.Data[2];
 end;
@@ -198,16 +198,16 @@ end;
 function GrayscaleValue(const v: TVector3Byte): Byte;
 begin
   // force multiplication as Word
-  result := (Word(54 ) * V.Data[0]+
+  Result := (Word(54 ) * V.Data[0]+
              Word(183) * V.Data[1]+
-             Word(19 ) * V.Data[2]) div 256;
+             Word(19 ) * V.Data[2]) shr 8; //div 256;
 end;
 
 function GrayscaleValue(const v: TVector4Byte): Byte;
 begin
-  result := (Word(54 ) * V.Data[0]+
+  Result := (Word(54 ) * V.Data[0]+
              Word(183) * V.Data[1]+
-             Word(19 ) * V.Data[2]) div 256;
+             Word(19 ) * V.Data[2]) shr 8; //div 256;
 end;
 
 function Grayscale(const v: TCastleColor): TCastleColor;
