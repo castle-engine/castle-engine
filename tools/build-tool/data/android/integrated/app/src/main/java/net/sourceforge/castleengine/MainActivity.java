@@ -95,6 +95,15 @@ public class MainActivity extends NativeActivity
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.i(TAG, "onNewIntent");
+        for (ServiceAbstract service : services) {
+            service.onNewIntent(intent);
+        }
+    }
+
+    @Override
     public void onBackPressed()
     {
         Log.i(TAG, "onBackPressed");

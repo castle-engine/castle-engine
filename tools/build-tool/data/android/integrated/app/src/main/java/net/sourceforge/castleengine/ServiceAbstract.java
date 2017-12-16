@@ -95,6 +95,7 @@ public abstract class ServiceAbstract
     public void onActivityResult(int requestCode, int resultCode, Intent intent) { }
     public void onResume() { }
     public void onPause() { }
+    public void onNewIntent(Intent intent) { }
     public boolean onBackPressed() { return false; }
     public void onPurchase(AvailableProduct product, String purchaseData, String signature) { }
 }

@@ -1030,6 +1030,7 @@ type
     procedure DoMenuClick(Item: TMenuItem);
 
     procedure DoDropFiles(const FileNames: array of string);
+    function MessageReceived(const Received: TCastleStringList): boolean;
 
     { Just like FileDialog, but these always get and should set FileName,
       not an URL. Also, for OpenDialog, we make sure that initial FileName
@@ -2873,7 +2874,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleLog, CastleGLVersion, CastleURIUtils,
-  CastleControls, CastleApplicationProperties,
+  CastleControls, CastleApplicationProperties, CastleMessaging,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -3016,6 +3017,9 @@ begin
   FNamedParameters := TCastleStringList.Create;
 
   CreateBackend;
+
+  if Messaging <> nil then
+    Messaging.OnReceive.Add(@MessageReceived);
 end;
 
 destructor TCastleWindowCustom.Destroy;
@@ -3029,6 +3033,9 @@ begin
     FMainMenu.ParentWindow := nil; { clear Self from FMainMenu.ParentWindow }
     FMainMenu := nil;
   end;
+
+  if Messaging <> nil then
+    Messaging.OnReceive.Remove(@MessageReceived);
 
   FreeAndNil(FFps);
   FreeAndNil(FPressed);
@@ -3600,6 +3607,20 @@ begin
   MakeCurrent;
   if Assigned(OnDropFiles) then
     OnDropFiles(Container, FileNames);
+end;
+
+function TCastleWindowCustom.MessageReceived(const Received: TCastleStringList): boolean;
+var
+  Url: string;
+begin
+  Result := false;
+  if (Received.Count = 2) and
+     (Received[0] = 'open_associated_url') then
+  begin
+    Url := Received[1];
+    DoDropFiles([Url]);
+    Result := true;
+  end;
 end;
 
 function TCastleWindowCustom.AllowSuspendForInput: boolean;
