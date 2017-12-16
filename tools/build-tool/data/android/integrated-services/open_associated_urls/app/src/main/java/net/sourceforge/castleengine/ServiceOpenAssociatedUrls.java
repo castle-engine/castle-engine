@@ -6,13 +6,18 @@ import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Looper;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import java.io.BufferedInputStream;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 
 public class ServiceOpenAssociatedUrls extends ServiceAbstract
 {
@@ -87,7 +92,7 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 				Log.i(TAG, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
 				messageSend(new String[]{"open_associated_url", uri.toString()});
 			}
-			else if (scheme.compareTo("http") == 0)
+			else if (scheme.compareTo("http") == 0 || scheme.compareTo("https") == 0 || scheme.compareTo("ftp") == 0)
 			{
 				Uri uri = intent.getData();
 				if (uri == null)
@@ -100,17 +105,13 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 				// open directly from http:
 				messageSend(new String[]{"open_associated_url", uri.toString()});
 				/*/
-				try
-				{
-					// download and open as file://
-					InputStream input = resolver.openInputStream(uri);
+				try {
 					String importfilepath = urlDocumentsDir.getAbsolutePath() + "/" + name;
-					InputStreamToFile(input, importfilepath);
-					messageSend(new String[]{"open_associated_url", "file://" + importfilepath});
+					DownloadDataFromUrl(new URL(uri.toString()), importfilepath);
 				}
 				catch (Exception e)
 				{
-					Log.e(TAG, "resolver.openInputStream exception: " + e.getMessage());
+					Log.e(TAG, "URL exception: " + e.getMessage());
 				}
 				//*/
 			}
@@ -149,5 +150,35 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 		{
 			Log.e(TAG, "InputStreamToFile exception: " + e.getMessage());
 		}
+	}
+
+	private void DownloadDataFromUrl(final URL url, final String file)
+	{
+		Thread thread = new Thread(new Runnable(){
+			@Override
+			public void run(){
+				try {
+					InputStream inStream = url.openStream();
+
+					DataInputStream stream = new DataInputStream(inStream);
+					BufferedInputStream bufferedReader = new BufferedInputStream(stream);
+
+					InputStreamToFile(bufferedReader, file);
+
+					stream.close();
+
+					new Handler(Looper.getMainLooper()).post(new Runnable() {   // run in main thread
+						@Override
+						public void run() {
+							messageSend(new String[]{"open_associated_url", "file://" + file});
+						}
+					});
+				}
+				catch (Exception e) {
+					Log.e(TAG, "DownloadDataFromUrl exception: " + e.getMessage());
+				}
+			}
+		});
+		thread.start();
 	}
 }
