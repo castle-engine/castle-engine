@@ -28,7 +28,7 @@ type
     FParameters: TStringStringMap;
     FName: string;
   public
-    constructor Create;
+    constructor Create(const Name: string = '');
     destructor Destroy; override;
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     property Name: string read FName;
@@ -39,6 +39,7 @@ type
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     function HasService(const Name: string): boolean;
+    procedure AddService(const Name: string);
   end;
 
 implementation
@@ -48,10 +49,11 @@ uses Classes, XMLRead, XMLWrite,
 
 { TService ---------------------------------------------------------- }
 
-constructor TService.Create;
+constructor TService.Create(const Name: string);
 begin
-  inherited;
+  inherited Create;
   FParameters := TStringStringMap.Create;
+  FName := Name;
 end;
 
 destructor TService.Destroy;
@@ -127,6 +129,17 @@ begin
     if Items[I].Name = Name then
       Exit(true);
   Result := false;
+end;
+
+procedure TServiceList.AddService(const Name: string);
+var
+  Service: TService;
+begin
+  if not HasService(Name) then
+  begin
+    Service := TService.Create(Name);
+    Add(Service);
+  end;
 end;
 
 end.

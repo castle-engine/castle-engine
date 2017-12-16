@@ -553,7 +553,11 @@ constructor TCastleProject.Create(const APath: string);
 
         Element := Doc.DocumentElement.ChildElement('associate_document_types', false);
         if Element <> nil then
+        begin
           FAssociateDocumentTypes.ReadCastleEngineManifest(Element);
+          if FAssociateDocumentTypes.Count > 0 then
+            FAndroidServices.AddService('open_associated_urls');
+        end;
 
         Element := Doc.DocumentElement.ChildElement('compiler_options', false);
         if Element <> nil then
