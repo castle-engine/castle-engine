@@ -306,6 +306,10 @@ procedure TCastleEdit.Update(const SecondsPassed: Single;
 begin
   inherited;
   LifeTime += SecondsPassed;
+  { do not allow other controls to handle key presses
+    (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
+  if ExclusiveEvents then
+    HandleInput := false;
 end;
 
 function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
@@ -317,13 +321,13 @@ begin
   begin
     if Text <> '' then
       Text := Copy(Text, 1, Length(Text) - 1);
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlC) then
   begin
     if Text <> '' then
       Clipboard.AsText := Text;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlX) then
   begin
@@ -332,12 +336,12 @@ begin
       Clipboard.AsText := Text;
       Text := '';
     end;
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlV) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
-    Result := true;
+    Result := ExclusiveEvents;
   end else
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
@@ -345,7 +349,7 @@ begin
      ((MaxLength = 0) or (Length(Text) < MaxLength)) then
   begin
     Text := Text + Event.KeyCharacter;
-    Result := true;
+    Result := ExclusiveEvents;
   end;
 end;
 
