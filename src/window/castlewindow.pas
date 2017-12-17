@@ -516,7 +516,8 @@ const
   WindowDefaultSize = -1000000;
 
 type
-  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay, poMacOsXProcessSerialNumber);
+  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay,
+    poMacOsXProcessSerialNumber, poLimitFps);
   TWindowParseOptions = set of TWindowParseOption;
   PWindowParseOptions = ^TWindowParseOptions;
 
@@ -531,7 +532,8 @@ const
     Or they can simply call overloaded version of TCastleWindowCustom.ParseParameters
     that doesn't take any parameters, it is always equivalent to
     calling TCastleWindowCustom.ParseParameters(StandardParseOptions). }
-  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay, poMacOsXProcessSerialNumber];
+  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay,
+    poMacOsXProcessSerialNumber, poLimitFps];
 
   DefaultDepthBits = 16;
 
@@ -2118,6 +2120,11 @@ type
           http://forums.macrumors.com/showthread.php?t=207344 and
           http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder .
         )
+
+        @itemLabel poLimitFps
+        @item(Handle @--no-limit-fps: disables @link(Application.LimitFps),
+          allows to observe maximum FPS, see
+          http://castle-engine.sourceforge.io/manual_optimization.php )
       )
 
       Multiple options of the same kind are allowed, for example two options
@@ -3949,6 +3956,17 @@ begin
   end;
 end;
 
+procedure LimitFpsOptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  ProcData: POptionProcData absolute Data;
+begin
+  Include(ProcData^.SpecifiedOptions, poLimitFps);
+  case OptionNum of
+    0: application.LimitFps := 0;
+  end;
+end;
+
 procedure TCastleWindowCustom.ParseParameters(const AllowedOptions: TWindowParseOptions;
   out SpecifiedOptions: TWindowParseOptions);
 
@@ -3962,6 +3980,9 @@ const
 
   DisplayOptions: array[0..0]of TOption =
   ( (Short:#0; Long:'display'; Argument: oaRequired) );
+
+  LimitFpsOptions: array[0..0]of TOption =
+  ( (Short:#0; Long:'no-limit-fps'; Argument: oaNone) );
 
   OptionsForParam: array[TWindowParseOption] of
     record
@@ -3980,7 +4001,10 @@ const
       OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} DisplayOptionProc),
     ( pOptions: nil;
       Count: 0;
-      OptionProc: nil)
+      OptionProc: nil),
+    ( pOptions: @LimitFpsOptions;
+      Count: High(LimitFpsOptions) + 1;
+      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} LimitFpsOptionProc)
   );
 
 var
@@ -4013,7 +4037,8 @@ begin
    if ParamKind in AllowedOptions then
    begin
      if ParamKind = poMacOsXProcessSerialNumber then
-       HandleMacOsXProcessSerialNumber else
+       HandleMacOsXProcessSerialNumber
+     else
        Parameters.Parse(OptionsForParam[ParamKind].pOptions,
          OptionsForParam[ParamKind].Count,
          OptionsForParam[ParamKind].OptionProc, @Data, true);
@@ -4042,7 +4067,10 @@ const
    '                        then set initial window size to cover whole screen.',
    '  --display DISPLAY-NAME' +nl+
    '                        Use given X display name.',
-   ''
+   '',
+   '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' +nl+
+   '                        vertical synchonization in your GPU settings,' +nl+
+   '                        to get maximum FPS.'
    );
 var
   ParamKind: TWindowParseOption;
