@@ -289,8 +289,7 @@ var
   Pos, Dir, Up: TVector3;
   Camera: TCamera;
 begin
-  Status.Caption := Format('FPS: %f (real : %f)',
-    [Window.Fps.FrameTime, Window.Fps.RealTime]);
+  Status.Caption := 'FPS: ' + Window.Fps.ToString;
 
   Camera := SceneManager.RequiredCamera;
 

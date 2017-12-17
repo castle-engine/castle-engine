@@ -62,11 +62,10 @@ begin
   { Print text with FPS, Touches and other info useful for debugging }
   S := TStringList.Create;
   try
-    S.Append(Format('Image: %d x %d. FPS : %f (real : %f)',
+    S.Append(Format('Image: %d x %d. FPS: %s',
       [ImageControl.Image.Width,
        ImageControl.Image.Height,
-       Window.Fps.FrameTime,
-       Window.Fps.RealTime]));
+       Window.Fps.ToString]));
     S.Append(Format('Touches (%d)', [Container.TouchesCount]));
     for I := 0 to Container.TouchesCount - 1 do
       S.Append(Format('Touch %d: FingerIndex %d, Position %s',

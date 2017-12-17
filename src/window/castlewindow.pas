@@ -126,7 +126,7 @@
     @item(TCastleWindowCustom.Pressed to easily and reliably check which keys
       are pressed.)
 
-    @item(Frames per second measuring, see @link(TCastleWindowCustom.Fps),)
+    @item(Application speed, see @link(TCastleWindowCustom.Fps),)
 
     @item(A menu bar under WinAPI and GTK backends.
 
@@ -1626,11 +1626,11 @@ type
       The only difference between these two events is that
       time spent in EventBeforeRender (OnBeforeRender)
       is NOT counted as "frame time"
-      by Fps.FrameTime. This is useful when you have something that needs
+      by Fps.OnlyRenderFps. This is useful when you have something that needs
       to be done from time to time right before OnRender and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnRender because this would cause a sudden big change in
-      Fps.FrameTime value. So you can avoid this by putting
+      Fps.OnlyRenderFps value. So you can avoid this by putting
       this in OnBeforeRender. }
     property OnBeforeRender: TContainerEvent read GetOnBeforeRender write SetOnBeforeRender;
 
@@ -2065,7 +2065,7 @@ type
 
     { Fps -------------------------------------------------------------------- }
 
-    { Frames per second measuring. }
+    { Application speed. }
     property Fps: TFramesPerSecond read FFps;
 
     { OpenAndRun stuff --------------------------------------------------------- }
@@ -3577,7 +3577,7 @@ begin
      (TimerSeconds(Timer, LastFpsOutputTime) >= FpsCaptionUpdateDelay) then
   begin
     LastFpsOutputTime := Timer;
-    SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
+    SetCaption(cpFps, ' - FPS: ' + Fps.ToString);
   end;
 end;
 

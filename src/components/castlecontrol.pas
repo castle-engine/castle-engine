@@ -89,7 +89,7 @@ type
         when OpenGL context is initialized. This will initialize GLVersion,
         GLFeatures and more.)
 
-      @item(Measures FPS (frames per second), see the @link(Fps).)
+      @item(Application speed, see the @link(Fps).)
 
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
         and mouse position @link(MousePosition).)
@@ -203,6 +203,7 @@ type
       See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2 read FMousePosition write SetMousePosition;
 
+    { Application speed. }
     property Fps: TFramesPerSecond read FFps;
 
     { Capture the current control contents to an image.
@@ -320,11 +321,11 @@ type
       The only difference between these two events is that
       time spent in OnBeforeRender
       is NOT counted as "frame time"
-      by Fps.FrameTime. This is useful when you have something that needs
+      by Fps.OnlyRenderFps. This is useful when you have something that needs
       to be done from time to time right before OnRender and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnRender because this would cause a sudden big change in
-      Fps.FrameTime value. So you can avoid this by putting
+      Fps.OnlyRenderFps value. So you can avoid this by putting
       this in OnBeforeRender. }
     property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
 

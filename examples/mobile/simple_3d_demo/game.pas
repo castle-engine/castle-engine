@@ -344,9 +344,8 @@ end;
 
 procedure WindowRender(Container: TUIContainer);
 begin
-  UIFont.Print(10, 10, Yellow, Format('FPS : %f (real : %f). Shapes : %d / %d',
-   [Window.Fps.FrameTime,
-    Window.Fps.RealTime,
+  UIFont.Print(10, 10, Yellow, Format('FPS : %s. Shapes : %d / %d',
+   [Window.Fps.ToString,
     Window.SceneManager.Statistics.ShapesRendered,
     Window.SceneManager.Statistics.ShapesVisible]));
 end;
