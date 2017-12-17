@@ -25,6 +25,10 @@ type
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string);
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
 
+{ Like AndroidLog, but works better for log strings (> 4076 characters),
+  otherwise the default AndroidLog seems to cut them off. }
+procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
+
 implementation
 
 uses CTypes, SysUtils, CastleUtils;
@@ -43,6 +47,23 @@ end;
 procedure AndroidLog(const Priority: TAndroidLogPriority; const S: string; const Args: array of const);
 begin
   AndroidLog(Priority, Format(S, Args));
+end;
+
+procedure AndroidLogRobust(const Priority: TAndroidLogPriority; const S: string);
+var
+  I: Integer;
+const
+  { The limit is actually 4076,
+    see http://jhshi.me/2014/06/30/stop-android-logcat-from-truncating-log-line/index.html .
+    It's safer to cut off earlier. }
+  MaxChunkLength = 4000;
+begin
+  I := 1;
+  while I <= Length(S) do
+  begin
+    AndroidLog(Priority, Copy(S, I, MaxChunkLength));
+    I += MaxChunkLength;
+  end;
 end;
 
 end.

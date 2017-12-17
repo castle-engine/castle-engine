@@ -254,8 +254,9 @@ begin
   begin
     {$ifdef ANDROID}
     if BacktraceOnLog then
-      AndroidLog(alInfo, S + DumpStackToString(Get_Frame) + NL) else
-      AndroidLog(alInfo, S);
+      AndroidLogRobust(alInfo, S + DumpStackToString(Get_Frame) + NL)
+    else
+      AndroidLogRobust(alInfo, S);
     {$else}
     // we know that LogStream <> nil when FLog = true
     {$ifdef FPC}
