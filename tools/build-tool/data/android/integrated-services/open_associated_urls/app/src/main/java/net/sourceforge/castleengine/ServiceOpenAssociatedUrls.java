@@ -53,7 +53,8 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 		if (action != null && action.compareTo(Intent.ACTION_VIEW) == 0)
 		{
 			String scheme = intent.getScheme();
-			if (scheme == null)
+			Uri uri = intent.getData();
+			if (scheme == null || uri == null)
 				return;
 
 			ContentResolver resolver = getActivity().getContentResolver();
@@ -62,10 +63,6 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 
 			if (scheme.compareTo(ContentResolver.SCHEME_CONTENT) == 0)
 			{
-				Uri uri = intent.getData();
-				if (uri == null)
-					return;
-
 				String name = getContentName(resolver, uri);
 
 				Log.i(TAG, "Content intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
@@ -83,10 +80,6 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 			}
 			else if (scheme.compareTo(ContentResolver.SCHEME_FILE) == 0)
 			{
-				Uri uri = intent.getData();
-				if (uri == null)
-					return;
-
 				String name = uri.getLastPathSegment();
 
 				Log.i(TAG, "File intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
@@ -94,10 +87,6 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 			}
 			else if (scheme.compareTo("http") == 0 || scheme.compareTo("https") == 0 || scheme.compareTo("ftp") == 0)
 			{
-				Uri uri = intent.getData();
-				if (uri == null)
-					return;
-
 				String name = uri.getLastPathSegment();
 
 				Log.i(TAG, "Http intent detected: " + action + " : " + intent.getDataString() + " : " + intent.getType() + " : " + name);
@@ -120,14 +109,17 @@ public class ServiceOpenAssociatedUrls extends ServiceAbstract
 
 	private String getContentName(ContentResolver resolver, Uri uri)
 	{
+		String sName = "untitled";
 		Cursor cursor = resolver.query(uri, null, null, null, null);
-		cursor.moveToFirst();
-		int nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
-		if (nameIndex >= 0) {
-			return cursor.getString(nameIndex);
-		} else {
-			return null;
+		if (cursor != null)
+		{
+			cursor.moveToFirst();
+			int nameIndex = cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME);
+			if (nameIndex >= 0)
+				sName = cursor.getString(nameIndex);
+			cursor.close();
 		}
+		return sName;
 	}
 
 	private void InputStreamToFile(InputStream in, String file)
