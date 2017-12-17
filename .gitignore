@@ -7,6 +7,7 @@
 *.ppu
 *.a
 *.lps
+*.lrs
 
 # Delphi stuff
 *.dproj.local
@@ -162,6 +163,7 @@ examples/window/multi_window
 examples/window/window_events
 examples/window/window_gtk_mix
 examples/window/window_menu
+packages/alternative_castle_window_based_on_lcl.pas
 packages/castle_base.pas
 packages/castle_components.pas
 packages/castle_window.pas
