@@ -384,20 +384,19 @@ type
 
     { Forces SecondsPassed for the next "update" call to be zero.
 
-      This is useful if you just came back from some lenghty
-      state, like a GUI dialog box
-      (like TCastleWindowCustom.FileDialog or modal boxes
-      in CastleMessages --- but actually all our stuff already calls this
-      as needed, TGLMode takes care of this). SecondsPassed would be ridicoulously
-      long in such case (if our loop is totally stopped) or not relevant
-      (if we do our loop, but with totally different callbacks, like
-      CastleMessages). Instead, it's most sensible in such case to fake
-      that SecondsPassed is 0.0, so things such as TCastleSceneCore.Time
-      should not advance wildly just because we did a modal dialog.
+      This is useful if you just came back from some modal state,
+      like a modal dialog box (like TCastleWindowCustom.FileDialog or modal boxes
+      in CastleMessages -- they already call this method).
+      SecondsPassed could be ridicoulously long in such case
+      (if our message loop is totally paused, as in TCastleWindowCustom.FileDialog
+      on Windows) or not relevant (if we do our message loop,
+      but we display something entirely different, like CastleMessages).
+      So it's best to pretend that SecondsPassed is 0.0,
+      so things such as TCastleSceneCore.Time do not advance wildly
+      just because we did a modal dialog.
 
-      This forces the SecondsPassed to zero only once, that is only on the
-      next update event (_UpdateBegin). Following update event (_UpdateBegin) will have
-      SecondsPassed as usual (unless you call ZeroNextSecondsPassed again, of course). }
+      This forces the SecondsPassed to be zero at the next update event
+      (_UpdateBegin). }
     procedure ZeroNextSecondsPassed;
 
     { Time of last Update call. }
@@ -722,15 +721,14 @@ const
 begin
   inherited;
 
-  { Just init times to some sensible default.
-
-    For SecondsPassed this is actually not essential, since we call
-    ZeroNextSecondsPassed anyway. But in case programmer will (incorrectly!)
-    try to use SecondsPassed before _UpdateBegin call, it's useful to have
-    here some predictable value. }
-  FSecondsPassed := 1 / DefaultFps;
+  { init time measurements to some sensible defaults }
   FOnlyRenderFps := DefaultFps;
   FRealFps := DefaultFps;
+  { for SecondsPassed this initialization is actually not essential,
+    since we call ZeroNextSecondsPassed anyway.
+    But in case programmer will (incorrectly!) try to use SecondsPassed
+    before _UpdateBegin call, it's useful to have here some predictable value. }
+  FSecondsPassed := 1 / DefaultFps;
 
   { the default is non-zero now, since all Android games need it }
   FMaxSensibleSecondsPassed := DefaultMaxSensibleSecondsPassed;
@@ -760,7 +758,7 @@ begin
     Exit('no frames rendered');
 
   if WasSleeping then
-    Result := 'no need to continuously redraw'
+    Result := 'no need to render all frames'
   else
     Result := Format('%f', [RealFps]);
   Result := Result + Format(' (only render: %f)', [OnlyRenderFps]);
