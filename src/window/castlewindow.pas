@@ -535,7 +535,7 @@ const
 
   DefaultDepthBits = 16;
 
-  DefaultFpsCaptionUpdateDelay = 5.0;
+  DefaultFpsCaptionUpdateDelay = 1.0;
 
   DefaultLimitFPS = 100.0;
 
@@ -2313,14 +2313,10 @@ type
     { The amount of time (in seconds) between updating Caption
       with current FPS value. Used when FpsShowOnCaption.
 
-      Note that updating Caption of the window too often @italic(may) cause
-      a significant FPS dropdown, in other words: don't set this to too small value.
-      Even small values like 0.2 (5 times per second) are known to cause
-      a drop in FPS.
-
-      If you want to show FPS updated more often,
-      just draw it yourself in the window,
-      see e.g. http://castle-engine.sourceforge.net/tutorial_2d_ui_custom_drawn.php . }
+      You probably don't want to change this -- the default value
+      is synchronized with how often the @link(TFramesPerSecond) actually
+      change. So there's no point in making this smaller (you may cause
+      slowdowns, and you will not see anything better). }
     property FpsCaptionUpdateDelay: Single
       read FFpsCaptionUpdateDelay write FFpsCaptionUpdateDelay
       default DefaultFpsCaptionUpdateDelay;
