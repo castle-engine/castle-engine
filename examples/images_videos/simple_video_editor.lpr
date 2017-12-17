@@ -104,7 +104,7 @@ end;
 procedure Update(Container: TUIContainer);
 begin
   if TimePlaying then
-    Time += Window.Fps.UpdateSecondsPassed;
+    Time += Window.Fps.SecondsPassed;
 end;
 
 procedure LoadVideo(const NewVideoURL: string);

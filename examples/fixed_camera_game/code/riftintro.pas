@@ -80,7 +80,7 @@ end;
 
 procedure Update(Container: TUIContainer);
 begin
-  IntroPartTime := IntroPartTime + Window.Fps.UpdateSecondsPassed;
+  IntroPartTime := IntroPartTime + Window.Fps.SecondsPassed;
   if IntroPartTime >
       IntroParts[IntroPart].CorrodeDuration +
       IntroParts[IntroPart].IdleDuration then

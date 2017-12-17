@@ -198,7 +198,7 @@ end;
 procedure Update(Container: TUIContainer);
 begin
   { update rat }
-  RatAngle := RatAngle + (0.5 * Window.Fps.UpdateSecondsPassed);
+  RatAngle := RatAngle + (0.5 * Window.Fps.SecondsPassed);
   UpdateRatPosition;
   if RatSound <> nil then
     RatSound.Position := Rat.Translation;

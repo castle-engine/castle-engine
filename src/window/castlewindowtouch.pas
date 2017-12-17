@@ -126,8 +126,8 @@ begin
         FControl[RightSide].GetSensorRotation(Rx, Ry, Rz, RAngle);
       end;
 
-    SceneManager.SensorTranslation(Tx, Ty, Tz, TLength, Fps.UpdateSecondsPassed);
-    SceneManager.SensorRotation(Rx, Ry, Rz, RAngle, Fps.UpdateSecondsPassed);
+    SceneManager.SensorTranslation(Tx, Ty, Tz, TLength, Fps.SecondsPassed);
+    SceneManager.SensorRotation(Rx, Ry, Rz, RAngle, Fps.SecondsPassed);
   end;
 end;
 

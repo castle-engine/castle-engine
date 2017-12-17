@@ -99,7 +99,7 @@ end;
 
 procedure WindowUpdate(Container: TUIContainer);
 begin
-  Time := Time + Container.Fps.UpdateSecondsPassed;
+  Time := Time + Container.Fps.SecondsPassed;
   UpdateMainLightLocation;
   SceneVisualizeLight.Translation := MainLight.Location;
 end;

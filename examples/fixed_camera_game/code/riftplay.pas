@@ -251,7 +251,7 @@ end;
 
 procedure Update(Container: TUIContainer);
 begin
-  WorldTime += Window.Fps.UpdateSecondsPassed;
+  WorldTime += Window.Fps.SecondsPassed;
 end;
 
 procedure InitLocation;

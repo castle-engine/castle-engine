@@ -268,7 +268,7 @@ type
   private
     FFrameTime: TFloatTime;
     FRealTime: TFloatTime;
-    FUpdateSecondsPassed: TFloatTime;
+    FSecondsPassed: TFloatTime;
     DoZeroNextSecondsPassed: boolean;
     FUpdateStartTime: TTimerResult;
     LastRecalculateTime: TTimerResult;
@@ -316,24 +316,24 @@ type
       @seealso FrameTime }
     property RealTime: TFloatTime read FRealTime;
 
-    { Track how much time passed since last Update call, using _UpdateBegin.
-
-      The time is in seconds, 1.0 = 1 second.
-      For two times faster computer UpdateSecondsPassed = 0.5,
-      for two times slower UpdateSecondsPassed = 2.0. This is useful for doing
-      time-based rendering, when you want to scale some changes
-      by computer speed, to get perceived animation speed the same on every
-      computer, regardless of computer's speed.
+    { How much time passed since the last "update".
+      You should use this inside "update" events and methods
+      (@link(TUIContainer.EventUpdate),
+      @link(TUIControl.Update),
+      @link(TCastleTransform.Update)...) to scale the movement.
+      This way, your animation will work with the same speed
+      (objects will travel at the same speed),
+      regardless of the system performance (regardless of how often
+      the "update" event occurs).
 
       This is calculated as a time between
-      start of previous Update event and start of current Update event.
-      So this really measures your whole loop time (unlike previous RenderSpeed
-      that measured only EventRender (OnRender) speed).
+      start of previous "update" event and start of current "update" event. }
+    property SecondsPassed: TFloatTime read FSecondsPassed;
 
-      You can sanely use this only within EventUpdate (OnUpdate). }
-    property UpdateSecondsPassed: TFloatTime read FUpdateSecondsPassed;
+    property UpdateSecondsPassed: TFloatTime read FSecondsPassed;
+      deprecated 'use SecondsPassed';
 
-    { Limit the UpdateSecondsPassed variable, to avoid increasing time in game
+    { Limit the SecondsPassed variable, to avoid increasing time in game
       a lot when a game was hanging or otherwise waiting for some exceptional
       event from OS.
       Used only when non-zero.
@@ -341,22 +341,22 @@ type
     property MaxSensibleSecondsPassed: TFloatTime
       read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed;
 
-    { Forces UpdateSecondsPassed for the next Update call (using _UpdateBegin)
-      to be zero.
+    { Forces SecondsPassed for the next "update" call to be zero.
 
       This is useful if you just came back from some lenghty
-      state, like a GUI dialog box (like TCastleWindowCustom.FileDialog or modal boxes
+      state, like a GUI dialog box
+      (like TCastleWindowCustom.FileDialog or modal boxes
       in CastleMessages --- but actually all our stuff already calls this
-      as needed, TGLMode takes care of this). UpdateSecondsPassed would be ridicoulously
+      as needed, TGLMode takes care of this). SecondsPassed would be ridicoulously
       long in such case (if our loop is totally stopped) or not relevant
       (if we do our loop, but with totally different callbacks, like
       CastleMessages). Instead, it's most sensible in such case to fake
-      that UpdateSecondsPassed is 0.0, so things such as TCastleSceneCore.Time
-      should not advance wildly just because we did GUI box.
+      that SecondsPassed is 0.0, so things such as TCastleSceneCore.Time
+      should not advance wildly just because we did a modal dialog.
 
-      This forces the UpdateSecondsPassed to zero only once, that is only on the
+      This forces the SecondsPassed to zero only once, that is only on the
       next update event (_UpdateBegin). Following update event (_UpdateBegin) will have
-      UpdateSecondsPassed as usual (unless you call ZeroNextSecondsPassed again, of course). }
+      SecondsPassed as usual (unless you call ZeroNextSecondsPassed again, of course). }
     procedure ZeroNextSecondsPassed;
 
     { Time of last Update call. }
@@ -683,11 +683,11 @@ begin
 
   { Just init times to some sensible default.
 
-    For UpdateSecondsPassed this is actually not essential, since we call
+    For SecondsPassed this is actually not essential, since we call
     ZeroNextSecondsPassed anyway. But in case programmer will (incorrectly!)
-    try to use UpdateSecondsPassed before _UpdateBegin call, it's useful to have
+    try to use SecondsPassed before _UpdateBegin call, it's useful to have
     here some predictable value. }
-  FUpdateSecondsPassed := 1 / DefaultFps;
+  FSecondsPassed := 1 / DefaultFps;
   FFrameTime := DefaultFps;
   FRealTime := DefaultFps;
 
@@ -740,18 +740,18 @@ procedure TFramesPerSecond._UpdateBegin;
 var
   NewUpdateStartTime: TTimerResult;
 begin
-  { update FUpdateSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
+  { update FSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
   NewUpdateStartTime := Timer;
 
   if DoZeroNextSecondsPassed then
   begin
-    FUpdateSecondsPassed := 0.0;
+    FSecondsPassed := 0.0;
     DoZeroNextSecondsPassed := false;
   end else
   begin
-    FUpdateSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
+    FSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
     if MaxSensibleSecondsPassed > 0 then
-      FUpdateSecondsPassed := Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
+      FSecondsPassed := Min(FSecondsPassed, MaxSensibleSecondsPassed);
   end;
 
   FUpdateStartTime := NewUpdateStartTime;

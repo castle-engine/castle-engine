@@ -226,10 +226,10 @@ const
 begin
   if not ViewFollowsPlayer then
   begin
-    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
-    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
-    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
-    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
+    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
   end else
   begin
     { At first I placed the commands below in KeyDown, as they work
@@ -259,7 +259,7 @@ begin
     end;
   end;
 
-  GameTime += Window.Fps.UpdateSecondsPassed;
+  GameTime += Window.Fps.SecondsPassed;
 
   Player.Update;
 end;

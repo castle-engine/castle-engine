@@ -607,8 +607,8 @@ type
       E.g. camera handles here falling down due to gravity,
       rotating model in Examine mode, and many more.
 
-      @param(SecondsPassed Should be calculated like TFramesPerSecond.UpdateSecondsPassed,
-        and usually it's in fact just taken from TCastleWindowCustom.Fps.UpdateSecondsPassed.)
+      @param(SecondsPassed Should be calculated like TFramesPerSecond.SecondsPassed,
+        and usually it's in fact just taken from TCastleWindowCustom.Fps.SecondsPassed.)
 
       This method may be used, among many other things, to continously
       react to the fact that user pressed some key (or mouse button).
@@ -2047,13 +2047,13 @@ procedure TUIContainer.EventUpdate;
           See TUIControl.Update for explanation. }
         if C.CapturesEventsAtPosition(MousePosition) then
         begin
-          C.Update(Fps.UpdateSecondsPassed, HandleInput);
+          C.Update(Fps.SecondsPassed, HandleInput);
         end else
         begin
           { controls where CapturesEventsAtPosition = false always get
             HandleInput parameter set to false. }
           Dummy := false;
-          C.Update(Fps.UpdateSecondsPassed, Dummy);
+          C.Update(Fps.SecondsPassed, Dummy);
         end;
       end;
     end;
@@ -2072,7 +2072,7 @@ begin
   { 3D Mouse }
   if Assigned(Mouse3D) and Mouse3D.Loaded then
   begin
-    Mouse3dPollTimer := Mouse3dPollTimer - Fps.UpdateSecondsPassed;
+    Mouse3dPollTimer := Mouse3dPollTimer - Fps.SecondsPassed;
     if Mouse3dPollTimer < 0 then
     begin
       { get values from sensor }
@@ -2130,7 +2130,7 @@ begin
 
   { ForceCaptureInput has the 1st chance to process inputs }
   if UseForceCaptureInput then
-    ForceCaptureInput.Update(Fps.UpdateSecondsPassed, HandleInput);
+    ForceCaptureInput.Update(Fps.SecondsPassed, HandleInput);
 
   I := Controls.Count - 1;
   while I >= 0 do
