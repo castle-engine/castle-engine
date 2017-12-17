@@ -101,9 +101,9 @@ begin
   SampleImage.URL := 'sample_image.png';
   SampleImageAlpha.URL := 'sample_image_with_alpha.png';
 
-  OnScreenMenu1.Add('one');
-  OnScreenMenu1.Add('two');
-  OnScreenMenu1.Add('three');
+  OnScreenMenu1.Add('one', @OnScreenMenu1Click);
+  OnScreenMenu1.Add('two', @OnScreenMenu1Click);
+  OnScreenMenu1.Add('three', @OnScreenMenu1Click);
 
   Edit := TCastleEdit.Create(Self);
   Edit.Anchor(vpTop, -10);

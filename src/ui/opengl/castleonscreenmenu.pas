@@ -230,6 +230,11 @@ type
       So when some variable affecting the implementation of this changes,
       you should call RecalculateSize again. }
     function SpaceBetweenItems(const NextItemIndex: Cardinal): Cardinal; virtual;
+
+    { Called when user will select CurrentItem.
+      @seealso Click }
+    property OnClick: TNotifyEvent read FOnClick write FOnClick;
+      deprecated 'use Add method to add a particular menu item with it''s own click callback; or just add TCastleMenuButton and handle it''s OnClick event';
   published
     { Opacity of the background rectangle (displayed when DrawBackgroundRectangle).
       @groupBegin }
@@ -258,11 +263,6 @@ type
     { Draw a flashing border around the menu when we are focused. }
     property DrawFocusedBorder: boolean read FDrawFocusedBorder write FDrawFocusedBorder
       default true;
-
-    { Called when user will select CurrentItem.
-      @seealso Click }
-    property OnClick: TNotifyEvent read FOnClick write FOnClick;
-      deprecated 'use TCastleMenuButton and it''s OnClick event';
 
     { Should menu intercept all key/mouse input, regardless if mouse position
       is over our rectangle.
