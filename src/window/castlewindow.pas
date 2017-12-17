@@ -2523,6 +2523,8 @@ type
     procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
     procedure UpdateAndRenderEverything;
 
+    procedure MarkSleeping;
+
     { Can we wait (hang) for next message.
       See TCastleWindowCustom.AllowSuspendForInput, this is similar but for
       the whole Application. Returns @true only if all open
@@ -4798,7 +4800,8 @@ begin
       Window.DoRender;
       if Window.Closed then Continue {don't Inc(I)};
       if Terminated then Exit;
-    end;
+    end else
+      Window.Fps._Sleeping;
 
     Inc(I);
   end;
@@ -4809,6 +4812,14 @@ var
   IgnoreWasAnyRendering: boolean;
 begin
   UpdateAndRenderEverything(IgnoreWasAnyRendering);
+end;
+
+procedure TCastleApplication.MarkSleeping;
+var
+  I: Integer;
+begin
+  for I := 0 to OpenWindowsCount - 1 do
+    OpenWindows[I].Fps._Sleeping;
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;

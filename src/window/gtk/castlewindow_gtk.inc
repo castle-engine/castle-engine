@@ -1745,6 +1745,8 @@ begin
   { Once we had below condition "and (not Terminated)",
     but it's pointless, we know Terminated is false now. }
   WaitForMessage := WaitForMessage and Application.AllowSuspendForInput;
+  if WaitForMessage then
+    MarkSleeping;
 
   { we could probably not call gtk_main_iteration_do when WasAnyMessage = false,
     and simplify this code a little. But let's keep it this way, to be similar

@@ -278,6 +278,7 @@ type
     { how much time passed inside frame rendering }
     OnlyRenderTimePassed: TTimerResult;
     FMaxSensibleSecondsPassed: TFloatTime;
+    FWasSleeping, FSleeping: boolean;
   public
     const
       DefaultMaxSensibleSecondsPassed = 0.5;
@@ -292,6 +293,8 @@ type
     procedure _RenderBegin;
     { @exclude }
     procedure _RenderEnd;
+    { @exclude }
+    procedure _Sleeping;
     { @exclude }
     procedure _UpdateBegin;
     { @groupEnd }
@@ -340,6 +343,18 @@ type
     property RealFps: TFloatTime read FRealFps;
     property RealTime: TFloatTime read FRealFps; deprecated 'use RealFps';
 
+    { Some of the frames were not rendered, because the scene and camera
+      were not moving. This happens only when
+      @link(TCastleWindowCustom.AutoRedisplay)
+      or @link(TCastleControlCustom.AutoRedisplay) are @false,
+      and it basically indicates that the @link(RealFps) value is not a useful
+      indicator of your application speed.
+
+      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      for a detailed description what this means. }
+    property WasSleeping: boolean read FWasSleeping;
+
+    { Display current FPS (RealFps, OnlyRenderFps, taking into account WasSleeping). }
     function ToString: string; override;
 
     { How much time passed since the last "update".
@@ -703,7 +718,7 @@ var
 
 constructor TFramesPerSecond.Create;
 const
-  DefaultFps = 30.0;
+  DefaultFps = 60.0;
 begin
   inherited;
 
@@ -729,45 +744,64 @@ begin
 end;
 
 procedure TFramesPerSecond._RenderEnd;
-const
-  TimeToRecalculate = 1.0; { in seconds }
-var
-  NowTime: TTimerResult;
 begin
   Inc(FramesRendered);
   OnlyRenderTimePassed.Value := OnlyRenderTimePassed.Value + Timer.Value - RenderStartTime.Value;
+end;
 
-  NowTime := Timer;
-  if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then
-  begin
-    { update FRealFps, FOnlyRenderFps once for TimeToRecalculate time.
-      This way they don't change rapidly.
-
-      Previously we used more elaborate hacks for this (resetting
-      their times after a longer periods, but keeping some previous
-      results), but they were complex and bad: when the game speed
-      was changing suddenly, FRealFps, FOnlyRenderFps should also change
-      suddenly, not gradually increase / decrease. }
-
-    FRealFps := FramesRendered / TimerSeconds(NowTime, LastRecalculateTime);
-
-    if OnlyRenderTimePassed.Value > 0 then
-      FOnlyRenderFps := FramesRendered * TimerFrequency / OnlyRenderTimePassed.Value
-    else
-      FOnlyRenderFps := 0;
-
-    LastRecalculateTime := NowTime;
-    FramesRendered := 0;
-    OnlyRenderTimePassed.Value := 0;
-  end;
+procedure TFramesPerSecond._Sleeping;
+begin
+  FSleeping := true;
 end;
 
 function TFramesPerSecond.ToString: string;
 begin
-  Result := Format('%f (only render: %f)', [RealFps, OnlyRenderFps]);
+  if (RealFps = 0) and (OnlyRenderFps = 0) then
+    Exit('no frames rendered');
+
+  if WasSleeping then
+    Result := 'no need to continuously redraw'
+  else
+    Result := Format('%f', [RealFps]);
+  Result := Result + Format(' (only render: %f)', [OnlyRenderFps]);
 end;
 
 procedure TFramesPerSecond._UpdateBegin;
+
+  { Update RealFps, OnlyRenderFps, WasSleeping }
+  procedure UpdateFps;
+  const
+    TimeToRecalculate = 1.0; { in seconds }
+  var
+    NowTime: TTimerResult;
+  begin
+    NowTime := Timer;
+    if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then
+    begin
+      { update FRealFps, FOnlyRenderFps once for TimeToRecalculate time.
+        This way they don't change rapidly.
+
+        Previously we used more elaborate hacks for this (resetting
+        their times after a longer periods, but keeping some previous
+        results), but they were complex and bad: when the game speed
+        was changing suddenly, FRealFps, FOnlyRenderFps should also change
+        suddenly, not gradually increase / decrease. }
+
+      FRealFps := FramesRendered / TimerSeconds(NowTime, LastRecalculateTime);
+      FWasSleeping := FSleeping;
+
+      if OnlyRenderTimePassed.Value > 0 then
+        FOnlyRenderFps := FramesRendered * TimerFrequency / OnlyRenderTimePassed.Value
+      else
+        FOnlyRenderFps := 0;
+
+      LastRecalculateTime := NowTime;
+      FramesRendered := 0;
+      OnlyRenderTimePassed.Value := 0;
+      FSleeping := false;
+    end;
+  end;
+
 var
   NewUpdateStartTime: TTimerResult;
 begin
@@ -788,6 +822,8 @@ begin
   FUpdateStartTime := NewUpdateStartTime;
 
   Inc(FFrameId);
+
+  UpdateFps;
 end;
 
 procedure TFramesPerSecond.ZeroNextSecondsPassed;

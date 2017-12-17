@@ -24,6 +24,9 @@
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
 
+  - We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
+    This may result in confusing Fps.ToString in case AutoRedisplay was false.
+
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
 

@@ -217,7 +217,10 @@ begin
     WaitForMessage := WaitForMessage and Application.AllowSuspendForInput and
       not (WasAnyRendering or Terminated);
     if WaitForMessage then
-      WaitMessage else
+    begin
+      MarkSleeping;
+      WaitMessage;
+    end else
       NoMessageProcessed;
   end;
 
