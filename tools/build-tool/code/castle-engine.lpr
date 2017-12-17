@@ -39,7 +39,6 @@ var
   CompilerExtraOptions: TCastleStringList;
 
 const
-  Version = CastleEngineVersion;
   Options: array [0..11] of TOption =
   (
     (Short: 'h'; Long: 'help'; Argument: oaNone),
@@ -154,12 +153,13 @@ begin
           'Full documentation on' + NL +
           'https://github.com/castle-engine/castle-engine/wiki/Build-Tool' + NL +
           NL+
-          SCastleEngineProgramHelpSuffix(ApplicationName, Version, true));
+          SCastleEngineProgramHelpSuffix(ApplicationName,
+            ApplicationProperties.Version, true));
         Halt;
       end;
     1:begin
         // include ApplicationName in version, good for help2man
-        Writeln(ApplicationName + ' ' + Version);
+        Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
     2:Target := StringToTarget(Argument);
@@ -217,8 +217,9 @@ var
   Project: TCastleProject;
   RestOfParameters: TCastleStringList;
 begin
-  OnGetApplicationName := @MyGetApplicationName;
+  ApplicationProperties.Version := CastleEngineVersion;
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
+  OnGetApplicationName := @MyGetApplicationName;
 
   OS := DefaultOS;
   CPU := DefaultCPU;

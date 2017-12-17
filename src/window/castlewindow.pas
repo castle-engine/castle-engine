@@ -2450,7 +2450,6 @@ type
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
     LastMaybeDoTimerTime: TTimerResult;
-    FVersion: string;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2542,6 +2541,9 @@ type
       finish the @link(Run) method (if working), and thus finish the
       application work. }
     procedure CloseAllOpenWindows;
+
+    function GetVersion: string;
+    procedure SetVersion(const Value: string);
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2832,9 +2834,8 @@ type
       it is also capped (by MaxDesiredFPS = 100.0). }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
 
-    { The version of your application.
-      It may be used e.g. by @link(ParseStandardParameters). }
-    property Version: string read FVersion write FVersion;
+    property Version: string read GetVersion write SetVersion;
+      deprecated 'use ApplicationProperties.Version';
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
@@ -5064,13 +5065,14 @@ begin
           NL;
         if App.MainWindow <> nil then
           HelpString += TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) + NL + NL;
-        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName, App.Version, true);
+        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName,
+          ApplicationProperties.Version, true);
         InfoWrite(HelpString);
         Halt;
       end;
     1:begin
         // include ApplicationName in --version output, this is good for help2man
-        Writeln(ApplicationName + ' ' + App.Version);
+        Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
     else raise EInternalError.Create('OptionProc');
@@ -5089,6 +5091,16 @@ begin
   if MainWindow <> nil then
     MainWindow.ParseParameters;
   Parameters.Parse(Options, @ApplicationOptionProc, Self);
+end;
+
+function TCastleApplication.GetVersion: string;
+begin
+  Result := ApplicationProperties.Version;
+end;
+
+procedure TCastleApplication.SetVersion(const Value: string);
+begin
+  ApplicationProperties.Version := Value;
 end;
 
 { global --------------------------------------------------------------------- }

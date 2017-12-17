@@ -57,9 +57,14 @@ type
       FOnGLContextOpenObject, FOnGLContextCloseObject,
       FOnPause, FOnResume: TNotifyEventList;
     FOnWarning: TWarningEventList;
+    FVersion: string;
   public
     constructor Create;
     destructor Destroy; override;
+
+    { The version of your application.
+      It may be used e.g. by @link(InitializeLog) and @link(TCastleWindow.ParseStandardParameters). }
+    property Version: string read FVersion write FVersion;
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,

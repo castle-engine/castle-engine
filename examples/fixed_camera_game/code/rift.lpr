@@ -25,7 +25,8 @@ program rift;
 
 {$ifdef MSWINDOWS} {$apptype GUI} {$endif}
 
-uses SysUtils, CastleParameters, CastleUtils, CastleWindow,
+uses SysUtils,
+  CastleApplicationProperties, CastleParameters, CastleUtils, CastleWindow,
   CastleClassUtils, CastleStringUtils, CastleProgress, CastleWindowProgress,
   CastleGLUtils, CastleLog, CastleGameNotifications, CastleUIControls,
   CastleConfig, CastleSoundEngine, CastleVectors,
@@ -54,7 +55,7 @@ begin
   case OptionNum of
     0: begin
          InfoWrite(
-           '"The Rift" version ' + Application.Version + '.' +nl+
+           '"The Rift" version ' + ApplicationProperties.Version + '.' +nl+
            'WWW: http://castle-engine.sourceforge.net/' +nl+
            '     (no rift-specific webpage yet)' +nl+
            nl+
@@ -78,13 +79,13 @@ begin
          Halt;
        end;
     1: begin
-         WritelnStr(Application.Version);
+         WritelnStr(ApplicationProperties.Version);
          Halt;
        end;
     2: WasParam_NoScreenChange := true;
     3: DebugMenuDesignerAllowed := true;
     4: DebugMenuFps := true;
-    5: InitializeLog(Application.Version);
+    5: InitializeLog;
     6: DebugNoCreatures := true;
     else raise EInternalError.Create('OptionProc');
   end;
@@ -109,7 +110,7 @@ begin
     - ApplicationConfig uses this. }
   OnGetApplicationName := @MyGetApplicationName;
 
-  Application.Version := '0.1.0';
+  ApplicationProperties.Version := '0.1.0';
 
   //InitializeLog;
 

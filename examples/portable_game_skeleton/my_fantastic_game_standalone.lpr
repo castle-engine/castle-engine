@@ -9,16 +9,23 @@ program my_fantastic_game_standalone;
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleLog, CastleWindow, Game;
+uses CastleApplicationProperties, CastleLog, CastleWindow, Game;
 
 begin
-  Application.Version := '';
+  { Optionally you can specify here your application version.
+    It will appear e.g. in the log and in the --help output.
+    Instead of updating this program file, you can also delete it (and remove
+    "standalone_source" from the CastleEngineManifest.xml),
+    and specify <version> inside CastleEngineManifest.xml.
+    In this case, the program file, with appropriate version set,
+    will be automatically generated and updated by the build tool. }
+  ApplicationProperties.Version := '';
   Application.ParseStandardParameters;
 
   { On standalone, activate log only after parsing command-line options.
     This allows to handle --version and --help command-line parameters
     without any extra output on Unix. }
-  InitializeLog(Application.Version);
+  InitializeLog;
 
   Application.MainWindow.OpenAndRun;
 end.

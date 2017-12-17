@@ -20,7 +20,14 @@
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleWindow, Game;
+uses CastleLog, CastleApplicationProperties, CastleWindow, Game;
 begin
-  Window.OpenAndRun;
+  Application.ParseStandardParameters;
+
+  { On standalone, activate log only after parsing command-line options.
+    This allows to handle --version and --help command-line parameters
+    without any extra output on Unix. }
+  InitializeLog;
+
+  Application.MainWindow.OpenAndRun;
 end.

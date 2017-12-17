@@ -100,11 +100,12 @@ function SCompilerDescription: string;
   This is useful only for programs released on this WWW page by Michalis.
   Resulting string is multiline.
 
-  @param(DisplayApplicationName Usually ApplicationName, but you can give
-    here something else if you want.)
+  @param(DisplayApplicationName Short application name.
+    Usually you should take it from ApplicationName.)
 
-  @param(Version For my programs this usually looks like '%d.%d.%d'
-    and conforms to [http://castle-engine.sourceforge.net/versioning.php])
+  @param(Version Version to display.
+    Usually you should take it from
+    @link(TCastleApplicationProperties.Version ApplicationProperties.Version).)
 
   @param(WrapLines If true then resulting string will not have lines
     longer than 80 characters. Suitable for printing program
