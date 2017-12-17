@@ -94,7 +94,7 @@ end;
 
 procedure WindowRender(Container: TUIContainer);
 begin
-  UIFont.Print(10, 10, Yellow, Format('FPS: %f', [Container.Fps.RealTime]));
+  UIFont.Print(10, 10, Yellow, 'FPS: ' + Container.Fps.ToString);
 end;
 
 procedure WindowUpdate(Container: TUIContainer);

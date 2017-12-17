@@ -255,10 +255,10 @@ procedure WindowUpdate(Container: TUIContainer);
 
 begin
   Status.Caption := Format(
-    'FPS: %f' + LineEnding +
+    'FPS: %s' + LineEnding +
     'Scene Manager Objects: %d' + LineEnding +
     'Click or drag with mouse to move the plane.',
-    [Container.Fps.RealTime,
+    [Container.Fps.ToString,
      SceneManager.Items.Count]);
 
   if TimerSeconds(Timer, BoxDropTime) > BoxDropInterval then

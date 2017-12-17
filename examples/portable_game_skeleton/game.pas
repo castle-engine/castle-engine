@@ -76,7 +76,7 @@ end;
 procedure WindowUpdate(Container: TUIContainer);
 begin
   // ... do something every frame
-  Status.Caption := Format('FPS: %f', [Container.Fps.RealTime]);
+  Status.Caption := 'FPS: ' + Container.Fps.ToString;
 end;
 
 procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);

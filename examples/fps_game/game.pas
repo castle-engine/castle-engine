@@ -265,7 +265,7 @@ begin
 
   { show FPS }
   UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
-    Format('FPS: %f', [Window.Fps.RealTime]), hpRight, vpTop);
+    'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
   Y := Y - (UIFont.RowHeight + InventoryImageSize);
 
