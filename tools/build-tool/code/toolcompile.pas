@@ -283,8 +283,6 @@ var
     if (OS = darwin) and (CPU = aarch64) then
     begin
       IOS := true;
-      // -dCPUARM64 is checked by castleconf.inc
-      FpcOptions.Add('-dCPUARM64');
       {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
       {$endif}

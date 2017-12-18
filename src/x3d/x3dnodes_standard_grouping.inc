@@ -1039,7 +1039,7 @@ procedure TransformState(State: TX3DGraphTraverseState;
   (not on other platforms):
   x3dnodes_standard_grouping.inc(1035,3) Fatal: Internal error 2014121702
 }
-{$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+{$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
 
   type
     TTransformData = record

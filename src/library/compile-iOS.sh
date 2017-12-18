@@ -107,8 +107,7 @@ fi
 # compile for a physical device
 if [ $COMPILE_ARM -eq 1 ]; then
   run_build "${OUTPUT_ARM}"   $FPC_ARM_COMPILER   -Tdarwin "-XR${DEVICE_SDK}" -Cparmv7 -Cfvfpv3
-  # -dCPUARM64 is checked by castleconf.inc
-  run_build "${OUTPUT_ARM64}" $FPC_ARM64_COMPILER -Tdarwin "-XR${DEVICE_SDK}" -dCPUARM64
+  run_build "${OUTPUT_ARM64}" $FPC_ARM64_COMPILER -Tdarwin "-XR${DEVICE_SDK}"
 fi
 
 if [ $OUTPUT_LIBRARIES_COUNT -eq 0 ]; then

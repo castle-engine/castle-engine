@@ -119,8 +119,17 @@
   {$ifdef CPU64BITS} {$define CPU64} {$endif}
 {$endif}
 
+{ Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
+  For compatibility, keep it defined there.
+  But CPUARM64 should not be used anymore: we use now CPUAARCH64,
+  defined by FPC automatically (so it's safer to use, it will work
+  regardless of how you compile the sources). }
+{$ifdef CPUAARCH64}
+  {$define CPUARM64}
+{$endif}
+
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUARM64)))}
+  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
     {$define iOS}
   {$endif}
 {$endif}

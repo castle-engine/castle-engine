@@ -220,7 +220,7 @@ begin
     (not on other platforms):
     castlerays.pas(262,3) Fatal: Internal error 2014121702
   }
-  {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+  {$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
   Dimensions := FloatRectangle(
     ADimensions.Left,
     ADimensions.Bottom,
@@ -265,7 +265,7 @@ begin
     (not on other platforms):
     castlerays.pas(262,3) Fatal: Internal error 2014121702
   }
-  {$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+  {$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
   Dimensions := FloatRectangle(
     ADimensions.Left,
     ADimensions.Bottom,
