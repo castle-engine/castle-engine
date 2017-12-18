@@ -48,7 +48,6 @@ type
     so they cause a negligible slow-down when called run-time }
   TCastleImageHelper = class helper for TCastleImage
   strict private
-    function BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
     function CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
     function CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
   public
@@ -68,6 +67,8 @@ type
 
 type
   TRGBAlphaImageHelper = class helper for TRGBAlphaImage
+  strict private
+    function BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor4Byte);
@@ -75,6 +76,8 @@ type
 
 type
   TRGBImageHelper = class helper for TRGBImage
+  strict private
+    function BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor4Byte);
@@ -82,6 +85,8 @@ type
 
 type
   TGrayscaleAlphaImageHelper = class helper for TGrayscaleAlphaImage
+  strict private
+    function BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor2Byte);
@@ -89,6 +94,8 @@ type
 
 type
   TGrayscaleImageHelper = class helper for TGrayscaleImage
+  strict private
+    function BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor2Byte);
@@ -96,6 +103,8 @@ type
 
 type
   TRGBFloatImageHelper = class helper for TRGBFloatImage
+  strict private
+    function BlendColor(const c1, c2: single; const t: single): single; {$IFDEF Supports_Inline}Inline;{$ENDIF}
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor);
@@ -119,7 +128,7 @@ begin
   Result[1] := Trunc(aColor[3]*256);
 end;
 
-function TCastleImageHelper.BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
+function TRGBAlphaImageHelper.BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
 var
   tmp: integer;
 begin
@@ -132,6 +141,55 @@ begin
   else
     Result := tmp;
 end;
+
+function TRGBImageHelper.BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
+var
+  tmp: integer;
+begin
+  tmp := Round(c1 * t + c2 * (1 - t));
+  if tmp >= 255 then
+    Result := 255
+  else
+  if tmp <= 0 then
+    Result := 0
+  else
+    Result := tmp;
+end;
+
+function TGrayscaleAlphaImageHelper.BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
+var
+  tmp: integer;
+begin
+  tmp := Round(c1 * t + c2 * (1 - t));
+  if tmp >= 255 then
+    Result := 255
+  else
+  if tmp <= 0 then
+    Result := 0
+  else
+    Result := tmp;
+end;
+
+function TGrayscaleImageHelper.BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
+var
+  tmp: integer;
+begin
+  tmp := Round(c1 * t + c2 * (1 - t));
+  if tmp >= 255 then
+    Result := 255
+  else
+  if tmp <= 0 then
+    Result := 0
+  else
+    Result := tmp;
+end;
+
+function TRGBFloatImageHelper.BlendColor(const c1, c2: single; const t: single): single; {$IFDEF Supports_Inline}Inline;{$ENDIF}
+begin
+  Result := c1 * t + c2 * (1 - t);
+end;
+
+
 
 {-----= "Sorting procedures =-----}
 
@@ -163,8 +221,30 @@ procedure TRGBAlphaImageHelper.FillCircle(const x, y: single; const aRadius: sin
   const aColor: TCastleColor4Byte);
 var
   p: PVector4Byte;
+  ix, iy: integer;
+  d: single;
 begin
-
+  for iy := Round(y - aRadius) - 1 to Round(y + aRadius) + 1 do
+    for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
+    begin
+      d := Sqr(aRadius) - (Sqr(ix - x) + Sqr(iy - y));
+      if d > -1 then
+      begin
+          //p := GetRecoursivePointer(ix, iy);
+          if p <> nil then
+          begin
+            {antialiasing}
+            if d >= 1 then
+              d := ...
+            else
+              d := ...;//(d+1)/2;
+            p^[0] := BlendColor(aColor[0], p^[0], d);
+            p^[1] := BlendColor(aColor[1], p^[1], d);
+            p^[2] := BlendColor(aColor[2], p^[2], d);
+            p^[3] := BlendColor(aColor[4], p^[3], d);
+          end;
+        end;
+    end;
 end;
 
 procedure TRGBImageHelper.FillCircle(const x, y: single; const aRadius: single;
