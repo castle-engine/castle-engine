@@ -294,6 +294,7 @@ var
     if IOS then
     begin
       FpcOptions.Add('-Cn');
+      FpcOptions.Add('-dCASTLE_IOS');
 
       { This corresponds to the iOS version used when compiling FPC 3.0.3 RTL
         from the latest official FPC release for iOS.
