@@ -1478,6 +1478,11 @@ const
   Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE =
     #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = "ONLY_C=1";' + NL;
 
+  IOSCapabilityEnable =
+    #9#9#9#9#9#9#9'com.apple.%s = {' + NL +
+    #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
+    #9#9#9#9#9#9#9'};' + NL;
+
   function AndroidActivityLoadLibraries: string;
   begin
     { some Android devices work without this clause, some don't }
@@ -1537,7 +1542,7 @@ var
   Macros: TStringStringMap;
   I: Integer;
   P, NonEmptyAuthor, AndroidLibraryName, IOSTargetAttributes,
-    IOSRequiredDeviceCapabilities: string;
+    IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
   AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
@@ -1620,28 +1625,29 @@ begin
     begin
       Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
     end;
+
+    IOSSystemCapabilities := '';
     if IOSServices.HasService('apple_game_center') then
     begin
-      if IOSServices.HasService('icloud_for_save_games') then
-        IOSTargetAttributes := IOSTargetAttributes +
-          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
-          #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
-          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
-          #9#9#9#9#9#9#9'};' + NL +
-          #9#9#9#9#9#9#9'com.apple.iCloud = {' + NL +
-          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
-          #9#9#9#9#9#9#9'};' + NL +
-          #9#9#9#9#9#9'};' + NL
-      else
-        IOSTargetAttributes := IOSTargetAttributes +
-          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
-          #9#9#9#9#9#9#9'com.apple.GameCenter = {' + NL +
-          #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
-          #9#9#9#9#9#9#9'};' + NL +
-          #9#9#9#9#9#9'};' + NL;
+      IOSSystemCapabilities := IOSSystemCapabilities +
+        Format(IOSCapabilityEnable, ['GameCenter']);
       IOSRequiredDeviceCapabilities := IOSRequiredDeviceCapabilities +
         #9#9'<string>gamekit</string>' + NL;
     end;
+    if IOSServices.HasService('icloud_for_save_games') then
+      IOSSystemCapabilities := IOSSystemCapabilities +
+        Format(IOSCapabilityEnable, ['iCloud']);
+    if IOSServices.HasService('in_app_purchases') then
+      IOSSystemCapabilities := IOSSystemCapabilities +
+        Format(IOSCapabilityEnable, ['InAppPurchase']);
+    // If not empty, add IOSSystemCapabilities to IOSTargetAttributes,
+    // wrapped in SystemCapabilities = { } block.
+    if IOSSystemCapabilities <> '' then
+        IOSTargetAttributes := IOSTargetAttributes +
+          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+          IOSSystemCapabilities +
+          #9#9#9#9#9#9'};' + NL;
+
     Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
     Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
 
