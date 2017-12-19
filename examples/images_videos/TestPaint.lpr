@@ -17,48 +17,48 @@ var
 procedure DoTest(aImage: TCastleImage);
 begin
   aImage.Clear(Vector4Byte(255, 255, 255, 255));
-  aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Black);
-  aImage.QuickFillCircle(HalfTestSize, HalfTestSize + TestSize, TestSize div 3, Black);
+  aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Lime);
+  aImage.QuickFillCircle(HalfTestSize + TestSize, HalfTestSize, TestSize div 3, Black);
 end;
 
 procedure DoDraw;
 begin
-  RGBAlphaImage := TRGBAlphaImage.Create(TestSize,TestSize*NTests);
+  RGBAlphaImage := TRGBAlphaImage.Create(TestSize*NTests, TestSize);
   DoTest(RGBAlphaImage);
   RGBAlphaImageGL := TGLImage.Create(RGBAlphaImage,true,true);
   {-------------}
-  RGBImage := TRGBImage.Create(TestSize,TestSize*NTests);
+  RGBImage := TRGBImage.Create(TestSize*NTests, TestSize);
   DoTest(RGBImage);
   RGBImageGL := TGLImage.Create(RGBImage,true,true);
   {-------------}
-  GrayscaleAlphaImage := TGrayscaleAlphaImage.Create(TestSize,TestSize*NTests);
+  GrayscaleAlphaImage := TGrayscaleAlphaImage.Create(TestSize*NTests, TestSize);
   DoTest(GrayscaleAlphaImage);
   GrayscaleAlphaImageGL := TGLImage.Create(GrayscaleAlphaImage,true,true);
   {-------------}
-  GrayscaleImage := TGrayscaleImage.Create(TestSize,TestSize*NTests);
+  GrayscaleImage := TGrayscaleImage.Create(TestSize*NTests, TestSize);
   DoTest(GrayscaleImage);
   GrayscaleImageGL := TGLImage.Create(GrayscaleImage,true,true);
   {-------------}
-  RGBFloatImage := TRGBFloatImage.Create(TestSize,TestSize*NTests);
+  RGBFloatImage := TRGBFloatImage.Create(TestSize*NTests, TestSize);
   DoTest(RGBFloatImage);
   RGBFloatImageGL := TGLImage.Create(RGBFloatImage,true,true);
 end;
 
 procedure DoRender(Container: TUIContainer);
 begin
-  RGBAlphaImageGL.Draw(0*TestSize,0);
-  RGBImageGL.Draw(1*TestSize,0);
-  GrayscaleAlphaImageGL.Draw(2*TestSize,0);
-  GrayscaleImageGL.Draw(3*TestSize,0);
-  RGBFloatImageGL.Draw(4*TestSize,0);
+  RGBAlphaImageGL.Draw(0, 0*TestSize);
+  RGBImageGL.Draw(0, 1*TestSize);
+  GrayscaleAlphaImageGL.Draw(0, 2*TestSize);
+  GrayscaleImageGL.Draw(0, 3*TestSize);
+  RGBFloatImageGL.Draw(0, 4*TestSize);
 end;
 
 begin
   InitializeLog;
 
   Window := TCastleWindow.Create(Application);
-  Window.Width := 5*TestSize;
-  Window.Height := NTests*TestSize;
+  Window.Width := NTests*TestSize;
+  Window.Height := 5*TestSize;
   Window.OnRender := @DoRender;
 
   DoDraw;
