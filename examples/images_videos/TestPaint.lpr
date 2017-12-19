@@ -15,11 +15,11 @@ var
 
 procedure DoTest(aImage: TCastleImage);
 begin
-  aImage.Clear(Vector4Byte(255, 255, 255, 255));
-  aImage.FillCircle(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize/3, Lime);
-  aImage.QuickFillCircle(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize div 3, Lime);
-  aImage.Circle(HalfTestSize + 2 * TestSize, HalfTestSize, TestSize div 3, 1, Lime);
-  aImage.QuickCircle(HalfTestSize + 3 * TestSize, HalfTestSize, TestSize div 3, 1, Lime);
+  aImage.Clear(Vector4Byte(0, 0, 0, 0));
+  aImage.FillCircle(HalfTestSize + 0 * TestSize + 0.5, HalfTestSize + 0.5, TestSize / 4, Lime);
+  aImage.QuickFillCircle(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize div 4, Lime);
+  aImage.Circle(HalfTestSize + 2 * TestSize + 0.5, HalfTestSize + 0.5, TestSize / 4, 1, Lime);
+  aImage.QuickCircle(HalfTestSize + 3 * TestSize, HalfTestSize, TestSize div 4, 1, Lime);
 end;
 
 procedure DoDraw;
