@@ -264,7 +264,7 @@ var
   ix, iy: integer;
   d1, d2: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2: single;
+  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
   DoubleRadius1 := 2 * (aRadius);
   DoubleRadius2 := 2 * (aRadius - aWidth);
@@ -274,14 +274,16 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY1 := SqrRadius1 - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
       SqrY2 := SqrRadius2 - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d1 := SqrY1 - Sqr(ix - x);
-          d2 := SqrY2 - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
@@ -289,9 +291,9 @@ begin
             Alpha1 := p^.Data[3] / 255;
 
             {antialiasing}
+            { sqrt should be used here, however i like the result with square
+              of distance better }
             if d1 < DoubleRadius1 then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
               Alpha2d := Alpha2 * d1 / DoubleRadius1  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
@@ -316,37 +318,41 @@ procedure TRGBImageHelper.Circle(const x, y: single; const aRadius, aWidth: sing
 var
   p: PVector3Byte;
   ix, iy: integer;
-  d: single;
+  d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
-  SqrRadius, DoubleRadius, SqrWidth, SqrY: single;
+  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
-  SqrRadius := Sqr(aRadius);
-  DoubleRadius := 2 * aRadius;
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  DoubleRadius1 := 2 * (aRadius);
+  DoubleRadius2 := 2 * (aRadius - aWidth);
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   Alpha2 := aColor.Data[3] / 255;
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth + DoubleRadius) then
+          if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
 
             {antialiasing}
-            if d < DoubleRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
-            else
-            if d > SqrWidth then
-              Alpha2d := Alpha2 * (1 - (d - SqrWidth) / DoubleRadius)  // as of conditions above d / DoubleRadius changes from 0 to 1
+            { sqrt should be used here, however i like the result with square
+              of distance better }
+            if d1 < DoubleRadius1 then
+              Alpha2d := Alpha2 * d1 / DoubleRadius1  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
             p^.Data[0] := Round(p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
@@ -362,39 +368,43 @@ procedure TGrayscaleAlphaImageHelper.Circle(const x, y: single; const aRadius, a
 var
   p: PVector2Byte;
   ix, iy: integer;
-  d: single;
+  d1, d2: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  SqrRadius, DoubleRadius, SqrWidth, SqrY: single;
+  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
-  SqrRadius := Sqr(aRadius);
-  DoubleRadius := 2 * aRadius;
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  DoubleRadius1 := 2 * (aRadius);
+  DoubleRadius2 := 2 * (aRadius - aWidth);
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   Alpha2 := aColor.Data[1] / 255;
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth + DoubleRadius) then
+          if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
 
             Alpha1 := p^.Data[1] / 255;
 
             {antialiasing}
-            if d < DoubleRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
-            else
-            if d > SqrWidth then
-              Alpha2d := Alpha2 * (1 - (d - SqrWidth) / DoubleRadius)  // as of conditions above d / DoubleRadius changes from 0 to 1
+            { sqrt should be used here, however i like the result with square
+              of distance better }
+            if d1 < DoubleRadius1 then
+              Alpha2d := Alpha2 * d1 / DoubleRadius1  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -411,37 +421,41 @@ procedure TGrayscaleImageHelper.Circle(const x, y: single; const aRadius, aWidth
 var
   p: PByte;
   ix, iy: integer;
-  d: single;
+  d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
-  SqrRadius, DoubleRadius, SqrWidth, SqrY: single;
+  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
-  SqrRadius := Sqr(aRadius);
-  DoubleRadius := 2 * aRadius;
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  DoubleRadius1 := 2 * (aRadius);
+  DoubleRadius2 := 2 * (aRadius - aWidth);
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   Alpha2 := aColor.Data[1] / 255;
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth + DoubleRadius) then
+          if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
 
             {antialiasing}
-            if d < DoubleRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
-            else
-            if d > SqrWidth then
-              Alpha2d := Alpha2 * (1 - (d - SqrWidth) / DoubleRadius)  // as of conditions above d / DoubleRadius changes from 0 to 1
+            { sqrt should be used here, however i like the result with square
+              of distance better }
+            if d1 < DoubleRadius1 then
+              Alpha2d := Alpha2 * d1 / DoubleRadius1  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
             p^ := Round(p^ * Alpha1d + aColor.Data[0] * Alpha2d);
@@ -455,37 +469,41 @@ procedure TRGBFloatImageHelper.Circle(const x, y: single; const aRadius, aWidth:
 var
   p: PVector3;
   ix, iy: integer;
-  d: single;
+  d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
-  SqrRadius, DoubleRadius, SqrWidth, SqrY: single;
+  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
-  SqrRadius := Sqr(aRadius);
-  DoubleRadius := 2 * aRadius;
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  DoubleRadius1 := 2 * (aRadius);
+  DoubleRadius2 := 2 * (aRadius - aWidth);
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth + DoubleRadius) then
+          if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
 
             {antialiasing}
-            if d < DoubleRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
-            else
-            if d > SqrWidth then
-              Alpha2d := Alpha2 * (1 - (d - SqrWidth) / DoubleRadius)  // as of conditions above d / DoubleRadius changes from 0 to 1
+            { sqrt should be used here, however i like the result with square
+              of distance better }
+            if d1 < DoubleRadius1 then
+              Alpha2d := Alpha2 * d1 / DoubleRadius1  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
             p^.Data[0] := p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
