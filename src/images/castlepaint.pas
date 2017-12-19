@@ -745,7 +745,29 @@ procedure TRGBImageHelper.QuickFillCircle(const x, y: integer; const aRadius: in
   const aColor: TCastleColor4Byte);
 var
   p: PVector3Byte;
+  ix, iy: integer;
+  d: integer;
+  SqrRadius, SqrY: integer;
 begin
+  SqrRadius := Sqr(aRadius);
+  for iy := y - aRadius to y + aRadius do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      p := nil;
+      SqrY := SqrRadius - Sqr(iy - y);
+      for ix := x - aRadius to x + aRadius do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p^.Data[0] := aColor.Data[0];
+            p^.Data[1] := aColor.Data[1];
+            p^.Data[2] := aColor.Data[2];
+          end;
+        end;
+    end;
 
 end;
 
@@ -753,23 +775,84 @@ procedure TGrayscaleAlphaImageHelper.QuickFillCircle(const x, y: integer; const 
   const aColor: TCastleColor2Byte);
 var
   p: PVector2Byte;
+  ix, iy: integer;
+  d: integer;
+  SqrRadius, SqrY: integer;
 begin
-
+  SqrRadius := Sqr(aRadius);
+  for iy := y - aRadius to y + aRadius do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      p := nil;
+      SqrY := SqrRadius - Sqr(iy - y);
+      for ix := x - aRadius to x + aRadius do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p^.Data[0] := aColor.Data[0];
+            p^.Data[1] := aColor.Data[1];
+          end;
+        end;
+    end;
 end;
 
 procedure TGrayscaleImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor2Byte);
 var
   p: PByte;
+  ix, iy: integer;
+  d: integer;
+  SqrRadius, SqrY: integer;
 begin
-
+  SqrRadius := Sqr(aRadius);
+  for iy := y - aRadius to y + aRadius do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      p := nil;
+      SqrY := SqrRadius - Sqr(iy - y);
+      for ix := x - aRadius to x + aRadius do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p^ := aColor.Data[0];
+          end;
+        end;
+    end;
 end;
 
 procedure TRGBFloatImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor);
 var
   p: PVector3;
+  ix, iy: integer;
+  d: integer;
+  SqrRadius, SqrY: integer;
 begin
+  SqrRadius := Sqr(aRadius);
+  for iy := y - aRadius to y + aRadius do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      p := nil;
+      SqrY := SqrRadius - Sqr(iy - y);
+      for ix := x - aRadius to x + aRadius do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p^.Data[0] := aColor.Data[0];
+            p^.Data[1] := aColor.Data[1];
+            p^.Data[2] := aColor.Data[2];
+          end;
+        end;
+    end;
 
 end;
 
