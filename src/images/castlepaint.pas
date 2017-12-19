@@ -206,6 +206,11 @@ begin
         [ClassName]);
 end;
 
+(* Note: Circles drawing can be significantly improved by drawing the circles
+   in quadrants (as 4 parts of the image are equal) - most calculations
+   (including antialiasing) will have to be made 4 times less frequent.
+   However, that's for future optimizations *)
+
 {-----= FILL CIRCLE =-----}
 
 procedure TRGBAlphaImageHelper.FillCircle(const x, y: single; const aRadius: single;
@@ -359,7 +364,7 @@ var
   SqrRadius, SqrY, SqrWidth: integer;
 begin
   SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth + 7);
+  SqrWidth := Sqr(aWidth + 7); {$WARNING why should I add +7???}
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
