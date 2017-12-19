@@ -61,6 +61,11 @@ type
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor);
 
+    { Draws a filled ellipse with its main axes along X and Y directions
+      with antialiasing }
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor);
+
     { Draws a hollow rectangle at x1,y1 - x2,y2 with antialiasing.}
     {...}
   end;
@@ -76,6 +81,8 @@ type
       const aColor: TCastleColor4Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor4Byte);
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor4Byte);
   end;
 
 type
@@ -88,6 +95,8 @@ type
     procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor4Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor4Byte);
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor4Byte);
   end;
 
@@ -102,6 +111,8 @@ type
       const aColor: TCastleColor2Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor2Byte);
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor2Byte);
   end;
 
 type
@@ -115,6 +126,8 @@ type
       const aColor: TCastleColor2Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor2Byte);
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor2Byte);
   end;
 
 type
@@ -127,6 +140,8 @@ type
     procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor);
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor);
   end;
 
@@ -233,6 +248,28 @@ begin
   else
   if Self is TRGBFloatImage then
     TRGBFloatImage(Self).QuickFillCircle(x, y, aRadius, aColor)
+  else
+  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
+        [ClassName]);
+end;
+
+procedure TCastleImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor);
+begin
+  if Self is TRGBAlphaImage then
+    TRGBAlphaImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor4Byte(aColor))
+  else
+  if Self is TRGBImage then
+    TRGBImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor4Byte(aColor))
+  else
+  if Self is TGrayscaleAlphaImage then
+    TGrayscaleAlphaImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor2Byte(aColor))
+  else
+  if Self is TGrayscaleImage then
+    TGrayscaleImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor2Byte(aColor))
+  else
+  if Self is TRGBFloatImage then
+    TRGBFloatImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, aColor)
   else
   raise EImageDrawError.CreateFmt('Painting is not supported for %s',
         [ClassName]);
@@ -1047,6 +1084,129 @@ begin
     end;
 
 end;
+
+{-----= FILL ELLIPSE =-----}
+
+procedure TRGBAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor4Byte);
+var
+  p: PVector4Byte;
+  ix, iy: integer;
+  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MeanRadius, SqrY: single;
+begin
+  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
+  Alpha2 := aColor[3] / 255;
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := 1 - Sqr((iy - y)/aRadiusY);
+      p := nil;
+      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr((ix - x)/aRadiusX);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+
+            Alpha1 := p^.Data[3] / 255;
+
+            {antialiasing}
+            if d < MeanRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+            if AlphaSum > 0 then begin
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+            end;
+            p^.Data[3] := Round(255 * AlphaSum);
+          end;
+        end;
+    end;
+end;
+
+procedure TRGBImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor4Byte);
+var
+  p: PVector3Byte;
+begin
+
+end;
+
+procedure TGrayscaleAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor2Byte);
+var
+  p: PVector2Byte;
+begin
+
+end;
+
+procedure TGrayscaleImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor2Byte);
+var
+  p: PByte;
+begin
+
+end;
+
+procedure TRGBFloatImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
+var
+  p: PVector3;
+begin
+
+end;
+
+{
+procedure TRGBAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor4Byte);
+var
+  p: PVector4Byte;
+begin
+
+end;
+
+procedure TRGBImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor4Byte);
+var
+  p: PVector3Byte;
+begin
+
+end;
+
+procedure TGrayscaleAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor2Byte);
+var
+  p: PVector2Byte;
+begin
+
+end;
+
+procedure TGrayscaleImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor2Byte);
+var
+  p: PByte;
+begin
+
+end;
+
+procedure TRGBFloatImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
+var
+  p: PVector3;
+begin
+
+end;
+}
 
 end.
 
