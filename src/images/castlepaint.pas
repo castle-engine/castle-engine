@@ -300,9 +300,11 @@ begin
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+            if AlphaSum > 0 then begin
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+            end;
             p^.Data[3] := Round(255 * AlphaSum);
           end;
         end;
@@ -533,9 +535,11 @@ begin
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+            if AlphaSum > 0 then begin
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+            end;
             p^.Data[3] := Round(255 * AlphaSum);
           end;
         end;
@@ -621,7 +625,8 @@ begin
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+            if AlphaSum > 0 then
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
             p^.Data[1] := Round(255 * AlphaSum);
           end;
         end;
