@@ -220,28 +220,29 @@ var
   ix, iy: integer;
   d: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  SqrRadius, SqrY: single;
+  SqrRadius, DoubleRadius, SqrY: single;
 begin
   SqrRadius := Sqr(aRadius);
+  DoubleRadius := 2 * aRadius;
   Alpha2 := aColor[3] / 255;
-  for iy := Round(y - aRadius) - 1 to Round(y + aRadius) + 1 do
+  for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
       SqrY := SqrRadius -Sqr(iy - y);
       p := nil;
-      for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
+      for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
           d := SqrY - Sqr(ix - x);
-          if d > -1 then
+          if d > 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
             Alpha1 := p^.Data[3] / 255;
 
             {antialiasing}
-            if d < 1 then
-              Alpha2d := Alpha2 * (d + 1) / 2 // as of conditions above d changes from -1 to +1
+            if d < DoubleRadius then
+              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
 
@@ -364,7 +365,7 @@ var
   SqrRadius, SqrY, SqrWidth: integer;
 begin
   SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth + 7); {$WARNING why should I add +7???}
+  SqrWidth := Sqr(aWidth) * aRadius;
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
