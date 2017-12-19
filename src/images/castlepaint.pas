@@ -45,8 +45,7 @@ type
     function CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
     function CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
   public
-    { Draws a hollow circle at x,y with aRadius radius with antialiasing.
-      Be aware, that aWidth is not accurately scaled in pixels due to optimizations. }
+    { Draws a hollow circle at x,y with aRadius radius with antialiasing. }
     procedure Circle(const x, y: single; const aRadius, aWidth: single;
       const aColor: TCastleColor);
 
@@ -54,11 +53,11 @@ type
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor);
 
-    { Same as Circle but much faster, without antialiasing }
+    { Same as Circle but much faster, without antialiasing or blending }
     procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor);
 
-    { Same as FillCircle but much faster, without antialiasing }
+    { Same as FillCircle but much faster, without antialiasing or blending }
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor);
 
@@ -243,15 +242,10 @@ end;
    in quadrants (as 4 parts of the image are equal) - most calculations
    (including antialiasing) will have to be made 4 times less frequent.
    However, that's for future optimizations - actually those will work only
-   for integer coordinates (i.e. QuickXxxxx procedures) *)
+   for integer coordinates (i.e. "Quick" procedures) *)
 
 (* Maybe, a good idea would be to make additional checks like aRadius>=1,
    aWidth >=1, etc. *)
-
-(* Caution. Due to usage of a non-exact formula the aWidth is interpreted in
-   a wrong way (the error is the larger, the larger aWidth is). I'm not sure
-   if we need accuracy here, so I'll leave it this way for now. Maybe it will
-   need to be rewritten later *)
 
 (* I'm really unsure how premultiplied alpha will behave *)
 
