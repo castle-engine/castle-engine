@@ -223,8 +223,11 @@ var
   p: PVector4Byte;
   ix, iy: integer;
   d: single;
-  Alpha1, Alpha1d, Alpha2, AlphaSum: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  SqrRadius: single;
 begin
+  SqrRadius := Sqr(aRadius);
+  Alpha2 := aColor[3] / 255;
   for iy := Round(y - aRadius) - 1 to Round(y + aRadius) + 1 do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -232,27 +235,25 @@ begin
       for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := Sqr(aRadius) - (Sqr(ix - x) + Sqr(iy - y));
+          d := SqrRadius - (Sqr(ix - x) + Sqr(iy - y));
           if d > -1 then
           begin
               if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
-              //if p <> nil then
-              begin
-                Alpha1 := p^.Data[3] / 255;
-                Alpha2 := aColor[3] / 255;
+              Alpha1 := p^.Data[3] / 255;
 
-                {antialiasing}
-                if d < 1 then
-                  Alpha2 *= (d+1)/2; // as of conditions above d is from -1 to +1
+              {antialiasing}
+              if d < 1 then
+                Alpha2d := Alpha2 * (d + 1) / 2 // as of conditions above d changes from -1 to +1
+              else
+                Alpha2d := Alpha2;
 
-                Alpha1d := Alpha1 * (1 - Alpha2);
-                AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2;
-                p^[0] := Round((p^.Data[0]*alpha1d + aColor.Data[0]*Alpha2)/alphaSum);
-                p^[1] := Round((p^.Data[1]*alpha1d + aColor.Data[1]*Alpha2)/alphaSum);
-                p^[2] := Round((p^.Data[2]*alpha1d + aColor.Data[2]*Alpha2)/alphaSum);
-                p^[3] := Round(255*alphaSum);
-              end;
+              Alpha1d := Alpha1 * (1 - Alpha2d);
+              AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+              p^[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+              p^[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
+              p^[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+              p^[3] := Round(255 * AlphaSum);
             end;
         end;
     end;
