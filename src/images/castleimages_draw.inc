@@ -265,10 +265,10 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[3], PSource^.Data[3], Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + PSource^.Data[0]*alpha2)/alphaSum);
-              PDest^.Data[1] := Round((PDest^.Data[1]*alpha1d + PSource^.Data[1]*alpha2)/alphaSum);
-              PDest^.Data[2] := Round((PDest^.Data[2]*alpha1d + PSource^.Data[2]*alpha2)/alphaSum);
-              PDest^.Data[3] := Round(255*alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0] * Alpha1d + PSource^.Data[0] * Alpha2) / AlphaSum);
+              PDest^.Data[1] := Round((PDest^.Data[1] * Alpha1d + PSource^.Data[1] * Alpha2) / AlphaSum);
+              PDest^.Data[2] := Round((PDest^.Data[2] * Alpha1d + PSource^.Data[2] * Alpha2) / AlphaSum);
+              PDest^.Data[3] := Round(255 * AlphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
@@ -360,10 +360,10 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[3], PSource^, Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[0]*alpha2)/alphaSum);
-              PDest^.Data[1] := Round((PDest^.Data[1]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[1]*alpha2)/alphaSum);
-              PDest^.Data[2] := Round((PDest^.Data[2]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[2]*alpha2)/alphaSum);
-              PDest^.Data[3] := Round(255*alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0] * Alpha1d + Source.ColorWhenTreatedAsAlpha.Data[0] * Alpha2) / AlphaSum);
+              PDest^.Data[1] := Round((PDest^.Data[1] * Alpha1d + Source.ColorWhenTreatedAsAlpha.Data[1] * Alpha2) / AlphaSum);
+              PDest^.Data[2] := Round((PDest^.Data[2] * Alpha1d + Source.ColorWhenTreatedAsAlpha.Data[2] * Alpha2) / AlphaSum);
+              PDest^.Data[3] := Round(255 * AlphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
@@ -439,10 +439,10 @@ procedure TRGBAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[3], PSource^.Data[1], Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + PSource^.Data[0]*alpha2)/alphaSum);
-              PDest^.Data[1] := Round((PDest^.Data[1]*alpha1d + PSource^.Data[0]*alpha2)/alphaSum);
-              PDest^.Data[2] := Round((PDest^.Data[2]*alpha1d + PSource^.Data[0]*alpha2)/alphaSum);
-              PDest^.Data[3] := Round(255*alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0] * Alpha1d + PSource^.Data[0] * Alpha2) / AlphaSum);
+              PDest^.Data[1] := Round((PDest^.Data[1] * Alpha1d + PSource^.Data[0] * Alpha2) / AlphaSum);
+              PDest^.Data[2] := Round((PDest^.Data[2] * Alpha1d + PSource^.Data[0] * Alpha2) / AlphaSum);
+              PDest^.Data[3] := Round(255 * AlphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
@@ -1293,8 +1293,8 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[1], PSource^.Data[3], Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + GrayscaleValue(PSource^)*alpha2)/alphaSum);
-              PDest^.Data[1] := Round(255*alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0] * Alpha1d + GrayscaleValue(PSource^) * Alpha2) / AlphaSum);
+              PDest^.Data[1] := Round(255 * AlphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
@@ -1378,8 +1378,8 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[1], PSource^.Data[1], Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + PSource^.Data[0]*alpha2)/alphaSum);
-              PDest^.Data[1] := Round(255*alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0] * Alpha1d + PSource^.Data[0] * Alpha2) / AlphaSum);
+              PDest^.Data[1] := Round(255 * AlphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
@@ -1463,8 +1463,8 @@ procedure TGrayscaleAlphaImage.DrawFromCore(Source: TCastleImage;
             BlendSmartParameters(PDest^.Data[1], PSource^, Alpha1d, Alpha2, AlphaSum);
             if AlphaSum > 0 then
             begin
-              PDest^.Data[0] := Round((PDest^.Data[0]*alpha1d + GrayscaleValue(Source.ColorWhenTreatedAsAlpha)*alpha2)/alphaSum);
-              PDest^.Data[1] := Round(255*alphaSum);
+              PDest^.Data[0] := Round((PDest^.Data[0] * Alpha1d + GrayscaleValue(Source.ColorWhenTreatedAsAlpha) * Alpha2) / AlphaSum);
+              PDest^.Data[1] := Round(255 * AlphaSum);
             end;
             Inc(PSource);
             Inc(PDest);
