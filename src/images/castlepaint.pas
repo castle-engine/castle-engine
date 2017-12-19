@@ -273,7 +273,7 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius -Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
@@ -323,7 +323,7 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius -Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
@@ -369,7 +369,7 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius -Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
@@ -417,7 +417,7 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius -Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
@@ -461,7 +461,7 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius -Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
@@ -508,7 +508,7 @@ begin
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius -Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
@@ -543,23 +543,126 @@ procedure TRGBImageHelper.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor4Byte);
 var
   p: PVector3Byte;
+  ix, iy: integer;
+  d: single;
+  Alpha1d, Alpha2, Alpha2d: single;
+  SqrRadius, DoubleRadius, SqrY: single;
 begin
+  SqrRadius := Sqr(aRadius);
+  DoubleRadius := 2 * aRadius;
+  Alpha2 := aColor[3] / 255;
+  for iy := Round(y - aRadius) to Round(y + aRadius) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := SqrRadius - Sqr(iy - y);
+      p := nil;
+      for ix := Round(x - aRadius) to Round(x + aRadius) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
+            {antialiasing}
+            if d < DoubleRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := 1 - Alpha2d;
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d));
+            p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d));
+            p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d));
+          end;
+        end;
+    end;
 end;
 
 procedure TGrayscaleAlphaImageHelper.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor2Byte);
 var
   p: PVector2Byte;
+  ix, iy: integer;
+  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  SqrRadius, DoubleRadius, SqrY: single;
 begin
+  SqrRadius := Sqr(aRadius);
+  DoubleRadius := 2 * aRadius;
+  Alpha2 := aColor[1] / 255;
+  for iy := Round(y - aRadius) to Round(y + aRadius) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := SqrRadius - Sqr(iy - y);
+      p := nil;
+      for ix := Round(x - aRadius) to Round(x + aRadius) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
+            Alpha1 := p^.Data[1] / 255;
+
+            {antialiasing}
+            if d < DoubleRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+            p^.Data[1] := Round(255 * AlphaSum);
+          end;
+        end;
+    end;
 end;
 
 procedure TGrayscaleImageHelper.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor2Byte);
 var
   p: PByte;
+  ix, iy: integer;
+  d: single;
+  Alpha1d, Alpha2, Alpha2d: single;
+  SqrRadius, DoubleRadius, SqrY: single;
 begin
+  SqrRadius := Sqr(aRadius);
+  DoubleRadius := 2 * aRadius;
+  Alpha2 := aColor[1] / 255;
+  for iy := Round(y - aRadius) to Round(y + aRadius) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := SqrRadius - Sqr(iy - y);
+      p := nil;
+      for ix := Round(x - aRadius) to Round(x + aRadius) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+
+            {antialiasing}
+            if d < DoubleRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := 1 - Alpha2d;
+            p^ := Round((p^ * Alpha1d + aColor.Data[0] * Alpha2d));
+          end;
+        end;
+    end;
 
 end;
 
@@ -567,7 +670,42 @@ procedure TRGBFloatImageHelper.FillCircle(const x, y: single; const aRadius: sin
   const aColor: TCastleColor);
 var
   p: PVector3;
+  ix, iy: integer;
+  d: single;
+  Alpha1d, Alpha2, Alpha2d: single;
+  SqrRadius, DoubleRadius, SqrY: single;
 begin
+  SqrRadius := Sqr(aRadius);
+  DoubleRadius := 2 * aRadius;
+  Alpha2 := aColor[3];
+  for iy := Round(y - aRadius) to Round(y + aRadius) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := SqrRadius - Sqr(iy - y);
+      p := nil;
+      for ix := Round(x - aRadius) to Round(x + aRadius) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr(ix - x);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+
+            {antialiasing}
+            if d < DoubleRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := 1 - Alpha2d;
+            p^.Data[0] := (p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
+            p^.Data[1] := (p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d);
+            p^.Data[2] := (p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d);
+          end;
+        end;
+    end;
 
 end;
 
