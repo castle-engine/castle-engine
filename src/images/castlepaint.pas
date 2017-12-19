@@ -222,12 +222,12 @@ begin
   for iy := Round(y - aRadius) - 1 to Round(y + aRadius) + 1 do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := Sqr(iy - y);
+      SqrY := SqrRadius -Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrRadius - (Sqr(ix - x) + SqrY);
+          d := SqrY - Sqr(ix - x);
           if d > -1 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
@@ -299,11 +299,11 @@ begin
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrRadius - (Sqr(ix - x) + SqrY);
+          d := SqrY - Sqr(ix - x);
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
@@ -359,19 +359,19 @@ var
   SqrRadius, SqrY, SqrWidth: integer;
 begin
   SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth);
+  SqrWidth := Sqr(aWidth + 7);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := Sqr(iy - y);
+      SqrY := SqrRadius - Sqr(iy - y);
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrRadius - (Sqr(ix - x) + SqrY);
-          if (d >= 0) and (d < SqrWidth) then
+          d := SqrY - Sqr(ix - x);
+          if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+          if (d >= 0) and (d <= SqrWidth) then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
             p^.Data[0] := aColor.Data[0];
             p^.Data[1] := aColor.Data[1];
             p^.Data[2] := aColor.Data[2];
