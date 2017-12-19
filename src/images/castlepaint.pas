@@ -226,35 +226,34 @@ var
   Alpha1, Alpha1d, Alpha2, AlphaSum: single;
 begin
   for iy := Round(y - aRadius) - 1 to Round(y + aRadius) + 1 do
-    for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
+    if (iy >= 0) and (iy < Height) then
     begin
-      d := Sqr(aRadius) - (Sqr(ix - x) + Sqr(iy - y));
-      if d > -1 then
-      begin
-          p := PixelPtr(ix, iy);
-          if p <> nil then
+      p := nil;
+      for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := Sqr(aRadius) - (Sqr(ix - x) + Sqr(iy - y));
+          if d > -1 then
           begin
-            {antialiasing}
-            Alpha1 := p^.Data[3] / 255;
-            Alpha2 := aColor[3] / 255;
-            if d < 1 then
-              Alpha2 *= (d+1)/2; // as of conditions above d is from -1 to +1
-            Alpha1d := Alpha1 * (1 - Alpha2);
-            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2;
-            p^[0] := Round((p^.Data[0]*alpha1d + aColor.Data[0]*alpha2)/alphaSum);
-            p^[1] := Round((p^.Data[1]*alpha1d + aColor.Data[1]*alpha2)/alphaSum);
-            p^[2] := Round((p^.Data[2]*alpha1d + aColor.Data[2]*alpha2)/alphaSum);
-            p^[3] := Round(255*alphaSum);
-            {
-              // get alpha in 0..1 range
-                Alpha1 := DestAlpha / 255;
-                Alpha2 := SourceAlpha / 255;
-                // calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
+              if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+
+              //if p <> nil then
+              begin
+                Alpha1 := p^.Data[3] / 255;
+                Alpha2 := aColor[3] / 255;
+
+                {antialiasing}
+                if d < 1 then
+                  Alpha2 *= (d+1)/2; // as of conditions above d is from -1 to +1
+
                 Alpha1d := Alpha1 * (1 - Alpha2);
                 AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2;
-              Round((PDest^.Data[2]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[2]*alpha2)/alphaSum);
-              PDest^.Data[3] := Round(255*alphaSum);}
-          end;
+                p^[0] := Round((p^.Data[0]*alpha1d + aColor.Data[0]*Alpha2)/alphaSum);
+                p^[1] := Round((p^.Data[1]*alpha1d + aColor.Data[1]*Alpha2)/alphaSum);
+                p^[2] := Round((p^.Data[2]*alpha1d + aColor.Data[2]*Alpha2)/alphaSum);
+                p^[3] := Round(255*alphaSum);
+              end;
+            end;
         end;
     end;
 end;

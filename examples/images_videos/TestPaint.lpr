@@ -16,8 +16,8 @@ var
 
 procedure DoTest(aImage: TCastleImage);
 begin
-  aImage.Clear(Vector4Byte(0, 0, 0, 0));
-  aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Lime);
+  aImage.Clear(Vector4Byte(255, 255, 255, 255));
+  aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Black);
 end;
 
 procedure DoDraw;
