@@ -1,3 +1,4 @@
+
 program TestPaint;
 uses SysUtils,
   CastleWindow, CastleImages, CastleGLImages, CastlePaint, castle_base,
@@ -5,6 +6,7 @@ uses SysUtils,
 
 const
   TestSize = 100;
+  HalfTestSize = TestSize/2;
   NTests = 1;
 
 var
@@ -15,7 +17,7 @@ var
 procedure DoTest(aImage: TCastleImage);
 begin
   aImage.Clear(Vector4Byte(0, 0, 0, 0));
-  aImage.FillCircle(TestSize/2, TestSize/2, TestSize/3, Lime);
+  aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Lime);
 end;
 
 procedure DoDraw;

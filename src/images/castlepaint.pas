@@ -116,16 +116,16 @@ implementation
 
 function TCastleImageHelper.CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
 begin
-  Result[0] := Trunc(aColor[0]*256);
-  Result[1] := Trunc(aColor[1]*256);
-  Result[2] := Trunc(aColor[2]*256);
-  Result[3] := Trunc(aColor[3]*256);
+  Result[0] := Trunc(aColor[0]*255);
+  Result[1] := Trunc(aColor[1]*255);
+  Result[2] := Trunc(aColor[2]*255);
+  Result[3] := Trunc(aColor[3]*255);
 end;
 
 function TCastleImageHelper.CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
 begin
   Result[0] := GrayscaleValue(Vector3Byte(Vector3(aColor[0], aColor[1], aColor[2])));
-  Result[1] := Trunc(aColor[3]*256);
+  Result[1] := Trunc(aColor[3]*255);
 end;
 
 function TRGBAlphaImageHelper.BlendColor(const c1, c2: byte; const t: single): byte; {$IFDEF Supports_Inline}Inline;{$ENDIF}
@@ -223,6 +223,7 @@ var
   p: PVector4Byte;
   ix, iy: integer;
   d: single;
+  Alpha1, Alpha1d, Alpha2, AlphaSum: single;
 begin
   for iy := Round(y - aRadius) - 1 to Round(y + aRadius) + 1 do
     for ix := Round(x - aRadius) - 1 to Round(x + aRadius) + 1 do
@@ -230,18 +231,29 @@ begin
       d := Sqr(aRadius) - (Sqr(ix - x) + Sqr(iy - y));
       if d > -1 then
       begin
-          //p := GetRecoursivePointer(ix, iy);
+          p := PixelPtr(ix, iy);
           if p <> nil then
           begin
             {antialiasing}
-            if d >= 1 then
-              d := ...
-            else
-              d := ...;//(d+1)/2;
-            p^[0] := BlendColor(aColor[0], p^[0], d);
-            p^[1] := BlendColor(aColor[1], p^[1], d);
-            p^[2] := BlendColor(aColor[2], p^[2], d);
-            p^[3] := BlendColor(aColor[4], p^[3], d);
+            Alpha1 := p^.Data[3] / 255;
+            Alpha2 := aColor[3] / 255;
+            if d < 1 then
+              Alpha2 *= (d+1)/2; // as of conditions above d is from -1 to +1
+            Alpha1d := Alpha1 * (1 - Alpha2);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2;
+            p^[0] := Round((p^.Data[0]*alpha1d + aColor.Data[0]*alpha2)/alphaSum);
+            p^[1] := Round((p^.Data[1]*alpha1d + aColor.Data[1]*alpha2)/alphaSum);
+            p^[2] := Round((p^.Data[2]*alpha1d + aColor.Data[2]*alpha2)/alphaSum);
+            p^[3] := Round(255*alphaSum);
+            {
+              // get alpha in 0..1 range
+                Alpha1 := DestAlpha / 255;
+                Alpha2 := SourceAlpha / 255;
+                // calculate alpha-sums according to https://en.wikipedia.org/wiki/Alpha_compositing
+                Alpha1d := Alpha1 * (1 - Alpha2);
+                AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2;
+              Round((PDest^.Data[2]*alpha1d + Source.ColorWhenTreatedAsAlpha.Data[2]*alpha2)/alphaSum);
+              PDest^.Data[3] := Round(255*alphaSum);}
           end;
         end;
     end;
