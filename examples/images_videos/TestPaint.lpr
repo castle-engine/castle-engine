@@ -1,4 +1,3 @@
-
 program TestPaint;
 uses SysUtils,
   CastleWindow, CastleImages, CastleGLImages, CastlePaint, castle_base,
@@ -7,7 +6,7 @@ uses SysUtils,
 const
   TestSize = 100;
   HalfTestSize = TestSize div 2;
-  NTests = 2;
+  NTests = 4;
 
 var
   Window: TCastleWindow;
@@ -19,6 +18,8 @@ begin
   aImage.Clear(Vector4Byte(255, 255, 255, 255));
   aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Lime);
   aImage.QuickFillCircle(HalfTestSize + TestSize, HalfTestSize, TestSize div 3, Black);
+  //circle
+  aImage.QuickCircle(HalfTestSize + 3 * TestSize, HalfTestSize, TestSize div 3, 6, Black);
 end;
 
 procedure DoDraw;
@@ -46,19 +47,19 @@ end;
 
 procedure DoRender(Container: TUIContainer);
 begin
-  RGBAlphaImageGL.Draw(0, 0*TestSize);
-  RGBImageGL.Draw(0, 1*TestSize);
-  GrayscaleAlphaImageGL.Draw(0, 2*TestSize);
-  GrayscaleImageGL.Draw(0, 3*TestSize);
-  RGBFloatImageGL.Draw(0, 4*TestSize);
+  RGBAlphaImageGL.Draw(0, 0 * TestSize);
+  RGBImageGL.Draw(0, 1 * TestSize);
+  GrayscaleAlphaImageGL.Draw(0, 2 * TestSize);
+  GrayscaleImageGL.Draw(0, 3 * TestSize);
+  RGBFloatImageGL.Draw(0, 4 * TestSize);
 end;
 
 begin
   InitializeLog;
 
   Window := TCastleWindow.Create(Application);
-  Window.Width := NTests*TestSize;
-  Window.Height := 5*TestSize;
+  Window.Width := NTests * TestSize;
+  Window.Height := 5 * TestSize;
   Window.OnRender := @DoRender;
 
   DoDraw;

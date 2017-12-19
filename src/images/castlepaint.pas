@@ -18,18 +18,12 @@
 unit CastlePaint;
 
 {$mode objfpc}{$H+}
+{$R+}{$Q+}
 
 interface
 
 uses
   CastleImages, CastleColors, CastleVectors;
-
-//type
-  //TCastleColor = TVector4;
-  //TCastleColorRGB = TVector3;
-{  TCastleColorGrayscaleAlpha = TVector2;
-  TCastleColorGrayscale = single;}
-
 
 type
   { "native" colors (as in pointers) }
@@ -51,23 +45,23 @@ type
     function CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
     function CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
   public
-    { draws a hollow circle at x,y with aRadius radius with antialiasing. }
-    {procedure Circle(const x, y: single; const aRadius: single;
+    { Draws a hollow circle at x,y with aRadius radius with antialiasing. }
+    {procedure Circle(const x, y: single; const aRadius, aWidth: single;
       const aColor: TCastleColor);}
 
-    { draws a filled circle at x,y with aRadius radius with antialiasing. }
+    { Draws a filled circle at x,y with aRadius radius with antialiasing. }
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor);
 
-    { same as Circle but much faster, without antialiasing }
-    {procedure QuickCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor);}
+    { Same as Circle but much faster, without antialiasing }
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor);
 
-    { same as FillCircle but much faster, without antialiasing }
+    { Same as FillCircle but much faster, without antialiasing }
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor);
 
-    { draws a hollow rectangle at x1,y1 - x2,y2 with antialiasing.}
+    { Draws a hollow rectangle at x1,y1 - x2,y2 with antialiasing.}
     {...}
   end;
 
@@ -75,6 +69,8 @@ type
   TRGBAlphaImageHelper = class helper for TRGBAlphaImage
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor4Byte);
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor4Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor4Byte);
@@ -85,6 +81,8 @@ type
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor4Byte);
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor4Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor4Byte);
   end;
@@ -93,6 +91,8 @@ type
   TGrayscaleAlphaImageHelper = class helper for TGrayscaleAlphaImage
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor2Byte);
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor2Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor2Byte);
@@ -103,6 +103,8 @@ type
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
       const aColor: TCastleColor2Byte);
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor2Byte);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor2Byte);
   end;
@@ -111,6 +113,8 @@ type
   TRGBFloatImageHelper = class helper for TRGBFloatImage
   public
     procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor);
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor);
     procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor);
@@ -153,6 +157,28 @@ begin
   else
   if Self is TRGBFloatImage then
     TRGBFloatImage(Self).FillCircle(x, y, aRadius, aColor)
+  else
+  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
+        [ClassName]);
+end;
+
+procedure TCastleImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor);
+begin
+  if Self is TRGBAlphaImage then
+    TRGBAlphaImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor4Byte(aColor))
+  else
+  if Self is TRGBImage then
+    TRGBImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor4Byte(aColor))
+  else
+  if Self is TGrayscaleAlphaImage then
+    TGrayscaleAlphaImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor2Byte(aColor))
+  else
+  if Self is TGrayscaleImage then
+    TGrayscaleImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor2Byte(aColor))
+  else
+  if Self is TRGBFloatImage then
+    TRGBFloatImage(Self).QuickCircle(x, y, aRadius, aWidth, aColor)
   else
   raise EImageDrawError.CreateFmt('Painting is not supported for %s',
         [ClassName]);
@@ -217,10 +243,10 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             {$HINT I wonder how "premultiplied alpha" will behave here?}
-            p^[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
-            p^[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
-            p^[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
-            p^[3] := Round(255 * AlphaSum);
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+            p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
+            p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+            p^.Data[3] := Round(255 * AlphaSum);
           end;
         end;
     end;
@@ -258,7 +284,7 @@ begin
 
 end;
 
-{-----= QUICK CIRCLE =-----}
+{-----= QUICK FILL CIRCLE =-----}
 
 procedure TRGBAlphaImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor4Byte);
@@ -281,10 +307,10 @@ begin
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            p^[0] := aColor.Data[0];
-            p^[1] := aColor.Data[1];
-            p^[2] := aColor.Data[2];
-            p^[3] := aColor.Data[3];
+            p^.Data[0] := aColor.Data[0];
+            p^.Data[1] := aColor.Data[1];
+            p^.Data[2] := aColor.Data[2];
+            p^.Data[3] := aColor.Data[3];
           end;
         end;
     end;
@@ -315,6 +341,71 @@ begin
 end;
 
 procedure TRGBFloatImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
+  const aColor: TCastleColor);
+var
+  p: PVector3;
+begin
+
+end;
+
+{-----= QUICK CIRCLE =-----}
+
+procedure TRGBAlphaImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor4Byte);
+var
+  p: PVector4Byte;
+  ix, iy: integer;
+  d: integer;
+  SqrRadius, SqrY, SqrWidth: integer;
+begin
+  SqrRadius := Sqr(aRadius);
+  SqrWidth := Sqr(aWidth);
+  for iy := y - aRadius to y + aRadius do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      p := nil;
+      SqrY := Sqr(iy - y);
+      for ix := x - aRadius to x + aRadius do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrRadius - (Sqr(ix - x) + SqrY);
+          if (d >= 0) and (d < SqrWidth) then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p^.Data[0] := aColor.Data[0];
+            p^.Data[1] := aColor.Data[1];
+            p^.Data[2] := aColor.Data[2];
+            p^.Data[3] := aColor.Data[3];
+          end;
+        end;
+    end;
+end;
+
+procedure TRGBImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor4Byte);
+var
+  p: PVector3Byte;
+begin
+
+end;
+
+procedure TGrayscaleAlphaImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor2Byte);
+var
+  p: PVector2Byte;
+begin
+
+end;
+
+procedure TGrayscaleImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor2Byte);
+var
+  p: PByte;
+begin
+
+end;
+
+procedure TRGBFloatImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
   const aColor: TCastleColor);
 var
   p: PVector3;
