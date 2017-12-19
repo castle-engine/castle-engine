@@ -889,22 +889,26 @@ procedure TRGBAlphaImageHelper.QuickCircle(const x, y: integer; const aRadius, a
 var
   p: PVector4Byte;
   ix, iy: integer;
-  d: integer;
-  SqrRadius, SqrY, SqrWidth: integer;
+  d1, d2: integer;
+  SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
-  SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - SqrY;
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth) then
+          if (d1 >= 0) and (d2 <= 0) then
           begin
             p^.Data[0] := aColor.Data[0];
             p^.Data[1] := aColor.Data[1];
@@ -920,22 +924,26 @@ procedure TRGBImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth
 var
   p: PVector3Byte;
   ix, iy: integer;
-  d: integer;
-  SqrRadius, SqrY, SqrWidth: integer;
+  d1, d2: integer;
+  SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
-  SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - SqrY;
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth) then
+          if (d1 >= 0) and (d2 <= 0) then
           begin
             p^.Data[0] := aColor.Data[0];
             p^.Data[1] := aColor.Data[1];
@@ -951,22 +959,26 @@ procedure TGrayscaleAlphaImageHelper.QuickCircle(const x, y: integer; const aRad
 var
   p: PVector2Byte;
   ix, iy: integer;
-  d: integer;
-  SqrRadius, SqrY, SqrWidth: integer;
+  d1, d2: integer;
+  SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
-  SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - SqrY;
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth) then
+          if (d1 >= 0) and (d2 <= 0) then
           begin
             p^.Data[0] := aColor.Data[0];
             p^.Data[1] := aColor.Data[1];
@@ -980,22 +992,26 @@ procedure TGrayscaleImageHelper.QuickCircle(const x, y: integer; const aRadius, 
 var
   p: PByte;
   ix, iy: integer;
-  d: integer;
-  SqrRadius, SqrY, SqrWidth: integer;
+  d1, d2: integer;
+  SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
-  SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - SqrY;
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth) then
+          if (d1 >= 0) and (d2 <= 0) then
           begin
             p^ := aColor.Data[0];
           end;
@@ -1008,22 +1024,26 @@ procedure TRGBFloatImageHelper.QuickCircle(const x, y: integer; const aRadius, a
 var
   p: PVector3;
   ix, iy: integer;
-  d: integer;
-  SqrRadius, SqrY, SqrWidth: integer;
+  d1, d2: integer;
+  SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
-  SqrRadius := Sqr(aRadius);
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
       p := nil;
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY := Sqr(iy - y);
+      SqrY1 := SqrRadius1 - SqrY;
+      SqrY2 := SqrRadius2 - SqrY;
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          SqrX := Sqr(ix - x);
+          d1 := SqrY1 - SqrX;
+          d2 := SqrY2 - SqrX;
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth) then
+          if (d1 >= 0) and (d2 <= 0) then
           begin
             p^.Data[0] := aColor.Data[0];
             p^.Data[1] := aColor.Data[1];
