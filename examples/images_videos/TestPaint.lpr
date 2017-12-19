@@ -6,8 +6,8 @@ uses SysUtils,
 
 const
   TestSize = 100;
-  HalfTestSize = TestSize/2;
-  NTests = 1;
+  HalfTestSize = TestSize div 2;
+  NTests = 2;
 
 var
   Window: TCastleWindow;
@@ -18,6 +18,7 @@ procedure DoTest(aImage: TCastleImage);
 begin
   aImage.Clear(Vector4Byte(255, 255, 255, 255));
   aImage.FillCircle(HalfTestSize, HalfTestSize, TestSize/3, Black);
+  aImage.QuickCircle(HalfTestSize, HalfTestSize + TestSize, TestSize div 3, Black);
 end;
 
 procedure DoDraw;
