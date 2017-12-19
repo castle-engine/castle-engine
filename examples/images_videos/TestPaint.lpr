@@ -1,7 +1,7 @@
 program TestPaint;
 uses SysUtils,
   CastleWindow, CastleImages, CastleGLImages, CastlePaint, castle_base,
-  CastleVectors, CastleLog;
+  CastleVectors, CastleColors, CastleLog;
 
 const
   TestSize = 100;
@@ -12,31 +12,32 @@ var
   RGBAlphaImageGL, RGBImageGL, GrayscaleAlphaImageGL, GrayscaleImageGL, RGBFloatImageGL: TGLImage;
   RGBAlphaImage, RGBImage, GrayscaleAlphaImage, GrayscaleImage, RGBFloatImage: TCastleImage;
 
+procedure DoTest(aImage: TCastleImage);
+begin
+  aImage.Clear(Vector4Byte(0, 0, 0, 0));
+  aImage.FillCircle(TestSize/2, TestSize/2, TestSize/3, Lime);
+end;
+
 procedure DoDraw;
 begin
   RGBAlphaImage := TRGBAlphaImage.Create(TestSize,TestSize*NTests);
-  RGBAlphaImage.Clear(Vector4Byte(0,0,0,0));
-
+  DoTest(RGBAlphaImage);
   RGBAlphaImageGL := TGLImage.Create(RGBAlphaImage,true,true);
   {-------------}
   RGBImage := TRGBImage.Create(TestSize,TestSize*NTests);
-  RGBImage.Clear(Vector4Byte(0,0,0,0));
-
+  DoTest(RGBImage);
   RGBImageGL := TGLImage.Create(RGBImage,true,true);
   {-------------}
   GrayscaleAlphaImage := TGrayscaleAlphaImage.Create(TestSize,TestSize*NTests);
-  GrayscaleAlphaImage.Clear(Vector4Byte(0,0,0,0));
-
+  DoTest(GrayscaleAlphaImage);
   GrayscaleAlphaImageGL := TGLImage.Create(GrayscaleAlphaImage,true,true);
   {-------------}
   GrayscaleImage := TGrayscaleImage.Create(TestSize,TestSize*NTests);
-  GrayscaleImage.Clear(Vector4Byte(0,0,0,0));
-
+  DoTest(GrayscaleImage);
   GrayscaleImageGL := TGLImage.Create(GrayscaleImage,true,true);
   {-------------}
   RGBFloatImage := TRGBFloatImage.Create(TestSize,TestSize*NTests);
-  RGBFloatImage.Clear(Vector4Byte(0,0,0,0));
-
+  DoTest(RGBFloatImage);
   RGBFloatImageGL := TGLImage.Create(RGBFloatImage,true,true);
 end;
 
