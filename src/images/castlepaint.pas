@@ -262,39 +262,41 @@ procedure TRGBAlphaImageHelper.Circle(const x, y: single; const aRadius, aWidth:
 var
   p: PVector4Byte;
   ix, iy: integer;
-  d: single;
+  d1, d2: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
-  SqrRadius, DoubleRadius, SqrWidth, SqrY: single;
+  SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2: single;
 begin
-  SqrRadius := Sqr(aRadius);
-  DoubleRadius := 2 * aRadius;
-  SqrWidth := Sqr(aWidth) * 2 * aRadius;
+  DoubleRadius1 := 2 * (aRadius);
+  DoubleRadius2 := 2 * (aRadius - aWidth);
+  SqrRadius1 := Sqr(aRadius);
+  SqrRadius2 := Sqr(aRadius - aWidth);
   Alpha2 := aColor.Data[3] / 255;
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := SqrRadius - Sqr(iy - y);
+      SqrY1 := SqrRadius1 - Sqr(iy - y);
+      SqrY2 := SqrRadius2 - Sqr(iy - y);
       p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr(ix - x);
+          d1 := SqrY1 - Sqr(ix - x);
+          d2 := SqrY2 - Sqr(ix - x);
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-          if (d >= 0) and (d <= SqrWidth + DoubleRadius) then
+          if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
 
             Alpha1 := p^.Data[3] / 255;
 
             {antialiasing}
-            if d < DoubleRadius then
+            if d1 < DoubleRadius1 then
               { sqrt should be used here, however i like the result with square
                 of distance better }
-              Alpha2d := Alpha2 * d / DoubleRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
-            else
-            if d > SqrWidth then
-              Alpha2d := Alpha2 * (1 - (d - SqrWidth) / DoubleRadius)  // as of conditions above d / DoubleRadius changes from 0 to 1
+              Alpha2d := Alpha2 * d1 / DoubleRadius1  // as of conditions above d / DoubleRadius changes from 0 to 1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -394,7 +396,8 @@ begin
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+            if AlphaSum > 0 then
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
             p^.Data[1] := Round(255 * AlphaSum);
           end;
         end;
