@@ -284,6 +284,10 @@
   assuming that all non-trivial code is usually in some class,
   and the "of object" is more natural to be used in OOP.
 
+- Other languages:
+  - Indent by 4 spaces in Java and Objective-C.
+  - In general, we never use tabs in our sources (unless the language requires them, like for `Makefile`).
+
 Michalis Kamburelis (aka Kambi)
 <michalis.kambi@gmail.com>
 http://castle-engine.sourceforge.net/
