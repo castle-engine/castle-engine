@@ -1,6 +1,6 @@
 program TestPaint;
 uses SysUtils,
-  CastleWindow, CastleImages, CastleGLImages, CastlePaint, castle_base,
+  CastleWindow, CastleImages, CastleGLImages, castle_base, castle_window,
   CastleVectors, CastleColors, CastleLog;
 
 const
@@ -18,8 +18,9 @@ begin
   aImage.Clear(Vector4Byte(0, 0, 0, 0));
   aImage.FillCircle(HalfTestSize + 0 * TestSize + 0.5, HalfTestSize + 0.5, TestSize / 4, Lime);
   aImage.QuickFillCircle(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize div 4, Lime);
-  aImage.Circle(HalfTestSize + 2 * TestSize + 0.5, HalfTestSize + 0.5, TestSize / 4, 1, Lime);
-  aImage.QuickCircle(HalfTestSize + 3 * TestSize, HalfTestSize, TestSize div 4, 1, Lime);
+  aImage.Circle(HalfTestSize + 2 * TestSize + 0.5, HalfTestSize + 0.5, TestSize / 4, 4, Lime);
+  aImage.QuickCircle(HalfTestSize + 3 * TestSize, HalfTestSize, TestSize div 4, 4, Lime);
+  aImage.FillEllipse(HalfTestSize + 4 * TestSize, HalfTestSize, TestSize div 4, TestSize div 6, Lime);
 end;
 
 procedure DoDraw;
