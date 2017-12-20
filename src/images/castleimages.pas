@@ -830,24 +830,6 @@ type
       accept only integer coordinates and parameters.
 
       @groupBegin }
-    { Draws a hollow circle at x,y with aRadius radius with antialiasing. }
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor); virtual;
-
-    { Draws a filled circle at x,y with aRadius radius with antialiasing. }
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor); virtual;
-
-    { Same as Circle but much faster, without antialiasing or blending }
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor); virtual;
-
-    { Same as FillCircle but much faster, without antialiasing or blending }
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor); virtual;
-
-    { Draws a filled ellipse with its main axes along X and Y directions
-      with antialiasing }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
     { @groupEnd }
@@ -1160,14 +1142,6 @@ type
     procedure Assign(const Source: TCastleImage); override;
 
   public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor); override;
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor); override;
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor); override;
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor); override;
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
   end;
@@ -1259,14 +1233,6 @@ type
     procedure AlphaBleed(const ProgressTitle: string = ''); override;
     function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
   public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor); override;
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor); override;
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor); override;
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor); override;
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
   end;
@@ -1404,14 +1370,6 @@ type
 
     procedure Assign(const Source: TCastleImage); override;
   public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor); override;
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor); override;
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor); override;
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor); override;
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
   end;
@@ -1466,14 +1424,6 @@ type
     //procedure AlphaBleed(const ProgressTitle: string = ''); override;
     //function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
   public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor); override;
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor); override;
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor); override;
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor); override;
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
   end;
