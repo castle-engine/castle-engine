@@ -22,6 +22,52 @@
 
 {-----= FILL ELLIPSE =-----}
 
+procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
+var
+  tmpColor: TCastleColor;
+  ix, iy: integer;
+  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MeanRadius, SqrY: single;
+begin
+  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
+  Alpha2 := aColor.Data[3];
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := 1 - Sqr((iy - y) / aRadiusY);
+      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr((ix - x) / aRadiusX);
+          if d >= 0 then
+          begin
+            Alpha1 := Colors[ix, iy, 0].Data[3];
+
+            {antialiasing}
+            if d < MeanRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+
+
+            TmpColor.Data[0] := (Colors[ix, iy, 0].Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
+            TmpColor.Data[1] := (Colors[ix, iy, 0].Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
+            TmpColor.Data[2] := (Colors[ix, iy, 0].Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
+            TmpColor.Data[3] := AlphaSum;
+
+            Colors[ix, iy, 0] := TmpColor;
+          end;
+        end;
+    end;
+end;
+
 procedure TRGBAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
@@ -201,48 +247,6 @@ begin
 
             Alpha1d := 1 - Alpha2d;
             p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
-          end;
-        end;
-    end;
-end;
-
-procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor);
-var
-  tmpColor: TCastleColor;
-  ix, iy: integer;
-  d: single;
-  Alpha1d, Alpha2, Alpha2d: single;
-  MeanRadius, SqrY: single;
-begin
-  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor.Data[3];
-  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
-    if (iy >= 0) and (iy < Height) then
-    begin
-      SqrY := 1 - Sqr((iy - y) / aRadiusY);
-      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
-        if (ix >= 0) and (ix < Width) then
-        begin
-          d := SqrY - Sqr((ix - x) / aRadiusX);
-          if d >= 0 then
-          begin
-
-            {antialiasing}
-            if d < MeanRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / MeanRadius
-            else
-              Alpha2d := Alpha2;
-
-            Alpha1d := 1 - Alpha2d;
-
-            TmpColor.Data[0] := Colors[ix, iy, 0].Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
-            TmpColor.Data[1] := Colors[ix, iy, 0].Data[1] * Alpha1d + aColor.Data[1] * Alpha2d;
-            TmpColor.Data[2] := Colors[ix, iy, 0].Data[2] * Alpha1d + aColor.Data[2] * Alpha2d;
-
-            Colors[ix, iy, 0] := TmpColor;
           end;
         end;
     end;
