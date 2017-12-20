@@ -15,36 +15,6 @@
 
 (* Paint extension for CastleImages unit and must be used with it. *)
 
-procedure TCastleImage.Circle(const x, y: single; const aRadius, aWidth: single;
-  const aColor: TCastleColor);
-begin
-
-end;
-
-procedure TCastleImage.FillCircle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor);
-begin
-
-end;
-
-procedure TCastleImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor);
-begin
-
-end;
-
-procedure TCastleImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor);
-begin
-
-end;
-
-procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor);
-begin
-
-end;
-
 (* Note: Circles drawing can be significantly improved by drawing the circles
    in quadrants (as 4 parts of the image are equal) - most calculations
    (including antialiasing) will have to be made 4 times less frequent.
@@ -265,7 +235,7 @@ begin
     end;
 end;
 
-procedure TRGBFloatImage.Circle(const x, y: single; const aRadius, aWidth: single;
+procedure TCastleImage.Circle(const x, y: single; const aRadius, aWidth: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -493,7 +463,7 @@ begin
 
 end;
 
-procedure TRGBFloatImage.FillCircle(const x, y: single; const aRadius: single;
+procedure TCastleImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -653,7 +623,7 @@ begin
     end;
 end;
 
-procedure TRGBFloatImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
+procedure TCastleImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -820,7 +790,7 @@ begin
     end;
 end;
 
-procedure TRGBFloatImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+procedure TCastleImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -928,7 +898,7 @@ begin
 
 end;
 
-procedure TRGBFloatImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
