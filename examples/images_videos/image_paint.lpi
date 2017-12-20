@@ -10,7 +10,7 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <Title Value="TestPaint"/>
+      <Title Value="image_paint"/>
       <UseAppBundle Value="False"/>
       <ResourceType Value="res"/>
     </General>
@@ -20,7 +20,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="TestPaint"/>
+            <Filename Value="image_paint"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -54,7 +54,7 @@
         <CompilerOptions>
           <Version Value="11"/>
           <Target>
-            <Filename Value="TestPaint"/>
+            <Filename Value="image_paint"/>
           </Target>
           <SearchPaths>
             <IncludeFiles Value="$(ProjOutDir)"/>
@@ -93,7 +93,7 @@
     </RequiredPackages>
     <Units Count="1">
       <Unit0>
-        <Filename Value="TestPaint.lpr"/>
+        <Filename Value="image_paint.lpr"/>
         <IsPartOfProject Value="True"/>
       </Unit0>
     </Units>
@@ -101,7 +101,7 @@
   <CompilerOptions>
     <Version Value="11"/>
     <Target>
-      <Filename Value="TestPaint"/>
+      <Filename Value="image_paint"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)"/>
