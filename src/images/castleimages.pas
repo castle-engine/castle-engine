@@ -827,7 +827,7 @@ type
   public
     { Draw simple geometric shapes like circles, rectangles, lines, etc.
       Quick analogs of procedures does not use blending and antialiasing and
-      accepts only integer coordinates and parameters.
+      accept only integer coordinates and parameters.
 
       @groupBegin }
     { Draws a hollow circle at x,y with aRadius radius with antialiasing. }
@@ -850,6 +850,7 @@ type
       with antialiasing }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
+    { @groupEnd }
   end;
 
   TCastleImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleImage>;
