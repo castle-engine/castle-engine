@@ -250,7 +250,6 @@ end;
 procedure TCastleImage.Circle(const x, y: single; const aRadius, aWidth: single;
   const aColor: TCastleColor);
 var
-  p: PVector3;
   ix, iy: integer;
   d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
@@ -267,14 +266,12 @@ begin
       SqrY := Sqr(iy - y);
       SqrY1 := SqrRadius1 - SqrY;
       SqrY2 := SqrRadius2 - Sqr(iy - y);
-      p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
           SqrX := Sqr(ix - x);
           d1 := SqrY1 - SqrX;
           d2 := SqrY2 - SqrX;
-          if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= DoubleRadius2) then
           begin
 
@@ -289,9 +286,9 @@ begin
               Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
-            p^.Data[0] := p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
-            p^.Data[1] := p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d;
-            p^.Data[2] := p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d;
+            Colors[ix, iy, 0].Data[0] := p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
+            Colors[ix, iy, 0].Data[1] := p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d;
+            Colors[ix, iy, 0].Data[2] := p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d;
           end;
         end;
     end;
@@ -490,7 +487,6 @@ end;
 procedure TCastleImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
-  p: PVector3;
   ix, iy: integer;
   d: single;
   Alpha1d, Alpha2, Alpha2d: single;
@@ -503,14 +499,12 @@ begin
     if (iy >= 0) and (iy < Height) then
     begin
       SqrY := SqrRadius - Sqr(iy - y);
-      p := nil;
       for ix := Round(x - aRadius) to Round(x + aRadius) do
         if (ix >= 0) and (ix < Width) then
         begin
           d := SqrY - Sqr(ix - x);
           if d >= 0 then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
             {antialiasing}
             if d < DoubleRadius then
@@ -521,9 +515,9 @@ begin
               Alpha2d := Alpha2;
 
             Alpha1d := 1 - Alpha2d;
-            p^.Data[0] := (p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
-            p^.Data[1] := (p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d);
-            p^.Data[2] := (p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d);
+            Colors[ix, iy, 0].Data[0] := (p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
+            Colors[ix, iy, 0].Data[1] := (p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d);
+            Colors[ix, iy, 0].Data[2] := (p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d);
           end;
         end;
     end;
@@ -664,7 +658,6 @@ end;
 procedure TCastleImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor);
 var
-  p: PVector3;
   ix, iy: integer;
   d: integer;
   SqrRadius, SqrY: integer;
@@ -682,9 +675,9 @@ begin
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
-            p^.Data[2] := aColor.Data[2];
+            Colors[ix, iy, 0].Data[0] := aColor.Data[0];
+            Colors[ix, iy, 0].Data[1] := aColor.Data[1];
+            Colors[ix, iy, 0].Data[2] := aColor.Data[2];
           end;
         end;
     end;
@@ -845,7 +838,6 @@ end;
 procedure TCastleImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
   const aColor: TCastleColor);
 var
-  p: PVector3;
   ix, iy: integer;
   d1, d2: integer;
   SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
@@ -855,7 +847,6 @@ begin
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := nil;
       SqrY := Sqr(iy - y);
       SqrY1 := SqrRadius1 - SqrY;
       SqrY2 := SqrRadius2 - SqrY;
@@ -865,12 +856,11 @@ begin
           SqrX := Sqr(ix - x);
           d1 := SqrY1 - SqrX;
           d2 := SqrY2 - SqrX;
-          if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= 0) then
           begin
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
-            p^.Data[2] := aColor.Data[2];
+            Colors[ix, iy, 0].Data[0] := aColor.Data[0];
+            Colors[ix, iy, 0].Data[1] := aColor.Data[1];
+            Colors[ix, iy, 0].Data[2] := aColor.Data[2];
           end;
         end;
     end;
@@ -964,8 +954,6 @@ end;
 
 procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
-var
-  p: PVector3;
 begin
 
 end;
