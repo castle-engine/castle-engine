@@ -1027,7 +1027,7 @@ var
   ByteColor: Byte;
   ix, iy: integer;
   d: single;
-  Alpha1, Alpha1d, Alpha2, Alpha2d: single;
+  Alpha1d, Alpha2, Alpha2d: single;
   MeanRadius, SqrY: single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
@@ -1067,7 +1067,7 @@ var
   tmpColor: TCastleColor;
   ix, iy: integer;
   d: single;
-  Alpha1, Alpha1d, Alpha2, Alpha2d: single;
+  Alpha1d, Alpha2, Alpha2d: single;
   MeanRadius, SqrY: single;
 begin
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
@@ -1150,7 +1150,7 @@ end;
 procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
-  p: PVector3;
+  tmpColor: TCastleColor;
 begin
 
 end;
