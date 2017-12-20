@@ -15,264 +15,34 @@
 
 (* Paint extension for CastleImages unit and must be used with it. *)
 
-unit CastlePaint;
-
-{$mode objfpc}{$H+}
-{$R+}{$Q+}
-
-interface
-
-uses
-  CastleImages, CastleColors, CastleVectors;
-
-type
-  { "native" colors (as in pointers) }
-  TCastleColor4Byte = TVector4Byte;
-  TCastleColor2Byte = TVector2Byte;
-
-
-type
-  { Contains "Sorter" procedures which calls a proper native
-    implementation of each routine.
-    Warning: the operation is destructive, it will overwrite the current
-    image content, if you want to preserve the initial image
-    you will need to create copies manually.
-    Warning: Color is treated differently depending on the image it is painted over.
-    They are not abstract (as helper currently doesn't allow for virtual methods)
-    so they cause a negligible slow-down when called run-time }
-  TCastleImageHelper = class helper for TCastleImage
-  strict private
-    function CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
-    function CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
-  public
-    { Draws a hollow circle at x,y with aRadius radius with antialiasing. }
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor);
-
-    { Draws a filled circle at x,y with aRadius radius with antialiasing. }
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor);
-
-    { Same as Circle but much faster, without antialiasing or blending }
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor);
-
-    { Same as FillCircle but much faster, without antialiasing or blending }
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor);
-
-    { Draws a filled ellipse with its main axes along X and Y directions
-      with antialiasing }
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor);
-
-    { Draws a hollow rectangle at x1,y1 - x2,y2 with antialiasing.}
-    {...}
-  end;
-
-type
-  TRGBAlphaImageHelper = class helper for TRGBAlphaImage
-  public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor4Byte);
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor4Byte);
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor4Byte);
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor4Byte);
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor4Byte);
-  end;
-
-type
-  TRGBImageHelper = class helper for TRGBImage
-  public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor4Byte);
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor4Byte);
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor4Byte);
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor4Byte);
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor4Byte);
-  end;
-
-type
-  TGrayscaleAlphaImageHelper = class helper for TGrayscaleAlphaImage
-  public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor2Byte);
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor2Byte);
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor2Byte);
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor2Byte);
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor2Byte);
-  end;
-
-type
-  TGrayscaleImageHelper = class helper for TGrayscaleImage
-  public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor2Byte);
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor2Byte);
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor2Byte);
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor2Byte);
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor2Byte);
-  end;
-
-type
-  TRGBFloatImageHelper = class helper for TRGBFloatImage
-  public
-    procedure Circle(const x, y: single; const aRadius, aWidth: single;
-      const aColor: TCastleColor);
-    procedure FillCircle(const x, y: single; const aRadius: single;
-      const aColor: TCastleColor);
-    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-      const aColor: TCastleColor);
-    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
-      const aColor: TCastleColor);
-    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-      const aColor: TCastleColor);
-  end;
-
-implementation
-
-{-----= Tools =-----}
-
-function TCastleImageHelper.CastleColorToCastleColor4Byte(aColor: TCastleColor): TCastleColor4Byte;
-begin
-  Result[0] := Trunc(aColor[0]*255);
-  Result[1] := Trunc(aColor[1]*255);
-  Result[2] := Trunc(aColor[2]*255);
-  Result[3] := Trunc(aColor[3]*255);
-end;
-
-function TCastleImageHelper.CastleColorToCastleColor2Byte(aColor: TCastleColor): TCastleColor2Byte;
-begin
-  Result[0] := GrayscaleValue(Vector3Byte(Vector3(aColor[0], aColor[1], aColor[2])));
-  Result[1] := Trunc(aColor[3]*255);
-end;
-
-{-----= "Sorting procedures =-----}
-
-procedure TCastleImageHelper.Circle(const x, y: single; const aRadius, aWidth: single;
+procedure TCastleImage.Circle(const x, y: single; const aRadius, aWidth: single;
   const aColor: TCastleColor);
 begin
-  if Self is TRGBAlphaImage then
-    TRGBAlphaImage(Self).Circle(x, y, aRadius, aWidth, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TRGBImage then
-    TRGBImage(Self).Circle(x, y, aRadius, aWidth, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TGrayscaleAlphaImage then
-    TGrayscaleAlphaImage(Self).Circle(x, y, aRadius, aWidth, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TGrayscaleImage then
-    TGrayscaleImage(Self).Circle(x, y, aRadius, aWidth, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TRGBFloatImage then
-    TRGBFloatImage(Self).Circle(x, y, aRadius, aWidth, aColor)
-  else
-  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
-        [ClassName]);
+
 end;
 
-procedure TCastleImageHelper.FillCircle(const x, y: single; const aRadius: single;
+procedure TCastleImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 begin
-  if Self is TRGBAlphaImage then
-    TRGBAlphaImage(Self).FillCircle(x, y, aRadius, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TRGBImage then
-    TRGBImage(Self).FillCircle(x, y, aRadius, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TGrayscaleAlphaImage then
-    TGrayscaleAlphaImage(Self).FillCircle(x, y, aRadius, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TGrayscaleImage then
-    TGrayscaleImage(Self).FillCircle(x, y, aRadius, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TRGBFloatImage then
-    TRGBFloatImage(Self).FillCircle(x, y, aRadius, aColor)
-  else
-  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
-        [ClassName]);
+
 end;
 
-procedure TCastleImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+procedure TCastleImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
       const aColor: TCastleColor);
 begin
-  if Self is TRGBAlphaImage then
-    TRGBAlphaImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TRGBImage then
-    TRGBImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TGrayscaleAlphaImage then
-    TGrayscaleAlphaImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TGrayscaleImage then
-    TGrayscaleImage(Self).QuickCircle(x, y, aRadius, aWidth, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TRGBFloatImage then
-    TRGBFloatImage(Self).QuickCircle(x, y, aRadius, aWidth, aColor)
-  else
-  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
-        [ClassName]);
+
 end;
 
-procedure TCastleImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
+procedure TCastleImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
       const aColor: TCastleColor);
 begin
-  if Self is TRGBAlphaImage then
-    TRGBAlphaImage(Self).QuickFillCircle(x, y, aRadius, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TRGBImage then
-    TRGBImage(Self).QuickFillCircle(x, y, aRadius, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TGrayscaleAlphaImage then
-    TGrayscaleAlphaImage(Self).QuickFillCircle(x, y, aRadius, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TGrayscaleImage then
-    TGrayscaleImage(Self).QuickFillCircle(x, y, aRadius, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TRGBFloatImage then
-    TRGBFloatImage(Self).QuickFillCircle(x, y, aRadius, aColor)
-  else
-  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
-        [ClassName]);
+
 end;
 
-procedure TCastleImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor);
 begin
-  if Self is TRGBAlphaImage then
-    TRGBAlphaImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TRGBImage then
-    TRGBImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor4Byte(aColor))
-  else
-  if Self is TGrayscaleAlphaImage then
-    TGrayscaleAlphaImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TGrayscaleImage then
-    TGrayscaleImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, CastleColorToCastleColor2Byte(aColor))
-  else
-  if Self is TRGBFloatImage then
-    TRGBFloatImage(Self).FillEllipse(x, y, aRadiusX, aRadiusY, aColor)
-  else
-  raise EImageDrawError.CreateFmt('Painting is not supported for %s',
-        [ClassName]);
+
 end;
 
 (* Note: Circles drawing can be significantly improved by drawing the circles
@@ -288,8 +58,8 @@ end;
 
 {-----= CIRCLE =-----}
 
-procedure TRGBAlphaImageHelper.Circle(const x, y: single; const aRadius, aWidth: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBAlphaImage.Circle(const x, y: single; const aRadius, aWidth: single;
+  const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ix, iy: integer;
@@ -344,8 +114,8 @@ begin
     end;
 end;
 
-procedure TRGBImageHelper.Circle(const x, y: single; const aRadius, aWidth: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBImage.Circle(const x, y: single; const aRadius, aWidth: single;
+  const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ix, iy: integer;
@@ -394,8 +164,8 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImageHelper.Circle(const x, y: single; const aRadius, aWidth: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleAlphaImage.Circle(const x, y: single; const aRadius, aWidth: single;
+  const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ix, iy: integer;
@@ -447,8 +217,8 @@ begin
     end;
 end;
 
-procedure TGrayscaleImageHelper.Circle(const x, y: single; const aRadius, aWidth: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleImage.Circle(const x, y: single; const aRadius, aWidth: single;
+  const aColor: TCastleColor);
 var
   p: PByte;
   ix, iy: integer;
@@ -495,7 +265,7 @@ begin
     end;
 end;
 
-procedure TRGBFloatImageHelper.Circle(const x, y: single; const aRadius, aWidth: single;
+procedure TRGBFloatImage.Circle(const x, y: single; const aRadius, aWidth: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -547,8 +317,8 @@ end;
 
 {-----= FILL CIRCLE =-----}
 
-procedure TRGBAlphaImageHelper.FillCircle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBAlphaImage.FillCircle(const x, y: single; const aRadius: single;
+  const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ix, iy: integer;
@@ -595,8 +365,8 @@ begin
     end;
 end;
 
-procedure TRGBImageHelper.FillCircle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBImage.FillCircle(const x, y: single; const aRadius: single;
+  const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ix, iy: integer;
@@ -637,8 +407,8 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImageHelper.FillCircle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleAlphaImage.FillCircle(const x, y: single; const aRadius: single;
+  const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ix, iy: integer;
@@ -682,8 +452,8 @@ begin
     end;
 end;
 
-procedure TGrayscaleImageHelper.FillCircle(const x, y: single; const aRadius: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleImage.FillCircle(const x, y: single; const aRadius: single;
+  const aColor: TCastleColor);
 var
   p: PByte;
   ix, iy: integer;
@@ -723,7 +493,7 @@ begin
 
 end;
 
-procedure TRGBFloatImageHelper.FillCircle(const x, y: single; const aRadius: single;
+procedure TRGBFloatImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -768,8 +538,8 @@ end;
 
 {-----= QUICK FILL CIRCLE =-----}
 
-procedure TRGBAlphaImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
-  const aColor: TCastleColor4Byte);
+procedure TRGBAlphaImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
+  const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ix, iy: integer;
@@ -798,8 +568,8 @@ begin
     end;
 end;
 
-procedure TRGBImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
-  const aColor: TCastleColor4Byte);
+procedure TRGBImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
+  const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ix, iy: integer;
@@ -828,8 +598,8 @@ begin
 
 end;
 
-procedure TGrayscaleAlphaImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleAlphaImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
+  const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ix, iy: integer;
@@ -856,8 +626,8 @@ begin
     end;
 end;
 
-procedure TGrayscaleImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
+  const aColor: TCastleColor);
 var
   p: PByte;
   ix, iy: integer;
@@ -883,7 +653,7 @@ begin
     end;
 end;
 
-procedure TRGBFloatImageHelper.QuickFillCircle(const x, y: integer; const aRadius: integer;
+procedure TRGBFloatImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -915,8 +685,8 @@ end;
 
 {-----= QUICK CIRCLE =-----}
 
-procedure TRGBAlphaImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-  const aColor: TCastleColor4Byte);
+procedure TRGBAlphaImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ix, iy: integer;
@@ -950,8 +720,8 @@ begin
     end;
 end;
 
-procedure TRGBImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-  const aColor: TCastleColor4Byte);
+procedure TRGBImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor);
 var
   p: PVector3Byte;
   ix, iy: integer;
@@ -985,8 +755,8 @@ begin
 
 end;
 
-procedure TGrayscaleAlphaImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleAlphaImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor);
 var
   p: PVector2Byte;
   ix, iy: integer;
@@ -1018,8 +788,8 @@ begin
     end;
 end;
 
-procedure TGrayscaleImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+  const aColor: TCastleColor);
 var
   p: PByte;
   ix, iy: integer;
@@ -1050,7 +820,7 @@ begin
     end;
 end;
 
-procedure TRGBFloatImageHelper.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+procedure TRGBFloatImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -1087,8 +857,8 @@ end;
 
 {-----= FILL ELLIPSE =-----}
 
-procedure TRGBAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PVector4Byte;
   ix, iy: integer;
@@ -1134,31 +904,31 @@ begin
     end;
 end;
 
-procedure TRGBImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PVector3Byte;
 begin
 
 end;
 
-procedure TGrayscaleAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PVector2Byte;
 begin
 
 end;
 
-procedure TGrayscaleImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PByte;
 begin
 
 end;
 
-procedure TRGBFloatImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TRGBFloatImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -1167,39 +937,39 @@ begin
 end;
 
 {
-procedure TRGBAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PVector4Byte;
 begin
 
 end;
 
-procedure TRGBImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor4Byte);
+procedure TRGBImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PVector3Byte;
 begin
 
 end;
 
-procedure TGrayscaleAlphaImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PVector2Byte;
 begin
 
 end;
 
-procedure TGrayscaleImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
-  const aColor: TCastleColor2Byte);
+procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+  const aColor: TCastleColor);
 var
   p: PByte;
 begin
 
 end;
 
-procedure TRGBFloatImageHelper.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TRGBFloatImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
