@@ -32,16 +32,20 @@ procedure TRGBAlphaImage.Circle(const x, y: single; const aRadius, aWidth: singl
   const aColor: TCastleColor);
 var
   p: PVector4Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d1, d2: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   DoubleRadius1 := 2 * (aRadius);
   DoubleRadius2 := 2 * (aRadius - aWidth);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
-  Alpha2 := aColor.Data[3] / 255;
+  Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -74,9 +78,9 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
             end;
             p^.Data[3] := Round(255 * AlphaSum);
           end;
@@ -88,16 +92,20 @@ procedure TRGBImage.Circle(const x, y: single; const aRadius, aWidth: single;
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
   SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   DoubleRadius1 := 2 * (aRadius);
   DoubleRadius2 := 2 * (aRadius - aWidth);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
-  Alpha2 := aColor.Data[3] / 255;
+  Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -126,9 +134,9 @@ begin
               Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
-            p^.Data[0] := Round(p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
-            p^.Data[1] := Round(p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d);
-            p^.Data[2] := Round(p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d);
+            p^.Data[0] := Round(p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d);
+            p^.Data[1] := Round(p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d);
+            p^.Data[2] := Round(p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d);
           end;
         end;
     end;
@@ -138,16 +146,18 @@ procedure TGrayscaleAlphaImage.Circle(const x, y: single; const aRadius, aWidth:
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
+  ByteColor: Byte;
   ix, iy: integer;
   d1, d2: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   DoubleRadius1 := 2 * (aRadius);
   DoubleRadius2 := 2 * (aRadius - aWidth);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
-  Alpha2 := aColor.Data[1] / 255;
+  Alpha2 := aColor.Data[1];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -180,7 +190,7 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
             p^.Data[1] := Round(255 * AlphaSum);
           end;
         end;
@@ -191,16 +201,18 @@ procedure TGrayscaleImage.Circle(const x, y: single; const aRadius, aWidth: sing
   const aColor: TCastleColor);
 var
   p: PByte;
+  ByteColor: Byte;
   ix, iy: integer;
   d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
   SqrRadius1, SqrRadius2, DoubleRadius1, DoubleRadius2, SqrY1, SqrY2, SqrY, SqrX: single;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   DoubleRadius1 := 2 * (aRadius);
   DoubleRadius2 := 2 * (aRadius - aWidth);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
-  Alpha2 := aColor.Data[1] / 255;
+  Alpha2 := aColor.Data[1];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -229,7 +241,7 @@ begin
               Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
-            p^ := Round(p^ * Alpha1d + aColor.Data[0] * Alpha2d);
+            p^ := Round(p^ * Alpha1d + ByteColor * Alpha2d);
           end;
         end;
     end;
@@ -291,14 +303,18 @@ procedure TRGBAlphaImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
   p: PVector4Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   SqrRadius, DoubleRadius, SqrY: single;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[3] / 255;
+  Alpha2 := aColor[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -325,9 +341,9 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
             end;
             p^.Data[3] := Round(255 * AlphaSum);
           end;
@@ -339,14 +355,18 @@ procedure TRGBImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d: single;
   Alpha1d, Alpha2, Alpha2d: single;
   SqrRadius, DoubleRadius, SqrY: single;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[3] / 255;
+  Alpha2 := aColor[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -369,9 +389,9 @@ begin
               Alpha2d := Alpha2;
 
             Alpha1d := 1 - Alpha2d;
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d));
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d));
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d));
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
+            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
+            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
           end;
         end;
     end;
@@ -381,14 +401,16 @@ procedure TGrayscaleAlphaImage.FillCircle(const x, y: single; const aRadius: sin
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
+  ByteColor: byte;
   ix, iy: integer;
   d: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   SqrRadius, DoubleRadius, SqrY: single;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[1] / 255;
+  Alpha2 := aColor[1];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -415,7 +437,7 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
             p^.Data[1] := Round(255 * AlphaSum);
           end;
         end;
@@ -426,14 +448,16 @@ procedure TGrayscaleImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
   p: PByte;
+  ByteColor: Byte;
   ix, iy: integer;
   d: single;
   Alpha1d, Alpha2, Alpha2d: single;
   SqrRadius, DoubleRadius, SqrY: single;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[1] / 255;
+  Alpha2 := aColor[1];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -456,7 +480,7 @@ begin
               Alpha2d := Alpha2;
 
             Alpha1d := 1 - Alpha2d;
-            p^ := Round((p^ * Alpha1d + aColor.Data[0] * Alpha2d));
+            p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
           end;
         end;
     end;
@@ -512,10 +536,15 @@ procedure TRGBAlphaImage.QuickFillCircle(const x, y: integer; const aRadius: int
   const aColor: TCastleColor);
 var
   p: PVector4Byte;
+  ByteColor: TVector4Byte;
   ix, iy: integer;
   d: integer;
   SqrRadius, SqrY: integer;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  ByteColor.Data[3] := Trunc(255 * aColor.Data[3]);
   SqrRadius := Sqr(aRadius);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
@@ -529,10 +558,10 @@ begin
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
-            p^.Data[2] := aColor.Data[2];
-            p^.Data[3] := aColor.Data[3];
+            p^.Data[0] := ByteColor.Data[0];
+            p^.Data[1] := ByteColor.Data[1];
+            p^.Data[2] := ByteColor.Data[2];
+            p^.Data[3] := ByteColor.Data[3];
           end;
         end;
     end;
@@ -542,10 +571,14 @@ procedure TRGBImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d: integer;
   SqrRadius, SqrY: integer;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   SqrRadius := Sqr(aRadius);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
@@ -559,9 +592,9 @@ begin
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
-            p^.Data[2] := aColor.Data[2];
+            p^.Data[0] := ByteColor.Data[0];
+            p^.Data[1] := ByteColor.Data[1];
+            p^.Data[2] := ByteColor.Data[2];
           end;
         end;
     end;
@@ -572,10 +605,13 @@ procedure TGrayscaleAlphaImage.QuickFillCircle(const x, y: integer; const aRadiu
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
+  ByteColor: TVector2Byte;
   ix, iy: integer;
   d: integer;
   SqrRadius, SqrY: integer;
 begin
+  ByteColor.Data[0] := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[3]);
   SqrRadius := Sqr(aRadius);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
@@ -589,8 +625,8 @@ begin
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
+            p^.Data[0] := ByteColor.Data[0];
+            p^.Data[1] := ByteColor.Data[1];
           end;
         end;
     end;
@@ -600,10 +636,12 @@ procedure TGrayscaleImage.QuickFillCircle(const x, y: integer; const aRadius: in
   const aColor: TCastleColor);
 var
   p: PByte;
+  ByteColor: Byte;
   ix, iy: integer;
   d: integer;
   SqrRadius, SqrY: integer;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   SqrRadius := Sqr(aRadius);
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
@@ -617,7 +655,7 @@ begin
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            p^ := aColor.Data[0];
+            p^ := ByteColor;
           end;
         end;
     end;
@@ -659,10 +697,15 @@ procedure TRGBAlphaImage.QuickCircle(const x, y: integer; const aRadius, aWidth:
   const aColor: TCastleColor);
 var
   p: PVector4Byte;
+  ByteColor: TVector4Byte;
   ix, iy: integer;
   d1, d2: integer;
   SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  ByteColor.Data[3] := Trunc(255 * aColor.Data[3]);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
@@ -681,10 +724,10 @@ begin
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= 0) then
           begin
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
-            p^.Data[2] := aColor.Data[2];
-            p^.Data[3] := aColor.Data[3];
+            p^.Data[0] := ByteColor.Data[0];
+            p^.Data[1] := ByteColor.Data[1];
+            p^.Data[2] := ByteColor.Data[2];
+            p^.Data[3] := ByteColor.Data[3];
           end;
         end;
     end;
@@ -694,10 +737,14 @@ procedure TRGBImage.QuickCircle(const x, y: integer; const aRadius, aWidth: inte
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d1, d2: integer;
   SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
@@ -716,9 +763,9 @@ begin
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= 0) then
           begin
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
-            p^.Data[2] := aColor.Data[2];
+            p^.Data[0] := ByteColor.Data[0];
+            p^.Data[1] := ByteColor.Data[1];
+            p^.Data[2] := ByteColor.Data[2];
           end;
         end;
     end;
@@ -729,10 +776,13 @@ procedure TGrayscaleAlphaImage.QuickCircle(const x, y: integer; const aRadius, a
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
+  ByteColor: TVector2Byte;
   ix, iy: integer;
   d1, d2: integer;
   SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
+  ByteColor.Data[0] := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[3]);
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
@@ -751,8 +801,8 @@ begin
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= 0) then
           begin
-            p^.Data[0] := aColor.Data[0];
-            p^.Data[1] := aColor.Data[1];
+            p^.Data[0] := ByteColor.Data[0];
+            p^.Data[1] := ByteColor.Data[1];
           end;
         end;
     end;
@@ -762,10 +812,12 @@ procedure TGrayscaleImage.QuickCircle(const x, y: integer; const aRadius, aWidth
   const aColor: TCastleColor);
 var
   p: PByte;
+  ByteColor: Byte;
   ix, iy: integer;
   d1, d2: integer;
   SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   SqrRadius1 := Sqr(aRadius);
   SqrRadius2 := Sqr(aRadius - aWidth);
   for iy := y - aRadius to y + aRadius do
@@ -784,7 +836,7 @@ begin
           if p = nil then p := PixelPtr(ix, iy) else Inc(p);
           if (d1 >= 0) and (d2 <= 0) then
           begin
-            p^ := aColor.Data[0];
+            p^ := ByteColor;
           end;
         end;
     end;
@@ -831,11 +883,15 @@ procedure TRGBAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadius
   const aColor: TCastleColor);
 var
   p: PVector4Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
   d: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MeanRadius, SqrY: single;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
   Alpha2 := aColor[3] / 255;
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
@@ -864,9 +920,9 @@ begin
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
             if AlphaSum > 0 then begin
-              p^.Data[0] := Round((p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum);
-              p^.Data[1] := Round((p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum);
-              p^.Data[2] := Round((p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum);
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
             end;
             p^.Data[3] := Round(255 * AlphaSum);
           end;
@@ -878,7 +934,11 @@ procedure TRGBImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: si
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
+  ByteColor: TVector3Byte;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
 
 end;
 
@@ -886,7 +946,9 @@ procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, a
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
+  ByteColor: Byte;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
 
 end;
 
@@ -894,7 +956,9 @@ procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiu
   const aColor: TCastleColor);
 var
   p: PByte;
+  ByteColor: Byte;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
 
 end;
 
@@ -912,6 +976,9 @@ procedure TRGBAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadius
 var
   p: PVector4Byte;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
 
 end;
 
@@ -919,7 +986,11 @@ procedure TRGBImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: si
   const aColor: TCastleColor);
 var
   p: PVector3Byte;
+  ByteColor: TVector3Byte;
 begin
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
 
 end;
 
@@ -927,7 +998,9 @@ procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, a
   const aColor: TCastleColor);
 var
   p: PVector2Byte;
+  ByteColor: Byte;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
 
 end;
 
@@ -935,11 +1008,13 @@ procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiu
   const aColor: TCastleColor);
 var
   p: PByte;
+  ByteColor: Byte;
 begin
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
 
 end;
 
-procedure TRGBFloatImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
   p: PVector3;
@@ -947,6 +1022,3 @@ begin
 
 end;
 }
-
-end.
-
