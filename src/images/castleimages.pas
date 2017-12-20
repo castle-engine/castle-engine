@@ -824,6 +824,32 @@ type
     procedure AlphaBleed(const ProgressTitle: string = ''); virtual;
     function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; virtual;
     { @groupEnd }
+  public
+    { Draw simple geometric shapes like circles, rectangles, lines, etc.
+      Quick analogs of procedures does not use blending and antialiasing and
+      accepts only integer coordinates and parameters.
+
+      @groupBegin }
+    { Draws a hollow circle at x,y with aRadius radius with antialiasing. }
+    procedure Circle(const x, y: single; const aRadius, aWidth: single;
+      const aColor: TCastleColor); virtual;
+
+    { Draws a filled circle at x,y with aRadius radius with antialiasing. }
+    procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor); virtual;
+
+    { Same as Circle but much faster, without antialiasing or blending }
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor); virtual;
+
+    { Same as FillCircle but much faster, without antialiasing or blending }
+    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor); virtual;
+
+    { Draws a filled ellipse with its main axes along X and Y directions
+      with antialiasing }
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor); virtual;
   end;
 
   TCastleImageList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TCastleImage>;
@@ -1131,6 +1157,18 @@ type
        const Weights: TVector4; const AColors: TVector4Pointer); override;
 
     procedure Assign(const Source: TCastleImage); override;
+
+  public
+    procedure Circle(const x, y: single; const aRadius, aWidth: single;
+      const aColor: TCastleColor); override;
+    procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor); override;
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor); override;
+    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor); override;
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1219,6 +1257,17 @@ type
 
     procedure AlphaBleed(const ProgressTitle: string = ''); override;
     function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
+  public
+    procedure Circle(const x, y: single; const aRadius, aWidth: single;
+      const aColor: TCastleColor); override;
+    procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor); override;
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor); override;
+    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor); override;
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor); override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1353,6 +1402,17 @@ type
       const AlphaTolerance: Byte): TAlphaChannel; override;
 
     procedure Assign(const Source: TCastleImage); override;
+  public
+    procedure Circle(const x, y: single; const aRadius, aWidth: single;
+      const aColor: TCastleColor); override;
+    procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor); override;
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor); override;
+    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor); override;
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1404,6 +1464,17 @@ type
     // TODO: this should be implemented, just like for TRGBAlphaImage
     //procedure AlphaBleed(const ProgressTitle: string = ''); override;
     //function MakeAlphaBleed(const ProgressTitle: string = ''): TCastleImage; override;
+  public
+    procedure Circle(const x, y: single; const aRadius, aWidth: single;
+      const aColor: TCastleColor); override;
+    procedure FillCircle(const x, y: single; const aRadius: single;
+      const aColor: TCastleColor); override;
+    procedure QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
+      const aColor: TCastleColor); override;
+    procedure QuickFillCircle(const x, y: integer; const aRadius: integer;
+      const aColor: TCastleColor); override;
+    procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aColor: TCastleColor); override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
@@ -1794,6 +1865,7 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 
 {$I castleimages_file_formats.inc}
 {$I castleimages_draw.inc}
+{$I castleimages_paint.inc}
 {$I images_bmp.inc}
 {$ifndef CASTLE_PNG_USING_FCL_IMAGE}
   {$I images_png.inc}
