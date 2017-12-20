@@ -25,7 +25,7 @@
 procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
 var
-  tmpColor: TCastleColor;
+  NewColor, OldColor: TCastleColor;
   ix, iy: integer;
   d: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
@@ -43,7 +43,8 @@ begin
           d := SqrY - Sqr((ix - x) / aRadiusX);
           if d >= 0 then
           begin
-            Alpha1 := Colors[ix, iy, 0].Data[3];
+            OldColor := Colors[ix, iy, 0];
+            Alpha1 := OldColor.Data[3];
 
             {antialiasing}
             if d < MeanRadius then
@@ -57,12 +58,12 @@ begin
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
 
-            TmpColor.Data[0] := (Colors[ix, iy, 0].Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-            TmpColor.Data[1] := (Colors[ix, iy, 0].Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-            TmpColor.Data[2] := (Colors[ix, iy, 0].Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-            TmpColor.Data[3] := AlphaSum;
+            NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
+            NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
+            NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
+            NewColor.Data[3] := AlphaSum;
 
-            Colors[ix, iy, 0] := TmpColor;
+            Colors[ix, iy, 0] := NewColor;
           end;
         end;
     end;
