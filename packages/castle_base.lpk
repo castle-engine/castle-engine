@@ -61,7 +61,7 @@ end;"/>
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="639">
+    <Files Count="640">
       <Item1>
         <Filename Value="../src/3d/castle3d.pas"/>
         <UnitName Value="Castle3D"/>
@@ -590,8 +590,8 @@ end;"/>
         <UnitName Value="CastleCreatures"/>
       </Item131>
       <Item132>
-        <Filename Value="../src/game/castledebugtransform.pas"/>
-        <UnitName Value="CastleDebugTransform"/>
+        <Filename Value="../src/game/castledebug3d.pas"/>
+        <UnitName Value="CastleDebug3D"/>
       </Item132>
       <Item133>
         <Filename Value="../src/game/castlegamenotifications.pas"/>
@@ -2558,73 +2558,77 @@ end;"/>
         <Type Value="Include"/>
       </Item622>
       <Item623>
-        <Filename Value="../src/x3d/x3dnodes_standard_particlesystems.inc"/>
+        <Filename Value="../src/images/castleimages_paint.inc"/>
         <Type Value="Include"/>
       </Item623>
       <Item624>
-        <Filename Value="../src/x3d/x3dnodes_standard_picking.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_particlesystems.inc"/>
         <Type Value="Include"/>
       </Item624>
       <Item625>
-        <Filename Value="../src/x3d/x3dnodes_standard_pointingdevicesensor.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_picking.inc"/>
         <Type Value="Include"/>
       </Item625>
       <Item626>
-        <Filename Value="../src/x3d/x3dnodes_standard_rendering.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_pointingdevicesensor.inc"/>
         <Type Value="Include"/>
       </Item626>
       <Item627>
-        <Filename Value="../src/x3d/x3dnodes_standard_rigidbodyphysics.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_rendering.inc"/>
         <Type Value="Include"/>
       </Item627>
       <Item628>
-        <Filename Value="../src/x3d/x3dnodes_standard_scripting.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_rigidbodyphysics.inc"/>
         <Type Value="Include"/>
       </Item628>
       <Item629>
-        <Filename Value="../src/x3d/x3dnodes_standard_shaders.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_scripting.inc"/>
         <Type Value="Include"/>
       </Item629>
       <Item630>
-        <Filename Value="../src/x3d/x3dnodes_standard_shape.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_shaders.inc"/>
         <Type Value="Include"/>
       </Item630>
       <Item631>
-        <Filename Value="../src/x3d/x3dnodes_standard_sound.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_shape.inc"/>
         <Type Value="Include"/>
       </Item631>
       <Item632>
-        <Filename Value="../src/x3d/x3dnodes_standard_text.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_sound.inc"/>
         <Type Value="Include"/>
       </Item632>
       <Item633>
-        <Filename Value="../src/x3d/x3dnodes_standard_texturing.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_text.inc"/>
         <Type Value="Include"/>
       </Item633>
       <Item634>
-        <Filename Value="../src/x3d/x3dnodes_standard_texturing3d.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_texturing.inc"/>
         <Type Value="Include"/>
       </Item634>
       <Item635>
-        <Filename Value="../src/x3d/x3dnodes_standard_time.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_texturing3d.inc"/>
         <Type Value="Include"/>
       </Item635>
       <Item636>
-        <Filename Value="../src/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
+        <Filename Value="../src/x3d/x3dnodes_standard_time.inc"/>
         <Type Value="Include"/>
       </Item636>
       <Item637>
-        <Filename Value="../src/x3d/x3dtime.pas"/>
-        <UnitName Value="X3DTime"/>
+        <Filename Value="../src/x3d/x3dnodes_verticesandtrianglescounting.inc"/>
+        <Type Value="Include"/>
       </Item637>
       <Item638>
-        <Filename Value="../src/x3d/x3dtriangles.pas"/>
-        <UnitName Value="X3DTriangles"/>
+        <Filename Value="../src/x3d/x3dtime.pas"/>
+        <UnitName Value="X3DTime"/>
       </Item638>
       <Item639>
+        <Filename Value="../src/x3d/x3dtriangles.pas"/>
+        <UnitName Value="X3DTriangles"/>
+      </Item639>
+      <Item640>
         <Filename Value="../src/x3d/x3dtriangles_raysegment_nonleaf.inc"/>
         <Type Value="Include"/>
-      </Item639>
+      </Item640>
     </Files>
     <RequiredPkgs Count="1">
       <Item1>
