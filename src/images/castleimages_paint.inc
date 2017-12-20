@@ -250,6 +250,7 @@ end;
 procedure TCastleImage.Circle(const x, y: single; const aRadius, aWidth: single;
   const aColor: TCastleColor);
 var
+  tmpColor: TCastleColor;
   ix, iy: integer;
   d1, d2: single;
   Alpha1d, Alpha2, Alpha2d: single;
@@ -286,9 +287,11 @@ begin
               Alpha2d := Alpha2d * (1 - d2 / DoubleRadius2);  // as of conditions above d / DoubleRadius changes from 0 to 1
 
             Alpha1d := (1 - Alpha2d);
-            Colors[ix, iy, 0].Data[0] := p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
-            Colors[ix, iy, 0].Data[1] := p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d;
-            Colors[ix, iy, 0].Data[2] := p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d;
+            tmpColor.Data[0] := Colors[ix, iy, 0].Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
+            tmpColor.Data[1] := Colors[ix, iy, 0].Data[1] * Alpha1d + aColor.Data[1] * Alpha2d;
+            tmpColor.Data[2] := Colors[ix, iy, 0].Data[2] * Alpha1d + aColor.Data[2] * Alpha2d;
+
+            Colors[ix, iy, 0] := tmpColor;
           end;
         end;
     end;
@@ -311,7 +314,7 @@ begin
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[3];
+  Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -363,7 +366,7 @@ begin
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[3];
+  Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -407,7 +410,7 @@ begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[1];
+  Alpha2 := aColor.Data[1];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -454,7 +457,7 @@ begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[1];
+  Alpha2 := aColor.Data[1];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -487,6 +490,7 @@ end;
 procedure TCastleImage.FillCircle(const x, y: single; const aRadius: single;
   const aColor: TCastleColor);
 var
+  tmpColor: TCastleColor;
   ix, iy: integer;
   d: single;
   Alpha1d, Alpha2, Alpha2d: single;
@@ -494,7 +498,7 @@ var
 begin
   SqrRadius := Sqr(aRadius);
   DoubleRadius := 2 * aRadius;
-  Alpha2 := aColor[3];
+  Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadius) to Round(y + aRadius) do
     if (iy >= 0) and (iy < Height) then
     begin
@@ -515,9 +519,11 @@ begin
               Alpha2d := Alpha2;
 
             Alpha1d := 1 - Alpha2d;
-            Colors[ix, iy, 0].Data[0] := (p^.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
-            Colors[ix, iy, 0].Data[1] := (p^.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d);
-            Colors[ix, iy, 0].Data[2] := (p^.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d);
+            tmpColor.Data[0] := (Colors[ix, iy, 0].Data[0] * Alpha1d + aColor.Data[0] * Alpha2d);
+            tmpColor.Data[1] := (Colors[ix, iy, 0].Data[1] * Alpha1d + aColor.Data[1] * Alpha2d);
+            tmpColor.Data[2] := (Colors[ix, iy, 0].Data[2] * Alpha1d + aColor.Data[2] * Alpha2d);
+
+            Colors[ix, iy, 0] := tmpColor;
           end;
         end;
     end;
@@ -658,6 +664,7 @@ end;
 procedure TCastleImage.QuickFillCircle(const x, y: integer; const aRadius: integer;
   const aColor: TCastleColor);
 var
+  tmpColor: TCastleColor;
   ix, iy: integer;
   d: integer;
   SqrRadius, SqrY: integer;
@@ -666,7 +673,6 @@ begin
   for iy := y - aRadius to y + aRadius do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := nil;
       SqrY := SqrRadius - Sqr(iy - y);
       for ix := x - aRadius to x + aRadius do
         if (ix >= 0) and (ix < Width) then
@@ -674,10 +680,10 @@ begin
           d := SqrY - Sqr(ix - x);
           if d >= 0 then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
-            Colors[ix, iy, 0].Data[0] := aColor.Data[0];
-            Colors[ix, iy, 0].Data[1] := aColor.Data[1];
-            Colors[ix, iy, 0].Data[2] := aColor.Data[2];
+            tmpColor.Data[0] := aColor.Data[0];
+            tmpColor.Data[1] := aColor.Data[1];
+            tmpColor.Data[2] := aColor.Data[2];
+            Colors[ix, iy, 0] := tmpColor;
           end;
         end;
     end;
@@ -838,6 +844,7 @@ end;
 procedure TCastleImage.QuickCircle(const x, y: integer; const aRadius, aWidth: integer;
   const aColor: TCastleColor);
 var
+  tmpColor: TCastleColor;
   ix, iy: integer;
   d1, d2: integer;
   SqrRadius1, SqrRadius2, SqrY1, SqrY2, SqrY, SqrX: integer;
@@ -858,9 +865,10 @@ begin
           d2 := SqrY2 - SqrX;
           if (d1 >= 0) and (d2 <= 0) then
           begin
-            Colors[ix, iy, 0].Data[0] := aColor.Data[0];
-            Colors[ix, iy, 0].Data[1] := aColor.Data[1];
-            Colors[ix, iy, 0].Data[2] := aColor.Data[2];
+            tmpColor.Data[0] := aColor.Data[0];
+            tmpColor.Data[1] := aColor.Data[1];
+            tmpColor.Data[2] := aColor.Data[2];
+            Colors[ix, iy, 0] := tmpColor;
           end;
         end;
     end;
@@ -883,16 +891,16 @@ begin
   ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
-  Alpha2 := aColor[3] / 255;
+  Alpha2 := aColor.Data[3];
   for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := 1 - Sqr((iy - y)/aRadiusY);
+      SqrY := 1 - Sqr((iy - y) / aRadiusY);
       p := nil;
       for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr((ix - x)/aRadiusX);
+          d := SqrY - Sqr((ix - x) / aRadiusX);
           if d >= 0 then
           begin
             if p = nil then p := PixelPtr(ix, iy) else Inc(p);
@@ -925,11 +933,44 @@ procedure TRGBImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: si
 var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
+  ix, iy: integer;
+  d: single;
+  Alpha1d, Alpha2, Alpha2d: single;
+  MeanRadius, SqrY: single;
 begin
   ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
   ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
+  Alpha2 := aColor.Data[3];
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := 1 - Sqr((iy - y) / aRadiusY);
+      p := nil;
+      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr((ix - x) / aRadiusX);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
+            {antialiasing}
+            if d < MeanRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := 1 - Alpha2d;
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
+            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
+            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+          end;
+        end;
+    end;
 end;
 
 procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
@@ -937,9 +978,46 @@ procedure TGrayscaleAlphaImage.FillEllipse(const x, y: single; const aRadiusX, a
 var
   p: PVector2Byte;
   ByteColor: Byte;
+  ix, iy: integer;
+  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MeanRadius, SqrY: single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
+  Alpha2 := aColor.Data[3];
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := 1 - Sqr((iy - y) / aRadiusY);
+      p := nil;
+      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr((ix - x) / aRadiusX);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
+            Alpha1 := p^.Data[1] / 255;
+
+            {antialiasing}
+            if d < MeanRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+            if AlphaSum > 0 then begin
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+            end;
+            p^.Data[1] := Round(255 * AlphaSum);
+          end;
+        end;
+    end;
 end;
 
 procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
@@ -947,15 +1025,82 @@ procedure TGrayscaleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiu
 var
   p: PByte;
   ByteColor: Byte;
+  ix, iy: integer;
+  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d: single;
+  MeanRadius, SqrY: single;
 begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
+  Alpha2 := aColor.Data[3];
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := 1 - Sqr((iy - y) / aRadiusY);
+      p := nil;
+      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr((ix - x) / aRadiusX);
+          if d >= 0 then
+          begin
+            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
 
+            {antialiasing}
+            if d < MeanRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := 1 - Alpha2d;
+            p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
+          end;
+        end;
+    end;
 end;
 
 procedure TCastleImage.FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
   const aColor: TCastleColor);
+var
+  tmpColor: TCastleColor;
+  ix, iy: integer;
+  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d: single;
+  MeanRadius, SqrY: single;
 begin
+  MeanRadius := 1 / aRadiusX + 1 / aRadiusY; //this is simple, but wrong. But let's leave it for now
+  Alpha2 := aColor.Data[3];
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+    if (iy >= 0) and (iy < Height) then
+    begin
+      SqrY := 1 - Sqr((iy - y) / aRadiusY);
+      for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
+        if (ix >= 0) and (ix < Width) then
+        begin
+          d := SqrY - Sqr((ix - x) / aRadiusX);
+          if d >= 0 then
+          begin
 
+            {antialiasing}
+            if d < MeanRadius then
+              { sqrt should be used here, however i like the result with square
+                of distance better }
+              Alpha2d := Alpha2 * d / MeanRadius
+            else
+              Alpha2d := Alpha2;
+
+            Alpha1d := 1 - Alpha2d;
+
+            TmpColor.Data[0] := Colors[ix, iy, 0].Data[0] * Alpha1d + aColor.Data[0] * Alpha2d;
+            TmpColor.Data[1] := Colors[ix, iy, 0].Data[1] * Alpha1d + aColor.Data[1] * Alpha2d;
+            TmpColor.Data[2] := Colors[ix, iy, 0].Data[2] * Alpha1d + aColor.Data[2] * Alpha2d;
+
+            Colors[ix, iy, 0] := TmpColor;
+          end;
+        end;
+    end;
 end;
 
 {
