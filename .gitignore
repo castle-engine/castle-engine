@@ -110,6 +110,7 @@ examples/images_videos/gaussian_write
 examples/images_videos/image_compare
 examples/images_videos/image_convert
 examples/images_videos/image_identify
+examples/images_videos/image_paint
 examples/images_videos/simple_video_editor
 examples/isometric_game/sandbox
 examples/joystick/joystick_demo
