@@ -175,19 +175,42 @@
 }
 
 /* React to payment transactions. */
-- (void)paymentQueue:(SKPaymentQueue *)queue  updatedTransactions:(NSArray *)transactions
+- (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions
 {
     for (SKPaymentTransaction *transaction in transactions) {
         switch (transaction.transactionState) {
             case SKPaymentTransactionStatePurchasing:
+                // TODO: pass this state to UI?
+
                 NSLog(@"In-app purchases transaction in progress.");
+
+                // Do not call finishTransaction on "purchasing" state:
+                // https://developer.apple.com/documentation/storekit/skpaymentqueue/1506003-finishtransaction
+                // [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
                 break;
+
             case SKPaymentTransactionStateDeferred:
+                // TODO: pass this state to UI, to notify user a transaction is "deferred":
+                // https://developer.apple.com/library/content/technotes/tn2259/_index.html
+
                 NSLog(@"In-app purchases transaction deferred.");
+
+                // Do not call finishTransaction on "deferred" state:
+                // https://stackoverflow.com/questions/26187148/deferred-transactions
+                // [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
                 break;
+
             case SKPaymentTransactionStateFailed:
-                NSLog(@"WARNING: In-app purchases transaction failed.");
+                NSLog(@"In-app purchases transaction failed (this is normal if user cancelled the purchase).");
+
+                // We need to call finishTransaction,
+                // otherwise it will be reported again next time we open the application.
+                [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
                 break;
+
             case SKPaymentTransactionStatePurchased:
                 if (transaction.payment == nil ||
                     transaction.payment.productIdentifier == nil) {
@@ -196,20 +219,27 @@
                     NSLog(@"In-app purchases transaction success: %@", transaction.payment.productIdentifier);
                     [self owns: transaction.payment.productIdentifier];
                 }
+
+                // We need to call finishTransaction,
+                // otherwise it will be reported again next time we open the application.
+                [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
                 break;
+
             case SKPaymentTransactionStateRestored:
                 NSLog(@"In-app purchases transaction restored (will be processed later too): %@", transaction.payment.productIdentifier);
+
+                // We need to call finishTransaction,
+                // otherwise it will be reported again next time we open the application.
+                [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
+
                 break;
+
             default:
-                // For debugging
-                NSLog(@"Unexpected transaction state %@", @(transaction.transactionState));
+                NSLog(@"WARNING: Unexpected transaction state %@", @(transaction.transactionState));
+                // Do not call finishTransaction in this case, leave it in transaction queue
                 break;
         }
-
-        // TODO: call at some time later
-        // [[SKPaymentQueue defaultQueue] finishTransaction: transaction];
-        // TODO: do testing described at bottom of
-        // https://developer.apple.com/library/content/documentation/NetworkingInternet/Conceptual/StoreKitGuide/Chapters/DeliverProduct.html#//apple_ref/doc/uid/TP40008267-CH5-SW10
     }
 }
 
@@ -218,7 +248,8 @@
 */
 - (void)consume:(NSString*) productId
 {
-    // TODO: talk with server before sending
+    // On iOS, there is no communication necessary with the AppStore when consuming the items,
+    // see https://stackoverflow.com/questions/22599763/how-to-consume-a-purchased-item-with-in-app-purchase-on-ios
     [self messageSend: @[@"in-app-purchases-consumed", productId]];
 }
 
