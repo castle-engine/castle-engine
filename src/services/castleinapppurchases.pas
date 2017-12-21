@@ -350,7 +350,7 @@ begin
     LogStr := 'Product details known completely:' + NL;
     for I := 0 to List.Count - 1 do
       LogStr += 'Product ' + List[I].Name +
-        ', price: ' + List[I].Price +
+        ', price: ' + List[I].PriceRaw +
         ', owned: ' + BoolToStr(List[I].Owns, true) +
         ', title: ' + List[I].Title +
         ', description: ' + List[I].Description +
