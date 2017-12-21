@@ -74,6 +74,14 @@ type
     { Is the product owned now. Use this for non-consumable items
       (things that user buys, and then "owns" for the rest of his life).
 
+      Caution: @italic(this may not be up-to-date knowledge).
+      Call @link(TInAppPurchases.RefreshPurchases) to refresh it
+      (on Android, this happens automatically on app launch;
+      but on iOS, it cannot be done automatically, as it requires logging to AppStore
+      -- this is also explicitly said in Apple docs).
+      Watch for @link(TInAppPurchases.Owns) and @link(TInAppPurchases.OnRefreshedPurchases)
+      then.
+
       Do not depend on this for consumables (use SuccessfullyConsumed
       for them, and be sure to call @link(TInAppPurchases.SuccessfullyConsumed)
       from @link(TInAppPurchases.Owns) for them). }
@@ -136,6 +144,21 @@ type
 
     { Called when we know the product is owned, in particular when it's
       successfully bought.
+
+      If the product is @bold(not consumable) (which means that it can be owned
+      only once, and it's owned forever once bought): Note that this method
+      may be called multiple times, because there are various situations in which
+      we may "gain knowledge" that user owns this item (e.g.
+      each @link(RefreshPurchases) call).
+      Write your code to react gracefullly to this, such that calling this method
+      on an already-owned item is handled correctly.
+
+      E.g. if you increase some stat (e.g. "gold owned")
+      when user buys a "chest of gold", and "chest of gold"
+      is non-consumable (you can only own it once, and then you just own it forever),
+      then store the fact that you "already increased gold because of the chest ownership"
+      in the user persistent data (see https://castle-engine.sourceforge.io/manual_user_prefs.php).
+      Do not just increase the "gold owned" at every call of this method.
 
       If the product is a @bold(consumable), which means it has a one-time use
       (and should disappear afterwards, until user will buy it again), then:
