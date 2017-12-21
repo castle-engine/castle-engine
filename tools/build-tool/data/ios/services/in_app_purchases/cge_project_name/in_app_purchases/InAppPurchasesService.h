@@ -19,7 +19,7 @@
 #import "../ServiceAbstract.h"
 #import "AvailableProduct.h"
 
-@interface InAppPurchasesService : ServiceAbstract
+@interface InAppPurchasesService : ServiceAbstract <SKProductsRequestDelegate, SKPaymentTransactionObserver>
 {
     /* Available products.
        This list contains the latest known information,
@@ -27,6 +27,9 @@
        and from Apple AppStore (like prices).
        Array of AvailableProduct instances. */
     NSMutableArray* availableProducts;
+
+    /* Reference to SKProductsRequest, to not let it be released too early. */
+    SKProductsRequest* request;
 }
 
 @end

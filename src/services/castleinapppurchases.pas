@@ -195,6 +195,14 @@ type
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
     property DebugMockupBuying: boolean
       read FDebugMockupBuying write FDebugMockupBuying default false;
+
+    { Call to refresh the state of owned (purchased) items from server.
+      This will call @link(Owns) on the owned items, and then @link(KnownCompletely).
+
+      This is necessary to be called explicitly on iOS (for AppStore), as it will ask
+      user to login to AppStore.
+      On Android, this is done automatically at app start, and doesn't ask user anything. }
+    procedure RefreshPurchases;
   end;
 
 implementation
@@ -379,6 +387,11 @@ begin
       FLastAvailableProducts += Chr(2);
   end;
   Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
+end;
+
+procedure TInAppPurchases.RefreshPurchases;
+begin
+  Messaging.Send(['in-app-purchases-refresh-purchases']);
 end;
 
 end.
