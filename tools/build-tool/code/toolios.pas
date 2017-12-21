@@ -313,6 +313,8 @@ var
 
       if Project.IOSServices.HasService('apple_game_center') then
         PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GameKit'));
+      if Project.IOSServices.HasService('in_app_purchases') then
+        PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('StoreKit'));
 
       PBXContentsGenerated := PbxProject.PBXContents;
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
