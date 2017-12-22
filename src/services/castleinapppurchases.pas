@@ -94,7 +94,10 @@ type
     property SuccessfullyConsumed: boolean read FSuccessfullyConsumed write FSuccessfullyConsumed;
   end;
 
+  { Information about product possible to be bought given to
+    @link(TInAppPurchases.SetAvailableProducts). }
   TAvailableProduct = record
+    { Unique product identifier. }
     Name: string;
 
     { Category. For now used only for analytics. }
@@ -103,21 +106,35 @@ type
 
   { Manage in-app purchases in your game.
 
-    Usage: simply construct an instance of this class (or a subclass --
-    it is useful to override some methods of this class for a particular game).
-    Call @link(SetAvailableProducts) to get the prices and ownership information
-    about items. Use various methods to query information about the products
-    and to buy products (@link(Purchase)).
+    Typical usage:
 
-    To include the necessary integration code in your Android project,
-    declare your Android project type as "integrated" with
-    the "google_in_app_purchases" component inside CastleEngineManifest.xml.
-    See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+    @orderedList(
+      @item(Construct one instance of this class. Or a subclass --
+        it is useful to override some methods of this class for a particular game.)
 
-    @bold(You have to create the products to purchase, and their prices in various
-    currencies, in the Google Developer Console.) The names of products
-    you provide to @link(SetAvailableProducts) or @link(Product) methods
-    should correspond to product names you set in the Google Developer Console. }
+      @item(Early (e.g. from @link(TCastleApplication.OnInitialization))
+        call @link(SetAvailableProducts), and wait for @link(OnRefreshedPrices)
+        to know the prices about products (in user's local currency).)
+
+      @item(Query the product information using @link(Product) method,
+        and looking at various @link(TInAppProduct) properties.)
+
+      @item(Buy products using @link(Purchase), consume products using @link(Consume),
+        refresh the ownership information using @link(RefreshPurchases).)
+    )
+
+    You need to add a "service" to include the necessary integration code
+    on Android and iOS. For Android, set project type as "integrated"
+    and add the "google_in_app_purchases" service
+    (see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine ).
+    For iOS, add the "in_app_purchases" service
+    (see https://github.com/castle-engine/castle-engine/wiki/iOS-Services ).
+
+    You need to define the products you want sell in the _Google Play Developer Console_
+    ( https://developer.android.com/distribute/console/index.html ) for Android,
+    or _iTunes Connect_ ( https://itunesconnect.apple.com/login ) for iOS.
+    The names of products you provide to @link(SetAvailableProducts)
+    or @link(Product) methods must correspond to product names you set there. }
   TInAppPurchases = class(TComponent)
   private
     type
