@@ -29,12 +29,10 @@
 
 @implementation InAppPurchasesService
 
-/* Get information (e.g. price) for each available product,
-   sending in-app-purchases-can-purchase messages.
-
-   Also get information what which items are currently owned,
-   sending in-app-purchases-owns and in-app-purchases-known-completely
-   messages.
+/* Set self field availableProducts,
+   and get store information (e.g. price) for each available product,
+   sending in-app-purchases-can-purchase messages,
+   and then in-app-purchases-refreshed-prices.
 */
 - (void)setAvailableProducts:(NSString*) availableProductsStr
 {
@@ -122,8 +120,7 @@
             product.priceCurrencyCode]];
     }
 
-    // TODO: should be in-app-purchases-refreshed-prices
-    [self messageSend: @[@"in-app-purchases-known-completely"]];
+    [self messageSend: @[@"in-app-purchases-refreshed-prices"]];
 }
 
 /* Get the AvailableProduct with given id, or nil if not found. */
@@ -174,7 +171,9 @@
     [[SKPaymentQueue defaultQueue] addTransactionObserver: self];
 }
 
-/* React to payment transactions. */
+/* React to payment transactions.
+   This is automatically called because we have indicated self using "addTransactionObserver".
+*/
 - (void)paymentQueue:(SKPaymentQueue *)queue updatedTransactions:(NSArray *)transactions
 {
     for (SKPaymentTransaction *transaction in transactions) {
@@ -253,36 +252,43 @@
     [self messageSend: @[@"in-app-purchases-consumed", productId]];
 }
 
-/* Called when restorePurchases finishes without errors. */
+/* Called when restorePurchases finishes without errors.
+   This is automatically called because we have indicated self using "addTransactionObserver".
+*/
 - (void)paymentQueueRestoreCompletedTransactionsFinished:(SKPaymentQueue *)queue
 {
     for (SKPaymentTransaction* transaction in queue.transactions) {
         NSLog(@"In-app purchases transaction restored: %@", transaction.payment.productIdentifier);
         [self owns: transaction.payment.productIdentifier];
     }
-    [self messageSend: @[@"in-app-purchases-known-completely"]];
+    [self messageSend: @[@"in-app-purchases-refreshed-purchases"]];
 }
 
-/* Called when restorePurchases finishes without errors. */
+/* Called when restorePurchases finishes with an error.
+   This is automatically called because we have indicated self using "addTransactionObserver".
+*/
 - (void)paymentQueue:(SKPaymentQueue *)queue restoreCompletedTransactionsFailedWithError:(NSError *)error
 {
     NSLog(@"WARNING: Restoring completed transactions failed with error.");
-    [self messageSend: @[@"in-app-purchases-known-completely"]];
+    [self messageSend: @[@"in-app-purchases-refreshed-purchases"]];
 }
 
 /* Ask AppStore to replay purchases for already-purchased items.
    This may ask user to log-in to AppStore, so should not be called automatically
    at application launch.
 
-   In response, this will call in-app-purchases-owns a number of times,
-   and then in-app-purchases-known-completely.
+   In response, this will call
+   - in-app-purchases-owns (for each owned product)
+   - in-app-purchases-refreshed-purchases (once, when done).
 */
 - (void)refreshPurchases
 {
     [[SKPaymentQueue defaultQueue] restoreCompletedTransactions];
 }
 
-/* Handle messages received from Pascal code (src/services/castleinapppurchases.pas). */
+/* Handle messages received from Pascal code
+   (send from src/services/castleinapppurchases.pas).
+*/
 - (bool)messageReceived:(NSArray*) message
 {
     if (message.count == 2 &&
