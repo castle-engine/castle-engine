@@ -130,9 +130,9 @@ type
     For iOS, add the "in_app_purchases" service
     (see https://github.com/castle-engine/castle-engine/wiki/iOS-Services ).
 
-    You need to define the products you want sell in the _Google Play Developer Console_
+    You need to define the products you want sell in the @italic(Google Play Developer Console)
     ( https://developer.android.com/distribute/console/index.html ) for Android,
-    or _iTunes Connect_ ( https://itunesconnect.apple.com/login ) for iOS.
+    or @italic(iTunes Connect) ( https://itunesconnect.apple.com/login ) for iOS.
     The names of products you provide to @link(SetAvailableProducts)
     or @link(Product) methods must correspond to product names you set there. }
   TInAppPurchases = class(TComponent)
