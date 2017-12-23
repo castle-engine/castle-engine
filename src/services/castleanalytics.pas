@@ -31,22 +31,25 @@ type
   );
 
   { Gathering analytics through Google Analytics https://www.google.com/analytics/
-    and/or Game Analytics http://www.gameanalytics.com/ .
-    Right now they only work on Android, through Java APIs.
+    and / or Game Analytics http://www.gameanalytics.com/ .
+
+    On Android or iOS. You will need to also add appropriate "service" to your application,
+    like @code(game_analytics) or @code(google_analytics) to have the integration code
+    automatically included. See Android services
+    ( https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine )
+    and iOS services
+    ( https://github.com/castle-engine/castle-engine/wiki/iOS-Services )
+    and CastleEngineManifest.xml docs
+    ( https://github.com/castle-engine/castle-engine/wiki/CastleEngineManifest.xml-examples ).
 
     Usage:
 
     @orderedList(
-      @item(Create an instance of it (only a single instance allowed).)
-      @item(Initialize at least one analytics backend using the @code(InitializeXxx)
-        method.)
+      @item(Create an instance of this class (only a single instance allowed).)
+      @item(Initialize at least one analytics backend using the @link(InitializeGoogleAnalytics)
+        or @link(InitializeGameAnalytics) method.)
       @item(Use the remaining methods, like @link(Event), to report events
         in your app.)
-      @item(To include the necessary integration code in your Android project,
-        declare your Android project type as "integrated" with
-        the appropriate services (game_analytycs and/or google_analytics)
-        inside CastleEngineManifest.xml .
-        See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .)
     )
   }
   TAnalytics = class(TComponent)
@@ -166,7 +169,6 @@ procedure TAnalytics.Event(const Category, Action, ALabel: string; const Value: 
 begin
   Event(Category, Action, ALabel, Value, 0, '');
 end;
-
 
 procedure TAnalytics.CheckValidName(const S: string);
 begin
