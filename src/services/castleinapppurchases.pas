@@ -112,7 +112,7 @@ type
       @item(Construct one instance of this class. Or a subclass --
         it is useful to override some methods of this class for a particular game.)
 
-      @item(Early (e.g. from @link(TCastleApplication.OnInitialization))
+      @item(Early (e.g. from @link(TCastleApplication.OnInitialize))
         call @link(SetAvailableProducts), and wait for @link(OnRefreshedPrices)
         to know the prices about products (in user's local currency).)
 
@@ -124,17 +124,17 @@ type
     )
 
     You need to add a "service" to include the necessary integration code
-    on Android and iOS. For Android, set project type as "integrated"
-    and add the "google_in_app_purchases" service
+    on Android and iOS. For Android, set project type as @code("integrated")
+    and add the @code("google_in_app_purchases") service
     (see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine ).
-    For iOS, add the "in_app_purchases" service
+    For iOS, add the @code("in_app_purchases") service
     (see https://github.com/castle-engine/castle-engine/wiki/iOS-Services ).
 
     You need to define the products you want sell in the @italic(Google Play Developer Console)
     ( https://developer.android.com/distribute/console/index.html ) for Android,
-    or @italic(iTunes Connect) ( https://itunesconnect.apple.com/login ) for iOS.
+    or @italic(iTunes Connect) ( https://itunesconnect.apple.com/ ) for iOS.
     The names of products you provide to @link(SetAvailableProducts)
-    or @link(Product) methods must correspond to product names you set there. }
+    or @link(Product) methods must correspond to product names you set on these websites. }
   TInAppPurchases = class(TComponent)
   private
     type
