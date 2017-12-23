@@ -186,6 +186,8 @@ tools/build-tool/data/android/integrated-services/giftiz/app/src/main/res/
 tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.aar
 tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar
 tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
+tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h
+tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 tools/castle-curves/castle-curves
 tools/castle-engine
 tools/image-to-pascal/image-to-pascal
