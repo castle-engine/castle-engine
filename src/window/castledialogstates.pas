@@ -22,7 +22,7 @@
   then it's usually more comfortable to use the unit @link(CastleMessages)
   instead of this unit.
   Using the @link(CastleMessages), you get comfortable functions
-  like @like(MessageOK) and @like(MessageYesNo) that
+  like @link(MessageOK) and @link(MessageYesNo) that
   wait until user presses a button (like "OK", "Yes", "No") to close the dialog.
   This is comfortable to use, as you can write code like this:
 
