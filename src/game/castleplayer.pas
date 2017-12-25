@@ -969,7 +969,8 @@ procedure TPlayer.Update(const SecondsPassed: Single; var RemoveMe: TRemoveType)
       ReallyIsOnTheGroundTime := LifeTime;
       IsOnTheGround := true;
       if Ground <> nil then
-        GroundProperty := (Ground^.Shape as TShape).MaterialProperty else
+        GroundProperty := Ground^.Shape.InternalMaterialProperty
+      else
         GroundProperty := nil;
     end else
     if LifeTime - ReallyIsOnTheGroundTime > TimeToChangeIsOnTheGround then

@@ -1095,7 +1095,7 @@ var
 begin
   inherited;
 
-  MP := MaterialProperty;
+  MP := InternalMaterialProperty;
 
   if (MP <> nil) and (MP.NormalMap <> '') and (FdNormalMap.Value = nil) then
   begin
