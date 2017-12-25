@@ -645,7 +645,8 @@ type
     { @groupEnd }
 
     { Material property associated with this shape's material/texture. }
-    function MaterialProperty: TMaterialProperty;
+    function InternalMaterialProperty: TMaterialProperty;
+    function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
 
     { @exclude }
     property InternalShadowVolumes: TShapeShadowVolumes read FShadowVolumes;
@@ -2428,6 +2429,11 @@ begin
 end;
 
 function TShape.MaterialProperty: TMaterialProperty;
+begin
+  Result := InternalMaterialProperty;
+end;
+
+function TShape.InternalMaterialProperty: TMaterialProperty;
 var
   TextureUrl: string;
 begin
@@ -2440,7 +2446,7 @@ begin
   begin
     { VRML 2.0/X3D version: refer to TAppearanceNode.MaterialProperty }
     if Node.Appearance <> nil then
-      Result := Node.Appearance.MaterialProperty;
+      Result := Node.Appearance.InternalMaterialProperty;
   end else
   begin
     { VRML 1.0 version: calculate it directly here }
@@ -2453,11 +2459,6 @@ begin
   IsCachedMaterialProperty := true;
   CachedMaterialProperty := Result;
 end;
-
-{ TODO:
-class procedure TShape.MaterialPropertyCacheClear;
-begin
-end; }
 
 { TShapeTreeGroup -------------------------------------------------------- }
 
