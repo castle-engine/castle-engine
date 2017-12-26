@@ -20,6 +20,7 @@
 
 @interface GameAnalyticsService : ServiceAbstract
 {
+    bool initialized;
 }
 
 @end

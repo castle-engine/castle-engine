@@ -20,6 +20,7 @@
 
 @interface GoogleAnalyticsService : ServiceAbstract
 {
+    bool initialized;
 }
 
 @end

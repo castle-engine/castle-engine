@@ -14,20 +14,49 @@
   ----------------------------------------------------------------------------
 */
 
-/* Game Analytics https://gameanalytics.com/ integration with Castle Game Engine. */
+/* Game Analytics https://gameanalytics.com/ integration with Castle Game Engine.
+
+   See https://castle-engine.sourceforge.io/
+   and https://github.com/castle-engine/castle-engine/wiki/iOS-Services
+   for information about Castle Game Engine and services on iOS.
+
+   See https://gameanalytics.com/docs/ios-sdk
+   for Game Analytics docs on iOS.
+*/
 
 #import "GameAnalyticsService.h"
+
+#import <GameAnalytics/GameAnalytics.h>
 
 @implementation GameAnalyticsService
 
 - (void)initialize:(NSString*) gameKey secretKey:(NSString*) secretKey
 {
-    // TODO
+    NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
+    NSString *versionNumber = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
+    NSString *buildNumber = [infoDictionary objectForKey:@"CFBundleVersion"];
+    NSString *version = [NSString stringWithFormat:@"iOS %@ (%@)", versionNumber, buildNumber];
+
+    [GameAnalytics configureBuild: version];
+
+    [GameAnalytics initializeWithGameKey: gameKey gameSecret: secretKey];
+
+    bool debug = FALSE;
+    if (debug) {
+        [GameAnalytics setEnabledInfoLog: YES];
+        [GameAnalytics setEnabledVerboseLog: YES];
+    }
+
+    initialized = TRUE;
 }
 
 - (void)sendScreenView:(NSString*) screenName
 {
-    // TODO
+    if (!initialized) {
+        return;
+    }
+    NSString* eventId = [NSString stringWithFormat:@"screenView:%@", screenName];
+    [GameAnalytics addDesignEventWithEventId: eventId];
 }
 
 - (void)sendEvent:(NSString*) category
