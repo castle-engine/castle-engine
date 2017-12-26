@@ -36,7 +36,8 @@ public class ServiceGoogleAnalytics extends ServiceAbstract
         return "google-analytics";
     }
 
-    private synchronized Tracker getAppTracker() {
+    private synchronized Tracker getAppTracker()
+    {
         if (mTracker == null && mAnalyticsPropertyId != null) {
             GoogleAnalytics analytics = GoogleAnalytics.getInstance(
                 getActivity().getApplication());
