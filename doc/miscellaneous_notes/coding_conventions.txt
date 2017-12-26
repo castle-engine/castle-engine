@@ -1,3 +1,28 @@
+- Submitting code:
+  It's best to use GitHub's pull requests.
+
+  - Clone the https://github.com/castle-engine/castle-engine/
+    (or just make a new branch inside it, if you have write-access to CGE repository.)
+  - Work on your private clone/branch, comming and pushing.
+  - When read, submit a pull request using on
+    https://github.com/castle-engine/castle-engine/pulls
+
+  You will find a lot of instructions how to use this on GitHub
+  (and other places Google can find).
+
+  Advantages:
+  This allows you to comfortably work on your pull request, committing and pushing
+  and showing your changes to anyone.
+  This allows us to use code review features of GitHub, that are comfortable to comment
+  on your code changes.
+  This allows to submit and merge the changes 100% automatically,
+  using the command-line or web interface, so it's usually less error-prone.
+
+  Alternative:
+  Simply send a traditional ".patch" file, done by "git diff"
+  (versus GIT repository on https://github.com/castle-engine/castle-engine/ )
+  or "svn diff" (versus SVN repository on https://sourceforge.net/projects/castle-engine/ ).
+
 - In general, we follow the standard Lazarus and Delphi coding conventions,
   used throughout most modern Object Pascal code.
 
@@ -287,6 +312,56 @@
 - Other languages:
   - Indent by 4 spaces in Java and Objective-C.
   - In general, we never use tabs in our sources (unless the language requires them, like for `Makefile`).
+
+- Optimization guidelines:
+
+  If you want to suggest some optimization (of speed, of memory usage)
+  to the engine, especially if it
+  - makes a significant code complication to the existing code,
+  - or it adds a significant amount of new code (which is also a code complication)
+  ...
+  then always first do some tests/thinking whether it's really worth it.
+
+  There are many situations where optimizing is not a good idea,
+  because it will not change the "bottleneck" code (which means that the speed / memory use
+  of something else is so large (in comparison) that it completely "shadows"
+  the thing that you optimize, making it irrelevant).
+  In such cases, optimization is actually harmful, because the code quality
+  goes down --- the optimized code is *usually* longer and/or more convoluted.
+
+  (Exception: in the rare cases when the optimized code is shorter and cleaner,
+  you have a full green light to do it *just because the code quality is better*.)
+
+  Bottom line:
+  - We want to have less code.
+  - We want to have simpler code.
+  - Do not optimize just because you have an idea how to make some line
+    of code faster. This thinking often leads to performing many tiny optimizations
+    (and thus reducing code quality) that have no noticeable effect on the execution
+    speed or memory use of real applications.
+    First test/think whether it's worthwhile to optimize this piece of code.
+
+  As you can see, I'm biased to "think more about code quality",
+  mostly because I see many people (including myself) to often think to little
+  of code quality (and fall into the trap "let's optimize this").
+
+  Of course, there is a balance. We want the code to be fast and use little memory
+  -- there are various ways to achieve this, often using smart algoriths on CPU,
+  and/or thinking about how the CPU cache is used,
+  and/or delivering data in better chunks to GPU.
+
+  There is also a dreaded "death by 1000 cuts" that we want to avoid,
+  which is sometimes caused by missing a number of small optimizations that
+  *would* have a noticeable effect overall.
+  E.g. that's why we use "Single" throughout the engine code, not Double or Extended.
+  (except some special code where we have testcases that "Single" precision is not enough).
+  Using "Double" everywhere would have a noticeable negative effect on the speed
+  (yes, I tested it long time ago).
+  But e.g. paranoidally avoiding calling "Sqrt" in the engine... proved to be usually
+  a useless optimization, causing various bugs and not achieving any speed gain.
+
+  Bottom line 2:
+  - It depends:) I like the IBM motto: "Think".
 
 Michalis Kamburelis (aka Kambi)
 <michalis.kambi@gmail.com>
