@@ -1476,7 +1476,10 @@ const
     #9#9#9#9');' + NL;
 
   Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE =
-    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = "ONLY_C=1";' + NL;
+    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = (' + NL +
+    #9#9#9#9#9'"ONLY_C=1",' + NL +
+    #9#9#9#9#9'"$(inherited)",' + NL +
+    #9#9#9#9');' + NL;
 
   IOSCapabilityEnable =
     #9#9#9#9#9#9#9'com.apple.%s = {' + NL +
