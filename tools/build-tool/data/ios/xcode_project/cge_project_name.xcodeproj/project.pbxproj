@@ -186,7 +186,10 @@ ${IOS_TARGET_ATTRIBUTES}
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				"OTHER_LDFLAGS[arch=*]" = "-w";
+				"OTHER_LDFLAGS[arch=*]" = (
+					"$(inherited)",
+					"-w",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = ${IOS_QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
@@ -211,7 +214,10 @@ ${IOS_TARGET_ATTRIBUTES}
 					"$(inherited)",
 					"$(PROJECT_DIR)",
 				);
-				"OTHER_LDFLAGS[arch=*]" = "-w";
+				"OTHER_LDFLAGS[arch=*]" = (
+					"$(inherited)",
+					"-w",
+				);
 				PRODUCT_BUNDLE_IDENTIFIER = ${IOS_QUALIFIED_NAME};
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				VALID_ARCHS = "armv7 arm64";
