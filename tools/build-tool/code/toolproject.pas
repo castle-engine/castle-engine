@@ -1728,6 +1728,9 @@ begin
     if SameText(DestinationRelativeFileNameSlashes, Name + '/AppDelegate.m') then
       MergeIOSAppDelegate(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
+    if SameText(DestinationRelativeFileNameSlashes, 'Podfile') then
+      MergeIOSPodfile(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
       MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
     else

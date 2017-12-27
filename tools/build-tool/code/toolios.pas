@@ -34,6 +34,8 @@ procedure RunIOS(const Project: TCastleProject);
 
 procedure MergeIOSAppDelegate(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
+procedure MergeIOSPodfile(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 
 implementation
 
@@ -109,6 +111,7 @@ end;
 procedure PackageIOS(const Project: TCastleProject);
 var
   XCodeProject: string;
+  UsesCocoaPods: boolean;
 
   { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;
@@ -119,8 +122,19 @@ var
   procedure GenerateServicesFromTemplates;
 
     procedure ExtractService(const ServiceName: string);
+    var
+      TemplatePath: string;
     begin
-      Project.ExtractTemplate('ios/services/' + ServiceName + '/', XCodeProject);
+      TemplatePath := 'ios/services/' + ServiceName + '/';
+      Project.ExtractTemplate(TemplatePath, XCodeProject);
+
+      if URIFileExists(ApplicationData(TemplatePath + 'Podfile')) then
+      begin
+        if Verbose then
+          Writeln(Format('Service "%s" requires using CocoaPods. Make sure you have CocoaPods ( https://cocoapods.org/ ) installed.',
+            [ServiceName]));
+        UsesCocoaPods := true;
+      end;
     end;
 
   var
@@ -339,7 +353,14 @@ var
       Writeln('Packaging library file: ' + OutputFile);
   end;
 
+  procedure GenerateCocoaPods;
+  begin
+    if UsesCocoaPods then
+      RunCommandSimple(XCodeProject, 'pod', ['install']);
+  end;
+
 begin
+  UsesCocoaPods := false;
   XCodeProject := OutputPath(Project.Path) +
     'ios' + PathDelim + 'xcode_project' + PathDelim;
   if DirectoryExists(XCodeProject) then
@@ -352,6 +373,7 @@ begin
   GenerateLaunchImages;
   GenerateData;
   GenerateLibrary;
+  GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
 
   Writeln('XCode project has been created in:');
   Writeln('  ', XCodeProject);
@@ -372,7 +394,7 @@ begin
 end;
 
 type
-  ECannotMergeAppDelegate = class(Exception);
+  ECannotMergeTemplate = class(Exception);
 
 procedure MergeIOSAppDelegate(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
@@ -397,7 +419,7 @@ var
   begin
     MarkerPos := Pos(Marker, DestinationContents);
     if MarkerPos = 0 then
-      raise ECannotMergeAppDelegate.CreateFmt('Cannot find marker "%s" in AppDelegate.m', [Marker]);
+      raise ECannotMergeTemplate.CreateFmt('Cannot find marker "%s" in AppDelegate.m', [Marker]);
     Insert(Trim(Insertion) + NL, DestinationContents, MarkerPos);
   end;
 
@@ -408,7 +430,7 @@ begin
   SourceDocument := URLReadXML(Source);
   try
     if SourceDocument.DocumentElement.TagName <> 'app_delegate_patch' then
-      raise ECannotMergeAppDelegate.Create('The source file from which to merge AppDelegate.m must be XML with root <app_delegate_patch>');
+      raise ECannotMergeTemplate.Create('The source file from which to merge AppDelegate.m must be XML with root <app_delegate_patch>');
     Import := SourceDocument.DocumentElement.ChildElement('import').TextData;
     CreateClass := SourceDocument.DocumentElement.ChildElement('class').TextData;
   finally FreeAndNil(SourceDocument) end;
@@ -418,6 +440,32 @@ begin
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   InsertAtMarker(MarkerImport, Import);
   InsertAtMarker(MarkerCreate, CreateCode);
+  StringToFile(Destination, DestinationContents);
+end;
+
+procedure MergeIOSPodfile(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+var
+  DestinationContents: string;
+
+  procedure InsertAtMarker(const Marker, Insertion: string);
+  var
+    MarkerPos: Integer;
+  begin
+    MarkerPos := Pos(Marker, DestinationContents);
+    if MarkerPos = 0 then
+      raise ECannotMergeTemplate.CreateFmt('Cannot find marker "%s" in Podfile', [Marker]);
+    Insert(Trim(Insertion) + NL, DestinationContents, MarkerPos);
+  end;
+
+const
+  Marker = '### SERVICES-PODFILES ###';
+var
+  SourceContents: string;
+begin
+  SourceContents := FileToString(FilenameToURISafe(Source));
+  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  InsertAtMarker(Marker, SourceContents);
   StringToFile(Destination, DestinationContents);
 end;
 
