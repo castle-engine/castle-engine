@@ -455,7 +455,7 @@ var
     MarkerPos := Pos(Marker, DestinationContents);
     if MarkerPos = 0 then
       raise ECannotMergeTemplate.CreateFmt('Cannot find marker "%s" in Podfile', [Marker]);
-    Insert(Trim(Insertion) + NL, DestinationContents, MarkerPos);
+    Insert(Insertion, DestinationContents, MarkerPos);
   end;
 
 const
@@ -463,7 +463,11 @@ const
 var
   SourceContents: string;
 begin
-  SourceContents := FileToString(FilenameToURISafe(Source));
+  SourceContents :=
+    '# ---- Inserted contents of ' + Source + NL +
+    Trim(FileToString(FilenameToURISafe(Source))) + NL +
+    '# ---- End of inserted contents of ' + Source + NL;
+
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   InsertAtMarker(Marker, SourceContents);
   StringToFile(Destination, DestinationContents);
