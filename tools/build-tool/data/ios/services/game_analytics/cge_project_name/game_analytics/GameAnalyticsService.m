@@ -34,10 +34,8 @@
 {
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
     NSString *versionNumber = [infoDictionary objectForKey:@"CFBundleShortVersionString"];
-    // do not write buildNumber, [GameAnalytics configureBuild...] then complains
-    // that version doesn't match x.y.z.
-    //NSString *buildNumber = [infoDictionary objectForKey:@"CFBundleVersion"];
-    NSString *version = [NSString stringWithFormat:@"iOS %@", versionNumber];
+    NSString *buildNumber = [infoDictionary objectForKey:@"CFBundleVersion"];
+    NSString *version = [NSString stringWithFormat:@"iOS %@ (%@)", versionNumber, buildNumber];
 
     [GameAnalytics configureBuild: version];
 
