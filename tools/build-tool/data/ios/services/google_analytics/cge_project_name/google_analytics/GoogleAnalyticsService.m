@@ -45,7 +45,7 @@
 
     // Optional: set Logger to VERBOSE for debug information.
     // Remove before app release.
-    gai.logger.logLevel = kGAILogLevelVerbose;
+    // gai.logger.logLevel = kGAILogLevelVerbose;
 
     initialized = TRUE;
 }
