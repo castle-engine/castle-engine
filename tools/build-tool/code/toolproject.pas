@@ -114,6 +114,9 @@ type
     property PluginSource: string read FPluginSource;
     function PluginSourceFile(const AbsolutePath, CreateIfNecessary: boolean): string;
     function PluginLibraryFile(const OS: TOS; const CPU: TCPU): string;
+
+    procedure AddMacrosAndroid(const Macros: TStringStringMap);
+    procedure AddMacrosIOS(const Macros: TStringStringMap);
   public
     constructor Create;
     constructor Create(const APath: string);
@@ -1444,8 +1447,7 @@ begin
   Generate('lpi');
 end;
 
-function TCastleProject.ReplaceMacros(const Source: string): string;
-
+procedure TCastleProject.AddMacrosAndroid(const Macros: TStringStringMap);
 const
   AndroidScreenOrientation: array [TScreenOrientation] of string =
   ('unspecified', 'sensorLandscape', 'sensorPortrait');
@@ -1455,6 +1457,42 @@ const
    '<uses-feature android:name="android.hardware.screen.landscape"/>',
    '<uses-feature android:name="android.hardware.screen.portrait"/>');
 
+  function AndroidActivityLoadLibraries: string;
+  begin
+    { some Android devices work without this clause, some don't }
+    Result := '';
+    if depSound in Dependencies then
+      Result += 'safeLoadLibrary("openal");' + NL;
+    if depOggVorbis in Dependencies then
+      Result += 'safeLoadLibrary("tremolo");' + NL;
+  end;
+
+var
+  I: Integer;
+  AndroidLibraryName: string;
+  AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
+begin
+  AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
+  Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
+  Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
+  Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
+  Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
+  Macros.Add('ANDROID_COMPILE_SDK_VERSION'         , IntToStr(AndroidCompileSdkVersion));
+  Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
+  Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
+  Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
+  // TODO: when needed, do the analogous for iOS services
+  for I := 0 to AndroidServices.Count - 1 do
+    for AndroidServiceParameterPair in AndroidServices[I].Parameters do
+      Macros.Add('ANDROID.' +
+        UpperCase(AndroidServices[I].Name) + '.' +
+        UpperCase(AndroidServiceParameterPair.Key),
+        AndroidServiceParameterPair.Value);
+  Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToIntentFilter);
+end;
+
+procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
+const
   IOSScreenOrientation: array [TScreenOrientation] of string =
   (#9#9'<string>UIInterfaceOrientationPortrait</string>' + NL +
    #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL +
@@ -1468,33 +1506,90 @@ const
    #9#9'<string>UIInterfaceOrientationPortraitUpsideDown</string>' + NL
   );
 
-  Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG =
-    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = (' + NL +
-    #9#9#9#9#9'"ONLY_C=1",' + NL +
-    #9#9#9#9#9'"DEBUG=1",' + NL +
-    #9#9#9#9#9'"$(inherited)",' + NL +
-    #9#9#9#9');' + NL;
-
-  Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE =
-    #9#9#9#9'GCC_PREPROCESSOR_DEFINITIONS = (' + NL +
-    #9#9#9#9#9'"ONLY_C=1",' + NL +
-    #9#9#9#9#9'"$(inherited)",' + NL +
-    #9#9#9#9');' + NL;
-
   IOSCapabilityEnable =
     #9#9#9#9#9#9#9'com.apple.%s = {' + NL +
     #9#9#9#9#9#9#9#9'enabled = 1;' + NL +
     #9#9#9#9#9#9#9'};' + NL;
 
-  function AndroidActivityLoadLibraries: string;
+  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
+  function IOSQualifiedName: string;
   begin
-    { some Android devices work without this clause, some don't }
-    Result := '';
-    if depSound in Dependencies then
-      Result += 'safeLoadLibrary("openal");' + NL;
-    if depOggVorbis in Dependencies then
-      Result += 'safeLoadLibrary("tremolo");' + NL;
+    if FIOSOverrideQualifiedName <> '' then
+      Result := FIOSOverrideQualifiedName
+    else
+      Result := QualifiedName;
   end;
+
+  { Version for iOS: either version, or ios.override_version_value. }
+  function IOSVersion: string;
+  begin
+    if FIOSOverrideVersion <> '' then
+      Result := FIOSOverrideVersion
+    else
+      Result := Version;
+  end;
+
+var
+  P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
+begin
+  Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
+  Macros.Add('IOS_VERSION', IOSVersion);
+  Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
+  Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
+  P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
+  if not FUsesNonExemptEncryption then
+    P := SAppendPart(P, NL, '<key>ITSAppUsesNonExemptEncryption</key> <false/>');
+  Macros.Add('IOS_EXTRA_INFO_PLIST', P);
+
+  IOSTargetAttributes := '';
+  IOSRequiredDeviceCapabilities := '';
+  if IOSTeam <> '' then
+  begin
+    IOSTargetAttributes := IOSTargetAttributes +
+      #9#9#9#9#9#9'DevelopmentTeam = ' + IOSTeam + ';' + NL;
+    Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
+  end else
+  begin
+    Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
+  end;
+
+  IOSSystemCapabilities := '';
+  if IOSServices.HasService('apple_game_center') then
+  begin
+    IOSSystemCapabilities := IOSSystemCapabilities +
+      Format(IOSCapabilityEnable, ['GameCenter']);
+    IOSRequiredDeviceCapabilities := IOSRequiredDeviceCapabilities +
+      #9#9'<string>gamekit</string>' + NL;
+  end;
+  if IOSServices.HasService('icloud_for_save_games') then
+    IOSSystemCapabilities := IOSSystemCapabilities +
+      Format(IOSCapabilityEnable, ['iCloud']);
+  if IOSServices.HasService('in_app_purchases') then
+    IOSSystemCapabilities := IOSSystemCapabilities +
+      Format(IOSCapabilityEnable, ['InAppPurchase']);
+  // If not empty, add IOSSystemCapabilities to IOSTargetAttributes,
+  // wrapped in SystemCapabilities = { } block.
+  if IOSSystemCapabilities <> '' then
+      IOSTargetAttributes := IOSTargetAttributes +
+        #9#9#9#9#9#9'SystemCapabilities = {' + NL +
+        IOSSystemCapabilities +
+        #9#9#9#9#9#9'};' + NL;
+
+  Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
+  Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
+
+  if IOSServices.HasService('icloud_for_save_games') then
+    Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', 'CODE_SIGN_ENTITLEMENTS = "' + Name + '/icloud_for_save_games.entitlements";')
+  else
+    Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
+
+  if depOggVorbis in Dependencies then
+    Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '"ONLY_C=1",' + NL)
+  else
+    Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');
+end;
+
+function TCastleProject.ReplaceMacros(const Source: string): string;
 
   function SearchPathsStr: string;
   var
@@ -1523,32 +1618,12 @@ const
           Result += UpCase(S[I]);
   end;
 
-  { QualifiedName for iOS: either qualified_name, or ios.override_qualified_name. }
-  function IOSQualifiedName: string;
-  begin
-    if FIOSOverrideQualifiedName <> '' then
-      Result := FIOSOverrideQualifiedName
-    else
-      Result := QualifiedName;
-  end;
-
-  { Version for iOS: either version, or ios.override_version_value. }
-  function IOSVersion: string;
-  begin
-    if FIOSOverrideVersion <> '' then
-      Result := FIOSOverrideVersion
-    else
-      Result := Version;
-  end;
-
 var
   Macros: TStringStringMap;
   I: Integer;
-  P, NonEmptyAuthor, AndroidLibraryName, IOSTargetAttributes,
-    IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
+  P, NonEmptyAuthor: string;
   VersionComponents: array [0..3] of Cardinal;
   VersionComponentsString: TCastleStringList;
-  AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
   PreviousMacros: array of TStringStringMap.TDictionaryPair;
 begin
   { calculate version as 4 numbers, Windows resource/manifest stuff expect this }
@@ -1583,94 +1658,8 @@ begin
     Macros.Add('GAME_UNITS'      , FGameUnits);
     Macros.Add('SEARCH_PATHS'    , SearchPathsStr);
 
-    // Android specific stuff
-    AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
-    Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
-    Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
-    Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
-    Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
-    Macros.Add('ANDROID_COMPILE_SDK_VERSION'         , IntToStr(AndroidCompileSdkVersion));
-    Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
-    Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
-    Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
-    // TODO: when needed, do the analogous for iOS services
-    for I := 0 to AndroidServices.Count - 1 do
-      for AndroidServiceParameterPair in AndroidServices[I].Parameters do
-        Macros.Add('ANDROID.' +
-          UpperCase(AndroidServices[I].Name) + '.' +
-          UpperCase(AndroidServiceParameterPair.Key),
-          AndroidServiceParameterPair.Value);
-    P := AssociateDocumentTypes.ToIntentFilter;
-    Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES', P);
-
-    // iOS specific stuff
-    Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
-    Macros.Add('IOS_VERSION', IOSVersion);
-    Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
-    Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
-    P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
-    if not FUsesNonExemptEncryption then
-    begin
-      if Length(P) > 0 then
-        P := P + NL;
-      P := P + '<key>ITSAppUsesNonExemptEncryption</key> <false/>';
-    end;
-    Macros.Add('IOS_EXTRA_INFO_PLIST', P);
-
-    IOSTargetAttributes := '';
-    IOSRequiredDeviceCapabilities := '';
-    if IOSTeam <> '' then
-    begin
-      IOSTargetAttributes := IOSTargetAttributes +
-        #9#9#9#9#9#9'DevelopmentTeam = ' + IOSTeam + ';' + NL;
-      Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', 'DEVELOPMENT_TEAM = ' + IOSTeam + ';');
-    end else
-    begin
-      Macros.Add('IOS_DEVELOPMENT_TEAM_LINE', '');
-    end;
-
-    IOSSystemCapabilities := '';
-    if IOSServices.HasService('apple_game_center') then
-    begin
-      IOSSystemCapabilities := IOSSystemCapabilities +
-        Format(IOSCapabilityEnable, ['GameCenter']);
-      IOSRequiredDeviceCapabilities := IOSRequiredDeviceCapabilities +
-        #9#9'<string>gamekit</string>' + NL;
-    end;
-    if IOSServices.HasService('icloud_for_save_games') then
-      IOSSystemCapabilities := IOSSystemCapabilities +
-        Format(IOSCapabilityEnable, ['iCloud']);
-    if IOSServices.HasService('in_app_purchases') then
-      IOSSystemCapabilities := IOSSystemCapabilities +
-        Format(IOSCapabilityEnable, ['InAppPurchase']);
-    // If not empty, add IOSSystemCapabilities to IOSTargetAttributes,
-    // wrapped in SystemCapabilities = { } block.
-    if IOSSystemCapabilities <> '' then
-        IOSTargetAttributes := IOSTargetAttributes +
-          #9#9#9#9#9#9'SystemCapabilities = {' + NL +
-          IOSSystemCapabilities +
-          #9#9#9#9#9#9'};' + NL;
-
-    Macros.Add('IOS_TARGET_ATTRIBUTES', IOSTargetAttributes);
-    Macros.Add('IOS_REQUIRED_DEVICE_CAPABILITIES', IOSRequiredDeviceCapabilities);
-
-    if IOSServices.HasService('icloud_for_save_games') then
-      Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', 'CODE_SIGN_ENTITLEMENTS = "' + Name + '/icloud_for_save_games.entitlements";')
-    else
-      Macros.Add('IOS_CODE_SIGN_ENTITLEMENTS', '');
-
-    if depOggVorbis in Dependencies then
-    begin
-      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG'  , Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG);
-      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', Tremolo_IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE);
-    end else
-    begin
-      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_DEBUG', '');
-      Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS_RELEASE', '');
-    end;
-    // TODO: this should allow services like apple_game_center
-    Macros.Add('IOS_SERVICES_IMPORT', '');
-    Macros.Add('IOS_SERVICES_CREATE', '');
+    AddMacrosAndroid(Macros);
+    AddMacrosIOS(Macros);
 
     // add CamelCase() replacements, add ${} around
     PreviousMacros := Macros.ToArray;
