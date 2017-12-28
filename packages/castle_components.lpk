@@ -10,7 +10,7 @@
       <SearchPaths>
         <IncludeFiles Value="../src/base"/>
         <OtherUnitFiles Value="../src/components"/>
-        <UnitOutputDirectory Value="lib/$(TargetCPU)-$(TargetOS)"/>
+        <UnitOutputDirectory Value="lib/castle_components/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
       <Parsing>
         <SyntaxOptions>
