@@ -155,7 +155,7 @@ begin
    with equal seed even if they are absolutely simultaneous}
   c64 := PtrUInt(@(c64));
 
-  {$HINT use TCriticalSession}
+  { TODO: use TCriticalSession }
   while WaitForSeed do XorShift64; //do something nearly useful while randomization is buisy
 
   WaitForSeed := true;     //prevents another randomization to start until this one is finished
@@ -196,7 +196,7 @@ begin
      which we obviously don't want to.}
 
     {so let's start by getting tick count as SysUtils does}
-    {$HINT Use CastleTimeUtils.Timer}
+    { TODO: Use CastleTimeUtils.Timer }
     {$PUSH}{$WARN 5066 OFF}
     {Yes, we are using a deprecated function, it's ok here,
      because its goal is not convenient time measurement
