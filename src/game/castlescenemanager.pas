@@ -79,7 +79,7 @@ type
     FUseGlobalLights, FUseGlobalFog: boolean;
     FApproximateActivation: boolean;
     FDefaultVisibilityLimit: Single;
-    FTransparent: boolean;
+    FTransparent, FClearDepth: boolean;
     FProjection: TProjection;
     FInternalExamineCamera: TExamineCamera;
     FInternalWalkCamera: TWalkCamera;
@@ -653,6 +653,31 @@ type
       We will also not do any RenderContext.Clear on color buffer.
       Also BackgroundWireframe and BackgroundColor doesn't matter in this case. }
     property Transparent: boolean read FTransparent write FTransparent default false;
+
+    { At the beginning of rendering, scene manager by default clears
+      the depth buffer. This makes every scene manager draw everything
+      on top of the previous 2D and 3D stuff (including on top
+      of previous scene managers), like a layer.
+
+      You can disable this, which allows to combine together the 3D objects rendered
+      by various scene managers (and by custom OpenGL rendering),
+      such that the 3D positions determime what overlaps what.
+      This only makes sense if all these scene managers (or custom renderers)
+      use the same viewport, the same projection and the same camera.
+
+      It's your responsibility in such case to clear the depth buffer.
+      E.g. place one scene manager in the back that has ClearDepth = @true.
+      Or place a TUIControl descendant in the back, that calls
+      @code(TRenderContent.Clear RenderContent.Clear) in overridden
+      @link(TUIControl.Render).
+
+      Note: to disable clearning the color buffer, set @link(Transparent)
+      to @false.
+
+      Note: if you use shadow volumes, we will still clear the stencil buffer
+      at the beginning of rendering.
+    }
+    property ClearDepth: boolean read FClearDepth write FClearDepth default true;
 
     { When @true then headlight is always rendered from custom viewport's
       (TCastleViewport) camera, not from central camera (the one in scene manager).
@@ -1322,6 +1347,7 @@ begin
   FRenderParams := TManagerRenderParams.Create;
   FPrepareParams := TPrepareParams.Create;
   FShadowVolumes := DefaultShadowVolumes;
+  FClearDepth := true;
   DistortFieldOfViewY := 1;
   DistortViewAspect := 1;
   FullSize := true;
@@ -2061,7 +2087,9 @@ var
   MainLightPosition: TVector4; { ignored }
   SavedProjectionMatrix: TMatrix4;
 begin
-  ClearBuffers := [cbDepth];
+  ClearBuffers := [];
+  if ClearDepth then
+    Include(ClearBuffers, cbDepth);
 
   if RenderingCamera.Target = rtVarianceShadowMap then
   begin
