@@ -405,9 +405,15 @@ var
     AI and other things.
     @groupBegin }
   RenderDebug3D: boolean = false
-    deprecated 'use Player.RenderDebug, TCreature.RenderDebug, TItemOnWorld.RenderDebug';
+    {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
+    // workaround for Lazarus <= 1.8.0: CodeTools cannot parse this
+    deprecated 'use Player.RenderDebug, TCreature.RenderDebug, TItemOnWorld.RenderDebug'
+    {$endif};
   RenderDebugCaptions: boolean = false
-    deprecated 'use TCreature.RenderDebug';
+    {$ifndef CASTLE_ENGINE_LAZARUS_PACKAGE}
+    // workaround for Lazarus <= 1.8.0: CodeTools cannot parse this
+    deprecated 'use TCreature.RenderDebug'
+    {$endif};
   { @groupEnd }
 
   { Log shadow volume information.
