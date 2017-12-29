@@ -25,6 +25,7 @@
 */
 
 #import "GameAnalyticsService.h"
+#import "../AvailableProduct.h"
 
 #import <GameAnalytics/GameAnalytics.h>
 
@@ -66,7 +67,16 @@
     dimensionIndex:(int) dimensionIndex
     dimensionValue:(NSString*) dimensionValue
 {
-    // TODO
+    if (!initialized) {
+        return;
+    }
+    NSString* eventId = [NSString stringWithFormat: @"%@:%@:%@", category, action, label];
+    if (dimensionIndex > 0 && ![dimensionValue isEqualToString:@""]) {
+        eventId = [NSString stringWithFormat: @"%@:dimension%@.%@",
+            eventId, [NSNumber numberWithInt: dimensionIndex], dimensionValue];
+    }
+    [GameAnalytics addDesignEventWithEventId: eventId
+        value: [NSNumber numberWithLong: value]];
 }
 
 - (void)sendTiming:(NSString*) category
@@ -74,7 +84,12 @@
     label:(NSString*) label
     timeMiliseconds:(long) timeMiliseconds
 {
-    // TODO
+    if (!initialized) {
+        return;
+    }
+    NSString* eventId = [NSString stringWithFormat: @"timing:%@:%@:%@", category, variable, label];
+    [GameAnalytics addDesignEventWithEventId: eventId
+        value: [NSNumber numberWithLong: timeMiliseconds]];
 }
 
 - (void)sendProgress:(int) status
@@ -83,7 +98,57 @@
     phase:(NSString*) phase
     score:(int) score
 {
-    // TODO
+    if (!initialized) {
+        return;
+    }
+    GAProgressionStatus gaStatus;
+    switch (status) {
+        case 0: gaStatus = GAProgressionStatusStart; break;
+        case 1: gaStatus = GAProgressionStatusFail; break;
+        case 2: gaStatus = GAProgressionStatusComplete; break;
+        default:
+            NSLog(@"WARNING: Invalid analytics-send-progress status %@",
+                [NSNumber numberWithInt: status]);
+            return;
+    }
+    // level and phase may be nil, not "", other Game Analytics logs:
+    // Info/GA/Analytics: Validation fail - progression event - progression02: Cannot be empty or above 64 characters. String:
+    if ([level isEqualToString: @""]) {
+        level = nil;
+    }
+    if ([phase isEqualToString: @""]) {
+        phase = nil;
+    }
+    [GameAnalytics addProgressionEventWithProgressionStatus: gaStatus
+        progression01: world progression02: level progression03: phase score: score];
+}
+
+- (void)onPurchase:(AvailableProduct*) product
+{
+    if (!initialized) {
+        return;
+    }
+
+    // for GameAnalytics, currency must be valid
+    NSString* currency = product.priceCurrencyCode;
+    if (currency == nil || [currency isEqualToString:@""]) {
+        currency = @"USD";
+    }
+
+    // for GameAnalytics, category must be valid:
+    // Cannot be (null), empty or above 64 characters
+    NSString* category = product.category;
+    if (category == nil || [category isEqualToString:@""]) {
+        category = @"defaultProductCategory";
+    }
+    if ([category length] > 64) {
+        category = [category substringToIndex: 64];
+    }
+
+    /* Note: using autoFetchReceipt, works only on iOS >= 7,
+       on older iOS this purchase will not be logged by GameAnalytics. */
+    [GameAnalytics addBusinessEventWithCurrency: currency amount: product.priceAmountCents
+        itemType: category itemId: product.id cartType: @"defaultCart" autoFetchReceipt: YES];
 }
 
 /* Handle messages received from Pascal code

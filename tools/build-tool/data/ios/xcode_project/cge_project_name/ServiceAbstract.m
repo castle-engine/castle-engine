@@ -51,11 +51,15 @@
     return value ? @"true" : @"false";
 }
 
-- (void)messageSend:(NSArray* )message;
+- (void)messageSend:(NSArray* )message
 {
     NSString* messageStr = [message componentsJoinedByString:@"\1"];
     const char* messageCPointer = [messageStr UTF8String];
     CGEApp_SendMessageToPascal(messageCPointer);
+}
+
+- (void)onPurchase:(AvailableProduct*) product
+{
 }
 
 @end

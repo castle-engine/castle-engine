@@ -15,6 +15,7 @@
 */
 
 #import "OpenGLController.h"
+#import "AvailableProduct.h"
 
 /* Base class for all Castle Game Engine iOS application services. */
 @interface ServiceAbstract : NSObject {
@@ -38,8 +39,10 @@
 /* Convert boolean to string when sending the message in messageSend. */
 - (NSString*)boolToString:(bool)value;
 
+/* Notification that a purchase just happened. */
+- (void)onPurchase:(AvailableProduct*) product;
+
 @property (nonatomic, retain) UIWindow *window;
 @property (nonatomic, retain) OpenGLController *mainController;
 
 @end
-

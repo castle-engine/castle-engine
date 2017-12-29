@@ -17,7 +17,7 @@
 /* Apple Game Center integration with Castle Game Engine. */
 
 #import "../ServiceAbstract.h"
-#import "AvailableProduct.h"
+#import "../AvailableProduct.h"
 
 @interface InAppPurchasesService : ServiceAbstract <SKProductsRequestDelegate, SKPaymentTransactionObserver>
 {

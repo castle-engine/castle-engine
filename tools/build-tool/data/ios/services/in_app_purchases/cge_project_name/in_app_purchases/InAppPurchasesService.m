@@ -26,6 +26,7 @@
 */
 
 #import "InAppPurchasesService.h"
+#import "../AppDelegate.h"
 
 @implementation InAppPurchasesService
 
@@ -215,8 +216,16 @@
                     transaction.payment.productIdentifier == nil) {
                     NSLog(@"WARNING: Transaction payment or payment.productIdentifier empty");
                 } else {
-                    NSLog(@"In-app purchases transaction success: %@", transaction.payment.productIdentifier);
-                    [self owns: transaction.payment.productIdentifier];
+                    NSString* productId = transaction.payment.productIdentifier;
+                    NSLog(@"In-app purchases transaction success: %@", productId);
+                    [self owns: productId];
+
+                    AvailableProduct* product = [self getAvailableProduct: productId];
+                    if (product != nil) {
+                        [getAppDelegate() onPurchase: product];
+                    } else {
+                        NSLog(@"WARNING: In-app purchases: purchased unknown product: %@", productId);
+                    }
                 }
 
                 // We need to call finishTransaction,

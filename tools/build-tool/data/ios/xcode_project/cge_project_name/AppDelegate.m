@@ -21,15 +21,20 @@
 // import services
 /* IOS-SERVICES-IMPORT */
 
-AppDelegate* appDelegateToReceiveMessages;
+AppDelegate* appDelegateSingleton;
 
 void receiveMessageFromPascal(const char* message)
 {
-    if (appDelegateToReceiveMessages == nil) {
-        NSLog(@"Objective-C received message from Pascal, but appDelegateToReceiveMessages is not assigned, this should not happen.");
+    if (appDelegateSingleton == nil) {
+        NSLog(@"Objective-C received message from Pascal, but appDelegateSingleton is not assigned, this should not happen.");
         return;
     }
-    [appDelegateToReceiveMessages messageReceived:message];
+    [appDelegateSingleton messageReceived:message];
+}
+
+AppDelegate* getAppDelegate()
+{
+    return appDelegateSingleton;
 }
 
 @implementation AppDelegate
@@ -48,7 +53,7 @@ void receiveMessageFromPascal(const char* message)
     }
 
     // initialize messaging with CastleMessaging unit
-    appDelegateToReceiveMessages = self;
+    appDelegateSingleton = self;
     CGEApp_SetReceiveMessageFromPascalCallback(receiveMessageFromPascal);
 }
 
@@ -135,6 +140,14 @@ void receiveMessageFromPascal(const char* message)
     if (!handled) {
         NSString* messageMultiline = [messageAsList componentsJoinedByString:@"\n"];
         NSLog(@"Message received by Objective-C but not handled by any service: %@", messageMultiline);
+    }
+}
+
+- (void)onPurchase:(AvailableProduct*) product
+{
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service onPurchase: product];
     }
 }
 
