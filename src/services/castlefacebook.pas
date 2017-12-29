@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2017 Michalis Kamburelis.
+  Copyright 2017-2017 Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -13,8 +13,8 @@
   ----------------------------------------------------------------------------
 }
 
-{ Helpshift (http://helpshift.com/) integration (THelpshift). }
-unit CastleHelpshift;
+{ Initial Facebook SDK (https://developers.facebook.com/docs/ios/) integration (TFacebook). }
+unit CastleFacebook;
 
 {$I castleconf.inc}
 
@@ -23,25 +23,19 @@ interface
 uses Classes;
 
 type
-  { Helpshift (http://helpshift.com/) integration. Only on Android now. }
-  THelpshift = class(TComponent)
+  { Facebook SDK (https://developers.facebook.com/docs/ios/) integration. Only on iOS now. }
+  TFacebook = class(TComponent)
   public
-    class procedure ShowConversation;
-    class procedure ShowFAQs;
+    class procedure LoginButton;
   end;
 
 implementation
 
 uses CastleMessaging;
 
-class procedure THelpshift.ShowConversation;
+class procedure TFacebook.LoginButton;
 begin
-  Messaging.Send(['helpshift-show-conversation']);
-end;
-
-class procedure THelpshift.ShowFAQs;
-begin
-  Messaging.Send(['helpshift-show-faqs']);
+  Messaging.Send(['facebook-login-button']);
 end;
 
 end.

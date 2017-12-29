@@ -36,6 +36,8 @@ procedure MergeIOSAppDelegate(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
 procedure MergeIOSPodfile(const Source, Destination: string;
   const ReplaceMacros: TReplaceMacros);
+procedure MergeIOSInfoPlist(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
 
 implementation
 
@@ -463,10 +465,40 @@ const
 var
   SourceContents: string;
 begin
-  SourceContents :=
+  SourceContents := NL +
     '# ---- Inserted contents of ' + Source + NL +
-    Trim(FileToString(FilenameToURISafe(Source))) + NL +
-    '# ---- End of inserted contents of ' + Source + NL;
+    Trim(ReplaceMacros(FileToString(FilenameToURISafe(Source)))) + NL +
+    '# ---- End of inserted contents of ' + Source + NL + NL;
+
+  DestinationContents := FileToString(FilenameToURISafe(Destination));
+  InsertAtMarker(Marker, SourceContents);
+  StringToFile(Destination, DestinationContents);
+end;
+
+procedure MergeIOSInfoPlist(const Source, Destination: string;
+  const ReplaceMacros: TReplaceMacros);
+var
+  DestinationContents: string;
+
+  procedure InsertAtMarker(const Marker, Insertion: string);
+  var
+    MarkerPos: Integer;
+  begin
+    MarkerPos := Pos(Marker, DestinationContents);
+    if MarkerPos = 0 then
+      raise ECannotMergeTemplate.CreateFmt('Cannot find marker "%s" in xxx-Info.plist', [Marker]);
+    Insert(Insertion, DestinationContents, MarkerPos);
+  end;
+
+const
+  Marker = '<!-- IOS-SERVICES-PLIST -->';
+var
+  SourceContents: string;
+begin
+  SourceContents := NL +
+    '<!-- Inserted contents of ' + Source + ' -->' + NL +
+    Trim(ReplaceMacros(FileToString(FilenameToURISafe(Source)))) + NL +
+    '<!-- End of inserted contents of ' + Source + ' -->' + NL + NL;
 
   DestinationContents := FileToString(FilenameToURISafe(Destination));
   InsertAtMarker(Marker, SourceContents);

@@ -77,5 +77,9 @@ ${IOS_SCREEN_ORIENTATION}
 ${IOS_SCREEN_ORIENTATION}
 	</array>
 ${IOS_EXTRA_INFO_PLIST}
+
+<!-- Below we will insert xxx-Info.plist contents from all used services. -->
+<!-- IOS-SERVICES-PLIST -->
+
 </dict>
 </plist>

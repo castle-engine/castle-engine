@@ -24,8 +24,16 @@
 /* Called when AppDelegate receives applicationDidEnterBackground. */
 - (void)applicationDidEnterBackground;
 
-/* Called when AppDelegate receives application: didFinishLaunchingWithOptions: message. */
-- (void)applicationDidFinishLaunchingWithOptions;
+/* Called when AppDelegate receives application:didFinishLaunchingWithOptions: message. */
+- (void)application:(UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *) launchOptions;
+
+/* Called when AppDelegate receives applicationDidBecomeActive: message. */
+- (void)applicationDidBecomeActive:(UIApplication *)application;
+
+/* Called when AppDelegate receives application:openURL:options message. */
+- (BOOL)application:(UIApplication *)app
+    openURL:(NSURL *)url
+    options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;
 
 /* Try handling this message. Returns TRUE if handled. */
 - (bool)messageReceived:(NSArray* )message;

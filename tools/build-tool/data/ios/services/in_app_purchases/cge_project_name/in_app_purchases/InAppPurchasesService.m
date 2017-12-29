@@ -166,9 +166,9 @@
 /* Override applicationDidFinishLaunchingWithOptions to set self
    as "transaction observer" for purchases.
 */
-- (void)applicationDidFinishLaunchingWithOptions
+- (void)application:(UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
 {
-    [super applicationDidFinishLaunchingWithOptions];
+    [super application: application didFinishLaunchingWithOptions: launchOptions];
     [[SKPaymentQueue defaultQueue] addTransactionObserver: self];
 }
 

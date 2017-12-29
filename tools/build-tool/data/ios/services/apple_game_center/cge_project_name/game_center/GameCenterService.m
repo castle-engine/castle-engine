@@ -63,9 +63,9 @@ const int STATUS_SIGNING_OUT = 3;
     }
 }
 
-- (void)applicationDidFinishLaunchingWithOptions
+- (void)application:(UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
 {
-    [super applicationDidFinishLaunchingWithOptions];
+    [super application: application didFinishLaunchingWithOptions: launchOptions];
 
     m_finishedLaunching = true;
     if (m_autoStartSignInFlow) {

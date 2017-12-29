@@ -46,12 +46,6 @@ AppDelegate* getAppDelegate()
     // create services
     /* IOS-SERVICES-CREATE */
 
-    // call applicationDidFinishLaunchingWithOptions on all services
-    for (int i = 0; i < [services count]; i++) {
-        ServiceAbstract* service = [services objectAtIndex: i];
-        [service applicationDidFinishLaunchingWithOptions];
-    }
-
     // initialize messaging with CastleMessaging unit
     appDelegateSingleton = self;
     CGEApp_SetReceiveMessageFromPascalCallback(receiveMessageFromPascal);
@@ -77,6 +71,12 @@ AppDelegate* getAppDelegate()
     // but before doing [viewController viewDidLoad] which performs OpenGL initialization
     // including calling Application.OnInitialize (that may want to already use services).
     [self initializeServices: viewController];
+
+    // call application:didFinishLaunchingWithOptions on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service application: application didFinishLaunchingWithOptions: launchOptions];
+    }
 
     [viewController viewDidLoad];
 
@@ -112,6 +112,12 @@ AppDelegate* getAppDelegate()
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+
+    // call applicationDidBecomeActive on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service applicationDidBecomeActive: application];
+    }
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -122,6 +128,21 @@ AppDelegate* getAppDelegate()
 - (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
 {
     return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+}
+
+- (BOOL)application:(UIApplication *)application
+    openURL:(NSURL *)url
+    options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+    // call application:openURL:options on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        BOOL result = [service application: application openURL: url options: options];
+        if (result) {
+            return result;
+        }
+    }
+    return NO;
 }
 
 - (void)messageReceived:(const char *)message

@@ -23,8 +23,19 @@
 {
 }
 
-- (void)applicationDidFinishLaunchingWithOptions
+- (void)application:(UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
 {
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+}
+
+- (BOOL)application:(UIApplication *)app
+    openURL:(NSURL *)url
+    options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+    return NO;
 }
 
 - (bool)messageReceived:(NSArray* )message

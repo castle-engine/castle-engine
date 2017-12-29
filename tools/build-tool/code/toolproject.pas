@@ -1470,7 +1470,7 @@ const
 var
   I: Integer;
   AndroidLibraryName: string;
-  AndroidServiceParameterPair: TStringStringMap.TDictionaryPair;
+  ServiceParameterPair: TStringStringMap.TDictionaryPair;
 begin
   AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
@@ -1481,14 +1481,14 @@ begin
   Macros.Add('ANDROID_BUILD_TOOLS_VERSION'         , AndroidBuildToolsVersion);
   Macros.Add('ANDROID_MIN_SDK_VERSION'             , IntToStr(AndroidMinSdkVersion));
   Macros.Add('ANDROID_TARGET_SDK_VERSION'          , IntToStr(AndroidTargetSdkVersion));
-  // TODO: when needed, do the analogous for iOS services
+  Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES'    , AssociateDocumentTypes.ToIntentFilter);
+
   for I := 0 to AndroidServices.Count - 1 do
-    for AndroidServiceParameterPair in AndroidServices[I].Parameters do
+    for ServiceParameterPair in AndroidServices[I].Parameters do
       Macros.Add('ANDROID.' +
         UpperCase(AndroidServices[I].Name) + '.' +
-        UpperCase(AndroidServiceParameterPair.Key),
-        AndroidServiceParameterPair.Value);
-  Macros.Add('ANDROID_ASSOCIATE_DOCUMENT_TYPES', AssociateDocumentTypes.ToIntentFilter);
+        UpperCase(ServiceParameterPair.Key),
+        ServiceParameterPair.Value);
 end;
 
 procedure TCastleProject.AddMacrosIOS(const Macros: TStringStringMap);
@@ -1531,6 +1531,8 @@ const
 
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
+  I: Integer;
+  ServiceParameterPair: TStringStringMap.TDictionaryPair;
 begin
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
   Macros.Add('IOS_VERSION', IOSVersion);
@@ -1587,6 +1589,13 @@ begin
     Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '"ONLY_C=1",' + NL)
   else
     Macros.Add('IOS_GCC_PREPROCESSOR_DEFINITIONS', '');
+
+  for I := 0 to IOSServices.Count - 1 do
+    for ServiceParameterPair in IOSServices[I].Parameters do
+      Macros.Add('IOS.' +
+        UpperCase(IOSServices[I].Name) + '.' +
+        UpperCase(ServiceParameterPair.Key),
+        ServiceParameterPair.Value);
 end;
 
 function TCastleProject.ReplaceMacros(const Source: string): string;
@@ -1730,6 +1739,9 @@ begin
     else
     if SameText(DestinationRelativeFileNameSlashes, 'Podfile') then
       MergeIOSPodfile(SourceFileName, DestinationFileName, @ReplaceMacros)
+    else
+    if SameText(DestinationRelativeFileNameSlashes, Name + '/' + Name + '-Info.plist') then
+      MergeIOSInfoPlist(SourceFileName, DestinationFileName, @ReplaceMacros)
     else
     if SameText(DestinationRelativeFileNameSlashes, 'app/src/main/AndroidManifest.xml') then
       MergeAndroidManifest(SourceFileName, DestinationFileName, @ReplaceMacros)
