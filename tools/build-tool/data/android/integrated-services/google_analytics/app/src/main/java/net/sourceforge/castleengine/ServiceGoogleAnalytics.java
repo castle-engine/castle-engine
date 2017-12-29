@@ -123,7 +123,7 @@ public class ServiceGoogleAnalytics extends ServiceAbstract
             case 1: strStatus = "fail"; break;
             case 2: strStatus = "complete"; break;
             default:
-                Log.w(TAG, "Invalid sendProgress status " + status);
+                Log.w(TAG, "Invalid analytics-send-progress status " + status);
                 return;
         }
         sendEvent("progress", strStatus, world + "-" + level + "-" + phase, score, 0, "");

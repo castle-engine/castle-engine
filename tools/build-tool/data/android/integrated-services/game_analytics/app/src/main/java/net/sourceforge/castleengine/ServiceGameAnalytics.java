@@ -145,7 +145,7 @@ public class ServiceGameAnalytics extends ServiceAbstract
 			case 1: gaStatus = GAProgressionStatus.Fail; break;
 			case 2: gaStatus = GAProgressionStatus.Complete; break;
             default:
-                Log.w(TAG, "Invalid sendProgress status " + status);
+                Log.w(TAG, "Invalid analytics-send-progress status " + status);
                 return;
         }
         GameAnalytics.addProgressionEventWithProgressionStatus(gaStatus, world, level, phase, score);
