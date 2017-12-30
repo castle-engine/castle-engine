@@ -511,6 +511,8 @@ type
       const OldPos, NewPos: TVector3;
       const IsRadius: boolean; const Radius: Single;
       const OldBox, NewBox: TBox3D): boolean;
+
+    procedure SetRootNode(const Value: TX3DRootNode);
   private
     { For all ITransformNode, except Billboard nodes }
     TransformInstancesList: TTransformInstancesList;
@@ -1139,12 +1141,12 @@ type
       call @link(TX3DField.Changed).
 
       It is also allowed to change the value of RootNode
-      and even to set RootNode to @nil. Be sure to call ChangedAll after this.
+      and even to set RootNode to @nil.
       Changing RootNode allows you to load
       and unload whole new VRML/X3D graph (for example from some 3D file)
       whenever you want, and keep the same TCastleSceneCore instance
       (with the same rendering settings and such). }
-    property RootNode: TX3DRootNode read FRootNode write FRootNode;
+    property RootNode: TX3DRootNode read FRootNode write SetRootNode;
 
     { If @true, RootNode will be freed by destructor of this class. }
     property OwnsRootNode: boolean read FOwnsRootNode write FOwnsRootNode default true;
@@ -2566,7 +2568,7 @@ begin
   PointingDeviceClear;
   if OwnsRootNode then FreeAndNil(FRootNode);
 
-  RootNode := ARootNode;
+  FRootNode := ARootNode; // set using FRootNode, we will call ChangedAll later
   OwnsRootNode := AOwnsRootNode;
   ScheduledShadowMapsProcessing := true;
 
@@ -2600,6 +2602,15 @@ begin
   Load(Load3D(AURL, AllowStdIn), true, AResetTime);
 
   FURL := AURL;
+end;
+
+procedure TCastleSceneCore.SetRootNode(const Value: TX3DRootNode);
+begin
+  if FRootNode <> Value then
+  begin
+    FRootNode := Value;
+    ScheduleChangedAll;
+  end;
 end;
 
 procedure TCastleSceneCore.Save(const AURL: string);
