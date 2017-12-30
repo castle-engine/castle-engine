@@ -172,6 +172,38 @@
       CastleUtils, CastleSceneManager,
       GameStatePlay;
     ```
+  - Indenting inside classes:
+    ```
+    type
+      TMyClass = class
+      private
+        MyField: Integer;
+        procedure Foo;
+      public
+        MyPublicField: Integer;
+        procedure Bar;
+      end;
+    ```
+
+    If you use the nested types / constants, indent the fields inside the `var` block as well. See the example below, notice that `MyField` is now indented more than in the example above. It's not perfect -- `MyField` indentation is now inconsistent with `MyPublicField`. But on the other hand, `MyField` indentation is consistent with `MyNestedConst` and `TMyNestedClass` and how you usually indent `var` block.
+
+    ```
+    type
+      TMyClass = class
+      private
+        type
+          TMyNestedClass = class
+          end;
+        const
+          MyNestedConst = 123;
+        var
+          MyField: Integer;
+        procedure Foo;
+      public
+        MyPublicField: Integer;
+        procedure Bar;
+      end;
+    ```
 
 - File extensions:
 
