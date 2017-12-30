@@ -254,7 +254,8 @@ begin
   if Self <> RenderContext then
     WarnContextNotCurrent;
 
-  if not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
+  if (cbColor in Buffers) and
+     not TVector4.PerfectlyEquals(FClearColor, ClearColor) then
   begin
     FClearColor := ClearColor;
     glClearColor(FClearColor[0], FClearColor[1], FClearColor[2], FClearColor[3]);
