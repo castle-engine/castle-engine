@@ -17,6 +17,7 @@
 #import "AppDelegate.h"
 #import "OpenGLController.h"
 #import "ServiceAbstract.h"
+#import "MiscellaneousService.h"
 
 // import services
 /* IOS-SERVICES-IMPORT */
@@ -42,6 +43,15 @@ AppDelegate* getAppDelegate()
 - (void)initializeServices:(OpenGLController* )viewController
 {
     services = [[NSMutableArray alloc] init];
+
+    // create MiscellaneousService, added by default
+    {
+    MiscellaneousService* serviceInstance;
+    serviceInstance = [[MiscellaneousService alloc] init];
+    serviceInstance.mainController = viewController;
+    serviceInstance.window = self.window;
+    [services addObject: serviceInstance];
+    }
 
     // create services
     /* IOS-SERVICES-CREATE */

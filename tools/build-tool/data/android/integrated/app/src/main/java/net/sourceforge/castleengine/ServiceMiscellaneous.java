@@ -53,7 +53,7 @@ public class ServiceMiscellaneous extends ServiceAbstract
      * Share a text with other applications.
      * See https://developer.android.com/training/sharing/send.html
      */
-    private void intentSendText(String title, String subject, String text)
+    private void shareText(String title, String subject, String text)
     {
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
@@ -64,25 +64,25 @@ public class ServiceMiscellaneous extends ServiceAbstract
     }
 
     /**
-     * View uri.
+     * View URL.
      * See http://stackoverflow.com/questions/4969217/share-application-link-in-android
      */
-    private void intentViewUri(String uri)
+    private void viewUrl(String url)
     {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(uri));
+        intent.setData(Uri.parse(url));
         getActivity().startActivity(intent);
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 2 && parts[0].equals("intent-view-uri")) {
-            intentViewUri(parts[1]);
+        if (parts.length == 2 && parts[0].equals("view-url")) {
+            viewUrl(parts[1]);
             return true;
         } else
-        if (parts.length == 4 && parts[0].equals("intent-send-text")) {
-            intentSendText(parts[1], parts[2], parts[3]);
+        if (parts.length == 4 && parts[0].equals("share-text")) {
+            shareText(parts[1], parts[2], parts[3]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("on-screen-notification")) {

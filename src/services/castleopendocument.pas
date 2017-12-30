@@ -31,10 +31,11 @@ resourcestring
   This detects and handles also local files (as filenames, or URLs with "file:"
   protocol).
 
-  On Android, it can use the Android intent system to open the URL,
-  supporting all URL types that are handled by some installed app.
-  For example, it will support the market:// URLs.
-  To use this, declare your Android project type as "integrated",
+  On Android and iOS, it uses the OS functions to open the URL,
+  supporting all URL types that are handled by the installed applications.
+  For example, it will support the market:// URLs on Android.
+
+  To use this on Android, declare your Android project type as "integrated",
   see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine . }
 function OpenURL(AURL: String): Boolean;
 
@@ -45,9 +46,8 @@ function OpenDocument(APath: String): Boolean;
 
 { Share a text/link through user-choosen application.
 
-  This is available only on Android right now, ignored elsewhere.
-  To include the necessary integration code in your Android project,
-  you must declare your Android project type as "integrated".
+  This works only on Android and iOS right now.
+  For Android, you need to declare the project type as "integrated":
   See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
 
   @param(Title The short title of the share.)
@@ -56,6 +56,24 @@ function OpenDocument(APath: String): Boolean;
   @param(Content Multi-line share text content, possibly with URL inside.)
 }
 procedure ShareText(const Title, Subject, Content: string);
+
+{ Show the application in the application store (Google Play on Android,
+  AppStore on iOS). Ignored on other platforms now.
+
+  @unorderedList(
+    @itemSpacing Compact
+    @item(On Android, ApplicationId should be the qualitied name of the application
+      (same thing you use as qualified_name in CastleEngineManifest.xml).
+
+      To include the necessary integration code in your Android project,
+      you must declare your Android project type as "integrated".
+      See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+    )
+    @item(On iOS, ApplicationId has to be the "Apple ID" number of your application
+      (you can see it e.g. in https://itunesconnect.apple.com/ page of your application).
+    )
+  ) }
+procedure OpenApplicationStore(const ApplicationId: string);
 
 { Vibrate the device.
 
@@ -108,11 +126,13 @@ implementation
 }
 
 uses
-  {$ifdef UNIX} BaseUnix, {$endif}
-  {$ifdef MSWINDOWS} Windows, {$endif}
-  {$ifdef DARWIN} MacOSAll, {$endif} CastleURIUtils,
+  {$if not(defined(ANDROID) or defined(IOS))}
+    {$ifdef UNIX} BaseUnix, {$endif}
+    {$ifdef MSWINDOWS} Windows, {$endif}
+    {$ifdef DARWIN} MacOSAll, {$endif}
+  {$endif}
   SysUtils, Classes, Process,
-  CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
+  CastleURIUtils, CastleUtils, CastleFilesUtils, CastleLog, CastleMessaging;
 
 { lcl/lclstrconsts.pas ------------------------------------------------------- }
 
@@ -167,10 +187,10 @@ end;
 
 {$ifdef UNIX}
 
-{$ifdef ANDROID}
+{$if defined(ANDROID) or defined(IOS)}
 function OpenURL(AURL: String): Boolean;
 begin
-  Messaging.Send(['intent-view-uri', AURL]);
+  Messaging.Send(['view-url', AURL]);
   Result := true;
 end;
 
@@ -332,12 +352,19 @@ begin
 end;
 
     {$endif}
-  {$endif}  // not Android
+  {$endif}  // not Android or iOS
 {$endif} // UNIX
 
 procedure ShareText(const Title, Subject, Content: string);
 begin
-  Messaging.Send(['intent-send-text', Title, Subject, Content]);
+  Messaging.Send(['share-text', Title, Subject, Content]);
+end;
+
+procedure OpenApplicationStore(const ApplicationId: string);
+begin
+  {$ifdef ANDROID} OpenURL('market://details?id=' + ApplicationId); {$endif}
+
+  {$ifdef IOS} Messaging.Send(['open-application-store', ApplicationId]); {$endif}
 end;
 
 procedure Vibrate(const Miliseconds: Cardinal);
@@ -349,6 +376,5 @@ procedure OnScreenNotification(const Message: string);
 begin
   Messaging.Send(['on-screen-notification', Message]);
 end;
-
 
 end.
