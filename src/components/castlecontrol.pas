@@ -85,11 +85,10 @@ type
         TODO: Try an alternative implementation using TTimer with Interval=1.
       )
 
-      @item(Automatically calls GLInformationInitialize
-        when OpenGL context is initialized. This will initialize GLVersion,
-        GLFeatures and more.)
+      @item(Automatically initializes Castle Game Engine stuff
+        when context is created (GLVersion, GLFeatures and more).)
 
-      @item(Application speed, see the @link(Fps).)
+      @item(Measures application speed, see the @link(Fps).)
 
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
         and mouse position @link(MousePosition).)
@@ -934,6 +933,8 @@ begin
   begin
     FGLInitialized := true;
     GLInformationInitialize;
+    // _GLContextEarlyOpen is not really necessary here now, but we call it for consistency
+    ApplicationProperties._GLContextEarlyOpen;
     Inc(ControlsOpen);
     Container.EventOpen(ControlsOpen);
     Resize; // will call Container.EventResize
