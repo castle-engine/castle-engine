@@ -71,7 +71,9 @@
       By default it's opaque white, which means that no tint is shown. }
     property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
   published
-    { Children you add here will be scrolled. }
+    { Children you add here will be scrolled.
+      Make sure to add some children here, and set proper size of this control,
+      to have a useful scrolling area. }
     property ScrollArea: TUIControlSizeable read FScrollArea;
     { Speed of scrolling by keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
@@ -161,11 +163,16 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
 
     ScrollbarSlider := ScrollbarFrame;
-    ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
-    ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
-    { equivalent would be to set
-        ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
-      But this way makes it clear that MapRange below is valid, will not divide by zero. }
+    if ScrollArea.CalculatedHeight = 0 then
+      ScrollBarVisible := false
+    else
+    begin
+      ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
+      ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
+      { equivalent would be to set
+          ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
+        But this way makes it clear that MapRange below is valid, will not divide by zero. }
+    end;
     if ScrollBarVisible then
       ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
         ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
