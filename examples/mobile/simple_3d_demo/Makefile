@@ -35,10 +35,10 @@ android-fast:
 	castle-engine install --os=android --cpu=arm
 	castle-engine run --os=android --cpu=arm
 
+.PHONY: ios-release
+ios-release:
+	castle-engine --mode=release package --target=iOS
+
 .PHONY: ios
 ios:
-	castle-engine --mode=$(MODE) package --target=iOS
-
-.PHONY: ios-fast
-ios-fast:
 	castle-engine --mode=$(MODE) package --target=iOS --fast
