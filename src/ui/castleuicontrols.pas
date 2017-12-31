@@ -953,35 +953,33 @@ type
       Instead, render controls by adding them to the
       @link(TUIContainer.Controls) list, or render them explicitly
       (for off-screen rendering) by @link(TGLContainer.RenderControl).
+      This is method should only be overridden in your own code.
 
       Before calling this method we always set some OpenGL state,
       and you can depend on it (and you can carelessly change it,
       as it will be reset again before rendering other control).
-      (In Castle Game Engine < 5.1.0, the rules were more complicated
-      and depending on RenderStyle. This is no longer the case,
-      RenderStyle now determines only the render order,
-      allowing TCastleSceneManager to be used in the middle of 2D controls.)
 
       OpenGL state always set:
 
       @unorderedList(
-        @item(@italic((For fixed-function pipeline.))
+        @item(glViewport is set to include whole container.)
+
+        @item(Depth test is off.)
+
+        @item(@italic((For fixed-function pipeline:))
           The 2D orthographic projection is always set at the beginning.
           Useful for 2D controls, 3D controls can just override projection
           matrix, e.g. use @link(CastleGLUtils.PerspectiveProjection).)
 
-        @item(glViewport is set to include whole container.)
-
-        @item(@italic((For fixed-function pipeline.))
+        @item(@italic((For fixed-function pipeline:))
           The modelview matrix is set to identity. The matrix mode
           is always modelview.)
 
-        @item(The raster position @italic((for fixed-function pipeline))
-          is set to (0,0). The (deprecated) WindowPos is also set to (0,0).)
+        @item(@italic((For fixed-function pipeline:))
+          The raster position is set to (0,0).
+          The (deprecated) WindowPos is also set to (0,0).)
 
-        @item(Depth test is off.)
-
-        @item(@italic((For fixed-function pipeline.))
+        @item(@italic((For fixed-function pipeline:))
           Texturing, lighting, fog is off.)
       )
 
