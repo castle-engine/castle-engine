@@ -90,7 +90,11 @@ AppDelegate* getAppDelegate()
 
     [viewController viewDidLoad];
 
-    self.window.backgroundColor = [UIColor whiteColor];
+    // CGE have already drawn tiLoading frame, no need for a background color.
+    //self.window.backgroundColor = [UIColor whiteColor];
+
+    // Although the window seems already visible, but makeKeyAndVisible call is still
+    // needed to keep visible after application:didFinishLaunchingWithOptions call.
     [self.window makeKeyAndVisible];
 
     return YES;
