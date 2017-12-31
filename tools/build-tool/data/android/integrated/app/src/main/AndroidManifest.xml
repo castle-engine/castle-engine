@@ -20,7 +20,7 @@
         android:icon="@mipmap/ic_launcher"
         android:hasCode="true">
         <activity android:name="net.sourceforge.castleengine.MainActivity"
-                android:theme="@android:style/Theme.NoTitleBar.Fullscreen"
+                android:theme="${ANDROID_ACTIVITY_THEME}"
                 android:launchMode="singleTask"
                 android:configChanges="orientation|screenSize|keyboardHidden"
                 android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">

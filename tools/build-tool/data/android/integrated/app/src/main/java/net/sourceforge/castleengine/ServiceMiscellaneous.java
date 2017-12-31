@@ -5,6 +5,7 @@ import android.view.View;
 import android.os.Build;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.net.Uri;
 import android.widget.Toast;
 
@@ -27,7 +28,9 @@ public class ServiceMiscellaneous extends ServiceAbstract
     /** Immersive mode. */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        if (hasFocus) {
+        int[] attrs = {android.R.attr.windowFullscreen};
+        TypedArray ta = getActivity().getTheme().obtainStyledAttributes(attrs);
+        if (ta.getBoolean(0, true) && hasFocus) {
             /* To have all the flags and methods below available
              * (in particular, SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
              * wee need Android API version 19. Check the version at runtime,

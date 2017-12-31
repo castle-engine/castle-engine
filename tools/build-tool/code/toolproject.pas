@@ -50,6 +50,7 @@ type
     DeletedFiles: Cardinal; //< only for DeleteFoundFile
     FVersion: string;
     FVersionCode: Cardinal;
+    FFullscreenImmersive: boolean;
     FScreenOrientation: TScreenOrientation;
     FAndroidBuildToolsVersion: string;
     FAndroidCompileSdkVersion, FAndroidMinSdkVersion, FAndroidTargetSdkVersion: Cardinal;
@@ -151,6 +152,7 @@ type
     property Caption: string read FCaption;
     property Author: string read FAuthor;
     property ExecutableName: string read FExecutableName;
+    property FullscreenImmersive: boolean read FFullscreenImmersive;
     property ScreenOrientation: TScreenOrientation read FScreenOrientation;
     property AndroidCompileSdkVersion: Cardinal read FAndroidCompileSdkVersion;
     property AndroidBuildToolsVersion: string read FAndroidBuildToolsVersion;
@@ -428,6 +430,7 @@ constructor TCastleProject.Create(const APath: string);
         FGameUnits := Doc.DocumentElement.AttributeStringDef('game_units', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
+        FFullscreenImmersive := (Doc.DocumentElement.AttributeStringDef('fullscreen_immersive', 'true') = 'true');
 
         Element := Doc.DocumentElement.ChildElement('version', false);
         FVersionCode := DefautVersionCode;
@@ -1457,6 +1460,14 @@ const
    '<uses-feature android:name="android.hardware.screen.landscape"/>',
    '<uses-feature android:name="android.hardware.screen.portrait"/>');
 
+  function AndroidActivityTheme: string;
+  begin
+    if FullscreenImmersive then
+      Result := '@android:style/Theme.NoTitleBar.Fullscreen'
+    else
+      Result := '@android:style/Theme.NoTitleBar';
+  end;
+
   function AndroidActivityLoadLibraries: string;
   begin
     { some Android devices work without this clause, some don't }
@@ -1474,6 +1485,7 @@ var
 begin
   AndroidLibraryName := ChangeFileExt(ExtractFileName(AndroidSourceFile(true, false)), '');
   Macros.Add('ANDROID_LIBRARY_NAME'                , AndroidLibraryName);
+  Macros.Add('ANDROID_ACTIVITY_THEME'              , AndroidActivityTheme);
   Macros.Add('ANDROID_SCREEN_ORIENTATION'          , AndroidScreenOrientation[ScreenOrientation]);
   Macros.Add('ANDROID_SCREEN_ORIENTATION_FEATURE'  , AndroidScreenOrientationFeature[ScreenOrientation]);
   Macros.Add('ANDROID_ACTIVITY_LOAD_LIBRARIES'     , AndroidActivityLoadLibraries);
