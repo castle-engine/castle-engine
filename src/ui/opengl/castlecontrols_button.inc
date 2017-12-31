@@ -221,12 +221,14 @@
       read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
     { When AutoSize is @true (the default) then button sizes are automatically
-      adjusted when you change the Caption and @link(Image).
-      The calculated size takes into account the Caption text size (with current font),
+      calculated when you change the @link(Caption) and @link(Image).
+      The calculated size takes into account the @link(Caption) text size (with current font),
       and @link(Image) size, plus some margin to make it look nice.
 
-      @link(Width) is adjusted only when AutoSize and AutoSizeWidth.
-      And @link(Height) is adjusted only when AutoSize and AutoSizeHeight.
+      Width is auto-calculated only when AutoSize and AutoSizeWidth
+      (otherwise we just use @link(Width) property value).
+      Likewise, Height is calculated only when AutoSize and AutoSizeHeight
+      (otherwise we just use @link(Height) property value).
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
