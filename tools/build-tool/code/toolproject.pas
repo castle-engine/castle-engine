@@ -430,7 +430,7 @@ constructor TCastleProject.Create(const APath: string);
         FGameUnits := Doc.DocumentElement.AttributeStringDef('game_units', '');
         FScreenOrientation := StringToScreenOrientation(
           Doc.DocumentElement.AttributeStringDef('screen_orientation', 'any'));
-        FFullscreenImmersive := (Doc.DocumentElement.AttributeStringDef('fullscreen_immersive', 'true') = 'true');
+        FFullscreenImmersive := Doc.DocumentElement.AttributeBooleanDef('fullscreen_immersive', true);
 
         Element := Doc.DocumentElement.ChildElement('version', false);
         FVersionCode := DefautVersionCode;
@@ -1541,6 +1541,14 @@ const
       Result := Version;
   end;
 
+  function IOSStatusBarHidden: string;
+  begin
+    if FullscreenImmersive then
+      Result := #9#9'<true/>'
+    else
+      Result := #9#9'<false/>';
+  end;
+
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   I: Integer;
@@ -1549,6 +1557,7 @@ begin
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
   Macros.Add('IOS_VERSION', IOSVersion);
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
+  Macros.Add('IOS_STATUSBAR_HIDDEN', IOSStatusBarHidden);
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
   P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
   if not FUsesNonExemptEncryption then

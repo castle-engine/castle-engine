@@ -253,10 +253,4 @@
     return YES;
 }
 
-//---------------------------------------------------------------------------
-- (BOOL)prefersStatusBarHidden   // hide status bar (iOS7)
-{
-    return YES;
-}
-
 @end

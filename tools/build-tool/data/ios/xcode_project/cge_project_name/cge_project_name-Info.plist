@@ -65,9 +65,11 @@ ${IOS_REQUIRED_DEVICE_CAPABILITIES}
 	<key>UIRequiresFullScreen</key>
 	<true/>
 	<key>UIStatusBarHidden</key>
-	<true/>
-	<key>UIStatusBarHidden~ipad</key>
-	<true/>
+${IOS_STATUSBAR_HIDDEN}
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 ${IOS_SCREEN_ORIENTATION}
