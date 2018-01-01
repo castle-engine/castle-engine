@@ -1544,9 +1544,9 @@ const
   function IOSStatusBarHidden: string;
   begin
     if FullscreenImmersive then
-      Result := #9#9'<true/>'
+      Result := 'YES'
     else
-      Result := #9#9'<false/>';
+      Result := 'NO';
   end;
 
 var

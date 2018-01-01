@@ -253,4 +253,16 @@
     return YES;
 }
 
+//---------------------------------------------------------------------------
+- (BOOL)prefersStatusBarHidden   // hide status bar (iOS7)
+{
+    return ${IOS_STATUSBAR_HIDDEN};
+}
+
+//---------------------------------------------------------------------------
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+    return UIStatusBarStyleLightContent;
+}
+
 @end
