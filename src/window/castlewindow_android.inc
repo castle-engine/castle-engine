@@ -380,7 +380,6 @@ var
 {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
   Application.AndroidApp := App;
-  AssetOpeningReliable := true;
 
   ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
 
