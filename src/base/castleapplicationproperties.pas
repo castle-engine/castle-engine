@@ -251,6 +251,12 @@ end;
 procedure TCastleApplicationProperties._GLContextEarlyOpen;
 begin
   FIsGLContextOpen := true;
+
+  { _GLContextEarlyOpen sets FInitialized to true, to make integrations like this
+    (without CastleControl or CastleWindow):
+    https://gist.github.com/michaliskambi/ca0eb18aeb7e326e5dc79c3b5002bcc5
+    to have FInitialized = true. }
+
   FInitialized := true;
 end;
 
