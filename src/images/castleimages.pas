@@ -826,14 +826,13 @@ type
     { @groupEnd }
   public
     { Draw simple geometric shapes like circles, rectangles, lines, etc.
-      Quick analogs of procedures does not use blending and antialiasing and
-      accept only integer coordinates and parameters.
-
       @groupBegin }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+    procedure FillRectangle(const x1, y1, x2, y2: single;
+      const aColor: TCastleColor); virtual;
     { @groupEnd }
   end;
 
@@ -1148,6 +1147,8 @@ type
       const aColor: TCastleColor); override;
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: single;
+      const aColor: TCastleColor); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1241,6 +1242,8 @@ type
       const aColor: TCastleColor); override;
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: single;
+      const aColor: TCastleColor); override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1380,6 +1383,8 @@ type
       const aColor: TCastleColor); override;
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: single;
+      const aColor: TCastleColor); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1436,6 +1441,8 @@ type
       const aColor: TCastleColor); override;
     procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aWidth: single; const aColor: TCastleColor); override;
+    procedure FillRectangle(const x1, y1, x2, y2: single;
+      const aColor: TCastleColor); override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }

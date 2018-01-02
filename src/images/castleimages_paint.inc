@@ -485,3 +485,49 @@ begin
         end;
     end;
 end;
+
+{-----= FILL RECTANGLE =-----}
+
+procedure TCastleImage.FillRectangle(const x1, y1, x2, y2: single;
+  const aColor: TCastleColor);
+var
+  ix, iy: integer;
+begin
+
+end;
+
+procedure TRGBAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
+const aColor: TCastleColor);
+var
+  ix, iy: integer;
+begin
+
+end;
+
+procedure TGrayscaleAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
+const aColor: TCastleColor);
+var
+  ix, iy: integer;
+begin
+
+end;
+
+procedure TRGBImage.FillRectangle(const x1, y1, x2, y2: single;
+const aColor: TCastleColor);
+var
+  ix, iy: integer;
+begin
+
+end;
+
+procedure TGrayscaleImage.FillRectangle(const x1, y1, x2, y2: single;
+const aColor: TCastleColor);
+var
+  ix, iy: integer;
+begin
+
+end;
+
+{-----= HOLLOW RECTANGLE =-----}
+
+
