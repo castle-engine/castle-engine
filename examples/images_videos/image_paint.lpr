@@ -17,6 +17,7 @@ procedure DoTest(aImage: TCastleImage);
 begin
   aImage.Clear(Vector4Byte(0, 0, 0, 0));
   aImage.FillEllipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, Lime);
+  aImage.Ellipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 1, Lime);
 end;
 
 procedure DoDraw;

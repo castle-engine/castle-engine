@@ -832,6 +832,8 @@ type
       @groupBegin }
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); virtual;
+    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
     { @groupEnd }
   end;
 
@@ -1144,6 +1146,8 @@ type
   public
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
+    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1235,6 +1239,8 @@ type
   public
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
+    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1372,6 +1378,8 @@ type
   public
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
+    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1426,6 +1434,8 @@ type
   public
     procedure FillEllipse(const x, y: single; const aRadiusX, aRadiusY: single;
       const aColor: TCastleColor); override;
+    procedure Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }
