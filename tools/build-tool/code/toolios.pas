@@ -112,13 +112,13 @@ end;
 
 procedure PackageIOS(const Project: TCastleProject);
 var
-  XCodeProject: string;
+  XcodeProject: string;
   UsesCocoaPods: boolean;
 
   { Generate files for iOS project from templates. }
   procedure GenerateFromTemplates;
   begin
-    Project.ExtractTemplate('ios/xcode_project/', XCodeProject);
+    Project.ExtractTemplate('ios/xcode_project/', XcodeProject);
   end;
 
   procedure GenerateServicesFromTemplates;
@@ -128,7 +128,7 @@ var
       TemplatePath: string;
     begin
       TemplatePath := 'ios/services/' + ServiceName + '/';
-      Project.ExtractTemplate(TemplatePath, XCodeProject);
+      Project.ExtractTemplate(TemplatePath, XcodeProject);
 
       if URIFileExists(ApplicationData(TemplatePath + 'Podfile')) then
       begin
@@ -166,7 +166,7 @@ var
           'Images.xcassets' + PathDelim +
           'AppIcon.appiconset' + PathDelim +
           'icon-' + IntToStr(Size) + '.png';
-        SaveImage(R, FilenameToURISafe(XCodeProject + OutputFile));
+        SaveImage(R, FilenameToURISafe(XcodeProject + OutputFile));
         if Verbose then
           Writeln('Packaging generated icon file: ' + OutputFile);
       finally FreeAndNil(R) end;
@@ -250,7 +250,7 @@ var
           'Images.xcassets' + PathDelim +
           'LaunchImage.launchimage' + PathDelim +
           'launch-image-' + IntToStr(Width) + 'x' + IntToStr(Height) + '.png';
-        SaveImage(R, FilenameToURISafe(XCodeProject + OutputFile));
+        SaveImage(R, FilenameToURISafe(XcodeProject + OutputFile));
         // it's already reported by FindBestMatching
         // if Verbose then
         //   Writeln('Packaging generated launch icon file: ' + OutputFile);
@@ -285,7 +285,7 @@ var
     finally FreeAndNil(LaunchImages) end;
   end;
 
-  { Copy project data into XCode project. }
+  { Copy project data into Xcode project. }
   procedure GenerateData;
   var
     I: Integer;
@@ -293,7 +293,7 @@ var
     FileFrom, FileTo: string;
     Files: TCastleStringList;
   begin
-    OutputDataFolder := XCodeProject + Project.Name + PathDelim + 'data';
+    OutputDataFolder := XcodeProject + Project.Name + PathDelim + 'data';
     ForceDirectories(OutputDataFolder);    // create folder even if project does not contain any files (is referenced in Xcode project)
     Files := TCastleStringList.Create;
     try
@@ -313,44 +313,44 @@ var
     ${PBX_CONTENTS_GENERATED} inside the pbx file. *)
   procedure FixPbxProjectFile;
   var
-    PbxProject: TXCodeProject;
+    PbxProject: TXcodeProject;
     PBXContentsGenerated, PBX, PBXFileUrl: string;
   begin
-    PbxProject := TXCodeProject.Create;
+    PbxProject := TXcodeProject.Create;
     try
-      PbxProject.AddTopLevelDir(XCodeProject, Project.Name);
+      PbxProject.AddTopLevelDir(XcodeProject, Project.Name);
 
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('Foundation'));
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('CoreGraphics'));
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('UIKit'));
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenGLES'));
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GLKit'));
-      PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('OpenAL'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('Foundation'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('CoreGraphics'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('UIKit'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenGLES'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GLKit'));
+      PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('OpenAL'));
 
       if Project.IOSServices.HasService('apple_game_center') then
-        PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('GameKit'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('GameKit'));
       if Project.IOSServices.HasService('in_app_purchases') then
-        PbxProject.Frameworks.Add(TXCodeProjectFramework.Create('StoreKit'));
+        PbxProject.Frameworks.Add(TXcodeProjectFramework.Create('StoreKit'));
 
       PBXContentsGenerated := PbxProject.PBXContents;
       // process macros inside PBXContentsGenerated, to replace ${NAME} etc. inside
       PBXContentsGenerated := Project.ReplaceMacros(PBXContentsGenerated);
 
       PBXFileUrl := FilenameToURISafe(
-        XCodeProject + Project.Name + '.xcodeproj' + PathDelim + 'project.pbxproj');
+        XcodeProject + Project.Name + '.xcodeproj' + PathDelim + 'project.pbxproj');
       PBX := FileToString(PBXFileUrl);
       StringReplaceAllVar(PBX, '${PBX_CONTENTS_GENERATED}', PBXContentsGenerated, false);
       StringToFile(PBXFileUrl, PBX);
     finally FreeAndNil(PbxProject) end;
   end;
 
-  { Copy compiled library into XCode project. }
+  { Copy compiled library into Xcode project. }
   procedure GenerateLibrary;
   var
     OutputFile: string;
   begin
     OutputFile := ExtractFileName(Project.IOSLibraryFile);
-    SmartCopyFile(Project.IOSLibraryFile, XCodeProject + OutputFile);
+    SmartCopyFile(Project.IOSLibraryFile, XcodeProject + OutputFile);
     if Verbose then
       Writeln('Packaging library file: ' + OutputFile);
   end;
@@ -358,15 +358,15 @@ var
   procedure GenerateCocoaPods;
   begin
     if UsesCocoaPods then
-      RunCommandSimple(XCodeProject, 'pod', ['install']);
+      RunCommandSimple(XcodeProject, 'pod', ['install']);
   end;
 
 begin
   UsesCocoaPods := false;
-  XCodeProject := OutputPath(Project.Path) +
+  XcodeProject := OutputPath(Project.Path) +
     'ios' + PathDelim + 'xcode_project' + PathDelim;
-  if DirectoryExists(XCodeProject) then
-    RemoveNonEmptyDir(XCodeProject);
+  if DirectoryExists(XcodeProject) then
+    RemoveNonEmptyDir(XcodeProject);
 
   GenerateFromTemplates;
   GenerateServicesFromTemplates;
@@ -377,9 +377,9 @@ begin
   GenerateLibrary;
   GenerateCocoaPods; // should be at the end, to allow CocoaPods to see our existing project
 
-  Writeln('XCode project has been created in:');
-  Writeln('  ', XCodeProject);
-  Writeln('You can open it now on Mac OS X with XCode and compile, run and publish.');
+  Writeln('Xcode project has been created in:');
+  Writeln('  ', XcodeProject);
+  Writeln('You can open it now on macOS with Xcode and compile, run and publish.');
   Writeln('The generated project should compile and work out-of-the-box.');
 end;
 

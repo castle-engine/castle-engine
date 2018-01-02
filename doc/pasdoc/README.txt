@@ -27,7 +27,7 @@ Run "make html" here.
   be sure to put the "pasdoc" binary on $PATH, so that calling just "pasdoc"
   from the command-line works.
 
-  - On Unix (Linux, Mac OS X...) add this to your $HOME/.bashrc file:
+  - On Unix (Linux, macOS...) add this to your $HOME/.bashrc file:
 
     export PATH="$HOME/installed/pasdoc/bin:$PATH"
 
@@ -35,7 +35,7 @@ Run "make html" here.
     to learn how to set the $PATH correctly.
 
 - Running "make html" should work out-of-the-box on any Unix
-  (Linux, Mac OS X...) system.
+  (Linux, macOS...) system.
   On Windows you will need to additionally install Cygwin (http://cygwin.com/)
   or MinGW (http://www.mingw.org/).
 

@@ -219,7 +219,7 @@ begin
 end;
 
 const
-  { Ctrl key on most systems, Command key on Mac OS X. }
+  { Ctrl key on most systems, Command key on macOS. }
   ssCtrlOrCommand = {$ifdef DARWIN} ssMeta {$else} ssCtrl {$endif};
 
 procedure KeyLCLToCastle(const Key: Word; const Shift: TShiftState;

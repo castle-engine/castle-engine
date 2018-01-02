@@ -189,7 +189,7 @@ unit CastleWindow;
     Generally, has a nice native look of GTK application.
 
     Should work under any OS where GTK works.
-    Currently tested under Linux, FreeBSD, Mac OS X and Windows.
+    Currently tested under Linux, FreeBSD, macOS and Windows.
 
     FullScreen is cleanly implemented in GTK_2, never using override_redirect,
     so Alt+Tab always works (even when your window is fullscreen),
@@ -303,7 +303,7 @@ unit CastleWindow;
   CASTLE_WINDOW_TEMPLATE
     This is a special dummy backend, useful only as an example
     for programmers that want to implement another CastleWindow backend
-    (e.g. based on Mac OS X Carbon).
+    (e.g. based on macOS Carbon).
     It compiles, but actually nothing works.
     See file CASTLE_WINDOW_backend_template.inc.
 }
@@ -361,9 +361,9 @@ unit CastleWindow;
              {$define CASTLE_WINDOW_LIBRARY}
              {$info Compiling CastleWindow with CASTLE_WINDOW_LIBRARY backend on iOS}
            {$elseif defined(DARWIN)}
-             // various possible backends on Mac OS X (desktop):
+             // various possible backends on macOS (desktop):
              {$define CASTLE_WINDOW_XLIB} // easiest to compile
-             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
+             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on macOS, but requires LCL
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -456,7 +456,7 @@ unit CastleWindow;
   {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}
-  { Disable using XF86VMODE on Mac OS X, because it seems that newer XQuarts
+  { Disable using XF86VMODE on macOS, because it seems that newer XQuarts
     does not provide it. }
   {$ifndef DARWIN}
     {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
@@ -1524,7 +1524,7 @@ type
       @deprecated
       This property is deprecated, since modern OpenGL deprecated accumulation
       buffer. It may not be supported by some backends (e.g. now LCL backend,
-      the default backend on Mac OS X, doesn't support it). }
+      the default backend on macOS, doesn't support it). }
     property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
 
     { Name of the icon for this window used by GTK 2 backend.
@@ -1760,7 +1760,7 @@ type
     property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
 
     { Called when user drag and drops file(s) on the window.
-      In case of Mac OS X bundle, this is also called when user opens a document
+      In case of macOS bundle, this is also called when user opens a document
       associated with our application by double-clicking.
       Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
@@ -2106,7 +2106,7 @@ type
 
         @itemLabel poMacOsXProcessSerialNumber
         @item(
-          (Only relevant on Mac OS X) A special parameter -psvn_x_xxx will be found
+          (Only relevant on macOS) A special parameter -psvn_x_xxx will be found
           and removed from the @link(Parameters) list. See
           http://forums.macrumors.com/showthread.php?t=207344 and
           http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder .
@@ -2816,7 +2816,7 @@ type
       See TCastleApplication.ProcessMessage.
 
       In case of CastleWindow backends when we have to fight with event clogging
-      (right now only LCL backend, used by default only on Mac OS X)
+      (right now only LCL backend, used by default only on macOS)
       this is also the "desired number of FPS": we make sure that even
       when application is clogged with events (like when dragging with mouse),
       we call update (TCastleWindowCustom.OnUpdate) and (if necessary)

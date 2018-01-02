@@ -81,7 +81,7 @@ Mini-FAQ about these packages:
   provides CastleWindow unit using Lazarus LCL as a backend.
   It's useful for platforms where we don't have a better CastleWindow backend.
 
-  In practice, use this only for Mac OS X, see
+  In practice, use this only for macOS, see
 
     http://castle-engine.sourceforge.net/macosx_requirements.php
 

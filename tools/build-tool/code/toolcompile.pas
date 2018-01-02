@@ -309,7 +309,7 @@ var
 
         Add -w to ignore linker warnings
 
-        This seems the only way to get rid of XCode (>= 8.3) linker errors when
+        This seems the only way to get rid of Xcode (>= 8.3) linker errors when
         compiling iOS project. The error is
 
           Warning:pointer not aligned at address...

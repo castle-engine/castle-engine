@@ -267,7 +267,7 @@ end;
 
 function MyGetApplicationName: string;
 begin
-  // Do not collide with /usr/share/sandbox on Mac OS X
+  // Do not collide with /usr/share/sandbox on macOS
   Result := 'sandbox_game';
 end;
 

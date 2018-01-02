@@ -1762,7 +1762,7 @@ begin
   try
     CheckALC('alcGetString');
     { Check also normal al error (alGetError instead
-      of alcGetError). Seems that when Darwin (Mac OS X) Apple's OpenAL
+      of alcGetError). Seems that when Darwin (macOS) Apple's OpenAL
       implementation fails to return some alcGetString
       it reports this by setting AL error (instead of ALC one)
       to "invalid value". Although (after fixes to detect OpenALSampleImplementation

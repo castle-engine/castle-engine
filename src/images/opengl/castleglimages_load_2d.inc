@@ -589,7 +589,7 @@ begin
     demo_models/textures/marble_with_mipmaps_s3tc.dds
 
     No problem on NVidia (fpc 2.2.2 kocury/linux/32, fpc 2.2.4 kocury/linux/32),
-    and no problem on Mac OS X with the same GPU (also chantal, 32bit, fpc 2.2.4).
+    and no problem on macOS with the same GPU (also chantal, 32bit, fpc 2.2.4).
     So I'm assuming it's fglrx-specific bug. }
   if GLVersion.Fglrx and ( (Image.Width < 4) or (Image.Height < 4) ) then
     raise ECannotDecompressTexture.CreateFmt('Cannot decompress texture: fglrx (proprietary Radeon drivers on Linux) may awfully crash when one of texture sizes is smaller than 4, and your texture size is %d x %d',

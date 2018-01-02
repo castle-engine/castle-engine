@@ -36,7 +36,7 @@
   - Windows: copy castleengine.dll to this project folder
     (where the executable file is generated), or anywhere on $PATH.
 
-  - Unix: copy libcastleengine.so (or libcastleengine.dylib on Mac OS X)
+  - Unix: copy libcastleengine.so (or libcastleengine.dylib on macOS)
     to any directory listed on $LD_LIBRARY_PATH.
     For example you can set LD_LIBRARY_PATH to contain empty directory,
     and then you can just copy to the current directory (from which you

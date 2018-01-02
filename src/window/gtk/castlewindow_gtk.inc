@@ -1856,7 +1856,7 @@ procedure TCastleApplication.InitializeXDisplay;
 
   {$ifdef DARWIN}
   { Replacement for gtk_init on Darwin, to try harder to attach to a running
-    X server on Mac OS X. }
+    X server on macOS. }
   procedure DarwinGtkInit;
   const
     AltXDisplayName = ':0';
@@ -1870,7 +1870,7 @@ procedure TCastleApplication.InitializeXDisplay;
       if AltDisplay <> nil then
       begin
         Writeln(ErrOutput, 'Opening the default X display failed, retrying with "',
-           AltXDisplayName, '" to try to attach to running X server on Mac OS X.');
+           AltXDisplayName, '" to try to attach to running X server on macOS.');
         gdk_display_manager_set_default_display(gdk_display_manager_get(), AltDisplay);
         gtk_init(@argc, @argv);
 

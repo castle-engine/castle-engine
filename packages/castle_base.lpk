@@ -12,7 +12,7 @@
         <OtherUnitFiles Value="../src/base;../src/3d;../src/x3d;../src/x3d/opengl;../src/images;../src/fonts;../src/fonts/windows;../src/audio;../src/files;../src/castlescript;../src/ui;../src/ui/windows;../src/ui/opengl;../src/game;../src/services;../src/services/opengl;../src/3d/opengl;../src/base/opengl;../src/images/opengl;../src/fonts/opengl;../src/physics/kraft"/>
         <UnitOutputDirectory Value="lib/castle_base/$(TargetCPU)-$(TargetOS)"/>
       </SearchPaths>
-      <Conditionals Value="// example for adding linker options on Mac OS X
+      <Conditionals Value="// example for adding linker options on macOS
 //if TargetOS='darwin' then
 //  LinkerOptions := ' -framework OpenGL';
 

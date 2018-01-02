@@ -109,7 +109,7 @@ end;
     Although tests on NVidia (kocury, GeForce FX 5200) don't show such
     drastic difference.
 
-  - TRIANGLES workaround Radeon X1600 Darwin (Mac OS X 10.4.9)
+  - TRIANGLES workaround Radeon X1600 Darwin (macOS 10.4.9)
     OpenGL bugs. (With Linux fglrx on the same hardware there is no bug.)
     It seems not able to handle GL_TRIANGLE_FAN properly,
     which is visible on "The Gate" and

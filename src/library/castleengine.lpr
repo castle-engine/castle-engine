@@ -23,7 +23,7 @@
   http://users.elis.ugent.be/~jmaebe/fpc/FPC_Objective-C_Cocoa.tbz
   http://julien.marcel.free.fr/ObjP_Part7.html
 
-  To make c-compatible (and XCode-compatible) libraries, you must :
+  To make c-compatible (and Xcode-compatible) libraries, you must :
   1- use c-types arguments
   2- add a "cdecl" declaration after your functions declarations
   3- export your functions

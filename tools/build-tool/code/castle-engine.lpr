@@ -96,7 +96,7 @@ begin
           '    On some platforms, it requires installing the application first' +NL+
           '    (e.g. on Android, where we install and run on a device' +NL+
           '    connected through USB). So run the "install" command before.' +NL+
-          '    On other platforms (e.g. standalone Windows, Linux, Mac OS X...),' +NL+
+          '    On other platforms (e.g. standalone Windows, Linux, macOS...),' +NL+
           '    it simply runs the last compiled application.' +NL+
           '    So just "compile" the application first.' +NL+
           NL+

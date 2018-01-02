@@ -222,11 +222,11 @@ function ApplicationConfig(const Path: string): string;
       @item(Last resort fallback: just our exe directory.)
     ))
 
-    @itemLabel(Mac OS X)
+    @itemLabel(macOS)
     @item(@orderedList(
       @item(@code(Contents/Resources/data) subdirectory inside our bundle directory,
         if we are inside a bundle and such subdirectory exists.)
-      @item(Otherwise, algorithm on Mac OS X follows algorithm on other Unixes,
+      @item(Otherwise, algorithm on macOS follows algorithm on other Unixes,
         see below.)
     ))
 
@@ -236,7 +236,7 @@ function ApplicationConfig(const Path: string): string;
         from the apk.)
     ))
 
-    @itemLabel(Unix (Linux, Mac OS X, FreeBSD etc.))
+    @itemLabel(Unix (Linux, macOS, FreeBSD etc.))
     @item(@orderedList(
       @item(@code(~/.local/share/) + ApplicationName.
         This is nice user-specific data directory, following the default dictated by
@@ -411,7 +411,7 @@ function GetTempFileNameCheck: string;
 function GetTempFileNamePrefix: string;
 
 {$ifdef DARWIN}
-{ Main directory of the current Mac OS X bundle, including final slash.
+{ Main directory of the current macOS bundle, including final slash.
   Empty string if we're not run from a bundle. }
 function BundlePath: string;
 {$endif}
