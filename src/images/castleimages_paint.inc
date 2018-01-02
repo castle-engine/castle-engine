@@ -491,41 +491,210 @@ end;
 procedure TCastleImage.FillRectangle(const x1, y1, x2, y2: single;
   const aColor: TCastleColor);
 var
+  NewColor, OldColor: TCastleColor;
   ix, iy: integer;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MinX, MaxX, MinY, MaxY: single;
 begin
+  if x1 < x2 then
+  begin
+    MinX := x1;
+    MaxX := x2;
+  end
+  else
+  begin
+    MinX := x2;
+    MaxX := x1;
+  end;
+  if y1 < y2 then
+  begin
+    MinY := y1;
+    MaxY := y2;
+  end
+  else
+  begin
+    MinY := y2;
+    MaxY := y1;
+  end;
+  if MinX < 0 then MinX := 0;
+  if MinY < 0 then MinY := 0;
+  if MaxX > Width then MaxX := Width;
+  if MaxY > Height then MaxY := Height;
 
+
+  for ix := Round(MinX - 1) to Round(MaxX + 1) do
+    if (ix >= 0) and (ix < Width) then
+      for iy := Round(MinY - 1) to Round(MaxY + 1) do
+        if (iy >= 0) and (iy < Height) then
+          ;
 end;
 
 procedure TRGBAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
 const aColor: TCastleColor);
 var
+  p: PVector4Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MinX, MaxX, MinY, MaxY: single;
 begin
+  if x1 < x2 then
+  begin
+    MinX := x1;
+    MaxX := x2;
+  end
+  else
+  begin
+    MinX := x2;
+    MaxX := x1;
+  end;
+  if y1 < y2 then
+  begin
+    MinY := y1;
+    MaxY := y2;
+  end
+  else
+  begin
+    MinY := y2;
+    MaxY := y1;
+  end;
+  if MinX < 0 then MinX := 0;
+  if MinY < 0 then MinY := 0;
+  if MaxX > Width then MaxX := Width;
+  if MaxY > Height then MaxY := Height;
 
+
+  for ix := Round(MinX - 1) to Round(MaxX + 1) do
+    if (ix >= 0) and (ix < Width) then
+      for iy := Round(MinY - 1) to Round(MaxY + 1) do
+        if (iy >= 0) and (iy < Height) then
+          ;
 end;
 
 procedure TGrayscaleAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
 const aColor: TCastleColor);
 var
+  p: PVector2Byte;
+  ByteColor: Byte;
   ix, iy: integer;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MinX, MaxX, MinY, MaxY: single;
 begin
+  if x1 < x2 then
+  begin
+    MinX := x1;
+    MaxX := x2;
+  end
+  else
+  begin
+    MinX := x2;
+    MaxX := x1;
+  end;
+  if y1 < y2 then
+  begin
+    MinY := y1;
+    MaxY := y2;
+  end
+  else
+  begin
+    MinY := y2;
+    MaxY := y1;
+  end;
+  if MinX < 0 then MinX := 0;
+  if MinY < 0 then MinY := 0;
+  if MaxX > Width then MaxX := Width;
+  if MaxY > Height then MaxY := Height;
 
+
+  for ix := Round(MinX - 1) to Round(MaxX + 1) do
+    if (ix >= 0) and (ix < Width) then
+      for iy := Round(MinY - 1) to Round(MaxY + 1) do
+        if (iy >= 0) and (iy < Height) then
+          ;
 end;
 
 procedure TRGBImage.FillRectangle(const x1, y1, x2, y2: single;
 const aColor: TCastleColor);
 var
+  p: PVector3Byte;
+  ByteColor: TVector3Byte;
   ix, iy: integer;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MinX, MaxX, MinY, MaxY: single;
 begin
+  if x1 < x2 then
+  begin
+    MinX := x1;
+    MaxX := x2;
+  end
+  else
+  begin
+    MinX := x2;
+    MaxX := x1;
+  end;
+  if y1 < y2 then
+  begin
+    MinY := y1;
+    MaxY := y2;
+  end
+  else
+  begin
+    MinY := y2;
+    MaxY := y1;
+  end;
+  if MinX < 0 then MinX := 0;
+  if MinY < 0 then MinY := 0;
+  if MaxX > Width then MaxX := Width;
+  if MaxY > Height then MaxY := Height;
 
+
+  for ix := Round(MinX - 1) to Round(MaxX + 1) do
+    if (ix >= 0) and (ix < Width) then
+      for iy := Round(MinY - 1) to Round(MaxY + 1) do
+        if (iy >= 0) and (iy < Height) then
+          ;
 end;
 
 procedure TGrayscaleImage.FillRectangle(const x1, y1, x2, y2: single;
 const aColor: TCastleColor);
 var
+  p: PByte;
+  ByteColor: Byte;
   ix, iy: integer;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  MinX, MaxX, MinY, MaxY: single;
 begin
+  if x1 < x2 then
+  begin
+    MinX := x1;
+    MaxX := x2;
+  end
+  else
+  begin
+    MinX := x2;
+    MaxX := x1;
+  end;
+  if y1 < y2 then
+  begin
+    MinY := y1;
+    MaxY := y2;
+  end
+  else
+  begin
+    MinY := y2;
+    MaxY := y1;
+  end;
+  if MinX < 0 then MinX := 0;
+  if MinY < 0 then MinY := 0;
+  if MaxX > Width then MaxX := Width;
+  if MaxY > Height then MaxY := Height;
 
+
+  for ix := Round(MinX - 1) to Round(MaxX + 1) do
+    if (ix >= 0) and (ix < Width) then
+      for iy := Round(MinY - 1) to Round(MaxY + 1) do
+        if (iy >= 0) and (iy < Height) then
+          ;
 end;
 
 {-----= HOLLOW RECTANGLE =-----}
