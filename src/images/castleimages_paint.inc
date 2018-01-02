@@ -521,12 +521,33 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
+  Alpha2 := aColor.Data[3];
 
   for ix := Round(MinX - 1) to Round(MaxX + 1) do
     if (ix >= 0) and (ix < Width) then
       for iy := Round(MinY - 1) to Round(MaxY + 1) do
         if (iy >= 0) and (iy < Height) then
-          ;
+        begin
+          OldColor := Colors[ix, iy, 0];
+          Alpha1 := OldColor.Data[3];
+
+          {antialiasing}
+          {if d1 < MeanRadius1 then
+            Alpha2d := Alpha2 * d1 / MeanRadius1
+          else}
+            Alpha2d := Alpha2;
+
+          Alpha1d := Alpha1 * (1 - Alpha2d);
+          AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+
+          NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
+          NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
+          NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
+          NewColor.Data[3] := AlphaSum;
+
+          Colors[ix, iy, 0] := NewColor;
+        end;
+
 end;
 
 procedure TRGBAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
@@ -563,12 +584,36 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  Alpha2 := aColor.Data[3];
+
 
   for ix := Round(MinX - 1) to Round(MaxX + 1) do
     if (ix >= 0) and (ix < Width) then
       for iy := Round(MinY - 1) to Round(MaxY + 1) do
         if (iy >= 0) and (iy < Height) then
-          ;
+        begin
+          p := PixelPtr(ix, iy);
+
+          Alpha1 := p^.Data[3] / 255;
+
+          {antialiasing}
+          {if d1 < MeanRadius1 then
+            Alpha2d := Alpha2 * d1 / MeanRadius1
+          else }
+            Alpha2d := Alpha2;
+
+          Alpha1d := Alpha1 * (1 - Alpha2d);
+          AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+          if AlphaSum > 0 then begin
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
+            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
+            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+          end;
+          p^.Data[3] := Round(255 * AlphaSum);
+          end;
 end;
 
 procedure TGrayscaleAlphaImage.FillRectangle(const x1, y1, x2, y2: single;
@@ -605,12 +650,32 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  Alpha2 := aColor.Data[3];
 
   for ix := Round(MinX - 1) to Round(MaxX + 1) do
     if (ix >= 0) and (ix < Width) then
       for iy := Round(MinY - 1) to Round(MaxY + 1) do
         if (iy >= 0) and (iy < Height) then
-          ;
+        begin
+          p := PixelPtr(ix, iy);
+
+          Alpha1 := p^.Data[1] / 255;
+
+          {antialiasing}
+          {if d1 < MeanRadius1 then
+            Alpha2d := Alpha2 * d1 / MeanRadius1
+          else}
+            Alpha2d := Alpha2;
+
+          Alpha1d := Alpha1 * (1 - Alpha2d);
+          AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+          if AlphaSum > 0 then begin
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+          end;
+          p^.Data[1] := Round(255 * AlphaSum);
+        end;
+
 end;
 
 procedure TRGBImage.FillRectangle(const x1, y1, x2, y2: single;
@@ -647,12 +712,30 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
+  ByteColor.Data[0] := Trunc(255 * aColor.Data[0]);
+  ByteColor.Data[1] := Trunc(255 * aColor.Data[1]);
+  ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
+  Alpha2 := aColor.Data[3];
 
   for ix := Round(MinX - 1) to Round(MaxX + 1) do
     if (ix >= 0) and (ix < Width) then
       for iy := Round(MinY - 1) to Round(MaxY + 1) do
         if (iy >= 0) and (iy < Height) then
-          ;
+        begin
+          p := PixelPtr(ix, iy);
+
+          {antialiasing}
+{          if d1 < MeanRadius1 then
+            Alpha2d := Alpha2 * d1 / MeanRadius1
+          else}
+            Alpha2d := Alpha2;
+
+          Alpha1d := 1 - Alpha2d;
+          p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
+          p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
+          p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+        end;
+
 end;
 
 procedure TGrayscaleImage.FillRectangle(const x1, y1, x2, y2: single;
@@ -689,12 +772,26 @@ begin
   if MaxX > Width then MaxX := Width;
   if MaxY > Height then MaxY := Height;
 
+  ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
+  Alpha2 := aColor.Data[3];
 
   for ix := Round(MinX - 1) to Round(MaxX + 1) do
     if (ix >= 0) and (ix < Width) then
       for iy := Round(MinY - 1) to Round(MaxY + 1) do
         if (iy >= 0) and (iy < Height) then
-          ;
+        begin
+          p := PixelPtr(ix, iy);
+
+          {antialiasing}
+{          if d1 < MeanRadius1 then
+            Alpha2d := Alpha2 * d1 / MeanRadius1
+          else}
+            Alpha2d := Alpha2;
+
+          Alpha1d := 1 - Alpha2d;
+          p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
+        end;
+
 end;
 
 {-----= HOLLOW RECTANGLE =-----}
