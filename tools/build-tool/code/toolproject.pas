@@ -1541,14 +1541,6 @@ const
       Result := Version;
   end;
 
-  function IOSStatusBarHidden: string;
-  begin
-    if FullscreenImmersive then
-      Result := 'YES'
-    else
-      Result := 'NO';
-  end;
-
 var
   P, IOSTargetAttributes, IOSRequiredDeviceCapabilities, IOSSystemCapabilities: string;
   I: Integer;
@@ -1557,7 +1549,7 @@ begin
   Macros.Add('IOS_QUALIFIED_NAME', IOSQualifiedName);
   Macros.Add('IOS_VERSION', IOSVersion);
   Macros.Add('IOS_LIBRARY_BASE_NAME' , ExtractFileName(IOSLibraryFile));
-  Macros.Add('IOS_STATUSBAR_HIDDEN', IOSStatusBarHidden);
+  Macros.Add('IOS_STATUSBAR_HIDDEN', BoolToStr(FullscreenImmersive, 'YES', 'NO'));
   Macros.Add('IOS_SCREEN_ORIENTATION', IOSScreenOrientation[ScreenOrientation]);
   P := AssociateDocumentTypes.ToPListSection(IOSQualifiedName, 'AppIcon');
   if not FUsesNonExemptEncryption then
