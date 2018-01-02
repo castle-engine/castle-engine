@@ -51,7 +51,7 @@ type
     or Lazarus (LCL) TApplication (in case you use CastleControl). }
   TCastleApplicationProperties = class
   private
-    FIsGLContextOpen, FInitialized: boolean;
+    FIsGLContextOpen, FFileAccessSafe: boolean;
     FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
@@ -164,11 +164,17 @@ type
     { @exclude }
     procedure _Warning(const Category, Message: string);
     { @exclude
-      Indicates that opening files is safe.
-      Automatically set by _GLContextEarlyOpen.
-      On Android, opening files before Android application really started is not possible.
+      Indicates that operating on files (opening, saving, creating dirs) is safe.
+
+      Always @true when not using CastleWindow (e.g. in command-line utilities,
+      Lazarus CastleControl, or custom context situations like
+      https://gist.github.com/michaliskambi/ca0eb18aeb7e326e5dc79c3b5002bcc5 ).
+
+      In case of CastleWindow:
+      On Android, opening files before Android application started (on the Java side)
+      is not possible.
       On iOS, some things (like ApplicationConfig path) may not be initialized so early. }
-    property _Initialized: boolean read FInitialized write FInitialized;
+    property _FileAccessSafe: boolean read FFileAccessSafe write FFileAccessSafe;
     { @groupEnd }
   end;
 
@@ -232,6 +238,7 @@ begin
   FOnPause := TNotifyEventList.Create;
   FOnResume := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
+  FFileAccessSafe := true;
 end;
 
 destructor TCastleApplicationProperties.Destroy;
@@ -251,13 +258,6 @@ end;
 procedure TCastleApplicationProperties._GLContextEarlyOpen;
 begin
   FIsGLContextOpen := true;
-
-  { _GLContextEarlyOpen sets FInitialized to true, to make integrations like this
-    (without CastleControl or CastleWindow):
-    https://gist.github.com/michaliskambi/ca0eb18aeb7e326e5dc79c3b5002bcc5
-    to have FInitialized = true. }
-
-  FInitialized := true;
 end;
 
 procedure TCastleApplicationProperties._GLContextOpen;

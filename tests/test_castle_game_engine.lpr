@@ -99,7 +99,7 @@ var
 begin
   ApplicationProperties.OnWarning.Add(@ApplicationProperties.WriteWarningOnConsole);
   // avoid warnings that opening files too early
-  ApplicationProperties._Initialized := true;
+  ApplicationProperties._FileAccessSafe := true;
 
 { Sometimes it's comfortable to just run the test directly, to get
   full backtrace from FPC.

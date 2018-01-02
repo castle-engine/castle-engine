@@ -3091,6 +3091,10 @@ procedure TCastleWindowCustom.OpenCore;
 begin
   if not FClosed then Exit;
 
+  { Once context is initialized, then Android activity is initialized,
+    or iOS called CGEApp_Open -> so it's safe to access files. }
+  ApplicationProperties._FileAccessSafe := true;
+
   try
     { Adjust Left/Top/Width/Height as needed.
 
@@ -5137,6 +5141,7 @@ end;
 { init/fini --------------------------------------------------------------- }
 
 initialization
+  ApplicationProperties._FileAccessSafe := false;
   CastleWindowMenu_Init;
   FApplication := TCastleApplication.Create(nil);
 finalization

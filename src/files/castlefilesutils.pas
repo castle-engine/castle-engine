@@ -498,8 +498,8 @@ begin
   { ApplicationConfig relies that ForceDirectories is reliable
     (on Android, it's not reliable before activity started)
     and ApplicationConfigOverride is set (on iOS, it's not set before CGEApp_Open called). }
-  if not ApplicationProperties._Initialized then
-    WritelnWarning('Using ApplicationConfig(''%s'') before the application was initialized. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
+  if not ApplicationProperties._FileAccessSafe then
+    WritelnWarning('Using ApplicationConfig(''%s'') before the Application.OnInitialize was called. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
       [Path]);
 
   ConfigDir := InclPathDelim(GetAppConfigDir(false));
