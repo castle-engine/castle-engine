@@ -1769,32 +1769,67 @@ type
       const TimeInAnimation: TFloatTime;
       const Looping: TPlayAnimationLooping): boolean;
 
-    { Play a named animation (like detected by @link(AnimationsList) method).
-      Also stops previously playing named animation, if any.
-      Returns whether animation (corresponding TimeSensor node) was found.
+    { Play a named animation (animation listed by the @link(AnimationsList) method).
+      This also stops previously playing named animation, if any.
+      Returns whether such animation was found.
       Playing an already-playing animation is guaranteed to start it from
       the beginning.
 
-      Note: calling this method @italic(does not change the scene immediately).
-      There may be a delay between calling PlayAnimation and actually
-      changing the scene to reflect the state at the beginning of the indicated
-      animation. This delay is usually 1 frame (that is, the scene is updated
-      at the next @link(Update) call), but it may be larger if you use
-      the optimization @link(AnimateSkipTicks).
+      Notes:
 
-      This is often a desirable optimization. There's often no "rush" to
-      visually change the animation @italic(right now), and doing it at
-      the nearest @link(Update) call is acceptable.
-      It also means that calling @link(PlayAnimation) multiple times
-      before a single @link(Update) call is not expensive.
+      @unorderedList(
+        @item(Calling this method @italic(does not change the scene immediately).
+          There may be a delay between calling PlayAnimation and actually
+          changing the scene to reflect the state at the beginning of the indicated
+          animation. This delay is usually 1 frame (that is, the scene is updated
+          at the next @link(Update) call), but it may be larger if you use
+          the optimization @link(AnimateSkipTicks).
 
-      But, sometimes you need to change the scene immediately (for example,
-      because you don't want to show user the initial scene state).
-      To do this, simply call @link(ForceAnimationPose) with @code(TimeInAnimation)
-      parameter = 0 and the same animation. This will change the scene immediately,
-      to show the beginning of this animation.
-      You can call @link(ForceAnimationPose) before or after @link(PlayAnimation),
-      doesn't matter. }
+          This is often a desirable optimization. There's often no "rush" to
+          visually change the animation @italic(right now), and doing it at
+          the nearest @link(Update) call is acceptable.
+          It also means that calling @link(PlayAnimation) multiple times
+          before a single @link(Update) call is not expensive.
+
+          But, sometimes you need to change the scene immediately (for example,
+          because you don't want to show user the initial scene state).
+          To do this, simply call @link(ForceAnimationPose) with @code(TimeInAnimation)
+          parameter = 0 and the same animation. This will change the scene immediately,
+          to show the beginning of this animation.
+          You can call @link(ForceAnimationPose) before or after @link(PlayAnimation),
+          it doesn't matter.
+        )
+
+        @item(Internally, @italic(the animation is performed using TTimeSensorNode
+          that instructs other nodes to change). For exampe, TTimeSensorNode
+          may instruct a TCoordinateInterpolatorNode to update the TIndexedFaceSetNode coordinates,
+          and in effect the animation can deform a mesh.
+          Or TTimeSensorNode may instruct a TPositionInterpolatorNode to update
+          @link(TTransformNode.Translation),
+          and in effect the animation can move something.
+
+          So the animation means that the X3D nodes graph within @link(RootNode)
+          is being changed. The exact subset of the nodes inside @link(RootNode)
+          that change depends on your animation.
+
+          This means that internally our mechanism is very flexible.
+          E.g. you can have another animation running (another TTimeSensorNode running)
+          in parallel to the animation run by this method.
+          You can also change parts of the node graph by your own code
+          (accessing @link(RoootNode))
+          in parallel to the animation by this method, as long as you don't touch
+          the same nodes.
+          @italic(Such tricks are possible, but require manually designing a proper X3D file).
+
+          If you load a model from a castle-anim-frames or MD3 format, note that it
+          is animated using a special "node interpolator" algorithm. In this case,
+          you cannot really change the model inside @link(RoootNode) anymore
+          --- any modifications may be overwritten by the "node interpolator"
+          at some point (the exact overwrite moment depends on the "merge nodes"
+          optimization done by the "node interpolator").
+        )
+      )
+    }
     function PlayAnimation(const AnimationName: string;
       const Looping: TPlayAnimationLooping): boolean;
 
