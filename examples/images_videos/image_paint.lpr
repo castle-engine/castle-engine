@@ -17,7 +17,7 @@ procedure DoTest(aImage: TCastleImage);
 begin
   aImage.Clear(Vector4Byte(0, 0, 0, 0));
   aImage.FillEllipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, Lime);
-  aImage.Ellipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 1, Lime);
+  aImage.Ellipse(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 2, Lime);
 end;
 
 procedure DoDraw;
@@ -26,7 +26,7 @@ begin
   DoTest(RGBAlphaImage);
   RGBAlphaImageGL := TGLImage.Create(RGBAlphaImage,true,true);
   {-------------}
-  RGBImage := TRGBImage.Create(TestSize*NTests, TestSize);
+  RGBImage := TRGBImage.Create(TestSize * NTests, TestSize);
   DoTest(RGBImage);
   RGBImageGL := TGLImage.Create(RGBImage,true,true);
   {-------------}
