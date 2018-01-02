@@ -313,28 +313,29 @@ begin
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
   Alpha2 := aColor.Data[3];
-{  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := 1 - Sqr((iy - y) / aRadiusY);
-      p := nil;
+      SqrY1 := 1 - Sqr((iy - y) / aRadiusY);
+      SqrY2 := 1 - Sqr((iy - y) / (aRadiusY - aWidth));
       for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr((ix - x) / aRadiusX);
-          if d >= 0 then
+          d1 := SqrY1 - Sqr((ix - x) / (aRadiusX));
+          d2 := SqrY2 - Sqr((ix - x) / (aRadiusX - aWidth));
+          if (d1 >= 0) and (d2 <= MeanRadius2) then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p := PixelPtr(ix, iy);
 
             Alpha1 := p^.Data[3] / 255;
 
             {antialiasing}
-            if d < MeanRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            if d1 < MeanRadius1 then
+              Alpha2d := Alpha2 * d1 / MeanRadius1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / MeanRadius2);
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -346,7 +347,7 @@ begin
             p^.Data[3] := Round(255 * AlphaSum);
           end;
         end;
-    end;}
+    end;
 end;
 
 procedure TGrayscaleAlphaImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
@@ -362,28 +363,29 @@ begin
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
   Alpha2 := aColor.Data[3];
-{  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := 1 - Sqr((iy - y) / aRadiusY);
-      p := nil;
+      SqrY1 := 1 - Sqr((iy - y) / aRadiusY);
+      SqrY2 := 1 - Sqr((iy - y) / (aRadiusY - aWidth));
       for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr((ix - x) / aRadiusX);
-          if d >= 0 then
+          d1 := SqrY1 - Sqr((ix - x) / (aRadiusX));
+          d2 := SqrY2 - Sqr((ix - x) / (aRadiusX - aWidth));
+          if (d1 >= 0) and (d2 <= MeanRadius2) then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p := PixelPtr(ix, iy);
 
             Alpha1 := p^.Data[1] / 255;
 
             {antialiasing}
-            if d < MeanRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            if d1 < MeanRadius1 then
+              Alpha2d := Alpha2 * d1 / MeanRadius1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / MeanRadius2);
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -393,7 +395,7 @@ begin
             p^.Data[1] := Round(255 * AlphaSum);
           end;
         end;
-    end;}
+    end;
 end;
 
 procedure TRGBImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
@@ -411,26 +413,27 @@ begin
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
   Alpha2 := aColor.Data[3];
-{  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := 1 - Sqr((iy - y) / aRadiusY);
-      p := nil;
+      SqrY1 := 1 - Sqr((iy - y) / aRadiusY);
+      SqrY2 := 1 - Sqr((iy - y) / (aRadiusY - aWidth));
       for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr((ix - x) / aRadiusX);
-          if d >= 0 then
+          d1 := SqrY1 - Sqr((ix - x) / (aRadiusX));
+          d2 := SqrY2 - Sqr((ix - x) / (aRadiusX - aWidth));
+          if (d1 >= 0) and (d2 <= MeanRadius2) then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p := PixelPtr(ix, iy);
 
             {antialiasing}
-            if d < MeanRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            if d1 < MeanRadius1 then
+              Alpha2d := Alpha2 * d1 / MeanRadius1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / MeanRadius2);
 
             Alpha1d := 1 - Alpha2d;
             p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
@@ -438,7 +441,7 @@ begin
             p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
           end;
         end;
-    end;}
+    end;
 end;
 
 procedure TGrayscaleImage.Ellipse(const x, y: single; const aRadiusX, aRadiusY: single;
@@ -454,30 +457,31 @@ begin
   MeanRadius1 := 1 / aRadiusX + 1 / aRadiusY;
   MeanRadius2 := 1 / (aRadiusX - aWidth) + 1 / (aRadiusY - aWidth);
   Alpha2 := aColor.Data[3];
-{  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
+  for iy := Round(y - aRadiusY) to Round(y + aRadiusY) do
     if (iy >= 0) and (iy < Height) then
     begin
-      SqrY := 1 - Sqr((iy - y) / aRadiusY);
-      p := nil;
+      SqrY1 := 1 - Sqr((iy - y) / aRadiusY);
+      SqrY2 := 1 - Sqr((iy - y) / (aRadiusY - aWidth));
       for ix := Round(x - aRadiusX) to Round(x + aRadiusX) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := SqrY - Sqr((ix - x) / aRadiusX);
-          if d >= 0 then
+          d1 := SqrY1 - Sqr((ix - x) / (aRadiusX));
+          d2 := SqrY2 - Sqr((ix - x) / (aRadiusX - aWidth));
+          if (d1 >= 0) and (d2 <= MeanRadius2) then
           begin
-            if p = nil then p := PixelPtr(ix, iy) else Inc(p);
+            p := PixelPtr(ix, iy);
 
             {antialiasing}
-            if d < MeanRadius then
-              { sqrt should be used here, however i like the result with square
-                of distance better }
-              Alpha2d := Alpha2 * d / MeanRadius  // as of conditions above d / DoubleRadius changes from 0 to 1
+            if d1 < MeanRadius1 then
+              Alpha2d := Alpha2 * d1 / MeanRadius1
             else
               Alpha2d := Alpha2;
+            if d2 > 0 then
+              Alpha2d := Alpha2d * (1 - d2 / MeanRadius2);
 
             Alpha1d := 1 - Alpha2d;
             p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
           end;
         end;
-    end; }
+    end;
 end;
