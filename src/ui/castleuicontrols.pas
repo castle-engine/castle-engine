@@ -222,6 +222,9 @@ type
     FUIReferenceHeight: Integer;
     FUIExplicitScale: Single;
     FCalculatedUIScale: Single; //< set on all children
+    FFps: TFramesPerSecond;
+    FPressed: TKeysPressed;
+    FMousePressed: CastleKeysMouse.TMouseButtons;
     procedure ControlsVisibleChange(Sender: TObject);
     { Called when the control C is destroyed or just removed from Controls list. }
     procedure DetachNotification(const C: TUIControl);
@@ -252,14 +255,14 @@ type
     property OnUpdate: TContainerEvent read FOnUpdate write FOnUpdate;
     { @groupEnd }
 
-    procedure SetInternalCursor(const Value: TMouseCursor); virtual; abstract;
+    procedure SetInternalCursor(const Value: TMouseCursor); virtual;
     property Cursor: TMouseCursor write SetInternalCursor;
       deprecated 'do not set this, engine will override this. Set TUIControl.Cursor of your UI controls to control the Cursor.';
     property InternalCursor: TMouseCursor write SetInternalCursor;
 
-    function GetMousePosition: TVector2; virtual; abstract;
-    procedure SetMousePosition(const Value: TVector2); virtual; abstract;
-    function GetTouches(const Index: Integer): TTouch; virtual; abstract;
+    function GetMousePosition: TVector2; virtual;
+    procedure SetMousePosition(const Value: TVector2); virtual;
+    function GetTouches(const Index: Integer): TTouch; virtual;
 
     { Get the default UI scale of controls.
       Useful only when GLInitialized, when we know that our size is sensible.
@@ -334,22 +337,20 @@ type
     property TooltipPosition: TVector2 read FTooltipPosition;
     { @groupEnd }
 
-    { Redraw the contents of of this window, at the nearest good time.
-      The redraw will not happen immediately, we will only "make a note"
-      that we should do it soon.
-      Redraw means that we call EventBeforeRender (OnBeforeRender), EventRender
-      (OnRender), then we flush OpenGL commands, swap buffers etc.
-
+    { Redraw the contents of of this window, at the nearest suitable time.
+      This method does not redraw immediately
+      (it does not call @link(EventBeforeRender) and @link(EventRender) inside),
+      it only makes sure that they will be called @italic(very soon).
       Calling this on a closed container (with GLInitialized = @false)
       is allowed and ignored. }
-    procedure Invalidate; virtual; abstract;
+    procedure Invalidate; virtual;
 
     { Is the OpenGL context initialized. }
-    function GLInitialized: boolean; virtual; abstract;
+    function GLInitialized: boolean; virtual;
 
     function Width: Integer; virtual; abstract;
     function Height: Integer; virtual; abstract;
-    function Rect: TRectangle; virtual; abstract;
+    function Rect: TRectangle; virtual;
 
     { Container width as seen by controls with UI scaling.
       In other words, this is the real @link(Width) with UI scaling
@@ -371,28 +372,31 @@ type
     property MousePosition: TVector2
       read GetMousePosition write SetMousePosition;
 
-    function Dpi: Integer; virtual; abstract;
+    { Dots per inch, specifying the relation of screen pixels to physical size. }
+    function Dpi: Integer; virtual;
 
     { Currently pressed mouse buttons. When this changes, you're always
       notified by @link(OnPress) or @link(OnRelease) events.
 
       This value is always current, in particular it's already updated
       before we call events @link(OnPress) or @link(OnRelease). }
-    function MousePressed: TMouseButtons; virtual; abstract;
+    property MousePressed: TMouseButtons read FMousePressed write FMousePressed;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
-    function Focused: boolean; virtual; abstract;
+    function Focused: boolean; virtual;
 
     { Keys currently pressed. }
-    function Pressed: TKeysPressed; virtual; abstract;
+    property Pressed: TKeysPressed read FPressed;
 
-    function Fps: TFramesPerSecond; virtual; abstract;
+    { Measures application speed. }
+    property Fps: TFramesPerSecond read FFps;
 
     { Currently active touches on the screen.
-      This tracks currently pressed fingers, in case of touch devices (mobile, like Android and iOS).
-      In case of desktops, it tracks the current mouse position, regardless if any mouse button is
-      currently pressed.
+      This tracks currently pressed fingers, in case of touch devices
+      (mobile, like Android and iOS).
+      In case of desktops, it tracks the current mouse position,
+      regardless if any mouse button is currently pressed.
 
       Indexed from 0 to TouchesCount - 1.
       @seealso TouchesCount
@@ -401,7 +405,7 @@ type
 
     { Count of currently active touches (mouse or fingers pressed) on the screen.
       @seealso Touches }
-    function TouchesCount: Integer; virtual; abstract;
+    function TouchesCount: Integer; virtual;
 
     { Capture the current container (window) contents to an image
       (or straight to an image file, like png).
@@ -1626,6 +1630,8 @@ begin
   FCalculatedUIScale := 1.0; // default safe value, in case some TUIControl will look here
   FFocus := TUIControlList.Create(false);
   FNewFocus := TUIControlList.Create(false);
+  FFps := TFramesPerSecond.Create;
+  FPressed := TKeysPressed.Create;
 
   { connect 3D device - 3Dconnexion device }
   Mouse3dPollTimer := 0;
@@ -1640,6 +1646,8 @@ end;
 
 destructor TUIContainer.Destroy;
 begin
+  FreeAndNil(FPressed);
+  FreeAndNil(FFps);
   FreeAndNil(FControls);
   FreeAndNil(Mouse3d);
   FreeAndNil(FCaptureInput);
@@ -2065,6 +2073,8 @@ var
 const
   Mouse3dPollDelay = 0.05;
 begin
+  Fps._UpdateBegin;
+
   UpdateTooltip;
 
   { 3D Mouse }
@@ -2657,6 +2667,69 @@ end;
 function TUIContainer.SaveScreen: TRGBImage;
 begin
   Result := SaveScreen(Rect);
+end;
+
+function TUIContainer.Dpi: Integer;
+begin
+  { Default implementation, if you cannot query real dpi value of the screen. }
+  Result := DefaultDpi;
+end;
+
+function TUIContainer.Rect: TRectangle;
+begin
+  Result := Rectangle(0, 0, Width, Height);
+end;
+
+procedure TUIContainer.Invalidate;
+begin
+  { Default implementation, does nothing, assuming the main program redraws in a loop. }
+end;
+
+function TUIContainer.Focused: boolean;
+begin
+  { Default implementation, assuming that the context is always focused. }
+  Result := true;
+end;
+
+procedure TUIContainer.SetInternalCursor(const Value: TMouseCursor);
+begin
+  { Default implementation, ignores new cursor value. }
+end;
+
+function TUIContainer.GetMousePosition: TVector2;
+begin
+  { Default implementation, assuming mouse is glued to the middle of the screen.
+    Some methods, like TUIContainer.UpdateFocusAndMouseCursor,
+    use this to calculate "focused" CGE control.
+
+    This returns the same value as TUIContainer.MakeMousePositionForMouseLook sets,
+    so the "mouse look" will report "no movement", which seems reasonable if we don't
+    know mouse position.
+  }
+  Result := Vector2(Width div 2, Height div 2);
+end;
+
+procedure TUIContainer.SetMousePosition(const Value: TVector2);
+begin
+  { Default implementation, ignores new mouse position. }
+end;
+
+function TUIContainer.GetTouches(const Index: Integer): TTouch;
+begin
+  Assert(Index = 0, 'Base TUIContainer implementation does not support multi-touch, so you can only access Touches[0]');
+  Result.FingerIndex := 0;
+  Result.Position := MousePosition;
+end;
+
+function TUIContainer.TouchesCount: Integer;
+begin
+  Result := 1;
+end;
+
+function TUIContainer.GLInitialized: boolean;
+begin
+  { Default implementation, assuming the OpenGL context is always initialized. }
+  Result := true;
 end;
 
 { TInputListener ------------------------------------------------------------- }

@@ -110,15 +110,7 @@ type
         function GLInitialized: boolean; override;
         function Width: Integer; override;
         function Height: Integer; override;
-        function Rect: TRectangle; override;
-        function Dpi: Integer; override;
-        function MousePressed: TMouseButtons; override;
-        function Focused: boolean; override;
-        function Pressed: TKeysPressed; override;
-        function Fps: TFramesPerSecond; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
-        function GetTouches(const Index: Integer): TTouch; override;
-        function TouchesCount: Integer; override;
         function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
 
         procedure EventOpen(const OpenWindowsCount: Cardinal); override;
@@ -135,12 +127,9 @@ type
     FContainer: TContainer;
     FMousePosition: TVector2;
     FGLInitialized: boolean;
-    FPressed: TKeysPressed;
-    FMousePressed: CastleKeysMouse.TMouseButtons;
     FAutoRedisplay: boolean;
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-    FFps: TFramesPerSecond;
     FOnOpen: TNotifyEvent;
     FOnBeforeRender: TNotifyEvent;
     FOnRender: TNotifyEvent;
@@ -192,10 +181,10 @@ type
     procedure Paint; override;
 
     { Keys currently pressed. }
-    property Pressed: TKeysPressed read FPressed;
+    function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
+    function MousePressed: CastleKeysMouse.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
@@ -203,7 +192,7 @@ type
     property MousePosition: TVector2 read FMousePosition write SetMousePosition;
 
     { Application speed. }
-    property Fps: TFramesPerSecond read FFps;
+    function Fps: TFramesPerSecond;
 
     { Capture the current control contents to an image.
       @groupBegin }
@@ -692,11 +681,6 @@ begin
   Result := Parent.Height;
 end;
 
-function TCastleControlCustom.TContainer.Rect: TRectangle;
-begin
-  Result := Parent.Rect;
-end;
-
 function TCastleControlCustom.TContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
@@ -705,31 +689,6 @@ end;
 procedure TCastleControlCustom.TContainer.SetMousePosition(const Value: TVector2);
 begin
   Parent.MousePosition := Value;
-end;
-
-function TCastleControlCustom.TContainer.Dpi: Integer;
-begin
-  Result := DefaultDpi; //Parent.Dpi; // for now, TCastleControl doesn't expose any useful Dpi
-end;
-
-function TCastleControlCustom.TContainer.MousePressed: TMouseButtons;
-begin
-  Result := Parent.MousePressed;
-end;
-
-function TCastleControlCustom.TContainer.Focused: boolean;
-begin
-  Result := true; // TODO: for now, TCastleControl always pretends to be focused
-end;
-
-function TCastleControlCustom.TContainer.Pressed: TKeysPressed;
-begin
-  Result := Parent.Pressed;
-end;
-
-function TCastleControlCustom.TContainer.Fps: TFramesPerSecond;
-begin
-  Result := Parent.Fps;
 end;
 
 procedure TCastleControlCustom.TContainer.SetInternalCursor(const Value: TMouseCursor);
@@ -744,18 +703,6 @@ begin
     manager call. }
   if Parent.Cursor <> NewCursor then
     Parent.Cursor := NewCursor;
-end;
-
-function TCastleControlCustom.TContainer.GetTouches(const Index: Integer): TTouch;
-begin
-  Assert(Index = 0, 'TCastleControlCustom always has only one item in Touches array, with index 0');
-  Result.FingerIndex := 0;
-  Result.Position := Parent.MousePosition;
-end;
-
-function TCastleControlCustom.TContainer.TouchesCount: Integer;
-begin
-  Result := 1;
 end;
 
 function TCastleControlCustom.TContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -843,8 +790,6 @@ constructor TCastleControlCustom.Create(AOwner: TComponent);
 begin
   inherited;
   TabStop := true;
-  FFps := TFramesPerSecond.Create;
-  FPressed := TKeysPressed.Create;
   FAutoRedisplay := true;
 
   FContainer := TContainer.Create(Self);
@@ -884,8 +829,6 @@ begin
     Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
   end;
 
-  FreeAndNil(FPressed);
-  FreeAndNil(FFps);
   FreeAndNil(FContainer);
   inherited;
 end;
@@ -972,7 +915,7 @@ end;
 procedure TCastleControlCustom.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
-  FMousePressed := [];
+  Container.MousePressed := [];
 end;
 
 procedure TCastleControlCustom.UpdateShiftState(const Shift: TShiftState);
@@ -1046,7 +989,7 @@ begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Include(FMousePressed, MyButton);
+    Container.MousePressed := Container.MousePressed + [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
@@ -1064,7 +1007,7 @@ begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Exclude(FMousePressed, MyButton);
+    Container.MousePressed := Container.MousePressed - [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
@@ -1193,7 +1136,6 @@ end;
 procedure TCastleControlCustom.DoUpdate;
 begin
   if AutoRedisplay then Invalidate;
-  Fps._UpdateBegin;
   Container.EventUpdate;
 end;
 
@@ -1262,7 +1204,7 @@ end;
 
 function TCastleControlCustom.Rect: TRectangle;
 begin
-  Result := Rectangle(0, 0, Width, Height);
+  Result := Container.Rect;
 end;
 
 function TCastleControlCustom.Controls: TChildrenControls;
@@ -1351,6 +1293,21 @@ end;
 procedure TCastleControl.SetOnCameraChanged(const Value: TNotifyEvent);
 begin
   SceneManager.OnCameraChanged := Value;
+end;
+
+function TCastleControlCustom.MousePressed: TMouseButtons;
+begin
+  Result := Container.MousePressed;
+end;
+
+function TCastleControlCustom.Pressed: TKeysPressed;
+begin
+  Result := Container.Pressed;
+end;
+
+function TCastleControlCustom.Fps: TFramesPerSecond;
+begin
+  Result := Container.Fps;
 end;
 
 { TCastle2DControl ----------------------------------------------------------- }

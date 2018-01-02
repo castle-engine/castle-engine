@@ -612,10 +612,7 @@ type
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Dpi: Integer; override;
-    function MousePressed: TMouseButtons; override;
     function Focused: boolean; override;
-    function Pressed: TKeysPressed; override;
-    function Fps: TFramesPerSecond; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
@@ -652,7 +649,6 @@ type
     FOnDropFiles: TDropFilesFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
-    FMousePressed: TMouseButtons;
     FFocused: boolean;
     FMousePosition: TVector2;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
@@ -678,8 +674,6 @@ type
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
 
-    FFps: TFramesPerSecond;
-
     FDepthBits: Cardinal;
     FStencilBits: Cardinal;
     FAccumBits: TVector4Cardinal;
@@ -688,7 +682,6 @@ type
     FAntiAliasing: TAntiAliasing;
     FGtkIconName: string;
     FVisible: boolean;
-    FPressed: TKeysPressed;
     FMinWidth: Integer;
     FMinHeight: Integer;
     FMaxWidth: Integer;
@@ -1860,7 +1853,7 @@ type
 
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    property MousePressed: TMouseButtons read FMousePressed;
+    function MousePressed: TMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -2063,12 +2056,10 @@ type
 
   public
     { Keys currently pressed. }
-    property Pressed: TKeysPressed read FPressed;
+    function Pressed: TKeysPressed;
 
-    { Fps -------------------------------------------------------------------- }
-
-    { Application speed. }
-    property Fps: TFramesPerSecond read FFps;
+    { Measures application speed. }
+    function Fps: TFramesPerSecond;
 
     { OpenAndRun stuff --------------------------------------------------------- }
 
@@ -2939,24 +2930,9 @@ begin
   Result := Parent.Dpi;
 end;
 
-function TWindowContainer.MousePressed: TMouseButtons;
-begin
-  Result := Parent.MousePressed;
-end;
-
 function TWindowContainer.Focused: boolean;
 begin
   Result := Parent.Focused;
-end;
-
-function TWindowContainer.Pressed: TKeysPressed;
-begin
-  Result := Parent.Pressed;
-end;
-
-function TWindowContainer.Fps: TFramesPerSecond;
-begin
-  Result := Parent.Fps;
 end;
 
 procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
@@ -3009,9 +2985,7 @@ begin
   FAutoRedisplay := true;
   OwnsMainMenu := true;
   FDpi := DefaultDpi;
-  FPressed := TKeysPressed.Create;
   FMousePosition := Vector2(-1, -1);
-  FFps := TFramesPerSecond.Create;
   FMainMenuVisible := true;
   FContainer := CreateContainer;
   Close_CharKey := #0;
@@ -3043,8 +3017,6 @@ begin
   if Messaging <> nil then
     Messaging.OnReceive.Remove(@MessageReceived);
 
-  FreeAndNil(FFps);
-  FreeAndNil(FPressed);
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
   FreeAndNil(FNamedParameters);
@@ -3114,7 +3086,7 @@ begin
 
     { reset some window state variables }
     Pressed.Clear;
-    fmousePressed := [];
+    Container.MousePressed := [];
     EventOpenCalled := false;
 
     { Set Closed to false. Before OpenBackend and EventOpen + EventResize,
@@ -3355,12 +3327,11 @@ begin
   MultiSampling := AntiAliasingToMultiSampling[Value];
 end;
 
-{ wszystkie zdarzenia TCastleWindowCustom - opakowujace je procedury DoXxx ktore
-  robia wszystkie rzeczy niezalezne od implementacji dla danego zdarzenia
-  (m.in. wywoluja EventXxx ktore m.in. wywoluje OnXxx jesli jest assigned).
-  Implementacje CastleWindow powinny wywolywac te funkcje, NIE wywolywac
-  bezposrednio EventXxx ani tym bardziej OnXxx !
-  ------------------------------------------------------------------------------------ }
+{ ----------------------------------------------------------------------------
+
+  TCastleWindowCustom events DoXxx methods,
+  implementations independent from the backend.
+  Backends should always call DoXxx, never call directly EventXxx or OnXxx. }
 
 procedure TCastleWindowCustom.DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
 begin
@@ -3538,7 +3509,7 @@ begin
   if FingerIndex = 0 then
   begin
     FMousePosition := Position;
-    Include(FMousePressed, Button);
+    Container.MousePressed := Container.MousePressed + [Button];
   end;
   MakeCurrent;
   Event := InputMouseButton(Position, Button, FingerIndex);
@@ -3555,7 +3526,7 @@ begin
   if FingerIndex = 0 then
   begin
     FMousePosition := Position;
-    Exclude(FMousePressed, Button);
+    Container.MousePressed := Container.MousePressed - [Button];
   end;
   MakeCurrent;
   Event := InputMouseButton(Position, Button, FingerIndex);
@@ -3578,7 +3549,6 @@ end;
 
 procedure TCastleWindowCustom.DoUpdate;
 begin
-  Fps._UpdateBegin;
   MakeCurrent;
   Container.EventUpdate;
 
@@ -4479,6 +4449,21 @@ end;
 function TCastleWindowCustom.TouchesCount: Integer;
 begin
   Result := FTouches.Count;
+end;
+
+function TCastleWindowCustom.MousePressed: TMouseButtons;
+begin
+  Result := Container.MousePressed;
+end;
+
+function TCastleWindowCustom.Pressed: TKeysPressed;
+begin
+  Result := Container.Pressed;
+end;
+
+function TCastleWindowCustom.Fps: TFramesPerSecond;
+begin
+  Result := Container.Fps;
 end;
 
 { TWindowSceneManager -------------------------------------------------------- }
