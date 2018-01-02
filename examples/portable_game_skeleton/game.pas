@@ -36,9 +36,24 @@ var
 
 { routines ------------------------------------------------------------------- }
 
+procedure WindowUpdate(Container: TUIContainer);
+begin
+  // ... do something every frame
+  Status.Caption := 'FPS: ' + Container.Fps.ToString;
+end;
+
+procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
+begin
+  // ... react to press of key, mouse, touch
+end;
+
 { One-time initialization of resources. }
 procedure ApplicationInitialize;
 begin
+  { Assign Window callbacks }
+  Window.OnUpdate := @WindowUpdate;
+  Window.OnPress := @WindowPress;
+
   { For a scalable UI (adjusts to any window size in a smart way), use UIScaling }
   Window.Container.UIReferenceWidth := 1024;
   Window.Container.UIReferenceHeight := 768;
@@ -48,7 +63,7 @@ begin
   Status := TCastleLabel.Create(Application);
   Status.Anchor(vpTop, -10);
   Status.Anchor(hpRight, -10);
-  Status.Color := Yellow; // you could use "Vector4(1, 1, 0, 1)" instead of Yellow
+  Status.Color := Yellow; // you could also use "Vector4(1, 1, 0, 1)" instead of Yellow
   Window.Controls.InsertFront(Status);
 
   { Show 2D image }
@@ -68,42 +83,29 @@ begin
   Window.SceneManager.MainScene := ExampleScene;
 end;
 
-procedure WindowRender(Container: TUIContainer);
-begin
-  // ... custom rendering code
-end;
-
-procedure WindowUpdate(Container: TUIContainer);
-begin
-  // ... do something every frame
-  Status.Caption := 'FPS: ' + Container.Fps.ToString;
-end;
-
-procedure WindowPress(Container: TUIContainer; const Event: TInputPressRelease);
-begin
-  // ... react to press of key, mouse, touch
-end;
-
 function MyGetApplicationName: string;
 begin
   Result := 'my_fantastic_game';
 end;
 
 initialization
-  { This sets SysUtils.ApplicationName.
-    It is useful to make sure it is correct (as early as possible)
-    as our log routines use it. }
+  { Set OnGetApplicationName, to determine the ApplicationName value.
+    Our log uses ApplicationName, so it's useful to set OnGetApplicationName early. }
   OnGetApplicationName := @MyGetApplicationName;
 
+  { Start logging. Do this as early as possible,
+    to log information and eventual warnings during initialization. }
   InitializeLog;
 
-  { initialize Application callbacks }
+  { Initialize Application.OnInitialize. }
   Application.OnInitialize := @ApplicationInitialize;
 
-  { create Window and initialize Window callbacks }
+  { Create and assign Application.MainWindow. }
   Window := TCastleWindowTouch.Create(Application);
   Application.MainWindow := Window;
-  Window.OnRender := @WindowRender;
-  Window.OnUpdate := @WindowUpdate;
-  Window.OnPress := @WindowPress;
+
+  { You should not need to do *anything* more in the unit "initialization" section.
+    Most of your game initialization should happen inside ApplicationInitialize.
+    In particular, it is not allowed to read files before ApplicationInitialize
+    (in case of non-desktop platforms, some necessary may not be prepared yet). }
 end.
