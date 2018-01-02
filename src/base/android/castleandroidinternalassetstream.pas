@@ -69,11 +69,6 @@ function URIToAssetPath(const URI: string): string;
 
 function AssetPathToURI(const AssetPath: string): string;
 
-var
-  { Set by AndroidMain handler to @true, to indicate that calling
-    AAssetManager_open is safe now. }
-  AssetOpeningReliable: boolean = false;
-
 implementation
 
 uses CastleAndroidInternalLog,
@@ -88,9 +83,6 @@ begin
       [Path]);
     Path := ChangeFileExt(Path, '');
   end;
-  if not AssetOpeningReliable then
-    AndroidLog(alWarn, 'Opening asset "%s" before the Android activity started. This is not reliable (may CRASH on some Android devices). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
-      [Path]);
   Asset := AAssetManager_open(AssetManager, PChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
     raise EAssetNotFound.CreateFmt('Asset "%s" not found', [Path]);

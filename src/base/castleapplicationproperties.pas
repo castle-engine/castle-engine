@@ -51,7 +51,7 @@ type
     or Lazarus (LCL) TApplication (in case you use CastleControl). }
   TCastleApplicationProperties = class
   private
-    FIsGLContextOpen: boolean;
+    FIsGLContextOpen, FInitialized: boolean;
     FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
@@ -92,8 +92,8 @@ type
     property OnGLContextCloseObject: TNotifyEventList read FOnGLContextCloseObject;
     { @groupEnd }
 
-    { Is the OpenGL context available. IOW, we are between OnGLContextOpen
-      and OnGLContextClose. }
+    { Is the OpenGL context available. IOW, we are between the first OnGLContextOpen
+      and last OnGLContextClose. }
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
     { Callbacks called continously when (at least one) window is open.
@@ -161,8 +161,14 @@ type
     procedure _Pause;
     { @exclude }
     procedure _Resume;
-    { @groupEnd }
+    { @exclude }
     procedure _Warning(const Category, Message: string);
+    { @exclude
+      Indicates that opening files is safe.
+      Automatically set by _GLContextEarlyOpen.
+      On Android, opening files before Android application really started is not possible.
+      On iOS, some things (like ApplicationConfig path) may not be initialized so early. }
+    property _Initialized: boolean read FInitialized write FInitialized;
     { @groupEnd }
   end;
 
@@ -245,6 +251,7 @@ end;
 procedure TCastleApplicationProperties._GLContextEarlyOpen;
 begin
   FIsGLContextOpen := true;
+  FInitialized := true;
 end;
 
 procedure TCastleApplicationProperties._GLContextOpen;

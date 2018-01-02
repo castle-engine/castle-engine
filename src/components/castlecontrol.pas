@@ -1398,6 +1398,9 @@ end;
 initialization
   ControlsList := TComponentList.Create(false);
   InitializeClipboard;
+  { in case of CastleControl, never make warnings from CastleDownload
+    when opening files, so just set _Initialized := true }
+  ApplicationProperties._Initialized := true;
 finalization
   FreeAndNil(ControlsList);
 end.

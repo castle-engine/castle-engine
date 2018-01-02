@@ -431,7 +431,8 @@ implementation
 
 uses {$ifdef DARWIN} MacOSAll, {$endif} Classes, CastleStringUtils,
   {$ifdef MSWINDOWS} CastleDynLib, {$endif} CastleLog,
-  CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload;
+  CastleURIUtils, CastleFindFiles, CastleClassUtils, CastleDownload,
+  CastleApplicationProperties;
 
 var
   { Initialized once in initialization, afterwards constant.
@@ -493,6 +494,13 @@ var
 begin
   if ApplicationConfigOverride <> '' then
     Exit(ApplicationConfigOverride + Path);
+
+  { ApplicationConfig relies that ForceDirectories is reliable
+    (on Android, it's not reliable before activity started)
+    and ApplicationConfigOverride is set (on iOS, it's not set before CGEApp_Open called). }
+  if not ApplicationProperties._Initialized then
+    WritelnWarning('Using ApplicationConfig(''%s'') before the application was initialized. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
+      [Path]);
 
   ConfigDir := InclPathDelim(GetAppConfigDir(false));
   Dir := ConfigDir + ExtractFilePath(Path);
