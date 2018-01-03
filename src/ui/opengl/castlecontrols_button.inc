@@ -385,7 +385,7 @@ var
   CustomBackgroundImage: TGLImageCore;
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
-  UseImage: boolean;
+  UseImage, UseText: boolean;
   Tint: TCastleColor;
 begin
   inherited;
@@ -443,20 +443,25 @@ begin
     ImgScreenHeight := Round(UIScale * FImage.Height);
   end;
 
-  TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
-  if UseImage and (ImageLayout = ilLeft) then
-    TextLeft += (ImgScreenWidth + ImageMarginScaled) div 2 else
-  if UseImage and (ImageLayout = ilRight) then
-    TextLeft -= (ImgScreenWidth + ImageMarginScaled) div 2;
+  UseText := (Length(Caption) > 0);
 
-  TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
-  if UseImage and (ImageLayout = ilBottom) then
-    TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
-  if UseImage and (ImageLayout = ilTop) then
-    TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
-  TextBottom += Font.Descend;
+  if UseText then
+  begin
+    TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
+    if UseImage and (ImageLayout = ilLeft) then
+      TextLeft += (ImgScreenWidth + ImageMarginScaled) div 2 else
+    if UseImage and (ImageLayout = ilRight) then
+      TextLeft -= (ImgScreenWidth + ImageMarginScaled) div 2;
 
-  RenderText;
+    TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
+    if UseImage and (ImageLayout = ilBottom) then
+      TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
+    if UseImage and (ImageLayout = ilTop) then
+      TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
+    TextBottom += Font.Descend;
+
+    RenderText;
+  end;
 
   if UseImage then
   begin
@@ -467,15 +472,19 @@ begin
         FGLImage.Alpha := acTest else
         FGLImage.Alpha := acBlending;
     end;
-    case ImageLayout of
-      ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
-      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
-      ilBottom, ilTop: ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) div 2;
-    end;
-    case ImageLayout of
-      ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
-      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
-      ilLeft, ilRight: ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) div 2;
+
+    ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) div 2;
+    ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) div 2;
+    if UseText then
+    begin
+      case ImageLayout of
+        ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
+        ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
+      end;
+      case ImageLayout of
+        ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
+        ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
+      end;
     end;
     FGLImage.Draw(Rectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
   end;
