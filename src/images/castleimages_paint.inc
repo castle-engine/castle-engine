@@ -528,11 +528,11 @@ begin
 
   Alpha2 := aColor.Data[3];
 
-  for ix := Round(MinX - 1) to Round(MaxX + 1) do
-    if (ix >= 0) and (ix < Width) then
+  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+    if (iy >= 0) and (iy < Height) then
     begin
-      for iy := Round(MinY - 1) to Round(MaxY + 1) do
-        if (iy >= 0) and (iy < Height) then
+      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+        if (ix >= 0) and (ix < Width) then
         begin
           OldColor := Colors[ix, iy, 0];
           Alpha1 := OldColor.Data[3];
@@ -612,13 +612,14 @@ begin
   Alpha2 := aColor.Data[3];
 
 
-  for ix := Round(MinX - 1) to Round(MaxX + 1) do
-    if (ix >= 0) and (ix < Width) then
+  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+    if (iy >= 0) and (iy < Height) then
     begin
-      for iy := Round(MinY - 1) to Round(MaxY + 1) do
-        if (iy >= 0) and (iy < Height) then
+      p := PixelPtr(Round(MinX - 1), iy);
+      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+        if (ix >= 0) and (ix < Width) then
         begin
-          p := PixelPtr(ix, iy);
+          inc(p);
 
           Alpha1 := p^.Data[3] / 255;
 
@@ -693,13 +694,14 @@ begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   Alpha2 := aColor.Data[3];
 
-  for ix := Round(MinX - 1) to Round(MaxX + 1) do
-    if (ix >= 0) and (ix < Width) then
+  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+    if (iy >= 0) and (iy < Height) then
     begin
-      for iy := Round(MinY - 1) to Round(MaxY + 1) do
-        if (iy >= 0) and (iy < Height) then
+      p := PixelPtr(Round(MinX - 1), iy);
+      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+        if (ix >= 0) and (ix < Width) then
         begin
-          p := PixelPtr(ix, iy);
+          inc(p);
 
           Alpha1 := p^.Data[1] / 255;
 
@@ -736,7 +738,7 @@ var
   p: PVector3Byte;
   ByteColor: TVector3Byte;
   ix, iy: integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  Alpha1d, Alpha2, Alpha2d: single;
   MinX, MaxX, MinY, MaxY: single;
   dx, dy: single;
   function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
@@ -774,13 +776,14 @@ begin
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   Alpha2 := aColor.Data[3];
 
-  for ix := Round(MinX - 1) to Round(MaxX + 1) do
-    if (ix >= 0) and (ix < Width) then
+  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+    if (iy >= 0) and (iy < Height) then
     begin
-      for iy := Round(MinY - 1) to Round(MaxY + 1) do
-        if (iy >= 0) and (iy < Height) then
+      p := PixelPtr(Round(MinX - 1), iy);
+      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+        if (ix >= 0) and (ix < Width) then
         begin
-          p := PixelPtr(ix, iy);
+          inc(p);
 
           {antialiasing}
           if ix < MinX then
@@ -813,7 +816,7 @@ var
   p: PByte;
   ByteColor: Byte;
   ix, iy: integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  Alpha1d, Alpha2, Alpha2d: single;
   MinX, MaxX, MinY, MaxY: single;
   dx, dy: single;
   function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
@@ -849,13 +852,14 @@ begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   Alpha2 := aColor.Data[3];
 
-  for ix := Round(MinX - 1) to Round(MaxX + 1) do
-    if (ix >= 0) and (ix < Width) then
+  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+    if (iy >= 0) and (iy < Height) then
     begin
-      for iy := Round(MinY - 1) to Round(MaxY + 1) do
-        if (iy >= 0) and (iy < Height) then
+      p := PixelPtr(Round(MinX - 1), iy);
+      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+        if (ix >= 0) and (ix < Width) then
         begin
-          p := PixelPtr(ix, iy);
+          inc(p);
 
           {antialiasing}
           if ix < MinX then
