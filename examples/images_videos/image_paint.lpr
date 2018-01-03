@@ -18,7 +18,7 @@ begin
   aImage.Clear(Vector4Byte(0, 0, 0, 0));
   aImage.FillEllipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, Lime);
   aImage.Ellipse(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 2, Lime);
-  aImage.FillRectangle(2 * TestSize + 10, 10, 3 * TestSize - 10, TestSize - 10, Lime);
+  aImage.FillRectangle(2 * TestSize + 10.5, 10.5, 3 * TestSize - 10.5, TestSize - 10.5, Lime);
 end;
 
 procedure DoDraw;
