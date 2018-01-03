@@ -833,7 +833,7 @@ type
       const aWidth: single; const aColor: TCastleColor); virtual;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); virtual;
-    procedure HollowRectangle(const x1, y1, x2, y2: single;
+    procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
     { @groupEnd }
   end;
@@ -1151,7 +1151,7 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
-    procedure HollowRectangle(const x1, y1, x2, y2: single;
+    procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
   end;
 
@@ -1248,7 +1248,7 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
-    procedure HollowRectangle(const x1, y1, x2, y2: single;
+    procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
   end;
 
@@ -1391,7 +1391,7 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
-    procedure HollowRectangle(const x1, y1, x2, y2: single;
+    procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
   end;
 
@@ -1451,7 +1451,7 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
-    procedure HollowRectangle(const x1, y1, x2, y2: single;
+    procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
   end;
 
@@ -2161,7 +2161,7 @@ begin
       NewPixels := GetMem(ResizeWidth * ResizeHeight * PixelSize);
       InternalResize(PixelSize,
         RawPixels, Rect, Width, Height,
-        NewPixels, Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
+        NewPixels, CastleRectangles.Rectangle(0, 0, ResizeWidth, ResizeHeight), ResizeWidth, ResizeHeight,
         Interpolation, {$ifdef CASTLE_OBJFPC}@{$endif} MixColors, ProgressTitle);
       FreeMemNiling(FRawPixels);
 
@@ -2219,10 +2219,10 @@ type
   var
     SourceRect, DestRect: TRectangle;
   begin
-    SourceRect := Rectangle(SourceXs.Data[X], SourceYs.Data[Y],
+    SourceRect := CastleRectangles.Rectangle(SourceXs.Data[X], SourceYs.Data[Y],
       SourceXs.Data[Integer(X) + 1] - SourceXs.Data[X],
       SourceYs.Data[Integer(Y) + 1] - SourceYs.Data[Y]);
-    DestRect := Rectangle(DestXs.Data[X], DestYs.Data[Y],
+    DestRect := CastleRectangles.Rectangle(DestXs.Data[X], DestYs.Data[Y],
       DestXs.Data[Integer(X) + 1] - DestXs.Data[X],
       DestYs.Data[Integer(Y) + 1] - DestYs.Data[Y]);
     InternalResize(PixelSize,

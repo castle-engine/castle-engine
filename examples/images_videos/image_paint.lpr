@@ -19,7 +19,7 @@ begin
   aImage.FillEllipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, Lime);
   aImage.Ellipse(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 2, Lime);
   aImage.FillRectangle(2 * TestSize + 10.5, 10.5, 3 * TestSize - 10.5, TestSize - 10.5, Lime);
-  aImage.HollowRectangle(3 * TestSize + 10.5, 10.5, 4 * TestSize - 10.5, TestSize - 10.5, 3, Lime);
+  aImage.Rectangle(3 * TestSize + 10.5, 10.5, 4 * TestSize - 10.5, TestSize - 10.5, 3, Lime);
 end;
 
 procedure DoDraw;

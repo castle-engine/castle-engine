@@ -886,17 +886,17 @@ end;
 
 {-----= HOLLOW RECTANGLE =-----}
 
-procedure TCastleImage.HollowRectangle(const x1, y1, x2, y2: single;
+procedure TCastleImage.Rectangle(const x1, y1, x2, y2: single;
   const aWidth: single; const aColor: TCastleColor);
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: integer;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
+  d: single;
   function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
   begin
-    if a < b then Result := a else Result := b;
+    if (a > b) then Result := a else Result := b;
   end;
 begin
   if x1 < x2 then
@@ -932,40 +932,66 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          OldColor := Colors[ix, iy, 0];
-          Alpha1 := OldColor.Data[3];
-
           {antialiasing}
           if ix < MinX then
-            dx := MinX - ix
+            d := MinX - ix
+          else
+          if (iy < MinY) then
+            d := MinY - iy
           else
           if ix > MaxX then
-            dx := ix - MaxX
-          else
-            dx := 1;
-          if iy < MinY then
-            dy := MinY - iy
+            d := ix - MaxX
           else
           if iy > MaxY then
-            dy := iy - MaxY
+            d := iy - MaxY
           else
-            dy := 1;
-          Alpha2d := Alpha2 * Sqr(Min(dx, dy));
+          if ix < MinX + aWidth then
+            d := 1
+          else
+          if iy < MinY + aWidth then
+            d := 1
+          else
+          if ix > MaxX - aWidth then
+            d := 1
+          else
+          if iy > MaxY - aWidth then
+            d := 1
+          else
+          if ix < MinX + aWidth + 1 then
+            d := MinX + aWidth + 1 - ix
+          else
+          if iy < MinY + aWidth + 1 then
+            d := MinY + aWidth + 1 - iy
+          else
+          if ix > MaxX - aWidth - 1 then
+            d := ix - (MaxX - aWidth - 1)
+          else
+          if iy > MaxY - aWidth - 1 then
+            d := iy - (MaxY - aWidth - 1)
+          else
+            d := 0;
 
-          Alpha1d := Alpha1 * (1 - Alpha2d);
-          AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+          if d > 0 then
+          begin
+            OldColor := Colors[ix, iy, 0];
+            Alpha1 := OldColor.Data[3];
+            Alpha2d := Alpha2 * Sqr(d);
 
-          NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
-          NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
-          NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
-          NewColor.Data[3] := AlphaSum;
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
 
-          Colors[ix, iy, 0] := NewColor;
+            NewColor.Data[0] := (OldColor.Data[0] * Alpha1d + aColor.Data[0] * Alpha2d) / AlphaSum;
+            NewColor.Data[1] := (OldColor.Data[1] * Alpha1d + aColor.Data[1] * Alpha2d) / AlphaSum;
+            NewColor.Data[2] := (OldColor.Data[2] * Alpha1d + aColor.Data[2] * Alpha2d) / AlphaSum;
+            NewColor.Data[3] := AlphaSum;
+
+            Colors[ix, iy, 0] := NewColor;
+          end;
         end;
     end;
 end;
 
-procedure TRGBAlphaImage.HollowRectangle(const x1, y1, x2, y2: single;
+procedure TRGBAlphaImage.Rectangle(const x1, y1, x2, y2: single;
   const aWidth: single; const aColor: TCastleColor);
 var
   p: PVector4Byte;
@@ -1050,7 +1076,7 @@ begin
     end;
 end;
 
-procedure TGrayscaleAlphaImage.HollowRectangle(const x1, y1, x2, y2: single;
+procedure TGrayscaleAlphaImage.Rectangle(const x1, y1, x2, y2: single;
   const aWidth: single; const aColor: TCastleColor);
 var
   p: PVector2Byte;
@@ -1130,7 +1156,7 @@ begin
     end;
 end;
 
-procedure TRGBImage.HollowRectangle(const x1, y1, x2, y2: single;
+procedure TRGBImage.Rectangle(const x1, y1, x2, y2: single;
   const aWidth: single; const aColor: TCastleColor);
 var
   p: PVector3Byte;
@@ -1208,7 +1234,7 @@ begin
     end;
 end;
 
-procedure TGrayscaleImage.HollowRectangle(const x1, y1, x2, y2: single;
+procedure TGrayscaleImage.Rectangle(const x1, y1, x2, y2: single;
   const aWidth: single; const aColor: TCastleColor);
 var
   p: PByte;
