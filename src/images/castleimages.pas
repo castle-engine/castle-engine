@@ -833,6 +833,8 @@ type
       const aWidth: single; const aColor: TCastleColor); virtual;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); virtual;
+    procedure HollowRectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
     { @groupEnd }
   end;
 
@@ -1149,6 +1151,8 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
+    procedure HollowRectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1244,6 +1248,8 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
+    procedure HollowRectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
   end;
 
   { Image with high-precision RGB colors encoded as 3 floats. }
@@ -1385,6 +1391,8 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
+    procedure HollowRectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1443,6 +1451,8 @@ type
       const aWidth: single; const aColor: TCastleColor); override;
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
+    procedure HollowRectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
   end;
 
 { RGBE <-> 3 Single color conversion --------------------------------- }

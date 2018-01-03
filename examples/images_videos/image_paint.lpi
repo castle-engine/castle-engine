@@ -95,7 +95,6 @@
       <Unit0>
         <Filename Value="image_paint.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="image_paint"/>
       </Unit0>
     </Units>
   </ProjectOptions>
