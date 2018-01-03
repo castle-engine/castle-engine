@@ -894,10 +894,6 @@ var
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
   d: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
-  begin
-    if (a > b) then Result := a else Result := b;
-  end;
 begin
   if x1 < x2 then
   begin
@@ -999,11 +995,7 @@ var
   ix, iy: integer;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
-  begin
-    if a < b then Result := a else Result := b;
-  end;
+  d: single;
 begin
   if x1 < x2 then
   begin
@@ -1039,39 +1031,63 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
-
-          Alpha1 := p^.Data[3] / 255;
-
           {antialiasing}
           if ix < MinX then
-            dx := MinX - ix
+            d := MinX - ix
+          else
+          if (iy < MinY) then
+            d := MinY - iy
           else
           if ix > MaxX then
-            dx := ix - MaxX
-          else
-            dx := 1;
-          if iy < MinY then
-            dy := MinY - iy
+            d := ix - MaxX
           else
           if iy > MaxY then
-            dy := iy - MaxY
+            d := iy - MaxY
           else
-            dy := 1;
-          Alpha2d := Alpha2 * Sqr(Min(dx, dy));
+          if ix < MinX + aWidth then
+            d := 1
+          else
+          if iy < MinY + aWidth then
+            d := 1
+          else
+          if ix > MaxX - aWidth then
+            d := 1
+          else
+          if iy > MaxY - aWidth then
+            d := 1
+          else
+          if ix < MinX + aWidth + 1 then
+            d := MinX + aWidth + 1 - ix
+          else
+          if iy < MinY + aWidth + 1 then
+            d := MinY + aWidth + 1 - iy
+          else
+          if ix > MaxX - aWidth - 1 then
+            d := ix - (MaxX - aWidth - 1)
+          else
+          if iy > MaxY - aWidth - 1 then
+            d := iy - (MaxY - aWidth - 1)
+          else
+            d := 0;
 
-          Alpha1d := Alpha1 * (1 - Alpha2d);
-          AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
-          if AlphaSum > 0 then begin
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
-            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
-            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+          if d > 0 then
+          begin
+            p := PixelPtr(ix, iy);
+            Alpha1 := p^.Data[3] / 255;
+            Alpha2d := Alpha2 * Sqr(d);
+
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+            if AlphaSum > 0 then begin
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d) / AlphaSum);
+              p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d) / AlphaSum);
+              p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d) / AlphaSum);
+            end;
+            p^.Data[3] := Round(255 * AlphaSum);
           end;
-          p^.Data[3] := Round(255 * AlphaSum);
         end;
     end;
 end;
@@ -1084,11 +1100,7 @@ var
   ix, iy: integer;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
-  begin
-    if a < b then Result := a else Result := b;
-  end;
+  d: single;
 begin
   if x1 < x2 then
   begin
@@ -1121,37 +1133,61 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
-
-          Alpha1 := p^.Data[1] / 255;
-
           {antialiasing}
           if ix < MinX then
-            dx := MinX - ix
+            d := MinX - ix
+          else
+          if (iy < MinY) then
+            d := MinY - iy
           else
           if ix > MaxX then
-            dx := ix - MaxX
-          else
-            dx := 1;
-          if iy < MinY then
-            dy := MinY - iy
+            d := ix - MaxX
           else
           if iy > MaxY then
-            dy := iy - MaxY
+            d := iy - MaxY
           else
-            dy := 1;
-          Alpha2d := Alpha2 * Sqr(Min(dx, dy));
+          if ix < MinX + aWidth then
+            d := 1
+          else
+          if iy < MinY + aWidth then
+            d := 1
+          else
+          if ix > MaxX - aWidth then
+            d := 1
+          else
+          if iy > MaxY - aWidth then
+            d := 1
+          else
+          if ix < MinX + aWidth + 1 then
+            d := MinX + aWidth + 1 - ix
+          else
+          if iy < MinY + aWidth + 1 then
+            d := MinY + aWidth + 1 - iy
+          else
+          if ix > MaxX - aWidth - 1 then
+            d := ix - (MaxX - aWidth - 1)
+          else
+          if iy > MaxY - aWidth - 1 then
+            d := iy - (MaxY - aWidth - 1)
+          else
+            d := 0;
 
-          Alpha1d := Alpha1 * (1 - Alpha2d);
-          AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
-          if AlphaSum > 0 then begin
-            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+          if d > 0 then
+          begin
+            p := PixelPtr(ix, iy);
+            Alpha1 := p^.Data[1] / 255;
+            Alpha2d := Alpha2 * Sqr(d);
+
+            Alpha1d := Alpha1 * (1 - Alpha2d);
+            AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
+            if AlphaSum > 0 then begin
+              p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor * Alpha2d) / AlphaSum);
+            end;
+            p^.Data[1] := Round(255 * AlphaSum);
           end;
-          p^.Data[1] := Round(255 * AlphaSum);
         end;
     end;
 end;
@@ -1164,11 +1200,7 @@ var
   ix, iy: integer;
   Alpha1d, Alpha2, Alpha2d: single;
   MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
-  begin
-    if a < b then Result := a else Result := b;
-  end;
+  d: single;
 begin
   if x1 < x2 then
   begin
@@ -1203,33 +1235,58 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
-
           {antialiasing}
           if ix < MinX then
-            dx := MinX - ix
+            d := MinX - ix
+          else
+          if (iy < MinY) then
+            d := MinY - iy
           else
           if ix > MaxX then
-            dx := ix - MaxX
-          else
-            dx := 1;
-          if iy < MinY then
-            dy := MinY - iy
+            d := ix - MaxX
           else
           if iy > MaxY then
-            dy := iy - MaxY
+            d := iy - MaxY
           else
-            dy := 1;
-          Alpha2d := Alpha2 * Sqr(Min(dx, dy));
+          if ix < MinX + aWidth then
+            d := 1
+          else
+          if iy < MinY + aWidth then
+            d := 1
+          else
+          if ix > MaxX - aWidth then
+            d := 1
+          else
+          if iy > MaxY - aWidth then
+            d := 1
+          else
+          if ix < MinX + aWidth + 1 then
+            d := MinX + aWidth + 1 - ix
+          else
+          if iy < MinY + aWidth + 1 then
+            d := MinY + aWidth + 1 - iy
+          else
+          if ix > MaxX - aWidth - 1 then
+            d := ix - (MaxX - aWidth - 1)
+          else
+          if iy > MaxY - aWidth - 1 then
+            d := iy - (MaxY - aWidth - 1)
+          else
+            d := 0;
 
-          Alpha1d := 1 - Alpha2d;
-          p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
-          p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
-          p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+          if d > 0 then
+          begin
+            p := PixelPtr(ix, iy);
+            Alpha2d := Alpha2 * Sqr(d);
+
+            Alpha1d := 1 - Alpha2d;
+            p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
+            p^.Data[1] := Round((p^.Data[1] * Alpha1d + ByteColor.Data[1] * Alpha2d));
+            p^.Data[2] := Round((p^.Data[2] * Alpha1d + ByteColor.Data[2] * Alpha2d));
+          end;
         end;
     end;
 end;
@@ -1242,11 +1299,7 @@ var
   ix, iy: integer;
   Alpha1d, Alpha2, Alpha2d: single;
   MinX, MaxX, MinY, MaxY: single;
-  dx, dy: single;
-  function Min(a, b: single): single; {$IFDEF SUPPORTS_INLINE}inline;{$ENDIF}
-  begin
-    if a < b then Result := a else Result := b;
-  end;
+  d: single;
 begin
   if x1 < x2 then
   begin
@@ -1279,31 +1332,56 @@ begin
   for iy := Round(MinY - 1) to Round(MaxY + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      p := PixelPtr(Round(MinX - 1), iy);
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          inc(p);
-
           {antialiasing}
           if ix < MinX then
-            dx := MinX - ix
+            d := MinX - ix
+          else
+          if (iy < MinY) then
+            d := MinY - iy
           else
           if ix > MaxX then
-            dx := ix - MaxX
-          else
-            dx := 1;
-          if iy < MinY then
-            dy := MinY - iy
+            d := ix - MaxX
           else
           if iy > MaxY then
-            dy := iy - MaxY
+            d := iy - MaxY
           else
-            dy := 1;
-          Alpha2d := Alpha2 * Sqr(Min(dx, dy));
+          if ix < MinX + aWidth then
+            d := 1
+          else
+          if iy < MinY + aWidth then
+            d := 1
+          else
+          if ix > MaxX - aWidth then
+            d := 1
+          else
+          if iy > MaxY - aWidth then
+            d := 1
+          else
+          if ix < MinX + aWidth + 1 then
+            d := MinX + aWidth + 1 - ix
+          else
+          if iy < MinY + aWidth + 1 then
+            d := MinY + aWidth + 1 - iy
+          else
+          if ix > MaxX - aWidth - 1 then
+            d := ix - (MaxX - aWidth - 1)
+          else
+          if iy > MaxY - aWidth - 1 then
+            d := iy - (MaxY - aWidth - 1)
+          else
+            d := 0;
 
-          Alpha1d := 1 - Alpha2d;
-          p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
+          if d > 0 then
+          begin
+            p := PixelPtr(ix, iy);
+            Alpha2d := Alpha2 * Sqr(d);
+
+            Alpha1d := 1 - Alpha2d;
+            p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
+          end;
         end;
     end;
 end;
