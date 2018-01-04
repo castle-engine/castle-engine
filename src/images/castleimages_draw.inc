@@ -24,7 +24,7 @@ procedure TCastleImage.DrawFromCore(Source: TCastleImage;
   X, Y, SourceX, SourceY, SourceWidth, SourceHeight: Integer;
   const Mode: TDrawMode);
 var
-  Line: Integer;
+  aLine: Integer;
   Ptr, SourcePtr: Pointer;
   RowWidth, SourceRowWidth, SourceCopyRowWidth: Cardinal;
 begin
@@ -43,7 +43,7 @@ begin
   SourceRowWidth := Source.Width * Source.PixelSize;
   SourceCopyRowWidth := SourceWidth * Source.PixelSize;
 
-  for Line := 0 to Integer(SourceHeight) - 1 do
+  for aLine := 0 to Integer(SourceHeight) - 1 do
   begin
     Move(SourcePtr^, Ptr^, SourceCopyRowWidth);
     PtrUInt(Ptr) := PtrUInt(Ptr) + RowWidth;

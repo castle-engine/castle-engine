@@ -835,6 +835,8 @@ type
       const aColor: TCastleColor); virtual;
     procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+    procedure Line(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); virtual;
     { @groupEnd }
   end;
 
@@ -1153,6 +1155,8 @@ type
       const aColor: TCastleColor); override;
     procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
   end;
 
   TRGBAlphaImage = class(TCastleImage)
@@ -1249,6 +1253,8 @@ type
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
     procedure Rectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
   end;
 
@@ -1393,6 +1399,8 @@ type
       const aColor: TCastleColor); override;
     procedure Rectangle(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
   end;
 
   { Grayscale image with an alpha channel.
@@ -1452,6 +1460,8 @@ type
     procedure FillRectangle(const x1, y1, x2, y2: single;
       const aColor: TCastleColor); override;
     procedure Rectangle(const x1, y1, x2, y2: single;
+      const aWidth: single; const aColor: TCastleColor); override;
+    procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); override;
   end;
 
