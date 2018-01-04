@@ -348,8 +348,25 @@ type
     { Is the OpenGL context initialized. }
     function GLInitialized: boolean; virtual;
 
+    { Container size, in pixels.
+      This is expressed in real device pixels.
+      Prefer using @link(UnscaledWidth) instead of this. @link(UnscaledWidth)
+      is more natural when you use UI scaling (@link(UIScaling)),
+      and it's simply equal to @name when UI scaling is not used. }
     function Width: Integer; virtual; abstract;
+
+    { Container size, in pixels.
+      This is expressed in real device pixels.
+      Prefer using @link(UnscaledHeight) instead of this. @link(UnscaledHeight)
+      is more natural when you use UI scaling (@link(UIScaling)),
+      and it's simply equal to @name when UI scaling is not used. }
     function Height: Integer; virtual; abstract;
+
+    { Container size, in pixels.
+      This is expressed in real device pixels, using @link(Width) and @link(Height).
+      Prefer using @link(UnscaledRect) instead of this. @link(UnscaledRect)
+      is more natural when you use UI scaling (@link(UIScaling)),
+      and it's simply equal to @name when UI scaling is not used. }
     function Rect: TRectangle; virtual;
 
     { Container width as seen by controls with UI scaling.
@@ -360,12 +377,25 @@ type
       This is equivalent to just @link(Width) when UIScaling is usNone
       (default).
 
+      Note: the name "unscaled" may seem a little unintuitive, but it's consistent.
+      We call UI sizes "scaled" when they are expressed in real device pixels,
+      because they are usually calculated as "desired size * UIScaling".
+      So the UI size is "unscaled" when it's expressed in your "desired size".
+      We usually don't use the prefix "unscaled" (e.g. @link(TCastleButton.Width)
+      is "unscaled" by we don't call it "UnscaledWidth"; every property inside
+      TCastleButton is actually "unscaled"). But here, we use prefix "unscaled",
+      because the @link(TUIContainer.Width) is (for historic reasons) the "real" size.
+
       @seealso UnscaledHeight }
     function UnscaledWidth: Cardinal;
 
     { Container height as seen by controls with UI scaling.
       @seealso UnscaledWidth }
     function UnscaledHeight: Cardinal;
+
+    { Container rectangle as seen by controls with UI scaling.
+      @seealso UnscaledWidth }
+    function UnscaledRect: TRectangle;
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
@@ -2651,6 +2681,16 @@ end;
 function TUIContainer.UnscaledHeight: Cardinal;
 begin
   Result := Round(Height / FCalculatedUIScale);
+end;
+
+function TUIContainer.UnscaledRect: TRectangle;
+begin
+  Result := Rect;
+  if not Result.IsEmpty then
+  begin
+    Result.Width  := Round(Result.Width  / FCalculatedUIScale);
+    Result.Height := Round(Result.Height / FCalculatedUIScale);
+  end;
 end;
 
 procedure TUIContainer.SaveScreen(const URL: string);
