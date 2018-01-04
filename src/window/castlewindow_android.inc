@@ -38,6 +38,7 @@ CastleAndroidNativeAppGlue,
 JNI,
 CastleAndroidInternalCWString, CastleAndroidInternalLooper,
 CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
+CastleAndroidInternalConfiguration,
 {$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
 CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
 {$endif}
@@ -166,6 +167,7 @@ begin
           later, to avoid ANRs when OnOpen does something time-consuming
           (like SceneManager.LoadLevel). }
         MainWindow.NativeWindow := App^.Window;
+        MainWindow.Dpi := AConfiguration_getDensity(App^.Config);
         QEvent.EventType := aeOpen;
         QEvents.Add(QEvent);
       end;
