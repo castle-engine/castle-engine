@@ -1463,9 +1463,9 @@ const
   function AndroidActivityTheme: string;
   begin
     if FullscreenImmersive then
-      Result := '@android:style/Theme.NoTitleBar.Fullscreen'
+      Result := 'android:Theme.NoTitleBar.Fullscreen'
     else
-      Result := '@android:style/Theme.NoTitleBar';
+      Result := 'android:Theme.NoTitleBar';
   end;
 
   function AndroidActivityLoadLibraries: string;

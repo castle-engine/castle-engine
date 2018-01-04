@@ -12,7 +12,7 @@
         android:icon="@mipmap/ic_launcher"
         android:hasCode="false">
         <activity android:name="android.app.NativeActivity"
-                android:theme="${ANDROID_ACTIVITY_THEME}"
+                android:theme="@style/AppTheme"
                 android:launchMode="singleTask"
                 android:configChanges="orientation|screenSize|keyboardHidden"
                 android:screenOrientation="${ANDROID_SCREEN_ORIENTATION}">
