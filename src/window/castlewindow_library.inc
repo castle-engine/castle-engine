@@ -45,7 +45,7 @@ private
 
 {$ifdef read_global_interface}
 
-procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 procedure CGEApp_Close; cdecl;
 procedure CGEApp_Resize(uiViewWidth, uiViewHeight: cUInt32); cdecl;
 procedure CGEApp_Render; cdecl;
@@ -56,7 +56,6 @@ procedure CGEApp_Motion(X, Y: CInt32; FingerIndex: CInt32); cdecl;
 procedure CGEApp_MouseUp(X, Y: cInt32; bLeftBtn: cBool; FingerIndex: CInt32; TrackReleased: cBool); cdecl;
 procedure CGEApp_KeyDown(eKey: CInt32); cdecl;
 procedure CGEApp_KeyUp(eKey: CInt32); cdecl;
-procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
 function CGEApp_HandleOpenUrl(szUrl: PChar): CInt32; cdecl;
 
 {$endif read_global_interface}
@@ -348,7 +347,7 @@ begin
     raise Exception.Create('Application.MainWindow not set. One of the game units *must* set Application.MainWindow value in the "initialization" section');
 end;
 
-procedure CGEApp_Open(InitialWidth, InitialHeight: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
+procedure CGEApp_Open(InitialWidth, InitialHeight, ADpi: cUInt32; ApplicationConfigDirectory: PChar); cdecl;
 begin
   try
     CheckMainWindow;
@@ -370,6 +369,7 @@ begin
     Application.MainWindow.FTop := 0;
     Application.MainWindow.FWidth := InitialWidth;
     Application.MainWindow.FHeight := InitialHeight;
+    Application.MainWindow.Dpi := ADpi;
 
     ApplicationProperties.OnWarning.Add(@Application.WarningToCallback);
     Application.MainWindow.Open;
@@ -496,16 +496,6 @@ begin
       Application.MainWindow.DoKeyUp(TKey(eKey));
   except
     on E: TObject do WritelnWarning('CGEApp_KeyUp', ExceptMessage(E));
-  end;
-end;
-
-procedure CGEApp_SetDpi(nDpi: cInt32); cdecl;
-begin
-  try
-    CheckMainWindow;
-    Application.MainWindow.Dpi := nDpi;
-  except
-    on E: TObject do WritelnWarning('CGEApp_Dpi', ExceptMessage(E));
   end;
 end;
 

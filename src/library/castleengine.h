@@ -222,10 +222,10 @@ typedef int (CDECL *TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int i
 extern void CGE_LoadLibrary(void);	// function defined in the loader CPP file
 
 //-----------------------------------------------------------------------------
-extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required). Flags is any combination of ECgeOpenFlag
+extern void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi, const char *applicationConfigDirectory);     // init the library, this function must be called first (required). Flags is any combination of ECgeOpenFlag
 extern void CGE_Close(void);
 extern void CGE_GetOpenGLInformation(char *szBuffer, int nBufSize);        // szBuffer is filled inside the function with max size of nBufSize
-extern void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi); // should be called at the start of the program. Touch interface controls will be updated automatically then.
+extern void CGE_SetUserInterface(bool bAutomaticTouchInterface); // should be called at the start of the program. Touch interface controls will be updated automatically then.
 
 extern void CGE_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
 extern void CGE_Render(void);                                                  // paints the 3d scene into the context

@@ -122,10 +122,10 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height,
+  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96,
     PCChar(PChar(GetAppConfigDir(false))));
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  CGE_SetUserInterface(true, 96);
+  CGE_SetUserInterface(true);
   sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';
   //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);

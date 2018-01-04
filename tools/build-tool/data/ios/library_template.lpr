@@ -34,7 +34,6 @@ exports
   CastleWindow.CGEApp_MouseUp,
   CastleWindow.CGEApp_KeyDown,
   CastleWindow.CGEApp_KeyUp,
-  CastleWindow.CGEApp_SetDpi,
   CastleWindow.CGEApp_HandleOpenUrl,
   CastleMessaging.CGEApp_SetReceiveMessageFromPascalCallback,
   CastleMessaging.CGEApp_SendMessageToPascal;
