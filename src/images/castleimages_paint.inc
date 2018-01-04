@@ -928,7 +928,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           if ix < MinX then
             d := MinX - ix
           else
@@ -1034,7 +1033,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           if ix < MinX then
             d := MinX - ix
           else
@@ -1136,7 +1134,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           if ix < MinX then
             d := MinX - ix
           else
@@ -1238,7 +1235,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           if ix < MinX then
             d := MinX - ix
           else
@@ -1335,7 +1331,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           if ix < MinX then
             d := MinX - ix
           else
@@ -1393,9 +1388,10 @@ procedure TCastleImage.Line(const x1, y1, x2, y2: single;
 var
   NewColor, OldColor: TCastleColor;
   ix, iy: integer;
-  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
+  a: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, n_length, t, t2, w2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1424,20 +1420,53 @@ begin
 
   Alpha2 := aColor.Data[3];
 
-  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+  nx := x2 - x1; {vector along the line}
+  ny := y2 - y1;
+  n_length := Sqrt(Sqr(nx) + Sqr(ny));
+  nx := nx / n_length;
+  ny := ny / n_length;
+  {!!! t2 >0}
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  w2 := Sqr(aWidth);
+
+  for iy := Round(MinY - aWidth - 1) to Round(MaxY + aWidth + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+      d1y := iy - y1;
+      d2y := iy - y2;
+      for ix := Round(MinX - aWidth - 1) to Round(MaxX + aWidth + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
-          d := 0;
+          d1x := ix - x1;
+          d12 := Sqr(d1x) + Sqr(d1y);
+          t := d1x * nx + d1y * ny;
 
-          if d > 0 then
+          if (t >= 0) and (t <= t2) then
+          begin
+            da2 := d12 - sqr(t);
+            if da2 < w2 then
+              a := 1
+            else
+              a := 0;
+          end
+          else
+          if d12 < w2 then
+            a := 1
+          else
+          begin
+            d2x := ix - x2;
+            d22 := Sqr(d2x) + Sqr(d2y);
+            if d22 < w2 then
+              a := 1
+            else
+              a := 0;
+          end;
+
+          if a > 0 then
           begin
             OldColor := Colors[ix, iy, 0];
             Alpha1 := OldColor.Data[3];
-            Alpha2d := Alpha2 * Sqr(d);
+            Alpha2d := Alpha2 * Sqr(a);
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -1500,7 +1529,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           d := 0;
 
           if d > 0 then
@@ -1566,7 +1594,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           d := 0;
 
           if d > 0 then
@@ -1632,7 +1659,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           d := 0;
 
           if d > 0 then
@@ -1693,7 +1719,6 @@ begin
       for ix := Round(MinX - 1) to Round(MaxX + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          {antialiasing}
           d := 0;
 
           if d > 0 then
