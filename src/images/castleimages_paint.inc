@@ -1391,7 +1391,7 @@ var
   MinX, MaxX, MinY, MaxY: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, n_length, t, t2, w2, da2: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1422,19 +1422,19 @@ begin
 
   nx := x2 - x1; {vector along the line}
   ny := y2 - y1;
-  n_length := Sqrt(Sqr(nx) + Sqr(ny));
-  nx := nx / n_length;
-  ny := ny / n_length;
+  nLength := Sqrt(Sqr(nx) + Sqr(ny));
+  nx := nx / nLength;
+  ny := ny / nLength;
   {!!! t2 >0}
   t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
-  w2 := Sqr(aWidth);
+  w2 := Sqr(aWidth / 2);
 
-  for iy := Round(MinY - aWidth - 1) to Round(MaxY + aWidth + 1) do
+  for iy := Round(MinY - aWidth / 2 - 1) to Round(MaxY + aWidth / 2 + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
       d1y := iy - y1;
       d2y := iy - y2;
-      for ix := Round(MinX - aWidth - 1) to Round(MaxX + aWidth + 1) do
+      for ix := Round(MinX - aWidth / 2 - 1) to Round(MaxX + aWidth / 2 + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
           d1x := ix - x1;
