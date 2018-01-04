@@ -1391,7 +1391,7 @@ var
   MinX, MaxX, MinY, MaxY: single;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   a: single;
-  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, da2: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1428,6 +1428,7 @@ begin
   {!!! t2 >0}
   t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
   w2 := Sqr(aWidth / 2);
+  dw2 := aWidth + 0.5; {double radius + 1}
 
   for iy := Round(MinY - aWidth / 2 - 1) to Round(MaxY + aWidth / 2 + 1) do
     if (iy >= 0) and (iy < Height) then
@@ -1443,9 +1444,12 @@ begin
 
           if (t >= 0) and (t <= t2) then
           begin
-            da2 := d12 - sqr(t);
+            da2 := d12 - Sqr(t);
             if da2 < w2 then
               a := 1
+            else
+            if da2 < w2 + dw2 then
+              a := (w2 + dw2 - da2) / dw2
             else
               a := 0;
           end
@@ -1453,11 +1457,17 @@ begin
           if d12 < w2 then
             a := 1
           else
+          if d12 < w2 + dw2 then
+            a := (w2 + dw2 - d12) / dw2
+          else
           begin
             d2x := ix - x2;
             d22 := Sqr(d2x) + Sqr(d2y);
             if d22 < w2 then
               a := 1
+            else
+            if d22 < w2 + dw2 then
+              a := (w2 + dw2 - d22) / dw2
             else
               a := 0;
           end;
@@ -1466,7 +1476,7 @@ begin
           begin
             OldColor := Colors[ix, iy, 0];
             Alpha1 := OldColor.Data[3];
-            Alpha2d := Alpha2 * Sqr(a);
+            Alpha2d := Alpha2 * a;
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -1490,7 +1500,8 @@ var
   ix, iy: integer;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  a: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1522,20 +1533,63 @@ begin
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   Alpha2 := aColor.Data[3];
 
+  nx := x2 - x1; {vector along the line}
+  ny := y2 - y1;
+  nLength := Sqrt(Sqr(nx) + Sqr(ny));
+  nx := nx / nLength;
+  ny := ny / nLength;
+  {!!! t2 >0}
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  w2 := Sqr(aWidth / 2);
+  dw2 := aWidth + 0.5; {double radius + 1}
 
-  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+  for iy := Round(MinY - aWidth / 2 - 1) to Round(MaxY + aWidth / 2 + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+      d1y := iy - y1;
+      d2y := iy - y2;
+      for ix := Round(MinX - aWidth / 2 - 1) to Round(MaxX + aWidth / 2 + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := 0;
+          d1x := ix - x1;
+          d12 := Sqr(d1x) + Sqr(d1y);
+          t := d1x * nx + d1y * ny;
 
-          if d > 0 then
+          if (t >= 0) and (t <= t2) then
+          begin
+            da2 := d12 - Sqr(t);
+            if da2 < w2 then
+              a := 1
+            else
+            if da2 < w2 + dw2 then
+              a := (w2 + dw2 - da2) / dw2
+            else
+              a := 0;
+          end
+          else
+          if d12 < w2 then
+            a := 1
+          else
+          if d12 < w2 + dw2 then
+            a := (w2 + dw2 - d12) / dw2
+          else
+          begin
+            d2x := ix - x2;
+            d22 := Sqr(d2x) + Sqr(d2y);
+            if d22 < w2 then
+              a := 1
+            else
+            if d22 < w2 + dw2 then
+              a := (w2 + dw2 - d22) / dw2
+            else
+              a := 0;
+          end;
+
+          if a > 0 then
           begin
             p := PixelPtr(ix, iy);
             Alpha1 := p^.Data[3] / 255;
-            Alpha2d := Alpha2 * Sqr(d);
+            Alpha2d := Alpha2 * a;
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -1558,7 +1612,8 @@ var
   ix, iy: integer;
   Alpha1, Alpha1d, Alpha2, Alpha2d, AlphaSum: single;
   MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  a: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1588,19 +1643,63 @@ begin
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   Alpha2 := aColor.Data[3];
 
-  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+  nx := x2 - x1; {vector along the line}
+  ny := y2 - y1;
+  nLength := Sqrt(Sqr(nx) + Sqr(ny));
+  nx := nx / nLength;
+  ny := ny / nLength;
+  {!!! t2 >0}
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  w2 := Sqr(aWidth / 2);
+  dw2 := aWidth + 0.5; {double radius + 1}
+
+  for iy := Round(MinY - aWidth / 2 - 1) to Round(MaxY + aWidth / 2 + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+      d1y := iy - y1;
+      d2y := iy - y2;
+      for ix := Round(MinX - aWidth / 2 - 1) to Round(MaxX + aWidth / 2 + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := 0;
+          d1x := ix - x1;
+          d12 := Sqr(d1x) + Sqr(d1y);
+          t := d1x * nx + d1y * ny;
 
-          if d > 0 then
+          if (t >= 0) and (t <= t2) then
+          begin
+            da2 := d12 - Sqr(t);
+            if da2 < w2 then
+              a := 1
+            else
+            if da2 < w2 + dw2 then
+              a := (w2 + dw2 - da2) / dw2
+            else
+              a := 0;
+          end
+          else
+          if d12 < w2 then
+            a := 1
+          else
+          if d12 < w2 + dw2 then
+            a := (w2 + dw2 - d12) / dw2
+          else
+          begin
+            d2x := ix - x2;
+            d22 := Sqr(d2x) + Sqr(d2y);
+            if d22 < w2 then
+              a := 1
+            else
+            if d22 < w2 + dw2 then
+              a := (w2 + dw2 - d22) / dw2
+            else
+              a := 0;
+          end;
+
+          if a > 0 then
           begin
             p := PixelPtr(ix, iy);
             Alpha1 := p^.Data[1] / 255;
-            Alpha2d := Alpha2 * Sqr(d);
+            Alpha2d := Alpha2 * a;
 
             Alpha1d := Alpha1 * (1 - Alpha2d);
             AlphaSum := Alpha1 + (1 - Alpha1) * Alpha2d;
@@ -1621,7 +1720,8 @@ var
   ix, iy: integer;
   Alpha1d, Alpha2, Alpha2d: single;
   MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  a: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1653,18 +1753,62 @@ begin
   ByteColor.Data[2] := Trunc(255 * aColor.Data[2]);
   Alpha2 := aColor.Data[3];
 
-  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+  nx := x2 - x1; {vector along the line}
+  ny := y2 - y1;
+  nLength := Sqrt(Sqr(nx) + Sqr(ny));
+  nx := nx / nLength;
+  ny := ny / nLength;
+  {!!! t2 >0}
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  w2 := Sqr(aWidth / 2);
+  dw2 := aWidth + 0.5; {double radius + 1}
+
+  for iy := Round(MinY - aWidth / 2 - 1) to Round(MaxY + aWidth / 2 + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+      d1y := iy - y1;
+      d2y := iy - y2;
+      for ix := Round(MinX - aWidth / 2 - 1) to Round(MaxX + aWidth / 2 + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := 0;
+          d1x := ix - x1;
+          d12 := Sqr(d1x) + Sqr(d1y);
+          t := d1x * nx + d1y * ny;
 
-          if d > 0 then
+          if (t >= 0) and (t <= t2) then
+          begin
+            da2 := d12 - Sqr(t);
+            if da2 < w2 then
+              a := 1
+            else
+            if da2 < w2 + dw2 then
+              a := (w2 + dw2 - da2) / dw2
+            else
+              a := 0;
+          end
+          else
+          if d12 < w2 then
+            a := 1
+          else
+          if d12 < w2 + dw2 then
+            a := (w2 + dw2 - d12) / dw2
+          else
+          begin
+            d2x := ix - x2;
+            d22 := Sqr(d2x) + Sqr(d2y);
+            if d22 < w2 then
+              a := 1
+            else
+            if d22 < w2 + dw2 then
+              a := (w2 + dw2 - d22) / dw2
+            else
+              a := 0;
+          end;
+
+          if a > 0 then
           begin
             p := PixelPtr(ix, iy);
-            Alpha2d := Alpha2 * Sqr(d);
+            Alpha2d := Alpha2 * a;
 
             Alpha1d := 1 - Alpha2d;
             p^.Data[0] := Round((p^.Data[0] * Alpha1d + ByteColor.Data[0] * Alpha2d));
@@ -1683,7 +1827,8 @@ var
   ix, iy: integer;
   Alpha1d, Alpha2, Alpha2d: single;
   MinX, MaxX, MinY, MaxY: single;
-  d: single;
+  a: single;
+  d1x, d1y, d12, d2x, d2y, d22, nx, ny, nLength, t, t2, w2, dw2, da2: single;
 begin
   if x1 < x2 then
   begin
@@ -1712,19 +1857,62 @@ begin
 
   ByteColor := GrayscaleValue(Vector3Byte(Vector3(aColor.Data[0], aColor.Data[1], aColor.Data[2])));
   Alpha2 := aColor.Data[3];
+  nx := x2 - x1; {vector along the line}
+  ny := y2 - y1;
+  nLength := Sqrt(Sqr(nx) + Sqr(ny));
+  nx := nx / nLength;
+  ny := ny / nLength;
+  {!!! t2 >0}
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  w2 := Sqr(aWidth / 2);
+  dw2 := aWidth + 0.5; {double radius + 1}
 
-  for iy := Round(MinY - 1) to Round(MaxY + 1) do
+  for iy := Round(MinY - aWidth / 2 - 1) to Round(MaxY + aWidth / 2 + 1) do
     if (iy >= 0) and (iy < Height) then
     begin
-      for ix := Round(MinX - 1) to Round(MaxX + 1) do
+      d1y := iy - y1;
+      d2y := iy - y2;
+      for ix := Round(MinX - aWidth / 2 - 1) to Round(MaxX + aWidth / 2 + 1) do
         if (ix >= 0) and (ix < Width) then
         begin
-          d := 0;
+          d1x := ix - x1;
+          d12 := Sqr(d1x) + Sqr(d1y);
+          t := d1x * nx + d1y * ny;
 
-          if d > 0 then
+          if (t >= 0) and (t <= t2) then
+          begin
+            da2 := d12 - Sqr(t);
+            if da2 < w2 then
+              a := 1
+            else
+            if da2 < w2 + dw2 then
+              a := (w2 + dw2 - da2) / dw2
+            else
+              a := 0;
+          end
+          else
+          if d12 < w2 then
+            a := 1
+          else
+          if d12 < w2 + dw2 then
+            a := (w2 + dw2 - d12) / dw2
+          else
+          begin
+            d2x := ix - x2;
+            d22 := Sqr(d2x) + Sqr(d2y);
+            if d22 < w2 then
+              a := 1
+            else
+            if d22 < w2 + dw2 then
+              a := (w2 + dw2 - d22) / dw2
+            else
+              a := 0;
+          end;
+
+          if a > 0 then
           begin
             p := PixelPtr(ix, iy);
-            Alpha2d := Alpha2 * Sqr(d);
+            Alpha2d := Alpha2 * a;
 
             Alpha1d := 1 - Alpha2d;
             p^ := Round((p^ * Alpha1d + ByteColor * Alpha2d));
