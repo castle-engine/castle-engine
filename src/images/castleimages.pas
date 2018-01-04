@@ -837,6 +837,8 @@ type
       const aWidth: single; const aColor: TCastleColor); virtual;
     procedure Line(const x1, y1, x2, y2: single;
       const aWidth: single; const aColor: TCastleColor); virtual;
+    procedure FloodFill(const x, y: integer; const aColor: TCastleColor;
+      const aThreshold: single = 0);
     { @groupEnd }
   end;
 

@@ -1916,3 +1916,71 @@ begin
     end;
 end;
 
+{ -----= FLOOD FILL =----- }
+
+{ As this algorithm is extremely inefficient, there is only one variant at this
+  moment. However, as far as it is an extremely rare use case, maybe, there is
+  no actual need to improve it ever. }
+procedure TCastleImage.FloodFill(const x, y: integer; const aColor: TCastleColor;
+    const aThreshold: single = 0);
+var
+  OldColor: TCastleColor;
+  ix, iy: integer;
+  x1, y1, x2, y2: integer;
+  aFinished: boolean;
+  Flood: array of boolean;
+  function isFloodColor(const ax, ay: integer): boolean; {$IFDEF SUPPORTS_INLINE}Inline;{$ENDIF}
+  begin
+    if (ax >= 0) and (ay >=0) and (ax <= Width) and (ay <= Height) then
+    begin
+      if Flood[ax + ay * Height] then
+        Result := true
+      else
+        Result := false;
+    end
+    else
+      Result := false;
+  end;
+  function NearbyFloodColor: boolean;
+  begin
+    Result := isFloodColor(ix - 1, iy - 1) or isFloodColor(ix, iy - 1)
+      or isFloodColor(ix + 1, iy - 1) or isFloodColor(ix - 1, iy)
+      or isFloodColor(ix + 1, iy) or isFloodColor(ix - 1, iy + 1)
+      or isFloodColor(ix, iy + 1) or isFloodColor(ix + 1, iy + 1);
+  end;
+begin
+  x1 := x - 1;
+  x2 := x + 1;
+  y1 := y - 1;
+  y2 := y + 1;
+  SetLength(Flood, Width * Height);
+  for ix := Low(Flood) to High(Flood) do Flood[ix] := false;
+  OldColor := Colors[x, y, 0]; {grab the OldColor}
+  Flood[x + y * Height] := true; {init the flood seed}
+  repeat
+    aFinished := true;
+    if x1 < 0 then x1 := 0;
+    if x1 >= Width then x1 := Width - 1;
+    if y1 < 0 then y1 := 0;
+    if y1 >= Height then y1 := Height - 1;
+    for ix := x1 to x2 do
+      for iy := y1 to y2 do
+        if not Flood[ix + iy * Height] and
+          ((Colors[ix, iy, 0] - OldColor).Length < aThreshold) and
+          NearbyFloodColor then
+        begin
+          Flood[ix + iy * Height] := true;
+          aFinished := false;
+          if (ix = x1) then dec(x1);
+          if (ix = x2) then inc(x2);
+          if (iy = y1) then dec(y1);
+          if (iy = y2) then inc(y2);
+        end;
+  until aFinished;
+  //and paint the flood with the aColor
+  for ix := x1 to x2 do
+    for iy := y1 to y2 do
+      if Flood[ix + iy * Height] then
+        Colors[ix, iy, 0] := aColor;
+end;
+

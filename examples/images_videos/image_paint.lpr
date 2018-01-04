@@ -1,4 +1,4 @@
-program image_paint;
+program Image_Paint;
 uses SysUtils,
   CastleWindow, CastleImages, CastleGLImages, castle_base, castle_window,
   CastleVectors, CastleColors, CastleLog;
@@ -6,7 +6,7 @@ uses SysUtils,
 const
   TestSize = 100;
   HalfTestSize = TestSize div 2;
-  NTests = 5;
+  NTests = 6;
 
 var
   Window: TCastleWindow;
@@ -16,14 +16,24 @@ var
 procedure DoTest(aImage: TCastleImage);
 begin
   aImage.Clear(Vector4Byte(0, 0, 0, 0));
+
   aImage.FillEllipse(HalfTestSize + 0 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, Lime);
+
   aImage.Ellipse(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 2, Lime);
+
   aImage.FillRectangle(2 * TestSize + 10.5, 10.5, 3 * TestSize - 10.5, TestSize - 10.5, Lime);
+
   aImage.Rectangle(3 * TestSize + 10.5, 10.5, 4 * TestSize - 10.5, TestSize - 10.5, 2, Lime);
+
   aImage.Line(4 * TestSize + 10.5, 10.5, 5 * TestSize - 10.5, TestSize - 10.5, 7, Lime); //straight line
   aImage.Line(5 * TestSize - 10.5, TestSize / 2, 4 * TestSize + 10.5, 10.5, 7, Lime); //invert line
   aImage.Line(4 * TestSize + 30.5, TestSize - 20.5, 5 * TestSize - 30.5, 20.5, 16, Lime);
   aImage.Line(4 * TestSize + 10.5, 19.5, 5 * TestSize - 29.5, TestSize - 10.5, 0.1, Lime);
+
+  aImage.Line(5 * TestSize + TestSize / 2, 1.5, 5 * TestSize + 1.5, TestSize - 10.5, 1, Red);
+  aImage.Line(5 * TestSize + TestSize / 2, 1.5, 6 * TestSize - 1.5, TestSize - 10.5, 1, Green);
+  aImage.Line(5 * TestSize + 1.5, TestSize - 10.5, 6 * TestSize - 1.5, TestSize - 10.5, 1, Blue);
+  aImage.FloodFill(5 * TestSize + HalfTestSize, HalfTestSize, Yellow, 0.4);
 end;
 
 procedure DoDraw;
