@@ -139,11 +139,6 @@ AppDelegate* getAppDelegate()
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
-{
-    return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
-}
-
 - (BOOL)application:(UIApplication *)application
     openURL:(NSURL *)url
     options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
@@ -156,6 +151,8 @@ AppDelegate* getAppDelegate()
             return result;
         }
     }
+    if ([url.scheme isEqualToString:@"file"])
+        return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
     return NO;
 }
 
