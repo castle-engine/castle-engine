@@ -692,8 +692,8 @@ begin
     MimeType := URIMimeType(URL);
   end else
 
-  { assets: to access Android assets }
-  if P = 'assets' then
+  { castle-android-assets: to access Android assets }
+  if (P = 'assets') or (P = 'castle-android-assets') then
   begin
     CheckFileAccessSafe(URL);
     {$ifdef ANDROID}

@@ -79,13 +79,13 @@ begin
   inherited Create;
   if ExtractFileExt(Path) = '.gz' then
   begin
-    WritelnLog('Assets', 'Trying to access asset with .gz extension, stripping the .gz (because Android tools strip them too when packing the .apk file): %s',
-      [Path]);
+    // WritelnLog('Assets', 'Trying to access Android asset with .gz extension, stripping the .gz (because Android tools strip them too when packing the .apk file): %s',
+    //   [Path]);
     Path := ChangeFileExt(Path, '');
   end;
   Asset := AAssetManager_open(AssetManager, PChar(Path), AASSET_MODE_STREAMING);
   if Asset = nil then
-    raise EAssetNotFound.CreateFmt('Asset "%s" not found', [Path]);
+    raise EAssetNotFound.CreateFmt('Android asset "%s" not found', [Path]);
 end;
 
 destructor TReadAssetStream.Destroy;
@@ -147,9 +147,11 @@ var
   U: TURI;
 begin
   U := ParseURI(URI);
-  if SameText(U.Protocol, 'assets') then
-    Result := PrefixRemove('/', U.Path + U.Document, false) else
-    raise Exception.CreateFmt('URI does not have protocol "assets:", cannot convert to asset path: %s, protocol %s',
+  if SameText(U.Protocol, 'assets') or
+     SameText(U.Protocol, 'castle-android-assets') then
+    Result := PrefixRemove('/', U.Path + U.Document, false)
+  else
+    raise Exception.CreateFmt('URI does not have protocol "castle-android-assets:" or "assets:", cannot convert to Android asset path: %s, protocol %s',
       [URI, U.Protocol]);
 end;
 
@@ -158,7 +160,7 @@ var
   U: TURI;
 begin
   FillByte(U, SizeOf(U), 0);
-  U.Protocol := 'assets';
+  U.Protocol := 'castle-android-assets';
   U.Path := '/' + AssetPath; // AssetPath does not start with slash
   Result := EncodeURI(U);
 end;

@@ -595,7 +595,7 @@ begin
   begin
     ApplicationDataCache :=
       {$ifdef ANDROID}
-        'assets:/'
+        'castle-android-assets:/'
       {$else}
         FilenameToURISafe(GetApplicationDataPath)
       {$endif}

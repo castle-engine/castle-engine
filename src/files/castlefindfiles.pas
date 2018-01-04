@@ -281,7 +281,7 @@ begin
   if (P = 'file') or (P = '') then
     LocalFileSystem else
   {$ifdef ANDROID}
-  if P = 'assets' then
+  if (P = 'assets') or (P = 'castle-android-assets') then
     AndroidAssetFileSystem else
   {$endif}
     WritelnLog('FindFiles',
