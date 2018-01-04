@@ -1869,9 +1869,9 @@ uses ExtInterpolation, FPCanvas, FPImgCanv,
 
 function EqualRGB(const Color1, Color2: TVector3Byte; Tolerance: Byte): boolean;
 begin
- result:=(Abs(Smallint(Color1.Data[0]) - Color2.Data[0]) <= tolerance) and
-         (Abs(Smallint(Color1.Data[1]) - Color2.Data[1]) <= tolerance) and
-         (Abs(Smallint(Color1.Data[2]) - Color2.Data[2]) <= tolerance);
+ result:=(Abs(Smallint(Color1.Data[0]) - Color2.Data[0]) <= Tolerance) and
+         (Abs(Smallint(Color1.Data[1]) - Color2.Data[1]) <= Tolerance) and
+         (Abs(Smallint(Color1.Data[2]) - Color2.Data[2]) <= Tolerance);
 end;
 
 { TEncodedImage -------------------------------------------------------------- }
@@ -2357,10 +2357,10 @@ begin
     for Y := 0 to Height-1 do
     begin
       ImageRow := RowPtr(y);
-      for x := 0 to (Width-1) div 2 do
+      for x := 0 to (Width - 1) div 2 do
       begin
         Pix1 := PointerAdd(ImageRow, Cardinal(x) * PixelSize);
-        Pix2 := PointerAdd(ImageRow, (Width-1-Cardinal(x)) * PixelSize);
+        Pix2 := PointerAdd(ImageRow, (Width - 1 - Cardinal(x)) * PixelSize);
         Move(Pix1^, TmpPixel^, PixelSize);
         Move(Pix2^, Pix1^, PixelSize);
         Move(TmpPixel^, Pix2^, PixelSize);
@@ -2888,9 +2888,9 @@ begin
   prgb := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    prgb^.Data[0] := High(byte)-prgb^.Data[0];
-    prgb^.Data[1] := High(byte)-prgb^.Data[1];
-    prgb^.Data[2] := High(byte)-prgb^.Data[2];
+    prgb^.Data[0] := High(byte) - prgb^.Data[0];
+    prgb^.Data[1] := High(byte) - prgb^.Data[1];
+    prgb^.Data[2] := High(byte) - prgb^.Data[2];
     Inc(prgb);
   end;
 end;
@@ -3169,9 +3169,9 @@ begin
   palpha := Pixels;
   for i := 1 to Width * Height * Depth do
   begin
-    palpha^.Data[0] := High(byte)-palpha^.Data[0];
-    palpha^.Data[1] := High(byte)-palpha^.Data[1];
-    palpha^.Data[2] := High(byte)-palpha^.Data[2];
+    palpha^.Data[0] := High(byte) - palpha^.Data[0];
+    palpha^.Data[1] := High(byte) - palpha^.Data[1];
+    palpha^.Data[2] := High(byte) - palpha^.Data[2];
     Inc(palpha);
   end;
 end;
@@ -4036,7 +4036,7 @@ begin
   P := Pixels;
   for I := 1 to Width * Height * Depth do
   begin
-    P^.Data[0] := High(Byte)-P^.Data[0];
+    P^.Data[0] := High(Byte) - P^.Data[0];
     Inc(P);
   end;
 end;
@@ -4121,7 +4121,7 @@ begin
     pomiedzy tymi "mikroskopijnie malymi" a SINGLE_EQUALITY_EPSILON ciagle
     beda powodowac problemy (bo przy liczeniu Multiplier dzielimy przez MaxVal
     wiec male MaxVal -> Float overflow). }
-  if IsZero(MaxVal) then begin result := RGBEZero; Exit end;
+  if IsZero(MaxVal) then begin Result := RGBEZero; Exit end;
 
   Frexp(MaxVal, Mantissa, Exponent);
 
@@ -4135,13 +4135,13 @@ begin
     mozna podac dokladniejsze ograniczenie na Mantissa * High(byte)).
     Wszystkie pozostale v[] sa mniejsze od MaxVal wiec one tez dadza cos
     w zakresie bajta. }
-  result.Data[0] := Clamped(Round(v.Data[0] * Multiplier), 0, High(Byte));
-  result.Data[1] := Clamped(Round(v.Data[1] * Multiplier), 0, High(Byte));
-  result.Data[2] := Clamped(Round(v.Data[2] * Multiplier), 0, High(Byte));
+  Result.Data[0] := Clamped(Round(v.Data[0] * Multiplier), 0, High(Byte));
+  Result.Data[1] := Clamped(Round(v.Data[1] * Multiplier), 0, High(Byte));
+  Result.Data[2] := Clamped(Round(v.Data[2] * Multiplier), 0, High(Byte));
 
   { sprawdzajac czy Exponent in RGBEMin/MaxExponent wczesniej juz zapewnilem
     sobie ze ponizsze przypisanie jest Ok, wynik zmiesci sie w zakresie bajta. }
-  result.Data[3] := Exponent + RGBEExponentOffset;
+  Result.Data[3] := Exponent + RGBEExponentOffset;
 end;
 
 function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
@@ -4152,12 +4152,12 @@ function VectorRGBETo3Single(const v: TVector4Byte): TVector3;
 var
   Multiplier: Single;
 begin
-  if v.Data[3] = 0 then begin result := TVector3.Zero; Exit end;
+  if v.Data[3] = 0 then begin Result := TVector3.Zero; Exit end;
 
-  Multiplier := Ldexp(1/256, Integer(v.Data[3])-RGBEExponentOffset);
-  result.Data[0] := v.Data[0] * Multiplier;
-  result.Data[1] := v.Data[1] * Multiplier;
-  result.Data[2] := v.Data[2] * Multiplier;
+  Multiplier := Ldexp(1/256, Integer(v.Data[3]) - RGBEExponentOffset);
+  Result.Data[0] := v.Data[0] * Multiplier;
+  Result.Data[1] := v.Data[1] * Multiplier;
+  Result.Data[2] := v.Data[2] * Multiplier;
 end;
 
 { TLoadImageEventList -------------------------------------------------------- }
@@ -4271,7 +4271,7 @@ begin
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatVar(result);
+              ImageRGBToFloatVar(Result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
@@ -4283,14 +4283,14 @@ begin
             if ClassAllowed(TGrayscaleImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToGrayscaleVar(result);
+              ImageRGBToGrayscaleVar(Result);
             end else
 { TODO:     if ClassAllowed(TGrayscaleAlphaImage) then
               ... }
             if ClassAllowed(TRGBFloatImage) then
             begin
               Result := Load(Stream, [TRGBImage]);
-              ImageRGBToFloatVar(result);
+              ImageRGBToFloatVar(Result);
             end else
               raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
           end;
@@ -4317,7 +4317,7 @@ begin
               end else }
               if ClassAllowed(TRGBFloatImage) then
               begin
-                ImageRGBToFloatVar(result);
+                ImageRGBToFloatVar(Result);
               end else
                 raise EUnableToLoadImage.CreateFmt('LoadEncodedImage cannot load this image file format to %s', [LoadEncodedImageParams(AllowedImageClasses)]);
             end;
@@ -4331,7 +4331,7 @@ begin
               Result := LoadRGBE(Stream, [TRGBImage]);
               if ClassAllowed(TRGBAlphaImage) then
               begin
-                ImageAddAlphaVar(result);
+                ImageAddAlphaVar(Result);
               end else
               if ClassAllowed(TGrayscaleImage) then
               begin
