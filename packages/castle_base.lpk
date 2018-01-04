@@ -172,7 +172,6 @@ end;"/>
       </Item27>
       <Item28>
         <Filename Value="../src/audio/castlesoundallocator.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleSoundAllocator"/>
       </Item28>
       <Item29>
@@ -205,7 +204,6 @@ end;"/>
       </Item35>
       <Item36>
         <Filename Value="../src/base/castlegenericlists.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGenericLists"/>
       </Item36>
       <Item37>
@@ -262,7 +260,6 @@ end;"/>
       </Item49>
       <Item50>
         <Filename Value="../src/base/castleshaders.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleShaders"/>
       </Item50>
       <Item51>
@@ -379,7 +376,6 @@ end;"/>
       </Item78>
       <Item79>
         <Filename Value="../src/base/castlewarnings.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleWarnings"/>
       </Item79>
       <Item80>
@@ -812,7 +808,6 @@ end;"/>
       </Item185>
       <Item186>
         <Filename Value="../src/services/castlegoogleplaygames.pas"/>
-        <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleGooglePlayGames"/>
       </Item186>
       <Item187>
