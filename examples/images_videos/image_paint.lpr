@@ -20,8 +20,8 @@ begin
   aImage.Ellipse(HalfTestSize + 1 * TestSize, HalfTestSize, TestSize / 4, TestSize / 4, 2, Lime);
   aImage.FillRectangle(2 * TestSize + 10.5, 10.5, 3 * TestSize - 10.5, TestSize - 10.5, Lime);
   aImage.Rectangle(3 * TestSize + 10.5, 10.5, 4 * TestSize - 10.5, TestSize - 10.5, 2, Lime);
-  aImage.Line(4 * TestSize + 10.5, 10.5, 5 * TestSize - 10.5, TestSize - 10.5, 7, Lime);
-  aImage.Line(4 * TestSize + 10.5, 10.5, 5 * TestSize - 10.5, TestSize / 2, 7, Lime);
+  aImage.Line(4 * TestSize + 10.5, 10.5, 5 * TestSize - 10.5, TestSize - 10.5, 7, Lime); //straight line
+  aImage.Line(5 * TestSize - 10.5, TestSize / 2, 4 * TestSize + 10.5, 10.5, 7, Lime); //invert line
   aImage.Line(4 * TestSize + 30.5, TestSize - 20.5, 5 * TestSize - 30.5, 20.5, 16, Lime);
   aImage.Line(4 * TestSize + 10.5, 19.5, 5 * TestSize - 29.5, TestSize - 10.5, 0.1, Lime);
 end;

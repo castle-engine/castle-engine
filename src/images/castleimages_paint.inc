@@ -1425,8 +1425,7 @@ begin
   nLength := Sqrt(Sqr(nx) + Sqr(ny));
   nx := nx / nLength;
   ny := ny / nLength;
-  {!!! t2 >0}
-  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line, always >0, actually, equal to nLength}
   w2 := Sqr(aWidth / 2);
   dw2 := aWidth + 0.5; {double radius + 1}
 
@@ -1538,8 +1537,7 @@ begin
   nLength := Sqrt(Sqr(nx) + Sqr(ny));
   nx := nx / nLength;
   ny := ny / nLength;
-  {!!! t2 >0}
-  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line, always >0, actually, equal to nLength}
   w2 := Sqr(aWidth / 2);
   dw2 := aWidth + 0.5; {double radius + 1}
 
@@ -1648,8 +1646,7 @@ begin
   nLength := Sqrt(Sqr(nx) + Sqr(ny));
   nx := nx / nLength;
   ny := ny / nLength;
-  {!!! t2 >0}
-  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line, always >0, actually, equal to nLength}
   w2 := Sqr(aWidth / 2);
   dw2 := aWidth + 0.5; {double radius + 1}
 
@@ -1758,8 +1755,7 @@ begin
   nLength := Sqrt(Sqr(nx) + Sqr(ny));
   nx := nx / nLength;
   ny := ny / nLength;
-  {!!! t2 >0}
-  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line, always >0, actually, equal to nLength}
   w2 := Sqr(aWidth / 2);
   dw2 := aWidth + 0.5; {double radius + 1}
 
@@ -1862,8 +1858,7 @@ begin
   nLength := Sqrt(Sqr(nx) + Sqr(ny));
   nx := nx / nLength;
   ny := ny / nLength;
-  {!!! t2 >0}
-  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line }
+  t2 := (x2 - x1) * nx + (y2 - y1) * ny; {parameter of the end point of the line, always >0, actually, equal to nLength}
   w2 := Sqr(aWidth / 2);
   dw2 := aWidth + 0.5; {double radius + 1}
 
