@@ -335,6 +335,8 @@ begin
           Result := ExclusiveEvents;
         end;
     end;
+  if EnableDragging and Event.IsMouseButton(mbLeft) and ScrollBarVisible then
+    Result := ExclusiveEvents;
 end;
 
 function TCastleScrollView.Release(const Event: TInputPressRelease): boolean;
