@@ -358,7 +358,7 @@ begin
 
   if ScrollBarDragging then
   begin
-    Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
+    Scroll := Scroll + ((Event.OldPosition[1] - Event.Position[1]) / UIScale) /
       ScrollbarFrame.Height * ScrollArea.ScreenRect.Height;
     TimeSinceDraggingStopped := 0;
     Result := ExclusiveEvents;
