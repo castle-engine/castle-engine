@@ -284,7 +284,7 @@ begin
     begin
       BufferLoaded := true;
       SoundNode := GetSoundNode;
-      if (Buffer <> 0) and (SoundNode <> nil) then
+      if (Buffer <> nil) and (SoundNode <> nil) then
       begin
         Parameters := TSoundParameters.Create;
         try
@@ -318,7 +318,6 @@ procedure TAudioClipNode.SetBufferLoaded(const Value: boolean);
 var
   I: Integer;
   FullUrl: string;
-  LoadedDuration: TFloatTime;
 begin
   if FBufferLoaded <> Value then
   begin
@@ -354,10 +353,10 @@ begin
             - click on lower-bottom speakers }
           Inc(InsideLoadBuffer);
           try
-            Buffer := SoundEngine.LoadBuffer(FullUrl, LoadedDuration);
+            Buffer := SoundEngine.LoadBuffer(FullUrl);
+            FDuration := Buffer.Duration;
           finally Dec(InsideLoadBuffer) end;
 
-          FDuration := LoadedDuration;
           EventDuration_Changed.Send(FDuration);
           Break;
         except
@@ -384,11 +383,6 @@ begin
     { Maybe we should start playing? }
     BufferLoaded := false; //< force reloading buffer next time
     UpdatePlaying;
-  end else
-  begin
-    { Zero Buffer, since closing of OpenAL already freed it (and stopped the
-      Sound). }
-    Buffer := 0;
   end;
 end;
 
