@@ -4156,7 +4156,7 @@ var
 begin
   if v.Data[3] = 0 then begin Result := TVector3.Zero; Exit end;
 
-  Multiplier := Ldexp(1/256, Integer(v.Data[3]) - RGBEExponentOffset);
+  Multiplier := Ldexp(1 / 256, Integer(v.Data[3]) - RGBEExponentOffset);
   Result.Data[0] := v.Data[0] * Multiplier;
   Result.Data[1] := v.Data[1] * Multiplier;
   Result.Data[2] := v.Data[2] * Multiplier;
