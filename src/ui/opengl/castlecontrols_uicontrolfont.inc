@@ -212,7 +212,7 @@ begin
       FCustomizedFont.Size := Result.RealSize; // to have something to multiply in line below
     FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
     if SmallFont then
-      FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
+      FCustomizedFont.Size := FCustomizedFont.Size * UIFontSmallScale;
     if Result is TFontFamily then
     begin
       { copying Result to FCustomizedFont this way allows to render with HTML

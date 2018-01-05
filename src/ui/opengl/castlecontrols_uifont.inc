@@ -45,8 +45,12 @@ function GetUIFontSmall: TCastleFont;
 procedure SetUIFontSmall(const Value: TCastleFont);
   deprecated 'use UIFont and temporarily change the size to be smaller, or use TUIControlFont.SmallFont';
 
+function GetUIFontSmallScale: Single;
+procedure SetUIFontSmallScale(const Value: Single);
+
 property UIFont: TCastleFont read GetUIFont write SetUIFont;
 property UIFontSmall: TCastleFont read GetUIFontSmall write SetUIFontSmall;
+property UIFontSmallScale: Single read GetUIFontSmallScale write SetUIFontSmallScale;
 { @groupEnd }
 
 {$endif read_interface}
@@ -66,6 +70,7 @@ type
 var
   DefaultUIFont: TDefaultUIFont;
   FUIFont, FUIFontSmall: TCastleFont;
+  FUIFontSmallScale: Single;
 
 function GetUIFont: TCastleFont;
 begin
@@ -123,6 +128,16 @@ begin
       FUIFontSmall := nil;
     FreeAndNil(DefaultUIFont);
   end;
+end;
+
+function GetUIFontSmallScale: Single;
+begin
+  Result := FUIFontSmallScale;
+end;
+
+procedure SetUIFontSmallScale(const Value: Single);
+begin
+  FUIFontSmallScale := Value;
 end;
 
 {$endif read_implementation}
