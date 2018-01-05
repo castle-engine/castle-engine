@@ -2676,10 +2676,6 @@ begin
         S.MaxGain := 1;
         S.DefaultImportance := MaxSoundImportance;
 
-        { set S.FBuffer }
-        if S.URL <> '' then
-          S.FBuffer := LoadBuffer(S.URL, false);
-
         Sounds.Add(S);
 
         { retrieve URL using AttributeString
@@ -2714,6 +2710,10 @@ begin
             S.DefaultImportance :=
               PtrUInt(SoundImportanceNames.Objects[SoundImportanceIndex]);
         end;
+
+        { set S.FBuffer at the end, when S.URL is set }
+        if S.URL <> '' then
+          S.FBuffer := LoadBuffer(S.URL, false);
       end;
     finally FreeAndNil(I) end;
   finally
