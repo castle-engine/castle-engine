@@ -317,7 +317,7 @@ type
       @seealso RealFps }
     property OnlyRenderFps: TFloatTime read FOnlyRenderFps;
     property FrameTime: TFloatTime read FOnlyRenderFps;
-      deprecated 'use OnlyRenderFps';
+      {$ifdef FPC} deprecated 'use OnlyRenderFps'; {$endif}
 
     { How many frames per second were actually rendered.
       This is the number of @link(TUIContainer.EventRender) calls
@@ -341,7 +341,7 @@ type
 
       @seealso OnlyRenderFps }
     property RealFps: TFloatTime read FRealFps;
-    property RealTime: TFloatTime read FRealFps; deprecated 'use RealFps';
+    property RealTime: TFloatTime read FRealFps; {$ifdef FPC} deprecated 'use RealFps'; {$endif}
 
     { Some of the frames were not rendered, because the scene and camera
       were not moving. This happens only when
@@ -372,7 +372,7 @@ type
     property SecondsPassed: TFloatTime read FSecondsPassed;
 
     property UpdateSecondsPassed: TFloatTime read FSecondsPassed;
-      deprecated 'use SecondsPassed';
+      {$ifdef FPC} deprecated 'use SecondsPassed'; {$endif}
 
     { Limit the SecondsPassed variable, to avoid increasing time in game
       a lot when a game was hanging or otherwise waiting for some exceptional

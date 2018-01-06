@@ -76,11 +76,11 @@ type
 }
 procedure InitializeLog(
   const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone);
+  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
 
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone);
+  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
   deprecated 'to provide a Version to InitializeLog, set ApplicationProperties.Version earlier, instead of calling InitializeLog with an explicit ProgramVersion parameter';
 
 { Log message. Ignored when log is not initialized (@link(Log) is @false).
