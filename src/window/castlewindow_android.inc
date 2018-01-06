@@ -157,7 +157,7 @@ function DetermineDpi(App: PAndroid_app): Integer;
 type
   TAConfiguration_getScreenHeightDp = function (config: PAConfiguration): cint32; cdecl;
 var
-  Dpi: Integer;
+  Dpi, ScreenHeightDp: Integer;
   AndroidLibrary: TDynLib;
   AConfiguration_getScreenHeightDp: TAConfiguration_getScreenHeightDp;
 begin
@@ -171,9 +171,9 @@ begin
     AConfiguration_getScreenHeightDp := TAConfiguration_getScreenHeightDp(AndroidLibrary.Symbol('AConfiguration_getScreenHeightDp'));
     if Assigned(AConfiguration_getScreenHeightDp) then
     begin
-      Dpi := AConfiguration_getScreenHeightDp(App^.Config);
-      if Dpi <> 0 {ACONFIGURATION_SCREEN_HEIGHT_DP_ANY} then
-        Dpi := Round((ANativeWindow_getHeight(App^.Window) * DefaultDpi) / Dpi);
+      ScreenHeightDp := AConfiguration_getScreenHeightDp(App^.Config);
+      if ScreenHeightDp <> 0 {ACONFIGURATION_SCREEN_HEIGHT_DP_ANY} then
+        Dpi := Round((ANativeWindow_getHeight(App^.Window) * DefaultDpi) / ScreenHeightDp);
     end;
     FreeAndNil(AndroidLibrary);
   end;
