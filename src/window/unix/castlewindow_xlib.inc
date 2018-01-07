@@ -655,7 +655,7 @@ begin
     if XDisplay = nil then
     begin
       {$ifdef DARWIN}
-      Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on Mac OS X.',
+      Writeln(ErrOutput, Format('Opening the default X display "%s" failed, retrying with "%s" to try to attach to running X server on macOS.',
         [XDisplayName, AltXDisplayName]));
 
       FXDisplayName := Xlib.XDisplayName(PCharOrNil(AltXDisplayName));
@@ -824,19 +824,6 @@ begin
   Result := XDisplayHeight(XDisplay, XScreen);
 end;
 {$endif}
-
-{ TCastleClipboard ----------------------------------------------------------- }
-
-function TCastleClipboard.GetAsText: string;
-begin
-  { TODO }
-  Result := '';
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-begin
-  { TODO }
-end;
 
 { TCastleWindow -------------------------------------------------------------- }
 

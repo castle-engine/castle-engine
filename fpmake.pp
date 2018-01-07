@@ -173,6 +173,7 @@ begin
     P.SourcePath.Add('src' + PathDelim + 'services');
     P.Targets.AddUnit('castleads.pas');
     P.Targets.AddUnit('castleanalytics.pas');
+    P.Targets.AddUnit('castlefacebook.pas');
     P.Targets.AddUnit('castlegameservice.pas');
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
@@ -300,9 +301,11 @@ begin
     P.Targets.AddUnit('castletiledmap.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'window');
+    P.Targets.AddUnit('castledialogstates.pas');
     P.Targets.AddUnit('castlemessages.pas');
     P.Targets.AddUnit('castlewindowrecentfiles.pas');
     P.Targets.AddUnit('castlesoundmenu.pas');
+    P.Targets.AddUnit('castleuistate.pas');
     P.Targets.AddUnit('castlewindow.pas');
     P.Targets.AddUnit('castlewindowtouch.pas');
     P.Targets.AddUnit('castlewindowprogress.pas');

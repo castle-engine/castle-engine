@@ -1456,6 +1456,8 @@ procedure TCastleScene.PrepareResources(
   var
     SI: TShapeTreeIterator;
     Shape: TGLShape;
+    BaseLights: TLightInstancesList;
+    GoodParams, OwnParams: TPrepareParams;
   begin
     if Log and LogRenderer then
       WritelnLog('Renderer', 'Preparing rendering of all shapes');
@@ -1465,13 +1467,30 @@ procedure TCastleScene.PrepareResources(
     try
       Inc(Renderer.PrepareRenderShape);
       try
-        Renderer.RenderBegin(Params.InternalBaseLights as TLightInstancesList, nil, 0);
+        { calculate OwnParams, GoodParams }
+        if Params = nil then
+        begin
+          WritelnWarning('PrepareResources', 'Do not pass Params=nil to TCastleScene.PrepareResources or T3DResource.Prepare or friends. Get the params from SceneManager.PrepareParams (create a temporary TCastleSceneManager if you need to).');
+          OwnParams := TPrepareParams.Create;
+          GoodParams := OwnParams;
+        end else
+        begin
+          OwnParams := nil;
+          GoodParams := Params;
+        end;
+
+        { prepare resources by doing rendering (but with
+          Renderer.PrepareRenderShape <> 0, so nothing will be actually drawn). }
+        BaseLights := GoodParams.InternalBaseLights as TLightInstancesList;
+        Renderer.RenderBegin(BaseLights, nil, 0);
         while SI.GetNext do
         begin
           Shape := TGLShape(SI.Current);
-          Renderer.RenderShape(Shape, ShapeFog(Shape, Params.InternalGlobalFog));
+          Renderer.RenderShape(Shape, ShapeFog(Shape, GoodParams.InternalGlobalFog));
         end;
         Renderer.RenderEnd;
+
+        FreeAndNil(OwnParams);
       finally Dec(Renderer.PrepareRenderShape) end;
     finally FreeAndNil(SI) end;
   end;

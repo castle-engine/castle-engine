@@ -70,6 +70,9 @@ type
     }
     procedure RenderControl(const Control: TUIControl;
       const ViewportRect: TRectangle);
+
+    { Save screen by rendering the window contents to the back buffer. }
+    function SaveScreen(const SaveRect: TRectangle): TRGBImage; override;
   end;
 
 { Render control contents to an RGBA image, using off-screen rendering.
@@ -287,6 +290,16 @@ begin
     FContext := TRenderContext.Create;
   end;
 end;
+
+function TGLContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
+begin
+  EventBeforeRender;
+  EventRender;
+  { This is correct if we use double-buffer. }
+  Result := SaveScreen_NoFlush(SaveRect, cbBack);
+end;
+
+{ global routines ------------------------------------------------------------ }
 
 function RenderControlToImage(const Container: TGLContainer;
   const Control: TUIControl;

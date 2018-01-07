@@ -100,9 +100,6 @@ var
   SliderPosition: TRGBImage;
 
 var
-  ErrorBackground: TGrayscaleImage;
-
-var
   Edit: TGrayscaleImage;
 
 implementation
@@ -207,9 +204,6 @@ initialization
   SliderPosition := TRGBImage.Create(SliderPositionWidth, SliderPositionHeight, SliderPositionDepth);
   Move(SliderPositionPixels, SliderPosition.RawPixels^, SizeOf(SliderPositionPixels));
   SliderPosition.URL := 'embedded-image:/SliderPosition';
-  ErrorBackground := TGrayscaleImage.Create(ErrorBackgroundWidth, ErrorBackgroundHeight, ErrorBackgroundDepth);
-  Move(ErrorBackgroundPixels, ErrorBackground.RawPixels^, SizeOf(ErrorBackgroundPixels));
-  ErrorBackground.URL := 'embedded-image:/ErrorBackground';
   Edit := TGrayscaleImage.Create(EditWidth, EditHeight, EditDepth);
   Move(EditPixels, Edit.RawPixels^, SizeOf(EditPixels));
   Edit.URL := 'embedded-image:/Edit';
@@ -244,6 +238,5 @@ finalization
   FreeAndNil(WindowGray);
   FreeAndNil(ScrollbarFrame);
   FreeAndNil(SliderPosition);
-  FreeAndNil(ErrorBackground);
   FreeAndNil(Edit);
 end.

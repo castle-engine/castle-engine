@@ -36,7 +36,7 @@
   - Windows: copy castleengine.dll to this project folder
     (where the executable file is generated), or anywhere on $PATH.
 
-  - Unix: copy libcastleengine.so (or libcastleengine.dylib on Mac OS X)
+  - Unix: copy libcastleengine.so (or libcastleengine.dylib on macOS)
     to any directory listed on $LD_LIBRARY_PATH.
     For example you can set LD_LIBRARY_PATH to contain empty directory,
     and then you can just copy to the current directory (from which you
@@ -122,10 +122,10 @@ var
 begin
   OpenGLControl1.MakeCurrent();
   Application.OnIdle := @IdleFunc;
-  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height,
+  CGE_Open(ecgeofLog, OpenGLControl1.Width, OpenGLControl1.Height, 96,
     PCChar(PChar(GetAppConfigDir(false))));
   CGE_SetLibraryCallbackProc(@OpenGlLibraryCallback);
-  CGE_SetUserInterface(true, 96);
+  CGE_SetUserInterface(true);
   sFile := '../../3d_rendering_processing/data/bridge_final.x3dv';
   //sFile := '../../../examples/shadow_fields/models/humanoid_stand.wrl';
   CGE_LoadSceneFromFile(@sFile[1]);

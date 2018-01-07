@@ -35,11 +35,13 @@ var
 implementation
 
 uses CastleSceneCore, CastleUtils, CastleImages, CastleVectors,
-  CastleControlsImages;
+  CastleControlsImages, CastleUIControls;
 
 { TForm1 --------------------------------------------------------------------- }
 
 procedure TForm1.FormCreate(Sender: TObject);
+var
+  Edit: TCastleEdit;
 begin
   { For simplicity, we just load 3D model from hardcoded path. }
   Browser.Load('../../3d_rendering_processing/data/bridge_final.x3dv');
@@ -99,9 +101,15 @@ begin
   SampleImage.URL := 'sample_image.png';
   SampleImageAlpha.URL := 'sample_image_with_alpha.png';
 
-  OnScreenMenu1.Add('one');
-  OnScreenMenu1.Add('two');
-  OnScreenMenu1.Add('three');
+  OnScreenMenu1.Add('one', @OnScreenMenu1Click);
+  OnScreenMenu1.Add('two', @OnScreenMenu1Click);
+  OnScreenMenu1.Add('three', @OnScreenMenu1Click);
+
+  Edit := TCastleEdit.Create(Self);
+  Edit.Anchor(vpTop, -10);
+  Edit.Anchor(hpRight, -10);
+  Edit.Width := 200;
+  Browser.Controls.InsertFront(Edit);
 end;
 
 procedure TForm1.BrowserResize(Sender: TObject);

@@ -85,11 +85,10 @@ type
         TODO: Try an alternative implementation using TTimer with Interval=1.
       )
 
-      @item(Automatically calls GLInformationInitialize
-        when OpenGL context is initialized. This will initialize GLVersion,
-        GLFeatures and more.)
+      @item(Automatically initializes Castle Game Engine stuff
+        when context is created (GLVersion, GLFeatures and more).)
 
-      @item(Measures FPS (frames per second), see the @link(Fps).)
+      @item(Measures application speed, see the @link(Fps).)
 
       @item(Tracks pressed keys @link(Pressed) and mouse buttons @link(MousePressed)
         and mouse position @link(MousePosition).)
@@ -111,15 +110,7 @@ type
         function GLInitialized: boolean; override;
         function Width: Integer; override;
         function Height: Integer; override;
-        function Rect: TRectangle; override;
-        function Dpi: Integer; override;
-        function MousePressed: TMouseButtons; override;
-        function Focused: boolean; override;
-        function Pressed: TKeysPressed; override;
-        function Fps: TFramesPerSecond; override;
         procedure SetInternalCursor(const Value: TMouseCursor); override;
-        function GetTouches(const Index: Integer): TTouch; override;
-        function TouchesCount: Integer; override;
         function SaveScreen(const SaveRect: TRectangle): TRGBImage; override; overload;
 
         procedure EventOpen(const OpenWindowsCount: Cardinal); override;
@@ -136,12 +127,9 @@ type
     FContainer: TContainer;
     FMousePosition: TVector2;
     FGLInitialized: boolean;
-    FPressed: TKeysPressed;
-    FMousePressed: CastleKeysMouse.TMouseButtons;
     FAutoRedisplay: boolean;
     { manually track when we need to be repainted, useful for AggressiveUpdate }
     Invalidated: boolean;
-    FFps: TFramesPerSecond;
     FOnOpen: TNotifyEvent;
     FOnBeforeRender: TNotifyEvent;
     FOnRender: TNotifyEvent;
@@ -193,17 +181,18 @@ type
     procedure Paint; override;
 
     { Keys currently pressed. }
-    property Pressed: TKeysPressed read FPressed;
+    function Pressed: TKeysPressed;
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    property MousePressed: CastleKeysMouse.TMouseButtons read FMousePressed;
+    function MousePressed: CastleKeysMouse.TMouseButtons;
     procedure ReleaseAllKeysAndMouse;
 
     { Current mouse position.
       See @link(TTouch.Position) for a documentation how this is expressed. }
     property MousePosition: TVector2 read FMousePosition write SetMousePosition;
 
-    property Fps: TFramesPerSecond read FFps;
+    { Application speed. }
+    function Fps: TFramesPerSecond;
 
     { Capture the current control contents to an image.
       @groupBegin }
@@ -320,11 +309,11 @@ type
       The only difference between these two events is that
       time spent in OnBeforeRender
       is NOT counted as "frame time"
-      by Fps.FrameTime. This is useful when you have something that needs
+      by Fps.OnlyRenderFps. This is useful when you have something that needs
       to be done from time to time right before OnRender and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnRender because this would cause a sudden big change in
-      Fps.FrameTime value. So you can avoid this by putting
+      Fps.OnlyRenderFps value. So you can avoid this by putting
       this in OnBeforeRender. }
     property OnBeforeRender: TNotifyEvent read FOnBeforeRender write FOnBeforeRender;
 
@@ -532,8 +521,14 @@ var
 
 implementation
 
-uses LCLType, CastleGLUtils, CastleStringUtils, X3DLoad, Math,
-  CastleLog, Contnrs, CastleLCLUtils, CastleApplicationProperties;
+uses LCLType, Math, Contnrs, LazUTF8, Clipbrd,
+  CastleGLUtils, CastleStringUtils, X3DLoad, CastleLog,
+  CastleLCLUtils, CastleApplicationProperties, CastleControls;
+
+// TODO: We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
+// This may result in confusing Fps.ToString in case AutoRedisplay was false.
+
+{ globals -------------------------------------------------------------------- }
 
 procedure Register;
 begin
@@ -560,7 +555,7 @@ var
     as all OpenGL contexts in our engine must share OpenGL resources
     (our OnGLContextOpen and such callbacks depend on it,
     and it makes implementation much easier). }
-  CastleControls: TComponentList;
+  ControlsList: TComponentList;
 
   ControlsOpen: Cardinal;
 
@@ -624,9 +619,9 @@ begin
   Assert(not (csDesigning in Application.ComponentState));
 
   { Call DoUpdate for all TCastleControl instances. }
-  for I := 0 to CastleControls.Count - 1 do
+  for I := 0 to ControlsList.Count - 1 do
   begin
-    C := CastleControls[I] as TCastleControlCustom;
+    C := ControlsList[I] as TCastleControlCustom;
     C.DoUpdate;
   end;
   ApplicationProperties._Update;
@@ -686,11 +681,6 @@ begin
   Result := Parent.Height;
 end;
 
-function TCastleControlCustom.TContainer.Rect: TRectangle;
-begin
-  Result := Parent.Rect;
-end;
-
 function TCastleControlCustom.TContainer.GetMousePosition: TVector2;
 begin
   Result := Parent.MousePosition;
@@ -699,31 +689,6 @@ end;
 procedure TCastleControlCustom.TContainer.SetMousePosition(const Value: TVector2);
 begin
   Parent.MousePosition := Value;
-end;
-
-function TCastleControlCustom.TContainer.Dpi: Integer;
-begin
-  Result := DefaultDpi; //Parent.Dpi; // for now, TCastleControl doesn't expose any useful Dpi
-end;
-
-function TCastleControlCustom.TContainer.MousePressed: TMouseButtons;
-begin
-  Result := Parent.MousePressed;
-end;
-
-function TCastleControlCustom.TContainer.Focused: boolean;
-begin
-  Result := true; // TODO: for now, TCastleControl always pretends to be focused
-end;
-
-function TCastleControlCustom.TContainer.Pressed: TKeysPressed;
-begin
-  Result := Parent.Pressed;
-end;
-
-function TCastleControlCustom.TContainer.Fps: TFramesPerSecond;
-begin
-  Result := Parent.Fps;
 end;
 
 procedure TCastleControlCustom.TContainer.SetInternalCursor(const Value: TMouseCursor);
@@ -738,18 +703,6 @@ begin
     manager call. }
   if Parent.Cursor <> NewCursor then
     Parent.Cursor := NewCursor;
-end;
-
-function TCastleControlCustom.TContainer.GetTouches(const Index: Integer): TTouch;
-begin
-  Assert(Index = 0, 'TCastleControlCustom always has only one item in Touches array, with index 0');
-  Result.FingerIndex := 0;
-  Result.Position := Parent.MousePosition;
-end;
-
-function TCastleControlCustom.TContainer.TouchesCount: Integer;
-begin
-  Result := 1;
 end;
 
 function TCastleControlCustom.TContainer.SaveScreen(const SaveRect: TRectangle): TRGBImage;
@@ -837,8 +790,6 @@ constructor TCastleControlCustom.Create(AOwner: TComponent);
 begin
   inherited;
   TabStop := true;
-  FFps := TFramesPerSecond.Create;
-  FPressed := TKeysPressed.Create;
   FAutoRedisplay := true;
 
   FContainer := TContainer.Create(Self);
@@ -848,9 +799,9 @@ begin
   FContainer.SetSubComponent(true);
   FContainer.Name := 'Container';
 
-  if CastleControls.Count <> 0 then
-    SharedControl := CastleControls[0] as TCastleControl;
-  CastleControls.Add(Self);
+  if ControlsList.Count <> 0 then
+    SharedControl := ControlsList[0] as TCastleControl;
+  ControlsList.Add(Self);
 
   Invalidated := false;
 
@@ -864,22 +815,20 @@ end;
 destructor TCastleControlCustom.Destroy;
 begin
   if ApplicationIdleSet and
-     (CastleControls <> nil) and
-     { If CastleControls.Count will become 0 after this destructor,
+     (ControlsList <> nil) and
+     { If ControlsList.Count will become 0 after this destructor,
        then unregisted our idle callback.
-       If everyhting went Ok, CastleControls.Count = 1 should always imply
-       that we're the only control there. But check "CastleControls[0] = Self"
+       If everyhting went Ok, ControlsList.Count = 1 should always imply
+       that we're the only control there. But check "ControlsList[0] = Self"
        in case we're in destructor because there was an exception
        in the constructor. }
-     (CastleControls.Count = 1) and
-     (CastleControls[0] = Self) then
+     (ControlsList.Count = 1) and
+     (ControlsList[0] = Self) then
   begin
     ApplicationIdleSet := false;
     Application.RemoveOnIdleHandler(@(TCastleApplicationIdle(nil).ApplicationIdle));
   end;
 
-  FreeAndNil(FPressed);
-  FreeAndNil(FFps);
   FreeAndNil(FContainer);
   inherited;
 end;
@@ -927,6 +876,8 @@ begin
   begin
     FGLInitialized := true;
     GLInformationInitialize;
+    // _GLContextEarlyOpen is not really necessary here now, but we call it for consistency
+    ApplicationProperties._GLContextEarlyOpen;
     Inc(ControlsOpen);
     Container.EventOpen(ControlsOpen);
     Resize; // will call Container.EventResize
@@ -964,7 +915,7 @@ end;
 procedure TCastleControlCustom.ReleaseAllKeysAndMouse;
 begin
   Pressed.Clear;
-  FMousePressed := [];
+  Container.MousePressed := [];
 end;
 
 procedure TCastleControlCustom.UpdateShiftState(const Shift: TShiftState);
@@ -1038,7 +989,7 @@ begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Include(FMousePressed, MyButton);
+    Container.MousePressed := Container.MousePressed + [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
@@ -1056,7 +1007,7 @@ begin
   FMousePosition := Vector2(X, Height - 1 - Y);
 
   if MouseButtonLCLToCastle(Button, MyButton) then
-    Exclude(FMousePressed, MyButton);
+    Container.MousePressed := Container.MousePressed - [MyButton];
 
   UpdateShiftState(Shift); { do this after Pressed update above, and before *Event }
 
@@ -1185,7 +1136,6 @@ end;
 procedure TCastleControlCustom.DoUpdate;
 begin
   if AutoRedisplay then Invalidate;
-  Fps._UpdateBegin;
   Container.EventUpdate;
 end;
 
@@ -1254,7 +1204,7 @@ end;
 
 function TCastleControlCustom.Rect: TRectangle;
 begin
-  Result := Rectangle(0, 0, Width, Height);
+  Result := Container.Rect;
 end;
 
 function TCastleControlCustom.Controls: TChildrenControls;
@@ -1345,6 +1295,21 @@ begin
   SceneManager.OnCameraChanged := Value;
 end;
 
+function TCastleControlCustom.MousePressed: TMouseButtons;
+begin
+  Result := Container.MousePressed;
+end;
+
+function TCastleControlCustom.Pressed: TKeysPressed;
+begin
+  Result := Container.Pressed;
+end;
+
+function TCastleControlCustom.Fps: TFramesPerSecond;
+begin
+  Result := Container.Fps;
+end;
+
 { TCastle2DControl ----------------------------------------------------------- }
 
 constructor TCastle2DControl.Create(AOwner: TComponent);
@@ -1360,8 +1325,36 @@ begin
   Controls.InsertFront(SceneManager);
 end;
 
+{ TLCLClipboard ----------------------------------------------------------- }
+
+type
+  TLCLClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: string; override;
+    procedure SetAsText(const Value: string); override;
+  end;
+
+function TLCLClipboard.GetAsText: string;
+begin
+  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
+end;
+
+procedure TLCLClipboard.SetAsText(const Value: string);
+begin
+  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
+end;
+
+{ initialization / finalization ---------------------------------------------- }
+
+procedure InitializeClipboard;
+begin
+  // make the Clipboard in CastleControls integrated with LCL clipboard
+  RegisterClipboard(TLCLClipboard.Create);
+end;
+
 initialization
-  CastleControls := TComponentList.Create(false);
+  ControlsList := TComponentList.Create(false);
+  InitializeClipboard;
 finalization
-  FreeAndNil(CastleControls);
+  FreeAndNil(ControlsList);
 end.

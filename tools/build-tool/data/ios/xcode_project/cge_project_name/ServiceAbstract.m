@@ -23,8 +23,19 @@
 {
 }
 
-- (void)applicationDidFinishLaunchingWithOptions
+- (void)application:(UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *) launchOptions
 {
+}
+
+- (void)applicationDidBecomeActive:(UIApplication *)application
+{
+}
+
+- (BOOL)application:(UIApplication *)app
+    openURL:(NSURL *)url
+    options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
+{
+    return NO;
 }
 
 - (bool)messageReceived:(NSArray* )message
@@ -51,11 +62,15 @@
     return value ? @"true" : @"false";
 }
 
-- (void)messageSend:(NSArray* )message;
+- (void)messageSend:(NSArray* )message
 {
     NSString* messageStr = [message componentsJoinedByString:@"\1"];
     const char* messageCPointer = [messageStr UTF8String];
     CGEApp_SendMessageToPascal(messageCPointer);
+}
+
+- (void)onPurchase:(AvailableProduct*) product
+{
 }
 
 @end

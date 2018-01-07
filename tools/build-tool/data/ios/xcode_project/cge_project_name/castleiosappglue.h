@@ -170,9 +170,8 @@ typedef int (*TCgeLibraryCallback)(int /*ECgeLibCallbackCode*/eCode, int iParam1
 typedef void (*TCgeReceiveMessageFromPascalCallback)(const char *message);
 
 //-----------------------------------------------------------------------------
-extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
+extern void CGEApp_Open(unsigned initialWidth, unsigned initialHeight, unsigned nDpi, const char *applicationConfigDirectory);     // init the library, this function must be called first (required).
 extern void CGEApp_Close(void);
-extern void CGEApp_SetDpi(int nDpi);
 
 extern void CGEApp_Resize(unsigned uiViewWidth, unsigned uiViewHeight);       // let the library know about the viewport size changes
 extern void CGEApp_Render(void);                                                  // paints the 3d scene into the context

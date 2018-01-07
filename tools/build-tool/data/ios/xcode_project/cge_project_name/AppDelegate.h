@@ -15,6 +15,7 @@
 */
 
 #import <UIKit/UIKit.h>
+#import "AvailableProduct.h"
 #include "castleiosappglue.h"
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
@@ -25,6 +26,14 @@
 }
 - (void)messageReceived:(const char *)message;
 
+/* Called by in_app_purchase service to notify all other services
+   (e.g. analytics) that a purchase occured.
+*/
+- (void)onPurchase:(AvailableProduct*) product;
+
 @property (strong, nonatomic) UIWindow *window;
 
 @end
+
+/* Get singleton AppDelegate instance. */
+AppDelegate* getAppDelegate(void);

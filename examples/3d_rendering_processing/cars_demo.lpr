@@ -38,7 +38,7 @@ procedure WindowUpdate(Container: TUIContainer);
     T := CarTransform.Translation;
     { Thanks to multiplying by SecondsPassed, it is a time-based operation,
       and will always move 40 units / per second along the -Z axis. }
-    T := T + Vector3(0, 0, -40) * Container.Fps.UpdateSecondsPassed;
+    T := T + Vector3(0, 0, -40) * Container.Fps.SecondsPassed;
     { Wrap the Z position, to move in a loop }
     if T.Z < -70.0 then
       T.Z := 50.0;

@@ -183,7 +183,7 @@ LRESULT CALLBACK WindowProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
     case WM_LBUTTONUP:
     case WM_RBUTTONUP:
-        CGE_MouseUp(GET_X_LPARAM(lParam), g_windowHeight-1-GET_Y_LPARAM(lParam), 
+        CGE_MouseUp(GET_X_LPARAM(lParam), g_windowHeight-1-GET_Y_LPARAM(lParam),
             msg==WM_LBUTTONUP, 0, true);
         if (GetCapture()==hWnd)
             ReleaseCapture();
@@ -374,9 +374,9 @@ bool Init()
         // Note: the log output is in
         // c:/Users/<username>/AppData/Local/cpp_winapi_library_tester/cpp_winapi_library_tester.log
         // See https://castle-engine.sourceforge.io/manual_log.php
-        CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, applicationConfigDirectory);
+        CGE_Open(ecgeofLog, g_windowWidth, g_windowHeight, 96, applicationConfigDirectory);
         CGE_SetLibraryCallbackProc(OpenGlLibraryCallback);
-        CGE_SetUserInterface(true, 96);
+        CGE_SetUserInterface(true);
         //CGE_LoadSceneFromFile("c:\\projects\\humanoid_stand.wrl");
         ShowOpenFileDialog();
         return true;

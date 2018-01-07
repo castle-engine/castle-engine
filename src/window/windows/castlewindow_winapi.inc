@@ -1337,6 +1337,75 @@ begin
   SimpleSetFullScreen(Value);
 end;
 
+{ TWinApiClipboard ----------------------------------------------------------- }
+
+{ Clipboard operations using WinAPI based on:
+  - http://msdn.microsoft.com/en-us/library/windows/desktop/ms649016%28v=vs.85%29.aspx
+  - LCL implementation: TWin32WidgetSet.ClipboardGetOwnerShip (set)
+    and ClipboardGetData (get) in lcl/interfaces/win32/win32winapi.inc
+}
+
+type
+  TWinApiClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: string; override;
+    procedure SetAsText(const Value: string); override;
+  end;
+
+function TWinApiClipboard.GetAsText: string;
+var
+  DataHandle: Windows.HGLOBAL;
+  Data: Pointer;
+  Size: Integer;
+begin
+  Result := '';
+  if IsClipboardFormatAvailable(CF_TEXT) then
+  begin
+    if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
+    try
+      DataHandle := Windows.GetClipboardData(CF_TEXT);
+      if DataHandle = 0 then Exit;
+
+      Size := Windows.GlobalSize(DataHandle);
+      if Size > 1 then
+      begin
+        Dec(Size); // do not copy trailing #0
+        Assert(Size > 0);
+        Data := Windows.GlobalLock(DataHandle);
+        try
+          SetLength(Result, Size);
+          Move(Data^, Result[1], Size);
+        finally Windows.GlobalUnlock(DataHandle) end;
+      end;
+    finally Windows.CloseClipboard end;
+  end;
+end;
+
+procedure TWinApiClipboard.SetAsText(const Value: string);
+var
+  DataHandle : Windows.HGLOBAL;
+  Data: Pointer;
+  Size: Integer;
+begin
+  if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
+  try
+    if not Windows.EmptyClipboard then Exit;
+
+    if Value <> '' then
+    begin
+      Size := Length(Value) + 1; // copy to Windows with trailing #0
+      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, Size);
+      if DataHandle = 0 then Exit;
+
+      Data := GlobalLock(DataHandle);
+      try
+        Move(Value[1], Data^, Size);
+      finally Windows.GlobalUnlock(DataHandle) end;
+      Windows.SetClipboardData(CF_TEXT, DataHandle);
+    end;
+  finally Windows.CloseClipboard end;
+end;
+
 { TCastleApplication ----------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
@@ -1344,6 +1413,8 @@ var
   WindowClass: TWndClass;
   C: TMouseCursor;
 begin
+  RegisterClipboard(TWinApiClipboard.Create);
+
   appActive := true;
 
   { initialize NameForLoadCursor for CursorHandles }
@@ -1536,68 +1607,6 @@ end;
 function TCastleApplication.BackendName: string;
 begin
   Result := 'WinAPI';
-end;
-
-{ TCastleClipboard ----------------------------------------------------------- }
-
-{ Clipboard operations using WinAPI based on:
-  - http://msdn.microsoft.com/en-us/library/windows/desktop/ms649016%28v=vs.85%29.aspx
-  - LCL implementation: TWin32WidgetSet.ClipboardGetOwnerShip (set)
-    and ClipboardGetData (get) in lcl/interfaces/win32/win32winapi.inc
-}
-
-function TCastleClipboard.GetAsText: string;
-var
-  DataHandle: Windows.HGLOBAL;
-  Data: Pointer;
-  Size: Integer;
-begin
-  Result := '';
-  if IsClipboardFormatAvailable(CF_TEXT) then
-  begin
-    if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
-    try
-      DataHandle := Windows.GetClipboardData(CF_TEXT);
-      if DataHandle = 0 then Exit;
-
-      Size := Windows.GlobalSize(DataHandle);
-      if Size > 1 then
-      begin
-        Dec(Size); // do not copy trailing #0
-        Assert(Size > 0);
-        Data := Windows.GlobalLock(DataHandle);
-        try
-          SetLength(Result, Size);
-          Move(Data^, Result[1], Size);
-        finally Windows.GlobalUnlock(DataHandle) end;
-      end;
-    finally Windows.CloseClipboard end;
-  end;
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-var
-  DataHandle : Windows.HGLOBAL;
-  Data: Pointer;
-  Size: Integer;
-begin
-  if not Windows.OpenClipboard(Windows.HWND(nil)) then Exit;
-  try
-    if not Windows.EmptyClipboard then Exit;
-
-    if Value <> '' then
-    begin
-      Size := Length(Value) + 1; // copy to Windows with trailing #0
-      DataHandle := Windows.GlobalAlloc(Windows.GMEM_MOVEABLE, Size);
-      if DataHandle = 0 then Exit;
-
-      Data := GlobalLock(DataHandle);
-      try
-        Move(Value[1], Data^, Size);
-      finally Windows.GlobalUnlock(DataHandle) end;
-      Windows.SetClipboardData(CF_TEXT, DataHandle);
-    end;
-  finally Windows.CloseClipboard end;
 end;
 
 { TCastleWindow -------------------------------------------------------------- }

@@ -24,8 +24,18 @@
   (And the name TGLImage will change to something more neutral,
   like TDrawImage, of course.)
 
+  Also, you will then no longer need to initialize some semi-internal things
+  shown in this program: initializing Params, ProjectionMatrix, RenderingCamera
+  should be done automatically by TCastleSceneManager (once TCastleSceneManager
+  is independent from OpenGL).
+
   In the meantime, you can use this approach, which creates a descendant
   of TCastleSceneCore, to implement a new renderer.
+
+  This approach should allow you to quickly test whether your renderer works.
+  Once we have an alternative renderer working, Michalis promises to quickly
+  implement an architecture to comfortably "plug" your renderer
+  to Castle Game Engine!
 }
 
 uses SysUtils, TypInfo, Classes,
@@ -95,7 +105,7 @@ begin
             end;
 
         For a first renderer test you can also instead load on-demand
-        from the Render implementation.
+        from the LocalRender implementation.
       }
 
     end;

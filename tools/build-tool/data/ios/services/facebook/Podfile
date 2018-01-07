@@ -1,0 +1,9 @@
+# This declaration will be inserted into the middle of the project Podfile
+# by the Castle Game Engine build tool.
+#
+# Use the official FB from CocoaPods, see
+# https://developers.facebook.com/docs/ios/getting-started/advanced
+
+pod 'FBSDKCoreKit'
+pod 'FBSDKShareKit'
+pod 'FBSDKLoginKit'

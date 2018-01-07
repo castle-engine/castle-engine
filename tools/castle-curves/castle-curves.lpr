@@ -451,9 +451,9 @@ const
   ZoomFactor = 2;
 begin
   if Container.Pressed.Characters['+'] then
-    ChangeZoom(Power(ZoomFactor, Container.Fps.UpdateSecondsPassed));
+    ChangeZoom(Power(ZoomFactor, Container.Fps.SecondsPassed));
   if Container.Pressed.Characters['-'] then
-    ChangeZoom(Power(1 / ZoomFactor, Container.Fps.UpdateSecondsPassed));
+    ChangeZoom(Power(1 / ZoomFactor, Container.Fps.SecondsPassed));
 end;
 
 { menu ------------------------------------------------------------ }

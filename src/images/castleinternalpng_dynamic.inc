@@ -949,14 +949,14 @@ begin
   {$ifdef UNIX}
 
   {$ifdef DARWIN}
-  { libpng common names for Mac Os X }
+  { libpng common names for macOS }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng.dylib', false);
   if (PngLibrary = nil) and (BundlePath <> '') then
     PngLibrary := TDynLib.Load(BundlePath + 'Contents/MacOS/libpng14.14.dylib', false);
 
   {$else DARWIN}
-  { libpng common names for Linux, FreeBSD and other Unixes (except Mac OS X)  }
+  { libpng common names for Linux, FreeBSD and other Unixes (except macOS)  }
   if PngLibrary = nil then
     PngLibrary := TDynLib.Load('libpng16.so.16', false);
   if PngLibrary = nil then

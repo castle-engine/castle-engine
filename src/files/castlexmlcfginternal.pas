@@ -161,7 +161,8 @@ begin
  if (URL<>EmptyStr) and Modified then
   begin
     if BlowFishKeyPhrase <> '' then
-      URLWriteXML(Doc, URL, BlowFishKeyPhrase) else
+      URLWriteXML(Doc, URL, BlowFishKeyPhrase)
+    else
       URLWriteXML(Doc, URL);
     FModified := False;
   end;
@@ -427,7 +428,8 @@ begin
 
   if URIFileExists(AURL) and (not FStartEmpty) then
     if BlowFishKeyPhrase <> '' then
-      URLReadXML(Doc, AURL, BlowFishKeyPhrase) else
+      URLReadXML(Doc, AURL, BlowFishKeyPhrase)
+    else
       URLReadXML(Doc, AURL);
 
   if not Assigned(Doc) then

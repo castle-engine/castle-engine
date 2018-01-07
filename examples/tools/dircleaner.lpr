@@ -188,7 +188,7 @@ begin
   DefaultFilesToClean.Add('*.cmi');  { ocamlc }
   DefaultFilesToClean.Add('*.cmo');  { -'- }
   DefaultFilesToClean.Add('*.cmx');  { -'- }
-  DefaultFilesToClean.Add('.DS_Store'); { Mac OS X (Finder?) }
+  DefaultFilesToClean.Add('.DS_Store'); { macOS (Finder?) }
 
   // commented for now; castle-engine tool should clear them itself.
   // And clearing them here is not good for castle-engine tool sources...:)

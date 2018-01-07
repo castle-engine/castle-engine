@@ -24,7 +24,7 @@
     FCustomFont: TCastleFont;
     FOwnsCustomFont: boolean;
     FLastSeenUIFontXxx: TCastleFont; //< remembered only to call FontChanged
-    FFontSize: Single;
+    FFontSize, FFontScale: Single;
     FCustomizedFont: TFontFamily; //< used only when some properties make it necessary
     FSmallFont: boolean;
     FOutline: Cardinal;
@@ -32,6 +32,7 @@
     FOutlineHighQuality: boolean;
     procedure SetCustomFont(const Value: TCastleFont);
     procedure SetFontSize(const Value: Single);
+    procedure SetFontScale(const Value: Single);
     procedure SetSmallFont(const Value: boolean);
     procedure SetOutline(const Value: Cardinal);
     procedure SetOutlineColor(const Value: TCastleColor);
@@ -40,6 +41,7 @@
     procedure UIScaleChanged; override;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
   public
+    constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure GLContextClose; override;
     function TooltipExists: boolean; override;
@@ -47,21 +49,19 @@
     procedure Render; override;
 
     { Font used for rendering and measuring this control.
-
-      Depending on various properties
-      (@(SmallFont), @link(CustomFont), @link(FontSize), @link(TUIControl.UIScale))
-      it may return @link(UIFont), @link(UIFontSmall), or @link(CustomFont),
-      or a TCustomizedFont instances that wraps (and scales) one of the above. }
+      Depending on various properties of this class,
+      this method returns @link(UIFont) or @link(CustomFont)
+      or a TCustomizedFont instance that wraps (and scales) one of them. }
     function Font: TCastleFont;
 
     { Check does currently used font (see @link(Font)) changed,
       and eventually call FontChanged method @italic(now).
 
       You only need to explicitly call this in very specific circumstances,
-      when you just changed @link(UIFont) or @link(UIFontSmall) (as changing
-      @link(CustomFont) automatically
-      immediately calls this) and you want control size to be updated
-      immediately (for example, you need @link(TCastleButton.Height)
+      when you just changed @link(UIFont) (changing
+      @link(CustomFont) automatically calls this automatically)
+      and you want control size to be updated immediately
+      (for example, you need @link(TCastleButton.CalculatedHeight)
       to be immediately valid). Without calling this,
       it could be updated only at next Render call. }
     procedure CheckFontChanged;
@@ -69,7 +69,7 @@
     { Force considering font changed (font instance, or glyphs, or sizes changed).
 
       @italic(Usually, you don't need to call this explicitly from the outside.)
-      Changing font, like @link(UIFont) or @link(UIFontSmall) or @link(CustomFont)
+      Changing font, like @link(UIFont) or @link(CustomFont),
       or any property that may affect the font is automatically applied.
 
       But there are exceptions: right now, if you call @link(TTextureFont.Load Load)
@@ -89,8 +89,7 @@
     property Tooltip: string read FTooltip write FTooltip;
 
     { When non-nil, this font will be used to draw this control.
-      Otherwise the global @link(UIFont) or @link(UIFontSmall)
-      (depending on @link(SmallFont)) will be used. }
+      Otherwise the global @link(UIFont) will be used. }
     property CustomFont: TCastleFont
       read FCustomFont write SetCustomFont;
     property OwnsCustomFont: boolean
@@ -102,14 +101,19 @@
       but this happens only if @link(TUIContainer.UIScaling) is set to
       something else than default usNone).
       Font itself is taken from
-      @link(CustomFont) or, if not set, from @link(UIFont) or @link(UIFontSmall). }
+      @link(CustomFont) or, if not set, from @link(UIFont). }
     property FontSize: Single read FFontSize write SetFontSize default 0.0;
 
     { Use smaller font.
-      If no @link(CustomFont) is assigned, this says to use
-      @link(UIFontSmall) instead of @link(UIFont).
-      If @link(CustomFont) is assigned, this says to scale it's size by 2. }
+      Right now this just says to scale font by 0.5. }
     property SmallFont: boolean read FSmallFont write SetSmallFont default false;
+      {$ifdef FPC} deprecated 'use "FontScale := 0.5" or "CustomFont := MySmalFont" instead of "SmallFont := true", this is more flexible'; {$endif}
+
+    { Scale the font. This additionally scales the font defined
+      by all other properties of this class, thus you can use it to reliably
+      scale the font (regardless if you use @link(CustomFont) or not,
+      regardless if you set @link(FontSize) or not). }
+    property FontScale: Single read FFontScale write SetFontScale default 1.0;
 
     { Outline size around the font.
       Note that the current implementation is very simple, it will only
@@ -135,6 +139,12 @@
 {$ifdef read_implementation}
 
 { TUIControlFont ---------------------------------------------------------- }
+
+constructor TUIControlFont.Create(AOwner: TComponent);
+begin
+  inherited;
+  FFontScale := 1.0;
+end;
 
 destructor TUIControlFont.Destroy;
 begin
@@ -201,22 +211,30 @@ begin
     Result := CustomFont else
     Result := UIFont;
 
-  { if FontSize or UIScale are non-trivial,
-    wrap Result in TCustomizedFont instance }
-  if (FFontSize <> 0) or (UIScale <> 1) or SmallFont or (Outline <> 0) then
+  { if needed, wrap Result in TCustomizedFont instance }
+  if (FontSize <> 0) or
+     (FontScale <> 1) or
+     (UIScale <> 1) or
+     {$warnings off} // using deprecated to keep it working
+     SmallFont or
+     {$warnings on}
+     (Outline <> 0) then
   begin
     if FCustomizedFont = nil then
       FCustomizedFont := TFontFamily.Create(nil);
-    if FFontSize <> 0 then
-      FCustomizedFont.Size := FFontSize else
+    if FontSize <> 0 then
+      FCustomizedFont.Size := FontSize
+    else
       FCustomizedFont.Size := Result.RealSize; // to have something to multiply in line below
-    FCustomizedFont.Size := FCustomizedFont.Size * UIScale;
+    FCustomizedFont.Size := FCustomizedFont.Size * UIScale * FontScale;
+    {$warnings off} // using deprecated to keep it working
     if SmallFont then
       FCustomizedFont.Size := FCustomizedFont.Size * 0.5;
+    {$warnings on}
     if Result is TFontFamily then
     begin
       { copying Result to FCustomizedFont this way allows to render with HTML
-        when CustomFont and FontSize are used together }
+        when CustomFont and FontSize/FontScale are used together }
       FCustomizedFont.RegularFont := TFontFamily(Result).RegularFont;
       FCustomizedFont.BoldFont := TFontFamily(Result).BoldFont;
       FCustomizedFont.ItalicFont := TFontFamily(Result).ItalicFont;
@@ -287,6 +305,15 @@ begin
   end;
 end;
 
+procedure TUIControlFont.SetFontScale(const Value: Single);
+begin
+  if FFontScale <> Value then
+  begin
+    FFontScale := Value;
+    FontChanged;
+  end;
+end;
+
 procedure TUIControlFont.SetSmallFont(const Value: boolean);
 begin
   if FSmallFont <> Value then
@@ -341,18 +368,15 @@ end;
 
 procedure TUIControlFont.CheckFontChanged;
 var
-  DefaultFont: TCastleFont;
+  NewUIFont: TCastleFont;
 begin
-  { we do not use here UIFont[Small] but FUIFont[Small],
-    to not create font without need. If the corresponding global font is nil now,
+  { we do not use here UIFont but FUIFont, to not create font without need.
+    If the corresponding global font is nil now,
     it can remain nil, no need to initialize it yet. }
-  if SmallFont then
-    DefaultFont := FUIFontSmall else
-    DefaultFont := FUIFont;
-
-  if (CustomFont = nil) and (FLastSeenUIFontXxx <> DefaultFont) then
+  NewUIFont := FUIFont;
+  if (CustomFont = nil) and (FLastSeenUIFontXxx <> NewUIFont) then
     FontChanged;
-  FLastSeenUIFontXxx := DefaultFont;
+  FLastSeenUIFontXxx := NewUIFont;
 end;
 
 {$endif read_implementation}

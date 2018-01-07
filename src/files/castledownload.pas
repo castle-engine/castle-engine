@@ -379,8 +379,10 @@ type
 
 implementation
 
-uses URIParser, CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
-  CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils, Math
+uses URIParser, Math,
+  CastleURIUtils, CastleUtils, CastleLog, CastleInternalZStream,
+  CastleClassUtils, CastleDataURI, CastleProgress, CastleStringUtils,
+  CastleApplicationProperties
   {$ifdef ANDROID}, CastleAndroidInternalAssetStream {$endif};
 
 { TProgressMemoryStream ------------------------------------------------------ }
@@ -625,6 +627,13 @@ begin
   end;
 end;
 
+procedure CheckFileAccessSafe(const URL: string);
+begin
+  if not ApplicationProperties._FileAccessSafe then
+    WritelnWarning('Opening file "%s" before the Application.OnInitialize was called. This is not reliable on mobile platforms (Android, iOS). This usually happens if you open a file from the "initialization" section of a unit. You should do it in Application.OnInitialize instead.',
+      [URL]);
+end;
+
 function Download(const URL: string; const Options: TStreamOptions;
   out MimeType: string): TStream;
 var
@@ -649,6 +658,7 @@ begin
   { network protocols: get data into a new TMemoryStream using FpHttpClient }
   if EnableNetwork and (P = 'http') then
   begin
+    CheckFileAccessSafe(URL);
     WritelnLog('Network', 'Downloading "%s"', [URIDisplay(URL)]);
     NetworkResult := NetworkDownload(URL, MaxRedirects, MimeType);
     try
@@ -665,6 +675,8 @@ begin
   { local filenames are directly handled, without the need for any downloader }
   if (P = '') or (P = 'file') then
   begin
+    CheckFileAccessSafe(URL);
+
     FileName := URIToFilenameSafe(URL);
     if FileName = '' then
       raise EDownloadError.CreateFmt('Cannot convert URL "%s" to filename', [URL]);
@@ -680,9 +692,10 @@ begin
     MimeType := URIMimeType(URL);
   end else
 
-  { assets: to access Android assets }
-  if P = 'assets' then
+  { castle-android-assets: to access Android assets }
+  if (P = 'assets') or (P = 'castle-android-assets') then
   begin
+    CheckFileAccessSafe(URL);
     {$ifdef ANDROID}
     AssetStream := TReadAssetStream.Create(URIToAssetPath(URL));
     try

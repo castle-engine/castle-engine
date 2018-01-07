@@ -25,16 +25,38 @@ uses SysUtils, Classes, Math, Generics.Collections,
   CastleClassUtils, CastleStringUtils, CastleInternalSoundFile;
 
 type
+  ENoMoreOpenALSources = class(Exception);
+  ESoundBufferNotLoaded = class(Exception);
+  EInvalidSoundBufferFree = class(Exception);
+  ESoundFileError = CastleInternalSoundFile.ESoundFileError;
+
   TSound = class;
   TSoundAllocator = class;
 
-  TSoundBuffer = type TALuint;
+  { Sound buffer represents contents of a sound file, like Wav or OggVorbis,
+    that (may be) loaded to OpenAL.
+    It can be only allocated by @link(TSoundEngine.LoadBuffer)
+    and freed by @link(TSoundEngine.FreeBuffer).
+    @bold(Do not free TSoundBuffer instances yourself.) }
+  TSoundBuffer = class
+  private
+    ALBuffer: TALuint;
+    { Absolute URL.
+      Never empty (do not create TSoundBuffer instances for invalid / empty URL,
+      like the ones that can be created by TRepoSoundEngine for not defined sounds.) }
+    URL: string;
+    FDuration: TFloatTime;
+    References: Cardinal;
+    procedure ALContextOpen(const ExceptionOnError: boolean);
+    procedure ALContextClose;
+  public
+    destructor Destroy; override;
+
+    { Duration of the sound, in seconds. Zero if not loaded yet. }
+    property Duration: TFloatTime read FDuration;
+  end;
 
   TSoundEvent = procedure (Sender: TSound) of object;
-
-  ENoMoreOpenALSources = class(Exception);
-  ESoundBufferNotLoaded = class(Exception);
-  ESoundFileError = CastleInternalSoundFile.ESoundFileError;
 
   { Sound.
     Internally, this corresponds to an allocated OpenAL sound source. }
@@ -213,48 +235,44 @@ type
     procedure SortByImportance;
   end;
 
-  { Manager of allocated OpenAL sounds.
-    You leave to this class creating and deleting of OpenAL sounds.
-    When you need OpenAL sound to do something, just call AllocateSound method.
+  { Manager of allocated sounds.
 
-    This class will manage OpenAL sources in an intelligent manner,
-    which means when you need new sound, we may
-    @orderedList(
-      @item(Reuse already allocated sound that is not used to play anything.)
-      @item(Allocate new sound (but we will keep allocated sounds count
-        within MaxAllocatedSources sound limit, to not overload OpenAL
-        implementation with work).)
-      @item(We may simply interrupt already allocated sound, if new
-        sound is more important.)
-    )
+    For efficiency, the pool of available sound sources (things that are actually
+    audible at a given time) is limited. This limit is not only in OpenAL,
+    it may also stem from sound hardware limitations,
+    or limitations of APIs underneath OpenAL.
+    So you cannot simply allocate new sound source for each of 100 creatures
+    you display in the game.
 
-    Our OpenAL resources are created in ALContextOpen, and released
-    in ALContextClose.
+    This class hides this limitation, by managing a pool of sound sources,
+    and returning on demand (by @link(AllocateSound) method) the next unused
+    sound source (or @nil). It can prioritize sound sources,
+    it can reuse sound sources that finished playing,
+    it can even interrupt a lower-priority sound when necessary to play
+    a higher-priority sound.
 
-    The very reason behind this class is to hide from you the fact that
-    the number of OpenAL sources are limited. In particular, this
-    means that when OpenAL will run out of sources, no OpenAL error
-    (alGetError) will be left, and no exception will be raised.
-    In the worst case TSoundAllocator.AllocateSound will return nil,
-    but in more probable cases some other sources (unused, or with
-    less priority) will be reused.
-
-    Note that this means that the code in this unit must
-    read in some situations alGetError. That's because reading alGetError
-    is the only way to know when OpenAL implementation has run out of sources.
-    So the code in this unit may in various places raise EALError if you
-    made some error in your OpenAL code, and you didn't check alGetError
-    yourself often enough. }
+    This is automatically used by higher-level comfortable methods to play
+    sounds: @link(TSoundEngine.PlaySound),
+    @link(TRepoSoundEngine.Sound) and @link(TRepoSoundEngine.Sound3D). }
   TSoundAllocator = class
   strict private
     FAllocatedSources: TSoundList;
     FMinAllocatedSources: Cardinal;
     FMaxAllocatedSources: Cardinal;
     LastSoundRefresh: TTimerResult;
+
+    { Detect unused sound sources.
+      For every source that is marked as Used, this checks
+      whether this source is actually in playing/paused state
+      right now. If not, it calls @link(TSound.Release) (thus setting
+      TSound.Used to @false and triggering TSound.OnRelease) for this source. }
     procedure DetectUnusedSounds;
     procedure Update(Sender: TObject);
     procedure SetMinAllocatedSources(const Value: Cardinal);
     procedure SetMaxAllocatedSources(const Value: Cardinal);
+  private
+    procedure ALContextOpenCore; virtual;
+    procedure ALContextCloseCore; virtual;
   public
     const
       DefaultMinAllocatedSources = 4;
@@ -262,12 +280,10 @@ type
 
     constructor Create;
     destructor Destroy; override;
-    procedure ALContextOpen; virtual;
-    procedure ALContextClose; virtual;
 
     { Is the OpenAL version at least @code(AMajor.AMinor).
       Available only when OpenAL is initialized, that is:
-      between @link(ALContextOpen) and @link(ALContextClose),
+      between @link(TSoundEngine.ALContextOpen) and @link(TSoundEngine.ALContextClose),
       only when @link(TSoundEngine.ALActive). }
     function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; virtual; abstract;
 
@@ -295,22 +311,11 @@ type
     function AllocateSound(const Importance: Integer): TSound;
 
     { All allocated (not necessarily used) OpenAL sources.
-      Useful only for advanced or debuging tasks, in normal circumstances
-      we mange this completely ourselves. This is @nil when ALContextOpen
-      was not yet called. }
+      Accessing this is useful only for debugging tasks,
+      in normal circumstances this is internal.
+      This is @nil when ALContextOpen was not yet called. }
     property AllocatedSources: TSoundList read FAllocatedSources;
 
-    { Detect unused sound sources. If you rely on your sources receiving
-      TSound.OnRelease in a timely manner, be sure to call
-      this method often. Otherwise, it's not needed to call this at all
-      (unused sounds will be detected automatically on-demand anyway).
-
-      This is automatically called by TCastleSceneManager.
-
-      For every source that is marked as Used, this checks
-      whether this source is actually in playing/paused state
-      right now. If not, it calls @link(TSound.Release) (thus setting
-      Used to @false and triggering OnRelease) for this source. }
     procedure Refresh; deprecated 'do not call this method yourself, it will be called directly if you use CastleWindow unit (with TCastleApplication, TCastleWindow) or TCastleControl; in other cases, you shoud call ApplicationProperties._Update yourself';
 
     { Stop all the sources currently playing. Especially useful since
@@ -363,15 +368,6 @@ type
     dmInverseDistance , dmInverseDistanceClamped,
     dmLinearDistance  , dmLinearDistanceClamped,
     dmExponentDistance, dmExponentDistanceClamped);
-
-  TSoundBuffersCache = class
-    URL: string; //< Absolute URL.
-    Buffer: TSoundBuffer;
-    Duration: TFloatTime;
-    References: Cardinal;
-  end;
-  TSoundBuffersCacheList =
-    {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundBuffersCache>;
 
   TSoundDevice = class
   private
@@ -429,31 +425,34 @@ type
     explicitly, then at destructor we'll do it automatically. }
   TSoundEngine = class(TSoundAllocator)
   private
-    FInformation: string;
-    FDevice: string;
-    FALActive: boolean;
-    FALMajorVersion, FALMinorVersion: Integer;
-    FEFXSupported: boolean;
-    FVolume: Single;
-    ALDevice: PALCdevice;
-    ALContext: PALCcontext;
-    FEnabled: boolean;
-    FALInitialized: boolean;
-    FDefaultRolloffFactor: Single;
-    FDefaultReferenceDistance: Single;
-    FDefaultMaxDistance: Single;
-    FDistanceModel: TSoundDistanceModel;
-    BuffersCache: TSoundBuffersCacheList;
-    FDevices: TSoundDeviceList;
-    FOnOpenClose: TNotifyEventList;
-    FResumeToInitialized, FPaused: boolean;
+    type
+      TSoundBuffersList = {$ifdef CASTLE_OBJFPC}specialize{$endif} TObjectList<TSoundBuffer>;
+    var
+      FInformation: string;
+      FDevice: string;
+      FALActive: boolean;
+      FALMajorVersion, FALMinorVersion: Integer;
+      FEFXSupported: boolean;
+      FVolume: Single;
+      ALDevice: PALCdevice;
+      ALContext: PALCcontext;
+      FEnabled: boolean;
+      FALInitialized: boolean;
+      FDefaultRolloffFactor: Single;
+      FDefaultReferenceDistance: Single;
+      FDefaultMaxDistance: Single;
+      FDistanceModel: TSoundDistanceModel;
+      LoadedBuffers: TSoundBuffersList;
+      FDevices: TSoundDeviceList;
+      FOnOpenClose: TNotifyEventList;
+      FResumeToInitialized, FPaused: boolean;
 
-    { We record listener state regardless of ALActive. This way at the ALContextOpen
-      call we can immediately set the good listener parameters. }
-    ListenerPosition: TVector3;
-    ListenerOrientation: TALTwoVectors3f;
+      { We record listener state regardless of ALActive. This way at the ALContextOpen
+        call we can immediately set the good listener parameters. }
+      ListenerPosition: TVector3;
+      ListenerOrientation: TALTwoVectors3f;
 
-    FEnableSaveToConfig, DeviceSaveToConfig: boolean;
+      FEnableSaveToConfig, DeviceSaveToConfig: boolean;
 
     { Check ALC errors. Requires valid ALDevice. }
     procedure CheckALC(const situation: string);
@@ -473,6 +472,9 @@ type
       When paused, OpenAL is for sure inactive, and it cannot be activated
       (calling ALContextOpen, or playing a sound, will @bold(not) activate it). }
     property Paused: boolean read FPaused write SetPaused;
+
+    procedure ALContextOpenCore; override;
+    procedure ALContextCloseCore; override;
   public
     const
       DefaultVolume = 1.0;
@@ -486,30 +488,33 @@ type
     constructor Create;
     destructor Destroy; override;
 
-    procedure LoadFromConfig(const Config: TCastleConfig); override;
-    procedure SaveToConfig(const Config: TCastleConfig); override;
+    { Initialize sound engine.
+      Initializes OpenAL library.
+      Sets @link(ALInitialized), @link(ALActive),
+      @link(Information), @link(EFXSupported),
+      @link(ALMajorVersion), @link(ALMinorVersion).
 
-    { Is the OpenAL version at least @code(AMajor.AMinor). }
-    function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
-
-    { Initialize OpenAL library, and output device and context.
-      Sets ALInitialized, ALActive, @link(Information), EFXSupported,
-      ALMajorVersion, ALMinorVersion.
       You can set @link(Device) before calling this.
 
       Note that we continue (without any exception) if the initialization
       failed for any reason (maybe OpenAL library is not available,
       or no sound output device is available).
-      You can check things like ALActive and @link(Information),
-      but generally this class
-      will hide from you the fact that sound is not initialized. }
-    procedure ALContextOpen; override;
+      You can check @link(ALActive) and @link(Information) to know if
+      the initialization was actually successfull. But you can also ignore it,
+      the sound engine will silently (literally) keep working even if OpenAL
+      could not be initialized. }
+    procedure ALContextOpen;
 
-    { Release OpenAL context and resources.
+    { Release OpenAL resources.
+      This sets @link(ALInitialized) and @link(ALActive) to @false.
+      It's allowed and harmless to call this when one of them is already @false. }
+    procedure ALContextClose;
 
-      ALInitialized and ALActive are set to @false. It's allowed and harmless
-      to cal this when one of them is already @false. }
-    procedure ALContextClose; override;
+    procedure LoadFromConfig(const Config: TCastleConfig); override;
+    procedure SaveToConfig(const Config: TCastleConfig); override;
+
+    { Is the OpenAL version at least @code(AMajor.AMinor). }
+    function ALVersionAtLeast(const AMajor, AMinor: Integer): boolean; override;
 
     { Do we have active OpenAL context. This is @true when you successfully
       called ALContextOpen (and you didn't call ALContextClose yet).
@@ -533,23 +538,22 @@ type
     { Wrapper for alcGetString. }
     function GetContextString(Enum: TALCenum): string;
 
-    { Load a sound file into OpenAL buffer.
+    { Load a sound file contents such that they can be immediately played.
 
-      Result is 0 only if we don't have a valid OpenAL context.
-      Note that this method will automatically call ALContextOpen if it wasn't
-      called yet. So result = zero means that ALContextOpen was called, but for some
-      reason failed.
+      This method tries to initialize OpenAL context, and internally load
+      the buffer contents to OpenAL. But even when it fails, it still returns
+      a valid (non-nil) TSoundBuffer instance. The @link(PlaySound) must be
+      ready anyway to always load the buffer on-demand (because OpenAL context
+      may be lost while the game is ongoing, in case of Android).
 
-      The buffer should be released by FreeBuffer later when it's not needed.
+      The buffer should be released by @link(FreeBuffer) later when it's not needed.
       Although we will take care to always free remaining buffers
-      before closing OpenAL context anyway. (And OpenAL would also free
-      the buffer anyway at closing, although some OpenAL versions
-      could write a warning about this.)
+      before closing OpenAL context anyway.
 
       We have a cache of sound files here. An absolute URL
       will be recorded as being loaded to given buffer. Loading the same
-      URL second time returns the same OpenAL buffer. The buffer
-      is released only once you call FreeBuffer as many times as you called
+      URL second time returns the same buffer instance. The buffer
+      is released only once you call @link(FreeBuffer) as many times as you called
       LoadBuffer for it.
 
       @raises(ESoundFileError If loading of this sound file failed.
@@ -558,14 +562,16 @@ type
         or a library required to decompress e.g. OggVorbis is missing.)
 
       @groupBegin }
-    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer; overload;
-    function LoadBuffer(const URL: string): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; const ExceptionOnError: boolean = true): TSoundBuffer; overload;
+    function LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+      overload;
+      deprecated 'use LoadBuffer without Duration parameter, and just read TSoundBuffer.Duration after loading';
     { @groupEnd }
 
-    { Free a sound file buffer. Ignored when buffer is zero.
-      Buffer is always set to zero after this.
+    { Free a sound file buffer. Ignored when buffer is @nil.
+      Buffer is always set to @nil after this.
 
-      @raises(ESoundBufferNotLoaded When invalid (not zero,
+      @raises(ESoundBufferNotLoaded When invalid (not @nil,
         and not returned by LoadBuffer) buffer identifier is given.) }
     procedure FreeBuffer(var Buffer: TSoundBuffer);
 
@@ -733,24 +739,13 @@ type
   end;
 
   { Sound information, internally used by TRepoSoundEngine.
-
-    The fields correspond to appropriate attributes in sounds XML file.
-    All of the fields except Buffer are initialized only by ReadSounds.
-
-    From the point of view of end-user the number of sounds
-    is constant for given game and their properties (expressed in
-    TSoundInfo below) are also constant.
-    However, for the sake of debugging/testing the game,
-    and for content designers, the actual values of Sounds are loaded
-    at initialization by ReadSounds (called automatically by ALContextOpen)
-    from sounds XML file,
-    and later can be changed by calling ReadSounds once again during the
-    game (debug menu may have command like "Reload sounds/index.xml"). }
+    Most fields of this classs correspond to appropriate attributes in
+    the XML file loaded by setting @link(TRepoSoundEngine.RepositoryURL). }
   TSoundInfo = class
   private
     FBuffer: TSoundBuffer;
 
-    { OpenAL buffer of this sound. Zero if buffer is not yet loaded,
+    { OpenAL buffer of this sound. @nil if buffer is not yet loaded,
       which may happen only if TRepoSoundEngine.ALContextOpen was not yet
       called or when sound has URL = ''. }
     property Buffer: TSoundBuffer read FBuffer;
@@ -849,21 +844,16 @@ type
       created and destroyed in this class create/destroy. }
     FMusicPlayer: TMusicPlayer;
     procedure SetRepositoryURL(const Value: string);
-    { Load buffers for all Sounds. Should be called as soon as Sounds changes
-      and we may have OpenAL context (but it checks ALActive and Sounds.Count,
-      and does something only if we have OpenAL context and some sounds,
-      so it's actually safe to call it always). }
-    procedure LoadSoundsBuffers;
+    { Reinitialize MusicPlayer sound.
+      Should be called as soon as Sounds changes and we may have OpenAL context. }
+    procedure RestartMusic;
+
+    procedure ALContextOpenCore; override;
   public
     constructor Create;
     destructor Destroy; override;
-
     procedure LoadFromConfig(const Config: TCastleConfig); override;
     procedure SaveToConfig(const Config: TCastleConfig); override;
-
-    { In addition to initializing OpenAL context, this also loads sound files. }
-    procedure ALContextOpen; override;
-    procedure ALContextClose; override;
 
     { The XML file that contains description of your sounds.
       This should be an URL (in simple cases, just a filename)
@@ -907,8 +897,8 @@ type
     property SoundsFileName: string read FRepositoryURL write SetRepositoryURL; deprecated;
 
     { Reload the RepositoryURL and all referenced buffers.
-      Useful as a tool for 3D data designers, to reload the sounds XML file
-      without restarting the game/sound engine etc. }
+      Useful as a tool for game designers, to reload the sounds XML file
+      without restarting the game and sound engine. }
     procedure ReloadSounds;
 
     { A list of sounds used by your program.
@@ -1092,6 +1082,51 @@ uses DOM, XMLRead, StrUtils, Generics.Defaults,
   CastleParameters, CastleXMLUtils, CastleFilesUtils, CastleConfig,
   CastleURIUtils, CastleDownload, CastleMessaging, CastleApplicationProperties;
 
+{ TSoundBuffer --------------------------------------------------------------- }
+
+procedure TSoundBuffer.ALContextOpen(const ExceptionOnError: boolean);
+
+  procedure OpenCore;
+  begin
+    alCreateBuffers(1, @ALBuffer);
+    try
+      alBufferDataFromFile(ALBuffer, URL, FDuration);
+    except alDeleteBuffers(1, @ALBuffer); raise end;
+  end;
+
+begin
+  if ExceptionOnError then
+  begin
+    OpenCore;
+  end else
+  try
+    OpenCore;
+  except
+    on E: Exception do
+    begin
+      ALBuffer := 0;
+      WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
+        [URIDisplay(URL), E.Message]));
+    end;
+  end;
+end;
+
+procedure TSoundBuffer.ALContextClose;
+begin
+  alFreeBuffer(ALBuffer);
+end;
+
+var
+  ValidSoundBufferFree: Cardinal;
+
+destructor TSoundBuffer.Destroy;
+begin
+  if ValidSoundBufferFree = 0 then
+    raise EInvalidSoundBufferFree.Create('Do not free TSoundBuffer instance directly, use SoundEngine.FreeBuffer');
+  ALContextClose;
+  inherited;
+end;
+
 { TSound ---------------------------------------------------------- }
 
 constructor TSound.Create(const AnAllocator: TSoundAllocator);
@@ -1142,7 +1177,7 @@ begin
     while it's associated with the source. Also, this would be a problem
     once we implement streaming on some sources: you have to reset
     buffer to 0 before queing buffers on source. }
-  Buffer := 0;
+  Buffer := nil;
 
   if Assigned(OnRelease) then
   begin
@@ -1196,12 +1231,16 @@ end;
 procedure TSound.SetBuffer(const Value: TSoundBuffer);
 begin
   FBuffer := Value;
-  { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
-    But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
-    whatever alSourcei requires. }
-  {$I norqcheckbegin.inc}
-  alSourcei(ALSource, AL_BUFFER, Value);
-  {$I norqcheckend.inc}
+  if Value <> nil then
+  begin
+    { TSoundBuffer is unsigned, while alSourcei is declared as taking signed integer.
+      But we know we can pass TSoundBuffer to alSourcei, just typecasting it to
+      whatever alSourcei requires. }
+    {$I norqcheckbegin.inc}
+    alSourcei(ALSource, AL_BUFFER, Value.ALBuffer);
+    {$I norqcheckend.inc}
+  end else
+    alSourcei(ALSource, AL_BUFFER, 0);
 end;
 
 procedure TSound.SetPitch(const Value: Single);
@@ -1319,7 +1358,7 @@ begin
   inherited;
 end;
 
-procedure TSoundAllocator.ALContextOpen;
+procedure TSoundAllocator.ALContextOpenCore;
 var
   I: Integer;
 begin
@@ -1331,7 +1370,7 @@ begin
   ApplicationProperties.OnUpdate.Add({$ifdef CASTLE_OBJFPC}@{$endif} Update);
 end;
 
-procedure TSoundAllocator.ALContextClose;
+procedure TSoundAllocator.ALContextCloseCore;
 var
   I: Integer;
 begin
@@ -1583,7 +1622,7 @@ begin
   FDevice := DefaultDevice;
   FEnableSaveToConfig := true;
   DeviceSaveToConfig := true;
-  BuffersCache := TSoundBuffersCacheList.Create;
+  LoadedBuffers := TSoundBuffersList.Create(true);
   FOnOpenClose := TNotifyEventList.Create;
 
   { Default OpenAL listener attributes }
@@ -1623,7 +1662,12 @@ begin
   // end;
 
   ALContextClose;
-  FreeAndNil(BuffersCache);
+
+  Inc(ValidSoundBufferFree);
+  try
+    FreeAndNil(LoadedBuffers);
+  finally Dec(ValidSoundBufferFree) end;
+
   FreeAndNil(FDevices);
   FreeAndNil(FOnOpenClose);
   inherited;
@@ -1762,7 +1806,7 @@ begin
   try
     CheckALC('alcGetString');
     { Check also normal al error (alGetError instead
-      of alcGetError). Seems that when Darwin (Mac OS X) Apple's OpenAL
+      of alcGetError). Seems that when Darwin (macOS) Apple's OpenAL
       implementation fails to return some alcGetString
       it reports this by setting AL error (instead of ALC one)
       to "invalid value". Although (after fixes to detect OpenALSampleImplementation
@@ -1775,7 +1819,7 @@ begin
   end;
 end;
 
-procedure TSoundEngine.ALContextOpen;
+procedure TSoundEngine.ALContextOpenCore;
 
   procedure ParseVersion(const Version: string; out Major, Minor: Integer);
   var
@@ -1819,7 +1863,8 @@ procedure TSoundEngine.ALContextOpen;
       FALMajorVersion := 0;
       FALMinorVersion := 0;
 
-      CheckALInitialized;
+      if not ALInitialized then
+        raise EOpenALInitError.Create('OpenAL library is not available');
 
       ALDevice := alcOpenDevice(PCharOrNil(Device));
       if (ALDevice = nil) then
@@ -1827,10 +1872,10 @@ procedure TSoundEngine.ALContextOpen;
           'OpenAL''s audio device "%s" is not available', [Device]);
 
       ALContext := alcCreateContext(ALDevice, nil);
-      CheckALC('initing OpenAL (alcCreateContext)');
+      CheckALC('initializing OpenAL (alcCreateContext)');
 
       alcMakeContextCurrent(ALContext);
-      CheckALC('initing OpenAL (alcMakeContextCurrent)');
+      CheckALC('initializing OpenAL (alcMakeContextCurrent)');
 
       FALActive := true;
       FEFXSupported := Load_EFX(ALDevice);
@@ -1866,14 +1911,38 @@ procedure TSoundEngine.ALContextOpen;
       ]);
   end;
 
+  { initialize OpenAL resources inside LoadedBuffers }
+  procedure LoadedBuffersOpen;
+  var
+    Buffer: TSoundBuffer;
+  begin
+    // check LoadedBuffers.Count, because we don't want to do progress with no LoadedBuffers
+    if LoadedBuffers.Count <> 0 then
+    begin
+      if Progress.Active then
+      begin
+        { call ALContextOpen on all buffers }
+        for Buffer in LoadedBuffers do
+          Buffer.ALContextOpen(false);
+      end else
+      begin
+        { same as above, but with added Progress.Init / Step / Fini }
+        Progress.Init(LoadedBuffers.Count, 'Loading sounds');
+        try
+          for Buffer in LoadedBuffers do
+          begin
+            Buffer.ALContextOpen(false);
+            Progress.Step;
+          end;
+        finally Progress.Fini end;
+      end;
+    end;
+  end;
+
 var
   ALActivationErrorMessage: string;
 begin
-  if Paused then
-    Exit; // do not even set ALInitialized to true
-
   Assert(not ALActive, 'OpenAL context is already active');
-  Assert(not ALInitialized, 'OpenAL context initialization was already attempted');
 
   if not Enabled then
     FInformation :=
@@ -1892,6 +1961,7 @@ begin
         UpdateDistanceModel;
         inherited; { initialize sound allocator }
         CheckAL('initializing sounds (ALContextOpen)');
+        LoadedBuffersOpen;
       except
         ALContextClose;
         raise;
@@ -1899,14 +1969,13 @@ begin
     end;
   end;
 
-  FALInitialized := true;
   if Log then
     WritelnLogMultiline('Sound', Information);
 
   OnOpenClose.ExecuteAll(Self);
 end;
 
-procedure TSoundEngine.ALContextClose;
+procedure TSoundEngine.ALContextCloseCore;
 
   procedure EndAL;
   begin
@@ -1969,28 +2038,44 @@ procedure TSoundEngine.ALContextClose;
   end;
 
 var
-  I: Integer;
+  Buffer: TSoundBuffer;
+begin
+  if ALActive then
+  begin
+    { release sound allocator first. This also stops all the sources,
+      which is required before we try to release their buffers. }
+    inherited;
+    { free OpenAL resources allocated inside LoadedBuffers }
+    for Buffer in LoadedBuffers do
+      Buffer.ALContextClose;
+    EndAL;
+  end;
+
+  if Log then
+    WritelnLog('Sound', 'OpenAL closed');
+
+  OnOpenClose.ExecuteAll(Self);
+end;
+
+
+procedure TSoundEngine.ALContextOpen;
+begin
+  if Paused then
+    Exit; // do not even set ALInitialized to true
+
+  if not ALInitialized then
+  begin
+    FALInitialized := true; // set it early, so that OnOpenClose knows it's true
+    ALContextOpenCore;
+  end;
+end;
+
+procedure TSoundEngine.ALContextClose;
 begin
   if ALInitialized then
   begin
-    FALInitialized := false;
-    if ALActive then
-    begin
-      { release sound allocator first. This also stops all the sources,
-        which is required before we try to release their buffers. }
-      inherited;
-
-      for I := 0 to BuffersCache.Count - 1 do
-        alFreeBuffer(BuffersCache[I].Buffer);
-      BuffersCache.Count := 0;
-
-      EndAL;
-    end;
-
-    if Log then
-      WritelnLog('Sound', 'OpenAL closed');
-
-    OnOpenClose.ExecuteAll(Self);
+    FALInitialized := false; // set it early, so that OnOpenClose knows it's false
+    ALContextCloseCore;
   end;
 end;
 
@@ -2002,7 +2087,10 @@ const
 begin
   Result := nil;
 
-  if ALActive and (Parameters.Buffer <> 0) then
+  if ALActive and
+     (Parameters.Buffer <> nil) and
+     { ALBuffer may be = 0 if file failed to load, e.g. file not found }
+     (Parameters.Buffer.ALBuffer <> 0) then
   begin
     Result := AllocateSound(Parameters.Importance);
     if Result <> nil then
@@ -2072,7 +2160,7 @@ begin
         { We have to do CheckAL first, to catch eventual errors.
           Otherwise the loop could hang. }
         CheckAL('PlaySound');
-        while Parameters.Buffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
+        while Parameters.Buffer.ALBuffer <> alGetSource1ui(Result.ALSource, AL_BUFFER) do
           Sleep(10);
       end;
 
@@ -2140,71 +2228,65 @@ begin
   finally FreeAndNil(Parameters) end;
 end;
 
-function TSoundEngine.LoadBuffer(const URL: string;
-  out Duration: TFloatTime): TSoundBuffer;
+function TSoundEngine.LoadBuffer(const URL: string; out Duration: TFloatTime): TSoundBuffer;
+begin
+  Result := LoadBuffer(URL);
+  Duration := Result.Duration;
+end;
+
+function TSoundEngine.LoadBuffer(const URL: string; const ExceptionOnError: boolean): TSoundBuffer;
 var
   I: Integer;
-  Cache: TSoundBuffersCache;
   FullURL: string;
 begin
-  if not ALInitialized then ALContextOpen;
-  if not ALActive then Exit(0);
+  ALContextOpen;
 
   FullURL := AbsoluteURI(URL);
 
-  { try to load from cache (Result and Duration) }
-  for I := 0 to BuffersCache.Count - 1 do
-    if BuffersCache[I].URL = FullURL then
+  { try to load from cache Result }
+  for I := 0 to LoadedBuffers.Count - 1 do
+    if LoadedBuffers[I].URL = FullURL then
     begin
-      Inc(BuffersCache[I].References);
+      Result := LoadedBuffers[I];
+      Inc(Result.References);
       if Log then
-        WritelnLog('Sound', Format('Loaded "%s" from cache, now has %d references',
-          [URIDisplay(FullURL), BuffersCache[I].References]));
-      Duration := BuffersCache[I].Duration;
-      Exit(BuffersCache[I].Buffer);
+        WritelnLog('Sound', Format('Loaded sound buffer "%s" from cache, now it has %d references',
+          [URIDisplay(FullURL), Result.References]));
+      Exit;
     end;
 
-  { actually load, and add to cache }
-  alCreateBuffers(1, @Result);
-  try
-    alBufferDataFromFile(Result, URL, Duration);
-  except alDeleteBuffers(1, @Result); raise end;
+  Result := TSoundBuffer.Create;
+  Result.URL := FullURL;
+  Result.References := 1;
+  LoadedBuffers.Add(Result);
 
-  Cache := TSoundBuffersCache.Create;
-  Cache.URL := FullURL;
-  Cache.Buffer := Result;
-  Cache.Duration := Duration;
-  Cache.References := 1;
-  BuffersCache.Add(Cache);
-end;
-
-function TSoundEngine.LoadBuffer(const URL: string): TSoundBuffer;
-var
-  Dummy: TFloatTime;
-begin
-  Result := LoadBuffer(URL, Dummy);
+  if ALActive then
+    { let LoadBuffer raise exception on missing sound file }
+    Result.ALContextOpen(ExceptionOnError);
 end;
 
 procedure TSoundEngine.FreeBuffer(var Buffer: TSoundBuffer);
 var
   I: Integer;
 begin
-  if Buffer = 0 then Exit;
+  if Buffer = nil then Exit;
 
-  for I := 0 to BuffersCache.Count - 1 do
-    if BuffersCache[I].Buffer = Buffer then
+  I := LoadedBuffers.IndexOf(Buffer);
+  if I <> -1 then
+  begin
+    Dec(Buffer.References);
+    if Buffer.References = 0 then
     begin
-      Buffer := 0;
-      Dec(BuffersCache[I].References);
-      if BuffersCache[I].References = 0 then
-      begin
-        alFreeBuffer(BuffersCache[I].Buffer);
-        BuffersCache.Delete(I);
-      end;
-      Exit;
+      // this will free Buffer, also calling Buffer.ALContextClose;
+      Inc(ValidSoundBufferFree);
+      try
+        LoadedBuffers.Delete(I);
+      finally Dec(ValidSoundBufferFree) end;
     end;
-
-  raise ESoundBufferNotLoaded.CreateFmt('OpenAL buffer %d not loaded', [Buffer]);
+    Buffer := nil;
+  end else
+    raise ESoundBufferNotLoaded.CreateFmt('Sound buffer "%s" not loaded by this sound engine',
+      [URIDisplay(Buffer.URL)]);
 end;
 
 procedure TSoundEngine.SetVolume(const Value: Single);
@@ -2483,67 +2565,17 @@ begin
   inherited;
 end;
 
-procedure TRepoSoundEngine.ALContextOpen;
+procedure TRepoSoundEngine.ALContextOpenCore;
 begin
   inherited;
-  LoadSoundsBuffers;
+  RestartMusic;
 end;
 
-procedure TRepoSoundEngine.LoadSoundsBuffers;
-var
-  SoundIndex: Integer;
-  ProgressActive: boolean;
+procedure TRepoSoundEngine.RestartMusic;
 begin
-  { load sound buffers and allocate sound for music. Only if we have any sound
-    (other than stNone). }
-  if ALActive and (Sounds.Count > 1) then
-  begin
-    ProgressActive := Progress.Active;
-    if not ProgressActive then
-      Progress.Init(Sounds.Count - 1, 'Loading sounds');
-    try
-      { We do progress to "Sounds.Count - 1" because we start
-        iterating from SoundIndex = 1 because SoundIndex = 0 never exists. }
-      Assert(Sounds[0].URL = '');
-      for SoundIndex := 1 to Sounds.Count - 1 do
-      begin
-        if Sounds[SoundIndex].URL <> '' then
-        try
-          Sounds[SoundIndex].FBuffer := LoadBuffer(Sounds[SoundIndex].URL);
-        except
-          on E: Exception do
-          begin
-            Sounds[SoundIndex].FBuffer := 0;
-            WritelnWarning('Sound', Format('Sound file "%s" cannot be loaded: %s',
-              [Sounds[SoundIndex].URL, E.Message]));
-          end;
-        end;
-        if not ProgressActive then
-          Progress.Step;
-      end;
-    finally
-      if not ProgressActive then
-        Progress.Fini;
-    end;
-
-    MusicPlayer.AllocateSource;
-  end;
-end;
-
-procedure TRepoSoundEngine.ALContextClose;
-var
-  SoundIndex: Integer;
-begin
+  { allocate sound for music }
   if ALActive then
-  begin
-    StopAllSources;
-    { this is called from TSoundEngine.Destroy, so be secure and check
-      Sounds for nil }
-    if Sounds <> nil then
-      for SoundIndex := 0 to Sounds.Count - 1 do
-        FreeBuffer(Sounds[SoundIndex].FBuffer);
-  end;
-  inherited;
+    MusicPlayer.AllocateSource;
 end;
 
 function TRepoSoundEngine.Sound(SoundType: TSoundType;
@@ -2557,11 +2589,9 @@ begin
   }
   if (SoundType.Index = 0) or (Sounds[SoundType.Index].URL = '') then Exit(nil);
 
-  if not ALInitialized then ALContextOpen;
+  ALContextOpen;
 
-  { Check this *after* ALContextOpen, since Buffer is always zero before OpenAL
-    is initialized. }
-  if Sounds[SoundType.Index].Buffer = 0 then Exit(nil);
+  if Sounds[SoundType.Index].Buffer = nil then Exit(nil);
 
   Result := PlaySound(
     Sounds[SoundType.Index].Buffer, false, Looping,
@@ -2580,11 +2610,9 @@ begin
     See Sound for duplicate of this "if" and more comments. }
   if (SoundType.Index = 0) or (Sounds[SoundType.Index].URL = '') then Exit(nil);
 
-  if not ALInitialized then ALContextOpen;
+  ALContextOpen;
 
-  { Do it *after* ALContextOpen, since Buffer is always zero before OpenAL
-    is initialized. }
-  if Sounds[SoundType.Index].Buffer = 0 then Exit(nil);
+  if Sounds[SoundType.Index].Buffer = nil then Exit(nil);
 
   Result := PlaySound(
     Sounds[SoundType.Index].Buffer, true, Looping,
@@ -2628,6 +2656,9 @@ begin
     Check(SoundConfig.DocumentElement.TagName = 'sounds',
       'Root node of sounds/index.xml must be <sounds>');
 
+    { TODO: This could display a progress bar using Progress.Init / Fini
+      if ALActive, since it loads sounds then. }
+
     I := SoundConfig.DocumentElement.ChildrenIterator;
     try
       while I.GetNext do
@@ -2644,7 +2675,6 @@ begin
         S.MinGain := 0;
         S.MaxGain := 1;
         S.DefaultImportance := MaxSoundImportance;
-        S.FBuffer := 0; {< initially, will be loaded later }
 
         Sounds.Add(S);
 
@@ -2680,6 +2710,10 @@ begin
             S.DefaultImportance :=
               PtrUInt(SoundImportanceNames.Objects[SoundImportanceIndex]);
         end;
+
+        { set S.FBuffer at the end, when S.URL is set }
+        if S.URL <> '' then
+          S.FBuffer := LoadBuffer(S.URL, false);
       end;
     finally FreeAndNil(I) end;
   finally
@@ -2702,8 +2736,8 @@ begin
   stMenuClick              := SoundFromName('menu_click'               , false);
 
   { in case you set RepositoryURL when OpenAL context is already
-    initialized, load buffers now }
-  LoadSoundsBuffers;
+    initialized, start playing music immediately if necessary }
+  RestartMusic;
 end;
 
 procedure TRepoSoundEngine.ReloadSounds;

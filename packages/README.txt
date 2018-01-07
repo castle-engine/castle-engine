@@ -81,7 +81,7 @@ Mini-FAQ about these packages:
   provides CastleWindow unit using Lazarus LCL as a backend.
   It's useful for platforms where we don't have a better CastleWindow backend.
 
-  In practice, use this only for Mac OS X, see
+  In practice, use this only for macOS, see
 
     http://castle-engine.sourceforge.net/macosx_requirements.php
 
@@ -101,7 +101,7 @@ a single Lazarus package file?
   (This concerns stuff inside */unix/, */windows/ subdirectories,
   like base/unix|windows, opengl/unix|windows).
 
-  - Add all files, even the system-specific, to the package
+  - Add all files, .inc and .pas, even the system-specific, to the package
     (this way e.g. dependency checking for .compiled files will be Ok).
     This also means that we have to add all paths,
     both for unix/ and windows/, to the package.
@@ -117,9 +117,8 @@ a single Lazarus package file?
 
     Not a real problem, I used this hack only in one place actually...
 
-  - For units in platform-specific dirs, it's crucial to set
-    AddToUsesPkgSection Value="False". This means that they
-    will be compiled only when pulled by dependencies from other units,
-    and all will be Ok.
+  - For units in platform-specific dirs, set "Add to Uses Clause" to false
+    checkbox (at the unit configuration inside the package window).
+    Otherwise compiling package on other platforms would fail.
 
 Michalis

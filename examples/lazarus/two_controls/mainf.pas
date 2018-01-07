@@ -90,11 +90,8 @@ end;
 
 procedure TMain.TimerTimer(Sender: TObject);
 begin
-  LabelFps1.Caption := Format('FPS: %f (real : %f)',
-    [CastleControl1.Fps.FrameTime, CastleControl1.Fps.RealTime]);
-  LabelFps2.Caption := Format('FPS: %f (real : %f)',
-    [CastleControl2.Fps.FrameTime, CastleControl2.Fps.RealTime]);
+  LabelFps1.Caption := 'FPS: ' + CastleControl1.Fps.ToString;
+  LabelFps2.Caption := 'FPS: ' + CastleControl2.Fps.ToString;
 end;
 
 end.
-

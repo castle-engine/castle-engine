@@ -74,6 +74,14 @@ type
     { Is the product owned now. Use this for non-consumable items
       (things that user buys, and then "owns" for the rest of his life).
 
+      Caution: @italic(this may not be up-to-date knowledge).
+      Call @link(TInAppPurchases.RefreshPurchases) to refresh it
+      (on Android, this happens automatically on app launch;
+      but on iOS, it cannot be done automatically, as it requires logging to AppStore
+      -- this is also explicitly said in Apple docs).
+      Watch for @link(TInAppPurchases.Owns) and @link(TInAppPurchases.OnRefreshedPurchases)
+      then.
+
       Do not depend on this for consumables (use SuccessfullyConsumed
       for them, and be sure to call @link(TInAppPurchases.SuccessfullyConsumed)
       from @link(TInAppPurchases.Owns) for them). }
@@ -86,7 +94,10 @@ type
     property SuccessfullyConsumed: boolean read FSuccessfullyConsumed write FSuccessfullyConsumed;
   end;
 
+  { Information about product possible to be bought given to
+    @link(TInAppPurchases.SetAvailableProducts). }
   TAvailableProduct = record
+    { Unique product identifier. }
     Name: string;
 
     { Category. For now used only for analytics. }
@@ -95,34 +106,61 @@ type
 
   { Manage in-app purchases in your game.
 
-    Usage: simply construct an instance of this class (or a subclass --
-    it is useful to override some methods of this class for a particular game).
-    Call @link(SetAvailableProducts) to get the prices and ownership information
-    about items. Use various methods to query information about the products
-    and to buy products (@link(Purchase)).
+    Typical usage:
 
-    To include the necessary integration code in your Android project,
-    declare your Android project type as "integrated" with
-    the "google_in_app_purchases" component inside CastleEngineManifest.xml.
-    See https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine .
+    @orderedList(
+      @item(Construct one instance of this class. Or a subclass --
+        it is useful to override some methods of this class for a particular game.)
 
-    @bold(You have to create the products to purchase, and their prices in various
-    currencies, in the Google Developer Console.) The names of products
-    you provide to @link(SetAvailableProducts) or @link(Product) methods
-    should correspond to product names you set in the Google Developer Console. }
+      @item(Early (e.g. from @link(TCastleApplication.OnInitialize))
+        call @link(SetAvailableProducts), and wait for @link(OnRefreshedPrices)
+        to know the prices about products (in user's local currency).)
+
+      @item(Query the product information using @link(Product) method,
+        and looking at various @link(TInAppProduct) properties.)
+
+      @item(Buy products using @link(Purchase), consume products using @link(Consume),
+        refresh the ownership information using @link(RefreshPurchases).)
+    )
+
+    You need to add a "service" to include the necessary integration code
+    on Android and iOS. For Android, set project type as @code("integrated")
+    and add the @code("google_in_app_purchases") service
+    (see https://github.com/castle-engine/castle-engine/wiki/Android-Project-Services-Integrated-with-Castle-Game-Engine ).
+    For iOS, add the @code("in_app_purchases") service
+    (see https://github.com/castle-engine/castle-engine/wiki/iOS-Services ).
+
+    You need to define the products you want sell in the @italic(Google Play Developer Console)
+    ( https://developer.android.com/distribute/console/index.html ) for Android,
+    or @italic(iTunes Connect) ( https://itunesconnect.apple.com/ ) for iOS.
+    The names of products you provide to @link(SetAvailableProducts)
+    or @link(Product) methods must correspond to product names you set on these websites. }
   TInAppPurchases = class(TComponent)
   private
-  type
-    TProductList = specialize TObjectList<TInAppProduct>;
-  var
-    FDebugMockupBuying: boolean;
-    List: TProductList;
-    FLastAvailableProducts: string;
+    type
+      TProductList = specialize TObjectList<TInAppProduct>;
+    var
+      FDebugMockupBuying: boolean;
+      List: TProductList;
+      FLastAvailableProducts: string;
+      FOnRefreshedPrices: TNotifyEvent;
+      FOnRefreshedPurchases: TNotifyEvent;
     function MessageReceived(const Received: TCastleStringList): boolean;
     procedure ReinitializeJavaActivity(Sender: TObject);
+    procedure LogProducts(const Message: string);
   protected
     { Called when the knowledge about what do we own is complete. }
-    procedure KnownCompletely; virtual;
+    procedure KnownCompletely; virtual; deprecated 'use RefreshedPrices or RefreshedPurchases';
+
+    { See @link(OnRefreshedPrices) for information when is this called.
+      The default implementation of this method in this class just calls
+      @link(OnRefreshedPrices). }
+    procedure RefreshedPrices; virtual;
+
+    { See @link(OnRefreshedPurchases) for information when is this called.
+      The default implementation of this method in this class just calls
+      @link(OnRefreshedPurchases). }
+    procedure RefreshedPurchases; virtual;
 
     { Called when the product is successfully consumed,
       in response to the @link(Consume) call.
@@ -136,6 +174,21 @@ type
 
     { Called when we know the product is owned, in particular when it's
       successfully bought.
+
+      If the product is @bold(not consumable) (which means that it can be owned
+      only once, and it's owned forever once bought): Note that this method
+      may be called multiple times, because there are various situations in which
+      we may "gain knowledge" that user owns this item (e.g.
+      each @link(RefreshPurchases) call).
+      Write your code to react gracefullly to this, such that calling this method
+      on an already-owned item is handled correctly.
+
+      E.g. if you increase some stat (e.g. "gold owned")
+      when user buys a "chest of gold", and "chest of gold"
+      is non-consumable (you can only own it once, and then you just own it forever),
+      then store the fact that you "already increased gold because of the chest ownership"
+      in the user persistent data (see https://castle-engine.sourceforge.io/manual_user_prefs.php).
+      Do not just increase the "gold owned" at every call of this method.
 
       If the product is a @bold(consumable), which means it has a one-time use
       (and should disappear afterwards, until user will buy it again), then:
@@ -195,6 +248,42 @@ type
     { Purely for debug purposes, mockup buying (pretend that all purchases succeed). }
     property DebugMockupBuying: boolean
       read FDebugMockupBuying write FDebugMockupBuying default false;
+
+    { Call to refresh the state of owned (purchased) items from server.
+      This will call @link(Owns) on the owned items, and then @link(RefreshedPurchases)
+      or @link(OnRefreshedPurchases).
+
+      This is necessary to be called explicitly on iOS (for AppStore), as it will ask
+      user to login to AppStore.
+      On Android, this is done automatically at app start, and doesn't ask user anything. }
+    procedure RefreshPurchases;
+  published
+    { Called when the prices (and other shop-related information)
+      are known about the products. The information is stored inside
+      @link(TInAppProduct) instances, e.g. query @link(TInAppProduct.Price),
+      @link(TInAppProduct.Title) and so on. Get the @link(TInAppProduct) instance
+      by @link(Product) method.
+
+      This signals that we queried the shop for the product information
+      like @link(TInAppProduct.Price) and @link(TInAppProduct.Title) and
+      @link(TInAppProduct.Description). This is automatically done always
+      when launching the application, and sometimes later too.
+
+      It does not mean that we have queried the ownership status of the products,
+      for this see @link(OnRefreshedPurchases).
+
+      See also @link(RefreshedPrices) method. Instead of assigning this event,
+      you cal override @link(RefreshedPrices) method in descendants. }
+    property OnRefreshedPrices: TNotifyEvent read FOnRefreshedPrices write FOnRefreshedPrices;
+
+    { Called when the ownership status of all products is known.
+      The information is stored inside @link(TInAppProduct.Owns),
+      you can get the @link(TInAppProduct) instance using the @link(Product) method.
+
+      The ownership status is automatically queried when the application starts on Android.
+      On iOS, it must be explicitly invoked using @link(RefreshPurchases) (this is a limitation
+      of iOS user-interface around this, so it cannot be hidden / workarounded by us). }
+    property OnRefreshedPurchases: TNotifyEvent read FOnRefreshedPurchases write FOnRefreshedPurchases;
   end;
 
 implementation
@@ -285,9 +374,15 @@ begin
     Result := true;
   end else
   if (Received.Count = 1) and
-     (Received[0] = 'in-app-purchases-known-completely') then
+     (Received[0] = 'in-app-purchases-refreshed-purchases') then
   begin
-    KnownCompletely;
+    RefreshedPurchases;
+    Result := true;
+  end else
+  if (Received.Count = 1) and
+     (Received[0] = 'in-app-purchases-refreshed-prices') then
+  begin
+    RefreshedPrices;
     Result := true;
   end;
 end;
@@ -332,27 +427,6 @@ begin
   AProduct.SuccessfullyConsumed := true;
 end;
 
-procedure TInAppPurchases.KnownCompletely;
-var
-  I: Integer;
-  LogStr: string;
-begin
-  if Log then
-  begin
-    LogStr := 'Product details known completely:' + NL;
-    for I := 0 to List.Count - 1 do
-      LogStr += 'Product ' + List[I].Name +
-        ', price: ' + List[I].Price +
-        ', owned: ' + BoolToStr(List[I].Owns, true) +
-        ', title: ' + List[I].Title +
-        ', description: ' + List[I].Description +
-        ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
-        ', price currency code: ' + List[I].PriceCurrencyCode +
-        NL;
-    WritelnLogMultiline('InAppPurchases', LogStr);
-  end;
-end;
-
 procedure TInAppPurchases.SetAvailableProducts(const Names: array of string);
 var
   Products: array of TAvailableProduct;
@@ -379,6 +453,54 @@ begin
       FLastAvailableProducts += Chr(2);
   end;
   Messaging.Send(['in-app-purchases-set-available-products', FLastAvailableProducts]);
+end;
+
+procedure TInAppPurchases.LogProducts(const Message: string);
+var
+  I: Integer;
+  LogStr: string;
+begin
+  if Log then
+  begin
+    LogStr := Message + NL;
+    for I := 0 to List.Count - 1 do
+      LogStr += 'Product ' + List[I].Name +
+        ', price: ' + List[I].PriceRaw +
+        ', owned: ' + BoolToStr(List[I].Owns, true) +
+        ', title: ' + List[I].Title +
+        ', description: ' + List[I].Description +
+        ', price amount micros: ' + IntToStr(List[I].PriceAmountMicros) +
+        ', price currency code: ' + List[I].PriceCurrencyCode +
+        NL;
+    WritelnLogMultiline('InAppPurchases', LogStr);
+  end;
+end;
+
+procedure TInAppPurchases.KnownCompletely;
+begin
+end;
+
+procedure TInAppPurchases.RefreshPurchases;
+begin
+  Messaging.Send(['in-app-purchases-refresh-purchases']);
+end;
+
+procedure TInAppPurchases.RefreshedPrices;
+begin
+  LogProducts('Refreshed prices (and other store information) about all products:');
+  if Assigned(OnRefreshedPrices) then
+    OnRefreshedPrices(Self);
+end;
+
+procedure TInAppPurchases.RefreshedPurchases;
+begin
+  LogProducts('Refreshed purchases (ownership status) of all products:');
+  if Assigned(OnRefreshedPurchases) then
+    OnRefreshedPurchases(Self);
+
+  {$warnings off} // deliberately calling deprecated, to keep it working
+  KnownCompletely;
+  {$warnings on}
 end;
 
 end.

@@ -282,6 +282,9 @@ type
 
     { Lights that shine on given 3D object. }
     function BaseLights(Scene: TCastleTransform): TAbstractLightInstancesList; virtual; abstract;
+
+    function RenderTransform: TMatrix4; deprecated 'use Transform';
+    function RenderTransformIdentity: boolean; deprecated 'use TransformIdentity';
   end;
 
   TRemoveType = (rtNone, rtRemove, rtRemoveAndFree);
@@ -2025,6 +2028,16 @@ begin
   TransformIdentity := true;
 end;
 
+function TRenderParams.RenderTransform: TMatrix4;
+begin
+  Result := Transform;
+end;
+
+function TRenderParams.RenderTransformIdentity: boolean;
+begin
+  Result := TransformIdentity;
+end;
+
 { TCastleTransformList ------------------------------------------------------------ }
 
 constructor TCastleTransformList.Create(const FreeObjects: boolean; const AOwner: TCastleTransform);
@@ -2782,7 +2795,7 @@ end;
 procedure TCastleTransform.InternalTransformMatricesMult(
   var M, MInverse: TMatrix4);
 
-{$if defined(VER3_0) and defined(DARWIN) and defined(CPUARM64)}
+{$if defined(VER3_0) and defined(DARWIN) and defined(CPUAARCH64)}
   type
     TTransformData = record
       Transform, InverseTransform: TMatrix4;

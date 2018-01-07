@@ -37,7 +37,7 @@
 #include "castleengine.h"
 
 //-----------------------------------------------------------------------------
-typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory);
+typedef void (CDECL *PFNRD_CGE_Open)(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi, const char *applicationConfigDirectory);
 typedef void (CDECL *PFNRD_CGE_Close)();
 typedef void (CDECL *PFNRD_CGE_GetOpenGLInformation)(char *szBuffer, int nBufSize);
 
@@ -70,7 +70,7 @@ typedef void (CDECL *PFNRD_CGE_MoveViewToCoords)(float fPosX, float fPosY, float
 typedef int (CDECL *PFNRD_CGE_GetNavigationType)();
 typedef void (CDECL *PFNRD_CGE_SetNavigationType)(int eNewType);
 typedef void (CDECL *PFNRD_CGE_SetTouchInterface)(int eMode);
-typedef void (CDECL *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface, int nDpi);
+typedef void (CDECL *PFNRD_CGE_SetUserInterface)(bool bAutomaticTouchInterface);
 
 typedef void (CDECL *PFNRD_CGE_SetVariableInt)(int eVar, int nValue);
 typedef int (CDECL *PFNRD_CGE_GetVariableInt)(int eVar);
@@ -171,10 +171,10 @@ void CGE_LoadLibrary()
 }
 
 //-----------------------------------------------------------------------------
-void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, const char *applicationConfigDirectory)
+void CGE_Open(unsigned uiFlags, unsigned initialWidth, unsigned initialHeight, unsigned uiDpi, const char *applicationConfigDirectory)
 {
 	if (pfrd_CGE_Open!=NULL)
-		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight, applicationConfigDirectory);
+		(*pfrd_CGE_Open)(uiFlags, initialWidth, initialHeight, uiDpi, applicationConfigDirectory);
 }
 
 //-----------------------------------------------------------------------------
@@ -352,10 +352,10 @@ void CGE_SetTouchInterface(int /*ECgeTouchCtlInterface*/ eMode)
 }
 
 //-----------------------------------------------------------------------------
-void CGE_SetUserInterface(bool bAutomaticTouchInterface, int nDpi)
+void CGE_SetUserInterface(bool bAutomaticTouchInterface)
 {
     if (pfrd_CGE_SetUserInterface!=NULL)
-        (*pfrd_CGE_SetUserInterface)(bAutomaticTouchInterface, nDpi);
+        (*pfrd_CGE_SetUserInterface)(bAutomaticTouchInterface);
 }
 
 //-----------------------------------------------------------------------------

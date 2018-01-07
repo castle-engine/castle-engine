@@ -203,7 +203,9 @@ function FindFiles_NonRecursive(const Path, Mask: string;
 
     {$warnings off}
     { don't warn that faXxx are unportable }
-    Attr := faReadOnly or faHidden or faArchive { for symlinks } or faSysFile;
+    Attr := faReadOnly or faHidden or faArchive
+      { for symlinks with old FPC versions } or faSysFile
+      { for symlinks with new FPC versions, at least FPC >= 3.0.2 } or faSymLink;
     {$warnings on}
     if FindDirectories then
       Attr := Attr or faDirectory;
@@ -279,7 +281,7 @@ begin
   if (P = 'file') or (P = '') then
     LocalFileSystem else
   {$ifdef ANDROID}
-  if P = 'assets' then
+  if (P = 'assets') or (P = 'castle-android-assets') then
     AndroidAssetFileSystem else
   {$endif}
     WritelnLog('FindFiles',

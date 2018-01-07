@@ -192,7 +192,7 @@ procedure Update(Container: TUIContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPos.Data[Coord] += Change * Window.Fps.UpdateSecondsPassed *
+    LightPos.Data[Coord] += Change * Window.Fps.SecondsPassed *
       { scale by Box3DAvgSize, to get similar move on all models }
       Scene.BoundingBox.AverageSize;
     Window.Invalidate;
@@ -200,13 +200,13 @@ procedure Update(Container: TUIContainer);
 
   procedure ChangeLightRadius(Change: Float);
   begin
-    LightRadius *= Power(Change, Window.Fps.UpdateSecondsPassed);
+    LightRadius *= Power(Change, Window.Fps.SecondsPassed);
     Window.Invalidate;
   end;
 
   procedure ChangeLightIntensityScale(Change: Float);
   begin
-    LightIntensityScale *= Power(Change, Window.Fps.UpdateSecondsPassed);
+    LightIntensityScale *= Power(Change, Window.Fps.SecondsPassed);
     Window.Invalidate;
   end;
 

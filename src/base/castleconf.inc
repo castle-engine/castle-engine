@@ -119,8 +119,17 @@
   {$ifdef CPU64BITS} {$define CPU64} {$endif}
 {$endif}
 
+{ Traditionally, CGE defined CPUARM64 also for 64-bit iOS.
+  For compatibility, keep it defined there.
+  But CPUARM64 should not be used anymore: we use now CPUAARCH64,
+  defined by FPC automatically (so it's safer to use, it will work
+  regardless of how you compile the sources). }
+{$ifdef CPUAARCH64}
+  {$define CPUARM64}
+{$endif}
+
 {$ifndef PASDOC} // Avoid Pasdoc warnings, as Pasdoc cannot calculate $if below
-  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUARM64)))}
+  {$if defined(iPHONESIM) or (defined(DARWIN) and (defined(CPUARM) or defined(CPUAARCH64)))}
     {$define iOS}
   {$endif}
 {$endif}
@@ -226,7 +235,7 @@
         {$endif}
       This is correct, i.e. this is consistent with C OpenGL header,
       and (apparently, if you believe the Internet) with what binary code expects:
-      on Mac OS X 64-bit, GLhandleARB is 8 bytes, not 4.
+      on macOS 64-bit, GLhandleARB is 8 bytes, not 4.
 
       To confuse matters more, some GLExt functions do not take GLhandleARB as they should,
       for example glGetProgramivARB (that takes GLEnum).
@@ -241,7 +250,7 @@
 
       This makes things uncomfortable in CastleGLShaders, as we cannot cast "ProgramId: TGLuint"
       to GLhandleARB safely. For simplicity, we just avoid using GLhandleARB,
-      and whole family of ARB functions, on Mac OS X 64-bit.
+      and whole family of ARB functions, on macOS 64-bit.
       They should not be needed in practice --- modern OpenGL versions
       don't need the ARB extensions to access the shaders. *)
     {$define ForceStandardGLSLApi}
@@ -283,7 +292,7 @@
       ../../tools/build-tool/data/external_libraries/ to your project exe dir,
       or to place these DLLs in a directory listed on the PATH environment variable.
 
-    - For Mac OS X, see https://castle-engine.sourceforge.io/macosx_requirements.php .
+    - For macOS, see https://castle-engine.sourceforge.io/macosx_requirements.php .
 
   - If CASTLE_PNG_STATIC is defined, we use a different version of CastleInternalPng
     unit that allows static linking to png, see castleinternalpng_static.inc.

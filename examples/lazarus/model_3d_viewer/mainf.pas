@@ -170,8 +170,7 @@ begin
   if SceneURL <> '' then
     S := URICaption(SceneURL) else
     S := 'No Scene';
-  S := S + (' - ' +  ApplicationName +
-    Format(' - FPS : %f (real : %f)', [Browser.Fps.FrameTime, Browser.Fps.RealTime]));
+  S := S + ' - ' +  ApplicationName + ' - FPS: ' + Browser.Fps.ToString;
   Caption := S;
 end;
 

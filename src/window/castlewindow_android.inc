@@ -35,10 +35,11 @@ CastleAndroidNativeAppGlue,
 {$endif}
 
 {$ifdef read_implementation_uses}
-JNI,
+JNI, ctypes,
 CastleAndroidInternalCWString, CastleAndroidInternalLooper,
 CastleAndroidInternalLog, CastleAndroidInternalAssetStream,
-{$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif}
+CastleAndroidInternalConfiguration,
+{$ifdef CASTLE_PERSISTENT_ANDROID_STATE} CastleConfig, {$endif} CastleDynLib,
 CastleInternalOpenAL, CastleInternalVorbisFile, CastleInternalFreeTypeH, CastleInternalZLib,
 {$endif}
 
@@ -152,6 +153,45 @@ begin
   end;
 end;
 
+function DetermineDpi(App: PAndroid_app): Integer;
+type
+  TAConfiguration_getScreenHeightDp = function (config: PAConfiguration): cint32; cdecl;
+var
+  Dpi, ScreenHeightDp: Integer;
+  AndroidLibrary: TDynLib;
+  AConfiguration_getScreenHeightDp: TAConfiguration_getScreenHeightDp;
+begin
+  Dpi := 0;
+
+  // function to retreive precise DPI is in a newer NDK, let's load it dynamically
+  AndroidLibrary := TDynLib.Load(CastleAndroidInternalConfiguration.LibName, false);
+  if Assigned(AndroidLibrary) then
+  begin
+    AndroidLibrary.SymbolErrorBehaviour := seReturnNil;
+    AConfiguration_getScreenHeightDp := TAConfiguration_getScreenHeightDp(AndroidLibrary.Symbol('AConfiguration_getScreenHeightDp'));
+    if Assigned(AConfiguration_getScreenHeightDp) then
+    begin
+      ScreenHeightDp := AConfiguration_getScreenHeightDp(App^.Config);
+      if ScreenHeightDp <> 0 {ACONFIGURATION_SCREEN_HEIGHT_DP_ANY} then
+        Dpi := Round((ANativeWindow_getHeight(App^.Window) * DefaultDpi) / ScreenHeightDp);
+    end;
+    FreeAndNil(AndroidLibrary);
+  end;
+
+  // when the above function fails, get the rough value
+  if Dpi = 0 then
+  begin
+    Dpi := AConfiguration_getDensity(App^.Config);
+    if (Dpi = ACONFIGURATION_DENSITY_DEFAULT) or (Dpi = ACONFIGURATION_DENSITY_NONE) then
+      Dpi := 0;
+  end;
+
+  if Dpi > 0 then
+    Result := Dpi
+  else
+    Result := DefaultDpi;
+end;
+
 procedure TCastleApplication.HandleCommand(App: PAndroid_app; Command: Integer);
 var
   QEvent: TQueuedEvent;
@@ -166,6 +206,7 @@ begin
           later, to avoid ANRs when OnOpen does something time-consuming
           (like SceneManager.LoadLevel). }
         MainWindow.NativeWindow := App^.Window;
+        MainWindow.Dpi := DetermineDpi(App);
         QEvent.EventType := aeOpen;
         QEvents.Add(QEvent);
       end;
@@ -380,7 +421,6 @@ var
 {$endif CASTLE_PERSISTENT_ANDROID_STATE}
 begin
   Application.AndroidApp := App;
-  AssetOpeningReliable := true;
 
   ApplicationConfigOverride := FilenameToURISafe(InclPathDelim(GetInternalDataPath));
 
@@ -730,19 +770,6 @@ end;
 function TCastleApplication.BackendName: string;
 begin
   Result := 'Android';
-end;
-
-{ TCastleClipboard ----------------------------------------------------------- }
-
-function TCastleClipboard.GetAsText: string;
-begin
-  { TODO }
-  Result := '';
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-begin
-  { TODO }
 end;
 
 { TCastleWindow -------------------------------------------------------------- }

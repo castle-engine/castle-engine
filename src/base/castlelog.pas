@@ -38,12 +38,8 @@ type
     ltDateTime);
 
 { Initialize logging.
-
-  @param(ProgramVersion The version of your application, as a string.
-    This is just an arbitrary string, that will be shown as "program version"
-    in the log output.
-
-    Leave empty if you don't want to use this.)
+  The default log output is documented on
+  https://castle-engine.sourceforge.io/manual_log.php .
 
   @param(ALogStream Where to generate the log.
 
@@ -78,9 +74,14 @@ type
 
   @param(ALogTimePrefix optionally adds date&time prefix to each log record.)
 }
-procedure InitializeLog(const ProgramVersion: string = '';
+procedure InitializeLog(
   const ALogStream: TStream = nil;
-  const ALogTimePrefix: TLogTimePrefix = ltNone);
+  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
+
+procedure InitializeLog(const ProgramVersion: string;
+  const ALogStream: TStream = nil;
+  const ALogTimePrefix: TLogTimePrefix = ltNone); overload;
+  deprecated 'to provide a Version to InitializeLog, set ApplicationProperties.Version earlier, instead of calling InitializeLog with an explicit ProgramVersion parameter';
 
 { Log message. Ignored when log is not initialized (@link(Log) is @false).
 
@@ -162,6 +163,14 @@ end;
 procedure InitializeLog(const ProgramVersion: string;
   const ALogStream: TStream;
   const ALogTimePrefix: TLogTimePrefix);
+begin
+  ApplicationProperties.Version := ProgramVersion;
+  InitializeLog(ALogStream, ALogTimePrefix);
+end;
+
+procedure InitializeLog(
+  const ALogStream: TStream;
+  const ALogTimePrefix: TLogTimePrefix);
 var
   FirstLine: string;
 
@@ -231,8 +240,8 @@ begin
     LogStream := ALogStream;
 
   FirstLine := 'Log for "' + ApplicationName + '".';
-  if ProgramVersion <> '' then
-    FirstLine := FirstLine + ' Version: ' + ProgramVersion + '.';
+  if ApplicationProperties.Version <> '' then
+    FirstLine := FirstLine + ' Version: ' + ApplicationProperties.Version + '.';
   FirstLine := FirstLine + ' Started on ' + DateTimeToAtStr(Now) + '.';
   WritelnStr(LogStream, FirstLine);
   WritelnStr(LogStream, 'Castle Game Engine version: ' + CastleEngineVersion + '.');
@@ -254,8 +263,9 @@ begin
   begin
     {$ifdef ANDROID}
     if BacktraceOnLog then
-      AndroidLog(alInfo, S + DumpStackToString(Get_Frame) + NL) else
-      AndroidLog(alInfo, S);
+      AndroidLogRobust(alInfo, S + DumpStackToString(Get_Frame) + NL)
+    else
+      AndroidLogRobust(alInfo, S);
     {$else}
     // we know that LogStream <> nil when FLog = true
     {$ifdef FPC}

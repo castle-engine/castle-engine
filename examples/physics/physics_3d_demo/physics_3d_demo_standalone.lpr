@@ -24,16 +24,16 @@ program physics_3d_demo_standalone;
   Comment this out if you don't compile using our "castle-engine" build tool. }
 {$ifdef MSWINDOWS} {$R automatic-windows-resources.res} {$endif MSWINDOWS}
 
-uses CastleLog, CastleWindow, Game;
+uses CastleApplicationProperties, CastleLog, CastleWindow, Game;
 
 begin
-  Application.Version := '';
+  ApplicationProperties.Version := '';
   Application.ParseStandardParameters;
 
   { On standalone, activate log only after parsing command-line options.
     This allows to handle --version and --help command-line parameters
     without any extra output on Unix. }
-  InitializeLog(Application.Version);
+  InitializeLog;
 
   Application.MainWindow.OpenAndRun;
 end.

@@ -40,76 +40,84 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="17">
+    <Files Count="19">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
       </Item1>
       <Item2>
-        <Filename Value="../src/window/castlemessages.pas"/>
-        <UnitName Value="CastleMessages"/>
+        <Filename Value="../src/window/castledialogstates.pas"/>
+        <UnitName Value="CastleDialogStates"/>
       </Item2>
       <Item3>
-        <Filename Value="../src/window/castlesoundmenu.pas"/>
-        <UnitName Value="CastleSoundMenu"/>
+        <Filename Value="../src/window/castledialogstates_dialog.inc"/>
+        <Type Value="Include"/>
       </Item3>
       <Item4>
-        <Filename Value="../src/window/castleuistate.pas"/>
-        <UnitName Value="CastleUIState"/>
+        <Filename Value="../src/window/castlemessages.pas"/>
+        <UnitName Value="CastleMessages"/>
       </Item4>
       <Item5>
-        <Filename Value="../src/window/castlewindow.pas"/>
-        <UnitName Value="CastleWindow"/>
+        <Filename Value="../src/window/castlesoundmenu.pas"/>
+        <UnitName Value="CastleSoundMenu"/>
       </Item5>
       <Item6>
-        <Filename Value="../src/window/castlewindow_lcl.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castleuistate.pas"/>
+        <UnitName Value="CastleUIState"/>
       </Item6>
       <Item7>
-        <Filename Value="../src/window/castlewindow_winsystem.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castlewindow.pas"/>
+        <UnitName Value="CastleWindow"/>
       </Item7>
       <Item8>
-        <Filename Value="../src/window/castlewindowmodes.pas"/>
-        <UnitName Value="CastleWindowModes"/>
+        <Filename Value="../src/window/castlewindow_lcl.inc"/>
+        <Type Value="Include"/>
       </Item8>
       <Item9>
-        <Filename Value="../src/window/castlewindowprogress.pas"/>
-        <UnitName Value="CastleWindowProgress"/>
+        <Filename Value="../src/window/castlewindow_winsystem.inc"/>
+        <Type Value="Include"/>
       </Item9>
       <Item10>
-        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
-        <UnitName Value="CastleWindowRecentFiles"/>
+        <Filename Value="../src/window/castlewindowmodes.pas"/>
+        <UnitName Value="CastleWindowModes"/>
       </Item10>
       <Item11>
-        <Filename Value="../src/window/castlewindowtouch.pas"/>
-        <UnitName Value="CastleWindowTouch"/>
+        <Filename Value="../src/window/castlewindowprogress.pas"/>
+        <UnitName Value="CastleWindowProgress"/>
       </Item11>
       <Item12>
-        <Filename Value="../src/window/gtk/castlewindow_gtk.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castlewindowrecentfiles.pas"/>
+        <UnitName Value="CastleWindowRecentFiles"/>
       </Item12>
       <Item13>
-        <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
-        <Type Value="Include"/>
+        <Filename Value="../src/window/castlewindowtouch.pas"/>
+        <UnitName Value="CastleWindowTouch"/>
       </Item13>
       <Item14>
-        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Filename Value="../src/window/gtk/castlewindow_gtk.inc"/>
         <Type Value="Include"/>
       </Item14>
       <Item15>
-        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Filename Value="../src/window/gtk/castlewindow_gtk_menu.inc"/>
         <Type Value="Include"/>
       </Item15>
       <Item16>
-        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
-        <Type Value="Include"/>
-      </Item16>
-      <Item17>
         <Filename Value="../src/window/unix/castleinternalxlib.pas"/>
         <AddToUsesPkgSection Value="False"/>
         <UnitName Value="CastleInternalXlib"/>
+      </Item16>
+      <Item17>
+        <Filename Value="../src/window/unix/castlewindow_xf86vmode.inc"/>
+        <Type Value="Include"/>
       </Item17>
+      <Item18>
+        <Filename Value="../src/window/unix/castlewindow_xlib.inc"/>
+        <Type Value="Include"/>
+      </Item18>
+      <Item19>
+        <Filename Value="../src/window/windows/castlewindow_winapi.inc"/>
+        <Type Value="Include"/>
+      </Item19>
     </Files>
     <RequiredPkgs Count="2">
       <Item1>

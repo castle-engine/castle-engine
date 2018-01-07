@@ -517,7 +517,7 @@ procedure Update(Container: TUIContainer);
 
   procedure ChangeLightPosition(Coord, Change: Integer);
   begin
-    LightPosition.Data[Coord] += Change * Window.Fps.UpdateSecondsPassed * 5;
+    LightPosition.Data[Coord] += Change * Window.Fps.SecondsPassed * 5;
   end;
 
 begin
@@ -536,11 +536,11 @@ begin
   if Window.Pressed[K_P] then
   begin
     if mkShift in Window.Pressed.Modifiers then
-      PlaneDistance -= Window.Fps.UpdateSecondsPassed * 5 else
-      PlaneDistance += Window.Fps.UpdateSecondsPassed * 5;
+      PlaneDistance -= Window.Fps.SecondsPassed * 5 else
+      PlaneDistance += Window.Fps.SecondsPassed * 5;
   end;
 
-  RotationAngle += Window.Fps.UpdateSecondsPassed * 5;
+  RotationAngle += Window.Fps.SecondsPassed * 5;
 end;
 
 { menu ----------------------------------------------------------------------- }

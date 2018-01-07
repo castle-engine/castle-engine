@@ -15,6 +15,7 @@
 */
 
 #import "OpenGLController.h"
+#import "AvailableProduct.h"
 
 /* Base class for all Castle Game Engine iOS application services. */
 @interface ServiceAbstract : NSObject {
@@ -23,8 +24,16 @@
 /* Called when AppDelegate receives applicationDidEnterBackground. */
 - (void)applicationDidEnterBackground;
 
-/* Called when AppDelegate receives application: didFinishLaunchingWithOptions: message. */
-- (void)applicationDidFinishLaunchingWithOptions;
+/* Called when AppDelegate receives application:didFinishLaunchingWithOptions: message. */
+- (void)application:(UIApplication *) application didFinishLaunchingWithOptions:(NSDictionary *) launchOptions;
+
+/* Called when AppDelegate receives applicationDidBecomeActive: message. */
+- (void)applicationDidBecomeActive:(UIApplication *)application;
+
+/* Called when AppDelegate receives application:openURL:options message. */
+- (BOOL)application:(UIApplication *)app
+    openURL:(NSURL *)url
+    options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options;
 
 /* Try handling this message. Returns TRUE if handled. */
 - (bool)messageReceived:(NSArray* )message;
@@ -38,8 +47,10 @@
 /* Convert boolean to string when sending the message in messageSend. */
 - (NSString*)boolToString:(bool)value;
 
+/* Notification that a purchase just happened. */
+- (void)onPurchase:(AvailableProduct*) product;
+
 @property (nonatomic, retain) UIWindow *window;
 @property (nonatomic, retain) OpenGLController *mainController;
 
 @end
-

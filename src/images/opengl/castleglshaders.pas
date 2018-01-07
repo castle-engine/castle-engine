@@ -225,7 +225,7 @@ type
     FSupport: TGLSupport;
 
     { Note that for GLSL using ARB extension, the right type is GLhandleARB.
-      But is has equal size as TGLuint (except on Mac OS X 64-bit, see comments
+      But is has equal size as TGLuint (except on macOS 64-bit, see comments
       at ForceStandardGLSLApi).
       It's simplest to leave ProgramId and ShaderIds as ints, and eventually
       typecast them where necessary. }

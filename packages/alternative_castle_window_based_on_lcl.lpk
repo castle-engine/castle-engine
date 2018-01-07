@@ -38,7 +38,7 @@ This package cannot be installed under Lazarus, it's only for being used in othe
     <License Value="GNU GPL >= 2
 (or LGPL >= 2, if compiled with CASTLE_ENGINE_LGPL)"/>
     <Version Major="6" Minor="3"/>
-    <Files Count="12">
+    <Files Count="14">
       <Item1>
         <Filename Value="../src/base/castleconf.inc"/>
         <Type Value="Include"/>
@@ -88,6 +88,14 @@ This package cannot be installed under Lazarus, it's only for being used in othe
         <Filename Value="../src/window/castlewindow_lcl.inc"/>
         <Type Value="Include"/>
       </Item8>
+      <Item13>
+        <Filename Value="../src/window/castleuistate.pas"/>
+        <UnitName Value="CastleUIState"/>
+      </Item13>
+      <Item14>
+        <Filename Value="../src/window/castledialogstates.pas"/>
+        <UnitName Value="CastleDialogStates"/>
+      </Item14>
     </Files>
     <RequiredPkgs Count="3">
       <Item1>

@@ -27,7 +27,10 @@ uses Classes, Generics.Collections,
 type
   TUIStateList = class;
 
-  { UI state, a useful singleton to manage the state of your game UI.
+  { UI state, to manage the state of your game UI.
+    See also
+    https://castle-engine.sourceforge.io/manual_2d_user_interface.php#section_ui_state
+    for an overview of using TUIState.
 
     In simple cases, only one state is @italic(current) at a given time,
     and it can be get or set using the @link(TUIState.Current) property.
@@ -374,7 +377,6 @@ end;
 procedure TUIState.InternalStop;
 begin
   StateContainer.Controls.Remove(Self);
-  FreeAndNil(FFreeAtStop);
   Stop;
   if CastleLog.Log and Log then
     WritelnLog('UIState', 'Stopped state ' + Name + ':' + ClassName);
@@ -388,7 +390,11 @@ begin
       is nil when destroying state from CastleWindow finalization. }
     Result := FStartContainer
   else
+  begin
+    if Application.MainWindow = nil then
+      raise Exception.Create('Assign Application.MainWindow before starting TUIState');
     Result := Application.MainWindow.Container;
+  end;
 end;
 
 constructor TUIState.Create(AOwner: TComponent);
@@ -434,11 +440,12 @@ end;
 
 procedure TUIState.Stop;
 begin
-  FStartContainer := nil;
-
   {$warnings off}
   Finish;
   {$warnings on}
+
+  FStartContainer := nil;
+  FreeAndNil(FFreeAtStop);
 end;
 
 procedure TUIState.Finish;

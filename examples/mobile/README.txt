@@ -3,7 +3,7 @@ Examples developed to show Castle Game Engine on Android and iOS.
 Note that the engine support for Android and iOS is so good now that these
 examples do not contain (anymore) any Android/iOS-specific code :)
 They can be compiled to any platform, not only mobile (Android, iOS),
-but also standalone (exe, for Windows, Linux, Mac OS X...),
+but also standalone (exe, for Windows, Linux, macOS...),
 or a web browser plugin.
 
 Compile them using the Castle Game Engine build tool

@@ -51,15 +51,20 @@ type
     or Lazarus (LCL) TApplication (in case you use CastleControl). }
   TCastleApplicationProperties = class
   private
-    FIsGLContextOpen: boolean;
+    FIsGLContextOpen, FFileAccessSafe: boolean;
     FOnGLContextOpen, FOnGLContextClose: TGLContextEventList;
     FOnUpdate, FOnInitializeJavaActivity,
       FOnGLContextOpenObject, FOnGLContextCloseObject,
       FOnPause, FOnResume: TNotifyEventList;
     FOnWarning: TWarningEventList;
+    FVersion: string;
   public
     constructor Create;
     destructor Destroy; override;
+
+    { The version of your application.
+      It may be used e.g. by @link(InitializeLog) and @link(TCastleWindow.ParseStandardParameters). }
+    property Version: string read FVersion write FVersion;
 
     { Callbacks called when the OpenGL context is opened or closed.
       Use when you want to be notified about OpenGL context availability,
@@ -87,8 +92,8 @@ type
     property OnGLContextCloseObject: TNotifyEventList read FOnGLContextCloseObject;
     { @groupEnd }
 
-    { Is the OpenGL context available. IOW, we are between OnGLContextOpen
-      and OnGLContextClose. }
+    { Is the OpenGL context available. IOW, we are between the first OnGLContextOpen
+      and last OnGLContextClose. }
     property IsGLContextOpen: boolean read FIsGLContextOpen;
 
     { Callbacks called continously when (at least one) window is open.
@@ -156,8 +161,20 @@ type
     procedure _Pause;
     { @exclude }
     procedure _Resume;
-    { @groupEnd }
+    { @exclude }
     procedure _Warning(const Category, Message: string);
+    { @exclude
+      Indicates that operating on files (opening, saving, creating dirs) is safe.
+
+      Always @true when not using CastleWindow (e.g. in command-line utilities,
+      Lazarus CastleControl, or custom context situations like
+      https://gist.github.com/michaliskambi/ca0eb18aeb7e326e5dc79c3b5002bcc5 ).
+
+      In case of CastleWindow:
+      On Android, opening files before Android application started (on the Java side)
+      is not possible.
+      On iOS, some things (like ApplicationConfig path) may not be initialized so early. }
+    property _FileAccessSafe: boolean read FFileAccessSafe write FFileAccessSafe;
     { @groupEnd }
   end;
 
@@ -221,6 +238,7 @@ begin
   FOnPause := TNotifyEventList.Create;
   FOnResume := TNotifyEventList.Create;
   FOnWarning := TWarningEventList.Create;
+  FFileAccessSafe := true;
 end;
 
 destructor TCastleApplicationProperties.Destroy;

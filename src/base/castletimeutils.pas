@@ -38,7 +38,7 @@ type
 
     To test that "single" is not enough, open some animation in
     view3dscene, and change "on display" time pass to 1000.
-    It goes even better if AutoRedisplay is @false, and LimitFPS is 0.0,
+    It goes even better if AutoRedisplay is @false, and LimitFps is 0.0,
     and model is still for some time --- then we do many OnUpdate calls with
     very small SecondsPassed values. }
   TFloatTime = Double;
@@ -259,16 +259,16 @@ function TimerSeconds(const A, B: TTimerResult): TFloatTime;
 type
   { Utility to measure frames per second, independent of actual
     rendering API. For example, it can be easily "plugged" into TCastleWindowCustom
-    (see TCastleWindowCustom.FPS) or Lazarus GL control (see TCastleControlCustom.FPS).
+    (see TCastleWindowCustom.Fps) or Lazarus GL control (see TCastleControlCustom.Fps).
 
     Things named "_" here are supposed to be internal to the TCastleWindowCustom /
     TCastleControlCustom and such implementations. Other properties can be
     controlled by the user of TCastleWindowCustom / TCastleControlCustom. }
   TFramesPerSecond = class
   private
-    FFrameTime: TFloatTime;
-    FRealTime: TFloatTime;
-    FUpdateSecondsPassed: TFloatTime;
+    FOnlyRenderFps: TFloatTime;
+    FRealFps: TFloatTime;
+    FSecondsPassed: TFloatTime;
     DoZeroNextSecondsPassed: boolean;
     FUpdateStartTime: TTimerResult;
     LastRecalculateTime: TTimerResult;
@@ -276,8 +276,9 @@ type
     { 0 means "no frame was rendered yet" }
     FramesRendered: Int64;
     { how much time passed inside frame rendering }
-    FrameTimePassed: TTimerResult;
+    OnlyRenderTimePassed: TTimerResult;
     FMaxSensibleSecondsPassed: TFloatTime;
+    FWasSleeping, FSleeping: boolean;
   public
     const
       DefaultMaxSensibleSecondsPassed = 0.5;
@@ -293,47 +294,87 @@ type
     { @exclude }
     procedure _RenderEnd;
     { @exclude }
+    procedure _Sleeping;
+    { @exclude }
     procedure _UpdateBegin;
     { @groupEnd }
 
-    { Rendering speed in frames per second. This tells FPS,
-      if we would only call Render (EventRender, OnRender) all the time.
-      That is, this doesn't take into account time spent on other activities,
-      like OnUpdate, and it doesn't take into account that frames are possibly
-      not rendered continously (when AutoRedisplay = @false, we may render
-      frames seldom, because there's no need to do it more often).
+    { Rendering speed, measured in frames per second, but accounting only
+      time spent inside "render" calls (thus ignoring time spent on
+      physics and other logic).
 
-      @seealso RealTime }
-    property FrameTime: TFloatTime read FFrameTime;
+      This measures only time spend in @link(TUIContainer.EventRender)
+      method (and it's subordinates, like @link(TUIControl.Render),
+      @link(TCastleScene.Render),
+      @link(TCastleWindowCustom.OnRender)).
+      It does not take into account time spent on other activities,
+      like "update" calls, and it doesn't take into account that frames are possibly
+      not rendered all the time (when AutoRedisplay = @false).
 
-    { How many frames per second were rendered. This is a real number
-      of EventRender (OnRender) calls per second. This means that it's actual
-      speed of your program. Anything can slow this down, not only long
-      EventRender (OnRender), but also slow processing of other events (like OnUpdate).
-      Also, when AutoRedisplay = @false, this may be very low, since you
-      just don't need to render frames continously.
+      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      for a detailed description what FPS mean and how they should be interpreted.
 
-      @seealso FrameTime }
-    property RealTime: TFloatTime read FRealTime;
+      @seealso RealFps }
+    property OnlyRenderFps: TFloatTime read FOnlyRenderFps;
+    property FrameTime: TFloatTime read FOnlyRenderFps;
+      {$ifdef FPC} deprecated 'use OnlyRenderFps'; {$endif}
 
-    { Track how much time passed since last Update call, using _UpdateBegin.
+    { How many frames per second were actually rendered.
+      This is the number of @link(TUIContainer.EventRender) calls
+      that actually happened within a real second of time.
+      So it's an actual speed of your program.
+      Anything can slow this down, not only long rendering,
+      but also slow processing of other events (like "update" that does physics).
 
-      The time is in seconds, 1.0 = 1 second.
-      For two times faster computer UpdateSecondsPassed = 0.5,
-      for two times slower UpdateSecondsPassed = 2.0. This is useful for doing
-      time-based rendering, when you want to scale some changes
-      by computer speed, to get perceived animation speed the same on every
-      computer, regardless of computer's speed.
+      When @link(TCastleCustomWindow.AutoRedisplay) or
+      @link(TCastleCustomControl.AutoRedisplay) is @false,
+      this may be very low, since we may not
+      render the frames all the time (we may sleep for some time,
+      or perform updates without rendering).
+      In this case, the RealFps value may be confusing and useless
+      (it does not reflect the speed of your application).
+      Use the WasSleeping to detect this, and potentially hide the display
+      of RealFps from user.
+
+      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      for a detailed description what FPS mean and how they should be interpreted.
+
+      @seealso OnlyRenderFps }
+    property RealFps: TFloatTime read FRealFps;
+    property RealTime: TFloatTime read FRealFps; {$ifdef FPC} deprecated 'use RealFps'; {$endif}
+
+    { Some of the frames were not rendered, because the scene and camera
+      were not moving. This happens only when
+      @link(TCastleWindowCustom.AutoRedisplay)
+      or @link(TCastleControlCustom.AutoRedisplay) are @false,
+      and it basically indicates that the @link(RealFps) value is not a useful
+      indicator of your application speed.
+
+      See https://castle-engine.sourceforge.io/manual_optimization.php#section_fps
+      for a detailed description what this means. }
+    property WasSleeping: boolean read FWasSleeping;
+
+    { Display current FPS (RealFps, OnlyRenderFps, taking into account WasSleeping). }
+    function ToString: string; override;
+
+    { How much time passed since the last "update".
+      You should use this inside "update" events and methods
+      (@link(TUIContainer.EventUpdate),
+      @link(TUIControl.Update),
+      @link(TCastleTransform.Update)...) to scale the movement.
+      This way, your animation will work with the same speed
+      (objects will travel at the same speed),
+      regardless of the system performance (regardless of how often
+      the "update" event occurs).
 
       This is calculated as a time between
-      start of previous Update event and start of current Update event.
-      So this really measures your whole loop time (unlike previous RenderSpeed
-      that measured only EventRender (OnRender) speed).
+      start of previous "update" event and start of current "update" event. }
+    property SecondsPassed: TFloatTime read FSecondsPassed;
 
-      You can sanely use this only within EventUpdate (OnUpdate). }
-    property UpdateSecondsPassed: TFloatTime read FUpdateSecondsPassed;
+    property UpdateSecondsPassed: TFloatTime read FSecondsPassed;
+      {$ifdef FPC} deprecated 'use SecondsPassed'; {$endif}
 
-    { Limit the UpdateSecondsPassed variable, to avoid increasing time in game
+    { Limit the SecondsPassed variable, to avoid increasing time in game
       a lot when a game was hanging or otherwise waiting for some exceptional
       event from OS.
       Used only when non-zero.
@@ -341,22 +382,21 @@ type
     property MaxSensibleSecondsPassed: TFloatTime
       read FMaxSensibleSecondsPassed write FMaxSensibleSecondsPassed;
 
-    { Forces UpdateSecondsPassed for the next Update call (using _UpdateBegin)
-      to be zero.
+    { Forces SecondsPassed for the next "update" call to be zero.
 
-      This is useful if you just came back from some lenghty
-      state, like a GUI dialog box (like TCastleWindowCustom.FileDialog or modal boxes
-      in CastleMessages --- but actually all our stuff already calls this
-      as needed, TGLMode takes care of this). UpdateSecondsPassed would be ridicoulously
-      long in such case (if our loop is totally stopped) or not relevant
-      (if we do our loop, but with totally different callbacks, like
-      CastleMessages). Instead, it's most sensible in such case to fake
-      that UpdateSecondsPassed is 0.0, so things such as TCastleSceneCore.Time
-      should not advance wildly just because we did GUI box.
+      This is useful if you just came back from some modal state,
+      like a modal dialog box (like TCastleWindowCustom.FileDialog or modal boxes
+      in CastleMessages -- they already call this method).
+      SecondsPassed could be ridicoulously long in such case
+      (if our message loop is totally paused, as in TCastleWindowCustom.FileDialog
+      on Windows) or not relevant (if we do our message loop,
+      but we display something entirely different, like CastleMessages).
+      So it's best to pretend that SecondsPassed is 0.0,
+      so things such as TCastleSceneCore.Time do not advance wildly
+      just because we did a modal dialog.
 
-      This forces the UpdateSecondsPassed to zero only once, that is only on the
-      next update event (_UpdateBegin). Following update event (_UpdateBegin) will have
-      UpdateSecondsPassed as usual (unless you call ZeroNextSecondsPassed again, of course). }
+      This forces the SecondsPassed to be zero at the next update event
+      (_UpdateBegin). }
     procedure ZeroNextSecondsPassed;
 
     { Time of last Update call. }
@@ -677,19 +717,18 @@ var
 
 constructor TFramesPerSecond.Create;
 const
-  DefaultFps = 30.0;
+  DefaultFps = 60.0;
 begin
   inherited;
 
-  { Just init times to some sensible default.
-
-    For UpdateSecondsPassed this is actually not essential, since we call
-    ZeroNextSecondsPassed anyway. But in case programmer will (incorrectly!)
-    try to use UpdateSecondsPassed before _UpdateBegin call, it's useful to have
-    here some predictable value. }
-  FUpdateSecondsPassed := 1 / DefaultFps;
-  FFrameTime := DefaultFps;
-  FRealTime := DefaultFps;
+  { init time measurements to some sensible defaults }
+  FOnlyRenderFps := DefaultFps;
+  FRealFps := DefaultFps;
+  { for SecondsPassed this initialization is actually not essential,
+    since we call ZeroNextSecondsPassed anyway.
+    But in case programmer will (incorrectly!) try to use SecondsPassed
+    before _UpdateBegin call, it's useful to have here some predictable value. }
+  FSecondsPassed := 1 / DefaultFps;
 
   { the default is non-zero now, since all Android games need it }
   FMaxSensibleSecondsPassed := DefaultMaxSensibleSecondsPassed;
@@ -703,60 +742,86 @@ begin
 end;
 
 procedure TFramesPerSecond._RenderEnd;
-const
-  TimeToRecalculate = 1.0; { in seconds }
-var
-  NowTime: TTimerResult;
 begin
   Inc(FramesRendered);
-  FrameTimePassed.Value := FrameTimePassed.Value + Timer.Value - RenderStartTime.Value;
+  OnlyRenderTimePassed.Value := OnlyRenderTimePassed.Value + Timer.Value - RenderStartTime.Value;
+end;
 
-  NowTime := Timer;
-  if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then
-  begin
-    { update FRealTime, FFrameTime once for TimeToRecalculate time.
-      This way they don't change rapidly.
+procedure TFramesPerSecond._Sleeping;
+begin
+  FSleeping := true;
+end;
 
-      Previously we used more elaborate hacks for this (resetting
-      their times after a longer periods, but keeping some previous
-      results), but they were complex and bad: when the game speed
-      was changing suddenly, FRealTime, FFrameTime should also change
-      suddenly, not gradually increase / decrease. }
+function TFramesPerSecond.ToString: string;
+begin
+  if (RealFps = 0) and (OnlyRenderFps = 0) then
+    Exit('no frames rendered');
 
-    FRealTime := FramesRendered / TimerSeconds(NowTime, LastRecalculateTime);
-
-    if FrameTimePassed.Value > 0 then
-      FFrameTime := FramesRendered * TimerFrequency / FrameTimePassed.Value
-    else
-      FFrameTime := 0;
-
-    LastRecalculateTime := NowTime;
-    FramesRendered := 0;
-    FrameTimePassed.Value := 0;
-  end;
+  if WasSleeping then
+    Result := 'no need to render all frames'
+  else
+    Result := Format('%f', [RealFps]);
+  Result := Result + Format(' (only render: %f)', [OnlyRenderFps]);
 end;
 
 procedure TFramesPerSecond._UpdateBegin;
+
+  { Update RealFps, OnlyRenderFps, WasSleeping }
+  procedure UpdateFps;
+  const
+    TimeToRecalculate = 1.0; { in seconds }
+  var
+    NowTime: TTimerResult;
+  begin
+    NowTime := Timer;
+    if TimerSeconds(NowTime, LastRecalculateTime) >= TimeToRecalculate then
+    begin
+      { update FRealFps, FOnlyRenderFps once for TimeToRecalculate time.
+        This way they don't change rapidly.
+
+        Previously we used more elaborate hacks for this (resetting
+        their times after a longer periods, but keeping some previous
+        results), but they were complex and bad: when the game speed
+        was changing suddenly, FRealFps, FOnlyRenderFps should also change
+        suddenly, not gradually increase / decrease. }
+
+      FRealFps := FramesRendered / TimerSeconds(NowTime, LastRecalculateTime);
+      FWasSleeping := FSleeping;
+
+      if OnlyRenderTimePassed.Value > 0 then
+        FOnlyRenderFps := FramesRendered * TimerFrequency / OnlyRenderTimePassed.Value
+      else
+        FOnlyRenderFps := 0;
+
+      LastRecalculateTime := NowTime;
+      FramesRendered := 0;
+      OnlyRenderTimePassed.Value := 0;
+      FSleeping := false;
+    end;
+  end;
+
 var
   NewUpdateStartTime: TTimerResult;
 begin
-  { update FUpdateSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
+  { update FSecondsPassed, DoZeroNextSecondsPassed, FUpdateStartTime }
   NewUpdateStartTime := Timer;
 
   if DoZeroNextSecondsPassed then
   begin
-    FUpdateSecondsPassed := 0.0;
+    FSecondsPassed := 0.0;
     DoZeroNextSecondsPassed := false;
   end else
   begin
-    FUpdateSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
+    FSecondsPassed := TimerSeconds(NewUpdateStartTime, FUpdateStartTime);
     if MaxSensibleSecondsPassed > 0 then
-      FUpdateSecondsPassed := Min(FUpdateSecondsPassed, MaxSensibleSecondsPassed);
+      FSecondsPassed := Min(FSecondsPassed, MaxSensibleSecondsPassed);
   end;
 
   FUpdateStartTime := NewUpdateStartTime;
 
   Inc(FFrameId);
+
+  UpdateFps;
 end;
 
 procedure TFramesPerSecond.ZeroNextSecondsPassed;

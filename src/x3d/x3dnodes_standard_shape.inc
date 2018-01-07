@@ -264,7 +264,8 @@
       This texture may come from @link(Texture) or from @link(CommonSurfaceShader). }
     function DiffuseAlphaTexture: TAbstractTextureNode;
 
-    function MaterialProperty: TMaterialProperty;
+    function InternalMaterialProperty: TMaterialProperty;
+    function MaterialProperty: TMaterialProperty; deprecated 'use InternalMaterialProperty, or (better) do not use it at all -- this is internal';
 
     {$I auto_generated_node_helpers/x3dnodes_appearance.inc}
   end;
@@ -1055,6 +1056,11 @@ begin
 end;
 
 function TAppearanceNode.MaterialProperty: TMaterialProperty;
+begin
+  Result := InternalMaterialProperty;
+end;
+
+function TAppearanceNode.InternalMaterialProperty: TMaterialProperty;
 
   function TryUrl(const Url: TMFString): TMaterialProperty;
   var
@@ -1089,7 +1095,7 @@ var
 begin
   inherited;
 
-  MP := MaterialProperty;
+  MP := InternalMaterialProperty;
 
   if (MP <> nil) and (MP.NormalMap <> '') and (FdNormalMap.Value = nil) then
   begin

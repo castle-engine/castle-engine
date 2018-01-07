@@ -100,8 +100,7 @@
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSLibraryDirectory, NSUserDomainMask, YES);
     NSString *libraryDirectory = [paths objectAtIndex:0];
 
-    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, [libraryDirectory fileSystemRepresentation]);
-    CGEApp_SetDpi(115 * m_fScale);
+    CGEApp_Open(m_oldViewWidth * m_fScale, m_oldViewHeight * m_fScale, 115 * m_fScale, [libraryDirectory fileSystemRepresentation]);
 
     [self update];
 }
@@ -256,7 +255,13 @@
 //---------------------------------------------------------------------------
 - (BOOL)prefersStatusBarHidden   // hide status bar (iOS7)
 {
-    return YES;
+    return ${IOS_STATUSBAR_HIDDEN};
+}
+
+//---------------------------------------------------------------------------
+- (UIStatusBarStyle)preferredStatusBarStyle
+{
+    return UIStatusBarStyleLightContent;
 }
 
 @end

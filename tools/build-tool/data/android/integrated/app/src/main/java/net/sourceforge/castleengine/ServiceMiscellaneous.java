@@ -5,6 +5,7 @@ import android.view.View;
 import android.os.Build;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.TypedArray;
 import android.net.Uri;
 import android.widget.Toast;
 
@@ -27,7 +28,9 @@ public class ServiceMiscellaneous extends ServiceAbstract
     /** Immersive mode. */
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
-        if (hasFocus) {
+        int[] attrs = {android.R.attr.windowFullscreen};
+        TypedArray ta = getActivity().getTheme().obtainStyledAttributes(attrs);
+        if (ta.getBoolean(0, true) && hasFocus) {
             /* To have all the flags and methods below available
              * (in particular, SYSTEM_UI_FLAG_IMMERSIVE_STICKY)
              * wee need Android API version 19. Check the version at runtime,
@@ -53,7 +56,7 @@ public class ServiceMiscellaneous extends ServiceAbstract
      * Share a text with other applications.
      * See https://developer.android.com/training/sharing/send.html
      */
-    private void intentSendText(String title, String subject, String text)
+    private void shareText(String title, String subject, String text)
     {
         Intent sendIntent = new Intent();
         sendIntent.setAction(Intent.ACTION_SEND);
@@ -64,25 +67,25 @@ public class ServiceMiscellaneous extends ServiceAbstract
     }
 
     /**
-     * View uri.
+     * View URL.
      * See http://stackoverflow.com/questions/4969217/share-application-link-in-android
      */
-    private void intentViewUri(String uri)
+    private void viewUrl(String url)
     {
         Intent intent = new Intent(Intent.ACTION_VIEW);
-        intent.setData(Uri.parse(uri));
+        intent.setData(Uri.parse(url));
         getActivity().startActivity(intent);
     }
 
     @Override
     public boolean messageReceived(String[] parts)
     {
-        if (parts.length == 2 && parts[0].equals("intent-view-uri")) {
-            intentViewUri(parts[1]);
+        if (parts.length == 2 && parts[0].equals("view-url")) {
+            viewUrl(parts[1]);
             return true;
         } else
-        if (parts.length == 4 && parts[0].equals("intent-send-text")) {
-            intentSendText(parts[1], parts[2], parts[3]);
+        if (parts.length == 4 && parts[0].equals("share-text")) {
+            shareText(parts[1], parts[2], parts[3]);
             return true;
         } else
         if (parts.length == 2 && parts[0].equals("on-screen-notification")) {

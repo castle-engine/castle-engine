@@ -108,33 +108,36 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         }
     }
 
-    /* OperationRefreshAvailableForPurchase ---------------------------------- */
+    /* OperationRefreshPrices ---------------------------------- */
 
     /* Refresh available for purchase stuff.
      * Get the list of prices for availableProducts.
+     * Calls messages
+     * - in-app-purchases-can-purchase (for each available product)
+     * - in-app-purchases-refreshed-prices (at the end)
      *
      * Secured (silently ignored) if availableProducts or mBillingService are null.
      * So e.g. onServiceConnected can safely call if (even though availableProducts
      * may be unset yet) and setAvailableProducts may safely call it (even though
      * mBillingService be unset yet).
      */
-    private class OperationRefreshAvailableForPurchase extends Operation {
+    private class OperationRefreshPrices extends Operation {
 
-        /* Class to pass productList to RefreshAvailableForPurchaseTask.
+        /* Class to pass productList to RefreshPricesTask.
          *
          * Reason: Passing ArrayList<String> makes Java warnings about unsafe code:
          * warning: [unchecked] unchecked generic array creation for varargs parameter of type ArrayList<String>[]
-         * new RefreshAvailableForPurchaseTask().execute(availableProducts);
+         * new RefreshPricesTask().execute(availableProducts);
          * (compile with
          * ant "-Djava.compilerargs=-Xlint:unchecked -Xlint:deprecation" debug
          * to see it, see http://stackoverflow.com/questions/7682150/use-xlintdeprecation-with-android ).
          */
-        private class RefreshAvailableForPurchaseInput {
+        private class RefreshPricesInput {
             ArrayList<String> productList;
         }
 
-        private class RefreshAvailableForPurchaseTask extends AsyncTask<RefreshAvailableForPurchaseInput, Void, Bundle> {
-            protected Bundle doInBackground(RefreshAvailableForPurchaseInput... inputs) {
+        private class RefreshPricesTask extends AsyncTask<RefreshPricesInput, Void, Bundle> {
+            protected Bundle doInBackground(RefreshPricesInput... inputs) {
                 ArrayList<String> productList = inputs[0].productList;
                 Bundle queryProducts = new Bundle();
                 queryProducts.putStringArrayList("ITEM_ID_LIST", productList);
@@ -188,6 +191,8 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                                     Log.i(TAG, "Product " + productId + " available for purchase, details: " + thisResponse);
                                 }
                             }
+
+                            messageSend(new String[]{"in-app-purchases-refreshed-prices"});
                         } else {
                             Log.w(TAG, "Error response when getting list of stuff available for purchase: " + InAppPurchasesHelper.billingResponseToStr(response));
                         }
@@ -204,7 +209,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         {
             if (availableProducts != null && mBillingService != null) {
                 // calculate input
-                RefreshAvailableForPurchaseInput input = new RefreshAvailableForPurchaseInput();
+                RefreshPricesInput input = new RefreshPricesInput();
                 input.productList = new ArrayList<String>();
                 for (Entry<String, AvailableProduct> entry : availableProducts.entrySet()) {
                     input.productList.add(entry.getKey());
@@ -215,7 +220,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                    http://developer.android.com/reference/android/os/AsyncTask.html
                    http://stackoverflow.com/questions/24768070/where-do-i-put-code-to-pass-a-request-to-the-in-app-billing-service-in-android-i
                 */
-                new RefreshAvailableForPurchaseTask().execute(input);
+                new RefreshPricesTask().execute(input);
             } else {
                 currentOperationFinished();
             }
@@ -225,8 +230,11 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
     /* OperationRefreshPurchased --------------------------------------------- */
 
     /* Refresh currently purchased (owned) stuff.
+     * Calls messages
+     * - in-app-purchases-owns (for each owned product)
+     * - in-app-purchases-refreshed-purchases (at the end)
      *
-     * Like OperationRefreshAvailableForPurchase, secured (silently ignored)
+     * Like OperationRefreshPrices, secured (silently ignored)
      * if availableProducts or mBillingService are null.
      */
     private class OperationRefreshPurchased extends Operation {
@@ -273,7 +281,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
                             owns(productId, purchaseData);
                         }
 
-                        messageSend(new String[]{"in-app-purchases-known-completely"});
+                        messageSend(new String[]{"in-app-purchases-refreshed-purchases"});
 
                         if (continuationToken != null) {
                             Log.e(TAG, "getPurchases returned continuationToken != null, not supported now");
@@ -462,7 +470,7 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
             mBillingService = IInAppBillingService.Stub.asInterface(service);
-            addOperation(new OperationRefreshAvailableForPurchase());
+            addOperation(new OperationRefreshPrices());
             addOperation(new OperationRefreshPurchased());
         }
     };
@@ -606,7 +614,12 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
             availableProducts.put(product.id, product);
         }
 
-        addOperation(new OperationRefreshAvailableForPurchase());
+        addOperation(new OperationRefreshPrices());
+        addOperation(new OperationRefreshPurchased());
+    }
+
+    private void refreshPurchases()
+    {
         addOperation(new OperationRefreshPurchased());
     }
 
@@ -624,7 +637,12 @@ public class ServiceGoogleInAppPurchases extends ServiceAbstract
         if (parts.length == 2 && parts[0].equals("in-app-purchases-consume")) {
             consume(parts[1]);
             return true;
-        } else {
+        } else
+        if (parts.length == 1 && parts[0].equals("in-app-purchases-refresh-purchases")) {
+            refreshPurchases();
+            return true;
+        } else
+        {
             return false;
         }
     }

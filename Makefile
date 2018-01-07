@@ -327,7 +327,9 @@ cleanmore: clean
 	rm -Rf tools/build-tool/data/android/integrated-services/giftiz/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/chartboost/app/libs/*.jar \
 	       tools/build-tool/data/android/integrated-services/heyzap/app/libs/*.jar \
-	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar
+	       tools/build-tool/data/android/integrated-services/startapp/app/libs/*.jar \
+	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/GameAnalytics.h \
+	       tools/build-tool/data/ios/services/game_analytics/cge_project_name/game_analytics/libGameAnalytics.a
 
 cleanall: cleanmore
 

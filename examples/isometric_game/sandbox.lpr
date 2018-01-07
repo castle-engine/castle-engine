@@ -47,7 +47,7 @@ begin
 
   BaseFitX := Ceil(Window.Width / BaseWidth) + 1;
   BaseFitY := Ceil(2 * Window.Height / BaseHeight) + 1;
-  
+
   if ViewFollowsPlayer then
   begin
     { Ignore ViewMoveX/Y, calculate RealView such that the player
@@ -123,8 +123,8 @@ var
   var
     Event: TInputPressRelease;
   begin
-    MessageKeyMouse(Window,
-      'Enter the character code of new base tile, or Escape to cancel', Event);
+    Event := MessageKeyMouse(Window,
+      'Enter the character code of new base tile, or Escape to cancel');
     if (Event.EventType = itKey) and
        (Event.KeyCharacter <> CharEscape) and
        (Event.KeyCharacter <> #0)  then
@@ -226,10 +226,10 @@ const
 begin
   if not ViewFollowsPlayer then
   begin
-    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
-    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
-    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
-    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.UpdateSecondsPassed;
+    if Window.Pressed[K_Up]    then ViewMoveY -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[K_Down]  then ViewMoveY += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[K_Right] then ViewMoveX -= ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
+    if Window.Pressed[K_Left]  then ViewMoveX += ViewMoveChangeSpeed * Window.Fps.SecondsPassed;
   end else
   begin
     { At first I placed the commands below in KeyDown, as they work
@@ -259,13 +259,22 @@ begin
     end;
   end;
 
-  GameTime += Window.Fps.UpdateSecondsPassed;
+  GameTime += Window.Fps.SecondsPassed;
 
   Player.Update;
 end;
 
 
+function MyGetApplicationName: string;
 begin
+  // Do not collide with /usr/share/sandbox on macOS
+  Result := 'sandbox_game';
+end;
+
+begin
+  { This should be done as early as possible to mark our log lines correctly. }
+  OnGetApplicationName := @MyGetApplicationName;
+
   InitializeLog;
 
   Window := TCastleWindowCustom.Create(Application);

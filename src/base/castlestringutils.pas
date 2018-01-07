@@ -79,7 +79,7 @@ type
     procedure AddArray(const A: array of string); deprecated 'use AddRange, consistent with other lists';
 
     procedure AssignArray(const A: array of string); deprecated 'use Assign';
-    procedure Assign(const A: array of string); overload;
+    procedure Assign(const A: array of string); {$ifndef FPC} reintroduce; {$endif} overload;
 
     { Does another string list have equal length and content.
 

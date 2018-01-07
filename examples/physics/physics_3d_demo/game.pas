@@ -147,7 +147,7 @@ end;
 procedure WindowRender(Container: TUIContainer);
 begin
   UIFont.PrintStrings(10, 10, Yellow, [
-    Format('FPS: %f', [Container.Fps.RealTime]),
+    Format('FPS: %s', [Container.Fps.ToString]),
     'Left mouse button - spawn box',
     'Right mouse button - spawn sphere',
     'AWSD, arrows - move, rotate',

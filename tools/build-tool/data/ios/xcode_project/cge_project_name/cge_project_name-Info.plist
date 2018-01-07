@@ -66,8 +66,6 @@ ${IOS_REQUIRED_DEVICE_CAPABILITIES}
 	<true/>
 	<key>UIStatusBarHidden</key>
 	<true/>
-	<key>UIStatusBarHidden~ipad</key>
-	<true/>
 	<key>UISupportedInterfaceOrientations</key>
 	<array>
 ${IOS_SCREEN_ORIENTATION}
@@ -77,5 +75,9 @@ ${IOS_SCREEN_ORIENTATION}
 ${IOS_SCREEN_ORIENTATION}
 	</array>
 ${IOS_EXTRA_INFO_PLIST}
+
+<!-- Below we will insert xxx-Info.plist contents from all used services. -->
+<!-- IOS-SERVICES-PLIST -->
+
 </dict>
 </plist>

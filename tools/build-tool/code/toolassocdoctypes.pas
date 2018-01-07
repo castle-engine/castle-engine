@@ -25,14 +25,13 @@ uses SysUtils, Generics.Collections, DOM,
 type
   TAssocDocTypeFileExt = class
   private
-    FExt, FMime, FUti: string;
-    FIosSystemDefined: boolean;
+    FExt, FMime, FIosSystemUti: string;
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
     property Ext: string read FExt;
     property Mime: string read FMime;
-    property Uti: string read FUti;
-    property IosSystemDefined: boolean read FIosSystemDefined;
+    property IosSystemUti: string read FIosSystemUti;
+    function Uti(const ProjectQualifiedName: string): string;
   end;
 
   TAssocDocType = class(specialize TObjectList<TAssocDocTypeFileExt>)
@@ -40,15 +39,15 @@ type
     FName, FIcon: string;
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function ToPListBundleDocumentTypesSection(const DefaultIcon: string): string;
-    function ToPListExportedTypeDeclarationsSection: string;
+    function ToPListBundleDocumentTypesSection(const ProjectQualifiedName, DefaultIcon: string): string;
+    function ToPListExportedTypeDeclarationsSection(const ProjectQualifiedName: string): string;
     function ToIntentFilterPathPattern: string;
   end;
 
   TAssociatedDocTypeList = class(specialize TObjectList<TAssocDocType>)
   public
     procedure ReadCastleEngineManifest(const Element: TDOMElement);
-    function ToPListSection(const DefaultIcon: string): string;
+    function ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
     function ToIntentFilter: string;
   end;
 
@@ -61,10 +60,16 @@ uses Classes, XMLRead, XMLWrite,
 
 procedure TAssocDocTypeFileExt.ReadCastleEngineManifest(const Element: TDOMElement);
 begin
-  FExt := Element.AttributeStringDef('ext', '');
+  FExt := Element.AttributeString('extension');
   FMime := Element.AttributeStringDef('mime', '');
-  FUti := Element.AttributeString('uti');
-  FIosSystemDefined := (Element.AttributeStringDef('ios-system', '') = 'true');
+  FIosSystemUti := Element.AttributeStringDef('ios_type_identifier', '');
+end;
+
+function TAssocDocTypeFileExt.Uti(const ProjectQualifiedName: string): string;
+begin
+  if Length(FIosSystemUti) > 0 then
+     Result := FIosSystemUti else
+     Result := ProjectQualifiedName + '.' + FExt;
 end;
 
 { TAssocDocType ------------------------------------------------------ }
@@ -78,7 +83,7 @@ begin
   FName := Element.AttributeString('name');
   FIcon := Element.AttributeStringDef('icon', '');
 
-  ChildElements := Element.ChildrenIterator('file_ext');
+  ChildElements := Element.ChildrenIterator('file_extension');
   try
     while ChildElements.GetNext do
     begin
@@ -90,7 +95,7 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TAssocDocType.ToPListBundleDocumentTypesSection(const DefaultIcon: string): string;
+function TAssocDocType.ToPListBundleDocumentTypesSection(const ProjectQualifiedName, DefaultIcon: string): string;
 var
   I: Integer;
   FileIcon: string;
@@ -116,14 +121,14 @@ begin
             #9#9#9'<array>' + NL;
   for I := 0 to Count - 1 do
   begin
-    Result := Result + #9#9#9#9'<string>' + Items[I].Uti + '</string>' + NL;
+    Result := Result + #9#9#9#9'<string>' + Items[I].Uti(ProjectQualifiedName) + '</string>' + NL;
   end;
   Result := Result +
             #9#9#9'</array>' + NL +
             #9#9'</dict>' + NL;
 end;
 
-function TAssocDocType.ToPListExportedTypeDeclarationsSection: string;
+function TAssocDocType.ToPListExportedTypeDeclarationsSection(const ProjectQualifiedName: string): string;
 var
   I: Integer;
 begin
@@ -132,7 +137,7 @@ begin
     Exit;
   for I := 0 to Count - 1 do
   begin
-    if (Length(Items[I].Ext) > 0) and (not Items[I].IosSystemDefined) then
+    if (Length(Items[I].Ext) > 0) and (Length(Items[I].IosSystemUti) = 0) then
       Result := Result +
                 #9#9'<dict>' + NL +
                 #9#9#9'<key>UTTypeConformsTo</key>' + NL +
@@ -142,7 +147,7 @@ begin
                 #9#9#9'<key>UTTypeDescription</key>' + NL +
                 #9#9#9'<string>' + FName + '</string>' + NL +
                 #9#9#9'<key>UTTypeIdentifier</key>' + NL +
-                #9#9#9'<string>' + Items[I].Uti + '</string>' + NL +
+                #9#9#9'<string>' + Items[I].Uti(ProjectQualifiedName) + '</string>' + NL +
                 #9#9#9'<key>UTTypeTagSpecification</key>' + NL +
                 #9#9#9'<dict>' + NL +
                 #9#9#9#9'<key>public.filename-extension</key>' + NL +
@@ -191,7 +196,7 @@ begin
   finally FreeAndNil(ChildElements) end;
 end;
 
-function TAssociatedDocTypeList.ToPListSection(const DefaultIcon: string): string;
+function TAssociatedDocTypeList.ToPListSection(const ProjectQualifiedName, DefaultIcon: string): string;
 var
   BundleDocumentTypes, ExportedTypeDeclarations: string;
   I: Integer;
@@ -203,9 +208,9 @@ begin
   for I := 0 to Count - 1 do
   begin
     BundleDocumentTypes := BundleDocumentTypes +
-                           Items[I].ToPListBundleDocumentTypesSection(DefaultIcon);
+                           Items[I].ToPListBundleDocumentTypesSection(ProjectQualifiedName, DefaultIcon);
     ExportedTypeDeclarations := ExportedTypeDeclarations +
-                                Items[I].ToPListExportedTypeDeclarationsSection;
+                                Items[I].ToPListExportedTypeDeclarationsSection(ProjectQualifiedName);
   end;
 
   Result := #9'<key>CFBundleDocumentTypes</key>' + NL +

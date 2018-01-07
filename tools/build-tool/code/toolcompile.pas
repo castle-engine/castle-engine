@@ -283,8 +283,6 @@ var
     if (OS = darwin) and (CPU = aarch64) then
     begin
       IOS := true;
-      // -dCPUARM64 is checked by castleconf.inc
-      FpcOptions.Add('-dCPUARM64');
       {$ifdef DARWIN}
       FpcOptions.Add('-XR' + DeviceSdk);
       {$endif}
@@ -296,6 +294,7 @@ var
     if IOS then
     begin
       FpcOptions.Add('-Cn');
+      FpcOptions.Add('-dCASTLE_IOS');
 
       { This corresponds to the iOS version used when compiling FPC 3.0.3 RTL
         from the latest official FPC release for iOS.
@@ -310,7 +309,7 @@ var
 
         Add -w to ignore linker warnings
 
-        This seems the only way to get rid of XCode (>= 8.3) linker errors when
+        This seems the only way to get rid of Xcode (>= 8.3) linker errors when
         compiling iOS project. The error is
 
           Warning:pointer not aligned at address...

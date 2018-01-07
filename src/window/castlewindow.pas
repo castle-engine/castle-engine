@@ -126,7 +126,7 @@
     @item(TCastleWindowCustom.Pressed to easily and reliably check which keys
       are pressed.)
 
-    @item(Frames per second measuring, see @link(TCastleWindowCustom.Fps),)
+    @item(Application speed, see @link(TCastleWindowCustom.Fps),)
 
     @item(A menu bar under WinAPI and GTK backends.
 
@@ -189,7 +189,7 @@ unit CastleWindow;
     Generally, has a nice native look of GTK application.
 
     Should work under any OS where GTK works.
-    Currently tested under Linux, FreeBSD, Mac OS X and Windows.
+    Currently tested under Linux, FreeBSD, macOS and Windows.
 
     FullScreen is cleanly implemented in GTK_2, never using override_redirect,
     so Alt+Tab always works (even when your window is fullscreen),
@@ -303,7 +303,7 @@ unit CastleWindow;
   CASTLE_WINDOW_TEMPLATE
     This is a special dummy backend, useful only as an example
     for programmers that want to implement another CastleWindow backend
-    (e.g. based on Mac OS X Carbon).
+    (e.g. based on macOS Carbon).
     It compiles, but actually nothing works.
     See file CASTLE_WINDOW_backend_template.inc.
 }
@@ -361,9 +361,9 @@ unit CastleWindow;
              {$define CASTLE_WINDOW_LIBRARY}
              {$info Compiling CastleWindow with CASTLE_WINDOW_LIBRARY backend on iOS}
            {$elseif defined(DARWIN)}
-             // various possible backends on Mac OS X (desktop):
+             // various possible backends on macOS (desktop):
              {$define CASTLE_WINDOW_XLIB} // easiest to compile
-             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on Mac OS X, but requires LCL
+             { $define CASTLE_WINDOW_LCL} // best (looks native and most functional) on macOS, but requires LCL
              { $define CASTLE_WINDOW_GTK_2}
              { $define CASTLE_WINDOW_LIBRARY}
              { $define CASTLE_WINDOW_TEMPLATE} // only useful for developers
@@ -456,7 +456,7 @@ unit CastleWindow;
   {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
 {$endif}
 {$ifdef CASTLE_WINDOW_XLIB}
-  { Disable using XF86VMODE on Mac OS X, because it seems that newer XQuarts
+  { Disable using XF86VMODE on macOS, because it seems that newer XQuarts
     does not provide it. }
   {$ifndef DARWIN}
     {$define CASTLE_WINDOW_HAS_VIDEO_CHANGE}
@@ -516,7 +516,8 @@ const
   WindowDefaultSize = -1000000;
 
 type
-  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay, poMacOsXProcessSerialNumber);
+  TWindowParseOption = (poGeometry, poScreenGeometry, poDisplay,
+    poMacOsXProcessSerialNumber, poLimitFps);
   TWindowParseOptions = set of TWindowParseOption;
   PWindowParseOptions = ^TWindowParseOptions;
 
@@ -531,11 +532,12 @@ const
     Or they can simply call overloaded version of TCastleWindowCustom.ParseParameters
     that doesn't take any parameters, it is always equivalent to
     calling TCastleWindowCustom.ParseParameters(StandardParseOptions). }
-  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay, poMacOsXProcessSerialNumber];
+  StandardParseOptions = [poGeometry, poScreenGeometry, poDisplay,
+    poMacOsXProcessSerialNumber, poLimitFps];
 
   DefaultDepthBits = 16;
 
-  DefaultFpsCaptionUpdateDelay = 5.0;
+  DefaultFpsCaptionUpdateDelay = 1.0;
 
   DefaultLimitFPS = 100.0;
 
@@ -610,10 +612,7 @@ type
     function GetMousePosition: TVector2; override;
     procedure SetMousePosition(const Value: TVector2); override;
     function Dpi: Integer; override;
-    function MousePressed: TMouseButtons; override;
     function Focused: boolean; override;
-    function Pressed: TKeysPressed; override;
-    function Fps: TFramesPerSecond; override;
     procedure SetInternalCursor(const Value: TMouseCursor); override;
     function GetTouches(const Index: Integer): TTouch; override;
     function TouchesCount: Integer; override;
@@ -650,7 +649,6 @@ type
     FOnDropFiles: TDropFilesFunc;
     FFullScreen, FDoubleBuffer: boolean;
     FResizeAllowed: TResizeAllowed;
-    FMousePressed: TMouseButtons;
     FFocused: boolean;
     FMousePosition: TVector2;
     FRedBits, FGreenBits, FBlueBits: Cardinal;
@@ -676,8 +674,6 @@ type
     MenuUpdateNeedsInitialize: boolean;
     MenuInitialized: boolean;
 
-    FFps: TFramesPerSecond;
-
     FDepthBits: Cardinal;
     FStencilBits: Cardinal;
     FAccumBits: TVector4Cardinal;
@@ -686,7 +682,6 @@ type
     FAntiAliasing: TAntiAliasing;
     FGtkIconName: string;
     FVisible: boolean;
-    FPressed: TKeysPressed;
     FMinWidth: Integer;
     FMinHeight: Integer;
     FMaxWidth: Integer;
@@ -1030,6 +1025,7 @@ type
     procedure DoMenuClick(Item: TMenuItem);
 
     procedure DoDropFiles(const FileNames: array of string);
+    function MessageReceived(const Received: TCastleStringList): boolean;
 
     { Just like FileDialog, but these always get and should set FileName,
       not an URL. Also, for OpenDialog, we make sure that initial FileName
@@ -1528,7 +1524,7 @@ type
       @deprecated
       This property is deprecated, since modern OpenGL deprecated accumulation
       buffer. It may not be supported by some backends (e.g. now LCL backend,
-      the default backend on Mac OS X, doesn't support it). }
+      the default backend on macOS, doesn't support it). }
     property AccumBits: TVector4Cardinal read FAccumBits write FAccumBits; deprecated;
 
     { Name of the icon for this window used by GTK 2 backend.
@@ -1625,11 +1621,11 @@ type
       The only difference between these two events is that
       time spent in EventBeforeRender (OnBeforeRender)
       is NOT counted as "frame time"
-      by Fps.FrameTime. This is useful when you have something that needs
+      by Fps.OnlyRenderFps. This is useful when you have something that needs
       to be done from time to time right before OnRender and that is very
       time-consuming. It such cases it is not desirable to put such time-consuming
       task inside OnRender because this would cause a sudden big change in
-      Fps.FrameTime value. So you can avoid this by putting
+      Fps.OnlyRenderFps value. So you can avoid this by putting
       this in OnBeforeRender. }
     property OnBeforeRender: TContainerEvent read GetOnBeforeRender write SetOnBeforeRender;
 
@@ -1764,7 +1760,7 @@ type
     property OnTimer: TContainerEvent read FOnTimer write FOnTimer;
 
     { Called when user drag and drops file(s) on the window.
-      In case of Mac OS X bundle, this is also called when user opens a document
+      In case of macOS bundle, this is also called when user opens a document
       associated with our application by double-clicking.
       Note: this is currently supported only by CASTLE_WINDOW_LCL backend. }
     property OnDropFiles: TDropFilesFunc read FOnDropFiles write FOnDropFiles;
@@ -1857,7 +1853,7 @@ type
 
     { Mouse buttons currently pressed.
       See @link(TUIContainer.MousePressed) for details. }
-    property MousePressed: TMouseButtons read FMousePressed;
+    function MousePressed: TMouseButtons;
 
     { Is the window focused now, which means that keys/mouse events
       are directed to this window. }
@@ -2060,12 +2056,10 @@ type
 
   public
     { Keys currently pressed. }
-    property Pressed: TKeysPressed read FPressed;
+    function Pressed: TKeysPressed;
 
-    { Fps -------------------------------------------------------------------- }
-
-    { Frames per second measuring. }
-    property Fps: TFramesPerSecond read FFps;
+    { Measures application speed. }
+    function Fps: TFramesPerSecond;
 
     { OpenAndRun stuff --------------------------------------------------------- }
 
@@ -2112,11 +2106,16 @@ type
 
         @itemLabel poMacOsXProcessSerialNumber
         @item(
-          (Only relevant on Mac OS X) A special parameter -psvn_x_xxx will be found
+          (Only relevant on macOS) A special parameter -psvn_x_xxx will be found
           and removed from the @link(Parameters) list. See
           http://forums.macrumors.com/showthread.php?t=207344 and
           http://stackoverflow.com/questions/10242115/os-x-strange-psn-command-line-parameter-when-launched-from-finder .
         )
+
+        @itemLabel poLimitFps
+        @item(Handle @--no-limit-fps: disables @link(Application.LimitFps),
+          allows to observe maximum FPS, see
+          http://castle-engine.sourceforge.io/manual_optimization.php )
       )
 
       Multiple options of the same kind are allowed, for example two options
@@ -2312,14 +2311,10 @@ type
     { The amount of time (in seconds) between updating Caption
       with current FPS value. Used when FpsShowOnCaption.
 
-      Note that updating Caption of the window too often @italic(may) cause
-      a significant FPS dropdown, in other words: don't set this to too small value.
-      Even small values like 0.2 (5 times per second) are known to cause
-      a drop in FPS.
-
-      If you want to show FPS updated more often,
-      just draw it yourself in the window,
-      see e.g. http://castle-engine.sourceforge.net/tutorial_2d_ui_custom_drawn.php . }
+      You probably don't want to change this -- the default value
+      is synchronized with how often the @link(TFramesPerSecond) actually
+      change. So there's no point in making this smaller (you may cause
+      slowdowns, and you will not see anything better). }
     property FpsCaptionUpdateDelay: Single
       read FFpsCaptionUpdateDelay write FFpsCaptionUpdateDelay
       default DefaultFpsCaptionUpdateDelay;
@@ -2446,7 +2441,6 @@ type
     FUserAgent: string;
     FDefaultWindowClass: TCastleWindowCustomClass;
     LastMaybeDoTimerTime: TTimerResult;
-    FVersion: string;
 
     FOpenWindows: TWindowList;
     function GetOpenWindows(Index: integer): TCastleWindowCustom;
@@ -2522,6 +2516,8 @@ type
     procedure UpdateAndRenderEverything(out WasAnyRendering: boolean);
     procedure UpdateAndRenderEverything;
 
+    procedure MarkSleeping;
+
     { Can we wait (hang) for next message.
       See TCastleWindowCustom.AllowSuspendForInput, this is similar but for
       the whole Application. Returns @true only if all open
@@ -2536,6 +2532,9 @@ type
       finish the @link(Run) method (if working), and thus finish the
       application work. }
     procedure CloseAllOpenWindows;
+
+    function GetVersion: string;
+    procedure SetVersion(const Value: string);
   protected
     { Override TCustomApplication to pass TCustomApplication.Log
       to CastleLog logger. }
@@ -2817,7 +2816,7 @@ type
       See TCastleApplication.ProcessMessage.
 
       In case of CastleWindow backends when we have to fight with event clogging
-      (right now only LCL backend, used by default only on Mac OS X)
+      (right now only LCL backend, used by default only on macOS)
       this is also the "desired number of FPS": we make sure that even
       when application is clogged with events (like when dragging with mouse),
       we call update (TCastleWindowCustom.OnUpdate) and (if necessary)
@@ -2826,32 +2825,16 @@ type
       it is also capped (by MaxDesiredFPS = 100.0). }
     property LimitFPS: Single read FLimitFPS write FLimitFPS default DefaultLimitFPS;
 
-    { The version of your application.
-      It may be used e.g. by @link(ParseStandardParameters). }
-    property Version: string read FVersion write FVersion;
+    property Version: string read GetVersion write SetVersion;
+      deprecated 'use ApplicationProperties.Version';
   end;
 
   { @deprecated Deprecated name for TCastleApplication. }
   TGLApplication = TCastleApplication deprecated;
 
-  { Clipboard for cut / copy / paste of text.
-    You usually use this by the single global instance @link(Clipboard).
-    Interface is mostly compatible with LCL clipboard. }
-  TCastleClipboard = class
-  private
-    function GetAsText: string;
-    procedure SetAsText(const Value: string);
-  public
-    property AsText: string read GetAsText write SetAsText;
-  end;
-
 { Single global instance of TCastleApplication.
   Automatically created / destroyed by CastleWindow unit. }
 function Application: TCastleApplication;
-
-{ Single global instance of TCastleClipboard.
-  Automatically created / destroyed by CastleWindow unit. }
-function Clipboard: TCastleClipboard;
 
 { A simple TCastleWindowCustom.OnResize callback implementation, that sets 2D projection.
   You can use it like @code(Window.OnResize := Resize2D;) or just by calling
@@ -2888,7 +2871,7 @@ function KeyString(const CharKey: char; const Key: TKey; const Modifiers: TModif
 implementation
 
 uses CastleLog, CastleGLVersion, CastleURIUtils,
-  CastleControls, CastleApplicationProperties,
+  CastleControls, CastleApplicationProperties, CastleMessaging,
   {$define read_implementation_uses}
   {$I castlewindow_backend.inc}
   {$undef read_implementation_uses}
@@ -2947,24 +2930,9 @@ begin
   Result := Parent.Dpi;
 end;
 
-function TWindowContainer.MousePressed: TMouseButtons;
-begin
-  Result := Parent.MousePressed;
-end;
-
 function TWindowContainer.Focused: boolean;
 begin
   Result := Parent.Focused;
-end;
-
-function TWindowContainer.Pressed: TKeysPressed;
-begin
-  Result := Parent.Pressed;
-end;
-
-function TWindowContainer.Fps: TFramesPerSecond;
-begin
-  Result := Parent.Fps;
 end;
 
 procedure TWindowContainer.SetInternalCursor(const Value: TMouseCursor);
@@ -3017,9 +2985,7 @@ begin
   FAutoRedisplay := true;
   OwnsMainMenu := true;
   FDpi := DefaultDpi;
-  FPressed := TKeysPressed.Create;
   FMousePosition := Vector2(-1, -1);
-  FFps := TFramesPerSecond.Create;
   FMainMenuVisible := true;
   FContainer := CreateContainer;
   Close_CharKey := #0;
@@ -3031,6 +2997,9 @@ begin
   FNamedParameters := TCastleStringList.Create;
 
   CreateBackend;
+
+  if Messaging <> nil then
+    Messaging.OnReceive.Add(@MessageReceived);
 end;
 
 destructor TCastleWindowCustom.Destroy;
@@ -3045,8 +3014,9 @@ begin
     FMainMenu := nil;
   end;
 
-  FreeAndNil(FFps);
-  FreeAndNil(FPressed);
+  if Messaging <> nil then
+    Messaging.OnReceive.Remove(@MessageReceived);
+
   FreeAndNil(FContainer);
   FreeAndNil(FTouches);
   FreeAndNil(FNamedParameters);
@@ -3093,6 +3063,10 @@ procedure TCastleWindowCustom.OpenCore;
 begin
   if not FClosed then Exit;
 
+  { Once context is initialized, then Android activity is initialized,
+    or iOS called CGEApp_Open -> so it's safe to access files. }
+  ApplicationProperties._FileAccessSafe := true;
+
   try
     { Adjust Left/Top/Width/Height as needed.
 
@@ -3112,7 +3086,7 @@ begin
 
     { reset some window state variables }
     Pressed.Clear;
-    fmousePressed := [];
+    Container.MousePressed := [];
     EventOpenCalled := false;
 
     { Set Closed to false. Before OpenBackend and EventOpen + EventResize,
@@ -3353,12 +3327,11 @@ begin
   MultiSampling := AntiAliasingToMultiSampling[Value];
 end;
 
-{ wszystkie zdarzenia TCastleWindowCustom - opakowujace je procedury DoXxx ktore
-  robia wszystkie rzeczy niezalezne od implementacji dla danego zdarzenia
-  (m.in. wywoluja EventXxx ktore m.in. wywoluje OnXxx jesli jest assigned).
-  Implementacje CastleWindow powinny wywolywac te funkcje, NIE wywolywac
-  bezposrednio EventXxx ani tym bardziej OnXxx !
-  ------------------------------------------------------------------------------------ }
+{ ----------------------------------------------------------------------------
+
+  TCastleWindowCustom events DoXxx methods,
+  implementations independent from the backend.
+  Backends should always call DoXxx, never call directly EventXxx or OnXxx. }
 
 procedure TCastleWindowCustom.DoResize(AWidth, AHeight: integer; FirstResizeAfterOpen: boolean);
 begin
@@ -3536,7 +3509,7 @@ begin
   if FingerIndex = 0 then
   begin
     FMousePosition := Position;
-    Include(FMousePressed, Button);
+    Container.MousePressed := Container.MousePressed + [Button];
   end;
   MakeCurrent;
   Event := InputMouseButton(Position, Button, FingerIndex);
@@ -3553,7 +3526,7 @@ begin
   if FingerIndex = 0 then
   begin
     FMousePosition := Position;
-    Exclude(FMousePressed, Button);
+    Container.MousePressed := Container.MousePressed - [Button];
   end;
   MakeCurrent;
   Event := InputMouseButton(Position, Button, FingerIndex);
@@ -3576,7 +3549,6 @@ end;
 
 procedure TCastleWindowCustom.DoUpdate;
 begin
-  Fps._UpdateBegin;
   MakeCurrent;
   Container.EventUpdate;
 
@@ -3585,7 +3557,7 @@ begin
      (TimerSeconds(Timer, LastFpsOutputTime) >= FpsCaptionUpdateDelay) then
   begin
     LastFpsOutputTime := Timer;
-    SetCaption(cpFps, Format(' - FPS : %f (real : %f)', [Fps.FrameTime, Fps.RealTime]));
+    SetCaption(cpFps, ' - FPS: ' + Fps.ToString);
   end;
 end;
 
@@ -3615,6 +3587,20 @@ begin
   MakeCurrent;
   if Assigned(OnDropFiles) then
     OnDropFiles(Container, FileNames);
+end;
+
+function TCastleWindowCustom.MessageReceived(const Received: TCastleStringList): boolean;
+var
+  Url: string;
+begin
+  Result := false;
+  if (Received.Count = 2) and
+     (Received[0] = 'open_associated_url') then
+  begin
+    Url := Received[1];
+    DoDropFiles([Url]);
+    Result := true;
+  end;
 end;
 
 function TCastleWindowCustom.AllowSuspendForInput: boolean;
@@ -3945,6 +3931,17 @@ begin
   end;
 end;
 
+procedure LimitFpsOptionProc(OptionNum: Integer; HasArgument: boolean;
+  const Argument: string; const SeparateArgs: TSeparateArgs; Data: Pointer);
+var
+  ProcData: POptionProcData absolute Data;
+begin
+  Include(ProcData^.SpecifiedOptions, poLimitFps);
+  case OptionNum of
+    0: application.LimitFps := 0;
+  end;
+end;
+
 procedure TCastleWindowCustom.ParseParameters(const AllowedOptions: TWindowParseOptions;
   out SpecifiedOptions: TWindowParseOptions);
 
@@ -3958,6 +3955,9 @@ const
 
   DisplayOptions: array[0..0]of TOption =
   ( (Short:#0; Long:'display'; Argument: oaRequired) );
+
+  LimitFpsOptions: array[0..0]of TOption =
+  ( (Short:#0; Long:'no-limit-fps'; Argument: oaNone) );
 
   OptionsForParam: array[TWindowParseOption] of
     record
@@ -3976,7 +3976,10 @@ const
       OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} DisplayOptionProc),
     ( pOptions: nil;
       Count: 0;
-      OptionProc: nil)
+      OptionProc: nil),
+    ( pOptions: @LimitFpsOptions;
+      Count: High(LimitFpsOptions) + 1;
+      OptionProc: {$ifdef CASTLE_OBJFPC} @ {$endif} LimitFpsOptionProc)
   );
 
 var
@@ -4009,7 +4012,8 @@ begin
    if ParamKind in AllowedOptions then
    begin
      if ParamKind = poMacOsXProcessSerialNumber then
-       HandleMacOsXProcessSerialNumber else
+       HandleMacOsXProcessSerialNumber
+     else
        Parameters.Parse(OptionsForParam[ParamKind].pOptions,
          OptionsForParam[ParamKind].Count,
          OptionsForParam[ParamKind].OptionProc, @Data, true);
@@ -4038,7 +4042,10 @@ const
    '                        then set initial window size to cover whole screen.',
    '  --display DISPLAY-NAME' +nl+
    '                        Use given X display name.',
-   ''
+   '',
+   '  --no-limit-fps        Disable FPS limit. Use this, and turn OFF' +nl+
+   '                        vertical synchonization in your GPU settings,' +nl+
+   '                        to get maximum FPS.'
    );
 var
   ParamKind: TWindowParseOption;
@@ -4444,6 +4451,21 @@ begin
   Result := FTouches.Count;
 end;
 
+function TCastleWindowCustom.MousePressed: TMouseButtons;
+begin
+  Result := Container.MousePressed;
+end;
+
+function TCastleWindowCustom.Pressed: TKeysPressed;
+begin
+  Result := Container.Pressed;
+end;
+
+function TCastleWindowCustom.Fps: TFramesPerSecond;
+begin
+  Result := Container.Fps;
+end;
+
 { TWindowSceneManager -------------------------------------------------------- }
 
 type
@@ -4792,7 +4814,8 @@ begin
       Window.DoRender;
       if Window.Closed then Continue {don't Inc(I)};
       if Terminated then Exit;
-    end;
+    end else
+      Window.Fps._Sleeping;
 
     Inc(I);
   end;
@@ -4803,6 +4826,14 @@ var
   IgnoreWasAnyRendering: boolean;
 begin
   UpdateAndRenderEverything(IgnoreWasAnyRendering);
+end;
+
+procedure TCastleApplication.MarkSleeping;
+var
+  I: Integer;
+begin
+  for I := 0 to OpenWindowsCount - 1 do
+    OpenWindows[I].Fps._Sleeping;
 end;
 
 function TCastleApplication.AllowSuspendForInput: boolean;
@@ -4946,16 +4977,16 @@ procedure TCastleApplication.HandleException(Sender: TObject);
          handling of GuessedMainWindow.MessageOK causes another exception
          that resulted in recursive call to HandleException.
          Prevent the loop with just crash in this case. }
-       (not Theme.MessageErrorBackground) then
+       (not Theme.InternalForceOpaqueBackground) then
     begin
       try
         OriginalObj := ExceptObject;
         OriginalAddr := ExceptAddr;
         OriginalFrameCount := ExceptFrameCount;
         OriginalFrame := ExceptFrames;
-        Theme.MessageErrorBackground := true;
+        Theme.InternalForceOpaqueBackground := true;
         GuessedMainWindow.MessageOK(ErrMessage, mtError);
-        Theme.MessageErrorBackground := false;
+        Theme.InternalForceOpaqueBackground := false;
       except
         on E: TObject do
         begin
@@ -4984,7 +5015,8 @@ procedure TCastleApplication.HandleException(Sender: TObject);
 begin
   if (not (ExceptObject is Exception)) or
      (not Assigned(OnException)) then
-    DefaultShowException(ExceptObject, ExceptAddr) else
+    DefaultShowException(ExceptObject, ExceptAddr)
+  else
     OnException(Sender, Exception(ExceptObject));
 
   if StopOnException then
@@ -5022,13 +5054,14 @@ begin
           NL;
         if App.MainWindow <> nil then
           HelpString += TCastleWindowCustom.ParseParametersHelp(StandardParseOptions, true) + NL + NL;
-        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName, App.Version, true);
+        HelpString += SCastleEngineProgramHelpSuffix(ApplicationName,
+          ApplicationProperties.Version, true);
         InfoWrite(HelpString);
         Halt;
       end;
     1:begin
         // include ApplicationName in --version output, this is good for help2man
-        Writeln(ApplicationName + ' ' + App.Version);
+        Writeln(ApplicationName + ' ' + ApplicationProperties.Version);
         Halt;
       end;
     else raise EInternalError.Create('OptionProc');
@@ -5047,6 +5080,16 @@ begin
   if MainWindow <> nil then
     MainWindow.ParseParameters;
   Parameters.Parse(Options, @ApplicationOptionProc, Self);
+end;
+
+function TCastleApplication.GetVersion: string;
+begin
+  Result := ApplicationProperties.Version;
+end;
+
+procedure TCastleApplication.SetVersion(const Value: string);
+begin
+  ApplicationProperties.Version := Value;
 end;
 
 { global --------------------------------------------------------------------- }
@@ -5080,20 +5123,12 @@ begin
   Result := FApplication;
 end;
 
-var
-  FClipboard: TCastleClipboard;
-
-function Clipboard: TCastleClipboard;
-begin
-  Result := FClipboard;
-end;
-
 { init/fini --------------------------------------------------------------- }
 
 initialization
+  ApplicationProperties._FileAccessSafe := false;
   CastleWindowMenu_Init;
   FApplication := TCastleApplication.Create(nil);
-  FClipboard := TCastleClipboard.Create;
 finalization
   { Instead of using FreeAndNil, just call Free.
     In our destructor we take care of setting Application variable to @nil,
@@ -5105,8 +5140,6 @@ finalization
     variable in their Close or CloseBackend implementations. }
   Application.Free;
   Assert(Application = nil);
-
-  FreeAndNil(FClipboard);
 
   { Order is important: Castlewindowmenu_Fini frees MenuItems, which is needed
     by TMenu destructor. And some TCastleWindowCustom instances may be freed

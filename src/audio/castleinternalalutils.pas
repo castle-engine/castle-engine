@@ -39,10 +39,6 @@ type
   EOpenALError = class(Exception);
   EOpenALInitError = class(EOpenALError);
 
-{ Check is ALInitialized @true.
-  @raises EOpenALInitError If ALInitialized is @false. }
-procedure CheckALInitialized;
-
 { Load the sound from given URL using TSoundFile,
   load it's contents to the OpenAL buffer Buffer.
 
@@ -200,12 +196,6 @@ implementation
 uses CastleVectors, CastleStringUtils, CastleLog, CastleURIUtils;
 
 {$define read_implementation}
-
-procedure CheckALInitialized;
-begin
- if not ALInitialized then
-  raise EOpenALInitError.Create('OpenAL library is not available');
-end;
 
 procedure alBufferDataFromFile(Buffer: TALuint;
   const URL: string; out Duration: TFloatTime);

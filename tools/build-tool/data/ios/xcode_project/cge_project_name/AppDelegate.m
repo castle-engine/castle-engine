@@ -17,19 +17,25 @@
 #import "AppDelegate.h"
 #import "OpenGLController.h"
 #import "ServiceAbstract.h"
+#import "MiscellaneousService.h"
 
 // import services
 /* IOS-SERVICES-IMPORT */
 
-AppDelegate* appDelegateToReceiveMessages;
+AppDelegate* appDelegateSingleton;
 
 void receiveMessageFromPascal(const char* message)
 {
-    if (appDelegateToReceiveMessages == nil) {
-        NSLog(@"Objective-C received message from Pascal, but appDelegateToReceiveMessages is not assigned, this should not happen.");
+    if (appDelegateSingleton == nil) {
+        NSLog(@"Objective-C received message from Pascal, but appDelegateSingleton is not assigned, this should not happen.");
         return;
     }
-    [appDelegateToReceiveMessages messageReceived:message];
+    [appDelegateSingleton messageReceived:message];
+}
+
+AppDelegate* getAppDelegate()
+{
+    return appDelegateSingleton;
 }
 
 @implementation AppDelegate
@@ -38,17 +44,20 @@ void receiveMessageFromPascal(const char* message)
 {
     services = [[NSMutableArray alloc] init];
 
+    // create MiscellaneousService, added by default
+    {
+    MiscellaneousService* serviceInstance;
+    serviceInstance = [[MiscellaneousService alloc] init];
+    serviceInstance.mainController = viewController;
+    serviceInstance.window = self.window;
+    [services addObject: serviceInstance];
+    }
+
     // create services
     /* IOS-SERVICES-CREATE */
 
-    // call applicationDidFinishLaunchingWithOptions on all services
-    for (int i = 0; i < [services count]; i++) {
-        ServiceAbstract* service = [services objectAtIndex: i];
-        [service applicationDidFinishLaunchingWithOptions];
-    }
-
     // initialize messaging with CastleMessaging unit
-    appDelegateToReceiveMessages = self;
+    appDelegateSingleton = self;
     CGEApp_SetReceiveMessageFromPascalCallback(receiveMessageFromPascal);
 }
 
@@ -73,9 +82,19 @@ void receiveMessageFromPascal(const char* message)
     // including calling Application.OnInitialize (that may want to already use services).
     [self initializeServices: viewController];
 
+    // call application:didFinishLaunchingWithOptions on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service application: application didFinishLaunchingWithOptions: launchOptions];
+    }
+
     [viewController viewDidLoad];
 
-    self.window.backgroundColor = [UIColor whiteColor];
+    // CGE have already drawn tiLoading frame, no need for a background color.
+    //self.window.backgroundColor = [UIColor whiteColor];
+
+    // Although the window seems already visible, but makeKeyAndVisible call is still
+    // needed to keep visible after application:didFinishLaunchingWithOptions call.
     [self.window makeKeyAndVisible];
 
     return YES;
@@ -107,6 +126,12 @@ void receiveMessageFromPascal(const char* message)
 - (void)applicationDidBecomeActive:(UIApplication *)application
 {
     // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
+
+    // call applicationDidBecomeActive on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service applicationDidBecomeActive: application];
+    }
 }
 
 - (void)applicationWillTerminate:(UIApplication *)application
@@ -114,9 +139,21 @@ void receiveMessageFromPascal(const char* message)
     // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
 }
 
-- (BOOL)application:(UIApplication *)application handleOpenURL:(NSURL *)url
+- (BOOL)application:(UIApplication *)application
+    openURL:(NSURL *)url
+    options:(NSDictionary<UIApplicationOpenURLOptionsKey, id> *)options
 {
-    return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+    // call application:openURL:options on all services
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        BOOL result = [service application: application openURL: url options: options];
+        if (result) {
+            return result;
+        }
+    }
+    if ([url.scheme isEqualToString:@"file"])
+        return CGEApp_HandleOpenUrl(url.fileSystemRepresentation);
+    return NO;
 }
 
 - (void)messageReceived:(const char *)message
@@ -135,6 +172,14 @@ void receiveMessageFromPascal(const char* message)
     if (!handled) {
         NSString* messageMultiline = [messageAsList componentsJoinedByString:@"\n"];
         NSLog(@"Message received by Objective-C but not handled by any service: %@", messageMultiline);
+    }
+}
+
+- (void)onPurchase:(AvailableProduct*) product
+{
+    for (int i = 0; i < [services count]; i++) {
+        ServiceAbstract* service = [services objectAtIndex: i];
+        [service onPurchase: product];
     }
 }
 

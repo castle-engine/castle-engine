@@ -25,7 +25,6 @@ uses Classes, CastleVectors, CastleUIControls, CastleFonts, CastleTextureFontDat
   CastleColors, CastleProgress, CastleTimeUtils, CastleFontFamily, CastleGLUtils,
   CastleURIUtils, CastleLog, CastleStringUtils;
 
-
 type
   TCastleLabel = class;
   TCastleScrollView = class;
@@ -36,7 +35,7 @@ type
     tiWindow, tiScrollbarFrame, tiScrollbarSlider,
     tiSlider, tiSliderPosition, tiLabel, tiActiveFrame, tiTooltip,
     tiTouchCtlInner, tiTouchCtlOuter, tiTouchCtlFlyInner, tiTouchCtlFlyOuter,
-    tiCrosshair1, tiCrosshair2, tiErrorBackground,
+    tiCrosshair1, tiCrosshair2,
 
     { Image displayed when the application is initializing,
       during @link(TCastleApplication.OnInitialize Application.OnInitialize)
@@ -80,20 +79,19 @@ type
   {$I castlecontrols_rectanglecontrol.inc}
   {$I castlecontrols_shape.inc}
   {$I castlecontrols_simplebackground.inc}
-  {$I castlecontrols_dialog.inc}
   {$I castlecontrols_label.inc}
   {$I castlecontrols_crosshair.inc}
   {$I castlecontrols_progressbar.inc}
-  {$I castlecontrols_errorbackground.inc}
   {$I castlecontrols_sliders.inc}
   {$I castlecontrols_scrollview.inc}
   {$I castlecontrols_timer.inc}
   {$I castlecontrols_edit.inc}
   // Add more UI controls include files here.
 
-  // Keep the following (theme and uifont) at the end, as they end the "type" clause.
+  // Keep the following (theme, uifont...) at the end, as they end the "type" clause.
   {$I castlecontrols_theme.inc}
   {$I castlecontrols_uifont.inc}
+  {$I castlecontrols_clipboard.inc}
   {$undef read_interface}
 
 procedure Register;
@@ -114,16 +112,15 @@ uses SysUtils, Math, CastleControlsImages, CastleTextureFont_DjvSans_20,
 {$I castlecontrols_rectanglecontrol.inc}
 {$I castlecontrols_shape.inc}
 {$I castlecontrols_simplebackground.inc}
-{$I castlecontrols_dialog.inc}
 {$I castlecontrols_label.inc}
 {$I castlecontrols_crosshair.inc}
 {$I castlecontrols_progressbar.inc}
-{$I castlecontrols_errorbackground.inc}
 {$I castlecontrols_sliders.inc}
 {$I castlecontrols_scrollview.inc}
 {$I castlecontrols_timer.inc}
 {$I castlecontrols_edit.inc}
 {$I castlecontrols_theme.inc}
+{$I castlecontrols_clipboard.inc}
 {$undef read_implementation}
 
 procedure Register;
@@ -139,4 +136,5 @@ initialization
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;
+  FinalizationClipboard;
 end.

@@ -221,12 +221,14 @@
       read FPaddingVertical write FPaddingVertical default DefaultPaddingVertical;
 
     { When AutoSize is @true (the default) then button sizes are automatically
-      adjusted when you change the Caption and @link(Image).
-      The calculated size takes into account the Caption text size (with current font),
+      calculated when you change the @link(Caption) and @link(Image).
+      The calculated size takes into account the @link(Caption) text size (with current font),
       and @link(Image) size, plus some margin to make it look nice.
 
-      @link(Width) is adjusted only when AutoSize and AutoSizeWidth.
-      And @link(Height) is adjusted only when AutoSize and AutoSizeHeight.
+      Width is auto-calculated only when AutoSize and AutoSizeWidth
+      (otherwise we just use @link(Width) property value).
+      Likewise, Height is calculated only when AutoSize and AutoSizeHeight
+      (otherwise we just use @link(Height) property value).
       This way you can turn off auto-sizing in only one dimension if you
       want (and when you don't need such flexibility, leave
       AutoSizeWidth = AutoSizeHeight = @true and control both by simple
@@ -383,7 +385,7 @@ var
   CustomBackgroundImage: TGLImageCore;
   SR: TRectangle;
   ImageMarginScaled: Cardinal;
-  UseImage: boolean;
+  UseImage, UseText: boolean;
   Tint: TCastleColor;
 begin
   inherited;
@@ -441,20 +443,25 @@ begin
     ImgScreenHeight := Round(UIScale * FImage.Height);
   end;
 
-  TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
-  if UseImage and (ImageLayout = ilLeft) then
-    TextLeft += (ImgScreenWidth + ImageMarginScaled) div 2 else
-  if UseImage and (ImageLayout = ilRight) then
-    TextLeft -= (ImgScreenWidth + ImageMarginScaled) div 2;
+  UseText := (Length(Caption) > 0);
 
-  TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
-  if UseImage and (ImageLayout = ilBottom) then
-    TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
-  if UseImage and (ImageLayout = ilTop) then
-    TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
-  TextBottom += Font.Descend;
+  if UseText then
+  begin
+    TextLeft := SR.Left + (SR.Width - TextWidth) div 2;
+    if UseImage and (ImageLayout = ilLeft) then
+      TextLeft += (ImgScreenWidth + ImageMarginScaled) div 2 else
+    if UseImage and (ImageLayout = ilRight) then
+      TextLeft -= (ImgScreenWidth + ImageMarginScaled) div 2;
 
-  RenderText;
+    TextBottom := SR.Bottom + (SR.Height - TextHeight) div 2;
+    if UseImage and (ImageLayout = ilBottom) then
+      TextBottom += (ImgScreenHeight + ImageMarginScaled) div 2 else
+    if UseImage and (ImageLayout = ilTop) then
+      TextBottom -= (ImgScreenHeight + ImageMarginScaled) div 2;
+    TextBottom += Font.Descend;
+
+    RenderText;
+  end;
 
   if UseImage then
   begin
@@ -465,15 +472,19 @@ begin
         FGLImage.Alpha := acTest else
         FGLImage.Alpha := acBlending;
     end;
-    case ImageLayout of
-      ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
-      ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
-      ilBottom, ilTop: ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) div 2;
-    end;
-    case ImageLayout of
-      ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
-      ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
-      ilLeft, ilRight: ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) div 2;
+
+    ImgLeft := SR.Left + (SR.Width - ImgScreenWidth) div 2;
+    ImgBottom := SR.Bottom + (SR.Height - ImgScreenHeight) div 2;
+    if UseText then
+    begin
+      case ImageLayout of
+        ilLeft         : ImgLeft := TextLeft - ImgScreenWidth - ImageMarginScaled;
+        ilRight        : ImgLeft := TextLeft + TextWidth + ImageMarginScaled;
+      end;
+      case ImageLayout of
+        ilBottom       : ImgBottom := TextBottom - ImgScreenHeight - ImageMarginScaled;
+        ilTop          : ImgBottom := TextBottom + TextHeight + ImageMarginScaled;
+      end;
     end;
     FGLImage.Draw(Rectangle(ImgLeft, ImgBottom, ImgScreenWidth, ImgScreenHeight));
   end;

@@ -47,7 +47,7 @@
       so it's in unscaled pixels. Kept as a float, to allow smooth time-based changes.
       Note that setting it always clamps the value to a sensible range. }
     property Scroll: Single read FScroll write SetScroll;
-  private
+
     function ScrollBarWidthScaled: Integer;
   public
     const
@@ -71,7 +71,9 @@
       By default it's opaque white, which means that no tint is shown. }
     property TintScrollBarInactive: TCastleColor read FTintScrollBarInactive write FTintScrollBarInactive;
   published
-    { Children you add here will be scrolled. }
+    { Children you add here will be scrolled.
+      Make sure to add some children here, and set proper size of this control,
+      to have a useful scrolling area. }
     property ScrollArea: TUIControlSizeable read FScrollArea;
     { Speed of scrolling by keys, in pixels (before UI scaling) per second. }
     property KeyScrollSpeed: Single read FKeyScrollSpeed write FKeyScrollSpeed default DefaultKeyScrollSpeed;
@@ -161,11 +163,16 @@ procedure TCastleScrollView.Update(const SecondsPassed: Single;
     ScrollbarFrame := SR.RightPart(ScrollBarWidthScaled);
 
     ScrollbarSlider := ScrollbarFrame;
-    ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
-    ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
-    { equivalent would be to set
-        ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
-      But this way makes it clear that MapRange below is valid, will not divide by zero. }
+    if ScrollArea.CalculatedHeight = 0 then
+      ScrollBarVisible := false
+    else
+    begin
+      ScrollbarSlider.Height := CalculatedHeight * SR.Height div ScrollArea.CalculatedHeight;
+      ScrollBarVisible := ScrollbarFrame.Height > ScrollbarSlider.Height;
+      { equivalent would be to set
+          ScrollBarVisible := CalculatedHeight < ScrollArea.CalculatedHeight
+        But this way makes it clear that MapRange below is valid, will not divide by zero. }
+    end;
     if ScrollBarVisible then
       ScrollbarSlider.Bottom += Round(MapRange(Scroll, ScrollMin, ScrollMax,
         ScrollbarFrame.Height - ScrollbarSlider.Height, 0)) else
@@ -285,8 +292,8 @@ begin
 
   { if not ScrollBarVisible then there is no point in changing Scroll.
 
-    This way we allow TCastleDialog (that uses TCastleScrollView) descendants
-    like TCastleKeyMouseDialog to handle K_PageDown, K_PageUp, K_Home and K_End keys
+    This way we allow TStateDialog (that uses TDialog that uses TCastleScrollView) descendants
+    like TStateDialogKey to handle K_PageDown, K_PageUp, K_Home and K_End keys
     and mouse wheel. And this is very good for MessageKey,
     when it's used e.g. to allow user to choose any TKey.
     Otherwise MessageKey would not be able to return
@@ -328,6 +335,8 @@ begin
           Result := ExclusiveEvents;
         end;
     end;
+  if EnableDragging and Event.IsMouseButton(mbLeft) and ScrollBarVisible then
+    Result := ExclusiveEvents;
 end;
 
 function TCastleScrollView.Release(const Event: TInputPressRelease): boolean;
@@ -351,7 +360,7 @@ begin
 
   if ScrollBarDragging then
   begin
-    Scroll := Scroll + (Event.OldPosition[1] - Event.Position[1]) /
+    Scroll := Scroll + ((Event.OldPosition[1] - Event.Position[1]) / UIScale) /
       ScrollbarFrame.Height * ScrollArea.ScreenRect.Height;
     TimeSinceDraggingStopped := 0;
     Result := ExclusiveEvents;

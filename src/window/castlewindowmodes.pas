@@ -233,8 +233,7 @@ type
     to draw the saved image in a simplest 2D OpenGL projection. }
   TGLModeFrozenScreen = class(TGLMode)
   private
-    SaveScreenControl: TCastleImageControl;
-    ErrorBackground: TErrorBackground;
+    BackgroundControls: TUIControlSizeable;
   public
     constructor Create(AWindow: TCastleWindowCustom);
     destructor Destroy; override;
@@ -246,7 +245,7 @@ procedure NoClose(Container: TUIContainer);
 
 implementation
 
-uses CastleUtils, CastleWindowTouch;
+uses CastleUtils, CastleWindowTouch, CastleColors, CastleVectors;
 
 { TGLMode.TWindowState -------------------------------------------------------------- }
 
@@ -495,36 +494,54 @@ end;
 { TGLModeFrozenScreen ------------------------------------------------------ }
 
 constructor TGLModeFrozenScreen.Create(AWindow: TCastleWindowCustom);
+
+  { Fill BackgroundControls with UI to represent frozen screen.
+    This is quite similar to what TStateDialog.Start does. }
+  procedure FillBackgroundControls;
+  var
+    BackgroundColor: TCastleColor;
+    BackgroundImage: TCastleImageControl;
+    BackgroundRect: TCastleRectangleControl;
+  begin
+    if Theme.InternalForceOpaqueBackground then
+      BackgroundColor := Vector4(Theme.BackgroundOpaqueColor, 1)
+    else
+      BackgroundColor := Theme.BackgroundColor;
+
+    if BackgroundColor[3] <> 1 then
+    begin
+      BackgroundImage := TCastleImageControl.Create(BackgroundControls);
+      BackgroundImage.Stretch := true;
+      BackgroundImage.FullSize := true;
+      { save screen, before changing state. }
+      BackgroundImage.Image := Window.SaveScreen;
+      BackgroundControls.InsertFront(BackgroundImage);
+    end;
+
+    BackgroundRect := TCastleRectangleControl.Create(BackgroundControls);
+    BackgroundRect.Color := BackgroundColor;
+    BackgroundRect.FullSize := true;
+    BackgroundRect.InterceptInput := true;
+    BackgroundControls.InsertFront(BackgroundRect);
+  end;
+
 begin
   inherited Create(AWindow);
 
-  if Theme.MessageErrorBackground then
-  begin
-    ErrorBackground := TErrorBackground.Create(nil);
-  end else
-  begin
-    SaveScreenControl := TCastleImageControl.Create(nil);
-    SaveScreenControl.Stretch := true;
-    SaveScreenControl.FullSize := true;
-
-    { save screen, before changing state. }
-    SaveScreenControl.Image := Window.SaveScreen;
-    SaveScreenControl.Color := Theme.BackgroundTint;
-  end;
+  BackgroundControls := TUIControlSizeable.Create(nil);
+  BackgroundControls.FullSize := true;
+  FillBackgroundControls;
 
   OldState.SetStandardState(nil, nil, @NoClose);
 
-  if Theme.MessageErrorBackground then
-    AWindow.Controls.InsertFront(ErrorBackground) else
-    AWindow.Controls.InsertFront(SaveScreenControl)
+  AWindow.Controls.InsertFront(BackgroundControls);
 end;
 
 destructor TGLModeFrozenScreen.Destroy;
 begin
   inherited;
   { it's a little safer to call this after inherited }
-  FreeAndNil(SaveScreenControl);
-  FreeAndNil(ErrorBackground);
+  FreeAndNil(BackgroundControls);
 end;
 
 { routines ------------------------------------------------------------------- }

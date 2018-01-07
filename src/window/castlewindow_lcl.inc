@@ -15,7 +15,7 @@
 
 (*CastleWindow backend using Lazarus LCL underneath.
   Should work with all LCL widgetsets, but was especially done and tested
-  to use LCL Carbon widgetset under Mac OS X (since for other OSes
+  to use LCL Carbon widgetset under macOS (since for other OSes
   we already have more native CastleWindow backends).
 
   TODO:
@@ -23,6 +23,9 @@
     AggressiveUpdate helps (without it, mouse look would not work at all)
     but doesn't completely fix the problem. Other CastleWindow backends
     have smooth mouse look.
+
+  - We never call Fps._Sleeping, so Fps.WasSleeping will be always false.
+    This may result in confusing Fps.ToString in case AutoRedisplay was false.
 
   Bugs on GTK2, not on Carbon:
   - All radio menu items are always on. Why?
@@ -217,7 +220,7 @@ begin
     Otherwise pressing this shortcut can be captured and cause strange behavior
     later.
 
-    view3dscene bugs (when this workaround not present) on Mac OS X:
+    view3dscene bugs (when this workaround not present) on macOS:
     - Enter "Open Link" with Command+L. Press Command+O (that leads to disabled
       menu item, and doesn't do anything!). Nothing happens, dummy letter with
       Ord(CtrlO) is inserted, that's Ok. Then press Escape. And the dialog appears
@@ -290,7 +293,7 @@ begin
        value) we do a refresh (update enabled state) of all the menu items.
 
     Note that we cannot just do MenuFinalize + MenuInitialize to implement
-    the 2nd step, because Mac OS X (Carbon) reacts very badly to menu rebuilds.
+    the 2nd step, because macOS (Carbon) reacts very badly to menu rebuilds.
     There is a problem when you have a menu item with key shortcut,
     and when this menu item is executed --- we destroy and create new menu
     that also reacts to this shortcut. In this case, Carbon executes
@@ -407,7 +410,7 @@ begin
     The "Forms.Application.MainForm" property is not directly settable.
 
     And we need to have a main form, as that's the only way to capture (in form
-    close event) the Mac OS X "ProjectName -> Quit" automatic menu item (see
+    close event) the macOS "ProjectName -> Quit" automatic menu item (see
     http://bugs.freepascal.org/view.php?id=10983).
 
     Note: This would be a problem if we used TForm descendant,
@@ -477,7 +480,7 @@ begin
 
   { pass the actual OpenGLControl sizes (e.g. after accounting for MainMenu size
     under GTK2 widgetset, actually under all widgetsets that do not have global
-    menu (like Mac OS X), and after accounting for FullScreen).
+    menu (like macOS), and after accounting for FullScreen).
     DoResize is already implemented to handle such
     call (from OpenBackend, before EventOpen was called) correctly. }
   DoResize(OpenGLControl.Width, OpenGLControl.Height, false);
@@ -789,10 +792,31 @@ begin
   DoDropFiles(FileNames);
 end;
 
+{ TLCLClipboard ----------------------------------------------------------- }
+
+type
+  TLCLClipboard = class(TCastleClipboard)
+  protected
+    function GetAsText: string; override;
+    procedure SetAsText(const Value: string); override;
+  end;
+
+function TLCLClipboard.GetAsText: string;
+begin
+  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
+end;
+
+procedure TLCLClipboard.SetAsText(const Value: string);
+begin
+  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
+end;
+
 { TCastleApplication ---------------------------------------------------------- }
 
 procedure TCastleApplication.CreateBackend;
 begin
+  RegisterClipboard(TLCLClipboard.Create);
+
   { Do not install LCL handler for ExceptProc, we want to use our own handler
     in CastleUtils. }
   Forms.Application.CaptureExceptions := false;
@@ -953,18 +977,6 @@ end;
 function TCastleApplication.BackendName: string;
 begin
   Result := 'LCL';
-end;
-
-{ TCastleClipboard ----------------------------------------------------------- }
-
-function TCastleClipboard.GetAsText: string;
-begin
-  Result := UTF8ToSys(Clipbrd.Clipboard.AsText);
-end;
-
-procedure TCastleClipboard.SetAsText(const Value: string);
-begin
-  Clipbrd.Clipboard.AsText := SysToUTF8(Value);
 end;
 
 { TCastleWindow -------------------------------------------------------------- }

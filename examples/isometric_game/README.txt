@@ -1,13 +1,18 @@
-Demo of an isometric game view, using Castle Game Engine.
+Demo of an isometric game, using static images, using Castle Game Engine.
 
-Quite simple, as everything is just drawn as 2D.
-We use our CastleWindow and GLImages to draw 2D graphics on the window.
+Everything is just drawn as 2D, using our TGLImage.
+
+This could probably be made much more impressive by:
+- Using T2DSceneManager for a game world,
+  and using inside T2DScene with (possibly animated) models.
+- And by providing more impressive game assets :)
+- And by designing some interesting map (the current map is just a test).
+Contributions are most welcome:)
 
 ----------------------------------------
 Keybindings:
 12346789:
-  Move your character. These are comfortable to use
-  on numpad when NumLock is ON.
+  Move your character. These are comfortable to use on numpad when NumLock is ON.
 up/down/right/left:
   Move your character, if "view follows the player" mode is ON.
   Otherwise, only move the view.
@@ -27,47 +32,51 @@ i:
 
 ----------------------------------------
 Map file format:
+
 (design considerations:
-- This is supposed to be reused for PGK exercise on II, so it must
-  be some simple format
-- It's a text format, to be edited in any text editor.
-  On PGK they will not have time to do any real game editor.
+- This was reused as a programming exercise (PGK exercise on ii.uni.wroc.pl,
+  where Michalis was a lecturer), so I wanted some simple text format.
+  Simple to read by code.
+  And simple to design even when you don't have a visual editor.
 - Tile filenames and counts must be specified inside the file,
   to make it flexible.
 )
 
-----
-Width Height
-PlayerStartX PlayerStartY
-BaseTilesCount BonusTilesCount
-# Now BaseTilesCount lines follow, describing the tiles used on this map.
-# The idea is that each tile corresponds to a different image filename.
-# Each tile also has a one-char name, that will be used to indicate this
-# tile later on the map. This one-char is any non-whitespace character
-# besides the "_".
-BaseChar1 BaseTileFileName1
-...
-BonusChar1 BonusTileFileName1
-....
-# Now Height map lines follow. Each line has exactly 2*Width
-# characters. First char of each pair indicates the base tile,
-# second char indicates the bonus tile (or _ if no bonus tile).
-# Lines are specified from highest to lowest (so the resulting game
-# screen looks roughly like your text file).
-...
-----
+The map file looks like this:
+
+    ```
+    Width Height
+    PlayerStartX PlayerStartY
+    BaseTilesCount BonusTilesCount
+    # Now BaseTilesCount lines follow, describing the tiles used on this map.
+    # The idea is that each tile corresponds to a different image filename.
+    # Each tile also has a one-char name, that will be used to indicate this
+    # tile later on the map. This one-char is any non-whitespace character
+    # besides the "_".
+    BaseChar1 BaseTileFileName1
+    ...
+    BonusChar1 BonusTileFileName1
+    ....
+    # Now Height map lines follow. Each line has exactly 2*Width
+    # characters. First char of each pair indicates the base tile,
+    # second char indicates the bonus tile (or _ if no bonus tile).
+    # Lines are specified from highest to lowest (so the resulting game
+    # screen looks roughly like your text file).
+    ...
+    ```
 
 ----------------------------------------
 TODO:
 
-- There's no collision for now. You can move freely everywhere,
-  pass through walls etc.
+Well, obviously, this is not a real game :)
 
-Obviously, this is not a real game. I'm sure you already noticed this.
 There's nothing besides the player and the *absolutely static* level.
 A whole lot of things should be done to turn this into a real game:
 
+- Collisions. Right now you can move freely everywhere,
+  pass through walls etc.
 - Player's sprite should animate (making steps) when moving.
+  Maybe using TSprite, maybe using T2DScene inside T2DSceneManager.
 - Creatures (probably sharing most of the current TPlayer class code,
   to make them move smoothly, be shown from various directions,
   show animations of moving). Fighting and/or talking and/or trading
@@ -75,10 +84,8 @@ A whole lot of things should be done to turn this into a real game:
   and/or giving quests.
 - Items (pick, drop, show inv, use,
   equip (change player's sprite), show equip, unequip).
-- Changing levels --- at least things disappearing/appearing on the map
+- Changing levels (maps) --- at least things disappearing/appearing on the map
   when player does something (open door).
-- Heck. A multiplayer ? An endless list of features follows here.
-- And still a whole lot of other things.
 
 ----------------------------------------
 Michalis Kamburelis

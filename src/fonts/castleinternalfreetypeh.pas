@@ -411,7 +411,7 @@ begin
     FreeTypeLibrary := TDynLib.Load('freetype-6.dll', false);
   {$endif}
 
-  // Mac OS X
+  // macOS
   {$ifdef darwin}
     {$define ft_found_platform}
     FreeTypeLibrary := TDynLib.Load('libfreetype.dylib', false);

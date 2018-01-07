@@ -289,8 +289,7 @@ var
   Pos, Dir, Up: TVector3;
   Camera: TCamera;
 begin
-  Status.Caption := Format('FPS: %f (real : %f)',
-    [Window.Fps.FrameTime, Window.Fps.RealTime]);
+  Status.Caption := 'FPS: ' + Window.Fps.ToString;
 
   Camera := SceneManager.RequiredCamera;
 
@@ -306,7 +305,7 @@ begin
       Be careful to not overshoot, and to set DragonFlying to false when
       necessary. }
     T := Dragon.Translation;
-    SecondsPassed := Container.Fps.UpdateSecondsPassed;
+    SecondsPassed := Container.Fps.SecondsPassed;
     if T[0] < DragonFlyingTarget[0] then
       T[0] := Min(DragonFlyingTarget[0], T[0] + DragonSpeedX * SecondsPassed) else
       T[0] := Max(DragonFlyingTarget[0], T[0] - DragonSpeedX * SecondsPassed);

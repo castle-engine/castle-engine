@@ -806,12 +806,12 @@ procedure Update(Container: TUIContainer);
 begin
   if Window.Pressed.Characters['s'] then
   begin
-    ShadowScale := ShadowScale * (Power(1.1, Window.Fps.UpdateSecondsPassed * 20));
+    ShadowScale := ShadowScale * (Power(1.1, Window.Fps.SecondsPassed * 20));
     Window.Invalidate;
   end;
   if Window.Pressed.Characters['S'] then
   begin
-    ShadowScale := ShadowScale * (Power(1/1.1, Window.Fps.UpdateSecondsPassed * 20));
+    ShadowScale := ShadowScale * (Power(1/1.1, Window.Fps.SecondsPassed * 20));
     Window.Invalidate;
   end;
 end;

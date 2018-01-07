@@ -127,7 +127,7 @@ begin
   inherited;
   Status.Caption := 'Model: ' + URICaption(URL) + NL +
     'Browser: ' + Application.UserAgent + NL +
-    Format('FPS: %f real : %f',  [Fps.FrameTime, Fps.RealTime]);
+    'FPS: ' +  Fps.ToString;
   if ErrorMessage <> '' then
     Status.Text.Append('Erorr when loading: ' + ErrorMessage);
 end;

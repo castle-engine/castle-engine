@@ -25,14 +25,20 @@ src:
 
 .PHONY: android
 android:
-	castle-engine --mode=$(MODE) package --os=android --cpu=arm
+	castle-engine --mode=$(MODE) package --os=android --cpu=arm --fast
 	castle-engine install --os=android --cpu=arm
 	castle-engine run --os=android --cpu=arm
 
+.PHONY: android-release
+android-release:
+	castle-engine clean
+	$(MAKE) android MODE=release
+
 .PHONY: ios
 ios:
-	castle-engine --mode=$(MODE) package --target=iOS
-
-.PHONY: ios-fast
-ios-fast:
 	castle-engine --mode=$(MODE) package --target=iOS --fast
+
+.PHONY: ios-release
+ios-release:
+	castle-engine clean
+	$(MAKE) ios MODE=release

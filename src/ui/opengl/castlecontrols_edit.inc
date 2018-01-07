@@ -118,6 +118,9 @@
 
 {$ifdef read_implementation}
 
+const
+  CaretChar = '|';
+
 { TCastleEdit --------------------------------------------------------------- }
 
 constructor TCastleEdit.Create(AOwner: TComponent);
@@ -303,6 +306,10 @@ procedure TCastleEdit.Update(const SecondsPassed: Single;
 begin
   inherited;
   LifeTime += SecondsPassed;
+  { do not allow other controls to handle key presses
+    (and e.g. move camera when "A" is pressed down), TCastleEdit handles all keys }
+  if ExclusiveEvents then
+    HandleInput := false;
 end;
 
 function TCastleEdit.Press(const Event: TInputPressRelease): boolean;
@@ -314,13 +321,13 @@ begin
   begin
     if Text <> '' then
       Text := Copy(Text, 1, Length(Text) - 1);
+    Result := ExclusiveEvents;
   end else
-(*
-  // TODO: Expose Clipboard in UI controls that don't depend on CastleWindow.
   if Event.IsKey(CtrlC) then
   begin
     if Text <> '' then
       Clipboard.AsText := Text;
+    Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlX) then
   begin
@@ -329,18 +336,20 @@ begin
       Clipboard.AsText := Text;
       Text := '';
     end;
+    Result := ExclusiveEvents;
   end else
   if Event.IsKey(CtrlV) then
   begin
     Text := SDeleteChars(Clipboard.AsText, AllChars - FAllowedChars);
+    Result := ExclusiveEvents;
   end else
-*)
   if (Event.EventType = itKey) and
      (Event.KeyCharacter <> #0) and
      (Event.KeyCharacter in AllowedChars) and
      ((MaxLength = 0) or (Length(Text) < MaxLength)) then
   begin
     Text := Text + Event.KeyCharacter;
+    Result := ExclusiveEvents;
   end;
 end;
 

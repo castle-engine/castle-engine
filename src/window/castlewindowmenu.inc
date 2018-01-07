@@ -441,8 +441,8 @@
   { Menu item that toggles TCastleWindowCustom.FullScreen.
 
     This already has a nice caption, key shortcut (F11 on most platforms,
-    except Mac OS X where it's Command+F11 (on LCL backend) or Ctrl+F11
-    (on other backends), since the bare F11 is reserved on Mac OS X).
+    except macOS where it's Command+F11 (on LCL backend) or Ctrl+F11
+    (on other backends), since the bare F11 is reserved on macOS).
     And it has a DoClick implementation that takes care of the actual job.
 
     So you can just add it to your menu, and forget about it. }

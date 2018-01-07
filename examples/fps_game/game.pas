@@ -265,7 +265,7 @@ begin
 
   { show FPS }
   UIFont.PrintRect(Window.Rect.Grow(-ControlsMargin), Red,
-    Format('FPS: %f', [Window.Fps.RealTime]), hpRight, vpTop);
+    'FPS: ' + Window.Fps.ToString, hpRight, vpTop);
 
   Y := Y - (UIFont.RowHeight + InventoryImageSize);
 
@@ -630,10 +630,12 @@ initialization
   Application.OnInitialize := @ApplicationInitialize;
 
 finalization
-  { In a desktop game, it's usually enough to store the preferences
+  { In a desktop game, it's OK to store the preferences
     in the finalization section, when the program stops.
-    In mobile games, you should usually store the preferences more often,
-    to make sure they are saved even when the program is killed by the OS. }
+    In mobile games, you should store the preferences more often,
+    to make sure they are saved even when the program is killed by the OS
+    -- so the lines below should be called always after
+    user changed the preferences. }
 
   { Save the configuration file. This is commented out here,
     as this example program does not give user any UI to actually change

@@ -13,7 +13,7 @@
   ----------------------------------------------------------------------------
 }
 
-{ Generation of the pbxproj project file, part of the iOS XCode project. }
+{ Generation of the pbxproj project file, part of the iOS Xcode project. }
 unit ToolIosPbxGeneration;
 
 interface
@@ -22,27 +22,27 @@ uses SysUtils, Generics.Collections,
   CastleFindFiles;
 
 type
-  TXCodeProjectFile = class;
-  TXCodeProject = class;
+  TXcodeProjectFile = class;
+  TXcodeProject = class;
 
-  TXCodeProjectFileList = specialize TObjectList<TXCodeProjectFile>;
+  TXcodeProjectFileList = specialize TObjectList<TXcodeProjectFile>;
 
-  { Framework within an XCode project. }
-  TXCodeProjectFramework = class
+  { Framework within an Xcode project. }
+  TXcodeProjectFramework = class
     Name: string;
     FileUuid, BuildUuid: string;
     constructor Create(const AName: string);
   end;
 
-  { File or directory within an XCode project. }
-  TXCodeProjectFile = class
+  { File or directory within an Xcode project. }
+  TXcodeProjectFile = class
     Name: string;
     FileUuid, BuildUuid: string;
     { Children references.
       List instance itself is owned, but items on this list are not owned by this object. }
-    Children: TXCodeProjectFileList;
+    Children: TXcodeProjectFileList;
     Directory: boolean;
-    Project: TXCodeProject;
+    Project: TXcodeProject;
     constructor Create; overload;
     constructor Create(const FileInfo: TFileInfo); overload;
     destructor Destroy; override;
@@ -51,13 +51,13 @@ type
     procedure AddChildFile(const FileInfo: TFileInfo; var StopSearch: boolean);
   end;
 
-  TXCodeProjectFrameworkList = specialize TObjectList<TXCodeProjectFramework>;
+  TXcodeProjectFrameworkList = specialize TObjectList<TXcodeProjectFramework>;
 
-  { XCode project things (files, frameworks...) information,
+  { Xcode project things (files, frameworks...) information,
     useful to generate xxx.pbxproj file. }
-  TXCodeProject = class
+  TXcodeProject = class
   strict private
-    TopLevelDir: TXCodeProjectFile;
+    TopLevelDir: TXcodeProjectFile;
 
     function SectionPBXFileReference: string;
     function SectionPBXBuildFile: string;
@@ -68,8 +68,8 @@ type
     function SectionPBXSourcesBuildPhase: string;
   public
     { Flattened list of *all* files within a project. Owns items. }
-    Files: TXCodeProjectFileList;
-    Frameworks: TXCodeProjectFrameworkList;
+    Files: TXcodeProjectFileList;
+    Frameworks: TXcodeProjectFrameworkList;
     constructor Create;
     destructor Destroy; override;
     procedure AddTopLevelDir(const Path, Name: string);
@@ -83,57 +83,57 @@ uses StrUtils,
   CastleStringUtils, CastleUtils, CastleLog;
 
 var
-  XCodeUuidNext: Int64;
+  XcodeUuidNext: Int64;
 
-{ UUID in XCode project: 12 bytes for unique id.
+{ UUID in Xcode project: 12 bytes for unique id.
   We use 6 bytes for random number, 6 bytes for the next sequential number
   (thus guaranteeing that within a single run, the numbers will be different,
   no matter about the random quality). }
-function GenXCodeUuid: string;
+function GenXcodeUuid: string;
 var
   RandomPart: Int64;
 begin
   RandomPart := Random(Int64(1) shl (6 * 8));
-  Inc(XCodeUuidNext);
+  Inc(XcodeUuidNext);
   Result :=
     IntToHex(RandomPart, 6 * 2) +
-    IntToHex(XCodeUuidNext, 6 * 2);
+    IntToHex(XcodeUuidNext, 6 * 2);
 end;
 
-{ TXCodeProjectFramework ---------------------------------------------------------- }
+{ TXcodeProjectFramework ---------------------------------------------------------- }
 
-constructor TXCodeProjectFramework.Create(const AName: string);
+constructor TXcodeProjectFramework.Create(const AName: string);
 begin
   inherited Create;
-  FileUuid := GenXCodeUuid;
-  BuildUuid := GenXCodeUuid;
+  FileUuid := GenXcodeUuid;
+  BuildUuid := GenXcodeUuid;
   Name := AName;
 end;
 
-{ TXCodeProjectFile ---------------------------------------------------------- }
+{ TXcodeProjectFile ---------------------------------------------------------- }
 
-constructor TXCodeProjectFile.Create;
+constructor TXcodeProjectFile.Create;
 begin
   inherited Create;
-  Children := TXCodeProjectFileList.Create(false);
-  FileUuid := GenXCodeUuid;
-  BuildUuid := GenXCodeUuid;
+  Children := TXcodeProjectFileList.Create(false);
+  FileUuid := GenXcodeUuid;
+  BuildUuid := GenXcodeUuid;
 end;
 
-constructor TXCodeProjectFile.Create(const FileInfo: TFileInfo);
+constructor TXcodeProjectFile.Create(const FileInfo: TFileInfo);
 begin
   Create;
   Name := FileInfo.Name;
   Directory := FileInfo.Directory;
 end;
 
-destructor TXCodeProjectFile.Destroy;
+destructor TXcodeProjectFile.Destroy;
 begin
   FreeAndNil(Children);
   inherited;
 end;
 
-function TXCodeProjectFile.FileType: string;
+function TXcodeProjectFile.FileType: string;
 var
   E: string;
 begin
@@ -157,13 +157,13 @@ begin
     Result := 'text.plist.entitlements'
   else
   begin
-    WarningWrite('Unrecognized file extension in XCode project: "%s" on file "%s". Assuming a text file.',
+    WarningWrite('Unrecognized file extension in Xcode project: "%s" on file "%s". Assuming a text file.',
       [E, Name]);
     Result := 'text';
   end;
 end;
 
-function TXCodeProjectFile.BuildGroup: string;
+function TXcodeProjectFile.BuildGroup: string;
 var
   E: string;
 begin
@@ -178,10 +178,10 @@ begin
     Result := '';
 end;
 
-procedure TXCodeProjectFile.AddChildFile(
+procedure TXcodeProjectFile.AddChildFile(
   const FileInfo: TFileInfo; var StopSearch: boolean);
 var
-  F: TXCodeProjectFile;
+  F: TXcodeProjectFile;
 begin
   // These are deliberately treated exceptionally by the generation code
   if SameText(FileInfo.Name, 'en.lproj') or
@@ -198,7 +198,7 @@ begin
 
   if SpecialDirName(FileInfo.Name) then Exit;
 
-  F := TXCodeProjectFile.Create(FileInfo);
+  F := TXcodeProjectFile.Create(FileInfo);
   Children.Add(F);
   Project.Files.Add(F);
   F.Project := Project;
@@ -208,25 +208,25 @@ begin
     FindFiles(FileInfo.AbsoluteName, '*', true, @F.AddChildFile, []);
 end;
 
-{ TXCodeProject -------------------------------------------------------------- }
+{ TXcodeProject -------------------------------------------------------------- }
 
-constructor TXCodeProject.Create;
+constructor TXcodeProject.Create;
 begin
   inherited;
-  Files := TXCodeProjectFileList.Create(true);
-  Frameworks := TXCodeProjectFrameworkList.Create(true);
+  Files := TXcodeProjectFileList.Create(true);
+  Frameworks := TXcodeProjectFrameworkList.Create(true);
 end;
 
-destructor TXCodeProject.Destroy;
+destructor TXcodeProject.Destroy;
 begin
   FreeAndNil(Files);
   FreeAndNil(Frameworks);
   inherited;
 end;
 
-procedure TXCodeProject.AddTopLevelDir(const Path, Name: string);
+procedure TXcodeProject.AddTopLevelDir(const Path, Name: string);
 begin
-  TopLevelDir := TXCodeProjectFile.Create;
+  TopLevelDir := TXcodeProjectFile.Create;
   TopLevelDir.Name := Name;
   TopLevelDir.Directory := true;
   TopLevelDir.Project := Self;
@@ -236,10 +236,10 @@ begin
   FindFiles(InclPathDelim(Path) + Name, '*', true, @TopLevelDir.AddChildFile, []);
 end;
 
-function TXCodeProject.SectionPBXFileReference: string;
+function TXcodeProject.SectionPBXFileReference: string;
 var
-  F: TXCodeProjectFile;
-  Fr: TXCodeProjectFramework;
+  F: TXcodeProjectFile;
+  Fr: TXcodeProjectFramework;
 begin
   Result := '/* Begin PBXFileReference section */' + NL;
 
@@ -267,10 +267,10 @@ begin
     '/* End PBXFileReference section */' + NL + NL;
 end;
 
-function TXCodeProject.SectionPBXBuildFile: string;
+function TXcodeProject.SectionPBXBuildFile: string;
 var
-  F: TXCodeProjectFile;
-  Fr: TXCodeProjectFramework;
+  F: TXcodeProjectFile;
+  Fr: TXcodeProjectFramework;
   BuildGroup: string;
 begin
   Result := '/* Begin PBXBuildFile section */' + NL;
@@ -300,15 +300,15 @@ begin
     '/* End PBXBuildFile section */' + NL + NL;
 end;
 
-function TXCodeProject.SectionPBXGroup: string;
+function TXcodeProject.SectionPBXGroup: string;
 var
-  F, Child: TXCodeProjectFile;
-  Fr: TXCodeProjectFramework;
-  SupportingFiles: TXCodeProjectFileList;
+  F, Child: TXcodeProjectFile;
+  Fr: TXcodeProjectFramework;
+  SupportingFiles: TXcodeProjectFileList;
   E: string;
 begin
   Result := '/* Begin PBXGroup section */' + NL;
-  SupportingFiles := TXCodeProjectFileList.Create(false);
+  SupportingFiles := TXcodeProjectFileList.Create(false);
 
   { each directory is a group }
   for F in Files do
@@ -411,9 +411,9 @@ begin
   FreeAndNil(SupportingFiles);
 end;
 
-function TXCodeProject.SectionPBXFrameworksBuildPhase: string;
+function TXcodeProject.SectionPBXFrameworksBuildPhase: string;
 var
-  Fr: TXCodeProjectFramework;
+  Fr: TXcodeProjectFramework;
 begin
   Result := '/* Begin PBXFrameworksBuildPhase section */' + NL +
     #9#9'4D629DF11916B0EB0082689B /* Frameworks */ = {' + NL +
@@ -434,9 +434,9 @@ begin
     '/* End PBXFrameworksBuildPhase section */' + NL + NL;
 end;
 
-function TXCodeProject.SectionPBXResourcesBuildPhase: string;
+function TXcodeProject.SectionPBXResourcesBuildPhase: string;
 var
-  F: TXCodeProjectFile;
+  F: TXcodeProjectFile;
 begin
   Result := '/* Begin PBXResourcesBuildPhase section */' + NL +
     #9#9'4D629DF21916B0EB0082689B /* Resources */ = {' + NL +
@@ -462,9 +462,9 @@ begin
     '/* End PBXResourcesBuildPhase section */' + NL + NL;
 end;
 
-function TXCodeProject.SectionPBXSourcesBuildPhase: string;
+function TXcodeProject.SectionPBXSourcesBuildPhase: string;
 var
-  F: TXCodeProjectFile;
+  F: TXcodeProjectFile;
 begin
   Result := '/* Begin PBXSourcesBuildPhase section */' + NL +
     #9#9'4D629DF01916B0EB0082689B /* Sources */ = {' + NL +
@@ -485,7 +485,7 @@ begin
     '/* End PBXSourcesBuildPhase section */' + NL + NL;
 end;
 
-function TXCodeProject.PBXContents: string;
+function TXcodeProject.PBXContents: string;
 begin
   Result :=
     SectionPBXFileReference +

@@ -23,9 +23,7 @@ interface
 uses Classes;
 
 type
-  { Helpshift (http://helpshift.com/) integration.
-    Only on Android (will simply do nothing on other platforms).
-    For now, only one trivial method. }
+  { Helpshift (http://helpshift.com/) integration. Only on Android now. }
   THelpshift = class(TComponent)
   public
     class procedure ShowConversation;
