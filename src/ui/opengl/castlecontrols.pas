@@ -133,7 +133,6 @@ end;
 
 initialization
   FTheme := TCastleTheme.Create;
-  FUIFontSmallScale := 0.5;
 finalization
   FreeAndNil(FTheme);
   FinalizationUIFonts;
