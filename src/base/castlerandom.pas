@@ -1,5 +1,5 @@
 {
-  Copyright 2016-2017 Eugene Loza, Michalis Kamburelis.
+  Copyright 2016-2017 Yevhen Loza, Michalis Kamburelis.
 
   This file is part of "Castle Game Engine".
 
@@ -144,9 +144,9 @@ var c64: QWord; //current seed;
     b64: QWord; //additional seed for multi-threading safety
   procedure XorShift64; //{$IFDEF SUPPORTS_INLINE} inline; {$ENDIF} //we're using it too many times to inline
   begin
-    c64:=c64 xor (c64 shl 12);
-    c64:=c64 xor (c64 shr 25);
-    c64:=c64 xor (c64 shl 27);
+    c64 := c64 xor (c64 shl 12);
+    c64 := c64 xor (c64 shr 25);
+    c64 := c64 xor (c64 shl 27);
   end;
 begin
   {We add an additional semi-random variable based on local c64 variable
@@ -249,7 +249,7 @@ begin
     XorShift64;
     {leave higher 32-bits of c64 as a true random seed}
     Result := longint(c64 shr 32);
-  until Result<>0;
+  until Result <> 0;
   {and strictly demand it's not zero!
    adding a few XorShift64-cycles in case it does.}
 
@@ -322,9 +322,9 @@ function TCastleRandom.RandomInt64(N: int64): int64;
 var c64: QWord;
   procedure XorShift64; {$IFDEF SUPPORTS_INLINE} inline; {$ENDIF}
   begin
-    c64:=c64 xor (c64 shl 12);
-    c64:=c64 xor (c64 shr 25);
-    c64:=c64 xor (c64 shl 27);
+    c64 := c64 xor (c64 shl 12);
+    c64 := c64 xor (c64 shr 25);
+    c64 := c64 xor (c64 shl 27);
   end;
 begin
   {we need to do it even if N=0..1 to cycle 32bit random seed twice as expected}
@@ -368,7 +368,7 @@ var h, k: LongWord; //MurMur variables
   const m = $5bd1e995; //MurMur "magic" cycling constant
         MaxLongWord = $FFFFFFFF;
   begin
-    x := QWord(x  *m) and MaxLongWord //prevent overflows during multiplication;
+    x := QWord(x * m) and MaxLongWord //prevent overflows during multiplication;
   end;
 begin
   i := Len;
@@ -405,7 +405,7 @@ begin
   Result := h;
 end;
 
-function StringToHash(const InputString: AnsiString; const Seed: LongWord=0): LongWord;
+function StringToHash(const InputString: AnsiString; const Seed: LongWord = 0): LongWord;
 begin
   Result := MurMur2(Pointer(InputString), Length(InputString), Seed);
   //Pointer(InputString) is an untyped pointer to the first character of the string
@@ -421,13 +421,15 @@ end;
 
 function Rnd: Single;
 begin
-  if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
+  if GlobalRandom = nil then
+    GlobalRandom := TCastleRandom.Create;
   Result := GlobalRandom.Random;
 end;
 
 function Rnd(N: LongInt): LongInt;
 begin
-  if GlobalRandom = nil then GlobalRandom := TCastleRandom.Create;
+  if GlobalRandom = nil then
+    GlobalRandom := TCastleRandom.Create;
   Result := GlobalRandom.Random(N);
 end;
 

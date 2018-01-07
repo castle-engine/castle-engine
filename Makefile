@@ -155,6 +155,7 @@ EXAMPLES_BASE_NAMES := \
   examples/images_videos/image_convert \
   examples/images_videos/dds_decompose \
   examples/images_videos/image_identify \
+  examples/images_videos/image_paint \
   examples/images_videos/image_compare \
   examples/images_videos/simple_video_editor \
   examples/images_videos/drawing_modes_test \
