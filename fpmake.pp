@@ -178,6 +178,7 @@ begin
     P.Targets.AddUnit('castlegoogleplaygames.pas');
     P.Targets.AddUnit('castlehelpshift.pas');
     P.Targets.AddUnit('castleinapppurchases.pas');
+    P.Targets.AddUnit('castlephotoservice.pas');
     P.Targets.AddUnit('castleopendocument.pas');
 
     P.SourcePath.Add('src' + PathDelim + 'services' + PathDelim + 'opengl');
