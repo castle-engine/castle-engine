@@ -15,7 +15,7 @@
 
 { @deprecated @exclude }
 unit CastleSoundAllocator
-  deprecated 'use the CastleSoundEngine unit, it now contains everything (public) that used to be in the CastleSoundAllocator unit';
+  deprecated 'do not use this unit; everything public is now exposed in the CastleSoundEngine unit';
 
 interface
 
