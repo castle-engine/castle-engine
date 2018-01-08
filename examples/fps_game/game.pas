@@ -182,6 +182,14 @@ procedure TButtons.ScreenshotButtonClick(Sender: TObject);
 var
   URL: string;
 begin
+  { Guess the URL where to write the screenshot.
+    Using ApplicationConfig is safer (on ANY platform, but especially on mobile),
+    because the ApplicationConfig is somewhere we can definitely write files. }
+  if Application.TouchDevice then
+    URL := FileNameAutoInc(ApplicationConfig(ApplicationName + '_screen_%d.png'))
+  else
+    URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
+
   { Capture a screenshot straight to a file.
     There are more interesting things that you can do with a screenshot
     (overloaded Window.SaveScreen returns you a TRGBImage and we have
@@ -189,7 +197,6 @@ begin
     You could also ask use to choose a file (e.g. by Window.FileDialog).
     But this is just a simple example, and this way we also have
     an opportunity to show how to use Notifications. }
-  URL := FileNameAutoInc(ApplicationName + '_screen_%d.png');
   Window.SaveScreen(URL);
   Notifications.Show('Saved screen to ' + URL);
 end;
