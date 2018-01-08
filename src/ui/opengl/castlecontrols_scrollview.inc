@@ -292,9 +292,10 @@ begin
 
   { if not ScrollBarVisible then there is no point in changing Scroll.
 
-    This way we allow TStateDialog (that uses TDialog that uses TCastleScrollView) descendants
-    like TStateDialogKey to handle K_PageDown, K_PageUp, K_Home and K_End keys
-    and mouse wheel. And this is very good for MessageKey,
+    This way we allow TStateDialog (that uses TDialog that uses TCastleScrollView)
+    descendants like TStateDialogKey to handle
+    K_PageDown, K_PageUp, K_Home and K_End keys and mouse wheel.
+    And this is very good for MessageKey,
     when it's used e.g. to allow user to choose any TKey.
     Otherwise MessageKey would not be able to return
     K_PageDown, K_PageUp, etc. keys. }
@@ -335,6 +336,22 @@ begin
           Result := ExclusiveEvents;
         end;
     end;
+
+  { We do not process mouse button clicks (or touches) here
+    (not on an entire TCastleScrollView area -- the code above handles
+    clicks inside ScrollbarFrame only).
+    We only process dragging (with mbLeft) inside TCastleScrollView.Update
+    and TCastleScrollView.Motion.
+
+    But we still have to mark the mouse click as "handled" here.
+    Otherwise some control underneath us (like TCastleSceneManager) could handle
+    mouse and capture it (the TUIContainer automatically "captures" the control
+    that returns "true" from Press event), and then we would not receive
+    TCastleScrollView.Motion events anymore.
+
+    (Testcase: MessageOK or TStateDialogOK on mobile (Android, iOS) with
+    long text, to make scrolling useful.)  }
+
   if EnableDragging and Event.IsMouseButton(mbLeft) and ScrollBarVisible then
     Result := ExclusiveEvents;
 end;
